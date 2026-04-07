@@ -16,9 +16,9 @@ the jdtbridge codebase. It implements the language defined in:
 
 ## Status
 
-Alpha. The language model is stable; this implementation is the
-first executable rendering. No host integration with the JDT
-bridge yet — that comes after the conformance tests are green.
+Alpha. Standalone reference evaluator with a conformance test
+suite. Host integration with the JDT bridge lives outside this
+module.
 
 ## Architecture
 

@@ -1,0 +1,43 @@
+{
+  "name": "@kaluchi/qlang",
+  "version": "0.1.0-alpha",
+  "description": "Reference implementation of the jdtbridge query expression language",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./parse": "./src/parse.mjs",
+    "./eval": "./src/eval.mjs",
+    "./runtime": "./src/runtime/index.mjs"
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build:grammar": "node scripts/build-grammar.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "query-language",
+    "interpreter",
+    "pipeline",
+    "jdtbridge"
+  ],
+  "license": "Apache-2.0",
+  "author": "kaluchi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaluchi/jdtbridge.git",
+    "directory": "qlang"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "peggy": "^4.2.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -8,13 +8,6 @@ import { parse } from '../../src/parse.mjs';
 import {
   QlangError,
   QlangTypeError,
-  SubjectTypeError,
-  ModifierTypeError,
-  ElementTypeError,
-  ComparabilityError,
-  ProjectionError,
-  CombinatorError,
-  ApplicationError,
   UnresolvedIdentifierError,
   DivisionByZeroError,
   ArityError
@@ -309,108 +302,184 @@ describe('runtime/format.mjs structural', () => {
   });
 });
 
-describe('error subclasses carry structured context', () => {
-  // Each test targets a specific error class so the diagnostic
-  // context is asserted directly, not just the generic kind tag.
+describe('per-site error classes carry unique identity', () => {
+  // Each test catches a concrete error from a known source site
+  // and asserts its unique class name + structured context. The
+  // class name alone identifies the throw location, and tests
+  // match on `e.name` (stable identifier) so they stay readable
+  // without importing every per-site class.
 
-  it('SubjectTypeError on Vec operand', () => {
-    let caught;
-    try { evalQuery('42 | count'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(SubjectTypeError);
-    expect(caught.context.operand).toBe('count');
-    expect(caught.context.expectedType).toBe('Vec, Set, or Map');
-    expect(caught.context.actualType).toBe('number');
-    expect(caught.kind).toBe('type-error');
+  function catchError(query) {
+    try { evalQuery(query); return null; }
+    catch (e) { return e; }
+  }
+
+  it('count on non-container → CountSubjectNotContainer', () => {
+    const e = catchError('42 | count');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.name).toBe('CountSubjectNotContainer');
+    expect(e.context.operand).toBe('count');
+    expect(e.context.actualType).toBe('number');
   });
 
-  it('SubjectTypeError on Map operand', () => {
-    let caught;
-    try { evalQuery('42 | keys'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(SubjectTypeError);
-    expect(caught.context.operand).toBe('keys');
-    expect(caught.context.expectedType).toBe('Map');
+  it('keys on non-Map → KeysSubjectNotMap', () => {
+    const e = catchError('42 | keys');
+    expect(e.name).toBe('KeysSubjectNotMap');
+    expect(e.context.operand).toBe('keys');
   });
 
-  it('ModifierTypeError on numeric arg', () => {
-    let caught;
-    try { evalQuery('"x" | add(1)'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(ModifierTypeError);
-    expect(caught.context.operand).toBe('add');
-    expect(caught.context.position).toBe(1);
-    expect(caught.context.expectedType).toBe('number');
-    expect(caught.context.actualType).toBe('string');
+  it('add left non-number → AddLeftNotNumber', () => {
+    const e = catchError('"x" | add(1)');
+    expect(e.name).toBe('AddLeftNotNumber');
+    expect(e.context.operand).toBe('add');
+    expect(e.context.position).toBe(1);
+    expect(e.context.actualType).toBe('string');
   });
 
-  it('ModifierTypeError on string arg', () => {
-    let caught;
-    try { evalQuery('"x" | prepend(42)'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(ModifierTypeError);
-    expect(caught.context.operand).toBe('prepend');
-    expect(caught.context.position).toBe(2);
-    expect(caught.context.expectedType).toBe('string');
+  it('add right non-number → AddRightNotNumber', () => {
+    const e = catchError('1 | add("x")');
+    expect(e.name).toBe('AddRightNotNumber');
+    expect(e.context.position).toBe(2);
   });
 
-  it('ElementTypeError on sum of mixed Vec', () => {
-    let caught;
-    try { evalQuery('[1 "two" 3] | sum'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(ElementTypeError);
-    expect(caught.context.operand).toBe('sum');
-    expect(caught.context.index).toBe(1);
-    expect(caught.context.expectedType).toBe('number');
-    expect(caught.context.actualType).toBe('string');
+  it('sub left non-number → SubLeftNotNumber (distinct from add)', () => {
+    const e = catchError('"x" | sub(1)');
+    expect(e.name).toBe('SubLeftNotNumber');
   });
 
-  it('ComparabilityError on heterogeneous gt', () => {
-    let caught;
-    try { evalQuery('"a" | gt(5)'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(ComparabilityError);
-    expect(caught.context.operand).toBe('gt');
-    expect(caught.context.leftType).toBe('string');
-    expect(caught.context.rightType).toBe('number');
+  it('mul left non-number → MulLeftNotNumber', () => {
+    const e = catchError('"x" | mul(1)');
+    expect(e.name).toBe('MulLeftNotNumber');
   });
 
-  it('ProjectionError on non-Map', () => {
-    let caught;
-    try { evalQuery('42 | /name'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(ProjectionError);
-    expect(caught.context.key).toBe('name');
-    expect(caught.context.actualType).toBe('number');
+  it('div left non-number → DivLeftNotNumber', () => {
+    const e = catchError('"x" | div(1)');
+    expect(e.name).toBe('DivLeftNotNumber');
   });
 
-  it('CombinatorError on distribute of non-Vec', () => {
-    let caught;
-    try { evalQuery('{:a 1} * add(1)'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(CombinatorError);
-    expect(caught.context.combinator).toBe('*');
-    expect(caught.context.expectedType).toBe('Vec');
-    expect(caught.context.actualType).toBe('Map');
+  it('prepend modifier non-string → PrependPrefixNotString', () => {
+    const e = catchError('"x" | prepend(42)');
+    expect(e.name).toBe('PrependPrefixNotString');
+    expect(e.context.position).toBe(2);
   });
 
-  it('CombinatorError on merge of non-Vec', () => {
-    let caught;
-    try { evalQuery('42 >> count'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(CombinatorError);
-    expect(caught.context.combinator).toBe('>>');
+  it('append modifier non-string → AppendSuffixNotString', () => {
+    const e = catchError('"x" | append(42)');
+    expect(e.name).toBe('AppendSuffixNotString');
   });
 
-  it('ApplicationError on calling a non-function', () => {
-    let caught;
-    try { evalQuery('let five = 5 | five(42)'); } catch (e) { caught = e; }
-    expect(caught).toBeInstanceOf(ApplicationError);
-    expect(caught.context.name).toBe('five');
-    expect(caught.context.actualType).toBe('number');
+  it('sum element non-number → SumElementNotNumber', () => {
+    const e = catchError('[1 "two" 3] | sum');
+    expect(e.name).toBe('SumElementNotNumber');
+    expect(e.context.index).toBe(1);
+    expect(e.context.actualType).toBe('string');
   });
 
-  it('each type-error subclass still matches QlangTypeError', () => {
-    for (const Cls of [
-      SubjectTypeError, ModifierTypeError, ElementTypeError,
-      ComparabilityError, ProjectionError, CombinatorError, ApplicationError
-    ]) {
-      const instance = new Cls('x', 'y', 'z', 'w');
-      expect(instance).toBeInstanceOf(QlangTypeError);
-      expect(instance).toBeInstanceOf(QlangError);
-      expect(instance.kind).toBe('type-error');
+  it('gt across types → GtOperandsNotComparable', () => {
+    const e = catchError('"a" | gt(5)');
+    expect(e.name).toBe('GtOperandsNotComparable');
+    expect(e.context.leftType).toBe('string');
+    expect(e.context.rightType).toBe('number');
+  });
+
+  it('lt across types → LtOperandsNotComparable (distinct class)', () => {
+    const e = catchError('"a" | lt(5)');
+    expect(e.name).toBe('LtOperandsNotComparable');
+  });
+
+  it('projection on non-Map → ProjectionSubjectNotMap', () => {
+    const e = catchError('42 | /name');
+    expect(e.name).toBe('ProjectionSubjectNotMap');
+    expect(e.context.key).toBe('name');
+    expect(e.context.actualType).toBe('number');
+  });
+
+  it('distribute on non-Vec → DistributeSubjectNotVec', () => {
+    const e = catchError('{:a 1} * add(1)');
+    expect(e.name).toBe('DistributeSubjectNotVec');
+    expect(e.context.actualType).toBe('Map');
+  });
+
+  it('merge on non-Vec → MergeSubjectNotVec (distinct from distribute)', () => {
+    const e = catchError('42 >> count');
+    expect(e.name).toBe('MergeSubjectNotVec');
+  });
+
+  it('apply args to non-function → ApplyToNonFunction', () => {
+    const e = catchError('let five = 5 | five(42)');
+    expect(e.name).toBe('ApplyToNonFunction');
+    expect(e.context.name).toBe('five');
+    expect(e.context.actualType).toBe('number');
+  });
+
+  it('use on non-Map → UseSubjectNotMap', () => {
+    const e = catchError('42 | use');
+    expect(e.name).toBe('UseSubjectNotMap');
+  });
+
+  it('filter on non-Vec → FilterSubjectNotVec', () => {
+    const e = catchError('42 | filter(gt(1))');
+    expect(e.name).toBe('FilterSubjectNotVec');
+  });
+
+  it('take count non-number → TakeCountNotNumber', () => {
+    const e = catchError('[1 2 3] | take("x")');
+    expect(e.name).toBe('TakeCountNotNumber');
+  });
+
+  it('drop count non-number → DropCountNotNumber (distinct from take)', () => {
+    const e = catchError('[1 2 3] | drop("x")');
+    expect(e.name).toBe('DropCountNotNumber');
+  });
+
+  it('all per-site type errors inherit QlangTypeError and kind', () => {
+    const queries = [
+      '42 | count',
+      '"x" | add(1)',
+      '[1 "two"] | sum',
+      '"a" | gt(5)',
+      '42 | /name',
+      '{:a 1} * add(1)',
+      '42 >> count',
+      'let five = 5 | five(42)',
+      '42 | use'
+    ];
+    for (const q of queries) {
+      const e = catchError(q);
+      expect(e).toBeInstanceOf(QlangTypeError);
+      expect(e).toBeInstanceOf(QlangError);
+      expect(e.kind).toBe('type-error');
     }
+  });
+
+  it('throw sites produce distinct class names (no sharing)', () => {
+    const names = new Set();
+    const queries = [
+      '42 | count',        // CountSubjectNotContainer
+      '42 | first',        // FirstSubjectNotVec
+      '42 | last',         // LastSubjectNotVec
+      '42 | sum',          // SumSubjectNotVec
+      '42 | reverse',      // ReverseSubjectNotVec
+      '42 | distinct',     // DistinctSubjectNotVec
+      '42 | sort',         // SortNaturalSubjectNotVec
+      '42 | keys',         // KeysSubjectNotMap
+      '42 | vals',         // ValsSubjectNotMap
+      '"a" | add(1)',      // AddLeftNotNumber
+      '"a" | sub(1)',      // SubLeftNotNumber
+      '"a" | mul(1)',      // MulLeftNotNumber
+      '"a" | div(1)',      // DivLeftNotNumber
+      '"a" | gt(5)',       // GtOperandsNotComparable
+      '"a" | lt(5)',       // LtOperandsNotComparable
+      '42 | /name',        // ProjectionSubjectNotMap
+      '{:a 1} * add(1)',   // DistributeSubjectNotVec
+      '42 >> count'        // MergeSubjectNotVec
+    ];
+    for (const q of queries) {
+      names.add(catchError(q).name);
+    }
+    // Every query produces a distinct class — the whole point of
+    // the refactor is that no two sites share an exception type.
+    expect(names.size).toBe(queries.length);
   });
 });
 

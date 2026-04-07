@@ -10,26 +10,34 @@
 //   full   (2 captured): pipeValue is context; both captured args
 //                        resolve against it, then apply the pair.
 //
-// Type dispatch of the underlying pair function:
-//   Set × Set      → Set
-//   Map × Map      → Map (union: last wins; minus: M1 ∖ keys(M2);
-//                         inter: M1 ∩ keys(M2))
-//   Map × Set      → Map (key-set semantics; minus/inter only)
+// Each throw site has its own unique error class.
 
 import { overloadedOp } from './dispatch.mjs';
-import { ensureVec } from './guards.mjs';
-import { ComparabilityError, QlangTypeError } from '../errors.mjs';
 import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+import {
+  declareSubjectError,
+  declareComparabilityError,
+  declareShapeError
+} from './operand-errors.mjs';
 
-// incompatible — shared helper for "these two operands cannot be
-// combined" errors from the three pair functions below. Uses
-// ComparabilityError because union/minus/inter across mismatched
-// container types is conceptually the same failure mode as
-// comparing a number with a string: two values of incompatible
-// shape for the operation.
-function incompatible(operand, left, right) {
-  return new ComparabilityError(operand, describeType(left), describeType(right));
-}
+// ── Unique per-operand error classes ──────────────────────────
+
+const UnionBareSubjectNotVec    = declareSubjectError('UnionBareSubjectNotVec',    'union', 'Vec');
+const MinusBareSubjectNotVec    = declareSubjectError('MinusBareSubjectNotVec',    'minus', 'Vec');
+const InterBareSubjectNotVec    = declareSubjectError('InterBareSubjectNotVec',    'inter', 'Vec');
+
+const UnionPairIncompatible = declareComparabilityError('UnionPairIncompatible', 'union');
+const MinusPairIncompatible = declareComparabilityError('MinusPairIncompatible', 'minus');
+const InterPairIncompatible = declareComparabilityError('InterPairIncompatible', 'inter');
+
+const UnionBareEmpty = declareShapeError('UnionBareEmpty',
+  () => 'union (bare form) requires a non-empty Vec of operands');
+const MinusBareEmpty = declareShapeError('MinusBareEmpty',
+  () => 'minus (bare form) requires a non-empty Vec of operands');
+const InterBareEmpty = declareShapeError('InterBareEmpty',
+  () => 'inter (bare form) requires a non-empty Vec of operands');
+
+// ── Pair implementations ──────────────────────────────────────
 
 function unionPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
@@ -42,7 +50,7 @@ function unionPair(left, right) {
     for (const [k, v] of right) out.set(k, v);
     return out;
   }
-  throw incompatible('union', left, right);
+  throw new UnionPairIncompatible(describeType(left), describeType(right));
 }
 
 function minusPair(left, right) {
@@ -63,7 +71,7 @@ function minusPair(left, right) {
     }
     return out;
   }
-  throw incompatible('minus', left, right);
+  throw new MinusPairIncompatible(describeType(left), describeType(right));
 }
 
 function interPair(left, right) {
@@ -84,36 +92,45 @@ function interPair(left, right) {
     }
     return out;
   }
-  throw incompatible('inter', left, right);
+  throw new InterPairIncompatible(describeType(left), describeType(right));
 }
 
-// polymorphicSetOp — shared factory for union/minus/inter.
-//
-// Each set operation needs to support three call shapes:
-//   bare   `[a b c] | op`        → left-fold pair across the Vec
-//   bound  `a | op(b)`           → pair(a, b-resolved-against-a)
-//   full   `ctx | op(a, b)`      → pair(a-resolved, b-resolved), ctx is context
-//
-// overloadedOp dispatches on captured-arg count; each case resolves
-// its own lambdas so bare and bound can share a single identifier.
-function polymorphicSetOp(name, pair) {
-  return overloadedOp(name, 2, {
-    0: (vec) => {
-      ensureVec(name, vec);
-      if (vec.length === 0) {
-        throw new QlangTypeError(
-          `${name} (bare form) requires a non-empty Vec of operands`,
-          { operand: name, form: 'bare', received: 'empty Vec' }
-        );
-      }
-      return vec.reduce(pair);
-    },
-    1: (pipeValue, rightLambda) => pair(pipeValue, rightLambda(pipeValue)),
-    2: (pipeValue, leftLambda, rightLambda) =>
-      pair(leftLambda(pipeValue), rightLambda(pipeValue))
-  });
-}
+// ── Operand registration ──────────────────────────────────────
 
-export const union = polymorphicSetOp('union', unionPair);
-export const minus = polymorphicSetOp('minus', minusPair);
-export const inter = polymorphicSetOp('inter', interPair);
+export const union = overloadedOp('union', 2, {
+  0: (vec) => {
+    if (!isQSet(vec) && !Array.isArray(vec)) {
+      throw new UnionBareSubjectNotVec(describeType(vec), vec);
+    }
+    if (!Array.isArray(vec)) {
+      throw new UnionBareSubjectNotVec(describeType(vec), vec);
+    }
+    if (vec.length === 0) throw new UnionBareEmpty();
+    return vec.reduce(unionPair);
+  },
+  1: (pipeValue, rightLambda) => unionPair(pipeValue, rightLambda(pipeValue)),
+  2: (pipeValue, leftLambda, rightLambda) =>
+    unionPair(leftLambda(pipeValue), rightLambda(pipeValue))
+});
+
+export const minus = overloadedOp('minus', 2, {
+  0: (vec) => {
+    if (!Array.isArray(vec)) throw new MinusBareSubjectNotVec(describeType(vec), vec);
+    if (vec.length === 0) throw new MinusBareEmpty();
+    return vec.reduce(minusPair);
+  },
+  1: (pipeValue, rightLambda) => minusPair(pipeValue, rightLambda(pipeValue)),
+  2: (pipeValue, leftLambda, rightLambda) =>
+    minusPair(leftLambda(pipeValue), rightLambda(pipeValue))
+});
+
+export const inter = overloadedOp('inter', 2, {
+  0: (vec) => {
+    if (!Array.isArray(vec)) throw new InterBareSubjectNotVec(describeType(vec), vec);
+    if (vec.length === 0) throw new InterBareEmpty();
+    return vec.reduce(interPair);
+  },
+  1: (pipeValue, rightLambda) => interPair(pipeValue, rightLambda(pipeValue)),
+  2: (pipeValue, leftLambda, rightLambda) =>
+    interPair(leftLambda(pipeValue), rightLambda(pipeValue))
+});

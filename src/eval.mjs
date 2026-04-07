@@ -15,12 +15,20 @@ import { fork, forkWith } from './fork.mjs';
 import { applyRule10 } from './rule10.mjs';
 import {
   QlangTypeError,
-  UnresolvedIdentifierError,
-  ProjectionError,
-  CombinatorError,
-  ApplicationError,
-  SubjectTypeError
+  UnresolvedIdentifierError
 } from './errors.mjs';
+import {
+  declareSubjectError,
+  declareShapeError
+} from './runtime/operand-errors.mjs';
+
+const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
+  ({ key, actualType }) => `/${key} requires Map subject, got ${actualType}`);
+const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'Vec');
+const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
+const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
+  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType}, not a function`);
+const UseSubjectNotMap        = declareSubjectError('UseSubjectNotMap',        'use', 'Map');
 import {
   isVec, isQMap, isThunk, isFunctionValue,
   describeType, keyword, makeThunk, NIL
@@ -106,14 +114,10 @@ function applyCombinator(kind, state, stepNode) {
   return handler(state, stepNode);
 }
 
-function ensureVecPipeValue(combinator, state) {
-  if (!isVec(state.pipeValue)) {
-    throw new CombinatorError(combinator, 'Vec', describeType(state.pipeValue));
-  }
-}
-
 function distribute(state, bodyNode) {
-  ensureVecPipeValue('*', state);
+  if (!isVec(state.pipeValue)) {
+    throw new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+  }
   const collected = state.pipeValue.map(item =>
     forkWith(state, item, inner => evalNode(bodyNode, inner)).pipeValue
   );
@@ -121,7 +125,9 @@ function distribute(state, bodyNode) {
 }
 
 function mergeFlat(state, nextNode) {
-  ensureVecPipeValue('>>', state);
+  if (!isVec(state.pipeValue)) {
+    throw new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+  }
   const flattened = [];
   for (const item of state.pipeValue) {
     if (isVec(item)) flattened.push(...item);
@@ -173,7 +179,11 @@ function evalProjection(node, state) {
   let current = state.pipeValue;
   for (const key of node.keys) {
     if (!isQMap(current)) {
-      throw new ProjectionError(key, describeType(current));
+      throw new ProjectionSubjectNotMap({
+        key,
+        actualType: describeType(current),
+        actualValue: current
+      });
     }
     current = current.has(keyword(key)) ? current.get(keyword(key)) : NIL;
   }
@@ -219,7 +229,11 @@ function evalOperandCall(node, state) {
   // Non-function value: replace pipeValue with it. Captured args
   // would be a type error since you cannot apply a non-function.
   if (capturedArgsAst !== null) {
-    throw new ApplicationError(name, describeType(resolved));
+    throw new ApplyToNonFunction({
+      name,
+      actualType: describeType(resolved),
+      actualValue: resolved
+    });
   }
   return withPipeValue(state, resolved);
 }
@@ -264,7 +278,7 @@ function evalLetStep(node, state) {
 
 function evalUseStep(_node, state) {
   if (!isQMap(state.pipeValue)) {
-    throw new SubjectTypeError('use', 'Map', describeType(state.pipeValue), state.pipeValue);
+    throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
   }
   // Both env and Map literals use keyword keys, so this is a
   // direct merge — delegate to envMerge for consistency with

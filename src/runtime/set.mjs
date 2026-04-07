@@ -1,11 +1,14 @@
-// Set operands. The polymorphic `has` and `count` are exported
-// from map.mjs / vec.mjs respectively. This file holds the Vec→Set
-// conversion `set` and any future Set-only operands.
+// Set operands. The polymorphic `count`, `empty`, `has` live in
+// vec.mjs / map.mjs respectively. This file holds the Vec→Set
+// conversion and any future Set-only operands.
 
 import { nullaryOp } from './dispatch.mjs';
-import { ensureVec } from './guards.mjs';
+import { isVec, describeType } from '../types.mjs';
+import { declareSubjectError } from './operand-errors.mjs';
+
+const SetConversionSubjectNotVec = declareSubjectError('SetConversionSubjectNotVec', 'set', 'Vec');
 
 export const set = nullaryOp('set', (vec) => {
-  ensureVec('set', vec);
+  if (!isVec(vec)) throw new SetConversionSubjectNotVec(describeType(vec), vec);
   return new Set(vec);
 });

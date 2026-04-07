@@ -2,7 +2,6 @@
 // string suitable for human consumption.
 
 import { nullaryOp } from './dispatch.mjs';
-import { ensureVec } from './guards.mjs';
 import {
   isVec,
   isQMap,
@@ -10,7 +9,13 @@ import {
   isKeyword,
   describeType
 } from '../types.mjs';
-import { ElementTypeError } from '../errors.mjs';
+import {
+  declareSubjectError,
+  declareElementError
+} from './operand-errors.mjs';
+
+const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'Vec');
+const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'Map');
 
 // Convert a qlang value into a JSON-serializable plain value.
 function toPlain(v) {
@@ -40,11 +45,11 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 // Implementation builds a per-row keyword-name → key cache once,
 // keeping column lookups O(1) instead of O(rows × cols²).
 export const table = nullaryOp('table', (subject) => {
-  ensureVec('table', subject);
+  if (!isVec(subject)) throw new TableSubjectNotVec(describeType(subject), subject);
   if (subject.length === 0) return '(empty)';
   for (let i = 0; i < subject.length; i++) {
     if (!isQMap(subject[i])) {
-      throw new ElementTypeError('table', i, 'Map', describeType(subject[i]));
+      throw new TableRowNotMap(i, describeType(subject[i]), subject[i]);
     }
   }
 

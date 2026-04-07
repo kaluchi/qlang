@@ -34,7 +34,7 @@ import { ArityError } from './errors.mjs';
 export function applyRule10(fn, lambdas, state) {
   if (lambdas.length > fn.arity) {
     throw new ArityError(
-      `${fn.name} expects at most ${fn.arity - 1} captured arguments, got ${lambdas.length}`
+      `${fn.name} accepts at most ${fn.arity} captured arguments, got ${lambdas.length}`
     );
   }
   return fn.fn(state, lambdas);

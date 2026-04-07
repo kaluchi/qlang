@@ -1,6 +1,8 @@
 // Assemble the langRuntime — the initial environment Map every
-// query starts with. Each entry is a built-in function value (or
-// pseudo-operand for `env`).
+// query starts with. Each entry is a built-in function value
+// built by one of the helpers in dispatch.mjs (valueOp,
+// higherOrderOp, nullaryOp, overloadedOp for pure operands;
+// stateOp for the reflective built-ins env and use).
 //
 // Env keys are interned keyword objects (see types.mjs::keyword)
 // so the env Map interoperates uniformly with Map literals,

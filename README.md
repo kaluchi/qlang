@@ -52,7 +52,7 @@ src/
     string.mjs           — prepend, append
     predicates.mjs       — eq, gt, lt, gte, lte, and, or, not
     format.mjs           — json, table
-    intro.mjs            — env (pseudo-operand)
+    intro.mjs            — reflective built-ins (env, use) via stateOp
 test/
   unit/                  — parse, eval-smoke, edge-cases, index,
                            conformance

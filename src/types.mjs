@@ -10,8 +10,9 @@
 //   Map        → JS Map (insertion-ordered, keys are interned
 //                keyword objects)
 //   Set        → JS Set
-//   Function   → frozen object { type: 'function', name, arity, fn,
-//                pseudo? }
+//   Function   → frozen object { type: 'function', name, arity, fn }
+//                where `fn` is a state transformer
+//                (state, lambdas) → state
 //   Thunk      → frozen object { type: 'thunk', expr }  (for `let`)
 
 export const NIL = null;

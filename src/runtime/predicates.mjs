@@ -1,39 +1,30 @@
 // Predicates: subject-first comparisons and combinators.
+//
+// Equality (`eq`) uses the shared deepEqual from src/equality.mjs
+// so it stays in sync with the conformance test runner. Ordering
+// (`gt`/`lt`/`gte`/`lte`) flows through `ensureSameOrderingType`
+// so heterogeneous comparisons surface as type errors instead of
+// silent JS coercion (e.g. `gt("a", 5)` is no longer false; it
+// throws).
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
+import { ensureSameOrderingType } from './guards.mjs';
 import { isTruthy } from '../types.mjs';
+import { deepEqual } from '../equality.mjs';
 
-function deepEqual(a, b) {
-  if (a === b) return true;
-  if (a === null || b === null) return false;
-  if (typeof a !== typeof b) return false;
-  if (Array.isArray(a)) {
-    if (!Array.isArray(b) || a.length !== b.length) return false;
-    return a.every((x, i) => deepEqual(x, b[i]));
-  }
-  if (a instanceof Map) {
-    if (!(b instanceof Map) || a.size !== b.size) return false;
-    for (const [k, v] of a) {
-      if (!b.has(k) || !deepEqual(v, b.get(k))) return false;
-    }
-    return true;
-  }
-  if (a instanceof Set) {
-    if (!(b instanceof Set) || a.size !== b.size) return false;
-    for (const v of a) if (!b.has(v)) return false;
-    return true;
-  }
-  if (typeof a === 'object' && a.type === 'keyword') {
-    return b !== null && typeof b === 'object' && b.type === 'keyword' && a.name === b.name;
-  }
-  return false;
+export const eq = valueOp('eq', 2, (subject, value) => deepEqual(subject, value));
+
+function ordering(name, predicate) {
+  return valueOp(name, 2, (subject, threshold) => {
+    ensureSameOrderingType(name, subject, threshold);
+    return predicate(subject, threshold);
+  });
 }
 
-export const eq  = valueOp('eq',  2, (subject, value) => deepEqual(subject, value));
-export const gt  = valueOp('gt',  2, (subject, threshold) => subject > threshold);
-export const lt  = valueOp('lt',  2, (subject, threshold) => subject < threshold);
-export const gte = valueOp('gte', 2, (subject, threshold) => subject >= threshold);
-export const lte = valueOp('lte', 2, (subject, threshold) => subject <= threshold);
+export const gt  = ordering('gt',  (a, b) => a >  b);
+export const lt  = ordering('lt',  (a, b) => a <  b);
+export const gte = ordering('gte', (a, b) => a >= b);
+export const lte = ordering('lte', (a, b) => a <= b);
 
 export const and = valueOp('and', 2, (a, b) => isTruthy(a) && isTruthy(b));
 export const or  = valueOp('or',  2, (a, b) => isTruthy(a) || isTruthy(b));

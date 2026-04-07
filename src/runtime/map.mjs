@@ -1,14 +1,14 @@
 // Map operands.
+//
+// `has` is polymorphic across Map and Set subjects. The Map form
+// requires a keyword key; the Set form accepts any value as the
+// member to test. The polymorphic dispatch lives here because
+// `has` is most naturally documented alongside Map operands.
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
-import { TypeError as QTypeError } from '../errors.mjs';
-import { isQMap, isKeyword, describeType } from '../types.mjs';
-
-function ensureMap(name, value) {
-  if (!isQMap(value)) {
-    throw new QTypeError(`${name} requires Map subject, got ${describeType(value)}`);
-  }
-}
+import { ensureMap } from './guards.mjs';
+import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+import { QlangTypeError } from '../errors.mjs';
 
 export const keys = nullaryOp('keys', (map) => {
   ensureMap('keys', map);
@@ -22,17 +22,19 @@ export const vals = nullaryOp('vals', (map) => {
   return [...map.values()];
 });
 
-// has — polymorphic across Map and Set subject. The Map form
-// expects a keyword key; the Set form accepts any value.
 export const has = valueOp('has', 2, (subject, key) => {
   if (isQMap(subject)) {
     if (!isKeyword(key)) {
-      throw new QTypeError(`has(:key) requires a keyword, got ${describeType(key)}`);
+      throw new QlangTypeError(
+        `has requires a keyword key for Map subjects, got ${describeType(key)}`
+      );
     }
     return subject.has(key);
   }
-  if (subject instanceof Set) {
+  if (isQSet(subject)) {
     return subject.has(key);
   }
-  throw new QTypeError(`has requires Map or Set subject, got ${describeType(subject)}`);
+  throw new QlangTypeError(
+    `has requires Map or Set subject, got ${describeType(subject)}`
+  );
 });

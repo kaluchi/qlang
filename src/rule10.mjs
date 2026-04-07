@@ -8,17 +8,21 @@
 // invoke it once with the operand's context.
 //
 // A function value carries metadata:
-//   { type: 'function', name, arity, fn: (pipeValue, lambdas) → result }
+//   { type: 'function', name, arity, fn, pseudo? }
 //
 // The impl receives the operand's pipeValue (context) and an
 // array of captured-arg lambdas. It decides how many lambdas it
 // needs (partial vs full) and what input to pass each one.
+//
+// Pseudo-operands (such as `env`) bypass Rule 10 entirely:
+// the evaluator detects `pseudo: true` and invokes the impl with
+// the full state pair instead. See eval.mjs::evalOperandCall.
 
 import { ArityError } from './errors.mjs';
 
 // applyRule10(fn, lambdas, pipeValue) → result
 //
-// `fn`        — function value (carries arity, name, fn impl).
+// `fn`        — function value (carries arity, name, impl).
 // `lambdas`   — array of (input → value) closures.
 // `pipeValue` — current pipeValue at the apply site (the context).
 export function applyRule10(fn, lambdas, pipeValue) {
@@ -34,28 +38,25 @@ export function applyRule10(fn, lambdas, pipeValue) {
   return fn.fn(pipeValue, lambdas);
 }
 
-// makeFn(name, arity, impl) → function value
+// makeFn(name, arity, impl, options?) → function value
 //
 // Wraps a JS function with the metadata Rule 10 needs. The impl
-// signature is `(pipeValue, lambdas) → result`. It is responsible
-// for dispatching on `lambdas.length` (partial vs full) and for
-// choosing what input to pass each lambda.
-export function makeFn(name, arity, impl) {
+// signature for normal operands is `(pipeValue, lambdas) → result`;
+// pseudo-operands receive the full state and return a new state.
+//
+// `options`:
+//   pseudo — if true, the evaluator routes the call to the impl
+//            with the full state instead of going through Rule 10.
+export function makeFn(name, arity, impl, { pseudo = false } = {}) {
   return Object.freeze({
     type: 'function',
     name,
     arity,
-    fn: impl
+    fn: impl,
+    pseudo
   });
 }
 
-export function isFunctionValue(v) {
-  return v !== null && typeof v === 'object' && v.type === 'function';
-}
-
-// constLambda(value) — wraps a literal as a lambda. Used in tests
-// and any place where we want to pass a value as a captured arg
-// from JS code rather than from the parser.
-export function constLambda(value) {
-  return () => value;
-}
+// `isFunctionValue` lives in types.mjs alongside the other
+// value-class predicates. Callers that need it import it from
+// there directly.

@@ -29,19 +29,24 @@ src/
   grammar.generated.mjs  — peggy-compiled parser (generated, gitignored)
   parse.mjs              — wrapper around the generated parser, ParseError
   state.mjs              — (pipeValue, env) state pair, env helpers
-  types.mjs              — value type predicates, keyword interning
-  errors.mjs             — typed error hierarchy (Type, Arity, Unresolved, ...)
+  types.mjs              — value type predicates, keyword interning,
+                           makeThunk, isFunctionValue
+  errors.mjs             — typed error hierarchy (QlangTypeError,
+                           ArityError, Unresolved, DivisionByZero)
+  equality.mjs           — deepEqual — shared by predicates and
+                           conformance runner
   fork.mjs               — fork semantics for nested expressions
   rule10.mjs             — operand application protocol (lambda-based)
-  eval.mjs               — single dispatcher: every node-type handler
-                           (literal, projection, lookup, as, let, use,
-                            paren-group, combinators) inlined here
+  eval.mjs               — dispatcher: one lookup-table per node
+                           type and per combinator
   runtime/
     index.mjs            — assembles langRuntime Map (keyword-keyed)
-    dispatch.mjs         — valueOp / higherOrderOp / nullaryOp helpers
-    vec.mjs              — Vec operands (count, filter, sort, ...)
-    map.mjs              — Map operands (keys, vals, has)
-    set.mjs              — Set operands (set conversion)
+    dispatch.mjs         — valueOp / higherOrderOp / nullaryOp /
+                           overloadedOp helpers
+    guards.mjs           — ensureVec/ensureMap/ensureNumber/...
+    vec.mjs              — Vec reducers + transformers + sort
+    map.mjs              — keys, vals, has (polymorphic)
+    set.mjs              — set (Vec → Set)
     setops.mjs           — union, minus, inter (bound form)
     arith.mjs            — add, sub, mul, div
     string.mjs           — prepend, append
@@ -49,16 +54,19 @@ src/
     format.mjs           — json, table
     intro.mjs            — env (pseudo-operand)
 test/
-  unit/                  — parse, eval-smoke, edge-cases, index, conformance
-  conformance/           — JSONL conformance suite, organized by category
+  unit/                  — parse, eval-smoke, edge-cases, index,
+                           conformance
+  conformance/           — JSONL conformance suite, 15 files by
+                           category
 ```
 
-The evaluator (`eval.mjs`) is one ~250-line file with a single
-dispatcher and per-node-type handlers as small inline functions.
-Splitting handlers into per-step files would only add import noise
-without separating concerns — they share the dispatcher and the
-state-pair convention. The runtime is split per category because
-each category is a coherent group with its own type guards.
+The evaluator (`eval.mjs`) is a single dispatcher over AST node
+types and combinators, each routed via a lookup table to a small
+per-case handler. Splitting handlers into per-step files would
+add import noise without separating concerns — they share the
+state-pair convention and the dispatch table. The runtime is split
+per category because each category has its own type guards and
+error phrasing.
 
 ## Design
 

@@ -8,15 +8,18 @@
 // (state, node) → state'. The dispatcher is a switch.
 
 import { parse } from './parse.mjs';
-import { makeState, withPipeValue, envSet, envGet, envHas } from './state.mjs';
-import { fork, forkWith } from './fork.mjs';
-import { applyRule10, isFunctionValue } from './rule10.mjs';
 import {
-  TypeError as QTypeError,
+  makeState, withPipeValue, envSet, envGet, envHas, envMerge
+} from './state.mjs';
+import { fork, forkWith } from './fork.mjs';
+import { applyRule10 } from './rule10.mjs';
+import {
+  QlangTypeError,
   UnresolvedIdentifierError
 } from './errors.mjs';
 import {
-  isVec, isQMap, isThunk, describeType, keyword, NIL
+  isVec, isQMap, isThunk, isFunctionValue,
+  describeType, keyword, makeThunk, NIL
 } from './types.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -41,26 +44,32 @@ export function evalAst(ast, state) {
   return evalNode(ast, state);
 }
 
+// Lookup-table dispatcher: one entry per AST node type. Adding a
+// new node type is one line here plus its handler function.
+const NODE_HANDLERS = {
+  Pipeline:    evalPipeline,
+  NumberLit:   evalNumberLit,
+  StringLit:   evalStringLit,
+  BooleanLit:  evalBooleanLit,
+  NilLit:      evalNilLit,
+  Keyword:     evalKeyword,
+  VecLit:      evalVecLit,
+  MapLit:      evalMapLit,
+  SetLit:      evalSetLit,
+  Projection:  evalProjection,
+  OperandCall: evalOperandCall,
+  AsStep:      evalAsStep,
+  LetStep:     evalLetStep,
+  UseStep:     evalUseStep,
+  ParenGroup:  evalParenGroup
+};
+
 function evalNode(node, state) {
-  switch (node.type) {
-    case 'Pipeline':       return evalPipeline(node, state);
-    case 'NumberLit':      return evalNumberLit(node, state);
-    case 'StringLit':      return evalStringLit(node, state);
-    case 'BooleanLit':     return evalBooleanLit(node, state);
-    case 'NilLit':         return evalNilLit(node, state);
-    case 'Keyword':        return evalKeyword(node, state);
-    case 'VecLit':         return evalVecLit(node, state);
-    case 'MapLit':         return evalMapLit(node, state);
-    case 'SetLit':         return evalSetLit(node, state);
-    case 'Projection':     return evalProjection(node, state);
-    case 'OperandCall':    return evalOperandCall(node, state);
-    case 'AsStep':         return evalAsStep(node, state);
-    case 'LetStep':        return evalLetStep(node, state);
-    case 'UseStep':        return evalUseStep(node, state);
-    case 'ParenGroup':     return evalParenGroup(node, state);
-    default:
-      throw new QTypeError(`unknown AST node type: ${node.type}`);
+  const handler = NODE_HANDLERS[node.type];
+  if (!handler) {
+    throw new QlangTypeError(`unknown AST node type: ${node.type}`);
   }
+  return handler(node, state);
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -79,22 +88,30 @@ function evalPipeline(node, state) {
   return current;
 }
 
+const COMBINATOR_HANDLERS = {
+  '|':  (state, stepNode) => evalNode(stepNode, state),
+  '*':  distribute,
+  '>>': mergeFlat
+};
+
 function applyCombinator(kind, state, stepNode) {
-  switch (kind) {
-    case '|':  return evalNode(stepNode, state);
-    case '*':  return distribute(state, stepNode);
-    case '>>': return mergeFlat(state, stepNode);
-    default:
-      throw new QTypeError(`unknown combinator: ${kind}`);
+  const handler = COMBINATOR_HANDLERS[kind];
+  if (!handler) {
+    throw new QlangTypeError(`unknown combinator: ${kind}`);
+  }
+  return handler(state, stepNode);
+}
+
+function ensureVecPipeValue(opName, state) {
+  if (!isVec(state.pipeValue)) {
+    throw new QlangTypeError(
+      `${opName} requires Vec pipeValue, got ${describeType(state.pipeValue)}`
+    );
   }
 }
 
 function distribute(state, bodyNode) {
-  if (!isVec(state.pipeValue)) {
-    throw new QTypeError(
-      `* requires Vec pipeValue, got ${describeType(state.pipeValue)}`
-    );
-  }
+  ensureVecPipeValue('*', state);
   const collected = state.pipeValue.map(item =>
     forkWith(state, item, inner => evalNode(bodyNode, inner)).pipeValue
   );
@@ -102,18 +119,11 @@ function distribute(state, bodyNode) {
 }
 
 function mergeFlat(state, nextNode) {
-  if (!isVec(state.pipeValue)) {
-    throw new QTypeError(
-      `>> requires Vec pipeValue, got ${describeType(state.pipeValue)}`
-    );
-  }
+  ensureVecPipeValue('>>', state);
   const flattened = [];
   for (const item of state.pipeValue) {
-    if (isVec(item)) {
-      flattened.push(...item);
-    } else {
-      flattened.push(item);
-    }
+    if (isVec(item)) flattened.push(...item);
+    else flattened.push(item);
   }
   return evalNode(nextNode, withPipeValue(state, flattened));
 }
@@ -161,7 +171,7 @@ function evalProjection(node, state) {
   let current = state.pipeValue;
   for (const key of node.keys) {
     if (!isQMap(current)) {
-      throw new QTypeError(
+      throw new QlangTypeError(
         `/${key} requires Map, got ${describeType(current)}`
       );
     }
@@ -209,7 +219,7 @@ function evalOperandCall(node, state) {
   // Non-function value: replace pipeValue with it. Captured args
   // would be a type error since you cannot apply a non-function.
   if (capturedArgsAst !== null) {
-    throw new QTypeError(
+    throw new QlangTypeError(
       `${name} resolves to ${describeType(resolved)}, cannot apply arguments`
     );
   }
@@ -248,8 +258,7 @@ function evalAsStep(node, state) {
 // ─── Step 5: let name = expr ────────────────────────────────────
 
 function evalLetStep(node, state) {
-  const thunk = Object.freeze({ type: 'thunk', expr: node.body });
-  const nextEnv = envSet(state.env, node.name, thunk);
+  const nextEnv = envSet(state.env, node.name, makeThunk(node.body));
   return makeState(state.pipeValue, nextEnv);
 }
 
@@ -257,17 +266,14 @@ function evalLetStep(node, state) {
 
 function evalUseStep(_node, state) {
   if (!isQMap(state.pipeValue)) {
-    throw new QTypeError(
+    throw new QlangTypeError(
       `use requires Map pipeValue, got ${describeType(state.pipeValue)}`
     );
   }
-  // Both env and Map literals use keyword keys, so use is a
-  // direct merge.
-  const nextEnv = new Map(state.env);
-  for (const [k, v] of state.pipeValue) {
-    nextEnv.set(k, v);
-  }
-  return makeState(state.pipeValue, nextEnv);
+  // Both env and Map literals use keyword keys, so this is a
+  // direct merge — delegate to envMerge for consistency with
+  // other env mutations.
+  return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
 }
 
 // ─── ParenGroup ─────────────────────────────────────────────────

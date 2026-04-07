@@ -11,7 +11,7 @@ export class QlangError extends Error {
   }
 }
 
-export class TypeError extends QlangError {
+export class QlangTypeError extends QlangError {
   constructor(message) {
     super(message, 'type-error');
     this.name = 'QlangTypeError';

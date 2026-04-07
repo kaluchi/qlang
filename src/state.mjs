@@ -24,11 +24,6 @@ export function withPipeValue(state, nextPipeValue) {
   return makeState(nextPipeValue, state.env);
 }
 
-// withEnv(state, nextEnv) → new State
-export function withEnv(state, nextEnv) {
-  return makeState(state.pipeValue, nextEnv);
-}
-
 // envGet(env, name) → value or undefined
 export function envGet(env, name) {
   return env.get(keyword(name));

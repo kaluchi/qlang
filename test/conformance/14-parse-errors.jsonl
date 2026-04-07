@@ -12,3 +12,9 @@
 {"name": "double-pipe", "query": "[1] || count", "error": "parse-error"}
 {"name": "missing-let-equals", "query": "let foo mul(2)", "error": "parse-error"}
 {"name": "operand-stray-comma", "query": "add(,1)", "error": "parse-error"}
+{"name": "nested-unclosed-bracket", "query": "[{:a 1]", "error": "parse-error"}
+{"name": "dangling-projection-slash", "query": "/", "error": "parse-error"}
+{"name": "empty-keyword", "query": ":", "error": "parse-error"}
+{"name": "invalid-string-escape", "query": "\"\\q\"", "error": "parse-error"}
+{"name": "trailing-merge", "query": "[1 2] >>", "error": "parse-error"}
+{"name": "reserved-word-as-ident", "query": "let let = 5", "error": "parse-error"}

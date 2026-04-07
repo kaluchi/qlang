@@ -24,6 +24,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { ParseError } from '../../src/parse.mjs';
+import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', 'conformance');
@@ -47,33 +48,6 @@ function hydrate(value) {
   }
   // Plain object — not expected in tests, but pass through.
   return value;
-}
-
-// deepEqual(a, b) — structural equality across qlang values.
-function deepEqual(a, b) {
-  if (a === b) return true;
-  if (a === null || b === null) return false;
-  if (typeof a !== typeof b) return false;
-  if (Array.isArray(a)) {
-    if (!Array.isArray(b) || a.length !== b.length) return false;
-    return a.every((x, i) => deepEqual(x, b[i]));
-  }
-  if (a instanceof Map) {
-    if (!(b instanceof Map) || a.size !== b.size) return false;
-    for (const [k, v] of a) {
-      if (!b.has(k) || !deepEqual(v, b.get(k))) return false;
-    }
-    return true;
-  }
-  if (a instanceof Set) {
-    if (!(b instanceof Set) || a.size !== b.size) return false;
-    for (const v of a) if (!b.has(v)) return false;
-    return true;
-  }
-  if (typeof a === 'object' && 'type' in a && a.type === 'keyword') {
-    return b !== null && typeof b === 'object' && b.type === 'keyword' && a.name === b.name;
-  }
-  return false;
 }
 
 for (const file of files) {

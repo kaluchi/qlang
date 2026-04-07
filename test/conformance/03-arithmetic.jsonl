@@ -6,5 +6,4 @@
 {"name": "sub-full-noncommutative", "query": "{:x 10 :y 3} | sub(/x, /y)", "expect": 7}
 {"name": "mul-full", "query": "{:x 5 :y 4} | mul(/x, /y)", "expect": 20}
 {"name": "div-full-noncommutative", "query": "{:x 20 :y 4} | div(/x, /y)", "expect": 5}
-{"name": "div-by-zero", "query": "10 | div(0)", "error": "division-by-zero"}
 {"name": "chained-arith", "query": "10 | add(5) | mul(2) | sub(10)", "expect": 20}

@@ -1,31 +1,37 @@
 // Vec operands.
 //
-// Reducers (Vec → Scalar) are nullary on subject. Transformers
-// (Vec → Vec) are nullary or higher-order. `filter` is the
-// canonical higher-order operand: it receives the predicate
-// lambda directly so it can invoke it per element.
+// Reducers (Vec → Scalar) are nullary on the subject. Transformers
+// (Vec → Vec) are nullary or higher-order. `filter` is the canonical
+// higher-order operand: it receives the predicate lambda directly so
+// it can invoke the lambda per element.
 
-import { valueOp, higherOrderOp, nullaryOp } from './dispatch.mjs';
-import { TypeError as QTypeError } from '../errors.mjs';
-import { isVec, isTruthy, describeType, NIL } from '../types.mjs';
-
-function ensureVec(name, value) {
-  if (!isVec(value)) {
-    throw new QTypeError(`${name} requires Vec subject, got ${describeType(value)}`);
-  }
-}
+import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
+import { ensureVec, ensureNumber, ensureSameOrderingType } from './guards.mjs';
+import { isVec, isTruthy, NIL } from '../types.mjs';
 
 // ── Vec → Scalar reducers ──────────────────────────────────────
+//
+// `count` and `empty` are polymorphic across Vec, Set, and Map —
+// they answer "how many elements?" / "is it empty?" regardless of
+// the container shape. This matches the runtime catalog which
+// lists both operands under Vec, Map, and Set.
 
-export const count = nullaryOp('count', (vec) => {
-  ensureVec('count', vec);
-  return vec.length;
-});
+import { isQMap, isQSet } from '../types.mjs';
+import { QlangTypeError } from '../errors.mjs';
+import { describeType } from '../types.mjs';
 
-export const empty = nullaryOp('empty', (vec) => {
-  ensureVec('empty', vec);
-  return vec.length === 0;
-});
+function sizeOf(opName, container) {
+  if (isVec(container)) return container.length;
+  if (isQSet(container)) return container.size;
+  if (isQMap(container)) return container.size;
+  throw new QlangTypeError(
+    `${opName} requires Vec, Set, or Map subject, got ${describeType(container)}`
+  );
+}
+
+export const count = nullaryOp('count', (container) => sizeOf('count', container));
+
+export const empty = nullaryOp('empty', (container) => sizeOf('empty', container) === 0);
 
 export const first = nullaryOp('first', (vec) => {
   ensureVec('first', vec);
@@ -40,26 +46,31 @@ export const last = nullaryOp('last', (vec) => {
 export const sum = nullaryOp('sum', (vec) => {
   ensureVec('sum', vec);
   let total = 0;
-  for (const v of vec) {
-    if (typeof v !== 'number') {
-      throw new QTypeError(`sum requires numeric elements, got ${describeType(v)}`);
-    }
-    total += v;
+  for (let i = 0; i < vec.length; i++) {
+    ensureNumber('sum', i + 1, vec[i]);
+    total += vec[i];
   }
   return total;
 });
 
-export const min = nullaryOp('min', (vec) => {
-  ensureVec('min', vec);
+// reduceComparable — shared scaffold for min and max. Empty Vec
+// returns nil. Non-empty: walks every pair through
+// ensureSameOrderingType to surface type errors instead of silent
+// JS coercion.
+function reduceComparable(name, vec, pick) {
+  ensureVec(name, vec);
   if (vec.length === 0) return NIL;
-  return vec.reduce((a, b) => a < b ? a : b);
-});
+  let acc = vec[0];
+  for (let i = 1; i < vec.length; i++) {
+    const next = vec[i];
+    ensureSameOrderingType(name, acc, next);
+    acc = pick(acc, next) ? acc : next;
+  }
+  return acc;
+}
 
-export const max = nullaryOp('max', (vec) => {
-  ensureVec('max', vec);
-  if (vec.length === 0) return NIL;
-  return vec.reduce((a, b) => a > b ? a : b);
-});
+export const min = nullaryOp('min', (vec) => reduceComparable('min', vec, (a, b) => a < b));
+export const max = nullaryOp('max', (vec) => reduceComparable('max', vec, (a, b) => a > b));
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
@@ -69,23 +80,26 @@ export const filter = higherOrderOp('filter', 2, (vec, predLambda) => {
 });
 
 // sort — overloaded: 0 captured = natural order, 1 captured = key.
-import { makeFn } from '../rule10.mjs';
-import { ArityError } from '../errors.mjs';
-
-export const sort = makeFn('sort', 2, (pipeValue, lambdas) => {
-  ensureVec('sort', pipeValue);
-  if (lambdas.length === 0) {
-    return [...pipeValue].sort(compareValues);
+export const sort = overloadedOp('sort', 2, {
+  0: (vec) => {
+    ensureVec('sort', vec);
+    return [...vec].sort((a, b) => {
+      ensureSameOrderingType('sort', a, b);
+      return compareScalars(a, b);
+    });
+  },
+  1: (vec, keyLambda) => {
+    ensureVec('sort', vec);
+    return [...vec].sort((a, b) => {
+      const ka = keyLambda(a);
+      const kb = keyLambda(b);
+      ensureSameOrderingType('sort', ka, kb);
+      return compareScalars(ka, kb);
+    });
   }
-  if (lambdas.length === 1) {
-    const keyLambda = lambdas[0];
-    return [...pipeValue].sort((a, b) =>
-      compareValues(keyLambda(a), keyLambda(b)));
-  }
-  throw new ArityError(`sort accepts 0 or 1 captured args, got ${lambdas.length}`);
 });
 
-function compareValues(a, b) {
+function compareScalars(a, b) {
   if (a < b) return -1;
   if (a > b) return 1;
   return 0;
@@ -93,17 +107,13 @@ function compareValues(a, b) {
 
 export const take = valueOp('take', 2, (vec, n) => {
   ensureVec('take', vec);
-  if (typeof n !== 'number') {
-    throw new QTypeError(`take(n) requires numeric n, got ${describeType(n)}`);
-  }
+  ensureNumber('take', 2, n);
   return vec.slice(0, n);
 });
 
 export const drop = valueOp('drop', 2, (vec, n) => {
   ensureVec('drop', vec);
-  if (typeof n !== 'number') {
-    throw new QTypeError(`drop(n) requires numeric n, got ${describeType(n)}`);
-  }
+  ensureNumber('drop', 2, n);
   return vec.slice(n);
 });
 

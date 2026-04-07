@@ -64,3 +64,25 @@ export function nullaryOp(name, impl) {
     return impl(pipeValue);
   });
 }
+
+// overloadedOp(name, maxArity, impls) — operand that supports
+// multiple discrete arities. `impls` is an object keyed by
+// captured-arg count: e.g. { 0: naturalImpl, 1: keyedImpl } for
+// `sort` (bare natural order vs sort by key). Each impl receives
+// `(pipeValue, ...lambdas)` so callers do not have to destructure.
+//
+// `maxArity` controls Rule 10's overflow check; pass the largest
+// supported (capturedCount + 1).
+export function overloadedOp(name, maxArity, impls) {
+  return makeFn(name, maxArity, (pipeValue, lambdas) => {
+    const k = lambdas.length;
+    const impl = impls[k];
+    if (!impl) {
+      const supported = Object.keys(impls).join(' or ');
+      throw new ArityError(
+        `${name} accepts ${supported} captured args, got ${k}`
+      );
+    }
+    return impl(pipeValue, ...lambdas);
+  });
+}

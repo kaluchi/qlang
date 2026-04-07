@@ -3,12 +3,9 @@
 // conversion `set` and any future Set-only operands.
 
 import { nullaryOp } from './dispatch.mjs';
-import { TypeError as QTypeError } from '../errors.mjs';
-import { isVec, describeType } from '../types.mjs';
+import { ensureVec } from './guards.mjs';
 
 export const set = nullaryOp('set', (vec) => {
-  if (!isVec(vec)) {
-    throw new QTypeError(`set requires Vec subject, got ${describeType(vec)}`);
-  }
+  ensureVec('set', vec);
   return new Set(vec);
 });

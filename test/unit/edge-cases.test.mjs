@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import {
-  TypeError as QTypeError,
+  QlangTypeError,
   UnresolvedIdentifierError,
   DivisionByZeroError,
   ArityError,
@@ -14,19 +14,17 @@ import {
 } from '../../src/errors.mjs';
 import {
   keyword,
-  keywordsEqual,
-  asKeywordName,
   describeType,
   isThunk,
-  isFunction,
+  isFunctionValue,
   isKeyword,
   isQMap,
   isQSet,
-  isVec
+  isVec,
+  makeThunk
 } from '../../src/types.mjs';
 import {
   makeState,
-  withEnv,
   envSet,
   envHas,
   envGet,
@@ -34,9 +32,7 @@ import {
 } from '../../src/state.mjs';
 import {
   applyRule10,
-  makeFn,
-  isFunctionValue,
-  constLambda
+  makeFn
 } from '../../src/rule10.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 
@@ -44,19 +40,6 @@ describe('types.mjs', () => {
   it('interns keywords', () => {
     expect(keyword('foo')).toBe(keyword('foo'));
     expect(keyword('foo')).not.toBe(keyword('bar'));
-  });
-
-  it('keywordsEqual compares by name', () => {
-    expect(keywordsEqual(keyword('a'), keyword('a'))).toBe(true);
-    expect(keywordsEqual(keyword('a'), keyword('b'))).toBe(false);
-    expect(keywordsEqual(keyword('a'), 'a')).toBe(false);
-    expect(keywordsEqual('a', keyword('a'))).toBe(false);
-  });
-
-  it('asKeywordName resolves keyword or string', () => {
-    expect(asKeywordName(keyword('x'))).toBe('x');
-    expect(asKeywordName('x')).toBe('x');
-    expect(asKeywordName(42)).toBe(null);
   });
 
   it('describeType covers every value class', () => {
@@ -70,46 +53,47 @@ describe('types.mjs', () => {
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(new Set())).toBe('Set');
     expect(describeType({ type: 'function', arity: 0, fn: () => {} })).toBe('function');
-    expect(describeType({ type: 'thunk', expr: null })).toBe('thunk');
+    expect(describeType(makeThunk(null))).toBe('thunk');
     expect(describeType(Symbol('weird'))).toBe('unknown');
   });
 
-  it('predicates work on plain JS values', () => {
-    expect(isThunk({ type: 'thunk', expr: null })).toBe(true);
+  it('value-class predicates', () => {
+    expect(isThunk(makeThunk(null))).toBe(true);
     expect(isThunk({ type: 'function' })).toBe(false);
-    expect(isFunction(() => {})).toBe(true);
+    expect(isFunctionValue({ type: 'function', arity: 0, fn: () => {} })).toBe(true);
+    expect(isFunctionValue(() => {})).toBe(false);
     expect(isKeyword(keyword('x'))).toBe(true);
     expect(isQMap(new Map())).toBe(true);
     expect(isQSet(new Set())).toBe(true);
     expect(isVec([])).toBe(true);
   });
+
+  it('makeThunk returns a frozen thunk shape', () => {
+    const t = makeThunk('expr-ast');
+    expect(t.type).toBe('thunk');
+    expect(t.expr).toBe('expr-ast');
+    expect(Object.isFrozen(t)).toBe(true);
+  });
 });
 
 describe('state.mjs', () => {
-  it('withEnv replaces env', () => {
-    const s = makeState(1, new Map());
-    const e2 = new Map([[keyword('x'), 99]]);
-    const s2 = withEnv(s, e2);
-    expect(s2.pipeValue).toBe(1);
-    expect(s2.env).toBe(e2);
+  it('envSet returns a new Map without mutating the original', () => {
+    const initial = new Map();
+    const extended = envSet(initial, 'foo', 42);
+    expect(initial.size).toBe(0);
+    expect(extended.size).toBe(1);
+    expect(envGet(extended, 'foo')).toBe(42);
+    expect(envHas(extended, 'foo')).toBe(true);
+    expect(envHas(extended, 'bar')).toBe(false);
   });
 
-  it('envSet returns a new Map', () => {
-    const e = new Map();
-    const e2 = envSet(e, 'foo', 42);
-    expect(e.size).toBe(0);
-    expect(e2.size).toBe(1);
-    expect(envGet(e2, 'foo')).toBe(42);
-    expect(envHas(e2, 'foo')).toBe(true);
-    expect(envHas(e2, 'bar')).toBe(false);
-  });
-
-  it('envMerge merges another Map', () => {
-    const a = envSet(new Map(), 'a', 1);
-    const b = envSet(new Map(), 'b', 2);
-    const merged = envMerge(a, b);
+  it('envMerge merges a Map into another, incoming wins on conflict', () => {
+    const base    = envSet(envSet(new Map(), 'a', 1), 'shared', 'old');
+    const incoming = envSet(envSet(new Map(), 'b', 2), 'shared', 'new');
+    const merged = envMerge(base, incoming);
     expect(envGet(merged, 'a')).toBe(1);
     expect(envGet(merged, 'b')).toBe(2);
+    expect(envGet(merged, 'shared')).toBe('new');
   });
 });
 
@@ -120,28 +104,43 @@ describe('rule10.mjs', () => {
       .toThrow(ArityError);
   });
 
-  it('isFunctionValue identifies wrapped functions', () => {
-    const fn = makeFn('id', 1, x => x);
-    expect(isFunctionValue(fn)).toBe(true);
-    expect(isFunctionValue(() => {})).toBe(false);
-    expect(isFunctionValue(null)).toBe(false);
+  it('makeFn defaults pseudo=false', () => {
+    const fn = makeFn('id', 1, () => 0);
+    expect(fn.pseudo).toBe(false);
   });
 
-  it('constLambda ignores its input', () => {
-    const lam = constLambda(42);
-    expect(lam('anything')).toBe(42);
-    expect(lam(null)).toBe(42);
+  it('makeFn honours pseudo option', () => {
+    const fn = makeFn('marker', 0, () => 0, { pseudo: true });
+    expect(fn.pseudo).toBe(true);
   });
 });
 
 describe('errors.mjs', () => {
   it('all error subclasses carry kind tags', () => {
-    expect(new QTypeError('msg').kind).toBe('type-error');
+    expect(new QlangTypeError('msg').kind).toBe('type-error');
     expect(new UnresolvedIdentifierError('foo').kind).toBe('unresolved-identifier');
     expect(new UnresolvedIdentifierError('foo').identifierName).toBe('foo');
     expect(new DivisionByZeroError().kind).toBe('division-by-zero');
     expect(new ArityError('arity').kind).toBe('arity-error');
     expect(new QlangError('generic', 'custom').kind).toBe('custom');
+  });
+});
+
+describe('runtime/predicates.mjs ordering type errors', () => {
+  it('gt rejects heterogeneous comparison', () => {
+    expect(() => evalQuery('"a" | gt(5)')).toThrow(QlangTypeError);
+  });
+  it('lt rejects non-comparable subject', () => {
+    expect(() => evalQuery('nil | lt(5)')).toThrow(QlangTypeError);
+  });
+  it('min raises on mixed Vec', () => {
+    expect(() => evalQuery('[1 "a"] | min')).toThrow(QlangTypeError);
+  });
+  it('max raises on non-comparable', () => {
+    expect(() => evalQuery('[nil nil] | max')).toThrow(QlangTypeError);
+  });
+  it('sort raises on mixed-type Vec', () => {
+    expect(() => evalQuery('[1 "a"] | sort')).toThrow(QlangTypeError);
   });
 });
 
@@ -159,40 +158,40 @@ describe('parse.mjs', () => {
 
 describe('runtime/arith.mjs error paths', () => {
   it('add rejects non-numeric subject', () => {
-    expect(() => evalQuery('"x" | add(1)')).toThrow(QTypeError);
+    expect(() => evalQuery('"x" | add(1)')).toThrow(QlangTypeError);
   });
   it('add rejects non-numeric modifier', () => {
-    expect(() => evalQuery('1 | add(\"x\")')).toThrow(QTypeError);
+    expect(() => evalQuery('1 | add(\"x\")')).toThrow(QlangTypeError);
   });
   it('sub rejects non-numeric subject', () => {
-    expect(() => evalQuery('\"x\" | sub(1)')).toThrow(QTypeError);
+    expect(() => evalQuery('\"x\" | sub(1)')).toThrow(QlangTypeError);
   });
   it('mul rejects non-numeric subject', () => {
-    expect(() => evalQuery('\"x\" | mul(1)')).toThrow(QTypeError);
+    expect(() => evalQuery('\"x\" | mul(1)')).toThrow(QlangTypeError);
   });
   it('div rejects non-numeric subject', () => {
-    expect(() => evalQuery('\"x\" | div(1)')).toThrow(QTypeError);
+    expect(() => evalQuery('\"x\" | div(1)')).toThrow(QlangTypeError);
   });
 });
 
 describe('runtime/vec.mjs error paths', () => {
   it('count rejects non-Vec', () => {
-    expect(() => evalQuery('42 | count')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | count')).toThrow(QlangTypeError);
   });
   it('first rejects non-Vec', () => {
-    expect(() => evalQuery('42 | first')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | first')).toThrow(QlangTypeError);
   });
   it('sum rejects non-Vec', () => {
-    expect(() => evalQuery('42 | sum')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | sum')).toThrow(QlangTypeError);
   });
   it('filter rejects non-Vec', () => {
-    expect(() => evalQuery('42 | filter(gt(1))')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | filter(gt(1))')).toThrow(QlangTypeError);
   });
   it('take rejects non-numeric n', () => {
-    expect(() => evalQuery('[1 2 3] | take(\"x\")')).toThrow(QTypeError);
+    expect(() => evalQuery('[1 2 3] | take(\"x\")')).toThrow(QlangTypeError);
   });
   it('drop rejects non-numeric n', () => {
-    expect(() => evalQuery('[1 2 3] | drop(\"x\")')).toThrow(QTypeError);
+    expect(() => evalQuery('[1 2 3] | drop(\"x\")')).toThrow(QlangTypeError);
   });
   it('sort with key', () => {
     expect(evalQuery('[{:n 3} {:n 1} {:n 2}] | sort(/n)'))
@@ -202,28 +201,28 @@ describe('runtime/vec.mjs error paths', () => {
 
 describe('runtime/map.mjs error paths', () => {
   it('keys rejects non-Map', () => {
-    expect(() => evalQuery('42 | keys')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | keys')).toThrow(QlangTypeError);
   });
   it('vals rejects non-Map', () => {
-    expect(() => evalQuery('42 | vals')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | vals')).toThrow(QlangTypeError);
   });
   it('has rejects non-Map/non-Set subject', () => {
-    expect(() => evalQuery('42 | has(:foo)')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | has(:foo)')).toThrow(QlangTypeError);
   });
   it('has on Map requires keyword key', () => {
-    expect(() => evalQuery('{:k 1} | has(\"k\")')).toThrow(QTypeError);
+    expect(() => evalQuery('{:k 1} | has(\"k\")')).toThrow(QlangTypeError);
   });
 });
 
 describe('runtime/set.mjs error paths', () => {
   it('set rejects non-Vec', () => {
-    expect(() => evalQuery('42 | set')).toThrow(QTypeError);
+    expect(() => evalQuery('42 | set')).toThrow(QlangTypeError);
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', () => {
-    expect(() => evalQuery('#{:a} | union({:b 1})')).toThrow(QTypeError);
+    expect(() => evalQuery('#{:a} | union({:b 1})')).toThrow(QlangTypeError);
   });
   it('minus of Map by another Map (key-based)', () => {
     const result = evalQuery('{:a 1 :b 2 :c 3} | minus({:b 99 :d 5})');
@@ -234,10 +233,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(result).toEqual(new Map([[keyword('b'), 2]]));
   });
   it('minus of Set by Map errors', () => {
-    expect(() => evalQuery('#{:a} | minus({:a 1})')).toThrow(QTypeError);
+    expect(() => evalQuery('#{:a} | minus({:a 1})')).toThrow(QlangTypeError);
   });
   it('inter of Set by Map errors', () => {
-    expect(() => evalQuery('#{:a} | inter({:a 1})')).toThrow(QTypeError);
+    expect(() => evalQuery('#{:a} | inter({:a 1})')).toThrow(QlangTypeError);
   });
 });
 
@@ -266,7 +265,7 @@ describe('eval.mjs unknown node type', () => {
   it('throws on unknown AST node', () => {
     const fakeNode = { type: 'BogusNode' };
     const state = makeState(null, langRuntime());
-    expect(() => evalAst(fakeNode, state)).toThrow(QTypeError);
+    expect(() => evalAst(fakeNode, state)).toThrow(QlangTypeError);
   });
 });
 
@@ -313,6 +312,6 @@ describe('eval.mjs unknown combinator', () => {
       ]
     };
     const state = makeState(null, langRuntime());
-    expect(() => evalAst(ast, state)).toThrow(QTypeError);
+    expect(() => evalAst(ast, state)).toThrow(QlangTypeError);
   });
 });

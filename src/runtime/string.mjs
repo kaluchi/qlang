@@ -1,17 +1,8 @@
-// String concatenation operands. Subject-first: subject is the
-// string at position 1, modifier is the string at position 2.
+// String concatenation operands. Subject-first: position 1 is the
+// subject string, position 2 is the modifier string.
 
 import { valueOp } from './dispatch.mjs';
-import { TypeError as QTypeError } from '../errors.mjs';
-import { describeType } from '../types.mjs';
-
-function ensureString(name, position, value) {
-  if (typeof value !== 'string') {
-    throw new QTypeError(
-      `${name} requires string at position ${position}, got ${describeType(value)}`
-    );
-  }
-}
+import { ensureString } from './guards.mjs';
 
 export const prepend = valueOp('prepend', 2, (subject, prefix) => {
   ensureString('prepend', 1, subject);

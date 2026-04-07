@@ -3,16 +3,8 @@
 // captured arg) and full (two captured args).
 
 import { valueOp } from './dispatch.mjs';
-import { TypeError as QTypeError, DivisionByZeroError } from '../errors.mjs';
-import { describeType } from '../types.mjs';
-
-function ensureNumber(name, position, value) {
-  if (typeof value !== 'number') {
-    throw new QTypeError(
-      `${name} requires number at position ${position}, got ${describeType(value)}`
-    );
-  }
-}
+import { ensureNumber } from './guards.mjs';
+import { DivisionByZeroError } from '../errors.mjs';
 
 export const add = valueOp('add', 2, (a, b) => {
   ensureNumber('add', 1, a);

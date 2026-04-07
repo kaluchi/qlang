@@ -1,8 +1,29 @@
 {"name": "projection-on-number", "query": "42 | /foo", "error": "type-error"}
 {"name": "projection-on-vec", "query": "[1 2] | /foo", "error": "type-error"}
+{"name": "projection-on-set", "query": "#{:a} | /foo", "error": "type-error"}
 {"name": "distribute-on-number", "query": "42 * add(1)", "error": "type-error"}
+{"name": "distribute-on-map", "query": "{:a 1} * add(1)", "error": "type-error"}
+{"name": "distribute-on-set", "query": "#{1 2} * add(1)", "error": "type-error"}
 {"name": "merge-on-number", "query": "42 >> count", "error": "type-error"}
+{"name": "merge-on-set", "query": "#{1 2} >> count", "error": "type-error"}
 {"name": "use-on-number", "query": "42 | use", "error": "type-error"}
+{"name": "use-on-vec", "query": "[1 2] | use", "error": "type-error"}
 {"name": "unresolved-identifier", "query": "thisIsNotDefined", "error": "unresolved-identifier"}
+{"name": "unresolved-inside-filter", "query": "[1 2 3] | filter(thisIsNotDefined)", "error": "unresolved-identifier"}
 {"name": "div-by-zero", "query": "10 | div(0)", "error": "division-by-zero"}
 {"name": "sum-non-numeric", "query": "[1 \"two\" 3] | sum", "error": "type-error"}
+{"name": "count-on-number", "query": "42 | count", "error": "type-error"}
+{"name": "empty-on-number", "query": "42 | empty", "error": "type-error"}
+{"name": "first-on-number", "query": "42 | first", "error": "type-error"}
+{"name": "last-on-number", "query": "42 | last", "error": "type-error"}
+{"name": "reverse-on-number", "query": "42 | reverse", "error": "type-error"}
+{"name": "distinct-on-number", "query": "42 | distinct", "error": "type-error"}
+{"name": "drop-on-number", "query": "42 | drop(1)", "error": "type-error"}
+{"name": "take-on-number", "query": "42 | take(1)", "error": "type-error"}
+{"name": "sort-on-number", "query": "42 | sort", "error": "type-error"}
+{"name": "flat-on-number", "query": "42 | flat", "error": "type-error"}
+{"name": "keys-on-number", "query": "42 | keys", "error": "type-error"}
+{"name": "vals-on-vec", "query": "[1 2] | vals", "error": "type-error"}
+{"name": "prepend-modifier-not-string", "query": "\"x\" | prepend(42)", "error": "type-error"}
+{"name": "append-modifier-not-string", "query": "\"x\" | append(42)", "error": "type-error"}
+{"name": "cannot-apply-args-to-value", "query": "let five = 5 | five(42)", "error": "type-error"}

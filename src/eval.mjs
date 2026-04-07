@@ -1,0 +1,277 @@
+// Top-level evaluator.
+//
+// Threads (pipeValue, env) state through pipeline steps. Dispatches
+// on AST node `type` and delegates to the appropriate step or
+// combinator implementation.
+//
+// Architecture: every node-type handler is a small function
+// (state, node) → state'. The dispatcher is a switch.
+
+import { parse } from './parse.mjs';
+import { makeState, withPipeValue, envSet, envGet, envHas } from './state.mjs';
+import { fork, forkWith } from './fork.mjs';
+import { applyRule10, isFunctionValue } from './rule10.mjs';
+import {
+  TypeError as QTypeError,
+  UnresolvedIdentifierError
+} from './errors.mjs';
+import {
+  isVec, isQMap, isThunk, describeType, keyword, NIL
+} from './types.mjs';
+import { langRuntime } from './runtime/index.mjs';
+
+// evalQuery(source, env?) → final pipeValue
+//
+// Convenience entry point: parse + evaluate. If env is omitted,
+// uses langRuntime as both initial env and pipeValue (per the
+// model's reference bootstrap).
+export function evalQuery(source, env) {
+  const initialEnv = env ?? langRuntime();
+  const ast = parse(source);
+  const initialState = makeState(initialEnv, initialEnv);
+  const finalState = evalNode(ast, initialState);
+  return finalState.pipeValue;
+}
+
+// evalAst(ast, state) → state'
+//
+// Dispatches on the AST node type and returns the new state.
+// Public so callers can drive their own initial state.
+export function evalAst(ast, state) {
+  return evalNode(ast, state);
+}
+
+function evalNode(node, state) {
+  switch (node.type) {
+    case 'Pipeline':       return evalPipeline(node, state);
+    case 'NumberLit':      return evalNumberLit(node, state);
+    case 'StringLit':      return evalStringLit(node, state);
+    case 'BooleanLit':     return evalBooleanLit(node, state);
+    case 'NilLit':         return evalNilLit(node, state);
+    case 'Keyword':        return evalKeyword(node, state);
+    case 'VecLit':         return evalVecLit(node, state);
+    case 'MapLit':         return evalMapLit(node, state);
+    case 'SetLit':         return evalSetLit(node, state);
+    case 'Projection':     return evalProjection(node, state);
+    case 'OperandCall':    return evalOperandCall(node, state);
+    case 'AsStep':         return evalAsStep(node, state);
+    case 'LetStep':        return evalLetStep(node, state);
+    case 'UseStep':        return evalUseStep(node, state);
+    case 'ParenGroup':     return evalParenGroup(node, state);
+    default:
+      throw new QTypeError(`unknown AST node type: ${node.type}`);
+  }
+}
+
+// ─── Pipeline ───────────────────────────────────────────────────
+
+function evalPipeline(node, state) {
+  // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
+  let current = state;
+  for (let i = 0; i < node.steps.length; i++) {
+    const step = node.steps[i];
+    if (i === 0) {
+      current = evalNode(step, current);
+    } else {
+      current = applyCombinator(step.combinator, current, step.step);
+    }
+  }
+  return current;
+}
+
+function applyCombinator(kind, state, stepNode) {
+  switch (kind) {
+    case '|':  return evalNode(stepNode, state);
+    case '*':  return distribute(state, stepNode);
+    case '>>': return mergeFlat(state, stepNode);
+    default:
+      throw new QTypeError(`unknown combinator: ${kind}`);
+  }
+}
+
+function distribute(state, bodyNode) {
+  if (!isVec(state.pipeValue)) {
+    throw new QTypeError(
+      `* requires Vec pipeValue, got ${describeType(state.pipeValue)}`
+    );
+  }
+  const collected = state.pipeValue.map(item =>
+    forkWith(state, item, inner => evalNode(bodyNode, inner)).pipeValue
+  );
+  return withPipeValue(state, collected);
+}
+
+function mergeFlat(state, nextNode) {
+  if (!isVec(state.pipeValue)) {
+    throw new QTypeError(
+      `>> requires Vec pipeValue, got ${describeType(state.pipeValue)}`
+    );
+  }
+  const flattened = [];
+  for (const item of state.pipeValue) {
+    if (isVec(item)) {
+      flattened.push(...item);
+    } else {
+      flattened.push(item);
+    }
+  }
+  return evalNode(nextNode, withPipeValue(state, flattened));
+}
+
+// ─── Step 1: Literals ───────────────────────────────────────────
+
+function evalNumberLit(node, state)  { return withPipeValue(state, node.value); }
+function evalStringLit(node, state)  { return withPipeValue(state, node.value); }
+function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
+function evalNilLit(_node, state)    { return withPipeValue(state, NIL); }
+function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
+
+function evalVecLit(node, state) {
+  // Each element is a sub-pipeline forked against the outer state.
+  const collected = node.elements.map(elem =>
+    fork(state, inner => evalNode(elem, inner)).pipeValue
+  );
+  return withPipeValue(state, collected);
+}
+
+function evalMapLit(node, state) {
+  // Each value is a sub-pipeline forked against the outer state.
+  // Keys are keyword AST nodes; we resolve them to interned keywords.
+  const result = new Map();
+  for (const entry of node.entries) {
+    const key = keyword(entry.key.name);
+    const value = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
+    result.set(key, value);
+  }
+  return withPipeValue(state, result);
+}
+
+function evalSetLit(node, state) {
+  const result = new Set();
+  for (const elem of node.elements) {
+    const value = fork(state, inner => evalNode(elem, inner)).pipeValue;
+    result.add(value);
+  }
+  return withPipeValue(state, result);
+}
+
+// ─── Step 2: Projection ─────────────────────────────────────────
+
+function evalProjection(node, state) {
+  let current = state.pipeValue;
+  for (const key of node.keys) {
+    if (!isQMap(current)) {
+      throw new QTypeError(
+        `/${key} requires Map, got ${describeType(current)}`
+      );
+    }
+    current = current.has(keyword(key)) ? current.get(keyword(key)) : NIL;
+  }
+  return withPipeValue(state, current);
+}
+
+// ─── Step 3: Identifier lookup with optional captured args ──────
+
+function evalOperandCall(node, state) {
+  const name = node.name;
+  const env = state.env;
+
+  if (!envHas(env, name)) {
+    throw new UnresolvedIdentifierError(name);
+  }
+
+  let resolved = envGet(env, name);
+
+  // Force a thunk written by `let` if encountered as a value.
+  if (isThunk(resolved)) {
+    resolved = forceThunk(resolved, state);
+  }
+
+  const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
+
+  if (isFunctionValue(resolved)) {
+    // Pseudo-operands like `env` receive the full state and return
+    // a new state directly.
+    if (resolved.pseudo) {
+      return resolved.fn(state);
+    }
+    // Build lambdas for each captured arg. Each lambda evaluates
+    // the captured AST node against the input it is invoked with,
+    // sharing the env of the original capture site.
+    const capturedEnv = state.env;
+    const lambdas = capturedArgsAst === null
+      ? []
+      : capturedArgsAst.map(arg => makeLambda(arg, capturedEnv));
+    const result = applyRule10(resolved, lambdas, state.pipeValue);
+    return withPipeValue(state, result);
+  }
+
+  // Non-function value: replace pipeValue with it. Captured args
+  // would be a type error since you cannot apply a non-function.
+  if (capturedArgsAst !== null) {
+    throw new QTypeError(
+      `${name} resolves to ${describeType(resolved)}, cannot apply arguments`
+    );
+  }
+  return withPipeValue(state, resolved);
+}
+
+// makeLambda(astNode, env) → (input) → value
+//
+// Constructs a closure that evaluates `astNode` as a sub-pipeline
+// against any given input, in the env captured at construction
+// time. Operand impls call lambdas to resolve captured args at
+// the moment they need them.
+function makeLambda(astNode, env) {
+  return (input) => {
+    const subState = makeState(input, env);
+    return evalNode(astNode, subState).pipeValue;
+  };
+}
+
+// forceThunk(thunk, state) → resolved value
+//
+// Dynamic scope: evaluate the thunk's expression against the
+// current state, not the binding-site state.
+function forceThunk(thunk, state) {
+  const finalInnerState = fork(state, inner => evalNode(thunk.expr, inner));
+  return finalInnerState.pipeValue;
+}
+
+// ─── Step 4: as name ────────────────────────────────────────────
+
+function evalAsStep(node, state) {
+  const nextEnv = envSet(state.env, node.name, state.pipeValue);
+  return makeState(state.pipeValue, nextEnv);
+}
+
+// ─── Step 5: let name = expr ────────────────────────────────────
+
+function evalLetStep(node, state) {
+  const thunk = Object.freeze({ type: 'thunk', expr: node.body });
+  const nextEnv = envSet(state.env, node.name, thunk);
+  return makeState(state.pipeValue, nextEnv);
+}
+
+// ─── Step 6: use ────────────────────────────────────────────────
+
+function evalUseStep(_node, state) {
+  if (!isQMap(state.pipeValue)) {
+    throw new QTypeError(
+      `use requires Map pipeValue, got ${describeType(state.pipeValue)}`
+    );
+  }
+  // Both env and Map literals use keyword keys, so use is a
+  // direct merge.
+  const nextEnv = new Map(state.env);
+  for (const [k, v] of state.pipeValue) {
+    nextEnv.set(k, v);
+  }
+  return makeState(state.pipeValue, nextEnv);
+}
+
+// ─── ParenGroup ─────────────────────────────────────────────────
+
+function evalParenGroup(node, state) {
+  return fork(state, inner => evalNode(node.pipeline, inner));
+}

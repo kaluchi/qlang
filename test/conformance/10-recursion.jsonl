@@ -1,0 +1,3 @@
+{"name": "recursive-tree-sum", "query": "let totalSize = add(/size, /children * totalSize | sum) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize", "expect": 300}
+{"name": "recursive-count-nodes", "query": "let countNodes = add(1, /children * countNodes | sum) | {:children [{:children []} {:children []}]} | countNodes", "expect": 3}
+{"name": "recursive-tree-shape", "query": "let renameLabel = {:value /label :children /children * renameLabel} | {:label \"root\" :children [{:label \"a\" :children []}]} | renameLabel", "expect": {"$map": [[{"$keyword": "value"}, "root"], [{"$keyword": "children"}, [{"$map": [[{"$keyword": "value"}, "a"], [{"$keyword": "children"}, []]]}]]]}}

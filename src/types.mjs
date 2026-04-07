@@ -66,5 +66,6 @@ export function describeType(v) {
   if (isQSet(v)) return 'Set';
   if (isFunction(v)) return 'function';
   if (isThunk(v)) return 'thunk';
+  if (v !== null && typeof v === 'object' && v.type === 'function') return 'function';
   return 'unknown';
 }

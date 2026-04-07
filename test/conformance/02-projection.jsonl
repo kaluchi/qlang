@@ -1,0 +1,5 @@
+{"name": "single-key", "query": "{:name \"Alice\"} | /name", "expect": "Alice"}
+{"name": "missing-key", "query": "{:name \"Alice\"} | /age", "expect": null}
+{"name": "nested-keys", "query": "{:point {:x 5 :y 7}} | /point/x", "expect": 5}
+{"name": "deeply-nested", "query": "{:a {:b {:c {:d 42}}}} | /a/b/c/d", "expect": 42}
+{"name": "projection-after-filter", "query": "[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter(/age | gte(18)) * /name", "expect": ["Alice"]}

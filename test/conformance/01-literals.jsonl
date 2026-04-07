@@ -1,0 +1,15 @@
+{"name": "integer", "query": "42", "expect": 42}
+{"name": "negative-integer", "query": "-7", "expect": -7}
+{"name": "decimal", "query": "3.14", "expect": 3.14}
+{"name": "string", "query": "\"hello\"", "expect": "hello"}
+{"name": "empty-string", "query": "\"\"", "expect": ""}
+{"name": "true", "query": "true", "expect": true}
+{"name": "false", "query": "false", "expect": false}
+{"name": "nil", "query": "nil", "expect": null}
+{"name": "empty-vec", "query": "[]", "expect": []}
+{"name": "single-element-vec", "query": "[1]", "expect": [1]}
+{"name": "multi-element-vec", "query": "[1 2 3 4 5]", "expect": [1, 2, 3, 4, 5]}
+{"name": "vec-of-strings", "query": "[\"a\" \"b\" \"c\"]", "expect": ["a", "b", "c"]}
+{"name": "nested-vec", "query": "[[1 2] [3 4]]", "expect": [[1, 2], [3, 4]]}
+{"name": "empty-set", "query": "#{}", "expect": {"$set": []}}
+{"name": "empty-map", "query": "{}", "expect": {"$map": []}}

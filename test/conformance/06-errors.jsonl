@@ -1,0 +1,8 @@
+{"name": "projection-on-number", "query": "42 | /foo", "error": "type-error"}
+{"name": "projection-on-vec", "query": "[1 2] | /foo", "error": "type-error"}
+{"name": "distribute-on-number", "query": "42 * add(1)", "error": "type-error"}
+{"name": "merge-on-number", "query": "42 >> count", "error": "type-error"}
+{"name": "use-on-number", "query": "42 | use", "error": "type-error"}
+{"name": "unresolved-identifier", "query": "thisIsNotDefined", "error": "unresolved-identifier"}
+{"name": "div-by-zero", "query": "10 | div(0)", "error": "division-by-zero"}
+{"name": "sum-non-numeric", "query": "[1 \"two\" 3] | sum", "error": "type-error"}

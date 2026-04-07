@@ -1,0 +1,24 @@
+{"name": "count", "query": "[1 2 3 4 5] | count", "expect": 5}
+{"name": "count-empty", "query": "[] | count", "expect": 0}
+{"name": "empty-true", "query": "[] | empty", "expect": true}
+{"name": "empty-false", "query": "[1] | empty", "expect": false}
+{"name": "first", "query": "[10 20 30] | first", "expect": 10}
+{"name": "first-empty", "query": "[] | first", "expect": null}
+{"name": "last", "query": "[10 20 30] | last", "expect": 30}
+{"name": "last-empty", "query": "[] | last", "expect": null}
+{"name": "sum", "query": "[1 2 3 4 5] | sum", "expect": 15}
+{"name": "sum-empty", "query": "[] | sum", "expect": 0}
+{"name": "min", "query": "[3 1 4 1 5 9 2 6] | min", "expect": 1}
+{"name": "max", "query": "[3 1 4 1 5 9 2 6] | max", "expect": 9}
+{"name": "filter-gt", "query": "[1 2 3 4 5] | filter(gt(2))", "expect": [3, 4, 5]}
+{"name": "filter-lt", "query": "[1 2 3 4 5] | filter(lt(3))", "expect": [1, 2]}
+{"name": "filter-then-count", "query": "[1 2 3 4 5] | filter(gt(3)) | count", "expect": 2}
+{"name": "sort-natural", "query": "[3 1 4 1 5 9 2 6] | sort", "expect": [1, 1, 2, 3, 4, 5, 6, 9]}
+{"name": "take", "query": "[1 2 3 4 5] | take(3)", "expect": [1, 2, 3]}
+{"name": "drop", "query": "[1 2 3 4 5] | drop(2)", "expect": [3, 4, 5]}
+{"name": "distinct", "query": "[1 2 1 3 2 4] | distinct", "expect": [1, 2, 3, 4]}
+{"name": "reverse", "query": "[1 2 3] | reverse", "expect": [3, 2, 1]}
+{"name": "flat", "query": "[[1 2] [3] [4 5]] | flat", "expect": [1, 2, 3, 4, 5]}
+{"name": "distribute-add", "query": "[1 2 3] * add(1)", "expect": [2, 3, 4]}
+{"name": "distribute-mul", "query": "[1 2 3] * mul(10)", "expect": [10, 20, 30]}
+{"name": "merge-flat", "query": "[[1 2] [3 4]] >> count", "expect": 4}

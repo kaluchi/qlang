@@ -1,0 +1,8 @@
+{"name": "set-union", "query": "#{:a :b :c} | union(#{:b :d})", "expect": {"$set": [{"$keyword": "a"}, {"$keyword": "b"}, {"$keyword": "c"}, {"$keyword": "d"}]}}
+{"name": "set-minus", "query": "#{:a :b :c} | minus(#{:b :d})", "expect": {"$set": [{"$keyword": "a"}, {"$keyword": "c"}]}}
+{"name": "set-inter", "query": "#{:a :b :c} | inter(#{:b :d})", "expect": {"$set": [{"$keyword": "b"}]}}
+{"name": "map-union-bound", "query": "{:name \"Alice\"} | union({:age 30})", "expect": {"$map": [[{"$keyword": "name"}, "Alice"], [{"$keyword": "age"}, 30]]}}
+{"name": "map-union-overrides", "query": "{:age 20} | union({:age 30})", "expect": {"$map": [[{"$keyword": "age"}, 30]]}}
+{"name": "map-minus-by-set", "query": "{:name \"Alice\" :age 30 :tmp 1} | minus(#{:tmp})", "expect": {"$map": [[{"$keyword": "name"}, "Alice"], [{"$keyword": "age"}, 30]]}}
+{"name": "map-inter-by-set", "query": "{:name \"Alice\" :age 30 :tmp 1} | inter(#{:name :age})", "expect": {"$map": [[{"$keyword": "name"}, "Alice"], [{"$keyword": "age"}, 30]]}}
+{"name": "enrich-with-derived", "query": "{:name \"Alice\" :age 20} | union({:adult /age | gte(18)})", "expect": {"$map": [[{"$keyword": "name"}, "Alice"], [{"$keyword": "age"}, 20], [{"$keyword": "adult"}, true]]}}

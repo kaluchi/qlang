@@ -18,8 +18,18 @@
 
 import { overloadedOp } from './dispatch.mjs';
 import { ensureVec } from './guards.mjs';
-import { QlangTypeError } from '../errors.mjs';
+import { ComparabilityError, QlangTypeError } from '../errors.mjs';
 import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+
+// incompatible — shared helper for "these two operands cannot be
+// combined" errors from the three pair functions below. Uses
+// ComparabilityError because union/minus/inter across mismatched
+// container types is conceptually the same failure mode as
+// comparing a number with a string: two values of incompatible
+// shape for the operation.
+function incompatible(operand, left, right) {
+  return new ComparabilityError(operand, describeType(left), describeType(right));
+}
 
 function unionPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
@@ -32,9 +42,7 @@ function unionPair(left, right) {
     for (const [k, v] of right) out.set(k, v);
     return out;
   }
-  throw new QlangTypeError(
-    `union: incompatible types (${describeType(left)}, ${describeType(right)})`
-  );
+  throw incompatible('union', left, right);
 }
 
 function minusPair(left, right) {
@@ -55,9 +63,7 @@ function minusPair(left, right) {
     }
     return out;
   }
-  throw new QlangTypeError(
-    `minus: incompatible types (${describeType(left)}, ${describeType(right)})`
-  );
+  throw incompatible('minus', left, right);
 }
 
 function interPair(left, right) {
@@ -78,9 +84,7 @@ function interPair(left, right) {
     }
     return out;
   }
-  throw new QlangTypeError(
-    `inter: incompatible types (${describeType(left)}, ${describeType(right)})`
-  );
+  throw incompatible('inter', left, right);
 }
 
 // polymorphicSetOp — shared factory for union/minus/inter.
@@ -98,7 +102,8 @@ function polymorphicSetOp(name, pair) {
       ensureVec(name, vec);
       if (vec.length === 0) {
         throw new QlangTypeError(
-          `${name} (bare form) requires a non-empty Vec of operands`
+          `${name} (bare form) requires a non-empty Vec of operands`,
+          { operand: name, form: 'bare', received: 'empty Vec' }
         );
       }
       return vec.reduce(pair);

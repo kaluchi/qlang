@@ -15,7 +15,11 @@ import { fork, forkWith } from './fork.mjs';
 import { applyRule10 } from './rule10.mjs';
 import {
   QlangTypeError,
-  UnresolvedIdentifierError
+  UnresolvedIdentifierError,
+  ProjectionError,
+  CombinatorError,
+  ApplicationError,
+  SubjectTypeError
 } from './errors.mjs';
 import {
   isVec, isQMap, isThunk, isFunctionValue,
@@ -102,11 +106,9 @@ function applyCombinator(kind, state, stepNode) {
   return handler(state, stepNode);
 }
 
-function ensureVecPipeValue(opName, state) {
+function ensureVecPipeValue(combinator, state) {
   if (!isVec(state.pipeValue)) {
-    throw new QlangTypeError(
-      `${opName} requires Vec pipeValue, got ${describeType(state.pipeValue)}`
-    );
+    throw new CombinatorError(combinator, 'Vec', describeType(state.pipeValue));
   }
 }
 
@@ -171,9 +173,7 @@ function evalProjection(node, state) {
   let current = state.pipeValue;
   for (const key of node.keys) {
     if (!isQMap(current)) {
-      throw new QlangTypeError(
-        `/${key} requires Map, got ${describeType(current)}`
-      );
+      throw new ProjectionError(key, describeType(current));
     }
     current = current.has(keyword(key)) ? current.get(keyword(key)) : NIL;
   }
@@ -219,9 +219,7 @@ function evalOperandCall(node, state) {
   // Non-function value: replace pipeValue with it. Captured args
   // would be a type error since you cannot apply a non-function.
   if (capturedArgsAst !== null) {
-    throw new QlangTypeError(
-      `${name} resolves to ${describeType(resolved)}, cannot apply arguments`
-    );
+    throw new ApplicationError(name, describeType(resolved));
   }
   return withPipeValue(state, resolved);
 }
@@ -266,9 +264,7 @@ function evalLetStep(node, state) {
 
 function evalUseStep(_node, state) {
   if (!isQMap(state.pipeValue)) {
-    throw new QlangTypeError(
-      `use requires Map pipeValue, got ${describeType(state.pipeValue)}`
-    );
+    throw new SubjectTypeError('use', 'Map', describeType(state.pipeValue), state.pipeValue);
   }
   // Both env and Map literals use keyword keys, so this is a
   // direct merge — delegate to envMerge for consistency with

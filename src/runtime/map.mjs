@@ -8,7 +8,7 @@
 import { nullaryOp, valueOp } from './dispatch.mjs';
 import { ensureMap } from './guards.mjs';
 import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
-import { QlangTypeError } from '../errors.mjs';
+import { SubjectTypeError, ModifierTypeError } from '../errors.mjs';
 
 export const keys = nullaryOp('keys', (map) => {
   ensureMap('keys', map);
@@ -25,16 +25,12 @@ export const vals = nullaryOp('vals', (map) => {
 export const has = valueOp('has', 2, (subject, key) => {
   if (isQMap(subject)) {
     if (!isKeyword(key)) {
-      throw new QlangTypeError(
-        `has requires a keyword key for Map subjects, got ${describeType(key)}`
-      );
+      throw new ModifierTypeError('has', 2, 'keyword (for Map subject)', describeType(key));
     }
     return subject.has(key);
   }
   if (isQSet(subject)) {
     return subject.has(key);
   }
-  throw new QlangTypeError(
-    `has requires Map or Set subject, got ${describeType(subject)}`
-  );
+  throw new SubjectTypeError('has', 'Map or Set', describeType(subject), subject);
 });

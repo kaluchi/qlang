@@ -6,8 +6,9 @@
 // it can invoke the lambda per element.
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
-import { ensureVec, ensureNumber, ensureSameOrderingType } from './guards.mjs';
-import { isVec, isTruthy, NIL } from '../types.mjs';
+import { ensureVec, ensureNumber, ensureNumberElement, ensureSameOrderingType } from './guards.mjs';
+import { isVec, isQMap, isQSet, isTruthy, describeType, NIL } from '../types.mjs';
+import { SubjectTypeError } from '../errors.mjs';
 
 // ── Vec → Scalar reducers ──────────────────────────────────────
 //
@@ -16,17 +17,11 @@ import { isVec, isTruthy, NIL } from '../types.mjs';
 // the container shape. This matches the runtime catalog which
 // lists both operands under Vec, Map, and Set.
 
-import { isQMap, isQSet } from '../types.mjs';
-import { QlangTypeError } from '../errors.mjs';
-import { describeType } from '../types.mjs';
-
-function sizeOf(opName, container) {
+function sizeOf(operand, container) {
   if (isVec(container)) return container.length;
   if (isQSet(container)) return container.size;
   if (isQMap(container)) return container.size;
-  throw new QlangTypeError(
-    `${opName} requires Vec, Set, or Map subject, got ${describeType(container)}`
-  );
+  throw new SubjectTypeError(operand, 'Vec, Set, or Map', describeType(container), container);
 }
 
 export const count = nullaryOp('count', (container) => sizeOf('count', container));
@@ -47,7 +42,7 @@ export const sum = nullaryOp('sum', (vec) => {
   ensureVec('sum', vec);
   let total = 0;
   for (let i = 0; i < vec.length; i++) {
-    ensureNumber('sum', i + 1, vec[i]);
+    ensureNumberElement('sum', i, vec[i]);
     total += vec[i];
   }
   return total;

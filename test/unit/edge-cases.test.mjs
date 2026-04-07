@@ -6,11 +6,18 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import {
+  QlangError,
   QlangTypeError,
+  SubjectTypeError,
+  ModifierTypeError,
+  ElementTypeError,
+  ComparabilityError,
+  ProjectionError,
+  CombinatorError,
+  ApplicationError,
   UnresolvedIdentifierError,
   DivisionByZeroError,
-  ArityError,
-  QlangError
+  ArityError
 } from '../../src/errors.mjs';
 import {
   keyword,
@@ -299,6 +306,111 @@ describe('runtime/format.mjs structural', () => {
 
   it('json roundtrips keyword as colon-prefixed string', () => {
     expect(evalQuery(':foo | json')).toBe('":foo"');
+  });
+});
+
+describe('error subclasses carry structured context', () => {
+  // Each test targets a specific error class so the diagnostic
+  // context is asserted directly, not just the generic kind tag.
+
+  it('SubjectTypeError on Vec operand', () => {
+    let caught;
+    try { evalQuery('42 | count'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(SubjectTypeError);
+    expect(caught.context.operand).toBe('count');
+    expect(caught.context.expectedType).toBe('Vec, Set, or Map');
+    expect(caught.context.actualType).toBe('number');
+    expect(caught.kind).toBe('type-error');
+  });
+
+  it('SubjectTypeError on Map operand', () => {
+    let caught;
+    try { evalQuery('42 | keys'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(SubjectTypeError);
+    expect(caught.context.operand).toBe('keys');
+    expect(caught.context.expectedType).toBe('Map');
+  });
+
+  it('ModifierTypeError on numeric arg', () => {
+    let caught;
+    try { evalQuery('"x" | add(1)'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(ModifierTypeError);
+    expect(caught.context.operand).toBe('add');
+    expect(caught.context.position).toBe(1);
+    expect(caught.context.expectedType).toBe('number');
+    expect(caught.context.actualType).toBe('string');
+  });
+
+  it('ModifierTypeError on string arg', () => {
+    let caught;
+    try { evalQuery('"x" | prepend(42)'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(ModifierTypeError);
+    expect(caught.context.operand).toBe('prepend');
+    expect(caught.context.position).toBe(2);
+    expect(caught.context.expectedType).toBe('string');
+  });
+
+  it('ElementTypeError on sum of mixed Vec', () => {
+    let caught;
+    try { evalQuery('[1 "two" 3] | sum'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(ElementTypeError);
+    expect(caught.context.operand).toBe('sum');
+    expect(caught.context.index).toBe(1);
+    expect(caught.context.expectedType).toBe('number');
+    expect(caught.context.actualType).toBe('string');
+  });
+
+  it('ComparabilityError on heterogeneous gt', () => {
+    let caught;
+    try { evalQuery('"a" | gt(5)'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(ComparabilityError);
+    expect(caught.context.operand).toBe('gt');
+    expect(caught.context.leftType).toBe('string');
+    expect(caught.context.rightType).toBe('number');
+  });
+
+  it('ProjectionError on non-Map', () => {
+    let caught;
+    try { evalQuery('42 | /name'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(ProjectionError);
+    expect(caught.context.key).toBe('name');
+    expect(caught.context.actualType).toBe('number');
+  });
+
+  it('CombinatorError on distribute of non-Vec', () => {
+    let caught;
+    try { evalQuery('{:a 1} * add(1)'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(CombinatorError);
+    expect(caught.context.combinator).toBe('*');
+    expect(caught.context.expectedType).toBe('Vec');
+    expect(caught.context.actualType).toBe('Map');
+  });
+
+  it('CombinatorError on merge of non-Vec', () => {
+    let caught;
+    try { evalQuery('42 >> count'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(CombinatorError);
+    expect(caught.context.combinator).toBe('>>');
+  });
+
+  it('ApplicationError on calling a non-function', () => {
+    let caught;
+    try { evalQuery('let five = 5 | five(42)'); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(ApplicationError);
+    expect(caught.context.name).toBe('five');
+    expect(caught.context.actualType).toBe('number');
+  });
+
+  it('each type-error subclass still matches QlangTypeError', () => {
+    for (const Cls of [
+      SubjectTypeError, ModifierTypeError, ElementTypeError,
+      ComparabilityError, ProjectionError, CombinatorError, ApplicationError
+    ]) {
+      const instance = new Cls('x', 'y', 'z', 'w');
+      expect(instance).toBeInstanceOf(QlangTypeError);
+      expect(instance).toBeInstanceOf(QlangError);
+      expect(instance.kind).toBe('type-error');
+    }
   });
 });
 

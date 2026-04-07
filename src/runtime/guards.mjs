@@ -1,66 +1,92 @@
 // Type-guard helpers shared across runtime operands.
 //
-// Each guard throws a uniform QlangTypeError on mismatch and is a
-// no-op on success. Centralizing the messages here keeps the
-// runtime modules small and the error wording consistent.
+// Each guard is a no-op on success and throws a specific error
+// subclass on mismatch. The subclass carries structured diagnostic
+// context (operand name, position, expected/actual type) so error
+// handling and tests can pattern-match precisely.
 
-import { QlangTypeError } from '../errors.mjs';
+import {
+  SubjectTypeError,
+  ModifierTypeError,
+  ComparabilityError,
+  ElementTypeError
+} from '../errors.mjs';
 import {
   isVec,
   isQMap,
+  isQSet,
   describeType
 } from '../types.mjs';
 
-export function ensureVec(opName, value) {
+// ── Subject guards ─────────────────────────────────────────────
+// The subject is the value the operand primarily operates on
+// (position 1 in the subject-first convention).
+
+export function ensureVec(operand, value) {
   if (!isVec(value)) {
-    throw new QlangTypeError(
-      `${opName} requires Vec subject, got ${describeType(value)}`
-    );
+    throw new SubjectTypeError(operand, 'Vec', describeType(value), value);
   }
 }
 
-export function ensureMap(opName, value) {
+export function ensureMap(operand, value) {
   if (!isQMap(value)) {
-    throw new QlangTypeError(
-      `${opName} requires Map subject, got ${describeType(value)}`
-    );
+    throw new SubjectTypeError(operand, 'Map', describeType(value), value);
   }
 }
 
-export function ensureNumber(opName, position, value) {
+export function ensureSet(operand, value) {
+  if (!isQSet(value)) {
+    throw new SubjectTypeError(operand, 'Set', describeType(value), value);
+  }
+}
+
+// ── Modifier guards ────────────────────────────────────────────
+// Modifiers are captured args at position ≥ 2. Each guard records
+// the exact position so a failure message can point the user to
+// the wrong argument.
+
+export function ensureNumber(operand, position, value) {
   if (typeof value !== 'number') {
-    throw new QlangTypeError(
-      `${opName} requires number at position ${position}, got ${describeType(value)}`
-    );
+    throw new ModifierTypeError(operand, position, 'number', describeType(value));
   }
 }
 
-export function ensureString(opName, position, value) {
+export function ensureString(operand, position, value) {
   if (typeof value !== 'string') {
-    throw new QlangTypeError(
-      `${opName} requires string at position ${position}, got ${describeType(value)}`
-    );
+    throw new ModifierTypeError(operand, position, 'string', describeType(value));
   }
 }
 
-// ensureSameOrderingType — guard for ordering operands
-// (gt/lt/gte/lte/min/max/sort). Both values must be comparable
-// scalars (number or string) of the same type. Rejects nil,
-// booleans, keywords, collections, and functions.
-export function ensureSameOrderingType(opName, a, b) {
-  assertComparable(opName, 1, a);
-  assertComparable(opName, 2, b);
-  if (typeof a !== typeof b) {
-    throw new QlangTypeError(
-      `${opName} cannot compare ${describeType(a)} with ${describeType(b)}`
-    );
+// ── Element guards ─────────────────────────────────────────────
+// Used when an operand walks the elements of a collection and
+// requires each one to satisfy a type constraint. Indexes are
+// reported so the user can locate the offending element.
+
+export function ensureNumberElement(operand, index, value) {
+  if (typeof value !== 'number') {
+    throw new ElementTypeError(operand, index, 'number', describeType(value));
   }
 }
 
-function assertComparable(opName, position, value) {
+// ── Ordering guards ────────────────────────────────────────────
+// Guards for gt/lt/gte/lte/min/max/sort — values must be
+// comparable scalars (number or string) and share the same type.
+
+export function ensureSameOrderingType(operand, left, right) {
+  assertComparable(operand, 1, left);
+  assertComparable(operand, 2, right);
+  if (typeof left !== typeof right) {
+    throw new ComparabilityError(operand, describeType(left), describeType(right));
+  }
+}
+
+function assertComparable(operand, position, value) {
   if (typeof value !== 'number' && typeof value !== 'string') {
-    throw new QlangTypeError(
-      `${opName} requires comparable scalar (number or string) at position ${position}, got ${describeType(value)}`
+    throw new ModifierTypeError(
+      operand,
+      position,
+      'comparable scalar (number or string)',
+      describeType(value)
     );
   }
 }

@@ -7,9 +7,10 @@ import {
   isVec,
   isQMap,
   isQSet,
-  isKeyword
+  isKeyword,
+  describeType
 } from '../types.mjs';
-import { QlangTypeError } from '../errors.mjs';
+import { ElementTypeError } from '../errors.mjs';
 
 // Convert a qlang value into a JSON-serializable plain value.
 function toPlain(v) {
@@ -41,8 +42,10 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 export const table = nullaryOp('table', (subject) => {
   ensureVec('table', subject);
   if (subject.length === 0) return '(empty)';
-  if (!subject.every(isQMap)) {
-    throw new QlangTypeError('table requires a Vec of Maps');
+  for (let i = 0; i < subject.length; i++) {
+    if (!isQMap(subject[i])) {
+      throw new ElementTypeError('table', i, 'Map', describeType(subject[i]));
+    }
   }
 
   const rowKeyCaches = subject.map(buildRowCache);

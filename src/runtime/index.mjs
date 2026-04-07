@@ -12,6 +12,8 @@ import * as map from './map.mjs';
 import * as setMod from './set.mjs';
 import * as setops from './setops.mjs';
 import * as arith from './arith.mjs';
+import * as stringOps from './string.mjs';
+import * as format from './format.mjs';
 import * as predicates from './predicates.mjs';
 import { env as envOperand } from './intro.mjs';
 
@@ -59,6 +61,14 @@ export function langRuntime() {
   bind(m, 'sub', arith.sub);
   bind(m, 'mul', arith.mul);
   bind(m, 'div', arith.div);
+
+  // String concatenation
+  bind(m, 'prepend', stringOps.prepend);
+  bind(m, 'append',  stringOps.append);
+
+  // Formatting
+  bind(m, 'json',  format.json);
+  bind(m, 'table', format.table);
 
   // Predicates
   bind(m, 'eq',  predicates.eq);

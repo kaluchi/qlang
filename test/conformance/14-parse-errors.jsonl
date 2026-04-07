@@ -1,0 +1,14 @@
+{"name": "unclosed-vec", "query": "[1 2 3", "error": "parse-error"}
+{"name": "unclosed-map", "query": "{:a 1", "error": "parse-error"}
+{"name": "unclosed-set", "query": "#{:a", "error": "parse-error"}
+{"name": "unclosed-paren", "query": "(1 | add(2)", "error": "parse-error"}
+{"name": "unclosed-string", "query": "\"hello", "error": "parse-error"}
+{"name": "trailing-pipe", "query": "[1 2 3] |", "error": "parse-error"}
+{"name": "dangling-distribute", "query": "[1 2 3] *", "error": "parse-error"}
+{"name": "map-without-value", "query": "{:k}", "error": "parse-error"}
+{"name": "let-without-value", "query": "let foo = ", "error": "parse-error"}
+{"name": "let-without-name", "query": "let = mul(2)", "error": "parse-error"}
+{"name": "as-without-name", "query": "[1] | as", "error": "parse-error"}
+{"name": "double-pipe", "query": "[1] || count", "error": "parse-error"}
+{"name": "missing-let-equals", "query": "let foo mul(2)", "error": "parse-error"}
+{"name": "operand-stray-comma", "query": "add(,1)", "error": "parse-error"}

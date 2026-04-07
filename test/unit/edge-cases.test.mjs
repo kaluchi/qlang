@@ -270,6 +270,39 @@ describe('eval.mjs unknown node type', () => {
   });
 });
 
+describe('runtime/format.mjs structural', () => {
+  it('table renders headers and rows', () => {
+    const out = evalQuery('[{:name "Alice" :age 30} {:name "Bob" :age 25}] | table');
+    expect(out).toContain('name');
+    expect(out).toContain('age');
+    expect(out).toContain('Alice');
+    expect(out).toContain('Bob');
+    expect(out).toContain('30');
+    expect(out).toContain('25');
+    expect(out.split('\n').length).toBeGreaterThan(4);
+  });
+
+  it('table aligns columns of varying widths', () => {
+    const out = evalQuery('[{:short "a" :long "longerValue"} {:short "bbb" :long "x"}] | table');
+    expect(out).toContain('longerValue');
+    expect(out).toContain('bbb');
+  });
+
+  it('table tolerates missing fields', () => {
+    const out = evalQuery('[{:a 1} {:b 2}] | table');
+    expect(out).toContain('a');
+    expect(out).toContain('b');
+  });
+
+  it('json roundtrips Set as array', () => {
+    expect(evalQuery('#{1 2 3} | json')).toMatch(/^\[/);
+  });
+
+  it('json roundtrips keyword as colon-prefixed string', () => {
+    expect(evalQuery(':foo | json')).toBe('":foo"');
+  });
+});
+
 describe('eval.mjs unknown combinator', () => {
   it('throws on a hand-built unknown combinator', () => {
     const ast = {

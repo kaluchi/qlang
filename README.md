@@ -24,47 +24,48 @@ bridge yet — that comes after the conformance tests are green.
 
 ```
 src/
-  parse.mjs           — peggy-generated parser entrypoint
-  grammar.peggy       — PEG grammar source (compiled at build time)
-  ast.mjs             — AST node constructors and shape declarations
-  eval.mjs            — pipeline evaluator: threads (pipeValue, env)
-  state.mjs           — (pipeValue, env) state pair helpers
-  fork.mjs            — fork semantics for nested expressions
-  rule10.mjs          — partial/full operand application
-  steps/
-    literal.mjs       — Step 1: literals (Scalar, Vec, Map, Set)
-    projection.mjs    — Step 2: /key
-    lookup.mjs        — Step 3: identifier lookup + apply
-    asbind.mjs        — Step 4: as name
-    letbind.mjs       — Step 5: let name = expr (lazy thunk)
-    use.mjs           — Step 6: use (env merge)
-  combinators/
-    pipe.mjs          — | sequential threading
-    distribute.mjs    — * per-element fork + collect
-    merge.mjs         — >> flatten then apply
+  index.mjs              — public API: parse, evalQuery, langRuntime
+  grammar.peggy          — PEG grammar source
+  grammar.generated.mjs  — peggy-compiled parser (generated, gitignored)
+  parse.mjs              — wrapper around the generated parser, ParseError
+  state.mjs              — (pipeValue, env) state pair, env helpers
+  types.mjs              — value type predicates, keyword interning
+  errors.mjs             — typed error hierarchy (Type, Arity, Unresolved, ...)
+  fork.mjs               — fork semantics for nested expressions
+  rule10.mjs             — operand application protocol (lambda-based)
+  eval.mjs               — single dispatcher: every node-type handler
+                           (literal, projection, lookup, as, let, use,
+                            paren-group, combinators) inlined here
   runtime/
-    index.mjs         — assembles langRuntime Map
-    vec.mjs           — Vec operands
-    map.mjs           — Map operands
-    set.mjs           — Set operands
-    setops.mjs        — union/minus/inter polymorphic
-    arith.mjs         — add/sub/mul/div
-    string.mjs        — prepend/append
-    bool.mjs          — not
-    predicates.mjs    — eq/gt/lt/gte/lte/and/or
-    format.mjs        — json/table
-    intro.mjs         — env (pseudo-operand)
+    index.mjs            — assembles langRuntime Map (keyword-keyed)
+    dispatch.mjs         — valueOp / higherOrderOp / nullaryOp helpers
+    vec.mjs              — Vec operands (count, filter, sort, ...)
+    map.mjs              — Map operands (keys, vals, has)
+    set.mjs              — Set operands (set conversion)
+    setops.mjs           — union, minus, inter (bound form)
+    arith.mjs            — add, sub, mul, div
+    string.mjs           — prepend, append
+    predicates.mjs       — eq, gt, lt, gte, lte, and, or, not
+    format.mjs           — json, table
+    intro.mjs            — env (pseudo-operand)
 test/
-  unit/               — per-module micro-tests
-  conformance/        — JSONL conformance suite
+  unit/                  — parse, eval-smoke, edge-cases, index, conformance
+  conformance/           — JSONL conformance suite, organized by category
 ```
+
+The evaluator (`eval.mjs`) is one ~250-line file with a single
+dispatcher and per-node-type handlers as small inline functions.
+Splitting handlers into per-step files would only add import noise
+without separating concerns — they share the dispatcher and the
+state-pair convention. The runtime is split per category because
+each category is a coherent group with its own type guards.
 
 ## Design
 
-Every function in `src/` is a **pure micro-function**: small, single
-purpose, exhaustively tested. The evaluator is a state monad in
-disguise — `evalStep(step, state) → state`. No mutable globals, no
-host coupling.
+Every function in `src/` is a **pure micro-function**: small,
+single purpose, exhaustively tested. The evaluator is a state monad
+in disguise — every step is `(state) → state`. No mutable globals,
+no host coupling.
 
 ## Running
 

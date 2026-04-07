@@ -23,6 +23,7 @@ import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
+import { ParseError } from '../../src/parse.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', 'conformance');
@@ -93,15 +94,18 @@ for (const file of files) {
           } catch (e) {
             thrown = e;
           }
-          expect(thrown).toBeInstanceOf(QlangError);
-          expect(thrown.kind).toBe(test.error);
+          expect(thrown, `expected ${test.error}, got nothing`).toBeDefined();
+          if (test.error === 'parse-error') {
+            expect(thrown).toBeInstanceOf(ParseError);
+          } else {
+            expect(thrown).toBeInstanceOf(QlangError);
+            expect(thrown.kind).toBe(test.error);
+          }
         } else {
           const result = evalQuery(test.query);
           const expected = hydrate(test.expect);
-          if (!deepEqual(result, expected)) {
-            // Use vitest's diff-friendly assertion when shapes differ.
-            expect(result).toEqual(expected);
-          }
+          // Always use vitest's diff-friendly assertion.
+          expect(result).toEqual(expected);
         }
       });
     }

@@ -1,59 +1,57 @@
-// Rule 10 — operand application.
+// Rule 10 — operand application protocol.
 //
-// Captured arguments are LAMBDAS, not pre-resolved values:
-// each captured arg is a closure (input) → value that, when
-// called, evaluates the original sub-pipeline against the given
-// input. This lets higher-order operands like `filter` invoke
-// the lambda per element, while value-style operands like `mul`
-// invoke it once with the operand's context.
+// Every function value in langRuntime has the uniform signature
 //
-// A function value carries metadata:
-//   { type: 'function', name, arity, fn, pseudo? }
+//     fn(state, lambdas) → state
 //
-// The impl receives the operand's pipeValue (context) and an
-// array of captured-arg lambdas. It decides how many lambdas it
-// needs (partial vs full) and what input to pass each one.
+// The helpers in runtime/dispatch.mjs (valueOp, higherOrderOp,
+// nullaryOp, overloadedOp) wrap pure `(values) → value` cores
+// inside this signature: they project `state.pipeValue`, resolve
+// captured-arg lambdas against it, call the pure core, and wrap
+// the result back into a new state with `withPipeValue`.
 //
-// Pseudo-operands (such as `env`) bypass Rule 10 entirely:
-// the evaluator detects `pseudo: true` and invokes the impl with
-// the full state pair instead. See eval.mjs::evalOperandCall.
+// Reflective operands (env, use, future trace/snapshot/scope)
+// use the `stateOp` helper, which does NOT descend to the value
+// level — the impl receives the full state and returns a full
+// state, giving it read/write access to `env`.
+//
+// Captured arguments are LAMBDAS, not pre-resolved values: each
+// captured expression becomes an `(input) → value` closure that
+// the operand impl can invoke zero, one, or many times, with
+// whatever input the operand chooses. Higher-order operands like
+// `filter` invoke the lambda per element; value operands like
+// `mul` invoke it once against the subject (or the context, in
+// full application).
 
 import { ArityError } from './errors.mjs';
 
-// applyRule10(fn, lambdas, pipeValue) → result
+// applyRule10(fn, lambdas, state) → state
 //
-// `fn`        — function value (carries arity, name, impl).
-// `lambdas`   — array of (input → value) closures.
-// `pipeValue` — current pipeValue at the apply site (the context).
-export function applyRule10(fn, lambdas, pipeValue) {
-  const k = lambdas.length;
-  const n = fn.arity;
-
-  if (k > n) {
+// Overflow check + dispatch. The arity of each helper-wrapped
+// impl is enforced inside the helper; this function only blocks
+// calls with more captured args than the function's declared
+// maximum.
+export function applyRule10(fn, lambdas, state) {
+  if (lambdas.length > fn.arity) {
     throw new ArityError(
-      `${fn.name} expects at most ${n} captured arguments, got ${k}`
+      `${fn.name} expects at most ${fn.arity - 1} captured arguments, got ${lambdas.length}`
     );
   }
-
-  return fn.fn(pipeValue, lambdas);
+  return fn.fn(state, lambdas);
 }
 
-// makeFn(name, arity, impl, options?) → function value
+// makeFn(name, arity, impl) → function value
 //
-// Wraps a JS function with the metadata Rule 10 needs. The impl
-// signature for normal operands is `(pipeValue, lambdas) → result`;
-// pseudo-operands receive the full state and return a new state.
-//
-// `options`:
-//   pseudo — if true, the evaluator routes the call to the impl
-//            with the full state instead of going through Rule 10.
-export function makeFn(name, arity, impl, { pseudo = false } = {}) {
+// Wraps a state-transformer impl with the metadata Rule 10 needs.
+// The impl signature is `(state, lambdas) → state`. Helpers from
+// `runtime/dispatch.mjs` build value-core friendly wrappers on
+// top of this base.
+export function makeFn(name, arity, impl) {
   return Object.freeze({
     type: 'function',
     name,
     arity,
-    fn: impl,
-    pseudo
+    fn: impl
   });
 }
 

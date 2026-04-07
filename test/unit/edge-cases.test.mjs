@@ -99,19 +99,24 @@ describe('state.mjs', () => {
 
 describe('rule10.mjs', () => {
   it('rejects too many captured args', () => {
-    const fn = makeFn('mul', 2, () => 0);
-    expect(() => applyRule10(fn, [() => 1, () => 2, () => 3], 0))
+    const fn = makeFn('mul', 2, (state) => state);
+    const lambdas = [() => 1, () => 2, () => 3];
+    expect(() => applyRule10(fn, lambdas, makeState(null, langRuntime())))
       .toThrow(ArityError);
   });
 
-  it('makeFn defaults pseudo=false', () => {
-    const fn = makeFn('id', 1, () => 0);
-    expect(fn.pseudo).toBe(false);
+  it('makeFn stores metadata on a frozen object', () => {
+    const fn = makeFn('identity', 1, (state) => state);
+    expect(fn.type).toBe('function');
+    expect(fn.name).toBe('identity');
+    expect(fn.arity).toBe(1);
+    expect(typeof fn.fn).toBe('function');
+    expect(Object.isFrozen(fn)).toBe(true);
   });
 
-  it('makeFn honours pseudo option', () => {
-    const fn = makeFn('marker', 0, () => 0, { pseudo: true });
-    expect(fn.pseudo).toBe(true);
+  it('makeFn no longer carries a pseudo flag', () => {
+    const fn = makeFn('identity', 1, (state) => state);
+    expect('pseudo' in fn).toBe(false);
   });
 });
 

@@ -28,7 +28,6 @@ Combinator
 PipeStep
   = LetStep
   / AsStep
-  / UseStep
   / Primary
 
 LetStep
@@ -38,10 +37,6 @@ LetStep
 AsStep
   = "as" __ name:Ident
     { return vec('AsStep', { name }); }
-
-UseStep
-  = "use" !IdentTail
-    { return vec('UseStep', {}); }
 
 Primary
   = ParenGroup
@@ -133,7 +128,7 @@ Ident
     { return first + rest.join(''); }
 
 ReservedWord
-  = ("let" / "as" / "use" / "true" / "false" / "nil") !IdentTail
+  = ("let" / "as" / "true" / "false" / "nil") !IdentTail
 
 IdentStart = [@_a-zA-Z]
 IdentTail  = [a-zA-Z0-9_-]

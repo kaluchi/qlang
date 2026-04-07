@@ -171,7 +171,7 @@ describe('parse — OperandCall', () => {
   });
 });
 
-describe('parse — AsStep, LetStep, UseStep', () => {
+describe('parse — AsStep, LetStep', () => {
   it('parses an as binding', () => {
     expect(parse('as roster')).toEqual({ type: 'AsStep', name: 'roster' });
   });
@@ -183,8 +183,8 @@ describe('parse — AsStep, LetStep, UseStep', () => {
     expect(ast.body.type).toBe('OperandCall');
   });
 
-  it('parses use as a bare step', () => {
-    expect(parse('use')).toEqual({ type: 'UseStep' });
+  it('parses use as an ordinary identifier (no grammar keyword)', () => {
+    expect(parse('use')).toEqual({ type: 'OperandCall', name: 'use', args: null });
   });
 });
 

@@ -15,7 +15,7 @@ import * as arith from './arith.mjs';
 import * as stringOps from './string.mjs';
 import * as format from './format.mjs';
 import * as predicates from './predicates.mjs';
-import { env as envOperand } from './intro.mjs';
+import { env as envOperand, use as useOperand } from './intro.mjs';
 
 function bind(target, name, value) {
   target.set(keyword(name), value);
@@ -80,8 +80,9 @@ export function langRuntime() {
   bind(m, 'or',  predicates.or);
   bind(m, 'not', predicates.not);
 
-  // Introspection
+  // Reflective built-ins (state-level)
   bind(m, 'env', envOperand);
+  bind(m, 'use', useOperand);
 
   return m;
 }

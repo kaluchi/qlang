@@ -9,7 +9,7 @@
 
 import { parse } from './parse.mjs';
 import {
-  makeState, withPipeValue, envSet, envGet, envHas, envMerge
+  makeState, withPipeValue, envSet, envGet, envHas
 } from './state.mjs';
 import { fork, forkWith } from './fork.mjs';
 import { applyRule10 } from './rule10.mjs';
@@ -21,6 +21,11 @@ import {
   declareSubjectError,
   declareShapeError
 } from './runtime/operand-errors.mjs';
+import {
+  isVec, isQMap, isThunk, isFunctionValue,
+  describeType, keyword, makeThunk, NIL
+} from './types.mjs';
+import { langRuntime } from './runtime/index.mjs';
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
   ({ key, actualType }) => `/${key} requires Map subject, got ${actualType}`);
@@ -28,12 +33,6 @@ const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '
 const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
 const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType}, not a function`);
-const UseSubjectNotMap        = declareSubjectError('UseSubjectNotMap',        'use', 'Map');
-import {
-  isVec, isQMap, isThunk, isFunctionValue,
-  describeType, keyword, makeThunk, NIL
-} from './types.mjs';
-import { langRuntime } from './runtime/index.mjs';
 
 // evalQuery(source, env?) → final pipeValue
 //
@@ -72,7 +71,6 @@ const NODE_HANDLERS = {
   OperandCall: evalOperandCall,
   AsStep:      evalAsStep,
   LetStep:     evalLetStep,
-  UseStep:     evalUseStep,
   ParenGroup:  evalParenGroup
 };
 
@@ -210,20 +208,17 @@ function evalOperandCall(node, state) {
   const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
 
   if (isFunctionValue(resolved)) {
-    // Pseudo-operands like `env` receive the full state and return
-    // a new state directly.
-    if (resolved.pseudo) {
-      return resolved.fn(state);
-    }
     // Build lambdas for each captured arg. Each lambda evaluates
     // the captured AST node against the input it is invoked with,
-    // sharing the env of the original capture site.
+    // sharing the env of the original capture site. Lambdas run
+    // their sub-pipeline in a fresh state whose pipeValue is the
+    // per-invocation input; env writes inside the lambda are
+    // local to that call and do not escape.
     const capturedEnv = state.env;
     const lambdas = capturedArgsAst === null
       ? []
       : capturedArgsAst.map(arg => makeLambda(arg, capturedEnv));
-    const result = applyRule10(resolved, lambdas, state.pipeValue);
-    return withPipeValue(state, result);
+    return applyRule10(resolved, lambdas, state);
   }
 
   // Non-function value: replace pipeValue with it. Captured args
@@ -272,18 +267,6 @@ function evalAsStep(node, state) {
 function evalLetStep(node, state) {
   const nextEnv = envSet(state.env, node.name, makeThunk(node.body));
   return makeState(state.pipeValue, nextEnv);
-}
-
-// ─── Step 6: use ────────────────────────────────────────────────
-
-function evalUseStep(_node, state) {
-  if (!isQMap(state.pipeValue)) {
-    throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
-  }
-  // Both env and Map literals use keyword keys, so this is a
-  // direct merge — delegate to envMerge for consistency with
-  // other env mutations.
-  return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
 }
 
 // ─── ParenGroup ─────────────────────────────────────────────────

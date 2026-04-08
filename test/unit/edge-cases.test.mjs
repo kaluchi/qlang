@@ -726,6 +726,76 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(e.name).toBe('CoalesceNoAlternatives');
   });
 
+  it('when with truthy cond runs the then branch', () => {
+    expect(evalQuery('5 | when(gt(0), mul(2))')).toBe(10);
+  });
+
+  it('when with falsy cond passes pipeValue through unchanged', () => {
+    expect(evalQuery('5 | when(lt(0), mul(2))')).toBe(5);
+  });
+
+  it('when only the then branch evaluates when cond truthy', () => {
+    // div(0) would raise; the false branch is implicit identity
+    expect(evalQuery('5 | when(true, mul(2))')).toBe(10);
+  });
+
+  it('when never evaluates then when cond falsy', () => {
+    // div(0) is in the then branch but never runs
+    expect(evalQuery('5 | when(false, div(0))')).toBe(5);
+  });
+
+  it('unless with falsy cond runs the then branch', () => {
+    expect(evalQuery('5 | unless(lt(0), mul(2))')).toBe(10);
+  });
+
+  it('unless with truthy cond passes pipeValue through unchanged', () => {
+    expect(evalQuery('5 | unless(gt(0), mul(2))')).toBe(5);
+  });
+
+  it('unless never evaluates then when cond truthy', () => {
+    expect(evalQuery('5 | unless(true, div(0))')).toBe(5);
+  });
+
+  it('unless equivalent to when with negated cond', () => {
+    expect(evalQuery('5 | unless(lt(0), mul(2))')).toBe(
+      evalQuery('5 | when(lt(0) | not, mul(2))')
+    );
+  });
+
+  it('firstTruthy returns first truthy alternative', () => {
+    expect(evalQuery('{:a 1} | firstTruthy(/a, /b)')).toBe(1);
+  });
+
+  it('firstTruthy skips false unlike coalesce', () => {
+    expect(evalQuery('{:a false :b 2} | firstTruthy(/a, /b)')).toBe(2);
+  });
+
+  it('coalesce by contrast keeps false', () => {
+    expect(evalQuery('{:a false :b 2} | coalesce(/a, /b)')).toBe(false);
+  });
+
+  it('firstTruthy returns nil when all alternatives are falsy', () => {
+    expect(evalQuery('{:a false :b nil} | firstTruthy(/a, /b)')).toBe(null);
+  });
+
+  it('firstTruthy treats 0 as truthy (kept)', () => {
+    expect(evalQuery('{:n 0} | firstTruthy(/missing, /n, "default")')).toBe(0);
+  });
+
+  it('firstTruthy treats empty string as truthy (kept)', () => {
+    expect(evalQuery('{:s ""} | firstTruthy(/missing, /s, "default")')).toBe('');
+  });
+
+  it('firstTruthy with zero captured args raises FirstTruthyNoAlternatives', () => {
+    const e = catchError('{} | firstTruthy');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.name).toBe('FirstTruthyNoAlternatives');
+  });
+
+  it('firstTruthy short-circuits after match', () => {
+    expect(evalQuery('{:a 1} | firstTruthy(/a, div(0))')).toBe(1);
+  });
+
   it('if and coalesce compose for guarded defaulting', () => {
     expect(evalQuery('{:role :admin :name "Bob"} | if(/role | eq(:admin), coalesce(/displayName, /name, "???"), "guest")')).toBe('Bob');
   });

@@ -1,19 +1,25 @@
 // Control-flow operands.
 //
-// `if` and `coalesce` are pipeline-level selection primitives.
-// Both operate on the current pipeValue and use captured-arg
-// sub-pipelines (lambdas) for their alternatives, evaluating only
-// the necessary branch(es) lazily.
+// Five pipeline-level selection primitives sharing one design
+// principle: all branch arguments are captured sub-pipelines
+// (lambdas), and only the branch(es) that need to fire actually
+// evaluate against pipeValue. The `then`/`else`/`alt` slots are
+// never eagerly resolved.
 //
-// `if` is the binary conditional: cond is evaluated against
-// pipeValue, and depending on truthiness either the then or the
-// else branch is executed (against the same pipeValue). Only one
-// branch runs.
+// Conditional family (cond → action):
+//   if(cond, then, else)  — full two-sided conditional
+//   when(cond, then)      — one-sided, identity on false
+//   unless(cond, then)    — one-sided, identity on true (inverse of when)
 //
-// `coalesce` takes 1+ alternative sub-pipelines and returns the
-// first non-nil result, evaluating each in order and stopping as
-// soon as a non-nil value is produced. The "default" pattern lives
-// here — pass the desired default as the last alternative.
+// Selection family (first matching alternative):
+//   coalesce(...alts)     — first non-nil
+//   firstTruthy(...alts)  — first truthy
+//
+// `coalesce` and `firstTruthy` differ only on which falsy non-nil
+// values they consider "missing": coalesce skips only nil, firstTruthy
+// also skips false / 0 / "" / [] / {} / #{}. Use coalesce for config
+// cascading where false is a meaningful explicit setting; use
+// firstTruthy for display defaults where empty is also a sentinel.
 
 import { higherOrderOp, higherOrderOpVariadic } from './dispatch.mjs';
 import { isTruthy, isNil, NIL } from '../types.mjs';
@@ -21,6 +27,8 @@ import { declareShapeError } from './operand-errors.mjs';
 
 const CoalesceNoAlternatives = declareShapeError('CoalesceNoAlternatives',
   () => 'coalesce requires at least one alternative sub-pipeline');
+const FirstTruthyNoAlternatives = declareShapeError('FirstTruthyNoAlternatives',
+  () => 'firstTruthy requires at least one alternative sub-pipeline');
 
 // `if` — three captured sub-pipelines, lazy evaluation of the
 // selected branch. Implementation file uses the JS-safe name
@@ -52,6 +60,64 @@ export const ifOp = higherOrderOp('if', 4,
       'score | if(gte(60), "pass", "fail")',
       'employee | if(/active, /salary | mul(1.1), /salary)',
       'list | if(empty, "<empty>", first)'
+    ],
+    throws: []
+  });
+
+// `when` — one-sided conditional, identity on falsy cond.
+//
+//   pipeValue | when(cond, then)
+//
+// If `cond` evaluated against pipeValue is truthy, `then` is run
+// against pipeValue and its result becomes the new pipeValue.
+// Otherwise pipeValue passes through unchanged. The else branch
+// is implicit identity, so unlike `if` there is no third argument.
+//
+// Use for "do something when condition holds, leave alone otherwise"
+// patterns — guarded transformations, optional enrichment.
+export const when = higherOrderOp('when', 3,
+  (pipeValue, condLambda, thenLambda) => {
+    return isTruthy(condLambda(pipeValue))
+      ? thenLambda(pipeValue)
+      : pipeValue;
+  }, {
+    category: 'control',
+    subject: 'any',
+    modifiers: ['cond sub-pipeline', 'then sub-pipeline'],
+    returns: 'any (then result if cond truthy, otherwise pipeValue unchanged)',
+    docs: ['One-sided conditional with implicit identity on the false branch. Evaluates the cond sub-pipeline against pipeValue; if truthy, evaluates the then sub-pipeline against pipeValue and returns its result. If cond is falsy, pipeValue passes through unchanged. Both arguments are captured sub-pipelines, so the then branch is only evaluated when the condition fires. Use for guarded transformations and optional enrichment patterns.'],
+    examples: [
+      'employee | when(/active, /salary | mul(11) | div(10))',
+      'list | when(empty, ["<empty>"])',
+      'value | when(eq(0), 1)'
+    ],
+    throws: []
+  });
+
+// `unless` — inverse of `when`, identity on truthy cond.
+//
+//   pipeValue | unless(cond, then)
+//
+// If `cond` evaluated against pipeValue is falsy, `then` is run
+// against pipeValue and its result becomes the new pipeValue.
+// Otherwise pipeValue passes through unchanged. Semantically
+// equivalent to `when(cond | not, then)` but reads more naturally
+// for guard-clause patterns.
+export const unless = higherOrderOp('unless', 3,
+  (pipeValue, condLambda, thenLambda) => {
+    return isTruthy(condLambda(pipeValue))
+      ? pipeValue
+      : thenLambda(pipeValue);
+  }, {
+    category: 'control',
+    subject: 'any',
+    modifiers: ['cond sub-pipeline', 'then sub-pipeline'],
+    returns: 'any (then result if cond falsy, otherwise pipeValue unchanged)',
+    docs: ['One-sided conditional with implicit identity on the true branch. Inverse of when: evaluates the cond sub-pipeline against pipeValue; if falsy, evaluates the then sub-pipeline against pipeValue and returns its result. If cond is truthy, pipeValue passes through unchanged. Use for guard-clause patterns where the action only fires when the condition fails.'],
+    examples: [
+      'input | unless(empty, sort)',
+      'config | unless(/validated, validate)',
+      'result | unless(/ok, raiseAlarm)'
     ],
     throws: []
   });
@@ -90,4 +156,46 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
       'lookup | coalesce(/cached, /computed)'
     ],
     throws: ['CoalesceNoAlternatives']
+  });
+
+// `firstTruthy` — variadic captured sub-pipelines, returns the
+// first truthy result.
+//
+//   pipeValue | firstTruthy(/preferredName, /firstName, "Anonymous")
+//
+// Symmetric with `coalesce` but checks truthiness instead of
+// nil-ness. Each alternative is evaluated against pipeValue in
+// order; the first one that produces a truthy value (anything
+// other than nil or false) becomes the new pipeValue. If all
+// alternatives produce falsy values (nil or false), the result
+// is nil.
+//
+// **Differs from coalesce** in that `false` is also skipped:
+// firstTruthy treats false as "no value", coalesce treats it as
+// a real explicit setting. Note that 0, "", [], {}, #{} are
+// truthy in qlang and so are NOT skipped by either operand.
+//
+// At least one captured arg is required.
+export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
+  (pipeValue, ...lambdas) => {
+    if (lambdas.length === 0) {
+      throw new FirstTruthyNoAlternatives();
+    }
+    for (const lambda of lambdas) {
+      const value = lambda(pipeValue);
+      if (isTruthy(value)) return value;
+    }
+    return NIL;
+  }, {
+    category: 'control',
+    subject: 'any',
+    modifiers: ['1+ alternative sub-pipelines'],
+    returns: 'any (first truthy result, or nil if all are falsy)',
+    docs: ['Returns the first truthy result among the captured alternatives, evaluating each against pipeValue in order and short-circuiting on the first truthy value. Falsy values (nil and false) are skipped; non-nil non-false values (including 0, "", [], {}, #{}) are NOT skipped. If all alternatives produce falsy values, returns nil. Use for "give me anything meaningful" patterns where false is also a sentinel; use coalesce instead when false is a valid explicit setting.'],
+    examples: [
+      'person | firstTruthy(/preferredName, /firstName, /lastName, "Anonymous")',
+      'flag | firstTruthy(/userValue, /default, false)',
+      'lookup | firstTruthy(/match, /partial)'
+    ],
+    throws: ['FirstTruthyNoAlternatives']
   });

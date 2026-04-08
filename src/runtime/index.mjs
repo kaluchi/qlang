@@ -23,7 +23,13 @@ import {
   reify as reifyOperand,
   manifest as manifestOperand
 } from './intro.mjs';
-import { ifOp, coalesce as coalesceOperand } from './control.mjs';
+import {
+  ifOp,
+  coalesce as coalesceOperand,
+  when as whenOperand,
+  unless as unlessOperand,
+  firstTruthy as firstTruthyOperand
+} from './control.mjs';
 
 function bind(target, name, value) {
   target.set(keyword(name), value);
@@ -101,8 +107,11 @@ export function langRuntime() {
   bind(m, 'manifest', manifestOperand);
 
   // Control-flow operands
-  bind(m, 'if',       ifOp);
-  bind(m, 'coalesce', coalesceOperand);
+  bind(m, 'if',          ifOp);
+  bind(m, 'when',        whenOperand);
+  bind(m, 'unless',      unlessOperand);
+  bind(m, 'coalesce',    coalesceOperand);
+  bind(m, 'firstTruthy', firstTruthyOperand);
 
   return m;
 }

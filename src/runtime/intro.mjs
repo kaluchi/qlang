@@ -1,26 +1,45 @@
 // Reflective built-ins — operands that live on the state level
 // instead of the value level.
 //
-// Both `env` and `use` read or write the full state pair, so
-// they are built with `stateOp` (raw state transformer, no
-// pipeValue extraction or result wrapping). Semantically they
-// are ordinary entries in langRuntime; syntactically they are
-// ordinary identifiers. They can be shadowed by `let` or `as`
-// like any other name — the "reflectiveness" is a property of
-// the value bound to the name, not of the grammar.
+// `env`, `use`, `reify`, and `manifest` read or write the full
+// state pair, so they are built with `stateOp` / `stateOpVariadic`
+// (raw state transformers, no pipeValue extraction or result
+// wrapping). Semantically they are ordinary entries in langRuntime;
+// syntactically they are ordinary identifiers. They can be shadowed
+// by `let` or `as` like any other name — the "reflectiveness" is
+// a property of the value bound to the name, not of the grammar.
 
-import { stateOp } from './dispatch.mjs';
-import { makeState, withPipeValue, envMerge } from '../state.mjs';
-import { isQMap, describeType } from '../types.mjs';
-import { declareSubjectError } from './operand-errors.mjs';
+import { stateOp, stateOpVariadic } from './dispatch.mjs';
+import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
+import {
+  isQMap, isFunctionValue, isThunk, isSnapshot, isKeyword,
+  isVec, isQSet, isNumber, isString, isBoolean, isNil,
+  describeType, keyword
+} from '../types.mjs';
+import { declareSubjectError, declareShapeError } from './operand-errors.mjs';
+import {
+  UnresolvedIdentifierError,
+  ArityError,
+  QlangTypeError
+} from '../errors.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
+const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
+  ({ actualType }) => `reify(:name) requires a keyword captured arg, got ${actualType}`);
 
 // env — replaces pipeValue with the current env Map. Inside a
 // fork, returns the fork's current env (including any local `as`
 // or `let` writes visible at this point).
 export const env = stateOp('env', 1, (state, _lambdas) =>
-  withPipeValue(state, state.env));
+  withPipeValue(state, state.env), {
+  category: 'reflective',
+  subject: 'irrelevant (ignores pipeValue)',
+  modifiers: [],
+  returns: 'Map (the current env)',
+  docs: ['Replaces pipeValue with the current env Map. Inside a fork, returns the fork-local env including any as/let writes visible at this point.'],
+  examples: ['env | keys', 'env | has(:count)', 'env | /myBinding'],
+  throws: []
+});
 
 // use — merges the current pipeValue (a Map) into env. Returns
 // a new state with the enlarged env; pipeValue is unchanged so
@@ -32,4 +51,180 @@ export const use = stateOp('use', 1, (state, _lambdas) => {
     throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
   }
   return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
+}, {
+  category: 'reflective',
+  subject: 'Map',
+  modifiers: [],
+  returns: 'Map (unchanged pipeValue)',
+  docs: ['Merges pipeValue (a Map) into env. Returns a state with the enlarged env; pipeValue is unchanged so the merged Map can be chained further or discarded. On key conflict, the incoming Map wins. Inside a fork, the merged bindings evaporate when the fork closes.'],
+  examples: ['{:pi 3.14 :e 2.71} | use | [pi, e]'],
+  throws: ['UseSubjectNotMap']
+});
+
+// ── reify and manifest ─────────────────────────────────────────
+//
+// reify is overloaded:
+//   reify              (0 captured args) — value-level: descriptor
+//                      built from the current pipeValue.
+//   reify(:name)       (1 captured keyword) — looks up :name in env
+//                      and builds a descriptor with :name attached.
+//
+// Internal helper: build a descriptor Map from any value. The
+// descriptor's :kind field encodes the value's provenance.
+
+function describeValueType(v) {
+  if (isNil(v)) return keyword('nil');
+  if (isBoolean(v)) return keyword('boolean');
+  if (isNumber(v)) return keyword('number');
+  if (isString(v)) return keyword('string');
+  if (isKeyword(v)) return keyword('keyword');
+  if (isVec(v)) return keyword('vec');
+  if (isQMap(v)) return keyword('map');
+  if (isQSet(v)) return keyword('set');
+  return keyword('unknown');
+}
+
+function metaToVec(arr) {
+  // Defensive copy: meta arrays are frozen but we want to expose
+  // them as plain Vecs to user code, which expects mutable-looking
+  // (but actually frozen by language semantics) arrays.
+  return arr ? [...arr] : [];
+}
+
+function buildBuiltinDescriptor(fn, explicitName) {
+  const meta = fn.meta || {};
+  const result = new Map();
+  result.set(keyword('kind'), keyword('builtin'));
+  result.set(keyword('name'), explicitName ?? fn.name);
+  result.set(keyword('arity'), fn.arity);
+  result.set(keyword('category'), meta.category ? keyword(meta.category) : null);
+  result.set(keyword('subject'), meta.subject ?? null);
+  result.set(keyword('modifiers'), metaToVec(meta.modifiers));
+  result.set(keyword('returns'), meta.returns ?? null);
+  result.set(keyword('docs'), metaToVec(meta.docs));
+  result.set(keyword('examples'), metaToVec(meta.examples));
+  result.set(keyword('throws'), metaToVec(meta.throws));
+  return result;
+}
+
+function buildThunkDescriptor(thunk, explicitName) {
+  const result = new Map();
+  result.set(keyword('kind'), keyword('thunk'));
+  result.set(keyword('name'), explicitName ?? thunk.name ?? null);
+  result.set(keyword('source'), sourceOfAst(thunk.expr));
+  result.set(keyword('docs'), metaToVec(thunk.docs));
+  return result;
+}
+
+function buildSnapshotDescriptor(snap, explicitName) {
+  const result = new Map();
+  result.set(keyword('kind'), keyword('snapshot'));
+  result.set(keyword('name'), explicitName ?? snap.name ?? null);
+  result.set(keyword('value'), snap.value);
+  result.set(keyword('type'), describeValueType(snap.value));
+  result.set(keyword('docs'), metaToVec(snap.docs));
+  return result;
+}
+
+function buildValueDescriptor(value, explicitName) {
+  const result = new Map();
+  result.set(keyword('kind'), keyword('value'));
+  if (explicitName !== undefined) {
+    result.set(keyword('name'), explicitName);
+  }
+  result.set(keyword('value'), value);
+  result.set(keyword('type'), describeValueType(value));
+  return result;
+}
+
+function describeBinding(value, explicitName) {
+  if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
+  if (isThunk(value)) return buildThunkDescriptor(value, explicitName);
+  if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
+  return buildValueDescriptor(value, explicitName);
+}
+
+// Best-effort textual rendering of an AST sub-tree. Used for the
+// :source field of a thunk descriptor. Not a full pretty-printer —
+// covers the common Primary node types and falls back to a node
+// type marker for the rest.
+function sourceOfAst(node) {
+  if (node == null) return null;
+  switch (node.type) {
+    case 'NumberLit':  return String(node.value);
+    case 'StringLit':  return JSON.stringify(node.value);
+    case 'BooleanLit': return node.value ? 'true' : 'false';
+    case 'NilLit':     return 'nil';
+    case 'Keyword':    return ':' + node.name;
+    case 'Projection': return '/' + node.keys.join('/');
+    case 'OperandCall': {
+      if (node.args === null) return node.name;
+      const argText = node.args.map(sourceOfAst).join(', ');
+      return `${node.name}(${argText})`;
+    }
+    case 'ParenGroup': return `(${sourceOfAst(node.pipeline)})`;
+    case 'VecLit':     return `[${node.elements.map(sourceOfAst).join(' ')}]`;
+    case 'SetLit':     return `#{${node.elements.map(sourceOfAst).join(' ')}}`;
+    case 'MapLit':     return `{${node.entries.map(e => `:${e.key.name} ${sourceOfAst(e.value)}`).join(' ')}}`;
+    case 'Pipeline': {
+      const first = sourceOfAst(node.steps[0]);
+      const rest = node.steps.slice(1).map(s => `${s.combinator} ${sourceOfAst(s.step)}`).join(' ');
+      return `${first} ${rest}`.trim();
+    }
+    case 'LetStep':    return `let ${node.name} = ${sourceOfAst(node.body)}`;
+    case 'AsStep':     return `as ${node.name}`;
+    default:           return `<${node.type}>`;
+  }
+}
+
+// reify — value-level (0 captured) or named-form (1 captured keyword).
+export const reify = stateOpVariadic('reify', 2, (state, lambdas) => {
+  if (lambdas.length === 0) {
+    // Value-level: describe state.pipeValue
+    const descriptor = describeBinding(state.pipeValue);
+    return withPipeValue(state, descriptor);
+  }
+  if (lambdas.length === 1) {
+    // Named form: lookup :name in env, attach :name field
+    const keyValue = lambdas[0](state.pipeValue);
+    if (!isKeyword(keyValue)) {
+      throw new ReifyKeyNotKeyword({ actualType: describeType(keyValue), actualValue: keyValue });
+    }
+    if (!state.env.has(keyValue)) {
+      throw new UnresolvedIdentifierError(keyValue.name);
+    }
+    const bound = state.env.get(keyValue);
+    const descriptor = describeBinding(bound, keyValue.name);
+    return withPipeValue(state, descriptor);
+  }
+  throw new ArityError(`reify accepts 0 or 1 captured args, got ${lambdas.length}`);
+}, {
+  category: 'reflective',
+  subject: 'any (value-level form) or env keyword (named form)',
+  modifiers: ['keyword (optional, named form)'],
+  returns: 'Map (descriptor)',
+  docs: ['Builds a descriptor Map for a value. Value-level form (no captured args) describes the current pipeValue. Named form reify(:name) looks up :name in env and describes whatever binding lives there. Descriptor :kind is one of :builtin, :thunk, :snapshot, :value.'],
+  examples: ['env | /count | reify', 'reify(:filter)', '42 | reify'],
+  throws: ['ReifyKeyNotKeyword', 'UnresolvedIdentifierError']
+});
+
+// manifest — Vec of descriptors, one per binding in env, sorted by name.
+export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
+  const entries = [];
+  for (const [k, v] of state.env) {
+    if (isKeyword(k)) {
+      entries.push({ name: k.name, key: k, value: v });
+    }
+  }
+  entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  const descriptors = entries.map(e => describeBinding(e.value, e.name));
+  return withPipeValue(state, descriptors);
+}, {
+  category: 'reflective',
+  subject: 'irrelevant (ignores pipeValue)',
+  modifiers: [],
+  returns: 'Vec of Map descriptors',
+  docs: ['Iterates the current env and returns a Vec of descriptors (one per binding) sorted alphabetically by binding name. Each descriptor has the same shape as reify(:name) for that binding.'],
+  examples: ['env | manifest | filter(/kind | eq(:builtin)) | table'],
+  throws: []
 });

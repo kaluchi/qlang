@@ -17,7 +17,12 @@ import * as arith from './arith.mjs';
 import * as stringOps from './string.mjs';
 import * as format from './format.mjs';
 import * as predicates from './predicates.mjs';
-import { env as envOperand, use as useOperand } from './intro.mjs';
+import {
+  env as envOperand,
+  use as useOperand,
+  reify as reifyOperand,
+  manifest as manifestOperand
+} from './intro.mjs';
 
 function bind(target, name, value) {
   target.set(keyword(name), value);
@@ -64,9 +69,11 @@ export function langRuntime() {
   bind(m, 'mul', arith.mul);
   bind(m, 'div', arith.div);
 
-  // String concatenation
+  // String operands
   bind(m, 'prepend', stringOps.prepend);
   bind(m, 'append',  stringOps.append);
+  bind(m, 'split',   stringOps.split);
+  bind(m, 'join',    stringOps.join);
 
   // Formatting
   bind(m, 'json',  format.json);
@@ -83,8 +90,10 @@ export function langRuntime() {
   bind(m, 'not', predicates.not);
 
   // Reflective built-ins (state-level)
-  bind(m, 'env', envOperand);
-  bind(m, 'use', useOperand);
+  bind(m, 'env',      envOperand);
+  bind(m, 'use',      useOperand);
+  bind(m, 'reify',    reifyOperand);
+  bind(m, 'manifest', manifestOperand);
 
   return m;
 }

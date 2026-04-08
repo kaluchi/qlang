@@ -23,18 +23,42 @@ export const add = valueOp('add', 2, (a, b) => {
   if (typeof a !== 'number') throw new AddLeftNotNumber(describeType(a), a);
   if (typeof b !== 'number') throw new AddRightNotNumber(describeType(b), b);
   return a + b;
+}, {
+  category: 'arith',
+  subject: 'number',
+  modifiers: ['number'],
+  returns: 'number',
+  docs: ['Adds two numbers. Bound form `a | add(b)` computes a+b; full form `add(a,b)` resolves both args against pipeValue context.'],
+  examples: ['10 | add(3) → 13', '{:x 10 :y 3} | add(/x, /y) → 13'],
+  throws: ['AddLeftNotNumber', 'AddRightNotNumber']
 });
 
 export const sub = valueOp('sub', 2, (a, b) => {
   if (typeof a !== 'number') throw new SubLeftNotNumber(describeType(a), a);
   if (typeof b !== 'number') throw new SubRightNotNumber(describeType(b), b);
   return a - b;
+}, {
+  category: 'arith',
+  subject: 'number',
+  modifiers: ['number'],
+  returns: 'number',
+  docs: ['Subtracts the second number from the first. Non-commutative: position 1 is the minuend.'],
+  examples: ['10 | sub(3) → 7', '{:x 10 :y 3} | sub(/x, /y) → 7'],
+  throws: ['SubLeftNotNumber', 'SubRightNotNumber']
 });
 
 export const mul = valueOp('mul', 2, (a, b) => {
   if (typeof a !== 'number') throw new MulLeftNotNumber(describeType(a), a);
   if (typeof b !== 'number') throw new MulRightNotNumber(describeType(b), b);
   return a * b;
+}, {
+  category: 'arith',
+  subject: 'number',
+  modifiers: ['number'],
+  returns: 'number',
+  docs: ['Multiplies two numbers. Commutative.'],
+  examples: ['10 | mul(3) → 30', '{:x 5 :y 4} | mul(/x, /y) → 20'],
+  throws: ['MulLeftNotNumber', 'MulRightNotNumber']
 });
 
 export const div = valueOp('div', 2, (a, b) => {
@@ -42,4 +66,12 @@ export const div = valueOp('div', 2, (a, b) => {
   if (typeof b !== 'number') throw new DivRightNotNumber(describeType(b), b);
   if (b === 0) throw new DivisionByZeroError();
   return a / b;
+}, {
+  category: 'arith',
+  subject: 'number',
+  modifiers: ['number'],
+  returns: 'number',
+  docs: ['Divides the first number by the second. Non-commutative: position 1 is the dividend. Raises division-by-zero on b == 0.'],
+  examples: ['10 | div(2) → 5', '{:x 20 :y 4} | div(/x, /y) → 5'],
+  throws: ['DivLeftNotNumber', 'DivRightNotNumber', 'DivisionByZeroError']
 });

@@ -11,4 +11,12 @@ const SetConversionSubjectNotVec = declareSubjectError('SetConversionSubjectNotV
 export const set = nullaryOp('set', (vec) => {
   if (!isVec(vec)) throw new SetConversionSubjectNotVec(describeType(vec), vec);
   return new Set(vec);
+}, {
+  category: 'set-op',
+  subject: 'Vec',
+  modifiers: [],
+  returns: 'Set',
+  docs: ['Converts a Vec to a Set, removing duplicates.'],
+  examples: ['[1 2 1 3] | set → #{1 2 3}'],
+  throws: ['SetConversionSubjectNotVec']
 });

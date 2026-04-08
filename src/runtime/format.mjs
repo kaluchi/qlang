@@ -36,7 +36,15 @@ function toPlain(v) {
   return String(v);
 }
 
-export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)));
+export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)), {
+  category: 'format',
+  subject: 'any',
+  modifiers: [],
+  returns: 'string',
+  docs: ['Returns a JSON string representation of the subject. Keywords are emitted as colon-prefixed strings, Sets as JSON arrays, Maps as JSON objects with keyword names as keys.'],
+  examples: ['{:a 1 :b [2 3]} | json → "{\\"a\\":1,\\"b\\":[2,3]}"'],
+  throws: []
+});
 
 // table — render a Vec of Maps as a fixed-width tabular string.
 // Empty Vec yields the marker '(empty)'. Heterogeneous Vecs
@@ -44,6 +52,16 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 //
 // Implementation builds a per-row keyword-name → key cache once,
 // keeping column lookups O(1) instead of O(rows × cols²).
+const tableMeta = {
+  category: 'format',
+  subject: 'Vec of Maps',
+  modifiers: [],
+  returns: 'string',
+  docs: ['Renders a Vec of Maps as a fixed-width tabular string. Columns are derived from keys in first-occurrence order across all rows; missing keys render as empty cells. Empty Vec yields the marker "(empty)".'],
+  examples: ['[{:name "a" :age 20} {:name "b" :age 30}] | table → multi-line table'],
+  throws: ['TableSubjectNotVec', 'TableRowNotMap']
+};
+
 export const table = nullaryOp('table', (subject) => {
   if (!isVec(subject)) throw new TableSubjectNotVec(describeType(subject), subject);
   if (subject.length === 0) return '(empty)';
@@ -75,7 +93,7 @@ export const table = nullaryOp('table', (subject) => {
     ...cells.map(formatRow),
     horizontalRule
   ].join('\n');
-});
+}, tableMeta);
 
 // buildRowCache(row) — { row, get(name) → key }
 // Caches keyword-name → key lookups for one row so the layout

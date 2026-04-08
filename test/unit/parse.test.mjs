@@ -173,7 +173,7 @@ describe('parse — OperandCall', () => {
 
 describe('parse — AsStep, LetStep', () => {
   it('parses an as binding', () => {
-    expect(parse('as roster')).toEqual({ type: 'AsStep', name: 'roster' });
+    expect(parse('as roster')).toEqual({ type: 'AsStep', name: 'roster', docs: [] });
   });
 
   it('parses a let binding', () => {
@@ -181,6 +181,7 @@ describe('parse — AsStep, LetStep', () => {
     expect(ast.type).toBe('LetStep');
     expect(ast.name).toBe('double');
     expect(ast.body.type).toBe('OperandCall');
+    expect(ast.docs).toEqual([]);
   });
 
   it('parses use as an ordinary identifier (no grammar keyword)', () => {
@@ -237,12 +238,12 @@ describe('parse — ParenGroup', () => {
 });
 
 describe('parse — comments and whitespace', () => {
-  it('skips line comments', () => {
-    const ast = parse(`
-      -- this is a comment
-      [1 2 3] | count
-    `);
+  it('parses inline pipeline line comment as identity step', () => {
+    const ast = parse(`|~| this is a comment
+      | [1 2 3] | count`);
     expect(ast.type).toBe('Pipeline');
+    expect(ast.steps[0].type).toBe('LinePlainComment');
+    expect(ast.steps[0].content).toBe(' this is a comment');
   });
 
   it('handles multi-line pipelines', () => {

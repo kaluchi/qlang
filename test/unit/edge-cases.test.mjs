@@ -501,3 +501,192 @@ describe('eval.mjs unknown combinator', () => {
     expect(() => evalAst(ast, state)).toThrow(QlangTypeError);
   });
 });
+
+describe('runtime/string.mjs split and join error sites', () => {
+  function catchError(query) {
+    try { evalQuery(query); return null; }
+    catch (e) { return e; }
+  }
+
+  it('split on non-string subject → SplitSubjectNotString', () => {
+    const e = catchError('42 | split(",")');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.name).toBe('SplitSubjectNotString');
+  });
+
+  it('split with non-string separator → SplitSeparatorNotString', () => {
+    const e = catchError('"abc" | split(42)');
+    expect(e.name).toBe('SplitSeparatorNotString');
+  });
+
+  it('join on non-Vec subject → JoinSubjectNotVec', () => {
+    const e = catchError('42 | join(",")');
+    expect(e.name).toBe('JoinSubjectNotVec');
+  });
+
+  it('join with non-string element → JoinElementNotString', () => {
+    const e = catchError('["a" 42 "c"] | join(",")');
+    expect(e.name).toBe('JoinElementNotString');
+    expect(e.context.index).toBe(1);
+  });
+
+  it('join with non-string separator → JoinSeparatorNotString', () => {
+    const e = catchError('["a" "b"] | join(42)');
+    expect(e.name).toBe('JoinSeparatorNotString');
+  });
+
+  it('every split/join site has a unique class name', () => {
+    const queries = [
+      '42 | split(",")',
+      '"abc" | split(42)',
+      '42 | join(",")',
+      '["a" 42] | join(",")',
+      '["a" "b"] | join(42)'
+    ];
+    const names = new Set(queries.map(q => catchError(q).name));
+    expect(names.size).toBe(queries.length);
+  });
+});
+
+describe('dispatch helper arity error paths', () => {
+  it('overloadedOp throws ArityError on unsupported captured-arg count', () => {
+    // sort accepts 0 or 1 captured args; calling with 2 hits the
+    // overloadedOp dispatch's `if (!impl)` branch.
+    expect(() => evalQuery('[1 2] | sort(/x, /y)')).toThrow(ArityError);
+  });
+
+  it('stateOp throws ArityError when captured-arg count mismatches expected', () => {
+    // env accepts 0 captured args; calling env(arg) fires the
+    // stateOp's `lambdas.length !== expected` branch.
+    expect(() => evalQuery('env(:foo)')).toThrow(ArityError);
+  });
+});
+
+describe('runtime/intro.mjs reify and manifest', () => {
+  it('reify on a number returns a value-kind descriptor', () => {
+    const result = evalQuery('42 | reify');
+    expect(result).toBeInstanceOf(Map);
+    expect(result.get(keyword('kind'))).toEqual(keyword('value'));
+    expect(result.get(keyword('value'))).toBe(42);
+    expect(result.get(keyword('type'))).toEqual(keyword('number'));
+  });
+
+  it('reify on a builtin function value returns a builtin descriptor', () => {
+    const result = evalQuery('env | /count | reify');
+    expect(result.get(keyword('kind'))).toEqual(keyword('builtin'));
+    expect(result.get(keyword('name'))).toBe('count');
+    expect(result.get(keyword('arity'))).toBe(1);
+    expect(Array.isArray(result.get(keyword('docs')))).toBe(true);
+    expect(result.get(keyword('docs')).length).toBeGreaterThan(0);
+  });
+
+  it('reify(:name) named form attaches the name explicitly', () => {
+    const result = evalQuery('reify(:filter)');
+    expect(result.get(keyword('name'))).toBe('filter');
+    expect(result.get(keyword('kind'))).toEqual(keyword('builtin'));
+  });
+
+  it('reify(:name) on unresolved name throws', () => {
+    expect(() => evalQuery('reify(:thisDoesNotExist)')).toThrow();
+  });
+
+  it('reify(non-keyword) → ReifyKeyNotKeyword', () => {
+    let thrown;
+    try { evalQuery('reify("count")'); } catch (e) { thrown = e; }
+    expect(thrown.name).toBe('ReifyKeyNotKeyword');
+  });
+
+  it('manifest returns a Vec of descriptors sorted by name', () => {
+    const result = evalQuery('env | manifest');
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(30);
+    // Check that names are sorted alphabetically.
+    const names = result.map(d => d.get(keyword('name')));
+    const sorted = [...names].sort();
+    expect(names).toEqual(sorted);
+  });
+
+  it('reify with too many captured args raises ArityError', () => {
+    // reify accepts 0 or 1 captured args; calling with 2 hits the
+    // stateOpVariadic-controlled overflow path inside reify itself.
+    expect(() => evalQuery('reify(:a, :b)')).toThrow();
+  });
+
+  it('reify of a thunk whose body is a Pipeline renders multi-step source', () => {
+    // The thunk body is a ParenGroup wrapping a multi-step pipeline,
+    // exercising the Pipeline branch of sourceOfAst.
+    const result = evalQuery(
+      'let chained = (mul(2) | add(1)) | reify(:chained) | /source'
+    );
+    expect(result).toContain('mul(2)');
+    expect(result).toContain('add(1)');
+    expect(result).toContain('|');
+  });
+
+  it('reify of a thunk whose body is a VecLit renders the literal', () => {
+    const result = evalQuery('let xs = [1 2 3] | reify(:xs) | /source');
+    expect(result).toBe('[1 2 3]');
+  });
+
+  it('reify of a thunk whose body is a SetLit renders the literal', () => {
+    const result = evalQuery('let s = #{1 2 3} | reify(:s) | /source');
+    expect(result).toContain('#{');
+  });
+
+  it('reify of a thunk whose body is a MapLit renders the literal', () => {
+    const result = evalQuery('let m = {:a 1 :b 2} | reify(:m) | /source');
+    expect(result).toContain(':a 1');
+    expect(result).toContain(':b 2');
+  });
+
+  it('reify of a thunk whose body is a Projection renders the keys', () => {
+    const result = evalQuery('let pluck = /name | reify(:pluck) | /source');
+    expect(result).toBe('/name');
+  });
+
+  it('reify of a thunk whose body is a nested Projection renders all keys', () => {
+    const result = evalQuery('let deep = /a/b/c | reify(:deep) | /source');
+    expect(result).toBe('/a/b/c');
+  });
+});
+
+describe('parser doc-comment attachment Vec semantics', () => {
+  it('attaches one entry per doc comment, not concatenated', () => {
+    const result = evalQuery(
+      '|~~| First.\n|~~| Second.\n|~~| Third.\n| let foo = 42 | reify(:foo) | /docs'
+    );
+    expect(result).toEqual([' First.', ' Second.', ' Third.']);
+  });
+
+  it('block doc preserves internal newlines as one entry', () => {
+    const result = evalQuery(
+      '|~~ line one\nline two\nline three ~~|\nlet foo = 42\n| reify(:foo) | /docs'
+    );
+    expect(result.length).toBe(1);
+    expect(result[0]).toContain('line one');
+    expect(result[0]).toContain('line two');
+    expect(result[0]).toContain('line three');
+  });
+
+  it('mixes line and block docs preserving order', () => {
+    const result = evalQuery(
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\n| let foo = 42 | reify(:foo) | /docs'
+    );
+    expect(result.length).toBe(3);
+    expect(result[0]).toBe(' line one');
+    expect(result[1]).toContain('block two');
+    expect(result[2]).toBe(' line three');
+  });
+
+  it('shadowing redeclare overrides docs Vec', () => {
+    const result = evalQuery(
+      '|~~| Old.\n| let foo = 1\n|~~| Brand new.\n|~~| With extra remark.\n| let foo = 2\n| reify(:foo) | /docs'
+    );
+    expect(result).toEqual([' Brand new.', ' With extra remark.']);
+  });
+
+  it('comment step is identity on pipeValue', () => {
+    expect(evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
+    expect(evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);
+  });
+});

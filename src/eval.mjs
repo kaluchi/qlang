@@ -14,6 +14,7 @@ import {
 import { fork, forkWith } from './fork.mjs';
 import { applyRule10 } from './rule10.mjs';
 import {
+  QlangError,
   QlangTypeError,
   UnresolvedIdentifierError
 } from './errors.mjs';
@@ -81,7 +82,18 @@ function evalNode(node, state) {
   if (!handler) {
     throw new QlangTypeError(`unknown AST node type: ${node.type}`);
   }
-  return handler(node, state);
+  // Source-location enrichment: any QlangError that bubbles past
+  // here without a location yet picks up the location of `node`.
+  // Deeper frames (closer to the throw site) win because they set
+  // .location first and the `!e.location` guard prevents overwrite.
+  try {
+    return handler(node, state);
+  } catch (e) {
+    if (e instanceof QlangError && !e.location && node.location) {
+      e.location = node.location;
+    }
+    throw e;
+  }
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -273,7 +285,11 @@ function forceThunk(thunk, state) {
 
 function evalAsStep(node, state) {
   const docs = node.docs || [];
-  const snapshot = makeSnapshot(state.pipeValue, { name: node.name, docs });
+  const snapshot = makeSnapshot(state.pipeValue, {
+    name: node.name,
+    docs,
+    location: node.location ?? null
+  });
   const nextEnv = envSet(state.env, node.name, snapshot);
   return makeState(state.pipeValue, nextEnv);
 }
@@ -282,7 +298,11 @@ function evalAsStep(node, state) {
 
 function evalLetStep(node, state) {
   const docs = node.docs || [];
-  const thunk = makeThunk(node.body, { name: node.name, docs });
+  const thunk = makeThunk(node.body, {
+    name: node.name,
+    docs,
+    location: node.location ?? null
+  });
   const nextEnv = envSet(state.env, node.name, thunk);
   return makeState(state.pipeValue, nextEnv);
 }

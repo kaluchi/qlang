@@ -4,58 +4,75 @@ import { parse, ParseError } from '../../src/parse.mjs';
 describe('parse — scalar literals', () => {
   it('parses an integer', () => {
     const ast = parse('42');
-    expect(ast).toEqual({ type: 'NumberLit', value: 42 });
+    expect(ast.type).toBe('NumberLit');
+    expect(ast.value).toBe(42);
   });
 
   it('parses a negative integer', () => {
     const ast = parse('-7');
-    expect(ast).toEqual({ type: 'NumberLit', value: -7 });
+    expect(ast.type).toBe('NumberLit');
+    expect(ast.value).toBe(-7);
   });
 
   it('parses a decimal number', () => {
     const ast = parse('3.14');
-    expect(ast).toEqual({ type: 'NumberLit', value: 3.14 });
+    expect(ast.type).toBe('NumberLit');
+    expect(ast.value).toBe(3.14);
   });
 
   it('parses a string literal', () => {
     const ast = parse('"hello"');
-    expect(ast).toEqual({ type: 'StringLit', value: 'hello' });
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('hello');
   });
 
   it('parses an empty string literal', () => {
     const ast = parse('""');
-    expect(ast).toEqual({ type: 'StringLit', value: '' });
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('');
   });
 
   it('parses an escaped string', () => {
     const ast = parse('"line1\\nline2"');
-    expect(ast).toEqual({ type: 'StringLit', value: 'line1\nline2' });
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('line1\nline2');
   });
 
   it('parses true', () => {
-    expect(parse('true')).toEqual({ type: 'BooleanLit', value: true });
+    const ast = parse('true');
+    expect(ast.type).toBe('BooleanLit');
+    expect(ast.value).toBe(true);
   });
 
   it('parses false', () => {
-    expect(parse('false')).toEqual({ type: 'BooleanLit', value: false });
+    const ast = parse('false');
+    expect(ast.type).toBe('BooleanLit');
+    expect(ast.value).toBe(false);
   });
 
   it('parses nil', () => {
-    expect(parse('nil')).toEqual({ type: 'NilLit' });
+    const ast = parse('nil');
+    expect(ast.type).toBe('NilLit');
   });
 
   it('parses a keyword', () => {
-    expect(parse(':name')).toEqual({ type: 'Keyword', name: 'name' });
+    const ast = parse(':name');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('name');
   });
 
   it('parses a keyword with hyphen', () => {
-    expect(parse(':first-name')).toEqual({ type: 'Keyword', name: 'first-name' });
+    const ast = parse(':first-name');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('first-name');
   });
 });
 
 describe('parse — Vec literal', () => {
   it('parses an empty Vec', () => {
-    expect(parse('[]')).toEqual({ type: 'VecLit', elements: [] });
+    const ast = parse('[]');
+    expect(ast.type).toBe('VecLit');
+    expect(ast.elements).toEqual([]);
   });
 
   it('parses a Vec of numbers', () => {
@@ -83,7 +100,9 @@ describe('parse — Vec literal', () => {
 
 describe('parse — Map literal', () => {
   it('parses an empty Map', () => {
-    expect(parse('{}')).toEqual({ type: 'MapLit', entries: [] });
+    const ast = parse('{}');
+    expect(ast.type).toBe('MapLit');
+    expect(ast.entries).toEqual([]);
   });
 
   it('parses a single-entry Map', () => {
@@ -112,7 +131,9 @@ describe('parse — Map literal', () => {
 
 describe('parse — Set literal', () => {
   it('parses an empty Set', () => {
-    expect(parse('#{}')).toEqual({ type: 'SetLit', elements: [] });
+    const ast = parse('#{}');
+    expect(ast.type).toBe('SetLit');
+    expect(ast.elements).toEqual([]);
   });
 
   it('parses a single-element Set', () => {
@@ -128,26 +149,38 @@ describe('parse — Set literal', () => {
 
 describe('parse — Projection', () => {
   it('parses a single key projection', () => {
-    expect(parse('/name')).toEqual({ type: 'Projection', keys: ['name'] });
+    const ast = parse('/name');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['name']);
   });
 
   it('parses a nested projection', () => {
-    expect(parse('/team/lead/email'))
-      .toEqual({ type: 'Projection', keys: ['team', 'lead', 'email'] });
+    const ast = parse('/team/lead/email');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['team', 'lead', 'email']);
   });
 });
 
 describe('parse — OperandCall', () => {
   it('parses a bare identifier', () => {
-    expect(parse('count')).toEqual({ type: 'OperandCall', name: 'count', args: null });
+    const ast = parse('count');
+    expect(ast.type).toBe('OperandCall');
+    expect(ast.name).toBe('count');
+    expect(ast.args).toBeNull();
   });
 
   it('parses an identifier with @ prefix', () => {
-    expect(parse('@callers')).toEqual({ type: 'OperandCall', name: '@callers', args: null });
+    const ast = parse('@callers');
+    expect(ast.type).toBe('OperandCall');
+    expect(ast.name).toBe('@callers');
+    expect(ast.args).toBeNull();
   });
 
   it('parses an identifier with _ prefix', () => {
-    expect(parse('_private')).toEqual({ type: 'OperandCall', name: '_private', args: null });
+    const ast = parse('_private');
+    expect(ast.type).toBe('OperandCall');
+    expect(ast.name).toBe('_private');
+    expect(ast.args).toBeNull();
   });
 
   it('parses a single-arg call', () => {
@@ -173,7 +206,10 @@ describe('parse — OperandCall', () => {
 
 describe('parse — AsStep, LetStep', () => {
   it('parses an as binding', () => {
-    expect(parse('as roster')).toEqual({ type: 'AsStep', name: 'roster', docs: [] });
+    const ast = parse('as roster');
+    expect(ast.type).toBe('AsStep');
+    expect(ast.name).toBe('roster');
+    expect(ast.docs).toEqual([]);
   });
 
   it('parses a let binding', () => {
@@ -185,7 +221,10 @@ describe('parse — AsStep, LetStep', () => {
   });
 
   it('parses use as an ordinary identifier (no grammar keyword)', () => {
-    expect(parse('use')).toEqual({ type: 'OperandCall', name: 'use', args: null });
+    const ast = parse('use');
+    expect(ast.type).toBe('OperandCall');
+    expect(ast.name).toBe('use');
+    expect(ast.args).toBeNull();
   });
 });
 
@@ -274,5 +313,61 @@ describe('parse — error handling', () => {
       expect(e).toBeInstanceOf(ParseError);
       expect(e.location).toBeTruthy();
     }
+  });
+
+  it('attaches the opts.uri to ParseError', () => {
+    try {
+      parse('[1 2', { uri: 'cell-7' });
+      throw new Error('expected throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ParseError);
+      expect(e.uri).toBe('cell-7');
+    }
+  });
+});
+
+describe('parse — source-mapping metadata on AST root', () => {
+  it('records source, uri, parseId, parsedAt, schemaVersion on the root', () => {
+    const ast = parse('42', { uri: 'test.qlang' });
+    expect(ast.source).toBe('42');
+    expect(ast.uri).toBe('test.qlang');
+    expect(typeof ast.parseId).toBe('number');
+    expect(typeof ast.parsedAt).toBe('number');
+    expect(ast.schemaVersion).toBe(1);
+  });
+
+  it('defaults uri to "inline" when opts not given', () => {
+    const ast = parse('42');
+    expect(ast.uri).toBe('inline');
+  });
+
+  it('parseId monotonically increases across calls', () => {
+    const a = parse('1');
+    const b = parse('2');
+    expect(b.parseId).toBeGreaterThan(a.parseId);
+  });
+});
+
+describe('parse — per-node location and text', () => {
+  it('every produced node carries .location with start/end offsets', () => {
+    const ast = parse('add(2, 3)');
+    expect(ast.location.start.offset).toBe(0);
+    expect(ast.location.end.offset).toBe(9);
+    expect(ast.args[0].location.start.offset).toBe(4);
+    expect(ast.args[0].location.end.offset).toBe(5);
+  });
+
+  it('every produced node carries .text with the matched substring', () => {
+    const ast = parse('add(2, 3)');
+    expect(ast.text).toBe('add(2, 3)');
+    expect(ast.args[0].text).toBe('2');
+    expect(ast.args[1].text).toBe('3');
+  });
+
+  it('text matches source.substring(location.start.offset, location.end.offset)', () => {
+    const source = '[1 2] | filter(gt(0))';
+    const ast = parse(source);
+    expect(source.substring(ast.location.start.offset, ast.location.end.offset))
+      .toBe(ast.text);
   });
 });

@@ -77,18 +77,33 @@ export function keyword(name) {
 // Single canonical place that constructs `let`-thunk objects.
 // Used by eval.mjs::evalLetStep. The `docs` Vec carries doc-comment
 // contents attached by the parser (one entry per doc-comment token,
-// in declaration order).
-export function makeThunk(expr, { name, docs = [] } = {}) {
-  return Object.freeze({ type: 'thunk', name, expr, docs: Object.freeze(docs) });
+// in declaration order). The `location` field stores the source
+// position of the originating LetStep so tooling and reify can
+// answer "where was this binding declared".
+export function makeThunk(expr, { name, docs = [], location = null } = {}) {
+  return Object.freeze({
+    type: 'thunk',
+    name,
+    expr,
+    docs: Object.freeze(docs),
+    location
+  });
 }
 
 // ── snapshot factory ──────────────────────────────────────────
-// Wraps a value captured by `as name`, carrying the binding name
-// and any attached doc comments. Identifier lookup unwraps the
-// snapshot before returning it to the pipeline, so user code sees
-// the raw value; reify reads the wrapper directly.
-export function makeSnapshot(value, { name, docs = [] } = {}) {
-  return Object.freeze({ type: 'snapshot', name, value, docs: Object.freeze(docs) });
+// Wraps a value captured by `as name`, carrying the binding name,
+// any attached doc comments, and the source position of the
+// originating AsStep. Identifier lookup unwraps the snapshot before
+// returning it to the pipeline, so user code sees the raw value;
+// reify reads the wrapper directly.
+export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
+  return Object.freeze({
+    type: 'snapshot',
+    name,
+    value,
+    docs: Object.freeze(docs),
+    location
+  });
 }
 
 // ── describeType — short labels used in error messages ─────────

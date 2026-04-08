@@ -70,12 +70,14 @@ class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
   }
 }
 
-// Helper: merge an auto-inferred `captured` range into user-supplied
-// meta without overwriting an explicit value. Used by the fixed-
-// arity helpers below so callers don't have to repeat the range
-// that's already encoded in the `n` / `arity` / `impls` parameter.
+// Helper: stamp the auto-inferred `captured` range onto user-supplied
+// meta. Fixed-arity helpers (valueOp, higherOrderOp, nullaryOp,
+// overloadedOp) always know the acceptable range from their `n` /
+// `arity` / `impls` parameter, so callers never need to repeat it
+// in meta. Variadic helpers (stateOpVariadic, higherOrderOpVariadic)
+// cannot infer the range and require meta.captured directly — they
+// bypass this helper.
 function withCaptured(meta, captured) {
-  if (meta && meta.captured) return meta;
   return { ...meta, captured };
 }
 

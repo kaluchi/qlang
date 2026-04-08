@@ -6,19 +6,63 @@
 // per-site class extends QlangTypeError so `instanceof` and
 // `.kind === 'type-error'` still match the broad category.
 //
-// This file only declares the hierarchy roots:
+// This file declares the hierarchy roots:
 //
 //   QlangError                       — abstract root
 //     QlangTypeError                 — abstract type-error class
 //     UnresolvedIdentifierError      — identifier not in env
 //     DivisionByZeroError            — div(_, 0)
 //     ArityError                     — too many captured args
+//     QlangInvariantError            — registration-time invariant
+//
+// Source-mapping and observability fields on every QlangError:
+//   .location       — qlang source position (set by evalNode wrapper
+//                     when the error bubbles past an AST node).
+//                     Lets editors squiggle the failing operand and
+//                     Sentry breadcrumbs cite the qlang source line.
+//   .fingerprint    — stable Sentry group key. Equals the per-site
+//                     class name; survives minification because it
+//                     is a string literal assigned in the constructor,
+//                     not a class identifier the bundler can mangle.
+//   .schemaVersion  — integer for forward-compat of the error
+//                     contract; bumped when fields are added or
+//                     renamed so older Sentry consumers can opt out.
+//   .toJSON()       — Sentry-safe serialization. Drops `actualValue`
+//                     from .context so user PII never lands in the
+//                     observability backend.
+
+const ERROR_SCHEMA_VERSION = 1;
 
 export class QlangError extends Error {
   constructor(message, kind) {
     super(message);
     this.name = 'QlangError';
     this.kind = kind;
+    this.location = null;
+    this.fingerprint = null;
+    this.schemaVersion = ERROR_SCHEMA_VERSION;
+  }
+
+  // toJSON() — Sentry-safe serialization. The Sentry SDK calls
+  // JSON.stringify on the error during transport, which invokes
+  // this method. `context.actualValue` is dropped so user PII
+  // (the actual Vec/Map/scalar that triggered the type-check)
+  // never lands in the observability backend.
+  toJSON() {
+    const safeContext = this.context
+      ? Object.fromEntries(
+          Object.entries(this.context).filter(([k]) => k !== 'actualValue')
+        )
+      : null;
+    return {
+      name: this.name,
+      kind: this.kind,
+      message: this.message,
+      fingerprint: this.fingerprint,
+      location: this.location,
+      context: safeContext,
+      schemaVersion: this.schemaVersion
+    };
   }
 }
 
@@ -35,6 +79,7 @@ export class UnresolvedIdentifierError extends QlangError {
     super(`unresolved identifier: ${name}`, 'unresolved-identifier');
     this.name = 'UnresolvedIdentifierError';
     this.identifierName = name;
+    this.fingerprint = 'UnresolvedIdentifierError';
   }
 }
 
@@ -42,6 +87,7 @@ export class DivisionByZeroError extends QlangError {
   constructor() {
     super('division by zero', 'division-by-zero');
     this.name = 'DivisionByZeroError';
+    this.fingerprint = 'DivisionByZeroError';
   }
 }
 

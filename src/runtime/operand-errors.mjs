@@ -43,6 +43,7 @@ export function declareSubjectError(className, operand, expectedType) {
         }
       );
       this.name = className;
+      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -65,6 +66,7 @@ export function declareModifierError(className, operand, position, expectedType)
         }
       );
       this.name = className;
+      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -87,6 +89,7 @@ export function declareElementError(className, operand, expectedType) {
         }
       );
       this.name = className;
+      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -107,6 +110,7 @@ export function declareComparabilityError(className, operand) {
         }
       );
       this.name = className;
+      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -122,6 +126,7 @@ export function declareShapeError(className, buildMessage) {
       const message = buildMessage(context);
       super(message, { site: className, ...context });
       this.name = className;
+      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -138,6 +143,7 @@ export function declareArityError(className, buildMessage) {
       const message = buildMessage(context);
       super(message, { site: className, ...context });
       this.name = className;
+      this.fingerprint = className;
     }
   };
   return brand(Cls, className);

@@ -5,11 +5,16 @@
   "type": "module",
   "main": "src/index.mjs",
   "exports": {
-    ".": "./src/index.mjs",
-    "./parse": "./src/parse.mjs",
-    "./eval": "./src/eval.mjs",
-    "./runtime": "./src/runtime/index.mjs"
+    ".":         { "import": "./src/index.mjs" },
+    "./parse":   { "import": "./src/parse.mjs" },
+    "./eval":    { "import": "./src/eval.mjs" },
+    "./runtime": { "import": "./src/runtime/index.mjs" },
+    "./walk":    { "import": "./src/walk.mjs" },
+    "./session": { "import": "./src/session.mjs" },
+    "./codec":   { "import": "./src/codec.mjs" },
+    "./errors":  { "import": "./src/errors.mjs" }
   },
+  "sideEffects": false,
   "files": [
     "src/"
   ],

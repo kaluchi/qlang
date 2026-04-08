@@ -6,6 +6,14 @@
 // nodes are JS objects with a discriminator `type` field. Comma is
 // optional whitespace; newlines are whitespace.
 //
+// Every produced node carries source metadata for tooling:
+//   .location  — peggy `{ start: {offset, line, column}, end: ... }`
+//   .text      — original source substring matched by the rule
+//
+// Post-parse decoration in src/parse.mjs adds .id and .parent on
+// every node and .source/.uri/.parseId/.parsedAt/.schemaVersion on
+// the root.
+//
 // Comments are first-class PipeSteps with identity semantics. Four
 // forms share the `|~` character family:
 //   |~|         line plain       — identity step, content to newline
@@ -17,10 +25,15 @@
 // combinator that would otherwise have preceded the step.
 
 {{
-  // Helpers shared across actions.
-  function vec(type, fields) { return { type, ...fields }; }
+  // Build a node with location and text from peggy's action helpers.
+  // location() returns { start: {offset, line, column}, end: ... }
+  // text() returns the matched substring of the input source.
+  function node(type, fields, loc, txt) {
+    return { type, ...fields, location: loc, text: txt };
+  }
 
-  // Attach a docs Vec to a raw step node, preserving its other fields.
+  // Attach a docs Vec to a raw step node, preserving its other
+  // fields (including .location and .text from the parsed step).
   function withDocs(step, docs) {
     return { ...step, docs };
   }
@@ -50,9 +63,9 @@ Pipeline
     const headTail = headUnits.slice(1);
     const rest = [...headTail, ...tail.flatMap(t => flattenUnits(t[1]))];
     if (rest.length === 0) return head;
-    return vec('Pipeline', {
+    return node('Pipeline', {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
-    });
+    }, location(), text());
   }
 
 // The first unit of a pipeline has no preceding combinator
@@ -252,19 +265,19 @@ PlainCommentStep
 
 LineDocComment
   = "|~~|" content:LineCommentContent
-  { return vec('LineDocComment', { content }); }
+  { return node('LineDocComment', { content }, location(), text()); }
 
 BlockDocComment
   = "|~~" !"|" content:BlockDocContent "~~|"
-  { return vec('BlockDocComment', { content }); }
+  { return node('BlockDocComment', { content }, location(), text()); }
 
 LinePlainComment
   = "|~|" content:LineCommentContent
-  { return vec('LinePlainComment', { content }); }
+  { return node('LinePlainComment', { content }, location(), text()); }
 
 BlockPlainComment
   = "|~" ![|~] content:BlockPlainContent "~|"
-  { return vec('BlockPlainComment', { content }); }
+  { return node('BlockPlainComment', { content }, location(), text()); }
 
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
@@ -296,11 +309,11 @@ RawStep
 
 LetStep
   = "let" __ name:Ident _ "=" _ body:Primary
-    { return vec('LetStep', { name, body, docs: [] }); }
+    { return node('LetStep', { name, body, docs: [] }, location(), text()); }
 
 AsStep
   = "as" __ name:Ident
-    { return vec('AsStep', { name, docs: [] }); }
+    { return node('AsStep', { name, docs: [] }, location(), text()); }
 
 Primary
   = ParenGroup
@@ -312,11 +325,14 @@ Primary
   / Scalar
 
 ParenGroup
-  = "(" _ p:Pipeline _ ")" { return vec('ParenGroup', { pipeline: p }); }
+  = "(" _ p:Pipeline _ ")"
+    { return node('ParenGroup', { pipeline: p }, location(), text()); }
 
 MapLit
-  = "{" _ "}" { return vec('MapLit', { entries: [] }); }
-  / "{" _ entries:MapEntries _ "}" { return vec('MapLit', { entries }); }
+  = "{" _ "}"
+    { return node('MapLit', { entries: [] }, location(), text()); }
+  / "{" _ entries:MapEntries _ "}"
+    { return node('MapLit', { entries }, location(), text()); }
 
 MapEntries
   = head:MapEntry tail:(_ ","? _ MapEntry)*
@@ -324,15 +340,19 @@ MapEntries
 
 MapEntry
   = key:Keyword __ value:Pipeline
-    { return { key, value }; }
+    { return node('MapEntry', { key, value }, location(), text()); }
 
 SetLit
-  = "#{" _ "}" { return vec('SetLit', { elements: [] }); }
-  / "#{" _ elements:PipelineList _ "}" { return vec('SetLit', { elements }); }
+  = "#{" _ "}"
+    { return node('SetLit', { elements: [] }, location(), text()); }
+  / "#{" _ elements:PipelineList _ "}"
+    { return node('SetLit', { elements }, location(), text()); }
 
 VecLit
-  = "[" _ "]" { return vec('VecLit', { elements: [] }); }
-  / "[" _ elements:PipelineList _ "]" { return vec('VecLit', { elements }); }
+  = "[" _ "]"
+    { return node('VecLit', { elements: [] }, location(), text()); }
+  / "[" _ elements:PipelineList _ "]"
+    { return node('VecLit', { elements }, location(), text()); }
 
 PipelineList
   = head:Pipeline tail:(_ ","? _ Pipeline)*
@@ -340,7 +360,7 @@ PipelineList
 
 OperandCall
   = name:Ident !IdentTail args:(_ "(" _ ArgList? _ ")")?
-    { return vec('OperandCall', { name, args: args ? (args[3] || []) : null }); }
+    { return node('OperandCall', { name, args: args ? (args[3] || []) : null }, location(), text()); }
 
 ArgList
   = head:Pipeline tail:(_ ","? _ Pipeline)*
@@ -348,7 +368,7 @@ ArgList
 
 Projection
   = "/" first:Ident rest:("/" Ident)*
-    { return vec('Projection', { keys: [first, ...rest.map(r => r[1])] }); }
+    { return node('Projection', { keys: [first, ...rest.map(r => r[1])] }, location(), text()); }
 
 Scalar
   = StringLit
@@ -359,7 +379,7 @@ Scalar
 
 StringLit
   = '"' chars:DoubleStringChar* '"'
-    { return vec('StringLit', { value: chars.join('') }); }
+    { return node('StringLit', { value: chars.join('') }, location(), text()); }
 
 DoubleStringChar
   = !('"' / "\\") char:. { return char; }
@@ -374,18 +394,18 @@ EscapeChar
 
 NumberLit
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)?
-    { const text = (sign || '') + whole.join('') + (frac ? '.' + frac[1].join('') : '');
-      return vec('NumberLit', { value: Number(text) }); }
+    { const txt = (sign || '') + whole.join('') + (frac ? '.' + frac[1].join('') : '');
+      return node('NumberLit', { value: Number(txt) }, location(), text()); }
 
 BooleanLit
-  = "true"  !IdentTail { return vec('BooleanLit', { value: true }); }
-  / "false" !IdentTail { return vec('BooleanLit', { value: false }); }
+  = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }
+  / "false" !IdentTail { return node('BooleanLit', { value: false }, location(), text()); }
 
 NilLit
-  = "nil" !IdentTail { return vec('NilLit', {}); }
+  = "nil" !IdentTail { return node('NilLit', {}, location(), text()); }
 
 Keyword
-  = ":" name:Ident { return vec('Keyword', { name }); }
+  = ":" name:Ident { return node('Keyword', { name }, location(), text()); }
 
 Ident
   = !ReservedWord first:IdentStart rest:IdentTail*

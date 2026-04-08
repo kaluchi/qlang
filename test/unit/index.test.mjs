@@ -1,12 +1,22 @@
 // Public-API smoke test for src/index.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { parse, evalQuery, evalAst, langRuntime } from '../../src/index.mjs';
+import {
+  parse,
+  evalQuery,
+  evalAst,
+  langRuntime,
+  createSession,
+  serializeSession,
+  deserializeSession
+} from '../../src/index.mjs';
 
 describe('public API', () => {
   it('exports parse', () => {
     expect(typeof parse).toBe('function');
-    expect(parse('42')).toEqual({ type: 'NumberLit', value: 42 });
+    const ast = parse('42');
+    expect(ast.type).toBe('NumberLit');
+    expect(ast.value).toBe(42);
   });
 
   it('exports evalQuery', () => {
@@ -23,5 +33,11 @@ describe('public API', () => {
     const rt = langRuntime();
     expect(rt).toBeInstanceOf(Map);
     expect(rt.size).toBeGreaterThan(20);
+  });
+
+  it('exports createSession / serializeSession / deserializeSession', () => {
+    expect(typeof createSession).toBe('function');
+    expect(typeof serializeSession).toBe('function');
+    expect(typeof deserializeSession).toBe('function');
   });
 });

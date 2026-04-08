@@ -117,9 +117,23 @@ function buildThunkDescriptor(thunk, explicitName) {
   const result = new Map();
   result.set(keyword('kind'), keyword('thunk'));
   result.set(keyword('name'), explicitName ?? thunk.name ?? null);
-  result.set(keyword('source'), sourceOfAst(thunk.expr));
+  result.set(keyword('source'), nodeSource(thunk.expr));
   result.set(keyword('docs'), metaToVec(thunk.docs));
   return result;
+}
+
+// nodeSource(node) — returns the original source text of an AST
+// node, preferring the parser-captured `text` field (set by
+// grammar.peggy::node() for every node that came from a parsed
+// source) and falling back to the structural pretty-printer
+// `sourceOfAst` for synthesized nodes that have no `text` (e.g.,
+// AST built programmatically by codegen, or AST sliced out of a
+// serialized session payload that lost its source).
+function nodeSource(node) {
+  if (node && typeof node === 'object' && typeof node.text === 'string') {
+    return node.text;
+  }
+  return sourceOfAst(node);
 }
 
 function buildSnapshotDescriptor(snap, explicitName) {
@@ -223,7 +237,7 @@ export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
       entries.push({ name: k.name, key: k, value: v });
     }
   }
-  entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  entries.sort((a, b) => a.name.localeCompare(b.name));
   const descriptors = entries.map(e => describeBinding(e.value, e.name));
   return withPipeValue(state, descriptors);
 }, {

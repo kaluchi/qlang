@@ -110,6 +110,13 @@ function buildBuiltinDescriptor(fn, explicitName) {
   result.set(keyword('docs'), metaToVec(meta.docs));
   result.set(keyword('examples'), metaToVec(meta.examples));
   result.set(keyword('throws'), metaToVec(meta.throws));
+  // :effectful surfaces the @-marker convention from the function
+  // value's precomputed flag (set by makeFn → classifyEffect at
+  // registration time). Editor hover and runtime catalog inspection
+  // both consult this field; the runtime call-site safety net in
+  // evalOperandCall reads the same precomputed boolean directly off
+  // the function value, not via the descriptor.
+  result.set(keyword('effectful'), fn.effectful);
   return result;
 }
 
@@ -119,6 +126,14 @@ function buildThunkDescriptor(thunk, explicitName) {
   result.set(keyword('name'), explicitName ?? thunk.name ?? null);
   result.set(keyword('source'), nodeSource(thunk.expr));
   result.set(keyword('docs'), metaToVec(thunk.docs));
+  // :effectful surfaces the @-marker convention from the binding
+  // name (`let @foo = ...` → true, `let foo = ...` → false). Set by
+  // makeThunk via classifyEffect at evalLetStep time.
+  result.set(keyword('effectful'), thunk.effectful);
+  // :location carries the source position of the originating
+  // LetStep so editor goto-definition can answer "where is `foo`
+  // declared?" via reify(:foo) | /location.
+  result.set(keyword('location'), thunk.location);
   return result;
 }
 
@@ -143,15 +158,25 @@ function buildSnapshotDescriptor(snap, explicitName) {
   result.set(keyword('value'), snap.value);
   result.set(keyword('type'), describeValueType(snap.value));
   result.set(keyword('docs'), metaToVec(snap.docs));
+  // :effectful surfaces the @-marker convention from the binding
+  // name (`as @captured` → true, `as captured` → false). Set by
+  // makeSnapshot via classifyEffect at evalAsStep time. Mirrors
+  // the thunk descriptor field for parallel introspection.
+  result.set(keyword('effectful'), snap.effectful);
+  // :location carries the source position of the originating
+  // AsStep so editor goto-definition reaches the capture site.
+  result.set(keyword('location'), snap.location);
   return result;
 }
 
 function buildValueDescriptor(value, explicitName) {
   const result = new Map();
   result.set(keyword('kind'), keyword('value'));
-  if (explicitName !== undefined) {
-    result.set(keyword('name'), explicitName);
-  }
+  // :name is unconditional across all four descriptor builders so
+  // consumers walking `manifest * /name` get a uniform field shape.
+  // Raw values reached via the value-level reify form (`42 | reify`)
+  // carry no binding name and surface :name as null.
+  result.set(keyword('name'), explicitName ?? null);
   result.set(keyword('value'), value);
   result.set(keyword('type'), describeValueType(value));
   return result;

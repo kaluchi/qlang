@@ -615,6 +615,45 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(result.get(keyword('docs')).length).toBeGreaterThan(0);
   });
 
+  it('builtin descriptor surfaces :effectful=false for clean langRuntime operands', () => {
+    expect(evalQuery('reify(:count) | /effectful')).toBe(false);
+    expect(evalQuery('reify(:filter) | /effectful')).toBe(false);
+  });
+
+  it('thunk descriptor surfaces :effectful from the binding name', () => {
+    expect(evalQuery('let foo = count | reify(:foo) | /effectful')).toBe(false);
+    expect(evalQuery('let @foo = count | reify(:@foo) | /effectful')).toBe(true);
+  });
+
+  it('thunk descriptor surfaces :location of the originating LetStep', () => {
+    const result = evalQuery('let foo = count | reify(:foo) | /location');
+    expect(result).not.toBeNull();
+    expect(result.start.offset).toBe(0);
+  });
+
+  it('snapshot descriptor surfaces :effectful from the binding name', () => {
+    expect(evalQuery('42 | as snap | reify(:snap) | /effectful')).toBe(false);
+    expect(evalQuery('42 | as @snap | reify(:@snap) | /effectful')).toBe(true);
+  });
+
+  it('snapshot descriptor surfaces :location of the originating AsStep', () => {
+    const result = evalQuery('42 | as snap | reify(:snap) | /location');
+    expect(result).not.toBeNull();
+    expect(typeof result.start.offset).toBe('number');
+  });
+
+  it('value descriptor always carries :name (null when no binding name)', () => {
+    const result = evalQuery('42 | reify');
+    expect(result.has(keyword('name'))).toBe(true);
+    expect(result.get(keyword('name'))).toBeNull();
+  });
+
+  it('manifest descriptors all have :effectful field for builtin entries', () => {
+    const result = evalQuery('manifest * /effectful | distinct');
+    // Every langRuntime builtin is a clean (non-effectful) function.
+    expect(result).toEqual([false]);
+  });
+
   it('reify reports :captured [min, UNBOUNDED] for variadic operands', () => {
     const result = evalQuery('env | /coalesce | reify | /captured');
     expect(Array.isArray(result)).toBe(true);

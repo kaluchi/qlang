@@ -1,0 +1,15 @@
+{"name": "first-pair-matches", "query": "5 | cond(eq(5), \"five\", eq(6), \"six\")", "expect": "five"}
+{"name": "second-pair-matches", "query": "6 | cond(eq(5), \"five\", eq(6), \"six\")", "expect": "six"}
+{"name": "no-pair-matches-no-default-yields-nil", "query": "7 | cond(eq(5), \"five\", eq(6), \"six\")", "expect": null}
+{"name": "no-pair-matches-with-default-yields-default", "query": "7 | cond(eq(5), \"five\", eq(6), \"six\", \"other\")", "expect": "other"}
+{"name": "first-pair-default-skipped", "query": "5 | cond(eq(5), \"five\", \"other\")", "expect": "five"}
+{"name": "default-only-fires-when-no-predicates-match", "query": "0 | cond(gt(10), \"big\", gt(5), \"medium\", \"small\")", "expect": "small"}
+{"name": "cond-grade-letters", "query": "75 | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")", "expect": "C"}
+{"name": "cond-grade-letters-fail", "query": "55 | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")", "expect": "F"}
+{"name": "cond-grade-letters-top", "query": "95 | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")", "expect": "A"}
+{"name": "cond-only-evaluates-matching-branch", "query": "5 | cond(eq(5), \"safe\", \"never\" | div(0))", "expect": "safe"}
+{"name": "cond-with-projection-predicate", "query": "{:role :admin :salary 100} | cond(/role | eq(:admin), /salary | mul(15) | div(10), /salary)", "expect": 150}
+{"name": "cond-with-projection-default", "query": "{:role :user :salary 100} | cond(/role | eq(:admin), /salary | mul(15) | div(10), /salary)", "expect": 100}
+{"name": "cond-zero-args-throws", "query": "5 | cond", "error": "arity-error"}
+{"name": "cond-one-arg-throws", "query": "5 | cond(eq(5))", "error": "arity-error"}
+{"name": "cond-replaces-nested-if-equivalence", "query": "75 | cond(gte(90), \"A\", gte(70), \"B\", \"C\") | eq(75 | if(gte(90), \"A\", if(gte(70), \"B\", \"C\")))", "expect": true}

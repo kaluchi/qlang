@@ -33,6 +33,8 @@ const CoalesceNoAlternatives = declareArityError('CoalesceNoAlternatives',
   () => 'coalesce requires at least one alternative sub-pipeline');
 const FirstTruthyNoAlternatives = declareArityError('FirstTruthyNoAlternatives',
   () => 'firstTruthy requires at least one alternative sub-pipeline');
+const CondNoBranches = declareArityError('CondNoBranches',
+  () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default');
 
 // `if` — three captured sub-pipelines, lazy evaluation of the
 // selected branch. Implementation file uses the JS-safe name
@@ -161,6 +163,68 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
     ],
     captured: [1, UNBOUNDED],
     throws: ['CoalesceNoAlternatives']
+  });
+
+// `cond` — multi-way dispatch. Variadic captured sub-pipelines
+// alternating between predicates and branches:
+//
+//   value | cond(p1, b1, p2, b2, ..., pN, bN)            -- N pairs, no default
+//   value | cond(p1, b1, p2, b2, ..., pN, bN, default)   -- N pairs plus a trailing default
+//
+// Walks the captured args in pairs. For each pair (pK, bK), evaluates
+// pK against pipeValue; if the result is truthy, evaluates bK against
+// pipeValue and returns its result. Short-circuits on the first
+// truthy predicate. After the last pair, if the captured-arg count is
+// odd the trailing arg is the default branch — evaluated against
+// pipeValue when no predicate fired. If the count is even and no
+// predicate fired, the result is nil.
+//
+// Replaces nested-if chains with a flat catalog. The pattern
+//
+//   value | if(p1, b1, if(p2, b2, if(p3, b3, default)))
+//
+// becomes
+//
+//   value | cond(p1, b1, p2, b2, p3, b3, default)
+//
+// which reads top-to-bottom and avoids the right-leaning indentation
+// pyramid that nested-if produces.
+//
+// At least one (predicate, branch) pair is required — a count of 0
+// or 1 throws CondNoBranches. The same higher-order-variadic dispatch
+// machinery as coalesce / firstTruthy is reused.
+export const cond = higherOrderOpVariadic('cond', 16,
+  (pipeValue, ...lambdas) => {
+    if (lambdas.length < 2) {
+      throw new CondNoBranches();
+    }
+    let i = 0;
+    while (i + 1 < lambdas.length) {
+      const predLambda = lambdas[i];
+      const branchLambda = lambdas[i + 1];
+      if (isTruthy(predLambda(pipeValue))) {
+        return branchLambda(pipeValue);
+      }
+      i += 2;
+    }
+    // Trailing default branch: present iff captured-arg count is odd.
+    if (i < lambdas.length) {
+      return lambdas[i](pipeValue);
+    }
+    return NIL;
+  }, {
+    category: 'control',
+    subject: 'any',
+    modifiers: ['(predicate, branch) pairs and an optional trailing default sub-pipeline'],
+    returns: 'any (result of the first matching branch, or the default, or nil)',
+    docs: ['Multi-way dispatch over a flat list of (predicate, branch) sub-pipeline pairs. Walks the captured args in pairs and returns the result of the first branch whose predicate evaluates truthy against pipeValue. If the captured-arg count is odd, the trailing arg is a default branch evaluated when no predicate fires. If the count is even and no predicate fires, the result is nil. Replaces nested-if chains with a flat catalog: `cond(p1, b1, p2, b2, default)` is equivalent to `if(p1, b1, if(p2, b2, default))` but reads top-to-bottom. At least one (predicate, branch) pair is required.'],
+    examples: [
+      'score | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F")',
+      'value | cond(eq(0), "zero", eq(1), "one", "many")',
+      'employee | cond(/role | eq(:admin), /salary | mul(15) | div(10), /role | eq(:lead), /salary | mul(12) | div(10), /salary)'
+    ],
+    captured: [2, UNBOUNDED],
+    throws: ['CondNoBranches']
   });
 
 // `firstTruthy` — variadic captured sub-pipelines, returns the

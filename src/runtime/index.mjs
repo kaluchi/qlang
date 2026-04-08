@@ -29,7 +29,8 @@ import {
   coalesce as coalesceOperand,
   when as whenOperand,
   unless as unlessOperand,
-  firstTruthy as firstTruthyOperand
+  firstTruthy as firstTruthyOperand,
+  cond as condOperand
 } from './control.mjs';
 
 function bind(target, name, value) {
@@ -121,6 +122,7 @@ export function langRuntime() {
   bind(m, 'unless',      unlessOperand);
   bind(m, 'coalesce',    coalesceOperand);
   bind(m, 'firstTruthy', firstTruthyOperand);
+  bind(m, 'cond',        condOperand);
 
   return m;
 }

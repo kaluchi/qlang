@@ -1,6 +1,6 @@
 // Set operands. The polymorphic `count`, `empty`, `has` live in
 // vec.mjs / map.mjs respectively. This file holds the Vec→Set
-// conversion and any future Set-only operands.
+// conversion.
 
 import { nullaryOp } from './dispatch.mjs';
 import { isVec, describeType } from '../types.mjs';

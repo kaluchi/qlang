@@ -10,10 +10,10 @@
 // captured-arg lambdas against it, call the pure core, and wrap
 // the result back into a new state with `withPipeValue`.
 //
-// Reflective operands (env, use, future trace/snapshot/scope)
-// use the `stateOp` helper, which does NOT descend to the value
-// level — the impl receives the full state and returns a full
-// state, giving it read/write access to `env`.
+// Reflective operands (env, use, reify, manifest) use the
+// `stateOp` / `stateOpVariadic` helpers, which do NOT descend to
+// the value level — the impl receives the full state and returns
+// a full state, giving it read/write access to `env`.
 //
 // Captured arguments are LAMBDAS, not pre-resolved values: each
 // captured expression becomes an `(input) → value` closure that

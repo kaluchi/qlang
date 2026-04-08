@@ -6,11 +6,12 @@
 // so a stack trace or `instanceof` check pinpoints the failure
 // without scraping the message string.
 //
-// Classes are built by small factories that preserve backward
-// compatibility through the QlangError / QlangTypeError hierarchy:
-// every generated class `instanceof QlangTypeError` is still true,
-// and the `.kind` field still reads `type-error`. What changes is
-// the concrete class: `FilterSubjectNotVec`, `AddLeftNotNumber`,
+// Classes are built by small factories. Every generated type-error
+// class extends `QlangTypeError` so `instanceof QlangTypeError`
+// holds and `.kind` reads `type-error`; every generated arity-error
+// class extends `ArityError` with `.kind === 'arity-error'`. The
+// concrete class narrows the throw site to a single operand +
+// position + condition: `FilterSubjectNotVec`, `AddLeftNotNumber`,
 // `SortElementsNotComparable`, and so on.
 
 import {

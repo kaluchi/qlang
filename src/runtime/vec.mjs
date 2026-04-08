@@ -11,13 +11,14 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isVec, isQMap, isQSet, isTruthy, describeType, NIL
+  isVec, isQMap, isQSet, isTruthy, describeType, NIL, keyword
 } from '../types.mjs';
 import {
   declareSubjectError,
   declareModifierError,
   declareElementError,
-  declareComparabilityError
+  declareComparabilityError,
+  declareShapeError
 } from './operand-errors.mjs';
 
 // ── Subject-type classes ───────────────────────────────────────
@@ -32,6 +33,8 @@ const MaxSubjectNotVec            = declareSubjectError('MaxSubjectNotVec',     
 const FilterSubjectNotVec         = declareSubjectError('FilterSubjectNotVec',         'filter',   'Vec');
 const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'Vec');
 const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'Vec');
+const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'Vec');
+const FirstNonZeroSubjectNotVec   = declareSubjectError('FirstNonZeroSubjectNotVec',   'firstNonZero', 'Vec of numbers');
 const TakeSubjectNotVec           = declareSubjectError('TakeSubjectNotVec',           'take',     'Vec');
 const DropSubjectNotVec           = declareSubjectError('DropSubjectNotVec',           'drop',     'Vec');
 const DistinctSubjectNotVec       = declareSubjectError('DistinctSubjectNotVec',       'distinct', 'Vec');
@@ -45,7 +48,8 @@ const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2,
 
 // ── Element-type classes ───────────────────────────────────────
 
-const SumElementNotNumber = declareElementError('SumElementNotNumber', 'sum', 'number');
+const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'number');
+const FirstNonZeroElementNotNumber = declareElementError('FirstNonZeroElementNotNumber', 'firstNonZero', 'number');
 
 // ── Comparability classes (each call site is its own class) ───
 
@@ -53,6 +57,16 @@ const MinElementsNotComparable    = declareComparabilityError('MinElementsNotCom
 const MaxElementsNotComparable    = declareComparabilityError('MaxElementsNotComparable',    'max');
 const SortNaturalNotComparable    = declareComparabilityError('SortNaturalNotComparable',    'sort');
 const SortByKeyNotComparable      = declareComparabilityError('SortByKeyNotComparable',      'sort(key)');
+const AscKeysNotComparable        = declareComparabilityError('AscKeysNotComparable',        'asc');
+const DescKeysNotComparable       = declareComparabilityError('DescKeysNotComparable',       'desc');
+
+// Per-site shape errors
+const SortWithCmpResultNotNumber = declareShapeError('SortWithCmpResultNotNumber',
+  ({ actualType }) => `sortWith comparator must return a number, got ${actualType}`);
+const AscPairNotMap = declareShapeError('AscPairNotMap',
+  ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+const DescPairNotMap = declareShapeError('DescPairNotMap',
+  ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
 
 // ── Polymorphic sizeOf for count/empty ─────────────────────────
 
@@ -310,4 +324,133 @@ export const flat = nullaryOp('flat', (vec) => {
   docs: ['Flattens one level of nesting. Elements that are Vecs are spliced in; other elements pass through unchanged.'],
   examples: ['[[1 2] [3] [4 5]] | flat → [1 2 3 4 5]'],
   throws: ['FlatSubjectNotVec']
+});
+
+// ── sortWith and comparator builders ──────────────────────────
+//
+// `sortWith` runs a custom comparator sub-pipeline against pairs of
+// elements. The comparator receives a pair Map { :left a :right b }
+// and returns a number: negative places left first, positive places
+// right first, zero treats them as equal (preserving relative order
+// per JS Array.sort stability).
+//
+// `asc` and `desc` are comparator builders that take a key
+// sub-pipeline and produce a comparator. They accept any sub-pipeline
+// for the key — bare projections (`/age`), computed expressions
+// (`mul(/price, /qty)`), nested projections (`/profile/joinedAt`),
+// or chains. The key sub-pipeline runs against /left and /right of
+// the pair Map and the resulting key values are compared.
+//
+// `firstNonZero` is the composition primitive for compound
+// comparators: pass it a Vec of comparator results and it returns
+// the first non-zero (or 0 if all are zero), giving lexicographic
+// tie-breaking semantics. Combined with a Vec literal, no dedicated
+// "compose" operand is needed:
+//
+//   sortWith([asc(/lastName), desc(/age)] | firstNonZero)
+//
+// The Vec literal is itself a sub-pipeline; sortWith invokes the
+// comparator lambda per pair, the Vec literal evaluates each element
+// against the pair Map producing [n1, n2], and firstNonZero reduces
+// to the first non-tie.
+
+export const sortWith = higherOrderOp('sortWith', 2, (vec, cmpLambda) => {
+  if (!isVec(vec)) throw new SortWithSubjectNotVec(describeType(vec), vec);
+  return [...vec].sort((a, b) => {
+    const pair = new Map();
+    pair.set(keyword('left'), a);
+    pair.set(keyword('right'), b);
+    const result = cmpLambda(pair);
+    if (typeof result !== 'number') {
+      throw new SortWithCmpResultNotNumber({
+        actualType: describeType(result),
+        actualValue: result
+      });
+    }
+    return result;
+  });
+}, {
+  category: 'vec-transformer',
+  subject: 'Vec',
+  modifiers: ['comparator-lambda (pair-Map → number)'],
+  returns: 'Vec',
+  docs: ['Sorts a Vec using a custom comparator sub-pipeline. The comparator receives a pair Map { :left a :right b } and must return a number: negative places left before right, positive places right before left, zero treats them as equal. Pair with asc/desc/firstNonZero for declarative comparators.'],
+  examples: [
+    '[3 1 2] | sortWith(sub(/left, /right))',
+    'people | sortWith(asc(/age))',
+    'nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)'
+  ],
+  throws: ['SortWithSubjectNotVec', 'SortWithCmpResultNotNumber']
+});
+
+export const asc = higherOrderOp('asc', 2, (pair, keyLambda) => {
+  if (!isQMap(pair)) throw new AscPairNotMap({
+    actualType: describeType(pair),
+    actualValue: pair
+  });
+  const left  = pair.get(keyword('left'));
+  const right = pair.get(keyword('right'));
+  const leftKey  = keyLambda(left);
+  const rightKey = keyLambda(right);
+  checkComparable(AscKeysNotComparable, leftKey, rightKey);
+  return compareScalars(leftKey, rightKey);
+}, {
+  category: 'comparator',
+  subject: 'pair Map { :left x :right y }',
+  modifiers: ['key sub-pipeline'],
+  returns: 'number (-1, 0, or 1)',
+  docs: ['Builds an ascending comparator for sortWith. Applied per-pair, projects the key from /left and /right via the captured sub-pipeline and compares them in natural ascending order. The key sub-pipeline can be any expression — a bare projection (/age), a computed value (mul(/price, /qty)), or a multi-step pipeline.'],
+  examples: [
+    'sortWith(asc(/age))',
+    'sortWith(asc(mul(/price, /qty)))',
+    'sortWith(asc(/profile/joinedAt))'
+  ],
+  throws: ['AscPairNotMap', 'AscKeysNotComparable']
+});
+
+export const desc = higherOrderOp('desc', 2, (pair, keyLambda) => {
+  if (!isQMap(pair)) throw new DescPairNotMap({
+    actualType: describeType(pair),
+    actualValue: pair
+  });
+  const left  = pair.get(keyword('left'));
+  const right = pair.get(keyword('right'));
+  const leftKey  = keyLambda(left);
+  const rightKey = keyLambda(right);
+  checkComparable(DescKeysNotComparable, leftKey, rightKey);
+  return -compareScalars(leftKey, rightKey);
+}, {
+  category: 'comparator',
+  subject: 'pair Map { :left x :right y }',
+  modifiers: ['key sub-pipeline'],
+  returns: 'number (-1, 0, or 1)',
+  docs: ['Builds a descending comparator for sortWith. Same as asc but reverses the comparison so that higher key values come first.'],
+  examples: [
+    'sortWith(desc(/timestamp))',
+    'sortWith(desc(/score))'
+  ],
+  throws: ['DescPairNotMap', 'DescKeysNotComparable']
+});
+
+export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
+  if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(describeType(vec), vec);
+  for (let i = 0; i < vec.length; i++) {
+    if (typeof vec[i] !== 'number') {
+      throw new FirstNonZeroElementNotNumber(i, describeType(vec[i]), vec[i]);
+    }
+    if (vec[i] !== 0) return vec[i];
+  }
+  return 0;
+}, {
+  category: 'vec-reducer',
+  subject: 'Vec of numbers',
+  modifiers: [],
+  returns: 'number',
+  docs: ['Returns the first non-zero number in a Vec. If all elements are zero (or the Vec is empty), returns 0. The composition primitive for compound comparators in sortWith: each comparator returns -1/0/1, and firstNonZero picks the first non-tie, giving lexicographic ordering.'],
+  examples: [
+    '[0 0 -1 0] | firstNonZero → -1',
+    '[0 0 0] | firstNonZero → 0',
+    'sortWith([asc(/lastName), desc(/age)] | firstNonZero)'
+  ],
+  throws: ['FirstNonZeroSubjectNotVec', 'FirstNonZeroElementNotNumber']
 });

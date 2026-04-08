@@ -650,6 +650,90 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 });
 
+describe('runtime/vec.mjs sortWith and comparator builders', () => {
+  function catchError(query) {
+    try { evalQuery(query); return null; }
+    catch (e) { return e; }
+  }
+
+  it('sortWith on non-Vec subject → SortWithSubjectNotVec', () => {
+    const e = catchError('42 | sortWith(asc(/x))');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.name).toBe('SortWithSubjectNotVec');
+  });
+
+  it('sortWith comparator returning non-number → SortWithCmpResultNotNumber', () => {
+    const e = catchError('[1 2 3] | sortWith("string")');
+    expect(e.name).toBe('SortWithCmpResultNotNumber');
+  });
+
+  it('asc on non-Map pair → AscPairNotMap', () => {
+    // sortWith hands the comparator a pair Map, so this fires only
+    // when asc is called outside sortWith with a non-Map subject.
+    const e = catchError('42 | asc(/x)');
+    expect(e.name).toBe('AscPairNotMap');
+  });
+
+  it('asc on heterogeneous keys → AscKeysNotComparable', () => {
+    const e = catchError('[{:k 1} {:k "a"}] | sortWith(asc(/k))');
+    expect(e.name).toBe('AscKeysNotComparable');
+  });
+
+  it('desc on non-Map pair → DescPairNotMap', () => {
+    const e = catchError('42 | desc(/x)');
+    expect(e.name).toBe('DescPairNotMap');
+  });
+
+  it('desc on heterogeneous keys → DescKeysNotComparable', () => {
+    const e = catchError('[{:k 1} {:k "a"}] | sortWith(desc(/k))');
+    expect(e.name).toBe('DescKeysNotComparable');
+  });
+
+  it('firstNonZero on non-Vec → FirstNonZeroSubjectNotVec', () => {
+    const e = catchError('42 | firstNonZero');
+    expect(e.name).toBe('FirstNonZeroSubjectNotVec');
+  });
+
+  it('firstNonZero on Vec with non-number element → FirstNonZeroElementNotNumber', () => {
+    const e = catchError('[0 "two" 1] | firstNonZero');
+    expect(e.name).toBe('FirstNonZeroElementNotNumber');
+    expect(e.context.index).toBe(1);
+  });
+
+  it('every sortWith/asc/desc/firstNonZero site has a unique class name', () => {
+    const queries = [
+      '42 | sortWith(asc(/x))',                  // SortWithSubjectNotVec
+      '[1 2] | sortWith("not")',                 // SortWithCmpResultNotNumber
+      '42 | asc(/x)',                             // AscPairNotMap
+      '[{:k 1} {:k "a"}] | sortWith(asc(/k))',  // AscKeysNotComparable
+      '42 | desc(/x)',                            // DescPairNotMap
+      '[{:k 1} {:k "a"}] | sortWith(desc(/k))', // DescKeysNotComparable
+      '42 | firstNonZero',                        // FirstNonZeroSubjectNotVec
+      '[0 "x"] | firstNonZero'                    // FirstNonZeroElementNotNumber
+    ];
+    const names = new Set(queries.map(q => catchError(q).name));
+    expect(names.size).toBe(queries.length);
+  });
+
+  it('inline arithmetic comparator sorts ascending', () => {
+    expect(evalQuery('[3 1 4 1 5] | sortWith(sub(/left, /right))'))
+      .toEqual([1, 1, 3, 4, 5]);
+  });
+
+  it('inline arithmetic comparator sorts descending via reversed sub', () => {
+    expect(evalQuery('[3 1 4 1 5] | sortWith(sub(/right, /left))'))
+      .toEqual([5, 4, 3, 1, 1]);
+  });
+
+  it('compound comparator chains via firstNonZero', () => {
+    const result = evalQuery(
+      '[{:n "B" :a 30} {:n "A" :a 20} {:n "B" :a 25}] ' +
+      '| sortWith([asc(/n), desc(/a)] | firstNonZero) * /a'
+    );
+    expect(result).toEqual([20, 30, 25]);
+  });
+});
+
 describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', () => {
     const result = evalQuery(

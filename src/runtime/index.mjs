@@ -35,20 +35,24 @@ export function langRuntime() {
   const m = new Map();
 
   // Vec operands
-  bind(m, 'count',    vec.count);
-  bind(m, 'empty',    vec.empty);
-  bind(m, 'first',    vec.first);
-  bind(m, 'last',     vec.last);
-  bind(m, 'sum',      vec.sum);
-  bind(m, 'min',      vec.min);
-  bind(m, 'max',      vec.max);
-  bind(m, 'filter',   vec.filter);
-  bind(m, 'sort',     vec.sort);
-  bind(m, 'take',     vec.take);
-  bind(m, 'drop',     vec.drop);
-  bind(m, 'distinct', vec.distinct);
-  bind(m, 'reverse',  vec.reverse);
-  bind(m, 'flat',     vec.flat);
+  bind(m, 'count',        vec.count);
+  bind(m, 'empty',        vec.empty);
+  bind(m, 'first',        vec.first);
+  bind(m, 'last',         vec.last);
+  bind(m, 'sum',          vec.sum);
+  bind(m, 'min',          vec.min);
+  bind(m, 'max',          vec.max);
+  bind(m, 'filter',       vec.filter);
+  bind(m, 'sort',         vec.sort);
+  bind(m, 'sortWith',     vec.sortWith);
+  bind(m, 'asc',          vec.asc);
+  bind(m, 'desc',         vec.desc);
+  bind(m, 'firstNonZero', vec.firstNonZero);
+  bind(m, 'take',         vec.take);
+  bind(m, 'drop',         vec.drop);
+  bind(m, 'distinct',     vec.distinct);
+  bind(m, 'reverse',      vec.reverse);
+  bind(m, 'flat',         vec.flat);
 
   // Map operands
   bind(m, 'keys', map.keys);

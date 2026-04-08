@@ -28,7 +28,16 @@ import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', 'conformance');
-const files = readdirSync(conformanceDir).filter(f => f.endsWith('.jsonl')).sort();
+// Recurse into subdirectories so per-operand files under
+// `conformance/operands/<name>.jsonl` are picked up alongside the
+// top-level feature files (`01-literals.jsonl`, `16-comments.jsonl`,
+// etc.). Node's `recursive: true` returns relative paths with the
+// platform separator; we normalize to forward-slash for stable
+// describe-block labels across platforms.
+const files = readdirSync(conformanceDir, { recursive: true })
+  .filter(f => f.endsWith('.jsonl'))
+  .map(f => f.split(/[\\/]/).join('/'))
+  .sort();
 
 // hydrate(jsonValue) — convert tagged JSON values into qlang
 // runtime values (Map, Set, keyword instances).

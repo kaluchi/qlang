@@ -1,0 +1,21 @@
+{"name": "desc-numbers-first-is-largest", "query": "[{:n 30} {:n 10} {:n 20}] | sortWith(desc(/n)) | first | /n", "expect": 30}
+{"name": "desc-numbers-last-is-smallest", "query": "[{:n 30} {:n 10} {:n 20}] | sortWith(desc(/n)) | last | /n", "expect": 10}
+{"name": "desc-multi-element-numeric", "query": "[{:k 5} {:k 1} {:k 3} {:k 2} {:k 4}] | sortWith(desc(/k)) * /k", "expect": [5, 4, 3, 2, 1]}
+{"name": "desc-strings-reverse-natural", "query": "[{:s \"banana\"} {:s \"apple\"} {:s \"cherry\"}] | sortWith(desc(/s)) * /s", "expect": ["cherry", "banana", "apple"]}
+{"name": "desc-with-nested-projection", "query": "[{:m {:k 30}} {:m {:k 10}} {:m {:k 20}}] | sortWith(desc(/m/k)) * /m/k", "expect": [30, 20, 10]}
+{"name": "desc-with-deeply-nested-projection", "query": "[{:a {:b {:c 3}}} {:a {:b {:c 1}}} {:a {:b {:c 2}}}] | sortWith(desc(/a/b/c)) * /a/b/c", "expect": [3, 2, 1]}
+{"name": "desc-with-computed-key", "query": "[{:p 10 :q 3} {:p 5 :q 10} {:p 4 :q 4}] | sortWith(desc(mul(/p, /q))) * mul(/p, /q)", "expect": [50, 30, 16]}
+{"name": "desc-with-children-count", "query": "[{:c [1 2]} {:c []} {:c [1]}] | sortWith(desc(/c | count)) * (/c | count)", "expect": [2, 1, 0]}
+{"name": "desc-with-children-sum", "query": "[{:c [10 20]} {:c [1 1 1]} {:c [5]}] | sortWith(desc(/c | sum)) * (/c | sum)", "expect": [30, 5, 3]}
+{"name": "desc-equal-keys-stable", "query": "[{:k 1 :tag \"a\"} {:k 1 :tag \"b\"} {:k 1 :tag \"c\"}] | sortWith(desc(/k)) * /tag", "expect": ["a", "b", "c"]}
+{"name": "desc-mixed-equal-and-different", "query": "[{:k 1 :tag \"a\"} {:k 2 :tag \"x\"} {:k 1 :tag \"b\"} {:k 2 :tag \"y\"}] | sortWith(desc(/k)) * /tag", "expect": ["x", "y", "a", "b"]}
+{"name": "desc-empty-vec", "query": "[] | sortWith(desc(/k))", "expect": []}
+{"name": "desc-singleton-vec", "query": "[{:k 42}] | sortWith(desc(/k)) | first | /k", "expect": 42}
+{"name": "desc-negative-numbers", "query": "[{:k -1} {:k -5} {:k 2}] | sortWith(desc(/k)) * /k", "expect": [2, -1, -5]}
+{"name": "desc-decimal-numbers", "query": "[{:k 3.14} {:k 1.41} {:k 2.71}] | sortWith(desc(/k)) * /k", "expect": [3.14, 2.71, 1.41]}
+{"name": "desc-newest-first-by-timestamp", "query": "[{:t 1000} {:t 3000} {:t 2000}] | sortWith(desc(/t)) * /t", "expect": [3000, 2000, 1000]}
+{"name": "desc-error-on-incomparable-key-types", "query": "[{:k 1} {:k \"a\"}] | sortWith(desc(/k))", "error": "type-error"}
+{"name": "desc-error-on-nil-key", "query": "[{:k 1} {:k nil}] | sortWith(desc(/k))", "error": "type-error"}
+{"name": "desc-error-on-direct-non-pair-subject", "query": "42 | desc(/x)", "error": "type-error"}
+{"name": "desc-error-on-direct-vec-subject", "query": "[1 2] | desc(/x)", "error": "type-error"}
+{"name": "desc-with-recursive-let-key", "query": "let total = (add(1, /children * total | sum)) | [{:children [{:children []}]} {:children [{:children [{:children []}]}]}] | sortWith(desc(total)) * total", "expect": [3, 2]}

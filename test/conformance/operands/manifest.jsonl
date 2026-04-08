@@ -1,0 +1,32 @@
+{"name": "returns-vec", "query": "env | manifest | empty | not", "expect": true}
+{"name": "size-greater-than-30", "query": "env | manifest | count | gt(30)", "expect": true}
+{"name": "size-greater-than-40", "query": "env | manifest | count | gt(40)", "expect": true}
+{"name": "contains-count-binding", "query": "env | manifest | filter(/name | eq(\"count\")) | count", "expect": 1}
+{"name": "contains-filter-binding", "query": "env | manifest | filter(/name | eq(\"filter\")) | count", "expect": 1}
+{"name": "contains-add-binding", "query": "env | manifest | filter(/name | eq(\"add\")) | count", "expect": 1}
+{"name": "contains-reify-binding", "query": "env | manifest | filter(/name | eq(\"reify\")) | count", "expect": 1}
+{"name": "contains-manifest-binding", "query": "env | manifest | filter(/name | eq(\"manifest\")) | count", "expect": 1}
+{"name": "contains-if-binding", "query": "env | manifest | filter(/name | eq(\"if\")) | count", "expect": 1}
+{"name": "contains-sortWith-binding", "query": "env | manifest | filter(/name | eq(\"sortWith\")) | count", "expect": 1}
+{"name": "filter-by-builtin-kind-many", "query": "env | manifest | filter(/kind | eq(:builtin)) | count | gt(40)", "expect": true}
+{"name": "filter-by-arith-category-exactly-four", "query": "env | manifest | filter(/category | eq(:arith)) | count", "expect": 4}
+{"name": "filter-by-vec-reducer-category", "query": "env | manifest | filter(/category | eq(:vec-reducer)) | count | gt(5)", "expect": true}
+{"name": "filter-by-vec-transformer-category", "query": "env | manifest | filter(/category | eq(:vec-transformer)) | count | gt(5)", "expect": true}
+{"name": "filter-by-string-category-includes-split-join", "query": "env | manifest | filter(/category | eq(:string)) | count", "expect": 4}
+{"name": "filter-by-control-category-two-operands", "query": "env | manifest | filter(/category | eq(:control)) | count", "expect": 2}
+{"name": "filter-by-comparator-category-two-operands", "query": "env | manifest | filter(/category | eq(:comparator)) | count", "expect": 2}
+{"name": "filter-by-reflective-category-four-operands", "query": "env | manifest | filter(/category | eq(:reflective)) | count", "expect": 4}
+{"name": "all-arith-have-add-sub-mul-div", "query": "env | manifest | filter(/category | eq(:arith)) * /name | sort", "expect": ["add", "div", "mul", "sub"]}
+{"name": "all-control-have-if-coalesce", "query": "env | manifest | filter(/category | eq(:control)) * /name | sort", "expect": ["coalesce", "if"]}
+{"name": "all-comparator-have-asc-desc", "query": "env | manifest | filter(/category | eq(:comparator)) * /name | sort", "expect": ["asc", "desc"]}
+{"name": "all-reflective-sorted", "query": "env | manifest | filter(/category | eq(:reflective)) * /name | sort", "expect": ["env", "manifest", "reify", "use"]}
+{"name": "first-name-alphabetical", "query": "env | manifest | first | /name", "expect": "add"}
+{"name": "names-are-sorted-asc", "query": "env | manifest * /name | as got | got | sort | eq(got)", "expect": true}
+{"name": "manifest-after-let", "query": "let myBinding = 42 | env | manifest | filter(/kind | eq(:thunk)) | count", "expect": 1}
+{"name": "manifest-after-as", "query": "42 | as captured | env | manifest | filter(/kind | eq(:snapshot)) | count", "expect": 1}
+{"name": "manifest-after-use", "query": "{:myConst 42} | use | env | manifest | filter(/kind | eq(:value)) | filter(/name | eq(\"myConst\")) | count", "expect": 1}
+{"name": "thunk-shows-up-with-name", "query": "let foo = mul(2) | env | manifest | filter(/kind | eq(:thunk)) | first | /name", "expect": "foo"}
+{"name": "snapshot-shows-up-with-value", "query": "42 | as bar | env | manifest | filter(/kind | eq(:snapshot)) | first | /value", "expect": 42}
+{"name": "every-builtin-has-docs-vec", "query": "env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | empty) | count", "expect": 0}
+{"name": "every-builtin-has-non-empty-first-doc", "query": "env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | first | eq(\"\") | not) | count | gt(40)", "expect": true}
+{"name": "manifest-via-table-runs", "query": "env | manifest | filter(/category | eq(:arith)) | table | eq(\"\") | not", "expect": true}

@@ -130,3 +130,16 @@ export function stateOpVariadic(name, maxArity, impl, meta) {
     return impl(state, lambdas);
   }, meta);
 }
+
+// higherOrderOpVariadic(name, maxArity, impl, meta) — like
+// higherOrderOp but accepts a variable number of captured args
+// (lambdas). Subject is always pipeValue; lambdas are passed
+// unresolved so the impl can invoke them lazily and selectively.
+// The impl is responsible for any min-arity check (Rule 10 only
+// enforces the maxArity ceiling). Used by control-flow operands
+// like coalesce that take 1+ alternative sub-pipelines.
+export function higherOrderOpVariadic(name, maxArity, impl, meta) {
+  return makeFn(name, maxArity, (state, lambdas) => {
+    return withPipeValue(state, impl(state.pipeValue, ...lambdas));
+  }, meta);
+}

@@ -1,0 +1,30 @@
+{"name": "if-cond-truthy-runs-then", "query": "75 | if(gte(60), \"pass\", \"fail\")", "expect": "pass"}
+{"name": "if-cond-falsy-runs-else", "query": "5 | if(gte(60), \"pass\", \"fail\")", "expect": "fail"}
+{"name": "if-cond-nil-is-falsy", "query": "{:no \"data\"} | if(/missing, \"yes\", \"no\")", "expect": "no"}
+{"name": "if-cond-false-literal-falsy", "query": "0 | if(false, \"yes\", \"no\")", "expect": "no"}
+{"name": "if-cond-zero-is-truthy", "query": "5 | if(eq(0), \"zero\", \"non\")", "expect": "non"}
+{"name": "if-cond-empty-string-truthy", "query": "\"\" | if(eq(\"\"), \"empty\", \"non\")", "expect": "empty"}
+{"name": "if-cond-empty-vec-truthy", "query": "[] | if(empty | not, \"non-empty\", \"empty\")", "expect": "empty"}
+{"name": "if-then-uses-pipevalue", "query": "10 | if(gt(5), mul(2), 0)", "expect": 20}
+{"name": "if-else-uses-pipevalue", "query": "3 | if(gt(5), mul(2), add(100))", "expect": 103}
+{"name": "if-then-projects-from-pipevalue", "query": "{:active true :salary 100} | if(/active, /salary | mul(11) | div(10), /salary)", "expect": 110}
+{"name": "if-else-projects-from-pipevalue", "query": "{:active false :salary 100} | if(/active, /salary | mul(11) | div(10), /salary)", "expect": 100}
+{"name": "if-only-selected-branch-runs", "query": "10 | if(gt(0), \"positive\", div(0))", "expect": "positive"}
+{"name": "if-nested", "query": "75 | if(gte(90), \"A\", if(gte(70), \"B\", \"C\"))", "expect": "B"}
+{"name": "if-inside-distribute", "query": "[1 2 3 4 5] * if(gt(2), \"big\", \"small\")", "expect": ["small", "small", "big", "big", "big"]}
+{"name": "if-inside-filter-via-truthy-result", "query": "[1 2 3 4] | filter(if(gt(2), true, false))", "expect": [3, 4]}
+{"name": "coalesce-first-non-nil", "query": "{:firstName \"Alice\"} | coalesce(/preferredName, /firstName, \"Anon\")", "expect": "Alice"}
+{"name": "coalesce-second-non-nil", "query": "{:firstName \"Alice\"} | coalesce(/missing, /firstName, \"Anon\")", "expect": "Alice"}
+{"name": "coalesce-fallback-default", "query": "{} | coalesce(/missing, \"default\")", "expect": "default"}
+{"name": "coalesce-all-nil-returns-nil", "query": "{} | coalesce(/a, /b, /c)", "expect": null}
+{"name": "coalesce-zero-is-non-nil", "query": "{:zero 0} | coalesce(/missing, /zero, \"default\")", "expect": 0}
+{"name": "coalesce-empty-string-non-nil", "query": "{:empty \"\"} | coalesce(/missing, /empty, \"default\")", "expect": ""}
+{"name": "coalesce-empty-vec-non-nil", "query": "{:list []} | coalesce(/missing, /list, \"default\")", "expect": []}
+{"name": "coalesce-false-non-nil", "query": "{:flag false} | coalesce(/missing, /flag, true)", "expect": false}
+{"name": "coalesce-single-arg-non-nil", "query": "{:x 42} | coalesce(/x)", "expect": 42}
+{"name": "coalesce-single-arg-nil", "query": "{} | coalesce(/missing)", "expect": null}
+{"name": "coalesce-no-args-error", "query": "{} | coalesce", "error": "type-error"}
+{"name": "coalesce-laziness-skips-after-match", "query": "{:a 1} | coalesce(/a, div(0))", "expect": 1}
+{"name": "if-and-coalesce-combined", "query": "{:role :admin :name \"Bob\"} | if(/role | eq(:admin), coalesce(/displayName, /name, \"???\"), \"guest\")", "expect": "Bob"}
+{"name": "if-cond-using-and", "query": "{:active true :verified true} | if(and(/active, /verified), \"go\", \"stop\")", "expect": "go"}
+{"name": "coalesce-with-computed-fallback", "query": "{} | coalesce(/explicit, add(1, 2))", "expect": 3}

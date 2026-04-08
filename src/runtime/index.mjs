@@ -23,6 +23,7 @@ import {
   reify as reifyOperand,
   manifest as manifestOperand
 } from './intro.mjs';
+import { ifOp, coalesce as coalesceOperand } from './control.mjs';
 
 function bind(target, name, value) {
   target.set(keyword(name), value);
@@ -98,6 +99,10 @@ export function langRuntime() {
   bind(m, 'use',      useOperand);
   bind(m, 'reify',    reifyOperand);
   bind(m, 'manifest', manifestOperand);
+
+  // Control-flow operands
+  bind(m, 'if',       ifOp);
+  bind(m, 'coalesce', coalesceOperand);
 
   return m;
 }

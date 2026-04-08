@@ -650,6 +650,87 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 });
 
+describe('runtime/control.mjs if and coalesce', () => {
+  function catchError(query) {
+    try { evalQuery(query); return null; }
+    catch (e) { return e; }
+  }
+
+  it('if with cond truthy runs the then branch', () => {
+    expect(evalQuery('75 | if(gte(60), "pass", "fail")')).toBe('pass');
+  });
+
+  it('if with cond falsy runs the else branch', () => {
+    expect(evalQuery('5 | if(gte(60), "pass", "fail")')).toBe('fail');
+  });
+
+  it('if treats nil as falsy', () => {
+    expect(evalQuery('{:no "data"} | if(/missing, "yes", "no")')).toBe('no');
+  });
+
+  it('if treats false literal as falsy', () => {
+    expect(evalQuery('0 | if(false, "yes", "no")')).toBe('no');
+  });
+
+  it('if treats 0 as truthy', () => {
+    expect(evalQuery('5 | if(eq(0), "zero", "non")')).toBe('non');
+  });
+
+  it('if only the selected branch runs (else branch never evaluates)', () => {
+    // The else branch contains div(0), which would raise division-by-zero
+    // if evaluated. The cond is truthy so the else branch is skipped.
+    expect(evalQuery('10 | if(gt(0), "positive", div(0))')).toBe('positive');
+  });
+
+  it('if branches re-project from pipeValue, not from cond result', () => {
+    expect(evalQuery('{:active true :salary 100} | if(/active, /salary | mul(11) | div(10), /salary)')).toBe(110);
+  });
+
+  it('if can be nested for multi-way dispatch', () => {
+    expect(evalQuery('75 | if(gte(90), "A", if(gte(70), "B", "C"))')).toBe('B');
+  });
+
+  it('coalesce returns first non-nil alternative', () => {
+    expect(evalQuery('{:firstName "Alice"} | coalesce(/preferredName, /firstName, "Anon")')).toBe('Alice');
+  });
+
+  it('coalesce returns nil when all alternatives are nil', () => {
+    expect(evalQuery('{} | coalesce(/a, /b, /c)')).toBe(null);
+  });
+
+  it('coalesce treats 0 as non-nil', () => {
+    expect(evalQuery('{:zero 0} | coalesce(/missing, /zero, "default")')).toBe(0);
+  });
+
+  it('coalesce treats false as non-nil', () => {
+    expect(evalQuery('{:flag false} | coalesce(/missing, /flag, true)')).toBe(false);
+  });
+
+  it('coalesce treats empty string as non-nil', () => {
+    expect(evalQuery('{:s ""} | coalesce(/missing, /s, "default")')).toBe('');
+  });
+
+  it('coalesce short-circuits after first non-nil (does not evaluate later alts)', () => {
+    // div(0) would raise; coalesce never reaches it because /a is non-nil
+    expect(evalQuery('{:a 1} | coalesce(/a, div(0))')).toBe(1);
+  });
+
+  it('coalesce with zero captured args raises CoalesceNoAlternatives', () => {
+    const e = catchError('{} | coalesce');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.name).toBe('CoalesceNoAlternatives');
+  });
+
+  it('coalesce error site has unique class name', () => {
+    const e = catchError('{} | coalesce');
+    expect(e.name).toBe('CoalesceNoAlternatives');
+  });
+
+  it('if and coalesce compose for guarded defaulting', () => {
+    expect(evalQuery('{:role :admin :name "Bob"} | if(/role | eq(:admin), coalesce(/displayName, /name, "???"), "guest")')).toBe('Bob');
+  });
+});
+
 describe('runtime/vec.mjs sortWith and comparator builders', () => {
   function catchError(query) {
     try { evalQuery(query); return null; }

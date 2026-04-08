@@ -11,7 +11,7 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isVec, isQMap, isQSet, isTruthy, describeType, NIL, keyword
+  isVec, isQMap, isQSet, isKeyword, isTruthy, describeType, NIL, keyword
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -33,6 +33,12 @@ const MaxSubjectNotVec            = declareSubjectError('MaxSubjectNotVec',     
 const FilterSubjectNotVec         = declareSubjectError('FilterSubjectNotVec',         'filter',   'Vec');
 const EverySubjectNotVec          = declareSubjectError('EverySubjectNotVec',          'every',    'Vec');
 const AnySubjectNotVec            = declareSubjectError('AnySubjectNotVec',            'any',      'Vec');
+const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'Vec');
+const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'Vec');
+const GroupByKeyNotKeyword        = declareShapeError('GroupByKeyNotKeyword',
+  ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType}`);
+const IndexByKeyNotKeyword        = declareShapeError('IndexByKeyNotKeyword',
+  ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType}`);
 const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'Vec');
 const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'Vec');
 const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'Vec');
@@ -252,6 +258,94 @@ export const any = higherOrderOp('any', 2, (vec, predLambda) => {
   docs: ['Returns true iff at least one element of the Vec satisfies the predicate sub-pipeline. Short-circuits on the first truthy result. Vacuously false for the empty Vec (no witness exists).'],
   examples: ['[1 2 3] | any(gt(2)) → true', '[1 2 3] | any(gt(99)) → false', '[] | any(gt(0)) → false', '[{:active false} {:active true}] | any(/active) → true'],
   throws: ['AnySubjectNotVec']
+});
+
+// groupBy / indexBy — Vec → Map structural reorganization. The
+// predicate-aggregation pair (every/any) collapses a Vec to a
+// boolean; the comparator pair (asc/desc) builds Vec → Vec
+// transformations; this pair builds Vec → Map structures by
+// projecting a key-classifier sub-pipeline over each element.
+//
+//   groupBy(keyFn) — partitions the Vec into a Map<key, Vec<elem>>,
+//                    preserving first-occurrence order both for the
+//                    Map's entry sequence (insertion order of first
+//                    appearance) and for each bucket's elements
+//                    (Vec.push order).
+//
+//   indexBy(keyFn) — collapses the Vec into a Map<key, elem> where
+//                    each key maps to the LAST element that produced
+//                    it. Last-wins is the standard convention for
+//                    "I expect at most one element per key but want
+//                    forward-compatible behavior on accidental
+//                    duplicates".
+//
+// Both require the key sub-pipeline to produce a keyword for every
+// element — Map keys in qlang are interned keywords, not arbitrary
+// values. A future overload could accept a stringification policy
+// for non-keyword keys, but for now the type contract stays strict
+// so the rest of the Map operand catalog (keys, vals, has, /key,
+// union, minus, inter) keeps its keyword-key invariant intact.
+//
+// Both close the Vec ↔ Map duality the rest of the catalog implies:
+// `vals` (Map → Vec) had no inverse before this commit.
+
+export const groupBy = higherOrderOp('groupBy', 2, (vec, keyLambda) => {
+  if (!isVec(vec)) throw new GroupBySubjectNotVec(describeType(vec), vec);
+  const result = new Map();
+  for (let i = 0; i < vec.length; i++) {
+    const elem = vec[i];
+    const key = keyLambda(elem);
+    if (!isKeyword(key)) {
+      throw new GroupByKeyNotKeyword({
+        index: i,
+        actualType: describeType(key),
+        actualValue: key
+      });
+    }
+    if (!result.has(key)) result.set(key, []);
+    result.get(key).push(elem);
+  }
+  return result;
+}, {
+  category: 'vec-transformer',
+  subject: 'Vec',
+  modifiers: ['key sub-pipeline (returns keyword)'],
+  returns: 'Map<keyword, Vec<elem>>',
+  docs: ['Partitions a Vec into a Map keyed by the result of the key sub-pipeline applied to each element. Preserves first-occurrence order for both the Map entry sequence and each bucket\'s element list. The key sub-pipeline must return a keyword for every element. Inverse of `vals` for the multi-element-per-key case.'],
+  examples: [
+    '[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name → ["a" "c"]',
+    '[1 2 3 4] | groupBy(if(gt(2), :big, :small)) | /small → [1 2]'
+  ],
+  throws: ['GroupBySubjectNotVec', 'GroupByKeyNotKeyword']
+});
+
+export const indexBy = higherOrderOp('indexBy', 2, (vec, keyLambda) => {
+  if (!isVec(vec)) throw new IndexBySubjectNotVec(describeType(vec), vec);
+  const result = new Map();
+  for (let i = 0; i < vec.length; i++) {
+    const elem = vec[i];
+    const key = keyLambda(elem);
+    if (!isKeyword(key)) {
+      throw new IndexByKeyNotKeyword({
+        index: i,
+        actualType: describeType(key),
+        actualValue: key
+      });
+    }
+    result.set(key, elem); // last-wins on collision
+  }
+  return result;
+}, {
+  category: 'vec-transformer',
+  subject: 'Vec',
+  modifiers: ['key sub-pipeline (returns keyword)'],
+  returns: 'Map<keyword, elem>',
+  docs: ['Collapses a Vec into a Map keyed by the result of the key sub-pipeline. On collision (two elements producing the same key), the last element wins — last-wins is the standard convention for "at most one element per key, accept duplicates by overwriting". The key sub-pipeline must return a keyword for every element. Inverse of `vals` for the unique-key case.'],
+  examples: [
+    '[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name → "alice"',
+    '[{:id :a :v 1} {:id :a :v 2}] | indexBy(/id) | /a/v → 2'
+  ],
+  throws: ['IndexBySubjectNotVec', 'IndexByKeyNotKeyword']
 });
 
 export const sort = overloadedOp('sort', 2, {

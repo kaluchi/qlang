@@ -53,6 +53,8 @@ export function langRuntime() {
   bind(m, 'filter',       vec.filter);
   bind(m, 'every',        vec.every);
   bind(m, 'any',          vec.any);
+  bind(m, 'groupBy',      vec.groupBy);
+  bind(m, 'indexBy',      vec.indexBy);
   bind(m, 'sort',         vec.sort);
   bind(m, 'sortWith',     vec.sortWith);
   bind(m, 'asc',          vec.asc);

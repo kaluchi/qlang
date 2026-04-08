@@ -19,6 +19,10 @@ import {
   SyntaxError as PeggySyntaxError
 } from './grammar.generated.mjs';
 import { assignAstNodeIds, attachAstParents } from './walk.mjs';
+import {
+  decorateAstWithEffectMarkers,
+  validateEffectMarkers
+} from './effect-check.mjs';
 
 let parseCounter = 0;
 const AST_SCHEMA_VERSION = 1;
@@ -61,13 +65,23 @@ export function parse(source, opts = {}) {
     throw err;
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
-  // root receives .parent = null and id 0), then root metadata.
+  // root receives .parent = null and id 0), then effect-marker
+  // decoration so every OperandCall/LetStep/AsStep/Projection node
+  // carries a structured `.effectful` field, then root metadata,
+  // then semantic validation that depends on the decorated tree.
   attachAstParents(ast);
   assignAstNodeIds(ast);
+  decorateAstWithEffectMarkers(ast);
   ast.source = source;
   ast.uri = opts.uri ?? 'inline';
   ast.parseId = ++parseCounter;
   ast.parsedAt = Date.now();
   ast.schemaVersion = AST_SCHEMA_VERSION;
+  // @-effect-marker invariant: see src/effect-check.mjs. Throws
+  // EffectLaunderingAtLetParse with the offending binding's source
+  // location on violation; that error is a QlangError, not a
+  // ParseError, so callers can distinguish syntactic from semantic
+  // failures via instanceof / .kind.
+  validateEffectMarkers(ast);
   return ast;
 }

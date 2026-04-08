@@ -24,6 +24,7 @@
 // full application).
 
 import { ArityError } from './errors.mjs';
+import { classifyEffect } from './effect.mjs';
 
 // applyRule10(fn, lambdas, state) → state
 //
@@ -65,7 +66,8 @@ export function makeFn(name, arity, impl, meta) {
     name,
     arity,
     fn: impl,
-    meta: Object.freeze(meta)
+    meta: Object.freeze(meta),
+    effectful: classifyEffect(name)
   });
 }
 

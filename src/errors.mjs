@@ -113,3 +113,53 @@ export class QlangInvariantError extends QlangError {
     this.context = context;
   }
 }
+
+// EffectLaunderingError — abstract root for the @-prefix effect-marker
+// invariant: a `let` binding whose body references an @-prefixed
+// identifier (the qlang convention for side-effectful host operands
+// like @callers, @refs, @hierarchy) must itself be @-prefixed, so
+// the effect propagates through every alias. Two concrete subclasses
+// fire from two different points:
+//
+//   EffectLaunderingAtLetParse — fired by parse-time AST validation
+//     in src/effect-check.mjs when the AST scan finds an @-prefixed
+//     OperandCall or Projection key inside a non-@-prefixed let body.
+//
+//   EffectLaunderingAtForce — fired at runtime by eval.mjs::forceThunk
+//     when a non-@-prefixed thunk forces and the resolved value
+//     turns out to be an @-prefixed function (the laundering path
+//     where the function value was extracted via env-projection or
+//     installed via use, so the parse-time scan could not see it).
+export class EffectLaunderingError extends QlangError {
+  constructor(message, context = {}) {
+    super(message, 'effect-laundering');
+    this.name = 'EffectLaunderingError';
+    this.context = context;
+  }
+}
+
+export class EffectLaunderingAtLetParse extends EffectLaunderingError {
+  constructor({ letName, effectfulName, location = null }) {
+    super(
+      `let '${letName}' has an effectful body (references '${effectfulName}') ` +
+      `but its name is not @-prefixed; rename to '@${letName}' or remove the effectful reference`,
+      { site: 'EffectLaunderingAtLetParse', letName, effectfulName }
+    );
+    this.name = 'EffectLaunderingAtLetParse';
+    this.fingerprint = 'EffectLaunderingAtLetParse';
+    this.location = location;
+  }
+}
+
+export class EffectLaunderingAtCall extends EffectLaunderingError {
+  constructor({ bindingName, effectfulName }) {
+    super(
+      `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
+      `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
+      `use, or as — rename to '@${bindingName}' to mark the effect`,
+      { site: 'EffectLaunderingAtCall', bindingName, effectfulName }
+    );
+    this.name = 'EffectLaunderingAtCall';
+    this.fingerprint = 'EffectLaunderingAtCall';
+  }
+}

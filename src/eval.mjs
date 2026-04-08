@@ -16,8 +16,10 @@ import { applyRule10 } from './rule10.mjs';
 import {
   QlangError,
   QlangTypeError,
-  UnresolvedIdentifierError
+  UnresolvedIdentifierError,
+  EffectLaunderingAtCall
 } from './errors.mjs';
+import { classifyEffect } from './effect.mjs';
 import {
   declareSubjectError,
   declareShapeError
@@ -234,6 +236,22 @@ function evalOperandCall(node, state) {
   const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
 
   if (isFunctionValue(resolved)) {
+    // Effect-laundering safety net: if the resolved function is
+    // effectful but the lookup name we used is not @-prefixed, we
+    // refuse the call. This catches every laundering path the
+    // parse-time AST scan cannot see — installation via use,
+    // capture via as, or rebinding via session.bind — because
+    // every effectful invocation ultimately flows through an
+    // identifier lookup at this point. The check reads precomputed
+    // boolean fields (.effectful on the function value, classifyEffect
+    // on the lookup name) so the runtime hot path performs no
+    // substring inspection beyond the single classifyEffect call.
+    if (resolved.effectful && !classifyEffect(name)) {
+      throw new EffectLaunderingAtCall({
+        bindingName: name,
+        effectfulName: resolved.name
+      });
+    }
     // Build lambdas for each captured arg. Each lambda evaluates
     // the captured AST node against the input it is invoked with,
     // sharing the env of the original capture site. Lambdas run
@@ -275,7 +293,11 @@ function makeLambda(astNode, env) {
 // forceThunk(thunk, state) → resolved value
 //
 // Dynamic scope: evaluate the thunk's expression against the
-// current state, not the binding-site state.
+// current state, not the binding-site state. The effect-laundering
+// safety net lives in evalOperandCall, not here, because the
+// laundering only matters at the moment a function value is
+// invoked under a clean name — and identifier lookup is the
+// single chokepoint for every function invocation.
 function forceThunk(thunk, state) {
   const finalInnerState = fork(state, inner => evalNode(thunk.expr, inner));
   return finalInnerState.pipeValue;

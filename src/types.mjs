@@ -79,14 +79,21 @@ export function keyword(name) {
 // contents attached by the parser (one entry per doc-comment token,
 // in declaration order). The `location` field stores the source
 // position of the originating LetStep so tooling and reify can
-// answer "where was this binding declared".
+// answer "where was this binding declared". The `effectful` field
+// classifies the binding name against the @-effect-marker convention
+// (see src/effect.mjs); the runtime safety net in eval.mjs::forceThunk
+// reads this field to detect laundering of effectful function values
+// into clean-named bindings.
+import { classifyEffect } from './effect.mjs';
+
 export function makeThunk(expr, { name, docs = [], location = null } = {}) {
   return Object.freeze({
     type: 'thunk',
     name,
     expr,
     docs: Object.freeze(docs),
-    location
+    location,
+    effectful: classifyEffect(name)
   });
 }
 
@@ -102,7 +109,8 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
     name,
     value,
     docs: Object.freeze(docs),
-    location
+    location,
+    effectful: classifyEffect(name)
   });
 }
 

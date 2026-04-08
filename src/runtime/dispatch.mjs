@@ -36,7 +36,7 @@ import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import { ArityError } from '../errors.mjs';
 
-export function valueOp(name, n, impl) {
+export function valueOp(name, n, impl, meta) {
   return makeFn(name, n, (state, lambdas) => {
     const k = lambdas.length;
     const pv = state.pipeValue;
@@ -53,10 +53,10 @@ export function valueOp(name, n, impl) {
     throw new ArityError(
       `${name} expects ${n - 1} or ${n} captured args, got ${k}`
     );
-  });
+  }, meta);
 }
 
-export function higherOrderOp(name, n, impl) {
+export function higherOrderOp(name, n, impl, meta) {
   return makeFn(name, n, (state, lambdas) => {
     const k = lambdas.length;
     if (k === n - 1) {
@@ -66,20 +66,20 @@ export function higherOrderOp(name, n, impl) {
     throw new ArityError(
       `${name} expects ${n - 1} captured args (higher-order), got ${k}`
     );
-  });
+  }, meta);
 }
 
-// nullaryOp(name, impl) — arity 1, no captured args, subject = pipeValue.
-export function nullaryOp(name, impl) {
+// nullaryOp(name, impl, meta) — arity 1, no captured args, subject = pipeValue.
+export function nullaryOp(name, impl, meta) {
   return makeFn(name, 1, (state, lambdas) => {
     if (lambdas.length !== 0) {
       throw new ArityError(`${name} takes no arguments, got ${lambdas.length}`);
     }
     return withPipeValue(state, impl(state.pipeValue));
-  });
+  }, meta);
 }
 
-// overloadedOp(name, maxArity, impls) — operand that supports
+// overloadedOp(name, maxArity, impls, meta) — operand that supports
 // multiple discrete arities. `impls` is an object keyed by
 // captured-arg count: e.g. { 0: naturalImpl, 1: keyedImpl } for
 // `sort` (bare natural order vs sort by key). Each impl receives
@@ -87,7 +87,7 @@ export function nullaryOp(name, impl) {
 //
 // `maxArity` controls Rule 10's overflow check; pass the largest
 // supported (capturedCount + 1).
-export function overloadedOp(name, maxArity, impls) {
+export function overloadedOp(name, maxArity, impls, meta) {
   return makeFn(name, maxArity, (state, lambdas) => {
     const k = lambdas.length;
     const impl = impls[k];
@@ -98,18 +98,18 @@ export function overloadedOp(name, maxArity, impls) {
       );
     }
     return withPipeValue(state, impl(state.pipeValue, ...lambdas));
-  });
+  }, meta);
 }
 
-// stateOp(name, arity, impl) — raw state transformer. The impl
+// stateOp(name, arity, impl, meta) — raw state transformer. The impl
 // receives the full state pair and must return a new state. Use
 // this for reflective operands that need to read or write env
-// (env, use, and any future trace/snapshot/scope primitives).
+// (env, use, reify, manifest).
 //
 // `arity` is enforced exactly: the captured-arg count must match
 // `arity - 1` (one slot is the implicit subject). Pass 1 for
 // "consumes pipeValue, no captured args" (env, use).
-export function stateOp(name, arity, impl) {
+export function stateOp(name, arity, impl, meta) {
   return makeFn(name, arity, (state, lambdas) => {
     const expected = arity - 1;
     if (lambdas.length !== expected) {
@@ -118,5 +118,15 @@ export function stateOp(name, arity, impl) {
       );
     }
     return impl(state, lambdas);
-  });
+  }, meta);
+}
+
+// stateOpVariadic(name, maxArity, impl, meta) — like stateOp but
+// accepts a range of captured-arg counts. The impl is responsible
+// for dispatching by lambdas.length. Used by `reify`, which has a
+// 0-captured value-level form and a 1-captured named form.
+export function stateOpVariadic(name, maxArity, impl, meta) {
+  return makeFn(name, maxArity, (state, lambdas) => {
+    return impl(state, lambdas);
+  }, meta);
 }

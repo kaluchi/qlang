@@ -22,8 +22,8 @@ import {
   declareShapeError
 } from './runtime/operand-errors.mjs';
 import {
-  isVec, isQMap, isThunk, isFunctionValue,
-  describeType, keyword, makeThunk, NIL
+  isVec, isQMap, isThunk, isSnapshot, isFunctionValue,
+  describeType, keyword, makeThunk, makeSnapshot, NIL
 } from './types.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -58,20 +58,22 @@ export function evalAst(ast, state) {
 // Lookup-table dispatcher: one entry per AST node type. Adding a
 // new node type is one line here plus its handler function.
 const NODE_HANDLERS = {
-  Pipeline:    evalPipeline,
-  NumberLit:   evalNumberLit,
-  StringLit:   evalStringLit,
-  BooleanLit:  evalBooleanLit,
-  NilLit:      evalNilLit,
-  Keyword:     evalKeyword,
-  VecLit:      evalVecLit,
-  MapLit:      evalMapLit,
-  SetLit:      evalSetLit,
-  Projection:  evalProjection,
-  OperandCall: evalOperandCall,
-  AsStep:      evalAsStep,
-  LetStep:     evalLetStep,
-  ParenGroup:  evalParenGroup
+  Pipeline:          evalPipeline,
+  NumberLit:         evalNumberLit,
+  StringLit:         evalStringLit,
+  BooleanLit:        evalBooleanLit,
+  NilLit:            evalNilLit,
+  Keyword:           evalKeyword,
+  VecLit:            evalVecLit,
+  MapLit:            evalMapLit,
+  SetLit:            evalSetLit,
+  Projection:        evalProjection,
+  OperandCall:       evalOperandCall,
+  AsStep:            evalAsStep,
+  LetStep:           evalLetStep,
+  ParenGroup:        evalParenGroup,
+  LinePlainComment:  evalCommentStep,
+  BlockPlainComment: evalCommentStep
 };
 
 function evalNode(node, state) {
@@ -184,6 +186,11 @@ function evalProjection(node, state) {
       });
     }
     current = current.has(keyword(key)) ? current.get(keyword(key)) : NIL;
+    // Snapshots are transparent value wrappers — unwrap during
+    // projection so user code sees the raw captured value. The
+    // wrapper itself is reachable only via reify, which reads env
+    // directly without going through projection.
+    if (isSnapshot(current)) current = current.value;
   }
   return withPipeValue(state, current);
 }
@@ -203,6 +210,13 @@ function evalOperandCall(node, state) {
   // Force a thunk written by `let` if encountered as a value.
   if (isThunk(resolved)) {
     resolved = forceThunk(resolved, state);
+  }
+
+  // Unwrap a snapshot written by `as` so user code sees the raw
+  // captured value. The wrapper carries name + docs metadata for
+  // reify but is transparent to ordinary pipeline operations.
+  if (isSnapshot(resolved)) {
+    resolved = resolved.value;
   }
 
   const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
@@ -258,15 +272,29 @@ function forceThunk(thunk, state) {
 // ─── Step 4: as name ────────────────────────────────────────────
 
 function evalAsStep(node, state) {
-  const nextEnv = envSet(state.env, node.name, state.pipeValue);
+  const docs = node.docs || [];
+  const snapshot = makeSnapshot(state.pipeValue, { name: node.name, docs });
+  const nextEnv = envSet(state.env, node.name, snapshot);
   return makeState(state.pipeValue, nextEnv);
 }
 
 // ─── Step 5: let name = expr ────────────────────────────────────
 
 function evalLetStep(node, state) {
-  const nextEnv = envSet(state.env, node.name, makeThunk(node.body));
+  const docs = node.docs || [];
+  const thunk = makeThunk(node.body, { name: node.name, docs });
+  const nextEnv = envSet(state.env, node.name, thunk);
   return makeState(state.pipeValue, nextEnv);
+}
+
+// ─── Step 6: comment (plain forms only — doc forms attach
+// during parsing and never appear as standalone steps) ─────────
+
+function evalCommentStep(_node, state) {
+  // Identity: state passes through unchanged. The comment node is
+  // visible in the AST for reflection/source manipulation but has
+  // no runtime effect.
+  return state;
 }
 
 // ─── ParenGroup ─────────────────────────────────────────────────

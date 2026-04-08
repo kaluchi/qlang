@@ -40,18 +40,32 @@ export function applyRule10(fn, lambdas, state) {
   return fn.fn(state, lambdas);
 }
 
-// makeFn(name, arity, impl) → function value
+// makeFn(name, arity, impl, meta) → function value
 //
 // Wraps a state-transformer impl with the metadata Rule 10 needs.
 // The impl signature is `(state, lambdas) → state`. Helpers from
 // `runtime/dispatch.mjs` build value-core friendly wrappers on
 // top of this base.
-export function makeFn(name, arity, impl) {
+//
+// `meta` is an object carrying the operand's documentation and
+// contract — read by `reify` to build descriptors. Required for
+// every operand registered in `langRuntime`. Shape:
+//   {
+//     category:  string         // e.g. 'vec-reducer', 'arith'
+//     subject:   string         // type label of the subject (pos 1)
+//     modifiers: string[]       // type labels of captured arg slots
+//     returns:   string         // type label of the result
+//     docs:      string[]       // Vec of doc-block contents
+//     examples:  string[]       // example query strings
+//     throws:    string[]       // names of error sites this op raises
+//   }
+export function makeFn(name, arity, impl, meta) {
   return Object.freeze({
     type: 'function',
     name,
     arity,
-    fn: impl
+    fn: impl,
+    meta: Object.freeze(meta)
   });
 }
 

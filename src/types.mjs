@@ -1,7 +1,7 @@
 // Value type predicates and shape helpers.
 //
 // The language has four value types — Scalar, Vec, Map, Set — plus
-// function values and thunks. JavaScript representations:
+// function values, thunks, and snapshots. JavaScript representations:
 //
 //   Scalar     → number, string, boolean, null (for nil),
 //                or an interned keyword object
@@ -10,10 +10,20 @@
 //   Map        → JS Map (insertion-ordered, keys are interned
 //                keyword objects)
 //   Set        → JS Set
-//   Function   → frozen object { type: 'function', name, arity, fn }
-//                where `fn` is a state transformer
-//                (state, lambdas) → state
-//   Thunk      → frozen object { type: 'thunk', expr }  (for `let`)
+//   Function   → frozen object { type: 'function', name, arity,
+//                fn, meta }  where `fn` is a state transformer
+//                (state, lambdas) → state and `meta` carries the
+//                operand's documentation/contract for `reify`
+//   Thunk      → frozen object { type: 'thunk', name, expr, docs }
+//                for `let`-bindings; `docs` is a Vec<string> of
+//                doc-comment contents attached at parse time
+//   Snapshot   → frozen object { type: 'snapshot', name, value, docs }
+//                for `as`-bindings; `docs` is a Vec<string> of
+//                doc-comment contents attached at parse time. The
+//                snapshot wraps the captured value so reify can
+//                report :name and :docs by name. Identifier lookup
+//                automatically unwraps snapshots before returning
+//                them to the pipeline.
 
 export const NIL = null;
 
@@ -40,6 +50,10 @@ export function isThunk(v) {
   return v !== null && typeof v === 'object' && v.type === 'thunk';
 }
 
+export function isSnapshot(v) {
+  return v !== null && typeof v === 'object' && v.type === 'snapshot';
+}
+
 // ── truthiness ─────────────────────────────────────────────────
 // nil and false are falsy; everything else is truthy (including
 // 0, "", [], {}, #{}).
@@ -61,9 +75,20 @@ export function keyword(name) {
 
 // ── thunk factory ──────────────────────────────────────────────
 // Single canonical place that constructs `let`-thunk objects.
-// Used by eval.mjs::evalLetStep.
-export function makeThunk(expr) {
-  return Object.freeze({ type: 'thunk', expr });
+// Used by eval.mjs::evalLetStep. The `docs` Vec carries doc-comment
+// contents attached by the parser (one entry per doc-comment token,
+// in declaration order).
+export function makeThunk(expr, { name, docs = [] } = {}) {
+  return Object.freeze({ type: 'thunk', name, expr, docs: Object.freeze(docs) });
+}
+
+// ── snapshot factory ──────────────────────────────────────────
+// Wraps a value captured by `as name`, carrying the binding name
+// and any attached doc comments. Identifier lookup unwraps the
+// snapshot before returning it to the pipeline, so user code sees
+// the raw value; reify reads the wrapper directly.
+export function makeSnapshot(value, { name, docs = [] } = {}) {
+  return Object.freeze({ type: 'snapshot', name, value, docs: Object.freeze(docs) });
 }
 
 // ── describeType — short labels used in error messages ─────────
@@ -79,5 +104,6 @@ export function describeType(v) {
   if (isQSet(v)) return 'Set';
   if (isFunctionValue(v)) return 'function';
   if (isThunk(v)) return 'thunk';
+  if (isSnapshot(v)) return 'snapshot';
   return 'unknown';
 }

@@ -14,7 +14,8 @@
 // `SortElementsNotComparable`, and so on.
 
 import {
-  QlangTypeError
+  QlangTypeError,
+  ArityError
 } from '../errors.mjs';
 
 // ── Factory primitives ─────────────────────────────────────────
@@ -116,6 +117,22 @@ export function declareComparabilityError(className, operand) {
 // name for debugging.
 export function declareShapeError(className, buildMessage) {
   const Cls = class extends QlangTypeError {
+    constructor(context = {}) {
+      const message = buildMessage(context);
+      super(message, { site: className, ...context });
+      this.name = className;
+    }
+  };
+  return brand(Cls, className);
+}
+
+// declareArityError — thrown by a site whose failure is an
+// incorrect captured-arg count (too few, too many, or an unsupported
+// specific count). Extends ArityError so `.kind === 'arity-error'`
+// and `instanceof ArityError` both match, while the concrete
+// per-site class still identifies the throw location uniquely.
+export function declareArityError(className, buildMessage) {
+  const Cls = class extends ArityError {
     constructor(context = {}) {
       const message = buildMessage(context);
       super(message, { site: className, ...context });

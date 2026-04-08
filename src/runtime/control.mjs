@@ -23,11 +23,11 @@
 
 import { higherOrderOp, higherOrderOpVariadic } from './dispatch.mjs';
 import { isTruthy, isNil, NIL } from '../types.mjs';
-import { declareShapeError } from './operand-errors.mjs';
+import { declareArityError } from './operand-errors.mjs';
 
-const CoalesceNoAlternatives = declareShapeError('CoalesceNoAlternatives',
+const CoalesceNoAlternatives = declareArityError('CoalesceNoAlternatives',
   () => 'coalesce requires at least one alternative sub-pipeline');
-const FirstTruthyNoAlternatives = declareShapeError('FirstTruthyNoAlternatives',
+const FirstTruthyNoAlternatives = declareArityError('FirstTruthyNoAlternatives',
   () => 'firstTruthy requires at least one alternative sub-pipeline');
 
 // `if` — three captured sub-pipelines, lazy evaluation of the

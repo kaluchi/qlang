@@ -715,9 +715,10 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(evalQuery('{:a 1} | coalesce(/a, div(0))')).toBe(1);
   });
 
-  it('coalesce with zero captured args raises CoalesceNoAlternatives', () => {
+  it('coalesce with zero captured args raises CoalesceNoAlternatives as an ArityError', () => {
     const e = catchError('{} | coalesce');
-    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e).toBeInstanceOf(ArityError);
+    expect(e.kind).toBe('arity-error');
     expect(e.name).toBe('CoalesceNoAlternatives');
   });
 
@@ -786,9 +787,10 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(evalQuery('{:s ""} | firstTruthy(/missing, /s, "default")')).toBe('');
   });
 
-  it('firstTruthy with zero captured args raises FirstTruthyNoAlternatives', () => {
+  it('firstTruthy with zero captured args raises FirstTruthyNoAlternatives as an ArityError', () => {
     const e = catchError('{} | firstTruthy');
-    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e).toBeInstanceOf(ArityError);
+    expect(e.kind).toBe('arity-error');
     expect(e.name).toBe('FirstTruthyNoAlternatives');
   });
 

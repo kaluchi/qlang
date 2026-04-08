@@ -31,6 +31,8 @@ const SumSubjectNotVec            = declareSubjectError('SumSubjectNotVec',     
 const MinSubjectNotVec            = declareSubjectError('MinSubjectNotVec',            'min',      'Vec');
 const MaxSubjectNotVec            = declareSubjectError('MaxSubjectNotVec',            'max',      'Vec');
 const FilterSubjectNotVec         = declareSubjectError('FilterSubjectNotVec',         'filter',   'Vec');
+const EverySubjectNotVec          = declareSubjectError('EverySubjectNotVec',          'every',    'Vec');
+const AnySubjectNotVec            = declareSubjectError('AnySubjectNotVec',            'any',      'Vec');
 const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'Vec');
 const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'Vec');
 const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'Vec');
@@ -211,6 +213,45 @@ export const filter = higherOrderOp('filter', 2, (vec, predLambda) => {
   docs: ['Keeps elements where the predicate evaluates truthy. The predicate is a sub-pipeline applied to each element via fork.'],
   examples: ['[1 2 3 4 5] | filter(gt(2)) → [3 4 5]', '[{:age 25} {:age 15}] | filter(/age | gte(18)) → [{:age 25}]'],
   throws: ['FilterSubjectNotVec']
+});
+
+// every / any — boolean fold over Vec elements with a predicate
+// sub-pipeline. Symmetric counterparts to filter / coalesce /
+// firstTruthy: filter selects matching elements, coalesce/firstTruthy
+// pick the first matching alternative, every/any reduce the Vec to
+// a single boolean answer.
+//
+// Both short-circuit on the JS side via Array.prototype.every/some,
+// so an `any` over a million elements that hits a truthy at index 3
+// invokes the predicate exactly four times. Empty-Vec semantics
+// follow the standard reduce-identity convention: vacuously true
+// for every (no counter-example), vacuously false for any (no
+// witness).
+
+export const every = higherOrderOp('every', 2, (vec, predLambda) => {
+  if (!isVec(vec)) throw new EverySubjectNotVec(describeType(vec), vec);
+  return vec.every(item => isTruthy(predLambda(item)));
+}, {
+  category: 'vec-reducer',
+  subject: 'Vec',
+  modifiers: ['predicate-lambda'],
+  returns: 'boolean',
+  docs: ['Returns true iff every element of the Vec satisfies the predicate sub-pipeline. Short-circuits on the first falsy result. Vacuously true for the empty Vec (no counter-example exists).'],
+  examples: ['[2 4 6 8] | every(gt(0)) → true', '[1 2 3] | every(gt(2)) → false', '[] | every(gt(0)) → true', '[{:active true} {:active true}] | every(/active) → true'],
+  throws: ['EverySubjectNotVec']
+});
+
+export const any = higherOrderOp('any', 2, (vec, predLambda) => {
+  if (!isVec(vec)) throw new AnySubjectNotVec(describeType(vec), vec);
+  return vec.some(item => isTruthy(predLambda(item)));
+}, {
+  category: 'vec-reducer',
+  subject: 'Vec',
+  modifiers: ['predicate-lambda'],
+  returns: 'boolean',
+  docs: ['Returns true iff at least one element of the Vec satisfies the predicate sub-pipeline. Short-circuits on the first truthy result. Vacuously false for the empty Vec (no witness exists).'],
+  examples: ['[1 2 3] | any(gt(2)) → true', '[1 2 3] | any(gt(99)) → false', '[] | any(gt(0)) → false', '[{:active false} {:active true}] | any(/active) → true'],
+  throws: ['AnySubjectNotVec']
 });
 
 export const sort = overloadedOp('sort', 2, {

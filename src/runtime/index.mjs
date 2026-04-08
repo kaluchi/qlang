@@ -51,6 +51,8 @@ export function langRuntime() {
   bind(m, 'min',          vec.min);
   bind(m, 'max',          vec.max);
   bind(m, 'filter',       vec.filter);
+  bind(m, 'every',        vec.every);
+  bind(m, 'any',          vec.any);
   bind(m, 'sort',         vec.sort);
   bind(m, 'sortWith',     vec.sortWith);
   bind(m, 'asc',          vec.asc);

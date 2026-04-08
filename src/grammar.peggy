@@ -148,9 +148,21 @@ FollowerUnit
   / RawStep
 
 // Comment-led continuation: the leading `|` of the comment token is
-// the combinator from the previous step.
+// the combinator from the previous step. When DocAttachedSequence
+// returns a head-shape compound array (plain comments interleaved
+// with docs), the first element is bare and needs to be wrapped
+// with the absorbed combinator before being handed to the
+// Pipeline flatten step.
 AbsorbedCommentContinuation
-  = step:DocAttachedSequence { return { combinator: '|', step }; }
+  = step:DocAttachedSequence {
+    if (Array.isArray(step)) {
+      return [
+        { combinator: '|', step: step[0] },
+        ...step.slice(1)
+      ];
+    }
+    return { combinator: '|', step };
+  }
   / step:PlainCommentStep { return { combinator: '|', step }; }
 
 // Explicit combinator + next step. The step may itself carry doc
@@ -165,13 +177,59 @@ StepAfterCombinator
   = DocAttachedSequence
   / RawStep
 
-// One or more consecutive doc comments followed (eventually) by a
-// RawStep. Each doc comment produces ONE entry in the `docs` Vec.
+// One or more doc comments, optionally interleaved with plain
+// comments, followed by a binding step (`let` or `as`). Each doc
+// comment produces ONE entry in the `docs` Vec attached to the
+// binding; plain comments between the docs and the binding emit
+// as standalone identity PipeSteps immediately before the binding.
 // Adjacent line docs do NOT concatenate — each is its own entry.
-// Block docs preserve internal newlines as a single multi-line entry.
+// Block docs preserve internal newlines as a single multi-line
+// entry. Doc comments before a non-binding step are a parse error:
+// docs are retrievable by binding name through reify, so attaching
+// them to nameless values has no retrieval path.
+//
+// When no plain comments are interleaved, the rule returns a single
+// binding-step node with `.docs` populated. When interleaved plains
+// are present, the rule returns a compound array that Pipeline
+// flattens into multiple steps (plain identity steps first, then
+// the doc-attached binding).
 DocAttachedSequence
-  = docs:DocCommentList _ c:Combinator? _ step:RawStep
-  { return withDocs(step, docs); }
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ c:Combinator? _ step:BindingStep
+  {
+    const allItems = [firstDoc, ...rest.map(t => t[1])];
+    const docs = [];
+    const plainSteps = [];
+    for (const item of allItems) {
+      if (item.type === 'LineDocComment' || item.type === 'BlockDocComment') {
+        docs.push(item.content);
+      } else {
+        plainSteps.push(item);
+      }
+    }
+    const bound = withDocs(step, docs);
+    if (plainSteps.length === 0) return bound;
+    // Head-shape compound array: first element is the bare step,
+    // remaining elements carry explicit combinator wrappers. This
+    // matches the convention used by LeadingBlockPlainAbsorbing
+    // so Pipeline's head handler can consume either directly.
+    return [
+      plainSteps[0],
+      ...plainSteps.slice(1).map(p => ({ combinator: '|', step: p })),
+      { combinator: '|', step: bound }
+    ];
+  }
+
+// A single item that may appear in a doc-attached prefix: either a
+// doc comment (contributes to the docs Vec) or a plain comment
+// (emits as a standalone identity step before the binding). Doc
+// forms are tried first because `|~~` is a longer prefix than `|~`.
+DocOrPlainItem
+  = DocComment
+  / PlainCommentStep
+
+BindingStep
+  = LetStep
+  / AsStep
 
 DocCommentList
   = head:DocComment tail:(_ DocComment)*

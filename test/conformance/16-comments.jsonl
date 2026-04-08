@@ -21,3 +21,20 @@
 {"name": "reify-by-name-snapshot-kind", "query": "42 | as answer | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
 {"name": "doc-survives-shadowing-redeclare", "query": "|~~| Old doc.\nlet foo = 1\n|~~| New doc.\n|~~| With second remark.\nlet foo = 2\n| env | /foo | reify | /docs", "expect": [" New doc.", " With second remark."]}
 {"name": "comment-step-is-identity-on-pipevalue", "query": "[1 2 3]\n|~| this comment doesn't change pipeValue\n| count", "expect": 3}
+{"name": "doc-on-bare-literal-rejected", "query": "|~~| attempted doc\n42", "error": "parse-error"}
+{"name": "doc-on-bare-operand-rejected", "query": "|~~| attempted doc\ncount", "error": "parse-error"}
+{"name": "doc-on-projection-rejected", "query": "|~~| attempted doc\n/name", "error": "parse-error"}
+{"name": "doc-on-vec-literal-rejected", "query": "|~~| attempted doc\n[1 2 3]", "error": "parse-error"}
+{"name": "doc-on-map-literal-rejected", "query": "|~~| attempted doc\n{:a 1}", "error": "parse-error"}
+{"name": "doc-on-paren-group-rejected", "query": "|~~| attempted doc\n(count | gt(0))", "error": "parse-error"}
+{"name": "block-doc-on-bare-literal-rejected", "query": "|~~ attempted ~~|\n42", "error": "parse-error"}
+{"name": "doc-on-let-succeeds", "query": "|~~| doc\nlet foo = 42\n| foo", "expect": 42}
+{"name": "doc-on-as-succeeds", "query": "42\n|~~| captured\nas x\n| x", "expect": 42}
+{"name": "interleaved-plain-between-doc-and-binding", "query": "|~~| doc\n|~ rationale ~|\nlet foo = 42\n| reify(:foo) | /docs", "expect": [" doc"]}
+{"name": "interleaved-plain-between-two-docs", "query": "|~~| doc one\n|~ separator ~|\n|~~| doc two\nlet foo = 42\n| reify(:foo) | /docs", "expect": [" doc one", " doc two"]}
+{"name": "interleaved-plain-before-first-doc", "query": "|~ leading ~|\n|~~| doc\nlet foo = 42\n| reify(:foo) | /docs", "expect": [" doc"]}
+{"name": "multiple-interleaved-plains-among-docs", "query": "|~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\nlet foo = 42\n| reify(:foo) | /docs", "expect": [" a", " b", " c"]}
+{"name": "block-doc-then-plain-then-line-doc", "query": "|~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\nlet bar = 99\n| reify(:bar) | /docs", "expect": [" block doc ", " line doc"]}
+{"name": "consecutive-plain-block-comments-before-binding", "query": "|~ one ~|\n|~ two ~|\nlet foo = 42\n| foo", "expect": 42}
+
+

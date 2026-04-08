@@ -21,7 +21,11 @@
 // cascading where false is a meaningful explicit setting; use
 // firstTruthy for display defaults where empty is also a sentinel.
 
-import { higherOrderOp, higherOrderOpVariadic } from './dispatch.mjs';
+import {
+  higherOrderOp,
+  higherOrderOpVariadic,
+  UNBOUNDED
+} from './dispatch.mjs';
 import { isTruthy, isNil, NIL } from '../types.mjs';
 import { declareArityError } from './operand-errors.mjs';
 
@@ -155,6 +159,7 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
       'config | coalesce(/userOverride, /projectDefault, /globalDefault)',
       'lookup | coalesce(/cached, /computed)'
     ],
+    captured: [1, UNBOUNDED],
     throws: ['CoalesceNoAlternatives']
   });
 
@@ -197,5 +202,6 @@ export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
       'flag | firstTruthy(/userValue, /default, false)',
       'lookup | firstTruthy(/match, /partial)'
     ],
+    captured: [1, UNBOUNDED],
     throws: ['FirstTruthyNoAlternatives']
   });

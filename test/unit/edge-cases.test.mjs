@@ -575,9 +575,21 @@ describe('runtime/intro.mjs reify and manifest', () => {
     const result = evalQuery('env | /count | reify');
     expect(result.get(keyword('kind'))).toEqual(keyword('builtin'));
     expect(result.get(keyword('name'))).toBe('count');
-    expect(result.get(keyword('arity'))).toBe(1);
+    expect(result.get(keyword('captured'))).toEqual([0, 0]);
     expect(Array.isArray(result.get(keyword('docs')))).toBe(true);
     expect(result.get(keyword('docs')).length).toBeGreaterThan(0);
+  });
+
+  it('reify reports :captured [min, UNBOUNDED] for variadic operands', () => {
+    const result = evalQuery('env | /coalesce | reify | /captured');
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0]).toBe(1);
+    expect(result[1]).toEqual(keyword('unbounded'));
+  });
+
+  it('reify reports :captured [min, max] for overloaded operands', () => {
+    const result = evalQuery('env | /sort | reify | /captured');
+    expect(result).toEqual([0, 1]);
   });
 
   it('reify(:name) named form attaches the name explicitly', () => {

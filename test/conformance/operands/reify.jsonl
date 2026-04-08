@@ -17,9 +17,19 @@
 {"name": "value-level-on-empty-set", "query": "#{} | reify | /type", "expect": {"$keyword": "set"}}
 {"name": "builtin-via-projection-kind", "query": "env | /count | reify | /kind", "expect": {"$keyword": "builtin"}}
 {"name": "builtin-via-projection-name", "query": "env | /count | reify | /name", "expect": "count"}
-{"name": "builtin-arity-count", "query": "env | /count | reify | /arity", "expect": 1}
-{"name": "builtin-arity-add", "query": "env | /add | reify | /arity", "expect": 2}
-{"name": "builtin-arity-filter", "query": "env | /filter | reify | /arity", "expect": 2}
+{"name": "builtin-captured-count", "query": "env | /count | reify | /captured", "expect": [0, 0]}
+{"name": "builtin-captured-add-partial-or-full", "query": "env | /add | reify | /captured", "expect": [1, 2]}
+{"name": "builtin-captured-filter-fixed", "query": "env | /filter | reify | /captured", "expect": [1, 1]}
+{"name": "builtin-captured-sort-overloaded", "query": "env | /sort | reify | /captured", "expect": [0, 1]}
+{"name": "builtin-captured-reify-overloaded", "query": "env | /reify | reify | /captured", "expect": [0, 1]}
+{"name": "builtin-captured-coalesce-variadic-min", "query": "env | /coalesce | reify | /captured | first", "expect": 1}
+{"name": "builtin-captured-coalesce-variadic-max-is-unbounded", "query": "env | /coalesce | reify | /captured | last", "expect": {"$keyword": "unbounded"}}
+{"name": "builtin-captured-firstTruthy-variadic-min", "query": "env | /firstTruthy | reify | /captured | first", "expect": 1}
+{"name": "builtin-captured-firstTruthy-variadic-max-is-unbounded", "query": "env | /firstTruthy | reify | /captured | last", "expect": {"$keyword": "unbounded"}}
+{"name": "builtin-captured-env-zero", "query": "env | /env | reify | /captured", "expect": [0, 0]}
+{"name": "builtin-captured-if-fixed-three", "query": "env | /if | reify | /captured", "expect": [3, 3]}
+{"name": "builtin-captured-when-fixed-two", "query": "env | /when | reify | /captured", "expect": [2, 2]}
+{"name": "builtin-captured-manifest-zero", "query": "env | /manifest | reify | /captured", "expect": [0, 0]}
 {"name": "builtin-category-arith", "query": "env | /add | reify | /category", "expect": {"$keyword": "arith"}}
 {"name": "builtin-category-vec-reducer", "query": "env | /count | reify | /category", "expect": {"$keyword": "vec-reducer"}}
 {"name": "builtin-category-vec-transformer", "query": "env | /filter | reify | /category", "expect": {"$keyword": "vec-transformer"}}

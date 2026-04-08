@@ -9,7 +9,7 @@
 // by `let` or `as` like any other name — the "reflectiveness" is
 // a property of the value bound to the name, not of the grammar.
 
-import { stateOp, stateOpVariadic } from './dispatch.mjs';
+import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
 import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isThunk, isSnapshot, isKeyword,
@@ -96,11 +96,17 @@ function buildBuiltinDescriptor(fn, explicitName) {
   const result = new Map();
   result.set(keyword('kind'), keyword('builtin'));
   result.set(keyword('name'), explicitName ?? fn.name);
-  result.set(keyword('arity'), fn.arity);
   result.set(keyword('category'), meta.category ? keyword(meta.category) : null);
   result.set(keyword('subject'), meta.subject ?? null);
   result.set(keyword('modifiers'), metaToVec(meta.modifiers));
   result.set(keyword('returns'), meta.returns ?? null);
+  // :captured is a 2-element Vec [min, max] describing the
+  // acceptable captured-arg count range. The upper bound is the
+  // :unbounded keyword for variadic operands and a number for
+  // fixed/overloaded ones. Always present — every operand either
+  // has captured auto-injected by its dispatch helper or supplies
+  // it explicitly in meta.
+  result.set(keyword('captured'), metaToVec(meta.captured));
   result.set(keyword('docs'), metaToVec(meta.docs));
   result.set(keyword('examples'), metaToVec(meta.examples));
   result.set(keyword('throws'), metaToVec(meta.throws));
@@ -203,6 +209,7 @@ export const reify = stateOpVariadic('reify', 2, (state, lambdas) => {
   subject: 'any (value-level form) or env keyword (named form)',
   modifiers: ['keyword (optional, named form)'],
   returns: 'Map (descriptor)',
+  captured: [0, 1],
   docs: ['Builds a descriptor Map for a value. Value-level form (no captured args) describes the current pipeValue. Named form reify(:name) looks up :name in env and describes whatever binding lives there. Descriptor :kind is one of :builtin, :thunk, :snapshot, :value.'],
   examples: ['env | /count | reify', 'reify(:filter)', '42 | reify'],
   throws: ['ReifyKeyNotKeyword', 'UnresolvedIdentifierError']

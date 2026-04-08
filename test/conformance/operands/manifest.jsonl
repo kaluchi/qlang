@@ -12,7 +12,7 @@
 {"name": "filter-by-arith-category-exactly-four", "query": "env | manifest | filter(/category | eq(:arith)) | count", "expect": 4}
 {"name": "filter-by-vec-reducer-category", "query": "env | manifest | filter(/category | eq(:vec-reducer)) | count | gt(5)", "expect": true}
 {"name": "filter-by-vec-transformer-category", "query": "env | manifest | filter(/category | eq(:vec-transformer)) | count | gt(5)", "expect": true}
-{"name": "filter-by-string-category-includes-split-join", "query": "env | manifest | filter(/category | eq(:string)) | count", "expect": 4}
+{"name": "filter-by-string-category-includes-split-join-and-substring-predicates", "query": "env | manifest | filter(/category | eq(:string)) | count", "expect": 7}
 {"name": "filter-by-control-category-five-operands", "query": "env | manifest | filter(/category | eq(:control)) | count", "expect": 5}
 {"name": "filter-by-comparator-category-two-operands", "query": "env | manifest | filter(/category | eq(:comparator)) | count", "expect": 2}
 {"name": "filter-by-reflective-category-five-operands", "query": "env | manifest | filter(/category | eq(:reflective)) | count", "expect": 5}

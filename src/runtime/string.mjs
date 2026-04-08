@@ -19,6 +19,12 @@ const SplitSeparatorNotString = declareModifierError('SplitSeparatorNotString', 
 const JoinSubjectNotVec       = declareSubjectError('JoinSubjectNotVec',        'join',    'Vec of strings');
 const JoinElementNotString    = declareElementError('JoinElementNotString',     'join',    'string');
 const JoinSeparatorNotString  = declareModifierError('JoinSeparatorNotString',  'join',    2, 'string');
+const ContainsSubjectNotString    = declareModifierError('ContainsSubjectNotString',    'contains',    1, 'string');
+const ContainsNeedleNotString     = declareModifierError('ContainsNeedleNotString',     'contains',    2, 'string');
+const StartsWithSubjectNotString  = declareModifierError('StartsWithSubjectNotString',  'startsWith',  1, 'string');
+const StartsWithPrefixNotString   = declareModifierError('StartsWithPrefixNotString',   'startsWith',  2, 'string');
+const EndsWithSubjectNotString    = declareModifierError('EndsWithSubjectNotString',    'endsWith',    1, 'string');
+const EndsWithSuffixNotString     = declareModifierError('EndsWithSuffixNotString',     'endsWith',    2, 'string');
 
 export const prepend = valueOp('prepend', 2, (subject, prefix) => {
   if (typeof subject !== 'string') throw new PrependSubjectNotString(describeType(subject), subject);
@@ -79,4 +85,60 @@ export const join = valueOp('join', 2, (subject, separator) => {
   docs: ['Joins the elements of a Vec of strings with the separator between consecutive elements. Inverse of split.'],
   examples: ['["a" "b" "c"] | join(",") → "a,b,c"', '[] | join(",") → ""'],
   throws: ['JoinSubjectNotVec', 'JoinElementNotString', 'JoinSeparatorNotString']
+});
+
+// String-shape predicates — substring containment, prefix and suffix
+// match. They round out the predicate family next to eq for the
+// string axis: until now `eq` was the only predicate that could
+// inspect strings, so any filter chain over a string-typed Map field
+// could only match by full equality. The three new predicates use
+// JS's native String.prototype.includes / startsWith / endsWith and
+// honor the same subject-first / second-position-modifier convention
+// as prepend / append / split / join.
+//
+// Regular-expression / pattern-matching variants (`matches(re)`) and
+// the broader `match` family are intentionally deferred — they
+// belong to a separate pattern-matching design pass that touches
+// the surface syntax.
+
+export const contains = valueOp('contains', 2, (subject, needle) => {
+  if (typeof subject !== 'string') throw new ContainsSubjectNotString(describeType(subject), subject);
+  if (typeof needle  !== 'string') throw new ContainsNeedleNotString(describeType(needle), needle);
+  return subject.includes(needle);
+}, {
+  category: 'string',
+  subject: 'string',
+  modifiers: ['string'],
+  returns: 'boolean',
+  docs: ['Returns true if the subject string contains the needle string as a substring at any position. Empty needle is always contained. Case-sensitive.'],
+  examples: ['"hello world" | contains("world") → true', '"hello" | contains("xyz") → false', '"anything" | contains("") → true'],
+  throws: ['ContainsSubjectNotString', 'ContainsNeedleNotString']
+});
+
+export const startsWith = valueOp('startsWith', 2, (subject, prefix) => {
+  if (typeof subject !== 'string') throw new StartsWithSubjectNotString(describeType(subject), subject);
+  if (typeof prefix  !== 'string') throw new StartsWithPrefixNotString(describeType(prefix), prefix);
+  return subject.startsWith(prefix);
+}, {
+  category: 'string',
+  subject: 'string',
+  modifiers: ['string'],
+  returns: 'boolean',
+  docs: ['Returns true if the subject string begins with the prefix string. Empty prefix is always a prefix. Case-sensitive.'],
+  examples: ['"hello world" | startsWith("hello") → true', '"hello" | startsWith("world") → false', '"anything" | startsWith("") → true'],
+  throws: ['StartsWithSubjectNotString', 'StartsWithPrefixNotString']
+});
+
+export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
+  if (typeof subject !== 'string') throw new EndsWithSubjectNotString(describeType(subject), subject);
+  if (typeof suffix  !== 'string') throw new EndsWithSuffixNotString(describeType(suffix), suffix);
+  return subject.endsWith(suffix);
+}, {
+  category: 'string',
+  subject: 'string',
+  modifiers: ['string'],
+  returns: 'boolean',
+  docs: ['Returns true if the subject string ends with the suffix string. Empty suffix is always a suffix. Case-sensitive.'],
+  examples: ['"hello world" | endsWith("world") → true', '"hello" | endsWith("xyz") → false', '"anything" | endsWith("") → true'],
+  throws: ['EndsWithSubjectNotString', 'EndsWithSuffixNotString']
 });

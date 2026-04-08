@@ -82,10 +82,13 @@ export function langRuntime() {
   bind(m, 'div', arith.div);
 
   // String operands
-  bind(m, 'prepend', stringOps.prepend);
-  bind(m, 'append',  stringOps.append);
-  bind(m, 'split',   stringOps.split);
-  bind(m, 'join',    stringOps.join);
+  bind(m, 'prepend',    stringOps.prepend);
+  bind(m, 'append',     stringOps.append);
+  bind(m, 'split',      stringOps.split);
+  bind(m, 'join',       stringOps.join);
+  bind(m, 'contains',   stringOps.contains);
+  bind(m, 'startsWith', stringOps.startsWith);
+  bind(m, 'endsWith',   stringOps.endsWith);
 
   // Formatting
   bind(m, 'json',  format.json);

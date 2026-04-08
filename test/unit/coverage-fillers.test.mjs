@@ -8,6 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
+import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
@@ -21,6 +22,7 @@ import {
 } from '../../src/runtime/dispatch.mjs';
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
+import { walkAst } from '../../src/walk.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', () => {
@@ -197,13 +199,60 @@ describe('intro.sourceOfAst branches reachable via synthesized thunks', () => {
     })).toContain('#{');
   });
 
-  it('renders a MapLit', () => {
+  it('renders a MapLit through MapEntry node delegation', () => {
     expect(reifySynth({
       type: 'MapLit',
       entries: [
-        { key: { type: 'Keyword', name: 'a' }, value: { type: 'NumberLit', value: 1 } }
+        {
+          type: 'MapEntry',
+          key: { type: 'Keyword', name: 'a' },
+          value: { type: 'NumberLit', value: 1 }
+        }
       ]
     })).toContain(':a 1');
+  });
+
+  it('renders a MapLit with a quoted-keyword key in valid qlang form', () => {
+    expect(reifySynth({
+      type: 'MapLit',
+      entries: [
+        {
+          type: 'MapEntry',
+          key: { type: 'Keyword', name: 'foo bar' },
+          value: { type: 'NumberLit', value: 42 }
+        }
+      ]
+    })).toContain(':"foo bar" 42');
+  });
+
+  it('renders a Keyword with embedded space in quoted form', () => {
+    expect(reifySynth({ type: 'Keyword', name: 'with space' })).toBe(':"with space"');
+  });
+
+  it('renders a Keyword with leading digit in quoted form', () => {
+    expect(reifySynth({ type: 'Keyword', name: '123' })).toBe(':"123"');
+  });
+
+  it('renders an empty Keyword name in quoted form', () => {
+    expect(reifySynth({ type: 'Keyword', name: '' })).toBe(':""');
+  });
+
+  it('renders a reserved-word Keyword name in quoted form', () => {
+    expect(reifySynth({ type: 'Keyword', name: 'let' })).toBe(':"let"');
+  });
+
+  it('renders a Projection with quoted segments where needed', () => {
+    expect(reifySynth({
+      type: 'Projection',
+      keys: ['outer', 'inner key', '$ref']
+    })).toBe('/outer/"inner key"/"$ref"');
+  });
+
+  it('renders a Projection with all bare segments without quoting', () => {
+    expect(reifySynth({
+      type: 'Projection',
+      keys: ['a', 'b', 'c']
+    })).toBe('/a/b/c');
   });
 
   it('renders a LetStep', () => {
@@ -230,6 +279,90 @@ describe('intro.sourceOfAst branches reachable via synthesized thunks', () => {
   it('renders nil node as null source', () => {
     expect(reifySynth(null)).toBeNull();
   });
+});
+
+describe('sourceOfAst structural-inverse property over Primary subtree', () => {
+  // For every parseable qlang source string in the fixture set, the
+  // round-trip parse → strip(.text) → reify(:syn)/source → parse must
+  // yield a structurally-equivalent AST. This is the contract that
+  // makes sourceOfAst the inverse of parse: any future Primary node
+  // type added to the grammar must extend sourceOfAst until this
+  // property holds for it.
+  //
+  // We strip the parser-captured .text on every node so nodeSource
+  // falls through to sourceOfAst (the fallback path). Without the
+  // strip nodeSource would short-circuit on .text and skip the
+  // structural renderer entirely.
+
+  const META_FIELDS = new Set([
+    'location', 'text', 'id', 'parent',
+    'source', 'uri', 'parseId', 'parsedAt', 'schemaVersion'
+  ]);
+
+  function structurally(node) {
+    if (node === null || node === undefined) return node;
+    if (Array.isArray(node)) return node.map(structurally);
+    if (typeof node !== 'object') return node;
+    const out = {};
+    for (const [k, v] of Object.entries(node)) {
+      if (META_FIELDS.has(k)) continue;
+      out[k] = structurally(v);
+    }
+    return out;
+  }
+
+  function roundTripThroughSourceOfAst(source) {
+    const original = parse(source);
+    walkAst(original, (n) => { delete n.text; });
+    const session = createSession();
+    session.bind('syn', makeThunk(original, { name: 'syn' }));
+    const rendered = session.evalCell('reify(:syn) | /source').result;
+    return { rendered, reparsed: parse(rendered) };
+  }
+
+  const FIXTURES = [
+    '42',
+    '-7',
+    '3.14',
+    '"hello"',
+    '""',
+    'true',
+    'false',
+    'nil',
+    ':foo',
+    ':"foo bar"',
+    ':"123"',
+    ':"$ref"',
+    ':""',
+    '/name',
+    '/a/b/c',
+    '/"foo bar"',
+    '/"a.b"/"$ref"/"123"',
+    '/outer/"inner key"/age',
+    '[1 2 3]',
+    '[]',
+    '#{1 2 3}',
+    '#{}',
+    '{:a 1}',
+    '{}',
+    '{:"foo bar" 1 :"$ref" 2}',
+    '{:outer {:"inner key" 7}}',
+    'count',
+    '@callers',
+    '_private',
+    'add(2, 3)',
+    'mul(/price, /qty)',
+    'count()',
+    '(mul(2) | add(1))'
+  ];
+
+  for (const source of FIXTURES) {
+    it(`round-trips ${source}`, () => {
+      const { reparsed } = roundTripThroughSourceOfAst(source);
+      const original = parse(source);
+      expect(structurally(reparsed)).toEqual(structurally(original));
+    });
+  }
 });
 
 describe('setops bare-form non-Vec subject errors', () => {

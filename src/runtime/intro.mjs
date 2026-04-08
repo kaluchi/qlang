@@ -189,10 +189,51 @@ function describeBinding(value, explicitName) {
   return buildValueDescriptor(value, explicitName);
 }
 
-// Best-effort textual rendering of an AST sub-tree. Used for the
-// :source field of a thunk descriptor. Not a full pretty-printer —
-// covers the common Primary node types and falls back to a node
-// type marker for the rest.
+// Bare-ident pattern shadowing the grammar.peggy production
+// `Ident = [@_a-zA-Z] [a-zA-Z0-9_-]*` minus reserved words. A name
+// that satisfies isBareIdent can be rendered as `:name` and `/name`;
+// anything else needs the quoted form `:"…"` / `/"…"`. The grammar's
+// reserved-word set is replicated here so a synthesized Keyword node
+// whose .name happens to be `let`/`as`/`true`/`false`/`nil` is also
+// rendered with quotes.
+const RESERVED_IDENT_NAMES = new Set(['let', 'as', 'true', 'false', 'nil']);
+const BARE_IDENT_RE = /^[@_a-zA-Z][a-zA-Z0-9_-]*$/;
+
+function isBareIdent(name) {
+  return typeof name === 'string'
+      && BARE_IDENT_RE.test(name)
+      && !RESERVED_IDENT_NAMES.has(name);
+}
+
+// renderKeywordToken('foo') → ':foo'
+// renderKeywordToken('foo bar') → ':"foo bar"'
+// renderKeywordToken('') → ':""'
+function renderKeywordToken(name) {
+  return isBareIdent(name) ? ':' + name : ':' + JSON.stringify(name);
+}
+
+// renderProjectionSegmentToken('foo') → 'foo'
+// renderProjectionSegmentToken('foo bar') → '"foo bar"'
+function renderProjectionSegmentToken(name) {
+  return isBareIdent(name) ? name : JSON.stringify(name);
+}
+
+// Structural rendering of an AST sub-tree as parseable qlang source.
+// Used by `nodeSource` as the fallback path when an AST node has no
+// parser-captured `.text` field — that is, for synthesized AST built
+// programmatically (codegen) or AST sliced out of a serialized session
+// payload that lost its source. The rendering is the structural inverse
+// of parse over the Primary subtree: for every supported node type the
+// produced string parses back into a structurally-equivalent AST.
+//
+// Quoted-form rendering for Keyword, Projection segments, and Map
+// entry keys honors the grammar's bare-ident restriction: names that
+// match the bare-ident pattern emit as `:name`/`/name`, anything else
+// emits as `:"…"`/`/"…"` with full escape support via JSON.stringify.
+//
+// MapLit delegates to the MapEntry case so the quoted-key logic lives
+// in exactly one place. Pipeline rendering preserves combinators and
+// the first-step bare convention.
 function sourceOfAst(node) {
   if (node == null) return null;
   switch (node.type) {
@@ -200,8 +241,8 @@ function sourceOfAst(node) {
     case 'StringLit':  return JSON.stringify(node.value);
     case 'BooleanLit': return node.value ? 'true' : 'false';
     case 'NilLit':     return 'nil';
-    case 'Keyword':    return ':' + node.name;
-    case 'Projection': return '/' + node.keys.join('/');
+    case 'Keyword':    return renderKeywordToken(node.name);
+    case 'Projection': return '/' + node.keys.map(renderProjectionSegmentToken).join('/');
     case 'OperandCall': {
       if (node.args === null) return node.name;
       const argText = node.args.map(sourceOfAst).join(', ');
@@ -210,7 +251,8 @@ function sourceOfAst(node) {
     case 'ParenGroup': return `(${sourceOfAst(node.pipeline)})`;
     case 'VecLit':     return `[${node.elements.map(sourceOfAst).join(' ')}]`;
     case 'SetLit':     return `#{${node.elements.map(sourceOfAst).join(' ')}}`;
-    case 'MapLit':     return `{${node.entries.map(e => `:${e.key.name} ${sourceOfAst(e.value)}`).join(' ')}}`;
+    case 'MapEntry':   return `${sourceOfAst(node.key)} ${sourceOfAst(node.value)}`;
+    case 'MapLit':     return `{${node.entries.map(sourceOfAst).join(' ')}}`;
     case 'Pipeline': {
       const first = sourceOfAst(node.steps[0]);
       const rest = node.steps.slice(1).map(s => `${s.combinator} ${sourceOfAst(s.step)}`).join(' ');

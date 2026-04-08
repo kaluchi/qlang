@@ -934,13 +934,6 @@ describe('parser doc-comment attachment Vec semantics', () => {
     expect(result).toEqual([' Brand new.', ' With extra remark.']);
   });
 
-  it('explicit | after line doc also parses (no-op combinator)', () => {
-    const result = evalQuery(
-      '|~~| Doc.\n| let foo = 42 | reify(:foo) | /docs'
-    );
-    expect(result).toEqual([' Doc.']);
-  });
-
   it('comment step is identity on pipeValue', () => {
     expect(evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
     expect(evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);

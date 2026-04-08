@@ -194,7 +194,7 @@ StepAfterCombinator
 // flattens into multiple steps (plain identity steps first, then
 // the doc-attached binding).
 DocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ c:Combinator? _ step:BindingStep
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:BindingStep
   {
     const allItems = [firstDoc, ...rest.map(t => t[1])];
     const docs = [];

@@ -6,7 +6,6 @@
 {"name": "block-plain-mid-pipeline", "query": "5 | mul(2) |~ identity rationale ~| add(1)", "expect": 11}
 {"name": "line-doc-on-let", "query": "|~~| Удваивает число.\nlet double = mul(2)\n| 5 | double", "expect": 10}
 {"name": "line-doc-retrieve", "query": "|~~| Doc text.\nlet foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc text."]}
-{"name": "line-doc-with-explicit-pipe-still-valid", "query": "|~~| Doc text.\n| let foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc text."]}
 {"name": "block-doc-on-let", "query": "|~~ Multi-line doc\n    spanning many lines. ~~|\nlet foo = 42\n| 5 | foo", "expect": 42}
 {"name": "block-doc-retrieve", "query": "|~~ Block doc here. ~~|\nlet foo = 42\n| env | /foo | reify | /docs", "expect": [" Block doc here. "]}
 {"name": "two-line-docs-as-vec", "query": "|~~| Doc one.\n|~~| Doc two.\nlet foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc one.", " Doc two."]}

@@ -1,0 +1,12 @@
+{"name": "returns-vec-of-result-maps", "query": "reify(:count) | runExamples | first | /ok", "expect": true}
+{"name": "every-result-map-has-query-field", "query": "reify(:add) | runExamples | first | /query | eq(\"\") | not", "expect": true}
+{"name": "every-result-map-has-ok-field", "query": "reify(:add) | runExamples * /ok | distinct", "expect": [true]}
+{"name": "every-result-map-has-error-nil-on-success", "query": "reify(:add) | runExamples | first | /error", "expect": null}
+{"name": "every-result-map-has-actual-equal-to-expected", "query": "reify(:add) | runExamples | first | /actual | eq(13)", "expect": true}
+{"name": "every-result-map-has-expected-when-arrow-present", "query": "reify(:add) | runExamples | first | /expected | eq(\"13\")", "expect": true}
+{"name": "result-count-equals-examples-count", "query": "reify(:count) | runExamples | count | eq(reify(:count) | /examples | count)", "expect": true}
+{"name": "subject-not-descriptor-throws", "query": "42 | runExamples", "error": "type-error"}
+{"name": "subject-without-examples-field-throws", "query": "{:kind :builtin} | runExamples", "error": "type-error"}
+{"name": "every-arith-builtin-example-passes", "query": "reify(:sub) | runExamples * /ok | distinct", "expect": [true]}
+{"name": "every-vec-reducer-builtin-example-passes", "query": "reify(:sum) | runExamples * /ok | distinct", "expect": [true]}
+{"name": "manifest-runExamples-catalog-self-test-arith", "query": "manifest | filter(/category | eq(:arith)) * (runExamples * /ok) | flat | distinct", "expect": [true]}

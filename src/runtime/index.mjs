@@ -21,7 +21,8 @@ import {
   env as envOperand,
   use as useOperand,
   reify as reifyOperand,
-  manifest as manifestOperand
+  manifest as manifestOperand,
+  runExamples as runExamplesOperand
 } from './intro.mjs';
 import {
   ifOp,
@@ -101,10 +102,11 @@ export function langRuntime() {
   bind(m, 'not', predicates.not);
 
   // Reflective built-ins (state-level)
-  bind(m, 'env',      envOperand);
-  bind(m, 'use',      useOperand);
-  bind(m, 'reify',    reifyOperand);
-  bind(m, 'manifest', manifestOperand);
+  bind(m, 'env',         envOperand);
+  bind(m, 'use',         useOperand);
+  bind(m, 'reify',       reifyOperand);
+  bind(m, 'manifest',    manifestOperand);
+  bind(m, 'runExamples', runExamplesOperand);
 
   // Control-flow operands
   bind(m, 'if',          ifOp);

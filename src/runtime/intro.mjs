@@ -22,6 +22,13 @@ import {
   ArityError,
   QlangTypeError
 } from '../errors.mjs';
+import { deepEqual } from '../equality.mjs';
+// Live ESM binding into eval.mjs — runtime/index.mjs → intro.mjs →
+// eval.mjs → runtime/index.mjs forms a cycle; we never touch
+// evalQuery at module-init time, only from inside the runExamples
+// closure which is called long after every module has finished
+// loading, so the binding resolves correctly.
+import { evalQuery } from '../eval.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
 const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
@@ -294,6 +301,106 @@ export const reify = stateOpVariadic('reify', 2, (state, lambdas) => {
   docs: ['Builds a descriptor Map for a value. Value-level form (no captured args) describes the current pipeValue. Named form reify(:name) looks up :name in env and describes whatever binding lives there. Descriptor :kind is one of :builtin, :thunk, :snapshot, :value.'],
   examples: ['env | /count | reify', 'reify(:filter)', '42 | reify'],
   throws: ['ReifyKeyNotKeyword', 'UnresolvedIdentifierError']
+});
+
+const RunExamplesSubjectNotDescriptor = declareSubjectError(
+  'RunExamplesSubjectNotDescriptor', 'runExamples', 'descriptor Map'
+);
+const RunExamplesNoExamplesField = declareShapeError('RunExamplesNoExamplesField',
+  ({ subjectKind }) => `runExamples requires the subject descriptor to carry an :examples Vec, got descriptor of kind ${subjectKind}`);
+
+// runExamples — homoiconic catalog self-test. Takes a descriptor
+// Map (the output of `reify`) as the subject, parses every entry of
+// its :examples Vec as a qlang query, evaluates it, and returns a
+// Vec of result Maps. Each result Map carries:
+//
+//   :query    — the source string of the example, with the optional
+//               `→ expected` suffix stripped
+//   :expected — the source string after `→`, or nil if absent
+//   :actual   — the value the query evaluated to (or nil on error)
+//   :error    — the error message string, or nil on success
+//   :ok       — true iff the query evaluated AND, when an `→ expected`
+//               clause was present, the actual matched the expected
+//               via deepEqual
+//
+// The split character is the Unicode arrow `→` (U+2192) which the
+// catalog uses by convention as the example/result separator. An
+// example without `→` is a demonstration: `:ok` means it parsed and
+// evaluated without throwing, with no further check on the result.
+//
+// Use this to defend the operand catalog against doc drift: a
+// conformance case `manifest * runExamples >> /ok | distinct` should
+// always equal `[true]`.
+const ARROW = '→';
+
+function buildExampleResult(querySrc, expectedSrc) {
+  const result = new Map();
+  result.set(keyword('query'), querySrc);
+  result.set(keyword('expected'), expectedSrc);
+  let actual;
+  try {
+    actual = evalQuery(querySrc);
+  } catch (e) {
+    result.set(keyword('actual'), null);
+    result.set(keyword('error'), e.message);
+    result.set(keyword('ok'), false);
+    return result;
+  }
+  result.set(keyword('actual'), actual);
+  if (expectedSrc === null) {
+    result.set(keyword('error'), null);
+    result.set(keyword('ok'), true);
+    return result;
+  }
+  let expected;
+  try {
+    expected = evalQuery(expectedSrc);
+  } catch (e) {
+    result.set(keyword('error'), 'expected: ' + e.message);
+    result.set(keyword('ok'), false);
+    return result;
+  }
+  result.set(keyword('error'), null);
+  result.set(keyword('ok'), deepEqual(actual, expected));
+  return result;
+}
+
+export const runExamples = stateOp('runExamples', 1, (state, _lambdas) => {
+  const subject = state.pipeValue;
+  if (!isQMap(subject)) {
+    throw new RunExamplesSubjectNotDescriptor(describeType(subject), subject);
+  }
+  const examples = subject.get(keyword('examples'));
+  if (!isVec(examples)) {
+    const subjectKind = subject.get(keyword('kind'));
+    throw new RunExamplesNoExamplesField({
+      subjectKind: isKeyword(subjectKind) ? subjectKind.name : 'unknown'
+    });
+  }
+  const results = examples.map((example) => {
+    if (typeof example !== 'string') {
+      const result = new Map();
+      result.set(keyword('query'), null);
+      result.set(keyword('expected'), null);
+      result.set(keyword('actual'), null);
+      result.set(keyword('error'), 'example entry is not a string');
+      result.set(keyword('ok'), false);
+      return result;
+    }
+    const arrowAt = example.indexOf(ARROW);
+    const querySrc = arrowAt >= 0 ? example.substring(0, arrowAt).trim() : example.trim();
+    const expectedSrc = arrowAt >= 0 ? example.substring(arrowAt + ARROW.length).trim() : null;
+    return buildExampleResult(querySrc, expectedSrc);
+  });
+  return withPipeValue(state, results);
+}, {
+  category: 'reflective',
+  subject: 'descriptor Map (the output of reify)',
+  modifiers: [],
+  returns: 'Vec of result Maps {:query :expected :actual :error :ok}',
+  docs: ['Parses and evaluates every entry of the descriptor\'s :examples Vec, comparing each result against the optional `→ expected` suffix. Returns a Vec of {:query :expected :actual :error :ok} Maps. The composition `manifest * runExamples >> /ok | distinct` exercises every catalog example and reports whether the documented examples still match their actual evaluation results — homoiconic doc drift detection.'],
+  examples: ['reify(:count) | runExamples', 'manifest * runExamples >> /ok | distinct'],
+  throws: ['RunExamplesSubjectNotDescriptor', 'RunExamplesNoExamplesField']
 });
 
 // manifest — Vec of descriptors, one per binding in env, sorted by name.

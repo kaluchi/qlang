@@ -890,7 +890,7 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
 describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', () => {
     const result = evalQuery(
-      '|~~| First.\n|~~| Second.\n|~~| Third.\n| let foo = 42 | reify(:foo) | /docs'
+      '|~~| First.\n|~~| Second.\n|~~| Third.\nlet foo = 42 | reify(:foo) | /docs'
     );
     expect(result).toEqual([' First.', ' Second.', ' Third.']);
   });
@@ -907,7 +907,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('mixes line and block docs preserving order', () => {
     const result = evalQuery(
-      '|~~| line one\n|~~ block two ~~|\n|~~| line three\n| let foo = 42 | reify(:foo) | /docs'
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\nlet foo = 42 | reify(:foo) | /docs'
     );
     expect(result.length).toBe(3);
     expect(result[0]).toBe(' line one');
@@ -917,9 +917,16 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('shadowing redeclare overrides docs Vec', () => {
     const result = evalQuery(
-      '|~~| Old.\n| let foo = 1\n|~~| Brand new.\n|~~| With extra remark.\n| let foo = 2\n| reify(:foo) | /docs'
+      '|~~| Old.\nlet foo = 1\n|~~| Brand new.\n|~~| With extra remark.\nlet foo = 2\n| reify(:foo) | /docs'
     );
     expect(result).toEqual([' Brand new.', ' With extra remark.']);
+  });
+
+  it('explicit | after line doc also parses (no-op combinator)', () => {
+    const result = evalQuery(
+      '|~~| Doc.\n| let foo = 42 | reify(:foo) | /docs'
+    );
+    expect(result).toEqual([' Doc.']);
   });
 
   it('comment step is identity on pipeValue', () => {

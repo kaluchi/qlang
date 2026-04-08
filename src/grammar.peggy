@@ -57,11 +57,13 @@ Pipeline
 
 // The first unit of a pipeline has no preceding combinator
 // (virtually, its leading `|` in a comment-led form is absorbed
-// from the implicit query start). A leading BlockPlainComment may
-// also absorb its trailing combinator and eat a follower; in that
-// case PipelineHead returns an array [commentStep, followerUnit].
+// from the implicit query start). A leading comment (block or
+// line, plain or doc) may also absorb its trailing combinator and
+// eat a follower; in that case PipelineHead returns an array
+// [commentStep, ...followerUnits].
 PipelineHead
   = LeadingBlockPlainAbsorbing
+  / LeadingLinePlainAbsorbing
   / DocAttachedSequence
   / PlainCommentStep
   / RawStep
@@ -73,11 +75,19 @@ LeadingBlockPlainAbsorbing
     return [c, ...followerUnits];
   }
 
+LeadingLinePlainAbsorbing
+  = c:LinePlainComment _ follower:FollowerUnit
+  {
+    const followerUnits = Array.isArray(follower) ? follower : [{ combinator: '|', step: follower }];
+    return [c, ...followerUnits];
+  }
+
 // Continuations after the first step. Comment-led units are tried
 // first so their leading `|` is absorbed as the combinator into the
 // comment token rather than matched as a bare Combinator.
 ContinuationUnit
   = BlockPlainCommentAbsorbing
+  / LinePlainCommentAbsorbing
   / AbsorbedCommentContinuation
   / ExplicitContinuation
 
@@ -95,12 +105,37 @@ BlockPlainCommentAbsorbing
     ];
   }
 
-// What can follow a block plain comment whose trailing `|` is
-// absorbed: another absorbing block, a doc-attached step, another
-// plain comment, or a bare RawStep. May return an array (when the
-// follower is itself a chain of absorbing comments).
+// Line plain comment that absorbs BOTH leading and trailing
+// combinators. The leading `|` of `|~|` is the combinator from the
+// previous step; the trailing combinator is virtually absorbed —
+// after the content up to newline, the next step follows without
+// any explicit `|`. Returns an array of units which Pipeline
+// flattens. Structurally mirrors BlockPlainCommentAbsorbing so the
+// line and block forms are interchangeable for combinator purposes.
+LinePlainCommentAbsorbing
+  = c:LinePlainComment _ follower:FollowerUnit
+  {
+    const followerUnits = Array.isArray(follower) ? follower : [{ combinator: '|', step: follower }];
+    return [
+      { combinator: '|', step: c },
+      ...followerUnits
+    ];
+  }
+
+// What can follow a comment whose trailing combinator is absorbed:
+// another absorbing comment (block or line), a doc-attached step,
+// another plain comment, or a bare RawStep. May return an array
+// when the follower is itself a chain of absorbing comments.
 FollowerUnit
   = c:BlockPlainComment _ inner:FollowerUnit
+  {
+    const innerUnits = Array.isArray(inner) ? inner : [{ combinator: '|', step: inner }];
+    return [
+      { combinator: '|', step: c },
+      ...innerUnits
+    ];
+  }
+  / c:LinePlainComment _ inner:FollowerUnit
   {
     const innerUnits = Array.isArray(inner) ? inner : [{ combinator: '|', step: inner }];
     return [

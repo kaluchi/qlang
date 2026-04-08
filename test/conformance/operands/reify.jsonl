@@ -43,11 +43,11 @@
 {"name": "named-form-on-thunk-name", "query": "let double = mul(2) | reify(:double) | /name", "expect": "double"}
 {"name": "named-form-on-thunk-source", "query": "let double = mul(2) | reify(:double) | /source", "expect": "mul(2)"}
 {"name": "named-form-on-thunk-empty-docs", "query": "let double = mul(2) | reify(:double) | /docs", "expect": []}
-{"name": "named-form-on-thunk-with-docs", "query": "|~~| Удваивает.\n| let double = mul(2)\n| reify(:double) | /docs", "expect": [" Удваивает."]}
+{"name": "named-form-on-thunk-with-docs", "query": "|~~| Удваивает.\nlet double = mul(2)\n| reify(:double) | /docs", "expect": [" Удваивает."]}
 {"name": "named-form-on-snapshot", "query": "42 | as answer | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
 {"name": "named-form-on-snapshot-value", "query": "42 | as answer | reify(:answer) | /value", "expect": 42}
 {"name": "named-form-on-snapshot-name", "query": "42 | as answer | reify(:answer) | /name", "expect": "answer"}
-{"name": "named-form-on-snapshot-with-doc", "query": "42\n|~~| Captured.\n| as answer\n| reify(:answer) | /docs", "expect": [" Captured."]}
+{"name": "named-form-on-snapshot-with-doc", "query": "42\n|~~| Captured.\nas answer\n| reify(:answer) | /docs", "expect": [" Captured."]}
 {"name": "named-form-on-value-via-use", "query": "{:pi 3.14} | use | reify(:pi) | /kind", "expect": {"$keyword": "value"}}
 {"name": "named-form-on-value-via-use-value", "query": "{:pi 3.14} | use | reify(:pi) | /value", "expect": 3.14}
 {"name": "named-form-on-value-via-use-name", "query": "{:pi 3.14} | use | reify(:pi) | /name", "expect": "pi"}
@@ -62,4 +62,4 @@
 {"name": "snapshot-doc-via-projection-unwraps", "query": "[1 2 3] | as nums | env | /nums", "expect": [1, 2, 3]}
 {"name": "snapshot-doc-via-named-form-keeps-wrapper", "query": "[1 2 3] | as nums | reify(:nums) | /value", "expect": [1, 2, 3]}
 {"name": "filter-builtins-via-reify", "query": "env | /count | reify | /kind | eq(:builtin)", "expect": true}
-{"name": "all-three-doc-blocks-preserved", "query": "|~~| One.\n|~~| Two.\n|~~| Three.\n| let foo = 42\n| reify(:foo) | /docs | count", "expect": 3}
+{"name": "all-three-doc-blocks-preserved", "query": "|~~| One.\n|~~| Two.\n|~~| Three.\nlet foo = 42\n| reify(:foo) | /docs | count", "expect": 3}

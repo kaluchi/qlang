@@ -4,19 +4,20 @@
 {"name": "block-plain-eats-trailing-combinator", "query": "5 |~ rationale ~| add(3)", "expect": 8}
 {"name": "line-plain-mid-pipeline", "query": "5 | mul(2)\n|~| this comment is identity\n| add(1)", "expect": 11}
 {"name": "block-plain-mid-pipeline", "query": "5 | mul(2) |~ identity rationale ~| add(1)", "expect": 11}
-{"name": "line-doc-on-let", "query": "|~~| Удваивает число.\n| let double = mul(2)\n| 5 | double", "expect": 10}
-{"name": "line-doc-retrieve", "query": "|~~| Doc text.\n| let foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc text."]}
+{"name": "line-doc-on-let", "query": "|~~| Удваивает число.\nlet double = mul(2)\n| 5 | double", "expect": 10}
+{"name": "line-doc-retrieve", "query": "|~~| Doc text.\nlet foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc text."]}
+{"name": "line-doc-with-explicit-pipe-still-valid", "query": "|~~| Doc text.\n| let foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc text."]}
 {"name": "block-doc-on-let", "query": "|~~ Multi-line doc\n    spanning many lines. ~~|\nlet foo = 42\n| 5 | foo", "expect": 42}
 {"name": "block-doc-retrieve", "query": "|~~ Block doc here. ~~|\nlet foo = 42\n| env | /foo | reify | /docs", "expect": [" Block doc here. "]}
-{"name": "two-line-docs-as-vec", "query": "|~~| Doc one.\n|~~| Doc two.\n| let foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc one.", " Doc two."]}
-{"name": "three-line-docs-as-vec", "query": "|~~| First.\n|~~| Second.\n|~~| Third.\n| let foo = 42\n| env | /foo | reify | /docs | count", "expect": 3}
-{"name": "mixed-line-and-block-docs", "query": "|~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n| let foo = 42\n| env | /foo | reify | /docs | count", "expect": 3}
+{"name": "two-line-docs-as-vec", "query": "|~~| Doc one.\n|~~| Doc two.\nlet foo = 42\n| env | /foo | reify | /docs", "expect": [" Doc one.", " Doc two."]}
+{"name": "three-line-docs-as-vec", "query": "|~~| First.\n|~~| Second.\n|~~| Third.\nlet foo = 42\n| env | /foo | reify | /docs | count", "expect": 3}
+{"name": "mixed-line-and-block-docs", "query": "|~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\nlet foo = 42\n| env | /foo | reify | /docs | count", "expect": 3}
 {"name": "doc-block-preserves-newlines", "query": "|~~ line one\nline two ~~|\nlet foo = 42\n| env | /foo | reify | /docs | first", "expect": " line one\nline two "}
-{"name": "doc-on-as-binding", "query": "42\n|~~| Captured value.\n| as snapshot\n| reify(:snapshot) | /docs", "expect": [" Captured value."]}
+{"name": "doc-on-as-binding", "query": "42\n|~~| Captured value.\nas snapshot\n| reify(:snapshot) | /docs", "expect": [" Captured value."]}
 {"name": "snapshot-unwrap-on-projection", "query": "42 | as answer | env | /answer", "expect": 42}
 {"name": "snapshot-unwrap-on-identifier", "query": "42 | as answer | answer", "expect": 42}
 {"name": "reify-by-name-on-snapshot", "query": "42 | as answer | reify(:answer) | /value", "expect": 42}
 {"name": "reify-by-name-snapshot-name", "query": "42 | as answer | reify(:answer) | /name", "expect": "answer"}
 {"name": "reify-by-name-snapshot-kind", "query": "42 | as answer | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
-{"name": "doc-survives-shadowing-redeclare", "query": "|~~| Old doc.\n| let foo = 1\n|~~| New doc.\n|~~| With second remark.\n| let foo = 2\n| env | /foo | reify | /docs", "expect": [" New doc.", " With second remark."]}
+{"name": "doc-survives-shadowing-redeclare", "query": "|~~| Old doc.\nlet foo = 1\n|~~| New doc.\n|~~| With second remark.\nlet foo = 2\n| env | /foo | reify | /docs", "expect": [" New doc.", " With second remark."]}
 {"name": "comment-step-is-identity-on-pipevalue", "query": "[1 2 3]\n|~| this comment doesn't change pipeValue\n| count", "expect": 3}

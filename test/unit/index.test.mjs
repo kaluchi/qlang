@@ -3,12 +3,34 @@
 import { describe, it, expect } from 'vitest';
 import {
   parse,
+  ParseError,
   evalQuery,
   evalAst,
   langRuntime,
   createSession,
   serializeSession,
-  deserializeSession
+  deserializeSession,
+  walkAst,
+  astChildrenOf,
+  findAstNodeAtOffset,
+  findIdentifierOccurrences,
+  bindingNamesVisibleAt,
+  astNodeSpan,
+  astNodeContainsOffset,
+  triviaBetweenAstNodes,
+  toTaggedJSON,
+  fromTaggedJSON,
+  QlangError,
+  QlangTypeError,
+  ArityError,
+  UnresolvedIdentifierError,
+  DivisionByZeroError,
+  EffectLaunderingError,
+  EffectLaunderingAtLetParse,
+  EffectLaunderingAtCall,
+  QlangInvariantError,
+  classifyEffect,
+  EFFECT_MARKER_PREFIX
 } from '../../src/index.mjs';
 
 describe('public API', () => {
@@ -39,5 +61,39 @@ describe('public API', () => {
     expect(typeof createSession).toBe('function');
     expect(typeof serializeSession).toBe('function');
     expect(typeof deserializeSession).toBe('function');
+  });
+
+  it('exports the AST traversal primitives from walk.mjs', () => {
+    expect(typeof walkAst).toBe('function');
+    expect(typeof astChildrenOf).toBe('function');
+    expect(typeof findAstNodeAtOffset).toBe('function');
+    expect(typeof findIdentifierOccurrences).toBe('function');
+    expect(typeof bindingNamesVisibleAt).toBe('function');
+    expect(typeof astNodeSpan).toBe('function');
+    expect(typeof astNodeContainsOffset).toBe('function');
+    expect(typeof triviaBetweenAstNodes).toBe('function');
+  });
+
+  it('exports the tagged-JSON value codec', () => {
+    expect(typeof toTaggedJSON).toBe('function');
+    expect(typeof fromTaggedJSON).toBe('function');
+  });
+
+  it('exports the error hierarchy for instanceof checks', () => {
+    expect(typeof QlangError).toBe('function');
+    expect(typeof QlangTypeError).toBe('function');
+    expect(typeof ArityError).toBe('function');
+    expect(typeof UnresolvedIdentifierError).toBe('function');
+    expect(typeof DivisionByZeroError).toBe('function');
+    expect(typeof ParseError).toBe('function');
+    expect(typeof EffectLaunderingError).toBe('function');
+    expect(typeof EffectLaunderingAtLetParse).toBe('function');
+    expect(typeof EffectLaunderingAtCall).toBe('function');
+    expect(typeof QlangInvariantError).toBe('function');
+  });
+
+  it('exports the effect-marker classification surface', () => {
+    expect(typeof classifyEffect).toBe('function');
+    expect(EFFECT_MARKER_PREFIX).toBe('@');
   });
 });

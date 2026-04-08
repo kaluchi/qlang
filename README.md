@@ -14,12 +14,6 @@ the jdtbridge codebase. It implements the language defined in:
 - [`docs/jdt-query-lang-runtime.md`](../docs/jdt-query-lang-runtime.md)
   — built-in operand catalog (the initial `langRuntime` Map).
 
-## Status
-
-Alpha. Standalone reference evaluator with a conformance test
-suite. Host integration with the JDT bridge lives outside this
-module.
-
 ## Architecture
 
 ```

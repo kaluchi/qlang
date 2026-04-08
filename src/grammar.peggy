@@ -366,9 +366,20 @@ ArgList
   = head:Pipeline tail:(_ ","? _ Pipeline)*
     { return [head, ...tail.map(t => t[3])]; }
 
+// Projection accepts both bare identifier segments and quoted-string
+// segments. The quoted form lifts the [@_a-zA-Z][a-zA-Z0-9_-]* identifier
+// restriction so any JSON object key — including digit-leading,
+// space-containing, sigil-containing, or empty strings — can be projected.
+// Each `KeySegment` produces a plain string slot in `node.keys`, so
+// downstream consumers (eval.mjs::evalProjection) do not care which
+// surface form was used.
 Projection
-  = "/" first:Ident rest:("/" Ident)*
+  = "/" first:KeySegment rest:("/" KeySegment)*
     { return node('Projection', { keys: [first, ...rest.map(r => r[1])] }, location(), text()); }
+
+KeySegment
+  = QuotedKeywordName
+  / Ident
 
 Scalar
   = StringLit
@@ -404,8 +415,23 @@ BooleanLit
 NilLit
   = "nil" !IdentTail { return node('NilLit', {}, location(), text()); }
 
+// Keyword has two surface forms:
+//   :name        — bare identifier, restricted to [@_a-zA-Z][a-zA-Z0-9_-]*
+//   :"any text"  — quoted form, accepts any string including the empty
+//                  string, digit-leading names, sigils, spaces, and the
+//                  full DoubleStringChar escape set (\n, \t, \r, \", \\)
+//
+// Both forms produce a Keyword node with the same `.name` shape, so
+// downstream `keyword(name)` interns them through the same code path:
+// `:foo` and `:"foo"` are === identical at the runtime value level.
+// The quoted form is what makes "every JSON object key has a qlang
+// literal" hold, completing the lossless JSON interop guarantee.
 Keyword
-  = ":" name:Ident { return node('Keyword', { name }, location(), text()); }
+  = ":" name:QuotedKeywordName { return node('Keyword', { name }, location(), text()); }
+  / ":" name:Ident             { return node('Keyword', { name }, location(), text()); }
+
+QuotedKeywordName
+  = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
 
 Ident
   = !ReservedWord first:IdentStart rest:IdentTail*

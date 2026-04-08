@@ -13,3 +13,12 @@
 {"name": "nested-vec", "query": "[[1 2] [3 4]]", "expect": [[1, 2], [3, 4]]}
 {"name": "empty-set", "query": "#{}", "expect": {"$set": []}}
 {"name": "empty-map", "query": "{}", "expect": {"$map": []}}
+{"name": "quoted-keyword-with-space", "query": ":\"foo bar\"", "expect": {"$keyword": "foo bar"}}
+{"name": "quoted-keyword-empty-string", "query": ":\"\"", "expect": {"$keyword": ""}}
+{"name": "quoted-keyword-leading-digit", "query": ":\"123\"", "expect": {"$keyword": "123"}}
+{"name": "quoted-keyword-sigil-prefix", "query": ":\"$ref\"", "expect": {"$keyword": "$ref"}}
+{"name": "quoted-keyword-equals-bare-form", "query": ":\"name\" | eq(:name)", "expect": true}
+{"name": "quoted-keyword-with-newline-escape", "query": ":\"line1\\nline2\" | eq(:\"line1\\nline2\")", "expect": true}
+{"name": "map-with-quoted-key-projection", "query": "{:\"weird key\" 42} | /\"weird key\"", "expect": 42}
+{"name": "map-with-quoted-empty-key", "query": "{:\"\" \"value-of-empty\"} | /\"\"", "expect": "value-of-empty"}
+{"name": "map-with-mixed-bare-and-quoted-keys", "query": "{:foo 1 :\"bar baz\" 2} | /\"bar baz\"", "expect": 2}

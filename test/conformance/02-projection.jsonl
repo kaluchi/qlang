@@ -3,3 +3,8 @@
 {"name": "nested-keys", "query": "{:point {:x 5 :y 7}} | /point/x", "expect": 5}
 {"name": "deeply-nested", "query": "{:a {:b {:c {:d 42}}}} | /a/b/c/d", "expect": 42}
 {"name": "projection-after-filter", "query": "[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter(/age | gte(18)) * /name", "expect": ["Alice"]}
+{"name": "quoted-projection-single-key", "query": "{:\"foo bar\" 42} | /\"foo bar\"", "expect": 42}
+{"name": "quoted-projection-leading-digit", "query": "{:\"123\" \"x\"} | /\"123\"", "expect": "x"}
+{"name": "nested-quoted-projection", "query": "{:\"a.b\" {:\"$ref\" 99}} | /\"a.b\"/\"$ref\"", "expect": 99}
+{"name": "mixed-quoted-and-bare-projection", "query": "{:outer {:\"inner key\" 7}} | /outer/\"inner key\"", "expect": 7}
+{"name": "quoted-projection-empty-key", "query": "{:\"\" 5} | /\"\"", "expect": 5}

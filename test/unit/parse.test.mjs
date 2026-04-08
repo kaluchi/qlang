@@ -348,6 +348,66 @@ describe('parse — source-mapping metadata on AST root', () => {
   });
 });
 
+describe('parse — quoted keyword and projection segments', () => {
+  it('parses :"name" as a Keyword whose name equals "name"', () => {
+    const ast = parse(':"name"');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('name');
+  });
+
+  it('parses :"foo bar" with embedded space', () => {
+    const ast = parse(':"foo bar"');
+    expect(ast.name).toBe('foo bar');
+  });
+
+  it('parses :"" as the empty-string keyword', () => {
+    const ast = parse(':""');
+    expect(ast.name).toBe('');
+  });
+
+  it('parses :"123" with leading digit', () => {
+    const ast = parse(':"123"');
+    expect(ast.name).toBe('123');
+  });
+
+  it('parses :"$ref" with sigil prefix', () => {
+    const ast = parse(':"$ref"');
+    expect(ast.name).toBe('$ref');
+  });
+
+  it('parses :"with\\nnewline" honoring escape sequences', () => {
+    const ast = parse(':"with\\nnewline"');
+    expect(ast.name).toBe('with\nnewline');
+  });
+
+  it('produces the same AST .name for :name and :"name"', () => {
+    expect(parse(':name').name).toBe(parse(':"name"').name);
+  });
+
+  it('parses /"foo bar" as a single-key Projection', () => {
+    const ast = parse('/"foo bar"');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['foo bar']);
+  });
+
+  it('parses /"a.b"/"$ref"/"123" as a multi-segment Projection', () => {
+    const ast = parse('/"a.b"/"$ref"/"123"');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['a.b', '$ref', '123']);
+  });
+
+  it('parses a mixed projection /name/"weird key"/age', () => {
+    const ast = parse('/name/"weird key"/age');
+    expect(ast.keys).toEqual(['name', 'weird key', 'age']);
+  });
+
+  it('parses a Map literal with quoted keys', () => {
+    const ast = parse('{:"key one" 1 :"123" 2}');
+    expect(ast.type).toBe('MapLit');
+    expect(ast.entries.map(e => e.key.name)).toEqual(['key one', '123']);
+  });
+});
+
 describe('parse — per-node location and text', () => {
   it('every produced node carries .location with start/end offsets', () => {
     const ast = parse('add(2, 3)');

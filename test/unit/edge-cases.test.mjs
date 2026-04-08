@@ -274,6 +274,41 @@ describe('eval.mjs unknown node type', () => {
   });
 });
 
+describe('quoted keywords — eval-level identity and Map interop', () => {
+  it(':"name" interns to the same keyword as :name', () => {
+    expect(evalQuery(':"name" | eq(:name)')).toBe(true);
+  });
+
+  it('Map literal with a quoted-key entry is queryable via /"key"', () => {
+    expect(evalQuery('{:"weird key" 42} | /"weird key"')).toBe(42);
+  });
+
+  it('Map literal with a quoted key is queryable via has(:"weird key")', () => {
+    expect(evalQuery('{:"weird key" 1} | has(:"weird key")')).toBe(true);
+  });
+
+  it('the empty-string keyword survives a Map round-trip', () => {
+    expect(evalQuery('{:"" "empty key value"} | /""')).toBe('empty key value');
+  });
+
+  it('digit-leading keys are reachable through quoted projection', () => {
+    expect(evalQuery('{:"123" "digit"} | /"123"')).toBe('digit');
+  });
+
+  it('keys returns interned keywords regardless of declaration form', () => {
+    // The set returned by keys contains keywords; verify the bare and
+    // quoted forms produce equivalent keyword identity downstream.
+    expect(evalQuery('{:foo 1} | keys | has(:"foo")')).toBe(true);
+    expect(evalQuery('{:"foo" 1} | keys | has(:foo)')).toBe(true);
+  });
+
+  it('json operand emits arbitrary JSON object keys via quoted Map keys', () => {
+    const out = evalQuery('{:"foo bar" 1 :"$ref" "x"} | json');
+    expect(out).toContain('"foo bar"');
+    expect(out).toContain('"$ref"');
+  });
+});
+
 describe('runtime/format.mjs structural', () => {
   it('table renders headers and rows', () => {
     const out = evalQuery('[{:name "Alice" :age 30} {:name "Bob" :age 25}] | table');

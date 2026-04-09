@@ -1,26 +1,26 @@
-{"name": "cond-true-passthrough", "query": "5 | unless(true, mul(2))", "expect": 5}
-{"name": "cond-false-runs-then", "query": "5 | unless(false, mul(2))", "expect": 10}
-{"name": "cond-truthy-passthrough", "query": "{:active true :n 100} | unless(/active, /n | mul(2))", "expect": {"$map": [[{"$keyword": "active"}, true], [{"$keyword": "n"}, 100]]}}
-{"name": "cond-falsy-runs-then", "query": "{:active false :n 100} | unless(/active, /n | mul(2))", "expect": 200}
-{"name": "cond-nil-runs-then", "query": "{:n 5} | unless(/missing, /n | mul(2))", "expect": 10}
-{"name": "cond-zero-is-truthy-passthrough", "query": "0 | unless(eq(0), 999)", "expect": 0}
-{"name": "cond-empty-string-is-truthy-passthrough", "query": "\"\" | unless(eq(\"\"), \"replaced\")", "expect": ""}
-{"name": "cond-empty-vec-is-truthy-passthrough", "query": "[] | unless(empty, sort)", "expect": []}
-{"name": "then-uses-pipevalue", "query": "10 | unless(lt(5), mul(2))", "expect": 20}
-{"name": "then-projects-from-pipevalue", "query": "{:n 7} | unless(/n | gt(100), /n | add(1))", "expect": 8}
-{"name": "lazy-then-not-evaluated-when-cond-truthy", "query": "5 | unless(true, div(0))", "expect": 5}
-{"name": "lazy-then-evaluated-when-cond-falsy", "query": "5 | unless(false, mul(2))", "expect": 10}
-{"name": "guard-clause-non-empty-runs-sort", "query": "[3 1 2] | unless(empty, sort)", "expect": [1, 2, 3]}
-{"name": "guard-clause-empty-skips", "query": "[] | unless(empty, sort)", "expect": []}
-{"name": "compose-into-distribute-via-paren", "query": "[1 2 3] * (as(:x) | x | unless(eq(2), mul(10)))", "expect": [10, 2, 30]}
-{"name": "validate-or-fix-truthy", "query": "{:validated true :n 5} | unless(/validated, /n | mul(2))", "expect": {"$map": [[{"$keyword": "validated"}, true], [{"$keyword": "n"}, 5]]}}
-{"name": "validate-or-fix-falsy", "query": "{:validated false :n 5} | unless(/validated, /n | mul(2))", "expect": 10}
-{"name": "nested-unless-cond-true", "query": "10 | unless(gt(0), unless(lt(5), mul(2)))", "expect": 10}
-{"name": "nested-unless-cond-false-then-cond-false", "query": "10 | unless(lt(0), unless(gt(100), mul(2)))", "expect": 20}
-{"name": "unless-cond-using-not", "query": "[1 2 3] | unless(empty | not, [\"<empty>\"])", "expect": [1, 2, 3]}
-{"name": "unless-cond-using-and", "query": "{:a true :b false :n 5} | unless(and(/a, /b), /n | mul(10))", "expect": 50}
-{"name": "unless-cond-using-or", "query": "{:a false :b false :n 5} | unless(or(/a, /b), /n | mul(10))", "expect": 50}
-{"name": "unless-equivalent-to-when-not", "query": "5 | unless(lt(0), mul(2))", "expect": 10}
-{"name": "unless-equivalent-to-when-not-when-cond-truthy", "query": "5 | when(lt(0) | not, mul(2))", "expect": 10}
-{"name": "default-via-eq-cond-firing-then", "query": "{} | unless(eq(:irrelevant), \"replaced\")", "expect": "replaced"}
-{"name": "default-via-eq-cond-passthrough", "query": ":irrelevant | unless(eq(:irrelevant), \"replaced\")", "expect": {"$keyword": "irrelevant"}}
+{"name":"cond-true-passthrough","query":"5 | unless(true, mul(2))","expect":"5"}
+{"name":"cond-false-runs-then","query":"5 | unless(false, mul(2))","expect":"10"}
+{"name":"cond-truthy-passthrough","query":"{:active true :n 100} | unless(/active, /n | mul(2))","expect":"{:active true :n 100}"}
+{"name":"cond-falsy-runs-then","query":"{:active false :n 100} | unless(/active, /n | mul(2))","expect":"200"}
+{"name":"cond-nil-runs-then","query":"{:n 5} | unless(/missing, /n | mul(2))","expect":"10"}
+{"name":"cond-zero-is-truthy-passthrough","query":"0 | unless(eq(0), 999)","expect":"0"}
+{"name":"cond-empty-string-is-truthy-passthrough","query":"\"\" | unless(eq(\"\"), \"replaced\")","expect":"\"\""}
+{"name":"cond-empty-vec-is-truthy-passthrough","query":"[] | unless(empty, sort)","expect":"[]"}
+{"name":"then-uses-pipevalue","query":"10 | unless(lt(5), mul(2))","expect":"20"}
+{"name":"then-projects-from-pipevalue","query":"{:n 7} | unless(/n | gt(100), /n | add(1))","expect":"8"}
+{"name":"lazy-then-not-evaluated-when-cond-truthy","query":"5 | unless(true, div(0))","expect":"5"}
+{"name":"lazy-then-evaluated-when-cond-falsy","query":"5 | unless(false, mul(2))","expect":"10"}
+{"name":"guard-clause-non-empty-runs-sort","query":"[3 1 2] | unless(empty, sort)","expect":"[1 2 3]"}
+{"name":"guard-clause-empty-skips","query":"[] | unless(empty, sort)","expect":"[]"}
+{"name":"compose-into-distribute-via-paren","query":"[1 2 3] * (as(:x) | x | unless(eq(2), mul(10)))","expect":"[10 2 30]"}
+{"name":"validate-or-fix-truthy","query":"{:validated true :n 5} | unless(/validated, /n | mul(2))","expect":"{:validated true :n 5}"}
+{"name":"validate-or-fix-falsy","query":"{:validated false :n 5} | unless(/validated, /n | mul(2))","expect":"10"}
+{"name":"nested-unless-cond-true","query":"10 | unless(gt(0), unless(lt(5), mul(2)))","expect":"10"}
+{"name":"nested-unless-cond-false-then-cond-false","query":"10 | unless(lt(0), unless(gt(100), mul(2)))","expect":"20"}
+{"name":"unless-cond-using-not","query":"[1 2 3] | unless(empty | not, [\"<empty>\"])","expect":"[1 2 3]"}
+{"name":"unless-cond-using-and","query":"{:a true :b false :n 5} | unless(and(/a, /b), /n | mul(10))","expect":"50"}
+{"name":"unless-cond-using-or","query":"{:a false :b false :n 5} | unless(or(/a, /b), /n | mul(10))","expect":"50"}
+{"name":"unless-equivalent-to-when-not","query":"5 | unless(lt(0), mul(2))","expect":"10"}
+{"name":"unless-equivalent-to-when-not-when-cond-truthy","query":"5 | when(lt(0) | not, mul(2))","expect":"10"}
+{"name":"default-via-eq-cond-firing-then","query":"{} | unless(eq(:irrelevant), \"replaced\")","expect":"\"replaced\""}
+{"name":"default-via-eq-cond-passthrough","query":":irrelevant | unless(eq(:irrelevant), \"replaced\")","expect":":irrelevant"}

@@ -1,29 +1,29 @@
-{"name": "single-arg-non-nil", "query": "{:x 42} | coalesce(/x)", "expect": 42}
-{"name": "single-arg-nil", "query": "{} | coalesce(/missing)", "expect": null}
-{"name": "two-args-first-non-nil", "query": "{:a 1} | coalesce(/a, /b)", "expect": 1}
-{"name": "two-args-second-non-nil", "query": "{:b 2} | coalesce(/a, /b)", "expect": 2}
-{"name": "two-args-both-nil", "query": "{} | coalesce(/a, /b)", "expect": null}
-{"name": "three-args-first-non-nil", "query": "{:firstName \"Alice\"} | coalesce(/preferredName, /firstName, \"Anon\")", "expect": "Alice"}
-{"name": "three-args-second-non-nil", "query": "{:firstName \"Alice\"} | coalesce(/missing, /firstName, \"Anon\")", "expect": "Alice"}
-{"name": "three-args-third-default", "query": "{} | coalesce(/preferredName, /firstName, \"Anon\")", "expect": "Anon"}
-{"name": "many-args-first-found", "query": "{:e 5} | coalesce(/a, /b, /c, /d, /e, /f)", "expect": 5}
-{"name": "many-args-all-nil", "query": "{} | coalesce(/a, /b, /c, /d, /e)", "expect": null}
-{"name": "zero-is-non-nil", "query": "{:zero 0} | coalesce(/missing, /zero, \"default\")", "expect": 0}
-{"name": "false-is-non-nil", "query": "{:flag false} | coalesce(/missing, /flag, true)", "expect": false}
-{"name": "empty-string-is-non-nil", "query": "{:s \"\"} | coalesce(/missing, /s, \"default\")", "expect": ""}
-{"name": "empty-vec-is-non-nil", "query": "{:list []} | coalesce(/missing, /list, \"default\")", "expect": []}
-{"name": "empty-map-is-non-nil", "query": "{:obj {}} | coalesce(/missing, /obj, \"default\")", "expect": {"$map": []}}
-{"name": "empty-set-is-non-nil", "query": "{:tags #{}} | coalesce(/missing, /tags, \"default\")", "expect": {"$set": []}}
-{"name": "keyword-is-non-nil", "query": "{:k :foo} | coalesce(/missing, /k)", "expect": {"$keyword": "foo"}}
-{"name": "literal-default-string", "query": "{} | coalesce(/missing, \"fallback\")", "expect": "fallback"}
-{"name": "literal-default-number", "query": "{} | coalesce(/missing, 42)", "expect": 42}
-{"name": "literal-default-vec", "query": "{} | coalesce(/missing, [1 2 3])", "expect": [1, 2, 3]}
-{"name": "literal-default-nil", "query": "{} | coalesce(/missing, nil)", "expect": null}
-{"name": "computed-default-via-add", "query": "{} | coalesce(/missing, add(1, 2))", "expect": 3}
-{"name": "short-circuit-skips-failing-after-match", "query": "{:a 1} | coalesce(/a, div(0))", "expect": 1}
-{"name": "short-circuit-skips-multiple-after-match", "query": "{:b 99} | coalesce(/a, /b, div(0), \"unreached\")", "expect": 99}
-{"name": "evaluates-failing-when-needed", "query": "{} | coalesce(/missing, \"safe\")", "expect": "safe"}
+{"name":"single-arg-non-nil","query":"{:x 42} | coalesce(/x)","expect":"42"}
+{"name":"single-arg-nil","query":"{} | coalesce(/missing)","expect":"nil"}
+{"name":"two-args-first-non-nil","query":"{:a 1} | coalesce(/a, /b)","expect":"1"}
+{"name":"two-args-second-non-nil","query":"{:b 2} | coalesce(/a, /b)","expect":"2"}
+{"name":"two-args-both-nil","query":"{} | coalesce(/a, /b)","expect":"nil"}
+{"name":"three-args-first-non-nil","query":"{:firstName \"Alice\"} | coalesce(/preferredName, /firstName, \"Anon\")","expect":"\"Alice\""}
+{"name":"three-args-second-non-nil","query":"{:firstName \"Alice\"} | coalesce(/missing, /firstName, \"Anon\")","expect":"\"Alice\""}
+{"name":"three-args-third-default","query":"{} | coalesce(/preferredName, /firstName, \"Anon\")","expect":"\"Anon\""}
+{"name":"many-args-first-found","query":"{:e 5} | coalesce(/a, /b, /c, /d, /e, /f)","expect":"5"}
+{"name":"many-args-all-nil","query":"{} | coalesce(/a, /b, /c, /d, /e)","expect":"nil"}
+{"name":"zero-is-non-nil","query":"{:zero 0} | coalesce(/missing, /zero, \"default\")","expect":"0"}
+{"name":"false-is-non-nil","query":"{:flag false} | coalesce(/missing, /flag, true)","expect":"false"}
+{"name":"empty-string-is-non-nil","query":"{:s \"\"} | coalesce(/missing, /s, \"default\")","expect":"\"\""}
+{"name":"empty-vec-is-non-nil","query":"{:list []} | coalesce(/missing, /list, \"default\")","expect":"[]"}
+{"name":"empty-map-is-non-nil","query":"{:obj {}} | coalesce(/missing, /obj, \"default\")","expect":"{}"}
+{"name":"empty-set-is-non-nil","query":"{:tags #{}} | coalesce(/missing, /tags, \"default\")","expect":"#{}"}
+{"name":"keyword-is-non-nil","query":"{:k :foo} | coalesce(/missing, /k)","expect":":foo"}
+{"name":"literal-default-string","query":"{} | coalesce(/missing, \"fallback\")","expect":"\"fallback\""}
+{"name":"literal-default-number","query":"{} | coalesce(/missing, 42)","expect":"42"}
+{"name":"literal-default-vec","query":"{} | coalesce(/missing, [1 2 3])","expect":"[1 2 3]"}
+{"name":"literal-default-nil","query":"{} | coalesce(/missing, nil)","expect":"nil"}
+{"name":"computed-default-via-add","query":"{} | coalesce(/missing, add(1, 2))","expect":"3"}
+{"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | coalesce(/a, div(0))","expect":"1"}
+{"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce(/a, /b, div(0), \"unreached\")","expect":"99"}
+{"name":"evaluates-failing-when-needed","query":"{} | coalesce(/missing, \"safe\")","expect":"\"safe\""}
 {"name": "no-args-error", "query": "{} | coalesce", "error": "arity-error"}
-{"name": "with-projection-chain", "query": "{:user {:name \"Alice\"}} | coalesce(/admin, /user/name, \"Unknown\")", "expect": "Alice"}
-{"name": "cascade-from-deepest", "query": "{:a {:b {:c 42}}} | coalesce(/a/b/c, /a/b, /a, 0)", "expect": 42}
-{"name": "if-and-coalesce-combined", "query": "{:active true :name \"Bob\"} | if(/active, coalesce(/preferredName, /name, \"???\"), \"inactive\")", "expect": "Bob"}
+{"name":"with-projection-chain","query":"{:user {:name \"Alice\"}} | coalesce(/admin, /user/name, \"Unknown\")","expect":"\"Alice\""}
+{"name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce(/a/b/c, /a/b, /a, 0)","expect":"42"}
+{"name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if(/active, coalesce(/preferredName, /name, \"???\"), \"inactive\")","expect":"\"Bob\""}

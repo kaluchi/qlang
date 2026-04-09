@@ -1,30 +1,30 @@
-{"name": "line-plain-then-step", "query": "|~| pre-step note\n| 42", "expect": 42}
-{"name": "line-plain-mid-pipeline-shapes-result", "query": "5 |~| inline note\n| add(3)", "expect": 8}
-{"name": "block-plain-then-step", "query": "|~ block note ~| 42", "expect": 42}
-{"name": "block-plain-eats-trailing-combinator", "query": "5 |~ rationale ~| add(3)", "expect": 8}
-{"name": "line-plain-mid-pipeline", "query": "5 | mul(2)\n|~| this comment is identity\n| add(1)", "expect": 11}
-{"name": "block-plain-mid-pipeline", "query": "5 | mul(2) |~ identity rationale ~| add(1)", "expect": 11}
-{"name": "line-doc-on-let", "query": "|~~| Doubles the input.\nlet(:double, mul(2))\n| 5 | double", "expect": 10}
-{"name": "line-doc-retrieve", "query": "|~~| Doc text.\nlet(:foo, 42)\n| env | /foo | reify | /docs", "expect": [" Doc text."]}
-{"name": "block-doc-on-let", "query": "|~~ Multi-line doc\n    spanning many lines. ~~|\nlet(:foo, 42)\n| 5 | foo", "expect": 42}
-{"name": "block-doc-retrieve", "query": "|~~ Block doc here. ~~|\nlet(:foo, 42)\n| env | /foo | reify | /docs", "expect": [" Block doc here. "]}
-{"name": "two-line-docs-as-vec", "query": "|~~| Doc one.\n|~~| Doc two.\nlet(:foo, 42)\n| env | /foo | reify | /docs", "expect": [" Doc one.", " Doc two."]}
-{"name": "three-line-docs-as-vec", "query": "|~~| First.\n|~~| Second.\n|~~| Third.\nlet(:foo, 42)\n| env | /foo | reify | /docs | count", "expect": 3}
-{"name": "mixed-line-and-block-docs", "query": "|~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\nlet(:foo, 42)\n| env | /foo | reify | /docs | count", "expect": 3}
-{"name": "doc-block-preserves-newlines", "query": "|~~ line one\nline two ~~|\nlet(:foo, 42)\n| env | /foo | reify | /docs | first", "expect": " line one\nline two "}
-{"name": "doc-on-as-binding", "query": "42\n|~~| Captured value.\nas(:snapshot)\n| reify(:snapshot) | /docs", "expect": [" Captured value."]}
-{"name": "snapshot-unwrap-on-projection", "query": "42 | as(:answer) | env | /answer", "expect": 42}
-{"name": "snapshot-unwrap-on-identifier", "query": "42 | as(:answer) | answer", "expect": 42}
-{"name": "reify-by-name-on-snapshot", "query": "42 | as(:answer) | reify(:answer) | /value", "expect": 42}
-{"name": "reify-by-name-snapshot-name", "query": "42 | as(:answer) | reify(:answer) | /name", "expect": "answer"}
-{"name": "reify-by-name-snapshot-kind", "query": "42 | as(:answer) | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
-{"name": "doc-survives-shadowing-redeclare", "query": "|~~| Old doc.\nlet(:foo, 1)\n|~~| New doc.\n|~~| With second remark.\nlet(:foo, 2)\n| env | /foo | reify | /docs", "expect": [" New doc.", " With second remark."]}
-{"name": "comment-step-is-identity-on-pipevalue", "query": "[1 2 3]\n|~| this comment doesn't change pipeValue\n| count", "expect": 3}
-{"name": "doc-on-let-succeeds", "query": "|~~| doc\nlet(:foo, 42)\n| foo", "expect": 42}
-{"name": "doc-on-as-succeeds", "query": "42\n|~~| captured\nas(:x)\n| x", "expect": 42}
-{"name": "interleaved-plain-between-doc-and-binding", "query": "|~~| doc\n|~ rationale ~|\nlet(:foo, 42)\n| reify(:foo) | /docs", "expect": [" doc"]}
-{"name": "interleaved-plain-between-two-docs", "query": "|~~| doc one\n|~ separator ~|\n|~~| doc two\nlet(:foo, 42)\n| reify(:foo) | /docs", "expect": [" doc one", " doc two"]}
-{"name": "interleaved-plain-before-first-doc", "query": "|~ leading ~|\n|~~| doc\nlet(:foo, 42)\n| reify(:foo) | /docs", "expect": [" doc"]}
-{"name": "multiple-interleaved-plains-among-docs", "query": "|~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\nlet(:foo, 42)\n| reify(:foo) | /docs", "expect": [" a", " b", " c"]}
-{"name": "block-doc-then-plain-then-line-doc", "query": "|~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\nlet(:bar, 99)\n| reify(:bar) | /docs", "expect": [" block doc ", " line doc"]}
-{"name": "consecutive-plain-block-comments-before-binding", "query": "|~ one ~|\n|~ two ~|\nlet(:foo, 42)\n| foo", "expect": 42}
+{"name":"line-plain-then-step","query":"|~| pre-step note\n| 42","expect":"42"}
+{"name":"line-plain-mid-pipeline-shapes-result","query":"5 |~| inline note\n| add(3)","expect":"8"}
+{"name":"block-plain-then-step","query":"|~ block note ~| 42","expect":"42"}
+{"name":"block-plain-eats-trailing-combinator","query":"5 |~ rationale ~| add(3)","expect":"8"}
+{"name":"line-plain-mid-pipeline","query":"5 | mul(2)\n|~| this comment is identity\n| add(1)","expect":"11"}
+{"name":"block-plain-mid-pipeline","query":"5 | mul(2) |~ identity rationale ~| add(1)","expect":"11"}
+{"name":"line-doc-on-let","query":"|~~| Doubles the input.\nlet(:double, mul(2))\n| 5 | double","expect":"10"}
+{"name":"line-doc-retrieve","query":"|~~| Doc text.\nlet(:foo, 42)\n| env | /foo | reify | /docs","expect":"[\" Doc text.\"]"}
+{"name":"block-doc-on-let","query":"|~~ Multi-line doc\n    spanning many lines. ~~|\nlet(:foo, 42)\n| 5 | foo","expect":"42"}
+{"name":"block-doc-retrieve","query":"|~~ Block doc here. ~~|\nlet(:foo, 42)\n| env | /foo | reify | /docs","expect":"[\" Block doc here. \"]"}
+{"name":"two-line-docs-as-vec","query":"|~~| Doc one.\n|~~| Doc two.\nlet(:foo, 42)\n| env | /foo | reify | /docs","expect":"[\" Doc one.\" \" Doc two.\"]"}
+{"name":"three-line-docs-as-vec","query":"|~~| First.\n|~~| Second.\n|~~| Third.\nlet(:foo, 42)\n| env | /foo | reify | /docs | count","expect":"3"}
+{"name":"mixed-line-and-block-docs","query":"|~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\nlet(:foo, 42)\n| env | /foo | reify | /docs | count","expect":"3"}
+{"name":"doc-block-preserves-newlines","query":"|~~ line one\nline two ~~|\nlet(:foo, 42)\n| env | /foo | reify | /docs | first","expect":"\" line one\\nline two \""}
+{"name":"doc-on-as-binding","query":"42\n|~~| Captured value.\nas(:snapshot)\n| reify(:snapshot) | /docs","expect":"[\" Captured value.\"]"}
+{"name":"snapshot-unwrap-on-projection","query":"42 | as(:answer) | env | /answer","expect":"42"}
+{"name":"snapshot-unwrap-on-identifier","query":"42 | as(:answer) | answer","expect":"42"}
+{"name":"reify-by-name-on-snapshot","query":"42 | as(:answer) | reify(:answer) | /value","expect":"42"}
+{"name":"reify-by-name-snapshot-name","query":"42 | as(:answer) | reify(:answer) | /name","expect":"\"answer\""}
+{"name":"reify-by-name-snapshot-kind","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
+{"name":"doc-survives-shadowing-redeclare","query":"|~~| Old doc.\nlet(:foo, 1)\n|~~| New doc.\n|~~| With second remark.\nlet(:foo, 2)\n| env | /foo | reify | /docs","expect":"[\" New doc.\" \" With second remark.\"]"}
+{"name":"comment-step-is-identity-on-pipevalue","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
+{"name":"doc-on-let-succeeds","query":"|~~| doc\nlet(:foo, 42)\n| foo","expect":"42"}
+{"name":"doc-on-as-succeeds","query":"42\n|~~| captured\nas(:x)\n| x","expect":"42"}
+{"name":"interleaved-plain-between-doc-and-binding","query":"|~~| doc\n|~ rationale ~|\nlet(:foo, 42)\n| reify(:foo) | /docs","expect":"[\" doc\"]"}
+{"name":"interleaved-plain-between-two-docs","query":"|~~| doc one\n|~ separator ~|\n|~~| doc two\nlet(:foo, 42)\n| reify(:foo) | /docs","expect":"[\" doc one\" \" doc two\"]"}
+{"name":"interleaved-plain-before-first-doc","query":"|~ leading ~|\n|~~| doc\nlet(:foo, 42)\n| reify(:foo) | /docs","expect":"[\" doc\"]"}
+{"name":"multiple-interleaved-plains-among-docs","query":"|~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\nlet(:foo, 42)\n| reify(:foo) | /docs","expect":"[\" a\" \" b\" \" c\"]"}
+{"name":"block-doc-then-plain-then-line-doc","query":"|~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\nlet(:bar, 99)\n| reify(:bar) | /docs","expect":"[\" block doc \" \" line doc\"]"}
+{"name":"consecutive-plain-block-comments-before-binding","query":"|~ one ~|\n|~ two ~|\nlet(:foo, 42)\n| foo","expect":"42"}

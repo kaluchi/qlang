@@ -1,26 +1,26 @@
-{"name": "zero-arity-conduit", "query": "let(:double, mul(2)) | 10 | double", "expect": 20}
-{"name": "zero-arity-conduit-distribute", "query": "let(:plus10, add(10)) | [1 2 3] * plus10", "expect": [11, 12, 13]}
-{"name": "parametric-conduit-single-param", "query": "let(:addN, [:n], add(n)) | 5 | addN(3)", "expect": 8}
-{"name": "parametric-conduit-two-params", "query": "let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")", "expect": "[world]"}
-{"name": "higher-order-param-in-sort", "query": "let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n)) | [{:v 1} {:v 3} {:v 2}] | @topBy(/v, 2) * /v", "expect": [3, 2]}
-{"name": "higher-order-param-in-filter", "query": "let(:@matching, [:pred], filter(pred)) | [1 2 3 4 5] | @matching(gt(3))", "expect": [4, 5]}
-{"name": "fractal-composition-three-levels", "query": "let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n)) | let(:@topNByV, [:n], @topBy(/v, n)) | let(:@top2ByV, @topNByV(2)) | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v", "expect": [30, 20]}
-{"name": "recursive-conduit-tree-sum", "query": "let(:totalSize, add(/size, /children * totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize", "expect": 300}
-{"name": "recursive-conduit-with-params", "query": "let(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)}) | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap(append(\"!\")) | /label", "expect": "a!"}
+{"name":"zero-arity-conduit","query":"let(:double, mul(2)) | 10 | double","expect":"20"}
+{"name":"zero-arity-conduit-distribute","query":"let(:plus10, add(10)) | [1 2 3] * plus10","expect":"[11 12 13]"}
+{"name":"parametric-conduit-single-param","query":"let(:addN, [:n], add(n)) | 5 | addN(3)","expect":"8"}
+{"name":"parametric-conduit-two-params","query":"let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")","expect":"\"[world]\""}
+{"name":"higher-order-param-in-sort","query":"let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n)) | [{:v 1} {:v 3} {:v 2}] | @topBy(/v, 2) * /v","expect":"[3 2]"}
+{"name":"higher-order-param-in-filter","query":"let(:@matching, [:pred], filter(pred)) | [1 2 3 4 5] | @matching(gt(3))","expect":"[4 5]"}
+{"name":"fractal-composition-three-levels","query":"let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n)) | let(:@topNByV, [:n], @topBy(/v, n)) | let(:@top2ByV, @topNByV(2)) | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
+{"name":"recursive-conduit-tree-sum","query":"let(:totalSize, add(/size, /children * totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
+{"name":"recursive-conduit-with-params","query":"let(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)}) | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap(append(\"!\")) | /label","expect":"\"a!\""}
 {"name": "conduit-arity-mismatch-too-few", "query": "let(:f, [:a, :b], add(a, b)) | 0 | f(1)", "error": "arity-error"}
 {"name": "conduit-arity-mismatch-too-many", "query": "let(:f, [:a], add(a)) | 5 | f(1, 2)", "error": "arity-error"}
-{"name": "conduit-param-shadows-builtin", "query": "let(:f, [:count], count) | 42 | f(99)", "expect": 99}
-{"name": "lexical-scope-isolation", "query": "let(:double, mul(2)) | let(:apply_double, double) | let(:double, mul(3)) | 5 | apply_double", "expect": 10}
-{"name": "conduit-as-inside-body-does-not-leak", "query": "let(:f, [:n], n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)", "expect": false}
-{"name": "conduit-param-is-lazy-per-element", "query": "let(:@pluck, [:proj], proj) | [{:a 1} {:a 2} {:a 3}] * @pluck(/a)", "expect": [1, 2, 3]}
-{"name": "conduit-reify-kind", "query": "let(:foo, 42) | reify(:foo) | /kind", "expect": {"$keyword": "conduit"}}
-{"name": "conduit-reify-params-zero", "query": "let(:foo, 42) | reify(:foo) | /params", "expect": []}
-{"name": "conduit-reify-params-two", "query": "let(:f, [:a, :b], add(a, b)) | reify(:f) | /params", "expect": ["a", "b"]}
-{"name": "conduit-reify-source", "query": "let(:double, mul(2)) | reify(:double) | /source", "expect": "mul(2)"}
-{"name": "conduit-effect-marker-clean-body-at-name-ok", "query": "let(:@safe, count) | [1 2 3] | @safe", "expect": 3}
+{"name":"conduit-param-shadows-builtin","query":"let(:f, [:count], count) | 42 | f(99)","expect":"99"}
+{"name":"lexical-scope-isolation","query":"let(:double, mul(2)) | let(:apply_double, double) | let(:double, mul(3)) | 5 | apply_double","expect":"10"}
+{"name":"conduit-as-inside-body-does-not-leak","query":"let(:f, [:n], n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)","expect":"false"}
+{"name":"conduit-param-is-lazy-per-element","query":"let(:@pluck, [:proj], proj) | [{:a 1} {:a 2} {:a 3}] * @pluck(/a)","expect":"[1 2 3]"}
+{"name":"conduit-reify-kind","query":"let(:foo, 42) | reify(:foo) | /kind","expect":":conduit"}
+{"name":"conduit-reify-params-zero","query":"let(:foo, 42) | reify(:foo) | /params","expect":"[]"}
+{"name":"conduit-reify-params-two","query":"let(:f, [:a, :b], add(a, b)) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
+{"name":"conduit-reify-source","query":"let(:double, mul(2)) | reify(:double) | /source","expect":"\"mul(2)\""}
+{"name":"conduit-effect-marker-clean-body-at-name-ok","query":"let(:@safe, count) | [1 2 3] | @safe","expect":"3"}
 {"name": "conduit-effect-marker-effectful-body-clean-name-rejected", "query": "let(:foo, @callers)", "error": "effect-laundering"}
-{"name": "as-operand-basic", "query": "42 | as(:answer) | answer", "expect": 42}
-{"name": "as-operand-reify", "query": "42 | as(:answer) | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
+{"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
+{"name":"as-operand-reify","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
 {"name": "let-name-not-keyword-error", "query": "let(42, mul(2))", "error": "type-error"}
 {"name": "as-name-not-keyword-error", "query": "42 | as(42)", "error": "type-error"}
 {"name": "let-too-few-args-error", "query": "let(:x)", "error": "arity-error"}

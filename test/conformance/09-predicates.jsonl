@@ -1,21 +1,21 @@
-{"name": "eq-numbers", "query": "42 | eq(42)", "expect": true}
-{"name": "eq-numbers-false", "query": "42 | eq(43)", "expect": false}
-{"name": "eq-strings", "query": "\"hello\" | eq(\"hello\")", "expect": true}
-{"name": "eq-vecs", "query": "[1 2 3] | eq([1 2 3])", "expect": true}
-{"name": "eq-vecs-different", "query": "[1 2 3] | eq([1 2 4])", "expect": false}
-{"name": "eq-keywords", "query": ":foo | eq(:foo)", "expect": true}
-{"name": "gt-true", "query": "10 | gt(5)", "expect": true}
-{"name": "gt-false", "query": "5 | gt(10)", "expect": false}
-{"name": "lt-true", "query": "5 | lt(10)", "expect": true}
-{"name": "gte-equal", "query": "10 | gte(10)", "expect": true}
-{"name": "lte-equal", "query": "10 | lte(10)", "expect": true}
-{"name": "and-both-true", "query": "true | and(true)", "expect": true}
-{"name": "and-one-false", "query": "true | and(false)", "expect": false}
-{"name": "or-one-true", "query": "false | or(true)", "expect": true}
-{"name": "or-both-false", "query": "false | or(false)", "expect": false}
-{"name": "not-true", "query": "true | not", "expect": false}
-{"name": "not-false", "query": "false | not", "expect": true}
-{"name": "not-nil", "query": "nil | not", "expect": true}
-{"name": "not-zero", "query": "0 | not", "expect": false}
-{"name": "not-empty-string", "query": "\"\" | not", "expect": false}
-{"name": "filter-with-and", "query": "[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter(and(/active, /age | gte(18)))", "expect": [{"$map": [[{"$keyword": "active"}, true], [{"$keyword": "age"}, 25]]}]}
+{"name":"eq-numbers","query":"42 | eq(42)","expect":"true"}
+{"name":"eq-numbers-false","query":"42 | eq(43)","expect":"false"}
+{"name":"eq-strings","query":"\"hello\" | eq(\"hello\")","expect":"true"}
+{"name":"eq-vecs","query":"[1 2 3] | eq([1 2 3])","expect":"true"}
+{"name":"eq-vecs-different","query":"[1 2 3] | eq([1 2 4])","expect":"false"}
+{"name":"eq-keywords","query":":foo | eq(:foo)","expect":"true"}
+{"name":"gt-true","query":"10 | gt(5)","expect":"true"}
+{"name":"gt-false","query":"5 | gt(10)","expect":"false"}
+{"name":"lt-true","query":"5 | lt(10)","expect":"true"}
+{"name":"gte-equal","query":"10 | gte(10)","expect":"true"}
+{"name":"lte-equal","query":"10 | lte(10)","expect":"true"}
+{"name":"and-both-true","query":"true | and(true)","expect":"true"}
+{"name":"and-one-false","query":"true | and(false)","expect":"false"}
+{"name":"or-one-true","query":"false | or(true)","expect":"true"}
+{"name":"or-both-false","query":"false | or(false)","expect":"false"}
+{"name":"not-true","query":"true | not","expect":"false"}
+{"name":"not-false","query":"false | not","expect":"true"}
+{"name":"not-nil","query":"nil | not","expect":"true"}
+{"name":"not-zero","query":"0 | not","expect":"false"}
+{"name":"not-empty-string","query":"\"\" | not","expect":"false"}
+{"name":"filter-with-and","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter(and(/active, /age | gte(18)))","expect":"[{:active true :age 25}]"}

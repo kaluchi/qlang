@@ -1,32 +1,32 @@
-{"name": "single-arg-truthy", "query": "{:x 42} | firstTruthy(/x)", "expect": 42}
-{"name": "single-arg-falsy", "query": "{} | firstTruthy(/missing)", "expect": null}
-{"name": "single-arg-false", "query": "{:x false} | firstTruthy(/x)", "expect": null}
-{"name": "two-args-first-truthy", "query": "{:a 1} | firstTruthy(/a, /b)", "expect": 1}
-{"name": "two-args-first-nil-second-truthy", "query": "{:b 2} | firstTruthy(/a, /b)", "expect": 2}
-{"name": "two-args-first-false-second-truthy", "query": "{:a false :b 2} | firstTruthy(/a, /b)", "expect": 2}
-{"name": "two-args-both-falsy", "query": "{:a false :b nil} | firstTruthy(/a, /b)", "expect": null}
-{"name": "three-args-skip-nil-and-false", "query": "{:a nil :b false :c \"yes\"} | firstTruthy(/a, /b, /c)", "expect": "yes"}
-{"name": "three-args-name-cascade", "query": "{:firstName \"Alice\"} | firstTruthy(/preferredName, /firstName, \"Anon\")", "expect": "Alice"}
-{"name": "three-args-fallback-default", "query": "{} | firstTruthy(/preferredName, /firstName, \"Anon\")", "expect": "Anon"}
-{"name": "many-args-pick-non-falsy", "query": "{:e 5} | firstTruthy(/a, /b, /c, /d, /e, /f)", "expect": 5}
-{"name": "all-nil-returns-nil", "query": "{} | firstTruthy(/a, /b, /c)", "expect": null}
-{"name": "all-false-returns-nil", "query": "{:a false :b false :c false} | firstTruthy(/a, /b, /c)", "expect": null}
-{"name": "mixed-nil-and-false-all-falsy", "query": "{:a false :b nil} | firstTruthy(/a, /b, /b, /a)", "expect": null}
-{"name": "zero-is-truthy-kept", "query": "{:zero 0} | firstTruthy(/missing, /zero, \"default\")", "expect": 0}
-{"name": "empty-string-is-truthy-kept", "query": "{:s \"\"} | firstTruthy(/missing, /s, \"default\")", "expect": ""}
-{"name": "empty-vec-is-truthy-kept", "query": "{:list []} | firstTruthy(/missing, /list, \"default\")", "expect": []}
-{"name": "empty-map-is-truthy-kept", "query": "{:obj {}} | firstTruthy(/missing, /obj, \"default\")", "expect": {"$map": []}}
-{"name": "empty-set-is-truthy-kept", "query": "{:tags #{}} | firstTruthy(/missing, /tags, \"default\")", "expect": {"$set": []}}
-{"name": "true-is-truthy-kept", "query": "{:flag true} | firstTruthy(/missing, /flag)", "expect": true}
-{"name": "literal-default-string", "query": "{} | firstTruthy(/missing, \"fallback\")", "expect": "fallback"}
-{"name": "literal-default-number", "query": "{} | firstTruthy(/missing, 42)", "expect": 42}
-{"name": "literal-default-vec", "query": "{} | firstTruthy(/missing, [1 2 3])", "expect": [1, 2, 3]}
-{"name": "computed-default-via-add", "query": "{} | firstTruthy(/missing, add(1, 2))", "expect": 3}
-{"name": "short-circuit-skips-failing-after-match", "query": "{:a 1} | firstTruthy(/a, div(0))", "expect": 1}
-{"name": "short-circuit-skips-multiple-after-match", "query": "{:b 99} | firstTruthy(/a, /b, div(0), \"unreached\")", "expect": 99}
-{"name": "short-circuit-after-skipping-false", "query": "{:a false :b 7} | firstTruthy(/a, /b, div(0))", "expect": 7}
+{"name":"single-arg-truthy","query":"{:x 42} | firstTruthy(/x)","expect":"42"}
+{"name":"single-arg-falsy","query":"{} | firstTruthy(/missing)","expect":"nil"}
+{"name":"single-arg-false","query":"{:x false} | firstTruthy(/x)","expect":"nil"}
+{"name":"two-args-first-truthy","query":"{:a 1} | firstTruthy(/a, /b)","expect":"1"}
+{"name":"two-args-first-nil-second-truthy","query":"{:b 2} | firstTruthy(/a, /b)","expect":"2"}
+{"name":"two-args-first-false-second-truthy","query":"{:a false :b 2} | firstTruthy(/a, /b)","expect":"2"}
+{"name":"two-args-both-falsy","query":"{:a false :b nil} | firstTruthy(/a, /b)","expect":"nil"}
+{"name":"three-args-skip-nil-and-false","query":"{:a nil :b false :c \"yes\"} | firstTruthy(/a, /b, /c)","expect":"\"yes\""}
+{"name":"three-args-name-cascade","query":"{:firstName \"Alice\"} | firstTruthy(/preferredName, /firstName, \"Anon\")","expect":"\"Alice\""}
+{"name":"three-args-fallback-default","query":"{} | firstTruthy(/preferredName, /firstName, \"Anon\")","expect":"\"Anon\""}
+{"name":"many-args-pick-non-falsy","query":"{:e 5} | firstTruthy(/a, /b, /c, /d, /e, /f)","expect":"5"}
+{"name":"all-nil-returns-nil","query":"{} | firstTruthy(/a, /b, /c)","expect":"nil"}
+{"name":"all-false-returns-nil","query":"{:a false :b false :c false} | firstTruthy(/a, /b, /c)","expect":"nil"}
+{"name":"mixed-nil-and-false-all-falsy","query":"{:a false :b nil} | firstTruthy(/a, /b, /b, /a)","expect":"nil"}
+{"name":"zero-is-truthy-kept","query":"{:zero 0} | firstTruthy(/missing, /zero, \"default\")","expect":"0"}
+{"name":"empty-string-is-truthy-kept","query":"{:s \"\"} | firstTruthy(/missing, /s, \"default\")","expect":"\"\""}
+{"name":"empty-vec-is-truthy-kept","query":"{:list []} | firstTruthy(/missing, /list, \"default\")","expect":"[]"}
+{"name":"empty-map-is-truthy-kept","query":"{:obj {}} | firstTruthy(/missing, /obj, \"default\")","expect":"{}"}
+{"name":"empty-set-is-truthy-kept","query":"{:tags #{}} | firstTruthy(/missing, /tags, \"default\")","expect":"#{}"}
+{"name":"true-is-truthy-kept","query":"{:flag true} | firstTruthy(/missing, /flag)","expect":"true"}
+{"name":"literal-default-string","query":"{} | firstTruthy(/missing, \"fallback\")","expect":"\"fallback\""}
+{"name":"literal-default-number","query":"{} | firstTruthy(/missing, 42)","expect":"42"}
+{"name":"literal-default-vec","query":"{} | firstTruthy(/missing, [1 2 3])","expect":"[1 2 3]"}
+{"name":"computed-default-via-add","query":"{} | firstTruthy(/missing, add(1, 2))","expect":"3"}
+{"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | firstTruthy(/a, div(0))","expect":"1"}
+{"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | firstTruthy(/a, /b, div(0), \"unreached\")","expect":"99"}
+{"name":"short-circuit-after-skipping-false","query":"{:a false :b 7} | firstTruthy(/a, /b, div(0))","expect":"7"}
 {"name": "no-args-error", "query": "{} | firstTruthy", "error": "arity-error"}
-{"name": "differs-from-coalesce-on-false", "query": "{:flag false :name \"Alice\"} | firstTruthy(/flag, /name)", "expect": "Alice"}
-{"name": "coalesce-by-contrast-keeps-false", "query": "{:flag false :name \"Alice\"} | coalesce(/flag, /name)", "expect": false}
-{"name": "differs-from-coalesce-on-nil", "query": "{:a nil :b 1} | firstTruthy(/a, /b)", "expect": 1}
-{"name": "matches-coalesce-on-non-falsy-values", "query": "{:a 0 :b 1} | firstTruthy(/a, /b)", "expect": 0}
+{"name":"differs-from-coalesce-on-false","query":"{:flag false :name \"Alice\"} | firstTruthy(/flag, /name)","expect":"\"Alice\""}
+{"name":"coalesce-by-contrast-keeps-false","query":"{:flag false :name \"Alice\"} | coalesce(/flag, /name)","expect":"false"}
+{"name":"differs-from-coalesce-on-nil","query":"{:a nil :b 1} | firstTruthy(/a, /b)","expect":"1"}
+{"name":"matches-coalesce-on-non-falsy-values","query":"{:a 0 :b 1} | firstTruthy(/a, /b)","expect":"0"}

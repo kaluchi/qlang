@@ -1,27 +1,27 @@
-{"name": "cond-true-runs-then", "query": "5 | when(true, mul(2))", "expect": 10}
-{"name": "cond-false-passthrough", "query": "5 | when(false, mul(2))", "expect": 5}
-{"name": "cond-truthy-via-projection", "query": "{:active true :n 100} | when(/active, /n | mul(2))", "expect": 200}
-{"name": "cond-falsy-via-projection-passthrough", "query": "{:active false :n 100} | when(/active, /n | mul(2))", "expect": {"$map": [[{"$keyword": "active"}, false], [{"$keyword": "n"}, 100]]}}
-{"name": "cond-nil-passthrough", "query": "{:n 5} | when(/missing, mul(2))", "expect": {"$map": [[{"$keyword": "n"}, 5]]}}
-{"name": "cond-zero-is-truthy", "query": "0 | when(eq(0), 999)", "expect": 999}
-{"name": "cond-empty-string-is-truthy", "query": "\"\" | when(eq(\"\"), \"non-empty\")", "expect": "non-empty"}
-{"name": "cond-empty-vec-is-truthy", "query": "[] | when(empty, [\"<empty>\"])", "expect": ["<empty>"]}
-{"name": "then-uses-pipevalue", "query": "10 | when(gt(5), mul(2))", "expect": 20}
-{"name": "then-projects-from-pipevalue", "query": "{:n 7} | when(/n | gt(5), /n | add(1))", "expect": 8}
-{"name": "lazy-then-not-evaluated-when-cond-falsy", "query": "5 | when(false, div(0))", "expect": 5}
-{"name": "lazy-then-evaluated-when-cond-truthy", "query": "5 | when(true, mul(2))", "expect": 10}
-{"name": "compose-with-then-step", "query": "[1 2 3] | when(empty, [\"<empty>\"]) | count", "expect": 3}
-{"name": "compose-with-then-on-empty", "query": "[] | when(empty | not, [\"non-empty\"]) | count", "expect": 0}
-{"name": "compose-when-into-distribute", "query": "[1 2 3] * when(gt(1), mul(10))", "expect": [1, 20, 30]}
-{"name": "guarded-enrichment-truthy", "query": "{:name \"Alice\" :vip true} | when(/vip, union({:tier \"gold\"}))", "expect": {"$map": [[{"$keyword": "name"}, "Alice"], [{"$keyword": "vip"}, true], [{"$keyword": "tier"}, "gold"]]}}
-{"name": "guarded-enrichment-falsy", "query": "{:name \"Bob\" :vip false} | when(/vip, union({:tier \"gold\"}))", "expect": {"$map": [[{"$keyword": "name"}, "Bob"], [{"$keyword": "vip"}, false]]}}
-{"name": "nested-when-truthy", "query": "10 | when(gt(0), when(gt(5), mul(2)))", "expect": 20}
-{"name": "nested-when-outer-falsy", "query": "-10 | when(gt(0), when(gt(5), mul(2)))", "expect": -10}
-{"name": "nested-when-inner-falsy", "query": "3 | when(gt(0), when(gt(5), mul(2)))", "expect": 3}
-{"name": "when-cond-using-and", "query": "{:active true :verified true :n 5} | when(and(/active, /verified), /n | mul(10))", "expect": 50}
-{"name": "when-cond-using-or", "query": "{:vip false :score 99 :n 5} | when(or(/vip, /score | gt(95)), /n | mul(10))", "expect": 50}
-{"name": "when-cond-using-not", "query": "[] | when(empty | not, sort)", "expect": []}
-{"name": "when-on-strings-truthy", "query": "\"hello\" | when(eq(\"hello\"), append(\" world\"))", "expect": "hello world"}
-{"name": "when-on-strings-falsy", "query": "\"hello\" | when(eq(\"goodbye\"), append(\" world\"))", "expect": "hello"}
-{"name": "when-equivalent-to-if-with-identity-else", "query": "5 | when(gt(0), mul(2))", "expect": 10}
-{"name": "when-paired-with-coalesce", "query": "{:n nil} | when(/n, /n | mul(2))", "expect": {"$map": [[{"$keyword": "n"}, null]]}}
+{"name":"cond-true-runs-then","query":"5 | when(true, mul(2))","expect":"10"}
+{"name":"cond-false-passthrough","query":"5 | when(false, mul(2))","expect":"5"}
+{"name":"cond-truthy-via-projection","query":"{:active true :n 100} | when(/active, /n | mul(2))","expect":"200"}
+{"name":"cond-falsy-via-projection-passthrough","query":"{:active false :n 100} | when(/active, /n | mul(2))","expect":"{:active false :n 100}"}
+{"name":"cond-nil-passthrough","query":"{:n 5} | when(/missing, mul(2))","expect":"{:n 5}"}
+{"name":"cond-zero-is-truthy","query":"0 | when(eq(0), 999)","expect":"999"}
+{"name":"cond-empty-string-is-truthy","query":"\"\" | when(eq(\"\"), \"non-empty\")","expect":"\"non-empty\""}
+{"name":"cond-empty-vec-is-truthy","query":"[] | when(empty, [\"<empty>\"])","expect":"[\"<empty>\"]"}
+{"name":"then-uses-pipevalue","query":"10 | when(gt(5), mul(2))","expect":"20"}
+{"name":"then-projects-from-pipevalue","query":"{:n 7} | when(/n | gt(5), /n | add(1))","expect":"8"}
+{"name":"lazy-then-not-evaluated-when-cond-falsy","query":"5 | when(false, div(0))","expect":"5"}
+{"name":"lazy-then-evaluated-when-cond-truthy","query":"5 | when(true, mul(2))","expect":"10"}
+{"name":"compose-with-then-step","query":"[1 2 3] | when(empty, [\"<empty>\"]) | count","expect":"3"}
+{"name":"compose-with-then-on-empty","query":"[] | when(empty | not, [\"non-empty\"]) | count","expect":"0"}
+{"name":"compose-when-into-distribute","query":"[1 2 3] * when(gt(1), mul(10))","expect":"[1 20 30]"}
+{"name":"guarded-enrichment-truthy","query":"{:name \"Alice\" :vip true} | when(/vip, union({:tier \"gold\"}))","expect":"{:name \"Alice\" :vip true :tier \"gold\"}"}
+{"name":"guarded-enrichment-falsy","query":"{:name \"Bob\" :vip false} | when(/vip, union({:tier \"gold\"}))","expect":"{:name \"Bob\" :vip false}"}
+{"name":"nested-when-truthy","query":"10 | when(gt(0), when(gt(5), mul(2)))","expect":"20"}
+{"name":"nested-when-outer-falsy","query":"-10 | when(gt(0), when(gt(5), mul(2)))","expect":"-10"}
+{"name":"nested-when-inner-falsy","query":"3 | when(gt(0), when(gt(5), mul(2)))","expect":"3"}
+{"name":"when-cond-using-and","query":"{:active true :verified true :n 5} | when(and(/active, /verified), /n | mul(10))","expect":"50"}
+{"name":"when-cond-using-or","query":"{:vip false :score 99 :n 5} | when(or(/vip, /score | gt(95)), /n | mul(10))","expect":"50"}
+{"name":"when-cond-using-not","query":"[] | when(empty | not, sort)","expect":"[]"}
+{"name":"when-on-strings-truthy","query":"\"hello\" | when(eq(\"hello\"), append(\" world\"))","expect":"\"hello world\""}
+{"name":"when-on-strings-falsy","query":"\"hello\" | when(eq(\"goodbye\"), append(\" world\"))","expect":"\"hello\""}
+{"name":"when-equivalent-to-if-with-identity-else","query":"5 | when(gt(0), mul(2))","expect":"10"}
+{"name":"when-paired-with-coalesce","query":"{:n nil} | when(/n, /n | mul(2))","expect":"{:n nil}"}

@@ -1,10 +1,10 @@
-{"name": "single-key-single-bucket", "query": "[{:dept :eng :name \"a\"}] | groupBy(/dept) | /eng | first | /name", "expect": "a"}
-{"name": "two-keys-two-buckets", "query": "[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"}] | groupBy(/dept) | keys | count", "expect": 2}
-{"name": "multi-element-bucket-preserves-order", "query": "[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy(/dept) | /eng * /name", "expect": ["a", "c"]}
-{"name": "groupBy-by-derived-key", "query": "[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /small", "expect": [1, 2]}
-{"name": "groupBy-by-derived-key-big-bucket", "query": "[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /big", "expect": [3, 4, 5]}
-{"name": "groupBy-empty-vec-yields-empty-map", "query": "[] | groupBy(/k) | empty", "expect": true}
+{"name":"single-key-single-bucket","query":"[{:dept :eng :name \"a\"}] | groupBy(/dept) | /eng | first | /name","expect":"\"a\""}
+{"name":"two-keys-two-buckets","query":"[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"}] | groupBy(/dept) | keys | count","expect":"2"}
+{"name":"multi-element-bucket-preserves-order","query":"[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy(/dept) | /eng * /name","expect":"[\"a\" \"c\"]"}
+{"name":"groupBy-by-derived-key","query":"[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /small","expect":"[1 2]"}
+{"name":"groupBy-by-derived-key-big-bucket","query":"[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /big","expect":"[3 4 5]"}
+{"name":"groupBy-empty-vec-yields-empty-map","query":"[] | groupBy(/k) | empty","expect":"true"}
 {"name": "groupBy-non-vec-throws", "query": "42 | groupBy(/k)", "error": "type-error"}
 {"name": "groupBy-non-keyword-key-throws", "query": "[{:k 1} {:k 2}] | groupBy(/k)", "error": "type-error"}
-{"name": "groupBy-then-distribute-count", "query": "[{:c :a} {:c :b} {:c :a} {:c :a}] | groupBy(/c) | vals * count", "expect": [3, 1]}
-{"name": "groupBy-roundtrip-via-vals-flat", "query": "let(:xs, [{:k :a} {:k :b} {:k :a}]) | xs | groupBy(/k) | vals | flat | count | eq(xs | count)", "expect": true}
+{"name":"groupBy-then-distribute-count","query":"[{:c :a} {:c :b} {:c :a} {:c :a}] | groupBy(/c) | vals * count","expect":"[3 1]"}
+{"name":"groupBy-roundtrip-via-vals-flat","query":"let(:xs, [{:k :a} {:k :b} {:k :a}]) | xs | groupBy(/k) | vals | flat | count | eq(xs | count)","expect":"true"}

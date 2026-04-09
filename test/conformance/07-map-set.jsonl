@@ -1,11 +1,11 @@
-{"name": "keys", "query": "{:name \"Alice\" :age 30} | keys", "expect": {"$set": [{"$keyword": "name"}, {"$keyword": "age"}]}}
-{"name": "vals", "query": "{:name \"Alice\" :age 30} | vals", "expect": ["Alice", 30]}
-{"name": "has-map-true", "query": "{:name \"Alice\"} | has(:name)", "expect": true}
-{"name": "has-map-false", "query": "{:name \"Alice\"} | has(:age)", "expect": false}
-{"name": "has-set-true", "query": "#{:a :b :c} | has(:b)", "expect": true}
-{"name": "has-set-false", "query": "#{:a :b :c} | has(:d)", "expect": false}
-{"name": "set-from-vec", "query": "[1 2 1 3 2] | set", "expect": {"$set": [1, 2, 3]}}
-{"name": "set-literal", "query": "#{1 2 3}", "expect": {"$set": [1, 2, 3]}}
-{"name": "set-literal-with-projections", "query": "{:name \"Alice\" :age 30} | #{/name, /age}", "expect": {"$set": ["Alice", 30]}}
-{"name": "map-empty-keys", "query": "{} | keys", "expect": {"$set": []}}
-{"name": "map-empty-vals", "query": "{} | vals", "expect": []}
+{"name":"keys","query":"{:name \"Alice\" :age 30} | keys","expect":"#{:name :age}"}
+{"name":"vals","query":"{:name \"Alice\" :age 30} | vals","expect":"[\"Alice\" 30]"}
+{"name":"has-map-true","query":"{:name \"Alice\"} | has(:name)","expect":"true"}
+{"name":"has-map-false","query":"{:name \"Alice\"} | has(:age)","expect":"false"}
+{"name":"has-set-true","query":"#{:a :b :c} | has(:b)","expect":"true"}
+{"name":"has-set-false","query":"#{:a :b :c} | has(:d)","expect":"false"}
+{"name":"set-from-vec","query":"[1 2 1 3 2] | set","expect":"#{1 2 3}"}
+{"name":"set-literal","query":"#{1 2 3}","expect":"#{1 2 3}"}
+{"name":"set-literal-with-projections","query":"{:name \"Alice\" :age 30} | #{/name, /age}","expect":"#{\"Alice\" 30}"}
+{"name":"map-empty-keys","query":"{} | keys","expect":"#{}"}
+{"name":"map-empty-vals","query":"{} | vals","expect":"[]"}

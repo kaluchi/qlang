@@ -1,9 +1,9 @@
-{"name": "add-partial", "query": "10 | add(5)", "expect": 15}
-{"name": "sub-partial", "query": "10 | sub(3)", "expect": 7}
-{"name": "mul-partial", "query": "10 | mul(2)", "expect": 20}
-{"name": "div-partial", "query": "10 | div(2)", "expect": 5}
-{"name": "add-full", "query": "{:x 10 :y 5} | add(/x, /y)", "expect": 15}
-{"name": "sub-full-noncommutative", "query": "{:x 10 :y 3} | sub(/x, /y)", "expect": 7}
-{"name": "mul-full", "query": "{:x 5 :y 4} | mul(/x, /y)", "expect": 20}
-{"name": "div-full-noncommutative", "query": "{:x 20 :y 4} | div(/x, /y)", "expect": 5}
-{"name": "chained-arith", "query": "10 | add(5) | mul(2) | sub(10)", "expect": 20}
+{"name":"add-partial","query":"10 | add(5)","expect":"15"}
+{"name":"sub-partial","query":"10 | sub(3)","expect":"7"}
+{"name":"mul-partial","query":"10 | mul(2)","expect":"20"}
+{"name":"div-partial","query":"10 | div(2)","expect":"5"}
+{"name":"add-full","query":"{:x 10 :y 5} | add(/x, /y)","expect":"15"}
+{"name":"sub-full-noncommutative","query":"{:x 10 :y 3} | sub(/x, /y)","expect":"7"}
+{"name":"mul-full","query":"{:x 5 :y 4} | mul(/x, /y)","expect":"20"}
+{"name":"div-full-noncommutative","query":"{:x 20 :y 4} | div(/x, /y)","expect":"5"}
+{"name":"chained-arith","query":"10 | add(5) | mul(2) | sub(10)","expect":"20"}

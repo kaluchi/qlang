@@ -1,6 +1,6 @@
-{"name": "vec-across-lines", "query": "[\n  1\n  2\n  3\n]", "expect": [1, 2, 3]}
-{"name": "map-across-lines", "query": "{\n  :name \"Alice\"\n  :age 30\n}", "expect": {"$map": [[{"$keyword": "name"}, "Alice"], [{"$keyword": "age"}, 30]]}}
-{"name": "pipeline-across-lines", "query": "[1 2 3 4 5]\n  | filter(gt(2))\n  | count", "expect": 3}
-{"name": "with-line-comments", "query": "|~| compute the sum\n| [1 2 3]\n  | sum |~| final reduction", "expect": 6}
-{"name": "deeply-nested-multiline", "query": "{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | /team/lead/email", "expect": "alice@example.com"}
-{"name": "distribute-across-lines", "query": "[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  * mul(/price, /qty)", "expect": [300, 500]}
+{"name":"vec-across-lines","query":"[\n  1\n  2\n  3\n]","expect":"[1 2 3]"}
+{"name":"map-across-lines","query":"{\n  :name \"Alice\"\n  :age 30\n}","expect":"{:name \"Alice\" :age 30}"}
+{"name":"pipeline-across-lines","query":"[1 2 3 4 5]\n  | filter(gt(2))\n  | count","expect":"3"}
+{"name":"with-line-comments","query":"|~| compute the sum\n| [1 2 3]\n  | sum |~| final reduction","expect":"6"}
+{"name":"deeply-nested-multiline","query":"{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | /team/lead/email","expect":"\"alice@example.com\""}
+{"name":"distribute-across-lines","query":"[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  * mul(/price, /qty)","expect":"[300 500]"}

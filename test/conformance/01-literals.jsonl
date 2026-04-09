@@ -1,24 +1,24 @@
-{"name": "integer", "query": "42", "expect": 42}
-{"name": "negative-integer", "query": "-7", "expect": -7}
-{"name": "decimal", "query": "3.14", "expect": 3.14}
-{"name": "string", "query": "\"hello\"", "expect": "hello"}
-{"name": "empty-string", "query": "\"\"", "expect": ""}
-{"name": "true", "query": "true", "expect": true}
-{"name": "false", "query": "false", "expect": false}
-{"name": "nil", "query": "nil", "expect": null}
-{"name": "empty-vec", "query": "[]", "expect": []}
-{"name": "single-element-vec", "query": "[1]", "expect": [1]}
-{"name": "multi-element-vec", "query": "[1 2 3 4 5]", "expect": [1, 2, 3, 4, 5]}
-{"name": "vec-of-strings", "query": "[\"a\" \"b\" \"c\"]", "expect": ["a", "b", "c"]}
-{"name": "nested-vec", "query": "[[1 2] [3 4]]", "expect": [[1, 2], [3, 4]]}
-{"name": "empty-set", "query": "#{}", "expect": {"$set": []}}
-{"name": "empty-map", "query": "{}", "expect": {"$map": []}}
-{"name": "quoted-keyword-with-space", "query": ":\"foo bar\"", "expect": {"$keyword": "foo bar"}}
-{"name": "quoted-keyword-empty-string", "query": ":\"\"", "expect": {"$keyword": ""}}
-{"name": "quoted-keyword-leading-digit", "query": ":\"123\"", "expect": {"$keyword": "123"}}
-{"name": "quoted-keyword-sigil-prefix", "query": ":\"$ref\"", "expect": {"$keyword": "$ref"}}
-{"name": "quoted-keyword-equals-bare-form", "query": ":\"name\" | eq(:name)", "expect": true}
-{"name": "quoted-keyword-with-newline-escape", "query": ":\"line1\\nline2\" | eq(:\"line1\\nline2\")", "expect": true}
-{"name": "map-with-quoted-key-projection", "query": "{:\"weird key\" 42} | /\"weird key\"", "expect": 42}
-{"name": "map-with-quoted-empty-key", "query": "{:\"\" \"value-of-empty\"} | /\"\"", "expect": "value-of-empty"}
-{"name": "map-with-mixed-bare-and-quoted-keys", "query": "{:foo 1 :\"bar baz\" 2} | /\"bar baz\"", "expect": 2}
+{"name":"integer","query":"42","expect":"42"}
+{"name":"negative-integer","query":"-7","expect":"-7"}
+{"name":"decimal","query":"3.14","expect":"3.14"}
+{"name":"string","query":"\"hello\"","expect":"\"hello\""}
+{"name":"empty-string","query":"\"\"","expect":"\"\""}
+{"name":"true","query":"true","expect":"true"}
+{"name":"false","query":"false","expect":"false"}
+{"name":"nil","query":"nil","expect":"nil"}
+{"name":"empty-vec","query":"[]","expect":"[]"}
+{"name":"single-element-vec","query":"[1]","expect":"[1]"}
+{"name":"multi-element-vec","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}
+{"name":"vec-of-strings","query":"[\"a\" \"b\" \"c\"]","expect":"[\"a\" \"b\" \"c\"]"}
+{"name":"nested-vec","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
+{"name":"empty-set","query":"#{}","expect":"#{}"}
+{"name":"empty-map","query":"{}","expect":"{}"}
+{"name":"quoted-keyword-with-space","query":":\"foo bar\"","expect":":\"foo bar\""}
+{"name":"quoted-keyword-empty-string","query":":\"\"","expect":":\"\""}
+{"name":"quoted-keyword-leading-digit","query":":\"123\"","expect":":\"123\""}
+{"name":"quoted-keyword-sigil-prefix","query":":\"$ref\"","expect":":\"$ref\""}
+{"name":"quoted-keyword-equals-bare-form","query":":\"name\" | eq(:name)","expect":"true"}
+{"name":"quoted-keyword-with-newline-escape","query":":\"line1\\nline2\" | eq(:\"line1\\nline2\")","expect":"true"}
+{"name":"map-with-quoted-key-projection","query":"{:\"weird key\" 42} | /\"weird key\"","expect":"42"}
+{"name":"map-with-quoted-empty-key","query":"{:\"\" \"value-of-empty\"} | /\"\"","expect":"\"value-of-empty\""}
+{"name":"map-with-mixed-bare-and-quoted-keys","query":"{:foo 1 :\"bar baz\" 2} | /\"bar baz\"","expect":"2"}

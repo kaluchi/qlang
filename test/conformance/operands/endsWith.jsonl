@@ -1,11 +1,11 @@
-{"name": "suffix-matches", "query": "\"hello world\" | endsWith(\"world\")", "expect": true}
-{"name": "suffix-equals-subject", "query": "\"hello\" | endsWith(\"hello\")", "expect": true}
-{"name": "suffix-not-matching", "query": "\"hello\" | endsWith(\"world\")", "expect": false}
-{"name": "suffix-longer-than-subject", "query": "\"hi\" | endsWith(\"hello\")", "expect": false}
-{"name": "empty-suffix-always-true", "query": "\"anything\" | endsWith(\"\")", "expect": true}
-{"name": "empty-subject-empty-suffix", "query": "\"\" | endsWith(\"\")", "expect": true}
-{"name": "case-sensitive", "query": "\"hello\" | endsWith(\"World\")", "expect": false}
+{"name":"suffix-matches","query":"\"hello world\" | endsWith(\"world\")","expect":"true"}
+{"name":"suffix-equals-subject","query":"\"hello\" | endsWith(\"hello\")","expect":"true"}
+{"name":"suffix-not-matching","query":"\"hello\" | endsWith(\"world\")","expect":"false"}
+{"name":"suffix-longer-than-subject","query":"\"hi\" | endsWith(\"hello\")","expect":"false"}
+{"name":"empty-suffix-always-true","query":"\"anything\" | endsWith(\"\")","expect":"true"}
+{"name":"empty-subject-empty-suffix","query":"\"\" | endsWith(\"\")","expect":"true"}
+{"name":"case-sensitive","query":"\"hello\" | endsWith(\"World\")","expect":"false"}
 {"name": "subject-not-string-throws", "query": "42 | endsWith(\"x\")", "error": "type-error"}
 {"name": "suffix-not-string-throws", "query": "\"hi\" | endsWith(42)", "error": "type-error"}
-{"name": "filter-vec-by-suffix", "query": "[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter(endsWith(\".txt\"))", "expect": ["alice.txt", "alex.txt"]}
-{"name": "filter-by-projection-suffix", "query": "[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter(/file | endsWith(\".qlang\")) * /file", "expect": ["a.qlang", "c.qlang"]}
+{"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter(endsWith(\".txt\"))","expect":"[\"alice.txt\" \"alex.txt\"]"}
+{"name":"filter-by-projection-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter(/file | endsWith(\".qlang\")) * /file","expect":"[\"a.qlang\" \"c.qlang\"]"}

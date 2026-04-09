@@ -95,11 +95,6 @@ export const join = valueOp('join', 2, (subject, separator) => {
 // JS's native String.prototype.includes / startsWith / endsWith and
 // honor the same subject-first / second-position-modifier convention
 // as prepend / append / split / join.
-//
-// Regular-expression / pattern-matching variants (`matches(re)`) and
-// the broader `match` family are intentionally deferred — they
-// belong to a separate pattern-matching design pass that touches
-// the surface syntax.
 
 export const contains = valueOp('contains', 2, (subject, needle) => {
   if (typeof subject !== 'string') throw new ContainsSubjectNotString(describeType(subject), subject);

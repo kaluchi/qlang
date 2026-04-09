@@ -281,10 +281,9 @@ export const any = higherOrderOp('any', 2, (vec, predLambda) => {
 //
 // Both require the key sub-pipeline to produce a keyword for every
 // element — Map keys in qlang are interned keywords, not arbitrary
-// values. A future overload could accept a stringification policy
-// for non-keyword keys, but for now the type contract stays strict
-// so the rest of the Map operand catalog (keys, vals, has, /key,
-// union, minus, inter) keeps its keyword-key invariant intact.
+// values. The strict keyword-key contract maintains the invariant
+// that the Map operand catalog (keys, vals, has, /key, union,
+// minus, inter) operates uniformly on keyword-keyed Maps.
 //
 // Both close the Vec ↔ Map duality the rest of the catalog implies:
 // `vals` (Map → Vec) had no inverse before this commit.

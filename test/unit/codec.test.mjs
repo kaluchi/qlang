@@ -9,7 +9,7 @@ import {
 } from '../../src/codec.mjs';
 import {
   keyword,
-  makeThunk,
+  makeConduit,
   makeSnapshot
 } from '../../src/types.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
@@ -78,7 +78,7 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
 describe('toTaggedJSON unencodable values', () => {
   it('throws TaggedJSONUnencodableValueError for thunks', () => {
-    const thunk = makeThunk({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    const thunk = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
     expect(() => toTaggedJSON(thunk)).toThrow(TaggedJSONUnencodableValueError);
   });
 

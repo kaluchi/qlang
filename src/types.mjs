@@ -1,7 +1,7 @@
 // Value type predicates and shape helpers.
 //
 // The language has four value types — Scalar, Vec, Map, Set — plus
-// function values, thunks, and snapshots. JavaScript representations:
+// function values, conduits, and snapshots. JavaScript representations:
 //
 //   Scalar     → number, string, boolean, null (for nil),
 //                or an interned keyword object
@@ -14,8 +14,11 @@
 //                fn, meta }  where `fn` is a state transformer
 //                (state, lambdas) → state and `meta` carries the
 //                operand's documentation/contract for `reify`
-//   Thunk      → frozen object { type: 'thunk', name, expr, docs }
-//                for `let`-bindings; `docs` is a Vec<string> of
+//   Conduit    → frozen object { type: 'conduit', name, params,
+//                body, envRef, docs, location, effectful } for
+//                `let`-bindings (parametric pipeline fragments with
+//                0..N parameters and lexical scope via envRef
+//                tie-the-knot); `docs` is a Vec<string> of
 //                doc-comment contents attached at parse time
 //   Snapshot   → frozen object { type: 'snapshot', name, value, docs }
 //                for `as`-bindings; `docs` is a Vec<string> of
@@ -46,8 +49,8 @@ export function isFunctionValue(v) {
   return v !== null && typeof v === 'object' && v.type === 'function';
 }
 
-export function isThunk(v) {
-  return v !== null && typeof v === 'object' && v.type === 'thunk';
+export function isConduit(v) {
+  return v !== null && typeof v === 'object' && v.type === 'conduit';
 }
 
 export function isSnapshot(v) {
@@ -73,34 +76,43 @@ export function keyword(name) {
   return fresh;
 }
 
-// ── thunk factory ──────────────────────────────────────────────
-// Single canonical place that constructs `let`-thunk objects.
-// Used by eval.mjs::evalLetStep. The `docs` Vec carries doc-comment
-// contents attached by the parser (one entry per doc-comment token,
-// in declaration order). The `location` field stores the source
-// position of the originating LetStep so tooling and reify can
-// answer "where was this binding declared". The `effectful` field
-// classifies the binding name against the @-effect-marker convention
-// (see src/effect.mjs); the runtime safety net in eval.mjs::forceThunk
-// reads this field to detect laundering of effectful function values
-// into clean-named bindings.
+// ── conduit factory ────────────────────────────────────────────
+// Single canonical place that constructs conduit objects. A conduit
+// is a named pipeline fragment with 0..N parameters, lexical scope
+// via envRef (tie-the-knot for recursive self-binding), and an AST
+// body that evaluates in a fork at each call site. Zero-arity
+// conduits are the degenerate case (no parameters).
+//
+// The `params` field is an array of parameter name strings (empty
+// for zero-arity). The `envRef` field is a mutable reference holder
+// `{ env: Map }` whose `.env` is set by evalconduit declaration immediately after
+// the conduit is inserted into the env — the lexical scope anchor
+// for fractal composition and library-safe scoping.
+//
+// The `docs` Vec carries doc-comment contents attached by the parser.
+// The `location` field stores the source position of the originating
+// conduit declaration. The `effectful` field classifies the binding name against
+// the @-effect-marker convention (see src/effect.mjs).
 import { classifyEffect } from './effect.mjs';
 
-export function makeThunk(expr, { name, docs = [], location = null } = {}) {
+export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
   return Object.freeze({
-    type: 'thunk',
+    type: 'conduit',
     name,
-    expr,
+    params: Object.freeze([...params]),
+    body,
+    envRef,
     docs: Object.freeze(docs),
     location,
     effectful: classifyEffect(name)
   });
 }
 
+
 // ── snapshot factory ──────────────────────────────────────────
 // Wraps a value captured by `as name`, carrying the binding name,
 // any attached doc comments, and the source position of the
-// originating AsStep. Identifier lookup unwraps the snapshot before
+// originating snapshot declaration. Identifier lookup unwraps the snapshot before
 // returning it to the pipeline, so user code sees the raw value;
 // reify reads the wrapper directly.
 export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
@@ -126,7 +138,7 @@ export function describeType(v) {
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isFunctionValue(v)) return 'function';
-  if (isThunk(v)) return 'thunk';
+  if (isConduit(v)) return 'conduit';
   if (isSnapshot(v)) return 'snapshot';
   return 'unknown';
 }

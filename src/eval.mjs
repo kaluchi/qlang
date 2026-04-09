@@ -12,7 +12,7 @@ import {
   makeState, withPipeValue, envSet, envGet, envHas
 } from './state.mjs';
 import { fork, forkWith } from './fork.mjs';
-import { applyRule10 } from './rule10.mjs';
+import { applyRule10, makeFn } from './rule10.mjs';
 import {
   QlangError,
   QlangTypeError,
@@ -22,11 +22,12 @@ import {
 import { classifyEffect } from './effect.mjs';
 import {
   declareSubjectError,
-  declareShapeError
+  declareShapeError,
+  declareArityError
 } from './runtime/operand-errors.mjs';
 import {
-  isVec, isQMap, isThunk, isSnapshot, isFunctionValue,
-  describeType, keyword, makeThunk, makeSnapshot, NIL
+  isVec, isQMap, isConduit, isSnapshot, isFunctionValue,
+  describeType, keyword, NIL
 } from './types.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -36,6 +37,12 @@ const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '
 const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
 const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType}, not a function`);
+const ConduitArityMismatch    = declareArityError('ConduitArityMismatch',
+  ({ conduitName, expectedArity, actualArity }) =>
+    `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`);
+const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapturedArgs',
+  ({ paramName, actualCount }) =>
+    `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
 
 // evalQuery(source, env?) → final pipeValue
 //
@@ -72,8 +79,6 @@ const NODE_HANDLERS = {
   SetLit:            evalSetLit,
   Projection:        evalProjection,
   OperandCall:       evalOperandCall,
-  AsStep:            evalAsStep,
-  LetStep:           evalLetStep,
   ParenGroup:        evalParenGroup,
   LinePlainComment:  evalCommentStep,
   BlockPlainComment: evalCommentStep
@@ -221,9 +226,11 @@ function evalOperandCall(node, state) {
 
   let resolved = envGet(env, name);
 
-  // Force a thunk written by `let` if encountered as a value.
-  if (isThunk(resolved)) {
-    resolved = forceThunk(resolved, state);
+  // Apply a conduit (parametric or zero-arity pipeline fragment).
+  // Conduits carry an AST body, an optional param list, and a
+  // lexical envRef for fractal composition.
+  if (isConduit(resolved)) {
+    return applyConduit(resolved, node, name, state);
   }
 
   // Unwrap a snapshot written by `as` so user code sees the raw
@@ -262,6 +269,11 @@ function evalOperandCall(node, state) {
     const lambdas = capturedArgsAst === null
       ? []
       : capturedArgsAst.map(arg => makeLambda(arg, capturedEnv));
+    // Stash doc comments from the OperandCall node on the lambdas
+    // array so reflective binding operands (let, as) can access
+    // them without changing the fn(state, lambdas) dispatch signature.
+    lambdas.docs = node.docs || [];
+    lambdas.location = node.location ?? null;
     return applyRule10(resolved, lambdas, state);
   }
 
@@ -277,56 +289,113 @@ function evalOperandCall(node, state) {
   return withPipeValue(state, resolved);
 }
 
+// applyConduit(conduit, node, lookupName, state) → state'
+//
+// Dispatches a conduit call — the "bonus fruit" in the Pac-man model.
+// Builds conduit-parameter proxies (lazy nullary function values) from
+// captured-arg lambdas, constructs a bodyEnv from the lexical envRef
+// anchor plus the params, forks the body, and ascends with only the
+// final pipeValue. The entire operation is one atomic state
+// transformation from the outer pipeline's perspective.
+function applyConduit(conduit, node, lookupName, state) {
+  // Effect-laundering safety net (same invariant as intrinsic operands).
+  if (conduit.effectful && !classifyEffect(lookupName)) {
+    throw new EffectLaunderingAtCall({
+      bindingName: lookupName,
+      effectfulName: conduit.name
+    });
+  }
+
+  const capturedArgsAst = node.args;
+  const expectedArity = conduit.params.length;
+
+  // Build lambdas from captured args at the call site.
+  const capturedEnv = state.env;
+  const lambdas = capturedArgsAst === null
+    ? []
+    : capturedArgsAst.map(arg => makeLambda(arg, capturedEnv));
+
+  // Arity check: exact match required. No auto-curry — partial
+  // application is achieved through zero-arity conduit aliases and parametric
+  // forwarding patterns (fractal composition).
+  if (lambdas.length !== expectedArity) {
+    throw new ConduitArityMismatch({
+      conduitName: conduit.name,
+      expectedArity,
+      actualArity: lambdas.length
+    });
+  }
+
+  // Build bodyEnv: start from the lexical scope anchor (envRef.env),
+  // then layer conduit-parameter proxies on top. Each param proxy is
+  // a nullary function value that fires the captured-arg lambda
+  // against whatever pipeValue the identifier lookup sees at the
+  // moment — this is the lazy binding that enables higher-order
+  // composition (params fire per-element inside sortWith, per-
+  // iteration inside filter, etc.).
+  //
+  // Fallback to state.env when envRef is absent (e.g. deserialized
+  // conduits that haven't been wired to an envRef yet).
+  let bodyEnv = conduit.envRef?.env ?? state.env;
+  for (let i = 0; i < conduit.params.length; i++) {
+    const paramProxy = makeConduitParameter(lambdas[i], conduit.params[i]);
+    bodyEnv = envSet(bodyEnv, conduit.params[i], paramProxy);
+  }
+
+  // Fork body: inner sub-pipeline starts with the caller's pipeValue
+  // and the lexical bodyEnv. Body's env writes (let/as inside the
+  // body) are discarded on return — only the final pipeValue escapes.
+  const bodyState = makeState(state.pipeValue, bodyEnv);
+  const finalBodyState = evalNode(conduit.body, bodyState);
+  return withPipeValue(state, finalBodyState.pipeValue);
+}
+
+// makeConduitParameter(capturedArgLambda, paramName) → function value
+//
+// Wraps a captured-arg lambda in a nullary function value (arity 1,
+// zero captured args) that fires the lambda against the current
+// pipeValue at each lookup site. This is the mechanism that enables
+// higher-order conduit parameters: the lambda stays lazy, evaluated
+// per-element inside sortWith, per-iteration inside filter, per-pair
+// inside desc/asc — wherever the identifier lookup happens inside
+// the conduit body.
+function makeConduitParameter(capturedArgLambda, paramName) {
+  return makeFn(paramName, 1, (state, lambdas) => {
+    if (lambdas.length !== 0) {
+      throw new ConduitParameterNoCapturedArgs({
+        paramName,
+        actualCount: lambdas.length
+      });
+    }
+    return withPipeValue(state, capturedArgLambda(state.pipeValue));
+  }, {
+    category: 'conduit-parameter',
+    subject: 'any (current pipeValue at the lookup site)',
+    modifiers: [],
+    returns: 'any (the captured expression evaluated against pipeValue)',
+    docs: [`Conduit parameter '${paramName}': fires the captured expression against the current pipeValue.`],
+    examples: [],
+    throws: ['ConduitParameterNoCapturedArgs']
+  });
+}
+
 // makeLambda(astNode, env) → (input) → value
 //
 // Constructs a closure that evaluates `astNode` as a sub-pipeline
 // against any given input, in the env captured at construction
 // time. Operand impls call lambdas to resolve captured args at
 // the moment they need them.
+//
+// The `.astNode` property exposes the raw AST for reflective
+// operands (like `let`) that need to store the body expression
+// unevaluated for conduit construction and reify source rendering.
 function makeLambda(astNode, env) {
-  return (input) => {
+  const lambda = (input) => {
     const subState = makeState(input, env);
     return evalNode(astNode, subState).pipeValue;
   };
-}
-
-// forceThunk(thunk, state) → resolved value
-//
-// Dynamic scope: evaluate the thunk's expression against the
-// current state, not the binding-site state. The effect-laundering
-// safety net lives in evalOperandCall, not here, because the
-// laundering only matters at the moment a function value is
-// invoked under a clean name — and identifier lookup is the
-// single chokepoint for every function invocation.
-function forceThunk(thunk, state) {
-  const finalInnerState = fork(state, inner => evalNode(thunk.expr, inner));
-  return finalInnerState.pipeValue;
-}
-
-// ─── Step 4: as name ────────────────────────────────────────────
-
-function evalAsStep(node, state) {
-  const docs = node.docs || [];
-  const snapshot = makeSnapshot(state.pipeValue, {
-    name: node.name,
-    docs,
-    location: node.location ?? null
-  });
-  const nextEnv = envSet(state.env, node.name, snapshot);
-  return makeState(state.pipeValue, nextEnv);
-}
-
-// ─── Step 5: let name = expr ────────────────────────────────────
-
-function evalLetStep(node, state) {
-  const docs = node.docs || [];
-  const thunk = makeThunk(node.body, {
-    name: node.name,
-    docs,
-    location: node.location ?? null
-  });
-  const nextEnv = envSet(state.env, node.name, thunk);
-  return makeState(state.pipeValue, nextEnv);
+  lambda.astNode = astNode;
+  return lambda;
 }
 
 // ─── Step 6: comment (plain forms only — doc forms attach

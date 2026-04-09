@@ -18,4 +18,4 @@
 {"name": "desc-error-on-nil-key", "query": "[{:k 1} {:k nil}] | sortWith(desc(/k))", "error": "type-error"}
 {"name": "desc-error-on-direct-non-pair-subject", "query": "42 | desc(/x)", "error": "type-error"}
 {"name": "desc-error-on-direct-vec-subject", "query": "[1 2] | desc(/x)", "error": "type-error"}
-{"name": "desc-with-recursive-let-key", "query": "let total = (add(1, /children * total | sum)) | [{:children [{:children []}]} {:children [{:children [{:children []}]}]}] | sortWith(desc(total)) * total", "expect": [3, 2]}
+{"name": "desc-with-recursive-let-key", "query": "let(:total, add(1, /children * total | sum)) | [{:children [{:children []}]} {:children [{:children [{:children []}]}]}] | sortWith(desc(total)) * total", "expect": [3, 2]}

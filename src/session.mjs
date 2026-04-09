@@ -14,10 +14,10 @@ import { langRuntime } from './runtime/index.mjs';
 import { makeState } from './state.mjs';
 import {
   keyword,
-  isThunk,
+  isConduit,
   isSnapshot,
   isFunctionValue,
-  makeThunk,
+  makeConduit,
   makeSnapshot
 } from './types.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
@@ -89,7 +89,7 @@ export function createSession(opts = {}) {
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore.
 //
-// User let bindings serialize as `{ kind: 'thunk', name, source, docs }`
+// User let bindings serialize as `{ kind: 'conduit', name, source, docs }`
 // where `source` is the parser-captured `.text` of the body AST.
 // User as bindings serialize as `{ kind: 'snapshot', name, value, docs }`
 // where `value` is the captured payload encoded via toTaggedJSON.
@@ -99,11 +99,12 @@ export function serializeSession(session) {
   for (const [k, v] of session.env) {
     if (builtins.has(k)) continue;
     if (isFunctionValue(v)) continue; // user-installed functions are not portable
-    if (isThunk(v)) {
+    if (isConduit(v)) {
       userBindings.push({
-        kind: 'thunk',
+        kind: 'conduit',
         name: v.name,
-        source: v.expr?.text ?? null,
+        params: [...v.params],
+        source: v.body?.text ?? null,
         docs: [...v.docs]
       });
     } else if (isSnapshot(v)) {
@@ -131,7 +132,7 @@ export function serializeSession(session) {
 
 // deserializeSession(json) → Session
 //
-// Rebuilds a session from a serialized payload. Thunks are parsed
+// Rebuilds a session from a serialized payload. Conduits are parsed
 // from their stored body source and re-installed via session.bind.
 // Snapshots are decoded from tagged JSON and re-installed the same
 // way. Cell history is restored without re-evaluation; the notebook
@@ -148,18 +149,19 @@ export function deserializeSession(json) {
   }
   const session = createSession();
   for (const binding of json.bindings) {
-    if (binding.kind === 'thunk') {
+    if (binding.kind === 'conduit') {
       if (!binding.source) {
         throw new Error(
-          `deserializeSession: thunk binding ${binding.name} has no source`
+          `deserializeSession: conduit binding ${binding.name} has no source`
         );
       }
       const bodyAst = parse(binding.source, { uri: `restored-${binding.name}` });
-      const thunk = makeThunk(bodyAst, {
+      const conduit = makeConduit(bodyAst, {
         name: binding.name,
+        params: binding.params || [],
         docs: binding.docs
       });
-      session.bind(binding.name, thunk);
+      session.bind(binding.name, conduit);
     } else if (binding.kind === 'snapshot') {
       const snap = makeSnapshot(fromTaggedJSON(binding.value), {
         name: binding.name,

@@ -130,23 +130,23 @@ describe('eval — full application of mul', () => {
 
 describe('eval — as binding', () => {
   it('captures and references via as', () => {
-    expect(evalQuery('[1 2 3] | as nums | nums | count')).toBe(3);
+    expect(evalQuery('[1 2 3] | as(:nums) | nums | count')).toBe(3);
   });
 
   it('multi-stage as bindings', () => {
     expect(evalQuery(`
       [85 92 47 78 68 95 52]
-        | as allScores
+        | as(:allScores)
         | filter(gte(70))
-        | as passingScores
+        | as(:passingScores)
         | [allScores | count, passingScores | count]
     `)).toEqual([7, 4]);
   });
 });
 
 describe('eval — let binding', () => {
-  it('binds and forces a thunk', () => {
-    expect(evalQuery('let double = mul(2) | 10 | double')).toBe(20);
+  it('binds and forces a conduit', () => {
+    expect(evalQuery('let(:double, mul(2)) | 10 | double')).toBe(20);
   });
 });
 

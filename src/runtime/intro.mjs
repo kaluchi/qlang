@@ -12,16 +12,23 @@
 import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
 import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
 import {
-  isQMap, isFunctionValue, isThunk, isSnapshot, isKeyword,
+  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet, isNumber, isString, isBoolean, isNil,
-  describeType, keyword
+  describeType, keyword, makeConduit, makeSnapshot
 } from '../types.mjs';
-import { declareSubjectError, declareShapeError } from './operand-errors.mjs';
+import {
+  declareSubjectError,
+  declareShapeError,
+  declareArityError
+} from './operand-errors.mjs';
 import {
   UnresolvedIdentifierError,
   ArityError,
-  QlangTypeError
+  QlangTypeError,
+  EffectLaunderingAtLetParse
 } from '../errors.mjs';
+import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
+import { classifyEffect } from '../effect.mjs';
 import { deepEqual } from '../equality.mjs';
 // Live ESM binding into eval.mjs — runtime/index.mjs → intro.mjs →
 // eval.mjs → runtime/index.mjs forms a cycle; we never touch
@@ -92,9 +99,7 @@ function describeValueType(v) {
 }
 
 function metaToVec(arr) {
-  // Defensive copy: meta arrays are frozen but we want to expose
-  // them as plain Vecs to user code, which expects mutable-looking
-  // (but actually frozen by language semantics) arrays.
+  // Copy the frozen meta array into a fresh Vec for the user-facing descriptor.
   return arr ? [...arr] : [];
 }
 
@@ -127,20 +132,21 @@ function buildBuiltinDescriptor(fn, explicitName) {
   return result;
 }
 
-function buildThunkDescriptor(thunk, explicitName) {
+function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
-  result.set(keyword('kind'), keyword('thunk'));
-  result.set(keyword('name'), explicitName ?? thunk.name ?? null);
-  result.set(keyword('source'), nodeSource(thunk.expr));
-  result.set(keyword('docs'), metaToVec(thunk.docs));
+  result.set(keyword('kind'), keyword('conduit'));
+  result.set(keyword('name'), explicitName ?? conduit.name ?? null);
+  result.set(keyword('params'), metaToVec(conduit.params));
+  result.set(keyword('source'), nodeSource(conduit.body));
+  result.set(keyword('docs'), metaToVec(conduit.docs));
   // :effectful surfaces the @-marker convention from the binding
   // name (`let @foo = ...` → true, `let foo = ...` → false). Set by
-  // makeThunk via classifyEffect at evalLetStep time.
-  result.set(keyword('effectful'), thunk.effectful);
+  // makeConduit via classifyEffect at evalconduit declaration time.
+  result.set(keyword('effectful'), conduit.effectful);
   // :location carries the source position of the originating
-  // LetStep so editor goto-definition can answer "where is `foo`
+  // conduit declaration so editor goto-definition can answer "where is `foo`
   // declared?" via reify(:foo) | /location.
-  result.set(keyword('location'), thunk.location);
+  result.set(keyword('location'), conduit.location);
   return result;
 }
 
@@ -167,11 +173,11 @@ function buildSnapshotDescriptor(snap, explicitName) {
   result.set(keyword('docs'), metaToVec(snap.docs));
   // :effectful surfaces the @-marker convention from the binding
   // name (`as @captured` → true, `as captured` → false). Set by
-  // makeSnapshot via classifyEffect at evalAsStep time. Mirrors
-  // the thunk descriptor field for parallel introspection.
+  // makeSnapshot via classifyEffect at evalsnapshot declaration time. Mirrors
+  // the conduit descriptor field for parallel introspection.
   result.set(keyword('effectful'), snap.effectful);
   // :location carries the source position of the originating
-  // AsStep so editor goto-definition reaches the capture site.
+  // snapshot declaration so editor goto-definition reaches the capture site.
   result.set(keyword('location'), snap.location);
   return result;
 }
@@ -191,7 +197,7 @@ function buildValueDescriptor(value, explicitName) {
 
 function describeBinding(value, explicitName) {
   if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
-  if (isThunk(value)) return buildThunkDescriptor(value, explicitName);
+  if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
   if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
   return buildValueDescriptor(value, explicitName);
 }
@@ -203,7 +209,7 @@ function describeBinding(value, explicitName) {
 // reserved-word set is replicated here so a synthesized Keyword node
 // whose .name happens to be `let`/`as`/`true`/`false`/`nil` is also
 // rendered with quotes.
-const RESERVED_IDENT_NAMES = new Set(['let', 'as', 'true', 'false', 'nil']);
+const RESERVED_IDENT_NAMES = new Set(['true', 'false', 'nil']);
 const BARE_IDENT_RE = /^[@_a-zA-Z][a-zA-Z0-9_-]*$/;
 
 function isBareIdent(name) {
@@ -265,8 +271,6 @@ function sourceOfAst(node) {
       const rest = node.steps.slice(1).map(s => `${s.combinator} ${sourceOfAst(s.step)}`).join(' ');
       return `${first} ${rest}`.trim();
     }
-    case 'LetStep':    return `let ${node.name} = ${sourceOfAst(node.body)}`;
-    case 'AsStep':     return `as ${node.name}`;
     default:           return `<${node.type}>`;
   }
 }
@@ -298,7 +302,7 @@ export const reify = stateOpVariadic('reify', 2, (state, lambdas) => {
   modifiers: ['keyword (optional, named form)'],
   returns: 'Map (descriptor)',
   captured: [0, 1],
-  docs: ['Builds a descriptor Map for a value. Value-level form (no captured args) describes the current pipeValue. Named form reify(:name) looks up :name in env and describes whatever binding lives there. Descriptor :kind is one of :builtin, :thunk, :snapshot, :value.'],
+  docs: ['Builds a descriptor Map for a value. Value-level form (no captured args) describes the current pipeValue. Named form reify(:name) looks up :name in env and describes whatever binding lives there. Descriptor :kind is one of :builtin, :conduit, :snapshot, :value.'],
   examples: ['env | /count | reify', 'reify(:filter)', '42 | reify'],
   throws: ['ReifyKeyNotKeyword', 'UnresolvedIdentifierError']
 });
@@ -422,4 +426,149 @@ export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
   docs: ['Iterates the current env and returns a Vec of descriptors (one per binding) sorted alphabetically by binding name. Each descriptor has the same shape as reify(:name) for that binding.'],
   examples: ['env | manifest | filter(/kind | eq(:builtin)) | table'],
   throws: []
+});
+
+// ── let and as — binding operands ─────────────────────────────
+//
+// `let` and `as` are reflective operands that write conduits and
+// snapshots into env, respectively. They consume captured-arg
+// lambdas and doc comments from the OperandCall dispatch, and
+// they are the only operands that modify env (along with `use`).
+// By living in langRuntime as regular function values rather than
+// grammar-level constructs, they eliminate the Primary-body
+// restriction — captured-arg sub-pipelines accept full Pipeline
+// syntax natively.
+
+// Per-site error classes for let/as operands.
+const LetNameNotKeyword = declareShapeError('LetNameNotKeyword',
+  ({ actualType }) => `let requires a keyword as its first argument (the binding name), got ${actualType}`);
+const LetParamsNotVecOfKeywords = declareShapeError('LetParamsNotVecOfKeywords',
+  ({ index, actualType }) => `let parameter list must be a Vec of keywords; element ${index} is ${actualType}`);
+const LetBodyMissing = declareArityError('LetBodyMissing',
+  ({ actualCount }) => `let requires 2 arguments (name, body) or 3 arguments (name, params, body), got ${actualCount}`);
+const AsNameNotKeyword = declareShapeError('AsNameNotKeyword',
+  ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType}`);
+
+// envSet imported from state.mjs — used by both let and as to write
+// the new binding into env and return the updated state.
+import { envSet } from '../state.mjs';
+
+// let(:name, body)            — zero-arity conduit
+// let(:name, [:params], body) — parametric conduit (fractal composition)
+//
+// Captured args:
+//   [0] — name keyword (:double, :@surround, etc.)
+//   [1] — body pipeline (2-arg form) or params Vec of keywords (3-arg form)
+//   [2] — body pipeline (3-arg form only)
+//
+// The body lambda's .astNode is extracted and stored in the conduit
+// for reify source rendering and applyConduit body evaluation with
+// the lexical envRef. Parameters are eagerly resolved to a Vec of
+// keywords; the body stays lazy (stored as AST, evaluated per call).
+//
+// Effect validation: if the name is clean but the body AST contains
+// an effectful identifier, throw EffectLaunderingAtLetParse. This
+// runs at eval-time (when the let operand executes), not at parse-
+// time — the error fires before any conduit invocation.
+export const letOperand = stateOpVariadic('let', 16, (state, lambdas) => {
+  const argCount = lambdas.length;
+  if (argCount < 2 || argCount > 3) {
+    throw new LetBodyMissing({ actualCount: argCount });
+  }
+
+  // Resolve the name keyword.
+  const nameValue = lambdas[0](state.pipeValue);
+  if (!isKeyword(nameValue)) {
+    throw new LetNameNotKeyword({ actualType: describeType(nameValue), actualValue: nameValue });
+  }
+  const bindingName = nameValue.name;
+
+  // Resolve params (3-arg form) or default to empty (2-arg form).
+  let params = [];
+  let bodyLambda;
+  if (argCount === 3) {
+    const paramsValue = lambdas[1](state.pipeValue);
+    if (!isVec(paramsValue)) {
+      throw new LetParamsNotVecOfKeywords({ index: -1, actualType: describeType(paramsValue), actualValue: paramsValue });
+    }
+    for (let i = 0; i < paramsValue.length; i++) {
+      if (!isKeyword(paramsValue[i])) {
+        throw new LetParamsNotVecOfKeywords({ index: i, actualType: describeType(paramsValue[i]), actualValue: paramsValue[i] });
+      }
+    }
+    params = paramsValue.map(k => k.name);
+    bodyLambda = lambdas[2];
+  } else {
+    bodyLambda = lambdas[1];
+  }
+
+  // Extract the body AST from the lambda (set by makeLambda in eval.mjs).
+  const bodyAst = bodyLambda.astNode;
+
+  // Effect-marker validation: clean name + effectful body → rejected.
+  if (!classifyEffect(bindingName) && bodyAst) {
+    const offender = findFirstEffectfulIdentifier(bodyAst);
+    if (offender !== null) {
+      throw new EffectLaunderingAtLetParse({
+        letName: bindingName,
+        effectfulName: offender,
+        location: bodyAst.location ?? null
+      });
+    }
+  }
+
+  // Construct the conduit with lexical scope via envRef tie-the-knot.
+  const docs = lambdas.docs || [];
+  const envRef = { env: null };
+  const conduit = makeConduit(bodyAst, {
+    name: bindingName,
+    params,
+    envRef,
+    docs,
+    location: bodyAst?.location ?? null
+  });
+  const nextEnv = envSet(state.env, bindingName, conduit);
+  envRef.env = nextEnv;  // tie the knot: lexical scope anchor
+  return makeState(state.pipeValue, nextEnv);
+}, {
+  category: 'reflective',
+  subject: 'any (pipeValue passes through unchanged)',
+  modifiers: ['keyword (binding name)', 'Vec of keywords (params, optional)', 'Pipeline (body)'],
+  returns: 'any (unchanged pipeValue)',
+  captured: [2, 3],
+  docs: ['Declares a conduit (named pipeline fragment) in env. Zero-arity form `let(:name, body)` binds a pipeline fragment. Parametric form `let(:name, [:params], body)` binds a fragment with named parameters for fractal composition. The body is stored as AST and evaluated in a lexically-scoped fork at each call site. pipeValue passes through unchanged.'],
+  examples: [
+    'let(:double, mul(2)) | 10 | double',
+    'let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")'
+  ],
+  throws: ['LetNameNotKeyword', 'LetParamsNotVecOfKeywords', 'LetBodyMissing', 'EffectLaunderingAtLetParse']
+});
+
+// as(:name) — snapshot the current pipeValue under a keyword name.
+//
+// pipeValue passes through unchanged; the snapshot is written to env
+// and retrievable by name through identifier lookup (auto-unwrapped)
+// or through reify(:name) for metadata inspection.
+export const asOperand = stateOp('as', 2, (state, lambdas) => {
+  const nameValue = lambdas[0](state.pipeValue);
+  if (!isKeyword(nameValue)) {
+    throw new AsNameNotKeyword({ actualType: describeType(nameValue), actualValue: nameValue });
+  }
+  const bindingName = nameValue.name;
+  const docs = lambdas.docs || [];
+  const snapshot = makeSnapshot(state.pipeValue, {
+    name: bindingName,
+    docs,
+    location: lambdas.location ?? null
+  });
+  const nextEnv = envSet(state.env, bindingName, snapshot);
+  return makeState(state.pipeValue, nextEnv);
+}, {
+  category: 'reflective',
+  subject: 'any (the value to snapshot)',
+  modifiers: ['keyword (binding name)'],
+  returns: 'any (unchanged pipeValue)',
+  docs: ['Captures the current pipeValue as a frozen snapshot under the given keyword name. pipeValue passes through unchanged. The snapshot is retrievable by name through identifier lookup (auto-unwrapped to the raw value) or through reify(:name) for metadata inspection including docs.'],
+  examples: ['42 | as(:answer) | answer', '[1 2 3] | as(:nums) | nums | count'],
+  throws: ['AsNameNotKeyword']
 });

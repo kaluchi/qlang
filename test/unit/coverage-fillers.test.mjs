@@ -13,7 +13,7 @@ import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
   makeSnapshot,
-  makeThunk,
+  makeConduit,
   keyword
 } from '../../src/types.mjs';
 import {
@@ -81,15 +81,15 @@ describe('equality.deepEqual rejection branches', () => {
   });
 });
 
-describe('describeType for thunk and snapshot', () => {
+describe('describeType for conduit and snapshot', () => {
   it('describeType returns "snapshot" for a snapshot value', () => {
     const snap = makeSnapshot(42, { name: 'x' });
     expect(describeType(snap)).toBe('snapshot');
   });
 
-  it('describeType returns "thunk" for a thunk value', () => {
-    const thunk = makeThunk({ type: 'NumberLit', value: 1 }, { name: 'x' });
-    expect(describeType(thunk)).toBe('thunk');
+  it('describeType returns "conduit" for a conduit value', () => {
+    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    expect(describeType(conduit)).toBe('conduit');
   });
 });
 
@@ -117,7 +117,7 @@ describe('intro.sourceOfAst branches reachable via synthesized thunks', () => {
   // every Primary node type to make sure each branch is exercised.
   function reifySynth(synthBody) {
     const s = createSession();
-    s.bind('synth', makeThunk(synthBody, { name: 'synth' }));
+    s.bind('synth', makeConduit(synthBody, { name: 'synth' }));
     return s.evalCell('reify(:synth) | /source').result;
   }
 
@@ -238,7 +238,9 @@ describe('intro.sourceOfAst branches reachable via synthesized thunks', () => {
   });
 
   it('renders a reserved-word Keyword name in quoted form', () => {
-    expect(reifySynth({ type: 'Keyword', name: 'let' })).toBe(':"let"');
+    // true/false/nil are still reserved; let/as are no longer reserved.
+    expect(reifySynth({ type: 'Keyword', name: 'true' })).toBe(':"true"');
+    expect(reifySynth({ type: 'Keyword', name: 'let' })).toBe(':let');
   });
 
   it('renders a Projection with quoted segments where needed', () => {
@@ -253,23 +255,6 @@ describe('intro.sourceOfAst branches reachable via synthesized thunks', () => {
       type: 'Projection',
       keys: ['a', 'b', 'c']
     })).toBe('/a/b/c');
-  });
-
-  it('renders a LetStep', () => {
-    expect(reifySynth({
-      type: 'LetStep',
-      name: 'x',
-      body: { type: 'NumberLit', value: 5 },
-      docs: []
-    })).toBe('let x = 5');
-  });
-
-  it('renders an AsStep', () => {
-    expect(reifySynth({
-      type: 'AsStep',
-      name: 'snap',
-      docs: []
-    })).toBe('as snap');
   });
 
   it('falls back to a node-type marker for unknown types', () => {
@@ -315,7 +300,7 @@ describe('sourceOfAst structural-inverse property over Primary subtree', () => {
     const original = parse(source);
     walkAst(original, (n) => { delete n.text; });
     const session = createSession();
-    session.bind('syn', makeThunk(original, { name: 'syn' }));
+    session.bind('syn', makeConduit(original, { name: 'syn' }));
     const rendered = session.evalCell('reify(:syn) | /source').result;
     return { rendered, reparsed: parse(rendered) };
   }
@@ -511,6 +496,44 @@ describe('setops bare-form empty Vec', () => {
 
   it('union bare on empty Vec throws UnionBareEmpty', () => {
     expect(() => evalQuery('[] | union')).toThrow();
+  });
+});
+
+describe('conduit effect-laundering at call site', () => {
+  it('conduit with @-name called via clean alias triggers EffectLaunderingAtCall', () => {
+    const s = createSession();
+    // Declare an @-prefixed conduit, then shadow it under a clean name
+    // via use, triggering the runtime safety net in applyConduit.
+    s.evalCell('let(:@effFn, count)');
+    s.evalCell('{:clean (env | /@effFn)} | use');
+    const cell = s.evalCell('[1 2 3] | clean');
+    expect(cell.error).not.toBeNull();
+    expect(cell.error.name).toBe('EffectLaunderingAtCall');
+  });
+});
+
+describe('conduit-parameter arity error', () => {
+  it('calling a conduit parameter with captured args throws ConduitParameterNoCapturedArgs', () => {
+    // Inside the body, `n` is a conduit-parameter proxy (nullary
+    // function value). Calling it with captured args (n(42)) should
+    // raise ConduitParameterNoCapturedArgs with structured context.
+    let thrown;
+    try { evalQuery('let(:f, [:n], n(42)) | 0 | f(5)'); } catch (e) { thrown = e; }
+    expect(thrown).toBeDefined();
+    expect(thrown.name).toBe('ConduitParameterNoCapturedArgs');
+    expect(thrown.context.paramName).toBe('n');
+    expect(thrown.context.actualCount).toBe(1);
+  });
+});
+
+describe('runExamples on non-string example entry', () => {
+  it('returns ok=false for non-string entries in examples Vec', () => {
+    const s = createSession();
+    // Build a descriptor with a non-string example entry to exercise
+    // the `typeof example !== string` branch in runExamples.
+    s.evalCell('{:kind :builtin :examples [42]} | use');
+    const result = s.evalCell('{:kind :builtin :examples [42]} | runExamples | first | /ok').result;
+    expect(result).toBe(false);
   });
 });
 

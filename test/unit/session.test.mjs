@@ -26,14 +26,14 @@ describe('createSession lifecycle', () => {
 
   it('evalCell persists let bindings across subsequent cells', () => {
     const s = createSession();
-    s.evalCell('let double = mul(2)');
+    s.evalCell('let(:double, mul(2))');
     const entry = s.evalCell('5 | double');
     expect(entry.result).toBe(10);
   });
 
   it('evalCell persists as bindings across subsequent cells', () => {
     const s = createSession();
-    s.evalCell('42 | as answer');
+    s.evalCell('42 | as(:answer)');
     const entry = s.evalCell('answer | mul(2)');
     expect(entry.result).toBe(84);
   });
@@ -68,9 +68,9 @@ describe('createSession lifecycle', () => {
 
   it('takeSnapshot/restoreSnapshot round-trips env and history length', () => {
     const s = createSession();
-    s.evalCell('let x = 1');
+    s.evalCell('let(:x, 1)');
     const snap = s.takeSnapshot();
-    s.evalCell('let y = 2');
+    s.evalCell('let(:y, 2)');
     expect(s.cellHistory).toHaveLength(2);
     s.restoreSnapshot(snap);
     expect(s.cellHistory).toHaveLength(1);
@@ -90,8 +90,8 @@ describe('createSession lifecycle', () => {
 describe('serializeSession / deserializeSession round-trip', () => {
   it('preserves user let bindings via thunk source replay', () => {
     const s = createSession();
-    s.evalCell('let double = mul(2)');
-    s.evalCell('let triple = mul(3)');
+    s.evalCell('let(:double, mul(2))');
+    s.evalCell('let(:triple, mul(3))');
 
     const payload = serializeSession(s);
     const json = JSON.stringify(payload);
@@ -103,8 +103,8 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('preserves user as snapshots via tagged-JSON value replay', () => {
     const s = createSession();
-    s.evalCell('42 | as answer');
-    s.evalCell('[1 2 3] | as nums');
+    s.evalCell('42 | as(:answer)');
+    s.evalCell('[1 2 3] | as(:nums)');
 
     const payload = serializeSession(s);
     const restored = deserializeSession(JSON.parse(JSON.stringify(payload)));
@@ -115,13 +115,13 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('preserves cell history sources without re-running them', () => {
     const s = createSession();
-    s.evalCell('let x = 1');
-    s.evalCell('let y = 2');
+    s.evalCell('let(:x, 1)');
+    s.evalCell('let(:y, 2)');
     const payload = serializeSession(s);
     const restored = deserializeSession(payload);
     expect(restored.cellHistory).toHaveLength(2);
-    expect(restored.cellHistory[0].source).toBe('let x = 1');
-    expect(restored.cellHistory[1].source).toBe('let y = 2');
+    expect(restored.cellHistory[0].source).toBe('let(:x, 1)');
+    expect(restored.cellHistory[1].source).toBe('let(:y, 2)');
   });
 
   it('does not serialize built-in functions', () => {
@@ -142,10 +142,10 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(() => deserializeSession({ schemaVersion: 1 })).toThrow(/invalid/);
   });
 
-  it('rejects thunk binding with no source', () => {
+  it('rejects conduit binding with no source', () => {
     expect(() => deserializeSession({
       schemaVersion: 1,
-      bindings: [{ kind: 'thunk', name: 'x', source: null, docs: [] }],
+      bindings: [{ kind: 'conduit', name: 'x', source: null, docs: [] }],
       cells: []
     })).toThrow(/no source/);
   });
@@ -199,13 +199,13 @@ describe('serializeSession / deserializeSession round-trip', () => {
     // Construct a thunk whose expr is a hand-built AST node that
     // never came from the parser, so has no .text. The session
     // serializer must emit source: null without throwing.
-    const { makeThunk } = await import('../../src/types.mjs');
+    const { makeConduit } = await import('../../src/types.mjs');
     const synthAst = { type: 'NumberLit', value: 99 };
     const s = createSession();
-    s.bind('synth', makeThunk(synthAst, { name: 'synth' }));
+    s.bind('synth', makeConduit(synthAst, { name: 'synth' }));
     const payload = serializeSession(s);
     const synthBinding = payload.bindings.find(b => b.name === 'synth');
-    expect(synthBinding.kind).toBe('thunk');
+    expect(synthBinding.kind).toBe('conduit');
     expect(synthBinding.source).toBeNull();
   });
 });

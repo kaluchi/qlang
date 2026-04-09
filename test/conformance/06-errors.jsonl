@@ -26,4 +26,4 @@
 {"name": "vals-on-vec", "query": "[1 2] | vals", "error": "type-error"}
 {"name": "prepend-modifier-not-string", "query": "\"x\" | prepend(42)", "error": "type-error"}
 {"name": "append-modifier-not-string", "query": "\"x\" | append(42)", "error": "type-error"}
-{"name": "cannot-apply-args-to-value", "query": "let five = 5 | five(42)", "error": "type-error"}
+{"name": "cannot-apply-args-to-value", "query": "5 | as(:five) | five(42)", "error": "type-error"}

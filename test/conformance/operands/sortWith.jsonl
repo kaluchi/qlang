@@ -16,7 +16,7 @@
 {"name": "with-desc-on-children-count", "query": "[{:c [1 2 3]} {:c []} {:c [1]}] | sortWith(desc(/c | count)) * (/c | count)", "expect": [3, 1, 0]}
 {"name": "compound-name-asc-then-age-desc", "query": "[{:n \"B\" :a 30} {:n \"A\" :a 20} {:n \"B\" :a 25}] | sortWith([asc(/n), desc(/a)] | firstNonZero) * /a", "expect": [20, 30, 25]}
 {"name": "compound-three-keys", "query": "[{:dept \"eng\" :seniority 5 :name \"Bob\"} {:dept \"eng\" :seniority 5 :name \"Alice\"} {:dept \"eng\" :seniority 8 :name \"Carol\"} {:dept \"sales\" :seniority 3 :name \"Dan\"}] | sortWith([asc(/dept), desc(/seniority), asc(/name)] | firstNonZero) * /name", "expect": ["Carol", "Alice", "Bob", "Dan"]}
-{"name": "compound-with-recursive-let-key", "query": "let total = (add(1, /children * total | sum)) | [{:children [{:children [{:children []}]} {:children []}]} {:children [{:children []} {:children []}]}] | sortWith([desc(/children | count), desc(total)] | firstNonZero) * total", "expect": [4, 3]}
+{"name": "compound-with-recursive-let-key", "query": "let(:total, add(1, /children * total | sum)) | [{:children [{:children [{:children []}]} {:children []}]} {:children [{:children []} {:children []}]}] | sortWith([desc(/children | count), desc(total)] | firstNonZero) * total", "expect": [4, 3]}
 {"name": "after-filter", "query": "[{:n 1} {:n 5} {:n 2} {:n 8}] | filter(/n | gt(2)) | sortWith(asc(/n)) * /n", "expect": [5, 8]}
 {"name": "after-distinct", "query": "[3 1 2 1 3] | distinct | sortWith(sub(/left, /right))", "expect": [1, 2, 3]}
 {"name": "subject-not-vec-error", "query": "42 | sortWith(asc(/x))", "error": "type-error"}

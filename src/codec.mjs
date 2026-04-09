@@ -26,7 +26,7 @@ import {
   isQMap,
   isQSet,
   isFunctionValue,
-  isThunk,
+  isConduit,
   isSnapshot
 } from './types.mjs';
 
@@ -62,7 +62,7 @@ export function toTaggedJSON(value) {
     return { $set: Array.from(value, toTaggedJSON) };
   }
   if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError('function');
-  if (isThunk(value))         throw new TaggedJSONUnencodableValueError('thunk');
+  if (isConduit(value))         throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value))      throw new TaggedJSONUnencodableValueError('snapshot');
   throw new TaggedJSONUnencodableValueError(t);
 }

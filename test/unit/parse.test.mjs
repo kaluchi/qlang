@@ -204,27 +204,34 @@ describe('parse — OperandCall', () => {
   });
 });
 
-describe('parse — AsStep, LetStep', () => {
-  it('parses an as binding', () => {
-    const ast = parse('as roster');
-    expect(ast.type).toBe('AsStep');
-    expect(ast.name).toBe('roster');
-    expect(ast.docs).toEqual([]);
-  });
-
-  it('parses a let binding', () => {
-    const ast = parse('let double = mul(2)');
-    expect(ast.type).toBe('LetStep');
-    expect(ast.name).toBe('double');
-    expect(ast.body.type).toBe('OperandCall');
-    expect(ast.docs).toEqual([]);
-  });
-
-  it('parses use as an ordinary identifier (no grammar keyword)', () => {
-    const ast = parse('use');
+describe('parse — let and as as operand calls', () => {
+  it('parses as(:name) as an OperandCall', () => {
+    const ast = parse('as(:roster)');
     expect(ast.type).toBe('OperandCall');
-    expect(ast.name).toBe('use');
-    expect(ast.args).toBeNull();
+    expect(ast.name).toBe('as');
+    expect(ast.args).toHaveLength(1);
+    expect(ast.args[0].type).toBe('Keyword');
+    expect(ast.args[0].name).toBe('roster');
+  });
+
+  it('parses let(:name, body) as an OperandCall', () => {
+    const ast = parse('let(:double, mul(2))');
+    expect(ast.type).toBe('OperandCall');
+    expect(ast.name).toBe('let');
+    expect(ast.args).toHaveLength(2);
+    expect(ast.args[0].type).toBe('Keyword');
+    expect(ast.args[1].type).toBe('OperandCall');
+  });
+
+  it('let and as are no longer reserved words', () => {
+    // They parse as ordinary identifiers / OperandCall names.
+    const letAst = parse('let');
+    expect(letAst.type).toBe('OperandCall');
+    expect(letAst.name).toBe('let');
+
+    const asAst = parse('as');
+    expect(asAst.type).toBe('OperandCall');
+    expect(asAst.name).toBe('as');
   });
 });
 
@@ -249,16 +256,18 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].combinator).toBe('>>');
   });
 
-  it('parses an as step inside a pipeline', () => {
-    const ast = parse('foo | as snapshot | bar');
+  it('parses as(:name) inside a pipeline', () => {
+    const ast = parse('foo | as(:snapshot) | bar');
     expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('AsStep');
+    expect(ast.steps[1].step.type).toBe('OperandCall');
+    expect(ast.steps[1].step.name).toBe('as');
   });
 
-  it('parses a let step inside a pipeline', () => {
-    const ast = parse('items | let total = count | total');
+  it('parses let(:name, body) inside a pipeline', () => {
+    const ast = parse('items | let(:total, count) | total');
     expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('LetStep');
+    expect(ast.steps[1].step.type).toBe('OperandCall');
+    expect(ast.steps[1].step.name).toBe('let');
   });
 });
 
@@ -270,7 +279,7 @@ describe('parse — ParenGroup', () => {
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs * (as elem | {:k /id :v elem})');
+    const ast = parse('xs * (as(:elem) | {:k /id :v elem})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });

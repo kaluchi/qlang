@@ -11,14 +11,14 @@
 //     a boolean `.effectful` field on every node whose source token
 //     can carry the marker:
 //       - OperandCall .effectful = classifyEffect(name)
-//       - LetStep / AsStep .effectful = classifyEffect(name)
+//       - conduit declaration / snapshot declaration .effectful = classifyEffect(name)
 //       - Projection .effectful = true iff any key segment classifies
 //         as effectful
 //     Downstream consumers (editor highlight, refactor, autocomplete,
 //     reify descriptors, runtime safety net) read `.effectful` and
 //     never re-derive the property from the source name.
 //
-//   validateEffectMarkers(ast) — walks every LetStep and rejects any
+//   validateEffectMarkers(ast) — walks every conduit declaration and rejects any
 //     non-effectful let whose body contains an effectful read site
 //     (OperandCall.effectful or Projection.effectful). Throws
 //     EffectLaunderingAtLetParse on the first violation, carrying
@@ -40,15 +40,12 @@ export function decorateAstWithEffectMarkers(ast) {
   walkAst(ast, (node) => {
     switch (node.type) {
       case 'OperandCall':
-      case 'LetStep':
-      case 'AsStep':
         node.effectful = classifyEffect(node.name);
         break;
       case 'Projection':
         node.effectful = node.keys.some(classifyEffect);
         break;
       default:
-        // Other node types do not carry an effect marker.
         break;
     }
   });
@@ -80,23 +77,12 @@ export function findFirstEffectfulIdentifier(node) {
 
 // validateEffectMarkers(ast) → ast
 //
-// Visits every LetStep in the tree. Each non-effectful let must
-// have an effect-clean body; otherwise we throw
-// EffectLaunderingAtLetParse with the binding's source location
-// and the offending identifier so the editor can squiggle the
-// exact spot. Returns the AST unchanged on success.
+// With `let` promoted to a regular operand call, effect validation
+// for conduit declarations lives inside the `let` operand impl at
+// eval-time (see runtime/intro.mjs::letOperand). This function is
+// retained as a no-op for callers that still reference it; the
+// actual invariant enforcement happens when the `let` operand
+// executes and calls `findFirstEffectfulIdentifier` on the body AST.
 export function validateEffectMarkers(ast) {
-  walkAst(ast, (node) => {
-    if (node.type !== 'LetStep') return;
-    if (node.effectful) return;
-    const offender = findFirstEffectfulIdentifier(node.body);
-    if (offender !== null) {
-      throw new EffectLaunderingAtLetParse({
-        letName: node.name,
-        effectfulName: offender,
-        location: node.location
-      });
-    }
-  });
   return ast;
 }

@@ -18,8 +18,8 @@
 // forms share the `|~` character family:
 //   |~|         line plain       — identity step, content to newline
 //   |~ ... ~|   block plain      — identity step, content to ~|
-//   |~~|        line doc         — attach content to next RawStep
-//   |~~ ... ~~| block doc        — attach content to next RawStep
+//   |~~|        line doc         — attach content to next OperandCall
+//   |~~ ... ~~| block doc        — attach content to next OperandCall
 //
 // The leading `|` in every comment token absorbs the pipeline
 // combinator that would otherwise have preceded the step.
@@ -191,23 +191,20 @@ StepAfterCombinator
   / RawStep
 
 // One or more doc comments, optionally interleaved with plain
-// comments, followed by a binding step (`let` or `as`). Each doc
-// comment produces ONE entry in the `docs` Vec attached to the
-// binding; plain comments between the docs and the binding emit
-// as standalone identity PipeSteps immediately before the binding.
+// comments, followed by an operand call. Each doc comment produces
+// ONE entry in the `docs` Vec attached to the operand call node.
+// Binding operands (let, as) consume docs and store them on the
+// conduit/snapshot; other operands ignore docs (harmless metadata).
 // Adjacent line docs do NOT concatenate — each is its own entry.
-// Block docs preserve internal newlines as a single multi-line
-// entry. Doc comments before a non-binding step are a parse error:
-// docs are retrievable by binding name through reify, so attaching
-// them to nameless values has no retrieval path.
+// Block docs preserve internal newlines as a single multi-line entry.
 //
 // When no plain comments are interleaved, the rule returns a single
-// binding-step node with `.docs` populated. When interleaved plains
+// operand-call node with `.docs` populated. When interleaved plains
 // are present, the rule returns a compound array that Pipeline
 // flattens into multiple steps (plain identity steps first, then
-// the doc-attached binding).
+// the doc-attached operand call).
 DocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:BindingStep
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:OperandCall
   {
     const allItems = [firstDoc, ...rest.map(t => t[1])];
     const docs = [];
@@ -239,10 +236,6 @@ DocAttachedSequence
 DocOrPlainItem
   = DocComment
   / PlainCommentStep
-
-BindingStep
-  = LetStep
-  / AsStep
 
 DocCommentList
   = head:DocComment tail:(_ DocComment)*
@@ -301,19 +294,14 @@ Combinator
   / "*"  { return '*'; }
 
 // --- Raw steps (non-comment) -----------------------------------
+//
+// With `let` and `as` promoted to regular operand calls in
+// langRuntime, RawStep collapses to just Primary. No special
+// grammar constructs for binding — `let(:name, body)` and
+// `as(:name)` parse as ordinary OperandCall nodes.
 
 RawStep
-  = LetStep
-  / AsStep
-  / Primary
-
-LetStep
-  = "let" __ name:Ident _ "=" _ body:Primary
-    { return node('LetStep', { name, body, docs: [] }, location(), text()); }
-
-AsStep
-  = "as" __ name:Ident
-    { return node('AsStep', { name, docs: [] }, location(), text()); }
+  = Primary
 
 Primary
   = ParenGroup
@@ -438,7 +426,7 @@ Ident
     { return first + rest.join(''); }
 
 ReservedWord
-  = ("let" / "as" / "true" / "false" / "nil") !IdentTail
+  = ("true" / "false" / "nil") !IdentTail
 
 IdentStart = [@_a-zA-Z]
 IdentTail  = [a-zA-Z0-9_-]

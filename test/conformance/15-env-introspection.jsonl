@@ -1,9 +1,9 @@
 {"name": "env-returns-map", "query": "env | has(:count)", "expect": true}
 {"name": "env-has-builtin-filter", "query": "env | has(:filter)", "expect": true}
 {"name": "env-has-unknown", "query": "env | has(:thisNameDoesNotExist)", "expect": false}
-{"name": "env-after-as-binding", "query": "42 | as answer | env | has(:answer)", "expect": true}
-{"name": "env-after-let-binding", "query": "let double = mul(2) | env | has(:double)", "expect": true}
+{"name": "env-after-as-binding", "query": "42 | as(:answer) | env | has(:answer)", "expect": true}
+{"name": "env-after-let-binding", "query": "let(:double, mul(2)) | env | has(:double)", "expect": true}
 {"name": "env-after-use-install", "query": "{:pi 3.14} | use | env | has(:pi)", "expect": true}
 {"name": "env-keys-count-is-large", "query": "env | keys | count | gt(30)", "expect": true}
 {"name": "env-operator-ignores-pipeValue", "query": "[1 2 3] | env | has(:count)", "expect": true}
-{"name": "env-as-projection-source", "query": "0.07 | as taxRate | env | /taxRate", "expect": 0.07}
+{"name": "env-as-projection-source", "query": "0.07 | as(:taxRate) | env | /taxRate", "expect": 0.07}

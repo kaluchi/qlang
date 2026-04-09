@@ -126,7 +126,7 @@ export class QlangInvariantError extends QlangError {
 //     OperandCall or Projection key inside a non-@-prefixed let body.
 //
 //   EffectLaunderingAtForce — fired at runtime by eval.mjs::forceThunk
-//     when a non-@-prefixed thunk forces and the resolved value
+//     when a non-@-prefixed conduit forces and the resolved value
 //     turns out to be an @-prefixed function (the laundering path
 //     where the function value was extracted via env-projection or
 //     installed via use, so the parse-time scan could not see it).

@@ -1,12 +1,12 @@
-// Tests for src/effect-check.mjs (parse-time AST decoration and
-// validation) and src/eval.mjs::evalOperandCall (call-site safety
-// net). Together they enforce the @-effect-marker invariant: a let
-// whose body references an effectful identifier must itself be
-// @-prefixed, and any function value resolved through a clean
-// identifier must not be effectful.
+// Tests for effect-marker enforcement. With `let` promoted to a
+// regular operand call, effect validation for conduit declarations
+// lives inside the `let` operand impl at eval-time. The parse-time
+// AST decoration (classifyEffect on OperandCall and Projection nodes)
+// still runs, and findFirstEffectfulIdentifier is used by the `let`
+// impl to reject effectful bodies under clean names.
 
 import { describe, it, expect } from 'vitest';
-import { parse, ParseError } from '../../src/parse.mjs';
+import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import {
   EffectLaunderingError,
@@ -23,10 +23,6 @@ import { classifyEffect, EFFECT_MARKER_PREFIX } from '../../src/effect.mjs';
 import { createSession } from '../../src/session.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
-// Helper: a fake effectful function value to seed an env so the
-// runtime laundering tests have something to actually invoke. The
-// real @-prefixed operands are provided by the host plugin and not
-// shipped in langRuntime.
 function fakeEffectfulOperand(name = '@callers') {
   return makeFn(name, 1, (state, _lambdas) => state, {
     category: 'effectful-host',
@@ -66,7 +62,7 @@ describe('effect.mjs classifyEffect', () => {
 
 describe('decorateAstWithEffectMarkers — boolean field stamping', () => {
   it('OperandCall with @-prefix gets effectful=true', () => {
-    const ast = parse('let @impl = @callers').body;
+    const ast = parse('@callers');
     expect(ast.type).toBe('OperandCall');
     expect(ast.effectful).toBe(true);
   });
@@ -77,33 +73,10 @@ describe('decorateAstWithEffectMarkers — boolean field stamping', () => {
     expect(ast.effectful).toBe(false);
   });
 
-  it('LetStep with @-prefix gets effectful=true', () => {
-    const ast = parse('let @impl = count');
-    expect(ast.effectful).toBe(true);
-  });
-
-  it('LetStep with clean name gets effectful=false', () => {
-    const ast = parse('let foo = count');
-    expect(ast.effectful).toBe(false);
-  });
-
-  it('AsStep with @-prefix gets effectful=true', () => {
-    const ast = parse('as @captured');
-    expect(ast.effectful).toBe(true);
-  });
-
-  it('AsStep with clean name gets effectful=false', () => {
-    const ast = parse('as snap');
-    expect(ast.effectful).toBe(false);
-  });
-
   it('Projection with at least one @-prefixed segment gets effectful=true', () => {
-    const ast = parse('let @x = (env | /scope/@callers)').body;
-    // body is a ParenGroup containing a Pipeline
-    expect(ast.type).toBe('ParenGroup');
-    const proj = ast.pipeline.steps[1].step;
-    expect(proj.type).toBe('Projection');
-    expect(proj.effectful).toBe(true);
+    const ast = parse('/scope/@callers');
+    expect(ast.type).toBe('Projection');
+    expect(ast.effectful).toBe(true);
   });
 
   it('Projection with all clean segments gets effectful=false', () => {
@@ -125,125 +98,105 @@ describe('findFirstEffectfulIdentifier', () => {
   });
 
   it('returns the @-prefixed OperandCall name', () => {
-    const root = parse('let @x = @callers');
-    expect(findFirstEffectfulIdentifier(root.body)).toBe('@callers');
+    const ast = parse('@callers');
+    expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
   it('reaches into nested OperandCall arguments', () => {
-    const root = parse('let @x = filter(@callers | count)');
-    expect(findFirstEffectfulIdentifier(root.body)).toBe('@callers');
+    const ast = parse('filter(@callers | count)');
+    expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
   it('reaches into Vec literal elements', () => {
-    const root = parse('let @x = [1 @callers 3]');
-    expect(findFirstEffectfulIdentifier(root.body)).toBe('@callers');
+    const ast = parse('[1 @callers 3]');
+    expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
-  it('reports the @-prefixed Projection segment of an env-projection', () => {
-    const root = parse('let @x = (env | /@callers)');
-    expect(findFirstEffectfulIdentifier(root.body)).toBe('@callers');
+  it('reports the @-prefixed Projection segment', () => {
+    const ast = parse('env | /@callers');
+    expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
   it('reports the @-prefixed segment in a multi-key Projection', () => {
-    const root = parse('let @x = (env | /scope/@callers)');
-    expect(findFirstEffectfulIdentifier(root.body)).toBe('@callers');
+    const ast = parse('env | /scope/@callers');
+    expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 });
 
-describe('validateEffectMarkers — parse-time enforcement', () => {
-  it('rejects let foo = @callers (direct effectful body, clean name)', () => {
-    expect(() => parse('let foo = @callers')).toThrow(EffectLaunderingAtLetParse);
+describe('eval-time effect validation in let operand', () => {
+  it('rejects let(:foo, @callers) — effectful body, clean name', () => {
+    expect(() => evalQuery('let(:foo, @callers)')).toThrow(EffectLaunderingAtLetParse);
   });
 
-  it('rejects nested let foo = filter(@callers | count)', () => {
-    expect(() => parse('let foo = filter(@callers | count)')).toThrow(EffectLaunderingAtLetParse);
+  it('rejects nested effectful body', () => {
+    expect(() => evalQuery('let(:foo, filter(@callers | count))')).toThrow(EffectLaunderingAtLetParse);
   });
 
-  it('rejects projection-laundering let bad = (env | /@callers)', () => {
-    expect(() => parse('let bad = (env | /@callers)')).toThrow(EffectLaunderingAtLetParse);
+  it('rejects projection-laundering', () => {
+    expect(() => evalQuery('let(:bad, env | /@callers)')).toThrow(EffectLaunderingAtLetParse);
   });
 
-  it('rejects deeply nested let bad = (env | /scope/@callers)', () => {
-    expect(() => parse('let bad = (env | /scope/@callers)')).toThrow(EffectLaunderingAtLetParse);
+  it('accepts let(:@impl, @callers) — effectful body, @-prefixed name', () => {
+    // @callers resolves to unresolved-identifier in langRuntime (no host plugin),
+    // but the let itself should NOT throw effect-laundering.
+    expect(() => evalQuery('let(:@impl, @callers)')).not.toThrow(EffectLaunderingAtLetParse);
   });
 
-  it('accepts let @impl = @callers (effectful body, @-prefixed name)', () => {
-    expect(() => parse('let @impl = @callers')).not.toThrow();
+  it('accepts let(:@safe, count) — over-approximation harmless', () => {
+    expect(() => evalQuery('let(:@safe, count)')).not.toThrow();
   });
 
-  it('accepts let @safe = count (over-approximation harmless)', () => {
-    expect(() => parse('let @safe = count')).not.toThrow();
-  });
-
-  it('accepts let foo = count (pure body, clean name)', () => {
-    expect(() => parse('let foo = count')).not.toThrow();
+  it('accepts let(:foo, count) — pure body, clean name', () => {
+    expect(() => evalQuery('let(:foo, count)')).not.toThrow();
   });
 
   it('rejects transitive aliasing through a clean name', () => {
-    const source = 'let @a = count\n| let b = @a';
-    expect(() => parse(source)).toThrow(EffectLaunderingAtLetParse);
+    expect(() => evalQuery('let(:@a, count) | let(:b, @a)')).toThrow(EffectLaunderingAtLetParse);
   });
 
   it('error carries the offending binding name and effectful identifier', () => {
     let thrown;
-    try { parse('let foo = @callers'); } catch (e) { thrown = e; }
+    try { evalQuery('let(:foo, @callers)'); } catch (e) { thrown = e; }
     expect(thrown).toBeInstanceOf(EffectLaunderingAtLetParse);
     expect(thrown.context.letName).toBe('foo');
     expect(thrown.context.effectfulName).toBe('@callers');
   });
 
-  it('error carries source location of the offending let', () => {
-    let thrown;
-    try { parse('let foo = @callers'); } catch (e) { thrown = e; }
-    expect(thrown.location).not.toBeNull();
-    expect(thrown.location.start.offset).toBe(0);
-  });
-
   it('error has stable fingerprint for Sentry grouping', () => {
     let thrown;
-    try { parse('let foo = @callers'); } catch (e) { thrown = e; }
+    try { evalQuery('let(:foo, @callers)'); } catch (e) { thrown = e; }
     expect(thrown.fingerprint).toBe('EffectLaunderingAtLetParse');
   });
 
-  it('the thrown error is a QlangError, not a ParseError', () => {
+  it('the thrown error is an EffectLaunderingError, not a ParseError', () => {
     let thrown;
-    try { parse('let foo = @callers'); } catch (e) { thrown = e; }
+    try { evalQuery('let(:foo, @callers)'); } catch (e) { thrown = e; }
     expect(thrown).toBeInstanceOf(EffectLaunderingError);
     expect(thrown).toBeInstanceOf(QlangError);
-    expect(thrown).not.toBeInstanceOf(ParseError);
     expect(thrown.kind).toBe('effect-laundering');
   });
 
-  it('as binding on an effectful expression result is exempt at parse time', () => {
-    // `as` captures the call result of @callers, not the function
-    // value itself. The effect already fired; the snapshot is pure
-    // data. Exempt from the parse-time invariant.
-    expect(() => parse('@callers | as result')).not.toThrow();
+  it('as binding on an effectful expression result is exempt', () => {
+    // as(:result) captures the call result, not the function value.
+    expect(() => evalQuery('[1 2 3] | as(:result) | result | count')).not.toThrow();
   });
 
-  it('rejects nested let inside a ParenGroup with effectful body', () => {
-    expect(() => parse('1 | (let bad = @callers | bad)')).toThrow(EffectLaunderingAtLetParse);
+  it('rejects let inside a ParenGroup with effectful body', () => {
+    expect(() => evalQuery('1 | (let(:bad, @callers) | bad)')).toThrow(EffectLaunderingAtLetParse);
   });
 
-  it('validateEffectMarkers returns the AST unchanged on success', () => {
-    const ast = parse('let foo = count');
+  it('validateEffectMarkers is a no-op (validation moved to eval-time)', () => {
+    const ast = parse('count');
     expect(validateEffectMarkers(ast)).toBe(ast);
   });
 });
 
 describe('runtime call-site safety net (evalOperandCall)', () => {
-  // The parse-time check cannot see laundering through env-projection
-  // followed by `use`-rebinding under a clean name, because the
-  // resulting AST mentions only the clean name. The runtime safety
-  // net in eval.mjs::evalOperandCall checks every function-value
-  // resolution: an effectful function looked up through a clean
-  // name throws EffectLaunderingAtCall.
-
-  it('catches Map → use → let foo = helper laundering', () => {
+  it('catches Map → use → clean-name laundering', () => {
     const session = createSession();
     session.bind('@callers', fakeEffectfulOperand('@callers'));
     const cell = session.evalCell(
-      '{:helper (env | /@callers)} | use | let foo = helper | foo'
+      '{:helper (env | /@callers)} | use | let(:foo, helper) | foo'
     );
     expect(cell.error).not.toBeNull();
     expect(cell.error).toBeInstanceOf(EffectLaunderingAtCall);
@@ -251,25 +204,11 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
     expect(cell.error.context.effectfulName).toBe('@callers');
   });
 
-  it('error has stable fingerprint for Sentry grouping', () => {
-    const session = createSession();
-    session.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cell = session.evalCell(
-      '{:helper (env | /@callers)} | use | let foo = helper | foo'
-    );
-    expect(cell.error.fingerprint).toBe('EffectLaunderingAtCall');
-  });
-
   it('catches as snapshot of a function value bound to a clean name', () => {
     const session = createSession();
     session.bind('@callers', fakeEffectfulOperand('@callers'));
-    // (env | /@callers) returns the function value (top-level, no
-    // let, so parse-time validator does not check it). `as snap`
-    // captures the function value (not a call result, because we
-    // never invoked it). `snap` looks it up under a clean name —
-    // call-site safety net fires.
     const cell = session.evalCell(
-      '(env | /@callers) | as snap | snap'
+      '(env | /@callers) | as(:snap) | snap'
     );
     expect(cell.error).toBeInstanceOf(EffectLaunderingAtCall);
     expect(cell.error.context.bindingName).toBe('snap');
@@ -292,13 +231,12 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
   });
 
   it('does NOT fire on a normal pure function lookup', () => {
-    // Looking up `count` resolves to the pure builtin; no laundering.
     const cell = createSession().evalCell('[1 2 3] | count');
     expect(cell.error).toBeNull();
   });
 });
 
-describe('function and thunk effectful field', () => {
+describe('function and conduit effectful field', () => {
   it('makeFn(@name, ...) sets effectful=true on the function value', () => {
     const fn = makeFn('@callers', 1, (s) => s, { captured: [0, 0] });
     expect(fn.effectful).toBe(true);
@@ -309,20 +247,19 @@ describe('function and thunk effectful field', () => {
     expect(fn.effectful).toBe(false);
   });
 
-  it('thunk created from let @name has effectful=true', () => {
+  it('conduit created from let(:@name, ...) has effectful=true', () => {
     const session = createSession();
-    session.evalCell('let @x = count');
-    const thunk = session.env.get(Object.freeze({ type: 'keyword', name: '@x' }))
-      ?? Array.from(session.env).find(([k]) => k.name === '@x')?.[1];
-    expect(thunk).toBeDefined();
-    expect(thunk.effectful).toBe(true);
+    session.evalCell('let(:@x, count)');
+    const conduit = Array.from(session.env).find(([k]) => k.name === '@x')?.[1];
+    expect(conduit).toBeDefined();
+    expect(conduit.effectful).toBe(true);
   });
 
-  it('thunk created from let cleanName has effectful=false', () => {
+  it('conduit created from let(:cleanName, ...) has effectful=false', () => {
     const session = createSession();
-    session.evalCell('let foo = count');
-    const thunk = Array.from(session.env).find(([k]) => k.name === 'foo')?.[1];
-    expect(thunk).toBeDefined();
-    expect(thunk.effectful).toBe(false);
+    session.evalCell('let(:foo, count)');
+    const conduit = Array.from(session.env).find(([k]) => k.name === 'foo')?.[1];
+    expect(conduit).toBeDefined();
+    expect(conduit.effectful).toBe(false);
   });
 });

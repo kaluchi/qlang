@@ -57,6 +57,7 @@ class StateOpVariadicMissingCaptured extends QlangInvariantError {
       { site: 'StateOpVariadicMissingCaptured', operandName }
     );
     this.name = 'StateOpVariadicMissingCaptured';
+    this.fingerprint = 'StateOpVariadicMissingCaptured';
   }
 }
 
@@ -67,6 +68,7 @@ class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
       { site: 'HigherOrderOpVariadicMissingCaptured', operandName }
     );
     this.name = 'HigherOrderOpVariadicMissingCaptured';
+    this.fingerprint = 'HigherOrderOpVariadicMissingCaptured';
   }
 }
 

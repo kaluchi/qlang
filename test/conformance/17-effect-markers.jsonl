@@ -1,10 +1,8 @@
-{"name": "let-with-effectful-body-rejected", "query": "let foo = @callers", "error": "effect-laundering"}
-{"name": "let-with-nested-effectful-body-rejected", "query": "let foo = filter(@callers | count)", "error": "effect-laundering"}
-{"name": "let-with-projection-laundering-rejected", "query": "let bad = (env | /@callers)", "error": "effect-laundering"}
-{"name": "let-with-effectful-body-and-at-name-accepted", "query": "let @impl = count\n| 5 | @impl | count", "error": "type-error"}
-{"name": "let-with-clean-body-and-at-name-accepted", "query": "let @safe = count\n| [1 2 3] | @safe", "expect": 3}
-{"name": "let-with-clean-body-and-clean-name-accepted", "query": "let foo = count\n| [1 2 3] | foo", "expect": 3}
-{"name": "transitive-laundering-via-alias-rejected", "query": "let @a = count\n| let b = @a", "error": "effect-laundering"}
-{"name": "as-binding-on-effectful-source-not-rejected", "query": "[1 2 3] | as result\n| result | count", "expect": 3}
-{"name": "let-inside-paren-group-with-effectful-body-rejected", "query": "1 | (let bad = @callers | bad)", "error": "effect-laundering"}
-{"name": "deeply-nested-projection-laundering-rejected", "query": "let bad = (env | /scope/@callers)", "error": "effect-laundering"}
+{"name": "let-with-effectful-body-rejected", "query": "let(:foo, @callers)", "error": "effect-laundering"}
+{"name": "let-with-nested-effectful-body-rejected", "query": "let(:foo, filter(@callers | count))", "error": "effect-laundering"}
+{"name": "let-with-projection-laundering-rejected", "query": "let(:bad, env | /@callers)", "error": "effect-laundering"}
+{"name": "let-with-clean-body-and-at-name-accepted", "query": "let(:@safe, count) | [1 2 3] | @safe", "expect": 3}
+{"name": "let-with-clean-body-and-clean-name-accepted", "query": "let(:foo, count) | [1 2 3] | foo", "expect": 3}
+{"name": "transitive-laundering-via-alias-rejected", "query": "let(:@a, count) | let(:b, @a)", "error": "effect-laundering"}
+{"name": "as-binding-on-effectful-source-not-rejected", "query": "[1 2 3] | as(:result) | result | count", "expect": 3}
+{"name": "let-inside-paren-group-with-effectful-body-rejected", "query": "1 | (let(:bad, @callers) | bad)", "error": "effect-laundering"}

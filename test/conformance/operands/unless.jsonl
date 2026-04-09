@@ -12,7 +12,7 @@
 {"name": "lazy-then-evaluated-when-cond-falsy", "query": "5 | unless(false, mul(2))", "expect": 10}
 {"name": "guard-clause-non-empty-runs-sort", "query": "[3 1 2] | unless(empty, sort)", "expect": [1, 2, 3]}
 {"name": "guard-clause-empty-skips", "query": "[] | unless(empty, sort)", "expect": []}
-{"name": "compose-into-distribute-via-paren", "query": "[1 2 3] * (as x | x | unless(eq(2), mul(10)))", "expect": [10, 2, 30]}
+{"name": "compose-into-distribute-via-paren", "query": "[1 2 3] * (as(:x) | x | unless(eq(2), mul(10)))", "expect": [10, 2, 30]}
 {"name": "validate-or-fix-truthy", "query": "{:validated true :n 5} | unless(/validated, /n | mul(2))", "expect": {"$map": [[{"$keyword": "validated"}, true], [{"$keyword": "n"}, 5]]}}
 {"name": "validate-or-fix-falsy", "query": "{:validated false :n 5} | unless(/validated, /n | mul(2))", "expect": 10}
 {"name": "nested-unless-cond-true", "query": "10 | unless(gt(0), unless(lt(5), mul(2)))", "expect": 10}

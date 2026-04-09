@@ -49,37 +49,37 @@
 {"name": "builtin-examples-vec", "query": "env | /count | reify | /examples | count | gt(0)", "expect": true}
 {"name": "named-form-builtin", "query": "reify(:count) | /kind", "expect": {"$keyword": "builtin"}}
 {"name": "named-form-attaches-name", "query": "reify(:filter) | /name", "expect": "filter"}
-{"name": "named-form-on-thunk", "query": "let double = mul(2) | reify(:double) | /kind", "expect": {"$keyword": "thunk"}}
-{"name": "named-form-on-thunk-name", "query": "let double = mul(2) | reify(:double) | /name", "expect": "double"}
-{"name": "named-form-on-thunk-source", "query": "let double = mul(2) | reify(:double) | /source", "expect": "mul(2)"}
-{"name": "named-form-on-thunk-empty-docs", "query": "let double = mul(2) | reify(:double) | /docs", "expect": []}
-{"name": "named-form-on-thunk-with-docs", "query": "|~~| Удваивает.\nlet double = mul(2)\n| reify(:double) | /docs", "expect": [" Удваивает."]}
-{"name": "named-form-on-snapshot", "query": "42 | as answer | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
-{"name": "named-form-on-snapshot-value", "query": "42 | as answer | reify(:answer) | /value", "expect": 42}
-{"name": "named-form-on-snapshot-name", "query": "42 | as answer | reify(:answer) | /name", "expect": "answer"}
-{"name": "named-form-on-snapshot-with-doc", "query": "42\n|~~| Captured.\nas answer\n| reify(:answer) | /docs", "expect": [" Captured."]}
+{"name": "named-form-on-conduit", "query": "let(:double, mul(2)) | reify(:double) | /kind", "expect": {"$keyword": "conduit"}}
+{"name": "named-form-on-conduit-name", "query": "let(:double, mul(2)) | reify(:double) | /name", "expect": "double"}
+{"name": "named-form-on-conduit-source", "query": "let(:double, mul(2)) | reify(:double) | /source", "expect": "mul(2)"}
+{"name": "named-form-on-conduit-empty-docs", "query": "let(:double, mul(2)) | reify(:double) | /docs", "expect": []}
+{"name": "named-form-on-conduit-with-docs", "query": "|~~| Doubles.\nlet(:double, mul(2))\n| reify(:double) | /docs", "expect": [" Doubles."]}
+{"name": "named-form-on-snapshot", "query": "42 | as(:answer) | reify(:answer) | /kind", "expect": {"$keyword": "snapshot"}}
+{"name": "named-form-on-snapshot-value", "query": "42 | as(:answer) | reify(:answer) | /value", "expect": 42}
+{"name": "named-form-on-snapshot-name", "query": "42 | as(:answer) | reify(:answer) | /name", "expect": "answer"}
+{"name": "named-form-on-snapshot-with-doc", "query": "42\n|~~| Captured.\nas(:answer)\n| reify(:answer) | /docs", "expect": [" Captured."]}
 {"name": "named-form-on-value-via-use", "query": "{:pi 3.14} | use | reify(:pi) | /kind", "expect": {"$keyword": "value"}}
 {"name": "named-form-on-value-via-use-value", "query": "{:pi 3.14} | use | reify(:pi) | /value", "expect": 3.14}
 {"name": "named-form-on-value-via-use-name", "query": "{:pi 3.14} | use | reify(:pi) | /name", "expect": "pi"}
-{"name": "thunk-source-with-numberlit", "query": "let n = 42 | reify(:n) | /source", "expect": "42"}
-{"name": "thunk-source-with-stringlit", "query": "let s = \"hello\" | reify(:s) | /source", "expect": "\"hello\""}
-{"name": "thunk-source-with-vec", "query": "let xs = [1 2 3] | reify(:xs) | /source", "expect": "[1 2 3]"}
-{"name": "thunk-source-with-projection", "query": "let pluck = /name | reify(:pluck) | /source", "expect": "/name"}
-{"name": "thunk-source-with-nested-projection", "query": "let deep = /a/b/c | reify(:deep) | /source", "expect": "/a/b/c"}
-{"name": "thunk-source-with-keyword", "query": "let k = :foo | reify(:k) | /source", "expect": ":foo"}
+{"name": "conduit-source-with-numberlit", "query": "let(:n, 42) | reify(:n) | /source", "expect": "42"}
+{"name": "conduit-source-with-stringlit", "query": "let(:s, \"hello\") | reify(:s) | /source", "expect": "\"hello\""}
+{"name": "conduit-source-with-vec", "query": "let(:xs, [1 2 3]) | reify(:xs) | /source", "expect": "[1 2 3]"}
+{"name": "conduit-source-with-projection", "query": "let(:pluck, /name) | reify(:pluck) | /source", "expect": "/name"}
+{"name": "conduit-source-with-nested-projection", "query": "let(:deep, /a/b/c) | reify(:deep) | /source", "expect": "/a/b/c"}
+{"name": "conduit-source-with-keyword", "query": "let(:k, :foo) | reify(:k) | /source", "expect": ":foo"}
 {"name": "named-form-error-non-keyword", "query": "reify(\"count\")", "error": "type-error"}
 {"name": "named-form-error-unresolved", "query": "reify(:thisDoesNotExist)", "error": "unresolved-identifier"}
-{"name": "snapshot-doc-via-projection-unwraps", "query": "[1 2 3] | as nums | env | /nums", "expect": [1, 2, 3]}
-{"name": "snapshot-doc-via-named-form-keeps-wrapper", "query": "[1 2 3] | as nums | reify(:nums) | /value", "expect": [1, 2, 3]}
+{"name": "snapshot-via-projection-unwraps", "query": "[1 2 3] | as(:nums) | env | /nums", "expect": [1, 2, 3]}
+{"name": "snapshot-via-named-form-keeps-wrapper", "query": "[1 2 3] | as(:nums) | reify(:nums) | /value", "expect": [1, 2, 3]}
 {"name": "filter-builtins-via-reify", "query": "env | /count | reify | /kind | eq(:builtin)", "expect": true}
-{"name": "all-three-doc-blocks-preserved", "query": "|~~| One.\n|~~| Two.\n|~~| Three.\nlet foo = 42\n| reify(:foo) | /docs | count", "expect": 3}
+{"name": "all-three-doc-blocks-preserved", "query": "|~~| One.\n|~~| Two.\n|~~| Three.\nlet(:foo, 42)\n| reify(:foo) | /docs | count", "expect": 3}
 {"name": "builtin-effectful-false-on-clean-name", "query": "reify(:count) | /effectful", "expect": false}
 {"name": "builtin-effectful-false-on-filter", "query": "reify(:filter) | /effectful", "expect": false}
-{"name": "thunk-effectful-false-on-clean-let", "query": "let foo = count\n| reify(:foo) | /effectful", "expect": false}
-{"name": "thunk-effectful-true-on-marked-let", "query": "let @foo = count\n| reify(:@foo) | /effectful", "expect": true}
-{"name": "snapshot-effectful-false-on-clean-as", "query": "42 | as snap\n| reify(:snap) | /effectful", "expect": false}
-{"name": "snapshot-effectful-true-on-marked-as", "query": "42 | as @snap\n| reify(:@snap) | /effectful", "expect": true}
-{"name": "thunk-location-non-nil", "query": "let foo = count\n| reify(:foo) | /location | eq(nil) | not", "expect": true}
-{"name": "snapshot-location-non-nil", "query": "42 | as snap\n| reify(:snap) | /location | eq(nil) | not", "expect": true}
+{"name": "conduit-effectful-false-on-clean-let", "query": "let(:foo, count) | reify(:foo) | /effectful", "expect": false}
+{"name": "conduit-effectful-true-on-marked-let", "query": "let(:@foo, count) | reify(:@foo) | /effectful", "expect": true}
+{"name": "snapshot-effectful-false-on-clean-as", "query": "42 | as(:snap) | reify(:snap) | /effectful", "expect": false}
+{"name": "snapshot-effectful-true-on-marked-as", "query": "42 | as(:@snap) | reify(:@snap) | /effectful", "expect": true}
+{"name": "conduit-location-non-nil", "query": "let(:foo, count) | reify(:foo) | /location | eq(nil) | not", "expect": true}
+{"name": "snapshot-location-non-nil", "query": "42 | as(:snap) | reify(:snap) | /location | eq(nil) | not", "expect": true}
 {"name": "value-descriptor-name-is-null-without-binding", "query": "42 | reify | /name", "expect": null}
 {"name": "manifest-effectful-uniform-false-on-langruntime", "query": "manifest * /effectful | distinct", "expect": [false]}

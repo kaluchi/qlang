@@ -25,4 +25,4 @@
 {"name": "element-keyword-error", "query": "[0 :foo 1] | firstNonZero", "error": "type-error"}
 {"name": "element-bool-error", "query": "[0 true 1] | firstNonZero", "error": "type-error"}
 {"name": "compose-with-vec-of-comparators", "query": "[{:a 1 :b 2} {:a 1 :b 5} {:a 2 :b 1}] | sortWith([asc(/a), desc(/b)] | firstNonZero) * /b", "expect": [5, 2, 1]}
-{"name": "compose-bare-numeric-vec-from-arithmetic", "query": "[{:n 1} {:n 2} {:n 3}] * /n | as nums | nums * sub(2) | firstNonZero", "expect": -1}
+{"name": "compose-bare-numeric-vec-from-arithmetic", "query": "[{:n 1} {:n 2} {:n 3}] * /n | as(:nums) | nums * sub(2) | firstNonZero", "expect": -1}

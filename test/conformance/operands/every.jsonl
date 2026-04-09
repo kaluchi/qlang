@@ -8,4 +8,4 @@
 {"name": "every-with-compound-pred", "query": "[{:age 25 :ok true} {:age 30 :ok true}] | every(and(/ok, /age | gte(18)))", "expect": true}
 {"name": "every-on-non-vec-throws", "query": "42 | every(gt(0))", "error": "type-error"}
 {"name": "every-short-circuits", "query": "[1 0 2] | every(gt(0))", "expect": false}
-{"name": "every-as-filter-equivalence", "query": "let xs = [1 2 3 4 5] | xs | filter(gt(0)) | count | eq(xs | count) | eq(xs | every(gt(0)))", "expect": true}
+{"name": "every-as-filter-equivalence", "query": "let(:xs, [1 2 3 4 5]) | xs | filter(gt(0)) | count | eq(xs | count) | eq(xs | every(gt(0)))", "expect": true}

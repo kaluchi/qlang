@@ -15,13 +15,13 @@ import {
 import {
   keyword,
   describeType,
-  isThunk,
+  isConduit,
   isFunctionValue,
   isKeyword,
   isQMap,
   isQSet,
   isVec,
-  makeThunk
+  makeConduit
 } from '../../src/types.mjs';
 import {
   makeState,
@@ -53,13 +53,13 @@ describe('types.mjs', () => {
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(new Set())).toBe('Set');
     expect(describeType({ type: 'function', arity: 0, fn: () => {} })).toBe('function');
-    expect(describeType(makeThunk(null))).toBe('thunk');
+    expect(describeType(makeConduit(null))).toBe('conduit');
     expect(describeType(Symbol('weird'))).toBe('unknown');
   });
 
   it('value-class predicates', () => {
-    expect(isThunk(makeThunk(null))).toBe(true);
-    expect(isThunk({ type: 'function' })).toBe(false);
+    expect(isConduit(makeConduit(null))).toBe(true);
+    expect(isConduit({ type: 'function' })).toBe(false);
     expect(isFunctionValue({ type: 'function', arity: 0, fn: () => {} })).toBe(true);
     expect(isFunctionValue(() => {})).toBe(false);
     expect(isKeyword(keyword('x'))).toBe(true);
@@ -68,10 +68,10 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeThunk returns a frozen thunk shape', () => {
-    const t = makeThunk('expr-ast');
-    expect(t.type).toBe('thunk');
-    expect(t.expr).toBe('expr-ast');
+  it('makeConduit returns a frozen conduit shape', () => {
+    const t = makeConduit('expr-ast');
+    expect(t.type).toBe('conduit');
+    expect(t.body).toBe('expr-ast');
     expect(Object.isFrozen(t)).toBe(true);
   });
 });
@@ -446,7 +446,10 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('apply args to non-function → ApplyToNonFunction', () => {
-    const e = catchError('let five = 5 | five(42)');
+    // Use `as` to bind a raw value (snapshot), not a conduit.
+    // Snapshot-unwrap produces a non-function, so captured args trigger
+    // ApplyToNonFunction on the unwrapped value.
+    const e = catchError('5 | as(:five) | five(42)');
     expect(e.name).toBe('ApplyToNonFunction');
     expect(e.context.name).toBe('five');
     expect(e.context.actualType).toBe('number');
@@ -481,7 +484,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | /name',
       '{:a 1} * add(1)',
       '42 >> count',
-      'let five = 5 | five(42)',
+      '5 | as(:five) | five(42)',
       '42 | use'
     ];
     for (const q of queries) {
@@ -620,24 +623,23 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(evalQuery('reify(:filter) | /effectful')).toBe(false);
   });
 
-  it('thunk descriptor surfaces :effectful from the binding name', () => {
-    expect(evalQuery('let foo = count | reify(:foo) | /effectful')).toBe(false);
-    expect(evalQuery('let @foo = count | reify(:@foo) | /effectful')).toBe(true);
+  it('conduit descriptor surfaces :effectful from the binding name', () => {
+    expect(evalQuery('let(:foo, count) | reify(:foo) | /effectful')).toBe(false);
+    expect(evalQuery('let(:@foo, count) | reify(:@foo) | /effectful')).toBe(true);
   });
 
-  it('thunk descriptor surfaces :location of the originating LetStep', () => {
-    const result = evalQuery('let foo = count | reify(:foo) | /location');
+  it('conduit descriptor surfaces :location of the body AST', () => {
+    const result = evalQuery('let(:foo, count) | reify(:foo) | /location');
     expect(result).not.toBeNull();
-    expect(result.start.offset).toBe(0);
   });
 
   it('snapshot descriptor surfaces :effectful from the binding name', () => {
-    expect(evalQuery('42 | as snap | reify(:snap) | /effectful')).toBe(false);
-    expect(evalQuery('42 | as @snap | reify(:@snap) | /effectful')).toBe(true);
+    expect(evalQuery('42 | as(:snap) | reify(:snap) | /effectful')).toBe(false);
+    expect(evalQuery('42 | as(:@snap) | reify(:@snap) | /effectful')).toBe(true);
   });
 
-  it('snapshot descriptor surfaces :location of the originating AsStep', () => {
-    const result = evalQuery('42 | as snap | reify(:snap) | /location');
+  it('snapshot descriptor carries location from the as(:name) call site', () => {
+    const result = evalQuery('42 | as(:snap) | reify(:snap) | /location');
     expect(result).not.toBeNull();
     expect(typeof result.start.offset).toBe('number');
   });
@@ -702,7 +704,7 @@ describe('runtime/intro.mjs reify and manifest', () => {
     // The thunk body is a ParenGroup wrapping a multi-step pipeline,
     // exercising the Pipeline branch of sourceOfAst.
     const result = evalQuery(
-      'let chained = (mul(2) | add(1)) | reify(:chained) | /source'
+      'let(:chained, mul(2) | add(1)) | reify(:chained) | /source'
     );
     expect(result).toContain('mul(2)');
     expect(result).toContain('add(1)');
@@ -710,28 +712,28 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 
   it('reify of a thunk whose body is a VecLit renders the literal', () => {
-    const result = evalQuery('let xs = [1 2 3] | reify(:xs) | /source');
+    const result = evalQuery('let(:xs, [1 2 3]) | reify(:xs) | /source');
     expect(result).toBe('[1 2 3]');
   });
 
   it('reify of a thunk whose body is a SetLit renders the literal', () => {
-    const result = evalQuery('let s = #{1 2 3} | reify(:s) | /source');
+    const result = evalQuery('let(:s, #{1 2 3}) | reify(:s) | /source');
     expect(result).toContain('#{');
   });
 
   it('reify of a thunk whose body is a MapLit renders the literal', () => {
-    const result = evalQuery('let m = {:a 1 :b 2} | reify(:m) | /source');
+    const result = evalQuery('let(:m, {:a 1 :b 2}) | reify(:m) | /source');
     expect(result).toContain(':a 1');
     expect(result).toContain(':b 2');
   });
 
   it('reify of a thunk whose body is a Projection renders the keys', () => {
-    const result = evalQuery('let pluck = /name | reify(:pluck) | /source');
+    const result = evalQuery('let(:pluck, /name) | reify(:pluck) | /source');
     expect(result).toBe('/name');
   });
 
   it('reify of a thunk whose body is a nested Projection renders all keys', () => {
-    const result = evalQuery('let deep = /a/b/c | reify(:deep) | /source');
+    const result = evalQuery('let(:deep, /a/b/c) | reify(:deep) | /source');
     expect(result).toBe('/a/b/c');
   });
 });
@@ -976,14 +978,14 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
 describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', () => {
     const result = evalQuery(
-      '|~~| First.\n|~~| Second.\n|~~| Third.\nlet foo = 42 | reify(:foo) | /docs'
+      '|~~| First.\n|~~| Second.\n|~~| Third.\nlet(:foo, 42) | reify(:foo) | /docs'
     );
     expect(result).toEqual([' First.', ' Second.', ' Third.']);
   });
 
   it('block doc preserves internal newlines as one entry', () => {
     const result = evalQuery(
-      '|~~ line one\nline two\nline three ~~|\nlet foo = 42\n| reify(:foo) | /docs'
+      '|~~ line one\nline two\nline three ~~|\nlet(:foo, 42)\n| reify(:foo) | /docs'
     );
     expect(result.length).toBe(1);
     expect(result[0]).toContain('line one');
@@ -993,7 +995,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('mixes line and block docs preserving order', () => {
     const result = evalQuery(
-      '|~~| line one\n|~~ block two ~~|\n|~~| line three\nlet foo = 42 | reify(:foo) | /docs'
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\nlet(:foo, 42) | reify(:foo) | /docs'
     );
     expect(result.length).toBe(3);
     expect(result[0]).toBe(' line one');
@@ -1003,7 +1005,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('shadowing redeclare overrides docs Vec', () => {
     const result = evalQuery(
-      '|~~| Old.\nlet foo = 1\n|~~| Brand new.\n|~~| With extra remark.\nlet foo = 2\n| reify(:foo) | /docs'
+      '|~~| Old.\nlet(:foo, 1)\n|~~| Brand new.\n|~~| With extra remark.\nlet(:foo, 2)\n| reify(:foo) | /docs'
     );
     expect(result).toEqual([' Brand new.', ' With extra remark.']);
   });

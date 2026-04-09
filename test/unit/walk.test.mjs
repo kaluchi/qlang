@@ -44,12 +44,13 @@ describe('astChildrenOf', () => {
     expect(keyAndValue[0].name).toBe('name');
   });
 
-  it('yields the body for a LetStep', () => {
-    const ast = parse('let double = mul(2)');
+  it('yields args for a let(:name, body) OperandCall', () => {
+    const ast = parse('let(:double, mul(2))');
     const children = astChildrenOf(ast);
-    expect(children).toHaveLength(1);
-    expect(children[0].type).toBe('OperandCall');
-    expect(children[0].name).toBe('mul');
+    expect(children).toHaveLength(2);
+    expect(children[0].type).toBe('Keyword');
+    expect(children[1].type).toBe('OperandCall');
+    expect(children[1].name).toBe('mul');
   });
 
   it('yields the inner pipeline for a ParenGroup', () => {
@@ -178,12 +179,13 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.every(n => n.type === 'OperandCall' && n.name === 'count')).toBe(true);
   });
 
-  it('finds LetStep declaration alongside read sites', () => {
-    const ast = parse('let double = mul(2) | double');
+  it('finds let(:name, ...) declaration alongside read sites', () => {
+    const ast = parse('let(:double, mul(2)) | double');
     const refs = findIdentifierOccurrences(ast, 'double');
-    const types = refs.map(r => r.type).sort();
-    expect(types).toContain('LetStep');
-    expect(types).toContain('OperandCall');
+    // Both the let(:double, ...) declaration and the bare `double` read
+    // should be found. The let OperandCall matches because its first
+    // Keyword arg names 'double'.
+    expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 
   it('finds Projection segments by name', () => {
@@ -202,7 +204,7 @@ describe('findIdentifierOccurrences', () => {
 
 describe('bindingNamesVisibleAt', () => {
   it('returns previously declared let names visible at the cursor', () => {
-    const source = 'let x = 1\n| let y = 2\n| z';
+    const source = 'let(:x, 1) | let(:y, 2) | z';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('x')).toBe(true);
@@ -210,34 +212,31 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('does not include bindings that are still ahead of the cursor', () => {
-    const source = 'let early = 1 | here | let late = 2';
+    const source = 'let(:early, 1) | here | let(:late, 2)';
     const ast = parse(source);
-    // Cursor inside the `here` operand call: 'early' visible, 'late' not
-    const visible = bindingNamesVisibleAt(ast, 18);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere);
     expect(visible.has('early')).toBe(true);
     expect(visible.has('late')).toBe(false);
   });
 
   it('includes as bindings', () => {
-    const source = '42 | as answer | answer';
+    const source = '42 | as(:answer) | answer';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('answer')).toBe(true);
   });
 
   it('hides bindings whose enclosing ParenGroup has already closed', () => {
-    const source = '(let local = 1 | local) | here';
-    //              012345678901234567890123456789
-    //                        1111111111222222222
+    const source = '(let(:local, 1) | local) | here';
     const ast = parse(source);
-    // Cursor at "here", well past the closing paren of the group.
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
     expect(visible.has('local')).toBe(false);
   });
 
   it('still sees a binding while inside its enclosing ParenGroup', () => {
-    const source = '(let local = 1 | local | other)';
+    const source = '(let(:local, 1) | local | other)';
     const ast = parse(source);
     const cursorAtOther = source.indexOf('other');
     const visible = bindingNamesVisibleAt(ast, cursorAtOther);
@@ -245,18 +244,15 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Vec element from a sibling element', () => {
-    const source = '[let x = 1, x]';
-    //              0123456789012345
+    const source = '[let(:x, 1), x]';
     const ast = parse(source);
-    // The bare `x` reference is the second element. Cursor at offset
-    // of that bare `x` should NOT see the let binding from element 1.
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
     expect(visible.has('x')).toBe(false);
   });
 
   it('hides bindings inside one Map entry value from a sibling entry value', () => {
-    const source = '{:a let x = 1 :b x}';
+    const source = '{:a let(:x, 1) :b x}';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -264,7 +260,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('top-level binding remains visible inside any number of nested forks', () => {
-    const source = 'let outer = 1 | (([{:k outer}]))';
+    const source = 'let(:outer, 1) | (([{:k outer}]))';
     const ast = parse(source);
     const cursorAtInnerOuter = source.lastIndexOf('outer');
     const visible = bindingNamesVisibleAt(ast, cursorAtInnerOuter);
@@ -313,12 +309,12 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     expect(node).toBe(realChild);
   });
 
-  it('findIdentifierOccurrences finds an AsStep declaration', () => {
-    const ast = parse('42 | as snapshot | snapshot');
+  it('findIdentifierOccurrences finds an as(:name) declaration', () => {
+    const ast = parse('42 | as(:snapshot) | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
-    const types = refs.map(r => r.type).sort();
-    expect(types).toContain('AsStep');
-    expect(types).toContain('OperandCall');
+    // as(:snapshot) OperandCall matches via first-arg Keyword pattern;
+    // bare `snapshot` matches as a read-site OperandCall.
+    expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 });
 

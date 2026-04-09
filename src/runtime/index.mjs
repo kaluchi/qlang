@@ -22,7 +22,9 @@ import {
   use as useOperand,
   reify as reifyOperand,
   manifest as manifestOperand,
-  runExamples as runExamplesOperand
+  runExamples as runExamplesOperand,
+  letOperand,
+  asOperand
 } from './intro.mjs';
 import {
   ifOp,
@@ -115,6 +117,8 @@ export function langRuntime() {
   bind(m, 'reify',       reifyOperand);
   bind(m, 'manifest',    manifestOperand);
   bind(m, 'runExamples', runExamplesOperand);
+  bind(m, 'let',         letOperand);
+  bind(m, 'as',          asOperand);
 
   // Control-flow operands
   bind(m, 'if',          ifOp);

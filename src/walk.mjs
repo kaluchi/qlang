@@ -43,11 +43,8 @@ export function astChildrenOf(node) {
         for (const arg of node.args) out.push(arg);
       }
       break;
-    case 'LetStep':
-      out.push(node.body);
-      break;
     // Leaves: NumberLit, StringLit, BooleanLit, NilLit, Keyword,
-    // Projection, AsStep, LinePlainComment, BlockPlainComment,
+    // Projection, LinePlainComment, BlockPlainComment,
     // LineDocComment, BlockDocComment have no semantic children.
   }
   return out;
@@ -100,8 +97,9 @@ export function findAstNodeAtOffset(ast, offset) {
 // findIdentifierOccurrences(ast, name) — returns every AST node
 // that names the given qlang identifier. The result includes both
 // declarations and uses, intentionally:
-//   - OperandCall whose .name matches (read site)
-//   - LetStep / AsStep whose .name matches (declaration site)
+//   - OperandCall whose .name matches (read site or bare identifier)
+//   - OperandCall named 'let' or 'as' whose first Keyword arg names
+//     the identifier (declaration site — e.g. `let(:foo, body)`)
 //   - Projection whose .keys contains the name (Map field read by name)
 // Keyword literals are intentionally NOT included because `:foo`
 // is a value of type keyword, not an identifier reference.
@@ -109,8 +107,12 @@ export function findIdentifierOccurrences(ast, name) {
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
-    else if (node.type === 'LetStep'  && node.name === name) occurrences.push(node);
-    else if (node.type === 'AsStep'   && node.name === name) occurrences.push(node);
+    else if (node.type === 'OperandCall'
+             && (node.name === 'let' || node.name === 'as')
+             && Array.isArray(node.args) && node.args.length > 0
+             && node.args[0].type === 'Keyword' && node.args[0].name === name) {
+      occurrences.push(node);
+    }
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
@@ -134,32 +136,31 @@ const FORK_ISOLATING_AST_TYPES = new Set([
 ]);
 
 // bindingNamesVisibleAt(ast, offset) — returns the Set of binding
-// names (let / as) lexically visible at the given UTF-16 offset.
-// This is the autocomplete primitive: "what identifiers can the
-// user type at this cursor position without an unresolved-identifier
-// error?"
+// names (let / as operand calls) lexically visible at the given
+// UTF-16 offset. This is the autocomplete primitive: "what
+// identifiers can the user type at this cursor position without an
+// unresolved-identifier error?"
 //
 // Visibility rules, mirroring the runtime fork semantics:
-//   1. Only LetStep / AsStep nodes contribute names.
+//   1. Only OperandCall nodes named 'let' or 'as' with a Keyword
+//      first arg contribute names (binding declarations).
 //   2. The binding must already have been declared at the cursor
 //      (`location.end.offset <= offset`).
 //   3. The binding must NOT be inside a fork-isolating AST node
 //      that has been crossed before reaching the cursor's scope.
-//      Walking from the binding up the parent chain, every time
-//      we cross into a fork-isolating ancestor the immediately
-//      enclosing child must still contain the cursor; otherwise
-//      the binding evaporated when its fork closed.
 //
 // Cursor containment uses the closed interval [start, end] (not
-// half-open) so that a cursor positioned exactly at the end of a
-// binding's enclosing fork still sees the binding — this matches
-// editor expectations where the cursor sits between characters and
-// "after the last char of (...)" should still autocomplete bindings
-// declared before the closing paren the user is about to type past.
+// half-open) so that a cursor at the end of a fork still sees its
+// bindings.
 export function bindingNamesVisibleAt(ast, offset) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    if (node.type !== 'LetStep' && node.type !== 'AsStep') return;
+    // Recognize let(:name, ...) and as(:name) OperandCall patterns.
+    if (node.type !== 'OperandCall') return;
+    if (node.name !== 'let' && node.name !== 'as') return;
+    if (!Array.isArray(node.args) || node.args.length === 0) return;
+    const firstArg = node.args[0];
+    if (firstArg.type !== 'Keyword') return;
     if (!node.location || node.location.end.offset > offset) return;
     let current = node;
     let parent = current.parent;
@@ -168,13 +169,13 @@ export function bindingNamesVisibleAt(ast, offset) {
         if (!current.location
             || current.location.start.offset > offset
             || current.location.end.offset < offset) {
-          return; // crossed out of the binding's fork — not visible
+          return;
         }
       }
       current = parent;
       parent = current.parent;
     }
-    visible.add(node.name);
+    visible.add(firstArg.name);
   });
   return visible;
 }

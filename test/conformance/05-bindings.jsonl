@@ -1,11 +1,11 @@
-{"name": "as-simple", "query": "42 | as answer | answer", "expect": 42}
-{"name": "as-then-other-step", "query": "[1 2 3] | as nums | nums | count", "expect": 3}
-{"name": "multi-stage-as", "query": "[85 92 47 78 68 95 52] | as allScores | filter(gte(70)) | as passingScores | [allScores | count, passingScores | count]", "expect": [7, 4]}
-{"name": "let-double", "query": "let double = mul(2) | 10 | double", "expect": 20}
-{"name": "let-then-distribute", "query": "let plus10 = add(10) | [1 2 3] * plus10", "expect": [11, 12, 13]}
+{"name": "as-simple", "query": "42 | as(:answer) | answer", "expect": 42}
+{"name": "as-then-other-step", "query": "[1 2 3] | as(:nums) | nums | count", "expect": 3}
+{"name": "multi-stage-as", "query": "[85 92 47 78 68 95 52] | as(:allScores) | filter(gte(70)) | as(:passingScores) | [allScores | count, passingScores | count]", "expect": [7, 4]}
+{"name": "let-double", "query": "let(:double, mul(2)) | 10 | double", "expect": 20}
+{"name": "let-then-distribute", "query": "let(:plus10, add(10)) | [1 2 3] * plus10", "expect": [11, 12, 13]}
 {"name": "use-constants", "query": "{:taxRate 0.1 :base 100} | use | base | mul(taxRate)", "expect": 10}
-{"name": "wrap-with-original", "query": "[{:id 1 :name \"a\"}] * (as item | {:key /id :record item})", "expect": [{"$map": [[{"$keyword": "key"}, 1], [{"$keyword": "record"}, {"$map": [[{"$keyword": "id"}, 1], [{"$keyword": "name"}, "a"]]}]]}]}
-{"name": "use-shadowable-by-let", "query": "let use = mul(2) | 5 | use", "expect": 10}
-{"name": "use-shadowable-by-as", "query": "42 | as use | use", "expect": 42}
+{"name": "wrap-with-original", "query": "[{:id 1 :name \"a\"}] * (as(:item) | {:key /id :record item})", "expect": [{"$map": [[{"$keyword": "key"}, 1], [{"$keyword": "record"}, {"$map": [[{"$keyword": "id"}, 1], [{"$keyword": "name"}, "a"]]}]]}]}
+{"name": "use-shadowable-by-let", "query": "let(:use, mul(2)) | 5 | use", "expect": 10}
+{"name": "use-shadowable-by-as", "query": "42 | as(:use) | use", "expect": 42}
 {"name": "use-inside-paren-scoped", "query": "({:k 99} | use | k) | 0", "expect": 0}
 {"name": "use-inside-paren-leaks-pipeValue-only", "query": "({:k 99} | use | k)", "expect": 99}

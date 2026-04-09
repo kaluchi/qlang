@@ -24,7 +24,7 @@ src/
   parse.mjs              — wrapper around the generated parser, ParseError
   state.mjs              — (pipeValue, env) state pair, env helpers
   types.mjs              — value type predicates, keyword interning,
-                           makeThunk, isFunctionValue
+                           makeConduit, isFunctionValue
   errors.mjs             — typed error hierarchy (QlangTypeError,
                            ArityError, Unresolved, DivisionByZero)
   equality.mjs           — deepEqual — shared by predicates and

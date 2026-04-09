@@ -1,0 +1,162 @@
+|~ ═══════════════════════════════════════════════════════════
+   qlang LSP showcase — open this file in VS Code with the
+   qlang extension active to exercise every LSP feature.
+
+   How to use:
+     1. Ctrl+Click (Go to Definition) on any identifier
+     2. Hover over operands, projections, keywords
+     3. Ctrl+Shift+O (Outline) to see all bindings
+     4. Shift+F12 (Find References) on any identifier
+     5. Type inside parens for Signature Help
+     6. Ctrl+Space for Completion anywhere
+   ═══════════════════════════════════════════════════════════ ~|
+
+
+|~ ── 1. Hover ─────────────────────────────────────────────
+   Hover over each operand to see its category and docs
+   from manifest.qlang. Try: count, filter, sort, union,
+   reify, if, coalesce, sortWith, asc, desc. ~|
+
+[1 2 3 4 5] | count
+
+[10 25 3 47 8 31] | filter(gt(20)) | sort
+
+{:name "alice" :age 30} | /name
+
+|~| Hover over /name → "projection /name — extracts value from Map"
+|~| Hover over :age  → "keyword :age"
+
+
+|~ ── 2. Go to Definition ─────────────────────────────────
+   Ctrl+Click on a user binding jumps to its let/as
+   declaration. Ctrl+Click on a builtin (count, filter,
+   add...) jumps to manifest.qlang. ~|
+
+|~~| Doubles a number. ~~|
+let(:double, mul(2))
+
+|~~| Triples a number. ~~|
+let(:triple, mul(3))
+
+|~| Ctrl+Click on `double` below → jumps to the let above
+[1 2 3] * double
+
+|~| Ctrl+Click on `triple` below → jumps to the let above
+[10 20] * triple
+
+|~| Ctrl+Click on `count` below → jumps to manifest.qlang
+[1 2 3] | count
+
+
+|~ ── 3. Shadowing ─────────────────────────────────────────
+   When an identifier is rebound, go-to-definition jumps
+   to the LAST visible declaration, not the first. ~|
+
+let(:x, 1)
+|~| x here is 1
+let(:x, 99)
+|~| Ctrl+Click on x below → jumps to let(:x, 99), not let(:x, 1)
+x
+
+
+|~ ── 4. Fork isolation ───────────────────────────────────
+   Bindings inside (parens), [vecs], {maps}, #{sets} are
+   fork-isolated. Go-to-definition respects this — a
+   binding declared inside a fork is invisible outside. ~|
+
+(42 | as(:inner) | inner)
+|~| Ctrl+Click on `inner` at the END of the line above works
+|~| (cursor is inside the paren group where inner is visible).
+|~| But inner is NOT visible in subsequent pipeline steps
+|~| outside the parens.
+
+
+|~ ── 5. Find References ──────────────────────────────────
+   Shift+F12 on any identifier shows all occurrences:
+   declaration sites (let/as) and use sites. ~|
+
+let(:greet, prepend("hello "))
+"world" | greet
+"qlang" | greet
+|~| Shift+F12 on `greet` → 3 occurrences (1 declaration + 2 uses)
+
+
+|~ ── 6. Document Symbols (Outline) ───────────────────────
+   Ctrl+Shift+O opens the Outline pane. Every let binding
+   shows as Function, every as binding shows as Variable.
+   Try it — you should see: double, triple, x, inner,
+   greet, and the bindings below. ~|
+
+let(:votingAge, filter(/age | gte(18)))
+
+42 | as(:answer)
+
+
+|~ ── 7. Signature Help ───────────────────────────────────
+   Type inside parentheses of an operand call to see its
+   signature. The active parameter highlights as you type
+   commas. Try editing inside the parens below. ~|
+
+[{:name "a" :age 25} {:name "b" :age 15}]
+  | filter(/age | gte(18))
+  * /name
+
+|~| Place cursor inside filter( ) and type — signature appears
+|~| Place cursor after a comma inside add( , ) — second param highlights
+
+{:x 10 :y 3} | add(/x, /y)
+
+
+|~ ── 8. Completion ────────────────────────────────────────
+   Ctrl+Space at any point shows completions: 65 builtin
+   operands with docs + any user-defined bindings visible
+   at the cursor position. ~|
+
+let(:myHelper, mul(10))
+|~| Type Ctrl+Space here → myHelper appears alongside builtins
+|~| Type "my" then Ctrl+Space → filtered to myHelper
+
+
+|~ ── 9. Diagnostics ──────────────────────────────────────
+   Syntax errors show as red squiggles in real time.
+   Uncomment the line below (remove the |~| prefix and
+   the space) to see a parse error: ~|
+
+|~| [1 2 3
+
+
+|~ ── 10. Comments ─────────────────────────────────────────
+   All four comment forms get syntax highlighting:
+     |~|        line plain (this one)
+     |~ ... ~|  block plain (the section headers above)
+     |~~|       line doc (attaches to next let/as)
+     |~~ ~~|    block doc (multi-line, attaches to next let/as)
+   Doc comments appear in the docs field of reify descriptors. ~|
+
+|~~| Computes the absolute value via conditional. ~~|
+let(:abs, if(lt(0), mul(-1)))
+
+|~~ Surround a string with a prefix and suffix.
+    Parametric conduit with two parameters. ~~|
+let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
+
+|~| Ctrl+Click on @surround below → jumps to the let above
+"world" | @surround("[", "]")
+
+
+|~ ── 11. Effect markers ───────────────────────────────────
+   @-prefixed identifiers are effectful host operands.
+   The @ sigil gets distinct highlighting. ~|
+
+|~| @surround above is @-prefixed (harmless over-approximation).
+|~| In the JDT domain, @callers, @refs, @hierarchy carry real
+|~| side effects (Eclipse SearchEngine calls).
+
+
+|~ ── 12. Comparator composition ───────────────────────────
+   sortWith + asc/desc/nullsFirst/nullsLast + firstNonZero
+   compose declaratively. Hover each to see docs. ~|
+
+[{:name "c" :age 30} {:name "a" :age 25} {:name "b" :age 25}]
+  | sortWith([asc(/age), desc(/name)] | firstNonZero)
+  * /name

@@ -84,7 +84,8 @@ export const use = stateOp('use', 1, (state, _lambdas) => {
 //   reify(:name)       (1 captured keyword) — looks up :name in env
 //                      and builds a descriptor with :name attached.
 //
-// Internal helper: build a descriptor Map from any value. The
+// describeBinding: dispatches by value class (builtin/conduit/snapshot/raw)
+// and assembles the reify descriptor Map. The
 // descriptor's :kind field encodes the value's provenance.
 
 function describeValueType(v) {

@@ -13,7 +13,7 @@
 // Each throw site has its own unique error class.
 
 import { overloadedOp } from './dispatch.mjs';
-import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+import { isVec, isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
 import {
   declareSubjectError,
   declareComparabilityError,
@@ -99,12 +99,7 @@ function interPair(left, right) {
 
 export const union = overloadedOp('union', 2, {
   0: (vec) => {
-    if (!isQSet(vec) && !Array.isArray(vec)) {
-      throw new UnionBareSubjectNotVec(describeType(vec), vec);
-    }
-    if (!Array.isArray(vec)) {
-      throw new UnionBareSubjectNotVec(describeType(vec), vec);
-    }
+    if (!isVec(vec)) throw new UnionBareSubjectNotVec(describeType(vec), vec);
     if (vec.length === 0) throw new UnionBareEmpty();
     return vec.reduce(unionPair);
   },

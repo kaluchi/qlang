@@ -54,7 +54,7 @@ Components of the pair are individually first-class, however:
 
 - **`pipeValue`** is implicitly first-class — it is the current value,
   and any operation that reads or writes a value is acting on it.
-  Capture it by name with `as name` and it becomes referenceable
+  Capture it by name with `as(:name)` and it becomes referenceable
   like any other value.
 - **`env`** is first-class through the `env` operand, which reads the
   environment into `pipeValue` as an ordinary Map. From that point
@@ -129,7 +129,7 @@ built-ins (`use`, `env`), `let` references, and `as` references.
 They differ only in what was written to `env[:name]`, never in
 how lookup behaves.
 
-### 4. Value binding — `as name`
+### 4. Value binding — `as(:name)`
 
     (pipeValue, env) → (pipeValue, env[:name := Snapshot(pipeValue, docs)])
 
@@ -141,7 +141,7 @@ the raw captured value; a reflective `reify(:name)` lookup reads the
 wrapper directly and exposes the `:name`, `:value`, and `:docs` fields
 in the descriptor.
 
-### 5. Conduit binding — `let name = expr` / `let name(p1..pN) = expr`
+### 5. Conduit binding — `let(:name, expr)` / `let(:name, [:p1..:pN], expr)`
 
     (pipeValue, env) → (pipeValue, env[:name := Conduit(expr, params, envRef, docs)])
 
@@ -175,9 +175,8 @@ declaration time, not the caller's env:
   lambda fires per-element inside `sortWith`, per-iteration inside
   `filter`, per-pair inside `desc`/`asc`.
 
-Zero-arity conduits (`let f = expr`) and parametric conduits
-(`let f(a, b) = expr`) share the same mechanism. `let f() = expr`
-is equivalent to `let f = expr` (principle of least astonishment).
+Zero-arity conduits (`let(:f, expr)`) and parametric conduits
+(`let(:f, [:a, :b], expr)`) share the same mechanism.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -453,8 +452,8 @@ indistinguishable from built-ins.
 | `/key` projection (possibly nested) | Step 2 — projection                   |
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
-| `as name`                           | Step 4 — value binding                |
-| `let name = expr`                   | Step 5 — expression binding           |
+| `as(:name)` operand call            | Step 3 — identifier lookup + snapshot capture |
+| `let(:name, expr)` operand call     | Step 3 — identifier lookup + conduit construction |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |
@@ -546,14 +545,14 @@ replaces `pipeValue` — Step 3, second bullet.
 ### Example 5 — multi-stage bindings
 
     > [85 92 47 78 68 95 52]
-      | as allScores
+      | as(:allScores)
       | filter(gte(70))
-      | as passingScores
+      | as(:passingScores)
       | [allScores | count, passingScores | count]
     [7 4]
 
 1. `pipeValue = [85 92 47 78 68 95 52]`.
-2. `as allScores` — `env[:allScores] = [85 92 47 78 68 95 52]`.
+2. `as(:allScores)` — `env[:allScores] = [85 92 47 78 68 95 52]`.
 3. `filter(gte(70))` — `pipeValue = [85 92 78 95]`.
 4. `as passingScores` — `env[:passingScores] = [85 92 78 95]`.
 5. `[allScores | count, passingScores | count]` — Vec literal with
@@ -592,7 +591,7 @@ Three patterns demonstrated on a directory tree:
 
 Starting with the tree literal above as `pipeValue`:
 
-    | let totalSize = add(/size, /children * totalSize | sum)
+    | let(:totalSize, add(/size, /children * totalSize | sum))
     | totalSize
 
 For each node, compute `/size + sum of children's totalSize`.
@@ -602,7 +601,7 @@ resolves against the node as a sub-pipeline.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `let totalSize = <expr>` — writes a conduit into `env[:totalSize]`.
+1. `let(:totalSize, <expr>)` — writes a conduit into `env[:totalSize]`.
    `pipeValue` (the tree root) unchanged.
 2. `totalSize` — lookup `env[:totalSize]`, force the conduit. Evaluate
    `add(/size, /children * totalSize | sum)` with `pipeValue = root`
@@ -628,7 +627,7 @@ find max depth with `max(0, ... | max) | add(1)`, etc.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | let allNames = ([[/label], /children * allNames | flat] | flat)
+    | let(:allNames, [[/label], /children * allNames | flat] | flat)
     | allNames
 
 (The outer parentheses are required because a `let` body is a
@@ -642,7 +641,7 @@ and the outer `| flat` merges them into one list.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `let allNames = <expr>` — writes a conduit into `env[:allNames]`.
+1. `let(:allNames, <expr>)` — writes a conduit into `env[:allNames]`.
    `pipeValue` (the tree root) unchanged.
 2. `allNames` — lookup, force conduit. Evaluate the conduit body
    `[[/label], /children * allNames | flat] | flat` with
@@ -674,9 +673,9 @@ tree-to-list conversion.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | let withCounts = {:label /label
-                        :count /children | count
-                        :children /children * withCounts}
+    | let(:withCounts, {:label /label
+                         :count /children | count
+                         :children /children * withCounts})
     | withCounts
 
 Produces a tree with the same shape, where each node gains a
@@ -686,7 +685,7 @@ add computed fields per node.
 
 Trace:
 
-1. `let withCounts = <expr>` — writes conduit into `env[:withCounts]`.
+1. `let(:withCounts, <expr>)` — writes conduit into `env[:withCounts]`.
 2. `withCounts` — lookup, force conduit. Reshape each entry against
    `pipeValue = root`:
    - `:label /label` → `"root"`.
@@ -751,8 +750,8 @@ sub-pipeline: `mul(2)` applies to the current `pipeValue` via
 Rule 10 rather than producing a function object. For in-query
 function extension use `let`:
 
-    | let double = mul(2)
-    | let isSenior = /age | gt(65)
+    | let(:double, mul(2))
+    | let(:isSenior, /age | gt(65))
     | employees * {:doubledAge /age | double :senior isSenior}
 
 Each `let` writes a conduit that forces against `pipeValue` at
@@ -772,27 +771,17 @@ expressions within the query.
 
 A query can ask the language what names are available to it.
 
-## Open questions
+## Language scope boundaries
 
-- **Thread safety.** Not addressed. The pure state-transformer model
-  makes parallel query execution trivially safe as long as native
-  functions in the runtime do not share host-side state.
-
-- **Destructuring `as`.** Would `scoreList | as [firstScore, secondScore]`
-  bind the two elements of `scoreList` to the given names? A natural
-  extension that is not currently part of the primitive set.
-
-- **Cycle detection in recursive data.** Recursion over finite trees
-  terminates because `[] * self → []`. For cyclic Maps or Vecs (if
-  the host ever produces one), recursion would not terminate. Should
-  the reference evaluator detect cycles, or is this the host's
-  responsibility? Leaning **host's responsibility** — the language
-  assumes acyclic data.
-
-- **Reflection beyond `env`.** Should there be an operand that
-  returns the current `pipeValue` as a value-of-itself (effectively
-  `identity`)? `as cur` already covers this via naming. Leaning
-  **no separate operand**.
+- **Thread safety.** The pure state-transformer model makes parallel
+  query execution trivially safe as long as native functions in the
+  runtime do not share host-side state.
+- **Destructuring `as`.** Not part of the primitive set. `as(:name)`
+  captures a single value.
+- **Cycle detection.** The language assumes acyclic data. Cycle
+  detection is the host's responsibility.
+- **Identity operand.** There is no separate identity operand.
+  `as(:cur)` followed by `cur` achieves the same effect.
 
 ## Source-location enrichment of runtime errors
 

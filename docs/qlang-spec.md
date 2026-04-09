@@ -326,9 +326,9 @@ Fan-out with `as` for enrichment:
 -- [r, {...}] builds Vec from captured value + computed delta
 -- union merges them
 
-record | as r | [r, {:adult /age | gt(18)}] | union
-record | as r | [r, #{:tmp}] | minus
-record | as r | [r, #{:name :age}] | inter
+record | as(:r) | [r, {:adult /age | gt(18)}] | union
+record | as(:r) | [r, #{:tmp}] | minus
+record | as(:r) | [r, #{:name :age}] | inter
 ```
 
 See [Value binding](#value-binding) for full `as` semantics.
@@ -352,13 +352,13 @@ See [Value binding](#value-binding) for full `as` semantics.
 
 ### Value binding
 
-`as name` — identity pipeline step that captures the current
-value under the given name. The value passes through unchanged;
-`name` becomes available to all subsequent steps (see scoping
+`as(:name)` — pipeline operand that captures the current value
+under a keyword name. The value passes through unchanged; the
+name becomes available to all subsequent steps (see scoping
 rules below).
 
 ```
-order | normalize | as cleanOrder | computeTax | as taxedOrder | shipQuote | finalize
+order | normalize | as(:cleanOrder) | computeTax | as(:taxedOrder) | shipQuote | finalize
 -- after normalize → cleanOrder = the cleaned order map
 -- after computeTax → taxedOrder = the taxed map
 ```
@@ -367,12 +367,12 @@ order | normalize | as cleanOrder | computeTax | as taxedOrder | shipQuote | fin
 immutable — a captured binding is safe to reference at any later
 point in the same scope.
 
-Multiple `as` steps can appear in sequence, binding either the same
+Multiple `as` calls can appear in sequence, binding either the same
 value under different names or different values at different
 stages:
 
 ```
-purchase | normalize | as initial | applyDiscounts | as discounted | [initial, discounted]
+purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initial, discounted]
 -- initial    = the normalized purchase
 -- discounted = the same purchase after discounts applied
 ```
@@ -400,11 +400,10 @@ Multi-step references:
 ```
 
 Difference from `let`:
-- `let name = expr` — captures the **expression** as a conduit.
-  Each reference forces the conduit, evaluating `expr` in the `env`
-  and `pipeValue` at the lookup site (dynamic scope).
-- `as name` — captures the **value** of `pipeValue` at the point
-  where the step appears. Frozen — same value every reference.
+- `let(:name, expr)` — captures the **expression** as a conduit.
+  Each reference evaluates `expr` in a lexically-scoped fork.
+- `as(:name)` — captures the **value** of `pipeValue` at the point
+  where the operand executes. Frozen — same value every reference.
 
 Both mechanisms write to the same `env[:name]` slot, so the usual
 last-write-wins rule applies. In typical query order — runtime
@@ -429,7 +428,7 @@ changes are discarded. See the
    scope are visible.
 
    ```
-   employees | as roster * {:name /name :teamSize roster | count}
+   employees | as(:roster) * {:name /name :teamSize roster | count}
    -- roster captured before the distribute;
    -- inside each iteration's reshape, roster is visible
    -- (every element receives the same :teamSize)
@@ -440,7 +439,7 @@ changes are discarded. See the
    inner scope and invisible after it closes.
 
    ```
-   candidates | filter(/peerRating | as peerScore | /selfRating | gte(peerScore))
+   candidates | filter(/peerRating | as(:peerScore) | /selfRating | gte(peerScore))
    -- peerScore is local to the filter predicate;
    -- it is not visible after filter(...) returns
    ```
@@ -576,22 +575,9 @@ X" — this section only establishes that the language has such a
 catalog and that it is composable via the pipeline rules described
 above.
 
-Categories covered in the runtime reference:
-
-- **Vec reducers** (`Vec → Scalar`): `count`, `empty`, `first`,
-  `last`, `sum`, `min`, `max`.
-- **Vec transformers** (`Vec → Vec`): `filter`, `sort`, `take`,
-  `drop`, `distinct`, `reverse`, `flat`, `set`.
-- **Map operations**: `keys`, `vals`, `has`.
-- **Set operations**: `has`, `count`, `empty`.
-- **Polymorphic set operations**: `union`, `minus`, `inter` — work
-  on Set × Set, Map × Map, and Map × Set combinations.
-- **Arithmetic**: `add`, `sub`, `mul`, `div`.
-- **String**: `prepend`, `append`.
-- **Boolean**: `not`.
-- **Predicates**: `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or`.
-- **Formatting**: `json`, `table`.
-- **Introspection**: `env`.
+The full catalog of 63 operands with signatures, examples, and
+error conditions lives in
+[qlang-operands.md](qlang-operands.md#summary-unique-operand-names-by-category).
 
 All operand signatures follow the **subject-first convention**:
 position 1 is the data being operated on (filled by the pipeline in
@@ -692,7 +678,7 @@ per comparison pair.
 ### Recursion via self-reference
 
 ```
-| let walk = {:label /label :children /children * walk}
+| let(:walk, {:label /label :children /children * walk})
 | {:label "root" :children [
     {:label "a" :children []}
     {:label "b" :children [
@@ -707,7 +693,7 @@ comes from `[] * walk → []` at leaves.
 Recursive parametric conduits work the same way:
 
 ```
-| let @treeMap(fn) = {:label (/label | fn) :children /children * @treeMap(fn)}
+| let(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)})
 ```
 
 See [qlang-internals.md](qlang-internals.md#example-6-recursive-let)
@@ -774,8 +760,8 @@ parentheses so the `|` inside does not bleed into the outer
 pipeline:
 
 ```
-| let double = mul(2)
-| let isSenior = (/age | gt(65))
+| let(:double, mul(2))
+| let(:isSenior, /age | gt(65))
 | employees * {:doubledAge /age | double :senior isSenior}
 ```
 
@@ -1034,10 +1020,10 @@ Side-effectful host operands carry the `@` prefix in qlang source.
 The convention is enforced one-directionally:
 
 ```
-let foo = @callers          -- ERROR: effectful body, clean name
-let @impl = @callers        -- OK
-let @safe = count           -- OK (over-approximation, harmless)
-let foo = count             -- OK (pure body, clean name)
+let(:foo, @callers)          -- ERROR: effectful body, clean name
+let(:@impl, @callers)        -- OK
+let(:@safe, count)           -- OK (over-approximation, harmless)
+let(:foo, count)             -- OK (pure body, clean name)
 ```
 
 A `let` binding whose body references any `@`-prefixed identifier
@@ -1067,14 +1053,14 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    embedding host — because every effectful invocation ultimately
    funnels through identifier lookup.
 
-`as` is exempt from the parse-time invariant: `@callers | as result`
+`as` is exempt from the effect invariant: `@callers | as(:result)`
 captures the *call result* (a frozen value), not the function value
 itself. The effect already fired by the time `as` runs, so the
 snapshot is pure data that downstream pipelines can reference under
 any name without re-triggering the host call.
 
 The runtime safety net does still fire on `as` snapshots that wrap
-a function value (e.g. `(env | /@callers) | as snap | snap`),
+a function value (e.g. `(env | /@callers) | as(:snap) | snap`),
 because in that path the captured value is the function reference
 and `snap` would invoke it on lookup.
 
@@ -1123,9 +1109,8 @@ sequence literally in your prose.
 Query         ← Pipeline
 
 Pipeline      ← DocAttached (Combinator DocAttached / PlainComment)*
-DocAttached   ← DocComment* RawStep
-RawStep       ← Primary / 'as' Ident / 'let' Ident ConduitParamList? '=' Primary
-ConduitParamList ← '(' ')' / '(' Ident (',' Ident)* ')'
+DocAttached   ← DocComment* OperandCall / DocComment* RawStep
+RawStep       ← Primary
 Combinator    ← '|' / '*' / '>>'
 
 PlainComment  ← LinePlainComment / BlockPlainComment
@@ -1174,12 +1159,13 @@ Disambiguation:
 ### Reserved words
 
 ```
-let as true false nil
+true false nil
 ```
 
-All other identifiers are names resolved at evaluation time against
-the current `env` — see the model's Step 3 semantics for how lookup
-interacts with function application and value references.
+`let` and `as` are ordinary identifiers bound to operands in
+`langRuntime`. They can be shadowed like any other name.
+All other identifiers are resolved at evaluation time against
+the current `env`.
 
 ## REPL session
 
@@ -1321,7 +1307,7 @@ import { createSession } from '@kaluchi/qlang';
 
 const session = createSession();
 
-session.evalCell('let double = mul(2)');
+session.evalCell('let(:double, mul(2))');
 session.evalCell('5 | double');
 // → { source: '5 | double', uri: 'cell-2', ast: ..., result: 10,
 //     error: null, envAfterCell: <Map> }

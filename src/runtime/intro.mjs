@@ -143,7 +143,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   result.set(keyword('docs'), metaToVec(conduit.docs));
   // :effectful surfaces the @-marker convention from the binding
   // name (`let @foo = ...` → true, `let foo = ...` → false). Set by
-  // makeConduit via classifyEffect at evalconduit declaration time.
+  // makeConduit via classifyEffect at conduit declaration time (the `let` operand impl).
   result.set(keyword('effectful'), conduit.effectful);
   // :location carries the source position of the originating
   // conduit declaration so editor goto-definition can answer "where is `foo`
@@ -175,7 +175,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
   result.set(keyword('docs'), metaToVec(snap.docs));
   // :effectful surfaces the @-marker convention from the binding
   // name (`as @captured` → true, `as captured` → false). Set by
-  // makeSnapshot via classifyEffect at evalsnapshot declaration time. Mirrors
+  // makeSnapshot via classifyEffect at snapshot declaration time (the `as` operand impl). Mirrors
   // the conduit descriptor field for parallel introspection.
   result.set(keyword('effectful'), snap.effectful);
   // :location carries the source position of the originating

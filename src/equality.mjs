@@ -1,8 +1,7 @@
 // Structural deep equality across qlang values.
 //
-// Used by predicates.mjs (for the `eq` operand) and the
-// conformance test runner. Centralizing here removes the
-// previous verbatim duplication.
+// Shared by predicates.mjs (for the `eq` operand) and the
+// conformance test runner.
 
 import { isKeyword } from './types.mjs';
 

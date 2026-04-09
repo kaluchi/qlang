@@ -85,7 +85,7 @@ export function keyword(name) {
 //
 // The `params` field is an array of parameter name strings (empty
 // for zero-arity). The `envRef` field is a mutable reference holder
-// `{ env: Map }` whose `.env` is set by evalconduit declaration immediately after
+// `{ env: Map }` whose `.env` is set by the `let` operand impl immediately after
 // the conduit is inserted into the env — the lexical scope anchor
 // for fractal composition and library-safe scoping.
 //

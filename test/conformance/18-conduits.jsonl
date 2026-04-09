@@ -25,3 +25,5 @@
 {"name": "as-name-not-keyword-error", "query": "42 | as(42)", "error": "type-error"}
 {"name": "let-too-few-args-error", "query": "let(:x)", "error": "arity-error"}
 {"name": "conduit-parameter-no-captured-args", "query": "let(:f, [:n], n(42)) | 0 | f(5)", "error": "arity-error"}
+{"name":"let-params-not-vec-error","query":"let(:f, 42, mul(2))","error":"type-error"}
+{"name":"let-param-element-not-keyword-error","query":"let(:f, [42], mul(2))","error":"type-error"}

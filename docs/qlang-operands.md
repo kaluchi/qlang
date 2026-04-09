@@ -643,7 +643,7 @@ descend-compute-ascend pattern of pure operands.
 - **Examples**:
   - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi, e]`
     → `[3.14159 2.71828]`.
-  - Shadow a built-in: `let use = mul(2) | 5 | use` → `10`
+  - Shadow a built-in: `let(:use, mul(2)) | 5 | use` → `10`
     (the user's `let` shadows the reflective `use`).
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,

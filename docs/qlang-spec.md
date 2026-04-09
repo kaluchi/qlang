@@ -704,7 +704,7 @@ transformation).
 
 Resolution order: `let`-bindings shadow built-in operands, because
 `let` writes to the same `env[:name]` as the built-ins — last write
-wins. `let count = 5` makes subsequent `count` references resolve
+wins. `let(:count, 5)` makes subsequent `count` references resolve
 to `5`. Within that pipeline the built-in `count` is inaccessible
 until a later step shadows `count` again.
 
@@ -868,7 +868,7 @@ into the binding's `docs` Vec:
 |~~| First remark.
 |~ formatting separator ~|
 |~~| Second remark.
-let foo = (...)
+let(:foo, ...)
 ```
 
 The binding's `docs` Vec holds two entries (`" First remark."`,
@@ -885,7 +885,7 @@ lines become two separate entries.
 |~~| Second remark.
 |~~ Block-form remark
     with internal newlines. ~~|
-let foo = (...)
+let(:foo, ...)
 ```
 
 The `let foo` binding's `docs` field holds three entries: two single-
@@ -1011,7 +1011,7 @@ filter(/age | gt(18))
 | `union`/`minus`/`inter` on incompatible types | type error |
 | `div(0)` | division by zero |
 | `sort` on Vec with non-comparable elements | type error |
-| `let cleanName = …@effectful…` | effect laundering |
+| `let(:cleanName, …@effectful…)` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
 
 ## Effect markers

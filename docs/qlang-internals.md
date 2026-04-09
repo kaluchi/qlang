@@ -226,8 +226,8 @@ Since comments are identity steps with no effect on the state
 pair, their evaluation semantics are trivial. The non-trivial
 content — the metadata attachment for doc forms — is a parser-side
 transformation: the parser folds `DocComment* RawStep` into a
-single RawStep AST node with a `docs` Vec field, so `evalLetStep`
-and `evalAsStep` see the docs at construction time and fold them
+single RawStep AST node with a `docs` Vec field, so the `let` and
+`as` operand impls see the docs at construction time and fold them
 into the conduit or snapshot wrapper.
 
 ## Reflective built-ins
@@ -823,3 +823,103 @@ after conduit-forcing and snapshot-unwrapping. See
 for the user-facing contract and
 [the runtime reference](qlang-operands.md#effectmjs-and-effect-checkmjs--effect-markers)
 for the precomputed `.effectful` field that the safety net consults.
+
+## Tooling primitives
+
+Modules that the operand library never imports but that embedders
+(editors, notebooks, REPLs, language servers) consume directly.
+Re-exported from the package entry.
+
+### `walk.mjs` — AST traversal primitives
+
+Single source of truth for the qlang AST shape.
+
+- `astChildrenOf(node)` — direct semantic children of an AST node.
+- `walkAst(node, visit)` — pre-order recursive descent. Visitor
+  returns `false` to skip a subtree.
+- `assignAstNodeIds(root)` / `attachAstParents(root)` — post-parse
+  decoration (monotonic `.id`, `.parent` pointer).
+- `findAstNodeAtOffset(ast, offset)` — narrowest-spanning node at
+  a UTF-16 offset. Drives editor hover and goto-definition.
+- `findIdentifierOccurrences(ast, name)` — every OperandCall and
+  Projection segment naming the given identifier, including
+  `let(:name, ...)` and `as(:name)` declaration patterns.
+- `bindingNamesVisibleAt(ast, offset)` — lexical-scope-correct set
+  of binding names visible at a cursor position. Honors fork-
+  isolating ancestors (ParenGroup, VecLit, SetLit, MapLit, MapEntry).
+- `astNodeSpan(node)` / `astNodeContainsOffset(node, offset)` —
+  range arithmetic over node locations.
+- `triviaBetweenAstNodes(nodeA, nodeB, ast)` — source slice between
+  two adjacent nodes (whitespace, punctuation, plain comments).
+
+### `session.mjs` — REPL / notebook session lifecycle
+
+Persistent `(env, cellHistory)` pair across multiple `evalCell`
+invocations.
+
+- `createSession(opts?)` — fresh session seeded with `langRuntime`.
+- `session.evalCell(source, opts?)` — parse + evaluate one cell.
+- `session.cellHistory` — read-only array of executed cells.
+- `session.bind(name, value)` — install a binding directly into env.
+- `session.takeSnapshot()` / `session.restoreSnapshot(snap)` —
+  cheap save/restore for "step back" features.
+- `serializeSession(session)` — JSON-serializable payload of user
+  bindings (conduits via stored body source, snapshots via tagged
+  JSON, raw values via tagged JSON) plus cell history.
+- `deserializeSession(json)` — rebuilds a session from a serialized
+  payload. Cell history is restored without re-evaluation.
+
+### `codec.mjs` — tagged-JSON value codec
+
+Canonical encoder/decoder pair for qlang runtime values across
+JSON boundaries (HTTP, postMessage, IndexedDB, files).
+
+| qlang value | tagged JSON form |
+|---|---|
+| number / string / boolean | itself |
+| nil | `null` |
+| Vec | JSON array of recursively-encoded elements |
+| keyword | `{ "$keyword": "name" }` |
+| Map | `{ "$map": [[k, v], ...] }` (entry pairs, recursively encoded) |
+| Set | `{ "$set": [v1, v2, ...] }` |
+
+`toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for
+function values, conduits, and snapshots.
+`fromTaggedJSON(json)` throws `MalformedTaggedJSONError` on
+unrecognized tagged objects.
+
+### `effect.mjs` and `effect-check.mjs` — @-effect markers
+
+`effect.mjs` owns the `@`-prefix surface convention:
+
+- `EFFECT_MARKER_PREFIX` — the literal `'@'` character.
+- `classifyEffect(name) → boolean` — true iff the name carries the
+  marker. The precomputed result is cached on `.effectful` fields.
+
+`effect-check.mjs` provides AST decoration:
+
+- `decorateAstWithEffectMarkers(ast)` — stamps `.effectful` on every
+  OperandCall and Projection node. Run automatically by `parse()`.
+- `findFirstEffectfulIdentifier(node)` — returns the first effectful
+  identifier in a subtree, used by the `let` operand for eval-time
+  effect validation.
+
+The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
+when an identifier resolves to an effectful function value but the
+lookup name is clean, the call is refused with `EffectLaunderingAtCall`.
+
+### Public entry point — `src/index.mjs`
+
+```js
+import {
+  parse, evalAst, evalQuery, langRuntime,
+  createSession, serializeSession, deserializeSession,
+  walkAst, astChildrenOf, findAstNodeAtOffset,
+  findIdentifierOccurrences, bindingNamesVisibleAt,
+  astNodeSpan, astNodeContainsOffset, triviaBetweenAstNodes,
+  toTaggedJSON, fromTaggedJSON,
+  QlangError, QlangTypeError, ParseError,
+  EffectLaunderingError,
+  classifyEffect, EFFECT_MARKER_PREFIX
+} from '@kaluchi/qlang';
+```

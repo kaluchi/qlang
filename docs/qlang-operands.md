@@ -80,6 +80,47 @@ form), positions 2..n are modifiers (filled by captured args).
   - `[1 2 3 4 5] | filter(gt(2))` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter(/age | gte(18))` → `[{:age 25}]`.
 
+### `every(pred)`
+
+- **Arity** 2. **Subject** `vec`, **modifier** `pred` (predicate pipeline).
+- Returns `true` iff every element satisfies the predicate.
+  Short-circuits on the first falsy result. Vacuously true for
+  the empty Vec (no counter-example exists).
+- **Examples**:
+  - `[2 4 6] | every(gt(0))` → `true`.
+  - `[1 2 3] | every(gt(2))` → `false`.
+  - `[] | every(gt(0))` → `true`.
+
+### `any(pred)`
+
+- **Arity** 2. **Subject** `vec`, **modifier** `pred` (predicate pipeline).
+- Returns `true` iff at least one element satisfies the predicate.
+  Short-circuits on the first truthy result. Vacuously false for
+  the empty Vec (no witness exists).
+- **Examples**:
+  - `[1 2 3] | any(gt(2))` → `true`.
+  - `[1 2 3] | any(gt(99))` → `false`.
+  - `[] | any(gt(0))` → `false`.
+
+### `groupBy(keyFn)`
+
+- **Arity** 2. **Subject** `vec`, **modifier** `keyFn` (key pipeline
+  returning a keyword).
+- Partitions a Vec into a Map keyed by the result of `keyFn`
+  applied to each element. Preserves first-occurrence order for
+  both the Map entry sequence and each bucket's element list.
+- **Example**: `[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name` → `["a" "c"]`.
+- **Errors**: subject not a Vec → type error; key not a keyword → type error.
+
+### `indexBy(keyFn)`
+
+- **Arity** 2. **Subject** `vec`, **modifier** `keyFn` (key pipeline
+  returning a keyword).
+- Collapses a Vec into a Map keyed by the result of `keyFn`. On
+  collision, the last element wins.
+- **Example**: `[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name` → `"alice"`.
+- **Errors**: subject not a Vec → type error; key not a keyword → type error.
+
 ### `sort`
 
 - **Arity** 1. **Subject** `vec`.
@@ -362,6 +403,36 @@ and takes values from `M₁`.
 `split` and `join` are inverses: `"a,b,c" | split(",") | join(",")`
 round-trips to `"a,b,c"`.
 
+### `contains(needle)`
+
+- **Arity** 2. **Subject** `string`, **modifier** `needle` (string).
+- Returns `true` if the subject contains `needle` as a substring.
+  Empty needle is always contained. Case-sensitive.
+- **Examples**:
+  - `"hello world" | contains("world")` → `true`.
+  - `"hello" | contains("xyz")` → `false`.
+- **Errors**: subject or needle not a string → type error.
+
+### `startsWith(prefix)`
+
+- **Arity** 2. **Subject** `string`, **modifier** `prefix` (string).
+- Returns `true` if the subject begins with `prefix`.
+  Empty prefix is always a prefix. Case-sensitive.
+- **Examples**:
+  - `"hello world" | startsWith("hello")` → `true`.
+  - `"hello" | startsWith("world")` → `false`.
+- **Errors**: subject or prefix not a string → type error.
+
+### `endsWith(suffix)`
+
+- **Arity** 2. **Subject** `string`, **modifier** `suffix` (string).
+- Returns `true` if the subject ends with `suffix`.
+  Empty suffix is always a suffix. Case-sensitive.
+- **Examples**:
+  - `"hello world" | endsWith("world")` → `true`.
+  - `"hello" | endsWith("xyz")` → `false`.
+- **Errors**: subject or suffix not a string → type error.
+
 ## Boolean
 
 ### `not`
@@ -521,9 +592,26 @@ for config cascading where `false` is a meaningful explicit
 setting (user disabled feature, etc.); use `firstTruthy` for
 display defaults where `false` is a sentinel meaning "no value".
 
+### `cond(p1, b1, p2, b2, ..., default?)`
+
+- **Arity** variadic (2+). **Subject** any value, **modifiers**
+  alternating (predicate, branch) sub-pipeline pairs, plus an
+  optional trailing default sub-pipeline.
+- Multi-way dispatch. Walks captured args in pairs: for each
+  `(pK, bK)`, evaluates `pK` against `pipeValue`; if truthy,
+  evaluates `bK` and returns its result. Short-circuits on first
+  match. If captured-arg count is odd, the trailing arg is the
+  default. If even and no match, returns `nil`.
+- Replaces nested-if chains with a flat catalog.
+- **Examples**:
+  - `score | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F")`.
+  - `value | cond(eq(0), "zero", eq(1), "one", "many")`.
+- **Errors**: fewer than 2 captured args → `CondNoBranches`.
+
 ## Reflective built-ins
 
-`env`, `use`, `reify`, and `manifest` are **reflective operands**:
+`env`, `use`, `reify`, `manifest`, `runExamples`, `let`, and `as`
+are **reflective operands**:
 they read or write the full evaluator state rather than working
 at the value level. All four are ordinary entries in `langRuntime`,
 look up like any other identifier, and can be shadowed by `let`
@@ -661,6 +749,52 @@ missing). This is the introspection-by-name path:
   report grouped by category.
 - Captured arguments (`manifest(...)`) → arity error.
 
+### `runExamples`
+
+- **Arity** 1. **Subject** descriptor Map (the output of `reify`).
+- Parses and evaluates every entry of the descriptor's `:examples`
+  Vec, comparing each result against the optional `→ expected`
+  suffix. Returns a Vec of `{:query :expected :actual :error :ok}`
+  Maps. Homoiconic catalog self-test — `manifest * runExamples >>
+  /ok | distinct` exercises every documented example and reports
+  whether it still matches its actual evaluation result.
+- **Example**: `reify(:count) | runExamples | first | /ok` → `true`.
+- **Errors**: subject not a descriptor Map → type error; no
+  `:examples` field → type error.
+
+### `let(:name, body)` / `let(:name, [:params], body)`
+
+- **Arity** variadic (2 or 3 captured). **Subject** any (pipeValue
+  passes through unchanged).
+- Declares a conduit (named pipeline fragment) in `env`. Zero-arity
+  form `let(:name, body)` binds a pipeline fragment. Parametric form
+  `let(:name, [:params], body)` binds a fragment with named
+  parameters for fractal composition.
+- The body is stored as AST and evaluated in a lexically-scoped fork
+  at each call site (envRef tie-the-knot for recursive self-binding).
+  Parameters are lazy conduit-parameter proxies (nullary function
+  values wrapping captured-arg lambdas).
+- **Examples**:
+  - `let(:double, mul(2)) | 10 | double` → `20`.
+  - `let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
+- **Errors**: name not a keyword → `LetNameNotKeyword`; params not
+  a Vec of keywords → `LetParamsNotVecOfKeywords`; fewer than 2
+  captured args → `LetBodyMissing`; clean name with effectful body
+  → `EffectLaunderingAtLetParse`.
+
+### `as(:name)`
+
+- **Arity** 2 (1 captured). **Subject** any (the value to snapshot).
+- Captures the current `pipeValue` as a frozen snapshot under the
+  given keyword name. `pipeValue` passes through unchanged. The
+  snapshot is retrievable by name through identifier lookup (auto-
+  unwrapped to the raw value) or through `reify(:name)` for
+  metadata inspection including docs.
+- **Examples**:
+  - `42 | as(:answer) | answer` → `42`.
+  - `[1 2 3] | as(:nums) | nums | count` → `3`.
+- **Errors**: name not a keyword → `AsNameNotKeyword`.
+
 ## Summary: unique operand names by category
 
 `count`, `empty`, and `has` are polymorphic — one identifier
@@ -668,178 +802,25 @@ dispatches on subject type. `sort` is overloaded by arity — same
 identifier, 0 or 1 captured arg. `reify` is overloaded by arity
 (value-level or named form). Each name is listed once.
 
-| Category                | Names                                                 |
+| Category                | Names (frequent → specialized)                        |
 |-------------------------|-------------------------------------------------------|
-| Vec reducers            | `count`, `empty`, `first`, `last`, `sum`, `min`, `max`, `firstNonZero` |
-| Vec transformers        | `filter`, `sort`, `sortWith`, `take`, `drop`, `distinct`, `reverse`, `flat`, `set` |
+| Vec reducers            | `count`, `empty`, `first`, `last`, `sum`, `min`, `max`, `every`, `any`, `firstNonZero` |
+| Vec transformers        | `filter`, `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `set`, `sortWith`, `groupBy`, `indexBy` |
 | Comparator builders     | `asc`, `desc`                                          |
-| Control flow            | `if`, `when`, `unless`, `coalesce`, `firstTruthy`      |
+| Control flow            | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
 | Map operations          | `keys`, `vals`, `has` (polymorphic with Set)          |
 | Polymorphic set ops     | `union`, `minus`, `inter`                             |
 | Arithmetic              | `add`, `sub`, `mul`, `div`                            |
-| String                  | `prepend`, `append`, `split`, `join`                  |
+| String                  | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | Boolean                 | `not`                                                 |
 | Predicates              | `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or`           |
 | Formatting              | `json`, `table`                                       |
-| Reflective              | `env`, `use`, `reify`, `manifest`                     |
+| Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples` |
 
-**52 unique identifiers** in the initial `langRuntime` Map. Each
+**63 unique identifiers** in the initial `langRuntime` Map. Each
 polymorphic / overloaded operand is one identifier regardless of
 how many dispatch paths it carries.
 
-## Tooling primitives
-
-Beyond the operand catalog, the runtime ships a set of modules that
-the operand library never imports but that embedders (editors,
-notebooks, REPLs, language servers) consume directly. They live in
-`qlang/src/` next to the evaluator and are re-exported from the
-package entry.
-
-### `walk.mjs` — AST traversal primitives
-
-Single source of truth for the qlang AST shape. Every consumer that
-needs to walk an AST imports from here instead of switching on
-`node.type` itself.
-
-- `astChildrenOf(node)` — yields the direct semantic children of an
-  AST node. The only place in the runtime that knows the per-type
-  child layout. When the grammar grows a new node type, only this
-  function needs to learn about it.
-- `walkAst(node, visit)` — pre-order recursive descent driven by
-  `astChildrenOf`. The visitor may return `false` to skip a subtree.
-- `assignAstNodeIds(root)` / `attachAstParents(root)` — post-parse
-  decoration that gives every node a stable monotonic `.id` and a
-  `.parent` pointer to its container.
-- `findAstNodeAtOffset(ast, offset)` — narrowest-spanning AST node
-  containing a UTF-16 source offset. Drives editor hover and
-  goto-definition.
-- `findIdentifierOccurrences(ast, name)` — every OperandCall,
-  LetStep, AsStep, and Projection segment that names the given
-  identifier. Drives find-references and rename refactoring.
-- `bindingNamesVisibleAt(ast, offset)` — the lexical-scope-correct
-  set of binding names visible at a cursor position. Honors
-  fork-isolating ancestors (ParenGroup, VecLit, SetLit, MapLit,
-  MapEntry) so a binding inside an inner ParenGroup is not visible
-  after the group closes. Drives autocomplete.
-- `astNodeSpan(node)` / `astNodeContainsOffset(node, offset)` —
-  range arithmetic over node locations.
-- `triviaBetweenAstNodes(nodeA, nodeB, ast)` — source slice between
-  two adjacent nodes (whitespace, punctuation, plain comments).
-  Lets a future formatter preserve original spacing without the
-  grammar capturing trivia tokens.
-
-### `session.mjs` — REPL / notebook session lifecycle
-
-The persistent-state abstraction over `evalAst`. Owns an env and
-threads it across multiple `evalCell` invocations so each cell sees
-the bindings written by previous cells.
-
-- `createSession(opts?)` — fresh session seeded with a `langRuntime`
-  env (or a caller-provided env).
-- `session.evalCell(source, opts?)` — parse and evaluate one cell.
-  Returns `{ source, uri, ast, result, error, envAfterCell }`.
-- `session.cellHistory` — read-only array of executed cells.
-- `session.bind(name, value)` — install a binding directly into env
-  (used by `deserializeSession` on restore).
-- `session.takeSnapshot()` / `session.restoreSnapshot(snap)` —
-  cheap save/restore of `(env, cellHistoryLength)` for "step back"
-  features.
-- `serializeSession(session)` — JSON-serializable payload of user
-  bindings (thunks via stored body source, snapshots via tagged
-  JSON, raw values via tagged JSON) plus cell history. Builtins
-  are not serialized; they are reconstituted from `langRuntime` on
-  restore.
-- `deserializeSession(json)` — rebuilds a session from a serialized
-  payload. Cell history is restored without re-evaluation.
-
-### `codec.mjs` — tagged-JSON value codec
-
-Single canonical encoder/decoder pair between qlang runtime values
-(Vec, Map, Set, keyword, scalar) and a JSON form that survives
-`JSON.stringify` round-trips. The same wire format is used by the
-conformance test runner, by `serializeSession`/`deserializeSession`,
-and by any embedder that needs to ship qlang values across a JSON
-boundary (HTTP, postMessage, IndexedDB, files).
-
-The format:
-
-| qlang value | tagged JSON form |
-|---|---|
-| number / string / boolean | itself |
-| nil | `null` |
-| Vec | JSON array of recursively-encoded elements |
-| keyword | `{ "$keyword": "name" }` |
-| Map | `{ "$map": [[k, v], ...] }` (entries pairs, recursively encoded) |
-| Set | `{ "$set": [v1, v2, ...] }` |
-
-`toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for
-function values, thunks, and snapshots — these require the higher-
-level session serializer to reconstruct from source on restore.
-`fromTaggedJSON(json)` throws `MalformedTaggedJSONError` on
-unrecognized tagged objects.
-
-### `effect.mjs` and `effect-check.mjs` — @-effect markers
-
-`effect.mjs` owns the convention for the `@`-prefix surface marker
-on side-effectful identifiers and exposes:
-
-- `EFFECT_MARKER_PREFIX` — the literal `'@'` character. The single
-  place in the runtime that mentions it.
-- `classifyEffect(name) → boolean` — true iff the name carries the
-  marker. Called once per identifier at parse-time decoration and
-  once per function/conduit/snapshot construction; the precomputed
-  result is cached on the `.effectful` field of every relevant AST
-  node and runtime value, so the hot path performs no substring
-  inspection.
-
-`effect-check.mjs` enforces the propagation invariant in two passes:
-
-- `decorateAstWithEffectMarkers(ast)` — post-parse pass that stamps
-  `.effectful` (boolean) on every OperandCall, LetStep, AsStep, and
-  Projection node. Run automatically by `parse()`.
-- `validateEffectMarkers(ast)` — walks every LetStep and rejects
-  any non-effectful let whose body contains an effectful read site
-  (an OperandCall or Projection segment with `.effectful = true`).
-  Throws `EffectLaunderingAtLetParse` with the binding's source
-  location and the offending identifier name.
-
-The runtime call-site safety net lives in `eval.mjs::evalOperandCall`
-and reads the same precomputed `.effectful` boolean: when an
-identifier resolves through env to an effectful function value but
-the lookup name does not classify as effectful, the call is refused
-with `EffectLaunderingAtCall`. Together the two layers cover both
-the static cases (parse-time AST scan) and the dynamic laundering
-paths through `use` / `as` / programmatic `session.bind` injection.
-
-See [qlang-spec.md](qlang-spec.md#effect-markers)
-for the user-facing contract and the propagation rule.
-
-### Public entry point — `src/index.mjs`
-
-Embedders import the full surface from the package root:
-
-```js
-import {
-  // parsing and evaluation
-  parse, evalAst, evalQuery, langRuntime,
-  // session lifecycle
-  createSession, serializeSession, deserializeSession,
-  // AST traversal
-  walkAst, astChildrenOf, findAstNodeAtOffset,
-  findIdentifierOccurrences, bindingNamesVisibleAt,
-  astNodeSpan, astNodeContainsOffset, triviaBetweenAstNodes,
-  // value codec
-  toTaggedJSON, fromTaggedJSON,
-  // error hierarchy (for instanceof checks)
-  QlangError, QlangTypeError, ParseError,
-  EffectLaunderingError,
-  // effect-marker classification
-  classifyEffect, EFFECT_MARKER_PREFIX
-} from '@kaluchi/qlang';
-```
-
-Subpath imports (`@kaluchi/qlang/walk`, `@kaluchi/qlang/session`,
-`@kaluchi/qlang/codec`, `@kaluchi/qlang/errors`) remain available
-through the `package.json` exports map for tree-shaking-sensitive
-bundles. The package declares `sideEffects: false` so a browser
-bundler will drop unused subpaths.
+Tooling primitives (walk.mjs, session.mjs, codec.mjs, effect.mjs)
+and the embedder API are documented in
+[qlang-internals.md](qlang-internals.md).

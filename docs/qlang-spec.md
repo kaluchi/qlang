@@ -1048,14 +1048,14 @@ the binding can trigger I/O.
 The check enforces propagation at two layers, both reading the
 structured `.effectful` boolean computed once by `classifyEffect`:
 
-1. **Parse time** (`src/effect-check.mjs::validateEffectMarkers`).
-   The AST is decorated with `.effectful` on every OperandCall,
-   LetStep, AsStep, and Projection node. Then every `LetStep` whose
-   `.effectful` is `false` is checked against its body — if any
-   descendant OperandCall or Projection segment is `.effectful`, the
-   parser throws `EffectLaunderingAtLetParse` carrying the source
-   location of the offending binding. Both direct calls (`@callers`)
-   and projection-based extraction (`env | /@callers`) are caught.
+1. **Eval time** (`src/runtime/intro.mjs::letOperand`).
+   When the `let` operand executes, it checks the body AST via
+   `findFirstEffectfulIdentifier`: if the binding name is clean but
+   the body contains an effectful OperandCall or Projection segment,
+   the operand throws `EffectLaunderingAtLetParse` carrying the
+   source location of the offending identifier. Both direct calls
+   (`@callers`) and projection-based extraction (`env | /@callers`)
+   are caught.
 
 2. **Runtime call site** (`src/eval.mjs::evalOperandCall`). When an
    identifier resolves through env to a function value, the call-site

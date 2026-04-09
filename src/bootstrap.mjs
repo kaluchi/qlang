@@ -35,11 +35,13 @@ export function bootstrapManifest() {
   const initialState = makeState(bootstrapEnv, bootstrapEnv);
   const finalState = evalAst(ast, initialState);
 
-  // Extract only conduit entries (skip `let` itself and any
-  // non-conduit values that leaked into env).
+  // Extract all conduit entries — each is a descriptor authored
+  // in manifest.qlang. The `let(:let, {...})` entry shadows the
+  // bootstrap `let` operand during evaluation, but the resulting
+  // conduit is still the descriptor we need for enrichment.
   const descriptors = new Map();
   for (const [k, v] of finalState.env) {
-    if (isKeyword(k) && isConduit(v) && k.name !== 'let') {
+    if (isKeyword(k) && isConduit(v)) {
       descriptors.set(k, v);
     }
   }

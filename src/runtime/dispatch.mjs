@@ -7,30 +7,22 @@
 // performs the state descent (extract pipeValue) and ascent
 // (withPipeValue) on their behalf.
 //
-//   valueOp(name, n, impl)       — pure `(slot1..slotN) → result`
-//     Partial (k = n - 1): subject = pipeValue, modifiers resolved
-//     against pipeValue.
-//     Full (k = n): all slots resolved against pipeValue as context.
+// None of the helpers accept operand meta (docs, examples, throws,
+// category, subject, modifiers, returns). Meta lives exclusively
+// in manifest.qlang and is attached by enrichWithManifest in
+// runtime/index.mjs during langRuntime assembly. The only metadata
+// the helpers compute is the `captured` range — the [min, max]
+// count of captured args the operand accepts — because it is
+// structurally derived from the dispatch shape, not from authored
+// documentation.
 //
-//   higherOrderOp(name, n, impl) — pure `(subject, ...lambdas) → result`
-//     Subject is always pipeValue. Captured lambdas are passed
-//     UNRESOLVED so the impl can invoke them per-element.
-//
-//   nullaryOp(name, impl)        — pure `(subject) → result`
-//     Arity 1, no captured args allowed.
-//
-//   overloadedOp(name, maxArity, impls)
-//     Dispatches by captured-arg count. Each impl receives
-//     `(pipeValue, ...lambdas) → result`.
-//
-//   stateOp(name, arity, impl)   — raw `(state, lambdas) → state`
-//     No pipeValue extraction, no result wrapping. Used for
-//     reflective operands (env, use) that must read or write the
-//     full state. Enforces the captured-arg count exactly.
-//
-// The first four descend to the value level for the impl body
-// and ascend back afterwards. `stateOp` stays on the state level
-// throughout — the "descent and ascent" are no-ops.
+//   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
+//   higherOrderOp(name, n, impl)     — pure `(subject, ...lambdas) → result`
+//   nullaryOp(name, impl)            — pure `(subject) → result`
+//   overloadedOp(name, maxArity, impls) — dispatch by captured-arg count
+//   stateOp(name, arity, impl)       — raw `(state, lambdas) → state`
+//   stateOpVariadic(name, maxArity, impl, captured) — variadic state op
+//   higherOrderOpVariadic(name, maxArity, impl, captured) — variadic higher-order
 
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
@@ -61,17 +53,11 @@ const StateOpArityMismatch = declareArityError('StateOpArityMismatch',
 export const UNBOUNDED = keyword('unbounded');
 
 // ── Per-site invariant errors for variadic registration ───────
-//
-// These fire at langRuntime assembly time when a runtime-module
-// author forgets to supply `meta.captured` on a variadic operand.
-// Each helper's guard throws its own unique subclass so the stack
-// trace and class name identify the exact registration site that
-// violated the contract.
 
 class StateOpVariadicMissingCaptured extends QlangInvariantError {
   constructor(operandName) {
     super(
-      `stateOpVariadic('${operandName}') requires meta.captured`,
+      `stateOpVariadic('${operandName}') requires captured range`,
       { site: 'StateOpVariadicMissingCaptured', operandName }
     );
     this.name = 'StateOpVariadicMissingCaptured';
@@ -82,7 +68,7 @@ class StateOpVariadicMissingCaptured extends QlangInvariantError {
 class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
   constructor(operandName) {
     super(
-      `higherOrderOpVariadic('${operandName}') requires meta.captured`,
+      `higherOrderOpVariadic('${operandName}') requires captured range`,
       { site: 'HigherOrderOpVariadicMissingCaptured', operandName }
     );
     this.name = 'HigherOrderOpVariadicMissingCaptured';
@@ -90,75 +76,47 @@ class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
   }
 }
 
-// Helper: stamp the auto-inferred `captured` range onto user-supplied
-// meta. Fixed-arity helpers (valueOp, higherOrderOp, nullaryOp,
-// overloadedOp) always know the acceptable range from their `n` /
-// `arity` / `impls` parameter, so callers never need to repeat it
-// in meta. Variadic helpers (stateOpVariadic, higherOrderOpVariadic)
-// cannot infer the range and require meta.captured directly — they
-// bypass this helper.
-function withCaptured(meta, captured) {
-  return { ...meta, captured };
-}
-
-export function valueOp(name, n, impl, meta) {
-  // Accepts n-1 (partial) or n (full) captured args.
-  const capturedRange = [n - 1, n];
+export function valueOp(name, n, impl) {
   return makeFn(name, n, (state, lambdas) => {
     const k = lambdas.length;
     const pv = state.pipeValue;
     if (k === n - 1) {
-      // Partial: subject = pipeValue, modifiers resolved against pipeValue.
       const modifiers = lambdas.map(lam => lam(pv));
       return withPipeValue(state, impl(pv, ...modifiers));
     }
     if (k === n) {
-      // Full: every slot from a captured lambda, resolved against pipeValue.
       const slots = lambdas.map(lam => lam(pv));
       return withPipeValue(state, impl(...slots));
     }
     throw new ValueOpArityMismatch({
       operandName: name, expectedArity: n, actualArity: k
     });
-  }, withCaptured(meta, capturedRange));
+  }, { captured: [n - 1, n] });
 }
 
-export function higherOrderOp(name, n, impl, meta) {
-  // Accepts exactly n-1 captured args.
-  const capturedRange = [n - 1, n - 1];
+export function higherOrderOp(name, n, impl) {
   return makeFn(name, n, (state, lambdas) => {
     const k = lambdas.length;
     if (k === n - 1) {
-      // Subject is pipeValue; modifiers stay unresolved (lambdas).
       return withPipeValue(state, impl(state.pipeValue, ...lambdas));
     }
     throw new HigherOrderOpArityMismatch({
       operandName: name, expectedCaptured: n - 1, actualArity: k
     });
-  }, withCaptured(meta, capturedRange));
+  }, { captured: [n - 1, n - 1] });
 }
 
-// nullaryOp(name, impl, meta) — arity 1, no captured args, subject = pipeValue.
-export function nullaryOp(name, impl, meta) {
+export function nullaryOp(name, impl) {
   return makeFn(name, 1, (state, lambdas) => {
     if (lambdas.length !== 0) {
       throw new NullaryOpArgsProvided({ operandName: name, actualArity: lambdas.length });
     }
     return withPipeValue(state, impl(state.pipeValue));
-  }, withCaptured(meta, [0, 0]));
+  }, { captured: [0, 0] });
 }
 
-// overloadedOp(name, maxArity, impls, meta) — operand that supports
-// multiple discrete arities. `impls` is an object keyed by
-// captured-arg count: e.g. { 0: naturalImpl, 1: keyedImpl } for
-// `sort` (bare natural order vs sort by key). Each impl receives
-// `(pipeValue, ...lambdas)` → pure value result.
-//
-// `maxArity` controls Rule 10's overflow check; pass the largest
-// supported (capturedCount + 1).
-export function overloadedOp(name, maxArity, impls, meta) {
+export function overloadedOp(name, maxArity, impls) {
   const keys = Object.keys(impls).map(Number).sort((a, b) => a - b);
-  const capturedRange = [keys[0], keys[keys.length - 1]];
   return makeFn(name, maxArity, (state, lambdas) => {
     const k = lambdas.length;
     const impl = impls[k];
@@ -170,18 +128,10 @@ export function overloadedOp(name, maxArity, impls, meta) {
       });
     }
     return withPipeValue(state, impl(state.pipeValue, ...lambdas));
-  }, withCaptured(meta, capturedRange));
+  }, { captured: [keys[0], keys[keys.length - 1]] });
 }
 
-// stateOp(name, arity, impl, meta) — raw state transformer. The impl
-// receives the full state pair and must return a new state. Use
-// this for reflective operands that need to read or write env
-// (env, use, reify, manifest).
-//
-// `arity` is enforced exactly: the captured-arg count must match
-// `arity - 1` (one slot is the implicit subject). Pass 1 for
-// "consumes pipeValue, no captured args" (env, use).
-export function stateOp(name, arity, impl, meta) {
+export function stateOp(name, arity, impl) {
   const expected = arity - 1;
   return makeFn(name, arity, (state, lambdas) => {
     if (lambdas.length !== expected) {
@@ -190,42 +140,23 @@ export function stateOp(name, arity, impl, meta) {
       });
     }
     return impl(state, lambdas);
-  }, withCaptured(meta, [expected, expected]));
+  }, { captured: [expected, expected] });
 }
 
-// stateOpVariadic(name, maxArity, impl, meta) — like stateOp but
-// accepts a range of captured-arg counts. The impl is responsible
-// for dispatching by lambdas.length. Used by `reify`, which has a
-// 0-captured value-level form and a 1-captured named form.
-//
-// `meta.captured` must be set explicitly by the caller — the helper
-// has no way to infer the acceptable range from `impl` alone. Pass
-// a `[min, max]` Vec where `max` can be the `UNBOUNDED` sentinel
-// for unbounded upper limit.
-export function stateOpVariadic(name, maxArity, impl, meta) {
-  if (!meta || !meta.captured) {
+export function stateOpVariadic(name, maxArity, impl, captured) {
+  if (!captured) {
     throw new StateOpVariadicMissingCaptured(name);
   }
   return makeFn(name, maxArity, (state, lambdas) => {
     return impl(state, lambdas);
-  }, meta);
+  }, { captured });
 }
 
-// higherOrderOpVariadic(name, maxArity, impl, meta) — like
-// higherOrderOp but accepts a variable number of captured args
-// (lambdas). Subject is always pipeValue; lambdas are passed
-// unresolved so the impl can invoke them lazily and selectively.
-// The impl is responsible for any min-arity check (Rule 10 only
-// enforces the maxArity ceiling). Used by control-flow operands
-// like coalesce that take 1+ alternative sub-pipelines.
-//
-// `meta.captured` must be set explicitly by the caller, same
-// contract as `stateOpVariadic`.
-export function higherOrderOpVariadic(name, maxArity, impl, meta) {
-  if (!meta || !meta.captured) {
+export function higherOrderOpVariadic(name, maxArity, impl, captured) {
+  if (!captured) {
     throw new HigherOrderOpVariadicMissingCaptured(name);
   }
   return makeFn(name, maxArity, (state, lambdas) => {
     return withPipeValue(state, impl(state.pipeValue, ...lambdas));
-  }, meta);
+  }, { captured });
 }

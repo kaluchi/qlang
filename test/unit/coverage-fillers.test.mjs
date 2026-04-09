@@ -22,7 +22,7 @@ import {
 } from '../../src/runtime/dispatch.mjs';
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
-import { walkAst } from '../../src/walk.mjs';
+import { walkAst, bindingNamesVisibleAt } from '../../src/walk.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', () => {
@@ -94,20 +94,20 @@ describe('describeType for conduit and snapshot', () => {
 });
 
 describe('dispatch variadic registration invariants', () => {
-  it('stateOpVariadic without meta throws QlangInvariantError', () => {
+  it('stateOpVariadic without captured throws QlangInvariantError', () => {
     expect(() => stateOpVariadic('badOp', 2, (s) => s)).toThrow(QlangInvariantError);
   });
 
-  it('stateOpVariadic without meta.captured throws QlangInvariantError', () => {
-    expect(() => stateOpVariadic('badOp', 2, (s) => s, {})).toThrow(QlangInvariantError);
+  it('stateOpVariadic with null captured throws QlangInvariantError', () => {
+    expect(() => stateOpVariadic('badOp', 2, (s) => s, null)).toThrow(QlangInvariantError);
   });
 
-  it('higherOrderOpVariadic without meta throws QlangInvariantError', () => {
+  it('higherOrderOpVariadic without captured throws QlangInvariantError', () => {
     expect(() => higherOrderOpVariadic('badOp', 2, (pv) => pv)).toThrow(QlangInvariantError);
   });
 
-  it('higherOrderOpVariadic without meta.captured throws QlangInvariantError', () => {
-    expect(() => higherOrderOpVariadic('badOp', 2, (pv) => pv, {})).toThrow(QlangInvariantError);
+  it('higherOrderOpVariadic with null captured throws QlangInvariantError', () => {
+    expect(() => higherOrderOpVariadic('badOp', 2, (pv) => pv, null)).toThrow(QlangInvariantError);
   });
 });
 
@@ -545,5 +545,75 @@ describe('reify on a snapshot bound directly via session.bind', () => {
     expect(result.get(keyword('kind'))).toEqual(keyword('snapshot'));
     expect(result.get(keyword('value'))).toBe(42);
     expect(result.get(keyword('type'))).toEqual(keyword('number'));
+  });
+});
+
+describe('min/max subject type checks', () => {
+  it('min on a non-Vec throws MinSubjectNotVec', () => {
+    let thrown;
+    try { evalQuery('42 | min'); } catch (e) { thrown = e; }
+    expect(thrown).toBeDefined();
+    expect(thrown.name).toBe('MinSubjectNotVec');
+  });
+
+  it('max on a non-Vec throws MaxSubjectNotVec', () => {
+    let thrown;
+    try { evalQuery('"hello" | max'); } catch (e) { thrown = e; }
+    expect(thrown).toBeDefined();
+    expect(thrown.name).toBe('MaxSubjectNotVec');
+  });
+});
+
+describe('runExamples branch coverage', () => {
+  it('example without arrow → ok=true (demonstration, no expected check)', () => {
+    const s = createSession();
+    const result = s.evalCell('{:kind :builtin :examples ["[1 2 3] | count"]} | runExamples | first').result;
+    expect(result.get(keyword('ok'))).toBe(true);
+    expect(result.get(keyword('expected'))).toBe(null);
+    expect(result.get(keyword('error'))).toBe(null);
+  });
+
+  it('example with failing query → ok=false with error message', () => {
+    const s = createSession();
+    const result = s.evalCell('{:kind :builtin :examples ["42 | unknownOp"]} | runExamples | first').result;
+    expect(result.get(keyword('ok'))).toBe(false);
+    expect(result.get(keyword('error'))).toMatch(/unresolved/);
+  });
+
+  it('example with unparseable expected → ok=false with error', () => {
+    const s = createSession();
+    const result = s.evalCell('{:kind :builtin :examples ["42 → |||"]} | runExamples | first').result;
+    expect(result.get(keyword('ok'))).toBe(false);
+    expect(result.get(keyword('error'))).toMatch(/expected:/);
+  });
+});
+
+describe('mergeFlat non-Vec element passthrough', () => {
+  it('>> passes non-Vec elements through unchanged', () => {
+    const result = evalQuery('[1, [2, 3], 4] >> count');
+    expect(result).toBe(4);
+  });
+});
+
+describe('bindingNamesVisibleAt edge cases', () => {
+  it('bare let/as OperandCall with no args does not contribute names', () => {
+    // `count` at offset after the pipeline exercises the
+    // bindingNamesVisibleAt path where an OperandCall named 'let'
+    // has args=null (bare identifier, no parens).
+    const ast = parse('let | count');
+    const visible = bindingNamesVisibleAt(ast, ast.source.length);
+    // 'let' here is a bare identifier (args=null), not a binding
+    // declaration, so no names should be added.
+    expect(visible.size).toBe(0);
+  });
+
+  it('binding inside a fork-isolating ancestor not containing offset is invisible', () => {
+    // The as(:x) inside the paren group is fork-isolated.
+    // At offset past the paren group, :x should not be visible.
+    const src = '(42 | as(:x)) | count';
+    const ast = parse(src);
+    const offsetAfterParen = src.indexOf('| count');
+    const visible = bindingNamesVisibleAt(ast, offsetAfterParen);
+    expect(visible.has('x')).toBe(false);
   });
 });

@@ -2,15 +2,16 @@
 // query starts with. Two-phase construction:
 //
 // Phase 1: JS impls from runtime modules (dispatch-wrapped function
-//          values with provisional meta from JS source).
+//          values with auto-computed `captured` range, no authored meta).
 // Phase 2: Bootstrap manifest.qlang → descriptor conduits with
 //          structured meta and doc comments. Linker enriches each
-//          function value: manifest meta replaces JS meta, docs from
-//          doc comments replace empty/provisional docs.
+//          function value: manifest meta replaces the bare `captured`-
+//          only meta, docs from doc comments populate the docs field.
 //
-// Declaration (manifest.qlang) is authoritative. JS impls provide
-// only the executable function. The linker merges both into the
-// final function values that populate langRuntime.
+// Declaration (manifest.qlang) is the single source of truth for
+// all operand metadata. JS impls provide only the executable
+// function. The linker merges both into the final function values
+// that populate langRuntime.
 
 import { keyword, isConduit } from '../types.mjs';
 import { makeState } from '../state.mjs';
@@ -40,12 +41,9 @@ import {
   firstTruthy as firstTruthyOperand,
   cond as condOperand
 } from './control.mjs';
-// Live ESM binding — bootstrapManifest is called inside langRuntime(),
-// not at module-init time, so the circular dependency resolves the
-// same way as the existing intro.mjs → eval.mjs → index.mjs cycle.
 import { bootstrapManifest } from '../bootstrap.mjs';
 
-// JS impl registry: name → function value (with provisional meta).
+// JS impl registry: name → function value (captured-only meta).
 const IMPLS = {
   count: vec.count, empty: vec.empty, first: vec.first, last: vec.last,
   sum: vec.sum, min: vec.min, max: vec.max, every: vec.every, any: vec.any,
@@ -78,13 +76,7 @@ let _manifestDescriptors = null;
 
 function getDescriptors() {
   if (_manifestDescriptors !== null) return _manifestDescriptors;
-  try {
-    _manifestDescriptors = bootstrapManifest();
-  } catch {
-    // If manifest bootstrap fails (e.g. manifest.generated.mjs not
-    // built yet), fall back to JS-only meta.
-    _manifestDescriptors = new Map();
-  }
+  _manifestDescriptors = bootstrapManifest();
   return _manifestDescriptors;
 }
 
@@ -95,6 +87,9 @@ function forceDescriptor(conduit) {
 }
 
 // Enrich a function value with manifest meta + docs.
+// The function value arrives with only `{ captured }` in meta
+// (auto-computed by the dispatch helper). Enrichment replaces
+// meta entirely with manifest-sourced fields, preserving `captured`.
 function enrichWithManifest(fnValue, conduit) {
   const descriptor = forceDescriptor(conduit);
   if (!(descriptor instanceof Map)) return fnValue;
@@ -103,20 +98,20 @@ function enrichWithManifest(fnValue, conduit) {
   const toArr = (v) => Array.isArray(v) ? v : [];
   const kwName = (v) => v && typeof v === 'object' && v.type === 'keyword' ? v.name : String(v);
 
-  const manifestMeta = {
-    ...fnValue.meta,
+  const enrichedMeta = {
+    captured: fnValue.meta?.captured ?? null,
     category: kwName(get('category')),
     subject: get('subject'),
     returns: get('returns'),
     modifiers: toArr(get('modifiers')),
-    docs: conduit.docs.length > 0 ? [...conduit.docs] : (fnValue.meta?.docs ?? []),
+    docs: [...conduit.docs],
     examples: toArr(get('examples')),
     throws: toArr(get('throws')).map(kwName)
   };
 
   return Object.freeze({
     ...fnValue,
-    meta: Object.freeze(manifestMeta)
+    meta: Object.freeze(enrichedMeta)
   });
 }
 

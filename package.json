@@ -23,7 +23,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "build:grammar": "node scripts/build-grammar.mjs"
+    "build:grammar": "node scripts/build-grammar.mjs",
+    "build:manifest": "node scripts/build-manifest.mjs",
+    "build": "node scripts/build-grammar.mjs && node scripts/build-manifest.mjs"
   },
   "engines": {
     "node": ">=20"

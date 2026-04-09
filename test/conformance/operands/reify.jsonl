@@ -41,8 +41,8 @@
 {"name": "builtin-category-reflective", "query": "env | /env | reify | /category", "expect": {"$keyword": "reflective"}}
 {"name": "builtin-category-control", "query": "env | /if | reify | /category", "expect": {"$keyword": "control"}}
 {"name": "builtin-category-comparator", "query": "env | /asc | reify | /category", "expect": {"$keyword": "comparator"}}
-{"name": "builtin-modifiers-vec", "query": "env | /add | reify | /modifiers", "expect": ["number"]}
-{"name": "builtin-returns", "query": "env | /add | reify | /returns", "expect": "number"}
+{"name": "builtin-modifiers-vec", "query": "env | /add | reify | /modifiers", "expect": [{"$keyword": "number"}]}
+{"name": "builtin-returns", "query": "env | /add | reify | /returns", "expect": {"$keyword": "number"}}
 {"name": "builtin-docs-is-vec", "query": "env | /count | reify | /docs | count", "expect": 1}
 {"name": "builtin-docs-non-empty", "query": "env | /count | reify | /docs | first | eq(\"\") | not", "expect": true}
 {"name": "builtin-throws-contains-class", "query": "env | /add | reify | /throws | first", "expect": "AddLeftNotNumber"}

@@ -6,11 +6,11 @@
 //
 // Two extraction patterns are supported:
 //
-//   1. Fenced-code REPL sessions (jdt-query-lang-spec.md):
+//   1. Fenced-code REPL sessions (qlang-spec.md):
 //      > query
 //      expected result
 //
-//   2. Inline prose examples (jdt-query-lang-runtime.md):
+//   2. Inline prose examples (qlang-runtime.md):
 //      `query` → `expected`
 
 import { describe, it, expect } from 'vitest';
@@ -22,7 +22,7 @@ import { keyword } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const docsDir = join(here, '..', '..', '..', 'docs');
+const docsDir = join(here, '..', '..', 'docs');
 
 // Parse a qlang result string (from doc prose) into a runtime value.
 // Supports: numbers, strings, booleans, nil, keywords, Vecs, Maps, Sets.
@@ -101,11 +101,11 @@ function extractReplExamples(source, filePath) {
 }
 
 // Run REPL examples from the spec doc.
-const specPath = join(docsDir, 'jdt-query-lang-spec.md');
+const specPath = join(docsDir, 'qlang-spec.md');
 const specSource = readFileSync(specPath, 'utf8');
-const specExamples = extractReplExamples(specSource, 'jdt-query-lang-spec.md');
+const specExamples = extractReplExamples(specSource, 'qlang-spec.md');
 
-describe('doc-compliance: jdt-query-lang-spec.md REPL examples', () => {
+describe('doc-compliance: qlang-spec.md REPL examples', () => {
   for (const ex of specExamples) {
     const expected = parseExpected(ex.expected);
     if (expected === null) continue; // skip unparseable expected values

@@ -5,13 +5,13 @@ Reference implementation of the jdtbridge query expression language.
 This is a **standalone Node.js module** independent of the rest of
 the jdtbridge codebase. It implements the language defined in:
 
-- [`docs/jdt-query-lang-spec.md`](../docs/jdt-query-lang-spec.md)
+- [`docs/qlang-spec.md`](docs/qlang-spec.md)
   — user-facing reference (syntax, grammar, value types,
-  combinators).
-- [`docs/jdt-query-lang-model.md`](../docs/jdt-query-lang-model.md)
-  — formal evaluation model `(pipeValue, env)` with six step types
-  and a fork rule.
-- [`docs/jdt-query-lang-runtime.md`](../docs/jdt-query-lang-runtime.md)
+  combinators, conduits).
+- [`docs/qlang-model.md`](docs/qlang-model.md)
+  — formal evaluation model `(pipeValue, env)` with step types,
+  fork rule, and conduit semantics.
+- [`docs/qlang-runtime.md`](docs/qlang-runtime.md)
   — built-in operand catalog (the initial `langRuntime` Map).
 
 ## Architecture

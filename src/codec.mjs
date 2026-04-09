@@ -14,7 +14,7 @@
 //   { "$map": [[k, v], ...] } → JS Map (entries pairs, recursively encoded)
 //   { "$set": [v1, v2, ...] } → JS Set (recursively encoded)
 //
-// Function values, thunks, and snapshots cannot be encoded as JSON
+// Function values, conduits, and snapshots cannot be encoded as JSON
 // directly — they require the higher-level session serializer to
 // reconstruct them from source on restore. toTaggedJSON throws on
 // these via TaggedJSONUnencodableValueError.

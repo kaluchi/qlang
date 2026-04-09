@@ -20,7 +20,7 @@ pipelines. Domain-agnostic. Pure. Composable.
 | File | Audience | Answers |
 |---|---|---|
 | [`docs/qlang-spec.md`](docs/qlang-spec.md) | query authors | Values, pipeline operators, conduits, scoping, grammar |
-| [`docs/qlang-operands.md`](docs/qlang-operands.md) | query authors | Full catalog of 63 built-in operands with signatures and examples |
+| [`docs/qlang-operands.md`](docs/qlang-operands.md) | query authors | Full catalog of 65 built-in operands with signatures and examples |
 | [`docs/qlang-internals.md`](docs/qlang-internals.md) | evaluator / embedder implementors | Formal `(pipeValue, env)` model, AST traversal, session lifecycle, codec |
 
 Dependency: **spec** is self-contained for writing queries. **operands**

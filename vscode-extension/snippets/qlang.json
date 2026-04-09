@@ -83,5 +83,50 @@
     "prefix": "|~~",
     "body": ["|~~ ${1:doc} ~~|"],
     "description": "Block doc comment — attaches to next operand call"
+  },
+  "unless": {
+    "prefix": "unless",
+    "body": ["unless(${1:cond}, ${2:body})"],
+    "description": "Inverse of when — runs body when cond is falsy"
+  },
+  "coalesce": {
+    "prefix": "coalesce",
+    "body": ["coalesce(${1:alt1}, ${2:alt2}, ${3:default})"],
+    "description": "First non-nil result among alternatives"
+  },
+  "firstTruthy": {
+    "prefix": "firstTruthy",
+    "body": ["firstTruthy(${1:alt1}, ${2:alt2}, ${3:default})"],
+    "description": "First truthy result among alternatives"
+  },
+  "sort by key": {
+    "prefix": "sortk",
+    "body": ["sort(${1:/field})"],
+    "description": "Sort by key sub-pipeline"
+  },
+  "union bound": {
+    "prefix": "unionb",
+    "body": ["union({${1::key ${2:expr}}})"],
+    "description": "Enrich Map via bound union"
+  },
+  "minus bound": {
+    "prefix": "minusb",
+    "body": ["minus(#{${1::key}})"],
+    "description": "Drop fields via bound minus"
+  },
+  "inter bound": {
+    "prefix": "interb",
+    "body": ["inter(#{${1::key}})"],
+    "description": "Select fields via bound inter"
+  },
+  "use": {
+    "prefix": "use",
+    "body": ["{${1::key ${2:value}}} | use"],
+    "description": "Import bindings into env via use"
+  },
+  "reify": {
+    "prefix": "reify",
+    "body": ["reify(:${1:name})"],
+    "description": "Inspect a binding's descriptor"
   }
 }

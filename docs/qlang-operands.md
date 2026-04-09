@@ -806,7 +806,7 @@ identifier, 0 or 1 captured arg. `reify` is overloaded by arity
 |-------------------------|-------------------------------------------------------|
 | Vec reducers            | `count`, `empty`, `first`, `last`, `sum`, `min`, `max`, `every`, `any`, `firstNonZero` |
 | Vec transformers        | `filter`, `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `set`, `sortWith`, `groupBy`, `indexBy` |
-| Comparator builders     | `asc`, `desc`                                          |
+| Comparator builders     | `asc`, `desc`, `nullsFirst`, `nullsLast`               |
 | Control flow            | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
 | Map operations          | `keys`, `vals`, `has` (polymorphic with Set)          |
 | Polymorphic set ops     | `union`, `minus`, `inter`                             |
@@ -817,7 +817,7 @@ identifier, 0 or 1 captured arg. `reify` is overloaded by arity
 | Formatting              | `json`, `table`                                       |
 | Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples` |
 
-**63 unique identifiers** in the initial `langRuntime` Map. Each
+**65 unique identifiers** in the initial `langRuntime` Map. Each
 polymorphic / overloaded operand is one identifier regardless of
 how many dispatch paths it carries.
 

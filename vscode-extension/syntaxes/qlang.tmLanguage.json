@@ -71,11 +71,23 @@
     },
 
     "map-key": {
-      "comment": "Map key: bare keyword followed by required horizontal whitespace (MapEntry = key:Keyword __ value).",
-      "match": "(:[a-zA-Z@_][a-zA-Z0-9_-]*)(?=[ \\t])",
-      "captures": {
-        "1": { "name": "support.type.property-name.qlang" }
-      }
+      "comment": "Map key: bare or quoted keyword followed by required horizontal whitespace (MapEntry = key:Keyword __ value).",
+      "patterns": [
+        {
+          "comment": "quoted map key :\"...\" followed by whitespace",
+          "match": "(:\"(?:[^\\\\\"]|\\\\.)*\")(?=[ \\t])",
+          "captures": {
+            "1": { "name": "support.type.property-name.qlang" }
+          }
+        },
+        {
+          "comment": "bare map key :ident followed by whitespace",
+          "match": "(:[a-zA-Z@_][a-zA-Z0-9_-]*)(?=[ \\t])",
+          "captures": {
+            "1": { "name": "support.type.property-name.qlang" }
+          }
+        }
+      ]
     },
 
     "keyword-atom": {
@@ -171,7 +183,7 @@
     },
 
     "builtin-operand": {
-      "comment": "62 built-in operands from manifest.qlang (let and as handled separately by keyword-binding).",
+      "comment": "63 built-in operands from manifest.qlang (let and as handled separately by keyword-binding).",
       "match": "(?<![a-zA-Z0-9_@-])(count|empty|first|last|sum|min|max|every|any|firstNonZero|filter|sort|sortWith|take|drop|distinct|reverse|flat|set|groupBy|indexBy|asc|desc|nullsFirst|nullsLast|if|when|unless|coalesce|firstTruthy|cond|keys|vals|has|union|minus|inter|add|sub|mul|div|split|join|contains|startsWith|endsWith|prepend|append|not|eq|gt|lt|gte|lte|and|or|json|table|env|use|reify|manifest|runExamples)(?![a-zA-Z0-9_-])",
       "captures": {
         "1": { "name": "support.function.builtin.qlang" }

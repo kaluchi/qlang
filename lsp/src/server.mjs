@@ -5,6 +5,9 @@
 // in features.mjs; this file only maps between LSP protocol types
 // and the feature functions.
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import {
   createConnection,
   TextDocuments,
@@ -18,8 +21,10 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node.js';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { parse } from '@kaluchi/qlang';
 import {
   parseDocument,
+  buildManifestIndex,
   completionsAtOffset,
   hoverAtOffset,
   definitionAtOffset,
@@ -34,17 +39,50 @@ const documents = new TextDocuments(TextDocument);
 // Per-document parsed state.
 const documentStates = new Map();
 
-connection.onInitialize(() => ({
-  capabilities: {
-    textDocumentSync: TextDocumentSyncKind.Full,
-    completionProvider: { triggerCharacters: ['|', '/', ':', '(', ' '] },
-    hoverProvider: true,
-    definitionProvider: true,
-    referencesProvider: true,
-    documentSymbolProvider: true,
-    signatureHelpProvider: { triggerCharacters: ['(', ','] }
+// ── Manifest context ──────────────────────────────────────────
+//
+// Parsed once at startup. Provides go-to-definition fallback
+// for builtin operands — jumps to the let(:name, ...) entry
+// in manifest.qlang.
+
+let manifestCtx = null;
+
+function loadManifestContext() {
+  try {
+    // Resolve manifest.qlang relative to @kaluchi/qlang package.
+    // The lsp package depends on @kaluchi/qlang via file:..
+    // so the package root is at ../../ relative to this file.
+    const lspSrcDir = dirname(fileURLToPath(import.meta.url));
+    const manifestPath = join(lspSrcDir, '..', '..', 'src', 'manifest.qlang');
+    const manifestSource = readFileSync(manifestPath, 'utf8');
+    const manifestAst = parse(manifestSource, { uri: 'manifest.qlang' });
+    const manifestUri = 'file:///' + manifestPath.replace(/\\/g, '/');
+    manifestCtx = {
+      uri: manifestUri,
+      index: buildManifestIndex(manifestAst)
+    };
+  } catch (e) {
+    connection.console.warn(`manifest.qlang not loaded: ${e.message}`);
+    manifestCtx = null;
   }
-}));
+}
+
+// ── Initialization ────────────────────────────────────────────
+
+connection.onInitialize(() => {
+  loadManifestContext();
+  return {
+    capabilities: {
+      textDocumentSync: TextDocumentSyncKind.Full,
+      completionProvider: { triggerCharacters: ['|', '/', ':', '(', ' '] },
+      hoverProvider: true,
+      definitionProvider: true,
+      referencesProvider: true,
+      documentSymbolProvider: true,
+      signatureHelpProvider: { triggerCharacters: ['(', ','] }
+    }
+  };
+});
 
 // ── Diagnostics on document change ────────────────────────────
 
@@ -129,17 +167,67 @@ connection.onDefinition((params) => {
   if (!state?.ast || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const def = definitionAtOffset(state.ast, offset);
+  const def = definitionAtOffset(state.ast, offset, manifestCtx);
   if (!def) return null;
 
+  // def.uri is null for in-document declarations, manifest URI
+  // for builtin fallback.
+  const targetUri = def.uri ?? params.textDocument.uri;
+
+  // For manifest locations, we need to open the manifest file
+  // and convert offsets to positions there. For in-document
+  // declarations, we can use the current document.
+  if (def.uri) {
+    // Manifest target — convert offsets via manifest source.
+    // The manifest was already parsed; reconstruct line/col
+    // from the offset in the manifest source.
+    return {
+      uri: def.uri,
+      range: offsetRangeToLineCol(manifestSourceText(), def.startOffset, def.endOffset)
+    };
+  }
+
   return {
-    uri: params.textDocument.uri,
+    uri: targetUri,
     range: {
       start: doc.positionAt(def.startOffset),
       end: doc.positionAt(def.endOffset)
     }
   };
 });
+
+let _manifestSourceText = null;
+
+function manifestSourceText() {
+  if (_manifestSourceText) return _manifestSourceText;
+  try {
+    const lspSrcDir = dirname(fileURLToPath(import.meta.url));
+    const manifestPath = join(lspSrcDir, '..', '..', 'src', 'manifest.qlang');
+    _manifestSourceText = readFileSync(manifestPath, 'utf8');
+  } catch {
+    _manifestSourceText = '';
+  }
+  return _manifestSourceText;
+}
+
+function offsetRangeToLineCol(source, startOffset, endOffset) {
+  return {
+    start: offsetToPosition(source, startOffset),
+    end: offsetToPosition(source, endOffset)
+  };
+}
+
+function offsetToPosition(source, offset) {
+  let line = 0;
+  let lastNewline = -1;
+  for (let i = 0; i < offset && i < source.length; i++) {
+    if (source[i] === '\n') {
+      line++;
+      lastNewline = i;
+    }
+  }
+  return { line, character: offset - lastNewline - 1 };
+}
 
 // ── Find References ───────────────────────────────────────────
 

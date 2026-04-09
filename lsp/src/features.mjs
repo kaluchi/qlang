@@ -1,6 +1,7 @@
 // LSP feature implementations — pure functions over qlang's public
-// API. No vscode-languageserver imports here; the server.mjs wiring
-// layer translates between LSP protocol types and these returns.
+// API. No vscode-languageserver imports, no node: imports. The
+// server.mjs wiring layer translates between LSP protocol types
+// and these returns.
 //
 // Each function takes a parsed state and returns plain objects that
 // server.mjs maps to LSP responses. This split keeps the logic
@@ -16,10 +17,14 @@ import {
   QlangError, QlangTypeError
 } from '@kaluchi/qlang';
 
+// Fork-isolating AST node types — declarations inside these
+// boundaries are invisible to offsets outside them. Mirrors the
+// set in walk.mjs::FORK_ISOLATING_AST_TYPES.
+const FORK_ISOLATING_TYPES = new Set([
+  'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'MapEntry'
+]);
+
 // ── Document state ────────────────────────────────────────────
-//
-// Each open document gets a parsed AST and a diagnostic list.
-// Re-parsed on every content change.
 
 export function parseDocument(source, uri) {
   const diagnostics = [];
@@ -48,11 +53,30 @@ export function parseDocument(source, uri) {
   return { ast, diagnostics };
 }
 
-// ── Completion ────────────────────────────────────────────────
+// ── Manifest context ──────────────────────────────────────────
 //
-// Two sources: builtin operand names from langRuntime, and
-// user-defined bindings visible at the cursor offset via
-// bindingNamesVisibleAt.
+// Parsed manifest.qlang AST + its file URI, provided by the
+// server at startup. Used as fallback for go-to-definition on
+// builtin operands that have no in-document declaration.
+
+export function buildManifestIndex(manifestAst) {
+  const index = new Map();
+  if (!manifestAst) return index;
+  walkAst(manifestAst, (node) => {
+    if (node.type !== 'OperandCall') return;
+    if (node.name !== 'let') return;
+    if (!Array.isArray(node.args) || node.args.length === 0) return;
+    const firstArg = node.args[0];
+    if (firstArg.type !== 'Keyword' || !node.location) return;
+    index.set(firstArg.name, {
+      startOffset: node.location.start.offset,
+      endOffset: node.location.end.offset
+    });
+  });
+  return index;
+}
+
+// ── Completion ────────────────────────────────────────────────
 
 let _builtinCompletions = null;
 
@@ -97,10 +121,6 @@ export function completionsAtOffset(ast, offset) {
 }
 
 // ── Hover ─────────────────────────────────────────────────────
-//
-// Finds the AST node at the cursor offset. If it's an
-// OperandCall, looks up docs from the runtime. If it's a
-// Projection, describes the projection path.
 
 export function hoverAtOffset(ast, source, offset) {
   if (!ast) return null;
@@ -180,41 +200,86 @@ function formatMetaValue(value) {
 
 // ── Go to Definition ──────────────────────────────────────────
 //
-// From a use site (bare OperandCall or identifier reference),
-// jumps to the let/as declaration that introduced the binding.
-// Builtins have no source declaration — returns null for them.
+// Three-tier resolution:
+//   1. In-document let/as declaration visible at the cursor —
+//      last-write-wins with fork isolation (shadowing-aware)
+//   2. Manifest.qlang declaration for builtin operands
+//   3. null (identifier has no reachable declaration)
 
-export function definitionAtOffset(ast, offset) {
+export function definitionAtOffset(ast, offset, manifestCtx) {
   if (!ast) return null;
 
   const node = findAstNodeAtOffset(ast, offset);
   if (!node || node.type !== 'OperandCall') return null;
 
   const name = node.name;
-  const occurrences = findIdentifierOccurrences(ast, name);
 
-  // Declaration site: an OperandCall named 'let' or 'as' whose
-  // first Keyword arg matches the identifier name.
-  for (const occ of occurrences) {
-    if ((occ.name === 'let' || occ.name === 'as')
-        && Array.isArray(occ.args) && occ.args.length > 0
-        && occ.args[0].type === 'Keyword' && occ.args[0].name === name
-        && occ.location) {
-      return {
-        startOffset: occ.location.start.offset,
-        endOffset: occ.location.end.offset
-      };
-    }
+  // Tier 1: last visible in-document declaration
+  const localDecl = findLastVisibleDeclaration(ast, name, offset);
+  if (localDecl) {
+    return { uri: null, ...localDecl };
+  }
+
+  // Tier 2: manifest.qlang fallback for builtins
+  if (manifestCtx?.index?.has(name)) {
+    return {
+      uri: manifestCtx.uri,
+      ...manifestCtx.index.get(name)
+    };
   }
 
   return null;
 }
 
+// findLastVisibleDeclaration(ast, name, offset) — walks the AST
+// collecting let/as declarations for `name` that are lexically
+// visible at `offset` (before cursor, not fork-isolated). Returns
+// the LAST one (closest to cursor = most recent shadowing), or
+// null if no in-document declaration is visible.
+function findLastVisibleDeclaration(ast, name, offset) {
+  let lastVisible = null;
+
+  walkAst(ast, (node) => {
+    if (node.type !== 'OperandCall') return;
+    if (node.name !== 'let' && node.name !== 'as') return;
+    if (!Array.isArray(node.args) || node.args.length === 0) return;
+    const firstArg = node.args[0];
+    if (firstArg.type !== 'Keyword' || firstArg.name !== name) return;
+    if (!node.location || node.location.end.offset > offset) return;
+
+    // Fork-isolation check: walk ancestors from the declaration
+    // up to the root. If any fork-isolating ancestor does NOT
+    // contain the cursor offset, the declaration is invisible.
+    if (!isVisibleAcrossForks(node, offset)) return;
+
+    // This declaration is visible — keep it (last-write-wins).
+    lastVisible = {
+      startOffset: node.location.start.offset,
+      endOffset: node.location.end.offset
+    };
+  });
+
+  return lastVisible;
+}
+
+function isVisibleAcrossForks(declNode, cursorOffset) {
+  let current = declNode;
+  let parent = current.parent;
+  while (parent) {
+    if (FORK_ISOLATING_TYPES.has(parent.type)) {
+      if (!current.location
+          || current.location.start.offset > cursorOffset
+          || current.location.end.offset < cursorOffset) {
+        return false;
+      }
+    }
+    current = parent;
+    parent = current.parent;
+  }
+  return true;
+}
+
 // ── Find References ───────────────────────────────────────────
-//
-// Returns all occurrences of the identifier under the cursor:
-// declaration sites (let/as), call sites (bare OperandCall),
-// and projection segments that name the identifier.
 
 export function referencesAtOffset(ast, offset) {
   if (!ast) return [];
@@ -224,9 +289,6 @@ export function referencesAtOffset(ast, offset) {
 
   let name = null;
   if (node.type === 'OperandCall') {
-    // Could be a use site (node.name === identifierName) or a
-    // declaration site (node.name === 'let'/'as', first arg is
-    // the keyword). For declarations, extract the bound name.
     if ((node.name === 'let' || node.name === 'as')
         && Array.isArray(node.args) && node.args.length > 0
         && node.args[0].type === 'Keyword') {
@@ -239,7 +301,6 @@ export function referencesAtOffset(ast, offset) {
              && (node.parent.name === 'let' || node.parent.name === 'as')
              && Array.isArray(node.parent.args)
              && node.parent.args[0] === node) {
-    // Cursor is on the keyword arg of let(:name, ...) or as(:name)
     name = node.name;
   }
 
@@ -255,10 +316,6 @@ export function referencesAtOffset(ast, offset) {
 }
 
 // ── Document Symbols ──────────────────────────────────────────
-//
-// Collects all let/as binding declarations for the Outline view
-// and breadcrumb navigation. Each symbol carries the binding
-// name, kind (conduit vs snapshot), and source range.
 
 export function documentSymbols(ast) {
   if (!ast) return [];
@@ -283,16 +340,10 @@ export function documentSymbols(ast) {
 }
 
 // ── Signature Help ────────────────────────────────────────────
-//
-// When the cursor sits inside an operand call's parentheses
-// (e.g. `filter(|` where | is cursor), returns the operand
-// signature: subject type, modifier types, and docs.
 
 export function signatureHelpAtOffset(ast, source, offset) {
   if (!ast) return null;
 
-  // Walk up the AST from the narrowest node at offset to find
-  // the enclosing OperandCall with args (i.e., has parentheses).
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
@@ -310,10 +361,8 @@ export function signatureHelpAtOffset(ast, source, offset) {
     ? meta.modifiers.map(formatMetaValue)
     : [];
 
-  // Count which argument the cursor is in by counting commas
-  // before the offset within the args region.
   const argsStartOffset = operandCall.location.start.offset
-    + operandCall.name.length + 1; // skip "name("
+    + operandCall.name.length + 1;
   const textBeforeCursor = source.substring(argsStartOffset, offset);
   const activeParameter = (textBeforeCursor.match(/,/g) || []).length;
 

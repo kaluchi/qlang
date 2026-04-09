@@ -2,9 +2,9 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  parseDocument, completionsAtOffset, hoverAtOffset,
-  definitionAtOffset, referencesAtOffset, documentSymbols,
-  signatureHelpAtOffset
+  parseDocument, buildManifestIndex, completionsAtOffset,
+  hoverAtOffset, definitionAtOffset, referencesAtOffset,
+  documentSymbols, signatureHelpAtOffset
 } from '../src/features.mjs';
 
 describe('parseDocument', () => {
@@ -148,6 +148,14 @@ describe('hoverAtOffset', () => {
   });
 });
 
+// Build a manifest context for definition fallback tests.
+const manifestSrc = 'let(:count, {:category :vec-reducer})';
+const manifestAst = parseDocument(manifestSrc, 'manifest.qlang').ast;
+const testManifestCtx = {
+  uri: 'file:///test/manifest.qlang',
+  index: buildManifestIndex(manifestAst)
+};
+
 describe('definitionAtOffset', () => {
   it('jumps from conduit use site to let declaration', () => {
     const src = 'let(:double, mul(2)) | 10 | double';
@@ -155,22 +163,58 @@ describe('definitionAtOffset', () => {
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
     expect(def).not.toBeNull();
-    // Definition should point at the let(:double, ...) OperandCall
     expect(def.startOffset).toBe(0);
+    expect(def.uri).toBeNull(); // in-document
   });
 
-  it('returns null for builtin operands (no source declaration)', () => {
+  it('jumps to last visible declaration when shadowed', () => {
+    const src = 'let(:x, 1) | let(:x, 2) | x';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const useOffset = src.lastIndexOf('x');
+    const def = definitionAtOffset(ast, useOffset);
+    expect(def).not.toBeNull();
+    // Should point to second let(:x, 2), not the first
+    expect(def.startOffset).toBe(src.indexOf('let(:x, 2)'));
+  });
+
+  it('declaration inside fork is invisible outside', () => {
+    const src = '(let(:x, 1)) | x';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const useOffset = src.lastIndexOf('x');
+    // x is declared inside a ParenGroup fork — invisible at the
+    // use site. Falls through to manifest or null.
+    const def = definitionAtOffset(ast, useOffset);
+    expect(def === null || def.uri !== null).toBe(true);
+  });
+
+  it('falls back to manifest.qlang for builtin operands', () => {
+    const src = '[1 2 3] | count';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(ast, src.indexOf('count'), testManifestCtx);
+    expect(def).not.toBeNull();
+    expect(def.uri).toBe('file:///test/manifest.qlang');
+  });
+
+  it('returns null without manifest context for builtins', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'));
     expect(def).toBeNull();
   });
 
+  it('in-document let shadows builtin — jumps to let, not manifest', () => {
+    const src = 'let(:count, 42) | count';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(ast, src.lastIndexOf('count'), testManifestCtx);
+    expect(def).not.toBeNull();
+    expect(def.uri).toBeNull(); // in-document, not manifest
+    expect(def.startOffset).toBe(0);
+  });
+
   it('returns null for non-OperandCall nodes', () => {
     const src = '42';
     const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, 0);
-    expect(def).toBeNull();
+    expect(definitionAtOffset(ast, 0)).toBeNull();
   });
 
   it('returns null for null ast', () => {

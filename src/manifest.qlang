@@ -11,8 +11,8 @@
 
 |~ ── Vec reducers ─────────────────────────────────────── ~|
 
-|~~ Returns the number of elements.
-    Polymorphic over Vec, Set, Map. ~~|
+|~~ Returns the number of elements. Polymorphic over Vec
+    (length), Set (size), and Map (entry count). ~~|
 let(:count, {
   :category :vec-reducer
   :subject [:vec, :set, :map]
@@ -24,7 +24,8 @@ let(:count, {
     "{:x 1 :y 2 :z 3} | count → 3"]
   :throws [:CountSubjectNotContainer]})
 
-|~~ Returns true if the container has zero elements. ~~|
+|~~ Returns true if the container has zero elements, false
+    otherwise. Polymorphic over Vec, Set, and Map. ~~|
 let(:empty, {
   :category :vec-reducer
   :subject [:vec, :set, :map]
@@ -33,7 +34,8 @@ let(:empty, {
   :examples ["[] | empty → true" "[1] | empty → false"]
   :throws [:EmptySubjectNotContainer]})
 
-|~~ Returns the first element, or nil if empty. ~~|
+|~~ Returns the first element of a Vec, or nil if the Vec
+    is empty. ~~|
 let(:first, {
   :category :vec-reducer
   :subject :vec
@@ -42,7 +44,8 @@ let(:first, {
   :examples ["[10 20 30] | first → 10" "[] | first → nil"]
   :throws [:FirstSubjectNotVec]})
 
-|~~ Returns the last element, or nil if empty. ~~|
+|~~ Returns the last element of a Vec, or nil if the Vec
+    is empty. ~~|
 let(:last, {
   :category :vec-reducer
   :subject :vec
@@ -51,7 +54,8 @@ let(:last, {
   :examples ["[10 20 30] | last → 30" "[] | last → nil"]
   :throws [:LastSubjectNotVec]})
 
-|~~ Numeric sum of elements. Empty Vec yields 0. ~~|
+|~~ Returns the numeric sum of elements. Empty Vec yields 0.
+    Every element must be a number. ~~|
 let(:sum, {
   :category :vec-reducer
   :subject :vec
@@ -60,28 +64,32 @@ let(:sum, {
   :examples ["[1 2 3 4] | sum → 10" "[] | sum → 0"]
   :throws [:SumSubjectNotVec, :SumElementNotNumber]})
 
-|~~ Minimum element under natural ordering.
-    Empty Vec yields nil. ~~|
+|~~ Returns the minimum element under natural ordering. Empty
+    Vec yields nil. All elements must be comparable scalars of
+    the same type. ~~|
 let(:min, {
   :category :vec-reducer
   :subject :vec
   :returns :any
   :modifiers []
-  :examples ["[3 1 4 1 5] | min → 1"]
+  :examples ["[3 1 4 1 5] | min → 1" "[\"b\" \"a\" \"c\"] | min → \"a\""]
   :throws [:MinSubjectNotVec, :MinElementsNotComparable]})
 
-|~~ Maximum element under natural ordering.
-    Empty Vec yields nil. ~~|
+|~~ Returns the maximum element under natural ordering. Empty
+    Vec yields nil. All elements must be comparable scalars of
+    the same type. ~~|
 let(:max, {
   :category :vec-reducer
   :subject :vec
   :returns :any
   :modifiers []
-  :examples ["[3 1 4 1 5] | max → 5"]
+  :examples ["[3 1 4 1 5] | max → 5" "[\"b\" \"a\" \"c\"] | max → \"c\""]
   :throws [:MaxSubjectNotVec, :MaxElementsNotComparable]})
 
-|~~ True iff every element satisfies the predicate.
-    Vacuously true for empty Vec (no counter-example). ~~|
+|~~ Returns true iff every element satisfies the predicate
+    sub-pipeline. Short-circuits on the first falsy result.
+    Vacuously true for the empty Vec (no counter-example
+    exists). ~~|
 let(:every, {
   :category :vec-reducer
   :subject :vec
@@ -89,11 +97,14 @@ let(:every, {
   :modifiers [:predicate-lambda]
   :examples [
     "[2 4 6 8] | every(gt(0)) → true"
+    "[1 2 3] | every(gt(2)) → false"
     "[] | every(gt(0)) → true"]
   :throws [:EverySubjectNotVec]})
 
-|~~ True iff at least one element satisfies the predicate.
-    Vacuously false for empty Vec (no witness). ~~|
+|~~ Returns true iff at least one element satisfies the
+    predicate sub-pipeline. Short-circuits on the first truthy
+    result. Vacuously false for the empty Vec (no witness
+    exists). ~~|
 let(:any, {
   :category :vec-reducer
   :subject :vec
@@ -101,11 +112,15 @@ let(:any, {
   :modifiers [:predicate-lambda]
   :examples [
     "[1 2 3] | any(gt(2)) → true"
+    "[1 2 3] | any(gt(99)) → false"
     "[] | any(gt(0)) → false"]
   :throws [:AnySubjectNotVec]})
 
-|~~ First non-zero number in a Vec. Composition primitive
-    for compound comparators in sortWith. ~~|
+|~~ Returns the first non-zero number in a Vec. If all elements
+    are zero or the Vec is empty, returns 0. The composition
+    primitive for compound comparators in sortWith: each comparator
+    returns -1/0/1, and firstNonZero picks the first non-tie,
+    giving lexicographic ordering. ~~|
 let(:firstNonZero, {
   :category :vec-reducer
   :subject :vec
@@ -118,40 +133,55 @@ let(:firstNonZero, {
 
 |~ ── Vec transformers ─────────────────────────────────── ~|
 
-|~~ Keeps elements where the predicate evaluates truthy. ~~|
+|~~ Keeps elements where the predicate sub-pipeline evaluates
+    truthy. The predicate is applied to each element via fork. ~~|
 let(:filter, {
   :category :vec-transformer
   :subject :vec
   :returns :vec
   :modifiers [:predicate-lambda]
-  :examples ["[1 2 3 4 5] | filter(gt(2)) → [3 4 5]"]
+  :examples [
+    "[1 2 3 4 5] | filter(gt(2)) → [3 4 5]"
+    "[{:age 25} {:age 15}] | filter(/age | gte(18)) → [{:age 25}]"]
   :throws [:FilterSubjectNotVec]})
 
-|~~ Sorted in natural ascending order,
-    or by key sub-pipeline. ~~|
+|~~ Returns a new Vec sorted in natural ascending order.
+    Overloaded by arity: bare sort uses natural order, sort(key)
+    sorts by the value the key sub-pipeline returns for each
+    element. ~~|
 let(:sort, {
   :category :vec-transformer
   :subject :vec
   :returns :vec
   :modifiers [:key-lambda]
-  :examples ["[3 1 4 1 5] | sort → [1 1 3 4 5]"]
+  :examples [
+    "[3 1 4 1 5] | sort → [1 1 3 4 5]"
+    "[{:age 30} {:age 20}] | sort(/age) → [{:age 20} {:age 30}]"]
   :throws [
     :SortNaturalSubjectNotVec
     :SortByKeySubjectNotVec
     :SortNaturalNotComparable
     :SortByKeyNotComparable]})
 
-|~~ Custom comparator sort. Comparator receives
-    pair Map {:left a :right b}, returns number. ~~|
+|~~ Sorts a Vec using a custom comparator sub-pipeline. The
+    comparator receives a pair Map {:left a :right b} and must
+    return a number: negative places left before right, positive
+    places right before left, zero preserves relative order
+    (stable sort). Pair with asc/desc/firstNonZero for
+    declarative compound comparators. ~~|
 let(:sortWith, {
   :category :vec-transformer
   :subject :vec
   :returns :vec
   :modifiers [:comparator-lambda]
-  :examples ["[3 1 2] | sortWith(sub(/left, /right)) → [1 2 3]"]
+  :examples [
+    "[3 1 2] | sortWith(sub(/left, /right)) → [1 2 3]"
+    "people | sortWith(asc(/age))"
+    "nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)"]
   :throws [:SortWithSubjectNotVec, :SortWithCmpResultNotNumber]})
 
-|~~ First n elements. ~~|
+|~~ Returns the first n elements. If n exceeds length, returns
+    the whole Vec. ~~|
 let(:take, {
   :category :vec-transformer
   :subject :vec
@@ -160,7 +190,8 @@ let(:take, {
   :examples ["[1 2 3 4 5] | take(3) → [1 2 3]"]
   :throws [:TakeSubjectNotVec, :TakeCountNotNumber]})
 
-|~~ Vec with first n elements removed. ~~|
+|~~ Returns the Vec with the first n elements removed. If n
+    exceeds length, returns []. ~~|
 let(:drop, {
   :category :vec-transformer
   :subject :vec
@@ -169,7 +200,8 @@ let(:drop, {
   :examples ["[1 2 3 4 5] | drop(2) → [3 4 5]"]
   :throws [:DropSubjectNotVec, :DropCountNotNumber]})
 
-|~~ Duplicate elements removed, first-occurrence order. ~~|
+|~~ Returns a new Vec with duplicate elements removed,
+    preserving first-occurrence order. ~~|
 let(:distinct, {
   :category :vec-transformer
   :subject :vec
@@ -178,7 +210,7 @@ let(:distinct, {
   :examples ["[1 2 1 3 2] | distinct → [1 2 3]"]
   :throws [:DistinctSubjectNotVec]})
 
-|~~ Vec in reverse order. ~~|
+|~~ Returns the Vec in reverse order. ~~|
 let(:reverse, {
   :category :vec-transformer
   :subject :vec
@@ -187,7 +219,8 @@ let(:reverse, {
   :examples ["[1 2 3] | reverse → [3 2 1]"]
   :throws [:ReverseSubjectNotVec]})
 
-|~~ Flattens one level of nesting. ~~|
+|~~ Flattens one level of nesting. Elements that are Vecs are
+    spliced in; other elements pass through unchanged. ~~|
 let(:flat, {
   :category :vec-transformer
   :subject :vec
@@ -196,7 +229,7 @@ let(:flat, {
   :examples ["[[1 2] [3] [4 5]] | flat → [1 2 3 4 5]"]
   :throws [:FlatSubjectNotVec]})
 
-|~~ Converts Vec to Set. ~~|
+|~~ Converts a Vec to a Set, removing duplicates. ~~|
 let(:set, {
   :category :set-op
   :subject :vec
@@ -205,7 +238,11 @@ let(:set, {
   :examples ["[1 2 1 3] | set → #{1 2 3}"]
   :throws [:SetConversionSubjectNotVec]})
 
-|~~ Partitions Vec into Map keyed by keyword classifier. ~~|
+|~~ Partitions a Vec into a Map keyed by the result of the key
+    sub-pipeline applied to each element. Preserves first-occurrence
+    order for both the Map entry sequence and each bucket's element
+    list. The key sub-pipeline must return a keyword for every
+    element. ~~|
 let(:groupBy, {
   :category :vec-transformer
   :subject :vec
@@ -215,8 +252,10 @@ let(:groupBy, {
     "[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy(/dept) | /eng * /name → [\"a\" \"c\"]"]
   :throws [:GroupBySubjectNotVec, :GroupByKeyNotKeyword]})
 
-|~~ Collapses Vec into Map keyed by keyword classifier.
-    Last-wins on collision. ~~|
+|~~ Collapses a Vec into a Map keyed by the result of the key
+    sub-pipeline. On collision (two elements producing the same
+    key), the last element wins. The key sub-pipeline must return
+    a keyword for every element. ~~|
 let(:indexBy, {
   :category :vec-transformer
   :subject :vec
@@ -228,111 +267,160 @@ let(:indexBy, {
 
 |~ ── Comparator builders ──────────────────────────────── ~|
 
-|~~ Ascending comparator for sortWith.
-    Projects key from pair Map. ~~|
+|~~ Builds an ascending comparator for sortWith. Applied
+    per-pair, projects the key from /left and /right via the
+    captured sub-pipeline and compares them in natural ascending
+    order. Returns -1, 0, or 1. The key sub-pipeline can be any
+    expression — a bare projection, a computed value, or a
+    multi-step pipeline. ~~|
 let(:asc, {
   :category :comparator
   :subject :map
   :returns :number
   :modifiers [:key-lambda]
-  :examples ["sortWith(asc(/age))"]
+  :examples [
+    "sortWith(asc(/age))"
+    "sortWith(asc(mul(/price, /qty)))"]
   :throws [:AscPairNotMap, :AscKeysNotComparable]})
 
-|~~ Descending comparator for sortWith.
-    Reverses asc ordering. ~~|
+|~~ Builds a descending comparator for sortWith. Same as asc
+    but reversed: higher key values come first. ~~|
 let(:desc, {
   :category :comparator
   :subject :map
   :returns :number
   :modifiers [:key-lambda]
-  :examples ["sortWith(desc(/timestamp))"]
+  :examples [
+    "sortWith(desc(/timestamp))"
+    "sortWith(desc(/score))"]
   :throws [:DescPairNotMap, :DescKeysNotComparable]})
 
-|~~ Ascending comparator with nil keys sorted to front. ~~|
+|~~ Ascending comparator that places nil-keyed elements before
+    all non-nil elements. Non-nil keys are sorted in ascending
+    order. Use inside sortWith to handle data with missing
+    values without tripping AscKeysNotComparable. ~~|
 let(:nullsFirst, {
   :category :comparator
   :subject :map
   :returns :number
   :modifiers [:key-lambda]
-  :examples ["sortWith(nullsFirst(/age))"]
+  :examples [
+    "sortWith(nullsFirst(/age))"
+    "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a → [nil 1 3]"]
   :throws [:NullsFirstPairNotMap]})
 
-|~~ Ascending comparator with nil keys sorted to end. ~~|
+|~~ Ascending comparator that places nil-keyed elements after
+    all non-nil elements. Non-nil keys are sorted in ascending
+    order. Use inside sortWith to handle data with missing
+    values without tripping AscKeysNotComparable. ~~|
 let(:nullsLast, {
   :category :comparator
   :subject :map
   :returns :number
   :modifiers [:key-lambda]
-  :examples ["sortWith(nullsLast(/age))"]
+  :examples [
+    "sortWith(nullsLast(/age))"
+    "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a → [1 3 nil]"]
   :throws [:NullsLastPairNotMap]})
 
 |~ ── Control flow ─────────────────────────────────────── ~|
 
-|~~ Conditional. Evaluates cond; if truthy, runs then;
-    else runs else branch. Only the selected branch executes. ~~|
+|~~ Conditional. Evaluates the cond sub-pipeline against
+    pipeValue; if truthy, evaluates the then branch, otherwise
+    evaluates the else branch. Only the selected branch executes.
+    Truthiness: nil and false are falsy, everything else
+    (including 0, "", [], {}, #{}) is truthy. ~~|
 let(:if, {
   :category :control
   :subject :any
   :returns :any
   :modifiers [:predicate-lambda, :pipeline, :pipeline]
-  :examples ["score | if(gte(60), \"pass\", \"fail\")"]
+  :examples [
+    "score | if(gte(60), \"pass\", \"fail\")"
+    "list | if(empty, \"<empty>\", first)"]
   :throws []})
 
-|~~ One-sided conditional. Identity on falsy. ~~|
+|~~ One-sided conditional with implicit identity on the false
+    branch. If cond evaluated against pipeValue is truthy, runs
+    the then sub-pipeline; otherwise pipeValue passes through
+    unchanged. ~~|
 let(:when, {
   :category :control
   :subject :any
   :returns :any
   :modifiers [:predicate-lambda, :pipeline]
-  :examples ["employee | when(/active, /salary | mul(11) | div(10))"]
+  :examples [
+    "employee | when(/active, /salary | mul(11) | div(10))"
+    "list | when(empty, [\"<empty>\"])"]
   :throws []})
 
-|~~ Inverse of when. Runs then when cond is falsy. ~~|
+|~~ Inverse of when: runs the then sub-pipeline when cond is
+    falsy, otherwise pipeValue passes through unchanged.
+    Reads more naturally for guard-clause patterns where the
+    action fires when the condition fails. ~~|
 let(:unless, {
   :category :control
   :subject :any
   :returns :any
   :modifiers [:predicate-lambda, :pipeline]
-  :examples ["input | unless(empty, sort)"]
+  :examples [
+    "input | unless(empty, sort)"
+    "config | unless(/validated, validate)"]
   :throws []})
 
-|~~ First non-nil result among alternatives.
-    Short-circuits. Falsy non-nil values (false, 0, etc.)
-    are kept. ~~|
+|~~ Returns the first non-nil result among the captured
+    alternatives, evaluating each against pipeValue in order and
+    short-circuiting on the first non-nil value. If all
+    alternatives produce nil, returns nil. Falsy non-nil values
+    (false, 0, "", [], {}, #{}) are NOT skipped — only
+    nil counts as missing. ~~|
 let(:coalesce, {
   :category :control
   :subject :any
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "person | coalesce(/preferredName, /firstName, \"Anonymous\")"]
+    "person | coalesce(/preferredName, /firstName, \"Anonymous\")"
+    "config | coalesce(/userOverride, /projectDefault, /globalDefault)"]
   :throws [:CoalesceNoAlternatives]})
 
-|~~ First truthy result among alternatives.
-    Skips nil and false. Short-circuits. ~~|
+|~~ Returns the first truthy result among the captured
+    alternatives, evaluating each against pipeValue in order and
+    short-circuiting on the first truthy value. Both nil and
+    false are skipped. If all alternatives produce falsy values,
+    returns nil. Use coalesce when false is a valid explicit
+    setting; use firstTruthy when false is a sentinel meaning
+    "no value". ~~|
 let(:firstTruthy, {
   :category :control
   :subject :any
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "person | firstTruthy(/preferredName, /firstName, \"Anonymous\")"]
+    "person | firstTruthy(/preferredName, /firstName, \"Anonymous\")"
+    "flag | firstTruthy(/userValue, /default, false)"]
   :throws [:FirstTruthyNoAlternatives]})
 
-|~~ Multi-way dispatch over (predicate, branch) pairs.
-    Replaces nested-if chains with a flat catalog. ~~|
+|~~ Multi-way dispatch over alternating (predicate, branch)
+    sub-pipeline pairs. Walks captured args in pairs; returns
+    the result of the first branch whose predicate evaluates
+    truthy against pipeValue. If captured-arg count is odd, the
+    trailing arg is the default branch. If even and no match,
+    returns nil. Replaces nested-if chains with a flat
+    catalog. ~~|
 let(:cond, {
   :category :control
   :subject :any
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "score | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")"]
+    "score | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")"
+    "value | cond(eq(0), \"zero\", eq(1), \"one\", \"many\")"]
   :throws [:CondNoBranches]})
 
 |~ ── Map operations ───────────────────────────────────── ~|
 
-|~~ Set of keys (keywords) in the Map. ~~|
+|~~ Returns the Set of keys (keywords) in the Map. ~~|
 let(:keys, {
   :category :map-op
   :subject :map
@@ -341,7 +429,7 @@ let(:keys, {
   :examples ["{:name \"Alice\" :age 30} | keys → #{:name :age}"]
   :throws [:KeysSubjectNotMap]})
 
-|~~ Vec of values in insertion order. ~~|
+|~~ Returns a Vec of values in insertion order. ~~|
 let(:vals, {
   :category :map-op
   :subject :map
@@ -350,7 +438,8 @@ let(:vals, {
   :examples ["{:name \"Alice\" :age 30} | vals → [\"Alice\" 30]"]
   :throws [:ValsSubjectNotMap]})
 
-|~~ True if Map contains keyword key, or Set contains value. ~~|
+|~~ Returns true if the Map contains the keyword key, or if
+    the Set contains the value. Polymorphic on subject type. ~~|
 let(:has, {
   :category :map-op
   :subject [:map, :set]
@@ -363,8 +452,11 @@ let(:has, {
 
 |~ ── Polymorphic set operations ───────────────────────── ~|
 
-|~~ Set union or Map merge (last wins).
-    Polymorphic across Set and Map. ~~|
+|~~ Polymorphic union. Set union or Map merge (last wins on
+    key conflict). Three call shapes: bare form left-folds a
+    non-empty Vec of operands, bound form a | union(b) evaluates
+    b against a as context, full form union(a, b) resolves both
+    args against pipeValue. ~~|
 let(:union, {
   :category :set-op
   :subject [:set, :map, :vec]
@@ -375,28 +467,39 @@ let(:union, {
     "{:name \"a\"} | union({:age 20})"]
   :throws [:UnionBareSubjectNotVec, :UnionBareEmpty, :UnionPairIncompatible]})
 
-|~~ Set difference or Map key removal. ~~|
+|~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
+    or Map minus Set (drop fields by key set). Same three call
+    shapes as union. Values of the second operand are ignored
+    for Map minus Map. ~~|
 let(:minus, {
   :category :set-op
   :subject [:set, :map, :vec]
   :returns [:set, :map]
   :modifiers [:any]
-  :examples ["{:a 1 :b 2 :tmp 3} | minus(#{:tmp})"]
+  :examples [
+    "[#{:a :b :c} #{:b}] | minus → #{:a :c}"
+    "{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) → {:a 1 :b 2}"]
   :throws [:MinusBareSubjectNotVec, :MinusBareEmpty, :MinusPairIncompatible]})
 
-|~~ Set intersection or Map key selection. ~~|
+|~~ Polymorphic intersection. Set intersect Set, Map intersect
+    keys(Map), or Map intersect Set (select fields by key set).
+    Same three call shapes as union. Values from the first
+    operand are kept. ~~|
 let(:inter, {
   :category :set-op
   :subject [:set, :map, :vec]
   :returns [:set, :map]
   :modifiers [:any]
-  :examples ["{:a 1 :b 2 :c 3} | inter(#{:a :b})"]
+  :examples [
+    "[#{:a :b :c} #{:b :d}] | inter → #{:b}"
+    "{:a 1 :b 2 :c 3} | inter(#{:a :b}) → {:a 1 :b 2}"]
   :throws [:InterBareSubjectNotVec, :InterBareEmpty, :InterPairIncompatible]})
 
 |~ ── Arithmetic ───────────────────────────────────────── ~|
 
-|~~ Adds two numbers.
-    Partial: a | add(b). Full: add(a, b). ~~|
+|~~ Adds two numbers. Bound form a | add(b) computes a+b;
+    full form add(a, b) resolves both args against pipeValue
+    as context. ~~|
 let(:add, {
   :category :arith
   :subject :number
@@ -407,81 +510,100 @@ let(:add, {
     "{:x 10 :y 3} | add(/x, /y) → 13"]
   :throws [:AddLeftNotNumber, :AddRightNotNumber]})
 
-|~~ Subtracts. Non-commutative: position 1 is minuend. ~~|
+|~~ Subtracts the second number from the first. Non-commutative:
+    position 1 is the minuend. ~~|
 let(:sub, {
   :category :arith
   :subject :number
   :returns :number
   :modifiers [:number]
-  :examples ["10 | sub(3) → 7"]
+  :examples ["10 | sub(3) → 7" "{:x 10 :y 3} | sub(/x, /y) → 7"]
   :throws [:SubLeftNotNumber, :SubRightNotNumber]})
 
-|~~ Multiplies two numbers. ~~|
+|~~ Multiplies two numbers. Commutative. ~~|
 let(:mul, {
   :category :arith
   :subject :number
   :returns :number
   :modifiers [:number]
-  :examples ["10 | mul(3) → 30"]
+  :examples ["10 | mul(3) → 30" "{:x 5 :y 4} | mul(/x, /y) → 20"]
   :throws [:MulLeftNotNumber, :MulRightNotNumber]})
 
-|~~ Divides. Non-commutative: position 1 is dividend. ~~|
+|~~ Divides the first number by the second. Non-commutative:
+    position 1 is the dividend. Raises division-by-zero on
+    b == 0. ~~|
 let(:div, {
   :category :arith
   :subject :number
   :returns :number
   :modifiers [:number]
-  :examples ["10 | div(2) → 5"]
+  :examples ["10 | div(2) → 5" "{:x 20 :y 4} | div(/x, /y) → 5"]
   :throws [:DivLeftNotNumber, :DivRightNotNumber, :DivisionByZeroError]})
 
 |~ ── String ───────────────────────────────────────────── ~|
 
-|~~ Splits subject on every occurrence of separator. ~~|
+|~~ Splits the subject on every occurrence of separator.
+    Returns a Vec of substrings. Inverse of join. ~~|
 let(:split, {
   :category :string
   :subject :string
   :returns :vec
   :modifiers [:string]
-  :examples ["\"a,b,c\" | split(\",\") → [\"a\" \"b\" \"c\"]"]
+  :examples [
+    "\"a,b,c\" | split(\",\") → [\"a\" \"b\" \"c\"]"
+    "\"line1\\nline2\" | split(\"\\n\") → [\"line1\" \"line2\"]"]
   :throws [:SplitSubjectNotString, :SplitSeparatorNotString]})
 
-|~~ Joins Vec of strings with separator. ~~|
+|~~ Joins the elements of a Vec of strings with separator
+    between consecutive elements. Inverse of split. ~~|
 let(:join, {
   :category :string
   :subject :vec
   :returns :string
   :modifiers [:string]
-  :examples ["[\"a\" \"b\" \"c\"] | join(\",\") → \"a,b,c\""]
+  :examples [
+    "[\"a\" \"b\" \"c\"] | join(\",\") → \"a,b,c\""
+    "[] | join(\",\") → \"\""]
   :throws [:JoinSubjectNotVec, :JoinElementNotString, :JoinSeparatorNotString]})
 
-|~~ True if subject contains needle as substring. ~~|
+|~~ Returns true if the subject string contains needle as a
+    substring. Empty needle is always contained.
+    Case-sensitive. ~~|
 let(:contains, {
   :category :string
   :subject :string
   :returns :boolean
   :modifiers [:string]
-  :examples ["\"hello world\" | contains(\"world\") → true"]
+  :examples [
+    "\"hello world\" | contains(\"world\") → true"
+    "\"hello\" | contains(\"xyz\") → false"]
   :throws [:ContainsSubjectNotString, :ContainsNeedleNotString]})
 
-|~~ True if subject begins with prefix. ~~|
+|~~ Returns true if the subject string begins with prefix.
+    Empty prefix is always a prefix. Case-sensitive. ~~|
 let(:startsWith, {
   :category :string
   :subject :string
   :returns :boolean
   :modifiers [:string]
-  :examples ["\"hello world\" | startsWith(\"hello\") → true"]
+  :examples [
+    "\"hello world\" | startsWith(\"hello\") → true"
+    "\"hello\" | startsWith(\"world\") → false"]
   :throws [:StartsWithSubjectNotString, :StartsWithPrefixNotString]})
 
-|~~ True if subject ends with suffix. ~~|
+|~~ Returns true if the subject string ends with suffix.
+    Empty suffix is always a suffix. Case-sensitive. ~~|
 let(:endsWith, {
   :category :string
   :subject :string
   :returns :boolean
   :modifiers [:string]
-  :examples ["\"hello world\" | endsWith(\"world\") → true"]
+  :examples [
+    "\"hello world\" | endsWith(\"world\") → true"
+    "\"hello\" | endsWith(\"xyz\") → false"]
   :throws [:EndsWithSubjectNotString, :EndsWithSuffixNotString]})
 
-|~~ Concatenates modifier in front of subject. ~~|
+|~~ Concatenates the modifier in front of the subject. ~~|
 let(:prepend, {
   :category :string
   :subject :string
@@ -490,7 +612,7 @@ let(:prepend, {
   :examples ["\"world\" | prepend(\"hello \") → \"hello world\""]
   :throws [:PrependSubjectNotString, :PrependPrefixNotString]})
 
-|~~ Concatenates subject with modifier on the right. ~~|
+|~~ Concatenates the subject with the modifier on the right. ~~|
 let(:append, {
   :category :string
   :subject :string
@@ -501,8 +623,9 @@ let(:append, {
 
 |~ ── Boolean ──────────────────────────────────────────── ~|
 
-|~~ Logical negation.
-    nil and false are falsy; everything else truthy. ~~|
+|~~ Logical negation. Returns true if the subject is falsy
+    (nil or false), false otherwise. 0, "", [], {}, #{} are
+    all truthy. ~~|
 let(:not, {
   :category :predicate
   :subject :any
@@ -513,7 +636,9 @@ let(:not, {
 
 |~ ── Predicates ───────────────────────────────────────── ~|
 
-|~~ Structural deep equality. ~~|
+|~~ Returns true if the subject equals the captured value by
+    structural equality (deep recursive comparison across Maps,
+    Vecs, Sets, and scalars). ~~|
 let(:eq, {
   :category :predicate
   :subject :any
@@ -524,7 +649,8 @@ let(:eq, {
     "{:a 1} | eq({:a 1}) → true"]
   :throws []})
 
-|~~ Subject-first ordering: a | gt(b) = a > b. ~~|
+|~~ Subject-first ordering: a | gt(b) computes a > b. Both
+    operands must be comparable scalars of the same type. ~~|
 let(:gt, {
   :category :predicate
   :subject :number
@@ -533,7 +659,7 @@ let(:gt, {
   :examples ["10 | gt(5) → true"]
   :throws [:GtOperandsNotComparable]})
 
-|~~ a | lt(b) = a < b. ~~|
+|~~ Subject-first ordering: a | lt(b) computes a < b. ~~|
 let(:lt, {
   :category :predicate
   :subject :number
@@ -542,7 +668,7 @@ let(:lt, {
   :examples ["5 | lt(10) → true"]
   :throws [:LtOperandsNotComparable]})
 
-|~~ a | gte(b) = a >= b. ~~|
+|~~ Subject-first ordering: a | gte(b) computes a >= b. ~~|
 let(:gte, {
   :category :predicate
   :subject :number
@@ -551,7 +677,7 @@ let(:gte, {
   :examples ["10 | gte(10) → true"]
   :throws [:GteOperandsNotComparable]})
 
-|~~ a | lte(b) = a <= b. ~~|
+|~~ Subject-first ordering: a | lte(b) computes a <= b. ~~|
 let(:lte, {
   :category :predicate
   :subject :number
@@ -560,7 +686,8 @@ let(:lte, {
   :examples ["10 | lte(10) → true"]
   :throws [:LteOperandsNotComparable]})
 
-|~~ True if both operands are truthy. ~~|
+|~~ Returns true if both operands are truthy. Used in full form
+    inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
 let(:and, {
   :category :predicate
   :subject :any
@@ -569,7 +696,7 @@ let(:and, {
   :examples ["filter(and(/active, /age | gte(18)))"]
   :throws []})
 
-|~~ True if either operand is truthy. ~~|
+|~~ Returns true if either operand is truthy. ~~|
 let(:or, {
   :category :predicate
   :subject :any
@@ -580,7 +707,9 @@ let(:or, {
 
 |~ ── Formatting ───────────────────────────────────────── ~|
 
-|~~ JSON string representation. ~~|
+|~~ Returns a JSON string representation of the subject.
+    Keywords are emitted as colon-prefixed strings, Sets as JSON
+    arrays, Maps as JSON objects with keyword names as keys. ~~|
 let(:json, {
   :category :format
   :subject :any
@@ -589,7 +718,10 @@ let(:json, {
   :examples ["{:a 1 :b [2 3]} | json"]
   :throws []})
 
-|~~ Fixed-width tabular string from Vec of Maps. ~~|
+|~~ Renders a Vec of Maps as a fixed-width tabular string.
+    Columns are derived from keys in first-occurrence order
+    across all rows; missing keys render as empty cells.
+    Empty Vec yields the marker "(empty)". ~~|
 let(:table, {
   :category :format
   :subject :vec
@@ -600,7 +732,9 @@ let(:table, {
 
 |~ ── Reflective ───────────────────────────────────────── ~|
 
-|~~ Replaces pipeValue with the current env Map. ~~|
+|~~ Replaces pipeValue with the current env Map. Inside a fork,
+    returns the fork-local env including any as/let writes visible
+    at this point. ~~|
 let(:env, {
   :category :reflective
   :subject :any
@@ -609,8 +743,10 @@ let(:env, {
   :examples ["env | keys" "env | has(:count) → true"]
   :throws []})
 
-|~~ Merges pipeValue (Map) into env.
-    pipeValue unchanged. On key conflict, incoming wins. ~~|
+|~~ Merges pipeValue (a Map) into env. pipeValue is unchanged,
+    so the merged Map can be chained further or discarded. On key
+    conflict, the incoming Map wins. Inside a fork, the merged
+    bindings evaporate when the fork closes. ~~|
 let(:use, {
   :category :reflective
   :subject :map
@@ -619,19 +755,22 @@ let(:use, {
   :examples ["{:pi 3.14 :e 2.71} | use | [pi, e]"]
   :throws [:UseSubjectNotMap]})
 
-|~~ Descriptor Map for a value or named binding.
-    Value-level (no args): describes pipeValue.
-    Named form reify(:name): describes the binding. ~~|
+|~~ Builds a descriptor Map for a value or named binding.
+    Value-level form (no captured args) describes the current
+    pipeValue. Named form reify(:name) looks up :name in env
+    and describes whatever binding lives there. Descriptor :kind
+    is one of :builtin, :conduit, :snapshot, :value. ~~|
 let(:reify, {
   :category :reflective
   :subject :any
   :returns :map
   :modifiers [:keyword]
-  :examples ["env | /count | reify" "reify(:filter)"]
+  :examples ["env | /count | reify" "reify(:filter)" "42 | reify"]
   :throws [:ReifyKeyNotKeyword]})
 
-|~~ Vec of descriptors for all bindings in env,
-    sorted by name. ~~|
+|~~ Returns a Vec of descriptors, one per binding in env,
+    sorted alphabetically by binding name. Each descriptor has
+    the same shape as reify(:name) for that binding. ~~|
 let(:manifest, {
   :category :reflective
   :subject :any
@@ -640,40 +779,51 @@ let(:manifest, {
   :examples ["env | manifest | filter(/kind | eq(:builtin)) | table"]
   :throws []})
 
-|~~ Evaluates examples from a reify descriptor.
-    Homoiconic catalog self-test. ~~|
+|~~ Parses and evaluates every entry of the descriptor's
+    :examples Vec, comparing each result against the optional
+    → expected suffix. Returns a Vec of {:query :expected :actual
+    :error :ok} Maps. The composition manifest * runExamples >>
+    /ok | distinct exercises every catalog example — homoiconic
+    doc drift detection. ~~|
 let(:runExamples, {
   :category :reflective
   :subject :map
   :returns :vec
   :modifiers []
-  :examples ["reify(:count) | runExamples"]
+  :examples ["reify(:count) | runExamples" "manifest * runExamples >> /ok | distinct"]
   :throws [:RunExamplesSubjectNotDescriptor, :RunExamplesNoExamplesField]})
 
-|~~ Captures pipeValue as frozen snapshot under keyword name.
-    pipeValue passes through unchanged. ~~|
+|~~ Captures the current pipeValue as a frozen snapshot under
+    the given keyword name. pipeValue passes through unchanged.
+    Retrievable by name through identifier lookup (auto-unwrapped
+    to the raw value) or through reify(:name) for metadata
+    inspection including docs. ~~|
 let(:as, {
   :category :reflective
   :subject :any
   :returns :any
   :modifiers [:keyword]
-  :examples ["42 | as(:answer) | answer → 42"]
+  :examples ["42 | as(:answer) | answer → 42" "[1 2 3] | as(:nums) | nums | count → 3"]
   :throws [:AsNameNotKeyword]})
 
 |~ Self-referential: let declared last because it shadows
    the built-in let operand upon evaluation. ~|
 
 |~~ Declares a conduit (named pipeline fragment) in env.
-    Zero-arity: let(:name, body).
-    Parametric: let(:name, [:params], body).
-    Body evaluates in a lexically-scoped fork via envRef
-    tie-the-knot. pipeValue passes through unchanged. ~~|
+    Zero-arity: let(:name, body). Parametric: let(:name,
+    [:params], body). The body is stored as AST and evaluated in
+    a lexically-scoped fork at each call site (envRef
+    tie-the-knot for recursive self-binding). Parameters are lazy
+    conduit-parameter proxies. pipeValue passes through
+    unchanged. ~~|
 let(:let, {
   :category :reflective
   :subject :any
   :returns :any
   :modifiers [:keyword, :pipeline]
-  :examples ["let(:double, mul(2)) | 10 | double → 20"]
+  :examples [
+    "let(:double, mul(2)) | 10 | double → 20"
+    "let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\") → \"[world]\""]
   :throws [
     :LetNameNotKeyword
     :LetParamsNotVecOfKeywords

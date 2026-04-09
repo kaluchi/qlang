@@ -12,13 +12,20 @@ import {
   TextDocumentSyncKind,
   CompletionItemKind,
   DiagnosticSeverity,
-  MarkupKind
+  MarkupKind,
+  SymbolKind,
+  SignatureInformation,
+  ParameterInformation
 } from 'vscode-languageserver/node.js';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   parseDocument,
   completionsAtOffset,
-  hoverAtOffset
+  hoverAtOffset,
+  definitionAtOffset,
+  referencesAtOffset,
+  documentSymbols,
+  signatureHelpAtOffset
 } from './features.mjs';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -31,7 +38,11 @@ connection.onInitialize(() => ({
   capabilities: {
     textDocumentSync: TextDocumentSyncKind.Full,
     completionProvider: { triggerCharacters: ['|', '/', ':', '(', ' '] },
-    hoverProvider: true
+    hoverProvider: true,
+    definitionProvider: true,
+    referencesProvider: true,
+    documentSymbolProvider: true,
+    signatureHelpProvider: { triggerCharacters: ['(', ','] }
   }
 }));
 
@@ -107,6 +118,99 @@ connection.onHover((params) => {
       start: doc.positionAt(hover.startOffset),
       end: doc.positionAt(hover.endOffset)
     }
+  };
+});
+
+// ── Go to Definition ──────────────────────────────────────────
+
+connection.onDefinition((params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  const doc = documents.get(params.textDocument.uri);
+  if (!state?.ast || !doc) return null;
+
+  const offset = doc.offsetAt(params.position);
+  const def = definitionAtOffset(state.ast, offset);
+  if (!def) return null;
+
+  return {
+    uri: params.textDocument.uri,
+    range: {
+      start: doc.positionAt(def.startOffset),
+      end: doc.positionAt(def.endOffset)
+    }
+  };
+});
+
+// ── Find References ───────────────────────────────────────────
+
+connection.onReferences((params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  const doc = documents.get(params.textDocument.uri);
+  if (!state?.ast || !doc) return [];
+
+  const offset = doc.offsetAt(params.position);
+  const refs = referencesAtOffset(state.ast, offset);
+
+  return refs.map(ref => ({
+    uri: params.textDocument.uri,
+    range: {
+      start: doc.positionAt(ref.startOffset),
+      end: doc.positionAt(ref.endOffset)
+    }
+  }));
+});
+
+// ── Document Symbols (Outline) ────────────────────────────────
+
+const SYMBOL_KIND_MAP = {
+  conduit: SymbolKind.Function,
+  snapshot: SymbolKind.Variable
+};
+
+connection.onDocumentSymbol((params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  const doc = documents.get(params.textDocument.uri);
+  if (!state?.ast || !doc) return [];
+
+  const symbols = documentSymbols(state.ast);
+
+  return symbols.map(sym => ({
+    name: sym.name,
+    kind: SYMBOL_KIND_MAP[sym.kind] ?? SymbolKind.Variable,
+    range: {
+      start: doc.positionAt(sym.startOffset),
+      end: doc.positionAt(sym.endOffset)
+    },
+    selectionRange: {
+      start: doc.positionAt(sym.startOffset),
+      end: doc.positionAt(sym.endOffset)
+    }
+  }));
+});
+
+// ── Signature Help ────────────────────────────────────────────
+
+connection.onSignatureHelp((params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  const doc = documents.get(params.textDocument.uri);
+  if (!state?.ast || !doc) return null;
+
+  const offset = doc.offsetAt(params.position);
+  const sig = signatureHelpAtOffset(state.ast, state.source, offset);
+  if (!sig) return null;
+
+  const sigInfo = SignatureInformation.create(
+    sig.label,
+    sig.documentation
+  );
+  sigInfo.parameters = sig.parameters.map(p =>
+    ParameterInformation.create(p.label)
+  );
+
+  return {
+    signatures: [sigInfo],
+    activeSignature: 0,
+    activeParameter: sig.activeParameter
   };
 });
 

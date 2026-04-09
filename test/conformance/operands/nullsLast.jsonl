@@ -6,3 +6,4 @@
 {"name":"all-nil","query":"[{:a nil} {:a nil}] | sortWith(nullsLast(/a)) * /a","expect":"[nil nil]"}
 {"name": "non-pair-subject-error", "query": "42 | nullsLast(/a)", "error": "type-error"}
 {"name":"compound-with-firstNonZero","query":"[{:a nil :b 2} {:a 1 :b 3} {:a nil :b 1}] | sortWith([nullsLast(/a), asc(/b)] | firstNonZero) * /b","expect":"[3 1 2]"}
+{"name":"incompatible-non-nil-types-error","query":"[{:a 1} {:a \"x\"}] | sortWith(nullsLast(/a))","error":"type-error"}

@@ -109,6 +109,32 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
 }
 
 
+// ── rename factory ───────────────────────────────────────────
+// Produces a new conduit or snapshot with a different binding name,
+// preserving body/params/envRef/docs/location and recomputing
+// `.effectful` from the new name via classifyEffect. Used by
+// rename-refactoring tooling to re-derive the effect-marker
+// classification after an identifier rename.
+export function withName(binding, newName) {
+  if (binding.type === 'conduit') {
+    return makeConduit(binding.body, {
+      name: newName,
+      params: [...binding.params],
+      envRef: binding.envRef,
+      docs: [...binding.docs],
+      location: binding.location
+    });
+  }
+  if (binding.type === 'snapshot') {
+    return makeSnapshot(binding.value, {
+      name: newName,
+      docs: [...binding.docs],
+      location: binding.location
+    });
+  }
+  return binding;
+}
+
 // ── snapshot factory ──────────────────────────────────────────
 // Wraps a value captured by `as name`, carrying the binding name,
 // any attached doc comments, and the source position of the

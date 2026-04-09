@@ -350,6 +350,29 @@ describe('sourceOfAst structural-inverse property over Primary subtree', () => {
   }
 });
 
+describe('sourceOfAst renders comment nodes in synthesized conduit bodies', () => {
+  function sourceOfSynth(synthBody) {
+    const s = createSession();
+    s.bind('synth', makeConduit(synthBody, { name: 'synth' }));
+    return s.evalCell('reify(:synth) | /source').result;
+  }
+
+  it('renders a LinePlainComment node', () => {
+    const body = { type: 'LinePlainComment', content: ' annotation', location: null };
+    const rendered = sourceOfSynth(body);
+    expect(rendered).toMatch(/\|~\|/);
+    expect(rendered).toMatch(/annotation/);
+  });
+
+  it('renders a BlockPlainComment node', () => {
+    const body = { type: 'BlockPlainComment', content: ' rationale ', location: null };
+    const rendered = sourceOfSynth(body);
+    expect(rendered).toMatch(/\|~/);
+    expect(rendered).toMatch(/rationale/);
+    expect(rendered).toMatch(/~\|/);
+  });
+});
+
 describe('setops bare-form non-Vec subject errors', () => {
   it('union bare on non-Vec/non-Set throws UnionBareSubjectNotVec', () => {
     expect(() => evalQuery('42 | union')).toThrow();

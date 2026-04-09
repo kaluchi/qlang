@@ -29,20 +29,23 @@ import {
   isConduit,
   isSnapshot
 } from './types.mjs';
+import { QlangError } from './errors.mjs';
 
-export class TaggedJSONUnencodableValueError extends Error {
+export class TaggedJSONUnencodableValueError extends QlangError {
   constructor(typeName) {
-    super(`cannot encode ${typeName} value to tagged JSON; use serializeSession`);
+    super(`cannot encode ${typeName} value to tagged JSON; use serializeSession`, 'codec-error');
     this.name = 'TaggedJSONUnencodableValueError';
-    this.typeName = typeName;
+    this.fingerprint = 'TaggedJSONUnencodableValueError';
+    this.context = { typeName };
   }
 }
 
-export class MalformedTaggedJSONError extends Error {
+export class MalformedTaggedJSONError extends QlangError {
   constructor(json) {
-    super(`fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(json)}`);
+    super(`fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(json)}`, 'codec-error');
     this.name = 'MalformedTaggedJSONError';
-    this.payload = json;
+    this.fingerprint = 'MalformedTaggedJSONError';
+    this.context = { payload: json };
   }
 }
 

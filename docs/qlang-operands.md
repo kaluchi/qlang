@@ -691,7 +691,7 @@ depends on the value's provenance. Four descriptor kinds:
    :name   "double"
    :params []
    :source "mul(2)"
-   :docs   ["Удваивает число." "Impl note: реюз mul с partial-применением."]}
+   :docs   ["Doubles a number." "Impl note: reuses mul with partial application."]}
   ```
   Parametric conduits carry a non-empty `:params` Vec:
   ```

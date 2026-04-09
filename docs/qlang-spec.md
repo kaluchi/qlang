@@ -58,7 +58,7 @@ Each element is a sub-pipeline evaluated against the current
 `pipeValue`. For literals, `pipeValue` is irrelevant — the literal
 self-evaluates.
 
-```
+```qlang
 > [1 2 3]
 [1 2 3]
 
@@ -80,7 +80,7 @@ Not type-constrained: `[1 "two" nil {:x 3}]` is valid.
 When a Vec literal is used as a pipeline step, each element
 expression runs against the current `pipeValue` — this is fan-out:
 
-```
+```qlang
 > 10 | [add(1), mul(2), sub(3)]
 [11 20 7]
 
@@ -97,7 +97,7 @@ Key-value associations. Insertion-ordered. Keys are keywords.
 Each value is a sub-pipeline evaluated against the current
 `pipeValue`. For literals, `pipeValue` is irrelevant — same as Vec.
 
-```
+```qlang
 > {:name "alice" :age 30}
 {:name "alice" :age 30}
 
@@ -115,7 +115,7 @@ Duplicate keys — last wins: `{:a 1 :a 2}` → `{:a 2}`.
 When used after `|`, value expressions receive the current
 `pipeValue` — this is reshape:
 
-```
+```qlang
 > {:name "alice" :age 30 :x 5} | {:name /name :doubled /x | mul(2)}
 {:name "alice" :doubled 10}
 ```
@@ -124,7 +124,7 @@ When used after `|`, value expressions receive the current
 
 Unordered collection of unique values. Literal `#{}`.
 
-```
+```qlang
 > #{:name :age :id}
 #{:name :age :id}
 
@@ -137,7 +137,7 @@ Unordered collection of unique values. Literal `#{}`.
 
 Primary use — key sets (record shape), membership tests.
 
-```
+```qlang
 > {:name "alice" :age 30} | keys
 #{:name :age}
 
@@ -148,7 +148,7 @@ true
 Elements of a Set literal are sub-pipelines evaluated against the
 current `pipeValue` — same as Vec:
 
-```
+```qlang
 > {:name "alice" :age 30} | #{/name, /age}
 #{"alice" 30}
 
@@ -168,7 +168,7 @@ deferred evaluation. A Vec is always fully materialized.
 `nil` and `false` are falsy. Everything else is truthy —
 including `0`, `""`, `[]`, `{}`, `#{}`.
 
-```
+```qlang
 > [0 "" nil false true 1 "a"] | filter(not)
 [nil false]
 ```
@@ -179,7 +179,7 @@ including `0`, `""`, `[]`, `{}`, `#{}`.
 to the left side's result. Left-to-right evaluation.
 Nothing executes without `|` (or `*`, `>>`).
 
-```
+```qlang
 > [5 3 1 4 2] | sort
 [1 2 3 4 5]
 
@@ -197,7 +197,7 @@ Nothing executes without `|` (or `*`, `>>`).
 
 `/key` — extract value from Map. Missing key → nil.
 
-```
+```qlang
 > {:name "alice" :age 30} | /name
 "alice"
 
@@ -210,7 +210,7 @@ form (`/"any text"`). The quoted form admits arbitrary JSON keys —
 embedded spaces, leading digits, sigils, and the empty string — so
 any JSON value reachable by JSONPath is reachable by qlang projection.
 
-```
+```qlang
 > {:"foo bar" 42} | /"foo bar"
 42
 
@@ -226,7 +226,7 @@ Both forms can be mixed inside a single projection chain:
 
 Nested: `/a/b` desugars to `/a | /b`.
 
-```
+```qlang
 > {:geo {:lat 51.5 :lon -0.1}} | /geo/lat
 51.5
 
@@ -242,7 +242,7 @@ Nested: `/a/b` desugars to `/a | /b`.
 
 `*` — map expression over each Vec element.
 
-```
+```qlang
 > [1 2 3] * add(10)
 [11 12 13]
 
@@ -255,7 +255,7 @@ Nested: `/a/b` desugars to `/a | /b`.
 
 `|` applies to the whole. `*` applies to each:
 
-```
+```qlang
 > [1 2 3] | count
 3
 
@@ -268,14 +268,14 @@ Nested: `/a/b` desugars to `/a | /b`.
 `{:key expr}` — construct Map from current value.
 Every entry is explicit: key and value expression.
 
-```
+```qlang
 > {:name "a" :x 3} | {:name /name :doubled /x | mul(2)}
 {:name "a" :doubled 6}
 ```
 
 After `*` — reshape each Vec element:
 
-```
+```qlang
 > [{:name "a" :x 3} {:name "b" :x 7}]
   * {:name /name :doubled /x | mul(2)}
 [{:name "a" :doubled 6} {:name "b" :doubled 14}]
@@ -288,7 +288,7 @@ Input is a Vec of Sets or Maps. Left-fold.
 
 **Set × Set:**
 
-```
+```qlang
 > [#{:a :b :c}, #{:b :d}] | union  → #{:a :b :c :d}
 > [#{:a :b :c}, #{:b :d}] | minus  → #{:a :c}
 > [#{:a :b :c}, #{:b :d}] | inter  → #{:b}
@@ -296,7 +296,7 @@ Input is a Vec of Sets or Maps. Left-fold.
 
 **Map × Map:**
 
-```
+```qlang
 > [{:name "a" :age 20}, {:score 100}] | union
 {:name "a" :age 20 :score 100}
 
@@ -311,7 +311,7 @@ Input is a Vec of Sets or Maps. Left-fold.
 
 **Map × Set** — field operations (Set = which keys):
 
-```
+```qlang
 > [{:name "a" :age 20 :tmp 1}, #{:tmp}] | minus
 {:name "a" :age 20}
 
@@ -321,7 +321,7 @@ Input is a Vec of Sets or Maps. Left-fold.
 
 Fan-out with `as` for enrichment:
 
-```
+```qlang
 -- as r captures the current value, passes it forward
 -- [r, {...}] builds Vec from captured value + computed delta
 -- union merges them
@@ -337,7 +337,7 @@ See [Value binding](#value-binding) for full `as` semantics.
 
 `>>` — flatten one nesting level, then apply next step.
 
-```
+```qlang
 > [1 2 3 4 5] | [filter(gt(3)), filter(lt(2))] >> count
 3
 
@@ -357,7 +357,7 @@ under a keyword name. The value passes through unchanged; the
 name becomes available to all subsequent steps (see scoping
 rules below).
 
-```
+```qlang
 order | normalize | as(:cleanOrder) | computeTax | as(:taxedOrder) | shipQuote | finalize
 -- after normalize → cleanOrder = the cleaned order map
 -- after computeTax → taxedOrder = the taxed map
@@ -371,13 +371,13 @@ Multiple `as` calls can appear in sequence, binding either the same
 value under different names or different values at different
 stages:
 
-```
+```qlang
 purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initial, discounted]
 -- initial    = the normalized purchase
 -- discounted = the same purchase after discounts applied
 ```
 
-```
+```qlang
 > {:name "a" :age 20 :tmp 1}
   | as(:r) | [r, #{:tmp}] | minus
 {:name "a" :age 20}
@@ -389,7 +389,7 @@ purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initia
 
 Multi-step references:
 
-```
+```qlang
 > [{:name "a" :age 25} {:name "b" :age 15} {:name "c" :age 30}]
   | as(:people)
   | filter(/age | gte(18))
@@ -476,7 +476,7 @@ the function to the value. The only operator that executes.
 (`*` and `>>` are also application — `*` applies per element,
 `>>` flattens then applies. Same mechanism, different strategy.)
 
-```
+```qlang
 gt              -- function, two inputs needed: (value, threshold)
                 -- subject at position 1, modifier at position 2
 gt(10)          -- binding: fix threshold=10 (trailing)
@@ -497,7 +497,7 @@ filter(gt(10))  -- binding: fix predicate (trailing)
 
 Zero-arg functions need no binding — already complete:
 
-```
+```qlang
 count           -- function, one input needed: (vec)
 [1 2 3] | count -- application: 3
                 -- no () — count is already complete
@@ -512,7 +512,7 @@ Expressions inside `()` are **captured, not evaluated**.
 When the bound function is applied via `|`, the argument
 evaluates against the current `pipeValue`:
 
-```
+```qlang
 filter(/age | gt(18))
        ^^^^^^^^^^^^^
        captured pipeline:
@@ -527,7 +527,7 @@ filter(/age | gt(18))
 
 Arity determines whether `pipeValue` fills a position:
 
-```
+```qlang
 100 | mul(2)            -- partial: 1 of 2 args captured
                         -- pipeValue = first arg (100)
                         -- captured = second arg (2)
@@ -544,7 +544,7 @@ Captured args evaluate against the same `pipeValue`.
 If the `pipeValue` type doesn't match the operand's expectation
 → type error:
 
-```
+```qlang
 [1 2 3] | add(1)        -- partial: Vec fills first arg
                         -- add expects number → type error
                         -- fix: use * for element-wise
@@ -555,7 +555,7 @@ If the `pipeValue` type doesn't match the operand's expectation
 
 Full application in reshape (cross-field operations):
 
-```
+```qlang
 > [{:name "a" :price 100 :qty 3}
    {:name "b" :price 50 :qty 10}]
   * {:name /name :total mul(/price, /qty)}
@@ -626,7 +626,7 @@ composition**: nested conduits compose predictably because each
 level's scope is anchored at its own declaration point. Later
 shadowing in the caller's scope does not affect a conduit's body.
 
-```
+```qlang
 > let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n))
   | let(:@topNByV, [:n], @topBy(/v, n))
   | let(:@top2ByV, @topNByV(2))
@@ -647,7 +647,7 @@ higher-order composition — a parameter can be a pipeline fragment
 that fires per-element inside `sortWith`, per-iteration inside
 `filter`, per-pair inside `desc`/`asc`:
 
-```
+```qlang
 > let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n))
   | [{:score 1} {:score 3} {:score 2}] | @topBy(/score, 2) * /score
 [3 2]
@@ -659,7 +659,7 @@ per comparison pair.
 
 ### Examples
 
-```
+```qlang
 > let(:double, mul(2))
   | [1 2 3] * double
 [2 4 6]
@@ -677,7 +677,7 @@ per comparison pair.
 
 ### Recursion via self-reference
 
-```
+```qlang
 | let(:walk, {:label /label :children /children * walk})
 | {:label "root" :children [
     {:label "a" :children []}
@@ -692,7 +692,7 @@ comes from `[] * walk → []` at leaves.
 
 Recursive parametric conduits work the same way:
 
-```
+```qlang
 | let(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)})
 ```
 
@@ -721,7 +721,7 @@ runtime, and user bindings are all fields of the same Map.
 Conceptually, a query starts from `(pipeValue = langRuntime, env = {})`,
 and the first step is an implicit `use` that installs the runtime:
 
-```
+```qlang
 langRuntime | use
   | domainRuntime | use
   | replEnv | use
@@ -739,7 +739,7 @@ same `env`. See the
 Additional runtimes are loaded anywhere in a query by merging a
 Map into `env`:
 
-```
+```qlang
 -- import host-provided stats library
 statsLibrary | use | data | mean
 
@@ -759,7 +759,7 @@ or compound literal) — multi-step bodies must be wrapped in
 parentheses so the `|` inside does not bleed into the outer
 pipeline:
 
-```
+```qlang
 | let(:double, mul(2))
 | let(:isSenior, /age | gt(65))
 | employees * {:doubledAge /age | double :senior isSenior}
@@ -864,7 +864,7 @@ between docs and the binding itself) remains a standalone identity
 PipeStep in the pipeline, but the docs around it still collect
 into the binding's `docs` Vec:
 
-```
+```qlang
 |~~| First remark.
 |~ formatting separator ~|
 |~~| Second remark.
@@ -880,7 +880,7 @@ concatenation of adjacent line docs — a block doc with internal
 newlines becomes one multi-line entry, while two adjacent `|~~|`
 lines become two separate entries.
 
-```
+```qlang
 |~~| First remark.
 |~~| Second remark.
 |~~ Block-form remark
@@ -899,7 +899,7 @@ operand (see [runtime reference](qlang-operands.md#reify)).
 the descriptor's `:docs` field is a Vec of the accumulated comment
 contents in declaration order.
 
-```
+```qlang
 env | /foo | reify | /docs
 → ["First remark." "Second remark." "Block-form remark\n    with internal newlines."]
 ```
@@ -918,13 +918,13 @@ Plain block comments (`|~ ... ~|`) are standalone identity PipeSteps.
 They are useful for mid-query rationale that is not attached to any
 binding:
 
-```
+```qlang
 orders | @find | @members
   | filter(/kind | eq(:method))
   | filter(@callers | empty)
-  |~ Почему @overriddenBy empty отдельной проверкой: Eclipse
-     SearchEngine не считает override-вызовы как @callers, и метод
-     с пустым @callers может реально вызываться через polymorphism. ~|
+  |~ Why @overriddenBy empty as a separate check: Eclipse
+     SearchEngine does not count override calls as @callers, and a
+     method with empty @callers can still be invoked via polymorphism. ~|
   filter(@overriddenBy | empty)
 ```
 
@@ -986,13 +986,13 @@ modifiers (filled by captured args).
 
 `|`, `*`, `>>` — left-associative, equal precedence:
 
-```
+```qlang
 a | b * c | d >> e = ((((a | b) * c) | d) >> e)
 ```
 
 `()` scopes sub-expressions:
 
-```
+```qlang
 filter(/age | gt(18))
 -- /age | gt(18) is a complete sub-pipeline inside ()
 ```
@@ -1019,7 +1019,7 @@ filter(/age | gt(18))
 Side-effectful host operands carry the `@` prefix in qlang source.
 The convention is enforced one-directionally:
 
-```
+```qlang
 let(:foo, @callers)          -- ERROR: effectful body, clean name
 let(:@impl, @callers)        -- OK
 let(:@safe, count)           -- OK (over-approximation, harmless)
@@ -1176,7 +1176,7 @@ the author of this document); inside an actual query, use the
 section. The `>` prefix marks a REPL prompt and is not query
 syntax either.
 
-```
+```qlang
 -- construction
 > {:name "alice" :scores [85 92 78 95]}
 {:name "alice" :scores [85 92 78 95]}
@@ -1276,7 +1276,7 @@ syntax either.
 ```
 
 Result:
-```
+```qlang
 {:value "root" :children [
   {:value "a" :children [
     {:value "a1" :children []}]}

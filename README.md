@@ -3,7 +3,7 @@
 Expression language for transforming immutable values through
 pipelines. Domain-agnostic. Pure. Composable.
 
-```
+```qlang
 > [1 2 3 4 5] | filter(gt(3)) | count
 2
 

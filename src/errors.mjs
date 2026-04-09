@@ -125,11 +125,13 @@ export class QlangInvariantError extends QlangError {
 //     in src/effect-check.mjs when the AST scan finds an @-prefixed
 //     OperandCall or Projection key inside a non-@-prefixed let body.
 //
-//   EffectLaunderingAtForce — fired at runtime by eval.mjs::forceThunk
-//     when a non-@-prefixed conduit forces and the resolved value
-//     turns out to be an @-prefixed function (the laundering path
-//     where the function value was extracted via env-projection or
-//     installed via use, so the parse-time scan could not see it).
+//   EffectLaunderingAtCall — fired at runtime by
+//     eval.mjs::evalOperandCall and eval.mjs::applyConduit
+//     when a non-@-prefixed identifier resolves to an effectful
+//     function value or conduit (the laundering path where the
+//     binding was installed via use, captured via as, or injected
+//     by the embedding host, so the eval-time AST scan could not
+//     detect the effect).
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'effect-laundering');

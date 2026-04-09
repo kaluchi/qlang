@@ -6,7 +6,7 @@
 // each evaluated cell. Builtins from langRuntime() are seeded at
 // construction. Cell history records every cell evaluated (source,
 // AST, result, error, env-after-cell) so a notebook UI can render
-// past cells and a future "step back" feature can revisit them.
+// past cells and step-back navigation can revisit them.
 
 import { parse } from './parse.mjs';
 import { evalAst } from './eval.mjs';

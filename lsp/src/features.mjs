@@ -13,16 +13,10 @@ import {
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
+  FORK_ISOLATING_AST_TYPES,
   walkAst,
   QlangError, QlangTypeError
 } from '@kaluchi/qlang';
-
-// Fork-isolating AST node types — declarations inside these
-// boundaries are invisible to offsets outside them. Mirrors the
-// set in walk.mjs::FORK_ISOLATING_AST_TYPES.
-const FORK_ISOLATING_TYPES = new Set([
-  'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'MapEntry'
-]);
 
 // ── Document state ────────────────────────────────────────────
 
@@ -266,7 +260,7 @@ function isVisibleAcrossForks(declNode, cursorOffset) {
   let current = declNode;
   let parent = current.parent;
   while (parent) {
-    if (FORK_ISOLATING_TYPES.has(parent.type)) {
+    if (FORK_ISOLATING_AST_TYPES.has(parent.type)) {
       if (!current.location
           || current.location.start.offset > cursorOffset
           || current.location.end.offset < cursorOffset) {

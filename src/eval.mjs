@@ -376,6 +376,8 @@ function applyConduit(conduit, node, lookupName, state) {
 // inside desc/asc — wherever the identifier lookup happens inside
 // the conduit body.
 function makeConduitParameter(capturedArgLambda, paramName) {
+  // Conduit parameters are ephemeral — meta is inline because
+  // they have no manifest.qlang entry.
   return makeFn(paramName, 1, (state, lambdas) => {
     if (lambdas.length !== 0) {
       throw new ConduitParameterNoCapturedArgs({

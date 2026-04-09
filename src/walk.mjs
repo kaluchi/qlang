@@ -131,7 +131,7 @@ export function findIdentifierOccurrences(ast, name) {
 // Pipeline is NOT in this set: the steps of a Pipeline run in
 // sequence and share the same env progressively (every let/as in
 // step k is visible to step k+1).
-const FORK_ISOLATING_AST_TYPES = new Set([
+export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'MapEntry'
 ]);
 
@@ -197,7 +197,7 @@ export function astNodeContainsOffset(node, offset) {
 
 // triviaBetweenAstNodes(nodeA, nodeB, ast) — returns the source
 // slice between two adjacent AST nodes (whitespace, punctuation,
-// plain comments). Lets a future qlang formatter preserve original
+// plain comments). Lets a qlang formatter preserve original
 // spacing without the grammar having to capture trivia tokens
 // explicitly: as long as both nodes carry .location and the AST
 // root carries .source, the original characters between them are

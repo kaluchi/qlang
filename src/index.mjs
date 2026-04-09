@@ -44,6 +44,7 @@ import {
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
+  FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
   triviaBetweenAstNodes
@@ -82,6 +83,7 @@ export {
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
+  FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
   triviaBetweenAstNodes,

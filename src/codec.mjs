@@ -5,7 +5,7 @@
 // The tagged form mirrors what test/unit/conformance.test.mjs
 // hydrates from .jsonl test cases, lifted out of the test runner
 // into a shared module so notebook session save/restore, REPL
-// persistence across browser reloads, and any future serialization
+// persistence across browser reloads, and any serialization
 // caller all share one wire format.
 //
 // Tag conventions:

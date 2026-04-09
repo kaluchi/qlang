@@ -5,7 +5,7 @@ state-transformer semantics in which environment, bindings, and
 operands are all fields of a single Map, and every pipeline step
 is a pure function over a state pair. The user-facing reference
 ([qlang-spec.md](qlang-spec.md)) and the operand
-catalog ([qlang-runtime.md](qlang-runtime.md))
+catalog ([qlang-operands.md](qlang-operands.md))
 are layered on top of this model.
 
 ## Motivation
@@ -821,5 +821,5 @@ invariant fires, inside the `evalOperandCall` branch immediately
 after conduit-forcing and snapshot-unwrapping. See
 [the spec's "Effect markers" section](qlang-spec.md#effect-markers)
 for the user-facing contract and
-[the runtime reference](qlang-runtime.md#effectmjs-and-effect-checkmjs--effect-markers)
+[the runtime reference](qlang-operands.md#effectmjs-and-effect-checkmjs--effect-markers)
 for the precomputed `.effectful` field that the safety net consults.

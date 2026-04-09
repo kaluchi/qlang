@@ -14,9 +14,9 @@ reads from `env`; `as` and `let` write to `env`; `use` merges a
 Map into `env`.
 
 For the full formal evaluation model, see
-[qlang-model.md](qlang-model.md). For the catalog
+[qlang-internals.md](qlang-internals.md). For the catalog
 of built-in operands, see
-[qlang-runtime.md](qlang-runtime.md).
+[qlang-operands.md](qlang-operands.md).
 
 ## Values
 
@@ -418,7 +418,7 @@ expressions `(...)`, `[...]`, `{...}`, `#{...}` open a fork** — a
 sub-pipeline that starts with a copy of the outer state. When the
 fork closes, its final `pipeValue` propagates out but its env
 changes are discarded. See the
-[model's Fork section](qlang-model.md#fork) for details.
+[model's Fork section](qlang-internals.md#fork) for details.
 
 1. **Lexical, left-to-right.** `as name` is visible in all
    subsequent steps of the same pipeline, and in any nested
@@ -570,7 +570,7 @@ require `()` binding before `|` can apply.
 
 The full catalog of built-in operands (signatures, behavior,
 examples, error conditions) lives in
-[qlang-runtime.md](qlang-runtime.md). The runtime
+[qlang-operands.md](qlang-operands.md). The runtime
 document is the reference for "what can I do with a value of type
 X" — this section only establishes that the language has such a
 catalog and that it is composable via the pipeline rules described
@@ -710,7 +710,7 @@ Recursive parametric conduits work the same way:
 | let @treeMap(fn) = {:label (/label | fn) :children /children * @treeMap(fn)}
 ```
 
-See [qlang-model.md](qlang-model.md#example-6-recursive-let)
+See [qlang-internals.md](qlang-internals.md#example-6-recursive-let)
 for additional recursive patterns (aggregation, flattening,
 transformation).
 
@@ -746,7 +746,7 @@ In practice, the host provides the initial state with the language
 runtime already merged into `env`, so the explicit prefix is
 omitted. Both variants deliver control to the query body with the
 same `env`. See the
-[model](qlang-model.md#bootstrap) for details.
+[model](qlang-internals.md#bootstrap) for details.
 
 ### Runtime composition
 
@@ -908,7 +908,7 @@ line strings and one multi-line string.
 ### Retrieval via reify
 
 A binding's docs are retrievable through the reflective `reify`
-operand (see [runtime reference](qlang-runtime.md#reify)).
+operand (see [runtime reference](qlang-operands.md#reify)).
 `reify` builds a descriptor Map from a function value or conduit;
 the descriptor's `:docs` field is a Vec of the accumulated comment
 contents in declaration order.
@@ -953,7 +953,7 @@ pipeline step. `pipeValue` is the current value flowing through; `env`
 is the environment Map (bindings and built-ins). Every step is a pure
 function `(pipeValue, env) → (pipeValue', env')`. For the full formal
 model — including fork semantics, bootstrap, and Rule 10 details —
-see [qlang-model.md](qlang-model.md).
+see [qlang-internals.md](qlang-internals.md).
 
 Six step types:
 
@@ -1306,7 +1306,7 @@ because `[] * renameLabel = []` without invoking the conduit.
 This section documents the public surface a host application uses
 to embed qlang. The reference implementation under `qlang/src/`
 exposes everything from the package root and through subpath
-imports; see [qlang-runtime.md](qlang-runtime.md#tooling-primitives)
+imports; see [qlang-operands.md](qlang-operands.md#tooling-primitives)
 for the per-module breakdown.
 
 ### Sessions
@@ -1421,7 +1421,7 @@ tagged objects.
 
 Embedders building editors, refactoring tools, language servers, or
 notebooks consume the AST traversal surface from
-[`walk.mjs`](qlang-runtime.md#walkmjs--ast-traversal-primitives).
+[`walk.mjs`](qlang-operands.md#walkmjs--ast-traversal-primitives).
 The contract: every parser-produced AST node carries `.location`,
 `.text`, `.id`, `.parent`, and (where the surface form admits a
 marker) `.effectful`. The root additionally carries `.source`,

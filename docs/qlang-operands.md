@@ -4,7 +4,7 @@ This document catalogs the built-in operands of the query language.
 Every entry lives as a field of the language runtime Map
 (`langRuntime` in the bootstrap), so identifier lookup resolves them
 the same way as any other binding in `env`. See
-[qlang-model.md](qlang-model.md) for the
+[qlang-internals.md](qlang-internals.md) for the
 evaluation model and [qlang-spec.md](qlang-spec.md)
 for the language syntax.
 

@@ -10,7 +10,7 @@
 //      > query
 //      expected result
 //
-//   2. Inline prose examples (qlang-runtime.md):
+//   2. Inline prose examples (qlang-operands.md):
 //      `query` → `expected`
 
 import { describe, it, expect } from 'vitest';

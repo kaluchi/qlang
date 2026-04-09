@@ -21,8 +21,42 @@ import {
   makeSnapshot
 } from './types.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
+import { QlangError } from './errors.mjs';
 
 const SESSION_SCHEMA_VERSION = 1;
+
+// Per-site session deserialization errors.
+class SessionPayloadInvalidError extends QlangError {
+  constructor() {
+    super('deserializeSession: invalid session payload', 'session-error');
+    this.name = 'SessionPayloadInvalidError';
+    this.fingerprint = 'SessionPayloadInvalidError';
+  }
+}
+class SessionSchemaVersionMismatchError extends QlangError {
+  constructor(actual, expected) {
+    super(`deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`, 'session-error');
+    this.name = 'SessionSchemaVersionMismatchError';
+    this.fingerprint = 'SessionSchemaVersionMismatchError';
+    this.context = { actual, expected };
+  }
+}
+class SessionConduitSourceMissingError extends QlangError {
+  constructor(bindingName) {
+    super(`deserializeSession: conduit binding ${bindingName} has no source`, 'session-error');
+    this.name = 'SessionConduitSourceMissingError';
+    this.fingerprint = 'SessionConduitSourceMissingError';
+    this.context = { bindingName };
+  }
+}
+class SessionBindingKindUnknownError extends QlangError {
+  constructor(kind) {
+    super(`deserializeSession: unknown binding kind '${kind}'`, 'session-error');
+    this.name = 'SessionBindingKindUnknownError';
+    this.fingerprint = 'SessionBindingKindUnknownError';
+    this.context = { kind };
+  }
+}
 
 // createSession(opts?) → Session
 //
@@ -139,21 +173,16 @@ export function serializeSession(session) {
 // layer can re-eval cells after open if it wants freshness.
 export function deserializeSession(json) {
   if (!json || typeof json !== 'object' || !Array.isArray(json.bindings)) {
-    throw new Error('deserializeSession: invalid session payload');
+    throw new SessionPayloadInvalidError();
   }
   if (json.schemaVersion !== SESSION_SCHEMA_VERSION) {
-    throw new Error(
-      `deserializeSession: unsupported schemaVersion ${json.schemaVersion} ` +
-      `(expected ${SESSION_SCHEMA_VERSION})`
-    );
+    throw new SessionSchemaVersionMismatchError(json.schemaVersion, SESSION_SCHEMA_VERSION);
   }
   const session = createSession();
   for (const binding of json.bindings) {
     if (binding.kind === 'conduit') {
       if (!binding.source) {
-        throw new Error(
-          `deserializeSession: conduit binding ${binding.name} has no source`
-        );
+        throw new SessionConduitSourceMissingError(binding.name);
       }
       const bodyAst = parse(binding.source, { uri: `restored-${binding.name}` });
       const conduit = makeConduit(bodyAst, {
@@ -171,9 +200,7 @@ export function deserializeSession(json) {
     } else if (binding.kind === 'value') {
       session.bind(binding.name, fromTaggedJSON(binding.value));
     } else {
-      throw new Error(
-        `deserializeSession: unknown binding kind '${binding.kind}'`
-      );
+      throw new SessionBindingKindUnknownError(binding.kind);
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

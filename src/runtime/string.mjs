@@ -88,10 +88,9 @@ export const join = valueOp('join', 2, (subject, separator) => {
 });
 
 // String-shape predicates — substring containment, prefix and suffix
-// match. They round out the predicate family next to eq for the
-// string axis: until now `eq` was the only predicate that could
-// inspect strings, so any filter chain over a string-typed Map field
-// could only match by full equality. The three new predicates use
+// match. `eq` matches strings by full equality; `contains`,
+// `startsWith`, and `endsWith` match by substring position, prefix,
+// and suffix respectively. All three use
 // JS's native String.prototype.includes / startsWith / endsWith and
 // honor the same subject-first / second-position-modifier convention
 // as prepend / append / split / join.

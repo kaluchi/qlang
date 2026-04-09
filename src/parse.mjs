@@ -19,10 +19,7 @@ import {
   SyntaxError as PeggySyntaxError
 } from './grammar.generated.mjs';
 import { assignAstNodeIds, attachAstParents } from './walk.mjs';
-import {
-  decorateAstWithEffectMarkers,
-  validateEffectMarkers
-} from './effect-check.mjs';
+import { decorateAstWithEffectMarkers } from './effect-check.mjs';
 
 let parseCounter = 0;
 const AST_SCHEMA_VERSION = 1;
@@ -77,11 +74,5 @@ export function parse(source, opts = {}) {
   ast.parseId = ++parseCounter;
   ast.parsedAt = Date.now();
   ast.schemaVersion = AST_SCHEMA_VERSION;
-  // @-effect-marker invariant: see src/effect-check.mjs. Throws
-  // EffectLaunderingAtLetParse with the offending binding's source
-  // location on violation; that error is a QlangError, not a
-  // ParseError, so callers can distinguish syntactic from semantic
-  // failures via instanceof / .kind.
-  validateEffectMarkers(ast);
   return ast;
 }

@@ -16,8 +16,7 @@ import {
 } from '../../src/errors.mjs';
 import {
   decorateAstWithEffectMarkers,
-  findFirstEffectfulIdentifier,
-  validateEffectMarkers
+  findFirstEffectfulIdentifier
 } from '../../src/effect-check.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from '../../src/effect.mjs';
 import { createSession } from '../../src/session.mjs';
@@ -185,10 +184,6 @@ describe('eval-time effect validation in let operand', () => {
     expect(() => evalQuery('1 | (let(:bad, @callers) | bad)')).toThrow(EffectLaunderingAtLetParse);
   });
 
-  it('validateEffectMarkers is a no-op (validation moved to eval-time)', () => {
-    const ast = parse('count');
-    expect(validateEffectMarkers(ast)).toBe(ast);
-  });
 });
 
 describe('runtime call-site safety net (evalOperandCall)', () => {

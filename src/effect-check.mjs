@@ -77,12 +77,3 @@ export function findFirstEffectfulIdentifier(node) {
 
 // validateEffectMarkers(ast) → ast
 //
-// With `let` promoted to a regular operand call, effect validation
-// for conduit declarations lives inside the `let` operand impl at
-// eval-time (see runtime/intro.mjs::letOperand). This function is
-// retained as a no-op for callers that still reference it; the
-// actual invariant enforcement happens when the `let` operand
-// executes and calls `findFirstEffectfulIdentifier` on the body AST.
-export function validateEffectMarkers(ast) {
-  return ast;
-}

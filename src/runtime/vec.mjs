@@ -285,8 +285,8 @@ export const any = higherOrderOp('any', 2, (vec, predLambda) => {
 // that the Map operand catalog (keys, vals, has, /key, union,
 // minus, inter) operates uniformly on keyword-keyed Maps.
 //
-// Both close the Vec ↔ Map duality the rest of the catalog implies:
-// `vals` (Map → Vec) had no inverse before this commit.
+// Both close the Vec ↔ Map duality: `vals` deconstructs a Map into
+// a Vec, `groupBy`/`indexBy` construct a Map from a Vec.
 
 export const groupBy = higherOrderOp('groupBy', 2, (vec, keyLambda) => {
   if (!isVec(vec)) throw new GroupBySubjectNotVec(describeType(vec), vec);

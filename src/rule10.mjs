@@ -24,7 +24,12 @@
 // full application).
 
 import { ArityError } from './errors.mjs';
+import { declareArityError } from './runtime/operand-errors.mjs';
 import { classifyEffect } from './effect.mjs';
+
+const Rule10ArityOverflow = declareArityError('Rule10ArityOverflow',
+  ({ operandName, maxArity, actualArity }) =>
+    `${operandName} accepts at most ${maxArity} captured arguments, got ${actualArity}`);
 
 // applyRule10(fn, lambdas, state) → state
 //
@@ -34,9 +39,11 @@ import { classifyEffect } from './effect.mjs';
 // maximum.
 export function applyRule10(fn, lambdas, state) {
   if (lambdas.length > fn.arity) {
-    throw new ArityError(
-      `${fn.name} accepts at most ${fn.arity} captured arguments, got ${lambdas.length}`
-    );
+    throw new Rule10ArityOverflow({
+      operandName: fn.name,
+      maxArity: fn.arity,
+      actualArity: lambdas.length
+    });
   }
   return fn.fn(state, lambdas);
 }

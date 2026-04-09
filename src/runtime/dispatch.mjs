@@ -34,8 +34,26 @@
 
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
-import { ArityError, QlangInvariantError } from '../errors.mjs';
+import { QlangInvariantError } from '../errors.mjs';
+import { declareArityError } from './operand-errors.mjs';
 import { keyword } from '../types.mjs';
+
+// Per-site arity error classes for dispatch helpers.
+const ValueOpArityMismatch = declareArityError('ValueOpArityMismatch',
+  ({ operandName, expectedArity, actualArity }) =>
+    `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`);
+const HigherOrderOpArityMismatch = declareArityError('HigherOrderOpArityMismatch',
+  ({ operandName, expectedCaptured, actualArity }) =>
+    `${operandName} expects ${expectedCaptured} captured args (higher-order), got ${actualArity}`);
+const NullaryOpArgsProvided = declareArityError('NullaryOpArgsProvided',
+  ({ operandName, actualArity }) =>
+    `${operandName} takes no arguments, got ${actualArity}`);
+const OverloadedOpUnsupportedArity = declareArityError('OverloadedOpUnsupportedArity',
+  ({ operandName, supportedCounts, actualArity }) =>
+    `${operandName} accepts ${supportedCounts} captured args, got ${actualArity}`);
+const StateOpArityMismatch = declareArityError('StateOpArityMismatch',
+  ({ operandName, expectedCaptured, actualArity }) =>
+    `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`);
 
 // Unbounded-upper-limit sentinel for variadic operand `captured`
 // ranges. Surfaced into reify descriptors as a keyword value so
@@ -99,9 +117,9 @@ export function valueOp(name, n, impl, meta) {
       const slots = lambdas.map(lam => lam(pv));
       return withPipeValue(state, impl(...slots));
     }
-    throw new ArityError(
-      `${name} expects ${n - 1} or ${n} captured args, got ${k}`
-    );
+    throw new ValueOpArityMismatch({
+      operandName: name, expectedArity: n, actualArity: k
+    });
   }, withCaptured(meta, capturedRange));
 }
 
@@ -114,9 +132,9 @@ export function higherOrderOp(name, n, impl, meta) {
       // Subject is pipeValue; modifiers stay unresolved (lambdas).
       return withPipeValue(state, impl(state.pipeValue, ...lambdas));
     }
-    throw new ArityError(
-      `${name} expects ${n - 1} captured args (higher-order), got ${k}`
-    );
+    throw new HigherOrderOpArityMismatch({
+      operandName: name, expectedCaptured: n - 1, actualArity: k
+    });
   }, withCaptured(meta, capturedRange));
 }
 
@@ -124,7 +142,7 @@ export function higherOrderOp(name, n, impl, meta) {
 export function nullaryOp(name, impl, meta) {
   return makeFn(name, 1, (state, lambdas) => {
     if (lambdas.length !== 0) {
-      throw new ArityError(`${name} takes no arguments, got ${lambdas.length}`);
+      throw new NullaryOpArgsProvided({ operandName: name, actualArity: lambdas.length });
     }
     return withPipeValue(state, impl(state.pipeValue));
   }, withCaptured(meta, [0, 0]));
@@ -145,10 +163,11 @@ export function overloadedOp(name, maxArity, impls, meta) {
     const k = lambdas.length;
     const impl = impls[k];
     if (!impl) {
-      const supported = Object.keys(impls).join(' or ');
-      throw new ArityError(
-        `${name} accepts ${supported} captured args, got ${k}`
-      );
+      throw new OverloadedOpUnsupportedArity({
+        operandName: name,
+        supportedCounts: Object.keys(impls).join(' or '),
+        actualArity: k
+      });
     }
     return withPipeValue(state, impl(state.pipeValue, ...lambdas));
   }, withCaptured(meta, capturedRange));
@@ -166,9 +185,9 @@ export function stateOp(name, arity, impl, meta) {
   const expected = arity - 1;
   return makeFn(name, arity, (state, lambdas) => {
     if (lambdas.length !== expected) {
-      throw new ArityError(
-        `${name} expects ${expected} captured args, got ${lambdas.length}`
-      );
+      throw new StateOpArityMismatch({
+        operandName: name, expectedCaptured: expected, actualArity: lambdas.length
+      });
     }
     return impl(state, lambdas);
   }, withCaptured(meta, [expected, expected]));

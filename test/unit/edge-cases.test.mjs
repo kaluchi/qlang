@@ -270,7 +270,7 @@ describe('eval.mjs unknown node type', () => {
   it('throws on unknown AST node', () => {
     const fakeNode = { type: 'BogusNode' };
     const state = makeState(null, langRuntime());
-    expect(() => evalAst(fakeNode, state)).toThrow(QlangTypeError);
+    expect(() => evalAst(fakeNode, state)).toThrow(/unknown AST node type/);
   });
 });
 
@@ -536,7 +536,7 @@ describe('eval.mjs unknown combinator', () => {
       ]
     };
     const state = makeState(null, langRuntime());
-    expect(() => evalAst(ast, state)).toThrow(QlangTypeError);
+    expect(() => evalAst(ast, state)).toThrow(/unknown combinator/);
   });
 });
 

@@ -131,35 +131,36 @@ describe('serializeSession / deserializeSession round-trip', () => {
   });
 
   it('rejects payload with wrong schemaVersion', () => {
-    expect(() => deserializeSession({
-      schemaVersion: 999,
-      bindings: [],
-      cells: []
-    })).toThrow(/schemaVersion/);
+    let thrown;
+    try { deserializeSession({ schemaVersion: 999, bindings: [], cells: [] }); } catch (e) { thrown = e; }
+    expect(thrown.name).toBe('SessionSchemaVersionMismatchError');
+    expect(thrown.context.actual).toBe(999);
   });
 
   it('rejects payload with missing bindings array', () => {
-    expect(() => deserializeSession({ schemaVersion: 1 })).toThrow(/invalid/);
+    let thrown;
+    try { deserializeSession({ schemaVersion: 1 }); } catch (e) { thrown = e; }
+    expect(thrown.name).toBe('SessionPayloadInvalidError');
   });
 
   it('rejects conduit binding with no source', () => {
-    expect(() => deserializeSession({
-      schemaVersion: 1,
-      bindings: [{ kind: 'conduit', name: 'x', source: null, docs: [] }],
-      cells: []
-    })).toThrow(/no source/);
+    let thrown;
+    try { deserializeSession({ schemaVersion: 1, bindings: [{ kind: 'conduit', name: 'x', source: null, docs: [] }], cells: [] }); } catch (e) { thrown = e; }
+    expect(thrown.name).toBe('SessionConduitSourceMissingError');
+    expect(thrown.context.bindingName).toBe('x');
   });
 
   it('rejects unknown binding kind', () => {
-    expect(() => deserializeSession({
-      schemaVersion: 1,
-      bindings: [{ kind: 'something', name: 'x' }],
-      cells: []
-    })).toThrow(/unknown binding kind/);
+    let thrown;
+    try { deserializeSession({ schemaVersion: 1, bindings: [{ kind: 'something', name: 'x' }], cells: [] }); } catch (e) { thrown = e; }
+    expect(thrown.name).toBe('SessionBindingKindUnknownError');
+    expect(thrown.context.kind).toBe('something');
   });
 
   it('rejects null payload', () => {
-    expect(() => deserializeSession(null)).toThrow(/invalid/);
+    let thrown;
+    try { deserializeSession(null); } catch (e) { thrown = e; }
+    expect(thrown.name).toBe('SessionPayloadInvalidError');
   });
 
   it('serializes a raw value bound via session.bind as kind: value', () => {

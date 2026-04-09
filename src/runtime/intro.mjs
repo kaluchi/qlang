@@ -23,7 +23,6 @@ import {
 } from './operand-errors.mjs';
 import {
   UnresolvedIdentifierError,
-  ArityError,
   QlangTypeError,
   EffectLaunderingAtLetParse
 } from '../errors.mjs';
@@ -38,6 +37,8 @@ import { deepEqual } from '../equality.mjs';
 import { evalQuery } from '../eval.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
+const ReifyArityOverflow = declareArityError('ReifyArityOverflow',
+  ({ actualArity }) => `reify accepts 0 or 1 captured args, got ${actualArity}`);
 const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
   ({ actualType }) => `reify(:name) requires a keyword captured arg, got ${actualType}`);
 
@@ -295,7 +296,7 @@ export const reify = stateOpVariadic('reify', 2, (state, lambdas) => {
     const descriptor = describeBinding(bound, keyValue.name);
     return withPipeValue(state, descriptor);
   }
-  throw new ArityError(`reify accepts 0 or 1 captured args, got ${lambdas.length}`);
+  throw new ReifyArityOverflow({ actualArity: lambdas.length });
 }, {
   category: 'reflective',
   subject: 'any (value-level form) or env keyword (named form)',

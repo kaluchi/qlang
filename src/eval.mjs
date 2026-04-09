@@ -15,7 +15,6 @@ import { fork, forkWith } from './fork.mjs';
 import { applyRule10, makeFn } from './rule10.mjs';
 import {
   QlangError,
-  QlangTypeError,
   UnresolvedIdentifierError,
   EffectLaunderingAtCall
 } from './errors.mjs';
@@ -25,6 +24,23 @@ import {
   declareShapeError,
   declareArityError
 } from './runtime/operand-errors.mjs';
+import { QlangInvariantError } from './errors.mjs';
+
+class UnknownAstNodeTypeError extends QlangInvariantError {
+  constructor(nodeType) {
+    super(`unknown AST node type: ${nodeType}`, { site: 'UnknownAstNodeTypeError', nodeType });
+    this.name = 'UnknownAstNodeTypeError';
+    this.fingerprint = 'UnknownAstNodeTypeError';
+  }
+}
+
+class UnknownCombinatorKindError extends QlangInvariantError {
+  constructor(kind) {
+    super(`unknown combinator: ${kind}`, { site: 'UnknownCombinatorKindError', kind });
+    this.name = 'UnknownCombinatorKindError';
+    this.fingerprint = 'UnknownCombinatorKindError';
+  }
+}
 import {
   isVec, isQMap, isConduit, isSnapshot, isFunctionValue,
   describeType, keyword, NIL
@@ -87,7 +103,7 @@ const NODE_HANDLERS = {
 function evalNode(node, state) {
   const handler = NODE_HANDLERS[node.type];
   if (!handler) {
-    throw new QlangTypeError(`unknown AST node type: ${node.type}`);
+    throw new UnknownAstNodeTypeError(node.type);
   }
   // Source-location enrichment: any QlangError that bubbles past
   // here without a location yet picks up the location of `node`.
@@ -128,7 +144,7 @@ const COMBINATOR_HANDLERS = {
 function applyCombinator(kind, state, stepNode) {
   const handler = COMBINATOR_HANDLERS[kind];
   if (!handler) {
-    throw new QlangTypeError(`unknown combinator: ${kind}`);
+    throw new UnknownCombinatorKindError(kind);
   }
   return handler(state, stepNode);
 }

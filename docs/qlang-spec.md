@@ -152,7 +152,7 @@ current `pipeValue` — same as Vec:
 > {:name "alice" :age 30} | #{/name, /age}
 #{"alice" 30}
 
--- equivalent via | vals | set
+|~| equivalent via | vals | set
 > {:name "alice" :age 30} | vals | set
 #{"alice" 30}
 ```
@@ -230,7 +230,7 @@ Nested: `/a/b` desugars to `/a | /b`.
 > {:geo {:lat 51.5 :lon -0.1}} | /geo/lat
 51.5
 
--- equivalent:
+|~| equivalent:
 > {:geo {:lat 51.5 :lon -0.1}} | /geo | /lat
 51.5
 
@@ -302,11 +302,11 @@ Input is a Vec of Sets or Maps. Left-fold.
 
 > [{:a 1 :b 2 :c 3}, {:b 99 :d 5}] | minus
 {:a 1 :c 3}
--- removes keys present in second map; values of second ignored
+|~| removes keys present in second map; values of second ignored
 
 > [{:a 1 :b 2 :c 3}, {:b 99 :d 5}] | inter
 {:b 2}
--- keeps keys present in both; values from first map
+|~| keeps keys present in both; values from first map
 ```
 
 **Map × Set** — field operations (Set = which keys):
@@ -322,9 +322,9 @@ Input is a Vec of Sets or Maps. Left-fold.
 Fan-out with `as` for enrichment:
 
 ```qlang
--- as r captures the current value, passes it forward
--- [r, {...}] builds Vec from captured value + computed delta
--- union merges them
+|~| as r captures the current value, passes it forward
+|~| [r, {...}] builds Vec from captured value + computed delta
+|~| union merges them
 
 record | as(:r) | [r, {:adult /age | gt(18)}] | union
 record | as(:r) | [r, #{:tmp}] | minus
@@ -359,8 +359,8 @@ rules below).
 
 ```qlang
 order | normalize | as(:cleanOrder) | computeTax | as(:taxedOrder) | shipQuote | finalize
--- after normalize → cleanOrder = the cleaned order map
--- after computeTax → taxedOrder = the taxed map
+|~| after normalize → cleanOrder = the cleaned order map
+|~| after computeTax → taxedOrder = the taxed map
 ```
 
 `cleanOrder` and `taxedOrder` are frozen snapshots. All values are
@@ -373,8 +373,8 @@ stages:
 
 ```qlang
 purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initial, discounted]
--- initial    = the normalized purchase
--- discounted = the same purchase after discounts applied
+|~| initial    = the normalized purchase
+|~| discounted = the same purchase after discounts applied
 ```
 
 ```qlang
@@ -427,21 +427,21 @@ changes are discarded. See the
    `[]`, `{}`, `#{}`, all `as`-bindings from the enclosing
    scope are visible.
 
-   ```
+   ```qlang
    employees | as(:roster) * {:name /name :teamSize roster | count}
-   -- roster captured before the distribute;
-   -- inside each iteration's reshape, roster is visible
-   -- (every element receives the same :teamSize)
+   |~| roster captured before the distribute;
+   |~| inside each iteration's reshape, roster is visible
+   |~| (every element receives the same :teamSize)
    ```
 
 3. **Nested pipelines do not leak outward.** A binding created
    inside `(...)`, `[...]`, `{...}`, `#{...}` is local to that
    inner scope and invisible after it closes.
 
-   ```
+   ```qlang
    candidates | filter(/peerRating | as(:peerScore) | /selfRating | gte(peerScore))
-   -- peerScore is local to the filter predicate;
-   -- it is not visible after filter(...) returns
+   |~| peerScore is local to the filter predicate;
+   |~| it is not visible after filter(...) returns
    ```
 
 4. **Each distribute iteration is its own scope.** In `xs * body`,
@@ -477,17 +477,17 @@ the function to the value. The only operator that executes.
 `>>` flattens then applies. Same mechanism, different strategy.)
 
 ```qlang
-gt              -- function, two inputs needed: (value, threshold)
-                -- subject at position 1, modifier at position 2
-gt(10)          -- binding: fix threshold=10 (trailing)
-                -- → new function awaiting value (from pipeValue)
-                -- nothing executed
+gt              |~| function, two inputs needed: (value, threshold)
+                |~| subject at position 1, modifier at position 2
+gt(10)          |~| binding: fix threshold=10 (trailing)
+                |~| → new function awaiting value (from pipeValue)
+                |~| nothing executed
 
-filter          -- function, two inputs needed: (vec, predicate)
-                -- subject at position 1, modifier at position 2
-filter(gt(10))  -- binding: fix predicate (trailing)
-                -- → new function awaiting vec (from pipeValue)
-                -- still nothing executed
+filter          |~| function, two inputs needed: (vec, predicate)
+                |~| subject at position 1, modifier at position 2
+filter(gt(10))  |~| binding: fix predicate (trailing)
+                |~| → new function awaiting vec (from pipeValue)
+                |~| still nothing executed
 
 [1 2 3 4 5] | filter(gt(10))
              ^
@@ -498,14 +498,14 @@ filter(gt(10))  -- binding: fix predicate (trailing)
 Zero-arg functions need no binding — already complete:
 
 ```qlang
-count           -- function, one input needed: (vec)
-[1 2 3] | count -- application: 3
-                -- no () — count is already complete
+count           |~| function, one input needed: (vec)
+[1 2 3] | count |~| application: 3
+                |~| no () — count is already complete
 
-sort            -- function, one input: (vec), natural order
-sort(/name)     -- binding: fix key → new function (vec)
-                -- sort without () = complete
-                -- sort with () = new function via binding
+sort            |~| function, one input: (vec), natural order
+sort(/name)     |~| binding: fix key → new function (vec)
+                |~| sort without () = complete
+                |~| sort with () = new function via binding
 ```
 
 Expressions inside `()` are **captured, not evaluated**.
@@ -528,15 +528,15 @@ filter(/age | gt(18))
 Arity determines whether `pipeValue` fills a position:
 
 ```qlang
-100 | mul(2)            -- partial: 1 of 2 args captured
-                        -- pipeValue = first arg (100)
-                        -- captured = second arg (2)
-                        -- result: 200
+100 | mul(2)            |~| partial: 1 of 2 args captured
+                        |~| pipeValue = first arg (100)
+                        |~| captured = second arg (2)
+                        |~| result: 200
 
-mul(/price, /qty)       -- full: 2 of 2 args captured
-                        -- pipeValue = context for resolving args
-                        -- /price → 100, /qty → 3
-                        -- result: 300
+mul(/price, /qty)       |~| full: 2 of 2 args captured
+                        |~| pipeValue = context for resolving args
+                        |~| /price → 100, /qty → 3
+                        |~| result: 300
 ```
 
 Partial application: `pipeValue` fills the first position.
@@ -545,9 +545,9 @@ If the `pipeValue` type doesn't match the operand's expectation
 → type error:
 
 ```qlang
-[1 2 3] | add(1)        -- partial: Vec fills first arg
-                        -- add expects number → type error
-                        -- fix: use * for element-wise
+[1 2 3] | add(1)        |~| partial: Vec fills first arg
+                        |~| add expects number → type error
+                        |~| fix: use * for element-wise
 
 > [1 2 3] * add(1)
 [2 3 4]
@@ -740,10 +740,10 @@ Additional runtimes are loaded anywhere in a query by merging a
 Map into `env`:
 
 ```qlang
--- import host-provided stats library
+|~| import host-provided stats library
 statsLibrary | use | data | mean
 
--- import constants and use them
+|~| import constants and use them
 {:pi 3.14159 :e 2.71828} | use | [pi, e]
 ```
 
@@ -994,7 +994,7 @@ a | b * c | d >> e = ((((a | b) * c) | d) >> e)
 
 ```qlang
 filter(/age | gt(18))
--- /age | gt(18) is a complete sub-pipeline inside ()
+|~| /age | gt(18) is a complete sub-pipeline inside ()
 ```
 
 ### Error conditions
@@ -1020,10 +1020,10 @@ Side-effectful host operands carry the `@` prefix in qlang source.
 The convention is enforced one-directionally:
 
 ```qlang
-let(:foo, @callers)          -- ERROR: effectful body, clean name
-let(:@impl, @callers)        -- OK
-let(:@safe, count)           -- OK (over-approximation, harmless)
-let(:foo, count)             -- OK (pure body, clean name)
+let(:foo, @callers)          |~| ERROR: effectful body, clean name
+let(:@impl, @callers)        |~| OK
+let(:@safe, count)           |~| OK (over-approximation, harmless)
+let(:foo, count)             |~| OK (pure body, clean name)
 ```
 
 A `let` binding whose body references any `@`-prefixed identifier
@@ -1169,57 +1169,55 @@ the current `env`.
 
 ## REPL session
 
-Complete examples demonstrating composition. The `-- label` lines
-below are transcript annotations for the reader (written once by
-the author of this document); inside an actual query, use the
-`|~|` / `|~ ~|` comment forms from the [Comments](#comments)
-section. The `>` prefix marks a REPL prompt and is not query
-syntax either.
+Complete examples demonstrating composition. The `|~|` lines
+are qlang plain comments labelling the technique each example
+demonstrates. The `>` prefix marks a REPL prompt and is not
+query syntax.
 
 ```qlang
--- construction
+|~| construction
 > {:name "alice" :scores [85 92 78 95]}
 {:name "alice" :scores [85 92 78 95]}
 
--- projection + operand
+|~| projection + operand
 > {:name "alice" :scores [85 92 78 95]} | /scores | count
 4
 
--- filter + count
+|~| filter + count
 > [10 25 3 47 8 31] | filter(gt(20)) | count
 3
 
--- distribute + reshape
+|~| distribute + reshape
 > [{:first "a" :last "x" :score 85}
    {:first "b" :last "y" :score 92}
    {:first "c" :last "z" :score 78}]
   * {:first /first :score /score}
 [{:first "a" :score 85} {:first "b" :score 92} {:first "c" :score 78}]
 
--- binary arithmetic in reshape
+|~| binary arithmetic in reshape
 > [{:name "a" :price 100 :qty 3}
    {:name "b" :price 50 :qty 10}]
   * {:name /name :total mul(/price, /qty)}
 [{:name "a" :total 300} {:name "b" :total 500}]
 
--- filter with composed predicate
+|~| filter with composed predicate
 > [{:name "a" :age 25 :active true}
    {:name "b" :age 15 :active true}
    {:name "c" :age 30 :active false}]
   | filter(and(/active, /age | gt(18)))
 [{:name "a" :age 25 :active true}]
 
--- fan-out + merge
+|~| fan-out + merge
 > [1 2 3 4 5 6 7 8 9 10]
   | [filter(gt(7)), filter(lt(3))] >> sort
 [1 2 8 9 10]
 
--- nested projection
+|~| nested projection
 > {:config {:db {:host "localhost" :port 5432}}}
   | /config/db/port
 5432
 
--- pipeline as predicate inside filter
+|~| pipeline as predicate inside filter
 > [{:name "server-1" :cpu 45}
    {:name "server-2" :cpu 92}
    {:name "server-3" :cpu 12}]
@@ -1227,37 +1225,37 @@ syntax either.
   * /name
 ["server-2"]
 
--- enrich via bound union
+|~| enrich via bound union
 > {:name "a" :age 20} | union({:adult /age | gt(18)})
 {:name "a" :age 20 :adult true}
 
--- drop fields via bound minus
+|~| drop fields via bound minus
 > {:name "a" :age 20 :tmp 1} | minus(#{:tmp})
 {:name "a" :age 20}
 
--- select fields via bound inter
+|~| select fields via bound inter
 > {:name "a" :age 20 :tmp 1} | inter(#{:name :age})
 {:name "a" :age 20}
 
--- enrich each element in distribute
+|~| enrich each element in distribute
 > [{:name "a" :score 85} {:name "b" :score 92}]
   * union({:grade /score | gte(90)})
 [{:name "a" :score 85 :grade false} {:name "b" :score 92 :grade true}]
 
--- value binding: reference earlier pipeline stage
+|~| value binding: reference earlier pipeline stage
 > {:name "a" :age 20}
   | as(:r)
   | /age | add(10) | as(:future_age)
   | [r, {:future_age future_age}] | union
 {:name "a" :age 20 :future_age 30}
 
--- wrap-with-original: keep full element alongside computed fields
+|~| wrap-with-original: keep full element alongside computed fields
 > [{:id 1 :name "a"} {:id 2 :name "b"}]
   * (as(:r) | {:key /id :record r})
 [{:key 1 :record {:id 1 :name "a"}}
  {:key 2 :record {:id 2 :name "b"}}]
 
--- multi-stage bindings: capture different pipeline stages
+|~| multi-stage bindings: capture different pipeline stages
 > [85 92 47 78 68 95 52]
   | as(:allScores)
   | filter(gte(70))
@@ -1265,7 +1263,7 @@ syntax either.
   | [allScores | count, passingScores | count]
 [7 4]
 
--- let + recursion: rename :label → :value throughout a tree
+|~| let + recursion: rename :label → :value throughout a tree
 > {:label "root" :children [
     {:label "a" :children [
       {:label "a1" :children []}]}

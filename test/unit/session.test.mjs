@@ -88,7 +88,7 @@ describe('createSession lifecycle', () => {
 });
 
 describe('serializeSession / deserializeSession round-trip', () => {
-  it('preserves user let bindings via thunk source replay', () => {
+  it('preserves user let bindings via conduit source replay', () => {
     const s = createSession();
     s.evalCell('let(:double, mul(2))');
     s.evalCell('let(:triple, mul(3))');
@@ -196,8 +196,8 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
   });
 
-  it('serializes a synthesized thunk (no .text on body) with source = null', async () => {
-    // Construct a thunk whose expr is a hand-built AST node that
+  it('serializes a synthesized conduit (no .text on body) with source = null', async () => {
+    // Construct a conduit whose expr is a hand-built AST node that
     // never came from the parser, so has no .text. The session
     // serializer must emit source: null without throwing.
     const { makeConduit } = await import('../../src/types.mjs');

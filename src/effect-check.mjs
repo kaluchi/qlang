@@ -1,31 +1,21 @@
-// Effect-marker AST decoration and parse-time validation.
+// Effect-marker AST decoration.
 //
 // Pairs with src/effect.mjs (which owns the EFFECT_MARKER_PREFIX
-// constant and `classifyEffect` helper) and src/eval.mjs (which
-// hosts the runtime call-site safety net) to enforce the @-effect-
-// marker invariant described in src/effect.mjs.
+// constant and the `classifyEffect` effect-marker classifier) and
+// src/eval.mjs (which hosts the runtime call-site safety net).
 //
-// Two passes are exported:
+// Exports:
 //
 //   decorateAstWithEffectMarkers(ast) — post-parse pass that stamps
-//     a boolean `.effectful` field on every node whose source token
-//     can carry the marker:
-//       - OperandCall .effectful = classifyEffect(name)
-//       - conduit declaration / snapshot declaration .effectful = classifyEffect(name)
-//       - Projection .effectful = true iff any key segment classifies
-//         as effectful
-//     Downstream consumers (editor highlight, refactor, autocomplete,
-//     reify descriptors, runtime safety net) read `.effectful` and
-//     never re-derive the property from the source name.
+//     a boolean `.effectful` field on every OperandCall and Projection
+//     node. Downstream consumers (editor highlight, refactor,
+//     autocomplete, reify descriptors, runtime safety net) read
+//     `.effectful` and never re-derive the property from the source
+//     name.
 //
-//   validateEffectMarkers(ast) — walks every conduit declaration and rejects any
-//     non-effectful let whose body contains an effectful read site
-//     (OperandCall.effectful or Projection.effectful). Throws
-//     EffectLaunderingAtLetParse on the first violation, carrying
-//     the offending binding's source location for editor diagnostics.
-//
-// `decorateAstWithEffectMarkers` runs first so the validator can
-// rely on the field being present everywhere.
+//   findFirstEffectfulIdentifier(node) — returns the first effectful
+//     identifier in a subtree, or null. Used by the `let` operand
+//     impl (runtime/intro.mjs) for eval-time effect validation.
 
 import { walkAst } from './walk.mjs';
 import { classifyEffect } from './effect.mjs';
@@ -75,5 +65,3 @@ export function findFirstEffectfulIdentifier(node) {
   return offender;
 }
 
-// validateEffectMarkers(ast) → ast
-//

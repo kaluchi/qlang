@@ -65,7 +65,7 @@ describe('astChildrenOf', () => {
     expect(astChildrenOf({ type: 'StringLit', value: 's' })).toEqual([]);
     expect(astChildrenOf({ type: 'Keyword', name: 'k' })).toEqual([]);
     expect(astChildrenOf({ type: 'Projection', keys: ['a'] })).toEqual([]);
-    expect(astChildrenOf({ type: 'AsStep', name: 'x' })).toEqual([]);
+    expect(astChildrenOf({ type: 'Keyword', name: 'x' })).toEqual([]);
   });
 
   it('returns empty array for non-AST values', () => {

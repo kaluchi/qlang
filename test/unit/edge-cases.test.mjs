@@ -700,8 +700,8 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(() => evalQuery('reify(:a, :b)')).toThrow();
   });
 
-  it('reify of a thunk whose body is a Pipeline renders multi-step source', () => {
-    // The thunk body is a ParenGroup wrapping a multi-step pipeline,
+  it('reify of a conduit whose body is a Pipeline renders multi-step source', () => {
+    // The conduit body is a ParenGroup wrapping a multi-step pipeline,
     // exercising the Pipeline branch of sourceOfAst.
     const result = evalQuery(
       'let(:chained, mul(2) | add(1)) | reify(:chained) | /source'
@@ -711,28 +711,28 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(result).toContain('|');
   });
 
-  it('reify of a thunk whose body is a VecLit renders the literal', () => {
+  it('reify of a conduit whose body is a VecLit renders the literal', () => {
     const result = evalQuery('let(:xs, [1 2 3]) | reify(:xs) | /source');
     expect(result).toBe('[1 2 3]');
   });
 
-  it('reify of a thunk whose body is a SetLit renders the literal', () => {
+  it('reify of a conduit whose body is a SetLit renders the literal', () => {
     const result = evalQuery('let(:s, #{1 2 3}) | reify(:s) | /source');
     expect(result).toContain('#{');
   });
 
-  it('reify of a thunk whose body is a MapLit renders the literal', () => {
+  it('reify of a conduit whose body is a MapLit renders the literal', () => {
     const result = evalQuery('let(:m, {:a 1 :b 2}) | reify(:m) | /source');
     expect(result).toContain(':a 1');
     expect(result).toContain(':b 2');
   });
 
-  it('reify of a thunk whose body is a Projection renders the keys', () => {
+  it('reify of a conduit whose body is a Projection renders the keys', () => {
     const result = evalQuery('let(:pluck, /name) | reify(:pluck) | /source');
     expect(result).toBe('/name');
   });
 
-  it('reify of a thunk whose body is a nested Projection renders all keys', () => {
+  it('reify of a conduit whose body is a nested Projection renders all keys', () => {
     const result = evalQuery('let(:deep, /a/b/c) | reify(:deep) | /source');
     expect(result).toBe('/a/b/c');
   });

@@ -77,9 +77,9 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 });
 
 describe('toTaggedJSON unencodable values', () => {
-  it('throws TaggedJSONUnencodableValueError for thunks', () => {
-    const thunk = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
-    expect(() => toTaggedJSON(thunk)).toThrow(TaggedJSONUnencodableValueError);
+  it('throws TaggedJSONUnencodableValueError for conduits', () => {
+    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    expect(() => toTaggedJSON(conduit)).toThrow(TaggedJSONUnencodableValueError);
   });
 
   it('throws TaggedJSONUnencodableValueError for snapshots', () => {

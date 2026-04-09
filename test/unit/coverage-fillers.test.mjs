@@ -4,7 +4,7 @@
 // vec.flat non-Vec elements, equality.deepEqual rejection branches,
 // describeType for snapshots, dispatch invariant errors for variadic
 // operand registration without meta.captured, and intro.sourceOfAst
-// branches reachable through synthesized thunks.
+// branches reachable through synthesized conduits.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -111,8 +111,8 @@ describe('dispatch variadic registration invariants', () => {
   });
 });
 
-describe('intro.sourceOfAst branches reachable via synthesized thunks', () => {
-  // Reify on a thunk whose body is a synthesized AST (no .text from
+describe('intro.sourceOfAst branches reachable via synthesized conduits', () => {
+  // Reify on a conduit whose body is a synthesized AST (no .text from
   // parser) forces nodeSource to fall back to sourceOfAst. We sweep
   // every Primary node type to make sure each branch is exercised.
   function reifySynth(synthBody) {

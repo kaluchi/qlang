@@ -1,0 +1,30 @@
+{
+  "wordPattern": "[@_a-zA-Z][a-zA-Z0-9_-]*|[0-9]+(?:\\.[0-9]+)?",
+  "brackets": [
+    ["(", ")"],
+    ["[", "]"],
+    ["{", "}"]
+  ],
+  "autoClosingPairs": [
+    { "open": "(", "close": ")" },
+    { "open": "[", "close": "]" },
+    { "open": "{", "close": "}" },
+    { "open": "\"", "close": "\"", "notIn": ["string"] }
+  ],
+  "surroundingPairs": [
+    ["(", ")"],
+    ["[", "]"],
+    ["{", "}"],
+    ["\"", "\""]
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "[\\[{(][^\\]})]*$",
+    "decreaseIndentPattern": "^\\s*[\\]})][,]?\\s*$"
+  },
+  "folding": {
+    "markers": {
+      "start": "\\|~~?(?![|~])|\\|~~(?!\\|)",
+      "end": "~~?\\|"
+    }
+  }
+}

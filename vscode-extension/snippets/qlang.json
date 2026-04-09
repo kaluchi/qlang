@@ -1,0 +1,87 @@
+{
+  "let binding": {
+    "prefix": "let",
+    "body": ["let(:${1:name}, ${2:body})"],
+    "description": "Declare a zero-arity conduit"
+  },
+  "let parametric": {
+    "prefix": "letp",
+    "body": ["let(:${1:name}, [:${2:param}], ${3:body})"],
+    "description": "Declare a parametric conduit"
+  },
+  "as snapshot": {
+    "prefix": "as",
+    "body": ["as(:${1:name})"],
+    "description": "Capture pipeValue as a named snapshot"
+  },
+  "filter": {
+    "prefix": "filter",
+    "body": ["filter(${1:predicate})"],
+    "description": "Keep elements matching predicate"
+  },
+  "map literal": {
+    "prefix": "map",
+    "body": ["{:${1:key} ${2:value}}"],
+    "description": "Map literal"
+  },
+  "vec literal": {
+    "prefix": "vec",
+    "body": ["[${1:elements}]"],
+    "description": "Vec literal"
+  },
+  "set literal": {
+    "prefix": "set",
+    "body": ["#{${1:elements}}"],
+    "description": "Set literal"
+  },
+  "if": {
+    "prefix": "if",
+    "body": ["if(${1:cond}, ${2:then}, ${3:else})"],
+    "description": "Conditional — only selected branch executes"
+  },
+  "when": {
+    "prefix": "when",
+    "body": ["when(${1:cond}, ${2:body})"],
+    "description": "One-sided conditional, identity on falsy"
+  },
+  "cond": {
+    "prefix": "cond",
+    "body": ["cond(${1:pred1}, ${2:val1}, ${3:pred2}, ${4:val2})"],
+    "description": "Multi-way dispatch over predicate/branch pairs"
+  },
+  "sortWith": {
+    "prefix": "sortWith",
+    "body": ["sortWith(${1|asc,desc,nullsFirst,nullsLast|}(${2:/field}))"],
+    "description": "Custom comparator sort"
+  },
+  "groupBy": {
+    "prefix": "groupBy",
+    "body": ["groupBy(${1:/field})"],
+    "description": "Partition Vec into Map keyed by classifier"
+  },
+  "indexBy": {
+    "prefix": "indexBy",
+    "body": ["indexBy(${1:/field})"],
+    "description": "Collapse Vec into Map, last-wins on collision"
+  },
+  "line plain comment": {
+    "prefix": "|~|",
+    "body": ["|~| ${1:comment}"],
+    "description": "Line plain comment (identity step)"
+  },
+  "block plain comment": {
+    "prefix": "|~",
+    "body": ["|~ ${1:comment} ~|"],
+    "description": "Block plain comment (identity step)"
+  },
+  "line doc comment": {
+    "prefix": "|~~|",
+    "body": ["|~~| ${1:doc}"],
+    "description": "Line doc comment — attaches to next operand call"
+  },
+  "block doc comment": {
+    "prefix": "|~~",
+    "body": ["|~~ ${1:doc} ~~|"],
+    "description": "Block doc comment — attaches to next operand call"
+  }
+}

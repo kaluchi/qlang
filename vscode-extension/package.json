@@ -1,10 +1,14 @@
 {
   "name": "qlang-syntax",
   "displayName": "qlang",
-  "description": "Syntax highlighting for the qlang query language",
+  "description": "Syntax highlighting and language server for the qlang query language",
   "version": "0.1.0",
   "publisher": "local",
-  "engines": { "vscode": "^1.60.0" },
+  "engines": { "vscode": "^1.75.0" },
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onLanguage:qlang"
+  ],
   "contributes": {
     "languages": [
       {
@@ -35,5 +39,8 @@
         }
       }
     ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
   }
 }

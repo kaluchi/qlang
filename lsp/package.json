@@ -1,0 +1,23 @@
+{
+  "name": "@kaluchi/qlang-lsp",
+  "version": "0.1.0-alpha",
+  "description": "Language server for the qlang query language",
+  "type": "module",
+  "main": "src/server.mjs",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@kaluchi/qlang": "file:..",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

@@ -263,7 +263,11 @@ function sourceOfAst(node) {
       const argText = node.args.map(sourceOfAst).join(', ');
       return `${node.name}(${argText})`;
     }
-    case 'ParenGroup': return `(${sourceOfAst(node.pipeline)})`;
+    case 'ParenGroup':        return `(${sourceOfAst(node.pipeline)})`;
+    case 'LinePlainComment':  return `|~| ${node.content}`;
+    case 'BlockPlainComment': return `|~${node.content}~|`;
+    case 'LineDocComment':    return `|~~| ${node.content}`;
+    case 'BlockDocComment':   return `|~~${node.content}~~|`;
     case 'VecLit':     return `[${node.elements.map(sourceOfAst).join(' ')}]`;
     case 'SetLit':     return `#{${node.elements.map(sourceOfAst).join(' ')}}`;
     case 'MapEntry':   return `${sourceOfAst(node.key)} ${sourceOfAst(node.value)}`;

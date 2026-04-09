@@ -12,7 +12,8 @@
     "./walk":    { "import": "./src/walk.mjs" },
     "./session": { "import": "./src/session.mjs" },
     "./codec":   { "import": "./src/codec.mjs" },
-    "./errors":  { "import": "./src/errors.mjs" }
+    "./errors":  { "import": "./src/errors.mjs" },
+    "./effect-check": { "import": "./src/effect-check.mjs" }
   },
   "sideEffects": false,
   "files": [

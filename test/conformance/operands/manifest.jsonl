@@ -14,11 +14,11 @@
 {"name": "filter-by-vec-transformer-category", "query": "env | manifest | filter(/category | eq(:vec-transformer)) | count | gt(5)", "expect": true}
 {"name": "filter-by-string-category-includes-split-join-and-substring-predicates", "query": "env | manifest | filter(/category | eq(:string)) | count", "expect": 7}
 {"name": "filter-by-control-category-six-operands", "query": "env | manifest | filter(/category | eq(:control)) | count", "expect": 6}
-{"name": "filter-by-comparator-category-two-operands", "query": "env | manifest | filter(/category | eq(:comparator)) | count", "expect": 2}
+{"name": "filter-by-comparator-category-four-operands", "query": "env | manifest | filter(/category | eq(:comparator)) | count", "expect": 4}
 {"name": "filter-by-reflective-category-seven-operands", "query": "env | manifest | filter(/category | eq(:reflective)) | count", "expect": 7}
 {"name": "all-arith-have-add-sub-mul-div", "query": "env | manifest | filter(/category | eq(:arith)) * /name | sort", "expect": ["add", "div", "mul", "sub"]}
 {"name": "all-control-six-operands-sorted", "query": "env | manifest | filter(/category | eq(:control)) * /name | sort", "expect": ["coalesce", "cond", "firstTruthy", "if", "unless", "when"]}
-{"name": "all-comparator-have-asc-desc", "query": "env | manifest | filter(/category | eq(:comparator)) * /name | sort", "expect": ["asc", "desc"]}
+{"name": "all-comparator-sorted", "query": "env | manifest | filter(/category | eq(:comparator)) * /name | sort", "expect": ["asc", "desc", "nullsFirst", "nullsLast"]}
 {"name": "all-reflective-sorted", "query": "env | manifest | filter(/category | eq(:reflective)) * /name | sort", "expect": ["as", "env", "let", "manifest", "reify", "runExamples", "use"]}
 {"name": "first-name-alphabetical", "query": "env | manifest | first | /name", "expect": "add"}
 {"name": "names-are-sorted-asc", "query": "env | manifest * /name | as(:got) | got | sort | eq(got)", "expect": true}

@@ -62,6 +62,8 @@ export function langRuntime() {
   bind(m, 'sortWith',     vec.sortWith);
   bind(m, 'asc',          vec.asc);
   bind(m, 'desc',         vec.desc);
+  bind(m, 'nullsFirst',   vec.nullsFirst);
+  bind(m, 'nullsLast',    vec.nullsLast);
   bind(m, 'firstNonZero', vec.firstNonZero);
   bind(m, 'take',         vec.take);
   bind(m, 'drop',         vec.drop);

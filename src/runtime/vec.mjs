@@ -566,6 +566,69 @@ export const desc = higherOrderOp('desc', 2, (pair, keyLambda) => {
   throws: ['DescPairNotMap', 'DescKeysNotComparable']
 });
 
+// nullsFirst / nullsLast — comparator adapters that classify nil keys
+// before delegating to an inner comparator for non-nil pairs. Without
+// these, any sortWith pipeline over data containing nil-keyed elements
+// throws AscKeysNotComparable / DescKeysNotComparable because nil is
+// not a comparable scalar.
+//
+//   sortWith(nullsLast(asc(/age)))   — nil ages sort to the end
+//   sortWith(nullsFirst(desc(/score))) — nil scores sort to the front
+
+const NullsFirstPairNotMap = declareShapeError('NullsFirstPairNotMap',
+  ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+const NullsLastPairNotMap = declareShapeError('NullsLastPairNotMap',
+  ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+
+// nullsComparator — extracts keys from the pair via keyLambda, checks
+// for nil, and delegates to compareScalars for non-nil pairs. This
+// operates at the key level (like asc/desc), not at the comparator
+// wrapper level, because the nil resides in the projected key, not
+// in the pair Map values themselves.
+function nullsKeyComparator(pair, keyLambda, nilFirst, ascending, PairNotMapError) {
+  if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
+  const left  = pair.get(keyword('left'));
+  const right = pair.get(keyword('right'));
+  const leftKey  = keyLambda(left);
+  const rightKey = keyLambda(right);
+  const leftNil  = leftKey === null || leftKey === undefined;
+  const rightNil = rightKey === null || rightKey === undefined;
+  if (leftNil && rightNil) return 0;
+  if (leftNil) return nilFirst ? -1 : 1;
+  if (rightNil) return nilFirst ? 1 : -1;
+  checkComparable(nilFirst ? AscKeysNotComparable : DescKeysNotComparable, leftKey, rightKey);
+  const cmp = compareScalars(leftKey, rightKey);
+  return ascending ? cmp : -cmp;
+}
+
+export const nullsFirst = higherOrderOp('nullsFirst', 2, (pair, keyLambda) =>
+  nullsKeyComparator(pair, keyLambda, true, true, NullsFirstPairNotMap), {
+  category: 'comparator',
+  subject: 'pair Map { :left x :right y }',
+  modifiers: ['key sub-pipeline'],
+  returns: 'number (-1, 0, or 1)',
+  docs: ['Ascending comparator that places nil-keyed elements before all non-nil elements. Applied per-pair like asc, projects keys via the captured sub-pipeline, sorts nil keys to the front and non-nil keys in ascending order.'],
+  examples: [
+    'sortWith(nullsFirst(/age))',
+    '[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a → [nil 1 3]'
+  ],
+  throws: ['NullsFirstPairNotMap']
+});
+
+export const nullsLast = higherOrderOp('nullsLast', 2, (pair, keyLambda) =>
+  nullsKeyComparator(pair, keyLambda, false, true, NullsLastPairNotMap), {
+  category: 'comparator',
+  subject: 'pair Map { :left x :right y }',
+  modifiers: ['key sub-pipeline'],
+  returns: 'number (-1, 0, or 1)',
+  docs: ['Ascending comparator that places nil-keyed elements after all non-nil elements. Applied per-pair like asc, projects keys via the captured sub-pipeline, sorts nil keys to the end and non-nil keys in ascending order.'],
+  examples: [
+    'sortWith(nullsLast(/age))',
+    '[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a → [1 3 nil]'
+  ],
+  throws: ['NullsLastPairNotMap']
+});
+
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(describeType(vec), vec);
   for (let i = 0; i < vec.length; i++) {

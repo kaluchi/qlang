@@ -39,6 +39,8 @@ import {
 import {
   walkAst,
   astChildrenOf,
+  assignAstNodeIds,
+  attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
@@ -46,6 +48,10 @@ import {
   astNodeContainsOffset,
   triviaBetweenAstNodes
 } from './walk.mjs';
+import {
+  decorateAstWithEffectMarkers,
+  findFirstEffectfulIdentifier
+} from './effect-check.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import {
   QlangError,
@@ -71,12 +77,16 @@ export {
   deserializeSession,
   walkAst,
   astChildrenOf,
+  assignAstNodeIds,
+  attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
   astNodeSpan,
   astNodeContainsOffset,
   triviaBetweenAstNodes,
+  decorateAstWithEffectMarkers,
+  findFirstEffectfulIdentifier,
   toTaggedJSON,
   fromTaggedJSON,
   QlangError,

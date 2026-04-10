@@ -1,29 +1,29 @@
-{"name": "projection-on-number", "query": "42 | /foo", "error": "type-error"}
-{"name": "projection-on-vec", "query": "[1 2] | /foo", "error": "type-error"}
-{"name": "projection-on-set", "query": "#{:a} | /foo", "error": "type-error"}
-{"name": "distribute-on-number", "query": "42 * add(1)", "error": "type-error"}
-{"name": "distribute-on-map", "query": "{:a 1} * add(1)", "error": "type-error"}
-{"name": "distribute-on-set", "query": "#{1 2} * add(1)", "error": "type-error"}
-{"name": "merge-on-number", "query": "42 >> count", "error": "type-error"}
-{"name": "merge-on-set", "query": "#{1 2} >> count", "error": "type-error"}
-{"name": "use-on-number", "query": "42 | use", "error": "type-error"}
-{"name": "use-on-vec", "query": "[1 2] | use", "error": "type-error"}
-{"name": "unresolved-identifier", "query": "thisIsNotDefined", "error": "unresolved-identifier"}
-{"name": "unresolved-inside-filter", "query": "[1 2 3] | filter(thisIsNotDefined)", "error": "unresolved-identifier"}
-{"name": "div-by-zero", "query": "10 | div(0)", "error": "division-by-zero"}
-{"name": "sum-non-numeric", "query": "[1 \"two\" 3] | sum", "error": "type-error"}
-{"name": "count-on-number", "query": "42 | count", "error": "type-error"}
-{"name": "empty-on-number", "query": "42 | empty", "error": "type-error"}
-{"name": "first-on-number", "query": "42 | first", "error": "type-error"}
-{"name": "last-on-number", "query": "42 | last", "error": "type-error"}
-{"name": "reverse-on-number", "query": "42 | reverse", "error": "type-error"}
-{"name": "distinct-on-number", "query": "42 | distinct", "error": "type-error"}
-{"name": "drop-on-number", "query": "42 | drop(1)", "error": "type-error"}
-{"name": "take-on-number", "query": "42 | take(1)", "error": "type-error"}
-{"name": "sort-on-number", "query": "42 | sort", "error": "type-error"}
-{"name": "flat-on-number", "query": "42 | flat", "error": "type-error"}
-{"name": "keys-on-number", "query": "42 | keys", "error": "type-error"}
-{"name": "vals-on-vec", "query": "[1 2] | vals", "error": "type-error"}
-{"name": "prepend-modifier-not-string", "query": "\"x\" | prepend(42)", "error": "type-error"}
-{"name": "append-modifier-not-string", "query": "\"x\" | append(42)", "error": "type-error"}
-{"name": "cannot-apply-args-to-value", "query": "5 | as(:five) | five(42)", "error": "type-error"}
+{"name": "projection-on-number", "query": "42 | /foo", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :ProjectionSubjectNotMap :message \"/foo requires Map subject, got number\" :key \"foo\" :actualType \"number\"}"}
+{"name": "projection-on-vec", "query": "[1 2] | /foo", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :ProjectionSubjectNotMap :message \"/foo requires Map subject, got Vec\" :key \"foo\" :actualType \"Vec\"}"}
+{"name": "projection-on-set", "query": "#{:a} | /foo", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :ProjectionSubjectNotMap :message \"/foo requires Map subject, got Set\" :key \"foo\" :actualType \"Set\"}"}
+{"name": "distribute-on-number", "query": "42 * add(1)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :DistributeSubjectNotVec :message \"* requires Vec subject, got number\" :operand \"*\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "distribute-on-map", "query": "{:a 1} * add(1)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :DistributeSubjectNotVec :message \"* requires Vec subject, got Map\" :operand \"*\" :position \"subject\" :expectedType \"Vec\" :actualType \"Map\"}"}
+{"name": "distribute-on-set", "query": "#{1 2} * add(1)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :DistributeSubjectNotVec :message \"* requires Vec subject, got Set\" :operand \"*\" :position \"subject\" :expectedType \"Vec\" :actualType \"Set\"}"}
+{"name": "merge-on-number", "query": "42 >> count", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :MergeSubjectNotVec :message \">> requires Vec subject, got number\" :operand \">>\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "merge-on-set", "query": "#{1 2} >> count", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :MergeSubjectNotVec :message \">> requires Vec subject, got Set\" :operand \">>\" :position \"subject\" :expectedType \"Vec\" :actualType \"Set\"}"}
+{"name": "use-on-number", "query": "42 | use", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :UseSubjectNotMap :message \"use requires Map subject, got number\" :operand \"use\" :position \"subject\" :expectedType \"Map\" :actualType \"number\"}"}
+{"name": "use-on-vec", "query": "[1 2] | use", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :UseSubjectNotMap :message \"use requires Map subject, got Vec\" :operand \"use\" :position \"subject\" :expectedType \"Map\" :actualType \"Vec\"}"}
+{"name": "unresolved-identifier", "query": "thisIsNotDefined", "error": "unresolved-identifier", "expect": "!{:origin :qlang/eval :kind :unresolved-identifier :thrown :UnresolvedIdentifierError :message \"unresolved identifier: thisIsNotDefined\"}"}
+{"name": "unresolved-inside-filter", "query": "[1 2 3] | filter(thisIsNotDefined)", "error": "unresolved-identifier", "expect": "!{:origin :qlang/eval :kind :unresolved-identifier :thrown :UnresolvedIdentifierError :message \"unresolved identifier: thisIsNotDefined\"}"}
+{"name": "div-by-zero", "query": "10 | div(0)", "error": "division-by-zero", "expect": "!{:origin :qlang/eval :kind :division-by-zero :thrown :DivisionByZeroError :message \"division by zero\"}"}
+{"name": "sum-non-numeric", "query": "[1 \"two\" 3] | sum", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :SumElementNotNumber :message \"sum: element 1 expects number, got string\" :operand \"sum\" :index 1 :expectedType \"number\" :actualType \"string\"}"}
+{"name": "count-on-number", "query": "42 | count", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :CountSubjectNotContainer :message \"count requires Vec, Set, or Map subject, got number\" :operand \"count\" :position \"subject\" :expectedType \"Vec, Set, or Map\" :actualType \"number\"}"}
+{"name": "empty-on-number", "query": "42 | empty", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :EmptySubjectNotContainer :message \"empty requires Vec, Set, or Map subject, got number\" :operand \"empty\" :position \"subject\" :expectedType \"Vec, Set, or Map\" :actualType \"number\"}"}
+{"name": "first-on-number", "query": "42 | first", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :FirstSubjectNotVec :message \"first requires Vec subject, got number\" :operand \"first\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "last-on-number", "query": "42 | last", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :LastSubjectNotVec :message \"last requires Vec subject, got number\" :operand \"last\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "reverse-on-number", "query": "42 | reverse", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :ReverseSubjectNotVec :message \"reverse requires Vec subject, got number\" :operand \"reverse\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "distinct-on-number", "query": "42 | distinct", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :DistinctSubjectNotVec :message \"distinct requires Vec subject, got number\" :operand \"distinct\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "drop-on-number", "query": "42 | drop(1)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :DropSubjectNotVec :message \"drop requires Vec subject, got number\" :operand \"drop\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "take-on-number", "query": "42 | take(1)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :TakeSubjectNotVec :message \"take requires Vec subject, got number\" :operand \"take\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "sort-on-number", "query": "42 | sort", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :SortNaturalSubjectNotVec :message \"sort requires Vec subject, got number\" :operand \"sort\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "flat-on-number", "query": "42 | flat", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :FlatSubjectNotVec :message \"flat requires Vec subject, got number\" :operand \"flat\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name": "keys-on-number", "query": "42 | keys", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :KeysSubjectNotMap :message \"keys requires Map subject, got number\" :operand \"keys\" :position \"subject\" :expectedType \"Map\" :actualType \"number\"}"}
+{"name": "vals-on-vec", "query": "[1 2] | vals", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :ValsSubjectNotMap :message \"vals requires Map subject, got Vec\" :operand \"vals\" :position \"subject\" :expectedType \"Map\" :actualType \"Vec\"}"}
+{"name": "prepend-modifier-not-string", "query": "\"x\" | prepend(42)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :PrependPrefixNotString :message \"prepend expects string at position 2, got number\" :operand \"prepend\" :position 2 :expectedType \"string\" :actualType \"number\"}"}
+{"name": "append-modifier-not-string", "query": "\"x\" | append(42)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :AppendSuffixNotString :message \"append expects string at position 2, got number\" :operand \"append\" :position 2 :expectedType \"string\" :actualType \"number\"}"}
+{"name": "cannot-apply-args-to-value", "query": "5 | as(:five) | five(42)", "error": "type-error", "expect": "!{:origin :qlang/eval :kind :type-error :thrown :ApplyToNonFunction :message \"cannot apply arguments to five: resolves to number, not a function\" :name \"five\" :actualType \"number\"}"}

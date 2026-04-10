@@ -77,6 +77,13 @@ for (const file of files) {
             expect(isErrorValue(result), `expected error value for "${test.query}"`).toBe(true);
             const kind = result.descriptor.get(keyword('kind'));
             expect(kind?.name).toBe(test.error);
+            if (test.expect !== undefined) {
+              // Full structural comparison when an exact expected value is provided.
+              const expectedAst = parse(test.expect);
+              assertLiteralAst(expectedAst, test.name);
+              const expected = evalQuery(test.expect);
+              expect(deepEqual(result, expected), `${test.name}: result !== expected`).toBe(true);
+            }
           }
         } else {
           // Guard: expect must be a literal, not a computation.

@@ -33,8 +33,8 @@ const Rule10ArityOverflow = declareArityError('Rule10ArityOverflow',
 
 // applyRule10(fn, lambdas, state) → state
 //
-// Overflow check + dispatch. The arity of each helper-wrapped
-// impl is enforced inside the helper; this function only blocks
+// Overflow check + dispatch. The arity of each dispatch-wrapped
+// impl is enforced inside the wrapper; this function only blocks
 // calls with more captured args than the function's declared
 // maximum.
 export function applyRule10(fn, lambdas, state) {

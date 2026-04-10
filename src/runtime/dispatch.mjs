@@ -1,11 +1,11 @@
-// Dispatch helpers for operand impls.
+// Dispatch wrappers for operand state transformers.
 //
 // Every function value installed in langRuntime has the uniform
-// signature `(state, lambdas) → state`. The helpers in this file
-// wrap pure cores so most operands do not need to touch state
-// directly — they keep writing value-level impls, and the helper
-// performs the state descent (extract pipeValue) and ascent
-// (withPipeValue) on their behalf.
+// signature `(state, lambdas) → state`. The wrappers in this file
+// bridge pure value-level cores so most operands do not need to
+// touch state directly — they keep writing value-level impls, and
+// the wrapper performs the state descent (extract pipeValue) and
+// ascent (withPipeValue) on their behalf.
 //
 // None of the helpers accept operand meta (docs, examples, throws,
 // category, subject, modifiers, returns). Meta lives exclusively

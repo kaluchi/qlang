@@ -182,6 +182,34 @@ form), positions 2..n are modifiers (filled by captured args).
 - **Errors**: pair subject not a Map → type error; keys not
   comparable → type error.
 
+### `nullsFirst(keyExpr)`
+
+- **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
+  by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
+- Ascending comparator that places nil-keyed elements before all
+  non-nil elements. Non-nil keys are sorted in ascending order.
+  Use inside `sortWith` to handle data with missing values without
+  tripping `AscKeysNotComparable`.
+- **Examples**:
+  - `sortWith(nullsFirst(/age))` → nil ages before all others.
+  - `[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a`
+    → `[nil 1 3]`.
+- **Errors**: pair subject not a Map → type error.
+
+### `nullsLast(keyExpr)`
+
+- **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
+  by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
+- Ascending comparator that places nil-keyed elements after all
+  non-nil elements. Non-nil keys are sorted in ascending order.
+  Use inside `sortWith` to handle data with missing values without
+  tripping `AscKeysNotComparable`.
+- **Examples**:
+  - `sortWith(nullsLast(/age))` → nil ages after all others.
+  - `[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a`
+    → `[1 3 nil]`.
+- **Errors**: pair subject not a Map → type error.
+
 ### `firstNonZero`
 
 - **Arity** 1. **Subject** Vec of numbers.

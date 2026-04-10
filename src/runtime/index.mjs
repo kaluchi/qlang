@@ -94,7 +94,7 @@ function forceDescriptor(conduit) {
 
 // Enrich a function value with manifest meta + docs.
 // The function value arrives with only `{ captured }` in meta
-// (auto-computed by the dispatch helper). Enrichment replaces
+// (auto-computed by the dispatch wrapper). Enrichment replaces
 // meta entirely with manifest-sourced fields, preserving `captured`.
 function enrichWithManifest(fnValue, conduit) {
   const descriptor = forceDescriptor(conduit);

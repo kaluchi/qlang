@@ -2,10 +2,10 @@
 //
 // Threads (pipeValue, env) state through pipeline steps. Dispatches
 // on AST node `type` and delegates to the appropriate step or
-// combinator implementation.
+// combinator evaluator.
 //
-// Architecture: every node-type handler is a small function
-// (state, node) → state'. The dispatcher is a switch.
+// Architecture: every node-type evaluator is a small function
+// (state, node) → state'. The dispatcher is a lookup table.
 
 import { parse } from './parse.mjs';
 import {
@@ -88,8 +88,8 @@ export function evalAst(ast, state) {
 }
 
 // Lookup-table dispatcher: one entry per AST node type. Adding a
-// new node type is one line here plus its handler function.
-const NODE_HANDLERS = {
+// new node type is one line here plus its evaluator function.
+const AST_NODE_EVALUATORS = {
   Pipeline:          evalPipeline,
   NumberLit:         evalNumberLit,
   StringLit:         evalStringLit,
@@ -109,15 +109,15 @@ const NODE_HANDLERS = {
 
 // Error propagation: nodes that are entered (children decide
 // individually) vs nodes that are skipped (error passes through).
-// OperandCall is neither — it checks errorAware inside its handler.
-// Comments are silent: skipped with no trail entry (handled in the
+// OperandCall is neither — it checks errorAware inside its evaluator.
+// Comments are silent: skipped with no trail entry (routed through the
 // else block via PROPAGATION_SILENT, not the enter block).
 const PROPAGATION_ENTER = new Set(['Pipeline', 'ParenGroup']);
 const PROPAGATION_SILENT = new Set(['LinePlainComment', 'BlockPlainComment']);
 
 function evalNode(node, state) {
-  const handler = NODE_HANDLERS[node.type];
-  if (!handler) throw new UnknownAstNodeTypeError(node.type);
+  const evaluator = AST_NODE_EVALUATORS[node.type];
+  if (!evaluator) throw new UnknownAstNodeTypeError(node.type);
 
   if (isErrorValue(state.pipeValue) && node.type !== 'OperandCall') {
     if (PROPAGATION_ENTER.has(node.type)) {
@@ -131,7 +131,7 @@ function evalNode(node, state) {
   }
 
   try {
-    return handler(node, state);
+    return evaluator(node, state);
   } catch (e) {
     if (e instanceof QlangError && !e.location && node.location)
       e.location = node.location;
@@ -157,18 +157,18 @@ function evalPipeline(node, state) {
   return current;
 }
 
-const COMBINATOR_HANDLERS = {
+const COMBINATOR_EVALUATORS = {
   '|':  (state, stepNode) => evalNode(stepNode, state),
   '*':  distribute,
   '>>': mergeFlat
 };
 
 function applyCombinator(kind, state, stepNode) {
-  const handler = COMBINATOR_HANDLERS[kind];
-  if (!handler) {
+  const evaluator = COMBINATOR_EVALUATORS[kind];
+  if (!evaluator) {
     throw new UnknownCombinatorKindError(kind);
   }
-  return handler(state, stepNode);
+  return evaluator(state, stepNode);
 }
 
 function distribute(state, bodyNode) {

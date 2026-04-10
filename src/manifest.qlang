@@ -873,8 +873,12 @@ let(:error, {
   :returns :error
   :modifiers [:map]
   :examples [
-    {:doc "create error value"  :snippet "{:kind :oops :message \"boom\"} | error | isError"  :expected "true"}
-    {:doc "round-trip via catch" :snippet "error({:kind :oops}) | catch | /kind"               :expected ":oops"}]
+    {:doc "create error value"  
+     :snippet "{:kind :oops :message \"boom\"} | error | isError"  
+     :expected "true"}
+    {:doc "round-trip via catch" 
+     :snippet "error({:kind :oops}) | catch | /kind"              
+     :expected ":oops"}]
   :throws [:ErrorDescriptorNotMap]})
 
 |~~ Unwraps an error value to its descriptor Map.

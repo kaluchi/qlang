@@ -221,7 +221,7 @@ DocAttachedSequence
     // Head-shape compound array: first element is the bare step,
     // remaining elements carry explicit combinator wrappers. This
     // matches the convention used by LeadingBlockPlainAbsorbing
-    // so Pipeline's head handler can consume either directly.
+    // so Pipeline's head flattener can consume either directly.
     return [
       plainSteps[0],
       ...plainSteps.slice(1).map(p => ({ combinator: '|', step: p })),

@@ -13,8 +13,7 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isTruthy, describeType, NIL, keyword,
-  isErrorValue
+  isVec, isQMap, isQSet, isKeyword, isTruthy, isErrorValue, describeType, NIL, keyword
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -161,12 +160,22 @@ export const filter = higherOrderOp('filter', 2, (vec, predLambda) => {
 
 export const every = higherOrderOp('every', 2, (vec, predLambda) => {
   if (!isVec(vec)) throw new EverySubjectNotVec(describeType(vec), vec);
-  return vec.every(item => isTruthy(predLambda(item)));
+  for (const item of vec) {
+    const pred = predLambda(item);
+    if (isErrorValue(pred)) return pred;
+    if (!isTruthy(pred)) return false;
+  }
+  return true;
 });
 
 export const any = higherOrderOp('any', 2, (vec, predLambda) => {
   if (!isVec(vec)) throw new AnySubjectNotVec(describeType(vec), vec);
-  return vec.some(item => isTruthy(predLambda(item)));
+  for (const item of vec) {
+    const pred = predLambda(item);
+    if (isErrorValue(pred)) return pred;
+    if (isTruthy(pred)) return true;
+  }
+  return false;
 });
 
 export const groupBy = higherOrderOp('groupBy', 2, (vec, keyLambda) => {
@@ -175,6 +184,7 @@ export const groupBy = higherOrderOp('groupBy', 2, (vec, keyLambda) => {
   for (let i = 0; i < vec.length; i++) {
     const elem = vec[i];
     const key = keyLambda(elem);
+    if (isErrorValue(key)) return key;
     if (!isKeyword(key)) {
       throw new GroupByKeyNotKeyword({
         index: i,
@@ -194,6 +204,7 @@ export const indexBy = higherOrderOp('indexBy', 2, (vec, keyLambda) => {
   for (let i = 0; i < vec.length; i++) {
     const elem = vec[i];
     const key = keyLambda(elem);
+    if (isErrorValue(key)) return key;
     if (!isKeyword(key)) {
       throw new IndexByKeyNotKeyword({
         index: i,

@@ -532,7 +532,7 @@ describe('conduit effect-laundering at call site', () => {
     s.evalCell('let(:@effFn, count)');
     s.evalCell('{:clean (env | /@effFn)} | use');
     const cell = s.evalCell('[1 2 3] | clean');
-    // EffectLaunderingAtCall now produces an error value.
+    // EffectLaunderingAtCall produces an error value.
     expect(isErrorValue(cell.result)).toBe(true);
     expect(cell.result.originalError.name).toBe('EffectLaunderingAtCall');
   });

@@ -1,6 +1,6 @@
 // Value type predicates and shape helpers.
 //
-// The language has four value types — Scalar, Vec, Map, Set — plus
+// The language has five value types — Scalar, Vec, Map, Set, Error — plus
 // function values, conduits, and snapshots. JavaScript representations:
 //
 //   Scalar     → number, string, boolean, null (for nil),
@@ -215,7 +215,7 @@ export function describeType(v) {
   if (isVec(v)) return 'Vec';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
-  if (isErrorValue(v)) return 'error';
+  if (isErrorValue(v)) return 'Error';
   if (isFunctionValue(v)) return 'function';
   if (isConduit(v)) return 'conduit';
   if (isSnapshot(v)) return 'snapshot';

@@ -124,3 +124,107 @@ describe('use selective with Vec filter', () => {
     expect(entry.result).toBe(10);
   });
 });
+
+import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
+
+describe('per-site error triple-assertions', () => {
+  it('UseNamespaceNotFound: name, instanceof, context', () => {
+    const s = createSession();
+    const r = s.evalCell('use(:nonexistent)');
+    const e = r.result.originalError;
+    expect(e.name).toBe('UseNamespaceNotFound');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.context.namespaceName).toBe('nonexistent');
+  });
+
+  it('UseNamespaceNotMap: name, instanceof, context', () => {
+    const s = createSession();
+    s.bind('notamap', 42);
+    const r = s.evalCell('use(:notamap)');
+    const e = r.result.originalError;
+    expect(e.name).toBe('UseNamespaceNotMap');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.context.namespaceName).toBe('notamap');
+    expect(e.context.actualType).toBe('number');
+  });
+
+  it('UseNamespaceCollision: name, instanceof, context', () => {
+    const s = createSession();
+    s.bind('a', new Map([[keyword('x'), 1]]));
+    s.bind('b', new Map([[keyword('x'), 2]]));
+    const r = s.evalCell('use(#{:a :b})');
+    const e = r.result.originalError;
+    expect(e.name).toBe('UseNamespaceCollision');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.context.collidingName).toBe('x');
+  });
+
+  it('UseNameNotExported: name, instanceof, context', () => {
+    const s = createSession();
+    s.bind('lib', new Map([[keyword('x'), 1]]));
+    const r = s.evalCell('use(:lib, #{:z})');
+    const e = r.result.originalError;
+    expect(e.name).toBe('UseNameNotExported');
+    expect(e).toBeInstanceOf(QlangTypeError);
+    expect(e.context.namespaceName).toBe('lib');
+    expect(e.context.exportName).toBe('z');
+  });
+
+  it('UseNamespaceElementNotKeyword: name, instanceof, context', () => {
+    const s = createSession();
+    s.bind('ns', new Map([[keyword('x'), 1]]));
+    const r = s.evalCell('use([:ns 42])');
+    const e = r.result.originalError;
+    expect(e.name).toBe('UseNamespaceElementNotKeyword');
+    expect(e).toBeInstanceOf(QlangTypeError);
+  });
+
+  it('UseNamespaceNotKeyword: name, instanceof, context', () => {
+    const r = evalQuery('use(42, #{:x})');
+    const e = r.originalError;
+    expect(e.name).toBe('UseNamespaceNotKeyword');
+    expect(e).toBeInstanceOf(QlangTypeError);
+  });
+
+  it('ErrorDescriptorNotMap: name, instanceof', () => {
+    const r = evalQuery('42 | error');
+    const e = r.originalError;
+    expect(e.name).toBe('ErrorDescriptorNotMap');
+    expect(e).toBeInstanceOf(QlangTypeError);
+  });
+
+  it('IsErrorNoCapturedArgs: name, instanceof, context', () => {
+    const r = evalQuery('42 | isError(1)');
+    const e = r.originalError;
+    expect(e.name).toBe('IsErrorNoCapturedArgs');
+    expect(e).toBeInstanceOf(ArityError);
+    expect(e.context.actualCount).toBe(1);
+  });
+});
+
+describe('higher-order lambda error propagation', () => {
+  it('every propagates error from predicate', () => {
+    const r = evalQuery('[1 2 3] | every(thisIsNotDefined) | isError');
+    expect(r).toBe(true);
+  });
+
+  it('any propagates error from predicate', () => {
+    const r = evalQuery('[1 2 3] | any(thisIsNotDefined) | isError');
+    expect(r).toBe(true);
+  });
+
+  it('groupBy propagates error from key lambda', () => {
+    const r = evalQuery('[1 2 3] | groupBy(thisIsNotDefined) | isError');
+    expect(r).toBe(true);
+  });
+
+  it('indexBy propagates error from key lambda', () => {
+    const r = evalQuery('[1 2 3] | indexBy(thisIsNotDefined) | isError');
+    expect(r).toBe(true);
+  });
+
+  it('filter propagates error from predicate', () => {
+    const r = evalQuery('[1 2 3] | filter(thisIsNotDefined) | isError');
+    expect(r).toBe(true);
+  });
+});

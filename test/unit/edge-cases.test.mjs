@@ -351,7 +351,7 @@ describe('per-site error classes carry unique identity', () => {
   // match on `e.name` (stable identifier) so they stay readable
   // without importing every per-site class.
 
-  // Runtime errors now produce error values (5th type). Extract the
+  // Runtime errors are error values (5th type). Extract the
   // underlying QlangError via .originalError for structured inspection.
   function catchError(query) {
     const result = evalQuery(query);
@@ -950,10 +950,9 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
   });
 
   it('every sortWith/asc/desc/firstNonZero site has a unique class name', () => {
-    // Note: asc/desc with heterogeneous keys used to produce AscKeysNotComparable/
-    // DescKeysNotComparable. Now they return error values, and sortWith sees the
-    // error value (non-numeric) and reports SortWithCmpResultNotNumber instead.
-    // So those two queries no longer produce distinct names.
+    // Note: asc/desc with heterogeneous keys produce error values, and sortWith
+    // sees the error value (non-numeric) and reports SortWithCmpResultNotNumber
+    // instead. This means heterogeneous keys don't produce distinct error names.
     const queries = [
       '42 | sortWith(asc(/x))',   // SortWithSubjectNotVec
       '[1 2] | sortWith("not")',  // SortWithCmpResultNotNumber

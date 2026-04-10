@@ -22,9 +22,9 @@ describe('error operand', () => {
 // ── isError operand ─────────────────────────────────────────────
 
 describe('isError operand', () => {
-  it('with captured args produces arity error (foreign-error kind)', () => {
+  it('with captured args produces arity error', () => {
     const result = evalQuery('42 | isError(1) | catch | /kind');
-    expect(result).toEqual(keyword('foreign-error'));
+    expect(result).toEqual(keyword('arity-error'));
   });
 });
 
@@ -112,6 +112,15 @@ describe('sourceOfAst coverage for rare node types', () => {
 
   it('renders ErrorLit in conduit body', () => {
     expect(evalQuery('let(:x, !{:a 1}) | reify(:x) | /source')).toBe('!{:a 1}');
+  });
+});
+
+describe('json operand on error values inside containers', () => {
+  it('renders error value as $error wrapper when inside Vec', () => {
+    // [1 "x" 3] * add(10) produces [11 error 13]; json renders the Vec
+    const r = evalQuery('[1 "x" 3] * add(10) | json');
+    expect(typeof r).toBe('string');
+    expect(r).toContain('$error');
   });
 });
 

@@ -26,9 +26,9 @@ describe('makeErrorValue', () => {
 // ── describeType ────────────────────────────────────────────────
 
 describe('describeType for error values', () => {
-  it('returns "error" for error values', () => {
+  it('returns "Error" for error values', () => {
     const ev = makeErrorValue(new Map());
-    expect(describeType(ev)).toBe('error');
+    expect(describeType(ev)).toBe('Error');
   });
 });
 

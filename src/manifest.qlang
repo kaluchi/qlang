@@ -759,7 +759,7 @@ let(:use, {
     "{:pi 3.14 :e 2.71} | use | [pi, e]"
     "use(:qlang/error)"
     "use([:qlang/error :qlang/http])"]
-  :throws [:UseSubjectNotMap :UseNamespaceNotFound :UseNamespaceCollision]})
+  :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]})
 
 |~~ Builds a descriptor Map for a value or named binding.
     Value-level form (no captured args) describes the current
@@ -859,7 +859,7 @@ let(:isError, {
     "error({:kind :oops}) | isError → true"
     "{:kind :oops} | isError → false"
     "42 | isError → false"]
-  :throws []})
+  :throws [:IsErrorNoCapturedArgs]})
 
 |~ Self-referential: let declared last because it shadows
    the built-in let operand upon evaluation. ~|

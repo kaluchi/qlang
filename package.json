@@ -13,7 +13,8 @@
     "./session": { "import": "./src/session.mjs" },
     "./codec":   { "import": "./src/codec.mjs" },
     "./errors":  { "import": "./src/errors.mjs" },
-    "./effect-check": { "import": "./src/effect-check.mjs" }
+    "./effect-check": { "import": "./src/effect-check.mjs" },
+    "./host/module-resolver": { "import": "./host/module-resolver.mjs" }
   },
   "sideEffects": false,
   "files": [

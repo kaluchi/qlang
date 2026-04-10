@@ -169,6 +169,7 @@ function describeValueType(v) {
   if (isVec(v)) return keyword('vec');
   if (isQMap(v)) return keyword('map');
   if (isQSet(v)) return keyword('set');
+  if (isErrorValue(v)) return keyword('error');
   return keyword('unknown');
 }
 

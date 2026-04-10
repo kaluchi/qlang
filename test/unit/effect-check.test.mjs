@@ -124,8 +124,8 @@ describe('findFirstEffectfulIdentifier', () => {
 });
 
 describe('eval-time effect validation in let operand', () => {
-  // EffectLaunderingAtLetParse now produces an error value (5th type),
-  // not a thrown exception. Use isErrorValue + .originalError to inspect.
+  // EffectLaunderingAtLetParse produces an error value (5th type).
+  // Use isErrorValue + .originalError to inspect.
   function getEffectError(query) {
     const result = evalQuery(query);
     return isErrorValue(result) ? result.originalError : null;
@@ -207,7 +207,7 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
     const cell = session.evalCell(
       '{:helper (env | /@callers)} | use | let(:foo, helper) | foo'
     );
-    // EffectLaunderingAtCall now produces an error value.
+    // EffectLaunderingAtCall produces an error value.
     expect(isErrorValue(cell.result)).toBe(true);
     const e = cell.result.originalError;
     expect(e).toBeInstanceOf(EffectLaunderingAtCall);

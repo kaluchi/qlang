@@ -18,10 +18,12 @@ import {
   isQMap, isErrorValue, describeType, keyword,
   makeErrorValue, materializeTrail
 } from '../types.mjs';
-import { declareSubjectError } from './operand-errors.mjs';
+import { declareSubjectError, declareArityError } from './operand-errors.mjs';
 
 const ErrorDescriptorNotMap = declareSubjectError(
   'ErrorDescriptorNotMap', 'error', 'Map');
+const IsErrorNoCapturedArgs = declareArityError('IsErrorNoCapturedArgs',
+  ({ actualCount }) => `isError takes no arguments, got ${actualCount}`);
 
 // error — create an error value from a Map descriptor.
 // Arity 1: bare `map | error` or full `error(map)`.
@@ -69,10 +71,7 @@ export const catchOp = (() => {
 export const isError = (() => {
   const fn = makeFn('isError', 1, (state, lambdas) => {
     if (lambdas.length !== 0) {
-      // isError takes no captured args
-      throw new (class extends Error {
-        constructor() { super('isError takes no arguments'); }
-      })();
+      throw new IsErrorNoCapturedArgs({ actualCount: lambdas.length });
     }
     return withPipeValue(state, isErrorValue(state.pipeValue));
   }, { captured: [0, 0] });

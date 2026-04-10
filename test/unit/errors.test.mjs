@@ -125,7 +125,7 @@ describe('QlangInvariantError', () => {
 });
 
 describe('runtime error location propagation via evalNode', () => {
-  // Runtime errors now produce error values. Use .originalError to access
+  // Runtime errors are error values. Use .originalError to access
   // the underlying QlangError with location, fingerprint, etc.
   function getOriginalError(query) {
     const result = evalQuery(query);

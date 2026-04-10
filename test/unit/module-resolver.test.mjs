@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { discoverModules, resolveModules, installModules } from '../../src/module-resolver.mjs';
+import { discoverModules, resolveModules, installModules } from '../../host/module-resolver.mjs';
 import { createSession } from '../../src/session.mjs';
 import { keyword, isErrorValue } from '../../src/types.mjs';
 

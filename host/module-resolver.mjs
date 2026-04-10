@@ -11,12 +11,12 @@
 // env delta (bindings not in the base env) is its export surface.
 
 import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
-import { parse } from './parse.mjs';
-import { evalAst } from './eval.mjs';
-import { makeState } from './state.mjs';
-import { langRuntime } from './runtime/index.mjs';
-import { keyword, isKeyword, isConduit, isSnapshot, isFunctionValue, isQMap } from './types.mjs';
+import { join } from 'node:path';
+import { parse } from '../src/parse.mjs';
+import { evalAst } from '../src/eval.mjs';
+import { makeState } from '../src/state.mjs';
+import { langRuntime } from '../src/runtime/index.mjs';
+import { keyword } from '../src/types.mjs';
 
 // discoverModules(libDir) → Map<namespaceName, filePath>
 //

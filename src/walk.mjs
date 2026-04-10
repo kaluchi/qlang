@@ -133,7 +133,7 @@ export function findIdentifierOccurrences(ast, name) {
 // sequence and share the same env progressively (every let/as in
 // step k is visible to step k+1).
 export const FORK_ISOLATING_AST_TYPES = new Set([
-  'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'MapEntry'
+  'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);
 
 // bindingNamesVisibleAt(ast, offset) — returns the Set of binding

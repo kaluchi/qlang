@@ -9,6 +9,7 @@ import {
   isQMap,
   isQSet,
   isKeyword,
+  isErrorValue,
   describeType
 } from '../types.mjs';
 import {
@@ -34,6 +35,9 @@ function toPlain(v) {
   }
   if (isQSet(v)) {
     return [...v].map(toPlain);
+  }
+  if (isErrorValue(v)) {
+    return { $error: toPlain(v.descriptor) };
   }
   return String(v);
 }

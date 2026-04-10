@@ -48,7 +48,7 @@ describe('createSession lifecycle', () => {
   it('evalCell records the error on runtime failure', () => {
     const s = createSession();
     const entry = s.evalCell('42 | count');
-    // Runtime errors now produce error values (5th type), not exceptions.
+    // Runtime errors are error values (5th type).
     // evalCell succeeds; result is an error value, entry.error is null.
     expect(entry.error).toBeNull();
     expect(isErrorValue(entry.result)).toBe(true);
@@ -80,7 +80,7 @@ describe('createSession lifecycle', () => {
     // x is still bound, y is gone
     expect(s.evalCell('x').result).toBe(1);
     const yLookup = s.evalCell('y');
-    // Unresolved identifier now produces an error value, not a thrown exception.
+    // Unresolved identifier produces an error value.
     expect(isErrorValue(yLookup.result)).toBe(true);
   });
 

@@ -1,8 +1,7 @@
 // Shared test helpers for error value assertions.
 //
-// After the error-as-5th-type change, runtime errors produce error
-// values instead of throwing exceptions. Tests that previously used
-// .toThrow() now call evalQuery and check the result.
+// Runtime errors are error values (5th type). Tests call evalQuery
+// and check the result via isErrorValue + descriptor inspection.
 
 import { expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

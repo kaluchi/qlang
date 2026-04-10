@@ -344,21 +344,28 @@ const RunExamplesSubjectNotDescriptor = declareSubjectError(
 const RunExamplesNoExamplesField = declareShapeError('RunExamplesNoExamplesField',
   ({ subjectKind }) => `runExamples requires the subject descriptor to carry an :examples Vec, got descriptor of kind ${subjectKind}`);
 
-const ARROW = '→';
-
-function buildExampleResult(querySrc, expectedSrc) {
+// runExampleEntry(example) → result Map
+//
+// Each example is a Map with :doc (optional), :snippet, :expected
+// (optional). Evaluates :snippet, compares with :expected if present.
+function runExampleEntry(example) {
   const result = new Map();
-  result.set(keyword('query'), querySrc);
+  const snippetSrc = isQMap(example) ? example.get(keyword('snippet')) : null;
+  const expectedSrc = isQMap(example) ? example.get(keyword('expected')) : null;
+  const doc = isQMap(example) ? example.get(keyword('doc')) : null;
+
+  result.set(keyword('snippet'), snippetSrc);
+  result.set(keyword('doc'), doc);
   result.set(keyword('expected'), expectedSrc);
-  let actual;
-  try { actual = evalQuery(querySrc); }
-  catch (e) {
-    // Only ParseError can reach here — runtime errors are error values.
+
+  if (typeof snippetSrc !== 'string') {
     result.set(keyword('actual'), null);
-    result.set(keyword('error'), e.message);
+    result.set(keyword('error'), 'example :snippet must be a string');
     result.set(keyword('ok'), false);
     return result;
   }
+
+  const actual = evalQuery(snippetSrc);
   if (isErrorValue(actual)) {
     result.set(keyword('actual'), null);
     result.set(keyword('error'), errorMessageOf(actual));
@@ -366,16 +373,17 @@ function buildExampleResult(querySrc, expectedSrc) {
     return result;
   }
   result.set(keyword('actual'), actual);
-  if (expectedSrc === null) {
+
+  if (typeof expectedSrc !== 'string') {
+    // Demo example — no expected, just verify it runs
     result.set(keyword('error'), null);
     result.set(keyword('ok'), true);
     return result;
   }
-  let expected;
-  try {
-    expected = evalQuery(expectedSrc);
-  } catch (e) {
-    result.set(keyword('error'), 'expected: ' + e.message);
+
+  const expected = evalQuery(expectedSrc);
+  if (isErrorValue(expected)) {
+    result.set(keyword('error'), 'expected: ' + errorMessageOf(expected));
     result.set(keyword('ok'), false);
     return result;
   }
@@ -396,22 +404,7 @@ export const runExamples = stateOp('runExamples', 1, (state, _lambdas) => {
       subjectKind: isKeyword(subjectKind) ? subjectKind.name : 'unknown'
     });
   }
-  const results = examples.map((example) => {
-    if (typeof example !== 'string') {
-      const result = new Map();
-      result.set(keyword('query'), null);
-      result.set(keyword('expected'), null);
-      result.set(keyword('actual'), null);
-      result.set(keyword('error'), 'example entry is not a string');
-      result.set(keyword('ok'), false);
-      return result;
-    }
-    const arrowAt = example.indexOf(ARROW);
-    const querySrc = arrowAt >= 0 ? example.substring(0, arrowAt).trim() : example.trim();
-    const expectedSrc = arrowAt >= 0 ? example.substring(arrowAt + ARROW.length).trim() : null;
-    return buildExampleResult(querySrc, expectedSrc);
-  });
-  return withPipeValue(state, results);
+  return withPipeValue(state, examples.map(runExampleEntry));
 });
 
 // manifest — Vec of descriptors, one per binding in env, sorted by name.

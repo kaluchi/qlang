@@ -19,9 +19,9 @@ let(:count, {
   :returns :number
   :modifiers []
   :examples [
-    "[1 2 3] | count → 3"
-    "#{:a :b} | count → 2"
-    "{:x 1 :y 2 :z 3} | count → 3"]
+    {:doc "Vec length"    :snippet "[1 2 3] | count"         :expected "3"}
+    {:doc "Set size"      :snippet "#{:a :b} | count"        :expected "2"}
+    {:doc "Map entries"   :snippet "{:x 1 :y 2 :z 3} | count" :expected "3"}]
   :throws [:CountSubjectNotContainer]})
 
 |~~ Returns true if the container has zero elements, false
@@ -31,7 +31,9 @@ let(:empty, {
   :subject [:vec, :set, :map]
   :returns :boolean
   :modifiers []
-  :examples ["[] | empty → true" "[1] | empty → false"]
+  :examples [
+    {:doc "empty Vec"     :snippet "[] | empty"   :expected "true"}
+    {:doc "non-empty Vec" :snippet "[1] | empty"  :expected "false"}]
   :throws [:EmptySubjectNotContainer]})
 
 |~~ Returns the first element of a Vec, or nil if the Vec
@@ -41,7 +43,9 @@ let(:first, {
   :subject :vec
   :returns :any
   :modifiers []
-  :examples ["[10 20 30] | first → 10" "[] | first → nil"]
+  :examples [
+    {:doc "first of three" :snippet "[10 20 30] | first" :expected "10"}
+    {:doc "empty yields nil" :snippet "[] | first"       :expected "nil"}]
   :throws [:FirstSubjectNotVec]})
 
 |~~ Returns the last element of a Vec, or nil if the Vec
@@ -51,7 +55,9 @@ let(:last, {
   :subject :vec
   :returns :any
   :modifiers []
-  :examples ["[10 20 30] | last → 30" "[] | last → nil"]
+  :examples [
+    {:doc "last of three" :snippet "[10 20 30] | last" :expected "30"}
+    {:doc "empty yields nil" :snippet "[] | last"      :expected "nil"}]
   :throws [:LastSubjectNotVec]})
 
 |~~ Returns the numeric sum of elements. Empty Vec yields 0.
@@ -61,7 +67,9 @@ let(:sum, {
   :subject :vec
   :returns :number
   :modifiers []
-  :examples ["[1 2 3 4] | sum → 10" "[] | sum → 0"]
+  :examples [
+    {:doc "integers"        :snippet "[1 2 3 4] | sum"  :expected "10"}
+    {:doc "empty Vec"       :snippet "[] | sum"          :expected "0"}]
   :throws [:SumSubjectNotVec, :SumElementNotNumber]})
 
 |~~ Returns the minimum element under natural ordering. Empty
@@ -72,7 +80,9 @@ let(:min, {
   :subject :vec
   :returns :any
   :modifiers []
-  :examples ["[3 1 4 1 5] | min → 1" "[\"b\" \"a\" \"c\"] | min → \"a\""]
+  :examples [
+    {:doc "numeric minimum"  :snippet "[3 1 4 1 5] | min"          :expected "1"}
+    {:doc "string minimum"   :snippet "[\"b\" \"a\" \"c\"] | min"  :expected "\"a\""}]
   :throws [:MinSubjectNotVec, :MinElementsNotComparable]})
 
 |~~ Returns the maximum element under natural ordering. Empty
@@ -83,7 +93,9 @@ let(:max, {
   :subject :vec
   :returns :any
   :modifiers []
-  :examples ["[3 1 4 1 5] | max → 5" "[\"b\" \"a\" \"c\"] | max → \"c\""]
+  :examples [
+    {:doc "numeric maximum"  :snippet "[3 1 4 1 5] | max"          :expected "5"}
+    {:doc "string maximum"   :snippet "[\"b\" \"a\" \"c\"] | max"  :expected "\"c\""}]
   :throws [:MaxSubjectNotVec, :MaxElementsNotComparable]})
 
 |~~ Returns true iff every element satisfies the predicate
@@ -96,9 +108,9 @@ let(:every, {
   :returns :boolean
   :modifiers [:predicate-lambda]
   :examples [
-    "[2 4 6 8] | every(gt(0)) → true"
-    "[1 2 3] | every(gt(2)) → false"
-    "[] | every(gt(0)) → true"]
+    {:doc "all match"      :snippet "[2 4 6 8] | every(gt(0))"  :expected "true"}
+    {:doc "some fail"      :snippet "[1 2 3] | every(gt(2))"    :expected "false"}
+    {:doc "vacuously true" :snippet "[] | every(gt(0))"         :expected "true"}]
   :throws [:EverySubjectNotVec]})
 
 |~~ Returns true iff at least one element satisfies the
@@ -111,9 +123,9 @@ let(:any, {
   :returns :boolean
   :modifiers [:predicate-lambda]
   :examples [
-    "[1 2 3] | any(gt(2)) → true"
-    "[1 2 3] | any(gt(99)) → false"
-    "[] | any(gt(0)) → false"]
+    {:doc "one matches"      :snippet "[1 2 3] | any(gt(2))"   :expected "true"}
+    {:doc "none match"       :snippet "[1 2 3] | any(gt(99))"  :expected "false"}
+    {:doc "vacuously false"  :snippet "[] | any(gt(0))"        :expected "false"}]
   :throws [:AnySubjectNotVec]})
 
 |~~ Returns the first non-zero number in a Vec. If all elements
@@ -127,8 +139,8 @@ let(:firstNonZero, {
   :returns :number
   :modifiers []
   :examples [
-    "[0 0 -1 0] | firstNonZero → -1"
-    "[0 0 0] | firstNonZero → 0"]
+    {:doc "picks first non-zero"  :snippet "[0 0 -1 0] | firstNonZero"  :expected "-1"}
+    {:doc "all zeros yields 0"    :snippet "[0 0 0] | firstNonZero"      :expected "0"}]
   :throws [:FirstNonZeroSubjectNotVec, :FirstNonZeroElementNotNumber]})
 
 |~ ── Vec transformers ─────────────────────────────────── ~|
@@ -141,8 +153,8 @@ let(:filter, {
   :returns :vec
   :modifiers [:predicate-lambda]
   :examples [
-    "[1 2 3 4 5] | filter(gt(2)) → [3 4 5]"
-    "[{:age 25} {:age 15}] | filter(/age | gte(18)) → [{:age 25}]"]
+    {:doc "numeric threshold"  :snippet "[1 2 3 4 5] | filter(gt(2))"                    :expected "[3 4 5]"}
+    {:doc "field predicate"    :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"  :expected "[{:age 25}]"}]
   :throws [:FilterSubjectNotVec]})
 
 |~~ Returns a new Vec sorted in natural ascending order.
@@ -155,8 +167,8 @@ let(:sort, {
   :returns :vec
   :modifiers [:key-lambda]
   :examples [
-    "[3 1 4 1 5] | sort → [1 1 3 4 5]"
-    "[{:age 30} {:age 20}] | sort(/age) → [{:age 20} {:age 30}]"]
+    {:doc "natural order"   :snippet "[3 1 4 1 5] | sort"                           :expected "[1 1 3 4 5]"}
+    {:doc "sort by field"   :snippet "[{:age 30} {:age 20}] | sort(/age)"           :expected "[{:age 20} {:age 30}]"}]
   :throws [
     :SortNaturalSubjectNotVec
     :SortByKeySubjectNotVec
@@ -175,9 +187,9 @@ let(:sortWith, {
   :returns :vec
   :modifiers [:comparator-lambda]
   :examples [
-    "[3 1 2] | sortWith(sub(/left, /right)) → [1 2 3]"
-    "people | sortWith(asc(/age))"
-    "nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)"]
+    {:doc "numeric comparator"    :snippet "[3 1 2] | sortWith(sub(/left, /right))"                          :expected "[1 2 3]"}
+    {:doc "asc by field"          :snippet "people | sortWith(asc(/age))"}
+    {:doc "compound comparator"   :snippet "nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)"}]
   :throws [:SortWithSubjectNotVec, :SortWithCmpResultNotNumber]})
 
 |~~ Returns the first n elements. If n exceeds length, returns
@@ -187,7 +199,8 @@ let(:take, {
   :subject :vec
   :returns :vec
   :modifiers [:number]
-  :examples ["[1 2 3 4 5] | take(3) → [1 2 3]"]
+  :examples [
+    {:doc "first N elements"  :snippet "[1 2 3 4 5] | take(3)"  :expected "[1 2 3]"}]
   :throws [:TakeSubjectNotVec, :TakeCountNotNumber]})
 
 |~~ Returns the Vec with the first n elements removed. If n
@@ -197,7 +210,8 @@ let(:drop, {
   :subject :vec
   :returns :vec
   :modifiers [:number]
-  :examples ["[1 2 3 4 5] | drop(2) → [3 4 5]"]
+  :examples [
+    {:doc "skip first N"  :snippet "[1 2 3 4 5] | drop(2)"  :expected "[3 4 5]"}]
   :throws [:DropSubjectNotVec, :DropCountNotNumber]})
 
 |~~ Returns a new Vec with duplicate elements removed,
@@ -207,7 +221,8 @@ let(:distinct, {
   :subject :vec
   :returns :vec
   :modifiers []
-  :examples ["[1 2 1 3 2] | distinct → [1 2 3]"]
+  :examples [
+    {:doc "remove duplicates"  :snippet "[1 2 1 3 2] | distinct"  :expected "[1 2 3]"}]
   :throws [:DistinctSubjectNotVec]})
 
 |~~ Returns the Vec in reverse order. ~~|
@@ -216,7 +231,8 @@ let(:reverse, {
   :subject :vec
   :returns :vec
   :modifiers []
-  :examples ["[1 2 3] | reverse → [3 2 1]"]
+  :examples [
+    {:doc "reverse order"  :snippet "[1 2 3] | reverse"  :expected "[3 2 1]"}]
   :throws [:ReverseSubjectNotVec]})
 
 |~~ Flattens one level of nesting. Elements that are Vecs are
@@ -226,7 +242,8 @@ let(:flat, {
   :subject :vec
   :returns :vec
   :modifiers []
-  :examples ["[[1 2] [3] [4 5]] | flat → [1 2 3 4 5]"]
+  :examples [
+    {:doc "one level of nesting"  :snippet "[[1 2] [3] [4 5]] | flat"  :expected "[1 2 3 4 5]"}]
   :throws [:FlatSubjectNotVec]})
 
 |~~ Converts a Vec to a Set, removing duplicates. ~~|
@@ -235,7 +252,8 @@ let(:set, {
   :subject :vec
   :returns :set
   :modifiers []
-  :examples ["[1 2 1 3] | set → #{1 2 3}"]
+  :examples [
+    {:doc "Vec to Set"  :snippet "[1 2 1 3] | set"  :expected "#{1 2 3}"}]
   :throws [:SetConversionSubjectNotVec]})
 
 |~~ Partitions a Vec into a Map keyed by the result of the key
@@ -249,7 +267,7 @@ let(:groupBy, {
   :returns :map
   :modifiers [:key-lambda]
   :examples [
-    "[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy(/dept) | /eng * /name → [\"a\" \"c\"]"]
+    {:doc "partition by field"  :snippet "[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy(/dept) | /eng * /name"  :expected "[\"a\" \"c\"]"}]
   :throws [:GroupBySubjectNotVec, :GroupByKeyNotKeyword]})
 
 |~~ Collapses a Vec into a Map keyed by the result of the key
@@ -262,7 +280,7 @@ let(:indexBy, {
   :returns :map
   :modifiers [:key-lambda]
   :examples [
-    "[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy(/id) | /a/name → \"alice\""]
+    {:doc "collapse by key"  :snippet "[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy(/id) | /a/name"  :expected "\"alice\""}]
   :throws [:IndexBySubjectNotVec, :IndexByKeyNotKeyword]})
 
 |~ ── Comparator builders ──────────────────────────────── ~|
@@ -279,8 +297,8 @@ let(:asc, {
   :returns :number
   :modifiers [:key-lambda]
   :examples [
-    "sortWith(asc(/age))"
-    "sortWith(asc(mul(/price, /qty)))"]
+    {:doc "sort by field"         :snippet "sortWith(asc(/age))"}
+    {:doc "sort by computed key"  :snippet "sortWith(asc(mul(/price, /qty)))"}]
   :throws [:AscPairNotMap, :AscKeysNotComparable]})
 
 |~~ Builds a descending comparator for sortWith. Same as asc
@@ -291,8 +309,8 @@ let(:desc, {
   :returns :number
   :modifiers [:key-lambda]
   :examples [
-    "sortWith(desc(/timestamp))"
-    "sortWith(desc(/score))"]
+    {:doc "newest first"    :snippet "sortWith(desc(/timestamp))"}
+    {:doc "highest first"   :snippet "sortWith(desc(/score))"}]
   :throws [:DescPairNotMap, :DescKeysNotComparable]})
 
 |~~ Ascending comparator that places nil-keyed elements before
@@ -305,8 +323,8 @@ let(:nullsFirst, {
   :returns :number
   :modifiers [:key-lambda]
   :examples [
-    "sortWith(nullsFirst(/age))"
-    "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a → [nil 1 3]"]
+    {:doc "nil before others"  :snippet "sortWith(nullsFirst(/age))"}
+    {:doc "nil first ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a"  :expected "[nil 1 3]"}]
   :throws [:NullsFirstPairNotMap]})
 
 |~~ Ascending comparator that places nil-keyed elements after
@@ -319,8 +337,8 @@ let(:nullsLast, {
   :returns :number
   :modifiers [:key-lambda]
   :examples [
-    "sortWith(nullsLast(/age))"
-    "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a → [1 3 nil]"]
+    {:doc "nil after others"  :snippet "sortWith(nullsLast(/age))"}
+    {:doc "nil last ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a"  :expected "[1 3 nil]"}]
   :throws [:NullsLastPairNotMap]})
 
 |~ ── Control flow ─────────────────────────────────────── ~|
@@ -336,8 +354,8 @@ let(:if, {
   :returns :any
   :modifiers [:predicate-lambda, :pipeline, :pipeline]
   :examples [
-    "score | if(gte(60), \"pass\", \"fail\")"
-    "list | if(empty, \"<empty>\", first)"]
+    {:doc "pass/fail gate"    :snippet "score | if(gte(60), \"pass\", \"fail\")"}
+    {:doc "empty list guard"  :snippet "list | if(empty, \"<empty>\", first)"}]
   :throws []})
 
 |~~ One-sided conditional with implicit identity on the false
@@ -350,8 +368,8 @@ let(:when, {
   :returns :any
   :modifiers [:predicate-lambda, :pipeline]
   :examples [
-    "employee | when(/active, /salary | mul(11) | div(10))"
-    "list | when(empty, [\"<empty>\"])"]
+    {:doc "conditional transform"  :snippet "employee | when(/active, /salary | mul(11) | div(10))"}
+    {:doc "default empty list"     :snippet "list | when(empty, [\"<empty>\"])"}]
   :throws []})
 
 |~~ Inverse of when: runs the then sub-pipeline when cond is
@@ -364,8 +382,8 @@ let(:unless, {
   :returns :any
   :modifiers [:predicate-lambda, :pipeline]
   :examples [
-    "input | unless(empty, sort)"
-    "config | unless(/validated, validate)"]
+    {:doc "guard sort on empty"  :snippet "input | unless(empty, sort)"}
+    {:doc "lazy validation"      :snippet "config | unless(/validated, validate)"}]
   :throws []})
 
 |~~ Returns the first non-nil result among the captured
@@ -380,8 +398,8 @@ let(:coalesce, {
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "person | coalesce(/preferredName, /firstName, \"Anonymous\")"
-    "config | coalesce(/userOverride, /projectDefault, /globalDefault)"]
+    {:doc "first non-nil name"    :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
+    {:doc "config override chain" :snippet "config | coalesce(/userOverride, /projectDefault, /globalDefault)"}]
   :throws [:CoalesceNoAlternatives]})
 
 |~~ Returns the first truthy result among the captured
@@ -397,8 +415,8 @@ let(:firstTruthy, {
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "person | firstTruthy(/preferredName, /firstName, \"Anonymous\")"
-    "flag | firstTruthy(/userValue, /default, false)"]
+    {:doc "first truthy name"   :snippet "person | firstTruthy(/preferredName, /firstName, \"Anonymous\")"}
+    {:doc "flag with fallback"  :snippet "flag | firstTruthy(/userValue, /default, false)"}]
   :throws [:FirstTruthyNoAlternatives]})
 
 |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -414,8 +432,8 @@ let(:cond, {
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "score | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")"
-    "value | cond(eq(0), \"zero\", eq(1), \"one\", \"many\")"]
+    {:doc "grade dispatch"   :snippet "score | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")"}
+    {:doc "label by value"   :snippet "value | cond(eq(0), \"zero\", eq(1), \"one\", \"many\")"}]
   :throws [:CondNoBranches]})
 
 |~ ── Map operations ───────────────────────────────────── ~|
@@ -426,7 +444,8 @@ let(:keys, {
   :subject :map
   :returns :set
   :modifiers []
-  :examples ["{:name \"Alice\" :age 30} | keys → #{:name :age}"]
+  :examples [
+    {:doc "Map key set"  :snippet "{:name \"Alice\" :age 30} | keys"  :expected "#{:name :age}"}]
   :throws [:KeysSubjectNotMap]})
 
 |~~ Returns a Vec of values in insertion order. ~~|
@@ -435,7 +454,8 @@ let(:vals, {
   :subject :map
   :returns :vec
   :modifiers []
-  :examples ["{:name \"Alice\" :age 30} | vals → [\"Alice\" 30]"]
+  :examples [
+    {:doc "Map value Vec"  :snippet "{:name \"Alice\" :age 30} | vals"  :expected "[\"Alice\" 30]"}]
   :throws [:ValsSubjectNotMap]})
 
 |~~ Returns true if the Map contains the keyword key, or if
@@ -446,8 +466,8 @@ let(:has, {
   :returns :boolean
   :modifiers [:any]
   :examples [
-    "{:name \"Alice\"} | has(:name) → true"
-    "#{:a :b :c} | has(:b) → true"]
+    {:doc "Map key check"  :snippet "{:name \"Alice\"} | has(:name)"  :expected "true"}
+    {:doc "Set membership" :snippet "#{:a :b :c} | has(:b)"           :expected "true"}]
   :throws [:HasSubjectNotMapOrSet, :HasKeyNotKeyword]})
 
 |~ ── Polymorphic set operations ───────────────────────── ~|
@@ -463,8 +483,8 @@ let(:union, {
   :returns [:set, :map]
   :modifiers [:any]
   :examples [
-    "[#{:a :b} #{:b :c}] | union → #{:a :b :c}"
-    "{:name \"a\"} | union({:age 20})"]
+    {:doc "Set union"     :snippet "[#{:a :b} #{:b :c}] | union"     :expected "#{:a :b :c}"}
+    {:doc "Map merge"     :snippet "{:name \"a\"} | union({:age 20})"}]
   :throws [:UnionBareSubjectNotVec, :UnionBareEmpty, :UnionPairIncompatible]})
 
 |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
@@ -477,8 +497,8 @@ let(:minus, {
   :returns [:set, :map]
   :modifiers [:any]
   :examples [
-    "[#{:a :b :c} #{:b}] | minus → #{:a :c}"
-    "{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) → {:a 1 :b 2}"]
+    {:doc "Set difference"    :snippet "[#{:a :b :c} #{:b}] | minus"              :expected "#{:a :c}"}
+    {:doc "drop Map fields"   :snippet "{:a 1 :b 2 :tmp 3} | minus(#{:tmp})"     :expected "{:a 1 :b 2}"}]
   :throws [:MinusBareSubjectNotVec, :MinusBareEmpty, :MinusPairIncompatible]})
 
 |~~ Polymorphic intersection. Set intersect Set, Map intersect
@@ -491,8 +511,8 @@ let(:inter, {
   :returns [:set, :map]
   :modifiers [:any]
   :examples [
-    "[#{:a :b :c} #{:b :d}] | inter → #{:b}"
-    "{:a 1 :b 2 :c 3} | inter(#{:a :b}) → {:a 1 :b 2}"]
+    {:doc "Set intersection"    :snippet "[#{:a :b :c} #{:b :d}] | inter"           :expected "#{:b}"}
+    {:doc "select Map fields"   :snippet "{:a 1 :b 2 :c 3} | inter(#{:a :b})"      :expected "{:a 1 :b 2}"}]
   :throws [:InterBareSubjectNotVec, :InterBareEmpty, :InterPairIncompatible]})
 
 |~ ── Arithmetic ───────────────────────────────────────── ~|
@@ -506,8 +526,8 @@ let(:add, {
   :returns :number
   :modifiers [:number]
   :examples [
-    "10 | add(3) → 13"
-    "{:x 10 :y 3} | add(/x, /y) → 13"]
+    {:doc "bound form"  :snippet "10 | add(3)"               :expected "13"}
+    {:doc "full form"   :snippet "{:x 10 :y 3} | add(/x, /y)"  :expected "13"}]
   :throws [:AddLeftNotNumber, :AddRightNotNumber]})
 
 |~~ Subtracts the second number from the first. Non-commutative:
@@ -517,7 +537,9 @@ let(:sub, {
   :subject :number
   :returns :number
   :modifiers [:number]
-  :examples ["10 | sub(3) → 7" "{:x 10 :y 3} | sub(/x, /y) → 7"]
+  :examples [
+    {:doc "bound form"  :snippet "10 | sub(3)"               :expected "7"}
+    {:doc "full form"   :snippet "{:x 10 :y 3} | sub(/x, /y)"  :expected "7"}]
   :throws [:SubLeftNotNumber, :SubRightNotNumber]})
 
 |~~ Multiplies two numbers. Commutative. ~~|
@@ -526,7 +548,9 @@ let(:mul, {
   :subject :number
   :returns :number
   :modifiers [:number]
-  :examples ["10 | mul(3) → 30" "{:x 5 :y 4} | mul(/x, /y) → 20"]
+  :examples [
+    {:doc "bound form"  :snippet "10 | mul(3)"               :expected "30"}
+    {:doc "full form"   :snippet "{:x 5 :y 4} | mul(/x, /y)"  :expected "20"}]
   :throws [:MulLeftNotNumber, :MulRightNotNumber]})
 
 |~~ Divides the first number by the second. Non-commutative:
@@ -537,7 +561,9 @@ let(:div, {
   :subject :number
   :returns :number
   :modifiers [:number]
-  :examples ["10 | div(2) → 5" "{:x 20 :y 4} | div(/x, /y) → 5"]
+  :examples [
+    {:doc "bound form"  :snippet "10 | div(2)"               :expected "5"}
+    {:doc "full form"   :snippet "{:x 20 :y 4} | div(/x, /y)"  :expected "5"}]
   :throws [:DivLeftNotNumber, :DivRightNotNumber, :DivisionByZeroError]})
 
 |~ ── String ───────────────────────────────────────────── ~|
@@ -550,8 +576,8 @@ let(:split, {
   :returns :vec
   :modifiers [:string]
   :examples [
-    "\"a,b,c\" | split(\",\") → [\"a\" \"b\" \"c\"]"
-    "\"line1\\nline2\" | split(\"\\n\") → [\"line1\" \"line2\"]"]
+    {:doc "comma split"    :snippet "\"a,b,c\" | split(\",\")"        :expected "[\"a\" \"b\" \"c\"]"}
+    {:doc "newline split"  :snippet "\"line1\\nline2\" | split(\"\\n\")"  :expected "[\"line1\" \"line2\"]"}]
   :throws [:SplitSubjectNotString, :SplitSeparatorNotString]})
 
 |~~ Joins the elements of a Vec of strings with separator
@@ -562,8 +588,8 @@ let(:join, {
   :returns :string
   :modifiers [:string]
   :examples [
-    "[\"a\" \"b\" \"c\"] | join(\",\") → \"a,b,c\""
-    "[] | join(\",\") → \"\""]
+    {:doc "join with comma"  :snippet "[\"a\" \"b\" \"c\"] | join(\",\")"  :expected "\"a,b,c\""}
+    {:doc "empty Vec"        :snippet "[] | join(\",\")"                   :expected "\"\""}]
   :throws [:JoinSubjectNotVec, :JoinElementNotString, :JoinSeparatorNotString]})
 
 |~~ Returns true if the subject string contains needle as a
@@ -575,8 +601,8 @@ let(:contains, {
   :returns :boolean
   :modifiers [:string]
   :examples [
-    "\"hello world\" | contains(\"world\") → true"
-    "\"hello\" | contains(\"xyz\") → false"]
+    {:doc "substring found"      :snippet "\"hello world\" | contains(\"world\")"  :expected "true"}
+    {:doc "substring not found"  :snippet "\"hello\" | contains(\"xyz\")"          :expected "false"}]
   :throws [:ContainsSubjectNotString, :ContainsNeedleNotString]})
 
 |~~ Returns true if the subject string begins with prefix.
@@ -587,8 +613,8 @@ let(:startsWith, {
   :returns :boolean
   :modifiers [:string]
   :examples [
-    "\"hello world\" | startsWith(\"hello\") → true"
-    "\"hello\" | startsWith(\"world\") → false"]
+    {:doc "prefix matches"      :snippet "\"hello world\" | startsWith(\"hello\")"  :expected "true"}
+    {:doc "prefix not present"  :snippet "\"hello\" | startsWith(\"world\")"        :expected "false"}]
   :throws [:StartsWithSubjectNotString, :StartsWithPrefixNotString]})
 
 |~~ Returns true if the subject string ends with suffix.
@@ -599,8 +625,8 @@ let(:endsWith, {
   :returns :boolean
   :modifiers [:string]
   :examples [
-    "\"hello world\" | endsWith(\"world\") → true"
-    "\"hello\" | endsWith(\"xyz\") → false"]
+    {:doc "suffix matches"      :snippet "\"hello world\" | endsWith(\"world\")"  :expected "true"}
+    {:doc "suffix not present"  :snippet "\"hello\" | endsWith(\"xyz\")"          :expected "false"}]
   :throws [:EndsWithSubjectNotString, :EndsWithSuffixNotString]})
 
 |~~ Concatenates the modifier in front of the subject. ~~|
@@ -609,7 +635,8 @@ let(:prepend, {
   :subject :string
   :returns :string
   :modifiers [:string]
-  :examples ["\"world\" | prepend(\"hello \") → \"hello world\""]
+  :examples [
+    {:doc "add prefix"  :snippet "\"world\" | prepend(\"hello \")"  :expected "\"hello world\""}]
   :throws [:PrependSubjectNotString, :PrependPrefixNotString]})
 
 |~~ Concatenates the subject with the modifier on the right. ~~|
@@ -618,7 +645,8 @@ let(:append, {
   :subject :string
   :returns :string
   :modifiers [:string]
-  :examples ["\"hello\" | append(\" world\") → \"hello world\""]
+  :examples [
+    {:doc "add suffix"  :snippet "\"hello\" | append(\" world\")"  :expected "\"hello world\""}]
   :throws [:AppendSubjectNotString, :AppendSuffixNotString]})
 
 |~ ── Boolean ──────────────────────────────────────────── ~|
@@ -631,7 +659,9 @@ let(:not, {
   :subject :any
   :returns :boolean
   :modifiers []
-  :examples ["nil | not → true" "0 | not → false"]
+  :examples [
+    {:doc "negate nil"    :snippet "nil | not"  :expected "true"}
+    {:doc "0 is truthy"   :snippet "0 | not"    :expected "false"}]
   :throws []})
 
 |~ ── Predicates ───────────────────────────────────────── ~|
@@ -645,8 +675,8 @@ let(:eq, {
   :returns :boolean
   :modifiers [:any]
   :examples [
-    "42 | eq(42) → true"
-    "{:a 1} | eq({:a 1}) → true"]
+    {:doc "scalar equality"    :snippet "42 | eq(42)"          :expected "true"}
+    {:doc "structural equality" :snippet "{:a 1} | eq({:a 1})"  :expected "true"}]
   :throws []})
 
 |~~ Subject-first ordering: a | gt(b) computes a > b. Both
@@ -656,7 +686,8 @@ let(:gt, {
   :subject :number
   :returns :boolean
   :modifiers [:number]
-  :examples ["10 | gt(5) → true"]
+  :examples [
+    {:doc "greater than"  :snippet "10 | gt(5)"  :expected "true"}]
   :throws [:GtOperandsNotComparable]})
 
 |~~ Subject-first ordering: a | lt(b) computes a < b. ~~|
@@ -665,7 +696,8 @@ let(:lt, {
   :subject :number
   :returns :boolean
   :modifiers [:number]
-  :examples ["5 | lt(10) → true"]
+  :examples [
+    {:doc "less than"  :snippet "5 | lt(10)"  :expected "true"}]
   :throws [:LtOperandsNotComparable]})
 
 |~~ Subject-first ordering: a | gte(b) computes a >= b. ~~|
@@ -674,7 +706,8 @@ let(:gte, {
   :subject :number
   :returns :boolean
   :modifiers [:number]
-  :examples ["10 | gte(10) → true"]
+  :examples [
+    {:doc "greater or equal"  :snippet "10 | gte(10)"  :expected "true"}]
   :throws [:GteOperandsNotComparable]})
 
 |~~ Subject-first ordering: a | lte(b) computes a <= b. ~~|
@@ -683,7 +716,8 @@ let(:lte, {
   :subject :number
   :returns :boolean
   :modifiers [:number]
-  :examples ["10 | lte(10) → true"]
+  :examples [
+    {:doc "less or equal"  :snippet "10 | lte(10)"  :expected "true"}]
   :throws [:LteOperandsNotComparable]})
 
 |~~ Returns true if both operands are truthy. Used in full form
@@ -693,7 +727,8 @@ let(:and, {
   :subject :any
   :returns :boolean
   :modifiers [:any]
-  :examples ["filter(and(/active, /age | gte(18)))"]
+  :examples [
+    {:doc "compound predicate"  :snippet "filter(and(/active, /age | gte(18)))"}]
   :throws []})
 
 |~~ Returns true if either operand is truthy. ~~|
@@ -702,7 +737,8 @@ let(:or, {
   :subject :any
   :returns :boolean
   :modifiers [:any]
-  :examples ["filter(or(/vip, /score | gt(95)))"]
+  :examples [
+    {:doc "disjunction predicate"  :snippet "filter(or(/vip, /score | gt(95)))"}]
   :throws []})
 
 |~ ── Formatting ───────────────────────────────────────── ~|
@@ -715,7 +751,8 @@ let(:json, {
   :subject :any
   :returns :string
   :modifiers []
-  :examples ["{:a 1 :b [2 3]} | json"]
+  :examples [
+    {:doc "serialize to JSON"  :snippet "{:a 1 :b [2 3]} | json"}]
   :throws []})
 
 |~~ Renders a Vec of Maps as a fixed-width tabular string.
@@ -727,7 +764,8 @@ let(:table, {
   :subject :vec
   :returns :string
   :modifiers []
-  :examples ["[{:name \"a\" :age 20} {:name \"b\" :age 30}] | table"]
+  :examples [
+    {:doc "render as table"  :snippet "[{:name \"a\" :age 20} {:name \"b\" :age 30}] | table"}]
   :throws [:TableSubjectNotVec, :TableRowNotMap]})
 
 |~ ── Reflective ───────────────────────────────────────── ~|
@@ -740,7 +778,9 @@ let(:env, {
   :subject :any
   :returns :map
   :modifiers []
-  :examples ["env | keys" "env | has(:count) → true"]
+  :examples [
+    {:doc "list env keys"       :snippet "env | keys"}
+    {:doc "check binding exists" :snippet "env | has(:count)"  :expected "true"}]
   :throws []})
 
 |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
@@ -756,9 +796,9 @@ let(:use, {
   :returns :any
   :modifiers [:any]
   :examples [
-    "{:pi 3.14 :e 2.71} | use | [pi, e]"
-    "use(:qlang/error)"
-    "use([:qlang/error :qlang/http])"]
+    {:doc "merge Map into env"      :snippet "{:pi 3.14 :e 2.71} | use | [pi, e]"}
+    {:doc "import module"           :snippet "use(:qlang/error)"}
+    {:doc "import multiple modules" :snippet "use([:qlang/error :qlang/http])"}]
   :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]})
 
 |~~ Builds a descriptor Map for a value or named binding.
@@ -771,7 +811,10 @@ let(:reify, {
   :subject :any
   :returns :map
   :modifiers [:keyword]
-  :examples ["env | /count | reify" "reify(:filter)" "42 | reify"]
+  :examples [
+    {:doc "describe env binding"  :snippet "env | /count | reify"}
+    {:doc "describe named builtin" :snippet "reify(:filter)"}
+    {:doc "describe value"        :snippet "42 | reify"}]
   :throws [:ReifyKeyNotKeyword]})
 
 |~~ Returns a Vec of descriptors, one per binding in env,
@@ -782,7 +825,8 @@ let(:manifest, {
   :subject :any
   :returns :vec
   :modifiers []
-  :examples ["env | manifest | filter(/kind | eq(:builtin)) | table"]
+  :examples [
+    {:doc "list all builtins"  :snippet "env | manifest | filter(/kind | eq(:builtin)) | table"}]
   :throws []})
 
 |~~ Parses and evaluates every entry of the descriptor's
@@ -796,7 +840,9 @@ let(:runExamples, {
   :subject :map
   :returns :vec
   :modifiers []
-  :examples ["reify(:count) | runExamples" "manifest * runExamples >> /ok | distinct"]
+  :examples [
+    {:doc "run one operand's examples"   :snippet "reify(:count) | runExamples"}
+    {:doc "run all catalog examples"     :snippet "manifest * runExamples >> /ok | distinct"}]
   :throws [:RunExamplesSubjectNotDescriptor, :RunExamplesNoExamplesField]})
 
 |~~ Captures the current pipeValue as a frozen snapshot under
@@ -809,7 +855,9 @@ let(:as, {
   :subject :any
   :returns :any
   :modifiers [:keyword]
-  :examples ["42 | as(:answer) | answer → 42" "[1 2 3] | as(:nums) | nums | count → 3"]
+  :examples [
+    {:doc "snapshot scalar"  :snippet "42 | as(:answer) | answer"             :expected "42"}
+    {:doc "snapshot and use" :snippet "[1 2 3] | as(:nums) | nums | count"    :expected "3"}]
   :throws [:AsNameNotKeyword]})
 
 |~ ── Error ───────────────────────────────────────── ~|
@@ -825,8 +873,8 @@ let(:error, {
   :returns :error
   :modifiers [:map]
   :examples [
-    "{:kind :oops :message \"boom\"} | error | isError → true"
-    "error({:kind :oops}) | catch | /kind → :oops"]
+    {:doc "create error value"  :snippet "{:kind :oops :message \"boom\"} | error | isError"  :expected "true"}
+    {:doc "round-trip via catch" :snippet "error({:kind :oops}) | catch | /kind"               :expected ":oops"}]
   :throws [:ErrorDescriptorNotMap]})
 
 |~~ Unwraps an error value to its descriptor Map.
@@ -841,9 +889,9 @@ let(:catch, {
   :returns :any
   :modifiers [:pipeline]
   :examples [
-    "error({:kind :oops :message \"boom\"}) | catch | /message → \"boom\""
-    "error({:kind :oops}) | catch(/kind) → :oops"
-    "42 | catch → 42"]
+    {:doc "unwrap error field"   :snippet "error({:kind :oops :message \"boom\"}) | catch | /message"  :expected "\"boom\""}
+    {:doc "catch with handler"   :snippet "error({:kind :oops}) | catch(/kind)"                        :expected ":oops"}
+    {:doc "non-error passthrough" :snippet "42 | catch"                                                :expected "42"}]
   :throws []})
 
 |~~ Returns true if pipeValue is an error value,
@@ -856,9 +904,9 @@ let(:isError, {
   :returns :boolean
   :modifiers []
   :examples [
-    "error({:kind :oops}) | isError → true"
-    "{:kind :oops} | isError → false"
-    "42 | isError → false"]
+    {:doc "error value"      :snippet "error({:kind :oops}) | isError"  :expected "true"}
+    {:doc "plain Map"        :snippet "{:kind :oops} | isError"         :expected "false"}
+    {:doc "non-error scalar" :snippet "42 | isError"                    :expected "false"}]
   :throws [:IsErrorNoCapturedArgs]})
 
 |~ Self-referential: let declared last because it shadows
@@ -877,8 +925,8 @@ let(:let, {
   :returns :any
   :modifiers [:keyword, :pipeline]
   :examples [
-    "let(:double, mul(2)) | 10 | double → 20"
-    "let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\") → \"[world]\""]
+    {:doc "zero-arity conduit"     :snippet "let(:double, mul(2)) | 10 | double"                                          :expected "20"}
+    {:doc "parametric conduit"     :snippet "let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")"  :expected "\"[world]\""}]
   :throws [
     :LetNameNotKeyword
     :LetParamsNotVecOfKeywords

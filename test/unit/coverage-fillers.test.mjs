@@ -589,24 +589,24 @@ describe('min/max subject type checks', () => {
 });
 
 describe('runExamples branch coverage', () => {
-  it('example without arrow → ok=true (demonstration, no expected check)', () => {
+  it('example without :expected → ok=true (demonstration, no expected check)', () => {
     const s = createSession();
-    const result = s.evalCell('{:kind :builtin :examples ["[1 2 3] | count"]} | runExamples | first').result;
+    const result = s.evalCell('{:kind :builtin :examples [{:doc "Vec length" :snippet "[1 2 3] | count"}]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(true);
-    expect(result.get(keyword('expected'))).toBe(null);
+    expect(result.get(keyword('expected')) ?? null).toBe(null);
     expect(result.get(keyword('error'))).toBe(null);
   });
 
   it('example with failing query → ok=false with error message', () => {
     const s = createSession();
-    const result = s.evalCell('{:kind :builtin :examples ["42 | unknownOp"]} | runExamples | first').result;
+    const result = s.evalCell('{:kind :builtin :examples [{:doc "bad op" :snippet "42 | unknownOp"}]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(false);
     expect(result.get(keyword('error'))).toMatch(/unresolved/);
   });
 
-  it('example with unparseable expected → ok=false', () => {
+  it('example with unparseable :expected → ok=false', () => {
     const s = createSession();
-    const result = s.evalCell('{:kind :builtin :examples ["42 → |||"]} | runExamples | first').result;
+    const result = s.evalCell('{:kind :builtin :examples [{:doc "bad expected" :snippet "42" :expected "|||"}]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(false);
   });
 });
@@ -925,13 +925,13 @@ describe('reify descriptor branch coverage', () => {
     expect(r).toEqual(keyword('value'));
   });
 
-  it('runExamples on example without arrow', () => {
-    const r = evalQuery('{:kind :builtin :examples ["[1 2 3] | count"]} | runExamples | first | /ok');
+  it('runExamples on example without :expected', () => {
+    const r = evalQuery('{:kind :builtin :examples [{:doc "Vec length" :snippet "[1 2 3] | count"}]} | runExamples | first | /ok');
     expect(r).toBe(true);
   });
 
   it('runExamples on example with mismatched result', () => {
-    const r = evalQuery('{:kind :builtin :examples ["42 → 99"]} | runExamples | first | /ok');
+    const r = evalQuery('{:kind :builtin :examples [{:doc "wrong answer" :snippet "42" :expected "99"}]} | runExamples | first | /ok');
     expect(r).toBe(false);
   });
 });

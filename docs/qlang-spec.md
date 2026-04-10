@@ -390,7 +390,9 @@ purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initia
 Multi-step references:
 
 ```qlang
-> [{:name "a" :age 25} {:name "b" :age 15} {:name "c" :age 30}]
+> [{:name "a" :age 25} 
+   {:name "b" :age 15} 
+   {:name "c" :age 30}]
   | as(:people)
   | filter(/age | gte(18))
   | as(:adults)

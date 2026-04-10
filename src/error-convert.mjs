@@ -30,6 +30,40 @@ export function errorFromQlang(qlangError, astNode) {
   });
 }
 
+// errorFromParse(parseError) → error value
+//
+// Wraps a ParseError into an error value so parse failures
+// flow through the pipeline like any other error.
+export function errorFromParse(parseError) {
+  const d = new Map();
+  d.set(keyword('origin'), keyword('qlang/parse'));
+  d.set(keyword('kind'), keyword('parse-error'));
+  d.set(keyword('thrown'), keyword('ParseError'));
+  d.set(keyword('message'), parseError.message);
+  if (parseError.location) d.set(keyword('location'), locationToMap(parseError.location));
+  if (parseError.uri) d.set(keyword('uri'), parseError.uri);
+  return makeErrorValue(d, {
+    location: parseError.location,
+    originalError: parseError
+  });
+}
+
+// Convert a peggy/qlang source location {start, end} to a qlang Map
+// so it round-trips through !{} literals.
+function locationToMap(loc) {
+  const posToMap = (pos) => {
+    const m = new Map();
+    m.set(keyword('offset'), pos.offset);
+    m.set(keyword('line'), pos.line);
+    m.set(keyword('column'), pos.column);
+    return m;
+  };
+  const m = new Map();
+  if (loc.start) m.set(keyword('start'), posToMap(loc.start));
+  if (loc.end) m.set(keyword('end'), posToMap(loc.end));
+  return m;
+}
+
 // errorFromForeign(jsError, astNode) → error value
 //
 // Best-effort extraction from any JS Error. Host errors have

@@ -14,10 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
-import { QlangError } from '../../src/errors.mjs';
-import { ParseError } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -65,35 +62,12 @@ for (const file of files) {
     for (const line of lines) {
       const test = JSON.parse(line);
       it(test.name, () => {
-        if (test.error) {
-          if (test.error === 'parse-error') {
-            let thrown;
-            try { evalQuery(test.query); } catch (e) { thrown = e; }
-            expect(thrown, `expected parse-error, got nothing`).toBeDefined();
-            expect(thrown).toBeInstanceOf(ParseError);
-          } else {
-            // Runtime errors produce error values (5th type), not exceptions.
-            const result = evalQuery(test.query);
-            expect(isErrorValue(result), `expected error value for "${test.query}"`).toBe(true);
-            const kind = result.descriptor.get(keyword('kind'));
-            expect(kind?.name).toBe(test.error);
-            if (test.expect !== undefined) {
-              // Full structural comparison when an exact expected value is provided.
-              const expectedAst = parse(test.expect);
-              assertLiteralAst(expectedAst, test.name);
-              const expected = evalQuery(test.expect);
-              expect(deepEqual(result, expected), `${test.name}: result !== expected`).toBe(true);
-            }
-          }
-        } else {
-          // Guard: expect must be a literal, not a computation.
-          const expectedAst = parse(test.expect);
-          assertLiteralAst(expectedAst, test.name);
+        const expectedAst = parse(test.expect);
+        assertLiteralAst(expectedAst, test.name);
 
-          const result = evalQuery(test.query);
-          const expected = evalQuery(test.expect);
-          expect(deepEqual(result, expected), `${test.name}: result !== expected`).toBe(true);
-        }
+        const result = evalQuery(test.query);
+        const expected = evalQuery(test.expect);
+        expect(deepEqual(result, expected), `${test.name}: result !== expected`).toBe(true);
       });
     }
   });

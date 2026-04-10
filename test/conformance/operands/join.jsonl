@@ -20,12 +20,12 @@
 {"name":"join-after-take","query":"[\"a\" \"b\" \"c\" \"d\"] | take(2) | join(\",\")","expect":"\"a,b\""}
 {"name":"join-after-reverse","query":"[\"a\" \"b\" \"c\"] | reverse | join(\",\")","expect":"\"c,b,a\""}
 {"name":"join-after-distribute","query":"[\"a\" \"b\" \"c\"] * append(\"!\") | join(\",\")","expect":"\"a!,b!,c!\""}
-{"name": "join-error-non-vec-subject", "query": "42 | join(\",\")", "error": "type-error"}
-{"name": "join-error-string-subject", "query": "\"abc\" | join(\",\")", "error": "type-error"}
-{"name": "join-error-set-subject", "query": "#{1 2 3} | join(\",\")", "error": "type-error"}
-{"name": "join-error-map-subject", "query": "{:a 1} | join(\",\")", "error": "type-error"}
-{"name": "join-error-element-not-string", "query": "[\"a\" 42 \"c\"] | join(\",\")", "error": "type-error"}
-{"name": "join-error-element-nil", "query": "[\"a\" nil \"c\"] | join(\",\")", "error": "type-error"}
-{"name": "join-error-element-vec", "query": "[\"a\" [1] \"c\"] | join(\",\")", "error": "type-error"}
-{"name": "join-error-non-string-separator", "query": "[\"a\" \"b\"] | join(42)", "error": "type-error"}
-{"name": "join-error-keyword-separator", "query": "[\"a\" \"b\"] | join(:foo)", "error": "type-error"}
+{"name":"join-error-non-vec-subject","query":"42 | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinSubjectNotVec :message \"join requires Vec of strings subject, got number\" :operand \"join\" :position \"subject\" :expectedType \"Vec of strings\" :actualType \"number\"}"}
+{"name":"join-error-string-subject","query":"\"abc\" | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinSubjectNotVec :message \"join requires Vec of strings subject, got string\" :operand \"join\" :position \"subject\" :expectedType \"Vec of strings\" :actualType \"string\"}"}
+{"name":"join-error-set-subject","query":"#{1 2 3} | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinSubjectNotVec :message \"join requires Vec of strings subject, got Set\" :operand \"join\" :position \"subject\" :expectedType \"Vec of strings\" :actualType \"Set\"}"}
+{"name":"join-error-map-subject","query":"{:a 1} | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinSubjectNotVec :message \"join requires Vec of strings subject, got Map\" :operand \"join\" :position \"subject\" :expectedType \"Vec of strings\" :actualType \"Map\"}"}
+{"name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinElementNotString :message \"join: element 1 expects string, got number\" :operand \"join\" :index 1 :expectedType \"string\" :actualType \"number\"}"}
+{"name":"join-error-element-nil","query":"[\"a\" nil \"c\"] | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinElementNotString :message \"join: element 1 expects string, got nil\" :operand \"join\" :index 1 :expectedType \"string\" :actualType \"nil\"}"}
+{"name":"join-error-element-vec","query":"[\"a\" [1] \"c\"] | join(\",\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinElementNotString :message \"join: element 1 expects string, got Vec\" :operand \"join\" :index 1 :expectedType \"string\" :actualType \"Vec\"}"}
+{"name":"join-error-non-string-separator","query":"[\"a\" \"b\"] | join(42)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinSeparatorNotString :message \"join expects string at position 2, got number\" :operand \"join\" :position 2 :expectedType \"string\" :actualType \"number\"}"}
+{"name":"join-error-keyword-separator","query":"[\"a\" \"b\"] | join(:foo)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :JoinSeparatorNotString :message \"join expects string at position 2, got keyword\" :operand \"join\" :position 2 :expectedType \"string\" :actualType \"keyword\"}"}

@@ -604,11 +604,10 @@ describe('runExamples branch coverage', () => {
     expect(result.get(keyword('error'))).toMatch(/unresolved/);
   });
 
-  it('example with unparseable expected → ok=false with error', () => {
+  it('example with unparseable expected → ok=false', () => {
     const s = createSession();
     const result = s.evalCell('{:kind :builtin :examples ["42 → |||"]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(false);
-    expect(result.get(keyword('error'))).toMatch(/expected:/);
   });
 });
 

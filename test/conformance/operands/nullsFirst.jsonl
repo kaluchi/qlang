@@ -4,6 +4,6 @@
 {"name":"no-nils-delegates-ascending","query":"[{:a 3} {:a 1} {:a 2}] | sortWith(nullsFirst(/a)) * /a","expect":"[1 2 3]"}
 {"name":"empty-vec","query":"[] | sortWith(nullsFirst(/a))","expect":"[]"}
 {"name":"all-nil","query":"[{:a nil} {:a nil}] | sortWith(nullsFirst(/a)) * /a","expect":"[nil nil]"}
-{"name": "non-pair-subject-error", "query": "42 | nullsFirst(/a)", "error": "type-error"}
+{"name":"non-pair-subject-error","query":"42 | nullsFirst(/a)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :NullsFirstPairNotMap :message \"nullsFirst requires a pair Map subject ({ :left x :right y }), got number\" :actualType \"number\"}"}
 {"name":"compound-with-firstNonZero","query":"[{:a nil :b 2} {:a nil :b 1} {:a 1 :b 3}] | sortWith([nullsFirst(/a), asc(/b)] | firstNonZero) * /b","expect":"[1 2 3]"}
-{"name":"incompatible-non-nil-types-error","query":"[{:a 1} {:a \"x\"}] | sortWith(nullsFirst(/a))","error":"type-error"}
+{"name":"incompatible-non-nil-types-error","query":"[{:a 1} {:a \"x\"}] | sortWith(nullsFirst(/a))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :SortWithCmpResultNotNumber :message \"sortWith comparator must return a number, got Error\" :actualType \"Error\"}"}

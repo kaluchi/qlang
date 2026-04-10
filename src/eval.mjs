@@ -45,7 +45,7 @@ import {
   isVec, isQMap, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   describeType, keyword, NIL, makeErrorValue, appendTrailNode
 } from './types.mjs';
-import { errorFromQlang, errorFromForeign } from './error-convert.mjs';
+import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
@@ -68,7 +68,12 @@ const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapt
 // model's reference bootstrap).
 export function evalQuery(source, env) {
   const initialEnv = env ?? langRuntime();
-  const ast = parse(source);
+  let ast;
+  try {
+    ast = parse(source);
+  } catch (e) {
+    return errorFromParse(e);
+  }
   const initialState = makeState(initialEnv, initialEnv);
   const finalState = evalNode(ast, initialState);
   return finalState.pipeValue;

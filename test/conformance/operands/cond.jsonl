@@ -10,6 +10,6 @@
 {"name":"cond-only-evaluates-matching-branch","query":"5 | cond(eq(5), \"safe\", \"never\" | div(0))","expect":"\"safe\""}
 {"name":"cond-with-projection-predicate","query":"{:role :admin :salary 100} | cond(/role | eq(:admin), /salary | mul(15) | div(10), /salary)","expect":"150"}
 {"name":"cond-with-projection-default","query":"{:role :user :salary 100} | cond(/role | eq(:admin), /salary | mul(15) | div(10), /salary)","expect":"100"}
-{"name": "cond-zero-args-throws", "query": "5 | cond", "error": "arity-error"}
-{"name": "cond-one-arg-throws", "query": "5 | cond(eq(5))", "error": "arity-error"}
+{"name":"cond-zero-args-throws","query":"5 | cond","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :CondNoBranches :message \"cond requires at least one (predicate, branch) pair plus an optional trailing default\"}"}
+{"name":"cond-one-arg-throws","query":"5 | cond(eq(5))","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :CondNoBranches :message \"cond requires at least one (predicate, branch) pair plus an optional trailing default\"}"}
 {"name":"cond-replaces-nested-if-equivalence","query":"75 | cond(gte(90), \"A\", gte(70), \"B\", \"C\") | eq(75 | if(gte(90), \"A\", if(gte(70), \"B\", \"C\")))","expect":"true"}

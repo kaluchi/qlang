@@ -67,8 +67,8 @@
 {"name":"conduit-source-with-projection","query":"let(:pluck, /name) | reify(:pluck) | /source","expect":"\"/name\""}
 {"name":"conduit-source-with-nested-projection","query":"let(:deep, /a/b/c) | reify(:deep) | /source","expect":"\"/a/b/c\""}
 {"name":"conduit-source-with-keyword","query":"let(:k, :foo) | reify(:k) | /source","expect":"\":foo\""}
-{"name": "named-form-error-non-keyword", "query": "reify(\"count\")", "error": "type-error"}
-{"name": "named-form-error-unresolved", "query": "reify(:thisDoesNotExist)", "error": "unresolved-identifier"}
+{"name":"named-form-error-non-keyword","query":"reify(\"count\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :ReifyKeyNotKeyword :message \"reify(:name) requires a keyword captured arg, got string\" :actualType \"string\"}"}
+{"name":"named-form-error-unresolved","query":"reify(:thisDoesNotExist)","error":"unresolved-identifier","expect":"!{:origin :qlang/eval :kind :unresolved-identifier :thrown :UnresolvedIdentifierError :message \"unresolved identifier: thisDoesNotExist\"}"}
 {"name":"snapshot-via-projection-unwraps","query":"[1 2 3] | as(:nums) | env | /nums","expect":"[1 2 3]"}
 {"name":"snapshot-via-named-form-keeps-wrapper","query":"[1 2 3] | as(:nums) | reify(:nums) | /value","expect":"[1 2 3]"}
 {"name":"filter-builtins-via-reify","query":"env | /count | reify | /kind | eq(:builtin)","expect":"true"}

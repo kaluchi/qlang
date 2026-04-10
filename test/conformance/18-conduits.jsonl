@@ -7,8 +7,8 @@
 {"name":"fractal-composition-three-levels","query":"let(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n)) | let(:@topNByV, [:n], @topBy(/v, n)) | let(:@top2ByV, @topNByV(2)) | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
 {"name":"recursive-conduit-tree-sum","query":"let(:totalSize, add(/size, /children * totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
 {"name":"recursive-conduit-with-params","query":"let(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)}) | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap(append(\"!\")) | /label","expect":"\"a!\""}
-{"name": "conduit-arity-mismatch-too-few", "query": "let(:f, [:a, :b], add(a, b)) | 0 | f(1)", "error": "arity-error"}
-{"name": "conduit-arity-mismatch-too-many", "query": "let(:f, [:a], add(a)) | 5 | f(1, 2)", "error": "arity-error"}
+{"name":"conduit-arity-mismatch-too-few","query":"let(:f, [:a, :b], add(a, b)) | 0 | f(1)","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :ConduitArityMismatch :message \"conduit 'f' expects 2 captured arguments, got 1\" :conduitName \"f\" :expectedArity 2 :actualArity 1}"}
+{"name":"conduit-arity-mismatch-too-many","query":"let(:f, [:a], add(a)) | 5 | f(1, 2)","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :ConduitArityMismatch :message \"conduit 'f' expects 1 captured arguments, got 2\" :conduitName \"f\" :expectedArity 1 :actualArity 2}"}
 {"name":"conduit-param-shadows-builtin","query":"let(:f, [:count], count) | 42 | f(99)","expect":"99"}
 {"name":"lexical-scope-isolation","query":"let(:double, mul(2)) | let(:apply_double, double) | let(:double, mul(3)) | 5 | apply_double","expect":"10"}
 {"name":"conduit-as-inside-body-does-not-leak","query":"let(:f, [:n], n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)","expect":"false"}
@@ -18,12 +18,12 @@
 {"name":"conduit-reify-params-two","query":"let(:f, [:a, :b], add(a, b)) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
 {"name":"conduit-reify-source","query":"let(:double, mul(2)) | reify(:double) | /source","expect":"\"mul(2)\""}
 {"name":"conduit-effect-marker-clean-body-at-name-ok","query":"let(:@safe, count) | [1 2 3] | @safe","expect":"3"}
-{"name": "conduit-effect-marker-effectful-body-clean-name-rejected", "query": "let(:foo, @callers)", "error": "effect-laundering"}
+{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":"let(:foo, @callers)","error":"effect-laundering","expect":"!{:origin :qlang/eval :kind :effect-laundering :thrown :EffectLaunderingAtLetParse :message \"let 'foo' has an effectful body (references '@callers') but its name is not @-prefixed; rename to '@foo' or remove the effectful reference\" :letName \"foo\" :effectfulName \"@callers\"}"}
 {"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
 {"name":"as-operand-reify","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
-{"name": "let-name-not-keyword-error", "query": "let(42, mul(2))", "error": "type-error"}
-{"name": "as-name-not-keyword-error", "query": "42 | as(42)", "error": "type-error"}
-{"name": "let-too-few-args-error", "query": "let(:x)", "error": "arity-error"}
-{"name": "conduit-parameter-no-captured-args", "query": "let(:f, [:n], n(42)) | 0 | f(5)", "error": "arity-error"}
-{"name":"let-params-not-vec-error","query":"let(:f, 42, mul(2))","error":"type-error"}
-{"name":"let-param-element-not-keyword-error","query":"let(:f, [42], mul(2))","error":"type-error"}
+{"name":"let-name-not-keyword-error","query":"let(42, mul(2))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :LetNameNotKeyword :message \"let requires a keyword as its first argument (the binding name), got number\" :actualType \"number\"}"}
+{"name":"as-name-not-keyword-error","query":"42 | as(42)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AsNameNotKeyword :message \"as requires a keyword argument (the binding name), got number\" :actualType \"number\"}"}
+{"name":"let-too-few-args-error","query":"let(:x)","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :LetBodyMissing :message \"let requires 2 arguments (name, body) or 3 arguments (name, params, body), got 1\" :actualCount 1}"}
+{"name":"conduit-parameter-no-captured-args","query":"let(:f, [:n], n(42)) | 0 | f(5)","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :ConduitParameterNoCapturedArgs :message \"conduit parameter 'n' takes no captured arguments, got 1\" :paramName \"n\" :actualCount 1}"}
+{"name":"let-params-not-vec-error","query":"let(:f, 42, mul(2))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :LetParamsNotVecOfKeywords :message \"let parameter list must be a Vec of keywords; element -1 is number\" :index -1 :actualType \"number\"}"}
+{"name":"let-param-element-not-keyword-error","query":"let(:f, [42], mul(2))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :LetParamsNotVecOfKeywords :message \"let parameter list must be a Vec of keywords; element 0 is number\" :index 0 :actualType \"number\"}"}

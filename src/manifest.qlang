@@ -743,17 +743,23 @@ let(:env, {
   :examples ["env | keys" "env | has(:count) → true"]
   :throws []})
 
-|~~ Merges pipeValue (a Map) into env. pipeValue is unchanged,
-    so the merged Map can be chained further or discarded. On key
-    conflict, the incoming Map wins. Inside a fork, the merged
-    bindings evaporate when the fork closes. ~~|
+|~~ Overloaded by arity. Bare form merges pipeValue (a Map)
+    into env. With a namespace keyword, imports module bindings.
+    With a Vec of keywords, imports modules in order (later
+    shadows earlier on collision). With a Set, imports and
+    rejects name collisions. With two args (namespace + filter),
+    imports only the named bindings. pipeValue unchanged in all
+    forms. Inside a fork, merged bindings evaporate on close. ~~|
 let(:use, {
   :category :reflective
-  :subject :map
-  :returns :map
-  :modifiers []
-  :examples ["{:pi 3.14 :e 2.71} | use | [pi, e]"]
-  :throws [:UseSubjectNotMap]})
+  :subject :any
+  :returns :any
+  :modifiers [:any]
+  :examples [
+    "{:pi 3.14 :e 2.71} | use | [pi, e]"
+    "use(:qlang/error)"
+    "use([:qlang/error :qlang/http])"]
+  :throws [:UseSubjectNotMap :UseNamespaceNotFound :UseNamespaceCollision]})
 
 |~~ Builds a descriptor Map for a value or named binding.
     Value-level form (no captured args) describes the current
@@ -805,6 +811,55 @@ let(:as, {
   :modifiers [:keyword]
   :examples ["42 | as(:answer) | answer → 42" "[1 2 3] | as(:nums) | nums | count → 3"]
   :throws [:AsNameNotKeyword]})
+
+|~ ── Error ───────────────────────────────────────── ~|
+
+|~~ Creates an error value from a Map descriptor.
+    Bare form: map | error. Full form: error(map).
+    The Map becomes the error descriptor accessible
+    via catch. Error values propagate through pipeline
+    steps — non-error-aware operands are skipped. ~~|
+let(:error, {
+  :category :error
+  :subject :map
+  :returns :error
+  :modifiers [:map]
+  :examples [
+    "{:kind :oops :message \"boom\"} | error | isError → true"
+    "error({:kind :oops}) | catch | /kind → :oops"]
+  :throws [:ErrorDescriptorNotMap]})
+
+|~~ Unwraps an error value to its descriptor Map.
+    Non-error values pass through unchanged.
+    Bare form: unwraps error to Map with :trail Vec.
+    With handler: unwraps, then applies handler to
+    the descriptor Map. The sole bridge from error
+    track to success track. ~~|
+let(:catch, {
+  :category :error
+  :subject :any
+  :returns :any
+  :modifiers [:pipeline]
+  :examples [
+    "error({:kind :oops :message \"boom\"}) | catch | /message → \"boom\""
+    "error({:kind :oops}) | catch(/kind) → :oops"
+    "42 | catch → 42"]
+  :throws []})
+
+|~~ Returns true if pipeValue is an error value,
+    false otherwise. Error-aware: receives error
+    values without propagation. Ordinary Maps with
+    error-like fields are not error values. ~~|
+let(:isError, {
+  :category :error
+  :subject :any
+  :returns :boolean
+  :modifiers []
+  :examples [
+    "error({:kind :oops}) | isError → true"
+    "{:kind :oops} | isError → false"
+    "42 | isError → false"]
+  :throws []})
 
 |~ Self-referential: let declared last because it shadows
    the built-in let operand upon evaluation. ~|

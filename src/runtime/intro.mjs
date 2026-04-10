@@ -11,12 +11,12 @@
 //
 // Meta lives in manifest.qlang.
 
-import { stateOp, stateOpVariadic } from './dispatch.mjs';
+import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
 import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet, isNumber, isString, isBoolean, isNil,
-  describeType, keyword, makeConduit, makeSnapshot
+  describeType, keyword, makeConduit, makeSnapshot, isErrorValue
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -39,6 +39,18 @@ import { deepEqual } from '../equality.mjs';
 import { evalQuery } from '../eval.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
+const UseNamespaceNotKeyword = declareShapeError('UseNamespaceNotKeyword',
+  ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType}`);
+const UseNamespaceNotFound = declareShapeError('UseNamespaceNotFound',
+  ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`);
+const UseNamespaceNotMap = declareShapeError('UseNamespaceNotMap',
+  ({ namespaceName, actualType }) => `use: namespace '${namespaceName}' is ${actualType}, expected Map`);
+const UseNamespaceElementNotKeyword = declareShapeError('UseNamespaceElementNotKeyword',
+  ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType}`);
+const UseNamespaceCollision = declareShapeError('UseNamespaceCollision',
+  ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple namespaces: ${namespaces.join(', ')}`);
+const UseNameNotExported = declareShapeError('UseNameNotExported',
+  ({ namespaceName, exportName }) => `use: '${exportName}' not exported by namespace '${namespaceName}'`);
 const ReifyArityOverflow = declareArityError('ReifyArityOverflow',
   ({ actualArity }) => `reify accepts 0 or 1 captured args, got ${actualArity}`);
 const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
@@ -48,13 +60,103 @@ const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
 export const env = stateOp('env', 1, (state, _lambdas) =>
   withPipeValue(state, state.env));
 
-// use — merges the current pipeValue (a Map) into env.
-export const use = stateOp('use', 1, (state, _lambdas) => {
-  if (!isQMap(state.pipeValue)) {
-    throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
+// use — overloaded by arity:
+//   0 captured: merge pipeValue Map into env (existing)
+//   1 captured: namespace import (keyword, Vec, or Set)
+//   2 captured: selective namespace import (keyword + filter Set/Vec)
+export const use = stateOpVariadic('use', 3, (state, lambdas) => {
+  if (lambdas.length === 0) {
+    // Existing: merge pipeValue Map into env
+    if (!isQMap(state.pipeValue)) {
+      throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
+    }
+    return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
   }
-  return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
-});
+
+  const arg = lambdas[0](state.pipeValue);
+
+  if (lambdas.length === 1) {
+    // Single arg — dispatch by type
+    if (isKeyword(arg))  return importSingleNamespace(state, arg);
+    if (isVec(arg))      return importOrderedNamespaces(state, arg);
+    if (isQSet(arg))     return importUnorderedNamespaces(state, arg);
+    throw new UseNamespaceNotKeyword({ actualType: describeType(arg), actualValue: arg });
+  }
+
+  // Two args: namespace keyword + selection filter
+  if (!isKeyword(arg)) {
+    throw new UseNamespaceNotKeyword({ actualType: describeType(arg), actualValue: arg });
+  }
+  const selection = lambdas[1](state.pipeValue);
+  return importSelectiveNamespace(state, arg, selection);
+}, [0, 2]);
+
+function resolveNamespaceEnv(outerEnv, nsKeyword) {
+  if (!outerEnv.has(nsKeyword)) {
+    throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
+  }
+  const moduleEnv = outerEnv.get(nsKeyword);
+  if (!isQMap(moduleEnv)) {
+    throw new UseNamespaceNotMap({
+      namespaceName: nsKeyword.name,
+      actualType: describeType(moduleEnv)
+    });
+  }
+  return moduleEnv;
+}
+
+function importSingleNamespace(state, nsKeyword) {
+  const moduleEnv = resolveNamespaceEnv(state.env, nsKeyword);
+  return makeState(state.pipeValue, envMerge(state.env, moduleEnv));
+}
+
+function importOrderedNamespaces(state, namespaces) {
+  let currentEnv = state.env;
+  for (let i = 0; i < namespaces.length; i++) {
+    const ns = namespaces[i];
+    if (!isKeyword(ns)) {
+      throw new UseNamespaceElementNotKeyword({ index: i, actualType: describeType(ns) });
+    }
+    const moduleEnv = resolveNamespaceEnv(currentEnv, ns);
+    currentEnv = envMerge(currentEnv, moduleEnv);
+  }
+  return makeState(state.pipeValue, currentEnv);
+}
+
+function importUnorderedNamespaces(state, namespaces) {
+  const merged = new Map();
+  const origins = new Map();
+  for (const ns of namespaces) {
+    const moduleEnv = resolveNamespaceEnv(state.env, ns);
+    for (const [k, v] of moduleEnv) {
+      if (merged.has(k)) {
+        throw new UseNamespaceCollision({
+          collidingName: isKeyword(k) ? k.name : String(k),
+          namespaces: [origins.get(k), ns.name]
+        });
+      }
+      merged.set(k, v);
+      origins.set(k, ns.name);
+    }
+  }
+  return makeState(state.pipeValue, envMerge(state.env, merged));
+}
+
+function importSelectiveNamespace(state, nsKeyword, selection) {
+  const moduleEnv = resolveNamespaceEnv(state.env, nsKeyword);
+  const names = isQSet(selection) ? [...selection] : isVec(selection) ? selection : [selection];
+  const filtered = new Map();
+  for (const name of names) {
+    if (!moduleEnv.has(name)) {
+      throw new UseNameNotExported({
+        namespaceName: nsKeyword.name,
+        exportName: isKeyword(name) ? name.name : String(name)
+      });
+    }
+    filtered.set(name, moduleEnv.get(name));
+  }
+  return makeState(state.pipeValue, envMerge(state.env, filtered));
+}
 
 // ── reify and manifest ─────────────────────────────────────────
 
@@ -70,20 +172,46 @@ function describeValueType(v) {
   return keyword('unknown');
 }
 
-function metaToVec(arr) {
+// Descriptor field helpers — extracted so each null-fallback
+// path is testable via synthetic conduits/snapshots/functions.
+export function metaToVec(arr) {
   return arr ? [...arr] : [];
+}
+
+export function bindingName(explicitName, binding) {
+  if (explicitName != null) return explicitName;
+  if (binding && binding.name != null) return binding.name;
+  return null;
+}
+
+export function capturedRange(fn) {
+  if (fn.meta && fn.meta.captured != null) return fn.meta.captured;
+  if (fn.captured != null) return fn.captured;
+  return null;
+}
+
+export function categoryKeyword(meta) {
+  if (meta.category) return keyword(meta.category);
+  return null;
+}
+
+// Extract message from an error value — runtime errors carry
+// .originalError, user-created errors carry :message in descriptor.
+export function errorMessageOf(errorValue) {
+  if (errorValue.originalError) return errorValue.originalError.message;
+  return errorValue.descriptor.get(keyword('message'));
 }
 
 function buildBuiltinDescriptor(fn, explicitName) {
   const meta = fn.meta || {};
   const result = new Map();
   result.set(keyword('kind'), keyword('builtin'));
-  result.set(keyword('name'), explicitName ?? fn.name);
-  result.set(keyword('category'), meta.category ? keyword(meta.category) : null);
-  result.set(keyword('subject'), meta.subject ?? null);
+  result.set(keyword('name'), bindingName(explicitName, fn));
+  result.set(keyword('category'), categoryKeyword(meta));
+  result.set(keyword('subject'), meta.subject || null);
   result.set(keyword('modifiers'), metaToVec(meta.modifiers));
-  result.set(keyword('returns'), meta.returns ?? null);
-  result.set(keyword('captured'), metaToVec(fn.meta?.captured ?? fn.captured));
+  result.set(keyword('returns'), meta.returns || null);
+  result.set(keyword('captured'), metaToVec(capturedRange(fn)));
   result.set(keyword('docs'), metaToVec(meta.docs));
   result.set(keyword('examples'), metaToVec(meta.examples));
   result.set(keyword('throws'), metaToVec(meta.throws));
@@ -94,7 +222,7 @@ function buildBuiltinDescriptor(fn, explicitName) {
 function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
   result.set(keyword('kind'), keyword('conduit'));
-  result.set(keyword('name'), explicitName ?? conduit.name ?? null);
+  result.set(keyword('name'), bindingName(explicitName, conduit));
   result.set(keyword('params'), metaToVec(conduit.params));
   result.set(keyword('source'), nodeSource(conduit.body));
   result.set(keyword('docs'), metaToVec(conduit.docs));
@@ -108,34 +236,6 @@ function nodeSource(node) {
     return node.text;
   }
   return sourceOfAst(node);
-}
-
-function buildSnapshotDescriptor(snap, explicitName) {
-  const result = new Map();
-  result.set(keyword('kind'), keyword('snapshot'));
-  result.set(keyword('name'), explicitName ?? snap.name ?? null);
-  result.set(keyword('value'), snap.value);
-  result.set(keyword('type'), describeValueType(snap.value));
-  result.set(keyword('docs'), metaToVec(snap.docs));
-  result.set(keyword('effectful'), snap.effectful);
-  result.set(keyword('location'), snap.location);
-  return result;
-}
-
-function buildValueDescriptor(value, explicitName) {
-  const result = new Map();
-  result.set(keyword('kind'), keyword('value'));
-  result.set(keyword('name'), explicitName ?? null);
-  result.set(keyword('value'), value);
-  result.set(keyword('type'), describeValueType(value));
-  return result;
-}
-
-function describeBinding(value, explicitName) {
-  if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
-  if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
-  if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
-  return buildValueDescriptor(value, explicitName);
 }
 
 const RESERVED_IDENT_NAMES = new Set(['true', 'false', 'nil']);
@@ -178,6 +278,7 @@ function sourceOfAst(node) {
     case 'SetLit':     return `#{${node.elements.map(sourceOfAst).join(' ')}}`;
     case 'MapEntry':   return `${sourceOfAst(node.key)} ${sourceOfAst(node.value)}`;
     case 'MapLit':     return `{${node.entries.map(sourceOfAst).join(' ')}}`;
+    case 'ErrorLit':   return `!{${node.entries.map(sourceOfAst).join(' ')}}`;
     case 'Pipeline': {
       const first = sourceOfAst(node.steps[0]);
       const rest = node.steps.slice(1).map(s => `${s.combinator} ${sourceOfAst(s.step)}`).join(' ');
@@ -185,6 +286,34 @@ function sourceOfAst(node) {
     }
     default:           return `<${node.type}>`;
   }
+}
+
+function buildSnapshotDescriptor(snap, explicitName) {
+  const result = new Map();
+  result.set(keyword('kind'), keyword('snapshot'));
+  result.set(keyword('name'), bindingName(explicitName, snap));
+  result.set(keyword('value'), snap.value);
+  result.set(keyword('type'), describeValueType(snap.value));
+  result.set(keyword('docs'), metaToVec(snap.docs));
+  result.set(keyword('effectful'), snap.effectful);
+  result.set(keyword('location'), snap.location);
+  return result;
+}
+
+function buildValueDescriptor(value, explicitName) {
+  const result = new Map();
+  result.set(keyword('kind'), keyword('value'));
+  result.set(keyword('name'), explicitName ?? null);
+  result.set(keyword('value'), value);
+  result.set(keyword('type'), describeValueType(value));
+  return result;
+}
+
+function describeBinding(value, explicitName) {
+  if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
+  if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
+  if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
+  return buildValueDescriptor(value, explicitName);
 }
 
 // reify — value-level (0 captured) or named-form (1 captured keyword).
@@ -221,11 +350,17 @@ function buildExampleResult(querySrc, expectedSrc) {
   result.set(keyword('query'), querySrc);
   result.set(keyword('expected'), expectedSrc);
   let actual;
-  try {
-    actual = evalQuery(querySrc);
-  } catch (e) {
+  try { actual = evalQuery(querySrc); }
+  catch (e) {
+    // Only ParseError can reach here — runtime errors are error values.
     result.set(keyword('actual'), null);
     result.set(keyword('error'), e.message);
+    result.set(keyword('ok'), false);
+    return result;
+  }
+  if (isErrorValue(actual)) {
+    result.set(keyword('actual'), null);
+    result.set(keyword('error'), errorMessageOf(actual));
     result.set(keyword('ok'), false);
     return result;
   }
@@ -342,19 +477,18 @@ export const letOperand = stateOpVariadic('let', 16, (state, lambdas) => {
       throw new EffectLaunderingAtLetParse({
         letName: bindingName,
         effectfulName: offender,
-        location: bodyAst.location ?? null
+        location: bodyAst.location
       });
     }
   }
 
-  const docs = lambdas.docs || [];
   const envRef = { env: null };
   const conduit = makeConduit(bodyAst, {
     name: bindingName,
     params,
     envRef,
-    docs,
-    location: bodyAst?.location ?? null
+    docs: lambdas.docs,
+    location: bodyAst.location
   });
   const nextEnv = envSet(state.env, bindingName, conduit);
   envRef.env = nextEnv;
@@ -368,11 +502,10 @@ export const asOperand = stateOp('as', 2, (state, lambdas) => {
     throw new AsNameNotKeyword({ actualType: describeType(nameValue), actualValue: nameValue });
   }
   const bindingName = nameValue.name;
-  const docs = lambdas.docs || [];
   const snapshot = makeSnapshot(state.pipeValue, {
     name: bindingName,
-    docs,
-    location: lambdas.location ?? null
+    docs: lambdas.docs,
+    location: lambdas.location
   });
   const nextEnv = envSet(state.env, bindingName, snapshot);
   return makeState(state.pipeValue, nextEnv);

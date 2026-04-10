@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { keyword } from '../../src/types.mjs';
+import { keyword, isErrorValue } from '../../src/types.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', () => {
@@ -48,8 +48,11 @@ describe('createSession lifecycle', () => {
   it('evalCell records the error on runtime failure', () => {
     const s = createSession();
     const entry = s.evalCell('42 | count');
-    expect(entry.error).not.toBeNull();
-    expect(entry.error.name).toBe('CountSubjectNotContainer');
+    // Runtime errors now produce error values (5th type), not exceptions.
+    // evalCell succeeds; result is an error value, entry.error is null.
+    expect(entry.error).toBeNull();
+    expect(isErrorValue(entry.result)).toBe(true);
+    expect(entry.result.originalError.name).toBe('CountSubjectNotContainer');
   });
 
   it('evalCell uri defaults to cell-N', () => {
@@ -77,7 +80,8 @@ describe('createSession lifecycle', () => {
     // x is still bound, y is gone
     expect(s.evalCell('x').result).toBe(1);
     const yLookup = s.evalCell('y');
-    expect(yLookup.error).not.toBeNull();
+    // Unresolved identifier now produces an error value, not a thrown exception.
+    expect(isErrorValue(yLookup.result)).toBe(true);
   });
 
   it('bind installs a raw value into env', () => {

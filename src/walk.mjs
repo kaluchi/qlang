@@ -32,6 +32,7 @@ export function astChildrenOf(node) {
       for (const elem of node.elements) out.push(elem);
       break;
     case 'MapLit':
+    case 'ErrorLit':
       for (const entry of node.entries) out.push(entry);
       break;
     case 'MapEntry':

@@ -17,6 +17,8 @@ import { parse } from '../../src/parse.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { ParseError } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
+import { isErrorValue, keyword } from '../../src/types.mjs';
+import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', 'conformance');
@@ -28,7 +30,7 @@ const files = readdirSync(conformanceDir, { recursive: true })
 // Literal AST node types — no computation, no env lookup, no side effects.
 const LITERAL_TYPES = new Set([
   'NumberLit', 'StringLit', 'BooleanLit', 'NilLit', 'Keyword',
-  'VecLit', 'MapLit', 'MapEntry', 'SetLit', 'Pipeline'
+  'VecLit', 'MapLit', 'MapEntry', 'SetLit', 'ErrorLit', 'Pipeline'
 ]);
 
 // assertLiteralAst — walks the AST and rejects any node that performs
@@ -64,14 +66,17 @@ for (const file of files) {
       const test = JSON.parse(line);
       it(test.name, () => {
         if (test.error) {
-          let thrown;
-          try { evalQuery(test.query); } catch (e) { thrown = e; }
-          expect(thrown, `expected ${test.error}, got nothing`).toBeDefined();
           if (test.error === 'parse-error') {
+            let thrown;
+            try { evalQuery(test.query); } catch (e) { thrown = e; }
+            expect(thrown, `expected parse-error, got nothing`).toBeDefined();
             expect(thrown).toBeInstanceOf(ParseError);
           } else {
-            expect(thrown).toBeInstanceOf(QlangError);
-            expect(thrown.kind).toBe(test.error);
+            // Runtime errors produce error values (5th type), not exceptions.
+            const result = evalQuery(test.query);
+            expect(isErrorValue(result), `expected error value for "${test.query}"`).toBe(true);
+            const kind = result.descriptor.get(keyword('kind'));
+            expect(kind?.name).toBe(test.error);
           }
         } else {
           // Guard: expect must be a literal, not a computation.
@@ -80,7 +85,7 @@ for (const file of files) {
 
           const result = evalQuery(test.query);
           const expected = evalQuery(test.expect);
-          expect(result).toEqual(expected);
+          expect(deepEqual(result, expected), `${test.name}: result !== expected`).toBe(true);
         }
       });
     }

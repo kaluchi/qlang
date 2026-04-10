@@ -21,8 +21,10 @@ import {
   isQMap,
   isQSet,
   isVec,
-  makeConduit
+  makeConduit,
+  isErrorValue
 } from '../../src/types.mjs';
+import { expectErrorKind } from '../helpers/error-assertions.mjs';
 import {
   makeState,
   envSet,
@@ -133,19 +135,19 @@ describe('errors.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison', () => {
-    expect(() => evalQuery('"a" | gt(5)')).toThrow(QlangTypeError);
+    expectErrorKind('"a" | gt(5)', 'type-error');
   });
   it('lt rejects non-comparable subject', () => {
-    expect(() => evalQuery('nil | lt(5)')).toThrow(QlangTypeError);
+    expectErrorKind('nil | lt(5)', 'type-error');
   });
   it('min raises on mixed Vec', () => {
-    expect(() => evalQuery('[1 "a"] | min')).toThrow(QlangTypeError);
+    expectErrorKind('[1 "a"] | min', 'type-error');
   });
   it('max raises on non-comparable', () => {
-    expect(() => evalQuery('[nil nil] | max')).toThrow(QlangTypeError);
+    expectErrorKind('[nil nil] | max', 'type-error');
   });
   it('sort raises on mixed-type Vec', () => {
-    expect(() => evalQuery('[1 "a"] | sort')).toThrow(QlangTypeError);
+    expectErrorKind('[1 "a"] | sort', 'type-error');
   });
 });
 
@@ -163,40 +165,40 @@ describe('parse.mjs', () => {
 
 describe('runtime/arith.mjs error paths', () => {
   it('add rejects non-numeric subject', () => {
-    expect(() => evalQuery('"x" | add(1)')).toThrow(QlangTypeError);
+    expectErrorKind('"x" | add(1)', 'type-error');
   });
   it('add rejects non-numeric modifier', () => {
-    expect(() => evalQuery('1 | add(\"x\")')).toThrow(QlangTypeError);
+    expectErrorKind('1 | add("x")', 'type-error');
   });
   it('sub rejects non-numeric subject', () => {
-    expect(() => evalQuery('\"x\" | sub(1)')).toThrow(QlangTypeError);
+    expectErrorKind('"x" | sub(1)', 'type-error');
   });
   it('mul rejects non-numeric subject', () => {
-    expect(() => evalQuery('\"x\" | mul(1)')).toThrow(QlangTypeError);
+    expectErrorKind('"x" | mul(1)', 'type-error');
   });
   it('div rejects non-numeric subject', () => {
-    expect(() => evalQuery('\"x\" | div(1)')).toThrow(QlangTypeError);
+    expectErrorKind('"x" | div(1)', 'type-error');
   });
 });
 
 describe('runtime/vec.mjs error paths', () => {
   it('count rejects non-Vec', () => {
-    expect(() => evalQuery('42 | count')).toThrow(QlangTypeError);
+    expectErrorKind('42 | count', 'type-error');
   });
   it('first rejects non-Vec', () => {
-    expect(() => evalQuery('42 | first')).toThrow(QlangTypeError);
+    expectErrorKind('42 | first', 'type-error');
   });
   it('sum rejects non-Vec', () => {
-    expect(() => evalQuery('42 | sum')).toThrow(QlangTypeError);
+    expectErrorKind('42 | sum', 'type-error');
   });
   it('filter rejects non-Vec', () => {
-    expect(() => evalQuery('42 | filter(gt(1))')).toThrow(QlangTypeError);
+    expectErrorKind('42 | filter(gt(1))', 'type-error');
   });
   it('take rejects non-numeric n', () => {
-    expect(() => evalQuery('[1 2 3] | take(\"x\")')).toThrow(QlangTypeError);
+    expectErrorKind('[1 2 3] | take("x")', 'type-error');
   });
   it('drop rejects non-numeric n', () => {
-    expect(() => evalQuery('[1 2 3] | drop(\"x\")')).toThrow(QlangTypeError);
+    expectErrorKind('[1 2 3] | drop("x")', 'type-error');
   });
   it('sort with key', () => {
     expect(evalQuery('[{:n 3} {:n 1} {:n 2}] | sort(/n)'))
@@ -206,28 +208,28 @@ describe('runtime/vec.mjs error paths', () => {
 
 describe('runtime/map.mjs error paths', () => {
   it('keys rejects non-Map', () => {
-    expect(() => evalQuery('42 | keys')).toThrow(QlangTypeError);
+    expectErrorKind('42 | keys', 'type-error');
   });
   it('vals rejects non-Map', () => {
-    expect(() => evalQuery('42 | vals')).toThrow(QlangTypeError);
+    expectErrorKind('42 | vals', 'type-error');
   });
   it('has rejects non-Map/non-Set subject', () => {
-    expect(() => evalQuery('42 | has(:foo)')).toThrow(QlangTypeError);
+    expectErrorKind('42 | has(:foo)', 'type-error');
   });
   it('has on Map requires keyword key', () => {
-    expect(() => evalQuery('{:k 1} | has(\"k\")')).toThrow(QlangTypeError);
+    expectErrorKind('{:k 1} | has("k")', 'type-error');
   });
 });
 
 describe('runtime/set.mjs error paths', () => {
   it('set rejects non-Vec', () => {
-    expect(() => evalQuery('42 | set')).toThrow(QlangTypeError);
+    expectErrorKind('42 | set', 'type-error');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', () => {
-    expect(() => evalQuery('#{:a} | union({:b 1})')).toThrow(QlangTypeError);
+    expectErrorKind('#{:a} | union({:b 1})', 'type-error');
   });
   it('minus of Map by another Map (key-based)', () => {
     const result = evalQuery('{:a 1 :b 2 :c 3} | minus({:b 99 :d 5})');
@@ -238,10 +240,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(result).toEqual(new Map([[keyword('b'), 2]]));
   });
   it('minus of Set by Map errors', () => {
-    expect(() => evalQuery('#{:a} | minus({:a 1})')).toThrow(QlangTypeError);
+    expectErrorKind('#{:a} | minus({:a 1})', 'type-error');
   });
   it('inter of Set by Map errors', () => {
-    expect(() => evalQuery('#{:a} | inter({:a 1})')).toThrow(QlangTypeError);
+    expectErrorKind('#{:a} | inter({:a 1})', 'type-error');
   });
 });
 
@@ -349,9 +351,11 @@ describe('per-site error classes carry unique identity', () => {
   // match on `e.name` (stable identifier) so they stay readable
   // without importing every per-site class.
 
+  // Runtime errors now produce error values (5th type). Extract the
+  // underlying QlangError via .originalError for structured inspection.
   function catchError(query) {
-    try { evalQuery(query); return null; }
-    catch (e) { return e; }
+    const result = evalQuery(query);
+    return isErrorValue(result) ? result.originalError : null;
   }
 
   it('count on non-container → CountSubjectNotContainer', () => {
@@ -542,8 +546,8 @@ describe('eval.mjs unknown combinator', () => {
 
 describe('runtime/string.mjs split and join error sites', () => {
   function catchError(query) {
-    try { evalQuery(query); return null; }
-    catch (e) { return e; }
+    const result = evalQuery(query);
+    return isErrorValue(result) ? result.originalError : null;
   }
 
   it('split on non-string subject → SplitSubjectNotString', () => {
@@ -590,13 +594,13 @@ describe('dispatch helper arity error paths', () => {
   it('overloadedOp throws ArityError on unsupported captured-arg count', () => {
     // sort accepts 0 or 1 captured args; calling with 2 hits the
     // overloadedOp dispatch's `if (!impl)` branch.
-    expect(() => evalQuery('[1 2] | sort(/x, /y)')).toThrow(ArityError);
+    expectErrorKind('[1 2] | sort(/x, /y)', 'arity-error');
   });
 
   it('stateOp throws ArityError when captured-arg count mismatches expected', () => {
     // env accepts 0 captured args; calling env(arg) fires the
     // stateOp's `lambdas.length !== expected` branch.
-    expect(() => evalQuery('env(:foo)')).toThrow(ArityError);
+    expectErrorKind('env(:foo)', 'arity-error');
   });
 });
 
@@ -675,13 +679,13 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 
   it('reify(:name) on unresolved name throws', () => {
-    expect(() => evalQuery('reify(:thisDoesNotExist)')).toThrow();
+    expect(isErrorValue(evalQuery('reify(:thisDoesNotExist)'))).toBe(true);
   });
 
   it('reify(non-keyword) → ReifyKeyNotKeyword', () => {
-    let thrown;
-    try { evalQuery('reify("count")'); } catch (e) { thrown = e; }
-    expect(thrown.name).toBe('ReifyKeyNotKeyword');
+    const result = evalQuery('reify("count")');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.originalError.name).toBe('ReifyKeyNotKeyword');
   });
 
   it('manifest returns a Vec of descriptors sorted by name', () => {
@@ -697,7 +701,7 @@ describe('runtime/intro.mjs reify and manifest', () => {
   it('reify with too many captured args raises ArityError', () => {
     // reify accepts 0 or 1 captured args; calling with 2 hits the
     // stateOpVariadic-controlled overflow path inside reify itself.
-    expect(() => evalQuery('reify(:a, :b)')).toThrow();
+    expect(isErrorValue(evalQuery('reify(:a, :b)'))).toBe(true);
   });
 
   it('reify of a conduit whose body is a Pipeline renders multi-step source', () => {
@@ -740,8 +744,8 @@ describe('runtime/intro.mjs reify and manifest', () => {
 
 describe('runtime/control.mjs if and coalesce', () => {
   function catchError(query) {
-    try { evalQuery(query); return null; }
-    catch (e) { return e; }
+    const result = evalQuery(query);
+    return isErrorValue(result) ? result.originalError : null;
   }
 
   it('if with cond truthy runs the then branch', () => {
@@ -893,8 +897,8 @@ describe('runtime/control.mjs if and coalesce', () => {
 
 describe('runtime/vec.mjs sortWith and comparator builders', () => {
   function catchError(query) {
-    try { evalQuery(query); return null; }
-    catch (e) { return e; }
+    const result = evalQuery(query);
+    return isErrorValue(result) ? result.originalError : null;
   }
 
   it('sortWith on non-Vec subject → SortWithSubjectNotVec', () => {
@@ -915,9 +919,11 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     expect(e.name).toBe('AscPairNotMap');
   });
 
-  it('asc on heterogeneous keys → AscKeysNotComparable', () => {
+  it('asc on heterogeneous keys → SortWithCmpResultNotNumber (error value from asc is non-numeric)', () => {
+    // asc returns an error value when keys are incomparable; sortWith
+    // sees the error value (not a number) and reports SortWithCmpResultNotNumber.
     const e = catchError('[{:k 1} {:k "a"}] | sortWith(asc(/k))');
-    expect(e.name).toBe('AscKeysNotComparable');
+    expect(e.name).toBe('SortWithCmpResultNotNumber');
   });
 
   it('desc on non-Map pair → DescPairNotMap', () => {
@@ -925,9 +931,11 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     expect(e.name).toBe('DescPairNotMap');
   });
 
-  it('desc on heterogeneous keys → DescKeysNotComparable', () => {
+  it('desc on heterogeneous keys → SortWithCmpResultNotNumber (error value from desc is non-numeric)', () => {
+    // desc returns an error value when keys are incomparable; sortWith
+    // sees the error value (not a number) and reports SortWithCmpResultNotNumber.
     const e = catchError('[{:k 1} {:k "a"}] | sortWith(desc(/k))');
-    expect(e.name).toBe('DescKeysNotComparable');
+    expect(e.name).toBe('SortWithCmpResultNotNumber');
   });
 
   it('firstNonZero on non-Vec → FirstNonZeroSubjectNotVec', () => {
@@ -942,15 +950,17 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
   });
 
   it('every sortWith/asc/desc/firstNonZero site has a unique class name', () => {
+    // Note: asc/desc with heterogeneous keys used to produce AscKeysNotComparable/
+    // DescKeysNotComparable. Now they return error values, and sortWith sees the
+    // error value (non-numeric) and reports SortWithCmpResultNotNumber instead.
+    // So those two queries no longer produce distinct names.
     const queries = [
-      '42 | sortWith(asc(/x))',                  // SortWithSubjectNotVec
-      '[1 2] | sortWith("not")',                 // SortWithCmpResultNotNumber
-      '42 | asc(/x)',                             // AscPairNotMap
-      '[{:k 1} {:k "a"}] | sortWith(asc(/k))',  // AscKeysNotComparable
-      '42 | desc(/x)',                            // DescPairNotMap
-      '[{:k 1} {:k "a"}] | sortWith(desc(/k))', // DescKeysNotComparable
-      '42 | firstNonZero',                        // FirstNonZeroSubjectNotVec
-      '[0 "x"] | firstNonZero'                    // FirstNonZeroElementNotNumber
+      '42 | sortWith(asc(/x))',   // SortWithSubjectNotVec
+      '[1 2] | sortWith("not")',  // SortWithCmpResultNotNumber
+      '42 | asc(/x)',              // AscPairNotMap
+      '42 | desc(/x)',             // DescPairNotMap
+      '42 | firstNonZero',         // FirstNonZeroSubjectNotVec
+      '[0 "x"] | firstNonZero'    // FirstNonZeroElementNotNumber
     ];
     const names = new Set(queries.map(q => catchError(q).name));
     expect(names.size).toBe(queries.length);

@@ -3,7 +3,7 @@
 // Shared by predicates.mjs (for the `eq` operand) and the
 // conformance test runner.
 
-import { isKeyword } from './types.mjs';
+import { isKeyword, isErrorValue } from './types.mjs';
 
 export function deepEqual(a, b) {
   if (a === b) return true;
@@ -27,6 +27,9 @@ export function deepEqual(a, b) {
   }
   if (isKeyword(a)) {
     return isKeyword(b) && a.name === b.name;
+  }
+  if (isErrorValue(a)) {
+    return isErrorValue(b) && deepEqual(a.descriptor, b.descriptor);
   }
   return false;
 }

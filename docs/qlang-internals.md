@@ -32,7 +32,11 @@ by query code.
 The state of query evaluation is a pair `(pipeValue, env)`:
 
 - **`pipeValue`** — the current value flowing through the pipeline.
-  Any of Scalar, Vec, Map, Set, or a function (partial or complete).
+  Any of Scalar, Vec, Map, Set, Error, or a function (partial or
+  complete). When pipeValue is an Error value, most pipeline steps
+  are skipped (the error propagates) — only error-aware operands
+  (`catch`, `isError`) and transparent containers (Pipeline,
+  ParenGroup, conduit bodies) are entered.
 - **`env`** — the environment, a Map from identifier names to values
   or functions. Contains the language runtime, domain runtime, user
   bindings from `let` and `as`, and anything else in scope.
@@ -70,17 +74,22 @@ user-visible object.
 
 ## Step types
 
-Six kinds of steps. Every syntactic form in the language reduces
-to one of them. `use`, `env`, `reify`, and `manifest` are not step
-types — they are ordinary identifiers (Step 3) that happen to
-resolve to reflective built-ins in the language runtime.
+Seven kinds of steps. Every syntactic form in the language reduces
+to one of them. `use`, `env`, `reify`, `manifest`, `error`, `catch`,
+and `isError` are not step types — they are ordinary identifiers
+(Step 3) that happen to resolve to built-ins in the language runtime.
 
 ### 1. Literal
 
 A literal value: Scalar (`42`, `"hello"`, `nil`, `:keyword`), Vec,
-Map, or Set.
+Map, Set, or Error (`!{:kind :oops}`).
 
     (pipeValue, env) → (evalLiteral, env)
+
+Error literals (`!{...}`) evaluate their entries the same way as Map
+literals but wrap the result as an error value — the fifth type. The
+error value propagates through subsequent steps via the error
+propagation rule (see below).
 
 For compound literals with expression elements (e.g., `[/name, /age]`,
 `{:greeting /name}`, `#{/tag}`), each element or value is evaluated as
@@ -448,7 +457,7 @@ indistinguishable from built-ins.
 
 | Syntactic form                      | Semantics                             |
 |-------------------------------------|---------------------------------------|
-| Scalar/Vec/Map/Set literal          | Step 1 — literal                      |
+| Scalar/Vec/Map/Set/Error literal    | Step 1 — literal                      |
 | `/key` projection (possibly nested) | Step 2 — projection                   |
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
@@ -457,6 +466,7 @@ indistinguishable from built-ins.
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |
+| `error`, `catch`, `isError`         | Step 3 — error built-in               |
 | `\|`, `*`, `>>`                     | Combinators                           |
 | `(...)` grouping                    | Fork                                  |
 | Vec / Map / Set entry evaluation    | Fork per entry                        |
@@ -813,6 +823,61 @@ for the user-facing contract and
 [the runtime reference](qlang-operands.md#effectmjs-and-effect-checkmjs--effect-markers)
 for the precomputed `.effectful` field that the safety net consults.
 
+## Error values and propagation
+
+Error is the fifth value type. An error value wraps a descriptor
+Map and propagates through pipeline steps that cannot meaningfully
+process it.
+
+### Error-to-value conversion
+
+The `evalNode` try/catch block converts recoverable exceptions to
+error values. Operand impls continue to throw per-site error
+classes; the conversion is transparent to them. Two converters
+(`error-convert.mjs`) handle qlang errors (full structured context
+from per-site class properties) and foreign host errors (best-effort
+field extraction from JS Error objects). `QlangInvariantError`
+subclasses are never caught — they indicate runtime bugs, not data
+errors.
+
+### Propagation rule
+
+When `pipeValue` is an error value, `evalNode` applies a
+propagation check before dispatching to the node handler:
+
+- **Pipeline, ParenGroup** — entered. Children decide individually.
+- **OperandCall** — entered. The handler checks whether the resolved
+  binding is error-aware (`isFunctionValue && .errorAware`) or a
+  conduit (conduits are transparent — their body decides). If
+  neither, the step is skipped with a trail entry.
+- **Comments** — transparent (identity), no trail entry.
+- **Everything else** (literals, projections, compound literals) —
+  skipped with a trail entry appended to the error value.
+
+### Trail
+
+Each skip appends a `{ text, prev }` node to a lazy linked list
+on the error value (`._trailHead`). The trail is materialized into
+a `:trail` Vec (chronological order, first-skipped to last-skipped)
+when `catch` unwraps the error. Cost per skip: one small frozen
+object. Materialization happens once at catch time.
+
+### Descriptor shape
+
+Error values produced by the runtime carry:
+
+| Field | Type | Content |
+|---|---|---|
+| `:origin` | keyword | `:qlang/eval` or `:host` or `:user` |
+| `:kind` | keyword | Error category |
+| `:thrown` | keyword | Per-site class name |
+| `:message` | string | Human-readable |
+| `:trail` | Vec | Steps skipped (populated by `catch`) |
+
+User-created error values (`!{...}` or `error(map)`) carry
+whatever fields the author provides — no mandatory schema.
+The runtime guarantees the above fields only for its own errors.
+
 ## Tooling primitives
 
 Modules that the operand library never imports but that embedders
@@ -871,6 +936,7 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | keyword | `{ "$keyword": "name" }` |
 | Map | `{ "$map": [[k, v], ...] }` (entry pairs, recursively encoded) |
 | Set | `{ "$set": [v1, v2, ...] }` |
+| Error | `{ "$error": <recursively-encoded descriptor Map> }` |
 
 `toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for
 function values, conduits, and snapshots.

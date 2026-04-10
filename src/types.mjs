@@ -57,6 +57,10 @@ export function isSnapshot(v) {
   return v !== null && typeof v === 'object' && v.type === 'snapshot';
 }
 
+export function isErrorValue(v) {
+  return v !== null && typeof v === 'object' && v.type === 'error';
+}
+
 // ── truthiness ─────────────────────────────────────────────────
 // nil and false are falsy; everything else is truthy (including
 // 0, "", [], {}, #{}).
@@ -152,6 +156,54 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   });
 }
 
+// ── error value factory ───────────────────────────────────────
+// Wraps a descriptor Map into an opaque error value — the 5th
+// qlang value type. Error values propagate through pipeline steps
+// (evalNode skips non-error-aware operands), and are unwrapped by
+// `catch` back into their descriptor Map for inspection.
+//
+// The `_trailHead` field is an internal linked list of skipped AST
+// nodes accumulated during propagation. Materialized into a `:trail`
+// Vec entry on the descriptor at `catch` unwrap time. Not visible
+// from qlang until catch.
+//
+// The `originalError` field preserves the original JS Error (if any)
+// for host-boundary re-throwing. Not visible from qlang.
+export function makeErrorValue(descriptor, { location = null, originalError = null, trailHead = null } = {}) {
+  return Object.freeze({
+    type: 'error',
+    descriptor,
+    location,
+    originalError,
+    _trailHead: trailHead
+  });
+}
+
+// appendTrailNode(errorValue, node) → new error value with node
+// prepended to the trail linked list. One frozen object per skip.
+export function appendTrailNode(errorValue, node) {
+  return Object.freeze({
+    type: 'error',
+    descriptor: errorValue.descriptor,
+    location: errorValue.location,
+    originalError: errorValue.originalError,
+    _trailHead: Object.freeze({
+      text: node.text ?? node.type,
+      prev: errorValue._trailHead
+    })
+  });
+}
+
+// materializeTrail(errorValue) → Vec of step text strings in
+// chronological order (first skipped → last skipped).
+export function materializeTrail(errorValue) {
+  const trail = [];
+  let cur = errorValue._trailHead;
+  while (cur) { trail.push(cur.text); cur = cur.prev; }
+  trail.reverse();
+  return trail;
+}
+
 // ── describeType — short labels used in error messages ─────────
 
 export function describeType(v) {
@@ -163,6 +215,7 @@ export function describeType(v) {
   if (isVec(v)) return 'Vec';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
+  if (isErrorValue(v)) return 'error';
   if (isFunctionValue(v)) return 'function';
   if (isConduit(v)) return 'conduit';
   if (isSnapshot(v)) return 'snapshot';

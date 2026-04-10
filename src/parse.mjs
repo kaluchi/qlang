@@ -56,10 +56,7 @@ export function parse(source, opts = {}) {
   try {
     ast = peggyParse(source);
   } catch (err) {
-    if (err instanceof PeggySyntaxError) {
-      throw new ParseError(err.message, err.location ?? null, opts.uri ?? null);
-    }
-    throw err;
+    throw new ParseError(err.message, err.location, opts.uri ?? null);
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
   // root receives .parent = null and id 0), then effect-marker

@@ -66,6 +66,12 @@ import {
   QlangInvariantError
 } from './errors.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
+import {
+  isErrorValue,
+  makeErrorValue,
+  appendTrailNode,
+  materializeTrail
+} from './types.mjs';
 
 export {
   parse,
@@ -101,5 +107,9 @@ export {
   EffectLaunderingAtCall,
   QlangInvariantError,
   classifyEffect,
-  EFFECT_MARKER_PREFIX
+  EFFECT_MARKER_PREFIX,
+  isErrorValue,
+  makeErrorValue,
+  appendTrailNode,
+  materializeTrail
 };

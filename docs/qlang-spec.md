@@ -20,7 +20,7 @@ of built-in operands, see
 
 ## Values
 
-Four types. Immutable. Arbitrarily nestable.
+Five types. Immutable. Arbitrarily nestable.
 
 ### Scalar
 
@@ -37,16 +37,20 @@ Atomic values.
 Keywords are symbolic identifiers, self-evaluating:
 `:name` always equals `:name`. Primary use — Map keys.
 
-A keyword has two surface forms:
+A keyword has three surface forms:
 
 - `:ident` — bare form, identifier restricted to `[@_a-zA-Z][a-zA-Z0-9_-]*`.
+- `:ident/ident/...` — namespaced form, slash-separated identifiers
+  parsed as a single keyword. `:qlang/error` interns as
+  `keyword("qlang/error")`. Used for module namespace identifiers
+  and hierarchical grouping.
 - `:"any string"` — quoted form, lifts the identifier restriction so any
   string is admissible: leading digits (`:"123"`), embedded spaces
   (`:"foo bar"`), sigils (`:"$ref"`), and the empty string (`:""`).
   The full string-literal escape set (`\n`, `\t`, `\r`, `\"`, `\\`)
   is honoured inside the quotes.
 
-Both forms intern to the same value: `:"name"` is identical to
+All forms intern to the same value: `:"name"` is identical to
 `:name`. The quoted form completes the JSON interop guarantee — every
 JSON object key has a qlang literal representation, so any JSON value
 can round-trip through Vec/Map/keyword/scalar primitives losslessly.
@@ -157,6 +161,55 @@ current `pipeValue` — same as Vec:
 #{"alice" 30}
 ```
 
+### Error
+
+Error value — the fifth type. Literal `!{}`. Same entry syntax as
+Map (keyword keys, pipeline values), but wraps the result as an
+opaque error value that propagates through pipeline steps.
+
+```qlang
+> !{:kind :oops :message "boom"}
+!{:kind :oops :message "boom"}
+
+> !{}
+!{}
+```
+
+Error values propagate automatically: non-error-aware operands are
+skipped, and the error flows to the next `catch`. The `:trail` Vec
+records skipped steps for diagnostics.
+
+```qlang
+> !{:kind :oops} | count | add(1) | catch | /trail
+["count" "add(1)"]
+```
+
+The `error` operand creates error values from Maps at runtime.
+The `catch` operand unwraps error values back to their descriptor
+Map. The `isError` operand tests whether pipeValue is an error.
+
+```qlang
+> error({:kind :oops}) | catch | /kind
+:oops
+
+> 42 | isError
+false
+
+> !{:kind :oops} | isError
+true
+```
+
+Runtime type errors, arity errors, and other recoverable failures
+automatically become error values with structured descriptors:
+
+```qlang
+> "hello" | add(1) | catch | /thrown
+:AddLeftNotNumber
+
+> "hello" | add(1) | catch | /origin
+:qlang/eval
+```
+
 ## Expressions
 
 Evaluation is **eager** and left-to-right. Each step fully
@@ -223,6 +276,27 @@ any JSON value reachable by JSONPath is reachable by qlang projection.
 
 Both forms can be mixed inside a single projection chain:
 `/outer/"inner key"/age`.
+
+A third form, keyword projection, prefixes a segment with `:` to
+project by a namespaced keyword. The `:` signals that subsequent
+`/` separators are part of the name, not new segments. A new
+segment starts at the next `/:` or when the projection ends.
+
+```qlang
+> {:"foo bar" 42} | /"foo bar"
+42
+
+> {:qlang/error 42} | /:qlang/error
+42
+
+> {:qlang/error {:retry 42}} | /:qlang/error/:retry
+42
+```
+
+- `/name` — bare segment, projects by keyword `:name`
+- `/:name` — keyword segment, same result (`:` redundant for simple names)
+- `/:qlang/error` — keyword segment, projects by namespaced keyword `:qlang/error`
+- `/qlang/error` — two bare segments: `/qlang` then `/error` (nested projection)
 
 Nested: `/a/b` desugars to `/a | /b`.
 
@@ -943,11 +1017,11 @@ function `(pipeValue, env) → (pipeValue', env')`. For the full formal
 model — including fork semantics, bootstrap, and Rule 10 details —
 see [qlang-internals.md](qlang-internals.md).
 
-Six step types:
+Seven step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
-| 1 | literal (Scalar, Vec, Map, Set) | → `(lit, env)`. Compound literals (`[a,b]`, `{:k v}`, `#{a,b}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. |
+| 1 | literal (Scalar, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a,b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `nil` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `reify`, `manifest` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as name` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
@@ -1016,6 +1090,42 @@ filter(/age | gt(18))
 | `let(:cleanName, …@effectful…)` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
 
+### Error propagation
+
+All recoverable runtime errors (type errors, arity errors, division
+by zero, unresolved identifiers, effect laundering) produce **error
+values** instead of throwing exceptions. An error value is the
+fifth value type, displayed as `!{...}`.
+
+When `pipeValue` is an error value, the evaluator skips most
+pipeline steps — the error flows through unchanged. Only
+**error-aware** operands (`catch`, `isError`) receive the error
+value. Pipeline and ParenGroup nodes are entered (their children
+decide individually). Comments are transparent (identity). Conduit
+calls are entered (the conduit body decides).
+
+Skipped steps are recorded in a `:trail` Vec on the error
+descriptor. The trail is materialized when `catch` unwraps the
+error:
+
+```qlang
+> "hello" | add(1) | mul(2) | sub(3) | catch | /trail
+["mul(2)" "sub(3)"]
+```
+
+Error descriptor fields for runtime errors:
+
+| Field | Type | Content |
+|---|---|---|
+| `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
+| `:kind` | keyword | Error category: `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
+| `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotVec`, etc. |
+| `:message` | string | Human-readable description |
+| `:trail` | Vec | Steps skipped during propagation (populated by `catch`) |
+
+Additional context fields vary by error site (`:operand`,
+`:expectedType`, `:actualType`, `:position`, `:index`, etc.).
+
 ## Effect markers
 
 Side-effectful host operands carry the `@` prefix in qlang source.
@@ -1076,7 +1186,7 @@ and `snap` would invoke it on lookup.
 | Number | `-`? digits (`.` digits)? | `42`, `-3.14` |
 | Boolean | `true` \| `false` | |
 | Nil | `nil` | |
-| Keyword | `:` (ident \| quoted-string) | `:name`, `:age`, `:"foo bar"`, `:""` |
+| Keyword | `:` (ident \| namespaced \| quoted-string) | `:name`, `:qlang/error`, `:"foo bar"` |
 | Ident | (alpha \| `@` \| `_`) (alnum \| `-` \| `_`)* | `count`, `my-fn`, `@callers`, `_private` |
 | Projection | `/` keyseg (`/` keyseg)* | `/name`, `/a/b/c`, `/"foo bar"`, `/"a.b"/"$ref"` |
 | KeySeg | quoted-string \| ident | `name`, `"foo bar"` |
@@ -1088,6 +1198,7 @@ and `snap` would invoke it on lookup.
 | LBrace | `{` | |
 | RBrace | `}` | |
 | HashBrace | `#{` | |
+| BangBrace | `!{` | |
 | LBracket | `[` | |
 | RBracket | `]` | |
 | LinePlainComment | `\|~\|` chars until newline | `\|~\| short note` |
@@ -1123,9 +1234,10 @@ BlockPlainComment ← '|~'   (!'~|' .)*  '~|'
 LineDocComment    ← '|~~|' [^\n]*
 BlockDocComment   ← '|~~'  (!'~~|' .)* '~~|'
 
-Primary       ← '(' Pipeline ')' / Map / Set / Vec
+Primary       ← '(' Pipeline ')' / Error / Map / Set / Vec
                / Operand / Projection / Scalar
 
+Error         ← '!{' '}' / '!{' MapBody '}'
 Map           ← '{' '}' / '{' MapBody '}'
 MapBody       ← MapEntry (','? MapEntry)*
 MapEntry      ← Keyword Pipeline
@@ -1137,10 +1249,12 @@ Vec           ← '[' (Pipeline (','? Pipeline)*)? ']'
 Operand       ← Ident ('(' (Pipeline (','? Pipeline)*)? ')')?
 
 Projection    ← '/' KeySeg ('/' KeySeg)*
-KeySeg        ← QuotedKeywordName / Ident
+KeySeg        ← ':' NamespacedName / ':' Ident
+               / QuotedKeywordName / Ident
 
 Scalar        ← String / Number / Boolean / Nil / Keyword
-Keyword           ← ':' QuotedKeywordName / ':' Ident
+Keyword           ← ':' QuotedKeywordName / ':' NamespacedName / ':' Ident
+NamespacedName    ← Ident ('/' Ident)+
 QuotedKeywordName ← '"' DoubleStringChar* '"'
 Ident             ← [@_a-zA-Z] [a-zA-Z0-9_-]*
 ```
@@ -1153,10 +1267,13 @@ double duty: it absorbs the pipeline combinator that would
 otherwise have preceded the next step.
 
 Disambiguation:
+- `!{` → Error (same entry syntax as Map)
 - `{` `}` → empty Map
 - `{` `:` → Map (every entry is `:key expr` pair, no shorthand)
 - `#{` → Set
 - `[` → Vec (elements evaluated against current `pipeValue`)
+- `/:` → keyword projection segment (namespaced key)
+- `/ident` → bare projection segment
 
 ### Reserved words
 

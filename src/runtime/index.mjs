@@ -41,6 +41,11 @@ import {
   firstTruthy as firstTruthyOperand,
   cond as condOperand
 } from './control.mjs';
+import {
+  error as errorOperand,
+  catchOp as catchOperand,
+  isError as isErrorOperand
+} from './error.mjs';
 import { bootstrapManifest } from '../bootstrap.mjs';
 
 // JS impl registry: name → function value (captured-only meta).
@@ -68,7 +73,8 @@ const IMPLS = {
   manifest: manifestOperand, runExamples: runExamplesOperand,
   let: letOperand, as: asOperand,
   if: ifOp, when: whenOperand, unless: unlessOperand,
-  coalesce: coalesceOperand, firstTruthy: firstTruthyOperand, cond: condOperand
+  coalesce: coalesceOperand, firstTruthy: firstTruthyOperand, cond: condOperand,
+  error: errorOperand, catch: catchOperand, isError: isErrorOperand
 };
 
 // Lazy bootstrap cache — parsed once, reused across langRuntime() calls.
@@ -92,21 +98,17 @@ function forceDescriptor(conduit) {
 // meta entirely with manifest-sourced fields, preserving `captured`.
 function enrichWithManifest(fnValue, conduit) {
   const descriptor = forceDescriptor(conduit);
-  if (!(descriptor instanceof Map)) return fnValue;
-
-  const get = (k) => descriptor.get(keyword(k)) ?? null;
-  const toArr = (v) => Array.isArray(v) ? v : [];
-  const kwName = (v) => v && typeof v === 'object' && v.type === 'keyword' ? v.name : String(v);
+  const get = (k) => descriptor.get(keyword(k));
 
   const enrichedMeta = {
-    captured: fnValue.meta?.captured ?? null,
-    category: kwName(get('category')),
+    captured: fnValue.meta.captured,
+    category: get('category').name,
     subject: get('subject'),
     returns: get('returns'),
-    modifiers: toArr(get('modifiers')),
+    modifiers: get('modifiers'),
     docs: [...conduit.docs],
-    examples: toArr(get('examples')),
-    throws: toArr(get('throws')).map(kwName)
+    examples: get('examples'),
+    throws: get('throws').map(v => v.name)
   };
 
   return Object.freeze({
@@ -124,9 +126,7 @@ export function langRuntime() {
 
   for (const [name, fnValue] of Object.entries(IMPLS)) {
     const nameKw = keyword(name);
-    const conduit = descriptors.get(nameKw);
-    const enriched = conduit ? enrichWithManifest(fnValue, conduit) : fnValue;
-    m.set(nameKw, enriched);
+    m.set(nameKw, enrichWithManifest(fnValue, descriptors.get(nameKw)));
   }
 
   return m;

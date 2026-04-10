@@ -1,0 +1,31 @@
+{"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
+{"name":"error-lit-empty","query":"!{}","expect":"!{}"}
+{"name":"error-operand-from-map","query":"{:kind :oops} | error","expect":"!{:kind :oops}"}
+{"name":"error-operand-full-form","query":"error({:kind :oops})","expect":"!{:kind :oops}"}
+{"name":"error-isError-true","query":"!{:kind :oops} | isError","expect":"true"}
+{"name":"error-isError-false-number","query":"42 | isError","expect":"false"}
+{"name":"error-isError-false-map","query":"{:kind :oops} | isError","expect":"false"}
+{"name":"error-isError-false-nil","query":"nil | isError","expect":"false"}
+{"name":"catch-bare-unwraps","query":"!{:kind :oops :message \"boom\"} | catch | /kind","expect":":oops"}
+{"name":"catch-bare-message","query":"!{:kind :oops :message \"boom\"} | catch | /message","expect":"\"boom\""}
+{"name":"catch-with-handler","query":"!{:kind :oops :message \"boom\"} | catch(/message)","expect":"\"boom\""}
+{"name":"catch-pass-through-number","query":"42 | catch","expect":"42"}
+{"name":"catch-pass-through-string","query":"\"hello\" | catch","expect":"\"hello\""}
+{"name":"catch-pass-through-vec","query":"[1 2 3] | catch","expect":"[1 2 3]"}
+{"name":"propagation-skips-count","query":"!{:kind :oops} | count | isError","expect":"true"}
+{"name":"propagation-skips-add","query":"!{:kind :oops} | add(1) | isError","expect":"true"}
+{"name":"propagation-skips-projection","query":"!{:kind :oops} | /name | isError","expect":"true"}
+{"name":"propagation-enters-paren","query":"!{:kind :oops} | (catch | /kind)","expect":":oops"}
+{"name":"trail-single-step","query":"!{:kind :oops} | count | catch | /trail","expect":"[\"count\"]"}
+{"name":"trail-multi-step","query":"!{:kind :oops} | count | add(1) | mul(2) | catch | /trail","expect":"[\"count\" \"add(1)\" \"mul(2)\"]"}
+{"name":"trail-empty-no-propagation","query":"!{:kind :oops} | catch | /trail","expect":"[]"}
+{"name":"runtime-error-becomes-value","query":"\"hello\" | add(1) | isError","expect":"true"}
+{"name":"runtime-error-catch-kind","query":"\"hello\" | add(1) | catch | /kind","expect":":type-error"}
+{"name":"runtime-error-catch-thrown","query":"\"hello\" | add(1) | catch | /thrown","expect":":AddLeftNotNumber"}
+{"name":"runtime-error-catch-origin","query":"\"hello\" | add(1) | catch | /origin","expect":":qlang/eval"}
+{"name":"runtime-div-zero-kind","query":"10 | div(0) | catch | /kind","expect":":division-by-zero"}
+{"name":"runtime-unresolved-kind","query":"blah | catch | /kind","expect":":unresolved-identifier"}
+{"name":"distribute-per-element-errors","query":"[1 \"x\" 3] * add(10) | filter(isError | not)","expect":"[11 13]"}
+{"name":"distribute-error-count","query":"[1 \"x\" 3] * add(10) | filter(isError) | count","expect":"1"}
+{"name":"catch-in-distribute","query":"[1 \"x\" 3] * (add(10) | catch(0))","expect":"[11 0 13]"}
+{"name":"error-descriptor-not-map","query":"42 | error | catch | /kind","expect":":type-error"}

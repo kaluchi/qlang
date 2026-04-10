@@ -795,12 +795,50 @@ missing). This is the introspection-by-name path:
   - `[1 2 3] | as(:nums) | nums | count` → `3`.
 - **Errors**: name not a keyword → `AsNameNotKeyword`.
 
+## Error operands
+
+### `error`
+
+- **Arity** 1. **Subject** `map` (the descriptor).
+- Creates an error value from a Map descriptor. Bare form:
+  `map | error`. Full form: `error(map)`.
+- Error values propagate through pipeline steps — non-error-aware
+  operands are skipped. Use `catch` to unwrap.
+- **Example**: `error({:kind :oops}) | catch | /kind` → `:oops`.
+- **Errors**: subject not a Map → type error.
+
+### `catch`
+
+- Overloaded by captured-arg count. **Error-aware**: receives
+  error values without propagation.
+- **Arity 1, zero captured** — unwraps an error value to its
+  descriptor Map (with `:trail` Vec). Non-error values pass
+  through unchanged.
+- **Arity 2, one captured** — unwraps the error, then applies
+  the handler sub-pipeline to the descriptor Map. Non-error
+  values pass through unchanged.
+- **Examples**:
+  - `!{:kind :oops :message "boom"} | catch | /message` → `"boom"`.
+  - `!{:kind :oops} | catch(/kind)` → `:oops`.
+  - `42 | catch` → `42`.
+
+### `isError`
+
+- **Arity** 1. **Subject** any value. **Error-aware**.
+- Returns `true` if pipeValue is an error value, `false` otherwise.
+  Ordinary Maps with error-like fields are not error values.
+- **Examples**:
+  - `error({:kind :oops}) | isError` → `true`.
+  - `{:kind :oops} | isError` → `false`.
+  - `42 | isError` → `false`.
+
 ## Summary: unique operand names by category
 
 `count`, `empty`, and `has` are polymorphic — one identifier
 dispatches on subject type. `sort` is overloaded by arity — same
 identifier, 0 or 1 captured arg. `reify` is overloaded by arity
-(value-level or named form). Each name is listed once.
+(value-level or named form). `use` is overloaded by arity (bare
+merge, namespace import, selective import). Each name is listed once.
 
 | Category                | Names (frequent → specialized)                        |
 |-------------------------|-------------------------------------------------------|
@@ -815,9 +853,10 @@ identifier, 0 or 1 captured arg. `reify` is overloaded by arity
 | Boolean                 | `not`                                                 |
 | Predicates              | `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or`           |
 | Formatting              | `json`, `table`                                       |
+| Error                   | `error`, `catch`, `isError`                            |
 | Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples` |
 
-**65 unique identifiers** in the initial `langRuntime` Map. Each
+**68 unique identifiers** in the initial `langRuntime` Map. Each
 polymorphic / overloaded operand is one identifier regardless of
 how many dispatch paths it carries.
 

@@ -13,7 +13,8 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isTruthy, describeType, NIL, keyword
+  isVec, isQMap, isQSet, isKeyword, isTruthy, describeType, NIL, keyword,
+  isErrorValue
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -149,7 +150,13 @@ function checkComparable(ErrorCls, left, right) {
 
 export const filter = higherOrderOp('filter', 2, (vec, predLambda) => {
   if (!isVec(vec)) throw new FilterSubjectNotVec(describeType(vec), vec);
-  return vec.filter(item => isTruthy(predLambda(item)));
+  const out = [];
+  for (const item of vec) {
+    const pred = predLambda(item);
+    if (isErrorValue(pred)) return pred;
+    if (isTruthy(pred)) out.push(item);
+  }
+  return out;
 });
 
 export const every = higherOrderOp('every', 2, (vec, predLambda) => {
@@ -307,7 +314,7 @@ export const desc = higherOrderOp('desc', 2, (pair, keyLambda) => {
   return -compareScalars(leftKey, rightKey);
 });
 
-function nullsKeyComparator(pair, keyLambda, nilFirst, ascending, PairNotMapError) {
+function nullsKeyComparator(pair, keyLambda, nilFirst, PairNotMapError) {
   if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
   const left  = pair.get(keyword('left'));
   const right = pair.get(keyword('right'));
@@ -319,15 +326,14 @@ function nullsKeyComparator(pair, keyLambda, nilFirst, ascending, PairNotMapErro
   if (leftNil) return nilFirst ? -1 : 1;
   if (rightNil) return nilFirst ? 1 : -1;
   checkComparable(nilFirst ? AscKeysNotComparable : DescKeysNotComparable, leftKey, rightKey);
-  const cmp = compareScalars(leftKey, rightKey);
-  return ascending ? cmp : -cmp;
+  return compareScalars(leftKey, rightKey);
 }
 
 export const nullsFirst = higherOrderOp('nullsFirst', 2, (pair, keyLambda) =>
-  nullsKeyComparator(pair, keyLambda, true, true, NullsFirstPairNotMap));
+  nullsKeyComparator(pair, keyLambda, true, NullsFirstPairNotMap));
 
 export const nullsLast = higherOrderOp('nullsLast', 2, (pair, keyLambda) =>
-  nullsKeyComparator(pair, keyLambda, false, true, NullsLastPairNotMap));
+  nullsKeyComparator(pair, keyLambda, false, NullsLastPairNotMap));
 
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(describeType(vec), vec);

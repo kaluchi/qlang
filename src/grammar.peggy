@@ -305,6 +305,7 @@ RawStep
 
 Primary
   = ParenGroup
+  / ErrorLit
   / SetLit
   / VecLit
   / MapLit
@@ -315,6 +316,12 @@ Primary
 ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
+
+ErrorLit
+  = "!{" _ "}"
+    { return node('ErrorLit', { entries: [] }, location(), text()); }
+  / "!{" _ entries:MapEntries _ "}"
+    { return node('ErrorLit', { entries }, location(), text()); }
 
 MapLit
   = "{" _ "}"
@@ -366,7 +373,9 @@ Projection
     { return node('Projection', { keys: [first, ...rest.map(r => r[1])] }, location(), text()); }
 
 KeySegment
-  = QuotedKeywordName
+  = ":" name:NamespacedName { return name; }
+  / ":" name:Ident          { return name; }
+  / QuotedKeywordName
   / Ident
 
 Scalar
@@ -415,8 +424,13 @@ NilLit
 // The quoted form is what makes "every JSON object key has a qlang
 // literal" hold, completing the lossless JSON interop guarantee.
 Keyword
-  = ":" name:QuotedKeywordName { return node('Keyword', { name }, location(), text()); }
-  / ":" name:Ident             { return node('Keyword', { name }, location(), text()); }
+  = ":" name:QuotedKeywordName  { return node('Keyword', { name }, location(), text()); }
+  / ":" name:NamespacedName     { return node('Keyword', { name }, location(), text()); }
+  / ":" name:Ident              { return node('Keyword', { name }, location(), text()); }
+
+NamespacedName
+  = head:Ident tail:("/" Ident)+
+    { return head + tail.map(t => '/' + t[1]).join(''); }
 
 QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }

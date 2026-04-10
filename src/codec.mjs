@@ -27,7 +27,9 @@ import {
   isQSet,
   isFunctionValue,
   isConduit,
-  isSnapshot
+  isSnapshot,
+  isErrorValue,
+  makeErrorValue
 } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
@@ -64,6 +66,9 @@ export function toTaggedJSON(value) {
   if (isQSet(value)) {
     return { $set: Array.from(value, toTaggedJSON) };
   }
+  if (isErrorValue(value)) {
+    return { $error: toTaggedJSON(value.descriptor) };
+  }
   if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError('function');
   if (isConduit(value))         throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value))      throw new TaggedJSONUnencodableValueError('snapshot');
@@ -87,6 +92,9 @@ export function fromTaggedJSON(json) {
       const s = new Set();
       for (const v of json.$set) s.add(fromTaggedJSON(v));
       return s;
+    }
+    if ('$error' in json) {
+      return makeErrorValue(fromTaggedJSON(json.$error), {});
     }
   }
   throw new MalformedTaggedJSONError(json);

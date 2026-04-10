@@ -1,0 +1,28 @@
+|~~ Retry action up to n times on failure. Captures
+    input before each attempt and restores it on
+    retry so the action always sees the original data.
+    The action parameter is a lazy lambda — if the
+    caller passes an effectful operand, the effect
+    fires at the call site, not inside retry. ~~|
+let(:retry, [:action, :n],
+  as(:_input) | action
+  | catch(as(:_err)
+    | if(n | gt(0),
+        _input | retry(action, n | sub(1)),
+        error(_err))))
+
+|~~ Conditional catch: handle only errors matching
+    the predicate, re-raise the rest unchanged. ~~|
+let(:recover, [:pred, :handler],
+  catch(as(:_err) | if(pred, handler, error(_err))))
+
+|~~ Transform an error without leaving the error track.
+    Success values pass through unchanged. ~~|
+let(:mapError, [:fn],
+  catch(fn | error))
+
+|~~ Add context fields to an error. Success values
+    pass through unchanged. Merges the context Map
+    into the error descriptor via union. ~~|
+let(:withContext, [:ctx],
+  catch(as(:_err) | [_err, ctx] | union | error))

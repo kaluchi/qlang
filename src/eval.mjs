@@ -42,9 +42,10 @@ class UnknownCombinatorKindError extends QlangInvariantError {
   }
 }
 import {
-  isVec, isQMap, isConduit, isSnapshot, isFunctionValue,
-  describeType, keyword, NIL
+  isVec, isQMap, isConduit, isSnapshot, isFunctionValue, isErrorValue,
+  describeType, keyword, NIL, makeErrorValue, appendTrailNode
 } from './types.mjs';
+import { errorFromQlang, errorFromForeign } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
@@ -92,6 +93,7 @@ const NODE_HANDLERS = {
   Keyword:           evalKeyword,
   VecLit:            evalVecLit,
   MapLit:            evalMapLit,
+  ErrorLit:          evalErrorLit,
   SetLit:            evalSetLit,
   Projection:        evalProjection,
   OperandCall:       evalOperandCall,
@@ -100,22 +102,37 @@ const NODE_HANDLERS = {
   BlockPlainComment: evalCommentStep
 };
 
+// Error propagation: nodes that are entered (children decide
+// individually) vs nodes that are skipped (error passes through).
+// OperandCall is neither — it checks errorAware inside its handler.
+// Comments are silent: skipped with no trail entry (handled in the
+// else block via PROPAGATION_SILENT, not the enter block).
+const PROPAGATION_ENTER = new Set(['Pipeline', 'ParenGroup']);
+const PROPAGATION_SILENT = new Set(['LinePlainComment', 'BlockPlainComment']);
+
 function evalNode(node, state) {
   const handler = NODE_HANDLERS[node.type];
-  if (!handler) {
-    throw new UnknownAstNodeTypeError(node.type);
+  if (!handler) throw new UnknownAstNodeTypeError(node.type);
+
+  if (isErrorValue(state.pipeValue) && node.type !== 'OperandCall') {
+    if (PROPAGATION_ENTER.has(node.type)) {
+      // Pipeline, ParenGroup — enter, children decide
+    } else {
+      // Everything else — skip with trail (unless silent comment)
+      return PROPAGATION_SILENT.has(node.type)
+        ? state
+        : withPipeValue(state, appendTrailNode(state.pipeValue, node));
+    }
   }
-  // Source-location enrichment: any QlangError that bubbles past
-  // here without a location yet picks up the location of `node`.
-  // Deeper frames (closer to the throw site) win because they set
-  // .location first and the `!e.location` guard prevents overwrite.
+
   try {
     return handler(node, state);
   } catch (e) {
-    if (e instanceof QlangError && !e.location && node.location) {
+    if (e instanceof QlangError && !e.location && node.location)
       e.location = node.location;
-    }
-    throw e;
+    if (e instanceof QlangInvariantError) throw e;
+    return withPipeValue(state,
+      e instanceof QlangError ? errorFromQlang(e, node) : errorFromForeign(e, node));
   }
 }
 
@@ -199,6 +216,17 @@ function evalMapLit(node, state) {
   return withPipeValue(state, result);
 }
 
+function evalErrorLit(node, state) {
+  // Same entry evaluation as MapLit, but wraps in error value.
+  const descriptor = new Map();
+  for (const entry of node.entries) {
+    const key = keyword(entry.key.name);
+    const value = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
+    descriptor.set(key, value);
+  }
+  return withPipeValue(state, makeErrorValue(descriptor, { location: node.location }));
+}
+
 function evalSetLit(node, state) {
   const result = new Set();
   for (const elem of node.elements) {
@@ -235,6 +263,20 @@ function evalProjection(node, state) {
 function evalOperandCall(node, state) {
   const name = node.name;
   const env = state.env;
+
+  // Error propagation: if pipeValue is an error, check whether the
+  // resolved binding is error-aware. If not, skip (propagate with
+  // trail). Resolve just enough to check the flag — don't force
+  // conduits or trigger side effects.
+  if (isErrorValue(state.pipeValue)) {
+    const resolved = envHas(env, name) ? envGet(env, name) : null;
+    const aware = (resolved && isFunctionValue(resolved) && resolved.errorAware)
+               || isConduit(resolved);  // conduits are transparent — their body decides
+    if (!aware) {
+      return withPipeValue(state, appendTrailNode(state.pipeValue, node));
+    }
+    // Fall through — error-aware operand or conduit receives the error value
+  }
 
   if (!envHas(env, name)) {
     throw new UnresolvedIdentifierError(name);

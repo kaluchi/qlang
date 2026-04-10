@@ -1,0 +1,14 @@
+|~~ Guard: check predicate on pipeValue, raise error
+    if the predicate fails. pipeValue passes through
+    unchanged on success. ~~|
+let(:assert, [:pred, :msg],
+  as(:_v) | if(pred, _v,
+    error({:origin :user :kind :assertion-failed :message msg :value _v})))
+
+|~~ Postcondition: check predicate on pipeValue after
+    a transformation. Same mechanism as assert, named
+    for intent — verify the output contract at the
+    end of a pipeline section. ~~|
+let(:ensure, [:pred, :msg],
+  as(:_v) | if(pred, _v,
+    error({:origin :user :kind :postcondition-failed :message msg :value _v})))

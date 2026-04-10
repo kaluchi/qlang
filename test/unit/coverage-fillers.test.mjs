@@ -14,7 +14,9 @@ import {
   describeType,
   makeSnapshot,
   makeConduit,
-  keyword
+  makeErrorValue,
+  keyword,
+  isErrorValue
 } from '../../src/types.mjs';
 import {
   stateOpVariadic,
@@ -26,15 +28,15 @@ import { walkAst, bindingNamesVisibleAt } from '../../src/walk.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', () => {
-    expect(() => evalQuery('5 | sub("x")')).toThrow();
+    expect(isErrorValue(evalQuery('5 | sub("x")'))).toBe(true);
   });
 
   it('mul with non-numeric right operand throws', () => {
-    expect(() => evalQuery('5 | mul("x")')).toThrow();
+    expect(isErrorValue(evalQuery('5 | mul("x")'))).toBe(true);
   });
 
   it('div with non-numeric right operand throws', () => {
-    expect(() => evalQuery('5 | div("x")')).toThrow();
+    expect(isErrorValue(evalQuery('5 | div("x")'))).toBe(true);
   });
 });
 
@@ -375,19 +377,19 @@ describe('sourceOfAst renders comment nodes in synthesized conduit bodies', () =
 
 describe('setops bare-form non-Vec subject errors', () => {
   it('union bare on non-Vec/non-Set throws UnionBareSubjectNotVec', () => {
-    expect(() => evalQuery('42 | union')).toThrow();
+    expect(isErrorValue(evalQuery('42 | union'))).toBe(true);
   });
 
   it('union bare on a Set (which is also non-Array) throws', () => {
-    expect(() => evalQuery('#{:a} | union')).toThrow();
+    expect(isErrorValue(evalQuery('#{:a} | union'))).toBe(true);
   });
 
   it('minus bare on non-Vec throws MinusBareSubjectNotVec', () => {
-    expect(() => evalQuery('42 | minus')).toThrow();
+    expect(isErrorValue(evalQuery('42 | minus'))).toBe(true);
   });
 
   it('inter bare on non-Vec throws InterBareSubjectNotVec', () => {
-    expect(() => evalQuery('42 | inter')).toThrow();
+    expect(isErrorValue(evalQuery('42 | inter'))).toBe(true);
   });
 });
 
@@ -436,17 +438,17 @@ describe('vec.min and vec.max on empty Vec', () => {
 
 describe('vec.sort with key on non-Vec subject', () => {
   it('sort with key throws SortByKeySubjectNotVec', () => {
-    expect(() => evalQuery('42 | sort(/x)')).toThrow();
+    expect(isErrorValue(evalQuery('42 | sort(/x)'))).toBe(true);
   });
 });
 
 describe('higherOrderOp / nullaryOp arity errors', () => {
   it('nullaryOp called with captured args throws', () => {
-    expect(() => evalQuery('[1 2 3] | count(:foo)')).toThrow();
+    expect(isErrorValue(evalQuery('[1 2 3] | count(:foo)'))).toBe(true);
   });
 
   it('higherOrderOp filter called with zero captured args throws', () => {
-    expect(() => evalQuery('[1 2 3] | filter')).toThrow();
+    expect(isErrorValue(evalQuery('[1 2 3] | filter'))).toBe(true);
   });
 });
 
@@ -504,21 +506,21 @@ describe('count and friends on a Map subject', () => {
 
 describe('valueOp arity overflow', () => {
   it('add with zero captured args throws ArityError', () => {
-    expect(() => evalQuery('5 | add')).toThrow();
+    expect(isErrorValue(evalQuery('5 | add'))).toBe(true);
   });
 });
 
 describe('setops bare-form empty Vec', () => {
   it('minus bare on empty Vec throws MinusBareEmpty', () => {
-    expect(() => evalQuery('[] | minus')).toThrow();
+    expect(isErrorValue(evalQuery('[] | minus'))).toBe(true);
   });
 
   it('inter bare on empty Vec throws InterBareEmpty', () => {
-    expect(() => evalQuery('[] | inter')).toThrow();
+    expect(isErrorValue(evalQuery('[] | inter'))).toBe(true);
   });
 
   it('union bare on empty Vec throws UnionBareEmpty', () => {
-    expect(() => evalQuery('[] | union')).toThrow();
+    expect(isErrorValue(evalQuery('[] | union'))).toBe(true);
   });
 });
 
@@ -530,8 +532,9 @@ describe('conduit effect-laundering at call site', () => {
     s.evalCell('let(:@effFn, count)');
     s.evalCell('{:clean (env | /@effFn)} | use');
     const cell = s.evalCell('[1 2 3] | clean');
-    expect(cell.error).not.toBeNull();
-    expect(cell.error.name).toBe('EffectLaunderingAtCall');
+    // EffectLaunderingAtCall now produces an error value.
+    expect(isErrorValue(cell.result)).toBe(true);
+    expect(cell.result.originalError.name).toBe('EffectLaunderingAtCall');
   });
 });
 
@@ -540,12 +543,12 @@ describe('conduit-parameter arity error', () => {
     // Inside the body, `n` is a conduit-parameter proxy (nullary
     // function value). Calling it with captured args (n(42)) should
     // raise ConduitParameterNoCapturedArgs with structured context.
-    let thrown;
-    try { evalQuery('let(:f, [:n], n(42)) | 0 | f(5)'); } catch (e) { thrown = e; }
-    expect(thrown).toBeDefined();
-    expect(thrown.name).toBe('ConduitParameterNoCapturedArgs');
-    expect(thrown.context.paramName).toBe('n');
-    expect(thrown.context.actualCount).toBe(1);
+    const result = evalQuery('let(:f, [:n], n(42)) | 0 | f(5)');
+    expect(isErrorValue(result)).toBe(true);
+    const e = result.originalError;
+    expect(e.name).toBe('ConduitParameterNoCapturedArgs');
+    expect(e.context.paramName).toBe('n');
+    expect(e.context.actualCount).toBe(1);
   });
 });
 
@@ -573,17 +576,15 @@ describe('reify on a snapshot bound directly via session.bind', () => {
 
 describe('min/max subject type checks', () => {
   it('min on a non-Vec throws MinSubjectNotVec', () => {
-    let thrown;
-    try { evalQuery('42 | min'); } catch (e) { thrown = e; }
-    expect(thrown).toBeDefined();
-    expect(thrown.name).toBe('MinSubjectNotVec');
+    const result = evalQuery('42 | min');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.originalError.name).toBe('MinSubjectNotVec');
   });
 
   it('max on a non-Vec throws MaxSubjectNotVec', () => {
-    let thrown;
-    try { evalQuery('"hello" | max'); } catch (e) { thrown = e; }
-    expect(thrown).toBeDefined();
-    expect(thrown.name).toBe('MaxSubjectNotVec');
+    const result = evalQuery('"hello" | max');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.originalError.name).toBe('MaxSubjectNotVec');
   });
 });
 
@@ -640,3 +641,299 @@ describe('bindingNamesVisibleAt edge cases', () => {
     expect(visible.has('x')).toBe(false);
   });
 });
+
+import { deserializeSession, serializeSession } from '../../src/session.mjs';
+
+describe('session deserialization edge cases', () => {
+  it('deserializes conduit binding without params field', () => {
+    const payload = {
+      schemaVersion: 1,
+      bindings: [{ kind: 'conduit', name: 'x', source: 'mul(2)', docs: [] }],
+      cells: []
+    };
+    const s = deserializeSession(payload);
+    const r = s.evalCell('5 | x');
+    expect(r.result).toBe(10);
+  });
+});
+
+describe('runExamples with parse error in example', () => {
+  it('reports ok=false for syntactically invalid example', () => {
+    // Build a fake descriptor Map with an invalid example
+    const s = createSession();
+    s.evalCell('let(:fakeOp, 42)');
+    // Manually build descriptor with bad example via a pipeline:
+    const r = s.evalCell('{:kind :builtin :examples ["[[[invalid"]} | runExamples | first | /ok');
+    expect(r.result).toBe(false);
+  });
+
+  it('reports error message for parse-error example', () => {
+    const s = createSession();
+    const r = s.evalCell('{:kind :builtin :examples ["[[[invalid"]} | runExamples | first | /error');
+    expect(typeof r.result).toBe('string');
+    expect(r.result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('importSelectiveNamespace single keyword fallback', () => {
+  it('use(:ns, :singleKeyword) wraps keyword in array', () => {
+    const s = createSession();
+    const lib = new Map();
+    lib.set(keyword('x'), 10);
+    lib.set(keyword('y'), 20);
+    s.bind('lib', lib);
+    const r = s.evalCell('use(:lib, :x) | x');
+    expect(r.result).toBe(10);
+  });
+});
+
+describe('sourceOfAst via synthetic AST nodes (no .text field)', () => {
+  // sourceOfAst is the fallback when an AST node lacks .text — e.g.
+  // nodes constructed programmatically by the host. Test by building
+  // conduits whose body is a hand-made AST node.
+
+  // makeConduit is already imported at the top of this file
+
+  function conduitWithBody(bodyNode) {
+    return makeConduit(bodyNode, { name: 'x', params: [], docs: [] });
+  }
+
+  function reifySource(s, conduit) {
+    s.bind('x', conduit);
+    return s.evalCell('reify(:x) | /source').result;
+  }
+
+  it('renders NumberLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'NumberLit', value: 42 }))).toBe('42');
+  });
+
+  it('renders StringLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'StringLit', value: 'hello' }))).toBe('"hello"');
+  });
+
+  it('renders BooleanLit true and false', () => {
+    const s1 = createSession();
+    expect(reifySource(s1, conduitWithBody({ type: 'BooleanLit', value: true }))).toBe('true');
+    const s2 = createSession();
+    expect(reifySource(s2, conduitWithBody({ type: 'BooleanLit', value: false }))).toBe('false');
+  });
+
+  it('renders NilLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'NilLit' }))).toBe('nil');
+  });
+
+  it('renders Keyword', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'Keyword', name: 'foo' }))).toBe(':foo');
+  });
+
+  it('renders quoted Keyword', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'Keyword', name: 'foo bar' }))).toBe(':"foo bar"');
+  });
+
+  it('renders Projection', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'Projection', keys: ['a', 'b'] }))).toBe('/a/b');
+  });
+
+  it('renders Projection with quoted segment', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'Projection', keys: ['foo bar'] }))).toBe('/"foo bar"');
+  });
+
+  it('renders bare OperandCall', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'OperandCall', name: 'count', args: null }))).toBe('count');
+  });
+
+  it('renders OperandCall with args', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'OperandCall', name: 'add',
+      args: [{ type: 'NumberLit', value: 1 }, { type: 'NumberLit', value: 2 }]
+    }))).toBe('add(1, 2)');
+  });
+
+  it('renders ParenGroup', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'ParenGroup',
+      pipeline: { type: 'OperandCall', name: 'count', args: null }
+    }))).toBe('(count)');
+  });
+
+  it('renders VecLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'VecLit',
+      elements: [{ type: 'NumberLit', value: 1 }, { type: 'NumberLit', value: 2 }]
+    }))).toBe('[1 2]');
+  });
+
+  it('renders SetLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'SetLit',
+      elements: [{ type: 'Keyword', name: 'a' }, { type: 'Keyword', name: 'b' }]
+    }))).toBe('#{:a :b}');
+  });
+
+  it('renders MapLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'MapLit',
+      entries: [{
+        type: 'MapEntry',
+        key: { type: 'Keyword', name: 'a' },
+        value: { type: 'NumberLit', value: 1 }
+      }]
+    }))).toBe('{:a 1}');
+  });
+
+  it('renders ErrorLit', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'ErrorLit',
+      entries: [{
+        type: 'MapEntry',
+        key: { type: 'Keyword', name: 'k' },
+        value: { type: 'NumberLit', value: 1 }
+      }]
+    }))).toBe('!{:k 1}');
+  });
+
+  it('renders Pipeline', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({
+      type: 'Pipeline',
+      steps: [
+        { type: 'OperandCall', name: 'count', args: null },
+        { combinator: '|', step: { type: 'OperandCall', name: 'add', args: [{ type: 'NumberLit', value: 1 }] } }
+      ]
+    }))).toBe('count | add(1)');
+  });
+
+  it('renders LinePlainComment', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'LinePlainComment', content: ' note' }))).toBe('|~|  note');
+  });
+
+  it('renders BlockPlainComment', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'BlockPlainComment', content: ' reason ' }))).toBe('|~ reason ~|');
+  });
+
+  it('renders LineDocComment', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'LineDocComment', content: ' doc' }))).toBe('|~~|  doc');
+  });
+
+  it('renders BlockDocComment', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'BlockDocComment', content: ' docs ' }))).toBe('|~~ docs ~~|');
+  });
+
+  it('renders unknown type with angle brackets', () => {
+    const s = createSession();
+    expect(reifySource(s, conduitWithBody({ type: 'FutureNodeType' }))).toBe('<FutureNodeType>');
+  });
+});
+
+import {
+  metaToVec, bindingName, capturedRange, categoryKeyword, errorMessageOf
+} from '../../src/runtime/intro.mjs';
+
+describe('extracted descriptor helpers', () => {
+  it('metaToVec on array returns copy', () => {
+    expect(metaToVec([1, 2])).toEqual([1, 2]);
+  });
+  it('metaToVec on null returns empty', () => {
+    expect(metaToVec(null)).toEqual([]);
+  });
+  it('metaToVec on undefined returns empty', () => {
+    expect(metaToVec(undefined)).toEqual([]);
+  });
+
+  it('bindingName prefers explicitName', () => {
+    expect(bindingName('explicit', { name: 'binding' })).toBe('explicit');
+  });
+  it('bindingName falls back to binding.name', () => {
+    expect(bindingName(null, { name: 'binding' })).toBe('binding');
+  });
+  it('bindingName returns null when both absent', () => {
+    expect(bindingName(null, {})).toBe(null);
+    expect(bindingName(null, null)).toBe(null);
+  });
+
+  it('capturedRange from meta.captured', () => {
+    expect(capturedRange({ meta: { captured: [0, 1] } })).toEqual([0, 1]);
+  });
+  it('capturedRange fallback to fn.captured', () => {
+    expect(capturedRange({ meta: {}, captured: [1, 2] })).toEqual([1, 2]);
+  });
+  it('capturedRange returns null when absent', () => {
+    expect(capturedRange({ meta: {} })).toBe(null);
+    expect(capturedRange({})).toBe(null);
+  });
+
+  it('categoryKeyword with category', () => {
+    expect(categoryKeyword({ category: 'arith' })).toEqual(keyword('arith'));
+  });
+  it('categoryKeyword without category', () => {
+    expect(categoryKeyword({})).toBe(null);
+  });
+
+  it('errorMessageOf with originalError', () => {
+    const ev = makeErrorValue(new Map(), { originalError: new Error('from JS') });
+    expect(errorMessageOf(ev)).toBe('from JS');
+  });
+  it('errorMessageOf without originalError', () => {
+    const d = new Map();
+    d.set(keyword('message'), 'from descriptor');
+    const ev = makeErrorValue(d, {});
+    expect(errorMessageOf(ev)).toBe('from descriptor');
+  });
+});
+
+describe('reify descriptor branch coverage', () => {
+  it('reify value-level on conduit exposes name', () => {
+    const r = evalQuery('let(:x, mul(2)) | env | /x | reify | /name');
+    expect(r).toBe('x');
+  });
+
+  it('reify value-level on snapshot exposes name', () => {
+    // env | /val returns the snapshot wrapper; reify on it gives descriptor
+    const r = evalQuery('42 | as(:val) | reify(:val) | /name');
+    expect(r).toBe('val');
+  });
+
+  it('reify named form on conduit', () => {
+    const r = evalQuery('let(:x, mul(2)) | reify(:x) | /kind');
+    expect(r).toEqual(keyword('conduit'));
+  });
+
+  it('reify named form on snapshot', () => {
+    const r = evalQuery('42 | as(:v) | reify(:v) | /kind');
+    expect(r).toEqual(keyword('snapshot'));
+  });
+
+  it('reify on plain value', () => {
+    const r = evalQuery('42 | reify | /kind');
+    expect(r).toEqual(keyword('value'));
+  });
+
+  it('runExamples on example without arrow', () => {
+    const r = evalQuery('{:kind :builtin :examples ["[1 2 3] | count"]} | runExamples | first | /ok');
+    expect(r).toBe(true);
+  });
+
+  it('runExamples on example with mismatched result', () => {
+    const r = evalQuery('{:kind :builtin :examples ["42 → 99"]} | runExamples | first | /ok');
+    expect(r).toBe(false);
+  });
+});
+

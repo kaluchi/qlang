@@ -1,0 +1,18 @@
+{"name":"namespaced-keyword-parse","query":":qlang/error","expect":":qlang/error"}
+{"name":"namespaced-keyword-hierarchical","query":":qlang/core/strings","expect":":qlang/core/strings"}
+{"name":"namespaced-keyword-in-map-and-has","query":"{:qlang/error 42} | has(:qlang/error)","expect":"true"}
+{"name":"namespaced-keyword-equality","query":":qlang/error | eq(:qlang/error)","expect":"true"}
+{"name":"namespaced-keyword-not-equal","query":":qlang/error | eq(:qlang/http)","expect":"false"}
+{"name":"projection-still-multi-segment","query":"{:a {:b 99}} | /a/b","expect":"99"}
+{"name":"namespaced-in-set","query":"#{:qlang/a :qlang/b} | count","expect":"2"}
+{"name":"namespaced-in-has","query":"#{:qlang/error :qlang/http} | has(:qlang/error)","expect":"true"}
+{"name":"keyword-projection-simple","query":"{:name \"alice\"} | /:name","expect":"\"alice\""}
+{"name":"keyword-projection-namespaced","query":"{:qlang/error 42} | /:qlang/error","expect":"42"}
+{"name":"keyword-projection-deep-ns","query":"{:qlang/core/strings 99} | /:qlang/core/strings","expect":"99"}
+{"name":"keyword-projection-two-ns-segments","query":"{:qlang/error {:retry 42}} | /:qlang/error/:retry","expect":"42"}
+{"name":"keyword-projection-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | /:qlang/core/strings/:trim","expect":"1"}
+{"name":"keyword-projection-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | /outer/:qlang/error","expect":"42"}
+{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | /:qlang/http","expect":"nil"}
+{"name":"bare-projection-unchanged","query":"{:a {:b {:c 42}}} | /a/b/c","expect":"42"}
+{"name":"keyword-projection-equiv-bare","query":"{:name 42} | /:name","expect":"42"}
+{"name":"keyword-projection-equiv-bare-nested","query":"{:a {:b 42}} | /:a/:b","expect":"42"}

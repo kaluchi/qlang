@@ -12,6 +12,7 @@ import {
   QlangInvariantError
 } from '../../src/errors.mjs';
 import { evalQuery } from '../../src/eval.mjs';
+import { isErrorValue } from '../../src/types.mjs';
 
 describe('QlangError base class', () => {
   it('carries kind, location=null, fingerprint=null, schemaVersion=1', () => {
@@ -124,13 +125,16 @@ describe('QlangInvariantError', () => {
 });
 
 describe('runtime error location propagation via evalNode', () => {
-  function catchError(query) {
-    try { evalQuery(query); return null; }
-    catch (e) { return e; }
+  // Runtime errors now produce error values. Use .originalError to access
+  // the underlying QlangError with location, fingerprint, etc.
+  function getOriginalError(query) {
+    const result = evalQuery(query);
+    if (isErrorValue(result)) return result.originalError;
+    return null;
   }
 
   it('attaches a location to a runtime type error', () => {
-    const e = catchError('42 | filter(gt(0))');
+    const e = getOriginalError('42 | filter(gt(0))');
     expect(e).toBeInstanceOf(QlangTypeError);
     expect(e.location).not.toBeNull();
     expect(typeof e.location.start.offset).toBe('number');
@@ -140,23 +144,25 @@ describe('runtime error location propagation via evalNode', () => {
     const source = '[1 2 3] | filter(gt(0)) | 99 | filter(gt(0))';
     //              0         1         2         3         4
     //              0123456789012345678901234567890123456789012345
-    const e = catchError(source);
+    const e = getOriginalError(source);
     expect(e).not.toBeNull();
     // The second filter is at offset 31 (`filter` after the `99 | `)
     expect(e.location.start.offset).toBe(source.indexOf('filter', 25));
   });
 
   it('does not overwrite a location set by a deeper frame', () => {
-    // div(0) inside filter — the divisor 0 fires DivisionByZero
-    // before any outer error. The location should reference the
-    // div call site, not the filter that wraps it.
-    const e = catchError('[1 2] | filter(div(/x, 0))');
+    // An error in an inner step carries its location through the pipeline.
+    // The outer step (mul) is never reached — the error value propagates.
+    // Location references the inner `count` call site, not the outer `mul`.
+    const e = getOriginalError('42 | count | mul(2)');
     expect(e).toBeInstanceOf(QlangError);
     expect(e.location).not.toBeNull();
+    // count is at offset 5 in the source
+    expect(e.location.start.offset).toBe(5);
   });
 
   it('per-site fingerprint is set on type errors thrown by operands', () => {
-    const e = catchError('42 | filter(gt(0))');
+    const e = getOriginalError('42 | filter(gt(0))');
     expect(e.fingerprint).toBe('FilterSubjectNotVec');
   });
 });
@@ -168,11 +174,8 @@ describe('error class branding survives Object.defineProperty (minification prox
   // verify the contract here: even if we artificially shadow the
   // class identifier, the runtime `.name` survives.
   it('class.name set by brand() persists across reassignment', () => {
-    function catchError(query) {
-      try { evalQuery(query); return null; }
-      catch (e) { return e; }
-    }
-    const e = catchError('42 | count');
+    const result = evalQuery('42 | count');
+    const e = isErrorValue(result) ? result.originalError : null;
     expect(e.name).toBe('CountSubjectNotContainer');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.

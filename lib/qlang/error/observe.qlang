@@ -1,0 +1,15 @@
+|~~ Observe pipeValue on both tracks without changing it.
+    Runs observer as side-effect on success track;
+    catches error, runs observer on the descriptor,
+    then re-raises. Original value or error preserved. ~~|
+let(:tap, [:observer],
+  as(:_v) | observer | _v
+  | catch(as(:_e) | observer | error(_e)))
+
+|~~ Run action on both tracks, preserve original.
+    Cleanup/finalization primitive. Same mechanism as
+    tap, named for intent — the action must happen
+    regardless of success or failure. ~~|
+let(:finally, [:action],
+  as(:_v) | action | _v
+  | catch(as(:_e) | action | error(_e)))

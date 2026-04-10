@@ -625,7 +625,7 @@ descend-compute-ascend pattern of pure operands.
   pipeline input and reads the evaluator state instead.
 - Replaces `pipeValue` with the current `env` as a Map value.
 - **Examples**:
-  - `env | keys` → a Set of all identifiers currently in scope.
+  - `env | keys` → a Set of all identifiers in scope.
   - `env | has(:count)` → `true` (count is a built-in).
   - `env | /taxRate` → the value of a user binding, or `nil`.
 - Inside a fork, returns the fork's current `env` (including any

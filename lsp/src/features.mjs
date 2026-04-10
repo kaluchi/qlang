@@ -103,8 +103,8 @@ export function completionsAtOffset(ast, offset) {
       if (!items.some(i => i.label === name)) {
         items.push({
           label: name,
-          kind: 'variable',
-          detail: 'user binding',
+          kind: 'function',
+          detail: 'let/as binding',
           documentation: null
         });
       }

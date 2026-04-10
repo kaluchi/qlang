@@ -63,6 +63,8 @@ const SortNaturalNotComparable    = declareComparabilityError('SortNaturalNotCom
 const SortByKeyNotComparable      = declareComparabilityError('SortByKeyNotComparable',      'sort(key)');
 const AscKeysNotComparable        = declareComparabilityError('AscKeysNotComparable',        'asc');
 const DescKeysNotComparable       = declareComparabilityError('DescKeysNotComparable',       'desc');
+const NullsFirstKeysNotComparable = declareComparabilityError('NullsFirstKeysNotComparable', 'nullsFirst');
+const NullsLastKeysNotComparable  = declareComparabilityError('NullsLastKeysNotComparable',  'nullsLast');
 
 const SortWithCmpResultNotNumber = declareShapeError('SortWithCmpResultNotNumber',
   ({ actualType }) => `sortWith comparator must return a number, got ${actualType}`);
@@ -325,7 +327,7 @@ export const desc = higherOrderOp('desc', 2, (pair, keyLambda) => {
   return -compareScalars(leftKey, rightKey);
 });
 
-function nullsKeyComparator(pair, keyLambda, nilFirst, PairNotMapError) {
+function nullsKeyComparator(pair, keyLambda, nilFirst, PairNotMapError, KeysNotComparableError) {
   if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
   const left  = pair.get(keyword('left'));
   const right = pair.get(keyword('right'));
@@ -336,15 +338,15 @@ function nullsKeyComparator(pair, keyLambda, nilFirst, PairNotMapError) {
   if (leftNil && rightNil) return 0;
   if (leftNil) return nilFirst ? -1 : 1;
   if (rightNil) return nilFirst ? 1 : -1;
-  checkComparable(nilFirst ? AscKeysNotComparable : DescKeysNotComparable, leftKey, rightKey);
+  checkComparable(KeysNotComparableError, leftKey, rightKey);
   return compareScalars(leftKey, rightKey);
 }
 
 export const nullsFirst = higherOrderOp('nullsFirst', 2, (pair, keyLambda) =>
-  nullsKeyComparator(pair, keyLambda, true, NullsFirstPairNotMap));
+  nullsKeyComparator(pair, keyLambda, true, NullsFirstPairNotMap, NullsFirstKeysNotComparable));
 
 export const nullsLast = higherOrderOp('nullsLast', 2, (pair, keyLambda) =>
-  nullsKeyComparator(pair, keyLambda, false, NullsLastPairNotMap));
+  nullsKeyComparator(pair, keyLambda, false, NullsLastPairNotMap, NullsLastKeysNotComparable));
 
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(describeType(vec), vec);

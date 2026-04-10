@@ -18,7 +18,8 @@
   },
   "sideEffects": false,
   "files": [
-    "src/"
+    "src/",
+    "host/"
   ],
   "scripts": {
     "test": "vitest run",

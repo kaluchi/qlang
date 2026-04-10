@@ -23,6 +23,7 @@ import {
   declareShapeError,
   declareArityError
 } from './operand-errors.mjs';
+import { errorFromQlang } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,
   QlangTypeError,
@@ -187,7 +188,6 @@ export function bindingName(explicitName, binding) {
 
 export function capturedRange(fn) {
   if (fn.meta && fn.meta.captured != null) return fn.meta.captured;
-  if (fn.captured != null) return fn.captured;
   return null;
 }
 
@@ -204,14 +204,14 @@ export function errorMessageOf(errorValue) {
 }
 
 function buildBuiltinDescriptor(fn, explicitName) {
-  const meta = fn.meta || {};
+  const meta = fn.meta;
   const result = new Map();
   result.set(keyword('kind'), keyword('builtin'));
   result.set(keyword('name'), bindingName(explicitName, fn));
   result.set(keyword('category'), categoryKeyword(meta));
-  result.set(keyword('subject'), meta.subject || null);
+  result.set(keyword('subject'), meta.subject);
   result.set(keyword('modifiers'), metaToVec(meta.modifiers));
-  result.set(keyword('returns'), meta.returns || null);
+  result.set(keyword('returns'), meta.returns);
   result.set(keyword('captured'), metaToVec(capturedRange(fn)));
   result.set(keyword('docs'), metaToVec(meta.docs));
   result.set(keyword('examples'), metaToVec(meta.examples));

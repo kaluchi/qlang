@@ -3,11 +3,12 @@
 // type checks, format.toPlain fallback for non-Map/Vec/Set values,
 // vec.flat non-Vec elements, equality.deepEqual rejection branches,
 // describeType for snapshots, dispatch invariant errors for variadic
-// operand registration without meta.captured, and intro.sourceOfAst
-// branches reachable through synthesized conduits.
+// operand registration without meta.captured, intro.sourceOfAst
+// branches reachable through synthesized conduits, and remaining
+// branches in error-convert, eval, types, walk, and intro.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
@@ -25,6 +26,10 @@ import {
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
 import { walkAst, bindingNamesVisibleAt } from '../../src/walk.mjs';
+import { makeState } from '../../src/state.mjs';
+import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
+import { makeFn } from '../../src/rule10.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', () => {
@@ -510,6 +515,106 @@ describe('valueOp arity overflow', () => {
   });
 });
 
+describe('error-convert.mjs — errorFromParse without uri', () => {
+  it('omits :uri from descriptor when ParseError has no .uri', () => {
+    const parseError = Object.assign(new Error('unexpected token'), { location: null });
+    // no .uri property — tests the false arm of `if (parseError.uri)`
+    const errVal = errorFromParse(parseError);
+    expect(isErrorValue(errVal)).toBe(true);
+    expect(errVal.descriptor.has(keyword('uri'))).toBe(false);
+  });
+});
+
+describe('error-convert.mjs — coerce with QSet and errorValue', () => {
+  it('coerce passes through a QSet (JS Set) unchanged', () => {
+    const qset = new Set([1, 2, 3]);
+    const err = Object.assign(new Error('foreign'), { mySet: qset });
+    const errVal = errorFromForeign(err, null);
+    expect(isErrorValue(errVal)).toBe(true);
+    // coerce(qset) returns the Set as-is; the descriptor stores it directly
+    expect(errVal.descriptor.get(keyword('mySet'))).toBe(qset);
+  });
+
+  it('coerce passes through an errorValue unchanged', () => {
+    const inner = makeErrorValue(new Map(), { originalError: new Error('inner') });
+    const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
+    const errVal = errorFromForeign(err, null);
+    expect(isErrorValue(errVal)).toBe(true);
+    expect(errVal.descriptor.get(keyword('myErr'))).toBe(inner);
+  });
+});
+
+describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', () => {
+  it('wraps a plain JS Error from an operand as a foreign error value', () => {
+    // Create a function value that throws a raw Error (not QlangError)
+    const bombFn = makeFn('bomb', 1, () => { throw new Error('raw boom'); }, { captured: [0, 0] });
+    const s = createSession();
+    s.bind('bomb', bombFn);
+    const entry = s.evalCell('42 | bomb');
+    expect(isErrorValue(entry.result)).toBe(true);
+    expect(entry.result.descriptor.get(keyword('origin'))).toEqual(keyword('host'));
+    expect(entry.result.descriptor.get(keyword('kind'))).toEqual(keyword('foreign-error'));
+  });
+});
+
+describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', () => {
+  it('lambdas.docs falls back to [] when node has no .docs field', () => {
+    // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
+    const ast = { type: 'OperandCall', name: 'count', args: null, location: null };
+    const env = langRuntime();
+    const state = makeState([1, 2, 3], env);
+    const result = evalAst(ast, state).pipeValue;
+    expect(result).toBe(3);
+  });
+});
+
+describe('types.mjs — appendTrailNode uses node.type when node.text is absent', () => {
+  it('propagates error through a synthetic node with no .text', () => {
+    const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('type-error')]]), {
+      originalError: new Error('base')
+    });
+    const env = langRuntime();
+    const errState = makeState(errVal, env);
+    // NumberLit without .text — hits the `node.text ?? node.type` false arm
+    const nodeNoText = { type: 'NumberLit', value: 42, location: null };
+    const nextState = evalAst(nodeNoText, errState);
+    expect(isErrorValue(nextState.pipeValue)).toBe(true);
+    // Trail head was set using node.type ('NumberLit')
+    expect(nextState.pipeValue._trailHead.text).toBe('NumberLit');
+  });
+});
+
+describe('walk.mjs — bindingNamesVisibleAt skips let with non-Keyword first arg', () => {
+  it('does not add binding when let first arg is not a Keyword AST node', () => {
+    // Synthetic AST: let(42, count) — non-Keyword first arg
+    const loc = { start: { offset: 0 }, end: { offset: 10 } };
+    const synAst = {
+      type: 'OperandCall',
+      name: 'let',
+      args: [
+        { type: 'NumberLit', value: 42, location: loc },
+        { type: 'OperandCall', name: 'count', args: null, location: loc }
+      ],
+      location: loc
+    };
+    const names = bindingNamesVisibleAt(synAst, 999);
+    expect(names.size).toBe(0);
+  });
+});
+
+describe('intro.mjs — RunExamplesNoExamplesField with non-keyword :kind', () => {
+  it('uses "unknown" in error message when descriptor :kind is not a keyword', () => {
+    // Map with :kind = 42 (number, not keyword) and no :examples field
+    const s = createSession();
+    const desc = new Map([[keyword('kind'), 42]]);
+    s.bind('badDesc', desc);
+    const entry = s.evalCell('badDesc | runExamples');
+    expect(isErrorValue(entry.result)).toBe(true);
+    const msg = entry.result.descriptor.get(keyword('message'));
+    expect(msg).toContain('unknown');
+  });
+});
+
 describe('setops bare-form empty Vec', () => {
   it('minus bare on empty Vec throws MinusBareEmpty', () => {
     expect(isErrorValue(evalQuery('[] | minus'))).toBe(true);
@@ -870,9 +975,6 @@ describe('extracted descriptor helpers', () => {
 
   it('capturedRange from meta.captured', () => {
     expect(capturedRange({ meta: { captured: [0, 1] } })).toEqual([0, 1]);
-  });
-  it('capturedRange fallback to fn.captured', () => {
-    expect(capturedRange({ meta: {}, captured: [1, 2] })).toEqual([1, 2]);
   });
   it('capturedRange returns null when absent', () => {
     expect(capturedRange({ meta: {} })).toBe(null);

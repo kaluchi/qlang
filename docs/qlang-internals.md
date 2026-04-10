@@ -135,7 +135,7 @@ namespace as ordinary lookups. They can be shadowed by `let` or
 
 This rule unifies built-in operands, domain functions, reflective
 built-ins (`use`, `env`), `let` references, and `as` references.
-They differ only in what was written to `env[:name]`, never in
+They differ only in what is stored in `env[:name]`, never in
 how lookup behaves.
 
 ### 4. Value binding — `as(:name)`
@@ -276,7 +276,7 @@ Arity 1. Replaces `pipeValue` with the current `env`:
 
 Enables introspection:
 
-    env | keys         -- set of identifiers currently in scope
+    env | keys         -- set of identifiers in scope
     env | has(:count)  -- is the built-in `count` bound?
     env | /count       -- read a specific binding
 

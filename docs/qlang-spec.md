@@ -8,7 +8,7 @@ of functions into the evaluation environment via `use`.
 A query is a pure function of state. State is a pair
 `(pipeValue, env)` threaded through pipeline steps: `pipeValue` is
 the current value flowing through, `env` is the environment Map
-containing all bindings currently in scope (built-in operands,
+containing all bindings in scope (built-in operands,
 domain functions, user `let` and `as` bindings). Identifier lookup
 reads from `env`; `as` and `let` write to `env`; `use` merges a
 Map into `env`.
@@ -1464,7 +1464,7 @@ const json = JSON.stringify(payload);
 
 // later, possibly in another process or browser tab:
 const restored = deserializeSession(JSON.parse(json));
-restored.evalCell('5 | double'); // → 10, double was rebuilt from source
+restored.evalCell('5 | double'); // → 10, double is reconstructed from stored source
 ```
 
 Bindings serialize as one of:
@@ -1483,6 +1483,82 @@ re-binding any host operands. Cell history is restored without
 re-evaluation — entries carry only `source` and `uri`. A notebook
 layer that wants the original AST or result can call
 `session.evalCell(cell.source)` to re-run.
+
+### Module resolution
+
+A host that ships a library of `.qlang` modules (operand packages,
+domain vocabularies) uses the `@kaluchi/qlang/host/module-resolver`
+subpath to load them into a session.
+
+#### Filesystem-to-namespace convention
+
+The path of a `.qlang` file relative to the library root determines
+its namespace keyword. The `.qlang` extension is stripped and path
+separators become `/`:
+
+```
+lib/qlang/error.qlang          → keyword :qlang/error
+lib/qlang/error/guards.qlang   → keyword :qlang/error/guards
+lib/domain/tax.qlang           → keyword :domain/tax
+```
+
+A module's source is pure qlang — only `let` declarations. The env
+delta produced by evaluating the module (bindings not present in the
+base env before evaluation) is its export surface.
+
+#### API
+
+```js
+import { discoverModules, resolveModules, installModules }
+  from '@kaluchi/qlang/host/module-resolver';
+import { createSession } from '@kaluchi/qlang';
+
+// Resolve all modules in lib/ in discovery order.
+const catalog = resolveModules('./lib');
+
+// Install into a session: each namespace keyword → module env Map.
+const session = createSession();
+installModules(session, catalog);
+
+// Now user code can import namespaces:
+// use(:qlang/error) | let(:guard, ...)
+```
+
+- **`discoverModules(libDir)`** — scans `libDir` recursively for
+  `.qlang` files and returns a `Map<namespaceName, filePath>` (names
+  are strings such as `"qlang/error"`, not keywords).
+
+- **`resolveModules(libDir, opts?)`** — discovers, evaluates, and
+  returns a `Map<keyword, Map>` catalog. Each module is evaluated
+  in its own env snapshot built from `baseEnv` plus all previously
+  resolved modules, so earlier modules are visible to later ones.
+  Options:
+  - `opts.baseEnv` — initial env (default: `langRuntime()`).
+  - `opts.dependencies` — `Map<namespaceName, string[]>` for explicit
+    topological ordering. When omitted, modules are evaluated in
+    filesystem discovery order.
+
+- **`installModules(session, catalog)`** — iterates the catalog and
+  calls `session.bind(nsKeyword.name, moduleEnv)` for each entry.
+  After installation, `use(:ns-keyword)` merges the module's exports
+  into the query env.
+
+#### Dependency ordering
+
+When modules depend on each other, pass a `dependencies` map:
+
+```js
+const catalog = resolveModules('./lib', {
+  dependencies: new Map([
+    ['qlang/error/guards', ['qlang/error']],  // guards depends on error
+    ['domain/tax',         ['qlang/error']]
+  ])
+});
+```
+
+`resolveModules` topologically sorts the dependency graph and
+evaluates in an order where each module's dependencies are resolved
+before it.
 
 ### Tagged-JSON value codec
 

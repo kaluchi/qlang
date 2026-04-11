@@ -52,12 +52,23 @@ export class MalformedTaggedJSONError extends QlangError {
 }
 
 // toTaggedJSON(value) → JSON-serializable plain value
+//
+// Conduit and snapshot checks run BEFORE the generic isQMap branch
+// because under Variant-B both are JS Maps carrying a `:qlang/kind`
+// discriminator. Without the early check the generic `$map`
+// serializer would walk the descriptor's entries and either leak the
+// JS-opaque `:qlang/envRef` holder into the tagged-JSON stream or
+// silently encode a snapshot wrapper as a plain Map — both contrary
+// to the "conduits and snapshots require session-level reconstruction"
+// contract the session serializer relies on.
 export function toTaggedJSON(value) {
   if (value === null || value === undefined) return null;
   const t = typeof value;
   if (t === 'number' || t === 'string' || t === 'boolean') return value;
   if (isKeyword(value)) return { $keyword: value.name };
   if (isVec(value)) return value.map(toTaggedJSON);
+  if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
+  if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
   if (isQMap(value)) {
     return {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
@@ -70,8 +81,6 @@ export function toTaggedJSON(value) {
     return { $error: toTaggedJSON(value.descriptor) };
   }
   if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError('function');
-  if (isConduit(value))         throw new TaggedJSONUnencodableValueError('conduit');
-  if (isSnapshot(value))      throw new TaggedJSONUnencodableValueError('snapshot');
   throw new TaggedJSONUnencodableValueError(t);
 }
 

@@ -20,6 +20,15 @@ import {
   makeConduit,
   makeSnapshot
 } from './types.mjs';
+
+// Variant-B descriptor field constants for serializeSession's
+// Map.get-based reads. Interned at module load.
+const KW_NAME    = keyword('name');
+const KW_PARAMS  = keyword('params');
+const KW_DOCS    = keyword('docs');
+const KW_BODY    = keyword('qlang/body');
+const KW_VALUE   = keyword('qlang/value');
+const KW_ENVREF  = keyword('qlang/envRef');
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { QlangError } from './errors.mjs';
 
@@ -134,19 +143,20 @@ export function serializeSession(session) {
     if (builtins.has(k)) continue;
     if (isFunctionValue(v)) continue; // user-installed functions are not portable
     if (isConduit(v)) {
+      const body = v.get(KW_BODY);
       userBindings.push({
         kind: 'conduit',
-        name: v.name,
-        params: [...v.params],
-        source: v.body?.text ?? null,
-        docs: [...v.docs]
+        name: v.get(KW_NAME),
+        params: [...v.get(KW_PARAMS)],
+        source: body?.text ?? null,
+        docs: [...v.get(KW_DOCS)]
       });
     } else if (isSnapshot(v)) {
       userBindings.push({
         kind: 'snapshot',
-        name: v.name,
-        value: toTaggedJSON(v.value),
-        docs: [...v.docs]
+        name: v.get(KW_NAME),
+        value: toTaggedJSON(v.get(KW_VALUE)),
+        docs: [...v.get(KW_DOCS)]
       });
     } else {
       // Raw value bound directly into env (rare, e.g. via session.bind).
@@ -218,7 +228,7 @@ export function deserializeSession(json) {
   // and recursive self-binding).
   for (const v of session.env.values()) {
     if (isConduit(v)) {
-      v.envRef.env = session.env;
+      v.get(KW_ENVREF).env = session.env;
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

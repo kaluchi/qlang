@@ -70,11 +70,11 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit returns a frozen conduit shape', () => {
+  it('makeConduit returns a Variant-B conduit descriptor Map', () => {
     const t = makeConduit('expr-ast');
-    expect(t.type).toBe('conduit');
-    expect(t.body).toBe('expr-ast');
-    expect(Object.isFrozen(t)).toBe(true);
+    expect(t).toBeInstanceOf(Map);
+    expect(t.get(keyword('qlang/kind'))).toEqual(keyword('conduit'));
+    expect(t.get(keyword('qlang/body'))).toBe('expr-ast');
   });
 });
 

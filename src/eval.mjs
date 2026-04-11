@@ -350,7 +350,7 @@ function evalProjection(node, state) {
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
     // directly without going through projection.
-    if (isSnapshot(current)) current = current.value;
+    if (isSnapshot(current)) current = current.get(KW_VALUE_FIELD);
   }
   return withPipeValue(state, current);
 }
@@ -361,10 +361,17 @@ function evalProjection(node, state) {
 // :qlang/kind discriminator decides which binding kind a resolved
 // env value represents; :qlang/impl carries the namespaced primitive
 // key that PRIMITIVE_REGISTRY.resolve walks into the matching JS
-// function value.
+// function value. Conduit and snapshot descriptors carry their own
+// payload field set documented in src/types.mjs.
 const KW_QLANG_KIND_DISPATCH = keyword('qlang/kind');
 const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
 const KW_BUILTIN_DISPATCH    = keyword('builtin');
+const KW_NAME_FIELD          = keyword('name');
+const KW_PARAMS_FIELD        = keyword('params');
+const KW_BODY_FIELD          = keyword('qlang/body');
+const KW_ENVREF_FIELD        = keyword('qlang/envRef');
+const KW_VALUE_FIELD         = keyword('qlang/value');
+const KW_EFFECTFUL_FIELD     = keyword('effectful');
 
 function evalOperandCall(node, state) {
   const name = node.name;
@@ -409,7 +416,7 @@ function evalOperandCall(node, state) {
   // captured value. The wrapper carries name + docs metadata for
   // reify but is transparent to ordinary pipeline operations.
   if (isSnapshot(resolved)) {
-    resolved = resolved.value;
+    resolved = resolved.get(KW_VALUE_FIELD);
   }
 
   const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
@@ -522,16 +529,25 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
 // final pipeValue. The entire operation is one atomic state
 // transformation from the outer pipeline's perspective.
 function applyConduit(conduit, node, lookupName, state) {
+  // Read the conduit's payload fields once. Under Variant-B every
+  // conduit is a descriptor Map; field access goes through Map.get
+  // against the interned KW_*_FIELD constants declared above.
+  const conduitName       = conduit.get(KW_NAME_FIELD);
+  const conduitParams     = conduit.get(KW_PARAMS_FIELD);
+  const conduitBody       = conduit.get(KW_BODY_FIELD);
+  const conduitEnvRef     = conduit.get(KW_ENVREF_FIELD);
+  const conduitEffectful  = conduit.get(KW_EFFECTFUL_FIELD);
+
   // Effect-laundering safety net (same invariant as intrinsic operands).
-  if (conduit.effectful && !classifyEffect(lookupName)) {
+  if (conduitEffectful && !classifyEffect(lookupName)) {
     throw new EffectLaunderingAtCall({
       bindingName: lookupName,
-      effectfulName: conduit.name
+      effectfulName: conduitName
     });
   }
 
   const capturedArgsAst = node.args;
-  const expectedArity = conduit.params.length;
+  const expectedArity = conduitParams.length;
 
   // Build lambdas from captured args at the call site.
   const capturedEnv = state.env;
@@ -544,19 +560,19 @@ function applyConduit(conduit, node, lookupName, state) {
   // forwarding patterns (fractal composition).
   if (lambdas.length !== expectedArity) {
     throw new ConduitArityMismatch({
-      conduitName: conduit.name,
+      conduitName,
       expectedArity,
       actualArity: lambdas.length
     });
   }
 
-  // Build bodyEnv: start from the lexical scope anchor (envRef.env),
-  // then layer conduit-parameter proxies on top. Each param proxy is
-  // a nullary function value that fires the captured-arg lambda
-  // against whatever pipeValue the identifier lookup sees at the
-  // moment — this is the lazy binding that enables higher-order
-  // composition (params fire per-element inside sortWith, per-
-  // iteration inside filter, etc.).
+  // Build bodyEnv: start from the lexical scope anchor
+  // (envRef.env), then layer conduit-parameter proxies on top. Each
+  // param proxy is a nullary function value that fires the
+  // captured-arg lambda against whatever pipeValue the identifier
+  // lookup sees at the moment — this is the lazy binding that
+  // enables higher-order composition (params fire per-element
+  // inside sortWith, per-iteration inside filter, etc.).
   //
   // Every conduit reachable at this point has its envRef holder
   // wired by the construction site (letOperand for in-query
@@ -565,17 +581,17 @@ function applyConduit(conduit, node, lookupName, state) {
   // the env captured at declaration time. Reading `.env` directly
   // — no `?? state.env` fallback — is the explicit signal that
   // dynamic-scope drift is not a supported invocation path.
-  let bodyEnv = conduit.envRef.env;
-  for (let i = 0; i < conduit.params.length; i++) {
-    const paramProxy = makeConduitParameter(lambdas[i], conduit.params[i]);
-    bodyEnv = envSet(bodyEnv, conduit.params[i], paramProxy);
+  let bodyEnv = conduitEnvRef.env;
+  for (let i = 0; i < conduitParams.length; i++) {
+    const paramProxy = makeConduitParameter(lambdas[i], conduitParams[i]);
+    bodyEnv = envSet(bodyEnv, conduitParams[i], paramProxy);
   }
 
   // Fork body: inner sub-pipeline starts with the caller's pipeValue
   // and the lexical bodyEnv. Body's env writes (let/as inside the
   // body) are discarded on return — only the final pipeValue escapes.
   const bodyState = makeState(state.pipeValue, bodyEnv);
-  const finalBodyState = evalNode(conduit.body, bodyState);
+  const finalBodyState = evalNode(conduitBody, bodyState);
   return withPipeValue(state, finalBodyState.pipeValue);
 }
 

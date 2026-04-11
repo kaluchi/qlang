@@ -268,25 +268,25 @@ describe('errorFromForeign', () => {
   });
 });
 
-import { withName, makeConduit, makeSnapshot } from '../../src/types.mjs';
+import { withName, makeConduit, makeSnapshot, isConduit, isSnapshot } from '../../src/types.mjs';
 
 describe('withName coverage', () => {
   it('renames a conduit', () => {
     const c = makeConduit(null, { name: 'old', params: ['a'], docs: ['doc'] });
     const renamed = withName(c, 'new');
-    expect(renamed.name).toBe('new');
-    expect(renamed.type).toBe('conduit');
-    expect(renamed.params).toEqual(['a']);
-    expect(renamed.docs).toEqual(['doc']);
+    expect(isConduit(renamed)).toBe(true);
+    expect(renamed.get(keyword('name'))).toBe('new');
+    expect([...renamed.get(keyword('params'))]).toEqual(['a']);
+    expect([...renamed.get(keyword('docs'))]).toEqual(['doc']);
   });
 
   it('renames a snapshot', () => {
     const s = makeSnapshot(42, { name: 'old', docs: ['snap doc'] });
     const renamed = withName(s, 'new');
-    expect(renamed.name).toBe('new');
-    expect(renamed.type).toBe('snapshot');
-    expect(renamed.value).toBe(42);
-    expect(renamed.docs).toEqual(['snap doc']);
+    expect(isSnapshot(renamed)).toBe(true);
+    expect(renamed.get(keyword('name'))).toBe('new');
+    expect(renamed.get(keyword('qlang/value'))).toBe(42);
+    expect([...renamed.get(keyword('docs'))]).toEqual(['snap doc']);
   });
 
   it('returns other values unchanged', () => {

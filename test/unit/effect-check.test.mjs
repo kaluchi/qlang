@@ -20,7 +20,7 @@ import {
 } from '../../src/effect-check.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from '../../src/effect.mjs';
 import { createSession } from '../../src/session.mjs';
-import { isErrorValue } from '../../src/types.mjs';
+import { isErrorValue, keyword } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
 function fakeEffectfulOperand(name = '@callers') {
@@ -260,19 +260,19 @@ describe('function and conduit effectful field', () => {
     expect(fn.effectful).toBe(false);
   });
 
-  it('conduit created from let(:@name, ...) has effectful=true', () => {
+  it('conduit created from let(:@name, ...) has :effectful true', () => {
     const session = createSession();
     session.evalCell('let(:@x, count)');
     const conduit = Array.from(session.env).find(([k]) => k.name === '@x')?.[1];
     expect(conduit).toBeDefined();
-    expect(conduit.effectful).toBe(true);
+    expect(conduit.get(keyword('effectful'))).toBe(true);
   });
 
-  it('conduit created from let(:cleanName, ...) has effectful=false', () => {
+  it('conduit created from let(:cleanName, ...) has :effectful false', () => {
     const session = createSession();
     session.evalCell('let(:foo, count)');
     const conduit = Array.from(session.env).find(([k]) => k.name === 'foo')?.[1];
     expect(conduit).toBeDefined();
-    expect(conduit.effectful).toBe(false);
+    expect(conduit.get(keyword('effectful'))).toBe(false);
   });
 });

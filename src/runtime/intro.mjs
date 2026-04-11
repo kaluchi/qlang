@@ -223,35 +223,48 @@ function buildBuiltinDescriptor(fn, explicitName) {
   return result;
 }
 
+// Variant-B descriptor field constants for Map-based reads.
+const KW_BODY_FIELD     = keyword('qlang/body');
+const KW_VALUE_FIELD    = keyword('qlang/value');
+const KW_NAME_FIELD     = keyword('name');
+const KW_PARAMS_FIELD   = keyword('params');
+const KW_DOCS_FIELD     = keyword('docs');
+const KW_EFFECTFUL_FIELD = keyword('effectful');
+const KW_LOCATION_FIELD = keyword('location');
+
 function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
   result.set(keyword('kind'), keyword('conduit'));
-  result.set(keyword('name'), bindingName(explicitName, conduit));
-  result.set(keyword('params'), metaToVec(conduit.params));
-  // Every conduit body is a peggy-parsed AST node, so it carries the
-  // original source substring under `.text` (stamped by grammar.peggy's
-  // node() helper). The `:source` field passes that through verbatim —
-  // no AST→source rendering, no node-type switch, no bare-identifier
-  // quoting heuristics. Hand-built AST nodes lacking `.text` are not a
-  // production path: `letOperand` reads `bodyLambda.astNode` which is
-  // always parser-produced, and `deserializeSession` rebuilds conduits
-  // through `parseSource(binding.source)` for the same reason.
-  result.set(keyword('source'), conduit.body.text);
-  result.set(keyword('docs'), metaToVec(conduit.docs));
-  result.set(keyword('effectful'), conduit.effectful);
-  result.set(keyword('location'), conduit.location);
+  result.set(keyword('name'), explicitName ?? conduit.get(KW_NAME_FIELD));
+  result.set(keyword('params'), metaToVec(conduit.get(KW_PARAMS_FIELD)));
+  // The conduit body is a peggy-parsed AST node, so it carries the
+  // original source substring under `.text`. The `:source` field
+  // passes that through verbatim — no AST→source rendering.
+  result.set(keyword('source'), conduit.get(KW_BODY_FIELD).text);
+  result.set(keyword('docs'), metaToVec(conduit.get(KW_DOCS_FIELD)));
+  result.set(keyword('effectful'), conduit.get(KW_EFFECTFUL_FIELD));
+  result.set(keyword('location'), conduit.get(KW_LOCATION_FIELD));
   return result;
 }
 
 function buildSnapshotDescriptor(snap, explicitName) {
+  // Value-level reify on a snapshot is unreachable via projection:
+  // evalProjection auto-unwraps snapshots to the underlying value
+  // before returning, so `env | /someAs | reify` calls buildValueDescriptor
+  // on the unwrapped value, not buildSnapshotDescriptor on the wrapper.
+  // Every reach into this builder flows through the named form
+  // `reify(:name)` or through `manifest`, both of which always pass
+  // explicitName. Reading the descriptor's :name field as a fallback
+  // would be dead code.
+  const value = snap.get(KW_VALUE_FIELD);
   const result = new Map();
   result.set(keyword('kind'), keyword('snapshot'));
-  result.set(keyword('name'), bindingName(explicitName, snap));
-  result.set(keyword('value'), snap.value);
-  result.set(keyword('type'), describeValueType(snap.value));
-  result.set(keyword('docs'), metaToVec(snap.docs));
-  result.set(keyword('effectful'), snap.effectful);
-  result.set(keyword('location'), snap.location);
+  result.set(keyword('name'), explicitName);
+  result.set(keyword('value'), value);
+  result.set(keyword('type'), describeValueType(value));
+  result.set(keyword('docs'), metaToVec(snap.get(KW_DOCS_FIELD)));
+  result.set(keyword('effectful'), snap.get(KW_EFFECTFUL_FIELD));
+  result.set(keyword('location'), snap.get(KW_LOCATION_FIELD));
   return result;
 }
 

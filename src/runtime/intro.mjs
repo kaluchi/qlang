@@ -25,7 +25,6 @@ import {
   declareShapeError,
   declareArityError
 } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { errorFromQlang, errorFromParse } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,

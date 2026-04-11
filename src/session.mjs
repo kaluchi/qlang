@@ -185,10 +185,17 @@ export function deserializeSession(json) {
         throw new SessionConduitSourceMissingError(binding.name);
       }
       const bodyAst = parse(binding.source, { uri: `restored-${binding.name}` });
+      // Allocate the envRef holder up front so the second pass below
+      // can mutate `.env` after every binding has landed in session.env.
+      // The holder identity is shared between the conduit and the
+      // second-pass walker — same tie-the-knot pattern letOperand uses
+      // at original declaration time.
       const conduit = makeConduit(bodyAst, {
         name: binding.name,
         params: binding.params || [],
-        docs: binding.docs
+        envRef: { env: null },
+        docs: binding.docs,
+        location: bodyAst.location
       });
       session.bind(binding.name, conduit);
     } else if (binding.kind === 'snapshot') {
@@ -201,6 +208,17 @@ export function deserializeSession(json) {
       session.bind(binding.name, fromTaggedJSON(binding.value));
     } else {
       throw new SessionBindingKindUnknownError(binding.kind);
+    }
+  }
+  // Second pass — wire each restored conduit's envRef to the now-
+  // complete session env so identifier lookup inside the conduit body
+  // resolves through a lexical anchor (matching letOperand) rather
+  // than falling back to the call-site `state.env` (which would give
+  // dynamic scope and break shadowing-immune cross-conduit references
+  // and recursive self-binding).
+  for (const v of session.env.values()) {
+    if (isConduit(v)) {
+      v.envRef.env = session.env;
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

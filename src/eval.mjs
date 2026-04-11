@@ -558,9 +558,14 @@ function applyConduit(conduit, node, lookupName, state) {
   // composition (params fire per-element inside sortWith, per-
   // iteration inside filter, etc.).
   //
-  // Fallback to state.env when envRef is absent (e.g. deserialized
-  // conduits that haven't been wired to an envRef yet).
-  let bodyEnv = conduit.envRef?.env ?? state.env;
+  // Every conduit reachable at this point has its envRef holder
+  // wired by the construction site (letOperand for in-query
+  // declarations, deserializeSession for restored bindings); both
+  // perform the tie-the-knot pattern so the body resolves through
+  // the env captured at declaration time. Reading `.env` directly
+  // — no `?? state.env` fallback — is the explicit signal that
+  // dynamic-scope drift is not a supported invocation path.
+  let bodyEnv = conduit.envRef.env;
   for (let i = 0; i < conduit.params.length; i++) {
     const paramProxy = makeConduitParameter(lambdas[i], conduit.params[i]);
     bodyEnv = envSet(bodyEnv, conduit.params[i], paramProxy);

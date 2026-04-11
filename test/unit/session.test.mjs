@@ -105,6 +105,25 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(restored.evalCell('5 | triple').result).toBe(15);
   });
 
+  it('restored conduits honor lexical scope (immune to caller-side shadowing)', () => {
+    // letOperand wires envRef.env to the env captured at declaration
+    // time, so a later cell that shadows `mul` does not affect the
+    // restored conduit's body resolution. deserializeSession must
+    // perform the same wiring on every restored conduit; otherwise the
+    // applyConduit fallback to state.env gives dynamic scope and the
+    // shadow leaks into the body.
+    const s = createSession();
+    s.evalCell('let(:double, mul(2))');
+    const payload = serializeSession(s);
+    const restored = deserializeSession(JSON.parse(JSON.stringify(payload)));
+    // Shadow mul AFTER restore. Lexical scope means double's body
+    // still resolves mul through the env captured at deserialize
+    // time (the original builtin), not the call-site env carrying
+    // the shadow.
+    restored.evalCell('let(:mul, sub(1))');
+    expect(restored.evalCell('5 | double').result).toBe(10);
+  });
+
   it('preserves user as snapshots via tagged-JSON value replay', () => {
     const s = createSession();
     s.evalCell('42 | as(:answer)');

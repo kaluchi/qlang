@@ -157,11 +157,12 @@
     },
 
     "combinator": {
-      "comment": "Pipeline combinators: >> (chain), | (pipe), * (spread)",
+      "comment": "Pipeline combinators: >> (chain), !| (fail-apply — fires its step on an error pipeValue against the materialized descriptor, deflects on success), | (pipe), * (spread). !| is tried before | so the 2-char token wins the match against the trailing | that would otherwise match the 1-char pipe rule.",
       "patterns": [
-        { "name": "keyword.operator.chain.qlang",  "match": ">>" },
-        { "name": "keyword.operator.pipe.qlang",   "match": "\\|(?!~)" },
-        { "name": "keyword.operator.spread.qlang", "match": "\\*" }
+        { "name": "keyword.operator.chain.qlang",      "match": ">>" },
+        { "name": "keyword.operator.fail-apply.qlang", "match": "!\\|" },
+        { "name": "keyword.operator.pipe.qlang",       "match": "\\|(?!~)" },
+        { "name": "keyword.operator.spread.qlang",     "match": "\\*" }
       ]
     },
 
@@ -183,8 +184,8 @@
     },
 
     "builtin-operand": {
-      "comment": "63 built-in operands from manifest.qlang (let and as handled separately by keyword-binding).",
-      "match": "(?<![a-zA-Z0-9_@-])(count|empty|first|last|sum|min|max|every|any|firstNonZero|filter|sort|sortWith|take|drop|distinct|reverse|flat|set|groupBy|indexBy|asc|desc|nullsFirst|nullsLast|if|when|unless|coalesce|firstTruthy|cond|keys|vals|has|union|minus|inter|add|sub|mul|div|split|join|contains|startsWith|endsWith|prepend|append|not|eq|gt|lt|gte|lte|and|or|json|table|env|use|reify|manifest|runExamples)(?![a-zA-Z0-9_-])",
+      "comment": "65 built-in operands from manifest.qlang (let and as handled separately by keyword-binding; error and isError are the two fail-track entry/predicate operands, and the fail-apply combinator !| handled in the combinator rule above covers the error-processing site).",
+      "match": "(?<![a-zA-Z0-9_@-])(count|empty|first|last|sum|min|max|every|any|firstNonZero|filter|sort|sortWith|take|drop|distinct|reverse|flat|set|groupBy|indexBy|asc|desc|nullsFirst|nullsLast|if|when|unless|coalesce|firstTruthy|cond|keys|vals|has|union|minus|inter|add|sub|mul|div|split|join|contains|startsWith|endsWith|prepend|append|not|eq|gt|lt|gte|lte|and|or|json|table|env|use|reify|manifest|runExamples|error|isError)(?![a-zA-Z0-9_-])",
       "captures": {
         "1": { "name": "support.function.builtin.qlang" }
       }

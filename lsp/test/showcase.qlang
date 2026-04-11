@@ -98,10 +98,12 @@ let(:votingAge, filter(/age | gte(18)))
 
 
 |~| ── 8. Completion ─────────────────────────────────────
-|~| Ctrl+Space → 65 builtins + user bindings at cursor.
+|~| Ctrl+Space → every langRuntime entry (67 operands
+|~| including let, as, error, isError) + user bindings
+|~| visible at the cursor position.
 
 let(:myHelper, mul(10))
-|~| Ctrl+Space here → myHelper alongside builtins
+|~| Ctrl+Space here → myHelper alongside every builtin
 
 
 |~| ── 9. Diagnostics ────────────────────────────────────
@@ -137,3 +139,25 @@ let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
 [{:name "c" :age 30} {:name "a" :age 25} {:name "b" :age 25}]
   | sortWith([asc(/age), desc(/name)] | firstNonZero)
   * /name
+
+
+|~| ── 13. Fail-apply combinator ─────────────────────────
+|~| `!|` routes its step to the fail-track: it fires only
+|~| when pipeValue is an error value, exposing the error's
+|~| materialized descriptor Map to the step on the right.
+|~| On a success pipeValue it deflects as identity
+|~| pass-through. The tmLanguage grammar scopes `!|` as
+|~| keyword.operator.fail-apply.qlang so themes can colour
+|~| it distinctly from the success-track `|`.
+
+|~| Direct fail-apply: read :kind off a runtime error
+"hello" | add(1) !| /kind
+
+|~| Leading !| prefix inside a filter predicate —
+|~| per-element dispatch into the fail-track
+[1 "x" 3] * add(10) | filter(!| /thrown | eq(:AddLeftNotNumber))
+
+|~| Trail continuity across re-lift — | error re-wraps the
+|~| enriched descriptor and a later !| reads the
+|~| accumulated :trail Vec
+!{:kind :oops} | count !| union({:request "r-1"}) | error | add(1) !| /trail

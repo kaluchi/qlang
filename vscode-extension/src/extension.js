@@ -194,6 +194,10 @@ function tokenizeWithRegex(code) {
       while (j < code.length && /[0-9.]/.test(code[j])) j++;
       out += span('hljs-number', code.slice(i, j));
       i = j;
+    } else if (ch === '!' && code[i + 1] === '|') {
+      // Fail-apply combinator — 2-char token, consumed together.
+      out += span('hljs-punctuation', '!|');
+      i += 2;
     } else if ('|()[]@'.includes(ch)) {
       out += span('hljs-punctuation', ch);
       i++;

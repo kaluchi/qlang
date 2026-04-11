@@ -248,10 +248,6 @@ DocOrPlainItem
   = DocComment
   / PlainCommentStep
 
-DocCommentList
-  = head:DocComment tail:(_ DocComment)*
-  { return [head.content, ...tail.map(t => t[1].content)]; }
-
 DocComment
   = LineDocComment
   / BlockDocComment

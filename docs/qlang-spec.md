@@ -1137,7 +1137,7 @@ Error descriptor fields for runtime errors:
 | `:kind` | keyword | Error category: `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
 | `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotVec`, etc. |
 | `:message` | string | Human-readable description |
-| `:trail` | Vec | Texts of the pipeline steps that `\|`, `*`, and `>>` deflected while the error was in flight |
+| `:trail` | Vec | Texts of the pipeline steps deflected by success-track combinators while the error was in flight |
 
 Additional context fields vary by error site (`:operand`,
 `:expectedType`, `:actualType`, `:position`, `:index`, etc.).

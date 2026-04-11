@@ -1,4 +1,6 @@
-// Tests for error/catch/isError operands + propagation edge cases.
+// Tests for error operand, isError operand, and the `!|` fail-apply
+// combinator, plus edge cases around trail accumulation, re-lift
+// continuity, and conduit invocation on the fail-track.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -9,12 +11,12 @@ import { createSession } from '../../src/session.mjs';
 
 describe('error operand', () => {
   it('bare form wraps pipeValue Map', () => {
-    const result = evalQuery('{:kind :oops} | error | catch | /kind');
+    const result = evalQuery('{:kind :oops} | error !| /kind');
     expect(result).toEqual(keyword('oops'));
   });
 
-  it('on non-Map produces type error', () => {
-    const result = evalQuery('42 | error | catch | /thrown');
+  it('bare form on non-Map produces ErrorDescriptorNotMap', () => {
+    const result = evalQuery('42 | error !| /thrown');
     expect(result).toEqual(keyword('ErrorDescriptorNotMap'));
   });
 });
@@ -23,46 +25,46 @@ describe('error operand', () => {
 
 describe('isError operand', () => {
   it('with captured args produces arity error', () => {
-    const result = evalQuery('42 | isError(1) | catch | /kind');
+    const result = evalQuery('42 | isError(1) !| /kind');
     expect(result).toEqual(keyword('arity-error'));
   });
 });
 
-// ── catch pass-through ──────────────────────────────────────────
+// ── fail-apply deflect on non-error pipeValue ──────────────────
 
-describe('catch pass-through', () => {
-  it('pass-through for nil', () => {
-    const result = evalQuery('nil | catch');
+describe('fail-apply deflect on non-error', () => {
+  it('nil deflects through !|', () => {
+    const result = evalQuery('nil !| /kind');
     expect(result).toBeNull();
   });
 
-  it('pass-through for Map', () => {
-    const result = evalQuery('{:a 1} | catch');
+  it('Map deflects through !|', () => {
+    const result = evalQuery('{:a 1} !| /kind');
     expect(result instanceof Map).toBe(true);
     expect(result.get(keyword('a'))).toBe(1);
   });
 });
 
-// ── propagation ─────────────────────────────────────────────────
+// ── fail-track dispatch through containers ─────────────────────
 
-describe('error propagation', () => {
-  it('propagates through ParenGroup', () => {
-    const result = evalQuery('!{:kind :oops} | (catch | /kind)');
+describe('fail-track dispatch through ParenGroup and conduit', () => {
+  it('fail-apply fires into a ParenGroup step', () => {
+    const result = evalQuery('!{:kind :oops} !| (/kind)');
     expect(result).toEqual(keyword('oops'));
   });
 
-  it('propagates through conduit with catch', () => {
-    const result = evalQuery('let(:handler, catch(/kind)) | !{:kind :oops} | handler');
+  it('conduit body first step sees exposed descriptor when called via !|', () => {
+    const result = evalQuery('let(:handler, /kind) | !{:kind :oops} !| handler');
     expect(result).toEqual(keyword('oops'));
   });
 
-  it('error in distribute per-element: only string+10 fails', () => {
+  it('distribute of add(10) over mixed elements produces per-element errors filterable by isError', () => {
     const result = evalQuery('[1 "x" 3] * add(10) | filter(isError) | count');
     expect(result).toBe(1);
   });
 
-  it('comments are silent in propagation', () => {
-    const result = evalQuery('!{:kind :oops} |~| comment\n count | catch | /trail');
+  it('plain comment between a deflecting step and a fail-apply step is silent in the trail', () => {
+    const result = evalQuery('!{:kind :oops} |~| comment\n count !| /trail');
     expect(Array.isArray(result)).toBe(true);
     expect(result).toContain('count');
   });
@@ -113,6 +115,10 @@ describe('sourceOfAst coverage for rare node types', () => {
   it('renders ErrorLit in conduit body', () => {
     expect(evalQuery('let(:x, !{:a 1}) | reify(:x) | /source')).toBe('!{:a 1}');
   });
+
+  it('renders leading fail-apply prefix in conduit body', () => {
+    expect(evalQuery('let(:handler, !| /kind) | reify(:handler) | /source')).toBe('!| /kind');
+  });
 });
 
 describe('json operand on error values inside containers', () => {
@@ -127,7 +133,7 @@ describe('json operand on error values inside containers', () => {
 describe('runExamples error value without originalError', () => {
   it('reports error from descriptor message when no originalError', () => {
     const s = createSession();
-    const r = s.evalCell('{:kind :builtin :examples ["error({:kind :oops :message \\"boom\\"}) → 42"]} | runExamples | first | /ok');
+    const r = s.evalCell('{:kind :builtin :examples [{:snippet "{:kind :oops :message \\"boom\\"} | error" :expected "42"}]} | runExamples | first | /ok');
     expect(r.result).toBe(false);
   });
 });

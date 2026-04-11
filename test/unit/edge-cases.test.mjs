@@ -613,8 +613,15 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(result.get(keyword('type'))).toEqual(keyword('number'));
   });
 
-  it('reify on a builtin function value returns a builtin descriptor', () => {
-    const result = evalQuery('env | /count | reify');
+  it('reify on a builtin descriptor Map returns a builtin descriptor', () => {
+    // Under Variant-B, env stores each built-in as a descriptor Map
+    // directly. reify(:name) projects it through describeBinding
+    // which substitutes :qlang/kind → :kind, drops :qlang/impl, and
+    // stamps :captured / :effectful / :name from the resolved
+    // primitive. The named form is the canonical spelling; bare
+    // `env | /count | reify` omits :name because no explicit name
+    // is in scope at the value-level reify branch.
+    const result = evalQuery('reify(:count)');
     expect(result.get(keyword('kind'))).toEqual(keyword('builtin'));
     expect(result.get(keyword('name'))).toBe('count');
     expect(result.get(keyword('captured'))).toEqual([0, 0]);
@@ -808,14 +815,18 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('coalesce with zero captured args raises CoalesceNoAlternatives as an ArityError', () => {
-    const e = catchError('{} | coalesce');
+    // Variant-B: bare `coalesce` returns its descriptor Map for
+    // REPL introspection because its minCaptured is 1. The
+    // empty-call form `coalesce()` forces application with zero
+    // lambdas so the CoalesceNoAlternatives arity check fires.
+    const e = catchError('{} | coalesce()');
     expect(e).toBeInstanceOf(ArityError);
     expect(e.kind).toBe('arity-error');
     expect(e.name).toBe('CoalesceNoAlternatives');
   });
 
   it('coalesce error site has unique class name', () => {
-    const e = catchError('{} | coalesce');
+    const e = catchError('{} | coalesce()');
     expect(e.name).toBe('CoalesceNoAlternatives');
   });
 
@@ -880,7 +891,9 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('firstTruthy with zero captured args raises FirstTruthyNoAlternatives as an ArityError', () => {
-    const e = catchError('{} | firstTruthy');
+    // See coalesce() comment above: bare → descriptor, empty-call
+    // → application with zero lambdas triggers the arity check.
+    const e = catchError('{} | firstTruthy()');
     expect(e).toBeInstanceOf(ArityError);
     expect(e.kind).toBe('arity-error');
     expect(e.name).toBe('FirstTruthyNoAlternatives');

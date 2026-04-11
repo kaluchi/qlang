@@ -23,7 +23,7 @@
 {"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | coalesce(/a, div(0))","expect":"1"}
 {"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce(/a, /b, div(0), \"unreached\")","expect":"99"}
 {"name":"evaluates-failing-when-needed","query":"{} | coalesce(/missing, \"safe\")","expect":"\"safe\""}
-{"name":"no-args-error","query":"{} | coalesce","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :CoalesceNoAlternatives :message \"coalesce requires at least one alternative sub-pipeline\"}"}
+{"name":"no-args-error","query":"{} | coalesce()","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :CoalesceNoAlternatives :message \"coalesce requires at least one alternative sub-pipeline\"}"}
 {"name":"with-projection-chain","query":"{:user {:name \"Alice\"}} | coalesce(/admin, /user/name, \"Unknown\")","expect":"\"Alice\""}
 {"name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce(/a/b/c, /a/b, /a, 0)","expect":"42"}
 {"name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if(/active, coalesce(/preferredName, /name, \"???\"), \"inactive\")","expect":"\"Bob\""}

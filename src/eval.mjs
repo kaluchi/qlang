@@ -47,6 +47,7 @@ import {
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
+import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -356,6 +357,15 @@ function evalProjection(node, state) {
 
 // ─── Step 3: Identifier lookup with optional captured args ──────
 
+// Interned keyword constants for binding-descriptor dispatch. The
+// :qlang/kind discriminator decides which binding kind a resolved
+// env value represents; :qlang/impl carries the namespaced primitive
+// key that PRIMITIVE_REGISTRY.resolve walks into the matching JS
+// function value.
+const KW_QLANG_KIND_DISPATCH = keyword('qlang/kind');
+const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
+const KW_BUILTIN_DISPATCH    = keyword('builtin');
+
 function evalOperandCall(node, state) {
   const name = node.name;
   const env = state.env;
@@ -365,6 +375,28 @@ function evalOperandCall(node, state) {
   }
 
   let resolved = envGet(env, name);
+
+  // Variant-B dispatch: a resolved env value that is a binding
+  // descriptor Map — carrying :qlang/kind :builtin plus a
+  // :qlang/impl keyword pointing into PRIMITIVE_REGISTRY — is the
+  // primary built-in dispatch path. The descriptor Map lives in
+  // env directly because it was authored in lib/qlang/core.qlang
+  // and loaded by langRuntime() at session construction; the
+  // evaluator reads the :qlang/impl handle, resolves it through
+  // PRIMITIVE_REGISTRY into the JS function value (a makeFn wrapper
+  // produced by runtime/dispatch.mjs's helpers), and applies it via
+  // Rule 10 exactly as the legacy function-value pathway did.
+  //
+  // Bonus REPL ergonomic: when the descriptor-backed operand is not
+  // nullary (its min captured-arg count is > 0) and the user wrote
+  // a bare identifier with no captured-arg parens, the call returns
+  // the descriptor itself as the new pipeValue rather than firing an
+  // arity error. Typing `mul` in a REPL produces mul's manual page as
+  // data; typing `count` still fires count against pipeValue because
+  // count is nullary and a bare lookup has a valid applied form.
+  if (isQMap(resolved) && resolved.get(KW_QLANG_KIND_DISPATCH) === KW_BUILTIN_DISPATCH) {
+    return applyBuiltinDescriptor(resolved, node, name, state);
+  }
 
   // Apply a conduit (parametric or zero-arity pipeline fragment).
   // Conduits carry an AST body, an optional param list, and a
@@ -389,10 +421,11 @@ function evalOperandCall(node, state) {
     // parse-time AST scan cannot see — installation via use,
     // capture via as, or rebinding via session.bind — because
     // every effectful invocation ultimately flows through an
-    // identifier lookup at this point. The check reads precomputed
-    // boolean fields (.effectful on the function value, classifyEffect
-    // on the lookup name) so the runtime hot path performs no
-    // substring inspection beyond the single classifyEffect call.
+    // identifier lookup at this point. Only conduit-parameters
+    // reach this branch now that built-ins dispatch through the
+    // Variant-B descriptor path above; the check stays for them
+    // because a conduit-parameter proxy may wrap an effectful
+    // captured-arg lambda under a non-@-prefixed binding.
     if (resolved.effectful && !classifyEffect(name)) {
       throw new EffectLaunderingAtCall({
         bindingName: name,
@@ -427,6 +460,57 @@ function evalOperandCall(node, state) {
     });
   }
   return withPipeValue(state, resolved);
+}
+
+// applyBuiltinDescriptor(descriptor, node, lookupName, state) → state'
+//
+// Variant-B dispatch core for built-in operands. Resolves the
+// descriptor's :qlang/impl keyword through PRIMITIVE_REGISTRY into
+// the JS function value registered by runtime/*.mjs at module-load
+// time, then delegates to applyRule10 exactly as the legacy
+// function-value path does.
+//
+// Bare-identifier lookup on a non-nullary operand returns the
+// descriptor itself as pipeValue instead of firing an arity error:
+// typing `mul` at a REPL yields mul's descriptor Map (category /
+// subject / modifiers / examples / docs / throws / qlang/impl),
+// matching the introspective-REPL ergonomic the Variant-B refactor
+// promised. Nullary operands (count, sort bare form, env, etc.)
+// still fire on bare lookup because their minCaptured is 0 and a
+// bare application IS their valid nullary form.
+function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
+  const implKey = descriptor.get(KW_QLANG_IMPL_DISPATCH);
+  const impl = PRIMITIVE_REGISTRY.resolve(implKey);
+
+  // No effect-laundering check on this path: every primitive bound
+  // via runtime/*.mjs is clean (none of the built-in operand names
+  // carry the @-marker), so `impl.effectful` is always false for
+  // descriptor-backed built-ins. The check remains on the function-
+  // value branch of evalOperandCall, which still fires for
+  // conduit-parameter proxies created at applyConduit time.
+
+  const capturedArgsAst = node.args;
+  const hasArgs = capturedArgsAst !== null;
+
+  // Bare non-nullary lookup → return descriptor as pipeValue. The
+  // min captured-arg count lives in impl.meta.captured[0] (set by
+  // every dispatch-wrapper helper at makeFn time). A minCaptured
+  // of 0 means the operand has a valid nullary call shape, so bare
+  // lookup fires the operand as before; any positive minCaptured
+  // means bare lookup has no valid application and yields the
+  // descriptor for introspection instead of an arity error.
+  const minCaptured = impl.meta && impl.meta.captured ? impl.meta.captured[0] : 0;
+  if (!hasArgs && minCaptured > 0) {
+    return withPipeValue(state, descriptor);
+  }
+
+  const capturedEnv = state.env;
+  const lambdas = hasArgs
+    ? capturedArgsAst.map(arg => makeLambda(arg, capturedEnv))
+    : [];
+  lambdas.docs = node.docs || [];
+  lambdas.location = node.location ?? null;
+  return applyRule10(impl, lambdas, state);
 }
 
 // applyConduit(conduit, node, lookupName, state) → state'

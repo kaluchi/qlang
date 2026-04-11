@@ -25,7 +25,7 @@
 {"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | firstTruthy(/a, div(0))","expect":"1"}
 {"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | firstTruthy(/a, /b, div(0), \"unreached\")","expect":"99"}
 {"name":"short-circuit-after-skipping-false","query":"{:a false :b 7} | firstTruthy(/a, /b, div(0))","expect":"7"}
-{"name":"no-args-error","query":"{} | firstTruthy","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :FirstTruthyNoAlternatives :message \"firstTruthy requires at least one alternative sub-pipeline\"}"}
+{"name":"no-args-error","query":"{} | firstTruthy()","error":"arity-error","expect":"!{:origin :qlang/eval :kind :arity-error :thrown :FirstTruthyNoAlternatives :message \"firstTruthy requires at least one alternative sub-pipeline\"}"}
 {"name":"differs-from-coalesce-on-false","query":"{:flag false :name \"Alice\"} | firstTruthy(/flag, /name)","expect":"\"Alice\""}
 {"name":"coalesce-by-contrast-keeps-false","query":"{:flag false :name \"Alice\"} | coalesce(/flag, /name)","expect":"false"}
 {"name":"differs-from-coalesce-on-nil","query":"{:a nil :b 1} | firstTruthy(/a, /b)","expect":"1"}

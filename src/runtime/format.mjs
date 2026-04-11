@@ -23,7 +23,12 @@ const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'V
 const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'Map');
 
 // Convert a qlang value into a JSON-serializable plain value.
-function toPlain(v) {
+// Exported for direct unit-level coverage of the exotic-value
+// fallback path — the public `json` operand feeds this function
+// from inside nullaryOp, but no qlang-level path reaches the
+// String(v) branch because raw function values never enter
+// pipeValue under Variant-B dispatch.
+export function toPlain(v) {
   if (v === null || v === undefined) return null;
   if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') return v;
   if (isKeyword(v)) return ':' + v.name;

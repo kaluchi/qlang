@@ -1,132 +1,77 @@
 // Assemble the langRuntime — the initial environment Map every
-// query starts with. Two-phase construction:
+// query starts with. Under the Variant-B model every runtime module
+// lives in one of two places:
 //
-// Phase 1: JS impls from runtime modules (dispatch-wrapped function
-//          values with auto-computed `captured` range, no authored meta).
-// Phase 2: Bootstrap manifest.qlang → descriptor conduits with
-//          structured meta and doc comments. Linker enriches each
-//          function value: manifest meta replaces the bare `captured`-
-//          only meta, docs from doc comments populate the docs field.
+//   1. lib/qlang/core.qlang — the authored source catalog. One
+//      Map literal whose entries are descriptor Maps carrying
+//      :qlang/kind :builtin and :qlang/impl :qlang/prim/<name>
+//      keywords that resolve against PRIMITIVE_REGISTRY at dispatch
+//      time. Doc-comment prefixes fold into :docs Vecs at eval
+//      time via MapEntryDocPrefix + foldEntryDocs.
 //
-// Declaration (manifest.qlang) is the single source of truth for
-// all operand metadata. JS impls provide only the executable
-// function. The linker merges both into the final function values
-// that populate langRuntime.
+//   2. src/runtime/*.mjs — the JS-level primitive impls. Each
+//      module binds its impls into PRIMITIVE_REGISTRY at import
+//      time under namespaced :qlang/prim/<name> keys. The
+//      dispatch wrappers in src/runtime/dispatch.mjs (valueOp,
+//      higherOrderOp, nullaryOp, overloadedOp, stateOp,
+//      stateOpVariadic, higherOrderOpVariadic) attach a tiny
+//      meta object carrying only the `captured` range — the rest
+//      of the metadata lives in core.qlang and is addressed by
+//      descriptor-Map projection at reify / manifest time.
+//
+// langRuntime() ties the two together by parsing core.qlang once,
+// evaluating it against an empty env into a template Map, and
+// handing back a shallow copy on every call so callers can add
+// their own bindings (let, as, use) without mutating the template.
+// The descriptor Maps inside the template are frozen and shared
+// between copies — safe because qlang values are immutable at the
+// language level.
+//
+// Importing this file is what wires the primitive registry: every
+// runtime/*.mjs module listed in the import block runs its side-
+// effect registry bindings at module-load time, so by the time
+// langRuntime() parses core.qlang, PRIMITIVE_REGISTRY already
+// holds every :qlang/prim/* key that the descriptors reference.
 
-import { keyword, isConduit } from '../types.mjs';
-import { makeState } from '../state.mjs';
+// Side-effect imports — each runtime module binds its impls into
+// PRIMITIVE_REGISTRY during module load. The imports themselves
+// carry no named binding; the act of importing triggers the
+// registration blocks at the tail of each file.
+import './vec.mjs';
+import './map.mjs';
+import './set.mjs';
+import './setops.mjs';
+import './arith.mjs';
+import './string.mjs';
+import './format.mjs';
+import './predicates.mjs';
+import './control.mjs';
+import './error.mjs';
+import './intro.mjs';
+
+import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
-import * as vec from './vec.mjs';
-import * as map from './map.mjs';
-import * as setMod from './set.mjs';
-import * as setops from './setops.mjs';
-import * as arith from './arith.mjs';
-import * as stringOps from './string.mjs';
-import * as format from './format.mjs';
-import * as predicates from './predicates.mjs';
-import {
-  env as envOperand,
-  use as useOperand,
-  reify as reifyOperand,
-  manifest as manifestOperand,
-  runExamples as runExamplesOperand,
-  letOperand,
-  asOperand
-} from './intro.mjs';
-import {
-  ifOp,
-  coalesce as coalesceOperand,
-  when as whenOperand,
-  unless as unlessOperand,
-  firstTruthy as firstTruthyOperand,
-  cond as condOperand
-} from './control.mjs';
-import {
-  error as errorOperand,
-  isError as isErrorOperand
-} from './error.mjs';
-import { bootstrapManifest } from '../bootstrap.mjs';
+import { makeState } from '../state.mjs';
+import { CORE_SOURCE } from '../../gen/core.mjs';
 
-// JS impl registry: name → function value (captured-only meta).
-const IMPLS = {
-  count: vec.count, empty: vec.empty, first: vec.first, last: vec.last,
-  sum: vec.sum, min: vec.min, max: vec.max, every: vec.every, any: vec.any,
-  firstNonZero: vec.firstNonZero,
-  filter: vec.filter, sort: vec.sort, sortWith: vec.sortWith,
-  take: vec.take, drop: vec.drop, distinct: vec.distinct,
-  reverse: vec.reverse, flat: vec.flat,
-  groupBy: vec.groupBy, indexBy: vec.indexBy,
-  asc: vec.asc, desc: vec.desc, nullsFirst: vec.nullsFirst, nullsLast: vec.nullsLast,
-  keys: map.keys, vals: map.vals, has: map.has,
-  set: setMod.set,
-  union: setops.union, minus: setops.minus, inter: setops.inter,
-  add: arith.add, sub: arith.sub, mul: arith.mul, div: arith.div,
-  split: stringOps.split, join: stringOps.join,
-  contains: stringOps.contains, startsWith: stringOps.startsWith, endsWith: stringOps.endsWith,
-  prepend: stringOps.prepend, append: stringOps.append,
-  json: format.json, table: format.table,
-  eq: predicates.eq, gt: predicates.gt, lt: predicates.lt,
-  gte: predicates.gte, lte: predicates.lte,
-  and: predicates.and, or: predicates.or, not: predicates.not,
-  env: envOperand, use: useOperand, reify: reifyOperand,
-  manifest: manifestOperand, runExamples: runExamplesOperand,
-  let: letOperand, as: asOperand,
-  if: ifOp, when: whenOperand, unless: unlessOperand,
-  coalesce: coalesceOperand, firstTruthy: firstTruthyOperand, cond: condOperand,
-  error: errorOperand, isError: isErrorOperand
-};
+// Cached template env — parsed and evaluated once on first call,
+// then shallow-copied for every subsequent caller. Parsing
+// core.qlang on every session construction would be wasteful;
+// reusing the frozen descriptor Maps across sessions is safe
+// because they are immutable.
+let _templateEnv = null;
 
-// Lazy bootstrap cache — parsed once, reused across langRuntime() calls.
-let _manifestDescriptors = null;
-
-function getDescriptors() {
-  if (_manifestDescriptors !== null) return _manifestDescriptors;
-  _manifestDescriptors = bootstrapManifest();
-  return _manifestDescriptors;
-}
-
-// Force a conduit's body to get the descriptor Map.
-function forceDescriptor(conduit) {
-  const bodyState = makeState(null, new Map());
-  return evalAst(conduit.body, bodyState).pipeValue;
-}
-
-// Enrich a function value with manifest meta + docs.
-// The function value arrives with only `{ captured }` in meta
-// (auto-computed by the dispatch wrapper). Enrichment replaces
-// meta entirely with manifest-sourced fields, preserving `captured`.
-function enrichWithManifest(fnValue, conduit) {
-  const descriptor = forceDescriptor(conduit);
-  const get = (k) => descriptor.get(keyword(k));
-
-  const enrichedMeta = {
-    captured: fnValue.meta.captured,
-    category: get('category').name,
-    subject: get('subject'),
-    returns: get('returns'),
-    modifiers: get('modifiers'),
-    docs: [...conduit.docs],
-    examples: get('examples'),
-    throws: get('throws').map(v => v.name)
-  };
-
-  return Object.freeze({
-    ...fnValue,
-    meta: Object.freeze(enrichedMeta)
-  });
-}
-
-// langRuntime() — returns a fresh env Map. Declaration-first:
-// manifest.qlang provides structured meta and docs; JS impls
-// provide the executable function.
+// langRuntime() — returns a fresh env Map seeded with the full
+// built-in catalog. Each call returns a new top-level Map, so
+// callers can write their own bindings (through let / as / use,
+// or through session.bind at the host level) without affecting
+// other sessions. The inner descriptor Maps are shared frozen
+// values.
 export function langRuntime() {
-  const m = new Map();
-  const descriptors = getDescriptors();
-
-  for (const [name, fnValue] of Object.entries(IMPLS)) {
-    const nameKw = keyword(name);
-    m.set(nameKw, enrichWithManifest(fnValue, descriptors.get(nameKw)));
+  if (_templateEnv === null) {
+    const ast = parse(CORE_SOURCE, { uri: 'qlang/core' });
+    const bootstrapState = makeState(null, new Map());
+    _templateEnv = evalAst(ast, bootstrapState).pipeValue;
   }
-
-  return m;
+  return new Map(_templateEnv);
 }

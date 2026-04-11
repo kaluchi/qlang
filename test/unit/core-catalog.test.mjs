@@ -186,6 +186,106 @@ describe('lib/qlang/core.qlang — doc-prefix folded into :docs', () => {
   });
 });
 
+describe('Variant-B bare-non-nullary REPL introspection', () => {
+  // The REPL ergonomic promised by the whole refactor: typing a
+  // non-nullary operand name bare (no parens, no captured args)
+  // returns its descriptor Map as pipeValue instead of firing an
+  // arity error. Nullary operands (count, sort bare form, env,
+  // etc.) still fire on bare lookup because their minCaptured is
+  // 0 and bare application is their valid nullary form.
+
+  it('bare `mul` returns mul\'s descriptor Map', async () => {
+    // mul has minCaptured 1, so bare lookup yields the descriptor.
+    // evalQuery's initial pipeValue is langRuntime itself; the
+    // bare mul step dispatches through applyBuiltinDescriptor and
+    // hits the "bare + minCaptured > 0" shortcut.
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('mul');
+    expect(isQMap(result)).toBe(true);
+    expect(result.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
+    expect(result.get(keyword('category'))).toBe(keyword('arith'));
+  });
+
+  it('bare `filter` returns filter\'s descriptor Map', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('filter');
+    expect(isQMap(result)).toBe(true);
+    expect(result.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
+    expect(result.get(keyword('category'))).toBe(keyword('vec-transformer'));
+  });
+
+  it('bare `coalesce` returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('coalesce');
+    expect(isQMap(result)).toBe(true);
+    expect(result.get(keyword('category'))).toBe(keyword('control'));
+  });
+
+  it('bare `count` still fires because count is nullary', async () => {
+    // count has minCaptured 0 — the nullary dispatch path still
+    // applies bare lookup rather than substituting the descriptor.
+    // This is what keeps `[1 2 3] | count` meaning "apply count to
+    // the Vec" under the new dispatch.
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(evalQuery('[1 2 3] | count')).toBe(3);
+  });
+
+  it('bare `sort` still fires because sort overload includes nullary', async () => {
+    // sort is overloaded at 0 or 1 captured args. overloadedOp
+    // emits captured [0, 1], so minCaptured is 0 and bare sort
+    // fires its nullary branch.
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
+  });
+});
+
+describe('legacy function-value reify path (conduit parameter reflection)', () => {
+  // Conduit parameters are the only function values that still
+  // end up in env under Variant B — they are created at
+  // applyConduit time by makeConduitParameter and live only for
+  // the duration of the body fork. Reifying one inside a conduit
+  // body exercises the isFunctionValue branch of describeBinding,
+  // which delegates to buildBuiltinDescriptor to construct a
+  // descriptor Map from the function-value's inline meta.
+
+  it('reify on a conduit parameter yields a :kind :builtin descriptor', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    // The conduit body captures a param and calls reify(:p) to
+    // get its descriptor. The param is a function value (not a
+    // Map), so describeBinding takes the isFunctionValue path and
+    // builds a descriptor via buildBuiltinDescriptor from the
+    // inlined meta that makeConduitParameter stamps on the proxy.
+    const result = evalQuery('let(:f, [:p], reify(:p)) | 42 | f(add(1))');
+    expect(isQMap(result)).toBe(true);
+    expect(result.get(keyword('kind'))).toBe(keyword('builtin'));
+    expect(result.get(keyword('category'))).toBe(keyword('conduit-parameter'));
+    expect(result.get(keyword('name'))).toBe('p');
+  });
+});
+
+describe('format.toPlain exotic-value fallback', () => {
+  // toPlain's String(v) fallback covers qlang values that do not
+  // match the known shapes (scalar / keyword / Vec / Map / Set /
+  // error). Under Variant-B dispatch, no qlang-level path ever
+  // reaches this branch — raw function values never enter
+  // pipeValue, so user code cannot feed one to the json operand.
+  // The branch remains as a safety net for JS-level callers that
+  // might construct exotic objects (makeFn frozen values, host
+  // closures injected via session.bind) and pipe them through
+  // toPlain. Direct unit exercise keeps the line covered.
+
+  it('String(v) fallback on a raw function value', async () => {
+    const { toPlain } = await import('../../src/runtime/format.mjs');
+    const { makeFn } = await import('../../src/rule10.mjs');
+    const fn = makeFn('exoticFn', 1, (state) => state, { captured: [0, 0] });
+    const plain = toPlain(fn);
+    // Frozen function-value objects stringify to "[object Object]"
+    // under the default toString; the fallback returns that verbatim.
+    expect(typeof plain).toBe('string');
+    expect(plain).toBe('[object Object]');
+  });
+});
+
 describe('lib/qlang/core.qlang — data-level projections across the full catalog', () => {
   it('groupBy category — full catalog is addressable as data', () => {
     // A miniature exercise of the self-describing nature: run a

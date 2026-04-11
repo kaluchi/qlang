@@ -16,7 +16,7 @@
 {"name":"value-level-on-set","query":"#{1 2 3} | reify | /type","expect":":set"}
 {"name":"value-level-on-empty-set","query":"#{} | reify | /type","expect":":set"}
 {"name":"builtin-via-projection-kind","query":"env | /count | reify | /kind","expect":":builtin"}
-{"name":"builtin-via-projection-name","query":"env | /count | reify | /name","expect":"\"count\""}
+{"name":"builtin-via-named-form-name","query":"reify(:count) | /name","expect":"\"count\""}
 {"name":"builtin-captured-count","query":"env | /count | reify | /captured","expect":"[0 0]"}
 {"name":"builtin-captured-add-partial-or-full","query":"env | /add | reify | /captured","expect":"[1 2]"}
 {"name":"builtin-captured-filter-fixed","query":"env | /filter | reify | /captured","expect":"[1 1]"}
@@ -45,7 +45,7 @@
 {"name":"builtin-returns","query":"env | /add | reify | /returns","expect":":number"}
 {"name":"builtin-docs-is-vec","query":"env | /count | reify | /docs | count","expect":"1"}
 {"name":"builtin-docs-non-empty","query":"env | /count | reify | /docs | first | eq(\"\") | not","expect":"true"}
-{"name":"builtin-throws-contains-class","query":"env | /add | reify | /throws | first","expect":"\"AddLeftNotNumber\""}
+{"name":"builtin-throws-contains-class","query":"reify(:add) | /throws | first","expect":":AddLeftNotNumber"}
 {"name":"builtin-examples-vec","query":"env | /count | reify | /examples | count | gt(0)","expect":"true"}
 {"name":"named-form-builtin","query":"reify(:count) | /kind","expect":":builtin"}
 {"name":"named-form-attaches-name","query":"reify(:filter) | /name","expect":"\"filter\""}

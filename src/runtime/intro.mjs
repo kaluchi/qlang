@@ -12,6 +12,7 @@
 // Meta lives in manifest.qlang.
 
 import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
@@ -314,6 +315,45 @@ function buildValueDescriptor(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
+  // Variant-B built-ins: env stores a descriptor Map directly
+  // (authored in lib/qlang/core.qlang, loaded by langRuntime).
+  // Reify transforms the core.qlang-shaped descriptor into a
+  // user-facing reify descriptor: the internal :qlang/kind and
+  // :qlang/impl dispatch discriminators are substituted for the
+  // unnamespaced :kind so user code can write `reify(:count) | /kind`
+  // rather than the clunkier `/:qlang/kind` namespaced-keyword
+  // projection. The :qlang/impl handle is dropped entirely —
+  // reify consumers want the descriptor, not the dispatch-time
+  // primitive key — and :captured / :effectful are computed from
+  // the primitive resolved through PRIMITIVE_REGISTRY, since core
+  // descriptors do not carry those fields (the captured range is
+  // structurally derived by the dispatch wrappers, and the
+  // effectful flag lives on the impl's classifyEffect result).
+  if (isQMap(value) && value.get(keyword('qlang/kind')) === keyword('builtin')) {
+    const result = new Map();
+    result.set(keyword('kind'), keyword('builtin'));
+    if (explicitName != null) result.set(keyword('name'), explicitName);
+    for (const [k, v] of value) {
+      const kn = k.name;
+      if (kn === 'qlang/kind' || kn === 'qlang/impl') continue;
+      result.set(k, v);
+    }
+    const implKey = value.get(keyword('qlang/impl'));
+    if (implKey) {
+      const impl = PRIMITIVE_REGISTRY.resolve(implKey);
+      if (impl.meta && impl.meta.captured) {
+        result.set(keyword('captured'), [...impl.meta.captured]);
+      }
+      result.set(keyword('effectful'), impl.effectful);
+    }
+    return result;
+  }
+  // Conduit-parameters (created at applyConduit time via makeFn)
+  // are function values that can show up as env bindings while a
+  // conduit body is evaluating. buildBuiltinDescriptor handles
+  // them via the legacy fn.meta path, since their metadata is
+  // inlined at makeConduitParameter time rather than living in
+  // core.qlang.
   if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
   if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
   if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);

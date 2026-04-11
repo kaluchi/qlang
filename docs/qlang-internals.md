@@ -916,7 +916,7 @@ in addition to the invariant `:trail`:
 | `:kind` | keyword | Error category |
 | `:thrown` | keyword | Per-site class name |
 | `:message` | string | Human-readable |
-| `:trail` | Vec | Texts of the pipeline steps deflected by success-track combinators while the error was in flight |
+| `:trail` | Vec | Source text for each pipeline step that a success-track combinator deflected on this error |
 
 User-created error values (`!{...}` or `error(map)`) carry
 whatever fields the author provides — no mandatory schema beyond

@@ -42,7 +42,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
   }
 }
 import {
-  isVec, isQMap, isConduit, isSnapshot, isFunctionValue, isErrorValue,
+  isVec, isQMap, isSnapshot, isFunctionValue, isErrorValue,
   describeType, keyword, NIL, makeErrorValue, appendTrailNode,
   materializeTrail
 } from './types.mjs';
@@ -366,6 +366,7 @@ function evalProjection(node, state) {
 const KW_QLANG_KIND_DISPATCH = keyword('qlang/kind');
 const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
 const KW_BUILTIN_DISPATCH    = keyword('builtin');
+const KW_CONDUIT_DISPATCH    = keyword('conduit');
 const KW_NAME_FIELD          = keyword('name');
 const KW_PARAMS_FIELD        = keyword('params');
 const KW_BODY_FIELD          = keyword('qlang/body');
@@ -383,40 +384,30 @@ function evalOperandCall(node, state) {
 
   let resolved = envGet(env, name);
 
-  // Variant-B dispatch: a resolved env value that is a binding
-  // descriptor Map — carrying :qlang/kind :builtin plus a
-  // :qlang/impl keyword pointing into PRIMITIVE_REGISTRY — is the
-  // primary built-in dispatch path. The descriptor Map lives in
-  // env directly because it was authored in lib/qlang/core.qlang
-  // and loaded by langRuntime() at session construction; the
-  // evaluator reads the :qlang/impl handle, resolves it through
-  // PRIMITIVE_REGISTRY into the JS function value (a makeFn wrapper
-  // produced by runtime/dispatch.mjs's helpers), and applies it via
-  // Rule 10 exactly as the legacy function-value pathway did.
-  //
-  // Bonus REPL ergonomic: when the descriptor-backed operand is not
-  // nullary (its min captured-arg count is > 0) and the user wrote
-  // a bare identifier with no captured-arg parens, the call returns
-  // the descriptor itself as the new pipeValue rather than firing an
-  // arity error. Typing `mul` in a REPL produces mul's manual page as
-  // data; typing `count` still fires count against pipeValue because
-  // count is nullary and a bare lookup has a valid applied form.
-  if (isQMap(resolved) && resolved.get(KW_QLANG_KIND_DISPATCH) === KW_BUILTIN_DISPATCH) {
-    return applyBuiltinDescriptor(resolved, node, name, state);
-  }
-
-  // Apply a conduit (parametric or zero-arity pipeline fragment).
-  // Conduits carry an AST body, an optional param list, and a
-  // lexical envRef for fractal composition.
-  if (isConduit(resolved)) {
-    return applyConduit(resolved, node, name, state);
-  }
-
-  // Unwrap a snapshot written by `as` so user code sees the raw
-  // captured value. The wrapper carries name + docs metadata for
-  // reify but is transparent to ordinary pipeline operations.
+  // Snapshot auto-unwrap — a Map with :qlang/kind :snapshot exposes
+  // its wrapped :qlang/value transparently to identifier lookup so
+  // `as(:name) | name` sees the raw data. The wrapper itself stays
+  // reachable through `reify(:name)`, which reads env directly
+  // without going through evalOperandCall. Running the unwrap
+  // before the binding-descriptor dispatch collapses the old
+  // four-branch layout (builtin / conduit / snapshot / function)
+  // into three: applyBindingDescriptor for builtin + conduit,
+  // isFunctionValue for conduit-parameter proxies, plain-value
+  // tail for everything else — and preserves the "snapshot wrapping
+  // an effectful function value" safety-net path documented in
+  // the effect-marker section of qlang-spec.md.
   if (isSnapshot(resolved)) {
     resolved = resolved.get(KW_VALUE_FIELD);
+  }
+
+  // Variant-B binding-descriptor dispatch — one switch over
+  // :qlang/kind routes to either the builtin or the conduit
+  // dispatch core. Plain user Maps (bound via session.bind or
+  // captured by value-level projection) carry no :qlang/kind and
+  // fall through as non-function values.
+  if (isQMap(resolved)) {
+    const dispatched = applyBindingDescriptor(resolved, node, name, state);
+    if (dispatched !== null) return dispatched;
   }
 
   const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
@@ -467,6 +458,28 @@ function evalOperandCall(node, state) {
     });
   }
   return withPipeValue(state, resolved);
+}
+
+// applyBindingDescriptor(descriptor, node, lookupName, state) → state' | null
+//
+// Single switch over :qlang/kind that routes a Map-shaped env
+// binding to its dispatch core: :builtin rides through
+// applyBuiltinDescriptor (resolve :qlang/impl → PRIMITIVE_REGISTRY,
+// apply via Rule 10), :conduit rides through applyConduit (lexical
+// envRef + parameter proxies + body fork). Returns null when the
+// descriptor has no recognized :qlang/kind — the caller treats the
+// null return as "this Map is user data, fall through to plain-
+// value handling". Snapshot is handled upstream by the auto-unwrap
+// step in evalOperandCall, so no :snapshot branch here.
+function applyBindingDescriptor(descriptor, node, lookupName, state) {
+  const kind = descriptor.get(KW_QLANG_KIND_DISPATCH);
+  if (kind === KW_BUILTIN_DISPATCH) {
+    return applyBuiltinDescriptor(descriptor, node, lookupName, state);
+  }
+  if (kind === KW_CONDUIT_DISPATCH) {
+    return applyConduit(descriptor, node, lookupName, state);
+  }
+  return null;
 }
 
 // applyBuiltinDescriptor(descriptor, node, lookupName, state) → state'

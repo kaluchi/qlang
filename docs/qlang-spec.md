@@ -1054,7 +1054,7 @@ use(:qlang/error, #{:guard :assert})
 
 The host-side mechanism that installs module Maps into env under
 their namespace keys lives in the
-[Embedding API](#module-resolution).
+[Embedding API](#embedding-api).
 
 #### Bootstrap
 
@@ -1713,7 +1713,7 @@ success `pipeValue` it deflects as identity pass-through.
 Inner sub-pipeline starts with a copy of outer `(pipeValue, env)`.
 When it finishes, the inner `pipeValue'` becomes the result, but
 the inner `env'` is discarded. This one rule produces the seven
-scoping rules listed in [Bind](#bind).
+scoping rules listed in [Scoping rules](#scoping-rules).
 
 ### Rule 10 — operand application
 

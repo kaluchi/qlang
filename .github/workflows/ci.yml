@@ -40,9 +40,6 @@ jobs:
   lsp:
     name: LSP tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: lsp
     steps:
       - uses: actions/checkout@v5
 
@@ -50,10 +47,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: lsp/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            lsp/package-lock.json
 
       - run: npm ci
+      - run: npm run build
+      - run: npm ci
+        working-directory: lsp
       - run: npm test
+        working-directory: lsp
 
   all-green:
     name: All checks passed

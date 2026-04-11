@@ -644,14 +644,14 @@ Final `pipeValue = [{:name "Alice" :total 300}]`.
 ### Example 4 — wrap-with-original
 
     > [{:id 1 :name "Alice"} {:id 2 :name "Bob"}]
-      * (as employee | {:key /id :record employee})
+      * (as(:employee) | {:key /id :record employee})
 
 For element 1 = `{:id 1 :name "Alice"}`:
 
 1. Fork with (element 1, outer `env`).
    `pipeValue = {:id 1 :name "Alice"}`.
-2. `(as employee | {:key /id :record employee})` — paren fork.
-   - `as employee` — `env[:employee] = {:id 1 :name "Alice"}`.
+2. `(as(:employee) | {:key /id :record employee})` — paren fork.
+   - `as(:employee)` — `env[:employee] = {:id 1 :name "Alice"}`.
      `pipeValue` unchanged.
    - `{:key /id :record employee}` — Map literal.
      - `:key /id` sub-fork → `1`.
@@ -682,7 +682,7 @@ replaces `pipeValue` — Step 3, second bullet.
 1. `pipeValue = [85 92 47 78 68 95 52]`.
 2. `as(:allScores)` — `env[:allScores] = [85 92 47 78 68 95 52]`.
 3. `filter(gte(70))` — `pipeValue = [85 92 78 95]`.
-4. `as passingScores` — `env[:passingScores] = [85 92 78 95]`.
+4. `as(:passingScores)` — `env[:passingScores] = [85 92 78 95]`.
 5. `[allScores | count, passingScores | count]` — Vec literal with
    two element sub-forks, each starting from the same outer state
    (`[85 92 78 95]`, `env` with both bindings).

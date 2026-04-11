@@ -33,3 +33,6 @@
 {"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add(1) !| union({:trail []}) | error !| /trail","expect":"[]"}
 {"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [\"pre-1\" \"pre-2\"]} !| /trail","expect":"[\"pre-1\" \"pre-2\"]"}
 {"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [\"pre\"]} | count !| /trail","expect":"[\"pre\" \"count\"]"}
+{"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add(1) !| /trail","expect":"[\"add(1)\"]"}
+{"name":"merge-combinator-deflects-on-error","query":"!{:kind :oops} >> count !| /trail","expect":"[\"count\"]"}
+

@@ -10,12 +10,14 @@ import {
   isQSet,
   isKeyword,
   isErrorValue,
-  describeType
+  describeType,
+  keyword
 } from '../types.mjs';
 import {
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'Vec');
 const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'Map');
@@ -103,3 +105,7 @@ function collectColumnOrder(rowCaches) {
   }
   return order;
 }
+
+// Variant-B primitive registry bindings — coexist with IMPLS.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/json'),  json);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/table'), table);

@@ -10,8 +10,9 @@
 
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';
-import { describeType } from '../types.mjs';
+import { describeType, keyword } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const AddLeftNotNumber  = declareModifierError('AddLeftNotNumber',  'add', 1, 'number');
 const AddRightNotNumber = declareModifierError('AddRightNotNumber', 'add', 2, 'number');
@@ -46,3 +47,15 @@ export const div = valueOp('div', 2, (a, b) => {
   if (b === 0) throw new DivisionByZeroError();
   return a / b;
 });
+
+// ── Variant-B primitive registry bindings ─────────────────────
+// Bind each impl into PRIMITIVE_REGISTRY under its :qlang/prim/
+// namespaced key at module-load time. These bindings coexist with
+// the legacy IMPLS-based function-value pathway in runtime/index.mjs
+// — nothing reads from the registry yet; Step 5 of the Variant-B
+// refactor will cut evalOperandCall over to dispatching through
+// PRIMITIVE_REGISTRY.resolve and retire the IMPLS table.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/add'), add);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sub'), sub);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/mul'), mul);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/div'), div);

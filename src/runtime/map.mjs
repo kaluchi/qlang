@@ -5,8 +5,9 @@
 // Meta lives in manifest.qlang.
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
-import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+import { isQMap, isQSet, isKeyword, describeType, keyword } from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'Map');
 const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'Map');
@@ -33,3 +34,8 @@ export const has = valueOp('has', 2, (subject, key) => {
   if (isQSet(subject)) return subject.has(key);
   throw new HasSubjectNotMapOrSet(describeType(subject), subject);
 });
+
+// Variant-B primitive registry bindings — coexist with IMPLS.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/keys'), keys);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/vals'), vals);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/has'),  has);

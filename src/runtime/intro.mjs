@@ -23,6 +23,7 @@ import {
   declareShapeError,
   declareArityError
 } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,
@@ -529,3 +530,18 @@ export const asOperand = stateOp('as', 2, (state, lambdas) => {
   const nextEnv = envSet(state.env, bindingName, snapshot);
   return makeState(state.pipeValue, nextEnv);
 });
+
+// ── Variant-B primitive registry bindings ─────────────────────
+// Bind each reflective operand impl into PRIMITIVE_REGISTRY under
+// its :qlang/prim/ namespaced key at module-load time. Note that
+// `letOperand` / `asOperand` are the JS-level identifiers for the
+// qlang operands `let` / `as` (those names are JS reserved / common
+// enough that the JS-side identifier disambiguates); the registry
+// keys use the qlang names.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/env'),          env);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/use'),          use);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reify'),        reify);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/runExamples'), runExamples);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/manifest'),    manifest);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/let'),         letOperand);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/as'),          asOperand);

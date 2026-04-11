@@ -13,8 +13,9 @@ import {
   higherOrderOpVariadic,
   UNBOUNDED
 } from './dispatch.mjs';
-import { isTruthy, isNil, NIL } from '../types.mjs';
+import { isTruthy, isNil, NIL, keyword } from '../types.mjs';
 import { declareArityError } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const CoalesceNoAlternatives = declareArityError('CoalesceNoAlternatives',
   () => 'coalesce requires at least one alternative sub-pipeline');
@@ -87,3 +88,14 @@ export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
     }
     return NIL;
   }, [1, UNBOUNDED]);
+
+// Variant-B primitive registry bindings — coexist with IMPLS. The
+// qlang-level `if` operand is exported as `ifOp` at the JS level
+// (because `if` is a JS reserved word) but binds under its qlang
+// name :qlang/prim/if.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/if'),          ifOp);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/when'),        when);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/unless'),      unless);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/coalesce'),    coalesce);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/cond'),        cond);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/firstTruthy'), firstTruthy);

@@ -5,12 +5,13 @@
 // Meta lives in manifest.qlang.
 
 import { valueOp } from './dispatch.mjs';
-import { describeType, isVec } from '../types.mjs';
+import { describeType, isVec, keyword } from '../types.mjs';
 import {
   declareModifierError,
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const PrependSubjectNotString = declareModifierError('PrependSubjectNotString', 'prepend', 1, 'string');
 const PrependPrefixNotString  = declareModifierError('PrependPrefixNotString',  'prepend', 2, 'string');
@@ -74,3 +75,12 @@ export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
   if (typeof suffix  !== 'string') throw new EndsWithSuffixNotString(describeType(suffix), suffix);
   return subject.endsWith(suffix);
 });
+
+// Variant-B primitive registry bindings — coexist with IMPLS.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/prepend'),    prepend);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/append'),     append);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/split'),      split);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/join'),       join);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/contains'),   contains);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/startsWith'), startsWith);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/endsWith'),   endsWith);

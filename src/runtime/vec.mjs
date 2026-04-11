@@ -22,6 +22,7 @@ import {
   declareComparabilityError,
   declareShapeError
 } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 // ── Subject-type classes ───────────────────────────────────────
 
@@ -358,3 +359,33 @@ export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   }
   return 0;
 });
+
+// ── Variant-B primitive registry bindings ─────────────────────
+// Bind each Vec-family impl into PRIMITIVE_REGISTRY under its
+// :qlang/prim/ namespaced key at module-load time. Coexists with
+// the legacy IMPLS pathway in runtime/index.mjs; Step 5 will cut
+// evalOperandCall over to PRIMITIVE_REGISTRY.resolve.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/count'),        count);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/empty'),        empty);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/first'),        first);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/last'),         last);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sum'),          sum);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/min'),          min);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/max'),          max);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/filter'),       filter);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/every'),        every);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/any'),          any);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/groupBy'),      groupBy);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/indexBy'),      indexBy);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sort'),         sort);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/take'),         take);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/drop'),         drop);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/distinct'),     distinct);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reverse'),      reverse);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/flat'),         flat);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sortWith'),     sortWith);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/asc'),          asc);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/desc'),         desc);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/nullsFirst'),   nullsFirst);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/nullsLast'),    nullsLast);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/firstNonZero'), firstNonZero);

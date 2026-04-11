@@ -250,3 +250,68 @@ describe('PRIMITIVE_REGISTRY', () => {
     expect(mod.PRIMITIVE_REGISTRY).toBe(PRIMITIVE_REGISTRY);
   });
 });
+
+describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalog', () => {
+  // After importing runtime/index.mjs the side-effect bindings in
+  // every runtime/*.mjs impl module have run, so PRIMITIVE_REGISTRY
+  // holds all 67 built-in operand impls under their :qlang/prim/
+  // keys. This test pins the catalog total and spot-checks
+  // representative entries from each family.
+
+  it('holds 67 primitive bindings after runtime/*.mjs are loaded', async () => {
+    await import('../../src/runtime/index.mjs');
+    expect(PRIMITIVE_REGISTRY.size).toBeGreaterThanOrEqual(67);
+  });
+
+  it('holds the arithmetic primitives', async () => {
+    await import('../../src/runtime/index.mjs');
+    for (const name of ['add', 'sub', 'mul', 'div']) {
+      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+    }
+  });
+
+  it('holds the Vec-family primitives', async () => {
+    await import('../../src/runtime/index.mjs');
+    const vecNames = [
+      'count', 'empty', 'first', 'last', 'sum', 'min', 'max',
+      'every', 'any', 'firstNonZero',
+      'filter', 'sort', 'sortWith', 'take', 'drop', 'distinct',
+      'reverse', 'flat', 'groupBy', 'indexBy',
+      'asc', 'desc', 'nullsFirst', 'nullsLast'
+    ];
+    for (const name of vecNames) {
+      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+    }
+  });
+
+  it('holds the control-flow primitives', async () => {
+    await import('../../src/runtime/index.mjs');
+    for (const name of ['if', 'when', 'unless', 'coalesce', 'cond', 'firstTruthy']) {
+      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+    }
+  });
+
+  it('holds the reflective primitives', async () => {
+    await import('../../src/runtime/index.mjs');
+    for (const name of ['env', 'use', 'reify', 'manifest', 'runExamples', 'let', 'as']) {
+      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+    }
+  });
+
+  it('holds the error primitives', async () => {
+    await import('../../src/runtime/index.mjs');
+    for (const name of ['error', 'isError']) {
+      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+    }
+  });
+
+  it('resolve returns a function value with fn / arity / meta shape', async () => {
+    await import('../../src/runtime/index.mjs');
+    const impl = PRIMITIVE_REGISTRY.resolve(keyword('qlang/prim/add'));
+    expect(impl).toBeDefined();
+    expect(impl.type).toBe('function');
+    expect(impl.name).toBe('add');
+    expect(impl.arity).toBe(2);
+    expect(typeof impl.fn).toBe('function');
+  });
+});

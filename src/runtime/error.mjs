@@ -24,10 +24,11 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isErrorValue, describeType, makeErrorValue
+  isQMap, isErrorValue, describeType, makeErrorValue, keyword
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const ErrorDescriptorNotMap = declareSubjectError(
   'ErrorDescriptorNotMap', 'error', 'Map');
@@ -49,3 +50,7 @@ export const error = makeFn('error', 1, (state, lambdas) => {
 // isError — plain predicate. Returns true when pipeValue is an
 // error value, false otherwise.
 export const isError = nullaryOp('isError', (subject) => isErrorValue(subject));
+
+// Variant-B primitive registry bindings — coexist with IMPLS.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/error'),   error);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isError'), isError);

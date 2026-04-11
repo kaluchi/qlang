@@ -14,12 +14,13 @@
 // Meta lives in manifest.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
-import { isVec, isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+import { isVec, isQMap, isQSet, isKeyword, describeType, keyword } from '../types.mjs';
 import {
   declareSubjectError,
   declareComparabilityError,
   declareShapeError
 } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const UnionBareSubjectNotVec    = declareSubjectError('UnionBareSubjectNotVec',    'union', 'Vec');
 const MinusBareSubjectNotVec    = declareSubjectError('MinusBareSubjectNotVec',    'minus', 'Vec');
@@ -124,3 +125,8 @@ export const inter = overloadedOp('inter', 2, {
   2: (pipeValue, leftLambda, rightLambda) =>
     interPair(leftLambda(pipeValue), rightLambda(pipeValue))
 });
+
+// Variant-B primitive registry bindings — coexist with IMPLS.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/union'), union);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/minus'), minus);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/inter'), inter);

@@ -27,7 +27,7 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import { QlangInvariantError } from '../errors.mjs';
-import { declareArityError } from './operand-errors.mjs';
+import { declareArityError } from '../operand-errors.mjs';
 import { keyword } from '../types.mjs';
 
 // Per-site arity error classes for dispatch helpers.

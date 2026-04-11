@@ -6,7 +6,7 @@
 
 import { nullaryOp } from './dispatch.mjs';
 import { isVec, describeType } from '../types.mjs';
-import { declareSubjectError } from './operand-errors.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
 
 const SetConversionSubjectNotVec = declareSubjectError('SetConversionSubjectNotVec', 'set', 'Vec');
 

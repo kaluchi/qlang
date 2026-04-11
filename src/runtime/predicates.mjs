@@ -10,7 +10,7 @@
 import { valueOp, nullaryOp } from './dispatch.mjs';
 import { isTruthy, describeType } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
-import { declareComparabilityError } from './operand-errors.mjs';
+import { declareComparabilityError } from '../operand-errors.mjs';
 
 const GtOperandsNotComparable  = declareComparabilityError('GtOperandsNotComparable',  'gt');
 const LtOperandsNotComparable  = declareComparabilityError('LtOperandsNotComparable',  'lt');

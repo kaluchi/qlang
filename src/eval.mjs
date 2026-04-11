@@ -23,7 +23,7 @@ import {
   declareSubjectError,
   declareShapeError,
   declareArityError
-} from './runtime/operand-errors.mjs';
+} from './operand-errors.mjs';
 import { QlangInvariantError } from './errors.mjs';
 
 class UnknownAstNodeTypeError extends QlangInvariantError {

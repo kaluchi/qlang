@@ -14,7 +14,7 @@ import {
   UNBOUNDED
 } from './dispatch.mjs';
 import { isTruthy, isNil, NIL } from '../types.mjs';
-import { declareArityError } from './operand-errors.mjs';
+import { declareArityError } from '../operand-errors.mjs';
 
 const CoalesceNoAlternatives = declareArityError('CoalesceNoAlternatives',
   () => 'coalesce requires at least one alternative sub-pipeline');

@@ -1,10 +1,10 @@
 // qlang runtime errors — base hierarchy.
 //
 // Concrete per-site type-error classes live next to the operand
-// that raises them (see runtime/operand-errors.mjs for the
-// factory and runtime/*.mjs for the generated classes). Every
-// per-site class extends QlangTypeError so `instanceof` and
-// `.kind === 'type-error'` still match the broad category.
+// that raises them (see operand-errors.mjs for the factory and
+// runtime/*.mjs for the generated classes). Every per-site class
+// extends QlangTypeError so `instanceof` and `.kind === 'type-error'`
+// still match the broad category.
 //
 // This file declares the hierarchy roots:
 //

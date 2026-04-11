@@ -93,7 +93,7 @@ Any match above is blocker-grade drift regardless of context.
 
 ### 3. Per-site error classes (one throw site, one class)
 
-Every type-error / arity-error / shape-error throw site in the runtime must have its own unique class name. No two operands share an error class. Check `src/runtime/operand-errors.mjs` for the factories (`declareSubjectError`, `declareModifierError`, `declareElementError`, `declareComparabilityError`, `declareShapeError`, `declareArityError`) and verify each new throw site uses a unique class name.
+Every type-error / arity-error / shape-error throw site in the runtime must have its own unique class name. No two operands share an error class. Check `src/operand-errors.mjs` for the factories (`declareSubjectError`, `declareModifierError`, `declareElementError`, `declareComparabilityError`, `declareShapeError`, `declareArityError`) and verify each new throw site uses a unique class name.
 
 Also verify each per-site class:
 - Sets `this.name = className` via the `brand()` helper (so minification preserves it)

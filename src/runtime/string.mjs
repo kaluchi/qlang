@@ -10,7 +10,7 @@ import {
   declareModifierError,
   declareSubjectError,
   declareElementError
-} from './operand-errors.mjs';
+} from '../operand-errors.mjs';
 
 const PrependSubjectNotString = declareModifierError('PrependSubjectNotString', 'prepend', 1, 'string');
 const PrependPrefixNotString  = declareModifierError('PrependPrefixNotString',  'prepend', 2, 'string');

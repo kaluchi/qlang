@@ -15,7 +15,7 @@ import {
 import {
   declareSubjectError,
   declareElementError
-} from './operand-errors.mjs';
+} from '../operand-errors.mjs';
 
 const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'Vec');
 const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'Map');

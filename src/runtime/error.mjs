@@ -26,7 +26,7 @@ import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isErrorValue, describeType, makeErrorValue
 } from '../types.mjs';
-import { declareSubjectError } from './operand-errors.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
 
 const ErrorDescriptorNotMap = declareSubjectError(

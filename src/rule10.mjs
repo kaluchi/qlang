@@ -24,7 +24,7 @@
 // full application).
 
 import { ArityError } from './errors.mjs';
-import { declareArityError } from './runtime/operand-errors.mjs';
+import { declareArityError } from './operand-errors.mjs';
 import { classifyEffect } from './effect.mjs';
 
 const Rule10ArityOverflow = declareArityError('Rule10ArityOverflow',

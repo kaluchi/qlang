@@ -21,7 +21,7 @@ import {
   declareElementError,
   declareComparabilityError,
   declareShapeError
-} from './operand-errors.mjs';
+} from '../operand-errors.mjs';
 
 // ── Subject-type classes ───────────────────────────────────────
 

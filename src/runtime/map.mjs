@@ -6,7 +6,7 @@
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
 import { isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
-import { declareSubjectError, declareModifierError } from './operand-errors.mjs';
+import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 
 const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'Map');
 const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'Map');

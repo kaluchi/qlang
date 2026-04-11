@@ -19,7 +19,7 @@ import {
   declareSubjectError,
   declareComparabilityError,
   declareShapeError
-} from './operand-errors.mjs';
+} from '../operand-errors.mjs';
 
 const UnionBareSubjectNotVec    = declareSubjectError('UnionBareSubjectNotVec',    'union', 'Vec');
 const MinusBareSubjectNotVec    = declareSubjectError('MinusBareSubjectNotVec',    'minus', 'Vec');

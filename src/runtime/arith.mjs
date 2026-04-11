@@ -11,7 +11,7 @@
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';
 import { describeType } from '../types.mjs';
-import { declareModifierError } from './operand-errors.mjs';
+import { declareModifierError } from '../operand-errors.mjs';
 
 const AddLeftNotNumber  = declareModifierError('AddLeftNotNumber',  'add', 1, 'number');
 const AddRightNotNumber = declareModifierError('AddRightNotNumber', 'add', 2, 'number');

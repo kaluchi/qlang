@@ -22,7 +22,7 @@ import {
   declareSubjectError,
   declareShapeError,
   declareArityError
-} from './operand-errors.mjs';
+} from '../operand-errors.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,

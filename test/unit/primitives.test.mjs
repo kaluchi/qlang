@@ -113,7 +113,6 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.fingerprint).toBe('PrimitiveKeyNotKeyword');
       expect(e.kind).toBe('invariant-error');
-      expect(e.context.site).toBe('PrimitiveKeyNotKeyword');
       expect(e.context.actualType).toBe('string');
     }
   });

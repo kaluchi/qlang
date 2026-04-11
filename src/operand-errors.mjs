@@ -33,6 +33,13 @@ function brand(cls, name) {
   return cls;
 }
 
+// Per-site identity rides on `this.name` / `this.fingerprint`,
+// stamped by every factory below from its `className` argument. The
+// context bag carries only structured data the throw site wants the
+// downstream catch (or the user-facing :trail descriptor) to read —
+// no `site` field, because that would duplicate the class identity
+// without adding information.
+
 // declareSubjectError — thrown when an operand receives a subject
 // value whose type is not acceptable.
 export function declareSubjectError(className, operand, expectedType) {
@@ -41,7 +48,6 @@ export function declareSubjectError(className, operand, expectedType) {
       super(
         `${operand} requires ${expectedType} subject, got ${actualType}`,
         {
-          site: className,
           operand,
           position: 'subject',
           expectedType,
@@ -64,7 +70,6 @@ export function declareModifierError(className, operand, position, expectedType)
       super(
         `${operand} expects ${expectedType} at position ${position}, got ${actualType}`,
         {
-          site: className,
           operand,
           position,
           expectedType,
@@ -87,7 +92,6 @@ export function declareElementError(className, operand, expectedType) {
       super(
         `${operand}: element ${index} expects ${expectedType}, got ${actualType}`,
         {
-          site: className,
           operand,
           index,
           expectedType,
@@ -110,7 +114,6 @@ export function declareComparabilityError(className, operand) {
       super(
         `${operand} cannot compare ${leftType} with ${rightType}`,
         {
-          site: className,
           operand,
           leftType,
           rightType
@@ -130,8 +133,7 @@ export function declareComparabilityError(className, operand) {
 export function declareShapeError(className, buildMessage) {
   const Cls = class extends QlangTypeError {
     constructor(context = {}) {
-      const message = buildMessage(context);
-      super(message, { site: className, ...context });
+      super(buildMessage(context), context);
       this.name = className;
       this.fingerprint = className;
     }
@@ -147,8 +149,7 @@ export function declareShapeError(className, buildMessage) {
 export function declareArityError(className, buildMessage) {
   const Cls = class extends ArityError {
     constructor(context = {}) {
-      const message = buildMessage(context);
-      super(message, { site: className, ...context });
+      super(buildMessage(context), context);
       this.name = className;
       this.fingerprint = className;
     }

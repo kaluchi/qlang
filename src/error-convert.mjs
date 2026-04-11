@@ -9,7 +9,12 @@ import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue } from
 // errorFromQlang(qlangError, astNode) → error value
 //
 // Context fields from per-site error classes are scalars and
-// strings — no deep coercion needed.
+// strings — no deep coercion needed. The throw site's class
+// identity already rides on `:thrown` (set above from
+// `qlangError.fingerprint`), so the per-site `name` redundancy is
+// dropped at the factory rather than filtered here. Only
+// `actualValue` is filtered, because PII in the offending value
+// must not land in the user-facing :trail descriptor.
 export function errorFromQlang(qlangError, astNode) {
   const d = new Map();
   d.set(keyword('origin'), keyword('qlang/eval'));
@@ -19,7 +24,7 @@ export function errorFromQlang(qlangError, astNode) {
 
   if (qlangError.context) {
     for (const [k, v] of Object.entries(qlangError.context)) {
-      if (k === 'actualValue' || k === 'site') continue;
+      if (k === 'actualValue') continue;
       d.set(keyword(k), v ?? null);
     }
   }

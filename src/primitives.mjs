@@ -71,7 +71,7 @@ class PrimitiveKeyNotKeyword extends QlangInvariantError {
   constructor(actualType) {
     super(
       `bind: primitive key must be a keyword, got ${actualType}`,
-      { site: 'PrimitiveKeyNotKeyword', actualType }
+      { actualType }
     );
     this.name = 'PrimitiveKeyNotKeyword';
     this.fingerprint = 'PrimitiveKeyNotKeyword';
@@ -82,7 +82,7 @@ class PrimitiveKeyAlreadyBound extends QlangInvariantError {
   constructor(keyName) {
     super(
       `bind: primitive key :${keyName} is already bound; duplicate binding indicates two runtime modules claim the same primitive name`,
-      { site: 'PrimitiveKeyAlreadyBound', keyName }
+      { keyName }
     );
     this.name = 'PrimitiveKeyAlreadyBound';
     this.fingerprint = 'PrimitiveKeyAlreadyBound';
@@ -93,7 +93,7 @@ class PrimitiveRegistrySealed extends QlangInvariantError {
   constructor(keyLabel) {
     super(
       `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
-      { site: 'PrimitiveRegistrySealed', keyLabel }
+      { keyLabel }
     );
     this.name = 'PrimitiveRegistrySealed';
     this.fingerprint = 'PrimitiveRegistrySealed';

@@ -57,7 +57,7 @@ class StateOpVariadicMissingCaptured extends QlangInvariantError {
   constructor(operandName) {
     super(
       `stateOpVariadic('${operandName}') requires captured range`,
-      { site: 'StateOpVariadicMissingCaptured', operandName }
+      { operandName }
     );
     this.name = 'StateOpVariadicMissingCaptured';
     this.fingerprint = 'StateOpVariadicMissingCaptured';
@@ -68,7 +68,7 @@ class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
   constructor(operandName) {
     super(
       `higherOrderOpVariadic('${operandName}') requires captured range`,
-      { site: 'HigherOrderOpVariadicMissingCaptured', operandName }
+      { operandName }
     );
     this.name = 'HigherOrderOpVariadicMissingCaptured';
     this.fingerprint = 'HigherOrderOpVariadicMissingCaptured';

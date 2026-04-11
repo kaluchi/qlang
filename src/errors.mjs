@@ -145,7 +145,7 @@ export class EffectLaunderingAtLetParse extends EffectLaunderingError {
     super(
       `let '${letName}' has an effectful body (references '${effectfulName}') ` +
       `but its name is not @-prefixed; rename to '@${letName}' or remove the effectful reference`,
-      { site: 'EffectLaunderingAtLetParse', letName, effectfulName }
+      { letName, effectfulName }
     );
     this.name = 'EffectLaunderingAtLetParse';
     this.fingerprint = 'EffectLaunderingAtLetParse';
@@ -159,7 +159,7 @@ export class EffectLaunderingAtCall extends EffectLaunderingError {
       `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
       `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
       `use, or as — rename to '@${bindingName}' to mark the effect`,
-      { site: 'EffectLaunderingAtCall', bindingName, effectfulName }
+      { bindingName, effectfulName }
     );
     this.name = 'EffectLaunderingAtCall';
     this.fingerprint = 'EffectLaunderingAtCall';

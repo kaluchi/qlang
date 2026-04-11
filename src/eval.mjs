@@ -28,7 +28,7 @@ import { QlangInvariantError } from './errors.mjs';
 
 class UnknownAstNodeTypeError extends QlangInvariantError {
   constructor(nodeType) {
-    super(`unknown AST node type: ${nodeType}`, { site: 'UnknownAstNodeTypeError', nodeType });
+    super(`unknown AST node type: ${nodeType}`, { nodeType });
     this.name = 'UnknownAstNodeTypeError';
     this.fingerprint = 'UnknownAstNodeTypeError';
   }
@@ -36,7 +36,7 @@ class UnknownAstNodeTypeError extends QlangInvariantError {
 
 class UnknownCombinatorKindError extends QlangInvariantError {
   constructor(kind) {
-    super(`unknown combinator: ${kind}`, { site: 'UnknownCombinatorKindError', kind });
+    super(`unknown combinator: ${kind}`, { kind });
     this.name = 'UnknownCombinatorKindError';
     this.fingerprint = 'UnknownCombinatorKindError';
   }

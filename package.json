@@ -28,7 +28,8 @@
     "test:coverage": "vitest run --coverage",
     "build:grammar": "node scripts/build-grammar.mjs",
     "build:manifest": "node scripts/build-manifest.mjs",
-    "build": "node scripts/build-grammar.mjs && node scripts/build-manifest.mjs"
+    "build:core": "node scripts/build-core.mjs",
+    "build": "node scripts/build-grammar.mjs && node scripts/build-manifest.mjs && node scripts/build-core.mjs"
   },
   "engines": {
     "node": ">=20"

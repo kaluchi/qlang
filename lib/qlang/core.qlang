@@ -1,0 +1,1013 @@
+|~ Canonical catalog of every qlang built-in — the Variant-B
+   langRuntime source. Each entry binds an identifier to a
+   descriptor Map carrying :qlang/kind :builtin and a :qlang/impl
+   keyword pointing into src/primitives.mjs SHARED_REGISTRY, plus
+   the authored metadata (category / subject / returns / modifiers
+   / examples / throws). Doc-comment prefixes attach to each
+   MapEntry via grammar.peggy's MapEntryDocPrefix; eval.mjs's
+   foldEntryDocs folds them into the value Map under :docs at
+   bootstrap time.
+
+   Sections, in order (no inline dividers — the Map literal body
+   admits only MapEntries; section boundaries are preserved by
+   ordering and by blank lines between groups):
+
+     Vec reducers        — count, empty, first, last, sum, min,
+                           max, every, any, firstNonZero
+     Vec transformers    — filter, sort, sortWith, take, drop,
+                           distinct, reverse, flat, set, groupBy,
+                           indexBy
+     Comparator builders — asc, desc, nullsFirst, nullsLast
+     Control flow        — if, when, unless, coalesce, firstTruthy,
+                           cond
+     Map operations      — keys, vals, has
+     Set operations      — union, minus, inter
+     Arithmetic          — add, sub, mul, div
+     String              — split, join, contains, startsWith,
+                           endsWith, prepend, append
+     Boolean             — not
+     Predicates          — eq, gt, lt, gte, lte, and, or
+     Formatting          — json, table
+     Reflective          — env, use, reify, manifest, runExamples,
+                           as, let
+     Error               — error, isError
+
+   Type vocabulary (flat keywords) used in :subject / :returns /
+   :modifiers:
+     :number :string :boolean :keyword :nil :any
+     :vec :map :set
+     :predicate-lambda :key-lambda :comparator-lambda
+     :pipeline (captured sub-pipeline, lazy) ~|
+
+{
+
+|~~ Returns the number of elements. Polymorphic over Vec
+    (length), Set (size), and Map (entry count). ~~|
+:count {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/count
+        :category :vec-reducer
+        :subject [:vec, :set, :map]
+        :returns :number
+        :modifiers []
+        :examples [
+          {:doc "Vec length"    :snippet "[1 2 3] | count"         :expected "3"}
+          {:doc "Set size"      :snippet "#{:a :b} | count"        :expected "2"}
+          {:doc "Map entries"   :snippet "{:x 1 :y 2 :z 3} | count" :expected "3"}]
+        :throws [:CountSubjectNotContainer]}
+
+|~~ Returns true if the container has zero elements, false
+    otherwise. Polymorphic over Vec, Set, and Map. ~~|
+:empty {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/empty
+        :category :vec-reducer
+        :subject [:vec, :set, :map]
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "empty Vec"     :snippet "[] | empty"   :expected "true"}
+          {:doc "non-empty Vec" :snippet "[1] | empty"  :expected "false"}]
+        :throws [:EmptySubjectNotContainer]}
+
+|~~ Returns the first element of a Vec, or nil if the Vec
+    is empty. ~~|
+:first {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/first
+        :category :vec-reducer
+        :subject :vec
+        :returns :any
+        :modifiers []
+        :examples [
+          {:doc "first of three" :snippet "[10 20 30] | first" :expected "10"}
+          {:doc "empty yields nil" :snippet "[] | first"       :expected "nil"}]
+        :throws [:FirstSubjectNotVec]}
+
+|~~ Returns the last element of a Vec, or nil if the Vec
+    is empty. ~~|
+:last {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/last
+       :category :vec-reducer
+       :subject :vec
+       :returns :any
+       :modifiers []
+       :examples [
+         {:doc "last of three" :snippet "[10 20 30] | last" :expected "30"}
+         {:doc "empty yields nil" :snippet "[] | last"      :expected "nil"}]
+       :throws [:LastSubjectNotVec]}
+
+|~~ Returns the numeric sum of elements. Empty Vec yields 0.
+    Every element must be a number. ~~|
+:sum {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/sum
+      :category :vec-reducer
+      :subject :vec
+      :returns :number
+      :modifiers []
+      :examples [
+        {:doc "integers"        :snippet "[1 2 3 4] | sum"  :expected "10"}
+        {:doc "empty Vec"       :snippet "[] | sum"          :expected "0"}]
+      :throws [:SumSubjectNotVec, :SumElementNotNumber]}
+
+|~~ Returns the minimum element under natural ordering. Empty
+    Vec yields nil. All elements must be comparable scalars of
+    the same type. ~~|
+:min {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/min
+      :category :vec-reducer
+      :subject :vec
+      :returns :any
+      :modifiers []
+      :examples [
+        {:doc "numeric minimum"  :snippet "[3 1 4 1 5] | min"          :expected "1"}
+        {:doc "string minimum"   :snippet "[\"b\" \"a\" \"c\"] | min"  :expected "\"a\""}]
+      :throws [:MinSubjectNotVec, :MinElementsNotComparable]}
+
+|~~ Returns the maximum element under natural ordering. Empty
+    Vec yields nil. All elements must be comparable scalars of
+    the same type. ~~|
+:max {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/max
+      :category :vec-reducer
+      :subject :vec
+      :returns :any
+      :modifiers []
+      :examples [
+        {:doc "numeric maximum"  :snippet "[3 1 4 1 5] | max"          :expected "5"}
+        {:doc "string maximum"   :snippet "[\"b\" \"a\" \"c\"] | max"  :expected "\"c\""}]
+      :throws [:MaxSubjectNotVec, :MaxElementsNotComparable]}
+
+|~~ Returns true iff every element satisfies the predicate
+    sub-pipeline. Short-circuits on the first falsy result.
+    Vacuously true for the empty Vec (no counter-example
+    exists). ~~|
+:every {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/every
+        :category :vec-reducer
+        :subject :vec
+        :returns :boolean
+        :modifiers [:predicate-lambda]
+        :examples [
+          {:doc "all match"      :snippet "[2 4 6 8] | every(gt(0))"  :expected "true"}
+          {:doc "some fail"      :snippet "[1 2 3] | every(gt(2))"    :expected "false"}
+          {:doc "vacuously true" :snippet "[] | every(gt(0))"         :expected "true"}]
+        :throws [:EverySubjectNotVec]}
+
+|~~ Returns true iff at least one element satisfies the
+    predicate sub-pipeline. Short-circuits on the first truthy
+    result. Vacuously false for the empty Vec (no witness
+    exists). ~~|
+:any {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/any
+      :category :vec-reducer
+      :subject :vec
+      :returns :boolean
+      :modifiers [:predicate-lambda]
+      :examples [
+        {:doc "one matches"      :snippet "[1 2 3] | any(gt(2))"   :expected "true"}
+        {:doc "none match"       :snippet "[1 2 3] | any(gt(99))"  :expected "false"}
+        {:doc "vacuously false"  :snippet "[] | any(gt(0))"        :expected "false"}]
+      :throws [:AnySubjectNotVec]}
+
+|~~ Returns the first non-zero number in a Vec. If all elements
+    are zero or the Vec is empty, returns 0. The composition
+    primitive for compound comparators in sortWith: each comparator
+    returns -1/0/1, and firstNonZero picks the first non-tie,
+    giving lexicographic ordering. ~~|
+:firstNonZero {:qlang/kind :builtin
+               :qlang/impl :qlang/prim/firstNonZero
+               :category :vec-reducer
+               :subject :vec
+               :returns :number
+               :modifiers []
+               :examples [
+                 {:doc "picks first non-zero"  :snippet "[0 0 -1 0] | firstNonZero"  :expected "-1"}
+                 {:doc "all zeros yields 0"    :snippet "[0 0 0] | firstNonZero"      :expected "0"}]
+               :throws [:FirstNonZeroSubjectNotVec, :FirstNonZeroElementNotNumber]}
+
+|~~ Keeps elements where the predicate sub-pipeline evaluates
+    truthy. The predicate is applied to each element via fork. ~~|
+:filter {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/filter
+         :category :vec-transformer
+         :subject :vec
+         :returns :vec
+         :modifiers [:predicate-lambda]
+         :examples [
+           {:doc "numeric threshold"  :snippet "[1 2 3 4 5] | filter(gt(2))"                    :expected "[3 4 5]"}
+           {:doc "field predicate"    :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"  :expected "[{:age 25}]"}]
+         :throws [:FilterSubjectNotVec]}
+
+|~~ Returns a new Vec sorted in natural ascending order.
+    Overloaded by arity: bare sort uses natural order, sort(key)
+    sorts by the value the key sub-pipeline returns for each
+    element. ~~|
+:sort {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/sort
+       :category :vec-transformer
+       :subject :vec
+       :returns :vec
+       :modifiers [:key-lambda]
+       :examples [
+         {:doc "natural order"   :snippet "[3 1 4 1 5] | sort"                           :expected "[1 1 3 4 5]"}
+         {:doc "sort by field"   :snippet "[{:age 30} {:age 20}] | sort(/age)"           :expected "[{:age 20} {:age 30}]"}]
+       :throws [
+         :SortNaturalSubjectNotVec
+         :SortByKeySubjectNotVec
+         :SortNaturalNotComparable
+         :SortByKeyNotComparable]}
+
+|~~ Sorts a Vec using a custom comparator sub-pipeline. The
+    comparator receives a pair Map {:left a :right b} and must
+    return a number: negative places left before right, positive
+    places right before left, zero preserves relative order
+    (stable sort). Pair with asc/desc/firstNonZero for
+    declarative compound comparators. ~~|
+:sortWith {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/sortWith
+           :category :vec-transformer
+           :subject :vec
+           :returns :vec
+           :modifiers [:comparator-lambda]
+           :examples [
+             {:doc "numeric comparator"    :snippet "[3 1 2] | sortWith(sub(/left, /right))"                          :expected "[1 2 3]"}
+             {:doc "asc by field"          :snippet "people | sortWith(asc(/age))"}
+             {:doc "compound comparator"   :snippet "nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)"}]
+           :throws [:SortWithSubjectNotVec, :SortWithCmpResultNotNumber]}
+
+|~~ Returns the first n elements. If n exceeds length, returns
+    the whole Vec. ~~|
+:take {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/take
+       :category :vec-transformer
+       :subject :vec
+       :returns :vec
+       :modifiers [:number]
+       :examples [
+         {:doc "first N elements"  :snippet "[1 2 3 4 5] | take(3)"  :expected "[1 2 3]"}]
+       :throws [:TakeSubjectNotVec, :TakeCountNotNumber]}
+
+|~~ Returns the Vec with the first n elements removed. If n
+    exceeds length, returns []. ~~|
+:drop {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/drop
+       :category :vec-transformer
+       :subject :vec
+       :returns :vec
+       :modifiers [:number]
+       :examples [
+         {:doc "skip first N"  :snippet "[1 2 3 4 5] | drop(2)"  :expected "[3 4 5]"}]
+       :throws [:DropSubjectNotVec, :DropCountNotNumber]}
+
+|~~ Returns a new Vec with duplicate elements removed,
+    preserving first-occurrence order. ~~|
+:distinct {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/distinct
+           :category :vec-transformer
+           :subject :vec
+           :returns :vec
+           :modifiers []
+           :examples [
+             {:doc "remove duplicates"  :snippet "[1 2 1 3 2] | distinct"  :expected "[1 2 3]"}]
+           :throws [:DistinctSubjectNotVec]}
+
+|~~ Returns the Vec in reverse order. ~~|
+:reverse {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/reverse
+          :category :vec-transformer
+          :subject :vec
+          :returns :vec
+          :modifiers []
+          :examples [
+            {:doc "reverse order"  :snippet "[1 2 3] | reverse"  :expected "[3 2 1]"}]
+          :throws [:ReverseSubjectNotVec]}
+
+|~~ Flattens one level of nesting. Elements that are Vecs are
+    spliced in; other elements pass through unchanged. ~~|
+:flat {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/flat
+       :category :vec-transformer
+       :subject :vec
+       :returns :vec
+       :modifiers []
+       :examples [
+         {:doc "one level of nesting"  :snippet "[[1 2] [3] [4 5]] | flat"  :expected "[1 2 3 4 5]"}]
+       :throws [:FlatSubjectNotVec]}
+
+|~~ Converts a Vec to a Set, removing duplicates. ~~|
+:set {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/set
+      :category :set-op
+      :subject :vec
+      :returns :set
+      :modifiers []
+      :examples [
+        {:doc "Vec to Set"  :snippet "[1 2 1 3] | set"  :expected "#{1 2 3}"}]
+      :throws [:SetConversionSubjectNotVec]}
+
+|~~ Partitions a Vec into a Map keyed by the result of the key
+    sub-pipeline applied to each element. Preserves first-occurrence
+    order for both the Map entry sequence and each bucket's element
+    list. The key sub-pipeline must return a keyword for every
+    element. ~~|
+:groupBy {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/groupBy
+          :category :vec-transformer
+          :subject :vec
+          :returns :map
+          :modifiers [:key-lambda]
+          :examples [
+            {:doc "partition by field"  :snippet "[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy(/dept) | /eng * /name"  :expected "[\"a\" \"c\"]"}]
+          :throws [:GroupBySubjectNotVec, :GroupByKeyNotKeyword]}
+
+|~~ Collapses a Vec into a Map keyed by the result of the key
+    sub-pipeline. On collision (two elements producing the same
+    key), the last element wins. The key sub-pipeline must return
+    a keyword for every element. ~~|
+:indexBy {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/indexBy
+          :category :vec-transformer
+          :subject :vec
+          :returns :map
+          :modifiers [:key-lambda]
+          :examples [
+            {:doc "collapse by key"  :snippet "[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy(/id) | /a/name"  :expected "\"alice\""}]
+          :throws [:IndexBySubjectNotVec, :IndexByKeyNotKeyword]}
+
+|~~ Builds an ascending comparator for sortWith. Applied
+    per-pair, projects the key from /left and /right via the
+    captured sub-pipeline and compares them in natural ascending
+    order. Returns -1, 0, or 1. The key sub-pipeline can be any
+    expression — a bare projection, a computed value, or a
+    multi-step pipeline. ~~|
+:asc {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/asc
+      :category :comparator
+      :subject :map
+      :returns :number
+      :modifiers [:key-lambda]
+      :examples [
+        {:doc "sort by field"         :snippet "sortWith(asc(/age))"}
+        {:doc "sort by computed key"  :snippet "sortWith(asc(mul(/price, /qty)))"}]
+      :throws [:AscPairNotMap, :AscKeysNotComparable]}
+
+|~~ Builds a descending comparator for sortWith. Same as asc
+    but reversed: higher key values come first. ~~|
+:desc {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/desc
+       :category :comparator
+       :subject :map
+       :returns :number
+       :modifiers [:key-lambda]
+       :examples [
+         {:doc "newest first"    :snippet "sortWith(desc(/timestamp))"}
+         {:doc "highest first"   :snippet "sortWith(desc(/score))"}]
+       :throws [:DescPairNotMap, :DescKeysNotComparable]}
+
+|~~ Ascending comparator that places nil-keyed elements before
+    all non-nil elements. Non-nil keys are sorted in ascending
+    order. Use inside sortWith to handle data with missing
+    values without tripping AscKeysNotComparable. ~~|
+:nullsFirst {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/nullsFirst
+             :category :comparator
+             :subject :map
+             :returns :number
+             :modifiers [:key-lambda]
+             :examples [
+               {:doc "nil before others"  :snippet "sortWith(nullsFirst(/age))"}
+               {:doc "nil first ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a"  :expected "[nil 1 3]"}]
+             :throws [:NullsFirstPairNotMap]}
+
+|~~ Ascending comparator that places nil-keyed elements after
+    all non-nil elements. Non-nil keys are sorted in ascending
+    order. Use inside sortWith to handle data with missing
+    values without tripping AscKeysNotComparable. ~~|
+:nullsLast {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/nullsLast
+            :category :comparator
+            :subject :map
+            :returns :number
+            :modifiers [:key-lambda]
+            :examples [
+              {:doc "nil after others"  :snippet "sortWith(nullsLast(/age))"}
+              {:doc "nil last ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a"  :expected "[1 3 nil]"}]
+            :throws [:NullsLastPairNotMap]}
+
+|~~ Conditional. Evaluates the cond sub-pipeline against
+    pipeValue; if truthy, evaluates the then branch, otherwise
+    evaluates the else branch. Only the selected branch executes.
+    Truthiness: nil and false are falsy, everything else
+    (including 0, "", [], {}, #{}) is truthy. ~~|
+:if {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/if
+     :category :control
+     :subject :any
+     :returns :any
+     :modifiers [:predicate-lambda, :pipeline, :pipeline]
+     :examples [
+       {:doc "pass/fail gate"    :snippet "score | if(gte(60), \"pass\", \"fail\")"}
+       {:doc "empty list guard"  :snippet "list | if(empty, \"<empty>\", first)"}]
+     :throws []}
+
+|~~ One-sided conditional with implicit identity on the false
+    branch. If cond evaluated against pipeValue is truthy, runs
+    the then sub-pipeline; otherwise pipeValue passes through
+    unchanged. ~~|
+:when {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/when
+       :category :control
+       :subject :any
+       :returns :any
+       :modifiers [:predicate-lambda, :pipeline]
+       :examples [
+         {:doc "conditional transform"  :snippet "employee | when(/active, /salary | mul(11) | div(10))"}
+         {:doc "default empty list"     :snippet "list | when(empty, [\"<empty>\"])"}]
+       :throws []}
+
+|~~ Inverse of when: runs the then sub-pipeline when cond is
+    falsy, otherwise pipeValue passes through unchanged.
+    Reads more naturally for guard-clause patterns where the
+    action fires when the condition fails. ~~|
+:unless {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/unless
+         :category :control
+         :subject :any
+         :returns :any
+         :modifiers [:predicate-lambda, :pipeline]
+         :examples [
+           {:doc "guard sort on empty"  :snippet "input | unless(empty, sort)"}
+           {:doc "lazy validation"      :snippet "config | unless(/validated, validate)"}]
+         :throws []}
+
+|~~ Returns the first non-nil result among the captured
+    alternatives, evaluating each against pipeValue in order and
+    short-circuiting on the first non-nil value. If all
+    alternatives produce nil, returns nil. Falsy non-nil values
+    (false, 0, "", [], {}, #{}) are NOT skipped — only
+    nil counts as missing. ~~|
+:coalesce {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/coalesce
+           :category :control
+           :subject :any
+           :returns :any
+           :modifiers [:pipeline]
+           :examples [
+             {:doc "first non-nil name"    :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
+             {:doc "config override chain" :snippet "config | coalesce(/userOverride, /projectDefault, /globalDefault)"}]
+           :throws [:CoalesceNoAlternatives]}
+
+|~~ Returns the first truthy result among the captured
+    alternatives, evaluating each against pipeValue in order and
+    short-circuiting on the first truthy value. Both nil and
+    false are skipped. If all alternatives produce falsy values,
+    returns nil. Use coalesce when false is a valid explicit
+    setting; use firstTruthy when false is a sentinel meaning
+    "no value". ~~|
+:firstTruthy {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/firstTruthy
+              :category :control
+              :subject :any
+              :returns :any
+              :modifiers [:pipeline]
+              :examples [
+                {:doc "first truthy name"   :snippet "person | firstTruthy(/preferredName, /firstName, \"Anonymous\")"}
+                {:doc "flag with fallback"  :snippet "flag | firstTruthy(/userValue, /default, false)"}]
+              :throws [:FirstTruthyNoAlternatives]}
+
+|~~ Multi-way dispatch over alternating (predicate, branch)
+    sub-pipeline pairs. Walks captured args in pairs; returns
+    the result of the first branch whose predicate evaluates
+    truthy against pipeValue. If captured-arg count is odd, the
+    trailing arg is the default branch. If even and no match,
+    returns nil. Replaces nested-if chains with a flat
+    catalog. ~~|
+:cond {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/cond
+       :category :control
+       :subject :any
+       :returns :any
+       :modifiers [:pipeline]
+       :examples [
+         {:doc "grade dispatch"   :snippet "score | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")"}
+         {:doc "label by value"   :snippet "value | cond(eq(0), \"zero\", eq(1), \"one\", \"many\")"}]
+       :throws [:CondNoBranches]}
+
+|~~ Returns the Set of keys (keywords) in the Map. ~~|
+:keys {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/keys
+       :category :map-op
+       :subject :map
+       :returns :set
+       :modifiers []
+       :examples [
+         {:doc "Map key set"  :snippet "{:name \"Alice\" :age 30} | keys"  :expected "#{:name :age}"}]
+       :throws [:KeysSubjectNotMap]}
+
+|~~ Returns a Vec of values in insertion order. ~~|
+:vals {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/vals
+       :category :map-op
+       :subject :map
+       :returns :vec
+       :modifiers []
+       :examples [
+         {:doc "Map value Vec"  :snippet "{:name \"Alice\" :age 30} | vals"  :expected "[\"Alice\" 30]"}]
+       :throws [:ValsSubjectNotMap]}
+
+|~~ Returns true if the Map contains the keyword key, or if
+    the Set contains the value. Polymorphic on subject type. ~~|
+:has {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/has
+      :category :map-op
+      :subject [:map, :set]
+      :returns :boolean
+      :modifiers [:any]
+      :examples [
+        {:doc "Map key check"  :snippet "{:name \"Alice\"} | has(:name)"  :expected "true"}
+        {:doc "Set membership" :snippet "#{:a :b :c} | has(:b)"           :expected "true"}]
+      :throws [:HasSubjectNotMapOrSet, :HasKeyNotKeyword]}
+
+|~~ Polymorphic union. Set union or Map merge (last wins on
+    key conflict). Three call shapes: bare form left-folds a
+    non-empty Vec of operands, bound form a | union(b) evaluates
+    b against a as context, full form union(a, b) resolves both
+    args against pipeValue. ~~|
+:union {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/union
+        :category :set-op
+        :subject [:set, :map, :vec]
+        :returns [:set, :map]
+        :modifiers [:any]
+        :examples [
+          {:doc "Set union"     :snippet "[#{:a :b} #{:b :c}] | union"     :expected "#{:a :b :c}"}
+          {:doc "Map merge"     :snippet "{:name \"a\"} | union({:age 20})"}]
+        :throws [:UnionBareSubjectNotVec, :UnionBareEmpty, :UnionPairIncompatible]}
+
+|~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
+    or Map minus Set (drop fields by key set). Same three call
+    shapes as union. Values of the second operand are ignored
+    for Map minus Map. ~~|
+:minus {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/minus
+        :category :set-op
+        :subject [:set, :map, :vec]
+        :returns [:set, :map]
+        :modifiers [:any]
+        :examples [
+          {:doc "Set difference"    :snippet "[#{:a :b :c} #{:b}] | minus"              :expected "#{:a :c}"}
+          {:doc "drop Map fields"   :snippet "{:a 1 :b 2 :tmp 3} | minus(#{:tmp})"     :expected "{:a 1 :b 2}"}]
+        :throws [:MinusBareSubjectNotVec, :MinusBareEmpty, :MinusPairIncompatible]}
+
+|~~ Polymorphic intersection. Set intersect Set, Map intersect
+    keys(Map), or Map intersect Set (select fields by key set).
+    Same three call shapes as union. Values from the first
+    operand are kept. ~~|
+:inter {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/inter
+        :category :set-op
+        :subject [:set, :map, :vec]
+        :returns [:set, :map]
+        :modifiers [:any]
+        :examples [
+          {:doc "Set intersection"    :snippet "[#{:a :b :c} #{:b :d}] | inter"           :expected "#{:b}"}
+          {:doc "select Map fields"   :snippet "{:a 1 :b 2 :c 3} | inter(#{:a :b})"      :expected "{:a 1 :b 2}"}]
+        :throws [:InterBareSubjectNotVec, :InterBareEmpty, :InterPairIncompatible]}
+
+|~~ Adds two numbers. Bound form a | add(b) computes a+b;
+    full form add(a, b) resolves both args against pipeValue
+    as context. ~~|
+:add {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/add
+      :category :arith
+      :subject :number
+      :returns :number
+      :modifiers [:number]
+      :examples [
+        {:doc "bound form"  :snippet "10 | add(3)"               :expected "13"}
+        {:doc "full form"   :snippet "{:x 10 :y 3} | add(/x, /y)"  :expected "13"}]
+      :throws [:AddLeftNotNumber, :AddRightNotNumber]}
+
+|~~ Subtracts the second number from the first. Non-commutative:
+    position 1 is the minuend. ~~|
+:sub {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/sub
+      :category :arith
+      :subject :number
+      :returns :number
+      :modifiers [:number]
+      :examples [
+        {:doc "bound form"  :snippet "10 | sub(3)"               :expected "7"}
+        {:doc "full form"   :snippet "{:x 10 :y 3} | sub(/x, /y)"  :expected "7"}]
+      :throws [:SubLeftNotNumber, :SubRightNotNumber]}
+
+|~~ Multiplies two numbers. Commutative. ~~|
+:mul {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/mul
+      :category :arith
+      :subject :number
+      :returns :number
+      :modifiers [:number]
+      :examples [
+        {:doc "bound form"  :snippet "10 | mul(3)"               :expected "30"}
+        {:doc "full form"   :snippet "{:x 5 :y 4} | mul(/x, /y)"  :expected "20"}]
+      :throws [:MulLeftNotNumber, :MulRightNotNumber]}
+
+|~~ Divides the first number by the second. Non-commutative:
+    position 1 is the dividend. Raises division-by-zero on
+    b == 0. ~~|
+:div {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/div
+      :category :arith
+      :subject :number
+      :returns :number
+      :modifiers [:number]
+      :examples [
+        {:doc "bound form"  :snippet "10 | div(2)"               :expected "5"}
+        {:doc "full form"   :snippet "{:x 20 :y 4} | div(/x, /y)"  :expected "5"}]
+      :throws [:DivLeftNotNumber, :DivRightNotNumber, :DivisionByZeroError]}
+
+|~~ Splits the subject on every occurrence of separator.
+    Returns a Vec of substrings. Inverse of join. ~~|
+:split {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/split
+        :category :string
+        :subject :string
+        :returns :vec
+        :modifiers [:string]
+        :examples [
+          {:doc "comma split"    :snippet "\"a,b,c\" | split(\",\")"        :expected "[\"a\" \"b\" \"c\"]"}
+          {:doc "newline split"  :snippet "\"line1\\nline2\" | split(\"\\n\")"  :expected "[\"line1\" \"line2\"]"}]
+        :throws [:SplitSubjectNotString, :SplitSeparatorNotString]}
+
+|~~ Joins the elements of a Vec of strings with separator
+    between consecutive elements. Inverse of split. ~~|
+:join {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/join
+       :category :string
+       :subject :vec
+       :returns :string
+       :modifiers [:string]
+       :examples [
+         {:doc "join with comma"  :snippet "[\"a\" \"b\" \"c\"] | join(\",\")"  :expected "\"a,b,c\""}
+         {:doc "empty Vec"        :snippet "[] | join(\",\")"                   :expected "\"\""}]
+       :throws [:JoinSubjectNotVec, :JoinElementNotString, :JoinSeparatorNotString]}
+
+|~~ Returns true if the subject string contains needle as a
+    substring. Empty needle is always contained.
+    Case-sensitive. ~~|
+:contains {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/contains
+           :category :string
+           :subject :string
+           :returns :boolean
+           :modifiers [:string]
+           :examples [
+             {:doc "substring found"      :snippet "\"hello world\" | contains(\"world\")"  :expected "true"}
+             {:doc "substring not found"  :snippet "\"hello\" | contains(\"xyz\")"          :expected "false"}]
+           :throws [:ContainsSubjectNotString, :ContainsNeedleNotString]}
+
+|~~ Returns true if the subject string begins with prefix.
+    Empty prefix is always a prefix. Case-sensitive. ~~|
+:startsWith {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/startsWith
+             :category :string
+             :subject :string
+             :returns :boolean
+             :modifiers [:string]
+             :examples [
+               {:doc "prefix matches"      :snippet "\"hello world\" | startsWith(\"hello\")"  :expected "true"}
+               {:doc "prefix not present"  :snippet "\"hello\" | startsWith(\"world\")"        :expected "false"}]
+             :throws [:StartsWithSubjectNotString, :StartsWithPrefixNotString]}
+
+|~~ Returns true if the subject string ends with suffix.
+    Empty suffix is always a suffix. Case-sensitive. ~~|
+:endsWith {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/endsWith
+           :category :string
+           :subject :string
+           :returns :boolean
+           :modifiers [:string]
+           :examples [
+             {:doc "suffix matches"      :snippet "\"hello world\" | endsWith(\"world\")"  :expected "true"}
+             {:doc "suffix not present"  :snippet "\"hello\" | endsWith(\"xyz\")"          :expected "false"}]
+           :throws [:EndsWithSubjectNotString, :EndsWithSuffixNotString]}
+
+|~~ Concatenates the modifier in front of the subject. ~~|
+:prepend {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/prepend
+          :category :string
+          :subject :string
+          :returns :string
+          :modifiers [:string]
+          :examples [
+            {:doc "add prefix"  :snippet "\"world\" | prepend(\"hello \")"  :expected "\"hello world\""}]
+          :throws [:PrependSubjectNotString, :PrependPrefixNotString]}
+
+|~~ Concatenates the subject with the modifier on the right. ~~|
+:append {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/append
+         :category :string
+         :subject :string
+         :returns :string
+         :modifiers [:string]
+         :examples [
+           {:doc "add suffix"  :snippet "\"hello\" | append(\" world\")"  :expected "\"hello world\""}]
+         :throws [:AppendSubjectNotString, :AppendSuffixNotString]}
+
+|~~ Logical negation. Returns true if the subject is falsy
+    (nil or false), false otherwise. 0, "", [], {}, #{} are
+    all truthy. ~~|
+:not {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/not
+      :category :predicate
+      :subject :any
+      :returns :boolean
+      :modifiers []
+      :examples [
+        {:doc "negate nil"    :snippet "nil | not"  :expected "true"}
+        {:doc "0 is truthy"   :snippet "0 | not"    :expected "false"}]
+      :throws []}
+
+|~~ Returns true if the subject equals the captured value by
+    structural equality (deep recursive comparison across Maps,
+    Vecs, Sets, and scalars). ~~|
+:eq {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/eq
+     :category :predicate
+     :subject :any
+     :returns :boolean
+     :modifiers [:any]
+     :examples [
+       {:doc "scalar equality"    :snippet "42 | eq(42)"          :expected "true"}
+       {:doc "structural equality" :snippet "{:a 1} | eq({:a 1})"  :expected "true"}]
+     :throws []}
+
+|~~ Subject-first ordering: a | gt(b) computes a > b. Both
+    operands must be comparable scalars of the same type. ~~|
+:gt {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/gt
+     :category :predicate
+     :subject :number
+     :returns :boolean
+     :modifiers [:number]
+     :examples [
+       {:doc "greater than"  :snippet "10 | gt(5)"  :expected "true"}]
+     :throws [:GtOperandsNotComparable]}
+
+|~~ Subject-first ordering: a | lt(b) computes a < b. ~~|
+:lt {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/lt
+     :category :predicate
+     :subject :number
+     :returns :boolean
+     :modifiers [:number]
+     :examples [
+       {:doc "less than"  :snippet "5 | lt(10)"  :expected "true"}]
+     :throws [:LtOperandsNotComparable]}
+
+|~~ Subject-first ordering: a | gte(b) computes a >= b. ~~|
+:gte {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/gte
+      :category :predicate
+      :subject :number
+      :returns :boolean
+      :modifiers [:number]
+      :examples [
+        {:doc "greater or equal"  :snippet "10 | gte(10)"  :expected "true"}]
+      :throws [:GteOperandsNotComparable]}
+
+|~~ Subject-first ordering: a | lte(b) computes a <= b. ~~|
+:lte {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/lte
+      :category :predicate
+      :subject :number
+      :returns :boolean
+      :modifiers [:number]
+      :examples [
+        {:doc "less or equal"  :snippet "10 | lte(10)"  :expected "true"}]
+      :throws [:LteOperandsNotComparable]}
+
+|~~ Returns true if both operands are truthy. Used in full form
+    inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
+:and {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/and
+      :category :predicate
+      :subject :any
+      :returns :boolean
+      :modifiers [:any]
+      :examples [
+        {:doc "compound predicate"  :snippet "filter(and(/active, /age | gte(18)))"}]
+      :throws []}
+
+|~~ Returns true if either operand is truthy. ~~|
+:or {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/or
+     :category :predicate
+     :subject :any
+     :returns :boolean
+     :modifiers [:any]
+     :examples [
+       {:doc "disjunction predicate"  :snippet "filter(or(/vip, /score | gt(95)))"}]
+     :throws []}
+
+|~~ Returns a JSON string representation of the subject.
+    Keywords are emitted as colon-prefixed strings, Sets as JSON
+    arrays, Maps as JSON objects with keyword names as keys. ~~|
+:json {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/json
+       :category :format
+       :subject :any
+       :returns :string
+       :modifiers []
+       :examples [
+         {:doc "serialize to JSON"  :snippet "{:a 1 :b [2 3]} | json"}]
+       :throws []}
+
+|~~ Renders a Vec of Maps as a fixed-width tabular string.
+    Columns are derived from keys in first-occurrence order
+    across all rows; missing keys render as empty cells.
+    Empty Vec yields the marker "(empty)". ~~|
+:table {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/table
+        :category :format
+        :subject :vec
+        :returns :string
+        :modifiers []
+        :examples [
+          {:doc "render as table"  :snippet "[{:name \"a\" :age 20} {:name \"b\" :age 30}] | table"}]
+        :throws [:TableSubjectNotVec, :TableRowNotMap]}
+
+|~~ Replaces pipeValue with the current env Map. Inside a fork,
+    returns the fork-local env including any as/let writes visible
+    at this point. ~~|
+:env {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/env
+      :category :reflective
+      :subject :any
+      :returns :map
+      :modifiers []
+      :examples [
+        {:doc "list env keys"       :snippet "env | keys"}
+        {:doc "check binding exists" :snippet "env | has(:count)"  :expected "true"}]
+      :throws []}
+
+|~~ Overloaded by arity. Bare form merges pipeValue (a Map)
+    into env. With a namespace keyword, imports module bindings.
+    With a Vec of keywords, imports modules in order (later
+    shadows earlier on collision). With a Set, imports and
+    rejects name collisions. With two args (namespace + filter),
+    imports only the named bindings. pipeValue unchanged in all
+    forms. Inside a fork, merged bindings evaporate on close. ~~|
+:use {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/use
+      :category :reflective
+      :subject :any
+      :returns :any
+      :modifiers [:any]
+      :examples [
+        {:doc "merge Map into env"      :snippet "{:pi 3.14 :e 2.71} | use | [pi, e]"}
+        {:doc "import module"           :snippet "use(:qlang/error)"}
+        {:doc "import multiple modules" :snippet "use([:qlang/error :qlang/http])"}]
+      :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]}
+
+|~~ Builds a descriptor Map for a value or named binding.
+    Value-level form (no captured args) describes the current
+    pipeValue. Named form reify(:name) looks up :name in env
+    and describes whatever binding lives there. Descriptor :kind
+    is one of :builtin, :conduit, :snapshot, :value. ~~|
+:reify {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/reify
+        :category :reflective
+        :subject :any
+        :returns :map
+        :modifiers [:keyword]
+        :examples [
+          {:doc "describe env binding"  :snippet "env | /count | reify"}
+          {:doc "describe named builtin" :snippet "reify(:filter)"}
+          {:doc "describe value"        :snippet "42 | reify"}]
+        :throws [:ReifyKeyNotKeyword]}
+
+|~~ Returns a Vec of descriptors, one per binding in env,
+    sorted alphabetically by binding name. Each descriptor has
+    the same shape as reify(:name) for that binding. ~~|
+:manifest {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/manifest
+           :category :reflective
+           :subject :any
+           :returns :vec
+           :modifiers []
+           :examples [
+             {:doc "list all builtins"  :snippet "env | manifest | filter(/kind | eq(:builtin)) | table"}]
+           :throws []}
+
+|~~ Walks every entry of the descriptor's :examples Vec and
+    returns a Vec of result Maps shaped {:snippet :doc :expected
+    :actual :error :ok}. Two modes per entry: assertion mode fires
+    when :expected is a string — both snippet and expected are
+    evalQuery'd, deepEqual-compared, :ok true iff they match; demo
+    mode fires when :expected is absent — only the snippet's
+    grammar is parse-verified, :ok true iff the syntax holds. The
+    split lets library docs carry caller-style demo snippets that
+    reference ambient bindings (`person | coalesce(/preferredName,
+    …)`) alongside self-contained assertion snippets, without the
+    demo snippets being marked as failures in an isolated
+    runExamples env. Self-describing catalog drift detection: the
+    composition `manifest * (runExamples * /ok) | flat | distinct`
+    walks every example in the manifest and must return `[true]`. ~~|
+:runExamples {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/runExamples
+              :category :reflective
+              :subject :map
+              :returns :vec
+              :modifiers []
+              :examples [
+                {:doc "run one operand's examples"
+                 :snippet "reify(:count) | runExamples * /ok | distinct"
+                 :expected "[true]"}
+                {:doc "run all catalog examples (demo — the snippet recurses into itself when eval'd, so it is parse-only)"
+                 :snippet "manifest * (runExamples * /ok) | flat | distinct"}]
+              :throws [:RunExamplesSubjectNotDescriptor, :RunExamplesNoExamplesField]}
+
+|~~ Captures the current pipeValue as a frozen snapshot under
+    the given keyword name. pipeValue passes through unchanged.
+    Retrievable by name through identifier lookup (auto-unwrapped
+    to the raw value) or through reify(:name) for metadata
+    inspection including docs. ~~|
+:as {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/as
+     :category :reflective
+     :subject :any
+     :returns :any
+     :modifiers [:keyword]
+     :examples [
+       {:doc "snapshot scalar"  :snippet "42 | as(:answer) | answer"             :expected "42"}
+       {:doc "snapshot and use" :snippet "[1 2 3] | as(:nums) | nums | count"    :expected "3"}]
+     :throws [:AsNameNotKeyword]}
+
+|~~ Declares a conduit (named pipeline fragment) in env.
+    Zero-arity: let(:name, body). Parametric: let(:name,
+    [:params], body). The body is stored as AST and evaluated in
+    a lexically-scoped fork at each call site (envRef
+    tie-the-knot for recursive self-binding). Parameters are lazy
+    conduit-parameter proxies. pipeValue passes through
+    unchanged. ~~|
+:let {:qlang/kind :builtin
+      :qlang/impl :qlang/prim/let
+      :category :reflective
+      :subject :any
+      :returns :any
+      :modifiers [:keyword, :pipeline]
+      :examples [
+        {:doc "zero-arity conduit"     :snippet "let(:double, mul(2)) | 10 | double"                                          :expected "20"}
+        {:doc "parametric conduit"     :snippet "let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")"  :expected "\"[world]\""}]
+      :throws [
+        :LetNameNotKeyword
+        :LetParamsNotVecOfKeywords
+        :LetBodyMissing
+        :EffectLaunderingAtLetParse]}
+
+|~~ Lifts a Map into an error value — the sole
+    constructor for the 5th type at the language
+    level alongside the !{…} literal. Bare form
+    `map | error` uses pipeValue as the descriptor;
+    full form `error(map)` evaluates the captured
+    Map against pipeValue as context. The resulting
+    error rides the fail-track: `|`, `*`, and `>>`
+    deflect it into the trail, `!|` fires its step
+    against the materialized descriptor. ~~|
+:error {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/error
+        :category :error
+        :subject :map
+        :returns :error
+        :modifiers [:map]
+        :examples [
+          {:doc "lift Map into error, read :kind via fail-apply"
+           :snippet "{:kind :oops :message \"boom\"} | error !| /kind"
+           :expected ":oops"}
+          {:doc "round-trip via fail-apply"
+           :snippet "error({:kind :oops}) !| /kind"
+           :expected ":oops"}]
+        :throws [:ErrorDescriptorNotMap]}
+
+|~~ Returns true when pipeValue is an error value,
+    false otherwise. Plain predicate — carries no
+    dispatch flag, inspected as-is by its caller.
+    In top-of-pipeline position it only ever sees a
+    success-track value because `|` deflects errors
+    before isError could fire; it is intended for
+    raw first-step positions inside predicate
+    lambdas (`filter(isError)`, `any(isError)`,
+    `every(isError | not)`, `* isError`). ~~|
+:isError {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isError
+          :category :error
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :examples [
+            {:doc "error element in distribute"  :snippet "[!{:kind :oops}] * isError | first"  :expected "true"}
+            {:doc "plain Map"                    :snippet "{:kind :oops} | isError"             :expected "false"}
+            {:doc "non-error scalar"             :snippet "42 | isError"                        :expected "false"}]
+          :throws []}
+
+}

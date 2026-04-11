@@ -153,9 +153,9 @@ function evalPipeline(node, state) {
 // appending the upcoming step's AST node to the error's trail and
 // returning the error unchanged. The fail-track combinator `!|`
 // does the dual: fires on errors via applyFailTrack, deflects on
-// success values as identity pass-through. evalNode has no
-// knowledge of error propagation; it is a pure dispatcher over
-// AST node types.
+// success values as identity pass-through. evalNode is a pure
+// dispatcher over AST node types and performs no track dispatch
+// of its own.
 const COMBINATOR_EVALUATORS = {
   '|':  applySuccessTrack,
   '!|': applyFailTrack,

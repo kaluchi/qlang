@@ -1,9 +1,10 @@
 |~~ Retry action up to n times on failure. Captures the
-    starting value as `:start` before each attempt and
-    restores it on retry so action always sees the
-    original data. The action parameter is a lazy
-    lambda — if the caller passes an effectful operand,
-    the effect fires at the call site, not inside retry.
+    starting pipeValue as `:start` before each attempt
+    and restores it on retry so action always sees
+    `start` — the pipeValue snapshotted before the first
+    attempt. The action parameter is a lazy lambda — if
+    the caller passes an effectful operand, the effect
+    fires at the call site, not inside retry.
 
     Success path: `|` fires action against pipeValue;
     the trailing `!|` deflects and the successful result

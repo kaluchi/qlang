@@ -38,9 +38,8 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   are success-track combinators and deflect (appending the
   upcoming step's AST node to the error's trail); `!|` is the
   fail-track combinator and fires its step against the error's
-  materialized descriptor. `evalNode` itself has no knowledge of
-  error propagation — track dispatch lives exclusively in
-  `applyCombinator`.
+  materialized descriptor. Track dispatch lives exclusively in
+  `applyCombinator`; `evalNode` is a pure AST-node-type dispatcher.
 - **`env`** — the environment, a Map from identifier names to values
   or functions. Contains the language runtime, domain runtime, user
   bindings from `let` and `as`, and anything else in scope.
@@ -339,19 +338,65 @@ to every key in `env | keys`.
 
 ## Combinators
 
+Four combinators thread state between steps. Three are on the
+success-track (`|`, `*`, `>>`) and fire their step when
+`pipeValue` is any non-error value; on an error `pipeValue` they
+**deflect** — the step's AST node is appended to the error's
+`_trailHead` linked list via `appendTrailNode` and the error
+passes downstream unchanged. One is on the fail-track (`!|`) and
+fires its step only when `pipeValue` is an error; on a success
+`pipeValue` it deflects as identity pass-through.
+
 ### `|` — sequential application
 
     (pipeValue, env) | nextStep
         ≡
     run nextStep starting from (pipeValue, env)
 
-Left-to-right state threading.
+Left-to-right state threading for success-track values.
+
+**Deflection on error pipeValue.** When `pipeValue` is an error
+value, `|` does not invoke `nextStep`. Instead it appends
+`nextStep`'s AST node to the error's trail (via `appendTrailNode`)
+and returns the error as the new `pipeValue`. Implementation:
+`applySuccessTrack` in `eval.mjs`.
+
+### `!|` — fail-apply
+
+    (pipeValue, env) !| nextStep
+        ≡
+    if pipeValue is an error:
+        run nextStep starting from (materializedDescriptor, env)
+    else:
+        (pipeValue, env) unchanged (identity pass-through)
+
+Fail-track dispatch dual of `|`. When `pipeValue` is an error,
+`applyFailTrack` combines the descriptor's existing `:trail` Vec
+with any new entries walked out of `_trailHead`, rebuilds the
+descriptor Map with the combined trail stamped onto `:trail`, and
+evaluates `nextStep` against that Map as the new `pipeValue`. The
+step sees the descriptor as an ordinary Map and may use any
+Map-oriented operand (`/key`, `has`, `keys`, `vals`, `union`,
+`filter` over `:trail`, etc.) without special error-handling
+knowledge. Any result the step produces becomes the new
+`pipeValue` — if the step produces a non-error value, the
+pipeline is back on the success-track; if the step re-lifts via
+`| error`, the pipeline stays on the fail-track with trail
+continuity preserved by the `makeErrorValue` invariant.
+
+On a non-error `pipeValue` the combinator is an identity.
+
+The leading `!|` prefix on a Pipeline (`Pipeline.leadingFail`)
+routes the pipeline's first step through `applyFailTrack` even
+though no preceding step exists. Used inside predicate lambdas of
+`filter(…)`, `when(…)`, `if(…)` and inside distribute element
+bodies where the per-element `pipeValue` may be on either track.
 
 ### `*` — distribute
 
     (pipeValue, env) * body
 
-Requires `pipeValue` to be a Vec. For each element `item`:
+For each element `item` of the `pipeValue` Vec:
 
 1. **Fork** to `(item, env)`
 2. Run `body` as a sub-pipeline
@@ -361,10 +406,14 @@ Collect all results into a new Vec. Final state:
 `(collectedVec, env)` with original `env` preserved. Each iteration's
 modifications to `env` are discarded when its fork closes.
 
-If `pipeValue` is not a Vec, the step raises a **type error**. The
-empty Vec is a valid input: `[] * body → []` without invoking
+The empty Vec is a valid input: `[] * body → []` without invoking
 `body`. This is what lets recursive definitions terminate over
 finite data structures.
+
+**Deflection on error pipeValue.** When `pipeValue` is an error
+value, `*` appends `body`'s AST node to the error's trail and
+returns the error unchanged. No per-element fork happens. On any
+other non-Vec `pipeValue` the step raises `DistributeSubjectNotVec`.
 
 ### `>>` — flatten then apply
 
@@ -374,8 +423,12 @@ finite data structures.
 
 `pipeValue` must be a Vec. `flat` removes one level of nesting; it
 is a no-op on flat Vecs (elements that are not themselves Vecs pass
-through unchanged). If `pipeValue` is not a Vec, the step raises a
-**type error**.
+through unchanged).
+
+**Deflection on error pipeValue.** When `pipeValue` is an error
+value, `>>` appends `nextStep`'s AST node to the error's trail and
+returns the error unchanged. No flatten happens. On any other
+non-Vec `pipeValue` the step raises `MergeSubjectNotVec`.
 
 ## Fork
 
@@ -848,9 +901,9 @@ errors.
 
 ### Combinator-level track dispatch
 
-`evalNode` has no knowledge of error propagation. Track dispatch
-lives exclusively in `applyCombinator` (`eval.mjs`), which routes
-to one of four combinator evaluators:
+Track dispatch lives exclusively in `applyCombinator` (`eval.mjs`),
+which routes to one of four combinator evaluators. `evalNode` is a
+pure AST-node-type dispatcher with no track awareness.
 
 - **`|`** — `applySuccessTrack(state, stepNode)`. If `pipeValue`
   is an error, appends `stepNode` to the error's `_trailHead`

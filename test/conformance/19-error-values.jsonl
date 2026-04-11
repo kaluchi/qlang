@@ -35,4 +35,3 @@
 {"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [\"pre\"]} | count !| /trail","expect":"[\"pre\" \"count\"]"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add(1) !| /trail","expect":"[\"add(1)\"]"}
 {"name":"merge-combinator-deflects-on-error","query":"!{:kind :oops} >> count !| /trail","expect":"[\"count\"]"}
-

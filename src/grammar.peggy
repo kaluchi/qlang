@@ -64,7 +64,8 @@ Pipeline
     // (even for a single step) and stamp `leadingFail: true` on it so
     // the evaluator routes the first step through the `!|` combinator
     // instead of evalNode directly. Without the prefix, a single-step
-    // pipeline collapses to the step itself (unchanged legacy path).
+    // pipeline collapses to the bare step node so `astChildrenOf`
+    // and downstream walkers see a Primary at the query root.
     const hasLeadingFail = !!leadingFail;
     const headUnits = Array.isArray(headRaw) ? headRaw : [headRaw];
     const head = headUnits[0];

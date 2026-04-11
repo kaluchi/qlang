@@ -38,6 +38,7 @@ import { deepEqual } from '../equality.mjs';
 // closure which is called long after every module has finished
 // loading, so the binding resolves correctly.
 import { evalQuery } from '../eval.mjs';
+import { parse as parseSource } from '../parse.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
 const UseNamespaceNotKeyword = declareShapeError('UseNamespaceNotKeyword',
@@ -348,7 +349,20 @@ const RunExamplesNoExamplesField = declareShapeError('RunExamplesNoExamplesField
 // runExampleEntry(example) → result Map
 //
 // Each example is a Map with :doc (optional), :snippet, :expected
-// (optional). Evaluates :snippet, compares with :expected if present.
+// (optional). Two modes:
+//
+//   Assertion mode — when :expected is a string: evalQuery both the
+//   snippet and the expected, deepEqual-compare the two values.
+//   `:ok` is true iff both eval cleanly AND the values match.
+//
+//   Demo mode — when :expected is absent: only parse-verify the
+//   snippet. Demo examples illustrate call-site style using
+//   caller-supplied bindings (`person | coalesce(/preferredName,
+//   …)`), which cannot be evalQuery'd in runExamples' isolated env
+//   because those bindings are not installed. Running them would
+//   mark every demo example as failing for the wrong reason, so
+//   demo mode stops at parse and marks `:ok` true if the snippet
+//   is syntactically valid.
 function runExampleEntry(example) {
   const result = new Map();
   const snippetSrc = isQMap(example) ? example.get(keyword('snippet')) : null;
@@ -366,6 +380,23 @@ function runExampleEntry(example) {
     return result;
   }
 
+  if (typeof expectedSrc !== 'string') {
+    // Demo mode — parse-verify only, no eval.
+    try {
+      parseSource(snippetSrc);
+    } catch (e) {
+      result.set(keyword('actual'), null);
+      result.set(keyword('error'), e.message);
+      result.set(keyword('ok'), false);
+      return result;
+    }
+    result.set(keyword('actual'), null);
+    result.set(keyword('error'), null);
+    result.set(keyword('ok'), true);
+    return result;
+  }
+
+  // Assertion mode — both snippet and expected are eval'd and compared.
   const actual = evalQuery(snippetSrc);
   if (isErrorValue(actual)) {
     result.set(keyword('actual'), null);
@@ -374,13 +405,6 @@ function runExampleEntry(example) {
     return result;
   }
   result.set(keyword('actual'), actual);
-
-  if (typeof expectedSrc !== 'string') {
-    // Demo example — no expected, just verify it runs
-    result.set(keyword('error'), null);
-    result.set(keyword('ok'), true);
-    return result;
-  }
 
   const expected = evalQuery(expectedSrc);
   if (isErrorValue(expected)) {

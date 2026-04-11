@@ -28,10 +28,11 @@ describe('makeErrorValue', () => {
   });
 
   it('preserves caller-supplied :trail in descriptor', () => {
-    // When the caller already included :trail in the descriptor
-    // (e.g., from re-lift of a previously-materialized error, or
-    // a user literal `!{:trail [...]}`), makeErrorValue keeps the
-    // supplied Vec untouched.
+    // When the caller already includes :trail in the descriptor
+    // — for example a re-lifted descriptor that carries a trail
+    // from an earlier fail-apply materialization, or a user literal
+    // `!{:trail [...]}` — makeErrorValue keeps the supplied Vec
+    // untouched and skips the invariant-fill branch.
     const preTrail = ['phase-1', 'phase-2'];
     const descriptor = new Map([
       [keyword('kind'), keyword('oops')],

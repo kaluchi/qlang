@@ -178,13 +178,14 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 // for host-boundary re-throwing. Not visible from qlang.
 
 // Interned once to avoid per-construction allocation of the trail
-// key and the empty Vec placeholder. The empty Vec is shared across
-// freshly-constructed errors — safe because it is frozen and qlang
-// values are immutable at the language level.
+// key and the empty-trail Vec inserted when the caller omits
+// :trail. The empty Vec is shared across freshly-constructed errors
+// — safe because it is frozen and qlang values are immutable at the
+// language level.
 const TRAIL_KEY = keyword('trail');
 const EMPTY_TRAIL = Object.freeze([]);
 
-export function makeErrorValue(descriptor, { location = null, originalError = null, trailHead = null } = {}) {
+export function makeErrorValue(descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (!descriptor.has(TRAIL_KEY)) {
     finalDescriptor = new Map(descriptor);
@@ -195,7 +196,7 @@ export function makeErrorValue(descriptor, { location = null, originalError = nu
     descriptor: finalDescriptor,
     location,
     originalError,
-    _trailHead: trailHead
+    _trailHead: null
   });
 }
 

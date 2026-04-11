@@ -829,20 +829,31 @@ let(:manifest, {
     {:doc "list all builtins"  :snippet "env | manifest | filter(/kind | eq(:builtin)) | table"}]
   :throws []})
 
-|~~ Parses and evaluates every entry of the descriptor's
-    :examples Vec, comparing each result against the optional
-    → expected suffix. Returns a Vec of {:query :expected :actual
-    :error :ok} Maps. The composition manifest * runExamples >>
-    /ok | distinct exercises every catalog example — homoiconic
-    doc drift detection. ~~|
+|~~ Walks every entry of the descriptor's :examples Vec and
+    returns a Vec of result Maps shaped {:snippet :doc :expected
+    :actual :error :ok}. Two modes per entry: assertion mode fires
+    when :expected is a string — both snippet and expected are
+    evalQuery'd, deepEqual-compared, :ok true iff they match; demo
+    mode fires when :expected is absent — only the snippet's
+    grammar is parse-verified, :ok true iff the syntax holds. The
+    split lets library docs carry caller-style demo snippets that
+    reference ambient bindings (`person | coalesce(/preferredName,
+    …)`) alongside self-contained assertion snippets, without the
+    demo snippets being marked as failures in an isolated
+    runExamples env. Homoiconic catalog drift detection: the
+    composition `manifest * (runExamples * /ok) | flat | distinct`
+    walks every example in the manifest and must return `[true]`. ~~|
 let(:runExamples, {
   :category :reflective
   :subject :map
   :returns :vec
   :modifiers []
   :examples [
-    {:doc "run one operand's examples"   :snippet "reify(:count) | runExamples"}
-    {:doc "run all catalog examples"     :snippet "manifest * runExamples >> /ok | distinct"}]
+    {:doc "run one operand's examples"
+     :snippet "reify(:count) | runExamples * /ok | distinct"
+     :expected "[true]"}
+    {:doc "run all catalog examples (demo — the snippet recurses into itself when eval'd, so it is parse-only)"
+     :snippet "manifest * (runExamples * /ok) | flat | distinct"}]
   :throws [:RunExamplesSubjectNotDescriptor, :RunExamplesNoExamplesField]})
 
 |~~ Captures the current pipeValue as a frozen snapshot under
@@ -877,9 +888,9 @@ let(:error, {
   :returns :error
   :modifiers [:map]
   :examples [
-    {:doc "lift Map into error"
-     :snippet "{:kind :oops :message \"boom\"} | error | isError"
-     :expected "true"}
+    {:doc "lift Map into error, read :kind via fail-apply"
+     :snippet "{:kind :oops :message \"boom\"} | error !| /kind"
+     :expected ":oops"}
     {:doc "round-trip via fail-apply"
      :snippet "error({:kind :oops}) !| /kind"
      :expected ":oops"}]

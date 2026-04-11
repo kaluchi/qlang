@@ -1038,13 +1038,21 @@ Seven step types:
 | 5 | `let name = expr` / `let name(params) = expr` | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the `let` attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (`let` or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by an OperandCall; preceding any other Primary form, the doc comment fails to match and the grammar falls through to non-doc alternatives. |
 
-Combinators thread state between steps:
+Combinators thread state between steps. `|`, `*`, and `>>` are
+**success-track** combinators — they fire their step when `pipeValue`
+is a non-error value, and **deflect** on an error (appending the
+upcoming step's AST node to the error's `:trail` and letting the
+error flow downstream unchanged). `!|` is the **fail-track**
+combinator — it fires its step only when `pipeValue` is an error,
+exposing the error's materialized descriptor Map to the step; on a
+success `pipeValue` it deflects as identity pass-through.
 
 | Combinator | Effect |
 |---|---|
-| `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b` |
-| `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. |
-| `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. |
+| `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`. On error `pipeValue`, deflect: append `b`'s AST node to the trail and return the error unchanged. |
+| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Vec with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
+| `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
+| `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. On error `pipeValue`, deflect. |
 
 **Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#{...}`.
 Inner sub-pipeline starts with a copy of outer `(pipeValue, env)`.
@@ -1070,10 +1078,10 @@ modifiers (filled by captured args).
 
 ### Precedence
 
-`|`, `*`, `>>` — left-associative, equal precedence:
+`|`, `!|`, `*`, `>>` — left-associative, equal precedence:
 
 ```qlang
-a | b * c | d >> e = ((((a | b) * c) | d) >> e)
+a | b * c !| d >> e = (((((a | b) * c) !| d) >> e))
 ```
 
 `()` scopes sub-expressions:
@@ -1216,6 +1224,7 @@ and `snap` would invoke it on lookup.
 | Projection | `/` keyseg (`/` keyseg)* | `/name`, `/a/b/c`, `/"foo bar"`, `/"a.b"/"$ref"` |
 | KeySeg | quoted-string \| ident | `name`, `"foo bar"` |
 | Pipe | `\|` | |
+| FailApply | `!\|` | |
 | Star | `*` | |
 | Merge | `>>` | |
 | LParen | `(` | |
@@ -1246,10 +1255,10 @@ sequence literally in your prose.
 ```
 Query         ← Pipeline
 
-Pipeline      ← DocAttached (Combinator DocAttached / PlainComment)*
+Pipeline      ← ('!|' _)? DocAttached (Combinator DocAttached / PlainComment)*
 DocAttached   ← DocComment* OperandCall / DocComment* RawStep
 RawStep       ← Primary
-Combinator    ← '|' / '*' / '>>'
+Combinator    ← '|' / '!|' / '*' / '>>'
 
 PlainComment  ← LinePlainComment / BlockPlainComment
 DocComment    ← LineDocComment / BlockDocComment

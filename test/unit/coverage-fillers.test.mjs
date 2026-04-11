@@ -695,22 +695,34 @@ describe('min/max subject type checks', () => {
 });
 
 describe('runExamples branch coverage', () => {
-  it('example without :expected → ok=true (demonstration, no expected check)', () => {
+  it('demo-mode example (no :expected) with a parse-valid snippet → ok=true', () => {
+    // Demo mode parse-verifies the snippet only. An unresolved
+    // identifier at runtime is irrelevant here — `unknownOp` is a
+    // legal identifier at the grammar level, so the parse succeeds
+    // and the entry is marked :ok true even though an assertion-mode
+    // eval would have raised.
     const s = createSession();
-    const result = s.evalCell('{:kind :builtin :examples [{:doc "Vec length" :snippet "[1 2 3] | count"}]} | runExamples | first').result;
+    const result = s.evalCell('{:kind :builtin :examples [{:doc "caller-bound ident" :snippet "42 | unknownOp"}]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(true);
     expect(result.get(keyword('expected')) ?? null).toBe(null);
     expect(result.get(keyword('error'))).toBe(null);
   });
 
-  it('example with failing query → ok=false with error message', () => {
+  it('demo-mode example with an unparseable snippet → ok=false with parse-error message', () => {
     const s = createSession();
-    const result = s.evalCell('{:kind :builtin :examples [{:doc "bad op" :snippet "42 | unknownOp"}]} | runExamples | first').result;
+    const result = s.evalCell('{:kind :builtin :examples [{:doc "unparseable" :snippet "|||"}]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(false);
-    expect(result.get(keyword('error'))).toMatch(/unresolved/);
+    expect(typeof result.get(keyword('error'))).toBe('string');
   });
 
-  it('example with unparseable :expected → ok=false', () => {
+  it('assertion-mode example with a failing snippet → ok=false with runtime error message', () => {
+    const s = createSession();
+    const result = s.evalCell('{:kind :builtin :examples [{:doc "type mismatch" :snippet "42 | count" :expected "42"}]} | runExamples | first').result;
+    expect(result.get(keyword('ok'))).toBe(false);
+    expect(result.get(keyword('error'))).toMatch(/Vec, Set, or Map/);
+  });
+
+  it('assertion-mode example with an unparseable :expected → ok=false', () => {
     const s = createSession();
     const result = s.evalCell('{:kind :builtin :examples [{:doc "bad expected" :snippet "42" :expected "|||"}]} | runExamples | first').result;
     expect(result.get(keyword('ok'))).toBe(false);

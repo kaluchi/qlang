@@ -206,7 +206,7 @@ describe('per-site error triple-assertions', () => {
   });
 });
 
-describe('higher-order lambda error propagation via fail-apply', () => {
+describe('higher-order lambda fail-track deflection into !|', () => {
   // When a lambda passed to a higher-order operand (every, any,
   // groupBy, indexBy, filter) raises an unresolved-identifier error,
   // the higher-order operand returns that error value as its own

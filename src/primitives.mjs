@@ -1,4 +1,4 @@
-// Primitive registry — the canonical handoff point between qlang-
+// Primitive registry — the canonical binding table between qlang-
 // level Map-form binding descriptors (which carry :qlang/impl
 // keyword pointing to an entry here) and their JS-level executable
 // impls.
@@ -7,19 +7,33 @@
 // a qlang Map with :qlang/kind :builtin and an :qlang/impl field
 // holding a namespaced keyword like :qlang/prim/mul. At operand-call-
 // site dispatch the evaluator reads the :qlang/impl keyword from the
-// resolved Map and asks this registry for the matching JS function
-// value; the impl is invoked via Rule 10 exactly as today, but the
-// registry is now the single place that connects "declarative
-// descriptor in core.qlang" with "executable code in runtime/*.mjs".
+// resolved Map and asks this registry to resolve it into the matching
+// JS function value; the impl is invoked via Rule 10 exactly as
+// today, but the registry is now the single place that connects
+// "declarative descriptor in core.qlang" with "executable code in
+// runtime/*.mjs".
 //
 // Lifecycle:
-//   1. Each runtime/*.mjs module registers its impls at import time
-//      via SHARED_REGISTRY.register(keyword('qlang/prim/<name>'), impl).
-//   2. langRuntime() calls SHARED_REGISTRY.freeze() after parsing
-//      core.qlang, locking the registry read-only for the lifetime
-//      of the process.
+//   1. Each runtime/*.mjs module binds its impls at import time via
+//      PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/<name>'), impl).
+//   2. langRuntime() calls PRIMITIVE_REGISTRY.seal() after parsing
+//      core.qlang, closing the registry against further binding for
+//      the lifetime of the process.
 //   3. evalOperandCall dispatches via
-//      SHARED_REGISTRY.get(descriptor.get(keyword('qlang/impl'))).
+//      PRIMITIVE_REGISTRY.resolve(descriptor.get(keyword('qlang/impl'))).
+//
+// Verb vocabulary: the registry uses **bind** for the write site
+// (matching qlang's `let` binding-into-env verb), **resolve** for
+// the read site (matching identifier resolution through env lookup),
+// and **seal** for the one-way transition from open-for-writes to
+// closed-for-writes (chosen over "freeze" because the registry is
+// never unfrozen; sealing is permanent and directional, whereas
+// freezing in JS conventionally implies a shallow immutability that
+// does not match the semantics here). The key itself is just
+// **key** — a namespaced keyword in the :qlang/prim/* family — and
+// when we need a short noun for "the thing that identifies a primitive
+// in its descriptor Map" we say "impl key" to differentiate from Map
+// entry keys and other keyword uses.
 //
 // Layering: the module lives at src/ root rather than src/runtime/
 // because both the core evaluator (src/eval.mjs, at dispatch time)
@@ -30,83 +44,84 @@
 //
 // Two isolation modes:
 //   - createPrimitiveRegistry() — factory producing an isolated
-//     instance. Test code uses this to avoid polluting the shared
-//     registry between cases; embedders spawning isolated
-//     notebook/sandbox evaluators can use it to restrict which
-//     primitives a given context sees.
-//   - SHARED_REGISTRY — the production singleton used by every
-//     runtime/*.mjs at import time and by src/eval.mjs at dispatch
-//     time. Consumers call its .register / .get / .freeze methods
-//     directly; there is no top-level convenience wrapper because
-//     the method-on-instance form already reads cleanly and the
-//     extra indirection would only grow the surface and obscure
-//     which registry instance is being mutated.
+//     registry instance. Test code binds against isolated instances
+//     to avoid polluting the shared registry between cases;
+//     embedders spawning sandboxed evaluation contexts can bind
+//     primitives into a restricted registry instance instead of the
+//     shared one to narrow which primitives a given context sees.
+//   - PRIMITIVE_REGISTRY — the production singleton bound by every
+//     runtime/*.mjs at import time and sealed by langRuntime() once
+//     bootstrap completes. Consumers call its .bind / .resolve / .seal
+//     methods directly; there is no top-level convenience wrapper,
+//     because the method-on-instance form already reads cleanly and
+//     the extra indirection would only obscure which registry
+//     instance is being mutated.
 
 import { isKeyword } from './types.mjs';
 import { QlangError, QlangInvariantError } from './errors.mjs';
 
 // ── Per-site error classes ────────────────────────────────────
 //
-// Three invariant-class errors (registration-time bugs that should
-// surface as loud crashes, never lift to error values) and one
-// QlangError subclass (dispatch-time data error that lifts through
-// evalNode's try/catch onto the fail-track).
+// Three invariant-class errors (bind-time bugs that should surface
+// as loud crashes, never lift to error values) and one QlangError
+// subclass (dispatch-time data error that lifts through evalNode's
+// try/catch onto the fail-track).
 
-class PrimitiveKeyNotKeywordError extends QlangInvariantError {
+class PrimitiveKeyNotKeyword extends QlangInvariantError {
   constructor(actualType) {
     super(
-      `registerPrimitive: key must be a keyword, got ${actualType}`,
-      { site: 'PrimitiveKeyNotKeywordError', actualType }
+      `bind: primitive key must be a keyword, got ${actualType}`,
+      { site: 'PrimitiveKeyNotKeyword', actualType }
     );
-    this.name = 'PrimitiveKeyNotKeywordError';
-    this.fingerprint = 'PrimitiveKeyNotKeywordError';
+    this.name = 'PrimitiveKeyNotKeyword';
+    this.fingerprint = 'PrimitiveKeyNotKeyword';
   }
 }
 
-class PrimitiveKeyAlreadyRegisteredError extends QlangInvariantError {
+class PrimitiveKeyAlreadyBound extends QlangInvariantError {
   constructor(keyName) {
     super(
-      `registerPrimitive: key :${keyName} already bound; duplicate registration indicates two runtime modules claim the same primitive name`,
-      { site: 'PrimitiveKeyAlreadyRegisteredError', keyName }
+      `bind: primitive key :${keyName} is already bound; duplicate binding indicates two runtime modules claim the same primitive name`,
+      { site: 'PrimitiveKeyAlreadyBound', keyName }
     );
-    this.name = 'PrimitiveKeyAlreadyRegisteredError';
-    this.fingerprint = 'PrimitiveKeyAlreadyRegisteredError';
+    this.name = 'PrimitiveKeyAlreadyBound';
+    this.fingerprint = 'PrimitiveKeyAlreadyBound';
   }
 }
 
-class PrimitiveRegistryFrozenError extends QlangInvariantError {
+class PrimitiveRegistrySealed extends QlangInvariantError {
   constructor(keyLabel) {
     super(
-      `registerPrimitive: registry is frozen; cannot register :${keyLabel} after bootstrap has completed`,
-      { site: 'PrimitiveRegistryFrozenError', keyLabel }
+      `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
+      { site: 'PrimitiveRegistrySealed', keyLabel }
     );
-    this.name = 'PrimitiveRegistryFrozenError';
-    this.fingerprint = 'PrimitiveRegistryFrozenError';
+    this.name = 'PrimitiveRegistrySealed';
+    this.fingerprint = 'PrimitiveRegistrySealed';
   }
 }
 
-// PrimitiveKeyNotRegisteredError — the one dispatch-time data error.
-// Fires when a descriptor Map's :qlang/impl keyword points to a
-// primitive nobody registered. Extends QlangError (not
-// QlangInvariantError) so evalNode's try/catch converts it to an
-// error value on the fail-track instead of crashing the evaluator.
-// This gracefully handles hand-crafted descriptor Maps, stale
-// serialized sessions, and mis-edited manifest entries.
-class PrimitiveKeyNotRegisteredError extends QlangError {
+// PrimitiveKeyUnbound — the one dispatch-time data error. Fires when
+// a descriptor Map's :qlang/impl keyword points to a primitive that
+// was never bound. Extends QlangError (not QlangInvariantError) so
+// evalNode's try/catch converts it to an error value on the fail-
+// track instead of crashing the evaluator. This gracefully handles
+// hand-crafted descriptor Maps, stale serialized sessions, and mis-
+// edited manifest entries.
+class PrimitiveKeyUnbound extends QlangError {
   constructor(keyLabel) {
     super(
-      `getPrimitive: no primitive registered under :${keyLabel}`,
-      'primitive-not-registered'
+      `resolve: no primitive bound under :${keyLabel}`,
+      'primitive-unbound'
     );
-    this.name = 'PrimitiveKeyNotRegisteredError';
-    this.fingerprint = 'PrimitiveKeyNotRegisteredError';
+    this.name = 'PrimitiveKeyUnbound';
+    this.fingerprint = 'PrimitiveKeyUnbound';
     this.context = { keyLabel };
   }
 }
 
 // Render a key as a human-readable label for error messages,
 // tolerating the non-keyword case so the invariant throw site for
-// PrimitiveKeyNotKeywordError can still produce a meaningful string.
+// PrimitiveKeyNotKeyword can still produce a meaningful string.
 function keyLabelFor(key) {
   if (isKeyword(key)) return key.name;
   return typeof key;
@@ -116,73 +131,73 @@ function keyLabelFor(key) {
 
 // createPrimitiveRegistry() → registry instance
 //
-// Produces an isolated registry object with register / get / has /
-// freeze methods plus isFrozen and size accessors. Used by tests that
-// need a clean slate per case to avoid SHARED_REGISTRY pollution, and
-// by embedders spawning sandboxed evaluation contexts that want to
-// restrict which primitives are available.
+// Produces an isolated registry instance with bind / resolve / has /
+// seal methods plus isSealed and size accessors. Used by tests that
+// need a clean slate per case to avoid PRIMITIVE_REGISTRY pollution,
+// and by embedders spawning sandboxed evaluation contexts that want
+// to restrict which primitives are available.
 //
-// Production runtime code uses SHARED_REGISTRY plus the convenience
-// functions below, not this factory directly.
+// Production runtime code uses PRIMITIVE_REGISTRY (the module-level
+// singleton) directly, not this factory.
 export function createPrimitiveRegistry() {
-  const entries = new Map();
-  let frozen = false;
+  const bindings = new Map();
+  let sealed = false;
 
   return {
-    register(key, impl) {
-      if (frozen) {
-        throw new PrimitiveRegistryFrozenError(keyLabelFor(key));
+    bind(key, impl) {
+      if (sealed) {
+        throw new PrimitiveRegistrySealed(keyLabelFor(key));
       }
       if (!isKeyword(key)) {
-        throw new PrimitiveKeyNotKeywordError(typeof key);
+        throw new PrimitiveKeyNotKeyword(typeof key);
       }
-      if (entries.has(key)) {
-        throw new PrimitiveKeyAlreadyRegisteredError(key.name);
+      if (bindings.has(key)) {
+        throw new PrimitiveKeyAlreadyBound(key.name);
       }
-      entries.set(key, impl);
+      bindings.set(key, impl);
       return key;
     },
 
-    get(key) {
-      if (!entries.has(key)) {
-        throw new PrimitiveKeyNotRegisteredError(keyLabelFor(key));
+    resolve(key) {
+      if (!bindings.has(key)) {
+        throw new PrimitiveKeyUnbound(keyLabelFor(key));
       }
-      return entries.get(key);
+      return bindings.get(key);
     },
 
     has(key) {
-      return entries.has(key);
+      return bindings.has(key);
     },
 
-    freeze() {
-      frozen = true;
+    seal() {
+      sealed = true;
     },
 
-    get isFrozen() {
-      return frozen;
+    get isSealed() {
+      return sealed;
     },
 
     get size() {
-      return entries.size;
+      return bindings.size;
     }
   };
 }
 
 // ── Shared singleton ──────────────────────────────────────────
 
-// SHARED_REGISTRY is the production registry populated by every
-// runtime/*.mjs module at import time and frozen by langRuntime() on
+// PRIMITIVE_REGISTRY is the production registry bound by every
+// runtime/*.mjs module at import time and sealed by langRuntime() on
 // first bootstrap. Test code should NOT touch this directly — use
 // createPrimitiveRegistry() for isolated instances so tests stay
 // deterministic regardless of order. Runtime call-site usage is via
-// its .register / .get / .freeze methods:
+// its .bind / .resolve / .seal methods:
 //
-//     import { SHARED_REGISTRY } from '../primitives.mjs';
-//     export const add = SHARED_REGISTRY.register(
+//     import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+//     export const add = PRIMITIVE_REGISTRY.bind(
 //       keyword('qlang/prim/add'),
 //       valueOp('add', 2, (a, b) => ...));
 //
 // The returned keyword IS the exported primitive handle; core.qlang's
 // :qlang/impl field for :add points to that same keyword, completing
 // the descriptor → registry → impl handoff at evalOperandCall time.
-export const SHARED_REGISTRY = createPrimitiveRegistry();
+export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();

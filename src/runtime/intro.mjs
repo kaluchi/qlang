@@ -13,6 +13,7 @@
 
 import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { astNodeToMap, qlangMapToAst } from '../walk.mjs';
 import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
@@ -25,7 +26,7 @@ import {
   declareArityError
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { errorFromQlang } from '../error-convert.mjs';
+import { errorFromQlang, errorFromParse } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,
   QlangTypeError,
@@ -39,7 +40,7 @@ import { deepEqual } from '../equality.mjs';
 // evalQuery at module-init time, only from inside the runExamples
 // closure which is called long after every module has finished
 // loading, so the binding resolves correctly.
-import { evalQuery } from '../eval.mjs';
+import { evalQuery, evalAst } from '../eval.mjs';
 import { parse as parseSource } from '../parse.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
@@ -571,13 +572,78 @@ export const asOperand = stateOp('as', 2, (state, lambdas) => {
   return makeState(state.pipeValue, nextEnv);
 });
 
+// ── parse / eval — the code-as-data ring closer ─────────────
+//
+// parse(source-string) → AST-Map      (the `read` primitive)
+// eval(ast-map)        → pipeValue    (the `eval` primitive)
+//
+// Together they close the loop that motivated the whole Variant-B
+// refactor: "qlang code" | parse | eval lifts a source string into
+// an AST-Map (via walk.mjs::astNodeToMap) and then re-enters the
+// evaluator against the current state (via walk.mjs::qlangMapToAst
+// + evalAst). Structured trail entries, programmatic conduit body
+// inspection, and hand-rolled AST construction all become user-
+// level qlang operations from this point on.
+
+const ParseSubjectNotString = declareSubjectError(
+  'ParseSubjectNotString', 'parse', 'string');
+
+const EvalSubjectNotMap = declareSubjectError(
+  'EvalSubjectNotMap', 'eval', 'AST Map');
+
+// parse — reads a source string into the Variant-B AST-Map form.
+// Malformed sources surface on the fail-track: the underlying
+// peggy ParseError is caught and converted to a qlang error value
+// via errorFromParse, which stamps :kind :parse-error and the
+// peggy source location onto the descriptor. The converted error
+// becomes the new pipeValue directly — no throw into evalNode,
+// because evalNode's fallback conversion treats ParseError as a
+// foreign error (kind :foreign-error) which loses the parse-
+// specific discriminator a user-facing operand should preserve.
+export const parseOperand = stateOp('parse', 1, (state, _lambdas) => {
+  const src = state.pipeValue;
+  if (typeof src !== 'string') {
+    throw new ParseSubjectNotString(describeType(src), src);
+  }
+  // parseSource's documented throw site is a single
+  // `throw new ParseError(...)` in parse.mjs — every failure mode
+  // is routed through that class — so the catch trusts the error
+  // shape and hands it straight to errorFromParse without a
+  // defensive type guard.
+  try {
+    const ast = parseSource(src, { uri: 'parse-operand' });
+    return withPipeValue(state, astNodeToMap(ast));
+  } catch (e) {
+    return withPipeValue(state, errorFromParse(e));
+  }
+});
+
+// eval — takes an AST-Map (produced by parse or hand-constructed
+// via astNodeToMap-style data assembly) and runs it against the
+// current state. The current pipeValue becomes the initial
+// pipeValue of the inner evaluation, and env is threaded in
+// unchanged — writes that the inner code does through let / as
+// land in state.env exactly as if the code had been inlined at
+// the call site. The result is whatever pipeValue the inner code
+// produces; env changes from inner let / as / use calls propagate
+// out, matching the semantics of a bare paren-group application.
+export const evalOperand = stateOp('eval', 1, (state, _lambdas) => {
+  const astMap = state.pipeValue;
+  if (!isQMap(astMap)) {
+    throw new EvalSubjectNotMap(describeType(astMap), astMap);
+  }
+  const ast = qlangMapToAst(astMap);
+  return evalAst(ast, state);
+});
+
 // ── Variant-B primitive registry bindings ─────────────────────
 // Bind each reflective operand impl into PRIMITIVE_REGISTRY under
 // its :qlang/prim/ namespaced key at module-load time. Note that
-// `letOperand` / `asOperand` are the JS-level identifiers for the
-// qlang operands `let` / `as` (those names are JS reserved / common
-// enough that the JS-side identifier disambiguates); the registry
-// keys use the qlang names.
+// `letOperand` / `asOperand` / `parseOperand` / `evalOperand` are
+// the JS-level identifiers for the qlang operands `let` / `as` /
+// `parse` / `eval` (those names are JS reserved / common enough
+// that the JS-side identifier disambiguates); the registry keys
+// use the qlang names.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/env'),          env);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/use'),          use);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reify'),        reify);
@@ -585,3 +651,5 @@ PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/runExamples'), runExamples);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/manifest'),    manifest);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/let'),         letOperand);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/as'),          asOperand);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/parse'),       parseOperand);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/eval'),        evalOperand);

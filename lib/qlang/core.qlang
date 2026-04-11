@@ -1010,4 +1010,53 @@
             {:doc "non-error scalar"             :snippet "42 | isError"                        :expected "false"}]
           :throws []}
 
+|~~ Parses a source string into an AST-Map — the data-form
+    representation of the program described by walk.mjs's
+    astNodeToMap codec. Half of the code-as-data ring; pair
+    with `eval` to round-trip between source text and
+    evaluated pipeValue without leaving qlang. Parse errors
+    from the underlying peggy parser lift onto the fail-track
+    as ordinary error values, so malformed sources surface
+    through `!|` like every other runtime failure. ~~|
+:parse {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/parse
+        :category :reflective
+        :subject :string
+        :returns :map
+        :modifiers []
+        :examples [
+          {:doc "round-trip a literal through parse"
+           :snippet "\"42\" | parse | /:qlang/kind"
+           :expected ":NumberLit"}
+          {:doc "inspect an operand-call AST-Map"
+           :snippet "\"add(1, 2)\" | parse | /name"
+           :expected "\"add\""}]
+        :throws [:ParseSubjectNotString]}
+
+|~~ Evaluates an AST-Map (typically produced by `parse` or
+    hand-assembled via walk.mjs::astNodeToMap) against the
+    current state. The inner code sees the caller's env and
+    pipeValue; any let / as / use writes propagate out the
+    same way a paren-group would. Completes the ring
+    `"source" | parse | eval` equivalent to directly evaluating
+    the source string, and enables programmatic query
+    construction from data without source-string splicing. ~~|
+:eval {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/eval
+       :category :reflective
+       :subject :map
+       :returns :any
+       :modifiers []
+       :examples [
+         {:doc "parse and eval a scalar literal"
+          :snippet "\"42\" | parse | eval"
+          :expected "42"}
+         {:doc "round-trip an arithmetic expression"
+          :snippet "\"10 | add(3)\" | parse | eval"
+          :expected "13"}
+         {:doc "evaluate a hand-assembled AST-Map"
+          :snippet "{:qlang/kind :NumberLit :value 42} | eval"
+          :expected "42"}]
+       :throws [:EvalSubjectNotMap]}
+
 }

@@ -62,9 +62,11 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     expect(isQMap(env)).toBe(true);
   });
 
-  it('holds exactly 67 entries — one per built-in operand', () => {
+  it('holds exactly 69 entries — one per built-in operand', () => {
+    // 67 original + `parse` + `eval` (Step 10 — the code-as-data
+    // ring closer) = 69 reflective-heavy total under Variant B.
     const env = evalCore();
-    expect(env.size).toBe(67);
+    expect(env.size).toBe(69);
   });
 
   it('every entry value is a Map with :qlang/kind :builtin', () => {
@@ -309,9 +311,77 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
     expect(categories.get('format')).toBe(2);
-    expect(categories.get('reflective')).toBe(7);
+    expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
     expect(categories.get('error')).toBe(2);
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
-    expect(sum).toBe(67);
+    expect(sum).toBe(69);
+  });
+});
+
+describe('parse / eval — the code-as-data ring closer', () => {
+  // Step 10 of the Variant-B refactor: the `parse` operand reads
+  // a source string into the walk.mjs AST-Map form, `eval` takes
+  // that AST-Map and runs it against the current state. Together
+  // they round-trip source text → data → pipeValue without
+  // leaving the language, and land the programmatic-query-
+  // construction surface the whole refactor pointed at.
+
+  it('parse lifts a scalar literal into an AST-Map', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('"42" | parse');
+    expect(isQMap(result)).toBe(true);
+    expect(result.get(keyword('qlang/kind'))).toBe(keyword('NumberLit'));
+    expect(result.get(keyword('value'))).toBe(42);
+  });
+
+  it('parse lifts an OperandCall into an AST-Map with :name / :args', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('"add(1, 2)" | parse');
+    expect(result.get(keyword('qlang/kind'))).toBe(keyword('OperandCall'));
+    expect(result.get(keyword('name'))).toBe('add');
+    expect(isVec(result.get(keyword('args')))).toBe(true);
+    expect(result.get(keyword('args'))).toHaveLength(2);
+  });
+
+  it('parse errors on non-string subject', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('42 | parse !| /thrown');
+    expect(result).toEqual(keyword('ParseSubjectNotString'));
+  });
+
+  it('eval takes a hand-assembled AST-Map and runs it', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('{:qlang/kind :NumberLit :value 42} | eval');
+    expect(result).toBe(42);
+  });
+
+  it('eval errors on non-Map subject', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('"not-a-map" | eval !| /thrown');
+    expect(result).toEqual(keyword('EvalSubjectNotMap'));
+  });
+
+  it('round-trip — "source" | parse | eval is equivalent to evaluating the source', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(evalQuery('"42" | parse | eval')).toBe(42);
+    expect(evalQuery('"10 | add(3)" | parse | eval')).toBe(13);
+    expect(evalQuery('"[1 2 3] | filter(gt(1)) | count" | parse | eval')).toBe(2);
+  });
+
+  it('round-trip preserves projections and Map literals', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(evalQuery('"{:a 1 :b 2} | /a" | parse | eval')).toBe(1);
+  });
+
+  it('error values round-trip through parse | eval', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('"!{:kind :oops} !| /kind" | parse | eval');
+    expect(result).toEqual(keyword('oops'));
+  });
+
+  it('parse errors on malformed source lift to fail-track', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = evalQuery('"this is not qlang [" | parse !| /kind');
+    expect(result).toEqual(keyword('parse-error'));
   });
 });

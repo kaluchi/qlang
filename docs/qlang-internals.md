@@ -33,10 +33,14 @@ The state of query evaluation is a pair `(pipeValue, env)`:
 
 - **`pipeValue`** — the current value flowing through the pipeline.
   Any of Scalar, Vec, Map, Set, Error, or a function (partial or
-  complete). When pipeValue is an Error value, most pipeline steps
-  are skipped (the error propagates) — only error-aware operands
-  (`catch`, `isError`) and transparent containers (Pipeline,
-  ParenGroup, conduit bodies) are entered.
+  complete). When `pipeValue` is an error value, the combinator at
+  each call site decides whether its step fires: `|`, `*`, `>>`
+  are success-track combinators and deflect (appending the
+  upcoming step's AST node to the error's trail); `!|` is the
+  fail-track combinator and fires its step against the error's
+  materialized descriptor. `evalNode` itself has no knowledge of
+  error propagation — track dispatch lives exclusively in
+  `applyCombinator`.
 - **`env`** — the environment, a Map from identifier names to values
   or functions. Contains the language runtime, domain runtime, user
   bindings from `let` and `as`, and anything else in scope.
@@ -66,17 +70,17 @@ Components of the pair are individually first-class, however:
   other Map operation, and written back with `use`.
 
 There is no operation that exposes the pair as a single object, and
-none of the worked examples needs one. The combinators (`|`, `*`,
-`>>`) and fork boundaries (`()`, `[]`, `{}`, `#{}`) transform the
-pair implicitly — that transformation is the semantics of the
+none of the worked examples needs one. The combinators (`|`, `!|`,
+`*`, `>>`) and fork boundaries (`()`, `[]`, `{}`, `#{}`) transform
+the pair implicitly — that transformation is the semantics of the
 language, described in meta-notation for clarity, not reified as a
 user-visible object.
 
 ## Step types
 
 Seven kinds of steps. Every syntactic form in the language reduces
-to one of them. `use`, `env`, `reify`, `manifest`, `error`, `catch`,
-and `isError` are not step types — they are ordinary identifiers
+to one of them. `use`, `env`, `reify`, `manifest`, `error`, and
+`isError` are not step types — they are ordinary identifiers
 (Step 3) that happen to resolve to built-ins in the language runtime.
 
 ### 1. Literal
@@ -87,9 +91,10 @@ Map, Set, or Error (`!{:kind :oops}`).
     (pipeValue, env) → (evalLiteral, env)
 
 Error literals (`!{...}`) evaluate their entries the same way as Map
-literals but wrap the result as an error value — the fifth type. The
-error value propagates through subsequent steps via the error
-propagation rule (see below).
+literals but wrap the result as an error value — the fifth type.
+The error value rides the fail-track, deflected by `|`, `*`, `>>`
+combinators and fired on by `!|` (see the fail-track dispatch
+section below).
 
 For compound literals with expression elements (e.g., `[/name, /age]`,
 `{:greeting /name}`, `#{/tag}`), each element or value is evaluated as
@@ -466,8 +471,8 @@ indistinguishable from built-ins.
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |
-| `error`, `catch`, `isError`         | Step 3 — error built-in               |
-| `\|`, `*`, `>>`                     | Combinators                           |
+| `error`, `isError`                  | Step 3 — error built-in               |
+| `\|`, `!\|`, `*`, `>>`              | Combinators                           |
 | `(...)` grouping                    | Fork                                  |
 | Vec / Map / Set entry evaluation    | Fork per entry                        |
 
@@ -823,11 +828,12 @@ for the user-facing contract and
 [the runtime reference](qlang-operands.md#effectmjs-and-effect-checkmjs--effect-markers)
 for the precomputed `.effectful` field that the safety net consults.
 
-## Error values and propagation
+## Error values and fail-track dispatch
 
 Error is the fifth value type. An error value wraps a descriptor
-Map and propagates through pipeline steps that cannot meaningfully
-process it.
+Map and rides the fail-track: the `|`, `*`, and `>>` combinators
+deflect it, while `!|` fires its step against the materialized
+descriptor.
 
 ### Error-to-value conversion
 
@@ -840,31 +846,69 @@ field extraction from JS Error objects). `QlangInvariantError`
 subclasses are never caught — they indicate runtime bugs, not data
 errors.
 
-### Propagation rule
+### Combinator-level track dispatch
 
-When `pipeValue` is an error value, `evalNode` applies a
-propagation check before dispatching to the node handler:
+`evalNode` has no knowledge of error propagation. Track dispatch
+lives exclusively in `applyCombinator` (`eval.mjs`), which routes
+to one of four combinator evaluators:
 
-- **Pipeline, ParenGroup** — entered. Children decide individually.
-- **OperandCall** — entered. The handler checks whether the resolved
-  binding is error-aware (`isFunctionValue && .errorAware`) or a
-  conduit (conduits are transparent — their body decides). If
-  neither, the step is skipped with a trail entry.
-- **Comments** — transparent (identity), no trail entry.
-- **Everything else** (literals, projections, compound literals) —
-  skipped with a trail entry appended to the error value.
+- **`|`** — `applySuccessTrack(state, stepNode)`. If `pipeValue`
+  is an error, appends `stepNode` to the error's `_trailHead`
+  linked list and returns the error unchanged. Otherwise invokes
+  `evalNode(stepNode, state)`.
+- **`!|`** — `applyFailTrack(state, stepNode)`. If `pipeValue` is
+  an error, materializes its descriptor (see below) and invokes
+  `evalNode(stepNode, state-with-descriptor)`. On a success
+  `pipeValue` it returns the state unchanged (identity
+  pass-through).
+- **`*`** — `distribute(state, bodyNode)`. Deflects on error into
+  the trail like `|`; on a Vec, forks per element and runs the
+  body against each; throws `DistributeSubjectNotVec` when
+  `pipeValue` is neither a Vec nor an error.
+- **`>>`** — `mergeFlat(state, nextNode)`. Deflects on error into
+  the trail like `|`; on a Vec, flattens one level and invokes
+  the next step against the flattened Vec.
 
-### Trail
+The leading `!|` prefix of a Pipeline (`Pipeline.leadingFail`) is
+handled in `evalPipeline` by routing the first step through
+`applyCombinator('!|', state, step)` instead of the raw
+`evalNode(step, state)` call that un-prefixed pipelines use. This
+is how predicate lambdas inside `filter(…)` / `when(…)` / `if(…)`
+opt into fail-apply for their first step.
 
-Each skip appends a `{ text, prev }` node to a lazy linked list
-on the error value (`._trailHead`). The trail is materialized into
-a `:trail` Vec (chronological order, first-skipped to last-skipped)
-when `catch` unwraps the error. Cost per skip: one small frozen
-object. Materialization happens once at catch time.
+### Trail and materialization
 
-### Descriptor shape
+Each deflection appends a `{ text, prev }` node to a lazy linked
+list on the error value (`_trailHead`) via `appendTrailNode`. The
+trail is combined into a `:trail` Vec on the descriptor when `!|`
+fires: `applyFailTrack` reads the descriptor's existing `:trail`
+Vec (guaranteed by the `makeErrorValue` invariant), walks
+`_trailHead` via `materializeTrail` to collect new deflections
+since the last materialization, concatenates the two, and stamps
+the combined Vec back onto a fresh descriptor Map that is exposed
+to the step.
 
-Error values produced by the runtime carry:
+Trail continuity across re-lift: when a step running under `!|`
+returns a Map and a later `| error` re-wraps it, the new error's
+descriptor retains the `:trail` Vec the step handed back, and
+subsequent deflections accumulate into a fresh `_trailHead`
+linked list. The next `!|` combines both sources again —
+continuous accumulation through any number of re-lift boundaries
+without losing history. Explicit truncation is available via
+`union({:trail []})` inside a fail-apply step before re-lift.
+
+### Descriptor shape and invariant
+
+`makeErrorValue` (in `types.mjs`) enforces a single invariant:
+every error descriptor carries `:trail` as a Vec. Callers that
+supply an explicit `:trail` in the input descriptor (user literal
+`!{:trail [...]}`, codec replay via `fromTaggedJSON`) have their
+value preserved; callers that omit it get an empty Vec inserted.
+Hot-path readers under `!|` read `:trail` without defensive
+fallbacks.
+
+Error values produced by the runtime carry the following fields
+in addition to the invariant `:trail`:
 
 | Field | Type | Content |
 |---|---|---|
@@ -872,11 +916,12 @@ Error values produced by the runtime carry:
 | `:kind` | keyword | Error category |
 | `:thrown` | keyword | Per-site class name |
 | `:message` | string | Human-readable |
-| `:trail` | Vec | Steps skipped (populated by `catch`) |
+| `:trail` | Vec | Deflected steps, combined at each `!\|` materialization |
 
 User-created error values (`!{...}` or `error(map)`) carry
-whatever fields the author provides — no mandatory schema.
-The runtime guarantees the above fields only for its own errors.
+whatever fields the author provides — no mandatory schema beyond
+the `:trail` invariant. The runtime guarantees the other fields
+only for its own errors.
 
 ## Tooling primitives
 

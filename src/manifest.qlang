@@ -862,56 +862,48 @@ let(:as, {
 
 |~ ── Error ───────────────────────────────────────── ~|
 
-|~~ Creates an error value from a Map descriptor.
-    Bare form: map | error. Full form: error(map).
-    The Map becomes the error descriptor accessible
-    via catch. Error values propagate through pipeline
-    steps — non-error-aware operands are skipped. ~~|
+|~~ Lifts a Map into an error value — the sole
+    constructor for the 5th type at the language
+    level alongside the !{…} literal. Bare form
+    `map | error` uses pipeValue as the descriptor;
+    full form `error(map)` evaluates the captured
+    Map against pipeValue as context. The resulting
+    error rides the fail-track: `|`, `*`, and `>>`
+    deflect it into the trail, `!|` fires its step
+    against the materialized descriptor. ~~|
 let(:error, {
   :category :error
   :subject :map
   :returns :error
   :modifiers [:map]
   :examples [
-    {:doc "create error value"  
-     :snippet "{:kind :oops :message \"boom\"} | error | isError"  
+    {:doc "lift Map into error"
+     :snippet "{:kind :oops :message \"boom\"} | error | isError"
      :expected "true"}
-    {:doc "round-trip via catch" 
-     :snippet "error({:kind :oops}) | catch | /kind"              
+    {:doc "round-trip via fail-apply"
+     :snippet "error({:kind :oops}) !| /kind"
      :expected ":oops"}]
   :throws [:ErrorDescriptorNotMap]})
 
-|~~ Unwraps an error value to its descriptor Map.
-    Non-error values pass through unchanged.
-    Bare form: unwraps error to Map with :trail Vec.
-    With handler: unwraps, then applies handler to
-    the descriptor Map. The sole bridge from error
-    track to success track. ~~|
-let(:catch, {
-  :category :error
-  :subject :any
-  :returns :any
-  :modifiers [:pipeline]
-  :examples [
-    {:doc "unwrap error field"   :snippet "error({:kind :oops :message \"boom\"}) | catch | /message"  :expected "\"boom\""}
-    {:doc "catch with handler"   :snippet "error({:kind :oops}) | catch(/kind)"                        :expected ":oops"}
-    {:doc "non-error passthrough" :snippet "42 | catch"                                                :expected "42"}]
-  :throws []})
-
-|~~ Returns true if pipeValue is an error value,
-    false otherwise. Error-aware: receives error
-    values without propagation. Ordinary Maps with
-    error-like fields are not error values. ~~|
+|~~ Returns true when pipeValue is an error value,
+    false otherwise. Plain predicate — carries no
+    dispatch flag, inspected as-is by its caller.
+    In top-of-pipeline position it only ever sees a
+    success-track value because `|` deflects errors
+    before isError could fire; it is intended for
+    raw first-step positions inside predicate
+    lambdas (`filter(isError)`, `any(isError)`,
+    `every(isError | not)`, `* isError`). ~~|
 let(:isError, {
   :category :error
   :subject :any
   :returns :boolean
   :modifiers []
   :examples [
-    {:doc "error value"      :snippet "error({:kind :oops}) | isError"  :expected "true"}
-    {:doc "plain Map"        :snippet "{:kind :oops} | isError"         :expected "false"}
-    {:doc "non-error scalar" :snippet "42 | isError"                    :expected "false"}]
-  :throws [:IsErrorNoCapturedArgs]})
+    {:doc "error element in distribute"  :snippet "[!{:kind :oops}] * isError | first"  :expected "true"}
+    {:doc "plain Map"                    :snippet "{:kind :oops} | isError"             :expected "false"}
+    {:doc "non-error scalar"             :snippet "42 | isError"                        :expected "false"}]
+  :throws []})
 
 |~ Self-referential: let declared last because it shadows
    the built-in let operand upon evaluation. ~|

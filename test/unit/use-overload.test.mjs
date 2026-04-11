@@ -193,38 +193,48 @@ describe('per-site error triple-assertions', () => {
     expect(e).toBeInstanceOf(QlangTypeError);
   });
 
-  it('IsErrorNoCapturedArgs: name, instanceof, context', () => {
+  it('NullaryOpArgsProvided on isError(1): name, instanceof, context', () => {
+    // isError is registered via nullaryOp; the dispatch-layer arity
+    // error class is NullaryOpArgsProvided, shared by every nullary
+    // operand that the caller incorrectly passes captured args to.
     const r = evalQuery('42 | isError(1)');
     const e = r.originalError;
-    expect(e.name).toBe('IsErrorNoCapturedArgs');
+    expect(e.name).toBe('NullaryOpArgsProvided');
     expect(e).toBeInstanceOf(ArityError);
-    expect(e.context.actualCount).toBe(1);
+    expect(e.context.operandName).toBe('isError');
+    expect(e.context.actualArity).toBe(1);
   });
 });
 
-describe('higher-order lambda error propagation', () => {
-  it('every propagates error from predicate', () => {
-    const r = evalQuery('[1 2 3] | every(thisIsNotDefined) | isError');
-    expect(r).toBe(true);
+describe('higher-order lambda error propagation via fail-apply', () => {
+  // When a lambda passed to a higher-order operand (every, any,
+  // groupBy, indexBy, filter) raises an unresolved-identifier error,
+  // the higher-order operand returns that error value as its own
+  // result. Downstream the success-track `|` deflects the error, so
+  // we route the next step through `!|` to fire on it and project
+  // `:kind` out of the materialized descriptor.
+  it('every returns the error raised by its predicate', () => {
+    const r = evalQuery('[1 2 3] | every(thisIsNotDefined) !| /kind');
+    expect(r).toEqual(keyword('unresolved-identifier'));
   });
 
-  it('any propagates error from predicate', () => {
-    const r = evalQuery('[1 2 3] | any(thisIsNotDefined) | isError');
-    expect(r).toBe(true);
+  it('any returns the error raised by its predicate', () => {
+    const r = evalQuery('[1 2 3] | any(thisIsNotDefined) !| /kind');
+    expect(r).toEqual(keyword('unresolved-identifier'));
   });
 
-  it('groupBy propagates error from key lambda', () => {
-    const r = evalQuery('[1 2 3] | groupBy(thisIsNotDefined) | isError');
-    expect(r).toBe(true);
+  it('groupBy returns the error raised by its key lambda', () => {
+    const r = evalQuery('[1 2 3] | groupBy(thisIsNotDefined) !| /kind');
+    expect(r).toEqual(keyword('unresolved-identifier'));
   });
 
-  it('indexBy propagates error from key lambda', () => {
-    const r = evalQuery('[1 2 3] | indexBy(thisIsNotDefined) | isError');
-    expect(r).toBe(true);
+  it('indexBy returns the error raised by its key lambda', () => {
+    const r = evalQuery('[1 2 3] | indexBy(thisIsNotDefined) !| /kind');
+    expect(r).toEqual(keyword('unresolved-identifier'));
   });
 
-  it('filter propagates error from predicate', () => {
-    const r = evalQuery('[1 2 3] | filter(thisIsNotDefined) | isError');
-    expect(r).toBe(true);
+  it('filter returns the error raised by its predicate', () => {
+    const r = evalQuery('[1 2 3] | filter(thisIsNotDefined) !| /kind');
+    expect(r).toEqual(keyword('unresolved-identifier'));
   });
 });

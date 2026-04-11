@@ -108,28 +108,9 @@ const AST_NODE_EVALUATORS = {
   BlockPlainComment: evalCommentStep
 };
 
-// Error propagation: nodes that are entered (children decide
-// individually) vs nodes that are skipped (error passes through).
-// OperandCall is neither — it checks errorAware inside its evaluator.
-// Comments are silent: skipped with no trail entry (routed through the
-// else block via PROPAGATION_SILENT, not the enter block).
-const PROPAGATION_ENTER = new Set(['Pipeline', 'ParenGroup']);
-const PROPAGATION_SILENT = new Set(['LinePlainComment', 'BlockPlainComment']);
-
 function evalNode(node, state) {
   const evaluator = AST_NODE_EVALUATORS[node.type];
   if (!evaluator) throw new UnknownAstNodeTypeError(node.type);
-
-  if (isErrorValue(state.pipeValue) && node.type !== 'OperandCall') {
-    if (PROPAGATION_ENTER.has(node.type)) {
-      // Pipeline, ParenGroup — enter, children decide
-    } else {
-      // Everything else — skip with trail (unless silent comment)
-      return PROPAGATION_SILENT.has(node.type)
-        ? state
-        : withPipeValue(state, appendTrailNode(state.pipeValue, node));
-    }
-  }
 
   try {
     return evaluator(node, state);
@@ -167,8 +148,16 @@ function evalPipeline(node, state) {
   return current;
 }
 
+// Track dispatch lives here and only here. Each success-track
+// combinator — `|`, `*`, `>>` — deflects on an error pipeValue by
+// appending the upcoming step's AST node to the error's trail and
+// returning the error unchanged. The fail-track combinator `!|`
+// does the dual: fires on errors via applyFailTrack, deflects on
+// success values as identity pass-through. evalNode has no
+// knowledge of error propagation; it is a pure dispatcher over
+// AST node types.
 const COMBINATOR_EVALUATORS = {
-  '|':  (state, stepNode) => evalNode(stepNode, state),
+  '|':  applySuccessTrack,
   '!|': applyFailTrack,
   '*':  distribute,
   '>>': mergeFlat
@@ -182,7 +171,21 @@ function applyCombinator(kind, state, stepNode) {
   return evaluator(state, stepNode);
 }
 
+// applySuccessTrack(state, stepNode) — the `|` combinator. Fires
+// `stepNode` when pipeValue is on the success-track; deflects on
+// error by appending `stepNode` to the trail linked list and
+// returning the error unchanged.
+function applySuccessTrack(state, stepNode) {
+  if (isErrorValue(state.pipeValue)) {
+    return withPipeValue(state, appendTrailNode(state.pipeValue, stepNode));
+  }
+  return evalNode(stepNode, state);
+}
+
 function distribute(state, bodyNode) {
+  if (isErrorValue(state.pipeValue)) {
+    return withPipeValue(state, appendTrailNode(state.pipeValue, bodyNode));
+  }
   if (!isVec(state.pipeValue)) {
     throw new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
   }
@@ -193,6 +196,9 @@ function distribute(state, bodyNode) {
 }
 
 function mergeFlat(state, nextNode) {
+  if (isErrorValue(state.pipeValue)) {
+    return withPipeValue(state, appendTrailNode(state.pipeValue, nextNode));
+  }
   if (!isVec(state.pipeValue)) {
     throw new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
   }
@@ -316,20 +322,6 @@ function evalProjection(node, state) {
 function evalOperandCall(node, state) {
   const name = node.name;
   const env = state.env;
-
-  // Error propagation: if pipeValue is an error, check whether the
-  // resolved binding is error-aware. If not, skip (propagate with
-  // trail). Resolve just enough to check the flag — don't force
-  // conduits or trigger side effects.
-  if (isErrorValue(state.pipeValue)) {
-    const resolved = envHas(env, name) ? envGet(env, name) : null;
-    const aware = (resolved && isFunctionValue(resolved) && resolved.errorAware)
-               || isConduit(resolved);  // conduits are transparent — their body decides
-    if (!aware) {
-      return withPipeValue(state, appendTrailNode(state.pipeValue, node));
-    }
-    // Fall through — error-aware operand or conduit receives the error value
-  }
 
   if (!envHas(env, name)) {
     throw new UnresolvedIdentifierError(name);

@@ -43,7 +43,6 @@ import {
 } from './control.mjs';
 import {
   error as errorOperand,
-  catchOp as catchOperand,
   isError as isErrorOperand
 } from './error.mjs';
 import { bootstrapManifest } from '../bootstrap.mjs';
@@ -74,7 +73,7 @@ const IMPLS = {
   let: letOperand, as: asOperand,
   if: ifOp, when: whenOperand, unless: unlessOperand,
   coalesce: coalesceOperand, firstTruthy: firstTruthyOperand, cond: condOperand,
-  error: errorOperand, catch: catchOperand, isError: isErrorOperand
+  error: errorOperand, isError: isErrorOperand
 };
 
 // Lazy bootstrap cache — parsed once, reused across langRuntime() calls.

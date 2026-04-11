@@ -165,7 +165,7 @@ current `pipeValue` — same as Vec:
 
 Error value — the fifth type. Literal `!{}`. Same entry syntax as
 Map (keyword keys, pipeline values), but wraps the result as an
-opaque error value that propagates through pipeline steps.
+opaque error value that rides the fail-track.
 
 ```qlang
 > !{:kind :oops :message "boom"}
@@ -175,38 +175,48 @@ opaque error value that propagates through pipeline steps.
 !{}
 ```
 
-Error values propagate automatically: non-error-aware operands are
-skipped, and the error flows to the next `catch`. The `:trail` Vec
-records skipped steps for diagnostics.
+qlang has two execution tracks — **success-track** and **fail-track**
+— and the combinator at each call site decides which track fires
+its step. `|`, `*`, and `>>` are success-track combinators; on an
+error pipeValue they **deflect**, appending the upcoming step's
+AST node to the error's `:trail` Vec and letting the error flow
+downstream unchanged. `!|` is the fail-track combinator; on an
+error pipeValue it **fires**, exposing the error's *materialized
+descriptor* (the descriptor Map with `:trail` combined from any
+existing entries plus the deflections recorded since the last
+materialization) to its step. On a success pipeValue `!|` deflects
+as identity pass-through.
 
 ```qlang
-> !{:kind :oops} | count | add(1) | catch | /trail
+> !{:kind :oops} | count | add(1) !| /trail
 ["count" "add(1)"]
 ```
 
-The `error` operand creates error values from Maps at runtime.
-The `catch` operand unwraps error values back to their descriptor
-Map. The `isError` operand tests whether pipeValue is an error.
+The `error` operand lifts a Map into an error value — `map | error`
+bare form or `error(map)` full form. The `isError` operand is a
+plain predicate over pipeValue; because `|` deflects errors before
+it could fire, `isError` is used primarily at raw first-step
+positions inside predicate lambdas of higher-order operands.
 
 ```qlang
-> error({:kind :oops}) | catch | /kind
+> error({:kind :oops}) !| /kind
 :oops
 
 > 42 | isError
 false
 
-> !{:kind :oops} | isError
+> [!{:kind :oops}] * isError | first
 true
 ```
 
 Runtime type errors, arity errors, and other recoverable failures
-automatically become error values with structured descriptors:
+lift automatically into error values with structured descriptors:
 
 ```qlang
-> "hello" | add(1) | catch | /thrown
+> "hello" | add(1) !| /thrown
 :AddLeftNotNumber
 
-> "hello" | add(1) | catch | /origin
+> "hello" | add(1) !| /origin
 :qlang/eval
 ```
 
@@ -651,7 +661,7 @@ X" — this section only establishes that the language has such a
 catalog and that it is composable via the pipeline rules described
 above.
 
-The full catalog of 65 operands with signatures, examples, and
+The full catalog of 67 operands with signatures, examples, and
 error conditions lives in
 [qlang-operands.md](qlang-operands.md#summary-unique-operand-names-by-category).
 
@@ -1090,26 +1100,32 @@ filter(/age | gt(18))
 | `let(:cleanName, …@effectful…)` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
 
-### Error propagation
+### Fail-track dispatch
 
-All recoverable runtime errors (type errors, arity errors, division
-by zero, unresolved identifiers, effect laundering) produce **error
-values** instead of throwing exceptions. An error value is the
-fifth value type, displayed as `!{...}`.
+All recoverable runtime failures (type errors, arity errors,
+division by zero, unresolved identifiers, effect laundering) lift
+into **error values** instead of throwing exceptions. An error
+value is the fifth value type, displayed as `!{...}`.
 
-When `pipeValue` is an error value, the evaluator skips most
-pipeline steps — the error flows through unchanged. Only
-**error-aware** operands (`catch`, `isError`) receive the error
-value. Pipeline and ParenGroup nodes are entered (their children
-decide individually). Comments are transparent (identity). Conduit
-calls are entered (the conduit body decides).
+Track dispatch is owned by the combinators:
 
-Skipped steps are recorded in a `:trail` Vec on the error
-descriptor. The trail is materialized when `catch` unwraps the
-error:
+- **`|`, `*`, `>>`** — success-track combinators. On an error
+  `pipeValue` they **deflect**: the upcoming step's AST node is
+  appended to the error's trail linked list and the error flows
+  downstream unchanged.
+- **`!|`** — the fail-track combinator. On an error `pipeValue` it
+  **fires**, invoking its step against the error's *materialized
+  descriptor* (the descriptor Map with `:trail` combined from any
+  existing entries plus the deflections recorded since the last
+  materialization). On a success `pipeValue` it deflects as
+  identity pass-through.
+
+Every error value carries `:trail` in its descriptor by invariant —
+`makeErrorValue` enforces the field at construction time, so hot-
+path readers under `!|` read it without defensive fallbacks.
 
 ```qlang
-> "hello" | add(1) | mul(2) | sub(3) | catch | /trail
+> "hello" | add(1) | mul(2) | sub(3) !| /trail
 ["mul(2)" "sub(3)"]
 ```
 
@@ -1121,10 +1137,19 @@ Error descriptor fields for runtime errors:
 | `:kind` | keyword | Error category: `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
 | `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotVec`, etc. |
 | `:message` | string | Human-readable description |
-| `:trail` | Vec | Steps skipped during propagation (populated by `catch`) |
+| `:trail` | Vec | Steps deflected by `\|`, `*`, `>>`; combined with new deflections at each `!\|` materialization |
 
 Additional context fields vary by error site (`:operand`,
 `:expectedType`, `:actualType`, `:position`, `:index`, etc.).
+
+Trail continuity across re-lift: when a step under `!|` returns a
+Map and a later `| error` re-wraps it, the new error's descriptor
+carries the `:trail` Vec the step handed back. Subsequent
+deflections accumulate into a fresh `_trailHead` linked list, and
+the next `!|` combines both sources again. This is the mechanism
+behind MDC-style context enrichment: a fail-track section like
+`!| union({:request @requestId}) | error` adds fields to the
+descriptor and re-lifts without losing the trail.
 
 ## Effect markers
 

@@ -825,40 +825,58 @@ missing). This is the introspection-by-name path:
 
 ## Error operands
 
+Error inspection and transformation are driven by the `!|`
+combinator (fail-apply), not by operands. `!|` fires its step
+against a materialized error descriptor — ordinary Map operations
+(`/key`, `has`, `keys`, `vals`, `union`, `minus`, `inter`, `eq`,
+`filter` over `:trail`, etc.) apply directly to the descriptor
+without special error-handling support. The two operands below
+exist as entry and exit points for the fail-track itself; they
+compose naturally with `!|` and with every Map-oriented operand.
+
 ### `error`
 
 - **Arity** 1. **Subject** `map` (the descriptor).
-- Creates an error value from a Map descriptor. Bare form:
-  `map | error`. Full form: `error(map)`.
-- Error values propagate through pipeline steps — non-error-aware
-  operands are skipped. Use `catch` to unwrap.
-- **Example**: `error({:kind :oops}) | catch | /kind` → `:oops`.
-- **Errors**: subject not a Map → type error.
-
-### `catch`
-
-- Overloaded by captured-arg count. **Error-aware**: receives
-  error values without propagation.
-- **Arity 1, zero captured** — unwraps an error value to its
-  descriptor Map (with `:trail` Vec). Non-error values pass
-  through unchanged.
-- **Arity 2, one captured** — unwraps the error, then applies
-  the handler sub-pipeline to the descriptor Map. Non-error
-  values pass through unchanged.
-- **Examples**:
-  - `!{:kind :oops :message "boom"} | catch | /message` → `"boom"`.
-  - `!{:kind :oops} | catch(/kind)` → `:oops`.
-  - `42 | catch` → `42`.
+- Lifts a Map into an error value — the sole constructor for the
+  5th type at the language level alongside the `!{…}` literal.
+  Bare form `map | error` uses pipeValue as the descriptor; full
+  form `error(map)` evaluates the captured Map against pipeValue
+  as context. The resulting error rides the fail-track: `|`, `*`,
+  and `>>` deflect it into the trail, `!|` fires its step against
+  the materialized descriptor.
+- **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
+- **Errors**: subject not a Map → `ErrorDescriptorNotMap`.
 
 ### `isError`
 
-- **Arity** 1. **Subject** any value. **Error-aware**.
-- Returns `true` if pipeValue is an error value, `false` otherwise.
-  Ordinary Maps with error-like fields are not error values.
+- **Arity** 1. **Subject** any value. Plain predicate — carries no
+  dispatch flag.
+- Returns `true` when pipeValue is an error value, `false`
+  otherwise. Because `|` deflects errors before `isError` can
+  fire, it is intended for raw first-step positions inside
+  predicate lambdas (`filter(isError)`, `any(isError)`,
+  `every(isError | not)`, `* isError`), where the per-element
+  sub-pipeline's first step runs without combinator dispatch and
+  therefore sees the per-element pipeValue directly.
 - **Examples**:
-  - `error({:kind :oops}) | isError` → `true`.
+  - `[!{:kind :oops}] * isError | first` → `true`.
   - `{:kind :oops} | isError` → `false`.
   - `42 | isError` → `false`.
+
+Removing an error from the success-track view of a container:
+
+```qlang
+> [1 "x" 3] * add(10) | filter(isError | not)
+[11 13]
+```
+
+Filtering to a specific kind of error via leading fail-apply in
+the predicate:
+
+```qlang
+> [1 "x" 3] * add(10) | filter(!| /thrown | eq(:AddLeftNotNumber))
+[!{:kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "number" :actualType "string" :trail []}]
+```
 
 ## Summary: unique operand names by category
 
@@ -881,10 +899,10 @@ merge, namespace import, selective import). Each name is listed once.
 | Boolean                 | `not`                                                 |
 | Predicates              | `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or`           |
 | Formatting              | `json`, `table`                                       |
-| Error                   | `error`, `catch`, `isError`                            |
+| Error                   | `error`, `isError`                                     |
 | Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples` |
 
-**68 unique identifiers** in the initial `langRuntime` Map. Each
+**67 unique identifiers** in the initial `langRuntime` Map. Each
 polymorphic / overloaded operand is one identifier regardless of
 how many dispatch paths it carries.
 

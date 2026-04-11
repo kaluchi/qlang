@@ -569,18 +569,19 @@ describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', () => {
 });
 
 describe('types.mjs — appendTrailNode uses node.type when node.text is absent', () => {
-  it('propagates error through a synthetic node with no .text', () => {
-    const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('type-error')]]), {
-      originalError: new Error('base')
-    });
-    const env = langRuntime();
-    const errState = makeState(errVal, env);
-    // NumberLit without .text — hits the `node.text ?? node.type` false arm
-    const nodeNoText = { type: 'NumberLit', value: 42, location: null };
-    const nextState = evalAst(nodeNoText, errState);
-    expect(isErrorValue(nextState.pipeValue)).toBe(true);
-    // Trail head was set using node.type ('NumberLit')
-    expect(nextState.pipeValue._trailHead.text).toBe('NumberLit');
+  it('records node.type on the trail head for a synthetic step with no .text', async () => {
+    // appendTrailNode lives on the fail-track deflection path of the
+    // success-track combinators. Parsed AST nodes always carry .text
+    // from the grammar action, but synthetic nodes (constructed in
+    // tests, tooling, or hand-rolled transforms) may lack it. The
+    // fallback to `node.type` is exercised directly against
+    // appendTrailNode without going through the combinator.
+    const { appendTrailNode } = await import('../../src/types.mjs');
+    const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('type-error')]]));
+    const synthStep = { type: 'NumberLit', value: 42 };  // no .text
+    const trailed = appendTrailNode(errVal, synthStep);
+    expect(isErrorValue(trailed)).toBe(true);
+    expect(trailed._trailHead.text).toBe('NumberLit');
   });
 });
 

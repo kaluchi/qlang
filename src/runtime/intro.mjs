@@ -228,69 +228,19 @@ function buildConduitDescriptor(conduit, explicitName) {
   result.set(keyword('kind'), keyword('conduit'));
   result.set(keyword('name'), bindingName(explicitName, conduit));
   result.set(keyword('params'), metaToVec(conduit.params));
-  result.set(keyword('source'), nodeSource(conduit.body));
+  // Every conduit body is a peggy-parsed AST node, so it carries the
+  // original source substring under `.text` (stamped by grammar.peggy's
+  // node() helper). The `:source` field passes that through verbatim —
+  // no AST→source rendering, no node-type switch, no bare-identifier
+  // quoting heuristics. Hand-built AST nodes lacking `.text` are not a
+  // production path: `letOperand` reads `bodyLambda.astNode` which is
+  // always parser-produced, and `deserializeSession` rebuilds conduits
+  // through `parseSource(binding.source)` for the same reason.
+  result.set(keyword('source'), conduit.body.text);
   result.set(keyword('docs'), metaToVec(conduit.docs));
   result.set(keyword('effectful'), conduit.effectful);
   result.set(keyword('location'), conduit.location);
   return result;
-}
-
-function nodeSource(node) {
-  if (node && typeof node === 'object' && typeof node.text === 'string') {
-    return node.text;
-  }
-  return sourceOfAst(node);
-}
-
-const RESERVED_IDENT_NAMES = new Set(['true', 'false', 'nil']);
-const BARE_IDENT_RE = /^[@_a-zA-Z][a-zA-Z0-9_-]*$/;
-
-function isBareIdent(name) {
-  return typeof name === 'string'
-      && BARE_IDENT_RE.test(name)
-      && !RESERVED_IDENT_NAMES.has(name);
-}
-
-function renderKeywordToken(name) {
-  return isBareIdent(name) ? ':' + name : ':' + JSON.stringify(name);
-}
-
-function renderProjectionSegmentToken(name) {
-  return isBareIdent(name) ? name : JSON.stringify(name);
-}
-
-function sourceOfAst(node) {
-  if (node == null) return null;
-  switch (node.type) {
-    case 'NumberLit':  return String(node.value);
-    case 'StringLit':  return JSON.stringify(node.value);
-    case 'BooleanLit': return node.value ? 'true' : 'false';
-    case 'NilLit':     return 'nil';
-    case 'Keyword':    return renderKeywordToken(node.name);
-    case 'Projection': return '/' + node.keys.map(renderProjectionSegmentToken).join('/');
-    case 'OperandCall': {
-      if (node.args === null) return node.name;
-      const argText = node.args.map(sourceOfAst).join(', ');
-      return `${node.name}(${argText})`;
-    }
-    case 'ParenGroup':        return `(${sourceOfAst(node.pipeline)})`;
-    case 'LinePlainComment':  return `|~| ${node.content}`;
-    case 'BlockPlainComment': return `|~${node.content}~|`;
-    case 'LineDocComment':    return `|~~| ${node.content}`;
-    case 'BlockDocComment':   return `|~~${node.content}~~|`;
-    case 'VecLit':     return `[${node.elements.map(sourceOfAst).join(' ')}]`;
-    case 'SetLit':     return `#{${node.elements.map(sourceOfAst).join(' ')}}`;
-    case 'MapEntry':   return `${sourceOfAst(node.key)} ${sourceOfAst(node.value)}`;
-    case 'MapLit':     return `{${node.entries.map(sourceOfAst).join(' ')}}`;
-    case 'ErrorLit':   return `!{${node.entries.map(sourceOfAst).join(' ')}}`;
-    case 'Pipeline': {
-      const prefix = node.leadingFail ? '!| ' : '';
-      const first = sourceOfAst(node.steps[0]);
-      const rest = node.steps.slice(1).map(s => `${s.combinator} ${sourceOfAst(s.step)}`).join(' ');
-      return `${prefix}${first} ${rest}`.trim();
-    }
-    default:           return `<${node.type}>`;
-  }
 }
 
 function buildSnapshotDescriptor(snap, explicitName) {

@@ -77,10 +77,10 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 });
 
-// ── sourceOfAst ─────────────────────────────────────────────────
+// ── reify :source field ─────────────────────────────────────────
 
-describe('sourceOfAst', () => {
-  it('renders ErrorLit source via reify', () => {
+describe('reify :source from conduit body', () => {
+  it('renders an ErrorLit body as the original source substring', () => {
     const result = evalQuery('let(:x, !{:a 1}) | reify(:x) | /source');
     expect(result).toBe('!{:a 1}');
   });
@@ -103,7 +103,7 @@ describe('EffectLaunderingAtCall', () => {
   });
 });
 
-describe('sourceOfAst coverage for rare node types', () => {
+describe('reify :source for rare conduit body shapes', () => {
   it('renders bare OperandCall (no args)', () => {
     expect(evalQuery('let(:x, count) | reify(:x) | /source')).toBe('count');
   });

@@ -712,8 +712,8 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 
   it('reify of a conduit whose body is a Pipeline renders multi-step source', () => {
-    // The conduit body is a ParenGroup wrapping a multi-step pipeline,
-    // exercising the Pipeline branch of sourceOfAst.
+    // The :source field exposes the parser-captured `.text` substring
+    // of the conduit body verbatim, including the inner combinators.
     const result = evalQuery(
       'let(:chained, mul(2) | add(1)) | reify(:chained) | /source'
     );

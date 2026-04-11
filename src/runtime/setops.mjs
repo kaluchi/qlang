@@ -11,7 +11,7 @@
 //                        resolve against it, then apply the pair.
 //
 // Each throw site has its own unique error class.
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
 import { isVec, isQMap, isQSet, isKeyword, describeType, keyword } from '../types.mjs';

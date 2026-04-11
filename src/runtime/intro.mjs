@@ -9,7 +9,7 @@
 // by `let` or `as` like any other name — the "reflectiveness" is
 // a property of the value bound to the name, not of the grammar.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';

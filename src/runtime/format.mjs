@@ -1,7 +1,7 @@
 // Formatting operands: render a value as JSON or as a tabular
 // string suitable for human consumption.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { nullaryOp } from './dispatch.mjs';
 import {

@@ -9,7 +9,7 @@
 // so the class name and source line uniquely identify the failing
 // site.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {

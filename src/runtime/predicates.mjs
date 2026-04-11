@@ -5,7 +5,7 @@
 // scalars; each operand owns its own ComparabilityError subclass
 // so failures uniquely identify the call site.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
 import { isTruthy, describeType, keyword } from '../types.mjs';

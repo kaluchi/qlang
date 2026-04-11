@@ -6,7 +6,7 @@
 // evaluate against pipeValue. The `then`/`else`/`alt` slots are
 // never eagerly resolved.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import {
   higherOrderOp,

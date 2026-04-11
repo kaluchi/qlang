@@ -9,12 +9,11 @@
 //
 // None of the helpers accept operand meta (docs, examples, throws,
 // category, subject, modifiers, returns). Meta lives exclusively
-// in manifest.qlang and is attached by enrichWithManifest in
-// runtime/index.mjs during langRuntime assembly. The only metadata
-// the helpers compute is the `captured` range — the [min, max]
-// count of captured args the operand accepts — because it is
-// structurally derived from the dispatch shape, not from authored
-// documentation.
+// in lib/qlang/core.qlang as descriptor Maps that langRuntime()
+// parses into env at session construction. The only metadata the
+// helpers compute is the `captured` range — the [min, max] count
+// of captured args the operand accepts — because it is structurally
+// derived from the dispatch shape, not from authored documentation.
 //
 //   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
 //   higherOrderOp(name, n, impl)     — pure `(subject, ...lambdas) → result`

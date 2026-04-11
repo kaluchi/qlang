@@ -2,7 +2,7 @@
 // and therefore owns three distinct error classes — one for each
 // branch of the type check.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
 import { isQMap, isQSet, isKeyword, describeType, keyword } from '../types.mjs';

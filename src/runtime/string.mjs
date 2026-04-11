@@ -2,7 +2,7 @@
 // position 2 is the modifier string. Every check throws a class
 // unique to its call site.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { valueOp } from './dispatch.mjs';
 import { describeType, isVec, keyword } from '../types.mjs';

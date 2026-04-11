@@ -6,7 +6,7 @@
 // uniquely identify the failing check.
 //
 // Meta (docs, examples, throws, category, subject, modifiers,
-// returns) lives in manifest.qlang — not here.
+// returns) lives in lib/qlang/core.qlang — not here.
 
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';

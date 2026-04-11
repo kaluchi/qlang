@@ -585,7 +585,7 @@ function applyConduit(conduit, node, lookupName, state) {
 // the conduit body.
 function makeConduitParameter(capturedArgLambda, paramName) {
   // Conduit parameters are ephemeral — meta is inline because
-  // they have no manifest.qlang entry.
+  // they have no lib/qlang/core.qlang entry.
   return makeFn(paramName, 1, (state, lambdas) => {
     if (lambdas.length !== 0) {
       throw new ConduitParameterNoCapturedArgs({

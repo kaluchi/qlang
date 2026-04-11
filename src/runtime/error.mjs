@@ -19,7 +19,7 @@
 // aware" from ordinary operands; the combinator is the sole
 // mechanism that decides which track fires its step.
 //
-// Meta lives in manifest.qlang.
+// Meta lives in lib/qlang/core.qlang.
 
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';

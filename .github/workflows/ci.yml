@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: Core tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  coverage:
+    name: Coverage thresholds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:coverage
+
+  lsp:
+    name: LSP tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lsp
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: lsp/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+
+  all-green:
+    name: All checks passed
+    if: always()
+    needs: [test, coverage, lsp]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify no failures
+        run: |
+          if [[ "${{ needs.test.result }}"     == "failure" || \
+                "${{ needs.test.result }}"     == "cancelled" || \
+                "${{ needs.coverage.result }}" == "failure" || \
+                "${{ needs.coverage.result }}" == "cancelled" || \
+                "${{ needs.lsp.result }}"      == "failure" || \
+                "${{ needs.lsp.result }}"      == "cancelled" ]]; then
+            exit 1
+          fi

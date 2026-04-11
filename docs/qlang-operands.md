@@ -688,30 +688,53 @@ Overloaded by captured-arg count.
 current `pipeValue` and produces a descriptor Map whose shape
 depends on the value's provenance. Four descriptor kinds:
 
-- **Builtin** — `pipeValue` is a frozen function value from
-  `langRuntime`. Descriptor copies the function's registration
-  metadata:
+- **Builtin** — `pipeValue` is a descriptor Map loaded by
+  `langRuntime()` from `lib/qlang/core.qlang`. Under the
+  Variant-B runtime shape, every built-in binding in `env` IS a
+  descriptor Map directly; `reify` substitutes the internal
+  `:qlang/kind :builtin` / `:qlang/impl :qlang/prim/<name>`
+  discriminator for a user-facing `:kind :builtin` (dropping
+  the `:qlang/impl` handle), stamps `:captured` / `:effectful`
+  from the primitive resolved through `PRIMITIVE_REGISTRY`,
+  and adds `:name` when the caller used the named form
+  `reify(:count)`:
   ```
   {:kind     :builtin
    :name     "count"
    :category :vec-reducer
-   :subject  "Vec, Set, or Map"
+   :subject  [:vec :set :map]
    :modifiers []
-   :returns  "number"
+   :returns  :number
    :captured [0 0]
-   :docs     ["Returns the number of elements. Polymorphic over Vec, Set, Map."]
-   :examples ["[1 2 3] | count → 3" "#{:a :b} | count → 2"]
-   :throws   ["CountSubjectNotContainer"]}
+   :docs     ["Returns the number of elements. Polymorphic over Vec, Set, and Map."]
+   :examples [{:doc "Vec length" :snippet "[1 2 3] | count" :expected "3"}
+              {:doc "Set size"   :snippet "#{:a :b} | count" :expected "2"}]
+   :throws   [:CountSubjectNotContainer]
+   :effectful false}
   ```
-  The `:captured` field is a 2-element Vec `[min, max]` describing
-  the range of captured-arg counts the operand accepts. Fixed
-  operands have `min == max` (e.g. `count` has `[0 0]`; `filter`
-  has `[1 1]`). Partial/full-applicable operands have
-  `[n-1, n]` (`add` has `[1 2]`). Overloaded operands span the
-  Object keys of their impl dispatch table (`sort` has `[0 1]`).
+  `:category` / `:subject` / `:returns` carry keywords (not
+  strings) because the underlying `core.qlang` entries are
+  authored as keywords; `:throws` is a Vec of keywords (not
+  strings) matching the per-site error class names that
+  downstream consumers filter on. The `:captured` field is a
+  2-element Vec `[min, max]` describing the range of captured-
+  arg counts the operand accepts. Fixed operands have
+  `min == max` (e.g. `count` has `[0 0]`; `filter` has
+  `[1 1]`). Partial/full-applicable operands have `[n-1, n]`
+  (`add` has `[1 2]`). Overloaded operands span the Object
+  keys of their impl dispatch table (`sort` has `[0 1]`).
   Variadic operands use the `:unbounded` keyword as the upper
   bound (`coalesce` has `[1 :unbounded]`). The field is always
   present.
+
+  Under the Variant-B REPL ergonomic, a bare non-nullary
+  operand lookup (`mul`, `filter`, `coalesce` — any operand
+  whose `min > 0`) short-circuits through the same descriptor
+  path: typing the bare name yields the Map above as the new
+  `pipeValue` rather than firing an arity error. Nullary
+  operands (`count`, `sort` bare form, `env`, etc.) still fire
+  on bare lookup because their `min == 0` and bare application
+  IS their valid call shape.
 - **Conduit** — `pipeValue` is a `let`-bound conduit (named
   pipeline fragment, zero or more parameters). Descriptor:
   ```
@@ -823,6 +846,57 @@ missing). This is the introspection-by-name path:
   - `[1 2 3] | as(:nums) | nums | count` → `3`.
 - **Errors**: name not a keyword → `AsNameNotKeyword`.
 
+### `parse`
+
+- **Arity** 1. **Subject** `string` — the source to parse.
+- Reads the subject string into an **AST-Map** — the data-form
+  representation of the program, produced by `walk.mjs::astNodeToMap`.
+  Each AST node becomes a frozen Map carrying `:qlang/kind` (the
+  AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
+  `:Pipeline`, and so on), type-specific payload fields (`:value`,
+  `:name`, `:args`, `:elements`, `:entries`, `:keys`, `:steps`,
+  etc.), and the shared `:text` / `:location` metadata the parser
+  stamps on every node. Nested nodes recurse into their own Maps.
+- The underlying peggy `ParseError` is caught in-operand and
+  converted to an error value via `errorFromParse`, so malformed
+  sources surface on the fail-track with
+  `:kind :parse-error` rather than the generic `:foreign-error`
+  flavor evalNode would stamp for an unhandled foreign throw.
+- **Examples**:
+  - `"42" | parse | /:qlang/kind` → `:NumberLit`.
+  - `"add(1, 2)" | parse | /name` → `"add"`.
+  - `"add(1, 2)" | parse | /args | count` → `2`.
+  - `"this is not qlang [" | parse !| /kind` → `:parse-error`.
+- **Errors**: subject not a string → `ParseSubjectNotString`.
+  Malformed source → error value with `:kind :parse-error`
+  (not thrown; passes onto fail-track as `pipeValue`).
+
+### `eval`
+
+- **Arity** 1. **Subject** `map` — the AST-Map to evaluate.
+- Unwraps an AST-Map through `walk.mjs::qlangMapToAst` and runs
+  the reconstructed AST against the current state. The caller's
+  `pipeValue` becomes the inner evaluation's `pipeValue`; the
+  caller's `env` threads in unchanged. Any `let` / `as` / `use`
+  writes the inner code performs propagate out the same way a
+  paren-group's env writes would. The result is whatever
+  `pipeValue` the inner code produces, ready to flow into the
+  next pipeline step.
+- Pairs with `parse` to close the code-as-data ring:
+  `"source" | parse | eval` is equivalent to evaluating the
+  source string directly, and the intermediate AST-Map can be
+  inspected, filtered, re-assembled, or handed around as
+  ordinary qlang data.
+- **Examples**:
+  - `"42" | parse | eval` → `42`.
+  - `"10 | add(3)" | parse | eval` → `13`.
+  - `"[1 2 3] | filter(gt(1)) | count" | parse | eval` → `2`.
+  - `{:qlang/kind :NumberLit :value 42} | eval` → `42`
+    (hand-assembled AST-Map bypasses the parser).
+- **Errors**: subject not a Map → `EvalSubjectNotMap`.
+  Runtime errors inside the inner evaluation lift through the
+  normal fail-track just like any other qlang failure.
+
 ## Error operands
 
 Error inspection and transformation are driven by the `!|`
@@ -900,11 +974,15 @@ merge, namespace import, selective import). Each name is listed once.
 | Predicates              | `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or`           |
 | Formatting              | `json`, `table`                                       |
 | Error                   | `error`, `isError`                                     |
-| Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples` |
+| Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
 
-**67 unique identifiers** in the initial `langRuntime` Map. Each
+**69 unique identifiers** in the initial `langRuntime` Map. Each
 polymorphic / overloaded operand is one identifier regardless of
-how many dispatch paths it carries.
+how many dispatch paths it carries. The two newest additions —
+`parse` / `eval` — close the code-as-data ring: a source string
+lifts into an AST-Map through `parse`, runs through `eval` to
+become a `pipeValue`, and the intermediate Map is addressable as
+ordinary qlang data.
 
 Tooling primitives (walk.mjs, session.mjs, codec.mjs, effect.mjs)
 and the embedder API are documented in

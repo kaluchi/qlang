@@ -296,10 +296,19 @@ Overloaded by captured-arg count:
   `pipeValue` and produces a descriptor Map. The descriptor's
   `:kind` field distinguishes four provenances:
 
-  - `:builtin` — a frozen function value from `langRuntime`. The
-    descriptor copies `fn.meta` fields: `:name`, `:arity`,
-    `:category`, `:subject`, `:modifiers`, `:returns`, `:docs`
-    (Vec), `:examples`, `:throws`.
+  - `:builtin` — `pipeValue` is a descriptor Map loaded by
+    `langRuntime()` from `lib/qlang/core.qlang`. Under Variant-B,
+    env stores every built-in as a Map directly; `reify`
+    substitutes the internal `:qlang/kind :builtin` /
+    `:qlang/impl :qlang/prim/<name>` discriminator for the
+    user-facing `:kind :builtin`, drops the `:qlang/impl`
+    handle (reify consumers want the descriptor, not the
+    dispatch-time primitive key), and computes `:captured` /
+    `:effectful` by resolving the primitive through
+    `PRIMITIVE_REGISTRY`. All other fields (`:category`,
+    `:subject`, `:modifiers`, `:returns`, `:docs`, `:examples`,
+    `:throws`) pass through from the `core.qlang` entry
+    verbatim.
   - `:conduit` — a `let`-bound conduit. Descriptor has `:kind :conduit`,
     `:name`, `:source` (textual form of the body expression),
     `:docs` (Vec from parser-attached doc comments).
@@ -499,6 +508,57 @@ queries whose first step is a function lookup, because Step 3 would
 pass `nil` as the subject. Implementations should document which
 variant they use; the reference evaluator uses `pipeValue =
 langRuntime` to match the conceptual model exactly.)
+
+### How `langRuntime` is assembled
+
+The reference implementation assembles `langRuntime` from two
+co-located sources:
+
+- **`lib/qlang/core.qlang`** — the authored catalog. One outer
+  Map literal whose 69 entries each bind a keyword identifier
+  (`:count`, `:filter`, `:let`, `:parse`, …) to a descriptor
+  Map carrying `:qlang/kind :builtin` plus a namespaced
+  `:qlang/impl :qlang/prim/<name>` keyword that points into the
+  primitive registry, plus the authored metadata (`:category`,
+  `:subject`, `:modifiers`, `:returns`, `:examples`, `:throws`).
+  Doc-comment prefixes on each MapEntry (`|~~ ... ~~| :count
+  {...}`) fold into a `:docs` Vec on the entry's value Map at
+  eval time via `grammar.peggy`'s `MapEntryDocPrefix` and
+  `eval.mjs`'s `foldEntryDocs`.
+
+- **`src/runtime/*.mjs`** — the JS impls. Each module registers
+  its executable primitives into `PRIMITIVE_REGISTRY` at module-
+  load time under their `:qlang/prim/<name>` keys. The dispatch
+  wrappers in `src/runtime/dispatch.mjs` (`valueOp`,
+  `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
+  `stateOpVariadic`, `higherOrderOpVariadic`) attach a tiny
+  `meta` object carrying only the `captured` range — the rest
+  of the metadata lives in `core.qlang` and is addressable by
+  descriptor projection at `reify` / `manifest` time.
+
+`langRuntime()` in `src/runtime/index.mjs` ties the two together
+by parsing `core.qlang` once, evaluating it against an empty env
+into a template Map, and returning a shallow copy on every call
+so each session can write its own bindings without mutating the
+template. The inner descriptor Maps are frozen and shared
+between copies — safe because qlang values are immutable at the
+language level.
+
+Dispatch at an operand call site is straightforward under this
+shape. `eval.mjs::evalOperandCall` looks up the identifier in
+`env`; if the resolved value is a Map carrying `:qlang/kind
+:builtin`, control flows through `applyBuiltinDescriptor` which
+reads the `:qlang/impl` handle, resolves it through
+`PRIMITIVE_REGISTRY.resolve` into the backing function value,
+and invokes it via Rule 10 exactly as the legacy direct-function
+path did. A bare non-nullary lookup (no captured args,
+`impl.meta.captured[0] > 0`) short-circuits to return the
+descriptor Map itself as `pipeValue` — the REPL ergonomic that
+lets `mul` at the prompt yield mul's descriptor rather than
+firing an arity error. Nullary operands (`count`, bare-form
+`sort`, `env`, etc.) still fire on bare lookup because their
+`captured[0]` is zero and bare application is their valid call
+shape.
 
 Additional runtimes and user libraries are loaded anywhere in a query
 by providing a Map and applying `use`:
@@ -931,15 +991,30 @@ opt into fail-apply for their first step.
 
 ### Trail and materialization
 
-Each deflection appends a `{ text, prev }` node to a lazy linked
-list on the error value (`_trailHead`) via `appendTrailNode`. The
-trail is combined into a `:trail` Vec on the descriptor when `!|`
-fires: `applyFailTrack` reads the descriptor's existing `:trail`
-Vec (guaranteed by the `makeErrorValue` invariant), walks
-`_trailHead` via `materializeTrail` to collect new deflections
-since the last materialization, concatenates the two, and stamps
-the combined Vec back onto a fresh descriptor Map that is exposed
-to the step.
+Each deflection appends an `{ entry, prev }` node to a lazy
+linked list on the error value (`_trailHead`) via
+`appendTrailNode`. Every `entry` is an **AST-Map** — the
+structured data-form of the deflected step, produced at stamp
+time by `walk.mjs::astNodeToMap` — not a raw source-text
+string. The Map carries the deflected step's `:qlang/kind`
+discriminator, type-specific payload (`:name`, `:args`,
+`:keys`, `:elements`, `:entries`, …), and `:text` / `:location`
+metadata, so downstream consumers can filter / project / re-eval
+trail entries as ordinary qlang data:
+
+    error !| /trail * /name                    -- operand names
+    error !| /trail | last | /location         -- fail site
+    error !| /trail | filter(/name | eq("filter"))   -- per-op
+    error !| /trail * /text                    -- display form
+    error !| /trail * eval                     -- replay as code
+
+The trail is combined into a `:trail` Vec on the descriptor when
+`!|` fires: `applyFailTrack` reads the descriptor's existing
+`:trail` Vec (guaranteed by the `makeErrorValue` invariant),
+walks `_trailHead` via `materializeTrail` to collect new
+deflections since the last materialization, concatenates the two,
+and stamps the combined Vec back onto a fresh descriptor Map
+that is exposed to the step.
 
 Trail continuity across re-lift: when a step running under `!|`
 returns a Map and a later `| error` re-wraps it, the new error's
@@ -969,7 +1044,7 @@ in addition to the invariant `:trail`:
 | `:kind` | keyword | Error category |
 | `:thrown` | keyword | Per-site class name |
 | `:message` | string | Human-readable |
-| `:trail` | Vec | Source text for each pipeline step that a success-track combinator deflected on this error |
+| `:trail` | Vec of AST-Maps | One frozen AST-Map per pipeline step that a success-track combinator deflected on this error, produced by `walk.mjs::astNodeToMap` at stamp time and readable through the `:name` / `:args` / `:location` / `:text` fields |
 
 User-created error values (`!{...}` or `error(map)`) carry
 whatever fields the author provides — no mandatory schema beyond
@@ -982,9 +1057,13 @@ Modules that the operand library never imports but that embedders
 (editors, notebooks, REPLs, language servers) consume directly.
 Re-exported from the package entry.
 
-### `walk.mjs` — AST traversal primitives
+### `walk.mjs` — AST traversal primitives and AST ↔ Map codec
 
-Single source of truth for the qlang AST shape.
+Single source of truth for the qlang AST shape. Every module that
+needs to read, decorate, query, or transform AST nodes imports
+from here rather than duplicating a switch-on-`node.type` —
+adding a new node type in `grammar.peggy` is a one-file edit
+because `astChildrenOf` and the codec share the shape knowledge.
 
 - `astChildrenOf(node)` — direct semantic children of an AST node.
 - `walkAst(node, visit)` — pre-order recursive descent. Visitor
@@ -1003,6 +1082,60 @@ Single source of truth for the qlang AST shape.
   range arithmetic over node locations.
 - `triviaBetweenAstNodes(nodeA, nodeB, ast)` — source slice between
   two adjacent nodes (whitespace, punctuation, plain comments).
+- `astNodeToMap(node)` — encodes a JS-object AST node into a
+  frozen qlang-Map representation, stamping `:qlang/kind
+  :<NodeType>` as the discriminator plus type-specific payload
+  fields (`:value`, `:name`, `:args`, `:elements`, `:entries`,
+  `:keys`, `:steps`, etc.) and the shared `:text` / `:location`
+  metadata. Pipeline steps normalize into uniform `:PipelineStep`
+  wrapper Maps so downstream walkers do not special-case the
+  head. Consumers: `eval.mjs::applySuccessTrack` /
+  `distribute` / `mergeFlat` stamp AST-Maps onto deflected
+  `:trail` entries at fail-track dispatch time; the `parse`
+  reflective operand lifts user source into this form.
+- `qlangMapToAst(map)` — the inverse. Walks an AST-Map back into
+  a JS-object AST node suitable for `evalAst`. Round-trip
+  invariant: `qlangMapToAst(astNodeToMap(n))` is structurally
+  equal to `n` for any AST produced by `parse()`, modulo the
+  post-parse decoration (`.id`, `.parent`) and the root-level
+  metadata (`.source`, `.uri`, `.parseId`, `.parsedAt`,
+  `.schemaVersion`) that `parse.mjs` stamps after tree
+  construction. Consumers: the `eval` reflective operand feeds
+  an AST-Map through this converter and then into `evalAst`.
+
+### `primitives.mjs` — the built-in primitive registry
+
+Canonical bridge between `lib/qlang/core.qlang`-authored
+descriptor Maps and the executable JS impls in `runtime/*.mjs`.
+Lives at the `src/` root (not under `src/runtime/`) because both
+the core evaluator (`src/eval.mjs::applyBuiltinDescriptor`) and
+every runtime impl module consume it, and a `src/runtime/`
+placement would force downward imports across the core/runtime
+layering boundary.
+
+- `createPrimitiveRegistry()` — factory producing an isolated
+  registry instance with `.bind` / `.resolve` / `.has` / `.seal`
+  methods plus `.isSealed` / `.size` accessors. Test code uses
+  this for deterministic per-case state; embedders spawning
+  sandboxed evaluation contexts can bind primitives into a
+  restricted instance to narrow the reachable surface.
+- `PRIMITIVE_REGISTRY` — the production singleton bound by every
+  `runtime/*.mjs` module at import time under namespaced
+  `:qlang/prim/<name>` keys (`add`, `filter`, `let`, `parse`,
+  and so on — 69 total). `evalOperandCall` resolves an
+  `:qlang/impl` handle through `PRIMITIVE_REGISTRY.resolve` at
+  every built-in dispatch.
+
+Per-site invariant errors cover the three bind-time failure
+modes: `PrimitiveKeyNotKeyword` (non-keyword handle),
+`PrimitiveKeyAlreadyBound` (duplicate registration from two
+modules claiming the same name), `PrimitiveRegistrySealed`
+(late registration after bootstrap closes the registry). The
+sole dispatch-time data error is `PrimitiveKeyUnbound`, which
+extends `QlangError` (not `QlangInvariantError`) so a
+hand-crafted descriptor Map with a bad `:qlang/impl` handle
+lifts to an error value on the fail-track rather than crashing
+the evaluator.
 
 ### `session.mjs` — REPL / notebook session lifecycle
 

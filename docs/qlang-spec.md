@@ -671,7 +671,7 @@ X" — this section only establishes that the language has such a
 catalog and that it is composable via the pipeline rules described
 above.
 
-The full catalog of 67 operands with signatures, examples, and
+The full catalog of 69 operands with signatures, examples, and
 error conditions lives in
 [qlang-operands.md](qlang-operands.md#summary-unique-operand-names-by-category).
 

@@ -47,7 +47,7 @@ The principle propagates:
 
 The qlang vocabulary you must absorb from reading the codebase before reviewing covers (non-exhaustively):
 
-`pipeValue`, `env`, `state`, `fork`, `forkWith`, `snapshot`, `langRuntime`, `makeFn`, `makeConduit`, `makeSnapshot`, `makeErrorValue`, `pipeline`, `pipeline step`, `combinator`, `OperandCall`, `Projection`, `MapEntry`, `ParenGroup`, `VecLit`, `MapLit`, `SetLit`, `ErrorLit`, `LineDocComment`, `BlockDocComment`, `LinePlainComment`, `BlockPlainComment`, `captured args`, `captured lambdas`, `Rule 10`, `applyRule10`, `per-site error class`, `valueOp`, `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`, `higherOrderOpVariadic`, `reify`, `manifest`, `descriptor`, `:captured`, `:effectful`, `:trail`, `fork-isolating node`, `astChildrenOf`, `walkAst`, `findAstNodeAtOffset`, `findIdentifierOccurrences`, `bindingNamesVisibleAt`, `triviaBetweenAstNodes`, `astNodeContainsOffset`, `astNodeSpan`, `EFFECT_MARKER_PREFIX`, `classifyEffect`, `effectful`, `tagged JSON`, `toTaggedJSON`, `fromTaggedJSON`, `Session`, `evalCell`, `cellHistory`, `takeSnapshot`, `restoreSnapshot`, `bind`, `serializeSession`, `deserializeSession`, `decorateAstWithEffectMarkers`, `findFirstEffectfulIdentifier`, `enrichWithManifest`, `fail-track`, `success-track`, `fail-apply`, `applyFailTrack`, `deflect`, `fire`, `leading fail-apply prefix`, `leadingFail`, `materialize`, `materializeTrail`, `appendTrailNode`, `trail`, `trail continuity`, `expose (a materialized descriptor)`, `lift (Map → error value)`, `error value`, `error literal`, `!{…}`, `!|`, `isError`, `error operand`, `sourceOfAst`.
+`pipeValue`, `env`, `state`, `fork`, `forkWith`, `snapshot`, `langRuntime`, `makeFn`, `makeConduit`, `makeSnapshot`, `makeErrorValue`, `pipeline`, `pipeline step`, `combinator`, `OperandCall`, `Projection`, `MapEntry`, `ParenGroup`, `VecLit`, `MapLit`, `SetLit`, `ErrorLit`, `LineDocComment`, `BlockDocComment`, `LinePlainComment`, `BlockPlainComment`, `captured args`, `captured lambdas`, `Rule 10`, `applyRule10`, `per-site error class`, `valueOp`, `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`, `higherOrderOpVariadic`, `reify`, `manifest`, `descriptor`, `descriptor Map`, `binding descriptor`, `:captured`, `:effectful`, `:trail`, `:qlang/kind`, `:qlang/impl`, `:qlang/prim/…`, `fork-isolating node`, `astChildrenOf`, `walkAst`, `findAstNodeAtOffset`, `findIdentifierOccurrences`, `bindingNamesVisibleAt`, `triviaBetweenAstNodes`, `astNodeContainsOffset`, `astNodeSpan`, `astNodeToMap`, `qlangMapToAst`, `AST-Map`, `PipelineStep` wrapper, `EFFECT_MARKER_PREFIX`, `classifyEffect`, `effectful`, `tagged JSON`, `toTaggedJSON`, `fromTaggedJSON`, `Session`, `evalCell`, `cellHistory`, `takeSnapshot`, `restoreSnapshot`, `session.bind`, `serializeSession`, `deserializeSession`, `decorateAstWithEffectMarkers`, `findFirstEffectfulIdentifier`, `createPrimitiveRegistry`, `PRIMITIVE_REGISTRY`, `PRIMITIVE_REGISTRY.bind`, `PRIMITIVE_REGISTRY.resolve`, `PRIMITIVE_REGISTRY.seal`, `PrimitiveKeyNotKeyword`, `PrimitiveKeyAlreadyBound`, `PrimitiveRegistrySealed`, `PrimitiveKeyUnbound`, `applyBuiltinDescriptor`, `foldEntryDocs`, `MapEntryDocPrefix`, `bare-non-nullary REPL lookup`, `core.qlang`, `CORE_SOURCE`, `parseOperand`, `evalOperand`, `code-as-data ring`, `fail-track`, `success-track`, `fail-apply`, `applyFailTrack`, `deflect`, `fire`, `leading fail-apply prefix`, `leadingFail`, `materialize`, `materializeTrail`, `appendTrailNode`, `trail`, `trail continuity`, `structured trail entry`, `expose (a materialized descriptor)`, `lift (Map → error value)`, `error value`, `error literal`, `!{…}`, `!|`, `isError`, `error operand`, `sourceOfAst`.
 
 When the codebase introduces a new domain term in the diff under review, add it to your working vocabulary for that review and use it in your findings.
 
@@ -57,7 +57,7 @@ When you flag a generic name, the finding must propose a specific qlang replacem
 
 qlang's error model is **two-track**: pipeline values flow on either the **success-track** (Scalar / Vec / Map / Set / function) or the **fail-track** (error value `!{…}`). Which track a step fires on is decided by the **combinator** at the call site, not by any runtime flag on the operand:
 
-- `|`, `*`, `>>` are **success-track combinators**. On an error pipeValue they **deflect**: the step is bypassed and the AST node of that step is appended to the error's `_trailHead` linked list via `appendTrailNode`.
+- `|`, `*`, `>>` are **success-track combinators**. On an error pipeValue they **deflect**: the step is bypassed and the **AST-Map form** of that step (produced by `walk.mjs::astNodeToMap` at deflect time) is appended to the error's `_trailHead` linked list via `appendTrailNode`. Trail entries carry full structural payload — `:qlang/kind`, `:name`, `:args`, `:keys`, `:elements`, `:entries`, `:location`, `:text` — so downstream `!|` consumers can filter, project, or re-eval them as ordinary qlang data, not just read them as source strings.
 - `!|` is the **fail-track combinator** (fail-apply). On an error pipeValue it **fires**: `applyFailTrack` in `eval.mjs` **materializes** the error's trail (existing `:trail` Vec in the descriptor, plus the linked-list entries since the last materialization, combined into a single Vec), stamps the combined trail back onto a fresh descriptor Map, and **exposes** that materialized descriptor to the step by invoking `evalNode(stepNode, state-with-descriptor)`. On a success pipeValue `!|` deflects as identity pass-through.
 - Every error value's descriptor carries `:trail` as a Vec by **invariant** — enforced once by `makeErrorValue` in `types.mjs`. Hot-path readers read `:trail` unconditionally; no defensive fallback.
 - A conduit called via `!|` receives the materialized descriptor as its body's first pipeValue; the body is an ordinary sub-pipeline that composes through `|`, `!|`, `*`, `>>` like any other.
@@ -80,7 +80,7 @@ The codebase has been scrubbed of temporal framing. Reject any new occurrence of
 
 Documentation, code comments, commit messages, and error strings must read as if the codebase has **always been this way**. If a comment says "this used to do X, now does Y", that is drift — flag it.
 
-**Error-model drift** — the following identifiers and phrases must not reappear in `src/`, `test/`, `docs/`, `lib/`, or `src/manifest.qlang`. Each one is a sign that the author reverted to the abandoned error-handling model:
+**Error-model drift** — the following identifiers and phrases must not reappear in `src/`, `test/`, `docs/`, `lib/`, or `lib/qlang/core.qlang`. Each one is a sign that the author reverted to the abandoned error-handling model:
 
 - `catch` as an operand name, `catchOp`, `catch(handler)`, `catch |`, `| catch`, `catch(/…)`: the `catch` operand does not exist. Error inspection uses `!|` + a projection, transformation, or conduit body.
 - `errorAware`, `errorAware: true`, `.errorAware`, "error-aware operand": no runtime flag distinguishes operands by error-awareness — the combinator decides per-step.
@@ -138,7 +138,7 @@ Domain constants (`EFFECT_MARKER_PREFIX`, `AST_SCHEMA_VERSION`, `SESSION_SCHEMA_
 
 `childrenOf` knowledge of the AST shape lives in `src/walk.mjs::astChildrenOf` and **only** there. If any module switches on `node.type` to enumerate children, it should import `astChildrenOf` instead.
 
-Operand metadata (docs, examples, throws, category, subject, modifiers, returns) lives exclusively in `src/manifest.qlang`. JS runtime modules carry only executable impls — no authored meta. If any dispatch helper call in `src/runtime/*.mjs` passes docs, examples, or throws, that is duplication — flag it.
+Operand metadata (docs, examples, throws, category, subject, modifiers, returns) lives exclusively in `lib/qlang/core.qlang` — the Variant-B runtime source catalog, one outer Map literal whose 69 entries each bind an identifier to a descriptor Map with `:qlang/kind :builtin` and a `:qlang/impl :qlang/prim/<name>` handle pointing into `PRIMITIVE_REGISTRY`. JS runtime modules carry only executable impls registered under the `:qlang/prim/<name>` key via `PRIMITIVE_REGISTRY.bind` at module-load time — no authored meta. If any dispatch helper call in `src/runtime/*.mjs` passes docs, examples, or throws, that is duplication — flag it. If any `:qlang/impl` handle in `core.qlang` does not match a bound primitive, that is drift — the catalog-catalog test in `test/unit/core-catalog.test.mjs` pins the handoff, so a breakage there must be diagnosed before merge.
 
 ### 8. Spec / model / runtime documentation alignment
 
@@ -147,7 +147,7 @@ The language specification lives in `docs/qlang-spec.md`, the formal evaluation 
 For each diff:
 
 - New AST node type → grammar production in spec, evaluator handler note in internals, dispatch entry in runtime
-- New operand → manifest.qlang entry, catalog entry in qlang-operands.md
+- New operand → `lib/qlang/core.qlang` entry (descriptor Map with `:qlang/kind :builtin` and `:qlang/impl :qlang/prim/<name>`), `PRIMITIVE_REGISTRY.bind` call in the corresponding `src/runtime/*.mjs` module, catalog entry in `qlang-operands.md`, size bump in `test/unit/core-catalog.test.mjs` catalog-count pins
 - New error class kind → error conditions table in spec
 - New surface syntax → lexical structure table in spec, grammar production updated
 - Renamed identifier → grep the docs for the old name and verify it's gone
@@ -212,7 +212,7 @@ Stay inside the qlang surface. Do not propose changes outside the repository.
    - Read `src/grammar.peggy` to know the current AST shape.
    - Read `src/walk.mjs::astChildrenOf` to know the canonical traversal contract.
    - Read `docs/qlang-spec.md` for the current public surface.
-   - Read `src/manifest.qlang` for the authoritative operand catalog.
+   - Read `lib/qlang/core.qlang` for the authoritative operand catalog (the Variant-B langRuntime source; one outer Map literal whose entries are descriptor Maps with `:qlang/impl :qlang/prim/<name>` handles into `PRIMITIVE_REGISTRY`).
    - For added files, also read what they import from to verify the contract assumed at the call site.
 
 3. **Run the checks** in order, recording findings as you go:

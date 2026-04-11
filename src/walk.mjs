@@ -491,6 +491,11 @@ export function astNodeToMap(node) {
       m.set(KW_QLANG_KIND, KW_KIND_MAP_ENTRY);
       m.set(KW_KEY,   astNodeToMap(node.key));
       m.set(KW_VALUE, astNodeToMap(node.value));
+      // Parser-attached doc prefix (grammar.peggy MapEntryDocPrefix),
+      // present on every MapEntry node as a string array (possibly
+      // empty). Round-trip preserves the Vec so a deserialized AST-Map
+      // rebuilds identically before being re-evaluated.
+      if (node.docs !== undefined) m.set(KW_DOCS, Object.freeze([...node.docs]));
       break;
 
     case 'OperandCall':
@@ -634,6 +639,7 @@ export function qlangMapToAst(map) {
     case 'MapEntry':
       node.key   = qlangMapToAst(map.get(KW_KEY));
       node.value = qlangMapToAst(map.get(KW_VALUE));
+      if (map.has(KW_DOCS)) node.docs = [...map.get(KW_DOCS)];
       break;
 
     case 'OperandCall': {

@@ -351,9 +351,29 @@ MapEntries
   = head:MapEntry tail:(_ ","? _ MapEntry)*
     { return [head, ...tail.map(t => t[3])]; }
 
+// A MapEntry may be preceded by a run of doc comments that attach
+// as metadata to the entry. At eval time (src/eval.mjs::evalMapLit,
+// evalErrorLit) the accumulated docs are folded into the entry's
+// value Map as a `:docs` Vec of strings — this is how the Variant-B
+// manifest migration preserves the readable `|~~ ... ~~|` writing
+// experience for built-in descriptors while eliminating the
+// let(:let, ...) self-shadow and the three-hop bootstrap enrichment
+// path that the fake-conduit manifest required.
+//
+// Only consecutive doc comments are consumed as the prefix — plain
+// comment interleaving between docs (`|~~| a ~~| |~ note ~| |~~| b`)
+// is not supported here by design, mirroring the absence of plain-
+// comment support inside Map/Set/Vec literals generally. Doc comments
+// preceding a MapEntry with a non-Map value (a scalar, Vec, Set, etc)
+// still parse cleanly; the evaluator drops the docs silently in that
+// case since there is no target Map to stamp them onto.
 MapEntry
-  = key:Keyword __ value:Pipeline
-    { return node('MapEntry', { key, value }, location(), text()); }
+  = docs:MapEntryDocPrefix? _ key:Keyword __ value:Pipeline
+    { return node('MapEntry', { key, value, docs: docs ?? [] }, location(), text()); }
+
+MapEntryDocPrefix
+  = head:DocComment rest:(_ DocComment)*
+    { return [head.content, ...rest.map(t => t[1].content)]; }
 
 SetLit
   = "#{" _ "}"

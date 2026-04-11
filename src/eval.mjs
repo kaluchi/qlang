@@ -263,25 +263,57 @@ function evalVecLit(node, state) {
   return withPipeValue(state, collected);
 }
 
+// foldEntryDocs — when a MapEntry carries a parser-attached docs
+// prefix (from `|~~ ... ~~|` tokens preceding `:key value` inside a
+// MapLit or ErrorLit), stamp the accumulated doc strings onto the
+// entry's value Map under the `:docs` keyword. Non-Map values (a
+// scalar, Vec, Set, or an already-wrapped error value) pass through
+// unchanged — there is no target Map for the docs to land on, and
+// silently dropping them matches the "docs attach to the binding
+// descriptor, not to bare data" framing of the Variant-B manifest.
+//
+// The fold is destructive toward any pre-existing `:docs` field on
+// the value Map: entry-level attachment always wins, because that's
+// the spelling an author reaches for when the same entry is being
+// documented, and respecting an inline `:docs [...]` would require
+// the author to know both spellings produce the same result while
+// the comment form exists entirely to spare them that knowledge.
+function foldEntryDocs(entry, value) {
+  if (!entry.docs || entry.docs.length === 0) return value;
+  if (!isQMap(value)) return value;
+  const withDocs = new Map(value);
+  withDocs.set(keyword('docs'), Object.freeze([...entry.docs]));
+  return withDocs;
+}
+
 function evalMapLit(node, state) {
   // Each value is a sub-pipeline forked against the outer state.
   // Keys are keyword AST nodes; we resolve them to interned keywords.
+  // Parser-attached entry.docs fold into the value Map as :docs when
+  // the value is itself a Map — this is the mechanism that lets
+  // manifest-style `|~~ ... ~~| :entry {...}` authoring land doc
+  // strings on the resulting binding descriptor at eval time.
   const result = new Map();
   for (const entry of node.entries) {
     const key = keyword(entry.key.name);
-    const value = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
-    result.set(key, value);
+    const rawValue = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
+    result.set(key, foldEntryDocs(entry, rawValue));
   }
   return withPipeValue(state, result);
 }
 
 function evalErrorLit(node, state) {
   // Same entry evaluation as MapLit, but wraps in error value.
+  // Doc-prefix fold applies symmetrically so the descriptor Map
+  // inside the error carries :docs when the author attached them
+  // — harmless for ordinary error literals, load-bearing when an
+  // embedder programmatically constructs a descriptor-shaped error
+  // and wants the docs surfaced through reify.
   const descriptor = new Map();
   for (const entry of node.entries) {
     const key = keyword(entry.key.name);
-    const value = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
-    descriptor.set(key, value);
+    const rawValue = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
+    descriptor.set(key, foldEntryDocs(entry, rawValue));
   }
   return withPipeValue(state, makeErrorValue(descriptor, { location: node.location }));
 }

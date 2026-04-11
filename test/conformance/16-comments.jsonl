@@ -28,3 +28,18 @@
 {"name":"multiple-interleaved-plains-among-docs","query":"|~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\nlet(:foo, 42)\n| reify(:foo) | /docs","expect":"[\" a\" \" b\" \" c\"]"}
 {"name":"block-doc-then-plain-then-line-doc","query":"|~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\nlet(:bar, 99)\n| reify(:bar) | /docs","expect":"[\" block doc \" \" line doc\"]"}
 {"name":"consecutive-plain-block-comments-before-binding","query":"|~ one ~|\n|~ two ~|\nlet(:foo, 42)\n| foo","expect":"42"}
+{"name":"inline-plain-comment-before-vec-element","query":"[|~ section ~| 1 2 3]","expect":"[1 2 3]"}
+{"name":"inline-plain-comment-between-vec-elements","query":"[1 |~ middle ~| 2 3]","expect":"[1 2 3]"}
+{"name":"inline-plain-comment-at-end-of-vec","query":"[1 2 3 |~ trailing ~|]","expect":"[1 2 3]"}
+{"name":"inline-plain-comment-in-empty-vec","query":"[|~ only ~|]","expect":"[]"}
+{"name":"inline-plain-comment-before-set-element","query":"#{|~ header ~| :a :b :c}","expect":"#{:a :b :c}"}
+{"name":"inline-plain-comment-in-empty-set","query":"#{|~ only ~|}","expect":"#{}"}
+{"name":"inline-plain-comment-before-map-entry","query":"{|~ header ~| :a 1 :b 2}","expect":"{:a 1 :b 2}"}
+{"name":"inline-plain-comment-between-map-entries","query":"{:a 1 |~ divider ~| :b 2 |~ divider ~| :c 3}","expect":"{:a 1 :b 2 :c 3}"}
+{"name":"inline-plain-comment-in-empty-map","query":"{|~ only ~|}","expect":"{}"}
+{"name":"inline-plain-comment-in-arg-list","query":"add(1 |~ left ~|, 2)","expect":"3"}
+{"name":"inline-plain-comment-after-comma","query":"add(1, |~ right ~| 2)","expect":"3"}
+{"name":"inline-line-plain-comment-between-map-entries","query":"{:a 1\n|~| section divider\n:b 2}","expect":"{:a 1 :b 2}"}
+{"name":"inline-plain-divider-before-doc-attached-entry","query":"{|~ section ~| |~~ block doc ~~| :k 1} | /k","expect":"1"}
+{"name":"inline-plain-comment-after-doc-prefix","query":"{|~~ block doc ~~| |~ note ~| :k 1} | /k","expect":"1"}
+{"name":"inline-plain-comment-preserves-docs-attachment","query":"|~~ module doc ~~|\nlet(:wrap, {:a {|~ inner section ~| :x 1}})\n| reify(:wrap) | /docs | first","expect":"\" module doc \""}

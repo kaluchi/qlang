@@ -51,6 +51,42 @@
 Query
   = _ p:Pipeline _ { return p; }
 
+// PipelineInLiteral — Pipeline variant used as a MapEntry value,
+// as a PipelineList element (inside Vec/Set body), and as an
+// ArgList argument (inside an OperandCall's captured-arg slot).
+// Differs from the full Pipeline in one dimension: plain comment
+// tokens (`|~|`, `|~ ~|`) are NOT valid heads or continuations
+// here, so the `_L` inside-literal whitespace can absorb them as
+// section-divider / per-entry-annotation separators in the outer
+// body context without the comment being greedily consumed by
+// this Pipeline's tail.
+//
+// Users who want a multi-step pipeline with inline comment
+// absorption as a literal element wrap the expression in a
+// ParenGroup — `(mul(2) |~ why ~| add(1))` — whose inner
+// Pipeline uses the full grammar and preserves comment-absorbing
+// semantics. This mirrors the existing ParenGroup role for
+// escaping outer-context precedence.
+//
+// The `leadingFail` prefix (`!| step`) stays valid because a
+// conduit body or captured-arg sub-pipeline may legitimately
+// start on the fail-track (for instance, `let(:handler, !| /kind)`).
+// Explicit combinators between steps (`|`, `*`, `>>`, `!|`) also
+// remain valid — only the bare comment-as-continuation and the
+// absorbing comment-with-follower variants are excluded.
+PipelineInLiteral
+  = leadingFail:("!|" _)? head:RawStep tail:(_L ExplicitContinuation)*
+  {
+    const hasLeadingFail = !!leadingFail;
+    const rest = tail.map(t => t[1]);
+    if (rest.length === 0 && !hasLeadingFail) return head;
+    const fields = {
+      steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
+    };
+    if (hasLeadingFail) fields.leadingFail = true;
+    return node('Pipeline', fields, location(), text());
+  }
+
 Pipeline
   = leadingFail:("!|" _)? headRaw:PipelineHead tail:(_ ContinuationUnit)*
   {
@@ -332,19 +368,19 @@ ParenGroup
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
 
 ErrorLit
-  = "!{" _ "}"
+  = "!{" _L "}"
     { return node('ErrorLit', { entries: [] }, location(), text()); }
-  / "!{" _ entries:MapEntries _ "}"
+  / "!{" _L entries:MapEntries _L "}"
     { return node('ErrorLit', { entries }, location(), text()); }
 
 MapLit
-  = "{" _ "}"
+  = "{" _L "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
-  / "{" _ entries:MapEntries _ "}"
+  / "{" _L entries:MapEntries _L "}"
     { return node('MapLit', { entries }, location(), text()); }
 
 MapEntries
-  = head:MapEntry tail:(_ ","? _ MapEntry)*
+  = head:MapEntry tail:(_L ","? _L MapEntry)*
     { return [head, ...tail.map(t => t[3])]; }
 
 // A MapEntry may be preceded by a run of doc comments that attach
@@ -356,43 +392,41 @@ MapEntries
 // let(:let, ...) self-shadow and the three-hop bootstrap enrichment
 // path that the fake-conduit manifest required.
 //
-// Only consecutive doc comments are consumed as the prefix — plain
-// comment interleaving between docs (`|~~| a ~~| |~ note ~| |~~| b`)
-// is not supported here by design, mirroring the absence of plain-
-// comment support inside Map/Set/Vec literals generally. Doc comments
-// preceding a MapEntry with a non-Map value (a scalar, Vec, Set, etc)
-// still parse cleanly; the evaluator drops the docs silently in that
-// case since there is no target Map to stamp them onto.
+// Plain comments between the doc prefix and the key (and between
+// individual doc-comment tokens inside the prefix) are absorbed as
+// whitespace via `_L`, so a section-divider plain comment is free
+// to sit directly before or after a doc-attached entry without
+// disrupting the attachment chain.
 MapEntry
-  = docs:MapEntryDocPrefix? _ key:Keyword __ value:Pipeline
+  = docs:MapEntryDocPrefix? _L key:Keyword __ value:PipelineInLiteral
     { return node('MapEntry', { key, value, docs: docs ?? [] }, location(), text()); }
 
 MapEntryDocPrefix
-  = head:DocComment rest:(_ DocComment)*
+  = head:DocComment rest:(_L DocComment)*
     { return [head.content, ...rest.map(t => t[1].content)]; }
 
 SetLit
-  = "#{" _ "}"
+  = "#{" _L "}"
     { return node('SetLit', { elements: [] }, location(), text()); }
-  / "#{" _ elements:PipelineList _ "}"
+  / "#{" _L elements:PipelineList _L "}"
     { return node('SetLit', { elements }, location(), text()); }
 
 VecLit
-  = "[" _ "]"
+  = "[" _L "]"
     { return node('VecLit', { elements: [] }, location(), text()); }
-  / "[" _ elements:PipelineList _ "]"
+  / "[" _L elements:PipelineList _L "]"
     { return node('VecLit', { elements }, location(), text()); }
 
 PipelineList
-  = head:Pipeline tail:(_ ","? _ Pipeline)*
+  = head:PipelineInLiteral tail:(_L ","? _L PipelineInLiteral)*
     { return [head, ...tail.map(t => t[3])]; }
 
 OperandCall
-  = name:Ident !IdentTail args:(_ "(" _ ArgList? _ ")")?
+  = name:Ident !IdentTail args:(_ "(" _L ArgList? _L ")")?
     { return node('OperandCall', { name, args: args ? (args[3] || []) : null }, location(), text()); }
 
 ArgList
-  = head:Pipeline tail:(_ ","? _ Pipeline)*
+  = head:PipelineInLiteral tail:(_L ","? _L PipelineInLiteral)*
     { return [head, ...tail.map(t => t[3])]; }
 
 // Projection accepts both bare identifier segments and quoted-string
@@ -482,10 +516,28 @@ IdentTail  = [a-zA-Z0-9_-]
 // --- Whitespace ------------------------------------------------
 //
 // `_` is optional whitespace, `__` is required whitespace (used to
-// separate an Ident from a following token). Comment tokens are
-// full PipeSteps, not whitespace — they are not consumed here.
+// separate an Ident from a following token). Pipeline-level
+// comment tokens are full PipeSteps and are parsed separately by
+// PipelineHead / ContinuationUnit, so `_` does not consume them.
+//
+// `_L` is inside-literal whitespace — it absorbs plain comment
+// tokens as whitespace-equivalent. Used inside MapLit / ErrorLit
+// / SetLit / VecLit body positions and inside ArgList / MapEntries
+// / PipelineList / MapEntryDocPrefix separator positions, where a
+// plain comment serves as a section divider or per-entry
+// annotation and carries no value role. Comment tokens matched
+// here are silently consumed — they never enter the AST — so
+// walkers, reify, astNodeToMap, and the AST-as-data surface are
+// unaffected by whether an author sprinkles section dividers
+// between entries.
+//
+// Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. They
+// attach as metadata to the following binding / MapEntry via the
+// MapEntryDocPrefix / DocAttachedSequence productions, and
+// swallowing them as whitespace here would break the attachment.
 
 _  = Whitespace*
+_L = (Whitespace / PlainCommentStep)*
 __ = Whitespace+
 
 Whitespace = [ \t\n\r]

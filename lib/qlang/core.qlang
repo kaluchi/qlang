@@ -8,9 +8,9 @@
    foldEntryDocs folds them into the value Map under :docs at
    bootstrap time.
 
-   Sections, in order (no inline dividers — the Map literal body
-   admits only MapEntries; section boundaries are preserved by
-   ordering and by blank lines between groups):
+   Sections (plain-comment dividers appear inline between entry
+   groups; the grammar's _L rule absorbs them as whitespace inside
+   literal bodies):
 
      Vec reducers        — count, empty, first, last, sum, min,
                            max, every, any, firstNonZero
@@ -31,6 +31,7 @@
      Reflective          — env, use, reify, manifest, runExamples,
                            as, let
      Error               — error, isError
+     Code as data        — parse, eval
 
    Type vocabulary (flat keywords) used in :subject / :returns /
    :modifiers:
@@ -40,6 +41,8 @@
      :pipeline (captured sub-pipeline, lazy) ~|
 
 {
+
+|~ ──────────────── Vec reducers ──────────────── ~|
 
 |~~ Returns the number of elements. Polymorphic over Vec
     (length), Set (size), and Map (entry count). ~~|
@@ -182,6 +185,8 @@
                  {:doc "picks first non-zero"  :snippet "[0 0 -1 0] | firstNonZero"  :expected "-1"}
                  {:doc "all zeros yields 0"    :snippet "[0 0 0] | firstNonZero"      :expected "0"}]
                :throws [:FirstNonZeroSubjectNotVec, :FirstNonZeroElementNotNumber]}
+
+|~ ──────────────── Vec transformers ──────────────── ~|
 
 |~~ Keeps elements where the predicate sub-pipeline evaluates
     truthy. The predicate is applied to each element via fork. ~~|
@@ -332,6 +337,8 @@
             {:doc "collapse by key"  :snippet "[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy(/id) | /a/name"  :expected "\"alice\""}]
           :throws [:IndexBySubjectNotVec, :IndexByKeyNotKeyword]}
 
+|~ ──────────────── Comparator builders ──────────────── ~|
+
 |~~ Builds an ascending comparator for sortWith. Applied
     per-pair, projects the key from /left and /right via the
     captured sub-pipeline and compares them in natural ascending
@@ -391,6 +398,8 @@
               {:doc "nil after others"  :snippet "sortWith(nullsLast(/age))"}
               {:doc "nil last ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a"  :expected "[1 3 nil]"}]
             :throws [:NullsLastPairNotMap]}
+
+|~ ──────────────── Control flow ──────────────── ~|
 
 |~~ Conditional. Evaluates the cond sub-pipeline against
     pipeValue; if truthy, evaluates the then branch, otherwise
@@ -491,6 +500,8 @@
          {:doc "label by value"   :snippet "value | cond(eq(0), \"zero\", eq(1), \"one\", \"many\")"}]
        :throws [:CondNoBranches]}
 
+|~ ──────────────── Map operations ──────────────── ~|
+
 |~~ Returns the Set of keys (keywords) in the Map. ~~|
 :keys {:qlang/kind :builtin
        :qlang/impl :qlang/prim/keys
@@ -525,6 +536,8 @@
         {:doc "Map key check"  :snippet "{:name \"Alice\"} | has(:name)"  :expected "true"}
         {:doc "Set membership" :snippet "#{:a :b :c} | has(:b)"           :expected "true"}]
       :throws [:HasSubjectNotMapOrSet, :HasKeyNotKeyword]}
+
+|~ ──────────────── Set operations ──────────────── ~|
 
 |~~ Polymorphic union. Set union or Map merge (last wins on
     key conflict). Three call shapes: bare form left-folds a
@@ -571,6 +584,8 @@
           {:doc "Set intersection"    :snippet "[#{:a :b :c} #{:b :d}] | inter"           :expected "#{:b}"}
           {:doc "select Map fields"   :snippet "{:a 1 :b 2 :c 3} | inter(#{:a :b})"      :expected "{:a 1 :b 2}"}]
         :throws [:InterBareSubjectNotVec, :InterBareEmpty, :InterPairIncompatible]}
+
+|~ ──────────────── Arithmetic ──────────────── ~|
 
 |~~ Adds two numbers. Bound form a | add(b) computes a+b;
     full form add(a, b) resolves both args against pipeValue
@@ -624,6 +639,8 @@
         {:doc "bound form"  :snippet "10 | div(2)"               :expected "5"}
         {:doc "full form"   :snippet "{:x 20 :y 4} | div(/x, /y)"  :expected "5"}]
       :throws [:DivLeftNotNumber, :DivRightNotNumber, :DivisionByZeroError]}
+
+|~ ──────────────── String ──────────────── ~|
 
 |~~ Splits the subject on every occurrence of separator.
     Returns a Vec of substrings. Inverse of join. ~~|
@@ -713,6 +730,8 @@
            {:doc "add suffix"  :snippet "\"hello\" | append(\" world\")"  :expected "\"hello world\""}]
          :throws [:AppendSubjectNotString, :AppendSuffixNotString]}
 
+|~ ──────────────── Boolean ──────────────── ~|
+
 |~~ Logical negation. Returns true if the subject is falsy
     (nil or false), false otherwise. 0, "", [], {}, #{} are
     all truthy. ~~|
@@ -726,6 +745,8 @@
         {:doc "negate nil"    :snippet "nil | not"  :expected "true"}
         {:doc "0 is truthy"   :snippet "0 | not"    :expected "false"}]
       :throws []}
+
+|~ ──────────────── Predicates ──────────────── ~|
 
 |~~ Returns true if the subject equals the captured value by
     structural equality (deep recursive comparison across Maps,
@@ -809,6 +830,8 @@
        {:doc "disjunction predicate"  :snippet "filter(or(/vip, /score | gt(95)))"}]
      :throws []}
 
+|~ ──────────────── Formatting ──────────────── ~|
+
 |~~ Returns a JSON string representation of the subject.
     Keywords are emitted as colon-prefixed strings, Sets as JSON
     arrays, Maps as JSON objects with keyword names as keys. ~~|
@@ -835,6 +858,8 @@
         :examples [
           {:doc "render as table"  :snippet "[{:name \"a\" :age 20} {:name \"b\" :age 30}] | table"}]
         :throws [:TableSubjectNotVec, :TableRowNotMap]}
+
+|~ ──────────────── Reflective ──────────────── ~|
 
 |~~ Replaces pipeValue with the current env Map. Inside a fork,
     returns the fork-local env including any as/let writes visible
@@ -965,6 +990,8 @@
         :LetBodyMissing
         :EffectLaunderingAtLetParse]}
 
+|~ ──────────────── Error ──────────────── ~|
+
 |~~ Lifts a Map into an error value — the sole
     constructor for the 5th type at the language
     level alongside the !{…} literal. Bare form
@@ -1009,6 +1036,8 @@
             {:doc "plain Map"                    :snippet "{:kind :oops} | isError"             :expected "false"}
             {:doc "non-error scalar"             :snippet "42 | isError"                        :expected "false"}]
           :throws []}
+
+|~ ──────────────── Code as data ──────────────── ~|
 
 |~~ Parses a source string into an AST-Map — the data-form
     representation of the program described by walk.mjs's

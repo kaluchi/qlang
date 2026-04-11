@@ -187,9 +187,19 @@ existing entries plus the deflections recorded since the last
 materialization) to its step. On a success pipeValue `!|` deflects
 as identity pass-through.
 
+Each entry in the materialized trail is an **AST-Map** — the
+structured data-form of the deflected step, carrying its
+`:qlang/kind` discriminator, `:name`, `:args`, `:location`, and a
+`:text` field with the source substring. Downstream code can
+filter, project, or re-eval trail entries as ordinary qlang data;
+the `:text` projection is the human-readable display form.
+
 ```qlang
-> !{:kind :oops} | count | add(1) !| /trail
+> !{:kind :oops} | count | add(1) !| /trail * /text
 ["count" "add(1)"]
+
+> !{:kind :oops} | count | add(1) !| /trail | first | /name
+"count"
 ```
 
 The `error` operand lifts a Map into an error value — `map | error`
@@ -1130,11 +1140,19 @@ Track dispatch is owned by the combinators:
 
 Every error value carries `:trail` in its descriptor by invariant —
 `makeErrorValue` enforces the field at construction time, so hot-
-path readers under `!|` read it without defensive fallbacks.
+path readers under `!|` read it without defensive fallbacks. Each
+entry in the Vec is an AST-Map stamped at deflect time by
+`walk.mjs::astNodeToMap`, carrying the full structural shape of
+the deflected step.
 
 ```qlang
-> "hello" | add(1) | mul(2) | sub(3) !| /trail
+|~| display form — project :text to get the source substring
+> "hello" | add(1) | mul(2) | sub(3) !| /trail * /text
 ["mul(2)" "sub(3)"]
+
+|~| structured form — each trail entry is addressable as data
+> "hello" | add(1) | mul(2) | sub(3) !| /trail | last | /name
+"sub"
 ```
 
 Error descriptor fields for runtime errors:

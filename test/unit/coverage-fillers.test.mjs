@@ -568,20 +568,23 @@ describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', () => {
   });
 });
 
-describe('types.mjs — appendTrailNode uses node.type when node.text is absent', () => {
-  it('records node.type on the trail head for a synthetic step with no .text', async () => {
-    // appendTrailNode lives on the fail-track deflection path of the
-    // success-track combinators. Parsed AST nodes always carry .text
-    // from the grammar action, but synthetic nodes (constructed in
-    // tests, tooling, or hand-rolled transforms) may lack it. The
-    // fallback to `node.type` is exercised directly against
-    // appendTrailNode without going through the combinator.
-    const { appendTrailNode } = await import('../../src/types.mjs');
+describe('types.mjs — appendTrailNode stores entries verbatim without shape assumptions', () => {
+  it('stores a synthetic entry exactly as passed on the trail head', async () => {
+    // Under the structured-trail design appendTrailNode is entry-
+    // shape-agnostic: it stamps whatever qlang value the caller
+    // hands it onto the linked list head with no inspection. The
+    // production callsites in eval.mjs pass AST-Maps produced by
+    // walk.mjs::astNodeToMap, but the value-class module does not
+    // enforce that. A hand-rolled synthetic entry (here a Scalar
+    // string) round-trips through _trailHead → materializeTrail
+    // unchanged, proving the storage is verbatim.
+    const { appendTrailNode, materializeTrail } = await import('../../src/types.mjs');
     const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('type-error')]]));
-    const synthStep = { type: 'NumberLit', value: 42 };  // no .text
-    const trailed = appendTrailNode(errVal, synthStep);
+    const syntheticEntry = 'synthetic-trail-label';
+    const trailed = appendTrailNode(errVal, syntheticEntry);
     expect(isErrorValue(trailed)).toBe(true);
-    expect(trailed._trailHead.text).toBe('NumberLit');
+    expect(trailed._trailHead.entry).toBe(syntheticEntry);
+    expect(materializeTrail(trailed)).toEqual([syntheticEntry]);
   });
 });
 

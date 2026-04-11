@@ -132,11 +132,16 @@ describe('withContext — merges a context Map into the descriptor', () => {
   });
 
   it('trail continuity survives withContext re-lift', () => {
-    const r = runOk(s, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail');
-    // count deflected into trail; after withContext + re-lift via
-    // the conduit's internal `| error`, the :trail Vec stays
-    // populated from the first materialization; then `| add(5)`
-    // deflects and the outer !| combines that into the exposed Vec.
+    // Structured trail: /trail yields Vec of AST-Maps; * /text
+    // extracts the source-text display form so the assertion can
+    // still compare against plain strings. The continuity property
+    // under test: count deflects into the trail as an AST-Map;
+    // after withContext + re-lift via the conduit's internal
+    // `| error`, the :trail Vec stays populated; `| add(5)` then
+    // deflects and the outer !| combines that into the exposed
+    // materialized descriptor, so the final text projection holds
+    // both step labels in chronological order.
+    const r = runOk(s, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail * /text');
     expect(r).toEqual(['count', 'add(5)']);
   });
 });

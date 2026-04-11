@@ -46,6 +46,7 @@ import {
   describeType, keyword, NIL, makeErrorValue, appendTrailNode,
   materializeTrail
 } from './types.mjs';
+import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -173,18 +174,22 @@ function applyCombinator(kind, state, stepNode) {
 
 // applySuccessTrack(state, stepNode) — the `|` combinator. Fires
 // `stepNode` when pipeValue is on the success-track; deflects on
-// error by appending `stepNode` to the trail linked list and
-// returning the error unchanged.
+// error by appending a Map-form of `stepNode` to the trail linked
+// list and returning the error unchanged. The Map form is produced
+// by walk.mjs::astNodeToMap and carries the deflected step as a
+// structurally-addressable qlang value (:name / :args / :location /
+// :text) that downstream `!|` consumers can filter, project, or
+// re-eval as ordinary data.
 function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, stepNode));
+    return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(stepNode)));
   }
   return evalNode(stepNode, state);
 }
 
 function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, bodyNode));
+    return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(bodyNode)));
   }
   if (!isVec(state.pipeValue)) {
     throw new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
@@ -197,7 +202,7 @@ function distribute(state, bodyNode) {
 
 function mergeFlat(state, nextNode) {
   if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, nextNode));
+    return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(nextNode)));
   }
   if (!isVec(state.pipeValue)) {
     throw new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);

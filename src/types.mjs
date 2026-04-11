@@ -200,27 +200,42 @@ export function makeErrorValue(descriptor, { location = null, originalError = nu
   });
 }
 
-// appendTrailNode(errorValue, node) → new error value with node
-// prepended to the trail linked list. One frozen object per skip.
-export function appendTrailNode(errorValue, node) {
+// appendTrailNode(errorValue, trailEntry) → new frozen error value
+// with `trailEntry` prepended to the linked list that materializes
+// into the descriptor's :trail Vec under a `!|` fire. The caller
+// supplies `trailEntry` as an already-qlang-shaped value — typically
+// the Map produced by `astNodeToMap` on the deflected step AST node,
+// which makes the trail entry a structurally-addressable AST-Map
+// with :name / :args / :location / :text fields a downstream
+// consumer can filter, project, or re-eval as ordinary qlang data.
+//
+// Storing the entry verbatim keeps this module ignorant of AST shape
+// (walk.mjs owns `astNodeToMap`, types.mjs stays a pure value-class
+// module). Any qlang value is acceptable as an entry; the
+// materialize-time reader hands it back without inspection.
+export function appendTrailNode(errorValue, trailEntry) {
   return Object.freeze({
     type: 'error',
     descriptor: errorValue.descriptor,
     location: errorValue.location,
     originalError: errorValue.originalError,
     _trailHead: Object.freeze({
-      text: node.text ?? node.type,
+      entry: trailEntry,
       prev: errorValue._trailHead
     })
   });
 }
 
-// materializeTrail(errorValue) → Vec of step text strings in
-// chronological order (first skipped → last skipped).
+// materializeTrail(errorValue) → Vec of trail entries in chronological
+// order (first deflected → last deflected). Each entry is whatever
+// the caller of appendTrailNode handed in — under the current eval.mjs
+// callsites that is an AST-Map produced by `astNodeToMap`, so the
+// returned Vec carries full structural information about each
+// deflected step (kind, name, args, location, source text).
 export function materializeTrail(errorValue) {
   const trail = [];
   let cur = errorValue._trailHead;
-  while (cur) { trail.push(cur.text); cur = cur.prev; }
+  while (cur) { trail.push(cur.entry); cur = cur.prev; }
   trail.reverse();
   return trail;
 }

@@ -56,32 +56,62 @@ describe('describeType for error values', () => {
 // ── trail (appendTrailNode / materializeTrail) ──────────────────
 
 describe('trail', () => {
-  it('appendTrailNode builds linked list', () => {
+  it('appendTrailNode stores entries verbatim in a linked list', () => {
+    // Under the structured-trail design, appendTrailNode accepts any
+    // qlang value as a trail entry and stores it verbatim — the
+    // eval.mjs callsites pass Maps produced by walk.mjs::astNodeToMap,
+    // but the value-class module stays agnostic about shape.
+    const entry1 = new Map([
+      [keyword('qlang/kind'), keyword('OperandCall')],
+      [keyword('name'), 'count'],
+      [keyword('text'), 'count']
+    ]);
     const ev0 = makeErrorValue(new Map());
-    const node1 = { type: 'OperandCall', text: 'count' };
-    const ev1 = appendTrailNode(ev0, node1);
+    const ev1 = appendTrailNode(ev0, entry1);
     expect(Object.isFrozen(ev1)).toBe(true);
-    expect(ev1._trailHead.text).toBe('count');
+    expect(ev1._trailHead.entry).toBe(entry1);
     expect(ev1._trailHead.prev).toBeNull();
 
-    const node2 = { type: 'OperandCall', text: 'filter' };
-    const ev2 = appendTrailNode(ev1, node2);
-    expect(ev2._trailHead.text).toBe('filter');
-    expect(ev2._trailHead.prev.text).toBe('count');
+    const entry2 = new Map([
+      [keyword('qlang/kind'), keyword('OperandCall')],
+      [keyword('name'), 'filter'],
+      [keyword('text'), 'filter(gt(2))']
+    ]);
+    const ev2 = appendTrailNode(ev1, entry2);
+    expect(ev2._trailHead.entry).toBe(entry2);
+    expect(ev2._trailHead.prev.entry).toBe(entry1);
   });
 
-  it('materializeTrail returns chronological Vec', () => {
+  it('materializeTrail returns chronological Vec of entries', () => {
+    const first  = new Map([[keyword('text'), 'first']]);
+    const second = new Map([[keyword('text'), 'second']]);
+    const third  = new Map([[keyword('text'), 'third']]);
     const ev0 = makeErrorValue(new Map());
-    const ev1 = appendTrailNode(ev0, { text: 'first' });
-    const ev2 = appendTrailNode(ev1, { text: 'second' });
-    const ev3 = appendTrailNode(ev2, { text: 'third' });
+    const ev1 = appendTrailNode(ev0, first);
+    const ev2 = appendTrailNode(ev1, second);
+    const ev3 = appendTrailNode(ev2, third);
     const trail = materializeTrail(ev3);
-    expect(trail).toEqual(['first', 'second', 'third']);
+    expect(trail).toHaveLength(3);
+    expect(trail[0]).toBe(first);
+    expect(trail[1]).toBe(second);
+    expect(trail[2]).toBe(third);
   });
 
   it('materializeTrail on fresh error returns empty', () => {
     const ev = makeErrorValue(new Map());
     expect(materializeTrail(ev)).toEqual([]);
+  });
+
+  it('stores non-Map entries unchanged — shape-agnostic storage', () => {
+    // While the production caller passes AST-Maps, types.mjs is not
+    // a validator; any qlang value (string, Vec, Scalar) round-trips
+    // through the linked list as-is. This keeps the value-class
+    // module free of AST shape knowledge.
+    const ev0 = makeErrorValue(new Map());
+    const ev1 = appendTrailNode(ev0, 'plain-string');
+    const ev2 = appendTrailNode(ev1, [1, 2, 3]);
+    const trail = materializeTrail(ev2);
+    expect(trail).toEqual(['plain-string', [1, 2, 3]]);
   });
 });
 

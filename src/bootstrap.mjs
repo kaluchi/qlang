@@ -13,7 +13,7 @@ import { parse } from './parse.mjs';
 import { evalAst } from './eval.mjs';
 import { makeState, envSet } from './state.mjs';
 import { keyword, isConduit, isKeyword } from './types.mjs';
-import { MANIFEST_SOURCE } from './manifest.generated.mjs';
+import { MANIFEST_SOURCE } from '../gen/manifest.mjs';
 import { letOperand } from './runtime/intro.mjs';
 
 // bootstrapManifest() → Map<keyword, conduit>

@@ -19,7 +19,8 @@
   "sideEffects": false,
   "files": [
     "src/",
-    "host/"
+    "host/",
+    "gen/"
   ],
   "scripts": {
     "test": "vitest run",

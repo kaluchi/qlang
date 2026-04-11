@@ -17,7 +17,7 @@
 import {
   parse as peggyParse,
   SyntaxError as PeggySyntaxError
-} from './grammar.generated.mjs';
+} from '../gen/grammar.mjs';
 import { assignAstNodeIds, attachAstParents } from './walk.mjs';
 import { decorateAstWithEffectMarkers } from './effect-check.mjs';
 

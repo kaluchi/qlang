@@ -7,7 +7,6 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'text-summary'],
       include: ['src/**/*.mjs'],
-      exclude: ['src/grammar.generated.mjs'],
       thresholds: {
         lines: 99,
         functions: 99,

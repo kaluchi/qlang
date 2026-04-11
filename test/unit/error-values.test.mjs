@@ -13,13 +13,33 @@ import { QlangTypeError, UnresolvedIdentifierError, DivisionByZeroError } from '
 // ── makeErrorValue ──────────────────────────────────────────────
 
 describe('makeErrorValue', () => {
-  it('produces frozen error object', () => {
+  it('produces frozen error object with :trail invariant', () => {
+    // makeErrorValue enforces the invariant that every error
+    // descriptor carries :trail as a Vec — so the descriptor
+    // returned on the wrapper is a fresh Map, not the caller's
+    // original input, when the input lacked :trail.
     const descriptor = new Map([[keyword('kind'), keyword('oops')]]);
     const ev = makeErrorValue(descriptor);
     expect(isErrorValue(ev)).toBe(true);
     expect(Object.isFrozen(ev)).toBe(true);
     expect(ev.type).toBe('error');
+    expect(ev.descriptor.get(keyword('kind'))).toEqual(keyword('oops'));
+    expect(ev.descriptor.get(keyword('trail'))).toEqual([]);
+  });
+
+  it('preserves caller-supplied :trail in descriptor', () => {
+    // When the caller already included :trail in the descriptor
+    // (e.g., from re-lift of a previously-materialized error, or
+    // a user literal `!{:trail [...]}`), makeErrorValue keeps the
+    // supplied Vec untouched.
+    const preTrail = ['phase-1', 'phase-2'];
+    const descriptor = new Map([
+      [keyword('kind'), keyword('oops')],
+      [keyword('trail'), preTrail]
+    ]);
+    const ev = makeErrorValue(descriptor);
     expect(ev.descriptor).toBe(descriptor);
+    expect(ev.descriptor.get(keyword('trail'))).toBe(preTrail);
   });
 });
 

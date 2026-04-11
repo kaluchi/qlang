@@ -43,7 +43,8 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 }
 import {
   isVec, isQMap, isConduit, isSnapshot, isFunctionValue, isErrorValue,
-  describeType, keyword, NIL, makeErrorValue, appendTrailNode
+  describeType, keyword, NIL, makeErrorValue, appendTrailNode,
+  materializeTrail
 } from './types.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
@@ -145,11 +146,20 @@ function evalNode(node, state) {
 
 function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
+  //
+  // If `node.leadingFail === true`, the first step is routed through
+  // the `!|` combinator instead of a raw evalNode call. This is how
+  // the leading-prefix form (`!| firstStep`) opts into fail-track
+  // dispatch for the pipeline's first step — used typically inside
+  // filter/when/if sub-pipelines where the per-element pipeValue may
+  // or may not be an error.
   let current = state;
   for (let i = 0; i < node.steps.length; i++) {
     const step = node.steps[i];
     if (i === 0) {
-      current = evalNode(step, current);
+      current = node.leadingFail
+        ? applyCombinator('!|', current, step)
+        : evalNode(step, current);
     } else {
       current = applyCombinator(step.combinator, current, step.step);
     }
@@ -159,6 +169,7 @@ function evalPipeline(node, state) {
 
 const COMBINATOR_EVALUATORS = {
   '|':  (state, stepNode) => evalNode(stepNode, state),
+  '!|': applyFailTrack,
   '*':  distribute,
   '>>': mergeFlat
 };
@@ -191,6 +202,43 @@ function mergeFlat(state, nextNode) {
     else flattened.push(item);
   }
   return evalNode(nextNode, withPipeValue(state, flattened));
+}
+
+// applyFailTrack(state, stepNode) — `!|` combinator implementation.
+//
+// Fail-track application: fires `stepNode` only when `state.pipeValue`
+// is an error value. On success values, it deflects as identity
+// pass-through (state unchanged).
+//
+// On fire, the error wrapper is exposed to `stepNode` as its
+// *materialized descriptor* — a fresh Map built by taking the
+// descriptor and replacing `:trail` with the combined Vec of
+//   (1) the descriptor's existing `:trail` (always present by
+//       makeErrorValue's invariant), plus
+//   (2) the new deflected steps walked out of `_trailHead` linked list
+//       (deflections that happened since the last materialization).
+//
+// The invariant that every error descriptor carries `:trail` as a Vec
+// is enforced by `makeErrorValue` in types.mjs at construction time,
+// which lets this hot-path read `:trail` without a defensive fallback.
+//
+// Trail continuity across re-lift: when an operand running under `!|`
+// returns a Map and a later `| error` re-wraps it, the new error
+// value's descriptor carries the `:trail` Vec the operand handed back.
+// Subsequent deflections append to a fresh `_trailHead` linked list.
+// The next `!|` combines both sources again — continuous accumulation.
+// Explicit truncation is available via `union({:trail []})` inside a
+// fail-apply step, which overwrites the `:trail` field before re-lift.
+function applyFailTrack(state, stepNode) {
+  if (!isErrorValue(state.pipeValue)) return state;
+  const err = state.pipeValue;
+  const combinedTrail = [
+    ...err.descriptor.get(keyword('trail')),
+    ...materializeTrail(err)
+  ];
+  const materializedDescriptor = new Map(err.descriptor);
+  materializedDescriptor.set(keyword('trail'), combinedTrail);
+  return evalNode(stepNode, withPipeValue(state, materializedDescriptor));
 }
 
 // ─── Step 1: Literals ───────────────────────────────────────────

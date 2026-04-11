@@ -52,20 +52,30 @@ Query
   = _ p:Pipeline _ { return p; }
 
 Pipeline
-  = headRaw:PipelineHead tail:(_ ContinuationUnit)*
+  = leadingFail:("!|" _)? headRaw:PipelineHead tail:(_ ContinuationUnit)*
   {
     // PipelineHead may return either a single AST node (the first
     // step) or an array of [headStep, ...continuationUnits] when
     // the head is a BlockPlainComment that absorbed its trailing
     // combinator and ate a follower step.
+    //
+    // `leadingFail` is an optional `!|` prefix that applies the first
+    // step on the fail-track. If present, we force a Pipeline node
+    // (even for a single step) and stamp `leadingFail: true` on it so
+    // the evaluator routes the first step through the `!|` combinator
+    // instead of evalNode directly. Without the prefix, a single-step
+    // pipeline collapses to the step itself (unchanged legacy path).
+    const hasLeadingFail = !!leadingFail;
     const headUnits = Array.isArray(headRaw) ? headRaw : [headRaw];
     const head = headUnits[0];
     const headTail = headUnits.slice(1);
     const rest = [...headTail, ...tail.flatMap(t => flattenUnits(t[1]))];
-    if (rest.length === 0) return head;
-    return node('Pipeline', {
+    if (rest.length === 0 && !hasLeadingFail) return head;
+    const pipelineFields = {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
-    }, location(), text());
+    };
+    if (hasLeadingFail) pipelineFields.leadingFail = true;
+    return node('Pipeline', pipelineFields, location(), text());
   }
 
 // The first unit of a pipeline has no preceding combinator
@@ -287,9 +297,16 @@ BlockDocContent
 // following character is `~` (which would make it the start of a
 // comment token `|~` / `|~~` / `|~|` / `|~~|`). Comment continuations
 // are also tried first in ContinuationUnit, so this is a safety net.
+//
+// `!|` is the fail-track dual of `|`. It fires its step only when
+// pipeValue is an error value; on a non-error pipeValue it deflects
+// (identity pass-through). No lookahead is needed because `!|` starts
+// with `!` which does not prefix any other combinator, and `!{`
+// (ErrorLit) is distinguishable by its second char.
 
 Combinator
   = ">>" { return '>>'; }
+  / "!|" { return '!|'; }
   / "|" !"~" { return '|'; }
   / "*"  { return '*'; }
 

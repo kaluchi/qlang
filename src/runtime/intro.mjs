@@ -281,9 +281,10 @@ function sourceOfAst(node) {
     case 'MapLit':     return `{${node.entries.map(sourceOfAst).join(' ')}}`;
     case 'ErrorLit':   return `!{${node.entries.map(sourceOfAst).join(' ')}}`;
     case 'Pipeline': {
+      const prefix = node.leadingFail ? '!| ' : '';
       const first = sourceOfAst(node.steps[0]);
       const rest = node.steps.slice(1).map(s => `${s.combinator} ${sourceOfAst(s.step)}`).join(' ');
-      return `${first} ${rest}`.trim();
+      return `${prefix}${first} ${rest}`.trim();
     }
     default:           return `<${node.type}>`;
   }

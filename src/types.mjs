@@ -158,21 +158,41 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 
 // ── error value factory ───────────────────────────────────────
 // Wraps a descriptor Map into an opaque error value — the 5th
-// qlang value type. Error values propagate through pipeline steps
-// (evalNode skips non-error-aware operands), and are unwrapped by
-// `catch` back into their descriptor Map for inspection.
+// qlang value type. Error values ride the fail-track: the `|`, `*`,
+// and `>>` combinators deflect them (appending to the trail), while
+// the `!|` combinator fires its step against the materialized
+// descriptor Map.
 //
-// The `_trailHead` field is an internal linked list of skipped AST
-// nodes accumulated during propagation. Materialized into a `:trail`
-// Vec entry on the descriptor at `catch` unwrap time. Not visible
-// from qlang until catch.
+// INVARIANT: every error value's descriptor carries `:trail` as a
+// Vec. This constructor enforces the invariant — if the caller did
+// not put `:trail` into the descriptor, we add an empty Vec. Hot-path
+// readers in `eval.mjs::applyFailTrack` rely on this and never
+// defend against a missing `:trail` field.
+//
+// The `_trailHead` field is an internal linked list of deflected AST
+// nodes accumulated since the last materialization. It is combined
+// with the descriptor's `:trail` Vec at each `!|` entry point to
+// produce the full trail for the step to observe.
 //
 // The `originalError` field preserves the original JS Error (if any)
 // for host-boundary re-throwing. Not visible from qlang.
+
+// Interned once to avoid per-construction allocation of the trail
+// key and the empty Vec placeholder. The empty Vec is shared across
+// freshly-constructed errors — safe because it is frozen and qlang
+// values are immutable at the language level.
+const TRAIL_KEY = keyword('trail');
+const EMPTY_TRAIL = Object.freeze([]);
+
 export function makeErrorValue(descriptor, { location = null, originalError = null, trailHead = null } = {}) {
+  let finalDescriptor = descriptor;
+  if (!descriptor.has(TRAIL_KEY)) {
+    finalDescriptor = new Map(descriptor);
+    finalDescriptor.set(TRAIL_KEY, EMPTY_TRAIL);
+  }
   return Object.freeze({
     type: 'error',
-    descriptor,
+    descriptor: finalDescriptor,
     location,
     originalError,
     _trailHead: trailHead

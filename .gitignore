@@ -2,3 +2,4 @@ node_modules/
 coverage/
 src/grammar.generated.mjs
 src/manifest.generated.mjs
+.claude/settings.local.json

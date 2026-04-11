@@ -1,7 +1,7 @@
 {
   "name": "@kaluchi/qlang",
   "version": "0.1.0-alpha",
-  "description": "Reference implementation of the jdtbridge query expression language",
+  "description": "Reference implementation of the qlang expression language",
   "type": "module",
   "main": "src/index.mjs",
   "exports": {
@@ -35,15 +35,13 @@
   "keywords": [
     "query-language",
     "interpreter",
-    "pipeline",
-    "jdtbridge"
+    "pipeline"
   ],
   "license": "Apache-2.0",
   "author": "kaluchi",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kaluchi/jdtbridge.git",
-    "directory": "qlang"
+    "url": "git+https://github.com/kaluchi/qlang.git"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.2.4",

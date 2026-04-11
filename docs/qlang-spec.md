@@ -1,4 +1,4 @@
-# Query Language Specification
+# Qlang Query Language
 
 Expression language for transforming immutable values through
 pipelines. Domain-agnostic — defines values, combinators, and the

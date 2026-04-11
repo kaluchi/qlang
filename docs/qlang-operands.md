@@ -1,4 +1,4 @@
-# Query Language — Core Runtime Reference
+# Qlang Query Language — Core Runtime Reference
 
 This document catalogs the built-in operands of the query language.
 Every entry lives as a field of the language runtime Map

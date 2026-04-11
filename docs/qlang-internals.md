@@ -1,4 +1,4 @@
-# Query Language Model
+# Qlang Query Language — Evaluation Model
 
 Formal evaluation model for the query language. Defines the
 state-transformer semantics in which environment, bindings, and

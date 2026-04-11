@@ -1,6 +1,6 @@
 // PEG grammar for the qlang expression language.
 //
-// Mirrors the Grammar section of docs/jdt-query-lang-spec.md.
+// Mirrors the Grammar section of docs/qlang-spec.md.
 //
 // Generated parser exports `parse(source)` returning an AST whose
 // nodes are JS objects with a discriminator `type` field. Comma is

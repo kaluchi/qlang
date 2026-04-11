@@ -1,15 +1,33 @@
-|~~ Observe pipeValue on both tracks without changing it.
-    Runs observer as side-effect on success track;
-    catches error, runs observer on the descriptor,
-    then re-raises. Original value or error preserved. ~~|
+|~~ Observe a success-track pipeValue without changing
+    it. `observer` runs against the captured value as a
+    side-effect; its result is discarded and the
+    original value is restored via the `:original`
+    snapshot. Call via `|` on success-track. ~~|
 let(:tap, [:observer],
-  as(:_v) | observer | _v
-  | catch(as(:_e) | observer | error(_e)))
+  as(:original) | observer | original)
 
-|~~ Run action on both tracks, preserve original.
-    Cleanup/finalization primitive. Same mechanism as
-    tap, named for intent — the action must happen
-    regardless of success or failure. ~~|
+|~~ Observe an error's materialized descriptor without
+    changing the error. `observer` runs against the
+    captured descriptor as a side-effect; its result is
+    discarded and the descriptor is restored via the
+    `:original` snapshot before being re-lifted into a
+    fresh error. Trail continues via the makeErrorValue
+    invariant. Call via `!|` on fail-track. ~~|
+let(:tapError, [:observer],
+  as(:original) | observer | original | error)
+
+|~~ Cleanup/finalization on a success-track pipeValue.
+    Same mechanism as `tap`, named for intent — the
+    `action` must happen regardless of why the caller
+    is tapping in (resource release, metric emission,
+    log write). Call via `|` on success-track. ~~|
 let(:finally, [:action],
-  as(:_v) | action | _v
-  | catch(as(:_e) | action | error(_e)))
+  as(:original) | action | original)
+
+|~~ Cleanup/finalization on an error's materialized
+    descriptor. Same mechanism as `tapError`, named for
+    intent — the `action` must run before the error
+    continues down the fail-track. Call via `!|` on
+    fail-track. ~~|
+let(:finallyError, [:action],
+  as(:original) | action | original | error)

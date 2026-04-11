@@ -1,28 +1,51 @@
-|~~ Retry action up to n times on failure. Captures
-    input before each attempt and restores it on
-    retry so the action always sees the original data.
-    The action parameter is a lazy lambda — if the
-    caller passes an effectful operand, the effect
-    fires at the call site, not inside retry. ~~|
+|~~ Retry action up to n times on failure. Captures the
+    starting value as `:start` before each attempt and
+    restores it on retry so action always sees the
+    original data. The action parameter is a lazy
+    lambda — if the caller passes an effectful operand,
+    the effect fires at the call site, not inside retry.
+
+    Success path: `|` fires action against pipeValue;
+    the trailing `!|` deflects and the successful result
+    flows out unchanged.
+    Fail path: action returned an error; `!|` fires the
+    `if` body against the materialized descriptor. When
+    `n > 0` the recursive retry call restores `start`
+    and tries action again with `n - 1`. When `n` hits
+    zero the `error` branch re-lifts the descriptor and
+    the error flows out.
+
+    Call via `|` on success-track input. ~~|
 let(:retry, [:action, :n],
-  as(:_input) | action
-  | catch(as(:_err)
-    | if(n | gt(0),
-        _input | retry(action, n | sub(1)),
-        error(_err))))
+  as(:start) | action
+  !| if(n | gt(0),
+        start | retry(action, n | sub(1)),
+        error))
 
-|~~ Conditional catch: handle only errors matching
-    the predicate, re-raise the rest unchanged. ~~|
+|~~ Conditional recovery. On fail-track, if the error's
+    materialized descriptor satisfies `pred`, run
+    `handler` against it and let the handler's result
+    become the new pipeValue. Otherwise re-lift the
+    descriptor into a fresh error and continue on the
+    fail-track. Call via `!|` on fail-track. ~~|
 let(:recover, [:pred, :handler],
-  catch(as(:_err) | if(pred, handler, error(_err))))
+  if(pred, handler, error))
 
-|~~ Transform an error without leaving the error track.
-    Success values pass through unchanged. ~~|
+|~~ Transform an error's materialized descriptor via
+    `fn` and re-lift the transformed Map into a fresh
+    error. `fn` sees the descriptor as an ordinary Map;
+    the returned Map becomes the new error's descriptor
+    (trail continues via the makeErrorValue invariant).
+    Call via `!|` on fail-track. ~~|
 let(:mapError, [:fn],
-  catch(fn | error))
+  fn | error)
 
-|~~ Add context fields to an error. Success values
-    pass through unchanged. Merges the context Map
-    into the error descriptor via union. ~~|
+|~~ Enrich an error's materialized descriptor with
+    context fields via Map union, then re-lift. The
+    incoming `ctx` Map is merged on top of the
+    descriptor (last-wins on key collisions) and the
+    result becomes the new error's descriptor. Used for
+    MDC-style context accumulation as an error flows
+    through a pipeline. Call via `!|` on fail-track. ~~|
 let(:withContext, [:ctx],
-  catch(as(:_err) | [_err, ctx] | union | error))
+  union(ctx) | error)

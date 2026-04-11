@@ -30,7 +30,8 @@ import {
   EffectLaunderingAtCall,
   QlangInvariantError,
   classifyEffect,
-  EFFECT_MARKER_PREFIX
+  EFFECT_MARKER_PREFIX,
+  keyword
 } from '../../src/index.mjs';
 
 describe('public API', () => {
@@ -95,5 +96,16 @@ describe('public API', () => {
   it('exports the effect-marker classification surface', () => {
     expect(typeof classifyEffect).toBe('function');
     expect(EFFECT_MARKER_PREFIX).toBe('@');
+  });
+
+  it('exports keyword as the interning constructor', () => {
+    expect(typeof keyword).toBe('function');
+    const a = keyword('count');
+    const b = keyword('count');
+    expect(a).toBe(b); // interning: same name → same identity
+    expect(a.name).toBe('count');
+    // langRuntime() Map can be queried with the interned keyword.
+    const rt = langRuntime();
+    expect(rt.has(keyword('count'))).toBe(true);
   });
 });

@@ -27,6 +27,10 @@
 //                                EffectLaunderingAtCall,
 //                                QlangInvariantError
 //   effect-marker classification — classifyEffect, EFFECT_MARKER_PREFIX
+//   keyword interning          — keyword (every call with the same name
+//                                returns the same interned object, so
+//                                a Map keyed by qlang keywords is
+//                                lookable from JS via `m.get(keyword(name))`)
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, evalQuery } from './eval.mjs';
@@ -69,6 +73,7 @@ import {
 } from './errors.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
 import {
+  keyword,
   isErrorValue,
   makeErrorValue,
   appendTrailNode,
@@ -112,6 +117,7 @@ export {
   QlangInvariantError,
   classifyEffect,
   EFFECT_MARKER_PREFIX,
+  keyword,
   isErrorValue,
   makeErrorValue,
   appendTrailNode,

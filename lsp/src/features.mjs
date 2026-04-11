@@ -10,6 +10,7 @@
 import {
   parse, ParseError,
   langRuntime,
+  keyword,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
@@ -17,6 +18,15 @@ import {
   walkAst,
   QlangError, QlangTypeError
 } from '@kaluchi/qlang';
+
+// Interned keyword references for descriptor-Map field projection.
+// Each `keyword(name)` call returns the same interned object as the
+// catalog's `:name` literal, so `descriptor.get(KW_*)` is a native
+// Map lookup against the same key identity.
+const KW_CATEGORY  = keyword('category');
+const KW_SUBJECT   = keyword('subject');
+const KW_DOCS      = keyword('docs');
+const KW_MODIFIERS = keyword('modifiers');
 
 // ── Document state ────────────────────────────────────────────
 
@@ -47,22 +57,23 @@ export function parseDocument(source, uri) {
   return { ast, diagnostics };
 }
 
-// ── Manifest context ──────────────────────────────────────────
+// ── Catalog context ───────────────────────────────────────────
 //
-// Parsed manifest.qlang AST + its file URI, provided by the
-// server at startup. Used as fallback for go-to-definition on
-// builtin operands that have no in-document declaration.
+// Parsed lib/qlang/core.qlang AST + its file URI, provided by
+// the server at startup. Used as fallback for go-to-definition
+// on builtin operands that have no in-document declaration.
+//
+// Under Variant-B every builtin lives as a MapEntry inside
+// core.qlang's outer MapLit (`:count {:qlang/kind :builtin ...}`),
+// so the index walks for MapEntry nodes whose key is a Keyword
+// rather than for the legacy `let(:name, ...)` declaration form.
 
-export function buildManifestIndex(manifestAst) {
+export function buildCatalogIndex(catalogAst) {
   const index = new Map();
-  if (!manifestAst) return index;
-  walkAst(manifestAst, (node) => {
-    if (node.type !== 'OperandCall') return;
-    if (node.name !== 'let') return;
-    if (!Array.isArray(node.args) || node.args.length === 0) return;
-    const firstArg = node.args[0];
-    if (firstArg.type !== 'Keyword' || !node.location) return;
-    index.set(firstArg.name, {
+  if (!catalogAst) return index;
+  walkAst(catalogAst, (node) => {
+    if (node.type !== 'MapEntry') return;
+    index.set(node.key.name, {
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });
@@ -78,18 +89,13 @@ function builtinCompletions() {
   if (_builtinCompletions) return _builtinCompletions;
   const runtime = langRuntime();
   _builtinCompletions = [];
-  for (const [k, v] of runtime) {
-    if (k && typeof k === 'object' && k.type === 'keyword') {
-      const meta = v?.meta ?? {};
-      _builtinCompletions.push({
-        label: k.name,
-        kind: 'function',
-        detail: meta.category ?? null,
-        documentation: Array.isArray(meta.docs) && meta.docs.length > 0
-          ? meta.docs[0]
-          : null
-      });
-    }
+  for (const [k, descriptor] of runtime) {
+    _builtinCompletions.push({
+      label: k.name,
+      kind: 'function',
+      detail: formatMetaValue(descriptor.get(KW_CATEGORY)),
+      documentation: descriptor.get(KW_DOCS)[0]
+    });
   }
   return _builtinCompletions;
 }
@@ -140,25 +146,19 @@ export function hoverAtOffset(ast, source, offset) {
 
 function hoverForOperand(node) {
   const runtime = langRuntime();
-  const kw = findKeyword(runtime, node.name);
-  if (!kw) return null;
+  const kw = keyword(node.name);
+  if (!runtime.has(kw)) return null;
 
-  const fn = runtime.get(kw);
-  const meta = fn?.meta ?? {};
-  const lines = [];
-
-  lines.push(`**${node.name}** — ${meta.category ?? 'operand'}`);
-
-  if (meta.subject) {
-    const subjectLabel = formatMetaValue(meta.subject);
-    lines.push(`Subject: ${subjectLabel}`);
-  }
-  if (Array.isArray(meta.docs) && meta.docs.length > 0) {
-    lines.push('', meta.docs.join('\n'));
-  }
+  const descriptor = runtime.get(kw);
+  const docs = descriptor.get(KW_DOCS);
 
   return {
-    content: lines.join('\n'),
+    content: [
+      `**${node.name}** — ${formatMetaValue(descriptor.get(KW_CATEGORY))}`,
+      `Subject: ${formatMetaValue(descriptor.get(KW_SUBJECT))}`,
+      '',
+      docs.join('\n')
+    ].join('\n'),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };
@@ -171,15 +171,6 @@ function hoverForProjection(node) {
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };
-}
-
-function findKeyword(runtime, name) {
-  for (const k of runtime.keys()) {
-    if (k && typeof k === 'object' && k.type === 'keyword' && k.name === name) {
-      return k;
-    }
-  }
-  return null;
 }
 
 function formatMetaValue(value) {
@@ -197,10 +188,10 @@ function formatMetaValue(value) {
 // Three-tier resolution:
 //   1. In-document let/as declaration visible at the cursor —
 //      last-write-wins with fork isolation (shadowing-aware)
-//   2. Manifest.qlang declaration for builtin operands
+//   2. lib/qlang/core.qlang catalog declaration for builtins
 //   3. null (identifier has no reachable declaration)
 
-export function definitionAtOffset(ast, offset, manifestCtx) {
+export function definitionAtOffset(ast, offset, catalogCtx) {
   if (!ast) return null;
 
   const node = findAstNodeAtOffset(ast, offset);
@@ -214,11 +205,11 @@ export function definitionAtOffset(ast, offset, manifestCtx) {
     return { uri: null, ...localDecl };
   }
 
-  // Tier 2: manifest.qlang fallback for builtins
-  if (manifestCtx?.index?.has(name)) {
+  // Tier 2: core.qlang catalog fallback for builtins
+  if (catalogCtx?.index?.has(name)) {
     return {
-      uri: manifestCtx.uri,
-      ...manifestCtx.index.get(name)
+      uri: catalogCtx.uri,
+      ...catalogCtx.index.get(name)
     };
   }
 
@@ -345,30 +336,23 @@ export function signatureHelpAtOffset(ast, source, offset) {
   if (!operandCall) return null;
 
   const runtime = langRuntime();
-  const kw = findKeyword(runtime, operandCall.name);
-  if (!kw) return null;
+  const kw = keyword(operandCall.name);
+  if (!runtime.has(kw)) return null;
 
-  const fn = runtime.get(kw);
-  const meta = fn?.meta ?? {};
-
-  const modifiers = Array.isArray(meta.modifiers)
-    ? meta.modifiers.map(formatMetaValue)
-    : [];
+  const descriptor = runtime.get(kw);
+  const modifiers = descriptor.get(KW_MODIFIERS).map(formatMetaValue);
+  const docs = descriptor.get(KW_DOCS);
 
   const argsStartOffset = operandCall.location.start.offset
     + operandCall.name.length + 1;
   const textBeforeCursor = source.substring(argsStartOffset, offset);
   const activeParameter = (textBeforeCursor.match(/,/g) || []).length;
 
-  const signatureLabel = modifiers.length > 0
-    ? `${operandCall.name}(${modifiers.join(', ')})`
-    : `${operandCall.name}()`;
-
   return {
-    label: signatureLabel,
-    documentation: Array.isArray(meta.docs) && meta.docs.length > 0
-      ? meta.docs[0]
-      : null,
+    label: modifiers.length > 0
+      ? `${operandCall.name}(${modifiers.join(', ')})`
+      : `${operandCall.name}()`,
+    documentation: docs[0],
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
   };

@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  parseDocument, buildManifestIndex, completionsAtOffset,
+  parseDocument, buildCatalogIndex, completionsAtOffset,
   hoverAtOffset, definitionAtOffset, referencesAtOffset,
   documentSymbols, signatureHelpAtOffset
 } from '../src/features.mjs';
@@ -148,12 +148,15 @@ describe('hoverAtOffset', () => {
   });
 });
 
-// Build a manifest context for definition fallback tests.
-const manifestSrc = 'let(:count, {:category :vec-reducer})';
-const manifestAst = parseDocument(manifestSrc, 'manifest.qlang').ast;
-const testManifestCtx = {
-  uri: 'file:///test/manifest.qlang',
-  index: buildManifestIndex(manifestAst)
+// Build a catalog context for definition fallback tests. Mirrors
+// lib/qlang/core.qlang's outer-MapLit shape: each entry is a
+// `:name {...descriptor...}` pair, and `buildCatalogIndex` walks
+// for MapEntry nodes to record the entry span as the def site.
+const catalogSrc = '{:count {:category :vec-reducer}}';
+const catalogAst = parseDocument(catalogSrc, 'qlang/core').ast;
+const testCatalogCtx = {
+  uri: 'file:///test/core.qlang',
+  index: buildCatalogIndex(catalogAst)
 };
 
 describe('definitionAtOffset', () => {
@@ -187,27 +190,27 @@ describe('definitionAtOffset', () => {
     expect(def === null || def.uri !== null).toBe(true);
   });
 
-  it('falls back to manifest.qlang for builtin operands', () => {
+  it('falls back to core.qlang catalog for builtin operands', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.indexOf('count'), testManifestCtx);
+    const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.uri).toBe('file:///test/manifest.qlang');
+    expect(def.uri).toBe('file:///test/core.qlang');
   });
 
-  it('returns null without manifest context for builtins', () => {
+  it('returns null without catalog context for builtins', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'));
     expect(def).toBeNull();
   });
 
-  it('in-document let shadows builtin — jumps to let, not manifest', () => {
+  it('in-document let shadows builtin — jumps to let, not catalog', () => {
     const src = 'let(:count, 42) | count';
     const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.lastIndexOf('count'), testManifestCtx);
+    const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.uri).toBeNull(); // in-document, not manifest
+    expect(def.uri).toBeNull(); // in-document, not catalog
     expect(def.startOffset).toBe(0);
   });
 

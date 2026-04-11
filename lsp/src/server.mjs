@@ -24,7 +24,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parse } from '@kaluchi/qlang';
 import {
   parseDocument,
-  buildManifestIndex,
+  buildCatalogIndex,
   completionsAtOffset,
   hoverAtOffset,
   definitionAtOffset,
@@ -39,38 +39,38 @@ const documents = new TextDocuments(TextDocument);
 // Per-document parsed state.
 const documentStates = new Map();
 
-// ── Manifest context ──────────────────────────────────────────
+// ── Catalog context ───────────────────────────────────────────
 //
 // Parsed once at startup. Provides go-to-definition fallback
-// for builtin operands — jumps to the let(:name, ...) entry
-// in manifest.qlang.
+// for builtin operands — jumps to the `:name {...}` MapEntry
+// inside lib/qlang/core.qlang's outer catalog MapLit.
 
-let manifestCtx = null;
+let catalogCtx = null;
 
-function loadManifestContext() {
+function loadCatalogContext() {
   try {
-    // Resolve manifest.qlang relative to @kaluchi/qlang package.
+    // Resolve core.qlang relative to @kaluchi/qlang package.
     // The lsp package depends on @kaluchi/qlang via file:..
     // so the package root is at ../../ relative to this file.
     const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const manifestPath = join(lspSrcDir, '..', '..', 'src', 'manifest.qlang');
-    const manifestSource = readFileSync(manifestPath, 'utf8');
-    const manifestAst = parse(manifestSource, { uri: 'manifest.qlang' });
-    const manifestUri = 'file:///' + manifestPath.replace(/\\/g, '/');
-    manifestCtx = {
-      uri: manifestUri,
-      index: buildManifestIndex(manifestAst)
+    const catalogPath = join(lspSrcDir, '..', '..', 'lib', 'qlang', 'core.qlang');
+    const catalogSource = readFileSync(catalogPath, 'utf8');
+    const catalogAst = parse(catalogSource, { uri: 'qlang/core' });
+    const catalogUri = 'file:///' + catalogPath.replace(/\\/g, '/');
+    catalogCtx = {
+      uri: catalogUri,
+      index: buildCatalogIndex(catalogAst)
     };
   } catch (e) {
-    connection.console.warn(`manifest.qlang not loaded: ${e.message}`);
-    manifestCtx = null;
+    connection.console.warn(`lib/qlang/core.qlang not loaded: ${e.message}`);
+    catalogCtx = null;
   }
 }
 
 // ── Initialization ────────────────────────────────────────────
 
 connection.onInitialize(() => {
-  loadManifestContext();
+  loadCatalogContext();
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
@@ -167,23 +167,20 @@ connection.onDefinition((params) => {
   if (!state?.ast || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const def = definitionAtOffset(state.ast, offset, manifestCtx);
+  const def = definitionAtOffset(state.ast, offset, catalogCtx);
   if (!def) return null;
 
-  // def.uri is null for in-document declarations, manifest URI
+  // def.uri is null for in-document declarations, catalog URI
   // for builtin fallback.
   const targetUri = def.uri ?? params.textDocument.uri;
 
-  // For manifest locations, we need to open the manifest file
-  // and convert offsets to positions there. For in-document
-  // declarations, we can use the current document.
+  // For catalog locations, open the catalog file and convert
+  // offsets to positions there. For in-document declarations,
+  // use the current document.
   if (def.uri) {
-    // Manifest target — convert offsets via manifest source.
-    // The manifest was already parsed; reconstruct line/col
-    // from the offset in the manifest source.
     return {
       uri: def.uri,
-      range: offsetRangeToLineCol(manifestSourceText(), def.startOffset, def.endOffset)
+      range: offsetRangeToLineCol(catalogSourceText(), def.startOffset, def.endOffset)
     };
   }
 
@@ -196,18 +193,18 @@ connection.onDefinition((params) => {
   };
 });
 
-let _manifestSourceText = null;
+let _catalogSourceText = null;
 
-function manifestSourceText() {
-  if (_manifestSourceText) return _manifestSourceText;
+function catalogSourceText() {
+  if (_catalogSourceText) return _catalogSourceText;
   try {
     const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const manifestPath = join(lspSrcDir, '..', '..', 'src', 'manifest.qlang');
-    _manifestSourceText = readFileSync(manifestPath, 'utf8');
+    const catalogPath = join(lspSrcDir, '..', '..', 'lib', 'qlang', 'core.qlang');
+    _catalogSourceText = readFileSync(catalogPath, 'utf8');
   } catch {
-    _manifestSourceText = '';
+    _catalogSourceText = '';
   }
-  return _manifestSourceText;
+  return _catalogSourceText;
 }
 
 function offsetRangeToLineCol(source, startOffset, endOffset) {

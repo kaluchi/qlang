@@ -444,7 +444,7 @@ function evalOperandCall(node, state) {
     // array so reflective binding operands (let, as) can access
     // them without changing the fn(state, lambdas) dispatch signature.
     lambdas.docs = node.docs || [];
-    lambdas.location = node.location ?? null;
+    lambdas.location = node.location;
     return applyRule10(resolved, lambdas, state);
   }
 
@@ -519,7 +519,7 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
   // lookup fires the operand as before; any positive minCaptured
   // means bare lookup has no valid application and yields the
   // descriptor for introspection instead of an arity error.
-  const minCaptured = impl.meta && impl.meta.captured ? impl.meta.captured[0] : 0;
+  const minCaptured = impl.meta.captured[0];
   if (!hasArgs && minCaptured > 0) {
     return withPipeValue(state, descriptor);
   }

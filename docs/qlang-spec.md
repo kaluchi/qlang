@@ -265,6 +265,26 @@ to round-trip through JSON:
 {:"foo bar" 1 :"$ref" "x" :"a.b" 99}
 ```
 
+JSON object syntax is also accepted — `"key": value` entries are
+equivalent to `:"key" value` and are parsed into the same
+keyword-keyed Map. This lets you paste raw JSON objects directly
+into a query without editing:
+
+```qlang
+> {"name": "alice", "age": 30, "score": 9.5e1}
+{:name "alice" :age 30 :score 95}
+
+> {"user": {"id": 1, "active": true}} | /user/active
+true
+```
+
+Both key styles may appear in the same literal:
+
+```qlang
+> {:source "manual", "auto": true}
+{:source "manual" :auto true}
+```
+
 If the same key appears more than once in a literal, the last
 binding wins:
 
@@ -1772,7 +1792,7 @@ filter(/age | gt(18))
 | Token | Pattern | Examples |
 |---|---|---|
 | String | `"` chars `"` | `"hello"`, `""` |
-| Number | `-`? digits (`.` digits)? | `42`, `-3.14` |
+| Number | `-`? digits (`.` digits)? (`e`/`E` (`+`/`-`)? digits)? | `42`, `-3.14`, `1e10`, `2.5e-3` |
 | Boolean | `true` \| `false` | |
 | Null | `null` | |
 | Keyword | `:` (ident \| namespaced \| quoted-string) | `:name`, `:qlang/error`, `:"foo bar"` |
@@ -1830,7 +1850,8 @@ Primary       ← '(' Pipeline ')' / Error / Map / Set / Vec
 Error         ← '!{' '}' / '!{' MapBody '}'
 Map           ← '{' '}' / '{' MapBody '}'
 MapBody       ← MapEntry (','? MapEntry)*
-MapEntry      ← Keyword Pipeline
+MapEntry      ← String ':' Pipeline  (JSON-style string key, converted to keyword)
+              / Keyword Pipeline      (qlang-style :key)
 
 Set           ← '#{' (Pipeline (','? Pipeline)*)? '}'
 
@@ -1843,10 +1864,13 @@ KeySeg        ← ':' NamespacedName / ':' Ident
                / QuotedKeywordName / Ident
 
 Scalar        ← String / Number / Boolean / Null / Keyword
-Keyword           ← ':' QuotedKeywordName / ':' NamespacedName / ':' Ident
+Keyword       ← ':' QuotedKeywordName / ':' NamespacedName / ':' KeywordName
+KeySeg        in Projection also accepts ':' KeywordName so reserved words
+              (:null, :true, :false, /null, /true, /false) are valid key paths
 NamespacedName    ← Ident ('/' Ident)+
 QuotedKeywordName ← '"' DoubleStringChar* '"'
-Ident             ← [@_a-zA-Z] [a-zA-Z0-9_-]*
+KeywordName       ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (Ident without !ReservedWord guard)
+Ident             ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (same shape, !ReservedWord guard)
 ```
 
 Comment productions are matched before bare combinators in the
@@ -1859,11 +1883,12 @@ otherwise have preceded the next step.
 Disambiguation:
 - `!{` → Error (same entry syntax as Map)
 - `{` `}` → empty Map
-- `{` `:` → Map (every entry is `:key expr` pair, no shorthand)
+- `{` `:` → Map (qlang-style `:key expr` entry)
+- `{` `"` → Map (JSON-style `"key": expr` entry; string key converts to keyword)
 - `#{` → Set
 - `[` → Vec (elements evaluated against current `pipeValue`)
 - `/:` → keyword projection segment (namespaced key)
-- `/ident` → bare projection segment
+- `/ident` or `/null` `/true` `/false` → bare projection segment
 
 ### Reserved words
 
@@ -1973,6 +1998,15 @@ query syntax.
   | as(:passingScores)
   | [allScores | count, passingScores | count]
 [7 4]
+
+|~| JSON paste: copy raw JSON, pipe straight into qlang operations
+> {"users": [
+    {"name": "alice", "score": 8.5e1},
+    {"name": "bob",   "score": 7.2e1},
+    {"name": "carol", "score": 9.3e1}
+  ]}
+  | /users | filter(/score | gte(85)) * /name
+["alice" "carol"]
 
 |~| let + recursion: rename :label → :value throughout a tree
 > {:label "root" :children [

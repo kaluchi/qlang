@@ -15,3 +15,7 @@
 {"name":"keyword-true-bare","query":":true","expect":":true"}
 {"name":"projection-reserved-word","query":"{:null 42} | /null","expect":"42"}
 {"name":"json-mixed-with-qlang-keys","query":"{:qlangKey 1, \"jsonKey\": 2} | [/qlangKey, /jsonKey]","expect":"[1 2]"}
+{"name":"scientific-integer-exp","query":"1e10","expect":"10000000000"}
+{"name":"scientific-negative-exp","query":"2.5e-3","expect":"0.0025"}
+{"name":"scientific-positive-exp-upper","query":"1.5E+6","expect":"1500000"}
+{"name":"scientific-in-json-object","query":"{\"v\": 1e10, \"e\": 2.5e-3} | [/v, /e]","expect":"[10000000000 0.0025]"}

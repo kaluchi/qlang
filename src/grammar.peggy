@@ -471,8 +471,10 @@ EscapeChar
   / "r" { return '\r'; }
 
 NumberLit
-  = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)?
-    { const txt = (sign || '') + whole.join('') + (frac ? '.' + frac[1].join('') : '');
+  = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
+    { const txt = (sign || '') + whole.join('')
+                + (frac ? '.' + frac[1].join('') : '')
+                + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
       return node('NumberLit', { value: Number(txt) }, location(), text()); }
 
 BooleanLit

@@ -184,6 +184,7 @@ let(:double, mul(2))
       // Split by blank lines to get multiple expressions
       const cells = source.split(/\n\s*\n/).filter(s => s.trim());
 
+      const entries: HTMLElement[] = [];
       for (const cell of cells) {
         const result = evalQuery(cell.trim());
         const isError = result && typeof result === 'object' && result.type === 'error';
@@ -193,9 +194,10 @@ let(:double, mul(2))
           <div class="pg-source">${cell.trim().replace(/</g, '&lt;').replace(/\n/g, '<br>')}</div>
           <div class="${isError ? 'pg-error' : 'pg-value'}">${printValue(result).replace(/</g, '&lt;')}</div>
         `;
-        results.appendChild(entry);
+        entries.push(entry);
       }
-      results.scrollTop = results.scrollHeight;
+      results.prepend(...entries);
+      results.scrollTop = 0;
     }
 
     runBtn.addEventListener('click', run);

@@ -486,6 +486,8 @@ code, pre {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--color-text-weak);
+  white-space: pre-wrap;
+  word-break: break-word;
   margin-bottom: var(--space-xs);
 }
 

@@ -248,6 +248,28 @@ const features = [
     const demos = [
       '[1 2 3 4 5] | filter(gt(2)) | count',
       '"hello" | append(" world") | prepend(">>> ")',
+      `{
+    "glossary": {
+        "title": "example glossary",
+        "GlossDiv": {
+            "title": "S",
+            "GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+                    "SortAs": "SGML",
+                    "GlossTerm": "Standard Generalized Markup Language",
+                    "Acronym": "SGML",
+                    "Abbrev": "ISO 8879:1986",
+                    "GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                        "GlossSeeAlso": ["GML", "XML"]
+                    },
+                    "GlossSee": "markup"
+                }
+            }
+        }
+    }
+} | /glossary/title`,
       '{:name "alice" :age 30} | /age | mul(2)',
     ];
     for (const src of demos) {

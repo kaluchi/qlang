@@ -29,6 +29,7 @@ import { makeState } from '../../src/state.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
+import { printValue } from '../../src/runtime/format.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', () => {
@@ -731,6 +732,86 @@ describe('intro.mjs — describeValueType for error value (line 176)', () => {
     s.bind('myErr', errVal);
     const r = s.evalCell('reify(:myErr) | /type');
     expect(r.result).toEqual(keyword('error'));
+  });
+});
+
+describe('printValue — qlang literal serialization', () => {
+  it('prints scalars', () => {
+    expect(printValue(null)).toBe('null');
+    expect(printValue(undefined)).toBe('null');
+    expect(printValue(true)).toBe('true');
+    expect(printValue(false)).toBe('false');
+    expect(printValue(42)).toBe('42');
+    expect(printValue(3.14)).toBe('3.14');
+    expect(printValue(-1)).toBe('-1');
+  });
+
+  it('prints strings with escapes', () => {
+    expect(printValue('hello')).toBe('"hello"');
+    expect(printValue('a"b')).toBe('"a\\"b"');
+    expect(printValue('a\nb')).toBe('"a\\nb"');
+    expect(printValue('a\\b')).toBe('"a\\\\b"');
+  });
+
+  it('prints keywords', () => {
+    expect(printValue(keyword('name'))).toBe(':name');
+    expect(printValue(keyword('qlang/error'))).toBe(':qlang/error');
+  });
+
+  it('prints Vec', () => {
+    expect(printValue([1, 2, 3])).toBe('[1 2 3]');
+    expect(printValue([])).toBe('[]');
+    expect(printValue(['a', 'b'])).toBe('["a" "b"]');
+  });
+
+  it('prints Set', () => {
+    expect(printValue(new Set([1, 2]))).toBe('#{1 2}');
+  });
+
+  it('prints small Map inline', () => {
+    const m = new Map([[keyword('a'), 1], [keyword('b'), 2]]);
+    expect(printValue(m)).toBe('{:a 1 :b 2}');
+  });
+
+  it('pretty-prints Map with more than 2 entries', () => {
+    const m = new Map([
+      [keyword('a'), 1],
+      [keyword('b'), 2],
+      [keyword('c'), 3]
+    ]);
+    const out = printValue(m);
+    expect(out).toContain('\n');
+    expect(out).toMatch(/^\{/);
+    expect(out).toMatch(/\}$/);
+    expect(out).toContain(':a 1');
+    expect(out).toContain(':b 2');
+    expect(out).toContain(':c 3');
+  });
+
+  it('prints error value with descriptor', () => {
+    const desc = new Map([[keyword('kind'), keyword('test')]]);
+    const err = makeErrorValue(desc);
+    const out = printValue(err);
+    expect(out).toMatch(/^!\{/);
+    expect(out).toContain(':kind :test');
+  });
+
+  it('pretty-prints error with many descriptor fields', () => {
+    const desc = new Map([
+      [keyword('origin'), keyword('qlang/eval')],
+      [keyword('kind'), keyword('type-error')],
+      [keyword('message'), 'boom']
+    ]);
+    const err = makeErrorValue(desc);
+    const out = printValue(err);
+    expect(out).toContain('\n');
+    expect(out).toContain(':origin :qlang/eval');
+    expect(out).toContain(':message "boom"');
+  });
+
+  it('falls back to String() for exotic values', () => {
+    const out = printValue(Symbol('x'));
+    expect(out).toBe('Symbol(x)');
   });
 });
 

@@ -1,0 +1,221 @@
+---
+import Base from "../layouts/Base.astro"
+---
+
+<Base title="qlang — Playground">
+  <main class="landing">
+    <div class="playground-container">
+      <header class="landing-header">
+        <a href={import.meta.env.BASE_URL} class="landing-logo">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" rx="4" fill="currentColor"/>
+            <text x="12" y="17" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="hsl(0, 20%, 99%)">q</text>
+          </svg>
+          qlang
+        </a>
+        <nav class="landing-nav">
+          <a href={import.meta.env.BASE_URL}>Home</a>
+          <a href="https://github.com/kaluchi/qlang/blob/master/docs/qlang-spec.md" target="_blank" rel="noopener noreferrer">Docs</a>
+          <a href="https://github.com/kaluchi/qlang" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </header>
+
+      <div class="playground-layout">
+        <div class="playground-editor">
+          <div class="playground-editor-header">
+            <span>Editor</span>
+            <button class="playground-run" id="run-btn">Run (Ctrl+Enter)</button>
+          </div>
+          <textarea
+            class="playground-textarea"
+            id="editor"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Type qlang expressions here...
+
+[1 2 3 4 5] | filter(gt(2)) | count
+
+let(:double, mul(2))
+| [10 20 30] * double"
+          ></textarea>
+        </div>
+        <div class="playground-output">
+          <div class="playground-output-header">
+            <span>Output</span>
+            <button class="playground-clear" id="clear-btn">Clear</button>
+          </div>
+          <div class="playground-results" id="results"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .playground-container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    border-left: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    min-height: 100vh;
+  }
+
+  .playground-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - var(--header-height) - 1px);
+  }
+
+  .playground-editor,
+  .playground-output {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .playground-editor {
+    border-right: 1px solid var(--color-border);
+  }
+
+  .playground-editor-header,
+  .playground-output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-weak);
+    background: var(--color-bg-weak);
+  }
+
+  .playground-run,
+  .playground-clear {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 4px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .playground-run:hover,
+  .playground-clear:hover {
+    background: var(--color-bg-weak-hover);
+  }
+
+  .playground-textarea {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-text-strong);
+    background: var(--color-bg);
+    border: none;
+    outline: none;
+    resize: none;
+    padding: var(--space-md);
+    tab-size: 2;
+  }
+
+  .playground-results {
+    flex: 1;
+    padding: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-text);
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .playground-results .pg-entry {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .playground-results .pg-source {
+    color: var(--color-text-weak);
+    margin-bottom: var(--space-xs);
+  }
+
+  .playground-results .pg-value {
+    color: var(--color-text-strong);
+  }
+
+  .playground-results .pg-error {
+    color: #dc2626;
+  }
+
+  @media (max-width: 900px) {
+    .playground-layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .playground-editor {
+      border-right: none;
+      border-bottom: 1px solid var(--color-border);
+    }
+  }
+</style>
+
+<script>
+  async function initPlayground() {
+    const { evalQuery, printValue } = await import(
+      /* @vite-ignore */
+      `${import.meta.env.BASE_URL}/qlang.js`
+    );
+
+    const editor = document.getElementById('editor') as HTMLTextAreaElement;
+    const results = document.getElementById('results')!;
+    const runBtn = document.getElementById('run-btn')!;
+    const clearBtn = document.getElementById('clear-btn')!;
+
+    function run() {
+      const source = editor.value.trim();
+      if (!source) return;
+
+      // Split by blank lines to get multiple expressions
+      const cells = source.split(/\n\s*\n/).filter(s => s.trim());
+
+      for (const cell of cells) {
+        const result = evalQuery(cell.trim());
+        const isError = result && typeof result === 'object' && result.type === 'error';
+        const entry = document.createElement('div');
+        entry.className = 'pg-entry';
+        entry.innerHTML = `
+          <div class="pg-source">${cell.trim().replace(/</g, '&lt;').replace(/\n/g, '<br>')}</div>
+          <div class="${isError ? 'pg-error' : 'pg-value'}">${printValue(result).replace(/</g, '&lt;')}</div>
+        `;
+        results.appendChild(entry);
+      }
+      results.scrollTop = results.scrollHeight;
+    }
+
+    runBtn.addEventListener('click', run);
+    clearBtn.addEventListener('click', () => { results.innerHTML = ''; });
+
+    editor.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        run();
+      }
+      // Tab inserts two spaces
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+        editor.selectionStart = editor.selectionEnd = start + 2;
+      }
+    });
+  }
+
+  initPlayground();
+</script>

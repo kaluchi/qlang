@@ -60,6 +60,7 @@ import {
   findFirstEffectfulIdentifier
 } from './effect-check.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
+import { printValue } from './runtime/format.mjs';
 import {
   QlangError,
   QlangTypeError,
@@ -106,6 +107,7 @@ export {
   findFirstEffectfulIdentifier,
   toTaggedJSON,
   fromTaggedJSON,
+  printValue,
   QlangError,
   QlangTypeError,
   ArityError,

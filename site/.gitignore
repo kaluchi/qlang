@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.astro/
+public/qlang.js
+public/qlang.js.map

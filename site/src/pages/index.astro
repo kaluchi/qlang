@@ -1,0 +1,252 @@
+---
+import Base from "../layouts/Base.astro"
+
+const examples = [
+  {
+    tab: "pipeline",
+    file: "filter + count",
+    code: `> [1 2 3 4 5] | filter(gt(3)) | count\n2`,
+  },
+  {
+    tab: "let",
+    file: "let + distribute",
+    code: `> let(:double, mul(2)) | [10 20 30] * double\n[20 40 60]`,
+  },
+  {
+    tab: "conduit",
+    file: "parametric conduit",
+    code: `> let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))\n  | "world" | @surround("[", "]")\n"[world]"`,
+  },
+  {
+    tab: "code-as-data",
+    file: "parse | eval",
+    code: `|~| source → AST-Map → pipeValue\n> "10 | add(3)" | parse | eval\n13`,
+  },
+]
+
+function formatExample(code: string): string {
+  return code
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/^(&gt; )(.+)$/gm, '<span class="punct">$1</span><span class="operand">$2</span>')
+    .replace(/(\|~\|[^\n]*)/g, '<span class="comment">$1</span>')
+    .replace(/^([^<\n][^\n]*)$/gm, '<span class="result">$1</span>');
+}
+
+const features = [
+  { title: "Pipeline composition", desc: "Thread values through chains of operands with |, distribute with *, merge with >>." },
+  { title: "Immutable value types", desc: "Scalar, Vec, Map, Set, Error — all frozen. No mutation, no surprises." },
+  { title: "Two-track error model", desc: "Success-track | deflects on errors, fail-track !| fires. Trail accumulates deflected steps as data." },
+  { title: "Code as data", desc: "parse lifts source to an AST-Map, eval re-enters the evaluator. The ring closes." },
+  { title: "Conduits", desc: "let binds named pipeline fragments with parameters. Lexical scope, recursive self-reference, zero-arity aliases." },
+  { title: "Effect markers", desc: "@-prefixed identifiers carry side effects visibly. The runtime enforces propagation — no laundering." },
+]
+---
+
+<Base title="qlang — pipeline expression language">
+  <main class="landing">
+    <div class="landing-container">
+      <!-- Header -->
+      <header class="landing-header">
+        <a href={import.meta.env.BASE_URL} class="landing-logo">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" rx="4" fill="currentColor"/>
+            <text x="12" y="17" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="hsl(0, 20%, 99%)">q</text>
+          </svg>
+          qlang
+        </a>
+        <nav class="landing-nav">
+          <a href={`${import.meta.env.BASE_URL}/playground`}>Playground</a>
+          <a href="https://github.com/kaluchi/qlang/blob/master/docs/qlang-spec.md" target="_blank" rel="noopener noreferrer">Docs</a>
+          <a href="https://github.com/kaluchi/qlang" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </header>
+
+      <div class="landing-content">
+        <!-- Hero -->
+        <section class="hero">
+          <h1>Transform values through pipelines</h1>
+          <p class="hero-subtitle">
+            Expression language for composing immutable data transformations.
+            Domain-agnostic. Pure. Runs in the browser.
+          </p>
+          <div class="install-section">
+            <button class="install-command" id="install-btn" data-command="npm install @kaluchi/qlang">
+              <code><span class="cmd">npm install </span><span class="highlight">@kaluchi/qlang</span></code>
+              <span class="copy-btn">
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M8.75 8.75V2.75H21.25V15.25H15.25M15.25 8.75H2.75V21.25H15.25V8.75Z" stroke-linecap="square"/>
+                </svg>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2.75 15.0938L9 20.25L21.25 3.75" stroke-linecap="square"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Code examples -->
+        <section class="code-section">
+          <div class="code-editor">
+            <div class="code-editor-header">
+              <div class="code-editor-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="code-editor-tabs" role="tablist">
+                {examples.map((ex, i) => (
+                  <button
+                    role="tab"
+                    class="code-editor-tab"
+                    data-tab={ex.tab}
+                    aria-selected={i === 0 ? "true" : "false"}
+                  >
+                    {ex.file}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {examples.map((ex, i) => (
+              <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
+                <pre><code set:html={formatExample(ex.code)} /></pre>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- Features -->
+        <section class="features-section">
+          <h2>What is qlang?</h2>
+          <p>
+            A pure expression language for transforming immutable values through
+            pipelines. 69 built-in operands, five value types, two-track error
+            model, parametric conduits, live REPL in the browser.
+          </p>
+          <div class="features-grid">
+            {features.map(f => (
+              <div class="feature-card">
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- REPL -->
+        <section class="repl-section">
+          <h2>Try it</h2>
+          <p>Type a qlang expression and press Enter. The evaluator runs entirely in your browser.</p>
+          <div class="repl-container">
+            <div class="repl-history" id="repl-history"></div>
+            <div class="repl-input-area">
+              <span class="repl-prompt">&gt;</span>
+              <textarea
+                class="repl-input"
+                id="repl-input"
+                rows="1"
+                placeholder={`[1 2 3 4 5] | filter(gt(2)) | count`}
+                spellcheck="false"
+                autocomplete="off"
+              ></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+          <a href="https://github.com/kaluchi/qlang" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={`${import.meta.env.BASE_URL}/playground`}>Playground</a>
+          <a href="https://www.npmjs.com/package/@kaluchi/qlang" target="_blank" rel="noopener noreferrer">npm</a>
+        </footer>
+      </div>
+    </div>
+    <div class="landing-legal">
+      <span>&copy; 2026 <a href="https://github.com/kaluchi">kaluchi</a></span>
+    </div>
+  </main>
+</Base>
+
+<script>
+  // ── Code editor tab switching ──────────────────────────
+  const editorTabs = document.querySelectorAll('.code-editor-tab');
+  const editorPanels = document.querySelectorAll('.code-editor-body');
+
+  editorTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabId = tab.getAttribute('data-tab');
+      editorTabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+      tab.setAttribute('aria-selected', 'true');
+      editorPanels.forEach(panel => {
+        panel.setAttribute('data-active', panel.getAttribute('data-panel') === tabId ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Install copy ───────────────────────────────────────
+  const installBtn = document.getElementById('install-btn');
+  installBtn?.addEventListener('click', async () => {
+    const cmd = installBtn.getAttribute('data-command');
+    if (cmd) await navigator.clipboard.writeText(cmd);
+    const copyBtn = installBtn.querySelector('.copy-btn');
+    if (copyBtn) {
+      copyBtn.classList.add('copied');
+      setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+    }
+  });
+
+  // ── REPL ───────────────────────────────────────────────
+  async function initRepl() {
+    const { evalQuery, printValue } = await import(
+      /* @vite-ignore */
+      `${import.meta.env.BASE_URL}/qlang.js`
+    );
+
+    const input = document.getElementById('repl-input') as HTMLTextAreaElement;
+    const history = document.getElementById('repl-history')!;
+
+    // Pre-populate with example results
+    const demos = [
+      '[1 2 3 4 5] | filter(gt(2)) | count',
+      '"hello" | append(" world") | prepend(">>> ")',
+      '{:name "alice" :age 30} | /age | mul(2)',
+    ];
+    for (const src of demos) {
+      const result = evalQuery(src);
+      const entry = document.createElement('div');
+      entry.className = 'repl-entry';
+      entry.innerHTML = `
+        <div class="repl-entry-input">&gt; ${src.replace(/</g, '&lt;')}</div>
+        <div class="repl-entry-output">${printValue(result).replace(/</g, '&lt;')}</div>
+      `;
+      history.appendChild(entry);
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const source = input.value.trim();
+        if (!source) return;
+
+        const result = evalQuery(source);
+        const entry = document.createElement('div');
+        entry.className = 'repl-entry';
+        entry.innerHTML = `
+          <div class="repl-entry-input">&gt; ${source.replace(/</g, '&lt;')}</div>
+          <div class="repl-entry-output">${printValue(result).replace(/</g, '&lt;')}</div>
+        `;
+        history.appendChild(entry);
+        history.scrollTop = history.scrollHeight;
+        input.value = '';
+      }
+    });
+
+    // Auto-resize textarea
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = input.scrollHeight + 'px';
+    });
+  }
+
+  initRepl();
+</script>
+

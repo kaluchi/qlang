@@ -51,6 +51,38 @@ export function toPlain(v) {
 
 export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)));
 
+// printValue(v, indent?) → qlang literal string
+//
+// Serializes any qlang runtime value to the source form that,
+// if parsed and evaluated, reproduces the same value. This is
+// the canonical display function for REPLs and tooling.
+// Maps and errors with more than 2 entries are pretty-printed
+// with one entry per line for readability.
+export function printValue(v, indent = 0) {
+  if (v === null || v === undefined) return 'null';
+  if (typeof v === 'boolean') return String(v);
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'string') return `"${v.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r')}"`;
+  if (isKeyword(v)) return `:${v.name}`;
+  if (isErrorValue(v)) return printMapLike('!{', v.descriptor, indent);
+  if (isVec(v)) return `[${v.map(el => printValue(el, indent)).join(' ')}]`;
+  if (isQMap(v)) return printMapLike('{', v, indent);
+  if (isQSet(v)) return `#{${[...v].map(el => printValue(el, indent)).join(' ')}}`;
+  return String(v);
+}
+
+function printMapLike(open, m, indent) {
+  const entries = [...m];
+  if (entries.length <= 2) {
+    const inner = entries.map(([k, v]) => `${printValue(k, indent)} ${printValue(v, indent)}`).join(' ');
+    return `${open}${inner}}`;
+  }
+  const pad = '  '.repeat(indent + 1);
+  const closePad = '  '.repeat(indent);
+  const lines = entries.map(([k, v]) => `${pad}${printValue(k, indent + 1)} ${printValue(v, indent + 1)}`);
+  return `${open}\n${lines.join('\n')}\n${closePad}}`;
+}
+
 export const table = nullaryOp('table', (subject) => {
   if (!isVec(subject)) throw new TableSubjectNotVec(describeType(subject), subject);
   if (subject.length === 0) return '(empty)';

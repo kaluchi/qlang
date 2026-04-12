@@ -45,8 +45,8 @@ describe('types.mjs', () => {
   });
 
   it('describeType covers every value class', () => {
-    expect(describeType(null)).toBe('nil');
-    expect(describeType(undefined)).toBe('nil');
+    expect(describeType(null)).toBe('null');
+    expect(describeType(undefined)).toBe('null');
     expect(describeType(true)).toBe('boolean');
     expect(describeType(42)).toBe('number');
     expect(describeType('s')).toBe('string');
@@ -138,13 +138,13 @@ describe('runtime/predicates.mjs ordering type errors', () => {
     expectErrorKind('"a" | gt(5)', 'type-error');
   });
   it('lt rejects non-comparable subject', () => {
-    expectErrorKind('nil | lt(5)', 'type-error');
+    expectErrorKind('null | lt(5)', 'type-error');
   });
   it('min raises on mixed Vec', () => {
     expectErrorKind('[1 "a"] | min', 'type-error');
   });
   it('max raises on non-comparable', () => {
-    expectErrorKind('[nil nil] | max', 'type-error');
+    expectErrorKind('[null null] | max', 'type-error');
   });
   it('sort raises on mixed-type Vec', () => {
     expectErrorKind('[1 "a"] | sort', 'type-error');
@@ -261,7 +261,7 @@ describe('runtime/predicates.mjs deepEqual', () => {
     expect(evalQuery('42 | eq(\"42\")')).toBe(false);
   });
   it('eq with null', () => {
-    expect(evalQuery('nil | eq(nil)')).toBe(true);
+    expect(evalQuery('null | eq(null)')).toBe(true);
   });
   it('eq nested', () => {
     expect(evalQuery('[{:a 1}] | eq([{:a 1}])')).toBe(true);
@@ -763,7 +763,7 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(evalQuery('5 | if(gte(60), "pass", "fail")')).toBe('fail');
   });
 
-  it('if treats nil as falsy', () => {
+  it('if treats null as falsy', () => {
     expect(evalQuery('{:no "data"} | if(/missing, "yes", "no")')).toBe('no');
   });
 
@@ -789,27 +789,27 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(evalQuery('75 | if(gte(90), "A", if(gte(70), "B", "C"))')).toBe('B');
   });
 
-  it('coalesce returns first non-nil alternative', () => {
+  it('coalesce returns first non-null alternative', () => {
     expect(evalQuery('{:firstName "Alice"} | coalesce(/preferredName, /firstName, "Anon")')).toBe('Alice');
   });
 
-  it('coalesce returns nil when all alternatives are nil', () => {
+  it('coalesce returns null when all alternatives are null', () => {
     expect(evalQuery('{} | coalesce(/a, /b, /c)')).toBe(null);
   });
 
-  it('coalesce treats 0 as non-nil', () => {
+  it('coalesce treats 0 as non-null', () => {
     expect(evalQuery('{:zero 0} | coalesce(/missing, /zero, "default")')).toBe(0);
   });
 
-  it('coalesce treats false as non-nil', () => {
+  it('coalesce treats false as non-null', () => {
     expect(evalQuery('{:flag false} | coalesce(/missing, /flag, true)')).toBe(false);
   });
 
-  it('coalesce treats empty string as non-nil', () => {
+  it('coalesce treats empty string as non-null', () => {
     expect(evalQuery('{:s ""} | coalesce(/missing, /s, "default")')).toBe('');
   });
 
-  it('coalesce short-circuits after first non-nil (does not evaluate later alts)', () => {
+  it('coalesce short-circuits after first non-null (does not evaluate later alts)', () => {
     // div(0) would raise; coalesce never reaches it because /a is non-nil
     expect(evalQuery('{:a 1} | coalesce(/a, div(0))')).toBe(1);
   });
@@ -878,8 +878,8 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(evalQuery('{:a false :b 2} | coalesce(/a, /b)')).toBe(false);
   });
 
-  it('firstTruthy returns nil when all alternatives are falsy', () => {
-    expect(evalQuery('{:a false :b nil} | firstTruthy(/a, /b)')).toBe(null);
+  it('firstTruthy returns null when all alternatives are falsy', () => {
+    expect(evalQuery('{:a false :b null} | firstTruthy(/a, /b)')).toBe(null);
   });
 
   it('firstTruthy treats 0 as truthy (kept)', () => {

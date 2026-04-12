@@ -17,7 +17,7 @@ import { astNodeToMap, qlangMapToAst } from '../walk.mjs';
 import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
-  isVec, isQSet, isNumber, isString, isBoolean, isNil,
+  isVec, isQSet, isNumber, isString, isBoolean, isNull,
   describeType, keyword, makeConduit, makeSnapshot, isErrorValue
 } from '../types.mjs';
 import {
@@ -165,7 +165,7 @@ function importSelectiveNamespace(state, nsKeyword, selection) {
 // ── reify and manifest ─────────────────────────────────────────
 
 function describeValueType(v) {
-  if (isNil(v)) return keyword('nil');
+  if (isNull(v)) return keyword('null');
   if (isBoolean(v)) return keyword('boolean');
   if (isNumber(v)) return keyword('number');
   if (isString(v)) return keyword('string');

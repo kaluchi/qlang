@@ -43,7 +43,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 }
 import {
   isVec, isQMap, isSnapshot, isFunctionValue, isErrorValue,
-  describeType, keyword, NIL, makeErrorValue, appendTrailNode,
+  describeType, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
@@ -97,7 +97,7 @@ const AST_NODE_EVALUATORS = {
   NumberLit:         evalNumberLit,
   StringLit:         evalStringLit,
   BooleanLit:        evalBooleanLit,
-  NilLit:            evalNilLit,
+  NullLit:            evalNullLit,
   Keyword:           evalKeyword,
   VecLit:            evalVecLit,
   MapLit:            evalMapLit,
@@ -258,7 +258,7 @@ function applyFailTrack(state, stepNode) {
 function evalNumberLit(node, state)  { return withPipeValue(state, node.value); }
 function evalStringLit(node, state)  { return withPipeValue(state, node.value); }
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
-function evalNilLit(_node, state)    { return withPipeValue(state, NIL); }
+function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 
 function evalVecLit(node, state) {
@@ -345,7 +345,7 @@ function evalProjection(node, state) {
         actualValue: current
       });
     }
-    current = current.has(keyword(key)) ? current.get(keyword(key)) : NIL;
+    current = current.has(keyword(key)) ? current.get(keyword(key)) : NULL;
     // Snapshots are transparent value wrappers — unwrap during
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env

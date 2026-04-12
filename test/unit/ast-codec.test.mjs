@@ -111,7 +111,7 @@ describe('astNodeToMap — discriminator and shape', () => {
     expect(astNodeToMap(parse('"hi"')).get(KW_QLANG_KIND)).toBe(keyword('StringLit'));
     expect(astNodeToMap(parse('true')).get(KW_QLANG_KIND)).toBe(keyword('BooleanLit'));
     expect(astNodeToMap(parse('false')).get(KW_QLANG_KIND)).toBe(keyword('BooleanLit'));
-    expect(astNodeToMap(parse('nil')).get(KW_QLANG_KIND)).toBe(keyword('NilLit'));
+    expect(astNodeToMap(parse('null')).get(KW_QLANG_KIND)).toBe(keyword('NullLit'));
     expect(astNodeToMap(parse(':foo')).get(KW_QLANG_KIND)).toBe(keyword('Keyword'));
   });
 
@@ -356,7 +356,7 @@ describe('round-trip — scalar literals', () => {
   it('string with escapes', () => assertRoundTrip('"line1\\nline2"'));
   it('true', () => assertRoundTrip('true'));
   it('false', () => assertRoundTrip('false'));
-  it('nil', () => assertRoundTrip('nil'));
+  it('null', () => assertRoundTrip('null'));
   it('bare keyword', () => assertRoundTrip(':foo'));
   it('namespaced keyword', () => assertRoundTrip(':qlang/error'));
   it('quoted keyword with space', () => assertRoundTrip(':"foo bar"'));
@@ -375,7 +375,7 @@ describe('round-trip — compound literals', () => {
   it('empty Set', () => assertRoundTrip('#{}'));
   it('Error literal', () => assertRoundTrip('!{:kind :oops :message "boom"}'));
   it('empty Error literal', () => assertRoundTrip('!{}'));
-  it('heterogeneous Vec', () => assertRoundTrip('[1 "two" nil :three {:x 4}]'));
+  it('heterogeneous Vec', () => assertRoundTrip('[1 "two" null :three {:x 4}]'));
 });
 
 describe('round-trip — projections', () => {

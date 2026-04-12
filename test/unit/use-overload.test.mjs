@@ -11,7 +11,7 @@ describe('use(:namespace) imports bindings', () => {
   it('imports all exports from a namespace Map', () => {
     const s = createSession();
     s.bind('myNs', new Map([[keyword('hello'), 42]]));
-    const entry = s.evalCell('nil | use(:myNs) | hello');
+    const entry = s.evalCell('null | use(:myNs) | hello');
     expect(entry.result).toBe(42);
   });
 });
@@ -23,7 +23,7 @@ describe('use(Vec) imports in order', () => {
     const s = createSession();
     s.bind('ns1', new Map([[keyword('a'), 1]]));
     s.bind('ns2', new Map([[keyword('b'), 2]]));
-    const entry = s.evalCell('nil | use([:ns1 :ns2]) | [a b]');
+    const entry = s.evalCell('null | use([:ns1 :ns2]) | [a b]');
     expect(entry.result).toEqual([1, 2]);
   });
 });
@@ -35,7 +35,7 @@ describe('use(Set) detects collision', () => {
     const s = createSession();
     s.bind('nsA', new Map([[keyword('x'), 1]]));
     s.bind('nsB', new Map([[keyword('x'), 2]]));
-    const entry = s.evalCell('nil | use(#{:nsA :nsB}) !| /thrown');
+    const entry = s.evalCell('null | use(#{:nsA :nsB}) !| /thrown');
     expect(entry.result).toEqual(keyword('UseNamespaceCollision'));
   });
 });
@@ -46,14 +46,14 @@ describe('use(:ns, filter) selective import', () => {
   it('imports only the selected export', () => {
     const s = createSession();
     s.bind('myNs', new Map([[keyword('foo'), 10], [keyword('bar'), 20]]));
-    const entry = s.evalCell('nil | use(:myNs, [:foo]) | foo');
+    const entry = s.evalCell('null | use(:myNs, [:foo]) | foo');
     expect(entry.result).toBe(10);
   });
 
   it('rejects missing export → UseNameNotExported', () => {
     const s = createSession();
     s.bind('myNs', new Map([[keyword('foo'), 10]]));
-    const entry = s.evalCell('nil | use(:myNs, [:missing]) !| /thrown');
+    const entry = s.evalCell('null | use(:myNs, [:missing]) !| /thrown');
     expect(entry.result).toEqual(keyword('UseNameNotExported'));
   });
 });
@@ -63,7 +63,7 @@ describe('use(:ns, filter) selective import', () => {
 describe('use(:missing) → UseNamespaceNotFound', () => {
   it('produces UseNamespaceNotFound when namespace not in env', () => {
     const s = createSession();
-    const entry = s.evalCell('nil | use(:missing) !| /thrown');
+    const entry = s.evalCell('null | use(:missing) !| /thrown');
     expect(entry.result).toEqual(keyword('UseNamespaceNotFound'));
   });
 });
@@ -74,7 +74,7 @@ describe('use(:ns) where ns is not Map → UseNamespaceNotMap', () => {
   it('produces UseNamespaceNotMap when namespace bound to non-Map value', () => {
     const s = createSession();
     s.bind('notMap', 42);
-    const entry = s.evalCell('nil | use(:notMap) !| /thrown');
+    const entry = s.evalCell('null | use(:notMap) !| /thrown');
     expect(entry.result).toEqual(keyword('UseNamespaceNotMap'));
   });
 });
@@ -83,7 +83,7 @@ describe('use(:ns) where ns is not Map → UseNamespaceNotMap', () => {
 
 describe('use(non-keyword) → type-error', () => {
   it('produces UseNamespaceNotKeyword error for numeric argument', () => {
-    const result = evalQuery('nil | use(42) !| /thrown');
+    const result = evalQuery('null | use(42) !| /thrown');
     expect(result).toEqual(keyword('UseNamespaceNotKeyword'));
   });
 });
@@ -94,7 +94,7 @@ describe('use Vec with non-keyword element → UseNamespaceElementNotKeyword', (
   it('produces UseNamespaceElementNotKeyword for non-keyword in Vec', () => {
     const s = createSession();
     s.bind('ns1', new Map([[keyword('a'), 1]]));
-    const entry = s.evalCell('nil | use([:ns1 42]) !| /thrown');
+    const entry = s.evalCell('null | use([:ns1 42]) !| /thrown');
     expect(entry.result).toEqual(keyword('UseNamespaceElementNotKeyword'));
   });
 });

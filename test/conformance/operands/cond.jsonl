@@ -1,6 +1,6 @@
 {"name":"first-pair-matches","query":"5 | cond(eq(5), \"five\", eq(6), \"six\")","expect":"\"five\""}
 {"name":"second-pair-matches","query":"6 | cond(eq(5), \"five\", eq(6), \"six\")","expect":"\"six\""}
-{"name":"no-pair-matches-no-default-yields-nil","query":"7 | cond(eq(5), \"five\", eq(6), \"six\")","expect":"nil"}
+{"name":"no-pair-matches-no-default-yields-null","query":"7 | cond(eq(5), \"five\", eq(6), \"six\")","expect":"null"}
 {"name":"no-pair-matches-with-default-yields-default","query":"7 | cond(eq(5), \"five\", eq(6), \"six\", \"other\")","expect":"\"other\""}
 {"name":"first-pair-default-skipped","query":"5 | cond(eq(5), \"five\", \"other\")","expect":"\"five\""}
 {"name":"default-only-fires-when-no-predicates-match","query":"0 | cond(gt(10), \"big\", gt(5), \"medium\", \"small\")","expect":"\"small\""}

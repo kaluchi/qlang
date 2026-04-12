@@ -2,7 +2,7 @@
 {"name":"cond-false-passthrough","query":"5 | when(false, mul(2))","expect":"5"}
 {"name":"cond-truthy-via-projection","query":"{:active true :n 100} | when(/active, /n | mul(2))","expect":"200"}
 {"name":"cond-falsy-via-projection-passthrough","query":"{:active false :n 100} | when(/active, /n | mul(2))","expect":"{:active false :n 100}"}
-{"name":"cond-nil-passthrough","query":"{:n 5} | when(/missing, mul(2))","expect":"{:n 5}"}
+{"name":"cond-null-passthrough","query":"{:n 5} | when(/missing, mul(2))","expect":"{:n 5}"}
 {"name":"cond-zero-is-truthy","query":"0 | when(eq(0), 999)","expect":"999"}
 {"name":"cond-empty-string-is-truthy","query":"\"\" | when(eq(\"\"), \"non-empty\")","expect":"\"non-empty\""}
 {"name":"cond-empty-vec-is-truthy","query":"[] | when(empty, [\"<empty>\"])","expect":"[\"<empty>\"]"}
@@ -24,4 +24,4 @@
 {"name":"when-on-strings-truthy","query":"\"hello\" | when(eq(\"hello\"), append(\" world\"))","expect":"\"hello world\""}
 {"name":"when-on-strings-falsy","query":"\"hello\" | when(eq(\"goodbye\"), append(\" world\"))","expect":"\"hello\""}
 {"name":"when-equivalent-to-if-with-identity-else","query":"5 | when(gt(0), mul(2))","expect":"10"}
-{"name":"when-paired-with-coalesce","query":"{:n nil} | when(/n, /n | mul(2))","expect":"{:n nil}"}
+{"name":"when-paired-with-coalesce","query":"{:n null} | when(/n, /n | mul(2))","expect":"{:n null}"}

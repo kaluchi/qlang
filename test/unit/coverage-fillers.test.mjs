@@ -137,7 +137,7 @@ describe('setops bare-form non-Vec subject errors', () => {
 
 describe('setops full form (two captured args)', () => {
   it('minus full form computes left minus right via two captured pipelines', () => {
-    const result = evalQuery('nil | minus({:a 1 :b 2 :tmp 3}, #{:tmp})');
+    const result = evalQuery('null | minus({:a 1 :b 2 :tmp 3}, #{:tmp})');
     expect(result).toBeInstanceOf(Map);
     expect(result.has(keyword('a'))).toBe(true);
     expect(result.has(keyword('b'))).toBe(true);
@@ -145,7 +145,7 @@ describe('setops full form (two captured args)', () => {
   });
 
   it('inter full form computes left inter right via two captured pipelines', () => {
-    const result = evalQuery('nil | inter({:a 1 :b 2 :c 3}, #{:a :b})');
+    const result = evalQuery('null | inter({:a 1 :b 2 :c 3}, #{:a :b})');
     expect(result).toBeInstanceOf(Map);
     expect(result.has(keyword('a'))).toBe(true);
     expect(result.has(keyword('b'))).toBe(true);
@@ -153,7 +153,7 @@ describe('setops full form (two captured args)', () => {
   });
 
   it('union full form computes left union right via two captured pipelines', () => {
-    const result = evalQuery('nil | union({:a 1}, {:b 2})');
+    const result = evalQuery('null | union({:a 1}, {:b 2})');
     expect(result).toBeInstanceOf(Map);
     expect(result.has(keyword('a'))).toBe(true);
     expect(result.has(keyword('b'))).toBe(true);
@@ -161,11 +161,11 @@ describe('setops full form (two captured args)', () => {
 });
 
 describe('vec.min and vec.max on empty Vec', () => {
-  it('min on empty Vec returns nil', () => {
+  it('min on empty Vec returns null', () => {
     expect(evalQuery('[] | min')).toBeNull();
   });
 
-  it('max on empty Vec returns nil', () => {
+  it('max on empty Vec returns null', () => {
     expect(evalQuery('[] | max')).toBeNull();
   });
 

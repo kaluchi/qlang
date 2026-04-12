@@ -9,7 +9,7 @@
 {"name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
 {"name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
 {"name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
-{"name":"json-nil","query":"nil | json","expect":"\"null\""}
+{"name":"json-null","query":"null | json","expect":"\"null\""}
 {"name":"table-non-vec","query":"42 | table","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :TableSubjectNotVec :message \"table requires Vec subject, got number\" :operand \"table\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
 {"name":"table-mixed","query":"[42 \"hello\"] | table","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :TableRowNotMap :message \"table: element 0 expects Map, got number\" :operand \"table\" :index 0 :expectedType \"Map\" :actualType \"number\"}"}
 {"name":"table-empty","query":"[] | table","expect":"\"(empty)\""}

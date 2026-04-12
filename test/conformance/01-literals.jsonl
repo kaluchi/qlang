@@ -5,7 +5,7 @@
 {"name":"empty-string","query":"\"\"","expect":"\"\""}
 {"name":"true","query":"true","expect":"true"}
 {"name":"false","query":"false","expect":"false"}
-{"name":"nil","query":"nil","expect":"nil"}
+{"name":"null","query":"null","expect":"null"}
 {"name":"empty-vec","query":"[]","expect":"[]"}
 {"name":"single-element-vec","query":"[1]","expect":"[1]"}
 {"name":"multi-element-vec","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}

@@ -33,8 +33,8 @@ describe('isError operand', () => {
 // ── fail-apply deflect on non-error pipeValue ──────────────────
 
 describe('fail-apply deflect on non-error', () => {
-  it('nil deflects through !|', () => {
-    const result = evalQuery('nil !| /kind');
+  it('null deflects through !|', () => {
+    const result = evalQuery('null !| /kind');
     expect(result).toBeNull();
   });
 

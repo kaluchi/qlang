@@ -5,7 +5,7 @@
 {"name":"isError-via-distribute-on-error","query":"[!{:kind :oops}] * isError | first","expect":"true"}
 {"name":"isError-false-number","query":"42 | isError","expect":"false"}
 {"name":"isError-false-map","query":"{:kind :oops} | isError","expect":"false"}
-{"name":"isError-false-nil","query":"nil | isError","expect":"false"}
+{"name":"isError-false-null","query":"null | isError","expect":"false"}
 {"name":"fail-apply-projects-kind","query":"!{:kind :oops :message \"boom\"} !| /kind","expect":":oops"}
 {"name":"fail-apply-projects-message","query":"!{:kind :oops :message \"boom\"} !| /message","expect":"\"boom\""}
 {"name":"fail-apply-deflects-number","query":"42 !| /kind","expect":"42"}

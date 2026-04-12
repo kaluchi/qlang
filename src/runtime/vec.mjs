@@ -13,7 +13,7 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isTruthy, isErrorValue, describeType, NIL, keyword
+  isVec, isQMap, isQSet, isKeyword, isTruthy, isErrorValue, describeType, NULL, keyword
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -97,12 +97,12 @@ export const empty = nullaryOp('empty', (container) =>
 
 export const first = nullaryOp('first', (vec) => {
   if (!isVec(vec)) throw new FirstSubjectNotVec(describeType(vec), vec);
-  return vec.length === 0 ? NIL : vec[0];
+  return vec.length === 0 ? NULL : vec[0];
 });
 
 export const last = nullaryOp('last', (vec) => {
   if (!isVec(vec)) throw new LastSubjectNotVec(describeType(vec), vec);
-  return vec.length === 0 ? NIL : vec[vec.length - 1];
+  return vec.length === 0 ? NULL : vec[vec.length - 1];
 });
 
 export const sum = nullaryOp('sum', (vec) => {
@@ -119,7 +119,7 @@ export const sum = nullaryOp('sum', (vec) => {
 
 export const min = nullaryOp('min', (vec) => {
   if (!isVec(vec)) throw new MinSubjectNotVec(describeType(vec), vec);
-  if (vec.length === 0) return NIL;
+  if (vec.length === 0) return NULL;
   let acc = vec[0];
   for (let i = 1; i < vec.length; i++) {
     checkComparable(MinElementsNotComparable, acc, vec[i]);
@@ -130,7 +130,7 @@ export const min = nullaryOp('min', (vec) => {
 
 export const max = nullaryOp('max', (vec) => {
   if (!isVec(vec)) throw new MaxSubjectNotVec(describeType(vec), vec);
-  if (vec.length === 0) return NIL;
+  if (vec.length === 0) return NULL;
   let acc = vec[0];
   for (let i = 1; i < vec.length; i++) {
     checkComparable(MaxElementsNotComparable, acc, vec[i]);

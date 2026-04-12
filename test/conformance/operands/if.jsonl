@@ -2,7 +2,7 @@
 {"name":"cond-falsy-runs-else","query":"5 | if(gte(60), \"pass\", \"fail\")","expect":"\"fail\""}
 {"name":"cond-true-literal","query":"42 | if(true, \"yes\", \"no\")","expect":"\"yes\""}
 {"name":"cond-false-literal","query":"42 | if(false, \"yes\", \"no\")","expect":"\"no\""}
-{"name":"cond-nil-is-falsy","query":"{:no \"data\"} | if(/missing, \"yes\", \"no\")","expect":"\"no\""}
+{"name":"cond-null-is-falsy","query":"{:no \"data\"} | if(/missing, \"yes\", \"no\")","expect":"\"no\""}
 {"name":"cond-zero-is-truthy","query":"5 | if(eq(0), \"is-zero\", \"non-zero\")","expect":"\"non-zero\""}
 {"name":"cond-empty-string-is-truthy","query":"\"\" | if(eq(\"\"), \"empty\", \"non\")","expect":"\"empty\""}
 {"name":"cond-empty-vec-is-truthy","query":"[] | if(empty | not, \"non-empty\", \"empty\")","expect":"\"empty\""}

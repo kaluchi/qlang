@@ -111,7 +111,7 @@ describe('fromTaggedJSON malformed input', () => {
     expect(() => fromTaggedJSON({ $weird: 1 })).toThrow(MalformedTaggedJSONError);
   });
 
-  it('treats null/undefined as nil', () => {
+  it('treats null/undefined as null', () => {
     expect(fromTaggedJSON(null)).toBeNull();
     expect(fromTaggedJSON(undefined)).toBeNull();
   });

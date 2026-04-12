@@ -303,7 +303,7 @@ describe('error-convert coercion edge cases', () => {
     expect(ev.descriptor.get(keyword('myKey'))).toEqual(keyword('val'));
   });
 
-  it('coerces null/undefined context values to nil', () => {
+  it('coerces null/undefined context values to null', () => {
     const e = new QlangTypeError('test', { site: 'X', nullField: null, undefField: undefined });
     e.fingerprint = 'X';
     const ev = errorFromQlang(e, null);

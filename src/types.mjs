@@ -36,11 +36,11 @@
 //                visible failure shape. The fifth qlang value type;
 //                rides the fail-track via the :trail invariant.
 
-export const NIL = null;
+export const NULL = null;
 
 // ── primitive type predicates ──────────────────────────────────
 
-export function isNil(v) { return v === null || v === undefined; }
+export function isNull(v) { return v === null || v === undefined; }
 export function isBoolean(v) { return typeof v === 'boolean'; }
 export function isNumber(v) { return typeof v === 'number'; }
 export function isString(v) { return typeof v === 'string'; }
@@ -294,7 +294,7 @@ export function materializeTrail(errorValue) {
 // messages would lose the binding-kind hint.
 
 export function describeType(v) {
-  if (isNil(v)) return 'nil';
+  if (isNull(v)) return 'null';
   if (isBoolean(v)) return 'boolean';
   if (isNumber(v)) return 'number';
   if (isString(v)) return 'string';

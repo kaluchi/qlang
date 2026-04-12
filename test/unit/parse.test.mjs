@@ -50,9 +50,9 @@ describe('parse — scalar literals', () => {
     expect(ast.value).toBe(false);
   });
 
-  it('parses nil', () => {
-    const ast = parse('nil');
-    expect(ast.type).toBe('NilLit');
+  it('parses null', () => {
+    const ast = parse('null');
+    expect(ast.type).toBe('NullLit');
   });
 
   it('parses a keyword', () => {

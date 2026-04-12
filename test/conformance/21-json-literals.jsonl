@@ -1,0 +1,17 @@
+{"name":"json-object-string-key","query":"{\"name\": \"alice\"}","expect":"{:name \"alice\"}"}
+{"name":"json-object-multiple-keys","query":"{\"name\": \"alice\", \"age\": 30}","expect":"{:name \"alice\" :age 30}"}
+{"name":"json-object-nested","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
+{"name":"json-object-in-vec","query":"[{\"name\": \"alice\"}, {\"name\": \"bob\"}] * /name","expect":"[\"alice\" \"bob\"]"}
+{"name":"json-object-as-pipevalue","query":"{\"name\": \"alice\"} | /name","expect":"\"alice\""}
+{"name":"json-null-literal","query":"null","expect":"null"}
+{"name":"json-null-missing-key","query":"{:a 1} | /b","expect":"null"}
+{"name":"json-null-in-vec","query":"[1, null, 3]","expect":"[1 null 3]"}
+{"name":"json-array-with-json-objects","query":"[{\"v\": 1}, {\"v\": 2}] | count","expect":"2"}
+{"name":"json-object-pipeline","query":"{\"scores\": [85, 92, 78]} | /scores | count","expect":"3"}
+{"name":"json-object-quoted-key-sigil","query":"{\"$ref\": \"x\"} | /\"$ref\"","expect":"\"x\""}
+{"name":"json-string-key-equals-keyword","query":"{\"name\": 1} | /name","expect":"1"}
+{"name":"keyword-reserved-word-bare","query":":null","expect":":null"}
+{"name":"keyword-false-bare","query":":false","expect":":false"}
+{"name":"keyword-true-bare","query":":true","expect":":true"}
+{"name":"projection-reserved-word","query":"{:null 42} | /null","expect":"42"}
+{"name":"json-mixed-with-qlang-keys","query":"{:qlangKey 1, \"jsonKey\": 2} | [/qlangKey, /jsonKey]","expect":"[1 2]"}

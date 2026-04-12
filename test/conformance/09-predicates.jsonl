@@ -15,7 +15,7 @@
 {"name":"or-both-false","query":"false | or(false)","expect":"false"}
 {"name":"not-true","query":"true | not","expect":"false"}
 {"name":"not-false","query":"false | not","expect":"true"}
-{"name":"not-nil","query":"nil | not","expect":"true"}
+{"name":"not-null","query":"null | not","expect":"true"}
 {"name":"not-zero","query":"0 | not","expect":"false"}
 {"name":"not-empty-string","query":"\"\" | not","expect":"false"}
 {"name":"filter-with-and","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter(and(/active, /age | gte(18)))","expect":"[{:active true :age 25}]"}

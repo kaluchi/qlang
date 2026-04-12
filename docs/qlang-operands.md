@@ -580,7 +580,7 @@ round-trips to `"a,b,c"`.
   returns the first one that produces a non-`null` result. If all
   alternatives produce `null`, the result is `null`.
 - **Falsy non-null values** (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
-  are NOT skipped — only `null`/`null`/`undefined` count as missing.
+  are NOT skipped — only `null`/`undefined` count as missing.
   This matches SQL `COALESCE` and JavaScript `??` semantics.
 - **Short-circuits**: alternatives after the first non-null match
   are not evaluated.

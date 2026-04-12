@@ -1860,13 +1860,11 @@ Vec           ← '[' (Pipeline (','? Pipeline)*)? ']'
 Operand       ← Ident ('(' (Pipeline (','? Pipeline)*)? ')')?
 
 Projection    ← '/' KeySeg ('/' KeySeg)*
-KeySeg        ← ':' NamespacedName / ':' Ident
-               / QuotedKeywordName / Ident
+KeySeg        ← ':' NamespacedName / ':' KeywordName
+               / QuotedKeywordName / KeywordName
 
 Scalar        ← String / Number / Boolean / Null / Keyword
 Keyword       ← ':' QuotedKeywordName / ':' NamespacedName / ':' KeywordName
-KeySeg        in Projection also accepts ':' KeywordName so reserved words
-              (:null, :true, :false, /null, /true, /false) are valid key paths
 NamespacedName    ← Ident ('/' Ident)+
 QuotedKeywordName ← '"' DoubleStringChar* '"'
 KeywordName       ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (Ident without !ReservedWord guard)

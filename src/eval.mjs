@@ -529,7 +529,7 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
     ? capturedArgsAst.map(arg => makeLambda(arg, capturedEnv))
     : [];
   lambdas.docs = node.docs || [];
-  lambdas.location = node.location ?? null;
+  lambdas.location = node.location;
   return applyRule10(impl, lambdas, state);
 }
 

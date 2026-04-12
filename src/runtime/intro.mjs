@@ -304,9 +304,7 @@ function describeBinding(value, explicitName) {
     const implKey = value.get(keyword('qlang/impl'));
     if (implKey) {
       const impl = PRIMITIVE_REGISTRY.resolve(implKey);
-      if (impl.meta && impl.meta.captured) {
-        result.set(keyword('captured'), [...impl.meta.captured]);
-      }
+      result.set(keyword('captured'), [...impl.meta.captured]);
       result.set(keyword('effectful'), impl.effectful);
     }
     return result;

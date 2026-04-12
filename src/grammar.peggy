@@ -398,7 +398,9 @@ MapEntries
 // to sit directly before or after a doc-attached entry without
 // disrupting the attachment chain.
 MapEntry
-  = docs:MapEntryDocPrefix? _L key:Keyword __ value:PipelineInLiteral
+  = docs:MapEntryDocPrefix? _L key:StringLit ":" _ value:PipelineInLiteral
+    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value, docs: docs ?? [] }, location(), text()); }
+  / docs:MapEntryDocPrefix? _L key:Keyword __ value:PipelineInLiteral
     { return node('MapEntry', { key, value, docs: docs ?? [] }, location(), text()); }
 
 MapEntryDocPrefix
@@ -442,15 +444,15 @@ Projection
 
 KeySegment
   = ":" name:NamespacedName { return name; }
-  / ":" name:Ident          { return name; }
+  / ":" name:KeywordName    { return name; }
   / QuotedKeywordName
-  / Ident
+  / KeywordName
 
 Scalar
   = StringLit
   / NumberLit
   / BooleanLit
-  / NilLit
+  / NullLit
   / Keyword
 
 StringLit
@@ -469,16 +471,18 @@ EscapeChar
   / "r" { return '\r'; }
 
 NumberLit
-  = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)?
-    { const txt = (sign || '') + whole.join('') + (frac ? '.' + frac[1].join('') : '');
+  = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
+    { const txt = (sign || '') + whole.join('')
+                + (frac ? '.' + frac[1].join('') : '')
+                + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
       return node('NumberLit', { value: Number(txt) }, location(), text()); }
 
 BooleanLit
   = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }
   / "false" !IdentTail { return node('BooleanLit', { value: false }, location(), text()); }
 
-NilLit
-  = "nil" !IdentTail { return node('NilLit', {}, location(), text()); }
+NullLit
+  = "null" !IdentTail { return node('NullLit', {}, location(), text()); }
 
 // Keyword has two surface forms:
 //   :name        — bare identifier, restricted to [@_a-zA-Z][a-zA-Z0-9_-]*
@@ -494,7 +498,7 @@ NilLit
 Keyword
   = ":" name:QuotedKeywordName  { return node('Keyword', { name }, location(), text()); }
   / ":" name:NamespacedName     { return node('Keyword', { name }, location(), text()); }
-  / ":" name:Ident              { return node('Keyword', { name }, location(), text()); }
+  / ":" name:KeywordName        { return node('Keyword', { name }, location(), text()); }
 
 NamespacedName
   = head:Ident tail:("/" Ident)+
@@ -503,12 +507,20 @@ NamespacedName
 QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
 
+// KeywordName is like Ident but without the !ReservedWord guard.
+// Used in Keyword and KeySegment where the leading `:` or `/`
+// already places us in a separate namespace — `:null`, `:true`,
+// `/false` are unambiguous there and should be allowed.
+KeywordName
+  = first:IdentStart rest:IdentTail*
+    { return first + rest.join(''); }
+
 Ident
   = !ReservedWord first:IdentStart rest:IdentTail*
     { return first + rest.join(''); }
 
 ReservedWord
-  = ("true" / "false" / "nil") !IdentTail
+  = ("true" / "false" / "null") !IdentTail
 
 IdentStart = [@_a-zA-Z]
 IdentTail  = [a-zA-Z0-9_-]

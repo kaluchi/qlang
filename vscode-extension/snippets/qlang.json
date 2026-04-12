@@ -92,7 +92,7 @@
   "coalesce": {
     "prefix": "coalesce",
     "body": ["coalesce(${1:alt1}, ${2:alt2}, ${3:default})"],
-    "description": "First non-nil result among alternatives"
+    "description": "First non-null result among alternatives"
   },
   "firstTruthy": {
     "prefix": "firstTruthy",

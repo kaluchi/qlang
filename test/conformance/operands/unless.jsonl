@@ -2,7 +2,7 @@
 {"name":"cond-false-runs-then","query":"5 | unless(false, mul(2))","expect":"10"}
 {"name":"cond-truthy-passthrough","query":"{:active true :n 100} | unless(/active, /n | mul(2))","expect":"{:active true :n 100}"}
 {"name":"cond-falsy-runs-then","query":"{:active false :n 100} | unless(/active, /n | mul(2))","expect":"200"}
-{"name":"cond-nil-runs-then","query":"{:n 5} | unless(/missing, /n | mul(2))","expect":"10"}
+{"name":"cond-null-runs-then","query":"{:n 5} | unless(/missing, /n | mul(2))","expect":"10"}
 {"name":"cond-zero-is-truthy-passthrough","query":"0 | unless(eq(0), 999)","expect":"0"}
 {"name":"cond-empty-string-is-truthy-passthrough","query":"\"\" | unless(eq(\"\"), \"replaced\")","expect":"\"\""}
 {"name":"cond-empty-vec-is-truthy-passthrough","query":"[] | unless(empty, sort)","expect":"[]"}

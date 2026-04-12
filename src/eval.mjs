@@ -43,7 +43,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 }
 import {
   isVec, isQMap, isSnapshot, isFunctionValue, isErrorValue,
-  describeType, keyword, NIL, makeErrorValue, appendTrailNode,
+  describeType, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
@@ -97,7 +97,7 @@ const AST_NODE_EVALUATORS = {
   NumberLit:         evalNumberLit,
   StringLit:         evalStringLit,
   BooleanLit:        evalBooleanLit,
-  NilLit:            evalNilLit,
+  NullLit:            evalNullLit,
   Keyword:           evalKeyword,
   VecLit:            evalVecLit,
   MapLit:            evalMapLit,
@@ -258,7 +258,7 @@ function applyFailTrack(state, stepNode) {
 function evalNumberLit(node, state)  { return withPipeValue(state, node.value); }
 function evalStringLit(node, state)  { return withPipeValue(state, node.value); }
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
-function evalNilLit(_node, state)    { return withPipeValue(state, NIL); }
+function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 
 function evalVecLit(node, state) {
@@ -345,7 +345,7 @@ function evalProjection(node, state) {
         actualValue: current
       });
     }
-    current = current.has(keyword(key)) ? current.get(keyword(key)) : NIL;
+    current = current.has(keyword(key)) ? current.get(keyword(key)) : NULL;
     // Snapshots are transparent value wrappers — unwrap during
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
@@ -444,7 +444,7 @@ function evalOperandCall(node, state) {
     // array so reflective binding operands (let, as) can access
     // them without changing the fn(state, lambdas) dispatch signature.
     lambdas.docs = node.docs || [];
-    lambdas.location = node.location ?? null;
+    lambdas.location = node.location;
     return applyRule10(resolved, lambdas, state);
   }
 
@@ -519,7 +519,7 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
   // lookup fires the operand as before; any positive minCaptured
   // means bare lookup has no valid application and yields the
   // descriptor for introspection instead of an arity error.
-  const minCaptured = impl.meta && impl.meta.captured ? impl.meta.captured[0] : 0;
+  const minCaptured = impl.meta.captured[0];
   if (!hasArgs && minCaptured > 0) {
     return withPipeValue(state, descriptor);
   }
@@ -529,7 +529,7 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
     ? capturedArgsAst.map(arg => makeLambda(arg, capturedEnv))
     : [];
   lambdas.docs = node.docs || [];
-  lambdas.location = node.location ?? null;
+  lambdas.location = node.location;
   return applyRule10(impl, lambdas, state);
 }
 

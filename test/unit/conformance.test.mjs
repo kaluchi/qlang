@@ -26,7 +26,7 @@ const files = readdirSync(conformanceDir, { recursive: true })
 
 // Literal AST node types — no computation, no env lookup, no side effects.
 const LITERAL_TYPES = new Set([
-  'NumberLit', 'StringLit', 'BooleanLit', 'NilLit', 'Keyword',
+  'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword',
   'VecLit', 'MapLit', 'MapEntry', 'SetLit', 'ErrorLit', 'Pipeline'
 ]);
 

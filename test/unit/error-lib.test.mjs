@@ -27,7 +27,7 @@ function sessionWithErrorLib() {
   const session = createSession();
   const catalog = resolveModules(libDir);
   installModules(session, catalog);
-  session.evalCell('nil | use(:error) | use(:error/observe)');
+  session.evalCell('null | use(:error) | use(:error/observe)');
   return session;
 }
 

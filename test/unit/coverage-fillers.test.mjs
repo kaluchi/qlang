@@ -24,7 +24,7 @@ import {
 } from '../../src/runtime/dispatch.mjs';
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
-import { walkAst, bindingNamesVisibleAt } from '../../src/walk.mjs';
+import { walkAst, bindingNamesVisibleAt, astNodeToMap, qlangMapToAst } from '../../src/walk.mjs';
 import { makeState } from '../../src/state.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
 import { makeFn } from '../../src/rule10.mjs';
@@ -137,7 +137,7 @@ describe('setops bare-form non-Vec subject errors', () => {
 
 describe('setops full form (two captured args)', () => {
   it('minus full form computes left minus right via two captured pipelines', () => {
-    const result = evalQuery('nil | minus({:a 1 :b 2 :tmp 3}, #{:tmp})');
+    const result = evalQuery('null | minus({:a 1 :b 2 :tmp 3}, #{:tmp})');
     expect(result).toBeInstanceOf(Map);
     expect(result.has(keyword('a'))).toBe(true);
     expect(result.has(keyword('b'))).toBe(true);
@@ -145,7 +145,7 @@ describe('setops full form (two captured args)', () => {
   });
 
   it('inter full form computes left inter right via two captured pipelines', () => {
-    const result = evalQuery('nil | inter({:a 1 :b 2 :c 3}, #{:a :b})');
+    const result = evalQuery('null | inter({:a 1 :b 2 :c 3}, #{:a :b})');
     expect(result).toBeInstanceOf(Map);
     expect(result.has(keyword('a'))).toBe(true);
     expect(result.has(keyword('b'))).toBe(true);
@@ -153,7 +153,7 @@ describe('setops full form (two captured args)', () => {
   });
 
   it('union full form computes left union right via two captured pipelines', () => {
-    const result = evalQuery('nil | union({:a 1}, {:b 2})');
+    const result = evalQuery('null | union({:a 1}, {:b 2})');
     expect(result).toBeInstanceOf(Map);
     expect(result.has(keyword('a'))).toBe(true);
     expect(result.has(keyword('b'))).toBe(true);
@@ -161,11 +161,11 @@ describe('setops full form (two captured args)', () => {
 });
 
 describe('vec.min and vec.max on empty Vec', () => {
-  it('min on empty Vec returns nil', () => {
+  it('min on empty Vec returns null', () => {
     expect(evalQuery('[] | min')).toBeNull();
   });
 
-  it('max on empty Vec returns nil', () => {
+  it('max on empty Vec returns null', () => {
     expect(evalQuery('[] | max')).toBeNull();
   });
 
@@ -641,6 +641,96 @@ describe('reify descriptor branch coverage', () => {
   it('runExamples on example with mismatched result', () => {
     const r = evalQuery('{:kind :builtin :examples [{:doc "wrong answer" :snippet "42" :expected "99"}]} | runExamples | first | /ok');
     expect(r).toBe(false);
+  });
+});
+
+// ── walk.mjs uncovered branches ────────────────────────────────
+// Three defensive paths only reachable via direct codec API calls
+// (not through parse() → eval()); exercised here so the codec
+// contract is tested rather than silently untested.
+
+describe('walk.mjs — locationToQlangMap(null) → null (line 397)', () => {
+  it('roundtrip through qlangMapToAst+astNodeToMap with :location null produces null location map entry', () => {
+    // Build a minimal NumberLit AST Map with :location explicitly null.
+    // qlangMapToAst fires locationFromQlangMap(null) (line 405: !isQMap → null),
+    // then astNodeToMap on the result fires locationToQlangMap(null) (line 397: !loc → null).
+    const m = new Map();
+    m.set(keyword('qlang/kind'), keyword('NumberLit'));
+    m.set(keyword('value'), 42);
+    m.set(keyword('location'), null);            // present but non-Map → fires 405
+    const node = qlangMapToAst(m);
+    expect(node.location).toBe(null);            // locationFromQlangMap(null) → null
+    const back = astNodeToMap(node);
+    // locationToQlangMap(null) → null; stampCommonFields sets :location null
+    expect(back.get(keyword('location'))).toBe(null);  // fires 397
+  });
+});
+
+describe('walk.mjs — qlangMapToAst with non-keyword :qlang/kind uses String() fallback (line 603)', () => {
+  it('throws AstMapKindUnknownError with String(kindKw) label when kind is not a keyword', () => {
+    const m = new Map();
+    m.set(keyword('qlang/kind'), null);   // present but null → String(null) = "null"
+    expect(() => qlangMapToAst(m)).toThrow('null');
+  });
+});
+
+// ── intro.mjs uncovered branches ──────────────────────────────
+
+describe('intro.mjs — UseNamespaceCollision (line 138)', () => {
+  it('keyword-keyed collision uses k.name in error context', () => {
+    // importUnorderedNamespaces — collision on a keyword key.
+    // isKeyword(k) is true → k.name branch taken (existing coverage).
+    const s = createSession();
+    s.bind('nsA', new Map([[keyword('shared'), 1]]));
+    s.bind('nsB', new Map([[keyword('shared'), 2]]));
+    const r = s.evalCell('use(#{:nsA, :nsB})');
+    expect(isErrorValue(r.result)).toBe(true);
+    expect(r.result.originalError.name).toBe('UseNamespaceCollision');
+  });
+
+  it('non-keyword-keyed collision uses String(k) fallback in error context (line 138)', () => {
+    // Namespaces with raw string keys (non-keyword). isKeyword(k) is
+    // false → String(k) branch fires on line 138.
+    const s = createSession();
+    s.bind('nsC', new Map([['rawKey', 1]]));
+    s.bind('nsD', new Map([['rawKey', 2]]));
+    const r = s.evalCell('use(#{:nsC, :nsD})');
+    expect(isErrorValue(r.result)).toBe(true);
+    expect(r.result.originalError.context.collidingName).toBe('rawKey');
+  });
+});
+
+describe('intro.mjs — UseNameNotExported (line 157)', () => {
+  it('selective use(:ns, :missing) produces an error when name is absent', () => {
+    const s = createSession();
+    s.bind('myNs', new Map([[keyword('x'), 99]]));
+    const r = s.evalCell('use(:myNs, :missing)');
+    expect(isErrorValue(r.result)).toBe(true);
+    expect(r.result.originalError.name).toBe('UseNameNotExported');
+  });
+
+  it('non-keyword selection uses String(name) fallback in error context (line 157)', () => {
+    // Pass a Vec with a number element as the selection — the number is
+    // not a keyword, so isKeyword(name) is false → String(name) fires.
+    const s = createSession();
+    s.bind('myNs2', new Map([[keyword('x'), 99]]));
+    // use(:myNs2, [42]) — selection Vec contains number 42, not a keyword
+    const r = s.evalCell('use(:myNs2, [42])');
+    expect(isErrorValue(r.result)).toBe(true);
+    expect(r.result.originalError.context.exportName).toBe('42');
+  });
+});
+
+describe('intro.mjs — describeValueType for error value (line 176)', () => {
+  it('reify on a directly-bound error value returns :error as :type', () => {
+    // describeValueType is called from buildValueDescriptor (reify value path).
+    // An error value bound directly via session.bind reaches the
+    // isErrorValue(v) branch since it is not a conduit, snapshot, or function.
+    const s = createSession();
+    const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('test')]]));
+    s.bind('myErr', errVal);
+    const r = s.evalCell('reify(:myErr) | /type');
+    expect(r.result).toEqual(keyword('error'));
   });
 });
 

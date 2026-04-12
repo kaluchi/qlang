@@ -1,10 +1,10 @@
-{"name":"nil-sorts-last","query":"[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a","expect":"[1 3 nil]"}
-{"name":"nil-right-sorts-last","query":"[{:a nil} {:a 2} {:a 1}] | sortWith(nullsLast(/a)) * /a","expect":"[1 2 nil]"}
-{"name":"both-nil-equal","query":"[{:a nil} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a","expect":"[1 nil nil]"}
-{"name":"no-nils-delegates-ascending","query":"[{:a 3} {:a 1} {:a 2}] | sortWith(nullsLast(/a)) * /a","expect":"[1 2 3]"}
+{"name":"null-sorts-last","query":"[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a","expect":"[1 3 null]"}
+{"name":"null-right-sorts-last","query":"[{:a null} {:a 2} {:a 1}] | sortWith(nullsLast(/a)) * /a","expect":"[1 2 null]"}
+{"name":"both-null-equal","query":"[{:a null} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a","expect":"[1 null null]"}
+{"name":"no-nulls-delegates-ascending","query":"[{:a 3} {:a 1} {:a 2}] | sortWith(nullsLast(/a)) * /a","expect":"[1 2 3]"}
 {"name":"empty-vec","query":"[] | sortWith(nullsLast(/a))","expect":"[]"}
-{"name":"all-nil","query":"[{:a nil} {:a nil}] | sortWith(nullsLast(/a)) * /a","expect":"[nil nil]"}
+{"name":"all-null","query":"[{:a null} {:a null}] | sortWith(nullsLast(/a)) * /a","expect":"[null null]"}
 {"name":"non-pair-subject-error","query":"42 | nullsLast(/a)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :NullsLastPairNotMap :message \"nullsLast requires a pair Map subject ({ :left x :right y }), got number\" :actualType \"number\"}"}
-{"name":"compound-with-firstNonZero","query":"[{:a nil :b 2} {:a 1 :b 3} {:a nil :b 1}] | sortWith([nullsLast(/a), asc(/b)] | firstNonZero) * /b","expect":"[3 1 2]"}
-{"name":"incompatible-non-nil-types-error","query":"[{:a 1} {:a \"x\"}] | sortWith(nullsLast(/a))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :SortWithCmpResultNotNumber :message \"sortWith comparator must return a number, got Error\" :actualType \"Error\"}"}
-{"name":"incompatible-non-nil-key-types-direct-error","query":"{:left {:a 1} :right {:a \"x\"}} | nullsLast(/a)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :NullsLastKeysNotComparable :message \"nullsLast cannot compare number with string\" :operand \"nullsLast\" :leftType \"number\" :rightType \"string\"}"}
+{"name":"compound-with-firstNonZero","query":"[{:a null :b 2} {:a 1 :b 3} {:a null :b 1}] | sortWith([nullsLast(/a), asc(/b)] | firstNonZero) * /b","expect":"[3 1 2]"}
+{"name":"incompatible-non-null-types-error","query":"[{:a 1} {:a \"x\"}] | sortWith(nullsLast(/a))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :SortWithCmpResultNotNumber :message \"sortWith comparator must return a number, got Error\" :actualType \"Error\"}"}
+{"name":"incompatible-non-null-key-types-direct-error","query":"{:left {:a 1} :right {:a \"x\"}} | nullsLast(/a)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :NullsLastKeysNotComparable :message \"nullsLast cannot compare number with string\" :operand \"nullsLast\" :leftType \"number\" :rightType \"string\"}"}

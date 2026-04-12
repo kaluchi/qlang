@@ -35,7 +35,7 @@
 
    Type vocabulary (flat keywords) used in :subject / :returns /
    :modifiers:
-     :number :string :boolean :keyword :nil :any
+     :number :string :boolean :keyword :null :any
      :vec :map :set
      :predicate-lambda :key-lambda :comparator-lambda
      :pipeline (captured sub-pipeline, lazy) ~|
@@ -71,7 +71,7 @@
           {:doc "non-empty Vec" :snippet "[1] | empty"  :expected "false"}]
         :throws [:EmptySubjectNotContainer]}
 
-|~~ Returns the first element of a Vec, or nil if the Vec
+|~~ Returns the first element of a Vec, or null if the Vec
     is empty. ~~|
 :first {:qlang/kind :builtin
         :qlang/impl :qlang/prim/first
@@ -81,10 +81,10 @@
         :modifiers []
         :examples [
           {:doc "first of three" :snippet "[10 20 30] | first" :expected "10"}
-          {:doc "empty yields nil" :snippet "[] | first"       :expected "nil"}]
+          {:doc "empty yields null" :snippet "[] | first"       :expected "null"}]
         :throws [:FirstSubjectNotVec]}
 
-|~~ Returns the last element of a Vec, or nil if the Vec
+|~~ Returns the last element of a Vec, or null if the Vec
     is empty. ~~|
 :last {:qlang/kind :builtin
        :qlang/impl :qlang/prim/last
@@ -94,7 +94,7 @@
        :modifiers []
        :examples [
          {:doc "last of three" :snippet "[10 20 30] | last" :expected "30"}
-         {:doc "empty yields nil" :snippet "[] | last"      :expected "nil"}]
+         {:doc "empty yields null" :snippet "[] | last"      :expected "null"}]
        :throws [:LastSubjectNotVec]}
 
 |~~ Returns the numeric sum of elements. Empty Vec yields 0.
@@ -111,7 +111,7 @@
       :throws [:SumSubjectNotVec, :SumElementNotNumber]}
 
 |~~ Returns the minimum element under natural ordering. Empty
-    Vec yields nil. All elements must be comparable scalars of
+    Vec yields null. All elements must be comparable scalars of
     the same type. ~~|
 :min {:qlang/kind :builtin
       :qlang/impl :qlang/prim/min
@@ -125,7 +125,7 @@
       :throws [:MinSubjectNotVec, :MinElementsNotComparable]}
 
 |~~ Returns the maximum element under natural ordering. Empty
-    Vec yields nil. All elements must be comparable scalars of
+    Vec yields null. All elements must be comparable scalars of
     the same type. ~~|
 :max {:qlang/kind :builtin
       :qlang/impl :qlang/prim/max
@@ -369,8 +369,8 @@
          {:doc "highest first"   :snippet "sortWith(desc(/score))"}]
        :throws [:DescPairNotMap, :DescKeysNotComparable]}
 
-|~~ Ascending comparator that places nil-keyed elements before
-    all non-nil elements. Non-nil keys are sorted in ascending
+|~~ Ascending comparator that places null-keyed elements before
+    all non-null elements. Non-null keys are sorted in ascending
     order. Use inside sortWith to handle data with missing
     values without tripping AscKeysNotComparable. ~~|
 :nullsFirst {:qlang/kind :builtin
@@ -380,12 +380,12 @@
              :returns :number
              :modifiers [:key-lambda]
              :examples [
-               {:doc "nil before others"  :snippet "sortWith(nullsFirst(/age))"}
-               {:doc "nil first ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a"  :expected "[nil 1 3]"}]
+               {:doc "null before others"  :snippet "sortWith(nullsFirst(/age))"}
+               {:doc "null first ordering" :snippet "[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a"  :expected "[null 1 3]"}]
              :throws [:NullsFirstPairNotMap]}
 
-|~~ Ascending comparator that places nil-keyed elements after
-    all non-nil elements. Non-nil keys are sorted in ascending
+|~~ Ascending comparator that places null-keyed elements after
+    all non-null elements. Non-null keys are sorted in ascending
     order. Use inside sortWith to handle data with missing
     values without tripping AscKeysNotComparable. ~~|
 :nullsLast {:qlang/kind :builtin
@@ -395,8 +395,8 @@
             :returns :number
             :modifiers [:key-lambda]
             :examples [
-              {:doc "nil after others"  :snippet "sortWith(nullsLast(/age))"}
-              {:doc "nil last ordering" :snippet "[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a"  :expected "[1 3 nil]"}]
+              {:doc "null after others"  :snippet "sortWith(nullsLast(/age))"}
+              {:doc "null last ordering" :snippet "[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a"  :expected "[1 3 null]"}]
             :throws [:NullsLastPairNotMap]}
 
 |~ ──────────────── Control flow ──────────────── ~|
@@ -404,7 +404,7 @@
 |~~ Conditional. Evaluates the cond sub-pipeline against
     pipeValue; if truthy, evaluates the then branch, otherwise
     evaluates the else branch. Only the selected branch executes.
-    Truthiness: nil and false are falsy, everything else
+    Truthiness: null and false are falsy, everything else
     (including 0, "", [], {}, #{}) is truthy. ~~|
 :if {:qlang/kind :builtin
      :qlang/impl :qlang/prim/if
@@ -447,12 +447,12 @@
            {:doc "lazy validation"      :snippet "config | unless(/validated, validate)"}]
          :throws []}
 
-|~~ Returns the first non-nil result among the captured
+|~~ Returns the first non-null result among the captured
     alternatives, evaluating each against pipeValue in order and
-    short-circuiting on the first non-nil value. If all
-    alternatives produce nil, returns nil. Falsy non-nil values
+    short-circuiting on the first non-null value. If all
+    alternatives produce null, returns null. Falsy non-null values
     (false, 0, "", [], {}, #{}) are NOT skipped — only
-    nil counts as missing. ~~|
+    null counts as missing. ~~|
 :coalesce {:qlang/kind :builtin
            :qlang/impl :qlang/prim/coalesce
            :category :control
@@ -460,15 +460,15 @@
            :returns :any
            :modifiers [:pipeline]
            :examples [
-             {:doc "first non-nil name"    :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
+             {:doc "first non-null name"   :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
              {:doc "config override chain" :snippet "config | coalesce(/userOverride, /projectDefault, /globalDefault)"}]
            :throws [:CoalesceNoAlternatives]}
 
 |~~ Returns the first truthy result among the captured
     alternatives, evaluating each against pipeValue in order and
-    short-circuiting on the first truthy value. Both nil and
+    short-circuiting on the first truthy value. Both null and
     false are skipped. If all alternatives produce falsy values,
-    returns nil. Use coalesce when false is a valid explicit
+    returns null. Use coalesce when false is a valid explicit
     setting; use firstTruthy when false is a sentinel meaning
     "no value". ~~|
 :firstTruthy {:qlang/kind :builtin
@@ -487,7 +487,7 @@
     the result of the first branch whose predicate evaluates
     truthy against pipeValue. If captured-arg count is odd, the
     trailing arg is the default branch. If even and no match,
-    returns nil. Replaces nested-if chains with a flat
+    returns null. Replaces nested-if chains with a flat
     catalog. ~~|
 :cond {:qlang/kind :builtin
        :qlang/impl :qlang/prim/cond
@@ -733,7 +733,7 @@
 |~ ──────────────── Boolean ──────────────── ~|
 
 |~~ Logical negation. Returns true if the subject is falsy
-    (nil or false), false otherwise. 0, "", [], {}, #{} are
+    (null or false), false otherwise. 0, "", [], {}, #{} are
     all truthy. ~~|
 :not {:qlang/kind :builtin
       :qlang/impl :qlang/prim/not
@@ -742,7 +742,7 @@
       :returns :boolean
       :modifiers []
       :examples [
-        {:doc "negate nil"    :snippet "nil | not"  :expected "true"}
+        {:doc "negate null"   :snippet "null | not" :expected "true"}
         {:doc "0 is truthy"   :snippet "0 | not"    :expected "false"}]
       :throws []}
 

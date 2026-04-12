@@ -117,14 +117,14 @@ true
 false
 ```
 
-### nil
+### null
 
-The absence of a value. Missing Map keys produce `nil`. An
-operand whose result is undefined returns `nil`.
+The absence of a value. Missing Map keys produce `null`. An
+operand whose result is undefined returns `null`.
 
 ```qlang
-> nil
-nil
+> null
+null
 ```
 
 ### keyword
@@ -228,8 +228,8 @@ ordinary.
 > [[1 2] [3 4]]
 [[1 2] [3 4]]
 
-> [1 "two" nil :keyword]
-[1 "two" nil :keyword]
+> [1 "two" null :keyword]
+[1 "two" null :keyword]
 
 > []
 []
@@ -263,6 +263,26 @@ to round-trip through JSON:
 
 > {:"foo bar" 1 :"$ref" "x" :"a.b" 99}
 {:"foo bar" 1 :"$ref" "x" :"a.b" 99}
+```
+
+JSON object syntax is also accepted — `"key": value` entries are
+equivalent to `:"key" value` and are parsed into the same
+keyword-keyed Map. This lets you paste raw JSON objects directly
+into a query without editing:
+
+```qlang
+> {"name": "alice", "age": 30, "score": 9.5e1}
+{:name "alice" :age 30 :score 95}
+
+> {"user": {"id": 1, "active": true}} | /user/active
+true
+```
+
+Both key styles may appear in the same literal:
+
+```qlang
+> {:source "manual", "auto": true}
+{:source "manual" :auto true}
 ```
 
 If the same key appears more than once in a literal, the last
@@ -454,13 +474,13 @@ are evaluated — this is **full application**:
 
 ### Truthiness
 
-`nil` and `false` are falsy. Every other value is truthy —
+`null` and `false` are falsy. Every other value is truthy —
 including `0`, `""`, `[]`, `{}`, `#{}`. Predicates such as
 `filter`, `if`, `when`, and `not` honour this rule uniformly.
 
 ```qlang
-> [0 "" nil false true 1 "a"] | filter(not)
-[nil false]
+> [0 "" null false true 1 "a"] | filter(not)
+[null false]
 ```
 
 ### What a failure looks like
@@ -542,14 +562,14 @@ sequence. Three mechanisms cover all three needs.
 ### Projection — `/key`
 
 Extract a value from a Map by keyword — the keyword-keyed Maps from
-Part 1. Missing key → `nil`:
+Part 1. Missing key → `null`:
 
 ```qlang
 > {:name "alice" :age 30} | /name
 "alice"
 
 > {:name "alice"} | /missing
-nil
+null
 ```
 
 Nested chains: `/a/b` desugars to `/a | /b`.
@@ -598,7 +618,7 @@ names a single namespaced keyword, not multiple bare segments):
 
 Both forms can be mixed in a single chain: `/outer/"inner key"/:qlang/ns`.
 
-Type error: projection on a non-Map (Scalar, Vec, Set, nil, function)
+Type error: projection on a non-Map (Scalar, Vec, Set, null, function)
 produces an Error value — see [Error track](#error-track).
 
 ### Distribute — `*`
@@ -1529,7 +1549,7 @@ scalar that does not carry the binding-kind discriminator:
 
 ```
 {:kind  :value
- :name  nil
+ :name  null
  :value <the value>
  :type  :number}
 ```
@@ -1599,8 +1619,8 @@ where an `:expected` field is supplied.
 
 ```qlang
 reify(:count) | runExamples
-|~| → [{:snippet "[1 2 3] | count" :expected "3" :actual 3 :error nil :ok true}
-|~|    {:snippet "#{:a :b} | count" :expected "2" :actual 2 :error nil :ok true}
+|~| → [{:snippet "[1 2 3] | count" :expected "3" :actual 3 :error null :ok true}
+|~|    {:snippet "#{:a :b} | count" :expected "2" :actual 2 :error null :ok true}
 |~|    ...]
 
 env | manifest | filter(/kind | eq(:builtin))
@@ -1686,8 +1706,8 @@ Six step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
-| 1 | literal (string, number, boolean, nil, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a,b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
-| 2 | `/key` projection | → `(pipeValue[:key], env)`. `nil` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
+| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a,b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
+| 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `reify`, `manifest` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
 | 5 | `let(:name, expr)` / `let(:name, [:p..], expr)` | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the `let` attach to the conduit. |
@@ -1750,7 +1770,7 @@ filter(/age | gt(18))
 
 | Condition | Error |
 |---|---|
-| `/key` on non-Map (Scalar, Vec, Set, nil, function) | type error |
+| `/key` on non-Map (Scalar, Vec, Set, null, function) | type error |
 | `* expr` on non-Vec | type error |
 | `>> expr` on non-Vec | type error |
 | `use` on non-Map | type error |
@@ -1772,9 +1792,9 @@ filter(/age | gt(18))
 | Token | Pattern | Examples |
 |---|---|---|
 | String | `"` chars `"` | `"hello"`, `""` |
-| Number | `-`? digits (`.` digits)? | `42`, `-3.14` |
+| Number | `-`? digits (`.` digits)? (`e`/`E` (`+`/`-`)? digits)? | `42`, `-3.14`, `1e10`, `2.5e-3` |
 | Boolean | `true` \| `false` | |
-| Nil | `nil` | |
+| Null | `null` | |
 | Keyword | `:` (ident \| namespaced \| quoted-string) | `:name`, `:qlang/error`, `:"foo bar"` |
 | Ident | (alpha \| `@` \| `_`) (alnum \| `-` \| `_`)* | `count`, `my-fn`, `@callers`, `_private` |
 | Projection | `/` keyseg (`/` keyseg)* | `/name`, `/a/b/c`, `/"foo bar"`, `/"a.b"/"$ref"` |
@@ -1830,7 +1850,8 @@ Primary       ← '(' Pipeline ')' / Error / Map / Set / Vec
 Error         ← '!{' '}' / '!{' MapBody '}'
 Map           ← '{' '}' / '{' MapBody '}'
 MapBody       ← MapEntry (','? MapEntry)*
-MapEntry      ← Keyword Pipeline
+MapEntry      ← String ':' Pipeline  (JSON-style string key, converted to keyword)
+              / Keyword Pipeline      (qlang-style :key)
 
 Set           ← '#{' (Pipeline (','? Pipeline)*)? '}'
 
@@ -1839,14 +1860,15 @@ Vec           ← '[' (Pipeline (','? Pipeline)*)? ']'
 Operand       ← Ident ('(' (Pipeline (','? Pipeline)*)? ')')?
 
 Projection    ← '/' KeySeg ('/' KeySeg)*
-KeySeg        ← ':' NamespacedName / ':' Ident
-               / QuotedKeywordName / Ident
+KeySeg        ← ':' NamespacedName / ':' KeywordName
+               / QuotedKeywordName / KeywordName
 
-Scalar        ← String / Number / Boolean / Nil / Keyword
-Keyword           ← ':' QuotedKeywordName / ':' NamespacedName / ':' Ident
+Scalar        ← String / Number / Boolean / Null / Keyword
+Keyword       ← ':' QuotedKeywordName / ':' NamespacedName / ':' KeywordName
 NamespacedName    ← Ident ('/' Ident)+
 QuotedKeywordName ← '"' DoubleStringChar* '"'
-Ident             ← [@_a-zA-Z] [a-zA-Z0-9_-]*
+KeywordName       ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (Ident without !ReservedWord guard)
+Ident             ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (same shape, !ReservedWord guard)
 ```
 
 Comment productions are matched before bare combinators in the
@@ -1859,16 +1881,17 @@ otherwise have preceded the next step.
 Disambiguation:
 - `!{` → Error (same entry syntax as Map)
 - `{` `}` → empty Map
-- `{` `:` → Map (every entry is `:key expr` pair, no shorthand)
+- `{` `:` → Map (qlang-style `:key expr` entry)
+- `{` `"` → Map (JSON-style `"key": expr` entry; string key converts to keyword)
 - `#{` → Set
 - `[` → Vec (elements evaluated against current `pipeValue`)
 - `/:` → keyword projection segment (namespaced key)
-- `/ident` → bare projection segment
+- `/ident` or `/null` `/true` `/false` → bare projection segment
 
 ### Reserved words
 
 ```
-true false nil
+true false null
 ```
 
 `let` and `as` are ordinary identifiers bound to operands in
@@ -1973,6 +1996,15 @@ query syntax.
   | as(:passingScores)
   | [allScores | count, passingScores | count]
 [7 4]
+
+|~| JSON paste: copy raw JSON, pipe straight into qlang operations
+> {"users": [
+    {"name": "alice", "score": 8.5e1},
+    {"name": "bob",   "score": 7.2e1},
+    {"name": "carol", "score": 9.3e1}
+  ]}
+  | /users | filter(/score | gte(85)) * /name
+["alice" "carol"]
 
 |~| let + recursion: rename :label → :value throughout a tree
 > {:label "root" :children [
@@ -2165,7 +2197,7 @@ and by any host that ships qlang values across a JSON boundary.
 | qlang value | tagged JSON form |
 |---|---|
 | number / string / boolean | itself |
-| nil | `null` |
+| null | `null` |
 | Vec | JSON array of recursively-encoded elements |
 | keyword | `{ "$keyword": "name" }` |
 | Map | `{ "$map": [[k, v], ...] }` (entries pairs, recursively encoded) |

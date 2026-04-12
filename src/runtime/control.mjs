@@ -13,7 +13,7 @@ import {
   higherOrderOpVariadic,
   UNBOUNDED
 } from './dispatch.mjs';
-import { isTruthy, isNil, NIL, keyword } from '../types.mjs';
+import { isTruthy, isNull, NULL, keyword } from '../types.mjs';
 import { declareArityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -52,9 +52,9 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
     }
     for (const lambda of lambdas) {
       const value = lambda(pipeValue);
-      if (!isNil(value)) return value;
+      if (!isNull(value)) return value;
     }
-    return NIL;
+    return NULL;
   }, [1, UNBOUNDED]);
 
 export const cond = higherOrderOpVariadic('cond', 16,
@@ -74,7 +74,7 @@ export const cond = higherOrderOpVariadic('cond', 16,
     if (i < lambdas.length) {
       return lambdas[i](pipeValue);
     }
-    return NIL;
+    return NULL;
   }, [2, UNBOUNDED]);
 
 export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
@@ -86,7 +86,7 @@ export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
       const value = lambda(pipeValue);
       if (isTruthy(value)) return value;
     }
-    return NIL;
+    return NULL;
   }, [1, UNBOUNDED]);
 
 // Variant-B primitive registry bindings — coexist with IMPLS. The

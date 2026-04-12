@@ -3,9 +3,9 @@
 {"name":"empty-true","query":"[] | empty","expect":"true"}
 {"name":"empty-false","query":"[1] | empty","expect":"false"}
 {"name":"first","query":"[10 20 30] | first","expect":"10"}
-{"name":"first-empty","query":"[] | first","expect":"nil"}
+{"name":"first-empty","query":"[] | first","expect":"null"}
 {"name":"last","query":"[10 20 30] | last","expect":"30"}
-{"name":"last-empty","query":"[] | last","expect":"nil"}
+{"name":"last-empty","query":"[] | last","expect":"null"}
 {"name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
 {"name":"sum-empty","query":"[] | sum","expect":"0"}
 {"name":"min","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}

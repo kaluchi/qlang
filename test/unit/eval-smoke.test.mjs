@@ -23,8 +23,8 @@ describe('eval — literals', () => {
     expect(evalQuery('false')).toBe(false);
   });
 
-  it('evaluates nil', () => {
-    expect(evalQuery('nil')).toBe(null);
+  it('evaluates null', () => {
+    expect(evalQuery('null')).toBe(null);
   });
 
   it('evaluates a keyword', () => {
@@ -113,7 +113,7 @@ describe('eval — Map and projection', () => {
     expect(evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
   });
 
-  it('returns nil for missing key', () => {
+  it('returns null for missing key', () => {
     expect(evalQuery('{:name "Alice"} | /age')).toBe(null);
   });
 

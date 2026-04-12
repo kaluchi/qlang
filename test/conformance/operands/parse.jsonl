@@ -5,7 +5,7 @@
 {"name":"parse-keyword-literal-name","query":"\":foo\" | parse | /name","expect":"\"foo\""}
 {"name":"parse-operand-call-name","query":"\"add(1, 2)\" | parse | /name","expect":"\"add\""}
 {"name":"parse-operand-call-args-count","query":"\"add(1, 2)\" | parse | /args | count","expect":"2"}
-{"name":"parse-bare-operand-args-nil","query":"\"count\" | parse | /args","expect":"nil"}
+{"name":"parse-bare-operand-args-null","query":"\"count\" | parse | /args","expect":"null"}
 {"name":"parse-projection-keys","query":"\"/a/b/c\" | parse | /keys","expect":"[\"a\" \"b\" \"c\"]"}
 {"name":"parse-pipeline-kind","query":"\"42 | add(1)\" | parse | /:qlang/kind","expect":":Pipeline"}
 {"name":"parse-pipeline-step-count","query":"\"42 | add(1) | mul(2)\" | parse | /steps | count","expect":"3"}

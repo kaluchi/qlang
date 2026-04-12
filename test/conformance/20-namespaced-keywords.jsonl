@@ -12,7 +12,7 @@
 {"name":"keyword-projection-two-ns-segments","query":"{:qlang/error {:retry 42}} | /:qlang/error/:retry","expect":"42"}
 {"name":"keyword-projection-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | /:qlang/core/strings/:trim","expect":"1"}
 {"name":"keyword-projection-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | /outer/:qlang/error","expect":"42"}
-{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | /:qlang/http","expect":"nil"}
+{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | /:qlang/http","expect":"null"}
 {"name":"bare-projection-unchanged","query":"{:a {:b {:c 42}}} | /a/b/c","expect":"42"}
 {"name":"keyword-projection-equiv-bare","query":"{:name 42} | /:name","expect":"42"}
 {"name":"keyword-projection-equiv-bare-nested","query":"{:a {:b 42}} | /:a/:b","expect":"42"}

@@ -6,7 +6,7 @@
 {"name":"value-level-on-true","query":"true | reify | /value","expect":"true"}
 {"name":"value-level-on-true-type","query":"true | reify | /type","expect":":boolean"}
 {"name":"value-level-on-false","query":"false | reify | /value","expect":"false"}
-{"name":"value-level-on-nil","query":"nil | reify | /type","expect":":\"nil\""}
+{"name":"value-level-on-null","query":"null | reify | /type","expect":":\"null\""}
 {"name":"value-level-on-keyword","query":":foo | reify | /type","expect":":keyword"}
 {"name":"value-level-on-keyword-value","query":":foo | reify | /value","expect":":foo"}
 {"name":"value-level-on-vec","query":"[1 2 3] | reify | /type","expect":":vec"}
@@ -79,7 +79,7 @@
 {"name":"conduit-effectful-true-on-marked-let","query":"let(:@foo, count) | reify(:@foo) | /effectful","expect":"true"}
 {"name":"snapshot-effectful-false-on-clean-as","query":"42 | as(:snap) | reify(:snap) | /effectful","expect":"false"}
 {"name":"snapshot-effectful-true-on-marked-as","query":"42 | as(:@snap) | reify(:@snap) | /effectful","expect":"true"}
-{"name":"conduit-location-non-nil","query":"let(:foo, count) | reify(:foo) | /location | eq(nil) | not","expect":"true"}
-{"name":"snapshot-location-non-nil","query":"42 | as(:snap) | reify(:snap) | /location | eq(nil) | not","expect":"true"}
-{"name":"value-descriptor-name-is-null-without-binding","query":"42 | reify | /name","expect":"nil"}
+{"name":"conduit-location-non-null","query":"let(:foo, count) | reify(:foo) | /location | eq(null) | not","expect":"true"}
+{"name":"snapshot-location-non-null","query":"42 | as(:snap) | reify(:snap) | /location | eq(null) | not","expect":"true"}
+{"name":"value-descriptor-name-is-null-without-binding","query":"42 | reify | /name","expect":"null"}
 {"name":"manifest-effectful-uniform-false-on-langruntime","query":"manifest * /effectful | distinct","expect":"[false]"}

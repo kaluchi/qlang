@@ -4,7 +4,7 @@
 // function values (conduit-parameter proxies, ephemeral and per-call),
 // conduits, and snapshots. JavaScript representations:
 //
-//   Scalar     → number, string, boolean, null (for nil),
+//   Scalar     → number, string, boolean, null,
 //                or an interned keyword object
 //                ({ type: 'keyword', name: string })
 //   Vec        → JS Array
@@ -36,11 +36,11 @@
 //                visible failure shape. The fifth qlang value type;
 //                rides the fail-track via the :trail invariant.
 
-export const NIL = null;
+export const NULL = null;
 
 // ── primitive type predicates ──────────────────────────────────
 
-export function isNil(v) { return v === null || v === undefined; }
+export function isNull(v) { return v === null || v === undefined; }
 export function isBoolean(v) { return typeof v === 'boolean'; }
 export function isNumber(v) { return typeof v === 'number'; }
 export function isString(v) { return typeof v === 'string'; }
@@ -62,7 +62,7 @@ export function isErrorValue(v) {
 }
 
 // ── truthiness ─────────────────────────────────────────────────
-// nil and false are falsy; everything else is truthy (including
+// null and false are falsy; everything else is truthy (including
 // 0, "", [], {}, #{}).
 export function isTruthy(v) {
   return v !== null && v !== undefined && v !== false;
@@ -294,7 +294,7 @@ export function materializeTrail(errorValue) {
 // messages would lose the binding-kind hint.
 
 export function describeType(v) {
-  if (isNil(v)) return 'nil';
+  if (isNull(v)) return 'null';
   if (isBoolean(v)) return 'boolean';
   if (isNumber(v)) return 'number';
   if (isString(v)) return 'string';

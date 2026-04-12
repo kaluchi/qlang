@@ -50,7 +50,7 @@ export function astChildrenOf(node) {
         for (const arg of node.args) out.push(arg);
       }
       break;
-    // Leaves: NumberLit, StringLit, BooleanLit, NilLit, Keyword,
+    // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
     // Projection, LinePlainComment, BlockPlainComment,
     // LineDocComment, BlockDocComment have no semantic children.
   }
@@ -244,20 +244,20 @@ export function triviaBetweenAstNodes(nodeA, nodeB, ast) {
 //   NumberLit         :value <number>
 //   StringLit         :value <string>
 //   BooleanLit        :value <boolean>
-//   NilLit            (no payload beyond discriminator)
+//   NullLit            (no payload beyond discriminator)
 //   Keyword           :name <string>
 //   Projection        :keys <Vec of strings> [:effectful <bool>]
 //   VecLit / SetLit   :elements <Vec of AST-Maps>
 //   MapLit / ErrorLit :entries <Vec of MapEntry AST-Maps>
 //   MapEntry          :key <Keyword AST-Map> :value <AST-Map>
-//   OperandCall       :name <string> :args <Vec of AST-Maps | nil>
+//   OperandCall       :name <string> :args <Vec of AST-Maps | null>
 //                     [:docs <Vec of strings>] [:effectful <bool>]
 //   ParenGroup        :pipeline <Pipeline AST-Map>
 //   Pipeline          :steps <Vec of PipelineStep Maps>
 //                     :leadingFail <boolean>
-//   PipelineStep      :combinator <string | nil>  :step <AST-Map>
+//   PipelineStep      :combinator <string | null>  :step <AST-Map>
 //                     (wrapper inside Pipeline.steps — first step
-//                      carries nil combinator, rest carry "|", "!|",
+//                      carries null combinator, rest carry "|", "!|",
 //                      "*", or ">>")
 //   LinePlainComment  :content <string>
 //   BlockPlainComment :content <string>
@@ -302,7 +302,7 @@ const KW_COLUMN = keyword('column');
 const KW_KIND_NUMBER_LIT          = keyword('NumberLit');
 const KW_KIND_STRING_LIT          = keyword('StringLit');
 const KW_KIND_BOOLEAN_LIT         = keyword('BooleanLit');
-const KW_KIND_NIL_LIT             = keyword('NilLit');
+const KW_KIND_NULL_LIT             = keyword('NullLit');
 const KW_KIND_KEYWORD             = keyword('Keyword');
 const KW_KIND_PROJECTION          = keyword('Projection');
 const KW_KIND_VEC_LIT             = keyword('VecLit');
@@ -326,7 +326,7 @@ const AST_KIND_TO_TYPE = new Map([
   [KW_KIND_NUMBER_LIT,          'NumberLit'],
   [KW_KIND_STRING_LIT,          'StringLit'],
   [KW_KIND_BOOLEAN_LIT,         'BooleanLit'],
-  [KW_KIND_NIL_LIT,             'NilLit'],
+  [KW_KIND_NULL_LIT,             'NullLit'],
   [KW_KIND_KEYWORD,             'Keyword'],
   [KW_KIND_PROJECTION,          'Projection'],
   [KW_KIND_VEC_LIT,             'VecLit'],
@@ -452,8 +452,8 @@ export function astNodeToMap(node) {
       m.set(KW_VALUE, node.value);
       break;
 
-    case 'NilLit':
-      m.set(KW_QLANG_KIND, KW_KIND_NIL_LIT);
+    case 'NullLit':
+      m.set(KW_QLANG_KIND, KW_KIND_NULL_LIT);
       break;
 
     case 'Keyword':
@@ -555,7 +555,7 @@ export function astNodeToMap(node) {
 // combinator), and steps[i>=1] is a { combinator, step } wrapper
 // object carrying the combinator token and the subsequent AST node.
 // For round-trip fidelity the Map form uniforms this into a Vec of
-// PipelineStep Maps, each carrying a :combinator field (nil for the
+// PipelineStep Maps, each carrying a :combinator field (null for the
 // head, string for the rest) and a :step field holding the step's own
 // AST-Map. The PipelineStep wrapper itself is an AST-Map kind so that
 // downstream walkers recognize it via :qlang/kind like any other node.
@@ -613,7 +613,7 @@ export function qlangMapToAst(map) {
       node.value = map.get(KW_VALUE);
       break;
 
-    case 'NilLit':
+    case 'NullLit':
       // No payload beyond the discriminator.
       break;
 

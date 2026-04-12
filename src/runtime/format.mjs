@@ -111,6 +111,6 @@ function collectColumnOrder(rowCaches) {
   return order;
 }
 
-// Variant-B primitive registry bindings — coexist with IMPLS.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/json'),  json);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/table'), table);

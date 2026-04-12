@@ -51,6 +51,6 @@ export const error = makeFn('error', 1, (state, lambdas) => {
 // error value, false otherwise.
 export const isError = nullaryOp('isError', (subject) => isErrorValue(subject));
 
-// Variant-B primitive registry bindings — coexist with IMPLS.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/error'),   error);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isError'), isError);

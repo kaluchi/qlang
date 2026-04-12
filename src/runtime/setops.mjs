@@ -126,7 +126,7 @@ export const inter = overloadedOp('inter', 2, {
     interPair(leftLambda(pipeValue), rightLambda(pipeValue))
 });
 
-// Variant-B primitive registry bindings — coexist with IMPLS.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/union'), union);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/minus'), minus);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/inter'), inter);

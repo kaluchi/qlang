@@ -13,21 +13,21 @@ import {
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const PrependSubjectNotString = declareModifierError('PrependSubjectNotString', 'prepend', 1, 'string');
-const PrependPrefixNotString  = declareModifierError('PrependPrefixNotString',  'prepend', 2, 'string');
-const AppendSubjectNotString  = declareModifierError('AppendSubjectNotString',  'append',  1, 'string');
-const AppendSuffixNotString   = declareModifierError('AppendSuffixNotString',   'append',  2, 'string');
-const SplitSubjectNotString   = declareModifierError('SplitSubjectNotString',   'split',   1, 'string');
-const SplitSeparatorNotString = declareModifierError('SplitSeparatorNotString', 'split',   2, 'string');
-const JoinSubjectNotVec       = declareSubjectError('JoinSubjectNotVec',        'join',    'Vec of strings');
-const JoinElementNotString    = declareElementError('JoinElementNotString',     'join',    'string');
-const JoinSeparatorNotString  = declareModifierError('JoinSeparatorNotString',  'join',    2, 'string');
-const ContainsSubjectNotString    = declareModifierError('ContainsSubjectNotString',    'contains',    1, 'string');
-const ContainsNeedleNotString     = declareModifierError('ContainsNeedleNotString',     'contains',    2, 'string');
-const StartsWithSubjectNotString  = declareModifierError('StartsWithSubjectNotString',  'startsWith',  1, 'string');
-const StartsWithPrefixNotString   = declareModifierError('StartsWithPrefixNotString',   'startsWith',  2, 'string');
-const EndsWithSubjectNotString    = declareModifierError('EndsWithSubjectNotString',    'endsWith',    1, 'string');
-const EndsWithSuffixNotString     = declareModifierError('EndsWithSuffixNotString',     'endsWith',    2, 'string');
+const PrependSubjectNotString    = declareModifierError('PrependSubjectNotString',    'prepend',    1, 'string');
+const PrependPrefixNotString     = declareModifierError('PrependPrefixNotString',     'prepend',    2, 'string');
+const AppendSubjectNotString     = declareModifierError('AppendSubjectNotString',     'append',     1, 'string');
+const AppendSuffixNotString      = declareModifierError('AppendSuffixNotString',      'append',     2, 'string');
+const SplitSubjectNotString      = declareModifierError('SplitSubjectNotString',      'split',      1, 'string');
+const SplitSeparatorNotString    = declareModifierError('SplitSeparatorNotString',    'split',      2, 'string');
+const JoinSubjectNotVec          = declareSubjectError('JoinSubjectNotVec',           'join',       'Vec of strings');
+const JoinElementNotString       = declareElementError('JoinElementNotString',        'join',       'string');
+const JoinSeparatorNotString     = declareModifierError('JoinSeparatorNotString',     'join',       2, 'string');
+const ContainsSubjectNotString   = declareModifierError('ContainsSubjectNotString',   'contains',   1, 'string');
+const ContainsNeedleNotString    = declareModifierError('ContainsNeedleNotString',    'contains',   2, 'string');
+const StartsWithSubjectNotString = declareModifierError('StartsWithSubjectNotString', 'startsWith', 1, 'string');
+const StartsWithPrefixNotString  = declareModifierError('StartsWithPrefixNotString',  'startsWith', 2, 'string');
+const EndsWithSubjectNotString   = declareModifierError('EndsWithSubjectNotString',   'endsWith',   1, 'string');
+const EndsWithSuffixNotString    = declareModifierError('EndsWithSuffixNotString',    'endsWith',   2, 'string');
 
 export const prepend = valueOp('prepend', 2, (subject, prefix) => {
   if (typeof subject !== 'string') throw new PrependSubjectNotString(describeType(subject), subject);
@@ -76,7 +76,7 @@ export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
   return subject.endsWith(suffix);
 });
 
-// Variant-B primitive registry bindings — coexist with IMPLS.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/prepend'),    prepend);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/append'),     append);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/split'),      split);

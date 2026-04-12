@@ -1798,7 +1798,7 @@ filter(/age | gt(18))
 | Keyword | `:` (ident \| namespaced \| quoted-string) | `:name`, `:qlang/error`, `:"foo bar"` |
 | Ident | (alpha \| `@` \| `_`) (alnum \| `-` \| `_`)* | `count`, `my-fn`, `@callers`, `_private` |
 | Projection | `/` keyseg (`/` keyseg)* | `/name`, `/a/b/c`, `/"foo bar"`, `/"a.b"/"$ref"` |
-| KeySeg | quoted-string \| ident | `name`, `"foo bar"` |
+| KeySegment | quoted-string \| ident | `name`, `"foo bar"` |
 | Pipe | `\|` | |
 | FailApply | `!\|` | |
 | Star | `*` | |
@@ -1859,8 +1859,8 @@ Vec           ← '[' (Pipeline (','? Pipeline)*)? ']'
 
 Operand       ← Ident ('(' (Pipeline (','? Pipeline)*)? ')')?
 
-Projection    ← '/' KeySeg ('/' KeySeg)*
-KeySeg        ← ':' NamespacedName / ':' KeywordName
+Projection    ← '/' KeySegment ('/' KeySegment)*
+KeySegment    ← ':' NamespacedName / ':' KeywordName
                / QuotedKeywordName / KeywordName
 
 Scalar        ← String / Number / Boolean / Null / Keyword

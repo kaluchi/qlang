@@ -360,11 +360,7 @@ export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   return 0;
 });
 
-// ── Variant-B primitive registry bindings ─────────────────────
-// Bind each Vec-family impl into PRIMITIVE_REGISTRY under its
-// :qlang/prim/ namespaced key at module-load time. Coexists with
-// the legacy IMPLS pathway in runtime/index.mjs; Step 5 will cut
-// evalOperandCall over to PRIMITIVE_REGISTRY.resolve.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/count'),        count);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/empty'),        empty);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/first'),        first);

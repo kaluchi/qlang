@@ -302,7 +302,7 @@ const KW_COLUMN = keyword('column');
 const KW_KIND_NUMBER_LIT          = keyword('NumberLit');
 const KW_KIND_STRING_LIT          = keyword('StringLit');
 const KW_KIND_BOOLEAN_LIT         = keyword('BooleanLit');
-const KW_KIND_NULL_LIT             = keyword('NullLit');
+const KW_KIND_NULL_LIT            = keyword('NullLit');
 const KW_KIND_KEYWORD             = keyword('Keyword');
 const KW_KIND_PROJECTION          = keyword('Projection');
 const KW_KIND_VEC_LIT             = keyword('VecLit');
@@ -326,13 +326,13 @@ const AST_KIND_TO_TYPE = new Map([
   [KW_KIND_NUMBER_LIT,          'NumberLit'],
   [KW_KIND_STRING_LIT,          'StringLit'],
   [KW_KIND_BOOLEAN_LIT,         'BooleanLit'],
-  [KW_KIND_NULL_LIT,             'NullLit'],
+  [KW_KIND_NULL_LIT,            'NullLit'],
   [KW_KIND_KEYWORD,             'Keyword'],
   [KW_KIND_PROJECTION,          'Projection'],
   [KW_KIND_VEC_LIT,             'VecLit'],
   [KW_KIND_SET_LIT,             'SetLit'],
   [KW_KIND_MAP_LIT,             'MapLit'],
-  [KW_KIND_ERROR_LIT,            'ErrorLit'],
+  [KW_KIND_ERROR_LIT,           'ErrorLit'],
   [KW_KIND_MAP_ENTRY,           'MapEntry'],
   [KW_KIND_OPERAND_CALL,        'OperandCall'],
   [KW_KIND_PAREN_GROUP,         'ParenGroup'],
@@ -411,7 +411,7 @@ function locationFromQlangMap(map) {
 
 // Stamp :text and :location on an AST-Map under construction. Every
 // parser-produced node carries both, so the stamp is factored into a
-// single helper used at the tail of each per-type branch below.
+// `stampCommonFields`, called at the tail of each per-type branch below.
 function stampCommonFields(target, node) {
   if (node.text !== undefined)     target.set(KW_TEXT, node.text);
   if (node.location !== undefined) target.set(KW_LOCATION, locationToQlangMap(node.location));

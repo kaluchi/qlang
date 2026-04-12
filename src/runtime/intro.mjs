@@ -224,13 +224,13 @@ function buildBuiltinDescriptor(fn, explicitName) {
 }
 
 // Variant-B descriptor field constants for Map-based reads.
-const KW_BODY_FIELD     = keyword('qlang/body');
-const KW_VALUE_FIELD    = keyword('qlang/value');
-const KW_NAME_FIELD     = keyword('name');
-const KW_PARAMS_FIELD   = keyword('params');
-const KW_DOCS_FIELD     = keyword('docs');
+const KW_BODY_FIELD      = keyword('qlang/body');
+const KW_VALUE_FIELD     = keyword('qlang/value');
+const KW_NAME_FIELD      = keyword('name');
+const KW_PARAMS_FIELD    = keyword('params');
+const KW_DOCS_FIELD      = keyword('docs');
 const KW_EFFECTFUL_FIELD = keyword('effectful');
-const KW_LOCATION_FIELD = keyword('location');
+const KW_LOCATION_FIELD  = keyword('location');
 
 function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
@@ -312,9 +312,9 @@ function describeBinding(value, explicitName) {
   // Conduit-parameters (created at applyConduit time via makeFn)
   // are function values that can show up as env bindings while a
   // conduit body is evaluating. buildBuiltinDescriptor handles
-  // them via the legacy fn.meta path, since their metadata is
-  // inlined at makeConduitParameter time rather than living in
-  // core.qlang.
+  // them via the fn.meta path carried by conduit-parameter proxies
+  // constructed at makeConduitParameter time, since their metadata
+  // is inlined rather than living in core.qlang.
   if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
   if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
   if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
@@ -604,9 +604,9 @@ export const evalOperand = stateOp('eval', 1, (state, _lambdas) => {
 // `parse` / `eval` (those names are JS reserved / common enough
 // that the JS-side identifier disambiguates); the registry keys
 // use the qlang names.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/env'),          env);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/use'),          use);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reify'),        reify);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/env'),         env);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/use'),         use);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reify'),       reify);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/runExamples'), runExamples);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/manifest'),    manifest);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/let'),         letOperand);

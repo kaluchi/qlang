@@ -89,10 +89,9 @@ export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
     return NULL;
   }, [1, UNBOUNDED]);
 
-// Variant-B primitive registry bindings — coexist with IMPLS. The
-// qlang-level `if` operand is exported as `ifOp` at the JS level
-// (because `if` is a JS reserved word) but binds under its qlang
-// name :qlang/prim/if.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
+// `ifOp` is the JS-level identifier for the qlang `if` operand
+// (because `if` is a JS reserved word).
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/if'),          ifOp);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/when'),        when);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/unless'),      unless);

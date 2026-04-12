@@ -97,7 +97,7 @@ const AST_NODE_EVALUATORS = {
   NumberLit:         evalNumberLit,
   StringLit:         evalStringLit,
   BooleanLit:        evalBooleanLit,
-  NullLit:            evalNullLit,
+  NullLit:           evalNullLit,
   Keyword:           evalKeyword,
   VecLit:            evalVecLit,
   MapLit:            evalMapLit,
@@ -487,8 +487,8 @@ function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // Variant-B dispatch core for built-in operands. Resolves the
 // descriptor's :qlang/impl keyword through PRIMITIVE_REGISTRY into
 // the JS function value registered by runtime/*.mjs at module-load
-// time, then delegates to applyRule10 exactly as the legacy
-// function-value path does.
+// time, then delegates to applyRule10 exactly as the
+// conduit-parameter dispatch path does.
 //
 // Bare-identifier lookup on a non-nullary operand returns the
 // descriptor itself as pipeValue instead of firing an arity error:
@@ -514,7 +514,8 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
 
   // Bare non-nullary lookup → return descriptor as pipeValue. The
   // min captured-arg count lives in impl.meta.captured[0] (set by
-  // every dispatch-wrapper helper at makeFn time). A minCaptured
+  // every dispatch wrapper — valueOp, higherOrderOp, nullaryOp,
+  // overloadedOp — at makeFn time). A minCaptured
   // of 0 means the operand has a valid nullary call shape, so bare
   // lookup fires the operand as before; any positive minCaptured
   // means bare lookup has no valid application and yields the

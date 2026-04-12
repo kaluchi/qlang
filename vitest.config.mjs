@@ -8,10 +8,10 @@ export default defineConfig({
       reporter: ['text', 'text-summary'],
       include: ['src/**/*.mjs'],
       thresholds: {
-        lines: 99,
-        functions: 99,
-        branches: 99,
-        statements: 99
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100
       }
     }
   }

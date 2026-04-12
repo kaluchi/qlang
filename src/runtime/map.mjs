@@ -35,7 +35,7 @@ export const has = valueOp('has', 2, (subject, key) => {
   throw new HasSubjectNotMapOrSet(describeType(subject), subject);
 });
 
-// Variant-B primitive registry bindings — coexist with IMPLS.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/keys'), keys);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/vals'), vals);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/has'),  has);

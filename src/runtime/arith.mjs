@@ -48,13 +48,7 @@ export const div = valueOp('div', 2, (a, b) => {
   return a / b;
 });
 
-// ── Variant-B primitive registry bindings ─────────────────────
-// Bind each impl into PRIMITIVE_REGISTRY under its :qlang/prim/
-// namespaced key at module-load time. These bindings coexist with
-// the legacy IMPLS-based function-value pathway in runtime/index.mjs
-// — nothing reads from the registry yet; Step 5 of the Variant-B
-// refactor will cut evalOperandCall over to dispatching through
-// PRIMITIVE_REGISTRY.resolve and retire the IMPLS table.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/add'), add);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sub'), sub);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/mul'), mul);

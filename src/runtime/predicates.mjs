@@ -55,7 +55,7 @@ export const or = valueOp('or', 2, (a, b) => isTruthy(a) || isTruthy(b));
 
 export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 
-// Variant-B primitive registry bindings — coexist with IMPLS.
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/eq'),  eq);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/gt'),  gt);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/lt'),  lt);

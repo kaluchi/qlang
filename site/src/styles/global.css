@@ -180,7 +180,7 @@ code, pre {
 .install-command:hover {
   background: var(--color-bg-weak-hover);
 }
-.install-command .cmd { color: var(--color-text-weak); }
+.install-command .cmd { color: var(--color-text); }
 .install-command .highlight { color: var(--color-text-strong); }
 
 .copy-btn {
@@ -272,13 +272,59 @@ code, pre {
   overflow-x: auto;
 }
 
-.code-editor-body .keyword { color: #3f3f46; font-weight: 500; }
-.code-editor-body .operand { color: #52525b; }
-.code-editor-body .string  { color: #71717a; }
-.code-editor-body .number  { color: #52525b; }
-.code-editor-body .comment { color: #a1a1aa; font-style: italic; }
-.code-editor-body .punct   { color: #a1a1aa; }
-.code-editor-body .result  { color: var(--color-text-weak); }
+/* ── qlang syntax highlighting — shared across all code surfaces ── */
+
+/* ── qlang syntax highlighting — shared across all code surfaces ── */
+
+.code-editor-body .keyword,
+.pg-source .keyword,       .pg-value .keyword,
+.playground-highlight .keyword,
+.repl-input-highlight .keyword,
+.repl-entry-input .keyword, .repl-entry-output .keyword { color: #4338ca; }
+
+.code-editor-body .atom,
+.pg-source .atom,          .pg-value .atom,
+.playground-highlight .atom,
+.repl-input-highlight .atom,
+.repl-entry-input .atom,   .repl-entry-output .atom     { color: #15803d; }
+
+.code-editor-body .effect,
+.pg-source .effect,        .pg-value .effect,
+.playground-highlight .effect,
+.repl-input-highlight .effect,
+.repl-entry-input .effect, .repl-entry-output .effect   { color: #c2410c; }
+
+.code-editor-body .operand,
+.pg-source .operand,       .pg-value .operand,
+.playground-highlight .operand,
+.repl-input-highlight .operand,
+.repl-entry-input .operand, .repl-entry-output .operand { color: #0e7490; }
+
+.code-editor-body .string,
+.pg-source .string,        .pg-value .string,
+.playground-highlight .string,
+.repl-input-highlight .string,
+.repl-entry-input .string, .repl-entry-output .string   { color: #b45309; }
+
+.code-editor-body .number,
+.pg-source .number,        .pg-value .number,
+.playground-highlight .number,
+.repl-input-highlight .number,
+.repl-entry-input .number, .repl-entry-output .number   { color: #6d28d9; }
+
+.code-editor-body .comment,
+.pg-source .comment,       .pg-value .comment,
+.playground-highlight .comment,
+.repl-input-highlight .comment,
+.repl-entry-input .comment, .repl-entry-output .comment { color: #52525b; font-style: italic; }
+
+.code-editor-body .punct,
+.pg-source .punct,         .pg-value .punct,
+.playground-highlight .punct,
+.repl-input-highlight .punct,
+.repl-entry-input .punct,  .repl-entry-output .punct    { color: #475569; }
+
+.code-editor-body .result  { color: #1f2937; }
 
 /* ── Features ──────────────────────────────────────────── */
 
@@ -374,18 +420,42 @@ code, pre {
   padding-top: 1px;
 }
 
-.repl-input {
+.repl-input-wrap {
+  position: relative;
   flex: 1;
+}
+
+.repl-input-highlight {
+  position: absolute;
+  inset: 0;
+  margin: 0;
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.7;
-  color: var(--color-text-strong);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: hidden;
+  pointer-events: none;
+  tab-size: 2;
+}
+
+.repl-input {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.7;
+  color: transparent;
+  caret-color: var(--color-text-strong);
   background: none;
   border: none;
   outline: none;
   resize: none;
   min-height: 24px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .repl-output {

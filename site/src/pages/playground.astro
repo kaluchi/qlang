@@ -26,18 +26,21 @@ import Base from "../layouts/Base.astro"
             <span>Editor</span>
             <button class="playground-run" id="run-btn">Run (Ctrl+Enter)</button>
           </div>
-          <textarea
-            class="playground-textarea"
-            id="editor"
-            spellcheck="false"
-            autocomplete="off"
-            placeholder="Type qlang expressions here...
+          <div class="playground-editor-wrap">
+            <pre class="playground-highlight" id="highlight-layer" aria-hidden="true"></pre>
+            <textarea
+              class="playground-textarea"
+              id="editor"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="Type qlang expressions here...
 
 [1 2 3 4 5] | filter(gt(2)) | count
 
 let(:double, mul(2))
 | [10 20 30] * double"
-          ></textarea>
+            ></textarea>
+          </div>
         </div>
         <div class="playground-output">
           <div class="playground-output-header">
@@ -108,18 +111,46 @@ let(:double, mul(2))
     background: var(--color-bg-weak-hover);
   }
 
-  .playground-textarea {
+  .playground-editor-wrap {
+    position: relative;
     flex: 1;
+    overflow: hidden;
+  }
+
+  .playground-highlight {
+    position: absolute;
+    inset: 0;
+    margin: 0;
     font-family: var(--font-mono);
     font-size: 14px;
     line-height: 1.7;
-    color: var(--color-text-strong);
-    background: var(--color-bg);
+    padding: var(--space-md);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: hidden;
+    pointer-events: none;
+    tab-size: 2;
+    box-sizing: border-box;
+  }
+
+  .playground-textarea {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    color: transparent;
+    caret-color: var(--color-text-strong);
+    background: transparent;
     border: none;
     outline: none;
     resize: none;
     padding: var(--space-md);
     tab-size: 2;
+    box-sizing: border-box;
   }
 
   .playground-results {
@@ -166,16 +197,33 @@ let(:double, mul(2))
 </style>
 
 <script>
+  import { highlightQlang } from '../lib/qlang-highlight.js';
+
   async function initPlayground() {
-    const { evalQuery, printValue } = await import(
+    const { evalQuery, printValue, parse, walkAst, langRuntime } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
+    const builtins = new Set([...langRuntime().keys()].map((k: any) => k.name));
 
     const editor = document.getElementById('editor') as HTMLTextAreaElement;
     const results = document.getElementById('results')!;
     const runBtn = document.getElementById('run-btn')!;
     const clearBtn = document.getElementById('clear-btn')!;
+    const highlightLayer = document.getElementById('highlight-layer')!;
+
+    const hl = (src: string) => highlightQlang(src, parse, walkAst, builtins);
+
+    function updateEditorHighlight() {
+      // Trailing '\n' ensures the last line renders at full height in the pre.
+      highlightLayer.innerHTML = hl(editor.value) + '\n';
+    }
+
+    editor.addEventListener('input', updateEditorHighlight);
+    editor.addEventListener('scroll', () => {
+      highlightLayer.scrollTop = editor.scrollTop;
+    });
+    updateEditorHighlight();
 
     function run() {
       const source = editor.value.trim();
@@ -190,9 +238,12 @@ let(:double, mul(2))
         const isError = result && typeof result === 'object' && result.type === 'error';
         const entry = document.createElement('div');
         entry.className = 'pg-entry';
+        const highlighted = highlightQlang(cell.trim(), parse, walkAst, builtins)
+          .replace(/\n/g, '<br>');
+        const highlightedResult = highlightQlang(printValue(result), parse, walkAst, builtins);
         entry.innerHTML = `
-          <div class="pg-source">${cell.trim().replace(/</g, '&lt;').replace(/\n/g, '<br>')}</div>
-          <div class="${isError ? 'pg-error' : 'pg-value'}">${printValue(result).replace(/</g, '&lt;')}</div>
+          <div class="pg-source">${highlighted}</div>
+          <div class="${isError ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>
         `;
         entries.push(entry);
       }

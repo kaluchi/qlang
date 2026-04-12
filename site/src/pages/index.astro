@@ -1,21 +1,25 @@
 ---
 import Base from "../layouts/Base.astro"
+import { parse, walkAst, langRuntime } from "../../../src/index.mjs"
+import { highlightQlang } from "../lib/qlang-highlight.js"
+
+const builtins = new Set([...langRuntime().keys()].map(k => k.name))
 
 const examples = [
   {
     tab: "pipeline",
     file: "filter + count",
-    code: `> [1 2 3 4 5] | filter(gt(3)) | count\n2`,
+    code: `|~| Vec → filter → count\n> [1 2 3 4 5] | filter(gt(3)) | count\n2`,
   },
   {
     tab: "let",
     file: "let + distribute",
-    code: `> let(:double, mul(2)) | [10 20 30] * double\n[20 40 60]`,
+    code: `|~| bind name · spread over Vec\n> let(:double, mul(2)) | [10 20 30] * double\n[20 40 60]`,
   },
   {
     tab: "conduit",
     file: "parametric conduit",
-    code: `> let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))\n  | "world" | @surround("[", "]")\n"[world]"`,
+    code: `|~| parametric conduit · @-effectful binding\n> let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))\n  | "world" | @surround("[", "]")\n"[world]"`,
   },
   {
     tab: "code-as-data",
@@ -25,13 +29,29 @@ const examples = [
 ]
 
 function formatExample(code: string): string {
-  return code
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/^(&gt; )(.+)$/gm, '<span class="punct">$1</span><span class="operand">$2</span>')
-    .replace(/(\|~\|[^\n]*)/g, '<span class="comment">$1</span>')
-    .replace(/^([^<\n][^\n]*)$/gm, '<span class="result">$1</span>');
+  const lines = code.split('\n');
+
+  // Collect prompt + continuation lines for a single parse job.
+  type LineInfo = { type: 'comment' | 'prompt' | 'cont' | 'result'; content: string };
+  const infos: LineInfo[] = lines.map(line => {
+    if (/^\|~/.test(line))       return { type: 'comment', content: line };
+    if (line.startsWith('> '))   return { type: 'prompt',  content: line.slice(2) };
+    if (/^  \S/.test(line))      return { type: 'cont',    content: line.slice(2) };
+    return { type: 'result', content: line };
+  });
+
+  // Build combined qlang source from prompt/cont lines and highlight it.
+  const codeLines = infos.filter(l => l.type === 'prompt' || l.type === 'cont');
+  const combined  = codeLines.map(l => l.content).join('\n');
+  const hlSplit   = highlightQlang(combined, parse, walkAst, builtins).split('\n');
+
+  let codeIdx = 0;
+  return infos.map(({ type, content }) => {
+    if (type === 'comment') return `<span class="comment">${content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+    if (type === 'prompt')  return `<span class="punct">&gt; </span>${hlSplit[codeIdx++] ?? ''}`;
+    if (type === 'cont')    return `  ${hlSplit[codeIdx++] ?? ''}`;
+    return highlightQlang(content, parse, walkAst, builtins);
+  }).join('\n');
 }
 
 const features = [
@@ -142,14 +162,17 @@ const features = [
             <div class="repl-history" id="repl-history"></div>
             <div class="repl-input-area">
               <span class="repl-prompt">&gt;</span>
-              <textarea
-                class="repl-input"
-                id="repl-input"
-                rows="1"
-                placeholder={`[1 2 3 4 5] | filter(gt(2)) | count`}
-                spellcheck="false"
-                autocomplete="off"
-              ></textarea>
+              <div class="repl-input-wrap">
+                <pre class="repl-input-highlight" id="repl-highlight" aria-hidden="true"></pre>
+                <textarea
+                  class="repl-input"
+                  id="repl-input"
+                  rows="1"
+                  placeholder={`[1 2 3 4 5] | filter(gt(2)) | count`}
+                  spellcheck="false"
+                  autocomplete="off"
+                ></textarea>
+              </div>
             </div>
           </div>
         </section>
@@ -197,14 +220,29 @@ const features = [
   });
 
   // ── REPL ───────────────────────────────────────────────
+  import { highlightQlang as hl } from '../lib/qlang-highlight.js';
+
   async function initRepl() {
-    const { evalQuery, printValue } = await import(
+    const { evalQuery, printValue, parse, walkAst, langRuntime } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
+    const builtins = new Set([...langRuntime().keys()].map((k: any) => k.name));
+    const hi  = (src: string) => hl(src, parse, walkAst, builtins);
+    const hiv = (src: string) => hl(printValue(evalQuery(src)), parse, walkAst, builtins);
 
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;
     const history = document.getElementById('repl-history')!;
+
+    function makeEntry(src: string, result: any) {
+      const entry = document.createElement('div');
+      entry.className = 'repl-entry';
+      entry.innerHTML = `
+        <div class="repl-entry-input"><span class="punct">&gt; </span>${hi(src)}</div>
+        <div class="repl-entry-output">${hl(printValue(result), parse, walkAst, builtins)}</div>
+      `;
+      return entry;
+    }
 
     // Pre-populate with example results
     const demos = [
@@ -213,39 +251,28 @@ const features = [
       '{:name "alice" :age 30} | /age | mul(2)',
     ];
     for (const src of demos) {
-      const result = evalQuery(src);
-      const entry = document.createElement('div');
-      entry.className = 'repl-entry';
-      entry.innerHTML = `
-        <div class="repl-entry-input">&gt; ${src.replace(/</g, '&lt;')}</div>
-        <div class="repl-entry-output">${printValue(result).replace(/</g, '&lt;')}</div>
-      `;
-      history.appendChild(entry);
+      history.appendChild(makeEntry(src, evalQuery(src)));
     }
+
+    const replHighlight = document.getElementById('repl-highlight')!;
+    function updateReplHighlight() {
+      input.style.height = 'auto';
+      input.style.height = input.scrollHeight + 'px';
+      replHighlight.innerHTML = hi(input.value) + '\n';
+      replHighlight.style.height = input.style.height;
+    }
+    input.addEventListener('input', updateReplHighlight);
 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const source = input.value.trim();
         if (!source) return;
-
-        const result = evalQuery(source);
-        const entry = document.createElement('div');
-        entry.className = 'repl-entry';
-        entry.innerHTML = `
-          <div class="repl-entry-input">&gt; ${source.replace(/</g, '&lt;')}</div>
-          <div class="repl-entry-output">${printValue(result).replace(/</g, '&lt;')}</div>
-        `;
-        history.appendChild(entry);
+        history.appendChild(makeEntry(source, evalQuery(source)));
         history.scrollTop = history.scrollHeight;
         input.value = '';
+        updateReplHighlight();
       }
-    });
-
-    // Auto-resize textarea
-    input.addEventListener('input', () => {
-      input.style.height = 'auto';
-      input.style.height = input.scrollHeight + 'px';
     });
   }
 

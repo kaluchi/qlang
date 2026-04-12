@@ -106,11 +106,13 @@ const features = [
                 ))}
               </div>
             </div>
-            {examples.map((ex, i) => (
-              <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
-                <pre><code set:html={formatExample(ex.code)} /></pre>
-              </div>
-            ))}
+            <div class="code-editor-panels">
+              {examples.map((ex, i) => (
+                <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
+                  <pre><code set:html={formatExample(ex.code)} /></pre>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

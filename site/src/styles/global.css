@@ -250,12 +250,19 @@ code, pre {
   background: var(--color-bg);
 }
 
+.code-editor-panels {
+  display: grid;
+}
+
 .code-editor-body {
+  grid-area: 1 / 1;
   padding: var(--space-lg);
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 .code-editor-body[data-active="true"] {
-  display: block;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .code-editor-body pre {

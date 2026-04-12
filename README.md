@@ -43,4 +43,4 @@ npm test
 npm run test:coverage
 ```
 
-Coverage thresholds: lines >= 99%, functions >= 99%, branches >= 97%.
+Coverage thresholds: lines = 100%, functions = 100%, branches = 100%.

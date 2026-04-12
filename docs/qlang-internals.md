@@ -84,7 +84,7 @@ to one of them. `use`, `env`, `reify`, `manifest`, `error`, and
 
 ### 1. Literal
 
-A literal value: Scalar (`42`, `"hello"`, `nil`, `:keyword`), Vec,
+A literal value: Scalar (`42`, `"hello"`, `null`, `:keyword`), Vec,
 Map, Set, or Error (`!{:kind :oops}`).
 
     (pipeValue, env) → (evalLiteral, env)
@@ -103,8 +103,8 @@ a sub-pipeline in a **fork** of `(pipeValue, env)` — see Fork below.
 
     (pipeValue, env) → (pipeValue[:key], env)     pipeValue must be a Map
 
-If `:key` is absent from the Map, the result is `nil`. If
-`pipeValue` is not a Map (Scalar, Vec, Set, nil, or a function),
+If `:key` is absent from the Map, the result is `null`. If
+`pipeValue` is not a Map (Scalar, Vec, Set, null, or a function),
 the step raises a **type error**.
 
 Nested `/team/lead/email` desugars to `/team | /lead | /email`.
@@ -502,10 +502,10 @@ if the first step is a bare identifier lookup that happens to expect
 a specific input type; in that case the query must explicitly
 establish `pipeValue` before calling any such operand.
 
-(A simpler host might choose `pipeValue = nil` instead of
+(A simpler host might choose `pipeValue = null` instead of
 `langRuntime`. This is NOT equivalent to the conceptual model for
 queries whose first step is a function lookup, because Step 3 would
-pass `nil` as the subject. Implementations should document which
+pass `null` as the subject. Implementations should document which
 variant they use; the reference evaluator uses `pipeValue =
 langRuntime` to match the conceptual model exactly.)
 
@@ -1162,7 +1162,7 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | qlang value | tagged JSON form |
 |---|---|
 | number / string / boolean | itself |
-| nil | `null` |
+| null | `null` |
 | Vec | JSON array of recursively-encoded elements |
 | keyword | `{ "$keyword": "name" }` |
 | Map | `{ "$map": [[k, v], ...] }` (entry pairs, recursively encoded) |

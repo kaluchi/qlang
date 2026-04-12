@@ -460,7 +460,7 @@
            :returns :any
            :modifiers [:pipeline]
            :examples [
-             {:doc "first non-nil name"    :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
+             {:doc "first non-null name"   :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
              {:doc "config override chain" :snippet "config | coalesce(/userOverride, /projectDefault, /globalDefault)"}]
            :throws [:CoalesceNoAlternatives]}
 

@@ -810,7 +810,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('coalesce short-circuits after first non-null (does not evaluate later alts)', () => {
-    // div(0) would raise; coalesce never reaches it because /a is non-nil
+    // div(0) would raise; coalesce never reaches it because /a is non-null
     expect(evalQuery('{:a 1} | coalesce(/a, div(0))')).toBe(1);
   });
 

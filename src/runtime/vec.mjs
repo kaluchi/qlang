@@ -328,17 +328,17 @@ export const desc = higherOrderOp('desc', 2, (pair, keyLambda) => {
   return -compareScalars(leftKey, rightKey);
 });
 
-function nullsKeyComparator(pair, keyLambda, nilFirst, PairNotMapError, KeysNotComparableError) {
+function nullsKeyComparator(pair, keyLambda, nullFirst, PairNotMapError, KeysNotComparableError) {
   if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
   const left  = pair.get(keyword('left'));
   const right = pair.get(keyword('right'));
   const leftKey  = keyLambda(left);
   const rightKey = keyLambda(right);
-  const leftNil  = leftKey === null || leftKey === undefined;
-  const rightNil = rightKey === null || rightKey === undefined;
-  if (leftNil && rightNil) return 0;
-  if (leftNil) return nilFirst ? -1 : 1;
-  if (rightNil) return nilFirst ? 1 : -1;
+  const leftNull  = leftKey === null || leftKey === undefined;
+  const rightNull = rightKey === null || rightKey === undefined;
+  if (leftNull && rightNull) return 0;
+  if (leftNull) return nullFirst ? -1 : 1;
+  if (rightNull) return nullFirst ? 1 : -1;
   checkComparable(KeysNotComparableError, leftKey, rightKey);
   return compareScalars(leftKey, rightKey);
 }

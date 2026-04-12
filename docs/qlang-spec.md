@@ -1774,7 +1774,7 @@ filter(/age | gt(18))
 | String | `"` chars `"` | `"hello"`, `""` |
 | Number | `-`? digits (`.` digits)? | `42`, `-3.14` |
 | Boolean | `true` \| `false` | |
-| Nil | `null` | |
+| Null | `null` | |
 | Keyword | `:` (ident \| namespaced \| quoted-string) | `:name`, `:qlang/error`, `:"foo bar"` |
 | Ident | (alpha \| `@` \| `_`) (alnum \| `-` \| `_`)* | `count`, `my-fn`, `@callers`, `_private` |
 | Projection | `/` keyseg (`/` keyseg)* | `/name`, `/a/b/c`, `/"foo bar"`, `/"a.b"/"$ref"` |

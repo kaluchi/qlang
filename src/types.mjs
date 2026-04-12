@@ -4,7 +4,7 @@
 // function values (conduit-parameter proxies, ephemeral and per-call),
 // conduits, and snapshots. JavaScript representations:
 //
-//   Scalar     → number, string, boolean, null (for nil),
+//   Scalar     → number, string, boolean, null,
 //                or an interned keyword object
 //                ({ type: 'keyword', name: string })
 //   Vec        → JS Array
@@ -62,7 +62,7 @@ export function isErrorValue(v) {
 }
 
 // ── truthiness ─────────────────────────────────────────────────
-// nil and false are falsy; everything else is truthy (including
+// null and false are falsy; everything else is truthy (including
 // 0, "", [], {}, #{}).
 export function isTruthy(v) {
   return v !== null && v !== undefined && v !== false;

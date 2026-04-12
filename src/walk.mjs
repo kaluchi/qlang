@@ -250,14 +250,14 @@ export function triviaBetweenAstNodes(nodeA, nodeB, ast) {
 //   VecLit / SetLit   :elements <Vec of AST-Maps>
 //   MapLit / ErrorLit :entries <Vec of MapEntry AST-Maps>
 //   MapEntry          :key <Keyword AST-Map> :value <AST-Map>
-//   OperandCall       :name <string> :args <Vec of AST-Maps | nil>
+//   OperandCall       :name <string> :args <Vec of AST-Maps | null>
 //                     [:docs <Vec of strings>] [:effectful <bool>]
 //   ParenGroup        :pipeline <Pipeline AST-Map>
 //   Pipeline          :steps <Vec of PipelineStep Maps>
 //                     :leadingFail <boolean>
-//   PipelineStep      :combinator <string | nil>  :step <AST-Map>
+//   PipelineStep      :combinator <string | null>  :step <AST-Map>
 //                     (wrapper inside Pipeline.steps — first step
-//                      carries nil combinator, rest carry "|", "!|",
+//                      carries null combinator, rest carry "|", "!|",
 //                      "*", or ">>")
 //   LinePlainComment  :content <string>
 //   BlockPlainComment :content <string>
@@ -555,7 +555,7 @@ export function astNodeToMap(node) {
 // combinator), and steps[i>=1] is a { combinator, step } wrapper
 // object carrying the combinator token and the subsequent AST node.
 // For round-trip fidelity the Map form uniforms this into a Vec of
-// PipelineStep Maps, each carrying a :combinator field (nil for the
+// PipelineStep Maps, each carrying a :combinator field (null for the
 // head, string for the rest) and a :step field holding the step's own
 // AST-Map. The PipelineStep wrapper itself is an AST-Map kind so that
 // downstream walkers recognize it via :qlang/kind like any other node.

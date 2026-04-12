@@ -44,14 +44,14 @@ form), positions 2..n are modifiers (filled by captured args).
 ### `first`
 
 - **Arity** 1. **Subject** `vec`.
-- Returns the first element, or `nil` if the Vec is empty.
-- **Example**: `[10 20 30] | first` → `10`; `[] | first` → `nil`.
+- Returns the first element, or `null` if the Vec is empty.
+- **Example**: `[10 20 30] | first` → `10`; `[] | first` → `null`.
 
 ### `last`
 
 - **Arity** 1. **Subject** `vec`.
-- Returns the last element, or `nil` if the Vec is empty.
-- **Example**: `[10 20 30] | last` → `30`; `[] | last` → `nil`.
+- Returns the last element, or `null` if the Vec is empty.
+- **Example**: `[10 20 30] | last` → `30`; `[] | last` → `null`.
 
 ### `sum`
 
@@ -64,7 +64,7 @@ form), positions 2..n are modifiers (filled by captured args).
 
 - **Arity** 1. **Subject** `vec`.
 - Returns the minimum (or maximum) element under the natural
-  ordering. Empty Vec yields `nil`.
+  ordering. Empty Vec yields `null`.
 - **Example**: `[3 1 4 1 5] | min` → `1`; `[3 1 4 1 5] | max` → `5`.
 - **Errors**: elements not comparable → type error.
 
@@ -186,28 +186,28 @@ form), positions 2..n are modifiers (filled by captured args).
 
 - **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
   by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
-- Ascending comparator that places nil-keyed elements before all
-  non-nil elements. Non-nil keys are sorted in ascending order.
+- Ascending comparator that places null-keyed elements before all
+  non-null elements. Non-null keys are sorted in ascending order.
   Use inside `sortWith` to handle data with missing values without
   tripping `AscKeysNotComparable`.
 - **Examples**:
-  - `sortWith(nullsFirst(/age))` → nil ages before all others.
-  - `[{:a 3} {:a nil} {:a 1}] | sortWith(nullsFirst(/a)) * /a`
-    → `[nil 1 3]`.
+  - `sortWith(nullsFirst(/age))` → null ages before all others.
+  - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a`
+    → `[null 1 3]`.
 - **Errors**: pair subject not a Map → type error.
 
 ### `nullsLast(keyExpr)`
 
 - **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
   by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
-- Ascending comparator that places nil-keyed elements after all
-  non-nil elements. Non-nil keys are sorted in ascending order.
+- Ascending comparator that places null-keyed elements after all
+  non-null elements. Non-null keys are sorted in ascending order.
   Use inside `sortWith` to handle data with missing values without
   tripping `AscKeysNotComparable`.
 - **Examples**:
-  - `sortWith(nullsLast(/age))` → nil ages after all others.
-  - `[{:a 3} {:a nil} {:a 1}] | sortWith(nullsLast(/a)) * /a`
-    → `[1 3 nil]`.
+  - `sortWith(nullsLast(/age))` → null ages after all others.
+  - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a`
+    → `[1 3 null]`.
 - **Errors**: pair subject not a Map → type error.
 
 ### `firstNonZero`
@@ -466,9 +466,9 @@ round-trips to `"a,b,c"`.
 ### `not`
 
 - **Arity** 1. **Subject** any value.
-- Returns `true` if the subject is falsy (`nil` or `false`),
+- Returns `true` if the subject is falsy (`null` or `false`),
   `false` otherwise.
-- **Example**: `nil | not` → `true`; `0 | not` → `false` (0 is truthy).
+- **Example**: `null | not` → `true`; `0 | not` → `false` (0 is truthy).
 
 ## Predicates
 
@@ -523,7 +523,7 @@ round-trips to `"a,b,c"`.
 - **Arity** 4. **Subject** any value (the current `pipeValue`),
   **modifiers** three captured sub-pipelines.
 - The `cond` sub-pipeline is evaluated against `pipeValue` and its
-  result is checked for truthiness (per language rules: `nil` and
+  result is checked for truthiness (per language rules: `null` and
   `false` are falsy, everything else — including `0`, `""`, `[]`,
   `{}`, `#{}` — is truthy). If truthy, the `then` sub-pipeline is
   evaluated against the same `pipeValue` and its result becomes the
@@ -577,12 +577,12 @@ round-trips to `"a,b,c"`.
 - **Arity** variadic (1+). **Subject** `pipeValue`, **modifiers**
   one or more alternative sub-pipelines.
 - Evaluates each alternative against `pipeValue` in order and
-  returns the first one that produces a non-`nil` result. If all
-  alternatives produce `nil`, the result is `nil`.
-- **Falsy non-nil values** (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
-  are NOT skipped — only `nil`/`null`/`undefined` count as missing.
+  returns the first one that produces a non-`null` result. If all
+  alternatives produce `null`, the result is `null`.
+- **Falsy non-null values** (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
+  are NOT skipped — only `null`/`null`/`undefined` count as missing.
   This matches SQL `COALESCE` and JavaScript `??` semantics.
-- **Short-circuits**: alternatives after the first non-nil match
+- **Short-circuits**: alternatives after the first non-null match
   are not evaluated.
 - **Examples**:
   - `person | coalesce(/preferredName, /firstName, "Anonymous")` →
@@ -597,10 +597,10 @@ round-trips to `"a,b,c"`.
 - **Arity** variadic (1+). **Subject** `pipeValue`, **modifiers**
   one or more alternative sub-pipelines.
 - Symmetric with `coalesce` but checks **truthiness** instead of
-  nil-ness. Each alternative is evaluated against `pipeValue` in
+  null-ness. Each alternative is evaluated against `pipeValue` in
   order; the first one that produces a truthy value becomes the
   new `pipeValue`. If all alternatives produce falsy values
-  (`nil` or `false`), the result is `nil`.
+  (`null` or `false`), the result is `null`.
 - **Differs from `coalesce`** in that `false` is also skipped:
   `firstTruthy` treats `false` as "no value", `coalesce` treats
   it as a valid explicit setting. Note that `0`, `""`, `[]`, `{}`,
@@ -629,7 +629,7 @@ display defaults where `false` is a sentinel meaning "no value".
   `(pK, bK)`, evaluates `pK` against `pipeValue`; if truthy,
   evaluates `bK` and returns its result. Short-circuits on first
   match. If captured-arg count is odd, the trailing arg is the
-  default. If even and no match, returns `nil`.
+  default. If even and no match, returns `null`.
 - Replaces nested-if chains with a flat catalog.
 - **Examples**:
   - `score | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F")`.
@@ -655,7 +655,7 @@ descend-compute-ascend pattern of pure operands.
 - **Examples**:
   - `env | keys` → a Set of all identifiers in scope.
   - `env | has(:count)` → `true` (count is a built-in).
-  - `env | /taxRate` → the value of a user binding, or `nil`.
+  - `env | /taxRate` → the value of a user binding, or `null`.
 - Inside a fork, returns the fork's current `env` (including any
   fork-local `as` or `let` writes visible at the point of lookup).
 - Captured arguments (`env(...)`) are an arity error.

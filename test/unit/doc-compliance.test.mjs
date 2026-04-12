@@ -25,7 +25,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const docsDir = join(here, '..', '..', 'docs');
 
 // Parse a qlang result string (from doc prose) into a runtime value.
-// Supports: numbers, strings, booleans, nil, keywords, Vecs, Maps, Sets.
+// Supports: numbers, strings, booleans, null, keywords, Vecs, Maps, Sets.
 // The simplest approach: evaluate the expected string as a qlang query.
 function parseExpected(text) {
   const trimmed = text.trim();

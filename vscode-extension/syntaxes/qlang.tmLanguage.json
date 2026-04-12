@@ -67,7 +67,7 @@
     "type-keyword": {
       "comment": "qlang type-vocabulary keywords — the scalar, container, and lambda-parameter types from the spec. Tried before map-key and keyword-atom so type references get support.type scope.",
       "name": "support.type.qlang",
-      "match": ":(number|string|boolean|keyword|nil|any|vec|map|set|predicate-lambda|key-lambda|comparator-lambda|pipeline)(?![a-zA-Z0-9_-])"
+      "match": ":(number|string|boolean|keyword|null|any|vec|map|set|predicate-lambda|key-lambda|comparator-lambda|pipeline)(?![a-zA-Z0-9_-])"
     },
 
     "map-key": {
@@ -124,8 +124,8 @@
           "match": "\\b(true|false)(?![a-zA-Z0-9_-])"
         },
         {
-          "name": "constant.language.nil.qlang",
-          "match": "\\bnil(?![a-zA-Z0-9_-])"
+          "name": "constant.language.null.qlang",
+          "match": "\\bnull(?![a-zA-Z0-9_-])"
         }
       ]
     },

@@ -1,20 +1,40 @@
 {
   "name": "@kaluchi/qlang",
-  "version": "0.1.0-alpha",
+  "version": "0.1.0",
   "description": "Reference implementation of the qlang expression language",
   "type": "module",
   "main": "src/index.mjs",
   "exports": {
-    ".":         { "import": "./src/index.mjs" },
-    "./parse":   { "import": "./src/parse.mjs" },
-    "./eval":    { "import": "./src/eval.mjs" },
-    "./runtime": { "import": "./src/runtime/index.mjs" },
-    "./walk":    { "import": "./src/walk.mjs" },
-    "./session": { "import": "./src/session.mjs" },
-    "./codec":   { "import": "./src/codec.mjs" },
-    "./errors":  { "import": "./src/errors.mjs" },
-    "./effect-check": { "import": "./src/effect-check.mjs" },
-    "./host/module-resolver": { "import": "./host/module-resolver.mjs" }
+    ".": {
+      "import": "./src/index.mjs"
+    },
+    "./parse": {
+      "import": "./src/parse.mjs"
+    },
+    "./eval": {
+      "import": "./src/eval.mjs"
+    },
+    "./runtime": {
+      "import": "./src/runtime/index.mjs"
+    },
+    "./walk": {
+      "import": "./src/walk.mjs"
+    },
+    "./session": {
+      "import": "./src/session.mjs"
+    },
+    "./codec": {
+      "import": "./src/codec.mjs"
+    },
+    "./errors": {
+      "import": "./src/errors.mjs"
+    },
+    "./effect-check": {
+      "import": "./src/effect-check.mjs"
+    },
+    "./host/module-resolver": {
+      "import": "./host/module-resolver.mjs"
+    }
   },
   "sideEffects": false,
   "files": [

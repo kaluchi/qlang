@@ -96,9 +96,9 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
 }, [0, 2]);
 
 const KW_QLANG_LOCATOR = keyword('qlang/locator');
-const KW_QLANG_KIND_BUILTIN = keyword('qlang/kind');
-const KW_BUILTIN_TAG = keyword('builtin');
-const KW_QLANG_IMPL_FIELD = keyword('qlang/impl');
+const KW_QLANG_KIND_DISPATCH = keyword('qlang/kind');
+const KW_BUILTIN_DISPATCH = keyword('builtin');
+const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
 
 // resolveNamespaceEnv(outerEnv, nsKeyword) → moduleEnv Map
 //
@@ -155,8 +155,8 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
       const implKeyword = keyword(implName);
       const implDescriptor = loadedExports.get(implKeyword);
       if (isQMap(implDescriptor)
-          && implDescriptor.get(KW_QLANG_KIND_BUILTIN) === KW_BUILTIN_TAG) {
-        implDescriptor.set(KW_QLANG_IMPL_FIELD, implFn);
+          && implDescriptor.get(KW_QLANG_KIND_DISPATCH) === KW_BUILTIN_DISPATCH) {
+        implDescriptor.set(KW_QLANG_IMPL_DISPATCH, implFn);
       }
     }
   }
@@ -188,8 +188,10 @@ async function importOrderedNamespaces(state, namespaces) {
 async function importUnorderedNamespaces(state, namespaces) {
   const merged = new Map();
   const origins = new Map();
+  let accumulatedEnv = state.env;
   for (const ns of namespaces) {
-    const [moduleEnv] = await resolveNamespaceEnv(state.env, ns);
+    const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(accumulatedEnv, ns);
+    accumulatedEnv = updatedEnv;
     for (const [k, v] of moduleEnv) {
       if (merged.has(k)) {
         throw new UseNamespaceCollision({
@@ -201,11 +203,11 @@ async function importUnorderedNamespaces(state, namespaces) {
       origins.set(k, ns.name);
     }
   }
-  return makeState(state.pipeValue, envMerge(state.env, merged));
+  return makeState(state.pipeValue, envMerge(accumulatedEnv, merged));
 }
 
 async function importSelectiveNamespace(state, nsKeyword, selection) {
-  const [moduleEnv] = await resolveNamespaceEnv(state.env, nsKeyword);
+  const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state.env, nsKeyword);
   const names = isQSet(selection) ? [...selection] : isVec(selection) ? selection : [selection];
   const filtered = new Map();
   for (const name of names) {
@@ -217,7 +219,7 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
     }
     filtered.set(name, moduleEnv.get(name));
   }
-  return makeState(state.pipeValue, envMerge(state.env, filtered));
+  return makeState(state.pipeValue, envMerge(updatedEnv, filtered));
 }
 
 // ── reify and manifest ─────────────────────────────────────────

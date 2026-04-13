@@ -421,9 +421,9 @@ async function evalOperandCall(node, state) {
     // capture via as, or rebinding via session.bind — because
     // every effectful invocation ultimately flows through an
     // identifier lookup at this point. Only conduit-parameters
-    // reach this branch now that built-ins dispatch through the
-    // Variant-B descriptor path above; the check stays for them
-    // because a conduit-parameter proxy may wrap an effectful
+    // reach this branch — built-ins dispatch through the Variant-B
+    // descriptor path in applyBindingDescriptor above. The check
+    // stays because a conduit-parameter proxy may wrap an effectful
     // captured-arg lambda under a non-@-prefixed binding.
     if (resolved.effectful && !classifyEffect(lookupName)) {
       throw new EffectLaunderingAtCall({

@@ -71,10 +71,10 @@ class SessionBindingKindUnknownError extends QlangError {
 //
 // opts:
 //   env     — initial env Map (defaults to a fresh langRuntime())
-//   locator — (namespaceName: string) => {source, impls?} | null
+//   locator — async (namespaceName: string) => {source, impls?} | null
 //             Called by `use(:ns)` when the namespace keyword is not
-//             in env. Enables lazy module loading for host embeddings.
-//             Stored under the reserved :qlang/locator keyword in env.
+//             in env. May be sync or async. Enables lazy module loading
+//             for host embeddings. Stored under :qlang/locator in env.
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse + evaluate; updates env,

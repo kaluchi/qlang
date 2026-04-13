@@ -318,7 +318,7 @@ describe('createSession with locator — lazy module loading', () => {
     expect(reifyDesc.get(keyword('effectful'))).toBe(true);
   });
 
-  it('session without locator throws UseNamespaceNotFound as before', async () => {
+  it('session without locator throws UseNamespaceNotFound on unknown namespace', async () => {
     const plainSession = await createSession();
     const missingCell = await plainSession.evalCell('use(:anything)');
     expect(missingCell.error).toBeNull();

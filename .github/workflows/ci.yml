@@ -58,10 +58,31 @@ jobs:
       - run: npm test
         working-directory: lsp
 
+  site:
+    name: Site tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci
+        working-directory: site
+      - run: npm test
+        working-directory: site
+
   all-green:
     name: All checks passed
     if: always()
-    needs: [test, coverage, lsp]
+    needs: [test, coverage, lsp, site]
     runs-on: ubuntu-latest
     steps:
       - name: Verify no failures
@@ -71,6 +92,8 @@ jobs:
                 "${{ needs.coverage.result }}" == "failure" || \
                 "${{ needs.coverage.result }}" == "cancelled" || \
                 "${{ needs.lsp.result }}"      == "failure" || \
-                "${{ needs.lsp.result }}"      == "cancelled" ]]; then
+                "${{ needs.lsp.result }}"      == "cancelled" || \
+                "${{ needs.site.result }}"     == "failure" || \
+                "${{ needs.site.result }}"     == "cancelled" ]]; then
             exit 1
           fi

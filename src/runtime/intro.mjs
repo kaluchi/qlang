@@ -133,14 +133,18 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
     throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
   }
 
-  // Parse and eval the module source against the current env so
-  // transitive use(:other-ns) inside the module triggers the
-  // locator recursively.
+  // Parse and eval the module source. The module is a Map
+  // expression (like core.qlang) — its pipeValue IS the exports.
+  // Env-delta modules (let declarations) work too: their env delta
+  // is picked up below as a fallback when pipeValue is not a Map.
   const moduleAst = parseSource(locatorResult.source, { uri: nsKeyword.name });
   const moduleEvalState = makeState(outerEnv, outerEnv);
   const moduleResultState = await evalAst(moduleAst, moduleEvalState);
 
   // Export surface = env delta (bindings the module added).
+  // Modules using | use to install descriptor Maps into env work
+  // through this path. Pure Map-expression modules (no | use) must
+  // pipe through use to land their entries in env.
   const loadedExports = new Map();
   for (const [exportKey, exportVal] of moduleResultState.env) {
     if (!outerEnv.has(exportKey)) {

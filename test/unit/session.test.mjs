@@ -246,6 +246,9 @@ describe('serializeSession / deserializeSession round-trip', () => {
 // through `use` to install it in env, then a let-conduit that
 // builds on it. The locator patches :qlang/impl on the builtin
 // descriptor with the host function after eval.
+// Module source: descriptor Map merged via | use to install
+// bindings in env. The locator patches :qlang/impl on the builtin
+// descriptor after eval. Env delta = the exports.
 const MOCK_MODULE_SOURCE = [
   '{:@fetch {:qlang/kind :builtin',
   '         :qlang/impl null',

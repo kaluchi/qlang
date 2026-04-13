@@ -197,23 +197,24 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
   // etc.) still fire on bare lookup because their minCaptured is
   // 0 and bare application is their valid nullary form.
 
-  it('bare `mul` returns mul\'s descriptor Map', async () => {
-    // mul has minCaptured 1, so bare lookup yields the descriptor.
-    // evalQuery's initial pipeValue is langRuntime itself; the
-    // bare mul step dispatches through applyBuiltinDescriptor and
-    // hits the "bare + minCaptured > 0" shortcut.
+  it('bare `mul` returns reify-shaped descriptor Map', async () => {
+    // mul has minCaptured 1, so bare lookup yields the reify-shaped
+    // descriptor — :kind :builtin (not the internal :qlang/kind),
+    // :captured and :effectful stamped from the resolved impl.
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('mul');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
+    expect(evalResult.get(keyword('kind'))).toBe(keyword('builtin'));
     expect(evalResult.get(keyword('category'))).toBe(keyword('arith'));
+    expect(evalResult.has(keyword('qlang/kind'))).toBe(false);
+    expect(evalResult.has(keyword('qlang/impl'))).toBe(false);
   });
 
-  it('bare `filter` returns filter\'s descriptor Map', async () => {
+  it('bare `filter` returns reify-shaped descriptor Map', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('filter');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
+    expect(evalResult.get(keyword('kind'))).toBe(keyword('builtin'));
     expect(evalResult.get(keyword('category'))).toBe(keyword('vec-transformer'));
   });
 

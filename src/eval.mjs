@@ -47,7 +47,6 @@ import {
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
-import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -484,47 +483,49 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
   return null;
 }
 
+// reifyBuiltinDescriptor(rawDescriptor, implFn, introspectionName)
+//
+// Builds a user-facing reify-shape descriptor from a raw env
+// descriptor. Strips internal :qlang/kind and :qlang/impl, stamps
+// :kind :builtin plus :captured and :effectful read from the
+// resolved function value. Matches the shape intro.mjs::describeBinding
+// produces for builtin descriptors — factored here to avoid a
+// circular import (intro → eval → intro).
+function reifyBuiltinDescriptor(rawDescriptor, implFn, introspectionName) {
+  const reified = new Map();
+  reified.set(keyword('kind'), keyword('builtin'));
+  reified.set(keyword('name'), introspectionName);
+  for (const [fieldKey, fieldVal] of rawDescriptor) {
+    const fieldName = fieldKey.name;
+    if (fieldName === 'qlang/kind' || fieldName === 'qlang/impl') continue;
+    reified.set(fieldKey, fieldVal);
+  }
+  reified.set(keyword('captured'), [...implFn.meta.captured]);
+  reified.set(keyword('effectful'), implFn.effectful);
+  return reified;
+}
+
 // applyBuiltinDescriptor(descriptor, node, lookupName, state) → state'
 //
-// Variant-B dispatch core for built-in operands. Resolves the
-// descriptor's :qlang/impl keyword through PRIMITIVE_REGISTRY into
-// the JS function value registered by runtime/*.mjs at module-load
-// time, then delegates to applyRule10 exactly as the
-// conduit-parameter dispatch path does.
+// Dispatch core for built-in operands. Reads the resolved function
+// value directly from the descriptor's :qlang/impl field (set by
+// the bootstrap resolution pass in runtime/index.mjs) and delegates
+// to applyRule10.
 //
-// Bare-identifier lookup on a non-nullary operand returns the
-// descriptor itself as pipeValue instead of firing an arity error:
-// typing `mul` at a REPL yields mul's descriptor Map (category /
-// subject / modifiers / examples / docs / throws / qlang/impl),
-// matching the introspective-REPL ergonomic the Variant-B refactor
-// promised. Nullary operands (count, sort bare form, env, etc.)
-// still fire on bare lookup because their minCaptured is 0 and a
-// bare application IS their valid nullary form.
+// Bare non-nullary lookup returns a reify-shaped descriptor as
+// pipeValue — internal fields stripped, :captured and :effectful
+// stamped from the impl. Nullary operands fire on bare lookup
+// because their minCaptured is 0 and bare application IS their
+// valid call shape.
 async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
-  const implKey = descriptor.get(KW_QLANG_IMPL_DISPATCH);
-  const resolvedImpl = PRIMITIVE_REGISTRY.resolve(implKey);
-
-  // No effect-laundering check on this path: every primitive bound
-  // via runtime/*.mjs is clean (none of the built-in operand names
-  // carry the @-marker), so `resolvedImpl.effectful` is always false for
-  // descriptor-backed built-ins. The check remains on the function-
-  // value branch of evalOperandCall, which still fires for
-  // conduit-parameter proxies created at applyConduit time.
+  const resolvedImpl = descriptor.get(KW_QLANG_IMPL_DISPATCH);
 
   const capturedArgsAst = node.args;
   const hasArgs = capturedArgsAst !== null;
 
-  // Bare non-nullary lookup → return descriptor as pipeValue. The
-  // min captured-arg count lives in resolvedImpl.meta.captured[0] (set by
-  // every dispatch wrapper — valueOp, higherOrderOp, nullaryOp,
-  // overloadedOp — at makeFn time). A minCaptured
-  // of 0 means the operand has a valid nullary call shape, so bare
-  // lookup fires the operand as before; any positive minCaptured
-  // means bare lookup has no valid application and yields the
-  // descriptor for introspection instead of an arity error.
   const minCaptured = resolvedImpl.meta.captured[0];
   if (!hasArgs && minCaptured > 0) {
-    return withPipeValue(state, descriptor);
+    return withPipeValue(state, reifyBuiltinDescriptor(descriptor, resolvedImpl, lookupName));
   }
 
   const capturedEnv = state.env;

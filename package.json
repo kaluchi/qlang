@@ -32,6 +32,9 @@
     "./effect-check": {
       "import": "./src/effect-check.mjs"
     },
+    "./dispatch": {
+      "import": "./src/runtime/dispatch.mjs"
+    },
     "./host/module-resolver": {
       "import": "./host/module-resolver.mjs"
     }

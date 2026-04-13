@@ -52,7 +52,13 @@ import './intro.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
+import { keyword, isKeyword } from '../types.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
+
+const KW_QLANG_KIND = keyword('qlang/kind');
+const KW_BUILTIN    = keyword('builtin');
+const KW_QLANG_IMPL = keyword('qlang/impl');
 
 // Cached template env — parsed and evaluated once on first call,
 // then shallow-copied for every subsequent caller. Parsing
@@ -74,7 +80,25 @@ export async function langRuntime() {
       const coreAst = parse(CORE_SOURCE, { uri: 'qlang/core' });
       const bootstrapState = makeState(null, new Map());
       const bootstrapResult = await evalAst(coreAst, bootstrapState);
-      return bootstrapResult.pipeValue;
+      const templateEnv = bootstrapResult.pipeValue;
+
+      // Resolution pass: replace :qlang/impl keywords with the
+      // resolved function values from PRIMITIVE_REGISTRY. After this
+      // pass, every builtin descriptor carries its executable impl
+      // directly — dispatch reads the function from the descriptor
+      // without consulting the registry at call time.
+      for (const descriptor of templateEnv.values()) {
+        if (descriptor instanceof Map
+            && descriptor.get(KW_QLANG_KIND) === KW_BUILTIN) {
+          const implKey = descriptor.get(KW_QLANG_IMPL);
+          if (isKeyword(implKey) && PRIMITIVE_REGISTRY.has(implKey)) {
+            descriptor.set(KW_QLANG_IMPL, PRIMITIVE_REGISTRY.resolve(implKey));
+          }
+        }
+      }
+      PRIMITIVE_REGISTRY.seal();
+
+      return templateEnv;
     })();
   }
   const templateEnv = await _templateEnvPromise;

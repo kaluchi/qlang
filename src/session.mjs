@@ -70,7 +70,11 @@ class SessionBindingKindUnknownError extends QlangError {
 // createSession(opts?) → Session
 //
 // opts:
-//   env — initial env Map (defaults to a fresh langRuntime())
+//   env     — initial env Map (defaults to a fresh langRuntime())
+//   locator — (namespaceName: string) => {source, impls?} | null
+//             Called by `use(:ns)` when the namespace keyword is not
+//             in env. Enables lazy module loading for host embeddings.
+//             Stored under the reserved :qlang/locator keyword in env.
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse + evaluate; updates env,
@@ -83,6 +87,9 @@ class SessionBindingKindUnknownError extends QlangError {
 //   restoreSnapshot(snap) — rewind env and cell history to a snapshot
 export async function createSession(opts = {}) {
   let env = opts.env ?? await langRuntime();
+  if (opts.locator) {
+    env = new Map(env).set(keyword('qlang/locator'), opts.locator);
+  }
   const cellHistory = [];
 
   const session = {

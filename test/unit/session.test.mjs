@@ -6,7 +6,8 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
+import { keyword, isErrorValue, isQMap } from '../../src/types.mjs';
+import { nullaryOp, valueOp } from '../../src/runtime/dispatch.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -231,5 +232,97 @@ describe('serializeSession / deserializeSession round-trip', () => {
     const synthBinding = payload.bindings.find(b => b.name === 'synth');
     expect(synthBinding.kind).toBe('conduit');
     expect(synthBinding.source).toBeNull();
+  });
+});
+
+// ── Locator-based lazy module loading ─────────────────────────
+
+// Minimal .qlang source for a module with one builtin descriptor
+// and one qlang-only conduit. The builtin descriptor carries
+// :qlang/kind :builtin and :qlang/impl null (patched by the locator
+// with the actual function value).
+// Module source: a Map literal with one builtin descriptor, piped
+// through `use` to install it in env, then a let-conduit that
+// builds on it. The locator patches :qlang/impl on the builtin
+// descriptor with the host function after eval.
+const MOCK_MODULE_SOURCE = [
+  '{:@fetch {:qlang/kind :builtin',
+  '         :qlang/impl null',
+  '         :category :test-io',
+  '         :subject :string',
+  '         :modifiers []',
+  '         :returns :string',
+  '         :docs ["Fetches a resource by URL."]',
+  '         :examples []',
+  '         :throws []}}',
+  '| use',
+  '| let(:@doubled, @fetch | append(@fetch))'
+].join('\n');
+
+// Host-provided impl for the @fetch builtin — returns a fixed string.
+const fetchImpl = nullaryOp('@fetch', () => 'fetched-value');
+
+function mockLocator(namespaceName) {
+  if (namespaceName === 'test/io') {
+    return { source: MOCK_MODULE_SOURCE, impls: { '@fetch': fetchImpl } };
+  }
+  return null;
+}
+
+describe('createSession with locator — lazy module loading', () => {
+  it('installs locator under :qlang/locator in env', async () => {
+    const locatorSession = await createSession({ locator: mockLocator });
+    expect(locatorSession.env.has(keyword('qlang/locator'))).toBe(true);
+  });
+
+  it('use(:ns) triggers locator when namespace not pre-installed', async () => {
+    const locatorSession = await createSession({ locator: mockLocator });
+    const loadCell = await locatorSession.evalCell('use(:test/io) | @fetch');
+    expect(loadCell.error).toBeNull();
+    expect(loadCell.result).toBe('fetched-value');
+  });
+
+  it('qlang-only conduit in a locator-loaded module works', async () => {
+    const locatorSession = await createSession({ locator: mockLocator });
+    const conduitCell = await locatorSession.evalCell('use(:test/io) | @doubled');
+    expect(conduitCell.error).toBeNull();
+    expect(conduitCell.result).toBe('fetched-valuefetched-value');
+  });
+
+  it('locator-loaded namespace keyword persists for subsequent use calls', async () => {
+    const locatorSession = await createSession({ locator: mockLocator });
+    await locatorSession.evalCell('use(:test/io)');
+    // Second use of same namespace should not re-trigger locator.
+    const secondUse = await locatorSession.evalCell('use(:test/io) | @fetch');
+    expect(secondUse.error).toBeNull();
+    expect(secondUse.result).toBe('fetched-value');
+  });
+
+  it('locator returning null falls through to UseNamespaceNotFound', async () => {
+    const locatorSession = await createSession({ locator: mockLocator });
+    const missingCell = await locatorSession.evalCell('use(:nonexistent/ns)');
+    expect(missingCell.error).toBeNull();
+    expect(isErrorValue(missingCell.result)).toBe(true);
+    expect(missingCell.result.originalError.name).toBe('UseNamespaceNotFound');
+  });
+
+  it('reify on a locator-loaded builtin includes captured and effectful', async () => {
+    const locatorSession = await createSession({ locator: mockLocator });
+    await locatorSession.evalCell('use(:test/io)');
+    const reifyCell = await locatorSession.evalCell('reify(:@fetch)');
+    expect(reifyCell.error).toBeNull();
+    const reifyDesc = reifyCell.result;
+    expect(isQMap(reifyDesc)).toBe(true);
+    expect(reifyDesc.get(keyword('kind'))).toEqual(keyword('builtin'));
+    expect(reifyDesc.get(keyword('captured'))).toEqual([0, 0]);
+    expect(reifyDesc.get(keyword('effectful'))).toBe(true);
+  });
+
+  it('session without locator throws UseNamespaceNotFound as before', async () => {
+    const plainSession = await createSession();
+    const missingCell = await plainSession.evalCell('use(:anything)');
+    expect(missingCell.error).toBeNull();
+    expect(isErrorValue(missingCell.result)).toBe(true);
+    expect(missingCell.result.originalError.name).toBe('UseNamespaceNotFound');
   });
 });

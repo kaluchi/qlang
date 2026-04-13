@@ -81,9 +81,9 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
 
   if (useLambdas.length === 1) {
     // Single arg — dispatch by type
-    if (isKeyword(useArg))  return importSingleNamespace(state, useArg);
-    if (isVec(useArg))      return importOrderedNamespaces(state, useArg);
-    if (isQSet(useArg))     return importUnorderedNamespaces(state, useArg);
+    if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
+    if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
+    if (isQSet(useArg))     return await importUnorderedNamespaces(state, useArg);
     throw new UseNamespaceNotKeyword({ actualType: describeType(useArg), actualValue: useArg });
   }
 
@@ -92,46 +92,104 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
     throw new UseNamespaceNotKeyword({ actualType: describeType(useArg), actualValue: useArg });
   }
   const useSelection = await useLambdas[1](state.pipeValue);
-  return importSelectiveNamespace(state, useArg, useSelection);
+  return await importSelectiveNamespace(state, useArg, useSelection);
 }, [0, 2]);
 
-function resolveNamespaceEnv(outerEnv, nsKeyword) {
-  if (!outerEnv.has(nsKeyword)) {
+const KW_QLANG_LOCATOR = keyword('qlang/locator');
+const KW_QLANG_KIND_BUILTIN = keyword('qlang/kind');
+const KW_BUILTIN_TAG = keyword('builtin');
+const KW_QLANG_IMPL_FIELD = keyword('qlang/impl');
+
+// resolveNamespaceEnv(outerEnv, nsKeyword) → moduleEnv Map
+//
+// Looks up the namespace keyword in env. When absent, falls back
+// to the host-provided locator (stored under :qlang/locator in
+// env by createSession). The locator parses and evals the module
+// source, patches :qlang/impl on builtin descriptors with the
+// impls from the locator result, and installs the namespace
+// keyword in env for subsequent lookups.
+//
+// Returns [moduleEnv, updatedOuterEnv] — the caller must use
+// updatedOuterEnv so the installed namespace persists.
+async function resolveNamespaceEnv(outerEnv, nsKeyword) {
+  if (outerEnv.has(nsKeyword)) {
+    const moduleEnv = outerEnv.get(nsKeyword);
+    if (!isQMap(moduleEnv)) {
+      throw new UseNamespaceNotMap({
+        namespaceName: nsKeyword.name,
+        actualType: describeType(moduleEnv)
+      });
+    }
+    return [moduleEnv, outerEnv];
+  }
+
+  // Locator fallback: host-provided lazy module loader.
+  const locatorFn = outerEnv.get(KW_QLANG_LOCATOR);
+  if (!locatorFn) {
     throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
   }
-  const moduleEnv = outerEnv.get(nsKeyword);
-  if (!isQMap(moduleEnv)) {
-    throw new UseNamespaceNotMap({
-      namespaceName: nsKeyword.name,
-      actualType: describeType(moduleEnv)
-    });
+  const locatorResult = await locatorFn(nsKeyword.name);
+  if (!locatorResult) {
+    throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
   }
-  return moduleEnv;
+
+  // Parse and eval the module source against the current env so
+  // transitive use(:other-ns) inside the module triggers the
+  // locator recursively.
+  const moduleAst = parseSource(locatorResult.source, { uri: nsKeyword.name });
+  const moduleEvalState = makeState(outerEnv, outerEnv);
+  const moduleResultState = await evalAst(moduleAst, moduleEvalState);
+
+  // Export surface = env delta (bindings the module added).
+  const loadedExports = new Map();
+  for (const [exportKey, exportVal] of moduleResultState.env) {
+    if (!outerEnv.has(exportKey)) {
+      loadedExports.set(exportKey, exportVal);
+    }
+  }
+
+  // Patch :qlang/impl on builtin descriptors with host-provided
+  // function values from locatorResult.impls.
+  if (locatorResult.impls) {
+    for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
+      const implKeyword = keyword(implName);
+      const implDescriptor = loadedExports.get(implKeyword);
+      if (isQMap(implDescriptor)
+          && implDescriptor.get(KW_QLANG_KIND_BUILTIN) === KW_BUILTIN_TAG) {
+        implDescriptor.set(KW_QLANG_IMPL_FIELD, implFn);
+      }
+    }
+  }
+
+  // Install namespace keyword → exports in env for subsequent lookups.
+  let envWithNamespace = new Map(outerEnv);
+  envWithNamespace.set(nsKeyword, loadedExports);
+  return [loadedExports, envWithNamespace];
 }
 
-function importSingleNamespace(state, nsKeyword) {
-  const moduleEnv = resolveNamespaceEnv(state.env, nsKeyword);
-  return makeState(state.pipeValue, envMerge(state.env, moduleEnv));
+async function importSingleNamespace(state, nsKeyword) {
+  const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state.env, nsKeyword);
+  return makeState(state.pipeValue, envMerge(updatedEnv, moduleEnv));
 }
 
-function importOrderedNamespaces(state, namespaces) {
+async function importOrderedNamespaces(state, namespaces) {
   let currentEnv = state.env;
   for (let i = 0; i < namespaces.length; i++) {
     const ns = namespaces[i];
     if (!isKeyword(ns)) {
       throw new UseNamespaceElementNotKeyword({ index: i, actualType: describeType(ns) });
     }
-    const moduleEnv = resolveNamespaceEnv(currentEnv, ns);
-    currentEnv = envMerge(currentEnv, moduleEnv);
+    const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(currentEnv, ns);
+    currentEnv = envMerge(updatedEnv, moduleEnv);
   }
   return makeState(state.pipeValue, currentEnv);
 }
 
-function importUnorderedNamespaces(state, namespaces) {
+async function importUnorderedNamespaces(state, namespaces) {
   const merged = new Map();
   const origins = new Map();
   for (const ns of namespaces) {
-    const moduleEnv = resolveNamespaceEnv(state.env, ns);
+    const [moduleEnv] = await resolveNamespaceEnv(state.env, ns);
     for (const [k, v] of moduleEnv) {
       if (merged.has(k)) {
         throw new UseNamespaceCollision({
@@ -146,8 +204,8 @@ function importUnorderedNamespaces(state, namespaces) {
   return makeState(state.pipeValue, envMerge(state.env, merged));
 }
 
-function importSelectiveNamespace(state, nsKeyword, selection) {
-  const moduleEnv = resolveNamespaceEnv(state.env, nsKeyword);
+async function importSelectiveNamespace(state, nsKeyword, selection) {
+  const [moduleEnv] = await resolveNamespaceEnv(state.env, nsKeyword);
   const names = isQSet(selection) ? [...selection] : isVec(selection) ? selection : [selection];
   const filtered = new Map();
   for (const name of names) {
@@ -280,34 +338,24 @@ function buildValueDescriptor(value, explicitName) {
 function describeBinding(value, explicitName) {
   // Variant-B built-ins: env stores a descriptor Map directly
   // (authored in lib/qlang/core.qlang, loaded by langRuntime).
-  // Reify transforms the core.qlang-shaped descriptor into a
-  // user-facing reify descriptor: the internal :qlang/kind and
-  // :qlang/impl dispatch discriminators are substituted for the
-  // unnamespaced :kind so user code can write `reify(:count) | /kind`
-  // rather than the clunkier `/:qlang/kind` namespaced-keyword
-  // projection. The :qlang/impl handle is dropped entirely —
-  // reify consumers want the descriptor, not the dispatch-time
-  // primitive key — and :captured / :effectful are computed from
-  // the primitive resolved through PRIMITIVE_REGISTRY, since core
-  // descriptors do not carry those fields (the captured range is
-  // structurally derived by the dispatch wrappers, and the
-  // effectful flag lives on the impl's classifyEffect result).
+  // Reify transforms the raw descriptor into a user-facing shape:
+  // internal :qlang/kind and :qlang/impl are stripped; :kind :builtin
+  // is stamped; :captured and :effectful are read from the resolved
+  // function value sitting on :qlang/impl (placed there by the
+  // bootstrap resolution pass in runtime/index.mjs).
   if (isQMap(value) && value.get(keyword('qlang/kind')) === keyword('builtin')) {
-    const result = new Map();
-    result.set(keyword('kind'), keyword('builtin'));
-    if (explicitName != null) result.set(keyword('name'), explicitName);
-    for (const [k, v] of value) {
-      const kn = k.name;
-      if (kn === 'qlang/kind' || kn === 'qlang/impl') continue;
-      result.set(k, v);
+    const reifyResult = new Map();
+    reifyResult.set(keyword('kind'), keyword('builtin'));
+    if (explicitName != null) reifyResult.set(keyword('name'), explicitName);
+    for (const [descKey, descVal] of value) {
+      const descKeyName = descKey.name;
+      if (descKeyName === 'qlang/kind' || descKeyName === 'qlang/impl') continue;
+      reifyResult.set(descKey, descVal);
     }
-    const implKey = value.get(keyword('qlang/impl'));
-    if (implKey) {
-      const impl = PRIMITIVE_REGISTRY.resolve(implKey);
-      result.set(keyword('captured'), [...impl.meta.captured]);
-      result.set(keyword('effectful'), impl.effectful);
-    }
-    return result;
+    const implFn = value.get(keyword('qlang/impl'));
+    reifyResult.set(keyword('captured'), [...implFn.meta.captured]);
+    reifyResult.set(keyword('effectful'), implFn.effectful);
+    return reifyResult;
   }
   // Conduit-parameters (created at applyConduit time via makeFn)
   // are function values that can show up as env bindings while a

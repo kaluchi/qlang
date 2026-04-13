@@ -7,6 +7,7 @@ import {
   deserializeSession
 } from '../../src/session.mjs';
 import { keyword, isErrorValue, isQMap } from '../../src/types.mjs';
+import { QlangTypeError } from '../../src/errors.mjs';
 import { nullaryOp, valueOp } from '../../src/runtime/dispatch.mjs';
 
 describe('createSession lifecycle', () => {
@@ -303,7 +304,10 @@ describe('createSession with locator — lazy module loading', () => {
     const missingCell = await locatorSession.evalCell('use(:nonexistent/ns)');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
-    expect(missingCell.result.originalError.name).toBe('UseNamespaceNotFound');
+    const locatorMissErr = missingCell.result.originalError;
+    expect(locatorMissErr.name).toBe('UseNamespaceNotFound');
+    expect(locatorMissErr).toBeInstanceOf(QlangTypeError);
+    expect(locatorMissErr.context.namespaceName).toBe('nonexistent/ns');
   });
 
   it('reify on a locator-loaded builtin includes captured and effectful', async () => {
@@ -323,6 +327,9 @@ describe('createSession with locator — lazy module loading', () => {
     const missingCell = await plainSession.evalCell('use(:anything)');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
-    expect(missingCell.result.originalError.name).toBe('UseNamespaceNotFound');
+    const noLocatorErr = missingCell.result.originalError;
+    expect(noLocatorErr.name).toBe('UseNamespaceNotFound');
+    expect(noLocatorErr).toBeInstanceOf(QlangTypeError);
+    expect(noLocatorErr.context.namespaceName).toBe('anything');
   });
 });

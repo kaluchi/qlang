@@ -25,66 +25,66 @@ const CondNoBranches = declareArityError('CondNoBranches',
   () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default');
 
 export const ifOp = higherOrderOp('if', 4,
-  (pipeValue, condLambda, thenLambda, elseLambda) => {
-    return isTruthy(condLambda(pipeValue))
-      ? thenLambda(pipeValue)
-      : elseLambda(pipeValue);
+  async (ifSubject, ifCondLambda, ifThenLambda, ifElseLambda) => {
+    return isTruthy(await ifCondLambda(ifSubject))
+      ? await ifThenLambda(ifSubject)
+      : await ifElseLambda(ifSubject);
   });
 
 export const when = higherOrderOp('when', 3,
-  (pipeValue, condLambda, thenLambda) => {
-    return isTruthy(condLambda(pipeValue))
-      ? thenLambda(pipeValue)
-      : pipeValue;
+  async (whenSubject, whenCondLambda, whenThenLambda) => {
+    return isTruthy(await whenCondLambda(whenSubject))
+      ? await whenThenLambda(whenSubject)
+      : whenSubject;
   });
 
 export const unless = higherOrderOp('unless', 3,
-  (pipeValue, condLambda, thenLambda) => {
-    return isTruthy(condLambda(pipeValue))
-      ? pipeValue
-      : thenLambda(pipeValue);
+  async (unlessSubject, unlessCondLambda, unlessThenLambda) => {
+    return isTruthy(await unlessCondLambda(unlessSubject))
+      ? unlessSubject
+      : await unlessThenLambda(unlessSubject);
   });
 
 export const coalesce = higherOrderOpVariadic('coalesce', 16,
-  (pipeValue, ...lambdas) => {
-    if (lambdas.length === 0) {
+  async (coalesceSubject, ...coalesceLambdas) => {
+    if (coalesceLambdas.length === 0) {
       throw new CoalesceNoAlternatives();
     }
-    for (const lambda of lambdas) {
-      const value = lambda(pipeValue);
-      if (!isNull(value)) return value;
+    for (const coalesceAlt of coalesceLambdas) {
+      const coalesceVal = await coalesceAlt(coalesceSubject);
+      if (!isNull(coalesceVal)) return coalesceVal;
     }
     return NULL;
   }, [1, UNBOUNDED]);
 
 export const cond = higherOrderOpVariadic('cond', 16,
-  (pipeValue, ...lambdas) => {
-    if (lambdas.length < 2) {
+  async (condSubject, ...condLambdas) => {
+    if (condLambdas.length < 2) {
       throw new CondNoBranches();
     }
-    let i = 0;
-    while (i + 1 < lambdas.length) {
-      const predLambda = lambdas[i];
-      const branchLambda = lambdas[i + 1];
-      if (isTruthy(predLambda(pipeValue))) {
-        return branchLambda(pipeValue);
+    let condIdx = 0;
+    while (condIdx + 1 < condLambdas.length) {
+      const condPredLambda = condLambdas[condIdx];
+      const condBranchLambda = condLambdas[condIdx + 1];
+      if (isTruthy(await condPredLambda(condSubject))) {
+        return await condBranchLambda(condSubject);
       }
-      i += 2;
+      condIdx += 2;
     }
-    if (i < lambdas.length) {
-      return lambdas[i](pipeValue);
+    if (condIdx < condLambdas.length) {
+      return await condLambdas[condIdx](condSubject);
     }
     return NULL;
   }, [2, UNBOUNDED]);
 
 export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
-  (pipeValue, ...lambdas) => {
-    if (lambdas.length === 0) {
+  async (firstTruthySubject, ...firstTruthyLambdas) => {
+    if (firstTruthyLambdas.length === 0) {
       throw new FirstTruthyNoAlternatives();
     }
-    for (const lambda of lambdas) {
-      const value = lambda(pipeValue);
-      if (isTruthy(value)) return value;
+    for (const truthyAlt of firstTruthyLambdas) {
+      const truthyVal = await truthyAlt(firstTruthySubject);
+      if (isTruthy(truthyVal)) return truthyVal;
     }
     return NULL;
   }, [1, UNBOUNDED]);

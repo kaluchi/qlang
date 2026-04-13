@@ -59,19 +59,24 @@ import { CORE_SOURCE } from '../../gen/core.mjs';
 // core.qlang on every session construction would be wasteful;
 // reusing the frozen descriptor Maps across sessions is safe
 // because they are immutable.
-let _templateEnv = null;
+let _templateEnvPromise = null;
 
-// langRuntime() — returns a fresh env Map seeded with the full
-// built-in catalog. Each call returns a new top-level Map, so
+// langRuntime() — returns a Promise<fresh env Map> seeded with the
+// full built-in catalog. Each call returns a new top-level Map, so
 // callers can write their own bindings (through let / as / use,
 // or through session.bind at the host level) without affecting
 // other sessions. The inner descriptor Maps are shared frozen
-// values.
-export function langRuntime() {
-  if (_templateEnv === null) {
-    const ast = parse(CORE_SOURCE, { uri: 'qlang/core' });
-    const bootstrapState = makeState(null, new Map());
-    _templateEnv = evalAst(ast, bootstrapState).pipeValue;
+// values. Bootstrap is async because evalAst is async; the template
+// is cached so the parse+eval happens once per process.
+export async function langRuntime() {
+  if (_templateEnvPromise === null) {
+    _templateEnvPromise = (async () => {
+      const coreAst = parse(CORE_SOURCE, { uri: 'qlang/core' });
+      const bootstrapState = makeState(null, new Map());
+      const bootstrapResult = await evalAst(coreAst, bootstrapState);
+      return bootstrapResult.pipeValue;
+    })();
   }
-  return new Map(_templateEnv);
+  const templateEnv = await _templateEnvPromise;
+  return new Map(templateEnv);
 }

@@ -68,8 +68,8 @@ export const env = stateOp('env', 1, (state, _lambdas) =>
 //   0 captured: merge pipeValue Map into env (existing)
 //   1 captured: namespace import (keyword, Vec, or Set)
 //   2 captured: selective namespace import (keyword + filter Set/Vec)
-export const use = stateOpVariadic('use', 3, (state, lambdas) => {
-  if (lambdas.length === 0) {
+export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
+  if (useLambdas.length === 0) {
     // Existing: merge pipeValue Map into env
     if (!isQMap(state.pipeValue)) {
       throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
@@ -77,22 +77,22 @@ export const use = stateOpVariadic('use', 3, (state, lambdas) => {
     return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
   }
 
-  const arg = lambdas[0](state.pipeValue);
+  const useArg = await useLambdas[0](state.pipeValue);
 
-  if (lambdas.length === 1) {
+  if (useLambdas.length === 1) {
     // Single arg — dispatch by type
-    if (isKeyword(arg))  return importSingleNamespace(state, arg);
-    if (isVec(arg))      return importOrderedNamespaces(state, arg);
-    if (isQSet(arg))     return importUnorderedNamespaces(state, arg);
-    throw new UseNamespaceNotKeyword({ actualType: describeType(arg), actualValue: arg });
+    if (isKeyword(useArg))  return importSingleNamespace(state, useArg);
+    if (isVec(useArg))      return importOrderedNamespaces(state, useArg);
+    if (isQSet(useArg))     return importUnorderedNamespaces(state, useArg);
+    throw new UseNamespaceNotKeyword({ actualType: describeType(useArg), actualValue: useArg });
   }
 
   // Two args: namespace keyword + selection filter
-  if (!isKeyword(arg)) {
-    throw new UseNamespaceNotKeyword({ actualType: describeType(arg), actualValue: arg });
+  if (!isKeyword(useArg)) {
+    throw new UseNamespaceNotKeyword({ actualType: describeType(useArg), actualValue: useArg });
   }
-  const selection = lambdas[1](state.pipeValue);
-  return importSelectiveNamespace(state, arg, selection);
+  const useSelection = await useLambdas[1](state.pipeValue);
+  return importSelectiveNamespace(state, useArg, useSelection);
 }, [0, 2]);
 
 function resolveNamespaceEnv(outerEnv, nsKeyword) {
@@ -322,24 +322,24 @@ function describeBinding(value, explicitName) {
 }
 
 // reify — value-level (0 captured) or named-form (1 captured keyword).
-export const reify = stateOpVariadic('reify', 2, (state, lambdas) => {
-  if (lambdas.length === 0) {
-    const descriptor = describeBinding(state.pipeValue);
-    return withPipeValue(state, descriptor);
+export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => {
+  if (reifyLambdas.length === 0) {
+    const reifyDescriptor = describeBinding(state.pipeValue);
+    return withPipeValue(state, reifyDescriptor);
   }
-  if (lambdas.length === 1) {
-    const keyValue = lambdas[0](state.pipeValue);
-    if (!isKeyword(keyValue)) {
-      throw new ReifyKeyNotKeyword({ actualType: describeType(keyValue), actualValue: keyValue });
+  if (reifyLambdas.length === 1) {
+    const reifyKeyValue = await reifyLambdas[0](state.pipeValue);
+    if (!isKeyword(reifyKeyValue)) {
+      throw new ReifyKeyNotKeyword({ actualType: describeType(reifyKeyValue), actualValue: reifyKeyValue });
     }
-    if (!state.env.has(keyValue)) {
-      throw new UnresolvedIdentifierError(keyValue.name);
+    if (!state.env.has(reifyKeyValue)) {
+      throw new UnresolvedIdentifierError(reifyKeyValue.name);
     }
-    const bound = state.env.get(keyValue);
-    const descriptor = describeBinding(bound, keyValue.name);
-    return withPipeValue(state, descriptor);
+    const reifyBound = state.env.get(reifyKeyValue);
+    const reifyDescriptor = describeBinding(reifyBound, reifyKeyValue.name);
+    return withPipeValue(state, reifyDescriptor);
   }
-  throw new ReifyArityOverflow({ actualArity: lambdas.length });
+  throw new ReifyArityOverflow({ actualArity: reifyLambdas.length });
 }, [0, 1]);
 
 const RunExamplesSubjectNotDescriptor = declareSubjectError(
@@ -365,73 +365,74 @@ const RunExamplesNoExamplesField = declareShapeError('RunExamplesNoExamplesField
 //   mark every demo example as failing for the wrong reason, so
 //   demo mode stops at parse and marks `:ok` true if the snippet
 //   is syntactically valid.
-function runExampleEntry(example) {
-  const result = new Map();
-  const snippetSrc = isQMap(example) ? example.get(keyword('snippet')) : null;
-  const expectedSrc = isQMap(example) ? example.get(keyword('expected')) : null;
-  const doc = isQMap(example) ? example.get(keyword('doc')) : null;
+async function runExampleEntry(exampleMap) {
+  const exampleResult = new Map();
+  const snippetSrc = isQMap(exampleMap) ? exampleMap.get(keyword('snippet')) : null;
+  const expectedSrc = isQMap(exampleMap) ? exampleMap.get(keyword('expected')) : null;
+  const exampleDoc = isQMap(exampleMap) ? exampleMap.get(keyword('doc')) : null;
 
-  result.set(keyword('snippet'), snippetSrc);
-  result.set(keyword('doc'), doc);
-  result.set(keyword('expected'), expectedSrc);
+  exampleResult.set(keyword('snippet'), snippetSrc);
+  exampleResult.set(keyword('doc'), exampleDoc);
+  exampleResult.set(keyword('expected'), expectedSrc);
 
   if (typeof snippetSrc !== 'string') {
-    result.set(keyword('actual'), null);
-    result.set(keyword('error'), 'example :snippet must be a string');
-    result.set(keyword('ok'), false);
-    return result;
+    exampleResult.set(keyword('actual'), null);
+    exampleResult.set(keyword('error'), 'example :snippet must be a string');
+    exampleResult.set(keyword('ok'), false);
+    return exampleResult;
   }
 
   if (typeof expectedSrc !== 'string') {
     // Demo mode — parse-verify only, no eval.
     try {
       parseSource(snippetSrc);
-    } catch (e) {
-      result.set(keyword('actual'), null);
-      result.set(keyword('error'), e.message);
-      result.set(keyword('ok'), false);
-      return result;
+    } catch (parseVerifyErr) {
+      exampleResult.set(keyword('actual'), null);
+      exampleResult.set(keyword('error'), parseVerifyErr.message);
+      exampleResult.set(keyword('ok'), false);
+      return exampleResult;
     }
-    result.set(keyword('actual'), null);
-    result.set(keyword('error'), null);
-    result.set(keyword('ok'), true);
-    return result;
+    exampleResult.set(keyword('actual'), null);
+    exampleResult.set(keyword('error'), null);
+    exampleResult.set(keyword('ok'), true);
+    return exampleResult;
   }
 
   // Assertion mode — both snippet and expected are eval'd and compared.
-  const actual = evalQuery(snippetSrc);
-  if (isErrorValue(actual)) {
-    result.set(keyword('actual'), null);
-    result.set(keyword('error'), errorMessageOf(actual));
-    result.set(keyword('ok'), false);
-    return result;
+  const actualValue = await evalQuery(snippetSrc);
+  if (isErrorValue(actualValue)) {
+    exampleResult.set(keyword('actual'), null);
+    exampleResult.set(keyword('error'), errorMessageOf(actualValue));
+    exampleResult.set(keyword('ok'), false);
+    return exampleResult;
   }
-  result.set(keyword('actual'), actual);
+  exampleResult.set(keyword('actual'), actualValue);
 
-  const expected = evalQuery(expectedSrc);
-  if (isErrorValue(expected)) {
-    result.set(keyword('error'), 'expected: ' + errorMessageOf(expected));
-    result.set(keyword('ok'), false);
-    return result;
+  const expectedValue = await evalQuery(expectedSrc);
+  if (isErrorValue(expectedValue)) {
+    exampleResult.set(keyword('error'), 'expected: ' + errorMessageOf(expectedValue));
+    exampleResult.set(keyword('ok'), false);
+    return exampleResult;
   }
-  result.set(keyword('error'), null);
-  result.set(keyword('ok'), deepEqual(actual, expected));
-  return result;
+  exampleResult.set(keyword('error'), null);
+  exampleResult.set(keyword('ok'), deepEqual(actualValue, expectedValue));
+  return exampleResult;
 }
 
-export const runExamples = stateOp('runExamples', 1, (state, _lambdas) => {
-  const subject = state.pipeValue;
-  if (!isQMap(subject)) {
-    throw new RunExamplesSubjectNotDescriptor(describeType(subject), subject);
+export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
+  const runExSubject = state.pipeValue;
+  if (!isQMap(runExSubject)) {
+    throw new RunExamplesSubjectNotDescriptor(describeType(runExSubject), runExSubject);
   }
-  const examples = subject.get(keyword('examples'));
-  if (!isVec(examples)) {
-    const subjectKind = subject.get(keyword('kind'));
+  const runExExamples = runExSubject.get(keyword('examples'));
+  if (!isVec(runExExamples)) {
+    const runExKind = runExSubject.get(keyword('kind'));
     throw new RunExamplesNoExamplesField({
-      subjectKind: isKeyword(subjectKind) ? subjectKind.name : 'unknown'
+      subjectKind: isKeyword(runExKind) ? runExKind.name : 'unknown'
     });
   }
-  return withPipeValue(state, examples.map(runExampleEntry));
+  const runExResults = await Promise.all(runExExamples.map(runExampleEntry));
+  return withPipeValue(state, runExResults);
 });
 
 // manifest — Vec of descriptors, one per binding in env, sorted by name.
@@ -460,76 +461,76 @@ const AsNameNotKeyword = declareShapeError('AsNameNotKeyword',
 
 import { envSet } from '../state.mjs';
 
-export const letOperand = stateOpVariadic('let', 16, (state, lambdas) => {
-  const argCount = lambdas.length;
-  if (argCount < 2 || argCount > 3) {
-    throw new LetBodyMissing({ actualCount: argCount });
+export const letOperand = stateOpVariadic('let', 16, async (state, letLambdas) => {
+  const letArgCount = letLambdas.length;
+  if (letArgCount < 2 || letArgCount > 3) {
+    throw new LetBodyMissing({ actualCount: letArgCount });
   }
 
-  const nameValue = lambdas[0](state.pipeValue);
-  if (!isKeyword(nameValue)) {
-    throw new LetNameNotKeyword({ actualType: describeType(nameValue), actualValue: nameValue });
+  const letNameValue = await letLambdas[0](state.pipeValue);
+  if (!isKeyword(letNameValue)) {
+    throw new LetNameNotKeyword({ actualType: describeType(letNameValue), actualValue: letNameValue });
   }
-  const bindingName = nameValue.name;
+  const letBindingName = letNameValue.name;
 
-  let params = [];
-  let bodyLambda;
-  if (argCount === 3) {
-    const paramsValue = lambdas[1](state.pipeValue);
-    if (!isVec(paramsValue)) {
-      throw new LetParamsNotVecOfKeywords({ index: -1, actualType: describeType(paramsValue), actualValue: paramsValue });
+  let letParams = [];
+  let letBodyLambda;
+  if (letArgCount === 3) {
+    const letParamsValue = await letLambdas[1](state.pipeValue);
+    if (!isVec(letParamsValue)) {
+      throw new LetParamsNotVecOfKeywords({ index: -1, actualType: describeType(letParamsValue), actualValue: letParamsValue });
     }
-    for (let i = 0; i < paramsValue.length; i++) {
-      if (!isKeyword(paramsValue[i])) {
-        throw new LetParamsNotVecOfKeywords({ index: i, actualType: describeType(paramsValue[i]), actualValue: paramsValue[i] });
+    for (let pi = 0; pi < letParamsValue.length; pi++) {
+      if (!isKeyword(letParamsValue[pi])) {
+        throw new LetParamsNotVecOfKeywords({ index: pi, actualType: describeType(letParamsValue[pi]), actualValue: letParamsValue[pi] });
       }
     }
-    params = paramsValue.map(k => k.name);
-    bodyLambda = lambdas[2];
+    letParams = letParamsValue.map(kw => kw.name);
+    letBodyLambda = letLambdas[2];
   } else {
-    bodyLambda = lambdas[1];
+    letBodyLambda = letLambdas[1];
   }
 
-  const bodyAst = bodyLambda.astNode;
+  const letBodyAst = letBodyLambda.astNode;
 
-  if (!classifyEffect(bindingName) && bodyAst) {
-    const offender = findFirstEffectfulIdentifier(bodyAst);
-    if (offender !== null) {
+  if (!classifyEffect(letBindingName) && letBodyAst) {
+    const effectOffender = findFirstEffectfulIdentifier(letBodyAst);
+    if (effectOffender !== null) {
       throw new EffectLaunderingAtLetParse({
-        letName: bindingName,
-        effectfulName: offender,
-        location: bodyAst.location
+        letName: letBindingName,
+        effectfulName: effectOffender,
+        location: letBodyAst.location
       });
     }
   }
 
-  const envRef = { env: null };
-  const conduit = makeConduit(bodyAst, {
-    name: bindingName,
-    params,
-    envRef,
-    docs: lambdas.docs,
-    location: bodyAst.location
+  const letEnvRef = { env: null };
+  const letConduit = makeConduit(letBodyAst, {
+    name: letBindingName,
+    params: letParams,
+    envRef: letEnvRef,
+    docs: letLambdas.docs,
+    location: letBodyAst.location
   });
-  const nextEnv = envSet(state.env, bindingName, conduit);
-  envRef.env = nextEnv;
-  return makeState(state.pipeValue, nextEnv);
+  const letNextEnv = envSet(state.env, letBindingName, letConduit);
+  letEnvRef.env = letNextEnv;
+  return makeState(state.pipeValue, letNextEnv);
 }, [2, 3]);
 
 // as(:name) — snapshot the current pipeValue under a keyword name.
-export const asOperand = stateOp('as', 2, (state, lambdas) => {
-  const nameValue = lambdas[0](state.pipeValue);
-  if (!isKeyword(nameValue)) {
-    throw new AsNameNotKeyword({ actualType: describeType(nameValue), actualValue: nameValue });
+export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
+  const asNameValue = await asLambdas[0](state.pipeValue);
+  if (!isKeyword(asNameValue)) {
+    throw new AsNameNotKeyword({ actualType: describeType(asNameValue), actualValue: asNameValue });
   }
-  const bindingName = nameValue.name;
-  const snapshot = makeSnapshot(state.pipeValue, {
-    name: bindingName,
-    docs: lambdas.docs,
-    location: lambdas.location
+  const asBindingName = asNameValue.name;
+  const asSnapshot = makeSnapshot(state.pipeValue, {
+    name: asBindingName,
+    docs: asLambdas.docs,
+    location: asLambdas.location
   });
-  const nextEnv = envSet(state.env, bindingName, snapshot);
-  return makeState(state.pipeValue, nextEnv);
+  const asNextEnv = envSet(state.env, asBindingName, asSnapshot);
+  return makeState(state.pipeValue, asNextEnv);
 });
 
 // ── parse / eval — the code-as-data ring closer ─────────────
@@ -560,21 +561,16 @@ const EvalSubjectNotMap = declareSubjectError(
 // because evalNode's fallback conversion treats ParseError as a
 // foreign error (kind :foreign-error) which loses the parse-
 // specific discriminator a user-facing operand should preserve.
-export const parseOperand = stateOp('parse', 1, (state, _lambdas) => {
-  const src = state.pipeValue;
-  if (typeof src !== 'string') {
-    throw new ParseSubjectNotString(describeType(src), src);
+export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => {
+  const parseSrc = state.pipeValue;
+  if (typeof parseSrc !== 'string') {
+    throw new ParseSubjectNotString(describeType(parseSrc), parseSrc);
   }
-  // parseSource's documented throw site is a single
-  // `throw new ParseError(...)` in parse.mjs — every failure mode
-  // is routed through that class — so the catch trusts the error
-  // shape and hands it straight to errorFromParse without a
-  // defensive type guard.
   try {
-    const ast = parseSource(src, { uri: 'parse-operand' });
-    return withPipeValue(state, astNodeToMap(ast));
-  } catch (e) {
-    return withPipeValue(state, errorFromParse(e));
+    const parsedAst = parseSource(parseSrc, { uri: 'parse-operand' });
+    return withPipeValue(state, astNodeToMap(parsedAst));
+  } catch (parseErr) {
+    return withPipeValue(state, errorFromParse(parseErr));
   }
 });
 
@@ -587,13 +583,13 @@ export const parseOperand = stateOp('parse', 1, (state, _lambdas) => {
 // the call site. The result is whatever pipeValue the inner code
 // produces; env changes from inner let / as / use calls propagate
 // out, matching the semantics of a bare paren-group application.
-export const evalOperand = stateOp('eval', 1, (state, _lambdas) => {
-  const astMap = state.pipeValue;
-  if (!isQMap(astMap)) {
-    throw new EvalSubjectNotMap(describeType(astMap), astMap);
+export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
+  const evalAstMap = state.pipeValue;
+  if (!isQMap(evalAstMap)) {
+    throw new EvalSubjectNotMap(describeType(evalAstMap), evalAstMap);
   }
-  const ast = qlangMapToAst(astMap);
-  return evalAst(ast, state);
+  const reconstructedAst = qlangMapToAst(evalAstMap);
+  return await evalAst(reconstructedAst, state);
 });
 
 // ── Variant-B primitive registry bindings ─────────────────────

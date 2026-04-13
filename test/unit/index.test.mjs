@@ -42,20 +42,20 @@ describe('public API', () => {
     expect(ast.value).toBe(42);
   });
 
-  it('exports evalQuery', () => {
+  it('exports evalQuery', async () => {
     expect(typeof evalQuery).toBe('function');
-    expect(evalQuery('[1 2 3] | count')).toBe(3);
+    expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
   it('exports evalAst', () => {
     expect(typeof evalAst).toBe('function');
   });
 
-  it('exports langRuntime as a Map factory', () => {
+  it('exports langRuntime as a Map factory', async () => {
     expect(typeof langRuntime).toBe('function');
-    const rt = langRuntime();
-    expect(rt).toBeInstanceOf(Map);
-    expect(rt.size).toBeGreaterThan(20);
+    const runtimeEnv = await langRuntime();
+    expect(runtimeEnv).toBeInstanceOf(Map);
+    expect(runtimeEnv.size).toBeGreaterThan(20);
   });
 
   it('exports createSession / serializeSession / deserializeSession', () => {
@@ -98,14 +98,14 @@ describe('public API', () => {
     expect(EFFECT_MARKER_PREFIX).toBe('@');
   });
 
-  it('exports keyword as the interning constructor', () => {
+  it('exports keyword as the interning constructor', async () => {
     expect(typeof keyword).toBe('function');
-    const a = keyword('count');
-    const b = keyword('count');
-    expect(a).toBe(b); // interning: same name → same identity
-    expect(a.name).toBe('count');
+    const kwA = keyword('count');
+    const kwB = keyword('count');
+    expect(kwA).toBe(kwB); // interning: same name → same identity
+    expect(kwA.name).toBe('count');
     // langRuntime() Map can be queried with the interned keyword.
-    const rt = langRuntime();
-    expect(rt.has(keyword('count'))).toBe(true);
+    const runtimeEnv = await langRuntime();
+    expect(runtimeEnv.has(keyword('count'))).toBe(true);
   });
 });

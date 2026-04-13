@@ -43,42 +43,42 @@ export function discoverModules(libDir) {
 // opts.baseEnv — initial env for module evaluation (default: langRuntime())
 // opts.dependencies — Map<namespaceName, string[]> for ordering
 //                     (default: evaluate in discovery order)
-export function resolveModules(libDir, opts = {}) {
+export async function resolveModules(libDir, opts = {}) {
   const discovered = discoverModules(libDir);
-  const baseEnv = opts.baseEnv ?? langRuntime();
-  const catalog = new Map();
+  const resolverBaseEnv = opts.baseEnv ?? await langRuntime();
+  const resolverCatalog = new Map();
 
   // Topological order if dependencies provided; otherwise discovery order.
-  const order = opts.dependencies
+  const resolveOrder = opts.dependencies
     ? topoSort(discovered, opts.dependencies)
     : [...discovered.keys()];
 
-  for (const namespaceName of order) {
-    const filePath = discovered.get(namespaceName);
+  for (const namespaceName of resolveOrder) {
+    const modulePath = discovered.get(namespaceName);
 
     // Build eval env: base + all previously resolved modules merged
-    let evalEnv = new Map(baseEnv);
-    for (const [nsKw, moduleEnv] of catalog) {
-      for (const [k, v] of moduleEnv) evalEnv.set(k, v);
+    let moduleEvalEnv = new Map(resolverBaseEnv);
+    for (const [nsKw, nsExports] of resolverCatalog) {
+      for (const [bindKey, bindVal] of nsExports) moduleEvalEnv.set(bindKey, bindVal);
     }
 
-    const source = readFileSync(filePath, 'utf8');
-    const ast = parse(source, { uri: namespaceName });
-    const initialState = makeState(evalEnv, evalEnv);
-    const finalState = evalAst(ast, initialState);
+    const moduleSource = readFileSync(modulePath, 'utf8');
+    const moduleAst = parse(moduleSource, { uri: namespaceName });
+    const moduleInitialState = makeState(moduleEvalEnv, moduleEvalEnv);
+    const moduleFinalState = await evalAst(moduleAst, moduleInitialState);
 
     // Export = env delta (bindings added by this module)
     const moduleExports = new Map();
-    for (const [k, v] of finalState.env) {
-      if (!evalEnv.has(k)) {
-        moduleExports.set(k, v);
+    for (const [exportKey, exportVal] of moduleFinalState.env) {
+      if (!moduleEvalEnv.has(exportKey)) {
+        moduleExports.set(exportKey, exportVal);
       }
     }
 
-    catalog.set(keyword(namespaceName), moduleExports);
+    resolverCatalog.set(keyword(namespaceName), moduleExports);
   }
 
-  return catalog;
+  return resolverCatalog;
 }
 
 // installModules(session, catalog)

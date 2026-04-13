@@ -81,28 +81,28 @@ class SessionBindingKindUnknownError extends QlangError {
 //                       by deserializeSession on restore)
 //   takeSnapshot() — { env, cellHistoryLength } for cheap save/restore
 //   restoreSnapshot(snap) — rewind env and cell history to a snapshot
-export function createSession(opts = {}) {
-  let env = opts.env ?? langRuntime();
+export async function createSession(opts = {}) {
+  let env = opts.env ?? await langRuntime();
   const cellHistory = [];
 
   const session = {
-    evalCell(source, evalOpts = {}) {
-      const uri = evalOpts.uri ?? `cell-${cellHistory.length + 1}`;
-      let ast = null;
-      let result = null;
-      let error = null;
+    async evalCell(source, evalOpts = {}) {
+      const cellUri = evalOpts.uri ?? `cell-${cellHistory.length + 1}`;
+      let cellAst = null;
+      let cellResult = null;
+      let cellError = null;
       try {
-        ast = parse(source, { uri });
-        const initialState = makeState(env, env);
-        const finalState = evalAst(ast, initialState);
-        result = finalState.pipeValue;
-        env = finalState.env;
-      } catch (e) {
-        error = e;
+        cellAst = parse(source, { uri: cellUri });
+        const cellInitialState = makeState(env, env);
+        const cellFinalState = await evalAst(cellAst, cellInitialState);
+        cellResult = cellFinalState.pipeValue;
+        env = cellFinalState.env;
+      } catch (evalCellErr) {
+        cellError = evalCellErr;
       }
-      const entry = { source, uri, ast, result, error, envAfterCell: env };
-      cellHistory.push(entry);
-      return entry;
+      const cellEntry = { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, envAfterCell: env };
+      cellHistory.push(cellEntry);
+      return cellEntry;
     },
 
     bind(name, value) {
@@ -136,8 +136,8 @@ export function createSession(opts = {}) {
 // where `source` is the parser-captured `.text` of the body AST.
 // User as bindings serialize as `{ kind: 'snapshot', name, value, docs }`
 // where `value` is the captured payload encoded via toTaggedJSON.
-export function serializeSession(session) {
-  const builtins = langRuntime();
+export async function serializeSession(session) {
+  const builtins = await langRuntime();
   const userBindings = [];
   for (const [k, v] of session.env) {
     if (builtins.has(k)) continue;
@@ -181,14 +181,14 @@ export function serializeSession(session) {
 // Snapshots are decoded from tagged JSON and re-installed the same
 // way. Cell history is restored without re-evaluation; the notebook
 // layer can re-eval cells after open if it wants freshness.
-export function deserializeSession(json) {
+export async function deserializeSession(json) {
   if (!json || typeof json !== 'object' || !Array.isArray(json.bindings)) {
     throw new SessionPayloadInvalidError();
   }
   if (json.schemaVersion !== SESSION_SCHEMA_VERSION) {
     throw new SessionSchemaVersionMismatchError(json.schemaVersion, SESSION_SCHEMA_VERSION);
   }
-  const session = createSession();
+  const session = await createSession();
   for (const binding of json.bindings) {
     if (binding.kind === 'conduit') {
       if (!binding.source) {

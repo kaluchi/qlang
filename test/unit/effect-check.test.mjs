@@ -126,152 +126,153 @@ describe('findFirstEffectfulIdentifier', () => {
 describe('eval-time effect validation in let operand', () => {
   // EffectLaunderingAtLetParse produces an error value (5th type).
   // Use isErrorValue + .originalError to inspect.
-  function getEffectError(query) {
-    const result = evalQuery(query);
-    return isErrorValue(result) ? result.originalError : null;
+  async function getEffectError(query) {
+    const evalResult = await evalQuery(query);
+    return isErrorValue(evalResult) ? evalResult.originalError : null;
   }
 
-  it('rejects let(:foo, @callers) — effectful body, clean name', () => {
-    const e = getEffectError('let(:foo, @callers)');
-    expect(e).toBeInstanceOf(EffectLaunderingAtLetParse);
+  it('rejects let(:foo, @callers) — effectful body, clean name', async () => {
+    const effectErr = await getEffectError('let(:foo, @callers)');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
-  it('rejects nested effectful body', () => {
-    const e = getEffectError('let(:foo, filter(@callers | count))');
-    expect(e).toBeInstanceOf(EffectLaunderingAtLetParse);
+  it('rejects nested effectful body', async () => {
+    const effectErr = await getEffectError('let(:foo, filter(@callers | count))');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
-  it('rejects projection-laundering', () => {
-    const e = getEffectError('let(:bad, env | /@callers)');
-    expect(e).toBeInstanceOf(EffectLaunderingAtLetParse);
+  it('rejects projection-laundering', async () => {
+    const effectErr = await getEffectError('let(:bad, env | /@callers)');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
-  it('accepts let(:@impl, @callers) — effectful body, @-prefixed name', () => {
+  it('accepts let(:@impl, @callers) — effectful body, @-prefixed name', async () => {
     // @callers resolves to unresolved-identifier in langRuntime (no host plugin),
     // but the let itself should NOT produce an effect-laundering error.
-    const e = getEffectError('let(:@impl, @callers)');
-    expect(e).not.toBeInstanceOf(EffectLaunderingAtLetParse);
+    const effectErr = await getEffectError('let(:@impl, @callers)');
+    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
-  it('accepts let(:@safe, count) — over-approximation harmless', () => {
-    const e = getEffectError('let(:@safe, count)');
-    expect(e).not.toBeInstanceOf(EffectLaunderingAtLetParse);
+  it('accepts let(:@safe, count) — over-approximation harmless', async () => {
+    const effectErr = await getEffectError('let(:@safe, count)');
+    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
-  it('accepts let(:foo, count) — pure body, clean name', () => {
-    const result = evalQuery('let(:foo, count)');
-    expect(isErrorValue(result)).toBe(false);
+  it('accepts let(:foo, count) — pure body, clean name', async () => {
+    const evalResult = await evalQuery('let(:foo, count)');
+    expect(isErrorValue(evalResult)).toBe(false);
   });
 
-  it('rejects transitive aliasing through a clean name', () => {
-    const e = getEffectError('let(:@a, count) | let(:b, @a)');
-    expect(e).toBeInstanceOf(EffectLaunderingAtLetParse);
+  it('rejects transitive aliasing through a clean name', async () => {
+    const effectErr = await getEffectError('let(:@a, count) | let(:b, @a)');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
-  it('error carries the offending binding name and effectful identifier', () => {
-    const e = getEffectError('let(:foo, @callers)');
-    expect(e).toBeInstanceOf(EffectLaunderingAtLetParse);
-    expect(e.context.letName).toBe('foo');
-    expect(e.context.effectfulName).toBe('@callers');
+  it('error carries the offending binding name and effectful identifier', async () => {
+    const effectErr = await getEffectError('let(:foo, @callers)');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr.context.letName).toBe('foo');
+    expect(effectErr.context.effectfulName).toBe('@callers');
   });
 
-  it('error has stable fingerprint for Sentry grouping', () => {
-    const e = getEffectError('let(:foo, @callers)');
-    expect(e.fingerprint).toBe('EffectLaunderingAtLetParse');
+  it('error has stable fingerprint for Sentry grouping', async () => {
+    const effectErr = await getEffectError('let(:foo, @callers)');
+    expect(effectErr.fingerprint).toBe('EffectLaunderingAtLetParse');
   });
 
-  it('the thrown error is an EffectLaunderingError, not a ParseError', () => {
-    const e = getEffectError('let(:foo, @callers)');
-    expect(e).toBeInstanceOf(EffectLaunderingError);
-    expect(e).toBeInstanceOf(QlangError);
-    expect(e.kind).toBe('effect-laundering');
+  it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {
+    const effectErr = await getEffectError('let(:foo, @callers)');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingError);
+    expect(effectErr).toBeInstanceOf(QlangError);
+    expect(effectErr.kind).toBe('effect-laundering');
   });
 
-  it('as binding on an effectful expression result is exempt', () => {
+  it('as binding on an effectful expression result is exempt', async () => {
     // as(:result) captures the call result, not the function value.
-    const result = evalQuery('[1 2 3] | as(:result) | result | count');
-    expect(isErrorValue(result)).toBe(false);
+    const evalResult = await evalQuery('[1 2 3] | as(:result) | result | count');
+    expect(isErrorValue(evalResult)).toBe(false);
   });
 
-  it('rejects let inside a ParenGroup with effectful body', () => {
-    const e = getEffectError('1 | (let(:bad, @callers) | bad)');
-    expect(e).toBeInstanceOf(EffectLaunderingAtLetParse);
+  it('rejects let inside a ParenGroup with effectful body', async () => {
+    const effectErr = await getEffectError('1 | (let(:bad, @callers) | bad)');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
   });
 
 });
 
 describe('runtime call-site safety net (evalOperandCall)', () => {
-  it('catches Map → use → clean-name laundering', () => {
-    const session = createSession();
-    session.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cell = session.evalCell(
+  it('catches Map → use → clean-name laundering', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
+    const cellEntry = await sessionInstance.evalCell(
       '{:helper (env | /@callers)} | use | let(:foo, helper) | foo'
     );
     // EffectLaunderingAtCall produces an error value.
-    expect(isErrorValue(cell.result)).toBe(true);
-    const e = cell.result.originalError;
-    expect(e).toBeInstanceOf(EffectLaunderingAtCall);
-    expect(e.context.bindingName).toBe('helper');
-    expect(e.context.effectfulName).toBe('@callers');
+    expect(isErrorValue(cellEntry.result)).toBe(true);
+    const originalErr = cellEntry.result.originalError;
+    expect(originalErr).toBeInstanceOf(EffectLaunderingAtCall);
+    expect(originalErr.context.bindingName).toBe('helper');
+    expect(originalErr.context.effectfulName).toBe('@callers');
   });
 
-  it('catches as snapshot of a function value bound to a clean name', () => {
-    const session = createSession();
-    session.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cell = session.evalCell(
+  it('catches as snapshot of a function value bound to a clean name', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
+    const cellEntry = await sessionInstance.evalCell(
       '(env | /@callers) | as(:snap) | snap'
     );
-    expect(isErrorValue(cell.result)).toBe(true);
-    const e = cell.result.originalError;
-    expect(e).toBeInstanceOf(EffectLaunderingAtCall);
-    expect(e.context.bindingName).toBe('snap');
+    expect(isErrorValue(cellEntry.result)).toBe(true);
+    const originalErr = cellEntry.result.originalError;
+    expect(originalErr).toBeInstanceOf(EffectLaunderingAtCall);
+    expect(originalErr.context.bindingName).toBe('snap');
   });
 
-  it('does NOT fire when looking up the @-name directly', () => {
-    const session = createSession();
-    session.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cell = session.evalCell('@callers');
-    expect(cell.error).toBeNull();
+  it('does NOT fire when looking up the @-name directly', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
+    const cellEntry = await sessionInstance.evalCell('@callers');
+    expect(cellEntry.error).toBeNull();
   });
 
-  it('does NOT fire when the laundered binding name is also @-prefixed', () => {
-    const session = createSession();
-    session.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cell = session.evalCell(
+  it('does NOT fire when the laundered binding name is also @-prefixed', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
+    const cellEntry = await sessionInstance.evalCell(
       '{:@helper (env | /@callers)} | use | @helper'
     );
-    expect(cell.error).toBeNull();
+    expect(cellEntry.error).toBeNull();
   });
 
-  it('does NOT fire on a normal pure function lookup', () => {
-    const cell = createSession().evalCell('[1 2 3] | count');
-    expect(cell.error).toBeNull();
+  it('does NOT fire on a normal pure function lookup', async () => {
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell('[1 2 3] | count');
+    expect(cellEntry.error).toBeNull();
   });
 });
 
 describe('function and conduit effectful field', () => {
   it('makeFn(@name, ...) sets effectful=true on the function value', () => {
-    const fn = makeFn('@callers', 1, (s) => s, { captured: [0, 0] });
+    const fn = makeFn('@callers', 1, (state) => state, { captured: [0, 0] });
     expect(fn.effectful).toBe(true);
   });
 
   it('makeFn(cleanName, ...) sets effectful=false on the function value', () => {
-    const fn = makeFn('count', 1, (s) => s, { captured: [0, 0] });
+    const fn = makeFn('count', 1, (state) => state, { captured: [0, 0] });
     expect(fn.effectful).toBe(false);
   });
 
-  it('conduit created from let(:@name, ...) has :effectful true', () => {
-    const session = createSession();
-    session.evalCell('let(:@x, count)');
-    const conduit = Array.from(session.env).find(([k]) => k.name === '@x')?.[1];
+  it('conduit created from let(:@name, ...) has :effectful true', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell('let(:@x, count)');
+    const conduit = Array.from(sessionInstance.env).find(([k]) => k.name === '@x')?.[1];
     expect(conduit).toBeDefined();
     expect(conduit.get(keyword('effectful'))).toBe(true);
   });
 
-  it('conduit created from let(:cleanName, ...) has :effectful false', () => {
-    const session = createSession();
-    session.evalCell('let(:foo, count)');
-    const conduit = Array.from(session.env).find(([k]) => k.name === 'foo')?.[1];
+  it('conduit created from let(:cleanName, ...) has :effectful false', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell('let(:foo, count)');
+    const conduit = Array.from(sessionInstance.env).find(([k]) => k.name === 'foo')?.[1];
     expect(conduit).toBeDefined();
     expect(conduit.get(keyword('effectful'))).toBe(false);
   });

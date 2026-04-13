@@ -99,9 +99,9 @@ export const union = overloadedOp('union', 2, {
     if (vec.length === 0) throw new UnionBareEmpty();
     return vec.reduce(unionPair);
   },
-  1: (pipeValue, rightLambda) => unionPair(pipeValue, rightLambda(pipeValue)),
-  2: (pipeValue, leftLambda, rightLambda) =>
-    unionPair(leftLambda(pipeValue), rightLambda(pipeValue))
+  1: async (unionSubject, unionRightLambda) => unionPair(unionSubject, await unionRightLambda(unionSubject)),
+  2: async (unionCtx, unionLeftLambda, unionRightLambda) =>
+    unionPair(await unionLeftLambda(unionCtx), await unionRightLambda(unionCtx))
 });
 
 export const minus = overloadedOp('minus', 2, {
@@ -110,9 +110,9 @@ export const minus = overloadedOp('minus', 2, {
     if (vec.length === 0) throw new MinusBareEmpty();
     return vec.reduce(minusPair);
   },
-  1: (pipeValue, rightLambda) => minusPair(pipeValue, rightLambda(pipeValue)),
-  2: (pipeValue, leftLambda, rightLambda) =>
-    minusPair(leftLambda(pipeValue), rightLambda(pipeValue))
+  1: async (minusSubject, minusRightLambda) => minusPair(minusSubject, await minusRightLambda(minusSubject)),
+  2: async (minusCtx, minusLeftLambda, minusRightLambda) =>
+    minusPair(await minusLeftLambda(minusCtx), await minusRightLambda(minusCtx))
 });
 
 export const inter = overloadedOp('inter', 2, {
@@ -121,9 +121,9 @@ export const inter = overloadedOp('inter', 2, {
     if (vec.length === 0) throw new InterBareEmpty();
     return vec.reduce(interPair);
   },
-  1: (pipeValue, rightLambda) => interPair(pipeValue, rightLambda(pipeValue)),
-  2: (pipeValue, leftLambda, rightLambda) =>
-    interPair(leftLambda(pipeValue), rightLambda(pipeValue))
+  1: async (interSubject, interRightLambda) => interPair(interSubject, await interRightLambda(interSubject)),
+  2: async (interCtx, interLeftLambda, interRightLambda) =>
+    interPair(await interLeftLambda(interCtx), await interRightLambda(interCtx))
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.

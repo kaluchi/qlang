@@ -27,13 +27,13 @@ const docsDir = join(here, '..', '..', 'docs');
 // Parse a qlang result string (from doc prose) into a runtime value.
 // Supports: numbers, strings, booleans, null, keywords, Vecs, Maps, Sets.
 // The simplest approach: evaluate the expected string as a qlang query.
-function parseExpected(text) {
+async function parseExpected(text) {
   const trimmed = text.trim();
   // Skip multi-line results, Map/Set renders, and complex outputs
   // that can't be reliably round-tripped through evalQuery.
   if (trimmed.includes('\n') && !trimmed.startsWith('[') && !trimmed.startsWith('{')) return null;
   try {
-    return evalQuery(trimmed);
+    return await evalQuery(trimmed);
   } catch {
     return null; // unparseable expected value — skip
   }
@@ -52,11 +52,11 @@ function extractReplExamples(source, filePath) {
 
   function flush() {
     if (currentQuery !== null && currentExpectedLines.length > 0) {
-      const expected = currentExpectedLines.join('\n').trim();
-      if (expected.length > 0) {
+      const expectedText = currentExpectedLines.join('\n').trim();
+      if (expectedText.length > 0) {
         examples.push({
           query: currentQuery,
-          expected,
+          expected: expectedText,
           file: filePath,
           line: queryLine
         });
@@ -107,27 +107,27 @@ const specExamples = extractReplExamples(specSource, 'qlang-spec.md');
 
 describe('doc-compliance: qlang-spec.md REPL examples', () => {
   for (const ex of specExamples) {
-    const expected = parseExpected(ex.expected);
-    if (expected === null) continue; // skip unparseable expected values
+    it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, async () => {
+      const expectedValue = await parseExpected(ex.expected);
+      if (expectedValue === null) return; // skip unparseable expected values
 
-    it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, () => {
-      let result;
+      let queryResult;
       try {
-        result = evalQuery(ex.query);
-      } catch (e) {
+        queryResult = await evalQuery(ex.query);
+      } catch (thrownErr) {
         throw new Error(
-          `Doc example at ${ex.file}:${ex.line} threw: ${e.message}\n` +
+          `Doc example at ${ex.file}:${ex.line} threw: ${thrownErr.message}\n` +
           `  query: ${ex.query}`
         );
       }
-      const match = deepEqual(result, expected);
+      const match = deepEqual(queryResult, expectedValue);
       if (!match) {
         // Build a readable diff for the failure message
-        const resultStr = JSON.stringify(result, (_, v) =>
+        const resultStr = JSON.stringify(queryResult, (_, v) =>
           v instanceof Map ? Object.fromEntries(v) :
           v instanceof Set ? [...v] : v
         );
-        const expectedStr = JSON.stringify(expected, (_, v) =>
+        const expectedStr = JSON.stringify(expectedValue, (_, v) =>
           v instanceof Map ? Object.fromEntries(v) :
           v instanceof Set ? [...v] : v
         );

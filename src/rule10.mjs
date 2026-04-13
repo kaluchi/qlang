@@ -31,21 +31,21 @@ const Rule10ArityOverflow = declareArityError('Rule10ArityOverflow',
   ({ operandName, maxArity, actualArity }) =>
     `${operandName} accepts at most ${maxArity} captured arguments, got ${actualArity}`);
 
-// applyRule10(fn, lambdas, state) → state
+// applyRule10(fn, lambdas, state) → Promise<state>
 //
 // Overflow check + dispatch. The arity of each dispatch-wrapped
 // impl is enforced inside the wrapper; this function only blocks
 // calls with more captured args than the function's declared
 // maximum.
-export function applyRule10(fn, lambdas, state) {
-  if (lambdas.length > fn.arity) {
+export async function applyRule10(fn, appliedLambdas, state) {
+  if (appliedLambdas.length > fn.arity) {
     throw new Rule10ArityOverflow({
       operandName: fn.name,
       maxArity: fn.arity,
-      actualArity: lambdas.length
+      actualArity: appliedLambdas.length
     });
   }
-  return fn.fn(state, lambdas);
+  return await fn.fn(state, appliedLambdas);
 }
 
 // makeFn(name, arity, impl, meta) → function value

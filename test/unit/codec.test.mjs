@@ -18,8 +18,8 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   function roundTrip(value) {
     const encoded = toTaggedJSON(value);
-    const json = JSON.stringify(encoded);
-    const reparsed = JSON.parse(json);
+    const jsonText = JSON.stringify(encoded);
+    const reparsed = JSON.parse(jsonText);
     return fromTaggedJSON(reparsed);
   }
 
@@ -47,10 +47,10 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips a Map with keyword keys', () => {
-    const m = new Map();
-    m.set(keyword('name'), 'Alice');
-    m.set(keyword('age'), 30);
-    const restored = roundTrip(m);
+    const mapValue = new Map();
+    mapValue.set(keyword('name'), 'Alice');
+    mapValue.set(keyword('age'), 30);
+    const restored = roundTrip(mapValue);
     expect(restored).toBeInstanceOf(Map);
     expect(restored.size).toBe(2);
     expect(restored.get(keyword('name'))).toBe('Alice');
@@ -58,8 +58,8 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips a Set of mixed scalars', () => {
-    const s = new Set([1, 'two', true]);
-    const restored = roundTrip(s);
+    const setValue = new Set([1, 'two', true]);
+    const restored = roundTrip(setValue);
     expect(restored).toBeInstanceOf(Set);
     expect(restored.has(1)).toBe(true);
     expect(restored.has('two')).toBe(true);
@@ -67,10 +67,10 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips deeply nested Vec/Map/Set', () => {
-    const m = new Map();
-    m.set(keyword('items'), [1, 2, new Set([3, 4])]);
-    m.set(keyword('meta'), new Map([[keyword('count'), 2]]));
-    const restored = roundTrip(m);
+    const mapValue = new Map();
+    mapValue.set(keyword('items'), [1, 2, new Set([3, 4])]);
+    mapValue.set(keyword('meta'), new Map([[keyword('count'), 2]]));
+    const restored = roundTrip(mapValue);
     expect(restored).toBeInstanceOf(Map);
     const items = restored.get(keyword('items'));
     expect(items[2]).toBeInstanceOf(Set);

@@ -64,30 +64,30 @@ const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapt
   ({ paramName, actualCount }) =>
     `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
 
-// evalQuery(source, env?) → final pipeValue
+// evalQuery(source, env?) → Promise<final pipeValue>
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
 // uses langRuntime as both initial env and pipeValue (per the
 // model's reference bootstrap).
-export function evalQuery(source, env) {
-  const initialEnv = env ?? langRuntime();
+export async function evalQuery(source, env) {
+  const initialEnv = env ?? await langRuntime();
   let ast;
   try {
     ast = parse(source);
-  } catch (e) {
-    return errorFromParse(e);
+  } catch (parseErr) {
+    return errorFromParse(parseErr);
   }
   const initialState = makeState(initialEnv, initialEnv);
-  const finalState = evalNode(ast, initialState);
+  const finalState = await evalNode(ast, initialState);
   return finalState.pipeValue;
 }
 
-// evalAst(ast, state) → state'
+// evalAst(ast, state) → Promise<state'>
 //
 // Dispatches on the AST node type and returns the new state.
 // Public so callers can drive their own initial state.
-export function evalAst(ast, state) {
-  return evalNode(ast, state);
+export async function evalAst(ast, state) {
+  return await evalNode(ast, state);
 }
 
 // Lookup-table dispatcher: one entry per AST node type. Adding a
@@ -110,24 +110,24 @@ const AST_NODE_EVALUATORS = {
   BlockPlainComment: evalCommentStep
 };
 
-function evalNode(node, state) {
+async function evalNode(node, state) {
   const evaluator = AST_NODE_EVALUATORS[node.type];
   if (!evaluator) throw new UnknownAstNodeTypeError(node.type);
 
   try {
-    return evaluator(node, state);
-  } catch (e) {
-    if (e instanceof QlangError && !e.location && node.location)
-      e.location = node.location;
-    if (e instanceof QlangInvariantError) throw e;
+    return await evaluator(node, state);
+  } catch (caughtError) {
+    if (caughtError instanceof QlangError && !caughtError.location && node.location)
+      caughtError.location = node.location;
+    if (caughtError instanceof QlangInvariantError) throw caughtError;
     return withPipeValue(state,
-      e instanceof QlangError ? errorFromQlang(e, node) : errorFromForeign(e, node));
+      caughtError instanceof QlangError ? errorFromQlang(caughtError, node) : errorFromForeign(caughtError, node));
   }
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
 
-function evalPipeline(node, state) {
+async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
   //
   // If `node.leadingFail === true`, the first step is routed through
@@ -141,10 +141,10 @@ function evalPipeline(node, state) {
     const step = node.steps[i];
     if (i === 0) {
       current = node.leadingFail
-        ? applyCombinator('!|', current, step)
-        : evalNode(step, current);
+        ? await applyCombinator('!|', current, step)
+        : await evalNode(step, current);
     } else {
-      current = applyCombinator(step.combinator, current, step.step);
+      current = await applyCombinator(step.combinator, current, step.step);
     }
   }
   return current;
@@ -165,12 +165,12 @@ const COMBINATOR_EVALUATORS = {
   '>>': mergeFlat
 };
 
-function applyCombinator(kind, state, stepNode) {
+async function applyCombinator(kind, state, stepNode) {
   const evaluator = COMBINATOR_EVALUATORS[kind];
   if (!evaluator) {
     throw new UnknownCombinatorKindError(kind);
   }
-  return evaluator(state, stepNode);
+  return await evaluator(state, stepNode);
 }
 
 // applySuccessTrack(state, stepNode) — the `|` combinator. Fires
@@ -181,27 +181,29 @@ function applyCombinator(kind, state, stepNode) {
 // structurally-addressable qlang value (:name / :args / :location /
 // :text) that downstream `!|` consumers can filter, project, or
 // re-eval as ordinary data.
-function applySuccessTrack(state, stepNode) {
+async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(stepNode)));
   }
-  return evalNode(stepNode, state);
+  return await evalNode(stepNode, state);
 }
 
-function distribute(state, bodyNode) {
+async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(bodyNode)));
   }
   if (!isVec(state.pipeValue)) {
     throw new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
   }
-  const collected = state.pipeValue.map(item =>
-    forkWith(state, item, inner => evalNode(bodyNode, inner)).pipeValue
+  const forkResults = await Promise.all(
+    state.pipeValue.map(vecElement =>
+      forkWith(state, vecElement, inner => evalNode(bodyNode, inner))
+    )
   );
-  return withPipeValue(state, collected);
+  return withPipeValue(state, forkResults.map(forkedState => forkedState.pipeValue));
 }
 
-function mergeFlat(state, nextNode) {
+async function mergeFlat(state, nextNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(nextNode)));
   }
@@ -209,11 +211,11 @@ function mergeFlat(state, nextNode) {
     throw new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
   }
   const flattened = [];
-  for (const item of state.pipeValue) {
-    if (isVec(item)) flattened.push(...item);
-    else flattened.push(item);
+  for (const flatItem of state.pipeValue) {
+    if (isVec(flatItem)) flattened.push(...flatItem);
+    else flattened.push(flatItem);
   }
-  return evalNode(nextNode, withPipeValue(state, flattened));
+  return await evalNode(nextNode, withPipeValue(state, flattened));
 }
 
 // applyFailTrack(state, stepNode) — `!|` combinator implementation.
@@ -241,16 +243,16 @@ function mergeFlat(state, nextNode) {
 // The next `!|` combines both sources again — continuous accumulation.
 // Explicit truncation is available via `union({:trail []})` inside a
 // fail-apply step, which overwrites the `:trail` field before re-lift.
-function applyFailTrack(state, stepNode) {
+async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
-  const err = state.pipeValue;
+  const errorVal = state.pipeValue;
   const combinedTrail = [
-    ...err.descriptor.get(keyword('trail')),
-    ...materializeTrail(err)
+    ...errorVal.descriptor.get(keyword('trail')),
+    ...materializeTrail(errorVal)
   ];
-  const materializedDescriptor = new Map(err.descriptor);
+  const materializedDescriptor = new Map(errorVal.descriptor);
   materializedDescriptor.set(keyword('trail'), combinedTrail);
-  return evalNode(stepNode, withPipeValue(state, materializedDescriptor));
+  return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
 }
 
 // ─── Step 1: Literals ───────────────────────────────────────────
@@ -261,12 +263,12 @@ function evalBooleanLit(node, state) { return withPipeValue(state, node.value); 
 function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 
-function evalVecLit(node, state) {
+async function evalVecLit(node, state) {
   // Each element is a sub-pipeline forked against the outer state.
-  const collected = node.elements.map(elem =>
-    fork(state, inner => evalNode(elem, inner)).pipeValue
+  const elementForks = await Promise.all(
+    node.elements.map(elem => fork(state, inner => evalNode(elem, inner)))
   );
-  return withPipeValue(state, collected);
+  return withPipeValue(state, elementForks.map(forkedState => forkedState.pipeValue));
 }
 
 // foldEntryDocs — when a MapEntry carries a parser-attached docs
@@ -292,67 +294,67 @@ function foldEntryDocs(entry, value) {
   return withDocs;
 }
 
-function evalMapLit(node, state) {
+async function evalMapLit(node, state) {
   // Each value is a sub-pipeline forked against the outer state.
   // Keys are keyword AST nodes; we resolve them to interned keywords.
   // Parser-attached entry.docs fold into the value Map as :docs when
   // the value is itself a Map — this is the mechanism that lets
   // manifest-style `|~~ ... ~~| :entry {...}` authoring land doc
   // strings on the resulting binding descriptor at eval time.
-  const result = new Map();
+  const mapResult = new Map();
   for (const entry of node.entries) {
-    const key = keyword(entry.key.name);
-    const rawValue = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
-    result.set(key, foldEntryDocs(entry, rawValue));
+    const entryKey = keyword(entry.key.name);
+    const entryFork = await fork(state, inner => evalNode(entry.value, inner));
+    mapResult.set(entryKey, foldEntryDocs(entry, entryFork.pipeValue));
   }
-  return withPipeValue(state, result);
+  return withPipeValue(state, mapResult);
 }
 
-function evalErrorLit(node, state) {
+async function evalErrorLit(node, state) {
   // Same entry evaluation as MapLit, but wraps in error value.
   // Doc-prefix fold applies symmetrically so the descriptor Map
   // inside the error carries :docs when the author attached them
   // — harmless for ordinary error literals, load-bearing when an
   // embedder programmatically constructs a descriptor-shaped error
   // and wants the docs surfaced through reify.
-  const descriptor = new Map();
+  const errorDescriptor = new Map();
   for (const entry of node.entries) {
-    const key = keyword(entry.key.name);
-    const rawValue = fork(state, inner => evalNode(entry.value, inner)).pipeValue;
-    descriptor.set(key, foldEntryDocs(entry, rawValue));
+    const entryKey = keyword(entry.key.name);
+    const entryFork = await fork(state, inner => evalNode(entry.value, inner));
+    errorDescriptor.set(entryKey, foldEntryDocs(entry, entryFork.pipeValue));
   }
-  return withPipeValue(state, makeErrorValue(descriptor, { location: node.location }));
+  return withPipeValue(state, makeErrorValue(errorDescriptor, { location: node.location }));
 }
 
-function evalSetLit(node, state) {
-  const result = new Set();
-  for (const elem of node.elements) {
-    const value = fork(state, inner => evalNode(elem, inner)).pipeValue;
-    result.add(value);
+async function evalSetLit(node, state) {
+  const setResult = new Set();
+  for (const setElem of node.elements) {
+    const elemFork = await fork(state, inner => evalNode(setElem, inner));
+    setResult.add(elemFork.pipeValue);
   }
-  return withPipeValue(state, result);
+  return withPipeValue(state, setResult);
 }
 
 // ─── Step 2: Projection ─────────────────────────────────────────
 
-function evalProjection(node, state) {
-  let current = state.pipeValue;
-  for (const key of node.keys) {
-    if (!isQMap(current)) {
+async function evalProjection(node, state) {
+  let projectionCurrent = state.pipeValue;
+  for (const projKey of node.keys) {
+    if (!isQMap(projectionCurrent)) {
       throw new ProjectionSubjectNotMap({
-        key,
-        actualType: describeType(current),
-        actualValue: current
+        key: projKey,
+        actualType: describeType(projectionCurrent),
+        actualValue: projectionCurrent
       });
     }
-    current = current.has(keyword(key)) ? current.get(keyword(key)) : NULL;
+    projectionCurrent = projectionCurrent.has(keyword(projKey)) ? projectionCurrent.get(keyword(projKey)) : NULL;
     // Snapshots are transparent value wrappers — unwrap during
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
     // directly without going through projection.
-    if (isSnapshot(current)) current = current.get(KW_VALUE_FIELD);
+    if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get(KW_VALUE_FIELD);
   }
-  return withPipeValue(state, current);
+  return withPipeValue(state, projectionCurrent);
 }
 
 // ─── Step 3: Identifier lookup with optional captured args ──────
@@ -374,15 +376,15 @@ const KW_ENVREF_FIELD        = keyword('qlang/envRef');
 const KW_VALUE_FIELD         = keyword('qlang/value');
 const KW_EFFECTFUL_FIELD     = keyword('effectful');
 
-function evalOperandCall(node, state) {
-  const name = node.name;
-  const env = state.env;
+async function evalOperandCall(node, state) {
+  const lookupName = node.name;
+  const lookupEnv = state.env;
 
-  if (!envHas(env, name)) {
-    throw new UnresolvedIdentifierError(name);
+  if (!envHas(lookupEnv, lookupName)) {
+    throw new UnresolvedIdentifierError(lookupName);
   }
 
-  let resolved = envGet(env, name);
+  let resolved = envGet(lookupEnv, lookupName);
 
   // Snapshot auto-unwrap — a Map with :qlang/kind :snapshot exposes
   // its wrapped :qlang/value transparently to identifier lookup so
@@ -406,7 +408,7 @@ function evalOperandCall(node, state) {
   // captured by value-level projection) carry no :qlang/kind and
   // fall through as non-function values.
   if (isQMap(resolved)) {
-    const dispatched = applyBindingDescriptor(resolved, node, name, state);
+    const dispatched = await applyBindingDescriptor(resolved, node, lookupName, state);
     if (dispatched !== null) return dispatched;
   }
 
@@ -424,9 +426,9 @@ function evalOperandCall(node, state) {
     // Variant-B descriptor path above; the check stays for them
     // because a conduit-parameter proxy may wrap an effectful
     // captured-arg lambda under a non-@-prefixed binding.
-    if (resolved.effectful && !classifyEffect(name)) {
+    if (resolved.effectful && !classifyEffect(lookupName)) {
       throw new EffectLaunderingAtCall({
-        bindingName: name,
+        bindingName: lookupName,
         effectfulName: resolved.name
       });
     }
@@ -437,22 +439,22 @@ function evalOperandCall(node, state) {
     // per-invocation input; env writes inside the lambda are
     // local to that call and do not escape.
     const capturedEnv = state.env;
-    const lambdas = capturedArgsAst === null
+    const operandLambdas = capturedArgsAst === null
       ? []
-      : capturedArgsAst.map(arg => makeLambda(arg, capturedEnv));
+      : capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv));
     // Stash doc comments from the OperandCall node on the lambdas
     // array so reflective binding operands (let, as) can access
     // them without changing the fn(state, lambdas) dispatch signature.
-    lambdas.docs = node.docs || [];
-    lambdas.location = node.location;
-    return applyRule10(resolved, lambdas, state);
+    operandLambdas.docs = node.docs || [];
+    operandLambdas.location = node.location;
+    return await applyRule10(resolved, operandLambdas, state);
   }
 
   // Non-function value: replace pipeValue with it. Captured args
   // would be a type error since you cannot apply a non-function.
   if (capturedArgsAst !== null) {
     throw new ApplyToNonFunction({
-      name,
+      name: lookupName,
       actualType: describeType(resolved),
       actualValue: resolved
     });
@@ -471,13 +473,13 @@ function evalOperandCall(node, state) {
 // null return as "this Map is user data, fall through to plain-
 // value handling". Snapshot is handled upstream by the auto-unwrap
 // step in evalOperandCall, so no :snapshot branch here.
-function applyBindingDescriptor(descriptor, node, lookupName, state) {
-  const kind = descriptor.get(KW_QLANG_KIND_DISPATCH);
-  if (kind === KW_BUILTIN_DISPATCH) {
-    return applyBuiltinDescriptor(descriptor, node, lookupName, state);
+async function applyBindingDescriptor(descriptor, node, lookupName, state) {
+  const bindingKind = descriptor.get(KW_QLANG_KIND_DISPATCH);
+  if (bindingKind === KW_BUILTIN_DISPATCH) {
+    return await applyBuiltinDescriptor(descriptor, node, lookupName, state);
   }
-  if (kind === KW_CONDUIT_DISPATCH) {
-    return applyConduit(descriptor, node, lookupName, state);
+  if (bindingKind === KW_CONDUIT_DISPATCH) {
+    return await applyConduit(descriptor, node, lookupName, state);
   }
   return null;
 }
@@ -498,13 +500,13 @@ function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // promised. Nullary operands (count, sort bare form, env, etc.)
 // still fire on bare lookup because their minCaptured is 0 and a
 // bare application IS their valid nullary form.
-function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
+async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
   const implKey = descriptor.get(KW_QLANG_IMPL_DISPATCH);
-  const impl = PRIMITIVE_REGISTRY.resolve(implKey);
+  const resolvedImpl = PRIMITIVE_REGISTRY.resolve(implKey);
 
   // No effect-laundering check on this path: every primitive bound
   // via runtime/*.mjs is clean (none of the built-in operand names
-  // carry the @-marker), so `impl.effectful` is always false for
+  // carry the @-marker), so `resolvedImpl.effectful` is always false for
   // descriptor-backed built-ins. The check remains on the function-
   // value branch of evalOperandCall, which still fires for
   // conduit-parameter proxies created at applyConduit time.
@@ -513,25 +515,25 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
   const hasArgs = capturedArgsAst !== null;
 
   // Bare non-nullary lookup → return descriptor as pipeValue. The
-  // min captured-arg count lives in impl.meta.captured[0] (set by
+  // min captured-arg count lives in resolvedImpl.meta.captured[0] (set by
   // every dispatch wrapper — valueOp, higherOrderOp, nullaryOp,
   // overloadedOp — at makeFn time). A minCaptured
   // of 0 means the operand has a valid nullary call shape, so bare
   // lookup fires the operand as before; any positive minCaptured
   // means bare lookup has no valid application and yields the
   // descriptor for introspection instead of an arity error.
-  const minCaptured = impl.meta.captured[0];
+  const minCaptured = resolvedImpl.meta.captured[0];
   if (!hasArgs && minCaptured > 0) {
     return withPipeValue(state, descriptor);
   }
 
   const capturedEnv = state.env;
-  const lambdas = hasArgs
-    ? capturedArgsAst.map(arg => makeLambda(arg, capturedEnv))
+  const builtinLambdas = hasArgs
+    ? capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv))
     : [];
-  lambdas.docs = node.docs || [];
-  lambdas.location = node.location;
-  return applyRule10(impl, lambdas, state);
+  builtinLambdas.docs = node.docs || [];
+  builtinLambdas.location = node.location;
+  return await applyRule10(resolvedImpl, builtinLambdas, state);
 }
 
 // applyConduit(conduit, node, lookupName, state) → state'
@@ -542,7 +544,7 @@ function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
 // anchor plus the params, forks the body, and ascends with only the
 // final pipeValue. The entire operation is one atomic state
 // transformation from the outer pipeline's perspective.
-function applyConduit(conduit, node, lookupName, state) {
+async function applyConduit(conduit, node, lookupName, state) {
   // Read the conduit's payload fields once. Under Variant-B every
   // conduit is a descriptor Map; field access goes through Map.get
   // against the interned KW_*_FIELD constants declared above.
@@ -565,18 +567,18 @@ function applyConduit(conduit, node, lookupName, state) {
 
   // Build lambdas from captured args at the call site.
   const capturedEnv = state.env;
-  const lambdas = capturedArgsAst === null
+  const conduitLambdas = capturedArgsAst === null
     ? []
-    : capturedArgsAst.map(arg => makeLambda(arg, capturedEnv));
+    : capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv));
 
   // Arity check: exact match required. No auto-curry — partial
   // application is achieved through zero-arity conduit aliases and parametric
   // forwarding patterns (fractal composition).
-  if (lambdas.length !== expectedArity) {
+  if (conduitLambdas.length !== expectedArity) {
     throw new ConduitArityMismatch({
       conduitName,
       expectedArity,
-      actualArity: lambdas.length
+      actualArity: conduitLambdas.length
     });
   }
 
@@ -597,7 +599,7 @@ function applyConduit(conduit, node, lookupName, state) {
   // dynamic-scope drift is not a supported invocation path.
   let bodyEnv = conduitEnvRef.env;
   for (let i = 0; i < conduitParams.length; i++) {
-    const paramProxy = makeConduitParameter(lambdas[i], conduitParams[i]);
+    const paramProxy = makeConduitParameter(conduitLambdas[i], conduitParams[i]);
     bodyEnv = envSet(bodyEnv, conduitParams[i], paramProxy);
   }
 
@@ -605,7 +607,7 @@ function applyConduit(conduit, node, lookupName, state) {
   // and the lexical bodyEnv. Body's env writes (let/as inside the
   // body) are discarded on return — only the final pipeValue escapes.
   const bodyState = makeState(state.pipeValue, bodyEnv);
-  const finalBodyState = evalNode(conduitBody, bodyState);
+  const finalBodyState = await evalNode(conduitBody, bodyState);
   return withPipeValue(state, finalBodyState.pipeValue);
 }
 
@@ -621,14 +623,14 @@ function applyConduit(conduit, node, lookupName, state) {
 function makeConduitParameter(capturedArgLambda, paramName) {
   // Conduit parameters are ephemeral — meta is inline because
   // they have no lib/qlang/core.qlang entry.
-  return makeFn(paramName, 1, (state, lambdas) => {
-    if (lambdas.length !== 0) {
+  return makeFn(paramName, 1, async (state, paramLambdas) => {
+    if (paramLambdas.length !== 0) {
       throw new ConduitParameterNoCapturedArgs({
         paramName,
-        actualCount: lambdas.length
+        actualCount: paramLambdas.length
       });
     }
-    return withPipeValue(state, capturedArgLambda(state.pipeValue));
+    return withPipeValue(state, await capturedArgLambda(state.pipeValue));
   }, {
     category: 'conduit-parameter',
     subject: 'any (current pipeValue at the lookup site)',
@@ -650,10 +652,11 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // The `.astNode` property exposes the raw AST for reflective
 // operands (like `let`) that need to store the body expression
 // unevaluated for conduit construction and reify source rendering.
-function makeLambda(astNode, env) {
-  const lambda = (input) => {
-    const subState = makeState(input, env);
-    return evalNode(astNode, subState).pipeValue;
+function makeLambda(astNode, capturedLambdaEnv) {
+  const lambda = async (lambdaInput) => {
+    const subState = makeState(lambdaInput, capturedLambdaEnv);
+    const evaluatedState = await evalNode(astNode, subState);
+    return evaluatedState.pipeValue;
   };
   lambda.astNode = astNode;
   return lambda;
@@ -671,6 +674,6 @@ function evalCommentStep(_node, state) {
 
 // ─── ParenGroup ─────────────────────────────────────────────────
 
-function evalParenGroup(node, state) {
-  return fork(state, inner => evalNode(node.pipeline, inner));
+async function evalParenGroup(node, state) {
+  return await fork(state, inner => evalNode(node.pipeline, inner));
 }

@@ -11,30 +11,30 @@ import { isErrorValue, keyword } from '../../src/types.mjs';
 //
 // Evaluates the query and asserts the result is an error value.
 // Returns the error value for further assertions.
-export function expectErrorResult(query) {
-  const result = evalQuery(query);
-  expect(isErrorValue(result), `expected error value from "${query}", got ${typeof result}`).toBe(true);
-  return result;
+export async function expectErrorResult(query) {
+  const evalResult = await evalQuery(query);
+  expect(isErrorValue(evalResult), `expected error value from "${query}", got ${typeof evalResult}`).toBe(true);
+  return evalResult;
 }
 
 // expectErrorKind(query, kind) → error value
 //
 // Asserts the query produces an error value with the given :kind.
-export function expectErrorKind(query, kind) {
-  const err = expectErrorResult(query);
-  const actualKind = err.descriptor.get(keyword('kind'));
+export async function expectErrorKind(query, kind) {
+  const errorResult = await expectErrorResult(query);
+  const actualKind = errorResult.descriptor.get(keyword('kind'));
   expect(actualKind?.name).toBe(kind);
-  return err;
+  return errorResult;
 }
 
 // expectErrorThrown(query, thrown) → error value
 //
 // Asserts the query produces an error value with the given :thrown site.
-export function expectErrorThrown(query, thrown) {
-  const err = expectErrorResult(query);
-  const actualThrown = err.descriptor.get(keyword('thrown'));
+export async function expectErrorThrown(query, thrown) {
+  const errorResult = await expectErrorResult(query);
+  const actualThrown = errorResult.descriptor.get(keyword('thrown'));
   expect(actualThrown?.name).toBe(thrown);
-  return err;
+  return errorResult;
 }
 
 // expectOriginalError(errorValue, ErrorClass) → original JS Error

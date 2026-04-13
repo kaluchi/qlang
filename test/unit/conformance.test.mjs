@@ -61,13 +61,13 @@ for (const file of files) {
   describe(`conformance: ${file}`, () => {
     for (const line of lines) {
       const test = JSON.parse(line);
-      it(test.name, () => {
+      it(test.name, async () => {
         const expectedAst = parse(test.expect);
         assertLiteralAst(expectedAst, test.name);
 
-        const result = evalQuery(test.query);
-        const expected = evalQuery(test.expect);
-        expect(deepEqual(result, expected), `${test.name}: result !== expected`).toBe(true);
+        const queryResult = await evalQuery(test.query);
+        const expectedValue = await evalQuery(test.expect);
+        expect(deepEqual(queryResult, expectedValue), `${test.name}: result !== expected`).toBe(true);
       });
     }
   });

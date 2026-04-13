@@ -33,20 +33,20 @@ const ACTUAL_KW   = keyword('actual');
 // Collect failing {operand, snippet, expected, error} rows by
 // calling runExamples on each binding in the manifest and
 // inspecting the result Maps one entry at a time.
-function walkManifestExamples() {
+async function walkManifestExamples() {
   const failures = [];
-  const bindingNames = evalQuery('manifest * /name');
+  const bindingNames = await evalQuery('manifest * /name');
   for (const name of bindingNames) {
-    const results = evalQuery(`reify(:${name}) | runExamples`);
-    if (!Array.isArray(results)) continue;
-    for (const result of results) {
-      if (result.get(OK_KW) === true) continue;
+    const exampleResults = await evalQuery(`reify(:${name}) | runExamples`);
+    if (!Array.isArray(exampleResults)) continue;
+    for (const exampleResult of exampleResults) {
+      if (exampleResult.get(OK_KW) === true) continue;
       failures.push({
         operand:  name,
-        snippet:  result.get(SNIPPET_KW),
-        expected: result.get(EXPECTED_KW),
-        actual:   result.get(ACTUAL_KW),
-        error:    result.get(ERROR_KW)
+        snippet:  exampleResult.get(SNIPPET_KW),
+        expected: exampleResult.get(EXPECTED_KW),
+        actual:   exampleResult.get(ACTUAL_KW),
+        error:    exampleResult.get(ERROR_KW)
       });
     }
   }
@@ -54,8 +54,8 @@ function walkManifestExamples() {
 }
 
 describe('manifest catalog self-test via runExamples', () => {
-  it('every assertion-mode example matches its :expected literal', () => {
-    const failures = walkManifestExamples();
+  it('every assertion-mode example matches its :expected literal', async () => {
+    const failures = await walkManifestExamples();
     const assertionFailures = failures.filter(f => typeof f.expected === 'string');
     if (assertionFailures.length > 0) {
       const report = assertionFailures
@@ -65,8 +65,8 @@ describe('manifest catalog self-test via runExamples', () => {
     }
   });
 
-  it('every demo-mode example parses as valid qlang', () => {
-    const failures = walkManifestExamples();
+  it('every demo-mode example parses as valid qlang', async () => {
+    const failures = await walkManifestExamples();
     const parseFailures = failures.filter(f => typeof f.expected !== 'string');
     if (parseFailures.length > 0) {
       const report = parseFailures
@@ -76,15 +76,15 @@ describe('manifest catalog self-test via runExamples', () => {
     }
   });
 
-  it('manifest-wide /ok distribution is {true}', () => {
+  it('manifest-wide /ok distribution is {true}', async () => {
     // Top-level sanity: evaluate the homoiconic self-test query
     // from the runExamples operand's documentation and confirm the
     // distinct set of :ok values is exactly `[true]`. This is the
     // same shape the review recommends for catching future drift
     // at the single-query level, independent of the per-operand
     // breakdown above.
-    const result = evalQuery('manifest * (runExamples * /ok) | flat | distinct');
-    expect(isErrorValue(result)).toBe(false);
-    expect(result).toEqual([true]);
+    const distinctOkValues = await evalQuery('manifest * (runExamples * /ok) | flat | distinct');
+    expect(isErrorValue(distinctOkValues)).toBe(false);
+    expect(distinctOkValues).toEqual([true]);
   });
 });

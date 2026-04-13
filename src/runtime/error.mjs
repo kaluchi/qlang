@@ -37,14 +37,14 @@ const ErrorDescriptorNotMap = declareSubjectError(
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;
 // full form `error(map)` evaluates the captured-arg lambda against
 // pipeValue as context and uses the result as the descriptor.
-export const error = makeFn('error', 1, (state, lambdas) => {
-  const descriptor = lambdas.length === 0
+export const error = makeFn('error', 1, async (state, errorLambdas) => {
+  const errorDescriptor = errorLambdas.length === 0
     ? state.pipeValue
-    : lambdas[0](state.pipeValue);
-  if (!isQMap(descriptor)) {
-    throw new ErrorDescriptorNotMap(describeType(descriptor), descriptor);
+    : await errorLambdas[0](state.pipeValue);
+  if (!isQMap(errorDescriptor)) {
+    throw new ErrorDescriptorNotMap(describeType(errorDescriptor), errorDescriptor);
   }
-  return withPipeValue(state, makeErrorValue(descriptor));
+  return withPipeValue(state, makeErrorValue(errorDescriptor));
 }, { captured: [0, 1] });
 
 // isError — plain predicate. Returns true when pipeValue is an

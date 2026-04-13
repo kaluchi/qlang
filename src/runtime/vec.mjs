@@ -150,74 +150,74 @@ function checkComparable(ErrorCls, left, right) {
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
-export const filter = higherOrderOp('filter', 2, (vec, predLambda) => {
+export const filter = higherOrderOp('filter', 2, async (vec, predLambda) => {
   if (!isVec(vec)) throw new FilterSubjectNotVec(describeType(vec), vec);
-  const out = [];
-  for (const item of vec) {
-    const pred = predLambda(item);
-    if (isErrorValue(pred)) return pred;
-    if (isTruthy(pred)) out.push(item);
+  const filterResult = [];
+  for (const filterItem of vec) {
+    const predResult = await predLambda(filterItem);
+    if (isErrorValue(predResult)) return predResult;
+    if (isTruthy(predResult)) filterResult.push(filterItem);
   }
-  return out;
+  return filterResult;
 });
 
-export const every = higherOrderOp('every', 2, (vec, predLambda) => {
+export const every = higherOrderOp('every', 2, async (vec, everyPredLambda) => {
   if (!isVec(vec)) throw new EverySubjectNotVec(describeType(vec), vec);
-  for (const item of vec) {
-    const pred = predLambda(item);
-    if (isErrorValue(pred)) return pred;
-    if (!isTruthy(pred)) return false;
+  for (const everyItem of vec) {
+    const everyResult = await everyPredLambda(everyItem);
+    if (isErrorValue(everyResult)) return everyResult;
+    if (!isTruthy(everyResult)) return false;
   }
   return true;
 });
 
-export const any = higherOrderOp('any', 2, (vec, predLambda) => {
+export const any = higherOrderOp('any', 2, async (vec, anyPredLambda) => {
   if (!isVec(vec)) throw new AnySubjectNotVec(describeType(vec), vec);
-  for (const item of vec) {
-    const pred = predLambda(item);
-    if (isErrorValue(pred)) return pred;
-    if (isTruthy(pred)) return true;
+  for (const anyItem of vec) {
+    const anyResult = await anyPredLambda(anyItem);
+    if (isErrorValue(anyResult)) return anyResult;
+    if (isTruthy(anyResult)) return true;
   }
   return false;
 });
 
-export const groupBy = higherOrderOp('groupBy', 2, (vec, keyLambda) => {
+export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) => {
   if (!isVec(vec)) throw new GroupBySubjectNotVec(describeType(vec), vec);
-  const result = new Map();
-  for (let i = 0; i < vec.length; i++) {
-    const elem = vec[i];
-    const key = keyLambda(elem);
-    if (isErrorValue(key)) return key;
-    if (!isKeyword(key)) {
+  const groupResult = new Map();
+  for (let gi = 0; gi < vec.length; gi++) {
+    const groupElem = vec[gi];
+    const groupKey = await groupKeyLambda(groupElem);
+    if (isErrorValue(groupKey)) return groupKey;
+    if (!isKeyword(groupKey)) {
       throw new GroupByKeyNotKeyword({
-        index: i,
-        actualType: describeType(key),
-        actualValue: key
+        index: gi,
+        actualType: describeType(groupKey),
+        actualValue: groupKey
       });
     }
-    if (!result.has(key)) result.set(key, []);
-    result.get(key).push(elem);
+    if (!groupResult.has(groupKey)) groupResult.set(groupKey, []);
+    groupResult.get(groupKey).push(groupElem);
   }
-  return result;
+  return groupResult;
 });
 
-export const indexBy = higherOrderOp('indexBy', 2, (vec, keyLambda) => {
+export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) => {
   if (!isVec(vec)) throw new IndexBySubjectNotVec(describeType(vec), vec);
-  const result = new Map();
-  for (let i = 0; i < vec.length; i++) {
-    const elem = vec[i];
-    const key = keyLambda(elem);
-    if (isErrorValue(key)) return key;
-    if (!isKeyword(key)) {
+  const indexResult = new Map();
+  for (let ii = 0; ii < vec.length; ii++) {
+    const indexElem = vec[ii];
+    const indexKey = await indexKeyLambda(indexElem);
+    if (isErrorValue(indexKey)) return indexKey;
+    if (!isKeyword(indexKey)) {
       throw new IndexByKeyNotKeyword({
-        index: i,
-        actualType: describeType(key),
-        actualValue: key
+        index: ii,
+        actualType: describeType(indexKey),
+        actualValue: indexKey
       });
     }
-    result.set(key, elem);
+    indexResult.set(indexKey, indexElem);
   }
-  return result;
+  return indexResult;
 });
 
 export const sort = overloadedOp('sort', 2, {
@@ -228,14 +228,20 @@ export const sort = overloadedOp('sort', 2, {
       return compareScalars(a, b);
     });
   },
-  1: (vec, keyLambda) => {
+  1: async (vec, sortKeyLambda) => {
     if (!isVec(vec)) throw new SortByKeySubjectNotVec(describeType(vec), vec);
-    return [...vec].sort((a, b) => {
-      const ka = keyLambda(a);
-      const kb = keyLambda(b);
-      checkComparable(SortByKeyNotComparable, ka, kb);
-      return compareScalars(ka, kb);
+    // Pre-compute all keys (async) then sort synchronously by cached keys.
+    const sortEntries = await Promise.all(
+      vec.map(async (sortElem, sortIdx) => ({
+        sortElem,
+        sortKey: await sortKeyLambda(sortElem)
+      }))
+    );
+    sortEntries.sort((a, b) => {
+      checkComparable(SortByKeyNotComparable, a.sortKey, b.sortKey);
+      return compareScalars(a.sortKey, b.sortKey);
     });
+    return sortEntries.map(entry => entry.sortElem);
   }
 });
 
@@ -287,67 +293,82 @@ export const flat = nullaryOp('flat', (vec) => {
 
 // ── sortWith and comparator builders ──────────────────────────
 
-export const sortWith = higherOrderOp('sortWith', 2, (vec, cmpLambda) => {
+export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
   if (!isVec(vec)) throw new SortWithSubjectNotVec(describeType(vec), vec);
-  return [...vec].sort((a, b) => {
-    const pair = new Map();
-    pair.set(keyword('left'), a);
-    pair.set(keyword('right'), b);
-    const result = cmpLambda(pair);
-    if (typeof result !== 'number') {
-      throw new SortWithCmpResultNotNumber({
-        actualType: describeType(result),
-        actualValue: result
-      });
+  // Array.sort is synchronous; we precompute all pairwise comparisons
+  // would be complex. Instead, use an async-compatible merge sort approach:
+  // precompute comparison matrix or use a simple insertion sort with awaits.
+  // Pragmatic approach: use a comparison cache with indices.
+  const sortWithArr = [...vec];
+  const sortWithLen = sortWithArr.length;
+  // Insertion sort with async comparator — O(n²) but correct with async.
+  for (let outerIdx = 1; outerIdx < sortWithLen; outerIdx++) {
+    const sortWithCurrent = sortWithArr[outerIdx];
+    let insertIdx = outerIdx - 1;
+    while (insertIdx >= 0) {
+      const cmpPair = new Map();
+      cmpPair.set(keyword('left'), sortWithArr[insertIdx]);
+      cmpPair.set(keyword('right'), sortWithCurrent);
+      const cmpResult = await cmpLambda(cmpPair);
+      if (typeof cmpResult !== 'number') {
+        throw new SortWithCmpResultNotNumber({
+          actualType: describeType(cmpResult),
+          actualValue: cmpResult
+        });
+      }
+      if (cmpResult <= 0) break;
+      sortWithArr[insertIdx + 1] = sortWithArr[insertIdx];
+      insertIdx--;
     }
-    return result;
-  });
+    sortWithArr[insertIdx + 1] = sortWithCurrent;
+  }
+  return sortWithArr;
 });
 
-export const asc = higherOrderOp('asc', 2, (pair, keyLambda) => {
+export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
   if (!isQMap(pair)) throw new AscPairNotMap({
     actualType: describeType(pair), actualValue: pair
   });
-  const left  = pair.get(keyword('left'));
-  const right = pair.get(keyword('right'));
-  const leftKey  = keyLambda(left);
-  const rightKey = keyLambda(right);
-  checkComparable(AscKeysNotComparable, leftKey, rightKey);
-  return compareScalars(leftKey, rightKey);
+  const ascLeft  = pair.get(keyword('left'));
+  const ascRight = pair.get(keyword('right'));
+  const ascLeftKey  = await ascKeyLambda(ascLeft);
+  const ascRightKey = await ascKeyLambda(ascRight);
+  checkComparable(AscKeysNotComparable, ascLeftKey, ascRightKey);
+  return compareScalars(ascLeftKey, ascRightKey);
 });
 
-export const desc = higherOrderOp('desc', 2, (pair, keyLambda) => {
+export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
   if (!isQMap(pair)) throw new DescPairNotMap({
     actualType: describeType(pair), actualValue: pair
   });
-  const left  = pair.get(keyword('left'));
-  const right = pair.get(keyword('right'));
-  const leftKey  = keyLambda(left);
-  const rightKey = keyLambda(right);
-  checkComparable(DescKeysNotComparable, leftKey, rightKey);
-  return -compareScalars(leftKey, rightKey);
+  const descLeft  = pair.get(keyword('left'));
+  const descRight = pair.get(keyword('right'));
+  const descLeftKey  = await descKeyLambda(descLeft);
+  const descRightKey = await descKeyLambda(descRight);
+  checkComparable(DescKeysNotComparable, descLeftKey, descRightKey);
+  return -compareScalars(descLeftKey, descRightKey);
 });
 
-function nullsKeyComparator(pair, keyLambda, nullFirst, PairNotMapError, KeysNotComparableError) {
+async function nullsKeyComparator(pair, nullsKeyLambda, nullFirst, PairNotMapError, KeysNotComparableError) {
   if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
-  const left  = pair.get(keyword('left'));
-  const right = pair.get(keyword('right'));
-  const leftKey  = keyLambda(left);
-  const rightKey = keyLambda(right);
-  const leftNull  = leftKey === null || leftKey === undefined;
-  const rightNull = rightKey === null || rightKey === undefined;
-  if (leftNull && rightNull) return 0;
-  if (leftNull) return nullFirst ? -1 : 1;
-  if (rightNull) return nullFirst ? 1 : -1;
-  checkComparable(KeysNotComparableError, leftKey, rightKey);
-  return compareScalars(leftKey, rightKey);
+  const nullsLeft  = pair.get(keyword('left'));
+  const nullsRight = pair.get(keyword('right'));
+  const nullsLeftKey  = await nullsKeyLambda(nullsLeft);
+  const nullsRightKey = await nullsKeyLambda(nullsRight);
+  const leftIsNull  = nullsLeftKey === null || nullsLeftKey === undefined;
+  const rightIsNull = nullsRightKey === null || nullsRightKey === undefined;
+  if (leftIsNull && rightIsNull) return 0;
+  if (leftIsNull) return nullFirst ? -1 : 1;
+  if (rightIsNull) return nullFirst ? 1 : -1;
+  checkComparable(KeysNotComparableError, nullsLeftKey, nullsRightKey);
+  return compareScalars(nullsLeftKey, nullsRightKey);
 }
 
-export const nullsFirst = higherOrderOp('nullsFirst', 2, (pair, keyLambda) =>
-  nullsKeyComparator(pair, keyLambda, true, NullsFirstPairNotMap, NullsFirstKeysNotComparable));
+export const nullsFirst = higherOrderOp('nullsFirst', 2, async (pair, nullsFirstKeyLambda) =>
+  await nullsKeyComparator(pair, nullsFirstKeyLambda, true, NullsFirstPairNotMap, NullsFirstKeysNotComparable));
 
-export const nullsLast = higherOrderOp('nullsLast', 2, (pair, keyLambda) =>
-  nullsKeyComparator(pair, keyLambda, false, NullsLastPairNotMap, NullsLastKeysNotComparable));
+export const nullsLast = higherOrderOp('nullsLast', 2, async (pair, nullsLastKeyLambda) =>
+  await nullsKeyComparator(pair, nullsLastKeyLambda, false, NullsLastPairNotMap, NullsLastKeysNotComparable));
 
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(describeType(vec), vec);

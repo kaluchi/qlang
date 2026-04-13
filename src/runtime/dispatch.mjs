@@ -76,78 +76,78 @@ class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
 }
 
 export function valueOp(name, n, impl) {
-  return makeFn(name, n, (state, lambdas) => {
-    const k = lambdas.length;
-    const pv = state.pipeValue;
-    if (k === n - 1) {
-      const modifiers = lambdas.map(lam => lam(pv));
-      return withPipeValue(state, impl(pv, ...modifiers));
+  return makeFn(name, n, async (state, valueOpLambdas) => {
+    const capturedCount = valueOpLambdas.length;
+    const subjectValue = state.pipeValue;
+    if (capturedCount === n - 1) {
+      const resolvedModifiers = await Promise.all(valueOpLambdas.map(lam => lam(subjectValue)));
+      return withPipeValue(state, await impl(subjectValue, ...resolvedModifiers));
     }
-    if (k === n) {
-      const slots = lambdas.map(lam => lam(pv));
-      return withPipeValue(state, impl(...slots));
+    if (capturedCount === n) {
+      const resolvedSlots = await Promise.all(valueOpLambdas.map(lam => lam(subjectValue)));
+      return withPipeValue(state, await impl(...resolvedSlots));
     }
     throw new ValueOpArityMismatch({
-      operandName: name, expectedArity: n, actualArity: k
+      operandName: name, expectedArity: n, actualArity: capturedCount
     });
   }, { captured: [n - 1, n] });
 }
 
 export function higherOrderOp(name, n, impl) {
-  return makeFn(name, n, (state, lambdas) => {
-    const k = lambdas.length;
-    if (k === n - 1) {
-      return withPipeValue(state, impl(state.pipeValue, ...lambdas));
+  return makeFn(name, n, async (state, hoLambdas) => {
+    const capturedCount = hoLambdas.length;
+    if (capturedCount === n - 1) {
+      return withPipeValue(state, await impl(state.pipeValue, ...hoLambdas));
     }
     throw new HigherOrderOpArityMismatch({
-      operandName: name, expectedCaptured: n - 1, actualArity: k
+      operandName: name, expectedCaptured: n - 1, actualArity: capturedCount
     });
   }, { captured: [n - 1, n - 1] });
 }
 
 export function nullaryOp(name, impl) {
-  return makeFn(name, 1, (state, lambdas) => {
-    if (lambdas.length !== 0) {
-      throw new NullaryOpArgsProvided({ operandName: name, actualArity: lambdas.length });
+  return makeFn(name, 1, async (state, nullaryLambdas) => {
+    if (nullaryLambdas.length !== 0) {
+      throw new NullaryOpArgsProvided({ operandName: name, actualArity: nullaryLambdas.length });
     }
-    return withPipeValue(state, impl(state.pipeValue));
+    return withPipeValue(state, await impl(state.pipeValue));
   }, { captured: [0, 0] });
 }
 
-export function overloadedOp(name, maxArity, impls) {
-  const keys = Object.keys(impls).map(Number).sort((a, b) => a - b);
-  return makeFn(name, maxArity, (state, lambdas) => {
-    const k = lambdas.length;
-    const impl = impls[k];
-    if (!impl) {
+export function overloadedOp(name, maxArity, overloadImpls) {
+  const arityKeys = Object.keys(overloadImpls).map(Number).sort((a, b) => a - b);
+  return makeFn(name, maxArity, async (state, overloadLambdas) => {
+    const capturedCount = overloadLambdas.length;
+    const selectedImpl = overloadImpls[capturedCount];
+    if (!selectedImpl) {
       throw new OverloadedOpUnsupportedArity({
         operandName: name,
-        supportedCounts: Object.keys(impls).join(' or '),
-        actualArity: k
+        supportedCounts: Object.keys(overloadImpls).join(' or '),
+        actualArity: capturedCount
       });
     }
-    return withPipeValue(state, impl(state.pipeValue, ...lambdas));
-  }, { captured: [keys[0], keys[keys.length - 1]] });
+    return withPipeValue(state, await selectedImpl(state.pipeValue, ...overloadLambdas));
+  }, { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]] });
 }
 
 export function stateOp(name, arity, impl) {
-  const expected = arity - 1;
-  return makeFn(name, arity, (state, lambdas) => {
-    if (lambdas.length !== expected) {
+  const expectedCaptured = arity - 1;
+  return makeFn(name, arity, async (state, stateOpLambdas) => {
+    if (stateOpLambdas.length !== expectedCaptured) {
       throw new StateOpArityMismatch({
-        operandName: name, expectedCaptured: expected, actualArity: lambdas.length
+        operandName: name, expectedCaptured, actualArity: stateOpLambdas.length
       });
     }
-    return impl(state, lambdas);
-  }, { captured: [expected, expected] });
+    return await impl(state, stateOpLambdas);
+  }, { captured: [expectedCaptured, expectedCaptured] });
 }
 
 export function stateOpVariadic(name, maxArity, impl, captured) {
   if (!captured) {
     throw new StateOpVariadicMissingCaptured(name);
   }
-  return makeFn(name, maxArity, (state, lambdas) => {
-    return impl(state, lambdas);
+  return makeFn(name, maxArity, async (state, variadicLambdas) => {
+    return await impl(state, variadicLambdas);
   }, { captured });
 }
 
@@ -155,7 +155,7 @@ export function higherOrderOpVariadic(name, maxArity, impl, captured) {
   if (!captured) {
     throw new HigherOrderOpVariadicMissingCaptured(name);
   }
-  return makeFn(name, maxArity, (state, lambdas) => {
-    return withPipeValue(state, impl(state.pipeValue, ...lambdas));
+  return makeFn(name, maxArity, async (state, hoVariadicLambdas) => {
+    return withPipeValue(state, await impl(state.pipeValue, ...hoVariadicLambdas));
   }, { captured });
 }

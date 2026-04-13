@@ -92,11 +92,11 @@ describe('grammar — MapEntry doc-comment prefix', () => {
 });
 
 describe('eval — MapEntry docs fold into value Map', () => {
-  it('folds a single doc-comment prefix into the value Map as :docs', () => {
+  it('folds a single doc-comment prefix into the value Map as :docs', async () => {
     const source = '{|~~| field doc\n:name {:kind :thing}}';
-    const result = evalQuery(source);
-    expect(isQMap(result)).toBe(true);
-    const inner = result.get(keyword('name'));
+    const evalResult = await evalQuery(source);
+    expect(isQMap(evalResult)).toBe(true);
+    const inner = evalResult.get(keyword('name'));
     expect(isQMap(inner)).toBe(true);
     expect(inner.get(keyword('kind'))).toBe(keyword('thing'));
     const docs = inner.get(KW_DOCS);
@@ -104,56 +104,56 @@ describe('eval — MapEntry docs fold into value Map', () => {
     expect(docs).toEqual([' field doc']);
   });
 
-  it('folds multi-doc prefix as ordered Vec', () => {
+  it('folds multi-doc prefix as ordered Vec', async () => {
     const source = '{|~~| first\n|~~| second\n:x {:a 1}}';
-    const result = evalQuery(source);
-    const inner = result.get(keyword('x'));
+    const evalResult = await evalQuery(source);
+    const inner = evalResult.get(keyword('x'));
     expect(inner.get(KW_DOCS)).toEqual([' first', ' second']);
   });
 
-  it('drops docs silently when the entry value is a scalar', () => {
+  it('drops docs silently when the entry value is a scalar', async () => {
     const source = '{|~~| would-be doc\n:x 42}';
-    const result = evalQuery(source);
+    const evalResult = await evalQuery(source);
     // 42 is not a Map, so :docs has nowhere to land — drop silently
-    expect(result.get(keyword('x'))).toBe(42);
+    expect(evalResult.get(keyword('x'))).toBe(42);
   });
 
-  it('drops docs silently when the entry value is a Vec', () => {
+  it('drops docs silently when the entry value is a Vec', async () => {
     const source = '{|~~| would-be doc\n:x [1 2 3]}';
-    const result = evalQuery(source);
-    expect(result.get(keyword('x'))).toEqual([1, 2, 3]);
+    const evalResult = await evalQuery(source);
+    expect(evalResult.get(keyword('x'))).toEqual([1, 2, 3]);
   });
 
-  it('overwrites any pre-existing :docs field on the value Map', () => {
+  it('overwrites any pre-existing :docs field on the value Map', async () => {
     // Entry-level comment wins over inline :docs by design: authors
     // who reach for the comment form do so precisely to avoid the
     // inline spelling, so the comment should be authoritative.
     const source = '{|~~| entry docs\n:x {:docs ["inline docs"]}}';
-    const result = evalQuery(source);
-    const inner = result.get(keyword('x'));
+    const evalResult = await evalQuery(source);
+    const inner = evalResult.get(keyword('x'));
     expect(inner.get(KW_DOCS)).toEqual([' entry docs']);
   });
 
-  it('applies inside an ErrorLit descriptor as well', () => {
+  it('applies inside an ErrorLit descriptor as well', async () => {
     // Folding is symmetric: an ErrorLit entry with a doc prefix puts
     // docs on the inner Map value just like a MapLit does. The
     // containing error value wraps the descriptor, and `!| /x |
     // /docs` walks through it.
     const source = '!{|~~| nested doc\n:x {:kind :oops}} !| /x | /docs';
-    const result = evalQuery(source);
-    expect(result).toEqual([' nested doc']);
+    const evalResult = await evalQuery(source);
+    expect(evalResult).toEqual([' nested doc']);
   });
 
-  it('leaves entries without a doc prefix untouched', () => {
+  it('leaves entries without a doc prefix untouched', async () => {
     const source = '{:a {:kind :plain} :b {:kind :other}}';
-    const result = evalQuery(source);
-    const a = result.get(keyword('a'));
-    const b = result.get(keyword('b'));
-    expect(a.has(KW_DOCS)).toBe(false);
-    expect(b.has(KW_DOCS)).toBe(false);
+    const evalResult = await evalQuery(source);
+    const aValue = evalResult.get(keyword('a'));
+    const bValue = evalResult.get(keyword('b'));
+    expect(aValue.has(KW_DOCS)).toBe(false);
+    expect(bValue.has(KW_DOCS)).toBe(false);
   });
 
-  it('supports per-entry docs on every sibling in a catalog-like Map', () => {
+  it('supports per-entry docs on every sibling in a catalog-like Map', async () => {
     const source = `{
 |~~| the count operand
 :count {:kind :builtin :category :reducer}
@@ -164,24 +164,24 @@ describe('eval — MapEntry docs fold into value Map', () => {
 |~~| the sort operand
 :sort {:kind :builtin :category :transformer}
 }`;
-    const result = evalQuery(source);
-    expect(result.get(keyword('count')).get(KW_DOCS))
+    const evalResult = await evalQuery(source);
+    expect(evalResult.get(keyword('count')).get(KW_DOCS))
       .toEqual([' the count operand']);
-    expect(result.get(keyword('filter')).get(KW_DOCS))
+    expect(evalResult.get(keyword('filter')).get(KW_DOCS))
       .toEqual([' the filter operand']);
-    expect(result.get(keyword('sort')).get(KW_DOCS))
+    expect(evalResult.get(keyword('sort')).get(KW_DOCS))
       .toEqual([' the sort operand']);
   });
 
-  it('folds multi-line block doc comments as single-entry Vec', () => {
+  it('folds multi-line block doc comments as single-entry Vec', async () => {
     // A block doc with internal newlines produces ONE Vec entry,
     // matching the OperandCall behavior for let/as doc attachment.
     const source = `{|~~ line one
     line two
     line three ~~|
 :x {:a 1}}`;
-    const result = evalQuery(source);
-    const docs = result.get(keyword('x')).get(KW_DOCS);
+    const evalResult = await evalQuery(source);
+    const docs = evalResult.get(keyword('x')).get(KW_DOCS);
     expect(docs).toHaveLength(1);
     expect(docs[0]).toContain('line one');
     expect(docs[0]).toContain('line two');
@@ -282,27 +282,27 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
     expect(ast.entries[1].docs[0]).toContain('predicate sub-pipeline');
   });
 
-  it('evaluates the catalog into a Map where each entry is its descriptor', () => {
-    const catalog = evalQuery(CATALOG_SOURCE);
+  it('evaluates the catalog into a Map where each entry is its descriptor', async () => {
+    const catalog = await evalQuery(CATALOG_SOURCE);
     expect(isQMap(catalog)).toBe(true);
-    const count = catalog.get(keyword('count'));
-    expect(isQMap(count)).toBe(true);
-    expect(count.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
-    expect(count.get(keyword('category'))).toBe(keyword('vec-reducer'));
-    expect(count.get(KW_DOCS)).toHaveLength(1);
-    expect(count.get(KW_DOCS)[0]).toContain('Polymorphic');
+    const countEntry = catalog.get(keyword('count'));
+    expect(isQMap(countEntry)).toBe(true);
+    expect(countEntry.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
+    expect(countEntry.get(keyword('category'))).toBe(keyword('vec-reducer'));
+    expect(countEntry.get(KW_DOCS)).toHaveLength(1);
+    expect(countEntry.get(KW_DOCS)[0]).toContain('Polymorphic');
   });
 
-  it('each descriptor is addressable as data through pipeline projection', () => {
+  it('each descriptor is addressable as data through pipeline projection', async () => {
     // Under Variant B this is how `mul | /docs` will work at the REPL.
     // Here we simulate it with the miniature catalog by piping the
     // catalog Map → /count projection → /docs projection.
-    const firstDoc = evalQuery(CATALOG_SOURCE + ' | /count | /docs | first');
+    const firstDoc = await evalQuery(CATALOG_SOURCE + ' | /count | /docs | first');
     expect(firstDoc).toContain('Polymorphic');
   });
 
-  it('per-entry :throws field is addressable via the same mechanism', () => {
-    const throws = evalQuery(CATALOG_SOURCE + ' | /filter | /throws');
-    expect(throws).toEqual([keyword('FilterSubjectNotVec')]);
+  it('per-entry :throws field is addressable via the same mechanism', async () => {
+    const throwsField = await evalQuery(CATALOG_SOURCE + ' | /filter | /throws');
+    expect(throwsField).toEqual([keyword('FilterSubjectNotVec')]);
   });
 });

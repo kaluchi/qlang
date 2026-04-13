@@ -2048,10 +2048,10 @@ model.
 ```js
 import { createSession } from '@kaluchi/qlang';
 
-const session = createSession();
+const session = await createSession();
 
-session.evalCell('let(:double, mul(2))');
-session.evalCell('5 | double');
+await session.evalCell('let(:double, mul(2))');
+await session.evalCell('5 | double');
 // → { source: '5 | double', uri: 'cell-2', ast: ..., result: 10,
 //     error: null, envAfterCell: <Map> }
 ```
@@ -2085,12 +2085,12 @@ field guards against forward-incompatible deserialization.
 ```js
 import { serializeSession, deserializeSession } from '@kaluchi/qlang';
 
-const payload = serializeSession(session);
+const payload = await serializeSession(session);
 const json = JSON.stringify(payload);
 
 // later, possibly in another process or browser tab:
-const restored = deserializeSession(JSON.parse(json));
-restored.evalCell('5 | double'); // → 10, double is reconstructed from stored source
+const restored = await deserializeSession(JSON.parse(json));
+await restored.evalCell('5 | double'); // → 10, double is reconstructed from stored source
 ```
 
 Bindings serialize as one of:
@@ -2140,10 +2140,10 @@ import { discoverModules, resolveModules, installModules }
 import { createSession } from '@kaluchi/qlang';
 
 // Resolve all modules in lib/ in discovery order.
-const catalog = resolveModules('./lib');
+const catalog = await resolveModules('./lib');
 
 // Install into a session: each namespace keyword → module env Map.
-const session = createSession();
+const session = await createSession();
 installModules(session, catalog);
 
 // Now user code can import namespaces:
@@ -2186,6 +2186,63 @@ const catalog = resolveModules('./lib', {
 evaluates in an order where each module's dependencies are resolved
 before it.
 
+#### Lazy module loading via locator
+
+Instead of resolving all modules at session creation, a host can
+provide a **locator** — a function that loads modules on demand when
+`use(:namespace)` first encounters an unknown namespace keyword.
+
+```js
+import { createSession } from '@kaluchi/qlang';
+
+const session = await createSession({
+  locator: async (namespaceName) => {
+    if (namespaceName === 'jdt/search')
+      return { source: searchQlangSource, impls: { '@find': findImpl } };
+    return null;  // unknown namespace → UseNamespaceNotFound
+  }
+});
+```
+
+The locator signature is
+`async (namespaceName: string) => { source, impls? } | null`.
+It may be synchronous or asynchronous. `source` is a qlang source
+string (module declarations). `impls` is an optional map of
+`{ operandName: functionValue }` pairs — host-provided JS
+implementations for builtin descriptors declared in the source.
+
+When `use(:ns)` encounters a namespace keyword not in env:
+
+1. Reads the locator from the reserved `:qlang/locator` keyword in
+   env (installed by `createSession` from `opts.locator`).
+2. Calls `locator(namespaceName)`. If null → `UseNamespaceNotFound`.
+3. Parses and evaluates `source` against the current env (transitive
+   `use(:other-ns)` inside the module triggers the locator
+   recursively).
+4. Computes the module's export surface (env delta — bindings the
+   module added beyond the base env).
+5. Patches `:qlang/impl` on each exported builtin descriptor with
+   the corresponding function from `impls`.
+6. Installs the namespace keyword → exports in env for subsequent
+   lookups (the locator is not called again for the same namespace).
+7. Merges exports into env (the standard `use` behavior).
+
+The `impls` function values are constructed using dispatch wrappers
+from the `@kaluchi/qlang/dispatch` subpath export:
+
+```js
+import { nullaryOp, valueOp, overloadedOp } from '@kaluchi/qlang/dispatch';
+
+const findImpl = overloadedOp('@find', 2, {
+  0: async (namePattern) => searchByName(namePattern),
+  1: async (ctx, nameLambda) => searchByName(await nameLambda(ctx)),
+});
+```
+
+This subpath imports only the dispatch wrappers without triggering
+the runtime bootstrap side effects that `@kaluchi/qlang/runtime`
+carries.
+
 ### Tagged-JSON value codec
 
 `toTaggedJSON(value)` and `fromTaggedJSON(json)` are the canonical
@@ -2208,7 +2265,7 @@ Example:
 ```js
 import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang';
 
-const value = evalQuery('{:name "alice" :tags #{:admin :ops}}');
+const value = await evalQuery('{:name "alice" :tags #{:admin :ops}}');
 const wire = JSON.stringify(toTaggedJSON(value));
 // '{"$map":[[{"$keyword":"name"},"alice"],[{"$keyword":"tags"},{"$set":[{"$keyword":"admin"},{"$keyword":"ops"}]}]]}'
 

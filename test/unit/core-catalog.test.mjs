@@ -295,8 +295,9 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     // A miniature exercise of the self-describing nature: run a
     // qlang query against the catalog itself to count operands per
     // category. Under Variant B this is what `env | manifest | ...`
-    // will produce; for now we just pin the shape by iterating the
-    // evaluated Map directly.
+    // will produce; this test pins the shape by iterating the
+    // evaluated Map directly — the same projection surface
+    // `env | manifest | ...` exercises at the qlang level.
     const coreEnv = await evalCore();
     const categories = new Map();
     for (const [, entryVal] of coreEnv) {

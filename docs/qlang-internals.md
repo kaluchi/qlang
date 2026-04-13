@@ -1142,17 +1142,24 @@ the evaluator.
 Persistent `(env, cellHistory)` pair across multiple `evalCell`
 invocations.
 
-- `createSession(opts?)` — fresh session seeded with `langRuntime`.
-- `session.evalCell(source, opts?)` — parse + evaluate one cell.
+- `await createSession(opts?)` — fresh session seeded with
+  `langRuntime`. Options:
+  - `opts.env` — initial env Map (default: `langRuntime()`).
+  - `opts.locator` — `async (namespaceName: string) =>
+    { source, impls? } | null`. Called by `use(:ns)` when the
+    namespace keyword is absent from env. Stored under the reserved
+    `:qlang/locator` keyword in env. See the spec's "Lazy module
+    loading via locator" section for the full contract.
+- `await session.evalCell(source, opts?)` — parse + evaluate one cell.
 - `session.cellHistory` — read-only array of executed cells.
 - `session.bind(name, value)` — install a binding directly into env.
 - `session.takeSnapshot()` / `session.restoreSnapshot(snap)` —
   cheap save/restore for "step back" features.
-- `serializeSession(session)` — JSON-serializable payload of user
-  bindings (conduits via stored body source, snapshots via tagged
-  JSON, raw values via tagged JSON) plus cell history.
-- `deserializeSession(json)` — rebuilds a session from a serialized
-  payload. Cell history is restored without re-evaluation.
+- `await serializeSession(session)` — JSON-serializable payload of
+  user bindings (conduits via stored body source, snapshots via
+  tagged JSON, raw values via tagged JSON) plus cell history.
+- `await deserializeSession(json)` — rebuilds a session from a
+  serialized payload. Cell history is restored without re-evaluation.
 
 ### `codec.mjs` — tagged-JSON value codec
 

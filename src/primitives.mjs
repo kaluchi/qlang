@@ -1,26 +1,25 @@
-// Primitive registry — the canonical binding table between qlang-
+// Primitive registry — bootstrap-time binding table between qlang-
 // level Map-form binding descriptors (which carry :qlang/impl
-// keyword pointing to an entry here) and their JS-level executable
-// impls.
+// keyword at authoring time) and their JS-level executable impls.
 //
 // Under the Variant-B runtime model every binding in langRuntime is
-// a qlang Map with :qlang/kind :builtin and an :qlang/impl field
-// holding a namespaced keyword like :qlang/prim/mul. At operand-call-
-// site dispatch the evaluator reads the :qlang/impl keyword from the
-// resolved Map and asks this registry to resolve it into the matching
-// JS function value; the impl is invoked via Rule 10 exactly as
-// today, but the registry is now the single place that connects
-// "declarative descriptor in core.qlang" with "executable code in
-// runtime/*.mjs".
+// a qlang Map with :qlang/kind :builtin and an :qlang/impl field.
+// At authoring time in core.qlang, :qlang/impl holds a namespaced
+// keyword like :qlang/prim/mul pointing into this registry. The
+// bootstrap resolution pass in runtime/index.mjs::langRuntime()
+// resolves each keyword through PRIMITIVE_REGISTRY.resolve into the
+// matching JS function value and replaces the keyword on the
+// descriptor with the function directly. After bootstrap, dispatch
+// reads the function from :qlang/impl without consulting the
+// registry — the registry is a build-time bridge, not a dispatch-
+// time lookup table.
 //
 // Lifecycle:
 //   1. Each runtime/*.mjs module binds its impls at import time via
 //      PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/<name>'), impl).
-//   2. langRuntime() calls PRIMITIVE_REGISTRY.seal() after parsing
-//      core.qlang, closing the registry against further binding for
-//      the lifetime of the process.
-//   3. evalOperandCall dispatches via
-//      PRIMITIVE_REGISTRY.resolve(descriptor.get(keyword('qlang/impl'))).
+//   2. langRuntime() resolves every :qlang/impl keyword on the
+//      template env descriptors to its function value, then calls
+//      PRIMITIVE_REGISTRY.seal().
 //
 // Verb vocabulary: the registry uses **bind** for the write site
 // (matching qlang's `let` binding-into-env verb), **resolve** for

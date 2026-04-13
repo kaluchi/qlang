@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "node scripts/bundle-qlang.mjs && astro dev",
     "build": "node scripts/bundle-qlang.mjs && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "vitest run"
   },
   "dependencies": {
-    "astro": "^5.10.2",
-    "@astrojs/mdx": "^4.3.1"
+    "@astrojs/mdx": "^4.3.1",
+    "astro": "^5.10.2"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "vitest": "^4.1.4"
   }
 }

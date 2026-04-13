@@ -32,9 +32,9 @@ describe('parseDocument', () => {
 });
 
 describe('completionsAtOffset', () => {
-  it('includes builtin operand names', () => {
+  it('includes builtin operand names', async () => {
     const { ast } = parseDocument('', 'test.qlang');
-    const items = completionsAtOffset(ast, 0);
+    const items = await completionsAtOffset(ast, 0);
     const labels = items.map(i => i.label);
     expect(labels).toContain('count');
     expect(labels).toContain('filter');
@@ -44,106 +44,106 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('reify');
   });
 
-  it('returns more than 60 builtin completions', () => {
+  it('returns more than 60 builtin completions', async () => {
     const { ast } = parseDocument('', 'test.qlang');
-    const items = completionsAtOffset(ast, 0);
+    const items = await completionsAtOffset(ast, 0);
     expect(items.length).toBeGreaterThan(60);
   });
 
-  it('builtins have function kind', () => {
+  it('builtins have function kind', async () => {
     const { ast } = parseDocument('', 'test.qlang');
-    const items = completionsAtOffset(ast, 0);
+    const items = await completionsAtOffset(ast, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.kind).toBe('function');
   });
 
-  it('builtins have documentation from manifest', () => {
+  it('builtins have documentation from manifest', async () => {
     const { ast } = parseDocument('', 'test.qlang');
-    const items = completionsAtOffset(ast, 0);
+    const items = await completionsAtOffset(ast, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.documentation).toBeTruthy();
     expect(countItem.documentation).toMatch(/number of elements/);
   });
 
-  it('includes user-defined bindings visible at offset', () => {
+  it('includes user-defined bindings visible at offset', async () => {
     const src = 'let(:myVar, 42) | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
-    const items = completionsAtOffset(ast, offsetAtEnd);
+    const items = await completionsAtOffset(ast, offsetAtEnd);
     const labels = items.map(i => i.label);
     expect(labels).toContain('myVar');
   });
 
-  it('user binding has variable kind', () => {
+  it('user binding has variable kind', async () => {
     const src = 'let(:myVar, 42) | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
-    const items = completionsAtOffset(ast, src.length);
+    const items = await completionsAtOffset(ast, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
     expect(myVarItem.kind).toBe('variable');
   });
 
-  it('works with null ast (parse failure)', () => {
-    const items = completionsAtOffset(null, 0);
+  it('works with null ast (parse failure)', async () => {
+    const items = await completionsAtOffset(null, 0);
     expect(items.length).toBeGreaterThan(60);
   });
 });
 
 describe('hoverAtOffset', () => {
-  it('returns hover for a builtin operand', () => {
+  it('returns hover for a builtin operand', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const countOffset = src.indexOf('count');
-    const hover = hoverAtOffset(ast, src, countOffset);
+    const hover = await hoverAtOffset(ast, src, countOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/count/);
     expect(hover.content).toMatch(/vec-reducer/);
   });
 
-  it('hover includes docs from manifest', () => {
+  it('hover includes docs from manifest', async () => {
     const src = '[1 2 3] | filter(gt(2))';
     const { ast } = parseDocument(src, 'test.qlang');
     const filterOffset = src.indexOf('filter');
-    const hover = hoverAtOffset(ast, src, filterOffset);
+    const hover = await hoverAtOffset(ast, src, filterOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/predicate/i);
   });
 
-  it('returns hover for a projection', () => {
+  it('returns hover for a projection', async () => {
     const src = '{:name "alice"} | /name';
     const { ast } = parseDocument(src, 'test.qlang');
     const projOffset = src.indexOf('/name');
-    const hover = hoverAtOffset(ast, src, projOffset);
+    const hover = await hoverAtOffset(ast, src, projOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/projection/);
     expect(hover.content).toMatch(/\/name/);
   });
 
-  it('returns hover for a keyword literal', () => {
+  it('returns hover for a keyword literal', async () => {
     const src = ':hello';
     const { ast } = parseDocument(src, 'test.qlang');
-    const hover = hoverAtOffset(ast, src, 0);
+    const hover = await hoverAtOffset(ast, src, 0);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/keyword/);
     expect(hover.content).toMatch(/:hello/);
   });
 
-  it('hover has range', () => {
+  it('hover has range', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
-    const hover = hoverAtOffset(ast, src, src.indexOf('count'));
+    const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
     expect(hover).toHaveProperty('startOffset');
     expect(hover).toHaveProperty('endOffset');
     expect(hover.startOffset).toBeLessThan(hover.endOffset);
   });
 
-  it('returns null for null ast', () => {
-    expect(hoverAtOffset(null, '', 0)).toBeNull();
+  it('returns null for null ast', async () => {
+    expect(await hoverAtOffset(null, '', 0)).toBeNull();
   });
 
-  it('returns null for offset outside any node', () => {
+  it('returns null for offset outside any node', async () => {
     const src = '42';
     const { ast } = parseDocument(src, 'test.qlang');
-    const hover = hoverAtOffset(ast, src, 100);
+    const hover = await hoverAtOffset(ast, src, 100);
     expect(hover).toBeNull();
   });
 });
@@ -288,36 +288,36 @@ describe('documentSymbols', () => {
 });
 
 describe('signatureHelpAtOffset', () => {
-  it('returns signature for operand inside parens', () => {
+  it('returns signature for operand inside parens', async () => {
     const src = '[1 2 3] | filter(gt(2))';
     const { ast } = parseDocument(src, 'test.qlang');
     // Cursor on the `g` of `gt` — narrowest OperandCall with args
     // is gt(2), not filter(...). The signature shows gt's contract.
     const offset = src.indexOf('gt');
-    const sig = signatureHelpAtOffset(ast, src, offset);
+    const sig = await signatureHelpAtOffset(ast, src, offset);
     expect(sig).not.toBeNull();
     expect(sig.label).toMatch(/gt/);
   });
 
-  it('returns null outside parens', () => {
+  it('returns null outside parens', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
-    const sig = signatureHelpAtOffset(ast, src, src.indexOf('count'));
+    const sig = await signatureHelpAtOffset(ast, src, src.indexOf('count'));
     // count has no args (args === null), so no signature
     expect(sig).toBeNull();
   });
 
-  it('tracks active parameter via comma counting', () => {
+  it('tracks active parameter via comma counting', async () => {
     const src = '{:x 1 :y 2} | add(/x, /y)';
     const { ast } = parseDocument(src, 'test.qlang');
     // Cursor after the comma, inside second arg
     const offset = src.indexOf('/y');
-    const sig = signatureHelpAtOffset(ast, src, offset);
+    const sig = await signatureHelpAtOffset(ast, src, offset);
     expect(sig).not.toBeNull();
     expect(sig.activeParameter).toBe(1);
   });
 
-  it('returns null for null ast', () => {
-    expect(signatureHelpAtOffset(null, '', 0)).toBeNull();
+  it('returns null for null ast', async () => {
+    expect(await signatureHelpAtOffset(null, '', 0)).toBeNull();
   });
 });

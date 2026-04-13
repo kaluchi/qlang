@@ -204,7 +204,7 @@ let(:double, mul(2))
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
-    const builtins = new Set([...langRuntime().keys()].map((k: any) => k.name));
+    const builtins = new Set([...(await langRuntime()).keys()].map((k: any) => k.name));
 
     const editor = document.getElementById('editor') as HTMLTextAreaElement;
     const results = document.getElementById('results')!;
@@ -225,7 +225,7 @@ let(:double, mul(2))
     });
     updateEditorHighlight();
 
-    function run() {
+    async function run() {
       const source = editor.value.trim();
       if (!source) return;
 
@@ -234,7 +234,7 @@ let(:double, mul(2))
 
       const entries: HTMLElement[] = [];
       for (const cell of cells) {
-        const result = evalQuery(cell.trim());
+        const result = await evalQuery(cell.trim());
         const isError = result && typeof result === 'object' && result.type === 'error';
         const entry = document.createElement('div');
         entry.className = 'pg-entry';

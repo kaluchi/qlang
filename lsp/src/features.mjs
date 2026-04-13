@@ -85,9 +85,9 @@ export function buildCatalogIndex(catalogAst) {
 
 let _builtinCompletions = null;
 
-function builtinCompletions() {
+async function builtinCompletions() {
   if (_builtinCompletions) return _builtinCompletions;
-  const runtime = langRuntime();
+  const runtime = await langRuntime();
   _builtinCompletions = [];
   for (const [k, descriptor] of runtime) {
     _builtinCompletions.push({
@@ -100,8 +100,8 @@ function builtinCompletions() {
   return _builtinCompletions;
 }
 
-export function completionsAtOffset(ast, offset) {
-  const items = [...builtinCompletions()];
+export async function completionsAtOffset(ast, offset) {
+  const items = [...(await builtinCompletions())];
 
   if (ast) {
     const userNames = bindingNamesVisibleAt(ast, offset);
@@ -122,14 +122,14 @@ export function completionsAtOffset(ast, offset) {
 
 // ── Hover ─────────────────────────────────────────────────────
 
-export function hoverAtOffset(ast, source, offset) {
+export async function hoverAtOffset(ast, source, offset) {
   if (!ast) return null;
 
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
   if (node.type === 'OperandCall') {
-    return hoverForOperand(node);
+    return await hoverForOperand(node);
   }
   if (node.type === 'Projection') {
     return hoverForProjection(node);
@@ -144,8 +144,8 @@ export function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-function hoverForOperand(node) {
-  const runtime = langRuntime();
+async function hoverForOperand(node) {
+  const runtime = await langRuntime();
   const kw = keyword(node.name);
   if (!runtime.has(kw)) return null;
 
@@ -326,7 +326,7 @@ export function documentSymbols(ast) {
 
 // ── Signature Help ────────────────────────────────────────────
 
-export function signatureHelpAtOffset(ast, source, offset) {
+export async function signatureHelpAtOffset(ast, source, offset) {
   if (!ast) return null;
 
   const node = findAstNodeAtOffset(ast, offset);
@@ -335,7 +335,7 @@ export function signatureHelpAtOffset(ast, source, offset) {
   const operandCall = findEnclosingOperandCall(node);
   if (!operandCall) return null;
 
-  const runtime = langRuntime();
+  const runtime = await langRuntime();
   const kw = keyword(operandCall.name);
   if (!runtime.has(kw)) return null;
 

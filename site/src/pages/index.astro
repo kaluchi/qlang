@@ -1,9 +1,9 @@
 ---
 import Base from "../layouts/Base.astro"
 import { parse, walkAst, langRuntime } from "../../../src/index.mjs"
-import { highlightQlang } from "../lib/qlang-highlight.js"
+import { formatExample } from "../lib/format-example.js"
 
-const builtins = new Set([...langRuntime().keys()].map(k => k.name))
+const builtins = new Set([...(await langRuntime()).keys()].map(k => k.name))
 
 const examples = [
   {
@@ -27,32 +27,6 @@ const examples = [
     code: `|~| source → AST-Map → pipeValue\n> "10 | add(3)" | parse | eval\n13`,
   },
 ]
-
-function formatExample(code: string): string {
-  const lines = code.split('\n');
-
-  // Collect prompt + continuation lines for a single parse job.
-  type LineInfo = { type: 'comment' | 'prompt' | 'cont' | 'result'; content: string };
-  const infos: LineInfo[] = lines.map(line => {
-    if (/^\|~/.test(line))       return { type: 'comment', content: line };
-    if (line.startsWith('> '))   return { type: 'prompt',  content: line.slice(2) };
-    if (/^  \S/.test(line))      return { type: 'cont',    content: line.slice(2) };
-    return { type: 'result', content: line };
-  });
-
-  // Build combined qlang source from prompt/cont lines and highlight it.
-  const codeLines = infos.filter(l => l.type === 'prompt' || l.type === 'cont');
-  const combined  = codeLines.map(l => l.content).join('\n');
-  const hlSplit   = highlightQlang(combined, parse, walkAst, builtins).split('\n');
-
-  let codeIdx = 0;
-  return infos.map(({ type, content }) => {
-    if (type === 'comment') return `<span class="comment">${content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
-    if (type === 'prompt')  return `<span class="punct">&gt; </span>${hlSplit[codeIdx++] ?? ''}`;
-    if (type === 'cont')    return `  ${hlSplit[codeIdx++] ?? ''}`;
-    return highlightQlang(content, parse, walkAst, builtins);
-  }).join('\n');
-}
 
 const features = [
   { title: "Pipeline composition", desc: "Thread values through chains of operands with |, distribute with *, merge with >>." },
@@ -129,7 +103,7 @@ const features = [
             <div class="code-editor-panels">
               {examples.map((ex, i) => (
                 <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
-                  <pre><code set:html={formatExample(ex.code)} /></pre>
+                  <pre><code set:html={formatExample(ex.code, parse, walkAst, builtins)} /></pre>
                 </div>
               ))}
             </div>
@@ -227,9 +201,8 @@ const features = [
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
-    const builtins = new Set([...langRuntime().keys()].map((k: any) => k.name));
-    const hi  = (src: string) => hl(src, parse, walkAst, builtins);
-    const hiv = (src: string) => hl(printValue(evalQuery(src)), parse, walkAst, builtins);
+    const builtins = new Set([...(await langRuntime()).keys()].map((k: any) => k.name));
+    const hi = (src: string) => hl(src, parse, walkAst, builtins);
 
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;
     const history = document.getElementById('repl-history')!;
@@ -278,7 +251,7 @@ const features = [
       '{:name "alice" :age 30} | /age | mul(2)',
     ];
     for (const src of demos) {
-      history.appendChild(makeEntry(src, evalQuery(src)));
+      history.appendChild(makeEntry(src, await evalQuery(src)));
       cmdHistory.unshift(src);   // oldest demo ends up deepest in history
     }
 
@@ -291,7 +264,7 @@ const features = [
     }
     input.addEventListener('input', updateReplHighlight);
 
-    input.addEventListener('keydown', (e) => {
+    input.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const source = input.value.trim();
@@ -299,7 +272,7 @@ const features = [
         cmdHistory.unshift(source);   // newest first
         histIdx = -1;
         savedDraft = '';
-        history.appendChild(makeEntry(source, evalQuery(source)));
+        history.appendChild(makeEntry(source, await evalQuery(source)));
         history.scrollTop = history.scrollHeight;
         input.value = '';
         updateReplHighlight();

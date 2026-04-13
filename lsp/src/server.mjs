@@ -121,13 +121,13 @@ const COMPLETION_KIND_MAP = {
   variable: CompletionItemKind.Variable
 };
 
-connection.onCompletion((params) => {
+connection.onCompletion(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
   if (!doc) return [];
 
   const offset = doc.offsetAt(params.position);
-  const items = completionsAtOffset(state?.ast ?? null, offset);
+  const items = await completionsAtOffset(state?.ast ?? null, offset);
 
   return items.map(item => ({
     label: item.label,
@@ -141,13 +141,13 @@ connection.onCompletion((params) => {
 
 // ── Hover ─────────────────────────────────────────────────────
 
-connection.onHover((params) => {
+connection.onHover(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
   if (!state?.ast || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const hover = hoverAtOffset(state.ast, state.source, offset);
+  const hover = await hoverAtOffset(state.ast, state.source, offset);
   if (!hover) return null;
 
   return {
@@ -275,13 +275,13 @@ connection.onDocumentSymbol((params) => {
 
 // ── Signature Help ────────────────────────────────────────────
 
-connection.onSignatureHelp((params) => {
+connection.onSignatureHelp(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
   if (!state?.ast || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const sig = signatureHelpAtOffset(state.ast, state.source, offset);
+  const sig = await signatureHelpAtOffset(state.ast, state.source, offset);
   if (!sig) return null;
 
   const sigInfo = SignatureInformation.create(

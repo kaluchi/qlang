@@ -225,11 +225,80 @@ describe('createLineEditor — TTY escape sequence handling', () => {
     expect(capture.lines).toEqual(['a']);
   });
 
-  it('ignores unknown CSI sequences (e.g. arrows Up/Down) without error', () => {
+  it('ignores unknown CSI sequences without error', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, ESC + '[A', ESC + '[B', 'k', '\r');
+    feed(stdinStream, ESC + '[Z', 'k', '\r');  // Z = unbound CSI
     expect(capture.lines).toEqual(['k']);
+  });
+});
+
+describe('createLineEditor — TTY history navigation', () => {
+  it('Up walks back through submitted lines', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first\r', 'second\r', ESC + '[A', '\r');
+    // After two submissions, the third Enter submits whatever is
+    // in the buffer — Up restored 'second', so that's what fires.
+    expect(capture.lines).toEqual(['first', 'second', 'second']);
+  });
+
+  it('Up twice walks two entries back', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first\r', 'second\r', ESC + '[A', ESC + '[A', '\r');
+    expect(capture.lines).toEqual(['first', 'second', 'first']);
+  });
+
+  it('Up at oldest entry is a no-op', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'only\r', ESC + '[A', ESC + '[A', '\r');
+    expect(capture.lines).toEqual(['only', 'only']);
+  });
+
+  it('Up + Down returns to the in-progress draft', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'history\r', 'draft', ESC + '[A', ESC + '[B', '\r');
+    // After 'history' is submitted, user types 'draft' — Up
+    // recalls 'history' (saves 'draft'), Down restores 'draft'.
+    expect(capture.lines).toEqual(['history', 'draft']);
+  });
+
+  it('Down inside history walks forward to the next stored entry', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first\r', 'second\r',
+                      ESC + '[A', ESC + '[A',  // back to 'first'
+                      ESC + '[B',                // forward to 'second'
+                      '\r');
+    expect(capture.lines).toEqual(['first', 'second', 'second']);
+  });
+
+  it('Down at the bottom (current draft) is a no-op', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'x', ESC + '[B', ESC + '[B', '\r');
+    expect(capture.lines).toEqual(['x']);
+  });
+
+  it('does not store empty submissions in history', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '\r', 'real\r', ESC + '[A', '\r');
+    // Empty Enter contributes nothing to history; Up after 'real'
+    // recalls 'real' (the only entry).
+    expect(capture.lines).toEqual(['', 'real', 'real']);
+  });
+
+  it('does not store consecutive duplicates', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'same\r', 'same\r', ESC + '[A', ESC + '[A', '\r');
+    // Two 'same' submissions collapse to one history entry; two
+    // Ups still land on 'same' (no second entry behind it).
+    expect(capture.lines).toEqual(['same', 'same', 'same']);
   });
 });
 

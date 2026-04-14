@@ -55,11 +55,25 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
     [...(await langRuntime()).keys()].map((k) => k.name)
   );
 
+  // In raw-mode TTY the terminal does not translate `\n` into CRLF
+  // — a bare LF moves the cursor down without resetting the
+  // column, leaving subsequent output stranded mid-line. Wrap the
+  // writers so every `\n` we emit becomes `\r\n` in the
+  // interactive case; in non-TTY (pipe / scripted test) the
+  // writers stay verbatim so byte-exact assertions still pass.
+  const isInteractiveTty = stdinStream.isTTY === true;
+  const writeOutput = isInteractiveTty
+    ? (text) => stdoutWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
+    : stdoutWrite;
+  const writeDiagnostic = isInteractiveTty
+    ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
+    : stderrWrite;
+
   const session = await createSession();
   bindIoOperands(session, {
     stdinReader: () => Promise.resolve(''),
-    stdoutWrite,
-    stderrWrite
+    stdoutWrite: writeOutput,
+    stderrWrite: writeDiagnostic
   });
   bindFormatOperands(session);
   bindParseOperands(session);
@@ -104,13 +118,13 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
         return;
       }
       if (line === '.help') {
-        stdoutWrite(REPL_HELP);
+        writeOutput(REPL_HELP);
         lineEditor.prompt();
         return;
       }
 
       const cellEntry = await session.evalCell(rawLine);
-      writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite);
+      writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic);
       lineEditor.prompt();
     }
   });

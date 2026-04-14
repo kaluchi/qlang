@@ -96,6 +96,28 @@ describe('runRepl — output highlighting', () => {
     expect(r.stdoutText()).toMatch(/qlang>/);
   });
 
+  it('translates `\\n` into `\\r\\n` for stderr writes in TTY mode', async () => {
+    const ttyStdin = new (await import('node:stream')).PassThrough();
+    ttyStdin.isTTY = true;
+    ttyStdin.setRawMode = () => {};
+
+    const stderrChunks = [];
+    const stdoutWrite = () => {};
+    const stderrWrite = (text) => stderrChunks.push(text);
+
+    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
+    // A bare `[1 2` is a parse failure → host-level JS throw,
+    // which the REPL routes to stderr through writeDiagnostic.
+    ttyStdin.write(Buffer.from('[1 2\r'));
+    await new Promise((r) => setImmediate(r));
+    ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
+    await replPromise;
+
+    const stderrText = stderrChunks.join('');
+    expect(stderrText).toMatch(/^error:/m);
+    expect(stderrText).toMatch(/\r\n/);
+  });
+
   it('exercises the per-keystroke render callback in TTY mode', async () => {
     // Drive the editor in TTY mode so its raw-mode redraw path
     // calls into the REPL's render callback (which paints the

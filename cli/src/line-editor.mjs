@@ -63,6 +63,15 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   let pasteBuffer = '';
   let pendingEscape = '';
 
+  // History — in-memory ring of previously-submitted lines plus a
+  // per-session "draft" slot that holds whatever the user was
+  // typing before they pressed Up. Up walks back through the ring,
+  // Down walks forward; reaching the bottom restores the draft.
+  // Persistent file-backed history is a future enhancement.
+  const history = [];
+  let historyIndex = 0;        // points one past the last entry by default
+  let historyDraft = '';
+
   function redrawCurrentLine() {
     stdoutWrite('\r' + ESC + '[2K');
     stdoutWrite(prompt);
@@ -73,10 +82,38 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
 
   function submitCurrentLine() {
     const lineText = buffer;
+    pushHistoryEntry(lineText);
     buffer = '';
     cursor = 0;
+    historyIndex = history.length;
+    historyDraft = '';
     stdoutWrite('\r\n');
     emitter.emit('line', lineText);
+  }
+
+  function pushHistoryEntry(lineText) {
+    if (lineText === '') return;
+    if (history[history.length - 1] === lineText) return; // de-dup repeat
+    history.push(lineText);
+  }
+
+  function recallHistoryPrev() {
+    if (historyIndex === 0) return;            // already at oldest
+    if (historyIndex === history.length) {
+      historyDraft = buffer;                   // save in-progress text
+    }
+    historyIndex -= 1;
+    buffer = history[historyIndex];
+    cursor = buffer.length;
+    redrawCurrentLine();
+  }
+
+  function recallHistoryNext() {
+    if (historyIndex === history.length) return; // already at draft
+    historyIndex += 1;
+    buffer = historyIndex === history.length ? historyDraft : history[historyIndex];
+    cursor = buffer.length;
+    redrawCurrentLine();
   }
 
   function handleByte(byte) {
@@ -140,8 +177,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
       case ESC + '[F':
       case ESC + '[4~': moveCursorEnd();    break;
       case ESC + '[3~': deleteAtCursor();   break;
-      // Up / Down arrows fall through silently — history lands
-      // in a follow-up commit.
+      case ESC + '[A': recallHistoryPrev(); break;
+      case ESC + '[B': recallHistoryNext(); break;
     }
     pendingEscape = '';
   }

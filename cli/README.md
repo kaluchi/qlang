@@ -151,10 +151,22 @@ Meta commands:
 qlang> .exit
 ```
 
-Output is highlighted via the same AST-tokenizer the docs site uses,
-painted with terminal ANSI escape sequences. Input echoes through
-readline as plain text — live per-keystroke colour would require
-raw mode and is deferred.
+Output AND input are highlighted via the same AST-tokenizer the
+docs site uses, painted with terminal ANSI escapes. Live raw-mode
+editor under the hood: every keystroke redraws the current line
+in colour, plus standard cursor motion (Left / Right / Home / End,
+Ctrl+A / Ctrl+E), Backspace / Delete-forward, and Ctrl+C / Ctrl+D.
+
+Multi-line text pasted from the clipboard arrives as ONE cell —
+bracketed paste mode is enabled on start, the terminal wraps a
+paste in `\x1b[200~ … \x1b[201~`, and the editor commits the
+enclosed content (newlines and all) as a single submitted line.
+Pasting a multi-line JSON object followed by `| /key` lands as
+one query, not N parse failures.
+
+When stdin is a pipe (script use), the editor falls back to
+line-buffered mode — no raw mode, no live highlighting overlay,
+the result is still highlighted on stdout.
 
 `@in` resolves to the empty String inside the REPL — interactive
 stdin is consumed by the prompt itself, so reading "stdin" from
@@ -166,9 +178,12 @@ appear before the auto-printed result line.
 
 I/O surface (`@in`, `@out`, `@err`, `@tap`), pure formatters
 (`pretty`, `tjson`, `template`), parsers (`parseJson`, `parseTjson`),
-and the interactive REPL with output syntax highlighting are in
-place. Follow-up commits add named sessions, module discovery, and
-named arguments.
+and the interactive REPL — with raw-mode line editor, live
+input/output syntax highlighting, and bracketed-paste handling
+for multi-line clipboard content — are in place. Follow-up
+commits add projection-aware tab completion, in-memory then
+persistent history, named sessions, module discovery, and named
+arguments.
 
 See [docs/qlang-spec.md](../docs/qlang-spec.md) for the language
 reference.

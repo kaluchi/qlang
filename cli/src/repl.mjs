@@ -1,14 +1,17 @@
-// readline-based REPL for the qlang CLI. One persistent session
-// across the whole loop — every line evaluates inside the same env,
-// so `let(:x, 42)` followed later by `x | pretty | @out` works
-// across cells.
+// REPL for the qlang CLI. Persistent session across cells —
+// `let(:x, 42)` followed later by `x | pretty | @out` works inside
+// one session.
 //
-// Output is highlighted via the same AST tokenizer the site uses,
-// painted with terminal ANSI escapes from highlight-ansi.mjs.
-// Input echoes through readline as plain text — live-typing colour
-// would need raw mode and per-keystroke redraw, deferred for now;
-// the post-eval result line is highlighted, the keyboard-line is
-// left to the terminal's own echo.
+// Built on `cli/src/line-editor.mjs`:
+//   * In a real terminal: raw-mode keystroke capture, every byte
+//     re-renders the current line through `highlightAnsi` so input
+//     paints live as the user types; bracketed-paste support means
+//     a multi-line JSON paste lands as ONE cell instead of N
+//     parse failures; cursor motion (Left/Right/Home/End/Ctrl+A/E)
+//     and Backspace/Delete-forward all work.
+//   * In a pipe / scripted test: line-buffered passthrough, no
+//     escapes, no raw mode — the same handler reads `'line'`
+//     events identically.
 //
 // Contract differences from the script-mode runner:
 //   * Each cell's success-track value auto-prints (printValue +
@@ -16,16 +19,14 @@
 //     script mode stays silent without `@out` by design.
 //   * `@in` resolves to the empty String — interactive stdin is
 //     consumed by the prompt itself, so reading "stdin" from
-//     inside a cell would deadlock against the line reader.
+//     inside a cell would deadlock against the line editor.
 //   * `@out` / `@err` / `@tap` keep their normal contracts; their
 //     side-effects appear before the auto-printed result line.
 //
 // Meta commands (single dot prefix, exact match):
 //   .help    list meta commands
-//   .exit    close the REPL (Ctrl+D produces the same effect)
+//   .exit    close the REPL (Ctrl+D on an empty line works too)
 
-import { createInterface } from 'node:readline';
-import { Writable } from 'node:stream';
 import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printValue,
@@ -36,14 +37,16 @@ import { bindIoOperands } from './io-operands.mjs';
 import { bindFormatOperands } from './format-operands.mjs';
 import { bindParseOperands } from './parse-operands.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
+import { createLineEditor } from './line-editor.mjs';
 
 const PROMPT = '\x1b[1;36mqlang>\x1b[0m ';
 
 const REPL_HELP = `Meta commands:
   .help    list meta commands
-  .exit    close the REPL (Ctrl+D works too)
+  .exit    close the REPL (Ctrl+D on an empty line works too)
 
-Type a qlang query and press Enter to evaluate. Bindings introduced
+Type a qlang query and press Enter to evaluate. Multi-line text
+pasted from the clipboard arrives as one cell. Bindings introduced
 with let / as persist across cells within the same REPL session.
 `;
 
@@ -61,64 +64,54 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
   bindFormatOperands(session);
   bindParseOperands(session);
 
-  // readline expects a Writable stream, not a write callback;
-  // wrap stdoutWrite so prompt echo and history scrolling reach
-  // the same destination as cell results.
-  const stdoutStream = new Writable({
-    write(chunk, _encoding, callback) {
-      stdoutWrite(chunk.toString());
-      callback();
-    }
+  const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
+    prompt: PROMPT,
+    render: (bufferText) => highlightAnsi(bufferText, builtinNames)
   });
 
-  const lineReader = createInterface({
-    input:        stdinStream,
-    output:       stdoutStream,
-    prompt:       PROMPT,
-    historySize:  1000,
-    terminal:     stdinStream.isTTY === true
-  });
-
-  // readline's 'line' event fires synchronously per `\n` it sees,
-  // but our handler is async (evalCell awaits the chain). Without
-  // serialisation a piped multi-line input would race: 'close'
-  // fires before earlier evals finish, the runRepl Promise resolves
-  // too early, and tests see only the first prompt. Chain every
-  // line through one in-flight Promise so order is deterministic
-  // and 'close' waits for the queue to drain.
+  // The editor fires 'line' synchronously per submission, but the
+  // handler awaits evalCell. Serialise through one in-flight
+  // Promise so order is deterministic and 'close' waits for the
+  // queue to drain — otherwise piped multi-line input would race
+  // and the runRepl Promise could resolve before earlier evals
+  // finished writing their output.
   return new Promise((resolve) => {
     let lineQueue = Promise.resolve();
 
-    lineReader.on('line', (rawLine) => {
+    lineEditor.on('line', (rawLine) => {
       lineQueue = lineQueue.then(() => handleLine(rawLine));
     });
 
-    lineReader.on('close', () => {
-      lineQueue.then(() => resolve(0));
+    lineEditor.on('close', () => {
+      lineQueue.then(() => {
+        lineEditor.close();
+        resolve(0);
+      });
     });
 
-    lineReader.prompt();
+    lineEditor.start();
+    lineEditor.prompt();
 
     async function handleLine(rawLine) {
       const line = rawLine.trim();
 
       if (line === '') {
-        lineReader.prompt();
+        lineEditor.prompt();
         return;
       }
       if (line === '.exit') {
-        lineReader.close();
+        lineEditor.emit('close');
         return;
       }
       if (line === '.help') {
         stdoutWrite(REPL_HELP);
-        lineReader.prompt();
+        lineEditor.prompt();
         return;
       }
 
       const cellEntry = await session.evalCell(rawLine);
       writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite);
-      lineReader.prompt();
+      lineEditor.prompt();
     }
   });
 }

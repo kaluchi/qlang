@@ -95,6 +95,35 @@ describe('runRepl — output highlighting', () => {
     expect(r.stdoutText()).toMatch(/\x1b\[1;36m/);
     expect(r.stdoutText()).toMatch(/qlang>/);
   });
+
+  it('exercises the per-keystroke render callback in TTY mode', async () => {
+    // Drive the editor in TTY mode so its raw-mode redraw path
+    // calls into the REPL's render callback (which paints the
+    // current buffer through highlightAnsi). Every visible
+    // keystroke should leave a yellow-number escape behind in
+    // stdout — the only way that escape can appear before Enter
+    // is via the live-render hook.
+    const ttyStdin = new (await import('node:stream')).PassThrough();
+    ttyStdin.isTTY = true;
+    ttyStdin.setRawMode = () => {};
+
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    const stdoutWrite = (text) => stdoutChunks.push(text);
+    const stderrWrite = (text) => stderrChunks.push(text);
+
+    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
+    // Type "42", which should redraw with the yellow escape, then
+    // submit Enter, then close on Ctrl+D from an empty buffer.
+    ttyStdin.write(Buffer.from('42'));
+    ttyStdin.write(Buffer.from('\r'));
+    await new Promise((r) => setImmediate(r));
+    ttyStdin.write(Buffer.from([0x04])); // Ctrl+D on empty buffer
+    await replPromise;
+
+    const stdoutText = stdoutChunks.join('');
+    expect(stdoutText).toMatch(/\x1b\[33m4/);
+  });
 });
 
 describe('runRepl — @in / @out behaviour', () => {

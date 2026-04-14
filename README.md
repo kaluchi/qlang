@@ -1,46 +1,59 @@
-# @kaluchi/qlang
+# qlang
 
-Expression language for transforming immutable values through
-pipelines. Domain-agnostic. Pure. Composable.
+Reference implementation of the qlang pipeline query language. Monorepo
+of the language core plus tooling workspaces.
 
-```qlang
-> [1 2 3 4 5] | filter(gt(3)) | count
-2
+```
+qlang/                  ← this repo
+├── core/               @kaluchi/qlang-core   — language core, pure JS, zero runtime deps
+├── lsp/                @kaluchi/qlang-lsp    — language server
+├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
+├── vscode/             qlang-vscode          — VS Code Marketplace package
+├── docs/               qlang-spec.md, qlang-operands.md, qlang-internals.md
+├── scripts/            release.mjs           — release orchestration
+└── package.json        npm workspaces shell
+```
 
-> let(:double, mul(2)) | [10 20 30] * double
-[20 40 60]
+The folder name maps to the suffix of the npm package name; the npm
+scope is always `@kaluchi/`. Single rule, applied uniformly across
+every workspace.
 
-> let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
-  | "world" | @surround("[", "]")
-"[world]"
+## Quick start
 
-|~| code-as-data ring — source → AST-Map → pipeValue
-> "10 | add(3)" | parse | eval
-13
+```
+npm install                              # symlinks every workspace via npm workspaces
+npm run build                            # generate parser + core catalog (core workspace)
+npm test                                 # run every workspace's test suite
+npm run test:coverage                    # verify 100/100/100/100 thresholds on the core
+```
 
-|~| bare operand → its descriptor as data
-> mul | /category
-:arith
+Per workspace:
+
+```
+npm test         -w @kaluchi/qlang-core
+npm test         -w @kaluchi/qlang-lsp
+npm test         -w @kaluchi/qlang-site
+npm run build    -w @kaluchi/qlang-core
 ```
 
 ## Documentation
 
-| File | Audience | Answers |
-|---|---|---|
-| [`docs/qlang-spec.md`](docs/qlang-spec.md) | query authors | Values, pipeline operators, conduits, scoping, grammar |
-| [`docs/qlang-operands.md`](docs/qlang-operands.md) | query authors | Full catalog of 69 built-in operands with signatures and examples |
-| [`docs/qlang-internals.md`](docs/qlang-internals.md) | evaluator / embedder implementors | Formal `(pipeValue, env)` model, AST traversal, session lifecycle, codec |
+| Audience | Doc |
+|---|---|
+| query authors | [docs/qlang-spec.md](docs/qlang-spec.md) — values, pipeline, conduits, scoping, grammar |
+| query authors | [docs/qlang-operands.md](docs/qlang-operands.md) — full catalog of built-in operands |
+| evaluator implementors | [docs/qlang-internals.md](docs/qlang-internals.md) — formal `(pipeValue, env)` model, AST, codec |
 
-Dependency: **spec** is self-contained for writing queries. **operands**
-is the reference lookup alongside spec. **internals** assumes familiarity
-with spec and is needed only for building evaluators or embedding qlang.
-
-## Running
+## Releasing
 
 ```
-npm install
-npm test
-npm run test:coverage
+node scripts/release.mjs <version>
 ```
 
-Coverage thresholds: lines = 100%, functions = 100%, branches = 100%.
+Bumps `@kaluchi/qlang-core`, rebuilds, runs every workspace test, tags,
+and pushes. The Deploy workflow takes over from the pushed tag —
+publishes to npm and creates the GitHub Release.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).

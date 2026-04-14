@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.1",
+    "@kaluchi/qlang-core": "*",
     "astro": "^5.10.2"
   },
   "devDependencies": {

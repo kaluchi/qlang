@@ -1,20 +1,23 @@
 // Bundle qlang evaluator for browser use.
 //
 // Produces public/qlang.js exporting evalQuery so the REPL
-// component can evaluate qlang expressions client-side.
+// component can evaluate qlang expressions client-side. Reaches
+// into the sibling `core/` workspace for the language entry point —
+// esbuild inlines every `core/src` import into one browser bundle.
 
 import { build } from 'esbuild';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, '..');
+const SITE_ROOT = resolve(__dirname, '..');
+const CORE_SRC  = resolve(SITE_ROOT, '..', 'core', 'src', 'index.mjs');
 
 await build({
-  entryPoints: [resolve(ROOT, '..', 'src', 'index.mjs')],
+  entryPoints: [CORE_SRC],
   bundle: true,
   format: 'esm',
-  outfile: resolve(ROOT, 'public', 'qlang.js'),
+  outfile: resolve(SITE_ROOT, 'public', 'qlang.js'),
   platform: 'browser',
   target: 'es2022',
   minify: false,

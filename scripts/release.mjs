@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-// Release — bumps version, builds, tests, tags, pushes.
+// Release — bumps the @kaluchi/qlang-core version, rebuilds the
+// parser and core catalog, runs every workspace's test suite, tags,
+// and pushes. Triggers the Deploy workflow via the pushed tag.
 //
 // Usage:
 //   node scripts/release.mjs <version>
@@ -14,15 +16,16 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, '..');
+const REPO_ROOT = resolve(__dirname, '..');
+const CORE_ROOT = resolve(REPO_ROOT, 'core');
 
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
-  return execSync(cmd, { cwd: ROOT, stdio: 'inherit', ...opts });
+  return execSync(cmd, { cwd: REPO_ROOT, stdio: 'inherit', ...opts });
 }
 
-function runCapture(cmd) {
-  return execSync(cmd, { cwd: ROOT, encoding: 'utf8' }).trim();
+function runCapture(cmd, opts = {}) {
+  return execSync(cmd, { cwd: REPO_ROOT, encoding: 'utf8', ...opts }).trim();
 }
 
 // ── Parse args ──────────────────────────────────────────────
@@ -58,10 +61,10 @@ if (tags.split('\n').includes(tag)) {
   process.exit(1);
 }
 
-// ── Version bump ────────────────────────────────────────────
+// ── Version bump (core workspace only) ──────────────────────
 
-console.log('Bumping package.json version...');
-run(`npm version ${version} --no-git-tag-version --allow-same-version`);
+console.log('Bumping @kaluchi/qlang-core version...');
+run(`npm version ${version} --no-git-tag-version --allow-same-version -w @kaluchi/qlang-core`);
 
 // ── Build ───────────────────────────────────────────────────
 
@@ -73,8 +76,8 @@ run('npm run build');
 console.log('\nRunning core tests with coverage...');
 run('npm run test:coverage');
 
-console.log('\nRunning LSP tests...');
-run('npm test', { cwd: resolve(ROOT, 'lsp') });
+console.log('\nRunning LSP and site tests...');
+run('npm test --workspaces --if-present');
 
 // ── Commit + Tag + Push ─────────────────────────────────────
 

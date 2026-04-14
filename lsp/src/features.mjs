@@ -17,7 +17,7 @@ import {
   FORK_ISOLATING_AST_TYPES,
   walkAst,
   QlangError, QlangTypeError
-} from '@kaluchi/qlang';
+} from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
 // Each `keyword(name)` call returns the same interned object as the

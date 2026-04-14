@@ -2046,7 +2046,7 @@ written by previous cells, mirroring the REPL/notebook execution
 model.
 
 ```js
-import { createSession } from '@kaluchi/qlang';
+import { createSession } from '@kaluchi/qlang-core';
 
 const session = await createSession();
 
@@ -2083,7 +2083,7 @@ the source of every cell ever executed. The payload's `schemaVersion`
 field guards against forward-incompatible deserialization.
 
 ```js
-import { serializeSession, deserializeSession } from '@kaluchi/qlang';
+import { serializeSession, deserializeSession } from '@kaluchi/qlang-core';
 
 const payload = await serializeSession(session);
 const json = JSON.stringify(payload);
@@ -2113,7 +2113,7 @@ layer that wants the original AST or result can call
 ### Module resolution
 
 A host that ships a library of `.qlang` modules (operand packages,
-domain vocabularies) uses the `@kaluchi/qlang/host/module-resolver`
+domain vocabularies) uses the `@kaluchi/qlang-core/host/module-resolver`
 subpath to load them into a session.
 
 #### Filesystem-to-namespace convention
@@ -2136,8 +2136,8 @@ base env before evaluation) is its export surface.
 
 ```js
 import { discoverModules, resolveModules, installModules }
-  from '@kaluchi/qlang/host/module-resolver';
-import { createSession } from '@kaluchi/qlang';
+  from '@kaluchi/qlang-core/host/module-resolver';
+import { createSession } from '@kaluchi/qlang-core';
 
 // Resolve all modules in lib/ in discovery order.
 const catalog = await resolveModules('./lib');
@@ -2193,7 +2193,7 @@ provide a **locator** — a function that loads modules on demand when
 `use(:namespace)` first encounters an unknown namespace keyword.
 
 ```js
-import { createSession } from '@kaluchi/qlang';
+import { createSession } from '@kaluchi/qlang-core';
 
 const session = await createSession({
   locator: async (namespaceName) => {
@@ -2228,10 +2228,10 @@ When `use(:ns)` encounters a namespace keyword not in env:
 7. Merges exports into env (the standard `use` behavior).
 
 The `impls` function values are constructed using dispatch wrappers
-from the `@kaluchi/qlang/dispatch` subpath export:
+from the `@kaluchi/qlang-core/dispatch` subpath export:
 
 ```js
-import { nullaryOp, valueOp, overloadedOp } from '@kaluchi/qlang/dispatch';
+import { nullaryOp, valueOp, overloadedOp } from '@kaluchi/qlang-core/dispatch';
 
 const findImpl = overloadedOp('@find', 2, {
   0: async (namePattern) => searchByName(namePattern),
@@ -2240,7 +2240,7 @@ const findImpl = overloadedOp('@find', 2, {
 ```
 
 This subpath imports only the dispatch wrappers without triggering
-the runtime bootstrap side effects that `@kaluchi/qlang/runtime`
+the runtime bootstrap side effects that `@kaluchi/qlang-core/runtime`
 carries.
 
 ### Tagged-JSON value codec
@@ -2263,7 +2263,7 @@ and by any host that ships qlang values across a JSON boundary.
 Example:
 
 ```js
-import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang';
+import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang-core';
 
 const value = await evalQuery('{:name "alice" :tags #{:admin :ops}}');
 const wire = JSON.stringify(toTaggedJSON(value));

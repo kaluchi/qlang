@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parse, walkAst, langRuntime } from '../../src/index.mjs';
+import { parse, walkAst, langRuntime } from '@kaluchi/qlang-core';
 import { highlightQlang } from '../src/lib/qlang-highlight.js';
 
 let builtins;

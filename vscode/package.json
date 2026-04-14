@@ -1,5 +1,5 @@
 {
-  "name": "qlang-syntax",
+  "name": "qlang-vscode",
   "displayName": "qlang",
   "description": "Syntax highlighting and language server for the qlang query language",
   "version": "0.1.0",

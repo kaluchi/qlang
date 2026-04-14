@@ -1,12 +1,13 @@
-// @kaluchi/qlang — public entry point.
+// @kaluchi/qlang-core — public entry point.
 //
 // Re-exports the full embedder surface so consumers can import
 // everything they need from the package root. Subpath imports
-// (`@kaluchi/qlang/walk`, `@kaluchi/qlang/session`, `@kaluchi/qlang/codec`,
-// `@kaluchi/qlang/errors`, `@kaluchi/qlang/parse`, `@kaluchi/qlang/eval`,
-// `@kaluchi/qlang/runtime`) remain available through the package.json
-// exports map for tree-shaking-sensitive bundles. The package declares
-// `sideEffects: false` so unused subpaths drop out.
+// (`@kaluchi/qlang-core/walk`, `@kaluchi/qlang-core/session`,
+// `@kaluchi/qlang-core/codec`, `@kaluchi/qlang-core/errors`,
+// `@kaluchi/qlang-core/parse`, `@kaluchi/qlang-core/eval`,
+// `@kaluchi/qlang-core/runtime`) remain available through the
+// package.json exports map for tree-shaking-sensitive bundles. The
+// package declares `sideEffects: false` so unused subpaths drop out.
 //
 // Surface groups:
 //   parse / evaluate           — parse, evalAst, evalQuery, langRuntime

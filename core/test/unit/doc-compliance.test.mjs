@@ -22,7 +22,7 @@ import { keyword } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const docsDir = join(here, '..', '..', 'docs');
+const docsDir = join(here, '..', '..', '..', 'docs');
 
 // Parse a qlang result string (from doc prose) into a runtime value.
 // Supports: numbers, strings, booleans, null, keywords, Vecs, Maps, Sets.

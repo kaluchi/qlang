@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parse, walkAst, langRuntime } from '../../src/index.mjs';
+import { parse, walkAst, langRuntime } from '@kaluchi/qlang-core';
 import { formatExample } from '../src/lib/format-example.js';
 
 let builtins;

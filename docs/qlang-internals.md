@@ -1214,5 +1214,5 @@ import {
   QlangError, QlangTypeError, ParseError,
   EffectLaunderingError,
   classifyEffect, EFFECT_MARKER_PREFIX
-} from '@kaluchi/qlang';
+} from '@kaluchi/qlang-core';
 ```

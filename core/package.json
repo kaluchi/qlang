@@ -1,0 +1,75 @@
+{
+  "name": "@kaluchi/qlang-core",
+  "version": "0.1.0",
+  "description": "Reference implementation of the qlang pipeline query language",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./src/index.mjs"
+    },
+    "./parse": {
+      "import": "./src/parse.mjs"
+    },
+    "./eval": {
+      "import": "./src/eval.mjs"
+    },
+    "./runtime": {
+      "import": "./src/runtime/index.mjs"
+    },
+    "./walk": {
+      "import": "./src/walk.mjs"
+    },
+    "./session": {
+      "import": "./src/session.mjs"
+    },
+    "./codec": {
+      "import": "./src/codec.mjs"
+    },
+    "./errors": {
+      "import": "./src/errors.mjs"
+    },
+    "./effect-check": {
+      "import": "./src/effect-check.mjs"
+    },
+    "./dispatch": {
+      "import": "./src/runtime/dispatch.mjs"
+    },
+    "./host/module-resolver": {
+      "import": "./host/module-resolver.mjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "src/",
+    "host/",
+    "gen/"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build:grammar": "node scripts/build-grammar.mjs",
+    "build:core": "node scripts/build-core.mjs",
+    "build": "node scripts/build-grammar.mjs && node scripts/build-core.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "query-language",
+    "interpreter",
+    "pipeline"
+  ],
+  "license": "Apache-2.0",
+  "author": "kaluchi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaluchi/qlang.git"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "peggy": "^4.2.0",
+    "vitest": "^3.0.0"
+  }
+}

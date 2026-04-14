@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": [
     "core",
+    "cli",
     "lsp",
     "site",
     "vscode"

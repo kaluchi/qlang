@@ -526,17 +526,17 @@ co-located sources:
   eval time via `grammar.peggy`'s `MapEntryDocPrefix` and
   `eval.mjs`'s `foldEntryDocs`.
 
-- **`src/runtime/*.mjs`** — the JS impls. Each module registers
+- **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-
   load time under their `:qlang/prim/<name>` keys. The dispatch
-  wrappers in `src/runtime/dispatch.mjs` (`valueOp`,
+  wrappers in `core/src/runtime/dispatch.mjs` (`valueOp`,
   `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
   `stateOpVariadic`, `higherOrderOpVariadic`) attach a tiny
   `meta` object carrying only the `captured` range — the rest
   of the metadata lives in `core.qlang` and is addressable by
   descriptor projection at `reify` / `manifest` time.
 
-`langRuntime()` in `src/runtime/index.mjs` ties the two together
+`langRuntime()` in `core/src/runtime/index.mjs` ties the two together
 by parsing `core.qlang` once, evaluating it against an empty env
 into a template Map, and returning a shallow copy on every call
 so each session can write its own bindings without mutating the
@@ -1107,9 +1107,9 @@ because `astChildrenOf` and the codec share the shape knowledge.
 
 Canonical bridge between `lib/qlang/core.qlang`-authored
 descriptor Maps and the executable JS impls in `runtime/*.mjs`.
-Lives at the `src/` root (not under `src/runtime/`) because both
-the core evaluator (`src/eval.mjs::applyBuiltinDescriptor`) and
-every runtime impl module consume it, and a `src/runtime/`
+Lives at the `core/src/` root (not under `core/src/runtime/`) because both
+the core evaluator (`core/src/eval.mjs::applyBuiltinDescriptor`) and
+every runtime impl module consume it, and a `core/src/runtime/`
 placement would force downward imports across the core/runtime
 layering boundary.
 
@@ -1201,7 +1201,7 @@ The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
 when an identifier resolves to an effectful function value but the
 lookup name is clean, the call is refused with `EffectLaunderingAtCall`.
 
-### Public entry point — `src/index.mjs`
+### Public entry point — `core/src/index.mjs`
 
 ```js
 import {

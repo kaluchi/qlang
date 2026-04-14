@@ -17,7 +17,6 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
-const CORE_ROOT = resolve(REPO_ROOT, 'core');
 
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);

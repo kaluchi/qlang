@@ -1410,7 +1410,7 @@ the binding can trigger I/O.
 The check enforces propagation at two layers, both reading the
 structured `.effectful` boolean computed once by `classifyEffect`:
 
-1. **Eval time** (`src/runtime/intro.mjs::letOperand`).
+1. **Eval time** (`core/src/runtime/intro.mjs::letOperand`).
    When the `let` operand executes, it checks the body AST via
    `findFirstEffectfulIdentifier`: if the binding name is clean but
    the body contains an effectful OperandCall or Projection segment,
@@ -1419,7 +1419,7 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    (`@callers`) and projection-based extraction (`env | /@callers`)
    are caught.
 
-2. **Runtime call site** (`src/eval.mjs::evalOperandCall`). When an
+2. **Runtime call site** (`core/src/eval.mjs::evalOperandCall`). When an
    identifier resolves through env to a function value, the call-site
    safety net checks: if the function value carries `.effectful = true`
    but the lookup name does not classify as effectful, the call is
@@ -2033,7 +2033,7 @@ because `[] * renameLabel = []` without invoking the conduit.
 ## Embedding API
 
 This section documents the public surface a host application uses
-to embed qlang. The reference implementation under `qlang/src/`
+to embed qlang. The reference implementation under `qlang/core/src/`
 exposes everything from the package root and through subpath
 imports; see [qlang-operands.md](qlang-operands.md#tooling-primitives)
 for the per-module breakdown.

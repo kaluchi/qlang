@@ -72,22 +72,66 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   let historyIndex = 0;        // points one past the last entry by default
   let historyDraft = '';
 
+  // Visible width of the prompt — the ANSI colour escapes never
+  // advance the cursor, only the printable bytes do. Computed once
+  // because the prompt is constant for the editor's lifetime.
+  const promptVisibleLength = prompt.replace(/\x1b\[[0-9;]*m/g, '').length;
+
+  // How many display rows the previous render occupied. Used to
+  // walk the cursor back up to row 0 of the buffer area before the
+  // next clear-and-redraw, so a multi-line paste that later
+  // shrinks (Backspace across an `\n`) does not leave orphaned
+  // lines on screen.
+  let lastRenderedRowCount = 1;
+
   function redrawCurrentLine() {
-    stdoutWrite('\r' + ESC + '[2K');
+    // 1. Move terminal cursor up to row 0 of the prior render.
+    if (lastRenderedRowCount > 1) {
+      stdoutWrite(ESC + `[${lastRenderedRowCount - 1}A`);
+    }
+    // 2. Clear from cursor (now at start of row 0) to end of screen.
+    stdoutWrite('\r' + ESC + '[J');
+    // 3. Write prompt + highlighted buffer. Embedded `\n` inside
+    //    the buffer becomes a real terminal line break — under
+    //    raw mode a bare LF only advances the row, so we translate
+    //    to CRLF first to also reset the column.
     stdoutWrite(prompt);
-    stdoutWrite(render(buffer));
-    const trailingChars = buffer.length - cursor;
-    if (trailingChars > 0) stdoutWrite(ESC + `[${trailingChars}D`);
+    stdoutWrite(render(buffer).replace(/(?<!\r)\n/g, '\r\n'));
+
+    // 4. Reposition the cursor inside the just-written buffer.
+    const allLines           = buffer.split('\n');
+    const lastRowIndex       = allLines.length - 1;
+    const beforeCursorLines  = buffer.slice(0, cursor).split('\n');
+    const cursorRowIndex     = beforeCursorLines.length - 1;
+    const cursorColumnInLine = beforeCursorLines[beforeCursorLines.length - 1].length;
+
+    const rowsToWalkBack = lastRowIndex - cursorRowIndex;
+    if (rowsToWalkBack > 0) stdoutWrite(ESC + `[${rowsToWalkBack}A`);
+    stdoutWrite('\r');
+    const targetColumn = (cursorRowIndex === 0 ? promptVisibleLength : 0) + cursorColumnInLine;
+    if (targetColumn > 0) stdoutWrite(ESC + `[${targetColumn}C`);
+
+    lastRenderedRowCount = lastRowIndex + 1;
   }
 
   function submitCurrentLine() {
     const lineText = buffer;
+    // Cursor may be parked on any row of a multi-line buffer when
+    // Enter fires. Walk it down to the buffer's last row before
+    // emitting `\r\n`, otherwise the REPL's result line would
+    // overprint the rows below the cursor.
+    const beforeCursorLines = buffer.slice(0, cursor).split('\n');
+    const cursorRowIndex    = beforeCursorLines.length - 1;
+    const lastRowIndex      = buffer.split('\n').length - 1;
+    const rowsToWalkDown    = lastRowIndex - cursorRowIndex;
+    if (rowsToWalkDown > 0) stdoutWrite(ESC + `[${rowsToWalkDown}B`);
+    stdoutWrite('\r\n');
     pushHistoryEntry(lineText);
     buffer = '';
     cursor = 0;
     historyIndex = history.length;
     historyDraft = '';
-    stdoutWrite('\r\n');
+    lastRenderedRowCount = 1;
     emitter.emit('line', lineText);
   }
 
@@ -123,9 +167,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
         const pastedContent = pasteBuffer.slice(0, -BRACKETED_PASTE_END.length);
         pasteMode = false;
         pasteBuffer = '';
-        buffer = pastedContent;
-        cursor = pastedContent.length;
-        submitCurrentLine();
+        insertPasteAtCursor(pastedContent);
       }
       return;
     }
@@ -211,6 +253,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
     buffer = '';
     cursor = 0;
     stdoutWrite('^C\r\n');
+    lastRenderedRowCount = 1;
     redrawCurrentLine();
   }
 
@@ -219,7 +262,52 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   }
 
   function onData(chunk) {
+    // Paste fast-path: a multi-byte data event with embedded
+    // newlines is almost certainly a clipboard paste, not fast
+    // typing. Collapse the multi-line content into a single line
+    // (whitespace between qlang tokens is semantically inert — a
+    // pasted `{\n  "a": 1\n}` parses identically to `{ "a": 1 }`)
+    // and INSERT it at the cursor instead of auto-submitting, so
+    // the user can append `| /key` or fix a typo before pressing
+    // Enter. The same single-line collapse means recalled
+    // multi-line pastes redraw cleanly under the editor's
+    // single-line cursor model.
+    //
+    // Catches both the well-behaved BPM case where the entire
+    // paste arrives in one chunk AND the legacy case (older
+    // Windows console hosts, PowerShell ISE, ssh sessions where
+    // the `\x1b[?2004h` enable was stripped) where the terminal
+    // sends paste bytes verbatim with no markers. Per-byte
+    // typing arrives one byte per data event and never triggers
+    // the heuristic. The slower per-byte state machine below
+    // still backs up multi-chunk BPM pastes (rare on slow links).
+    if (!pasteMode && pendingEscape.length === 0) {
+      const chunkText = chunk.toString('utf8');
+      // `\n` alone (not the carriage-return Enter sends in raw
+      // mode) is the marker — a typed character followed by Enter
+      // arrives as `'x\r'` and must continue per-byte editing.
+      if (chunkText.length > 1 && chunkText.includes('\n')) {
+        insertPasteAtCursor(stripPasteMarkers(chunkText));
+        return;
+      }
+    }
     for (const byte of chunk) handleByte(byte);
+  }
+
+  function insertPasteAtCursor(rawPasteText) {
+    // Normalise CRLF to LF and trim a trailing line-end the
+    // clipboard tends to carry, but preserve the multi-line
+    // structure so the user sees the pasted content laid out the
+    // way it was on their clipboard. The redraw path knows how
+    // to position the cursor across `\n` boundaries.
+    const normalised = rawPasteText.replace(/\r\n/g, '\n').replace(/\n+$/, '');
+    buffer = buffer.slice(0, cursor) + normalised + buffer.slice(cursor);
+    cursor += normalised.length;
+    redrawCurrentLine();
+  }
+
+  function stripPasteMarkers(text) {
+    return text.replace(BRACKETED_PASTE_BEGIN, '').replace(BRACKETED_PASTE_END, '');
   }
 
   emitter.start = function start() {

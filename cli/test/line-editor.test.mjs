@@ -114,6 +114,29 @@ describe('createLineEditor — TTY printable input', () => {
   });
 });
 
+describe('createLineEditor — TTY soft-newline keys', () => {
+  it('Ctrl+J (LF byte) inserts a newline at the cursor without submitting', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first', Buffer.from([0x0a]), 'second', '\r');
+    expect(capture.lines).toEqual(['first\nsecond']);
+  });
+
+  it('Alt+Enter (ESC + CR) inserts a newline at the cursor without submitting', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first', ESC + '\r', 'second', '\r');
+    expect(capture.lines).toEqual(['first\nsecond']);
+  });
+
+  it('CR (Enter) still submits even after a soft-newline-built buffer', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', Buffer.from([0x0a]), 'b', Buffer.from([0x0a]), 'c', '\r');
+    expect(capture.lines).toEqual(['a\nb\nc']);
+  });
+});
+
 describe('createLineEditor — TTY editing keys', () => {
   it('Backspace removes the char before the cursor', () => {
     const { stdinStream, editor, capture } = makeTtySetup();

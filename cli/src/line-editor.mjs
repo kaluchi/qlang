@@ -181,7 +181,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
     if (byte === 0x1b) { pendingEscape = ESC; return; }
     if (byte === 0x03) { interruptCurrentLine();   return; }   // Ctrl+C
     if (byte === 0x04) { closeOnEmptyBuffer();     return; }   // Ctrl+D
-    if (byte === 0x0d || byte === 0x0a) { submitCurrentLine(); return; }
+    if (byte === 0x0d) { submitCurrentLine();      return; }   // Enter (CR)
+    if (byte === 0x0a) { insertNewlineAtCursor();  return; }   // Ctrl+J — soft newline
     if (byte === 0x08 || byte === 0x7f) { backspaceAtCursor();  return; }
     if (byte === 0x01) { moveCursorHome(); return; }            // Ctrl+A
     if (byte === 0x05) { moveCursorEnd();  return; }            // Ctrl+E
@@ -195,6 +196,14 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
     if (pendingEscape === BRACKETED_PASTE_BEGIN) {
       pasteMode = true;
       pasteBuffer = '';
+      pendingEscape = '';
+      return;
+    }
+    if (pendingEscape === ESC + '\r') {
+      // Alt+Enter (ESC + CR) — soft newline. Same intent as
+      // Ctrl+J but most IME / terminal users discover this combo
+      // first.
+      insertNewlineAtCursor();
       pendingEscape = '';
       return;
     }
@@ -227,6 +236,12 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
 
   function insertCharAtCursor(ch) {
     buffer = buffer.slice(0, cursor) + ch + buffer.slice(cursor);
+    cursor += 1;
+    redrawCurrentLine();
+  }
+
+  function insertNewlineAtCursor() {
+    buffer = buffer.slice(0, cursor) + '\n' + buffer.slice(cursor);
     cursor += 1;
     redrawCurrentLine();
   }

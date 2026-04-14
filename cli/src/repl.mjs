@@ -45,9 +45,24 @@ const REPL_HELP = `Meta commands:
   .help    list meta commands
   .exit    close the REPL (Ctrl+D on an empty line works too)
 
-Type a qlang query and press Enter to evaluate. Multi-line text
-pasted from the clipboard arrives as one cell. Bindings introduced
-with let / as persist across cells within the same REPL session.
+Editing:
+  Enter           evaluate the current cell
+  Ctrl+J          insert a soft newline (continue typing on the
+                  next visual row without submitting)
+  Alt+Enter       same as Ctrl+J
+  Backspace       delete the character before the cursor (across
+                  newlines if needed — the rows collapse)
+  Left / Right    move the cursor by one character
+  Home / Ctrl+A   jump to the start of the buffer
+  End  / Ctrl+E   jump to the end of the buffer
+  Up   / Down     walk through the in-memory cell history
+  Ctrl+C          discard the current line and reprompt
+
+Pasting multi-line text from the clipboard arrives as one cell;
+the editor preserves the newline structure, so an appended
+projection like \`| /key\` lands on the same cell as the paste.
+Bindings introduced with let / as persist across cells within the
+same REPL session.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {

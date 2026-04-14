@@ -45,6 +45,11 @@
     "host/",
     "gen/"
   ],
+  "workspaces": [
+    "lsp",
+    "site",
+    "vscode-extension"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

@@ -2,3 +2,11 @@ node_modules/
 coverage/
 gen/
 .claude/settings.local.json
+
+# npm workspaces — only the root package-lock.json is authoritative
+# under the workspaces layout; per-workspace lockfiles drift stale and
+# are ignored here so they do not get re-committed by accident.
+core/package-lock.json
+lsp/package-lock.json
+site/package-lock.json
+vscode/package-lock.json

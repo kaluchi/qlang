@@ -73,7 +73,13 @@ export function printValue(v, indent = 0) {
 
 function printMapLike(open, m, indent) {
   const entries = [...m];
-  if (entries.length <= 2) {
+  // Inline only when the Map is small AND every value is a flat
+  // scalar — a nested Map / Vec / Set / Error forces multi-line
+  // so deeply-nested structures unfold one entry per row instead
+  // of slamming the trailing close-braces onto a single line.
+  const hasComposite = entries.some(([_k, v]) =>
+    isQMap(v) || isVec(v) || isQSet(v) || isErrorValue(v));
+  if (entries.length <= 2 && !hasComposite) {
     const inner = entries.map(([k, v]) => `${printValue(k, indent)} ${printValue(v, indent)}`).join(' ');
     return `${open}${inner}}`;
   }

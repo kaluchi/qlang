@@ -40,14 +40,27 @@ no `use(...)` ceremony.
 | `@err(renderer)` | same shape as `@out(renderer)`, writes to stderr |
 | `@tap(:label)` | identity on `(pipeValue, env)`; mirrors `printValue(pipeValue)` to stderr with `[tap label] ` prefix |
 
-### Pure
+### Pure formatters (value → String)
 
 | Operand | Contract |
 |---|---|
 | `pretty` | any subject → String, the canonical qlang-literal display form |
+| `tjson` | any subject → String, tagged-JSON wire form (round-trippable through `parseTjson`) |
+| `template("…")` | any subject → String. `{{.}}` substitutes the whole subject; `{{key}}` projects from a Map; `{{a/b/c}}` chains projections. String values embed raw, others render via printValue, missing fields render as `null` |
 
-The format family will grow with `tjson`, `ndjson`, `template(:str)`,
-`raw` as concrete user demands surface.
+`json` (plain JSON via `JSON.stringify`) lives in core and is
+already in scope; no need to bind it.
+
+NDJSON does not need a dedicated operand — the composition
+`vec * json | join("\n")` produces the same byte sequence
+transparently.
+
+### Pure parsers (String → value)
+
+| Operand | Contract |
+|---|---|
+| `parseJson` | String → qlang value. Object keys become keywords, arrays become Vecs. Bridge to external JSON sources (curl, kubectl, gh, jq) |
+| `parseTjson` | String → qlang value via core's `fromTaggedJSON`. Round-trippable with `tjson | @out` for chaining qlang processes over a Unix pipe |
 
 ## Output is explicit
 
@@ -89,7 +102,7 @@ qlang '@in | parse | eval | /glossary/title | @out' \
   < glossary.json
 example glossary
 
-qlang '@in | parse | eval | /users
+qlang '@in | parseJson | /users
        | filter(/active) * /name
        | pretty | @out' < users.json
 ["alice" "carol"]
@@ -98,16 +111,30 @@ qlang '[1 2 3] | @tap(:before) | filter(gt(1)) | @tap(:after) | count | pretty |
 [tap before] [1 2 3]
 [tap after] [2 3]
 2
+
+# Chain two qlang processes losslessly through tagged-JSON
+qlang '#{:admin :user} | tjson | @out' \
+  | qlang '@in | parseTjson | count | pretty | @out'
+2
+
+# Per-element template into stdout
+qlang '@in | parseJson * template("{{name}}: {{score}}") | join("\n") | @out' \
+  < scores.json
+alice: 85
+bob: 42
+
+# NDJSON via composition (no dedicated operand needed)
+qlang '@in | parseJson * json | join("\n") | @out' < users.json
+{"name":"alice"}
+{"name":"bob"}
 ```
 
 ## Status
 
-I/O surface (`@in`, `@out`, `@err`, `@tap`) plus the `pretty` format
-operand are in place. Follow-up commits add the rest of the format
-family (`tjson`, `ndjson`, `template`, `raw`), parsers (`@parseJson`,
-`@parseTjson` — `parse | eval` is the current stand-in for the JSON
-example above), the readline REPL, named sessions, module discovery,
-and named arguments.
+I/O surface (`@in`, `@out`, `@err`, `@tap`), pure formatters
+(`pretty`, `tjson`, `template`), and parsers (`parseJson`,
+`parseTjson`) are in place. Follow-up commits add the readline REPL,
+named sessions, module discovery, and named arguments.
 
 See [docs/qlang-spec.md](../docs/qlang-spec.md) for the language
 reference.

@@ -15,10 +15,12 @@
 import { createSession } from '@kaluchi/qlang-core/session';
 import { bindIoOperands } from './io-operands.mjs';
 import { bindFormatOperands } from './format-operands.mjs';
+import { bindParseOperands } from './parse-operands.mjs';
 
 export async function runQuery(queryText, ioContext) {
   const session = await createSession();
   bindIoOperands(session, ioContext);
   bindFormatOperands(session);
+  bindParseOperands(session);
   return session.evalCell(queryText);
 }

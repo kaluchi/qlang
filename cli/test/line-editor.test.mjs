@@ -114,29 +114,6 @@ describe('createLineEditor — TTY printable input', () => {
   });
 });
 
-describe('createLineEditor — TTY soft-newline keys', () => {
-  it('Ctrl+J (LF byte) inserts a newline at the cursor without submitting', () => {
-    const { stdinStream, editor, capture } = makeTtySetup();
-    editor.start();
-    feed(stdinStream, 'first', Buffer.from([0x0a]), 'second', '\r');
-    expect(capture.lines).toEqual(['first\nsecond']);
-  });
-
-  it('Alt+Enter (ESC + CR) inserts a newline at the cursor without submitting', () => {
-    const { stdinStream, editor, capture } = makeTtySetup();
-    editor.start();
-    feed(stdinStream, 'first', ESC + '\r', 'second', '\r');
-    expect(capture.lines).toEqual(['first\nsecond']);
-  });
-
-  it('CR (Enter) still submits even after a soft-newline-built buffer', () => {
-    const { stdinStream, editor, capture } = makeTtySetup();
-    editor.start();
-    feed(stdinStream, 'a', Buffer.from([0x0a]), 'b', Buffer.from([0x0a]), 'c', '\r');
-    expect(capture.lines).toEqual(['a\nb\nc']);
-  });
-});
-
 describe('createLineEditor — TTY editing keys', () => {
   it('Backspace removes the char before the cursor', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
@@ -326,61 +303,46 @@ describe('createLineEditor — TTY history navigation', () => {
 });
 
 describe('createLineEditor — TTY paste fast-path', () => {
-  // The heuristic INSERTS the paste at the cursor (preserving the
-  // newline structure so the user sees the whole pasted block on
-  // screen) and waits for an explicit Enter to submit. This lets
-  // the user append `| /key` after a JSON paste before evaluating.
+  // Multi-line clipboard content collapses to a single space-
+  // separated line — qlang does not care about whitespace between
+  // tokens, so a pasted JSON object parses identically when
+  // flattened. The single-line buffer survives every terminal
+  // host's redraw quirks where multi-line cursor positioning
+  // would otherwise diverge.
 
-  it('inserts a multi-line chunk into the buffer without auto-submitting', () => {
+  it('inserts a collapsed multi-line chunk into the buffer without auto-submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '{\n  "a": 1\n} | /a');
-    expect(capture.lines).toEqual([]);   // not yet submitted
+    expect(capture.lines).toEqual([]);
   });
 
-  it('preserves newlines through paste + Enter so the submitted line carries the structure', () => {
+  it('collapses internal newlines into single spaces and submits the flat line on Enter', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '{\n  "a": 1\n} | /a', '\r');
-    expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
+    expect(capture.lines).toEqual(['{ "a": 1 } | /a']);
   });
 
-  it('strips a trailing CRLF from the paste so a clipboard end-of-block line does not extra-blank the buffer', () => {
+  it('drops trailing-newline whitespace from a clipboard end-of-block', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\ntwo\n', '\r');
-    expect(capture.lines).toEqual(['one\ntwo']);
+    expect(capture.lines).toEqual(['one two']);
   });
 
   it('lets the user append further text to a pasted block before Enter', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '{\n  "a": 1\n}', ' | /a', '\r');
-    expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
-  });
-
-  it('repositions the cursor across `\\n` boundaries when the user walks Left into a previous row', () => {
-    // Paste two-line content, walk Left past the `\n` so the
-    // cursor lands inside the first row, then Enter — exercises
-    // both the redraw-time `rowsToWalkBack > 0` branch and the
-    // submit-time `rowsToWalkDown > 0` branch.
-    const { stdinStream, editor, capture } = makeTtySetup();
-    editor.start();
-    feed(stdinStream, 'first\nsecond',
-                      ESC + '[D', ESC + '[D', ESC + '[D', ESC + '[D',
-                      ESC + '[D', ESC + '[D', ESC + '[D',
-                      '\r');
-    // Buffer was 'first\nsecond' (length 12); seven Lefts put
-    // cursor at position 5 (just before `\n` at end of "first").
-    // Enter still submits the whole multi-line content as one cell.
-    expect(capture.lines).toEqual(['first\nsecond']);
+    expect(capture.lines).toEqual(['{ "a": 1 } | /a']);
   });
 
   it('strips BPM markers from a single-chunk wrapped paste', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, BRACKETED_PASTE_BEGIN + 'a\nb' + BRACKETED_PASTE_END, '\r');
-    expect(capture.lines).toEqual(['a\nb']);
+    expect(capture.lines).toEqual(['a b']);
   });
 
   it('does not trigger the heuristic for fast-typing without newlines', () => {
@@ -395,10 +357,10 @@ describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)',
   // When BPM markers and the paste body arrive in SEPARATE data
   // events (slow link, partial flush) the chunk-level fast-path
   // does not engage and the per-byte state machine handles the
-  // accumulation. Same final shape — paste content lands in the
-  // buffer at the cursor, Enter submits.
+  // accumulation. The end of the paste runs the same
+  // `insertPasteAtCursor` helper that collapses internal newlines.
 
-  it('inserts paste content into the buffer when markers arrive in separate data events', () => {
+  it('inserts single-line paste content when markers arrive in separate data events', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,
@@ -418,6 +380,17 @@ describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)',
          BRACKETED_PASTE_END,
          '\r');
     expect(capture.lines).toEqual(['pre-pasted']);
+  });
+
+  it('collapses multi-line content delivered through the BPM state machine', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream,
+         BRACKETED_PASTE_BEGIN,
+         'a\nb\nc',
+         BRACKETED_PASTE_END,
+         '\r');
+    expect(capture.lines).toEqual(['a b c']);
   });
 });
 

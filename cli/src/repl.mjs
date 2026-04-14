@@ -47,20 +47,20 @@ const REPL_HELP = `Meta commands:
 
 Editing:
   Enter           evaluate the current cell
-  Ctrl+J          insert a soft newline (continue typing on the
-                  next visual row without submitting)
-  Alt+Enter       same as Ctrl+J
-  Backspace       delete the character before the cursor (across
-                  newlines if needed — the rows collapse)
+  Backspace       delete the character before the cursor
   Left / Right    move the cursor by one character
-  Home / Ctrl+A   jump to the start of the buffer
-  End  / Ctrl+E   jump to the end of the buffer
+  Home / Ctrl+A   jump to the start of the line
+  End  / Ctrl+E   jump to the end of the line
   Up   / Down     walk through the in-memory cell history
   Ctrl+C          discard the current line and reprompt
 
-Pasting multi-line text from the clipboard arrives as one cell;
-the editor preserves the newline structure, so an appended
-projection like \`| /key\` lands on the same cell as the paste.
+The buffer is one logical line — the terminal soft-wraps if it
+overflows the column width. Pasting multi-line text from the
+clipboard collapses internal newlines to single spaces so the
+content lands in a single cell; qlang treats whitespace between
+tokens as inert, so a pasted JSON object parses identically.
+Append a projection like \`| /key\` after the paste, then Enter.
+
 Bindings introduced with let / as persist across cells within the
 same REPL session.
 `;

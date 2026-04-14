@@ -1,33 +1,40 @@
-// Project a session cell entry onto a CLI outcome — the stdout
-// payload to print on the success-track, the stderr payload to print
-// when the cell ended on the fail-track or threw during parse / setup,
-// and the exit code that mirrors that disposition.
+// Project a session cell entry onto the CLI's exit-code contract.
 //
-// The skeleton renders every value through `printValue` from core's
-// runtime/format.mjs (the canonical qlang-literal display form, the
-// same shape the `pretty` operand will expose once it lands). Format
-// operands (`json`, `tjson`, NDJSON, template) wire in through
-// follow-up commits as `@out` and the format-renderer surface grows.
+// Output bytes are NOT this module's job — the I/O operands
+// (`@out` / `@err` / `@tap`) wrote their payloads to stdout / stderr
+// during eval. This module only decides:
+//
+//   - cellEntry.error set (host-level JS throw — parse failure,
+//     primitive missing, etc.)            → stderr message, exit 1
+//   - cellEntry.result is an error value
+//     (pipeline ended on the fail-track
+//     without `!|` handling)              → silent, exit 1
+//   - success-track value                  → silent, exit 0
+//
+// Silence on an unhandled fail-track value is the explicit contract:
+// users who want diagnostics route their own `!| @err(pretty)` or
+// project specific descriptor fields. The CLI does not stand in.
+// Host-level JS throws are different — the pipeline never started,
+// so there is no `!|` site that could have caught them; the CLI
+// surfaces them on stderr to keep "I ran your query but couldn't
+// even parse it" from looking identical to "your query ran fine".
 
-import { printValue, isErrorValue } from '@kaluchi/qlang-core';
+import { isErrorValue } from '@kaluchi/qlang-core';
 
 export function renderCellOutcome(cellEntry) {
   if (cellEntry.error !== null) {
     return {
-      stdoutText: '',
       stderrText: `qlang: ${cellEntry.error.message}\n`,
       exitCode: 1
     };
   }
   if (isErrorValue(cellEntry.result)) {
     return {
-      stdoutText: '',
-      stderrText: printValue(cellEntry.result) + '\n',
+      stderrText: '',
       exitCode: 1
     };
   }
   return {
-    stdoutText: printValue(cellEntry.result) + '\n',
     stderrText: '',
     exitCode: 0
   };

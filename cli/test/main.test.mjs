@@ -1,15 +1,15 @@
 // main orchestrator coverage. Every cliInvocation kind dispatches
-// to its own branch; one test per branch, plus one for the
-// success-track evalQuery flow that ties argv → run → render
-// end-to-end without spawning a subprocess.
+// to its own branch; one test per branch, plus end-to-end flows that
+// cover @out emission and the silent-on-error-value contract.
 
 import { describe, it, expect } from 'vitest';
 import { main } from '../src/main.mjs';
 
-function captureWriters() {
+function captureWriters(stdinPayload = '') {
   const stdoutChunks = [];
   const stderrChunks = [];
   return {
+    stdinReader: () => Promise.resolve(stdinPayload),
     stdoutWrite: (text) => stdoutChunks.push(text),
     stderrWrite: (text) => stderrChunks.push(text),
     stdoutText: () => stdoutChunks.join(''),
@@ -18,53 +18,66 @@ function captureWriters() {
 }
 
 describe('main', () => {
-  it('returns exit code 0 and writes the help banner on --help', async () => {
-    const writers = captureWriters();
-    const exitCode = await main(['--help'], writers.stdoutWrite, writers.stderrWrite);
+  it('returns exit 0 and writes the help banner on --help', async () => {
+    const w = captureWriters();
+    const exitCode = await main(['--help'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(writers.stdoutText()).toMatch(/Usage:/);
-    expect(writers.stderrText()).toBe('');
+    expect(w.stdoutText()).toMatch(/Usage:/);
+    expect(w.stderrText()).toBe('');
   });
 
-  it('returns exit code 0 and writes the version line on --version', async () => {
-    const writers = captureWriters();
-    const exitCode = await main(['--version'], writers.stdoutWrite, writers.stderrWrite);
+  it('returns exit 0 and writes the version line on --version', async () => {
+    const w = captureWriters();
+    const exitCode = await main(['--version'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(writers.stdoutText()).toMatch(/@kaluchi\/qlang-cli/);
-    expect(writers.stderrText()).toBe('');
+    expect(w.stdoutText()).toMatch(/@kaluchi\/qlang-cli/);
+    expect(w.stderrText()).toBe('');
   });
 
-  it('returns exit code 2 and writes a usage hint on an empty argv slice', async () => {
-    const writers = captureWriters();
-    const exitCode = await main([], writers.stdoutWrite, writers.stderrWrite);
+  it('returns exit 2 and writes a usage hint on an empty argv slice', async () => {
+    const w = captureWriters();
+    const exitCode = await main([], w.stdinReader, w.stdoutWrite, w.stderrWrite);
     expect(exitCode).toBe(2);
-    expect(writers.stdoutText()).toBe('');
-    expect(writers.stderrText()).toMatch(/missing query/);
+    expect(w.stdoutText()).toBe('');
+    expect(w.stderrText()).toMatch(/missing query/);
   });
 
-  it('returns exit code 0 and writes the printValue result for a success-track query', async () => {
-    const writers = captureWriters();
-    const exitCode = await main(['[1 2 3] | count'], writers.stdoutWrite, writers.stderrWrite);
+  it('returns exit 0 and stays silent for a success-track query without `@out`', async () => {
+    const w = captureWriters();
+    const exitCode = await main(['[1 2 3] | count'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(writers.stdoutText()).toBe('3\n');
-    expect(writers.stderrText()).toBe('');
+    expect(w.stdoutText()).toBe('');
+    expect(w.stderrText()).toBe('');
   });
 
-  it('returns exit code 1 and writes the error to stderr for a parse failure', async () => {
-    const writers = captureWriters();
-    const exitCode = await main(['[1 2'], writers.stdoutWrite, writers.stderrWrite);
-    expect(exitCode).toBe(1);
-    expect(writers.stdoutText()).toBe('');
-    expect(writers.stderrText()).toMatch(/^qlang:/);
+  it('routes `@out` emissions to stdout for a success-track query', async () => {
+    const w = captureWriters();
+    const exitCode = await main(['[1 2 3] | count | pretty | @out'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
+    expect(exitCode).toBe(0);
+    expect(w.stdoutText()).toBe('3\n');
+    expect(w.stderrText()).toBe('');
   });
 
-  it('returns exit code 1 and writes the error value to stderr for a fail-track result', async () => {
-    const writers = captureWriters();
-    // `add(1)` against a Vec subject lifts a FilterSubjectNotVec-style
-    // error onto the fail-track; pipeline ends with an error value.
-    const exitCode = await main(['[1 2 3] | add(1)'], writers.stdoutWrite, writers.stderrWrite);
+  it('feeds stdin into `@in` so the query sees the piped payload', async () => {
+    const w = captureWriters('hello world');
+    const exitCode = await main(['@in | @out'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
+    expect(exitCode).toBe(0);
+    expect(w.stdoutText()).toBe('hello world\n');
+  });
+
+  it('returns exit 1 with a stderr message for a parse failure', async () => {
+    const w = captureWriters();
+    const exitCode = await main(['[1 2'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
     expect(exitCode).toBe(1);
-    expect(writers.stdoutText()).toBe('');
-    expect(writers.stderrText()).toMatch(/^!\{/);
+    expect(w.stdoutText()).toBe('');
+    expect(w.stderrText()).toMatch(/^qlang:/);
+  });
+
+  it('returns exit 1 silently for an unhandled fail-track error value', async () => {
+    const w = captureWriters();
+    const exitCode = await main(['[1 2 3] | add(1)'], w.stdinReader, w.stdoutWrite, w.stderrWrite);
+    expect(exitCode).toBe(1);
+    expect(w.stdoutText()).toBe('');
+    expect(w.stderrText()).toBe('');
   });
 });

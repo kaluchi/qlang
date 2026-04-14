@@ -35,6 +35,9 @@
     "./dispatch": {
       "import": "./src/runtime/dispatch.mjs"
     },
+    "./operand-errors": {
+      "import": "./src/operand-errors.mjs"
+    },
     "./host/module-resolver": {
       "import": "./host/module-resolver.mjs"
     }

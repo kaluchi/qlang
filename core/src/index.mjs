@@ -76,10 +76,12 @@ import {
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
 import {
   keyword,
+  isKeyword,
   isErrorValue,
   makeErrorValue,
   appendTrailNode,
-  materializeTrail
+  materializeTrail,
+  describeType
 } from './types.mjs';
 
 export {
@@ -121,8 +123,10 @@ export {
   classifyEffect,
   EFFECT_MARKER_PREFIX,
   keyword,
+  isKeyword,
   isErrorValue,
   makeErrorValue,
   appendTrailNode,
-  materializeTrail
+  materializeTrail,
+  describeType
 };

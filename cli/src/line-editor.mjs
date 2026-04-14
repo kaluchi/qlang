@@ -233,36 +233,68 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
     if (buffer.length === 0) emitter.emit('close');
   }
 
+  // Paste accumulator — once a chunk looks like the start of a
+  // clipboard paste, every subsequent chunk that arrives within
+  // a short idle window (50ms — far below human typing cadence,
+  // far above IPC fragmentation latency) appends to the same
+  // buffer. After the timer fires the accumulated content flushes
+  // through `insertPasteAtCursor` as one paste. This catches
+  // pastes that the terminal delivers across multiple data events
+  // — what PowerShell and several other Windows hosts do for
+  // multi-line clipboard content even with BPM enabled, and what
+  // would otherwise leave half the content per-byte-processed
+  // (where each `\r` from CRLF triggers a phantom submit).
+  let pasteAccumBuffer = '';
+  let pasteAccumTimer  = null;
+  const PASTE_FLUSH_MS = 50;
+
+  function flushPasteAccumulator() {
+    const accumulated = pasteAccumBuffer;
+    pasteAccumBuffer  = '';
+    pasteAccumTimer   = null;
+    insertPasteAtCursor(stripPasteMarkers(accumulated));
+  }
+
+  function startPasteAccumulator(chunkText) {
+    pasteAccumBuffer = chunkText;
+    pasteAccumTimer  = setTimeout(flushPasteAccumulator, PASTE_FLUSH_MS);
+  }
+
+  function continuePasteAccumulator(chunkText) {
+    pasteAccumBuffer += chunkText;
+    clearTimeout(pasteAccumTimer);
+    pasteAccumTimer = setTimeout(flushPasteAccumulator, PASTE_FLUSH_MS);
+  }
+
   function onData(chunk) {
-    // Paste fast-path: a multi-byte data event with embedded
-    // newlines is almost certainly a clipboard paste, not fast
-    // typing. Collapse the multi-line content into a single line
-    // (whitespace between qlang tokens is semantically inert — a
-    // pasted `{\n  "a": 1\n}` parses identically to `{ "a": 1 }`)
-    // and INSERT it at the cursor instead of auto-submitting, so
-    // the user can append `| /key` or fix a typo before pressing
-    // Enter. The same single-line collapse means recalled
-    // multi-line pastes redraw cleanly under the editor's
-    // single-line cursor model.
-    //
-    // Catches both the well-behaved BPM case where the entire
-    // paste arrives in one chunk AND the legacy case (older
-    // Windows console hosts, PowerShell ISE, ssh sessions where
-    // the `\x1b[?2004h` enable was stripped) where the terminal
-    // sends paste bytes verbatim with no markers. Per-byte
-    // typing arrives one byte per data event and never triggers
-    // the heuristic. The slower per-byte state machine below
-    // still backs up multi-chunk BPM pastes (rare on slow links).
-    if (!pasteMode && pendingEscape.length === 0) {
-      const chunkText = chunk.toString('utf8');
-      // `\n` alone (not the carriage-return Enter sends in raw
-      // mode) is the marker — a typed character followed by Enter
-      // arrives as `'x\r'` and must continue per-byte editing.
-      if (chunkText.length > 1 && chunkText.includes('\n')) {
-        insertPasteAtCursor(stripPasteMarkers(chunkText));
+    const chunkText = chunk.toString('utf8');
+
+    // Continuation chunk while a paste is still flowing.
+    if (pasteAccumBuffer.length > 0) {
+      // A solitary CR (the user pressing Enter right after a
+      // paste) closes the paste window deterministically — flush
+      // the accumulated content into the buffer, then route the
+      // CR through the normal submit path. Without this the
+      // accumulator would swallow the Enter and only flush 50ms
+      // later via the idle timer.
+      if (chunkText === '\r' || chunkText === '\n') {
+        clearTimeout(pasteAccumTimer);
+        pasteAccumTimer = null;
+        flushPasteAccumulator();
+        submitCurrentLine();
         return;
       }
+      continuePasteAccumulator(chunkText);
+      return;
     }
+
+    // First chunk that smells like the start of a paste.
+    if (!pasteMode && pendingEscape.length === 0
+        && chunkText.length > 1 && chunkText.includes('\n')) {
+      startPasteAccumulator(chunkText);
+      return;
+    }
+
     for (const byte of chunk) handleByte(byte);
   }
 
@@ -296,6 +328,10 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   };
 
   emitter.close = function close() {
+    if (pasteAccumTimer !== null) {
+      clearTimeout(pasteAccumTimer);
+      pasteAccumTimer = null;
+    }
     stdoutWrite(DISABLE_BRACKETED_PASTE);
     stdinStream.setRawMode(false);
     stdinStream.removeListener('data', onData);

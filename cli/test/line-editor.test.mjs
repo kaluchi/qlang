@@ -426,4 +426,16 @@ describe('createLineEditor — TTY lifecycle', () => {
     editor.close();
     expect(stdinStream.listenerCount('data')).toBe(0);
   });
+
+  it('clears a pending paste-accumulator timer on close so the flush does not fire post-shutdown', () => {
+    const { stdinStream, editor } = makeTtySetup();
+    editor.start();
+    // Send a chunk that opens the paste window — accumulator
+    // timer is now pending.
+    feed(stdinStream, 'a\nb');
+    editor.close();
+    // No assertion on output — the test passes if the timer
+    // does not crash by firing against a torn-down editor.
+    expect(stdinStream.listenerCount('data')).toBe(0);
+  });
 });

@@ -200,7 +200,7 @@ let(:double, mul(2))
   import { highlightQlang } from '../lib/qlang-highlight.js';
 
   async function initPlayground() {
-    const { evalQuery, printValue, parse, walkAst, langRuntime } = await import(
+    const { evalQuery, printValue, langRuntime } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
@@ -212,7 +212,7 @@ let(:double, mul(2))
     const clearBtn = document.getElementById('clear-btn')!;
     const highlightLayer = document.getElementById('highlight-layer')!;
 
-    const hl = (src: string) => highlightQlang(src, parse, walkAst, builtins);
+    const hl = (src: string) => highlightQlang(src, builtins);
 
     function updateEditorHighlight() {
       // Trailing '\n' ensures the last line renders at full height in the pre.
@@ -238,9 +238,9 @@ let(:double, mul(2))
         const isError = result && typeof result === 'object' && result.type === 'error';
         const entry = document.createElement('div');
         entry.className = 'pg-entry';
-        const highlighted = highlightQlang(cell.trim(), parse, walkAst, builtins)
+        const highlighted = highlightQlang(cell.trim(), builtins)
           .replace(/\n/g, '<br>');
-        const highlightedResult = highlightQlang(printValue(result), parse, walkAst, builtins);
+        const highlightedResult = highlightQlang(printValue(result), builtins);
         entry.innerHTML = `
           <div class="pg-source">${highlighted}</div>
           <div class="${isError ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>

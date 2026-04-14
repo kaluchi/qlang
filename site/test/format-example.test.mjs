@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parse, walkAst, langRuntime } from '@kaluchi/qlang-core';
+import { langRuntime } from '@kaluchi/qlang-core';
 import { formatExample } from '../src/lib/format-example.js';
 
 let builtins;
@@ -8,7 +8,7 @@ beforeAll(async () => {
   builtins = new Set([...runtime.keys()].map(k => k.name));
 });
 
-const fmt = code => formatExample(code, parse, walkAst, builtins);
+const fmt = code => formatExample(code, builtins);
 
 // ── Line classification ───────────────────────────────────────
 

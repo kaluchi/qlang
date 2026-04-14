@@ -17,6 +17,9 @@ short alias).
 ```
 qlang <query>           evaluate a qlang query and print whatever
                         the query routes through `@out`
+qlang -i | --repl       open an interactive REPL with output
+                        syntax highlighting; bindings (let, as)
+                        persist across cells in the same session
 qlang -h | --help       show the help banner
 qlang -V | --version    show the package version
 ```
@@ -129,12 +132,43 @@ qlang '@in | parseJson * json | join("\n") | @out' < users.json
 {"name":"bob"}
 ```
 
+## REPL
+
+```
+$ qlang -i
+qlang> [1 2 3] | filter(gt(1)) | count
+2
+qlang> "hello" | append(" world")
+"hello world"
+qlang> let(:double, mul(2))
+…  (let returns its incoming pipeValue — the env Map by default)
+qlang> 21 | double
+42
+qlang> .help
+Meta commands:
+  .help    list meta commands
+  .exit    close the REPL (Ctrl+D works too)
+qlang> .exit
+```
+
+Output is highlighted via the same AST-tokenizer the docs site uses,
+painted with terminal ANSI escape sequences. Input echoes through
+readline as plain text — live per-keystroke colour would require
+raw mode and is deferred.
+
+`@in` resolves to the empty String inside the REPL — interactive
+stdin is consumed by the prompt itself, so reading "stdin" from
+inside a cell would deadlock against the line reader. `@out` /
+`@err` / `@tap` keep their normal contracts; their side-effects
+appear before the auto-printed result line.
+
 ## Status
 
 I/O surface (`@in`, `@out`, `@err`, `@tap`), pure formatters
-(`pretty`, `tjson`, `template`), and parsers (`parseJson`,
-`parseTjson`) are in place. Follow-up commits add the readline REPL,
-named sessions, module discovery, and named arguments.
+(`pretty`, `tjson`, `template`), parsers (`parseJson`, `parseTjson`),
+and the interactive REPL with output syntax highlighting are in
+place. Follow-up commits add named sessions, module discovery, and
+named arguments.
 
 See [docs/qlang-spec.md](../docs/qlang-spec.md) for the language
 reference.

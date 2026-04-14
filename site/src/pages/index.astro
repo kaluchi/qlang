@@ -103,7 +103,7 @@ const features = [
             <div class="code-editor-panels">
               {examples.map((ex, i) => (
                 <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
-                  <pre><code set:html={formatExample(ex.code, parse, walkAst, builtins)} /></pre>
+                  <pre><code set:html={formatExample(ex.code, builtins)} /></pre>
                 </div>
               ))}
             </div>

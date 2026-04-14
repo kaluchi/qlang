@@ -38,6 +38,9 @@
     "./operand-errors": {
       "import": "./src/operand-errors.mjs"
     },
+    "./highlight": {
+      "import": "./src/highlight.mjs"
+    },
     "./host/module-resolver": {
       "import": "./host/module-resolver.mjs"
     }

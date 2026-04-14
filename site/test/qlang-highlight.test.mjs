@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parse, walkAst, langRuntime } from '@kaluchi/qlang-core';
+import { langRuntime } from '@kaluchi/qlang-core';
 import { highlightQlang } from '../src/lib/qlang-highlight.js';
 
 let builtins;
@@ -8,7 +8,7 @@ beforeAll(async () => {
   builtins = new Set([...runtime.keys()].map(k => k.name));
 });
 
-const hl = src => highlightQlang(src, parse, walkAst, builtins);
+const hl = src => highlightQlang(src, builtins);
 
 // ── Literal types ─────────────────────────────────────────────
 

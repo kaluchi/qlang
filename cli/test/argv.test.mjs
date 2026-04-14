@@ -28,6 +28,14 @@ describe('parseArgv', () => {
     expect(parseArgv(['--version'])).toEqual({ kind: 'version' });
   });
 
+  it('recognises -i as the short repl flag', () => {
+    expect(parseArgv(['-i'])).toEqual({ kind: 'repl' });
+  });
+
+  it('recognises --repl as the long repl flag', () => {
+    expect(parseArgv(['--repl'])).toEqual({ kind: 'repl' });
+  });
+
   it('returns an evalQuery cliInvocation carrying the first positional argument', () => {
     const cliInvocation = parseArgv(['[1 2 3] | count']);
     expect(cliInvocation).toEqual({

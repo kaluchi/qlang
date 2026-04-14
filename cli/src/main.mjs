@@ -1,21 +1,26 @@
 // Top-level CLI orchestrator — reads a process-argv slice plus the
-// stdinReader thunk and stdout / stderr writers, dispatches on the
-// parsed cliInvocation, and returns the exit code. bin.mjs is the
+// stdin / stdout / stderr stream trio, dispatches on the parsed
+// cliInvocation, and returns the exit code. bin.mjs is the
 // single-line bootstrap that wires the Node runtime and forwards
 // the resolved exit code to `process.exit`.
 //
-// Pure async function over its inputs and the explicitly-passed
-// I/O surface — no direct `process.*` references inside the
+// Streams (rather than write callbacks) cross the boundary because
+// the REPL needs an actual Readable for `node:readline`; the
+// script-mode branch derives its writers and stdin reader from the
+// same stream trio. No direct `process.*` references inside the
 // orchestrator keeps the entire flow unit-testable without spawning
-// a subprocess. The `@in` / `@out` / `@err` / `@tap` operands
-// inside the user's query reach the same writers via the ioContext
-// bag handed down to runQuery.
+// a subprocess.
 
 import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
+import { runRepl } from './repl.mjs';
+import { readStdinToString, memoiseStdinReader } from './io-stdin.mjs';
 
-export async function main(argvSlice, stdinReader, stdoutWrite, stderrWrite) {
+export async function main(argvSlice, stdinStream, stdoutStream, stderrStream) {
+  const stdoutWrite = (text) => stdoutStream.write(text);
+  const stderrWrite = (text) => stderrStream.write(text);
+
   const cliInvocation = parseArgv(argvSlice);
 
   if (cliInvocation.kind === 'help') {
@@ -30,7 +35,11 @@ export async function main(argvSlice, stdinReader, stdoutWrite, stderrWrite) {
     stderrWrite(cliInvocation.message);
     return 2;
   }
+  if (cliInvocation.kind === 'repl') {
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite);
+  }
 
+  const stdinReader = memoiseStdinReader(() => readStdinToString(stdinStream));
   const cellEntry = await runQuery(cliInvocation.queryText, {
     stdinReader, stdoutWrite, stderrWrite
   });

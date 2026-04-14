@@ -32,14 +32,14 @@ function classifyLines(lines) {
   });
 }
 
-export function formatExample(code, parse, walkAst, builtins) {
+export function formatExample(code, builtins) {
   const infos = classifyLines(code.split('\n'));
 
   const combined = infos
     .filter(l => l.type === 'prompt' || l.type === 'cont')
     .map(l => l.content)
     .join('\n');
-  const hlSplit = highlightQlang(combined, parse, walkAst, builtins).split('\n');
+  const hlSplit = highlightQlang(combined, builtins).split('\n');
 
   let codeIdx = 0;
   return infos.map(({ type, content }) => {
@@ -47,7 +47,7 @@ export function formatExample(code, parse, walkAst, builtins) {
       case 'comment': return `<span class="comment">${esc(content)}</span>`;
       case 'prompt':  return `<span class="punct">&gt; </span>${hlSplit[codeIdx++] ?? ''}`;
       case 'cont':    return `  ${hlSplit[codeIdx++] ?? ''}`;
-      default:        return highlightQlang(content, parse, walkAst, builtins);
+      default:        return highlightQlang(content, builtins);
     }
   }).join('\n');
 }

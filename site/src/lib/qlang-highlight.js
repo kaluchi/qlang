@@ -1,183 +1,51 @@
-// AST-based syntax highlighter for qlang source.
-//
-// Hybrid strategy: walkAst() harvests semantic spans from leaf nodes
-// (string/number literals, keyword atoms, operand names, projections,
-// comments); gaps between those spans (combinators, brackets, whitespace)
-// are classified by a small pattern scanner.
-//
-// Works in both Node.js (Astro build time) and browser (playground).
-// Callers supply `parse` and `walkAst` so the module stays dependency-free.
+// HTML renderer over core's AST tokenizer. The token stream
+// (kind + offsets) lives in @kaluchi/qlang-core/highlight; this
+// file only paints each token kind into its `<span class="…">`
+// envelope and HTML-escapes the slice. Same renderer is reused by
+// the playground (browser) and the docs build (Node) — core ships
+// pure JS with zero runtime deps so both bundles inline cleanly.
 //
 // Usage:
-//   highlightQlang(src, parse, walkAst) → HTML string
+//   highlightQlang(src, builtins) → HTML string
+//
+//     `src`      qlang source text, no prompt prefix or result lines
+//     `builtins` Set<string> of operand names that resolve through
+//                langRuntime — the playground builds this once at
+//                startup and reuses it across every highlighted
+//                snippet. Pass null to treat every OperandCall name
+//                as user-defined.
 
-function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+import { tokenize } from '@kaluchi/qlang-core/highlight';
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
-function sp(cls, text) {
-  return `<span class="${cls}">${esc(text)}</span>`;
-}
+const KIND_TO_CLASS = {
+  string:   'string',
+  number:   'number',
+  comment:  'comment',
+  atom:     'atom',
+  effect:   'effect',
+  operand:  'operand',
+  keyword:  'keyword',
+  punct:    'punct'
+};
 
-const BINDING_KEYWORDS = new Set(['let', 'as']);
-
-// Collect leaf-level highlighted spans from the AST.
-// Returns array of { start, end, render(text) → html } sorted by start.
-function collectSpans(src, ast, walkAst, builtins) {
-  const spans = [];
-
-  walkAst(ast, (node) => {
-    if (!node.location) return;
-    const s = node.location.start.offset;
-    const e = node.location.end.offset;
-
-    switch (node.type) {
-      case 'LinePlainComment':
-      case 'LineDocComment':
-      case 'BlockPlainComment':
-      case 'BlockDocComment':
-        spans.push({ start: s, end: e, render: t => sp('comment', t) });
-        return false; // no children to descend
-
-      case 'StringLit':
-        spans.push({ start: s, end: e, render: t => sp('string', t) });
-        return false;
-
-      case 'NumberLit':
-        spans.push({ start: s, end: e, render: t => sp('number', t) });
-        return false;
-
-      case 'BooleanLit':
-      case 'NullLit':
-        spans.push({ start: s, end: e, render: t => sp('number', t) });
-        return false;
-
-      case 'Keyword': {
-        // :name atom — full span including the colon.
-        // :@name is an effectful binding declaration — use .effect class.
-        const kwText = src.slice(s, e);
-        const cls = kwText.startsWith(':@') ? 'effect' : 'atom';
-        spans.push({ start: s, end: e, render: t => sp(cls, t) });
-        return false;
-      }
-
-      case 'Projection': {
-        // /key or /key1/key2 — split each segment into / (punct) + field (operand)
-        spans.push({
-          start: s, end: e,
-          render: t => {
-            let out = '';
-            let i = 0;
-            while (i < t.length) {
-              if (t[i] === '/') {
-                out += sp('punct', '/');
-                i++;
-                let j = i;
-                while (j < t.length && t[j] !== '/') j++;
-                if (j > i) out += sp('operand', t.slice(i, j));
-                i = j;
-              } else {
-                out += esc(t[i++]);
-              }
-            }
-            return out;
-          }
-        });
-        return false;
-      }
-
-      case 'OperandCall': {
-        // Highlight only the name token; args are handled by descendant spans.
-        const nameEnd = s + node.name.length;
-        if (node.name.startsWith('@')) {
-          // @name — effectful call, rendered as one unified .effect span
-          spans.push({ start: s, end: nameEnd, render: t => sp('effect', t) });
-        } else if (BINDING_KEYWORDS.has(node.name)) {
-          spans.push({ start: s, end: nameEnd, render: t => sp('keyword', t) });
-        } else if (builtins.has(node.name)) {
-          spans.push({ start: s, end: nameEnd, render: t => sp('operand', t) });
-        } else {
-          // User-defined: conduit params, local names — same green as :name atoms
-          spans.push({ start: s, end: nameEnd, render: t => sp('atom', t) });
-        }
-        // Descend into args normally
-        break;
-      }
-      // Pipeline, VecLit, MapLit, ParenGroup etc. — not highlighted directly;
-      // their structure becomes gap characters or is covered by child spans.
-    }
-  });
-
-  // Sort by start offset; on ties prefer the narrower span (child wins).
-  spans.sort((a, b) => a.start - b.start || (a.end - a.start) - (b.end - b.start));
-
-  // Remove overlapping spans: advance cursor strictly, skip anything starting
-  // before the cursor (a parent whose name-range was already emitted by a child,
-  // or duplicate hits on the same position).
-  const result = [];
-  let cursor = 0;
-  for (const span of spans) {
-    if (span.start >= cursor) {
-      result.push(span);
-      cursor = span.end;
-    }
-  }
-  return result;
-}
-
-// Emit HTML for gap text (combinators, brackets, whitespace).
-function renderGap(s) {
+export function highlightQlang(src, builtins) {
+  const tokens = tokenize(src, builtins ?? new Set());
   let out = '';
-  let i = 0;
-  while (i < s.length) {
-    const ch = s[i];
-    if (ch === '>' && s[i + 1] === '>') {
-      out += sp('punct', '>>'); i += 2;
-    } else if (ch === '!' && s[i + 1] === '|') {
-      out += sp('punct', '!|'); i += 2;
-    } else if (ch === '#' && s[i + 1] === '{') {
-      out += sp('punct', '#{'); i += 2;
-    } else if (ch === '|' && s[i + 1] !== '~') {
-      out += sp('punct', '|'); i++;
-    } else if (ch === '*') {
-      out += sp('punct', '*'); i++;
-    } else if ('()[]{},.'.includes(ch)) {
-      out += sp('punct', ch); i++;
+  for (const { start, end, kind } of tokens) {
+    const slice = src.slice(start, end);
+    const cls = KIND_TO_CLASS[kind];
+    if (cls === undefined) {
+      out += escHtml(slice);
     } else {
-      out += esc(ch); i++;
+      out += `<span class="${cls}">${escHtml(slice)}</span>`;
     }
   }
-  return out;
-}
-
-/**
- * Highlight a qlang source string.
- *
- * @param {string}   src      — qlang source (no prompt prefix, no result lines)
- * @param {Function} parse    — qlang `parse` function
- * @param {Function} walkAst  — qlang `walkAst` function
- * @param {Set}      builtins — Set of builtin operand name strings from langRuntime()
- * @returns {string} HTML string with <span class="…"> highlighting
- *                   Falls back to HTML-escaped plain text on parse error.
- */
-export function highlightQlang(src, parse, walkAst, builtins) {
-  let ast;
-  try {
-    ast = parse(src);
-  } catch {
-    return esc(src);
-  }
-
-  const spans = collectSpans(src, ast, walkAst, builtins);
-
-  let out = '';
-  let pos = 0;
-  for (const { start, end, render } of spans) {
-    if (start > pos) out += renderGap(src.slice(pos, start));
-    out += render(src.slice(start, end));
-    pos = end;
-  }
-  if (pos < src.length) out += renderGap(src.slice(pos));
-
   return out;
 }

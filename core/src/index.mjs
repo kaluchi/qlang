@@ -62,6 +62,7 @@ import {
 } from './effect-check.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { printValue } from './runtime/format.mjs';
+import { tokenize } from './highlight.mjs';
 import {
   QlangError,
   QlangTypeError,
@@ -111,6 +112,7 @@ export {
   toTaggedJSON,
   fromTaggedJSON,
   printValue,
+  tokenize,
   QlangError,
   QlangTypeError,
   ArityError,

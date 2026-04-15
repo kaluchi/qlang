@@ -19,34 +19,86 @@ import {
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
+// One shared dispatch: `describeType(v)` classifies any qlang value
+// into a stable string kind ('null' | 'number' | 'string' |
+// 'boolean' | 'keyword' | 'Vec' | 'Map' | 'Set' | 'Error' | …).
+// Each consumer keeps only a kind→handler table — the "what kind
+// is this?" probe lives in one place (types.mjs), and the "what to
+// do per kind?" logic sits next to the consumer's intent. No
+// if-chain of `isKeyword` / `isVec` / `isQMap` / … repeats per
+// site. Kinds not listed in a handler table fall through to the
+// consumer's `fallback(v)` — normally an exotic-value escape hatch
+// (qlang types that never enter pipeValue under Variant-B dispatch:
+// conduit, snapshot, function).
+function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
+  const handler = handlers[describeType(v)];
+  return handler ? handler(v, ...extraArgs) : fallback(v, ...extraArgs);
+}
+
+function dispatchPlainValue(v, handlers) {
+  if (Array.isArray(v)) return handlers.array(v);
+  if (v !== null && typeof v === 'object') return handlers.object(v);
+  return handlers.scalar(v);
+}
+
 const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'Vec');
 const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'Map');
 
-// Convert a qlang value into a JSON-serializable plain value.
-// Exported for direct unit-level coverage of the exotic-value
-// fallback path — the public `json` operand feeds this function
-// from inside nullaryOp, but no qlang-level path reaches the
-// String(v) branch because raw function values never enter
+// Inverse pair: `toPlain` lifts a qlang value to a JSON-serializable
+// plain JS shape (Map → object with keyword-named string keys, Vec →
+// array, Set → array, error → `{$error: …}`); `fromPlain` lifts a
+// plain JS shape back into qlang (object → Map keyed by interned
+// keywords, array → Vec, scalars pass through). Together they bridge
+// the language with any external system that speaks JSON — the
+// `parseJson` / `json` operands, the script-mode auto-pipe of stdin
+// in the CLI, and any future host that bridges qlang values with
+// plain-JS data structures.
+//
+// `toPlain` is exported for direct unit-level coverage of the
+// exotic-value fallback path — the public `json` operand feeds this
+// function from inside nullaryOp, but no qlang-level path reaches
+// the `String(v)` branch because raw function values never enter
 // pipeValue under Variant-B dispatch.
+const TO_PLAIN_HANDLERS = {
+  null:     () => null,
+  number:   v => v,
+  string:   v => v,
+  boolean:  v => v,
+  keyword:  k => ':' + k.name,
+  Vec:      v => v.map(toPlain),
+  Map:      qMapToPlainObject,
+  Set:      s => [...s].map(toPlain),
+  Error:    e => ({ $error: toPlain(e.descriptor) })
+};
+
 export function toPlain(v) {
-  if (v === null || v === undefined) return null;
-  if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') return v;
-  if (isKeyword(v)) return ':' + v.name;
-  if (isVec(v)) return v.map(toPlain);
-  if (isQMap(v)) {
-    const obj = {};
-    for (const [k, val] of v) {
-      obj[isKeyword(k) ? k.name : String(k)] = toPlain(val);
-    }
-    return obj;
+  return dispatchQlangValue(v, TO_PLAIN_HANDLERS, String);
+}
+
+function qMapToPlainObject(m) {
+  const obj = {};
+  for (const [k, val] of m) {
+    obj[isKeyword(k) ? k.name : String(k)] = toPlain(val);
   }
-  if (isQSet(v)) {
-    return [...v].map(toPlain);
+  return obj;
+}
+
+const FROM_PLAIN_HANDLERS = {
+  array:  a => a.map(fromPlain),
+  object: plainObjectToQMap,
+  scalar: v => v
+};
+
+export function fromPlain(plainVal) {
+  return dispatchPlainValue(plainVal, FROM_PLAIN_HANDLERS);
+}
+
+function plainObjectToQMap(plainObj) {
+  const qlangMap = new Map();
+  for (const [plainKey, nestedVal] of Object.entries(plainObj)) {
+    qlangMap.set(keyword(plainKey), fromPlain(nestedVal));
   }
-  if (isErrorValue(v)) {
-    return { $error: toPlain(v.descriptor) };
-  }
-  return String(v);
+  return qlangMap;
 }
 
 export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)));
@@ -58,17 +110,29 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 // the canonical display function for REPLs and tooling.
 // Maps and errors with more than 2 entries are pretty-printed
 // with one entry per line for readability.
+const PRINT_HANDLERS = {
+  null:     () => 'null',
+  boolean:  v => String(v),
+  number:   v => String(v),
+  string:   escapeQlangStringLiteral,
+  keyword:  k => ':' + k.name,
+  Error:    (e, indent) => printMapLike('!{', e.descriptor, indent),
+  Vec:      (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
+  Map:      (m, indent) => printMapLike('{', m, indent),
+  Set:      (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`
+};
+
 export function printValue(v, indent = 0) {
-  if (v === null || v === undefined) return 'null';
-  if (typeof v === 'boolean') return String(v);
-  if (typeof v === 'number') return String(v);
-  if (typeof v === 'string') return `"${v.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r')}"`;
-  if (isKeyword(v)) return `:${v.name}`;
-  if (isErrorValue(v)) return printMapLike('!{', v.descriptor, indent);
-  if (isVec(v)) return `[${v.map(el => printValue(el, indent)).join(' ')}]`;
-  if (isQMap(v)) return printMapLike('{', v, indent);
-  if (isQSet(v)) return `#{${[...v].map(el => printValue(el, indent)).join(' ')}}`;
-  return String(v);
+  return dispatchQlangValue(v, PRINT_HANDLERS, String, indent);
+}
+
+function escapeQlangStringLiteral(s) {
+  return `"${s
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\t/g, '\\t')
+    .replace(/\r/g, '\\r')}"`;
 }
 
 function printMapLike(open, m, indent) {

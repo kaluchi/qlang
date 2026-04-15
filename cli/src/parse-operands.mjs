@@ -26,8 +26,8 @@ import {
   declareShapeError
 } from '@kaluchi/qlang-core/operand-errors';
 import {
-  keyword,
   describeType,
+  fromPlain,
   fromTaggedJSON
 } from '@kaluchi/qlang-core';
 
@@ -45,24 +45,6 @@ const ParseTjsonInvalidJson =
   declareShapeError('ParseTjsonInvalidJson',
     ({ message }) => `parseTjson: invalid tagged-JSON — ${message}`);
 
-// ── jsonToQlang — recursive plain-JSON to qlang-shape lift ─────
-
-// JSON object → Map with keyword keys; JSON array → Vec; scalars
-// pass through. Mirrors the jdt-search module's same-named helper;
-// kept inline here to avoid a CLI dependency on the jdt-search
-// package and to keep the conversion adjacent to its sole consumer.
-function jsonToQlang(jsonVal) {
-  if (Array.isArray(jsonVal)) return jsonVal.map(jsonToQlang);
-  if (jsonVal !== null && typeof jsonVal === 'object') {
-    const qlangMap = new Map();
-    for (const [jsonKey, nestedVal] of Object.entries(jsonVal)) {
-      qlangMap.set(keyword(jsonKey), jsonToQlang(nestedVal));
-    }
-    return qlangMap;
-  }
-  return jsonVal;
-}
-
 // ── Operand factories ──────────────────────────────────────────
 
 const parseJsonOperand = nullaryOp('parseJson', (subject) => {
@@ -75,7 +57,7 @@ const parseJsonOperand = nullaryOp('parseJson', (subject) => {
   } catch (jsParseError) {
     throw new ParseJsonInvalidJson({ message: jsParseError.message });
   }
-  return jsonToQlang(parsed);
+  return fromPlain(parsed);
 });
 
 const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {

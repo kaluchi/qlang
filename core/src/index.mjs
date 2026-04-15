@@ -20,6 +20,13 @@
 //                                astNodeSpan, astNodeContainsOffset,
 //                                triviaBetweenAstNodes
 //   value codec                — toTaggedJSON, fromTaggedJSON
+//   format helpers             — printValue (qlang-literal display),
+//                                toPlain (qlang value → JSON-
+//                                serializable JS shape; lossy for
+//                                Set / Error / Keyword-as-value),
+//                                fromPlain (inverse of toPlain;
+//                                JS shape → qlang value with
+//                                interned keyword keys)
 //   error hierarchy            — QlangError, QlangTypeError, ArityError,
 //                                UnresolvedIdentifierError,
 //                                DivisionByZeroError, ParseError,
@@ -61,7 +68,7 @@ import {
   findFirstEffectfulIdentifier
 } from './effect-check.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
-import { printValue } from './runtime/format.mjs';
+import { printValue, toPlain, fromPlain } from './runtime/format.mjs';
 import { tokenize } from './highlight.mjs';
 import {
   QlangError,
@@ -112,6 +119,8 @@ export {
   toTaggedJSON,
   fromTaggedJSON,
   printValue,
+  toPlain,
+  fromPlain,
   tokenize,
   QlangError,
   QlangTypeError,

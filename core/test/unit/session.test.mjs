@@ -8,7 +8,7 @@ import {
 } from '../../src/session.mjs';
 import { keyword, isErrorValue, isQMap } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
-import { nullaryOp, valueOp } from '../../src/runtime/dispatch.mjs';
+import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {

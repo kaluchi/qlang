@@ -24,12 +24,6 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .map(f => f.split(/[\\/]/).join('/'))
   .sort();
 
-// Literal AST node types — no computation, no env lookup, no side effects.
-const LITERAL_TYPES = new Set([
-  'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword',
-  'VecLit', 'MapLit', 'MapEntry', 'SetLit', 'ErrorLit', 'Pipeline'
-]);
-
 // assertLiteralAst — walks the AST and rejects any node that performs
 // computation (OperandCall, Projection, ParenGroup with pipeline ops).
 // Pipeline is allowed only as a container for compound literals

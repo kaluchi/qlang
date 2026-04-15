@@ -13,7 +13,7 @@
 // and the `astNodeToMap` / `qlangMapToAst` codec learn about it here;
 // all downstream helpers inherit the knowledge.
 
-import { keyword, isQMap, isVec } from './types.mjs';
+import { keyword, isQMap } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
 // astChildrenOf(node) — yields the direct semantic children of an

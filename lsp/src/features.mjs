@@ -15,8 +15,7 @@ import {
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
   FORK_ISOLATING_AST_TYPES,
-  walkAst,
-  QlangError, QlangTypeError
+  walkAst
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.

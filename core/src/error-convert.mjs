@@ -6,7 +6,7 @@
 
 import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue } from './types.mjs';
 
-// errorFromQlang(qlangError, astNode) → error value
+// errorFromQlang(qlangError) → error value
 //
 // Context fields from per-site error classes are scalars and
 // strings — no deep coercion needed. The throw site's class
@@ -15,7 +15,12 @@ import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue } from
 // dropped at the factory rather than filtered here. Only
 // `actualValue` is filtered, because PII in the offending value
 // must not land in the user-facing :trail descriptor.
-export function errorFromQlang(qlangError, astNode) {
+//
+// AST-location context lives on `errorFromForeign` below — a
+// QlangError already carries its own throw-site fingerprint via
+// `:thrown`, so enriching with the caller's astNode adds nothing
+// the descriptor does not already have.
+export function errorFromQlang(qlangError) {
   const d = new Map();
   d.set(keyword('origin'), keyword('qlang/eval'));
   d.set(keyword('kind'), keyword(qlangError.kind));

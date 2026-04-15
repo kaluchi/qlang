@@ -232,7 +232,7 @@ export const sort = overloadedOp('sort', 2, {
     if (!isVec(vec)) throw new SortByKeySubjectNotVec(describeType(vec), vec);
     // Pre-compute all keys (async) then sort synchronously by cached keys.
     const sortEntries = await Promise.all(
-      vec.map(async (sortElem, sortIdx) => ({
+      vec.map(async (sortElem) => ({
         sortElem,
         sortKey: await sortKeyLambda(sortElem)
       }))

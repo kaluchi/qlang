@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
+import { keyword } from '../../src/types.mjs';
 
 // ── use(:namespace) ─────────────────────────────────────────────
 
@@ -125,7 +125,7 @@ describe('use selective with Vec filter', () => {
   });
 });
 
-import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
+import { QlangTypeError, ArityError } from '../../src/errors.mjs';
 
 describe('per-site error triple-assertions', () => {
   it('UseNamespaceNotFound: name, instanceof, context', async () => {

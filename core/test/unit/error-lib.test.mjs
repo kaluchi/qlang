@@ -15,7 +15,6 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '../../src/session.mjs';
 import {
-  discoverModules,
   resolveModules,
   installModules
 } from '../../host/module-resolver.mjs';

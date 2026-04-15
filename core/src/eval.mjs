@@ -120,7 +120,7 @@ async function evalNode(node, state) {
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
     return withPipeValue(state,
-      caughtError instanceof QlangError ? errorFromQlang(caughtError, node) : errorFromForeign(caughtError, node));
+      caughtError instanceof QlangError ? errorFromQlang(caughtError) : errorFromForeign(caughtError, node));
   }
 }
 

@@ -259,7 +259,7 @@ describe('runtime/predicates.mjs deepEqual', () => {
     expect(await evalQuery('#{:a :b} | eq(#{:b :a})')).toBe(true);
   });
   it('eq of mismatched types', async () => {
-    expect(await evalQuery('42 | eq(\"42\")')).toBe(false);
+    expect(await evalQuery('42 | eq("42")')).toBe(false);
   });
   it('eq with null', async () => {
     expect(await evalQuery('null | eq(null)')).toBe(true);

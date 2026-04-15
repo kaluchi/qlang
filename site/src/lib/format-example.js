@@ -27,7 +27,7 @@ function classifyLines(lines) {
   return lines.map(line => {
     if (/^\|~/.test(line))     return { type: 'comment', content: line };
     if (line.startsWith('> ')) return { type: 'prompt',  content: line.slice(2) };
-    if (/^  \S/.test(line))    return { type: 'cont',    content: line.slice(2) };
+    if (/^ {2}\S/.test(line))    return { type: 'cont',    content: line.slice(2) };
     return { type: 'result', content: line };
   });
 }

@@ -19,7 +19,6 @@
 
 import { walkAst } from './walk.mjs';
 import { classifyEffect } from './effect.mjs';
-import { EffectLaunderingAtLetParse } from './errors.mjs';
 
 // decorateAstWithEffectMarkers(ast) → ast
 //

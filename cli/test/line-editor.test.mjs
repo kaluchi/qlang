@@ -522,7 +522,7 @@ describe('createLineEditor — TTY multi-line redraw', () => {
 
 describe('createLineEditor — TTY lifecycle', () => {
   it('toggles raw mode on start and clears on close', () => {
-    const { stdinStream, editor, rawModeCalls } = makeTtySetup();
+    const { editor, rawModeCalls } = makeTtySetup();
     editor.start();
     expect(rawModeCalls).toEqual([true]);
     editor.close();

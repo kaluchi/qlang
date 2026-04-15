@@ -13,12 +13,11 @@
 //   2. Inline prose examples (qlang-operands.md):
 //      `query` → `expected`
 
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -117,7 +116,8 @@ describe('doc-compliance: qlang-spec.md REPL examples', () => {
       } catch (thrownErr) {
         throw new Error(
           `Doc example at ${ex.file}:${ex.line} threw: ${thrownErr.message}\n` +
-          `  query: ${ex.query}`
+          `  query: ${ex.query}`,
+          { cause: thrownErr }
         );
       }
       const match = deepEqual(queryResult, expectedValue);

@@ -13,7 +13,8 @@
   "scripts": {
     "build": "npm run build -w @kaluchi/qlang-core",
     "test": "npm test --workspaces --if-present",
-    "test:coverage": "npm run test:coverage -w @kaluchi/qlang-core"
+    "test:coverage": "npm run test:coverage -w @kaluchi/qlang-core",
+    "lint": "eslint ."
   },
   "engines": {
     "node": ">=20"
@@ -23,5 +24,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kaluchi/qlang.git"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0"
   }
 }

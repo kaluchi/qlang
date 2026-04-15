@@ -23,7 +23,6 @@
 // `mul` invoke it once against the subject (or the context, in
 // full application).
 
-import { ArityError } from './errors.mjs';
 import { declareArityError } from './operand-errors.mjs';
 import { classifyEffect } from './effect.mjs';
 

@@ -116,8 +116,6 @@ describe('tokenize — projections', () => {
     // appear in the token stream alongside the pipeline's own
     // structural punct.
     const tokens = tokenize('{:name "x"} | /name', await builtins());
-    const slashIndex = tokens.findIndex(t => t.kind === 'punct' && t.end - t.start === 1
-      && tokens[tokens.indexOf(t)].start > 0);
     expect(tokens.find(t => t.kind === 'operand' && t.end - t.start === 4)).toBeDefined();
   });
 });

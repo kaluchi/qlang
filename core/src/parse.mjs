@@ -15,8 +15,7 @@
 //   - records .schemaVersion for forward-compat AST evolution
 
 import {
-  parse as peggyParse,
-  SyntaxError as PeggySyntaxError
+  parse as peggyParse
 } from '../gen/grammar.mjs';
 import { assignAstNodeIds, attachAstParents } from './walk.mjs';
 import { decorateAstWithEffectMarkers } from './effect-check.mjs';

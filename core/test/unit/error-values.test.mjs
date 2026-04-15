@@ -1,7 +1,6 @@
 // Tests for error value type, trail, deepEqual, codec, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
 import {
   keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType
 } from '../../src/types.mjs';
@@ -161,7 +160,7 @@ describe('errorFromQlang', () => {
       actualType: 'string',
       actualValue: 'SECRET-PII'
     });
-    const errorVal = errorFromQlang(typeErr, null);
+    const errorVal = errorFromQlang(typeErr);
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.get(keyword('kind'))).toEqual(keyword('type-error'));
@@ -172,7 +171,7 @@ describe('errorFromQlang', () => {
 
   it('converts UnresolvedIdentifierError', () => {
     const unresolvedErr = new UnresolvedIdentifierError('myName');
-    const errorVal = errorFromQlang(unresolvedErr, null);
+    const errorVal = errorFromQlang(unresolvedErr);
     const desc = errorVal.descriptor;
     expect(desc.get(keyword('kind'))).toEqual(keyword('unresolved-identifier'));
     expect(desc.get(keyword('thrown'))).toEqual(keyword('UnresolvedIdentifierError'));
@@ -180,7 +179,7 @@ describe('errorFromQlang', () => {
 
   it('converts DivisionByZeroError', () => {
     const divErr = new DivisionByZeroError();
-    const errorVal = errorFromQlang(divErr, null);
+    const errorVal = errorFromQlang(divErr);
     const desc = errorVal.descriptor;
     expect(desc.get(keyword('kind'))).toEqual(keyword('division-by-zero'));
     expect(desc.get(keyword('thrown'))).toEqual(keyword('DivisionByZeroError'));
@@ -299,21 +298,21 @@ describe('error-convert coercion edge cases', () => {
   it('coerces qlang keyword values through errorFromQlang context', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', myKey: keyword('val') });
     typeErr.fingerprint = 'X';
-    const errorVal = errorFromQlang(typeErr, null);
+    const errorVal = errorFromQlang(typeErr);
     expect(errorVal.descriptor.get(keyword('myKey'))).toEqual(keyword('val'));
   });
 
   it('coerces null/undefined context values to null', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', nullField: null, undefField: undefined });
     typeErr.fingerprint = 'X';
-    const errorVal = errorFromQlang(typeErr, null);
+    const errorVal = errorFromQlang(typeErr);
     expect(errorVal.descriptor.get(keyword('nullField'))).toBe(null);
   });
 
   it('coerces array context values to Vec', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', items: [1, 'two', true] });
     typeErr.fingerprint = 'X';
-    const errorVal = errorFromQlang(typeErr, null);
+    const errorVal = errorFromQlang(typeErr);
     const items = errorVal.descriptor.get(keyword('items'));
     expect(Array.isArray(items)).toBe(true);
     expect(items).toEqual([1, 'two', true]);
@@ -329,13 +328,13 @@ describe('error-convert coercion edge cases', () => {
 
   it('errorFromQlang without fingerprint uses error name', () => {
     const typeErr = new QlangTypeError('no fingerprint', {});
-    const errorVal = errorFromQlang(typeErr, null);
+    const errorVal = errorFromQlang(typeErr);
     expect(errorVal.descriptor.get(keyword('thrown')).name).toBe('QlangTypeError');
   });
 
   it('errorFromQlang without context field', () => {
     const divErr = new DivisionByZeroError();
-    const errorVal = errorFromQlang(divErr, null);
+    const errorVal = errorFromQlang(divErr);
     expect(errorVal.descriptor.get(keyword('kind')).name).toBe('division-by-zero');
   });
 

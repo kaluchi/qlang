@@ -4,7 +4,7 @@
 // bindings across cells inside one session.
 
 import { describe, it, expect } from 'vitest';
-import { Readable, Writable } from 'node:stream';
+import { Readable } from 'node:stream';
 import { runRepl } from '../src/repl.mjs';
 
 const ANSI_PATTERN = /\x1b\[[0-9;]*m/g;

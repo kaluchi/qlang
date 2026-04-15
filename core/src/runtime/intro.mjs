@@ -11,10 +11,10 @@
 //
 // Meta lives in lib/qlang/core.qlang.
 
-import { stateOp, stateOpVariadic, UNBOUNDED } from './dispatch.mjs';
+import { stateOp, stateOpVariadic } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { astNodeToMap, qlangMapToAst } from '../walk.mjs';
-import { makeState, withPipeValue, envMerge, envGet, envHas } from '../state.mjs';
+import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet, isNumber, isString, isBoolean, isNull,
@@ -25,10 +25,9 @@ import {
   declareShapeError,
   declareArityError
 } from '../operand-errors.mjs';
-import { errorFromQlang, errorFromParse } from '../error-convert.mjs';
+import { errorFromParse } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,
-  QlangTypeError,
   EffectLaunderingAtLetParse
 } from '../errors.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
@@ -166,7 +165,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   }
 
   // Install namespace keyword → exports in env for subsequent lookups.
-  let envWithNamespace = new Map(outerEnv);
+  const envWithNamespace = new Map(outerEnv);
   envWithNamespace.set(nsKeyword, loadedExports);
   return [loadedExports, envWithNamespace];
 }

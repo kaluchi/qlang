@@ -13,7 +13,6 @@ import {
   makeSnapshot
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
-import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   function roundTrip(value) {

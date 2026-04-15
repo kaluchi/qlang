@@ -36,23 +36,44 @@ describe('parseArgv', () => {
     expect(parseArgv(['--repl'])).toEqual({ kind: 'repl' });
   });
 
-  it('returns an evalQuery cliInvocation carrying the first positional argument', () => {
+  it('returns an evalQuery cliInvocation carrying the first positional argument and auto inputFormat', () => {
     const cliInvocation = parseArgv(['[1 2 3] | count']);
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
-      queryText: '[1 2 3] | count'
+      queryText: '[1 2 3] | count',
+      inputFormat: 'auto'
     });
   });
 
   it('treats trailing argv elements as inert when the first positional is the query', () => {
-    // Skeleton: only argv[0] participates as query. Later commits
-    // extend the parser; this test pins the current contract so the
-    // change point is explicit.
     const cliInvocation = parseArgv(['1 | add(2)', '--unused']);
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
-      queryText: '1 | add(2)'
+      queryText: '1 | add(2)',
+      inputFormat: 'auto'
     });
+  });
+
+  it('parses --json as the JSON input mode preceding the query', () => {
+    expect(parseArgv(['--json', '/key'])).toEqual({
+      kind: 'evalQuery',
+      queryText: '/key',
+      inputFormat: 'json'
+    });
+  });
+
+  it('parses --raw as the raw-String input mode preceding the query', () => {
+    expect(parseArgv(['--raw', 'append(" world")'])).toEqual({
+      kind: 'evalQuery',
+      queryText: 'append(" world")',
+      inputFormat: 'raw'
+    });
+  });
+
+  it('reports a usageError when only an input-mode flag is supplied without a query', () => {
+    const cliInvocation = parseArgv(['--json']);
+    expect(cliInvocation.kind).toBe('usageError');
+    expect(cliInvocation.message).toMatch(/missing query/);
   });
 });
 

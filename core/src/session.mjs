@@ -78,7 +78,19 @@ class SessionBindingKindUnknownError extends QlangError {
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse + evaluate; updates env,
-//                                 appends an entry to cell history
+//                                 appends an entry to cell history.
+//                                 `evalOpts.initialPipeValue` seeds
+//                                 the cell's pipeValue slot before
+//                                 the first step runs — the CLI
+//                                 script mode uses this to auto-
+//                                 deliver parsed stdin as the
+//                                 implicit subject of the query,
+//                                 so `qlang '/path'` acts as a
+//                                 filter without ceremony. When
+//                                 absent, pipeValue falls back to
+//                                 the env itself (REPL / historical
+//                                 behaviour for queries that start
+//                                 with a value producer)
 //   cellHistory — array of executed cells (read-only inspection)
 //   env — current env Map (read-only inspection)
 //   bind(name, value) — install a binding directly into env (used
@@ -100,7 +112,10 @@ export async function createSession(opts = {}) {
       let cellError = null;
       try {
         cellAst = parse(source, { uri: cellUri });
-        const cellInitialState = makeState(env, env);
+        const cellSeedPipeValue = 'initialPipeValue' in evalOpts
+          ? evalOpts.initialPipeValue
+          : env;
+        const cellInitialState = makeState(cellSeedPipeValue, env);
         const cellFinalState = await evalAst(cellAst, cellInitialState);
         cellResult = cellFinalState.pipeValue;
         env = cellFinalState.env;

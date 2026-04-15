@@ -26,6 +26,27 @@ describe('createSession lifecycle', () => {
     expect(sessionInstance.cellHistory).toHaveLength(1);
   });
 
+  it('evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
+    // The CLI script mode uses this hook to deliver parsed stdin
+    // as the implicit subject — `qlang '/key'` then acts as a
+    // pure filter without needing `@in | parseJson | …` ceremony.
+    const sessionInstance = await createSession();
+    const seeded = new Map([[keyword('a'), 1], [keyword('b'), 2]]);
+    const cellEntry = await sessionInstance.evalCell('/a', { initialPipeValue: seeded });
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toBe(1);
+  });
+
+  it('evalCell omitting initialPipeValue falls back to env as the seed', async () => {
+    // Historical behaviour — a query that starts with a value
+    // producer (`42`, `[1 2]`, `@in`) overrides the seed anyway,
+    // so a cell that does not reference pipeValue acts as before.
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell('42');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toBe(42);
+  });
+
   it('evalCell persists let bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('let(:double, mul(2))');

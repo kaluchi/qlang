@@ -6,21 +6,30 @@
 // thrown JS error (when parse or setup failed), and the env after
 // the cell.
 //
-// The ioContext bag (stdinReader / stdoutWrite / stderrWrite) is
-// closed over by the operand impls in io-operands.mjs, so any
-// `@in` / `@out` / `@err` / `@tap` step the user's query fires
-// reaches exactly the writers passed in here. Tests substitute
-// captured chunks; bin.mjs passes `process.*` adapters.
+// The ioContext bag (stdinReader / stdoutWrite / stderrWrite /
+// recordStdoutEffect) is closed over by the operand impls in
+// io-operands.mjs, so any `@in` / `@out` / `@err` / `@tap` step
+// the user's query fires reaches exactly the writers passed in
+// here. Tests substitute captured chunks; bin.mjs passes `process.*`
+// adapters.
+//
+// `runOpts.initialPipeValue` (when present) seeds the cell's
+// pipeValue slot before the first step — the script-mode entrypoint
+// uses this to deliver auto-parsed stdin as the implicit subject of
+// the query, so `cat data.json | qlang '/path'` works as a filter.
 
 import { createSession } from '@kaluchi/qlang-core/session';
 import { bindIoOperands } from './io-operands.mjs';
 import { bindFormatOperands } from './format-operands.mjs';
 import { bindParseOperands } from './parse-operands.mjs';
 
-export async function runQuery(queryText, ioContext) {
+export async function runQuery(queryText, ioContext, runOpts = {}) {
   const session = await createSession();
   bindIoOperands(session, ioContext);
   bindFormatOperands(session);
   bindParseOperands(session);
-  return session.evalCell(queryText);
+  const evalOpts = 'initialPipeValue' in runOpts
+    ? { initialPipeValue: runOpts.initialPipeValue }
+    : {};
+  return session.evalCell(queryText, evalOpts);
 }

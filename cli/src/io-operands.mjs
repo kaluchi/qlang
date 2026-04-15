@@ -63,13 +63,14 @@ function makeInOperand(stdinReader) {
   return nullaryOp('@in', async () => stdinReader());
 }
 
-function makeWriterOperand(operandName, writer, SubjectError, RendererError) {
+function makeWriterOperand(operandName, writer, recordEffect, SubjectError, RendererError) {
   return overloadedOp(operandName, 2, {
     0: (subject) => {
       if (typeof subject !== 'string') {
         throw new SubjectError(describeType(subject), subject);
       }
       writer(subject + '\n');
+      recordEffect();
       return subject;
     },
     1: async (subject, rendererLambda) => {
@@ -81,6 +82,7 @@ function makeWriterOperand(operandName, writer, SubjectError, RendererError) {
         });
       }
       writer(rendered + '\n');
+      recordEffect();
       return subject;
     }
   });
@@ -100,12 +102,22 @@ function makeTapOperand(stderrWrite) {
 // ── Binding ────────────────────────────────────────────────────
 
 export function bindIoOperands(session, ioContext) {
+  // `recordStdoutEffect` lets the script-mode renderer suppress its
+  // implicit final encode when the user already pushed bytes to
+  // stdout via `@out` — explicit output takes the channel; the
+  // tool stops echoing. `@err` and `@tap` write to stderr and do
+  // not flip the flag (stderr is diagnostic, not the primary
+  // delivery channel). Optional in REPL-style ioContexts that do
+  // not care about double-output suppression.
+  const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
+  const noopEffect = () => {};
+
   session.bind('@in',  makeInOperand(ioContext.stdinReader));
   session.bind('@out', makeWriterOperand(
-    '@out', ioContext.stdoutWrite,
+    '@out', ioContext.stdoutWrite, recordStdoutEffect,
     OutSubjectNotString, OutRendererResultNotString));
   session.bind('@err', makeWriterOperand(
-    '@err', ioContext.stderrWrite,
+    '@err', ioContext.stderrWrite, noopEffect,
     ErrSubjectNotString, ErrRendererResultNotString));
   session.bind('@tap', makeTapOperand(ioContext.stderrWrite));
 }

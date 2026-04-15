@@ -1,0 +1,10 @@
+{"name":"null-left-sorts-first","query":"[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a","expect":"[null 1 3]"}
+{"name":"null-right-sorts-first","query":"[{:a null} {:a 2} {:a 1}] | sortWith(nullsFirst(/a)) * /a","expect":"[null 1 2]"}
+{"name":"both-null-equal","query":"[{:a null} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a","expect":"[null null 1]"}
+{"name":"no-nulls-delegates-ascending","query":"[{:a 3} {:a 1} {:a 2}] | sortWith(nullsFirst(/a)) * /a","expect":"[1 2 3]"}
+{"name":"empty-vec","query":"[] | sortWith(nullsFirst(/a))","expect":"[]"}
+{"name":"all-null","query":"[{:a null} {:a null}] | sortWith(nullsFirst(/a)) * /a","expect":"[null null]"}
+{"name":"non-pair-subject-error","query":"42 | nullsFirst(/a)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :NullsFirstPairNotMap :message \"nullsFirst requires a pair Map subject ({ :left x :right y }), got Number\" :actualType \"Number\"}"}
+{"name":"compound-with-firstNonZero","query":"[{:a null :b 2} {:a null :b 1} {:a 1 :b 3}] | sortWith([nullsFirst(/a), asc(/b)] | firstNonZero) * /b","expect":"[1 2 3]"}
+{"name":"incompatible-non-null-types-error","query":"[{:a 1} {:a \"x\"}] | sortWith(nullsFirst(/a))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :SortWithCmpResultNotNumber :message \"sortWith comparator must return a Number, got Error\" :actualType \"Error\"}"}
+{"name":"incompatible-non-null-key-types-direct-error","query":"{:left {:a 1} :right {:a \"x\"}} | nullsFirst(/a)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :NullsFirstKeysNotComparable :message \"nullsFirst cannot compare Number with String\" :operand \"nullsFirst\" :leftType \"Number\" :rightType \"String\"}"}

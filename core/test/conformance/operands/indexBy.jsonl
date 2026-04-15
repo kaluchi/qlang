@@ -1,0 +1,9 @@
+{"name":"single-element-single-key","query":"[{:id :a :name \"alice\"}] | indexBy(/id) | /a/name","expect":"\"alice\""}
+{"name":"unique-keys-form-a-lookup-map","query":"[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy(/id) | /b/name","expect":"\"bob\""}
+{"name":"duplicate-keys-last-wins","query":"[{:id :a :v 1} {:id :a :v 2}] | indexBy(/id) | /a/v","expect":"2"}
+{"name":"indexBy-empty-vec-yields-empty-map","query":"[] | indexBy(/k) | empty","expect":"true"}
+{"name":"indexBy-result-is-a-map","query":"[{:id :a}] | indexBy(/id) | reify | /type","expect":":map"}
+{"name":"indexBy-non-vec-throws","query":"42 | indexBy(/k)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :IndexBySubjectNotVec :message \"indexBy requires Vec subject, got Number\" :operand \"indexBy\" :position \"subject\" :expectedType \"Vec\" :actualType \"Number\"}"}
+{"name":"indexBy-non-keyword-key-throws","query":"[{:k 1}] | indexBy(/k)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :IndexByKeyNotKeyword :message \"indexBy: key sub-pipeline must produce a keyword for every element, element 0 produced Number\" :index 0 :actualType \"Number\"}"}
+{"name":"indexBy-then-projection-chain","query":"[{:id :u1 :role :admin} {:id :u2 :role :user}] | indexBy(/id) | /u1/role","expect":":admin"}
+{"name":"indexBy-keys-set","query":"[{:id :a} {:id :b} {:id :c}] | indexBy(/id) | keys | count","expect":"3"}

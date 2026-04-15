@@ -1,0 +1,16 @@
+{"name":"prepend","query":"\"world\" | prepend(\"hello \")","expect":"\"hello world\""}
+{"name":"append","query":"\"hello\" | append(\" world\")","expect":"\"hello world\""}
+{"name":"prepend-empty","query":"\"x\" | prepend(\"\")","expect":"\"x\""}
+{"name":"append-empty","query":"\"x\" | append(\"\")","expect":"\"x\""}
+{"name":"prepend-non-string","query":"42 | prepend(\"x\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :PrependSubjectNotString :message \"prepend expects String at position 1, got Number\" :operand \"prepend\" :position 1 :expectedType \"String\" :actualType \"Number\"}"}
+{"name":"append-non-string","query":"42 | append(\"x\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AppendSubjectNotString :message \"append expects String at position 1, got Number\" :operand \"append\" :position 1 :expectedType \"String\" :actualType \"Number\"}"}
+{"name":"json-number","query":"42 | json","expect":"\"42\""}
+{"name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
+{"name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
+{"name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
+{"name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
+{"name":"json-null","query":"null | json","expect":"\"null\""}
+{"name":"table-non-vec","query":"42 | table","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :TableSubjectNotVec :message \"table requires Vec subject, got Number\" :operand \"table\" :position \"subject\" :expectedType \"Vec\" :actualType \"Number\"}"}
+{"name":"table-mixed","query":"[42 \"hello\"] | table","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :TableRowNotMap :message \"table: element 0 expects Map, got Number\" :operand \"table\" :index 0 :expectedType \"Map\" :actualType \"Number\"}"}
+{"name":"table-empty","query":"[] | table","expect":"\"(empty)\""}
+{"name":"json-keyword","query":":foo | json","expect":"\"\\\":foo\\\"\""}

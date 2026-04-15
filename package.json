@@ -1,66 +1,25 @@
 {
-  "name": "@kaluchi/qlang",
-  "version": "0.1.0",
-  "description": "Reference implementation of the qlang expression language",
+  "name": "qlang-monorepo",
+  "private": true,
+  "description": "qlang language core and tooling workspaces",
   "type": "module",
-  "main": "src/index.mjs",
-  "exports": {
-    ".": {
-      "import": "./src/index.mjs"
-    },
-    "./parse": {
-      "import": "./src/parse.mjs"
-    },
-    "./eval": {
-      "import": "./src/eval.mjs"
-    },
-    "./runtime": {
-      "import": "./src/runtime/index.mjs"
-    },
-    "./walk": {
-      "import": "./src/walk.mjs"
-    },
-    "./session": {
-      "import": "./src/session.mjs"
-    },
-    "./codec": {
-      "import": "./src/codec.mjs"
-    },
-    "./errors": {
-      "import": "./src/errors.mjs"
-    },
-    "./effect-check": {
-      "import": "./src/effect-check.mjs"
-    },
-    "./dispatch": {
-      "import": "./src/runtime/dispatch.mjs"
-    },
-    "./host/module-resolver": {
-      "import": "./host/module-resolver.mjs"
-    }
-  },
-  "sideEffects": false,
-  "files": [
-    "src/",
-    "host/",
-    "gen/"
+  "workspaces": [
+    "core",
+    "cli",
+    "lsp",
+    "site",
+    "vscode"
   ],
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "build:grammar": "node scripts/build-grammar.mjs",
-    "build:core": "node scripts/build-core.mjs",
-    "build": "node scripts/build-grammar.mjs && node scripts/build-core.mjs"
+    "build": "npm run build -w @kaluchi/qlang-core",
+    "test": "npm test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage -w @kaluchi/qlang-core",
+    "lint": "eslint .",
+    "check:conventions": "node scripts/check-conventions.mjs"
   },
   "engines": {
     "node": ">=20"
   },
-  "keywords": [
-    "query-language",
-    "interpreter",
-    "pipeline"
-  ],
   "license": "Apache-2.0",
   "author": "kaluchi",
   "repository": {
@@ -68,8 +27,7 @@
     "url": "git+https://github.com/kaluchi/qlang.git"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^3.2.4",
-    "peggy": "^4.2.0",
-    "vitest": "^3.0.0"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0"
   }
 }

@@ -7,8 +7,8 @@ on:
     branches: [master]
 
 jobs:
-  test:
-    name: Core tests
+  lint:
+    name: ESLint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -19,12 +19,54 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
-      - run: npm test
+      - run: npm run lint
+
+  conventions:
+    name: Doc / convention checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run check:conventions
+
+  workspace-tests:
+    name: ${{ matrix.workspace }} tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - "@kaluchi/qlang-core"
+          - "@kaluchi/qlang-cli"
+          - "@kaluchi/qlang-lsp"
+          - "@kaluchi/qlang-site"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build -w @kaluchi/qlang-core
+      - run: npm test -w ${{ matrix.workspace }}
 
   coverage:
-    name: Coverage thresholds
+    name: ${{ matrix.workspace }} coverage thresholds
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - "@kaluchi/qlang-core"
+          - "@kaluchi/qlang-cli"
     steps:
       - uses: actions/checkout@v5
 
@@ -34,66 +76,24 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
-      - run: npm run test:coverage
-
-  lsp:
-    name: LSP tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            lsp/package-lock.json
-
-      - run: npm ci
-      - run: npm run build
-      - run: npm ci
-        working-directory: lsp
-      - run: npm test
-        working-directory: lsp
-
-  site:
-    name: Site tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            site/package-lock.json
-
-      - run: npm ci
-      - run: npm run build
-      - run: npm ci
-        working-directory: site
-      - run: npm test
-        working-directory: site
+      - run: npm run build -w @kaluchi/qlang-core
+      - run: npm run test:coverage -w ${{ matrix.workspace }}
 
   all-green:
     name: All checks passed
     if: always()
-    needs: [test, coverage, lsp, site]
+    needs: [lint, conventions, workspace-tests, coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Verify no failures
         run: |
-          if [[ "${{ needs.test.result }}"     == "failure" || \
-                "${{ needs.test.result }}"     == "cancelled" || \
-                "${{ needs.coverage.result }}" == "failure" || \
-                "${{ needs.coverage.result }}" == "cancelled" || \
-                "${{ needs.lsp.result }}"      == "failure" || \
-                "${{ needs.lsp.result }}"      == "cancelled" || \
-                "${{ needs.site.result }}"     == "failure" || \
-                "${{ needs.site.result }}"     == "cancelled" ]]; then
+          if [[ "${{ needs.lint.result }}"            == "failure" || \
+                "${{ needs.lint.result }}"            == "cancelled" || \
+                "${{ needs.conventions.result }}"     == "failure" || \
+                "${{ needs.conventions.result }}"     == "cancelled" || \
+                "${{ needs.workspace-tests.result }}" == "failure" || \
+                "${{ needs.workspace-tests.result }}" == "cancelled" || \
+                "${{ needs.coverage.result }}"        == "failure" || \
+                "${{ needs.coverage.result }}"        == "cancelled" ]]; then
             exit 1
           fi

@@ -1,6 +1,6 @@
 ---
 import Base from "../layouts/Base.astro"
-import { parse, walkAst, langRuntime } from "../../../src/index.mjs"
+import { parse, walkAst, langRuntime } from "@kaluchi/qlang-core"
 import { formatExample } from "../lib/format-example.js"
 
 const builtins = new Set([...(await langRuntime()).keys()].map(k => k.name))
@@ -66,8 +66,8 @@ const features = [
             Domain-agnostic. Pure. Runs in the browser.
           </p>
           <div class="install-section">
-            <button class="install-command" id="install-btn" data-command="npm install @kaluchi/qlang">
-              <code><span class="cmd">npm install </span><span class="highlight">@kaluchi/qlang</span></code>
+            <button class="install-command" id="install-btn" data-command="npm install @kaluchi/qlang-core">
+              <code><span class="cmd">npm install </span><span class="highlight">@kaluchi/qlang-core</span></code>
               <span class="copy-btn">
                 <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path d="M8.75 8.75V2.75H21.25V15.25H15.25M15.25 8.75H2.75V21.25H15.25V8.75Z" stroke-linecap="square"/>
@@ -103,7 +103,7 @@ const features = [
             <div class="code-editor-panels">
               {examples.map((ex, i) => (
                 <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
-                  <pre><code set:html={formatExample(ex.code, parse, walkAst, builtins)} /></pre>
+                  <pre><code set:html={formatExample(ex.code, builtins)} /></pre>
                 </div>
               ))}
             </div>
@@ -155,7 +155,7 @@ const features = [
         <footer class="landing-footer">
           <a href="https://github.com/kaluchi/qlang" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href={`${import.meta.env.BASE_URL}/playground`}>Playground</a>
-          <a href="https://www.npmjs.com/package/@kaluchi/qlang" target="_blank" rel="noopener noreferrer">npm</a>
+          <a href="https://www.npmjs.com/package/@kaluchi/qlang-core" target="_blank" rel="noopener noreferrer">npm</a>
         </footer>
       </div>
     </div>

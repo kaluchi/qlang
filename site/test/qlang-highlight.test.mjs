@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parse, walkAst, langRuntime } from '../../src/index.mjs';
+import { langRuntime } from '@kaluchi/qlang-core';
 import { highlightQlang } from '../src/lib/qlang-highlight.js';
 
 let builtins;
@@ -8,7 +8,7 @@ beforeAll(async () => {
   builtins = new Set([...runtime.keys()].map(k => k.name));
 });
 
-const hl = src => highlightQlang(src, parse, walkAst, builtins);
+const hl = src => highlightQlang(src, builtins);
 
 // ── Literal types ─────────────────────────────────────────────
 
@@ -125,9 +125,9 @@ describe('punctuation', () => {
     expect(out).toContain('<span class="punct">&gt;&gt;</span>');
   });
 
-  it('fail-track !| becomes punct', () => {
-    const out = hl('1 !| 2');
-    expect(out).toContain('<span class="punct">!|</span>');
+  it('fail-track !| becomes err', () => {
+    const out = hl('1 !| /k');
+    expect(out).toContain('<span class="err">!|</span>');
   });
 
   it('parens become punct', () => {
@@ -136,10 +136,28 @@ describe('punctuation', () => {
     expect(out).toContain('<span class="punct">)</span>');
   });
 
-  it('brackets become punct', () => {
+  it('vec brackets become vec', () => {
     const out = hl('[1 2]');
-    expect(out).toContain('<span class="punct">[</span>');
-    expect(out).toContain('<span class="punct">]</span>');
+    expect(out).toContain('<span class="vec">[</span>');
+    expect(out).toContain('<span class="vec">]</span>');
+  });
+
+  it('set brackets become set', () => {
+    const out = hl('#{:a}');
+    expect(out).toContain('<span class="set">#{</span>');
+    expect(out).toContain('<span class="set">}</span>');
+  });
+
+  it('map braces stay as punct', () => {
+    const out = hl('{:a 1}');
+    expect(out).toContain('<span class="punct">{</span>');
+    expect(out).toContain('<span class="punct">}</span>');
+  });
+
+  it('`!{` / `}` of an error literal become err', () => {
+    const out = hl('!{}');
+    expect(out).toContain('<span class="err">!{</span>');
+    expect(out).toContain('<span class="err">}</span>');
   });
 });
 
@@ -167,6 +185,8 @@ describe('full expressions', () => {
     expect(out).toContain('<span class="number">1</span>');
     expect(out).toContain('<span class="number">2</span>');
     expect(out).toContain('<span class="number">3</span>');
+    expect(out).toContain('<span class="vec">[</span>');
+    expect(out).toContain('<span class="vec">]</span>');
     expect(out).toContain('<span class="punct">|</span>');
     expect(out).toContain('<span class="operand">count</span>');
   });

@@ -1,0 +1,55 @@
+// Arithmetic operands.
+//
+// Subject-first: position 1 is the subject, position 2 is the
+// modifier. Each type check is inlined at its own throw site so
+// the source file and line number plus the class name together
+// uniquely identify the failing check.
+//
+// Meta (docs, examples, throws, category, subject, modifiers,
+// returns) lives in lib/qlang/core.qlang — not here.
+
+import { valueOp } from './dispatch.mjs';
+import { DivisionByZeroError } from '../errors.mjs';
+import { describeType, keyword } from '../types.mjs';
+import { declareModifierError } from '../operand-errors.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+
+const AddLeftNotNumber  = declareModifierError('AddLeftNotNumber',  'add', 1, 'Number');
+const AddRightNotNumber = declareModifierError('AddRightNotNumber', 'add', 2, 'Number');
+const SubLeftNotNumber  = declareModifierError('SubLeftNotNumber',  'sub', 1, 'Number');
+const SubRightNotNumber = declareModifierError('SubRightNotNumber', 'sub', 2, 'Number');
+const MulLeftNotNumber  = declareModifierError('MulLeftNotNumber',  'mul', 1, 'Number');
+const MulRightNotNumber = declareModifierError('MulRightNotNumber', 'mul', 2, 'Number');
+const DivLeftNotNumber  = declareModifierError('DivLeftNotNumber',  'div', 1, 'Number');
+const DivRightNotNumber = declareModifierError('DivRightNotNumber', 'div', 2, 'Number');
+
+export const add = valueOp('add', 2, (a, b) => {
+  if (typeof a !== 'number') throw new AddLeftNotNumber(describeType(a), a);
+  if (typeof b !== 'number') throw new AddRightNotNumber(describeType(b), b);
+  return a + b;
+});
+
+export const sub = valueOp('sub', 2, (a, b) => {
+  if (typeof a !== 'number') throw new SubLeftNotNumber(describeType(a), a);
+  if (typeof b !== 'number') throw new SubRightNotNumber(describeType(b), b);
+  return a - b;
+});
+
+export const mul = valueOp('mul', 2, (a, b) => {
+  if (typeof a !== 'number') throw new MulLeftNotNumber(describeType(a), a);
+  if (typeof b !== 'number') throw new MulRightNotNumber(describeType(b), b);
+  return a * b;
+});
+
+export const div = valueOp('div', 2, (a, b) => {
+  if (typeof a !== 'number') throw new DivLeftNotNumber(describeType(a), a);
+  if (typeof b !== 'number') throw new DivRightNotNumber(describeType(b), b);
+  if (b === 0) throw new DivisionByZeroError();
+  return a / b;
+});
+
+// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/add'), add);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sub'), sub);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/mul'), mul);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/div'), div);

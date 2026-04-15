@@ -21,7 +21,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node.js';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse } from '@kaluchi/qlang';
+import { parse } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -49,11 +49,12 @@ let catalogCtx = null;
 
 function loadCatalogContext() {
   try {
-    // Resolve core.qlang relative to @kaluchi/qlang package.
-    // The lsp package depends on @kaluchi/qlang via file:..
-    // so the package root is at ../../ relative to this file.
+    // Resolve core.qlang relative to the @kaluchi/qlang-core package
+    // root. Under the monorepo workspace layout, `lsp/` and `core/`
+    // are siblings, so the catalog sits at `../core/lib/qlang/core.qlang`
+    // relative to `lsp/src/`.
     const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const catalogPath = join(lspSrcDir, '..', '..', 'lib', 'qlang', 'core.qlang');
+    const catalogPath = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'core.qlang');
     const catalogSource = readFileSync(catalogPath, 'utf8');
     const catalogAst = parse(catalogSource, { uri: 'qlang/core' });
     const catalogUri = 'file:///' + catalogPath.replace(/\\/g, '/');

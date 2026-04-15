@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish:
-    name: Publish to npm
+    name: Publish @kaluchi/qlang-core to npm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -18,17 +18,17 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: npm ci
-      - run: npm run build
-      - run: npm test
-      - run: npm run test:coverage
+      - run: npm run build -w @kaluchi/qlang-core
+      - run: npm test --workspaces --if-present
+      - run: npm run test:coverage -w @kaluchi/qlang-core
 
       - name: Set version from tag
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          npm version "$VERSION" --no-git-tag-version --allow-same-version -w @kaluchi/qlang-core
 
       - name: Publish
-        run: npm publish --access public
+        run: npm publish --access public -w @kaluchi/qlang-core
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

@@ -1,0 +1,14 @@
+{"name":"at-positive-index","query":"[10 20 30] | at(0)","expect":"10"}
+{"name":"at-mid-index","query":"[10 20 30] | at(1)","expect":"20"}
+{"name":"at-last-via-positive","query":"[10 20 30] | at(2)","expect":"30"}
+{"name":"at-negative-last","query":"[10 20 30] | at(-1)","expect":"30"}
+{"name":"at-negative-second-last","query":"[10 20 30] | at(-2)","expect":"20"}
+{"name":"at-negative-first","query":"[10 20 30] | at(-3)","expect":"10"}
+{"name":"at-negative-equivalent-to-last","query":"[10 20 30] | at(-1) | eq([10 20 30] | last)","expect":"true"}
+{"name":"at-out-of-range-positive","query":"[10 20 30] | at(99)","expect":"null"}
+{"name":"at-out-of-range-negative","query":"[10 20 30] | at(-99)","expect":"null"}
+{"name":"at-on-empty","query":"[] | at(0)","expect":"null"}
+{"name":"at-preserves-element-type","query":"[{:id 1} {:id 2}] | at(0)","expect":"{:id 1}"}
+{"name":"at-chained-with-projection","query":"[{:name \"alice\"} {:name \"bob\"}] | at(1) | /name","expect":"\"bob\""}
+{"name":"at-subject-not-vec-error","query":"42 | at(0)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AtSubjectNotVec :message \"at requires Vec subject, got Number\" :operand \"at\" :position \"subject\" :expectedType \"Vec\" :actualType \"Number\"}"}
+{"name":"at-index-not-integer-error","query":"[1 2 3] | at(0.5)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AtIndexNotInteger :message \"at expects Integer at position 2, got Number\" :operand \"at\" :position 2 :expectedType \"Integer\" :actualType \"Number\"}"}

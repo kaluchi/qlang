@@ -1,0 +1,46 @@
+{"name":"json-object-string-key","query":"{\"name\": \"alice\"}","expect":"{:name \"alice\"}"}
+{"name":"json-object-multiple-keys","query":"{\"name\": \"alice\", \"age\": 30}","expect":"{:name \"alice\" :age 30}"}
+{"name":"json-object-nested","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
+{"name":"json-object-in-vec","query":"[{\"name\": \"alice\"}, {\"name\": \"bob\"}] * /name","expect":"[\"alice\" \"bob\"]"}
+{"name":"json-object-as-pipevalue","query":"{\"name\": \"alice\"} | /name","expect":"\"alice\""}
+{"name":"json-null-literal","query":"null","expect":"null"}
+{"name":"json-null-missing-key","query":"{:a 1} | /b","expect":"null"}
+{"name":"json-null-in-vec","query":"[1, null, 3]","expect":"[1 null 3]"}
+{"name":"json-array-with-json-objects","query":"[{\"v\": 1}, {\"v\": 2}] | count","expect":"2"}
+{"name":"json-object-pipeline","query":"{\"scores\": [85, 92, 78]} | /scores | count","expect":"3"}
+{"name":"json-object-quoted-key-sigil","query":"{\"$ref\": \"x\"} | /\"$ref\"","expect":"\"x\""}
+{"name":"json-string-key-equals-keyword","query":"{\"name\": 1} | /name","expect":"1"}
+{"name":"keyword-reserved-word-bare","query":":null","expect":":null"}
+{"name":"keyword-false-bare","query":":false","expect":":false"}
+{"name":"keyword-true-bare","query":":true","expect":":true"}
+{"name":"projection-reserved-word","query":"{:null 42} | /null","expect":"42"}
+{"name":"json-mixed-with-qlang-keys","query":"{:qlangKey 1, \"jsonKey\": 2} | [/qlangKey, /jsonKey]","expect":"[1 2]"}
+{"name":"scientific-integer-exp","query":"1e10","expect":"10000000000"}
+{"name":"scientific-negative-exp","query":"2.5e-3","expect":"0.0025"}
+{"name":"scientific-positive-exp-upper","query":"1.5E+6","expect":"1500000"}
+{"name":"scientific-in-json-object","query":"{\"v\": 1e10, \"e\": 2.5e-3} | [/v, /e]","expect":"[10000000000 0.0025]"}
+{"name":"scientific-negative-number","query":"-2.5e3","expect":"-2500"}
+{"name":"scientific-zero-exponent","query":"1e0","expect":"1"}
+{"name":"scientific-integer-no-frac","query":"2e3","expect":"2000"}
+{"name":"scientific-upper-no-sign","query":"5E10","expect":"50000000000"}
+{"name":"scientific-in-pipeline","query":"{\"rate\": 1.5e-2} | /rate","expect":"0.015"}
+{"name":"json-reserved-key-null","query":"{\"null\": 42} | /null","expect":"42"}
+{"name":"json-reserved-key-true","query":"{\"true\": 1} | /true","expect":"1"}
+{"name":"json-reserved-key-false","query":"{\"false\": 0} | /false","expect":"0"}
+{"name":"json-deep-nesting","query":"{\"a\": {\"b\": {\"c\": 42}}} | /a/b/c","expect":"42"}
+{"name":"json-boolean-values","query":"{\"x\": true, \"y\": false} | [/x, /y]","expect":"[true false]"}
+{"name":"json-null-value","query":"{\"x\": null} | /x","expect":"null"}
+{"name":"json-array-value-sum","query":"{\"items\": [1, 2, 3]} | /items | sum","expect":"6"}
+{"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | /\"42\"","expect":"\"answer\""}
+{"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | /\"foo-bar\"","expect":"99"}
+{"name":"json-full-roundtrip","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
+{"name":"json-objects-in-vec-project-count","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] * /v","expect":"[1000 2000 3000]"}
+{"name":"json-mixed-types-in-array","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
+{"name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | /имя","expect":"\"Алиса\""}
+{"name":"unicode-cyrillic-nested-projection","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | /пользователь/имя","expect":"\"Боб\""}
+{"name":"unicode-cyrillic-vec-projection","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] * /имя","expect":"[\"Алиса\" \"Боб\"]"}
+{"name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | /元素","expect":"42"}
+{"name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | /αβγ","expect":"\"ok\""}
+{"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | /user/имя","expect":"\"Алиса\""}
+{"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | [/пункт1, /пункт2]","expect":"[10 20]"}
+{"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | /имя-пользователя","expect":"\"alice\""}

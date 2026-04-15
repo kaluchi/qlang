@@ -26,13 +26,8 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
-
-      - name: Install site dependencies
-        run: cd site && npm ci
-
-      - name: Build site
-        run: cd site && npm run build
+      - run: npm run build -w @kaluchi/qlang-core
+      - run: npm run build -w @kaluchi/qlang-site
 
       - uses: actions/upload-pages-artifact@v3
         with:

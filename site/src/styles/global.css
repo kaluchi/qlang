@@ -324,6 +324,24 @@ code, pre {
 .repl-input-highlight .punct,
 .repl-entry-input .punct,  .repl-entry-output .punct    { color: #475569; }
 
+.code-editor-body .err,
+.pg-source .err,           .pg-value .err,
+.playground-highlight .err,
+.repl-input-highlight .err,
+.repl-entry-input .err,    .repl-entry-output .err      { color: #b91c1c; font-weight: 600; }
+
+.code-editor-body .set,
+.pg-source .set,           .pg-value .set,
+.playground-highlight .set,
+.repl-input-highlight .set,
+.repl-entry-input .set,    .repl-entry-output .set      { color: #0891b2; }
+
+.code-editor-body .vec,
+.pg-source .vec,           .pg-value .vec,
+.playground-highlight .vec,
+.repl-input-highlight .vec,
+.repl-entry-input .vec,    .repl-entry-output .vec      { color: #a16207; }
+
 .code-editor-body .result  { color: #1f2937; }
 
 /* ── Features ──────────────────────────────────────────── */

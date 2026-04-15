@@ -20,9 +20,17 @@
 //                 supplied by `langRuntime` AND each key segment
 //                 of a `Projection`
 //   'keyword'     `let` and `as` — the binding-introducing operands
-//   'punct'       single-char or multi-char combinator (`|`, `*`,
-//                 `>>`, `!|`, `#{`), bracket, comma, dot, or the
-//                 `/` separator inside a `Projection`
+//   'err'         `!` sigil plus its immediately-attached bracket
+//                 in `!{` / closing `}` of an `!{}` descriptor, and
+//                 the `!|` fail-track combinator — anything that
+//                 carries the fail-track semantic in qlang
+//   'set'         `#{` opener and matching `}` closer of a SetLit
+//   'vec'         `[` opener and matching `]` closer of a VecLit
+//   'punct'       every other single-char or multi-char combinator
+//                 (`|`, `*`, `>>`), the `{` / `}` of an ordinary
+//                 MapLit, `(` / `)` of an operand-call arg list,
+//                 commas, dots, and the `/` separator inside a
+//                 `Projection`
 //   'whitespace'  runs of whitespace between meaningful tokens, and
 //                 the entire input on a parse failure (the safe
 //                 fallback that lets live-typing scenarios render
@@ -87,6 +95,18 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return false;
       }
 
+      case 'ErrorLit':
+        emitBracketSpans(startOffset, endOffset, 2, 1, 'err', spans);
+        return;
+
+      case 'SetLit':
+        emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);
+        return;
+
+      case 'VecLit':
+        emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
+        return;
+
       case 'Projection':
         emitProjectionSpans(src, startOffset, endOffset, spans);
         return false;
@@ -111,6 +131,16 @@ function classifyOperandName(operandName, builtinNames) {
   if (BINDING_OPERAND_NAMES.has(operandName))  return 'keyword';
   if (builtinNames.has(operandName))           return 'operand';
   return 'atom';
+}
+
+// Emit opener and closer spans for a literal with known bracket
+// widths (VecLit / SetLit / ErrorLit). Interior children still
+// walk through their own AST cases; the opener/closer fill in the
+// bracket bytes that would otherwise fall to the gap pass as
+// undifferentiated `punct`.
+function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, spans) {
+  spans.push({ start: startOffset, end: startOffset + openerLen, kind });
+  spans.push({ start: endOffset - closerLen, end: endOffset, kind });
 }
 
 function emitProjectionSpans(src, startOffset, endOffset, spans) {
@@ -194,18 +224,24 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
       outputTokens.push({ start: cursor, end: runEnd, kind: 'whitespace' });
       cursor = runEnd;
     } else {
-      const punctRunEnd = scanPunctRun(src, cursor);
-      outputTokens.push({ start: cursor, end: punctRunEnd, kind: 'punct' });
+      const { end: punctRunEnd, kind } = scanPunctRun(src, cursor);
+      outputTokens.push({ start: cursor, end: punctRunEnd, kind });
       cursor = punctRunEnd;
     }
   }
 }
 
+// Resolve the kind of a single- or multi-char combinator run in a
+// gap region. `!|` is the fail-track combinator and takes the `err`
+// kind so renderers can paint it in the same palette as the `!{}`
+// descriptor brackets. `#{` is not listed here because a well-
+// formed set opener always arrives through the SetLit AST case
+// above, and an unparseable source collapses to a single
+// `whitespace` token before this scanner ever runs.
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];
-  if (ch === '>' && next === '>') return startOffset + 2;
-  if (ch === '!' && next === '|') return startOffset + 2;
-  if (ch === '#' && next === '{') return startOffset + 2;
-  return startOffset + 1;
+  if (ch === '>' && next === '>') return { end: startOffset + 2, kind: 'punct' };
+  if (ch === '!' && next === '|') return { end: startOffset + 2, kind: 'err'   };
+  return { end: startOffset + 1, kind: 'punct' };
 }

@@ -32,6 +32,9 @@ const KIND_TO_CLASS = {
   effect:   'effect',
   operand:  'operand',
   keyword:  'keyword',
+  err:      'err',
+  set:      'set',
+  vec:      'vec',
   punct:    'punct'
 };
 

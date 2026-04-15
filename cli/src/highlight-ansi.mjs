@@ -14,14 +14,25 @@ import { tokenize } from '@kaluchi/qlang-core/highlight';
 
 const ANSI_RESET = '\x1b[0m';
 
+// Bright variants (9x) for the blue/magenta family so effect,
+// operand, and keyword stay legible on themes that render the
+// base-intensity dark blue (34) and dark magenta (35) close to
+// black — Windows Terminal's default Campbell palette in
+// particular blends both into the background on a dark scheme.
 const KIND_TO_ANSI = {
   string:   '\x1b[32m',     // green
   number:   '\x1b[33m',     // yellow
   comment:  '\x1b[2m',      // dim
   atom:     '\x1b[36m',     // cyan
-  effect:   '\x1b[35m',     // magenta
-  operand:  '\x1b[34m',     // blue
-  keyword:  '\x1b[1;34m',   // bold blue
+  effect:   '\x1b[95m',     // bright magenta
+  operand:  '\x1b[94m',     // bright blue
+  keyword:  '\x1b[1;94m',   // bold bright blue
+  err:      '\x1b[91m',     // bright red — `!{}` brackets + `!|`
+  set:      '\x1b[92m',     // bright green — `#{}` set brackets
+                            // (off the cyan axis used by the prompt
+                            // `qlang>` and the `atom` kind so the
+                            // three stay visually distinct)
+  vec:      '\x1b[93m',     // bright yellow — `[]` vec brackets
   punct:    '\x1b[90m'      // bright black (subtle grey)
   // 'whitespace' has no entry — emitted raw, no escape sequence.
 };

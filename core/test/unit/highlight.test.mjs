@@ -145,28 +145,45 @@ describe('tokenize — comments', () => {
 });
 
 describe('tokenize — gap interleaving', () => {
-  it('splits `[1 2 3]` into `[`, `1`, ws, `2`, ws, `3`, `]`', async () => {
+  it('splits `[1 2 3]` into bracketed number sequence with `vec` openers/closers', async () => {
     const tokens = tokenize('[1 2 3]', await builtins());
     expect(tokens.map(t => t.kind)).toEqual([
-      'punct', 'number', 'whitespace',
-      'number', 'whitespace', 'number', 'punct'
+      'vec', 'number', 'whitespace',
+      'number', 'whitespace', 'number', 'vec'
     ]);
   });
 
-  it('keeps multi-char combinators (`>>`, `!|`, `#{`) as a single punct token', async () => {
+  it('keeps the `>>` merge combinator as a single `punct` token', async () => {
     const merge = tokenize('1 >> 2', await builtins());
     expect(merge.find(t => t.kind === 'punct' && t.end - t.start === 2)).toBeDefined();
+  });
 
-    const fail = tokenize('1 !| 2', await builtins());
-    expect(fail.find(t => t.kind === 'punct' && t.end - t.start === 2)).toBeDefined();
+  it('labels the `!|` fail-track combinator with kind `err`', async () => {
+    const fail = tokenize('1 !| /k', await builtins());
+    expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();
+  });
 
-    const set = tokenize('#{:a}', await builtins());
-    expect(set[0]).toEqual({ start: 0, end: 2, kind: 'punct' });
+  it('labels the `#{` set opener and matching `}` with kind `set`', async () => {
+    const tokens = tokenize('#{:a}', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'set' });
+    expect(tokens[tokens.length - 1]).toEqual({ start: 4, end: 5, kind: 'set' });
+  });
+
+  it('labels `{:a 1}` map braces with kind `punct`', async () => {
+    const tokens = tokenize('{:a 1}', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 1, kind: 'punct' });
+    expect(tokens[tokens.length - 1]).toEqual({ start: 5, end: 6, kind: 'punct' });
+  });
+
+  it('labels the `!{` opener and matching `}` of an error literal with kind `err`', async () => {
+    const tokens = tokenize('!{:a 1}', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'err' });
+    expect(tokens[tokens.length - 1]).toEqual({ start: 6, end: 7, kind: 'err' });
   });
 
   it('splits the pipe combinator into its own punct token', async () => {
     const tokens = tokenize('1 | count', await builtins());
-    expect(tokens.find(t => t.kind === 'punct' && tokens[tokens.indexOf(t)] && '|' === '|')).toBeDefined();
+    expect(tokens.find(t => t.kind === 'punct' && t.end - t.start === 1)).toBeDefined();
   });
 });
 

@@ -27,20 +27,20 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
 
-  it('wraps an `@`-prefixed call in the magenta effect escape', () => {
+  it('wraps an `@`-prefixed call in the bright-magenta effect escape', () => {
     const out = highlightAnsi('@log', noBuiltins);
-    expect(out).toBe('\x1b[35m@log\x1b[0m');
+    expect(out).toBe('\x1b[95m@log\x1b[0m');
   });
 
-  it('wraps a builtin operand call in the blue escape pair', () => {
+  it('wraps a builtin operand call in the bright-blue escape pair', () => {
     const builtins = new Set(['count']);
     const out = highlightAnsi('count', builtins);
-    expect(out).toBe('\x1b[34mcount\x1b[0m');
+    expect(out).toBe('\x1b[94mcount\x1b[0m');
   });
 
-  it('wraps `let` in the bold-blue keyword escape', () => {
+  it('wraps `let` in the bold-bright-blue keyword escape', () => {
     const out = highlightAnsi('let(:x, 1)', new Set());
-    expect(out).toMatch('\x1b[1;34mlet\x1b[0m');
+    expect(out).toMatch('\x1b[1;94mlet\x1b[0m');
   });
 
   it('wraps a comment in the dim escape', () => {
@@ -53,7 +53,34 @@ describe('highlightAnsi', () => {
     // Spaces inside the Vec literal must appear as-is — bracketing
     // escapes for the numbers and the brackets, no escape around
     // the whitespace token between elements.
-    expect(out).toBe('\x1b[90m[\x1b[0m\x1b[33m1\x1b[0m \x1b[33m2\x1b[0m\x1b[90m]\x1b[0m');
+    expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m \x1b[33m2\x1b[0m\x1b[93m]\x1b[0m');
+  });
+
+  it('wraps `!{` / `}` error-literal brackets in bright red', () => {
+    const out = highlightAnsi('!{}', new Set());
+    expect(out).toBe('\x1b[91m!{\x1b[0m\x1b[91m}\x1b[0m');
+  });
+
+  it('wraps the `!|` fail-track combinator in bright red', () => {
+    const out = highlightAnsi('1 !| /k', new Set());
+    expect(out).toMatch('\x1b[91m!|\x1b[0m');
+  });
+
+  it('wraps `#{` / `}` set brackets in bright green', () => {
+    const out = highlightAnsi('#{:a}', new Set());
+    expect(out).toMatch('\x1b[92m#{\x1b[0m');
+    expect(out).toMatch('\x1b[92m}\x1b[0m');
+  });
+
+  it('wraps `[` / `]` vec brackets in bright yellow', () => {
+    const out = highlightAnsi('[1]', new Set());
+    expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m\x1b[93m]\x1b[0m');
+  });
+
+  it('keeps the `{` / `}` of an ordinary map in the default punct escape', () => {
+    const out = highlightAnsi('{:a 1}', new Set());
+    expect(out).toMatch('\x1b[90m{\x1b[0m');
+    expect(out).toMatch('\x1b[90m}\x1b[0m');
   });
 
   it('always closes every escape with the reset sequence', () => {

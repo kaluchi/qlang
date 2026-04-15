@@ -46,20 +46,23 @@ const REPL_HELP = `Meta commands:
   .exit    close the REPL (Ctrl+D on an empty line works too)
 
 Editing:
-  Enter           evaluate the current cell
-  Backspace       delete the character before the cursor
-  Left / Right    move the cursor by one character
-  Home / Ctrl+A   jump to the start of the line
-  End  / Ctrl+E   jump to the end of the line
-  Up   / Down     walk through the in-memory cell history
-  Ctrl+C          discard the current line and reprompt
+  Enter               insert a newline (the buffer stays open;
+                      multi-line cells are the default)
+  Ctrl+Enter / Ctrl+J evaluate the current cell
+  Alt+Enter           evaluate the current cell (fallback for
+                      terminals that do not distinguish Ctrl+Enter)
+  Backspace           delete the character before the cursor
+                      (across \`\\n\` if needed — rows collapse)
+  Left / Right        move the cursor by one character
+  Home / Ctrl+A       jump to the start of the buffer
+  End  / Ctrl+E       jump to the end of the buffer
+  Up   / Down         walk through the in-memory cell history
+  Ctrl+C              discard the current buffer and reprompt
 
-The buffer is one logical line — the terminal soft-wraps if it
-overflows the column width. Pasting multi-line text from the
-clipboard collapses internal newlines to single spaces so the
-content lands in a single cell; qlang treats whitespace between
-tokens as inert, so a pasted JSON object parses identically.
-Append a projection like \`| /key\` after the paste, then Enter.
+Pasting multi-line text from the clipboard arrives as one cell
+with its structure preserved — the editor redraws the pasted
+block across as many rows as the content needs, so an appended
+projection like \`| /key\` can land on the same cell as the paste.
 
 Bindings introduced with let / as persist across cells within the
 same REPL session.
@@ -95,7 +98,8 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,
-    render: (bufferText) => highlightAnsi(bufferText, builtinNames)
+    render: (bufferText) => highlightAnsi(bufferText, builtinNames),
+    columns: () => (stdinStream.columns || process.stdout.columns || 80)
   });
 
   // The editor fires 'line' synchronously per submission, but the

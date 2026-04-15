@@ -108,7 +108,9 @@ describe('runRepl — output highlighting', () => {
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
     // A bare `[1 2` is a parse failure → host-level JS throw,
     // which the REPL routes to stderr through writeDiagnostic.
-    ttyStdin.write(Buffer.from('[1 2\r'));
+    // Ctrl+Enter (LF) is the submit keystroke in the multi-line
+    // editor; plain Enter (CR) would insert a soft newline.
+    ttyStdin.write(Buffer.from('[1 2\n'));
     await new Promise((r) => setImmediate(r));
     ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
     await replPromise;
@@ -136,9 +138,10 @@ describe('runRepl — output highlighting', () => {
 
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
     // Type "42", which should redraw with the yellow escape, then
-    // submit Enter, then close on Ctrl+D from an empty buffer.
+    // submit Ctrl+Enter (LF), then close on Ctrl+D from an empty
+    // buffer.
     ttyStdin.write(Buffer.from('42'));
-    ttyStdin.write(Buffer.from('\r'));
+    ttyStdin.write(Buffer.from('\n'));
     await new Promise((r) => setImmediate(r));
     ttyStdin.write(Buffer.from([0x04])); // Ctrl+D on empty buffer
     await replPromise;

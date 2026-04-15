@@ -10,6 +10,8 @@ import { createLineEditor } from '../src/line-editor.mjs';
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
 const BRACKETED_PASTE_END   = ESC + '[201~';
+const SUBMIT = '\n';   // Ctrl+Enter / Ctrl+J — the submit keystroke
+const NEWLINE = '\r';  // plain Enter — soft newline
 
 function captureWrites() {
   const chunks = [];
@@ -77,7 +79,7 @@ describe('createLineEditor — non-TTY (piped) mode', () => {
 
 // ── TTY raw-mode editor ────────────────────────────────────────
 
-function makeTtySetup() {
+function makeTtySetup(options = {}) {
   const stdinStream = new PassThrough();
   stdinStream.isTTY = true;
   const rawModeCalls = [];
@@ -85,7 +87,8 @@ function makeTtySetup() {
   const out = captureWrites();
   const editor = createLineEditor(stdinStream, out.write, {
     prompt: '> ',
-    render: (s) => s
+    render: (s) => s,
+    columns: options.columns
   });
   return { stdinStream, editor, out, rawModeCalls, capture: captureLines(editor) };
 }
@@ -97,10 +100,10 @@ function feed(stdinStream, ...chunks) {
 }
 
 describe('createLineEditor — TTY printable input', () => {
-  it('inserts each printable byte and emits the buffer on Enter', () => {
+  it('inserts each printable byte and emits the buffer on Ctrl+Enter', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', '\r');
+    feed(stdinStream, 'abc', SUBMIT);
     expect(capture.lines).toEqual(['abc']);
   });
 
@@ -114,34 +117,70 @@ describe('createLineEditor — TTY printable input', () => {
   });
 });
 
+describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
+  it('plain Enter (CR) inserts a newline at the cursor without submitting', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first', NEWLINE, 'second', SUBMIT);
+    expect(capture.lines).toEqual(['first\nsecond']);
+  });
+
+  it('Alt+Enter (ESC + CR) submits the buffer as one cell', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first', NEWLINE, 'second', ESC + '\r');
+    expect(capture.lines).toEqual(['first\nsecond']);
+  });
+
+  it('Alt+Enter (ESC + LF variant) submits the buffer as one cell', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', ESC + '\n');
+    expect(capture.lines).toEqual(['a']);
+  });
+
+  it('Ctrl+Enter (LF) submits even after several soft newlines', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', NEWLINE, 'b', NEWLINE, 'c', SUBMIT);
+    expect(capture.lines).toEqual(['a\nb\nc']);
+  });
+});
+
 describe('createLineEditor — TTY editing keys', () => {
   it('Backspace removes the char before the cursor', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', Buffer.from([0x7f]), '\r');
+    feed(stdinStream, 'abc', Buffer.from([0x7f]), SUBMIT);
     expect(capture.lines).toEqual(['ab']);
   });
 
   it('Backspace at column 0 leaves the buffer untouched', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, Buffer.from([0x7f]), 'x', '\r');
+    feed(stdinStream, Buffer.from([0x7f]), 'x', SUBMIT);
     expect(capture.lines).toEqual(['x']);
+  });
+
+  it('Backspace across a soft newline collapses the two rows', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', NEWLINE, 'b', Buffer.from([0x7f]), Buffer.from([0x7f]), SUBMIT);
+    // 'a\nb' → backspace removes 'b'; second backspace removes `\n`.
+    expect(capture.lines).toEqual(['a']);
   });
 
   it('Left + Backspace removes a char from the middle', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', ESC + '[D', Buffer.from([0x7f]), '\r');
-    // 'abc' → cursor at 3; ESC[D → cursor at 2; backspace removes
-    // 'b' → 'ac'; Enter submits.
+    feed(stdinStream, 'abc', ESC + '[D', Buffer.from([0x7f]), SUBMIT);
     expect(capture.lines).toEqual(['ac']);
   });
 
   it('Right past end is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'a', ESC + '[C', ESC + '[C', '\r');
+    feed(stdinStream, 'a', ESC + '[C', ESC + '[C', SUBMIT);
     expect(capture.lines).toEqual(['a']);
   });
 
@@ -151,38 +190,35 @@ describe('createLineEditor — TTY editing keys', () => {
     feed(stdinStream, 'abc', Buffer.from([0x01]),    // 'abc', cursor → 0
                       ESC + '[C', ESC + '[C',         // cursor → 2
                       'X',                            // 'abXc'
-                      '\r');
+                      SUBMIT);
     expect(capture.lines).toEqual(['abXc']);
   });
 
   it('Home (Ctrl+A) jumps to start, End (Ctrl+E) jumps back', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', Buffer.from([0x01]), 'X', Buffer.from([0x05]), 'Y', '\r');
-    // Ctrl+A → cursor 0; insert 'X' → 'Xabc'; Ctrl+E → cursor end;
-    // insert 'Y' → 'XabcY'.
+    feed(stdinStream, 'abc', Buffer.from([0x01]), 'X', Buffer.from([0x05]), 'Y', SUBMIT);
     expect(capture.lines).toEqual(['XabcY']);
   });
 
   it('Home and End via CSI sequences (\\x1b[H, \\x1b[F) work too', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', ESC + '[H', 'X', ESC + '[F', 'Y', '\r');
+    feed(stdinStream, 'abc', ESC + '[H', 'X', ESC + '[F', 'Y', SUBMIT);
     expect(capture.lines).toEqual(['XabcY']);
   });
 
   it('Delete-forward (\\x1b[3~) removes the char under the cursor', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', ESC + '[D', ESC + '[D', ESC + '[3~', '\r');
-    // 'abc', cursor → 1, delete forward → 'ac'.
+    feed(stdinStream, 'abc', ESC + '[D', ESC + '[D', ESC + '[3~', SUBMIT);
     expect(capture.lines).toEqual(['ac']);
   });
 
   it('Delete-forward at end of buffer is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', ESC + '[3~', '\r');
+    feed(stdinStream, 'abc', ESC + '[3~', SUBMIT);
     expect(capture.lines).toEqual(['abc']);
   });
 });
@@ -191,11 +227,31 @@ describe('createLineEditor — TTY control bytes', () => {
   it('Ctrl+C clears the current buffer and reprompts', () => {
     const { stdinStream, editor, capture, out } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', Buffer.from([0x03]), 'xyz', '\r');
-    // After Ctrl+C the buffer is empty; subsequent 'xyz' starts
-    // a fresh line, and Enter submits 'xyz'.
+    feed(stdinStream, 'abc', Buffer.from([0x03]), 'xyz', SUBMIT);
     expect(capture.lines).toEqual(['xyz']);
     expect(out.text()).toMatch(/\^C/);
+  });
+
+  it('Ctrl+C clears a multi-line buffer and reprompts', () => {
+    const { stdinStream, editor, capture, out } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', NEWLINE, 'b', Buffer.from([0x03]), 'x', SUBMIT);
+    expect(capture.lines).toEqual(['x']);
+    expect(out.text()).toMatch(/\^C/);
+  });
+
+  it('Ctrl+C walks the cursor down to the block bottom before printing ^C', () => {
+    // Cursor parked on row 0 of a two-row buffer — the interrupt
+    // path must `\x1b[1B` walk down one row so ^C lands below the
+    // pasted content, not on top of it.
+    const { stdinStream, editor, capture, out } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', NEWLINE, 'b',
+                      Buffer.from([0x01]),   // Ctrl+A → cursor to row 0
+                      Buffer.from([0x03]),   // Ctrl+C
+                      'z', SUBMIT);
+    expect(capture.lines).toEqual(['z']);
+    expect(out.text()).toMatch(/\x1b\[1B/);
   });
 
   it('Ctrl+D on an empty buffer closes the editor', () => {
@@ -208,7 +264,7 @@ describe('createLineEditor — TTY control bytes', () => {
   it('Ctrl+D with a non-empty buffer is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', Buffer.from([0x04]), '\r');
+    feed(stdinStream, 'abc', Buffer.from([0x04]), SUBMIT);
     expect(capture.isClosed()).toBe(false);
     expect(capture.lines).toEqual(['abc']);
   });
@@ -218,147 +274,141 @@ describe('createLineEditor — TTY escape sequence handling', () => {
   it('drops a half-formed `ESC + non-[` sequence without injecting bytes', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    // ESC followed by 'Z' is not a recognised CSI prefix; the
-    // editor abandons the partial sequence and the next 'a' lands
-    // as a normal printable.
-    feed(stdinStream, ESC, 'Z', 'a', '\r');
+    feed(stdinStream, ESC, 'Z', 'a', SUBMIT);
     expect(capture.lines).toEqual(['a']);
   });
 
   it('ignores unknown CSI sequences without error', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, ESC + '[Z', 'k', '\r');  // Z = unbound CSI
+    feed(stdinStream, ESC + '[Z', 'k', SUBMIT);
     expect(capture.lines).toEqual(['k']);
   });
 });
 
 describe('createLineEditor — TTY history navigation', () => {
-  it('Up walks back through submitted lines', () => {
+  it('Up walks back through submitted cells', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'first\r', 'second\r', ESC + '[A', '\r');
-    // After two submissions, the third Enter submits whatever is
-    // in the buffer — Up restored 'second', so that's what fires.
+    feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT, ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['first', 'second', 'second']);
   });
 
   it('Up twice walks two entries back', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'first\r', 'second\r', ESC + '[A', ESC + '[A', '\r');
+    feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT, ESC + '[A', ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['first', 'second', 'first']);
   });
 
   it('Up at oldest entry is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'only\r', ESC + '[A', ESC + '[A', '\r');
+    feed(stdinStream, 'only', SUBMIT, ESC + '[A', ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['only', 'only']);
   });
 
   it('Up + Down returns to the in-progress draft', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'history\r', 'draft', ESC + '[A', ESC + '[B', '\r');
-    // After 'history' is submitted, user types 'draft' — Up
-    // recalls 'history' (saves 'draft'), Down restores 'draft'.
+    feed(stdinStream, 'history', SUBMIT, 'draft', ESC + '[A', ESC + '[B', SUBMIT);
     expect(capture.lines).toEqual(['history', 'draft']);
   });
 
   it('Down inside history walks forward to the next stored entry', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'first\r', 'second\r',
+    feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT,
                       ESC + '[A', ESC + '[A',  // back to 'first'
                       ESC + '[B',                // forward to 'second'
-                      '\r');
+                      SUBMIT);
     expect(capture.lines).toEqual(['first', 'second', 'second']);
   });
 
   it('Down at the bottom (current draft) is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'x', ESC + '[B', ESC + '[B', '\r');
+    feed(stdinStream, 'x', ESC + '[B', ESC + '[B', SUBMIT);
     expect(capture.lines).toEqual(['x']);
   });
 
   it('does not store empty submissions in history', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, '\r', 'real\r', ESC + '[A', '\r');
-    // Empty Enter contributes nothing to history; Up after 'real'
-    // recalls 'real' (the only entry).
+    feed(stdinStream, SUBMIT, 'real', SUBMIT, ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['', 'real', 'real']);
   });
 
   it('does not store consecutive duplicates', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'same\r', 'same\r', ESC + '[A', ESC + '[A', '\r');
-    // Two 'same' submissions collapse to one history entry; two
-    // Ups still land on 'same' (no second entry behind it).
+    feed(stdinStream, 'same', SUBMIT, 'same', SUBMIT, ESC + '[A', ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['same', 'same', 'same']);
+  });
+
+  it('recalls a multi-line submission with its internal newlines intact', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', NEWLINE, 'b', SUBMIT,   // submit 'a\nb'
+                      ESC + '[A', SUBMIT);         // recall + submit
+    expect(capture.lines).toEqual(['a\nb', 'a\nb']);
   });
 });
 
 describe('createLineEditor — TTY paste fast-path', () => {
-  // Multi-line clipboard content collapses to a single space-
-  // separated line — qlang does not care about whitespace between
-  // tokens, so a pasted JSON object parses identically when
-  // flattened. The single-line buffer survives every terminal
-  // host's redraw quirks where multi-line cursor positioning
-  // would otherwise diverge.
+  // The heuristic INSERTS the paste at the cursor (preserving the
+  // newline structure so the user sees the whole pasted block on
+  // screen) and waits for an explicit submit. This lets the user
+  // append `| /key` after a JSON paste before evaluating.
 
-  it('inserts a collapsed multi-line chunk into the buffer without auto-submitting', () => {
+  it('inserts a multi-line chunk into the buffer without auto-submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '{\n  "a": 1\n} | /a');
     expect(capture.lines).toEqual([]);
   });
 
-  it('collapses internal newlines into single spaces and submits the flat line on Enter', () => {
+  it('preserves newlines through paste + submit', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, '{\n  "a": 1\n} | /a', '\r');
-    expect(capture.lines).toEqual(['{ "a": 1 } | /a']);
+    feed(stdinStream, '{\n  "a": 1\n} | /a', SUBMIT);
+    expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
   });
 
-  it('drops trailing-newline whitespace from a clipboard end-of-block', () => {
+  it('strips a trailing newline that the clipboard end-of-block tends to carry', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'one\ntwo\n', '\r');
-    expect(capture.lines).toEqual(['one two']);
+    feed(stdinStream, 'one\ntwo\n', SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('lets the user append further text to a pasted block before Enter', () => {
+  it('lets the user append further text to a pasted block before submit', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, '{\n  "a": 1\n}', ' | /a', '\r');
-    expect(capture.lines).toEqual(['{ "a": 1 } | /a']);
+    feed(stdinStream, '{\n  "a": 1\n}', ' | /a', SUBMIT);
+    expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
   });
 
   it('strips BPM markers from a single-chunk wrapped paste', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, BRACKETED_PASTE_BEGIN + 'a\nb' + BRACKETED_PASTE_END, '\r');
-    expect(capture.lines).toEqual(['a b']);
+    feed(stdinStream, BRACKETED_PASTE_BEGIN + 'a\nb' + BRACKETED_PASTE_END, SUBMIT);
+    expect(capture.lines).toEqual(['a\nb']);
   });
 
   it('does not trigger the heuristic for fast-typing without newlines', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', '\r');
+    feed(stdinStream, 'abc', SUBMIT);
     expect(capture.lines).toEqual(['abc']);
   });
 });
 
 describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)', () => {
   // When BPM markers and the paste body arrive in SEPARATE data
-  // events (slow link, partial flush) the chunk-level fast-path
-  // does not engage and the per-byte state machine handles the
-  // accumulation. The end of the paste runs the same
-  // `insertPasteAtCursor` helper that collapses internal newlines.
+  // events the chunk-level fast-path does not engage and the
+  // per-byte state machine handles the accumulation. The end of
+  // the paste runs the same `insertPasteAtCursor` helper.
 
   it('inserts single-line paste content when markers arrive in separate data events', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
@@ -367,7 +417,7 @@ describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)',
          BRACKETED_PASTE_BEGIN,
          'paste body',
          BRACKETED_PASTE_END,
-         '\r');
+         SUBMIT);
     expect(capture.lines).toEqual(['paste body']);
   });
 
@@ -378,19 +428,95 @@ describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)',
          BRACKETED_PASTE_BEGIN,
          'pasted',
          BRACKETED_PASTE_END,
-         '\r');
+         SUBMIT);
     expect(capture.lines).toEqual(['pre-pasted']);
   });
 
-  it('collapses multi-line content delivered through the BPM state machine', () => {
+  it('preserves multi-line content delivered through the BPM state machine', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,
          BRACKETED_PASTE_BEGIN,
          'a\nb\nc',
          BRACKETED_PASTE_END,
-         '\r');
-    expect(capture.lines).toEqual(['a b c']);
+         SUBMIT);
+    expect(capture.lines).toEqual(['a\nb\nc']);
+  });
+});
+
+describe('createLineEditor — TTY UTF-8 input', () => {
+  // Raw-mode stdin delivers bytes, not code points. The editor
+  // decodes through a `StringDecoder` so multi-byte code points
+  // (Cyrillic, CJK, emoji) survive intact — byte-at-a-time
+  // dispatch would treat each UTF-8 continuation byte as a
+  // separate Latin-1 character and submit mojibake.
+
+  it('inserts a Cyrillic string from a single chunk', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'Привет', SUBMIT);
+    expect(capture.lines).toEqual(['Привет']);
+  });
+
+  it('reassembles a Cyrillic code point split across two chunks', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    // "П" is 0xD0 0x9F. Split the two bytes into two separate
+    // data events — the decoder buffers the first byte, emits
+    // the full character on the second.
+    const bytes = Buffer.from('П', 'utf8');
+    feed(stdinStream, bytes.subarray(0, 1), bytes.subarray(1, 2), SUBMIT);
+    expect(capture.lines).toEqual(['П']);
+  });
+
+  it('preserves a multi-byte emoji through the insert path', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', SUBMIT);
+    expect(capture.lines).toEqual(['🎉']);
+  });
+
+  it('preserves Unicode content inside a multi-line paste', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '{\n  "имя": "Аня"\n}', SUBMIT);
+    expect(capture.lines).toEqual(['{\n  "имя": "Аня"\n}']);
+  });
+});
+
+describe('createLineEditor — TTY multi-line redraw', () => {
+  // Drives the cursor across `\n` boundaries and asserts the
+  // submitted buffer matches the intended edits — exercises the
+  // redraw-time walk-up-then-walk-down-and-right path plus the
+  // submit-time walk-down path used when the cursor is parked on
+  // a row other than the last.
+
+  it('walks Left across a newline, inserts a char in the first row, then submits', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    // Build 'first\nsecond', then walk left 7 chars (past `\n`),
+    // insert 'X' inside 'first' at position 5, then submit.
+    // Cursor parked on the first row when submit fires.
+    feed(stdinStream, 'first', NEWLINE, 'second',
+                      ESC + '[D', ESC + '[D', ESC + '[D', ESC + '[D',
+                      ESC + '[D', ESC + '[D', ESC + '[D',
+                      'X',
+                      SUBMIT);
+    expect(capture.lines).toEqual(['firstX\nsecond']);
+  });
+
+  it('accounts for soft-wrap when the logical line overflows a narrow column width', () => {
+    // Width 10, prompt '> ' → col 0 of first line starts at col 2,
+    // so 'abcdefghij' (10 chars) wraps visually onto a second row.
+    // Redraw must walk up the correct number of rows on the next
+    // keystroke; if the count were off the second keystroke's
+    // redraw would leak visible bytes from the prior render.
+    const { stdinStream, editor, capture, out } = makeTtySetup({ columns: 10 });
+    editor.start();
+    feed(stdinStream, 'abcdefghij', 'K', SUBMIT);
+    expect(capture.lines).toEqual(['abcdefghijK']);
+    // Sanity: the multi-row clear sequence (cursor-up) was emitted.
+    expect(out.text()).toMatch(/\x1b\[\d+A/);
   });
 });
 
@@ -430,12 +556,8 @@ describe('createLineEditor — TTY lifecycle', () => {
   it('clears a pending paste-accumulator timer on close so the flush does not fire post-shutdown', () => {
     const { stdinStream, editor } = makeTtySetup();
     editor.start();
-    // Send a chunk that opens the paste window — accumulator
-    // timer is now pending.
     feed(stdinStream, 'a\nb');
     editor.close();
-    // No assertion on output — the test passes if the timer
-    // does not crash by firing against a torn-down editor.
     expect(stdinStream.listenerCount('data')).toBe(0);
   });
 });

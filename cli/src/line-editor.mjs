@@ -1,26 +1,52 @@
-// Raw-mode terminal line editor with live syntax-highlighting and
-// bracketed-paste support, plus a non-TTY fallback for pipes and
-// scripted tests. Replaces `node:readline` inside the REPL — the
-// only reason readline went out is that its line-buffered model
-// cannot redraw the input as the user types.
+// Raw-mode terminal line editor with live syntax-highlighting,
+// bracketed-paste support, and multi-line buffer rendering, plus a
+// non-TTY fallback for pipes and scripted tests. Replaces
+// `node:readline` inside the REPL — the only reason readline went
+// out is that its line-buffered model cannot redraw the input as
+// the user types.
 //
 // Two editor flavours, picked by `stdinStream.isTTY`:
 //
 //   TTY (interactive terminal):
 //     * Raw mode keystroke capture; per-keystroke redraw of the
-//       current line via the caller-supplied `render(buffer)` (the
-//       REPL passes `(s) => highlightAnsi(s, builtinNames)` so
-//       every byte is painted as it lands).
-//     * Bracketed paste support — terminal-emitted `\x1b[200~ … \x1b[201~`
-//       wrappers around a multi-line paste are detected, the
-//       enclosed content (newlines and all) becomes one buffer,
-//       and the editor auto-submits as a single `'line'` emission.
-//       This is what makes a pasted JSON object land in the REPL
-//       as one cell instead of N parse failures.
-//     * Cursor: Left / Right / Home / End / Ctrl+A / Ctrl+E.
+//       current buffer via the caller-supplied `render(buffer)` —
+//       the REPL passes `(s) => highlightAnsi(s, builtinNames)` so
+//       every byte is painted as it lands, including inside a
+//       multi-line buffer.
+//     * Multi-line redraw: `\n` in the buffer is a real line break
+//       on screen. The editor tracks how many visual rows the last
+//       render occupied (accounting for the terminal's soft-wrap
+//       at column width, not only the count of logical `\n`), then
+//       walks the cursor up that many rows and clears to end of
+//       screen before re-rendering. Long lines that wrap across
+//       terminal columns collapse back correctly when the buffer
+//       shrinks.
+//     * Bracketed paste — terminal-emitted `\x1b[200~ … \x1b[201~`
+//       wrappers around a multi-line paste are detected and the
+//       enclosed content (newlines and all) is inserted at the
+//       cursor with its structure preserved; the user can edit,
+//       append a projection like `| /key`, then submit.
+//     * Chunk-level paste heuristic for hosts that strip BPM
+//       markers (PowerShell, ssh without BPM negotiation): any
+//       data event longer than one byte and containing `\n` is
+//       treated as a paste and routed through the same insert
+//       path. A solitary LF that arrives with the paste closes
+//       the accumulator window deterministically rather than
+//       being mistaken for a submit.
+//     * Enter (CR 0x0d) inserts a soft newline — multi-line cell
+//       composition is the default case, matching a notebook-style
+//       editor.
+//     * Ctrl+Enter / Ctrl+J / Alt+Enter submit the current buffer
+//       as one cell. Ctrl+Enter emits LF (0x0a) in every modern
+//       terminal that distinguishes it from plain Enter; Ctrl+J
+//       emits the same LF, so the two are one binding. Alt+Enter
+//       arrives as `ESC + CR` and is handled in the escape path.
+//     * Cursor: Left / Right / Home / End / Ctrl+A / Ctrl+E walk
+//       across the multi-line layout, stepping across embedded
+//       `\n` the same way any GUI editor handles line breaks.
 //     * Backspace / Delete-forward.
-//     * Ctrl+C clears the line and re-prompts; Ctrl+D on an empty
-//       line closes the editor.
+//     * Ctrl+C clears the buffer and re-prompts; Ctrl+D on an
+//       empty buffer closes the editor.
 //
 //   Non-TTY (pipe, file, scripted test):
 //     * Line-buffered chunk reader. No raw mode, no rendering, no
@@ -33,11 +59,13 @@
 //   editor.prompt()          (re)render the prompt
 //   editor.close()           tear down listeners and disable raw
 //                            mode + bracketed paste if applicable
-//   editor.on('line', fn)    fired with the submitted line text
-//                            (newlines preserved in pasted blocks)
+//   editor.on('line', fn)    fired with the submitted buffer text
+//                            (newlines preserved across soft-
+//                            newline and paste)
 //   editor.on('close', fn)   fired on EOF or Ctrl+D
 
 import { EventEmitter } from 'node:events';
+import { StringDecoder } from 'node:string_decoder';
 
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
@@ -54,7 +82,7 @@ export function createLineEditor(stdinStream, stdoutWrite, options) {
 
 // ── TTY raw-mode editor ────────────────────────────────────────
 
-function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
+function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns }) {
   const emitter = new EventEmitter();
 
   let buffer = '';
@@ -63,53 +91,153 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   let pasteBuffer = '';
   let pendingEscape = '';
 
-  // History — in-memory ring of previously-submitted lines plus a
-  // per-session "draft" slot that holds whatever the user was
-  // typing before they pressed Up. Up walks back through the ring,
-  // Down walks forward; reaching the bottom restores the draft.
-  // Persistent file-backed history is a future enhancement.
+  // Incremental UTF-8 decoder — chunk boundaries can split a
+  // multi-byte code point (two-byte Cyrillic, three-byte CJK,
+  // four-byte emoji). The decoder buffers a partial tail across
+  // writes so the per-character dispatcher never sees half a
+  // code point.
+  const utf8Decoder = new StringDecoder('utf8');
+
+  // History ring of submitted cells plus a per-session draft slot
+  // holding whatever the user was typing before they pressed Up.
+  // Up walks back; Down walks forward; reaching the bottom restores
+  // the draft. Recalled entries keep their internal newlines — the
+  // multi-line redraw lays them out as they were submitted.
   const history = [];
-  let historyIndex = 0;        // points one past the last entry by default
+  let historyIndex = 0;
   let historyDraft = '';
 
-  // Single-line redraw — buffer is invariantly one terminal line
-  // (paste collapses embedded newlines to spaces, soft-newline
-  // bindings are absent). Multi-line cursor positioning under
-  // raw mode varies enough across terminal hosts (Windows
-  // Terminal, conhost, PowerShell, GNOME, iTerm2, tmux) that the
-  // simplest portable contract — one logical line, terminal
-  // soft-wraps visually if it overflows the column width — wins
-  // until a future commit revisits multi-line buffers with a
-  // tested escape strategy that survives every host.
+  // Visible width of the prompt — ANSI colour escapes never advance
+  // the cursor, only the printable bytes do. Computed once.
+  const promptVisibleLength = prompt.replace(/\x1b\[[0-9;]*m/g, '').length;
+
+  // Visual layout state from the last redraw. `lastVisualRows` is
+  // the total number of terminal rows the previous render occupied
+  // (including soft-wrap rows from overlong content). `lastCursorRow`
+  // is where the hardware cursor was parked at the end of that
+  // redraw, measured from row 0 of the block. The next redraw walks
+  // `lastCursorRow` rows UP to reach row 0 before clearing.
+  let lastVisualRows = 0;
+  let lastCursorRow  = 0;
+
+  const getColumns = () => {
+    const c = typeof columns === 'function' ? columns() : columns;
+    return Number.isFinite(c) && c > 0 ? c : Infinity;
+  };
+
+  // Visual row count for a single logical line given its starting
+  // column (prompt for row 0, 0 otherwise) and the terminal width.
+  // `Math.max(1, ...)` keeps empty logical lines visible — an empty
+  // line still takes one screen row that the clear step must erase.
+  function visualRowsForLine(colStart, contentLen, width) {
+    if (!Number.isFinite(width)) return 1;
+    return Math.max(1, Math.ceil((colStart + contentLen) / width));
+  }
+
+  // Count visual rows for the buffer slice split on `\n`. Rows for
+  // each logical line account for soft-wrap at `width`.
+  function countVisualRows(logicalLines, width) {
+    let total = 0;
+    for (let i = 0; i < logicalLines.length; i += 1) {
+      const colStart = (i === 0) ? promptVisibleLength : 0;
+      total += visualRowsForLine(colStart, logicalLines[i].length, width);
+    }
+    return total;
+  }
+
+  // Resolve the `cursor` byte offset to (visual row, visual column)
+  // inside the wrapped layout.
+  function locateCursorVisual(width) {
+    const before = buffer.slice(0, cursor);
+    const beforeLines = before.split('\n');
+    const cursorLogicalRow = beforeLines.length - 1;
+    const cursorLogicalCol = beforeLines[cursorLogicalRow].length;
+
+    // Rows occupied by logical lines strictly before the cursor's
+    // logical row.
+    let visualRowsBefore = 0;
+    for (let i = 0; i < cursorLogicalRow; i += 1) {
+      const colStart = (i === 0) ? promptVisibleLength : 0;
+      visualRowsBefore += visualRowsForLine(colStart, beforeLines[i].length, width);
+      // `beforeLines[i]` for i < cursorLogicalRow equals the
+      // full i-th logical line (cursor lies beyond those lines).
+    }
+
+    // Position within the cursor's own logical line.
+    const colStart = (cursorLogicalRow === 0) ? promptVisibleLength : 0;
+    const total    = colStart + cursorLogicalCol;
+    const rowInLine = Number.isFinite(width) ? Math.floor(total / width) : 0;
+    const colInRow  = Number.isFinite(width) ? (total % width)           : total;
+
+    return {
+      row: visualRowsBefore + rowInLine,
+      col: colInRow
+    };
+  }
+
   function redrawCurrentLine() {
-    stdoutWrite('\r' + ESC + '[2K');
+    const width = getColumns();
+
+    // 1. Walk the terminal cursor up to row 0 of the prior render.
+    if (lastCursorRow > 0) {
+      stdoutWrite(ESC + `[${lastCursorRow}A`);
+    }
+    // 2. Return to column 0 and clear everything from here down —
+    //    wipes the prior render in one go, including any soft-wrap
+    //    rows that a shrinking buffer would otherwise leak.
+    stdoutWrite('\r' + ESC + '[J');
+
+    // 3. Write prompt + highlighted buffer. In raw mode a bare `\n`
+    //    only advances the row; translate to CRLF so column 0 is
+    //    reset at each line break.
     stdoutWrite(prompt);
-    stdoutWrite(render(buffer));
-    const trailingChars = buffer.length - cursor;
-    if (trailingChars > 0) stdoutWrite(ESC + `[${trailingChars}D`);
+    stdoutWrite(render(buffer).replace(/(?<!\r)\n/g, '\r\n'));
+
+    // 4. Figure out where the hardware cursor landed and walk it
+    //    to the visual position that corresponds to `cursor`.
+    const logicalLines  = buffer.split('\n');
+    const totalRows     = countVisualRows(logicalLines, width);
+    const cursorVisual  = locateCursorVisual(width);
+    const rowsUp        = (totalRows - 1) - cursorVisual.row;
+
+    if (rowsUp > 0) stdoutWrite(ESC + `[${rowsUp}A`);
+    stdoutWrite('\r');
+    if (cursorVisual.col > 0) stdoutWrite(ESC + `[${cursorVisual.col}C`);
+
+    lastVisualRows = totalRows;
+    lastCursorRow  = cursorVisual.row;
   }
 
   function submitCurrentLine() {
     const lineText = buffer;
+
+    // Walk the hardware cursor from its current row to the last
+    // row of the block before emitting `\r\n`, otherwise the REPL's
+    // result line would overprint the rows below.
+    const rowsDown = (lastVisualRows - 1) - lastCursorRow;
+    if (rowsDown > 0) stdoutWrite(ESC + `[${rowsDown}B`);
+    stdoutWrite('\r\n');
+
     pushHistoryEntry(lineText);
     buffer = '';
     cursor = 0;
     historyIndex = history.length;
     historyDraft = '';
-    stdoutWrite('\r\n');
+    lastVisualRows = 0;
+    lastCursorRow  = 0;
     emitter.emit('line', lineText);
   }
 
   function pushHistoryEntry(lineText) {
     if (lineText === '') return;
-    if (history[history.length - 1] === lineText) return; // de-dup repeat
+    if (history[history.length - 1] === lineText) return;
     history.push(lineText);
   }
 
   function recallHistoryPrev() {
-    if (historyIndex === 0) return;            // already at oldest
+    if (historyIndex === 0) return;
     if (historyIndex === history.length) {
-      historyDraft = buffer;                   // save in-progress text
+      historyDraft = buffer;
     }
     historyIndex -= 1;
     buffer = history[historyIndex];
@@ -118,16 +246,16 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   }
 
   function recallHistoryNext() {
-    if (historyIndex === history.length) return; // already at draft
+    if (historyIndex === history.length) return;
     historyIndex += 1;
     buffer = historyIndex === history.length ? historyDraft : history[historyIndex];
     cursor = buffer.length;
     redrawCurrentLine();
   }
 
-  function handleByte(byte) {
+  function handleChar(ch) {
     if (pasteMode) {
-      pasteBuffer += String.fromCharCode(byte);
+      pasteBuffer += ch;
       if (pasteBuffer.endsWith(BRACKETED_PASTE_END)) {
         const pastedContent = pasteBuffer.slice(0, -BRACKETED_PASTE_END.length);
         pasteMode = false;
@@ -138,29 +266,29 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
     }
 
     if (pendingEscape.length > 0) {
-      pendingEscape += String.fromCharCode(byte);
+      pendingEscape += ch;
       tryConsumeEscapeSequence();
       return;
     }
 
-    if (byte === 0x1b) { pendingEscape = ESC; return; }
-    if (byte === 0x03) { interruptCurrentLine();   return; }   // Ctrl+C
-    if (byte === 0x04) { closeOnEmptyBuffer();     return; }   // Ctrl+D
-    if (byte === 0x0d || byte === 0x0a) {
-      // Enter (CR or LF) — submit. The single-line buffer model
-      // means there is no soft-newline keystroke; multi-line
-      // composition lands in a follow-up commit when the editor
-      // grows a multi-line redraw strategy that survives every
-      // terminal host.
-      submitCurrentLine();
-      return;
-    }
-    if (byte === 0x08 || byte === 0x7f) { backspaceAtCursor();  return; }
-    if (byte === 0x01) { moveCursorHome(); return; }            // Ctrl+A
-    if (byte === 0x05) { moveCursorEnd();  return; }            // Ctrl+E
+    // Control codes and CSI markers are all in the ASCII single-
+    // byte range; `ch` for a control unit is always a single-code-
+    // point string, and `codePointAt(0)` is the canonical way to
+    // dispatch on it. For multi-byte Unicode characters (Cyrillic,
+    // CJK, emoji) `ch` arrives as one code point with value
+    // >= 0x80 and falls through to the insert path.
+    const code = ch.codePointAt(0);
+    if (code === 0x1b) { pendingEscape = ESC; return; }
+    if (code === 0x03) { interruptCurrentLine();   return; }   // Ctrl+C
+    if (code === 0x04) { closeOnEmptyBuffer();     return; }   // Ctrl+D
+    if (code === 0x0d) { insertNewlineAtCursor();  return; }   // Enter (CR) — soft newline
+    if (code === 0x0a) { submitCurrentLine();      return; }   // Ctrl+Enter / Ctrl+J — submit
+    if (code === 0x08 || code === 0x7f) { backspaceAtCursor();  return; }
+    if (code === 0x01) { moveCursorHome(); return; }            // Ctrl+A
+    if (code === 0x05) { moveCursorEnd();  return; }            // Ctrl+E
 
-    if (byte >= 0x20) {
-      insertCharAtCursor(String.fromCharCode(byte));
+    if (code >= 0x20) {
+      insertCharAtCursor(ch);
     }
   }
 
@@ -171,13 +299,20 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
       pendingEscape = '';
       return;
     }
+    if (pendingEscape === ESC + '\r' || pendingEscape === ESC + '\n') {
+      // Alt+Enter — treat as an explicit submit. Some terminals
+      // send ESC+CR, others ESC+LF; accept both so the binding
+      // works uniformly as a submit on hosts where Ctrl+Enter is
+      // intercepted.
+      pendingEscape = '';
+      submitCurrentLine();
+      return;
+    }
     if (pendingEscape.length === 2 && pendingEscape[1] !== '[') {
       // ESC followed by a non-CSI byte — drop the half-formed
-      // sequence; the byte is treated as a no-op rather than
-      // injected into the buffer mid-keystroke. Past this point
-      // pendingEscape is guaranteed to start with `ESC[` because
-      // the only growth path beyond length 2 is through this
-      // branch's complement above.
+      // sequence. Past this point pendingEscape is guaranteed to
+      // start with `ESC[` because the only growth path beyond
+      // length 2 is through this branch's complement above.
       pendingEscape = '';
       return;
     }
@@ -204,6 +339,12 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
     redrawCurrentLine();
   }
 
+  function insertNewlineAtCursor() {
+    buffer = buffer.slice(0, cursor) + '\n' + buffer.slice(cursor);
+    cursor += 1;
+    redrawCurrentLine();
+  }
+
   function backspaceAtCursor() {
     if (cursor === 0) return;
     buffer = buffer.slice(0, cursor - 1) + buffer.slice(cursor);
@@ -223,9 +364,15 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   function moveCursorEnd()   { cursor = buffer.length; redrawCurrentLine(); }
 
   function interruptCurrentLine() {
+    // Walk to the last row of the block, print ^C on its own line,
+    // then reset the buffer and redraw a fresh empty prompt.
+    const rowsDown = (lastVisualRows - 1) - lastCursorRow;
+    if (rowsDown > 0) stdoutWrite(ESC + `[${rowsDown}B`);
+    stdoutWrite('\r\n^C\r\n');
     buffer = '';
     cursor = 0;
-    stdoutWrite('^C\r\n');
+    lastVisualRows = 0;
+    lastCursorRow  = 0;
     redrawCurrentLine();
   }
 
@@ -234,16 +381,15 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   }
 
   // Paste accumulator — once a chunk looks like the start of a
-  // clipboard paste, every subsequent chunk that arrives within
-  // a short idle window (50ms — far below human typing cadence,
-  // far above IPC fragmentation latency) appends to the same
-  // buffer. After the timer fires the accumulated content flushes
-  // through `insertPasteAtCursor` as one paste. This catches
-  // pastes that the terminal delivers across multiple data events
-  // — what PowerShell and several other Windows hosts do for
-  // multi-line clipboard content even with BPM enabled, and what
-  // would otherwise leave half the content per-byte-processed
-  // (where each `\r` from CRLF triggers a phantom submit).
+  // clipboard paste, every subsequent chunk that arrives within a
+  // short idle window appends to the same buffer. After the timer
+  // fires the accumulated content flushes through
+  // `insertPasteAtCursor` as one paste. This catches pastes that
+  // the terminal delivers across multiple data events — what
+  // PowerShell and several other Windows hosts do for multi-line
+  // clipboard content even with BPM enabled, and what would
+  // otherwise leave half the content per-byte-processed (where
+  // each `\n` from the paste body would trigger a phantom submit).
   let pasteAccumBuffer = '';
   let pasteAccumTimer  = null;
   const PASTE_FLUSH_MS = 50;
@@ -267,52 +413,59 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render }) {
   }
 
   function onData(chunk) {
-    const chunkText = chunk.toString('utf8');
+    // Decode incrementally — a code point split across chunk
+    // boundaries is buffered in the decoder and emitted on the
+    // next write. `chunkText` is a complete prefix string.
+    const chunkText = utf8Decoder.write(chunk);
+    if (chunkText.length === 0) return;
 
-    // Continuation chunk while a paste is still flowing.
+    // A solitary keystroke that arrives while the accumulator is
+    // open closes the paste window deterministically: flush the
+    // accumulated content, then let the keystroke itself route
+    // through the per-byte dispatcher. That way a Ctrl+Enter
+    // right after a paste submits, a Ctrl+C cancels, a letter
+    // keeps building the buffer — no special-cased branch per
+    // keystroke.
     if (pasteAccumBuffer.length > 0) {
-      // A solitary CR (the user pressing Enter right after a
-      // paste) closes the paste window deterministically — flush
-      // the accumulated content into the buffer, then route the
-      // CR through the normal submit path. Without this the
-      // accumulator would swallow the Enter and only flush 50ms
-      // later via the idle timer.
-      if (chunkText === '\r' || chunkText === '\n') {
+      if (chunkText.length === 1) {
         clearTimeout(pasteAccumTimer);
         pasteAccumTimer = null;
         flushPasteAccumulator();
-        submitCurrentLine();
+      } else {
+        continuePasteAccumulator(chunkText);
         return;
       }
-      continuePasteAccumulator(chunkText);
-      return;
     }
 
-    // First chunk that smells like the start of a paste.
-    if (!pasteMode && pendingEscape.length === 0
-        && chunkText.length > 1 && chunkText.includes('\n')) {
-      startPasteAccumulator(chunkText);
-      return;
+    // First chunk that smells like the start of a paste — multi-
+    // byte data event with an embedded `\n` that is NOT at the
+    // final position. A typed buffer followed by Ctrl+Enter
+    // arrives as `'…\n'` where the only `\n` is the last byte,
+    // which must route through per-byte submit and not be mistaken
+    // for a paste body.
+    if (!pasteMode && pendingEscape.length === 0 && chunkText.length > 1) {
+      const firstNewline = chunkText.indexOf('\n');
+      if (firstNewline !== -1 && firstNewline !== chunkText.length - 1) {
+        startPasteAccumulator(chunkText);
+        return;
+      }
     }
 
-    for (const byte of chunk) handleByte(byte);
+    for (const ch of chunkText) handleChar(ch);
   }
 
   function insertPasteAtCursor(rawPasteText) {
-    // The buffer is invariantly single-line. Collapse the paste's
-    // newlines (CRLF or bare LF) into single spaces — qlang
-    // ignores whitespace between tokens, so a pasted multi-line
-    // JSON object parses identically when flattened. The result
-    // is a long line that the terminal soft-wraps visually; the
-    // user can append `| /key`, edit, and submit with Enter the
-    // same way as any typed input.
-    const collapsed = rawPasteText
-      .split(/\r?\n/)
-      .map((segment) => segment.trim())
-      .filter((segment) => segment.length > 0)
-      .join(' ');
-    buffer = buffer.slice(0, cursor) + collapsed + buffer.slice(cursor);
-    cursor += collapsed.length;
+    // Normalise CRLF → LF and trim trailing blank lines from the
+    // paste, but preserve the internal structure so the user sees
+    // the pasted block laid out the way it was on the clipboard.
+    // The multi-line redraw path positions the cursor across `\n`
+    // boundaries correctly.
+    const normalised = rawPasteText
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\n+$/, '');
+    buffer = buffer.slice(0, cursor) + normalised + buffer.slice(cursor);
+    cursor += normalised.length;
     redrawCurrentLine();
   }
 

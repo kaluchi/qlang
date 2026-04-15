@@ -56,7 +56,8 @@ export async function resolveModules(libDir, opts = {}) {
   for (const namespaceName of resolveOrder) {
     const modulePath = discovered.get(namespaceName);
 
-    // Build eval env: base + all previously resolved modules merged
+    // Build eval env: base + every namespace already in the
+    // catalog from an earlier iteration of this pass merged in.
     const moduleEvalEnv = new Map(resolverBaseEnv);
     for (const nsExports of resolverCatalog.values()) {
       for (const [bindKey, bindVal] of nsExports) moduleEvalEnv.set(bindKey, bindVal);

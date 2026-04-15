@@ -44,7 +44,7 @@ console.log(`\nRelease ${version}\n`);
 
 const branch = runCapture('git branch --show-current');
 if (branch !== 'master') {
-  console.error(`Error: must be on master (currently on ${branch})`);
+  console.error(`Error: must be on master, got ${branch}`);
   process.exit(1);
 }
 

@@ -203,7 +203,7 @@ describe('findIdentifierOccurrences', () => {
 });
 
 describe('bindingNamesVisibleAt', () => {
-  it('returns previously declared let names visible at the cursor', () => {
+  it('returns let names declared lexically before the cursor', () => {
     const source = 'let(:x, 1) | let(:y, 2) | z';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);

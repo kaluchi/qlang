@@ -5,11 +5,10 @@
 // :qlang/impl <:qlang/prim/*> keyword pointing into SHARED_REGISTRY,
 // plus the authored metadata (category / subject / returns /
 // modifiers / examples / throws) and doc-comment-prefix-attached
-// :docs. Sub-commit A: the file exists and parses and evaluates
-// into a 67-entry Map, but nothing yet wires it into the production
-// langRuntime() — the old IMPLS-based bootstrap still drives
-// evalOperandCall. Sub-commit B will cut the wiring over and delete
-// the legacy pathway.
+// :docs. langRuntime() evaluates the file once at startup, resolves
+// every `:qlang/impl :qlang/prim/<name>` handle through the JS-side
+// registry bound at module load, and seals the registry. This is
+// the single source of truth for the bound env.
 //
 // Contract pinned here:
 //
@@ -243,14 +242,14 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
   });
 });
 
-describe('legacy function-value reify path (conduit parameter reflection)', () => {
-  // Conduit parameters are the only function values that still
-  // end up in env under Variant B — they are created at
-  // applyConduit time by makeConduitParameter and live only for
-  // the duration of the body fork. Reifying one inside a conduit
-  // body exercises the isFunctionValue branch of describeBinding,
-  // which delegates to buildBuiltinDescriptor to construct a
-  // descriptor Map from the function-value's inline meta.
+describe('function-value reify path (conduit parameter reflection)', () => {
+  // Conduit parameters are the only function values that reach
+  // env under Variant-B dispatch — they are minted at applyConduit
+  // time by makeConduitParameter and live only for the duration of
+  // the body fork. Reifying one inside a conduit body exercises
+  // the isFunctionValue branch of describeBinding, which delegates
+  // to buildBuiltinDescriptor to construct a descriptor Map from
+  // the function-value's inline meta.
 
   it('reify on a conduit parameter yields a :kind :builtin descriptor', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');

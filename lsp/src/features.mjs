@@ -64,8 +64,7 @@ export function parseDocument(source, uri) {
 //
 // Under Variant-B every builtin lives as a MapEntry inside
 // core.qlang's outer MapLit (`:count {:qlang/kind :builtin ...}`),
-// so the index walks for MapEntry nodes whose key is a Keyword
-// rather than for the legacy `let(:name, ...)` declaration form.
+// so the index walks for MapEntry nodes whose key is a Keyword.
 
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();

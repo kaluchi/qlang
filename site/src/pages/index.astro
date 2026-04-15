@@ -197,12 +197,12 @@ const features = [
   import { highlightQlang as hl } from '../lib/qlang-highlight.js';
 
   async function initRepl() {
-    const { evalQuery, printValue, parse, walkAst, langRuntime } = await import(
+    const { evalQuery, printValue, langRuntime } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
     const builtins = new Set([...(await langRuntime()).keys()].map((k: any) => k.name));
-    const hi = (src: string) => hl(src, parse, walkAst, builtins);
+    const hi = (src: string) => hl(src, builtins);
 
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;
     const history = document.getElementById('repl-history')!;
@@ -212,7 +212,7 @@ const features = [
       entry.className = 'repl-entry';
       entry.innerHTML = `
         <div class="repl-entry-input"><span class="punct">&gt; </span>${hi(src)}</div>
-        <div class="repl-entry-output">${hl(printValue(result), parse, walkAst, builtins)}</div>
+        <div class="repl-entry-output">${hl(printValue(result), builtins)}</div>
       `;
       return entry;
     }

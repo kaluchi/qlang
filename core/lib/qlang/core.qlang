@@ -250,6 +250,25 @@
          {:doc "first N elements"  :snippet "[1 2 3 4 5] | take(3)"  :expected "[1 2 3]"}]
        :throws [:TakeSubjectNotVec, :TakeCountNotNumber]}
 
+|~~ Returns the element at index n. Accepts negative indices —
+    `at(-1)` is the last element, `at(-2)` the second-last. Out-of-
+    range indices return null (symmetric with Map miss on a
+    projection). The index must be an integer — `at(0.5)` raises
+    AtIndexNotInteger; silent coercion would mask the caller's
+    intent. The `last` operand is the idiomatic shorthand for
+    `at(-1)`. ~~|
+:at {:qlang/kind :builtin
+     :qlang/impl :qlang/prim/at
+     :category :vec-reducer
+     :subject :vec
+     :returns :any
+     :modifiers [:integer]
+     :examples [
+       {:doc "nth element"         :snippet "[10 20 30] | at(1)"   :expected "20"}
+       {:doc "negative from end"   :snippet "[10 20 30] | at(-1)"  :expected "30"}
+       {:doc "out of range → null" :snippet "[10 20 30] | at(99)"  :expected "null"}]
+     :throws [:AtSubjectNotVec, :AtIndexNotInteger]}
+
 |~~ Returns the Vec with the first n elements removed. If n
     exceeds length, returns []. ~~|
 :drop {:qlang/kind :builtin
@@ -311,7 +330,7 @@
 |~~ Partitions a Vec into a Map keyed by the result of the key
     sub-pipeline applied to each element. Preserves first-occurrence
     order for both the Map entry sequence and each bucket's element
-    list. The key sub-pipeline must return a keyword for every
+    list. The key sub-pipeline must return a Keyword for every
     element. ~~|
 :groupBy {:qlang/kind :builtin
           :qlang/impl :qlang/prim/groupBy
@@ -655,7 +674,7 @@
           {:doc "newline split"  :snippet "\"line1\\nline2\" | split(\"\\n\")"  :expected "[\"line1\" \"line2\"]"}]
         :throws [:SplitSubjectNotString, :SplitSeparatorNotString]}
 
-|~~ Joins the elements of a Vec of strings with separator
+|~~ Joins the elements of a Vec of Strings with separator
     between consecutive elements. Inverse of split. ~~|
 :join {:qlang/kind :builtin
        :qlang/impl :qlang/prim/join
@@ -834,7 +853,7 @@
 
 |~~ Returns a JSON string representation of the subject.
     Keywords are emitted as colon-prefixed strings, Sets as JSON
-    arrays, Maps as JSON objects with keyword names as keys. ~~|
+    arrays, Maps as JSON objects with Keyword names as keys. ~~|
 :json {:qlang/kind :builtin
        :qlang/impl :qlang/prim/json
        :category :format

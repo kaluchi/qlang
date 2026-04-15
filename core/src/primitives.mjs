@@ -56,7 +56,7 @@
 //     the extra indirection would only obscure which registry
 //     instance is being mutated.
 
-import { isKeyword } from './types.mjs';
+import { isKeyword, describeType } from './types.mjs';
 import { QlangError, QlangInvariantError } from './errors.mjs';
 
 // ── Per-site error classes ────────────────────────────────────
@@ -148,7 +148,7 @@ export function createPrimitiveRegistry() {
         throw new PrimitiveRegistrySealed(keyLabelFor(key));
       }
       if (!isKeyword(key)) {
-        throw new PrimitiveKeyNotKeyword(typeof key);
+        throw new PrimitiveKeyNotKeyword(describeType(key));
       }
       if (bindings.has(key)) {
         throw new PrimitiveKeyAlreadyBound(key.name);

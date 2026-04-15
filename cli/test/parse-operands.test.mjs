@@ -5,17 +5,13 @@
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
 import { keyword } from '@kaluchi/qlang-core';
+import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
 
 const noopIo = {
   stdinReader: () => Promise.resolve(''),
   stdoutWrite: () => {},
   stderrWrite: () => {}
 };
-
-function thrownClassName(errorValue) {
-  const descriptor = errorValue.descriptor;
-  return [...descriptor].find(([k]) => k.name === 'thrown')[1].name;
-}
 
 describe('parseJson — happy path', () => {
   it('lifts a JSON object into a Map with keyword keys', async () => {
@@ -46,12 +42,19 @@ describe('parseJson — happy path', () => {
 describe('parseJson — error sites', () => {
   it('lifts ParseJsonSubjectNotString when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseJson', noopIo);
-    expect(thrownClassName(cellEntry.result)).toBe('ParseJsonSubjectNotString');
+    expectOperandErrorThrown(cellEntry, 'ParseJsonSubjectNotString', {
+      operand: 'parseJson',
+      position: 'subject',
+      expectedType: 'String',
+      actualType: 'Number'
+    });
   });
 
   it('lifts ParseJsonInvalidJson when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
-    expect(thrownClassName(cellEntry.result)).toBe('ParseJsonInvalidJson');
+    const thrown = expectOperandErrorThrown(cellEntry, 'ParseJsonInvalidJson', {});
+    expect(typeof thrown.context.message).toBe('string');
+    expect(thrown.context.message.length).toBeGreaterThan(0);
   });
 });
 
@@ -79,11 +82,18 @@ describe('parseTjson — happy path', () => {
 describe('parseTjson — error sites', () => {
   it('lifts ParseTjsonSubjectNotString when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseTjson', noopIo);
-    expect(thrownClassName(cellEntry.result)).toBe('ParseTjsonSubjectNotString');
+    expectOperandErrorThrown(cellEntry, 'ParseTjsonSubjectNotString', {
+      operand: 'parseTjson',
+      position: 'subject',
+      expectedType: 'String',
+      actualType: 'Number'
+    });
   });
 
   it('lifts ParseTjsonInvalidJson when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseTjson', noopIo);
-    expect(thrownClassName(cellEntry.result)).toBe('ParseTjsonInvalidJson');
+    const thrown = expectOperandErrorThrown(cellEntry, 'ParseTjsonInvalidJson', {});
+    expect(typeof thrown.context.message).toBe('string');
+    expect(thrown.context.message.length).toBeGreaterThan(0);
   });
 });

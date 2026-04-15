@@ -5,7 +5,7 @@
 {"name":"empty-prefix-always-true","query":"\"anything\" | startsWith(\"\")","expect":"true"}
 {"name":"empty-subject-empty-prefix","query":"\"\" | startsWith(\"\")","expect":"true"}
 {"name":"case-sensitive","query":"\"Hello\" | startsWith(\"hello\")","expect":"false"}
-{"name":"subject-not-string-throws","query":"42 | startsWith(\"x\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :StartsWithSubjectNotString :message \"startsWith expects string at position 1, got number\" :operand \"startsWith\" :position 1 :expectedType \"string\" :actualType \"number\"}"}
-{"name":"prefix-not-string-throws","query":"\"hi\" | startsWith(42)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :StartsWithPrefixNotString :message \"startsWith expects string at position 2, got number\" :operand \"startsWith\" :position 2 :expectedType \"string\" :actualType \"number\"}"}
+{"name":"subject-not-string-throws","query":"42 | startsWith(\"x\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :StartsWithSubjectNotString :message \"startsWith expects String at position 1, got Number\" :operand \"startsWith\" :position 1 :expectedType \"String\" :actualType \"Number\"}"}
+{"name":"prefix-not-string-throws","query":"\"hi\" | startsWith(42)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :StartsWithPrefixNotString :message \"startsWith expects String at position 2, got Number\" :operand \"startsWith\" :position 2 :expectedType \"String\" :actualType \"Number\"}"}
 {"name":"filter-vec-by-prefix","query":"[\"alice\" \"bob\" \"alex\"] | filter(startsWith(\"al\"))","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-projection-prefix","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter(/path | startsWith(\"/usr\")) * /path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}

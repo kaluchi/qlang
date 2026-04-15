@@ -9,7 +9,7 @@
 {"name":"parse-projection-keys","query":"\"/a/b/c\" | parse | /keys","expect":"[\"a\" \"b\" \"c\"]"}
 {"name":"parse-pipeline-kind","query":"\"42 | add(1)\" | parse | /:qlang/kind","expect":":Pipeline"}
 {"name":"parse-pipeline-step-count","query":"\"42 | add(1) | mul(2)\" | parse | /steps | count","expect":"3"}
-{"name":"parse-non-string-subject","query":"42 | parse","expect":"!{:origin :qlang/eval :kind :type-error :thrown :ParseSubjectNotString :message \"parse requires string subject, got number\" :operand \"parse\" :position \"subject\" :expectedType \"string\" :actualType \"number\"}"}
+{"name":"parse-non-string-subject","query":"42 | parse","expect":"!{:origin :qlang/eval :kind :type-error :thrown :ParseSubjectNotString :message \"parse requires String subject, got Number\" :operand \"parse\" :position \"subject\" :expectedType \"String\" :actualType \"Number\"}"}
 {"name":"parse-malformed-source-kind","query":"\"this is bad [\" | parse !| /kind","expect":":parse-error"}
 {"name":"parse-malformed-source-origin","query":"\"this is bad [\" | parse !| /origin","expect":":qlang/parse"}
 {"name":"parse-malformed-source-thrown","query":"\"this is bad [\" | parse !| /thrown","expect":":ParseError"}

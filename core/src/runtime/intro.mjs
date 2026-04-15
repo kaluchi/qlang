@@ -600,7 +600,7 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
 // level qlang operations from this point on.
 
 const ParseSubjectNotString = declareSubjectError(
-  'ParseSubjectNotString', 'parse', 'string');
+  'ParseSubjectNotString', 'parse', 'String');
 
 const EvalSubjectNotMap = declareSubjectError(
   'EvalSubjectNotMap', 'eval', 'AST Map');

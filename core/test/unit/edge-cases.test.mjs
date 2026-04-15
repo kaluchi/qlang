@@ -45,18 +45,18 @@ describe('types.mjs', () => {
   });
 
   it('describeType covers every value class', () => {
-    expect(describeType(null)).toBe('null');
-    expect(describeType(undefined)).toBe('null');
-    expect(describeType(true)).toBe('boolean');
-    expect(describeType(42)).toBe('number');
-    expect(describeType('s')).toBe('string');
-    expect(describeType(keyword('k'))).toBe('keyword');
+    expect(describeType(null)).toBe('Null');
+    expect(describeType(undefined)).toBe('Null');
+    expect(describeType(true)).toBe('Boolean');
+    expect(describeType(42)).toBe('Number');
+    expect(describeType('s')).toBe('String');
+    expect(describeType(keyword('k'))).toBe('Keyword');
     expect(describeType([])).toBe('Vec');
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(new Set())).toBe('Set');
-    expect(describeType({ type: 'function', arity: 0, fn: () => {} })).toBe('function');
-    expect(describeType(makeConduit(null))).toBe('conduit');
-    expect(describeType(Symbol('weird'))).toBe('unknown');
+    expect(describeType({ type: 'function', arity: 0, fn: () => {} })).toBe('Function');
+    expect(describeType(makeConduit(null))).toBe('Conduit');
+    expect(describeType(Symbol('weird'))).toBe('Unknown');
   });
 
   it('value-class predicates', () => {
@@ -365,7 +365,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('CountSubjectNotContainer');
     expect(caughtErr.context.operand).toBe('count');
-    expect(caughtErr.context.actualType).toBe('number');
+    expect(caughtErr.context.actualType).toBe('Number');
   });
 
   it('keys on non-Map → KeysSubjectNotMap', async () => {
@@ -379,7 +379,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('AddLeftNotNumber');
     expect(caughtErr.context.operand).toBe('add');
     expect(caughtErr.context.position).toBe(1);
-    expect(caughtErr.context.actualType).toBe('string');
+    expect(caughtErr.context.actualType).toBe('String');
   });
 
   it('add right non-number → AddRightNotNumber', async () => {
@@ -418,14 +418,14 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchError('[1 "two" 3] | sum');
     expect(caughtErr.name).toBe('SumElementNotNumber');
     expect(caughtErr.context.index).toBe(1);
-    expect(caughtErr.context.actualType).toBe('string');
+    expect(caughtErr.context.actualType).toBe('String');
   });
 
   it('gt across types → GtOperandsNotComparable', async () => {
     const caughtErr = await catchError('"a" | gt(5)');
     expect(caughtErr.name).toBe('GtOperandsNotComparable');
-    expect(caughtErr.context.leftType).toBe('string');
-    expect(caughtErr.context.rightType).toBe('number');
+    expect(caughtErr.context.leftType).toBe('String');
+    expect(caughtErr.context.rightType).toBe('Number');
   });
 
   it('lt across types → LtOperandsNotComparable (distinct class)', async () => {
@@ -437,7 +437,7 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchError('42 | /name');
     expect(caughtErr.name).toBe('ProjectionSubjectNotMap');
     expect(caughtErr.context.key).toBe('name');
-    expect(caughtErr.context.actualType).toBe('number');
+    expect(caughtErr.context.actualType).toBe('Number');
   });
 
   it('distribute on non-Vec → DistributeSubjectNotVec', async () => {
@@ -458,7 +458,7 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchError('5 | as(:five) | five(42)');
     expect(caughtErr.name).toBe('ApplyToNonFunction');
     expect(caughtErr.context.name).toBe('five');
-    expect(caughtErr.context.actualType).toBe('number');
+    expect(caughtErr.context.actualType).toBe('Number');
   });
 
   it('use on non-Map → UseSubjectNotMap', async () => {
@@ -519,7 +519,7 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | div(1)',      // DivLeftNotNumber
       '"a" | gt(5)',       // GtOperandsNotComparable
       '"a" | lt(5)',       // LtOperandsNotComparable
-      '42 | /name',        // ProjectionSubjectNotMap
+      'null | /name',      // ProjectionSubjectNotMap (Null subject — neither Map nor Vec)
       '{:a 1} * add(1)',   // DistributeSubjectNotVec
       '42 >> count'        // MergeSubjectNotVec
     ];

@@ -8,3 +8,14 @@
 {"name":"nested-quoted-projection","query":"{:\"a.b\" {:\"$ref\" 99}} | /\"a.b\"/\"$ref\"","expect":"99"}
 {"name":"mixed-quoted-and-bare-projection","query":"{:outer {:\"inner key\" 7}} | /outer/\"inner key\"","expect":"7"}
 {"name":"quoted-projection-empty-key","query":"{:\"\" 5} | /\"\"","expect":"5"}
+{"name":"vec-bare-index-zero","query":"[10 20 30] | /0","expect":"10"}
+{"name":"vec-bare-index-mid","query":"[10 20 30] | /1","expect":"20"}
+{"name":"vec-bare-index-negative","query":"[10 20 30] | /-1","expect":"30"}
+{"name":"vec-bare-index-oob","query":"[10 20 30] | /99","expect":"null"}
+{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | /-99","expect":"null"}
+{"name":"vec-non-integer-segment-null","query":"[10 20 30] | /name","expect":"null"}
+{"name":"polymorphic-deep-path","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | /items/0/id","expect":"1"}
+{"name":"polymorphic-negative-through-vec","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | /users/-1/email","expect":"\"b@x\""}
+{"name":"polymorphic-vec-then-map","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | /1/name","expect":"\"bob\""}
+{"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | /0","expect":"[0 1]"}
+{"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | /rows/1/0","expect":"3"}

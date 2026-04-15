@@ -336,17 +336,21 @@ async function evalSetLit(node, state) {
 
 // ─── Step 2: Projection ─────────────────────────────────────────
 
+// Projection walks a path of key segments, dispatching per-segment
+// on the current subject's kind — Map does keyword-lookup, Vec does
+// integer-index access with `Array.prototype.at`-style negative
+// support. Any subject outside {Map, Vec} at descent time raises
+// ProjectionSubjectNotMap (the name predates Vec support; kept for
+// stable per-site identity). A Vec subject with a non-integer
+// segment resolves to `null` — symmetric with the missing-key case
+// on a Map — so mixed-shape JSON paths like `/items/0/name` never
+// throw on a legitimate "this slot holds null" reading.
+const INTEGER_SEGMENT_RE = /^-?\d+$/;
+
 async function evalProjection(node, state) {
   let projectionCurrent = state.pipeValue;
   for (const projKey of node.keys) {
-    if (!isQMap(projectionCurrent)) {
-      throw new ProjectionSubjectNotMap({
-        key: projKey,
-        actualType: describeType(projectionCurrent),
-        actualValue: projectionCurrent
-      });
-    }
-    projectionCurrent = projectionCurrent.has(keyword(projKey)) ? projectionCurrent.get(keyword(projKey)) : NULL;
+    projectionCurrent = projectSegment(projectionCurrent, projKey);
     // Snapshots are transparent value wrappers — unwrap during
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
@@ -354,6 +358,24 @@ async function evalProjection(node, state) {
     if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get(KW_VALUE_FIELD);
   }
   return withPipeValue(state, projectionCurrent);
+}
+
+function projectSegment(subject, projKey) {
+  if (isQMap(subject)) {
+    const subjectKey = keyword(projKey);
+    return subject.has(subjectKey) ? subject.get(subjectKey) : NULL;
+  }
+  if (isVec(subject)) {
+    if (!INTEGER_SEGMENT_RE.test(projKey)) return NULL;
+    const segmentIndex = parseInt(projKey, 10);
+    const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
+    return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
+  }
+  throw new ProjectionSubjectNotMap({
+    key: projKey,
+    actualType: describeType(subject),
+    actualValue: subject
+  });
 }
 
 // ─── Step 3: Identifier lookup with optional captured args ──────

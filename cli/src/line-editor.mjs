@@ -1,9 +1,11 @@
 // Raw-mode terminal line editor with live syntax-highlighting,
 // bracketed-paste support, and multi-line buffer rendering, plus a
-// non-TTY fallback for pipes and scripted tests. Replaces
-// `node:readline` inside the REPL — the only reason readline went
-// out is that its line-buffered model cannot redraw the input as
-// the user types.
+// line-buffered flavour for non-TTY stdin (pipes, scripted tests).
+// The TTY flavour reads stdin in raw mode so every keystroke can
+// redraw the current buffer through the caller-supplied
+// `render(buffer)` step — line-buffered input cannot express a
+// keystroke-level redraw, so two flavours live in one factory
+// rather than a shared base.
 //
 // Two editor flavours, picked by `stdinStream.isTTY`:
 //

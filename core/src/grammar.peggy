@@ -398,7 +398,7 @@ MapEntries
 // to sit directly before or after a doc-attached entry without
 // disrupting the attachment chain.
 MapEntry
-  = docs:MapEntryDocPrefix? _L key:StringLit ":" _ value:PipelineInLiteral
+  = docs:MapEntryDocPrefix? _L key:StringLit _L ":" _L value:PipelineInLiteral
     { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value, docs: docs ?? [] }, location(), text()); }
   / docs:MapEntryDocPrefix? _L key:Keyword __ value:PipelineInLiteral
     { return node('MapEntry', { key, value, docs: docs ?? [] }, location(), text()); }
@@ -442,11 +442,25 @@ Projection
   = "/" first:KeySegment rest:("/" KeySegment)*
     { return node('Projection', { keys: [first, ...rest.map(r => r[1])] }, location(), text()); }
 
+// KeySegment bare forms — ordered by specificity:
+//   1. KeywordName handles the ID_Start-led case (letters, `@`,
+//      `_` first char; covers typical keys like `/name`, `/@tag`,
+//      `/_meta`). Must come before the IdentTail+ fallback so
+//      letter-led paths do not route through the looser rule.
+//   2. RelaxedKeyName handles digit-led or hyphen-led segments
+//      (`/0`, `/items/0/name`, `/-1`). These forms never appear as
+//      qlang identifiers in source but surface as JSON object keys
+//      (`{"0": …}`) and as Vec indices under the polymorphic
+//      projection in eval.mjs::projectSegment.
 KeySegment
   = ":" name:NamespacedName { return name; }
   / ":" name:KeywordName    { return name; }
   / QuotedKeywordName
   / KeywordName
+  / RelaxedKeyName
+
+RelaxedKeyName
+  = chars:IdentTail+ { return chars.join(''); }
 
 Scalar
   = StringLit
@@ -522,8 +536,25 @@ Ident
 ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
-IdentStart = [@_a-zA-Z]
-IdentTail  = [a-zA-Z0-9_-]
+// Unicode-aware identifier character classes, following UAX #31
+// `ID_Start` / `ID_Continue` — the same Unicode category set JS,
+// Python 3, and Rust accept in identifiers. `@` joins `ID_Start` as
+// the effect-marker sigil; `_` and `-` join `ID_Continue` because
+// qlang's idiomatic keyword form is kebab-case (`:user-id`,
+// `:before-count`). Cyrillic, Greek, CJK ideographs, Hebrew, Arabic
+// all parse bare — `/имя`, `/元素`, `/данные/пользователь` need no
+// quoting. Supplementary-plane characters (emoji, mathematical
+// alphanumerics) sit outside peggy's one-UTF-16-unit `.` match and
+// stay accessible through the quoted `/"…"` projection form.
+//
+// The character is captured with `.` then validated via a semantic
+// predicate; the regex literal runs with the `u` flag so
+// `\p{ID_Start}` / `\p{ID_Continue}` resolve against the Unicode
+// property tables.
+IdentStart "identifier start (letter, underscore, or @-sigil)"
+  = c:. &{ return /^[@_\p{ID_Start}]$/u.test(c); } { return c; }
+IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
+  = c:. &{ return /^[\p{ID_Continue}_\-]$/u.test(c); } { return c; }
 
 // --- Whitespace ------------------------------------------------
 //

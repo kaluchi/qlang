@@ -294,17 +294,17 @@ export function materializeTrail(errorValue) {
 // messages would lose the binding-kind hint.
 
 export function describeType(v) {
-  if (isNull(v)) return 'null';
-  if (isBoolean(v)) return 'boolean';
-  if (isNumber(v)) return 'number';
-  if (isString(v)) return 'string';
-  if (isKeyword(v)) return 'keyword';
+  if (isNull(v)) return 'Null';
+  if (isBoolean(v)) return 'Boolean';
+  if (isNumber(v)) return 'Number';
+  if (isString(v)) return 'String';
+  if (isKeyword(v)) return 'Keyword';
   if (isVec(v)) return 'Vec';
-  if (isConduit(v)) return 'conduit';
-  if (isSnapshot(v)) return 'snapshot';
+  if (isConduit(v)) return 'Conduit';
+  if (isSnapshot(v)) return 'Snapshot';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
-  if (isFunctionValue(v)) return 'function';
-  return 'unknown';
+  if (isFunctionValue(v)) return 'Function';
+  return 'Unknown';
 }

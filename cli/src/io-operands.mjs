@@ -55,7 +55,7 @@ const ErrRendererResultNotString =
       `@err renderer must produce a String, got ${actualType}`);
 
 const TapLabelNotKeyword =
-  declareModifierError('TapLabelNotKeyword', '@tap', 1, 'keyword');
+  declareModifierError('TapLabelNotKeyword', '@tap', 1, 'Keyword');
 
 // ── Operand factories ──────────────────────────────────────────
 

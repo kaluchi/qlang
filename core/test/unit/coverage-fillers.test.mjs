@@ -89,14 +89,14 @@ describe('equality.deepEqual rejection branches', async () => {
 });
 
 describe('describeType for conduit and snapshot', async () => {
-  it('describeType returns "snapshot" for a snapshot value', async () => {
+  it('describeType returns "Snapshot" for a snapshot value', async () => {
     const snap = makeSnapshot(42, { name: 'x' });
-    expect(describeType(snap)).toBe('snapshot');
+    expect(describeType(snap)).toBe('Snapshot');
   });
 
-  it('describeType returns "conduit" for a conduit value', async () => {
+  it('describeType returns "Conduit" for a conduit value', async () => {
     const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
-    expect(describeType(conduit)).toBe('conduit');
+    expect(describeType(conduit)).toBe('Conduit');
   });
 });
 

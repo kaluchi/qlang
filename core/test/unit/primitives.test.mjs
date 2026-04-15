@@ -92,17 +92,17 @@ describe('createPrimitiveRegistry — bind error classes', () => {
 
   it('rejects string keys with PrimitiveKeyNotKeyword', () => {
     expect(() => registry.bind('not-a-keyword', () => null))
-      .toThrow(/primitive key must be a keyword, got string/);
+      .toThrow(/primitive key must be a keyword, got String/);
   });
 
   it('rejects number keys', () => {
     expect(() => registry.bind(42, () => null))
-      .toThrow(/primitive key must be a keyword, got number/);
+      .toThrow(/primitive key must be a keyword, got Number/);
   });
 
   it('rejects plain object keys', () => {
     expect(() => registry.bind({ not: 'keyword' }, () => null))
-      .toThrow(/primitive key must be a keyword, got object/);
+      .toThrow(/primitive key must be a keyword, got Unknown/);
   });
 
   it('non-keyword rejection is a QlangInvariantError', () => {
@@ -113,7 +113,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.fingerprint).toBe('PrimitiveKeyNotKeyword');
       expect(e.kind).toBe('invariant-error');
-      expect(e.context.actualType).toBe('string');
+      expect(e.context.actualType).toBe('String');
     }
   });
 

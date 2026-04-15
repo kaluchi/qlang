@@ -4,17 +4,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
+import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
 
 const noopIo = {
   stdinReader: () => Promise.resolve(''),
   stdoutWrite: () => {},
   stderrWrite: () => {}
 };
-
-function thrownClassName(errorValue) {
-  const descriptor = errorValue.descriptor;
-  return [...descriptor].find(([k]) => k.name === 'thrown')[1].name;
-}
 
 describe('pretty', () => {
   it('renders a number as its qlang literal form', async () => {
@@ -107,6 +103,11 @@ describe('template — `{{key}}` Map projection', () => {
 describe('template — error sites', () => {
   it('lifts TemplateModifierNotString when the captured arg is not a String', async () => {
     const cellEntry = await runQuery('"x" | template(42)', noopIo);
-    expect(thrownClassName(cellEntry.result)).toBe('TemplateModifierNotString');
+    expectOperandErrorThrown(cellEntry, 'TemplateModifierNotString', {
+      operand: 'template',
+      position: 1,
+      expectedType: 'String',
+      actualType: 'Number'
+    });
   });
 });

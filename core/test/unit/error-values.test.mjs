@@ -156,8 +156,8 @@ describe('errorFromQlang', () => {
   it('converts QlangTypeError — kind, thrown, operand, actualValue filtered', () => {
     const typeErr = new QlangTypeError('bad type', {
       operand: 'add',
-      expectedType: 'number',
-      actualType: 'string',
+      expectedType: 'Number',
+      actualType: 'String',
       actualValue: 'SECRET-PII'
     });
     const errorVal = errorFromQlang(typeErr);

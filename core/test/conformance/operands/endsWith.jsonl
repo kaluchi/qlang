@@ -5,7 +5,7 @@
 {"name":"empty-suffix-always-true","query":"\"anything\" | endsWith(\"\")","expect":"true"}
 {"name":"empty-subject-empty-suffix","query":"\"\" | endsWith(\"\")","expect":"true"}
 {"name":"case-sensitive","query":"\"hello\" | endsWith(\"World\")","expect":"false"}
-{"name":"subject-not-string-throws","query":"42 | endsWith(\"x\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EndsWithSubjectNotString :message \"endsWith expects string at position 1, got number\" :operand \"endsWith\" :position 1 :expectedType \"string\" :actualType \"number\"}"}
-{"name":"suffix-not-string-throws","query":"\"hi\" | endsWith(42)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EndsWithSuffixNotString :message \"endsWith expects string at position 2, got number\" :operand \"endsWith\" :position 2 :expectedType \"string\" :actualType \"number\"}"}
+{"name":"subject-not-string-throws","query":"42 | endsWith(\"x\")","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EndsWithSubjectNotString :message \"endsWith expects String at position 1, got Number\" :operand \"endsWith\" :position 1 :expectedType \"String\" :actualType \"Number\"}"}
+{"name":"suffix-not-string-throws","query":"\"hi\" | endsWith(42)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EndsWithSuffixNotString :message \"endsWith expects String at position 2, got Number\" :operand \"endsWith\" :position 2 :expectedType \"String\" :actualType \"Number\"}"}
 {"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter(endsWith(\".txt\"))","expect":"[\"alice.txt\" \"alex.txt\"]"}
 {"name":"filter-by-projection-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter(/file | endsWith(\".qlang\")) * /file","expect":"[\"a.qlang\" \"c.qlang\"]"}

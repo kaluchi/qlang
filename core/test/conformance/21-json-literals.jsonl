@@ -36,3 +36,11 @@
 {"name":"json-full-roundtrip","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
 {"name":"json-objects-in-vec-project-count","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] * /v","expect":"[1000 2000 3000]"}
 {"name":"json-mixed-types-in-array","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
+{"name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | /имя","expect":"\"Алиса\""}
+{"name":"unicode-cyrillic-nested-projection","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | /пользователь/имя","expect":"\"Боб\""}
+{"name":"unicode-cyrillic-vec-projection","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] * /имя","expect":"[\"Алиса\" \"Боб\"]"}
+{"name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | /元素","expect":"42"}
+{"name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | /αβγ","expect":"\"ok\""}
+{"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | /user/имя","expect":"\"Алиса\""}
+{"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | [/пункт1, /пункт2]","expect":"[10 20]"}
+{"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | /имя-пользователя","expect":"\"alice\""}

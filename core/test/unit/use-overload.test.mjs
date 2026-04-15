@@ -145,7 +145,7 @@ describe('per-site error triple-assertions', () => {
     expect(originalErr.name).toBe('UseNamespaceNotMap');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.context.namespaceName).toBe('notamap');
-    expect(originalErr.context.actualType).toBe('number');
+    expect(originalErr.context.actualType).toBe('Number');
   });
 
   it('UseNamespaceCollision: name, instanceof, context', async () => {

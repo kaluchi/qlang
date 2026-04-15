@@ -14,14 +14,14 @@ import { describeType, keyword } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const AddLeftNotNumber  = declareModifierError('AddLeftNotNumber',  'add', 1, 'number');
-const AddRightNotNumber = declareModifierError('AddRightNotNumber', 'add', 2, 'number');
-const SubLeftNotNumber  = declareModifierError('SubLeftNotNumber',  'sub', 1, 'number');
-const SubRightNotNumber = declareModifierError('SubRightNotNumber', 'sub', 2, 'number');
-const MulLeftNotNumber  = declareModifierError('MulLeftNotNumber',  'mul', 1, 'number');
-const MulRightNotNumber = declareModifierError('MulRightNotNumber', 'mul', 2, 'number');
-const DivLeftNotNumber  = declareModifierError('DivLeftNotNumber',  'div', 1, 'number');
-const DivRightNotNumber = declareModifierError('DivRightNotNumber', 'div', 2, 'number');
+const AddLeftNotNumber  = declareModifierError('AddLeftNotNumber',  'add', 1, 'Number');
+const AddRightNotNumber = declareModifierError('AddRightNotNumber', 'add', 2, 'Number');
+const SubLeftNotNumber  = declareModifierError('SubLeftNotNumber',  'sub', 1, 'Number');
+const SubRightNotNumber = declareModifierError('SubRightNotNumber', 'sub', 2, 'Number');
+const MulLeftNotNumber  = declareModifierError('MulLeftNotNumber',  'mul', 1, 'Number');
+const MulRightNotNumber = declareModifierError('MulRightNotNumber', 'mul', 2, 'Number');
+const DivLeftNotNumber  = declareModifierError('DivLeftNotNumber',  'div', 1, 'Number');
+const DivRightNotNumber = declareModifierError('DivRightNotNumber', 'div', 2, 'Number');
 
 export const add = valueOp('add', 2, (a, b) => {
   if (typeof a !== 'number') throw new AddLeftNotNumber(describeType(a), a);

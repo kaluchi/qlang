@@ -8,6 +8,17 @@ the same way as any other binding in `env`. See
 evaluation model and [qlang-spec.md](qlang-spec.md)
 for the language syntax.
 
+**Host-bound operands.** The `@kaluchi/qlang-cli` workspace binds
+a fixed set of host operands on top of `langRuntime` — effectful
+I/O (`@in`, `@out`, `@err`, `@tap`), value formatters (`pretty`,
+`tjson`, `template`), and String-to-value parsers (`parseJson`,
+`parseTjson`). These are not part of the language core catalog;
+their contracts live in [`cli/README.md`](../cli/README.md).
+Another host (a browser playground, a server-side evaluator) is
+free to bind a different operand set — every binding uses the same
+dispatch wrappers from `@kaluchi/qlang-core/dispatch` and the same
+per-site error factories from `@kaluchi/qlang-core/operand-errors`.
+
 ## Convention
 
 Each entry lists:
@@ -52,6 +63,23 @@ form), positions 2..n are modifiers (filled by captured args).
 - **Arity** 1. **Subject** `vec`.
 - Returns the last element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | last` → `30`; `[] | last` → `null`.
+
+### `at(n)`
+
+- **Arity** 2. **Subject** `vec`. **Modifier** integer index.
+- Returns the element at position `n`. Accepts negative indices —
+  `at(-1)` is the last element, `at(-2)` the second-last. Out-of-range
+  indices return `null`, symmetric with the missing-key case on a
+  projection. `last` is the idiomatic shorthand for `at(-1)`.
+- **Example**: `[10 20 30] | at(1)` → `20`; `[10 20 30] | at(-1)` →
+  `30`; `[10 20 30] | at(99)` → `null`.
+- **Errors**: non-Vec subject → `AtSubjectNotVec`; non-integer index
+  (including non-integer Numbers such as `0.5`) → `AtIndexNotInteger`.
+- **See also**: bare-form projection `/n` on a Vec (e.g.
+  `/items/0/name`) — same indexed-access semantics without the
+  operand-call wrapper, polymorphic over Map (keyword lookup) and
+  Vec (integer index) so mixed JSON paths like `/users/-1/email`
+  descend through nested containers uniformly.
 
 ### `sum`
 
@@ -212,7 +240,7 @@ form), positions 2..n are modifiers (filled by captured args).
 
 ### `firstNonZero`
 
-- **Arity** 1. **Subject** Vec of numbers.
+- **Arity** 1. **Subject** Vec of Numbers.
 - Returns the first non-zero number in the Vec. If all elements
   are zero (or the Vec is empty), returns 0.
 - The composition primitive for compound comparators in `sortWith`:
@@ -949,7 +977,7 @@ the predicate:
 
 ```qlang
 > [1 "x" 3] * add(10) | filter(!| /thrown | eq(:AddLeftNotNumber))
-[!{:kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "number" :actualType "string" :trail []}]
+[!{:kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "Number" :actualType "String" :trail []}]
 ```
 
 ## Summary: unique operand names by category

@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { QlangTypeError } from '@kaluchi/qlang-core';
+import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
 
 function captureIoContext(stdinPayload = '') {
   const stdoutChunks = [];
@@ -46,11 +46,13 @@ describe('@out — bare form (0 captured)', () => {
   it('lifts OutSubjectNotString onto the fail-track when the subject is not a String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @out', io);
-    expect(cellEntry.error).toBeNull();
     expect(io.stdoutText()).toBe('');
-    const descriptor = cellEntry.result.descriptor;
-    const thrownValue = [...descriptor].find(([k]) => k.name === 'thrown')[1];
-    expect(thrownValue.name).toBe('OutSubjectNotString');
+    expectOperandErrorThrown(cellEntry, 'OutSubjectNotString', {
+      operand: '@out',
+      position: 'subject',
+      expectedType: 'String',
+      actualType: 'Number'
+    });
   });
 });
 
@@ -70,11 +72,10 @@ describe('@out — full-application form (1 captured)', () => {
     // an error value, not a string. @out's renderer-result type
     // check fires.
     const cellEntry = await runQuery('"x" | @out(add(1))', io);
-    expect(cellEntry.error).toBeNull();
     expect(io.stdoutText()).toBe('');
-    const descriptor = cellEntry.result.descriptor;
-    const thrownValue = [...descriptor].find(([k]) => k.name === 'thrown')[1];
-    expect(thrownValue.name).toBe('OutRendererResultNotString');
+    expectOperandErrorThrown(cellEntry, 'OutRendererResultNotString', {
+      actualType: 'Error'
+    });
   });
 });
 
@@ -91,9 +92,12 @@ describe('@err — bare form', () => {
   it('lifts ErrSubjectNotString onto the fail-track when the subject is not a String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @err', io);
-    const descriptor = cellEntry.result.descriptor;
-    const thrownValue = [...descriptor].find(([k]) => k.name === 'thrown')[1];
-    expect(thrownValue.name).toBe('ErrSubjectNotString');
+    expectOperandErrorThrown(cellEntry, 'ErrSubjectNotString', {
+      operand: '@err',
+      position: 'subject',
+      expectedType: 'String',
+      actualType: 'Vec'
+    });
   });
 });
 
@@ -108,9 +112,9 @@ describe('@err — full-application form', () => {
   it('lifts ErrRendererResultNotString when the renderer returns a non-String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | @err(add(1))', io);
-    const descriptor = cellEntry.result.descriptor;
-    const thrownValue = [...descriptor].find(([k]) => k.name === 'thrown')[1];
-    expect(thrownValue.name).toBe('ErrRendererResultNotString');
+    expectOperandErrorThrown(cellEntry, 'ErrRendererResultNotString', {
+      actualType: 'Error'
+    });
   });
 });
 
@@ -127,28 +131,11 @@ describe('@tap', () => {
   it('lifts TapLabelNotKeyword onto the fail-track when the label is not a keyword', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @tap("oops")', io);
-    const descriptor = cellEntry.result.descriptor;
-    const thrownValue = [...descriptor].find(([k]) => k.name === 'thrown')[1];
-    expect(thrownValue.name).toBe('TapLabelNotKeyword');
-  });
-});
-
-describe('every per-site I/O error class extends QlangTypeError', () => {
-  it('OutSubjectNotString instances pass instanceof QlangTypeError', async () => {
-    const io = captureIoContext();
-    const cellEntry = await runQuery('42 | @out', io);
-    // The error is materialised inside the descriptor; we check the
-    // shape via descriptor projection above. Here we sanity-check
-    // that the class name is exactly the per-site identifier — no
-    // generic fallback like `QlangTypeError`.
-    const descriptor = cellEntry.result.descriptor;
-    const thrownValue = [...descriptor].find(([k]) => k.name === 'thrown')[1];
-    expect(thrownValue.name).toBe('OutSubjectNotString');
-  });
-
-  // QlangTypeError is exported from core; importing it confirms the
-  // public re-export stays wired.
-  it('QlangTypeError is exported from @kaluchi/qlang-core', () => {
-    expect(typeof QlangTypeError).toBe('function');
+    expectOperandErrorThrown(cellEntry, 'TapLabelNotKeyword', {
+      operand: '@tap',
+      position: 1,
+      expectedType: 'Keyword',
+      actualType: 'String'
+    });
   });
 });

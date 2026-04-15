@@ -496,7 +496,7 @@ rather than crashing the query.
 ```qlang
 > [1 2 3] | add(1)
 !{:kind :type-error :thrown :AddLeftNotNumber :origin :qlang/eval
-  :operand "add" :position 1 :expectedType "number"
+  :operand "add" :position 1 :expectedType "Number"
   :actualType "Vec" :trail []}
 |~| add(1) was waiting for a number in position 1; the Vec triggered
 |~| the per-site class :AddLeftNotNumber. The descriptor lays out
@@ -2243,6 +2243,48 @@ This subpath imports only the dispatch wrappers without triggering
 the runtime bootstrap side effects that `@kaluchi/qlang-core/runtime`
 carries.
 
+### Plain-JSON value codec
+
+`toPlain(value)` and `fromPlain(json)` are the lossy bridge between
+qlang runtime values and *ordinary* JSON shapes — the kind of JSON
+a user produces with `curl`, `jq`, `kubectl`, or a hand-written
+`.json` file. Unlike the tagged-JSON codec below, plain JSON has
+no representation for qlang-only types; the codec pair trades
+fidelity for interoperability.
+
+| qlang value | plain JSON form |
+|---|---|
+| number / string / boolean | itself |
+| null | `null` |
+| Vec | JSON array of recursively-encoded elements |
+| Map with Keyword keys | JSON object — keys become `name` strings |
+| Map with non-keyword keys | **lossy** — encoded as a JSON array of `[k, v]` pairs |
+| keyword (as value) | **lossy** — encoded as its `name` string, indistinguishable from a String |
+| Set | **lossy** — encoded as a JSON array, identity as a Set is lost |
+| Error | **unencodable** — `toPlain` throws |
+
+The `fromPlain` direction lifts every JSON object into a Map with
+keyword keys (so `fromPlain({"name":"alice"}).get(keyword('name'))`
+returns `"alice"`), arrays into Vecs, and scalars through
+unchanged. Because plain JSON carries no Set / keyword-value / Error
+markers, `fromPlain(toPlain(value))` is identity only when `value`
+contains no lossy shape.
+
+```js
+import { toPlain, fromPlain, keyword } from '@kaluchi/qlang-core';
+
+const m = new Map([[keyword('name'), 'alice'], [keyword('age'), 30]]);
+toPlain(m);                       // { name: 'alice', age: 30 }
+
+const lifted = fromPlain({ items: [1, 2, 3] });
+lifted.get(keyword('items'));     // [1, 2, 3]
+```
+
+The CLI's `parseJson` operand runs `JSON.parse` then `fromPlain`,
+and the implicit script-mode stdin lift walks the same path.
+Use `toTaggedJSON` / `fromTaggedJSON` below when both endpoints
+speak qlang and identity must survive the round-trip.
+
 ### Tagged-JSON value codec
 
 `toTaggedJSON(value)` and `fromTaggedJSON(json)` are the canonical
@@ -2292,3 +2334,49 @@ reference for the per-function contract of `walkAst`,
 `astChildrenOf`, `findAstNodeAtOffset`, `findIdentifierOccurrences`,
 `bindingNamesVisibleAt`, `astNodeSpan`, `astNodeContainsOffset`,
 and `triviaBetweenAstNodes`.
+
+### Syntax highlighting — `tokenize`
+
+Renderers that colour qlang source (HTML for the docs site, ANSI
+for the CLI REPL, LSP semantic tokens for editors) share one
+AST-driven tokenizer — `tokenize(src, builtinNames)` from the
+`@kaluchi/qlang-core/highlight` subpath export. The entire token
+stream is re-derived from the parser's AST, so every renderer
+categorises identifiers, literals, and structural punctuation the
+same way; palettes are the only thing that differs.
+
+```js
+import { tokenize, langRuntime } from '@kaluchi/qlang-core';
+
+const builtinNames = new Set([...langRuntime().keys()]
+  .filter((k) => typeof k === 'string'));
+const tokens = tokenize('[1 2 3] | filter(gt(1))', builtinNames);
+// [{ start, end, kind }, ...]
+```
+
+**Coverage invariant** — the returned array is flat, sorted by
+`start`, non-overlapping, and gap-free: every byte offset in
+`[0, src.length]` falls inside exactly one token. A renderer can
+walk the array and concatenate slices without extra bookkeeping.
+
+**Token kinds:**
+
+| `kind` | matches |
+|---|---|
+| `string` | String literal, including surrounding quotes |
+| `number` | Number literal plus `true` / `false` / `null` |
+| `comment` | Any comment form (line plain, line doc, block plain, block doc) |
+| `atom` | `:name` keyword OR an OperandCall name that resolves through a user-defined binding |
+| `effect` | `:@name` keyword OR an `@`-prefixed OperandCall (effectful host operand or conduit) |
+| `operand` | OperandCall name that resolves to a builtin from `langRuntime`, plus each key segment of a `Projection` |
+| `keyword` | `let` and `as` — the binding-introducing operands |
+| `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
+| `set` | `#{` opener and matching `}` closer of a SetLit |
+| `vec` | `[` opener and matching `]` closer of a VecLit |
+| `punct` | Every other combinator (`\|`, `*`, `>>`), MapLit / arg-list brackets, commas, dots, and the `/` separator inside a `Projection` |
+| `whitespace` | Runs of whitespace between meaningful tokens; also the entire input on a parse failure (safe fallback for live-typing render paths) |
+
+Builtin names are supplied by the caller so the tokenizer stays
+free of `langRuntime` side effects — a bundler-sensitive host can
+tree-shake away the runtime and synthesise the set from a static
+list, and a test can narrow the set to a minimal stub.

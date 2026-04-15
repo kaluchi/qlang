@@ -1161,6 +1161,40 @@ invocations.
 - `await deserializeSession(json)` — rebuilds a session from a
   serialized payload. Cell history is restored without re-evaluation.
 
+### `runtime/format.mjs` — value formatters and plain-JSON codec
+
+Three public entries, all kind-table dispatches keyed off
+`describeType`:
+
+- `printValue(v)` — qlang-literal display form (`42`, `"hi"`,
+  `:role`, `[1 2 3]`, `#{:a :b}`, `{:k :v}`, `!{:kind :K}`).
+  Round-trips through `parse + evalQuery` back to the same value.
+- `toPlain(v)` — qlang value → JSON-serializable JS shape. Lossy
+  for Set (→ array), keyword-as-value (→ string), and non-keyword
+  Map keys (→ `[k, v]` pair array). Throws on Error values.
+- `fromPlain(json)` — inverse lift: JSON objects become Maps with
+  interned keyword keys, arrays become Vecs, scalars pass through.
+
+The round-trip `fromPlain(toPlain(v))` is identity only when `v`
+contains no lossy shape. For bijective round-trips use
+`codec.mjs::toTaggedJSON` / `fromTaggedJSON` below.
+
+### `highlight.mjs` — AST-driven syntax tokenizer
+
+`tokenize(src, builtinNames) → Array<{ start, end, kind }>`. The
+returned array is sorted by `start`, non-overlapping, and gap-free
+over `[0, src.length]` — every byte falls inside exactly one
+token. Renderers (HTML, ANSI, LSP semantic tokens) share the
+stream; palettes differ, categorisation does not. Eleven kinds:
+`string`, `number`, `comment`, `atom`, `effect`, `operand`,
+`keyword`, `err`, `set`, `vec`, `punct`, `whitespace`.
+
+Effect-marker classification (`atom` vs `effect`) routes through
+`effect.mjs::EFFECT_MARKER_PREFIX` — the single source of truth
+for the `@`-prefix surface convention. On a parse failure, the
+whole source is returned as one `whitespace` token so live-typing
+render paths never throw between keystrokes.
+
 ### `codec.mjs` — tagged-JSON value codec
 
 Canonical encoder/decoder pair for qlang runtime values across
@@ -1211,8 +1245,34 @@ import {
   findIdentifierOccurrences, bindingNamesVisibleAt,
   astNodeSpan, astNodeContainsOffset, triviaBetweenAstNodes,
   toTaggedJSON, fromTaggedJSON,
+  printValue, toPlain, fromPlain,
+  tokenize,
+  keyword, isKeyword, isErrorValue, describeType,
   QlangError, QlangTypeError, ParseError,
   EffectLaunderingError,
   classifyEffect, EFFECT_MARKER_PREFIX
 } from '@kaluchi/qlang-core';
 ```
+
+Subpath exports (tree-shaking-friendly):
+
+- `@kaluchi/qlang-core/parse` — parser only.
+- `@kaluchi/qlang-core/eval` — evaluator only.
+- `@kaluchi/qlang-core/runtime` — `langRuntime()` and the
+  runtime-module registry.
+- `@kaluchi/qlang-core/session` — `createSession` without the full
+  runtime bootstrap.
+- `@kaluchi/qlang-core/walk` — AST traversal + AST ↔ Map codec.
+- `@kaluchi/qlang-core/codec` — tagged-JSON value codec.
+- `@kaluchi/qlang-core/errors` — error class hierarchy.
+- `@kaluchi/qlang-core/effect-check` — AST effect-marker decoration.
+- `@kaluchi/qlang-core/dispatch` — `nullaryOp`, `valueOp`,
+  `stateOp`, `overloadedOp` for host operand registration.
+- `@kaluchi/qlang-core/operand-errors` — per-site error-class
+  factories (`declareSubjectError`, `declareModifierError`,
+  `declareElementError`, `declareComparabilityError`,
+  `declareShapeError`, `declareArityError`).
+- `@kaluchi/qlang-core/highlight` — `tokenize` only. Consumed by
+  the CLI's ANSI renderer and the site's HTML renderer.
+- `@kaluchi/qlang-core/host/module-resolver` — filesystem-backed
+  module discovery and installation.

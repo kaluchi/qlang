@@ -12,7 +12,7 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'Map');
 const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'Map');
 const HasSubjectNotMapOrSet = declareSubjectError('HasSubjectNotMapOrSet', 'has',   'Map or Set');
-const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'keyword (Map subject)');
+const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'Keyword (Map subject)');
 
 export const keys = nullaryOp('keys', (map) => {
   if (!isQMap(map)) throw new KeysSubjectNotMap(describeType(map), map);

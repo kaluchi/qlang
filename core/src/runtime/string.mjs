@@ -13,21 +13,21 @@ import {
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const PrependSubjectNotString    = declareModifierError('PrependSubjectNotString',    'prepend',    1, 'string');
-const PrependPrefixNotString     = declareModifierError('PrependPrefixNotString',     'prepend',    2, 'string');
-const AppendSubjectNotString     = declareModifierError('AppendSubjectNotString',     'append',     1, 'string');
-const AppendSuffixNotString      = declareModifierError('AppendSuffixNotString',      'append',     2, 'string');
-const SplitSubjectNotString      = declareModifierError('SplitSubjectNotString',      'split',      1, 'string');
-const SplitSeparatorNotString    = declareModifierError('SplitSeparatorNotString',    'split',      2, 'string');
-const JoinSubjectNotVec          = declareSubjectError('JoinSubjectNotVec',           'join',       'Vec of strings');
-const JoinElementNotString       = declareElementError('JoinElementNotString',        'join',       'string');
-const JoinSeparatorNotString     = declareModifierError('JoinSeparatorNotString',     'join',       2, 'string');
-const ContainsSubjectNotString   = declareModifierError('ContainsSubjectNotString',   'contains',   1, 'string');
-const ContainsNeedleNotString    = declareModifierError('ContainsNeedleNotString',    'contains',   2, 'string');
-const StartsWithSubjectNotString = declareModifierError('StartsWithSubjectNotString', 'startsWith', 1, 'string');
-const StartsWithPrefixNotString  = declareModifierError('StartsWithPrefixNotString',  'startsWith', 2, 'string');
-const EndsWithSubjectNotString   = declareModifierError('EndsWithSubjectNotString',   'endsWith',   1, 'string');
-const EndsWithSuffixNotString    = declareModifierError('EndsWithSuffixNotString',    'endsWith',   2, 'string');
+const PrependSubjectNotString    = declareModifierError('PrependSubjectNotString',    'prepend',    1, 'String');
+const PrependPrefixNotString     = declareModifierError('PrependPrefixNotString',     'prepend',    2, 'String');
+const AppendSubjectNotString     = declareModifierError('AppendSubjectNotString',     'append',     1, 'String');
+const AppendSuffixNotString      = declareModifierError('AppendSuffixNotString',      'append',     2, 'String');
+const SplitSubjectNotString      = declareModifierError('SplitSubjectNotString',      'split',      1, 'String');
+const SplitSeparatorNotString    = declareModifierError('SplitSeparatorNotString',    'split',      2, 'String');
+const JoinSubjectNotVec          = declareSubjectError('JoinSubjectNotVec',           'join',       'Vec of Strings');
+const JoinElementNotString       = declareElementError('JoinElementNotString',        'join',       'String');
+const JoinSeparatorNotString     = declareModifierError('JoinSeparatorNotString',     'join',       2, 'String');
+const ContainsSubjectNotString   = declareModifierError('ContainsSubjectNotString',   'contains',   1, 'String');
+const ContainsNeedleNotString    = declareModifierError('ContainsNeedleNotString',    'contains',   2, 'String');
+const StartsWithSubjectNotString = declareModifierError('StartsWithSubjectNotString', 'startsWith', 1, 'String');
+const StartsWithPrefixNotString  = declareModifierError('StartsWithPrefixNotString',  'startsWith', 2, 'String');
+const EndsWithSubjectNotString   = declareModifierError('EndsWithSubjectNotString',   'endsWith',   1, 'String');
+const EndsWithSuffixNotString    = declareModifierError('EndsWithSuffixNotString',    'endsWith',   2, 'String');
 
 export const prepend = valueOp('prepend', 2, (subject, prefix) => {
   if (typeof subject !== 'string') throw new PrependSubjectNotString(describeType(subject), subject);

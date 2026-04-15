@@ -6,7 +6,7 @@
 {"name":"any-with-projection","query":"[{:active false} {:active true}] | any(/active)","expect":"true"}
 {"name":"any-with-projection-none","query":"[{:active false} {:active false}] | any(/active)","expect":"false"}
 {"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any(/role | eq(:admin))","expect":"true"}
-{"name":"any-on-non-vec-throws","query":"42 | any(gt(0))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AnySubjectNotVec :message \"any requires Vec subject, got number\" :operand \"any\" :position \"subject\" :expectedType \"Vec\" :actualType \"number\"}"}
+{"name":"any-on-non-vec-throws","query":"42 | any(gt(0))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AnySubjectNotVec :message \"any requires Vec subject, got Number\" :operand \"any\" :position \"subject\" :expectedType \"Vec\" :actualType \"Number\"}"}
 {"name":"any-short-circuits","query":"[1 2 99] | any(gt(50))","expect":"true"}
 {"name":"any-as-filter-equivalence","query":"[1 2 3] | filter(gt(2)) | empty | not | eq([1 2 3] | any(gt(2)))","expect":"true"}
 {"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any(startsWith(\"al\"))","expect":"true"}

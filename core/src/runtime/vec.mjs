@@ -45,18 +45,20 @@ const IndexByKeyNotKeyword        = declareShapeError('IndexByKeyNotKeyword',
 const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'Vec');
 const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'Vec');
 const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'Vec');
-const FirstNonZeroSubjectNotVec   = declareSubjectError('FirstNonZeroSubjectNotVec',   'firstNonZero', 'Vec of numbers');
+const FirstNonZeroSubjectNotVec   = declareSubjectError('FirstNonZeroSubjectNotVec',   'firstNonZero', 'Vec of Numbers');
 const TakeSubjectNotVec           = declareSubjectError('TakeSubjectNotVec',           'take',     'Vec');
 const DropSubjectNotVec           = declareSubjectError('DropSubjectNotVec',           'drop',     'Vec');
 const DistinctSubjectNotVec       = declareSubjectError('DistinctSubjectNotVec',       'distinct', 'Vec');
 const ReverseSubjectNotVec        = declareSubjectError('ReverseSubjectNotVec',        'reverse',  'Vec');
 const FlatSubjectNotVec           = declareSubjectError('FlatSubjectNotVec',           'flat',     'Vec');
 
-const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'number');
-const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'number');
+const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'Number');
+const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'Number');
+const AtSubjectNotVec    = declareSubjectError('AtSubjectNotVec',    'at',   'Vec');
+const AtIndexNotInteger  = declareModifierError('AtIndexNotInteger', 'at',   2, 'Integer');
 
-const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'number');
-const FirstNonZeroElementNotNumber = declareElementError('FirstNonZeroElementNotNumber', 'firstNonZero', 'number');
+const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'Number');
+const FirstNonZeroElementNotNumber = declareElementError('FirstNonZeroElementNotNumber', 'firstNonZero', 'Number');
 
 const MinElementsNotComparable    = declareComparabilityError('MinElementsNotComparable',    'min');
 const MaxElementsNotComparable    = declareComparabilityError('MaxElementsNotComparable',    'max');
@@ -68,7 +70,7 @@ const NullsFirstKeysNotComparable = declareComparabilityError('NullsFirstKeysNot
 const NullsLastKeysNotComparable  = declareComparabilityError('NullsLastKeysNotComparable',  'nullsLast');
 
 const SortWithCmpResultNotNumber = declareShapeError('SortWithCmpResultNotNumber',
-  ({ actualType }) => `sortWith comparator must return a number, got ${actualType}`);
+  ({ actualType }) => `sortWith comparator must return a Number, got ${actualType}`);
 const AscPairNotMap = declareShapeError('AscPairNotMap',
   ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
 const DescPairNotMap = declareShapeError('DescPairNotMap',
@@ -142,7 +144,7 @@ export const max = nullaryOp('max', (vec) => {
 function checkComparable(ErrorCls, left, right) {
   const leftType = describeType(left);
   const rightType = describeType(right);
-  const isScalar = (t) => t === 'number' || t === 'string';
+  const isScalar = (t) => t === 'Number' || t === 'String';
   if (!isScalar(leftType) || !isScalar(rightType) || leftType !== rightType) {
     throw new ErrorCls(leftType, rightType);
   }
@@ -255,6 +257,21 @@ export const take = valueOp('take', 2, (vec, n) => {
   if (!isVec(vec)) throw new TakeSubjectNotVec(describeType(vec), vec);
   if (typeof n !== 'number') throw new TakeCountNotNumber(describeType(n), n);
   return vec.slice(0, n);
+});
+
+// `at` — indexed access with Array.prototype.at-style negative indices.
+// Out-of-bounds returns null, mirroring the Map-miss / Vec-miss symmetry
+// of the projection operator. Non-integer Number subjects (e.g. `at(0.5)`)
+// raise a modifier-shape error because silent coercion would mask the
+// caller's intent. `last` remains in the catalog as the idiomatic shorthand
+// for `at(-1)`; the two are semantically identical.
+export const at = valueOp('at', 2, (vec, atIndex) => {
+  if (!isVec(vec)) throw new AtSubjectNotVec(describeType(vec), vec);
+  if (typeof atIndex !== 'number' || !Number.isInteger(atIndex)) {
+    throw new AtIndexNotInteger(describeType(atIndex), atIndex);
+  }
+  const resolvedIndex = atIndex < 0 ? vec.length + atIndex : atIndex;
+  return (resolvedIndex >= 0 && resolvedIndex < vec.length) ? vec[resolvedIndex] : NULL;
 });
 
 export const drop = valueOp('drop', 2, (vec, n) => {
@@ -396,6 +413,7 @@ PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/groupBy'),      groupBy);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/indexBy'),      indexBy);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sort'),         sort);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/take'),         take);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/at'),           at);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/drop'),         drop);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/distinct'),     distinct);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reverse'),      reverse);

@@ -20,8 +20,8 @@ import {
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 // One shared dispatch: `describeType(v)` classifies any qlang value
-// into a stable string kind ('null' | 'number' | 'string' |
-// 'boolean' | 'keyword' | 'Vec' | 'Map' | 'Set' | 'Error' | …).
+// into a stable string kind ('Null' | 'Number' | 'String' |
+// 'Boolean' | 'Keyword' | 'Vec' | 'Map' | 'Set' | 'Error' | …).
 // Each consumer keeps only a kind→handler table — the "what kind
 // is this?" probe lives in one place (types.mjs), and the "what to
 // do per kind?" logic sits next to the consumer's intent. No
@@ -60,11 +60,11 @@ const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'M
 // the `String(v)` branch because raw function values never enter
 // pipeValue under Variant-B dispatch.
 const TO_PLAIN_HANDLERS = {
-  null:     () => null,
-  number:   v => v,
-  string:   v => v,
-  boolean:  v => v,
-  keyword:  k => ':' + k.name,
+  Null:     () => null,
+  Number:   v => v,
+  String:   v => v,
+  Boolean:  v => v,
+  Keyword:  k => ':' + k.name,
   Vec:      v => v.map(toPlain),
   Map:      qMapToPlainObject,
   Set:      s => [...s].map(toPlain),
@@ -111,11 +111,11 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 // Maps and errors with more than 2 entries are pretty-printed
 // with one entry per line for readability.
 const PRINT_HANDLERS = {
-  null:     () => 'null',
-  boolean:  v => String(v),
-  number:   v => String(v),
-  string:   escapeQlangStringLiteral,
-  keyword:  k => ':' + k.name,
+  Null:     () => 'null',
+  Boolean:  v => String(v),
+  Number:   v => String(v),
+  String:   escapeQlangStringLiteral,
+  Keyword:  k => ':' + k.name,
   Error:    (e, indent) => printMapLike('!{', e.descriptor, indent),
   Vec:      (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:      (m, indent) => printMapLike('{', m, indent),

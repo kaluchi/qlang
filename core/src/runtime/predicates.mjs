@@ -21,7 +21,7 @@ const LteOperandsNotComparable = declareComparabilityError('LteOperandsNotCompar
 function orderingCheck(ErrorCls, left, right) {
   const lt = describeType(left);
   const rt = describeType(right);
-  const isScalar = (t) => t === 'number' || t === 'string';
+  const isScalar = (t) => t === 'Number' || t === 'String';
   if (!isScalar(lt) || !isScalar(rt) || lt !== rt) {
     throw new ErrorCls(lt, rt);
   }

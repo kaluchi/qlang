@@ -62,11 +62,12 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     expect(isQMap(coreEnv)).toBe(true);
   });
 
-  it('holds exactly 69 entries — one per built-in operand', async () => {
+  it('holds exactly 70 entries — one per built-in operand', async () => {
     // 67 original + `parse` + `eval` (Step 10 — the code-as-data
-    // ring closer) = 69 reflective-heavy total under Variant B.
+    // ring closer) + `at` (indexed Vec access with negative-index
+    // support) = 70 entries under Variant B.
     const coreEnv = await evalCore();
-    expect(coreEnv.size).toBe(69);
+    expect(coreEnv.size).toBe(70);
   });
 
   it('every entry value is a Map with :qlang/kind :builtin', async () => {
@@ -303,7 +304,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get(keyword('category'));
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('vec-reducer')).toBe(10);
+    expect(categories.get('vec-reducer')).toBe(11);  // + at (indexed access)
     expect(categories.get('vec-transformer')).toBe(10);  // set is :set-op in manifest taxonomy
     expect(categories.get('comparator')).toBe(4);
     expect(categories.get('control')).toBe(6);
@@ -316,7 +317,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
     expect(categories.get('error')).toBe(2);
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
-    expect(sum).toBe(69);
+    expect(sum).toBe(70);
   });
 });
 

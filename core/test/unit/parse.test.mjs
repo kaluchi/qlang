@@ -440,3 +440,144 @@ describe('parse — per-node location and text', () => {
       .toBe(ast.text);
   });
 });
+
+describe('parse — projection with digit-led / hyphen-led bare segments', () => {
+  it('parses `/0` as a single-segment projection with key "0"', () => {
+    const ast = parse('/0');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['0']);
+  });
+
+  it('parses `/-1` as a single-segment projection with key "-1"', () => {
+    const ast = parse('/-1');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['-1']);
+  });
+
+  it('parses `/items/0/name` as a three-segment mixed path', () => {
+    const ast = parse('/items/0/name');
+    expect(ast.keys).toEqual(['items', '0', 'name']);
+  });
+
+  it('parses `/rows/-1/0` as a three-segment mixed path with negative index', () => {
+    const ast = parse('/rows/-1/0');
+    expect(ast.keys).toEqual(['rows', '-1', '0']);
+  });
+
+  it('bare digit-led segments only appear inside projections, not as keyword literals', () => {
+    // `:0` remains a parse error — keyword literals still require
+    // IdentStart. JSON numeric keys reach qlang as keyword values via
+    // parseJson / object-literal parsing, not via `:0` source syntax.
+    expect(() => parse(':0')).toThrow(ParseError);
+  });
+});
+
+describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
+  it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
+    const ast = parse('{ "name" : "alice" }');
+    expect(ast.type).toBe('MapLit');
+    expect(ast.entries).toHaveLength(1);
+    expect(ast.entries[0].key.name).toBe('name');
+    expect(ast.entries[0].value.value).toBe('alice');
+  });
+
+  it('accepts whitespace around colon with digit-led string key', () => {
+    const ast = parse('{ "0" : [0, 1] }');
+    expect(ast.entries[0].key.name).toBe('0');
+    expect(ast.entries[0].value.type).toBe('VecLit');
+  });
+
+  it('accepts newline between string key and colon', () => {
+    const ast = parse('{"name"\n:\n"alice"}');
+    expect(ast.entries[0].key.name).toBe('name');
+    expect(ast.entries[0].value.value).toBe('alice');
+  });
+
+  it('keyword-form still requires at least one whitespace between key and value', () => {
+    // `:name"alice"` with no space would be ambiguous; the keyword form
+    // uses `__` (required whitespace). Verify the separation is still
+    // enforced so we do not accidentally relax the keyword entry rule.
+    expect(() => parse('{:name"alice"}')).toThrow(ParseError);
+  });
+});
+
+describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () => {
+  it('parses a Cyrillic bare keyword', () => {
+    const ast = parse(':имя');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('имя');
+  });
+
+  it('parses a CJK bare keyword', () => {
+    const ast = parse(':元素');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('元素');
+  });
+
+  it('parses a Greek bare keyword', () => {
+    const ast = parse(':αβγ');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('αβγ');
+  });
+
+  it('parses a Cyrillic projection segment', () => {
+    const ast = parse('/имя');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['имя']);
+  });
+
+  it('parses a multi-segment Cyrillic projection', () => {
+    const ast = parse('/пользователь/имя');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['пользователь', 'имя']);
+  });
+
+  it('parses a mixed Cyrillic + ASCII projection', () => {
+    const ast = parse('/user/имя');
+    expect(ast.type).toBe('Projection');
+    expect(ast.keys).toEqual(['user', 'имя']);
+  });
+
+  it('accepts digits and hyphens in Unicode identifiers (ID_Continue)', () => {
+    const ast = parse(':пользователь-42');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('пользователь-42');
+  });
+
+  it('parses a Cyrillic operand-call identifier', () => {
+    const ast = parse('посчитать(1)');
+    expect(ast.type).toBe('OperandCall');
+    expect(ast.name).toBe('посчитать');
+  });
+
+  it('parses a namespaced keyword with Cyrillic segments', () => {
+    const ast = parse(':проект/пользователь');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('проект/пользователь');
+  });
+
+  it('rejects a digit as identifier start (leading-digit rule still holds)', () => {
+    expect(() => parse(':1name')).toThrow(ParseError);
+  });
+
+  it('rejects bracket / punctuation as identifier start (not in ID_Start)', () => {
+    expect(() => parse(':<tag')).toThrow(ParseError);
+    expect(() => parse(':{key')).toThrow(ParseError);
+    expect(() => parse(':!sigil')).toThrow(ParseError);
+  });
+
+  it('accepts digits and hyphens mid-identifier (ID_Continue)', () => {
+    expect(parse(':имя42').name).toBe('имя42');
+    expect(parse(':item-01').name).toBe('item-01');
+  });
+
+  it('supplementary-plane characters (emoji) fall through to the quoted form', () => {
+    // The bare form rejects the surrogate pair — peggy's `.` matches one
+    // UTF-16 code unit, so 🙂 (2 code units) does not satisfy IdentStart.
+    expect(() => parse(':🙂')).toThrow(ParseError);
+    // The quoted form accepts it verbatim.
+    const ast = parse(':"🙂"');
+    expect(ast.type).toBe('Keyword');
+    expect(ast.name).toBe('🙂');
+  });
+});

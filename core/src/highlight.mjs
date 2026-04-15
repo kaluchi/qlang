@@ -39,8 +39,11 @@
 
 import { parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
+import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
 const BINDING_OPERAND_NAMES = new Set(['let', 'as']);
+const KEYWORD_SIGIL = ':';
+const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
 // ── Public surface ────────────────────────────────────────────
 
@@ -90,7 +93,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'Keyword': {
         const keywordText = src.slice(startOffset, endOffset);
-        const kind = keywordText.startsWith(':@') ? 'effect' : 'atom';
+        const kind = keywordText.startsWith(EFFECT_KEYWORD_PREFIX) ? 'effect' : 'atom';
         spans.push({ start: startOffset, end: endOffset, kind });
         return false;
       }
@@ -127,9 +130,9 @@ function collectSemanticSpans(src, ast, builtinNames) {
 }
 
 function classifyOperandName(operandName, builtinNames) {
-  if (operandName.startsWith('@'))             return 'effect';
-  if (BINDING_OPERAND_NAMES.has(operandName))  return 'keyword';
-  if (builtinNames.has(operandName))           return 'operand';
+  if (operandName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
+  if (BINDING_OPERAND_NAMES.has(operandName))       return 'keyword';
+  if (builtinNames.has(operandName))                return 'operand';
   return 'atom';
 }
 

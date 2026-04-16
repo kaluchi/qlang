@@ -17,10 +17,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import {
-  isTruthy, describeType, keyword,
-  isString, isNumber, isVec, isQSet, isKeyword, isBoolean, isNull
-} from '../types.mjs';
+import { isTruthy, describeType, keyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
@@ -69,18 +66,19 @@ export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 
 // ── Type-classifier nullary operands ───────────────────────────
 // Every qlang value produces `true` from exactly one classifier.
-// `isMap` routes through `describeType` so conduit / snapshot
-// descriptor Maps — structurally `v instanceof Map` — classify
-// as `Conduit` / `Snapshot` rather than `Map`.
+// Each classifier asks `describeType` for a single label — the
+// ladder in types.mjs is the single source of truth, so
+// subtype-wrapping descriptors (Conduit, Snapshot) partition out
+// of `isMap` without per-classifier layering here.
 
-export const isStringOp  = nullaryOp('isString',  (subject) => isString(subject));
-export const isNumberOp  = nullaryOp('isNumber',  (subject) => isNumber(subject));
-export const isVecOp     = nullaryOp('isVec',     (subject) => isVec(subject));
+export const isStringOp  = nullaryOp('isString',  (subject) => describeType(subject) === 'String');
+export const isNumberOp  = nullaryOp('isNumber',  (subject) => describeType(subject) === 'Number');
+export const isVecOp     = nullaryOp('isVec',     (subject) => describeType(subject) === 'Vec');
 export const isMapOp     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
-export const isSetOp     = nullaryOp('isSet',     (subject) => isQSet(subject));
-export const isKeywordOp = nullaryOp('isKeyword', (subject) => isKeyword(subject));
-export const isBooleanOp = nullaryOp('isBoolean', (subject) => isBoolean(subject));
-export const isNullOp    = nullaryOp('isNull',    (subject) => isNull(subject));
+export const isSetOp     = nullaryOp('isSet',     (subject) => describeType(subject) === 'Set');
+export const isKeywordOp = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
+export const isBooleanOp = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
+export const isNullOp    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/eq'),  eq);

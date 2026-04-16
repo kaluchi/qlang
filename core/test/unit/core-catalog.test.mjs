@@ -225,16 +225,15 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
     expect(evalResult.get(keyword('category'))).toBe(keyword('control'));
   });
 
-  it('bare `count` still fires because count is nullary', async () => {
-    // count has minCaptured 0 — the nullary dispatch path still
-    // applies bare lookup rather than substituting the descriptor.
-    // This is what keeps `[1 2 3] | count` meaning "apply count to
-    // the Vec" under the new dispatch.
+  it('bare `count` fires because count is nullary', async () => {
+    // count has minCaptured 0, so the nullary dispatch path applies
+    // bare lookup rather than substituting the descriptor. That is
+    // what makes `[1 2 3] | count` mean "apply count to the Vec".
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('bare `sort` still fires because sort overload includes nullary', async () => {
+  it('bare `sort` fires because sort overload includes nullary', async () => {
     // sort is overloaded at 0 or 1 captured args. overloadedOp
     // emits captured [0, 1], so minCaptured is 0 and bare sort
     // fires its nullary branch.

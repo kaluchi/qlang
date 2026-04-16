@@ -515,8 +515,8 @@ keyword-keyed Map you can read at a glance.
 The full machinery for inspecting, recovering from, and routing
 around errors — the deflect rule for `|`, the `!|` fail-track
 combinator, the trail, the materialised descriptor — is covered
-in [Error track](#error-track). For now it is enough to recognise
-errors when they appear and read them as data.
+in [Error track](#error-track). At this point it is enough to
+recognise errors when they appear and read them as data.
 
 ### Combinator absorption — quick rule
 
@@ -1257,7 +1257,7 @@ attachment — the docs around them still collect into the binding's
 A binding's docs are not lost in the AST — they end up on the
 descriptor that [Reflection](#reflection) exposes through the
 `reify` operand. The full example sits in the `reify` subsection;
-here it is enough to know that docs are addressable.
+the takeaway here is that docs are addressable.
 
 #### Enrichment via shadowing
 
@@ -2156,8 +2156,9 @@ installModules(session, catalog);
 
 - **`resolveModules(libDir, opts?)`** — discovers, evaluates, and
   returns a `Map<keyword, Map>` catalog. Each module is evaluated
-  in its own env snapshot built from `baseEnv` plus all previously
-  resolved modules, so earlier modules are visible to later ones.
+  in its own env snapshot built from `baseEnv` plus the modules
+  resolved earlier in the same pass, so upstream modules are
+  visible to downstream ones.
   Options:
   - `opts.baseEnv` — initial env (default: `langRuntime()`).
   - `opts.dependencies` — `Map<namespaceName, string[]>` for explicit

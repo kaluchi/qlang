@@ -9,9 +9,8 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
-import { isErrorValue, isQMap, isQSet, isVec, keyword } from '../../src/types.mjs';
+import { isQMap, isQSet, keyword } from '../../src/types.mjs';
 import {
-  expectErrorKind,
   expectErrorThrown,
   expectOriginalError
 } from '../helpers/error-assertions.mjs';

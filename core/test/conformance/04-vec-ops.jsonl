@@ -13,6 +13,14 @@
 {"name":"filter-gt","query":"[1 2 3 4 5] | filter(gt(2))","expect":"[3 4 5]"}
 {"name":"filter-lt","query":"[1 2 3 4 5] | filter(lt(3))","expect":"[1 2]"}
 {"name":"filter-then-count","query":"[1 2 3 4 5] | filter(gt(3)) | count","expect":"2"}
+{"name":"filter-set-gt","query":"#{1 2 3 4 5} | filter(gt(2))","expect":"#{3 4 5}"}
+{"name":"filter-set-empty-result","query":"#{1 2 3} | filter(gt(99))","expect":"#{}"}
+{"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))","expect":"{:b 2 :c 3}"}
+{"name":"filter-map-by-key-pattern","query":"{:apple 1 :banana 2 :cherry 3} | filter(byKey(kwName | startsWith(\"a\")))","expect":"{:apple 1}"}
+{"name":"filter-map-compound-key-and-value","query":"{:apple 1 :banana 2 :avocado 3} | filter(and(byKey(kwName | startsWith(\"a\")), byValue(gt(1))))","expect":"{:avocado 3}"}
+{"name":"filter-map-empty","query":"{} | filter(byValue(gt(0)))","expect":"{}"}
+{"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter(byValue(gt(1)))","expect":"{:c 3 :b 2}"}
+{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :FilterSubjectNotContainer :message \"filter requires Vec, Set, or Map subject, got Number\" :operand \"filter\" :position \"subject\" :expectedType \"Vec, Set, or Map\" :actualType \"Number\"}"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort(/age)","expect":"[{:age 20} {:age 25} {:age 30}]"}

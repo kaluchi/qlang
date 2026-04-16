@@ -62,12 +62,17 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     expect(isQMap(coreEnv)).toBe(true);
   });
 
-  it('holds exactly 70 entries — one per built-in operand', async () => {
-    // 67 original + `parse` + `eval` (Step 10 — the code-as-data
-    // ring closer) + `at` (indexed Vec access with negative-index
-    // support) = 70 entries under Variant B.
+  it('holds exactly 81 entries — one per built-in operand', async () => {
+    // 70 prior entries + 11 container-matcher additions:
+    //   polymorphic filter / every / any already count in the 70
+    //   (they were Vec-only, now polymorphic — same identifier),
+    //   plus kwName + byKey + byValue (entry matchers) +
+    //   isString + isNumber + isVec + isMap + isSet + isKeyword
+    //   + isBoolean + isNull (type classifiers) = 11 new names,
+    //   giving 81 entries total under the filter-matchers
+    //   extension.
     const coreEnv = await evalCore();
-    expect(coreEnv.size).toBe(70);
+    expect(coreEnv.size).toBe(81);
   });
 
   it('every entry value is a Map with :qlang/kind :builtin', async () => {
@@ -307,16 +312,18 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('vec-transformer')).toBe(10);  // set is :set-op in manifest taxonomy
     expect(categories.get('comparator')).toBe(4);
     expect(categories.get('control')).toBe(6);
-    expect(categories.get('map-op')).toBe(3);
+    expect(categories.get('map-op')).toBe(4);  // keys + vals + has + kwName
+    expect(categories.get('entry-matcher')).toBe(2);  // byKey + byValue
     expect(categories.get('set-op')).toBe(4);  // set + union + minus + inter
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
+    expect(categories.get('type-classifier')).toBe(8);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
     expect(categories.get('error')).toBe(2);
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
-    expect(sum).toBe(70);
+    expect(sum).toBe(81);
   });
 });
 

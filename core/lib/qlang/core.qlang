@@ -12,21 +12,27 @@
    groups; the grammar's _L rule absorbs them as whitespace inside
    literal bodies):
 
-     Vec reducers        — count, empty, first, last, sum, min,
-                           max, every, any, firstNonZero
-     Vec transformers    — filter, sort, sortWith, take, drop,
-                           distinct, reverse, flat, set, groupBy,
-                           indexBy
+     Container reducers  — count, empty, first, last, at, sum, min,
+                           max, firstNonZero
+     Container selectors — filter, every, any (polymorphic Vec /
+                           Set / Map)
+     Vec transformers    — sort, sortWith, take, drop, distinct,
+                           reverse, flat, set, groupBy, indexBy
      Comparator builders — asc, desc, nullsFirst, nullsLast
      Control flow        — if, when, unless, coalesce, firstTruthy,
                            cond
-     Map operations      — keys, vals, has
+     Map operations      — keys, vals, has, kwName
+     Entry matchers      — byKey, byValue (higher-order, project
+                           namespaced :qlang/key / :qlang/value
+                           from filter/every/any Map-entry pairs)
      Set operations      — union, minus, inter
      Arithmetic          — add, sub, mul, div
      String              — split, join, contains, startsWith,
                            endsWith, prepend, append
      Boolean             — not
      Predicates          — eq, gt, lt, gte, lte, and, or
+     Type classifiers    — isString, isNumber, isVec, isMap, isSet,
+                           isKeyword, isBoolean, isNull
      Formatting          — json, table
      Reflective          — env, use, reify, manifest, runExamples,
                            as, let
@@ -138,37 +144,47 @@
         {:doc "string maximum"   :snippet "[\"b\" \"a\" \"c\"] | max"  :expected "\"c\""}]
       :throws [:MaxSubjectNotVec, :MaxElementsNotComparable]}
 
-|~~ Returns true iff every element satisfies the predicate
-    sub-pipeline. Short-circuits on the first falsy result.
-    Vacuously true for the empty Vec (no counter-example
-    exists). ~~|
+|~~ Returns true iff every item of the container satisfies the
+    predicate sub-pipeline. Polymorphic over Vec / Set / Map. On
+    Vec and Set the predicate receives each element directly; on
+    Map the predicate receives a namespaced pair-Map
+    {:qlang/key :qlang/value} for each entry — reach through it
+    with byKey / byValue matchers. Short-circuits on the first
+    falsy result. Vacuously true for empty containers (no counter-
+    example exists). ~~|
 :every {:qlang/kind :builtin
         :qlang/impl :qlang/prim/every
         :category :vec-reducer
-        :subject :vec
+        :subject [:vec, :set, :map]
         :returns :boolean
         :modifiers [:predicate-lambda]
         :examples [
-          {:doc "all match"      :snippet "[2 4 6 8] | every(gt(0))"  :expected "true"}
-          {:doc "some fail"      :snippet "[1 2 3] | every(gt(2))"    :expected "false"}
-          {:doc "vacuously true" :snippet "[] | every(gt(0))"         :expected "true"}]
-        :throws [:EverySubjectNotVec]}
+          {:doc "all Vec elements match"  :snippet "[2 4 6 8] | every(gt(0))"                            :expected "true"}
+          {:doc "some Vec element fails"  :snippet "[1 2 3] | every(gt(2))"                              :expected "false"}
+          {:doc "vacuously true"          :snippet "[] | every(gt(0))"                                    :expected "true"}
+          {:doc "all Map values positive" :snippet "{:a 1 :b 2 :c 3} | every(byValue(gt(0)))"             :expected "true"}
+          {:doc "all Map values positive fails" :snippet "{:a 1 :b -2 :c 3} | every(byValue(gt(0)))"      :expected "false"}]
+        :throws [:EverySubjectNotContainer]}
 
-|~~ Returns true iff at least one element satisfies the
-    predicate sub-pipeline. Short-circuits on the first truthy
-    result. Vacuously false for the empty Vec (no witness
-    exists). ~~|
+|~~ Returns true iff at least one item of the container
+    satisfies the predicate sub-pipeline. Polymorphic over
+    Vec / Set / Map with the same per-container dispatch as
+    every: element for Vec/Set, namespaced pair-Map for Map.
+    Short-circuits on the first truthy result. Vacuously false
+    for empty containers (no witness exists). ~~|
 :any {:qlang/kind :builtin
       :qlang/impl :qlang/prim/any
       :category :vec-reducer
-      :subject :vec
+      :subject [:vec, :set, :map]
       :returns :boolean
       :modifiers [:predicate-lambda]
       :examples [
-        {:doc "one matches"      :snippet "[1 2 3] | any(gt(2))"   :expected "true"}
-        {:doc "none match"       :snippet "[1 2 3] | any(gt(99))"  :expected "false"}
-        {:doc "vacuously false"  :snippet "[] | any(gt(0))"        :expected "false"}]
-      :throws [:AnySubjectNotVec]}
+        {:doc "one Vec element matches"   :snippet "[1 2 3] | any(gt(2))"                                  :expected "true"}
+        {:doc "no Vec elements match"     :snippet "[1 2 3] | any(gt(99))"                                 :expected "false"}
+        {:doc "vacuously false"           :snippet "[] | any(gt(0))"                                        :expected "false"}
+        {:doc "any Map value positive"    :snippet "{:a -1 :b 0 :c 2} | any(byValue(gt(0)))"               :expected "true"}
+        {:doc "any Map key name matches"  :snippet "{:apple 1 :banana 2} | any(byKey(kwName | startsWith(\"a\")))" :expected "true"}]
+      :throws [:AnySubjectNotContainer]}
 
 |~~ Returns the first non-zero number in a Vec. If all elements
     are zero or the Vec is empty, returns 0. The composition
@@ -188,18 +204,27 @@
 
 |~ ──────────────── Vec transformers ──────────────── ~|
 
-|~~ Keeps elements where the predicate sub-pipeline evaluates
-    truthy. The predicate is applied to each element via fork. ~~|
+|~~ Keeps items of the container where the predicate sub-pipeline
+    evaluates truthy, returning a new container of the same shape.
+    Polymorphic over Vec (element per iteration) / Set (element per
+    iteration, insertion order preserved) / Map (namespaced pair-Map
+    {:qlang/key :qlang/value} per entry — reach through it with
+    byKey / byValue matchers). The predicate evaluates per-item
+    via fork against the current container-item's context. ~~|
 :filter {:qlang/kind :builtin
          :qlang/impl :qlang/prim/filter
          :category :vec-transformer
-         :subject :vec
-         :returns :vec
+         :subject [:vec, :set, :map]
+         :returns [:vec, :set, :map]
          :modifiers [:predicate-lambda]
          :examples [
-           {:doc "numeric threshold"  :snippet "[1 2 3 4 5] | filter(gt(2))"                    :expected "[3 4 5]"}
-           {:doc "field predicate"    :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"  :expected "[{:age 25}]"}]
-         :throws [:FilterSubjectNotVec]}
+           {:doc "Vec numeric threshold"   :snippet "[1 2 3 4 5] | filter(gt(2))"                                            :expected "[3 4 5]"}
+           {:doc "Vec field predicate"     :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"                          :expected "[{:age 25}]"}
+           {:doc "Set element predicate"   :snippet "#{1 2 3 4 5} | filter(gt(2))"                                            :expected "#{3 4 5}"}
+           {:doc "Map by value"            :snippet "{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))"                               :expected "{:b 2 :c 3}"}
+           {:doc "Map by key name pattern" :snippet "{:apple 1 :banana 2 :cherry 3} | filter(byKey(kwName | startsWith(\"a\")))" :expected "{:apple 1}"}
+           {:doc "Map compound predicate"  :snippet "{:a 1 :b 2 :c 3} | filter(and(byKey(kwName | startsWith(\"a\")), byValue(gt(0))))" :expected "{:a 1}"}]
+         :throws [:FilterSubjectNotContainer]}
 
 |~~ Returns a new Vec sorted in natural ascending order.
     Overloaded by arity: bare sort uses natural order, sort(key)
@@ -556,6 +581,65 @@
         {:doc "Set membership" :snippet "#{:a :b :c} | has(:b)"           :expected "true"}]
       :throws [:HasSubjectNotMapOrSet, :HasKeyNotKeyword]}
 
+|~~ Lifts a Keyword to its identifier name String. Required for
+    string-oriented predicates over keys — the natural idiom is
+    byKey(kwName | startsWith("...")) when filter-over-Map needs
+    key-pattern selection. On a non-keyword subject raises
+    KwNameSubjectNotKeyword. ~~|
+:kwName {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/kwName
+         :category :map-op
+         :subject :keyword
+         :returns :string
+         :modifiers []
+         :examples [
+           {:doc "bare keyword name"      :snippet ":foo | kwName"                  :expected "\"foo\""}
+           {:doc "namespaced keyword name" :snippet ":qlang/prim/add | kwName"       :expected "\"qlang/prim/add\""}
+           {:doc "quoted keyword name"    :snippet ":\"foo bar\" | kwName"          :expected "\"foo bar\""}]
+         :throws [:KwNameSubjectNotKeyword]}
+
+|~ ──────────────── Entry matchers ──────────────── ~|
+
+|~~ Higher-order matcher for polymorphic filter / every / any over
+    a Map container. Subject is the entry pair-Map
+    {:qlang/key :qlang/value} that filter/every/any constructs
+    per-entry; projects :qlang/key and fires the inner sub-
+    pipeline against it. Compose with and / or / not for compound
+    predicates; chain with byValue inside and for key-AND-value
+    filters. Fails loudly when invoked outside a filter pred
+    context (ByKeySubjectNotMap on non-Map pipeValue;
+    ByKeyMapNotFilterPair on a user-constructed Map without the
+    namespaced :qlang/key field). ~~|
+:byKey {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/byKey
+        :category :entry-matcher
+        :subject :map
+        :returns :any
+        :modifiers [:predicate-lambda]
+        :examples [
+          {:doc "key name pattern"       :snippet "{:apple 1 :banana 2} | filter(byKey(kwName | startsWith(\"a\")))"    :expected "{:apple 1}"}
+          {:doc "exact key identity"     :snippet "{:a 1 :b 2} | filter(byKey(eq(:a)))"                                  :expected "{:a 1}"}]
+        :throws [:ByKeySubjectNotMap, :ByKeyMapNotFilterPair]}
+
+|~~ Higher-order matcher symmetric with byKey: projects
+    :qlang/value from the filter-constructed entry pair-Map and
+    fires the inner sub-pipeline against the entry's value.
+    Compose with and / or / not across matchers for compound
+    predicates. Diagnostics mirror byKey — ByValueSubjectNotMap
+    for non-Map pipeValue, ByValueMapNotFilterPair for a user
+    Map lacking the namespaced :qlang/value field. ~~|
+:byValue {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/byValue
+          :category :entry-matcher
+          :subject :map
+          :returns :any
+          :modifiers [:predicate-lambda]
+          :examples [
+            {:doc "value threshold"       :snippet "{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))"                            :expected "{:b 2 :c 3}"}
+            {:doc "value type classifier" :snippet "{:a 1 :b \"x\" :c [1]} | filter(byValue(isString))"                    :expected "{:b \"x\"}"}
+            {:doc "compound key + value"  :snippet "{:apple 1 :banana 2 :avocado 3} | filter(and(byKey(kwName | startsWith(\"a\")), byValue(gt(1))))" :expected "{:avocado 3}"}]
+          :throws [:ByValueSubjectNotMap, :ByValueMapNotFilterPair]}
+
 |~ ──────────────── Set operations ──────────────── ~|
 
 |~~ Polymorphic union. Set union or Map merge (last wins on
@@ -848,6 +932,123 @@
      :examples [
        {:doc "disjunction predicate"  :snippet "filter(or(/vip, /score | gt(95)))"}]
      :throws []}
+
+|~ ──────────────── Type classifiers ──────────────── ~|
+
+|~~ Returns true iff the subject is a String. Nullary predicate
+    over any pipeValue. Primary use — byValue(isString) /
+    filter(isString) lifts value-type classification to operand
+    level without the descriptor-construction cost of
+    reify | /type | eq(:string). ~~|
+:isString {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/isString
+           :category :type-classifier
+           :subject :any
+           :returns :boolean
+           :modifiers []
+           :examples [
+             {:doc "is String"          :snippet "\"hello\" | isString"  :expected "true"}
+             {:doc "number is not"      :snippet "42 | isString"          :expected "false"}
+             {:doc "keyword is not"     :snippet ":name | isString"       :expected "false"}]
+           :throws []}
+
+|~~ Returns true iff the subject is a Number (integer or
+    decimal — qlang has no numeric subtypes). ~~|
+:isNumber {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/isNumber
+           :category :type-classifier
+           :subject :any
+           :returns :boolean
+           :modifiers []
+           :examples [
+             {:doc "integer"      :snippet "42 | isNumber"        :expected "true"}
+             {:doc "decimal"      :snippet "3.14 | isNumber"      :expected "true"}
+             {:doc "string no"    :snippet "\"42\" | isNumber"    :expected "false"}]
+           :throws []}
+
+|~~ Returns true iff the subject is a Vec. ~~|
+:isVec {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isVec
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Vec literal"     :snippet "[1 2 3] | isVec"   :expected "true"}
+          {:doc "empty Vec"       :snippet "[] | isVec"        :expected "true"}
+          {:doc "Set is not Vec"  :snippet "#{1} | isVec"      :expected "false"}]
+        :throws []}
+
+|~~ Returns true iff the subject is a Map. ~~|
+:isMap {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isMap
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Map literal"      :snippet "{:a 1} | isMap"   :expected "true"}
+          {:doc "empty Map"        :snippet "{} | isMap"       :expected "true"}
+          {:doc "Vec is not Map"   :snippet "[] | isMap"       :expected "false"}]
+        :throws []}
+
+|~~ Returns true iff the subject is a Set. ~~|
+:isSet {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isSet
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Set literal"      :snippet "#{1 2} | isSet"   :expected "true"}
+          {:doc "empty Set"        :snippet "#{} | isSet"      :expected "true"}
+          {:doc "Vec is not Set"   :snippet "[1 2] | isSet"    :expected "false"}]
+        :throws []}
+
+|~~ Returns true iff the subject is a Keyword. ~~|
+:isKeyword {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isKeyword
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :examples [
+              {:doc "bare keyword"          :snippet ":name | isKeyword"         :expected "true"}
+              {:doc "namespaced keyword"    :snippet ":qlang/kind | isKeyword"   :expected "true"}
+              {:doc "string is not keyword" :snippet "\"name\" | isKeyword"      :expected "false"}]
+            :throws []}
+
+|~~ Returns true iff the subject is a Boolean (literal true or
+    false). Truthy non-boolean values like 0 / "" / [] do NOT
+    classify as Boolean. ~~|
+:isBoolean {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isBoolean
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :examples [
+              {:doc "literal true"   :snippet "true | isBoolean"   :expected "true"}
+              {:doc "literal false"  :snippet "false | isBoolean"  :expected "true"}
+              {:doc "0 is not"       :snippet "0 | isBoolean"      :expected "false"}
+              {:doc "null is not"    :snippet "null | isBoolean"   :expected "false"}]
+            :throws []}
+
+|~~ Returns true iff the subject is null (the absence-of-value
+    atom). Missing Map keys and operands whose result is undefined
+    both produce null. ~~|
+:isNull {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/isNull
+         :category :type-classifier
+         :subject :any
+         :returns :boolean
+         :modifiers []
+         :examples [
+           {:doc "null literal"          :snippet "null | isNull"             :expected "true"}
+           {:doc "missing Map key"       :snippet "{} | /missing | isNull"    :expected "true"}
+           {:doc "zero is not null"      :snippet "0 | isNull"                :expected "false"}
+           {:doc "empty string not null" :snippet "\"\" | isNull"             :expected "false"}]
+         :throws []}
 
 |~ ──────────────── Formatting ──────────────── ~|
 

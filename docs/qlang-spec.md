@@ -1368,7 +1368,7 @@ lift automatically into error values with structured descriptors:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
-| `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotVec`, etc. |
+| `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotContainer`, etc. |
 | `:message` | string | Human-readable description |
 | `:trail` | Vec | AST-Maps for each step that a success-track combinator deflected |
 

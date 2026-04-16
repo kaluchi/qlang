@@ -1,0 +1,8 @@
+{"name":"byValue-via-filter-threshold","query":"{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))","expect":"{:b 2 :c 3}"}
+{"name":"byValue-via-filter-type-classifier","query":"{:a 1 :b \"x\" :c [1]} | filter(byValue(isString))","expect":"{:b \"x\"}"}
+{"name":"byValue-via-filter-not","query":"{:a 1 :b \"x\" :c [1]} | filter(byValue(isString | not))","expect":"{:a 1 :c [1]}"}
+{"name":"byValue-via-every","query":"{:a 1 :b 2 :c 3} | every(byValue(gt(0)))","expect":"true"}
+{"name":"byValue-via-any","query":"{:a -1 :b 0 :c 2} | any(byValue(gt(0)))","expect":"true"}
+{"name":"byValue-compound-with-byKey","query":"{:apple 1 :banana 2 :avocado 3} | filter(and(byKey(kwName | startsWith(\"a\")), byValue(gt(1))))","expect":"{:avocado 3}"}
+{"name":"byValue-on-non-map-throws","query":"42 | byValue(gt(0))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :ByValueSubjectNotMap :message \"byValue requires Map subject, got Number\" :operand \"byValue\" :position \"subject\" :expectedType \"Map\" :actualType \"Number\"}"}
+{"name":"byValue-on-user-map-throws","query":"{:a 1} | byValue(gt(0)) !| /thrown","expect":":ByValueMapNotFilterPair"}

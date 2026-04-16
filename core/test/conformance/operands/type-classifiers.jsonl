@@ -1,0 +1,39 @@
+{"name":"isString-true","query":"\"hello\" | isString","expect":"true"}
+{"name":"isString-number-false","query":"42 | isString","expect":"false"}
+{"name":"isString-keyword-false","query":":name | isString","expect":"false"}
+{"name":"isString-null-false","query":"null | isString","expect":"false"}
+{"name":"isString-empty-string-true","query":"\"\" | isString","expect":"true"}
+{"name":"isNumber-integer-true","query":"42 | isNumber","expect":"true"}
+{"name":"isNumber-decimal-true","query":"3.14 | isNumber","expect":"true"}
+{"name":"isNumber-negative-true","query":"-7 | isNumber","expect":"true"}
+{"name":"isNumber-string-false","query":"\"42\" | isNumber","expect":"false"}
+{"name":"isNumber-zero-true","query":"0 | isNumber","expect":"true"}
+{"name":"isVec-literal-true","query":"[1 2 3] | isVec","expect":"true"}
+{"name":"isVec-empty-true","query":"[] | isVec","expect":"true"}
+{"name":"isVec-set-false","query":"#{1} | isVec","expect":"false"}
+{"name":"isVec-map-false","query":"{:a 1} | isVec","expect":"false"}
+{"name":"isMap-literal-true","query":"{:a 1} | isMap","expect":"true"}
+{"name":"isMap-empty-true","query":"{} | isMap","expect":"true"}
+{"name":"isMap-vec-false","query":"[] | isMap","expect":"false"}
+{"name":"isMap-set-false","query":"#{:a} | isMap","expect":"false"}
+{"name":"isSet-literal-true","query":"#{1 2} | isSet","expect":"true"}
+{"name":"isSet-empty-true","query":"#{} | isSet","expect":"true"}
+{"name":"isSet-vec-false","query":"[1 2] | isSet","expect":"false"}
+{"name":"isSet-map-false","query":"{:a 1} | isSet","expect":"false"}
+{"name":"isKeyword-bare-true","query":":name | isKeyword","expect":"true"}
+{"name":"isKeyword-namespaced-true","query":":qlang/kind | isKeyword","expect":"true"}
+{"name":"isKeyword-string-false","query":"\"name\" | isKeyword","expect":"false"}
+{"name":"isKeyword-number-false","query":"42 | isKeyword","expect":"false"}
+{"name":"isBoolean-true-literal-true","query":"true | isBoolean","expect":"true"}
+{"name":"isBoolean-false-literal-true","query":"false | isBoolean","expect":"true"}
+{"name":"isBoolean-zero-false","query":"0 | isBoolean","expect":"false"}
+{"name":"isBoolean-null-false","query":"null | isBoolean","expect":"false"}
+{"name":"isBoolean-empty-string-false","query":"\"\" | isBoolean","expect":"false"}
+{"name":"isNull-null-literal-true","query":"null | isNull","expect":"true"}
+{"name":"isNull-missing-key-true","query":"{} | /missing | isNull","expect":"true"}
+{"name":"isNull-zero-false","query":"0 | isNull","expect":"false"}
+{"name":"isNull-empty-string-false","query":"\"\" | isNull","expect":"false"}
+{"name":"isNull-false-false","query":"false | isNull","expect":"false"}
+{"name":"filter-isString-over-map","query":"{:a 1 :b \"x\" :c [1]} | filter(byValue(isString))","expect":"{:b \"x\"}"}
+{"name":"filter-isMap-over-map","query":"{:a 1 :b {:x 1}} | filter(byValue(isMap))","expect":"{:b {:x 1}}"}
+{"name":"filter-isVec-over-map","query":"{:a 1 :b [1 2]} | filter(byValue(isVec))","expect":"{:b [1 2]}"}

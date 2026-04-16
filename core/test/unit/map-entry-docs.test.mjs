@@ -264,14 +264,14 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
         :modifiers []
         :throws [:CountSubjectNotContainer]}
 
-|~~ Keeps elements where the predicate sub-pipeline evaluates
-    truthy. The predicate is applied to each element via fork. ~~|
+|~~ Keeps items of the container where the predicate sub-pipeline
+    evaluates truthy. Polymorphic over Vec / Set / Map. ~~|
 :filter {:qlang/kind :builtin
          :category :vec-transformer
-         :subject :vec
-         :returns :vec
+         :subject [:vec, :set, :map]
+         :returns [:vec, :set, :map]
          :modifiers [:predicate-lambda]
-         :throws [:FilterSubjectNotVec]}
+         :throws [:FilterSubjectNotContainer]}
 }`;
 
   it('parses the catalog and stamps docs on each entry', () => {
@@ -303,6 +303,6 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
 
   it('per-entry :throws field is addressable via the same mechanism', async () => {
     const throwsField = await evalQuery(CATALOG_SOURCE + ' | /filter | /throws');
-    expect(throwsField).toEqual([keyword('FilterSubjectNotVec')]);
+    expect(throwsField).toEqual([keyword('FilterSubjectNotContainer')]);
   });
 });

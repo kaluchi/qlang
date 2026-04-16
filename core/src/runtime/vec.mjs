@@ -5,6 +5,17 @@
 // are polymorphic over Vec/Set/Map — they answer "how many
 // elements?" regardless of container shape.
 //
+// `filter` / `every` / `any` are container-universal item-select
+// operands: Vec → Vec and Set → Set pass each element to the
+// predicate; Map → Map builds a namespaced pair-Map
+// `{:qlang/key k :qlang/value v}` per entry and passes THAT to
+// the predicate, so `byKey` / `byValue` matchers from
+// runtime/map.mjs project the appropriate axis without exposing
+// the pair-Map shape at the call site. The qlang/* namespace is
+// reserved for internal shape (see :qlang/kind, :qlang/impl in
+// descriptor Maps), so user domain keys never collide with the
+// pair-Map fields.
+//
 // Every type check inlines its own `throw new X(...)` statement
 // so the class name and source line uniquely identify the failing
 // site.
@@ -23,6 +34,7 @@ import {
   declareShapeError
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { KW_QLANG_KEY, KW_QLANG_VALUE } from './map.mjs';
 
 // ── Subject-type classes ───────────────────────────────────────
 
@@ -33,9 +45,9 @@ const LastSubjectNotVec           = declareSubjectError('LastSubjectNotVec',    
 const SumSubjectNotVec            = declareSubjectError('SumSubjectNotVec',            'sum',      'Vec');
 const MinSubjectNotVec            = declareSubjectError('MinSubjectNotVec',            'min',      'Vec');
 const MaxSubjectNotVec            = declareSubjectError('MaxSubjectNotVec',            'max',      'Vec');
-const FilterSubjectNotVec         = declareSubjectError('FilterSubjectNotVec',         'filter',   'Vec');
-const EverySubjectNotVec          = declareSubjectError('EverySubjectNotVec',          'every',    'Vec');
-const AnySubjectNotVec            = declareSubjectError('AnySubjectNotVec',            'any',      'Vec');
+const FilterSubjectNotContainer   = declareSubjectError('FilterSubjectNotContainer',   'filter',   'Vec, Set, or Map');
+const EverySubjectNotContainer    = declareSubjectError('EverySubjectNotContainer',    'every',    'Vec, Set, or Map');
+const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer',      'any',      'Vec, Set, or Map');
 const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'Vec');
 const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'Vec');
 const GroupByKeyNotKeyword        = declareShapeError('GroupByKeyNotKeyword',
@@ -152,35 +164,92 @@ function checkComparable(ErrorCls, left, right) {
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
-export const filter = higherOrderOp('filter', 2, async (vec, predLambda) => {
-  if (!isVec(vec)) throw new FilterSubjectNotVec(describeType(vec), vec);
-  const filterResult = [];
-  for (const filterItem of vec) {
-    const predResult = await predLambda(filterItem);
-    if (isErrorValue(predResult)) return predResult;
-    if (isTruthy(predResult)) filterResult.push(filterItem);
+// mapEntryPair(k, v) — build the namespaced pair-Map that polymorphic
+// filter/every/any passes to the predicate per Map-entry. The two
+// fields live under the reserved `qlang/` namespace so user domain
+// keys never collide: a user writing `{:key :superKey}` has
+// `:key`-qua-user-field that is distinct from `:qlang/key`-qua-
+// pair-field by construction. `byKey` / `byValue` matchers project
+// through these fields at the predicate call site; the raw pair-Map
+// is accessible via `/:qlang/key` / `/:qlang/value` projection
+// segments as an escape hatch for correlation predicates that need
+// both axes at once.
+function mapEntryPair(k, v) {
+  const pair = new Map();
+  pair.set(KW_QLANG_KEY, k);
+  pair.set(KW_QLANG_VALUE, v);
+  return pair;
+}
+
+export const filter = higherOrderOp('filter', 2, async (container, predLambda) => {
+  if (isVec(container)) {
+    const filterResult = [];
+    for (const filterItem of container) {
+      const predResult = await predLambda(filterItem);
+      if (isErrorValue(predResult)) return predResult;
+      if (isTruthy(predResult)) filterResult.push(filterItem);
+    }
+    return filterResult;
   }
-  return filterResult;
+  if (isQSet(container)) {
+    const filterResult = new Set();
+    for (const filterItem of container) {
+      const predResult = await predLambda(filterItem);
+      if (isErrorValue(predResult)) return predResult;
+      if (isTruthy(predResult)) filterResult.add(filterItem);
+    }
+    return filterResult;
+  }
+  if (isQMap(container)) {
+    const filterResult = new Map();
+    for (const [filterKey, filterValue] of container) {
+      const predResult = await predLambda(mapEntryPair(filterKey, filterValue));
+      if (isErrorValue(predResult)) return predResult;
+      if (isTruthy(predResult)) filterResult.set(filterKey, filterValue);
+    }
+    return filterResult;
+  }
+  throw new FilterSubjectNotContainer(describeType(container), container);
 });
 
-export const every = higherOrderOp('every', 2, async (vec, everyPredLambda) => {
-  if (!isVec(vec)) throw new EverySubjectNotVec(describeType(vec), vec);
-  for (const everyItem of vec) {
-    const everyResult = await everyPredLambda(everyItem);
-    if (isErrorValue(everyResult)) return everyResult;
-    if (!isTruthy(everyResult)) return false;
+export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
+  if (isVec(container) || isQSet(container)) {
+    for (const everyItem of container) {
+      const everyResult = await everyPredLambda(everyItem);
+      if (isErrorValue(everyResult)) return everyResult;
+      if (!isTruthy(everyResult)) return false;
+    }
+    return true;
   }
-  return true;
+  if (isQMap(container)) {
+    for (const [everyKey, everyValue] of container) {
+      const everyResult = await everyPredLambda(mapEntryPair(everyKey, everyValue));
+      if (isErrorValue(everyResult)) return everyResult;
+      if (!isTruthy(everyResult)) return false;
+    }
+    return true;
+  }
+  throw new EverySubjectNotContainer(describeType(container), container);
 });
 
-export const any = higherOrderOp('any', 2, async (vec, anyPredLambda) => {
-  if (!isVec(vec)) throw new AnySubjectNotVec(describeType(vec), vec);
-  for (const anyItem of vec) {
-    const anyResult = await anyPredLambda(anyItem);
-    if (isErrorValue(anyResult)) return anyResult;
-    if (isTruthy(anyResult)) return true;
+export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
+  if (isVec(container) || isQSet(container)) {
+    for (const anyItem of container) {
+      const anyResult = await anyPredLambda(anyItem);
+      if (isErrorValue(anyResult)) return anyResult;
+      if (isTruthy(anyResult)) return true;
+    }
+    return false;
   }
-  return false;
+  if (isQMap(container)) {
+    for (const [anyKey, anyValue] of container) {
+      const anyResult = await anyPredLambda(mapEntryPair(anyKey, anyValue));
+      if (isErrorValue(anyResult)) return anyResult;
+      if (isTruthy(anyResult)) return true;
+    }
+    return false;
+  }
+  throw new AnySubjectNotContainer(describeType(container), container);
 });
 
 export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) => {

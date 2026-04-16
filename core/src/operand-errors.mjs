@@ -18,7 +18,7 @@
 // holds and `.kind` reads `type-error`; every generated arity-error
 // class extends `ArityError` with `.kind === 'arity-error'`. The
 // concrete class narrows the throw site to a single operand +
-// position + condition: `FilterSubjectNotVec`, `AddLeftNotNumber`,
+// position + condition: `FilterSubjectNotContainer`, `AddLeftNotNumber`,
 // `SortElementsNotComparable`, and so on.
 
 import {

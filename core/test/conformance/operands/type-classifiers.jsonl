@@ -16,6 +16,7 @@
 {"name":"isMap-empty-true","query":"{} | isMap","expect":"true"}
 {"name":"isMap-vec-false","query":"[] | isMap","expect":"false"}
 {"name":"isMap-set-false","query":"#{:a} | isMap","expect":"false"}
+{"name":"isMap-conduit-false","query":"let(:double, mul(2)) | env | /double | isMap","expect":"false"}
 {"name":"isSet-literal-true","query":"#{1 2} | isSet","expect":"true"}
 {"name":"isSet-empty-true","query":"#{} | isSet","expect":"true"}
 {"name":"isSet-vec-false","query":"[1 2] | isSet","expect":"false"}

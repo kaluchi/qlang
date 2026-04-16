@@ -272,6 +272,10 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
     expect(await evalQuery('#{:a} | isMap')).toBe(false);
   });
 
+  it('isMap reports false for conduit descriptor Maps', async () => {
+    expect(await evalQuery('let(:double, mul(2)) | env | /double | isMap')).toBe(false);
+  });
+
   it('isSet classifies Set vs the rest', async () => {
     expect(await evalQuery('#{1 2} | isSet')).toBe(true);
     expect(await evalQuery('#{} | isSet')).toBe(true);

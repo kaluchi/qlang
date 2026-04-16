@@ -19,7 +19,7 @@
 import { valueOp, nullaryOp } from './dispatch.mjs';
 import {
   isTruthy, describeType, keyword,
-  isString, isNumber, isVec, isQMap, isQSet, isKeyword, isBoolean, isNull
+  isString, isNumber, isVec, isQSet, isKeyword, isBoolean, isNull
 } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
@@ -68,15 +68,15 @@ export const or = valueOp('or', 2, (a, b) => isTruthy(a) || isTruthy(b));
 export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 
 // ── Type-classifier nullary operands ───────────────────────────
-// Each wraps a types.mjs predicate as a qlang-level nullary. No
-// per-site error — classification cannot fail, only answers true
-// or false. The is-a-keyword / is-a-Map / is-a-Set dispatch table
-// matches the describeType(v) inventory exactly.
+// Every qlang value produces `true` from exactly one classifier.
+// `isMap` routes through `describeType` so conduit / snapshot
+// descriptor Maps — structurally `v instanceof Map` — classify
+// as `Conduit` / `Snapshot` rather than `Map`.
 
 export const isStringOp  = nullaryOp('isString',  (subject) => isString(subject));
 export const isNumberOp  = nullaryOp('isNumber',  (subject) => isNumber(subject));
 export const isVecOp     = nullaryOp('isVec',     (subject) => isVec(subject));
-export const isMapOp     = nullaryOp('isMap',     (subject) => isQMap(subject));
+export const isMapOp     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
 export const isSetOp     = nullaryOp('isSet',     (subject) => isQSet(subject));
 export const isKeywordOp = nullaryOp('isKeyword', (subject) => isKeyword(subject));
 export const isBooleanOp = nullaryOp('isBoolean', (subject) => isBoolean(subject));

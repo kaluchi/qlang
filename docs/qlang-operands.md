@@ -633,11 +633,11 @@ information. Each classifier matches exactly one
 
 - **Arity** 1. **Subject** any value.
 - Returns `true` iff the subject is of the named value class,
-  `false` otherwise. Boolean and null classification is strict:
-  `0 | isBoolean` → `false`, `"" | isNull` → `false`; truthiness
-  and null-ness are separate concepts here, only the literals
-  `true`/`false` classify as Boolean and only `null` classifies
-  as Null.
+  `false` otherwise. Every qlang value produces `true` from
+  exactly one classifier. Boolean and null classification is
+  strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
+  `isMap` reports `false` for conduit and snapshot descriptor
+  Maps — they classify as `Conduit` / `Snapshot`, not `Map`.
 - **Examples**:
   - `"hello" | isString` → `true`; `42 | isString` → `false`.
   - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;

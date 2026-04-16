@@ -110,11 +110,14 @@ function tokenizeWithAst(code) {
     switch (node.type) {
       case 'OperandCall':
         // Annotate only the name token, not the whole call expression.
-        // Effect markers (@name) get a distinct class.
+        // Effect-marked OperandCalls get a distinct class. `.effectful`
+        // is the precomputed boolean stamped by parse.mjs's post-parse
+        // decorateAstWithEffectMarkers pass; read the structured field
+        // rather than re-deriving the classification from node.name.
         annotations.push({
           start: s,
           end: s + node.name.length,
-          cls: node.name.startsWith('@') ? 'hljs-meta' : 'hljs-built_in'
+          cls: node.effectful ? 'hljs-meta' : 'hljs-built_in'
         });
         break;
       case 'Keyword':

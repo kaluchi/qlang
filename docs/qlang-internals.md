@@ -550,8 +550,7 @@ shape. `eval.mjs::evalOperandCall` looks up the identifier in
 :builtin`, control flows through `applyBuiltinDescriptor` which
 reads the `:qlang/impl` handle, resolves it through
 `PRIMITIVE_REGISTRY.resolve` into the backing function value,
-and invokes it via Rule 10 exactly as the legacy direct-function
-path did. A bare non-nullary lookup (no captured args,
+and invokes it via Rule 10. A bare non-nullary lookup (no captured args,
 `impl.meta.captured[0] > 0`) short-circuits to return the
 descriptor Map itself as `pipeValue` — the REPL ergonomic that
 lets `mul` at the prompt yield mul's descriptor rather than

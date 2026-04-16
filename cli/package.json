@@ -7,6 +7,15 @@
   "exports": {
     ".": {
       "import": "./src/main.mjs"
+    },
+    "./io-operands": {
+      "import": "./src/io-operands.mjs"
+    },
+    "./format-operands": {
+      "import": "./src/format-operands.mjs"
+    },
+    "./parse-operands": {
+      "import": "./src/parse-operands.mjs"
     }
   },
   "bin": {

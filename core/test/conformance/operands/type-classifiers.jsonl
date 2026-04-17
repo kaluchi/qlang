@@ -35,6 +35,6 @@
 {"name":"isNull-zero-false","query":"0 | isNull","expect":"false"}
 {"name":"isNull-empty-string-false","query":"\"\" | isNull","expect":"false"}
 {"name":"isNull-false-false","query":"false | isNull","expect":"false"}
-{"name":"filter-isString-over-map","query":"{:a 1 :b \"x\" :c [1]} | filter(byValue(isString))","expect":"{:b \"x\"}"}
-{"name":"filter-isMap-over-map","query":"{:a 1 :b {:x 1}} | filter(byValue(isMap))","expect":"{:b {:x 1}}"}
-{"name":"filter-isVec-over-map","query":"{:a 1 :b [1 2]} | filter(byValue(isVec))","expect":"{:b [1 2]}"}
+{"name":"filter-isString-over-map","query":"{:a 1 :b \"x\" :c [1]} | filter(isString)","expect":"{:b \"x\"}"}
+{"name":"filter-isMap-over-map","query":"{:a 1 :b {:x 1}} | filter(isMap)","expect":"{:b {:x 1}}"}
+{"name":"filter-isVec-over-map","query":"{:a 1 :b [1 2]} | filter(isVec)","expect":"{:b [1 2]}"}

@@ -1,7 +1,0 @@
-{"name":"kwName-bare","query":":foo | kwName","expect":"\"foo\""}
-{"name":"kwName-namespaced","query":":qlang/prim/add | kwName","expect":"\"qlang/prim/add\""}
-{"name":"kwName-quoted","query":":\"foo bar\" | kwName","expect":"\"foo bar\""}
-{"name":"kwName-empty-quoted","query":":\"\" | kwName","expect":"\"\""}
-{"name":"kwName-roundtrip-via-startsWith","query":":Glossary | kwName | startsWith(\"Gloss\")","expect":"true"}
-{"name":"kwName-on-string-throws","query":"\"foo\" | kwName","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :KwNameSubjectNotKeyword :message \"kwName requires Keyword subject, got String\" :operand \"kwName\" :position \"subject\" :expectedType \"Keyword\" :actualType \"String\"}"}
-{"name":"kwName-on-number-throws","query":"42 | kwName !| /thrown","expect":":KwNameSubjectNotKeyword"}

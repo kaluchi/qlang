@@ -1,7 +1,0 @@
-{"name":"byKey-via-filter-startsWith","query":"{:apple 1 :banana 2 :cherry 3} | filter(byKey(kwName | startsWith(\"a\")))","expect":"{:apple 1}"}
-{"name":"byKey-via-filter-exact-match","query":"{:a 1 :b 2} | filter(byKey(eq(:a)))","expect":"{:a 1}"}
-{"name":"byKey-via-every-all-keys-named","query":"{:a1 1 :a2 2} | every(byKey(kwName | startsWith(\"a\")))","expect":"true"}
-{"name":"byKey-via-any-any-key-matches","query":"{:apple 1 :banana 2} | any(byKey(kwName | startsWith(\"a\")))","expect":"true"}
-{"name":"byKey-on-non-map-throws","query":"42 | byKey(kwName)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :ByKeySubjectNotMap :message \"byKey requires Map subject, got Number\" :operand \"byKey\" :position \"subject\" :expectedType \"Map\" :actualType \"Number\"}"}
-{"name":"byKey-on-user-map-throws","query":"{:a 1} | byKey(kwName) !| /thrown","expect":":ByKeyMapNotFilterPair"}
-{"name":"byKey-empty-map-renders-diagnostic","query":"{} | byKey(kwName) !| /actualKeys","expect":"\"(empty Map)\""}

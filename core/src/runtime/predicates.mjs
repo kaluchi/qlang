@@ -10,9 +10,11 @@
 // `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`) wrap the
 // corresponding predicates from types.mjs as operand-level nullary
 // checks. They complement polymorphic `filter` / `every` / `any`
-// over heterogeneous containers: `filter(byValue(isString))`
-// lifts a type question to operand level without the descriptor-
-// construction cost of `reify | /type | eq(:string)`.
+// over heterogeneous containers: `filter(isString)` over a Vec of
+// mixed types, or `filter(isString)` over a Map to keep only
+// String-valued entries. Lifts a type question to operand level
+// without the descriptor-construction cost of
+// `reify | /type | eq(:string)`.
 //
 // Meta lives in lib/qlang/core.qlang.
 
@@ -71,14 +73,14 @@ export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 // subtype-wrapping descriptors (Conduit, Snapshot) partition out
 // of `isMap` without per-classifier layering here.
 
-export const isStringOp  = nullaryOp('isString',  (subject) => describeType(subject) === 'String');
-export const isNumberOp  = nullaryOp('isNumber',  (subject) => describeType(subject) === 'Number');
-export const isVecOp     = nullaryOp('isVec',     (subject) => describeType(subject) === 'Vec');
-export const isMapOp     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
-export const isSetOp     = nullaryOp('isSet',     (subject) => describeType(subject) === 'Set');
-export const isKeywordOp = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
-export const isBooleanOp = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
-export const isNullOp    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
+export const isString  = nullaryOp('isString',  (subject) => describeType(subject) === 'String');
+export const isNumber  = nullaryOp('isNumber',  (subject) => describeType(subject) === 'Number');
+export const isVec     = nullaryOp('isVec',     (subject) => describeType(subject) === 'Vec');
+export const isMap     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
+export const isSet     = nullaryOp('isSet',     (subject) => describeType(subject) === 'Set');
+export const isKeyword = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
+export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
+export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/eq'),  eq);
@@ -89,11 +91,11 @@ PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/lte'), lte);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/and'), and);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/or'),  or);
 PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/not'), not);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isString'),  isStringOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isNumber'),  isNumberOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isVec'),     isVecOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isMap'),     isMapOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isSet'),     isSetOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isKeyword'), isKeywordOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isBoolean'), isBooleanOp);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isNull'),    isNullOp);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isString'),  isString);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isNumber'),  isNumber);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isVec'),     isVec);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isMap'),     isMap);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isSet'),     isSet);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isKeyword'), isKeyword);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isBoolean'), isBoolean);
+PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isNull'),    isNull);

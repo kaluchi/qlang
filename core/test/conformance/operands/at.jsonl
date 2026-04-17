@@ -11,4 +11,5 @@
 {"name":"at-preserves-element-type","query":"[{:id 1} {:id 2}] | at(0)","expect":"{:id 1}"}
 {"name":"at-chained-with-projection","query":"[{:name \"alice\"} {:name \"bob\"}] | at(1) | /name","expect":"\"bob\""}
 {"name":"at-subject-not-vec-error","query":"42 | at(0)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AtSubjectNotVec :message \"at requires Vec subject, got Number\" :operand \"at\" :position \"subject\" :expectedType \"Vec\" :actualType \"Number\"}"}
+{"name":"at-on-map-via-vals","query":"{:a 10 :b 20 :c 30} | vals | at(1)","expect":"20"}
 {"name":"at-index-not-integer-error","query":"[1 2 3] | at(0.5)","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :AtIndexNotInteger :message \"at expects Integer at position 2, got Number\" :operand \"at\" :position 2 :expectedType \"Integer\" :actualType \"Number\"}"}

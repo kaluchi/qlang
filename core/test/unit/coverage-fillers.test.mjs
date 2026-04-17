@@ -468,16 +468,16 @@ describe('reify on a snapshot bound directly via session.bind', async () => {
 });
 
 describe('min/max subject type checks', async () => {
-  it('min on a non-Vec throws MinSubjectNotVec', async () => {
+  it('min on a non-Vec-or-Set throws MinSubjectNotVecOrSet', async () => {
     const result = await evalQuery('42 | min');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('MinSubjectNotVec');
+    expect(result.originalError.name).toBe('MinSubjectNotVecOrSet');
   });
 
-  it('max on a non-Vec throws MaxSubjectNotVec', async () => {
+  it('max on a non-Vec-or-Set throws MaxSubjectNotVecOrSet', async () => {
     const result = await evalQuery('"hello" | max');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('MaxSubjectNotVec');
+    expect(result.originalError.name).toBe('MaxSubjectNotVecOrSet');
   });
 });
 

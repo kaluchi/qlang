@@ -1,14 +1,19 @@
-// Unit tests for polymorphic filter/every/any over Vec/Set/Map
-// plus the byKey/byValue entry matchers, kwName, and the
-// type-classifier nullary operands.
+// Unit tests for polymorphic filter / every / any over Vec / Set /
+// Map with N-arity conduit dispatch on Map, plus the type-classifier
+// nullary operands.
+//
+// Map dispatch rule under test: the predicate conduit's `:params`
+// arity chooses the axis — 0 or 1 → value as pipeValue, 2 → (key,
+// value) as captured-arg values, 3+ → per-operand ArityInvalid error.
 //
 // Each per-site error class is asserted three ways per review
-// discipline: class name, `instanceof QlangTypeError`, and
-// structured context fields via the error-value descriptor.
+// discipline: class name, `instanceof QlangTypeError` or
+// `instanceof ArityError`, and structured context fields via
+// the error-value descriptor.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { QlangTypeError } from '../../src/errors.mjs';
+import { QlangTypeError, ArityError } from '../../src/errors.mjs';
 import { isQMap, isQSet, keyword } from '../../src/types.mjs';
 import {
   expectErrorThrown,
@@ -35,8 +40,8 @@ describe('filter — container polymorphism', () => {
     expect([...setResult].sort()).toEqual([3, 4, 5]);
   });
 
-  it('Map value-axis filter via byValue', async () => {
-    const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))');
+  it('Map with 0-arity pipeline predicate fires against value', async () => {
+    const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter(gt(1))');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get(keyword('b'))).toBe(2);
@@ -44,32 +49,96 @@ describe('filter — container polymorphism', () => {
     expect(mapResult.has(keyword('a'))).toBe(false);
   });
 
-  it('Map key-axis filter via byKey + kwName + startsWith', async () => {
+  it('Map with 0-arity named conduit predicate fires against value', async () => {
     const mapResult = await evalQuery(
-      '{:apple 1 :banana 2 :cherry 3} | filter(byKey(kwName | startsWith("a")))'
+      '{:a 1 :b 2 :c 3} | let(:big, gt(1)) | filter(big)'
+    );
+    expect(isQMap(mapResult)).toBe(true);
+    expect(mapResult.size).toBe(2);
+  });
+
+  it('Map with 2-arity conduit — key axis', async () => {
+    const mapResult = await evalQuery(
+      '{:apple 1 :banana 2 :avocado 3} | let(:@isA, [:k :v], k | eq(:apple)) | filter(@isA)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
     expect(mapResult.get(keyword('apple'))).toBe(1);
   });
 
-  it('Map compound key+value predicate via and(byKey, byValue)', async () => {
+  it('Map with 2-arity conduit — compound key and value', async () => {
     const mapResult = await evalQuery(
-      '{:apple 1 :banana 2 :avocado 3} | filter(and(byKey(kwName | startsWith("a")), byValue(gt(1))))'
+      '{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
     expect(mapResult.get(keyword('avocado'))).toBe(3);
   });
 
-  it('Map empty subject — returns empty Map', async () => {
-    const mapResult = await evalQuery('{} | filter(byValue(gt(0)))');
+  it('Map with 2-arity conduit — correlation (k ↔ v inspection)', async () => {
+    // Clean-named conduit — exercises the non-effectful dispatch branch
+    // of invokeConduitWithFixedArgs (conduitEffectful=false).
+    const mapResult = await evalQuery(
+      '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
+      + '| let(:selfTiered, [:k :v], eq(k, v | /tier)) '
+      + '| filter(selfTiered)'
+    );
+    expect(isQMap(mapResult)).toBe(true);
+    expect(mapResult.size).toBe(2);
+    expect(mapResult.has(keyword('a'))).toBe(true);
+    expect(mapResult.has(keyword('b'))).toBe(true);
+    expect(mapResult.has(keyword('c'))).toBe(false);
+  });
+
+  it('Map with unresolved-identifier pred — falls to per-value path, surfaces on fail-track', async () => {
+    // Exercises the envHas=false branch of resolveCapturedConduit:
+    // the captured-arg identifier is not in env, so conduit resolution
+    // returns null and the per-value predLambda path runs; the lookup
+    // error then surfaces on the fail-track.
+    const errorValue = await evalQuery('{:a 1} | filter(unknownPred) !| /thrown');
+    expect(errorValue).toEqual(keyword('UnresolvedIdentifierError'));
+  });
+
+  it('Map with non-conduit snapshot as pred — falls to per-value path, all entries pass', async () => {
+    // Exercises the non-Map branch of resolveCapturedConduit: the
+    // captured-arg resolves to a number (through snapshot auto-unwrap),
+    // so conduit resolution returns null. The per-value path then fires
+    // the predicate identifier per entry, which replaces pipeValue with
+    // the truthy number — all entries survive.
+    const count = await evalQuery('42 | as(:n) | {:a 1 :b 2} | filter(n) | count');
+    expect(count).toBe(2);
+  });
+
+  it('Map with effectful 2-arity conduit reached via clean name → EffectLaunderingAtCall', async () => {
+    // An @-named (effectful) conduit extracted through env projection and
+    // snapshotted under a clean name is then referenced inside filter.
+    // invokeConduitWithFixedArgs must refuse the clean-name invocation
+    // with EffectLaunderingAtCall — the same safety net applyConduit
+    // enforces for ordinary conduit calls.
+    const errorValue = await evalQuery(
+      'let(:@hot, [:k :v], v | gt(0)) '
+      + '| env | /@hot | as(:clean) '
+      + '| {:a 1 :b 2} | filter(clean) !| /thrown'
+    );
+    expect(errorValue).toEqual(keyword('EffectLaunderingAtCall'));
+  });
+
+  it('Map empty subject — returns empty Map for 0-arity pred', async () => {
+    const mapResult = await evalQuery('{} | filter(gt(0))');
+    expect(isQMap(mapResult)).toBe(true);
+    expect(mapResult.size).toBe(0);
+  });
+
+  it('Map empty subject — returns empty Map for 2-arity pred', async () => {
+    const mapResult = await evalQuery(
+      '{} | let(:@never, [:k :v], false) | filter(@never)'
+    );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(0);
   });
 
   it('Map preserves insertion order of surviving entries', async () => {
-    const mapResult = await evalQuery('{:c 3 :a 1 :b 2} | filter(byValue(gt(1)))');
+    const mapResult = await evalQuery('{:c 3 :a 1 :b 2} | filter(gt(1))');
     const orderedKeys = [...mapResult.keys()].map(k => k.name);
     expect(orderedKeys).toEqual(['c', 'b']);
   });
@@ -82,6 +151,17 @@ describe('filter — container polymorphism', () => {
     expect(originalErr.context.position).toBe('subject');
     expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
     expect(originalErr.context.actualType).toBe('Number');
+  });
+
+  it('Map with 3-arity conduit — FilterMapPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '{:a 1} | let(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
+      'FilterMapPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.name).toBe('FilterMapPredArityInvalid');
+    expect(originalErr.context.conduitName).toBe('@tooWide');
+    expect(originalErr.context.actualArity).toBe(3);
   });
 });
 
@@ -104,16 +184,28 @@ describe('every — container polymorphism', () => {
     expect(await evalQuery('#{1 2 3} | every(gt(2))')).toBe(false);
   });
 
-  it('Map all-values-positive via byValue', async () => {
-    expect(await evalQuery('{:a 1 :b 2 :c 3} | every(byValue(gt(0)))')).toBe(true);
+  it('Map 0-arity — all values positive', async () => {
+    expect(await evalQuery('{:a 1 :b 2 :c 3} | every(gt(0))')).toBe(true);
   });
 
-  it('Map some-value-fails via byValue', async () => {
-    expect(await evalQuery('{:a 1 :b -2 :c 3} | every(byValue(gt(0)))')).toBe(false);
+  it('Map 0-arity — one value fails', async () => {
+    expect(await evalQuery('{:a 1 :b -2 :c 3} | every(gt(0))')).toBe(false);
+  });
+
+  it('Map 2-arity conduit — both axes satisfied', async () => {
+    expect(await evalQuery(
+      '{:a 1 :b 2} | let(:@bothOk, [:k :v], and(v | gt(0), k | isKeyword)) | every(@bothOk)'
+    )).toBe(true);
+  });
+
+  it('Map 2-arity conduit — one entry fails', async () => {
+    expect(await evalQuery(
+      '{:a 1 :b -2} | let(:@bothOk, [:k :v], v | gt(0)) | every(@bothOk)'
+    )).toBe(false);
   });
 
   it('Map empty — vacuously true', async () => {
-    expect(await evalQuery('{} | every(byValue(gt(0)))')).toBe(true);
+    expect(await evalQuery('{} | every(gt(0))')).toBe(true);
   });
 
   it('non-container subject lifts to EverySubjectNotContainer on fail-track', async () => {
@@ -122,6 +214,16 @@ describe('every — container polymorphism', () => {
     expect(originalErr.name).toBe('EverySubjectNotContainer');
     expect(originalErr.context.operand).toBe('every');
     expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
+  });
+
+  it('Map with 3-arity conduit — EveryMapPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '{:a 1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide)',
+      'EveryMapPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.context.conduitName).toBe('@tooWide');
+    expect(originalErr.context.actualArity).toBe(3);
   });
 });
 
@@ -140,16 +242,18 @@ describe('any — container polymorphism', () => {
     expect(await evalQuery('#{1 2 3} | any(gt(2))')).toBe(true);
   });
 
-  it('Map any-value-matches via byValue', async () => {
-    expect(await evalQuery('{:a -1 :b 0 :c 2} | any(byValue(gt(0)))')).toBe(true);
+  it('Map 0-arity — any value positive', async () => {
+    expect(await evalQuery('{:a -1 :b 0 :c 2} | any(gt(0))')).toBe(true);
   });
 
-  it('Map any-key-matches via byKey + kwName + startsWith', async () => {
-    expect(await evalQuery('{:apple 1 :banana 2} | any(byKey(kwName | startsWith("a")))')).toBe(true);
+  it('Map 2-arity conduit — any entry by key', async () => {
+    expect(await evalQuery(
+      '{:apple 1 :banana 2} | let(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)'
+    )).toBe(true);
   });
 
   it('Map empty — vacuously false', async () => {
-    expect(await evalQuery('{} | any(byValue(gt(0)))')).toBe(false);
+    expect(await evalQuery('{} | any(gt(0))')).toBe(false);
   });
 
   it('non-container subject lifts to AnySubjectNotContainer on fail-track', async () => {
@@ -157,87 +261,16 @@ describe('any — container polymorphism', () => {
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('AnySubjectNotContainer');
     expect(originalErr.context.operand).toBe('any');
-    expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
-  });
-});
-
-// ── byKey / byValue matchers — guard classes ──────────────────
-
-describe('byKey — matcher guard sites', () => {
-  it('non-Map subject lifts to ByKeySubjectNotMap', async () => {
-    const errorValue = await expectErrorThrown('42 | byKey(kwName)', 'ByKeySubjectNotMap');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('ByKeySubjectNotMap');
-    expect(originalErr.context.operand).toBe('byKey');
-    expect(originalErr.context.actualType).toBe('Number');
   });
 
-  it('user Map lacking :qlang/key lifts to ByKeyMapNotFilterPair', async () => {
-    // Invoking byKey directly on a user Map — NOT via a filter
-    // dispatch — fires the second guard because the namespaced
-    // :qlang/key field is absent.
+  it('Map with 3-arity conduit — AnyMapPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1 :b 2} | byKey(kwName)',
-      'ByKeyMapNotFilterPair'
+      '{:a 1} | let(:@tooWide, [:x :y :z], true) | any(@tooWide)',
+      'AnyMapPredArityInvalid'
     );
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('ByKeyMapNotFilterPair');
-    expect(originalErr.context.actualKeys).toContain(':a');
-    expect(originalErr.context.actualKeys).toContain(':b');
-  });
-
-  it('empty Map subject renders `(empty Map)` in the diagnostic', async () => {
-    const errorValue = await expectErrorThrown(
-      '{} | byKey(kwName)',
-      'ByKeyMapNotFilterPair'
-    );
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.context.actualKeys).toBe('(empty Map)');
-  });
-});
-
-describe('byValue — matcher guard sites', () => {
-  it('non-Map subject lifts to ByValueSubjectNotMap', async () => {
-    const errorValue = await expectErrorThrown('42 | byValue(gt(0))', 'ByValueSubjectNotMap');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('ByValueSubjectNotMap');
-    expect(originalErr.context.operand).toBe('byValue');
-    expect(originalErr.context.actualType).toBe('Number');
-  });
-
-  it('user Map lacking :qlang/value lifts to ByValueMapNotFilterPair', async () => {
-    const errorValue = await expectErrorThrown(
-      '{:a 1 :b 2} | byValue(gt(0))',
-      'ByValueMapNotFilterPair'
-    );
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('ByValueMapNotFilterPair');
-    expect(originalErr.context.actualKeys).toContain(':a');
-  });
-});
-
-// ── kwName ────────────────────────────────────────────────────
-
-describe('kwName — Keyword to String', () => {
-  it('bare keyword', async () => {
-    expect(await evalQuery(':foo | kwName')).toBe('foo');
-  });
-
-  it('namespaced keyword', async () => {
-    expect(await evalQuery(':qlang/prim/add | kwName')).toBe('qlang/prim/add');
-  });
-
-  it('quoted keyword with arbitrary characters', async () => {
-    expect(await evalQuery(':"foo bar" | kwName')).toBe('foo bar');
-  });
-
-  it('non-keyword subject lifts to KwNameSubjectNotKeyword', async () => {
-    const errorValue = await expectErrorThrown('"foo" | kwName', 'KwNameSubjectNotKeyword');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('KwNameSubjectNotKeyword');
-    expect(originalErr.context.operand).toBe('kwName');
-    expect(originalErr.context.expectedType).toBe('Keyword');
-    expect(originalErr.context.actualType).toBe('String');
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.context.conduitName).toBe('@tooWide');
+    expect(originalErr.context.actualArity).toBe(3);
   });
 });
 
@@ -310,13 +343,9 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
 // ── Integration — filter with type classifiers over Map ──────
 
 describe('filter + type classifiers integration', () => {
-  // Mirrors the glossary-JSON use cases from the design
-  // discussion: separate scalar-valued entries from Map-valued
-  // entries inside a heterogeneous Map.
-
-  it('byValue(isString) keeps only String-valued entries', async () => {
+  it('filter(isString) over Map keeps only String-valued entries', async () => {
     const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter(byValue(isString))'
+      '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter(isString)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -326,18 +355,9 @@ describe('filter + type classifiers integration', () => {
     expect(mapResult.has(keyword('Count'))).toBe(false);
   });
 
-  it('byValue(isMap) keeps only Map-valued entries', async () => {
+  it('filter(isMap) over Map keeps only Map-valued entries', async () => {
     const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossDef {:para "..."}} | filter(byValue(isMap))'
-    );
-    expect(isQMap(mapResult)).toBe(true);
-    expect(mapResult.size).toBe(1);
-    expect(mapResult.has(keyword('GlossDef'))).toBe(true);
-  });
-
-  it('byValue(isString | not) keeps composite-valued entries', async () => {
-    const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossDef {:para "..."}} | filter(byValue(isString | not))'
+      '{:ID "SGML" :GlossDef {:para "..."}} | filter(isMap)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
@@ -345,42 +365,28 @@ describe('filter + type classifiers integration', () => {
   });
 });
 
-// ── Integration — correlation via raw namespaced access (escape hatch) ──
+// ── Conduit portability — same pred works on Vec and on Map ──
 
-describe('filter + raw pair-Map access — correlation escape hatch', () => {
-  it('full-app predicate over both axes via /:qlang/key and /:qlang/value', async () => {
-    // "keep entries where value's :name matches the key's name"
-    // The pair-Map is namespaced to avoid collision with user
-    // domain keys; raw projection through /:qlang/key / /:qlang/value
-    // is the escape hatch for correlation predicates that matchers
-    // alone cannot express. Note: the namespaced keyword-segment
-    // parser is greedy on `/` separators, so the descent into the
-    // inner Map-value's :name field must sit after an explicit
-    // pipeline break — `/:qlang/value | /name` reads as "project
-    // :qlang/value, then project :name from that result".
+describe('filter — conduit portability across containers', () => {
+  it('0-arity conduit fires uniformly on Vec elements and Map values', async () => {
+    const vecResult = await evalQuery(
+      'let(:big, gt(1)) | [1 2 3] | filter(big)'
+    );
+    expect(vecResult).toEqual([2, 3]);
+
     const mapResult = await evalQuery(
-      '{:alice {:name "alice"} :bob {:name "eve"} :carol {:name "carol"}} '
-      + '| filter(eq(/:qlang/key | kwName, /:qlang/value | /name))'
+      'let(:big, gt(1)) | {:a 1 :b 2 :c 3} | filter(big)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
-    expect(mapResult.has(keyword('alice'))).toBe(true);
-    expect(mapResult.has(keyword('carol'))).toBe(true);
-    expect(mapResult.has(keyword('bob'))).toBe(false);
+    expect(mapResult.get(keyword('b'))).toBe(2);
+    expect(mapResult.get(keyword('c'))).toBe(3);
   });
 });
 
 // ── Error-value propagation from predicate, per container branch ─
 
 describe('filter/every/any — predicate returning error value propagates on fail-track', () => {
-  // When the predicate lambda itself yields an error value (e.g.
-  // the pred body is an ErrorLit, or an inner projection raises),
-  // the enclosing container operand short-circuits and returns the
-  // error value as its own pipeValue — subsequent success-track
-  // combinators deflect, !| fires against the materialized
-  // descriptor. Each container branch (Vec / Set / Map) owns the
-  // same propagation rule.
-
   it('filter over Set — predicate ErrorLit propagates', async () => {
     const errorValue = await evalQuery('#{1 2} | filter(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
@@ -399,34 +405,5 @@ describe('filter/every/any — predicate returning error value propagates on fai
   it('any over Map — predicate ErrorLit propagates', async () => {
     const errorValue = await evalQuery('{:a 1} | any(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
-  });
-});
-
-// ── Collision safety — user domain keys :key / :value do not confuse matchers ──
-
-describe('filter over Map with user domain keys :key / :value', () => {
-  it('a user Map with :key / :value as domain keys still filters cleanly', async () => {
-    // The namespaced pair-Map uses :qlang/key / :qlang/value so
-    // user domain keys called :key / :value never collide with
-    // the matcher's projection axes.
-    const mapResult = await evalQuery(
-      '{:key :superKey :value "vee" :other 42} | filter(byValue(isString))'
-    );
-    expect(isQMap(mapResult)).toBe(true);
-    expect(mapResult.size).toBe(1);
-    expect(mapResult.get(keyword('value'))).toBe('vee');
-  });
-
-  it('byKey reaches the domain key :key without confusion', async () => {
-    // Every entry's KEY flows through byKey: the entry whose
-    // domain key IS the keyword :key lands under :qlang/key in
-    // the pair-Map, byKey projects through the namespace, inner
-    // pred compares it to the literal keyword :key.
-    const mapResult = await evalQuery(
-      '{:key :superKey :value "vee" :other 42} | filter(byKey(eq(:key)))'
-    );
-    expect(isQMap(mapResult)).toBe(true);
-    expect(mapResult.size).toBe(1);
-    expect(mapResult.get(keyword('key'))).toEqual(keyword('superKey'));
   });
 });

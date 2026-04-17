@@ -11,7 +11,9 @@
 {"name":"every-as-filter-equivalence","query":"let(:xs, [1 2 3 4 5]) | xs | filter(gt(0)) | count | eq(xs | count) | eq(xs | every(gt(0)))","expect":"true"}
 {"name":"every-set-all-match","query":"#{2 4 6} | every(gt(0))","expect":"true"}
 {"name":"every-set-one-fails","query":"#{2 4 -1} | every(gt(0))","expect":"false"}
-{"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every(byValue(gt(0)))","expect":"true"}
-{"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every(byValue(gt(0)))","expect":"false"}
-{"name":"every-map-empty-vacuous","query":"{} | every(byValue(gt(0)))","expect":"true"}
-{"name":"every-map-by-key-pattern","query":"{:a1 :one :a2 :two} | every(byKey(kwName | startsWith(\"a\")))","expect":"true"}
+{"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every(gt(0))","expect":"true"}
+{"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every(gt(0))","expect":"false"}
+{"name":"every-map-empty-vacuous","query":"{} | every(gt(0))","expect":"true"}
+{"name":"every-map-via-2arity-conduit","query":"{:a 1 :b 2} | let(:@bothPositive, [:k :v], and(v | gt(0), k | isKeyword)) | every(@bothPositive)","expect":"true"}
+{"name":"every-map-via-2arity-conduit-fails","query":"{:a 1 :b -2} | let(:@bothPositive, [:k :v], v | gt(0)) | every(@bothPositive)","expect":"false"}
+{"name":"every-map-3arity-pred-throws","query":"{:a 1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryMapPredArityInvalid"}

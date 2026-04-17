@@ -507,7 +507,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',        // CountSubjectNotContainer
       '42 | first',        // FirstSubjectNotVec
       '42 | last',         // LastSubjectNotVec
-      '42 | sum',          // SumSubjectNotVec
+      '42 | sum',          // SumSubjectNotVecOrSet
       '42 | reverse',      // ReverseSubjectNotVec
       '42 | distinct',     // DistinctSubjectNotVec
       '42 | sort',         // SortNaturalSubjectNotVec

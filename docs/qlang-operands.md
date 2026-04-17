@@ -83,123 +83,109 @@ form), positions 2..n are modifiers (filled by captured args).
 
 ### `sum`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns the numeric sum of elements. Empty Vec yields `0`.
-- **Example**: `[1 2 3 4] | sum` → `10`; `[] | sum` → `0`.
-- **Errors**: any element not a number → type error.
+- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
+  `sum` is commutative, so Set's unordered semantics do not
+  affect the result.
+- Returns the numeric sum of elements. Empty container yields
+  `0`. Every element must be a number.
+- **Examples**: `[1 2 3 4] | sum` → `10`; `#{1 2 3} | sum` → `6`;
+  `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
+- **Errors**: subject not Vec/Set → type error; element not a
+  number → type error.
 
 ### `min`, `max`
 
-- **Arity** 1. **Subject** `vec`.
+- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
+  `min` / `max` are order-independent.
 - Returns the minimum (or maximum) element under the natural
-  ordering. Empty Vec yields `null`.
-- **Example**: `[3 1 4 1 5] | min` → `1`; `[3 1 4 1 5] | max` → `5`.
-- **Errors**: elements not comparable → type error.
+  ordering. Empty container yields `null`.
+- **Examples**: `[3 1 4 1 5] | min` → `1`; `#{3 1 4} | max` → `4`.
+- **Errors**: subject not Vec/Set → type error; elements not
+  comparable → type error.
 
 ## Container transformers and reducers — polymorphic over `Vec` / `Set` / `Map`
 
 `filter`, `every`, and `any` dispatch on container type. On `Vec`
 and `Set` the predicate fires against each element directly,
 returning a new container of the same shape. On `Map` the
-predicate fires against a namespaced entry pair-Map
-`{:qlang/key :qlang/value}` per entry — the `byKey` / `byValue`
-matchers project the appropriate axis at the predicate call site
-without exposing the pair-Map shape. The `qlang/` namespace is
-reserved for internal shape (cf. `:qlang/kind`, `:qlang/impl`
-in descriptor Maps), so user domain keys never collide with the
-pair-Map fields — a Map literally containing `:key` / `:value`
-domain keys filters cleanly without any escape-hatch syntax.
+predicate's **parameter arity** chooses the axis:
+
+- 0-arity pipeline (`filter(gt(1))`) or 1-arity conduit `[:v]` —
+  per entry with the **value** as pipeValue; the key is not
+  visible. This path covers the 90% case.
+- 2-arity conduit `[:k :v]` — per entry with **`(key, value)`**
+  as captured-arg values. The body references `k` and `v` as
+  ordinary identifiers and can correlate the two axes freely.
+- 3+-arity conduit — per-operand `*MapPredArityInvalid`. The
+  language does not pair-encode keys and values into a single
+  argument; higher arities have no meaning for entry iteration.
+
+Compose both-axis predicates by naming the 2-arity conduit with
+`let` inline in the pipeline, then reference it inside `filter` /
+`every` / `any`:
+
+```qlang
+m
+  | let(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
+  | filter(@hot)
+```
 
 ### `filter(pred)`
 
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
-  **modifier** `pred` (a predicate pipeline).
+  **modifier** `pred` (a predicate pipeline or a named conduit).
 - Keeps items where the predicate evaluates truthy, collecting
-  into a new container of the same shape. On `Vec` insertion
-  order is preserved; on `Set` insertion order is preserved
-  (JS Set iteration is insertion-ordered); on `Map` entry
-  insertion order is preserved. Empty subject returns an empty
-  container of the same kind.
+  into a new container of the same shape. Vec and Set iterate
+  per element (insertion order preserved); Map iterates per
+  entry with the arity dispatch above. Empty subject returns an
+  empty container of the same kind.
 - **Examples**:
   - `[1 2 3 4 5] | filter(gt(2))` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter(/age | gte(18))` → `[{:age 25}]`.
   - `#{1 2 3 4 5} | filter(gt(2))` → `#{3 4 5}`.
-  - `{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))` → `{:b 2 :c 3}`.
-  - `{:apple 1 :banana 2 :cherry 3} | filter(byKey(kwName | startsWith("a")))` → `{:apple 1}`.
-  - `{:apple 1 :banana 2 :avocado 3} | filter(and(byKey(kwName | startsWith("a")), byValue(gt(1))))` → `{:avocado 3}`.
-  - **Correlation escape hatch** — `filter(eq(/:qlang/key | kwName, /:qlang/value | /name))` keeps entries whose value's `:name` field matches the key's name. Needed when a predicate must correlate key and value in one expression; `byKey` / `byValue` alone project a single axis each.
+  - `{:a 1 :b 2 :c 3} | filter(gt(1))` → `{:b 2 :c 3}` — 0-arity pred, value axis.
+  - `{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
+  - `{} | filter(gt(0))` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainer`.
+  `FilterSubjectNotContainer`. Map predicate conduit with 3+
+  params → `FilterMapPredArityInvalid`.
 
 ### `every(pred)`
 
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
-  **modifier** `pred` (a predicate pipeline).
+  **modifier** `pred`.
 - Returns `true` iff every item of the container satisfies the
   predicate. Short-circuits on the first falsy result. Vacuously
-  true for empty containers (no counter-example exists). Per-
-  container item dispatch matches `filter`: element on Vec/Set,
-  entry pair-Map on Map.
+  true for empty containers. Per-container item dispatch matches
+  `filter`: element for Vec/Set; arity-dispatched for Map
+  (0/1 → value, 2 → (key, value)).
 - **Examples**:
   - `[2 4 6] | every(gt(0))` → `true`.
   - `[1 2 3] | every(gt(2))` → `false`.
   - `[] | every(gt(0))` → `true`.
   - `#{2 4 6} | every(gt(0))` → `true`.
-  - `{:a 1 :b 2 :c 3} | every(byValue(gt(0)))` → `true`.
-  - `{:a 1 :b -2 :c 3} | every(byValue(gt(0)))` → `false`.
-- **Errors**: subject neither Vec nor Set nor Map →
-  `EverySubjectNotContainer`.
+  - `{:a 1 :b 2 :c 3} | every(gt(0))` → `true` — 0-arity, value axis.
+  - `{:a 1 :b -2 :c 3} | every(gt(0))` → `false`.
+- **Errors**: subject not a container → `EverySubjectNotContainer`.
+  Map predicate conduit with 3+ params → `EveryMapPredArityInvalid`.
 
 ### `any(pred)`
 
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
-  **modifier** `pred` (a predicate pipeline).
+  **modifier** `pred`.
 - Returns `true` iff at least one item of the container satisfies
   the predicate. Short-circuits on the first truthy result.
-  Vacuously false for empty containers (no witness exists).
+  Vacuously false for empty containers. Same arity-dispatch rule
+  as `filter` / `every`.
 - **Examples**:
   - `[1 2 3] | any(gt(2))` → `true`.
   - `[1 2 3] | any(gt(99))` → `false`.
   - `[] | any(gt(0))` → `false`.
   - `#{1 2 3} | any(gt(2))` → `true`.
-  - `{:a -1 :b 0 :c 2} | any(byValue(gt(0)))` → `true`.
-  - `{:apple 1 :banana 2} | any(byKey(kwName | startsWith("a")))` → `true`.
-- **Errors**: subject neither Vec nor Set nor Map →
-  `AnySubjectNotContainer`.
-
-### `byKey(innerPred)`
-
-- **Arity** 2. **Subject** entry pair-Map
-  `{:qlang/key :qlang/value}` (constructed by `filter`/`every`/
-  `any` per-entry when the container subject is a Map).
-  **Modifier** `innerPred` (a predicate sub-pipeline).
-- Projects `:qlang/key` and fires `innerPred` against it. Returns
-  whatever `innerPred` returned — the enclosing container operand
-  truthifies. Composes with `and`/`or`/`not` across matchers for
-  compound predicates.
-- **Examples**:
-  - `{:apple 1 :banana 2} | filter(byKey(kwName | startsWith("a")))` → `{:apple 1}`.
-  - `{:a 1 :b 2} | filter(byKey(eq(:a)))` → `{:a 1}`.
-  - `{:a1 :one :a2 :two} | every(byKey(kwName | startsWith("a")))` → `true`.
-- **Errors**: subject not a Map → `ByKeySubjectNotMap`. Subject
-  is a Map but lacks the namespaced `:qlang/key` field (invoked
-  outside a filter/every/any pred context, e.g. directly on a
-  user Map) → `ByKeyMapNotFilterPair`.
-
-### `byValue(innerPred)`
-
-- **Arity** 2. **Subject** entry pair-Map, **modifier**
-  `innerPred`.
-- Projects `:qlang/value` and fires `innerPred` against the
-  entry's value. Symmetric to `byKey`; compose via `and`/`or`/
-  `not` for combined key + value predicates.
-- **Examples**:
-  - `{:a 1 :b 2 :c 3} | filter(byValue(gt(1)))` → `{:b 2 :c 3}`.
-  - `{:a 1 :b "x" :c [1]} | filter(byValue(isString))` → `{:b "x"}`.
-  - `{:apple 1 :banana 2 :avocado 3} | filter(and(byKey(kwName | startsWith("a")), byValue(gt(1))))` → `{:avocado 3}`.
-- **Errors**: subject not a Map → `ByValueSubjectNotMap`.
-  Subject is a Map lacking `:qlang/value` →
-  `ByValueMapNotFilterPair`.
+  - `{:a -1 :b 0 :c 2} | any(gt(0))` → `true` — 0-arity, value axis.
+  - `{:apple 1 :banana 2} | let(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
+- **Errors**: subject not a container → `AnySubjectNotContainer`.
+  Map predicate conduit with 3+ params → `AnyMapPredArityInvalid`.
 
 ## Vec transformers — `Vec → Vec` / `Vec → Map`
 
@@ -389,21 +375,6 @@ domain keys filters cleanly without any escape-hatch syntax.
 - Returns `true` if the Map contains the key, `false` otherwise.
 - **Example**: `{:name "Alice"} | has(:name)` → `true`;
   `{:name "Alice"} | has(:age)` → `false`.
-
-### `kwName`
-
-- **Arity** 1. **Subject** `keyword`.
-- Lifts a keyword to its identifier-name String. Required for
-  string-oriented predicates over keys — the natural idiom is
-  `byKey(kwName | startsWith("..."))` when `filter`-over-Map
-  needs a key-pattern selection.
-- **Examples**:
-  - `:foo | kwName` → `"foo"`.
-  - `:qlang/prim/add | kwName` → `"qlang/prim/add"`.
-  - `:"foo bar" | kwName` → `"foo bar"` (quoted form round-trips).
-  - `entry | filter(byKey(kwName | startsWith("Gloss")))` — the
-    key-pattern filter idiom `kwName` exists for.
-- **Errors**: subject not a keyword → `KwNameSubjectNotKeyword`.
 
 ## Set operations
 
@@ -622,9 +593,11 @@ round-trips to `"a,b,c"`.
 Eight nullary predicates lift the `types.mjs` value-class
 predicates to operand level. Primary use — inside `filter`,
 `every`, `any` predicates over heterogeneous containers:
-`filter(byValue(isString))`, `filter(byValue(isMap))`,
-`every(byValue(isNumber))`. Without them the same classification
-lands through `reify | /type | eq(:string)` — correct but it
+`filter(isString)` over a Vec of mixed types, or over a Map
+where the value's type is the predicate axis
+(`{:ID "SGML" :GlossDef {...}} | filter(isMap)` keeps only the
+Map-valued entries). Without them the same classification lands
+through `reify | /type | eq(:string)` — correct but it
 constructs the full descriptor Map per item for a single bit of
 information. Each classifier matches exactly one
 `describeType(v)` label and never throws.
@@ -1118,8 +1091,7 @@ listed once.
 | Vec transformers        | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `set`, `sortWith`, `groupBy`, `indexBy` |
 | Comparator builders     | `asc`, `desc`, `nullsFirst`, `nullsLast`               |
 | Control flow            | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
-| Map operations          | `keys`, `vals`, `has` (polymorphic with Set), `kwName` |
-| Entry matchers          | `byKey`, `byValue` (higher-order, for `filter`/`every`/`any` over a Map) |
+| Map operations          | `keys`, `vals`, `has` (polymorphic with Set) |
 | Polymorphic set ops     | `union`, `minus`, `inter`                             |
 | Arithmetic              | `add`, `sub`, `mul`, `div`                            |
 | String                  | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
@@ -1130,9 +1102,9 @@ listed once.
 | Error                   | `error`, `isError`                                     |
 | Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
 
-**81 unique identifiers** in the initial `langRuntime` Map. Each
-polymorphic / overloaded operand is one identifier regardless of
-how many dispatch paths it carries. The reflective pair `parse` /
+Each polymorphic / overloaded operand is one identifier in the
+initial `langRuntime` Map regardless of how many dispatch paths
+it carries. The reflective pair `parse` /
 `eval` closes the code-as-data ring: a source string lifts into an
 AST-Map through `parse`, runs through `eval` to become a
 `pipeValue`, and the intermediate Map is addressable as ordinary

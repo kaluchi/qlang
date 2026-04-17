@@ -515,7 +515,7 @@ The reference implementation assembles `langRuntime` from two
 co-located sources:
 
 - **`lib/qlang/core.qlang`** — the authored catalog. One outer
-  Map literal whose 69 entries each bind a keyword identifier
+  Map literal whose entries each bind a keyword identifier
   (`:count`, `:filter`, `:let`, `:parse`, …) to a descriptor
   Map carrying `:qlang/kind :builtin` plus a namespaced
   `:qlang/impl :qlang/prim/<name>` keyword that points into the
@@ -533,8 +533,8 @@ co-located sources:
   `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
   `stateOpVariadic`, `higherOrderOpVariadic`) attach a tiny
   `meta` object carrying only the `captured` range — the rest
-  of the metadata lives in `core.qlang` and is addressable by
-  descriptor projection at `reify` / `manifest` time.
+  of the metadata lives in `core.qlang` and is addressable at
+  `reify` / `manifest` time.
 
 `langRuntime()` in `core/src/runtime/index.mjs` ties the two together
 by parsing `core.qlang` once, evaluating it against an empty env
@@ -1121,7 +1121,7 @@ layering boundary.
 - `PRIMITIVE_REGISTRY` — the production singleton bound by every
   `runtime/*.mjs` module at import time under namespaced
   `:qlang/prim/<name>` keys (`add`, `filter`, `let`, `parse`,
-  and so on — 69 total). `evalOperandCall` resolves an
+  and so on). `evalOperandCall` resolves an
   `:qlang/impl` handle through `PRIMITIVE_REGISTRY.resolve` at
   every built-in dispatch.
 

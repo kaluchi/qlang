@@ -31,8 +31,10 @@
 {"name":"builtin-captured-when-fixed-two","query":"env | /when | reify | /captured","expect":"[2 2]"}
 {"name":"builtin-captured-manifest-zero","query":"env | /manifest | reify | /captured","expect":"[0 0]"}
 {"name":"builtin-category-arith","query":"env | /add | reify | /category","expect":":arith"}
-{"name":"builtin-category-vec-reducer","query":"env | /count | reify | /category","expect":":vec-reducer"}
-{"name":"builtin-category-vec-transformer","query":"env | /filter | reify | /category","expect":":vec-transformer"}
+{"name":"builtin-category-container-reducer","query":"env | /count | reify | /category","expect":":container-reducer"}
+{"name":"builtin-category-container-selector","query":"env | /filter | reify | /category","expect":":container-selector"}
+{"name":"builtin-category-vec-reducer","query":"env | /sum | reify | /category","expect":":vec-reducer"}
+{"name":"builtin-category-vec-transformer","query":"env | /sort | reify | /category","expect":":vec-transformer"}
 {"name":"builtin-category-map-op","query":"env | /keys | reify | /category","expect":":map-op"}
 {"name":"builtin-category-set-op","query":"env | /set | reify | /category","expect":":set-op"}
 {"name":"builtin-category-string","query":"env | /split | reify | /category","expect":":string"}

@@ -258,20 +258,20 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
 |~~ Returns the number of elements. Polymorphic over
     Vec (length), Set (size), and Map (entry count). ~~|
 :count {:qlang/kind :builtin
-        :category :vec-reducer
+        :category :container-reducer
         :subject [:vec :set :map]
         :returns :number
         :modifiers []
         :throws [:CountSubjectNotContainer]}
 
-|~~ Keeps elements where the predicate sub-pipeline evaluates
-    truthy. The predicate is applied to each element via fork. ~~|
+|~~ Keeps items of the container where the predicate sub-pipeline
+    evaluates truthy. Polymorphic over Vec / Set / Map. ~~|
 :filter {:qlang/kind :builtin
-         :category :vec-transformer
-         :subject :vec
-         :returns :vec
+         :category :container-selector
+         :subject [:vec, :set, :map]
+         :returns [:vec, :set, :map]
          :modifiers [:predicate-lambda]
-         :throws [:FilterSubjectNotVec]}
+         :throws [:FilterSubjectNotContainer]}
 }`;
 
   it('parses the catalog and stamps docs on each entry', () => {
@@ -288,7 +288,7 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
     const countEntry = catalog.get(keyword('count'));
     expect(isQMap(countEntry)).toBe(true);
     expect(countEntry.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
-    expect(countEntry.get(keyword('category'))).toBe(keyword('vec-reducer'));
+    expect(countEntry.get(keyword('category'))).toBe(keyword('container-reducer'));
     expect(countEntry.get(KW_DOCS)).toHaveLength(1);
     expect(countEntry.get(KW_DOCS)[0]).toContain('Polymorphic');
   });
@@ -303,6 +303,6 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
 
   it('per-entry :throws field is addressable via the same mechanism', async () => {
     const throwsField = await evalQuery(CATALOG_SOURCE + ' | /filter | /throws');
-    expect(throwsField).toEqual([keyword('FilterSubjectNotVec')]);
+    expect(throwsField).toEqual([keyword('FilterSubjectNotContainer')]);
   });
 });

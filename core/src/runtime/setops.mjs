@@ -106,7 +106,7 @@ export const union = overloadedOp('union', 2, {
 
 export const minus = overloadedOp('minus', 2, {
   0: (vec) => {
-    if (!Array.isArray(vec)) throw new MinusBareSubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new MinusBareSubjectNotVec(describeType(vec), vec);
     if (vec.length === 0) throw new MinusBareEmpty();
     return vec.reduce(minusPair);
   },
@@ -117,7 +117,7 @@ export const minus = overloadedOp('minus', 2, {
 
 export const inter = overloadedOp('inter', 2, {
   0: (vec) => {
-    if (!Array.isArray(vec)) throw new InterBareSubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new InterBareSubjectNotVec(describeType(vec), vec);
     if (vec.length === 0) throw new InterBareEmpty();
     return vec.reduce(interPair);
   },

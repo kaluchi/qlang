@@ -411,14 +411,13 @@ async function evalOperandCall(node, state) {
   // its wrapped :qlang/value transparently to identifier lookup so
   // `as(:name) | name` sees the raw data. The wrapper itself stays
   // reachable through `reify(:name)`, which reads env directly
-  // without going through evalOperandCall. Running the unwrap
-  // before the binding-descriptor dispatch collapses the old
-  // four-branch layout (builtin / conduit / snapshot / function)
-  // into three: applyBindingDescriptor for builtin + conduit,
-  // isFunctionValue for conduit-parameter proxies, plain-value
-  // tail for everything else — and preserves the "snapshot wrapping
-  // an effectful function value" safety-net path documented in
-  // the effect-marker section of qlang-spec.md.
+  // without going through evalOperandCall. Unwrapping upstream of
+  // applyBindingDescriptor keeps the :qlang/kind switch exhaustive
+  // over {:builtin, :conduit}; the remaining non-Map branches handle
+  // conduit-parameter proxies (isFunctionValue) and plain user values
+  // (tail) — and preserves the "snapshot wrapping an effectful
+  // function value" safety-net path documented in the effect-marker
+  // section of qlang-spec.md.
   if (isSnapshot(resolved)) {
     resolved = resolved.get(KW_VALUE_FIELD);
   }
@@ -675,6 +674,10 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // The `.astNode` property exposes the raw AST for reflective
 // operands (like `let`) that need to store the body expression
 // unevaluated for conduit construction and reify source rendering.
+// The `.capturedEnv` property exposes the declaration-time env so
+// higher-order operands can statically resolve a bare-identifier
+// captured arg to its binding descriptor (filter/every/any over
+// Map inspect the captured predicate's arity before dispatch).
 function makeLambda(astNode, capturedLambdaEnv) {
   const lambda = async (lambdaInput) => {
     const subState = makeState(lambdaInput, capturedLambdaEnv);
@@ -682,8 +685,75 @@ function makeLambda(astNode, capturedLambdaEnv) {
     return evaluatedState.pipeValue;
   };
   lambda.astNode = astNode;
+  lambda.capturedEnv = capturedLambdaEnv;
   return lambda;
 }
+
+// resolveCapturedConduit(astNode, env) → { conduit, lookupName } | null
+//
+// If astNode is a bare OperandCall identifier (no captured args) that
+// resolves in env to a conduit descriptor — directly or through a
+// snapshot wrapper — returns the conduit and the binding name used at
+// the lookup site. Otherwise returns null. Used by filter/every/any
+// over Map to statically resolve a parametric conduit predicate and
+// dispatch by its `:params` arity without a test-application round-trip.
+export function resolveCapturedConduit(astNode, env) {
+  if (!astNode || astNode.type !== 'OperandCall' || astNode.args !== null) return null;
+  const lookupName = astNode.name;
+  if (!envHas(env, lookupName)) return null;
+  let resolved = envGet(env, lookupName);
+  if (isSnapshot(resolved)) resolved = resolved.get(KW_VALUE_FIELD);
+  if (!(resolved instanceof Map)) return null;
+  if (resolved.get(KW_QLANG_KIND_DISPATCH) !== KW_CONDUIT_DISPATCH) return null;
+  return { conduit: resolved, lookupName };
+}
+
+// invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue)
+//   → Promise<pipeValue>
+//
+// Applies a parametric conduit with caller-supplied captured values,
+// bypassing the AST-args construction path. Each fixedArgs[i] becomes
+// a nullary captured-arg lambda that ignores pipeValue and returns the
+// fixed value — matching the conduit-parameter lazy-proxy contract for
+// a value the caller has already resolved. Used by filter/every/any
+// over Map to supply (key, value) to a 2-arity predicate per entry.
+//
+// Enforces the same effect-laundering invariant as applyConduit: an
+// effectful conduit cannot be invoked through a clean lookup name.
+// Caller must guarantee fixedArgs.length === conduit's params.length —
+// this helper performs no arity check because the dispatching operand
+// has already verified the arity.
+export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue) {
+  const conduitName      = conduit.get(KW_NAME_FIELD);
+  const conduitParams    = conduit.get(KW_PARAMS_FIELD);
+  const conduitBody      = conduit.get(KW_BODY_FIELD);
+  const conduitEnvRef    = conduit.get(KW_ENVREF_FIELD);
+  const conduitEffectful = conduit.get(KW_EFFECTFUL_FIELD);
+
+  if (conduitEffectful && !classifyEffect(lookupName)) {
+    throw new EffectLaunderingAtCall({
+      bindingName: lookupName,
+      effectfulName: conduitName
+    });
+  }
+
+  let bodyEnv = conduitEnvRef.env;
+  for (let pi = 0; pi < conduitParams.length; pi++) {
+    const fixedValue = fixedArgs[pi];
+    const fixedArgLambda = async () => fixedValue;
+    const paramProxy = makeConduitParameter(fixedArgLambda, conduitParams[pi]);
+    bodyEnv = envSet(bodyEnv, conduitParams[pi], paramProxy);
+  }
+
+  const bodyState = makeState(pipeValue, bodyEnv);
+  const finalBodyState = await evalNode(conduitBody, bodyState);
+  return finalBodyState.pipeValue;
+}
+
+// Exposed params field key so higher-order operands can read a
+// conduit's arity without re-interning the keyword. Pairs with
+// resolveCapturedConduit / invokeConduitWithFixedArgs.
+export const KW_CONDUIT_PARAMS = KW_PARAMS_FIELD;
 
 // ─── Step 6: comment (plain forms only — doc forms attach
 // during parsing and never appear as standalone steps) ─────────

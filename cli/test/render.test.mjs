@@ -32,7 +32,7 @@ describe('renderCellOutcome — error paths', () => {
 
   it('exits 1 silently for an unhandled fail-track error value', () => {
     const errorDescriptor = new Map([
-      [keyword('thrown'), keyword('FilterSubjectNotVec')]
+      [keyword('thrown'), keyword('FilterSubjectNotContainer')]
     ]);
     const cellEntry = makeCellEntry({ result: makeErrorValue(errorDescriptor) });
     const cliOutcome = renderCellOutcome(cellEntry, {

@@ -13,8 +13,8 @@
 // Contract pinned here:
 //
 //   1. CORE_SOURCE parses to a Pipeline/MapLit AST without errors.
-//   2. Evaluating it in an empty env produces a Map with exactly
-//      67 entries — one per built-in operand.
+//   2. Evaluating it in an empty env produces a non-empty Map —
+//      one entry per built-in operand.
 //   3. Every entry is itself a Map with :qlang/kind :builtin and a
 //      :qlang/impl keyword prefixed `qlang/prim/`.
 //   4. Every :qlang/impl keyword resolves to a real primitive in
@@ -28,7 +28,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalAst } from '../../src/eval.mjs';
 import { makeState } from '../../src/state.mjs';
-import { keyword, isQMap, isVec } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, isKeyword } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -62,12 +62,18 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     expect(isQMap(coreEnv)).toBe(true);
   });
 
-  it('holds exactly 70 entries — one per built-in operand', async () => {
-    // 67 original + `parse` + `eval` (Step 10 — the code-as-data
-    // ring closer) + `at` (indexed Vec access with negative-index
-    // support) = 70 entries under Variant B.
+  it('every entry has a unique keyword identifier and non-empty name', async () => {
+    // Size is not pinned to a literal — the catalog grows as the
+    // language gains operands, and hard-coding the count here would
+    // force a churn-commit on every addition. What IS invariant: the
+    // evaluated env is a non-empty Map whose keys are all keywords
+    // with non-empty names, and keys are unique by Map contract.
     const coreEnv = await evalCore();
-    expect(coreEnv.size).toBe(70);
+    expect(coreEnv.size).toBeGreaterThan(0);
+    for (const entryKey of coreEnv.keys()) {
+      expect(isKeyword(entryKey)).toBe(true);
+      expect(entryKey.name.length).toBeGreaterThan(0);
+    }
   });
 
   it('every entry value is a Map with :qlang/kind :builtin', async () => {
@@ -134,11 +140,11 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(impl.arity).toBe(2);
   });
 
-  it('spot-check — :filter is a higher-order vec-transformer', async () => {
+  it('spot-check — :filter is a higher-order container-selector', async () => {
     await primeRegistry();
     const coreEnv = await evalCore();
     const filterDescriptor = coreEnv.get(keyword('filter'));
-    expect(filterDescriptor.get(keyword('category'))).toBe(keyword('vec-transformer'));
+    expect(filterDescriptor.get(keyword('category'))).toBe(keyword('container-selector'));
     expect(filterDescriptor.get(keyword('modifiers'))).toEqual([keyword('predicate-lambda')]);
     const impl = PRIMITIVE_REGISTRY.resolve(filterDescriptor.get(keyword('qlang/impl')));
     expect(impl.name).toBe('filter');
@@ -215,7 +221,7 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
     const evalResult = await evalQuery('filter');
     expect(isQMap(evalResult)).toBe(true);
     expect(evalResult.get(keyword('kind'))).toBe(keyword('builtin'));
-    expect(evalResult.get(keyword('category'))).toBe(keyword('vec-transformer'));
+    expect(evalResult.get(keyword('category'))).toBe(keyword('container-selector'));
   });
 
   it('bare `coalesce` returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
@@ -303,20 +309,23 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get(keyword('category'));
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('vec-reducer')).toBe(11);  // + at (indexed access)
-    expect(categories.get('vec-transformer')).toBe(10);  // set is :set-op in manifest taxonomy
+    expect(categories.get('container-reducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
+    expect(categories.get('container-selector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
+    expect(categories.get('vec-reducer')).toBe(7);  // first, last, at, sum, min, max, firstNonZero (Vec-only)
+    expect(categories.get('vec-transformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy (set is :set-op)
     expect(categories.get('comparator')).toBe(4);
     expect(categories.get('control')).toBe(6);
-    expect(categories.get('map-op')).toBe(3);
+    expect(categories.get('map-op')).toBe(3);  // keys + vals + has
     expect(categories.get('set-op')).toBe(4);  // set + union + minus + inter
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
+    expect(categories.get('type-classifier')).toBe(8);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
     expect(categories.get('error')).toBe(2);
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
-    expect(sum).toBe(70);
+    expect(sum).toBe(coreEnv.size);
   });
 });
 

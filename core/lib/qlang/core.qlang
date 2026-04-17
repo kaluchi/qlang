@@ -12,11 +12,21 @@
    groups; the grammar's _L rule absorbs them as whitespace inside
    literal bodies):
 
-     Vec reducers        — count, empty, first, last, sum, min,
-                           max, every, any, firstNonZero
-     Vec transformers    — filter, sort, sortWith, take, drop,
-                           distinct, reverse, flat, set, groupBy,
-                           indexBy
+     Container reducers  — count, empty (polymorphic Vec / Set /
+                           Map; reduce a container to a scalar)
+     Container selectors — filter, every, any (polymorphic Vec /
+                           Set / Map; the predicate conduit's arity
+                           picks the binding: 0 — pipeValue; 1
+                           [:x] — element/value as captured-arg;
+                           2 [:k :v] — Map-only (key, value))
+     Vec+Set reducers    — sum, min, max (polymorphic Vec / Set —
+                           order-independent reductions)
+     Vec reducers        — first, last, at, firstNonZero (Vec-only;
+                           Set is unordered by spec, so first /
+                           last / at / firstNonZero are undefined
+                           on Sets)
+     Vec transformers    — sort, sortWith, take, drop, distinct,
+                           reverse, flat, set, groupBy, indexBy
      Comparator builders — asc, desc, nullsFirst, nullsLast
      Control flow        — if, when, unless, coalesce, firstTruthy,
                            cond
@@ -27,6 +37,8 @@
                            endsWith, prepend, append
      Boolean             — not
      Predicates          — eq, gt, lt, gte, lte, and, or
+     Type classifiers    — isString, isNumber, isVec, isMap, isSet,
+                           isKeyword, isBoolean, isNull
      Formatting          — json, table
      Reflective          — env, use, reify, manifest, runExamples,
                            as, let
@@ -48,7 +60,7 @@
     (length), Set (size), and Map (entry count). ~~|
 :count {:qlang/kind :builtin
         :qlang/impl :qlang/prim/count
-        :category :vec-reducer
+        :category :container-reducer
         :subject [:vec, :set, :map]
         :returns :number
         :modifiers []
@@ -62,7 +74,7 @@
     otherwise. Polymorphic over Vec, Set, and Map. ~~|
 :empty {:qlang/kind :builtin
         :qlang/impl :qlang/prim/empty
-        :category :vec-reducer
+        :category :container-reducer
         :subject [:vec, :set, :map]
         :returns :boolean
         :modifiers []
@@ -72,7 +84,8 @@
         :throws [:EmptySubjectNotContainer]}
 
 |~~ Returns the first element of a Vec, or null if the Vec
-    is empty. ~~|
+    is empty. Vec-only — Set is unordered, so "first element" is
+    undefined on Sets. ~~|
 :first {:qlang/kind :builtin
         :qlang/impl :qlang/prim/first
         :category :vec-reducer
@@ -85,7 +98,7 @@
         :throws [:FirstSubjectNotVec]}
 
 |~~ Returns the last element of a Vec, or null if the Vec
-    is empty. ~~|
+    is empty. Vec-only — Set is unordered. ~~|
 :last {:qlang/kind :builtin
        :qlang/impl :qlang/prim/last
        :category :vec-reducer
@@ -97,78 +110,105 @@
          {:doc "empty yields null" :snippet "[] | last"      :expected "null"}]
        :throws [:LastSubjectNotVec]}
 
-|~~ Returns the numeric sum of elements. Empty Vec yields 0.
-    Every element must be a number. ~~|
+|~~ Returns the numeric sum of elements. Polymorphic over Vec
+    and Set (sum is commutative, so Set's unordered semantics
+    do not affect the result). Empty container yields 0. Every
+    element must be a number. For Map, compose through
+    `vals | sum` or `keys | sum` depending on the axis. ~~|
 :sum {:qlang/kind :builtin
       :qlang/impl :qlang/prim/sum
       :category :vec-reducer
-      :subject :vec
+      :subject [:vec, :set]
       :returns :number
       :modifiers []
       :examples [
-        {:doc "integers"        :snippet "[1 2 3 4] | sum"  :expected "10"}
-        {:doc "empty Vec"       :snippet "[] | sum"          :expected "0"}]
-      :throws [:SumSubjectNotVec, :SumElementNotNumber]}
+        {:doc "integers"            :snippet "[1 2 3 4] | sum"              :expected "10"}
+        {:doc "empty Vec"           :snippet "[] | sum"                      :expected "0"}
+        {:doc "Set of numbers"      :snippet "#{1 2 3} | sum"                :expected "6"}
+        {:doc "Map values via vals" :snippet "{:a 10 :b 20} | vals | sum"    :expected "30"}]
+      :throws [:SumSubjectNotVecOrSet, :SumElementNotNumber]}
 
-|~~ Returns the minimum element under natural ordering. Empty
-    Vec yields null. All elements must be comparable scalars of
-    the same type. ~~|
+|~~ Returns the minimum element under natural ordering.
+    Polymorphic over Vec and Set (min is order-independent).
+    Empty container yields null. All elements must be comparable
+    scalars of the same type. ~~|
 :min {:qlang/kind :builtin
       :qlang/impl :qlang/prim/min
       :category :vec-reducer
-      :subject :vec
+      :subject [:vec, :set]
       :returns :any
       :modifiers []
       :examples [
         {:doc "numeric minimum"  :snippet "[3 1 4 1 5] | min"          :expected "1"}
-        {:doc "string minimum"   :snippet "[\"b\" \"a\" \"c\"] | min"  :expected "\"a\""}]
-      :throws [:MinSubjectNotVec, :MinElementsNotComparable]}
+        {:doc "string minimum"   :snippet "[\"b\" \"a\" \"c\"] | min"  :expected "\"a\""}
+        {:doc "Set of numbers"   :snippet "#{3 1 4} | min"             :expected "1"}]
+      :throws [:MinSubjectNotVecOrSet, :MinElementsNotComparable]}
 
-|~~ Returns the maximum element under natural ordering. Empty
-    Vec yields null. All elements must be comparable scalars of
-    the same type. ~~|
+|~~ Returns the maximum element under natural ordering.
+    Polymorphic over Vec and Set (max is order-independent).
+    Empty container yields null. All elements must be comparable
+    scalars of the same type. ~~|
 :max {:qlang/kind :builtin
       :qlang/impl :qlang/prim/max
       :category :vec-reducer
-      :subject :vec
+      :subject [:vec, :set]
       :returns :any
       :modifiers []
       :examples [
         {:doc "numeric maximum"  :snippet "[3 1 4 1 5] | max"          :expected "5"}
-        {:doc "string maximum"   :snippet "[\"b\" \"a\" \"c\"] | max"  :expected "\"c\""}]
-      :throws [:MaxSubjectNotVec, :MaxElementsNotComparable]}
+        {:doc "string maximum"   :snippet "[\"b\" \"a\" \"c\"] | max"  :expected "\"c\""}
+        {:doc "Set of numbers"   :snippet "#{3 1 4} | max"             :expected "4"}]
+      :throws [:MaxSubjectNotVecOrSet, :MaxElementsNotComparable]}
 
-|~~ Returns true iff every element satisfies the predicate
-    sub-pipeline. Short-circuits on the first falsy result.
-    Vacuously true for the empty Vec (no counter-example
-    exists). ~~|
+|~~ Returns true iff every item of the container satisfies the
+    predicate. Polymorphic over Vec / Set / Map. The predicate
+    conduit's :params arity picks the dispatch: 0-arity (inline
+    pipeline) fires per item with pipeValue = element (Vec/Set)
+    or value (Map). 1-arity [:x] binds the element / value as
+    a captured-arg. 2-arity [:k :v] binds (key, value) — only
+    meaningful on Map; on Vec/Set it raises
+    EveryVecOrSetPredArityInvalid (one axis only). 3+ params
+    raise the same class on Vec/Set, EveryMapPredArityInvalid
+    on Map. Short-circuits on the first falsy result. Vacuously
+    true for empty containers. ~~|
 :every {:qlang/kind :builtin
         :qlang/impl :qlang/prim/every
-        :category :vec-reducer
-        :subject :vec
+        :category :container-selector
+        :subject [:vec, :set, :map]
         :returns :boolean
         :modifiers [:predicate-lambda]
         :examples [
-          {:doc "all match"      :snippet "[2 4 6 8] | every(gt(0))"  :expected "true"}
-          {:doc "some fail"      :snippet "[1 2 3] | every(gt(2))"    :expected "false"}
-          {:doc "vacuously true" :snippet "[] | every(gt(0))"         :expected "true"}]
-        :throws [:EverySubjectNotVec]}
+          {:doc "all Vec elements match"           :snippet "[2 4 6 8] | every(gt(0))"                                                            :expected "true"}
+          {:doc "some Vec element fails"           :snippet "[1 2 3] | every(gt(2))"                                                              :expected "false"}
+          {:doc "Vec via 1-arity conduit"          :snippet "[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)"                                 :expected "true"}
+          {:doc "vacuously true"                   :snippet "[] | every(gt(0))"                                                                    :expected "true"}
+          {:doc "all Map values positive"          :snippet "{:a 1 :b 2 :c 3} | every(gt(0))"                                                      :expected "true"}
+          {:doc "one Map value fails"              :snippet "{:a 1 :b -2 :c 3} | every(gt(0))"                                                     :expected "false"}
+          {:doc "Map via 1-arity conduit"          :snippet "{:a 1 :b 2} | let(:@pos, [:v], v | gt(0)) | every(@pos)"                              :expected "true"}
+          {:doc "Map (k,v) via 2-arity conduit"    :snippet "{:a1 1 :a2 2} | let(:@keyAndPos, [:k :v], and(v | gt(0), k | eq(:a1))) | every(@keyAndPos)" :expected "false"}]
+        :throws [:EverySubjectNotContainer, :EveryVecOrSetPredArityInvalid, :EveryMapPredArityInvalid]}
 
-|~~ Returns true iff at least one element satisfies the
-    predicate sub-pipeline. Short-circuits on the first truthy
-    result. Vacuously false for the empty Vec (no witness
-    exists). ~~|
+|~~ Returns true iff at least one item of the container
+    satisfies the predicate. Polymorphic over Vec / Set / Map
+    with the same per-container dispatch as every: the predicate
+    conduit's arity picks element vs (key, value) binding.
+    Short-circuits on the first truthy result. Vacuously false
+    for empty containers. ~~|
 :any {:qlang/kind :builtin
       :qlang/impl :qlang/prim/any
-      :category :vec-reducer
-      :subject :vec
+      :category :container-selector
+      :subject [:vec, :set, :map]
       :returns :boolean
       :modifiers [:predicate-lambda]
       :examples [
-        {:doc "one matches"      :snippet "[1 2 3] | any(gt(2))"   :expected "true"}
-        {:doc "none match"       :snippet "[1 2 3] | any(gt(99))"  :expected "false"}
-        {:doc "vacuously false"  :snippet "[] | any(gt(0))"        :expected "false"}]
-      :throws [:AnySubjectNotVec]}
+        {:doc "one Vec element matches"           :snippet "[1 2 3] | any(gt(2))"                                                              :expected "true"}
+        {:doc "no Vec elements match"             :snippet "[1 2 3] | any(gt(99))"                                                             :expected "false"}
+        {:doc "Vec via 1-arity conduit"           :snippet "[1 2 3] | let(:@big, [:v], v | gt(2)) | any(@big)"                                 :expected "true"}
+        {:doc "vacuously false"                   :snippet "[] | any(gt(0))"                                                                    :expected "false"}
+        {:doc "any Map value positive"            :snippet "{:a -1 :b 0 :c 2} | any(gt(0))"                                                     :expected "true"}
+        {:doc "Map via 1-arity conduit"           :snippet "{:a -1 :b 2} | let(:@pos, [:v], v | gt(0)) | any(@pos)"                             :expected "true"}
+        {:doc "any entry via 2-arity conduit"     :snippet "{:apple 1 :banana 2} | let(:@aKey, [:k :v], k | eq(:apple)) | any(@aKey)"           :expected "true"}]
+      :throws [:AnySubjectNotContainer, :AnyVecOrSetPredArityInvalid, :AnyMapPredArityInvalid]}
 
 |~~ Returns the first non-zero number in a Vec. If all elements
     are zero or the Vec is empty, returns 0. The composition
@@ -188,18 +228,46 @@
 
 |~ ──────────────── Vec transformers ──────────────── ~|
 
-|~~ Keeps elements where the predicate sub-pipeline evaluates
-    truthy. The predicate is applied to each element via fork. ~~|
+|~~ Keeps items of the container where the predicate evaluates
+    truthy, returning a new container of the same shape. Vec and
+    Set iterate per element, Map iterates per entry. The
+    predicate conduit's :params arity picks the binding:
+
+      0-arity inline pipeline → element (Vec/Set) or value (Map)
+                                as pipeValue.
+      1-arity [:x]            → element / value bound as the
+                                single captured-arg.
+      2-arity [:k :v]         → only on Map — (key, value) bound
+                                as captured-args. On Vec/Set it
+                                raises FilterVecOrSetPredArityInvalid.
+      3+-arity                → FilterVecOrSetPredArityInvalid on
+                                Vec/Set, FilterMapPredArityInvalid
+                                on Map.
+
+    Compose both-axis predicates via a named let-conduit, then
+    reference it in filter:
+
+      m
+        | let(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
+        | filter(@hot)
+    ~~|
 :filter {:qlang/kind :builtin
          :qlang/impl :qlang/prim/filter
-         :category :vec-transformer
-         :subject :vec
-         :returns :vec
+         :category :container-selector
+         :subject [:vec, :set, :map]
+         :returns [:vec, :set, :map]
          :modifiers [:predicate-lambda]
          :examples [
-           {:doc "numeric threshold"  :snippet "[1 2 3 4 5] | filter(gt(2))"                    :expected "[3 4 5]"}
-           {:doc "field predicate"    :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"  :expected "[{:age 25}]"}]
-         :throws [:FilterSubjectNotVec]}
+           {:doc "Vec numeric threshold"        :snippet "[1 2 3 4 5] | filter(gt(2))"                                                                    :expected "[3 4 5]"}
+           {:doc "Vec field predicate"          :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"                                                  :expected "[{:age 25}]"}
+           {:doc "Vec via 1-arity conduit"      :snippet "[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)"                                           :expected "[1 3]"}
+           {:doc "Set element predicate"        :snippet "#{1 2 3 4 5} | filter(gt(2))"                                                                    :expected "#{3 4 5}"}
+           {:doc "Set via 1-arity conduit"      :snippet "#{1 -2 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)"                                          :expected "#{1 3}"}
+           {:doc "Map — value predicate"        :snippet "{:a 1 :b 2 :c 3} | filter(gt(1))"                                                                :expected "{:b 2 :c 3}"}
+           {:doc "Map via 1-arity conduit"      :snippet "{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)"                                  :expected "{:a 1 :c 3}"}
+           {:doc "Map — 2-arity conduit (k,v)"  :snippet "{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)" :expected "{:avocado 3}"}
+           {:doc "Map empty returns empty Map"  :snippet "{} | filter(gt(0))"                                                                              :expected "{}"}]
+         :throws [:FilterSubjectNotContainer, :FilterVecOrSetPredArityInvalid, :FilterMapPredArityInvalid]}
 
 |~~ Returns a new Vec sorted in natural ascending order.
     Overloaded by arity: bare sort uses natural order, sort(key)
@@ -848,6 +916,124 @@
      :examples [
        {:doc "disjunction predicate"  :snippet "filter(or(/vip, /score | gt(95)))"}]
      :throws []}
+
+|~ ──────────────── Type classifiers ──────────────── ~|
+
+|~~ Returns true iff the subject is a String. Nullary predicate
+    over any pipeValue. Primary use — filter(isString) over a
+    heterogeneous Vec, or filter(isString) over a Map where the
+    value's type is the predicate axis. Lifts value-type
+    classification to operand level without the descriptor-
+    construction cost of reify | /type | eq(:string). ~~|
+:isString {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/isString
+           :category :type-classifier
+           :subject :any
+           :returns :boolean
+           :modifiers []
+           :examples [
+             {:doc "is String"          :snippet "\"hello\" | isString"  :expected "true"}
+             {:doc "number is not"      :snippet "42 | isString"          :expected "false"}
+             {:doc "keyword is not"     :snippet ":name | isString"       :expected "false"}]
+           :throws []}
+
+|~~ Returns true iff the subject is a Number (integer or
+    decimal — qlang has no numeric subtypes). ~~|
+:isNumber {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/isNumber
+           :category :type-classifier
+           :subject :any
+           :returns :boolean
+           :modifiers []
+           :examples [
+             {:doc "integer"      :snippet "42 | isNumber"        :expected "true"}
+             {:doc "decimal"      :snippet "3.14 | isNumber"      :expected "true"}
+             {:doc "string no"    :snippet "\"42\" | isNumber"    :expected "false"}]
+           :throws []}
+
+|~~ Returns true iff the subject is a Vec. ~~|
+:isVec {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isVec
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Vec literal"     :snippet "[1 2 3] | isVec"   :expected "true"}
+          {:doc "empty Vec"       :snippet "[] | isVec"        :expected "true"}
+          {:doc "Set is not Vec"  :snippet "#{1} | isVec"      :expected "false"}]
+        :throws []}
+
+|~~ Returns true iff the subject is a Map. ~~|
+:isMap {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isMap
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Map literal"      :snippet "{:a 1} | isMap"   :expected "true"}
+          {:doc "empty Map"        :snippet "{} | isMap"       :expected "true"}
+          {:doc "Vec is not Map"   :snippet "[] | isMap"       :expected "false"}]
+        :throws []}
+
+|~~ Returns true iff the subject is a Set. ~~|
+:isSet {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isSet
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Set literal"      :snippet "#{1 2} | isSet"   :expected "true"}
+          {:doc "empty Set"        :snippet "#{} | isSet"      :expected "true"}
+          {:doc "Vec is not Set"   :snippet "[1 2] | isSet"    :expected "false"}]
+        :throws []}
+
+|~~ Returns true iff the subject is a Keyword. ~~|
+:isKeyword {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isKeyword
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :examples [
+              {:doc "bare keyword"          :snippet ":name | isKeyword"         :expected "true"}
+              {:doc "namespaced keyword"    :snippet ":qlang/kind | isKeyword"   :expected "true"}
+              {:doc "string is not keyword" :snippet "\"name\" | isKeyword"      :expected "false"}]
+            :throws []}
+
+|~~ Returns true iff the subject is a Boolean (literal true or
+    false). Truthy non-boolean values like 0 / "" / [] do NOT
+    classify as Boolean. ~~|
+:isBoolean {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isBoolean
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :examples [
+              {:doc "literal true"   :snippet "true | isBoolean"   :expected "true"}
+              {:doc "literal false"  :snippet "false | isBoolean"  :expected "true"}
+              {:doc "0 is not"       :snippet "0 | isBoolean"      :expected "false"}
+              {:doc "null is not"    :snippet "null | isBoolean"   :expected "false"}]
+            :throws []}
+
+|~~ Returns true iff the subject is null (the absence-of-value
+    atom). Missing Map keys and operands whose result is undefined
+    both produce null. ~~|
+:isNull {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/isNull
+         :category :type-classifier
+         :subject :any
+         :returns :boolean
+         :modifiers []
+         :examples [
+           {:doc "null literal"          :snippet "null | isNull"             :expected "true"}
+           {:doc "missing Map key"       :snippet "{} | /missing | isNull"    :expected "true"}
+           {:doc "zero is not null"      :snippet "0 | isNull"                :expected "false"}
+           {:doc "empty string not null" :snippet "\"\" | isNull"             :expected "false"}]
+         :throws []}
 
 |~ ──────────────── Formatting ──────────────── ~|
 

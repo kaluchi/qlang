@@ -5,6 +5,26 @@
 // are polymorphic over Vec/Set/Map — they answer "how many
 // elements?" regardless of container shape.
 //
+// `filter` / `every` / `any` are container-universal item-select
+// operands. On Vec and Set the predicate fires against each
+// element. On Map the predicate dispatch reads the captured arg's
+// arity:
+//
+//   0-arity pipeline (`filter(gt(1))`) or 1-arity conduit (`[:v]`)
+//     → per entry with value as pipeValue; key is not visible.
+//   2-arity conduit (`[:k :v]`)
+//     → per entry with (key, value) as captured-arg values; pipeValue
+//       is the value. Writing the predicate as a named let-conduit
+//       is the idiom for both-axis filtering:
+//
+//         m
+//           | let(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
+//           | filter(@hot)
+//
+//   3+-arity → per-operand arity-error. The language does not
+//     pair-encode keys/values into a single argument; higher arities
+//     are not meaningful for entry iteration.
+//
 // Every type check inlines its own `throw new X(...)` statement
 // so the class name and source line uniquely identify the failing
 // site.
@@ -20,9 +40,15 @@ import {
   declareModifierError,
   declareElementError,
   declareComparabilityError,
-  declareShapeError
+  declareShapeError,
+  declareArityError
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import {
+  resolveCapturedConduit,
+  invokeConduitWithFixedArgs,
+  KW_CONDUIT_PARAMS
+} from '../eval.mjs';
 
 // ── Subject-type classes ───────────────────────────────────────
 
@@ -30,12 +56,38 @@ const CountSubjectNotContainer    = declareSubjectError('CountSubjectNotContaine
 const EmptySubjectNotContainer    = declareSubjectError('EmptySubjectNotContainer',    'empty',    'Vec, Set, or Map');
 const FirstSubjectNotVec          = declareSubjectError('FirstSubjectNotVec',          'first',    'Vec');
 const LastSubjectNotVec           = declareSubjectError('LastSubjectNotVec',           'last',     'Vec');
-const SumSubjectNotVec            = declareSubjectError('SumSubjectNotVec',            'sum',      'Vec');
-const MinSubjectNotVec            = declareSubjectError('MinSubjectNotVec',            'min',      'Vec');
-const MaxSubjectNotVec            = declareSubjectError('MaxSubjectNotVec',            'max',      'Vec');
-const FilterSubjectNotVec         = declareSubjectError('FilterSubjectNotVec',         'filter',   'Vec');
-const EverySubjectNotVec          = declareSubjectError('EverySubjectNotVec',          'every',    'Vec');
-const AnySubjectNotVec            = declareSubjectError('AnySubjectNotVec',            'any',      'Vec');
+const SumSubjectNotVecOrSet       = declareSubjectError('SumSubjectNotVecOrSet',       'sum',      'Vec or Set');
+const MinSubjectNotVecOrSet       = declareSubjectError('MinSubjectNotVecOrSet',       'min',      'Vec or Set');
+const MaxSubjectNotVecOrSet       = declareSubjectError('MaxSubjectNotVecOrSet',       'max',      'Vec or Set');
+const FilterSubjectNotContainer   = declareSubjectError('FilterSubjectNotContainer',   'filter',   'Vec, Set, or Map');
+const EverySubjectNotContainer    = declareSubjectError('EverySubjectNotContainer',    'every',    'Vec, Set, or Map');
+const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer',      'any',      'Vec, Set, or Map');
+
+// Per-operand arity-invalid classes — predicate conduit arity limits
+// at each filter/every/any call site. On Vec or Set the predicate has
+// one axis: 0 params read element-as-pipeValue, 1 param [:x] binds the
+// element as a named captured-arg. Two or more params on Vec/Set have
+// no axis to fill → per-operand *VecOrSetPredArityInvalid. On Map the
+// predicate has two axes: 0/1 read value; 2 params [:k :v] bind both.
+// Three or more on Map → per-operand *MapPredArityInvalid.
+const FilterVecOrSetPredArityInvalid = declareArityError('FilterVecOrSetPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `filter over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+const EveryVecOrSetPredArityInvalid  = declareArityError('EveryVecOrSetPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `every over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+const AnyVecOrSetPredArityInvalid    = declareArityError('AnyVecOrSetPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `any over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+const FilterMapPredArityInvalid = declareArityError('FilterMapPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `filter over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
+const EveryMapPredArityInvalid  = declareArityError('EveryMapPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `every over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
+const AnyMapPredArityInvalid    = declareArityError('AnyMapPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
 const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'Vec');
 const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'Vec');
 const GroupByKeyNotKeyword        = declareShapeError('GroupByKeyNotKeyword',
@@ -97,6 +149,20 @@ export const count = nullaryOp('count', (container) =>
 export const empty = nullaryOp('empty', (container) =>
   sizeOfContainer(container, EmptySubjectNotContainer) === 0);
 
+// vecOrSetElements(container, ErrorCls) — returns an array view of a
+// Vec-or-Set subject. Vec yields itself; Set spreads to an array. The
+// order of the returned array is NOT part of qlang's public contract
+// on Set (the spec declares Set as unordered), so only commutative /
+// order-independent reducers are allowed to dispatch through this
+// helper — sum, min, max. Order-dependent operands (first, last, at,
+// firstNonZero, sort, reverse, take, drop, distinct, flat) stay
+// Vec-only.
+function vecOrSetElements(container, ErrorCls) {
+  if (isVec(container))  return container;
+  if (isQSet(container)) return [...container];
+  throw new ErrorCls(describeType(container), container);
+}
+
 export const first = nullaryOp('first', (vec) => {
   if (!isVec(vec)) throw new FirstSubjectNotVec(describeType(vec), vec);
   return vec.length === 0 ? NULL : vec[0];
@@ -107,36 +173,36 @@ export const last = nullaryOp('last', (vec) => {
   return vec.length === 0 ? NULL : vec[vec.length - 1];
 });
 
-export const sum = nullaryOp('sum', (vec) => {
-  if (!isVec(vec)) throw new SumSubjectNotVec(describeType(vec), vec);
+export const sum = nullaryOp('sum', (container) => {
+  const items = vecOrSetElements(container, SumSubjectNotVecOrSet);
   let total = 0;
-  for (let i = 0; i < vec.length; i++) {
-    if (typeof vec[i] !== 'number') {
-      throw new SumElementNotNumber(i, describeType(vec[i]), vec[i]);
+  for (let i = 0; i < items.length; i++) {
+    if (typeof items[i] !== 'number') {
+      throw new SumElementNotNumber(i, describeType(items[i]), items[i]);
     }
-    total += vec[i];
+    total += items[i];
   }
   return total;
 });
 
-export const min = nullaryOp('min', (vec) => {
-  if (!isVec(vec)) throw new MinSubjectNotVec(describeType(vec), vec);
-  if (vec.length === 0) return NULL;
-  let acc = vec[0];
-  for (let i = 1; i < vec.length; i++) {
-    checkComparable(MinElementsNotComparable, acc, vec[i]);
-    if (vec[i] < acc) acc = vec[i];
+export const min = nullaryOp('min', (container) => {
+  const items = vecOrSetElements(container, MinSubjectNotVecOrSet);
+  if (items.length === 0) return NULL;
+  let acc = items[0];
+  for (let i = 1; i < items.length; i++) {
+    checkComparable(MinElementsNotComparable, acc, items[i]);
+    if (items[i] < acc) acc = items[i];
   }
   return acc;
 });
 
-export const max = nullaryOp('max', (vec) => {
-  if (!isVec(vec)) throw new MaxSubjectNotVec(describeType(vec), vec);
-  if (vec.length === 0) return NULL;
-  let acc = vec[0];
-  for (let i = 1; i < vec.length; i++) {
-    checkComparable(MaxElementsNotComparable, acc, vec[i]);
-    if (vec[i] > acc) acc = vec[i];
+export const max = nullaryOp('max', (container) => {
+  const items = vecOrSetElements(container, MaxSubjectNotVecOrSet);
+  if (items.length === 0) return NULL;
+  let acc = items[0];
+  for (let i = 1; i < items.length; i++) {
+    checkComparable(MaxElementsNotComparable, acc, items[i]);
+    if (items[i] > acc) acc = items[i];
   }
   return acc;
 });
@@ -152,35 +218,145 @@ function checkComparable(ErrorCls, left, right) {
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
-export const filter = higherOrderOp('filter', 2, async (vec, predLambda) => {
-  if (!isVec(vec)) throw new FilterSubjectNotVec(describeType(vec), vec);
-  const filterResult = [];
-  for (const filterItem of vec) {
-    const predResult = await predLambda(filterItem);
-    if (isErrorValue(predResult)) return predResult;
-    if (isTruthy(predResult)) filterResult.push(filterItem);
+// containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls,
+//                       MapArityErrorCls) — resolves the captured-arg
+// predicate for filter/every/any and returns a per-item applier. The
+// applier signature depends on `shape`:
+//
+//   • 'single' (Vec/Set)  → (item) → predResult
+//   • 'pair'   (Map)      → (key, value) → predResult
+//
+// When the captured expression is a bare identifier resolving to a
+// conduit, the conduit's `:params` arity picks the dispatch:
+//
+//   arity 0                 — default predLambda path (inline pipeline
+//                             or 0-arity conduit; pipeValue is the
+//                             element on Vec/Set, the value on Map).
+//   arity 1 [:x]            — the element (Vec/Set) or value (Map) is
+//                             bound as the single captured-arg of the
+//                             conduit body. Allowed on all three
+//                             shapes; pipeValue mirrors the captured
+//                             value so references to pipeValue inside
+//                             the body stay aligned with the element
+//                             / value axis.
+//   arity 2 [:k :v]         — bound as (key, value). Only meaningful
+//                             on Map (shape = 'pair'); on Vec/Set one
+//                             axis exists and the second param has
+//                             nothing to fill → VecOrSetArityErrorCls.
+//   arity 3+                — per-shape arity-invalid class. Throws
+//                             VecOrSetArityErrorCls on 'single' and
+//                             MapArityErrorCls on 'pair'.
+//
+// The arity check fires once per container subject (not per entry)
+// because `:params.length` is static — the dispatch rejects up front
+// rather than producing a generic ConduitArityMismatch per item.
+function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
+  const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
+  if (resolved) {
+    const paramCount = resolved.conduit.get(KW_CONDUIT_PARAMS).length;
+    const conduitName = resolved.conduit.get(keyword('name'));
+    if (paramCount === 1) {
+      if (shape === 'pair') {
+        return async (_mapKey, mapValue) =>
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue);
+      }
+      return async (item) =>
+        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item);
+    }
+    if (paramCount === 2) {
+      if (shape === 'pair') {
+        return async (mapKey, mapValue) =>
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapKey, mapValue], mapValue);
+      }
+      throw new VecOrSetArityErrorCls({ conduitName, actualArity: paramCount });
+    }
+    if (paramCount >= 3) {
+      const ArityErrorCls = shape === 'pair' ? MapArityErrorCls : VecOrSetArityErrorCls;
+      throw new ArityErrorCls({ conduitName, actualArity: paramCount });
+    }
   }
-  return filterResult;
+  if (shape === 'pair') {
+    return async (_mapKey, mapValue) => await predLambda(mapValue);
+  }
+  return async (item) => await predLambda(item);
+}
+
+export const filter = higherOrderOp('filter', 2, async (container, predLambda) => {
+  if (isVec(container)) {
+    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
+    const filterResult = [];
+    for (const filterItem of container) {
+      const predResult = await applyItem(filterItem);
+      if (isErrorValue(predResult)) return predResult;
+      if (isTruthy(predResult)) filterResult.push(filterItem);
+    }
+    return filterResult;
+  }
+  if (isQSet(container)) {
+    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
+    const filterResult = new Set();
+    for (const filterItem of container) {
+      const predResult = await applyItem(filterItem);
+      if (isErrorValue(predResult)) return predResult;
+      if (isTruthy(predResult)) filterResult.add(filterItem);
+    }
+    return filterResult;
+  }
+  if (isQMap(container)) {
+    const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
+    const filterResult = new Map();
+    for (const [filterKey, filterValue] of container) {
+      const predResult = await applyEntry(filterKey, filterValue);
+      if (isErrorValue(predResult)) return predResult;
+      if (isTruthy(predResult)) filterResult.set(filterKey, filterValue);
+    }
+    return filterResult;
+  }
+  throw new FilterSubjectNotContainer(describeType(container), container);
 });
 
-export const every = higherOrderOp('every', 2, async (vec, everyPredLambda) => {
-  if (!isVec(vec)) throw new EverySubjectNotVec(describeType(vec), vec);
-  for (const everyItem of vec) {
-    const everyResult = await everyPredLambda(everyItem);
-    if (isErrorValue(everyResult)) return everyResult;
-    if (!isTruthy(everyResult)) return false;
+export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
+  if (isVec(container) || isQSet(container)) {
+    const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalid, EveryMapPredArityInvalid);
+    for (const everyItem of container) {
+      const everyResult = await applyItem(everyItem);
+      if (isErrorValue(everyResult)) return everyResult;
+      if (!isTruthy(everyResult)) return false;
+    }
+    return true;
   }
-  return true;
+  if (isQMap(container)) {
+    const applyEntry = containerPredDispatch(everyPredLambda, 'pair', EveryVecOrSetPredArityInvalid, EveryMapPredArityInvalid);
+    for (const [everyKey, everyValue] of container) {
+      const everyResult = await applyEntry(everyKey, everyValue);
+      if (isErrorValue(everyResult)) return everyResult;
+      if (!isTruthy(everyResult)) return false;
+    }
+    return true;
+  }
+  throw new EverySubjectNotContainer(describeType(container), container);
 });
 
-export const any = higherOrderOp('any', 2, async (vec, anyPredLambda) => {
-  if (!isVec(vec)) throw new AnySubjectNotVec(describeType(vec), vec);
-  for (const anyItem of vec) {
-    const anyResult = await anyPredLambda(anyItem);
-    if (isErrorValue(anyResult)) return anyResult;
-    if (isTruthy(anyResult)) return true;
+export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
+  if (isVec(container) || isQSet(container)) {
+    const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalid, AnyMapPredArityInvalid);
+    for (const anyItem of container) {
+      const anyResult = await applyItem(anyItem);
+      if (isErrorValue(anyResult)) return anyResult;
+      if (isTruthy(anyResult)) return true;
+    }
+    return false;
   }
-  return false;
+  if (isQMap(container)) {
+    const applyEntry = containerPredDispatch(anyPredLambda, 'pair', AnyVecOrSetPredArityInvalid, AnyMapPredArityInvalid);
+    for (const [anyKey, anyValue] of container) {
+      const anyResult = await applyEntry(anyKey, anyValue);
+      if (isErrorValue(anyResult)) return anyResult;
+      if (isTruthy(anyResult)) return true;
+    }
+    return false;
+  }
+  throw new AnySubjectNotContainer(describeType(container), container);
 });
 
 export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) => {

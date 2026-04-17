@@ -9,6 +9,13 @@
 // package.json exports map for tree-shaking-sensitive bundles. The
 // package declares `sideEffects: false` so unused subpaths drop out.
 //
+// Host-only subpath exports live under `@kaluchi/qlang-core/host/…`
+// (`discoverModules`, `resolveModules`, `installModules` from
+// `core/host/module-resolver.mjs`) and are intentionally not
+// re-exported here — they import `node:fs` / `node:path`, which
+// would defeat the browser-ready guarantee this package root makes.
+// Node-only embedders reach for the `host/` subpath directly.
+//
 // Surface groups:
 //   parse / evaluate           — parse, evalAst, evalQuery, langRuntime
 //   session lifecycle          — createSession, serializeSession,

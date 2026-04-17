@@ -163,7 +163,7 @@ describe('runtime error location propagation via evalNode', () => {
 
   it('per-site fingerprint is set on type errors thrown by operands', async () => {
     const originalErr = await getOriginalError('42 | filter(gt(0))');
-    expect(originalErr.fingerprint).toBe('FilterSubjectNotVec');
+    expect(originalErr.fingerprint).toBe('FilterSubjectNotContainer');
   });
 });
 

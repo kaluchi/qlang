@@ -466,9 +466,9 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('UseSubjectNotMap');
   });
 
-  it('filter on non-Vec → FilterSubjectNotVec', async () => {
+  it('filter on non-container → FilterSubjectNotContainer', async () => {
     const caughtErr = await catchError('42 | filter(gt(1))');
-    expect(caughtErr.name).toBe('FilterSubjectNotVec');
+    expect(caughtErr.name).toBe('FilterSubjectNotContainer');
   });
 
   it('take count non-number → TakeCountNotNumber', async () => {
@@ -507,7 +507,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',        // CountSubjectNotContainer
       '42 | first',        // FirstSubjectNotVec
       '42 | last',         // LastSubjectNotVec
-      '42 | sum',          // SumSubjectNotVec
+      '42 | sum',          // SumSubjectNotVecOrSet
       '42 | reverse',      // ReverseSubjectNotVec
       '42 | distinct',     // DistinctSubjectNotVec
       '42 | sort',         // SortNaturalSubjectNotVec

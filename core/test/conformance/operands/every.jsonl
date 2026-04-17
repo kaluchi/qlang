@@ -6,6 +6,26 @@
 {"name":"every-with-projection","query":"[{:active true} {:active true}] | every(/active)","expect":"true"}
 {"name":"every-with-projection-fails","query":"[{:active true} {:active false}] | every(/active)","expect":"false"}
 {"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every(and(/ok, /age | gte(18)))","expect":"true"}
-{"name":"every-on-non-vec-throws","query":"42 | every(gt(0))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EverySubjectNotVec :message \"every requires Vec subject, got Number\" :operand \"every\" :position \"subject\" :expectedType \"Vec\" :actualType \"Number\"}"}
+{"name":"every-on-non-container-throws","query":"42 | every(gt(0))","error":"type-error","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EverySubjectNotContainer :message \"every requires Vec, Set, or Map subject, got Number\" :operand \"every\" :position \"subject\" :expectedType \"Vec, Set, or Map\" :actualType \"Number\"}"}
 {"name":"every-short-circuits","query":"[1 0 2] | every(gt(0))","expect":"false"}
 {"name":"every-as-filter-equivalence","query":"let(:xs, [1 2 3 4 5]) | xs | filter(gt(0)) | count | eq(xs | count) | eq(xs | every(gt(0)))","expect":"true"}
+{"name":"every-set-all-match","query":"#{2 4 6} | every(gt(0))","expect":"true"}
+{"name":"every-set-one-fails","query":"#{2 4 -1} | every(gt(0))","expect":"false"}
+{"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every(gt(0))","expect":"true"}
+{"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every(gt(0))","expect":"false"}
+{"name":"every-map-empty-vacuous","query":"{} | every(gt(0))","expect":"true"}
+{"name":"every-vec-0arity-conduit","query":"[2 4 6] | let(:big, gt(0)) | every(big)","expect":"true"}
+{"name":"every-vec-1arity-conduit","query":"[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"true"}
+{"name":"every-vec-1arity-conduit-fails","query":"[2 4 -1] | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"false"}
+{"name":"every-set-0arity-conduit","query":"#{2 4 6} | let(:big, gt(0)) | every(big)","expect":"true"}
+{"name":"every-set-1arity-conduit","query":"#{2 4 6} | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"true"}
+{"name":"every-map-0arity-conduit","query":"{:a 1 :b 2} | let(:big, gt(0)) | every(big)","expect":"true"}
+{"name":"every-map-1arity-conduit","query":"{:a 1 :b 2} | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"true"}
+{"name":"every-map-1arity-conduit-fails","query":"{:a 1 :b -2} | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"false"}
+{"name":"every-map-via-2arity-conduit","query":"{:a 1 :b 2} | let(:@bothPositive, [:k :v], and(v | gt(0), k | isKeyword)) | every(@bothPositive)","expect":"true"}
+{"name":"every-map-via-2arity-conduit-fails","query":"{:a 1 :b -2} | let(:@bothPositive, [:k :v], v | gt(0)) | every(@bothPositive)","expect":"false"}
+{"name":"every-vec-2arity-pred-throws","query":"[1 2] | let(:@kv, [:k :v], true) | every(@kv) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-set-2arity-pred-throws","query":"#{1 2} | let(:@kv, [:k :v], true) | every(@kv) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-vec-3arity-pred-throws","query":"[1] | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-set-3arity-pred-throws","query":"#{1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-map-3arity-pred-throws","query":"{:a 1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryMapPredArityInvalid"}

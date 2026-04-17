@@ -36,33 +36,98 @@ All signatures follow the **subject-first convention**: position 1
 is the data being operated on (filled by the pipeline in partial
 form), positions 2..n are modifiers (filled by captured args).
 
-## Vec reducers — `Vec → Scalar`
+## Categories — the `:category` keyword partition
+
+Every operand descriptor carries a `:category` keyword that groups it
+with its polymorphism siblings. The taxonomy is first-class data —
+`env | manifest | filter(/category | eq(:container-selector))` returns
+the three polymorphic container selectors — so the keywords below are
+part of the doc surface, not implementation lore.
+
+| `:category` keyword | Meaning |
+|---|---|
+| `:container-reducer` | Reduce any Vec / Set / Map to a scalar. Polymorphic over all three container shapes; the result is order- and shape-independent. |
+| `:container-selector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
+| `:vec-reducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
+| `:vec-transformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
+| `:comparator` | Pair-Map comparator builder for sortWith. |
+| `:control` | Control-flow operand (if / when / unless / coalesce / firstTruthy / cond). |
+| `:map-op` | Map-only operand (keys / vals / has on Map). |
+| `:set-op` | Set operation (set conversion plus the polymorphic union / minus / inter). |
+| `:arith` | Binary numeric operand. |
+| `:string` | String operand. |
+| `:predicate` | Subject-first boolean operand or combinator. |
+| `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
+| `:format` | Value-to-string renderer. |
+| `:reflective` | Operand that reads or writes the evaluator state pair (let / as / env / use / reify / manifest / runExamples / parse / eval). |
+| `:error` | Error-value constructor (error) or predicate (isError). |
+
+## Container reducers — `(Vec / Set / Map) → Scalar`
 
 ### `count`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns the number of elements.
-- **Example**: `[1 2 3 4 5] | count` → `5`; `[] | count` → `0`.
-- **Errors**: subject not a Vec → type error. (Also defined for
-  Set and Map under their own sections.)
+- **Arity** 1. **Subject** one of `Vec` / `Set` / `Map`.
+  Polymorphic — `count` reads the cardinality of any container.
+- Returns the number of elements (Vec length, Set size, Map entry
+  count).
+- **Examples**: `[1 2 3 4 5] | count` → `5`; `#{:a :b :c} | count` →
+  `3`; `{:x 1 :y 2} | count` → `2`; `[] | count` → `0`.
+- **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainer`.
 
 ### `empty`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns `true` if the Vec has zero elements, `false` otherwise.
-- **Example**: `[] | empty` → `true`; `[1] | empty` → `false`.
+- **Arity** 1. **Subject** one of `Vec` / `Set` / `Map`.
+  Polymorphic — empty-check is container-shape-independent.
+- Returns `true` if the container holds zero items, `false`
+  otherwise.
+- **Examples**: `[] | empty` → `true`; `#{} | empty` → `true`;
+  `{} | empty` → `true`; `[1] | empty` → `false`.
+- **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainer`.
+
+## Vec-or-Set reducers — `(Vec / Set) → Scalar`
+
+### `sum`
+
+- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
+  `sum` is commutative, so Set's unordered semantics do not
+  affect the result.
+- Returns the numeric sum of elements. Empty container yields
+  `0`. Every element must be a number.
+- **Examples**: `[1 2 3 4] | sum` → `10`; `#{1 2 3} | sum` → `6`;
+  `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
+- **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSet`;
+  element not a number → `SumElementNotNumber`.
+
+### `min`, `max`
+
+- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
+  `min` / `max` are order-independent.
+- Returns the minimum (or maximum) element under the natural
+  ordering. Empty container yields `null`.
+- **Examples**: `[3 1 4 1 5] | min` → `1`; `#{3 1 4} | max` → `4`.
+- **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSet` /
+  `MaxSubjectNotVecOrSet`; elements not comparable →
+  `MinElementsNotComparable` / `MaxElementsNotComparable`.
+
+## Vec reducers — `Vec → Any`
+
+Vec-only because Set is declared unordered by spec
+([qlang-spec.md § Set](qlang-spec.md)); operands that depend on a
+well-defined element ordering live in this section.
 
 ### `first`
 
 - **Arity** 1. **Subject** `vec`.
 - Returns the first element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | first` → `10`; `[] | first` → `null`.
+- **Errors**: subject not a Vec → `FirstSubjectNotVec`.
 
 ### `last`
 
 - **Arity** 1. **Subject** `vec`.
 - Returns the last element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | last` → `30`; `[] | last` → `null`.
+- **Errors**: subject not a Vec → `LastSubjectNotVec`.
 
 ### `at(n)`
 
@@ -81,29 +146,7 @@ form), positions 2..n are modifiers (filled by captured args).
   Vec (integer index) so mixed JSON paths like `/users/-1/email`
   descend through nested containers uniformly.
 
-### `sum`
-
-- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
-  `sum` is commutative, so Set's unordered semantics do not
-  affect the result.
-- Returns the numeric sum of elements. Empty container yields
-  `0`. Every element must be a number.
-- **Examples**: `[1 2 3 4] | sum` → `10`; `#{1 2 3} | sum` → `6`;
-  `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
-- **Errors**: subject not Vec/Set → type error; element not a
-  number → type error.
-
-### `min`, `max`
-
-- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
-  `min` / `max` are order-independent.
-- Returns the minimum (or maximum) element under the natural
-  ordering. Empty container yields `null`.
-- **Examples**: `[3 1 4 1 5] | min` → `1`; `#{3 1 4} | max` → `4`.
-- **Errors**: subject not Vec/Set → type error; elements not
-  comparable → type error.
-
-## Container transformers and reducers — polymorphic over `Vec` / `Set` / `Map`
+## Container selectors — polymorphic over `Vec` / `Set` / `Map`
 
 `filter`, `every`, and `any` dispatch on container type. On `Vec`
 and `Set` the predicate fires against each element directly,
@@ -384,17 +427,9 @@ m
 - Returns `true` if the value is a member of the Set.
 - **Example**: `#{:a :b :c} | has(:b)` → `true`.
 
-### `count` (on Set)
-
-- **Arity** 1. **Subject** `set`.
-- Returns the number of members.
-- **Example**: `#{:a :b :c} | count` → `3`.
-
-### `empty` (on Set)
-
-- **Arity** 1. **Subject** `set`.
-- Returns `true` if the Set has zero members.
-- **Example**: `#{} | empty` → `true`.
+`count` and `empty` on a Set (and on a Map) dispatch through the
+polymorphic `:container-reducer` entries above — one descriptor each
+in the catalog, one doc entry here.
 
 ## Polymorphic set operations — `union`, `minus`, `inter`
 
@@ -1074,7 +1109,7 @@ the predicate:
 [!{:kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "Number" :actualType "String" :trail []}]
 ```
 
-## Summary: unique operand names by category
+## Summary: unique operand names by `:category` keyword
 
 `count`, `empty`, and `has` are polymorphic — one identifier
 dispatches on subject type. `filter`, `every`, `any` are
@@ -1082,25 +1117,27 @@ polymorphic over Vec / Set / Map. `sort` is overloaded by arity —
 same identifier, 0 or 1 captured arg. `reify` is overloaded by
 arity (value-level or named form). `use` is overloaded by arity
 (bare merge, namespace import, selective import). Each name is
-listed once.
+listed once; rows are keyed by the `:category` keyword each entry's
+descriptor carries (the same keywords `env | manifest | /category |
+distinct` enumerates).
 
-| Category                | Names (frequent → specialized)                        |
-|-------------------------|-------------------------------------------------------|
-| Vec reducers            | `count`, `empty`, `first`, `last`, `at`, `sum`, `min`, `max`, `firstNonZero` |
-| Container selectors     | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
-| Vec transformers        | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `set`, `sortWith`, `groupBy`, `indexBy` |
-| Comparator builders     | `asc`, `desc`, `nullsFirst`, `nullsLast`               |
-| Control flow            | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
-| Map operations          | `keys`, `vals`, `has` (polymorphic with Set) |
-| Polymorphic set ops     | `union`, `minus`, `inter`                             |
-| Arithmetic              | `add`, `sub`, `mul`, `div`                            |
-| String                  | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
-| Boolean                 | `not`                                                 |
-| Predicates              | `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or`           |
-| Type classifiers        | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull` |
-| Formatting              | `json`, `table`                                       |
-| Error                   | `error`, `isError`                                     |
-| Reflective              | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
+| `:category` keyword | Names (frequent → specialized) |
+|---|---|
+| `:container-reducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
+| `:container-selector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
+| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `at`, `firstNonZero` (Vec-only — order-dependent) |
+| `:vec-transformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
+| `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
+| `:control` | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
+| `:map-op` | `keys`, `vals`, `has` (polymorphic with Set) |
+| `:set-op` | `set`, `union`, `minus`, `inter` |
+| `:arith` | `add`, `sub`, `mul`, `div` |
+| `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
+| `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
+| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull` |
+| `:format` | `json`, `table` |
+| `:error` | `error`, `isError` |
+| `:reflective` | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths

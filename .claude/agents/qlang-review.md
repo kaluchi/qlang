@@ -159,7 +159,7 @@ Drift in either direction (code without docs, or docs without code) is a finding
 - AST shape assertions use **explicit field checks** (`expect(ast.type).toBe(...)`, `expect(ast.value).toBe(...)`), NOT `toMatchObject` against an inline literal nor a `astShape`/`stripMeta` helper indirection. Such helpers are review-blocking unless they exist in the conformance runner that explicitly hydrates test fixtures.
 - Per-site errors are asserted by class name (`expect(e.name).toBe('FilterSubjectNotContainer')`) AND by `instanceof QlangTypeError` AND by structured context fields (`expect(e.context.position).toBe(2)`). All three.
 - Conformance JSONL cases are the source of truth for end-to-end semantics. If a feature lacks at least one happy-path conformance case, that's a finding.
-- Coverage must meet the thresholds in `vitest.config.mjs` (currently 99/97/99/99 for statements/branches/functions/lines). If a new file dips below, that's a finding.
+- Coverage must meet the thresholds in `vitest.config.mjs` — 100/100/100/100 on statements, branches, functions, lines. If a new file dips below, that's a finding.
 - Tests must not be skipped, marked `.todo`, or commented out.
 
 ### 10. Browser-readiness

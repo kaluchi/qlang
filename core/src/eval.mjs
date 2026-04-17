@@ -411,14 +411,13 @@ async function evalOperandCall(node, state) {
   // its wrapped :qlang/value transparently to identifier lookup so
   // `as(:name) | name` sees the raw data. The wrapper itself stays
   // reachable through `reify(:name)`, which reads env directly
-  // without going through evalOperandCall. Running the unwrap
-  // before the binding-descriptor dispatch collapses the old
-  // four-branch layout (builtin / conduit / snapshot / function)
-  // into three: applyBindingDescriptor for builtin + conduit,
-  // isFunctionValue for conduit-parameter proxies, plain-value
-  // tail for everything else — and preserves the "snapshot wrapping
-  // an effectful function value" safety-net path documented in
-  // the effect-marker section of qlang-spec.md.
+  // without going through evalOperandCall. Unwrapping upstream of
+  // applyBindingDescriptor keeps the :qlang/kind switch exhaustive
+  // over {:builtin, :conduit}; the remaining non-Map branches handle
+  // conduit-parameter proxies (isFunctionValue) and plain user values
+  // (tail) — and preserves the "snapshot wrapping an effectful
+  // function value" safety-net path documented in the effect-marker
+  // section of qlang-spec.md.
   if (isSnapshot(resolved)) {
     resolved = resolved.get(KW_VALUE_FIELD);
   }

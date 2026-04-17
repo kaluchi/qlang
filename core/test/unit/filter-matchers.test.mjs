@@ -23,7 +23,7 @@ import {
 // ── Polymorphic filter over Vec/Set/Map ───────────────────────
 
 describe('filter — container polymorphism', () => {
-  it('Vec element predicate works as before', async () => {
+  it('Vec element predicate filters through subject-first comparator', async () => {
     expect(await evalQuery('[1 2 3 4 5] | filter(gt(2))')).toEqual([3, 4, 5]);
   });
 

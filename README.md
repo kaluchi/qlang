@@ -27,15 +27,6 @@ npm test                                 # run every workspace's test suite
 npm run test:coverage                    # verify 100/100/100/100 thresholds on the core
 ```
 
-Per workspace:
-
-```
-npm test         -w @kaluchi/qlang-core
-npm test         -w @kaluchi/qlang-lsp
-npm test         -w @kaluchi/qlang-site
-npm run build    -w @kaluchi/qlang-core
-```
-
 ## Documentation
 
 | Audience | Doc |

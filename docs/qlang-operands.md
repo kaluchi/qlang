@@ -148,20 +148,29 @@ well-defined element ordering live in this section.
 
 ## Container selectors — polymorphic over `Vec` / `Set` / `Map`
 
-`filter`, `every`, and `any` dispatch on container type. On `Vec`
-and `Set` the predicate fires against each element directly,
-returning a new container of the same shape. On `Map` the
-predicate's **parameter arity** chooses the axis:
+`filter`, `every`, and `any` dispatch on container type and on the
+predicate conduit's **parameter arity**. The arity ladder is the
+same on every shape; what changes is which axis the language
+offers to fill:
 
-- 0-arity pipeline (`filter(gt(1))`) or 1-arity conduit `[:v]` —
-  per entry with the **value** as pipeValue; the key is not
-  visible. This path covers the 90% case.
-- 2-arity conduit `[:k :v]` — per entry with **`(key, value)`**
-  as captured-arg values. The body references `k` and `v` as
-  ordinary identifiers and can correlate the two axes freely.
-- 3+-arity conduit — per-operand `*MapPredArityInvalid`. The
-  language does not pair-encode keys and values into a single
-  argument; higher arities have no meaning for entry iteration.
+- **0-arity inline pipeline** (`filter(gt(1))`) or **0-arity named
+  conduit** (`let(:big, gt(1)) | ... | filter(big)`) — per item
+  with pipeValue = element on Vec/Set, value on Map. Covers the
+  90% case.
+- **1-arity conduit `[:x]`** — the element (Vec/Set) or value
+  (Map) is bound as the single captured-arg inside the body.
+  pipeValue mirrors the captured value, so `pipeValue` references
+  inside the body stay aligned with the axis.
+- **2-arity conduit `[:k :v]`** — Map-only. Per entry the body
+  sees **`(key, value)`** as two captured-arg bindings and can
+  correlate the two axes freely. On Vec or Set there is no second
+  axis to fill; 2+ params raise per-operand
+  `Filter/Every/AnyVecOrSetPredArityInvalid`.
+- **3+-arity conduit** — per-operand arity-invalid class on both
+  Vec/Set and Map (`*VecOrSetPredArityInvalid` /
+  `*MapPredArityInvalid`). The language does not pair-encode keys
+  and values into a single argument; higher arities have no
+  meaning for entry iteration.
 
 Compose both-axis predicates by naming the 2-arity conduit with
 `let` inline in the pipeline, then reference it inside `filter` /
@@ -185,13 +194,17 @@ m
 - **Examples**:
   - `[1 2 3 4 5] | filter(gt(2))` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter(/age | gte(18))` → `[{:age 25}]`.
+  - `[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
   - `#{1 2 3 4 5} | filter(gt(2))` → `#{3 4 5}`.
   - `{:a 1 :b 2 :c 3} | filter(gt(1))` → `{:b 2 :c 3}` — 0-arity pred, value axis.
+  - `{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
   - `{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
   - `{} | filter(gt(0))` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainer`. Map predicate conduit with 3+
-  params → `FilterMapPredArityInvalid`.
+  `FilterSubjectNotContainer`. Predicate conduit with 2+ params on
+  Vec or Set (only one axis available) →
+  `FilterVecOrSetPredArityInvalid`. Predicate conduit with 3+
+  params on Map → `FilterMapPredArityInvalid`.
 
 ### `every(pred)`
 
@@ -200,17 +213,22 @@ m
 - Returns `true` iff every item of the container satisfies the
   predicate. Short-circuits on the first falsy result. Vacuously
   true for empty containers. Per-container item dispatch matches
-  `filter`: element for Vec/Set; arity-dispatched for Map
-  (0/1 → value, 2 → (key, value)).
+  `filter`: 0-arity inline pipeline sees pipeValue = element
+  (Vec/Set) or value (Map); 1-arity `[:x]` binds element / value
+  as the captured-arg on all three shapes; 2-arity `[:k :v]` is
+  Map-only.
 - **Examples**:
   - `[2 4 6] | every(gt(0))` → `true`.
   - `[1 2 3] | every(gt(2))` → `false`.
+  - `[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)` → `true` — 1-arity conduit.
   - `[] | every(gt(0))` → `true`.
   - `#{2 4 6} | every(gt(0))` → `true`.
   - `{:a 1 :b 2 :c 3} | every(gt(0))` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every(gt(0))` → `false`.
 - **Errors**: subject not a container → `EverySubjectNotContainer`.
-  Map predicate conduit with 3+ params → `EveryMapPredArityInvalid`.
+  Predicate conduit with 2+ params on Vec/Set →
+  `EveryVecOrSetPredArityInvalid`. Predicate conduit with 3+
+  params on Map → `EveryMapPredArityInvalid`.
 
 ### `any(pred)`
 
@@ -223,12 +241,15 @@ m
 - **Examples**:
   - `[1 2 3] | any(gt(2))` → `true`.
   - `[1 2 3] | any(gt(99))` → `false`.
+  - `[1 2 3] | let(:@big, [:v], v | gt(2)) | any(@big)` → `true` — 1-arity conduit.
   - `[] | any(gt(0))` → `false`.
   - `#{1 2 3} | any(gt(2))` → `true`.
   - `{:a -1 :b 0 :c 2} | any(gt(0))` → `true` — 0-arity, value axis.
   - `{:apple 1 :banana 2} | let(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
 - **Errors**: subject not a container → `AnySubjectNotContainer`.
-  Map predicate conduit with 3+ params → `AnyMapPredArityInvalid`.
+  Predicate conduit with 2+ params on Vec/Set →
+  `AnyVecOrSetPredArityInvalid`. Predicate conduit with 3+ params
+  on Map → `AnyMapPredArityInvalid`.
 
 ## Vec transformers — `Vec → Vec` / `Vec → Map`
 

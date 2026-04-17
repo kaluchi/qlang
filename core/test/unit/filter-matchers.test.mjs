@@ -153,6 +153,59 @@ describe('filter — container polymorphism', () => {
     expect(originalErr.context.actualType).toBe('Number');
   });
 
+  it('Vec with 1-arity conduit — element is bound as captured-arg', async () => {
+    expect(await evalQuery(
+      '[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)'
+    )).toEqual([1, 3]);
+  });
+
+  it('Set with 1-arity conduit — element is bound as captured-arg', async () => {
+    const setResult = await evalQuery(
+      '#{1 -2 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)'
+    );
+    expect(isQSet(setResult)).toBe(true);
+    expect([...setResult].sort()).toEqual([-2, 1, 3].filter(n => n > 0).sort());
+  });
+
+  it('Map with 1-arity conduit — value bound as captured-arg', async () => {
+    const mapResult = await evalQuery(
+      '{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)'
+    );
+    expect(isQMap(mapResult)).toBe(true);
+    expect(mapResult.size).toBe(2);
+    expect(mapResult.get(keyword('a'))).toBe(1);
+    expect(mapResult.get(keyword('c'))).toBe(3);
+  });
+
+  it('Vec with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '[1 2] | let(:@kv, [:k :v], true) | filter(@kv)',
+      'FilterVecOrSetPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.name).toBe('FilterVecOrSetPredArityInvalid');
+    expect(originalErr.context.conduitName).toBe('@kv');
+    expect(originalErr.context.actualArity).toBe(2);
+  });
+
+  it('Set with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '#{1 2} | let(:@kv, [:k :v], true) | filter(@kv)',
+      'FilterVecOrSetPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.context.actualArity).toBe(2);
+  });
+
+  it('Vec with 3-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '[1 2] | let(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
+      'FilterVecOrSetPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.context.actualArity).toBe(3);
+  });
+
   it('Map with 3-arity conduit — FilterMapPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
       '{:a 1} | let(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
@@ -214,6 +267,48 @@ describe('every — container polymorphism', () => {
     expect(originalErr.name).toBe('EverySubjectNotContainer');
     expect(originalErr.context.operand).toBe('every');
     expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
+  });
+
+  it('Vec with 1-arity conduit — every applies element as captured-arg', async () => {
+    expect(await evalQuery(
+      '[1 2 3] | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+    )).toBe(true);
+    expect(await evalQuery(
+      '[1 -2 3] | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+    )).toBe(false);
+  });
+
+  it('Set with 1-arity conduit — every applies element as captured-arg', async () => {
+    expect(await evalQuery(
+      '#{2 4 6} | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+    )).toBe(true);
+  });
+
+  it('Map with 1-arity conduit — every applies value as captured-arg', async () => {
+    expect(await evalQuery(
+      '{:a 1 :b 2} | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+    )).toBe(true);
+    expect(await evalQuery(
+      '{:a 1 :b -2} | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+    )).toBe(false);
+  });
+
+  it('Vec with 2-arity conduit — EveryVecOrSetPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '[1 2] | let(:@kv, [:k :v], true) | every(@kv)',
+      'EveryVecOrSetPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.context.actualArity).toBe(2);
+  });
+
+  it('Set with 2-arity conduit — EveryVecOrSetPredArityInvalid', async () => {
+    const errorValue = await expectErrorThrown(
+      '#{1 2} | let(:@kv, [:k :v], true) | every(@kv)',
+      'EveryVecOrSetPredArityInvalid'
+    );
+    const originalErr = expectOriginalError(errorValue, ArityError);
+    expect(originalErr.context.actualArity).toBe(2);
   });
 
   it('Map with 3-arity conduit — EveryMapPredArityInvalid', async () => {

@@ -15,6 +15,18 @@
 {"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any(gt(0))","expect":"true"}
 {"name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any(gt(0))","expect":"false"}
 {"name":"any-map-empty-vacuous","query":"{} | any(gt(0))","expect":"false"}
+{"name":"any-vec-0arity-conduit","query":"[1 2 3] | let(:big, gt(2)) | any(big)","expect":"true"}
+{"name":"any-vec-1arity-conduit","query":"[1 2 3] | let(:@big, [:v], v | gt(2)) | any(@big)","expect":"true"}
+{"name":"any-vec-1arity-conduit-false","query":"[1 2 3] | let(:@huge, [:v], v | gt(99)) | any(@huge)","expect":"false"}
+{"name":"any-set-0arity-conduit","query":"#{1 2 3} | let(:big, gt(2)) | any(big)","expect":"true"}
+{"name":"any-set-1arity-conduit","query":"#{1 2 3} | let(:@big, [:v], v | gt(2)) | any(@big)","expect":"true"}
+{"name":"any-map-0arity-conduit","query":"{:a -1 :b 2} | let(:pos, gt(0)) | any(pos)","expect":"true"}
+{"name":"any-map-1arity-conduit","query":"{:a -1 :b 2} | let(:@pos, [:v], v | gt(0)) | any(@pos)","expect":"true"}
+{"name":"any-map-1arity-conduit-false","query":"{:a -1 :b -2} | let(:@pos, [:v], v | gt(0)) | any(@pos)","expect":"false"}
 {"name":"any-map-via-2arity-conduit","query":"{:a 1 :b 2} | let(:@isA, [:k :v], k | eq(:a)) | any(@isA)","expect":"true"}
 {"name":"any-map-via-2arity-conduit-false","query":"{:b 1 :c 2} | let(:@isA, [:k :v], k | eq(:a)) | any(@isA)","expect":"false"}
+{"name":"any-vec-2arity-pred-throws","query":"[1 2] | let(:@kv, [:k :v], true) | any(@kv) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
+{"name":"any-set-2arity-pred-throws","query":"#{1 2} | let(:@kv, [:k :v], true) | any(@kv) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
+{"name":"any-vec-3arity-pred-throws","query":"[1] | let(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
+{"name":"any-set-3arity-pred-throws","query":"#{1} | let(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
 {"name":"any-map-3arity-pred-throws","query":"{:a 1} | let(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":":AnyMapPredArityInvalid"}

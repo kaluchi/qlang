@@ -15,9 +15,10 @@
      Container reducers  — count, empty (polymorphic Vec / Set /
                            Map; reduce a container to a scalar)
      Container selectors — filter, every, any (polymorphic Vec /
-                           Set / Map; on Map the predicate conduit's
-                           arity chooses the axis: 0/1 → value,
-                           2 → (key, value) — idiom below)
+                           Set / Map; the predicate conduit's arity
+                           picks the binding: 0 — pipeValue; 1
+                           [:x] — element/value as captured-arg;
+                           2 [:k :v] — Map-only (key, value))
      Vec+Set reducers    — sum, min, max (polymorphic Vec / Set —
                            order-independent reductions)
      Vec reducers        — first, last, at, firstNonZero (Vec-only;
@@ -160,13 +161,16 @@
       :throws [:MaxSubjectNotVecOrSet, :MaxElementsNotComparable]}
 
 |~~ Returns true iff every item of the container satisfies the
-    predicate. Polymorphic over Vec / Set / Map. On Vec and Set
-    the predicate receives each element. On Map, the predicate
-    conduit's parameter arity decides the axis: 0 or 1 params —
-    per entry with the value as pipeValue; 2 params [:k :v] —
-    per entry with (key, value) as captured-arg values. 3+ params
-    raise EveryMapPredArityInvalid. Short-circuits on the first
-    falsy result. Vacuously true for empty containers. ~~|
+    predicate. Polymorphic over Vec / Set / Map. The predicate
+    conduit's :params arity picks the dispatch: 0-arity (inline
+    pipeline) fires per item with pipeValue = element (Vec/Set)
+    or value (Map). 1-arity [:x] binds the element / value as
+    a captured-arg. 2-arity [:k :v] binds (key, value) — only
+    meaningful on Map; on Vec/Set it raises
+    EveryVecOrSetPredArityInvalid (one axis only). 3+ params
+    raise the same class on Vec/Set, EveryMapPredArityInvalid
+    on Map. Short-circuits on the first falsy result. Vacuously
+    true for empty containers. ~~|
 :every {:qlang/kind :builtin
         :qlang/impl :qlang/prim/every
         :category :container-selector
@@ -174,19 +178,20 @@
         :returns :boolean
         :modifiers [:predicate-lambda]
         :examples [
-          {:doc "all Vec elements match"        :snippet "[2 4 6 8] | every(gt(0))"                                                            :expected "true"}
-          {:doc "some Vec element fails"        :snippet "[1 2 3] | every(gt(2))"                                                              :expected "false"}
-          {:doc "vacuously true"                :snippet "[] | every(gt(0))"                                                                    :expected "true"}
-          {:doc "all Map values positive"       :snippet "{:a 1 :b 2 :c 3} | every(gt(0))"                                                      :expected "true"}
-          {:doc "one Map value fails"           :snippet "{:a 1 :b -2 :c 3} | every(gt(0))"                                                     :expected "false"}
-          {:doc "Map (k,v) via 2-arity conduit" :snippet "{:a1 1 :a2 2} | let(:@keyAndPos, [:k :v], and(v | gt(0), k | eq(:a1))) | every(@keyAndPos)" :expected "false"}]
-        :throws [:EverySubjectNotContainer, :EveryMapPredArityInvalid]}
+          {:doc "all Vec elements match"           :snippet "[2 4 6 8] | every(gt(0))"                                                            :expected "true"}
+          {:doc "some Vec element fails"           :snippet "[1 2 3] | every(gt(2))"                                                              :expected "false"}
+          {:doc "Vec via 1-arity conduit"          :snippet "[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)"                                 :expected "true"}
+          {:doc "vacuously true"                   :snippet "[] | every(gt(0))"                                                                    :expected "true"}
+          {:doc "all Map values positive"          :snippet "{:a 1 :b 2 :c 3} | every(gt(0))"                                                      :expected "true"}
+          {:doc "one Map value fails"              :snippet "{:a 1 :b -2 :c 3} | every(gt(0))"                                                     :expected "false"}
+          {:doc "Map via 1-arity conduit"          :snippet "{:a 1 :b 2} | let(:@pos, [:v], v | gt(0)) | every(@pos)"                              :expected "true"}
+          {:doc "Map (k,v) via 2-arity conduit"    :snippet "{:a1 1 :a2 2} | let(:@keyAndPos, [:k :v], and(v | gt(0), k | eq(:a1))) | every(@keyAndPos)" :expected "false"}]
+        :throws [:EverySubjectNotContainer, :EveryVecOrSetPredArityInvalid, :EveryMapPredArityInvalid]}
 
 |~~ Returns true iff at least one item of the container
     satisfies the predicate. Polymorphic over Vec / Set / Map
-    with the same per-container dispatch as every: element for
-    Vec/Set; for Map, the predicate conduit's parameter arity
-    decides (0/1 → value, 2 → (key, value), 3+ → error).
+    with the same per-container dispatch as every: the predicate
+    conduit's arity picks element vs (key, value) binding.
     Short-circuits on the first truthy result. Vacuously false
     for empty containers. ~~|
 :any {:qlang/kind :builtin
@@ -196,12 +201,14 @@
       :returns :boolean
       :modifiers [:predicate-lambda]
       :examples [
-        {:doc "one Vec element matches"        :snippet "[1 2 3] | any(gt(2))"                                                              :expected "true"}
-        {:doc "no Vec elements match"          :snippet "[1 2 3] | any(gt(99))"                                                             :expected "false"}
-        {:doc "vacuously false"                :snippet "[] | any(gt(0))"                                                                    :expected "false"}
-        {:doc "any Map value positive"         :snippet "{:a -1 :b 0 :c 2} | any(gt(0))"                                                     :expected "true"}
-        {:doc "any entry via 2-arity conduit"  :snippet "{:apple 1 :banana 2} | let(:@aKey, [:k :v], k | eq(:apple)) | any(@aKey)"            :expected "true"}]
-      :throws [:AnySubjectNotContainer, :AnyMapPredArityInvalid]}
+        {:doc "one Vec element matches"           :snippet "[1 2 3] | any(gt(2))"                                                              :expected "true"}
+        {:doc "no Vec elements match"             :snippet "[1 2 3] | any(gt(99))"                                                             :expected "false"}
+        {:doc "Vec via 1-arity conduit"           :snippet "[1 2 3] | let(:@big, [:v], v | gt(2)) | any(@big)"                                 :expected "true"}
+        {:doc "vacuously false"                   :snippet "[] | any(gt(0))"                                                                    :expected "false"}
+        {:doc "any Map value positive"            :snippet "{:a -1 :b 0 :c 2} | any(gt(0))"                                                     :expected "true"}
+        {:doc "Map via 1-arity conduit"           :snippet "{:a -1 :b 2} | let(:@pos, [:v], v | gt(0)) | any(@pos)"                             :expected "true"}
+        {:doc "any entry via 2-arity conduit"     :snippet "{:apple 1 :banana 2} | let(:@aKey, [:k :v], k | eq(:apple)) | any(@aKey)"           :expected "true"}]
+      :throws [:AnySubjectNotContainer, :AnyVecOrSetPredArityInvalid, :AnyMapPredArityInvalid]}
 
 |~~ Returns the first non-zero number in a Vec. If all elements
     are zero or the Vec is empty, returns 0. The composition
@@ -223,11 +230,20 @@
 
 |~~ Keeps items of the container where the predicate evaluates
     truthy, returning a new container of the same shape. Vec and
-    Set iterate per element (insertion order preserved). Map
-    iterates per entry; the predicate's parameter arity chooses
-    the axis — 0 or 1 → per entry with the value as pipeValue;
-    2 ([:k :v]) → per entry with (key, value) as captured-arg
-    values. A 3+-arity conduit raises FilterMapPredArityInvalid.
+    Set iterate per element, Map iterates per entry. The
+    predicate conduit's :params arity picks the binding:
+
+      0-arity inline pipeline → element (Vec/Set) or value (Map)
+                                as pipeValue.
+      1-arity [:x]            → element / value bound as the
+                                single captured-arg.
+      2-arity [:k :v]         → only on Map — (key, value) bound
+                                as captured-args. On Vec/Set it
+                                raises FilterVecOrSetPredArityInvalid.
+      3+-arity                → FilterVecOrSetPredArityInvalid on
+                                Vec/Set, FilterMapPredArityInvalid
+                                on Map.
+
     Compose both-axis predicates via a named let-conduit, then
     reference it in filter:
 
@@ -244,11 +260,14 @@
          :examples [
            {:doc "Vec numeric threshold"        :snippet "[1 2 3 4 5] | filter(gt(2))"                                                                    :expected "[3 4 5]"}
            {:doc "Vec field predicate"          :snippet "[{:age 25} {:age 15}] | filter(/age | gte(18))"                                                  :expected "[{:age 25}]"}
+           {:doc "Vec via 1-arity conduit"      :snippet "[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)"                                           :expected "[1 3]"}
            {:doc "Set element predicate"        :snippet "#{1 2 3 4 5} | filter(gt(2))"                                                                    :expected "#{3 4 5}"}
+           {:doc "Set via 1-arity conduit"      :snippet "#{1 -2 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)"                                          :expected "#{1 3}"}
            {:doc "Map — value predicate"        :snippet "{:a 1 :b 2 :c 3} | filter(gt(1))"                                                                :expected "{:b 2 :c 3}"}
+           {:doc "Map via 1-arity conduit"      :snippet "{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)"                                  :expected "{:a 1 :c 3}"}
            {:doc "Map — 2-arity conduit (k,v)"  :snippet "{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)" :expected "{:avocado 3}"}
            {:doc "Map empty returns empty Map"  :snippet "{} | filter(gt(0))"                                                                              :expected "{}"}]
-         :throws [:FilterSubjectNotContainer, :FilterMapPredArityInvalid]}
+         :throws [:FilterSubjectNotContainer, :FilterVecOrSetPredArityInvalid, :FilterMapPredArityInvalid]}
 
 |~~ Returns a new Vec sorted in natural ascending order.
     Overloaded by arity: bare sort uses natural order, sort(key)

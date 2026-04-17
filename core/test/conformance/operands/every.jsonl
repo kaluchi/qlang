@@ -14,6 +14,18 @@
 {"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every(gt(0))","expect":"true"}
 {"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every(gt(0))","expect":"false"}
 {"name":"every-map-empty-vacuous","query":"{} | every(gt(0))","expect":"true"}
+{"name":"every-vec-0arity-conduit","query":"[2 4 6] | let(:big, gt(0)) | every(big)","expect":"true"}
+{"name":"every-vec-1arity-conduit","query":"[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"true"}
+{"name":"every-vec-1arity-conduit-fails","query":"[2 4 -1] | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"false"}
+{"name":"every-set-0arity-conduit","query":"#{2 4 6} | let(:big, gt(0)) | every(big)","expect":"true"}
+{"name":"every-set-1arity-conduit","query":"#{2 4 6} | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"true"}
+{"name":"every-map-0arity-conduit","query":"{:a 1 :b 2} | let(:big, gt(0)) | every(big)","expect":"true"}
+{"name":"every-map-1arity-conduit","query":"{:a 1 :b 2} | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"true"}
+{"name":"every-map-1arity-conduit-fails","query":"{:a 1 :b -2} | let(:@pos, [:v], v | gt(0)) | every(@pos)","expect":"false"}
 {"name":"every-map-via-2arity-conduit","query":"{:a 1 :b 2} | let(:@bothPositive, [:k :v], and(v | gt(0), k | isKeyword)) | every(@bothPositive)","expect":"true"}
 {"name":"every-map-via-2arity-conduit-fails","query":"{:a 1 :b -2} | let(:@bothPositive, [:k :v], v | gt(0)) | every(@bothPositive)","expect":"false"}
+{"name":"every-vec-2arity-pred-throws","query":"[1 2] | let(:@kv, [:k :v], true) | every(@kv) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-set-2arity-pred-throws","query":"#{1 2} | let(:@kv, [:k :v], true) | every(@kv) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-vec-3arity-pred-throws","query":"[1] | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
+{"name":"every-set-3arity-pred-throws","query":"#{1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryVecOrSetPredArityInvalid"}
 {"name":"every-map-3arity-pred-throws","query":"{:a 1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide) !| /thrown","expect":":EveryMapPredArityInvalid"}

@@ -63,11 +63,22 @@ const FilterSubjectNotContainer   = declareSubjectError('FilterSubjectNotContain
 const EverySubjectNotContainer    = declareSubjectError('EverySubjectNotContainer',    'every',    'Vec, Set, or Map');
 const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer',      'any',      'Vec, Set, or Map');
 
-// Per-operand arity-invalid classes — a conduit predicate passed to
-// filter / every / any over a Map must declare 0, 1, or 2 parameters.
-// Zero- and one-arity read value-as-pipeValue (the key is not visible);
-// two-arity receives (key, value) as captured-arg values. Three or more
-// parameters have no meaning for entry iteration.
+// Per-operand arity-invalid classes — predicate conduit arity limits
+// at each filter/every/any call site. On Vec or Set the predicate has
+// one axis: 0 params read element-as-pipeValue, 1 param [:x] binds the
+// element as a named captured-arg. Two or more params on Vec/Set have
+// no axis to fill → per-operand *VecOrSetPredArityInvalid. On Map the
+// predicate has two axes: 0/1 read value; 2 params [:k :v] bind both.
+// Three or more on Map → per-operand *MapPredArityInvalid.
+const FilterVecOrSetPredArityInvalid = declareArityError('FilterVecOrSetPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `filter over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+const EveryVecOrSetPredArityInvalid  = declareArityError('EveryVecOrSetPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `every over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+const AnyVecOrSetPredArityInvalid    = declareArityError('AnyVecOrSetPredArityInvalid',
+  ({ conduitName, actualArity }) =>
+    `any over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
 const FilterMapPredArityInvalid = declareArityError('FilterMapPredArityInvalid',
   ({ conduitName, actualArity }) =>
     `filter over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
@@ -207,66 +218,92 @@ function checkComparable(ErrorCls, left, right) {
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
-// mapPredDispatch(predLambda, ArityErrorCls) — resolves a captured-arg
-// predicate for filter/every/any over a Map. Returns a per-entry
-// applier that takes (k, v) and produces the boolean-ish predicate
-// result. Three dispatch paths:
+// containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls,
+//                       MapArityErrorCls) — resolves the captured-arg
+// predicate for filter/every/any and returns a per-item applier. The
+// applier signature depends on `shape`:
 //
-//   • captured arg is a bare identifier resolving to a 2-arity conduit
-//     → per-entry invocation with (k, v) as captured-arg values; the
-//       body's pipeValue is the value (consistent with the 0/1-arity
-//       path below, so any body that references pipeValue sees the
-//       entry's value regardless of param count).
+//   • 'single' (Vec/Set)  → (item) → predResult
+//   • 'pair'   (Map)      → (key, value) → predResult
 //
-//   • captured arg is a bare identifier resolving to a conduit with
-//     3+ params → throws the operand-specific ArityErrorCls eagerly
-//     (one throw per container subject — not per entry — because the
-//     arity is static).
+// When the captured expression is a bare identifier resolving to a
+// conduit, the conduit's `:params` arity picks the dispatch:
 //
-//   • any other shape (0-arity pipeline, 1-arity conduit, inline
-//     expression) → per-entry application with value as pipeValue.
-//     This path goes through the standard predLambda(value) call so
-//     errors inside the predicate propagate identically to the Vec
-//     and Set branches.
-function mapPredDispatch(predLambda, ArityErrorCls) {
+//   arity 0                 — default predLambda path (inline pipeline
+//                             or 0-arity conduit; pipeValue is the
+//                             element on Vec/Set, the value on Map).
+//   arity 1 [:x]            — the element (Vec/Set) or value (Map) is
+//                             bound as the single captured-arg of the
+//                             conduit body. Allowed on all three
+//                             shapes; pipeValue mirrors the captured
+//                             value so references to pipeValue inside
+//                             the body stay aligned with the element
+//                             / value axis.
+//   arity 2 [:k :v]         — bound as (key, value). Only meaningful
+//                             on Map (shape = 'pair'); on Vec/Set one
+//                             axis exists and the second param has
+//                             nothing to fill → VecOrSetArityErrorCls.
+//   arity 3+                — per-shape arity-invalid class. Throws
+//                             VecOrSetArityErrorCls on 'single' and
+//                             MapArityErrorCls on 'pair'.
+//
+// The arity check fires once per container subject (not per entry)
+// because `:params.length` is static — the dispatch rejects up front
+// rather than producing a generic ConduitArityMismatch per item.
+function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
   const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
   if (resolved) {
     const paramCount = resolved.conduit.get(KW_CONDUIT_PARAMS).length;
-    if (paramCount === 2) {
-      return async (mapKey, mapValue) =>
-        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapKey, mapValue], mapValue);
+    const conduitName = resolved.conduit.get(keyword('name'));
+    if (paramCount === 1) {
+      if (shape === 'pair') {
+        return async (_mapKey, mapValue) =>
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue);
+      }
+      return async (item) =>
+        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item);
     }
-    if (paramCount > 2) {
-      throw new ArityErrorCls({
-        conduitName: resolved.conduit.get(keyword('name')),
-        actualArity: paramCount
-      });
+    if (paramCount === 2) {
+      if (shape === 'pair') {
+        return async (mapKey, mapValue) =>
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapKey, mapValue], mapValue);
+      }
+      throw new VecOrSetArityErrorCls({ conduitName, actualArity: paramCount });
+    }
+    if (paramCount >= 3) {
+      const ArityErrorCls = shape === 'pair' ? MapArityErrorCls : VecOrSetArityErrorCls;
+      throw new ArityErrorCls({ conduitName, actualArity: paramCount });
     }
   }
-  return async (_mapKey, mapValue) => await predLambda(mapValue);
+  if (shape === 'pair') {
+    return async (_mapKey, mapValue) => await predLambda(mapValue);
+  }
+  return async (item) => await predLambda(item);
 }
 
 export const filter = higherOrderOp('filter', 2, async (container, predLambda) => {
   if (isVec(container)) {
+    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
     const filterResult = [];
     for (const filterItem of container) {
-      const predResult = await predLambda(filterItem);
+      const predResult = await applyItem(filterItem);
       if (isErrorValue(predResult)) return predResult;
       if (isTruthy(predResult)) filterResult.push(filterItem);
     }
     return filterResult;
   }
   if (isQSet(container)) {
+    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
     const filterResult = new Set();
     for (const filterItem of container) {
-      const predResult = await predLambda(filterItem);
+      const predResult = await applyItem(filterItem);
       if (isErrorValue(predResult)) return predResult;
       if (isTruthy(predResult)) filterResult.add(filterItem);
     }
     return filterResult;
   }
   if (isQMap(container)) {
-    const applyEntry = mapPredDispatch(predLambda, FilterMapPredArityInvalid);
+    const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
     const filterResult = new Map();
     for (const [filterKey, filterValue] of container) {
       const predResult = await applyEntry(filterKey, filterValue);
@@ -280,15 +317,16 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
 
 export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
   if (isVec(container) || isQSet(container)) {
+    const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalid, EveryMapPredArityInvalid);
     for (const everyItem of container) {
-      const everyResult = await everyPredLambda(everyItem);
+      const everyResult = await applyItem(everyItem);
       if (isErrorValue(everyResult)) return everyResult;
       if (!isTruthy(everyResult)) return false;
     }
     return true;
   }
   if (isQMap(container)) {
-    const applyEntry = mapPredDispatch(everyPredLambda, EveryMapPredArityInvalid);
+    const applyEntry = containerPredDispatch(everyPredLambda, 'pair', EveryVecOrSetPredArityInvalid, EveryMapPredArityInvalid);
     for (const [everyKey, everyValue] of container) {
       const everyResult = await applyEntry(everyKey, everyValue);
       if (isErrorValue(everyResult)) return everyResult;
@@ -301,15 +339,16 @@ export const every = higherOrderOp('every', 2, async (container, everyPredLambda
 
 export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
   if (isVec(container) || isQSet(container)) {
+    const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalid, AnyMapPredArityInvalid);
     for (const anyItem of container) {
-      const anyResult = await anyPredLambda(anyItem);
+      const anyResult = await applyItem(anyItem);
       if (isErrorValue(anyResult)) return anyResult;
       if (isTruthy(anyResult)) return true;
     }
     return false;
   }
   if (isQMap(container)) {
-    const applyEntry = mapPredDispatch(anyPredLambda, AnyMapPredArityInvalid);
+    const applyEntry = containerPredDispatch(anyPredLambda, 'pair', AnyVecOrSetPredArityInvalid, AnyMapPredArityInvalid);
     for (const [anyKey, anyValue] of container) {
       const anyResult = await applyEntry(anyKey, anyValue);
       if (isErrorValue(anyResult)) return anyResult;

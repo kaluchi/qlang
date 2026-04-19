@@ -1,6 +1,6 @@
 {
   "name": "@kaluchi/qlang-cli",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Command-line interface and REPL for the qlang pipeline query language",
   "type": "module",
   "main": "src/main.mjs",

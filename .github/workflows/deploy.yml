@@ -6,8 +6,18 @@ on:
 
 jobs:
   publish:
-    name: Publish @kaluchi/qlang-core to npm
+    name: Publish ${{ matrix.workspace }} to npm
     runs-on: ubuntu-latest
+    strategy:
+      # Core is built first — other workspaces that import from it
+      # at test time need the generated artefacts. Serial publish
+      # keeps the npm-registry transition visible per package.
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        workspace:
+          - "@kaluchi/qlang-core"
+          - "@kaluchi/qlang-cli"
     steps:
       - uses: actions/checkout@v5
 
@@ -22,13 +32,13 @@ jobs:
       - run: npm test --workspaces --if-present
       - run: npm run test:coverage -w @kaluchi/qlang-core
 
-      - name: Set version from tag
+      - name: Align version with tag
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          npm version "$VERSION" --no-git-tag-version --allow-same-version -w @kaluchi/qlang-core
+          npm version "$VERSION" --no-git-tag-version --allow-same-version -w ${{ matrix.workspace }}
 
       - name: Publish
-        run: npm publish --access public -w @kaluchi/qlang-core
+        run: npm publish --access public -w ${{ matrix.workspace }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

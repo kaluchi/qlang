@@ -13,7 +13,7 @@
 
 import { stateOp, stateOpVariadic } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { astNodeToMap, qlangMapToAst } from '../walk.mjs';
+import { astNodeToMap, qlangMapToAst, locationToQlangMap } from '../walk.mjs';
 import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
@@ -306,7 +306,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   result.set(keyword('source'), conduit.get(KW_BODY_FIELD).text);
   result.set(keyword('docs'), metaToVec(conduit.get(KW_DOCS_FIELD)));
   result.set(keyword('effectful'), conduit.get(KW_EFFECTFUL_FIELD));
-  result.set(keyword('location'), conduit.get(KW_LOCATION_FIELD));
+  result.set(keyword('location'), locationToQlangMap(conduit.get(KW_LOCATION_FIELD)));
   return result;
 }
 
@@ -327,7 +327,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
   result.set(keyword('type'), describeValueType(value));
   result.set(keyword('docs'), metaToVec(snap.get(KW_DOCS_FIELD)));
   result.set(keyword('effectful'), snap.get(KW_EFFECTFUL_FIELD));
-  result.set(keyword('location'), snap.get(KW_LOCATION_FIELD));
+  result.set(keyword('location'), locationToQlangMap(snap.get(KW_LOCATION_FIELD)));
   return result;
 }
 

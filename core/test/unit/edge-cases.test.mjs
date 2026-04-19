@@ -337,12 +337,65 @@ describe('runtime/format.mjs structural', () => {
     expect(tableOutput).toContain('b');
   });
 
+  it('table renders composite cells as inline qlang literals', async () => {
+    // Map-valued cell: :loc is a nested Map with three keys.
+    // Expected form `{:file "f.java" :line 12 :ok true}` — inline,
+    // nested String quoted, no multi-line break, no [object Object].
+    const mapCell = await evalQuery(
+      '[{:loc {:file "f.java" :line 12 :ok true}}] | table');
+    expect(mapCell).toContain('{:file "f.java" :line 12 :ok true}');
+    expect(mapCell).not.toContain('[object Object]');
+    // Vec-valued cell: rendered as a qlang Vec literal inline.
+    const vecCell = await evalQuery('[{:tags [1 2 3]}] | table');
+    expect(vecCell).toContain('[1 2 3]');
+    // Set-valued cell — insertion order preserved by the Set literal.
+    const setCell = await evalQuery('[{:tags #{:a :b}}] | table');
+    expect(setCell).toContain('#{:a :b}');
+    // Error-valued cell: !{…} wrapped descriptor inline. The
+    // runtime materializes an error descriptor with an empty :trail
+    // Vec, so the rendered cell reflects that shape verbatim rather
+    // than the source literal.
+    const errCell = await evalQuery('[{:err !{:kind :oops}}] | table');
+    expect(errCell).toContain('!{:kind :oops :trail []}');
+    // Null cell renders as an empty column, not the string "null".
+    const nullCell = await evalQuery('[{:a 1 :b null} {:a 2 :b 3}] | table');
+    const nullCellRow = nullCell.split('\n').find(l => l.includes('| 1 '));
+    expect(nullCellRow).toMatch(/\|\s+\|$/);
+  });
+
+  it('table renders scalar cells bare: Boolean, Keyword, null-in-Vec', async () => {
+    // Top-level Boolean and Keyword cells — bare, without quotes.
+    const boolCell = await evalQuery('[{:ok true} {:ok false}] | table');
+    expect(boolCell).toContain('| true  |');
+    expect(boolCell).toContain('| false |');
+    const kwCell = await evalQuery('[{:status :ready}] | table');
+    expect(kwCell).toContain('| :ready |');
+    // Null nested inside a composite — INLINE_HANDLERS.Null emits
+    // the literal `null` (distinct from a null cell, which is bare).
+    const nullInVec = await evalQuery('[{:tags [null 1]}] | table');
+    expect(nullInVec).toContain('[null 1]');
+  });
+
+  it('table unquotes top-level String cells but quotes nested Strings', async () => {
+    // Top-level :name is a String — printed bare inside the cell.
+    // Inside a composite :tags cell the same String is quoted per
+    // qlang-literal convention.
+    const out = await evalQuery('[{:name "Alice" :tags ["x" "y"]}] | table');
+    expect(out).toMatch(/\| Alice\s+\|/);
+    expect(out).toContain('["x" "y"]');
+  });
+
   it('json roundtrips Set as array', async () => {
     expect(await evalQuery('#{1 2 3} | json')).toMatch(/^\[/);
   });
 
   it('json roundtrips keyword as colon-prefixed string', async () => {
     expect(await evalQuery(':foo | json')).toBe('":foo"');
+  });
+
+  it('json roundtrips Boolean as JSON boolean', async () => {
+    expect(await evalQuery('true | json')).toBe('true');
+    expect(await evalQuery('false | json')).toBe('false');
   });
 });
 
@@ -654,9 +707,8 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 
   it('snapshot descriptor carries location from the as(:name) call site', async () => {
-    const locationResult = await evalQuery('42 | as(:snap) | reify(:snap) | /location');
-    expect(locationResult).not.toBeNull();
-    expect(typeof locationResult.start.offset).toBe('number');
+    const offsetResult = await evalQuery('42 | as(:snap) | reify(:snap) | /location/start/offset');
+    expect(typeof offsetResult).toBe('number');
   });
 
   it('value descriptor always carries :name (null when no binding name)', async () => {

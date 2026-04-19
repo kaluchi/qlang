@@ -53,6 +53,17 @@ describe('format toPlain fallback for unknown value classes', async () => {
     const jsonOutput = await evalQuery('env | /count | json');
     expect(typeof jsonOutput).toBe('string');
   });
+
+  it('table cell fallback for a function value', async () => {
+    // A snapshot of a function value sits inside a Map cell; the
+    // Function kind has no entry in CELL_HANDLERS, so dispatch
+    // reaches the trailing String() fallback. Output is opaque but
+    // the operand must not throw.
+    const tableOutput = await evalQuery(
+      'env | /count | as(:fn) | [{:f fn}] | table');
+    expect(typeof tableOutput).toBe('string');
+    expect(tableOutput).toContain('| f ');
+  });
 });
 
 describe('vec.flat non-Vec elements', async () => {

@@ -692,6 +692,14 @@ information. Each classifier matches exactly one
 - **Arity** 1. **Subject** a Vec of Maps.
 - Returns a string with the Maps rendered as a tabular layout
   (columns derived from keys). Useful for human-readable output.
+- **Cell rendering.** Scalar cells render bare: Strings without
+  quotes, Numbers stringified, Keywords as `:name`, Booleans as
+  `true`/`false`, `null` as an empty column. Composite cells
+  (Vec, Map, Set, Error) render as **inline qlang literals** —
+  `[1 2 3]`, `{:file "f.java" :line 12}`, `#{:a :b}`,
+  `!{:kind :oops}` — so nested structure stays readable on one row.
+  Reshape with `* {:col1 /a :col2 /b/c}` to lift sub-Map fields
+  into columns before the table call.
 - **Errors**: subject not a Vec of Maps → type error.
 
 ## Control flow

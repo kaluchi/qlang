@@ -393,7 +393,7 @@ function positionFromQlangMap(map) {
   };
 }
 
-function locationToQlangMap(loc) {
+export function locationToQlangMap(loc) {
   if (!loc) return null;
   const m = new Map();
   if (loc.start) m.set(KW_START, positionToQlangMap(loc.start));

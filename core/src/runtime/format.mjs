@@ -153,6 +153,51 @@ function printMapLike(open, m, indent) {
   return `${open}\n${lines.join('\n')}\n${closePad}}`;
 }
 
+// Cell renderer for the `table` operand. Scalars render bare
+// (strings without quotes, numbers stringified, null as an empty
+// cell). Composites render as inline qlang literals — no newline
+// breaks — so a nested `:location` Map shows up as
+// `{:file … :startLine 12}` rather than as `[object Object]`.
+// Nested scalars inside a composite quote strings the same way
+// printValue does; only the top-level String in a cell is bare.
+const CELL_HANDLERS = {
+  Null:     () => '',
+  Boolean:  v => String(v),
+  Number:   v => String(v),
+  String:   v => v,
+  Keyword:  k => ':' + k.name,
+  Vec:      v => renderInline(v),
+  Map:      m => renderInline(m),
+  Set:      s => renderInline(s),
+  Error:    e => renderInline(e)
+};
+
+const INLINE_HANDLERS = {
+  Null:     () => 'null',
+  Boolean:  v => String(v),
+  Number:   v => String(v),
+  String:   escapeQlangStringLiteral,
+  Keyword:  k => ':' + k.name,
+  Vec:      v => `[${v.map(renderInline).join(' ')}]`,
+  Map:      m => `{${mapEntriesInline(m)}}`,
+  Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
+  Error:    e => `!{${mapEntriesInline(e.descriptor)}}`
+};
+
+function renderInline(v) {
+  return dispatchQlangValue(v, INLINE_HANDLERS, String);
+}
+
+function mapEntriesInline(m) {
+  return [...m]
+    .map(([k, v]) => `${renderInline(k)} ${renderInline(v)}`)
+    .join(' ');
+}
+
+function renderCell(v) {
+  return dispatchQlangValue(v, CELL_HANDLERS, String);
+}
+
 export const table = nullaryOp('table', (subject) => {
   if (!isVec(subject)) throw new TableSubjectNotVec(describeType(subject), subject);
   if (subject.length === 0) return '(empty)';
@@ -168,7 +213,7 @@ export const table = nullaryOp('table', (subject) => {
 
   const cells = rowKeyCaches.map(cache => columnNames.map((name, i) => {
     const key = cache.get(name);
-    const text = key === undefined ? '' : String(toPlain(cache.row.get(key)));
+    const text = key === undefined ? '' : renderCell(cache.row.get(key));
     if (text.length > widths[i]) widths[i] = text.length;
     return text;
   }));

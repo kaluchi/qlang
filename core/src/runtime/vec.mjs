@@ -35,6 +35,7 @@ import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs'
 import {
   isVec, isQMap, isQSet, isKeyword, isTruthy, isErrorValue, describeType, NULL, keyword
 } from '../types.mjs';
+import { deepEqual } from '../equality.mjs';
 import {
   declareSubjectError,
   declareModifierError,
@@ -456,13 +457,31 @@ export const drop = valueOp('drop', 2, (vec, n) => {
   return vec.slice(n);
 });
 
+// `distinct` dedupes by structural equality, aligning with the `eq`
+// operand: `[x, y] | distinct` collapses to `[x]` iff `x | eq(y)`.
+// Two Map objects carrying identical content — the common shape a
+// recursive graph walk produces when it reaches the same logical node
+// via multiple paths (diamond hierarchies, fan-in references) — are
+// therefore one.
+//
+// Hybrid dedup: primitives and interned keywords use a JS Set (their
+// ref-eq is structural — same-name keywords intern to the same object,
+// scalars compare by value), so atom-heavy input stays O(n). Vec, Map,
+// Set, and error values fall through to a structural scan over the
+// composite-seen list. Mixed input is bucketed per element.
 export const distinct = nullaryOp('distinct', (vec) => {
   if (!isVec(vec)) throw new DistinctSubjectNotVec(describeType(vec), vec);
-  const seen = new Set();
+  const seenAtoms = new Set();
+  const seenComposite = [];
   const result = [];
   for (const v of vec) {
-    if (!seen.has(v)) {
-      seen.add(v);
+    if (v !== null && typeof v === 'object' && v.type !== 'keyword') {
+      if (seenComposite.some(prev => deepEqual(prev, v))) continue;
+      seenComposite.push(v);
+      result.push(v);
+    } else {
+      if (seenAtoms.has(v)) continue;
+      seenAtoms.add(v);
       result.push(v);
     }
   }

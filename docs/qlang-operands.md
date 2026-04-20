@@ -396,8 +396,16 @@ m
 
 - **Arity** 1. **Subject** `vec`.
 - Returns a new Vec with duplicate elements removed, preserving
-  first-occurrence order.
-- **Example**: `[1 2 1 3 2] | distinct` → `[1 2 3]`.
+  first-occurrence order. Duplication is decided by structural
+  equality — the same axiom that drives `eq`, so two Map / Vec /
+  Set values with identical content collapse even when they are
+  distinct JS objects. A recursive walk that reaches the same
+  logical node via multiple paths (diamond hierarchies, fan-in
+  references) therefore yields a clean set without a separate
+  key-projection step.
+- **Examples**:
+  - `[1 2 1 3 2] | distinct` → `[1 2 3]`.
+  - `[{:id 1} {:id 2} {:id 1}] | distinct` → `[{:id 1} {:id 2}]`.
 
 ### `reverse`
 

@@ -47,6 +47,14 @@ import {
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
+
+const KW_COMBINATOR = keyword('combinator');
+
+function trailEntry(stepNode, combinatorKind) {
+  const entry = new Map(astNodeToMap(stepNode));
+  entry.set(KW_COMBINATOR, keyword(combinatorKind));
+  return entry;
+}
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
@@ -119,9 +127,24 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangError && !caughtError.location && node.location)
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
+    const faultMap = buildFaultMap(node, state.pipeValue);
     return withPipeValue(state,
-      caughtError instanceof QlangError ? errorFromQlang(caughtError) : errorFromForeign(caughtError, node));
+      caughtError instanceof QlangError
+        ? errorFromQlang(caughtError, faultMap)
+        : errorFromForeign(caughtError, node, faultMap));
   }
+}
+
+// ─── :fault Map builder ─────────────────────────────────────────
+
+const KW_FAULT_STEP  = keyword('step');
+const KW_FAULT_INPUT = keyword('input');
+
+function buildFaultMap(stepNode, pipeValue) {
+  const m = new Map();
+  m.set(KW_FAULT_STEP, astNodeToMap(stepNode));
+  m.set(KW_FAULT_INPUT, pipeValue);
+  return Object.freeze(m);
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -182,17 +205,19 @@ async function applyCombinator(kind, state, stepNode) {
 // re-eval as ordinary data.
 async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(stepNode)));
+    return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(stepNode, 'pipe')));
   }
   return await evalNode(stepNode, state);
 }
 
 async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(bodyNode)));
+    return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
   if (!isVec(state.pipeValue)) {
-    throw new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+    const distributeErr = new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+    distributeErr.location = bodyNode.location;
+    return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
   }
   const forkResults = await Promise.all(
     state.pipeValue.map(vecElement =>
@@ -204,10 +229,12 @@ async function distribute(state, bodyNode) {
 
 async function mergeFlat(state, nextNode) {
   if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, astNodeToMap(nextNode)));
+    return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(nextNode, 'merge')));
   }
   if (!isVec(state.pipeValue)) {
-    throw new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+    const mergeErr = new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+    mergeErr.location = nextNode.location;
+    return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
   }
   const flattened = [];
   for (const flatItem of state.pipeValue) {

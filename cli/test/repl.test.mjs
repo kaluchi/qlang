@@ -74,6 +74,15 @@ describe('runRepl — query evaluation', () => {
     expect(stripAnsi(r.stderrText())).toMatch(/!\{/);
   });
 
+  it('materializes trail in error display without explicit !|', async () => {
+    const r = captureRepl('"hello" | add(1) | mul(2) | sub(3)\n.exit\n');
+    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const text = stripAnsi(r.stderrText());
+    expect(text).toMatch(/:trail/);
+    expect(text).toMatch(/mul/);
+    expect(text).toMatch(/sub/);
+  });
+
   it('writes a JS host-throw message on stderr for parse failures', async () => {
     const r = captureRepl('[1 2\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);

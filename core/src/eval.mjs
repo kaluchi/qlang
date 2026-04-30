@@ -47,6 +47,8 @@ import {
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
+import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
+import { langRuntime } from './runtime/index.mjs';
 
 const KW_COMBINATOR = keyword('combinator');
 
@@ -55,8 +57,6 @@ function trailEntry(stepNode, combinatorKind) {
   entry.set(KW_COMBINATOR, keyword(combinatorKind));
   return entry;
 }
-import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
-import { langRuntime } from './runtime/index.mjs';
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
   ({ key, actualType }) => `/${key} requires Map subject, got ${actualType}`);

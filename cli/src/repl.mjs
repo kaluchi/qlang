@@ -180,5 +180,5 @@ function materializeForDisplay(errorValue) {
     ...errorValue.descriptor.get(TRAIL_KEY),
     ...trailEntries
   ]);
-  return { ...errorValue, descriptor: desc, _trailHead: null };
+  return Object.freeze({ ...errorValue, descriptor: desc, _trailHead: null });
 }

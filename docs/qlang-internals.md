@@ -953,10 +953,23 @@ The `evalNode` try/catch block converts recoverable exceptions to
 error values. Operand impls continue to throw per-site error
 classes; the conversion is transparent to them. Two converters
 (`error-convert.mjs`) handle qlang errors (full structured context
-from per-site class properties) and foreign host errors (best-effort
-field extraction from JS Error objects). `QlangInvariantError`
-subclasses are never caught — they indicate runtime bugs, not data
-errors.
+from per-site class properties, including `:actualValue`) and
+foreign host errors (best-effort field extraction from JS Error
+objects). `QlangInvariantError` subclasses are never caught — they
+indicate runtime bugs, not data errors.
+
+At the catch point, `evalNode` builds a `:fault` Map via
+`buildFaultMap(stepNode, state.pipeValue)` carrying `:step`
+(the AST-Map of the failing step, same shape as trail entries)
+and `:input` (the pipeValue the step received). The fault Map is
+passed to `errorFromQlang` / `errorFromForeign` and stamped onto
+the descriptor. For `distribute` and `mergeFlat` combinator
+type-check errors, the fault is built directly inside the
+combinator function (which has access to the correct
+`state.pipeValue` and `bodyNode`) and the error is returned as
+an error value without throwing — matching the existing
+deflection return pattern those combinators use for error
+pipeValues.
 
 ### Combinator-level track dispatch
 
@@ -1043,6 +1056,8 @@ in addition to the invariant `:trail`:
 | `:kind` | keyword | Error category |
 | `:thrown` | keyword | Per-site class name |
 | `:message` | string | Human-readable |
+| `:fault` | Map | `{:step <AST-Map> :input <value>}` — the step that produced the error (`:step`, same AST-Map shape as trail entries via `astNodeToMap`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is built directly inside `distribute` / `mergeFlat` (which have access to the correct `state.pipeValue` and `bodyNode`) rather than in `evalNode`'s catch, so `:fault/input` carries the actual pipeline value at the combinator, not the Pipeline-level entry state |
+| `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
 | `:trail` | Vec of AST-Maps | One frozen AST-Map per pipeline step that a success-track combinator deflected on this error, produced by `walk.mjs::astNodeToMap` at stamp time and readable through the `:name` / `:args` / `:location` / `:text` fields |
 
 User-created error values (`!{...}` or `error(map)`) carry

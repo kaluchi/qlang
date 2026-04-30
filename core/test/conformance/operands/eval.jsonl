@@ -9,4 +9,4 @@
 {"name":"eval-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | eval","expect":"\"alice\""}
 {"name":"eval-distribute","query":"\"[1 2 3] * add(10)\" | parse | eval","expect":"[11 12 13]"}
 {"name":"eval-fail-track","query":"\"\\\"hello\\\" | add(1) !| /thrown\" | parse | eval","expect":":AddLeftNotNumber"}
-{"name":"eval-non-map-subject","query":"42 | eval","expect":"!{:origin :qlang/eval :kind :type-error :thrown :EvalSubjectNotMap :message \"eval requires AST Map subject, got Number\" :operand \"eval\" :position \"subject\" :expectedType \"AST Map\" :actualType \"Number\"}"}
+{"name":"eval-non-map-subject","query":"42 | eval","expect":"!{ :origin :qlang/eval :kind :type-error :thrown :EvalSubjectNotMap :message \"eval requires AST Map subject, got Number\" :operand \"eval\" :position \"subject\" :expectedType \"AST Map\" :actualType \"Number\" :actualValue 42 :fault { :step { :qlang/kind :OperandCall :name \"eval\" :args null :effectful false :text \"eval\" :location { :start { :offset 5 :line 1 :column 6 } :end { :offset 9 :line 1 :column 10 } } } :input 42 } :trail [] }"}

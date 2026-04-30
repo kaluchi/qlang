@@ -17,6 +17,10 @@
 //   * Each cell's success-track value auto-prints (printValue +
 //     ANSI), the way every interactive REPL surfaces results;
 //     script mode stays silent without `@out` by design.
+//   * Error values auto-materialize their trail before display —
+//     deflected steps accumulated in `_trailHead` are folded into
+//     the `:trail` Vec so the printed output shows the full
+//     picture without requiring an explicit `!|` step.
 //   * `@in` resolves to the empty String — interactive stdin is
 //     consumed by the prompt itself, so reading "stdin" from
 //     inside a cell would deadlock against the line editor.
@@ -31,6 +35,8 @@ import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printValue,
   isErrorValue,
+  materializeTrail,
+  keyword,
   langRuntime
 } from '@kaluchi/qlang-core';
 import { bindIoOperands } from './io-operands.mjs';
@@ -154,10 +160,25 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
     stderrWrite(`error: ${cellEntry.error.message}\n`);
     return;
   }
-  const renderedValue = highlightAnsi(printValue(cellEntry.result), builtinNames);
-  if (isErrorValue(cellEntry.result)) {
-    stderrWrite(renderedValue + '\n');
+  let result = cellEntry.result;
+  if (isErrorValue(result)) {
+    result = materializeForDisplay(result);
+    const rendered = highlightAnsi(printValue(result), builtinNames);
+    stderrWrite(rendered + '\n');
     return;
   }
-  stdoutWrite(renderedValue + '\n');
+  stdoutWrite(highlightAnsi(printValue(result), builtinNames) + '\n');
+}
+
+const TRAIL_KEY = keyword('trail');
+
+function materializeForDisplay(errorValue) {
+  const trailEntries = materializeTrail(errorValue);
+  if (trailEntries.length === 0) return errorValue;
+  const desc = new Map(errorValue.descriptor);
+  desc.set(TRAIL_KEY, [
+    ...errorValue.descriptor.get(TRAIL_KEY),
+    ...trailEntries
+  ]);
+  return Object.freeze({ ...errorValue, descriptor: desc, _trailHead: null });
 }

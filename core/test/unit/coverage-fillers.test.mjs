@@ -320,19 +320,23 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
 });
 
 describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
+  const coerceFault = Object.freeze(new Map([
+    [keyword('step'), Object.freeze(new Map([[keyword('text'), 'hostCoerce']]))],
+    [keyword('input'), 'coerce-input']
+  ]));
+
   it('coerce passes through a QSet (JS Set) unchanged', async () => {
     const qset = new Set([1, 2, 3]);
     const err = Object.assign(new Error('foreign'), { mySet: qset });
-    const errVal = errorFromForeign(err, null);
+    const errVal = errorFromForeign(err, null, coerceFault);
     expect(isErrorValue(errVal)).toBe(true);
-    // coerce(qset) returns the Set as-is; the descriptor stores it directly
     expect(errVal.descriptor.get(keyword('mySet'))).toBe(qset);
   });
 
   it('coerce passes through an errorValue unchanged', async () => {
     const inner = makeErrorValue(new Map(), { originalError: new Error('inner') });
     const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
-    const errVal = errorFromForeign(err, null);
+    const errVal = errorFromForeign(err, null, coerceFault);
     expect(isErrorValue(errVal)).toBe(true);
     expect(errVal.descriptor.get(keyword('myErr'))).toBe(inner);
   });

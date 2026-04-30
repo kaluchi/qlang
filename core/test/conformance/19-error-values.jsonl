@@ -1,7 +1,7 @@
-{"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
-{"name":"error-lit-empty","query":"!{}","expect":"!{}"}
-{"name":"error-operand-from-map","query":"{:kind :oops} | error","expect":"!{:kind :oops}"}
-{"name":"error-operand-full-form","query":"error({:kind :oops})","expect":"!{:kind :oops}"}
+{"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{ :kind :oops :message \"boom\" :trail [] }"}
+{"name":"error-lit-empty","query":"!{}","expect":"!{ :trail [] }"}
+{"name":"error-operand-from-map","query":"{:kind :oops} | error","expect":"!{ :kind :oops :trail [] }"}
+{"name":"error-operand-full-form","query":"error({:kind :oops})","expect":"!{ :kind :oops :trail [] }"}
 {"name":"isError-via-distribute-on-error","query":"[!{:kind :oops}] * isError | first","expect":"true"}
 {"name":"isError-false-number","query":"42 | isError","expect":"false"}
 {"name":"isError-false-map","query":"{:kind :oops} | isError","expect":"false"}

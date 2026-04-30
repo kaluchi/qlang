@@ -6,21 +6,16 @@
 
 import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue } from './types.mjs';
 
-// errorFromQlang(qlangError) → error value
+// errorFromQlang(qlangError, fault) → error value
 //
-// Context fields from per-site error classes are scalars and
-// strings — no deep coercion needed. The throw site's class
-// identity already rides on `:thrown` (set above from
-// `qlangError.fingerprint`), so the per-site `name` redundancy is
-// dropped at the factory rather than filtered here. Only
-// `actualValue` is filtered, because PII in the offending value
-// must not land in the user-facing :trail descriptor.
-//
-// AST-location context lives on `errorFromForeign` below — a
-// QlangError already carries its own throw-site fingerprint via
-// `:thrown`, so enriching with the caller's astNode adds nothing
-// the descriptor does not already have.
-export function errorFromQlang(qlangError) {
+// Context fields from per-site error classes — including
+// `actualValue` — are stamped onto the descriptor without
+// filtering. The `fault` parameter is a frozen Map carrying
+// `:step` (AST-Map of the failing step) and `:input` (the
+// pipeValue the step received), built by `eval.mjs::buildFaultMap`
+// at the `evalNode` catch site or directly inside
+// `distribute`/`mergeFlat` for combinator-level type checks.
+export function errorFromQlang(qlangError, fault) {
   const d = new Map();
   d.set(keyword('origin'), keyword('qlang/eval'));
   d.set(keyword('kind'), keyword(qlangError.kind));
@@ -29,10 +24,11 @@ export function errorFromQlang(qlangError) {
 
   if (qlangError.context) {
     for (const [k, v] of Object.entries(qlangError.context)) {
-      if (k === 'actualValue') continue;
       d.set(keyword(k), v ?? null);
     }
   }
+
+  d.set(keyword('fault'), fault);
 
   return makeErrorValue(d, {
     location: qlangError.location,
@@ -83,7 +79,7 @@ const WELL_KNOWN_PROPS = [
   'status', 'statusCode', 'statusText'
 ];
 
-export function errorFromForeign(jsError, astNode) {
+export function errorFromForeign(jsError, astNode, fault) {
   const d = new Map();
   d.set(keyword('origin'), keyword('host'));
   d.set(keyword('kind'), keyword('foreign-error'));
@@ -113,6 +109,7 @@ export function errorFromForeign(jsError, astNode) {
   }
 
   d.set(keyword('operand'), astNode?.text ?? null);
+  d.set(keyword('fault'), fault);
 
   return makeErrorValue(d, {
     location: astNode?.location ?? null,

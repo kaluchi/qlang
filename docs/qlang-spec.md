@@ -1370,10 +1370,20 @@ lift automatically into error values with structured descriptors:
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
 | `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotContainer`, etc. |
 | `:message` | string | Human-readable description |
+| `:fault` | Map | `{:step <AST-Map> :input <value>}` — the step that produced the error and the value it received as pipeline input. `:step` is the same AST-Map shape as trail entries; `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
+| `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
 | `:trail` | Vec | AST-Maps for each step that a success-track combinator deflected |
 
 Additional context fields vary by error site (`:operand`,
 `:expectedType`, `:actualType`, `:position`, `:index`, etc.).
+
+The `:fault` Map enables pipeline-level diagnostic inspection:
+
+```qlang
+!| /fault/step | /text       -- source text of the failing step
+!| /fault/input | keys       -- keys available on the Map the step received
+!| /fault/input              -- the full value the step received
+```
 
 ### Trail continuity across re-lift
 

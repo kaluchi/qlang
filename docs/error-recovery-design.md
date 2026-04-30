@@ -36,25 +36,31 @@ What the agent tried first:
 "Foo" | @coverage | /coverage/node | /counters/instruction
 ```
 
-Error returned:
+Error now returns (after `:fault` + `:combinator` enrichment):
 
 ```
 !{:kind :type-error
   :thrown :ProjectionSubjectNotMap
   :message "/node requires Map subject, got Null"
-  :trail [{:text "/counters/instruction" ...}]}
+  :fault {:step {:qlang/kind :Projection :keys ["coverage" "node"]
+                 :text "/coverage/node" ...}
+          :input {:counters {:instruction {...}} ...}}
+  :trail [{:text "/counters/instruction" :combinator :pipe ...}]}
 ```
 
-What was missing from this error:
-1. The step that PRODUCED the error (`/coverage/node`) — not in trail
-2. The subject that was handed to it (`null`) — not in descriptor
-3. What was available instead (the actual keys of the Map before
-   `/coverage/node` tried to project `/node` from it)
-4. The skipped intent (`/counters/instruction`) is in trail but with
-   no recovery hint
+What is now available:
+1. `:fault/:step` — the step that produced the error, as AST-Map
+2. `:fault/:input` — the pipeValue (`null` in this case), inspectable
+3. `:trail` entries carry `:combinator` — which combinator deflected
+4. Skipped intent is in trail — `@explainError` can `reify` it
 
-The agent then tried `/coverage`, `/data`, `@node`, grep through
-source files — 4 more calls before finding the right shape.
+What is still missing:
+- Contextual recovery hints (available keys, "did you mean")
+- `@explainError` conduit to turn `:fault` + `:trail` into guidance
+
+The agent tried `/coverage`, `/data`, `@node` — 4 more calls.
+With `:fault/:input | keys` the agent would see the actual Map
+shape in 0 additional calls.
 
 ### Quantified cost
 
@@ -75,55 +81,52 @@ From `qlang-spec.md` § Error track:
 !{:origin   :qlang/eval          -- who produced it
   :kind     :type-error           -- broad category
   :thrown   :ProjectionSubjectNotMap  -- per-site class
-  :message  "/node requires Map subject, got Null"  -- human string
+  :message  "/node requires Map subject, got Null"
+  :fault    {:step {AST-Map}      -- the step that produced the error
+             :input <pipeValue>}  -- what was handed to it
   :trail    [{AST-Map}, ...]      -- deflected steps AFTER the error
-  ...context fields...}
+  }
 ```
 
 ### What trail contains (observed)
 
 ```qlang
-"Foo" | @coverage | /coverage/node | @coverageCard | geo !| /trail * /text
--- trail = ["/coverage/node", "@coverageCard", "geo"]
+"Foo" | @coverage | /coverage/node | @coverageCard | geo !| /trail * {:text /text :via /combinator}
+-- [{:text "/coverage/node" :via :pipe}
+--  {:text "@coverageCard"  :via :pipe}
+--  {:text "geo"            :via :pipe}]
 ```
 
-Trail records every step that `|` DEFLECTED after the error. Each
-entry is a full AST-Map with `:qlang/kind`, `:name`, `:args`,
-`:text`, `:location`.
+Trail records every step that a success-track combinator DEFLECTED
+after the error. Each entry is a full AST-Map with `:qlang/kind`,
+`:name`, `:args`, `:text`, `:location`, and `:combinator`
+(`:pipe` / `:distribute` / `:merge`).
 
-### Three information gaps
+### Resolved gaps
 
-| Gap | Current state | Impact on recovery |
+| Gap | Before | After |
 |---|---|---|
-| Failed step | Only in `:message` as string fragment | Cannot `reify` it, cannot inspect its descriptor/docs/examples |
-| Subject at failure | Not recorded | Cannot show "you had X, tried to do Y" |
-| Combinator type | Not recorded in trail entries | Cannot distinguish deflected success-steps from deflected fail-handlers |
+| Failed step | Only in `:message` as string | `:fault/:step` — full AST-Map, `reify`-able |
+| Subject at failure | Not recorded | `:fault/:input` — the pipeValue handed to the failed step |
+| Combinator type | Not recorded | `:combinator` keyword on every trail entry |
 
 ## Design directions to explore
 
 ### Direction 1: Enrich error descriptor
 
-Add two fields to the error value that the evaluator produces:
-
-- `:failedStep` — AST-Map of the step that produced the error
-  (same shape as trail entries). Always small (~50 tokens).
-- `:subject` — the pipeValue that was handed to the failed step.
-  Immutable value, could be large. But this is a storage reference
-  in the runtime — cost is zero until serialized. Presentation
-  is the handler's responsibility:
+`:fault` Map on every error descriptor carries the failed step
+and the pipeValue that was handed to it:
 
 ```qlang
-!| /subject | pretty        -- full dump
-!| /subject | @overview     -- summary for large values
-!| /subject | typeOf        -- just the type
-!| /subject | keys          -- just the Map keys
+!| /fault/input | pretty    -- full dump of what was handed in
+!| /fault/input | typeOf    -- just the type
+!| /fault/input | keys      -- Map keys (if it was a Map)
+!| /fault/step/text          -- source text of the failed step
 ```
 
-Open questions:
-- Should `:subject` always be captured, or opt-in?
-- Should trail entries also carry `:combinator` (`:pipe`, `:distribute`, etc.)?
-- Should `:failedStep` carry the reified descriptor of the operand
-  that failed, or just the AST-Map (leaving reify to the handler)?
+Trail entries carry `:combinator` (`:pipe` / `:distribute` /
+`:merge`). REPL auto-materializes `_trailHead` into `:trail`
+on display.
 
 ### Direction 2: Recovery-aware terminal conduits
 
@@ -140,70 +143,35 @@ Failure path: `@explainError` reads trail, sees skipped
 `@coverageCard`, does `reify(:@coverageCard)` to get its docs
 and examples, produces recovery guidance.
 
-Key insight: the trail carries the INTENT (what the user wanted)
-even though the pipeline failed. `@explainError` uses both the
-error (what went wrong) and the intent (what was wanted) to
-produce contextual recovery.
+The trail carries the INTENT (what the user wanted) even though
+the pipeline failed. `@explainError` uses both the error (what
+went wrong) and the intent (what was wanted) to produce
+contextual recovery.
 
-From speech act theory (Austin/Searle): the pipeline is the
-locutionary act (what was said), the terminal conduit is the
-illocutionary act (what was meant), `@explainError` reconstructs
-the perlocutionary act (useful effect) from the preserved intent.
-
-### Direction 3: Navigation hints in successful responses
-
-HATEOAS principle: every response carries links to related
-operations. In qlang, "links" are pipeline continuations:
-
-```qlang
-"Dog" | @coverage
--- current response: {:counters {:instruction {...} ...}}
--- proposed enrichment (only in card/verbose mode):
--- {:counters {...}
---  :_nav {:drill "@uncoveredLines"
---         :broaden "| @overview"
---         :method "\"Dog#name()\" | @coverage"}}
-```
-
-This is the `@coverageCard` vs `@coverage` duality: data axis
-for pipeline chaining (composable, dry), card axis for terminal
-presentation (rich, navigable).
-
-Every host-bound axis could have a card adjoint:
-- `@coverage` / `@coverageCard`
-- `@members` / `@membersCard` (hypothetical)
+Every host-bound data axis has a card adjoint — data for pipeline
+chaining, card for terminal presentation with affordances:
 - `@source` / `@sourceCard` (exists)
-- `@callers` / `@callersCard` (hypothetical)
+- `@coverage` / `@coverageCard` (exists)
+- `@members` / `@outlineCard` (hypothetical)
 
-### Direction 4: Contextual hints in every response
+### Direction 3: Card conduits as progressive disclosure
 
-Instead of enriching errors only, add a lightweight `:_hint` field
-to every qlang response when the result is a host-bound axis output.
-Cost: ~30-50 tokens per response. Benefit: agent never needs to
-guess what to do next.
+Card conduits (`@sourceCard`, `@coverageCard`) already include
+contextual navigation — callers, callees, related commands.
+Extending this pattern to error recovery means `@explainError`
+is itself a card conduit over the error descriptor + trail.
 
-```qlang
-"Dog" | @coverage
--- result includes:
--- {:_hint "drill: @uncoveredLines | @partialLines
---         method: \"Dog#method()\" | @coverage
---         card: @coverageCard"}
-```
-
-This is progressive disclosure via response shape — each response
-reveals the NEXT level of capability without requiring documentation
-lookup.
-
-Counter-argument: pollutes pure data pipeline with presentation
-metadata. Response: the `_` prefix convention (or a namespaced
-`:qlang/hint`) signals "strip me before chaining". Or: hints only
-appear in card-mode conduits, never in raw data axes.
+The card approach keeps data axes pure (composable, dry) while
+card axes carry affordances (what to do next with THIS result).
+No metadata pollution in data pipelines — cards are opt-in
+terminal steps.
 
 ## Design constraints from qlang-spec
 
-- Values are immutable. Carrying `:subject` in error is safe.
+- Values are immutable. Carrying `:input` in `:fault` is safe.
 - `reify(:name)` returns descriptor with `:docs`, `:examples`,
-  `:source`. Available inside `!|` handlers.
+  `:source`. Available inside `!|` handlers — `@explainError` can
+  introspect the skipped operands from trail.
 - `eval` can re-run parsed AST-Maps. Trail entries ARE AST-Maps.
   A handler could theoretically re-try a failed step with different
   input.

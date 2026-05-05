@@ -691,6 +691,8 @@ information. Each classifier matches exactly one
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
 - **Errors**: none — classification is total.
 
+## Type Conversion
+
 ### `keyword`
 
 - **Arity** 1. **Subject** `string` or `keyword`.
@@ -1180,7 +1182,7 @@ distinct` enumerates).
 |---|---|
 | `:container-reducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
 | `:container-selector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
-| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `at`, `firstNonZero` (Vec-only — order-dependent) |
+| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
 | `:vec-transformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
@@ -1189,7 +1191,9 @@ distinct` enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `keyword` |
+| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull` |
+| `:type-conversion` | `keyword` |
+| `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
 | `:reflective` | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |

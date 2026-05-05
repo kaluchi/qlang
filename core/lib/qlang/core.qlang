@@ -325,7 +325,7 @@
     of `/key` projection). ~~|
 :at {:qlang/kind :builtin
      :qlang/impl :qlang/prim/at
-     :category :vec-reducer
+     :category :indexed-access
      :subject [:vec :map]
      :returns :any
      :modifiers [:any]
@@ -1307,7 +1307,7 @@
     the Keyword world (Map key syntax, enum discriminators). ~~|
 :keyword {:qlang/kind :builtin
           :qlang/impl :qlang/prim/keyword
-          :category :type-classifier
+          :category :type-conversion
           :subject [:string :keyword]
           :returns [:string :keyword]
           :modifiers []

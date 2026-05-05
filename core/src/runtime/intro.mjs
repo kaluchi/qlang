@@ -17,7 +17,7 @@ import { astNodeToMap, qlangMapToAst, locationToQlangMap } from '../walk.mjs';
 import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
-  isVec, isQSet, isNumber, isString, isBoolean, isNull,
+  isVec, isQSet,
   typeKeyword, keyword, makeConduit, makeSnapshot, isErrorValue
 } from '../types.mjs';
 import {

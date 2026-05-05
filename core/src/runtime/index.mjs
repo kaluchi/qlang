@@ -47,6 +47,7 @@ import './format.mjs';
 import './predicates.mjs';
 import './control.mjs';
 import './error.mjs';
+import './keyword-op.mjs';
 import './intro.mjs';
 
 import { parse } from '../parse.mjs';

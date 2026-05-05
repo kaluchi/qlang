@@ -25,6 +25,7 @@ import {
   QlangTypeError,
   ArityError
 } from './errors.mjs';
+import { typeKeyword } from './types.mjs';
 
 // ── Factory primitives ─────────────────────────────────────────
 
@@ -44,9 +45,10 @@ function brand(cls, name) {
 // value whose type is not acceptable.
 export function declareSubjectError(className, operand, expectedType) {
   const Cls = class extends QlangTypeError {
-    constructor(actualType, actualValue) {
+    constructor(actualValue) {
+      const actualType = typeKeyword(actualValue);
       super(
-        `${operand} requires ${expectedType} subject, got ${actualType}`,
+        `${operand} requires ${expectedType} subject, got ${actualType.name}`,
         {
           operand,
           position: 'subject',
@@ -66,9 +68,10 @@ export function declareSubjectError(className, operand, expectedType) {
 // wrong type at a specific numeric position.
 export function declareModifierError(className, operand, position, expectedType) {
   const Cls = class extends QlangTypeError {
-    constructor(actualType, actualValue) {
+    constructor(actualValue) {
+      const actualType = typeKeyword(actualValue);
       super(
-        `${operand} expects ${expectedType} at position ${position}, got ${actualType}`,
+        `${operand} expects ${expectedType} at position ${position}, got ${actualType.name}`,
         {
           operand,
           position,
@@ -88,9 +91,10 @@ export function declareModifierError(className, operand, position, expectedType)
 // collection subject has the wrong type.
 export function declareElementError(className, operand, expectedType) {
   const Cls = class extends QlangTypeError {
-    constructor(index, actualType, actualValue) {
+    constructor(index, actualValue) {
+      const actualType = typeKeyword(actualValue);
       super(
-        `${operand}: element ${index} expects ${expectedType}, got ${actualType}`,
+        `${operand}: element ${index} expects ${expectedType}, got ${actualType.name}`,
         {
           operand,
           index,
@@ -110,9 +114,11 @@ export function declareElementError(className, operand, expectedType) {
 // shape-matching check fails.
 export function declareComparabilityError(className, operand) {
   const Cls = class extends QlangTypeError {
-    constructor(leftType, rightType) {
+    constructor(leftValue, rightValue) {
+      const leftType = typeKeyword(leftValue);
+      const rightType = typeKeyword(rightValue);
       super(
-        `${operand} cannot compare ${leftType} with ${rightType}`,
+        `${operand} cannot compare ${leftType.name} with ${rightType.name}`,
         {
           operand,
           leftType,

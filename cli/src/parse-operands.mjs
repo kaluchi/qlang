@@ -26,7 +26,6 @@ import {
   declareShapeError
 } from '@kaluchi/qlang-core/operand-errors';
 import {
-  describeType,
   fromPlain,
   fromTaggedJSON
 } from '@kaluchi/qlang-core';
@@ -49,7 +48,7 @@ const ParseTjsonInvalidJson =
 
 const parseJsonOperand = nullaryOp('parseJson', (subject) => {
   if (typeof subject !== 'string') {
-    throw new ParseJsonSubjectNotString(describeType(subject), subject);
+    throw new ParseJsonSubjectNotString(subject);
   }
   let parsed;
   try {
@@ -62,7 +61,7 @@ const parseJsonOperand = nullaryOp('parseJson', (subject) => {
 
 const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {
   if (typeof subject !== 'string') {
-    throw new ParseTjsonSubjectNotString(describeType(subject), subject);
+    throw new ParseTjsonSubjectNotString(subject);
   }
   let parsed;
   try {

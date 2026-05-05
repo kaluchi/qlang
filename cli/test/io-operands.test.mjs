@@ -51,7 +51,7 @@ describe('@out — bare form (0 captured)', () => {
       operand: '@out',
       position: 'subject',
       expectedType: 'String',
-      actualType: 'Number'
+      actualType: { name: 'number' }
     });
   });
 });
@@ -74,7 +74,7 @@ describe('@out — full-application form (1 captured)', () => {
     const cellEntry = await runQuery('"x" | @out(add(1))', io);
     expect(io.stdoutText()).toBe('');
     expectOperandErrorThrown(cellEntry, 'OutRendererResultNotString', {
-      actualType: 'Error'
+      actualType: { name: 'error' }
     });
   });
 });
@@ -96,7 +96,7 @@ describe('@err — bare form', () => {
       operand: '@err',
       position: 'subject',
       expectedType: 'String',
-      actualType: 'Vec'
+      actualType: { name: 'vec' }
     });
   });
 });
@@ -113,7 +113,7 @@ describe('@err — full-application form', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | @err(add(1))', io);
     expectOperandErrorThrown(cellEntry, 'ErrRendererResultNotString', {
-      actualType: 'Error'
+      actualType: { name: 'error' }
     });
   });
 });
@@ -135,7 +135,7 @@ describe('@tap', () => {
       operand: '@tap',
       position: 1,
       expectedType: 'Keyword',
-      actualType: 'String'
+      actualType: { name: 'string' }
     });
   });
 });

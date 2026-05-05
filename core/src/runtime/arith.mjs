@@ -10,7 +10,6 @@
 
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';
-import { describeType } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -24,26 +23,26 @@ const DivLeftNotNumber  = declareModifierError('DivLeftNotNumber',  'div', 1, 'N
 const DivRightNotNumber = declareModifierError('DivRightNotNumber', 'div', 2, 'Number');
 
 export const add = valueOp('add', 2, (a, b) => {
-  if (typeof a !== 'number') throw new AddLeftNotNumber(describeType(a), a);
-  if (typeof b !== 'number') throw new AddRightNotNumber(describeType(b), b);
+  if (typeof a !== 'number') throw new AddLeftNotNumber(a);
+  if (typeof b !== 'number') throw new AddRightNotNumber(b);
   return a + b;
 });
 
 export const sub = valueOp('sub', 2, (a, b) => {
-  if (typeof a !== 'number') throw new SubLeftNotNumber(describeType(a), a);
-  if (typeof b !== 'number') throw new SubRightNotNumber(describeType(b), b);
+  if (typeof a !== 'number') throw new SubLeftNotNumber(a);
+  if (typeof b !== 'number') throw new SubRightNotNumber(b);
   return a - b;
 });
 
 export const mul = valueOp('mul', 2, (a, b) => {
-  if (typeof a !== 'number') throw new MulLeftNotNumber(describeType(a), a);
-  if (typeof b !== 'number') throw new MulRightNotNumber(describeType(b), b);
+  if (typeof a !== 'number') throw new MulLeftNotNumber(a);
+  if (typeof b !== 'number') throw new MulRightNotNumber(b);
   return a * b;
 });
 
 export const div = valueOp('div', 2, (a, b) => {
-  if (typeof a !== 'number') throw new DivLeftNotNumber(describeType(a), a);
-  if (typeof b !== 'number') throw new DivRightNotNumber(describeType(b), b);
+  if (typeof a !== 'number') throw new DivLeftNotNumber(a);
+  if (typeof b !== 'number') throw new DivRightNotNumber(b);
   if (b === 0) throw new DivisionByZeroError();
   return a / b;
 });

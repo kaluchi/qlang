@@ -30,11 +30,10 @@ const GteOperandsNotComparable = declareComparabilityError('GteOperandsNotCompar
 const LteOperandsNotComparable = declareComparabilityError('LteOperandsNotComparable', 'lte');
 
 function orderingCheck(ErrorCls, left, right) {
-  const lt = describeType(left);
-  const rt = describeType(right);
-  const isScalar = (t) => t === 'Number' || t === 'String';
-  if (!isScalar(lt) || !isScalar(rt) || lt !== rt) {
-    throw new ErrorCls(lt, rt);
+  const bothNumbers = typeof left === 'number' && typeof right === 'number';
+  const bothStrings = typeof left === 'string' && typeof right === 'string';
+  if (!bothNumbers && !bothStrings) {
+    throw new ErrorCls(left, right);
   }
 }
 

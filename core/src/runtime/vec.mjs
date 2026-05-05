@@ -33,7 +33,7 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isTruthy, isErrorValue, describeType, NULL, keyword
+  isVec, isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL, keyword
 } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
@@ -92,9 +92,9 @@ const AnyMapPredArityInvalid    = declareArityError('AnyMapPredArityInvalid',
 const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'Vec');
 const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'Vec');
 const GroupByKeyNotKeyword        = declareShapeError('GroupByKeyNotKeyword',
-  ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType}`);
+  ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
 const IndexByKeyNotKeyword        = declareShapeError('IndexByKeyNotKeyword',
-  ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType}`);
+  ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
 const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'Vec');
 const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'Vec');
 const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'Vec');
@@ -107,7 +107,6 @@ const FlatSubjectNotVec           = declareSubjectError('FlatSubjectNotVec',    
 
 const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'Number');
 const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'Number');
-const AtSubjectNotVec    = declareSubjectError('AtSubjectNotVec',    'at',   'Vec');
 const AtIndexNotInteger  = declareModifierError('AtIndexNotInteger', 'at',   2, 'Integer');
 
 const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'Number');
@@ -123,15 +122,15 @@ const NullsFirstKeysNotComparable = declareComparabilityError('NullsFirstKeysNot
 const NullsLastKeysNotComparable  = declareComparabilityError('NullsLastKeysNotComparable',  'nullsLast');
 
 const SortWithCmpResultNotNumber = declareShapeError('SortWithCmpResultNotNumber',
-  ({ actualType }) => `sortWith comparator must return a Number, got ${actualType}`);
+  ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`);
 const AscPairNotMap = declareShapeError('AscPairNotMap',
-  ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+  ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 const DescPairNotMap = declareShapeError('DescPairNotMap',
-  ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+  ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 const NullsFirstPairNotMap = declareShapeError('NullsFirstPairNotMap',
-  ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+  ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 const NullsLastPairNotMap = declareShapeError('NullsLastPairNotMap',
-  ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType}`);
+  ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 
 // ── Polymorphic sizeOf for count/empty ─────────────────────────
 
@@ -139,7 +138,7 @@ function sizeOfContainer(container, ErrorCls) {
   if (isVec(container))  return container.length;
   if (isQSet(container)) return container.size;
   if (isQMap(container)) return container.size;
-  throw new ErrorCls(describeType(container), container);
+  throw new ErrorCls(container);
 }
 
 // ── Vec → Scalar reducers ──────────────────────────────────────
@@ -161,16 +160,16 @@ export const empty = nullaryOp('empty', (container) =>
 function vecOrSetElements(container, ErrorCls) {
   if (isVec(container))  return container;
   if (isQSet(container)) return [...container];
-  throw new ErrorCls(describeType(container), container);
+  throw new ErrorCls(container);
 }
 
 export const first = nullaryOp('first', (vec) => {
-  if (!isVec(vec)) throw new FirstSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new FirstSubjectNotVec(vec);
   return vec.length === 0 ? NULL : vec[0];
 });
 
 export const last = nullaryOp('last', (vec) => {
-  if (!isVec(vec)) throw new LastSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new LastSubjectNotVec(vec);
   return vec.length === 0 ? NULL : vec[vec.length - 1];
 });
 
@@ -179,7 +178,7 @@ export const sum = nullaryOp('sum', (container) => {
   let total = 0;
   for (let i = 0; i < items.length; i++) {
     if (typeof items[i] !== 'number') {
-      throw new SumElementNotNumber(i, describeType(items[i]), items[i]);
+      throw new SumElementNotNumber(i, items[i]);
     }
     total += items[i];
   }
@@ -209,11 +208,10 @@ export const max = nullaryOp('max', (container) => {
 });
 
 function checkComparable(ErrorCls, left, right) {
-  const leftType = describeType(left);
-  const rightType = describeType(right);
-  const isScalar = (t) => t === 'Number' || t === 'String';
-  if (!isScalar(leftType) || !isScalar(rightType) || leftType !== rightType) {
-    throw new ErrorCls(leftType, rightType);
+  const bothNumbers = typeof left === 'number' && typeof right === 'number';
+  const bothStrings = typeof left === 'string' && typeof right === 'string';
+  if (!bothNumbers && !bothStrings) {
+    throw new ErrorCls(left, right);
   }
 }
 
@@ -313,7 +311,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
     }
     return filterResult;
   }
-  throw new FilterSubjectNotContainer(describeType(container), container);
+  throw new FilterSubjectNotContainer(container);
 });
 
 export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
@@ -335,7 +333,7 @@ export const every = higherOrderOp('every', 2, async (container, everyPredLambda
     }
     return true;
   }
-  throw new EverySubjectNotContainer(describeType(container), container);
+  throw new EverySubjectNotContainer(container);
 });
 
 export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
@@ -357,11 +355,11 @@ export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
     }
     return false;
   }
-  throw new AnySubjectNotContainer(describeType(container), container);
+  throw new AnySubjectNotContainer(container);
 });
 
 export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) => {
-  if (!isVec(vec)) throw new GroupBySubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new GroupBySubjectNotVec(vec);
   const groupResult = new Map();
   for (let gi = 0; gi < vec.length; gi++) {
     const groupElem = vec[gi];
@@ -370,7 +368,7 @@ export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) =
     if (!isKeyword(groupKey)) {
       throw new GroupByKeyNotKeyword({
         index: gi,
-        actualType: describeType(groupKey),
+        actualType: typeKeyword(groupKey),
         actualValue: groupKey
       });
     }
@@ -381,7 +379,7 @@ export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) =
 });
 
 export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) => {
-  if (!isVec(vec)) throw new IndexBySubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new IndexBySubjectNotVec(vec);
   const indexResult = new Map();
   for (let ii = 0; ii < vec.length; ii++) {
     const indexElem = vec[ii];
@@ -390,7 +388,7 @@ export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) =
     if (!isKeyword(indexKey)) {
       throw new IndexByKeyNotKeyword({
         index: ii,
-        actualType: describeType(indexKey),
+        actualType: typeKeyword(indexKey),
         actualValue: indexKey
       });
     }
@@ -401,14 +399,14 @@ export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) =
 
 export const sort = overloadedOp('sort', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new SortNaturalSubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new SortNaturalSubjectNotVec(vec);
     return [...vec].sort((a, b) => {
       checkComparable(SortNaturalNotComparable, a, b);
       return compareScalars(a, b);
     });
   },
   1: async (vec, sortKeyLambda) => {
-    if (!isVec(vec)) throw new SortByKeySubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new SortByKeySubjectNotVec(vec);
     // Pre-compute all keys (async) then sort synchronously by cached keys.
     const sortEntries = await Promise.all(
       vec.map(async (sortElem) => ({
@@ -431,8 +429,8 @@ function compareScalars(a, b) {
 }
 
 export const take = valueOp('take', 2, (vec, n) => {
-  if (!isVec(vec)) throw new TakeSubjectNotVec(describeType(vec), vec);
-  if (typeof n !== 'number') throw new TakeCountNotNumber(describeType(n), n);
+  if (!isVec(vec)) throw new TakeSubjectNotVec(vec);
+  if (typeof n !== 'number') throw new TakeCountNotNumber(n);
   return vec.slice(0, n);
 });
 
@@ -442,18 +440,27 @@ export const take = valueOp('take', 2, (vec, n) => {
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
 // for `at(-1)`; the two are semantically identical.
-export const at = valueOp('at', 2, (vec, atIndex) => {
-  if (!isVec(vec)) throw new AtSubjectNotVec(describeType(vec), vec);
-  if (typeof atIndex !== 'number' || !Number.isInteger(atIndex)) {
-    throw new AtIndexNotInteger(describeType(atIndex), atIndex);
+const AtSubjectNotVecOrMap = declareSubjectError('AtSubjectNotVecOrMap', 'at', 'Vec or Map');
+const AtKeyNotString       = declareModifierError('AtKeyNotString', 'at', 2, 'String (Map subject)');
+
+export const at = valueOp('at', 2, (subject, atKey) => {
+  if (isVec(subject)) {
+    if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
+      throw new AtIndexNotInteger(atKey);
+    }
+    const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
+    return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
   }
-  const resolvedIndex = atIndex < 0 ? vec.length + atIndex : atIndex;
-  return (resolvedIndex >= 0 && resolvedIndex < vec.length) ? vec[resolvedIndex] : NULL;
+  if (isQMap(subject)) {
+    if (typeof atKey !== 'string') throw new AtKeyNotString(atKey);
+    return subject.has(atKey) ? subject.get(atKey) : NULL;
+  }
+  throw new AtSubjectNotVecOrMap(subject);
 });
 
 export const drop = valueOp('drop', 2, (vec, n) => {
-  if (!isVec(vec)) throw new DropSubjectNotVec(describeType(vec), vec);
-  if (typeof n !== 'number') throw new DropCountNotNumber(describeType(n), n);
+  if (!isVec(vec)) throw new DropSubjectNotVec(vec);
+  if (typeof n !== 'number') throw new DropCountNotNumber(n);
   return vec.slice(n);
 });
 
@@ -470,7 +477,7 @@ export const drop = valueOp('drop', 2, (vec, n) => {
 // Set, and error values fall through to a structural scan over the
 // composite-seen list. Mixed input is bucketed per element.
 export const distinct = nullaryOp('distinct', (vec) => {
-  if (!isVec(vec)) throw new DistinctSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new DistinctSubjectNotVec(vec);
   const seenAtoms = new Set();
   const seenKeywordNames = new Set();
   const seenComposite = [];
@@ -494,12 +501,12 @@ export const distinct = nullaryOp('distinct', (vec) => {
 });
 
 export const reverse = nullaryOp('reverse', (vec) => {
-  if (!isVec(vec)) throw new ReverseSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new ReverseSubjectNotVec(vec);
   return [...vec].reverse();
 });
 
 export const flat = nullaryOp('flat', (vec) => {
-  if (!isVec(vec)) throw new FlatSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new FlatSubjectNotVec(vec);
   const result = [];
   for (const item of vec) {
     if (isVec(item)) result.push(...item);
@@ -511,7 +518,7 @@ export const flat = nullaryOp('flat', (vec) => {
 // ── sortWith and comparator builders ──────────────────────────
 
 export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
-  if (!isVec(vec)) throw new SortWithSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new SortWithSubjectNotVec(vec);
   // Array.sort is synchronous; we precompute all pairwise comparisons
   // would be complex. Instead, use an async-compatible merge sort approach:
   // precompute comparison matrix or use a simple insertion sort with awaits.
@@ -529,7 +536,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
       const cmpResult = await cmpLambda(cmpPair);
       if (typeof cmpResult !== 'number') {
         throw new SortWithCmpResultNotNumber({
-          actualType: describeType(cmpResult),
+          actualType: typeKeyword(cmpResult),
           actualValue: cmpResult
         });
       }
@@ -544,7 +551,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
 
 export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
   if (!isQMap(pair)) throw new AscPairNotMap({
-    actualType: describeType(pair), actualValue: pair
+    actualType: typeKeyword(pair), actualValue: pair
   });
   const ascLeft  = pair.get('left');
   const ascRight = pair.get('right');
@@ -556,7 +563,7 @@ export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
 
 export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
   if (!isQMap(pair)) throw new DescPairNotMap({
-    actualType: describeType(pair), actualValue: pair
+    actualType: typeKeyword(pair), actualValue: pair
   });
   const descLeft  = pair.get('left');
   const descRight = pair.get('right');
@@ -567,7 +574,7 @@ export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
 });
 
 async function nullsKeyComparator(pair, nullsKeyLambda, nullFirst, PairNotMapError, KeysNotComparableError) {
-  if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
+  if (!isQMap(pair)) throw new PairNotMapError({ actualType: typeKeyword(pair), actualValue: pair });
   const nullsLeft  = pair.get('left');
   const nullsRight = pair.get('right');
   const nullsLeftKey  = await nullsKeyLambda(nullsLeft);
@@ -588,10 +595,10 @@ export const nullsLast = higherOrderOp('nullsLast', 2, async (pair, nullsLastKey
   await nullsKeyComparator(pair, nullsLastKeyLambda, false, NullsLastPairNotMap, NullsLastKeysNotComparable));
 
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
-  if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new FirstNonZeroSubjectNotVec(vec);
   for (let i = 0; i < vec.length; i++) {
     if (typeof vec[i] !== 'number') {
-      throw new FirstNonZeroElementNotNumber(i, describeType(vec[i]), vec[i]);
+      throw new FirstNonZeroElementNotNumber(i, vec[i]);
     }
     if (vec[i] !== 0) return vec[i];
   }

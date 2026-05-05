@@ -418,7 +418,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('CountSubjectNotContainer');
     expect(caughtErr.context.operand).toBe('count');
-    expect(caughtErr.context.actualType).toBe('Number');
+    expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('keys on non-Map → KeysSubjectNotMap', async () => {
@@ -432,7 +432,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('AddLeftNotNumber');
     expect(caughtErr.context.operand).toBe('add');
     expect(caughtErr.context.position).toBe(1);
-    expect(caughtErr.context.actualType).toBe('String');
+    expect(caughtErr.context.actualType.name).toBe('string');
   });
 
   it('add right non-number → AddRightNotNumber', async () => {
@@ -471,14 +471,14 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchError('[1 "two" 3] | sum');
     expect(caughtErr.name).toBe('SumElementNotNumber');
     expect(caughtErr.context.index).toBe(1);
-    expect(caughtErr.context.actualType).toBe('String');
+    expect(caughtErr.context.actualType.name).toBe('string');
   });
 
   it('gt across types → GtOperandsNotComparable', async () => {
     const caughtErr = await catchError('"a" | gt(5)');
     expect(caughtErr.name).toBe('GtOperandsNotComparable');
-    expect(caughtErr.context.leftType).toBe('String');
-    expect(caughtErr.context.rightType).toBe('Number');
+    expect(caughtErr.context.leftType.name).toBe('string');
+    expect(caughtErr.context.rightType.name).toBe('number');
   });
 
   it('lt across types → LtOperandsNotComparable (distinct class)', async () => {
@@ -490,13 +490,13 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchError('42 | /name');
     expect(caughtErr.name).toBe('ProjectionSubjectNotMap');
     expect(caughtErr.context.key).toBe('name');
-    expect(caughtErr.context.actualType).toBe('Number');
+    expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('distribute on non-Vec → DistributeSubjectNotVec', async () => {
     const caughtErr = await catchError('{:a 1} * add(1)');
     expect(caughtErr.name).toBe('DistributeSubjectNotVec');
-    expect(caughtErr.context.actualType).toBe('Map');
+    expect(caughtErr.context.actualType.name).toBe('map');
   });
 
   it('merge on non-Vec → MergeSubjectNotVec (distinct from distribute)', async () => {
@@ -511,7 +511,7 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchError('5 | as(:five) | five(42)');
     expect(caughtErr.name).toBe('ApplyToNonFunction');
     expect(caughtErr.context.name).toBe('five');
-    expect(caughtErr.context.actualType).toBe('Number');
+    expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('use on non-Map → UseSubjectNotMap', async () => {
@@ -522,6 +522,33 @@ describe('per-site error classes carry unique identity', () => {
   it('filter on non-container → FilterSubjectNotContainer', async () => {
     const caughtErr = await catchError('42 | filter(gt(1))');
     expect(caughtErr.name).toBe('FilterSubjectNotContainer');
+  });
+
+  it('at on non-Vec-or-Map → AtSubjectNotVecOrMap', async () => {
+    const caughtErr = await catchError('42 | at(0)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('AtSubjectNotVecOrMap');
+    expect(caughtErr.context.operand).toBe('at');
+    expect(caughtErr.context.position).toBe('subject');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('at with non-string key on Map → AtKeyNotString', async () => {
+    const caughtErr = await catchError('{:a 1} | at(42)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('AtKeyNotString');
+    expect(caughtErr.context.operand).toBe('at');
+    expect(caughtErr.context.position).toBe(2);
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeyword', async () => {
+    const caughtErr = await catchError('42 | keyword');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeyword');
+    expect(caughtErr.context.operand).toBe('keyword');
+    expect(caughtErr.context.position).toBe('subject');
+    expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('take count non-number → TakeCountNotNumber', async () => {
@@ -711,10 +738,9 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(typeof offsetResult).toBe('number');
   });
 
-  it('value descriptor always carries :name (null when no binding name)', async () => {
+  it('value descriptor omits :name when no binding name', async () => {
     const reifyValResult = await evalQuery('42 | reify');
-    expect(reifyValResult.has('name')).toBe(true);
-    expect(reifyValResult.get('name')).toBeNull();
+    expect(reifyValResult.has('name')).toBe(false);
   });
 
   it('manifest descriptors all have :effectful field for builtin entries', async () => {

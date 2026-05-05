@@ -163,3 +163,19 @@ export function describeType(v) {
   if (isFunctionValue(v)) return 'Function';
   return 'Unknown';
 }
+
+export function typeKeyword(v) {
+  if (isNull(v)) return keyword('null');
+  if (isBoolean(v)) return keyword('boolean');
+  if (isNumber(v)) return keyword('number');
+  if (isString(v)) return keyword('string');
+  if (isKeyword(v)) return keyword('keyword');
+  if (isVec(v)) return keyword('vec');
+  if (isConduit(v)) return keyword('conduit');
+  if (isSnapshot(v)) return keyword('snapshot');
+  if (isQMap(v)) return keyword('map');
+  if (isQSet(v)) return keyword('set');
+  if (isErrorValue(v)) return keyword('error');
+  if (isFunctionValue(v)) return keyword('function');
+  return keyword('unknown');
+}

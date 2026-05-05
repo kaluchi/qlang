@@ -2,6 +2,7 @@ node_modules/
 coverage/
 gen/
 .claude/settings.local.json
+.claude/*.lock
 
 # npm workspaces — only the root package-lock.json is authoritative
 # under the workspaces layout; per-workspace lockfiles drift stale and

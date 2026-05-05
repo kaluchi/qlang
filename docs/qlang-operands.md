@@ -131,15 +131,19 @@ well-defined element ordering live in this section.
 
 ### `at(n)`
 
-- **Arity** 2. **Subject** `vec`. **Modifier** integer index.
-- Returns the element at position `n`. Accepts negative indices —
-  `at(-1)` is the last element, `at(-2)` the second-last. Out-of-range
-  indices return `null`, symmetric with the missing-key case on a
-  projection. `last` is the idiomatic shorthand for `at(-1)`.
+- **Arity** 2. **Subject** `vec` or `map`. **Modifier** integer index
+  (Vec) or string key (Map).
+- **Vec subject**: returns the element at position `n`. Accepts
+  negative indices — `at(-1)` is the last element, `at(-2)` the
+  second-last. Out-of-range indices return `null`.
+- **Map subject**: returns the value at string key `n`, or `null` on
+  miss. This is dynamic string-key projection — equivalent to `/key`
+  when the key is known statically.
 - **Example**: `[10 20 30] | at(1)` → `20`; `[10 20 30] | at(-1)` →
-  `30`; `[10 20 30] | at(99)` → `null`.
-- **Errors**: non-Vec subject → `AtSubjectNotVec`; non-integer index
-  (including non-integer Numbers such as `0.5`) → `AtIndexNotInteger`.
+  `30`; `{:x 1 :y 2} | at("x")` → `1`; `{:x 1} | at("z")` → `null`.
+- **Errors**: non-Vec-or-Map subject → `AtSubjectNotVecOrMap`;
+  non-integer index on Vec → `AtIndexNotInteger`; non-string key on
+  Map → `AtKeyNotString`.
 - **See also**: bare-form projection `/n` on a Vec (e.g.
   `/items/0/name`) — same indexed-access semantics without the
   operand-call wrapper, polymorphic over Map (keyword lookup) and
@@ -687,6 +691,22 @@ information. Each classifier matches exactly one
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
 - **Errors**: none — classification is total.
 
+## Type Conversion
+
+### `keyword`
+
+- **Arity** 1. **Subject** `string` or `keyword`.
+- String↔Keyword involution: given a string, returns the keyword with
+  that name; given a keyword, returns its name as a string. Applying
+  `keyword` twice returns the original value.
+- **Examples**:
+  - `"foo" | keyword` → `:foo`.
+  - `:foo | keyword` → `"foo"`.
+  - `"foo bar" | keyword` → `:"foo bar"`.
+  - `"foo" | keyword | keyword` → `"foo"` (round-trip).
+- **Errors**: non-String-or-Keyword subject →
+  `KeywordSubjectNotStringOrKeyword`.
+
 ## Formatting
 
 ### `json`
@@ -1162,7 +1182,7 @@ distinct` enumerates).
 |---|---|
 | `:container-reducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
 | `:container-selector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
-| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `at`, `firstNonZero` (Vec-only — order-dependent) |
+| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
 | `:vec-transformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
@@ -1172,6 +1192,8 @@ distinct` enumerates).
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
 | `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull` |
+| `:type-conversion` | `keyword` |
+| `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
 | `:reflective` | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |

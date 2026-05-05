@@ -38,8 +38,7 @@ import {
 } from '@kaluchi/qlang-core/operand-errors';
 import {
   printValue,
-  toTaggedJSON,
-  describeType
+  toTaggedJSON
 } from '@kaluchi/qlang-core';
 
 // ── Per-site error classes ─────────────────────────────────────
@@ -88,7 +87,7 @@ const tjsonOperand  = nullaryOp('tjson',  (subject) => JSON.stringify(toTaggedJS
 // dispatcher honours both shapes for free.
 const templateOperand = valueOp('template', 2, (subject, templateString) => {
   if (typeof templateString !== 'string') {
-    throw new TemplateModifierNotString(describeType(templateString), templateString);
+    throw new TemplateModifierNotString(templateString);
   }
   return applyTemplate(subject, templateString);
 });

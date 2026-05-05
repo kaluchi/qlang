@@ -5,7 +5,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { valueOp } from './dispatch.mjs';
-import { describeType, isVec } from '../types.mjs';
+import { isVec } from '../types.mjs';
 import {
   declareModifierError,
   declareSubjectError,
@@ -30,49 +30,49 @@ const EndsWithSubjectNotString   = declareModifierError('EndsWithSubjectNotStrin
 const EndsWithSuffixNotString    = declareModifierError('EndsWithSuffixNotString',    'endsWith',   2, 'String');
 
 export const prepend = valueOp('prepend', 2, (subject, prefix) => {
-  if (typeof subject !== 'string') throw new PrependSubjectNotString(describeType(subject), subject);
-  if (typeof prefix  !== 'string') throw new PrependPrefixNotString(describeType(prefix), prefix);
+  if (typeof subject !== 'string') throw new PrependSubjectNotString(subject);
+  if (typeof prefix  !== 'string') throw new PrependPrefixNotString(prefix);
   return prefix + subject;
 });
 
 export const append = valueOp('append', 2, (subject, suffix) => {
-  if (typeof subject !== 'string') throw new AppendSubjectNotString(describeType(subject), subject);
-  if (typeof suffix  !== 'string') throw new AppendSuffixNotString(describeType(suffix), suffix);
+  if (typeof subject !== 'string') throw new AppendSubjectNotString(subject);
+  if (typeof suffix  !== 'string') throw new AppendSuffixNotString(suffix);
   return subject + suffix;
 });
 
 export const split = valueOp('split', 2, (subject, separator) => {
-  if (typeof subject !== 'string') throw new SplitSubjectNotString(describeType(subject), subject);
-  if (typeof separator !== 'string') throw new SplitSeparatorNotString(describeType(separator), separator);
+  if (typeof subject !== 'string') throw new SplitSubjectNotString(subject);
+  if (typeof separator !== 'string') throw new SplitSeparatorNotString(separator);
   return subject.split(separator);
 });
 
 export const join = valueOp('join', 2, (subject, separator) => {
-  if (!isVec(subject)) throw new JoinSubjectNotVec(describeType(subject), subject);
-  if (typeof separator !== 'string') throw new JoinSeparatorNotString(describeType(separator), separator);
+  if (!isVec(subject)) throw new JoinSubjectNotVec(subject);
+  if (typeof separator !== 'string') throw new JoinSeparatorNotString(separator);
   for (let i = 0; i < subject.length; i++) {
     if (typeof subject[i] !== 'string') {
-      throw new JoinElementNotString(i, describeType(subject[i]), subject[i]);
+      throw new JoinElementNotString(i, subject[i]);
     }
   }
   return subject.join(separator);
 });
 
 export const contains = valueOp('contains', 2, (subject, needle) => {
-  if (typeof subject !== 'string') throw new ContainsSubjectNotString(describeType(subject), subject);
-  if (typeof needle  !== 'string') throw new ContainsNeedleNotString(describeType(needle), needle);
+  if (typeof subject !== 'string') throw new ContainsSubjectNotString(subject);
+  if (typeof needle  !== 'string') throw new ContainsNeedleNotString(needle);
   return subject.includes(needle);
 });
 
 export const startsWith = valueOp('startsWith', 2, (subject, prefix) => {
-  if (typeof subject !== 'string') throw new StartsWithSubjectNotString(describeType(subject), subject);
-  if (typeof prefix  !== 'string') throw new StartsWithPrefixNotString(describeType(prefix), prefix);
+  if (typeof subject !== 'string') throw new StartsWithSubjectNotString(subject);
+  if (typeof prefix  !== 'string') throw new StartsWithPrefixNotString(prefix);
   return subject.startsWith(prefix);
 });
 
 export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
-  if (typeof subject !== 'string') throw new EndsWithSubjectNotString(describeType(subject), subject);
-  if (typeof suffix  !== 'string') throw new EndsWithSuffixNotString(describeType(suffix), suffix);
+  if (typeof subject !== 'string') throw new EndsWithSubjectNotString(subject);
+  if (typeof suffix  !== 'string') throw new EndsWithSuffixNotString(suffix);
   return subject.endsWith(suffix);
 });
 

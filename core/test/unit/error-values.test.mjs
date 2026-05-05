@@ -161,7 +161,7 @@ describe('errorFromQlang', () => {
     const typeErr = new QlangTypeError('bad type', {
       operand: 'add',
       expectedType: 'Number',
-      actualType: 'String',
+      actualType: { name: 'string' },
       actualValue: 'the-value'
     });
     const errorVal = errorFromQlang(typeErr, faultMap);

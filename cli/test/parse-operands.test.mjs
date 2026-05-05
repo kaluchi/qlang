@@ -46,7 +46,7 @@ describe('parseJson — error sites', () => {
       operand: 'parseJson',
       position: 'subject',
       expectedType: 'String',
-      actualType: 'Number'
+      actualType: { name: 'number' }
     });
   });
 
@@ -86,7 +86,7 @@ describe('parseTjson — error sites', () => {
       operand: 'parseTjson',
       position: 'subject',
       expectedType: 'String',
-      actualType: 'Number'
+      actualType: { name: 'number' }
     });
   });
 

@@ -150,7 +150,7 @@ describe('filter — container polymorphism', () => {
     expect(originalErr.context.operand).toBe('filter');
     expect(originalErr.context.position).toBe('subject');
     expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
-    expect(originalErr.context.actualType).toBe('Number');
+    expect(originalErr.context.actualType.name).toBe('number');
   });
 
   it('Vec with 1-arity conduit — element is bound as captured-arg', async () => {

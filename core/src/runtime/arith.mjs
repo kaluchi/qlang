@@ -10,7 +10,7 @@
 
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';
-import { describeType, keyword } from '../types.mjs';
+import { describeType } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -49,7 +49,7 @@ export const div = valueOp('div', 2, (a, b) => {
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/add'), add);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sub'), sub);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/mul'), mul);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/div'), div);
+PRIMITIVE_REGISTRY.bind('qlang/prim/add', add);
+PRIMITIVE_REGISTRY.bind('qlang/prim/sub', sub);
+PRIMITIVE_REGISTRY.bind('qlang/prim/mul', mul);
+PRIMITIVE_REGISTRY.bind('qlang/prim/div', div);

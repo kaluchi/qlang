@@ -10,7 +10,7 @@ import { keyword } from '../../src/types.mjs';
 describe('use(:namespace) imports bindings', () => {
   it('imports all exports from a namespace Map', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('myNs', new Map([[keyword('hello'), 42]]));
+    sessionInstance.bind('myNs', new Map([['hello', 42]]));
     const cellEntry = await sessionInstance.evalCell('null | use(:myNs) | hello');
     expect(cellEntry.result).toBe(42);
   });
@@ -21,8 +21,8 @@ describe('use(:namespace) imports bindings', () => {
 describe('use(Vec) imports in order', () => {
   it('imports from multiple namespaces in Vec order', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('ns1', new Map([[keyword('a'), 1]]));
-    sessionInstance.bind('ns2', new Map([[keyword('b'), 2]]));
+    sessionInstance.bind('ns1', new Map([['a', 1]]));
+    sessionInstance.bind('ns2', new Map([['b', 2]]));
     const cellEntry = await sessionInstance.evalCell('null | use([:ns1 :ns2]) | [a b]');
     expect(cellEntry.result).toEqual([1, 2]);
   });
@@ -33,8 +33,8 @@ describe('use(Vec) imports in order', () => {
 describe('use(Set) detects collision', () => {
   it('throws UseNamespaceCollision when two namespaces export the same name', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('nsA', new Map([[keyword('x'), 1]]));
-    sessionInstance.bind('nsB', new Map([[keyword('x'), 2]]));
+    sessionInstance.bind('nsA', new Map([['x', 1]]));
+    sessionInstance.bind('nsB', new Map([['x', 2]]));
     const cellEntry = await sessionInstance.evalCell('null | use(#{:nsA :nsB}) !| /thrown');
     expect(cellEntry.result).toEqual(keyword('UseNamespaceCollision'));
   });
@@ -45,14 +45,14 @@ describe('use(Set) detects collision', () => {
 describe('use(:ns, filter) selective import', () => {
   it('imports only the selected export', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('myNs', new Map([[keyword('foo'), 10], [keyword('bar'), 20]]));
+    sessionInstance.bind('myNs', new Map([['foo', 10], ['bar', 20]]));
     const cellEntry = await sessionInstance.evalCell('null | use(:myNs, [:foo]) | foo');
     expect(cellEntry.result).toBe(10);
   });
 
   it('rejects missing export → UseNameNotExported', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('myNs', new Map([[keyword('foo'), 10]]));
+    sessionInstance.bind('myNs', new Map([['foo', 10]]));
     const cellEntry = await sessionInstance.evalCell('null | use(:myNs, [:missing]) !| /thrown');
     expect(cellEntry.result).toEqual(keyword('UseNameNotExported'));
   });
@@ -93,7 +93,7 @@ describe('use(non-keyword) → type-error', () => {
 describe('use Vec with non-keyword element → UseNamespaceElementNotKeyword', () => {
   it('produces UseNamespaceElementNotKeyword for non-keyword in Vec', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('ns1', new Map([[keyword('a'), 1]]));
+    sessionInstance.bind('ns1', new Map([['a', 1]]));
     const cellEntry = await sessionInstance.evalCell('null | use([:ns1 42]) !| /thrown');
     expect(cellEntry.result).toEqual(keyword('UseNamespaceElementNotKeyword'));
   });
@@ -102,8 +102,8 @@ describe('use Vec with non-keyword element → UseNamespaceElementNotKeyword', (
 describe('use Set without collision succeeds', () => {
   it('imports from Set when no collisions', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('a', new Map([[keyword('x'), 10]]));
-    sessionInstance.bind('b', new Map([[keyword('y'), 20]]));
+    sessionInstance.bind('a', new Map([['x', 10]]));
+    sessionInstance.bind('b', new Map([['y', 20]]));
     const cellEntry = await sessionInstance.evalCell('use(#{:a :b}) | add(x, y)');
     expect(cellEntry.result).toBe(30);
   });
@@ -119,7 +119,7 @@ describe('use arity-2 with non-keyword namespace', () => {
 describe('use selective with Vec filter', () => {
   it('accepts Vec as selection filter', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('lib', new Map([[keyword('x'), 10], [keyword('y'), 20]]));
+    sessionInstance.bind('lib', new Map([['x', 10], ['y', 20]]));
     const cellEntry = await sessionInstance.evalCell('use(:lib, [:x]) | x');
     expect(cellEntry.result).toBe(10);
   });
@@ -150,8 +150,8 @@ describe('per-site error triple-assertions', () => {
 
   it('UseNamespaceCollision: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('a', new Map([[keyword('x'), 1]]));
-    sessionInstance.bind('b', new Map([[keyword('x'), 2]]));
+    sessionInstance.bind('a', new Map([['x', 1]]));
+    sessionInstance.bind('b', new Map([['x', 2]]));
     const cellEntry = await sessionInstance.evalCell('use(#{:a :b})');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceCollision');
@@ -161,7 +161,7 @@ describe('per-site error triple-assertions', () => {
 
   it('UseNameNotExported: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('lib', new Map([[keyword('x'), 1]]));
+    sessionInstance.bind('lib', new Map([['x', 1]]));
     const cellEntry = await sessionInstance.evalCell('use(:lib, #{:z})');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNameNotExported');
@@ -172,7 +172,7 @@ describe('per-site error triple-assertions', () => {
 
   it('UseNamespaceElementNotKeyword: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('ns', new Map([[keyword('x'), 1]]));
+    sessionInstance.bind('ns', new Map([['x', 1]]));
     const cellEntry = await sessionInstance.evalCell('use([:ns 42])');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceElementNotKeyword');

@@ -19,8 +19,8 @@ describe('distinct — structural equality', () => {
   it('collapses two Maps with identical content', async () => {
     const result = await evalQuery('[{:fqn "a"} {:fqn "b"} {:fqn "a"}] | distinct');
     expect(result).toHaveLength(2);
-    expect(result[0].get(keyword('fqn'))).toBe('a');
-    expect(result[1].get(keyword('fqn'))).toBe('b');
+    expect(result[0].get('fqn')).toBe('a');
+    expect(result[1].get('fqn')).toBe('b');
   });
 
   it('count matches * /fqn | distinct | count on Map-valued Vec', async () => {
@@ -54,7 +54,7 @@ describe('distinct — structural equality', () => {
     const result = await evalQuery(
       '[{:id 2} {:id 1} {:id 2} {:id 3} {:id 1}] | distinct');
     expect(result).toHaveLength(3);
-    const ids = result.map(m => m.get(keyword('id')));
+    const ids = result.map(m => m.get('id'));
     expect(ids).toEqual([2, 1, 3]);
   });
 
@@ -62,7 +62,7 @@ describe('distinct — structural equality', () => {
     const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
     expect(result).toHaveLength(3);
     expect(result[0]).toBe(1);
-    expect(result[1].get(keyword('a'))).toBe(1);
+    expect(result[1].get('a')).toBe(1);
     expect(result[2]).toBe('x');
   });
 });

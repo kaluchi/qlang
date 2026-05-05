@@ -19,13 +19,10 @@ import {
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
-// Each `keyword(name)` call returns the same interned object as the
-// catalog's `:name` literal, so `descriptor.get(KW_*)` is a native
-// Map lookup against the same key identity.
-const KW_CATEGORY  = keyword('category');
-const KW_SUBJECT   = keyword('subject');
-const KW_DOCS      = keyword('docs');
-const KW_MODIFIERS = keyword('modifiers');
+const F_CATEGORY  = 'category';
+const F_SUBJECT   = 'subject';
+const F_DOCS      = 'docs';
+const F_MODIFIERS = 'modifiers';
 
 // ── Document state ────────────────────────────────────────────
 
@@ -89,10 +86,10 @@ async function builtinCompletions() {
   _builtinCompletions = [];
   for (const [k, descriptor] of runtime) {
     _builtinCompletions.push({
-      label: k.name,
+      label: k,
       kind: 'function',
-      detail: formatMetaValue(descriptor.get(KW_CATEGORY)),
-      documentation: descriptor.get(KW_DOCS)[0]
+      detail: formatMetaValue(descriptor.get(F_CATEGORY)),
+      documentation: descriptor.get(F_DOCS)[0]
     });
   }
   return _builtinCompletions;
@@ -144,16 +141,15 @@ export async function hoverAtOffset(ast, source, offset) {
 
 async function hoverForOperand(node) {
   const runtime = await langRuntime();
-  const kw = keyword(node.name);
-  if (!runtime.has(kw)) return null;
+  if (!runtime.has(node.name)) return null;
 
-  const descriptor = runtime.get(kw);
-  const docs = descriptor.get(KW_DOCS);
+  const descriptor = runtime.get(node.name);
+  const docs = descriptor.get(F_DOCS);
 
   return {
     content: [
-      `**${node.name}** — ${formatMetaValue(descriptor.get(KW_CATEGORY))}`,
-      `Subject: ${formatMetaValue(descriptor.get(KW_SUBJECT))}`,
+      `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
+      `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
       '',
       docs.join('\n')
     ].join('\n'),
@@ -334,12 +330,11 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   if (!operandCall) return null;
 
   const runtime = await langRuntime();
-  const kw = keyword(operandCall.name);
-  if (!runtime.has(kw)) return null;
+  if (!runtime.has(operandCall.name)) return null;
 
-  const descriptor = runtime.get(kw);
-  const modifiers = descriptor.get(KW_MODIFIERS).map(formatMetaValue);
-  const docs = descriptor.get(KW_DOCS);
+  const descriptor = runtime.get(operandCall.name);
+  const modifiers = descriptor.get(F_MODIFIERS).map(formatMetaValue);
+  const docs = descriptor.get(F_DOCS);
 
   const argsStartOffset = operandCall.location.start.offset
     + operandCall.name.length + 1;

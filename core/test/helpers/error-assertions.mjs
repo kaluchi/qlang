@@ -22,7 +22,7 @@ export async function expectErrorResult(query) {
 // Asserts the query produces an error value with the given :kind.
 export async function expectErrorKind(query, kind) {
   const errorResult = await expectErrorResult(query);
-  const actualKind = errorResult.descriptor.get(keyword('kind'));
+  const actualKind = errorResult.descriptor.get('kind');
   expect(actualKind?.name).toBe(kind);
   return errorResult;
 }
@@ -32,7 +32,7 @@ export async function expectErrorKind(query, kind) {
 // Asserts the query produces an error value with the given :thrown site.
 export async function expectErrorThrown(query, thrown) {
   const errorResult = await expectErrorResult(query);
-  const actualThrown = errorResult.descriptor.get(keyword('thrown'));
+  const actualThrown = errorResult.descriptor.get('thrown');
   expect(actualThrown?.name).toBe(thrown);
   return errorResult;
 }

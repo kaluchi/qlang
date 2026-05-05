@@ -94,7 +94,10 @@ export function fromTaggedJSON(json) {
     if ('$keyword' in json) return keyword(json.$keyword);
     if ('$map' in json) {
       const m = new Map();
-      for (const [k, v] of json.$map) m.set(fromTaggedJSON(k), fromTaggedJSON(v));
+      for (const [k, v] of json.$map) {
+        const decodedKey = fromTaggedJSON(k);
+        m.set(typeof decodedKey === 'object' && decodedKey?.type === 'keyword' ? decodedKey.name : decodedKey, fromTaggedJSON(v));
+      }
       return m;
     }
     if ('$set' in json) {

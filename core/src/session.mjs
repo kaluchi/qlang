@@ -13,7 +13,6 @@ import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { makeState } from './state.mjs';
 import {
-  keyword,
   isConduit,
   isSnapshot,
   isFunctionValue,
@@ -21,14 +20,6 @@ import {
   makeSnapshot
 } from './types.mjs';
 
-// Variant-B descriptor field constants for serializeSession's
-// Map.get-based reads. Interned at module load.
-const KW_NAME    = keyword('name');
-const KW_PARAMS  = keyword('params');
-const KW_DOCS    = keyword('docs');
-const KW_BODY    = keyword('qlang/body');
-const KW_VALUE   = keyword('qlang/value');
-const KW_ENVREF  = keyword('qlang/envRef');
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { QlangError } from './errors.mjs';
 
@@ -100,7 +91,7 @@ class SessionBindingKindUnknownError extends QlangError {
 export async function createSession(opts = {}) {
   let env = opts.env ?? await langRuntime();
   if (opts.locator) {
-    env = new Map(env).set(keyword('qlang/locator'), opts.locator);
+    env = new Map(env).set('qlang/locator', opts.locator);
   }
   const cellHistory = [];
 
@@ -128,7 +119,7 @@ export async function createSession(opts = {}) {
     },
 
     bind(name, value) {
-      env = new Map(env).set(keyword(name), value);
+      env = new Map(env).set(name, value);
     },
 
     get cellHistory() { return cellHistory; },
@@ -165,26 +156,25 @@ export async function serializeSession(session) {
     if (builtins.has(k)) continue;
     if (isFunctionValue(v)) continue; // user-installed functions are not portable
     if (isConduit(v)) {
-      const body = v.get(KW_BODY);
+      const body = v.get('qlang/body');
       userBindings.push({
         kind: 'conduit',
-        name: v.get(KW_NAME),
-        params: [...v.get(KW_PARAMS)],
+        name: v.get('name'),
+        params: [...v.get('params')],
         source: body?.text ?? null,
-        docs: [...v.get(KW_DOCS)]
+        docs: [...v.get('docs')]
       });
     } else if (isSnapshot(v)) {
       userBindings.push({
         kind: 'snapshot',
-        name: v.get(KW_NAME),
-        value: toTaggedJSON(v.get(KW_VALUE)),
-        docs: [...v.get(KW_DOCS)]
+        name: v.get('name'),
+        value: toTaggedJSON(v.get('qlang/value')),
+        docs: [...v.get('docs')]
       });
     } else {
-      // Raw value bound directly into env (rare, e.g. via session.bind).
       userBindings.push({
         kind: 'value',
-        name: k.name,
+        name: k,
         value: toTaggedJSON(v)
       });
     }
@@ -250,7 +240,7 @@ export async function deserializeSession(json) {
   // and recursive self-binding).
   for (const v of session.env.values()) {
     if (isConduit(v)) {
-      v.get(KW_ENVREF).env = session.env;
+      v.get('qlang/envRef').env = session.env;
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

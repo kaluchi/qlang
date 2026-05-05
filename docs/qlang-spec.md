@@ -131,12 +131,14 @@ null
 
 The atomic type that holds the language together. A keyword is a
 self-evaluating symbolic identifier — `:name` always equals
-`:name`. Keywords serve as Map keys, as error field names, as
-module namespace identifiers, and anywhere else a name needs to
-be a first-class value rather than a string.
+`:name`. Keywords serve as enum discriminators, error field
+values, module namespace identifiers, and anywhere else a
+symbolic label needs to be visually distinct from data strings.
+Map keys are strings internally; keywords appear as Map values
+and as standalone pipeline values.
 
-A keyword has three surface forms; all three intern into the same
-value space, so `:foo` and `:"foo"` are the same keyword.
+A keyword has three surface forms; all three produce the same
+value, so `:foo` and `:"foo"` are the same keyword.
 
 **Bare** — `:name`. The everyday form. Restricted to Unicode
 identifier characters (UAX#31): first character `[@_\p{ID_Start}]`,
@@ -239,8 +241,8 @@ ordinary.
 
 ### Map
 
-Insertion-ordered associative container. Keys are keywords;
-values may be of any qlang type. Every entry is an explicit
+Insertion-ordered associative container. Keys are keyword-named
+strings; values may be of any qlang type. Every entry is an explicit
 `:key value` pair — there is no shorthand and no implicit
 key-from-variable-name binding.
 

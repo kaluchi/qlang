@@ -42,7 +42,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
   }
 }
 import {
-  isVec, isQMap, isSnapshot, isFunctionValue, isErrorValue,
+  isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   describeType, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail
 } from './types.mjs';
@@ -50,11 +50,9 @@ import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
-const KW_COMBINATOR = keyword('combinator');
-
 function trailEntry(stepNode, combinatorKind) {
   const entry = new Map(astNodeToMap(stepNode));
-  entry.set(KW_COMBINATOR, keyword(combinatorKind));
+  entry.set('combinator', keyword(combinatorKind));
   return entry;
 }
 
@@ -137,13 +135,10 @@ async function evalNode(node, state) {
 
 // ─── :fault Map builder ─────────────────────────────────────────
 
-const KW_FAULT_STEP  = keyword('step');
-const KW_FAULT_INPUT = keyword('input');
-
 function buildFaultMap(stepNode, pipeValue) {
   const m = new Map();
-  m.set(KW_FAULT_STEP, astNodeToMap(stepNode));
-  m.set(KW_FAULT_INPUT, pipeValue);
+  m.set('step', astNodeToMap(stepNode));
+  m.set('input', pipeValue);
   return Object.freeze(m);
 }
 
@@ -273,11 +268,11 @@ async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const errorVal = state.pipeValue;
   const combinedTrail = [
-    ...errorVal.descriptor.get(keyword('trail')),
+    ...errorVal.descriptor.get('trail'),
     ...materializeTrail(errorVal)
   ];
   const materializedDescriptor = new Map(errorVal.descriptor);
-  materializedDescriptor.set(keyword('trail'), combinedTrail);
+  materializedDescriptor.set('trail', combinedTrail);
   return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
 }
 
@@ -288,6 +283,7 @@ function evalStringLit(node, state)  { return withPipeValue(state, node.value); 
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
 function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
+// keyword() here creates a keyword VALUE for the pipeline — not a Map key.
 
 async function evalVecLit(node, state) {
   // Each element is a sub-pipeline forked against the outer state.
@@ -316,7 +312,7 @@ function foldEntryDocs(entry, value) {
   if (!entry.docs || entry.docs.length === 0) return value;
   if (!isQMap(value)) return value;
   const withDocs = new Map(value);
-  withDocs.set(keyword('docs'), Object.freeze([...entry.docs]));
+  withDocs.set('docs', Object.freeze([...entry.docs]));
   return withDocs;
 }
 
@@ -329,9 +325,8 @@ async function evalMapLit(node, state) {
   // strings on the resulting binding descriptor at eval time.
   const mapResult = new Map();
   for (const entry of node.entries) {
-    const entryKey = keyword(entry.key.name);
     const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    mapResult.set(entryKey, foldEntryDocs(entry, entryFork.pipeValue));
+    mapResult.set(entry.key.name, foldEntryDocs(entry, entryFork.pipeValue));
   }
   return withPipeValue(state, mapResult);
 }
@@ -345,18 +340,23 @@ async function evalErrorLit(node, state) {
   // and wants the docs surfaced through reify.
   const errorDescriptor = new Map();
   for (const entry of node.entries) {
-    const entryKey = keyword(entry.key.name);
     const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    errorDescriptor.set(entryKey, foldEntryDocs(entry, entryFork.pipeValue));
+    errorDescriptor.set(entry.key.name, foldEntryDocs(entry, entryFork.pipeValue));
   }
   return withPipeValue(state, makeErrorValue(errorDescriptor, { location: node.location }));
 }
 
 async function evalSetLit(node, state) {
   const setResult = new Set();
+  const kwNames = new Set();
   for (const setElem of node.elements) {
     const elemFork = await fork(state, inner => evalNode(setElem, inner));
-    setResult.add(elemFork.pipeValue);
+    const val = elemFork.pipeValue;
+    if (isKeyword(val)) {
+      if (kwNames.has(val.name)) continue;
+      kwNames.add(val.name);
+    }
+    setResult.add(val);
   }
   return withPipeValue(state, setResult);
 }
@@ -382,15 +382,14 @@ async function evalProjection(node, state) {
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
     // directly without going through projection.
-    if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get(KW_VALUE_FIELD);
+    if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get('qlang/value');
   }
   return withPipeValue(state, projectionCurrent);
 }
 
 function projectSegment(subject, projKey) {
   if (isQMap(subject)) {
-    const subjectKey = keyword(projKey);
-    return subject.has(subjectKey) ? subject.get(subjectKey) : NULL;
+    return subject.has(projKey) ? subject.get(projKey) : NULL;
   }
   if (isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) return NULL;
@@ -413,16 +412,15 @@ function projectSegment(subject, projKey) {
 // key that PRIMITIVE_REGISTRY.resolve walks into the matching JS
 // function value. Conduit and snapshot descriptors carry their own
 // payload field set documented in src/types.mjs.
-const KW_QLANG_KIND_DISPATCH = keyword('qlang/kind');
-const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
-const KW_BUILTIN_DISPATCH    = keyword('builtin');
-const KW_CONDUIT_DISPATCH    = keyword('conduit');
-const KW_NAME_FIELD          = keyword('name');
-const KW_PARAMS_FIELD        = keyword('params');
-const KW_BODY_FIELD          = keyword('qlang/body');
-const KW_ENVREF_FIELD        = keyword('qlang/envRef');
-const KW_VALUE_FIELD         = keyword('qlang/value');
-const KW_EFFECTFUL_FIELD     = keyword('effectful');
+
+function isBuiltinDescriptor(m) {
+  const v = m.get('qlang/kind');
+  return v && v.name === 'builtin';
+}
+function isConduitDescriptor(m) {
+  const v = m.get('qlang/kind');
+  return v && v.name === 'conduit';
+}
 
 async function evalOperandCall(node, state) {
   const lookupName = node.name;
@@ -446,7 +444,7 @@ async function evalOperandCall(node, state) {
   // function value" safety-net path documented in the effect-marker
   // section of qlang-spec.md.
   if (isSnapshot(resolved)) {
-    resolved = resolved.get(KW_VALUE_FIELD);
+    resolved = resolved.get('qlang/value');
   }
 
   // Variant-B binding-descriptor dispatch — one switch over
@@ -521,11 +519,11 @@ async function evalOperandCall(node, state) {
 // value handling". Snapshot is handled upstream by the auto-unwrap
 // step in evalOperandCall, so no :snapshot branch here.
 async function applyBindingDescriptor(descriptor, node, lookupName, state) {
-  const bindingKind = descriptor.get(KW_QLANG_KIND_DISPATCH);
-  if (bindingKind === KW_BUILTIN_DISPATCH) {
+  const bindingKind = descriptor.get('qlang/kind');
+  if (isBuiltinDescriptor(descriptor)) {
     return await applyBuiltinDescriptor(descriptor, node, lookupName, state);
   }
-  if (bindingKind === KW_CONDUIT_DISPATCH) {
+  if (isConduitDescriptor(descriptor)) {
     return await applyConduit(descriptor, node, lookupName, state);
   }
   return null;
@@ -541,15 +539,14 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // circular import (intro → eval → intro).
 function reifyBuiltinDescriptor(rawDescriptor, implFn, introspectionName) {
   const reified = new Map();
-  reified.set(keyword('kind'), keyword('builtin'));
-  reified.set(keyword('name'), introspectionName);
+  reified.set('kind', keyword('builtin'));
+  reified.set('name', introspectionName);
   for (const [fieldKey, fieldVal] of rawDescriptor) {
-    const fieldName = fieldKey.name;
-    if (fieldName === 'qlang/kind' || fieldName === 'qlang/impl') continue;
+    if (fieldKey === 'qlang/kind' || fieldKey === 'qlang/impl') continue;
     reified.set(fieldKey, fieldVal);
   }
-  reified.set(keyword('captured'), [...implFn.meta.captured]);
-  reified.set(keyword('effectful'), implFn.effectful);
+  reified.set('captured', [...implFn.meta.captured]);
+  reified.set('effectful', implFn.effectful);
   return reified;
 }
 
@@ -566,7 +563,7 @@ function reifyBuiltinDescriptor(rawDescriptor, implFn, introspectionName) {
 // because their minCaptured is 0 and bare application IS their
 // valid call shape.
 async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
-  const resolvedImpl = descriptor.get(KW_QLANG_IMPL_DISPATCH);
+  const resolvedImpl = descriptor.get('qlang/impl');
 
   const capturedArgsAst = node.args;
   const hasArgs = capturedArgsAst !== null;
@@ -597,11 +594,11 @@ async function applyConduit(conduit, node, lookupName, state) {
   // Read the conduit's payload fields once. Under Variant-B every
   // conduit is a descriptor Map; field access goes through Map.get
   // against the interned KW_*_FIELD constants declared above.
-  const conduitName       = conduit.get(KW_NAME_FIELD);
-  const conduitParams     = conduit.get(KW_PARAMS_FIELD);
-  const conduitBody       = conduit.get(KW_BODY_FIELD);
-  const conduitEnvRef     = conduit.get(KW_ENVREF_FIELD);
-  const conduitEffectful  = conduit.get(KW_EFFECTFUL_FIELD);
+  const conduitName       = conduit.get('name');
+  const conduitParams     = conduit.get('params');
+  const conduitBody       = conduit.get('qlang/body');
+  const conduitEnvRef     = conduit.get('qlang/envRef');
+  const conduitEffectful  = conduit.get('effectful');
 
   // Effect-laundering safety net (same invariant as intrinsic operands).
   if (conduitEffectful && !classifyEffect(lookupName)) {
@@ -729,9 +726,9 @@ export function resolveCapturedConduit(astNode, env) {
   const lookupName = astNode.name;
   if (!envHas(env, lookupName)) return null;
   let resolved = envGet(env, lookupName);
-  if (isSnapshot(resolved)) resolved = resolved.get(KW_VALUE_FIELD);
+  if (isSnapshot(resolved)) resolved = resolved.get('qlang/value');
   if (!(resolved instanceof Map)) return null;
-  if (resolved.get(KW_QLANG_KIND_DISPATCH) !== KW_CONDUIT_DISPATCH) return null;
+  if (!isConduitDescriptor(resolved)) return null;
   return { conduit: resolved, lookupName };
 }
 
@@ -751,11 +748,11 @@ export function resolveCapturedConduit(astNode, env) {
 // this helper performs no arity check because the dispatching operand
 // has already verified the arity.
 export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue) {
-  const conduitName      = conduit.get(KW_NAME_FIELD);
-  const conduitParams    = conduit.get(KW_PARAMS_FIELD);
-  const conduitBody      = conduit.get(KW_BODY_FIELD);
-  const conduitEnvRef    = conduit.get(KW_ENVREF_FIELD);
-  const conduitEffectful = conduit.get(KW_EFFECTFUL_FIELD);
+  const conduitName      = conduit.get('name');
+  const conduitParams    = conduit.get('params');
+  const conduitBody      = conduit.get('qlang/body');
+  const conduitEnvRef    = conduit.get('qlang/envRef');
+  const conduitEffectful = conduit.get('effectful');
 
   if (conduitEffectful && !classifyEffect(lookupName)) {
     throw new EffectLaunderingAtCall({
@@ -780,7 +777,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // Exposed params field key so higher-order operands can read a
 // conduit's arity without re-interning the keyword. Pairs with
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
-export const KW_CONDUIT_PARAMS = KW_PARAMS_FIELD;
+export const CONDUIT_PARAMS_FIELD = 'params';
 
 // ─── Step 6: comment (plain forms only — doc forms attach
 // during parsing and never appear as standalone steps) ─────────

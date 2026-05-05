@@ -1141,7 +1141,7 @@ layering boundary.
   every built-in dispatch.
 
 Per-site invariant errors cover the three bind-time failure
-modes: `PrimitiveKeyNotKeyword` (non-keyword handle),
+modes: `PrimitiveKeyNotString` (non-string handle),
 `PrimitiveKeyAlreadyBound` (duplicate registration from two
 modules claiming the same name), `PrimitiveRegistrySealed`
 (late registration after bootstrap closes the registry). The
@@ -1184,10 +1184,10 @@ Three public entries, all kind-table dispatches keyed off
   `:role`, `[1 2 3]`, `#{:a :b}`, `{:k :v}`, `!{:kind :K}`).
   Round-trips through `parse + evalQuery` back to the same value.
 - `toPlain(v)` — qlang value → JSON-serializable JS shape. Lossy
-  for Set (→ array), keyword-as-value (→ string), and non-keyword
-  Map keys (→ `[k, v]` pair array). Throws on Error values.
+  for Set (→ array) and keyword-as-value (→ colon-prefixed string).
+  Map keys are strings natively. Throws on Error values.
 - `fromPlain(json)` — inverse lift: JSON objects become Maps with
-  interned keyword keys, arrays become Vecs, scalars pass through.
+  string keys, arrays become Vecs, scalars pass through.
 
 The round-trip `fromPlain(toPlain(v))` is identity only when `v`
 contains no lossy shape. For bijective round-trips use

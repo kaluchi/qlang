@@ -5,7 +5,7 @@ import { highlightQlang } from '../src/lib/qlang-highlight.js';
 let builtins;
 beforeAll(async () => {
   const runtime = await langRuntime();
-  builtins = new Set([...runtime.keys()].map(k => k.name));
+  builtins = new Set([...runtime.keys()]);
 });
 
 const hl = src => highlightQlang(src, builtins);

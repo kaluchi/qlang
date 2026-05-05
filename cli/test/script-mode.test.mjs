@@ -19,7 +19,7 @@ describe('liftStdinToPipeValue — auto detection', () => {
   it('parses JSON stdin into qlang shape when auto succeeds', () => {
     const lifted = liftStdinToPipeValue('{"a": 1}', 'auto');
     expect(lifted.resolvedFormat).toBe('json');
-    expect(lifted.pipeValue.get(keyword('a'))).toBe(1);
+    expect(lifted.pipeValue.get('a')).toBe(1);
   });
 
   it('falls back to raw String when stdin is not valid JSON', () => {
@@ -51,8 +51,8 @@ describe('liftStdinToPipeValue — explicit formats', () => {
 describe('encodeSuccessValueForFormat', () => {
   it('encodes a qlang Map as pretty JSON under json format', () => {
     const value = new Map([
-      [keyword('a'), 1],
-      [keyword('b'), 2]
+      ['a', 1],
+      ['b', 2]
     ]);
     const text = encodeSuccessValueForFormat(value, 'json');
     expect(text).toBe('{\n  "a": 1,\n  "b": 2\n}');
@@ -67,7 +67,7 @@ describe('encodeSuccessValueForFormat', () => {
   });
 
   it('falls back to printValue for a non-String composite under raw format', () => {
-    const value = new Map([[keyword('k'), 1]]);
+    const value = new Map([['k', 1]]);
     expect(encodeSuccessValueForFormat(value, 'raw')).toBe('{:k 1}');
   });
 });

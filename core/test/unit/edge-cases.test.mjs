@@ -40,8 +40,8 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('types.mjs', () => {
   it('interns keywords', () => {
-    expect(keyword('foo')).toBe(keyword('foo'));
-    expect(keyword('foo')).not.toBe(keyword('bar'));
+    expect(keyword('foo')).toEqual(keyword('foo'));
+    expect(keyword('foo')).not.toEqual(keyword('bar'));
   });
 
   it('describeType covers every value class', () => {
@@ -73,8 +73,8 @@ describe('types.mjs', () => {
   it('makeConduit returns a Variant-B conduit descriptor Map', () => {
     const t = makeConduit('expr-ast');
     expect(t).toBeInstanceOf(Map);
-    expect(t.get(keyword('qlang/kind'))).toEqual(keyword('conduit'));
-    expect(t.get(keyword('qlang/body'))).toBe('expr-ast');
+    expect(t.get('qlang/kind')).toEqual(keyword('conduit'));
+    expect(t.get('qlang/body')).toBe('expr-ast');
   });
 });
 
@@ -203,7 +203,7 @@ describe('runtime/vec.mjs error paths', () => {
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort(/n)'))
-      .toEqual([new Map([[keyword('n'), 1]]), new Map([[keyword('n'), 2]]), new Map([[keyword('n'), 3]])]);
+      .toEqual([new Map([['n', 1]]), new Map([['n', 2]]), new Map([['n', 3]])]);
   });
 });
 
@@ -234,11 +234,11 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus({:b 99 :d 5})');
-    expect(evalResult).toEqual(new Map([[keyword('a'), 1], [keyword('c'), 3]]));
+    expect(evalResult).toEqual(new Map([['a', 1], ['c', 3]]));
   });
   it('inter of Map by another Map', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | inter({:b 99 :d 5})');
-    expect(evalResult).toEqual(new Map([[keyword('b'), 2]]));
+    expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
     await expectErrorKind('#{:a} | minus({:a 1})', 'type-error');
@@ -665,9 +665,9 @@ describe('runtime/intro.mjs reify and manifest', () => {
   it('reify on a number returns a value-kind descriptor', async () => {
     const reifyResult = await evalQuery('42 | reify');
     expect(reifyResult).toBeInstanceOf(Map);
-    expect(reifyResult.get(keyword('kind'))).toEqual(keyword('value'));
-    expect(reifyResult.get(keyword('value'))).toBe(42);
-    expect(reifyResult.get(keyword('type'))).toEqual(keyword('number'));
+    expect(reifyResult.get('kind')).toEqual(keyword('value'));
+    expect(reifyResult.get('value')).toBe(42);
+    expect(reifyResult.get('type')).toEqual(keyword('number'));
   });
 
   it('reify on a builtin descriptor Map returns a builtin descriptor', async () => {
@@ -679,11 +679,11 @@ describe('runtime/intro.mjs reify and manifest', () => {
     // `env | /count | reify` omits :name because no explicit name
     // is in scope at the value-level reify branch.
     const reifyCountResult = await evalQuery('reify(:count)');
-    expect(reifyCountResult.get(keyword('kind'))).toEqual(keyword('builtin'));
-    expect(reifyCountResult.get(keyword('name'))).toBe('count');
-    expect(reifyCountResult.get(keyword('captured'))).toEqual([0, 0]);
-    expect(Array.isArray(reifyCountResult.get(keyword('docs')))).toBe(true);
-    expect(reifyCountResult.get(keyword('docs')).length).toBeGreaterThan(0);
+    expect(reifyCountResult.get('kind')).toEqual(keyword('builtin'));
+    expect(reifyCountResult.get('name')).toBe('count');
+    expect(reifyCountResult.get('captured')).toEqual([0, 0]);
+    expect(Array.isArray(reifyCountResult.get('docs'))).toBe(true);
+    expect(reifyCountResult.get('docs').length).toBeGreaterThan(0);
   });
 
   it('builtin descriptor surfaces :effectful=false for clean langRuntime operands', async () => {
@@ -713,8 +713,8 @@ describe('runtime/intro.mjs reify and manifest', () => {
 
   it('value descriptor always carries :name (null when no binding name)', async () => {
     const reifyValResult = await evalQuery('42 | reify');
-    expect(reifyValResult.has(keyword('name'))).toBe(true);
-    expect(reifyValResult.get(keyword('name'))).toBeNull();
+    expect(reifyValResult.has('name')).toBe(true);
+    expect(reifyValResult.get('name')).toBeNull();
   });
 
   it('manifest descriptors all have :effectful field for builtin entries', async () => {
@@ -737,8 +737,8 @@ describe('runtime/intro.mjs reify and manifest', () => {
 
   it('reify(:name) named form attaches the name explicitly', async () => {
     const reifyFilterResult = await evalQuery('reify(:filter)');
-    expect(reifyFilterResult.get(keyword('name'))).toBe('filter');
-    expect(reifyFilterResult.get(keyword('kind'))).toEqual(keyword('builtin'));
+    expect(reifyFilterResult.get('name')).toBe('filter');
+    expect(reifyFilterResult.get('kind')).toEqual(keyword('builtin'));
   });
 
   it('reify(:name) on unresolved name throws', async () => {
@@ -756,7 +756,7 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(Array.isArray(manifestResult)).toBe(true);
     expect(manifestResult.length).toBeGreaterThan(30);
     // Check that names are sorted alphabetically.
-    const names = manifestResult.map(d => d.get(keyword('name')));
+    const names = manifestResult.map(d => d.get('name'));
     const sorted = [...names].sort();
     expect(names).toEqual(sorted);
   });

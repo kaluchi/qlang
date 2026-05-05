@@ -77,10 +77,10 @@ export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/prepend'),    prepend);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/append'),     append);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/split'),      split);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/join'),       join);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/contains'),   contains);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/startsWith'), startsWith);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/endsWith'),   endsWith);
+PRIMITIVE_REGISTRY.bind('qlang/prim/prepend',    prepend);
+PRIMITIVE_REGISTRY.bind('qlang/prim/append',     append);
+PRIMITIVE_REGISTRY.bind('qlang/prim/split',      split);
+PRIMITIVE_REGISTRY.bind('qlang/prim/join',       join);
+PRIMITIVE_REGISTRY.bind('qlang/prim/contains',   contains);
+PRIMITIVE_REGISTRY.bind('qlang/prim/startsWith', startsWith);
+PRIMITIVE_REGISTRY.bind('qlang/prim/endsWith',   endsWith);

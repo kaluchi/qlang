@@ -18,8 +18,8 @@ import { evalQuery } from '../../src/eval.mjs';
 import { astNodeToMap, qlangMapToAst } from '../../src/walk.mjs';
 import { keyword, isQMap, isVec } from '../../src/types.mjs';
 
-const KW_DOCS = keyword('docs');
-const KW_QLANG_KIND = keyword('qlang/kind');
+const KW_DOCS = 'docs';
+const KW_QLANG_KIND = 'qlang/kind';
 
 describe('grammar — MapEntry doc-comment prefix', () => {
   it('parses a MapEntry with no doc prefix and assigns docs: []', () => {
@@ -96,9 +96,9 @@ describe('eval — MapEntry docs fold into value Map', () => {
     const source = '{|~~| field doc\n:name {:kind :thing}}';
     const evalResult = await evalQuery(source);
     expect(isQMap(evalResult)).toBe(true);
-    const inner = evalResult.get(keyword('name'));
+    const inner = evalResult.get('name');
     expect(isQMap(inner)).toBe(true);
-    expect(inner.get(keyword('kind'))).toBe(keyword('thing'));
+    expect(inner.get('kind')).toEqual(keyword('thing'));
     const docs = inner.get(KW_DOCS);
     expect(isVec(docs)).toBe(true);
     expect(docs).toEqual([' field doc']);
@@ -107,7 +107,7 @@ describe('eval — MapEntry docs fold into value Map', () => {
   it('folds multi-doc prefix as ordered Vec', async () => {
     const source = '{|~~| first\n|~~| second\n:x {:a 1}}';
     const evalResult = await evalQuery(source);
-    const inner = evalResult.get(keyword('x'));
+    const inner = evalResult.get('x');
     expect(inner.get(KW_DOCS)).toEqual([' first', ' second']);
   });
 
@@ -115,13 +115,13 @@ describe('eval — MapEntry docs fold into value Map', () => {
     const source = '{|~~| would-be doc\n:x 42}';
     const evalResult = await evalQuery(source);
     // 42 is not a Map, so :docs has nowhere to land — drop silently
-    expect(evalResult.get(keyword('x'))).toBe(42);
+    expect(evalResult.get('x')).toBe(42);
   });
 
   it('drops docs silently when the entry value is a Vec', async () => {
     const source = '{|~~| would-be doc\n:x [1 2 3]}';
     const evalResult = await evalQuery(source);
-    expect(evalResult.get(keyword('x'))).toEqual([1, 2, 3]);
+    expect(evalResult.get('x')).toEqual([1, 2, 3]);
   });
 
   it('overwrites any pre-existing :docs field on the value Map', async () => {
@@ -130,7 +130,7 @@ describe('eval — MapEntry docs fold into value Map', () => {
     // inline spelling, so the comment should be authoritative.
     const source = '{|~~| entry docs\n:x {:docs ["inline docs"]}}';
     const evalResult = await evalQuery(source);
-    const inner = evalResult.get(keyword('x'));
+    const inner = evalResult.get('x');
     expect(inner.get(KW_DOCS)).toEqual([' entry docs']);
   });
 
@@ -147,8 +147,8 @@ describe('eval — MapEntry docs fold into value Map', () => {
   it('leaves entries without a doc prefix untouched', async () => {
     const source = '{:a {:kind :plain} :b {:kind :other}}';
     const evalResult = await evalQuery(source);
-    const aValue = evalResult.get(keyword('a'));
-    const bValue = evalResult.get(keyword('b'));
+    const aValue = evalResult.get('a');
+    const bValue = evalResult.get('b');
     expect(aValue.has(KW_DOCS)).toBe(false);
     expect(bValue.has(KW_DOCS)).toBe(false);
   });
@@ -165,11 +165,11 @@ describe('eval — MapEntry docs fold into value Map', () => {
 :sort {:kind :builtin :category :transformer}
 }`;
     const evalResult = await evalQuery(source);
-    expect(evalResult.get(keyword('count')).get(KW_DOCS))
+    expect(evalResult.get('count').get(KW_DOCS))
       .toEqual([' the count operand']);
-    expect(evalResult.get(keyword('filter')).get(KW_DOCS))
+    expect(evalResult.get('filter').get(KW_DOCS))
       .toEqual([' the filter operand']);
-    expect(evalResult.get(keyword('sort')).get(KW_DOCS))
+    expect(evalResult.get('sort').get(KW_DOCS))
       .toEqual([' the sort operand']);
   });
 
@@ -181,7 +181,7 @@ describe('eval — MapEntry docs fold into value Map', () => {
     line three ~~|
 :x {:a 1}}`;
     const evalResult = await evalQuery(source);
-    const docs = evalResult.get(keyword('x')).get(KW_DOCS);
+    const docs = evalResult.get('x').get(KW_DOCS);
     expect(docs).toHaveLength(1);
     expect(docs[0]).toContain('line one');
     expect(docs[0]).toContain('line two');
@@ -239,9 +239,9 @@ describe('round-trip — MapEntry docs through the AST-Map codec', () => {
   it('AST-Map form exposes :docs under the MapEntry for programmatic walks', () => {
     const { asMap } = assertRoundTrip('{|~~| field doc\n:x {:a 1}}');
     const mapLit = asMap;
-    expect(mapLit.get(KW_QLANG_KIND)).toBe(keyword('MapLit'));
-    const entryMap = mapLit.get(keyword('entries'))[0];
-    expect(entryMap.get(KW_QLANG_KIND)).toBe(keyword('MapEntry'));
+    expect(mapLit.get(KW_QLANG_KIND)).toEqual(keyword('MapLit'));
+    const entryMap = mapLit.get('entries')[0];
+    expect(entryMap.get(KW_QLANG_KIND)).toEqual(keyword('MapEntry'));
     expect(entryMap.get(KW_DOCS)).toEqual([' field doc']);
   });
 });
@@ -285,10 +285,10 @@ describe('manifest-migration shape — what the Variant-B rewrite produces', () 
   it('evaluates the catalog into a Map where each entry is its descriptor', async () => {
     const catalog = await evalQuery(CATALOG_SOURCE);
     expect(isQMap(catalog)).toBe(true);
-    const countEntry = catalog.get(keyword('count'));
+    const countEntry = catalog.get('count');
     expect(isQMap(countEntry)).toBe(true);
-    expect(countEntry.get(keyword('qlang/kind'))).toBe(keyword('builtin'));
-    expect(countEntry.get(keyword('category'))).toBe(keyword('container-reducer'));
+    expect(countEntry.get('qlang/kind')).toEqual(keyword('builtin'));
+    expect(countEntry.get('category')).toEqual(keyword('container-reducer'));
     expect(countEntry.get(KW_DOCS)).toHaveLength(1);
     expect(countEntry.get(KW_DOCS)[0]).toContain('Polymorphic');
   });

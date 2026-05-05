@@ -48,7 +48,7 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import {
   resolveCapturedConduit,
   invokeConduitWithFixedArgs,
-  KW_CONDUIT_PARAMS
+  CONDUIT_PARAMS_FIELD
 } from '../eval.mjs';
 
 // ── Subject-type classes ───────────────────────────────────────
@@ -254,8 +254,8 @@ function checkComparable(ErrorCls, left, right) {
 function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
   const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
   if (resolved) {
-    const paramCount = resolved.conduit.get(KW_CONDUIT_PARAMS).length;
-    const conduitName = resolved.conduit.get(keyword('name'));
+    const paramCount = resolved.conduit.get(CONDUIT_PARAMS_FIELD).length;
+    const conduitName = resolved.conduit.get('name');
     if (paramCount === 1) {
       if (shape === 'pair') {
         return async (_mapKey, mapValue) =>
@@ -267,7 +267,7 @@ function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArit
     if (paramCount === 2) {
       if (shape === 'pair') {
         return async (mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapKey, mapValue], mapValue);
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [keyword(mapKey), mapValue], mapValue);
       }
       throw new VecOrSetArityErrorCls({ conduitName, actualArity: paramCount });
     }
@@ -374,8 +374,8 @@ export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) =
         actualValue: groupKey
       });
     }
-    if (!groupResult.has(groupKey)) groupResult.set(groupKey, []);
-    groupResult.get(groupKey).push(groupElem);
+    if (!groupResult.has(groupKey.name)) groupResult.set(groupKey.name, []);
+    groupResult.get(groupKey.name).push(groupElem);
   }
   return groupResult;
 });
@@ -394,7 +394,7 @@ export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) =
         actualValue: indexKey
       });
     }
-    indexResult.set(indexKey, indexElem);
+    indexResult.set(indexKey.name, indexElem);
   }
   return indexResult;
 });
@@ -472,10 +472,15 @@ export const drop = valueOp('drop', 2, (vec, n) => {
 export const distinct = nullaryOp('distinct', (vec) => {
   if (!isVec(vec)) throw new DistinctSubjectNotVec(describeType(vec), vec);
   const seenAtoms = new Set();
+  const seenKeywordNames = new Set();
   const seenComposite = [];
   const result = [];
   for (const v of vec) {
-    if (v !== null && typeof v === 'object' && v.type !== 'keyword') {
+    if (isKeyword(v)) {
+      if (seenKeywordNames.has(v.name)) continue;
+      seenKeywordNames.add(v.name);
+      result.push(v);
+    } else if (v !== null && typeof v === 'object') {
       if (seenComposite.some(prev => deepEqual(prev, v))) continue;
       seenComposite.push(v);
       result.push(v);
@@ -519,8 +524,8 @@ export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
     let insertIdx = outerIdx - 1;
     while (insertIdx >= 0) {
       const cmpPair = new Map();
-      cmpPair.set(keyword('left'), sortWithArr[insertIdx]);
-      cmpPair.set(keyword('right'), sortWithCurrent);
+      cmpPair.set('left', sortWithArr[insertIdx]);
+      cmpPair.set('right', sortWithCurrent);
       const cmpResult = await cmpLambda(cmpPair);
       if (typeof cmpResult !== 'number') {
         throw new SortWithCmpResultNotNumber({
@@ -541,8 +546,8 @@ export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
   if (!isQMap(pair)) throw new AscPairNotMap({
     actualType: describeType(pair), actualValue: pair
   });
-  const ascLeft  = pair.get(keyword('left'));
-  const ascRight = pair.get(keyword('right'));
+  const ascLeft  = pair.get('left');
+  const ascRight = pair.get('right');
   const ascLeftKey  = await ascKeyLambda(ascLeft);
   const ascRightKey = await ascKeyLambda(ascRight);
   checkComparable(AscKeysNotComparable, ascLeftKey, ascRightKey);
@@ -553,8 +558,8 @@ export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
   if (!isQMap(pair)) throw new DescPairNotMap({
     actualType: describeType(pair), actualValue: pair
   });
-  const descLeft  = pair.get(keyword('left'));
-  const descRight = pair.get(keyword('right'));
+  const descLeft  = pair.get('left');
+  const descRight = pair.get('right');
   const descLeftKey  = await descKeyLambda(descLeft);
   const descRightKey = await descKeyLambda(descRight);
   checkComparable(DescKeysNotComparable, descLeftKey, descRightKey);
@@ -563,8 +568,8 @@ export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
 
 async function nullsKeyComparator(pair, nullsKeyLambda, nullFirst, PairNotMapError, KeysNotComparableError) {
   if (!isQMap(pair)) throw new PairNotMapError({ actualType: describeType(pair), actualValue: pair });
-  const nullsLeft  = pair.get(keyword('left'));
-  const nullsRight = pair.get(keyword('right'));
+  const nullsLeft  = pair.get('left');
+  const nullsRight = pair.get('right');
   const nullsLeftKey  = await nullsKeyLambda(nullsLeft);
   const nullsRightKey = await nullsKeyLambda(nullsRight);
   const leftIsNull  = nullsLeftKey === null || nullsLeftKey === undefined;
@@ -594,28 +599,28 @@ export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/count'),        count);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/empty'),        empty);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/first'),        first);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/last'),         last);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sum'),          sum);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/min'),          min);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/max'),          max);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/filter'),       filter);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/every'),        every);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/any'),          any);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/groupBy'),      groupBy);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/indexBy'),      indexBy);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sort'),         sort);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/take'),         take);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/at'),           at);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/drop'),         drop);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/distinct'),     distinct);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reverse'),      reverse);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/flat'),         flat);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/sortWith'),     sortWith);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/asc'),          asc);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/desc'),         desc);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/nullsFirst'),   nullsFirst);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/nullsLast'),    nullsLast);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/firstNonZero'), firstNonZero);
+PRIMITIVE_REGISTRY.bind('qlang/prim/count',        count);
+PRIMITIVE_REGISTRY.bind('qlang/prim/empty',        empty);
+PRIMITIVE_REGISTRY.bind('qlang/prim/first',        first);
+PRIMITIVE_REGISTRY.bind('qlang/prim/last',         last);
+PRIMITIVE_REGISTRY.bind('qlang/prim/sum',          sum);
+PRIMITIVE_REGISTRY.bind('qlang/prim/min',          min);
+PRIMITIVE_REGISTRY.bind('qlang/prim/max',          max);
+PRIMITIVE_REGISTRY.bind('qlang/prim/filter',       filter);
+PRIMITIVE_REGISTRY.bind('qlang/prim/every',        every);
+PRIMITIVE_REGISTRY.bind('qlang/prim/any',          any);
+PRIMITIVE_REGISTRY.bind('qlang/prim/groupBy',      groupBy);
+PRIMITIVE_REGISTRY.bind('qlang/prim/indexBy',      indexBy);
+PRIMITIVE_REGISTRY.bind('qlang/prim/sort',         sort);
+PRIMITIVE_REGISTRY.bind('qlang/prim/take',         take);
+PRIMITIVE_REGISTRY.bind('qlang/prim/at',           at);
+PRIMITIVE_REGISTRY.bind('qlang/prim/drop',         drop);
+PRIMITIVE_REGISTRY.bind('qlang/prim/distinct',     distinct);
+PRIMITIVE_REGISTRY.bind('qlang/prim/reverse',      reverse);
+PRIMITIVE_REGISTRY.bind('qlang/prim/flat',         flat);
+PRIMITIVE_REGISTRY.bind('qlang/prim/sortWith',     sortWith);
+PRIMITIVE_REGISTRY.bind('qlang/prim/asc',          asc);
+PRIMITIVE_REGISTRY.bind('qlang/prim/desc',         desc);
+PRIMITIVE_REGISTRY.bind('qlang/prim/nullsFirst',   nullsFirst);
+PRIMITIVE_REGISTRY.bind('qlang/prim/nullsLast',    nullsLast);
+PRIMITIVE_REGISTRY.bind('qlang/prim/firstNonZero', firstNonZero);

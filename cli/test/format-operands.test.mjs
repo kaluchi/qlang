@@ -52,7 +52,7 @@ describe('tjson', () => {
 
   it('renders a Map with keyword keys as the $map tagged form', async () => {
     const cellEntry = await runQuery('{:role :admin} | tjson', noopIo);
-    expect(cellEntry.result).toBe('{"$map":[[{"$keyword":"role"},{"$keyword":"admin"}]]}');
+    expect(cellEntry.result).toBe('{"$map":[["role",{"$keyword":"admin"}]]}');
   });
 });
 

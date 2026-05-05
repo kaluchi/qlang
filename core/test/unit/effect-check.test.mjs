@@ -264,16 +264,16 @@ describe('function and conduit effectful field', () => {
   it('conduit created from let(:@name, ...) has :effectful true', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('let(:@x, count)');
-    const conduit = Array.from(sessionInstance.env).find(([k]) => k.name === '@x')?.[1];
+    const conduit = Array.from(sessionInstance.env).find(([k]) => k === '@x')?.[1];
     expect(conduit).toBeDefined();
-    expect(conduit.get(keyword('effectful'))).toBe(true);
+    expect(conduit.get('effectful')).toBe(true);
   });
 
   it('conduit created from let(:cleanName, ...) has :effectful false', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('let(:foo, count)');
-    const conduit = Array.from(sessionInstance.env).find(([k]) => k.name === 'foo')?.[1];
+    const conduit = Array.from(sessionInstance.env).find(([k]) => k === 'foo')?.[1];
     expect(conduit).toBeDefined();
-    expect(conduit.get(keyword('effectful'))).toBe(false);
+    expect(conduit.get('effectful')).toBe(false);
   });
 });

@@ -30,8 +30,8 @@ describe('filter — container polymorphism', () => {
   it('Vec field predicate on Map elements', async () => {
     const result = await evalQuery('[{:age 25} {:age 15} {:age 30}] | filter(/age | gte(18))');
     expect(result).toHaveLength(2);
-    expect(result[0].get(keyword('age'))).toBe(25);
-    expect(result[1].get(keyword('age'))).toBe(30);
+    expect(result[0].get('age')).toBe(25);
+    expect(result[1].get('age')).toBe(30);
   });
 
   it('Set element predicate — returns Set, preserves insertion order', async () => {
@@ -44,9 +44,9 @@ describe('filter — container polymorphism', () => {
     const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter(gt(1))');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
-    expect(mapResult.get(keyword('b'))).toBe(2);
-    expect(mapResult.get(keyword('c'))).toBe(3);
-    expect(mapResult.has(keyword('a'))).toBe(false);
+    expect(mapResult.get('b')).toBe(2);
+    expect(mapResult.get('c')).toBe(3);
+    expect(mapResult.has('a')).toBe(false);
   });
 
   it('Map with 0-arity named conduit predicate fires against value', async () => {
@@ -63,7 +63,7 @@ describe('filter — container polymorphism', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
-    expect(mapResult.get(keyword('apple'))).toBe(1);
+    expect(mapResult.get('apple')).toBe(1);
   });
 
   it('Map with 2-arity conduit — compound key and value', async () => {
@@ -72,7 +72,7 @@ describe('filter — container polymorphism', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
-    expect(mapResult.get(keyword('avocado'))).toBe(3);
+    expect(mapResult.get('avocado')).toBe(3);
   });
 
   it('Map with 2-arity conduit — correlation (k ↔ v inspection)', async () => {
@@ -85,9 +85,9 @@ describe('filter — container polymorphism', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
-    expect(mapResult.has(keyword('a'))).toBe(true);
-    expect(mapResult.has(keyword('b'))).toBe(true);
-    expect(mapResult.has(keyword('c'))).toBe(false);
+    expect(mapResult.has('a')).toBe(true);
+    expect(mapResult.has('b')).toBe(true);
+    expect(mapResult.has('c')).toBe(false);
   });
 
   it('Map with unresolved-identifier pred — falls to per-value path, surfaces on fail-track', async () => {
@@ -139,7 +139,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map preserves insertion order of surviving entries', async () => {
     const mapResult = await evalQuery('{:c 3 :a 1 :b 2} | filter(gt(1))');
-    const orderedKeys = [...mapResult.keys()].map(k => k.name);
+    const orderedKeys = [...mapResult.keys()];
     expect(orderedKeys).toEqual(['c', 'b']);
   });
 
@@ -173,8 +173,8 @@ describe('filter — container polymorphism', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
-    expect(mapResult.get(keyword('a'))).toBe(1);
-    expect(mapResult.get(keyword('c'))).toBe(3);
+    expect(mapResult.get('a')).toBe(1);
+    expect(mapResult.get('c')).toBe(3);
   });
 
   it('Vec with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
@@ -444,10 +444,10 @@ describe('filter + type classifiers integration', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
-    expect(mapResult.has(keyword('ID'))).toBe(true);
-    expect(mapResult.has(keyword('GlossTerm'))).toBe(true);
-    expect(mapResult.has(keyword('GlossDef'))).toBe(false);
-    expect(mapResult.has(keyword('Count'))).toBe(false);
+    expect(mapResult.has('ID')).toBe(true);
+    expect(mapResult.has('GlossTerm')).toBe(true);
+    expect(mapResult.has('GlossDef')).toBe(false);
+    expect(mapResult.has('Count')).toBe(false);
   });
 
   it('filter(isMap) over Map keeps only Map-valued entries', async () => {
@@ -456,7 +456,7 @@ describe('filter + type classifiers integration', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
-    expect(mapResult.has(keyword('GlossDef'))).toBe(true);
+    expect(mapResult.has('GlossDef')).toBe(true);
   });
 });
 
@@ -474,8 +474,8 @@ describe('filter — conduit portability across containers', () => {
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
-    expect(mapResult.get(keyword('b'))).toBe(2);
-    expect(mapResult.get(keyword('c'))).toBe(3);
+    expect(mapResult.get('b')).toBe(2);
+    expect(mapResult.get('c')).toBe(3);
   });
 });
 

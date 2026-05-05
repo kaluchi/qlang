@@ -56,7 +56,6 @@
 //     the extra indirection would only obscure which registry
 //     instance is being mutated.
 
-import { isKeyword, describeType } from './types.mjs';
 import { QlangError, QlangInvariantError } from './errors.mjs';
 
 // ── Per-site error classes ────────────────────────────────────
@@ -66,14 +65,14 @@ import { QlangError, QlangInvariantError } from './errors.mjs';
 // subclass (dispatch-time data error that lifts through evalNode's
 // try/catch onto the fail-track).
 
-class PrimitiveKeyNotKeyword extends QlangInvariantError {
+class PrimitiveKeyNotString extends QlangInvariantError {
   constructor(actualType) {
     super(
-      `bind: primitive key must be a keyword, got ${actualType}`,
+      `bind: primitive key must be a string, got ${actualType}`,
       { actualType }
     );
-    this.name = 'PrimitiveKeyNotKeyword';
-    this.fingerprint = 'PrimitiveKeyNotKeyword';
+    this.name = 'PrimitiveKeyNotString';
+    this.fingerprint = 'PrimitiveKeyNotString';
   }
 }
 
@@ -118,13 +117,6 @@ class PrimitiveKeyUnbound extends QlangError {
   }
 }
 
-// Render a key as a human-readable label for error messages,
-// tolerating the non-keyword case so the invariant throw site for
-// PrimitiveKeyNotKeyword can still produce a meaningful string.
-function keyLabelFor(key) {
-  if (isKeyword(key)) return key.name;
-  return typeof key;
-}
 
 // ── Factory ───────────────────────────────────────────────────
 
@@ -145,13 +137,13 @@ export function createPrimitiveRegistry() {
   return {
     bind(key, impl) {
       if (sealed) {
-        throw new PrimitiveRegistrySealed(keyLabelFor(key));
+        throw new PrimitiveRegistrySealed(key);
       }
-      if (!isKeyword(key)) {
-        throw new PrimitiveKeyNotKeyword(describeType(key));
+      if (typeof key !== 'string') {
+        throw new PrimitiveKeyNotString(typeof key);
       }
       if (bindings.has(key)) {
-        throw new PrimitiveKeyAlreadyBound(key.name);
+        throw new PrimitiveKeyAlreadyBound(key);
       }
       bindings.set(key, impl);
       return key;
@@ -159,7 +151,7 @@ export function createPrimitiveRegistry() {
 
     resolve(key) {
       if (!bindings.has(key)) {
-        throw new PrimitiveKeyUnbound(keyLabelFor(key));
+        throw new PrimitiveKeyUnbound(key);
       }
       return bindings.get(key);
     },

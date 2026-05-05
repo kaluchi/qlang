@@ -30,7 +30,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
   });
 
   it('bind(key, impl) stores the impl under the key', () => {
-    const k = keyword('qlang/test-prim/foo');
+    const k = 'qlang/test-prim/foo';
     const impl = (state, _lambdas) => state;
     registry.bind(k, impl);
     expect(registry.size).toBe(1);
@@ -41,7 +41,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
     // The idiom: `export const add = PRIMITIVE_REGISTRY.bind(key, impl);`
     // so the runtime module's export IS the keyword that core.qlang's
     // :qlang/impl field points to.
-    const k = keyword('qlang/test-prim/re-export');
+    const k = 'qlang/test-prim/re-export';
     const impl = () => null;
     const returned = registry.bind(k, impl);
     expect(returned).toBe(k);
@@ -49,16 +49,16 @@ describe('createPrimitiveRegistry — lifecycle', () => {
   });
 
   it('has(key) reports binding state', () => {
-    const k = keyword('qlang/test-prim/foo');
+    const k = 'qlang/test-prim/foo';
     expect(registry.has(k)).toBe(false);
     registry.bind(k, () => null);
     expect(registry.has(k)).toBe(true);
   });
 
   it('multiple bindings grow the size counter', () => {
-    registry.bind(keyword('qlang/test-prim/a'), () => 'a');
-    registry.bind(keyword('qlang/test-prim/b'), () => 'b');
-    registry.bind(keyword('qlang/test-prim/c'), () => 'c');
+    registry.bind('qlang/test-prim/a', () => 'a');
+    registry.bind('qlang/test-prim/b', () => 'b');
+    registry.bind('qlang/test-prim/c', () => 'c');
     expect(registry.size).toBe(3);
   });
 
@@ -74,7 +74,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
   });
 
   it('resolve still works after seal', () => {
-    const k = keyword('qlang/test-prim/foo');
+    const k = 'qlang/test-prim/foo';
     const impl = () => 42;
     registry.bind(k, impl);
     registry.seal();
@@ -90,42 +90,42 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('rejects string keys with PrimitiveKeyNotKeyword', () => {
-    expect(() => registry.bind('not-a-keyword', () => null))
-      .toThrow(/primitive key must be a keyword, got String/);
+  it('rejects non-string keys with PrimitiveKeyNotString', () => {
+    expect(() => registry.bind(Symbol('bad'), () => null))
+      .toThrow(/primitive key must be a string, got symbol/);
   });
 
   it('rejects number keys', () => {
     expect(() => registry.bind(42, () => null))
-      .toThrow(/primitive key must be a keyword, got Number/);
+      .toThrow(/primitive key must be a string, got number/);
   });
 
   it('rejects plain object keys', () => {
     expect(() => registry.bind({ not: 'keyword' }, () => null))
-      .toThrow(/primitive key must be a keyword, got Unknown/);
+      .toThrow(/primitive key must be a string, got object/);
   });
 
-  it('non-keyword rejection is a QlangInvariantError', () => {
+  it('non-string rejection is a QlangInvariantError', () => {
     try {
-      registry.bind('not-a-keyword', () => null);
+      registry.bind(null, () => null);
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveKeyNotKeyword');
+      expect(e.fingerprint).toBe('PrimitiveKeyNotString');
       expect(e.kind).toBe('invariant-error');
-      expect(e.context.actualType).toBe('String');
+      expect(e.context.actualType).toBe('object');
     }
   });
 
   it('rejects duplicate keys with PrimitiveKeyAlreadyBound', () => {
-    const k = keyword('qlang/test-prim/dup');
+    const k = 'qlang/test-prim/dup';
     registry.bind(k, () => 'first');
     expect(() => registry.bind(k, () => 'second'))
       .toThrow(/primitive key :qlang\/test-prim\/dup is already bound/);
   });
 
   it('duplicate-key error is a QlangInvariantError carrying keyName', () => {
-    const k = keyword('qlang/test-prim/dup');
+    const k = 'qlang/test-prim/dup';
     registry.bind(k, () => null);
     try {
       registry.bind(k, () => null);
@@ -139,14 +139,14 @@ describe('createPrimitiveRegistry — bind error classes', () => {
 
   it('rejects binding after seal with PrimitiveRegistrySealed', () => {
     registry.seal();
-    const k = keyword('qlang/test-prim/late');
+    const k = 'qlang/test-prim/late';
     expect(() => registry.bind(k, () => null))
       .toThrow(/registry is sealed/);
   });
 
   it('sealed-registry error is a QlangInvariantError', () => {
     registry.seal();
-    const k = keyword('qlang/test-prim/late');
+    const k = 'qlang/test-prim/late';
     try {
       registry.bind(k, () => null);
       expect.fail('should have thrown');
@@ -176,7 +176,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
   });
 
   it('throws PrimitiveKeyUnbound on missing key', () => {
-    const k = keyword('qlang/test-prim/missing');
+    const k = 'qlang/test-prim/missing';
     expect(() => registry.resolve(k))
       .toThrow(/no primitive bound under :qlang\/test-prim\/missing/);
   });
@@ -186,7 +186,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     // A hand-crafted descriptor Map with a bad :qlang/impl keyword
     // should fail gracefully through evalNode's try/catch and become
     // an error value, not crash the evaluator.
-    const k = keyword('qlang/test-prim/missing');
+    const k = 'qlang/test-prim/missing';
     try {
       registry.resolve(k);
       expect.fail('should have thrown');
@@ -195,7 +195,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
       expect(e).not.toBeInstanceOf(QlangInvariantError);
       expect(e.kind).toBe('primitive-unbound');
       expect(e.fingerprint).toBe('PrimitiveKeyUnbound');
-      expect(e.context.keyLabel).toBe('qlang/test-prim/missing');
+      expect(e.context.keyLabel).toContain('qlang/test-prim/missing');
     }
   });
 
@@ -205,9 +205,9 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     // separately validate the key type. A non-keyword lookup
     // produces the missing-key error with a typeof label.
     expect(() => registry.resolve('not-a-keyword'))
-      .toThrow(/no primitive bound under :string/);
+      .toThrow(/no primitive bound under :/);
     expect(() => registry.resolve(42))
-      .toThrow(/no primitive bound under :number/);
+      .toThrow(/no primitive bound under :42/);
   });
 });
 
@@ -215,7 +215,7 @@ describe('createPrimitiveRegistry — isolation between instances', () => {
   it('isolated instances do not share state', () => {
     const a = createPrimitiveRegistry();
     const b = createPrimitiveRegistry();
-    const k = keyword('qlang/test-prim/iso');
+    const k = 'qlang/test-prim/iso';
     a.bind(k, () => 'a-impl');
     expect(a.has(k)).toBe(true);
     expect(b.has(k)).toBe(false);
@@ -228,7 +228,7 @@ describe('createPrimitiveRegistry — isolation between instances', () => {
     a.seal();
     expect(a.isSealed).toBe(true);
     expect(b.isSealed).toBe(false);
-    b.bind(keyword('qlang/test-prim/b'), () => null);
+    b.bind('qlang/test-prim/b', () => null);
     expect(b.size).toBe(1);
   });
 });
@@ -265,7 +265,7 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
   it('holds the arithmetic primitives', async () => {
     await import('../../src/runtime/index.mjs');
     for (const name of ['add', 'sub', 'mul', 'div']) {
-      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });
 
@@ -279,34 +279,34 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
       'asc', 'desc', 'nullsFirst', 'nullsLast'
     ];
     for (const name of vecNames) {
-      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });
 
   it('holds the control-flow primitives', async () => {
     await import('../../src/runtime/index.mjs');
     for (const name of ['if', 'when', 'unless', 'coalesce', 'cond', 'firstTruthy']) {
-      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });
 
   it('holds the reflective primitives', async () => {
     await import('../../src/runtime/index.mjs');
     for (const name of ['env', 'use', 'reify', 'manifest', 'runExamples', 'let', 'as']) {
-      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });
 
   it('holds the error primitives', async () => {
     await import('../../src/runtime/index.mjs');
     for (const name of ['error', 'isError']) {
-      expect(PRIMITIVE_REGISTRY.has(keyword(`qlang/prim/${name}`))).toBe(true);
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });
 
   it('resolve returns a function value with fn / arity / meta shape', async () => {
     await import('../../src/runtime/index.mjs');
-    const impl = PRIMITIVE_REGISTRY.resolve(keyword('qlang/prim/add'));
+    const impl = PRIMITIVE_REGISTRY.resolve('qlang/prim/add');
     expect(impl).toBeDefined();
     expect(impl.type).toBe('function');
     expect(impl.name).toBe('add');

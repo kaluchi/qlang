@@ -24,7 +24,7 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isErrorValue, describeType, makeErrorValue, keyword
+  isQMap, isErrorValue, describeType, makeErrorValue
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -52,5 +52,5 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
 export const isError = nullaryOp('isError', (subject) => isErrorValue(subject));
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/error'),   error);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isError'), isError);
+PRIMITIVE_REGISTRY.bind('qlang/prim/error',   error);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isError', isError);

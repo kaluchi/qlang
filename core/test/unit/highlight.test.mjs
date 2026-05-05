@@ -12,7 +12,7 @@ let builtinNames;
 async function builtins() {
   if (builtinNames === undefined) {
     const env = await langRuntime();
-    builtinNames = new Set([...env.keys()].map(k => k.name));
+    builtinNames = new Set([...env.keys()]);
   }
   return builtinNames;
 }

@@ -48,7 +48,7 @@ describe('runQuery', () => {
 
   it('seeds the cell pipeValue from runOpts.initialPipeValue', async () => {
     const io = captureIoContext();
-    const seeded = new Map([[keyword('k'), 'v']]);
+    const seeded = new Map([['k', 'v']]);
     const cellEntry = await runQuery('/k', io, { initialPipeValue: seeded });
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe('v');

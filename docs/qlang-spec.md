@@ -501,7 +501,7 @@ rather than crashing the query.
 > [1 2 3] | add(1)
 !{:kind :type-error :thrown :AddLeftNotNumber :origin :qlang/eval
   :operand "add" :position 1 :expectedType "Number"
-  :actualType "Vec" :trail []}
+  :actualType :vec :trail []}
 |~| add(1) was waiting for a number in position 1; the Vec triggered
 |~| the per-site class :AddLeftNotNumber. The descriptor lays out
 |~| the failure structure and the error becomes the new pipeValue.

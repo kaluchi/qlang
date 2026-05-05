@@ -222,18 +222,6 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
 
 // ── reify and manifest ─────────────────────────────────────────
 
-function describeValueType(v) {
-  if (isNull(v)) return keyword('null');
-  if (isBoolean(v)) return keyword('boolean');
-  if (isNumber(v)) return keyword('number');
-  if (isString(v)) return keyword('string');
-  if (isKeyword(v)) return keyword('keyword');
-  if (isVec(v)) return keyword('vec');
-  if (isQMap(v)) return keyword('map');
-  if (isQSet(v)) return keyword('set');
-  if (isErrorValue(v)) return keyword('error');
-  return keyword('unknown');
-}
 
 // Descriptor field helpers — extracted so each null-fallback
 // path is testable via synthetic conduits/snapshots/functions.
@@ -309,7 +297,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
   result.set('kind', keyword('snapshot'));
   result.set('name', explicitName);
   result.set('value', value);
-  result.set('type', describeValueType(value));
+  result.set('type', typeKeyword(value));
   result.set('docs', metaToVec(snap.get('docs')));
   result.set('effectful', snap.get('effectful'));
   result.set('location', locationToQlangMap(snap.get('location')));
@@ -321,7 +309,7 @@ function buildValueDescriptor(value, explicitName) {
   result.set('kind', keyword('value'));
   if (explicitName != null) result.set('name', explicitName);
   result.set('value', value);
-  result.set('type', describeValueType(value));
+  result.set('type', typeKeyword(value));
   return result;
 }
 

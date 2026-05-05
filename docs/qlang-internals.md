@@ -1177,6 +1177,18 @@ invocations.
 
 ### `runtime/format.mjs` — value formatters and plain-JSON codec
 
+**Type classification** (in `types.mjs`):
+
+- `describeType(v)` — PascalCase string label for any value:
+  `'Number'`, `'String'`, `'Vec'`, `'Map'`, `'Set'`, `'Keyword'`,
+  `'Boolean'`, `'Null'`, `'Conduit'`, `'Snapshot'`, `'Error'`,
+  `'Function'`.
+- `typeKeyword(v)` — keyword value representing the type:
+  `:number`, `:string`, `:vec`, `:map`, `:set`, `:keyword`,
+  `:boolean`, `:null`, `:conduit`, `:snapshot`, `:error`,
+  `:function`. Used by error factories for structured
+  `context.actualType` fields and by `reify` for descriptor `:type`.
+
 Three public entries, all kind-table dispatches keyed off
 `describeType`:
 
@@ -1261,7 +1273,7 @@ import {
   toTaggedJSON, fromTaggedJSON,
   printValue, toPlain, fromPlain,
   tokenize,
-  keyword, isKeyword, isErrorValue, describeType,
+  keyword, isKeyword, isErrorValue, describeType, typeKeyword,
   QlangError, QlangTypeError, ParseError,
   EffectLaunderingError,
   classifyEffect, EFFECT_MARKER_PREFIX

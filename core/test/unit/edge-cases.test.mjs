@@ -524,6 +524,33 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('FilterSubjectNotContainer');
   });
 
+  it('at on non-Vec-or-Map → AtSubjectNotVecOrMap', async () => {
+    const caughtErr = await catchError('42 | at(0)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('AtSubjectNotVecOrMap');
+    expect(caughtErr.context.operand).toBe('at');
+    expect(caughtErr.context.position).toBe('subject');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('at with non-string key on Map → AtKeyNotString', async () => {
+    const caughtErr = await catchError('{:a 1} | at(42)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('AtKeyNotString');
+    expect(caughtErr.context.operand).toBe('at');
+    expect(caughtErr.context.position).toBe(2);
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeyword', async () => {
+    const caughtErr = await catchError('42 | keyword');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeyword');
+    expect(caughtErr.context.operand).toBe('keyword');
+    expect(caughtErr.context.position).toBe('subject');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
   it('take count non-number → TakeCountNotNumber', async () => {
     const caughtErr = await catchError('[1 2 3] | take("x")');
     expect(caughtErr.name).toBe('TakeCountNotNumber');

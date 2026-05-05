@@ -1299,4 +1299,34 @@
           :expected "42"}]
        :throws [:EvalSubjectNotMap]}
 
+|~~ String↔Keyword involution. On a String subject, produces the
+    keyword whose name is that string. On a Keyword subject,
+    extracts the name as a String. The two directions are inverse:
+    `"foo" | keyword | keyword` yields `"foo"`.
+    Bridges the String world (JSON data, template building) and
+    the Keyword world (Map key syntax, enum discriminators). ~~|
+:keyword {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/keyword
+          :category :type-classifier
+          :subject [:string :keyword]
+          :returns [:string :keyword]
+          :modifiers []
+          :examples [
+            {:doc "String → Keyword"
+             :snippet "\"foo\" | keyword"
+             :expected ":foo"}
+            {:doc "Keyword → String"
+             :snippet ":foo | keyword"
+             :expected "\"foo\""}
+            {:doc "round-trip is identity"
+             :snippet "\"bar\" | keyword | keyword"
+             :expected "\"bar\""}
+            {:doc "namespaced keyword"
+             :snippet "\"qlang/error\" | keyword"
+             :expected ":qlang/error"}
+            {:doc "quoted-form keyword"
+             :snippet ":\"foo bar\" | keyword"
+             :expected "\"foo bar\""}]
+          :throws [:KeywordSubjectNotStringOrKeyword]}
+
 }

@@ -1,0 +1,12 @@
+{"name":"string-to-keyword","query":"\"foo\" | keyword","expect":":foo"}
+{"name":"keyword-to-string","query":":foo | keyword","expect":"\"foo\""}
+{"name":"round-trip-string","query":"\"bar\" | keyword | keyword","expect":"\"bar\""}
+{"name":"round-trip-keyword","query":":baz | keyword | keyword","expect":":baz"}
+{"name":"namespaced-string-to-keyword","query":"\"qlang/error\" | keyword","expect":":qlang/error"}
+{"name":"namespaced-keyword-to-string","query":":qlang/error | keyword","expect":"\"qlang/error\""}
+{"name":"quoted-keyword-to-string","query":":\"foo bar\" | keyword","expect":"\"foo bar\""}
+{"name":"string-to-quoted-keyword","query":"\"foo bar\" | keyword","expect":":\"foo bar\""}
+{"name":"empty-string-to-keyword","query":"\"\" | keyword","expect":":\"\""}
+{"name":"empty-keyword-to-string","query":":\"\" | keyword","expect":"\"\""}
+{"name":"keyword-on-number-errors","query":"42 | keyword !| /thrown","expect":":KeywordSubjectNotStringOrKeyword"}
+{"name":"keyword-on-vec-errors","query":"[1] | keyword !| /thrown","expect":":KeywordSubjectNotStringOrKeyword"}

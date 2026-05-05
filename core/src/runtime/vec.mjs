@@ -107,7 +107,6 @@ const FlatSubjectNotVec           = declareSubjectError('FlatSubjectNotVec',    
 
 const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'Number');
 const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'Number');
-const AtSubjectNotVec    = declareSubjectError('AtSubjectNotVec',    'at',   'Vec');
 const AtIndexNotInteger  = declareModifierError('AtIndexNotInteger', 'at',   2, 'Integer');
 
 const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'Number');
@@ -442,13 +441,22 @@ export const take = valueOp('take', 2, (vec, n) => {
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
 // for `at(-1)`; the two are semantically identical.
-export const at = valueOp('at', 2, (vec, atIndex) => {
-  if (!isVec(vec)) throw new AtSubjectNotVec(describeType(vec), vec);
-  if (typeof atIndex !== 'number' || !Number.isInteger(atIndex)) {
-    throw new AtIndexNotInteger(describeType(atIndex), atIndex);
+const AtSubjectNotVecOrMap = declareSubjectError('AtSubjectNotVecOrMap', 'at', 'Vec or Map');
+const AtKeyNotString       = declareModifierError('AtKeyNotString', 'at', 2, 'String (Map subject)');
+
+export const at = valueOp('at', 2, (subject, atKey) => {
+  if (isVec(subject)) {
+    if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
+      throw new AtIndexNotInteger(describeType(atKey), atKey);
+    }
+    const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
+    return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
   }
-  const resolvedIndex = atIndex < 0 ? vec.length + atIndex : atIndex;
-  return (resolvedIndex >= 0 && resolvedIndex < vec.length) ? vec[resolvedIndex] : NULL;
+  if (isQMap(subject)) {
+    if (typeof atKey !== 'string') throw new AtKeyNotString(describeType(atKey), atKey);
+    return subject.has(atKey) ? subject.get(atKey) : NULL;
+  }
+  throw new AtSubjectNotVecOrMap(describeType(subject), subject);
 });
 
 export const drop = valueOp('drop', 2, (vec, n) => {

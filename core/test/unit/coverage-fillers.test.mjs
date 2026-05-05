@@ -804,6 +804,8 @@ describe('printValue — qlang literal serialization', async () => {
     expect(printValue('a"b')).toBe('"a\\"b"');
     expect(printValue('a\nb')).toBe('"a\\nb"');
     expect(printValue('a\\b')).toBe('"a\\\\b"');
+    expect(printValue('a\bb')).toBe('"a\\bb"');
+    expect(printValue('a\fb')).toBe('"a\\fb"');
   });
 
   it('prints keywords', async () => {

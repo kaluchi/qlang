@@ -73,8 +73,8 @@ types layer on top of them.
 
 ### string
 
-Double-quoted character sequences. The escape set is `\n`, `\t`,
-`\r`, `\"`, `\\`.
+Double-quoted character sequences. The escape set matches JSON:
+`\"`, `\\`, `\/`, `\n`, `\t`, `\r`, `\b`, `\f`, `\uXXXX`.
 
 ```qlang
 > "hello"
@@ -138,8 +138,10 @@ be a first-class value rather than a string.
 A keyword has three surface forms; all three intern into the same
 value space, so `:foo` and `:"foo"` are the same keyword.
 
-**Bare** — `:name`. The everyday form. Restricted to identifier
-characters: `[@_a-zA-Z][a-zA-Z0-9_-]*`.
+**Bare** — `:name`. The everyday form. Restricted to Unicode
+identifier characters (UAX#31): first character `[@_\p{ID_Start}]`,
+continuation `[\p{ID_Continue}_-]*`. Covers Latin, Cyrillic, CJK,
+Greek, Hebrew, Arabic — `:данные`, `:имя`, `:元素` parse bare.
 
 ```qlang
 > :name
@@ -1152,8 +1154,9 @@ changes are discarded. See the
 
 ### Identifier conventions
 
-Identifiers may start with `@`, `_`, or a letter. The language
-gives no special meaning to `@` or `_`. Domain authors commonly use
+Identifiers may start with `@`, `_`, or any Unicode `ID_Start`
+character (Latin, Cyrillic, CJK, Greek, Hebrew, Arabic, etc.).
+The language gives no special meaning to `@` or `_`. Domain authors commonly use
 `@` as a prefix for names that come from their runtime (e.g.,
 `@callers`, `@resolve`), and `_` for private internal bindings, but
 this is pure convention — `@callers` and `callers` are resolved
@@ -1806,7 +1809,7 @@ filter(/age | gt(18))
 | Boolean | `true` \| `false` | |
 | Null | `null` | |
 | Keyword | `:` (ident \| namespaced \| quoted-string) | `:name`, `:qlang/error`, `:"foo bar"` |
-| Ident | (alpha \| `@` \| `_`) (alnum \| `-` \| `_`)* | `count`, `my-fn`, `@callers`, `_private` |
+| Ident | (`@` \| `_` \| `\p{ID_Start}`) (`\p{ID_Continue}` \| `_` \| `-`)* | `count`, `my-fn`, `@callers`, `_private`, `данные` |
 | Projection | `/` keyseg (`/` keyseg)* | `/name`, `/a/b/c`, `/"foo bar"`, `/"a.b"/"$ref"` |
 | KeySegment | quoted-string \| ident | `name`, `"foo bar"` |
 | Pipe | `\|` | |
@@ -1877,8 +1880,8 @@ Scalar        ← String / Number / Boolean / Null / Keyword
 Keyword       ← ':' QuotedKeywordName / ':' NamespacedName / ':' KeywordName
 NamespacedName    ← Ident ('/' Ident)+
 QuotedKeywordName ← '"' DoubleStringChar* '"'
-KeywordName       ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (Ident without !ReservedWord guard)
-Ident             ← [@_a-zA-Z] [a-zA-Z0-9_-]*  (same shape, !ReservedWord guard)
+KeywordName       ← [@_\p{ID_Start}] [\p{ID_Continue}_-]*  (Ident without !ReservedWord guard)
+Ident             ← [@_\p{ID_Start}] [\p{ID_Continue}_-]*  (same shape, !ReservedWord guard)
 ```
 
 Comment productions are matched before bare combinators in the

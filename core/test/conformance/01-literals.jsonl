@@ -22,3 +22,12 @@
 {"name":"map-with-quoted-key-projection","query":"{:\"weird key\" 42} | /\"weird key\"","expect":"42"}
 {"name":"map-with-quoted-empty-key","query":"{:\"\" \"value-of-empty\"} | /\"\"","expect":"\"value-of-empty\""}
 {"name":"map-with-mixed-bare-and-quoted-keys","query":"{:foo 1 :\"bar baz\" 2} | /\"bar baz\"","expect":"2"}
+{"name":"unicode-escape-basic","query":"\"\\u0041\"","expect":"\"A\""}
+{"name":"unicode-escape-multibyte","query":"\"\\u00e9\"","expect":"\"\\u00e9\""}
+{"name":"unicode-escape-in-string","query":"\"hello\\u0020world\"","expect":"\"hello world\""}
+{"name":"unicode-escape-equality","query":"\"\\u0041\" | eq(\"A\")","expect":"true"}
+{"name":"solidus-escape","query":"\"\\/\"","expect":"\"/\""}
+{"name":"backspace-escape","query":"\"a\\bb\" | contains(\"a\")","expect":"true"}
+{"name":"formfeed-escape","query":"\"a\\fb\" | contains(\"a\")","expect":"true"}
+{"name":"json-object-with-unicode-key","query":"{\"k\\u0065y\": 42} | /key","expect":"42"}
+{"name":"all-json-escapes-in-one","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | contains(\"_\")","expect":"true"}

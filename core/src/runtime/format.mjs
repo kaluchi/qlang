@@ -132,7 +132,9 @@ function escapeQlangStringLiteral(s) {
     .replace(/"/g, '\\"')
     .replace(/\n/g, '\\n')
     .replace(/\t/g, '\\t')
-    .replace(/\r/g, '\\r')}"`;
+    .replace(/\r/g, '\\r')
+    .replace(/[\b]/g, '\\b')
+    .replace(/\f/g, '\\f')}"`;
 }
 
 function printMapLike(open, m, indent) {

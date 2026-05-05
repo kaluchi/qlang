@@ -955,7 +955,7 @@ describe('has on Set with non-keyword values', async () => {
   });
 });
 
-describe('codec backward-compat: $map with keyword-tagged keys', async () => {
+describe('codec $map with keyword-tagged keys decodes to string-keyed Map', async () => {
   it('decodes old-format $map entries with $keyword keys to string-keyed Maps', async () => {
     const { fromTaggedJSON } = await import('../../src/codec.mjs');
     const oldFormat = { $map: [[{$keyword: 'name'}, 'alice'], [{$keyword: 'age'}, 30]] };

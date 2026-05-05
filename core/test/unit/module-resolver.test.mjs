@@ -48,8 +48,7 @@ describe('resolveModules', () => {
     expect(catalog instanceof Map).toBe(true);
     expect(catalog.size).toBeGreaterThan(0);
     for (const [catalogKey, catalogVal] of catalog) {
-      // Keys are keyword objects
-      expect(catalogKey !== null && typeof catalogKey === 'object' && catalogKey.type === 'keyword').toBe(true);
+      expect(typeof catalogKey === 'string').toBe(true);
       // Values are Maps (module export envs)
       expect(catalogVal instanceof Map).toBe(true);
     }
@@ -57,28 +56,28 @@ describe('resolveModules', () => {
 
   it('resolved error module exports retry, recover, mapError, withContext', async () => {
     const catalog = await resolveModules(libDir);
-    const errorModule = catalog.get(keyword('error'));
+    const errorModule = catalog.get('error');
     expect(errorModule instanceof Map).toBe(true);
-    expect(errorModule.has(keyword('retry'))).toBe(true);
-    expect(errorModule.has(keyword('recover'))).toBe(true);
-    expect(errorModule.has(keyword('mapError'))).toBe(true);
-    expect(errorModule.has(keyword('withContext'))).toBe(true);
+    expect(errorModule.has('retry')).toBe(true);
+    expect(errorModule.has('recover')).toBe(true);
+    expect(errorModule.has('mapError')).toBe(true);
+    expect(errorModule.has('withContext')).toBe(true);
   });
 
   it('resolved error/guards module exports assert and ensure', async () => {
     const catalog = await resolveModules(libDir);
-    const guards = catalog.get(keyword('error/guards'));
+    const guards = catalog.get('error/guards');
     expect(guards instanceof Map).toBe(true);
-    expect(guards.has(keyword('assert'))).toBe(true);
-    expect(guards.has(keyword('ensure'))).toBe(true);
+    expect(guards.has('assert')).toBe(true);
+    expect(guards.has('ensure')).toBe(true);
   });
 
   it('resolved error/observe module exports tap and finally', async () => {
     const catalog = await resolveModules(libDir);
-    const observe = catalog.get(keyword('error/observe'));
+    const observe = catalog.get('error/observe');
     expect(observe instanceof Map).toBe(true);
-    expect(observe.has(keyword('tap'))).toBe(true);
-    expect(observe.has(keyword('finally'))).toBe(true);
+    expect(observe.has('tap')).toBe(true);
+    expect(observe.has('finally')).toBe(true);
   });
 });
 
@@ -91,7 +90,7 @@ describe('installModules', () => {
     installModules(sessionInstance, catalog);
 
     // After installModules, :error namespace is in env
-    expect(sessionInstance.env.has(keyword('error'))).toBe(true);
+    expect(sessionInstance.env.has('error')).toBe(true);
 
     // use(:error) imports retry into current env
     const cellEntry = await sessionInstance.evalCell('null | use(:error) | reify(:retry) | /kind');
@@ -106,7 +105,7 @@ describe('installModules', () => {
     deps.set('error/observe', ['error']);
     const catalog = await resolveModules(libDir, { dependencies: deps });
     expect(catalog.size).toBeGreaterThanOrEqual(3);
-    const names = [...catalog.keys()].map(k => k.name).sort();
+    const names = [...catalog.keys()].sort();
     expect(names).toContain('error');
     expect(names).toContain('error/guards');
     expect(names).toContain('error/observe');

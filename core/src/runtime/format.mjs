@@ -3,15 +3,14 @@
 //
 // Meta lives in lib/qlang/core.qlang.
 
+import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import {
   isVec,
   isQMap,
   isQSet,
-  isKeyword,
   isErrorValue,
-  describeType,
-  keyword
+  describeType
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -78,7 +77,7 @@ export function toPlain(v) {
 function qMapToPlainObject(m) {
   const obj = {};
   for (const [k, val] of m) {
-    obj[isKeyword(k) ? k.name : String(k)] = toPlain(val);
+    obj[k] = toPlain(val);
   }
   return obj;
 }
@@ -96,7 +95,7 @@ export function fromPlain(plainVal) {
 function plainObjectToQMap(plainObj) {
   const qlangMap = new Map();
   for (const [plainKey, nestedVal] of Object.entries(plainObj)) {
-    qlangMap.set(keyword(plainKey), fromPlain(nestedVal));
+    qlangMap.set(plainKey, fromPlain(nestedVal));
   }
   return qlangMap;
 }
@@ -115,7 +114,7 @@ const PRINT_HANDLERS = {
   Boolean:  v => String(v),
   Number:   v => String(v),
   String:   escapeQlangStringLiteral,
-  Keyword:  k => ':' + k.name,
+  Keyword:  k => k.literal,
   Error:    (e, indent) => printMapLike('!{', e.descriptor, indent),
   Vec:      (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:      (m, indent) => printMapLike('{', m, indent),
@@ -132,7 +131,9 @@ function escapeQlangStringLiteral(s) {
     .replace(/"/g, '\\"')
     .replace(/\n/g, '\\n')
     .replace(/\t/g, '\\t')
-    .replace(/\r/g, '\\r')}"`;
+    .replace(/\r/g, '\\r')
+    .replace(/[\b]/g, '\\b')
+    .replace(/\f/g, '\\f')}"`;
 }
 
 function printMapLike(open, m, indent) {
@@ -144,12 +145,12 @@ function printMapLike(open, m, indent) {
   const hasComposite = entries.some(([_k, v]) =>
     isQMap(v) || isVec(v) || isQSet(v) || isErrorValue(v));
   if (entries.length <= 2 && !hasComposite) {
-    const inner = entries.map(([k, v]) => `${printValue(k, indent)} ${printValue(v, indent)}`).join(' ');
+    const inner = entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent)}`).join(' ');
     return `${open}${inner}}`;
   }
   const pad = '  '.repeat(indent + 1);
   const closePad = '  '.repeat(indent);
-  const lines = entries.map(([k, v]) => `${pad}${printValue(k, indent + 1)} ${printValue(v, indent + 1)}`);
+  const lines = entries.map(([k, v]) => `${pad}${canonicalKeywordLiteral(k)} ${printValue(v, indent + 1)}`);
   return `${open}\n${lines.join('\n')}\n${closePad}}`;
 }
 
@@ -165,7 +166,7 @@ const CELL_HANDLERS = {
   Boolean:  v => String(v),
   Number:   v => String(v),
   String:   v => v,
-  Keyword:  k => ':' + k.name,
+  Keyword:  k => k.literal,
   Vec:      v => renderInline(v),
   Map:      m => renderInline(m),
   Set:      s => renderInline(s),
@@ -177,7 +178,7 @@ const INLINE_HANDLERS = {
   Boolean:  v => String(v),
   Number:   v => String(v),
   String:   escapeQlangStringLiteral,
-  Keyword:  k => ':' + k.name,
+  Keyword:  k => k.literal,
   Vec:      v => `[${v.map(renderInline).join(' ')}]`,
   Map:      m => `{${mapEntriesInline(m)}}`,
   Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
@@ -190,7 +191,7 @@ function renderInline(v) {
 
 function mapEntriesInline(m) {
   return [...m]
-    .map(([k, v]) => `${renderInline(k)} ${renderInline(v)}`)
+    .map(([k, v]) => `${canonicalKeywordLiteral(k)} ${renderInline(v)}`)
     .join(' ');
 }
 
@@ -234,8 +235,7 @@ export const table = nullaryOp('table', (subject) => {
 function buildRowCache(row) {
   const byName = new Map();
   for (const k of row.keys()) {
-    const name = isKeyword(k) ? k.name : String(k);
-    byName.set(name, k);
+    byName.set(k, k);
   }
   return { row, get: (name) => byName.get(name) };
 }
@@ -246,7 +246,7 @@ function collectColumnOrder(rowCaches) {
   for (const cache of rowCaches) {
     for (const name of (function* () {
       for (const k of cache.row.keys()) {
-        yield isKeyword(k) ? k.name : String(k);
+        yield k;
       }
     })()) {
       if (!seen.has(name)) {
@@ -259,5 +259,5 @@ function collectColumnOrder(rowCaches) {
 }
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/json'),  json);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/table'), table);
+PRIMITIVE_REGISTRY.bind('qlang/prim/json',  json);
+PRIMITIVE_REGISTRY.bind('qlang/prim/table', table);

@@ -38,6 +38,50 @@ describe('parse — scalar literals', () => {
     expect(ast.value).toBe('line1\nline2');
   });
 
+  it('parses JSON unicode escape \\uXXXX', () => {
+    const ast = parse('"\\u0041"');
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('A');
+  });
+
+  it('parses JSON unicode escape for non-ASCII', () => {
+    const ast = parse('"caf\\u00e9"');
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('café');
+  });
+
+  it('parses JSON unicode escape \\u0000 (null byte)', () => {
+    const ast = parse('"a\\u0000b"');
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('a\x00b');
+  });
+
+  it('parses \\b (backspace)', () => {
+    const ast = parse('"a\\bb"');
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('a\bb');
+  });
+
+  it('parses \\f (form feed)', () => {
+    const ast = parse('"a\\fb"');
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('a\fb');
+  });
+
+  it('parses \\/ (solidus)', () => {
+    const ast = parse('"a\\/b"');
+    expect(ast.type).toBe('StringLit');
+    expect(ast.value).toBe('a/b');
+  });
+
+  it('rejects invalid hex in \\u escape', () => {
+    expect(() => parse('"\\u00GG"')).toThrow();
+  });
+
+  it('rejects incomplete \\u escape', () => {
+    expect(() => parse('"\\u00"')).toThrow();
+  });
+
   it('parses true', () => {
     const ast = parse('true');
     expect(ast.type).toBe('BooleanLit');

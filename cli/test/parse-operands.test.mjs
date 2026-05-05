@@ -18,7 +18,7 @@ describe('parseJson — happy path', () => {
     const cellEntry = await runQuery('"{\\"name\\":\\"alice\\"}" | parseJson', noopIo);
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBeInstanceOf(Map);
-    expect(cellEntry.result.get(keyword('name'))).toBe('alice');
+    expect(cellEntry.result.get('name')).toBe('alice');
   });
 
   it('lifts a JSON array into a Vec', async () => {
@@ -68,7 +68,7 @@ describe('parseTjson — happy path', () => {
     const cellEntry = await runQuery(
       '{:role :admin} | tjson | parseTjson | /role',
       noopIo);
-    expect(cellEntry.result).toBe(keyword('admin'));
+    expect(cellEntry.result).toEqual(keyword('admin'));
   });
 
   it('round-trips a Vec of mixed scalars verbatim', async () => {

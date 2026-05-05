@@ -69,7 +69,7 @@ describe('retry — recovers from a single transient failure', () => {
     // drops through to the else branch and re-lifts the materialized
     // descriptor into a fresh error on the fail-track.
     const errorResult = await runErr(sessionInstance, '42 | retry(count, 0)');
-    expect(errorResult.descriptor.get(keyword('thrown'))).toEqual(keyword('CountSubjectNotContainer'));
+    expect(errorResult.descriptor.get('thrown')).toEqual(keyword('CountSubjectNotContainer'));
   });
 
   it('retries the documented number of attempts before re-lifting', async () => {
@@ -77,7 +77,7 @@ describe('retry — recovers from a single transient failure', () => {
     // The returned error's :trail accumulates the deflected steps
     // from the recursive body of retry.
     const errorResult = await runErr(sessionInstance, '42 | retry(count, 2)');
-    expect(errorResult.descriptor.get(keyword('kind'))).toEqual(keyword('type-error'));
+    expect(errorResult.descriptor.get('kind')).toEqual(keyword('type-error'));
   });
 });
 

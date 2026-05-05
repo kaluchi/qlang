@@ -32,7 +32,7 @@ describe('renderCellOutcome — error paths', () => {
 
   it('exits 1 silently for an unhandled fail-track error value', () => {
     const errorDescriptor = new Map([
-      [keyword('thrown'), keyword('FilterSubjectNotContainer')]
+      ['thrown', keyword('FilterSubjectNotContainer')]
     ]);
     const cellEntry = makeCellEntry({ result: makeErrorValue(errorDescriptor) });
     const cliOutcome = renderCellOutcome(cellEntry, {
@@ -48,8 +48,8 @@ describe('renderCellOutcome — error paths', () => {
 describe('renderCellOutcome — script-mode encoding', () => {
   it('encodes a Map success value as pretty JSON when format is json', () => {
     const result = new Map([
-      [keyword('a'), 1],
-      [keyword('b'), 'two']
+      ['a', 1],
+      ['b', 'two']
     ]);
     const cliOutcome = renderCellOutcome(makeCellEntry({ result }), {
       resolvedFormat: 'json',
@@ -71,7 +71,7 @@ describe('renderCellOutcome — script-mode encoding', () => {
     // Raw input but the query produced a Map — no natural raw form;
     // printValue renders the qlang literal so the user still sees
     // something structural.
-    const result = new Map([[keyword('k'), 1]]);
+    const result = new Map([['k', 1]]);
     const cliOutcome = renderCellOutcome(makeCellEntry({ result }), {
       resolvedFormat: 'raw',
       didExplicitStdoutEffect: false

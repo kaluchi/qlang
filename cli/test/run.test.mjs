@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { keyword } from '@kaluchi/qlang-core';
+
 
 function captureIoContext() {
   const stdoutChunks = [];
@@ -48,7 +48,7 @@ describe('runQuery', () => {
 
   it('seeds the cell pipeValue from runOpts.initialPipeValue', async () => {
     const io = captureIoContext();
-    const seeded = new Map([[keyword('k'), 'v']]);
+    const seeded = new Map([['k', 'v']]);
     const cellEntry = await runQuery('/k', io, { initialPipeValue: seeded });
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe('v');

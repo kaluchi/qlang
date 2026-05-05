@@ -14,7 +14,12 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
-import { isVec, isQMap, isQSet, isKeyword, describeType, keyword } from '../types.mjs';
+import { isVec, isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+
+function setHasKeywordName(s, name) {
+  for (const v of s) if (isKeyword(v) && v.name === name) return true;
+  return false;
+}
 import {
   declareSubjectError,
   declareComparabilityError,
@@ -37,10 +42,17 @@ const MinusBareEmpty = declareShapeError('MinusBareEmpty',
 const InterBareEmpty = declareShapeError('InterBareEmpty',
   () => 'inter (bare form) requires a non-empty Vec of operands');
 
+function setAddDedup(s, v) {
+  if (isKeyword(v)) {
+    for (const existing of s) if (isKeyword(existing) && existing.name === v.name) return;
+  }
+  s.add(v);
+}
+
 function unionPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
     const out = new Set(left);
-    for (const v of right) out.add(v);
+    for (const v of right) setAddDedup(out, v);
     return out;
   }
   if (isQMap(left) && isQMap(right)) {
@@ -54,7 +66,10 @@ function unionPair(left, right) {
 function minusPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
     const out = new Set();
-    for (const v of left) if (!right.has(v)) out.add(v);
+    for (const v of left) {
+      const inRight = isKeyword(v) ? setHasKeywordName(right, v.name) : right.has(v);
+      if (!inRight) out.add(v);
+    }
     return out;
   }
   if (isQMap(left) && isQMap(right)) {
@@ -65,7 +80,7 @@ function minusPair(left, right) {
   if (isQMap(left) && isQSet(right)) {
     const out = new Map();
     for (const [k, v] of left) {
-      if (!isKeyword(k) || !right.has(k)) out.set(k, v);
+      if (!setHasKeywordName(right, k)) out.set(k, v);
     }
     return out;
   }
@@ -75,7 +90,10 @@ function minusPair(left, right) {
 function interPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
     const out = new Set();
-    for (const v of left) if (right.has(v)) out.add(v);
+    for (const v of left) {
+      const inRight = isKeyword(v) ? setHasKeywordName(right, v.name) : right.has(v);
+      if (inRight) out.add(v);
+    }
     return out;
   }
   if (isQMap(left) && isQMap(right)) {
@@ -86,7 +104,7 @@ function interPair(left, right) {
   if (isQMap(left) && isQSet(right)) {
     const out = new Map();
     for (const [k, v] of left) {
-      if (isKeyword(k) && right.has(k)) out.set(k, v);
+      if (setHasKeywordName(right, k)) out.set(k, v);
     }
     return out;
   }
@@ -127,6 +145,6 @@ export const inter = overloadedOp('inter', 2, {
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/union'), union);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/minus'), minus);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/inter'), inter);
+PRIMITIVE_REGISTRY.bind('qlang/prim/union', union);
+PRIMITIVE_REGISTRY.bind('qlang/prim/minus', minus);
+PRIMITIVE_REGISTRY.bind('qlang/prim/inter', inter);

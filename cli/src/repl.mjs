@@ -36,7 +36,6 @@ import {
   printValue,
   isErrorValue,
   materializeTrail,
-  keyword,
   langRuntime
 } from '@kaluchi/qlang-core';
 import { bindIoOperands } from './io-operands.mjs';
@@ -76,7 +75,7 @@ same REPL session.
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
   const builtinNames = new Set(
-    [...(await langRuntime()).keys()].map((k) => k.name)
+    [...(await langRuntime()).keys()]
   );
 
   // In raw-mode TTY the terminal does not translate `\n` into CRLF
@@ -170,7 +169,7 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
   stdoutWrite(highlightAnsi(printValue(result), builtinNames) + '\n');
 }
 
-const TRAIL_KEY = keyword('trail');
+const TRAIL_KEY = 'trail';
 
 function materializeForDisplay(errorValue) {
   const trailEntries = materializeTrail(errorValue);

@@ -14,8 +14,8 @@ describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
     const sessionInstance = await createSession();
     expect(sessionInstance.env).toBeInstanceOf(Map);
-    expect(sessionInstance.env.has(keyword('count'))).toBe(true);
-    expect(sessionInstance.env.has(keyword('filter'))).toBe(true);
+    expect(sessionInstance.env.has('count')).toBe(true);
+    expect(sessionInstance.env.has('filter')).toBe(true);
   });
 
   it('evalCell returns an entry with result and updates history', async () => {
@@ -31,7 +31,7 @@ describe('createSession lifecycle', () => {
     // as the implicit subject — `qlang '/key'` then acts as a
     // pure filter without needing `@in | parseJson | …` ceremony.
     const sessionInstance = await createSession();
-    const seeded = new Map([[keyword('a'), 1], [keyword('b'), 2]]);
+    const seeded = new Map([['a', 1], ['b', 2]]);
     const cellEntry = await sessionInstance.evalCell('/a', { initialPipeValue: seeded });
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(1);
@@ -297,7 +297,7 @@ function mockLocator(namespaceName) {
 describe('createSession with locator — lazy module loading', () => {
   it('installs locator under :qlang/locator in env', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    expect(locatorSession.env.has(keyword('qlang/locator'))).toBe(true);
+    expect(locatorSession.env.has('qlang/locator')).toBe(true);
   });
 
   it('use(:ns) triggers locator when namespace not pre-installed', async () => {
@@ -341,9 +341,9 @@ describe('createSession with locator — lazy module loading', () => {
     expect(reifyCell.error).toBeNull();
     const reifyDesc = reifyCell.result;
     expect(isQMap(reifyDesc)).toBe(true);
-    expect(reifyDesc.get(keyword('kind'))).toEqual(keyword('builtin'));
-    expect(reifyDesc.get(keyword('captured'))).toEqual([0, 0]);
-    expect(reifyDesc.get(keyword('effectful'))).toBe(true);
+    expect(reifyDesc.get('kind')).toEqual(keyword('builtin'));
+    expect(reifyDesc.get('captured')).toEqual([0, 0]);
+    expect(reifyDesc.get('effectful')).toBe(true);
   });
 
   it('session without locator throws UseNamespaceNotFound on unknown namespace', async () => {

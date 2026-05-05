@@ -28,7 +28,7 @@
 // or 2.
 
 import { expect } from 'vitest';
-import { QlangTypeError, keyword } from '@kaluchi/qlang-core';
+import { QlangTypeError } from '@kaluchi/qlang-core';
 
 // expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext)
 //   → the JS error instance (for further ad-hoc assertions)
@@ -43,7 +43,7 @@ export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedC
   const errorValue = cellEntry.result;
   expect(errorValue?.type, 'cellEntry.result must be an error value').toBe('error');
 
-  const thrownKeyword = errorValue.descriptor.get(keyword('thrown'));
+  const thrownKeyword = errorValue.descriptor.get('thrown');
   expect(thrownKeyword?.type, ':thrown must be a keyword').toBe('keyword');
   expect(thrownKeyword.name).toBe(expectedClassName);
 

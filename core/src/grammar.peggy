@@ -480,9 +480,16 @@ DoubleStringChar
 EscapeChar
   = '"' { return '"'; }
   / "\\" { return "\\"; }
+  / "/" { return '/'; }
   / "n" { return '\n'; }
   / "t" { return '\t'; }
   / "r" { return '\r'; }
+  / "b" { return '\b'; }
+  / "f" { return '\f'; }
+  / "u" hex:$(HexDigit HexDigit HexDigit HexDigit) { return String.fromCharCode(parseInt(hex, 16)); }
+
+HexDigit
+  = [0-9a-fA-F]
 
 NumberLit
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?

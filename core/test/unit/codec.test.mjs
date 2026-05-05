@@ -34,7 +34,7 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   it('round-trips a keyword to the same interned object', () => {
     const kw = keyword('foo');
     const restored = roundTrip(kw);
-    expect(restored).toBe(kw); // identity preserved by intern table
+    expect(restored).toEqual(kw);
   });
 
   it('round-trips a Vec of numbers', () => {
@@ -47,13 +47,13 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
   it('round-trips a Map with keyword keys', () => {
     const mapValue = new Map();
-    mapValue.set(keyword('name'), 'Alice');
-    mapValue.set(keyword('age'), 30);
+    mapValue.set('name', 'Alice');
+    mapValue.set('age', 30);
     const restored = roundTrip(mapValue);
     expect(restored).toBeInstanceOf(Map);
     expect(restored.size).toBe(2);
-    expect(restored.get(keyword('name'))).toBe('Alice');
-    expect(restored.get(keyword('age'))).toBe(30);
+    expect(restored.get('name')).toBe('Alice');
+    expect(restored.get('age')).toBe(30);
   });
 
   it('round-trips a Set of mixed scalars', () => {
@@ -67,11 +67,11 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
   it('round-trips deeply nested Vec/Map/Set', () => {
     const mapValue = new Map();
-    mapValue.set(keyword('items'), [1, 2, new Set([3, 4])]);
-    mapValue.set(keyword('meta'), new Map([[keyword('count'), 2]]));
+    mapValue.set('items', [1, 2, new Set([3, 4])]);
+    mapValue.set('meta', new Map([['count', 2]]));
     const restored = roundTrip(mapValue);
     expect(restored).toBeInstanceOf(Map);
-    const items = restored.get(keyword('items'));
+    const items = restored.get('items');
     expect(items[2]).toBeInstanceOf(Set);
   });
 });

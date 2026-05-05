@@ -22,13 +22,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
+import { isErrorValue } from '../../src/types.mjs';
 
-const OK_KW       = keyword('ok');
-const SNIPPET_KW  = keyword('snippet');
-const EXPECTED_KW = keyword('expected');
-const ERROR_KW    = keyword('error');
-const ACTUAL_KW   = keyword('actual');
+const OK_KW       = 'ok';
+const SNIPPET_KW  = 'snippet';
+const EXPECTED_KW = 'expected';
+const ERROR_KW    = 'error';
+const ACTUAL_KW   = 'actual';
 
 // Collect failing {operand, snippet, expected, error} rows by
 // calling runExamples on each binding in the manifest and

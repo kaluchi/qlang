@@ -22,7 +22,13 @@ export function deepEqual(a, b) {
   }
   if (a instanceof Set) {
     if (!(b instanceof Set) || a.size !== b.size) return false;
-    for (const v of a) if (!b.has(v)) return false;
+    for (const v of a) {
+      if (isKeyword(v)) {
+        let found = false;
+        for (const w of b) if (isKeyword(w) && w.name === v.name) { found = true; break; }
+        if (!found) return false;
+      } else if (!b.has(v)) return false;
+    }
     return true;
   }
   if (isKeyword(a)) {

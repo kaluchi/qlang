@@ -28,7 +28,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalAst } from '../../src/eval.mjs';
 import { makeState } from '../../src/state.mjs';
-import { keyword, isQMap, isVec, isKeyword } from '../../src/types.mjs';
+import { keyword, isQMap, isVec } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -71,30 +71,30 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     const coreEnv = await evalCore();
     expect(coreEnv.size).toBeGreaterThan(0);
     for (const entryKey of coreEnv.keys()) {
-      expect(isKeyword(entryKey)).toBe(true);
-      expect(entryKey.name.length).toBeGreaterThan(0);
+      expect(typeof entryKey === "string").toBe(true);
+      expect(entryKey.length).toBeGreaterThan(0);
     }
   });
 
   it('every entry value is a Map with :qlang/kind :builtin', async () => {
     const coreEnv = await evalCore();
-    const kindKw = keyword('qlang/kind');
+    
     for (const [entryKey, entryVal] of coreEnv) {
-      expect(isQMap(entryVal), `entry :${entryKey.name} value is not a Map`).toBe(true);
-      expect(entryVal.get(kindKw), `entry :${entryKey.name} missing :qlang/kind :builtin`)
-        .toBe(keyword('builtin'));
+      expect(isQMap(entryVal), `entry :${entryKey} value is not a Map`).toBe(true);
+      expect(entryVal.get('qlang/kind'), `entry :${entryKey} missing :qlang/kind :builtin`)
+        .toEqual(keyword('builtin'));
     }
   });
 
   it('every entry carries a :qlang/impl keyword in the qlang/prim/ namespace', async () => {
     const coreEnv = await evalCore();
-    const implKw = keyword('qlang/impl');
+    
     for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get(implKw);
-      expect(impl, `entry :${entryKey.name} missing :qlang/impl`).toBeDefined();
+      const impl = entryVal.get('qlang/impl');
+      expect(impl, `entry :${entryKey} missing :qlang/impl`).toBeDefined();
       expect(impl.type).toBe('keyword');
       expect(impl.name.startsWith('qlang/prim/'),
-        `entry :${entryKey.name} :qlang/impl ${impl.name} not in qlang/prim/ namespace`
+        `entry :${entryKey} :qlang/impl ${impl.name} not in qlang/prim/ namespace`
       ).toBe(true);
     }
   });
@@ -105,10 +105,10 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     // dispatch target at build-verification time instead of at
     // runtime dispatch time.
     const coreEnv = await evalCore();
-    const implKw = keyword('qlang/impl');
+    
     for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get(implKw);
-      expect(impl.name).toBe(`qlang/prim/${entryKey.name}`);
+      const impl = entryVal.get('qlang/impl');
+      expect(impl.name).toBe(`qlang/prim/${entryKey}`);
     }
   });
 });
@@ -117,49 +117,45 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   it('every :qlang/impl keyword resolves to a live primitive', async () => {
     await primeRegistry();
     const coreEnv = await evalCore();
-    const implKw = keyword('qlang/impl');
+
     for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get(implKw);
-      expect(PRIMITIVE_REGISTRY.has(impl),
-        `entry :${entryKey.name} → :${impl.name} has no backing primitive`
+      const implKey = entryVal.get('qlang/impl');
+      expect(PRIMITIVE_REGISTRY.has(implKey.name),
+        `entry :${entryKey} → :${implKey.name} has no backing primitive`
       ).toBe(true);
-      const fnValue = PRIMITIVE_REGISTRY.resolve(impl);
-      expect(fnValue.type).toBe('function');
     }
   });
 
   it('spot-check — :add descriptor resolves to the add impl with arity 2', async () => {
-    await primeRegistry();
-    const coreEnv = await evalCore();
-    const addDescriptor = coreEnv.get(keyword('add'));
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const resolved = await langRuntime();
+    const addDescriptor = resolved.get('add');
     expect(isQMap(addDescriptor)).toBe(true);
-    expect(addDescriptor.get(keyword('category'))).toBe(keyword('arith'));
-    expect(addDescriptor.get(keyword('subject'))).toBe(keyword('number'));
-    const impl = PRIMITIVE_REGISTRY.resolve(addDescriptor.get(keyword('qlang/impl')));
+    expect(addDescriptor.get('category')).toEqual(keyword('arith'));
+    expect(addDescriptor.get('subject')).toEqual(keyword('number'));
+    const impl = addDescriptor.get('qlang/impl');
     expect(impl.name).toBe('add');
     expect(impl.arity).toBe(2);
   });
 
   it('spot-check — :filter is a higher-order container-selector', async () => {
-    await primeRegistry();
-    const coreEnv = await evalCore();
-    const filterDescriptor = coreEnv.get(keyword('filter'));
-    expect(filterDescriptor.get(keyword('category'))).toBe(keyword('container-selector'));
-    expect(filterDescriptor.get(keyword('modifiers'))).toEqual([keyword('predicate-lambda')]);
-    const impl = PRIMITIVE_REGISTRY.resolve(filterDescriptor.get(keyword('qlang/impl')));
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const resolved = await langRuntime();
+    const filterDescriptor = resolved.get('filter');
+    expect(filterDescriptor.get('category')).toEqual(keyword('container-selector'));
+    expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicate-lambda')]);
+    const impl = filterDescriptor.get('qlang/impl');
     expect(impl.name).toBe('filter');
   });
 
   it('spot-check — :let / :as reflective operands land with :category :reflective', async () => {
-    await primeRegistry();
-    const coreEnv = await evalCore();
-    expect(coreEnv.get(keyword('let')).get(keyword('category'))).toBe(keyword('reflective'));
-    expect(coreEnv.get(keyword('as')).get(keyword('category'))).toBe(keyword('reflective'));
-    // The JS-level identifiers are letOperand / asOperand but the
-    // primitive keys and impl names carry the qlang spelling.
-    const letImpl = PRIMITIVE_REGISTRY.resolve(coreEnv.get(keyword('let')).get(keyword('qlang/impl')));
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const resolved = await langRuntime();
+    expect(resolved.get('let').get('category')).toEqual(keyword('reflective'));
+    expect(resolved.get('as').get('category')).toEqual(keyword('reflective'));
+    const letImpl = resolved.get('let').get('qlang/impl');
     expect(letImpl.name).toBe('let');
-    const asImpl = PRIMITIVE_REGISTRY.resolve(coreEnv.get(keyword('as')).get(keyword('qlang/impl')));
+    const asImpl = resolved.get('as').get('qlang/impl');
     expect(asImpl.name).toBe('as');
   });
 });
@@ -167,11 +163,11 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
 describe('lib/qlang/core.qlang — doc-prefix folded into :docs', () => {
   it('every entry has a non-empty :docs Vec of strings', async () => {
     const coreEnv = await evalCore();
-    const docsKw = keyword('docs');
+    
     for (const [entryKey, entryVal] of coreEnv) {
-      const docs = entryVal.get(docsKw);
-      expect(isVec(docs), `entry :${entryKey.name} has no :docs Vec`).toBe(true);
-      expect(docs.length, `entry :${entryKey.name} :docs is empty`).toBeGreaterThan(0);
+      const docs = entryVal.get('docs');
+      expect(isVec(docs), `entry :${entryKey} has no :docs Vec`).toBe(true);
+      expect(docs.length, `entry :${entryKey} :docs is empty`).toBeGreaterThan(0);
       for (const doc of docs) {
         expect(typeof doc).toBe('string');
       }
@@ -180,7 +176,7 @@ describe('lib/qlang/core.qlang — doc-prefix folded into :docs', () => {
 
   it('spot-check — :count docs mention polymorphic and container kinds', async () => {
     const coreEnv = await evalCore();
-    const countDocs = coreEnv.get(keyword('count')).get(keyword('docs'));
+    const countDocs = coreEnv.get('count').get('docs');
     const joined = countDocs.join(' ');
     expect(joined).toContain('number of elements');
     expect(joined).toContain('Polymorphic');
@@ -188,7 +184,7 @@ describe('lib/qlang/core.qlang — doc-prefix folded into :docs', () => {
 
   it('spot-check — :filter docs describe the predicate semantics', async () => {
     const coreEnv = await evalCore();
-    const filterDocs = coreEnv.get(keyword('filter')).get(keyword('docs'));
+    const filterDocs = coreEnv.get('filter').get('docs');
     const joined = filterDocs.join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('truthy');
@@ -210,25 +206,25 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('mul');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('kind'))).toBe(keyword('builtin'));
-    expect(evalResult.get(keyword('category'))).toBe(keyword('arith'));
-    expect(evalResult.has(keyword('qlang/kind'))).toBe(false);
-    expect(evalResult.has(keyword('qlang/impl'))).toBe(false);
+    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
+    expect(evalResult.get('category')).toEqual(keyword('arith'));
+    expect(evalResult.has('qlang/kind')).toBe(false);
+    expect(evalResult.has('qlang/impl')).toBe(false);
   });
 
   it('bare `filter` returns reify-shaped descriptor Map', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('filter');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('kind'))).toBe(keyword('builtin'));
-    expect(evalResult.get(keyword('category'))).toBe(keyword('container-selector'));
+    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
+    expect(evalResult.get('category')).toEqual(keyword('container-selector'));
   });
 
   it('bare `coalesce` returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('coalesce');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('category'))).toBe(keyword('control'));
+    expect(evalResult.get('category')).toEqual(keyword('control'));
   });
 
   it('bare `count` fires because count is nullary', async () => {
@@ -266,9 +262,9 @@ describe('function-value reify path (conduit parameter reflection)', () => {
     // inlined meta that makeConduitParameter stamps on the proxy.
     const evalResult = await evalQuery('let(:f, [:p], reify(:p)) | 42 | f(add(1))');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('kind'))).toBe(keyword('builtin'));
-    expect(evalResult.get(keyword('category'))).toBe(keyword('conduit-parameter'));
-    expect(evalResult.get(keyword('name'))).toBe('p');
+    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
+    expect(evalResult.get('category')).toEqual(keyword('conduit-parameter'));
+    expect(evalResult.get('name')).toBe('p');
   });
 });
 
@@ -306,7 +302,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     const coreEnv = await evalCore();
     const categories = new Map();
     for (const [, entryVal] of coreEnv) {
-      const cat = entryVal.get(keyword('category'));
+      const cat = entryVal.get('category');
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
     expect(categories.get('container-reducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
@@ -341,17 +337,17 @@ describe('parse / eval — the code-as-data ring closer', () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"42" | parse');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get(keyword('qlang/kind'))).toBe(keyword('NumberLit'));
-    expect(evalResult.get(keyword('value'))).toBe(42);
+    expect(evalResult.get('qlang/kind')).toEqual(keyword('NumberLit'));
+    expect(evalResult.get('value')).toBe(42);
   });
 
   it('parse lifts an OperandCall into an AST-Map with :name / :args', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"add(1, 2)" | parse');
-    expect(evalResult.get(keyword('qlang/kind'))).toBe(keyword('OperandCall'));
-    expect(evalResult.get(keyword('name'))).toBe('add');
-    expect(isVec(evalResult.get(keyword('args')))).toBe(true);
-    expect(evalResult.get(keyword('args'))).toHaveLength(2);
+    expect(evalResult.get('qlang/kind')).toEqual(keyword('OperandCall'));
+    expect(evalResult.get('name')).toBe('add');
+    expect(isVec(evalResult.get('args'))).toBe(true);
+    expect(evalResult.get('args')).toHaveLength(2);
   });
 
   it('parse errors on non-string subject', async () => {

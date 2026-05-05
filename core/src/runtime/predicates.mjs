@@ -19,7 +19,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import { isTruthy, describeType, keyword } from '../types.mjs';
+import { isTruthy, describeType } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
@@ -83,19 +83,19 @@ export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subjec
 export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/eq'),  eq);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/gt'),  gt);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/lt'),  lt);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/gte'), gte);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/lte'), lte);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/and'), and);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/or'),  or);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/not'), not);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isString'),  isString);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isNumber'),  isNumber);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isVec'),     isVec);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isMap'),     isMap);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isSet'),     isSet);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isKeyword'), isKeyword);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isBoolean'), isBoolean);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/isNull'),    isNull);
+PRIMITIVE_REGISTRY.bind('qlang/prim/eq',  eq);
+PRIMITIVE_REGISTRY.bind('qlang/prim/gt',  gt);
+PRIMITIVE_REGISTRY.bind('qlang/prim/lt',  lt);
+PRIMITIVE_REGISTRY.bind('qlang/prim/gte', gte);
+PRIMITIVE_REGISTRY.bind('qlang/prim/lte', lte);
+PRIMITIVE_REGISTRY.bind('qlang/prim/and', and);
+PRIMITIVE_REGISTRY.bind('qlang/prim/or',  or);
+PRIMITIVE_REGISTRY.bind('qlang/prim/not', not);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isString',  isString);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isNumber',  isNumber);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isVec',     isVec);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isMap',     isMap);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isSet',     isSet);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isKeyword', isKeyword);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isBoolean', isBoolean);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isNull',    isNull);

@@ -42,10 +42,11 @@ development.
 - **Variant-B catalog**: operand metadata — `:docs`, `:examples`,
   `:throws`, `:category`, `:subject`, `:modifiers`, `:returns` — lives
   only in `core/lib/qlang/core.qlang`. The JS side registers executable
-  impls via `PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/<name>'), …)`
-  at module-load time and carries only `{ captured }` meta through
-  `makeFn`. `langRuntime()` resolves `:qlang/impl :qlang/prim/<name>`
-  handles on the template env once, then seals the registry.
+  impls via `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at
+  module-load time. Map keys are plain strings throughout; keyword
+  objects exist as pipeline VALUES carrying `.literal` for display.
+  `langRuntime()` resolves `:qlang/impl` handles on the template env
+  once, then seals the registry.
 - **Per-site error classes**: one throw site, one class. Built via the
   factories in `core/src/operand-errors.mjs` (`declareSubjectError`,
   `declareModifierError`, `declareElementError`,

@@ -16,7 +16,7 @@ import { parse } from '../src/parse.mjs';
 import { evalAst } from '../src/eval.mjs';
 import { makeState } from '../src/state.mjs';
 import { langRuntime } from '../src/runtime/index.mjs';
-import { keyword } from '../src/types.mjs';
+
 
 // discoverModules(libDir) → Map<namespaceName, filePath>
 //
@@ -35,7 +35,7 @@ export function discoverModules(libDir) {
   return modules;
 }
 
-// resolveModules(libDir, opts?) → Map<keyword, Map>
+// resolveModules(libDir, opts?) → Map<Map>
 //
 // Discovers, evaluates, and returns a catalog of module envs.
 // Each entry: namespace keyword → module export env (Map).
@@ -76,7 +76,7 @@ export async function resolveModules(libDir, opts = {}) {
       }
     }
 
-    resolverCatalog.set(keyword(namespaceName), moduleExports);
+    resolverCatalog.set(namespaceName, moduleExports);
   }
 
   return resolverCatalog;
@@ -87,8 +87,8 @@ export async function resolveModules(libDir, opts = {}) {
 // Installs resolved module catalog into a session. Each module env
 // is bound under its namespace keyword so `use(:qlang/error)` works.
 export function installModules(session, catalog) {
-  for (const [nsKeyword, moduleEnv] of catalog) {
-    session.bind(nsKeyword.name, moduleEnv);
+  for (const [nsName, moduleEnv] of catalog) {
+    session.bind(nsName, moduleEnv);
   }
 }
 

@@ -39,7 +39,6 @@ import {
 import {
   printValue,
   toTaggedJSON,
-  keyword,
   describeType
 } from '@kaluchi/qlang-core';
 
@@ -64,7 +63,7 @@ function renderTemplatePlaceholder(subject, placeholderExpr) {
       projectedValue = null;
       break;
     }
-    const lookedUp = projectedValue.get(keyword(segmentName));
+    const lookedUp = projectedValue.get(segmentName);
     projectedValue = lookedUp === undefined ? null : lookedUp;
   }
   if (projectedValue === null) return 'null';

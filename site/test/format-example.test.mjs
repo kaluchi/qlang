@@ -5,7 +5,7 @@ import { formatExample } from '../src/lib/format-example.js';
 let builtins;
 beforeAll(async () => {
   const runtime = await langRuntime();
-  builtins = new Set([...runtime.keys()].map(k => k.name));
+  builtins = new Set([...runtime.keys()]);
 });
 
 const fmt = code => formatExample(code, builtins);

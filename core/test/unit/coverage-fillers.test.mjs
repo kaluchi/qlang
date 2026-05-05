@@ -12,10 +12,10 @@ import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
+  keyword,
   makeSnapshot,
   makeConduit,
   makeErrorValue,
-  keyword,
   isErrorValue
 } from '../../src/types.mjs';
 import {
@@ -151,24 +151,24 @@ describe('setops full form (two captured args)', async () => {
   it('minus full form computes left minus right via two captured pipelines', async () => {
     const result = await evalQuery('null | minus({:a 1 :b 2 :tmp 3}, #{:tmp})');
     expect(result).toBeInstanceOf(Map);
-    expect(result.has(keyword('a'))).toBe(true);
-    expect(result.has(keyword('b'))).toBe(true);
-    expect(result.has(keyword('tmp'))).toBe(false);
+    expect(result.has('a')).toBe(true);
+    expect(result.has('b')).toBe(true);
+    expect(result.has('tmp')).toBe(false);
   });
 
   it('inter full form computes left inter right via two captured pipelines', async () => {
     const result = await evalQuery('null | inter({:a 1 :b 2 :c 3}, #{:a :b})');
     expect(result).toBeInstanceOf(Map);
-    expect(result.has(keyword('a'))).toBe(true);
-    expect(result.has(keyword('b'))).toBe(true);
-    expect(result.has(keyword('c'))).toBe(false);
+    expect(result.has('a')).toBe(true);
+    expect(result.has('b')).toBe(true);
+    expect(result.has('c')).toBe(false);
   });
 
   it('union full form computes left union right via two captured pipelines', async () => {
     const result = await evalQuery('null | union({:a 1}, {:b 2})');
     expect(result).toBeInstanceOf(Map);
-    expect(result.has(keyword('a'))).toBe(true);
-    expect(result.has(keyword('b'))).toBe(true);
+    expect(result.has('a')).toBe(true);
+    expect(result.has('b')).toBe(true);
   });
 });
 
@@ -232,11 +232,11 @@ describe('format.fromPlain — inverse of toPlain', async () => {
 
   it('objects lift into Map keyed by interned keywords', async () => {
     const { fromPlain } = await import('../../src/runtime/format.mjs');
-    const { keyword, isQMap } = await import('../../src/types.mjs');
+    const { isQMap } = await import('../../src/types.mjs');
     const lifted = fromPlain({ a: 1, b: 2 });
     expect(isQMap(lifted)).toBe(true);
-    expect(lifted.get(keyword('a'))).toBe(1);
-    expect(lifted.get(keyword('b'))).toBe(2);
+    expect(lifted.get('a')).toBe(1);
+    expect(lifted.get('b')).toBe(2);
   });
 
   it('round-trips nested plain JSON through toPlain and back', async () => {
@@ -315,14 +315,14 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
     // no .uri property — tests the false arm of `if (parseError.uri)`
     const errVal = errorFromParse(parseError);
     expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.has(keyword('uri'))).toBe(false);
+    expect(errVal.descriptor.has('uri')).toBe(false);
   });
 });
 
 describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   const coerceFault = Object.freeze(new Map([
-    [keyword('step'), Object.freeze(new Map([[keyword('text'), 'hostCoerce']]))],
-    [keyword('input'), 'coerce-input']
+    ['step', Object.freeze(new Map([['text', 'hostCoerce']]))],
+    ['input', 'coerce-input']
   ]));
 
   it('coerce passes through a QSet (JS Set) unchanged', async () => {
@@ -330,7 +330,7 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
     const err = Object.assign(new Error('foreign'), { mySet: qset });
     const errVal = errorFromForeign(err, null, coerceFault);
     expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.get(keyword('mySet'))).toBe(qset);
+    expect(errVal.descriptor.get('mySet')).toBe(qset);
   });
 
   it('coerce passes through an errorValue unchanged', async () => {
@@ -338,7 +338,7 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
     const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
     const errVal = errorFromForeign(err, null, coerceFault);
     expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.get(keyword('myErr'))).toBe(inner);
+    expect(errVal.descriptor.get('myErr')).toBe(inner);
   });
 });
 
@@ -350,8 +350,8 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     s.bind('bomb', bombFn);
     const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
-    expect(entry.result.descriptor.get(keyword('origin'))).toEqual(keyword('host'));
-    expect(entry.result.descriptor.get(keyword('kind'))).toEqual(keyword('foreign-error'));
+    expect(entry.result.descriptor.get('origin')).toEqual(keyword('host'));
+    expect(entry.result.descriptor.get('kind')).toEqual(keyword('foreign-error'));
   });
 });
 
@@ -378,7 +378,7 @@ describe('types.mjs — appendTrailNode stores entries verbatim without shape as
     // string) round-trips through _trailHead → materializeTrail
     // unchanged, proving the storage is verbatim.
     const { appendTrailNode, materializeTrail } = await import('../../src/types.mjs');
-    const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('type-error')]]));
+    const errVal = makeErrorValue(new Map([['kind', keyword('type-error')]]));
     const syntheticEntry = 'synthetic-trail-label';
     const trailed = appendTrailNode(errVal, syntheticEntry);
     expect(isErrorValue(trailed)).toBe(true);
@@ -409,11 +409,11 @@ describe('intro.mjs — RunExamplesNoExamplesField with non-keyword :kind', asyn
   it('uses "unknown" in error message when descriptor :kind is not a keyword', async () => {
     // Map with :kind = 42 (number, not keyword) and no :examples field
     const s = await createSession();
-    const desc = new Map([[keyword('kind'), 42]]);
+    const desc = new Map([['kind', 42]]);
     s.bind('badDesc', desc);
     const entry = await s.evalCell('badDesc | runExamples');
     expect(isErrorValue(entry.result)).toBe(true);
-    const msg = entry.result.descriptor.get(keyword('message'));
+    const msg = entry.result.descriptor.get('message');
     expect(msg).toContain('unknown');
   });
 });
@@ -476,9 +476,9 @@ describe('reify on a snapshot bound directly via session.bind', async () => {
     const s = await createSession();
     s.bind('snap', makeSnapshot(42, { name: 'snap' }));
     const result = (await s.evalCell('reify(:snap)')).result;
-    expect(result.get(keyword('kind'))).toEqual(keyword('snapshot'));
-    expect(result.get(keyword('value'))).toBe(42);
-    expect(result.get(keyword('type'))).toEqual(keyword('number'));
+    expect(result.get('kind')).toEqual(keyword('snapshot'));
+    expect(result.get('value')).toBe(42);
+    expect(result.get('type')).toEqual(keyword('number'));
   });
 });
 
@@ -505,29 +505,29 @@ describe('runExamples branch coverage', async () => {
     // eval would have raised.
     const s = await createSession();
     const result = (await s.evalCell('{:kind :builtin :examples [{:doc "caller-bound ident" :snippet "42 | unknownOp"}]} | runExamples | first')).result;
-    expect(result.get(keyword('ok'))).toBe(true);
-    expect(result.get(keyword('expected')) ?? null).toBe(null);
-    expect(result.get(keyword('error'))).toBe(null);
+    expect(result.get('ok')).toBe(true);
+    expect(result.get('expected') ?? null).toBe(null);
+    expect(result.get('error')).toBe(null);
   });
 
   it('demo-mode example with an unparseable snippet → ok=false with parse-error message', async () => {
     const s = await createSession();
     const result = (await s.evalCell('{:kind :builtin :examples [{:doc "unparseable" :snippet "|||"}]} | runExamples | first')).result;
-    expect(result.get(keyword('ok'))).toBe(false);
-    expect(typeof result.get(keyword('error'))).toBe('string');
+    expect(result.get('ok')).toBe(false);
+    expect(typeof result.get('error')).toBe('string');
   });
 
   it('assertion-mode example with a failing snippet → ok=false with runtime error message', async () => {
     const s = await createSession();
     const result = (await s.evalCell('{:kind :builtin :examples [{:doc "type mismatch" :snippet "42 | count" :expected "42"}]} | runExamples | first')).result;
-    expect(result.get(keyword('ok'))).toBe(false);
-    expect(result.get(keyword('error'))).toMatch(/Vec, Set, or Map/);
+    expect(result.get('ok')).toBe(false);
+    expect(result.get('error')).toMatch(/Vec, Set, or Map/);
   });
 
   it('assertion-mode example with an unparseable :expected → ok=false', async () => {
     const s = await createSession();
     const result = (await s.evalCell('{:kind :builtin :examples [{:doc "bad expected" :snippet "42" :expected "|||"}]} | runExamples | first')).result;
-    expect(result.get(keyword('ok'))).toBe(false);
+    expect(result.get('ok')).toBe(false);
   });
 });
 
@@ -598,8 +598,8 @@ describe('importSelectiveNamespace single keyword fallback', async () => {
   it('use(:ns, :singleKeyword) wraps keyword in array', async () => {
     const s = await createSession();
     const lib = new Map();
-    lib.set(keyword('x'), 10);
-    lib.set(keyword('y'), 20);
+    lib.set('x', 10);
+    lib.set('y', 20);
     s.bind('lib', lib);
     const r = await s.evalCell('use(:lib, :x) | x');
     expect(r.result).toBe(10);
@@ -654,7 +654,7 @@ describe('extracted descriptor helpers', async () => {
   });
   it('errorMessageOf without originalError', async () => {
     const d = new Map();
-    d.set(keyword('message'), 'from descriptor');
+    d.set('message', 'from descriptor');
     const ev = makeErrorValue(d, {});
     expect(errorMessageOf(ev)).toBe('from descriptor');
   });
@@ -709,21 +709,21 @@ describe('walk.mjs — locationToQlangMap(null) → null (line 397)', async () =
     // qlangMapToAst fires locationFromQlangMap(null) (line 405: !isQMap → null),
     // then astNodeToMap on the result fires locationToQlangMap(null) (line 397: !loc → null).
     const m = new Map();
-    m.set(keyword('qlang/kind'), keyword('NumberLit'));
-    m.set(keyword('value'), 42);
-    m.set(keyword('location'), null);            // present but non-Map → fires 405
+    m.set('qlang/kind', keyword('NumberLit'));
+    m.set('value', 42);
+    m.set('location', null);            // present but non-Map → fires 405
     const node = qlangMapToAst(m);
     expect(node.location).toBe(null);            // locationFromQlangMap(null) → null
     const back = astNodeToMap(node);
     // locationToQlangMap(null) → null; stampCommonFields sets :location null
-    expect(back.get(keyword('location'))).toBe(null);  // fires 397
+    expect(back.get('location')).toBe(null);  // fires 397
   });
 });
 
 describe('walk.mjs — qlangMapToAst with non-keyword :qlang/kind uses String() fallback (line 603)', async () => {
   it('throws AstMapKindUnknownError with String(kindKw) label when kind is not a keyword', async () => {
     const m = new Map();
-    m.set(keyword('qlang/kind'), null);   // present but null → String(null) = "null"
+    m.set('qlang/kind', null);   // present but null → String(null) = "null"
     expect(() => qlangMapToAst(m)).toThrow('null');
   });
 });
@@ -735,8 +735,8 @@ describe('intro.mjs — UseNamespaceCollision (line 138)', async () => {
     // importUnorderedNamespaces — collision on a keyword key.
     // isKeyword(k) is true → k.name branch taken (existing coverage).
     const s = await createSession();
-    s.bind('nsA', new Map([[keyword('shared'), 1]]));
-    s.bind('nsB', new Map([[keyword('shared'), 2]]));
+    s.bind('nsA', new Map([['shared', 1]]));
+    s.bind('nsB', new Map([['shared', 2]]));
     const r = await s.evalCell('use(#{:nsA, :nsB})');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.name).toBe('UseNamespaceCollision');
@@ -757,7 +757,7 @@ describe('intro.mjs — UseNamespaceCollision (line 138)', async () => {
 describe('intro.mjs — UseNameNotExported (line 157)', async () => {
   it('selective use(:ns, :missing) produces an error when name is absent', async () => {
     const s = await createSession();
-    s.bind('myNs', new Map([[keyword('x'), 99]]));
+    s.bind('myNs', new Map([['x', 99]]));
     const r = await s.evalCell('use(:myNs, :missing)');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.name).toBe('UseNameNotExported');
@@ -765,9 +765,9 @@ describe('intro.mjs — UseNameNotExported (line 157)', async () => {
 
   it('non-keyword selection uses String(name) fallback in error context (line 157)', async () => {
     // Pass a Vec with a number element as the selection — the number is
-    // not a keyword, so isKeyword(name) is false → String(name) fires.
+    // not a so isKeyword(name) is false → String(name) fires.
     const s = await createSession();
-    s.bind('myNs2', new Map([[keyword('x'), 99]]));
+    s.bind('myNs2', new Map([['x', 99]]));
     // use(:myNs2, [42]) — selection Vec contains number 42, not a keyword
     const r = await s.evalCell('use(:myNs2, [42])');
     expect(isErrorValue(r.result)).toBe(true);
@@ -781,7 +781,7 @@ describe('intro.mjs — describeValueType for error value (line 176)', async () 
     // An error value bound directly via session.bind reaches the
     // isErrorValue(v) branch since it is not a conduit, snapshot, or function.
     const s = await createSession();
-    const errVal = makeErrorValue(new Map([[keyword('kind'), keyword('test')]]));
+    const errVal = makeErrorValue(new Map([['kind', keyword('test')]]));
     s.bind('myErr', errVal);
     const r = await s.evalCell('reify(:myErr) | /type');
     expect(r.result).toEqual(keyword('error'));
@@ -804,6 +804,8 @@ describe('printValue — qlang literal serialization', async () => {
     expect(printValue('a"b')).toBe('"a\\"b"');
     expect(printValue('a\nb')).toBe('"a\\nb"');
     expect(printValue('a\\b')).toBe('"a\\\\b"');
+    expect(printValue('a\bb')).toBe('"a\\bb"');
+    expect(printValue('a\fb')).toBe('"a\\fb"');
   });
 
   it('prints keywords', async () => {
@@ -822,15 +824,15 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints small Map inline', async () => {
-    const m = new Map([[keyword('a'), 1], [keyword('b'), 2]]);
+    const m = new Map([['a', 1], ['b', 2]]);
     expect(printValue(m)).toBe('{:a 1 :b 2}');
   });
 
   it('pretty-prints Map with more than 2 entries', async () => {
     const m = new Map([
-      [keyword('a'), 1],
-      [keyword('b'), 2],
-      [keyword('c'), 3]
+      ['a', 1],
+      ['b', 2],
+      ['c', 3]
     ]);
     const out = printValue(m);
     expect(out).toContain('\n');
@@ -842,7 +844,7 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints error value with descriptor', async () => {
-    const desc = new Map([[keyword('kind'), keyword('test')]]);
+    const desc = new Map([['kind', keyword('test')]]);
     const err = makeErrorValue(desc);
     const out = printValue(err);
     expect(out).toMatch(/^!\{/);
@@ -851,9 +853,9 @@ describe('printValue — qlang literal serialization', async () => {
 
   it('pretty-prints error with many descriptor fields', async () => {
     const desc = new Map([
-      [keyword('origin'), keyword('qlang/eval')],
-      [keyword('kind'), keyword('type-error')],
-      [keyword('message'), 'boom']
+      ['origin', keyword('qlang/eval')],
+      ['kind', keyword('type-error')],
+      ['message', 'boom']
     ]);
     const err = makeErrorValue(desc);
     const out = printValue(err);
@@ -868,3 +870,223 @@ describe('printValue — qlang literal serialization', async () => {
   });
 });
 
+
+describe('keyword-literal.mjs — canonicalKeywordLiteral', async () => {
+  it('returns bare form for identifier-safe names', async () => {
+    const { canonicalKeywordLiteral } = await import('../../src/keyword-literal.mjs');
+    expect(canonicalKeywordLiteral('foo')).toBe(':foo');
+    expect(canonicalKeywordLiteral('qlang/error')).toBe(':qlang/error');
+  });
+
+  it('returns quoted form for names that need quoting', async () => {
+    const { canonicalKeywordLiteral } = await import('../../src/keyword-literal.mjs');
+    expect(canonicalKeywordLiteral('1')).toBe(':"1"');
+    expect(canonicalKeywordLiteral('foo bar')).toBe(':"foo bar"');
+    expect(canonicalKeywordLiteral('$ref')).toBe(':"$ref"');
+    expect(canonicalKeywordLiteral('')).toBe(':""');
+  });
+});
+
+describe('evalSetLit keyword dedup', async () => {
+  it('deduplicates keywords by name in Set literals', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('#{:a :b :a}');
+    expect(result.size).toBe(2);
+  });
+});
+
+describe('setops Set×Set keyword-aware operations', async () => {
+  it('union deduplicates keywords across Sets', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[#{:a :b} #{:b :c}] | union');
+    expect(result.size).toBe(3);
+  });
+
+  it('minus removes keywords by name', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[#{:a :b :c} #{:b}] | minus');
+    expect(result.size).toBe(2);
+  });
+
+  it('inter keeps keywords present in both', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[#{:a :b :c} #{:b :d}] | inter');
+    expect(result.size).toBe(1);
+  });
+});
+
+describe('Set keyword membership without interning', async () => {
+  it('has(:key) on Set finds keyword by name', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('#{:a :b :c} | has(:b)')).toBe(true);
+    expect(await evalQuery('#{:a :b :c} | has(:z)')).toBe(false);
+  });
+
+  it('deepEqual on Sets with keywords compares by name', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const { deepEqual } = await import('../../src/equality.mjs');
+    const s1 = await evalQuery('#{:x :y}');
+    const s2 = await evalQuery('#{:x :y}');
+    expect(deepEqual(s1, s2)).toBe(true);
+    const s3 = await evalQuery('#{:x :z}');
+    expect(deepEqual(s1, s3)).toBe(false);
+  });
+
+  it('Map×Set minus drops keys present in Set', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[{:a 1 :b 2 :c 3}, #{:b}] | minus');
+    expect(result.size).toBe(2);
+    expect(result.has('a')).toBe(true);
+    expect(result.has('c')).toBe(true);
+  });
+
+  it('Map×Set inter keeps keys present in Set', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[{:a 1 :b 2 :c 3}, #{:a :c}] | inter');
+    expect(result.size).toBe(2);
+  });
+});
+
+describe('has on Set with non-keyword values', async () => {
+  it('finds number in Set', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('#{1 2 3} | has(2)')).toBe(true);
+    expect(await evalQuery('#{1 2 3} | has(9)')).toBe(false);
+  });
+});
+
+describe('codec $map with keyword-tagged keys decodes to string-keyed Map', async () => {
+  it('decodes old-format $map entries with $keyword keys to string-keyed Maps', async () => {
+    const { fromTaggedJSON } = await import('../../src/codec.mjs');
+    const oldFormat = { $map: [[{$keyword: 'name'}, 'alice'], [{$keyword: 'age'}, 30]] };
+    const result = fromTaggedJSON(oldFormat);
+    expect(result.get('name')).toBe('alice');
+    expect(result.get('age')).toBe(30);
+  });
+});
+
+describe('deepEqual Set keyword mismatch', async () => {
+  it('returns false when keyword names differ between Sets', async () => {
+    const { keyword } = await import('../../src/types.mjs');
+    const { deepEqual } = await import('../../src/equality.mjs');
+    const s1 = new Set([keyword('a'), keyword('b')]);
+    const s2 = new Set([keyword('a'), keyword('c')]);
+    expect(deepEqual(s1, s2)).toBe(false);
+  });
+});
+
+describe('setops keyword-aware minus/inter with mixed Set members', async () => {
+  it('Map×Set minus with Set containing non-keyword members', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[{:a 1 :b 2}, #{:a 42}] | minus');
+    expect(result.has('b')).toBe(true);
+  });
+
+  it('Map×Set inter with Set containing non-keyword members', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[{:a 1 :b 2 :c 3}, #{:b 99}] | inter');
+    expect(result.has('b')).toBe(true);
+  });
+});
+
+describe('setops Set×Set non-keyword elements', async () => {
+  it('minus of number Sets', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[#{1 2 3}, #{2}] | minus');
+    expect(result.size).toBe(2);
+  });
+
+  it('inter of number Sets', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const result = await evalQuery('[#{1 2 3}, #{2 3}] | inter');
+    expect(result.size).toBe(2);
+  });
+});
+
+describe('printValue keyword round-trip', async () => {
+  it('quoted keywords round-trip through printValue → parse → eval', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const { printValue } = await import('../../src/runtime/format.mjs');
+    const { deepEqual } = await import('../../src/equality.mjs');
+
+    const cases = [':"1"', ':"foo bar"', ':"$ref"', ':""', ':"123"', ':foo', ':qlang/error'];
+    for (const src of cases) {
+      const original = await evalQuery(src);
+      const printed = printValue(original);
+      const reparsed = await evalQuery(printed);
+      expect(deepEqual(original, reparsed), ).toBe(true);
+    }
+  });
+
+  it('Map with quoted-keyword keys round-trips through printValue', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const { printValue } = await import('../../src/runtime/format.mjs');
+    const { deepEqual } = await import('../../src/equality.mjs');
+
+    const original = await evalQuery('{:"$ref" 1 :"foo bar" 2}');
+    const printed = printValue(original);
+    const reparsed = await evalQuery(printed);
+    expect(deepEqual(original, reparsed)).toBe(true);
+  });
+});
+
+describe('printValue round-trip — all composite types', async () => {
+  const { evalQuery } = await import('../../src/eval.mjs');
+  const { printValue } = await import('../../src/runtime/format.mjs');
+  const { deepEqual } = await import('../../src/equality.mjs');
+
+  async function assertRoundTrip(src, label) {
+    const original = await evalQuery(src);
+    const printed = printValue(original);
+    const reparsed = await evalQuery(printed);
+    expect(deepEqual(original, reparsed), `${label}: ${src} → ${printed}`).toBe(true);
+  }
+
+  it('Vec of mixed types', async () => {
+    await assertRoundTrip('[1 "two" :three true null]', 'mixed Vec');
+  });
+
+  it('Vec with quoted keywords', async () => {
+    await assertRoundTrip('[:"$ref" :"foo bar" :normal]', 'quoted kw Vec');
+  });
+
+  it('Set of keywords', async () => {
+    await assertRoundTrip('#{:a :b :c}', 'keyword Set');
+  });
+
+  it('Set with quoted keywords', async () => {
+    await assertRoundTrip('#{:"$ref" :normal}', 'quoted kw Set');
+  });
+
+  it('Set of numbers', async () => {
+    await assertRoundTrip('#{1 2 3}', 'number Set');
+  });
+
+  it('Map with bare keys', async () => {
+    await assertRoundTrip('{:name "alice" :age 30}', 'bare key Map');
+  });
+
+  it('Map with quoted keys', async () => {
+    await assertRoundTrip('{:"$ref" 1 :"foo bar" 2}', 'quoted key Map');
+  });
+
+  it('Map with keyword values', async () => {
+    await assertRoundTrip('{:kind :type-error :origin :qlang/eval}', 'keyword val Map');
+  });
+
+  it('nested Map', async () => {
+    await assertRoundTrip('{:a {:b {:c 42}}}', 'nested Map');
+  });
+
+  it('Error value', async () => {
+    await assertRoundTrip('!{:kind :oops :message "boom"}', 'Error');
+  });
+
+  it('Error with trail', async () => {
+    await assertRoundTrip('!{:kind :oops :trail []}', 'Error trail');
+  });
+
+  it('deeply nested composite', async () => {
+    await assertRoundTrip('{:data [{:id 1 :tags #{:a :b}} {:id 2 :tags #{:c}}]}', 'deep composite');
+  });
+});

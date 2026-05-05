@@ -94,11 +94,6 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
   return await importSelectiveNamespace(state, useArg, useSelection);
 }, [0, 2]);
 
-const KW_QLANG_LOCATOR = keyword('qlang/locator');
-const KW_QLANG_KIND_DISPATCH = keyword('qlang/kind');
-const KW_BUILTIN_DISPATCH = keyword('builtin');
-const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
-
 // resolveNamespaceEnv(outerEnv, nsKeyword) → moduleEnv Map
 //
 // Looks up the namespace keyword in env. When absent, falls back
@@ -111,8 +106,8 @@ const KW_QLANG_IMPL_DISPATCH = keyword('qlang/impl');
 // Returns [moduleEnv, updatedOuterEnv] — the caller must use
 // updatedOuterEnv so the installed namespace persists.
 async function resolveNamespaceEnv(outerEnv, nsKeyword) {
-  if (outerEnv.has(nsKeyword)) {
-    const moduleEnv = outerEnv.get(nsKeyword);
+  if (outerEnv.has(nsKeyword.name)) {
+    const moduleEnv = outerEnv.get(nsKeyword.name);
     if (!isQMap(moduleEnv)) {
       throw new UseNamespaceNotMap({
         namespaceName: nsKeyword.name,
@@ -123,7 +118,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   }
 
   // Locator fallback: host-provided lazy module loader.
-  const locatorFn = outerEnv.get(KW_QLANG_LOCATOR);
+  const locatorFn = outerEnv.get('qlang/locator');
   if (!locatorFn) {
     throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
   }
@@ -155,18 +150,17 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   // function values from locatorResult.impls.
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
-      const implKeyword = keyword(implName);
-      const implDescriptor = loadedExports.get(implKeyword);
-      if (isQMap(implDescriptor)
-          && implDescriptor.get(KW_QLANG_KIND_DISPATCH) === KW_BUILTIN_DISPATCH) {
-        implDescriptor.set(KW_QLANG_IMPL_DISPATCH, implFn);
+      const implDescriptor = loadedExports.get(implName);
+      const descKind = isQMap(implDescriptor) && implDescriptor.get('qlang/kind');
+      if (descKind && descKind.name === 'builtin') {
+        implDescriptor.set('qlang/impl', implFn);
       }
     }
   }
 
   // Install namespace keyword → exports in env for subsequent lookups.
   const envWithNamespace = new Map(outerEnv);
-  envWithNamespace.set(nsKeyword, loadedExports);
+  envWithNamespace.set(nsKeyword.name, loadedExports);
   return [loadedExports, envWithNamespace];
 }
 
@@ -198,7 +192,7 @@ async function importUnorderedNamespaces(state, namespaces) {
     for (const [k, v] of moduleEnv) {
       if (merged.has(k)) {
         throw new UseNamespaceCollision({
-          collidingName: isKeyword(k) ? k.name : String(k),
+          collidingName: k,
           namespaces: [origins.get(k), ns.name]
         });
       }
@@ -214,13 +208,14 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
   const names = isQSet(selection) ? [...selection] : isVec(selection) ? selection : [selection];
   const filtered = new Map();
   for (const name of names) {
-    if (!moduleEnv.has(name)) {
+    const nameStr = isKeyword(name) ? name.name : String(name);
+    if (!moduleEnv.has(nameStr)) {
       throw new UseNameNotExported({
         namespaceName: nsKeyword.name,
-        exportName: isKeyword(name) ? name.name : String(name)
+        exportName: nameStr
       });
     }
-    filtered.set(name, moduleEnv.get(name));
+    filtered.set(nameStr, moduleEnv.get(nameStr));
   }
   return makeState(state.pipeValue, envMerge(updatedEnv, filtered));
 }
@@ -266,47 +261,37 @@ export function categoryKeyword(meta) {
 // .originalError, user-created errors carry :message in descriptor.
 export function errorMessageOf(errorValue) {
   if (errorValue.originalError) return errorValue.originalError.message;
-  return errorValue.descriptor.get(keyword('message'));
+  return errorValue.descriptor.get('message');
 }
 
 function buildBuiltinDescriptor(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
-  result.set(keyword('kind'), keyword('builtin'));
-  result.set(keyword('name'), bindingName(explicitName, fn));
-  result.set(keyword('category'), categoryKeyword(meta));
-  result.set(keyword('subject'), meta.subject);
-  result.set(keyword('modifiers'), metaToVec(meta.modifiers));
-  result.set(keyword('returns'), meta.returns);
-  result.set(keyword('captured'), metaToVec(capturedRange(fn)));
-  result.set(keyword('docs'), metaToVec(meta.docs));
-  result.set(keyword('examples'), metaToVec(meta.examples));
-  result.set(keyword('throws'), metaToVec(meta.throws));
-  result.set(keyword('effectful'), fn.effectful);
+  result.set('kind', keyword('builtin'));
+  result.set('name', bindingName(explicitName, fn));
+  result.set('category', categoryKeyword(meta));
+  result.set('subject', meta.subject);
+  result.set('modifiers', metaToVec(meta.modifiers));
+  result.set('returns', meta.returns);
+  result.set('captured', metaToVec(capturedRange(fn)));
+  result.set('docs', metaToVec(meta.docs));
+  result.set('examples', metaToVec(meta.examples));
+  result.set('throws', metaToVec(meta.throws));
+  result.set('effectful', fn.effectful);
   return result;
 }
 
 // Variant-B descriptor field constants for Map-based reads.
-const KW_BODY_FIELD      = keyword('qlang/body');
-const KW_VALUE_FIELD     = keyword('qlang/value');
-const KW_NAME_FIELD      = keyword('name');
-const KW_PARAMS_FIELD    = keyword('params');
-const KW_DOCS_FIELD      = keyword('docs');
-const KW_EFFECTFUL_FIELD = keyword('effectful');
-const KW_LOCATION_FIELD  = keyword('location');
 
 function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
-  result.set(keyword('kind'), keyword('conduit'));
-  result.set(keyword('name'), explicitName ?? conduit.get(KW_NAME_FIELD));
-  result.set(keyword('params'), metaToVec(conduit.get(KW_PARAMS_FIELD)));
-  // The conduit body is a peggy-parsed AST node, so it carries the
-  // original source substring under `.text`. The `:source` field
-  // passes that through verbatim — no AST→source rendering.
-  result.set(keyword('source'), conduit.get(KW_BODY_FIELD).text);
-  result.set(keyword('docs'), metaToVec(conduit.get(KW_DOCS_FIELD)));
-  result.set(keyword('effectful'), conduit.get(KW_EFFECTFUL_FIELD));
-  result.set(keyword('location'), locationToQlangMap(conduit.get(KW_LOCATION_FIELD)));
+  result.set('kind', keyword('conduit'));
+  result.set('name', explicitName ?? conduit.get('name'));
+  result.set('params', metaToVec(conduit.get('params')));
+  result.set('source', conduit.get('qlang/body').text);
+  result.set('docs', metaToVec(conduit.get('docs')));
+  result.set('effectful', conduit.get('effectful'));
+  result.set('location', locationToQlangMap(conduit.get('location')));
   return result;
 }
 
@@ -319,24 +304,24 @@ function buildSnapshotDescriptor(snap, explicitName) {
   // `reify(:name)` or through `manifest`, both of which always pass
   // explicitName. Reading the descriptor's :name field as a fallback
   // would be dead code.
-  const value = snap.get(KW_VALUE_FIELD);
+  const value = snap.get('qlang/value');
   const result = new Map();
-  result.set(keyword('kind'), keyword('snapshot'));
-  result.set(keyword('name'), explicitName);
-  result.set(keyword('value'), value);
-  result.set(keyword('type'), describeValueType(value));
-  result.set(keyword('docs'), metaToVec(snap.get(KW_DOCS_FIELD)));
-  result.set(keyword('effectful'), snap.get(KW_EFFECTFUL_FIELD));
-  result.set(keyword('location'), locationToQlangMap(snap.get(KW_LOCATION_FIELD)));
+  result.set('kind', keyword('snapshot'));
+  result.set('name', explicitName);
+  result.set('value', value);
+  result.set('type', describeValueType(value));
+  result.set('docs', metaToVec(snap.get('docs')));
+  result.set('effectful', snap.get('effectful'));
+  result.set('location', locationToQlangMap(snap.get('location')));
   return result;
 }
 
 function buildValueDescriptor(value, explicitName) {
   const result = new Map();
-  result.set(keyword('kind'), keyword('value'));
-  result.set(keyword('name'), explicitName ?? null);
-  result.set(keyword('value'), value);
-  result.set(keyword('type'), describeValueType(value));
+  result.set('kind', keyword('value'));
+  result.set('name', explicitName ?? null);
+  result.set('value', value);
+  result.set('type', describeValueType(value));
   return result;
 }
 
@@ -348,18 +333,18 @@ function describeBinding(value, explicitName) {
   // is stamped; :captured and :effectful are read from the resolved
   // function value sitting on :qlang/impl (placed there by the
   // bootstrap resolution pass in runtime/index.mjs).
-  if (isQMap(value) && value.get(keyword('qlang/kind')) === keyword('builtin')) {
+  const qlKind = isQMap(value) && value.get('qlang/kind');
+  if (qlKind && qlKind.name === 'builtin') {
     const reifyResult = new Map();
-    reifyResult.set(keyword('kind'), keyword('builtin'));
-    if (explicitName != null) reifyResult.set(keyword('name'), explicitName);
+    reifyResult.set('kind', keyword('builtin'));
+    if (explicitName != null) reifyResult.set('name', explicitName);
     for (const [descKey, descVal] of value) {
-      const descKeyName = descKey.name;
-      if (descKeyName === 'qlang/kind' || descKeyName === 'qlang/impl') continue;
+      if (descKey === 'qlang/kind' || descKey === 'qlang/impl') continue;
       reifyResult.set(descKey, descVal);
     }
-    const implFn = value.get(keyword('qlang/impl'));
-    reifyResult.set(keyword('captured'), [...implFn.meta.captured]);
-    reifyResult.set(keyword('effectful'), implFn.effectful);
+    const implFn = value.get('qlang/impl');
+    reifyResult.set('captured', [...implFn.meta.captured]);
+    reifyResult.set('effectful', implFn.effectful);
     return reifyResult;
   }
   // Conduit-parameters (created at applyConduit time via makeFn)
@@ -385,10 +370,10 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
     if (!isKeyword(reifyKeyValue)) {
       throw new ReifyKeyNotKeyword({ actualType: describeType(reifyKeyValue), actualValue: reifyKeyValue });
     }
-    if (!state.env.has(reifyKeyValue)) {
+    if (!state.env.has(reifyKeyValue.name)) {
       throw new UnresolvedIdentifierError(reifyKeyValue.name);
     }
-    const reifyBound = state.env.get(reifyKeyValue);
+    const reifyBound = state.env.get(reifyKeyValue.name);
     const reifyDescriptor = describeBinding(reifyBound, reifyKeyValue.name);
     return withPipeValue(state, reifyDescriptor);
   }
@@ -420,18 +405,18 @@ const RunExamplesNoExamplesField = declareShapeError('RunExamplesNoExamplesField
 //   is syntactically valid.
 async function runExampleEntry(exampleMap) {
   const exampleResult = new Map();
-  const snippetSrc = isQMap(exampleMap) ? exampleMap.get(keyword('snippet')) : null;
-  const expectedSrc = isQMap(exampleMap) ? exampleMap.get(keyword('expected')) : null;
-  const exampleDoc = isQMap(exampleMap) ? exampleMap.get(keyword('doc')) : null;
+  const snippetSrc = isQMap(exampleMap) ? exampleMap.get('snippet') : null;
+  const expectedSrc = isQMap(exampleMap) ? exampleMap.get('expected') : null;
+  const exampleDoc = isQMap(exampleMap) ? exampleMap.get('doc') : null;
 
-  exampleResult.set(keyword('snippet'), snippetSrc);
-  exampleResult.set(keyword('doc'), exampleDoc);
-  exampleResult.set(keyword('expected'), expectedSrc);
+  exampleResult.set('snippet', snippetSrc);
+  exampleResult.set('doc', exampleDoc);
+  exampleResult.set('expected', expectedSrc);
 
   if (typeof snippetSrc !== 'string') {
-    exampleResult.set(keyword('actual'), null);
-    exampleResult.set(keyword('error'), 'example :snippet must be a string');
-    exampleResult.set(keyword('ok'), false);
+    exampleResult.set('actual', null);
+    exampleResult.set('error', 'example :snippet must be a string');
+    exampleResult.set('ok', false);
     return exampleResult;
   }
 
@@ -440,35 +425,35 @@ async function runExampleEntry(exampleMap) {
     try {
       parseSource(snippetSrc);
     } catch (parseVerifyErr) {
-      exampleResult.set(keyword('actual'), null);
-      exampleResult.set(keyword('error'), parseVerifyErr.message);
-      exampleResult.set(keyword('ok'), false);
+      exampleResult.set('actual', null);
+      exampleResult.set('error', parseVerifyErr.message);
+      exampleResult.set('ok', false);
       return exampleResult;
     }
-    exampleResult.set(keyword('actual'), null);
-    exampleResult.set(keyword('error'), null);
-    exampleResult.set(keyword('ok'), true);
+    exampleResult.set('actual', null);
+    exampleResult.set('error', null);
+    exampleResult.set('ok', true);
     return exampleResult;
   }
 
   // Assertion mode — both snippet and expected are eval'd and compared.
   const actualValue = await evalQuery(snippetSrc);
   if (isErrorValue(actualValue)) {
-    exampleResult.set(keyword('actual'), null);
-    exampleResult.set(keyword('error'), errorMessageOf(actualValue));
-    exampleResult.set(keyword('ok'), false);
+    exampleResult.set('actual', null);
+    exampleResult.set('error', errorMessageOf(actualValue));
+    exampleResult.set('ok', false);
     return exampleResult;
   }
-  exampleResult.set(keyword('actual'), actualValue);
+  exampleResult.set('actual', actualValue);
 
   const expectedValue = await evalQuery(expectedSrc);
   if (isErrorValue(expectedValue)) {
-    exampleResult.set(keyword('error'), 'expected: ' + errorMessageOf(expectedValue));
-    exampleResult.set(keyword('ok'), false);
+    exampleResult.set('error', 'expected: ' + errorMessageOf(expectedValue));
+    exampleResult.set('ok', false);
     return exampleResult;
   }
-  exampleResult.set(keyword('error'), null);
-  exampleResult.set(keyword('ok'), deepEqual(actualValue, expectedValue));
+  exampleResult.set('error', null);
+  exampleResult.set('ok', deepEqual(actualValue, expectedValue));
   return exampleResult;
 }
 
@@ -477,9 +462,9 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   if (!isQMap(runExSubject)) {
     throw new RunExamplesSubjectNotDescriptor(describeType(runExSubject), runExSubject);
   }
-  const runExExamples = runExSubject.get(keyword('examples'));
+  const runExExamples = runExSubject.get('examples');
   if (!isVec(runExExamples)) {
-    const runExKind = runExSubject.get(keyword('kind'));
+    const runExKind = runExSubject.get('kind');
     throw new RunExamplesNoExamplesField({
       subjectKind: isKeyword(runExKind) ? runExKind.name : 'unknown'
     });
@@ -492,8 +477,8 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
 export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
   const entries = [];
   for (const [k, v] of state.env) {
-    if (isKeyword(k)) {
-      entries.push({ name: k.name, key: k, value: v });
+    if (typeof k === 'string') {
+      entries.push({ name: k, key: k, value: v });
     }
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));
@@ -653,12 +638,12 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
 // `parse` / `eval` (those names are JS reserved / common enough
 // that the JS-side identifier disambiguates); the registry keys
 // use the qlang names.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/env'),         env);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/use'),         use);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/reify'),       reify);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/runExamples'), runExamples);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/manifest'),    manifest);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/let'),         letOperand);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/as'),          asOperand);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/parse'),       parseOperand);
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/eval'),        evalOperand);
+PRIMITIVE_REGISTRY.bind('qlang/prim/env',         env);
+PRIMITIVE_REGISTRY.bind('qlang/prim/use',         use);
+PRIMITIVE_REGISTRY.bind('qlang/prim/reify',       reify);
+PRIMITIVE_REGISTRY.bind('qlang/prim/runExamples', runExamples);
+PRIMITIVE_REGISTRY.bind('qlang/prim/manifest',    manifest);
+PRIMITIVE_REGISTRY.bind('qlang/prim/let',         letOperand);
+PRIMITIVE_REGISTRY.bind('qlang/prim/as',          asOperand);
+PRIMITIVE_REGISTRY.bind('qlang/prim/parse',       parseOperand);
+PRIMITIVE_REGISTRY.bind('qlang/prim/eval',        evalOperand);

@@ -102,10 +102,10 @@ describe('public API', () => {
     expect(typeof keyword).toBe('function');
     const kwA = keyword('count');
     const kwB = keyword('count');
-    expect(kwA).toBe(kwB); // interning: same name → same identity
+    expect(kwA).toEqual(kwB);
     expect(kwA.name).toBe('count');
     // langRuntime() Map can be queried with the interned keyword.
     const runtimeEnv = await langRuntime();
-    expect(runtimeEnv.has(keyword('count'))).toBe(true);
+    expect(runtimeEnv.has('count')).toBe(true);
   });
 });

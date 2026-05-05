@@ -5,7 +5,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { nullaryOp } from './dispatch.mjs';
-import { isVec, describeType, keyword } from '../types.mjs';
+import { isVec, describeType } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -17,4 +17,4 @@ export const set = nullaryOp('set', (vec) => {
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/set'), set);
+PRIMITIVE_REGISTRY.bind('qlang/prim/set', set);

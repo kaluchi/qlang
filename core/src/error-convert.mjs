@@ -1,34 +1,19 @@
-// Error-to-value conversion for evalNode's catch block.
-//
-// Two converters: errorFromQlang for qlang's own errors (known
-// shape, minimal coercion), errorFromForeign for host errors
-// (unknown shape, best-effort extraction).
-
 import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue } from './types.mjs';
 
-// errorFromQlang(qlangError, fault) → error value
-//
-// Context fields from per-site error classes — including
-// `actualValue` — are stamped onto the descriptor without
-// filtering. The `fault` parameter is a frozen Map carrying
-// `:step` (AST-Map of the failing step) and `:input` (the
-// pipeValue the step received), built by `eval.mjs::buildFaultMap`
-// at the `evalNode` catch site or directly inside
-// `distribute`/`mergeFlat` for combinator-level type checks.
 export function errorFromQlang(qlangError, fault) {
   const d = new Map();
-  d.set(keyword('origin'), keyword('qlang/eval'));
-  d.set(keyword('kind'), keyword(qlangError.kind));
-  d.set(keyword('thrown'), keyword(qlangError.fingerprint ?? qlangError.name));
-  d.set(keyword('message'), qlangError.message);
+  d.set('origin', keyword('qlang/eval'));
+  d.set('kind', keyword(qlangError.kind));
+  d.set('thrown', keyword(qlangError.fingerprint ?? qlangError.name));
+  d.set('message', qlangError.message);
 
   if (qlangError.context) {
     for (const [k, v] of Object.entries(qlangError.context)) {
-      d.set(keyword(k), v ?? null);
+      d.set(k, v ?? null);
     }
   }
 
-  d.set(keyword('fault'), fault);
+  d.set('fault', fault);
 
   return makeErrorValue(d, {
     location: qlangError.location,
@@ -36,44 +21,34 @@ export function errorFromQlang(qlangError, fault) {
   });
 }
 
-// errorFromParse(parseError) → error value
-//
-// Wraps a ParseError into an error value so parse failures
-// flow through the pipeline like any other error.
 export function errorFromParse(parseError) {
   const d = new Map();
-  d.set(keyword('origin'), keyword('qlang/parse'));
-  d.set(keyword('kind'), keyword('parse-error'));
-  d.set(keyword('thrown'), keyword('ParseError'));
-  d.set(keyword('message'), parseError.message);
-  if (parseError.location) d.set(keyword('location'), locationToMap(parseError.location));
-  if (parseError.uri) d.set(keyword('uri'), parseError.uri);
+  d.set('origin', keyword('qlang/parse'));
+  d.set('kind', keyword('parse-error'));
+  d.set('thrown', keyword('ParseError'));
+  d.set('message', parseError.message);
+  if (parseError.location) d.set('location', locationToMap(parseError.location));
+  if (parseError.uri) d.set('uri', parseError.uri);
   return makeErrorValue(d, {
     location: parseError.location,
     originalError: parseError
   });
 }
 
-// Convert a peggy/qlang source location {start, end} to a qlang Map
-// so it round-trips through !{} literals.
 function locationToMap(loc) {
   const posToMap = (pos) => {
     const m = new Map();
-    m.set(keyword('offset'), pos.offset);
-    m.set(keyword('line'), pos.line);
-    m.set(keyword('column'), pos.column);
+    m.set('offset', pos.offset);
+    m.set('line', pos.line);
+    m.set('column', pos.column);
     return m;
   };
   const m = new Map();
-  if (loc.start) m.set(keyword('start'), posToMap(loc.start));
-  if (loc.end) m.set(keyword('end'), posToMap(loc.end));
+  if (loc.start) m.set('start', posToMap(loc.start));
+  if (loc.end) m.set('end', posToMap(loc.end));
   return m;
 }
 
-// errorFromForeign(jsError, astNode) → error value
-//
-// Best-effort extraction from any JS Error. Host errors have
-// unknown shape — defensive coercion is intentional here.
 const WELL_KNOWN_PROPS = [
   'message', 'name', 'stack', 'code', 'errno',
   'status', 'statusCode', 'statusText'
@@ -81,18 +56,18 @@ const WELL_KNOWN_PROPS = [
 
 export function errorFromForeign(jsError, astNode, fault) {
   const d = new Map();
-  d.set(keyword('origin'), keyword('host'));
-  d.set(keyword('kind'), keyword('foreign-error'));
-  d.set(keyword('thrown'), keyword(jsError.name));
-  d.set(keyword('message'), jsError.message);
+  d.set('origin', keyword('host'));
+  d.set('kind', keyword('foreign-error'));
+  d.set('thrown', keyword(jsError.name));
+  d.set('message', jsError.message);
 
   for (const prop of WELL_KNOWN_PROPS) {
-    if (prop in jsError && jsError[prop] !== undefined && !d.has(keyword(prop)))
-      d.set(keyword(prop), coerce(jsError[prop]));
+    if (prop in jsError && jsError[prop] !== undefined && !d.has(prop))
+      d.set(prop, coerce(jsError[prop]));
   }
   for (const [k, v] of Object.entries(jsError)) {
-    if (!d.has(keyword(k)))
-      d.set(keyword(k), coerce(v));
+    if (!d.has(k))
+      d.set(k, coerce(v));
   }
 
   if (jsError.cause instanceof Error) {
@@ -100,16 +75,16 @@ export function errorFromForeign(jsError, astNode, fault) {
     let current = jsError.cause;
     while (current instanceof Error && causes.length < 8) {
       const m = new Map();
-      m.set(keyword('message'), current.message);
-      m.set(keyword('thrown'), keyword(current.name));
+      m.set('message', current.message);
+      m.set('thrown', keyword(current.name));
       causes.push(m);
       current = current.cause;
     }
-    d.set(keyword('causes'), causes);
+    d.set('causes', causes);
   }
 
-  d.set(keyword('operand'), astNode?.text ?? null);
-  d.set(keyword('fault'), fault);
+  d.set('operand', astNode?.text ?? null);
+  d.set('fault', fault);
 
   return makeErrorValue(d, {
     location: astNode?.location ?? null,
@@ -117,9 +92,6 @@ export function errorFromForeign(jsError, astNode, fault) {
   });
 }
 
-// coerce(v) — convert JS value to qlang value for foreign error
-// descriptor fields. Scalars pass through; objects become Maps;
-// arrays become Vecs. Depth-limited for safety.
 function coerce(v, depth = 0) {
   if (depth > 4) return String(v);
   if (v === null || v === undefined) return null;
@@ -129,14 +101,14 @@ function coerce(v, depth = 0) {
   if (Array.isArray(v)) return v.map(el => coerce(el, depth + 1));
   if (v instanceof Error) {
     const m = new Map();
-    m.set(keyword('message'), v.message);
-    m.set(keyword('thrown'), keyword(v.name));
+    m.set('message', v.message);
+    m.set('thrown', keyword(v.name));
     return m;
   }
   if (t === 'object') {
     const m = new Map();
     for (const [k, val] of Object.entries(v))
-      m.set(keyword(k), coerce(val, depth + 1));
+      m.set(k, coerce(val, depth + 1));
     return m;
   }
   return String(v);

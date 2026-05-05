@@ -41,7 +41,7 @@ describe('fail-apply deflect on non-error', () => {
   it('Map deflects through !|', async () => {
     const evalResult = await evalQuery('{:a 1} !| /kind');
     expect(evalResult instanceof Map).toBe(true);
-    expect(evalResult.get(keyword('a'))).toBe(1);
+    expect(evalResult.get('a')).toBe(1);
   });
 });
 
@@ -95,11 +95,11 @@ describe('EffectLaunderingAtCall', () => {
     // that the parse-time AST check cannot detect.
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('let(:@myCount, count)');
-    const effectfulConduit = sessionInstance.env.get(keyword('@myCount'));
+    const effectfulConduit = sessionInstance.env.get('@myCount');
     sessionInstance.bind('doIt', effectfulConduit);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.descriptor.get(keyword('kind'))).toEqual(keyword('effect-laundering'));
+    expect(cellEntry.result.descriptor.get('kind')).toEqual(keyword('effect-laundering'));
   });
 });
 

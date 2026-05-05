@@ -5,14 +5,14 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { nullaryOp } from './dispatch.mjs';
-import { isVec, describeType } from '../types.mjs';
+import { isVec } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const SetConversionSubjectNotVec = declareSubjectError('SetConversionSubjectNotVec', 'set', 'Vec');
 
 export const set = nullaryOp('set', (vec) => {
-  if (!isVec(vec)) throw new SetConversionSubjectNotVec(describeType(vec), vec);
+  if (!isVec(vec)) throw new SetConversionSubjectNotVec(vec);
   return new Set(vec);
 });
 

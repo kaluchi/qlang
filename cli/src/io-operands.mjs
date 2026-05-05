@@ -34,7 +34,7 @@ import {
 } from '@kaluchi/qlang-core/operand-errors';
 import {
   isKeyword,
-  describeType,
+  typeKeyword,
   printValue
 } from '@kaluchi/qlang-core';
 
@@ -45,14 +45,14 @@ const OutSubjectNotString =
 const OutRendererResultNotString =
   declareShapeError('OutRendererResultNotString',
     ({ actualType }) =>
-      `@out renderer must produce a String, got ${actualType}`);
+      `@out renderer must produce a String, got ${actualType.name}`);
 
 const ErrSubjectNotString =
   declareSubjectError('ErrSubjectNotString', '@err', 'String');
 const ErrRendererResultNotString =
   declareShapeError('ErrRendererResultNotString',
     ({ actualType }) =>
-      `@err renderer must produce a String, got ${actualType}`);
+      `@err renderer must produce a String, got ${actualType.name}`);
 
 const TapLabelNotKeyword =
   declareModifierError('TapLabelNotKeyword', '@tap', 1, 'Keyword');
@@ -67,7 +67,7 @@ function makeWriterOperand(operandName, writer, recordEffect, SubjectError, Rend
   return overloadedOp(operandName, 2, {
     0: (subject) => {
       if (typeof subject !== 'string') {
-        throw new SubjectError(describeType(subject), subject);
+        throw new SubjectError(subject);
       }
       writer(subject + '\n');
       recordEffect();
@@ -77,7 +77,7 @@ function makeWriterOperand(operandName, writer, recordEffect, SubjectError, Rend
       const rendered = await rendererLambda(subject);
       if (typeof rendered !== 'string') {
         throw new RendererError({
-          actualType: describeType(rendered),
+          actualType: typeKeyword(rendered),
           actualValue: rendered
         });
       }
@@ -92,7 +92,7 @@ function makeTapOperand(stderrWrite) {
   return stateOp('@tap', 2, async (state, lambdas) => {
     const labelValue = await lambdas[0](state.pipeValue);
     if (!isKeyword(labelValue)) {
-      throw new TapLabelNotKeyword(describeType(labelValue), labelValue);
+      throw new TapLabelNotKeyword(labelValue);
     }
     stderrWrite(`[tap ${labelValue.name}] ${printValue(state.pipeValue)}\n`);
     return state;

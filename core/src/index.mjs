@@ -96,7 +96,8 @@ import {
   makeErrorValue,
   appendTrailNode,
   materializeTrail,
-  describeType
+  describeType,
+  typeKeyword
 } from './types.mjs';
 
 export {
@@ -146,5 +147,6 @@ export {
   makeErrorValue,
   appendTrailNode,
   materializeTrail,
-  describeType
+  describeType,
+  typeKeyword
 };

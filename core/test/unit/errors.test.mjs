@@ -45,7 +45,7 @@ describe('QlangError base class', () => {
       site: 'TestSite',
       operand: 'op',
       expectedType: 'Vec',
-      actualType: 'Number',
+      actualType: { name: 'number' },
       actualValue: 'SECRET-PII-DO-NOT-LEAK'
     });
     const jsonPayload = typeErr.toJSON();
@@ -53,7 +53,7 @@ describe('QlangError base class', () => {
       site: 'TestSite',
       operand: 'op',
       expectedType: 'Vec',
-      actualType: 'Number'
+      actualType: { name: 'number' }
     });
     expect(jsonPayload.context).not.toHaveProperty('actualValue');
   });

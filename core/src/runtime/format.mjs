@@ -200,11 +200,11 @@ function renderCell(v) {
 }
 
 export const table = nullaryOp('table', (subject) => {
-  if (!isVec(subject)) throw new TableSubjectNotVec(describeType(subject), subject);
+  if (!isVec(subject)) throw new TableSubjectNotVec(subject);
   if (subject.length === 0) return '(empty)';
   for (let i = 0; i < subject.length; i++) {
     if (!isQMap(subject[i])) {
-      throw new TableRowNotMap(i, describeType(subject[i]), subject[i]);
+      throw new TableRowNotMap(i, subject[i]);
     }
   }
 

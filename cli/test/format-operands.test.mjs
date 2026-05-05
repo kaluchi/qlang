@@ -107,7 +107,7 @@ describe('template — error sites', () => {
       operand: 'template',
       position: 1,
       expectedType: 'String',
-      actualType: 'Number'
+      actualType: { name: 'number' }
     });
   });
 });

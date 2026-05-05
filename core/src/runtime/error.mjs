@@ -24,7 +24,7 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isErrorValue, describeType, makeErrorValue
+  isQMap, isErrorValue, makeErrorValue
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -42,7 +42,7 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
     ? state.pipeValue
     : await errorLambdas[0](state.pipeValue);
   if (!isQMap(errorDescriptor)) {
-    throw new ErrorDescriptorNotMap(describeType(errorDescriptor), errorDescriptor);
+    throw new ErrorDescriptorNotMap(errorDescriptor);
   }
   return withPipeValue(state, makeErrorValue(errorDescriptor));
 }, { captured: [0, 1] });

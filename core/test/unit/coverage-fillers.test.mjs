@@ -12,6 +12,7 @@ import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
+  typeKeyword,
   keyword,
   makeSnapshot,
   makeConduit,
@@ -108,6 +109,27 @@ describe('describeType for conduit and snapshot', async () => {
   it('describeType returns "Conduit" for a conduit value', async () => {
     const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
     expect(describeType(conduit)).toBe('Conduit');
+  });
+});
+
+describe('typeKeyword covers all value kinds', () => {
+  it('typeKeyword returns :function for a function value', () => {
+    const fnValue = Object.freeze({ type: 'function', impl: () => {} });
+    expect(typeKeyword(fnValue).name).toBe('function');
+  });
+
+  it('typeKeyword returns :unknown for an unrecognized object', () => {
+    expect(typeKeyword({ type: 'alien' }).name).toBe('unknown');
+  });
+
+  it('typeKeyword returns :conduit for a conduit', () => {
+    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    expect(typeKeyword(conduit).name).toBe('conduit');
+  });
+
+  it('typeKeyword returns :snapshot for a snapshot', () => {
+    const snap = makeSnapshot(42, { name: 'x' });
+    expect(typeKeyword(snap).name).toBe('snapshot');
   });
 });
 

@@ -18,7 +18,7 @@ import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet, isNumber, isString, isBoolean, isNull,
-  describeType, keyword, makeConduit, makeSnapshot, isErrorValue
+  typeKeyword, keyword, makeConduit, makeSnapshot, isErrorValue
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -43,13 +43,13 @@ import { parse as parseSource } from '../parse.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
 const UseNamespaceNotKeyword = declareShapeError('UseNamespaceNotKeyword',
-  ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType}`);
+  ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`);
 const UseNamespaceNotFound = declareShapeError('UseNamespaceNotFound',
   ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`);
 const UseNamespaceNotMap = declareShapeError('UseNamespaceNotMap',
-  ({ namespaceName, actualType }) => `use: namespace '${namespaceName}' is ${actualType}, expected Map`);
+  ({ namespaceName, actualType }) => `use: namespace '${namespaceName}' is ${actualType.name}, expected Map`);
 const UseNamespaceElementNotKeyword = declareShapeError('UseNamespaceElementNotKeyword',
-  ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType}`);
+  ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType.name}`);
 const UseNamespaceCollision = declareShapeError('UseNamespaceCollision',
   ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple namespaces: ${namespaces.join(', ')}`);
 const UseNameNotExported = declareShapeError('UseNameNotExported',
@@ -57,7 +57,7 @@ const UseNameNotExported = declareShapeError('UseNameNotExported',
 const ReifyArityOverflow = declareArityError('ReifyArityOverflow',
   ({ actualArity }) => `reify accepts 0 or 1 captured args, got ${actualArity}`);
 const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
-  ({ actualType }) => `reify(:name) requires a keyword captured arg, got ${actualType}`);
+  ({ actualType }) => `reify(:name) requires a keyword captured arg, got ${actualType.name}`);
 
 // env — replaces pipeValue with the current env Map.
 export const env = stateOp('env', 1, (state, _lambdas) =>
@@ -71,7 +71,7 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
   if (useLambdas.length === 0) {
     // Existing: merge pipeValue Map into env
     if (!isQMap(state.pipeValue)) {
-      throw new UseSubjectNotMap(describeType(state.pipeValue), state.pipeValue);
+      throw new UseSubjectNotMap(state.pipeValue);
     }
     return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
   }
@@ -83,12 +83,12 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
     if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
     if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
     if (isQSet(useArg))     return await importUnorderedNamespaces(state, useArg);
-    throw new UseNamespaceNotKeyword({ actualType: describeType(useArg), actualValue: useArg });
+    throw new UseNamespaceNotKeyword({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
 
   // Two args: namespace keyword + selection filter
   if (!isKeyword(useArg)) {
-    throw new UseNamespaceNotKeyword({ actualType: describeType(useArg), actualValue: useArg });
+    throw new UseNamespaceNotKeyword({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
   const useSelection = await useLambdas[1](state.pipeValue);
   return await importSelectiveNamespace(state, useArg, useSelection);
@@ -111,7 +111,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
     if (!isQMap(moduleEnv)) {
       throw new UseNamespaceNotMap({
         namespaceName: nsKeyword.name,
-        actualType: describeType(moduleEnv)
+        actualType: typeKeyword(moduleEnv)
       });
     }
     return [moduleEnv, outerEnv];
@@ -174,7 +174,7 @@ async function importOrderedNamespaces(state, namespaces) {
   for (let i = 0; i < namespaces.length; i++) {
     const ns = namespaces[i];
     if (!isKeyword(ns)) {
-      throw new UseNamespaceElementNotKeyword({ index: i, actualType: describeType(ns) });
+      throw new UseNamespaceElementNotKeyword({ index: i, actualType: typeKeyword(ns) });
     }
     const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(currentEnv, ns);
     currentEnv = envMerge(updatedEnv, moduleEnv);
@@ -319,7 +319,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
 function buildValueDescriptor(value, explicitName) {
   const result = new Map();
   result.set('kind', keyword('value'));
-  result.set('name', explicitName ?? null);
+  if (explicitName != null) result.set('name', explicitName);
   result.set('value', value);
   result.set('type', describeValueType(value));
   return result;
@@ -368,7 +368,7 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
   if (reifyLambdas.length === 1) {
     const reifyKeyValue = await reifyLambdas[0](state.pipeValue);
     if (!isKeyword(reifyKeyValue)) {
-      throw new ReifyKeyNotKeyword({ actualType: describeType(reifyKeyValue), actualValue: reifyKeyValue });
+      throw new ReifyKeyNotKeyword({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
     }
     if (!state.env.has(reifyKeyValue.name)) {
       throw new UnresolvedIdentifierError(reifyKeyValue.name);
@@ -460,7 +460,7 @@ async function runExampleEntry(exampleMap) {
 export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
   const runExSubject = state.pipeValue;
   if (!isQMap(runExSubject)) {
-    throw new RunExamplesSubjectNotDescriptor(describeType(runExSubject), runExSubject);
+    throw new RunExamplesSubjectNotDescriptor(runExSubject);
   }
   const runExExamples = runExSubject.get('examples');
   if (!isVec(runExExamples)) {
@@ -489,13 +489,13 @@ export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
 // ── let and as — binding operands ─────────────────────────────
 
 const LetNameNotKeyword = declareShapeError('LetNameNotKeyword',
-  ({ actualType }) => `let requires a keyword as its first argument (the binding name), got ${actualType}`);
+  ({ actualType }) => `let requires a keyword as its first argument (the binding name), got ${actualType.name}`);
 const LetParamsNotVecOfKeywords = declareShapeError('LetParamsNotVecOfKeywords',
-  ({ index, actualType }) => `let parameter list must be a Vec of keywords; element ${index} is ${actualType}`);
+  ({ index, actualType }) => `let parameter list must be a Vec of keywords; element ${index} is ${actualType.name}`);
 const LetBodyMissing = declareArityError('LetBodyMissing',
   ({ actualCount }) => `let requires 2 arguments (name, body) or 3 arguments (name, params, body), got ${actualCount}`);
 const AsNameNotKeyword = declareShapeError('AsNameNotKeyword',
-  ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType}`);
+  ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType.name}`);
 
 import { envSet } from '../state.mjs';
 
@@ -507,7 +507,7 @@ export const letOperand = stateOpVariadic('let', 16, async (state, letLambdas) =
 
   const letNameValue = await letLambdas[0](state.pipeValue);
   if (!isKeyword(letNameValue)) {
-    throw new LetNameNotKeyword({ actualType: describeType(letNameValue), actualValue: letNameValue });
+    throw new LetNameNotKeyword({ actualType: typeKeyword(letNameValue), actualValue: letNameValue });
   }
   const letBindingName = letNameValue.name;
 
@@ -516,11 +516,11 @@ export const letOperand = stateOpVariadic('let', 16, async (state, letLambdas) =
   if (letArgCount === 3) {
     const letParamsValue = await letLambdas[1](state.pipeValue);
     if (!isVec(letParamsValue)) {
-      throw new LetParamsNotVecOfKeywords({ index: -1, actualType: describeType(letParamsValue), actualValue: letParamsValue });
+      throw new LetParamsNotVecOfKeywords({ index: -1, actualType: typeKeyword(letParamsValue), actualValue: letParamsValue });
     }
     for (let pi = 0; pi < letParamsValue.length; pi++) {
       if (!isKeyword(letParamsValue[pi])) {
-        throw new LetParamsNotVecOfKeywords({ index: pi, actualType: describeType(letParamsValue[pi]), actualValue: letParamsValue[pi] });
+        throw new LetParamsNotVecOfKeywords({ index: pi, actualType: typeKeyword(letParamsValue[pi]), actualValue: letParamsValue[pi] });
       }
     }
     letParams = letParamsValue.map(kw => kw.name);
@@ -559,7 +559,7 @@ export const letOperand = stateOpVariadic('let', 16, async (state, letLambdas) =
 export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
   const asNameValue = await asLambdas[0](state.pipeValue);
   if (!isKeyword(asNameValue)) {
-    throw new AsNameNotKeyword({ actualType: describeType(asNameValue), actualValue: asNameValue });
+    throw new AsNameNotKeyword({ actualType: typeKeyword(asNameValue), actualValue: asNameValue });
   }
   const asBindingName = asNameValue.name;
   const asSnapshot = makeSnapshot(state.pipeValue, {
@@ -602,7 +602,7 @@ const EvalSubjectNotMap = declareSubjectError(
 export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => {
   const parseSrc = state.pipeValue;
   if (typeof parseSrc !== 'string') {
-    throw new ParseSubjectNotString(describeType(parseSrc), parseSrc);
+    throw new ParseSubjectNotString(parseSrc);
   }
   try {
     const parsedAst = parseSource(parseSrc, { uri: 'parse-operand' });
@@ -624,7 +624,7 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
   const evalAstMap = state.pipeValue;
   if (!isQMap(evalAstMap)) {
-    throw new EvalSubjectNotMap(describeType(evalAstMap), evalAstMap);
+    throw new EvalSubjectNotMap(evalAstMap);
   }
   const reconstructedAst = qlangMapToAst(evalAstMap);
   return await evalAst(reconstructedAst, state);

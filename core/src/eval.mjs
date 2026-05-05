@@ -43,7 +43,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 }
 import {
   isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
-  describeType, keyword, NULL, makeErrorValue, appendTrailNode,
+  typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
@@ -57,11 +57,11 @@ function trailEntry(stepNode, combinatorKind) {
 }
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
-  ({ key, actualType }) => `/${key} requires Map subject, got ${actualType}`);
+  ({ key, actualType }) => `/${key} requires Map subject, got ${actualType.name}`);
 const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'Vec');
 const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
 const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
-  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType}, not a function`);
+  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}, not a function`);
 const ConduitArityMismatch    = declareArityError('ConduitArityMismatch',
   ({ conduitName, expectedArity, actualArity }) =>
     `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`);
@@ -210,7 +210,7 @@ async function distribute(state, bodyNode) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
   if (!isVec(state.pipeValue)) {
-    const distributeErr = new DistributeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+    const distributeErr = new DistributeSubjectNotVec(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
   }
@@ -227,7 +227,7 @@ async function mergeFlat(state, nextNode) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(nextNode, 'merge')));
   }
   if (!isVec(state.pipeValue)) {
-    const mergeErr = new MergeSubjectNotVec(describeType(state.pipeValue), state.pipeValue);
+    const mergeErr = new MergeSubjectNotVec(state.pipeValue);
     mergeErr.location = nextNode.location;
     return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
   }
@@ -399,7 +399,7 @@ function projectSegment(subject, projKey) {
   }
   throw new ProjectionSubjectNotMap({
     key: projKey,
-    actualType: describeType(subject),
+    actualType: typeKeyword(subject),
     actualValue: subject
   });
 }
@@ -500,7 +500,7 @@ async function evalOperandCall(node, state) {
   if (capturedArgsAst !== null) {
     throw new ApplyToNonFunction({
       name: lookupName,
-      actualType: describeType(resolved),
+      actualType: typeKeyword(resolved),
       actualValue: resolved
     });
   }

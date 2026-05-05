@@ -1,5 +1,5 @@
 import { nullaryOp } from './dispatch.mjs';
-import { isString, isKeyword, keyword, describeType } from '../types.mjs';
+import { isString, isKeyword, keyword } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -9,7 +9,7 @@ const KeywordSubjectNotStringOrKeyword = declareSubjectError(
 export const keywordOp = nullaryOp('keyword', (subject) => {
   if (isString(subject)) return keyword(subject);
   if (isKeyword(subject)) return subject.name;
-  throw new KeywordSubjectNotStringOrKeyword(describeType(subject), subject);
+  throw new KeywordSubjectNotStringOrKeyword(subject);
 });
 
 PRIMITIVE_REGISTRY.bind('qlang/prim/keyword', keywordOp);

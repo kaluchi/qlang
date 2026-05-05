@@ -14,7 +14,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
-import { isVec, isQMap, isQSet, isKeyword, describeType } from '../types.mjs';
+import { isVec, isQMap, isQSet, isKeyword } from '../types.mjs';
 
 function setHasKeywordName(s, name) {
   for (const v of s) if (isKeyword(v) && v.name === name) return true;
@@ -60,7 +60,7 @@ function unionPair(left, right) {
     for (const [k, v] of right) out.set(k, v);
     return out;
   }
-  throw new UnionPairIncompatible(describeType(left), describeType(right));
+  throw new UnionPairIncompatible(left, right);
 }
 
 function minusPair(left, right) {
@@ -84,7 +84,7 @@ function minusPair(left, right) {
     }
     return out;
   }
-  throw new MinusPairIncompatible(describeType(left), describeType(right));
+  throw new MinusPairIncompatible(left, right);
 }
 
 function interPair(left, right) {
@@ -108,12 +108,12 @@ function interPair(left, right) {
     }
     return out;
   }
-  throw new InterPairIncompatible(describeType(left), describeType(right));
+  throw new InterPairIncompatible(left, right);
 }
 
 export const union = overloadedOp('union', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new UnionBareSubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new UnionBareSubjectNotVec(vec);
     if (vec.length === 0) throw new UnionBareEmpty();
     return vec.reduce(unionPair);
   },
@@ -124,7 +124,7 @@ export const union = overloadedOp('union', 2, {
 
 export const minus = overloadedOp('minus', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new MinusBareSubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new MinusBareSubjectNotVec(vec);
     if (vec.length === 0) throw new MinusBareEmpty();
     return vec.reduce(minusPair);
   },
@@ -135,7 +135,7 @@ export const minus = overloadedOp('minus', 2, {
 
 export const inter = overloadedOp('inter', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new InterBareSubjectNotVec(describeType(vec), vec);
+    if (!isVec(vec)) throw new InterBareSubjectNotVec(vec);
     if (vec.length === 0) throw new InterBareEmpty();
     return vec.reduce(interPair);
   },

@@ -69,7 +69,7 @@ export const env = stateOp('env', 1, (state, _lambdas) =>
 //   2 captured: selective namespace import (keyword + filter Set/Vec)
 export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
   if (useLambdas.length === 0) {
-    // Existing: merge pipeValue Map into env
+    // Zero captured args: merge pipeValue Map into env
     if (!isQMap(state.pipeValue)) {
       throw new UseSubjectNotMap(state.pipeValue);
     }
@@ -221,7 +221,6 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
 }
 
 // ── reify and manifest ─────────────────────────────────────────
-
 
 // Descriptor field helpers — extracted so each null-fallback
 // path is testable via synthetic conduits/snapshots/functions.

@@ -10,7 +10,6 @@
 import {
   parse, ParseError,
   langRuntime,
-  keyword,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,

@@ -22,7 +22,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
+import { isErrorValue } from '../../src/types.mjs';
 
 const OK_KW       = 'ok';
 const SNIPPET_KW  = 'snippet';

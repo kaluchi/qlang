@@ -28,7 +28,7 @@
 // or 2.
 
 import { expect } from 'vitest';
-import { QlangTypeError, keyword } from '@kaluchi/qlang-core';
+import { QlangTypeError } from '@kaluchi/qlang-core';
 
 // expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext)
 //   → the JS error instance (for further ad-hoc assertions)

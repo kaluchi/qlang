@@ -36,7 +36,6 @@ import {
   printValue,
   isErrorValue,
   materializeTrail,
-  keyword,
   langRuntime
 } from '@kaluchi/qlang-core';
 import { bindIoOperands } from './io-operands.mjs';

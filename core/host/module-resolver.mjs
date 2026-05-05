@@ -16,7 +16,7 @@ import { parse } from '../src/parse.mjs';
 import { evalAst } from '../src/eval.mjs';
 import { makeState } from '../src/state.mjs';
 import { langRuntime } from '../src/runtime/index.mjs';
-import { keyword } from '../src/types.mjs';
+
 
 // discoverModules(libDir) → Map<namespaceName, filePath>
 //
@@ -35,7 +35,7 @@ export function discoverModules(libDir) {
   return modules;
 }
 
-// resolveModules(libDir, opts?) → Map<keyword, Map>
+// resolveModules(libDir, opts?) → Map<Map>
 //
 // Discovers, evaluates, and returns a catalog of module envs.
 // Each entry: namespace keyword → module export env (Map).

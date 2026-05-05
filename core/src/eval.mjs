@@ -519,7 +519,6 @@ async function evalOperandCall(node, state) {
 // value handling". Snapshot is handled upstream by the auto-unwrap
 // step in evalOperandCall, so no :snapshot branch here.
 async function applyBindingDescriptor(descriptor, node, lookupName, state) {
-  const bindingKind = descriptor.get('qlang/kind');
   if (isBuiltinDescriptor(descriptor)) {
     return await applyBuiltinDescriptor(descriptor, node, lookupName, state);
   }

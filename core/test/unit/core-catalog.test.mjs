@@ -28,7 +28,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalAst } from '../../src/eval.mjs';
 import { makeState } from '../../src/state.mjs';
-import { keyword, isQMap, isVec, isKeyword } from '../../src/types.mjs';
+import { keyword, isQMap, isVec } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 

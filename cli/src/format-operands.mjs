@@ -39,7 +39,6 @@ import {
 import {
   printValue,
   toTaggedJSON,
-  keyword,
   describeType
 } from '@kaluchi/qlang-core';
 

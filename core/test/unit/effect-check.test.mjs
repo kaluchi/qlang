@@ -20,7 +20,7 @@ import {
 } from '../../src/effect-check.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from '../../src/effect.mjs';
 import { createSession } from '../../src/session.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
+import { isErrorValue } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
 function fakeEffectfulOperand(name = '@callers') {

@@ -13,7 +13,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword } from '../../src/types.mjs';
+
 
 describe('distinct — structural equality', () => {
   it('collapses two Maps with identical content', async () => {

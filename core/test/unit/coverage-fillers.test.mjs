@@ -12,10 +12,10 @@ import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
+  keyword,
   makeSnapshot,
   makeConduit,
   makeErrorValue,
-  keyword,
   isErrorValue
 } from '../../src/types.mjs';
 import {
@@ -232,7 +232,7 @@ describe('format.fromPlain — inverse of toPlain', async () => {
 
   it('objects lift into Map keyed by interned keywords', async () => {
     const { fromPlain } = await import('../../src/runtime/format.mjs');
-    const { keyword, isQMap } = await import('../../src/types.mjs');
+    const { isQMap } = await import('../../src/types.mjs');
     const lifted = fromPlain({ a: 1, b: 2 });
     expect(isQMap(lifted)).toBe(true);
     expect(lifted.get('a')).toBe(1);
@@ -765,7 +765,7 @@ describe('intro.mjs — UseNameNotExported (line 157)', async () => {
 
   it('non-keyword selection uses String(name) fallback in error context (line 157)', async () => {
     // Pass a Vec with a number element as the selection — the number is
-    // not a keyword, so isKeyword(name) is false → String(name) fires.
+    // not a so isKeyword(name) is false → String(name) fires.
     const s = await createSession();
     s.bind('myNs2', new Map([['x', 99]]));
     // use(:myNs2, [42]) — selection Vec contains number 42, not a keyword
@@ -978,7 +978,6 @@ describe('deepEqual Set keyword mismatch', async () => {
 describe('setops keyword-aware minus/inter with mixed Set members', async () => {
   it('Map×Set minus with Set containing non-keyword members', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #{:a 42}] | minus');
     expect(result.has('b')).toBe(true);
   });

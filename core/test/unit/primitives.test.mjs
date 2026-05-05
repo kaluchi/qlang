@@ -14,7 +14,7 @@ import {
   createPrimitiveRegistry,
   PRIMITIVE_REGISTRY
 } from '../../src/primitives.mjs';
-import { keyword } from '../../src/types.mjs';
+
 import { QlangError, QlangInvariantError } from '../../src/errors.mjs';
 
 describe('createPrimitiveRegistry — lifecycle', () => {

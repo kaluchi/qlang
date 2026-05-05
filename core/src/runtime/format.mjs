@@ -9,7 +9,6 @@ import {
   isVec,
   isQMap,
   isQSet,
-  isKeyword,
   isErrorValue,
   describeType
 } from '../types.mjs';

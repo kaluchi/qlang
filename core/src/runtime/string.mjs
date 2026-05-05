@@ -5,7 +5,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { valueOp } from './dispatch.mjs';
-import { describeType, isVec, keyword } from '../types.mjs';
+import { describeType, isVec } from '../types.mjs';
 import {
   declareModifierError,
   declareSubjectError,

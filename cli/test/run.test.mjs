@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { keyword } from '@kaluchi/qlang-core';
+
 
 function captureIoContext() {
   const stdoutChunks = [];

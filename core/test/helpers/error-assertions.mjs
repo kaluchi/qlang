@@ -5,7 +5,7 @@
 
 import { expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
+import { isErrorValue } from '../../src/types.mjs';
 
 // expectErrorResult(query) → error value
 //

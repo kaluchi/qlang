@@ -8,7 +8,7 @@ import {
   liftStdinToPipeValue,
   encodeSuccessValueForFormat
 } from '../src/script-mode.mjs';
-import { keyword } from '@kaluchi/qlang-core';
+
 
 describe('liftStdinToPipeValue — auto detection', () => {
   it('returns an empty raw String when stdin is empty', () => {

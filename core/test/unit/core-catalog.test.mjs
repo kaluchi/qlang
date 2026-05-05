@@ -307,8 +307,9 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     }
     expect(categories.get('container-reducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
     expect(categories.get('container-selector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
-    expect(categories.get('vec-reducer')).toBe(7);  // first, last, at, sum, min, max, firstNonZero (Vec-only)
-    expect(categories.get('vec-transformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy (set is :set-op)
+    expect(categories.get('vec-reducer')).toBe(6);  // first, last, sum, min, max, firstNonZero
+    expect(categories.get('indexed-access')).toBe(1);  // at (Vec + Map polymorphic)
+    expect(categories.get('vec-transformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy
     expect(categories.get('comparator')).toBe(4);
     expect(categories.get('control')).toBe(6);
     expect(categories.get('map-op')).toBe(3);  // keys + vals + has
@@ -316,7 +317,8 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
-    expect(categories.get('type-classifier')).toBe(9);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + keyword
+    expect(categories.get('type-classifier')).toBe(8);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull
+    expect(categories.get('type-conversion')).toBe(1);  // keyword
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
     expect(categories.get('error')).toBe(2);

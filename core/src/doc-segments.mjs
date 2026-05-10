@@ -1,0 +1,175 @@
+// Doc-content tokenizer — splits a Doc-value's `.content` string
+// into a Vec of segments, each one of:
+//
+//   Prose     — `{:qlang/kind :prose :text "..."}` for the raw
+//               text between special tokens.
+//   Quote     — Quote-value (frozen `.source`) for a backtick-
+//               delimited code fragment.
+//   TaggedLit — the value produced by invoking a `::tag`
+//               constructor against its parsed payload (e.g. an
+//               `::assertion[\`snippet\` \`expected\`]` segment
+//               yields an Assertion-value Map).
+//
+// The tokenizer scans char-by-char for backtick (`) and double-
+// colon (`::`) openers, parses the surrounding qlang fragment
+// through the canonical parse() entry point, and emits the
+// corresponding value-class. Anything between the openers (or
+// before the first / after the last) becomes a Prose segment.
+
+import { parse } from './parse.mjs';
+import { evalAst } from './eval.mjs';
+import { makeState } from './state.mjs';
+import { keyword, makeQuote } from './types.mjs';
+
+const PROSE_KIND = keyword('prose');
+
+function makeProseSegment(text) {
+  const m = new Map();
+  m.set('qlang/kind', PROSE_KIND);
+  m.set('text', text);
+  return Object.freeze(m);
+}
+
+// Find the next opener (` or ::) at or after `from` in `content`.
+// Returns { offset, kind } or null when none.
+//   kind 'quote'  — backtick-delimited code shorthand (Quote-value).
+//   kind 'tagged' — `::tag<payload>` (TaggedLit, evaluated through
+//                   the registered constructor).
+// Keyword references (`:foo`), type tags, names stay in Prose —
+// the Doc-content canon is `:Prose` / `:Quote` / TaggedLit-built;
+// further structure rides through `::tag` constructors authors
+// register, no per-form grammar specialisation here.
+function findNextOpener(content, from) {
+  let best = null;
+  for (let i = from; i < content.length; i++) {
+    const ch = content[i];
+    if (ch === '`') {
+      best = { offset: i, kind: 'quote' };
+      break;
+    }
+    if (ch === ':' && i + 1 < content.length && content[i + 1] === ':') {
+      best = { offset: i, kind: 'tagged' };
+      break;
+    }
+  }
+  return best;
+}
+
+// Locate the matching close-backtick for a Quote opener at `start`.
+function findQuoteEnd(content, start) {
+  return content.indexOf('`', start + 1);
+}
+
+// Locate the end of a `::tag<...>` TaggedLit at `start`. Peggy's
+// startRule mode still demands end-of-input, so the tokenizer
+// performs a bracket-balanced scan to find the matching close,
+// then hands the carved-out substring to the parser.
+const BRACKET_CLOSERS = { '(': ')', '[': ']', '{': '}' };
+
+function findTaggedEnd(content, start) {
+  let i = start + 2;
+  while (i < content.length && /[\w@-]/.test(content[i])) i++;
+  while (i < content.length && /\s/.test(content[i])) i++;
+  if (i >= content.length) return -1;
+  const opener = content[i];
+  if (opener === '`') {
+    const end = content.indexOf('`', i + 1);
+    return end === -1 ? -1 : end + 1;
+  }
+  if (opener === '"') {
+    i++;
+    while (i < content.length && content[i] !== '"') {
+      if (content[i] === '\\') i++;
+      i++;
+    }
+    return i < content.length ? i + 1 : -1;
+  }
+  const closer = BRACKET_CLOSERS[opener];
+  if (!closer) return -1;
+  let depth = 1;
+  i++;
+  while (i < content.length) {
+    const ch = content[i];
+    if (ch === '`') {
+      const end = content.indexOf('`', i + 1);
+      if (end === -1) return -1;
+      i = end + 1;
+      continue;
+    }
+    if (ch === '"') {
+      i++;
+      while (i < content.length && content[i] !== '"') {
+        if (content[i] === '\\') i++;
+        i++;
+      }
+      i++;
+      continue;
+    }
+    if (ch === opener) depth++;
+    else if (ch === closer) {
+      depth--;
+      if (depth === 0) return i + 1;
+    }
+    i++;
+  }
+  return -1;
+}
+
+function tryParseTaggedAt(content, start) {
+  const end = findTaggedEnd(content, start);
+  if (end === -1) return null;
+  const slice = content.slice(start, end);
+  try {
+    const ast = parse(slice, { uri: 'doc-content/tagged', startRule: 'TaggedLit' });
+    return { ast, length: end - start };
+  } catch {
+    return null;
+  }
+}
+
+// Eval a TaggedLit AST in a fresh state (Doc-segment evaluation
+// is independent of the outer pipeValue — segments are content,
+// not pipeline steps). Constructor sees its own payload-value;
+// state.env carries through for ::conduit-style env capture.
+async function evalTaggedSegment(ast, env) {
+  const state = makeState(null, env);
+  const result = await evalAst(ast, state);
+  return result.pipeValue;
+}
+
+export async function parseDocSegments(content, env) {
+  const segments = [];
+  let cursor = 0;
+  while (cursor < content.length) {
+    const opener = findNextOpener(content, cursor);
+    if (opener === null) {
+      const tail = content.slice(cursor);
+      if (tail.length > 0) segments.push(makeProseSegment(tail));
+      break;
+    }
+    if (opener.offset > cursor) {
+      segments.push(makeProseSegment(content.slice(cursor, opener.offset)));
+    }
+    if (opener.kind === 'quote') {
+      const endIdx = findQuoteEnd(content, opener.offset);
+      if (endIdx === -1) {
+        segments.push(makeProseSegment(content.slice(opener.offset)));
+        break;
+      }
+      const source = content.slice(opener.offset + 1, endIdx);
+      segments.push(makeQuote(source));
+      cursor = endIdx + 1;
+      continue;
+    }
+    const parsed = tryParseTaggedAt(content, opener.offset);
+    if (parsed === null) {
+      segments.push(makeProseSegment(content.slice(opener.offset, opener.offset + 2)));
+      cursor = opener.offset + 2;
+      continue;
+    }
+    const value = await evalTaggedSegment(parsed.ast, env);
+    segments.push(value);
+    cursor = opener.offset + parsed.length;
+  }
+  return Object.freeze(segments);
+}

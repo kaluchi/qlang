@@ -1422,3 +1422,22 @@ def(:isJsonArray, {:qlang/kind :builtin
                      {:doc "JSON Array" :snippet "::json[1 2 3] | isJsonArray" :expected "true"}
                      {:doc "qlang Vec"  :snippet "[1 2 3] | isJsonArray"       :expected "false"}]
                    :throws []})
+
+|~~ ::assertion segment that records an evaluable example.
+    Payload is a Vec of two Quote-values: snippet and expected.
+    The Doc-content tokenizer parses this form when it appears
+    inside a Doc literal; the resulting Assertion-value carries
+    :snippet and :expected as Quote-values that runExamples
+    evaluates and compares. ~~|
+def(::assertion, {:qlang/kind :type
+                  :qlang/impl :qlang/type/assertion
+                  :spec {:payload :vec}
+                  :examples [
+                    {:doc "snippet/expected pair"
+                     :snippet "::assertion[`[1 2 3] | count` `3`] | /qlang/kind"
+                     :expected ":assertion"}]
+                  :throws [
+                    :AssertionPayloadNotVec
+                    :AssertionArityInvalid
+                    :AssertionSnippetNotQuote
+                    :AssertionExpectedNotQuote]})

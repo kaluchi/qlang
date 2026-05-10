@@ -50,6 +50,7 @@ import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
+import { parseDocSegments } from './doc-segments.mjs';
 
 // Trail-fragment record stamped onto the linked-list head at every
 // success-track combinator deflect site. `combinator` is one of the
@@ -420,7 +421,7 @@ const INTEGER_SEGMENT_RE = /^-?\d+$/;
 async function evalProjection(node, state) {
   let projectionCurrent = state.pipeValue;
   for (const projKey of node.keys) {
-    projectionCurrent = projectSegment(projectionCurrent, projKey);
+    projectionCurrent = await projectSegment(projectionCurrent, projKey, state);
     // Snapshots are transparent value wrappers — unwrap during
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
@@ -443,7 +444,8 @@ const PROJECTABLE_BY_TYPE = {
     ast:    q => q.ast ?? lazyParseQuoteAst(q)
   },
   doc: {
-    content: d => d.content
+    content:  d => d.content,
+    segments: (d, state) => parseDocSegments(d.content, state.env)
   }
 };
 
@@ -456,12 +458,12 @@ function lazyParseQuoteAst(q) {
   }
 }
 
-function projectSegment(subject, projKey) {
+function projectSegment(subject, projKey, state) {
   if (subject !== null && typeof subject === 'object') {
     const handlers = PROJECTABLE_BY_TYPE[subject.type];
     if (handlers) {
       const handler = handlers[projKey];
-      return handler ? handler(subject) : NULL;
+      return handler ? handler(subject, state) : NULL;
     }
   }
   if (isQMap(subject)) {

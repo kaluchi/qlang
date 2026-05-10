@@ -53,7 +53,7 @@ export function parse(source, opts = {}) {
   }
   let ast;
   try {
-    ast = peggyParse(source);
+    ast = peggyParse(source, opts.startRule ? { startRule: opts.startRule } : undefined);
   } catch (err) {
     throw new ParseError(err.message, err.location, opts.uri ?? null);
   }

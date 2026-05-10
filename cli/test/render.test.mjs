@@ -30,7 +30,11 @@ describe('renderCellOutcome — error paths', () => {
     expect(cliOutcome.exitCode).toBe(1);
   });
 
-  it('exits 1 silently for an unhandled fail-track error value', () => {
+  it('encodes a fail-track error value as data on stdout, exit 0', () => {
+    // Error values are first-class qlang values per the spec — they
+    // travel as data on the same channel as plain values. A non-zero
+    // exit on a fail-track result would cancel sibling tool calls in
+    // agent harnesses that parallelise qlang invocations.
     const errorDescriptor = new Map([
       ['thrown', keyword('FilterSubjectNotContainer')]
     ]);
@@ -39,9 +43,9 @@ describe('renderCellOutcome — error paths', () => {
       resolvedFormat: 'raw',
       didExplicitStdoutEffect: false
     });
-    expect(cliOutcome.stdoutText).toBe('');
+    expect(cliOutcome.stdoutText).toContain(':FilterSubjectNotContainer');
     expect(cliOutcome.stderrText).toBe('');
-    expect(cliOutcome.exitCode).toBe(1);
+    expect(cliOutcome.exitCode).toBe(0);
   });
 });
 

@@ -178,14 +178,18 @@ describe('main — error paths', () => {
     expect(s.stderrText()).toMatch(/^qlang:/);
   });
 
-  it('returns exit 1 silently for an unhandled fail-track error value', async () => {
+  it('encodes a fail-track error value as data on stdout, exit 0', async () => {
+    // Per spec, error values travel as data on the same channel as
+    // plain values. Non-zero exit reserved for host-level setup
+    // failure (parse error, config blowup), not for in-language
+    // fail-track results.
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | add(1)'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
-    expect(exitCode).toBe(1);
-    expect(s.stdoutText()).toBe('');
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('AddLeftNotNumber');
     expect(s.stderrText()).toBe('');
   });
 });

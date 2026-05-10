@@ -51,9 +51,9 @@ export function astChildrenOf(node) {
       }
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, QuoteLit (frozen source, lazy AST), LinePlainComment,
-    // BlockPlainComment, LineDocComment, BlockDocComment have no
-    // semantic children.
+    // Projection, QuoteLit (frozen source, lazy AST), DocLit (frozen
+    // content), LinePlainComment, BlockPlainComment, LineDocComment,
+    // BlockDocComment have no semantic children.
   }
   return out;
 }
@@ -260,6 +260,7 @@ export function triviaBetweenAstNodes(nodeA, nodeB, ast) {
 //                     (wrapper inside Pipeline.steps — first step
 //                      carries null combinator, rest carry "|", "!|",
 //                      "*", or ">>")
+//   DocLit            :content <string>
 //   LinePlainComment  :content <string>
 //   BlockPlainComment :content <string>
 //   LineDocComment    :content <string>
@@ -313,6 +314,7 @@ const KIND_SET_LIT             = keyword('SetLit');
 const KIND_MAP_LIT             = keyword('MapLit');
 const KIND_ERROR_LIT           = keyword('ErrorLit');
 const KIND_QUOTE_LIT           = keyword('QuoteLit');
+const KIND_DOC_LIT             = keyword('DocLit');
 const KIND_MAP_ENTRY           = keyword('MapEntry');
 const KIND_OPERAND_CALL        = keyword('OperandCall');
 const KIND_PAREN_GROUP         = keyword('ParenGroup');
@@ -338,6 +340,7 @@ const AST_KIND_TO_TYPE = new Map([
   ['MapLit',             'MapLit'],
   ['ErrorLit',           'ErrorLit'],
   ['QuoteLit',           'QuoteLit'],
+  ['DocLit',             'DocLit'],
   ['MapEntry',           'MapEntry'],
   ['OperandCall',        'OperandCall'],
   ['ParenGroup',         'ParenGroup'],
@@ -497,6 +500,11 @@ export function astNodeToMap(node) {
       m.set(F_SRC, node.src);
       break;
 
+    case 'DocLit':
+      m.set(F_QLANG_KIND, KIND_DOC_LIT);
+      m.set(F_CONTENT, node.content);
+      break;
+
     case 'MapEntry':
       m.set(F_QLANG_KIND, KIND_MAP_ENTRY);
       m.set(F_KEY,   astNodeToMap(node.key));
@@ -646,6 +654,10 @@ export function qlangMapToAst(map) {
 
     case 'QuoteLit':
       node.src = map.get(F_SRC);
+      break;
+
+    case 'DocLit':
+      node.content = map.get(F_CONTENT);
       break;
 
     case 'MapEntry':

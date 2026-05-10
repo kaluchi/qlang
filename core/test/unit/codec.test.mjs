@@ -12,7 +12,9 @@ import {
   makeConduit,
   makeSnapshot,
   makeQuote,
-  isQuote
+  isQuote,
+  makeDoc,
+  isDoc
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -57,6 +59,22 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
     const restored = roundTrip(original);
     expect(isQuote(restored)).toBe(true);
     expect(restored.source).toBe('* inc | sort');
+  });
+
+  it('round-trips a Doc via $doc tag', () => {
+    const original = makeDoc(' note ');
+    const encoded = toTaggedJSON(original);
+    expect(encoded).toEqual({ $doc: ' note ' });
+    const restored = fromTaggedJSON(encoded);
+    expect(isDoc(restored)).toBe(true);
+    expect(restored.content).toBe(' note ');
+  });
+
+  it('round-trips a Doc with multi-line content preserving newlines', () => {
+    const original = makeDoc('\n  one\n  two\n');
+    const restored = roundTrip(original);
+    expect(isDoc(restored)).toBe(true);
+    expect(restored.content).toBe('\n  one\n  two\n');
   });
 
   it('round-trips a nested Vec', () => {

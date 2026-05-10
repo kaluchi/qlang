@@ -175,6 +175,20 @@ describe('astNodeToMap — discriminator and shape', () => {
     expect(back.src).toBe('');
   });
 
+  it('encodes DocLit with :DocLit kind and :content payload', () => {
+    const m = astNodeToMap(parse('|~~ note ~~|'));
+    expect(m.get(KW_QLANG_KIND).name).toBe('DocLit');
+    expect(m.get('content')).toBe(' note ');
+  });
+
+  it('round-trips DocLit through qlangMapToAst', () => {
+    const ast = parse('|~~\n  multi-line\n  content\n~~|');
+    const m = astNodeToMap(ast);
+    const back = qlangMapToAst(m);
+    expect(back.type).toBe('DocLit');
+    expect(back.content).toBe('\n  multi-line\n  content\n');
+  });
+
   it('encodes Projection :keys as a Vec of segment strings', () => {
     const m = astNodeToMap(parse('/a/b/c'));
     expect(m.get(KW_QLANG_KIND).name).toBe('Projection');

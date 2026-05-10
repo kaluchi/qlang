@@ -9,8 +9,10 @@ import { printValue, toPlain } from '../../src/runtime/format.mjs';
 import {
   makeConduit,
   makeSnapshot,
+  makeDoc,
   isConduit,
-  isSnapshot
+  isSnapshot,
+  isDoc
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -49,6 +51,12 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     const snap = makeSnapshot([1, 2, 3], { name: 'nums' });
     expect(isSnapshot(snap)).toBe(true);
     expect(printValue(snap)).toBe('[1 2 3]');
+  });
+
+  it('renders a Doc value as `|~~content~~|` block form', () => {
+    const doc = makeDoc(' hello ');
+    expect(isDoc(doc)).toBe(true);
+    expect(printValue(doc)).toBe('|~~ hello ~~|');
   });
 
   it('renders a Function value as :qlang/prim/<name>', () => {
@@ -206,5 +214,27 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       []
     );
     expect(rendered.pipeValue).toContain('`add(1)`');
+  });
+
+  it('renders a Doc-valued cell — CELL_HANDLERS.Doc fires', async () => {
+    const { table } = await import('../../src/runtime/format.mjs');
+    const { makeDoc } = await import('../../src/types.mjs');
+    const row = new Map([['d', makeDoc(' note ')]]);
+    const rendered = await table.fn(
+      { pipeValue: [row], env: new Map() },
+      []
+    );
+    expect(rendered.pipeValue).toContain('|~~ note ~~|');
+  });
+
+  it('renders a Vec-of-Doc cell — INLINE handler for Doc fires', async () => {
+    const { table } = await import('../../src/runtime/format.mjs');
+    const { makeDoc } = await import('../../src/types.mjs');
+    const row = new Map([['ds', [makeDoc(' inner ')]]]);
+    const rendered = await table.fn(
+      { pipeValue: [row], env: new Map() },
+      []
+    );
+    expect(rendered.pipeValue).toContain('|~~ inner ~~|');
   });
 });

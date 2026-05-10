@@ -917,48 +917,74 @@ capture at eval-time). printValue выпускает обратно tagged
 literal — round-trip держится по содержимому (envRef может
 отличаться через re-eval, по §2.1 это допустимо).
 
-### II.5. Doc и Comment — content value-classes
+### II.5. Doc — content value-class; Comment — identity-step
 
-**Doc** — value-class для markdown-content'а. **Comment** —
-value-class для inline annotation. Оба эвалятся в pipeValue
-в любой Primary-position, включая pipe-step head;
+**Doc** — value-class для markdown-content'а. Эвалится в
+pipeValue в любой Primary-position, включая pipe-step head;
 position-disambig нет — `2 | |~~ c ~~|` заменяет pipeValue
 на Doc-value.
 
-**Две входные формы, одна выходная:**
+**Comment** (`|~ ... ~|` block, `|~| ...` line) **остаётся
+identity-step**, не value-class. Plain comment в pipeline-
+position сохраняет `(pipeValue, env)` без изменений; его
+load-bearing функция — **combinator-absorption** (leading и
+trailing `|` поглощаются token'ом, что делает inline narration
+чтобы split любой `|`-связанной пары на читаемые куски без
+удвоения combinator'ов: `mul(2) |~ doubles input ~| add(1)`
+парсится как два sequential шагов с identity-step между ними).
+Та же combinator-absorption на boundary `_L`-сепараторов
+(между MapEntry'ями, Vec-element'ами, ArgList-аргументами)
+позволяет section-divider plain comment'у `|~ ── header ── ~|`
+сидеть между entries как whitespace-equivalent — этот
+mechanism load-bearing и для нынешнего гига-мэп'а core.qlang,
+и для микроинкремент-серии Phase 5 (между def-step'ами на
+top-level Pipeline'е).
 
-- **Block** (`|~~ ... ~~|` для Doc, `|~ ... ~|` для Comment)
-  — output-canonical. printValue эмитит **только** block —
-  держит multi-line content и round-trip'ится.
-- **Line** (`|~~| ...` до newline для Doc, `|~| ...` до newline
-  для Comment) — input-only удобство для редактора, как `//`
-  в JS. printValue её никогда не выпускает (newline в content
-  тут же закроет токен — round-trip multi-line content
-  ломается).
+**Две входные формы Doc, одна выходная:**
 
-Парсе обе формы строит одинаковый Doc/Comment-value —
-различие только в source-syntax'е, не в семантике.
+- **Block** `|~~ ... ~~|` — output-canonical. printValue
+  эмитит **только** block — держит multi-line content и
+  round-trip'ится.
+- **Line** `|~~| ...` до newline — input-only удобство для
+  редактора, как `//` в JS. printValue её никогда не выпускает
+  (newline в content тут же закрыл бы токен — round-trip
+  multi-line content ломается).
+
+Парсер обе формы строит одинаковый Doc-value — различие
+только в source-syntax'е, не в семантике.
 
 **Внутри композитных литералов** (Vec / Map / Set / Error)
-doc-prefix к содержимому не привязывается. Doc/Comment внутри
-литерала — только standalone value, становится элементом
-контейнера.
+doc-prefix к содержимому не привязывается. Doc внутри литерала
+— только standalone value, становится элементом контейнера.
 
-**Doc-content узкий канон сегментов.** Парсится parse-time в
-Vec структурных сегментов:
+**Target Doc-content canon — узкий набор сегментов.** Doc-value
+хранит `:segments` Vec структурных кусков:
 
 - `:Prose` — plain text.
-- `:Quote` — `` `code` `` (same Quote value-class что II.2).
+- `:Quote` — `` `code` `` (тот же Quote value-class что II.2,
+  embedded в Doc-content как frozen code-as-data fragment).
 - `:Assertion` — `` `snippet` → `expected` `` (pair Quote-
-  сегментов для example extraction через `runExamples`).
+  сегментов для example extraction через `runExamples` — §II.9
+  spec-внутри-qlang gives docstring'у первоклассный testing path).
 
 Остальное (keyword references, type tags, имена) — Prose
 plain-text'ом. Модель распознаёт keywords / tags сама без
-grammar-уровня дискриминации.
+grammar-уровня дискриминации (Phase 8 axis-операнды передают
+Doc-value наружу как navigable `doc | /segments | filter(/qlang/kind
+| eq(:Quote))` etc.).
 
-Doc-value хранит `:segments` Vec; навигация — `doc | /segments`
-и фильтры по `:qlang/kind` сегмента. Comment-value хранит
-plain string content без сегментирования.
+**Phase 2 — staging для этого target'а:** Doc-value хранит
+verbatim `.content` строку (между `|~~` и `~~|`, либо после
+`|~~|` до newline). `/content` projection возвращает её как
+String. Парсинг сегментов и `:segments` поверхность
+**реализуются в Phase 8**, где axis-операнд `docs` строит
+parsed-segments Doc-value из (a) attached `.docs[]` strings
+(через DocAttachedSequence — §II.7) и (b) standalone Doc-
+value'ев в pipeline'е. Phase 2 — фундамент (literal grammar +
+value-class + JS-layer discriminator); Phase 8 — segmentation
+parser и axis-навигация. Splitting гарантирует что Phase 2 не
+хвост от Phase 11 (assertion-extraction для `runExamples`)
+и landable атомарным commit'ом без зависимости от Phase 4-8.
 
 ### II.6. Declarative bindings — def, as
 
@@ -1408,7 +1434,7 @@ container'а) — через `keyword`, `set`, `error` operand'ы
 - JSON Object / JSON Array — сериализуются как **обычный
   JSON напрямую** (они уже JSON, никакого `$tag` не нужно).
 - qlang-only типы — `$keyword`, `$map`, `$set`, `$error`,
-  `$quote`, `$doc`, `$comment`, `$conduit`, `$tagged`.
+  `$quote`, `$doc`, `$conduit`, `$tagged`.
 
 `fromTaggedJSON` восстанавливает по тегам обратно в правильный
 runtime-тип (qlang Map / Set / etc. для tagged variants;
@@ -1423,7 +1449,7 @@ plain object/array для bare JSON; tag stamping автоматически
 - `toTaggedJSON` — lossless tagged JSON. JSON-shape value
   сериализуется как обычный JSON напрямую (он уже JSON, никакой
   обёртки). Qlang-only типы — через `$keyword` / `$set` /
-  `$error` / `$quote` / `$doc` / `$comment` / `$conduit` /
+  `$error` / `$quote` / `$doc` / `$conduit` /
   `$tagged` теги, для qlang-aware peer'а.
 - `toPlain` — plain JSON, lossy для qlang-only типов.
 
@@ -1441,7 +1467,6 @@ plain object/array для bare JSON; tag stamping автоматически
 | `Keyword` | `:foo` / `:ns/name` | базовый (без quoted form) |
 | `Quote` | `` `body` `` | II.2 |
 | `Doc` | `\|~~ content ~~\|` | II.5 |
-| `Comment` | `\|~ content ~\|` | II.5 |
 | `Conduit` | `::conduit[:self?, params, `body`]` | II.4 (tagged literal pattern из II.3) |
 | Generic tagged | `::tag<container>` | II.3 |
 
@@ -1468,7 +1493,6 @@ qlang '#{:a :b} | json | parseJson | eq(#{:a :b})'     → true
 qlang '!{:k 1} | json | parseJson | eq(!{:k 1})'       → true
 qlang '`mul(2)` | json | parseJson | eq(`mul(2)`)'     → true
 qlang '|~~ d ~~| | json | parseJson | reify | /type'   → :doc
-qlang '|~ c ~| | json | parseJson | reify | /type'     → :comment
 qlang '::conduit[[] `42`] | json | parseJson | reify | /kind' → :conduit
 qlang '{"k":"v"} | json | parseJson | isJsonObject'    → true
 qlang '[1,2,3] | json | parseJson | isJsonArray'       → true
@@ -1763,48 +1787,84 @@ reify(:count) | eq'` — round-trip workable.
   count` диапазон от опена-backtick до закрывающего получает
   kind `'quote'`.
 
-### Phase 2 — Doc / Comment value-class
+### Phase 2 — Doc value-class (минимальный scope)
 
 **Что:**
 
-- Grammar `DocLit` / `CommentLit` как Primary (literal-везде).
-- Doc / Comment value-class в `types.mjs`. Обновить
-  `describeType`, `typeKeyword`, `equality.deepEqual` для
-  обоих новых классов.
-- `printValue` Doc / Comment — соответствующая literal-form.
-- `codec.toTaggedJSON` / `fromTaggedJSON`: `{"$doc": "source"}`
-  и `{"$comment": "source"}` для cross-process round-trip.
-- Doc-content parser (canon: `:Prose`, `:Quote`, `:Assertion`).
-  Doc-value хранит `:segments` Vec.
-- `runExamples` через `:Assertion` сегменты.
+- Grammar `DocLit` правило (block `|~~ ... ~~|` и line
+  `|~~| ...` до newline) как Primary alternative;
+  `DocLitContinuation` как ContinuationUnit alternative
+  (standalone Doc в continuation position absorb'ит implicit
+  `|` через leading `|` doc-token'а).
+- Doc value-class в `types.mjs`: `makeDoc(content)` factory,
+  `isDoc(v)` predicate, `describeType(Doc) → 'Doc'`,
+  `typeKeyword(Doc) → :doc`. JS-layer discriminator
+  `.type === 'doc'` (тот же pattern что Quote из Phase 1) —
+  без `:qlang/kind` Map-ключа.
+- `equality.deepEqual` Doc branch — равенство по
+  `.content` строке.
+- `eval.mjs::evalDocLit` — wrap node.content через `makeDoc`,
+  записать в pipeValue. Регистрация в
+  `AST_NODE_EVALUATORS.DocLit`.
+- `eval.mjs::PROJECTABLE_BY_TYPE.doc` — `/content` → `.content`.
+- `runtime/format.mjs` — `PRINT_HANDLERS.Doc`,
+  `CELL_HANDLERS.Doc`, `INLINE_HANDLERS.Doc` все эмитят
+  `|~~content~~|` block-form.
+- `codec.toTaggedJSON` / `fromTaggedJSON`: `{"$doc": "content"}`
+  для cross-process round-trip.
+- `walk.mjs::astNodeToMap` / `qlangMapToAst` — DocLit AST
+  case (`KIND_DOC_LIT`, `AST_KIND_TO_TYPE` entry).
+- `highlight.mjs` — DocLit token kind `'comment'`.
+- `runtime/predicates.mjs::isDoc` operand + bind в
+  PRIMITIVE_REGISTRY.
+- `core/lib/qlang/core.qlang` — `:isDoc` descriptor под
+  `:type-classifier` категорией.
+- `index.mjs` — re-export `makeDoc`, `isDoc`.
+- Plain Comment **не трогаем** — остаётся identity-step с
+  load-bearing combinator-absorption (§II.5). DocAttachedSequence
+  / MapEntryDocPrefix не трогаем — Phase 3 ограничит
+  attachment к def/as после миграции в Phase 5.
+- Doc-content **сегментация** (`:Prose` / `:Quote` /
+  `:Assertion`), `runExamples` assertion-extraction,
+  axis-навигация — всё откладывается до Phase 8.
 
-**Зависимости:** Phase 1 (Quote-сегменты в Doc-content).
+**Зависимости:** Phase 1 (Quote — нужен сейчас для содержимого
+backtick-references внутри Doc-content; parsing сегментов в
+Phase 8 опирается на Quote value-class). DocLit AST стоит в
+Primary ordered-choice **после** QuoteLit, что грамматически
+не конфликтует — `\`` и `|~~` непересекающиеся opener'ы.
 
-**Verify** (соломка инвариантов):
+**Verify:**
 
 - **Doc value-class в pipeline.** `qlang '|~~ hello ~~| | reify
   | /type'` → `:doc`. `qlang '2 | |~~ replace pipeValue ~~|'`
-  → Doc-value (pipeValue заменён, position-disambig нет).
-- **Comment value-class.** `qlang '|~ note ~| | reify | /type'`
-  → `:comment`.
+  → Doc-value (pipeValue заменён).
 - **Block vs line форма — output-canonical через block.**
-  `qlang '|~~| oneliner'` → `|~~ oneliner ~~|` (line-form
-  парсится, но printValue эмитит block-form как canonical).
-- **Doc-content сегменты.**
-  `qlang '|~~ Keeps :vec items. \`[1 2 3] | filter(gt(1))\` →
-  \`[2 3]\` ~~| | /segments | count'` → `5` (Prose, Quote
-  отсутствует [keyword `:vec` живёт в Prose], Prose, Assertion,
-  Prose). `qlang '|~~ assertion only \`a\` → \`b\` ~~| |
-  /segments | filter(/qlang/kind | eq(:Assertion)) | count'`
-  → `1`.
-- **Inline composites не attach'ат doc-prefix.** `qlang
-  '[|~~ doc ~~| 42]'` → `[<Doc-value> 42]` (Doc — element
-  Vec'а, не attach к `42`). Аналогично для Map / Set / Error.
-- **Codec round-trip.** `qlang '|~~ x ~~| | json | parseJson |
-  reify | /type'` → `:doc`.
-- **runExamples из Assertion.** Descriptor с attached
-  doc-comment'ом содержащим `\`[1 2 3] | count\` → \`3\``:
-  `descriptor | runExamples | first | /ok` → `true`.
+  `qlang '|~~| oneliner'` → `|~~ oneliner~~|` (line-form
+  парсится, printValue эмитит block-form). Round-trip block:
+  `qlang '|~~ hello ~~|'` → `|~~ hello ~~|`.
+- **Multi-line content preserves newlines.** `qlang '|~~\n  one\n  two\n~~|'`
+  round-trip identity.
+- **`/content` projection.** `qlang '|~~ x ~~| | /content'` →
+  `" x "`. `qlang '|~~~~| | /content'` → `""`.
+- **isDoc operand.** `qlang '|~~ x ~~| | isDoc'` → `true`.
+  `qlang '"x" | isDoc'` → `false`. `qlang '\`x\` | isDoc'` →
+  `false` (Doc != Quote).
+- **eq Doc/Doc.** `qlang 'eq(|~~ a ~~|, |~~ a ~~|)'` → `true`;
+  `eq(|~~ a ~~|, |~~ b ~~|)` → `false`; `eq(|~~ x ~~|, "x")`
+  → `false`.
+- **Inline composites — Doc как element, не attached.** `qlang
+  '[|~~ doc ~~| 42] | first | isDoc'` → `true` (Doc — element
+  Vec'а, не attach к `42`).
+- **Codec round-trip через `$doc` tag.** Unit-test
+  `roundTrip(makeDoc('content')) | isDoc` → `true`,
+  content preserved.
+- **AST codec round-trip DocLit.** `astNodeToMap(parse('|~~ note ~~|'))`
+  emits `:DocLit` discriminator, `:content` payload;
+  `qlangMapToAst` reconstructs identical AST.
+- **Standalone Doc в continuation.** `qlang '5 | |~~ comment ~~|
+  | isDoc'` → `true` (DocLitContinuation absorb'ит implicit
+  `|` через leading doc-token character).
 
 ### Phase 3 — DocAttached cleanup
 

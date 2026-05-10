@@ -670,7 +670,7 @@ constructs the full descriptor Map per item for a single bit of
 information. Each classifier matches exactly one
 `describeType(v)` label and never throws.
 
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull`
+### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull` · `isQuote` · `isDoc`
 
 - **Arity** 1. **Subject** any value.
 - Returns `true` iff the subject is of the named value class,
@@ -679,6 +679,10 @@ information. Each classifier matches exactly one
   strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
   `isMap` reports `false` for conduit and snapshot descriptor
   Maps — they classify as `Conduit` / `Snapshot`, not `Map`.
+  `isQuote` matches a frozen backtick-delimited code-as-data
+  fragment (`` `expr` `` literal); `isDoc` matches a frozen
+  markdown content fragment (`|~~ ... ~~|` block-form or
+  `|~~| ...` line-form literal).
 - **Examples**:
   - `"hello" | isString` → `true`; `42 | isString` → `false`.
   - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;
@@ -689,6 +693,8 @@ information. Each classifier matches exactly one
   - `:name | isKeyword` → `true`; `:qlang/kind | isKeyword` → `true`.
   - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
+  - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
+  - `|~~ note ~~| | isDoc` → `true`; `"note" | isDoc` → `false`.
 - **Errors**: none — classification is total.
 
 ## Type Conversion
@@ -1191,7 +1197,7 @@ distinct` enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull` |
+| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `isQuote`, `isDoc` |
 | `:type-conversion` | `keyword` |
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |

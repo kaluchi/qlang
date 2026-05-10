@@ -78,6 +78,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
       case 'LineDocComment':
       case 'BlockPlainComment':
       case 'BlockDocComment':
+      case 'DocLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'comment' });
         return false;
 

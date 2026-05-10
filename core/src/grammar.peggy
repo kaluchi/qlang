@@ -145,11 +145,22 @@ LeadingLinePlainAbsorbing
 // Continuations after the first step. Comment-led units are tried
 // first so their leading `|` is absorbed as the combinator into the
 // comment token rather than matched as a bare Combinator.
+//
+// `DocLitContinuation` catches a standalone doc-comment in
+// continuation position (no following operand-call to attach to) —
+// the doc-token's leading `|` absorbs the implicit `|` combinator
+// from the previous step, the doc itself becomes a Primary step
+// that evaluates into a Doc-value.
 ContinuationUnit
   = BlockPlainCommentAbsorbing
   / LinePlainCommentAbsorbing
   / AbsorbedCommentContinuation
+  / DocLitContinuation
   / ExplicitContinuation
+
+DocLitContinuation
+  = step:DocLit
+  { return { combinator: '|', step }; }
 
 // Block plain comment that absorbs BOTH leading and trailing
 // combinators. The leading `|` of `|~` is the combinator from the
@@ -360,6 +371,7 @@ Primary
   / VecLit
   / MapLit
   / QuoteLit
+  / DocLit
   / Projection
   / OperandCall
   / Scalar
@@ -382,6 +394,25 @@ QuoteLit
 
 QuoteContent
   = chars:(!"`" .)* { return chars.map(c => c[1]).join(''); }
+
+// DocLit — standalone doc-comment as a Primary value-form. Two
+// surface variants share one AST node type:
+//   |~~| ...        line form (until newline), input convenience
+//   |~~ ... ~~|     block form, output canonical
+// Both produce the same Doc value-class at eval time; printValue
+// only emits the block form (line-form newline closes the token, so
+// multi-line round-trip would be lossy).
+//
+// LineDocComment / BlockDocComment AST nodes are kept distinct
+// (used by DocAttachedSequence for attached-prefix attachment to
+// def/as) — DocLit is its own AST node so the JS-side evaluator
+// can route standalone literals to a Doc-value while the attached
+// path keeps stamping `.docs` strings on the following operand-call.
+DocLit
+  = "|~~|" content:LineCommentContent
+    { return node('DocLit', { content }, location(), text()); }
+  / "|~~" !"|" content:BlockDocContent "~~|"
+    { return node('DocLit', { content }, location(), text()); }
 
 ErrorLit
   = "!{" _L "}"

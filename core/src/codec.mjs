@@ -29,9 +29,11 @@ import {
   isConduit,
   isSnapshot,
   isQuote,
+  isDoc,
   isErrorValue,
   makeErrorValue,
-  makeQuote
+  makeQuote,
+  makeDoc
 } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
@@ -72,6 +74,7 @@ export function toTaggedJSON(value) {
   if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
   if (isQuote(value)) return { $quote: value.source };
+  if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {
     return {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
@@ -112,6 +115,7 @@ export function fromTaggedJSON(json) {
       return makeErrorValue(fromTaggedJSON(json.$error), {});
     }
     if ('$quote' in json) return makeQuote(json.$quote);
+    if ('$doc' in json) return makeDoc(json.$doc);
   }
   throw new MalformedTaggedJSONError(json);
 }

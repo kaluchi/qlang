@@ -120,6 +120,7 @@ const PRINT_HANDLERS = {
   Map:      (m, indent) => printMapLike('{', m, indent),
   Set:      (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
   Quote:    q => '`' + q.source + '`',
+  Doc:      d => '|~~' + d.content + '~~|',
   Conduit:  printConduit,
   Snapshot: printSnapshot,
   Function: printFunction
@@ -204,6 +205,7 @@ const CELL_HANDLERS = {
   Set:      s => renderInline(s),
   Error:    e => renderInline(e),
   Quote:    q => '`' + q.source + '`',
+  Doc:      d => '|~~' + d.content + '~~|',
   Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
   Function: fn => `:qlang/prim/${fn.name}`
@@ -219,6 +221,7 @@ const INLINE_HANDLERS = {
   Map:      m => `{${mapEntriesInline(m)}}`,
   Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
   Quote:    q => '`' + q.source + '`',
+  Doc:      d => '|~~' + d.content + '~~|',
   Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
   Function: fn => `:qlang/prim/${fn.name}`,

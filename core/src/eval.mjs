@@ -44,7 +44,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 import {
   isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  materializeTrail, makeQuote
+  materializeTrail, makeQuote, makeDoc
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -109,6 +109,7 @@ const AST_NODE_EVALUATORS = {
   ErrorLit:          evalErrorLit,
   SetLit:            evalSetLit,
   QuoteLit:          evalQuoteLit,
+  DocLit:            evalDocLit,
   Projection:        evalProjection,
   OperandCall:       evalOperandCall,
   ParenGroup:        evalParenGroup,
@@ -351,6 +352,10 @@ function evalQuoteLit(node, state) {
   return withPipeValue(state, makeQuote(node.src));
 }
 
+function evalDocLit(node, state) {
+  return withPipeValue(state, makeDoc(node.content));
+}
+
 async function evalSetLit(node, state) {
   const setResult = new Set();
   const kwNames = new Set();
@@ -403,6 +408,9 @@ const PROJECTABLE_BY_TYPE = {
   quote: {
     source: q => q.source,
     ast:    q => q.ast ?? lazyParseQuoteAst(q)
+  },
+  doc: {
+    content: d => d.content
   }
 };
 

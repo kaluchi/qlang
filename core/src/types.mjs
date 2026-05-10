@@ -75,6 +75,22 @@ export function makeQuote(source, ast = null) {
   return Object.freeze({ type: 'quote', source, ast });
 }
 
+// Doc — frozen JS object carrying `.content` (the verbatim text
+// between `|~~ ... ~~|` markers, or after `|~~|` up to newline).
+// Same JS-layer discriminator pattern as Quote — `.type === 'doc'`
+// keeps `:qlang/kind` housekeeping out of the user-visible Map
+// surface. Doc value lands in pipeValue through DocLit literal in
+// any Primary position; the attached-prefix path
+// (DocAttachedSequence) is unrelated — there docs travel as
+// `.docs` strings on the following operand-call AST node.
+export function isDoc(v) {
+  return v !== null && typeof v === 'object' && v.type === 'doc';
+}
+
+export function makeDoc(content) {
+  return Object.freeze({ type: 'doc', content });
+}
+
 // ── conduit factory ───────────────────────────────────────────
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
@@ -177,6 +193,7 @@ export function describeType(v) {
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
   if (isQuote(v)) return 'Quote';
+  if (isDoc(v)) return 'Doc';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
@@ -194,6 +211,7 @@ export function typeKeyword(v) {
   if (isConduit(v)) return keyword('conduit');
   if (isSnapshot(v)) return keyword('snapshot');
   if (isQuote(v)) return keyword('quote');
+  if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) return keyword('map');
   if (isQSet(v)) return keyword('set');
   if (isErrorValue(v)) return keyword('error');

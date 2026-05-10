@@ -38,7 +38,8 @@
      Boolean             — not
      Predicates          — eq, gt, lt, gte, lte, and, or
      Type classifiers    — isString, isNumber, isVec, isMap, isSet,
-                           isKeyword, isBoolean, isNull, isQuote
+                           isKeyword, isBoolean, isNull, isQuote,
+                           isDoc
      Formatting          — json, table
      Reflective          — env, use, reify, manifest, runExamples,
                            as, let
@@ -1055,6 +1056,21 @@
             {:doc "string not Quote" :snippet "\"mul(2)\" | isQuote" :expected "false"}
             {:doc "number not Quote" :snippet "42 | isQuote"      :expected "false"}]
           :throws []}
+
+|~~ Returns true iff the subject is a Doc — a frozen markdown
+    content fragment landed in pipeValue through a DocLit literal
+    in any Primary position. Docs carry a :content text field. ~~|
+:isDoc {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/isDoc
+        :category :type-classifier
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :examples [
+          {:doc "Doc block literal" :snippet "|~~ note ~~| | isDoc" :expected "true"}
+          {:doc "string not Doc"    :snippet "\"note\" | isDoc"     :expected "false"}
+          {:doc "number not Doc"    :snippet "42 | isDoc"           :expected "false"}]
+        :throws []}
 
 |~ ──────────────── Formatting ──────────────── ~|
 

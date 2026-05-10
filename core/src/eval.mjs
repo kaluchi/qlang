@@ -45,7 +45,7 @@ import {
   isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
-  isJsonObject, isJsonArray, isVecShape, vecLikeOf
+  isJsonObject, isJsonArray, isVecShape, vecLikeOf, isQuote
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -72,6 +72,8 @@ const TaggedLitTagNotFound = declareShapeError('TaggedLitTagNotFound',
   ({ tag }) => `::${tag} — type binding not found in env`);
 const TaggedLitNotType = declareShapeError('TaggedLitNotType',
   ({ tag, actualType }) => `::${tag} — type binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :type`);
+const TaggedLitImplNotResolvable = declareShapeError('TaggedLitImplNotResolvable',
+  ({ tag, actualType }) => `::${tag} — :qlang/impl is ${actualType.name}, expected a Keyword (built-in handle) or a Quote (qlang body)`);
 const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'Vec');
 const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
 const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
@@ -392,15 +394,24 @@ async function evalTaggedLit(node, state) {
   if (!isQMap(typeBinding)) {
     throw new TaggedLitNotType({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
-  // Type-binding :qlang/impl is always a `:qlang/type/<tag>`
-  // keyword (langRuntime keeps it that way so reify(::tag) shows
-  // the readable handle, not a JS-source dump of the constructor
-  // function). Resolve through PRIMITIVE_REGISTRY at every
-  // invocation.
+  // :qlang/impl carries either a `:qlang/prim/<tag>` keyword (built-in
+  // type — resolved through PRIMITIVE_REGISTRY at every invocation so
+  // reify(::tag) keeps the readable handle, not a JS-source dump) or
+  // a Quote-value (user-defined type — payload becomes pipeValue, the
+  // Quote body runs against the current env).
   const implKey = typeBinding.get('qlang/impl');
-  const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
-  const value = await constructor(payloadValue, state);
-  return withPipeValue(state, value);
+  if (isKeyword(implKey)) {
+    const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
+    const value = await constructor(payloadValue, state);
+    return withPipeValue(state, value);
+  }
+  if (isQuote(implKey)) {
+    const bodyAst = implKey.ast ?? parse(implKey.source);
+    const bodyState = makeState(payloadValue, state.env);
+    const resultState = await evalNode(bodyAst, bodyState);
+    return withPipeValue(state, resultState.pipeValue);
+  }
+  throw new TaggedLitImplNotResolvable({ tag: node.tag, actualType: typeKeyword(implKey), actualValue: implKey });
 }
 
 // ::tag — bare reference to the type binding. Returns the

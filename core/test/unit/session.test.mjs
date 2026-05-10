@@ -242,6 +242,18 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
   });
 
+  it('round-trips a user-defined type-binding installed via def(::tag, ...)', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(
+      'def(::wrap, {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`})'
+    );
+    const restored = await deserializeSession(
+      JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))
+    );
+    const cellEntry = await restored.evalCell('"x" | ::wrap "x"');
+    expect(cellEntry.result).toBe('[x]');
+  });
+
   it('serializes a synthesized conduit (no .text on body) with source = null', async () => {
     // Construct a conduit whose expr is a hand-built AST node that
     // never came from the parser, so has no .text. The session

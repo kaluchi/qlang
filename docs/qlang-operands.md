@@ -1055,6 +1055,14 @@ missing). This is the introspection-by-name path:
 - **Examples**:
   - `def(:double, mul(2)) | 10 | double` → `20`.
   - `def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
+- **Type-binding form**: `def(::tag, descriptor)` installs the
+  given descriptor Map under `::tag` for use as a TaggedLit
+  constructor. The descriptor must carry `:qlang/kind :type` plus
+  `:qlang/impl` — either a `:qlang/prim/<tag>` keyword (host-bound
+  built-in constructor) or a Quote-value (qlang body that runs
+  with the payload as its initial pipeValue). Example:
+  `def(::wrap, {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`}) | "x" | ::wrap "x"`
+  → `"[x]"`.
 - **Errors**: name not a keyword → `LetNameNotKeyword`; params not
   a Vec of keywords → `LetParamsNotVecOfKeywords`; fewer than 2
   captured args → `LetBodyMissing`; clean name with effectful body

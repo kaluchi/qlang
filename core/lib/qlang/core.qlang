@@ -1428,9 +1428,9 @@ def(::json, {:qlang/kind :type
 
 |~~ Returns true iff the subject is a JSON Object — a plain JS
     object stamped with the JSON_OBJECT_TAG Symbol. JSON Objects
-    are produced by parseJson, the host JSON-bridge, and the
-    ::json constructor; they are runtime-distinct from qlang Map
-    so isMap returns false on them.
+    are produced by the host JSON-bridge (CLI auto-parsed stdin)
+    and the ::json constructor; they are runtime-distinct from
+    qlang Map so isMap returns false on them.
 
     ::assertion[`::json{:k 1} | isJsonObject` `true`]
     ::assertion[`{:k 1} | isJsonObject` `false`]

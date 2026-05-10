@@ -249,10 +249,16 @@ StepAfterCombinator
   / RawStep
 
 // One or more doc comments, optionally interleaved with plain
-// comments, followed by an operand call. Each doc comment produces
-// ONE entry in the `docs` Vec attached to the operand call node.
-// Binding operands (let, as) consume docs and store them on the
-// conduit/snapshot; other operands ignore docs (harmless metadata).
+// comments, followed by a def or as operand call. Each doc comment
+// produces ONE entry in the `docs` Vec attached to the operand call
+// node. The semantic predicate restricts attachment to def / as —
+// the only operands that read `.docs` (def stores them on the
+// resulting snapshot or conduit; as stores them on the snapshot).
+// A doc-prefix in front of any other OperandCall (filter, mul, ...)
+// fails this rule and backtracks; the Doc then evaluates as a
+// standalone Doc-value through the DocLit Primary alternative and
+// the operand follows as the next pipe-step.
+//
 // Adjacent line docs do NOT concatenate — each is its own entry.
 // Block docs preserve internal newlines as a single multi-line entry.
 //
@@ -263,6 +269,7 @@ StepAfterCombinator
 // the doc-attached operand call).
 DocAttachedSequence
   = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:OperandCall
+    & { return step.name === 'def' || step.name === 'as'; }
   {
     const allItems = [firstDoc, ...rest.map(t => t[1])];
     const docs = [];
@@ -430,29 +437,20 @@ MapEntries
   = head:MapEntry tail:(_L ","? _L MapEntry)*
     { return [head, ...tail.map(t => t[3])]; }
 
-// A MapEntry may be preceded by a run of doc comments that attach
-// as metadata to the entry. At eval time (src/eval.mjs::evalMapLit,
-// evalErrorLit) the accumulated docs are folded into the entry's
-// value Map as a `:docs` Vec of strings — this is how the Variant-B
-// manifest migration preserves the readable `|~~ ... ~~|` writing
-// experience for built-in descriptors while eliminating the
-// let(:let, ...) self-shadow and the three-hop bootstrap enrichment
-// path that the fake-conduit manifest required.
-//
-// Plain comments between the doc prefix and the key (and between
-// individual doc-comment tokens inside the prefix) are absorbed as
-// whitespace via `_L`, so a section-divider plain comment is free
-// to sit directly before or after a doc-attached entry without
-// disrupting the attachment chain.
+// A MapEntry is a `:key value` pair. Plain comments between
+// entries land in `_L` as whitespace-equivalent — a section-divider
+// `|~ ── header ── ~|` between two entries is silently absorbed and
+// never enters the AST. Doc comments are NOT absorbed here: in
+// pipeline position they attach to the following def / as call via
+// DocAttachedSequence, and standalone they evaluate to a Doc-value
+// through the DocLit Primary alternative. Inside a literal body
+// they are not valid — a doc-comment ahead of a MapEntry key is a
+// parse error.
 MapEntry
-  = docs:MapEntryDocPrefix? _L key:StringLit _L ":" _L value:PipelineInLiteral
-    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value, docs: docs ?? [] }, location(), text()); }
-  / docs:MapEntryDocPrefix? _L key:Keyword __ value:PipelineInLiteral
-    { return node('MapEntry', { key, value, docs: docs ?? [] }, location(), text()); }
-
-MapEntryDocPrefix
-  = head:DocComment rest:(_L DocComment)*
-    { return [head.content, ...rest.map(t => t[1].content)]; }
+  = _L key:StringLit _L ":" _L value:PipelineInLiteral
+    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value }, location(), text()); }
+  / _L key:Keyword __ value:PipelineInLiteral
+    { return node('MapEntry', { key, value }, location(), text()); }
 
 SetLit
   = "#{" _L "}"
@@ -620,18 +618,19 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 // `_L` is inside-literal whitespace — it absorbs plain comment
 // tokens as whitespace-equivalent. Used inside MapLit / ErrorLit
 // / SetLit / VecLit body positions and inside ArgList / MapEntries
-// / PipelineList / MapEntryDocPrefix separator positions, where a
-// plain comment serves as a section divider or per-entry
-// annotation and carries no value role. Comment tokens matched
-// here are silently consumed — they never enter the AST — so
-// walkers, reify, astNodeToMap, and the AST-as-data surface are
-// unaffected by whether an author sprinkles section dividers
-// between entries.
+// / PipelineList separator positions, where a plain comment serves
+// as a section divider or per-entry annotation and carries no value
+// role. Comment tokens matched here are silently consumed — they
+// never enter the AST — so walkers, reify, astNodeToMap, and the
+// AST-as-data surface are unaffected by whether an author sprinkles
+// section dividers between entries.
 //
-// Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. They
-// attach as metadata to the following binding / MapEntry via the
-// MapEntryDocPrefix / DocAttachedSequence productions, and
-// swallowing them as whitespace here would break the attachment.
+// Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. In
+// pipeline position they attach to the following def / as call via
+// DocAttachedSequence; standalone, they evaluate to a Doc-value via
+// the DocLit Primary alternative. Inside a literal body they are
+// not valid — a doc-comment ahead of a MapEntry key, Vec element,
+// or Set element fails to parse.
 
 _  = Whitespace*
 _L = (Whitespace / PlainCommentStep)*

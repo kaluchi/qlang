@@ -306,9 +306,12 @@ Overloaded by captured-arg count:
     dispatch-time primitive key), and computes `:captured` /
     `:effectful` by resolving the primitive through
     `PRIMITIVE_REGISTRY`. All other fields (`:category`,
-    `:subject`, `:modifiers`, `:returns`, `:docs`, `:examples`,
-    `:throws`) pass through from the `core.qlang` entry
-    verbatim.
+    `:subject`, `:modifiers`, `:returns`, `:docs`, `:throws`)
+    pass through from the `core.qlang` entry verbatim. Examples
+    ride inside the `:docs` strings as
+    `::assertion[\`snippet\` \`expected\`]` segments — extract
+    them via the Doc-content tokenizer (`/segments` projection
+    on a Doc-value) or through `:name | examples`.
   - `:conduit` — a `let`-bound conduit. Descriptor has `:kind :conduit`,
     `:name`, `:source` (textual form of the body expression),
     `:docs` (Vec from parser-attached doc comments).
@@ -514,17 +517,19 @@ langRuntime` to match the conceptual model exactly.)
 The reference implementation assembles `langRuntime` from two
 co-located sources:
 
-- **`lib/qlang/core.qlang`** — the authored catalog. One outer
-  Map literal whose entries each bind a keyword identifier
-  (`:count`, `:filter`, `:let`, `:parse`, …) to a descriptor
-  Map carrying `:qlang/kind :builtin` plus a namespaced
-  `:qlang/impl :qlang/prim/<name>` keyword that points into the
-  primitive registry, plus the authored metadata (`:category`,
-  `:subject`, `:modifiers`, `:returns`, `:examples`, `:throws`).
-  Doc-comment prefixes on each MapEntry (`|~~ ... ~~| :count
-  {...}`) fold into a `:docs` Vec on the entry's value Map at
-  eval time via `grammar.peggy`'s `MapEntryDocPrefix` and
-  `eval.mjs`'s `foldEntryDocs`.
+- **`lib/qlang/core.qlang`** — the authored catalog. A series
+  of `def(:name, descriptor)` steps; each binds a keyword
+  identifier (`:count`, `:filter`, `:def`, `:parse`, …) to a
+  descriptor Map carrying `:qlang/kind :builtin` plus a
+  namespaced `:qlang/impl :qlang/prim/<name>` keyword that
+  points into the primitive registry, plus authored metadata
+  (`:category`, `:subject`, `:modifiers`, `:returns`,
+  `:throws`). Doc-prefixes attached to each `def`-step via
+  DocAttachedSequence (`|~~ ... ~~| def(:count, ...)`) become
+  the binding's `:docs` Vec; example assertions ride inside
+  the prose as `::assertion[\`snippet\` \`expected\`]` TaggedLit
+  segments — extracted at runtime through the Doc-content
+  tokenizer.
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-

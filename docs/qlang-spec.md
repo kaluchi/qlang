@@ -1520,12 +1520,16 @@ loaded by `langRuntime` from `lib/qlang/core.qlang`:
  :modifiers []
  :returns  :number
  :captured [0 0]
- :docs     ["Returns the number of elements. ..."]
- :examples [{:doc "Vec length" :snippet "[1 2 3] | count" :expected "3"}
-            ...]
+ :docs     ["Returns the number of elements. ...\n\n    ::assertion[`[1 2 3] | count` `3`]\n    ::assertion[`#{:a :b} | count` `2`]"]
  :throws   [:CountSubjectNotContainer]
  :effectful false}
 ```
+
+Examples for the binding ride inline inside the `:docs` strings
+as `::assertion[\`snippet\` \`expected\`]` segments — a single
+Doc-content stream per binding instead of a parallel `:examples`
+Vec. `runExamples` and `:name | examples` extract them via the
+Doc-content tokenizer.
 
 The `:captured` field is a 2-element Vec `[min, max]` describing
 how many captured args the operand accepts; fixed-arity operands
@@ -1625,33 +1629,36 @@ env | manifest | filter(/effectful) * /name
 |~| names of all effectful operands in scope
 ```
 
-### `runExamples` — execute a descriptor's `:examples`
+### `runExamples` — execute `::assertion` segments from a binding's docs
 
-Every built-in descriptor carries an `:examples` Vec listing
-illustrative `> snippet → result` pairs. `runExamples` is the
-self-test driver: given a descriptor as `pipeValue`, it parses
-and evaluates each example, comparing actual against expected
-where an `:expected` field is supplied.
+Every built-in's attached doc-prefix carries inline
+`::assertion[\`snippet\` \`expected\`]` segments. `runExamples`
+is the self-test driver: given a binding name (Keyword or a
+descriptor Map carrying a `:name` string) as `pipeValue`, it
+walks the loaded modules' AST, collects the binding's
+attached docs, parses each into Doc segments via the
+Doc-content tokenizer, filters for `:qlang/kind :assertion`,
+and evaluates each assertion's `:snippet` Quote against its
+`:expected` Quote — comparing via `deepEqual`.
 
 ```qlang
-reify(:count) | runExamples
-|~| → [{:snippet "[1 2 3] | count" :expected "3" :actual 3 :error null :ok true}
-|~|    {:snippet "#{:a :b} | count" :expected "2" :actual 2 :error null :ok true}
+:count | runExamples
+|~| → [{:snippet `[1 2 3] | count` :expected `3` :actual 3 :error null :ok true}
+|~|    {:snippet `#{:a :b} | count` :expected `2` :actual 2 :error null :ok true}
 |~|    ...]
 
-env | manifest | filter(/kind | eq(:builtin))
-              * runExamples
-              >> /ok
-              | distinct
-|~| catalog-wide self-test: every example, every operand, one Vec
-|~| of booleans showing whether the doc still matches the runtime
+env | manifest * /name
+              * (runExamples * /ok)
+              | flat | distinct
+|~| catalog-wide self-test: every assertion, every operand, one
+|~| Vec of booleans showing whether the doc still matches the runtime
 ```
 
-Examples that omit `:expected` (demo-mode entries that depend on
-host-supplied bindings to make sense) are parse-checked but not
-evaluated, and `runExamples` marks them `:ok true` if they at
-least parse. Assertion-mode examples (with `:expected`) are fully
-evaluated and compared via `deepEqual`.
+Bindings without a source-located def-step (the bootstrap `def`
+descriptor itself, host-installed bindings via `session.bind`)
+return an empty Vec — `runExamples` makes no assertions about
+their behaviour. Documentation lives in the source; bindings
+without source contribute zero examples.
 
 ### `parse` — source text → AST-Map
 

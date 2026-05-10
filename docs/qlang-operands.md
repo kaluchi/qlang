@@ -926,12 +926,14 @@ depends on the value's provenance. Four descriptor kinds:
    :modifiers []
    :returns  :number
    :captured [0 0]
-   :docs     ["Returns the number of elements. Polymorphic over Vec, Set, and Map."]
-   :examples [{:doc "Vec length" :snippet "[1 2 3] | count" :expected "3"}
-              {:doc "Set size"   :snippet "#{:a :b} | count" :expected "2"}]
+   :docs     ["Returns the number of elements. Polymorphic over Vec, Set, and Map.\n\n    ::assertion[`[1 2 3] | count` `3`]\n    ::assertion[`#{:a :b} | count` `2`]"]
    :throws   [:CountSubjectNotContainer]
    :effectful false}
   ```
+  Examples ride inside the `:docs` strings as
+  `::assertion[\`snippet\` \`expected\`]` segments — extracted
+  by the Doc-content tokenizer. `:name | examples` returns a
+  Vec of Assertion-values; `runExamples` evaluates them.
   `:category` / `:subject` / `:returns` carry keywords (not
   strings) because the underlying `core.qlang` entries are
   authored as keywords; `:throws` is a Vec of keywords (not
@@ -1022,16 +1024,21 @@ missing). This is the introspection-by-name path:
 
 ### `runExamples`
 
-- **Arity** 1. **Subject** descriptor Map (the output of `reify`).
-- Parses and evaluates every entry of the descriptor's `:examples`
-  Vec, comparing each result against the optional `→ expected`
-  suffix. Returns a Vec of `{:query :expected :actual :error :ok}`
-  Maps. Homoiconic catalog self-test — `manifest * runExamples >>
-  /ok | distinct` exercises every documented example and reports
-  whether it still matches its actual evaluation result.
-- **Example**: `reify(:count) | runExamples | first | /ok` → `true`.
-- **Errors**: subject not a descriptor Map → type error; no
-  `:examples` field → type error.
+- **Arity** 1. **Subject** Keyword (binding name) or descriptor
+  Map carrying a `:name` string.
+- Walks the loaded modules' AST through `findDefStepAcrossModules`
+  to locate the binding's source. Collects `::assertion` segments
+  embedded in each attached doc-prefix by re-parsing through the
+  Doc-content tokenizer. For each assertion, evaluates the
+  `:snippet` Quote in an isolated env, deepEqual-compares against
+  the `:expected` Quote's evaluation. Returns a Vec of
+  `{:snippet :expected :actual :error :ok}` Maps.
+- Bindings without a source-located def-step (the bootstrap
+  `def` descriptor itself, host-installed bindings) return an
+  empty Vec.
+- **Example**: `:count | runExamples | first | /ok` → `true`.
+- **Errors**: subject neither Keyword nor Map-with-`:name`-string
+  → `RunExamplesSubjectShapeError`.
 
 ### `def(:name, body)` / `def(:name, [:params], body)`
 

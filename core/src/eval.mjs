@@ -44,7 +44,7 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 import {
   isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  materializeTrail
+  materializeTrail, makeQuote
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -108,6 +108,7 @@ const AST_NODE_EVALUATORS = {
   MapLit:            evalMapLit,
   ErrorLit:          evalErrorLit,
   SetLit:            evalSetLit,
+  QuoteLit:          evalQuoteLit,
   Projection:        evalProjection,
   OperandCall:       evalOperandCall,
   ParenGroup:        evalParenGroup,
@@ -346,6 +347,10 @@ async function evalErrorLit(node, state) {
   return withPipeValue(state, makeErrorValue(errorDescriptor, { location: node.location }));
 }
 
+function evalQuoteLit(node, state) {
+  return withPipeValue(state, makeQuote(node.src));
+}
+
 async function evalSetLit(node, state) {
   const setResult = new Set();
   const kwNames = new Set();
@@ -387,7 +392,37 @@ async function evalProjection(node, state) {
   return withPipeValue(state, projectionCurrent);
 }
 
+// Registry of JS-layer value-classes that publish projectable surface.
+// Each entry maps a `.type` discriminator to a per-segment handler
+// table; segments not in the table resolve to `null`, matching Map
+// missing-key semantics. Lets a value-class declare its public
+// projection surface in one place — the discriminator (Conduit /
+// Snapshot / Quote / etc.) stays JS-side, only the named fields
+// listed here are reachable through `/key`.
+const PROJECTABLE_BY_TYPE = {
+  quote: {
+    source: q => q.source,
+    ast:    q => q.ast ?? lazyParseQuoteAst(q)
+  }
+};
+
+function lazyParseQuoteAst(q) {
+  try {
+    const ast = parse(q.source, { uri: 'quote-ast' });
+    return astNodeToMap(ast);
+  } catch (_parseErr) {
+    return NULL;
+  }
+}
+
 function projectSegment(subject, projKey) {
+  if (subject !== null && typeof subject === 'object') {
+    const handlers = PROJECTABLE_BY_TYPE[subject.type];
+    if (handlers) {
+      const handler = handlers[projKey];
+      return handler ? handler(subject) : NULL;
+    }
+  }
   if (isQMap(subject)) {
     return subject.has(projKey) ? subject.get(projKey) : NULL;
   }

@@ -9,6 +9,302 @@
 
 ---
 
+## §0. Онбординг для агента после компактификации
+
+Эта секция — для меня самого (Claude). Когда контекст обрезается
+и я возвращаюсь к работе over plan'у — этот блок единственное что
+нужно прочитать **перед чем-либо ещё**, и затем выполнить
+обязательную загрузку контекста ниже.
+
+**Не пытайся работать по плану из обрезков памяти.** Любая попытка
+рассуждать про operand'ы / value-classes / grammar / runtime /
+descriptor'ы / `:qlang/kind` / `:kind` / fault / trail / error-track
+/ JSON-vs-qlang inference / TaggedLit / Conduit / `:qlang/impl`
+без полного контекста — гарантированный bullshit, который придётся
+откатывать. Видел это много раз — не повторяй.
+
+### §0.1. Обязательная загрузка контекста (полным `Read`, не grep)
+
+**Всё перечисленное — целиком, через `Read`.** `Grep` не годится для
+понимания дизайна; он находит string'и, не семантику. Если файл
+больше limit'а — читать частями со смещением до конца.
+
+**qlang library (4 файла, 1446 строк).** Без них ты не знаешь
+поверхность языка:
+
+- `core/lib/qlang/core.qlang` — авторский каталог всех built-in
+  operand'ов с descriptor'ами (`:qlang/kind`, `:qlang/impl`,
+  `:category`, `:subject`, `:returns`, `:examples`, `:throws`).
+  Здесь живёт `:qlang/kind :builtin` — это **substitute для
+  отсутствующей литеральной формы builtin'а**, не язык.
+- `core/lib/qlang/error.qlang` — user-defined conduit'ы для
+  retry / recover / mapError / withContext через `let`. Pure qlang.
+- `core/lib/qlang/error/guards.qlang` — assert / ensure conduit'ы.
+- `core/lib/qlang/error/observe.qlang` — tap / tapError / finally
+  / finallyError conduit'ы.
+
+**Грамматика (1 файл).**
+- `core/src/grammar.peggy` — полностью. Знание `Pipeline`-rules,
+  `Primary` ordered-choice, `MapEntry` / `MapEntries`, comment
+  absorption (`PipelineHead` / `LeadingBlockPlainAbsorbing` etc.),
+  comment-token productions (`LineDocComment` / `BlockDocComment`
+  / `LinePlainComment` / `BlockPlainComment` — line-формы
+  open-to-newline через `LineCommentContent = chars:[^\n]*`),
+  `MapEntryDocPrefix`, `DocAttachedSequence`, identifier
+  classes (`Ident` / `KeywordName` / `IdentStart` / `IdentTail`
+  через `\p{ID_Start}` / `\p{ID_Continue}` Unicode-property),
+  whitespace rules (`_` / `_L` / `__` — `_L` absorbs plain
+  comments as whitespace, doc comments **не** absorb'ятся).
+
+**core/src/ — 17 файлов целиком:**
+
+- `types.mjs` — value-class predicates (isKeyword / isVec / isQMap
+  / isQSet / isErrorValue / isFunctionValue / isConduit /
+  isSnapshot / isQuote), `keyword` factory, `makeConduit` /
+  `makeSnapshot` / `makeErrorValue` / `makeQuote` factories,
+  `appendTrailNode` / `materializeTrail`, `describeType` /
+  `typeKeyword` dispatch ladder.
+- `eval.mjs` — `evalNode` AST-dispatch (try/catch wrapper,
+  source-location enrichment, `buildFaultMap`),
+  `applyCombinator` (track-dispatch only here),
+  `applySuccessTrack` / `distribute` / `mergeFlat` (deflect on
+  error через `appendTrailNode(state.pipeValue,
+  trailEntry(stepNode, kind))`), `applyFailTrack` (materialize
+  combinedTrail, expose descriptor), `evalProjection` /
+  `projectSegment` (Map / Vec dispatch, snapshot auto-unwrap),
+  `evalOperandCall` (env lookup, snapshot auto-unwrap,
+  `applyBindingDescriptor` switch on `:qlang/kind`),
+  `applyBuiltinDescriptor` / `applyConduit` (lexical envRef
+  tie-the-knot), `makeConduitParameter` (lazy nullary proxy),
+  `makeLambda` (captured-arg closure carrying `.astNode` /
+  `.capturedEnv`), `resolveCapturedConduit` /
+  `invokeConduitWithFixedArgs` (used by filter/every/any over Map).
+- `errors.mjs` — `QlangError` base hierarchy (`.location`,
+  `.fingerprint`, `.schemaVersion`, `toJSON()` drops
+  `actualValue` for Sentry safety), `QlangTypeError` /
+  `ArityError` / `QlangInvariantError` /
+  `EffectLaunderingError` / `EffectLaunderingAtLetParse` /
+  `EffectLaunderingAtCall`, `UnresolvedIdentifierError`,
+  `DivisionByZeroError`.
+- `operand-errors.mjs` — six factory primitives:
+  `declareSubjectError` / `declareModifierError` /
+  `declareElementError` (auto-stamp `actualValue`),
+  `declareComparabilityError` (only `leftType`/`rightType`,
+  no value), `declareShapeError` / `declareArityError` (opt-in
+  context). `brand()` для `.name` /  `.fingerprint`.
+- `walk.mjs` — `astChildrenOf` (single source of truth для
+  AST shape — каждый new node type extends here), `walkAst`,
+  `assignAstNodeIds` / `attachAstParents`,
+  `findAstNodeAtOffset` / `bindingNamesVisibleAt` (autocomplete
+  primitive с fork-isolation rules), `astNodeSpan` /
+  `astNodeContainsOffset` / `triviaBetweenAstNodes`, AST↔Map
+  codec (`astNodeToMap` / `qlangMapToAst` через
+  `:qlang/kind`-discriminated Map'ы — это и есть AST-как-данные
+  для `parse`/`eval` ring и для `:trail` entries).
+  `FORK_ISOLATING_AST_TYPES` set.
+- `parse.mjs` — peggy wrapper, post-pass decoration
+  (`attachAstParents` / `assignAstNodeIds` /
+  `decorateAstWithEffectMarkers`), root-metadata stamp
+  (**`ast.source = source`** — это коллидирует с naming
+  любого AST-узла который имеет field `.source`; Quote AST
+  field renamed to `.src` чтобы избежать override).
+- `effect.mjs` — `EFFECT_MARKER_PREFIX = '@'`, `classifyEffect`.
+- `effect-check.mjs` — `decorateAstWithEffectMarkers`
+  (post-parse stamp), `findFirstEffectfulIdentifier`.
+- `fork.mjs` — `fork(state, sub)` / `forkWith(state, val, sub)`
+  для VecLit / MapLit / SetLit / ErrorLit / ParenGroup /
+  distribute body.
+- `state.mjs` — `makeState` / `withPipeValue` / `envGet` /
+  `envHas` / `envSet` / `envMerge` (immutable Map ops).
+- `rule10.mjs` — `applyRule10(fn, lambdas, state)` (overflow
+  check + dispatch), `makeFn` (uniform function-value shape —
+  `{type, name, arity, fn, meta, effectful}`).
+- `equality.mjs` — `deepEqual` (Quote check first by source,
+  then keyword-by-name, then Map / Set / Vec recursive).
+- `codec.mjs` — `toTaggedJSON` / `fromTaggedJSON` (`$keyword` /
+  `$map` / `$set` / `$error` / `$quote` tags; conduit /
+  snapshot / function reject — require session-level
+  reconstruction).
+- `keyword-literal.mjs` — `canonicalKeywordLiteral` (parse-attempt
+  bare form, fallback to `:"quoted"`).
+- `primitives.mjs` — `createPrimitiveRegistry()` / module-level
+  `PRIMITIVE_REGISTRY` (bind / resolve / seal lifecycle;
+  per-site invariant errors `PrimitiveKeyNotString` /
+  `PrimitiveKeyAlreadyBound` / `PrimitiveRegistrySealed`,
+  dispatch-time data error `PrimitiveKeyUnbound`).
+- `error-convert.mjs` — `errorFromQlang` / `errorFromForeign`
+  / `errorFromParse` (lift JS thrown error → qlang error-value
+  with `:fault {:step <AST-Map> :input <pipeValue>}` поле).
+- `highlight.mjs` — `tokenize(src, builtinNames)` (gap-free
+  span coverage, AST-driven semantic spans + gap-filler
+  punct/whitespace, eleven token kinds).
+- `session.mjs` — `createSession` / `serializeSession` /
+  `deserializeSession`, locator API для lazy module loading,
+  conduit envRef tie-the-knot на restore.
+- `index.mjs` — public API re-exports.
+
+**core/src/runtime/ — 14 файлов целиком.** Здесь живут все JS
+impl'ы операндов. Каждый module bind'ит свои impls в
+`PRIMITIVE_REGISTRY` под `:qlang/prim/<name>` ключами на
+module-load time:
+
+- `dispatch.mjs` — `valueOp` / `higherOrderOp` / `nullaryOp` /
+  `overloadedOp` / `stateOp` / `stateOpVariadic` /
+  `higherOrderOpVariadic` (uniform `(state, lambdas) → state`
+  signature, capture range tracking), `UNBOUNDED` sentinel,
+  per-site arity-error classes.
+- `intro.mjs` — reflective operand impls (`env`, `use`,
+  `reify` / `manifest` / `runExamples`, `let` / `as`, `parse`
+  / `eval`). Содержит `describeBinding` /
+  `buildBuiltinDescriptor` / `buildConduitDescriptor` /
+  `buildSnapshotDescriptor` / `buildValueDescriptor` —
+  **это и есть source where `:kind` (bare) появляется как
+  public surface reify-output'а**, отличная от internal
+  `:qlang/kind` keyword'а в env-binding Map'ах.
+- `format.mjs` — `printValue` (PRINT_HANDLERS table, Conduit
+  / Snapshot / Function / Quote rendering), `toPlain` /
+  `fromPlain` (lossy plain-JSON codec), `json` operand,
+  `table` operand (CELL_HANDLERS / INLINE_HANDLERS for cell
+  rendering).
+- `arith.mjs` — `add` / `sub` / `mul` / `div`.
+- `string.mjs` — `prepend` / `append` / `split` / `join` /
+  `contains` / `startsWith` / `endsWith`.
+- `vec.mjs` — `count` / `empty` / `first` / `last` / `at` /
+  `sum` / `min` / `max` / `filter` / `every` / `any` /
+  `groupBy` / `indexBy` / `sort` / `sortWith` / `take` /
+  `drop` / `distinct` / `reverse` / `flat` / `firstNonZero`
+  + `asc` / `desc` / `nullsFirst` / `nullsLast` comparator
+  builders. `containerPredDispatch` для arity-based dispatch
+  внутри filter / every / any над Map.
+- `map.mjs` — `keys` / `vals` / `has` (polymorphic Map / Set).
+- `set.mjs` — `set` (Vec → Set lift).
+- `setops.mjs` — `union` / `minus` / `inter` (overloadedOp,
+  Set × Set / Map × Map / Map × Set).
+- `predicates.mjs` — `eq` / `gt` / `lt` / `gte` / `lte` /
+  `and` / `or` / `not` + type-classifiers `isString` /
+  `isNumber` / `isVec` / `isMap` / `isSet` / `isKeyword` /
+  `isBoolean` / `isNull` / `isQuote`.
+- `control.mjs` — `if` / `when` / `unless` / `coalesce` /
+  `firstTruthy` / `cond`.
+- `error.mjs` — `error` / `isError`.
+- `keyword-op.mjs` — `keyword` (String↔Keyword involution).
+- `index.mjs` — `langRuntime()` (tie everything together,
+  parse `core.qlang` через CORE_SOURCE constant, resolve
+  `:qlang/impl` keyword'ы через `PRIMITIVE_REGISTRY` в
+  function-values, seal registry).
+
+**core/host/module-resolver.mjs** — filesystem-to-namespace
+conventions, `discoverModules` / `resolveModules` /
+`installModules`, `topoSort` для dependency-ordered evaluation.
+
+**Public spec docs (3 файла, ≈4900 строк целиком).** Без них
+не понимаешь что является public API surface а что implementation:
+
+- `docs/qlang-spec.md` — language reference (atoms /
+  composites / pipeline / extract / construct / names &
+  modules / error track / effect markers / reflection /
+  evaluation rules / lexical structure / grammar / REPL
+  session / embedding API / plain-JSON codec / tagged-JSON
+  codec / AST traversal / syntax highlighting). Тут описано
+  что `:fault` это Map с `:step` и `:input` (line 1378). Тут
+  живёт contract `runExamples` для assertion vs demo modes.
+- `docs/qlang-internals.md` — formal evaluation model (state
+  pair / step types / reflective built-ins / combinators /
+  fork / bootstrap / `langRuntime` assembly / mapping syntax
+  → step types / 8 worked examples (включая 6c рекурсивную
+  tree-transformation) / source-location enrichment / error
+  values & fail-track dispatch / trail materialization /
+  descriptor shape & invariant / tooling primitives walk /
+  primitives / session / format / highlight / codec / effect
+  / public entry point).
+- `docs/qlang-operands.md` — каталог всех built-in операндов
+  с примерами. Подтверждает `:kind` (bare) в reify output.
+
+**Сама эта спека:** `docs/qlang-redesign-plan.md` — целиком.
+Это редизайн-план; здесь живут все мои собственные
+design-решения за эту работу. Часть из них контр-интуитивна
+(`:fault.step` это projection-path, не имя поля; `<...>` в
+`::tag<container>` это meta-placeholder, не grammar; Quote —
+JS-object с Symbol-tag-style `.type` discriminator, не Map с
+`:qlang/kind`; trail — один Quote с pipeline-suffix source'ом,
+не Vec entries; `:qlang/kind` — internal runtime housekeeping,
+**не** language surface; `:kind` — public reify-output field,
+**намеренно** построенный, не просто passthrough internal
+`:qlang/kind`).
+
+### §0.2. Поведенческие правила (от пользователя, через
+повторные напоминания за сессию)
+
+- **Не выдумывай.** Перед любым утверждением про код — Read,
+  не Grep. Grep ловит string-match, теряет семантику. После
+  компактификации искушение «грепну быстро и отвечу» особенно
+  сильное; не поддавайся.
+- **Признавать ошибки коротко.** Один раз — извинение / отметка,
+  без многословия и без поиска оправданий. Юзер видит сам diff
+  / output, длинные мета-обяснения раздражают.
+- **Не sycophant'ить.** Если юзер бросил утверждение — проверить
+  по коду до согласия, не подмахивать. Вопрос «это норм?» —
+  ответ должен быть основан на код-чтении, не на психологии
+  ответа.
+- **Zero tolerance к temporal / meta-commenting лексике.**
+  «now», «previously», «used to», «no longer», «for backward
+  compatibility», «legacy», «deprecated», «old», «new» (state
+  comparator), `TODO` / `FIXME` / `HACK`, «this used to do X
+  now does Y» — запрещено в коде / комментариях / спеке.
+  CLAUDE.md фиксирует это, режим строгий. В commit-сообщениях
+  и PR-описаниях допустимо (история диффа).
+- **Не делать ad-hoc заплаток.** Если решение не магистральное —
+  обсудить дизайн с юзером **до** написания кода, не после.
+  Любая попытка «допилю Symbol-tag для одного типа а другие
+  оставлю» — anti-pattern. Универсальное правило для всех
+  однотипных value-classes / discriminator'ов / handler'ов.
+- **Не перепрыгивать на solution до подтверждения юзером.**
+  Юзер задаёт вопрос — ответ концептуальный, без сразу-кода.
+  Юзер говорит «делай» — тогда переходить к коду.
+- **No defensive code, no fallbacks, no half-measures.** Coverage
+  100% pin'ит каждую ветку. Заплатки и фолбэки умножают тест-
+  поверхность без выгоды.
+- **Удалять, а не сохранять.** Никаких `// removed`, никаких
+  re-export'ов deprecated functions, никаких `_var` для unused.
+  Удалять полностью.
+- **Перед массовыми скриптами — git stage / stash.** Любой
+  reformatter / regenerator / mass-update должен быть запущен
+  на staged-snapshot'е чтобы потом легко diff'нуть и откатить
+  при ошибке.
+- **Один тестовый прогон не достаточен — нужен npm test +
+  npm run lint + npm run test:coverage** перед коммитом, иначе
+  CI ловит то что локально пропустил.
+- **Не писать markdown-документы / `.md` файлы без явной
+  просьбы.** Спец-исключение: эта спека `qlang-redesign-plan.md`
+  — единственная авторизованная.
+- **Никаких эмодзи** ни в коде, ни в коммитах, ни в ответах
+  пользователю — если только пользователь явно не запросил.
+- **Перед merge ветки — спрашивать стратегию (squash /
+  merge-commit / rebase).** «Мержи» от пользователя — не
+  consent на squash; уточнять явно.
+
+### §0.3. Команды-канонические для проверки
+
+```
+npm test                  # все workspaces (core / cli / lsp / site)
+npm run lint              # eslint .
+npm run test:coverage     # 100/100/100/100 invariant
+npm test -w @kaluchi/qlang-core    # один workspace
+npm run build             # rebuild grammar + core (после grammar.peggy
+                          # или core.qlang изменения — обязательно)
+```
+
+### §0.4. Если юзер сказал «лоботомия случилась»
+
+Это значит контекст компактирован — большая часть рассуждений
+ушла. Сейчас читай **§0.1 целиком, не выборочно**. Затем читай
+**эту спеку целиком** (`docs/qlang-redesign-plan.md`). Затем
+смотри `git log feature/hypertext-redesign --oneline` чтобы
+понять где остановилась работа. Только после этого отвечай
+пользователю.
+
+---
+
 ## I. Текущее состояние
 
 ### I.1. Архитектура текущей реализации

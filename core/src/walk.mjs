@@ -51,8 +51,9 @@ export function astChildrenOf(node) {
       }
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, LinePlainComment, BlockPlainComment,
-    // LineDocComment, BlockDocComment have no semantic children.
+    // Projection, QuoteLit (frozen source, lazy AST), LinePlainComment,
+    // BlockPlainComment, LineDocComment, BlockDocComment have no
+    // semantic children.
   }
   return out;
 }
@@ -283,6 +284,7 @@ const F_KEY          = 'key';
 const F_ARGS         = 'args';
 const F_DOCS         = 'docs';
 const F_CONTENT      = 'content';
+const F_SRC          = 'src';
 const F_PIPELINE     = 'pipeline';
 const F_STEPS        = 'steps';
 const F_LEADING_FAIL = 'leadingFail';
@@ -310,6 +312,7 @@ const KIND_VEC_LIT             = keyword('VecLit');
 const KIND_SET_LIT             = keyword('SetLit');
 const KIND_MAP_LIT             = keyword('MapLit');
 const KIND_ERROR_LIT           = keyword('ErrorLit');
+const KIND_QUOTE_LIT           = keyword('QuoteLit');
 const KIND_MAP_ENTRY           = keyword('MapEntry');
 const KIND_OPERAND_CALL        = keyword('OperandCall');
 const KIND_PAREN_GROUP         = keyword('ParenGroup');
@@ -334,6 +337,7 @@ const AST_KIND_TO_TYPE = new Map([
   ['SetLit',             'SetLit'],
   ['MapLit',             'MapLit'],
   ['ErrorLit',           'ErrorLit'],
+  ['QuoteLit',           'QuoteLit'],
   ['MapEntry',           'MapEntry'],
   ['OperandCall',        'OperandCall'],
   ['ParenGroup',         'ParenGroup'],
@@ -488,6 +492,11 @@ export function astNodeToMap(node) {
       m.set(F_ENTRIES, Object.freeze(node.entries.map(astNodeToMap)));
       break;
 
+    case 'QuoteLit':
+      m.set(F_QLANG_KIND, KIND_QUOTE_LIT);
+      m.set(F_SRC, node.src);
+      break;
+
     case 'MapEntry':
       m.set(F_QLANG_KIND, KIND_MAP_ENTRY);
       m.set(F_KEY,   astNodeToMap(node.key));
@@ -633,6 +642,10 @@ export function qlangMapToAst(map) {
     case 'MapLit':
     case 'ErrorLit':
       node.entries = map.get(F_ENTRIES).map(qlangMapToAst);
+      break;
+
+    case 'QuoteLit':
+      node.src = map.get(F_SRC);
       break;
 
     case 'MapEntry':

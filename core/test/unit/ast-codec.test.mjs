@@ -153,6 +153,28 @@ describe('astNodeToMap — discriminator and shape', () => {
     expect(m.get(KW_ENTRIES)).toHaveLength(1);
   });
 
+  it('encodes QuoteLit with :QuoteLit kind and :src payload', () => {
+    const m = astNodeToMap(parse('`mul(2)`'));
+    expect(m.get(KW_QLANG_KIND).name).toBe('QuoteLit');
+    expect(m.get('src')).toBe('mul(2)');
+  });
+
+  it('round-trips QuoteLit through qlangMapToAst', () => {
+    const ast = parse('`[1 2 3] | filter(gt(1))`');
+    const m = astNodeToMap(ast);
+    const back = qlangMapToAst(m);
+    expect(back.type).toBe('QuoteLit');
+    expect(back.src).toBe('[1 2 3] | filter(gt(1))');
+  });
+
+  it('round-trips empty QuoteLit through codec', () => {
+    const ast = parse('``');
+    const m = astNodeToMap(ast);
+    const back = qlangMapToAst(m);
+    expect(back.type).toBe('QuoteLit');
+    expect(back.src).toBe('');
+  });
+
   it('encodes Projection :keys as a Vec of segment strings', () => {
     const m = astNodeToMap(parse('/a/b/c'));
     expect(m.get(KW_QLANG_KIND).name).toBe('Projection');

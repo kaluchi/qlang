@@ -102,6 +102,10 @@ function collectSemanticSpans(src, ast, builtinNames) {
         emitBracketSpans(startOffset, endOffset, 2, 1, 'err', spans);
         return;
 
+      case 'QuoteLit':
+        spans.push({ start: startOffset, end: endOffset, kind: 'quote' });
+        return false;
+
       case 'SetLit':
         emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);
         return;

@@ -51,6 +51,12 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
+  it('classifies a backtick QuoteLit as a single quote-kind span', async () => {
+    expect(tokenize('`mul(2)`', await builtins())).toEqual([
+      { start: 0, end: 8, kind: 'quote' }
+    ]);
+  });
+
   it('classifies boolean and null literals as numbers', async () => {
     expect(tokenize('true',  await builtins())[0].kind).toBe('number');
     expect(tokenize('false', await builtins())[0].kind).toBe('number');

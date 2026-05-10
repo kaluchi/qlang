@@ -10,7 +10,9 @@ import {
 import {
   keyword,
   makeConduit,
-  makeSnapshot
+  makeSnapshot,
+  makeQuote,
+  isQuote
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -39,6 +41,22 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
   it('round-trips a Vec of numbers', () => {
     expect(roundTrip([1, 2, 3])).toEqual([1, 2, 3]);
+  });
+
+  it('round-trips a Quote via $quote tag', () => {
+    const original = makeQuote('mul(2)');
+    const encoded = toTaggedJSON(original);
+    expect(encoded).toEqual({ $quote: 'mul(2)' });
+    const restored = fromTaggedJSON(encoded);
+    expect(isQuote(restored)).toBe(true);
+    expect(restored.source).toBe('mul(2)');
+  });
+
+  it('round-trips a Quote with combinator-prefixed source (trail-suffix)', () => {
+    const original = makeQuote('* inc | sort');
+    const restored = roundTrip(original);
+    expect(isQuote(restored)).toBe(true);
+    expect(restored.source).toBe('* inc | sort');
   });
 
   it('round-trips a nested Vec', () => {

@@ -3,7 +3,7 @@
 // Shared by predicates.mjs (for the `eq` operand) and the
 // conformance test runner.
 
-import { isKeyword, isErrorValue } from './types.mjs';
+import { isKeyword, isErrorValue, isQuote } from './types.mjs';
 
 export function deepEqual(a, b) {
   if (a === b) return true;
@@ -12,6 +12,9 @@ export function deepEqual(a, b) {
   if (Array.isArray(a)) {
     if (!Array.isArray(b) || a.length !== b.length) return false;
     return a.every((x, i) => deepEqual(x, b[i]));
+  }
+  if (isQuote(a)) {
+    return isQuote(b) && a.source === b.source;
   }
   if (a instanceof Map) {
     if (!(b instanceof Map) || a.size !== b.size) return false;

@@ -10,9 +10,6 @@ import {
   isQMap,
   isQSet,
   isErrorValue,
-  isConduit,
-  isSnapshot,
-  isFunctionValue,
   describeType
 } from '../types.mjs';
 import {
@@ -122,6 +119,7 @@ const PRINT_HANDLERS = {
   Vec:      (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:      (m, indent) => printMapLike('{', m, indent),
   Set:      (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
+  Quote:    q => '`' + q.source + '`',
   Conduit:  printConduit,
   Snapshot: printSnapshot,
   Function: printFunction
@@ -156,8 +154,7 @@ function printSnapshot(snapshot) {
 }
 
 function printFunction(fn) {
-  const arity = fn.arity ?? '?';
-  return `<function:${fn.name ?? '?'} arity=${arity}>`;
+  return `:qlang/prim/${fn.name}`;
 }
 
 function escapeQlangStringLiteral(s) {
@@ -206,9 +203,10 @@ const CELL_HANDLERS = {
   Map:      m => renderInline(m),
   Set:      s => renderInline(s),
   Error:    e => renderInline(e),
+  Quote:    q => '`' + q.source + '`',
   Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
-  Function: fn => `<${fn.name ?? '?'}>`
+  Function: fn => `:qlang/prim/${fn.name}`
 };
 
 const INLINE_HANDLERS = {
@@ -220,9 +218,10 @@ const INLINE_HANDLERS = {
   Vec:      v => `[${v.map(renderInline).join(' ')}]`,
   Map:      m => `{${mapEntriesInline(m)}}`,
   Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
+  Quote:    q => '`' + q.source + '`',
   Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
-  Function: fn => `<${fn.name ?? '?'}>`,
+  Function: fn => `:qlang/prim/${fn.name}`,
   Error:    e => `!{${mapEntriesInline(e.descriptor)}}`
 };
 

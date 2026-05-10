@@ -38,7 +38,7 @@
      Boolean             — not
      Predicates          — eq, gt, lt, gte, lte, and, or
      Type classifiers    — isString, isNumber, isVec, isMap, isSet,
-                           isKeyword, isBoolean, isNull
+                           isKeyword, isBoolean, isNull, isQuote
      Formatting          — json, table
      Reflective          — env, use, reify, manifest, runExamples,
                            as, let
@@ -1040,6 +1040,21 @@
            {:doc "zero is not null"      :snippet "0 | isNull"                :expected "false"}
            {:doc "empty string not null" :snippet "\"\" | isNull"             :expected "false"}]
          :throws []}
+
+|~~ Returns true iff the subject is a Quote — a frozen
+    backtick-delimited code-as-data fragment. Quotes carry a
+    `:source` text field and a lazily-parsed `:ast` AST-Map. ~~|
+:isQuote {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isQuote
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :examples [
+            {:doc "Quote literal"   :snippet "`mul(2)` | isQuote" :expected "true"}
+            {:doc "string not Quote" :snippet "\"mul(2)\" | isQuote" :expected "false"}
+            {:doc "number not Quote" :snippet "42 | isQuote"      :expected "false"}]
+          :throws []}
 
 |~ ──────────────── Formatting ──────────────── ~|
 

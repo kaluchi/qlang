@@ -42,7 +42,7 @@ export function keyword(name) {
   return Object.freeze({ type: 'keyword', name, literal: canonicalKeywordLiteral(name) });
 }
 
-// ── conduit / snapshot predicates ─────────────────────────────
+// ── conduit / snapshot / quote predicates ─────────────────────
 
 export function isConduit(v) {
   if (!(v instanceof Map)) return false;
@@ -54,6 +54,25 @@ export function isSnapshot(v) {
   if (!(v instanceof Map)) return false;
   const kind = v.get('qlang/kind');
   return kind && kind.name === 'snapshot';
+}
+
+export function isQuote(v) {
+  return v !== null && typeof v === 'object' && v.type === 'quote';
+}
+
+// Quote — frozen JS object carrying `.source` (the verbatim text
+// between backticks) and an optional `.ast` (lazily populated when
+// the Quote is run through `eval` or projected via `/ast`). Lives
+// on the JS layer rather than as a Map with `:qlang/kind :quote`
+// so the discriminator stays out of pipeValue projection — Quote
+// lands in pipeValue directly through the backtick literal, so
+// keeping the discriminator in a Map-key would expose runtime
+// housekeeping at the user surface. The lazy `.ast` lets a Quote
+// hold a pipeline-suffix fragment beginning with a combinator
+// (`* inc | sort`) — eager parse would reject the fragment because
+// Pipeline head must be a RawStep, not a combinator.
+export function makeQuote(source, ast = null) {
+  return Object.freeze({ type: 'quote', source, ast });
 }
 
 // ── conduit factory ───────────────────────────────────────────
@@ -157,6 +176,7 @@ export function describeType(v) {
   if (isVec(v)) return 'Vec';
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
+  if (isQuote(v)) return 'Quote';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
@@ -173,6 +193,7 @@ export function typeKeyword(v) {
   if (isVec(v)) return keyword('vec');
   if (isConduit(v)) return keyword('conduit');
   if (isSnapshot(v)) return keyword('snapshot');
+  if (isQuote(v)) return keyword('quote');
   if (isQMap(v)) return keyword('map');
   if (isQSet(v)) return keyword('set');
   if (isErrorValue(v)) return keyword('error');

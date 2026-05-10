@@ -359,6 +359,7 @@ Primary
   / SetLit
   / VecLit
   / MapLit
+  / QuoteLit
   / Projection
   / OperandCall
   / Scalar
@@ -366,6 +367,21 @@ Primary
 ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
+
+// QuoteLit captures content verbatim as a source string. AST is
+// parsed lazily by the runtime so a Quote may hold a pipeline
+// fragment beginning with a combinator (`* inc | sort`) — eager
+// parse would reject such a fragment.
+// `src` (not `source`) — `parse.mjs` stamps `ast.source` on the root
+// node, which would override a QuoteLit field of the same name when
+// the QuoteLit is the entire query. The AST keeps `src`; the runtime
+// Quote value-class projects `:source` on its own Map shape.
+QuoteLit
+  = "`" content:QuoteContent "`"
+    { return node('QuoteLit', { src: content }, location(), text()); }
+
+QuoteContent
+  = chars:(!"`" .)* { return chars.map(c => c[1]).join(''); }
 
 ErrorLit
   = "!{" _L "}"

@@ -164,32 +164,36 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('lib/qlang/core.qlang — doc-prefix folded into :docs', () => {
-  it('every entry has a non-empty :docs Vec of strings', async () => {
+describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` axis', () => {
+  it('every cataloged binding has at least one Doc-value on the axis', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
     const coreEnv = await evalCore();
-    
-    for (const [entryKey, entryVal] of coreEnv) {
-      const docs = entryVal.get('docs');
-      expect(isVec(docs), `entry :${entryKey} has no :docs Vec`).toBe(true);
-      expect(docs.length, `entry :${entryKey} :docs is empty`).toBeGreaterThan(0);
+    for (const entryKey of coreEnv.keys()) {
+      // Skip section-divider plain comments / non-binding env entries
+      // and the bootstrap `def` operand (no def-step in the catalog
+      // AST — its prose lives in docs/qlang-operands.md).
+      if (!isQMap(coreEnv.get(entryKey))) continue;
+      if (entryKey === 'def') continue;
+      const docs = await evalQuery(`:"${entryKey}" | docs`);
+      expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
       for (const doc of docs) {
-        expect(typeof doc).toBe('string');
+        expect(typeof doc.content).toBe('string');
       }
     }
   });
 
   it('spot-check — :count docs mention polymorphic and container kinds', async () => {
-    const coreEnv = await evalCore();
-    const countDocs = coreEnv.get('count').get('docs');
-    const joined = countDocs.join(' ');
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docs = await evalQuery(':count | docs');
+    const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('number of elements');
     expect(joined).toContain('Polymorphic');
   });
 
   it('spot-check — :filter docs describe the predicate semantics', async () => {
-    const coreEnv = await evalCore();
-    const filterDocs = coreEnv.get('filter').get('docs');
-    const joined = filterDocs.join(' ');
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docs = await evalQuery(':filter | docs');
+    const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('truthy');
   });

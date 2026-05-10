@@ -113,8 +113,8 @@ describe('reify :source for rare conduit body shapes', () => {
     expect(evalResult).toContain('|~|');
   });
 
-  it('renders BlockDocComment in conduit body', async () => {
-    const evalResult = await evalQuery('|~~ doc ~~| def(:x, 42) | reify(:x) | /docs | first');
+  it('attached BlockDocComment surfaces through the axis docs operand', async () => {
+    const evalResult = await evalQuery('|~~ doc ~~| def(:x, 42) | :x | docs | first | /content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
   });

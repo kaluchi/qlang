@@ -90,6 +90,12 @@ export async function langRuntime() {
       const reflectiveCat = { type: 'keyword', name: 'reflective', literal: ':reflective' };
       const anyKind = { type: 'keyword', name: 'any', literal: ':any' };
       const bootstrapEnv = new Map();
+      // The bootstrap `def` descriptor carries structural metadata
+      // only — no `:docs` / `:examples` field. `def` itself is the
+      // primitive that introduces every other binding, so it has no
+      // def-step in the catalog AST and therefore no axis-reachable
+      // prose. Conventional axis-tooling skips it; printed docs for
+      // `def` live in docs/qlang-operands.md.
       bootstrapEnv.set('def', new Map([
         ['qlang/kind', builtinKind],
         ['qlang/impl', PRIMITIVE_REGISTRY.resolve('qlang/prim/def')],
@@ -100,16 +106,12 @@ export async function langRuntime() {
           { type: 'keyword', name: 'keyword',  literal: ':keyword' },
           { type: 'keyword', name: 'pipeline', literal: ':pipeline' }
         ])],
-        ['examples', Object.freeze([])],
         ['throws', Object.freeze([
           { type: 'keyword', name: 'DefNameNotKeyword',           literal: ':DefNameNotKeyword' },
           { type: 'keyword', name: 'DefParamsNotVecOfKeywords',   literal: ':DefParamsNotVecOfKeywords' },
           { type: 'keyword', name: 'DefArityInvalid',             literal: ':DefArityInvalid' },
           { type: 'keyword', name: 'DefMissingDocOrBody',         literal: ':DefMissingDocOrBody' },
           { type: 'keyword', name: 'EffectLaunderingAtLetParse', literal: ':EffectLaunderingAtLetParse' }
-        ])],
-        ['docs', Object.freeze([
-          ' Pipeline-transparent declarative binding under three arities keyed by the body shape. def(:name) materializes the attached doc-prefix as a Doc-value and binds it. def(:name, body) routes a pure literal to a snapshot (eval at def-time) and an impure body to a zero-param conduit (deferred per-lookup). def(:name, [:params], body) builds a parametric conduit always. Subject pipeValue passes through unchanged so def-steps chain naturally on the success-track. Effect-laundering safety net mirrors let. '
         ])]
       ]));
       const bootstrapState = makeState(null, bootstrapEnv);
@@ -121,18 +123,15 @@ export async function langRuntime() {
       // templateEnv lives behind a snapshot wrapper. Unwrap once
       // here so identifier lookups dispatch through the descriptor
       // directly without paying the snapshot-projection cost on
-      // every call. Attached doc-prefix strings carried on the
-      // snapshot wrapper land on the descriptor under :docs so
-      // manifest / reify / axis-operands see them in one place.
+      // every call. Attached doc-prefix strings stay on the
+      // qlang/ast/qlang/core Quote AST — axis-operands `docs` /
+      // `examples` walk it directly. Reify therefore holds the
+      // structural metadata only; prose lives at one address
+      // (the AST attached prefix), reachable through `:tag | docs`.
       for (const [name, value] of templateEnv) {
         if (value instanceof Map && value.get('qlang/kind') &&
             value.get('qlang/kind').name === 'snapshot') {
-          const inner = value.get('qlang/value');
-          const snapshotDocs = value.get('docs');
-          if (inner instanceof Map && snapshotDocs && snapshotDocs.length > 0) {
-            inner.set('docs', snapshotDocs);
-          }
-          templateEnv.set(name, inner);
+          templateEnv.set(name, value.get('qlang/value'));
         }
       }
 

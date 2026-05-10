@@ -464,9 +464,6 @@ def(:asc, {:qlang/kind :builtin
       :subject :map
       :returns :number
       :modifiers [:key-lambda]
-      :examples [
-        {:doc "sort by field"         :snippet "sortWith(asc(/age))"}
-        {:doc "sort by computed key"  :snippet "sortWith(asc(mul(/price, /qty)))"}]
       :throws [:AscPairNotMap :AscKeysNotComparable]})
 
 |~~ Builds a descending comparator for sortWith. Same as asc
@@ -477,9 +474,6 @@ def(:desc, {:qlang/kind :builtin
        :subject :map
        :returns :number
        :modifiers [:key-lambda]
-       :examples [
-         {:doc "newest first"    :snippet "sortWith(desc(/timestamp))"}
-         {:doc "highest first"   :snippet "sortWith(desc(/score))"}]
        :throws [:DescPairNotMap :DescKeysNotComparable]})
 
 |~~ Ascending comparator that places null-keyed elements before
@@ -525,9 +519,6 @@ def(:if, {:qlang/kind :builtin
      :subject :any
      :returns :any
      :modifiers [:predicate-lambda :pipeline :pipeline]
-     :examples [
-       {:doc "pass/fail gate"    :snippet "score | if(gte(60), \"pass\", \"fail\")"}
-       {:doc "empty list guard"  :snippet "list | if(empty, \"<empty>\", first)"}]
      :throws []})
 
 |~~ One-sided conditional with implicit identity on the false
@@ -540,9 +531,6 @@ def(:when, {:qlang/kind :builtin
        :subject :any
        :returns :any
        :modifiers [:predicate-lambda :pipeline]
-       :examples [
-         {:doc "conditional transform"  :snippet "employee | when(/active, /salary | mul(11) | div(10))"}
-         {:doc "default empty list"     :snippet "list | when(empty, [\"<empty>\"])"}]
        :throws []})
 
 |~~ Inverse of when: runs the then sub-pipeline when cond is
@@ -555,9 +543,6 @@ def(:unless, {:qlang/kind :builtin
          :subject :any
          :returns :any
          :modifiers [:predicate-lambda :pipeline]
-         :examples [
-           {:doc "guard sort on empty"  :snippet "input | unless(empty, sort)"}
-           {:doc "lazy validation"      :snippet "config | unless(/validated, validate)"}]
          :throws []})
 
 |~~ Returns the first non-null result among the captured
@@ -572,9 +557,6 @@ def(:coalesce, {:qlang/kind :builtin
            :subject :any
            :returns :any
            :modifiers [:pipeline]
-           :examples [
-             {:doc "first non-null name"   :snippet "person | coalesce(/preferredName, /firstName, \"Anonymous\")"}
-             {:doc "config override chain" :snippet "config | coalesce(/userOverride, /projectDefault, /globalDefault)"}]
            :throws [:CoalesceNoAlternatives]})
 
 |~~ Returns the first truthy result among the captured
@@ -590,9 +572,6 @@ def(:firstTruthy, {:qlang/kind :builtin
               :subject :any
               :returns :any
               :modifiers [:pipeline]
-              :examples [
-                {:doc "first truthy name"   :snippet "person | firstTruthy(/preferredName, /firstName, \"Anonymous\")"}
-                {:doc "flag with fallback"  :snippet "flag | firstTruthy(/userValue, /default, false)"}]
               :throws [:FirstTruthyNoAlternatives]})
 
 |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -608,9 +587,6 @@ def(:cond, {:qlang/kind :builtin
        :subject :any
        :returns :any
        :modifiers [:pipeline]
-       :examples [
-         {:doc "grade dispatch"   :snippet "score | cond(gte(90), \"A\", gte(80), \"B\", gte(70), \"C\", \"F\")"}
-         {:doc "label by value"   :snippet "value | cond(eq(0), \"zero\", eq(1), \"one\", \"many\")"}]
        :throws [:CondNoBranches]})
 
 |~ ──────────────── Map operations ──────────────── ~|
@@ -950,8 +926,6 @@ def(:and, {:qlang/kind :builtin
       :subject :any
       :returns :boolean
       :modifiers [:any]
-      :examples [
-        {:doc "compound predicate"  :snippet "filter(and(/active, /age | gte(18)))"}]
       :throws []})
 
 |~~ Returns true if either operand is truthy. ~~|
@@ -961,8 +935,6 @@ def(:or, {:qlang/kind :builtin
      :subject :any
      :returns :boolean
      :modifiers [:any]
-     :examples [
-       {:doc "disjunction predicate"  :snippet "filter(or(/vip, /score | gt(95)))"}]
      :throws []})
 
 |~ ──────────────── Type classifiers ──────────────── ~|
@@ -1134,8 +1106,6 @@ def(:json, {:qlang/kind :builtin
        :subject :any
        :returns :string
        :modifiers []
-       :examples [
-         {:doc "serialize to JSON"  :snippet "{:a 1 :b [2 3]} | json"}]
        :throws []})
 
 |~~ Renders a Vec of Maps as a fixed-width tabular string.
@@ -1148,8 +1118,6 @@ def(:table, {:qlang/kind :builtin
         :subject :vec
         :returns :string
         :modifiers []
-        :examples [
-          {:doc "render as table"  :snippet "[{:name \"a\" :age 20} {:name \"b\" :age 30}] | table"}]
         :throws [:TableSubjectNotVec :TableRowNotMap]})
 
 |~ ──────────────── Reflective ──────────────── ~|
@@ -1181,10 +1149,6 @@ def(:use, {:qlang/kind :builtin
       :subject :any
       :returns :any
       :modifiers [:any]
-      :examples [
-        {:doc "merge Map into env"      :snippet "{:pi 3.14 :e 2.71} | use | [pi e]"}
-        {:doc "import module"           :snippet "use(:qlang/error)"}
-        {:doc "import multiple modules" :snippet "use([:qlang/error :qlang/http])"}]
       :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]})
 
 |~~ Builds a descriptor Map for a value or named binding.
@@ -1198,10 +1162,6 @@ def(:reify, {:qlang/kind :builtin
         :subject :any
         :returns :map
         :modifiers [:keyword]
-        :examples [
-          {:doc "describe env binding"  :snippet "env | /count | reify"}
-          {:doc "describe named builtin" :snippet "reify(:filter)"}
-          {:doc "describe value"        :snippet "42 | reify"}]
         :throws [:ReifyKeyNotKeyword]})
 
 |~~ Returns a Vec of descriptors, one per binding in env,
@@ -1213,24 +1173,18 @@ def(:manifest, {:qlang/kind :builtin
            :subject :any
            :returns :vec
            :modifiers []
-           :examples [
-             {:doc "list all builtins"  :snippet "env | manifest | filter(/kind | eq(:builtin)) | table"}]
            :throws []})
 
-|~~ Walks every entry of the descriptor's :examples Vec and
-    returns a Vec of result Maps shaped {:snippet :doc :expected
-    :actual :error :ok}. Two modes per entry: assertion mode fires
-    when :expected is a string — both snippet and expected are
-    evalQuery'd, deepEqual-compared, :ok true iff they match; demo
-    mode fires when :expected is absent — only the snippet's
-    grammar is parse-verified, :ok true iff the syntax holds. The
-    split lets library docs carry caller-style demo snippets that
-    reference ambient bindings (`person | coalesce(/preferredName,
-    …)`) alongside self-contained assertion snippets, without the
-    demo snippets being marked as failures in an isolated
-    runExamples env. Self-describing catalog drift detection: the
-    composition `manifest * (runExamples * /ok) | flat | distinct`
-    walks every example in the manifest and must return `[true]`.
+|~~ Walks the ::assertion segments inside the binding's
+    attached doc-prefix and returns a Vec of result Maps shaped
+    {:snippet :expected :actual :error :ok}. Each segment's
+    snippet and expected Quote-values are evalQuery'd in an
+    isolated env and deepEqual-compared; :ok is true iff both
+    eval cleanly AND match. Subject is a Keyword (binding name)
+    or a descriptor Map carrying a :name string. The composition
+    `manifest * (runExamples * /ok) | flat | distinct` walks
+    every example in the manifest and must return `[true]` —
+    self-describing catalog drift detection.
 
     ::assertion[`reify(:count) | runExamples * /ok | distinct` `[true]`]
     ~~|
@@ -1240,7 +1194,7 @@ def(:runExamples, {:qlang/kind :builtin
               :subject :map
               :returns :vec
               :modifiers []
-              :throws [:RunExamplesSubjectNotDescriptor :RunExamplesNoExamplesField]})
+              :throws [:RunExamplesSubjectShapeError]})
 
 |~~ Captures the current pipeValue as a frozen snapshot under
     the given keyword name. pipeValue passes through unchanged.
@@ -1488,7 +1442,6 @@ def(:source, {:qlang/kind :builtin
               :subject :keyword
               :returns :quote
               :modifiers []
-              :examples []
               :throws [:SourceSubjectNotKeywordOrType :AxisBindingNotFound]})
 
 |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
@@ -1501,7 +1454,6 @@ def(:docs, {:qlang/kind :builtin
             :subject :keyword
             :returns :vec
             :modifiers []
-            :examples []
             :throws [:DocsSubjectNotKeywordOrType :AxisBindingNotFound]})
 
 |~~ examples(:name) — Vec of Assertion-values extracted from the
@@ -1514,5 +1466,4 @@ def(:examples, {:qlang/kind :builtin
                 :subject :keyword
                 :returns :vec
                 :modifiers []
-                :examples []
                 :throws [:ExamplesSubjectNotKeywordOrType :AxisBindingNotFound]})

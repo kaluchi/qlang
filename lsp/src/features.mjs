@@ -9,7 +9,7 @@
 
 import {
   parse, ParseError,
-  langRuntime,
+  langRuntime, evalQuery,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
@@ -20,8 +20,20 @@ import {
 // Interned keyword references for descriptor-Map field projection.
 const F_CATEGORY  = 'category';
 const F_SUBJECT   = 'subject';
-const F_DOCS      = 'docs';
 const F_MODIFIERS = 'modifiers';
+
+// Cached docs lookup — `:name | docs` axis-call returns a Vec of
+// Doc-values. LSP wants the raw content strings; pull them once on
+// first request and reuse the array on subsequent hovers /
+// completions for the same operand.
+const docsCache = new Map();
+async function fetchDocsContents(name) {
+  if (docsCache.has(name)) return docsCache.get(name);
+  const docs = await evalQuery(`:"${name}" | docs`);
+  const contents = Array.isArray(docs) ? docs.map(d => d.content) : [];
+  docsCache.set(name, contents);
+  return contents;
+}
 
 // ── Document state ────────────────────────────────────────────
 
@@ -86,11 +98,12 @@ async function builtinCompletions() {
   for (const [k, descriptor] of runtime) {
     if (k.startsWith('qlang/ast/')) continue;
     if (k.startsWith('::')) continue;
+    const docContents = await fetchDocsContents(k);
     _builtinCompletions.push({
       label: k,
       kind: 'function',
       detail: formatMetaValue(descriptor.get(F_CATEGORY)),
-      documentation: descriptor.get(F_DOCS)[0]
+      documentation: docContents[0] ?? ''
     });
   }
   return _builtinCompletions;
@@ -145,14 +158,14 @@ async function hoverForOperand(node) {
   if (!runtime.has(node.name)) return null;
 
   const descriptor = runtime.get(node.name);
-  const docs = descriptor.get(F_DOCS);
+  const docContents = await fetchDocsContents(node.name);
 
   return {
     content: [
       `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
       `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
       '',
-      docs.join('\n')
+      docContents.join('\n')
     ].join('\n'),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
@@ -335,7 +348,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
 
   const descriptor = runtime.get(operandCall.name);
   const modifiers = descriptor.get(F_MODIFIERS).map(formatMetaValue);
-  const docs = descriptor.get(F_DOCS);
+  const docContents = await fetchDocsContents(operandCall.name);
 
   const argsStartOffset = operandCall.location.start.offset
     + operandCall.name.length + 1;
@@ -346,7 +359,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
     label: modifiers.length > 0
       ? `${operandCall.name}(${modifiers.join(', ')})`
       : `${operandCall.name}()`,
-    documentation: docs[0],
+    documentation: docContents[0] ?? '',
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
   };

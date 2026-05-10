@@ -29,6 +29,6 @@
 {"name":"manifest-after-use","query":"{:myConst 42} | use | env | manifest | filter(/kind | eq(:value)) | filter(/name | eq(\"myConst\")) | count","expect":"1"}
 {"name":"conduit-shows-up-with-name","query":"def(:foo, mul(2)) | env | manifest | filter(/kind | eq(:conduit)) | first | /name","expect":"\"foo\""}
 {"name":"snapshot-shows-up-with-value","query":"42 | as(:bar) | env | manifest | filter(/kind | eq(:snapshot)) | first | /value","expect":"42"}
-{"name":"every-builtin-has-docs-vec","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | empty) | count","expect":"0"}
-{"name":"every-builtin-has-non-empty-first-doc","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | first | eq(\"\") | not) | count | gt(40)","expect":"true"}
+{"name":"every-cataloged-builtin-has-axis-docs","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/name | eq(\"def\") | not) | filter(/name | keyword | docs | empty) | count","expect":"0"}
+{"name":"every-cataloged-builtin-axis-doc-has-content","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/name | eq(\"def\") | not) | filter(/name | keyword | docs | first | /content | eq(\"\") | not) | count | gt(40)","expect":"true"}
 {"name":"manifest-via-table-runs","query":"env | manifest | filter(/category | eq(:arith)) | table | eq(\"\") | not","expect":"true"}

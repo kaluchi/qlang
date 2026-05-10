@@ -711,8 +711,11 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(reifyCountResult.get('kind')).toEqual(keyword('builtin'));
     expect(reifyCountResult.get('name')).toBe('count');
     expect(reifyCountResult.get('captured')).toEqual([0, 0]);
-    expect(Array.isArray(reifyCountResult.get('docs'))).toBe(true);
-    expect(reifyCountResult.get('docs').length).toBeGreaterThan(0);
+    // Prose lives on the qlang/ast/qlang/core Quote AST and is read
+    // through the `docs` axis, not the reify result — the descriptor
+    // carries structural metadata only.
+    expect(reifyCountResult.has('docs')).toBe(false);
+    expect((await evalQuery(':count | docs | count'))).toBeGreaterThan(0);
   });
 
   it('builtin descriptor surfaces :effectful=false for clean langRuntime operands', async () => {
@@ -1068,14 +1071,14 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
 describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const docsResult = await evalQuery(
-      '|~~| First.\n|~~| Second.\n|~~| Third.\ndef(:foo, 42) | reify(:foo) | /docs'
+      '|~~| First.\n|~~| Second.\n|~~| Third.\ndef(:foo, 42) | :foo | docs * /content'
     );
     expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
   });
 
   it('block doc preserves internal newlines as one entry', async () => {
     const docsResult = await evalQuery(
-      '|~~ line one\nline two\nline three ~~|\ndef(:foo, 42)\n| reify(:foo) | /docs'
+      '|~~ line one\nline two\nline three ~~|\ndef(:foo, 42)\n| :foo | docs * /content'
     );
     expect(docsResult.length).toBe(1);
     expect(docsResult[0]).toContain('line one');
@@ -1085,7 +1088,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('mixes line and block docs preserving order', async () => {
     const docsResult = await evalQuery(
-      '|~~| line one\n|~~ block two ~~|\n|~~| line three\ndef(:foo, 42) | reify(:foo) | /docs'
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\ndef(:foo, 42) | :foo | docs * /content'
     );
     expect(docsResult.length).toBe(3);
     expect(docsResult[0]).toBe(' line one');
@@ -1095,7 +1098,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('shadowing redeclare overrides docs Vec', async () => {
     const docsResult = await evalQuery(
-      '|~~| Old.\ndef(:foo, 1)\n|~~| Brand new.\n|~~| With extra remark.\ndef(:foo, 2)\n| reify(:foo) | /docs'
+      '|~~| Old.\ndef(:foo, 1)\n|~~| Brand new.\n|~~| With extra remark.\ndef(:foo, 2)\n| :foo | docs * /content'
     );
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });

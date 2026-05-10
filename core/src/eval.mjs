@@ -90,7 +90,12 @@ const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapt
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
 // uses langRuntime as both initial env and pipeValue (per the
-// model's reference bootstrap).
+// model's reference bootstrap). The parsed AST is stamped into the
+// env under `qlang/ast/inline` as a Quote so axis-operands
+// (`source`, `docs`, `examples`) can find inline `def`-step
+// bindings — without this, `def(:foo, …) | :foo | docs` would
+// raise AxisBindingNotFound because `foo` lives in the just-parsed
+// AST, not in any module Quote previously loaded by use(:ns).
 export async function evalQuery(source, env) {
   const initialEnv = env ?? await langRuntime();
   let ast;
@@ -99,7 +104,8 @@ export async function evalQuery(source, env) {
   } catch (parseErr) {
     return errorFromParse(parseErr);
   }
-  const initialState = makeState(initialEnv, initialEnv);
+  const envWithInlineAst = envSet(initialEnv, 'qlang/ast/inline', makeQuote(source, ast));
+  const initialState = makeState(envWithInlineAst, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
   return finalState.pipeValue;
 }

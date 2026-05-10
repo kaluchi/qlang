@@ -268,8 +268,6 @@ function buildBuiltinDescriptor(fn, explicitName) {
   result.set('modifiers', metaToVec(meta.modifiers));
   result.set('returns', meta.returns);
   result.set('captured', metaToVec(capturedRange(fn)));
-  result.set('docs', metaToVec(meta.docs));
-  result.set('examples', metaToVec(meta.examples));
   result.set('throws', metaToVec(meta.throws));
   result.set('effectful', fn.effectful);
   return result;
@@ -283,7 +281,6 @@ function buildConduitDescriptor(conduit, explicitName) {
   result.set('name', explicitName ?? conduit.get('name'));
   result.set('params', metaToVec(conduit.get('params')));
   result.set('source', conduit.get('qlang/body').text);
-  result.set('docs', metaToVec(conduit.get('docs')));
   result.set('effectful', conduit.get('effectful'));
   result.set('location', locationToQlangMap(conduit.get('location')));
   return result;
@@ -304,7 +301,6 @@ function buildSnapshotDescriptor(snap, explicitName) {
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
-  result.set('docs', metaToVec(snap.get('docs')));
   result.set('effectful', snap.get('effectful'));
   result.set('location', locationToQlangMap(snap.get('location')));
   return result;

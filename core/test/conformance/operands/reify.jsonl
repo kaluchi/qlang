@@ -45,21 +45,21 @@
 {"name":"builtin-category-comparator","query":"env | /asc | reify | /category","expect":":comparator"}
 {"name":"builtin-modifiers-vec","query":"env | /add | reify | /modifiers","expect":"[:number]"}
 {"name":"builtin-returns","query":"env | /add | reify | /returns","expect":":number"}
-{"name":"builtin-docs-is-vec","query":"env | /count | reify | /docs | count","expect":"1"}
-{"name":"builtin-docs-non-empty","query":"env | /count | reify | /docs | first | eq(\"\") | not","expect":"true"}
+{"name":"axis-docs-on-builtin-is-vec","query":":count | docs | count","expect":"1"}
+{"name":"axis-docs-on-builtin-is-non-empty","query":":count | docs | first | /content | eq(\"\") | not","expect":"true"}
 {"name":"builtin-throws-contains-class","query":"reify(:add) | /throws | first","expect":":AddLeftNotNumber"}
-{"name":"builtin-examples-vec","query":"env | /count | reify | /examples | count | gt(0)","expect":"!{\n  :origin :qlang/eval\n  :kind :type-error\n  :thrown :CountSubjectNotContainer\n  :message \"count requires Vec, Set, or Map subject, got null\"\n  :operand \"count\"\n  :position \"subject\"\n  :expectedType \"Vec, Set, or Map\"\n  :actualType :null\n  :actualValue null\n  :fault {:step `count` :input null}\n  :trail null\n}"}
+{"name":"axis-examples-on-builtin-non-empty","query":":count | examples | count | gt(0)","expect":"true"}
 {"name":"named-form-builtin","query":"reify(:count) | /kind","expect":":builtin"}
 {"name":"named-form-attaches-name","query":"reify(:filter) | /name","expect":"\"filter\""}
 {"name":"named-form-on-conduit","query":"def(:double, mul(2)) | reify(:double) | /kind","expect":":conduit"}
 {"name":"named-form-on-conduit-name","query":"def(:double, mul(2)) | reify(:double) | /name","expect":"\"double\""}
 {"name":"named-form-on-conduit-source","query":"def(:double, mul(2)) | reify(:double) | /source","expect":"\"mul(2)\""}
-{"name":"named-form-on-conduit-empty-docs","query":"def(:double, mul(2)) | reify(:double) | /docs","expect":"[]"}
-{"name":"named-form-on-conduit-with-docs","query":"|~~| Doubles.\ndef(:double, mul(2))\n| reify(:double) | /docs","expect":"[\" Doubles.\"]"}
+{"name":"axis-docs-on-conduit-empty","query":"def(:double, mul(2)) | :double | docs","expect":"[]"}
+{"name":"axis-docs-on-conduit-with-docs","query":"|~~| Doubles.\ndef(:double, mul(2))\n| :double | docs * /content","expect":"[\" Doubles.\"]"}
 {"name":"named-form-on-snapshot","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
 {"name":"named-form-on-snapshot-value","query":"42 | as(:answer) | reify(:answer) | /value","expect":"42"}
 {"name":"named-form-on-snapshot-name","query":"42 | as(:answer) | reify(:answer) | /name","expect":"\"answer\""}
-{"name":"named-form-on-snapshot-with-doc","query":"42\n|~~| Captured.\nas(:answer)\n| reify(:answer) | /docs","expect":"[\" Captured.\"]"}
+{"name":"axis-docs-on-snapshot-with-doc","query":"42\n|~~| Captured.\nas(:answer)\n| :answer | docs * /content","expect":"[\" Captured.\"]"}
 {"name":"named-form-on-value-via-use","query":"{:pi 3.14} | use | reify(:pi) | /kind","expect":":value"}
 {"name":"named-form-on-value-via-use-value","query":"{:pi 3.14} | use | reify(:pi) | /value","expect":"3.14"}
 {"name":"named-form-on-value-via-use-name","query":"{:pi 3.14} | use | reify(:pi) | /name","expect":"\"pi\""}
@@ -74,7 +74,7 @@
 {"name":"snapshot-via-projection-unwraps","query":"[1 2 3] | as(:nums) | env | /nums","expect":"[1 2 3]"}
 {"name":"snapshot-via-named-form-keeps-wrapper","query":"[1 2 3] | as(:nums) | reify(:nums) | /value","expect":"[1 2 3]"}
 {"name":"filter-builtins-via-reify","query":"env | /count | reify | /kind | eq(:builtin)","expect":"true"}
-{"name":"all-three-doc-blocks-preserved","query":"|~~| One.\n|~~| Two.\n|~~| Three.\ndef(:foo, 42)\n| reify(:foo) | /docs | count","expect":"3"}
+{"name":"all-three-doc-blocks-preserved","query":"|~~| One.\n|~~| Two.\n|~~| Three.\ndef(:foo, 42)\n| :foo | docs | count","expect":"3"}
 {"name":"builtin-effectful-false-on-clean-name","query":"reify(:count) | /effectful","expect":"false"}
 {"name":"builtin-effectful-false-on-filter","query":"reify(:filter) | /effectful","expect":"false"}
 {"name":"conduit-effectful-false-on-clean-let","query":"def(:foo, count) | reify(:foo) | /effectful","expect":"false"}

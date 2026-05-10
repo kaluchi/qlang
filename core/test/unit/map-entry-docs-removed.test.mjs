@@ -25,12 +25,12 @@ describe('DocLit literal is a Vec / Set element by itself', () => {
 
 describe('DocAttachedSequence restricts to def / as only', () => {
   it('attaches a doc-prefix to a def call', async () => {
-    const result = await evalQuery('|~~ note ~~| def(:x, 42) | reify(:x) | /docs');
+    const result = await evalQuery('|~~ note ~~| def(:x, 42) | :x | docs * /content');
     expect(result).toEqual([' note ']);
   });
 
   it('attaches a doc-prefix to an as call', async () => {
-    const result = await evalQuery('42 | |~~ note ~~| as(:x) | reify(:x) | /docs');
+    const result = await evalQuery('42 | |~~ note ~~| as(:x) | :x | docs * /content');
     expect(result).toEqual([' note ']);
   });
 

@@ -32,8 +32,12 @@ export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
 // multi-step modules carry a Pipeline. DocAttachedSequence stamps
 // `.docs` on the OperandCall AST node directly, so the def step's
 // name and args are reachable at the same depth as a bare def call.
+// A binding step is either a `def(:name, …)` / `def(::tag, …)` call or
+// an `as(:name)` snapshot capture — both attach docs to the named
+// binding and both should answer to axis-operand lookups.
 function matchesDefStep(step, isTypeBinding, targetName) {
-  if (step.type !== 'OperandCall' || step.name !== 'def') return false;
+  if (step.type !== 'OperandCall') return false;
+  if (step.name !== 'def' && step.name !== 'as') return false;
   if (!Array.isArray(step.args) || step.args.length === 0) return false;
   const firstArg = step.args[0];
   return isTypeBinding
@@ -41,6 +45,11 @@ function matchesDefStep(step, isTypeBinding, targetName) {
     : firstArg.type === 'Keyword'         && firstArg.name === targetName;
 }
 
+// Walk the module AST front to back, return the LAST matching binding
+// step. The last-match rule mirrors qlang's shadowing semantics: a
+// later `def(:foo, …)` (or `as(:foo)`) shadows the earlier binding,
+// so axis-operand lookups must surface the docs / source / examples
+// of the binding currently in scope, not the first declaration.
 function findDefStepFor(moduleAst, bindingName) {
   const isTypeBinding = bindingName.startsWith('::');
   const targetName = isTypeBinding ? bindingName.slice(2) : bindingName;
@@ -48,11 +57,13 @@ function findDefStepFor(moduleAst, bindingName) {
     return matchesDefStep(moduleAst, isTypeBinding, targetName) ? moduleAst : null;
   }
   if (moduleAst.type === 'Pipeline') {
+    let lastMatch = null;
     for (let i = 0; i < moduleAst.steps.length; i++) {
       const stepWrapper = moduleAst.steps[i];
       const step = i === 0 ? stepWrapper : stepWrapper.step;
-      if (matchesDefStep(step, isTypeBinding, targetName)) return step;
+      if (matchesDefStep(step, isTypeBinding, targetName)) lastMatch = step;
     }
+    return lastMatch;
   }
   return null;
 }

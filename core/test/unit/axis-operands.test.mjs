@@ -13,15 +13,28 @@ describe(':name | source returns the def-step source as Quote', () => {
     expect(result.source.startsWith('def(:count')).toBe(true);
   });
 
-  it('user-defined binding via session def is found through axis lookup', async () => {
-    // Bindings created at query-time live in the cell-local env.
-    // axis-operands walk every qlang/ast/<uri> module Quote, but
-    // the cell's own AST is not registered — so a freshly-defined
-    // binding is not yet reachable. This pins the contract that
-    // `source` reports module-defined bindings only.
-    const err = await evalQuery('def(:myLocal, 42) | :myLocal | source');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AxisBindingNotFound'));
+  it('a module whose top-level AST is a bare literal contributes no def-steps', async () => {
+    // findDefStepFor returns null when the moduleAst is neither an
+    // OperandCall nor a Pipeline — bare-literal modules add nothing
+    // to the axis search frontier, so the lookup falls through to
+    // AxisBindingNotFound when no other module has the binding.
+    const { createSession } = await import('../../src/session.mjs');
+    const session = await createSession({
+      locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
+    });
+    const cellEntry = await session.evalCell('null | use(:tests/scalar-only) | :missing | source !| /thrown');
+    expect(cellEntry.result).toEqual(keyword('AxisBindingNotFound'));
+  });
+
+  it('inline def-step within the current query is reachable through axis lookup', async () => {
+    // evalQuery stamps the parsed AST under qlang/ast/inline so axis
+    // operands can find bindings declared in the same cell — without
+    // this, `def(:foo, …) | :foo | source` would raise
+    // AxisBindingNotFound because the cell's AST was not registered
+    // alongside the previously-loaded module Quotes.
+    const result = await evalQuery('def(:myLocal, 42) | :myLocal | source');
+    expect(isQuote(result)).toBe(true);
+    expect(result.source).toBe('def(:myLocal, 42)');
   });
 
   it('non-keyword subject raises SourceSubjectNotKeywordOrType', async () => {

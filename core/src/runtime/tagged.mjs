@@ -9,7 +9,10 @@
 // for body invocation) can pick it up directly.
 
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { isVec, isKeyword, isQuote, makeConduit, typeKeyword } from '../types.mjs';
+import {
+  isVec, isKeyword, isQuote, isQMap, isJsonObject, isJsonArray,
+  makeConduit, makeJsonObject, makeJsonArray, typeKeyword
+} from '../types.mjs';
 import { parse } from '../parse.mjs';
 import { declareSubjectError, declareShapeError, declareArityError } from '../operand-errors.mjs';
 
@@ -67,4 +70,44 @@ async function conduitConstructor(payload, state) {
   });
 }
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/conduit', conduitConstructor);
+PRIMITIVE_REGISTRY.bind('qlang/type/conduit', conduitConstructor);
+
+// ::qlang<...> / ::json<...> — pair of cross-domain converters.
+// `::qlang` recursively converts a JSON-shape payload (plain
+// object → qlang Map with keyword keys, plain array → qlang Vec)
+// down through every nested level. `::json` does the inverse
+// (qlang Map → JSON Object stamped with JSON_OBJECT_TAG, qlang
+// Vec → JSON Array stamped with JSON_ARRAY_TAG). Scalars,
+// keywords, sets, and errors pass through unchanged on both
+// sides — the converter only touches the container shape.
+
+function qlangFromJson(value) {
+  if (isJsonObject(value)) {
+    const m = new Map();
+    for (const [k, v] of Object.entries(value)) {
+      m.set(k, qlangFromJson(v));
+    }
+    return m;
+  }
+  if (Array.isArray(value)) {
+    return value.map(qlangFromJson);
+  }
+  return value;
+}
+
+function jsonFromQlang(value) {
+  if (isQMap(value)) {
+    const obj = {};
+    for (const [k, v] of value) {
+      obj[k] = jsonFromQlang(v);
+    }
+    return makeJsonObject(obj);
+  }
+  if (Array.isArray(value)) {
+    return makeJsonArray(value.map(jsonFromQlang));
+  }
+  return value;
+}
+
+PRIMITIVE_REGISTRY.bind('qlang/type/qlang', (payload) => qlangFromJson(payload));
+PRIMITIVE_REGISTRY.bind('qlang/type/json',  (payload) => jsonFromQlang(payload));

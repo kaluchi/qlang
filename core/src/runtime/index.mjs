@@ -54,7 +54,7 @@ import './intro.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { makeQuote } from '../types.mjs';
+import { isKeyword, makeQuote } from '../types.mjs';
 import { astNodeToMap } from '../walk.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
@@ -77,13 +77,40 @@ export async function langRuntime() {
   if (_templateEnvPromise === null) {
     _templateEnvPromise = (async () => {
       const coreAst = parse(CORE_SOURCE, { uri: 'qlang/core' });
-      // Bootstrap env carries the `def` operand from PRIMITIVE_REGISTRY
-      // so the def-step series in CORE_SOURCE binds each descriptor
-      // into env without needing any pre-loaded entries.
+      // Bootstrap env carries the `def` operand as a fully-formed
+      // descriptor — :qlang/impl pre-resolved to the function value
+      // so every def-step in CORE_SOURCE dispatches through it
+      // without needing self-reference. core.qlang itself does not
+      // contain a `def(:def, ...)` step (it would replace this
+      // descriptor with one whose :qlang/impl is still the keyword
+      // handle and break subsequent def calls before the resolution
+      // pass reaches it). The descriptor metadata below mirrors
+      // what an authored entry would carry.
+      const builtinKind = { type: 'keyword', name: 'builtin', literal: ':builtin' };
+      const reflectiveCat = { type: 'keyword', name: 'reflective', literal: ':reflective' };
+      const anyKind = { type: 'keyword', name: 'any', literal: ':any' };
       const bootstrapEnv = new Map();
       bootstrapEnv.set('def', new Map([
-        ['qlang/kind', { type: 'keyword', name: 'builtin', literal: ':builtin' }],
-        ['qlang/impl', PRIMITIVE_REGISTRY.resolve('qlang/prim/def')]
+        ['qlang/kind', builtinKind],
+        ['qlang/impl', PRIMITIVE_REGISTRY.resolve('qlang/prim/def')],
+        ['category', reflectiveCat],
+        ['subject', anyKind],
+        ['returns', anyKind],
+        ['modifiers', Object.freeze([
+          { type: 'keyword', name: 'keyword',  literal: ':keyword' },
+          { type: 'keyword', name: 'pipeline', literal: ':pipeline' }
+        ])],
+        ['examples', Object.freeze([])],
+        ['throws', Object.freeze([
+          { type: 'keyword', name: 'DefNameNotKeyword',           literal: ':DefNameNotKeyword' },
+          { type: 'keyword', name: 'DefParamsNotVecOfKeywords',   literal: ':DefParamsNotVecOfKeywords' },
+          { type: 'keyword', name: 'DefArityInvalid',             literal: ':DefArityInvalid' },
+          { type: 'keyword', name: 'DefMissingDocOrBody',         literal: ':DefMissingDocOrBody' },
+          { type: 'keyword', name: 'EffectLaunderingAtLetParse', literal: ':EffectLaunderingAtLetParse' }
+        ])],
+        ['docs', Object.freeze([
+          ' Pipeline-transparent declarative binding under three arities keyed by the body shape. def(:name) materializes the attached doc-prefix as a Doc-value and binds it. def(:name, body) routes a pure literal to a snapshot (eval at def-time) and an impure body to a zero-param conduit (deferred per-lookup). def(:name, [:params], body) builds a parametric conduit always. Subject pipeValue passes through unchanged so def-steps chain naturally on the success-track. Effect-laundering safety net mirrors let. '
+        ])]
       ]));
       const bootstrapState = makeState(null, bootstrapEnv);
       const bootstrapResult = await evalAst(coreAst, bootstrapState);
@@ -113,10 +140,13 @@ export async function langRuntime() {
       // pass every descriptor (builtin operand or tagged type)
       // carries its executable impl directly — dispatch reads the
       // function from the descriptor without consulting the
-      // registry at call time.
+      // registry at call time. Every templateEnv entry at this
+      // point is a descriptor Map (snapshots unwrapped above);
+      // descriptors whose impl is already a function (the
+      // bootstrap def) skip via the isKeyword guard.
       for (const descriptor of templateEnv.values()) {
-        if (descriptor instanceof Map) {
-          const implKey = descriptor.get('qlang/impl');
+        const implKey = descriptor.get('qlang/impl');
+        if (isKeyword(implKey)) {
           descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
         }
       }

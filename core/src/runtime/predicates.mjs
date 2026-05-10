@@ -80,8 +80,10 @@ export const isSet     = nullaryOp('isSet',     (subject) => describeType(subjec
 export const isKeyword = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
 export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
 export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
-export const isQuote   = nullaryOp('isQuote',   (subject) => describeType(subject) === 'Quote');
-export const isDoc     = nullaryOp('isDoc',     (subject) => describeType(subject) === 'Doc');
+export const isQuote      = nullaryOp('isQuote',      (subject) => describeType(subject) === 'Quote');
+export const isDoc        = nullaryOp('isDoc',        (subject) => describeType(subject) === 'Doc');
+export const isJsonObject = nullaryOp('isJsonObject', (subject) => describeType(subject) === 'JsonObject');
+export const isJsonArray  = nullaryOp('isJsonArray',  (subject) => describeType(subject) === 'JsonArray');
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
 PRIMITIVE_REGISTRY.bind('qlang/prim/eq',  eq);
@@ -100,5 +102,7 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/isSet',     isSet);
 PRIMITIVE_REGISTRY.bind('qlang/prim/isKeyword', isKeyword);
 PRIMITIVE_REGISTRY.bind('qlang/prim/isBoolean', isBoolean);
 PRIMITIVE_REGISTRY.bind('qlang/prim/isNull',    isNull);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isQuote',   isQuote);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isDoc',     isDoc);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isQuote',      isQuote);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isDoc',        isDoc);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isJsonObject', isJsonObject);
+PRIMITIVE_REGISTRY.bind('qlang/prim/isJsonArray',  isJsonArray);

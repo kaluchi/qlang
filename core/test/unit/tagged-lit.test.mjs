@@ -58,7 +58,7 @@ describe('::conduit constructor builds a Conduit-value', () => {
 describe('def(::tag, descriptor) registers a type-namespace binding', () => {
   it('makes ::myType invokable through the ::conduit constructor handle', async () => {
     const result = await evalQuery(
-      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/prim/conduit}) | def(:f, ::myType[[] `add(1)`]) | 4 | f'
+      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | def(:f, ::myType[[] `add(1)`]) | 4 | f'
     );
     expect(result).toBe(5);
   });

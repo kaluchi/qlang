@@ -39,7 +39,7 @@
      Predicates          — eq, gt, lt, gte, lte, and, or
      Type classifiers    — isString, isNumber, isVec, isMap, isSet,
                            isKeyword, isBoolean, isNull, isQuote,
-                           isDoc
+                           isDoc, isJsonObject, isJsonArray
      Formatting          — json, table
      Reflective          — env, use, reify, manifest, runExamples,
                            as, let
@@ -1356,7 +1356,7 @@ def(:keyword, {:qlang/kind :builtin
     through a tie-the-knot envRef so recursive references resolve
     against the lexical scope. ~~|
 def(::conduit, {:qlang/kind :type
-                :qlang/impl :qlang/prim/conduit
+                :qlang/impl :qlang/type/conduit
                 :spec {:payload :vec}
                 :examples [
                   {:doc "non-recursive 0-arg" :snippet "def(:double, ::conduit[[] `mul(2)`]) | 5 | double" :expected "10"}]
@@ -1368,31 +1368,57 @@ def(::conduit, {:qlang/kind :type
                   :ConduitParamNotKeyword
                   :ConduitBodyNotQuote]})
 
-|~ ──────────────── Self-reference ──────────────── ~|
+|~~ ::qlang<json-shape> — recursively convert a JSON-shape
+    payload (plain object → qlang Map with keyword keys, plain
+    array → qlang Vec) down through every nested level. Scalars,
+    keywords, sets, and errors pass through unchanged — only
+    the container shape is touched. ~~|
+def(::qlang, {:qlang/kind :type
+              :qlang/impl :qlang/type/qlang
+              :spec {:payload :any}
+              :examples [
+                {:doc "JSON Object → qlang Map" :snippet "::qlang{\"k\" \"v\"} | isMap" :expected "true"}]
+              :throws []})
 
-|~~ Pipeline-transparent declarative binding under three arities
-    keyed by the body shape. def(:name) materializes the attached
-    doc-prefix as a Doc-value and binds it. def(:name, body) routes
-    a pure literal to a snapshot (eval at def-time) and an impure
-    body to a zero-param conduit (deferred per-lookup). def(:name,
-    [:params], body) builds a parametric conduit always.
+|~~ ::json<qlang-shape> — recursively convert a qlang-shape
+    payload (qlang Map → JSON Object, qlang Vec → JSON Array;
+    both stamped with the appropriate JSON_*_TAG Symbol so
+    isJsonObject / isJsonArray identify them) down through
+    every nested level. Scalars, keywords, sets, and errors
+    pass through unchanged. ~~|
+def(::json, {:qlang/kind :type
+             :qlang/impl :qlang/type/json
+             :spec {:payload :any}
+             :examples [
+               {:doc "qlang Map → JSON Object" :snippet "::json{:k \"v\"} | isJsonObject" :expected "true"}]
+             :throws []})
 
-    Subject pipeValue passes through unchanged so def-steps chain
-    naturally on the success-track. Effect-laundering safety net
-    mirrors let. ~~|
-def(:def, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/def
-      :category :reflective
-      :subject :any
-      :returns :any
-      :modifiers [:keyword, :pipeline]
-      :examples [
-        {:doc "pure literal -> snapshot"  :snippet "def(:pi, 3.14) | pi"                                                       :expected "3.14"}
-        {:doc "impure body -> conduit"    :snippet "def(:double, mul(2)) | 10 | double"                                        :expected "20"}
-        {:doc "parametric conduit"        :snippet "def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")" :expected "\"[world]\""}]
-      :throws [
-        :DefNameNotKeyword
-        :DefParamsNotVecOfKeywords
-        :DefArityInvalid
-        :DefMissingDocOrBody
-        :EffectLaunderingAtLetParse]})
+|~~ Returns true iff the subject is a JSON Object — a plain JS
+    object stamped with the JSON_OBJECT_TAG Symbol. JSON Objects
+    are produced by parseJson, the host JSON-bridge, and the
+    ::json constructor; they are runtime-distinct from qlang Map
+    so isMap returns false on them. ~~|
+def(:isJsonObject, {:qlang/kind :builtin
+                    :qlang/impl :qlang/prim/isJsonObject
+                    :category :type-classifier
+                    :subject :any
+                    :returns :boolean
+                    :modifiers []
+                    :examples [
+                      {:doc "JSON Object" :snippet "::json{:k 1} | isJsonObject" :expected "true"}
+                      {:doc "qlang Map"   :snippet "{:k 1} | isJsonObject"       :expected "false"}]
+                    :throws []})
+
+|~~ Returns true iff the subject is a JSON Array — a frozen JS
+    Array stamped with the JSON_ARRAY_TAG Symbol. Distinct from
+    qlang Vec at the runtime level. ~~|
+def(:isJsonArray, {:qlang/kind :builtin
+                   :qlang/impl :qlang/prim/isJsonArray
+                   :category :type-classifier
+                   :subject :any
+                   :returns :boolean
+                   :modifiers []
+                   :examples [
+                     {:doc "JSON Array" :snippet "::json[1 2 3] | isJsonArray" :expected "true"}
+                     {:doc "qlang Vec"  :snippet "[1 2 3] | isJsonArray"       :expected "false"}]
+                   :throws []})

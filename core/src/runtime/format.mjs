@@ -59,15 +59,17 @@ const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'M
 // the `String(v)` branch because raw function values never enter
 // pipeValue under Variant-B dispatch.
 const TO_PLAIN_HANDLERS = {
-  Null:     () => null,
-  Number:   v => v,
-  String:   v => v,
-  Boolean:  v => v,
-  Keyword:  k => ':' + k.name,
-  Vec:      v => v.map(toPlain),
-  Map:      qMapToPlainObject,
-  Set:      s => [...s].map(toPlain),
-  Error:    e => ({ $error: toPlain(e.descriptor) })
+  Null:       () => null,
+  Number:     v => v,
+  String:     v => v,
+  Boolean:    v => v,
+  Keyword:    k => ':' + k.name,
+  Vec:        v => v.map(toPlain),
+  Map:        qMapToPlainObject,
+  Set:        s => [...s].map(toPlain),
+  Error:      e => ({ $error: toPlain(e.descriptor) }),
+  JsonObject: o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, toPlain(v)])),
+  JsonArray:  a => a.map(toPlain)
 };
 
 export function toPlain(v) {
@@ -110,21 +112,32 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 // Maps and errors with more than 2 entries are pretty-printed
 // with one entry per line for readability.
 const PRINT_HANDLERS = {
-  Null:     () => 'null',
-  Boolean:  v => String(v),
-  Number:   v => String(v),
-  String:   escapeQlangStringLiteral,
-  Keyword:  k => k.literal,
-  Error:    (e, indent) => printMapLike('!{', e.descriptor, indent),
-  Vec:      (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
-  Map:      (m, indent) => printMapLike('{', m, indent),
-  Set:      (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
-  Quote:    q => '`' + q.source + '`',
-  Doc:      d => '|~~' + d.content + '~~|',
-  Conduit:  printConduit,
-  Snapshot: printSnapshot,
-  Function: printFunction
+  Null:       () => 'null',
+  Boolean:    v => String(v),
+  Number:     v => String(v),
+  String:     escapeQlangStringLiteral,
+  Keyword:    k => k.literal,
+  Error:      (e, indent) => printMapLike('!{', e.descriptor, indent),
+  Vec:        (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
+  Map:        (m, indent) => printMapLike('{', m, indent),
+  Set:        (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
+  Quote:      q => '`' + q.source + '`',
+  Doc:        d => '|~~' + d.content + '~~|',
+  JsonObject: (o, indent) => printJsonObject(o, indent),
+  JsonArray:  (a, indent) => `[${a.map(el => printValue(el, indent)).join(', ')}]`,
+  Conduit:    printConduit,
+  Snapshot:   printSnapshot,
+  Function:   printFunction
 };
+
+function printJsonObject(obj, indent) {
+  const entries = Object.entries(obj);
+  if (entries.length === 0) return '{}';
+  const inner = entries
+    .map(([k, v]) => `${JSON.stringify(k)}: ${printValue(v, indent)}`)
+    .join(', ');
+  return `{${inner}}`;
+}
 
 export function printValue(v, indent = 0) {
   return dispatchQlangValue(v, PRINT_HANDLERS, String, indent);
@@ -197,37 +210,41 @@ function printMapLike(open, m, indent) {
 // Nested scalars inside a composite quote strings the same way
 // printValue does; only the top-level String in a cell is bare.
 const CELL_HANDLERS = {
-  Null:     () => '',
-  Boolean:  v => String(v),
-  Number:   v => String(v),
-  String:   v => v,
-  Keyword:  k => k.literal,
-  Vec:      v => renderInline(v),
-  Map:      m => renderInline(m),
-  Set:      s => renderInline(s),
-  Error:    e => renderInline(e),
-  Quote:    q => '`' + q.source + '`',
-  Doc:      d => '|~~' + d.content + '~~|',
-  Conduit:  c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
-  Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
-  Function: fn => `:qlang/prim/${fn.name}`
+  Null:       () => '',
+  Boolean:    v => String(v),
+  Number:     v => String(v),
+  String:     v => v,
+  Keyword:    k => k.literal,
+  Vec:        v => renderInline(v),
+  Map:        m => renderInline(m),
+  Set:        s => renderInline(s),
+  Error:      e => renderInline(e),
+  Quote:      q => '`' + q.source + '`',
+  Doc:        d => '|~~' + d.content + '~~|',
+  JsonObject: o => renderInline(o),
+  JsonArray:  a => renderInline(a),
+  Conduit:    c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  Function:   fn => `:qlang/prim/${fn.name}`
 };
 
 const INLINE_HANDLERS = {
-  Null:     () => 'null',
-  Boolean:  v => String(v),
-  Number:   v => String(v),
-  String:   escapeQlangStringLiteral,
-  Keyword:  k => k.literal,
-  Vec:      v => `[${v.map(renderInline).join(' ')}]`,
-  Map:      m => `{${mapEntriesInline(m)}}`,
-  Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
-  Quote:    q => '`' + q.source + '`',
-  Doc:      d => '|~~' + d.content + '~~|',
-  Conduit:  c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
-  Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
-  Function: fn => `:qlang/prim/${fn.name}`,
-  Error:    e => `!{${mapEntriesInline(e.descriptor)}}`
+  Null:       () => 'null',
+  Boolean:    v => String(v),
+  Number:     v => String(v),
+  String:     escapeQlangStringLiteral,
+  Keyword:    k => k.literal,
+  Vec:        v => `[${v.map(renderInline).join(' ')}]`,
+  Map:        m => `{${mapEntriesInline(m)}}`,
+  Set:        s => `#{${[...s].map(renderInline).join(' ')}}`,
+  Quote:      q => '`' + q.source + '`',
+  Doc:        d => '|~~' + d.content + '~~|',
+  JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
+  JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,
+  Conduit:    c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  Function:   fn => `:qlang/prim/${fn.name}`,
+  Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
 };
 
 function renderInline(v) {

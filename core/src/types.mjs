@@ -12,9 +12,52 @@ export function isString(v) { return typeof v === 'string'; }
 export function isKeyword(v) {
   return v !== null && typeof v === 'object' && v.type === 'keyword';
 }
-export function isVec(v) { return Array.isArray(v); }
-export function isQMap(v) { return v instanceof Map; }
+export function isVec(v) {
+  return Array.isArray(v) && v[JSON_ARRAY_TAG] !== true;
+}
+export function isQMap(v) {
+  return v instanceof Map;
+}
 export function isQSet(v) { return v instanceof Set; }
+
+// JSON Object / JSON Array — runtime-type-distinct from qlang Map /
+// Vec. Built via makeJsonObject / makeJsonArray, stamped with a
+// non-enumerable Symbol so JSON.stringify and Object.keys see them
+// as ordinary plain objects / arrays (the JSON-bridge invariant —
+// they are JSON). qlang-side identification through the predicates
+// below.
+
+export const JSON_OBJECT_TAG = Symbol('qlang/json-object');
+export const JSON_ARRAY_TAG  = Symbol('qlang/json-array');
+
+export function isJsonObject(v) {
+  return v !== null
+    && typeof v === 'object'
+    && !Array.isArray(v)
+    && !(v instanceof Map)
+    && !(v instanceof Set)
+    && v[JSON_OBJECT_TAG] === true;
+}
+
+export function isJsonArray(v) {
+  return Array.isArray(v) && v[JSON_ARRAY_TAG] === true;
+}
+
+export function makeJsonObject(plainObj) {
+  const obj = { ...plainObj };
+  Object.defineProperty(obj, JSON_OBJECT_TAG, {
+    value: true, enumerable: false, configurable: false, writable: false
+  });
+  return Object.freeze(obj);
+}
+
+export function makeJsonArray(items) {
+  const arr = [...items];
+  Object.defineProperty(arr, JSON_ARRAY_TAG, {
+    value: true, enumerable: false, configurable: false, writable: false
+  });
+  return Object.freeze(arr);
+}
 
 // ── language value-class predicates ────────────────────────────
 
@@ -205,6 +248,7 @@ export function describeType(v) {
   if (isNumber(v)) return 'Number';
   if (isString(v)) return 'String';
   if (isKeyword(v)) return 'Keyword';
+  if (isJsonArray(v)) return 'JsonArray';
   if (isVec(v)) return 'Vec';
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
@@ -214,6 +258,7 @@ export function describeType(v) {
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
   if (isFunctionValue(v)) return 'Function';
+  if (isJsonObject(v)) return 'JsonObject';
   return 'Unknown';
 }
 
@@ -223,6 +268,7 @@ export function typeKeyword(v) {
   if (isNumber(v)) return keyword('number');
   if (isString(v)) return keyword('string');
   if (isKeyword(v)) return keyword('keyword');
+  if (isJsonArray(v)) return keyword('json-array');
   if (isVec(v)) return keyword('vec');
   if (isConduit(v)) return keyword('conduit');
   if (isSnapshot(v)) return keyword('snapshot');
@@ -232,5 +278,6 @@ export function typeKeyword(v) {
   if (isQSet(v)) return keyword('set');
   if (isErrorValue(v)) return keyword('error');
   if (isFunctionValue(v)) return keyword('function');
+  if (isJsonObject(v)) return keyword('json-object');
   return keyword('unknown');
 }

@@ -321,7 +321,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
-    expect(categories.get('type-classifier')).toBe(10);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc
+    expect(categories.get('type-classifier')).toBe(12);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
     expect(categories.get('type-conversion')).toBe(1);  // keyword
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as def parse eval

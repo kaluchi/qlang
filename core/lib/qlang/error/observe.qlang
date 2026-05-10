@@ -3,7 +3,7 @@
     side-effect; its result is discarded and the
     original value is restored via the `:original`
     snapshot. Call via `|` on success-track. ~~|
-let(:tap, [:observer],
+def(:tap, [:observer],
   as(:original) | observer | original)
 
 |~~ Observe an error's materialized descriptor without
@@ -13,7 +13,7 @@ let(:tap, [:observer],
     `:original` snapshot before being re-lifted into a
     fresh error. Trail continues via the makeErrorValue
     invariant. Call via `!|` on fail-track. ~~|
-let(:tapError, [:observer],
+def(:tapError, [:observer],
   as(:original) | observer | original | error)
 
 |~~ Cleanup/finalization on a success-track pipeValue.
@@ -21,7 +21,7 @@ let(:tapError, [:observer],
     `action` must happen regardless of why the caller
     is tapping in (resource release, metric emission,
     log write). Call via `|` on success-track. ~~|
-let(:finally, [:action],
+def(:finally, [:action],
   as(:original) | action | original)
 
 |~~ Cleanup/finalization on an error's materialized
@@ -29,5 +29,5 @@ let(:finally, [:action],
     intent — the `action` must run before the error
     continues down the fail-track. Call via `!|` on
     fail-track. ~~|
-let(:finallyError, [:action],
+def(:finallyError, [:action],
   as(:original) | action | original | error)

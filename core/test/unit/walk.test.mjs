@@ -44,8 +44,8 @@ describe('astChildrenOf', () => {
     expect(keyAndValue[0].name).toBe('name');
   });
 
-  it('yields args for a let(:name, body) OperandCall', () => {
-    const ast = parse('let(:double, mul(2))');
+  it('yields args for a def(:name, body) OperandCall', () => {
+    const ast = parse('def(:double, mul(2))');
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('Keyword');
@@ -179,10 +179,10 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.every(n => n.type === 'OperandCall' && n.name === 'count')).toBe(true);
   });
 
-  it('finds let(:name, ...) declaration alongside read sites', () => {
-    const ast = parse('let(:double, mul(2)) | double');
+  it('finds def(:name, ...) declaration alongside read sites', () => {
+    const ast = parse('def(:double, mul(2)) | double');
     const refs = findIdentifierOccurrences(ast, 'double');
-    // Both the let(:double, ...) declaration and the bare `double` read
+    // Both the def(:double, ...) declaration and the bare `double` read
     // should be found. The let OperandCall matches because its first
     // Keyword arg names 'double'.
     expect(refs.length).toBeGreaterThanOrEqual(2);
@@ -204,7 +204,7 @@ describe('findIdentifierOccurrences', () => {
 
 describe('bindingNamesVisibleAt', () => {
   it('returns let names declared lexically before the cursor', () => {
-    const source = 'let(:x, 1) | let(:y, 2) | z';
+    const source = 'def(:x, 1) | def(:y, 2) | z';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('x')).toBe(true);
@@ -212,7 +212,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('does not include bindings that are still ahead of the cursor', () => {
-    const source = 'let(:early, 1) | here | let(:late, 2)';
+    const source = 'def(:early, 1) | here | def(:late, 2)';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
@@ -227,8 +227,24 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('answer')).toBe(true);
   });
 
+  it('skips zero-arg def() — no name to bind', () => {
+    const source = 'def() | here';
+    const ast = parse(source);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere);
+    expect(visible.size).toBe(0);
+  });
+
+  it('skips def whose first arg is not a Keyword', () => {
+    const source = 'def(42, mul(2)) | here';
+    const ast = parse(source);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere);
+    expect(visible.size).toBe(0);
+  });
+
   it('hides bindings whose enclosing ParenGroup has already closed', () => {
-    const source = '(let(:local, 1) | local) | here';
+    const source = '(def(:local, 1) | local) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
@@ -236,7 +252,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('still sees a binding while inside its enclosing ParenGroup', () => {
-    const source = '(let(:local, 1) | local | other)';
+    const source = '(def(:local, 1) | local | other)';
     const ast = parse(source);
     const cursorAtOther = source.indexOf('other');
     const visible = bindingNamesVisibleAt(ast, cursorAtOther);
@@ -244,7 +260,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Vec element from a sibling element', () => {
-    const source = '[let(:x, 1), x]';
+    const source = '[def(:x, 1), x]';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -252,7 +268,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Map entry value from a sibling entry value', () => {
-    const source = '{:a let(:x, 1) :b x}';
+    const source = '{:a def(:x, 1) :b x}';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -260,7 +276,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('top-level binding remains visible inside any number of nested forks', () => {
-    const source = 'let(:outer, 1) | (([{:k outer}]))';
+    const source = 'def(:outer, 1) | (([{:k outer}]))';
     const ast = parse(source);
     const cursorAtInnerOuter = source.lastIndexOf('outer');
     const visible = bindingNamesVisibleAt(ast, cursorAtInnerOuter);

@@ -39,7 +39,7 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('count');
     expect(labels).toContain('filter');
     expect(labels).toContain('add');
-    expect(labels).toContain('let');
+    expect(labels).toContain('def');
     expect(labels).toContain('as');
     expect(labels).toContain('reify');
   });
@@ -66,7 +66,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('includes user-defined bindings visible at offset', async () => {
-    const src = 'let(:myVar, 42) | myVar';
+    const src = 'def(:myVar, 42) | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
     const items = await completionsAtOffset(ast, offsetAtEnd);
@@ -75,7 +75,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('user binding has variable kind', async () => {
-    const src = 'let(:myVar, 42) | myVar';
+    const src = 'def(:myVar, 42) | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
@@ -161,7 +161,7 @@ const testCatalogCtx = {
 
 describe('definitionAtOffset', () => {
   it('jumps from conduit use site to let declaration', () => {
-    const src = 'let(:double, mul(2)) | 10 | double';
+    const src = 'def(:double, mul(2)) | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
@@ -171,17 +171,17 @@ describe('definitionAtOffset', () => {
   });
 
   it('jumps to last visible declaration when shadowed', () => {
-    const src = 'let(:x, 1) | let(:x, 2) | x';
+    const src = 'def(:x, 1) | def(:x, 2) | x';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     const def = definitionAtOffset(ast, useOffset);
     expect(def).not.toBeNull();
-    // Should point to second let(:x, 2), not the first
-    expect(def.startOffset).toBe(src.indexOf('let(:x, 2)'));
+    // Should point to second def(:x, 2), not the first
+    expect(def.startOffset).toBe(src.indexOf('def(:x, 2)'));
   });
 
   it('declaration inside fork is invisible outside', () => {
-    const src = '(let(:x, 1)) | x';
+    const src = '(def(:x, 1)) | x';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     // x is declared inside a ParenGroup fork — invisible at the
@@ -206,7 +206,7 @@ describe('definitionAtOffset', () => {
   });
 
   it('in-document let shadows builtin — jumps to let, not catalog', () => {
-    const src = 'let(:count, 42) | count';
+    const src = 'def(:count, 42) | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
@@ -227,17 +227,17 @@ describe('definitionAtOffset', () => {
 
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a user-defined conduit', () => {
-    const src = 'let(:double, mul(2)) | [1 2] * double';
+    const src = 'def(:double, mul(2)) | [1 2] * double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
-    // declaration (let(:double, ...)) + use site (... * double)
+    // declaration (def(:double, ...)) + use site (... * double)
     expect(refs.length).toBe(2);
   });
 
   it('finds references from the declaration site', () => {
-    const src = 'let(:x, 42) | x';
+    const src = 'def(:x, 42) | x';
     const { ast } = parseDocument(src, 'test.qlang');
-    // Click on :x inside let(:x, ...)
+    // Click on :x inside def(:x, ...)
     const kwOffset = src.indexOf(':x') + 1; // inside the keyword
     const refs = referencesAtOffset(ast, kwOffset);
     expect(refs.length).toBe(2);
@@ -257,7 +257,7 @@ describe('referencesAtOffset', () => {
 
 describe('documentSymbols', () => {
   it('collects let bindings as conduit symbols', () => {
-    const src = 'let(:double, mul(2)) | let(:triple, mul(3))';
+    const src = 'def(:double, mul(2)) | def(:triple, mul(3))';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(2);

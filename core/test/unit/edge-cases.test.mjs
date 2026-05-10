@@ -720,12 +720,12 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 
   it('conduit descriptor surfaces :effectful from the binding name', async () => {
-    expect(await evalQuery('let(:foo, count) | reify(:foo) | /effectful')).toBe(false);
-    expect(await evalQuery('let(:@foo, count) | reify(:@foo) | /effectful')).toBe(true);
+    expect(await evalQuery('def(:foo, count) | reify(:foo) | /effectful')).toBe(false);
+    expect(await evalQuery('def(:@foo, count) | reify(:@foo) | /effectful')).toBe(true);
   });
 
   it('conduit descriptor surfaces :location of the body AST', async () => {
-    const locationResult = await evalQuery('let(:foo, count) | reify(:foo) | /location');
+    const locationResult = await evalQuery('def(:foo, count) | reify(:foo) | /location');
     expect(locationResult).not.toBeNull();
   });
 
@@ -798,36 +798,36 @@ describe('runtime/intro.mjs reify and manifest', () => {
     // The :source field exposes the parser-captured `.text` substring
     // of the conduit body verbatim, including the inner combinators.
     const sourceResult = await evalQuery(
-      'let(:chained, mul(2) | add(1)) | reify(:chained) | /source'
+      'def(:chained, mul(2) | add(1)) | reify(:chained) | /source'
     );
     expect(sourceResult).toContain('mul(2)');
     expect(sourceResult).toContain('add(1)');
     expect(sourceResult).toContain('|');
   });
 
-  it('reify of a conduit whose body is a VecLit renders the literal', async () => {
-    const sourceResult = await evalQuery('let(:xs, [1 2 3]) | reify(:xs) | /source');
+  it('reify of a parametric conduit whose body is a VecLit renders the literal', async () => {
+    const sourceResult = await evalQuery('def(:xs, [], [1 2 3]) | reify(:xs) | /source');
     expect(sourceResult).toBe('[1 2 3]');
   });
 
-  it('reify of a conduit whose body is a SetLit renders the literal', async () => {
-    const sourceResult = await evalQuery('let(:s, #{1 2 3}) | reify(:s) | /source');
+  it('reify of a parametric conduit whose body is a SetLit renders the literal', async () => {
+    const sourceResult = await evalQuery('def(:s, [], #{1 2 3}) | reify(:s) | /source');
     expect(sourceResult).toContain('#{');
   });
 
-  it('reify of a conduit whose body is a MapLit renders the literal', async () => {
-    const sourceResult = await evalQuery('let(:m, {:a 1 :b 2}) | reify(:m) | /source');
+  it('reify of a parametric conduit whose body is a MapLit renders the literal', async () => {
+    const sourceResult = await evalQuery('def(:m, [], {:a 1 :b 2}) | reify(:m) | /source');
     expect(sourceResult).toContain(':a 1');
     expect(sourceResult).toContain(':b 2');
   });
 
   it('reify of a conduit whose body is a Projection renders the keys', async () => {
-    const sourceResult = await evalQuery('let(:pluck, /name) | reify(:pluck) | /source');
+    const sourceResult = await evalQuery('def(:pluck, /name) | reify(:pluck) | /source');
     expect(sourceResult).toBe('/name');
   });
 
   it('reify of a conduit whose body is a nested Projection renders all keys', async () => {
-    const sourceResult = await evalQuery('let(:deep, /a/b/c) | reify(:deep) | /source');
+    const sourceResult = await evalQuery('def(:deep, /a/b/c) | reify(:deep) | /source');
     expect(sourceResult).toBe('/a/b/c');
   });
 });
@@ -1067,14 +1067,14 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
 describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const docsResult = await evalQuery(
-      '|~~| First.\n|~~| Second.\n|~~| Third.\nlet(:foo, 42) | reify(:foo) | /docs'
+      '|~~| First.\n|~~| Second.\n|~~| Third.\ndef(:foo, 42) | reify(:foo) | /docs'
     );
     expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
   });
 
   it('block doc preserves internal newlines as one entry', async () => {
     const docsResult = await evalQuery(
-      '|~~ line one\nline two\nline three ~~|\nlet(:foo, 42)\n| reify(:foo) | /docs'
+      '|~~ line one\nline two\nline three ~~|\ndef(:foo, 42)\n| reify(:foo) | /docs'
     );
     expect(docsResult.length).toBe(1);
     expect(docsResult[0]).toContain('line one');
@@ -1084,7 +1084,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('mixes line and block docs preserving order', async () => {
     const docsResult = await evalQuery(
-      '|~~| line one\n|~~ block two ~~|\n|~~| line three\nlet(:foo, 42) | reify(:foo) | /docs'
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\ndef(:foo, 42) | reify(:foo) | /docs'
     );
     expect(docsResult.length).toBe(3);
     expect(docsResult[0]).toBe(' line one');
@@ -1094,7 +1094,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 
   it('shadowing redeclare overrides docs Vec', async () => {
     const docsResult = await evalQuery(
-      '|~~| Old.\nlet(:foo, 1)\n|~~| Brand new.\n|~~| With extra remark.\nlet(:foo, 2)\n| reify(:foo) | /docs'
+      '|~~| Old.\ndef(:foo, 1)\n|~~| Brand new.\n|~~| With extra remark.\ndef(:foo, 2)\n| reify(:foo) | /docs'
     );
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });

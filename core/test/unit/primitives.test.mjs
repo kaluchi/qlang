@@ -292,7 +292,7 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
 
   it('holds the reflective primitives', async () => {
     await import('../../src/runtime/index.mjs');
-    for (const name of ['env', 'use', 'reify', 'manifest', 'runExamples', 'let', 'as']) {
+    for (const name of ['env', 'use', 'reify', 'manifest', 'runExamples', 'def', 'as']) {
       expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });

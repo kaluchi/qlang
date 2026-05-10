@@ -262,9 +262,9 @@ describe('astNodeToMap — discriminator and shape', () => {
     // A single-step pipeline collapses to the bare head per
     // grammar.peggy's Pipeline production, so the doc-attached
     // OperandCall sits at the root without a Pipeline wrapper.
-    const m = astNodeToMap(parse('|~~| first remark\nlet(:double, mul(2))'));
+    const m = astNodeToMap(parse('|~~| first remark\ndef(:double, mul(2))'));
     expect(m.get(KW_QLANG_KIND).name).toBe('OperandCall');
-    expect(m.get(KW_NAME)).toBe('let');
+    expect(m.get(KW_NAME)).toBe('def');
     const docs = m.get(KW_DOCS);
     expect(isVec(docs)).toBe(true);
     expect(docs).toContain(' first remark');
@@ -438,9 +438,9 @@ describe('round-trip — operand calls and pipelines', () => {
 });
 
 describe('round-trip — let / as bindings', () => {
-  it('zero-arity conduit', () => assertRoundTrip('let(:double, mul(2))'));
+  it('zero-arity conduit', () => assertRoundTrip('def(:double, mul(2))'));
   it('parametric conduit', () =>
-    assertRoundTrip('let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))'));
+    assertRoundTrip('def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))'));
   it('as snapshot', () => assertRoundTrip('[1 2 3] | as(:nums) | nums | count'));
   it('multi-stage as', () =>
     assertRoundTrip('[1 2 3] | as(:a) | filter(gt(1)) | as(:b) | [a, b]'));
@@ -461,20 +461,20 @@ describe('round-trip — comments', () => {
   it('block plain comment mid-pipeline', () =>
     assertRoundTrip('[1 2 3] |~ rationale ~| filter(gt(1))'));
   it('line doc comment attached to let', () =>
-    assertRoundTrip('|~~| first remark\nlet(:double, mul(2))'));
+    assertRoundTrip('|~~| first remark\ndef(:double, mul(2))'));
   it('block doc comment attached to let', () =>
-    assertRoundTrip('|~~ multi-line\n    block remark ~~|\nlet(:helper, add(1))'));
+    assertRoundTrip('|~~ multi-line\n    block remark ~~|\ndef(:helper, add(1))'));
   it('multiple doc comments accumulating', () =>
-    assertRoundTrip('|~~| first\n|~~| second\nlet(:x, 1)'));
+    assertRoundTrip('|~~| first\n|~~| second\ndef(:x, 1)'));
   it('plain comment interleaved between docs', () =>
-    assertRoundTrip('|~~| first\n|~ separator ~|\n|~~| second\nlet(:x, 1)'));
+    assertRoundTrip('|~~| first\n|~ separator ~|\n|~~| second\ndef(:x, 1)'));
 });
 
 describe('round-trip — effect markers', () => {
   it('effectful bare identifier', () => assertRoundTrip('@callers'));
   it('effectful projection segment', () => assertRoundTrip('/some/@effectful'));
   it('effectful conduit binding', () =>
-    assertRoundTrip('let(:@wrap, @callers | count)'));
+    assertRoundTrip('def(:@wrap, @callers | count)'));
 });
 
 describe('round-trip — realistic queries', () => {
@@ -485,7 +485,7 @@ describe('round-trip — realistic queries', () => {
     assertRoundTrip('[{:dept :eng} {:dept :sales}] | groupBy(/dept) | keys'));
 
   it('recursive tree walker via let', () =>
-    assertRoundTrip('let(:walker, {:label /label :children /children * walker}) | walker'));
+    assertRoundTrip('def(:walker, {:label /label :children /children * walker}) | walker'));
 
   it('sortWith compound comparator', () =>
     assertRoundTrip('nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)'));

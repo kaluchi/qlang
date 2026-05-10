@@ -21,13 +21,13 @@
 {"name":"all-arith-have-add-sub-mul-div","query":"env | manifest | filter(/category | eq(:arith)) * /name | sort","expect":"[\"add\" \"div\" \"mul\" \"sub\"]"}
 {"name":"all-control-six-operands-sorted","query":"env | manifest | filter(/category | eq(:control)) * /name | sort","expect":"[\"coalesce\" \"cond\" \"firstTruthy\" \"if\" \"unless\" \"when\"]"}
 {"name":"all-comparator-sorted","query":"env | manifest | filter(/category | eq(:comparator)) * /name | sort","expect":"[\"asc\" \"desc\" \"nullsFirst\" \"nullsLast\"]"}
-{"name":"all-reflective-sorted","query":"env | manifest | filter(/category | eq(:reflective)) * /name | sort","expect":"[\"as\" \"env\" \"eval\" \"let\" \"manifest\" \"parse\" \"reify\" \"runExamples\" \"use\"]"}
+{"name":"all-reflective-sorted","query":"env | manifest | filter(/category | eq(:reflective)) * /name | sort","expect":"[\"as\" \"def\" \"env\" \"eval\" \"manifest\" \"parse\" \"reify\" \"runExamples\" \"use\"]"}
 {"name":"first-name-alphabetical","query":"env | manifest | first | /name","expect":"\"add\""}
 {"name":"names-are-sorted-asc","query":"env | manifest * /name | as(:got) | got | sort | eq(got)","expect":"true"}
-{"name":"manifest-after-let","query":"let(:myBinding, 42) | env | manifest | filter(/kind | eq(:conduit)) | count","expect":"1"}
+{"name":"manifest-after-let","query":"def(:myBinding, 42) | env | manifest | filter(/kind | eq(:conduit)) | count","expect":"0"}
 {"name":"manifest-after-as","query":"42 | as(:captured) | env | manifest | filter(/kind | eq(:snapshot)) | count","expect":"1"}
 {"name":"manifest-after-use","query":"{:myConst 42} | use | env | manifest | filter(/kind | eq(:value)) | filter(/name | eq(\"myConst\")) | count","expect":"1"}
-{"name":"conduit-shows-up-with-name","query":"let(:foo, mul(2)) | env | manifest | filter(/kind | eq(:conduit)) | first | /name","expect":"\"foo\""}
+{"name":"conduit-shows-up-with-name","query":"def(:foo, mul(2)) | env | manifest | filter(/kind | eq(:conduit)) | first | /name","expect":"\"foo\""}
 {"name":"snapshot-shows-up-with-value","query":"42 | as(:bar) | env | manifest | filter(/kind | eq(:snapshot)) | first | /value","expect":"42"}
 {"name":"every-builtin-has-docs-vec","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | empty) | count","expect":"0"}
 {"name":"every-builtin-has-non-empty-first-doc","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | first | eq(\"\") | not) | count | gt(40)","expect":"true"}

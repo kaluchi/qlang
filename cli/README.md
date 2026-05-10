@@ -140,7 +140,7 @@ qlang> [1 2 3] | filter(gt(1)) | count
 2
 qlang> "hello" | append(" world")
 "hello world"
-qlang> let(:double, mul(2))
+qlang> def(:double, mul(2))
 …  (let returns its incoming pipeValue — the env Map by default)
 qlang> 21 | double
 42

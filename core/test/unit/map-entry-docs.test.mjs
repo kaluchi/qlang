@@ -8,7 +8,7 @@
 // experience for the Variant-B manifest migration: doc comments
 // above a MapEntry attach to the entry's value Map as a :docs Vec,
 // so manifest authors keep writing prose exactly as they did when
-// the catalog was a sequence of `let(:name, {...})` calls, while
+// the catalog was a sequence of `def(:name, {...})` calls, while
 // the underlying storage becomes a single Map literal with docs
 // folded in at eval time.
 

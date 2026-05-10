@@ -31,10 +31,10 @@
 |~| Ctrl+Click on a builtin → manifest.qlang.
 
 |~~| Doubles a number via partial mul. ~~|
-let(:double, mul(2))
+def(:double, mul(2))
 
 |~~| Triples a number via partial mul. ~~|
-let(:triple, mul(3))
+def(:triple, mul(3))
 
 |~| Ctrl+Click on double below → jumps to the let above
 [1 2 3] * double
@@ -50,10 +50,10 @@ let(:triple, mul(3))
 |~| When an identifier is rebound, go-to-definition jumps
 |~| to the LAST visible declaration, not the first.
 
-let(:x, 1)
+def(:x, 1)
 |~| x here resolves to 1
-let(:x, 99)
-|~| Ctrl+Click on x below → jumps to let(:x, 99)
+def(:x, 99)
+|~| Ctrl+Click on x below → jumps to def(:x, 99)
 x
 
 
@@ -69,7 +69,7 @@ x
 |~| ── 5. Find References ────────────────────────────────
 |~| Shift+F12 shows all occurrences: declaration + uses.
 
-let(:greet, prepend("hello "))
+def(:greet, prepend("hello "))
 | "world" | greet | as(:greeted1)
 | "qlang" | greet | as(:greeted2)
 |~| Shift+F12 on greet → 3 hits (1 decl + 2 uses)
@@ -79,7 +79,7 @@ let(:greet, prepend("hello "))
 |~| Ctrl+Shift+O → let bindings show as Function,
 |~| as bindings show as Variable.
 
-let(:votingAge, filter(/age | gte(18)))
+def(:votingAge, filter(/age | gte(18)))
 | 42 | as(:answer)
 |~| Outline lists: double, triple, x, greet, greeted1,
 |~| greeted2, votingAge, answer
@@ -102,7 +102,7 @@ let(:votingAge, filter(/age | gte(18)))
 |~| including let, as, error, isError) + user bindings
 |~| visible at the cursor position.
 
-let(:myHelper, mul(10))
+def(:myHelper, mul(10))
 |~| Ctrl+Space here → myHelper alongside every builtin
 
 
@@ -117,11 +117,11 @@ let(:myHelper, mul(10))
 |~| Doc comments attach to the next let/as binding.
 
 |~~| Computes the absolute value via conditional negation. ~~|
-let(:abs, if(lt(0), mul(-1)))
+def(:abs, if(lt(0), mul(-1)))
 
 |~~ Surround a string with a prefix and suffix.
     Parametric conduit with two captured parameters. ~~|
-let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
+def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
 
 |~| Ctrl+Click on @surround → jumps to the let above
 "world" | @surround("[", "]")

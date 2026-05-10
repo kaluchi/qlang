@@ -1,8 +1,8 @@
-{"name":"let-with-effectful-body-rejected","query":"let(:foo, @callers) !| /thrown","expect":":EffectLaunderingAtLetParse"}
-{"name":"let-with-nested-effectful-body-rejected","query":"let(:foo, filter(@callers | count)) !| /thrown","expect":":EffectLaunderingAtLetParse"}
-{"name":"let-with-projection-laundering-rejected","query":"let(:bad, env | /@callers) !| /thrown","expect":":EffectLaunderingAtLetParse"}
-{"name":"let-with-clean-body-and-at-name-accepted","query":"let(:@safe, count) | [1 2 3] | @safe","expect":"3"}
-{"name":"let-with-clean-body-and-clean-name-accepted","query":"let(:foo, count) | [1 2 3] | foo","expect":"3"}
-{"name":"transitive-laundering-via-alias-rejected","query":"let(:@a, count) | let(:b, @a) !| /thrown","expect":":EffectLaunderingAtLetParse"}
+{"name":"let-with-effectful-body-rejected","query":"def(:foo, @callers) !| /thrown","expect":":EffectLaunderingAtLetParse"}
+{"name":"let-with-nested-effectful-body-rejected","query":"def(:foo, filter(@callers | count)) !| /thrown","expect":":EffectLaunderingAtLetParse"}
+{"name":"let-with-projection-laundering-rejected","query":"def(:bad, env | /@callers) !| /thrown","expect":":EffectLaunderingAtLetParse"}
+{"name":"let-with-clean-body-and-at-name-accepted","query":"def(:@safe, count) | [1 2 3] | @safe","expect":"3"}
+{"name":"let-with-clean-body-and-clean-name-accepted","query":"def(:foo, count) | [1 2 3] | foo","expect":"3"}
+{"name":"transitive-laundering-via-alias-rejected","query":"def(:@a, count) | def(:b, @a) !| /thrown","expect":":EffectLaunderingAtLetParse"}
 {"name":"as-binding-on-effectful-source-not-rejected","query":"[1 2 3] | as(:result) | result | count","expect":"3"}
-{"name":"let-inside-paren-group-with-effectful-body-rejected","query":"1 | (let(:bad, @callers) | bad)","error":"effect-laundering","expect":"!{\n  :origin :qlang/eval\n  :kind :effect-laundering\n  :thrown :EffectLaunderingAtLetParse\n  :message \"let 'bad' has an effectful body (references '@callers') but its name is not @-prefixed; rename to '@bad' or remove the effectful reference\"\n  :letName \"bad\"\n  :effectfulName \"@callers\"\n  :fault {:step `let(:bad, @callers)` :input 1}\n  :trail null\n}"}
+{"name":"let-inside-paren-group-with-effectful-body-rejected","query":"1 | (def(:bad, @callers) | bad)","error":"effect-laundering","expect":"!{\n  :origin :qlang/eval\n  :kind :effect-laundering\n  :thrown :EffectLaunderingAtLetParse\n  :message \"let 'bad' has an effectful body (references '@callers') but its name is not @-prefixed; rename to '@bad' or remove the effectful reference\"\n  :letName \"bad\"\n  :effectfulName \"@callers\"\n  :fault {:step `def(:bad, @callers)` :input 1}\n  :trail null\n}"}

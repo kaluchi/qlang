@@ -76,15 +76,44 @@ export async function langRuntime() {
   if (_templateEnvPromise === null) {
     _templateEnvPromise = (async () => {
       const coreAst = parse(CORE_SOURCE, { uri: 'qlang/core' });
-      const bootstrapState = makeState(null, new Map());
+      // Bootstrap env carries the `def` operand from PRIMITIVE_REGISTRY
+      // so the def-step series in CORE_SOURCE binds each descriptor
+      // into env without needing any pre-loaded entries.
+      const bootstrapEnv = new Map();
+      bootstrapEnv.set('def', new Map([
+        ['qlang/kind', { type: 'keyword', name: 'builtin', literal: ':builtin' }],
+        ['qlang/impl', PRIMITIVE_REGISTRY.resolve('qlang/prim/def')]
+      ]));
+      const bootstrapState = makeState(null, bootstrapEnv);
       const bootstrapResult = await evalAst(coreAst, bootstrapState);
-      const templateEnv = bootstrapResult.pipeValue;
+      const templateEnv = bootstrapResult.env;
 
-      // Resolution pass: replace :qlang/impl keywords with the
-      // resolved function values from PRIMITIVE_REGISTRY. After this
-      // pass, every builtin descriptor carries its executable impl
+      // The bootstrap def operand snapshot-binds every pure-literal
+      // descriptor (Map literals are pure), so each entry in
+      // templateEnv lives behind a snapshot wrapper. Unwrap once
+      // here so identifier lookups dispatch through the descriptor
+      // directly without paying the snapshot-projection cost on
+      // every call. Attached doc-prefix strings carried on the
+      // snapshot wrapper land on the descriptor under :docs so
+      // manifest / reify / axis-operands see them in one place.
+      for (const [name, value] of templateEnv) {
+        if (value instanceof Map && value.get('qlang/kind') &&
+            value.get('qlang/kind').name === 'snapshot') {
+          const inner = value.get('qlang/value');
+          const snapshotDocs = value.get('docs');
+          if (inner instanceof Map && snapshotDocs && snapshotDocs.length > 0) {
+            inner.set('docs', snapshotDocs);
+          }
+          templateEnv.set(name, inner);
+        }
+      }
+
+      // Resolve :qlang/impl keywords to function values. After this
+      // pass every builtin descriptor carries its executable impl
       // directly — dispatch reads the function from the descriptor
-      // without consulting the registry at call time.
+      // without consulting the registry at call time. The bootstrap
+      // def descriptor is replaced by the canonical one carried in
+      // CORE_SOURCE itself; no special-case for it.
       for (const descriptor of templateEnv.values()) {
         const qlKind = descriptor instanceof Map && descriptor.get('qlang/kind');
         if (qlKind && qlKind.name === 'builtin') {

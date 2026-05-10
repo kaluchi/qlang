@@ -116,7 +116,7 @@ export function findIdentifierOccurrences(ast, name) {
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
     else if (node.type === 'OperandCall'
-             && (node.name === 'let' || node.name === 'as')
+             && (node.name === 'def' || node.name === 'as')
              && Array.isArray(node.args) && node.args.length > 0
              && node.args[0].type === 'Keyword' && node.args[0].name === name) {
       occurrences.push(node);
@@ -165,7 +165,7 @@ export function bindingNamesVisibleAt(ast, offset) {
   walkAst(ast, (node) => {
     // Recognize let(:name, ...) and as(:name) OperandCall patterns.
     if (node.type !== 'OperandCall') return;
-    if (node.name !== 'let' && node.name !== 'as') return;
+    if (node.name !== 'def' && node.name !== 'as') return;
     if (!Array.isArray(node.args) || node.args.length === 0) return;
     const firstArg = node.args[0];
     if (firstArg.type !== 'Keyword') return;

@@ -258,20 +258,19 @@ describe('parse — let and as as operand calls', () => {
     expect(ast.args[0].name).toBe('roster');
   });
 
-  it('parses let(:name, body) as an OperandCall', () => {
-    const ast = parse('let(:double, mul(2))');
+  it('parses def(:name, body) as an OperandCall', () => {
+    const ast = parse('def(:double, mul(2))');
     expect(ast.type).toBe('OperandCall');
-    expect(ast.name).toBe('let');
+    expect(ast.name).toBe('def');
     expect(ast.args).toHaveLength(2);
     expect(ast.args[0].type).toBe('Keyword');
     expect(ast.args[1].type).toBe('OperandCall');
   });
 
-  it('let and as are no longer reserved words', () => {
-    // They parse as ordinary identifiers / OperandCall names.
-    const letAst = parse('let');
-    expect(letAst.type).toBe('OperandCall');
-    expect(letAst.name).toBe('let');
+  it('def and as are not reserved — they parse as ordinary identifiers', () => {
+    const defAst = parse('def');
+    expect(defAst.type).toBe('OperandCall');
+    expect(defAst.name).toBe('def');
 
     const asAst = parse('as');
     expect(asAst.type).toBe('OperandCall');
@@ -307,11 +306,11 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].step.name).toBe('as');
   });
 
-  it('parses let(:name, body) inside a pipeline', () => {
-    const ast = parse('items | let(:total, count) | total');
+  it('parses def(:name, body) inside a pipeline', () => {
+    const ast = parse('items | def(:total, count) | total');
     expect(ast.steps).toHaveLength(3);
     expect(ast.steps[1].step.type).toBe('OperandCall');
-    expect(ast.steps[1].step.name).toBe('let');
+    expect(ast.steps[1].step.name).toBe('def');
   });
 });
 

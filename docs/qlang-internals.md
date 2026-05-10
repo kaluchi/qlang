@@ -154,7 +154,7 @@ the raw captured value; a reflective `reify(:name)` lookup reads the
 wrapper directly and exposes the `:name`, `:value`, and `:docs` fields
 in the descriptor.
 
-### 5. Conduit binding — `let(:name, expr)` / `let(:name, [:p1..:pN], expr)`
+### 5. Conduit binding — `def(:name, expr)` / `def(:name, [:p1..:pN], expr)`
 
     (pipeValue, env) → (pipeValue, env[:name := Conduit(expr, params, envRef, docs)])
 
@@ -188,8 +188,8 @@ declaration time, not the caller's env:
   lambda fires per-element inside `sortWith`, per-iteration inside
   `filter`, per-pair inside `desc`/`asc`.
 
-Zero-arity conduits (`let(:f, expr)`) and parametric conduits
-(`let(:f, [:a, :b], expr)`) share the same mechanism.
+Zero-arity conduits (`def(:f, expr)`) and parametric conduits
+(`def(:f, [:a, :b], expr)`) share the same mechanism.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -579,7 +579,7 @@ indistinguishable from built-ins.
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
 | `as(:name)` operand call            | Step 3 — identifier lookup + snapshot capture |
-| `let(:name, expr)` operand call     | Step 3 — identifier lookup + conduit construction |
+| `def(:name, expr)` operand call     | Step 3 — identifier lookup + conduit construction |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |
@@ -718,7 +718,7 @@ Three patterns demonstrated on a directory tree:
 
 Starting with the tree literal above as `pipeValue`:
 
-    | let(:totalSize, add(/size, /children * totalSize | sum))
+    | def(:totalSize, add(/size, /children * totalSize | sum))
     | totalSize
 
 For each node, compute `/size + sum of children's totalSize`.
@@ -728,7 +728,7 @@ resolves against the node as a sub-pipeline.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `let(:totalSize, <expr>)` — writes a conduit into `env[:totalSize]`.
+1. `def(:totalSize, <expr>)` — writes a conduit into `env[:totalSize]`.
    `pipeValue` (the tree root) unchanged.
 2. `totalSize` — lookup `env[:totalSize]`, force the conduit. Evaluate
    `add(/size, /children * totalSize | sum)` with `pipeValue = root`
@@ -754,7 +754,7 @@ find max depth with `max(0, ... | max) | add(1)`, etc.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | let(:allNames, [[/label], /children * allNames | flat] | flat)
+    | def(:allNames, [[/label], /children * allNames | flat] | flat)
     | allNames
 
 (The outer parentheses are required because a `let` body is a
@@ -768,7 +768,7 @@ and the outer `| flat` merges them into one list.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `let(:allNames, <expr>)` — writes a conduit into `env[:allNames]`.
+1. `def(:allNames, <expr>)` — writes a conduit into `env[:allNames]`.
    `pipeValue` (the tree root) unchanged.
 2. `allNames` — lookup, force conduit. Evaluate the conduit body
    `[[/label], /children * allNames | flat] | flat` with
@@ -800,7 +800,7 @@ tree-to-list conversion.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | let(:withCounts, {:label /label
+    | def(:withCounts, {:label /label
                          :count /children | count
                          :children /children * withCounts})
     | withCounts
@@ -812,7 +812,7 @@ add computed fields per node.
 
 Trace:
 
-1. `let(:withCounts, <expr>)` — writes conduit into `env[:withCounts]`.
+1. `def(:withCounts, <expr>)` — writes conduit into `env[:withCounts]`.
 2. `withCounts` — lookup, force conduit. Reshape each entry against
    `pipeValue = root`:
    - `:label /label` → `"root"`.
@@ -877,8 +877,8 @@ sub-pipeline: `mul(2)` applies to the current `pipeValue` via
 Rule 10 rather than producing a function object. For in-query
 function extension use `let`:
 
-    | let(:double, mul(2))
-    | let(:isSenior, /age | gt(65))
+    | def(:double, mul(2))
+    | def(:isSenior, /age | gt(65))
     | employees * {:doubledAge /age | double :senior isSenior}
 
 Each `let` writes a conduit that forces against `pipeValue` at
@@ -1088,7 +1088,7 @@ because `astChildrenOf` and the codec share the shape knowledge.
   a UTF-16 offset. Drives editor hover and goto-definition.
 - `findIdentifierOccurrences(ast, name)` — every OperandCall and
   Projection segment naming the given identifier, including
-  `let(:name, ...)` and `as(:name)` declaration patterns.
+  `def(:name, ...)` and `as(:name)` declaration patterns.
 - `bindingNamesVisibleAt(ast, offset)` — lexical-scope-correct set
   of binding names visible at a cursor position. Honors fork-
   isolating ancestors (ParenGroup, VecLit, SetLit, MapLit, MapEntry).

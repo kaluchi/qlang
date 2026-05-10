@@ -49,7 +49,7 @@ describe('createSession lifecycle', () => {
 
   it('evalCell persists let bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:double, mul(2))');
+    await sessionInstance.evalCell('def(:double, mul(2))');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
@@ -94,9 +94,9 @@ describe('createSession lifecycle', () => {
 
   it('takeSnapshot/restoreSnapshot round-trips env and history length', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:x, 1)');
+    await sessionInstance.evalCell('def(:x, 1)');
     const snap = sessionInstance.takeSnapshot();
-    await sessionInstance.evalCell('let(:y, 2)');
+    await sessionInstance.evalCell('def(:y, 2)');
     expect(sessionInstance.cellHistory).toHaveLength(2);
     sessionInstance.restoreSnapshot(snap);
     expect(sessionInstance.cellHistory).toHaveLength(1);
@@ -117,8 +117,8 @@ describe('createSession lifecycle', () => {
 describe('serializeSession / deserializeSession round-trip', () => {
   it('preserves user let bindings via conduit source replay', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:double, mul(2))');
-    await sessionInstance.evalCell('let(:triple, mul(3))');
+    await sessionInstance.evalCell('def(:double, mul(2))');
+    await sessionInstance.evalCell('def(:triple, mul(3))');
 
     const payload = await serializeSession(sessionInstance);
     const jsonText = JSON.stringify(payload);
@@ -136,14 +136,14 @@ describe('serializeSession / deserializeSession round-trip', () => {
     // applyConduit fallback to state.env gives dynamic scope and the
     // shadow leaks into the body.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:double, mul(2))');
+    await sessionInstance.evalCell('def(:double, mul(2))');
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
     // Shadow mul AFTER restore. Lexical scope means double's body
     // still resolves mul through the env captured at deserialize
     // time (the original builtin), not the call-site env carrying
     // the shadow.
-    await restored.evalCell('let(:mul, sub(1))');
+    await restored.evalCell('def(:mul, sub(1))');
     expect((await restored.evalCell('5 | double')).result).toBe(10);
   });
 
@@ -161,13 +161,13 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('preserves cell history sources without re-running them', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:x, 1)');
-    await sessionInstance.evalCell('let(:y, 2)');
+    await sessionInstance.evalCell('def(:x, 1)');
+    await sessionInstance.evalCell('def(:y, 2)');
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(payload);
     expect(restored.cellHistory).toHaveLength(2);
-    expect(restored.cellHistory[0].source).toBe('let(:x, 1)');
-    expect(restored.cellHistory[1].source).toBe('let(:y, 2)');
+    expect(restored.cellHistory[0].source).toBe('def(:x, 1)');
+    expect(restored.cellHistory[1].source).toBe('def(:y, 2)');
   });
 
   it('does not serialize built-in functions', async () => {
@@ -281,7 +281,7 @@ const MOCK_MODULE_SOURCE = [
   '         :examples []',
   '         :throws []}}',
   '| use',
-  '| let(:@doubled, @fetch | append(@fetch))'
+  '| def(:@doubled, @fetch | append(@fetch))'
 ].join('\n');
 
 // Host-provided impl for the @fetch builtin — returns a fixed string.

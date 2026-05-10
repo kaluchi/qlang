@@ -17,7 +17,7 @@
     the error flows out.
 
     Call via `|` on success-track input. ~~|
-let(:retry, [:action, :n],
+def(:retry, [:action, :n],
   as(:start) | action
   !| if(n | gt(0),
         start | retry(action, n | sub(1)),
@@ -29,7 +29,7 @@ let(:retry, [:action, :n],
     become the new pipeValue. Otherwise re-lift the
     descriptor into a fresh error and continue on the
     fail-track. Call via `!|` on fail-track. ~~|
-let(:recover, [:pred, :handler],
+def(:recover, [:pred, :handler],
   if(pred, handler, error))
 
 |~~ Transform an error's materialized descriptor via
@@ -38,7 +38,7 @@ let(:recover, [:pred, :handler],
     the returned Map becomes the new error's descriptor
     (trail continues via the makeErrorValue invariant).
     Call via `!|` on fail-track. ~~|
-let(:mapError, [:fn],
+def(:mapError, [:fn],
   fn | error)
 
 |~~ Enrich an error's materialized descriptor with
@@ -48,5 +48,5 @@ let(:mapError, [:fn],
     result becomes the new error's descriptor. Used for
     MDC-style context accumulation as an error flows
     through a pipeline. Call via `!|` on fail-track. ~~|
-let(:withContext, [:ctx],
+def(:withContext, [:ctx],
   union(ctx) | error)

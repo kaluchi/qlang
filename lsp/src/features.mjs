@@ -220,7 +220,7 @@ function findLastVisibleDeclaration(ast, name, offset) {
 
   walkAst(ast, (node) => {
     if (node.type !== 'OperandCall') return;
-    if (node.name !== 'let' && node.name !== 'as') return;
+    if (node.name !== 'def' && node.name !== 'as') return;
     if (!Array.isArray(node.args) || node.args.length === 0) return;
     const firstArg = node.args[0];
     if (firstArg.type !== 'Keyword' || firstArg.name !== name) return;
@@ -268,7 +268,7 @@ export function referencesAtOffset(ast, offset) {
 
   let name = null;
   if (node.type === 'OperandCall') {
-    if ((node.name === 'let' || node.name === 'as')
+    if ((node.name === 'def' || node.name === 'as')
         && Array.isArray(node.args) && node.args.length > 0
         && node.args[0].type === 'Keyword') {
       name = node.args[0].name;
@@ -277,7 +277,7 @@ export function referencesAtOffset(ast, offset) {
     }
   } else if (node.type === 'Keyword' && node.parent
              && node.parent.type === 'OperandCall'
-             && (node.parent.name === 'let' || node.parent.name === 'as')
+             && (node.parent.name === 'def' || node.parent.name === 'as')
              && Array.isArray(node.parent.args)
              && node.parent.args[0] === node) {
     name = node.name;
@@ -302,7 +302,7 @@ export function documentSymbols(ast) {
   const symbols = [];
   walkAst(ast, (node) => {
     if (node.type !== 'OperandCall') return;
-    if (node.name !== 'let' && node.name !== 'as') return;
+    if (node.name !== 'def' && node.name !== 'as') return;
     if (!Array.isArray(node.args) || node.args.length === 0) return;
     const firstArg = node.args[0];
     if (firstArg.type !== 'Keyword') return;
@@ -310,7 +310,7 @@ export function documentSymbols(ast) {
 
     symbols.push({
       name: firstArg.name,
-      kind: node.name === 'let' ? 'conduit' : 'snapshot',
+      kind: node.name === 'def' ? 'conduit' : 'snapshot',
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });

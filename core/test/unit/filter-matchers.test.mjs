@@ -51,7 +51,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 0-arity named conduit predicate fires against value', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b 2 :c 3} | let(:big, gt(1)) | filter(big)'
+      '{:a 1 :b 2 :c 3} | def(:big, gt(1)) | filter(big)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -59,7 +59,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 2-arity conduit — key axis', async () => {
     const mapResult = await evalQuery(
-      '{:apple 1 :banana 2 :avocado 3} | let(:@isA, [:k :v], k | eq(:apple)) | filter(@isA)'
+      '{:apple 1 :banana 2 :avocado 3} | def(:@isA, [:k :v], k | eq(:apple)) | filter(@isA)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
@@ -68,7 +68,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 2-arity conduit — compound key and value', async () => {
     const mapResult = await evalQuery(
-      '{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)'
+      '{:apple 1 :banana 2 :avocado 3} | def(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
@@ -80,7 +80,7 @@ describe('filter — container polymorphism', () => {
     // of invokeConduitWithFixedArgs (conduitEffectful=false).
     const mapResult = await evalQuery(
       '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
-      + '| let(:selfTiered, [:k :v], eq(k, v | /tier)) '
+      + '| def(:selfTiered, [:k :v], eq(k, v | /tier)) '
       + '| filter(selfTiered)'
     );
     expect(isQMap(mapResult)).toBe(true);
@@ -116,7 +116,7 @@ describe('filter — container polymorphism', () => {
     // with EffectLaunderingAtCall — the same safety net applyConduit
     // enforces for ordinary conduit calls.
     const errorValue = await evalQuery(
-      'let(:@hot, [:k :v], v | gt(0)) '
+      'def(:@hot, [:k :v], v | gt(0)) '
       + '| env | /@hot | as(:clean) '
       + '| {:a 1 :b 2} | filter(clean) !| /thrown'
     );
@@ -131,7 +131,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map empty subject — returns empty Map for 2-arity pred', async () => {
     const mapResult = await evalQuery(
-      '{} | let(:@never, [:k :v], false) | filter(@never)'
+      '{} | def(:@never, [:k :v], false) | filter(@never)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(0);
@@ -155,13 +155,13 @@ describe('filter — container polymorphism', () => {
 
   it('Vec with 1-arity conduit — element is bound as captured-arg', async () => {
     expect(await evalQuery(
-      '[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)'
+      '[1 -2 3] | def(:@pos, [:v], v | gt(0)) | filter(@pos)'
     )).toEqual([1, 3]);
   });
 
   it('Set with 1-arity conduit — element is bound as captured-arg', async () => {
     const setResult = await evalQuery(
-      '#{1 -2 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)'
+      '#{1 -2 3} | def(:@pos, [:v], v | gt(0)) | filter(@pos)'
     );
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([-2, 1, 3].filter(n => n > 0).sort());
@@ -169,7 +169,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 1-arity conduit — value bound as captured-arg', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)'
+      '{:a 1 :b -2 :c 3} | def(:@pos, [:v], v | gt(0)) | filter(@pos)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -179,7 +179,7 @@ describe('filter — container polymorphism', () => {
 
   it('Vec with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '[1 2] | let(:@kv, [:k :v], true) | filter(@kv)',
+      '[1 2] | def(:@kv, [:k :v], true) | filter(@kv)',
       'FilterVecOrSetPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -190,7 +190,7 @@ describe('filter — container polymorphism', () => {
 
   it('Set with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '#{1 2} | let(:@kv, [:k :v], true) | filter(@kv)',
+      '#{1 2} | def(:@kv, [:k :v], true) | filter(@kv)',
       'FilterVecOrSetPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -199,7 +199,7 @@ describe('filter — container polymorphism', () => {
 
   it('Vec with 3-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '[1 2] | let(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
+      '[1 2] | def(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
       'FilterVecOrSetPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -208,7 +208,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 3-arity conduit — FilterMapPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1} | let(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
+      '{:a 1} | def(:@tooWide, [:x :y :z], true) | filter(@tooWide)',
       'FilterMapPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -247,13 +247,13 @@ describe('every — container polymorphism', () => {
 
   it('Map 2-arity conduit — both axes satisfied', async () => {
     expect(await evalQuery(
-      '{:a 1 :b 2} | let(:@bothOk, [:k :v], and(v | gt(0), k | isKeyword)) | every(@bothOk)'
+      '{:a 1 :b 2} | def(:@bothOk, [:k :v], and(v | gt(0), k | isKeyword)) | every(@bothOk)'
     )).toBe(true);
   });
 
   it('Map 2-arity conduit — one entry fails', async () => {
     expect(await evalQuery(
-      '{:a 1 :b -2} | let(:@bothOk, [:k :v], v | gt(0)) | every(@bothOk)'
+      '{:a 1 :b -2} | def(:@bothOk, [:k :v], v | gt(0)) | every(@bothOk)'
     )).toBe(false);
   });
 
@@ -271,31 +271,31 @@ describe('every — container polymorphism', () => {
 
   it('Vec with 1-arity conduit — every applies element as captured-arg', async () => {
     expect(await evalQuery(
-      '[1 2 3] | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+      '[1 2 3] | def(:@pos, [:v], v | gt(0)) | every(@pos)'
     )).toBe(true);
     expect(await evalQuery(
-      '[1 -2 3] | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+      '[1 -2 3] | def(:@pos, [:v], v | gt(0)) | every(@pos)'
     )).toBe(false);
   });
 
   it('Set with 1-arity conduit — every applies element as captured-arg', async () => {
     expect(await evalQuery(
-      '#{2 4 6} | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+      '#{2 4 6} | def(:@pos, [:v], v | gt(0)) | every(@pos)'
     )).toBe(true);
   });
 
   it('Map with 1-arity conduit — every applies value as captured-arg', async () => {
     expect(await evalQuery(
-      '{:a 1 :b 2} | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+      '{:a 1 :b 2} | def(:@pos, [:v], v | gt(0)) | every(@pos)'
     )).toBe(true);
     expect(await evalQuery(
-      '{:a 1 :b -2} | let(:@pos, [:v], v | gt(0)) | every(@pos)'
+      '{:a 1 :b -2} | def(:@pos, [:v], v | gt(0)) | every(@pos)'
     )).toBe(false);
   });
 
   it('Vec with 2-arity conduit — EveryVecOrSetPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '[1 2] | let(:@kv, [:k :v], true) | every(@kv)',
+      '[1 2] | def(:@kv, [:k :v], true) | every(@kv)',
       'EveryVecOrSetPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -304,7 +304,7 @@ describe('every — container polymorphism', () => {
 
   it('Set with 2-arity conduit — EveryVecOrSetPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '#{1 2} | let(:@kv, [:k :v], true) | every(@kv)',
+      '#{1 2} | def(:@kv, [:k :v], true) | every(@kv)',
       'EveryVecOrSetPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -313,7 +313,7 @@ describe('every — container polymorphism', () => {
 
   it('Map with 3-arity conduit — EveryMapPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1} | let(:@tooWide, [:x :y :z], true) | every(@tooWide)',
+      '{:a 1} | def(:@tooWide, [:x :y :z], true) | every(@tooWide)',
       'EveryMapPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -343,7 +343,7 @@ describe('any — container polymorphism', () => {
 
   it('Map 2-arity conduit — any entry by key', async () => {
     expect(await evalQuery(
-      '{:apple 1 :banana 2} | let(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)'
+      '{:apple 1 :banana 2} | def(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)'
     )).toBe(true);
   });
 
@@ -360,7 +360,7 @@ describe('any — container polymorphism', () => {
 
   it('Map with 3-arity conduit — AnyMapPredArityInvalid', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1} | let(:@tooWide, [:x :y :z], true) | any(@tooWide)',
+      '{:a 1} | def(:@tooWide, [:x :y :z], true) | any(@tooWide)',
       'AnyMapPredArityInvalid'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -401,7 +401,7 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
   });
 
   it('isMap reports false for conduit descriptor Maps', async () => {
-    expect(await evalQuery('let(:double, mul(2)) | env | /double | isMap')).toBe(false);
+    expect(await evalQuery('def(:double, mul(2)) | env | /double | isMap')).toBe(false);
   });
 
   it('isSet classifies Set vs the rest', async () => {
@@ -465,12 +465,12 @@ describe('filter + type classifiers integration', () => {
 describe('filter — conduit portability across containers', () => {
   it('0-arity conduit fires uniformly on Vec elements and Map values', async () => {
     const vecResult = await evalQuery(
-      'let(:big, gt(1)) | [1 2 3] | filter(big)'
+      'def(:big, gt(1)) | [1 2 3] | filter(big)'
     );
     expect(vecResult).toEqual([2, 3]);
 
     const mapResult = await evalQuery(
-      'let(:big, gt(1)) | {:a 1 :b 2 :c 3} | filter(big)'
+      'def(:big, gt(1)) | {:a 1 :b 2 :c 3} | filter(big)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);

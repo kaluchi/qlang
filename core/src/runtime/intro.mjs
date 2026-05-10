@@ -18,7 +18,7 @@ import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet,
-  typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, isErrorValue
+  typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, makeDoc, isErrorValue
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -482,72 +482,158 @@ export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
 
 // ── let and as — binding operands ─────────────────────────────
 
-const LetNameNotKeyword = declareShapeError('LetNameNotKeyword',
-  ({ actualType }) => `let requires a keyword as its first argument (the binding name), got ${actualType.name}`);
-const LetParamsNotVecOfKeywords = declareShapeError('LetParamsNotVecOfKeywords',
-  ({ index, actualType }) => `let parameter list must be a Vec of keywords; element ${index} is ${actualType.name}`);
-const LetBodyMissing = declareArityError('LetBodyMissing',
-  ({ actualCount }) => `let requires 2 arguments (name, body) or 3 arguments (name, params, body), got ${actualCount}`);
 const AsNameNotKeyword = declareShapeError('AsNameNotKeyword',
   ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType.name}`);
 
 import { envSet } from '../state.mjs';
 
-export const letOperand = stateOpVariadic('let', 16, async (state, letLambdas) => {
-  const letArgCount = letLambdas.length;
-  if (letArgCount < 2 || letArgCount > 3) {
-    throw new LetBodyMissing({ actualCount: letArgCount });
+const DefNameNotKeyword = declareShapeError('DefNameNotKeyword',
+  ({ actualType }) => `def requires a keyword as its first argument (the binding name), got ${actualType.name}`);
+const DefParamsNotVecOfKeywords = declareShapeError('DefParamsNotVecOfKeywords',
+  ({ index, actualType }) => `def parameter list must be a Vec of keywords; element ${index} is ${actualType.name}`);
+const DefArityInvalid = declareArityError('DefArityInvalid',
+  ({ actualCount }) => `def requires 1 (name with attached doc), 2 (name, body), or 3 (name, params, body) arguments, got ${actualCount}`);
+const DefMissingDocOrBody = declareShapeError('DefMissingDocOrBody',
+  ({ bindingName }) => `def(:${bindingName}) — 1-arg form requires an attached doc-prefix; without it neither a value nor a documentation source is available`);
+
+// Pure-literal AST detection: a body whose evaluation is independent
+// of pipeValue, env, and any side-effect operand. Pure bodies eval at
+// def-time and bind as a snapshot of the resulting value; impure
+// bodies bind as a conduit whose AST is invoked lazily per-lookup.
+function isPureLiteralAst(node) {
+  switch (node.type) {
+    case 'NumberLit':
+    case 'StringLit':
+    case 'BooleanLit':
+    case 'NullLit':
+    case 'Keyword':
+    case 'QuoteLit':
+    case 'DocLit':
+      return true;
+    case 'VecLit':
+    case 'SetLit':
+      return node.elements.every(isPureLiteralAst);
+    case 'MapLit':
+    case 'ErrorLit':
+      return node.entries.every(e => isPureLiteralAst(e.value));
+    default:
+      return false;
+  }
+}
+
+function checkEffectLaundering(bindingName, bodyAst) {
+  if (classifyEffect(bindingName) || !bodyAst) return;
+  const offender = findFirstEffectfulIdentifier(bodyAst);
+  if (offender !== null) {
+    throw new EffectLaunderingAtLetParse({
+      letName: bindingName,
+      effectfulName: offender,
+      location: bodyAst.location
+    });
+  }
+}
+
+// def(:name) / def(:name, body) / def(:name, [:params], body)
+//
+// Pipeline-transparent declarative binding — pipeValue passes through
+// unchanged so def-steps chain naturally on the success-track. Three
+// arity-driven forms:
+//
+//   1-arg `def(:name)` — attached doc-prefix is materialized as a
+//     Doc-value and bound under :name. Without an attached doc the
+//     call has nothing to bind and raises DefMissingDocOrBody.
+//
+//   2-arg `def(:name, body)` — purity-analysis on the body AST: a
+//     pure literal (NumberLit / StringLit / Keyword / VecLit /
+//     MapLit / ... recursively) evaluates at def-time and binds as a
+//     snapshot of the value; an impure body (containing OperandCall,
+//     Projection, ParenGroup, Pipeline) binds as a zero-param conduit
+//     invoked lazily per-lookup.
+//
+//   3-arg `def(:name, [:p ...], body)` — parametric conduit; always
+//     deferred regardless of body shape.
+//
+// Effect-laundering safety net mirrors letOperand: a non-`@`-prefixed
+// binding name with an effectful body raises EffectLaunderingAtLetParse.
+export const defOperand = stateOpVariadic('def', 16, async (state, defLambdas) => {
+  const argCount = defLambdas.length;
+  if (argCount < 1 || argCount > 3) {
+    throw new DefArityInvalid({ actualCount: argCount });
   }
 
-  const letNameValue = await letLambdas[0](state.pipeValue);
-  if (!isKeyword(letNameValue)) {
-    throw new LetNameNotKeyword({ actualType: typeKeyword(letNameValue), actualValue: letNameValue });
+  const nameValue = await defLambdas[0](state.pipeValue);
+  if (!isKeyword(nameValue)) {
+    throw new DefNameNotKeyword({ actualType: typeKeyword(nameValue), actualValue: nameValue });
   }
-  const letBindingName = letNameValue.name;
+  const bindingName = nameValue.name;
+  const attachedDocs = defLambdas.docs;
 
-  let letParams = [];
-  let letBodyLambda;
-  if (letArgCount === 3) {
-    const letParamsValue = await letLambdas[1](state.pipeValue);
-    if (!isVec(letParamsValue)) {
-      throw new LetParamsNotVecOfKeywords({ index: -1, actualType: typeKeyword(letParamsValue), actualValue: letParamsValue });
+  if (argCount === 1) {
+    if (!attachedDocs || attachedDocs.length === 0) {
+      throw new DefMissingDocOrBody({ bindingName });
     }
-    for (let pi = 0; pi < letParamsValue.length; pi++) {
-      if (!isKeyword(letParamsValue[pi])) {
-        throw new LetParamsNotVecOfKeywords({ index: pi, actualType: typeKeyword(letParamsValue[pi]), actualValue: letParamsValue[pi] });
+    const docValue = makeDoc(attachedDocs.join('\n'));
+    const docSnapshot = makeSnapshot(docValue, {
+      name: bindingName,
+      docs: attachedDocs,
+      location: defLambdas.location
+    });
+    return makeState(state.pipeValue, envSet(state.env, bindingName, docSnapshot));
+  }
+
+  if (argCount === 3) {
+    const paramsValue = await defLambdas[1](state.pipeValue);
+    if (!isVec(paramsValue)) {
+      throw new DefParamsNotVecOfKeywords({ index: -1, actualType: typeKeyword(paramsValue), actualValue: paramsValue });
+    }
+    for (let pi = 0; pi < paramsValue.length; pi++) {
+      if (!isKeyword(paramsValue[pi])) {
+        throw new DefParamsNotVecOfKeywords({ index: pi, actualType: typeKeyword(paramsValue[pi]), actualValue: paramsValue[pi] });
       }
     }
-    letParams = letParamsValue.map(kw => kw.name);
-    letBodyLambda = letLambdas[2];
-  } else {
-    letBodyLambda = letLambdas[1];
+    const params = paramsValue.map(kw => kw.name);
+    const bodyAst = defLambdas[2].astNode;
+    checkEffectLaundering(bindingName, bodyAst);
+    const envRef = { env: null };
+    const conduit = makeConduit(bodyAst, {
+      name: bindingName,
+      params,
+      envRef,
+      docs: attachedDocs,
+      location: bodyAst.location
+    });
+    const nextEnv = envSet(state.env, bindingName, conduit);
+    envRef.env = nextEnv;
+    return makeState(state.pipeValue, nextEnv);
   }
 
-  const letBodyAst = letBodyLambda.astNode;
+  // 2-arg form: purity-analysis routes between snapshot and conduit.
+  const bodyLambda = defLambdas[1];
+  const bodyAst = bodyLambda.astNode;
+  checkEffectLaundering(bindingName, bodyAst);
 
-  if (!classifyEffect(letBindingName) && letBodyAst) {
-    const effectOffender = findFirstEffectfulIdentifier(letBodyAst);
-    if (effectOffender !== null) {
-      throw new EffectLaunderingAtLetParse({
-        letName: letBindingName,
-        effectfulName: effectOffender,
-        location: letBodyAst.location
-      });
-    }
+  if (isPureLiteralAst(bodyAst)) {
+    const evaluatedValue = await bodyLambda(state.pipeValue);
+    const snapshot = makeSnapshot(evaluatedValue, {
+      name: bindingName,
+      docs: attachedDocs,
+      location: bodyAst.location
+    });
+    return makeState(state.pipeValue, envSet(state.env, bindingName, snapshot));
   }
 
-  const letEnvRef = { env: null };
-  const letConduit = makeConduit(letBodyAst, {
-    name: letBindingName,
-    params: letParams,
-    envRef: letEnvRef,
-    docs: letLambdas.docs,
-    location: letBodyAst.location
+  const envRef = { env: null };
+  const conduit = makeConduit(bodyAst, {
+    name: bindingName,
+    params: [],
+    envRef,
+    docs: attachedDocs,
+    location: bodyAst.location
   });
-  const letNextEnv = envSet(state.env, letBindingName, letConduit);
-  letEnvRef.env = letNextEnv;
-  return makeState(state.pipeValue, letNextEnv);
-}, [2, 3]);
+  const nextEnv = envSet(state.env, bindingName, conduit);
+  envRef.env = nextEnv;
+  return makeState(state.pipeValue, nextEnv);
+}, [1, 3]);
 
 // as(:name) — snapshot the current pipeValue under a keyword name.
 export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
@@ -637,7 +723,7 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/use',         use);
 PRIMITIVE_REGISTRY.bind('qlang/prim/reify',       reify);
 PRIMITIVE_REGISTRY.bind('qlang/prim/runExamples', runExamples);
 PRIMITIVE_REGISTRY.bind('qlang/prim/manifest',    manifest);
-PRIMITIVE_REGISTRY.bind('qlang/prim/let',         letOperand);
+PRIMITIVE_REGISTRY.bind('qlang/prim/def',         defOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/as',          asOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/parse',       parseOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/eval',        evalOperand);

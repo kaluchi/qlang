@@ -26,22 +26,30 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { evalAst } from '../../src/eval.mjs';
-import { makeState } from '../../src/state.mjs';
 import { keyword, isQMap, isVec } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
-// Evaluate core.qlang in a completely empty env — this is the
-// Variant-B bootstrap contract. Map literals need no bindings to
-// evaluate, so the only precondition is that CORE_SOURCE parses
-// cleanly and contains nothing but a single Map literal plus its
-// prefacing comment.
+// Evaluate core.qlang against a real langRuntime — CORE_SOURCE is a
+// series of `def`-step bindings, each of which calls the `def`
+// operand to land its descriptor in env. Reading the resolved env
+// from langRuntime() returns the catalog as a Map keyed by operand
+// name. Reserved housekeeping keys (`qlang/ast/<uri>`, anything
+// without a `:qlang/kind :builtin` descriptor) are filtered so the
+// returned Map matches the descriptor-only surface the rest of this
+// suite was originally written against.
 async function evalCore() {
-  const ast = parse(CORE_SOURCE, { uri: 'qlang/core' });
-  const state = makeState(null, new Map());
-  const evalResult = await evalAst(ast, state);
-  return evalResult.pipeValue;
+  const { langRuntime } = await import('../../src/runtime/index.mjs');
+  const fullEnv = await langRuntime();
+  const catalog = new Map();
+  for (const [k, v] of fullEnv) {
+    if (k.startsWith('qlang/ast/')) continue;
+    if (!isQMap(v)) continue;
+    const kind = v.get('qlang/kind');
+    if (!kind || kind.name !== 'builtin') continue;
+    catalog.set(k, v);
+  }
+  return catalog;
 }
 
 // Force runtime/*.mjs import so PRIMITIVE_REGISTRY gets populated
@@ -86,42 +94,38 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     }
   });
 
-  it('every entry carries a :qlang/impl keyword in the qlang/prim/ namespace', async () => {
+  it('every entry carries a :qlang/impl function value resolved from PRIMITIVE_REGISTRY', async () => {
+    // langRuntime() runs the resolution pass over every builtin
+    // descriptor before returning, so :qlang/impl arrives at
+    // user-side as the live function value (not a keyword handle).
+    // The naming convention — function value's .name matches the
+    // operand name — keeps the dispatch target identifiable.
     const coreEnv = await evalCore();
-    
+
     for (const [entryKey, entryVal] of coreEnv) {
       const impl = entryVal.get('qlang/impl');
       expect(impl, `entry :${entryKey} missing :qlang/impl`).toBeDefined();
-      expect(impl.type).toBe('keyword');
-      expect(impl.name.startsWith('qlang/prim/'),
-        `entry :${entryKey} :qlang/impl ${impl.name} not in qlang/prim/ namespace`
-      ).toBe(true);
+      expect(typeof impl).toBe('object');
+      expect(impl.name, `entry :${entryKey} :qlang/impl resolves to function with mismatched name`)
+        .toBe(entryKey);
     }
   });
 
-  it(':qlang/impl keyword name matches the entry name for every operand', async () => {
-    // Convention: the entry :count has :qlang/impl :qlang/prim/count.
-    // Catches copy-paste typos between the keyword handle and its
-    // dispatch target at build-verification time instead of at
-    // runtime dispatch time.
+  it('catalog covers def under :reflective', async () => {
     const coreEnv = await evalCore();
-    
-    for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get('qlang/impl');
-      expect(impl.name).toBe(`qlang/prim/${entryKey}`);
-    }
+    expect(coreEnv.has('def')).toBe(true);
+    expect(coreEnv.get('def').get('category')).toEqual(keyword('reflective'));
   });
 });
 
 describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
-  it('every :qlang/impl keyword resolves to a live primitive', async () => {
+  it('every catalog operand has a backing primitive in PRIMITIVE_REGISTRY', async () => {
     await primeRegistry();
     const coreEnv = await evalCore();
 
-    for (const [entryKey, entryVal] of coreEnv) {
-      const implKey = entryVal.get('qlang/impl');
-      expect(PRIMITIVE_REGISTRY.has(implKey.name),
-        `entry :${entryKey} → :${implKey.name} has no backing primitive`
+    for (const entryKey of coreEnv.keys()) {
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${entryKey}`),
+        `entry :${entryKey} has no backing primitive at qlang/prim/${entryKey}`
       ).toBe(true);
     }
   });
@@ -148,13 +152,13 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(impl.name).toBe('filter');
   });
 
-  it('spot-check — :let / :as reflective operands land with :category :reflective', async () => {
+  it('spot-check — :def / :as reflective operands land with :category :reflective', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    expect(resolved.get('let').get('category')).toEqual(keyword('reflective'));
+    expect(resolved.get('def').get('category')).toEqual(keyword('reflective'));
     expect(resolved.get('as').get('category')).toEqual(keyword('reflective'));
-    const letImpl = resolved.get('let').get('qlang/impl');
-    expect(letImpl.name).toBe('let');
+    const defImpl = resolved.get('def').get('qlang/impl');
+    expect(defImpl.name).toBe('def');
     const asImpl = resolved.get('as').get('qlang/impl');
     expect(asImpl.name).toBe('as');
   });
@@ -260,7 +264,7 @@ describe('function-value reify path (conduit parameter reflection)', () => {
     // Map), so describeBinding takes the isFunctionValue path and
     // builds a descriptor via buildBuiltinDescriptor from the
     // inlined meta that makeConduitParameter stamps on the proxy.
-    const evalResult = await evalQuery('let(:f, [:p], reify(:p)) | 42 | f(add(1))');
+    const evalResult = await evalQuery('def(:f, [:p], reify(:p)) | 42 | f(add(1))');
     expect(isQMap(evalResult)).toBe(true);
     expect(evalResult.get('kind')).toEqual(keyword('builtin'));
     expect(evalResult.get('category')).toEqual(keyword('conduit-parameter'));
@@ -320,7 +324,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('type-classifier')).toBe(10);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc
     expect(categories.get('type-conversion')).toBe(1);  // keyword
     expect(categories.get('format')).toBe(2);
-    expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
+    expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as def parse eval
     expect(categories.get('error')).toBe(2);
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);

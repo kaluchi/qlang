@@ -158,7 +158,7 @@ same on every shape; what changes is which axis the language
 offers to fill:
 
 - **0-arity inline pipeline** (`filter(gt(1))`) or **0-arity named
-  conduit** (`let(:big, gt(1)) | ... | filter(big)`) — per item
+  conduit** (`def(:big, gt(1)) | ... | filter(big)`) — per item
   with pipeValue = element on Vec/Set, value on Map. Covers the
   90% case.
 - **1-arity conduit `[:x]`** — the element (Vec/Set) or value
@@ -182,7 +182,7 @@ Compose both-axis predicates by naming the 2-arity conduit with
 
 ```qlang
 m
-  | let(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
+  | def(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
   | filter(@hot)
 ```
 
@@ -198,11 +198,11 @@ m
 - **Examples**:
   - `[1 2 3 4 5] | filter(gt(2))` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter(/age | gte(18))` → `[{:age 25}]`.
-  - `[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
+  - `[1 -2 3] | def(:@pos, [:v], v | gt(0)) | filter(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
   - `#{1 2 3 4 5} | filter(gt(2))` → `#{3 4 5}`.
   - `{:a 1 :b 2 :c 3} | filter(gt(1))` → `{:b 2 :c 3}` — 0-arity pred, value axis.
-  - `{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
-  - `{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
+  - `{:a 1 :b -2 :c 3} | def(:@pos, [:v], v | gt(0)) | filter(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
+  - `{:apple 1 :banana 2 :avocado 3} | def(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
   - `{} | filter(gt(0))` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
   `FilterSubjectNotContainer`. Predicate conduit with 2+ params on
@@ -224,7 +224,7 @@ m
 - **Examples**:
   - `[2 4 6] | every(gt(0))` → `true`.
   - `[1 2 3] | every(gt(2))` → `false`.
-  - `[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)` → `true` — 1-arity conduit.
+  - `[2 4 6] | def(:@pos, [:v], v | gt(0)) | every(@pos)` → `true` — 1-arity conduit.
   - `[] | every(gt(0))` → `true`.
   - `#{2 4 6} | every(gt(0))` → `true`.
   - `{:a 1 :b 2 :c 3} | every(gt(0))` → `true` — 0-arity, value axis.
@@ -245,11 +245,11 @@ m
 - **Examples**:
   - `[1 2 3] | any(gt(2))` → `true`.
   - `[1 2 3] | any(gt(99))` → `false`.
-  - `[1 2 3] | let(:@big, [:v], v | gt(2)) | any(@big)` → `true` — 1-arity conduit.
+  - `[1 2 3] | def(:@big, [:v], v | gt(2)) | any(@big)` → `true` — 1-arity conduit.
   - `[] | any(gt(0))` → `false`.
   - `#{1 2 3} | any(gt(2))` → `true`.
   - `{:a -1 :b 0 :c 2} | any(gt(0))` → `true` — 0-arity, value axis.
-  - `{:apple 1 :banana 2} | let(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
+  - `{:apple 1 :banana 2} | def(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
 - **Errors**: subject not a container → `AnySubjectNotContainer`.
   Predicate conduit with 2+ params on Vec/Set →
   `AnyVecOrSetPredArityInvalid`. Predicate conduit with 3+ params
@@ -891,7 +891,7 @@ descend-compute-ascend pattern of pure operands.
 - **Examples**:
   - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi, e]`
     → `[3.14159 2.71828]`.
-  - Shadow a built-in: `let(:use, mul(2)) | 5 | use` → `10`
+  - Shadow a built-in: `def(:use, mul(2)) | 5 | use` → `10`
     (the user's `let` shadows the reflective `use`).
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,
@@ -1033,21 +1033,21 @@ missing). This is the introspection-by-name path:
 - **Errors**: subject not a descriptor Map → type error; no
   `:examples` field → type error.
 
-### `let(:name, body)` / `let(:name, [:params], body)`
+### `def(:name, body)` / `def(:name, [:params], body)`
 
 - **Arity** variadic (2 or 3 captured). **Subject** any (pipeValue
   passes through unchanged).
 - Declares a conduit (named pipeline fragment) in `env`. Zero-arity
-  form `let(:name, body)` binds a pipeline fragment. Parametric form
-  `let(:name, [:params], body)` binds a fragment with named
+  form `def(:name, body)` binds a pipeline fragment. Parametric form
+  `def(:name, [:params], body)` binds a fragment with named
   parameters for fractal composition.
 - The body is stored as AST and evaluated in a lexically-scoped fork
   at each call site (envRef tie-the-knot for recursive self-binding).
   Parameters are lazy conduit-parameter proxies (nullary function
   values wrapping captured-arg lambdas).
 - **Examples**:
-  - `let(:double, mul(2)) | 10 | double` → `20`.
-  - `let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
+  - `def(:double, mul(2)) | 10 | double` → `20`.
+  - `def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
 - **Errors**: name not a keyword → `LetNameNotKeyword`; params not
   a Vec of keywords → `LetParamsNotVecOfKeywords`; fewer than 2
   captured args → `LetBodyMissing`; clean name with effectful body

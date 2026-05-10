@@ -41,7 +41,7 @@ import { parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
 import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
-const BINDING_OPERAND_NAMES = new Set(['let', 'as']);
+const BINDING_OPERAND_NAMES = new Set(['def', 'as']);
 const KEYWORD_SIGIL = ':';
 const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 

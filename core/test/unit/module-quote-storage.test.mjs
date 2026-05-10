@@ -45,7 +45,7 @@ describe('manifest filters out the qlang/ast/ reserved namespace', () => {
 
 describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
   it('stores the module source as a Quote when the locator returns one', async () => {
-    const moduleSource = 'let(:greet, "hi")';
+    const moduleSource = 'def(:greet, "hi")';
     const sessionInstance = await createSession({
       locator: async (nsName) => nsName === 'lazy/mod'
         ? { source: moduleSource }
@@ -56,7 +56,7 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
   });
 
   it('parses the module AST eagerly so /ast skips a re-parse', async () => {
-    const moduleSource = 'let(:answer, 42)';
+    const moduleSource = 'def(:answer, 42)';
     const sessionInstance = await createSession({
       locator: async () => ({ source: moduleSource })
     });
@@ -67,13 +67,13 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
   it('module Quote survives subsequent use of a second namespace', async () => {
     const sessionInstance = await createSession({
       locator: async (nsName) => {
-        if (nsName === 'lazy/a') return { source: 'let(:a, 1)' };
-        if (nsName === 'lazy/b') return { source: 'let(:b, 2)' };
+        if (nsName === 'lazy/a') return { source: 'def(:a, 1)' };
+        if (nsName === 'lazy/b') return { source: 'def(:b, 2)' };
         return null;
       }
     });
     const cellEntry = await sessionInstance.evalCell(
       'null | use(:lazy/a) | use(:lazy/b) | env | /:qlang/ast/lazy/a | /source');
-    expect(cellEntry.result).toBe('let(:a, 1)');
+    expect(cellEntry.result).toBe('def(:a, 1)');
   });
 });

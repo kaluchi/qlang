@@ -38,9 +38,9 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[94mcount\x1b[0m');
   });
 
-  it('wraps `let` in the bold-bright-blue keyword escape', () => {
-    const out = highlightAnsi('let(:x, 1)', new Set());
-    expect(out).toMatch('\x1b[1;94mlet\x1b[0m');
+  it('wraps `def` in the bold-bright-blue keyword escape', () => {
+    const out = highlightAnsi('def(:x, 1)', new Set());
+    expect(out).toMatch('\x1b[1;94mdef\x1b[0m');
   });
 
   it('wraps a comment in the dim escape', () => {

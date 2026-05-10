@@ -62,7 +62,7 @@ describe('runRepl — query evaluation', () => {
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const r = captureRepl('let(:double, mul(2))\n10 | double\n.exit\n');
+    const r = captureRepl('def(:double, mul(2))\n10 | double\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(stripAnsi(r.stdoutText())).toMatch(/20/);
   });

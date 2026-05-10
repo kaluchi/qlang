@@ -1,5 +1,5 @@
 // REPL for the qlang CLI. Persistent session across cells —
-// `let(:x, 42)` followed later by `x | pretty | @out` works inside
+// `def(:x, 42)` followed later by `x | pretty | @out` works inside
 // one session.
 //
 // Built on `cli/src/line-editor.mjs`:

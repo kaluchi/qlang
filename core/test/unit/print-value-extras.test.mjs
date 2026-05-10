@@ -17,22 +17,22 @@ import {
 import { makeFn } from '../../src/rule10.mjs';
 
 describe('printValue — Conduit / Snapshot / Function branches', () => {
-  it('renders a zero-arity Conduit as `let(:name, body)`', () => {
+  it('renders a zero-arity Conduit as `def(:name, body)`', () => {
     const bodyAst = { type: 'NumberLit', value: 42, text: '42' };
     const conduit = makeConduit(bodyAst, { name: 'answer', params: [] });
     expect(isConduit(conduit)).toBe(true);
-    expect(printValue(conduit)).toBe('let(:answer, 42)');
+    expect(printValue(conduit)).toBe('def(:answer, 42)');
   });
 
   it('renders a parametric Conduit with [:params] in declaration order', () => {
     const bodyAst = { type: 'OperandCall', name: 'add', text: 'add(x, y)' };
     const conduit = makeConduit(bodyAst, { name: 'sum2', params: ['x', 'y'] });
-    expect(printValue(conduit)).toBe('let(:sum2, [:x, :y], add(x, y))');
+    expect(printValue(conduit)).toBe('def(:sum2, [:x, :y], add(x, y))');
   });
 
   it('falls back to … when conduit body has no .text', () => {
     const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'noTxt', params: [] });
-    expect(printValue(conduit)).toBe('let(:noTxt, …)');
+    expect(printValue(conduit)).toBe('def(:noTxt, …)');
   });
 
   it('emits doc-comment prefixes before a documented Conduit', () => {
@@ -43,7 +43,7 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
       docs: [' first remark ', ' second remark ']
     });
     expect(printValue(conduit)).toBe(
-      '|~~  first remark  ~~|\n|~~  second remark  ~~|\nlet(:lucky, 7)'
+      '|~~  first remark  ~~|\n|~~  second remark  ~~|\ndef(:lucky, 7)'
     );
   });
 
@@ -98,7 +98,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   // Function values in cell positions reach the dispatch only when a
   // user explicitly piped them in (e.g. `env | /name | wrap-in-Map |
   // table`). Tests build the Vec directly so the cell handlers fire.
-  it('renders a Conduit-valued cell as `let(:name, body)`', async () => {
+  it('renders a Conduit-valued cell as `def(:name, body)`', async () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const bodyAst = { type: 'NumberLit', value: 99, text: '99' };
     const conduit = makeConduit(bodyAst, { name: 'ninetyNine', params: [] });
@@ -107,7 +107,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('let(:ninetyNine, 99)');
+    expect(rendered.pipeValue).toContain('def(:ninetyNine, 99)');
   });
 
   it('renders a Snapshot-valued cell as `as(:name)`', async () => {
@@ -144,7 +144,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('let(:inner, 7)');
+    expect(rendered.pipeValue).toContain('def(:inner, 7)');
   });
 
   it('renders a Vec-of-Snapshot cell — INLINE handler for Snapshot fires', async () => {
@@ -180,7 +180,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('let(:noText, …)');
+    expect(rendered.pipeValue).toContain('def(:noText, …)');
   });
 
   it('falls back to … when Conduit inside a Vec has no .text (INLINE_HANDLERS branch)', async () => {
@@ -191,7 +191,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('let(:inlineNoText, …)');
+    expect(rendered.pipeValue).toContain('def(:inlineNoText, …)');
   });
 
   it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {

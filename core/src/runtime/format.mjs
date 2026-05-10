@@ -143,9 +143,9 @@ function printConduit(conduit) {
   const nameKw = canonicalKeywordLiteral(name);
   if (Array.isArray(params) && params.length > 0) {
     const paramList = params.map(p => canonicalKeywordLiteral(p)).join(', ');
-    parts.push(`let(${nameKw}, [${paramList}], ${source})`);
+    parts.push(`def(${nameKw}, [${paramList}], ${source})`);
   } else {
-    parts.push(`let(${nameKw}, ${source})`);
+    parts.push(`def(${nameKw}, ${source})`);
   }
   return parts.join('\n');
 }
@@ -206,7 +206,7 @@ const CELL_HANDLERS = {
   Error:    e => renderInline(e),
   Quote:    q => '`' + q.source + '`',
   Doc:      d => '|~~' + d.content + '~~|',
-  Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Conduit:  c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
   Function: fn => `:qlang/prim/${fn.name}`
 };
@@ -222,7 +222,7 @@ const INLINE_HANDLERS = {
   Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
   Quote:    q => '`' + q.source + '`',
   Doc:      d => '|~~' + d.content + '~~|',
-  Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Conduit:  c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
   Function: fn => `:qlang/prim/${fn.name}`,
   Error:    e => `!{${mapEntriesInline(e.descriptor)}}`

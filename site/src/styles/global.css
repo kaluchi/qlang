@@ -294,6 +294,12 @@ code, pre {
 .repl-input-highlight .effect,
 .repl-entry-input .effect, .repl-entry-output .effect   { color: #c2410c; }
 
+.code-editor-body .type,
+.pg-source .type,          .pg-value .type,
+.playground-highlight .type,
+.repl-input-highlight .type,
+.repl-entry-input .type,   .repl-entry-output .type     { color: #7c3aed; }
+
 .code-editor-body .operand,
 .pg-source .operand,       .pg-value .operand,
 .playground-highlight .operand,

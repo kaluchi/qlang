@@ -28,6 +28,9 @@ const KIND_TO_ANSI = {
   comment:  '\x1b[2m',      // dim
   atom:     '\x1b[36m',     // cyan
   effect:   '\x1b[95m',     // bright magenta
+  type:     '\x1b[35m',     // base magenta — `::tag` type identifier;
+                            // same hue as effect (95) but dimmer to
+                            // mark "static type" vs "runtime effect"
   operand:  '\x1b[94m',     // bright blue
   keyword:  '\x1b[1;94m',   // bold bright blue
   err:      '\x1b[91m',     // bright red — `!{}` brackets + `!|`

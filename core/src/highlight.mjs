@@ -24,6 +24,10 @@
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
 //                 the `!|` fail-track combinator — anything that
 //                 carries the fail-track semantic in qlang
+//   'quote'       backtick-Quote literal, including the surrounding
+//                 backticks (DocLit `|~~ … ~~|` falls under 'comment')
+//   'type'        `::tag` head of a TaggedLit or a BareTypeKeyword —
+//                 the type-namespace identifier sigil + name
 //   'set'         `#{` opener and matching `}` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
@@ -106,6 +110,19 @@ function collectSemanticSpans(src, ast, builtinNames) {
       case 'QuoteLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'quote' });
         return false;
+
+      case 'BareTypeKeyword':
+        spans.push({ start: startOffset, end: endOffset, kind: 'type' });
+        return false;
+
+      case 'TaggedLit': {
+        // Cover the `::tag` head with a single 'type' span; descend
+        // into the payload below so VecLit/MapLit/StringLit children
+        // emit their own spans.
+        const typeHeadEnd = startOffset + 2 + node.tag.length;
+        spans.push({ start: startOffset, end: typeHeadEnd, kind: 'type' });
+        return; // descend into payload
+      }
 
       case 'SetLit':
         emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);

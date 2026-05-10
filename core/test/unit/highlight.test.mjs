@@ -74,6 +74,19 @@ describe('tokenize — atomic literal kinds', () => {
       { start: 0, end: 5, kind: 'effect' }
     ]);
   });
+
+  it('classifies a bare `::tag` BareTypeKeyword as a single type-kind span', async () => {
+    expect(tokenize('::conduit', await builtins())).toEqual([
+      { start: 0, end: 9, kind: 'type' }
+    ]);
+  });
+
+  it('classifies the `::tag` head of a TaggedLit and descends into the payload', async () => {
+    const tokens = tokenize('::assertion[`x` `y`]', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 11, kind: 'type' });
+    expect(tokens.some(t => t.kind === 'quote')).toBe(true);
+    expect(tokens.some(t => t.kind === 'vec')).toBe(true);
+  });
 });
 
 describe('tokenize — operand call name classification', () => {

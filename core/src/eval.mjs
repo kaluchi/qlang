@@ -441,7 +441,7 @@ async function evalProjection(node, state) {
 const PROJECTABLE_BY_TYPE = {
   quote: {
     source: q => q.source,
-    ast:    q => q.ast ?? lazyParseQuoteAst(q)
+    ast:    q => astNodeToMap(q.ast ?? lazyParseQuoteAst(q))
   },
   doc: {
     content:  d => d.content,
@@ -451,8 +451,7 @@ const PROJECTABLE_BY_TYPE = {
 
 function lazyParseQuoteAst(q) {
   try {
-    const ast = parse(q.source, { uri: 'quote-ast' });
-    return astNodeToMap(ast);
+    return parse(q.source, { uri: 'quote-ast' });
   } catch (_parseErr) {
     return NULL;
   }

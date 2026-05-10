@@ -165,7 +165,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   // canonical `qlang/ast/<ns>` env key — same surface the core
   // module gets in langRuntime, so axis-operands walk every
   // loaded namespace through one mechanism.
-  envWithNamespace.set('qlang/ast/' + nsKeyword.name, makeQuote(locatorResult.source, astNodeToMap(moduleAst)));
+  envWithNamespace.set('qlang/ast/' + nsKeyword.name, makeQuote(locatorResult.source, moduleAst));
   return [loadedExports, envWithNamespace];
 }
 

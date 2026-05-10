@@ -50,12 +50,12 @@ import './error.mjs';
 import './keyword-op.mjs';
 import './tagged.mjs';
 import './intro.mjs';
+import './axis.mjs';
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
 import { isKeyword, makeQuote } from '../types.mjs';
-import { astNodeToMap } from '../walk.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -160,7 +160,11 @@ export async function langRuntime() {
       // lazy AST so `/source` returns the verbatim text and `/ast`
       // returns the pre-parsed AST-Map without a re-parse
       // round-trip.
-      templateEnv.set('qlang/ast/qlang/core', makeQuote(CORE_SOURCE, astNodeToMap(coreAst)));
+      // Store the raw JS AST inside the Quote — axis-operands walk
+      // it directly via `node.type` / `node.steps`. The /ast
+      // projection converts to AST-Map shape on demand for user
+      // code that wants data-form navigation.
+      templateEnv.set('qlang/ast/qlang/core', makeQuote(CORE_SOURCE, coreAst));
 
       PRIMITIVE_REGISTRY.seal();
 

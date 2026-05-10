@@ -1441,3 +1441,44 @@ def(::assertion, {:qlang/kind :type
                     :AssertionArityInvalid
                     :AssertionSnippetNotQuote
                     :AssertionExpectedNotQuote]})
+
+|~ ──────────────── Axis-operands ──────────────── ~|
+
+|~~ source(:name) — Quote of the def-step that binds :name in
+    one of the loaded modules. Walks every qlang/ast/<uri> Quote
+    in env, finds the def-step whose first arg matches :name,
+    returns a Quote-value carrying the verbatim def source. ~~|
+def(:source, {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/source
+              :category :axis
+              :subject :keyword
+              :returns :quote
+              :modifiers []
+              :examples []
+              :throws [:SourceSubjectNotKeyword :AxisBindingNotFound]})
+
+|~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
+    on the def-step that binds :name. Each Doc-value /segments
+    surfaces TaggedLit and Quote inline structure for navigation
+    (see ::assertion for evaluable examples). ~~|
+def(:docs, {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/docs
+            :category :axis
+            :subject :keyword
+            :returns :vec
+            :modifiers []
+            :examples []
+            :throws [:DocsSubjectNotKeyword :AxisBindingNotFound]})
+
+|~~ examples(:name) — Vec of Assertion-values extracted from the
+    binding's docs by filtering :segments for :qlang/kind
+    :assertion. runExamples consumes this Vec to evaluate each
+    assertion's snippet against its expected value. ~~|
+def(:examples, {:qlang/kind :builtin
+                :qlang/impl :qlang/prim/examples
+                :category :axis
+                :subject :keyword
+                :returns :vec
+                :modifiers []
+                :examples []
+                :throws [:ExamplesSubjectNotKeyword :AxisBindingNotFound]})

@@ -10,6 +10,9 @@ import {
   isQMap,
   isQSet,
   isErrorValue,
+  isConduit,
+  isSnapshot,
+  isFunctionValue,
   describeType
 } from '../types.mjs';
 import {
@@ -118,11 +121,43 @@ const PRINT_HANDLERS = {
   Error:    (e, indent) => printMapLike('!{', e.descriptor, indent),
   Vec:      (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:      (m, indent) => printMapLike('{', m, indent),
-  Set:      (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`
+  Set:      (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
+  Conduit:  printConduit,
+  Snapshot: printSnapshot,
+  Function: printFunction
 };
 
 export function printValue(v, indent = 0) {
   return dispatchQlangValue(v, PRINT_HANDLERS, String, indent);
+}
+
+function printConduit(conduit) {
+  const name = conduit.get('name');
+  const params = conduit.get('params');
+  const body = conduit.get('qlang/body');
+  const docs = conduit.get('docs');
+  const source = body?.text ?? '…';
+  const parts = [];
+  if (Array.isArray(docs)) {
+    for (const doc of docs) parts.push(`|~~ ${doc} ~~|`);
+  }
+  const nameKw = canonicalKeywordLiteral(name);
+  if (Array.isArray(params) && params.length > 0) {
+    const paramList = params.map(p => canonicalKeywordLiteral(p)).join(', ');
+    parts.push(`let(${nameKw}, [${paramList}], ${source})`);
+  } else {
+    parts.push(`let(${nameKw}, ${source})`);
+  }
+  return parts.join('\n');
+}
+
+function printSnapshot(snapshot) {
+  return printValue(snapshot.get('qlang/value'));
+}
+
+function printFunction(fn) {
+  const arity = fn.arity ?? '?';
+  return `<function:${fn.name ?? '?'} arity=${arity}>`;
 }
 
 function escapeQlangStringLiteral(s) {
@@ -170,7 +205,10 @@ const CELL_HANDLERS = {
   Vec:      v => renderInline(v),
   Map:      m => renderInline(m),
   Set:      s => renderInline(s),
-  Error:    e => renderInline(e)
+  Error:    e => renderInline(e),
+  Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  Function: fn => `<${fn.name ?? '?'}>`
 };
 
 const INLINE_HANDLERS = {
@@ -182,6 +220,9 @@ const INLINE_HANDLERS = {
   Vec:      v => `[${v.map(renderInline).join(' ')}]`,
   Map:      m => `{${mapEntriesInline(m)}}`,
   Set:      s => `#{${[...s].map(renderInline).join(' ')}}`,
+  Conduit:  c => `let(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Snapshot: s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  Function: fn => `<${fn.name ?? '?'}>`,
   Error:    e => `!{${mapEntriesInline(e.descriptor)}}`
 };
 

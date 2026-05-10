@@ -2,7 +2,8 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType
+  keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType,
+  isQuote
 } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
@@ -12,27 +13,29 @@ import { QlangTypeError, UnresolvedIdentifierError, DivisionByZeroError } from '
 // ── makeErrorValue ──────────────────────────────────────────────
 
 describe('makeErrorValue', () => {
-  it('produces frozen error object with :trail invariant', () => {
+  it('produces frozen error object with :trail null when descriptor lacks one', () => {
     // makeErrorValue enforces the invariant that every error
-    // descriptor carries :trail as a Vec — so the descriptor
-    // returned on the wrapper is a fresh Map, not the caller's
-    // original input, when the input lacked :trail.
+    // descriptor carries :trail — null when no success-track
+    // combinator has deflected after the fault, otherwise a
+    // Quote-value carrying the joined pipeline-suffix source. The
+    // returned descriptor is a fresh Map (not the caller's
+    // original input) when the input lacked :trail.
     const descriptor = new Map([['kind', keyword('oops')]]);
     const errorVal = makeErrorValue(descriptor);
     expect(isErrorValue(errorVal)).toBe(true);
     expect(Object.isFrozen(errorVal)).toBe(true);
     expect(errorVal.type).toBe('error');
     expect(errorVal.descriptor.get('kind')).toEqual(keyword('oops'));
-    expect(errorVal.descriptor.get('trail')).toEqual([]);
+    expect(errorVal.descriptor.get('trail')).toBeNull();
   });
 
   it('preserves caller-supplied :trail in descriptor', () => {
     // When the caller already includes :trail in the descriptor
-    // — for example a re-lifted descriptor that carries a trail
-    // from an earlier fail-apply materialization, or a user literal
-    // `!{:trail [...]}` — makeErrorValue keeps the supplied Vec
-    // untouched and skips the invariant-fill branch.
-    const preTrail = ['phase-1', 'phase-2'];
+    // — typically a re-lifted descriptor carrying a Quote-value
+    // trail from an earlier fail-apply materialization — makeErrorValue
+    // keeps the supplied value untouched and skips the
+    // invariant-fill branch.
+    const preTrail = '| mul(2) | count';
     const descriptor = new Map([
       ['kind', keyword('oops')],
       ['trail', preTrail]
@@ -55,62 +58,44 @@ describe('describeType for error values', () => {
 // ── trail (appendTrailNode / materializeTrail) ──────────────────
 
 describe('trail', () => {
-  it('appendTrailNode stores entries verbatim in a linked list', () => {
-    // Under the structured-trail design, appendTrailNode accepts any
-    // qlang value as a trail entry and stores it verbatim — the
-    // eval.mjs callsites pass Maps produced by walk.mjs::astNodeToMap,
-    // but the value-class module stays agnostic about shape.
-    const trailEntry1 = new Map([
-      ['qlang/kind', keyword('OperandCall')],
-      ['name', 'count'],
-      ['text', 'count']
-    ]);
+  it('appendTrailNode stores {combinator, text} fragments in a linked list', () => {
+    // Phase 9 trail-fragment shape: a frozen `{combinator, text}`
+    // record where `combinator` is one of the COMBINATOR_SYNTAX keys
+    // ('pipe' / 'distribute' / 'merge') and `text` is the deflected
+    // step's source slice. eval.mjs::trailEntry produces this shape
+    // at every success-track combinator deflect site;
+    // materializeTrail joins the chain into a Quote source on demand.
+    const fragment1 = Object.freeze({ combinator: 'pipe', text: 'count' });
     const errorVal0 = makeErrorValue(new Map());
-    const errorVal1 = appendTrailNode(errorVal0, trailEntry1);
+    const errorVal1 = appendTrailNode(errorVal0, fragment1);
     expect(Object.isFrozen(errorVal1)).toBe(true);
-    expect(errorVal1._trailHead.entry).toBe(trailEntry1);
+    expect(errorVal1._trailHead.entry).toBe(fragment1);
     expect(errorVal1._trailHead.prev).toBeNull();
 
-    const trailEntry2 = new Map([
-      ['qlang/kind', keyword('OperandCall')],
-      ['name', 'filter'],
-      ['text', 'filter(gt(2))']
-    ]);
-    const errorVal2 = appendTrailNode(errorVal1, trailEntry2);
-    expect(errorVal2._trailHead.entry).toBe(trailEntry2);
-    expect(errorVal2._trailHead.prev.entry).toBe(trailEntry1);
+    const fragment2 = Object.freeze({ combinator: 'pipe', text: 'filter(gt(2))' });
+    const errorVal2 = appendTrailNode(errorVal1, fragment2);
+    expect(errorVal2._trailHead.entry).toBe(fragment2);
+    expect(errorVal2._trailHead.prev.entry).toBe(fragment1);
   });
 
-  it('materializeTrail returns chronological Vec of entries', () => {
-    const firstEntry  = new Map([['text', 'first']]);
-    const secondEntry = new Map([['text', 'second']]);
-    const thirdEntry  = new Map([['text', 'third']]);
+  it('materializeTrail joins chronological fragments into a Quote-value source', () => {
+    // Chronological order is reconstructed by walking the linked list
+    // and reversing — first deflect ends up first in the source.
     const errorVal0 = makeErrorValue(new Map());
-    const errorVal1 = appendTrailNode(errorVal0, firstEntry);
-    const errorVal2 = appendTrailNode(errorVal1, secondEntry);
-    const errorVal3 = appendTrailNode(errorVal2, thirdEntry);
-    const trail = materializeTrail(errorVal3);
-    expect(trail).toHaveLength(3);
-    expect(trail[0]).toBe(firstEntry);
-    expect(trail[1]).toBe(secondEntry);
-    expect(trail[2]).toBe(thirdEntry);
+    const errorVal1 = appendTrailNode(errorVal0,
+      Object.freeze({ combinator: 'pipe',       text: 'mul(2)' }));
+    const errorVal2 = appendTrailNode(errorVal1,
+      Object.freeze({ combinator: 'distribute', text: 'inc' }));
+    const errorVal3 = appendTrailNode(errorVal2,
+      Object.freeze({ combinator: 'merge',      text: 'flatten' }));
+    const quote = materializeTrail(errorVal3);
+    expect(isQuote(quote)).toBe(true);
+    expect(quote.source).toBe('| mul(2) * inc >> flatten');
   });
 
-  it('materializeTrail on fresh error returns empty', () => {
+  it('materializeTrail on fresh error returns null', () => {
     const errorVal = makeErrorValue(new Map());
-    expect(materializeTrail(errorVal)).toEqual([]);
-  });
-
-  it('stores non-Map entries unchanged — shape-agnostic storage', () => {
-    // While the production caller passes AST-Maps, types.mjs is not
-    // a validator; any qlang value (string, Vec, Scalar) round-trips
-    // through the linked list as-is. This keeps the value-class
-    // module free of AST shape knowledge.
-    const errorVal0 = makeErrorValue(new Map());
-    const errorVal1 = appendTrailNode(errorVal0, 'plain-string');
-    const errorVal2 = appendTrailNode(errorVal1, [1, 2, 3]);
-    const trail = materializeTrail(errorVal2);
-    expect(trail).toEqual(['plain-string', [1, 2, 3]]);
+    expect(materializeTrail(errorVal)).toBeNull();
   });
 });
 

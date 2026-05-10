@@ -131,17 +131,16 @@ describe('withContext — merges a context Map into the descriptor', () => {
   });
 
   it('trail continuity survives withContext re-lift', async () => {
-    // Structured trail: /trail yields Vec of AST-Maps; * /text
-    // extracts the source-text display form so the assertion can
-    // still compare against plain strings. The continuity property
-    // under test: count deflects into the trail as an AST-Map;
+    // Phase 9 trail-as-Quote: /trail yields a Quote-value carrying
+    // the joined pipeline-suffix source. The continuity property
+    // under test: `| count` deflects into the trail as a fragment;
     // after withContext + re-lift via the conduit's internal
-    // `| error`, the :trail Vec stays populated; `| add(5)` then
-    // deflects and the outer !| combines that into the exposed
-    // materialized descriptor, so the final text projection holds
-    // both step labels in chronological order.
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail * /text');
-    expect(ctxResult).toEqual(['count', 'add(5)']);
+    // `| error`, the :trail Quote stays populated; `| add(5)` then
+    // deflects and the outer !| concatenates that into the exposed
+    // materialized descriptor, so the final /source projection
+    // holds both step combinators+text in chronological order.
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail | /source');
+    expect(ctxResult).toBe('| count | add(5)');
   });
 });
 

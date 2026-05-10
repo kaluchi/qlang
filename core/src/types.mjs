@@ -142,14 +142,26 @@ export function withName(binding, newName) {
 }
 
 // ── error value factory ───────────────────────────────────────
+//
+// Under Phase 9 the `:trail` field carries either a Quote-value
+// holding the joined pipeline-suffix source — copy-pasteable code
+// the user can splice back into a query — or `null` when no
+// success-track combinator deflected after the fault. Linked-list
+// nodes hold lightweight `{combinator, text}` records;
+// materializeTrail joins them via COMBINATOR_SYNTAX into the Quote
+// source on demand inside applyFailTrack.
 
-const EMPTY_TRAIL = Object.freeze([]);
+export const COMBINATOR_SYNTAX = Object.freeze({
+  pipe:       '|',
+  distribute: '*',
+  merge:      '>>'
+});
 
 export function makeErrorValue(descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (!descriptor.has('trail')) {
     finalDescriptor = new Map(descriptor);
-    finalDescriptor.set('trail', EMPTY_TRAIL);
+    finalDescriptor.set('trail', null);
   }
   return Object.freeze({
     type: 'error',
@@ -174,11 +186,15 @@ export function appendTrailNode(errorValue, trailEntry) {
 }
 
 export function materializeTrail(errorValue) {
-  const trail = [];
+  if (errorValue._trailHead === null) return null;
+  const fragments = [];
   let cur = errorValue._trailHead;
-  while (cur) { trail.push(cur.entry); cur = cur.prev; }
-  trail.reverse();
-  return trail;
+  while (cur) { fragments.push(cur.entry); cur = cur.prev; }
+  fragments.reverse();
+  const source = fragments
+    .map(f => `${COMBINATOR_SYNTAX[f.combinator]} ${f.text}`)
+    .join(' ');
+  return makeQuote(source);
 }
 
 // ── describeType ──────────────────────────────────────────────

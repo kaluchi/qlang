@@ -352,11 +352,12 @@ describe('runtime/format.mjs structural', () => {
     const setCell = await evalQuery('[{:tags #{:a :b}}] | table');
     expect(setCell).toContain('#{:a :b}');
     // Error-valued cell: !{…} wrapped descriptor inline. The
-    // runtime materializes an error descriptor with an empty :trail
-    // Vec, so the rendered cell reflects that shape verbatim rather
-    // than the source literal.
+    // runtime materializes an error descriptor with `:trail null`
+    // when no success-track combinator has deflected past the
+    // fault, so the rendered cell reflects that shape verbatim
+    // rather than the source literal.
     const errCell = await evalQuery('[{:err !{:kind :oops}}] | table');
-    expect(errCell).toContain('!{:kind :oops :trail []}');
+    expect(errCell).toContain('!{:kind :oops :trail null}');
     // Null cell renders as an empty column, not the string "null".
     const nullCell = await evalQuery('[{:a 1 :b null} {:a 2 :b 3}] | table');
     const nullCellRow = nullCell.split('\n').find(l => l.includes('| 1 '));

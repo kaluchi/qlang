@@ -50,10 +50,17 @@ import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
+// Trail-entry shape under Phase 9: a lightweight record carrying the
+// combinator kind ('pipe' / 'distribute' / 'merge') and the source
+// `text` of the deflected step. materializeTrail joins consecutive
+// records via COMBINATOR_SYNTAX into a single Quote-value source —
+// the deflected pipeline-suffix as copy-pasteable code, not an
+// AST-Map dump.
 function trailEntry(stepNode, combinatorKind) {
-  const entry = new Map(astNodeToMap(stepNode));
-  entry.set('combinator', keyword(combinatorKind));
-  return entry;
+  return Object.freeze({
+    combinator: combinatorKind,
+    text: stepNode.text
+  });
 }
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
@@ -139,7 +146,7 @@ async function evalNode(node, state) {
 
 function buildFaultMap(stepNode, pipeValue) {
   const m = new Map();
-  m.set('step', astNodeToMap(stepNode));
+  m.set('step', makeQuote(stepNode.text));
   m.set('input', pipeValue);
   return Object.freeze(m);
 }
@@ -269,13 +276,24 @@ async function mergeFlat(state, nextNode) {
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const errorVal = state.pipeValue;
-  const combinedTrail = [
-    ...errorVal.descriptor.get('trail'),
-    ...materializeTrail(errorVal)
-  ];
+  const existingTrail = errorVal.descriptor.get('trail');
+  const newTrail = materializeTrail(errorVal);
+  const combinedTrail = combineTrailQuotes(existingTrail, newTrail);
   const materializedDescriptor = new Map(errorVal.descriptor);
   materializedDescriptor.set('trail', combinedTrail);
   return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
+}
+
+// combineTrailQuotes(existing, fresh) — both arguments are either a
+// Quote-value (carrying a pipeline-suffix source string) or null.
+// Concatenates their `.source` strings with a single space when both
+// present so the joined fragment remains a syntactically valid
+// pipeline-suffix; when only one side carries a Quote, it passes
+// through unchanged. null + null → null.
+function combineTrailQuotes(existing, fresh) {
+  if (existing === null) return fresh;
+  if (fresh === null)    return existing;
+  return makeQuote(existing.source + ' ' + fresh.source);
 }
 
 // ─── Step 1: Literals ───────────────────────────────────────────

@@ -1304,30 +1304,31 @@ step only when `pipeValue` is an error value, exposing the error's
 > "hello" | add(1) | mul(2) !| /kind
 :type-error
 
-> "hello" | add(1) | mul(2) !| /trail * /text
-["mul(2)"]
+> "hello" | add(1) | mul(2) !| /trail | /source
+"| mul(2)"
 |~| mul(2) was deflected; add(1) produced the error
 ```
 
 ### Descriptor and `:trail`
 
 When `!|` fires, it materializes the error's descriptor — the
-descriptor Map with `:trail` combined from any pre-existing entries
-plus the deflections recorded since the last materialization.
+descriptor Map with `:trail` combined from any pre-existing source
+fragment plus the deflections recorded since the last
+materialization.
 
-Each entry in `:trail` is an **AST-Map** — the structured data-form
-of the deflected step, carrying its `:qlang/kind` discriminator,
-`:name`, `:args`, `:location`, and a `:text` field with the source
-substring. Downstream code can filter, project, or re-eval trail
-entries as ordinary qlang data; the `:text` projection is the
-human-readable display form.
+`:trail` is a **Quote-value** — a frozen, copy-pasteable
+pipeline-suffix source carrying every deflected step joined with
+its leading combinator (`|`, `*`, `>>`). When no success-track
+combinator has deflected after the fault, `:trail` is `null`.
+The `/source` projection unwraps the Quote into its raw text;
+`/ast` lazy-parses it on demand.
 
 ```qlang
-> !{:kind :oops} | count | add(1) !| /trail * /text
-["count" "add(1)"]
+> !{:kind :oops} | count | add(1) !| /trail | /source
+"| count | add(1)"
 
-> !{:kind :oops} | count | add(1) !| /trail | first | /name
-"count"
+> !{:kind :oops} !| /trail
+null
 ```
 
 The `!{}` literal from Part 1 can seed an error directly — the

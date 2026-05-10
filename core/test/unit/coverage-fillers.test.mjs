@@ -389,23 +389,24 @@ describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () 
   });
 });
 
-describe('types.mjs — appendTrailNode stores entries verbatim without shape assumptions', async () => {
-  it('stores a synthetic entry exactly as passed on the trail head', async () => {
-    // Under the structured-trail design appendTrailNode is entry-
-    // shape-agnostic: it stamps whatever qlang value the caller
-    // hands it onto the linked list head with no inspection. The
-    // production callsites in eval.mjs pass AST-Maps produced by
-    // walk.mjs::astNodeToMap, but the value-class module does not
-    // enforce that. A hand-rolled synthetic entry (here a Scalar
-    // string) round-trips through _trailHead → materializeTrail
-    // unchanged, proving the storage is verbatim.
-    const { appendTrailNode, materializeTrail } = await import('../../src/types.mjs');
+describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on the trail head', async () => {
+  it('stamps the fragment frozen-as-given and materializes through COMBINATOR_SYNTAX', async () => {
+    // appendTrailNode stamps the fragment record onto _trailHead in
+    // chronological order. Production callsites in eval.mjs::trailEntry
+    // produce a `{combinator, text}` shape — `combinator` ∈
+    // COMBINATOR_SYNTAX keys, `text` the deflected step's source slice.
+    // materializeTrail walks the chain and joins each fragment via
+    // `${COMBINATOR_SYNTAX[combinator]} ${text}` into the
+    // pipeline-suffix Quote source.
+    const { appendTrailNode, materializeTrail, isQuote } = await import('../../src/types.mjs');
     const errVal = makeErrorValue(new Map([['kind', keyword('type-error')]]));
-    const syntheticEntry = 'synthetic-trail-label';
-    const trailed = appendTrailNode(errVal, syntheticEntry);
+    const fragment = Object.freeze({ combinator: 'pipe', text: 'count' });
+    const trailed = appendTrailNode(errVal, fragment);
     expect(isErrorValue(trailed)).toBe(true);
-    expect(trailed._trailHead.entry).toBe(syntheticEntry);
-    expect(materializeTrail(trailed)).toEqual([syntheticEntry]);
+    expect(trailed._trailHead.entry).toBe(fragment);
+    const quote = materializeTrail(trailed);
+    expect(isQuote(quote)).toBe(true);
+    expect(quote.source).toBe('| count');
   });
 });
 
@@ -1105,7 +1106,7 @@ describe('printValue round-trip — all composite types', async () => {
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind :oops :trail []}', 'Error trail');
+    await assertRoundTrip('!{:kind :oops :trail `| count`}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

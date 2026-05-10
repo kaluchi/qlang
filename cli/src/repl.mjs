@@ -19,8 +19,9 @@
 //     script mode stays silent without `@out` by design.
 //   * Error values auto-materialize their trail before display —
 //     deflected steps accumulated in `_trailHead` are folded into
-//     the `:trail` Vec so the printed output shows the full
-//     picture without requiring an explicit `!|` step.
+//     the `:trail` Quote-value so the printed output shows the
+//     full pipeline-suffix source without requiring an explicit
+//     `!|` step.
 //   * `@in` resolves to the empty String — interactive stdin is
 //     consumed by the prompt itself, so reading "stdin" from
 //     inside a cell would deadlock against the line editor.
@@ -36,6 +37,7 @@ import {
   printValue,
   isErrorValue,
   materializeTrail,
+  makeQuote,
   langRuntime
 } from '@kaluchi/qlang-core';
 import { bindIoOperands } from './io-operands.mjs';
@@ -172,12 +174,13 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
 const TRAIL_KEY = 'trail';
 
 function materializeForDisplay(errorValue) {
-  const trailEntries = materializeTrail(errorValue);
-  if (trailEntries.length === 0) return errorValue;
+  const freshTrail = materializeTrail(errorValue);
+  if (freshTrail === null) return errorValue;
+  const existingTrail = errorValue.descriptor.get(TRAIL_KEY);
+  const combinedTrail = existingTrail === null
+    ? freshTrail
+    : makeQuote(existingTrail.source + ' ' + freshTrail.source);
   const desc = new Map(errorValue.descriptor);
-  desc.set(TRAIL_KEY, [
-    ...errorValue.descriptor.get(TRAIL_KEY),
-    ...trailEntries
-  ]);
+  desc.set(TRAIL_KEY, combinedTrail);
   return Object.freeze({ ...errorValue, descriptor: desc, _trailHead: null });
 }

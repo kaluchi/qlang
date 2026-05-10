@@ -1340,6 +1340,34 @@ def(:keyword, {:qlang/kind :builtin
 
 
 
+|~ ──────────────── Type bindings ──────────────── ~|
+
+|~~ Conduit literal — invokeable lexically-scoped value carrying
+    a frozen body AST plus optional self-name and parameter list.
+    Payload Vec shape:
+      [params body]            — non-recursive, params is a Vec
+                                 of Keywords, body is a Quote.
+      [:self params body]      — with self-name for recursion;
+                                 inside body the identifier
+                                 matching :self resolves to the
+                                 conduit itself.
+    Body Quote source is parsed at construction time; the
+    returned Conduit-value captures the env at the call site
+    through a tie-the-knot envRef so recursive references resolve
+    against the lexical scope. ~~|
+def(::conduit, {:qlang/kind :type
+                :qlang/impl :qlang/prim/conduit
+                :spec {:payload :vec}
+                :examples [
+                  {:doc "non-recursive 0-arg" :snippet "def(:double, ::conduit[[] `mul(2)`]) | 5 | double" :expected "10"}]
+                :throws [
+                  :ConduitPayloadNotVec
+                  :ConduitArityInvalid
+                  :ConduitSelfNameNotKeyword
+                  :ConduitParamsNotVec
+                  :ConduitParamNotKeyword
+                  :ConduitBodyNotQuote]})
+
 |~ ──────────────── Self-reference ──────────────── ~|
 
 |~~ Pipeline-transparent declarative binding under three arities

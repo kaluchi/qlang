@@ -50,9 +50,13 @@ export function astChildrenOf(node) {
         for (const arg of node.args) out.push(arg);
       }
       break;
+    case 'TaggedLit':
+      out.push(node.payload);
+      break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
     // Projection, QuoteLit (frozen source, lazy AST), DocLit (frozen
-    // content), LinePlainComment, BlockPlainComment, LineDocComment,
+    // content), BareTypeKeyword (type-namespace identifier),
+    // LinePlainComment, BlockPlainComment, LineDocComment,
     // BlockDocComment have no semantic children.
   }
   return out;
@@ -261,6 +265,8 @@ export function triviaBetweenAstNodes(nodeA, nodeB, ast) {
 //                      carries null combinator, rest carry "|", "!|",
 //                      "*", or ">>")
 //   DocLit            :content <string>
+//   TaggedLit         :tag <string> :payload <AST-Map>
+//   BareTypeKeyword   :tag <string>
 //   LinePlainComment  :content <string>
 //   BlockPlainComment :content <string>
 //   LineDocComment    :content <string>
@@ -315,6 +321,8 @@ const KIND_MAP_LIT             = keyword('MapLit');
 const KIND_ERROR_LIT           = keyword('ErrorLit');
 const KIND_QUOTE_LIT           = keyword('QuoteLit');
 const KIND_DOC_LIT             = keyword('DocLit');
+const KIND_TAGGED_LIT          = keyword('TaggedLit');
+const KIND_BARE_TYPE_KEYWORD   = keyword('BareTypeKeyword');
 const KIND_MAP_ENTRY           = keyword('MapEntry');
 const KIND_OPERAND_CALL        = keyword('OperandCall');
 const KIND_PAREN_GROUP         = keyword('ParenGroup');
@@ -341,6 +349,8 @@ const AST_KIND_TO_TYPE = new Map([
   ['ErrorLit',           'ErrorLit'],
   ['QuoteLit',           'QuoteLit'],
   ['DocLit',             'DocLit'],
+  ['TaggedLit',          'TaggedLit'],
+  ['BareTypeKeyword',    'BareTypeKeyword'],
   ['MapEntry',           'MapEntry'],
   ['OperandCall',        'OperandCall'],
   ['ParenGroup',         'ParenGroup'],
@@ -505,6 +515,17 @@ export function astNodeToMap(node) {
       m.set(F_CONTENT, node.content);
       break;
 
+    case 'TaggedLit':
+      m.set(F_QLANG_KIND, KIND_TAGGED_LIT);
+      m.set('tag', node.tag);
+      m.set('payload', astNodeToMap(node.payload));
+      break;
+
+    case 'BareTypeKeyword':
+      m.set(F_QLANG_KIND, KIND_BARE_TYPE_KEYWORD);
+      m.set('tag', node.tag);
+      break;
+
     case 'MapEntry':
       m.set(F_QLANG_KIND, KIND_MAP_ENTRY);
       m.set(F_KEY,   astNodeToMap(node.key));
@@ -653,6 +674,15 @@ export function qlangMapToAst(map) {
 
     case 'DocLit':
       node.content = map.get(F_CONTENT);
+      break;
+
+    case 'TaggedLit':
+      node.tag = map.get('tag');
+      node.payload = qlangMapToAst(map.get('payload'));
+      break;
+
+    case 'BareTypeKeyword':
+      node.tag = map.get('tag');
       break;
 
     case 'MapEntry':

@@ -85,6 +85,7 @@ async function builtinCompletions() {
   _builtinCompletions = [];
   for (const [k, descriptor] of runtime) {
     if (k.startsWith('qlang/ast/')) continue;
+    if (k.startsWith('::')) continue;
     _builtinCompletions.push({
       label: k,
       kind: 'function',

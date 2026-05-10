@@ -465,14 +465,17 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   return withPipeValue(state, runExResults);
 });
 
-// manifest — Vec of descriptors, one per binding in env, sorted by
-// name. Reserved namespace `qlang/ast/<uri>` carries module Quote
-// storage for axis-operand traversal and is filtered out — those
-// entries are runtime housekeeping, not user-visible bindings.
+// manifest — Vec of descriptors, one per value-namespace binding
+// in env, sorted by name. Reserved namespaces filtered:
+//   `qlang/ast/<uri>` — module Quote storage for axis-operand traversal
+//   `::<tag>`         — type-namespace bindings (type definitions)
+// Both are runtime housekeeping or live in a parallel namespace,
+// not the value-level operand catalog manifest is documenting.
 export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
   const entries = [];
   for (const [k, v] of state.env) {
     if (k.startsWith('qlang/ast/')) continue;
+    if (k.startsWith('::')) continue;
     entries.push({ name: k, key: k, value: v });
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));
@@ -509,6 +512,7 @@ function isPureLiteralAst(node) {
     case 'Keyword':
     case 'QuoteLit':
     case 'DocLit':
+    case 'BareTypeKeyword':
       return true;
     case 'VecLit':
     case 'SetLit':
@@ -516,6 +520,8 @@ function isPureLiteralAst(node) {
     case 'MapLit':
     case 'ErrorLit':
       return node.entries.every(e => isPureLiteralAst(e.value));
+    case 'TaggedLit':
+      return isPureLiteralAst(node.payload);
     default:
       return false;
   }
@@ -561,11 +567,23 @@ export const defOperand = stateOpVariadic('def', 16, async (state, defLambdas) =
     throw new DefArityInvalid({ actualCount: argCount });
   }
 
-  const nameValue = await defLambdas[0](state.pipeValue);
-  if (!isKeyword(nameValue)) {
-    throw new DefNameNotKeyword({ actualType: typeKeyword(nameValue), actualValue: nameValue });
+  // The name argument may be either a Keyword (`def(:foo, ...)` —
+  // value-namespace binding) or a BareTypeKeyword AST node
+  // (`def(::foo, ...)` — type-namespace binding stored in env under
+  // the `::`-prefixed key). The grammar disambiguates them; we
+  // route by inspecting the captured-arg AST shape before
+  // evaluating it.
+  const nameAst = defLambdas[0].astNode;
+  let bindingName;
+  if (nameAst && nameAst.type === 'BareTypeKeyword') {
+    bindingName = '::' + nameAst.tag;
+  } else {
+    const nameValue = await defLambdas[0](state.pipeValue);
+    if (!isKeyword(nameValue)) {
+      throw new DefNameNotKeyword({ actualType: typeKeyword(nameValue), actualValue: nameValue });
+    }
+    bindingName = nameValue.name;
   }
-  const bindingName = nameValue.name;
   const attachedDocs = defLambdas.docs;
 
   if (argCount === 1) {

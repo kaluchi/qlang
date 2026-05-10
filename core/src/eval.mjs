@@ -49,6 +49,7 @@ import {
 import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
+import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 
 // Trail-fragment record stamped onto the linked-list head at every
 // success-track combinator deflect site. `combinator` is one of the
@@ -65,6 +66,10 @@ function trailEntry(stepNode, combinatorKind) {
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
   ({ key, actualType }) => `/${key} requires Map subject, got ${actualType.name}`);
+const TaggedLitTagNotFound = declareShapeError('TaggedLitTagNotFound',
+  ({ tag }) => `::${tag} — type binding not found in env`);
+const TaggedLitNotType = declareShapeError('TaggedLitNotType',
+  ({ tag, actualType }) => `::${tag} — type binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :type`);
 const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'Vec');
 const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
 const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
@@ -117,6 +122,8 @@ const AST_NODE_EVALUATORS = {
   SetLit:            evalSetLit,
   QuoteLit:          evalQuoteLit,
   DocLit:            evalDocLit,
+  TaggedLit:         evalTaggedLit,
+  BareTypeKeyword:   evalBareTypeKeyword,
   Projection:        evalProjection,
   OperandCall:       evalOperandCall,
   ParenGroup:        evalParenGroup,
@@ -339,6 +346,46 @@ function evalQuoteLit(node, state) {
 
 function evalDocLit(node, state) {
   return withPipeValue(state, makeDoc(node.content));
+}
+
+// ::tag<payload> — type-namespace constructor invocation. Eval the
+// payload sub-expression in a fork (inheriting outer pipeValue),
+// look up the type binding under `::tag`, resolve its constructor,
+// invoke against the payload-value. The result becomes the new
+// pipeValue.
+async function evalTaggedLit(node, state) {
+  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
+  const payloadValue = payloadFork.pipeValue;
+  const typeKey = '::' + node.tag;
+  if (!envHas(state.env, typeKey)) {
+    throw new TaggedLitTagNotFound({ tag: node.tag });
+  }
+  let typeBinding = envGet(state.env, typeKey);
+  if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('qlang/value');
+  if (!isQMap(typeBinding)) {
+    throw new TaggedLitNotType({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
+  }
+  // User-defined types via `def(::tag, descriptor)` carry the
+  // :qlang/impl as a keyword handle until invocation; resolve it
+  // through PRIMITIVE_REGISTRY here. Built-in types loaded by
+  // langRuntime are already function-resolved at bootstrap time.
+  const implRaw = typeBinding.get('qlang/impl');
+  const impl = isKeyword(implRaw) ? PRIMITIVE_REGISTRY.resolve(implRaw.name) : implRaw;
+  const value = await impl(payloadValue, state);
+  return withPipeValue(state, value);
+}
+
+// ::tag — bare reference to the type binding. Returns the
+// descriptor Map directly so axis-operands like `::tag | spec` /
+// `::tag | docs` can project off it.
+async function evalBareTypeKeyword(node, state) {
+  const typeKey = '::' + node.tag;
+  if (!envHas(state.env, typeKey)) {
+    throw new TaggedLitTagNotFound({ tag: node.tag });
+  }
+  let typeBinding = envGet(state.env, typeKey);
+  if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('qlang/value');
+  return withPipeValue(state, typeBinding);
 }
 
 async function evalSetLit(node, state) {

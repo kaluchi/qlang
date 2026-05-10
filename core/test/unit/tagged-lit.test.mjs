@@ -1,0 +1,174 @@
+// Tests for TaggedLit / BareTypeKeyword grammar + eval — the
+// type-namespace literal form. Type bindings live in env under the
+// `::`-prefixed key; ::tag<payload> looks up the binding, resolves
+// its constructor, and invokes it against the payload-value.
+
+import { describe, it, expect } from 'vitest';
+import { evalQuery } from '../../src/eval.mjs';
+import { parse } from '../../src/parse.mjs';
+import { isErrorValue, keyword, describeType } from '../../src/types.mjs';
+
+describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
+  it('parses ::conduit[[] body] as TaggedLit with Vec payload', () => {
+    const ast = parse('::conduit[[] `mul(2)`]');
+    expect(ast.type).toBe('TaggedLit');
+    expect(ast.tag).toBe('conduit');
+    expect(ast.payload.type).toBe('VecLit');
+  });
+
+  it('parses bare ::tag (no payload) as BareTypeKeyword', () => {
+    const ast = parse('::conduit');
+    expect(ast.type).toBe('BareTypeKeyword');
+    expect(ast.tag).toBe('conduit');
+  });
+
+  it('TaggedLit has higher priority than BareTypeKeyword in ordered choice', () => {
+    const ast = parse('::conduit{:k 1}');
+    expect(ast.type).toBe('TaggedLit');
+    expect(ast.payload.type).toBe('MapLit');
+  });
+});
+
+describe('::conduit constructor builds a Conduit-value', () => {
+  it('non-recursive 0-param produces a Conduit', async () => {
+    const result = await evalQuery('::conduit[[] `mul(2)`]');
+    expect(describeType(result)).toBe('Conduit');
+  });
+
+  it('Conduit invokes through def + identifier lookup', async () => {
+    const result = await evalQuery('def(:double, ::conduit[[] `mul(2)`]) | 5 | double');
+    expect(result).toBe(10);
+  });
+
+  it('parametric Conduit binds captured args', async () => {
+    const result = await evalQuery(
+      'def(:@surround, ::conduit[[:pfx :sfx] `prepend(pfx) | append(sfx)`]) | "x" | @surround("[", "]")'
+    );
+    expect(result).toBe('[x]');
+  });
+
+  it('3-element payload with self-name produces a recursive Conduit', async () => {
+    const result = await evalQuery(
+      'def(:walk, ::conduit[:walk [] `if(empty, 0, first | add(1))`]) | [1 2 3] | walk'
+    );
+    expect(result).toBe(2);
+  });
+});
+
+describe('def(::tag, descriptor) registers a type-namespace binding', () => {
+  it('makes ::myType invokable through the ::conduit constructor handle', async () => {
+    const result = await evalQuery(
+      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/prim/conduit}) | def(:f, ::myType[[] `add(1)`]) | 4 | f'
+    );
+    expect(result).toBe(5);
+  });
+});
+
+describe('BareTypeKeyword resolves to the type binding descriptor', () => {
+  it('::conduit returns a descriptor Map with :qlang/kind :type', async () => {
+    const result = await evalQuery('::conduit | /:qlang/kind');
+    expect(result).toEqual(keyword('type'));
+  });
+
+  it('runtime-defined ::tag through def() unwraps the snapshot wrapper', async () => {
+    const result = await evalQuery('def(::myT, {:qlang/kind :type :marker 42}) | ::myT | /:marker');
+    expect(result).toBe(42);
+  });
+});
+
+describe('TaggedLit error paths', () => {
+  it('raises TaggedLitTagNotFound for an unbound tag in TaggedLit', async () => {
+    const err = await evalQuery('::unboundTag[]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('TaggedLitTagNotFound'));
+  });
+
+  it('raises TaggedLitTagNotFound for an unbound bare ::tag reference', async () => {
+    const err = await evalQuery('::unboundBare');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('TaggedLitTagNotFound'));
+  });
+
+  it('raises TaggedLitNotType when type-binding resolves to a non-Map value', async () => {
+    const err = await evalQuery('def(::badType, 42) | ::badType[]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('TaggedLitNotType'));
+  });
+
+  it('::conduit raises ConduitPayloadNotVec when payload is not a Vec', async () => {
+    const err = await evalQuery('::conduit{:not :a-vec}');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitPayloadNotVec'));
+  });
+
+  it('::conduit raises ConduitArityInvalid for 1-element payload', async () => {
+    const err = await evalQuery('::conduit[42]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitArityInvalid'));
+  });
+
+  it('::conduit raises ConduitSelfNameNotKeyword for 3-element payload with non-keyword selfName', async () => {
+    const err = await evalQuery('::conduit[42 [] `mul(2)`]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitSelfNameNotKeyword'));
+  });
+
+  it('::conduit raises ConduitParamsNotVec when params slot is not a Vec', async () => {
+    const err = await evalQuery('::conduit[42 `mul(2)`]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitParamsNotVec'));
+  });
+
+  it('::conduit raises ConduitParamNotKeyword when a params element is not a Keyword', async () => {
+    const err = await evalQuery('::conduit[[42] `mul(2)`]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitParamNotKeyword'));
+  });
+
+  it('::conduit raises ConduitBodyNotQuote when body is not a Quote', async () => {
+    const err = await evalQuery('::conduit[[] 42]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitBodyNotQuote'));
+  });
+});
+
+describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
+  it('TaggedLit round-trips through astNodeToMap / qlangMapToAst', async () => {
+    const { astNodeToMap, qlangMapToAst } = await import('../../src/walk.mjs');
+    const ast = parse('::conduit[[] `mul(2)`]');
+    const back = qlangMapToAst(astNodeToMap(ast));
+    expect(back.type).toBe('TaggedLit');
+    expect(back.tag).toBe('conduit');
+    expect(back.payload.type).toBe('VecLit');
+  });
+
+  it('BareTypeKeyword round-trips through astNodeToMap / qlangMapToAst', async () => {
+    const { astNodeToMap, qlangMapToAst } = await import('../../src/walk.mjs');
+    const ast = parse('::conduit');
+    const back = qlangMapToAst(astNodeToMap(ast));
+    expect(back.type).toBe('BareTypeKeyword');
+    expect(back.tag).toBe('conduit');
+  });
+});
+
+describe('printValue named conduit paths', () => {
+  it('zero-arity named conduit renders as def(:name, body)', async () => {
+    const { printValue } = await import('../../src/runtime/format.mjs');
+    const value = await evalQuery('def(:double, mul(2)) | env | /:double');
+    expect(printValue(value)).toBe('def(:double, mul(2))');
+  });
+
+  it('parametric named conduit renders with params', async () => {
+    const { printValue } = await import('../../src/runtime/format.mjs');
+    const value = await evalQuery('def(:wrap, [:p :s], prepend(p) | append(s)) | env | /:wrap');
+    expect(printValue(value)).toBe('def(:wrap, [:p, :s], prepend(p) | append(s))');
+  });
+});
+
+describe('printValue Conduit handles named vs anonymous form', () => {
+  it('anonymous Conduit renders as ::conduit[...] tagged literal', async () => {
+    const { printValue } = await import('../../src/runtime/format.mjs');
+    const value = await evalQuery('::conduit[[] `mul(2)`]');
+    expect(printValue(value)).toBe('::conduit[[] `mul(2)`]');
+  });
+});

@@ -379,9 +379,26 @@ Primary
   / MapLit
   / QuoteLit
   / DocLit
+  / TaggedLit
+  / BareTypeKeyword
   / Projection
   / OperandCall
   / Scalar
+
+// TaggedLit / BareTypeKeyword — type-namespace identifiers under a
+// `::` prefix. `::tag<container>` (TaggedLit) constructs a value
+// through the type's registered constructor; `::tag` alone
+// (BareTypeKeyword) is an identifier reference to the type binding
+// itself. PEG ordered choice tries TaggedLit first; if no Primary
+// follows the tag identifier, parsing backtracks to BareTypeKeyword
+// so a bare reference like `::duration | spec` parses cleanly.
+TaggedLit
+  = "::" tag:Ident _ payload:Primary
+    { return node('TaggedLit', { tag, payload }, location(), text()); }
+
+BareTypeKeyword
+  = "::" tag:Ident
+    { return node('BareTypeKeyword', { tag }, location(), text()); }
 
 ParenGroup
   = "(" _ p:Pipeline _ ")"

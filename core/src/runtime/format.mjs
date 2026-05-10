@@ -134,20 +134,22 @@ function printConduit(conduit) {
   const name = conduit.get('name');
   const params = conduit.get('params');
   const body = conduit.get('qlang/body');
-  const docs = conduit.get('docs');
   const source = body?.text ?? '…';
-  const parts = [];
-  if (Array.isArray(docs)) {
-    for (const doc of docs) parts.push(`|~~ ${doc} ~~|`);
+  const docPrefix = conduit.get('docs').map(doc => `|~~ ${doc} ~~|\n`).join('');
+  const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(', ')}]`;
+  // Anonymous conduits (no name) render as the canonical
+  // `::conduit[...]` tagged literal — the form an author would
+  // type to construct one inline. Named conduits render as the
+  // def-step that introduced them, so reify of a `def`-bound
+  // conduit round-trips back through the same syntax.
+  if (name == null) {
+    return `${docPrefix}::conduit[${paramList} \`${source}\`]`;
   }
   const nameKw = canonicalKeywordLiteral(name);
-  if (Array.isArray(params) && params.length > 0) {
-    const paramList = params.map(p => canonicalKeywordLiteral(p)).join(', ');
-    parts.push(`def(${nameKw}, [${paramList}], ${source})`);
-  } else {
-    parts.push(`def(${nameKw}, ${source})`);
+  if (params.length > 0) {
+    return `${docPrefix}def(${nameKw}, ${paramList}, ${source})`;
   }
-  return parts.join('\n');
+  return `${docPrefix}def(${nameKw}, ${source})`;
 }
 
 function printSnapshot(snapshot) {

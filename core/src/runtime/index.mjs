@@ -48,12 +48,13 @@ import './predicates.mjs';
 import './control.mjs';
 import './error.mjs';
 import './keyword-op.mjs';
+import './tagged.mjs';
 import './intro.mjs';
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { isKeyword, makeQuote } from '../types.mjs';
+import { makeQuote } from '../types.mjs';
 import { astNodeToMap } from '../walk.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
@@ -109,18 +110,14 @@ export async function langRuntime() {
       }
 
       // Resolve :qlang/impl keywords to function values. After this
-      // pass every builtin descriptor carries its executable impl
-      // directly — dispatch reads the function from the descriptor
-      // without consulting the registry at call time. The bootstrap
-      // def descriptor is replaced by the canonical one carried in
-      // CORE_SOURCE itself; no special-case for it.
+      // pass every descriptor (builtin operand or tagged type)
+      // carries its executable impl directly — dispatch reads the
+      // function from the descriptor without consulting the
+      // registry at call time.
       for (const descriptor of templateEnv.values()) {
-        const qlKind = descriptor instanceof Map && descriptor.get('qlang/kind');
-        if (qlKind && qlKind.name === 'builtin') {
+        if (descriptor instanceof Map) {
           const implKey = descriptor.get('qlang/impl');
-          if (isKeyword(implKey) && PRIMITIVE_REGISTRY.has(implKey.name)) {
-            descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
-          }
+          descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
         }
       }
 

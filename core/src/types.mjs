@@ -83,6 +83,22 @@ export function vecLikeOf(items, source) {
   return isJsonArray(source) ? makeJsonArray(items) : items;
 }
 
+// Per-element transformers (`*`, `>>`) preserve a JsonArray subject's
+// tag only when every produced element is itself JSON-storeable —
+// scalar Null/Boolean/Number/String or a JSON-shape Object/Array.
+// A qlang-only element (Keyword, Map, Set, Vec, Conduit, …) silently
+// degrades the container to a qlang Vec, so a downstream `| json`
+// catches the type mismatch loudly instead of silently emitting a
+// JSON Array of un-serialisable values.
+export function isJsonStoreable(v) {
+  return v === null
+    || typeof v === 'boolean'
+    || typeof v === 'number'
+    || typeof v === 'string'
+    || isJsonObject(v)
+    || isJsonArray(v);
+}
+
 export function mapLikeOf(entries, source) {
   if (isJsonObject(source)) {
     const obj = {};

@@ -45,7 +45,8 @@ import {
   isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
-  isJsonObject, isJsonArray, isVecShape, vecLikeOf, isQuote
+  isJsonObject, isJsonArray, isVecShape, isQuote,
+  isJsonStoreable
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -242,7 +243,8 @@ async function distribute(state, bodyNode) {
       forkWith(state, vecElement, inner => evalNode(bodyNode, inner))
     )
   );
-  return withPipeValue(state, vecLikeOf(forkResults.map(forkedState => forkedState.pipeValue), subjectVec));
+  const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
+  return withPipeValue(state, retagPerElement(distributeResults, subjectVec));
 }
 
 async function mergeFlat(state, nextNode) {
@@ -260,7 +262,18 @@ async function mergeFlat(state, nextNode) {
     if (isVecShape(flatItem)) flattened.push(...flatItem);
     else flattened.push(flatItem);
   }
-  return await evalNode(nextNode, withPipeValue(state, vecLikeOf(flattened, sourceVec)));
+  return await evalNode(nextNode, withPipeValue(state, retagPerElement(flattened, sourceVec)));
+}
+
+// Per-element transformer tagger: if the source was a JsonArray, the
+// output keeps the JSON tag only when every element is JSON-storeable.
+// A single qlang-only element (Map/Set/Vec/Conduit/Keyword/…) silently
+// degrades the container to a qlang Vec — `| json` downstream will
+// then loud-fail on the qlang shape rather than silently emit a
+// JsonArray of un-serialisable values.
+function retagPerElement(items, source) {
+  if (!isJsonArray(source)) return items;
+  return items.every(isJsonStoreable) ? makeJsonArray(items) : items;
 }
 
 // applyFailTrack(state, stepNode) — `!|` combinator implementation.

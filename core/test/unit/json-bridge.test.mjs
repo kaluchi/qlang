@@ -147,6 +147,39 @@ describe('::qlang on actual JSON-tagged value recurses through containers', () =
   });
 });
 
+describe('* and >> retag per element on JsonArray subject', () => {
+  it('JsonArray * (number → number) keeps JsonArray tag', async () => {
+    expect(await evalQuery('::json[1 2 3] * add(10) | isJsonArray')).toBe(true);
+  });
+
+  it('JsonArray * (number → keyword) degrades to qlang Vec', async () => {
+    expect(await evalQuery('::json[1 2 3] * keyword | isJsonArray')).toBe(false);
+    expect(await evalQuery('::json[1 2 3] * keyword | isVec')).toBe(true);
+  });
+
+  it('JsonArray * (number → JsonObject) keeps JsonArray tag', async () => {
+    expect(await evalQuery('::json[1 2 3] * (as(:n) | ::json{:n n}) | isJsonArray')).toBe(true);
+  });
+
+  it('JsonArray * (number → qlang Map) degrades to qlang Vec', async () => {
+    expect(await evalQuery('::json[1 2 3] * (as(:n) | {:n n}) | isJsonArray')).toBe(false);
+    expect(await evalQuery('::json[1 2 3] * (as(:n) | {:n n}) | isVec')).toBe(true);
+  });
+
+  it('qlang Vec * anything stays qlang Vec', async () => {
+    expect(await evalQuery('[1 2 3] * add(10) | isVec')).toBe(true);
+    expect(await evalQuery('[1 2 3] * add(10) | isJsonArray')).toBe(false);
+  });
+
+  it('JsonArray >> stays JsonArray when flattened elements all JSON-storeable', async () => {
+    expect(await evalQuery('::json[::json[1 2] ::json[3 4]] >> take(99) | isJsonArray')).toBe(true);
+  });
+
+  it('JsonArray >> degrades to qlang Vec when any flat element is qlang-only', async () => {
+    expect(await evalQuery('::json[[:a :b] [:c]] >> take(99) | isJsonArray')).toBe(false);
+  });
+});
+
 describe('container-shape operands preserve JSON-tag on output', () => {
   it('filter on a JsonObject returns a JsonObject', async () => {
     const result = await evalQuery('::json{:a 1 :b 2 :c 3} | filter(gte(2)) | isJsonObject');

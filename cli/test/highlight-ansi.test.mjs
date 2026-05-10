@@ -22,6 +22,11 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
+  it('wraps a backtick Quote in the italic-green escape pair', () => {
+    const out = highlightAnsi('`mul(2)`', noBuiltins);
+    expect(out).toBe('\x1b[3;32m`mul(2)`\x1b[0m');
+  });
+
   it('wraps a `:keyword` atom in the cyan escape pair', () => {
     const out = highlightAnsi(':active', noBuiltins);
     expect(out).toBe('\x1b[36m:active\x1b[0m');

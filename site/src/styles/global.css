@@ -306,6 +306,12 @@ code, pre {
 .repl-input-highlight .string,
 .repl-entry-input .string, .repl-entry-output .string   { color: #b45309; }
 
+.code-editor-body .quote,
+.pg-source .quote,         .pg-value .quote,
+.playground-highlight .quote,
+.repl-input-highlight .quote,
+.repl-entry-input .quote,  .repl-entry-output .quote    { color: #b45309; font-style: italic; }
+
 .code-editor-body .number,
 .pg-source .number,        .pg-value .number,
 .playground-highlight .number,

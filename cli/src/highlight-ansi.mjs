@@ -21,6 +21,9 @@ const ANSI_RESET = '\x1b[0m';
 // particular blends both into the background on a dark scheme.
 const KIND_TO_ANSI = {
   string:   '\x1b[32m',     // green
+  quote:    '\x1b[3;32m',   // italic green — backtick-Quote is code-
+                            // in-string-form, same hue as string
+                            // with italic to mark "executable"
   number:   '\x1b[33m',     // yellow
   comment:  '\x1b[2m',      // dim
   atom:     '\x1b[36m',     // cyan

@@ -488,7 +488,7 @@ shapes are supported:
 ### Bare form — zero captured args
 
 - **Arity** 1. **Subject** `vec` — a non-empty Vec of operands.
-- Left-fold: `[a, b, c] | union` = `(a ∪ b) ∪ c`. Same for `minus`
+- Left-fold: `[a b c] | union` = `(a ∪ b) ∪ c`. Same for `minus`
   and `inter`.
 - **Examples**:
   - `[#{:a :b :c} #{:b :d}] | union` → `#{:a :b :c :d}`.
@@ -719,7 +719,7 @@ information. Each classifier matches exactly one
 
 - **Arity** 1. **Subject** any value.
 - Returns a JSON string representation of the subject.
-- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`.
+- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2 3]}"`.
 
 ### `table`
 
@@ -889,7 +889,7 @@ descend-compute-ascend pattern of pure operands.
   Map can be inspected further or discarded by the next step.
   On conflict, the incoming Map wins.
 - **Examples**:
-  - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi, e]`
+  - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi e]`
     → `[3.14159 2.71828]`.
   - Shadow a built-in: `def(:use, mul(2)) | 5 | use` → `10`
     (the user's `let` shadows the reflective `use`).
@@ -939,10 +939,10 @@ depends on the value's provenance. Four descriptor kinds:
   authored as keywords; `:throws` is a Vec of keywords (not
   strings) matching the per-site error class names that
   downstream consumers filter on. The `:captured` field is a
-  2-element Vec `[min, max]` describing the range of captured-
+  2-element Vec `[min max]` describing the range of captured-
   arg counts the operand accepts. Fixed operands have
   `min == max` (e.g. `count` has `[0 0]`; `filter` has
-  `[1 1]`). Partial/full-applicable operands have `[n-1, n]`
+  `[1 1]`). Partial/full-applicable operands have `[n-1 n]`
   (`add` has `[1 2]`). Overloaded operands span the Object
   keys of their impl dispatch table (`sort` has `[0 1]`).
   Variadic operands use the `:unbounded` keyword as the upper
@@ -1054,7 +1054,7 @@ missing). This is the introspection-by-name path:
   values wrapping captured-arg lambdas).
 - **Examples**:
   - `def(:double, mul(2)) | 10 | double` → `20`.
-  - `def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
+  - `def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
 - **Errors**: name not a keyword → `LetNameNotKeyword`; params not
   a Vec of keywords → `LetParamsNotVecOfKeywords`; fewer than 2
   captured args → `LetBodyMissing`; clean name with effectful body

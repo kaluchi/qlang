@@ -5,7 +5,10 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
-import { keyword, isQMap, isQSet, isKeyword } from '../types.mjs';
+import {
+  keyword, isQSet, isKeyword,
+  isMapShape, mapShapeEntries, mapShapeHas
+} from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -15,21 +18,23 @@ const HasSubjectNotMapOrSet = declareSubjectError('HasSubjectNotMapOrSet', 'has'
 const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'Keyword (Map subject)');
 
 export const keys = nullaryOp('keys', (map) => {
-  if (!isQMap(map)) throw new KeysSubjectNotMap(map);
+  if (!isMapShape(map)) throw new KeysSubjectNotMap(map);
   const result = new Set();
-  for (const k of map.keys()) result.add(keyword(k));
+  for (const [k] of mapShapeEntries(map)) result.add(keyword(k));
   return result;
 });
 
 export const vals = nullaryOp('vals', (map) => {
-  if (!isQMap(map)) throw new ValsSubjectNotMap(map);
-  return [...map.values()];
+  if (!isMapShape(map)) throw new ValsSubjectNotMap(map);
+  const out = [];
+  for (const [, v] of mapShapeEntries(map)) out.push(v);
+  return out;
 });
 
 export const has = valueOp('has', 2, (subject, key) => {
-  if (isQMap(subject)) {
+  if (isMapShape(subject)) {
     if (!isKeyword(key)) throw new HasKeyNotKeyword(key);
-    return subject.has(key.name);
+    return mapShapeHas(subject, key.name);
   }
   if (isQSet(subject)) {
     if (isKeyword(key)) {

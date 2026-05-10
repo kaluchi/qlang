@@ -448,36 +448,52 @@ DocLit
   / "|~~" !"|" content:BlockDocContent "~~|"
     { return node('DocLit', { content }, location(), text()); }
 
+// ErrorLit — qlang descriptor literal `!{...}`. Always uses qlang
+// MapEntry shape (keyword key, whitespace separator); JSON-style
+// commas inside an ErrorLit body raise a parse error.
 ErrorLit
   = "!{" _L "}"
     { return node('ErrorLit', { entries: [] }, location(), text()); }
-  / "!{" _L entries:MapEntries _L "}"
-    { return node('ErrorLit', { entries }, location(), text()); }
+  / "!{" _L head:MapEntry tail:(_L MapEntry)* _L "}"
+    { return node('ErrorLit', { entries: [head, ...tail.map(t => t[1])] }, location(), text()); }
 
+// MapLit — mode-discriminated by markers per §II.11.1:
+//   {}                          — empty, defaults to qlang Map at
+//                                 top level (eval may inherit JSON
+//                                 from a parent JSON container).
+//   {"k": 1, "k2": 2}           — JSON Object: string-keyed entries
+//                                 separated by `:` and commas.
+//   {:k 1 :k2 2}                — qlang Map: keyword-keyed entries
+//                                 separated by whitespace.
+//   {:k 1, :k2 2}               — mode conflict (keyword key with
+//                                 comma separator) → parse error.
+//   {"k": 1 "k2": 2}            — mode conflict (string key without
+//                                 comma) → parse error.
+// Order of alternatives: JSON-form first (requires explicit comma
+// markers), then qlang-form. Empty case last.
 MapLit
-  = "{" _L "}"
+  = "{" _L head:JsonMapEntry tail:(_L "," _L JsonMapEntry)* _L "}"
+    { return node('JsonObjectLit', { entries: [head, ...tail.map(t => t[3])] }, location(), text()); }
+  / "{" _L head:QlangMapEntry tail:(_L QlangMapEntry)* _L "}"
+    { return node('MapLit', { entries: [head, ...tail.map(t => t[1])] }, location(), text()); }
+  / "{" _L "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
-  / "{" _L entries:MapEntries _L "}"
-    { return node('MapLit', { entries }, location(), text()); }
 
-MapEntries
-  = head:MapEntry tail:(_L ","? _L MapEntry)*
-    { return [head, ...tail.map(t => t[3])]; }
-
-// A MapEntry is a `:key value` pair. Plain comments between
-// entries land in `_L` as whitespace-equivalent — a section-divider
-// `|~ ── header ── ~|` between two entries is silently absorbed and
-// never enters the AST. Doc comments are NOT absorbed here: in
-// pipeline position they attach to the following def / as call via
-// DocAttachedSequence, and standalone they evaluate to a Doc-value
-// through the DocLit Primary alternative. Inside a literal body
-// they are not valid — a doc-comment ahead of a MapEntry key is a
-// parse error.
-MapEntry
-  = _L key:StringLit _L ":" _L value:PipelineInLiteral
+// JSON map entry: `"key": value` separated by colon.
+JsonMapEntry
+  = key:StringLit _L ":" _L value:PipelineInLiteral
     { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value }, location(), text()); }
-  / _L key:Keyword __ value:PipelineInLiteral
+
+// qlang map entry: `:key value` separated by required whitespace.
+QlangMapEntry
+  = key:Keyword __ value:PipelineInLiteral
     { return node('MapEntry', { key, value }, location(), text()); }
+
+// Backward-compatibility alias: existing AST consumers reference
+// `MapEntry` by node type without distinguishing the surface form
+// they came from. JSON / qlang-mode entries both carry the same
+// `MapEntry` discriminator and shape.
+MapEntry = QlangMapEntry / JsonMapEntry
 
 SetLit
   = "#{" _L "}"
@@ -485,12 +501,27 @@ SetLit
   / "#{" _L elements:PipelineList _L "}"
     { return node('SetLit', { elements }, location(), text()); }
 
+// VecLit — mode-discriminated by separator per §II.11.1:
+//   []                          — empty, defaults to qlang Vec at
+//                                 top level.
+//   [1, 2, 3]                   — JSON Array: comma-separated.
+//   [1 2 3]                     — qlang Vec: whitespace-separated.
+//   [1]                         — single element, qlang Vec.
+// Mixed separators inside a single literal raise a parse error
+// because the chosen alternative (whichever PEG ordered choice
+// commits to) won't match the second element shape.
 VecLit
-  = "[" _L "]"
+  = "[" _L head:PipelineInLiteral tail:(_L "," _L PipelineInLiteral)+ _L "]"
+    { return node('JsonArrayLit', { elements: [head, ...tail.map(t => t[3])] }, location(), text()); }
+  / "[" _L head:PipelineInLiteral tail:(_L PipelineInLiteral)* _L "]"
+    { return node('VecLit', { elements: [head, ...tail.map(t => t[1])] }, location(), text()); }
+  / "[" _L "]"
     { return node('VecLit', { elements: [] }, location(), text()); }
-  / "[" _L elements:PipelineList _L "]"
-    { return node('VecLit', { elements }, location(), text()); }
 
+// SetLit / ErrorLit / ArgList retain their ad-hoc whitespace-or-
+// comma list form — neither is a JSON-shaped construct, and an
+// ArgList comma is the required argument separator (not a
+// container marker).
 PipelineList
   = head:PipelineInLiteral tail:(_L ","? _L PipelineInLiteral)*
     { return [head, ...tail.map(t => t[3])]; }

@@ -147,6 +147,61 @@ describe('::qlang on actual JSON-tagged value recurses through containers', () =
   });
 });
 
+describe('container-shape operands preserve JSON-tag on output', () => {
+  it('filter on a JsonObject returns a JsonObject', async () => {
+    const result = await evalQuery('::json{:a 1 :b 2 :c 3} | filter(gte(2)) | isJsonObject');
+    expect(result).toBe(true);
+  });
+
+  it('at on a JsonObject reads a string-keyed field', async () => {
+    expect(await evalQuery('::json{:k 7} | at("k")')).toBe(7);
+  });
+
+  it('at on a JsonObject misses to null on absent key', async () => {
+    expect(await evalQuery('::json{:k 7} | at("missing")')).toBe(null);
+  });
+
+  it('projection on a JsonObject misses to null on absent key', async () => {
+    expect(await evalQuery('::json{:k 7} | /missing')).toBe(null);
+  });
+
+  it('reify of an attached JsonObject literal walks through walk codec', async () => {
+    const result = await evalQuery('def(:obj, ::json{:k 1}) | reify(:obj) | /value | isJsonObject');
+    expect(result).toBe(true);
+  });
+
+  it('astNodeToMap descends into JsonObjectLit AST entries', async () => {
+    const { astNodeToMap } = await import('../../src/walk.mjs');
+    const { parse } = await import('../../src/parse.mjs');
+    const ast = parse('{"k": 1, "n": 2}');
+    const m = astNodeToMap(ast);
+    expect(m.get('qlang/kind').name).toBe('JsonObjectLit');
+    expect(m.get('entries').length).toBe(2);
+  });
+});
+
+describe('deepEqual cross-shape equivalences', () => {
+  it('JsonObject equals Map with same entries', async () => {
+    expect(await evalQuery('::json{:k 1 :n 2} | eq({:k 1 :n 2})')).toBe(true);
+  });
+
+  it('JsonObject differs from Map of different size', async () => {
+    expect(await evalQuery('::json{:k 1} | eq({:k 1 :n 2})')).toBe(false);
+  });
+
+  it('JsonArray equals Vec with same elements', async () => {
+    expect(await evalQuery('::json[1 2 3] | eq([1 2 3])')).toBe(true);
+  });
+
+  it('Map vs JsonObject — both directions structurally equal', async () => {
+    expect(await evalQuery('{:k 1 :n 2} | eq(::json{:k 1 :n 2})')).toBe(true);
+  });
+
+  it('JsonObject vs JsonObject — same shape on both sides', async () => {
+    expect(await evalQuery('::json{:k 1} | eq(::json{:k 1})')).toBe(true);
+  });
+});
+
 describe('table cell + inline rendering for JSON-shape values', () => {
   it('table renders a JsonObject-valued cell as inline JSON', async () => {
     const result = await evalQuery('[{:cell ::json{:k 1}}] | table');

@@ -17,7 +17,7 @@
     the error flows out.
 
     Call via `|` on success-track input. ~~|
-def(:retry, [:action, :n],
+def(:retry, [:action :n],
   as(:start) | action
   !| if(n | gt(0),
         start | retry(action, n | sub(1)),
@@ -29,7 +29,7 @@ def(:retry, [:action, :n],
     become the new pipeValue. Otherwise re-lift the
     descriptor into a fresh error and continue on the
     fail-track. Call via `!|` on fail-track. ~~|
-def(:recover, [:pred, :handler],
+def(:recover, [:pred :handler],
   if(pred, handler, error))
 
 |~~ Transform an error's materialized descriptor via

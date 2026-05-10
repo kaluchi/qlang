@@ -260,7 +260,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Vec element from a sibling element', () => {
-    const source = '[def(:x, 1), x]';
+    const source = '[def(:x, 1) x]';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);

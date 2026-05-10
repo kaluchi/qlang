@@ -282,12 +282,9 @@ into a query without editing:
 true
 ```
 
-Both key styles may appear in the same literal:
-
-```qlang
-> {:source "manual", "auto": true}
-{:source "manual" :auto true}
-```
+Each literal commits to one mode — the comma-separated JSON form
+or the whitespace-separated qlang form. Mixing in a single literal
+raises a parse error.
 
 If the same key appears more than once in a literal, the last
 binding wins:
@@ -843,7 +840,7 @@ Multiple `as` calls can appear in sequence, binding either the same
 value under different names or different values at different stages:
 
 ```qlang
-purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initial, discounted]
+purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initial discounted]
 |~| initial    = the normalized purchase
 |~| discounted = the same purchase after discounts applied
 ```
@@ -895,7 +892,7 @@ unchanged by the declaration itself; the name goes into scope.
 The two forms are a single mechanism with different arity:
 
 - `def(:double, mul(2))` — zero-arity conduit, no parameters.
-- `def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))` —
+- `def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx))` —
   two-arity conduit, two parameters.
 - `def(:f, [], body)` — equivalent to zero-arity (empty params list).
 
@@ -940,7 +937,7 @@ level's scope is anchored at its own declaration point. Later
 shadowing in the caller's scope does not affect a conduit's body.
 
 ```qlang
-> def(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n))
+> def(:@topBy, [:keyFn :n], sortWith(desc(keyFn)) | take(n))
   | def(:@topNByV, [:n], @topBy(/v, n))
   | def(:@top2ByV, @topNByV(2))
   | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v
@@ -960,7 +957,7 @@ that fires per-element inside `sortWith`, per-iteration inside
 `filter`, per-pair inside `desc`/`asc`:
 
 ```qlang
-> def(:@topBy, [:keyFn, :n], sortWith(desc(keyFn)) | take(n))
+> def(:@topBy, [:keyFn :n], sortWith(desc(keyFn)) | take(n))
   | [{:score 1} {:score 3} {:score 2}] | @topBy(/score, 2) * /score
 [3 2]
 ```
@@ -971,7 +968,7 @@ element when `desc` invokes it per comparison pair.
 #### Examples
 
 ```qlang
-> def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
+> def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx))
   | "world" | @surround("[", "]")
 "[world]"
 
@@ -1139,7 +1136,7 @@ changes are discarded. See the
 
 5. **Sibling expressions are independent.** In `{:a e1 :b e2}`,
    bindings from `e1` are NOT visible in `e2`. Same for Vec
-   elements `[a, b, c]` and Set elements `#{a, b, c}` — each
+   elements `[a b c]` and Set elements `#{a, b, c}` — each
    entry is its own sub-pipeline, parallel not sequential.
 
 6. **Shadowing.** A later `as(:name)` or `def(:name, ...)` in the same
@@ -1531,9 +1528,9 @@ Doc-content stream per binding instead of a parallel `:examples`
 Vec. `runExamples` and `:name | examples` extract them via the
 Doc-content tokenizer.
 
-The `:captured` field is a 2-element Vec `[min, max]` describing
+The `:captured` field is a 2-element Vec `[min max]` describing
 how many captured args the operand accepts; fixed-arity operands
-have `min == max`, partial/full operands have `[n-1, n]`,
+have `min == max`, partial/full operands have `[n-1 n]`,
 variadic operands use the `:unbounded` keyword as the upper
 bound.
 
@@ -1729,7 +1726,7 @@ Six step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
-| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a,b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
+| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `reify`, `manifest` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
@@ -2282,7 +2279,7 @@ fidelity for interoperability.
 | null | `null` |
 | Vec | JSON array of recursively-encoded elements |
 | Map with Keyword keys | JSON object — keys become `name` strings |
-| Map with non-keyword keys | **lossy** — encoded as a JSON array of `[k, v]` pairs |
+| Map with non-keyword keys | **lossy** — encoded as a JSON array of `[k v]` pairs |
 | keyword (as value) | **lossy** — encoded as its `name` string, indistinguishable from a String |
 | Set | **lossy** — encoded as a JSON array, identity as a Set is lost |
 | Error | **unencodable** — `toPlain` throws |
@@ -2300,8 +2297,8 @@ import { toPlain, fromPlain, keyword } from '@kaluchi/qlang-core';
 const m = new Map([[keyword('name'), 'alice'], [keyword('age'), 30]]);
 toPlain(m);                       // { name: 'alice', age: 30 }
 
-const lifted = fromPlain({ items: [1, 2, 3] });
-lifted.get(keyword('items'));     // [1, 2, 3]
+const lifted = fromPlain({ items: [1 2 3] });
+lifted.get(keyword('items'));     // [1 2 3]
 ```
 
 The CLI's `parseJson` operand runs `JSON.parse` then `fromPlain`,
@@ -2323,7 +2320,7 @@ and by any host that ships qlang values across a JSON boundary.
 | null | `null` |
 | Vec | JSON array of recursively-encoded elements |
 | keyword | `{ "$keyword": "name" }` |
-| Map | `{ "$map": [[k, v], ...] }` (entries pairs, recursively encoded) |
+| Map | `{ "$map": [[k v], ...] }` (entries pairs, recursively encoded) |
 | Set | `{ "$set": [v1, v2, ...] }` |
 
 Example:

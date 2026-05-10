@@ -189,7 +189,7 @@ declaration time, not the caller's env:
   `filter`, per-pair inside `desc`/`asc`.
 
 Zero-arity conduits (`def(:f, expr)`) and parametric conduits
-(`def(:f, [:a, :b], expr)`) share the same mechanism.
+(`def(:f, [:a :b], expr)`) share the same mechanism.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -265,7 +265,7 @@ step. If `pipeValue` is not a Map, `use` raises a type error.
 
 Typical call pattern:
 
-    | {:taxRate 0.07 :currency "USD"} | use | [taxRate, currency]
+    | {:taxRate 0.07 :currency "USD"} | use | [taxRate currency]
 
 Inside a fork (paren-group, Vec/Map/Set literal, distribute
 iteration), the merged bindings evaporate when the fork closes,
@@ -747,7 +747,7 @@ Trace, assuming the tree literal already occupies `pipeValue`:
          `add(2048, 0)` = `2048`.
        - src: `add(0, [main.c, util.c] * totalSize | sum)` =
          `add(0, 768)` = `768`.
-     - Collected: `[2048, 768]`.
+     - Collected: `[2048 768]`.
      - `| sum` → `2816`.
 3. `add(0, 2816)` → `2816`.
 
@@ -1237,7 +1237,7 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | null | `null` |
 | Vec | JSON array of recursively-encoded elements |
 | keyword | `{ "$keyword": "name" }` |
-| Map | `{ "$map": [[k, v], ...] }` (entry pairs, recursively encoded) |
+| Map | `{ "$map": [[k v], ...] }` (entry pairs, recursively encoded) |
 | Set | `{ "$set": [v1, v2, ...] }` |
 | Error | `{ "$error": <recursively-encoded descriptor Map> }` |
 

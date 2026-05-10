@@ -112,6 +112,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return;
 
       case 'VecLit':
+      case 'JsonArrayLit':
         emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
         return;
 

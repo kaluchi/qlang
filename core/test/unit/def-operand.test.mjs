@@ -55,7 +55,7 @@ describe('def — 3-arg parametric form', () => {
   });
 
   it('parametric conduit binds captured args as lazy proxies', async () => {
-    expect(await evalQuery('def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "x" | @surround("[", "]")'))
+    expect(await evalQuery('def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx)) | "x" | @surround("[", "]")'))
       .toBe('[x]');
   });
 });

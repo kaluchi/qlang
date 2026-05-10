@@ -497,9 +497,11 @@ function isPureLiteralAst(node) {
     case 'BareTypeKeyword':
       return true;
     case 'VecLit':
+    case 'JsonArrayLit':
     case 'SetLit':
       return node.elements.every(isPureLiteralAst);
     case 'MapLit':
+    case 'JsonObjectLit':
     case 'ErrorLit':
       return node.entries.every(e => isPureLiteralAst(e.value));
     case 'TaggedLit':

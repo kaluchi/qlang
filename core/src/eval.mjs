@@ -44,7 +44,8 @@ class UnknownCombinatorKindError extends QlangInvariantError {
 import {
   isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  materializeTrail, makeQuote, makeDoc
+  materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
+  isJsonObject, isJsonArray, isVecShape, vecLikeOf
 } from './types.mjs';
 import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -118,7 +119,9 @@ const AST_NODE_EVALUATORS = {
   NullLit:           evalNullLit,
   Keyword:           evalKeyword,
   VecLit:            evalVecLit,
+  JsonArrayLit:      evalJsonArrayLit,
   MapLit:            evalMapLit,
+  JsonObjectLit:     evalJsonObjectLit,
   ErrorLit:          evalErrorLit,
   SetLit:            evalSetLit,
   QuoteLit:          evalQuoteLit,
@@ -226,34 +229,36 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
-  if (!isVec(state.pipeValue)) {
+  if (!isVecShape(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotVec(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
   }
+  const subjectVec = state.pipeValue;
   const forkResults = await Promise.all(
-    state.pipeValue.map(vecElement =>
+    [...subjectVec].map(vecElement =>
       forkWith(state, vecElement, inner => evalNode(bodyNode, inner))
     )
   );
-  return withPipeValue(state, forkResults.map(forkedState => forkedState.pipeValue));
+  return withPipeValue(state, vecLikeOf(forkResults.map(forkedState => forkedState.pipeValue), subjectVec));
 }
 
 async function mergeFlat(state, nextNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(nextNode, 'merge')));
   }
-  if (!isVec(state.pipeValue)) {
+  if (!isVecShape(state.pipeValue)) {
     const mergeErr = new MergeSubjectNotVec(state.pipeValue);
     mergeErr.location = nextNode.location;
     return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
   }
+  const sourceVec = state.pipeValue;
   const flattened = [];
-  for (const flatItem of state.pipeValue) {
-    if (isVec(flatItem)) flattened.push(...flatItem);
+  for (const flatItem of sourceVec) {
+    if (isVecShape(flatItem)) flattened.push(...flatItem);
     else flattened.push(flatItem);
   }
-  return await evalNode(nextNode, withPipeValue(state, flattened));
+  return await evalNode(nextNode, withPipeValue(state, vecLikeOf(flattened, sourceVec)));
 }
 
 // applyFailTrack(state, stepNode) — `!|` combinator implementation.
@@ -330,6 +335,27 @@ async function evalMapLit(node, state) {
     mapResult.set(entry.key.name, entryFork.pipeValue);
   }
   return withPipeValue(state, mapResult);
+}
+
+// JSON Object literal — string-keyed entries. Each value forks
+// against the outer state so projection sub-pipelines see the
+// surrounding pipeValue, identical to evalMapLit's contract.
+async function evalJsonObjectLit(node, state) {
+  const plain = {};
+  for (const entry of node.entries) {
+    const entryFork = await fork(state, inner => evalNode(entry.value, inner));
+    plain[entry.key.name] = entryFork.pipeValue;
+  }
+  return withPipeValue(state, makeJsonObject(plain));
+}
+
+// JSON Array literal — comma-separated elements. Per-element fork
+// matches evalVecLit; the difference is the runtime tag.
+async function evalJsonArrayLit(node, state) {
+  const elementForks = await Promise.all(
+    node.elements.map(elem => fork(state, inner => evalNode(elem, inner)))
+  );
+  return withPipeValue(state, makeJsonArray(elementForks.map(s => s.pipeValue)));
 }
 
 async function evalErrorLit(node, state) {
@@ -465,10 +491,13 @@ function projectSegment(subject, projKey, state) {
       return handler ? handler(subject, state) : NULL;
     }
   }
+  if (isJsonObject(subject)) {
+    return Object.hasOwn(subject, projKey) ? subject[projKey] : NULL;
+  }
   if (isQMap(subject)) {
     return subject.has(projKey) ? subject.get(projKey) : NULL;
   }
-  if (isVec(subject)) {
+  if (isJsonArray(subject) || isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) return NULL;
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;

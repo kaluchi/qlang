@@ -14,7 +14,10 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
-import { isVec, isQMap, isQSet, isKeyword } from '../types.mjs';
+import {
+  isQSet, isKeyword,
+  isVecShape, isMapShape, mapShapeEntries, mapLikeOf
+} from '../types.mjs';
 
 function setHasKeywordName(s, name) {
   for (const v of s) if (isKeyword(v) && v.name === name) return true;
@@ -55,10 +58,14 @@ function unionPair(left, right) {
     for (const v of right) setAddDedup(out, v);
     return out;
   }
-  if (isQMap(left) && isQMap(right)) {
-    const out = new Map(left);
-    for (const [k, v] of right) out.set(k, v);
-    return out;
+  if (isMapShape(left) && isMapShape(right)) {
+    const merged = [...mapShapeEntries(left)];
+    const seenKeys = new Set(merged.map(([k]) => k));
+    for (const [k, v] of mapShapeEntries(right)) {
+      const idx = merged.findIndex(([mk]) => mk === k);
+      if (idx >= 0) merged[idx] = [k, v]; else { merged.push([k, v]); seenKeys.add(k); }
+    }
+    return mapLikeOf(merged, left);
   }
   throw new UnionPairIncompatible(left, right);
 }
@@ -72,17 +79,21 @@ function minusPair(left, right) {
     }
     return out;
   }
-  if (isQMap(left) && isQMap(right)) {
-    const out = new Map();
-    for (const [k, v] of left) if (!right.has(k)) out.set(k, v);
-    return out;
-  }
-  if (isQMap(left) && isQSet(right)) {
-    const out = new Map();
-    for (const [k, v] of left) {
-      if (!setHasKeywordName(right, k)) out.set(k, v);
+  if (isMapShape(left) && isMapShape(right)) {
+    const rightKeySet = new Set();
+    for (const [rk] of mapShapeEntries(right)) rightKeySet.add(rk);
+    const out = [];
+    for (const [k, v] of mapShapeEntries(left)) {
+      if (!rightKeySet.has(k)) out.push([k, v]);
     }
-    return out;
+    return mapLikeOf(out, left);
+  }
+  if (isMapShape(left) && isQSet(right)) {
+    const out = [];
+    for (const [k, v] of mapShapeEntries(left)) {
+      if (!setHasKeywordName(right, k)) out.push([k, v]);
+    }
+    return mapLikeOf(out, left);
   }
   throw new MinusPairIncompatible(left, right);
 }
@@ -96,26 +107,30 @@ function interPair(left, right) {
     }
     return out;
   }
-  if (isQMap(left) && isQMap(right)) {
-    const out = new Map();
-    for (const [k, v] of left) if (right.has(k)) out.set(k, v);
-    return out;
-  }
-  if (isQMap(left) && isQSet(right)) {
-    const out = new Map();
-    for (const [k, v] of left) {
-      if (setHasKeywordName(right, k)) out.set(k, v);
+  if (isMapShape(left) && isMapShape(right)) {
+    const rightKeySet = new Set();
+    for (const [rk] of mapShapeEntries(right)) rightKeySet.add(rk);
+    const out = [];
+    for (const [k, v] of mapShapeEntries(left)) {
+      if (rightKeySet.has(k)) out.push([k, v]);
     }
-    return out;
+    return mapLikeOf(out, left);
+  }
+  if (isMapShape(left) && isQSet(right)) {
+    const out = [];
+    for (const [k, v] of mapShapeEntries(left)) {
+      if (setHasKeywordName(right, k)) out.push([k, v]);
+    }
+    return mapLikeOf(out, left);
   }
   throw new InterPairIncompatible(left, right);
 }
 
 export const union = overloadedOp('union', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new UnionBareSubjectNotVec(vec);
+    if (!isVecShape(vec)) throw new UnionBareSubjectNotVec(vec);
     if (vec.length === 0) throw new UnionBareEmpty();
-    return vec.reduce(unionPair);
+    return [...vec].reduce(unionPair);
   },
   1: async (unionSubject, unionRightLambda) => unionPair(unionSubject, await unionRightLambda(unionSubject)),
   2: async (unionCtx, unionLeftLambda, unionRightLambda) =>
@@ -124,9 +139,9 @@ export const union = overloadedOp('union', 2, {
 
 export const minus = overloadedOp('minus', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new MinusBareSubjectNotVec(vec);
+    if (!isVecShape(vec)) throw new MinusBareSubjectNotVec(vec);
     if (vec.length === 0) throw new MinusBareEmpty();
-    return vec.reduce(minusPair);
+    return [...vec].reduce(minusPair);
   },
   1: async (minusSubject, minusRightLambda) => minusPair(minusSubject, await minusRightLambda(minusSubject)),
   2: async (minusCtx, minusLeftLambda, minusRightLambda) =>
@@ -135,9 +150,9 @@ export const minus = overloadedOp('minus', 2, {
 
 export const inter = overloadedOp('inter', 2, {
   0: (vec) => {
-    if (!isVec(vec)) throw new InterBareSubjectNotVec(vec);
+    if (!isVecShape(vec)) throw new InterBareSubjectNotVec(vec);
     if (vec.length === 0) throw new InterBareEmpty();
-    return vec.reduce(interPair);
+    return [...vec].reduce(interPair);
   },
   1: async (interSubject, interRightLambda) => interPair(interSubject, await interRightLambda(interSubject)),
   2: async (interCtx, interLeftLambda, interRightLambda) =>

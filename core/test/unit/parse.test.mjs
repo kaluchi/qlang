@@ -162,11 +162,6 @@ describe('parse — Map literal', () => {
     expect(ast.entries.map(e => e.key.name)).toEqual(['name', 'age']);
   });
 
-  it('parses a Map with comma separators', () => {
-    const ast = parse('{:a 1, :b 2}');
-    expect(ast.entries).toHaveLength(2);
-  });
-
   it('parses a Map whose value is itself a Map', () => {
     const ast = parse('{:point {:x 1 :y 2}}');
     expect(ast.entries[0].value.type).toBe('MapLit');
@@ -518,7 +513,7 @@ describe('parse — projection with digit-led / hyphen-led bare segments', () =>
 describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
   it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
     const ast = parse('{ "name" : "alice" }');
-    expect(ast.type).toBe('MapLit');
+    expect(ast.type).toBe('JsonObjectLit');
     expect(ast.entries).toHaveLength(1);
     expect(ast.entries[0].key.name).toBe('name');
     expect(ast.entries[0].value.value).toBe('alice');
@@ -527,7 +522,7 @@ describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
   it('accepts whitespace around colon with digit-led string key', () => {
     const ast = parse('{ "0" : [0, 1] }');
     expect(ast.entries[0].key.name).toBe('0');
-    expect(ast.entries[0].value.type).toBe('VecLit');
+    expect(ast.entries[0].value.type).toBe('JsonArrayLit');
   });
 
   it('accepts newline between string key and colon', () => {

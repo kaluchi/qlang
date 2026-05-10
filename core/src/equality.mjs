@@ -2,8 +2,16 @@
 //
 // Shared by predicates.mjs (for the `eq` operand) and the
 // conformance test runner.
+//
+// Cross-shape equivalences: a JsonArray and a Vec with the same
+// elements are equal; a JsonObject and a Map with the same entries
+// are equal. The JSON tag is an authoring/round-trip hint, not a
+// semantic distinction at the equality level.
 
-import { isKeyword, isErrorValue, isQuote, isDoc } from './types.mjs';
+import {
+  isKeyword, isErrorValue, isQuote, isDoc,
+  isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet
+} from './types.mjs';
 
 export function deepEqual(a, b) {
   if (a === b) return true;
@@ -19,10 +27,10 @@ export function deepEqual(a, b) {
   if (isDoc(a)) {
     return isDoc(b) && a.content === b.content;
   }
-  if (a instanceof Map) {
-    if (!(b instanceof Map) || a.size !== b.size) return false;
-    for (const [k, v] of a) {
-      if (!b.has(k) || !deepEqual(v, b.get(k))) return false;
+  if (isMapShape(a)) {
+    if (!isMapShape(b) || mapShapeSize(a) !== mapShapeSize(b)) return false;
+    for (const [k, v] of mapShapeEntries(a)) {
+      if (!mapShapeHas(b, k) || !deepEqual(v, mapShapeGet(b, k))) return false;
     }
     return true;
   }

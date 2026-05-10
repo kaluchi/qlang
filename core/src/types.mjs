@@ -43,6 +43,55 @@ export function isJsonArray(v) {
   return Array.isArray(v) && v[JSON_ARRAY_TAG] === true;
 }
 
+// Shape-level predicates — for container-shape-preserving operands
+// (filter, sort, take, distinct, union, …). A JsonArray subject
+// passes through the same operand path as a Vec subject and the
+// result re-wraps as JsonArray; same symmetry for JsonObject↔Map.
+// JS-side iteration / .length / spread work uniformly across both
+// halves of the shape, so operand bodies stay shape-agnostic.
+
+export function isVecShape(v) {
+  return isVec(v) || isJsonArray(v);
+}
+
+export function isMapShape(v) {
+  return isQMap(v) || isJsonObject(v);
+}
+
+// Iterate a Map-shape subject as [key, value] pairs.
+export function mapShapeEntries(v) {
+  if (isJsonObject(v)) return Object.entries(v);
+  return v;
+}
+
+export function mapShapeSize(v) {
+  if (isJsonObject(v)) return Object.keys(v).length;
+  return v.size;
+}
+
+export function mapShapeGet(v, k) {
+  return isJsonObject(v) ? v[k] : v.get(k);
+}
+
+export function mapShapeHas(v, k) {
+  if (isJsonObject(v)) return Object.prototype.hasOwnProperty.call(v, k);
+  return v.has(k);
+}
+
+// Re-wrap operand output to match the source's tag.
+export function vecLikeOf(items, source) {
+  return isJsonArray(source) ? makeJsonArray(items) : items;
+}
+
+export function mapLikeOf(entries, source) {
+  if (isJsonObject(source)) {
+    const obj = {};
+    for (const [k, v] of entries) obj[k] = v;
+    return makeJsonObject(obj);
+  }
+  return new Map(entries);
+}
+
 export function makeJsonObject(plainObj) {
   const obj = { ...plainObj };
   Object.defineProperty(obj, JSON_OBJECT_TAG, {

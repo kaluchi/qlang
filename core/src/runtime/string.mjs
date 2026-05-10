@@ -5,7 +5,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { valueOp } from './dispatch.mjs';
-import { isVec } from '../types.mjs';
+import { isVecShape } from '../types.mjs';
 import {
   declareModifierError,
   declareSubjectError,
@@ -48,7 +48,7 @@ export const split = valueOp('split', 2, (subject, separator) => {
 });
 
 export const join = valueOp('join', 2, (subject, separator) => {
-  if (!isVec(subject)) throw new JoinSubjectNotVec(subject);
+  if (!isVecShape(subject)) throw new JoinSubjectNotVec(subject);
   if (typeof separator !== 'string') throw new JoinSeparatorNotString(separator);
   for (let i = 0; i < subject.length; i++) {
     if (typeof subject[i] !== 'string') {

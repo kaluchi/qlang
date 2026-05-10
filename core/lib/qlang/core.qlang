@@ -67,7 +67,7 @@
 def(:count, {:qlang/kind :builtin
         :qlang/impl :qlang/prim/count
         :category :container-reducer
-        :subject [:vec, :set, :map]
+        :subject [:vec :set :map]
         :returns :number
         :modifiers []
         :throws [:CountSubjectNotContainer]})
@@ -81,7 +81,7 @@ def(:count, {:qlang/kind :builtin
 def(:empty, {:qlang/kind :builtin
         :qlang/impl :qlang/prim/empty
         :category :container-reducer
-        :subject [:vec, :set, :map]
+        :subject [:vec :set :map]
         :returns :boolean
         :modifiers []
         :throws [:EmptySubjectNotContainer]})
@@ -129,10 +129,10 @@ def(:last, {:qlang/kind :builtin
 def(:sum, {:qlang/kind :builtin
       :qlang/impl :qlang/prim/sum
       :category :vec-reducer
-      :subject [:vec, :set]
+      :subject [:vec :set]
       :returns :number
       :modifiers []
-      :throws [:SumSubjectNotVecOrSet, :SumElementNotNumber]})
+      :throws [:SumSubjectNotVecOrSet :SumElementNotNumber]})
 
 |~~ Returns the minimum element under natural ordering.
     Polymorphic over Vec and Set (min is order-independent).
@@ -146,10 +146,10 @@ def(:sum, {:qlang/kind :builtin
 def(:min, {:qlang/kind :builtin
       :qlang/impl :qlang/prim/min
       :category :vec-reducer
-      :subject [:vec, :set]
+      :subject [:vec :set]
       :returns :any
       :modifiers []
-      :throws [:MinSubjectNotVecOrSet, :MinElementsNotComparable]})
+      :throws [:MinSubjectNotVecOrSet :MinElementsNotComparable]})
 
 |~~ Returns the maximum element under natural ordering.
     Polymorphic over Vec and Set (max is order-independent).
@@ -163,10 +163,10 @@ def(:min, {:qlang/kind :builtin
 def(:max, {:qlang/kind :builtin
       :qlang/impl :qlang/prim/max
       :category :vec-reducer
-      :subject [:vec, :set]
+      :subject [:vec :set]
       :returns :any
       :modifiers []
-      :throws [:MaxSubjectNotVecOrSet, :MaxElementsNotComparable]})
+      :throws [:MaxSubjectNotVecOrSet :MaxElementsNotComparable]})
 
 |~~ Returns true iff every item of the container satisfies the
     predicate. Polymorphic over Vec / Set / Map. The predicate
@@ -192,10 +192,10 @@ def(:max, {:qlang/kind :builtin
 def(:every, {:qlang/kind :builtin
         :qlang/impl :qlang/prim/every
         :category :container-selector
-        :subject [:vec, :set, :map]
+        :subject [:vec :set :map]
         :returns :boolean
         :modifiers [:predicate-lambda]
-        :throws [:EverySubjectNotContainer, :EveryVecOrSetPredArityInvalid, :EveryMapPredArityInvalid]})
+        :throws [:EverySubjectNotContainer :EveryVecOrSetPredArityInvalid :EveryMapPredArityInvalid]})
 
 |~~ Returns true iff at least one item of the container
     satisfies the predicate. Polymorphic over Vec / Set / Map
@@ -215,10 +215,10 @@ def(:every, {:qlang/kind :builtin
 def(:any, {:qlang/kind :builtin
       :qlang/impl :qlang/prim/any
       :category :container-selector
-      :subject [:vec, :set, :map]
+      :subject [:vec :set :map]
       :returns :boolean
       :modifiers [:predicate-lambda]
-      :throws [:AnySubjectNotContainer, :AnyVecOrSetPredArityInvalid, :AnyMapPredArityInvalid]})
+      :throws [:AnySubjectNotContainer :AnyVecOrSetPredArityInvalid :AnyMapPredArityInvalid]})
 
 |~~ Returns the first non-zero number in a Vec. If all elements
     are zero or the Vec is empty, returns 0. The composition
@@ -235,7 +235,7 @@ def(:firstNonZero, {:qlang/kind :builtin
                :subject :vec
                :returns :number
                :modifiers []
-               :throws [:FirstNonZeroSubjectNotVec, :FirstNonZeroElementNotNumber]})
+               :throws [:FirstNonZeroSubjectNotVec :FirstNonZeroElementNotNumber]})
 
 |~ ──────────────── Vec transformers ──────────────── ~|
 
@@ -275,10 +275,10 @@ def(:firstNonZero, {:qlang/kind :builtin
 def(:filter, {:qlang/kind :builtin
          :qlang/impl :qlang/prim/filter
          :category :container-selector
-         :subject [:vec, :set, :map]
-         :returns [:vec, :set, :map]
+         :subject [:vec :set :map]
+         :returns [:vec :set :map]
          :modifiers [:predicate-lambda]
-         :throws [:FilterSubjectNotContainer, :FilterVecOrSetPredArityInvalid, :FilterMapPredArityInvalid]})
+         :throws [:FilterSubjectNotContainer :FilterVecOrSetPredArityInvalid :FilterMapPredArityInvalid]})
 
 |~~ Returns a new Vec sorted in natural ascending order.
     Overloaded by arity: bare sort uses natural order, sort(key)
@@ -315,7 +315,7 @@ def(:sortWith, {:qlang/kind :builtin
            :subject :vec
            :returns :vec
            :modifiers [:comparator-lambda]
-           :throws [:SortWithSubjectNotVec, :SortWithCmpResultNotNumber]})
+           :throws [:SortWithSubjectNotVec :SortWithCmpResultNotNumber]})
 
 |~~ Returns the first n elements. If n exceeds length, returns
     the whole Vec.
@@ -328,7 +328,7 @@ def(:take, {:qlang/kind :builtin
        :subject :vec
        :returns :vec
        :modifiers [:number]
-       :throws [:TakeSubjectNotVec, :TakeCountNotNumber]})
+       :throws [:TakeSubjectNotVec :TakeCountNotNumber]})
 
 |~~ Polymorphic indexed access. On a Vec subject, returns the
     element at integer index n (negative indices count from the end;
@@ -348,7 +348,7 @@ def(:at, {:qlang/kind :builtin
      :subject [:vec :map]
      :returns :any
      :modifiers [:any]
-     :throws [:AtSubjectNotVecOrMap, :AtIndexNotInteger, :AtKeyNotString]})
+     :throws [:AtSubjectNotVecOrMap :AtIndexNotInteger :AtKeyNotString]})
 
 |~~ Returns the Vec with the first n elements removed. If n
     exceeds length, returns [].
@@ -361,7 +361,7 @@ def(:drop, {:qlang/kind :builtin
        :subject :vec
        :returns :vec
        :modifiers [:number]
-       :throws [:DropSubjectNotVec, :DropCountNotNumber]})
+       :throws [:DropSubjectNotVec :DropCountNotNumber]})
 
 |~~ Returns a new Vec with duplicate elements removed, preserving
     first-occurrence order. Duplication is decided by structural
@@ -433,7 +433,7 @@ def(:groupBy, {:qlang/kind :builtin
           :subject :vec
           :returns :map
           :modifiers [:key-lambda]
-          :throws [:GroupBySubjectNotVec, :GroupByKeyNotKeyword]})
+          :throws [:GroupBySubjectNotVec :GroupByKeyNotKeyword]})
 
 |~~ Collapses a Vec into a Map keyed by the result of the key
     sub-pipeline. On collision (two elements producing the same
@@ -448,7 +448,7 @@ def(:indexBy, {:qlang/kind :builtin
           :subject :vec
           :returns :map
           :modifiers [:key-lambda]
-          :throws [:IndexBySubjectNotVec, :IndexByKeyNotKeyword]})
+          :throws [:IndexBySubjectNotVec :IndexByKeyNotKeyword]})
 
 |~ ──────────────── Comparator builders ──────────────── ~|
 
@@ -467,7 +467,7 @@ def(:asc, {:qlang/kind :builtin
       :examples [
         {:doc "sort by field"         :snippet "sortWith(asc(/age))"}
         {:doc "sort by computed key"  :snippet "sortWith(asc(mul(/price, /qty)))"}]
-      :throws [:AscPairNotMap, :AscKeysNotComparable]})
+      :throws [:AscPairNotMap :AscKeysNotComparable]})
 
 |~~ Builds a descending comparator for sortWith. Same as asc
     but reversed: higher key values come first. ~~|
@@ -480,7 +480,7 @@ def(:desc, {:qlang/kind :builtin
        :examples [
          {:doc "newest first"    :snippet "sortWith(desc(/timestamp))"}
          {:doc "highest first"   :snippet "sortWith(desc(/score))"}]
-       :throws [:DescPairNotMap, :DescKeysNotComparable]})
+       :throws [:DescPairNotMap :DescKeysNotComparable]})
 
 |~~ Ascending comparator that places null-keyed elements before
     all non-null elements. Non-null keys are sorted in ascending
@@ -524,7 +524,7 @@ def(:if, {:qlang/kind :builtin
      :category :control
      :subject :any
      :returns :any
-     :modifiers [:predicate-lambda, :pipeline, :pipeline]
+     :modifiers [:predicate-lambda :pipeline :pipeline]
      :examples [
        {:doc "pass/fail gate"    :snippet "score | if(gte(60), \"pass\", \"fail\")"}
        {:doc "empty list guard"  :snippet "list | if(empty, \"<empty>\", first)"}]
@@ -539,7 +539,7 @@ def(:when, {:qlang/kind :builtin
        :category :control
        :subject :any
        :returns :any
-       :modifiers [:predicate-lambda, :pipeline]
+       :modifiers [:predicate-lambda :pipeline]
        :examples [
          {:doc "conditional transform"  :snippet "employee | when(/active, /salary | mul(11) | div(10))"}
          {:doc "default empty list"     :snippet "list | when(empty, [\"<empty>\"])"}]
@@ -554,7 +554,7 @@ def(:unless, {:qlang/kind :builtin
          :category :control
          :subject :any
          :returns :any
-         :modifiers [:predicate-lambda, :pipeline]
+         :modifiers [:predicate-lambda :pipeline]
          :examples [
            {:doc "guard sort on empty"  :snippet "input | unless(empty, sort)"}
            {:doc "lazy validation"      :snippet "config | unless(/validated, validate)"}]
@@ -648,10 +648,10 @@ def(:vals, {:qlang/kind :builtin
 def(:has, {:qlang/kind :builtin
       :qlang/impl :qlang/prim/has
       :category :map-op
-      :subject [:map, :set]
+      :subject [:map :set]
       :returns :boolean
       :modifiers [:any]
-      :throws [:HasSubjectNotMapOrSet, :HasKeyNotKeyword]})
+      :throws [:HasSubjectNotMapOrSet :HasKeyNotKeyword]})
 
 |~ ──────────────── Set operations ──────────────── ~|
 
@@ -666,10 +666,10 @@ def(:has, {:qlang/kind :builtin
 def(:union, {:qlang/kind :builtin
         :qlang/impl :qlang/prim/union
         :category :set-op
-        :subject [:set, :map, :vec]
-        :returns [:set, :map]
+        :subject [:set :map :vec]
+        :returns [:set :map]
         :modifiers [:any]
-        :throws [:UnionBareSubjectNotVec, :UnionBareEmpty, :UnionPairIncompatible]})
+        :throws [:UnionBareSubjectNotVec :UnionBareEmpty :UnionPairIncompatible]})
 
 |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
     or Map minus Set (drop fields by key set). Same three call
@@ -682,10 +682,10 @@ def(:union, {:qlang/kind :builtin
 def(:minus, {:qlang/kind :builtin
         :qlang/impl :qlang/prim/minus
         :category :set-op
-        :subject [:set, :map, :vec]
-        :returns [:set, :map]
+        :subject [:set :map :vec]
+        :returns [:set :map]
         :modifiers [:any]
-        :throws [:MinusBareSubjectNotVec, :MinusBareEmpty, :MinusPairIncompatible]})
+        :throws [:MinusBareSubjectNotVec :MinusBareEmpty :MinusPairIncompatible]})
 
 |~~ Polymorphic intersection. Set intersect Set, Map intersect
     keys(Map), or Map intersect Set (select fields by key set).
@@ -698,10 +698,10 @@ def(:minus, {:qlang/kind :builtin
 def(:inter, {:qlang/kind :builtin
         :qlang/impl :qlang/prim/inter
         :category :set-op
-        :subject [:set, :map, :vec]
-        :returns [:set, :map]
+        :subject [:set :map :vec]
+        :returns [:set :map]
         :modifiers [:any]
-        :throws [:InterBareSubjectNotVec, :InterBareEmpty, :InterPairIncompatible]})
+        :throws [:InterBareSubjectNotVec :InterBareEmpty :InterPairIncompatible]})
 
 |~ ──────────────── Arithmetic ──────────────── ~|
 
@@ -718,7 +718,7 @@ def(:add, {:qlang/kind :builtin
       :subject :number
       :returns :number
       :modifiers [:number]
-      :throws [:AddLeftNotNumber, :AddRightNotNumber]})
+      :throws [:AddLeftNotNumber :AddRightNotNumber]})
 
 |~~ Subtracts the second number from the first. Non-commutative:
     position 1 is the minuend.
@@ -732,7 +732,7 @@ def(:sub, {:qlang/kind :builtin
       :subject :number
       :returns :number
       :modifiers [:number]
-      :throws [:SubLeftNotNumber, :SubRightNotNumber]})
+      :throws [:SubLeftNotNumber :SubRightNotNumber]})
 
 |~~ Multiplies two numbers. Commutative.
 
@@ -745,7 +745,7 @@ def(:mul, {:qlang/kind :builtin
       :subject :number
       :returns :number
       :modifiers [:number]
-      :throws [:MulLeftNotNumber, :MulRightNotNumber]})
+      :throws [:MulLeftNotNumber :MulRightNotNumber]})
 
 |~~ Divides the first number by the second. Non-commutative:
     position 1 is the dividend. Raises division-by-zero on
@@ -760,7 +760,7 @@ def(:div, {:qlang/kind :builtin
       :subject :number
       :returns :number
       :modifiers [:number]
-      :throws [:DivLeftNotNumber, :DivRightNotNumber, :DivisionByZeroError]})
+      :throws [:DivLeftNotNumber :DivRightNotNumber :DivisionByZeroError]})
 
 |~ ──────────────── String ──────────────── ~|
 
@@ -776,7 +776,7 @@ def(:split, {:qlang/kind :builtin
         :subject :string
         :returns :vec
         :modifiers [:string]
-        :throws [:SplitSubjectNotString, :SplitSeparatorNotString]})
+        :throws [:SplitSubjectNotString :SplitSeparatorNotString]})
 
 |~~ Joins the elements of a Vec of Strings with separator
     between consecutive elements. Inverse of split.
@@ -790,7 +790,7 @@ def(:join, {:qlang/kind :builtin
        :subject :vec
        :returns :string
        :modifiers [:string]
-       :throws [:JoinSubjectNotVec, :JoinElementNotString, :JoinSeparatorNotString]})
+       :throws [:JoinSubjectNotVec :JoinElementNotString :JoinSeparatorNotString]})
 
 |~~ Returns true if the subject string contains needle as a
     substring. Empty needle is always contained.
@@ -805,7 +805,7 @@ def(:contains, {:qlang/kind :builtin
            :subject :string
            :returns :boolean
            :modifiers [:string]
-           :throws [:ContainsSubjectNotString, :ContainsNeedleNotString]})
+           :throws [:ContainsSubjectNotString :ContainsNeedleNotString]})
 
 |~~ Returns true if the subject string begins with prefix.
     Empty prefix is always a prefix. Case-sensitive.
@@ -819,7 +819,7 @@ def(:startsWith, {:qlang/kind :builtin
              :subject :string
              :returns :boolean
              :modifiers [:string]
-             :throws [:StartsWithSubjectNotString, :StartsWithPrefixNotString]})
+             :throws [:StartsWithSubjectNotString :StartsWithPrefixNotString]})
 
 |~~ Returns true if the subject string ends with suffix.
     Empty suffix is always a suffix. Case-sensitive.
@@ -833,7 +833,7 @@ def(:endsWith, {:qlang/kind :builtin
            :subject :string
            :returns :boolean
            :modifiers [:string]
-           :throws [:EndsWithSubjectNotString, :EndsWithSuffixNotString]})
+           :throws [:EndsWithSubjectNotString :EndsWithSuffixNotString]})
 
 |~~ Concatenates the modifier in front of the subject.
 
@@ -845,7 +845,7 @@ def(:prepend, {:qlang/kind :builtin
           :subject :string
           :returns :string
           :modifiers [:string]
-          :throws [:PrependSubjectNotString, :PrependPrefixNotString]})
+          :throws [:PrependSubjectNotString :PrependPrefixNotString]})
 
 |~~ Concatenates the subject with the modifier on the right.
 
@@ -857,7 +857,7 @@ def(:append, {:qlang/kind :builtin
          :subject :string
          :returns :string
          :modifiers [:string]
-         :throws [:AppendSubjectNotString, :AppendSuffixNotString]})
+         :throws [:AppendSubjectNotString :AppendSuffixNotString]})
 
 |~ ──────────────── Boolean ──────────────── ~|
 
@@ -1150,7 +1150,7 @@ def(:table, {:qlang/kind :builtin
         :modifiers []
         :examples [
           {:doc "render as table"  :snippet "[{:name \"a\" :age 20} {:name \"b\" :age 30}] | table"}]
-        :throws [:TableSubjectNotVec, :TableRowNotMap]})
+        :throws [:TableSubjectNotVec :TableRowNotMap]})
 
 |~ ──────────────── Reflective ──────────────── ~|
 
@@ -1182,7 +1182,7 @@ def(:use, {:qlang/kind :builtin
       :returns :any
       :modifiers [:any]
       :examples [
-        {:doc "merge Map into env"      :snippet "{:pi 3.14 :e 2.71} | use | [pi, e]"}
+        {:doc "merge Map into env"      :snippet "{:pi 3.14 :e 2.71} | use | [pi e]"}
         {:doc "import module"           :snippet "use(:qlang/error)"}
         {:doc "import multiple modules" :snippet "use([:qlang/error :qlang/http])"}]
       :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]})
@@ -1240,7 +1240,7 @@ def(:runExamples, {:qlang/kind :builtin
               :subject :map
               :returns :vec
               :modifiers []
-              :throws [:RunExamplesSubjectNotDescriptor, :RunExamplesNoExamplesField]})
+              :throws [:RunExamplesSubjectNotDescriptor :RunExamplesNoExamplesField]})
 
 |~~ Captures the current pipeValue as a frozen snapshot under
     the given keyword name. pipeValue passes through unchanged.

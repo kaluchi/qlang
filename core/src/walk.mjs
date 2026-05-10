@@ -34,10 +34,12 @@ export function astChildrenOf(node) {
       out.push(node.pipeline);
       break;
     case 'VecLit':
+    case 'JsonArrayLit':
     case 'SetLit':
       for (const elem of node.elements) out.push(elem);
       break;
     case 'MapLit':
+    case 'JsonObjectLit':
     case 'ErrorLit':
       for (const entry of node.entries) out.push(entry);
       break;
@@ -316,8 +318,10 @@ const KIND_NULL_LIT            = keyword('NullLit');
 const KIND_KEYWORD             = keyword('Keyword');
 const KIND_PROJECTION          = keyword('Projection');
 const KIND_VEC_LIT             = keyword('VecLit');
+const KIND_JSON_ARRAY_LIT      = keyword('JsonArrayLit');
 const KIND_SET_LIT             = keyword('SetLit');
 const KIND_MAP_LIT             = keyword('MapLit');
+const KIND_JSON_OBJECT_LIT     = keyword('JsonObjectLit');
 const KIND_ERROR_LIT           = keyword('ErrorLit');
 const KIND_QUOTE_LIT           = keyword('QuoteLit');
 const KIND_DOC_LIT             = keyword('DocLit');
@@ -344,8 +348,10 @@ const AST_KIND_TO_TYPE = new Map([
   ['Keyword',            'Keyword'],
   ['Projection',         'Projection'],
   ['VecLit',             'VecLit'],
+  ['JsonArrayLit',       'JsonArrayLit'],
   ['SetLit',             'SetLit'],
   ['MapLit',             'MapLit'],
+  ['JsonObjectLit',      'JsonObjectLit'],
   ['ErrorLit',           'ErrorLit'],
   ['QuoteLit',           'QuoteLit'],
   ['DocLit',             'DocLit'],
@@ -490,6 +496,11 @@ export function astNodeToMap(node) {
       m.set(F_ELEMENTS, Object.freeze(node.elements.map(astNodeToMap)));
       break;
 
+    case 'JsonArrayLit':
+      m.set(F_QLANG_KIND, KIND_JSON_ARRAY_LIT);
+      m.set(F_ELEMENTS, Object.freeze(node.elements.map(astNodeToMap)));
+      break;
+
     case 'SetLit':
       m.set(F_QLANG_KIND, KIND_SET_LIT);
       m.set(F_ELEMENTS, Object.freeze(node.elements.map(astNodeToMap)));
@@ -497,6 +508,11 @@ export function astNodeToMap(node) {
 
     case 'MapLit':
       m.set(F_QLANG_KIND, KIND_MAP_LIT);
+      m.set(F_ENTRIES, Object.freeze(node.entries.map(astNodeToMap)));
+      break;
+
+    case 'JsonObjectLit':
+      m.set(F_QLANG_KIND, KIND_JSON_OBJECT_LIT);
       m.set(F_ENTRIES, Object.freeze(node.entries.map(astNodeToMap)));
       break;
 
@@ -659,11 +675,13 @@ export function qlangMapToAst(map) {
       break;
 
     case 'VecLit':
+    case 'JsonArrayLit':
     case 'SetLit':
       node.elements = map.get(F_ELEMENTS).map(qlangMapToAst);
       break;
 
     case 'MapLit':
+    case 'JsonObjectLit':
     case 'ErrorLit':
       node.entries = map.get(F_ENTRIES).map(qlangMapToAst);
       break;

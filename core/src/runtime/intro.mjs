@@ -18,7 +18,7 @@ import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet,
-  typeKeyword, keyword, makeConduit, makeSnapshot, isErrorValue
+  typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, isErrorValue
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -161,6 +161,11 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   // Install namespace keyword → exports in env for subsequent lookups.
   const envWithNamespace = new Map(outerEnv);
   envWithNamespace.set(nsKeyword.name, loadedExports);
+  // Stamp the loaded module's source as a Quote-value under the
+  // canonical `qlang/ast/<ns>` env key — same surface the core
+  // module gets in langRuntime, so axis-operands walk every
+  // loaded namespace through one mechanism.
+  envWithNamespace.set('qlang/ast/' + nsKeyword.name, makeQuote(locatorResult.source, astNodeToMap(moduleAst)));
   return [loadedExports, envWithNamespace];
 }
 
@@ -460,13 +465,15 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   return withPipeValue(state, runExResults);
 });
 
-// manifest — Vec of descriptors, one per binding in env, sorted by name.
+// manifest — Vec of descriptors, one per binding in env, sorted by
+// name. Reserved namespace `qlang/ast/<uri>` carries module Quote
+// storage for axis-operand traversal and is filtered out — those
+// entries are runtime housekeeping, not user-visible bindings.
 export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
   const entries = [];
   for (const [k, v] of state.env) {
-    if (typeof k === 'string') {
-      entries.push({ name: k, key: k, value: v });
-    }
+    if (k.startsWith('qlang/ast/')) continue;
+    entries.push({ name: k, key: k, value: v });
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));
   const descriptors = entries.map(e => describeBinding(e.value, e.name));

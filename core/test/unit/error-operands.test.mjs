@@ -64,9 +64,9 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('plain comment between a deflecting step and a fail-apply step lands on the trail', async () => {
-    // Phase 9 trail-as-Quote: /trail yields a Quote-value carrying
-    // the joined pipeline-suffix source. Plain comments participate
-    // as identity pipeline steps and therefore DO land on the trail
+    // /trail yields a Quote-value carrying the joined
+    // pipeline-suffix source. Plain comments participate as
+    // identity pipeline steps and therefore DO land on the trail
     // when the pipeline deflects past them — the assertion here is
     // that the operand-carrying step (`count`) appears in the trail
     // source. Quote.source carries both fragments verbatim through

@@ -143,13 +143,13 @@ export function withName(binding, newName) {
 
 // ── error value factory ───────────────────────────────────────
 //
-// Under Phase 9 the `:trail` field carries either a Quote-value
-// holding the joined pipeline-suffix source — copy-pasteable code
-// the user can splice back into a query — or `null` when no
-// success-track combinator deflected after the fault. Linked-list
-// nodes hold lightweight `{combinator, text}` records;
-// materializeTrail joins them via COMBINATOR_SYNTAX into the Quote
-// source on demand inside applyFailTrack.
+// `:trail` carries either a Quote-value holding the joined
+// pipeline-suffix source — copy-pasteable code the user can splice
+// back into a query — or `null` when no success-track combinator
+// has deflected after the fault. Linked-list nodes hold
+// `{combinator, text}` fragment records; materializeTrail joins
+// them via COMBINATOR_SYNTAX into the Quote source on demand
+// inside applyFailTrack.
 
 export const COMBINATOR_SYNTAX = Object.freeze({
   pipe:       '|',

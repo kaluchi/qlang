@@ -131,12 +131,12 @@ describe('withContext — merges a context Map into the descriptor', () => {
   });
 
   it('trail continuity survives withContext re-lift', async () => {
-    // Phase 9 trail-as-Quote: /trail yields a Quote-value carrying
-    // the joined pipeline-suffix source. The continuity property
-    // under test: `| count` deflects into the trail as a fragment;
-    // after withContext + re-lift via the conduit's internal
-    // `| error`, the :trail Quote stays populated; `| add(5)` then
-    // deflects and the outer !| concatenates that into the exposed
+    // /trail yields a Quote-value carrying the joined
+    // pipeline-suffix source. The continuity property under test:
+    // `| count` deflects into the trail as a fragment; after
+    // withContext + re-lift via the conduit's internal `| error`,
+    // the :trail Quote stays populated; `| add(5)` then deflects
+    // and the outer !| concatenates that into the exposed
     // materialized descriptor, so the final /source projection
     // holds both step combinators+text in chronological order.
     const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail | /source');

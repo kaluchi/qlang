@@ -59,8 +59,8 @@ describe('describeType for error values', () => {
 
 describe('trail', () => {
   it('appendTrailNode stores {combinator, text} fragments in a linked list', () => {
-    // Phase 9 trail-fragment shape: a frozen `{combinator, text}`
-    // record where `combinator` is one of the COMBINATOR_SYNTAX keys
+    // Trail-fragment shape: a frozen `{combinator, text}` record
+    // where `combinator` is one of the COMBINATOR_SYNTAX keys
     // ('pipe' / 'distribute' / 'merge') and `text` is the deflected
     // step's source slice. eval.mjs::trailEntry produces this shape
     // at every success-track combinator deflect site;

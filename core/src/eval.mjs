@@ -50,12 +50,12 @@ import { astNodeToMap } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 
-// Trail-entry shape under Phase 9: a lightweight record carrying the
-// combinator kind ('pipe' / 'distribute' / 'merge') and the source
-// `text` of the deflected step. materializeTrail joins consecutive
-// records via COMBINATOR_SYNTAX into a single Quote-value source —
-// the deflected pipeline-suffix as copy-pasteable code, not an
-// AST-Map dump.
+// Trail-fragment record stamped onto the linked-list head at every
+// success-track combinator deflect site. `combinator` is one of the
+// COMBINATOR_SYNTAX keys ('pipe' / 'distribute' / 'merge');
+// `text` is the deflected step's source slice. materializeTrail
+// joins fragments through COMBINATOR_SYNTAX into a single
+// Quote-source carrying the pipeline-suffix as copy-pasteable code.
 function trailEntry(stepNode, combinatorKind) {
   return Object.freeze({
     combinator: combinatorKind,

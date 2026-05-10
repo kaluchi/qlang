@@ -1559,8 +1559,8 @@ qlang '"x" | add(1) !| /fault/step | /source'    → "add(1)" (String)
 **Module Quote доступен** (§II.9):
 
 ```
-qlang 'env | /qlang/ast/qlang/core | reify | /type'    → :quote
-qlang 'env | /qlang/ast/qlang/core | /source | contains("def(:count")' → true
+qlang 'env | /:qlang/ast/qlang/core | reify | /type'    → :quote
+qlang 'env | /:qlang/ast/qlang/core | /source | contains("def(:count")' → true
 ```
 
 **Axis-операнды** (§II.8):
@@ -1588,7 +1588,7 @@ qlang 'let(:@safe, @hostOp)' → ok
 **Microincrement quotability** (§II.6):
 
 ```
-qlang 'env | /qlang/ast/qlang/core | /source | contains("def(:filter")' → true
+qlang 'env | /:qlang/ast/qlang/core | /source | contains("def(:filter")' → true
 qlang ':filter | source | /source | startsWith("def(:filter")'         → true
 ```
 
@@ -2078,23 +2078,22 @@ type declarations).
 **Verify:**
 
 - **Core module Quote доступен.** `qlang 'env |
-  /qlang/ast/qlang/core | /source'` возвращает source-text
+  /:qlang/ast/qlang/core | /source'` возвращает source-text
   всего `core/lib/qlang/core.qlang`.
 - **Quote — frozen Quote-value.** `qlang 'env |
-  /qlang/ast/qlang/core | reify | /type'` → `:quote`.
-- **Lazy AST доступ.** `qlang 'env | /qlang/ast/qlang/core |
-  /ast | /qlang/kind'` → `:Pipeline` (или `:MapLit` если
-  core.qlang один Map literal до Phase 5; после Phase 5 —
-  `:Pipeline` из последовательности `def`-step'ов).
-- **Use-loaded module тоже сохраняется.** `qlang 'use(:my/lib)
-  | env | /qlang/ast/my/lib | /source'` returns module
-  source после load.
-- **Reserved namespace.** Ключи `qlang/ast/<uri>`,
-  `qlang/locator`, `qlang/vocabulary` — runtime housekeeping,
-  не подлежат user-binding (collision risk). `qlang
-  'let(:qlang/ast/foo, 42)'` — либо silent-allow (override
-  housekeeping, потенциально опасно) либо warn'ing. Concrete
-  policy уточнить при реализации.
+  /:qlang/ast/qlang/core | reify | /type'` → `:quote`.
+- **Lazy AST доступ.** `qlang 'env | /:qlang/ast/qlang/core |
+  /ast | /:qlang/kind'` → `:Pipeline` (head — block-plain
+  comment, далее MapLit).
+- **Use-loaded module тоже сохраняется.** `qlang
+  'null | use(:my/lib) | env | /:qlang/ast/my/lib | /source'`
+  returns module source после load — symmetrically с core.
+- **Reserved namespace.** Ключи `qlang/ast/<uri>` — runtime
+  housekeeping. `manifest` фильтрует их через
+  `k.startsWith('qlang/ast/')`, lsp `builtinCompletions`
+  тоже. User binding под этим prefix'ом silent-overrides
+  housekeeping value (no guard), но в idiomatic коде такой
+  collision не возникает.
 
 ### Phase 8 — Axis-операнды
 

@@ -53,7 +53,8 @@ import './intro.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { isKeyword } from '../types.mjs';
+import { isKeyword, makeQuote } from '../types.mjs';
+import { astNodeToMap } from '../walk.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -93,6 +94,17 @@ export async function langRuntime() {
           }
         }
       }
+
+      // Stamp the parsed core module as a Quote-value under the
+      // canonical `qlang/ast/qlang/core` env key. Axis-operands
+      // (`source`, `docs`, `examples`, `seeAlso`, `describe`,
+      // `spec`) walk this Quote to lift declarative metadata
+      // directly out of the source AST. Source ships alongside the
+      // lazy AST so `/source` returns the verbatim text and `/ast`
+      // returns the pre-parsed AST-Map without a re-parse
+      // round-trip.
+      templateEnv.set('qlang/ast/qlang/core', makeQuote(CORE_SOURCE, astNodeToMap(coreAst)));
+
       PRIMITIVE_REGISTRY.seal();
 
       return templateEnv;

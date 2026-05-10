@@ -24,10 +24,16 @@ describe(':name | source returns the def-step source as Quote', () => {
     expect(err.descriptor.get('thrown')).toEqual(keyword('AxisBindingNotFound'));
   });
 
-  it('non-keyword subject raises SourceSubjectNotKeyword', async () => {
+  it('non-keyword subject raises SourceSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('42 | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('SourceSubjectNotKeyword'));
+    expect(err.descriptor.get('thrown')).toEqual(keyword('SourceSubjectNotKeywordOrType'));
+  });
+
+  it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrType', async () => {
+    const err = await evalQuery('{:qlang/kind :type :qlang/impl :unbound} | source');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(keyword('SourceSubjectNotKeywordOrType'));
   });
 });
 
@@ -43,10 +49,10 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
     expect(result).toContain('Returns the number of elements');
   });
 
-  it('non-keyword subject raises DocsSubjectNotKeyword', async () => {
+  it('non-keyword subject raises DocsSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('42 | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DocsSubjectNotKeyword'));
+    expect(err.descriptor.get('thrown')).toEqual(keyword('DocsSubjectNotKeywordOrType'));
   });
 
   it('unknown binding raises AxisBindingNotFound', async () => {
@@ -63,10 +69,10 @@ describe(':name | examples extracts ::assertion segments from docs', () => {
     expect(result).toBeGreaterThanOrEqual(0);
   });
 
-  it('non-keyword subject raises ExamplesSubjectNotKeyword', async () => {
+  it('non-keyword subject raises ExamplesSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('42 | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('ExamplesSubjectNotKeyword'));
+    expect(err.descriptor.get('thrown')).toEqual(keyword('ExamplesSubjectNotKeywordOrType'));
   });
 
   it('unknown binding raises AxisBindingNotFound', async () => {
@@ -77,14 +83,27 @@ describe(':name | examples extracts ::assertion segments from docs', () => {
 });
 
 describe('axis-operands walk type-namespace bindings via `::` prefix', () => {
-  it(':"::conduit" | source finds the type binding def-step', async () => {
-    // `::conduit` itself evaluates to the type descriptor, so
-    // accessing the type binding's source needs the keyword
-    // form `:"::conduit"` to keep `source` operating on the
-    // name string rather than the descriptor.
+  it(':"::conduit" | source finds the type binding def-step via the keyword form', async () => {
     const result = await evalQuery(':"::conduit" | source');
     expect(isQuote(result)).toBe(true);
     expect(result.source.startsWith('def(::conduit')).toBe(true);
+  });
+
+  it('::conduit | source resolves the type-binding descriptor through reverse env lookup', async () => {
+    const result = await evalQuery('::conduit | source');
+    expect(isQuote(result)).toBe(true);
+    expect(result.source.startsWith('def(::conduit')).toBe(true);
+  });
+
+  it('::assertion | docs returns the attached Doc-prefix on the type def-step', async () => {
+    const result = await evalQuery('::assertion | docs | first | /content');
+    expect(typeof result).toBe('string');
+    expect(result).toContain('::assertion');
+  });
+
+  it('::assertion | examples extracts the ::assertion segments from the type docstring', async () => {
+    const result = await evalQuery('::assertion | examples | count');
+    expect(result).toBeGreaterThanOrEqual(1);
   });
 });
 

@@ -16,14 +16,14 @@ import { stateOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isKeyword, isQuote, makeQuote, makeDoc
+  isKeyword, isQMap, isQuote, makeQuote, makeDoc
 } from '../types.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const SourceSubjectNotKeyword   = declareSubjectError('SourceSubjectNotKeyword',   'source',   'Keyword');
-const DocsSubjectNotKeyword     = declareSubjectError('DocsSubjectNotKeyword',     'docs',     'Keyword');
-const ExamplesSubjectNotKeyword = declareSubjectError('ExamplesSubjectNotKeyword', 'examples', 'Keyword');
+const SourceSubjectNotKeywordOrType   = declareSubjectError('SourceSubjectNotKeywordOrType',   'source',   'Keyword or type-binding descriptor');
+const DocsSubjectNotKeywordOrType     = declareSubjectError('DocsSubjectNotKeywordOrType',     'docs',     'Keyword or type-binding descriptor');
+const ExamplesSubjectNotKeywordOrType = declareSubjectError('ExamplesSubjectNotKeywordOrType', 'examples', 'Keyword or type-binding descriptor');
 export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
   ({ axisName, bindingName }) => `${axisName}: no def-step found for binding '${bindingName}' across loaded modules`);
 
@@ -74,16 +74,23 @@ export function findDefStepAcrossModules(env, bindingName) {
   return null;
 }
 
-function bindingNameOf(subject) {
-  return subject.name;
+// Resolve the subject to a binding name a def-step lives under.
+// Keyword `:foo`             → `'foo'` (ordinary value/conduit binding).
+// Type-descriptor Map (the value bound under a `::tag` env key, carrying
+// `:qlang/kind :type`) → `'::<tag>'` recovered by reverse env lookup —
+// the descriptor identity matches exactly one env entry.
+function bindingNameOf(subject, env, ErrorCls) {
+  if (isKeyword(subject)) return subject.name;
+  if (isQMap(subject) && subject.get('qlang/kind')?.name === 'type') {
+    for (const [envKey, envValue] of env) {
+      if (envValue === subject && envKey.startsWith('::')) return envKey;
+    }
+  }
+  throw new ErrorCls(subject);
 }
 
 export const source = stateOp('source', 1, (state, _lambdas) => {
-  const subject = state.pipeValue;
-  if (!isKeyword(subject)) {
-    throw new SourceSubjectNotKeyword(subject);
-  }
-  const bindingName = bindingNameOf(subject);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrType);
   const step = findDefStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFound({ axisName: 'source', bindingName });
@@ -92,11 +99,7 @@ export const source = stateOp('source', 1, (state, _lambdas) => {
 });
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const subject = state.pipeValue;
-  if (!isKeyword(subject)) {
-    throw new DocsSubjectNotKeyword(subject);
-  }
-  const bindingName = bindingNameOf(subject);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrType);
   const step = findDefStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFound({ axisName: 'docs', bindingName });
@@ -106,11 +109,7 @@ export const docs = stateOp('docs', 1, (state, _lambdas) => {
 });
 
 export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const subject = state.pipeValue;
-  if (!isKeyword(subject)) {
-    throw new ExamplesSubjectNotKeyword(subject);
-  }
-  const bindingName = bindingNameOf(subject);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrType);
   const step = findDefStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFound({ axisName: 'examples', bindingName });

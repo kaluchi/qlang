@@ -46,7 +46,7 @@ import { bindParseOperands } from './parse-operands.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
 
-const PROMPT = '\x1b[1;36mqlang>\x1b[0m ';
+const PROMPT = '\x1b[1;97mqlang\x1b[0m\x1b[1;36m>\x1b[0m ';
 
 const REPL_HELP = `Meta commands:
   .help    list meta commands

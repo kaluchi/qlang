@@ -1465,7 +1465,7 @@ def(:isJsonArray, {:qlang/kind :builtin
     :snippet and :expected as Quote-values that runExamples
     evaluates and compares.
 
-    ::assertion[`::assertion[`[1 2 3] | count` `3`] | /qlang/kind` `:assertion`]
+    ::assertion[`5 | mul(2)` `10`]
     ~~|
 def(::assertion, {:qlang/kind :type
                   :qlang/impl :qlang/type/assertion
@@ -1489,7 +1489,7 @@ def(:source, {:qlang/kind :builtin
               :returns :quote
               :modifiers []
               :examples []
-              :throws [:SourceSubjectNotKeyword :AxisBindingNotFound]})
+              :throws [:SourceSubjectNotKeywordOrType :AxisBindingNotFound]})
 
 |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
     on the def-step that binds :name. Each Doc-value /segments
@@ -1502,7 +1502,7 @@ def(:docs, {:qlang/kind :builtin
             :returns :vec
             :modifiers []
             :examples []
-            :throws [:DocsSubjectNotKeyword :AxisBindingNotFound]})
+            :throws [:DocsSubjectNotKeywordOrType :AxisBindingNotFound]})
 
 |~~ examples(:name) — Vec of Assertion-values extracted from the
     binding's docs by filtering :segments for :qlang/kind
@@ -1515,4 +1515,4 @@ def(:examples, {:qlang/kind :builtin
                 :returns :vec
                 :modifiers []
                 :examples []
-                :throws [:ExamplesSubjectNotKeyword :AxisBindingNotFound]})
+                :throws [:ExamplesSubjectNotKeywordOrType :AxisBindingNotFound]})

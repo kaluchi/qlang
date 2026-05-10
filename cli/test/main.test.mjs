@@ -62,7 +62,7 @@ describe('main — flag dispatch', () => {
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toMatch(/qlang>/);
+    expect(s.stdoutText()).toMatch(/qlang.*>/);
   });
 });
 

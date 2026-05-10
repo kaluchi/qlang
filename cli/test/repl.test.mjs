@@ -98,11 +98,11 @@ describe('runRepl — output highlighting', () => {
     expect(r.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
-  it('paints the prompt with bold-cyan escape on every line', async () => {
+  it('paints the prompt with bright-white name + bold-cyan angle on every line', async () => {
     const r = captureRepl('.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(r.stdoutText()).toMatch(/\x1b\[1;36m/);
-    expect(r.stdoutText()).toMatch(/qlang>/);
+    expect(r.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
+    expect(r.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
   it('translates `\\n` into `\\r\\n` for stderr writes in TTY mode', async () => {

@@ -30,9 +30,10 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
     expect(result).toBe('mul(2)');
   });
 
-  it('::assertion segment yields an Assertion-value', async () => {
+  it('::assertion segment yields an Assertion-value with TagKeyword kind', async () => {
+    const { makeTagKeyword } = await import('../../src/types.mjs');
     const result = await evalQuery('|~~ ::assertion[`[1 2 3] | count` `3`] ~~| | /segments | at(1) | /:qlang/kind');
-    expect(result).toEqual(keyword('assertion'));
+    expect(result).toEqual(makeTagKeyword('assertion'));
   });
 
   it('::assertion segment exposes :snippet and :expected', async () => {

@@ -70,10 +70,11 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit returns a Variant-B conduit descriptor Map', () => {
+  it('makeConduit returns a Variant-B conduit descriptor Map', async () => {
+    const { makeTagKeyword } = await import('../../src/types.mjs');
     const t = makeConduit('expr-ast');
     expect(t).toBeInstanceOf(Map);
-    expect(t.get('qlang/kind')).toEqual(keyword('conduit'));
+    expect(t.get('qlang/kind')).toEqual(makeTagKeyword('conduit'));
     expect(t.get('qlang/body')).toBe('expr-ast');
   });
 });

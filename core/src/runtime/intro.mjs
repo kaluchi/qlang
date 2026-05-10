@@ -17,7 +17,7 @@ import { astNodeToMap, qlangMapToAst, locationToQlangMap } from '../walk.mjs';
 import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
-  isVec, isQSet,
+  isVec, isQSet, isQuote,
   typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, makeDoc, isErrorValue
 } from '../types.mjs';
 import {
@@ -666,49 +666,58 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
 // inspection, and hand-rolled AST construction all become user-
 // level qlang operations from this point on.
 
-const ParseSubjectNotString = declareSubjectError(
-  'ParseSubjectNotString', 'parse', 'String');
+const ParseSubjectNotStringOrQuote = declareSubjectError(
+  'ParseSubjectNotStringOrQuote', 'parse', 'String or Quote');
 
-const EvalSubjectNotMap = declareSubjectError(
-  'EvalSubjectNotMap', 'eval', 'AST Map');
+const EvalSubjectNotMapOrQuote = declareSubjectError(
+  'EvalSubjectNotMapOrQuote', 'eval', 'AST Map or Quote');
 
 // parse — reads a source string into the Variant-B AST-Map form.
-// Malformed sources surface on the fail-track: the underlying
-// peggy ParseError is caught and converted to a qlang error value
-// via errorFromParse, which stamps :kind :parse-error and the
-// peggy source location onto the descriptor. The converted error
-// becomes the new pipeValue directly — no throw into evalNode,
-// because evalNode's fallback conversion treats ParseError as a
-// foreign error (kind :foreign-error) which loses the parse-
-// specific discriminator a user-facing operand should preserve.
+// A Quote-value is accepted too: it is "code in string form", so
+// `\`5 | mul(2)\` | parse` is the same as `"5 | mul(2)" | parse`
+// minus the escape boilerplate. Malformed sources surface on the
+// fail-track: the peggy ParseError is caught and converted to a
+// qlang error value via errorFromParse, which stamps :kind
+// :parse-error and the peggy source location onto the descriptor.
+// The converted error becomes the new pipeValue directly — no
+// throw into evalNode, because evalNode's fallback conversion
+// treats ParseError as a foreign error (kind :foreign-error) which
+// loses the parse-specific discriminator a user-facing operand
+// should preserve.
 export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => {
   const parseSrc = state.pipeValue;
-  if (typeof parseSrc !== 'string') {
-    throw new ParseSubjectNotString(parseSrc);
-  }
+  let sourceText;
+  if (typeof parseSrc === 'string') sourceText = parseSrc;
+  else if (isQuote(parseSrc))       sourceText = parseSrc.source;
+  else throw new ParseSubjectNotStringOrQuote(parseSrc);
   try {
-    const parsedAst = parseSource(parseSrc, { uri: 'parse-operand' });
+    const parsedAst = parseSource(sourceText, { uri: 'parse-operand' });
     return withPipeValue(state, astNodeToMap(parsedAst));
   } catch (parseErr) {
     return withPipeValue(state, errorFromParse(parseErr));
   }
 });
 
-// eval — takes an AST-Map (produced by parse or hand-constructed
-// via astNodeToMap-style data assembly) and runs it against the
-// current state. The current pipeValue becomes the initial
-// pipeValue of the inner evaluation, and env is threaded in
-// unchanged — writes that the inner code does through let / as
-// land in state.env exactly as if the code had been inlined at
+// eval — runs an AST against the current state. Subject is either
+// an AST-Map (the `parse` output, or a hand-constructed Map via
+// astNodeToMap-style data assembly) or a Quote (raw qlang source
+// in string form — parsed on the fly). The current pipeValue
+// becomes the initial pipeValue of the inner evaluation, and env
+// is threaded in unchanged: writes the inner code does through let /
+// as land in state.env exactly as if the code had been inlined at
 // the call site. The result is whatever pipeValue the inner code
 // produces; env changes from inner let / as / use calls propagate
 // out, matching the semantics of a bare paren-group application.
 export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
-  const evalAstMap = state.pipeValue;
-  if (!isQMap(evalAstMap)) {
-    throw new EvalSubjectNotMap(evalAstMap);
+  const evalSubject = state.pipeValue;
+  let reconstructedAst;
+  if (isQMap(evalSubject)) {
+    reconstructedAst = qlangMapToAst(evalSubject);
+  } else if (isQuote(evalSubject)) {
+    reconstructedAst = evalSubject.ast ?? parseSource(evalSubject.source, { uri: 'eval-operand' });
+  } else {
+    throw new EvalSubjectNotMapOrQuote(evalSubject);
   }
-  const reconstructedAst = qlangMapToAst(evalAstMap);
   return await evalAst(reconstructedAst, state);
 });
 

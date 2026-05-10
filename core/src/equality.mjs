@@ -9,7 +9,7 @@
 // semantic distinction at the equality level.
 
 import {
-  isKeyword, isErrorValue, isQuote, isDoc,
+  isKeyword, isTagKeyword, isErrorValue, isQuote, isDoc,
   isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet
 } from './types.mjs';
 
@@ -47,6 +47,9 @@ export function deepEqual(a, b) {
   }
   if (isKeyword(a)) {
     return isKeyword(b) && a.name === b.name;
+  }
+  if (isTagKeyword(a)) {
+    return isTagKeyword(b) && a.name === b.name;
   }
   if (isErrorValue(a)) {
     return isErrorValue(b) && deepEqual(a.descriptor, b.descriptor);

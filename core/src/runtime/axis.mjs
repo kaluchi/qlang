@@ -16,7 +16,7 @@ import { stateOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, makeQuote, makeDoc
+  isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc
 } from '../types.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
@@ -79,12 +79,20 @@ export function findDefStepAcrossModules(env, bindingName) {
 // Type-descriptor Map (the value bound under a `::tag` env key, carrying
 // `:qlang/kind :type`) → `'::<tag>'` recovered by reverse env lookup —
 // the descriptor identity matches exactly one env entry.
+// Tagged-instance Map (any value carrying `:qlang/kind` as a TagKeyword,
+// e.g. `::assertion[…]` or `::conduit[…]`) → `'::<tag>'` taken straight
+// from that TagKeyword's name — the instance's `docs` are the docs of
+// the type binding it instantiates.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
-  if (isQMap(subject) && subject.get('qlang/kind')?.name === 'type') {
-    for (const [envKey, envValue] of env) {
-      if (envValue === subject && envKey.startsWith('::')) return envKey;
+  if (isQMap(subject)) {
+    const kind = subject.get('qlang/kind');
+    if (kind && kind.name === 'type') {
+      for (const [envKey, envValue] of env) {
+        if (envValue === subject && envKey.startsWith('::')) return envKey;
+      }
     }
+    if (isTagKeyword(kind)) return '::' + kind.name;
   }
   throw new ErrorCls(subject);
 }

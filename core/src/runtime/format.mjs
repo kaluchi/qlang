@@ -117,7 +117,8 @@ const PRINT_HANDLERS = {
   Boolean:    v => String(v),
   Number:     v => String(v),
   String:     escapeQlangStringLiteral,
-  Keyword:    k => k.literal,
+  Keyword:    literalOfKeyword,
+  TagKeyword: literalOfKeyword,
   Error:      (e, indent) => printMapLike('!{', e.descriptor, indent),
   Vec:        (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:        (m, indent) => printMapLike('{', m, indent),
@@ -128,8 +129,11 @@ const PRINT_HANDLERS = {
   JsonArray:  (a, indent) => `[${a.map(el => printValue(el, indent)).join(', ')}]`,
   Conduit:    printConduit,
   Snapshot:   printSnapshot,
+  TaggedInstance: printTaggedInstance,
   Function:   printFunction
 };
+
+function literalOfKeyword(k) { return k.literal; }
 
 function printJsonObject(obj, indent) {
   const entries = Object.entries(obj);
@@ -168,6 +172,19 @@ function printConduit(conduit) {
 
 function printSnapshot(snapshot) {
   return printValue(snapshot.get('qlang/value'));
+}
+
+// Round-trip a tagged-instance Map back into the `::tag[…]`
+// TaggedLit literal that produced it. The constructor stamps the
+// original payload Vec under `:qlang/payload` precisely so this
+// renderer can reconstruct the source form without any per-tag
+// hardcoding — the same shape `def(:name, body)` rendering does
+// for Conduit, generalised across every user-defined `::tag`.
+function printTaggedInstance(instance, indent) {
+  const tag = instance.get('qlang/kind').name;
+  const payload = instance.get('qlang/payload');
+  const inner = payload.map(el => printValue(el, indent)).join(' ');
+  return `::${tag}[${inner}]`;
 }
 
 function printFunction(fn) {
@@ -215,7 +232,8 @@ const CELL_HANDLERS = {
   Boolean:    v => String(v),
   Number:     v => String(v),
   String:     v => v,
-  Keyword:    k => k.literal,
+  Keyword:    literalOfKeyword,
+  TagKeyword: literalOfKeyword,
   Vec:        v => renderInline(v),
   Map:        m => renderInline(m),
   Set:        s => renderInline(s),
@@ -226,6 +244,7 @@ const CELL_HANDLERS = {
   JsonArray:  a => renderInline(a),
   Conduit:    c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  TaggedInstance: renderTaggedInstanceInline,
   Function:   fn => `:qlang/prim/${fn.name}`
 };
 
@@ -234,7 +253,8 @@ const INLINE_HANDLERS = {
   Boolean:    v => String(v),
   Number:     v => String(v),
   String:     escapeQlangStringLiteral,
-  Keyword:    k => k.literal,
+  Keyword:    literalOfKeyword,
+  TagKeyword: literalOfKeyword,
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
   Set:        s => `#{${[...s].map(renderInline).join(' ')}}`,
@@ -244,9 +264,16 @@ const INLINE_HANDLERS = {
   JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,
   Conduit:    c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
   Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  TaggedInstance: renderTaggedInstanceInline,
   Function:   fn => `:qlang/prim/${fn.name}`,
   Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
 };
+
+function renderTaggedInstanceInline(instance) {
+  const tag = instance.get('qlang/kind').name;
+  const payload = instance.get('qlang/payload');
+  return `::${tag}[${payload.map(renderInline).join(' ')}]`;
+}
 
 function renderInline(v) {
   return dispatchQlangValue(v, INLINE_HANDLERS, String);

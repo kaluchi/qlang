@@ -116,7 +116,7 @@ PRIMITIVE_REGISTRY.bind('qlang/type/json',  (payload) => jsonFromQlang(payload))
 // records an evaluable example. runExamples filters Doc :segments
 // for these, evaluates the :snippet Quote, and compares against
 // the :expected Quote's evaluated value.
-import { keyword as makeKeyword } from '../types.mjs';
+import { makeTagKeyword } from '../types.mjs';
 
 const AssertionPayloadNotVec = declareSubjectError('AssertionPayloadNotVec', '::assertion', 'Vec');
 const AssertionArityInvalid = declareArityError('AssertionArityInvalid',
@@ -139,7 +139,8 @@ function assertionConstructor(payload) {
     throw new AssertionExpectedNotQuote({ actualType: typeKeyword(expected), actualValue: expected });
   }
   const m = new Map();
-  m.set('qlang/kind', makeKeyword('assertion'));
+  m.set('qlang/kind', makeTagKeyword('assertion'));
+  m.set('qlang/payload', payload);
   m.set('snippet', snippet);
   m.set('expected', expected);
   return Object.freeze(m);

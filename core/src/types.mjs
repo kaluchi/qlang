@@ -150,6 +150,22 @@ export function keyword(name) {
   return Object.freeze({ type: 'keyword', name, literal: canonicalKeywordLiteral(name) });
 }
 
+// TagKeyword — `::tag` reference value. Distinct from a plain
+// `:tag` keyword: tagged-instance Maps stamp `:qlang/kind` with a
+// TagKeyword so the discriminator carries "this is an instance
+// of ::tag" rather than the looser "kind is the symbol :tag".
+// `.name` mirrors the keyword shape so existing
+// `kind.name === 'assertion'` checks read both Keyword and
+// TagKeyword uniformly.
+
+export function makeTagKeyword(tag) {
+  return Object.freeze({ type: 'tagKeyword', name: tag, literal: '::' + tag });
+}
+
+export function isTagKeyword(v) {
+  return v !== null && typeof v === 'object' && v.type === 'tagKeyword';
+}
+
 // ── conduit / snapshot / quote predicates ─────────────────────
 
 export function isConduit(v) {
@@ -162,6 +178,22 @@ export function isSnapshot(v) {
   if (!(v instanceof Map)) return false;
   const kind = v.get('qlang/kind');
   return kind && kind.name === 'snapshot';
+}
+
+// A tagged-instance Map carries `:qlang/kind <tag>` plus a
+// `:qlang/payload` Vec of the original constructor arguments. Any
+// `::tag` constructor that wants printValue / inline rendering
+// to round-trip back to the literal form stamps both fields.
+// The conduit/snapshot/type discriminators are excluded because
+// they own dedicated render paths (def-form, as-form, type-binding)
+// rather than the generic `::<tag>[<payload>]` shape.
+const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'type']);
+export function isTaggedInstance(v) {
+  if (!(v instanceof Map)) return false;
+  const kind = v.get('qlang/kind');
+  if (!kind || RESERVED_TAGGED_KINDS.has(kind.name)) return false;
+  const payload = v.get('qlang/payload');
+  return Array.isArray(payload);
 }
 
 export function isQuote(v) {
@@ -203,7 +235,7 @@ export function makeDoc(content) {
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
   const m = new Map();
-  m.set('qlang/kind', keyword('conduit'));
+  m.set('qlang/kind', makeTagKeyword('conduit'));
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
   m.set('qlang/body', body);
@@ -218,7 +250,7 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
 
 export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   const m = new Map();
-  m.set('qlang/kind', keyword('snapshot'));
+  m.set('qlang/kind', makeTagKeyword('snapshot'));
   m.set('name', name);
   m.set('qlang/value', value);
   m.set('docs', Object.freeze([...docs]));
@@ -313,12 +345,14 @@ export function describeType(v) {
   if (isNumber(v)) return 'Number';
   if (isString(v)) return 'String';
   if (isKeyword(v)) return 'Keyword';
+  if (isTagKeyword(v)) return 'TagKeyword';
   if (isJsonArray(v)) return 'JsonArray';
   if (isVec(v)) return 'Vec';
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
   if (isQuote(v)) return 'Quote';
   if (isDoc(v)) return 'Doc';
+  if (isTaggedInstance(v)) return 'TaggedInstance';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
@@ -333,12 +367,14 @@ export function typeKeyword(v) {
   if (isNumber(v)) return keyword('number');
   if (isString(v)) return keyword('string');
   if (isKeyword(v)) return keyword('keyword');
+  if (isTagKeyword(v)) return keyword('tag-keyword');
   if (isJsonArray(v)) return keyword('json-array');
   if (isVec(v)) return keyword('vec');
-  if (isConduit(v)) return keyword('conduit');
-  if (isSnapshot(v)) return keyword('snapshot');
+  if (isConduit(v)) return makeTagKeyword('conduit');
+  if (isSnapshot(v)) return makeTagKeyword('snapshot');
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
+  if (isTaggedInstance(v)) return makeTagKeyword(v.get('qlang/kind').name);
   if (isQMap(v)) return keyword('map');
   if (isQSet(v)) return keyword('set');
   if (isErrorValue(v)) return keyword('error');

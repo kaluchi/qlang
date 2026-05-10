@@ -105,6 +105,12 @@ describe('axis-operands walk type-namespace bindings via `::` prefix', () => {
     const result = await evalQuery('::assertion | examples | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
+
+  it('a tagged-instance value forwards to the docs of its type binding', async () => {
+    const result = await evalQuery('::assertion[`5 | mul(2)` `10`] | docs | first | /content');
+    expect(typeof result).toBe('string');
+    expect(result).toContain('::assertion');
+  });
 });
 
 describe('examples axis extracts ::assertion segments from a loaded module', () => {

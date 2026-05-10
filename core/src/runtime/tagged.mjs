@@ -10,7 +10,7 @@
 
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isQuote, isQMap, isJsonObject, isJsonArray,
+  isVec, isKeyword, isQuote, isQMap, isJsonObject,
   makeConduit, makeJsonObject, makeJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';

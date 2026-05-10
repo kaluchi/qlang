@@ -136,15 +136,16 @@ export async function langRuntime() {
         }
       }
 
-      // Resolve :qlang/impl keywords to function values. After this
-      // pass every descriptor (builtin operand or tagged type)
-      // carries its executable impl directly — dispatch reads the
-      // function from the descriptor without consulting the
-      // registry at call time. Every templateEnv entry at this
-      // point is a descriptor Map (snapshots unwrapped above);
-      // descriptors whose impl is already a function (the
-      // bootstrap def) skip via the isKeyword guard.
+      // Resolve :qlang/impl keywords to function values for
+      // built-in operands — the dispatch hot path reads the
+      // function from the descriptor without a registry lookup
+      // per call. Type bindings keep their :qlang/impl as a
+      // keyword (`:qlang/type/<tag>`); evalTaggedLit resolves
+      // it through PRIMITIVE_REGISTRY at invocation. That keeps
+      // `reify(::tag)` output readable — a keyword instead of
+      // a JS-source dump of an opaque constructor function.
       for (const descriptor of templateEnv.values()) {
+        if (descriptor.get('qlang/kind')?.name !== 'builtin') continue;
         const implKey = descriptor.get('qlang/impl');
         if (isKeyword(implKey)) {
           descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));

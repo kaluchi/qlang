@@ -365,13 +365,14 @@ async function evalTaggedLit(node, state) {
   if (!isQMap(typeBinding)) {
     throw new TaggedLitNotType({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
-  // User-defined types via `def(::tag, descriptor)` carry the
-  // :qlang/impl as a keyword handle until invocation; resolve it
-  // through PRIMITIVE_REGISTRY here. Built-in types loaded by
-  // langRuntime are already function-resolved at bootstrap time.
-  const implRaw = typeBinding.get('qlang/impl');
-  const impl = isKeyword(implRaw) ? PRIMITIVE_REGISTRY.resolve(implRaw.name) : implRaw;
-  const value = await impl(payloadValue, state);
+  // Type-binding :qlang/impl is always a `:qlang/type/<tag>`
+  // keyword (langRuntime keeps it that way so reify(::tag) shows
+  // the readable handle, not a JS-source dump of the constructor
+  // function). Resolve through PRIMITIVE_REGISTRY at every
+  // invocation.
+  const implKey = typeBinding.get('qlang/impl');
+  const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
+  const value = await constructor(payloadValue, state);
   return withPipeValue(state, value);
 }
 

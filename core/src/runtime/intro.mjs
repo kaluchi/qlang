@@ -40,6 +40,8 @@ import { deepEqual } from '../equality.mjs';
 // loading, so the binding resolves correctly.
 import { evalQuery, evalAst } from '../eval.mjs';
 import { parse as parseSource } from '../parse.mjs';
+import { findDefStepAcrossModules } from './axis.mjs';
+import { parseDocSegments } from '../doc-segments.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
 const UseNamespaceNotKeyword = declareShapeError('UseNamespaceNotKeyword',
@@ -372,97 +374,77 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
   throw new ReifyArityOverflow({ actualArity: reifyLambdas.length });
 }, [0, 1]);
 
-const RunExamplesSubjectNotDescriptor = declareSubjectError(
-  'RunExamplesSubjectNotDescriptor', 'runExamples', 'descriptor Map'
-);
-const RunExamplesNoExamplesField = declareShapeError('RunExamplesNoExamplesField',
-  ({ subjectKind }) => `runExamples requires the subject descriptor to carry an :examples Vec, got descriptor of kind ${subjectKind}`);
+const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
+  ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`);
 
-// runExampleEntry(example) → result Map
+// runAssertionEntry(assertion) → result Map
 //
-// Each example is a Map with :doc (optional), :snippet, :expected
-// (optional). Two modes:
-//
-//   Assertion mode — when :expected is a string: evalQuery both the
-//   snippet and the expected, deepEqual-compare the two values.
-//   `:ok` is true iff both eval cleanly AND the values match.
-//
-//   Demo mode — when :expected is absent: only parse-verify the
-//   snippet. Demo examples illustrate call-site style using
-//   caller-supplied bindings (`person | coalesce(/preferredName,
-//   …)`), which cannot be evalQuery'd in runExamples' isolated env
-//   because those bindings are not installed. Running them would
-//   mark every demo example as failing for the wrong reason, so
-//   demo mode stops at parse and marks `:ok` true if the snippet
-//   is syntactically valid.
-async function runExampleEntry(exampleMap) {
-  const exampleResult = new Map();
-  const snippetSrc = isQMap(exampleMap) ? exampleMap.get('snippet') : null;
-  const expectedSrc = isQMap(exampleMap) ? exampleMap.get('expected') : null;
-  const exampleDoc = isQMap(exampleMap) ? exampleMap.get('doc') : null;
+// `assertion` is a Map produced by the ::assertion constructor:
+//   {:qlang/kind :assertion :snippet <Quote> :expected <Quote>}
+// Both Quote sources are evalQuery'd in an isolated env; their
+// values are deepEqual-compared. `:ok` is true iff both eval
+// cleanly AND match.
+async function runAssertionEntry(assertion) {
+  const result = new Map();
+  const snippet = assertion.get('snippet');
+  const expected = assertion.get('expected');
+  result.set('snippet', snippet);
+  result.set('expected', expected);
 
-  exampleResult.set('snippet', snippetSrc);
-  exampleResult.set('doc', exampleDoc);
-  exampleResult.set('expected', expectedSrc);
-
-  if (typeof snippetSrc !== 'string') {
-    exampleResult.set('actual', null);
-    exampleResult.set('error', 'example :snippet must be a string');
-    exampleResult.set('ok', false);
-    return exampleResult;
-  }
-
-  if (typeof expectedSrc !== 'string') {
-    // Demo mode — parse-verify only, no eval.
-    try {
-      parseSource(snippetSrc);
-    } catch (parseVerifyErr) {
-      exampleResult.set('actual', null);
-      exampleResult.set('error', parseVerifyErr.message);
-      exampleResult.set('ok', false);
-      return exampleResult;
-    }
-    exampleResult.set('actual', null);
-    exampleResult.set('error', null);
-    exampleResult.set('ok', true);
-    return exampleResult;
-  }
-
-  // Assertion mode — both snippet and expected are eval'd and compared.
-  const actualValue = await evalQuery(snippetSrc);
+  const actualValue = await evalQuery(snippet.source);
   if (isErrorValue(actualValue)) {
-    exampleResult.set('actual', null);
-    exampleResult.set('error', errorMessageOf(actualValue));
-    exampleResult.set('ok', false);
-    return exampleResult;
+    result.set('actual', null);
+    result.set('error', errorMessageOf(actualValue));
+    result.set('ok', false);
+    return result;
   }
-  exampleResult.set('actual', actualValue);
+  result.set('actual', actualValue);
 
-  const expectedValue = await evalQuery(expectedSrc);
+  const expectedValue = await evalQuery(expected.source);
   if (isErrorValue(expectedValue)) {
-    exampleResult.set('error', 'expected: ' + errorMessageOf(expectedValue));
-    exampleResult.set('ok', false);
-    return exampleResult;
+    result.set('error', 'expected: ' + errorMessageOf(expectedValue));
+    result.set('ok', false);
+    return result;
   }
-  exampleResult.set('error', null);
-  exampleResult.set('ok', deepEqual(actualValue, expectedValue));
-  return exampleResult;
+  result.set('error', null);
+  result.set('ok', deepEqual(actualValue, expectedValue));
+  return result;
+}
+
+async function collectAssertionsForBinding(env, bindingName) {
+  const step = findDefStepAcrossModules(env, bindingName);
+  // Bindings without a source-located def-step (the bootstrap def
+  // descriptor itself, host-installed bindings via session.bind)
+  // simply have no assertions to run. runExamples returns an
+  // empty Vec — the catalog walk in manifest-self-test treats
+  // them as zero-contribution rather than a failure.
+  if (step === null) return [];
+  const docStrings = step.docs ?? [];
+  const collected = [];
+  for (const docStr of docStrings) {
+    const segments = await parseDocSegments(docStr, env);
+    for (const seg of segments) {
+      if (seg instanceof Map && seg.get('qlang/kind')?.name === 'assertion') {
+        collected.push(seg);
+      }
+    }
+  }
+  return collected;
 }
 
 export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
-  const runExSubject = state.pipeValue;
-  if (!isQMap(runExSubject)) {
-    throw new RunExamplesSubjectNotDescriptor(runExSubject);
+  const subject = state.pipeValue;
+  let bindingName;
+  if (isKeyword(subject)) {
+    bindingName = subject.name;
+  } else if (isQMap(subject) && typeof subject.get('name') === 'string') {
+    bindingName = subject.get('name');
+  } else {
+    throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
-  const runExExamples = runExSubject.get('examples');
-  if (!isVec(runExExamples)) {
-    const runExKind = runExSubject.get('kind');
-    throw new RunExamplesNoExamplesField({
-      subjectKind: isKeyword(runExKind) ? runExKind.name : 'unknown'
-    });
-  }
-  const runExResults = await Promise.all(runExExamples.map(runExampleEntry));
-  return withPipeValue(state, runExResults);
+  const assertions = await collectAssertionsForBinding(state.env, bindingName);
+  const results = await Promise.all(assertions.map(runAssertionEntry));
+  return withPipeValue(state, results);
 });
 
 // manifest — Vec of descriptors, one per value-namespace binding

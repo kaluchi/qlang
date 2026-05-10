@@ -24,7 +24,7 @@ import { parseDocSegments } from '../doc-segments.mjs';
 const SourceSubjectNotKeyword   = declareSubjectError('SourceSubjectNotKeyword',   'source',   'Keyword');
 const DocsSubjectNotKeyword     = declareSubjectError('DocsSubjectNotKeyword',     'docs',     'Keyword');
 const ExamplesSubjectNotKeyword = declareSubjectError('ExamplesSubjectNotKeyword', 'examples', 'Keyword');
-const AxisBindingNotFound       = declareShapeError('AxisBindingNotFound',
+export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
   ({ axisName, bindingName }) => `${axisName}: no def-step found for binding '${bindingName}' across loaded modules`);
 
 // Walk a module AST for the def-step that binds `bindingName`.
@@ -66,7 +66,7 @@ function* moduleAstsIn(env) {
   }
 }
 
-function findDefStepAcrossModules(env, bindingName) {
+export function findDefStepAcrossModules(env, bindingName) {
   for (const moduleAst of moduleAstsIn(env)) {
     const step = findDefStepFor(moduleAst, bindingName);
     if (step !== null) return step;

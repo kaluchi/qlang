@@ -336,11 +336,21 @@ BlockPlainComment
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
 
+// Backtick-spans inside a block comment / block doc are preserved
+// verbatim so a literal `~~|` (or `~|`) embedded inside Quote
+// example source never trips the outer close marker. The span
+// includes both delimiters in the returned string so doc tokenizer
+// downstream still recognises the Quote.
+BacktickSpan
+  = "`" chars:(!"`" .)* "`" { return '`' + chars.map(c => c[1]).join('') + '`'; }
+
 BlockPlainContent
-  = chars:(!"~|" .)* { return chars.map(c => c[1]).join(''); }
+  = chars:(BacktickSpan / (!"~|" .))*
+    { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 BlockDocContent
-  = chars:(!"~~|" .)* { return chars.map(c => c[1]).join(''); }
+  = chars:(BacktickSpan / (!"~~|" .))*
+    { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 // --- Combinators ------------------------------------------------
 //

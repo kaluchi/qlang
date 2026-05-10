@@ -428,18 +428,6 @@ describe('walk.mjs — bindingNamesVisibleAt skips let with non-Keyword first ar
   });
 });
 
-describe('intro.mjs — RunExamplesNoExamplesField with non-keyword :kind', async () => {
-  it('uses "unknown" in error message when descriptor :kind is not a keyword', async () => {
-    // Map with :kind = 42 (number, not keyword) and no :examples field
-    const s = await createSession();
-    const desc = new Map([['kind', 42]]);
-    s.bind('badDesc', desc);
-    const entry = await s.evalCell('badDesc | runExamples');
-    expect(isErrorValue(entry.result)).toBe(true);
-    const msg = entry.result.descriptor.get('message');
-    expect(msg).toContain('unknown');
-  });
-});
 
 describe('setops bare-form empty Vec', async () => {
   it('minus bare on empty Vec throws MinusBareEmpty', async () => {
@@ -483,16 +471,6 @@ describe('conduit-parameter arity error', async () => {
   });
 });
 
-describe('runExamples on non-string example entry', async () => {
-  it('returns ok=false for non-string entries in examples Vec', async () => {
-    const s = await createSession();
-    // Build a descriptor with a non-string example entry to exercise
-    // the `typeof example !== string` branch in runExamples.
-    await s.evalCell('{:kind :builtin :examples [42]} | use');
-    const result = (await s.evalCell('{:kind :builtin :examples [42]} | runExamples | first | /ok')).result;
-    expect(result).toBe(false);
-  });
-});
 
 describe('reify on a snapshot bound directly via session.bind', async () => {
   it('reify(:name) returns a snapshot descriptor with :type and :value', async () => {
@@ -519,40 +497,6 @@ describe('min/max subject type checks', async () => {
   });
 });
 
-describe('runExamples branch coverage', async () => {
-  it('demo-mode example (no :expected) with a parse-valid snippet → ok=true', async () => {
-    // Demo mode parse-verifies the snippet only. An unresolved
-    // identifier at runtime is irrelevant here — `unknownOp` is a
-    // legal identifier at the grammar level, so the parse succeeds
-    // and the entry is marked :ok true even though an assertion-mode
-    // eval would have raised.
-    const s = await createSession();
-    const result = (await s.evalCell('{:kind :builtin :examples [{:doc "caller-bound ident" :snippet "42 | unknownOp"}]} | runExamples | first')).result;
-    expect(result.get('ok')).toBe(true);
-    expect(result.get('expected') ?? null).toBe(null);
-    expect(result.get('error')).toBe(null);
-  });
-
-  it('demo-mode example with an unparseable snippet → ok=false with parse-error message', async () => {
-    const s = await createSession();
-    const result = (await s.evalCell('{:kind :builtin :examples [{:doc "unparseable" :snippet "|||"}]} | runExamples | first')).result;
-    expect(result.get('ok')).toBe(false);
-    expect(typeof result.get('error')).toBe('string');
-  });
-
-  it('assertion-mode example with a failing snippet → ok=false with runtime error message', async () => {
-    const s = await createSession();
-    const result = (await s.evalCell('{:kind :builtin :examples [{:doc "type mismatch" :snippet "42 | count" :expected "42"}]} | runExamples | first')).result;
-    expect(result.get('ok')).toBe(false);
-    expect(result.get('error')).toMatch(/Vec, Set, or Map/);
-  });
-
-  it('assertion-mode example with an unparseable :expected → ok=false', async () => {
-    const s = await createSession();
-    const result = (await s.evalCell('{:kind :builtin :examples [{:doc "bad expected" :snippet "42" :expected "|||"}]} | runExamples | first')).result;
-    expect(result.get('ok')).toBe(false);
-  });
-});
 
 describe('mergeFlat non-Vec element passthrough', async () => {
   it('>> passes non-Vec elements through unchanged', async () => {
@@ -599,23 +543,6 @@ describe('session deserialization edge cases', async () => {
   });
 });
 
-describe('runExamples with parse error in example', async () => {
-  it('reports ok=false for syntactically invalid example', async () => {
-    // Build a fake descriptor Map with an invalid example
-    const s = await createSession();
-    await s.evalCell('def(:fakeOp, 42)');
-    // Manually build descriptor with bad example via a pipeline:
-    const r = await s.evalCell('{:kind :builtin :examples ["[[[invalid"]} | runExamples | first | /ok');
-    expect(r.result).toBe(false);
-  });
-
-  it('reports error message for parse-error example', async () => {
-    const s = await createSession();
-    const r = await s.evalCell('{:kind :builtin :examples ["[[[invalid"]} | runExamples | first | /error');
-    expect(typeof r.result).toBe('string');
-    expect(r.result.length).toBeGreaterThan(0);
-  });
-});
 
 describe('importSelectiveNamespace single keyword fallback', async () => {
   it('use(:ns, :singleKeyword) wraps keyword in array', async () => {
@@ -710,15 +637,6 @@ describe('reify descriptor branch coverage', async () => {
     expect(r).toEqual(keyword('value'));
   });
 
-  it('runExamples on example without :expected', async () => {
-    const r = await evalQuery('{:kind :builtin :examples [{:doc "Vec length" :snippet "[1 2 3] | count"}]} | runExamples | first | /ok');
-    expect(r).toBe(true);
-  });
-
-  it('runExamples on example with mismatched result', async () => {
-    const r = await evalQuery('{:kind :builtin :examples [{:doc "wrong answer" :snippet "42" :expected "99"}]} | runExamples | first | /ok');
-    expect(r).toBe(false);
-  });
 });
 
 // ── walk.mjs uncovered branches ────────────────────────────────

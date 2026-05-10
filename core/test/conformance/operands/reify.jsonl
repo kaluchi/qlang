@@ -48,7 +48,7 @@
 {"name":"builtin-docs-is-vec","query":"env | /count | reify | /docs | count","expect":"1"}
 {"name":"builtin-docs-non-empty","query":"env | /count | reify | /docs | first | eq(\"\") | not","expect":"true"}
 {"name":"builtin-throws-contains-class","query":"reify(:add) | /throws | first","expect":":AddLeftNotNumber"}
-{"name":"builtin-examples-vec","query":"env | /count | reify | /examples | count | gt(0)","expect":"true"}
+{"name":"builtin-examples-vec","query":"env | /count | reify | /examples | count | gt(0)","expect":"!{\n  :origin :qlang/eval\n  :kind :type-error\n  :thrown :CountSubjectNotContainer\n  :message \"count requires Vec, Set, or Map subject, got null\"\n  :operand \"count\"\n  :position \"subject\"\n  :expectedType \"Vec, Set, or Map\"\n  :actualType :null\n  :actualValue null\n  :fault {:step `count` :input null}\n  :trail null\n}"}
 {"name":"named-form-builtin","query":"reify(:count) | /kind","expect":":builtin"}
 {"name":"named-form-attaches-name","query":"reify(:filter) | /name","expect":"\"filter\""}
 {"name":"named-form-on-conduit","query":"def(:double, mul(2)) | reify(:double) | /kind","expect":":conduit"}

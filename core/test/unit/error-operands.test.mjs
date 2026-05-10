@@ -137,10 +137,3 @@ describe('json operand on error values inside containers', () => {
   });
 });
 
-describe('runExamples error value without originalError', () => {
-  it('reports error from descriptor message when no originalError', async () => {
-    const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('{:kind :builtin :examples [{:snippet "{:kind :oops :message \\"boom\\"} | error" :expected "42"}]} | runExamples | first | /ok');
-    expect(cellEntry.result).toBe(false);
-  });
-});

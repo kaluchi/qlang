@@ -4,13 +4,14 @@
 // Each operand walks the `qlang/ast/<uri>` Quote-values in env to
 // find the originating `def`-step for the named binding, then
 // returns the field projected from that step (source text, docs,
-// example assertions, etc.).
+// example Quotes, etc.).
 //
 // `source` returns a Quote of the def-step's source text.
 // `docs`   returns a Vec of Doc-values built from each attached
 //          doc-prefix on the def-step (one Doc-value per prefix).
-// `examples` returns a Vec of Assertion-values extracted from the
-//          docs' `:segments` filtered by `:qlang/kind :assertion`.
+// `examples` returns a Vec of Quote-values extracted from those
+//          docs — every Quote segment in the doc-content stream
+//          is a candidate test case for runExamples.
 
 import { stateOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
@@ -138,9 +139,7 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
   for (const docStr of docStrings) {
     const segments = await parseDocSegments(docStr, state.env);
     for (const seg of segments) {
-      if (seg instanceof Map && seg.get('qlang/kind')?.name === 'assertion') {
-        collected.push(seg);
-      }
+      if (isQuote(seg)) collected.push(seg);
     }
   }
   return withPipeValue(state, Object.freeze(collected));

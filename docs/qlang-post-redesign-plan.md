@@ -15,8 +15,8 @@
 ### 1. Quote — balanced paired delimiter
 
 Greedy `` `...` `` заменяется на pair'd `~{...}`:
-- Opener `~{`, closer `}`. Scanner — brace-balance counter, string/comment-aware (skip-zones для `"..."` StringLit, `|~ ~|` / `|~~ ~~|` block-comments, line-comments to newline).
-- Backtick — language-wide escape char внутри Quote content: `` `{ `` → literal `{`, `` `} `` → literal `}`, ``  `` `` `` → literal `` ` ``.
+- Opener `~{`, closer `}`. Content matches `Pipeline` rule (whatever Pipeline rejects falls through to a `QuoteChar` byte). Balance derives entirely from the standard qlang grammar — `MapLit` / `SetLit` / `VecLit` / `ErrorLit` / `ParenGroup` / nested `QuoteLit` each end on their own closer, string literals and comments are skip-zones recognized by Pipeline itself.
+- No escape mechanism. Valid qlang carries no unbalanced `{` / `}` / `` ` `` outside `"..."` / comment skip-zones. Backtick has no syntactic role anywhere in qlang.
 - Content — валидный qlang код (lazy parse через `parse` / `eval` operands).
 - Brace family parallel: `{}` Map / `#{}` Set / `!{}` Error / `~{}` Quote / `?{}` reserved (future boolean/ternary).
 
@@ -104,15 +104,14 @@ Compression — через class-level defaults factored out. Field ordering —
 
 ## Milestones
 
-### M1. Quote pair'd grammar
+### M1. Quote pair'd grammar  (done)
 
-- `grammar.peggy::QuoteLit` rule → `~{...}` + brace-balance scanner (string/comment-aware).
+- `grammar.peggy::QuoteLit` rule → `~{...}` with content matching `Pipeline { return text(); }` plus a `QuoteChar` fallback.
 - `BacktickSpan` в block-comments → `QuoteSpan` под `~{...}` pattern.
-- Escape `` `{ `` / `` `} `` / ``  `` `` `` внутри Quote content.
-- `printValue` / `printConduit` / `CELL_HANDLERS.Quote` / `INLINE_HANDLERS.Quote` emit `~{...}` (auto-escape unbalanced chars).
-- `doc-segments.mjs::findQuoteEnd` — balanced `~{` / `}` scanner.
+- `printValue` / `printConduit` / `CELL_HANDLERS.Quote` / `INLINE_HANDLERS.Quote` emit `'~{' + src + '}'` verbatim — no escape.
+- `doc-segments.mjs::findQuoteEnd` — balanced `~{` / `}` scanner over string-literal skip-zones.
 - Sweep `core.qlang`, conformance JSONL, unit-tests, docs: `` `x` `` → `~{x}`.
-- Tests: nested Quote, string-with-brace inside Quote, comment-with-brace, escape forms.
+- Tests: nested Quote, balanced Map / Vec / Set / ParenGroup inside Quote, full `core.qlang` round-tripping through one `~{...}`.
 
 ### M2. TaggedLit atomic + namespaced
 
@@ -121,12 +120,14 @@ Compression — через class-level defaults factored out. Field ordering —
 - Sweep author examples в docs / plan где whitespace был между tag и payload — нормализовать compact.
 - Tests: namespaced tag'и, boundary cases (whitespace separation, ParenGroup payload).
 
-### M3. Assertion redesign
+### M3. Assertion redesign  (done)
 
-- Drop `::assertion` type-binding из `core.qlang` (или migrate в `lib/qlang/test/` как optional `::test` category).
-- `doc-segments.mjs::parseDocSegments` — extract Quote'ы generic'но, без `::assertion` privilege.
-- `runExamples` simplify: eval Quote, truthy/error check.
-- Sweep `core.qlang` assertion examples: `::assertion[\`a\` \`b\`]` → `~{a | eq(b)}`.
+- `::assertion` type-binding и `qlang/type/assertion` primitive removed from `core.qlang` / `tagged.mjs`.
+- `doc-segments.mjs::parseDocSegments` already generic — extracts every Quote / TaggedLit / Prose, no `::assertion` privilege.
+- `runExamples` simplified: each Quote → result Map `{:snippet :actual :ok :error}`; `:ok` is true iff the Quote eval result is truthy (not `false`, not `null`, not an error-value).
+- `examples` axis returns `Vec<Quote>` directly (no Map-filtering for `:qlang/kind :assertion`).
+- `core.qlang` sweep: each `::assertion[~{a} ~{b}]` rewritten to `~{a | eq(b)}` (single Quote-as-test). Prose qlang references that previously appeared as inline emphasis-Quotes (`~{|}`, `~{!|}`, `~{parse}`, `~{vals | sum}` etc.) demoted to bare prose — they were never tests, and runExamples is honest about that now.
+- Catalog self-test re-expressed as `manifest | every(runExamples | every(/ok))` — boolean composition instead of `flat | distinct`.
 
 ### M4. Error classes as type-bindings
 

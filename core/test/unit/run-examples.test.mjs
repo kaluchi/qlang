@@ -1,6 +1,7 @@
-// runExamples — execute ::assertion segments embedded in a
-// binding's attached docs. Subject can be a keyword (binding name)
-// or a descriptor Map carrying a :name string.
+// runExamples — execute each Quote segment in a binding's attached
+// docs as an executable test case. Truthy result (anything not
+// false / null / error-value) means pass. Subject can be a keyword
+// (binding name) or a descriptor Map carrying a :name string.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -33,10 +34,10 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
   });
 });
 
-describe('runExamples assertion error paths', () => {
-  it('failing snippet → ok:false with error message', async () => {
+describe('runExamples Quote-as-test outcomes', () => {
+  it('Quote that lifts an error → ok:false with error message', async () => {
     const moduleSource =
-      '|~~ broken example.\n    ::assertion[~{"x" | add(1)} ~{42}] ~~|\n' +
+      '|~~ broken example.\n    ~{"x" | add(1) | eq(42)} ~~|\n' +
       'def(:demo, 1)';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
@@ -46,24 +47,26 @@ describe('runExamples assertion error paths', () => {
     expect(typeof cellEntry.result.get('error')).toBe('string');
   });
 
-  it('failing :expected → ok:false', async () => {
-    // The expected Quote evaluates to an error value (here a
-    // call to an unbound identifier), so the assertion fails on
-    // the expected side rather than the snippet side.
+  it('Quote that evaluates falsy → ok:false with no error', async () => {
+    // 5 | mul(2) = 10, eq(99) = false. The Quote eval'd cleanly
+    // but produced a falsy result, so runExamples reports ok:false
+    // with :error nil — there is no error message, the assertion
+    // just did not hold.
     const moduleSource =
-      '|~~ broken expected.\n    ::assertion[~{42} ~{nonExistentBinding}] ~~|\n' +
+      '|~~ falsy example.\n    ~{5 | mul(2) | eq(99)} ~~|\n' +
       'def(:demo, 1)';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/broken) | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('null | use(:tests/falsy) | :demo | runExamples | first');
     expect(cellEntry.result.get('ok')).toBe(false);
-    expect(cellEntry.result.get('error')).toMatch(/^expected:/);
+    expect(cellEntry.result.get('error')).toBeNull();
+    expect(cellEntry.result.get('actual')).toBe(false);
   });
 
-  it('matching snippet/expected → ok:true', async () => {
+  it('Quote that evaluates truthy → ok:true', async () => {
     const moduleSource =
-      '|~~ ::assertion[~{5 | mul(2)} ~{10}] ~~|\ndef(:demo, 1)';
+      '|~~ ~{5 | mul(2) | eq(10)} ~~|\ndef(:demo, 1)';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });

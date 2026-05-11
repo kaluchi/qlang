@@ -111,39 +111,3 @@ function jsonFromQlang(value) {
 
 PRIMITIVE_REGISTRY.bind('qlang/type/qlang', (payload) => qlangFromJson(payload));
 PRIMITIVE_REGISTRY.bind('qlang/type/json',  (payload) => jsonFromQlang(payload));
-
-// ::assertion[`snippet` `expected`] — Doc-content segment that
-// records an evaluable example. runExamples filters Doc :segments
-// for these, evaluates the :snippet Quote, and compares against
-// the :expected Quote's evaluated value.
-import { makeTagKeyword } from '../types.mjs';
-
-const AssertionPayloadNotVec = declareSubjectError('AssertionPayloadNotVec', '::assertion', 'Vec');
-const AssertionArityInvalid = declareArityError('AssertionArityInvalid',
-  ({ actualCount }) => `::assertion payload must be a Vec of 2 Quote-values [snippet expected], got ${actualCount}`);
-const AssertionSnippetNotQuote = declareShapeError('AssertionSnippetNotQuote',
-  ({ actualType }) => `::assertion[snippet ...] — snippet must be a Quote-value, got ${actualType.name}`);
-const AssertionExpectedNotQuote = declareShapeError('AssertionExpectedNotQuote',
-  ({ actualType }) => `::assertion[... expected] — expected must be a Quote-value, got ${actualType.name}`);
-
-function assertionConstructor(payload) {
-  if (!isVec(payload)) throw new AssertionPayloadNotVec(payload);
-  if (payload.length !== 2) {
-    throw new AssertionArityInvalid({ actualCount: payload.length });
-  }
-  const [snippet, expected] = payload;
-  if (!isQuote(snippet)) {
-    throw new AssertionSnippetNotQuote({ actualType: typeKeyword(snippet), actualValue: snippet });
-  }
-  if (!isQuote(expected)) {
-    throw new AssertionExpectedNotQuote({ actualType: typeKeyword(expected), actualValue: expected });
-  }
-  const m = new Map();
-  m.set('qlang/kind', makeTagKeyword('assertion'));
-  m.set('qlang/payload', payload);
-  m.set('snippet', snippet);
-  m.set('expected', expected);
-  return Object.freeze(m);
-}
-
-PRIMITIVE_REGISTRY.bind('qlang/type/assertion', assertionConstructor);

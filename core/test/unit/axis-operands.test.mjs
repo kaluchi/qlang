@@ -75,8 +75,8 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
   });
 });
 
-describe(':name | examples extracts ::assertion segments from docs', () => {
-  it(':count | examples returns Vec; pre-Phase-11 may be empty until docs migrate', async () => {
+describe(':name | examples extracts Quote segments from docs', () => {
+  it(':count | examples returns Vec of Quotes', async () => {
     const result = await evalQuery(':count | examples | count');
     expect(typeof result).toBe('number');
     expect(result).toBeGreaterThanOrEqual(0);
@@ -108,28 +108,22 @@ describe('axis-operands walk type-namespace bindings via ~{::} prefix', () => {
     expect(result.source.startsWith('def(::conduit')).toBe(true);
   });
 
-  it('::assertion | docs returns the attached Doc-prefix on the type def-step', async () => {
-    const result = await evalQuery('::assertion | docs | first | /content');
+  it('::conduit | docs returns the attached Doc-prefix on the type def-step', async () => {
+    const result = await evalQuery('::conduit | docs | first | /content');
     expect(typeof result).toBe('string');
-    expect(result).toContain('::assertion');
+    expect(result).toContain('Conduit literal');
   });
 
-  it('::assertion | examples extracts the ::assertion segments from the type docstring', async () => {
-    const result = await evalQuery('::assertion | examples | count');
+  it('::conduit | examples extracts the Quote segments from the type docstring', async () => {
+    const result = await evalQuery('::conduit | examples | count');
     expect(result).toBeGreaterThanOrEqual(1);
-  });
-
-  it('a tagged-instance value forwards to the docs of its type binding', async () => {
-    const result = await evalQuery('::assertion[~{5 | mul(2)} ~{10}] | docs | first | /content');
-    expect(typeof result).toBe('string');
-    expect(result).toContain('::assertion');
   });
 });
 
-describe('examples axis extracts ::assertion segments from a loaded module', () => {
-  it('use-loaded module with ::assertion segment is reachable through examples', async () => {
+describe('examples axis extracts Quote segments from a loaded module', () => {
+  it('use-loaded module with Quote segment is reachable through examples', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ ::assertion[~{5 | mul(2)} ~{10}] ~~|\ndef(:demo, 99)';
+    const moduleSource = '|~~ ~{5 | mul(2) | eq(10)} ~~|\ndef(:demo, 99)';
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });

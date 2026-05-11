@@ -1,8 +1,7 @@
-// Doc-content tokenizer + ::assertion built-in segment.
+// Doc-content tokenizer — prose / Quote / TaggedLit segmentation.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
 
 describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () => {
   it('pure prose returns one Prose segment', async () => {
@@ -15,7 +14,7 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
     expect(result).toBe(' hello ');
   });
 
-  it('backtick-Quote splits into Prose + Quote + Prose', async () => {
+  it('embedded Quote splits the content into Prose + Quote + Prose', async () => {
     const result = await evalQuery('|~~ See ~{mul(2)} for ref. ~~| | /segments | count');
     expect(result).toBe(3);
   });
@@ -30,48 +29,9 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
     expect(result).toBe('mul(2)');
   });
 
-  it('::assertion segment yields an Assertion-value with TagKeyword kind', async () => {
-    const { makeTagKeyword } = await import('../../src/types.mjs');
-    const result = await evalQuery('|~~ ::assertion[~{[1 2 3] | count} ~{3}] ~~| | /segments | at(1) | /:qlang/kind');
-    expect(result).toEqual(makeTagKeyword('assertion'));
-  });
-
-  it('::assertion segment exposes :snippet and :expected', async () => {
-    const snippet = await evalQuery('|~~ ::assertion[~{[1 2 3] | count} ~{3}] ~~| | /segments | at(1) | /snippet | /source');
-    expect(snippet).toBe('[1 2 3] | count');
-    const expected = await evalQuery('|~~ ::assertion[~{[1 2 3] | count} ~{3}] ~~| | /segments | at(1) | /expected | /source');
-    expect(expected).toBe('3');
-  });
-
-  it('multiple openers tokenized in order', async () => {
-    const result = await evalQuery('|~~ a ~{b} c ::assertion[~{d} ~{e}] f ~~| | /segments | count');
+  it('multiple openers tokenized in order — prose ~{...} prose ~{...} prose', async () => {
+    const result = await evalQuery('|~~ a ~{b} c ~{d} e ~~| | /segments | count');
     expect(result).toBe(5);
-  });
-});
-
-describe('::assertion constructor error paths', () => {
-  it('payload not Vec → AssertionPayloadNotVec', async () => {
-    const err = await evalQuery('::assertion{:not :vec}');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionPayloadNotVec'));
-  });
-
-  it('1-element Vec → AssertionArityInvalid', async () => {
-    const err = await evalQuery('::assertion[~{only}]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionArityInvalid'));
-  });
-
-  it('snippet not Quote → AssertionSnippetNotQuote', async () => {
-    const err = await evalQuery('::assertion[42 ~{expected}]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionSnippetNotQuote'));
-  });
-
-  it('expected not Quote → AssertionExpectedNotQuote', async () => {
-    const err = await evalQuery('::assertion[~{snippet} 42]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionExpectedNotQuote'));
   });
 });
 

@@ -32,7 +32,6 @@ import {
 } from '../errors.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import { classifyEffect } from '../effect.mjs';
-import { deepEqual } from '../equality.mjs';
 // Live ESM binding into eval.mjs — runtime/index.mjs → intro.mjs →
 // eval.mjs → runtime/index.mjs forms a cycle; we never touch
 // evalQuery at module-init time, only from inside the runExamples
@@ -373,21 +372,16 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
   ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`);
 
-// runAssertionEntry(assertion) → result Map
+// runQuoteEntry(quote) → result Map
 //
-// `assertion` is a Map produced by the ::assertion constructor:
-//   {:qlang/kind :assertion :snippet <Quote> :expected <Quote>}
-// Both Quote sources are evalQuery'd in an isolated env; their
-// values are deepEqual-compared. `:ok` is true iff both eval
-// cleanly AND match.
-async function runAssertionEntry(assertion) {
+// Each Quote segment in a binding's doc is an executable test case.
+// Eval the Quote's source in an isolated env; truthy success → ok,
+// error or falsy (false / null) → fail. Result Map shape:
+//   {:snippet <Quote> :actual <value> :ok <bool> :error <string|null>}
+async function runQuoteEntry(quote) {
   const result = new Map();
-  const snippet = assertion.get('snippet');
-  const expected = assertion.get('expected');
-  result.set('snippet', snippet);
-  result.set('expected', expected);
-
-  const actualValue = await evalQuery(snippet.source);
+  result.set('snippet', quote);
+  const actualValue = await evalQuery(quote.source);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
     result.set('error', errorMessageOf(actualValue));
@@ -395,34 +389,25 @@ async function runAssertionEntry(assertion) {
     return result;
   }
   result.set('actual', actualValue);
-
-  const expectedValue = await evalQuery(expected.source);
-  if (isErrorValue(expectedValue)) {
-    result.set('error', 'expected: ' + errorMessageOf(expectedValue));
-    result.set('ok', false);
-    return result;
-  }
   result.set('error', null);
-  result.set('ok', deepEqual(actualValue, expectedValue));
+  result.set('ok', actualValue !== false && actualValue !== null);
   return result;
 }
 
-async function collectAssertionsForBinding(env, bindingName) {
+async function collectQuotesForBinding(env, bindingName) {
   const step = findDefStepAcrossModules(env, bindingName);
   // Bindings without a source-located def-step (the bootstrap def
   // descriptor itself, host-installed bindings via session.bind)
-  // simply have no assertions to run. runExamples returns an
-  // empty Vec — the catalog walk in manifest-self-test treats
-  // them as zero-contribution rather than a failure.
+  // simply have no examples to run. runExamples returns an empty
+  // Vec — the catalog walk in manifest-self-test treats them as
+  // zero-contribution rather than a failure.
   if (step === null) return [];
   const docStrings = step.docs ?? [];
   const collected = [];
   for (const docStr of docStrings) {
     const segments = await parseDocSegments(docStr, env);
     for (const seg of segments) {
-      if (seg instanceof Map && seg.get('qlang/kind')?.name === 'assertion') {
-        collected.push(seg);
-      }
+      if (isQuote(seg)) collected.push(seg);
     }
   }
   return collected;
@@ -438,8 +423,8 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   } else {
     throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
-  const assertions = await collectAssertionsForBinding(state.env, bindingName);
-  const results = await Promise.all(assertions.map(runAssertionEntry));
+  const quotes = await collectQuotesForBinding(state.env, bindingName);
+  const results = await Promise.all(quotes.map(runQuoteEntry));
   return withPipeValue(state, results);
 });
 

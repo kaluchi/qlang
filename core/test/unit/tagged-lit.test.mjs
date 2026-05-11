@@ -174,15 +174,13 @@ describe('printValue Conduit handles named vs anonymous form', () => {
 });
 
 describe('TagKeyword as :qlang/kind discriminator', () => {
-  it('::assertion[…] stamps :qlang/kind as a TagKeyword, not a Keyword', async () => {
-    const { isTagKeyword, isKeyword } = await import('../../src/types.mjs');
-    const value = await evalQuery('::assertion[~{5 | mul(2)} ~{10}]');
-    const kind = value.get('qlang/kind');
-    expect(isTagKeyword(kind)).toBe(true);
-    expect(isKeyword(kind)).toBe(false);
-    expect(kind.literal).toBe('::assertion');
-    expect(kind.name).toBe('assertion');
-  });
+  // The tagged-instance Map shape (`:qlang/kind <TagKeyword> +
+  // :qlang/payload`) lands in M4 alongside error classes as
+  // first-class type-bindings (`::ClassName!{...}`). The base
+  // TagKeyword machinery is exercised here at the value level
+  // through `makeTagKeyword`; the higher-level Map projection
+  // gets its own coverage once M4 introduces the constructor
+  // primitive that stamps it.
 
   it('describeType / typeKeyword distinguish TagKeyword from Keyword', async () => {
     const { describeType, typeKeyword, makeTagKeyword, keyword } = await import('../../src/types.mjs');
@@ -201,19 +199,7 @@ describe('TagKeyword as :qlang/kind discriminator', () => {
   it('printValue renders a TagKeyword as ::name', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     const { makeTagKeyword } = await import('../../src/types.mjs');
-    expect(printValue(makeTagKeyword('assertion'))).toBe('::assertion');
-  });
-
-  it('typeKeyword on a tagged-instance returns the matching TagKeyword', async () => {
-    const { typeKeyword, makeTagKeyword } = await import('../../src/types.mjs');
-    const value = await evalQuery('::assertion[~{5 | mul(2)} ~{10}]');
-    expect(typeKeyword(value)).toEqual(makeTagKeyword('assertion'));
-  });
-
-  it('reify of a tagged-instance carries :type as a TagKeyword that prints as ::name', async () => {
-    const { printValue } = await import('../../src/runtime/format.mjs');
-    const result = await evalQuery('::assertion[~{a} ~{b}] | reify | /type');
-    expect(printValue(result)).toBe('::assertion');
+    expect(printValue(makeTagKeyword('foo'))).toBe('::foo');
   });
 
   it('printValue on a raw Snapshot value defers to the inner payload', async () => {
@@ -224,25 +210,6 @@ describe('TagKeyword as :qlang/kind discriminator', () => {
   });
 });
 
-describe('printValue rounds tagged-instance Maps back to ::tag[…] literal', () => {
-  it('::assertion[~{a} ~{b}] prints as ::assertion[~{a} ~{b}], not as a Map descriptor', async () => {
-    const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('::assertion[~{5 | mul(2)} ~{10}]');
-    expect(printValue(value)).toBe('::assertion[~{5 | mul(2)} ~{10}]');
-  });
-
-  it('inline-rendered tagged-instance still uses the ::tag[…] form', async () => {
-    const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('[::assertion[~{1} ~{1}] ::assertion[~{2} ~{2}]]');
-    expect(printValue(value)).toBe('[::assertion[~{1} ~{1}] ::assertion[~{2} ~{2}]]');
-  });
-
-  it('tagged-instance inside a table cell renders compactly through INLINE_HANDLERS', async () => {
-    const result = await evalQuery('[{:case ::assertion[~{5 | mul(2)} ~{10}]}] | table');
-    expect(result).toContain('::assertion[~{5 | mul(2)} ~{10}]');
-  });
-});
-
 describe('parse and eval accept Quote subjects transparently', () => {
   it('~{code} | parse returns the AST-Map of the Quote source', async () => {
     expect(await evalQuery('~{5 | mul(2)} | parse | /:qlang/kind')).toEqual(keyword('Pipeline'));
@@ -250,10 +217,6 @@ describe('parse and eval accept Quote subjects transparently', () => {
 
   it('~{code} | eval runs the Quote source against the current state', async () => {
     expect(await evalQuery('~{5 | mul(2)} | eval')).toBe(10);
-  });
-
-  it('::assertion[~{code} ~{expected}] | /snippet | eval evaluates the snippet', async () => {
-    expect(await evalQuery('::assertion[~{5 | mul(2)} ~{10}] | /snippet | eval')).toBe(10);
   });
 });
 

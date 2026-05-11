@@ -37,6 +37,7 @@ import {
   typeKeyword,
   printValue
 } from '@kaluchi/qlang-core';
+import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
@@ -112,12 +113,12 @@ export function bindIoOperands(session, ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   const noopEffect = () => {};
 
-  session.bind('@in',  makeInOperand(ioContext.stdinReader));
-  session.bind('@out', makeWriterOperand(
+  bindHostBuiltin(session, '@in',  makeInOperand(ioContext.stdinReader));
+  bindHostBuiltin(session, '@out', makeWriterOperand(
     '@out', ioContext.stdoutWrite, recordStdoutEffect,
     OutSubjectNotString, OutRendererResultNotString));
-  session.bind('@err', makeWriterOperand(
+  bindHostBuiltin(session, '@err', makeWriterOperand(
     '@err', ioContext.stderrWrite, noopEffect,
     ErrSubjectNotString, ErrRendererResultNotString));
-  session.bind('@tap', makeTapOperand(ioContext.stderrWrite));
+  bindHostBuiltin(session, '@tap', makeTapOperand(ioContext.stderrWrite));
 }

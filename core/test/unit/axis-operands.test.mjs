@@ -30,8 +30,8 @@ describe(':name | source returns the def-step source as Quote', () => {
     // evalQuery stamps the parsed AST under qlang/ast/inline so axis
     // operands can find bindings declared in the same cell — without
     // this, `def(:foo, …) | :foo | source` would raise
-    // AxisBindingNotFound because the cell's AST was not registered
-    // alongside the previously-loaded module Quotes.
+    // AxisBindingNotFound because the cell's AST is not among the
+    // module Quotes installed via use(:ns).
     const result = await evalQuery('def(:myLocal, 42) | :myLocal | source');
     expect(isQuote(result)).toBe(true);
     expect(result.source).toBe('def(:myLocal, 42)');

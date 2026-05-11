@@ -1,5 +1,48 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { classifyEffect } from './effect.mjs';
+import { QlangInvariantError } from './errors.mjs';
+
+// Conduit body must carry a `.text` source slice — every production
+// path (parser-built AST, ::conduit constructor parsing a Quote,
+// deserializeSession parsing stored source) hands an AST node with
+// `.text` populated. The slice underwrites printValue's round-trip
+// invariant: `parse(printValue(conduit))` must yield an equivalent
+// conduit, which means the printed form needs literal source. A
+// body without `.text` would force render to emit a non-parseable
+// placeholder, breaking the round-trip theorem; mint refuses up
+// front so the violation surfaces at construction, not at print.
+export class ConduitBodyMissingSource extends QlangInvariantError {
+  constructor() {
+    super(
+      'makeConduit: body has no .text — conduit body must carry a source slice so printValue round-trips through parse',
+      {}
+    );
+    this.name = 'ConduitBodyMissingSource';
+    this.fingerprint = 'ConduitBodyMissingSource';
+  }
+}
+
+// Function values (`makeFn` output) are runtime-internal: they live on
+// `:qlang/impl` of builtin descriptor Maps and as conduit-parameter
+// proxies behind reify's :category :conduit-parameter projection. They
+// have no grammatical literal — the only candidate render form
+// (`:qlang/prim/${name}`) parses as a keyword and eval'ing it yields a
+// keyword value, not the original function. Surfacing a function value
+// in pipeValue therefore violates printValue's round-trip theorem. The
+// invariant fires at render-time so the leak surface (typically a
+// descriptor Map walked by `env | /count`, or a host binding mounted
+// through `session.bind` with a raw function instead of a descriptor)
+// gets named and migrated to the descriptor-Map ceremony.
+export class FunctionValueLeakedToPrint extends QlangInvariantError {
+  constructor() {
+    super(
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :qlang/kind :builtin and :qlang/impl, instead of binding the raw function via session.bind.',
+      {}
+    );
+    this.name = 'FunctionValueLeakedToPrint';
+    this.fingerprint = 'FunctionValueLeakedToPrint';
+  }
+}
 
 export const NULL = null;
 
@@ -234,11 +277,15 @@ export function makeDoc(content) {
 // ── conduit factory ───────────────────────────────────────────
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
+  if (body == null || typeof body.text !== 'string') {
+    throw new ConduitBodyMissingSource();
+  }
   const m = new Map();
   m.set('qlang/kind', makeTagKeyword('conduit'));
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
   m.set('qlang/body', body);
+  m.set('qlang/source', body.text);
   m.set('qlang/envRef', envRef);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
@@ -263,6 +310,8 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 
 export function withName(binding, newName) {
   if (isConduit(binding)) {
+    // Pass the original body through — makeConduit re-stamps
+    // qlang/source from body.text under the new name.
     return makeConduit(binding.get('qlang/body'), {
       name: newName,
       params: [...binding.get('params')],

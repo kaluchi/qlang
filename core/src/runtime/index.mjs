@@ -68,7 +68,7 @@ let _templateEnvPromise = null;
 
 // langRuntime() — returns a Promise<fresh env Map> seeded with the
 // full built-in catalog. Each call returns a new top-level Map, so
-// callers can write their own bindings (through let / as / use,
+// callers can write their own bindings (through def / as / use,
 // or through session.bind at the host level) without affecting
 // other sessions. The inner descriptor Maps are shared frozen
 // values. Bootstrap is async because evalAst is async; the template
@@ -111,7 +111,7 @@ export async function langRuntime() {
           { type: 'keyword', name: 'DefParamsNotVecOfKeywords',   literal: ':DefParamsNotVecOfKeywords' },
           { type: 'keyword', name: 'DefArityInvalid',             literal: ':DefArityInvalid' },
           { type: 'keyword', name: 'DefMissingDocOrBody',         literal: ':DefMissingDocOrBody' },
-          { type: 'keyword', name: 'EffectLaunderingAtLetParse', literal: ':EffectLaunderingAtLetParse' }
+          { type: 'keyword', name: 'EffectLaunderingAtDefParse', literal: ':EffectLaunderingAtDefParse' }
         ])]
       ]));
       const bootstrapState = makeState(null, bootstrapEnv);

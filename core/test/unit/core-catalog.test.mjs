@@ -276,26 +276,21 @@ describe('function-value reify path (conduit parameter reflection)', () => {
   });
 });
 
-describe('format.toPlain exotic-value fallback', () => {
-  // toPlain's String(v) fallback covers qlang values that do not
-  // match the known shapes (scalar / keyword / Vec / Map / Set /
-  // error). Under Variant-B dispatch, no qlang-level path ever
-  // reaches this branch — raw function values never enter
-  // pipeValue, so user code cannot feed one to the json operand.
-  // The branch remains as a safety net for JS-level callers that
-  // might construct exotic objects (makeFn frozen values, host
-  // closures injected via session.bind) and pipe them through
-  // toPlain. Direct unit exercise keeps the line covered.
+describe('format.toPlain refuses a raw function value — round-trip invariant', () => {
+  // Function values have no grammatical literal: emitting any string
+  // for one would falsely round-trip through parse / eval into a
+  // different value-class. toPlain shares this round-trip discipline
+  // with printValue and raises FunctionValueLeakedToPrint when a
+  // function surfaces — the leak surface (typically a JS-level
+  // caller piping a raw makeFn product through toPlain instead of
+  // wrapping it in a descriptor Map) gets named at the boundary.
 
-  it('String(v) fallback on a raw function value', async () => {
+  it('toPlain on a raw function value throws FunctionValueLeakedToPrint', async () => {
     const { toPlain } = await import('../../src/runtime/format.mjs');
     const { makeFn } = await import('../../src/rule10.mjs');
+    const { FunctionValueLeakedToPrint } = await import('../../src/types.mjs');
     const fn = makeFn('exoticFn', 1, (state) => state, { captured: [0, 0] });
-    const plain = toPlain(fn);
-    // Frozen function-value objects stringify to "[object Object]"
-    // under the default toString; the fallback returns that verbatim.
-    expect(typeof plain).toBe('string');
-    expect(plain).toBe('[object Object]');
+    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrint);
   });
 });
 

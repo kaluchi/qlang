@@ -112,8 +112,8 @@ export function findAstNodeAtOffset(ast, offset) {
 // that names the given qlang identifier. The result includes both
 // declarations and uses, intentionally:
 //   - OperandCall whose .name matches (read site or bare identifier)
-//   - OperandCall named 'let' or 'as' whose first Keyword arg names
-//     the identifier (declaration site — e.g. `let(:foo, body)`)
+//   - OperandCall named 'def' or 'as' whose first Keyword arg names
+//     the identifier (declaration site — e.g. `def(:foo, body)`)
 //   - Projection whose .keys contains the name (Map field read by name)
 // Keyword literals are intentionally NOT included because `:foo`
 // is a value of type keyword, not an identifier reference.
@@ -133,7 +133,7 @@ export function findIdentifierOccurrences(ast, name) {
 }
 
 // Fork-isolating AST node types — those whose evaluation creates a
-// new fork via fork.mjs, so let/as bindings declared inside them do
+// new fork via fork.mjs, so def/as bindings declared inside them do
 // not leak to siblings or to the parent scope:
 //
 //   ParenGroup — inner pipeline runs in its own fork
@@ -143,20 +143,20 @@ export function findIdentifierOccurrences(ast, name) {
 //              the key and from sibling entries
 //
 // Pipeline is NOT in this set: the steps of a Pipeline run in
-// sequence and share the same env progressively (every let/as in
+// sequence and share the same env progressively (every def/as in
 // step k is visible to step k+1).
 export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);
 
 // bindingNamesVisibleAt(ast, offset) — returns the Set of binding
-// names (let / as operand calls) lexically visible at the given
+// names (def / as operand calls) lexically visible at the given
 // UTF-16 offset. This is the autocomplete primitive: "what
 // identifiers can the user type at this cursor position without an
 // unresolved-identifier error?"
 //
 // Visibility rules, mirroring the runtime fork semantics:
-//   1. Only OperandCall nodes named 'let' or 'as' with a Keyword
+//   1. Only OperandCall nodes named 'def' or 'as' with a Keyword
 //      first arg contribute names (binding declarations).
 //   2. The binding must already have been declared at the cursor
 //      (`location.end.offset <= offset`).
@@ -169,7 +169,7 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 export function bindingNamesVisibleAt(ast, offset) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    // Recognize let(:name, ...) and as(:name) OperandCall patterns.
+    // Recognize def(:name, ...) and as(:name) OperandCall patterns.
     if (node.type !== 'OperandCall') return;
     if (node.name !== 'def' && node.name !== 'as') return;
     if (!Array.isArray(node.args) || node.args.length === 0) return;

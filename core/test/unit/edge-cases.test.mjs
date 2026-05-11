@@ -55,12 +55,12 @@ describe('types.mjs', () => {
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(new Set())).toBe('Set');
     expect(describeType({ type: 'function', arity: 0, fn: () => {} })).toBe('Function');
-    expect(describeType(makeConduit(null))).toBe('Conduit');
+    expect(describeType(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe('Conduit');
     expect(describeType(Symbol('weird'))).toBe('Unknown');
   });
 
   it('value-class predicates', () => {
-    expect(isConduit(makeConduit(null))).toBe(true);
+    expect(isConduit(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe(true);
     expect(isConduit({ type: 'function' })).toBe(false);
     expect(isFunctionValue({ type: 'function', arity: 0, fn: () => {} })).toBe(true);
     expect(isFunctionValue(() => {})).toBe(false);
@@ -72,10 +72,12 @@ describe('types.mjs', () => {
 
   it('makeConduit returns a Variant-B conduit descriptor Map', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
-    const t = makeConduit('expr-ast');
+    const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
+    const t = makeConduit(bodyAst);
     expect(t).toBeInstanceOf(Map);
     expect(t.get('qlang/kind')).toEqual(makeTagKeyword('conduit'));
-    expect(t.get('qlang/body')).toBe('expr-ast');
+    expect(t.get('qlang/body')).toBe(bodyAst);
+    expect(t.get('qlang/source')).toBe('1');
   });
 });
 
@@ -118,7 +120,7 @@ describe('rule10.mjs', () => {
     expect(Object.isFrozen(fn)).toBe(true);
   });
 
-  it('makeFn no longer carries a pseudo flag', () => {
+  it('makeFn carries no pseudo flag', () => {
     const fn = makeFn('identity', 1, (state) => state);
     expect('pseudo' in fn).toBe(false);
   });

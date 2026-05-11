@@ -28,7 +28,7 @@ import {
 import { errorFromParse } from '../error-convert.mjs';
 import {
   UnresolvedIdentifierError,
-  EffectLaunderingAtLetParse
+  EffectLaunderingAtDefParse
 } from '../errors.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import { classifyEffect } from '../effect.mjs';
@@ -280,7 +280,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   result.set('kind', keyword('conduit'));
   result.set('name', explicitName ?? conduit.get('name'));
   result.set('params', metaToVec(conduit.get('params')));
-  result.set('source', conduit.get('qlang/body').text);
+  result.set('source', conduit.get('qlang/source'));
   result.set('effectful', conduit.get('effectful'));
   result.set('location', locationToQlangMap(conduit.get('location')));
   return result;
@@ -511,8 +511,8 @@ function checkEffectLaundering(bindingName, bodyAst) {
   if (classifyEffect(bindingName) || !bodyAst) return;
   const offender = findFirstEffectfulIdentifier(bodyAst);
   if (offender !== null) {
-    throw new EffectLaunderingAtLetParse({
-      letName: bindingName,
+    throw new EffectLaunderingAtDefParse({
+      defName: bindingName,
       effectfulName: offender,
       location: bodyAst.location
     });
@@ -539,8 +539,9 @@ function checkEffectLaundering(bindingName, bodyAst) {
 //   3-arg `def(:name, [:p ...], body)` — parametric conduit; always
 //     deferred regardless of body shape.
 //
-// Effect-laundering safety net mirrors letOperand: a non-`@`-prefixed
-// binding name with an effectful body raises EffectLaunderingAtLetParse.
+// Effect-laundering safety net mirrors the let-time AST scan: a
+// non-`@`-prefixed binding name with an effectful body raises
+// EffectLaunderingAtDefParse.
 export const defOperand = stateOpVariadic('def', 16, async (state, defLambdas) => {
   const argCount = defLambdas.length;
   if (argCount < 1 || argCount > 3) {
@@ -702,7 +703,7 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 // is threaded in unchanged: writes the inner code does through let /
 // as land in state.env exactly as if the code had been inlined at
 // the call site. The result is whatever pipeValue the inner code
-// produces; env changes from inner let / as / use calls propagate
+// produces; env changes from inner def / as / use calls propagate
 // out, matching the semantics of a bare paren-group application.
 export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
   const evalSubject = state.pipeValue;
@@ -720,9 +721,9 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
 // ── Variant-B primitive registry bindings ─────────────────────
 // Bind each reflective operand impl into PRIMITIVE_REGISTRY under
 // its :qlang/prim/ namespaced key at module-load time. Note that
-// `letOperand` / `asOperand` / `parseOperand` / `evalOperand` are
-// the JS-level identifiers for the qlang operands `let` / `as` /
-// `parse` / `eval` (those names are JS reserved / common enough
+// `defOperand` / `asOperand` / `parseOperand` / `evalOperand` are
+// the JS-level identifiers for the qlang operands `def` / `as` /
+// `parse` / `eval` (the qlang names are JS reserved / common enough
 // that the JS-side identifier disambiguates); the registry keys
 // use the qlang names.
 PRIMITIVE_REGISTRY.bind('qlang/prim/env',         env);

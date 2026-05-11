@@ -102,6 +102,6 @@ describe('def — effect-laundering safety net', () => {
   it('rejects effectful body under non-@-prefixed name', async () => {
     const err = await evalQuery('def(:safe, @nonExistent)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('EffectLaunderingAtLetParse'));
+    expect(err.descriptor.get('thrown')).toEqual(keyword('EffectLaunderingAtDefParse'));
   });
 });

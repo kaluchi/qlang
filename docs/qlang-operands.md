@@ -59,7 +59,7 @@ part of the doc surface, not implementation lore.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (let / as / env / use / reify / manifest / runExamples / parse / eval). |
+| `:reflective` | Operand that reads or writes the evaluator state pair (def / as / env / use / reify / manifest / runExamples / parse / eval). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
@@ -177,7 +177,7 @@ offers to fill:
   meaning for entry iteration.
 
 Compose both-axis predicates by naming the 2-arity conduit with
-`let` inline in the pipeline, then reference it inside `filter` /
+`def` inline in the pipeline, then reference it inside `filter` /
 `every` / `any`:
 
 ```qlang
@@ -658,7 +658,7 @@ round-trips to `"a,b,c"`.
 
 ## Type classifiers
 
-Eight nullary predicates lift the `types.mjs` value-class
+Twelve nullary predicates lift the `types.mjs` value-class
 predicates to operand level. Primary use — inside `filter`,
 `every`, `any` predicates over heterogeneous containers:
 `filter(isString)` over a Vec of mixed types, or over a Map
@@ -670,7 +670,14 @@ constructs the full descriptor Map per item for a single bit of
 information. Each classifier matches exactly one
 `describeType(v)` label and never throws.
 
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull` · `isQuote` · `isDoc`
+`isJsonObject` and `isJsonArray` discriminate the JSON-tagged
+shapes (plain JS object / Array stamped with the `JSON_OBJECT_TAG`
+/ `JSON_ARRAY_TAG` Symbol, produced by the host JSON-bridge and
+by the `::json` constructor). They are runtime-distinct from
+qlang Map and Vec — `isMap` and `isVec` return `false` on a JSON
+shape, and vice versa.
+
+### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
 
 - **Arity** 1. **Subject** any value.
 - Returns `true` iff the subject is of the named value class,
@@ -695,6 +702,8 @@ information. Each classifier matches exactly one
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
   - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
   - `|~~ note ~~| | isDoc` → `true`; `"note" | isDoc` → `false`.
+  - `::json{:k 1} | isJsonObject` → `true`; `{:k 1} | isJsonObject` → `false`.
+  - `::json[1 2 3] | isJsonArray` → `true`; `[1 2 3] | isJsonArray` → `false`.
 - **Errors**: none — classification is total.
 
 ## Type Conversion
@@ -858,11 +867,11 @@ display defaults where `false` is a sentinel meaning "no value".
 
 ## Reflective built-ins
 
-`env`, `use`, `reify`, `manifest`, `runExamples`, `let`, and `as`
+`env`, `use`, `reify`, `manifest`, `runExamples`, `def`, and `as`
 are **reflective operands**:
 they read or write the full evaluator state rather than working
 at the value level. All four are ordinary entries in `langRuntime`,
-look up like any other identifier, and can be shadowed by `let`
+look up like any other identifier, and can be shadowed by `def`
 or `as`. Their distinguishing feature is internal — the impl
 receives `(state, lambdas)` directly instead of going through the
 descend-compute-ascend pattern of pure operands.
@@ -877,7 +886,7 @@ descend-compute-ascend pattern of pure operands.
   - `env | has(:count)` → `true` (count is a built-in).
   - `env | /taxRate` → the value of a user binding, or `null`.
 - Inside a fork, returns the fork's current `env` (including any
-  fork-local `as` or `let` writes visible at the point of lookup).
+  fork-local `as` or `def` writes visible at the point of lookup).
 - Captured arguments (`env(...)`) are an arity error.
 
 ### `use`
@@ -892,7 +901,7 @@ descend-compute-ascend pattern of pure operands.
   - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi e]`
     → `[3.14159 2.71828]`.
   - Shadow a built-in: `def(:use, mul(2)) | 5 | use` → `10`
-    (the user's `let` shadows the reflective `use`).
+    (the user's `def` shadows the reflective `use`).
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,
   matching the documented fork rule — only the final `pipeValue`
@@ -957,7 +966,7 @@ depends on the value's provenance. Four descriptor kinds:
   operands (`count`, `sort` bare form, `env`, etc.) still fire
   on bare lookup because their `min == 0` and bare application
   IS their valid call shape.
-- **Conduit** — `pipeValue` is a `let`-bound conduit (named
+- **Conduit** — `pipeValue` is a `def`-bound conduit (named
   pipeline fragment, zero or more parameters). Descriptor:
   ```
   {:kind   :conduit
@@ -999,7 +1008,7 @@ missing). This is the introspection-by-name path:
 
     reify(:count)    -- descriptor of the count builtin
     reify(:myVar)    -- descriptor of an as-binding
-    reify(:double)   -- descriptor of a let-conduit
+    reify(:double)   -- descriptor of a def-conduit
 
 - **Errors**: more than one captured arg → arity error; the
   captured arg is not a keyword → type error; the name is not
@@ -1063,10 +1072,11 @@ missing). This is the introspection-by-name path:
   with the payload as its initial pipeValue). Example:
   `def(::wrap, {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`}) | "x" | ::wrap "x"`
   → `"[x]"`.
-- **Errors**: name not a keyword → `LetNameNotKeyword`; params not
-  a Vec of keywords → `LetParamsNotVecOfKeywords`; fewer than 2
-  captured args → `LetBodyMissing`; clean name with effectful body
-  → `EffectLaunderingAtLetParse`.
+- **Errors**: name not a keyword → `DefNameNotKeyword`; params not
+  a Vec of keywords → `DefParamsNotVecOfKeywords`; captured-arg
+  count outside 1..3 → `DefArityInvalid`; 1-arg form without an
+  attached doc-prefix → `DefMissingDocOrBody`; clean name with
+  effectful body → `EffectLaunderingAtDefParse`.
 
 ### `as(:name)`
 
@@ -1112,7 +1122,7 @@ missing). This is the introspection-by-name path:
 - Unwraps an AST-Map through `walk.mjs::qlangMapToAst` and runs
   the reconstructed AST against the current state. The caller's
   `pipeValue` becomes the inner evaluation's `pipeValue`; the
-  caller's `env` threads in unchanged. Any `let` / `as` / `use`
+  caller's `env` threads in unchanged. Any `def` / `as` / `use`
   writes the inner code performs propagate out the same way a
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
@@ -1212,12 +1222,12 @@ distinct` enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `isQuote`, `isDoc` |
+| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
 | `:type-conversion` | `keyword` |
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
-| `:reflective` | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
+| `:reflective` | `def`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths

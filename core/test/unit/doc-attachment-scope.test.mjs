@@ -1,9 +1,7 @@
-// MapEntryDocPrefix grammar rule has been removed; doc-comment
-// prefixes are no longer attached as MapEntry metadata. This file
-// pins the new contract: a doc-comment ahead of a MapEntry key,
-// Vec element, or Set element is a parse error inside a literal
-// body. The pipeline-position attachment path
-// (DocAttachedSequence) restricts to def / as only.
+// Grammar contract: doc-prefix attachment scope.
+//   1. Inside a literal body (Map / Vec / Set entries) — parse error.
+//   2. In pipeline position — DocAttachedSequence binds to def / as only.
+//   3. MapEntry AST node carries no .docs field.
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
@@ -35,16 +33,16 @@ describe('DocAttachedSequence restricts to def / as only', () => {
   });
 
   it('a doc-prefix ahead of a non-def/as operand chain explicitly with `|`', async () => {
-    // After Phase 3 the doc-prefix attaches only to def / as.
-    // For other operands the author must chain explicitly with `|`,
-    // making the Doc-value a separate pipeline step that filter
-    // then operates on as its subject.
+    // DocAttachedSequence binds only to def / as. For other operands
+    // the author must chain explicitly with `|`, so the Doc-value
+    // lands as a separate pipeline step that the next operand
+    // (here `filter`) sees as its subject.
     const result = await evalQuery('|~~ inline note ~~| | filter(gt(0)) !| /thrown');
     expect(result).toEqual(keyword('FilterSubjectNotContainer'));
   });
 });
 
-describe('MapEntry no longer carries .docs in the AST', () => {
+describe('MapEntry AST node has no .docs field', () => {
   it('parses MapEntry without a docs field', () => {
     const ast = parse('{:k 1}');
     expect(ast.entries[0].docs).toBeUndefined();

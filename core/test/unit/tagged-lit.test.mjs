@@ -152,16 +152,16 @@ describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
 });
 
 describe('printValue named conduit paths', () => {
-  it('zero-arity named conduit renders as def(:name, body)', async () => {
+  it('zero-arity named conduit renders as ::conduit[:name [] `body`]', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     const value = await evalQuery('def(:double, mul(2)) | env | /:double');
-    expect(printValue(value)).toBe('def(:double, mul(2))');
+    expect(printValue(value)).toBe('::conduit[:double [] `mul(2)`]');
   });
 
-  it('parametric named conduit renders with params', async () => {
+  it('parametric named conduit renders with params in :name [params] body form', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     const value = await evalQuery('def(:wrap, [:p :s], prepend(p) | append(s)) | env | /:wrap');
-    expect(printValue(value)).toBe('def(:wrap, [:p, :s], prepend(p) | append(s))');
+    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] `prepend(p) | append(s)`]');
   });
 });
 

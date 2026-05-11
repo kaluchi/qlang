@@ -29,6 +29,7 @@ import {
   fromPlain,
   fromTaggedJSON
 } from '@kaluchi/qlang-core';
+import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
@@ -75,6 +76,6 @@ const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {
 // ── Binding ────────────────────────────────────────────────────
 
 export function bindParseOperands(session) {
-  session.bind('parseJson',  parseJsonOperand);
-  session.bind('parseTjson', parseTjsonOperand);
+  bindHostBuiltin(session, 'parseJson',  parseJsonOperand);
+  bindHostBuiltin(session, 'parseTjson', parseTjsonOperand);
 }

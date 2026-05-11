@@ -11,7 +11,10 @@ import {
   isQSet,
   isErrorValue,
   isVecShape,
-  describeType
+  isFunctionValue,
+  describeType,
+  keyword,
+  FunctionValueLeakedToPrint
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -31,6 +34,12 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 // (qlang types that never enter pipeValue under Variant-B dispatch:
 // conduit, snapshot, function).
 function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
+  // Function values have no grammatical literal — emitting any string
+  // here would falsely round-trip through parse / eval into a different
+  // value-class. printValue, renderInline, renderCell, and toPlain all
+  // route through this dispatcher, so the invariant fires once for
+  // every render path.
+  if (isFunctionValue(v)) throw new FunctionValueLeakedToPrint();
   const handler = handlers[describeType(v)];
   return handler ? handler(v, ...extraArgs) : fallback(v, ...extraArgs);
 }
@@ -80,7 +89,8 @@ export function toPlain(v) {
 function qMapToPlainObject(m) {
   const obj = {};
   for (const [k, val] of m) {
-    obj[k] = toPlain(val);
+    const [pk, pv] = projectMapEntryForPrint(k, val);
+    obj[pk] = toPlain(pv);
   }
   return obj;
 }
@@ -129,8 +139,7 @@ const PRINT_HANDLERS = {
   JsonArray:  (a, indent) => `[${a.map(el => printValue(el, indent)).join(', ')}]`,
   Conduit:    printConduit,
   Snapshot:   printSnapshot,
-  TaggedInstance: printTaggedInstance,
-  Function:   printFunction
+  TaggedInstance: printTaggedInstance
 };
 
 function literalOfKeyword(k) { return k.literal; }
@@ -148,26 +157,17 @@ export function printValue(v, indent = 0) {
   return dispatchQlangValue(v, PRINT_HANDLERS, String, indent);
 }
 
+// Named → `def(:name, [params], body)` with attached doc-prefix.
+// Anonymous → `::conduit[[params] `body`]` TaggedLit form.
 function printConduit(conduit) {
   const name = conduit.get('name');
   const params = conduit.get('params');
-  const body = conduit.get('qlang/body');
-  const source = body?.text ?? '…';
-  const docPrefix = conduit.get('docs').map(doc => `|~~ ${doc} ~~|\n`).join('');
-  const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(', ')}]`;
-  // Anonymous conduits (no name) render as the canonical
-  // `::conduit[...]` tagged literal — the form an author would
-  // type to construct one inline. Named conduits render as the
-  // def-step that introduced them, so reify of a `def`-bound
-  // conduit round-trips back through the same syntax.
+  const source = conduit.get('qlang/source');
+  const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
   if (name == null) {
-    return `${docPrefix}::conduit[${paramList} \`${source}\`]`;
+    return `::conduit[${paramList} \`${source}\`]`;
   }
-  const nameKw = canonicalKeywordLiteral(name);
-  if (params.length > 0) {
-    return `${docPrefix}def(${nameKw}, ${paramList}, ${source})`;
-  }
-  return `${docPrefix}def(${nameKw}, ${source})`;
+  return `::conduit[${canonicalKeywordLiteral(name)} ${paramList} \`${source}\`]`;
 }
 
 function printSnapshot(snapshot) {
@@ -187,10 +187,6 @@ function printTaggedInstance(instance, indent) {
   return `::${tag}[${inner}]`;
 }
 
-function printFunction(fn) {
-  return `:qlang/prim/${fn.name}`;
-}
-
 function escapeQlangStringLiteral(s) {
   return `"${s
     .replace(/\\/g, '\\\\')
@@ -202,8 +198,27 @@ function escapeQlangStringLiteral(s) {
     .replace(/\f/g, '\\f')}"`;
 }
 
+// `:qlang/impl` carries the post-bootstrap-resolved function value
+// on a builtin descriptor Map. The author-form (the keyword shape
+// that lives in core.qlang and that langRuntime resolves at boot)
+// is `:qlang/prim/<name>`. printValue projects the function back to
+// that keyword form here so descriptor Maps in pipeValue round-trip
+// through parse → MapLit → eval into an equivalent Map (with the
+// keyword in `:qlang/impl`, which langRuntime would re-resolve at
+// bootstrap if it ever reached env again). The Function-leak
+// invariant still fires for any function value that surfaces
+// outside this single slot — `env | /count | /qlang/impl` strips
+// the descriptor and feeds the raw function into printValue,
+// which is the actual leak surface we want flagged.
+function projectMapEntryForPrint(k, v) {
+  if (k === 'qlang/impl' && isFunctionValue(v)) {
+    return [k, keyword(`qlang/prim/${v.name}`)];
+  }
+  return [k, v];
+}
+
 function printMapLike(open, m, indent) {
-  const entries = [...m];
+  const entries = [...m].map(([k, v]) => projectMapEntryForPrint(k, v));
   // Inline only when the Map is small AND every value is a flat
   // scalar — a nested Map / Vec / Set / Error forces multi-line
   // so deeply-nested structures unfold one entry per row instead
@@ -242,10 +257,9 @@ const CELL_HANDLERS = {
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => renderInline(o),
   JsonArray:  a => renderInline(a),
-  Conduit:    c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Conduit:    printConduit,
   Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
-  TaggedInstance: renderTaggedInstanceInline,
-  Function:   fn => `:qlang/prim/${fn.name}`
+  TaggedInstance: renderTaggedInstanceInline
 };
 
 const INLINE_HANDLERS = {
@@ -262,10 +276,9 @@ const INLINE_HANDLERS = {
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
   JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,
-  Conduit:    c => `def(${canonicalKeywordLiteral(c.get('name'))}, ${c.get('qlang/body')?.text ?? '…'})`,
+  Conduit:    printConduit,
   Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
   TaggedInstance: renderTaggedInstanceInline,
-  Function:   fn => `:qlang/prim/${fn.name}`,
   Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
 };
 
@@ -281,6 +294,7 @@ function renderInline(v) {
 
 function mapEntriesInline(m) {
   return [...m]
+    .map(([k, v]) => projectMapEntryForPrint(k, v))
     .map(([k, v]) => `${canonicalKeywordLiteral(k)} ${renderInline(v)}`)
     .join(' ');
 }

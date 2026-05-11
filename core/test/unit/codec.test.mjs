@@ -114,7 +114,7 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
 describe('toTaggedJSON unencodable values', () => {
   it('throws TaggedJSONUnencodableValueError for conduits', () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
     expect(() => toTaggedJSON(conduit)).toThrow(TaggedJSONUnencodableValueError);
   });
 

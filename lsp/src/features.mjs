@@ -119,7 +119,7 @@ export async function completionsAtOffset(ast, offset) {
         items.push({
           label: name,
           kind: 'variable',
-          detail: 'let/as binding',
+          detail: 'def/as binding',
           documentation: null
         });
       }
@@ -194,7 +194,7 @@ function formatMetaValue(value) {
 // ── Go to Definition ──────────────────────────────────────────
 //
 // Three-tier resolution:
-//   1. In-document let/as declaration visible at the cursor —
+//   1. In-document def/as declaration visible at the cursor —
 //      last-write-wins with fork isolation (shadowing-aware)
 //   2. lib/qlang/core.qlang catalog declaration for builtins
 //   3. null (identifier has no reachable declaration)
@@ -225,7 +225,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST
-// collecting let/as declarations for `name` that are lexically
+// collecting def/as declarations for `name` that are lexically
 // visible at `offset` (before cursor, not fork-isolated). Returns
 // the LAST one (closest to cursor = most recent shadowing), or
 // null if no in-document declaration is visible.

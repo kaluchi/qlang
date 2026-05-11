@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { keyword, isErrorValue, isQMap } from '../../src/types.mjs';
+import { keyword, isErrorValue, isQMap, ConduitBodyMissingSource } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
@@ -47,7 +47,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(42);
   });
 
-  it('evalCell persists let bindings across subsequent cells', async () => {
+  it('evalCell persists def bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('def(:double, mul(2))');
     const cellEntry = await sessionInstance.evalCell('5 | double');
@@ -115,7 +115,7 @@ describe('createSession lifecycle', () => {
 });
 
 describe('serializeSession / deserializeSession round-trip', () => {
-  it('preserves user let bindings via conduit source replay', async () => {
+  it('preserves user def bindings via conduit source replay', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('def(:double, mul(2))');
     await sessionInstance.evalCell('def(:triple, mul(3))');
@@ -129,7 +129,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
   });
 
   it('restored conduits honor lexical scope (immune to caller-side shadowing)', async () => {
-    // letOperand wires envRef.env to the env captured at declaration
+    // defOperand wires envRef.env to the env captured at declaration
     // time, so a later cell that shadows `mul` does not affect the
     // restored conduit's body resolution. deserializeSession must
     // perform the same wiring on every restored conduit; otherwise the
@@ -254,18 +254,15 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(cellEntry.result).toBe('[x]');
   });
 
-  it('serializes a synthesized conduit (no .text on body) with source = null', async () => {
-    // Construct a conduit whose expr is a hand-built AST node that
-    // never came from the parser, so has no .text. The session
-    // serializer must emit source: null without throwing.
+  it('makeConduit refuses a body without .text so session payload always carries parseable source', async () => {
+    // Round-trip invariant: every conduit in a serialized session must
+    // deserialize back through parse(binding.source). A body without
+    // .text would emit a non-parseable placeholder, so mint refuses
+    // up front and the session payload never carries a lossy entry.
     const { makeConduit } = await import('../../src/types.mjs');
     const synthAst = { type: 'NumberLit', value: 99 };
-    const sessionInstance = await createSession();
-    sessionInstance.bind('synth', makeConduit(synthAst, { name: 'synth' }));
-    const payload = await serializeSession(sessionInstance);
-    const synthBinding = payload.bindings.find(b => b.name === 'synth');
-    expect(synthBinding.kind).toBe('conduit');
-    expect(synthBinding.source).toBeNull();
+    expect(() => makeConduit(synthAst, { name: 'synth' }))
+      .toThrow(ConduitBodyMissingSource);
   });
 });
 

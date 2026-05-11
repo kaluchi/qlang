@@ -12,7 +12,7 @@ are layered on top of this model.
 
 Names in scope come from several sources — built-in operands
 (`count`, `filter`), domain functions (`@callers` and friends),
-`let`-bindings, and `as`-bindings — and a naive treatment would
+`def`-bindings, and `as`-bindings — and a naive treatment would
 define each category separately with its own lookup rule. That
 path is noisy and leaves gaps: a bare identifier could mean
 "apply a function" or "reference a captured value" depending on
@@ -42,7 +42,7 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   `applyCombinator`; `evalNode` is a pure AST-node-type dispatcher.
 - **`env`** — the environment, a Map from identifier names to values
   or functions. Contains the language runtime, domain runtime, user
-  bindings from `let` and `as`, and anything else in scope.
+  bindings from `def` and `as`, and anything else in scope.
 
 Every pipeline step is a pure function
 `(pipeValue, env) → (nextPipeValue, nextEnv)`.
@@ -134,11 +134,11 @@ Let `resolved = env[:name]`:
 
 `env` is unchanged by pure operands. Reflective operands may
 change it — that is the whole point of keeping them in the same
-namespace as ordinary lookups. They can be shadowed by `let` or
+namespace as ordinary lookups. They can be shadowed by `def` or
 `as` like any other name.
 
 This rule unifies built-in operands, domain functions, reflective
-built-ins (`use`, `env`), `let` references, and `as` references.
+built-ins (`use`, `env`), `def` references, and `as` references.
 They differ only in what is stored in `env[:name]`, never in
 how lookup behaves.
 
@@ -211,7 +211,7 @@ Four surface forms, two orthogonal axes (line/block, plain/doc):
 
 The two doc forms additionally carry **metadata attachment**: their
 content is absorbed into the `docs` field of the immediately
-following RawStep (`let`, `as`, or any Primary). Multiple doc
+following RawStep (`def`, `as`, or any Primary). Multiple doc
 comments preceding the same RawStep accumulate into the `docs` Vec
 in declaration order — one comment token per Vec entry, with no
 concatenation of adjacent line docs.
@@ -238,7 +238,7 @@ Since comments are identity steps with no effect on the state
 pair, their evaluation semantics are trivial. The non-trivial
 content — the metadata attachment for doc forms — is a parser-side
 transformation: the parser folds `DocComment* RawStep` into a
-single RawStep AST node with a `docs` Vec field, so the `let` and
+single RawStep AST node with a `docs` Vec field, so the `def` and
 `as` operand impls see the docs at construction time and fold them
 into the conduit or snapshot wrapper.
 
@@ -285,7 +285,7 @@ Enables introspection:
     env | /count       -- read a specific binding
 
 Inside a fork, `env` returns the fork's current env (with any
-fork-local `as` or `let` writes still visible at the point of
+fork-local `as` or `def` writes still visible at the point of
 lookup).
 
 ### `reify`
@@ -312,7 +312,7 @@ Overloaded by captured-arg count:
     `::assertion[\`snippet\` \`expected\`]` segments — extract
     them via the Doc-content tokenizer (`/segments` projection
     on a Doc-value) or through `:name | examples`.
-  - `:conduit` — a `let`-bound conduit. Descriptor has `:kind :conduit`,
+  - `:conduit` — a `def`-bound conduit. Descriptor has `:kind :conduit`,
     `:name`, `:source` (textual form of the body expression),
     `:docs` (Vec from parser-attached doc comments).
   - `:snapshot` — an `as`-bound snapshot. Descriptor has `:kind
@@ -468,10 +468,10 @@ Three come from the rest of the evaluation model:
 
 1. **Lexical left-to-right** — from `|` combinator threading.
 6. **Shadowing** — from Map last-write-wins on `env[:name]`.
-7. **Resolution order** — `as` > `let` > built-in is just "whoever
+7. **Resolution order** — `as` > `def` > built-in is just "whoever
    wrote last to `env[:name]`", which is a consequence of shadowing
    in the user's typical write order (built-ins loaded first, then
-   user `let`, then `as` captures during query execution).
+   user `def`, then `as` captures during query execution).
 
 The four nesting rules collapse to: **nested expressions fork; forks
 don't leak env changes outward**. The other three come from the
@@ -489,7 +489,7 @@ step of any query is `use`, which installs the runtime:
     -- pure conceptual model — runs in host-wrapped context
     use                             -- (langRuntime, {}) → (langRuntime, langRuntime)
     | domainRuntime | use           -- add domain functions
-    | replEnv | use                 -- add REPL-accumulated let-bindings
+    | replEnv | use                 -- add REPL-accumulated def-bindings
     | <query body>
 
 **Practical model.** The host starts with `env = langRuntime` and
@@ -701,7 +701,7 @@ replaces `pipeValue` — Step 3, second bullet.
 
 Final `pipeValue = [7 4]`. ✓
 
-### Example 6 — recursive `let`
+### Example 6 — recursive `def`
 
 The language has no conditionals, so classic base-case recursion
 (factorial, Fibonacci, `if n == 0 then 1 else ...`) cannot be
@@ -762,7 +762,7 @@ Again starting with the tree literal above as `pipeValue`:
     | def(:allNames, [[/label], /children * allNames | flat] | flat)
     | allNames
 
-(The outer parentheses are required because a `let` body is a
+(The outer parentheses are required because a `def` body is a
 single Primary — multi-step bodies must be wrapped. See Spec §
 "Named expressions" for the rule.)
 
@@ -842,7 +842,7 @@ whatever. The shape is preserved; fields are added/rewritten per
 node. This is the practical form of the "`walk` template".
 
 In all three examples, recursion works because `env[:name]` is
-written by the `let` step *before* any lookup of `name` occurs.
+written by the `def` step *before* any lookup of `name` occurs.
 When the body of the conduit references itself, the name is already
 resolvable. Termination is guaranteed whenever the tree is finite:
 `[] * self` collapses to `[]` without invoking `self`.
@@ -873,22 +873,22 @@ The user extended the namespace in the middle of a query by merging
 a Map of constants into `env`, then referenced those constants as
 ordinary identifiers downstream.
 
-**Note — `use` vs `let` for extension.** `use` imports a pre-built
+**Note — `use` vs `def` for extension.** `use` imports a pre-built
 Map whose values are already the bindings you want (typically
 constants or host-provided native functions). It cannot be used to
 define new *functions* from inside the query, because a Map literal
 like `{:double mul(2)}` evaluates each value expression as a
 sub-pipeline: `mul(2)` applies to the current `pipeValue` via
 Rule 10 rather than producing a function object. For in-query
-function extension use `let`:
+function extension use `def`:
 
     | def(:double, mul(2))
     | def(:isSenior, /age | gt(65))
     | employees * {:doubledAge /age | double :senior isSenior}
 
-Each `let` writes a conduit that forces against `pipeValue` at
-each reference site. `use` and `let` are complementary: `use` for
-importing static data and host functions, `let` for derived
+Each `def` writes a conduit that forces against `pipeValue` at
+each reference site. `use` and `def` are complementary: `use` for
+importing static data and host functions, `def` for derived
 expressions within the query.
 
 ### Example 8 — env introspection
@@ -1008,49 +1008,56 @@ opt into fail-apply for their first step.
 
 ### Trail and materialization
 
-Each deflection appends an `{ entry, prev }` node to a lazy
-linked list on the error value (`_trailHead`) via
-`appendTrailNode`. Every `entry` is an **AST-Map** — the
-structured data-form of the deflected step, produced at stamp
-time by `walk.mjs::astNodeToMap` — not a raw source-text
-string. The Map carries the deflected step's `:qlang/kind`
-discriminator, type-specific payload (`:name`, `:args`,
-`:keys`, `:elements`, `:entries`, …), and `:text` / `:location`
-metadata, so downstream consumers can filter / project / re-eval
-trail entries as ordinary qlang data:
+Each deflection forges a `{ entry, prev }` node onto the error
+value's lazy linked list (`_trailHead`) via `appendTrailNode`.
+Every `entry` is a frozen `{ combinator, text }` fragment record
+— `combinator` is one of the `COMBINATOR_SYNTAX` keys (`pipe` /
+`distribute` / `merge`), `text` is the deflected step's verbatim
+source slice. The fragment shape stays primitive (two strings) so
+deflection itself allocates nothing beyond the cons cell.
 
-    error !| /trail * /name                    -- operand names
-    error !| /trail | last | /location         -- fail site
-    error !| /trail | filter(/name | eq("filter"))   -- per-op
-    error !| /trail * /text                    -- display form
-    error !| /trail * eval                     -- replay as code
+When `!|` fires, `materializeTrail` walks `_trailHead` in
+chronological order, joins fragments through `COMBINATOR_SYNTAX`
+into one pipeline-suffix source, and lifts the joined text into a
+Quote-value (`makeQuote(source)`). The Quote carries the
+deflected steps as **copy-pasteable code** — splice it back after
+the fault site and the pipeline tail re-runs. Through `/source`
+the Quote projects raw text; through `/ast` it lazy-parses into
+an AST-Map for structural inspection:
 
-The trail is combined into a `:trail` Vec on the descriptor when
-`!|` fires: `applyFailTrack` reads the descriptor's existing
-`:trail` Vec (guaranteed by the `makeErrorValue` invariant),
-walks `_trailHead` via `materializeTrail` to collect new
-deflections since the last materialization, concatenates the two,
-and stamps the combined Vec back onto a fresh descriptor Map
-that is exposed to the step.
+    error !| /trail | /source                  -- copy-pasteable suffix
+    error !| /trail | /ast | /steps | count    -- step count via AST
+    error !| /trail | /ast | /steps | last | /step | /name
+                                               -- last step's operand
+
+The trail folds into `:trail` on a fresh descriptor when `!|`
+fires: `applyFailTrack` reads the descriptor's existing `:trail`
+Quote-or-null, walks `_trailHead` via `materializeTrail` to lift
+deflections accumulated since the last materialization,
+concatenates the two source-strings through `combineTrailQuotes`,
+and forges a fresh descriptor Map carrying the joined Quote on
+`:trail`. The exposed descriptor flows into the step as
+pipeValue.
 
 Trail continuity across re-lift: when a step running under `!|`
 returns a Map and a later `| error` re-wraps it, the new error's
-descriptor retains the `:trail` Vec the step handed back, and
+descriptor retains the `:trail` Quote the step handed back, and
 subsequent deflections accumulate into a fresh `_trailHead`
 linked list. The next `!|` combines both sources again —
 continuous accumulation through any number of re-lift boundaries
-without losing history. Explicit truncation is available via
-`union({:trail []})` inside a fail-apply step before re-lift.
+without losing history. Explicit truncation: `union({:trail null})`
+inside a fail-apply step before re-lift drops the prior suffix
+while letting future deflections re-grow it.
 
 ### Descriptor shape and invariant
 
 `makeErrorValue` (in `types.mjs`) enforces a single invariant:
-every error descriptor carries `:trail` as a Vec. Callers that
-supply an explicit `:trail` in the input descriptor (user literal
-`!{:trail [...]}`, codec replay via `fromTaggedJSON`) have their
-value preserved; callers that omit it get an empty Vec inserted.
-Hot-path readers under `!|` read `:trail` without defensive
-fallbacks.
+every error descriptor carries `:trail` as either a Quote-value
+or `null`. Callers supplying an explicit `:trail` in the input
+descriptor (user literal `!{:trail \`| count\`}`, codec replay via
+`fromTaggedJSON`) keep that Quote unchanged; callers that omit
+the field get `null` forged in. Hot-path readers under `!|` read
+`:trail` without defensive fallbacks.
 
 Error values produced by the runtime carry the following fields
 in addition to the invariant `:trail`:
@@ -1061,9 +1068,9 @@ in addition to the invariant `:trail`:
 | `:kind` | keyword | Error category |
 | `:thrown` | keyword | Per-site class name |
 | `:message` | string | Human-readable |
-| `:fault` | Map | `{:step <AST-Map> :input <value>}` — the step that produced the error (`:step`, same AST-Map shape as trail entries via `astNodeToMap`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is built directly inside `distribute` / `mergeFlat` (which have access to the correct `state.pipeValue` and `bodyNode`) rather than in `evalNode`'s catch, so `:fault/input` carries the actual pipeline value at the combinator, not the Pipeline-level entry state |
+| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which have access to the correct `state.pipeValue` and `bodyNode`) rather than in `evalNode`'s catch, so `:fault/input` carries the actual pipeline value at the combinator, not the Pipeline-level entry state |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
-| `:trail` | Vec of AST-Maps | One frozen AST-Map per pipeline step that a success-track combinator deflected on this error, produced by `walk.mjs::astNodeToMap` at stamp time and readable through the `:name` / `:args` / `:location` / `:text` fields |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
 User-created error values (`!{...}` or `error(map)`) carry
 whatever fields the author provides — no mandatory schema beyond
@@ -1140,7 +1147,7 @@ layering boundary.
   restricted instance to narrow the reachable surface.
 - `PRIMITIVE_REGISTRY` — the production singleton bound by every
   `runtime/*.mjs` module at import time under namespaced
-  `:qlang/prim/<name>` keys (`add`, `filter`, `let`, `parse`,
+  `:qlang/prim/<name>` keys (`add`, `filter`, `def`, `parse`,
   and so on). `evalOperandCall` resolves an
   `:qlang/impl` handle through `PRIMITIVE_REGISTRY.resolve` at
   every built-in dispatch.
@@ -1259,7 +1266,7 @@ unrecognized tagged objects.
 - `decorateAstWithEffectMarkers(ast)` — stamps `.effectful` on every
   OperandCall and Projection node. Run automatically by `parse()`.
 - `findFirstEffectfulIdentifier(node)` — returns the first effectful
-  identifier in a subtree, used by the `let` operand for eval-time
+  identifier in a subtree, used by the `def` operand for eval-time
   effect validation.
 
 The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:

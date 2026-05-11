@@ -49,7 +49,7 @@ function matchesDefStep(step, isTypeBinding, targetName) {
 // step. The last-match rule mirrors qlang's shadowing semantics: a
 // later `def(:foo, …)` (or `as(:foo)`) shadows the earlier binding,
 // so axis-operand lookups must surface the docs / source / examples
-// of the binding currently in scope, not the first declaration.
+// of the binding shadowing-resolved at that point, not the first declaration.
 function findDefStepFor(moduleAst, bindingName) {
   const isTypeBinding = bindingName.startsWith('::');
   const targetName = isTypeBinding ? bindingName.slice(2) : bindingName;

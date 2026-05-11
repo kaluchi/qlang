@@ -40,6 +40,7 @@ import {
   printValue,
   toTaggedJSON
 } from '@kaluchi/qlang-core';
+import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
@@ -95,7 +96,7 @@ const templateOperand = valueOp('template', 2, (subject, templateString) => {
 // ── Binding ────────────────────────────────────────────────────
 
 export function bindFormatOperands(session) {
-  session.bind('pretty',   prettyOperand);
-  session.bind('tjson',    tjsonOperand);
-  session.bind('template', templateOperand);
+  bindHostBuiltin(session, 'pretty',   prettyOperand);
+  bindHostBuiltin(session, 'tjson',    tjsonOperand);
+  bindHostBuiltin(session, 'template', templateOperand);
 }

@@ -38,7 +38,7 @@
 //                                UnresolvedIdentifierError,
 //                                DivisionByZeroError, ParseError,
 //                                EffectLaunderingError,
-//                                EffectLaunderingAtLetParse,
+//                                EffectLaunderingAtDefParse,
 //                                EffectLaunderingAtCall,
 //                                QlangInvariantError
 //   effect-marker classification — classifyEffect, EFFECT_MARKER_PREFIX
@@ -84,7 +84,7 @@ import {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtLetParse,
+  EffectLaunderingAtDefParse,
   EffectLaunderingAtCall,
   QlangInvariantError
 } from './errors.mjs';
@@ -146,7 +146,7 @@ export {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtLetParse,
+  EffectLaunderingAtDefParse,
   EffectLaunderingAtCall,
   QlangInvariantError,
   classifyEffect,

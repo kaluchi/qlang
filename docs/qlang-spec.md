@@ -55,7 +55,7 @@ until then, comments stand alone next to single-step examples.
 A second variety of comment, written `|~~| ... |` or
 `|~~ ... ~~|`, attaches as metadata to the binding it precedes
 rather than being pure identity. Doc comments are introduced
-together with `let` and `as` in
+together with `def` and `as` in
 [Names and modules](#names-and-modules).
 
 ---
@@ -535,7 +535,7 @@ on either side, so no extra `|` is needed around it:
 The leading `|` of `|~` is the combinator from the previous step;
 the trailing `|` of `~|` is the combinator to the next step. The
 full rule, including doc comments and edge cases, lives alongside
-`let` and `as` in
+`def` and `as` in
 [Names and modules](#names-and-modules).
 
 ### Precedence
@@ -806,7 +806,7 @@ a reshape. That requires naming.
 
 This chapter covers every mechanism for putting names into scope.
 Three operands write into the binding scope: `as` snapshots a
-value, `let` defines a reusable pipeline fragment (a **conduit**),
+value, `def` defines a reusable pipeline fragment (a **conduit**),
 and `use` merges an entire Map of bindings — a constants table or
 a host-provided module — into scope at once. Together they cover
 the three things a real query needs to compose: a frozen value, a
@@ -814,8 +814,8 @@ reusable transformation, and a library import.
 
 The binding scope itself is an ordinary Map: it holds the
 built-in operands, any domain functions the host has installed,
-and every binding written by `as`, `let`, or `use` so far.
-Identifier lookup reads from this Map; `as`, `let`, and `use`
+and every binding written by `as`, `def`, or `use` so far.
+Identifier lookup reads from this Map; `as`, `def`, and `use`
 write into it. The Map has a name — `env` — which becomes
 relevant when [Reflection](#reflection) introduces an operand
 that returns it as a value.
@@ -879,7 +879,7 @@ points:
 
 ### `def(:name, expr)` — named pipeline fragment
 
-Where `as` captures a value, `let` captures a transformation — a
+Where `as` captures a value, `def` captures a transformation — a
 reusable pipeline fragment called a **conduit**. `pipeValue` is
 unchanged by the declaration itself; the name goes into scope.
 
@@ -923,7 +923,7 @@ A conduit is invoked like any operand: `value | double`,
    whatever `pipeValue` exists at the lookup site inside the body.
 3. The body runs in a fork with a **lexical env** — the env frozen
    at declaration time, plus conduit-parameter bindings. Body's
-   `let`/`as` writes are local to the fork.
+   `def`/`as` writes are local to the fork.
 4. The body's final `pipeValue` propagates out; the outer `env` is
    preserved unchanged.
 
@@ -1000,13 +1000,13 @@ Recursive parametric conduits work the same way:
 | def(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)})
 ```
 
-See [qlang-internals.md](qlang-internals.md#example-6-recursive-let)
+See [qlang-internals.md](qlang-internals.md#example-6-recursive-def)
 for additional recursive patterns (aggregation, flattening,
 transformation).
 
 ### `use` — merge bindings into scope
 
-`as` writes a single name; `let` writes a single conduit. `use`
+`as` writes a single name; `def` writes a single conduit. `use`
 is the bulk operator: it takes a Map and installs every
 `:key value` entry in it as a binding all at once. The Map's
 keys become the identifiers, the values become whatever is
@@ -1020,7 +1020,7 @@ bound.
 ```
 
 The `pi` and `e` identifiers in the second step were not built-ins
-and were not defined by `let` — they came into scope via the `use`
+and were not defined by `def` — they came into scope via the `use`
 that merged the constants Map.
 
 `use` has a single value-level rule: the subject must be a Map.
@@ -1033,7 +1033,7 @@ literal `{:double mul(2)}` does not produce
 `{:double <function>}` — Map literal values are sub-pipelines
 that evaluate eagerly against `pipeValue`, so `mul(2)` would
 just multiply pipeValue by 2 and store the result. To define a
-callable from inside a query, use `let`. To install one from
+callable from inside a query, use `def`. To install one from
 outside a query, install it as part of the host-provided env or
 load it as a module through one of the namespaced forms below.
 
@@ -1143,9 +1143,9 @@ changes are discarded. See the
    scope replaces the earlier one for subsequent uses.
 
 7. **Resolution order**: last-write-wins in `env`. Under typical
-   pipeline order (runtime loaded first, then user `let`, then
+   pipeline order (runtime loaded first, then user `def`, then
    `as` captures during execution), this manifests as
-   `as` > `let` > built-in.
+   `as` > `def` > built-in.
 
    `def(:count, 5)` makes subsequent `count` references resolve to
    `5`. Within that pipeline the built-in `count` is inaccessible
@@ -1159,11 +1159,11 @@ The language gives no special meaning to `@` or `_`. Domain authors commonly use
 `@` as a prefix for names that come from their runtime (e.g.,
 `@callers`, `@resolve`), and `_` for private internal bindings, but
 this is pure convention — `@callers` and `callers` are resolved
-identically, and either may be shadowed by an `as` or `let` binding.
+identically, and either may be shadowed by an `as` or `def` binding.
 
 ### Comments
 
-Conduits defined with `let` naturally deserve documentation. In
+Conduits defined with `def` naturally deserve documentation. In
 qlang, comments serve that role — and they are more than lexer
 tokens: they are first-class pipeline steps with identity semantics.
 They appear in the AST, participate in the pipeline metamodel, and
@@ -1221,7 +1221,7 @@ filter. Neither side needs an explicit `|`.
 #### Attach-to-next — doc comments
 
 Doc comments (`|~~|`, `|~~ ~~|`) attach as metadata to the
-**immediately following binding step** — that is, the next `let` or
+**immediately following binding step** — that is, the next `def` or
 `as`. The retrieval path goes through the binding's name, so a doc
 comment must be followed by a binding; preceding any other step, the
 doc comment fails to parse.
@@ -1235,7 +1235,7 @@ def(:foo, ...)
 
 The binding's `docs` Vec holds two entries (`" First remark."`,
 `" Second remark."`). The plain block comment appears in the AST
-as an identity step immediately before the bound `let`.
+as an identity step immediately before the bound `def`.
 
 Multiple doc comments before the same binding accumulate into the
 `docs` field on the binding node. One doc token, one entry — no
@@ -1263,7 +1263,7 @@ the takeaway here is that docs are addressable.
 
 #### Enrichment via shadowing
 
-Docs are frozen into the conduit at `let` evaluation. To add or
+Docs are frozen into the conduit at `def` evaluation. To add or
 remove remarks after the fact, redeclare the binding with a
 different set of doc comments — shadowing writes a new conduit to
 the same binding slot, and subsequent lookups see the new docs.
@@ -1373,9 +1373,9 @@ lift automatically into error values with structured descriptors:
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
 | `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotContainer`, etc. |
 | `:message` | string | Human-readable description |
-| `:fault` | Map | `{:step <AST-Map> :input <value>}` — the step that produced the error and the value it received as pipeline input. `:step` is the same AST-Map shape as trail entries; `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
+| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
 | `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
-| `:trail` | Vec | AST-Maps for each step that a success-track combinator deflected |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until a deflection materializes through `!\|`. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional context fields vary by error site (`:operand`,
 `:expectedType`, `:actualType`, `:position`, `:index`, etc.).
@@ -1383,7 +1383,8 @@ Additional context fields vary by error site (`:operand`,
 The `:fault` Map enables pipeline-level diagnostic inspection:
 
 ```qlang
-!| /fault/step | /text       -- source text of the failing step
+!| /fault/step | /source     -- source text of the failing step
+!| /fault/step | /ast        -- AST-Map of the failing step (lazy)
 !| /fault/input | keys       -- keys available on the Map the step received
 !| /fault/input              -- the full value the step received
 ```
@@ -1391,7 +1392,7 @@ The `:fault` Map enables pipeline-level diagnostic inspection:
 ### Trail continuity across re-lift
 
 When a step under `!|` returns a Map and a later `| error` re-wraps
-it, the new error's descriptor carries the `:trail` Vec the step
+it, the new error's descriptor carries the `:trail` Quote the step
 handed back. Subsequent deflections accumulate into a fresh
 `_trailHead` linked list, and the next `!|` combines both sources
 again. This is the mechanism behind MDC-style context enrichment:
@@ -1415,7 +1416,7 @@ def(:@safe, count)           |~| OK (over-approximation, harmless)
 def(:foo, count)             |~| OK (pure body, clean name)
 ```
 
-A `let` binding whose body references any `@`-prefixed identifier
+A `def` binding whose body references any `@`-prefixed identifier
 must itself be `@`-prefixed, so the effect propagates through every
 alias and downstream code receives a syntactic signal that forcing
 the binding can trigger I/O.
@@ -1424,10 +1425,10 @@ The check enforces propagation at two layers, both reading the
 structured `.effectful` boolean computed once by `classifyEffect`:
 
 1. **Eval time** (`core/src/runtime/intro.mjs::letOperand`).
-   When the `let` operand executes, it checks the body AST via
+   When the `def` operand executes, it checks the body AST via
    `findFirstEffectfulIdentifier`: if the binding name is clean but
    the body contains an effectful OperandCall or Projection segment,
-   the operand throws `EffectLaunderingAtLetParse` carrying the
+   the operand throws `EffectLaunderingAtDefParse` carrying the
    source location of the offending identifier. Both direct calls
    (`@callers`) and projection-based extraction (`env | /@callers`)
    are caught.
@@ -1482,7 +1483,7 @@ All three use the same mechanism: Map + pipeline.
 ### `env` — read the current environment
 
 The `env` operand returns the full current `env` Map as `pipeValue`.
-Every binding — built-in operands, domain functions, `let`
+Every binding — built-in operands, domain functions, `def`
 conduits, `as` snapshots — is a field in this Map.
 
 ```qlang
@@ -1494,7 +1495,7 @@ env | manifest | count      |~| how many bindings are in scope
 
 `reify` builds a **descriptor Map** for a binding. The Map's
 shape depends on what kind of binding it represents — built-in
-operand, `let`-bound conduit, `as`-bound snapshot, or plain
+operand, `def`-bound conduit, `as`-bound snapshot, or plain
 value — but always carries enough metadata for tooling to render
 it without consulting the JS implementation.
 
@@ -1534,7 +1535,7 @@ have `min == max`, partial/full operands have `[n-1 n]`,
 variadic operands use the `:unbounded` keyword as the upper
 bound.
 
-**Conduit descriptor** — produced for any `let`-bound binding:
+**Conduit descriptor** — produced for any `def`-bound binding:
 
 ```
 {:kind   :conduit
@@ -1574,7 +1575,7 @@ scalar that does not carry the binding-kind discriminator:
 Once a descriptor is in `pipeValue`, it is an ordinary Map and
 every Map operand (`/key`, `has`, `keys`, `vals`, `union`,
 `filter`, `eq`, ...) applies to it. This is how the doc comments
-attached to a `let` in [Comments](#comments) become reachable:
+attached to a `def` in [Comments](#comments) become reachable:
 
 ```qlang
 |~| reify(:foo) | /docs
@@ -1730,8 +1731,8 @@ Six step types:
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `reify`, `manifest` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
-| 5 | `def(:name, expr)` / `def(:name, [:p..], expr)` | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the `let` attach to the conduit. |
-| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (`let` or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
+| 5 | `def(:name, expr)` / `def(:name, [:p..], expr)` | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the `def` attach to the conduit. |
+| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (`def` or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|`, `*`, and `>>` are
 **success-track** combinators — they fire their step when `pipeValue`
@@ -1914,7 +1915,7 @@ Disambiguation:
 true false null
 ```
 
-`let` and `as` are ordinary identifiers bound to operands in
+`def` and `as` are ordinary identifiers bound to operands in
 `langRuntime`. They can be shadowed like any other name.
 All other identifiers are resolved at evaluation time against
 the current `env`.
@@ -2026,7 +2027,7 @@ query syntax.
   | /users | filter(/score | gte(85)) * /name
 ["alice" "carol"]
 
-|~| let + recursion: rename :label → :value throughout a tree
+|~| def + recursion: rename :label → :value throughout a tree
 > {:label "root" :children [
     {:label "a" :children [
       {:label "a1" :children []}]}
@@ -2115,7 +2116,7 @@ await restored.evalCell('5 | double'); // → 10, double is reconstructed from s
 
 Bindings serialize as one of:
 
-- `{ kind: 'conduit', name, params, source, docs }` — `let`
+- `{ kind: 'conduit', name, params, source, docs }` — `def`
   bindings (conduits), with the body source captured from the
   parser-attached `.text` field and the parameter name list.
 - `{ kind: 'snapshot', name, value, docs }` — `as` bindings, with
@@ -2148,7 +2149,7 @@ lib/qlang/error/guards.qlang   → keyword :qlang/error/guards
 lib/domain/tax.qlang           → keyword :domain/tax
 ```
 
-A module's source is pure qlang — only `let` declarations. The env
+A module's source is pure qlang — only `def` declarations. The env
 delta produced by evaluating the module (bindings not present in the
 base env before evaluation) is its export surface.
 
@@ -2390,7 +2391,7 @@ walk the array and concatenate slices without extra bookkeeping.
 | `atom` | `:name` keyword OR an OperandCall name that resolves through a user-defined binding |
 | `effect` | `:@name` keyword OR an `@`-prefixed OperandCall (effectful host operand or conduit) |
 | `operand` | OperandCall name that resolves to a builtin from `langRuntime`, plus each key segment of a `Projection` |
-| `keyword` | `let` and `as` — the binding-introducing operands |
+| `keyword` | `def` and `as` — the binding-introducing operands |
 | `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
 | `set` | `#{` opener and matching `}` closer of a SetLit |
 | `vec` | `[` opener and matching `]` closer of a VecLit |

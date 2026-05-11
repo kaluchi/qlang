@@ -437,7 +437,7 @@ describe('round-trip — operand calls and pipelines', () => {
   it('mixed combinators', () => assertRoundTrip('[1 2 3] | [filter(gt(1)), filter(lt(3))] >> count'));
 });
 
-describe('round-trip — let / as bindings', () => {
+describe('round-trip — def / as bindings', () => {
   it('zero-arity conduit', () => assertRoundTrip('def(:double, mul(2))'));
   it('parametric conduit', () =>
     assertRoundTrip('def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))'));
@@ -460,9 +460,9 @@ describe('round-trip — comments', () => {
     assertRoundTrip('[1 2 3] |~| short note\n| count'));
   it('block plain comment mid-pipeline', () =>
     assertRoundTrip('[1 2 3] |~ rationale ~| filter(gt(1))'));
-  it('line doc comment attached to let', () =>
+  it('line doc comment attached to def', () =>
     assertRoundTrip('|~~| first remark\ndef(:double, mul(2))'));
-  it('block doc comment attached to let', () =>
+  it('block doc comment attached to def', () =>
     assertRoundTrip('|~~ multi-line\n    block remark ~~|\ndef(:helper, add(1))'));
   it('multiple doc comments accumulating', () =>
     assertRoundTrip('|~~| first\n|~~| second\ndef(:x, 1)'));

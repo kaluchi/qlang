@@ -1,5 +1,5 @@
 // REPL for the qlang CLI. Persistent session across cells —
-// `def(:x, 42)` followed later by `x | pretty | @out` works inside
+// `def(:x, 42)` followed by `x | pretty | @out` works inside
 // one session.
 //
 // Built on `cli/src/line-editor.mjs`:
@@ -71,7 +71,7 @@ with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
 projection like \`| /key\` can land on the same cell as the paste.
 
-Bindings introduced with let / as persist across cells within the
+Bindings introduced with def / as persist across cells within the
 same REPL session.
 `;
 
@@ -164,11 +164,29 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
   let result = cellEntry.result;
   if (isErrorValue(result)) {
     result = materializeForDisplay(result);
-    const rendered = highlightAnsi(printValue(result), builtinNames);
-    stderrWrite(rendered + '\n');
+    const rendered = renderForTerminal(result, builtinNames, stderrWrite);
+    if (rendered !== null) stderrWrite(rendered + '\n');
     return;
   }
-  stdoutWrite(highlightAnsi(printValue(result), builtinNames) + '\n');
+  const rendered = renderForTerminal(result, builtinNames, stderrWrite);
+  if (rendered !== null) stdoutWrite(rendered + '\n');
+}
+
+// Output boundary defensive — printValue raises runtime invariants
+// (FunctionValueLeakedToPrint, etc.) when an internal-only value-class
+// surfaces in pipeValue. The REPL is a terminal-display surface, so a
+// thrown invariant must not hang the line queue or kill the process;
+// we render a diagnostic line to stderr naming the invariant and
+// continue prompting. The underlying leak is still surfaced — the
+// user sees the invariant name and can chase the binding ceremony
+// that caused it.
+function renderForTerminal(value, builtinNames, stderrWrite) {
+  try {
+    return highlightAnsi(printValue(value), builtinNames);
+  } catch (renderInvariant) {
+    stderrWrite(`render invariant: ${renderInvariant.fingerprint ?? renderInvariant.name ?? 'unknown'} — ${renderInvariant.message}\n`);
+    return null;
+  }
 }
 
 const TRAIL_KEY = 'trail';

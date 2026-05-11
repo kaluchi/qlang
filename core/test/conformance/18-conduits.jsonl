@@ -18,7 +18,7 @@
 {"name":"conduit-reify-params-two","query":"def(:f, [:a :b], add(a, b)) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
 {"name":"conduit-reify-source","query":"def(:double, mul(2)) | reify(:double) | /source","expect":"\"mul(2)\""}
 {"name":"conduit-effect-marker-clean-body-at-name-ok","query":"def(:@safe, count) | [1 2 3] | @safe","expect":"3"}
-{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":"def(:foo, @callers) !| /thrown","expect":":EffectLaunderingAtLetParse"}
+{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":"def(:foo, @callers) !| /thrown","expect":":EffectLaunderingAtDefParse"}
 {"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
 {"name":"as-operand-reify","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
 {"name":"def-name-not-keyword-error","query":"def(42, mul(2)) !| /thrown","expect":":DefNameNotKeyword"}

@@ -145,7 +145,7 @@ export async function createSession(opts = {}) {
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore.
 //
-// User let bindings serialize as `{ kind: 'conduit', name, source, docs }`
+// User def bindings serialize as `{ kind: 'conduit', name, source, docs }`
 // where `source` is the parser-captured `.text` of the body AST.
 // User as bindings serialize as `{ kind: 'snapshot', name, value, docs }`
 // where `value` is the captured payload encoded via toTaggedJSON.
@@ -156,12 +156,11 @@ export async function serializeSession(session) {
     if (builtins.has(k)) continue;
     if (isFunctionValue(v)) continue; // user-installed functions are not portable
     if (isConduit(v)) {
-      const body = v.get('qlang/body');
       userBindings.push({
         kind: 'conduit',
         name: v.get('name'),
         params: [...v.get('params')],
-        source: body?.text ?? null,
+        source: v.get('qlang/source'),
         docs: [...v.get('docs')]
       });
     } else if (isSnapshot(v)) {
@@ -210,7 +209,7 @@ export async function deserializeSession(json) {
       // Allocate the envRef holder up front so the second pass below
       // can mutate `.env` after every binding has landed in session.env.
       // The holder identity is shared between the conduit and the
-      // second-pass walker — same tie-the-knot pattern letOperand uses
+      // second-pass walker — same tie-the-knot pattern defOperand uses
       // at original declaration time.
       const conduit = makeConduit(bodyAst, {
         name: binding.name,
@@ -234,7 +233,7 @@ export async function deserializeSession(json) {
   }
   // Second pass — wire each restored conduit's envRef to the now-
   // complete session env so identifier lookup inside the conduit body
-  // resolves through a lexical anchor (matching letOperand) rather
+  // resolves through a lexical anchor (matching defOperand) rather
   // than falling back to the call-site `state.env` (which would give
   // dynamic scope and break shadowing-immune cross-conduit references
   // and recursive self-binding).

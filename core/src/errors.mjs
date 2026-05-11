@@ -121,9 +121,9 @@ export class QlangInvariantError extends QlangError {
 // the effect propagates through every alias. Two concrete subclasses
 // fire from two different points:
 //
-//   EffectLaunderingAtLetParse — fired by parse-time AST validation
+//   EffectLaunderingAtDefParse — fired by parse-time AST validation
 //     in src/effect-check.mjs when the AST scan finds an @-prefixed
-//     OperandCall or Projection key inside a non-@-prefixed let body.
+//     OperandCall or Projection key inside a non-@-prefixed def body.
 //
 //   EffectLaunderingAtCall — fired at runtime by
 //     eval.mjs::evalOperandCall and eval.mjs::applyConduit
@@ -140,15 +140,15 @@ export class EffectLaunderingError extends QlangError {
   }
 }
 
-export class EffectLaunderingAtLetParse extends EffectLaunderingError {
-  constructor({ letName, effectfulName, location = null }) {
+export class EffectLaunderingAtDefParse extends EffectLaunderingError {
+  constructor({ defName, effectfulName, location = null }) {
     super(
-      `let '${letName}' has an effectful body (references '${effectfulName}') ` +
-      `but its name is not @-prefixed; rename to '@${letName}' or remove the effectful reference`,
-      { letName, effectfulName }
+      `def '${defName}' has an effectful body (references '${effectfulName}') ` +
+      `but its name is not @-prefixed; rename to '@${defName}' or remove the effectful reference`,
+      { defName, effectfulName }
     );
-    this.name = 'EffectLaunderingAtLetParse';
-    this.fingerprint = 'EffectLaunderingAtLetParse';
+    this.name = 'EffectLaunderingAtDefParse';
+    this.fingerprint = 'EffectLaunderingAtDefParse';
     this.location = location;
   }
 }

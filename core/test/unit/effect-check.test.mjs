@@ -1,16 +1,15 @@
-// Tests for effect-marker enforcement. With `let` promoted to a
-// regular operand call, effect validation for conduit declarations
-// lives inside the `let` operand impl at eval-time. The parse-time
-// AST decoration (classifyEffect on OperandCall and Projection nodes)
-// still runs, and findFirstEffectfulIdentifier is used by the `let`
-// impl to reject effectful bodies under clean names.
+// Tests for effect-marker enforcement. Effect validation for conduit
+// declarations lives inside the `def` operand impl at eval-time. The
+// parse-time AST decoration (classifyEffect on OperandCall and
+// Projection nodes) still runs, and findFirstEffectfulIdentifier is
+// used by the `def` impl to reject effectful bodies under clean names.
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import {
   EffectLaunderingError,
-  EffectLaunderingAtLetParse,
+  EffectLaunderingAtDefParse,
   EffectLaunderingAtCall,
   QlangError
 } from '../../src/errors.mjs';
@@ -123,8 +122,8 @@ describe('findFirstEffectfulIdentifier', () => {
   });
 });
 
-describe('eval-time effect validation in let operand', () => {
-  // EffectLaunderingAtLetParse produces an error value (5th type).
+describe('eval-time effect validation in def operand', () => {
+  // EffectLaunderingAtDefParse produces an error value (5th type).
   // Use isErrorValue + .originalError to inspect.
   async function getEffectError(query) {
     const evalResult = await evalQuery(query);
@@ -133,29 +132,29 @@ describe('eval-time effect validation in let operand', () => {
 
   it('rejects def(:foo, @callers) — effectful body, clean name', async () => {
     const effectErr = await getEffectError('def(:foo, @callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
   it('rejects nested effectful body', async () => {
     const effectErr = await getEffectError('def(:foo, filter(@callers | count))');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
   it('rejects projection-laundering', async () => {
     const effectErr = await getEffectError('def(:bad, env | /@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
   it('accepts def(:@impl, @callers) — effectful body, @-prefixed name', async () => {
     // @callers resolves to unresolved-identifier in langRuntime (no host plugin),
     // but the let itself should NOT produce an effect-laundering error.
     const effectErr = await getEffectError('def(:@impl, @callers)');
-    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
   it('accepts def(:@safe, count) — over-approximation harmless', async () => {
     const effectErr = await getEffectError('def(:@safe, count)');
-    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
   it('accepts def(:foo, count) — pure body, clean name', async () => {
@@ -165,19 +164,19 @@ describe('eval-time effect validation in let operand', () => {
 
   it('rejects transitive aliasing through a clean name', async () => {
     const effectErr = await getEffectError('def(:@a, count) | def(:b, @a)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
   it('error carries the offending binding name and effectful identifier', async () => {
     const effectErr = await getEffectError('def(:foo, @callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
-    expect(effectErr.context.letName).toBe('foo');
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtDefParse);
+    expect(effectErr.context.defName).toBe('foo');
     expect(effectErr.context.effectfulName).toBe('@callers');
   });
 
   it('error has stable fingerprint for Sentry grouping', async () => {
     const effectErr = await getEffectError('def(:foo, @callers)');
-    expect(effectErr.fingerprint).toBe('EffectLaunderingAtLetParse');
+    expect(effectErr.fingerprint).toBe('EffectLaunderingAtDefParse');
   });
 
   it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {
@@ -193,9 +192,9 @@ describe('eval-time effect validation in let operand', () => {
     expect(isErrorValue(evalResult)).toBe(false);
   });
 
-  it('rejects let inside a ParenGroup with effectful body', async () => {
+  it('rejects def inside a ParenGroup with effectful body', async () => {
     const effectErr = await getEffectError('1 | (def(:bad, @callers) | bad)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtLetParse);
+    expect(effectErr).toBeInstanceOf(EffectLaunderingAtDefParse);
   });
 
 });

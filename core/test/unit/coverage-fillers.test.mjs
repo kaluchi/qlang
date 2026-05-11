@@ -17,7 +17,8 @@ import {
   makeSnapshot,
   makeConduit,
   makeErrorValue,
-  isErrorValue
+  isErrorValue,
+  FunctionValueLeakedToPrint
 } from '../../src/types.mjs';
 import {
   stateOpVariadic,
@@ -46,24 +47,35 @@ describe('arith right-operand type checks', () => {
   });
 });
 
-describe('format toPlain fallback for unknown value classes', async () => {
-  it('json on a function value falls back to String() rendering', async () => {
-    // Function values are not numbers/strings/booleans/keywords/Vec/
-    // Map/Set, so toPlain reaches the trailing `return String(v)`
-    // branch. Output is opaque but the operand must not throw.
+describe('descriptor Maps in pipeValue round-trip through render', async () => {
+  // A builtin descriptor Map carries `:qlang/impl` as the post-bootstrap-
+  // resolved function value. Render paths (printValue, toPlain) project
+  // that single slot back to its authoring keyword form — `:qlang/prim/<name>` —
+  // so the Map's literal stays round-trip-able through parse → MapLit →
+  // eval. Strict round-trip identity for the value-class shape, with
+  // dispatchability reconstituted at host bootstrap time.
+
+  it('json on a raw descriptor Map renders :qlang/impl as the :qlang/prim/<name> keyword', async () => {
     const jsonOutput = await evalQuery('env | /count | json');
     expect(typeof jsonOutput).toBe('string');
+    expect(jsonOutput).toContain('"qlang/impl":":qlang/prim/count"');
   });
 
-  it('table cell fallback for a function value', async () => {
-    // A snapshot of a function value sits inside a Map cell; the
-    // Function kind has no entry in CELL_HANDLERS, so dispatch
-    // reaches the trailing String() fallback. Output is opaque but
-    // the operand must not throw.
-    const tableOutput = await evalQuery(
-      'env | /count | as(:fn) | [{:f fn}] | table');
-    expect(typeof tableOutput).toBe('string');
-    expect(tableOutput).toContain('| f ');
+  it('reify-shaped descriptor renders cleanly — :qlang/impl is stripped at reify time', async () => {
+    const jsonOutput = await evalQuery('reify(:count) | json');
+    expect(typeof jsonOutput).toBe('string');
+    expect(jsonOutput).toContain('"kind":":builtin"');
+  });
+
+  it('direct projection at :qlang/impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {
+    // `env | /count | /:qlang/impl` deliberately reaches past the
+    // Map projection to the raw function-value (note the namespaced
+    // keyword segment `/:qlang/impl` — without the colon, the
+    // slash splits into two bare segments). The Map-handler
+    // substitution does not run because the function is now the
+    // pipeValue itself, not an entry of a Map being rendered.
+    await expect(evalQuery('env | /count | /:qlang/impl | json'))
+      .rejects.toThrow(FunctionValueLeakedToPrint);
   });
 });
 
@@ -107,7 +119,7 @@ describe('describeType for conduit and snapshot', async () => {
   });
 
   it('describeType returns "Conduit" for a conduit value', async () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
     expect(describeType(conduit)).toBe('Conduit');
   });
 });
@@ -123,7 +135,7 @@ describe('typeKeyword covers all value kinds', () => {
   });
 
   it('typeKeyword returns :conduit for a conduit', () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
     expect(typeKeyword(conduit).name).toBe('conduit');
   });
 
@@ -506,14 +518,15 @@ describe('mergeFlat non-Vec element passthrough', async () => {
 });
 
 describe('bindingNamesVisibleAt edge cases', async () => {
-  it('bare let/as OperandCall with no args does not contribute names', async () => {
+  it('bare def/as OperandCall with no args does not contribute names', async () => {
     // `count` at offset after the pipeline exercises the
-    // bindingNamesVisibleAt path where an OperandCall named 'let'
+    // bindingNamesVisibleAt path where an OperandCall named 'def'
     // has args=null (bare identifier, no parens).
-    const ast = parse('let | count');
+    const ast = parse('def | count');
     const visible = bindingNamesVisibleAt(ast, ast.source.length);
-    // 'let' here is a bare identifier (args=null), not a binding
-    // declaration, so no names should be added.
+    // bare `def` (args=null) is not a binding declaration —
+    // a declaration requires a keyword first arg — so no names
+    // should land in the visible set.
     expect(visible.size).toBe(0);
   });
 

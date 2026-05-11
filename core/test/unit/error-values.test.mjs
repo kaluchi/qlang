@@ -299,7 +299,7 @@ import { withName, makeConduit, makeSnapshot, isConduit, isSnapshot } from '../.
 
 describe('withName coverage', () => {
   it('renames a conduit', () => {
-    const conduitVal = makeConduit(null, { name: 'old', params: ['a'], docs: ['doc'] });
+    const conduitVal = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'old', params: ['a'], docs: ['doc'] });
     const renamed = withName(conduitVal, 'new');
     expect(isConduit(renamed)).toBe(true);
     expect(renamed.get('name')).toBe('new');

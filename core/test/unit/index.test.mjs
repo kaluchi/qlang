@@ -26,7 +26,7 @@ import {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtLetParse,
+  EffectLaunderingAtDefParse,
   EffectLaunderingAtCall,
   QlangInvariantError,
   classifyEffect,
@@ -88,7 +88,7 @@ describe('public API', () => {
     expect(typeof DivisionByZeroError).toBe('function');
     expect(typeof ParseError).toBe('function');
     expect(typeof EffectLaunderingError).toBe('function');
-    expect(typeof EffectLaunderingAtLetParse).toBe('function');
+    expect(typeof EffectLaunderingAtDefParse).toBe('function');
     expect(typeof EffectLaunderingAtCall).toBe('function');
     expect(typeof QlangInvariantError).toBe('function');
   });

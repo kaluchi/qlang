@@ -95,7 +95,7 @@ const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapt
 // (`source`, `docs`, `examples`) can find inline `def`-step
 // bindings — without this, `def(:foo, …) | :foo | docs` would
 // raise AxisBindingNotFound because `foo` lives in the just-parsed
-// AST, not in any module Quote previously loaded by use(:ns).
+// AST, not in any module Quote installed by use(:ns).
 export async function evalQuery(source, env) {
   const initialEnv = env ?? await langRuntime();
   let ast;
@@ -772,7 +772,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   // inside sortWith, per-iteration inside filter, etc.).
   //
   // Every conduit reachable at this point has its envRef holder
-  // wired by the construction site (letOperand for in-query
+  // wired by the construction site (defOperand for in-query
   // declarations, deserializeSession for restored bindings); both
   // perform the tie-the-knot pattern so the body resolves through
   // the env captured at declaration time. Reading `.env` directly
@@ -785,7 +785,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   }
 
   // Fork body: inner sub-pipeline starts with the caller's pipeValue
-  // and the lexical bodyEnv. Body's env writes (let/as inside the
+  // and the lexical bodyEnv. Body's env writes (def/as inside the
   // body) are discarded on return — only the final pipeValue escapes.
   const bodyState = makeState(state.pipeValue, bodyEnv);
   const finalBodyState = await evalNode(conduitBody, bodyState);

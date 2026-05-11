@@ -184,6 +184,39 @@ Specific patterns to flag:
 
 **Severity**: major for source and test files; minor for documentation. If a file is particularly severe — more than ~30% of its top-level entries are misplaced relative to any derivable grouping — the finding must include a **proposed reorganization**: a concrete sketch of the target grouping (by subject type, by pipeline stage, by error class family, by AST node kind, etc.) that the author should adopt. Name the sections by their qlang-vocabulary headings, not generic ones.
 
+### 14. Immutable-vocabulary discipline
+
+The runtime invariant is that `env`, `pipeValue`, `state`, descriptor Maps, conduit / snapshot / error / Quote / Doc values are all immutable: every "modification" is a fresh value forged from the prior one. Prose — comments, doc strings, spec chapters, error messages, commit messages — must reflect this. Reject mutation-flavoured verbs whenever they describe one of these immutable surfaces:
+
+- `modify`, `mutate`, `update in place`, `change`, `replace`, `overwrite`, `set on X`, `delete from X`, `clear X`, `reset X` — when X is `env` / `pipeValue` / `state` / descriptor / Conduit / Snapshot / error value / Quote / Doc / trail.
+- `the env now contains`, `the value becomes`, `then we modify`, `state is changed to`, `we update the descriptor with`, `the trail is mutated by appending`.
+
+Prefer verbs that carry "fresh object" semantics in qlang's evaluation model:
+
+- **forge** / **mint** / **stamp** — for one-shot construction at a mint site (`makeConduit forges a fresh Conduit Map`, `makeErrorValue mints a descriptor invariant onto a fresh Map`, `appendTrailNode stamps a fragment record onto a fresh _trailHead cons cell`).
+- **propagate**, **thread**, **ascend with**, **descend into** — for state flow through the evaluator.
+- **yield**, **lift**, **expose**, **deflect**, **fire**, **materialize** — for combinator / track operations already in qlang vocabulary.
+- **shadow** — for env-level last-write-wins replacement (a later `def(:foo, ...)` *shadows* the earlier binding; it does not "overwrite" it).
+- **fresh X carrying Y** / **a fresh X with Y stamped on** — for snapshot-style derivation (`a fresh descriptor with :trail stamped from the combined source`).
+- **succeeded by**, **followed by**, **layered on top** — for ordered chains of pure transformations.
+
+The only place mutation-vocabulary is OK is at the JS-layer construction boundary inside a factory body itself (a freshly-allocated Map being filled via `.set(...)` before being frozen and returned). Once the value escapes the factory, every downstream description must speak in immutable terms.
+
+Match the violation in the report: when you flag mutability drift, propose the immutable-vocabulary replacement.
+
+### 15. Token-projection naming — Loose Coupling / High Cohesion
+
+Identifiers live inside a tokenizer-projected namespace. The qlang repository should occupy a tight **high-entropy island** in that namespace — names whose composed tokens read as a unique qlang-domain knot that does not collide with arbitrary JS / Python / generic-CS corpus tokens (Loose Coupling), and whose internal vocabulary is **uniform** across the codebase so qlang-specific terms reinforce each other (High Cohesion).
+
+The naming bar:
+
+- **Generic single-token names are rejected** wherever a qlang term names the same thing: `Error`, `Type`, `Value`, `Name`, `Function`, `Result`, `Data`, `Info`, `Item`, `Element`, `Node` (when AST node), `Handler`, `Helper`, `Manager`, `Processor`, `Util`, `Tool`. Each of those is one token landing inside the most generic possible domain.
+- **Composed names** carry a unique qlang-domain knot — `pipeValue`, `OperandCall`, `astChildrenOf`, `bindingNamesVisibleAt`, `decorateAstWithEffectMarkers`, `findFirstEffectfulIdentifier`, `materializeTrail`, `appendTrailNode`, `qlangMapToAst`, `evalTaggedLit`, `applyFailTrack`, `combineTrailQuotes`. Each composition pins the name to qlang-specific structure unfindable in other corpora.
+- **Token-count is informative, not prescriptive.** When proposing a rename, count the tokens (BPE-style for the canonical Claude / GPT tokenizer) and prefer fewer tokens **only if** the shorter form preserves the high-entropy knot. `qlangError` (3 tokens: `q` + `lang` + `Error`) leaks `Error` into the generic CS corpus — a 2-token alternative landing entirely inside qlang vocabulary (`thrown`, `qlangFault`, `qlangThrow`) is preferable. `materializeTrail` (3-4 tokens) is fine because every constituent is qlang-specific — `materialize` is the spec verb, `trail` is the descriptor field.
+- **Why this matters for design.** qlang's `:keyword` and `::tag` syntax exist precisely to give each domain term its own first-class lexical slot — the language itself models High Cohesion in its grammar. The codebase that implements it should hold the same property in its identifier surface.
+
+A finding under this section names the offending identifier, the qlang-domain alternative, and the cohesion gain ("identifier no longer leaks into the generic-error corpus").
+
 ### 12. Conceptual completeness — propose organic next steps
 
 Beyond gating the diff, you reason about whether the change leaves the qlang surface in a **conceptually complete** state. After reviewing what is in the diff, look at what is **next-step-natural**:

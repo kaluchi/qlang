@@ -10,7 +10,7 @@ import { isErrorValue, keyword, describeType } from '../../src/types.mjs';
 
 describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
   it('parses ::conduit[[] body] as TaggedLit with Vec payload', () => {
-    const ast = parse('::conduit[[] `mul(2)`]');
+    const ast = parse('::conduit[[] ~{mul(2)}]');
     expect(ast.type).toBe('TaggedLit');
     expect(ast.tag).toBe('conduit');
     expect(ast.payload.type).toBe('VecLit');
@@ -31,25 +31,25 @@ describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
 
 describe('::conduit constructor builds a Conduit-value', () => {
   it('non-recursive 0-param produces a Conduit', async () => {
-    const result = await evalQuery('::conduit[[] `mul(2)`]');
+    const result = await evalQuery('::conduit[[] ~{mul(2)}]');
     expect(describeType(result)).toBe('Conduit');
   });
 
   it('Conduit invokes through def + identifier lookup', async () => {
-    const result = await evalQuery('def(:double, ::conduit[[] `mul(2)`]) | 5 | double');
+    const result = await evalQuery('def(:double, ::conduit[[] ~{mul(2)}]) | 5 | double');
     expect(result).toBe(10);
   });
 
   it('parametric Conduit binds captured args', async () => {
     const result = await evalQuery(
-      'def(:@surround, ::conduit[[:pfx :sfx] `prepend(pfx) | append(sfx)`]) | "x" | @surround("[", "]")'
+      'def(:@surround, ::conduit[[:pfx :sfx] ~{prepend(pfx) | append(sfx)}]) | "x" | @surround("[", "]")'
     );
     expect(result).toBe('[x]');
   });
 
   it('3-element payload with self-name produces a recursive Conduit', async () => {
     const result = await evalQuery(
-      'def(:walk, ::conduit[:walk [] `if(empty, 0, first | add(1))`]) | [1 2 3] | walk'
+      'def(:walk, ::conduit[:walk [] ~{if(empty, 0, first | add(1))}]) | [1 2 3] | walk'
     );
     expect(result).toBe(2);
   });
@@ -58,7 +58,7 @@ describe('::conduit constructor builds a Conduit-value', () => {
 describe('def(::tag, descriptor) registers a type-namespace binding', () => {
   it('makes ::myType invokable through the ::conduit constructor handle', async () => {
     const result = await evalQuery(
-      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | def(:f, ::myType[[] `add(1)`]) | 4 | f'
+      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | def(:f, ::myType[[] ~{add(1)}]) | 4 | f'
     );
     expect(result).toBe(5);
   });
@@ -108,19 +108,19 @@ describe('TaggedLit error paths', () => {
   });
 
   it('::conduit raises ConduitSelfNameNotKeyword for 3-element payload with non-keyword selfName', async () => {
-    const err = await evalQuery('::conduit[42 [] `mul(2)`]');
+    const err = await evalQuery('::conduit[42 [] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitSelfNameNotKeyword'));
   });
 
   it('::conduit raises ConduitParamsNotVec when params slot is not a Vec', async () => {
-    const err = await evalQuery('::conduit[42 `mul(2)`]');
+    const err = await evalQuery('::conduit[42 ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitParamsNotVec'));
   });
 
   it('::conduit raises ConduitParamNotKeyword when a params element is not a Keyword', async () => {
-    const err = await evalQuery('::conduit[[42] `mul(2)`]');
+    const err = await evalQuery('::conduit[[42] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('ConduitParamNotKeyword'));
   });
@@ -135,7 +135,7 @@ describe('TaggedLit error paths', () => {
 describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
   it('TaggedLit round-trips through astNodeToMap / qlangMapToAst', async () => {
     const { astNodeToMap, qlangMapToAst } = await import('../../src/walk.mjs');
-    const ast = parse('::conduit[[] `mul(2)`]');
+    const ast = parse('::conduit[[] ~{mul(2)}]');
     const back = qlangMapToAst(astNodeToMap(ast));
     expect(back.type).toBe('TaggedLit');
     expect(back.tag).toBe('conduit');
@@ -152,31 +152,31 @@ describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
 });
 
 describe('printValue named conduit paths', () => {
-  it('zero-arity named conduit renders as ::conduit[:name [] `body`]', async () => {
+  it('zero-arity named conduit renders as ::conduit[:name [] ~{body}]', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     const value = await evalQuery('def(:double, mul(2)) | env | /:double');
-    expect(printValue(value)).toBe('::conduit[:double [] `mul(2)`]');
+    expect(printValue(value)).toBe('::conduit[:double [] ~{mul(2)}]');
   });
 
   it('parametric named conduit renders with params in :name [params] body form', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     const value = await evalQuery('def(:wrap, [:p :s], prepend(p) | append(s)) | env | /:wrap');
-    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] `prepend(p) | append(s)`]');
+    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] ~{prepend(p) | append(s)}]');
   });
 });
 
 describe('printValue Conduit handles named vs anonymous form', () => {
   it('anonymous Conduit renders as ::conduit[...] tagged literal', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('::conduit[[] `mul(2)`]');
-    expect(printValue(value)).toBe('::conduit[[] `mul(2)`]');
+    const value = await evalQuery('::conduit[[] ~{mul(2)}]');
+    expect(printValue(value)).toBe('::conduit[[] ~{mul(2)}]');
   });
 });
 
 describe('TagKeyword as :qlang/kind discriminator', () => {
   it('::assertion[…] stamps :qlang/kind as a TagKeyword, not a Keyword', async () => {
     const { isTagKeyword, isKeyword } = await import('../../src/types.mjs');
-    const value = await evalQuery('::assertion[`5 | mul(2)` `10`]');
+    const value = await evalQuery('::assertion[~{5 | mul(2)} ~{10}]');
     const kind = value.get('qlang/kind');
     expect(isTagKeyword(kind)).toBe(true);
     expect(isKeyword(kind)).toBe(false);
@@ -206,13 +206,13 @@ describe('TagKeyword as :qlang/kind discriminator', () => {
 
   it('typeKeyword on a tagged-instance returns the matching TagKeyword', async () => {
     const { typeKeyword, makeTagKeyword } = await import('../../src/types.mjs');
-    const value = await evalQuery('::assertion[`5 | mul(2)` `10`]');
+    const value = await evalQuery('::assertion[~{5 | mul(2)} ~{10}]');
     expect(typeKeyword(value)).toEqual(makeTagKeyword('assertion'));
   });
 
   it('reify of a tagged-instance carries :type as a TagKeyword that prints as ::name', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const result = await evalQuery('::assertion[`a` `b`] | reify | /type');
+    const result = await evalQuery('::assertion[~{a} ~{b}] | reify | /type');
     expect(printValue(result)).toBe('::assertion');
   });
 
@@ -225,56 +225,56 @@ describe('TagKeyword as :qlang/kind discriminator', () => {
 });
 
 describe('printValue rounds tagged-instance Maps back to ::tag[…] literal', () => {
-  it('::assertion[`a` `b`] prints as ::assertion[`a` `b`], not as a Map descriptor', async () => {
+  it('::assertion[~{a} ~{b}] prints as ::assertion[~{a} ~{b}], not as a Map descriptor', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('::assertion[`5 | mul(2)` `10`]');
-    expect(printValue(value)).toBe('::assertion[`5 | mul(2)` `10`]');
+    const value = await evalQuery('::assertion[~{5 | mul(2)} ~{10}]');
+    expect(printValue(value)).toBe('::assertion[~{5 | mul(2)} ~{10}]');
   });
 
   it('inline-rendered tagged-instance still uses the ::tag[…] form', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('[::assertion[`1` `1`] ::assertion[`2` `2`]]');
-    expect(printValue(value)).toBe('[::assertion[`1` `1`] ::assertion[`2` `2`]]');
+    const value = await evalQuery('[::assertion[~{1} ~{1}] ::assertion[~{2} ~{2}]]');
+    expect(printValue(value)).toBe('[::assertion[~{1} ~{1}] ::assertion[~{2} ~{2}]]');
   });
 
   it('tagged-instance inside a table cell renders compactly through INLINE_HANDLERS', async () => {
-    const result = await evalQuery('[{:case ::assertion[`5 | mul(2)` `10`]}] | table');
-    expect(result).toContain('::assertion[`5 | mul(2)` `10`]');
+    const result = await evalQuery('[{:case ::assertion[~{5 | mul(2)} ~{10}]}] | table');
+    expect(result).toContain('::assertion[~{5 | mul(2)} ~{10}]');
   });
 });
 
 describe('parse and eval accept Quote subjects transparently', () => {
-  it('`code` | parse returns the AST-Map of the Quote source', async () => {
-    expect(await evalQuery('`5 | mul(2)` | parse | /:qlang/kind')).toEqual(keyword('Pipeline'));
+  it('~{code} | parse returns the AST-Map of the Quote source', async () => {
+    expect(await evalQuery('~{5 | mul(2)} | parse | /:qlang/kind')).toEqual(keyword('Pipeline'));
   });
 
-  it('`code` | eval runs the Quote source against the current state', async () => {
-    expect(await evalQuery('`5 | mul(2)` | eval')).toBe(10);
+  it('~{code} | eval runs the Quote source against the current state', async () => {
+    expect(await evalQuery('~{5 | mul(2)} | eval')).toBe(10);
   });
 
-  it('::assertion[`code` `expected`] | /snippet | eval evaluates the snippet', async () => {
-    expect(await evalQuery('::assertion[`5 | mul(2)` `10`] | /snippet | eval')).toBe(10);
+  it('::assertion[~{code} ~{expected}] | /snippet | eval evaluates the snippet', async () => {
+    expect(await evalQuery('::assertion[~{5 | mul(2)} ~{10}] | /snippet | eval')).toBe(10);
   });
 });
 
 describe('User-defined type binding with Quote :qlang/impl', () => {
   it('applies the Quote body against payload as pipeValue', async () => {
     const result = await evalQuery(
-      'def(::wrap, {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`}) | "x" | ::wrap "x"'
+      'def(::wrap, {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}}) | "x" | ::wrap "x"'
     );
     expect(result).toBe('[x]');
   });
 
   it('Quote body sees the type-binding payload as its initial pipeValue', async () => {
     const result = await evalQuery(
-      'def(::shout, {:qlang/kind :type :qlang/impl `append("!")`}) | ::shout "ready"'
+      'def(::shout, {:qlang/kind :type :qlang/impl ~{append("!")}}) | ::shout "ready"'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      'def(:exclaim, append("!")) | def(::shout, {:qlang/kind :type :qlang/impl `exclaim`}) | ::shout "go"'
+      'def(:exclaim, append("!")) | def(::shout, {:qlang/kind :type :qlang/impl ~{exclaim}}) | ::shout "go"'
     );
     expect(result).toBe('go!');
   });

@@ -1037,7 +1037,7 @@ describe('printValue round-trip — all composite types', async () => {
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind :oops :trail `| count`}', 'Error trail');
+    await assertRoundTrip('!{:kind :oops :trail ~{| count}}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

@@ -16,35 +16,35 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
   });
 
   it('backtick-Quote splits into Prose + Quote + Prose', async () => {
-    const result = await evalQuery('|~~ See `mul(2)` for ref. ~~| | /segments | count');
+    const result = await evalQuery('|~~ See ~{mul(2)} for ref. ~~| | /segments | count');
     expect(result).toBe(3);
   });
 
   it('embedded Quote segment is a Quote-value', async () => {
-    const result = await evalQuery('|~~ See `mul(2)` here. ~~| | /segments | at(1) | isQuote');
+    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | isQuote');
     expect(result).toBe(true);
   });
 
   it('embedded Quote segment carries the source text', async () => {
-    const result = await evalQuery('|~~ See `mul(2)` here. ~~| | /segments | at(1) | /source');
+    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | /source');
     expect(result).toBe('mul(2)');
   });
 
   it('::assertion segment yields an Assertion-value with TagKeyword kind', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
-    const result = await evalQuery('|~~ ::assertion[`[1 2 3] | count` `3`] ~~| | /segments | at(1) | /:qlang/kind');
+    const result = await evalQuery('|~~ ::assertion[~{[1 2 3] | count} ~{3}] ~~| | /segments | at(1) | /:qlang/kind');
     expect(result).toEqual(makeTagKeyword('assertion'));
   });
 
   it('::assertion segment exposes :snippet and :expected', async () => {
-    const snippet = await evalQuery('|~~ ::assertion[`[1 2 3] | count` `3`] ~~| | /segments | at(1) | /snippet | /source');
+    const snippet = await evalQuery('|~~ ::assertion[~{[1 2 3] | count} ~{3}] ~~| | /segments | at(1) | /snippet | /source');
     expect(snippet).toBe('[1 2 3] | count');
-    const expected = await evalQuery('|~~ ::assertion[`[1 2 3] | count` `3`] ~~| | /segments | at(1) | /expected | /source');
+    const expected = await evalQuery('|~~ ::assertion[~{[1 2 3] | count} ~{3}] ~~| | /segments | at(1) | /expected | /source');
     expect(expected).toBe('3');
   });
 
   it('multiple openers tokenized in order', async () => {
-    const result = await evalQuery('|~~ a `b` c ::assertion[`d` `e`] f ~~| | /segments | count');
+    const result = await evalQuery('|~~ a ~{b} c ::assertion[~{d} ~{e}] f ~~| | /segments | count');
     expect(result).toBe(5);
   });
 });
@@ -57,19 +57,19 @@ describe('::assertion constructor error paths', () => {
   });
 
   it('1-element Vec → AssertionArityInvalid', async () => {
-    const err = await evalQuery('::assertion[`only`]');
+    const err = await evalQuery('::assertion[~{only}]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionArityInvalid'));
   });
 
   it('snippet not Quote → AssertionSnippetNotQuote', async () => {
-    const err = await evalQuery('::assertion[42 `expected`]');
+    const err = await evalQuery('::assertion[42 ~{expected}]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionSnippetNotQuote'));
   });
 
   it('expected not Quote → AssertionExpectedNotQuote', async () => {
-    const err = await evalQuery('::assertion[`snippet` 42]');
+    const err = await evalQuery('::assertion[~{snippet} 42]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('AssertionExpectedNotQuote'));
   });
@@ -81,7 +81,7 @@ describe('Doc tokenizer edge cases', () => {
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  it('lone `::` without TaggedLit body emits Prose for the marker', async () => {
+  it('lone ~{::} without TaggedLit body emits Prose for the marker', async () => {
     const result = await evalQuery('|~~ note: a::b plain text ~~| | /segments | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
@@ -103,11 +103,11 @@ describe('Doc tokenizer edge cases', () => {
     // segment value — the tokenizer does not pre-validate types.
     // Three segments (prose, error, prose) prove the tagged
     // form was tokenized; treating it as prose would give one.
-    const result = await evalQuery('|~~ pre ::unbound[`x`] post ~~| | /segments | count');
+    const result = await evalQuery('|~~ pre ::unbound[~{x}] post ~~| | /segments | count');
     expect(result).toBe(3);
   });
 
-  it('TaggedLit with parse-shape failure falls through to Prose for `::` marker', async () => {
+  it('TaggedLit with parse-shape failure falls through to Prose for ~{::} marker', async () => {
     // `::123tag[]` — Ident must start with letter / underscore /
     // @-sigil, so peggy rejects "123tag" as identifier. Tokenizer
     // emits Prose for the `::` chars and continues from the next
@@ -116,7 +116,7 @@ describe('Doc tokenizer edge cases', () => {
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  it('TaggedLit with string-quoted payload (`::tag"text"`) tokenizes via the `"` branch', async () => {
+  it('TaggedLit with string-quoted payload (~{::tag"text"}) tokenizes via the ~{"} branch', async () => {
     // findTaggedEnd recognises `"` as a string-opener and walks
     // to the closing `"`. Even if the tag is unbound, segmentation
     // succeeds — error becomes the segment value.
@@ -143,7 +143,7 @@ describe('Doc tokenizer edge cases', () => {
   it('TaggedLit with backtick-quoted payload tokenizes via the backtick branch', async () => {
     // `::tag\`source\`` — findTaggedEnd's backtick-opener branch
     // walks to the closing backtick and returns the slice end.
-    const result = await evalQuery('|~~ pre ::unbound`code` post ~~| | /segments | count');
+    const result = await evalQuery('|~~ pre ::unbound~{code} post ~~| | /segments | count');
     expect(result).toBe(3);
   });
 
@@ -170,14 +170,14 @@ describe('Doc tokenizer edge cases', () => {
     expect(result).toBe(3);
   });
 
-  it('bare `::ident` with no payload opener falls through to Prose', async () => {
+  it('bare ~{::ident} with no payload opener falls through to Prose', async () => {
     // `::tag ` (just whitespace then EOF inside the doc) — ident
     // scan completes, whitespace skip, then i >= length → -1.
     const result = await evalQuery('|~~ ::tag ~~| | /segments | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  it('backslash-escape inside `::tag"..."` string payload skips the next char', async () => {
+  it('backslash-escape inside ~{::tag"..."} string payload skips the next char', async () => {
     // `::tag"contains \\" inside"` — `\` inside the string-quoted
     // payload skips the following `"` so the outer `"` only
     // closes after the real terminator.

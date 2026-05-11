@@ -43,7 +43,7 @@ function makePipedSetup() {
 }
 
 describe('createLineEditor — non-TTY (piped) mode', () => {
-  it('emits one `line` per `\\n`-terminated chunk', async () => {
+  it('emits one ~{line} per ~{\\n}-terminated chunk', async () => {
     const { stdinStream, editor, capture } = makePipedSetup();
     editor.start();
     stdinStream.write('first line\nsecond line\n');
@@ -271,7 +271,7 @@ describe('createLineEditor — TTY control bytes', () => {
 });
 
 describe('createLineEditor — TTY escape sequence handling', () => {
-  it('drops a half-formed `ESC + non-[` sequence without injecting bytes', () => {
+  it('drops a half-formed ~{ESC + non-[} sequence without injecting bytes', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, 'Z', 'a', SUBMIT);
@@ -537,7 +537,7 @@ describe('createLineEditor — TTY lifecycle', () => {
     expect(out.text()).toContain(ESC + '[?2004l');
   });
 
-  it('emits `close` when the underlying stream ends', async () => {
+  it('emits ~{close} when the underlying stream ends', async () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     stdinStream.end();

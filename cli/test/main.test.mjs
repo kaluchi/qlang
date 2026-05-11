@@ -55,7 +55,7 @@ describe('main — flag dispatch', () => {
     expect(s.stderrText()).toMatch(/missing query/);
   });
 
-  it('dispatches `--repl` into the line-editor REPL and exits cleanly on `.exit`', async () => {
+  it('dispatches ~{--repl} into the line-editor REPL and exits cleanly on ~{.exit}', async () => {
     const s = captureStreams('.exit\n');
     const exitCode = await main(
       ['--repl'],
@@ -144,8 +144,8 @@ describe('main — script mode auto-pipe', () => {
   });
 });
 
-describe('main — `@out` suppression of auto-encoded stdout', () => {
-  it('routes `@out` emissions to stdout and skips the auto-encode', async () => {
+describe('main — ~{@out} suppression of auto-encoded stdout', () => {
+  it('routes ~{@out} emissions to stdout and skips the auto-encode', async () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | count | pretty | @out'],
@@ -158,7 +158,7 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('feeds stdin into `@in` alongside the auto-pipe so explicit queries still work', async () => {
+  it('feeds stdin into ~{@in} alongside the auto-pipe so explicit queries still work', async () => {
     const s = captureStreams('hello world');
     const exitCode = await main(
       ['@in | @out'],

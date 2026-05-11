@@ -154,13 +154,13 @@ describe('astNodeToMap — discriminator and shape', () => {
   });
 
   it('encodes QuoteLit with :QuoteLit kind and :src payload', () => {
-    const m = astNodeToMap(parse('`mul(2)`'));
+    const m = astNodeToMap(parse('~{mul(2)}'));
     expect(m.get(KW_QLANG_KIND).name).toBe('QuoteLit');
     expect(m.get('src')).toBe('mul(2)');
   });
 
   it('round-trips QuoteLit through qlangMapToAst', () => {
-    const ast = parse('`[1 2 3] | filter(gt(1))`');
+    const ast = parse('~{[1 2 3] | filter(gt(1))}');
     const m = astNodeToMap(ast);
     const back = qlangMapToAst(m);
     expect(back.type).toBe('QuoteLit');
@@ -168,7 +168,7 @@ describe('astNodeToMap — discriminator and shape', () => {
   });
 
   it('round-trips empty QuoteLit through codec', () => {
-    const ast = parse('``');
+    const ast = parse('~{}');
     const m = astNodeToMap(ast);
     const back = qlangMapToAst(m);
     expect(back.type).toBe('QuoteLit');

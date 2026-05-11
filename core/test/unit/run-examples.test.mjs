@@ -36,7 +36,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
 describe('runExamples assertion error paths', () => {
   it('failing snippet → ok:false with error message', async () => {
     const moduleSource =
-      '|~~ broken example.\n    ::assertion[`"x" | add(1)` `42`] ~~|\n' +
+      '|~~ broken example.\n    ::assertion[~{"x" | add(1)} ~{42}] ~~|\n' +
       'def(:demo, 1)';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
@@ -51,7 +51,7 @@ describe('runExamples assertion error paths', () => {
     // call to an unbound identifier), so the assertion fails on
     // the expected side rather than the snippet side.
     const moduleSource =
-      '|~~ broken expected.\n    ::assertion[`42` `nonExistentBinding`] ~~|\n' +
+      '|~~ broken expected.\n    ::assertion[~{42} ~{nonExistentBinding}] ~~|\n' +
       'def(:demo, 1)';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
@@ -63,7 +63,7 @@ describe('runExamples assertion error paths', () => {
 
   it('matching snippet/expected → ok:true', async () => {
     const moduleSource =
-      '|~~ ::assertion[`5 | mul(2)` `10`] ~~|\ndef(:demo, 1)';
+      '|~~ ::assertion[~{5 | mul(2)} ~{10}] ~~|\ndef(:demo, 1)';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });

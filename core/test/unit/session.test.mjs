@@ -245,7 +245,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
   it('round-trips a user-defined type-binding installed via def(::tag, ...)', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(
-      'def(::wrap, {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`})'
+      'def(::wrap, {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}})'
     );
     const restored = await deserializeSession(
       JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))

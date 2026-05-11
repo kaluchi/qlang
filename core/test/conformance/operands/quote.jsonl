@@ -1,35 +1,35 @@
-{"name":"quote-literal-scalar","query":"`42`","expect":"`42`"}
-{"name":"quote-literal-arith","query":"`mul(2)`","expect":"`mul(2)`"}
-{"name":"quote-literal-pipeline","query":"`[1 2 3] | filter(gt(1))`","expect":"`[1 2 3] | filter(gt(1))`"}
-{"name":"quote-literal-projection","query":"`/name`","expect":"`/name`"}
-{"name":"quote-literal-empty","query":"``","expect":"``"}
-{"name":"quote-literal-keyword","query":"`:foo`","expect":"`:foo`"}
-{"name":"quote-literal-multiline","query":"`{\n  :a 1\n  :b 2\n}`","expect":"`{\n  :a 1\n  :b 2\n}`"}
-{"name":"quote-source-projection","query":"`mul(2)` | /source","expect":"\"mul(2)\""}
-{"name":"quote-source-empty","query":"`` | /source","expect":"\"\""}
-{"name":"quote-internal-discriminator-not-leaked","query":"`mul(2)` | /:qlang/kind","expect":"null"}
-{"name":"quote-unknown-projection-null","query":"`mul(2)` | /missing","expect":"null"}
-{"name":"quote-ast-lazy-parse","query":"`mul(2)` | /ast | /:qlang/kind","expect":":OperandCall"}
-{"name":"quote-ast-lazy-parse-name","query":"`mul(2)` | /ast | /name","expect":"\"mul\""}
-{"name":"quote-ast-unparseable-fragment","query":"`* inc | sort` | /ast","expect":"null"}
-{"name":"isQuote-literal-true","query":"`mul(2)` | isQuote","expect":"true"}
+{"name":"quote-literal-scalar","query":"~{42}","expect":"~{42}"}
+{"name":"quote-literal-arith","query":"~{mul(2)}","expect":"~{mul(2)}"}
+{"name":"quote-literal-pipeline","query":"~{[1 2 3] | filter(gt(1))}","expect":"~{[1 2 3] | filter(gt(1))}"}
+{"name":"quote-literal-projection","query":"~{/name}","expect":"~{/name}"}
+{"name":"quote-literal-empty","query":"~{}","expect":"~{}"}
+{"name":"quote-literal-keyword","query":"~{:foo}","expect":"~{:foo}"}
+{"name":"quote-literal-multiline","query":"~{{\n  :a 1\n  :b 2\n}}","expect":"~{{\n  :a 1\n  :b 2\n}}"}
+{"name":"quote-source-projection","query":"~{mul(2)} | /source","expect":"\"mul(2)\""}
+{"name":"quote-source-empty","query":"~{} | /source","expect":"\"\""}
+{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:qlang/kind","expect":"null"}
+{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"null"}
+{"name":"quote-ast-lazy-parse","query":"~{mul(2)} | /ast | /:qlang/kind","expect":":OperandCall"}
+{"name":"quote-ast-lazy-parse-name","query":"~{mul(2)} | /ast | /name","expect":"\"mul\""}
+{"name":"quote-ast-unparseable-fragment","query":"~{* inc | sort} | /ast","expect":"null"}
+{"name":"isQuote-literal-true","query":"~{mul(2)} | isQuote","expect":"true"}
 {"name":"isQuote-string-false","query":"\"mul(2)\" | isQuote","expect":"false"}
 {"name":"isQuote-number-false","query":"42 | isQuote","expect":"false"}
 {"name":"isQuote-vec-false","query":"[1 2 3] | isQuote","expect":"false"}
 {"name":"isQuote-map-false","query":"{:a 1} | isQuote","expect":"false"}
 {"name":"isQuote-null-false","query":"null | isQuote","expect":"false"}
 {"name":"isQuote-error-via-distribute-false","query":"[!{:k 1}] * isQuote | first","expect":"false"}
-{"name":"quote-equality-same-source","query":"eq(`mul(2)`, `mul(2)`)","expect":"true"}
-{"name":"quote-equality-different-source","query":"eq(`mul(2)`, `mul(3)`)","expect":"false"}
-{"name":"quote-equality-cross-type-string","query":"eq(`mul(2)`, \"mul(2)\")","expect":"false"}
-{"name":"quote-in-vec","query":"[`a` `b` `c`] | count","expect":"3"}
-{"name":"quote-in-vec-projection","query":"[`a` `b` `c`] | first | /source","expect":"\"a\""}
-{"name":"quote-in-map","query":"{:body `mul(2)`} | /body | /source","expect":"\"mul(2)\""}
-{"name":"quote-in-set","query":"#{`a` `b`} | count","expect":"2"}
-{"name":"quote-pipeline-passthrough","query":"5 | `mul(2)`","expect":"`mul(2)`"}
-{"name":"quote-typeKeyword","query":"`x` | reify | /type","expect":":quote"}
-{"name":"quote-isMap-false","query":"`x` | isMap","expect":"false"}
-{"name":"quote-with-special-chars","query":"`a > b`","expect":"`a > b`"}
-{"name":"quote-with-pipe-operator","query":"`a | b` | /source","expect":"\"a | b\""}
-{"name":"quote-with-leading-combinator-trail-style","query":"`* inc | sort` | /source","expect":"\"* inc | sort\""}
-{"name":"quote-source-eval-via-parse","query":"`mul(2)` | /source | parse | /:qlang/kind","expect":":OperandCall"}
+{"name":"quote-equality-same-source","query":"eq(~{mul(2)}, ~{mul(2)})","expect":"true"}
+{"name":"quote-equality-different-source","query":"eq(~{mul(2)}, ~{mul(3)})","expect":"false"}
+{"name":"quote-equality-cross-type-string","query":"eq(~{mul(2)}, \"mul(2)\")","expect":"false"}
+{"name":"quote-in-vec","query":"[~{a} ~{b} ~{c}] | count","expect":"3"}
+{"name":"quote-in-vec-projection","query":"[~{a} ~{b} ~{c}] | first | /source","expect":"\"a\""}
+{"name":"quote-in-map","query":"{:body ~{mul(2)}} | /body | /source","expect":"\"mul(2)\""}
+{"name":"quote-in-set","query":"#{~{a} ~{b}} | count","expect":"2"}
+{"name":"quote-pipeline-passthrough","query":"5 | ~{mul(2)}","expect":"~{mul(2)}"}
+{"name":"quote-typeKeyword","query":"~{x} | reify | /type","expect":":quote"}
+{"name":"quote-isMap-false","query":"~{x} | isMap","expect":"false"}
+{"name":"quote-with-special-chars","query":"~{a > b}","expect":"~{a > b}"}
+{"name":"quote-with-pipe-operator","query":"~{a | b} | /source","expect":"\"a | b\""}
+{"name":"quote-with-leading-combinator-trail-style","query":"~{* inc | sort} | /source","expect":"\"* inc | sort\""}
+{"name":"quote-source-eval-via-parse","query":"~{mul(2)} | /source | parse | /:qlang/kind","expect":":OperandCall"}

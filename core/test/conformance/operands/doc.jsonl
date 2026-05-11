@@ -9,13 +9,13 @@
 {"name":"doc-content-projection-empty","query":"|~~~~| | /content","expect":"\"\""}
 {"name":"doc-isDoc-true","query":"|~~ x ~~| | isDoc","expect":"true"}
 {"name":"doc-isDoc-false-string","query":"\"x\" | isDoc","expect":"false"}
-{"name":"doc-isDoc-false-quote","query":"`x` | isDoc","expect":"false"}
+{"name":"doc-isDoc-false-quote","query":"~{x} | isDoc","expect":"false"}
 {"name":"doc-isDoc-false-number","query":"42 | isDoc","expect":"false"}
 {"name":"doc-isDoc-false-null","query":"null | isDoc","expect":"false"}
 {"name":"doc-eq-same-content","query":"eq(|~~ a ~~|, |~~ a ~~|)","expect":"true"}
 {"name":"doc-eq-different-content","query":"eq(|~~ a ~~|, |~~ b ~~|)","expect":"false"}
 {"name":"doc-eq-doc-vs-string","query":"eq(|~~ x ~~|, \"x\")","expect":"false"}
-{"name":"doc-eq-doc-vs-quote","query":"eq(|~~ x ~~|, `x`)","expect":"false"}
+{"name":"doc-eq-doc-vs-quote","query":"eq(|~~ x ~~|, ~{x})","expect":"false"}
 {"name":"doc-reify-type","query":"|~~ x ~~| | reify | /type","expect":":doc"}
 {"name":"doc-reify-kind","query":"|~~ x ~~| | reify | /kind","expect":":value"}
 {"name":"doc-reify-value-content","query":"|~~ x ~~| | reify | /value | /content","expect":"\" x \""}
@@ -28,7 +28,7 @@
 {"name":"doc-isString-false","query":"|~~ x ~~| | isString","expect":"false"}
 {"name":"doc-isNull-false","query":"|~~ x ~~| | isNull","expect":"false"}
 {"name":"doc-line-isDoc","query":"|~~| line content\n  | isDoc","expect":"true"}
-{"name":"doc-with-backticks-in-content","query":"|~~ see `mul(2)` for ref ~~|","expect":"|~~ see `mul(2)` for ref ~~|"}
+{"name":"doc-with-backticks-in-content","query":"|~~ see ~{mul(2)} for ref ~~|","expect":"|~~ see ~{mul(2)} for ref ~~|"}
 {"name":"doc-eq-self","query":"|~~ same ~~| | as(:d) | eq(d)","expect":"true"}
 {"name":"doc-as-binding","query":"|~~ note ~~| | as(:n) | n | /content","expect":"\" note \""}
 {"name":"doc-isFunction-keyword-not-doc","query":":isDoc | isDoc","expect":"false"}

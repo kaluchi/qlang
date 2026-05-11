@@ -480,24 +480,24 @@ describe('parse — per-node location and text', () => {
 });
 
 describe('parse — projection with digit-led / hyphen-led bare segments', () => {
-  it('parses `/0` as a single-segment projection with key "0"', () => {
+  it('parses ~{/0} as a single-segment projection with key "0"', () => {
     const ast = parse('/0');
     expect(ast.type).toBe('Projection');
     expect(ast.keys).toEqual(['0']);
   });
 
-  it('parses `/-1` as a single-segment projection with key "-1"', () => {
+  it('parses ~{/-1} as a single-segment projection with key "-1"', () => {
     const ast = parse('/-1');
     expect(ast.type).toBe('Projection');
     expect(ast.keys).toEqual(['-1']);
   });
 
-  it('parses `/items/0/name` as a three-segment mixed path', () => {
+  it('parses ~{/items/0/name} as a three-segment mixed path', () => {
     const ast = parse('/items/0/name');
     expect(ast.keys).toEqual(['items', '0', 'name']);
   });
 
-  it('parses `/rows/-1/0` as a three-segment mixed path with negative index', () => {
+  it('parses ~{/rows/-1/0} as a three-segment mixed path with negative index', () => {
     const ast = parse('/rows/-1/0');
     expect(ast.keys).toEqual(['rows', '-1', '0']);
   });
@@ -510,7 +510,7 @@ describe('parse — projection with digit-led / hyphen-led bare segments', () =>
   });
 });
 
-describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
+describe('parse — MapLit whitespace tolerance around string-key ~{:}', () => {
   it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
     const ast = parse('{ "name" : "alice" }');
     expect(ast.type).toBe('JsonObjectLit');

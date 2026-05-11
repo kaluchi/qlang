@@ -32,13 +32,13 @@ function captureRepl(scriptedInput) {
 }
 
 describe('runRepl — meta commands', () => {
-  it('closes on `.exit` and resolves to exit code 0', async () => {
+  it('closes on ~{.exit} and resolves to exit code 0', async () => {
     const r = captureRepl('.exit\n');
     const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(exitCode).toBe(0);
   });
 
-  it('writes the help banner on `.help` and stays open until EOF', async () => {
+  it('writes the help banner on ~{.help} and stays open until EOF', async () => {
     const r = captureRepl('.help\n');
     const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(exitCode).toBe(0);
@@ -105,7 +105,7 @@ describe('runRepl — output highlighting', () => {
     expect(r.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
-  it('translates `\\n` into `\\r\\n` for stderr writes in TTY mode', async () => {
+  it('translates ~{\\n} into ~{\\r\\n} for stderr writes in TTY mode', async () => {
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
@@ -161,7 +161,7 @@ describe('runRepl — output highlighting', () => {
 });
 
 describe('runRepl — @in / @out behaviour', () => {
-  it('binds `@in` to return the empty String so the cell does not deadlock against the prompt', async () => {
+  it('binds ~{@in} to return the empty String so the cell does not deadlock against the prompt', async () => {
     const r = captureRepl('@in | pretty | @out\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     // `@in` resolves to ''. pretty renders it as the qlang String

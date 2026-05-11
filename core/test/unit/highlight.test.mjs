@@ -51,9 +51,9 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('classifies a backtick QuoteLit as a single quote-kind span', async () => {
-    expect(tokenize('`mul(2)`', await builtins())).toEqual([
-      { start: 0, end: 8, kind: 'quote' }
+  it('classifies a ~{...} QuoteLit as a single quote-kind span', async () => {
+    expect(tokenize('~{mul(2)}', await builtins())).toEqual([
+      { start: 0, end: 9, kind: 'quote' }
     ]);
   });
 
@@ -63,26 +63,26 @@ describe('tokenize — atomic literal kinds', () => {
     expect(tokenize('null',  await builtins())[0].kind).toBe('number');
   });
 
-  it('classifies a `:name` keyword atom', async () => {
+  it('classifies a ~{:name} keyword atom', async () => {
     expect(tokenize(':foo', await builtins())).toEqual([
       { start: 0, end: 4, kind: 'atom' }
     ]);
   });
 
-  it('classifies a `:@name` effect-marked keyword', async () => {
+  it('classifies a ~{:@name} effect-marked keyword', async () => {
     expect(tokenize(':@log', await builtins())).toEqual([
       { start: 0, end: 5, kind: 'effect' }
     ]);
   });
 
-  it('classifies a bare `::tag` BareTypeKeyword as a single type-kind span', async () => {
+  it('classifies a bare ~{::tag} BareTypeKeyword as a single type-kind span', async () => {
     expect(tokenize('::conduit', await builtins())).toEqual([
       { start: 0, end: 9, kind: 'type' }
     ]);
   });
 
-  it('classifies the `::tag` head of a TaggedLit and descends into the payload', async () => {
-    const tokens = tokenize('::assertion[`x` `y`]', await builtins());
+  it('classifies the ~{::tag} head of a TaggedLit and descends into the payload', async () => {
+    const tokens = tokenize('::assertion[~{x} ~{y}]', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 11, kind: 'type' });
     expect(tokens.some(t => t.kind === 'quote')).toBe(true);
     expect(tokens.some(t => t.kind === 'vec')).toBe(true);
@@ -90,41 +90,41 @@ describe('tokenize — atomic literal kinds', () => {
 });
 
 describe('tokenize — operand call name classification', () => {
-  it('a builtin name resolves to `operand`', async () => {
+  it('a builtin name resolves to ~{operand}', async () => {
     const tokens = tokenize('count', await builtins());
     expect(tokens[0].kind).toBe('operand');
   });
 
-  it('the `let` binding-introducer resolves to `keyword`', async () => {
+  it('the ~{let} binding-introducer resolves to ~{keyword}', async () => {
     const tokens = tokenize('def(:x, 1)', await builtins());
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('the `as` binding-introducer resolves to `keyword`', async () => {
+  it('the ~{as} binding-introducer resolves to ~{keyword}', async () => {
     const tokens = tokenize('1 | as(:x)', await builtins());
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('an `@`-prefixed call name resolves to `effect`', async () => {
+  it('an ~{@}-prefixed call name resolves to ~{effect}', async () => {
     const tokens = tokenize('@log', await builtins());
     expect(tokens[0].kind).toBe('effect');
   });
 
-  it('a user-defined name (not in builtins, no `@`) resolves to `atom`', async () => {
+  it('a user-defined name (not in builtins, no ~{@}) resolves to ~{atom}', async () => {
     const tokens = tokenize('myConduit', await builtins());
     expect(tokens[0].kind).toBe('atom');
   });
 });
 
 describe('tokenize — projections', () => {
-  it('renders `/name` as a `punct` slash plus an `operand` key', async () => {
+  it('renders ~{/name} as a ~{punct} slash plus an ~{operand} key', async () => {
     expect(tokenize('/name', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
       { start: 1, end: 5, kind: 'operand' }
     ]);
   });
 
-  it('renders `/a/b` as two slash + key pairs', async () => {
+  it('renders ~{/a/b} as two slash + key pairs', async () => {
     const tokens = tokenize('/a/b', await builtins());
     expect(tokens.filter(t => t.kind === 'punct')).toHaveLength(2);
     expect(tokens.filter(t => t.kind === 'operand')).toHaveLength(2);
@@ -148,13 +148,13 @@ describe('tokenize — comments', () => {
   // binding nodes — out of scope for the parity surface this
   // module ships, parking it for a future enhancement.
 
-  it('classifies a line plain comment as `comment`', async () => {
+  it('classifies a line plain comment as ~{comment}', async () => {
     const src = '|~| short note |~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
   });
 
-  it('classifies a block plain comment as `comment`', async () => {
+  it('classifies a block plain comment as ~{comment}', async () => {
     const src = '|~ block ~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
@@ -162,7 +162,7 @@ describe('tokenize — comments', () => {
 });
 
 describe('tokenize — gap interleaving', () => {
-  it('splits `[1 2 3]` into bracketed number sequence with `vec` openers/closers', async () => {
+  it('splits ~{[1 2 3]} into bracketed number sequence with ~{vec} openers/closers', async () => {
     const tokens = tokenize('[1 2 3]', await builtins());
     expect(tokens.map(t => t.kind)).toEqual([
       'vec', 'number', 'whitespace',
@@ -170,29 +170,29 @@ describe('tokenize — gap interleaving', () => {
     ]);
   });
 
-  it('keeps the `>>` merge combinator as a single `punct` token', async () => {
+  it('keeps the ~{>>} merge combinator as a single ~{punct} token', async () => {
     const merge = tokenize('1 >> 2', await builtins());
     expect(merge.find(t => t.kind === 'punct' && t.end - t.start === 2)).toBeDefined();
   });
 
-  it('labels the `!|` fail-track combinator with kind `err`', async () => {
+  it('labels the ~{!|} fail-track combinator with kind ~{err}', async () => {
     const fail = tokenize('1 !| /k', await builtins());
     expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();
   });
 
-  it('labels the `#{` set opener and matching `}` with kind `set`', async () => {
+  it('labels the ~{#{} set opener and matching ~{}} with kind ~{set}', async () => {
     const tokens = tokenize('#{:a}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'set' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 4, end: 5, kind: 'set' });
   });
 
-  it('labels `{:a 1}` map braces with kind `punct`', async () => {
+  it('labels ~{{:a 1}} map braces with kind ~{punct}', async () => {
     const tokens = tokenize('{:a 1}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 1, kind: 'punct' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 5, end: 6, kind: 'punct' });
   });
 
-  it('labels the `!{` opener and matching `}` of an error literal with kind `err`', async () => {
+  it('labels the ~{!{} opener and matching ~{}} of an error literal with kind ~{err}', async () => {
     const tokens = tokenize('!{:a 1}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'err' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 6, end: 7, kind: 'err' });
@@ -205,13 +205,13 @@ describe('tokenize — gap interleaving', () => {
 });
 
 describe('tokenize — coverage invariant', () => {
-  it('every byte of `[1 2 3] | filter(gt(1)) | count` lies inside exactly one token', async () => {
+  it('every byte of ~{[1 2 3] | filter(gt(1)) | count} lies inside exactly one token', async () => {
     const src = '[1 2 3] | filter(gt(1)) | count';
     const tokens = tokenize(src, await builtins());
     expectCoversInputExactly(tokens, src);
   });
 
-  it('every byte of `{:name "alice" :tags #{:a :b}}` lies inside exactly one token', async () => {
+  it('every byte of ~{{:name "alice" :tags #{:a :b}}} lies inside exactly one token', async () => {
     const src = '{:name "alice" :tags #{:a :b}}';
     const tokens = tokenize(src, await builtins());
     expectCoversInputExactly(tokens, src);

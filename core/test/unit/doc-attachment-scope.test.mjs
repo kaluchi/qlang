@@ -32,7 +32,7 @@ describe('DocAttachedSequence restricts to def / as only', () => {
     expect(result).toEqual([' note ']);
   });
 
-  it('a doc-prefix ahead of a non-def/as operand chain explicitly with `|`', async () => {
+  it('a doc-prefix ahead of a non-def/as operand chain explicitly with ~{|}', async () => {
     // DocAttachedSequence binds only to def / as. For other operands
     // the author must chain explicitly with `|`, so the Doc-value
     // lands as a separate pipeline step that the next operand

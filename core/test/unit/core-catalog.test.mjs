@@ -164,7 +164,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` axis', () => {
+describe('lib/qlang/core.qlang — doc-prefix reachable through ~{:tag | docs} axis', () => {
   it('every cataloged binding has at least one Doc-value on the axis', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const coreEnv = await evalCore();
@@ -207,7 +207,7 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
   // etc.) still fire on bare lookup because their minCaptured is
   // 0 and bare application is their valid nullary form.
 
-  it('bare `mul` returns reify-shaped descriptor Map', async () => {
+  it('bare ~{mul} returns reify-shaped descriptor Map', async () => {
     // mul has minCaptured 1, so bare lookup yields the reify-shaped
     // descriptor — :kind :builtin (not the internal :qlang/kind),
     // :captured and :effectful stamped from the resolved impl.
@@ -220,7 +220,7 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
     expect(evalResult.has('qlang/impl')).toBe(false);
   });
 
-  it('bare `filter` returns reify-shaped descriptor Map', async () => {
+  it('bare ~{filter} returns reify-shaped descriptor Map', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('filter');
     expect(isQMap(evalResult)).toBe(true);
@@ -228,14 +228,14 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
     expect(evalResult.get('category')).toEqual(keyword('container-selector'));
   });
 
-  it('bare `coalesce` returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
+  it('bare ~{coalesce} returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('coalesce');
     expect(isQMap(evalResult)).toBe(true);
     expect(evalResult.get('category')).toEqual(keyword('control'));
   });
 
-  it('bare `count` fires because count is nullary', async () => {
+  it('bare ~{count} fires because count is nullary', async () => {
     // count has minCaptured 0, so the nullary dispatch path applies
     // bare lookup rather than substituting the descriptor. That is
     // what makes `[1 2 3] | count` mean "apply count to the Vec".
@@ -243,7 +243,7 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
     expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('bare `sort` fires because sort overload includes nullary', async () => {
+  it('bare ~{sort} fires because sort overload includes nullary', async () => {
     // sort is overloaded at 0 or 1 captured args. overloadedOp
     // emits captured [0, 1], so minCaptured is 0 and bare sort
     // fires its nullary branch.

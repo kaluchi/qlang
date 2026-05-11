@@ -133,7 +133,7 @@ const PRINT_HANDLERS = {
   Vec:        (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:        (m, indent) => printMapLike('{', m, indent),
   Set:        (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
-  Quote:      q => '`' + q.source + '`',
+  Quote:      q => '~{' + escapeQuoteSource(q.source) + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: (o, indent) => printJsonObject(o, indent),
   JsonArray:  (a, indent) => `[${a.map(el => printValue(el, indent)).join(', ')}]`,
@@ -143,6 +143,37 @@ const PRINT_HANDLERS = {
 };
 
 function literalOfKeyword(k) { return k.literal; }
+
+// Escape backtick / unbalanced braces inside Quote source so the
+// printed form parses back identically. Balanced braces (from
+// inner qlang code) pass through — scanner counts them naturally.
+// Lone backticks become ` ``  `` ` to avoid colliding with `{` / `}`
+// escape forms downstream.
+function escapeQuoteSource(src) {
+  let depth = 0;
+  let inString = false;
+  let prevBackslash = false;
+  let out = '';
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (inString) {
+      out += ch;
+      if (prevBackslash) { prevBackslash = false; continue; }
+      if (ch === '\\') { prevBackslash = true; continue; }
+      if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') { out += ch; inString = true; continue; }
+    if (ch === '`') { out += '``'; continue; }
+    if (ch === '{') { depth++; out += ch; continue; }
+    if (ch === '}') {
+      if (depth === 0) { out += '`}'; continue; }
+      depth--; out += ch; continue;
+    }
+    out += ch;
+  }
+  return out;
+}
 
 function printJsonObject(obj, indent) {
   const entries = Object.entries(obj);
@@ -164,10 +195,11 @@ function printConduit(conduit) {
   const params = conduit.get('params');
   const source = conduit.get('qlang/source');
   const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
+  const quotedBody = '~{' + escapeQuoteSource(source) + '}';
   if (name == null) {
-    return `::conduit[${paramList} \`${source}\`]`;
+    return `::conduit[${paramList} ${quotedBody}]`;
   }
-  return `::conduit[${canonicalKeywordLiteral(name)} ${paramList} \`${source}\`]`;
+  return `::conduit[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
 }
 
 function printSnapshot(snapshot) {
@@ -253,7 +285,7 @@ const CELL_HANDLERS = {
   Map:        m => renderInline(m),
   Set:        s => renderInline(s),
   Error:      e => renderInline(e),
-  Quote:      q => '`' + q.source + '`',
+  Quote:      q => '~{' + escapeQuoteSource(q.source) + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => renderInline(o),
   JsonArray:  a => renderInline(a),
@@ -272,7 +304,7 @@ const INLINE_HANDLERS = {
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
   Set:        s => `#{${[...s].map(renderInline).join(' ')}}`,
-  Quote:      q => '`' + q.source + '`',
+  Quote:      q => '~{' + escapeQuoteSource(q.source) + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
   JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,

@@ -23,6 +23,28 @@ import { keyword, makeQuote } from './types.mjs';
 
 const PROSE_KIND = keyword('prose');
 
+// Inverse of escapeQuoteSource in runtime/format.mjs: backtick-escape
+// sequences (`` `{ ``, `` `} ``, `` `` ``) are unescaped to literal
+// chars. Other backslash / chars pass through verbatim.
+function unescapeQuoteSource(raw) {
+  let out = '';
+  let i = 0;
+  while (i < raw.length) {
+    const ch = raw[i];
+    if (ch === '`' && i + 1 < raw.length) {
+      const next = raw[i + 1];
+      if (next === '{' || next === '}' || next === '`') {
+        out += next;
+        i += 2;
+        continue;
+      }
+    }
+    out += ch;
+    i++;
+  }
+  return out;
+}
+
 function makeProseSegment(text) {
   const m = new Map();
   m.set('qlang/kind', PROSE_KIND);
@@ -30,9 +52,9 @@ function makeProseSegment(text) {
   return Object.freeze(m);
 }
 
-// Find the next opener (` or ::) at or after `from` in `content`.
+// Find the next opener (`~{` or `::`) at or after `from` in `content`.
 // Returns { offset, kind } or null when none.
-//   kind 'quote'  — backtick-delimited code shorthand (Quote-value).
+//   kind 'quote'  — `~{...}` paired Quote delimiter.
 //   kind 'tagged' — `::tag<payload>` (TaggedLit, evaluated through
 //                   the registered constructor).
 // Keyword references (`:foo`), type tags, names stay in Prose —
@@ -43,11 +65,11 @@ function findNextOpener(content, from) {
   let best = null;
   for (let i = from; i < content.length; i++) {
     const ch = content[i];
-    if (ch === '`') {
+    if (ch === '~' && content[i + 1] === '{') {
       best = { offset: i, kind: 'quote' };
       break;
     }
-    if (ch === ':' && i + 1 < content.length && content[i + 1] === ':') {
+    if (ch === ':' && content[i + 1] === ':') {
       best = { offset: i, kind: 'tagged' };
       break;
     }
@@ -55,9 +77,49 @@ function findNextOpener(content, from) {
   return best;
 }
 
-// Locate the matching close-backtick for a Quote opener at `start`.
+// Locate the position AFTER the matching `}` closer for a `~{...}`
+// Quote starting at `start` (which points to `~`). Balance-counts
+// `~{` opens against `}` closes, recognizing backtick-escapes
+// (`` `{ ``, `` `} ``, `` `` ``), string-literal spans, and nested
+// `~{...}` Quote spans as skip-zones so inner `}` chars do not
+// trip the outer close.
 function findQuoteEnd(content, start) {
-  return content.indexOf('`', start + 1);
+  if (content[start] !== '~' || content[start + 1] !== '{') return -1;
+  let i = start + 2;
+  let depth = 1;
+  while (i < content.length) {
+    const ch = content[i];
+    if (ch === '`' && i + 1 < content.length) {
+      const next = content[i + 1];
+      if (next === '{' || next === '}' || next === '`') {
+        i += 2;
+        continue;
+      }
+    }
+    if (ch === '"') {
+      i++;
+      while (i < content.length && content[i] !== '"') {
+        if (content[i] === '\\' && i + 1 < content.length) i++;
+        i++;
+      }
+      i++;
+      continue;
+    }
+    if (ch === '~' && content[i + 1] === '{') {
+      depth++;
+      i += 2;
+      continue;
+    }
+    if (ch === '{') { depth++; i++; continue; }
+    if (ch === '}') {
+      depth--;
+      if (depth === 0) return i + 1;
+      i++;
+      continue;
+    }
+    i++;
+  }
+  return -1;
 }
 
 // Locate the end of a `::tag<...>` TaggedLit at `start`. Peggy's
@@ -68,13 +130,12 @@ const BRACKET_CLOSERS = { '(': ')', '[': ']', '{': '}' };
 
 function findTaggedEnd(content, start) {
   let i = start + 2;
-  while (i < content.length && /[\w@-]/.test(content[i])) i++;
+  while (i < content.length && /[\w@/-]/.test(content[i])) i++;
   while (i < content.length && /\s/.test(content[i])) i++;
   if (i >= content.length) return -1;
   const opener = content[i];
-  if (opener === '`') {
-    const end = content.indexOf('`', i + 1);
-    return end === -1 ? -1 : end + 1;
+  if (opener === '~' && content[i + 1] === '{') {
+    return findQuoteEnd(content, i);
   }
   if (opener === '"') {
     i++;
@@ -90,10 +151,10 @@ function findTaggedEnd(content, start) {
   i++;
   while (i < content.length) {
     const ch = content[i];
-    if (ch === '`') {
-      const end = content.indexOf('`', i + 1);
+    if (ch === '~' && content[i + 1] === '{') {
+      const end = findQuoteEnd(content, i);
       if (end === -1) return -1;
-      i = end + 1;
+      i = end;
       continue;
     }
     if (ch === '"') {
@@ -151,14 +212,15 @@ export async function parseDocSegments(content, env) {
       segments.push(makeProseSegment(content.slice(cursor, opener.offset)));
     }
     if (opener.kind === 'quote') {
-      const endIdx = findQuoteEnd(content, opener.offset);
-      if (endIdx === -1) {
+      const endAfter = findQuoteEnd(content, opener.offset);
+      if (endAfter === -1) {
         segments.push(makeProseSegment(content.slice(opener.offset)));
         break;
       }
-      const source = content.slice(opener.offset + 1, endIdx);
+      // opener.offset points to `~`; content slice between `~{` and `}` is the source.
+      const source = unescapeQuoteSource(content.slice(opener.offset + 2, endAfter - 1));
       segments.push(makeQuote(source));
-      cursor = endIdx + 1;
+      cursor = endAfter;
       continue;
     }
     const parsed = tryParseTaggedAt(content, opener.offset);

@@ -95,7 +95,7 @@ describe(':name | examples extracts ::assertion segments from docs', () => {
   });
 });
 
-describe('axis-operands walk type-namespace bindings via `::` prefix', () => {
+describe('axis-operands walk type-namespace bindings via ~{::} prefix', () => {
   it(':"::conduit" | source finds the type binding def-step via the keyword form', async () => {
     const result = await evalQuery(':"::conduit" | source');
     expect(isQuote(result)).toBe(true);
@@ -120,7 +120,7 @@ describe('axis-operands walk type-namespace bindings via `::` prefix', () => {
   });
 
   it('a tagged-instance value forwards to the docs of its type binding', async () => {
-    const result = await evalQuery('::assertion[`5 | mul(2)` `10`] | docs | first | /content');
+    const result = await evalQuery('::assertion[~{5 | mul(2)} ~{10}] | docs | first | /content');
     expect(typeof result).toBe('string');
     expect(result).toContain('::assertion');
   });
@@ -129,7 +129,7 @@ describe('axis-operands walk type-namespace bindings via `::` prefix', () => {
 describe('examples axis extracts ::assertion segments from a loaded module', () => {
   it('use-loaded module with ::assertion segment is reachable through examples', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ ::assertion[`5 | mul(2)` `10`] ~~|\ndef(:demo, 99)';
+    const moduleSource = '|~~ ::assertion[~{5 | mul(2)} ~{10}] ~~|\ndef(:demo, 99)';
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });
@@ -167,7 +167,7 @@ describe('examples axis extracts ::assertion segments from a loaded module', () 
     expect(cellEntry.result).toBe(0);
   });
 
-  it('single-step module containing only `def()` zero-args is not matched by lookup', async () => {
+  it('single-step module containing only ~{def()} zero-args is not matched by lookup', async () => {
     // Zero-arg def call (which itself raises DefArityInvalid at
     // eval) is a parsable shape but not a binding declaration —
     // matchesDefStep skips it. Module loads but lookup of the
@@ -196,7 +196,7 @@ describe('examples axis extracts ::assertion segments from a loaded module', () 
     expect(cellEntry.result.name).toBe('AxisBindingNotFound');
   });
 
-  it('axis lookup skips a module step that is bare `def` (no args / null args)', async () => {
+  it('axis lookup skips a module step that is bare ~{def} (no args / null args)', async () => {
     // A module whose only step is `def` as a bare identifier
     // reference — args === null per OperandCall grammar — must
     // not match any binding lookup. Exercises the

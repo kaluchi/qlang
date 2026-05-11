@@ -19,17 +19,17 @@ import {
 import { makeFn } from '../../src/rule10.mjs';
 
 describe('printValue — Conduit / Snapshot / Function branches', () => {
-  it('renders a zero-arity named Conduit as `::conduit[:name [] `body`]`', () => {
+  it('renders a zero-arity named Conduit as ~{::conduit[:name [] }body~{]}', () => {
     const bodyAst = { type: 'NumberLit', value: 42, text: '42' };
     const conduit = makeConduit(bodyAst, { name: 'answer', params: [] });
     expect(isConduit(conduit)).toBe(true);
-    expect(printValue(conduit)).toBe('::conduit[:answer [] `42`]');
+    expect(printValue(conduit)).toBe('::conduit[:answer [] ~{42}]');
   });
 
   it('renders a parametric named Conduit with [:params] in declaration order', () => {
     const bodyAst = { type: 'OperandCall', name: 'add', text: 'add(x, y)' };
     const conduit = makeConduit(bodyAst, { name: 'sum2', params: ['x', 'y'] });
-    expect(printValue(conduit)).toBe('::conduit[:sum2 [:x :y] `add(x, y)`]');
+    expect(printValue(conduit)).toBe('::conduit[:sum2 [:x :y] ~{add(x, y)}]');
   });
 
   it('makeConduit refuses a body without .text — round-trip invariant', () => {
@@ -41,14 +41,14 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     ).toThrow(ConduitBodyMissingSource);
   });
 
-  it('docs do not appear in value-literal — they are declaration metadata, reachable via the `:name | docs` axis', () => {
+  it('docs do not appear in value-literal — they are declaration metadata, reachable via the ~{:name | docs} axis', () => {
     const bodyAst = { type: 'NumberLit', value: 7, text: '7' };
     const conduit = makeConduit(bodyAst, {
       name: 'lucky',
       params: [],
       docs: [' first remark ', ' second remark ']
     });
-    expect(printValue(conduit)).toBe('::conduit[:lucky [] `7`]');
+    expect(printValue(conduit)).toBe('::conduit[:lucky [] ~{7}]');
   });
 
   it('renders a Snapshot by passing through to its wrapped value', () => {
@@ -57,7 +57,7 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     expect(printValue(snap)).toBe('[1 2 3]');
   });
 
-  it('renders a Doc value as `|~~content~~|` block form', () => {
+  it('renders a Doc value as ~{|~~content~~|} block form', () => {
     const doc = makeDoc(' hello ');
     expect(isDoc(doc)).toBe(true);
     expect(printValue(doc)).toBe('|~~ hello ~~|');
@@ -92,7 +92,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   // Function values in cell positions reach the dispatch only when a
   // user explicitly piped them in (e.g. `env | /name | wrap-in-Map |
   // table`). Tests build the Vec directly so the cell handlers fire.
-  it('renders a Conduit-valued cell as `::conduit[:name [] `body`]`', async () => {
+  it('renders a Conduit-valued cell as ~{::conduit[:name [] }body~{]}', async () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const bodyAst = { type: 'NumberLit', value: 99, text: '99' };
     const conduit = makeConduit(bodyAst, { name: 'ninetyNine', params: [] });
@@ -101,10 +101,10 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] `99`]');
+    expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] ~{99}]');
   });
 
-  it('renders a Snapshot-valued cell as `as(:name)`', async () => {
+  it('renders a Snapshot-valued cell as ~{as(:name)}', async () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const snap = makeSnapshot(42, { name: 'cached' });
     const row = new Map([['snap', snap]]);
@@ -137,7 +137,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('::conduit[:inner [] `7`]');
+    expect(rendered.pipeValue).toContain('::conduit[:inner [] ~{7}]');
   });
 
   it('renders a Vec-of-Snapshot cell — INLINE handler for Snapshot fires', async () => {
@@ -172,7 +172,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('`mul(2)`');
+    expect(rendered.pipeValue).toContain('~{mul(2)}');
   });
 
   it('renders a Quote-valued cell — CELL_HANDLERS.Quote fires', async () => {
@@ -183,7 +183,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('`add(1)`');
+    expect(rendered.pipeValue).toContain('~{add(1)}');
   });
 
   it('renders a Doc-valued cell — CELL_HANDLERS.Doc fires', async () => {

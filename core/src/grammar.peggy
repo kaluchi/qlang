@@ -336,20 +336,22 @@ BlockPlainComment
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
 
-// Backtick-spans inside a block comment / block doc are preserved
-// verbatim so a literal `~~|` (or `~|`) embedded inside Quote
-// example source never trips the outer close marker. The span
-// includes both delimiters in the returned string so doc tokenizer
-// downstream still recognises the Quote.
-BacktickSpan
-  = "`" chars:(!"`" .)* "`" { return '`' + chars.map(c => c[1]).join('') + '`'; }
+// Quote-spans inside a block comment / block doc are preserved
+// verbatim so the inner Quote's content (which may include `~|`
+// or `~~|` substrings) does not trip the outer block-comment
+// close marker. QuoteSpan tracks `~{` / `}` balance same as
+// QuoteContent, so the span returned matches exactly the inner
+// `~{...}` source slice including its delimiters.
+QuoteSpan
+  = "~{" content:QuoteContent "}"
+    { return '~{' + content + '}'; }
 
 BlockPlainContent
-  = chars:(BacktickSpan / (!"~|" .))*
+  = chars:(QuoteSpan / (!"~|" .))*
     { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 BlockDocContent
-  = chars:(BacktickSpan / (!"~~|" .))*
+  = chars:(QuoteSpan / (!"~~|" .))*
     { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 // --- Combinators ------------------------------------------------
@@ -418,16 +420,78 @@ ParenGroup
 // parsed lazily by the runtime so a Quote may hold a pipeline
 // fragment beginning with a combinator (`* inc | sort`) — eager
 // parse would reject such a fragment.
-// `src` (not `source`) — `parse.mjs` stamps `ast.source` on the root
-// node, which would override a QuoteLit field of the same name when
-// the QuoteLit is the entire query. The AST keeps `src`; the runtime
-// Quote value-class projects `:source` on its own Map shape.
+//
+// `~{...}` delimiter — paired (open ≠ close), balance-counted by
+// QuoteContent. Inner `{` / `}` from qlang composite literals
+// (Map / Set / Error / nested Quote) balance themselves; the
+// scanner's outer-close `}` is reached only when depth returns to
+// the opening level. String literals and qlang comments are
+// skip-zones — inner braces inside `"..."` strings or
+// `|~ ~|` / `|~~ ~~|` / `|~|` / `|~~|` comments do not count
+// toward balance.
+//
+// Backtick is the in-Quote escape char (no role outside Quote):
+// `` `{ `` → literal `{`, `` `} `` → literal `}`, `` `` `` →
+// literal backtick. Covers DSL templating cases where author needs
+// unbalanced braces in source.
+//
+// `src` (not `source`) — `parse.mjs` stamps `ast.source` on the
+// root node, which would override a QuoteLit field of the same
+// name when the QuoteLit is the entire query. The AST keeps `src`;
+// the runtime Quote value-class projects `:source` on its own Map
+// shape.
 QuoteLit
-  = "`" content:QuoteContent "`"
+  = "~{" content:QuoteContent "}"
     { return node('QuoteLit', { src: content }, location(), text()); }
 
 QuoteContent
-  = chars:(!"`" .)* { return chars.map(c => c[1]).join(''); }
+  = parts:QuotePart* { return parts.join(''); }
+
+QuotePart
+  = QuoteEscape
+  / NestedQuoteSpan
+  / Pipeline { return text(); }
+  / QuoteStringSpan
+  / QuoteBlockDocSpan
+  / QuoteBlockPlainSpan
+  / QuoteLineDocSpan
+  / QuoteLinePlainSpan
+  / QuoteChar
+
+QuoteEscape
+  = "`" c:[{}`] { return c; }
+
+NestedQuoteSpan
+  = "~{" inner:QuoteContent "}"
+    { return text(); }
+
+QuoteStringSpan
+  = '"' chars:QuoteStringChar* '"' { return text(); }
+
+QuoteStringChar
+  = "\\" .
+  / [^"\\]
+
+QuoteBlockDocSpan
+  = "|~~" !"|" QuoteBlockDocChar* "~~|" { return text(); }
+
+QuoteBlockDocChar
+  = !"~~|" .
+
+QuoteBlockPlainSpan
+  = "|~" !"~" !"|" QuoteBlockPlainChar* "~|" { return text(); }
+
+QuoteBlockPlainChar
+  = !"~|" .
+
+QuoteLineDocSpan
+  = "|~~|" [^\n]* { return text(); }
+
+QuoteLinePlainSpan
+  = "|~|" [^\n]* { return text(); }
+
+QuoteChar
+  = !"}" c:. { return c; }
 
 // DocLit — standalone doc-comment as a Primary value-form. Two
 // surface variants share one AST node type:

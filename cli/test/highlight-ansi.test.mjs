@@ -23,27 +23,27 @@ describe('highlightAnsi', () => {
   });
 
   it('wraps a backtick Quote in the italic-green escape pair', () => {
-    const out = highlightAnsi('`mul(2)`', noBuiltins);
-    expect(out).toBe('\x1b[3;32m`mul(2)`\x1b[0m');
+    const out = highlightAnsi('~{mul(2)}', noBuiltins);
+    expect(out).toBe('\x1b[3;32m~{mul(2)}\x1b[0m');
   });
 
-  it('wraps a `::tag` BareTypeKeyword in the bright-cyan type escape', () => {
+  it('wraps a ~{::tag} BareTypeKeyword in the bright-cyan type escape', () => {
     const out = highlightAnsi('::conduit', noBuiltins);
     expect(out).toBe('\x1b[96m::conduit\x1b[0m');
   });
 
-  it('wraps the `::tag` head of a TaggedLit and descends into the payload', () => {
-    const out = highlightAnsi('::assertion[`x` `y`]', noBuiltins);
+  it('wraps the ~{::tag} head of a TaggedLit and descends into the payload', () => {
+    const out = highlightAnsi('::assertion[~{x} ~{y}]', noBuiltins);
     expect(out).toMatch('\x1b[96m::assertion\x1b[0m');
-    expect(out).toMatch('\x1b[3;32m`x`\x1b[0m');
+    expect(out).toMatch('\x1b[3;32m~{x}\x1b[0m');
   });
 
-  it('wraps a `:keyword` atom in the cyan escape pair', () => {
+  it('wraps a ~{:keyword} atom in the cyan escape pair', () => {
     const out = highlightAnsi(':active', noBuiltins);
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
 
-  it('wraps an `@`-prefixed call in the bright-magenta effect escape', () => {
+  it('wraps an ~{@}-prefixed call in the bright-magenta effect escape', () => {
     const out = highlightAnsi('@log', noBuiltins);
     expect(out).toBe('\x1b[95m@log\x1b[0m');
   });
@@ -54,7 +54,7 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[94mcount\x1b[0m');
   });
 
-  it('wraps `def` in the bold-bright-blue keyword escape', () => {
+  it('wraps ~{def} in the bold-bright-blue keyword escape', () => {
     const out = highlightAnsi('def(:x, 1)', new Set());
     expect(out).toMatch('\x1b[1;94mdef\x1b[0m');
   });
@@ -72,28 +72,28 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m \x1b[33m2\x1b[0m\x1b[93m]\x1b[0m');
   });
 
-  it('wraps `!{` / `}` error-literal brackets in bright red', () => {
+  it('wraps ~{!{} / ~{}} error-literal brackets in bright red', () => {
     const out = highlightAnsi('!{}', new Set());
     expect(out).toBe('\x1b[91m!{\x1b[0m\x1b[91m}\x1b[0m');
   });
 
-  it('wraps the `!|` fail-track combinator in bright red', () => {
+  it('wraps the ~{!|} fail-track combinator in bright red', () => {
     const out = highlightAnsi('1 !| /k', new Set());
     expect(out).toMatch('\x1b[91m!|\x1b[0m');
   });
 
-  it('wraps `#{` / `}` set brackets in bright green', () => {
+  it('wraps ~{#{} / ~{}} set brackets in bright green', () => {
     const out = highlightAnsi('#{:a}', new Set());
     expect(out).toMatch('\x1b[92m#{\x1b[0m');
     expect(out).toMatch('\x1b[92m}\x1b[0m');
   });
 
-  it('wraps `[` / `]` vec brackets in bright yellow', () => {
+  it('wraps ~{[} / ~{]} vec brackets in bright yellow', () => {
     const out = highlightAnsi('[1]', new Set());
     expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m\x1b[93m]\x1b[0m');
   });
 
-  it('keeps the `{` / `}` of an ordinary map in the default punct escape', () => {
+  it('keeps the ~{{} / ~{}} of an ordinary map in the default punct escape', () => {
     const out = highlightAnsi('{:a 1}', new Set());
     expect(out).toMatch('\x1b[90m{\x1b[0m');
     expect(out).toMatch('\x1b[90m}\x1b[0m');

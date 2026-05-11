@@ -103,13 +103,13 @@ describe('isJsonObject / isJsonArray operands', () => {
 });
 
 describe('printValue handles JSON Object / JSON Array', () => {
-  it('JSON Object renders with quoted string keys and `:` separators', async () => {
+  it('JSON Object renders with quoted string keys and ~{:} separators', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     const o = makeJsonObject({ k: 1, name: 'alice' });
     expect(printValue(o)).toBe('{"k": 1, "name": "alice"}');
   });
 
-  it('JSON Object empty renders as `{}`', async () => {
+  it('JSON Object empty renders as ~{{}}', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
     expect(printValue(makeJsonObject({}))).toBe('{}');
   });

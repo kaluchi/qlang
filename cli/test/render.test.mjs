@@ -83,7 +83,7 @@ describe('renderCellOutcome — script-mode encoding', () => {
     expect(cliOutcome.stdoutText).toBe('{:k 1}\n');
   });
 
-  it('suppresses the auto-encoded stdout when the query wrote to `@out`', () => {
+  it('suppresses the auto-encoded stdout when the query wrote to ~{@out}', () => {
     const cliOutcome = renderCellOutcome(
       makeCellEntry({ result: 'hello' }),
       { resolvedFormat: 'raw', didExplicitStdoutEffect: true }

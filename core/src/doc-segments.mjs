@@ -23,28 +23,6 @@ import { keyword, makeQuote } from './types.mjs';
 
 const PROSE_KIND = keyword('prose');
 
-// Inverse of escapeQuoteSource in runtime/format.mjs: backtick-escape
-// sequences (`` `{ ``, `` `} ``, `` `` ``) are unescaped to literal
-// chars. Other backslash / chars pass through verbatim.
-function unescapeQuoteSource(raw) {
-  let out = '';
-  let i = 0;
-  while (i < raw.length) {
-    const ch = raw[i];
-    if (ch === '`' && i + 1 < raw.length) {
-      const next = raw[i + 1];
-      if (next === '{' || next === '}' || next === '`') {
-        out += next;
-        i += 2;
-        continue;
-      }
-    }
-    out += ch;
-    i++;
-  }
-  return out;
-}
-
 function makeProseSegment(text) {
   const m = new Map();
   m.set('qlang/kind', PROSE_KIND);
@@ -79,9 +57,8 @@ function findNextOpener(content, from) {
 
 // Locate the position AFTER the matching `}` closer for a `~{...}`
 // Quote starting at `start` (which points to `~`). Balance-counts
-// `~{` opens against `}` closes, recognizing backtick-escapes
-// (`` `{ ``, `` `} ``, `` `` ``), string-literal spans, and nested
-// `~{...}` Quote spans as skip-zones so inner `}` chars do not
+// `~{` opens against `}` closes; string-literal spans and nested
+// `~{...}` Quote spans are skip-zones so inner `}` chars do not
 // trip the outer close.
 function findQuoteEnd(content, start) {
   if (content[start] !== '~' || content[start + 1] !== '{') return -1;
@@ -89,13 +66,6 @@ function findQuoteEnd(content, start) {
   let depth = 1;
   while (i < content.length) {
     const ch = content[i];
-    if (ch === '`' && i + 1 < content.length) {
-      const next = content[i + 1];
-      if (next === '{' || next === '}' || next === '`') {
-        i += 2;
-        continue;
-      }
-    }
     if (ch === '"') {
       i++;
       while (i < content.length && content[i] !== '"') {
@@ -218,7 +188,7 @@ export async function parseDocSegments(content, env) {
         break;
       }
       // opener.offset points to `~`; content slice between `~{` and `}` is the source.
-      const source = unescapeQuoteSource(content.slice(opener.offset + 2, endAfter - 1));
+      const source = content.slice(opener.offset + 2, endAfter - 1);
       segments.push(makeQuote(source));
       cursor = endAfter;
       continue;

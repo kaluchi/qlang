@@ -122,27 +122,27 @@ describe('printValue handles JSON Object / JSON Array', () => {
 
 describe('::qlang / ::json passthrough on non-container scalars', () => {
   it('::qlang on a number passes through unchanged', async () => {
-    expect(await evalQuery('::qlang 42')).toBe(42);
+    expect(await evalQuery('::qlang(42)')).toBe(42);
   });
 
   it('::json on a string passes through unchanged', async () => {
-    expect(await evalQuery('::json "hello"')).toBe('hello');
+    expect(await evalQuery('::json"hello"')).toBe('hello');
   });
 });
 
 describe('::qlang on actual JSON-tagged value recurses through containers', () => {
   it('::qlang on a JSON Object converts to qlang Map', async () => {
-    const result = await evalQuery('::qlang ::json{:k 1} | isMap');
+    const result = await evalQuery('::qlang(::json{:k 1}) | isMap');
     expect(result).toBe(true);
   });
 
   it('::qlang on a JSON Array converts to qlang Vec', async () => {
-    const result = await evalQuery('::qlang ::json[1 2 3] | isVec');
+    const result = await evalQuery('::qlang(::json[1 2 3]) | isVec');
     expect(result).toBe(true);
   });
 
   it('::qlang recurses into nested JSON containers', async () => {
-    const result = await evalQuery('::qlang ::json{:items [::json{:n 1} ::json{:n 2}]} | /items | first | /n');
+    const result = await evalQuery('::qlang(::json{:items [::json{:n 1} ::json{:n 2}]}) | /items | first | /n');
     expect(result).toBe(1);
   });
 });

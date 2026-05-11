@@ -260,28 +260,28 @@ describe('parse and eval accept Quote subjects transparently', () => {
 describe('User-defined type binding with Quote :qlang/impl', () => {
   it('applies the Quote body against payload as pipeValue', async () => {
     const result = await evalQuery(
-      'def(::wrap, {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}}) | "x" | ::wrap "x"'
+      'def(::wrap, {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}}) | "x" | ::wrap"x"'
     );
     expect(result).toBe('[x]');
   });
 
   it('Quote body sees the type-binding payload as its initial pipeValue', async () => {
     const result = await evalQuery(
-      'def(::shout, {:qlang/kind :type :qlang/impl ~{append("!")}}) | ::shout "ready"'
+      'def(::shout, {:qlang/kind :type :qlang/impl ~{append("!")}}) | ::shout"ready"'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      'def(:exclaim, append("!")) | def(::shout, {:qlang/kind :type :qlang/impl ~{exclaim}}) | ::shout "go"'
+      'def(:exclaim, append("!")) | def(::shout, {:qlang/kind :type :qlang/impl ~{exclaim}}) | ::shout"go"'
     );
     expect(result).toBe('go!');
   });
 
   it(':qlang/impl that is neither Keyword nor Quote raises TaggedLitImplNotResolvable', async () => {
     const err = await evalQuery(
-      'def(::bad, {:qlang/kind :type :qlang/impl 42}) | ::bad "x"'
+      'def(::bad, {:qlang/kind :type :qlang/impl 42}) | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(keyword('TaggedLitImplNotResolvable'));

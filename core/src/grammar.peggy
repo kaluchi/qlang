@@ -398,19 +398,36 @@ Primary
   / Scalar
 
 // TaggedLit / BareTypeKeyword — type-namespace identifiers under a
-// `::` prefix. `::tag<container>` (TaggedLit) constructs a value
+// `::` prefix. `::tag<payload>` (TaggedLit) constructs a value
 // through the type's registered constructor; `::tag` alone
 // (BareTypeKeyword) is an identifier reference to the type binding
-// itself. PEG ordered choice tries TaggedLit first; if no Primary
-// follows the tag identifier, parsing backtracks to BareTypeKeyword
-// so a bare reference like `::duration | spec` parses cleanly.
+// itself.
+//
+// Tag and payload are *atomic* — no whitespace permitted between
+// them. `::tag[1 2]` is one TaggedLit; `::tag [1 2]` is the
+// BareTypeKeyword `::tag` followed by a separate Vec primary at the
+// outer Pipeline / Vec / arg position. Whitespace forces splitting
+// — same rule that distinguishes `/foo` projection from `/ foo`
+// (which isn't legal). Scalar / identifier payload wraps through
+// ParenGroup: `::tag(42)`, `::tag(foo)`, `::tag(a | b)`.
+//
+// Tag name accepts NamespacedName (`::ns/sub/leaf`) symmetric with
+// keyword namespacing — same TagName production used by both.
+//
+// PEG ordered choice tries TaggedLit first; if no Primary follows
+// the tag identifier, parsing backtracks to BareTypeKeyword so a
+// bare reference like `::duration | spec` parses cleanly.
 TaggedLit
-  = "::" tag:Ident _ payload:Primary
+  = "::" tag:TagName payload:Primary
     { return node('TaggedLit', { tag, payload }, location(), text()); }
 
 BareTypeKeyword
-  = "::" tag:Ident
+  = "::" tag:TagName
     { return node('BareTypeKeyword', { tag }, location(), text()); }
+
+TagName
+  = NamespacedName
+  / Ident
 
 ParenGroup
   = "(" _ p:Pipeline _ ")"
@@ -421,19 +438,17 @@ ParenGroup
 // fragment beginning with a combinator (`* inc | sort`) — eager
 // parse would reject such a fragment.
 //
-// `~{...}` delimiter — paired (open ≠ close), balance-counted by
-// QuoteContent. Inner `{` / `}` from qlang composite literals
-// (Map / Set / Error / nested Quote) balance themselves; the
-// scanner's outer-close `}` is reached only when depth returns to
-// the opening level. String literals and qlang comments are
-// skip-zones — inner braces inside `"..."` strings or
-// `|~ ~|` / `|~~ ~~|` / `|~|` / `|~~|` comments do not count
-// toward balance.
-//
-// Backtick is the in-Quote escape char (no role outside Quote):
-// `` `{ `` → literal `{`, `` `} `` → literal `}`, `` `` `` →
-// literal backtick. Covers DSL templating cases where author needs
-// unbalanced braces in source.
+// `~{...}` delimiter — paired (open ≠ close). Content matches an
+// ordinary qlang `Pipeline` greedy-style; whatever the Pipeline
+// rule can't consume (leading combinator, stray separator,
+// whitespace) falls through to `QuoteChar` which accepts every
+// byte except `}`. Balance derives entirely from the standard
+// qlang grammar — `MapLit` / `SetLit` / `VecLit` / `ErrorLit` /
+// `ParenGroup` / `QuoteLit` / string literals / comment tokens
+// each end on their own closer, so the outer `}` is reached only
+// when nothing nests at the cursor. No separate escape mechanism —
+// valid qlang never carries unbalanced `{` / `}` / `` ` `` outside
+// a string literal or comment.
 //
 // `src` (not `source`) — `parse.mjs` stamps `ast.source` on the
 // root node, which would override a QuoteLit field of the same
@@ -448,8 +463,7 @@ QuoteContent
   = parts:QuotePart* { return parts.join(''); }
 
 QuotePart
-  = QuoteEscape
-  / NestedQuoteSpan
+  = NestedQuoteSpan
   / Pipeline { return text(); }
   / QuoteStringSpan
   / QuoteBlockDocSpan
@@ -457,9 +471,6 @@ QuotePart
   / QuoteLineDocSpan
   / QuoteLinePlainSpan
   / QuoteChar
-
-QuoteEscape
-  = "`" c:[{}`] { return c; }
 
 NestedQuoteSpan
   = "~{" inner:QuoteContent "}"

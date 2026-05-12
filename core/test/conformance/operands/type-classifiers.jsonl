@@ -31,7 +31,7 @@
 {"name":"isBoolean-null-false","query":"null | isBoolean","expect":"false"}
 {"name":"isBoolean-empty-string-false","query":"\"\" | isBoolean","expect":"false"}
 {"name":"isNull-null-literal-true","query":"null | isNull","expect":"true"}
-{"name":"isNull-missing-key-true","query":"{} | /missing | isNull","expect":"true"}
+{"name":"isNull-missing-key-true","query":"{} | /missing | isNull","expect":"::ProjectionKeyNotInMap!{\n  :fault {\n    :step ~{/missing}\n    :input {}\n  }\n  :key \"missing\"\n  :subject {}\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"isNull-zero-false","query":"0 | isNull","expect":"false"}
 {"name":"isNull-empty-string-false","query":"\"\" | isNull","expect":"false"}
 {"name":"isNull-false-false","query":"false | isNull","expect":"false"}

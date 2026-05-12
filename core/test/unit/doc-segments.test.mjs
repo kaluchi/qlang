@@ -51,6 +51,26 @@ describe('Doc tokenizer edge cases', () => {
     expect(result).toBe(0);
   });
 
+  it('unterminated Quote `~{` inside a Doc falls back to Prose for the remainder', async () => {
+    // findQuoteEnd returns -1 when no matching `}` closes the
+    // `~{` opener within the Doc content; parseDocSegments then
+    // emits a Prose segment containing the rest of the doc and
+    // stops scanning.
+    const result = await evalQuery('|~~ pre ~{never closes ~~| | /segments | count');
+    expect(result).toBeGreaterThanOrEqual(1);
+  });
+
+  it('unterminated nested Quote inside a TaggedLit bracket payload — outer falls back to Prose', async () => {
+    // findTaggedEnd scans a `::tag[…]` bracket payload. When it
+    // hits a `~{` opener inside the payload, it delegates to
+    // findQuoteEnd; if THAT returns -1 (no closing `}`), the
+    // outer findTaggedEnd returns -1 in turn, so the `::tag` start
+    // emits a 2-char Prose segment and parseDocSegments resumes
+    // past it.
+    const result = await evalQuery('|~~ ::tag[~{never closes ~~| | /segments | count');
+    expect(result).toBeGreaterThanOrEqual(1);
+  });
+
   it('unterminated TaggedLit bracket falls through to Prose', async () => {
     const result = await evalQuery('|~~ broken ::tag[no close ~~| | /segments | count');
     expect(result).toBeGreaterThanOrEqual(1);

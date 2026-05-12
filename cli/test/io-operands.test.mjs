@@ -50,7 +50,7 @@ describe('@out — bare form (0 captured)', () => {
     expectOperandErrorThrown(cellEntry, 'OutSubjectNotString', {
       operand: '@out',
       position: 'subject',
-      expectedType: 'String',
+      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });
@@ -95,7 +95,7 @@ describe('@err — bare form', () => {
     expectOperandErrorThrown(cellEntry, 'ErrSubjectNotString', {
       operand: '@err',
       position: 'subject',
-      expectedType: 'String',
+      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'vec' }
     });
   });
@@ -134,7 +134,7 @@ describe('@tap', () => {
     expectOperandErrorThrown(cellEntry, 'TapLabelNotKeyword', {
       operand: '@tap',
       position: 1,
-      expectedType: 'Keyword',
+      expectedType: { type: 'keyword', name: 'keyword' },
       actualType: { name: 'string' }
     });
   });

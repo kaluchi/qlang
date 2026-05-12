@@ -70,15 +70,39 @@ function trailEntry(stepNode, combinatorKind) {
 }
 
 const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
-  ({ key, actualType }) => `/${key} requires Map subject, got ${actualType.name}`);
+  ({ key, actualType }) => `/${key} requires Map or Vec subject, got ${actualType.name}`);
+// Map subject does not carry the requested key. Strict fail-first
+// surfaces the typo / mismatched-shape on the projection itself
+// rather than propagating null through downstream steps where the
+// failure surfaces with no breadcrumb pointing back to the missing
+// key. null subject still propagates as null (see projectSegment).
+const ProjectionKeyNotInMap = declareShapeError('ProjectionKeyNotInMap',
+  ({ key }) => `/${key} — key not present in Map subject`);
+// Vec subject indexed past its bounds. Negative indices walk from
+// the tail (`/-1` is last); only positions that resolve outside
+// `[0, length)` trip this site.
+const ProjectionIndexOutOfBounds = declareShapeError('ProjectionIndexOutOfBounds',
+  ({ key, length }) => `/${key} — index out of bounds for Vec subject of length ${length}`);
+// Vec subject projected by a non-numeric segment. Vec indices are
+// integer offsets; named keys belong to Map shape, so a `[…] | /name`
+// query is treated as a shape mismatch rather than silently coalescing
+// to null.
+const ProjectionVecKeyNotInteger = declareShapeError('ProjectionVecKeyNotInteger',
+  ({ key }) => `/${key} — non-integer segment cannot index a Vec subject`);
+// Value-class subjects (Quote / Doc / …) publish a fixed set of
+// projectable fields through PROJECTABLE_BY_TYPE. A segment outside
+// that set is a typo, not an optional read.
+const ProjectionFieldNotOnValueClass = declareShapeError('ProjectionFieldNotOnValueClass',
+  ({ key, valueClass, availableFields }) =>
+    `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
 const TaggedLitTagNotFound = declareShapeError('TaggedLitTagNotFound',
   ({ tag }) => `::${tag} — type binding not found in env`);
 const TaggedLitNotType = declareShapeError('TaggedLitNotType',
   ({ tag, actualType }) => `::${tag} — type binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :type`);
 const TaggedLitImplNotResolvable = declareShapeError('TaggedLitImplNotResolvable',
   ({ tag, actualType }) => `::${tag} — :qlang/impl is ${actualType.name}, expected a Keyword (built-in handle) or a Quote (qlang body)`);
-const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'Vec');
-const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'Vec');
+const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'vec');
+const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'vec');
 const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}, not a function`);
 const ConduitArityMismatch    = declareArityError('ConduitArityMismatch',
@@ -107,7 +131,15 @@ export async function evalQuery(source, env) {
     return errorFromParse(parseErr);
   }
   const envWithInlineAst = envSet(initialEnv, 'qlang/ast/inline', makeQuote(source, ast));
-  const initialState = makeState(envWithInlineAst, envWithInlineAst);
+  // Initial pipeValue is `null` — every pipeline has to bring its own
+  // subject through an explicit head step (`env`, a literal, a
+  // captured arg). The pre-M4 default of seeding pipeValue with the
+  // env Map made `count` standalone "count of env bindings" and
+  // dumped the full env into `:fault.input` on every error — both
+  // surprising and noisy. The `env` identifier still resolves
+  // through env-lookup so introspective queries (`env | keys`,
+  // `env | /count | reify`) work identically.
+  const initialState = makeState(null, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
   return finalState.pipeValue;
 }
@@ -328,8 +360,8 @@ async function applyFailTrack(state, stepNode) {
 // pipeline-suffix; when only one side carries a Quote, it passes
 // through unchanged. null + null → null.
 function combineTrailQuotes(existing, fresh) {
-  if (existing === null) return fresh;
-  if (fresh === null)    return existing;
+  if (existing == null) return fresh;
+  if (fresh == null)    return existing;
   return makeQuote(existing.source + ' ' + fresh.source);
 }
 
@@ -432,6 +464,24 @@ async function evalTaggedLit(node, state) {
     const bodyState = makeState(payloadValue, state.env);
     const resultState = await evalNode(bodyAst, bodyState);
     return withPipeValue(state, resultState.pipeValue);
+  }
+  // Named-error construction shorthand — `::Tag!{…}` literal where
+  // ::Tag is a registered type-binding without a `:qlang/impl`
+  // constructor. The payload is already an ErrorValue (evaluated
+  // from the ErrorLit at line 408); re-stamp the descriptor with
+  // `:thrown ::Tag` so the literal round-trips through parse → eval
+  // → print into the same shape `errorFromQlang` produces from a JS
+  // throw site. This is the universal constructor every named-error
+  // type-binding shares until per-site Quote-impl validators (§II.3)
+  // land. Constructor-less non-error TaggedLits still fall through
+  // to TaggedLitImplNotResolvable.
+  if (implKey === undefined && isErrorValue(payloadValue)) {
+    const restamped = new Map(payloadValue.descriptor);
+    restamped.set('thrown', makeTagKeyword(node.tag));
+    return withPipeValue(state, makeErrorValue(restamped, {
+      location: node.location,
+      originalError: payloadValue.originalError
+    }));
   }
   throw new TaggedLitImplNotResolvable({ tag: node.tag, actualType: typeKeyword(implKey), actualValue: implKey });
 }
@@ -540,12 +590,13 @@ async function evalSetLit(node, state) {
 // Projection walks a path of key segments, dispatching per-segment
 // on the current subject's kind — Map does keyword-lookup, Vec does
 // integer-index access with `Array.prototype.at`-style negative
-// support. Any subject outside {Map, Vec} at descent time raises
-// ProjectionSubjectNotMap (the name predates Vec support; kept for
-// stable per-site identity). A Vec subject with a non-integer
-// segment resolves to `null` — symmetric with the missing-key case
-// on a Map — so mixed-shape JSON paths like `/items/0/name` never
-// throw on a legitimate "this slot holds null" reading.
+// support, value-classes (Quote, Doc) expose a fixed projectable
+// field-set. Every miss / mismatch is a fail-first error so a typo'd
+// key, out-of-range index, or `null` subject surfaces on the
+// projection itself rather than cascading downstream as a typeless
+// blowup with no breadcrumb. The soft counterpart for "optionally
+// read a field" is the `at` operand (Map miss → `null`); explicit
+// fail-track handling stays available via the `!|` combinator.
 const INTEGER_SEGMENT_RE = /^-?\d+$/;
 
 async function evalProjection(node, state) {
@@ -588,24 +639,37 @@ function lazyParseQuoteAst(q) {
 }
 
 function projectSegment(subject, projKey, state) {
-  if (subject !== null && typeof subject === 'object') {
+  if (typeof subject === 'object' && subject !== null) {
     const handlers = PROJECTABLE_BY_TYPE[subject.type];
     if (handlers) {
-      const handler = handlers[projKey];
-      return handler ? handler(subject, state) : NULL;
+      if (!Object.hasOwn(handlers, projKey)) {
+        throw new ProjectionFieldNotOnValueClass({
+          key: projKey,
+          valueClass: subject.type,
+          availableFields: Object.keys(handlers)
+        });
+      }
+      return handlers[projKey](subject, state);
     }
   }
   if (isJsonObject(subject)) {
-    return Object.hasOwn(subject, projKey) ? subject[projKey] : NULL;
+    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMap({ key: projKey, subject });
+    return subject[projKey];
   }
   if (isQMap(subject)) {
-    return subject.has(projKey) ? subject.get(projKey) : NULL;
+    if (!subject.has(projKey)) throw new ProjectionKeyNotInMap({ key: projKey, subject });
+    return subject.get(projKey);
   }
   if (isJsonArray(subject) || isVec(subject)) {
-    if (!INTEGER_SEGMENT_RE.test(projKey)) return NULL;
+    if (!INTEGER_SEGMENT_RE.test(projKey)) {
+      throw new ProjectionVecKeyNotInteger({ key: projKey, subject });
+    }
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
-    return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
+    if (resolvedIndex < 0 || resolvedIndex >= subject.length) {
+      throw new ProjectionIndexOutOfBounds({ key: projKey, index: segmentIndex, length: subject.length, subject });
+    }
+    return subject[resolvedIndex];
   }
   throw new ProjectionSubjectNotMap({
     key: projKey,

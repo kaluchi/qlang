@@ -348,8 +348,9 @@
   |~~ Polymorphic indexed access. On a Vec subject, returns the
     element at integer index n (negative indices count from the end;
     out-of-range returns null). On a Map subject, returns the value
-    at string key (missing key returns null — the dynamic counterpart
-    of the /key projection).
+    at string key (missing key returns null). The soft counterpart of
+    the strict `/key` projection — `at` coalesces a miss to null,
+    `/key` raises `::ProjectionKeyNotInMap`.
 
     ~{[10 20 30] | at(1) | eq(20)}
     ~{[10 20 30] | at(-1) | eq(30)}
@@ -1116,7 +1117,7 @@
     both produce null.
 
     ~{null | isNull | eq(true)}
-    ~{{} | /missing | isNull | eq(true)}
+    ~{{:nothing null} | /nothing | isNull | eq(true)}
     ~{0 | isNull | eq(false)}
     ~{"" | isNull | eq(false)}
     ~~|

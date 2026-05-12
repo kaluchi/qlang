@@ -61,7 +61,6 @@ function findNextOpener(content, from) {
 // `~{...}` Quote spans are skip-zones so inner `}` chars do not
 // trip the outer close.
 function findQuoteEnd(content, start) {
-  if (content[start] !== '~' || content[start + 1] !== '{') return -1;
   let i = start + 2;
   let depth = 1;
   while (i < content.length) {

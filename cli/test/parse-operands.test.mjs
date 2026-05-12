@@ -45,7 +45,7 @@ describe('parseJson — error sites', () => {
     expectOperandErrorThrown(cellEntry, 'ParseJsonSubjectNotString', {
       operand: 'parseJson',
       position: 'subject',
-      expectedType: 'String',
+      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });
@@ -85,7 +85,7 @@ describe('parseTjson — error sites', () => {
     expectOperandErrorThrown(cellEntry, 'ParseTjsonSubjectNotString', {
       operand: 'parseTjson',
       position: 'subject',
-      expectedType: 'String',
+      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });

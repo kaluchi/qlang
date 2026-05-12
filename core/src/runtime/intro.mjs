@@ -42,7 +42,7 @@ import { parse as parseSource } from '../parse.mjs';
 import { findDefStepAcrossModules } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'Map');
+const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'map');
 const UseNamespaceNotKeyword = declareShapeError('UseNamespaceNotKeyword',
   ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`);
 const UseNamespaceNotFound = declareShapeError('UseNamespaceNotFound',
@@ -621,10 +621,10 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
 // level qlang operations from this point on.
 
 const ParseSubjectNotStringOrQuote = declareSubjectError(
-  'ParseSubjectNotStringOrQuote', 'parse', 'String or Quote');
+  'ParseSubjectNotStringOrQuote', 'parse', ['string', 'quote']);
 
 const EvalSubjectNotMapOrQuote = declareSubjectError(
-  'EvalSubjectNotMapOrQuote', 'eval', 'AST Map or Quote');
+  'EvalSubjectNotMapOrQuote', 'eval', ['map', 'quote']);
 
 // parse — reads a source string into the Variant-B AST-Map form.
 // A Quote-value is accepted too: it is "code in string form", so

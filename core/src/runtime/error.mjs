@@ -31,7 +31,7 @@ import { nullaryOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const ErrorDescriptorNotMap = declareSubjectError(
-  'ErrorDescriptorNotMap', 'error', 'Map');
+  'ErrorDescriptorNotMap', 'error', 'map');
 
 // error — lift a Map into an error value.
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;

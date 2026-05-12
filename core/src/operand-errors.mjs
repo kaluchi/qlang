@@ -25,13 +25,39 @@ import {
   QlangTypeError,
   ArityError
 } from './errors.mjs';
-import { typeKeyword } from './types.mjs';
+import { typeKeyword, keyword as makeKeyword } from './types.mjs';
 
 // ── Factory primitives ─────────────────────────────────────────
 
 function brand(cls, name) {
   Object.defineProperty(cls, 'name', { value: name });
   return cls;
+}
+
+// expectedType authoring form is one or more qlang type-keyword
+// names — `'number'`, `'vec'`, or `['vec', 'set', 'map']`. The
+// factory lowers each form to (a) a context value (single Keyword
+// or frozen Vec of Keywords) for the structured `:expectedType`
+// field, and (b) a humanised string ("Number", "Vec or Set",
+// "Vec, Set, or Map") for the diagnostic message body.
+function lowerExpectedType(input) {
+  const names = Array.isArray(input) ? input : [input];
+  const value = names.length === 1
+    ? makeKeyword(names[0])
+    : Object.freeze(names.map(makeKeyword));
+  const human = formatExpectedTypeHuman(names);
+  return { value, human };
+}
+
+function capitalise(name) {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function formatExpectedTypeHuman(names) {
+  const caps = names.map(capitalise);
+  if (caps.length === 1) return caps[0];
+  if (caps.length === 2) return `${caps[0]} or ${caps[1]}`;
+  return caps.slice(0, -1).join(', ') + ', or ' + caps[caps.length - 1];
 }
 
 // Per-site identity rides on `this.name` / `this.fingerprint`,
@@ -43,16 +69,17 @@ function brand(cls, name) {
 
 // declareSubjectError — thrown when an operand receives a subject
 // value whose type is not acceptable.
-export function declareSubjectError(className, operand, expectedType) {
+export function declareSubjectError(className, operand, expectedTypeInput) {
+  const expectedType = lowerExpectedType(expectedTypeInput);
   const Cls = class extends QlangTypeError {
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} requires ${expectedType} subject, got ${actualType.name}`,
+        `${operand} requires ${expectedType.human} subject, got ${actualType.name}`,
         {
           operand,
           position: 'subject',
-          expectedType,
+          expectedType: expectedType.value,
           actualType,
           actualValue
         }
@@ -66,16 +93,17 @@ export function declareSubjectError(className, operand, expectedType) {
 
 // declareModifierError — thrown when a captured argument has the
 // wrong type at a specific numeric position.
-export function declareModifierError(className, operand, position, expectedType) {
+export function declareModifierError(className, operand, position, expectedTypeInput) {
+  const expectedType = lowerExpectedType(expectedTypeInput);
   const Cls = class extends QlangTypeError {
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} expects ${expectedType} at position ${position}, got ${actualType.name}`,
+        `${operand} expects ${expectedType.human} at position ${position}, got ${actualType.name}`,
         {
           operand,
           position,
-          expectedType,
+          expectedType: expectedType.value,
           actualType,
           actualValue
         }
@@ -89,16 +117,17 @@ export function declareModifierError(className, operand, position, expectedType)
 
 // declareElementError — thrown when a specific element of a
 // collection subject has the wrong type.
-export function declareElementError(className, operand, expectedType) {
+export function declareElementError(className, operand, expectedTypeInput) {
+  const expectedType = lowerExpectedType(expectedTypeInput);
   const Cls = class extends QlangTypeError {
     constructor(index, actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand}: element ${index} expects ${expectedType}, got ${actualType.name}`,
+        `${operand}: element ${index} expects ${expectedType.human}, got ${actualType.name}`,
         {
           operand,
           index,
-          expectedType,
+          expectedType: expectedType.value,
           actualType,
           actualValue
         }

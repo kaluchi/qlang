@@ -122,6 +122,26 @@ describe('describeType for conduit and snapshot', async () => {
     const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
     expect(describeType(conduit)).toBe('Conduit');
   });
+
+  it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Box')],
+      ['qlang/payload', [42]]
+    ]);
+    expect(describeType(instance)).toBe('TaggedInstance');
+  });
+
+  it('typeKeyword returns the tag as a TagKeyword for a tagged-instance Map', async () => {
+    const { makeTagKeyword, isTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Box')],
+      ['qlang/payload', [42, 'inner']]
+    ]);
+    const tk = typeKeyword(instance);
+    expect(isTagKeyword(tk)).toBe(true);
+    expect(tk.name).toBe('Box');
+  });
 });
 
 describe('typeKeyword covers all value kinds', () => {

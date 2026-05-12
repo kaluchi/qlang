@@ -104,4 +104,40 @@ describe('def — effect-laundering safety net', () => {
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('EffectLaunderingAtDefParse'));
   });
+
+  it('rejects effectful body under non-@-prefixed BindStep form', async () => {
+    const err = await evalQuery(':safe @nonExistent');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('EffectLaunderingAtDefParse'));
+  });
+});
+
+describe('BindStep — declarative conduit form', () => {
+  // BindStep with an impure body parses to a Conduit just like
+  // `def(:name, body)` does — exercises the params=null fall-through
+  // through evalBindStep's effect-laundering check and conduit
+  // creation. The def(…) operand path bypasses evalBindStep, so
+  // these tests are the only coverage for that branch.
+  it(':double mul(2) — zero-param conduit invokable by name', async () => {
+    const result = await evalQuery(':double mul(2) | 5 | double');
+    expect(result).toBe(10);
+  });
+
+  it(':@add1 [:x] add(x) — captured arg x binds the modifier (params non-null branch)', async () => {
+    const result = await evalQuery(':@add1 [:x] add(x) | 5 | @add1(10)');
+    expect(result).toBe(15);
+  });
+});
+
+describe('BindStep — docs-only form binds a Doc-valued snapshot', () => {
+  // A BindStep with a DocPrefix but no body. The bound value carries
+  // the joined doc-content as a Doc, wrapped in a Snapshot under
+  // the binding name. Round-trips via `binding-name | reify | /value`
+  // or, for direct subject lookup, by referencing the identifier.
+  it(':name |~~| only-docs binds the joined doc-content as a Doc value', async () => {
+    const { describeType } = await import('../../src/types.mjs');
+    const doc = await evalQuery(':forward |~~| placeholder note\n| forward');
+    expect(describeType(doc)).toBe('Doc');
+    expect(doc.content).toBe(' placeholder note');
+  });
 });

@@ -6,7 +6,7 @@
 {"name":"every-with-projection","query":"[{:active true} {:active true}] | every(/active)","expect":"true"}
 {"name":"every-with-projection-fails","query":"[{:active true} {:active false}] | every(/active)","expect":"false"}
 {"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every(and(/ok, /age | gte(18)))","expect":"true"}
-{"name":"every-on-non-container-throws","query":"42 | every(gt(0))","error":"type-error","expect":"!{\n  :origin :qlang/eval\n  :kind :type-error\n  :thrown ::EverySubjectNotContainer\n  :message \"every requires Vec, Set, or Map subject, got number\"\n  :operand \"every\"\n  :position \"subject\"\n  :expectedType \"Vec, Set, or Map\"\n  :actualType :number\n  :actualValue 42\n  :fault {:step ~{every(gt(0))} :input 42}\n  :trail null\n}"}
+{"name":"every-on-non-container-throws","query":"42 | every(gt(0))","error":"type-error","expect":"::EverySubjectNotContainer!{\n  :fault {:step ~{every(gt(0))} :input 42}\n  :actualValue 42\n  :actualType :number\n  :expectedType [:vec :set :map]\n  :operand :every\n  :position :subject\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"every-short-circuits","query":"[1 0 2] | every(gt(0))","expect":"false"}
 {"name":"every-as-filter-equivalence","query":"def(:xs, [1 2 3 4 5]) | xs | filter(gt(0)) | count | eq(xs | count) | eq(xs | every(gt(0)))","expect":"true"}
 {"name":"every-set-all-match","query":"#{2 4 6} | every(gt(0))","expect":"true"}

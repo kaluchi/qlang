@@ -603,7 +603,7 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | div(1)',      // DivLeftNotNumber
       '"a" | gt(5)',       // GtOperandsNotComparable
       '"a" | lt(5)',       // LtOperandsNotComparable
-      'null | /name',      // ProjectionSubjectNotMap (Null subject — neither Map nor Vec)
+      '1 | /name',         // ProjectionSubjectNotMap (Number subject — neither Map nor Vec)
       '{:a 1} * add(1)',   // DistributeSubjectNotVec
       '42 >> count'        // MergeSubjectNotVec
     ];
@@ -853,7 +853,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if treats null as falsy', async () => {
-    expect(await evalQuery('{:no "data"} | if(/missing, "yes", "no")')).toBe('no');
+    expect(await evalQuery('{:no "data"} | if(null, "yes", "no")')).toBe('no');
   });
 
   it('if treats false literal as falsy', async () => {

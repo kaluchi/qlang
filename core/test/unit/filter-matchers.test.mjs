@@ -149,7 +149,7 @@ describe('filter — container polymorphism', () => {
     expect(originalErr.name).toBe('FilterSubjectNotContainer');
     expect(originalErr.context.operand).toBe('filter');
     expect(originalErr.context.position).toBe('subject');
-    expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
+    expect(originalErr.context.expectedType.map(k => k.name)).toEqual(['vec', 'set', 'map']);
     expect(originalErr.context.actualType.name).toBe('number');
   });
 
@@ -266,7 +266,7 @@ describe('every — container polymorphism', () => {
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('EverySubjectNotContainer');
     expect(originalErr.context.operand).toBe('every');
-    expect(originalErr.context.expectedType).toBe('Vec, Set, or Map');
+    expect(originalErr.context.expectedType.map(k => k.name)).toEqual(['vec', 'set', 'map']);
   });
 
   it('Vec with 1-arity conduit — every applies element as captured-arg', async () => {
@@ -428,7 +428,11 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
 
   it('isNull classifies null vs the rest', async () => {
     expect(await evalQuery('null | isNull')).toBe(true);
-    expect(await evalQuery('{} | /missing | isNull')).toBe(true);
+    // A Map entry whose value is the explicit `null` is the only
+    // post-strict-projection path to null-via-projection. A missing
+    // key now errors (::ProjectionKeyNotInMap) instead of silently
+    // returning null.
+    expect(await evalQuery('{:nothing null} | /nothing | isNull')).toBe(true);
     expect(await evalQuery('0 | isNull')).toBe(false);
     expect(await evalQuery('"" | isNull')).toBe(false);
     expect(await evalQuery('false | isNull')).toBe(false);

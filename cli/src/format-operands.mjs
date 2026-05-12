@@ -45,7 +45,7 @@ import { bindHostBuiltin } from './host-builtin.mjs';
 // ── Per-site error classes ─────────────────────────────────────
 
 const TemplateModifierNotString =
-  declareModifierError('TemplateModifierNotString', 'template', 1, 'String');
+  declareModifierError('TemplateModifierNotString', 'template', 1, 'string');
 
 // ── template — substitute pipeline values into a String ────────
 

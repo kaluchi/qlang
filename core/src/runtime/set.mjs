@@ -9,7 +9,7 @@ import { isVec } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const SetConversionSubjectNotVec = declareSubjectError('SetConversionSubjectNotVec', 'set', 'Vec');
+const SetConversionSubjectNotVec = declareSubjectError('SetConversionSubjectNotVec', 'set', 'vec');
 
 export const set = nullaryOp('set', (vec) => {
   if (!isVec(vec)) throw new SetConversionSubjectNotVec(vec);

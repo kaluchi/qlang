@@ -53,11 +53,12 @@ const REPL_HELP = `Meta commands:
   .exit    close the REPL (Ctrl+D on an empty line works too)
 
 Editing:
-  Enter               insert a newline (the buffer stays open;
-                      multi-line cells are the default)
-  Ctrl+Enter / Ctrl+J evaluate the current cell
-  Alt+Enter           evaluate the current cell (fallback for
-                      terminals that do not distinguish Ctrl+Enter)
+  Enter               evaluate the current cell (PowerShell / bash
+                      muscle-memory parity)
+  Ctrl+Enter / Ctrl+J insert a soft newline at the cursor — keep
+                      composing a multi-line cell
+  Alt+Enter           evaluate the current cell (alternate submit
+                      for hosts that intercept Ctrl+Enter)
   Backspace           delete the character before the cursor
                       (across \`\\n\` if needed — rows collapse)
   Left / Right        move the cursor by one character
@@ -157,18 +158,24 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
 }
 
 function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
-  if (cellEntry.error !== null) {
-    stderrWrite(`error: ${cellEntry.error.message}\n`);
-    return;
-  }
-  let result = cellEntry.result;
-  if (isErrorValue(result)) {
-    result = materializeForDisplay(result);
+  // Parse failures and runtime fail-track errors both surface as
+  // `isErrorValue(cellEntry.result)` — session lifts ParseError
+  // through errorFromParse so the same structured `::Tag!{…}`
+  // print path covers both. The bare `cellEntry.error` channel
+  // catches host-level JS throws that have no qlang ErrorValue
+  // lift (setup failures, etc.); those fall back to the raw JS
+  // message.
+  if (isErrorValue(cellEntry.result)) {
+    const result = materializeForDisplay(cellEntry.result);
     const rendered = renderForTerminal(result, builtinNames, stderrWrite);
     if (rendered !== null) stderrWrite(rendered + '\n');
     return;
   }
-  const rendered = renderForTerminal(result, builtinNames, stderrWrite);
+  if (cellEntry.error !== null) {
+    stderrWrite(`error: ${cellEntry.error.message}\n`);
+    return;
+  }
+  const rendered = renderForTerminal(cellEntry.result, builtinNames, stderrWrite);
   if (rendered !== null) stdoutWrite(rendered + '\n');
 }
 

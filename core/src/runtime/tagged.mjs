@@ -16,7 +16,7 @@ import {
 import { parse } from '../parse.mjs';
 import { declareSubjectError, declareShapeError, declareArityError } from '../operand-errors.mjs';
 
-const ConduitPayloadNotVec = declareSubjectError('ConduitPayloadNotVec', '::conduit', 'Vec');
+const ConduitPayloadNotVec = declareSubjectError('ConduitPayloadNotVec', '::conduit', 'vec');
 const ConduitArityInvalid = declareArityError('ConduitArityInvalid',
   ({ actualCount }) => `::conduit payload must be a Vec of 2 ([params, body]) or 3 ([self, params, body]) elements, got ${actualCount}`);
 const ConduitSelfNameNotKeyword = declareShapeError('ConduitSelfNameNotKeyword',

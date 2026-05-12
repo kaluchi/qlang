@@ -28,15 +28,25 @@
 // REPL mode has its own renderer inline in repl.mjs — the per-cell
 // auto-print there stays qlang-native (printValue + ANSI).
 
+import { isErrorValue, printValue } from '@kaluchi/qlang-core';
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
 
 export function renderCellOutcome(cellEntry, outcomeOpts) {
   const { resolvedFormat, didExplicitStdoutEffect } = outcomeOpts;
 
   if (cellEntry.error !== null) {
+    // Parse failures land both as a host-error marker (so the exit
+    // code reflects the syntactic failure) AND as a structured
+    // `::ParseError!{…}` ErrorValue on the result channel. Render
+    // the ErrorValue when present — `printValue` produces the
+    // caret-pointer-aware diagnostic; fall back to the raw JS
+    // message for non-lifted host failures (setup errors, etc.).
+    const diagnostic = isErrorValue(cellEntry.result)
+      ? printValue(cellEntry.result)
+      : `qlang: ${cellEntry.error.message}`;
     return {
       stdoutText: '',
-      stderrText: `qlang: ${cellEntry.error.message}\n`,
+      stderrText: diagnostic + '\n',
       exitCode: 1
     };
   }

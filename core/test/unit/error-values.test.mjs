@@ -142,7 +142,7 @@ describe('errorFromQlang', () => {
     ]));
     const typeErr = new QlangTypeError('bad type', {
       operand: 'add',
-      expectedType: 'Number',
+      expectedType: keyword('number'),
       actualType: { name: 'string' },
       actualValue: 'the-value'
     });
@@ -151,7 +151,7 @@ describe('errorFromQlang', () => {
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('type-error'));
     expect(desc.get('thrown')).toEqual(makeTagKeyword('QlangTypeError'));
-    expect(desc.get('operand')).toBe('add');
+    expect(desc.get('operand')).toEqual(keyword('add'));
     expect(desc.get('actualValue')).toBe('the-value');
     const fault = desc.get('fault');
     expect(fault).toBeInstanceOf(Map);

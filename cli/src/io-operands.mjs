@@ -42,21 +42,21 @@ import { bindHostBuiltin } from './host-builtin.mjs';
 // ── Per-site error classes ─────────────────────────────────────
 
 const OutSubjectNotString =
-  declareSubjectError('OutSubjectNotString', '@out', 'String');
+  declareSubjectError('OutSubjectNotString', '@out', 'string');
 const OutRendererResultNotString =
   declareShapeError('OutRendererResultNotString',
     ({ actualType }) =>
       `@out renderer must produce a String, got ${actualType.name}`);
 
 const ErrSubjectNotString =
-  declareSubjectError('ErrSubjectNotString', '@err', 'String');
+  declareSubjectError('ErrSubjectNotString', '@err', 'string');
 const ErrRendererResultNotString =
   declareShapeError('ErrRendererResultNotString',
     ({ actualType }) =>
       `@err renderer must produce a String, got ${actualType.name}`);
 
 const TapLabelNotKeyword =
-  declareModifierError('TapLabelNotKeyword', '@tap', 1, 'Keyword');
+  declareModifierError('TapLabelNotKeyword', '@tap', 1, 'keyword');
 
 // ── Operand factories ──────────────────────────────────────────
 

@@ -55,16 +55,16 @@ import {
 
 // ── Subject-type classes ───────────────────────────────────────
 
-const CountSubjectNotContainer    = declareSubjectError('CountSubjectNotContainer',    'count',    'Vec, Set, or Map');
-const EmptySubjectNotContainer    = declareSubjectError('EmptySubjectNotContainer',    'empty',    'Vec, Set, or Map');
-const FirstSubjectNotVec          = declareSubjectError('FirstSubjectNotVec',          'first',    'Vec');
-const LastSubjectNotVec           = declareSubjectError('LastSubjectNotVec',           'last',     'Vec');
-const SumSubjectNotVecOrSet       = declareSubjectError('SumSubjectNotVecOrSet',       'sum',      'Vec or Set');
-const MinSubjectNotVecOrSet       = declareSubjectError('MinSubjectNotVecOrSet',       'min',      'Vec or Set');
-const MaxSubjectNotVecOrSet       = declareSubjectError('MaxSubjectNotVecOrSet',       'max',      'Vec or Set');
-const FilterSubjectNotContainer   = declareSubjectError('FilterSubjectNotContainer',   'filter',   'Vec, Set, or Map');
-const EverySubjectNotContainer    = declareSubjectError('EverySubjectNotContainer',    'every',    'Vec, Set, or Map');
-const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer',      'any',      'Vec, Set, or Map');
+const CountSubjectNotContainer    = declareSubjectError('CountSubjectNotContainer',    'count',    ['vec', 'set', 'map']);
+const EmptySubjectNotContainer    = declareSubjectError('EmptySubjectNotContainer',    'empty',    ['vec', 'set', 'map']);
+const FirstSubjectNotVec          = declareSubjectError('FirstSubjectNotVec',          'first',    'vec');
+const LastSubjectNotVec           = declareSubjectError('LastSubjectNotVec',           'last',     'vec');
+const SumSubjectNotVecOrSet       = declareSubjectError('SumSubjectNotVecOrSet',       'sum',      ['vec', 'set']);
+const MinSubjectNotVecOrSet       = declareSubjectError('MinSubjectNotVecOrSet',       'min',      ['vec', 'set']);
+const MaxSubjectNotVecOrSet       = declareSubjectError('MaxSubjectNotVecOrSet',       'max',      ['vec', 'set']);
+const FilterSubjectNotContainer   = declareSubjectError('FilterSubjectNotContainer',   'filter',   ['vec', 'set', 'map']);
+const EverySubjectNotContainer    = declareSubjectError('EverySubjectNotContainer',    'every',    ['vec', 'set', 'map']);
+const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer',      'any',      ['vec', 'set', 'map']);
 
 // Per-operand arity-invalid classes — predicate conduit arity limits
 // at each filter/every/any call site. On Vec or Set the predicate has
@@ -91,28 +91,28 @@ const EveryMapPredArityInvalid  = declareArityError('EveryMapPredArityInvalid',
 const AnyMapPredArityInvalid    = declareArityError('AnyMapPredArityInvalid',
   ({ conduitName, actualArity }) =>
     `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
-const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'Vec');
-const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'Vec');
+const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'vec');
+const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'vec');
 const GroupByKeyNotKeyword        = declareShapeError('GroupByKeyNotKeyword',
   ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
 const IndexByKeyNotKeyword        = declareShapeError('IndexByKeyNotKeyword',
   ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
-const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'Vec');
-const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'Vec');
-const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'Vec');
-const FirstNonZeroSubjectNotVec   = declareSubjectError('FirstNonZeroSubjectNotVec',   'firstNonZero', 'Vec of Numbers');
-const TakeSubjectNotVec           = declareSubjectError('TakeSubjectNotVec',           'take',     'Vec');
-const DropSubjectNotVec           = declareSubjectError('DropSubjectNotVec',           'drop',     'Vec');
-const DistinctSubjectNotVec       = declareSubjectError('DistinctSubjectNotVec',       'distinct', 'Vec');
-const ReverseSubjectNotVec        = declareSubjectError('ReverseSubjectNotVec',        'reverse',  'Vec');
-const FlatSubjectNotVec           = declareSubjectError('FlatSubjectNotVec',           'flat',     'Vec');
+const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'vec');
+const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'vec');
+const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'vec');
+const FirstNonZeroSubjectNotVec   = declareSubjectError('FirstNonZeroSubjectNotVec',   'firstNonZero', 'vec');
+const TakeSubjectNotVec           = declareSubjectError('TakeSubjectNotVec',           'take',     'vec');
+const DropSubjectNotVec           = declareSubjectError('DropSubjectNotVec',           'drop',     'vec');
+const DistinctSubjectNotVec       = declareSubjectError('DistinctSubjectNotVec',       'distinct', 'vec');
+const ReverseSubjectNotVec        = declareSubjectError('ReverseSubjectNotVec',        'reverse',  'vec');
+const FlatSubjectNotVec           = declareSubjectError('FlatSubjectNotVec',           'flat',     'vec');
 
-const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'Number');
-const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'Number');
-const AtIndexNotInteger  = declareModifierError('AtIndexNotInteger', 'at',   2, 'Integer');
+const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'number');
+const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'number');
+const AtIndexNotInteger  = declareModifierError('AtIndexNotInteger', 'at',   2, 'integer');
 
-const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'Number');
-const FirstNonZeroElementNotNumber = declareElementError('FirstNonZeroElementNotNumber', 'firstNonZero', 'Number');
+const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'number');
+const FirstNonZeroElementNotNumber = declareElementError('FirstNonZeroElementNotNumber', 'firstNonZero', 'number');
 
 const MinElementsNotComparable    = declareComparabilityError('MinElementsNotComparable',    'min');
 const MaxElementsNotComparable    = declareComparabilityError('MaxElementsNotComparable',    'max');
@@ -442,8 +442,8 @@ export const take = valueOp('take', 2, (vec, n) => {
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
 // for `at(-1)`; the two are semantically identical.
-const AtSubjectNotVecOrMap = declareSubjectError('AtSubjectNotVecOrMap', 'at', 'Vec or Map');
-const AtKeyNotString       = declareModifierError('AtKeyNotString', 'at', 2, 'String (Map subject)');
+const AtSubjectNotVecOrMap = declareSubjectError('AtSubjectNotVecOrMap', 'at', ['vec', 'map']);
+const AtKeyNotString       = declareModifierError('AtKeyNotString', 'at', 2, 'string');
 
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVecShape(subject)) {

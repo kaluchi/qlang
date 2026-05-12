@@ -30,9 +30,9 @@ import {
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const UnionBareSubjectNotVec    = declareSubjectError('UnionBareSubjectNotVec',    'union', 'Vec');
-const MinusBareSubjectNotVec    = declareSubjectError('MinusBareSubjectNotVec',    'minus', 'Vec');
-const InterBareSubjectNotVec    = declareSubjectError('InterBareSubjectNotVec',    'inter', 'Vec');
+const UnionBareSubjectNotVec    = declareSubjectError('UnionBareSubjectNotVec',    'union', 'vec');
+const MinusBareSubjectNotVec    = declareSubjectError('MinusBareSubjectNotVec',    'minus', 'vec');
+const InterBareSubjectNotVec    = declareSubjectError('InterBareSubjectNotVec',    'inter', 'vec');
 
 const UnionPairIncompatible = declareComparabilityError('UnionPairIncompatible', 'union');
 const MinusPairIncompatible = declareComparabilityError('MinusPairIncompatible', 'minus');

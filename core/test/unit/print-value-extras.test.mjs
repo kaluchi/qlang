@@ -75,6 +75,108 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     });
     expect(() => printValue(fn)).toThrow(FunctionValueLeakedToPrint);
   });
+
+  it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Box')],
+      ['qlang/payload', [42, 'inner']]
+    ]);
+    expect(printValue(instance)).toBe('::Box[42 "inner"]');
+  });
+
+  it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Marker')],
+      ['qlang/payload', []]
+    ]);
+    expect(printValue(instance)).toBe('::Marker[]');
+  });
+});
+
+describe('printErrorValue — head + payload-filter branches', () => {
+  it('an error with no :thrown prints in plain !{…} form (no tag-head prefix)', async () => {
+    const { makeErrorValue } = await import('../../src/types.mjs');
+    const err = makeErrorValue(new Map([['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]]));
+    expect(printValue(err)).toBe('!{:kind :oops}');
+  });
+
+  it('an error with no :thrown keeps :message in the payload (user data, not template-fill)', async () => {
+    // Without a TagKeyword `:thrown`, the printer has no class
+    // identity to point hypertext docs at — `:message` is therefore
+    // user-provided content, not a derivable template-fill, and
+    // stays in the printed form.
+    const { makeErrorValue } = await import('../../src/types.mjs');
+    const err = makeErrorValue(new Map([
+      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }],
+      ['message', 'something broke']
+    ]));
+    expect(printValue(err)).toBe('!{:kind :oops :message "something broke"}');
+  });
+
+  it('an empty error descriptor (only auto-injected :trail null) renders as !{}', async () => {
+    const { makeErrorValue } = await import('../../src/types.mjs');
+    const err = makeErrorValue(new Map());
+    expect(printValue(err)).toBe('!{}');
+  });
+
+  it('a tag-headed error with only :thrown survives the payload filter as ::Tag!{}', async () => {
+    const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
+    const err = makeErrorValue(new Map([['thrown', makeTagKeyword('Foo')]]));
+    expect(printValue(err)).toBe('::Foo!{}');
+  });
+
+  it('a tag-headed error renders the payload after the head, suppressing :thrown duplication', async () => {
+    const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
+    const err = makeErrorValue(new Map([
+      ['thrown', makeTagKeyword('Foo')],
+      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+    ]));
+    expect(printValue(err)).toBe('::Foo!{:kind :oops}');
+  });
+
+  it('a tag-headed error elides :message (template-fill reachable via ::Tag | docs)', async () => {
+    const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
+    const err = makeErrorValue(new Map([
+      ['thrown', makeTagKeyword('Foo')],
+      ['message', 'template-derivable prose'],
+      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+    ]));
+    expect(printValue(err)).toBe('::Foo!{:kind :oops}');
+  });
+});
+
+describe('renderTaggedInstanceInline — table cell handler', () => {
+  it('a tagged-instance in cell position round-trips through ::Tag[payload…]', async () => {
+    const { table } = await import('../../src/runtime/format.mjs');
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Box')],
+      ['qlang/payload', [42]]
+    ]);
+    const row = new Map([['boxed', instance]]);
+    const rendered = await table.fn(
+      { pipeValue: [row], env: new Map() },
+      []
+    );
+    expect(rendered.pipeValue).toContain('::Box[42]');
+  });
+
+  it('a tagged-instance inside a Vec cell — inline handler fires', async () => {
+    const { table } = await import('../../src/runtime/format.mjs');
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Pair')],
+      ['qlang/payload', [1, 2]]
+    ]);
+    const row = new Map([['pairs', [instance]]]);
+    const rendered = await table.fn(
+      { pipeValue: [row], env: new Map() },
+      []
+    );
+    expect(rendered.pipeValue).toContain('::Pair[1 2]');
+  });
 });
 
 describe('toPlain refuses a Function value — same invariant', () => {

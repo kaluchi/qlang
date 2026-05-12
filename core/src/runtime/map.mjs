@@ -12,10 +12,10 @@ import {
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'Map');
-const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'Map');
-const HasSubjectNotMapOrSet = declareSubjectError('HasSubjectNotMapOrSet', 'has',   'Map or Set');
-const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'Keyword (Map subject)');
+const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'map');
+const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'map');
+const HasSubjectNotMapOrSet = declareSubjectError('HasSubjectNotMapOrSet', 'has',   ['map', 'set']);
+const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'keyword');
 
 export const keys = nullaryOp('keys', (map) => {
   if (!isMapShape(map)) throw new KeysSubjectNotMap(map);

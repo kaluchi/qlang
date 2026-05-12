@@ -10,8 +10,8 @@ import { createLineEditor } from '../src/line-editor.mjs';
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
 const BRACKETED_PASTE_END   = ESC + '[201~';
-const SUBMIT = '\n';   // Ctrl+Enter / Ctrl+J — the submit keystroke
-const NEWLINE = '\r';  // plain Enter — soft newline
+const SUBMIT = '\r';   // plain Enter (CR) — the submit keystroke (PowerShell parity)
+const NEWLINE = '\n';  // Ctrl+Enter / Ctrl+J — soft newline at cursor
 
 function captureWrites() {
   const chunks = [];
@@ -100,7 +100,7 @@ function feed(stdinStream, ...chunks) {
 }
 
 describe('createLineEditor — TTY printable input', () => {
-  it('inserts each printable byte and emits the buffer on Ctrl+Enter', () => {
+  it('inserts each printable byte and emits the buffer on Enter', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc', SUBMIT);
@@ -118,7 +118,7 @@ describe('createLineEditor — TTY printable input', () => {
 });
 
 describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
-  it('plain Enter (CR) inserts a newline at the cursor without submitting', () => {
+  it('Ctrl+Enter (LF) inserts a soft newline at the cursor without submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', NEWLINE, 'second', SUBMIT);
@@ -139,7 +139,7 @@ describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
     expect(capture.lines).toEqual(['a']);
   });
 
-  it('Ctrl+Enter (LF) submits even after several soft newlines', () => {
+  it('Enter (CR) submits even after several soft newlines', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a', NEWLINE, 'b', NEWLINE, 'c', SUBMIT);

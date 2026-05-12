@@ -460,8 +460,30 @@
   |~~ PrimitiveRegistrySealed — see operand documentation. ~~|
   {:qlang/kind :type}
 
+::ProjectionFieldNotOnValueClass
+  |~~ Projection segment is not a publicly-projectable field on the
+    value-class subject (Quote / Doc / …). ~~|
+  {:qlang/kind :type}
+
+::ProjectionIndexOutOfBounds
+  |~~ Projection numeric segment resolves outside the Vec subject's
+    `[0, length)` range. ~~|
+  {:qlang/kind :type}
+
+::ProjectionKeyNotInMap
+  |~~ Projection segment names a key the Map subject does not carry.
+    Strict miss — `null`-subject still propagates as `null` to keep
+    optional-chain readability. ~~|
+  {:qlang/kind :type}
+
 ::ProjectionSubjectNotMap
-  |~~ Subject of `projection` is not a Map. ~~|
+  |~~ Subject of `projection` is not a Map, Vec, or value-class
+    with publishable fields. ~~|
+  {:qlang/kind :type}
+
+::ProjectionVecKeyNotInteger
+  |~~ Projection segment is a non-numeric string but the subject is a
+    Vec — Vec indices must be integer offsets. ~~|
   {:qlang/kind :type}
 
 ::ReifyArityOverflow

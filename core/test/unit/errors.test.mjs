@@ -12,7 +12,7 @@ import {
   QlangInvariantError
 } from '../../src/errors.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue } from '../../src/types.mjs';
+import { isErrorValue, keyword } from '../../src/types.mjs';
 
 describe('QlangError base class', () => {
   it('carries kind, location=null, fingerprint=null, schemaVersion=1', () => {
@@ -44,7 +44,7 @@ describe('QlangError base class', () => {
     const typeErr = new QlangTypeError('typed', {
       site: 'TestSite',
       operand: 'op',
-      expectedType: 'Vec',
+      expectedType: keyword('vec'),
       actualType: { name: 'number' },
       actualValue: 'SECRET-PII-DO-NOT-LEAK'
     });
@@ -52,7 +52,7 @@ describe('QlangError base class', () => {
     expect(jsonPayload.context).toEqual({
       site: 'TestSite',
       operand: 'op',
-      expectedType: 'Vec',
+      expectedType: keyword('vec'),
       actualType: { name: 'number' }
     });
     expect(jsonPayload.context).not.toHaveProperty('actualValue');

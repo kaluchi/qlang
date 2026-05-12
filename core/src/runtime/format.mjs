@@ -12,6 +12,7 @@ import {
   isErrorValue,
   isVecShape,
   isFunctionValue,
+  isTagKeyword,
   describeType,
   keyword,
   FunctionValueLeakedToPrint
@@ -50,8 +51,8 @@ function dispatchPlainValue(v, handlers) {
   return handlers.scalar(v);
 }
 
-const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'Vec');
-const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'Map');
+const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'vec');
+const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'map');
 
 // Inverse pair: `toPlain` lifts a qlang value to a JSON-serializable
 // plain JS shape (Map → object with keyword-named string keys, Vec →
@@ -129,7 +130,7 @@ const PRINT_HANDLERS = {
   String:     escapeQlangStringLiteral,
   Keyword:    literalOfKeyword,
   TagKeyword: literalOfKeyword,
-  Error:      (e, indent) => printMapLike('!{', e.descriptor, indent),
+  Error:      printErrorValue,
   Vec:        (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
   Map:        (m, indent) => printMapLike('{', m, indent),
   Set:        (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
@@ -143,6 +144,33 @@ const PRINT_HANDLERS = {
 };
 
 function literalOfKeyword(k) { return k.literal; }
+
+// Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
+// when `:thrown` carries a TagKeyword — entropy promotion: the
+// class identity lives in structural front-position, not in a
+// map-entry. The payload-Map below drops three categories of
+// already-known content so the printed form stays terse:
+//   * `:thrown` itself when tagHead absorbed it,
+//   * `:trail null` (makeErrorValue's invariant restores it on
+//     reconstruction — see types.mjs::makeErrorValue),
+//   * `:message` when tagHead is present (the canonical prose is
+//     reachable through `::Tag | docs` hypertext navigation; the
+//     stamped string is template-fill derivable from the other
+//     structured fields).
+function printErrorValue(e, indent) {
+  const desc = e.descriptor;
+  const thrown = desc.get('thrown');
+  const tagHead = isTagKeyword(thrown) ? '::' + thrown.name : '';
+  const payload = new Map();
+  for (const [k, v] of desc) {
+    if (k === 'thrown' && tagHead) continue;
+    if (k === 'trail' && v === null) continue;
+    if (k === 'message' && tagHead) continue;
+    payload.set(k, v);
+  }
+  if (payload.size === 0) return tagHead + '!{}';
+  return tagHead + printMapLike('!{', payload, indent);
+}
 
 function printJsonObject(obj, indent) {
   const entries = Object.entries(obj);

@@ -23,12 +23,23 @@ import { decorateAstWithEffectMarkers } from './effect-check.mjs';
 let parseCounter = 0;
 const AST_SCHEMA_VERSION = 1;
 
+// ParseError mirrors peggy's syntactic-failure shape into a qlang
+// surface. `expected` is the Vec of `{ type, description, text }`
+// alternatives peggy enumerated at the failure offset (raw shape
+// from `peg$buildStructuredError`); `found` is the unexpected
+// substring at the offset (one character for char-class mismatches,
+// `null` for end-of-input); `source` is the verbatim input text
+// so that downstream consumers (CLI caret-pointer, LSP diagnostic)
+// can quote the offending span without re-reading the file.
 export class ParseError extends Error {
-  constructor(message, location, uri = null) {
+  constructor(message, location, uri = null, opts = {}) {
     super(message);
     this.name = 'ParseError';
     this.location = location;
     this.uri = uri;
+    this.expected = opts.expected ?? null;
+    this.found = opts.found ?? null;
+    this.source = opts.source ?? null;
   }
 }
 
@@ -55,7 +66,11 @@ export function parse(source, opts = {}) {
   try {
     ast = peggyParse(source, opts.startRule ? { startRule: opts.startRule } : undefined);
   } catch (err) {
-    throw new ParseError(err.message, err.location, opts.uri ?? null);
+    throw new ParseError(err.message, err.location, opts.uri ?? null, {
+      expected: err.expected,
+      found: err.found,
+      source
+    });
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
   // root receives .parent = null and id 0), then effect-marker

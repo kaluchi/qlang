@@ -62,6 +62,24 @@ describe('def(::tag, descriptor) registers a type-namespace binding', () => {
     );
     expect(result).toBe(5);
   });
+
+  it('axis-operand finds the def(::Tag, …) OperandCall form when navigating ::Tag | source', async () => {
+    const source = await evalQuery(
+      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | ::myType | source'
+    );
+    expect(source.type).toBe('quote');
+    expect(source.source).toContain('::myType');
+  });
+});
+
+describe('axis-operand subject classification', () => {
+  it('a tagged-instance Map (kind is TagKeyword) resolves through its tag to the type-binding source', async () => {
+    const source = await evalQuery(
+      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | {:qlang/kind ::myType :qlang/payload []} | source'
+    );
+    expect(source.type).toBe('quote');
+    expect(source.source).toContain('::myType');
+  });
 });
 
 describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {

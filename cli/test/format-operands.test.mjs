@@ -106,7 +106,7 @@ describe('template — error sites', () => {
     expectOperandErrorThrown(cellEntry, 'TemplateModifierNotString', {
       operand: 'template',
       position: 1,
-      expectedType: 'String',
+      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });

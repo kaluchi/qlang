@@ -447,6 +447,23 @@ describe('round-trip — def / as bindings', () => {
     assertRoundTrip('[1 2 3] | as(:a) | filter(gt(1)) | as(:b) | [a, b]'));
 });
 
+describe('round-trip — BindStep declarative form', () => {
+  it('Keyword key, body only', () =>
+    assertRoundTrip(':double mul(2)'));
+  it('Keyword key, params + body', () =>
+    assertRoundTrip(':@surround [:pfx] prepend(pfx)'));
+  it('Keyword key, docs only — body=null', () =>
+    assertRoundTrip(':forwardDecl |~~| placeholder note'));
+  it('Keyword key, docs + body', () =>
+    assertRoundTrip(':double |~~| doubles its subject\nmul(2)'));
+  it('BareTypeKeyword key — type-binding form', () =>
+    assertRoundTrip('::Box {:qlang/kind :type}'));
+  it('BareTypeKeyword key, docs + body', () =>
+    assertRoundTrip('::Box |~~| boxes its payload\n{:qlang/kind :type}'));
+  it('two consecutive BindSteps', () =>
+    assertRoundTrip(':a 1 :b 2'));
+});
+
 describe('round-trip — error track and fail-apply', () => {
   it('error literal', () => assertRoundTrip('!{:kind :oops :trail []}'));
   it('fail-apply on error literal', () => assertRoundTrip('!{:kind :oops} | count !| /kind'));

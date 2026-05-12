@@ -9,5 +9,5 @@
 {"name":"eval-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | eval","expect":"\"alice\""}
 {"name":"eval-distribute","query":"\"[1 2 3] * add(10)\" | parse | eval","expect":"[11 12 13]"}
 {"name":"eval-fail-track","query":"\"\\\"hello\\\" | add(1) !| /thrown\" | parse | eval","expect":"::AddLeftNotNumber"}
-{"name":"eval-non-map-subject","query":"42 | eval","expect":"!{\n  :origin :qlang/eval\n  :kind :type-error\n  :thrown ::EvalSubjectNotMapOrQuote\n  :message \"eval requires AST Map or Quote subject, got number\"\n  :operand \"eval\"\n  :position \"subject\"\n  :expectedType \"AST Map or Quote\"\n  :actualType :number\n  :actualValue 42\n  :fault {:step ~{eval} :input 42}\n  :trail null\n}"}
+{"name":"eval-non-map-subject","query":"42 | eval","expect":"::EvalSubjectNotMapOrQuote!{\n  :fault {:step ~{eval} :input 42}\n  :actualValue 42\n  :actualType :number\n  :expectedType [:map :quote]\n  :operand :eval\n  :position :subject\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"eval-quote-subject","query":"~{5 | mul(2)} | eval","expect":"10"}

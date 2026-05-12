@@ -32,10 +32,18 @@ describe('runQuery', () => {
     expect(cellEntry.source).toBe('[1 2 3] | sum');
   });
 
-  it('captures a parse error on the cell entry without throwing', async () => {
+  it('captures a parse error on the cell entry as both a host-error marker and a lifted ErrorValue', async () => {
+    // Parse failures land on both channels — the JS instance on
+    // `cellEntry.error` drives non-zero exit code in script-mode,
+    // and the structured `::ParseError!{…}` ErrorValue on
+    // `cellEntry.result` carries `:expected` / `:found` / `:source`
+    // / `:marker` for the printValue diagnostic.
     const cellEntry = await runQuery('[1 2', captureIoContext());
     expect(cellEntry.error).not.toBeNull();
-    expect(cellEntry.result).toBeNull();
+    expect(cellEntry.error.name).toBe('ParseError');
+    expect(cellEntry.result).not.toBeNull();
+    expect(cellEntry.result.type).toBe('error');
+    expect(cellEntry.result.descriptor.get('thrown').name).toBe('ParseError');
   });
 
   it('binds the ioContext writers so ~{@out} reaches the captured stdout chunks', async () => {

@@ -8,7 +8,7 @@
 // AST, result, error, env-after-cell) so a notebook UI can render
 // past cells and step-back navigation can revisit them.
 
-import { parse } from './parse.mjs';
+import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { makeState } from './state.mjs';
@@ -21,6 +21,7 @@ import {
 } from './types.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
+import { errorFromParse } from './error-convert.mjs';
 import { QlangError } from './errors.mjs';
 
 const SESSION_SCHEMA_VERSION = 1;
@@ -78,10 +79,15 @@ class SessionBindingKindUnknownError extends QlangError {
 //                                 implicit subject of the query,
 //                                 so `qlang '/path'` acts as a
 //                                 filter without ceremony. When
-//                                 absent, pipeValue falls back to
-//                                 the env itself (REPL / historical
-//                                 behaviour for queries that start
-//                                 with a value producer)
+//                                 absent, pipeValue starts at
+//                                 `null`; the cell's first step
+//                                 must provide a head value (a
+//                                 literal, an identifier reference
+//                                 like `env`, a `def`/`as` binding,
+//                                 or a captured arg). Operands that
+//                                 need a typed subject fail fast on
+//                                 `null` with a clear subject-type
+//                                 error — no implicit env leak.
 //   cellHistory — array of executed cells (read-only inspection)
 //   env — current env Map (read-only inspection)
 //   bind(name, value) — install a binding directly into env (used
@@ -105,12 +111,24 @@ export async function createSession(opts = {}) {
         cellAst = parse(source, { uri: cellUri });
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
           ? evalOpts.initialPipeValue
-          : env;
+          : null;
         const cellInitialState = makeState(cellSeedPipeValue, env);
         const cellFinalState = await evalAst(cellAst, cellInitialState);
         cellResult = cellFinalState.pipeValue;
         env = cellFinalState.env;
       } catch (evalCellErr) {
+        // Parse failures land BOTH as a first-class ErrorValue on
+        // the result channel AND keep a host-level marker on the
+        // error channel. The ErrorValue carries the structured
+        // `::ParseError!{:expected :found :excerpt …}` descriptor
+        // so `printValue` / projection consumers read the failure
+        // through the same path as any other error; the host-error
+        // marker lets `script-mode` distinguish a syntactic-failure
+        // exit (non-zero) from a runtime fail-track value that
+        // travels with exit 0 by spec.
+        if (evalCellErr instanceof ParseError) {
+          cellResult = errorFromParse(evalCellErr);
+        }
         cellError = evalCellErr;
       }
       const cellEntry = { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, envAfterCell: env };

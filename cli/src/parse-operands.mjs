@@ -34,13 +34,13 @@ import { bindHostBuiltin } from './host-builtin.mjs';
 // ── Per-site error classes ─────────────────────────────────────
 
 const ParseJsonSubjectNotString =
-  declareSubjectError('ParseJsonSubjectNotString', 'parseJson', 'String');
+  declareSubjectError('ParseJsonSubjectNotString', 'parseJson', 'string');
 const ParseJsonInvalidJson =
   declareShapeError('ParseJsonInvalidJson',
     ({ message }) => `parseJson: invalid JSON — ${message}`);
 
 const ParseTjsonSubjectNotString =
-  declareSubjectError('ParseTjsonSubjectNotString', 'parseTjson', 'String');
+  declareSubjectError('ParseTjsonSubjectNotString', 'parseTjson', 'string');
 const ParseTjsonInvalidJson =
   declareShapeError('ParseTjsonInvalidJson',
     ({ message }) => `parseTjson: invalid tagged-JSON — ${message}`);

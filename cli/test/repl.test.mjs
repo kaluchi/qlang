@@ -83,10 +83,14 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('writes a JS host-throw message on stderr for parse failures', async () => {
+  it('writes a structured ::ParseError!{…} diagnostic on stderr for parse failures', async () => {
     const r = captureRepl('[1 2\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(r.stderrText()).toMatch(/^error:/m);
+    // REPL paints output with ANSI colour codes — strip before
+    // matching the structural shape.
+    const text = r.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
+    expect(text).toContain('::ParseError!{');
+    expect(text).toContain(':source "[1 2"');
   });
 });
 
@@ -115,17 +119,17 @@ describe('runRepl — output highlighting', () => {
     const stderrWrite = (text) => stderrChunks.push(text);
 
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
-    // A bare `[1 2` is a parse failure → host-level JS throw,
-    // which the REPL routes to stderr through writeDiagnostic.
-    // Ctrl+Enter (LF) is the submit keystroke in the multi-line
-    // editor; plain Enter (CR) would insert a soft newline.
-    ttyStdin.write(Buffer.from('[1 2\n'));
+    // A bare `[1 2` is a parse failure that the REPL routes to
+    // stderr through writeDiagnostic. Enter (CR) is the submit
+    // keystroke in the multi-line editor; Ctrl+Enter (LF) would
+    // insert a soft newline.
+    ttyStdin.write(Buffer.from('[1 2\r'));
     await new Promise((r) => setImmediate(r));
     ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
     await replPromise;
 
     const stderrText = stderrChunks.join('');
-    expect(stderrText).toMatch(/^error:/m);
+    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::ParseError!{');
     expect(stderrText).toMatch(/\r\n/);
   });
 
@@ -147,10 +151,10 @@ describe('runRepl — output highlighting', () => {
 
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
     // Type "42", which should redraw with the yellow escape, then
-    // submit Ctrl+Enter (LF), then close on Ctrl+D from an empty
+    // submit with Enter (CR), then close on Ctrl+D from an empty
     // buffer.
     ttyStdin.write(Buffer.from('42'));
-    ttyStdin.write(Buffer.from('\n'));
+    ttyStdin.write(Buffer.from('\r'));
     await new Promise((r) => setImmediate(r));
     ttyStdin.write(Buffer.from([0x04])); // Ctrl+D on empty buffer
     await replPromise;

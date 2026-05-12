@@ -13,7 +13,7 @@ import {
   higherOrderOpVariadic,
   UNBOUNDED
 } from './dispatch.mjs';
-import { isTruthy, isNull, NULL } from '../types.mjs';
+import { isTruthy, isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareArityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
@@ -45,6 +45,16 @@ export const unless = higherOrderOp('unless', 3,
       : await unlessThenLambda(unlessSubject);
   });
 
+// Returns the first alternative that resolves to a non-null,
+// non-error value — both `null` (the "no value" sentinel) and
+// `ErrorValue` (typically a strict-projection miss like `/missing`
+// on a Map without the key) count as "skip and try next". The
+// fall-back is `null` when every alternative fails or yields
+// `null`. Treating ErrorValue as "try next" is what makes
+// `coalesce(/a, /b, "default")` continue past a missing-key error
+// from `/a` — the operand's intent is "first defined value",
+// strict projection turned "undefined" into an error, this catch
+// restores the iteration semantics.
 export const coalesce = higherOrderOpVariadic('coalesce', 16,
   async (coalesceSubject, ...coalesceLambdas) => {
     if (coalesceLambdas.length === 0) {
@@ -52,7 +62,8 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
     }
     for (const coalesceAlt of coalesceLambdas) {
       const coalesceVal = await coalesceAlt(coalesceSubject);
-      if (!isNull(coalesceVal)) return coalesceVal;
+      if (isNull(coalesceVal) || isErrorValue(coalesceVal)) continue;
+      return coalesceVal;
     }
     return NULL;
   }, [1, UNBOUNDED]);
@@ -77,6 +88,9 @@ export const cond = higherOrderOpVariadic('cond', 16,
     return NULL;
   }, [2, UNBOUNDED]);
 
+// Same skip-on-error rule as `coalesce` (see comment above) — an
+// ErrorValue from an alternative counts as falsy and the iteration
+// moves to the next.
 export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
   async (firstTruthySubject, ...firstTruthyLambdas) => {
     if (firstTruthyLambdas.length === 0) {
@@ -84,6 +98,7 @@ export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
     }
     for (const truthyAlt of firstTruthyLambdas) {
       const truthyVal = await truthyAlt(firstTruthySubject);
+      if (isErrorValue(truthyVal)) continue;
       if (isTruthy(truthyVal)) return truthyVal;
     }
     return NULL;

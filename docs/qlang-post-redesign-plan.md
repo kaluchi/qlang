@@ -296,7 +296,20 @@ case'ов где нужно отличить declarative-conduit от literal-co
 
 ---
 
-### M4. Named errors as type-bindings
+### M4. Named errors as type-bindings — landed
+
+Stage A+B+C complete (`feature/hypertext-redesign`, commits `3ec6c42` + follow-up).
+Constructors qlang-side per §II.3 — deferred (no JS impact, can come at any later
+point). What's live:
+
+- `core/lib/qlang/error/registry.qlang` — every JS-class from `operand-errors.mjs`
+  has a `::Tag {:qlang/kind :type}` declaration loaded before `core.qlang`.
+- `errorFromQlang` stamps `:thrown` as `makeTagKeyword(fingerprint)`; the
+  factories pass canonicalised qlang type-name(s) (`'number'`, `['vec','set','map']`)
+  for `expectedType`, lowered to a single keyword or a frozen Vec of keywords.
+- `printValue` for error-values emits `::Tag!{…}` head + payload form with the
+  three elisions below.
+
 
 Каждое named error-имя — first-class type-binding в каталоге, with
 the same machinery как у `::conduit` / `::qlang`. Никакой OOP-flavored

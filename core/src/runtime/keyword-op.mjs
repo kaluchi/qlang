@@ -4,7 +4,7 @@ import { declareSubjectError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 const KeywordSubjectNotStringOrKeyword = declareSubjectError(
-  'KeywordSubjectNotStringOrKeyword', 'keyword', 'String or Keyword');
+  'KeywordSubjectNotStringOrKeyword', 'keyword', ['string', 'keyword']);
 
 export const keywordOp = nullaryOp('keyword', (subject) => {
   if (isString(subject)) return keyword(subject);

@@ -442,13 +442,13 @@ describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on t
   });
 });
 
-describe('walk.mjs — bindingNamesVisibleAt skips let with non-Keyword first arg', async () => {
-  it('does not add binding when let first arg is not a Keyword AST node', async () => {
-    // Synthetic AST: let(42, count) — non-Keyword first arg
+describe('walk.mjs — bindingNamesVisibleAt skips def with non-Keyword first arg', async () => {
+  it('does not add binding when def first arg is not a Keyword AST node', async () => {
+    // Synthetic AST: 42 count — non-Keyword first arg
     const loc = { start: { offset: 0 }, end: { offset: 10 } };
     const synAst = {
       type: 'OperandCall',
-      name: 'let',
+      name: 'def',
       args: [
         { type: 'NumberLit', value: 42, location: loc },
         { type: 'OperandCall', name: 'count', args: null, location: loc }
@@ -480,7 +480,7 @@ describe('conduit effect-laundering at call site', async () => {
     const s = await createSession();
     // Declare an @-prefixed conduit, then shadow it under a clean name
     // via use, triggering the runtime safety net in applyConduit.
-    await s.evalCell('def(:@effFn, count)');
+    await s.evalCell(':@effFn count');
     await s.evalCell('{:clean (env | /@effFn)} | use');
     const cell = await s.evalCell('[1 2 3] | clean');
     // EffectLaunderingAtCall produces an error value.
@@ -494,7 +494,7 @@ describe('conduit-parameter arity error', async () => {
     // Inside the body, `n` is a conduit-parameter proxy (nullary
     // function value). Calling it with captured args (n(42)) should
     // raise ConduitParameterNoCapturedArgs with structured context.
-    const result = await evalQuery('def(:f, [:n], n(42)) | 0 | f(5)');
+    const result = await evalQuery(':f [:n] n(42) | 0 | f(5)');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
     expect(e.name).toBe('ConduitParameterNoCapturedArgs');
@@ -645,7 +645,7 @@ describe('extracted descriptor helpers', async () => {
 
 describe('reify descriptor branch coverage', async () => {
   it('reify value-level on conduit exposes name', async () => {
-    const r = await evalQuery('def(:x, mul(2)) | env | /x | reify | /name');
+    const r = await evalQuery(':x mul(2) | env | /x | reify | /name');
     expect(r).toBe('x');
   });
 
@@ -656,7 +656,7 @@ describe('reify descriptor branch coverage', async () => {
   });
 
   it('reify named form on conduit', async () => {
-    const r = await evalQuery('def(:x, mul(2)) | reify(:x) | /kind');
+    const r = await evalQuery(':x mul(2) | reify(:x) | /kind');
     expect(r).toEqual(keyword('conduit'));
   });
 

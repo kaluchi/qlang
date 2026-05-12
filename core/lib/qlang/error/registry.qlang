@@ -140,22 +140,6 @@
   |~~ Subject of `count` is not a Container. ~~|
   {:qlang/kind :type}
 
-::DefArityInvalid
-  |~~ `def` invocation arity invalid. ~~|
-  {:qlang/kind :type}
-
-::DefMissingDocOrBody
-  |~~ `def` invocation has an invalid name / params / body shape. ~~|
-  {:qlang/kind :type}
-
-::DefNameNotKeyword
-  |~~ Name argument of `def` is not a Keyword. ~~|
-  {:qlang/kind :type}
-
-::DefParamsNotVecOfKeywords
-  |~~ Parameter list of `def` is not a Vec Of Keywords. ~~|
-  {:qlang/kind :type}
-
 ::DescKeysNotComparable
   |~~ Keys argument of `desc` is not a Comparable. ~~|
   {:qlang/kind :type}

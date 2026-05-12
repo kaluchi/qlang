@@ -22,19 +22,19 @@ describe(':name | source returns the def-step source as Quote', () => {
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
     });
-    const cellEntry = await session.evalCell('null | use(:tests/scalar-only) | :missing | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/scalar-only) | :missing | source !| /thrown');
     expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFound'));
   });
 
   it('inline def-step within the current query is reachable through axis lookup', async () => {
     // evalQuery stamps the parsed AST under qlang/ast/inline so axis
     // operands can find bindings declared in the same cell — without
-    // this, `def(:foo, …) | :foo | source` would raise
+    // this, `:foo … | :foo | source` would raise
     // AxisBindingNotFound because the cell's AST is not among the
     // module Quotes installed via use(:ns).
-    const result = await evalQuery('def(:myLocal, 42) | :myLocal | source');
+    const result = await evalQuery(':myLocal 42 | :myLocal | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source).toBe('def(:myLocal, 42)');
+    expect(result.source).toBe(':myLocal 42');
   });
 
   it('non-keyword subject raises SourceSubjectNotKeywordOrType', async () => {
@@ -123,70 +123,78 @@ describe('axis-operands walk type-namespace bindings via ~{::} prefix', () => {
 describe('examples axis extracts Quote segments from a loaded module', () => {
   it('use-loaded module with Quote segment is reachable through examples', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ ~{5 | mul(2) | eq(10)} ~~|\ndef(:demo, 99)';
+    const moduleSource = '|~~ ~{5 | mul(2) | eq(10)} ~~|\n:demo 99';
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });
-    const cellEntry = await session.evalCell('null | use(:tests/demo) | :demo | examples | count');
+    const cellEntry = await session.evalCell('use(:tests/demo) | :demo | examples | count');
     expect(cellEntry.result).toBe(1);
   });
 
   it('docs of the loaded module carries the prefix as a Doc-value', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ A short note. ~~|\ndef(:demo, 1)';
+    const moduleSource = '|~~ A short note. ~~|\n:demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/demo) | :demo | docs | first | /content');
+    const cellEntry = await session.evalCell('use(:tests/demo) | :demo | docs | first | /content');
     expect(cellEntry.result).toBe(' A short note. ');
   });
 
   it('docs on a binding without an attached doc-prefix returns an empty Vec', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = 'def(:bare, 42)';
+    const moduleSource = ':bare 42';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/bare) | :bare | docs | count');
+    const cellEntry = await session.evalCell('use(:tests/bare) | :bare | docs | count');
     expect(cellEntry.result).toBe(0);
   });
 
   it('examples on a binding without an attached doc-prefix returns an empty Vec', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = 'def(:bare, 42)';
+    const moduleSource = ':bare 42';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/bare) | :bare | examples | count');
+    const cellEntry = await session.evalCell('use(:tests/bare) | :bare | examples | count');
     expect(cellEntry.result).toBe(0);
   });
 
-  it('single-step module containing only ~{def()} zero-args is not matched by lookup', async () => {
-    // Zero-arg def call (which itself raises DefArityInvalid at
-    // eval) is a parsable shape but not a binding declaration —
-    // matchesDefStep skips it. Module loads but lookup of the
-    // requested name fails through to AxisBindingNotFound.
+  it('single-step module containing a non-binding OperandCall fails axis lookup with AxisBindingNotFound', async () => {
+    // A standalone non-binding OperandCall (e.g. `count`) at the
+    // module top level evaluates without throwing, but it is not
+    // a binding declaration — `matchesDefStep` falls through the
+    // `name === 'as'` check and returns false, so `:any | source`
+    // resolves to AxisBindingNotFound.
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = 'def()';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      locator: async () => ({ source: 'count' })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/zero) !| /thrown');
-    // Module loads but def() throws DefArityInvalid; importation
-    // wraps and propagates the error. The point is that the
-    // matchesDefStep path with empty args is reached during
-    // axis lookup elsewhere — exercised through the ordinary
-    // catalog walk where every other entry remains matchable.
-    expect(cellEntry.result).toBeDefined();
+    const cellEntry = await session.evalCell('use(:tests/non-binding) | :missing | source !| /thrown');
+    expect(cellEntry.result.name).toBe('AxisBindingNotFound');
+  });
+
+  it('zero-arg `as()` in a module is structurally not a binding declaration', async () => {
+    // Parser shape: OperandCall named `as` with `args === []`.
+    // matchesDefStep enters the `name === 'as'` branch, then the
+    // empty-args guard skips it before pulling out a first-arg key.
+    // Lookup falls through to AxisBindingNotFound.
+    const { createSession } = await import('../../src/session.mjs');
+    const session = await createSession({
+      locator: async () => ({ source: '42 | as()' })
+    });
+    const cellEntry = await session.evalCell('use(:tests/zero) | :nonexistentBinding | source !| /thrown');
+    expect(cellEntry.result.name).toBe('AxisBindingNotFound');
   });
 
   it('axis lookup walking a single-step module that does not match returns AxisBindingNotFound', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = 'def(:somethingElse, 1)';
+    const moduleSource = ':somethingElse 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/other) | :notHere | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/other) | :notHere | source !| /thrown');
     expect(cellEntry.result.name).toBe('AxisBindingNotFound');
   });
 
@@ -200,7 +208,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/bare-ref) | :anything | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| /thrown');
     expect(cellEntry.result.name).toBe('AxisBindingNotFound');
   });
 });

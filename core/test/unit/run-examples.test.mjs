@@ -38,11 +38,11 @@ describe('runExamples Quote-as-test outcomes', () => {
   it('Quote that lifts an error → ok:false with error message', async () => {
     const moduleSource =
       '|~~ broken example.\n    ~{"x" | add(1) | eq(42)} ~~|\n' +
-      'def(:demo, 1)';
+      ':demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/broken) | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use(:tests/broken) | :demo | runExamples | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(typeof cellEntry.result.get('error')).toBe('string');
   });
@@ -54,11 +54,11 @@ describe('runExamples Quote-as-test outcomes', () => {
     // just did not hold.
     const moduleSource =
       '|~~ falsy example.\n    ~{5 | mul(2) | eq(99)} ~~|\n' +
-      'def(:demo, 1)';
+      ':demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/falsy) | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use(:tests/falsy) | :demo | runExamples | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBeNull();
     expect(cellEntry.result.get('actual')).toBe(false);
@@ -66,19 +66,19 @@ describe('runExamples Quote-as-test outcomes', () => {
 
   it('Quote that evaluates truthy → ok:true', async () => {
     const moduleSource =
-      '|~~ ~{5 | mul(2) | eq(10)} ~~|\ndef(:demo, 1)';
+      '|~~ ~{5 | mul(2) | eq(10)} ~~|\n:demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/passing) | :demo | runExamples | first | /ok');
+    const cellEntry = await session.evalCell('use(:tests/passing) | :demo | runExamples | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
   it('binding without an attached doc-prefix returns an empty Vec', async () => {
     const session = await createSession({
-      locator: async () => ({ source: 'def(:bare, 42)' })
+      locator: async () => ({ source: ':bare 42' })
     });
-    const cellEntry = await session.evalCell('null | use(:tests/bare) | :bare | runExamples | count');
+    const cellEntry = await session.evalCell('use(:tests/bare) | :bare | runExamples | count');
     expect(cellEntry.result).toBe(0);
   });
 });

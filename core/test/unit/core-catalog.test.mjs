@@ -111,11 +111,6 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     }
   });
 
-  it('catalog covers def under :reflective', async () => {
-    const coreEnv = await evalCore();
-    expect(coreEnv.has('def')).toBe(true);
-    expect(coreEnv.get('def').get('category')).toEqual(keyword('reflective'));
-  });
 });
 
 describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
@@ -152,13 +147,10 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(impl.name).toBe('filter');
   });
 
-  it('spot-check — :def / :as reflective operands land with :category :reflective', async () => {
+  it('spot-check — :as reflective operand lands with :category :reflective', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    expect(resolved.get('def').get('category')).toEqual(keyword('reflective'));
     expect(resolved.get('as').get('category')).toEqual(keyword('reflective'));
-    const defImpl = resolved.get('def').get('qlang/impl');
-    expect(defImpl.name).toBe('def');
     const asImpl = resolved.get('as').get('qlang/impl');
     expect(asImpl.name).toBe('as');
   });
@@ -169,11 +161,8 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through ~{:tag | docs} a
     const { evalQuery } = await import('../../src/eval.mjs');
     const coreEnv = await evalCore();
     for (const entryKey of coreEnv.keys()) {
-      // Skip section-divider plain comments / non-binding env entries
-      // and the bootstrap `def` operand (no def-step in the catalog
-      // AST — its prose lives in docs/qlang-operands.md).
+      // Skip section-divider plain comments / non-binding env entries.
       if (!isQMap(coreEnv.get(entryKey))) continue;
-      if (entryKey === 'def') continue;
       const docs = await evalQuery(`:"${entryKey}" | docs`);
       expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
       for (const doc of docs) {
@@ -268,7 +257,7 @@ describe('function-value reify path (conduit parameter reflection)', () => {
     // Map), so describeBinding takes the isFunctionValue path and
     // builds a descriptor via buildBuiltinDescriptor from the
     // inlined meta that makeConduitParameter stamps on the proxy.
-    const evalResult = await evalQuery('def(:f, [:p], reify(:p)) | 42 | f(add(1))');
+    const evalResult = await evalQuery(':f [:p] reify(:p) | 42 | f(add(1))');
     expect(isQMap(evalResult)).toBe(true);
     expect(evalResult.get('kind')).toEqual(keyword('builtin'));
     expect(evalResult.get('category')).toEqual(keyword('conduit-parameter'));
@@ -323,7 +312,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('type-classifier')).toBe(12);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
     expect(categories.get('type-conversion')).toBe(1);  // keyword
     expect(categories.get('format')).toBe(2);
-    expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as def parse eval
+    expect(categories.get('reflective')).toBe(8);  // env use reify manifest runExamples as parse eval
     expect(categories.get('error')).toBe(2);
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);

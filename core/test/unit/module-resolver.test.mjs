@@ -93,7 +93,7 @@ describe('installModules', () => {
     expect(sessionInstance.env.has('error')).toBe(true);
 
     // use(:error) imports retry into current env
-    const cellEntry = await sessionInstance.evalCell('null | use(:error) | reify(:retry) | /kind');
+    const cellEntry = await sessionInstance.evalCell('use(:error) | reify(:retry) | /kind');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual(keyword('conduit'));
   });
@@ -115,9 +115,9 @@ describe('installModules', () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    await sessionInstance.evalCell('null | use(:error)');
-    await sessionInstance.evalCell('null | use(:error/guards)');
-    await sessionInstance.evalCell('null | use(:error/observe)');
+    await sessionInstance.evalCell('use(:error)');
+    await sessionInstance.evalCell('use(:error/guards)');
+    await sessionInstance.evalCell('use(:error/observe)');
 
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
       const cellEntry = await sessionInstance.evalCell(`reify(:${name}) | /kind`);

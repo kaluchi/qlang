@@ -1,29 +1,25 @@
-{"name":"zero-arity-conduit","query":"def(:double, mul(2)) | 10 | double","expect":"20"}
-{"name":"zero-arity-conduit-distribute","query":"def(:plus10, add(10)) | [1 2 3] * plus10","expect":"[11 12 13]"}
-{"name":"parametric-conduit-single-param","query":"def(:addN, [:n], add(n)) | 5 | addN(3)","expect":"8"}
-{"name":"parametric-conduit-two-params","query":"def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")","expect":"\"[world]\""}
-{"name":"higher-order-param-in-sort","query":"def(:@topBy, [:keyFn :n], sortWith(desc(keyFn)) | take(n)) | [{:v 1} {:v 3} {:v 2}] | @topBy(/v, 2) * /v","expect":"[3 2]"}
-{"name":"higher-order-param-in-filter","query":"def(:@matching, [:pred], filter(pred)) | [1 2 3 4 5] | @matching(gt(3))","expect":"[4 5]"}
-{"name":"fractal-composition-three-levels","query":"def(:@topBy, [:keyFn :n], sortWith(desc(keyFn)) | take(n)) | def(:@topNByV, [:n], @topBy(/v, n)) | def(:@top2ByV, @topNByV(2)) | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
-{"name":"recursive-conduit-tree-sum","query":"def(:totalSize, add(/size, /children * totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
-{"name":"recursive-conduit-with-params","query":"def(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)}) | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap(append(\"!\")) | /label","expect":"\"a!\""}
-{"name":"conduit-arity-mismatch-too-few","query":"def(:f, [:a :b], add(a, b)) | 0 | f(1)","error":"arity-error","expect":"::ConduitArityMismatch!{\n  :fault {:step ~{f(1)} :input 0}\n  :conduitName \"f\"\n  :expectedArity 2\n  :actualArity 1\n  :origin :qlang/eval\n  :kind :arity-error\n}"}
-{"name":"conduit-arity-mismatch-too-many","query":"def(:f, [:a], add(a)) | 5 | f(1, 2)","error":"arity-error","expect":"::ConduitArityMismatch!{\n  :fault {:step ~{f(1, 2)} :input 5}\n  :conduitName \"f\"\n  :expectedArity 1\n  :actualArity 2\n  :origin :qlang/eval\n  :kind :arity-error\n}"}
-{"name":"conduit-param-shadows-builtin","query":"def(:f, [:count], count) | 42 | f(99)","expect":"99"}
-{"name":"lexical-scope-isolation","query":"def(:double, mul(2)) | def(:apply_double, double) | def(:double, mul(3)) | 5 | apply_double","expect":"10"}
-{"name":"conduit-as-inside-body-does-not-leak","query":"def(:f, [:n], n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)","expect":"false"}
-{"name":"conduit-param-is-lazy-per-element","query":"def(:@pluck, [:proj], proj) | [{:a 1} {:a 2} {:a 3}] * @pluck(/a)","expect":"[1 2 3]"}
-{"name":"conduit-reify-kind","query":"def(:foo, 42) | reify(:foo) | /kind","expect":":snapshot"}
-{"name":"conduit-reify-params-zero","query":"def(:foo, 42) | reify(:foo) | /params","expect":"::ProjectionKeyNotInMap!{\n  :fault {\n    :step ~{/params}\n    :input {\n      :kind :snapshot\n      :name \"foo\"\n      :value 42\n      :type :number\n      :effectful false\n      :location {\n        :start {\n          :offset 10\n          :line 1\n          :column 11\n        }\n        :end {\n          :offset 12\n          :line 1\n          :column 13\n        }\n      }\n    }\n  }\n  :key \"params\"\n  :subject {\n    :kind :snapshot\n    :name \"foo\"\n    :value 42\n    :type :number\n    :effectful false\n    :location {\n      :start {\n        :offset 10\n        :line 1\n        :column 11\n      }\n      :end {\n        :offset 12\n        :line 1\n        :column 13\n      }\n    }\n  }\n  :origin :qlang/eval\n  :kind :type-error\n}"}
-{"name":"conduit-reify-params-two","query":"def(:f, [:a :b], add(a, b)) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
-{"name":"conduit-reify-source","query":"def(:double, mul(2)) | reify(:double) | /source","expect":"\"mul(2)\""}
-{"name":"conduit-effect-marker-clean-body-at-name-ok","query":"def(:@safe, count) | [1 2 3] | @safe","expect":"3"}
-{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":"def(:foo, @callers) !| /thrown","expect":"::EffectLaunderingAtDefParse"}
+{"name":"zero-arity-conduit","query":":double mul(2) | 10 | double","expect":"20"}
+{"name":"zero-arity-conduit-distribute","query":":plus10 add(10) | [1 2 3] * plus10","expect":"[11 12 13]"}
+{"name":"parametric-conduit-single-param","query":":addN [:n] add(n) | 5 | addN(3)","expect":"8"}
+{"name":"parametric-conduit-two-params","query":":@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | \"world\" | @surround(\"[\", \"]\")","expect":"\"[world]\""}
+{"name":"higher-order-param-in-sort","query":":@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n)) | [{:v 1} {:v 3} {:v 2}] | @topBy(/v, 2) * /v","expect":"[3 2]"}
+{"name":"higher-order-param-in-filter","query":":@matching [:pred] filter(pred) | [1 2 3 4 5] | @matching(gt(3))","expect":"[4 5]"}
+{"name":"fractal-composition-three-levels","query":":@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n)) | :@topNByV [:n] @topBy(/v, n) | :@top2ByV @topNByV(2) | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
+{"name":"recursive-conduit-tree-sum","query":":totalSize add(/size, /children * totalSize | sum) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
+{"name":"recursive-conduit-with-params","query":":@treeMap [:fn] {:label (/label | fn) :children /children * @treeMap(fn)} | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap(append(\"!\")) | /label","expect":"\"a!\""}
+{"name":"conduit-arity-mismatch-too-few","query":":f [:a :b] add(a, b) | 0 | f(1)","error":"arity-error","expect":"::ConduitArityMismatch!{\n  :fault {:step ~{f(1)} :input 0}\n  :conduitName \"f\"\n  :expectedArity 2\n  :actualArity 1\n  :origin :qlang/eval\n  :kind :arity-error\n}"}
+{"name":"conduit-arity-mismatch-too-many","query":":f [:a] add(a) | 5 | f(1, 2)","error":"arity-error","expect":"::ConduitArityMismatch!{\n  :fault {:step ~{f(1, 2)} :input 5}\n  :conduitName \"f\"\n  :expectedArity 1\n  :actualArity 2\n  :origin :qlang/eval\n  :kind :arity-error\n}"}
+{"name":"conduit-param-shadows-builtin","query":":f [:count] count | 42 | f(99)","expect":"99"}
+{"name":"lexical-scope-isolation","query":":double mul(2) | :apply_double double | :double mul(3) | 5 | apply_double","expect":"10"}
+{"name":"conduit-as-inside-body-does-not-leak","query":":f [:n] (n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)","expect":"false"}
+{"name":"conduit-param-is-lazy-per-element","query":":@pluck [:proj] proj | [{:a 1} {:a 2} {:a 3}] * @pluck(/a)","expect":"[1 2 3]"}
+{"name":"conduit-reify-kind","query":":foo 42 | reify(:foo) | /kind","expect":":snapshot"}
+{"name":"conduit-reify-params-zero","query":":foo 42 | reify(:foo) | /params","expect":"::ProjectionKeyNotInMap!{\n  :fault {\n    :step ~{/params}\n    :input {\n      :kind :snapshot\n      :name \"foo\"\n      :value 42\n      :type :number\n      :effectful false\n      :location {\n        :start {\n          :offset 0\n          :line 1\n          :column 1\n        }\n        :end {\n          :offset 7\n          :line 1\n          :column 8\n        }\n      }\n    }\n  }\n  :key \"params\"\n  :subject {\n    :kind :snapshot\n    :name \"foo\"\n    :value 42\n    :type :number\n    :effectful false\n    :location {\n      :start {\n        :offset 0\n        :line 1\n        :column 1\n      }\n      :end {\n        :offset 7\n        :line 1\n        :column 8\n      }\n    }\n  }\n  :origin :qlang/eval\n  :kind :type-error\n}"}
+{"name":"conduit-reify-params-two","query":":f [:a :b] add(a, b) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
+{"name":"conduit-reify-source","query":":double mul(2) | reify(:double) | /source","expect":"\"mul(2)\""}
+{"name":"conduit-effect-marker-clean-body-at-name-ok","query":":@safe count | [1 2 3] | @safe","expect":"3"}
+{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":":foo @callers !| /thrown","expect":"::EffectLaunderingAtDefParse"}
 {"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
 {"name":"as-operand-reify","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
-{"name":"def-name-not-keyword-error","query":"def(42, mul(2)) !| /thrown","expect":"::DefNameNotKeyword"}
 {"name":"as-name-not-keyword-error","query":"42 | as(42)","error":"type-error","expect":"::AsNameNotKeyword!{\n  :fault {:step ~{as(42)} :input 42}\n  :actualValue 42\n  :actualType :number\n  :origin :qlang/eval\n  :kind :type-error\n}"}
-{"name":"let-too-few-args-error","query":"def(:x) !| /thrown","expect":"::DefMissingDocOrBody"}
-{"name":"conduit-parameter-no-captured-args","query":"def(:f, [:n], n(42)) | 0 | f(5)","error":"arity-error","expect":"::ConduitParameterNoCapturedArgs!{\n  :fault {:step ~{n(42)} :input 0}\n  :paramName \"n\"\n  :actualCount 1\n  :origin :qlang/eval\n  :kind :arity-error\n}"}
-{"name":"let-params-not-vec-error","query":"def(:f, 42, mul(2)) !| /thrown","expect":"::DefParamsNotVecOfKeywords"}
-{"name":"let-param-element-not-keyword-error","query":"def(:f, [42], mul(2)) !| /thrown","expect":"::DefParamsNotVecOfKeywords"}
+{"name":"conduit-parameter-no-captured-args","query":":f [:n] n(42) | 0 | f(5)","error":"arity-error","expect":"::ConduitParameterNoCapturedArgs!{\n  :fault {:step ~{n(42)} :input 0}\n  :paramName \"n\"\n  :actualCount 1\n  :origin :qlang/eval\n  :kind :arity-error\n}"}

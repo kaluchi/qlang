@@ -154,8 +154,11 @@ export function findAstNodeAtOffset(ast, offset) {
 // that names the given qlang identifier. The result includes both
 // declarations and uses, intentionally:
 //   - OperandCall whose .name matches (read site or bare identifier)
-//   - OperandCall named 'def' or 'as' whose first Keyword arg names
-//     the identifier (declaration site — e.g. `def(:foo, body)`)
+//   - BindStep whose Keyword key names the identifier (declaration
+//     site — `:foo body` form). BareTypeKeyword keys (`::foo body`)
+//     bind under `::foo` and do not match a value-namespace lookup.
+//   - OperandCall named `as` whose first Keyword arg names the
+//     identifier (snapshot declaration site — `as(:foo)`).
 //   - Projection whose .keys contains the name (Map field read by name)
 // Keyword literals are intentionally NOT included because `:foo`
 // is a value of type keyword, not an identifier reference.
@@ -163,8 +166,12 @@ export function findIdentifierOccurrences(ast, name) {
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
+    else if (node.type === 'BindStep'
+             && node.key.type === 'Keyword' && node.key.name === name) {
+      occurrences.push(node);
+    }
     else if (node.type === 'OperandCall'
-             && (node.name === 'def' || node.name === 'as')
+             && node.name === 'as'
              && Array.isArray(node.args) && node.args.length > 0
              && node.args[0].type === 'Keyword' && node.args[0].name === name) {
       occurrences.push(node);
@@ -192,14 +199,15 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 ]);
 
 // bindingNamesVisibleAt(ast, offset) — returns the Set of binding
-// names (def / as operand calls) lexically visible at the given
-// UTF-16 offset. This is the autocomplete primitive: "what
-// identifiers can the user type at this cursor position without an
-// unresolved-identifier error?"
+// names lexically visible at the given UTF-16 offset. This is the
+// autocomplete primitive: "what identifiers can the user type at
+// this cursor position without an unresolved-identifier error?"
 //
 // Visibility rules, mirroring the runtime fork semantics:
-//   1. Only OperandCall nodes named 'def' or 'as' with a Keyword
-//      first arg contribute names (binding declarations).
+//   1. BindStep nodes with a Keyword key, and OperandCall nodes
+//      named `as` with a Keyword first arg, contribute names
+//      (binding declarations). BareTypeKeyword bind into the
+//      `::tag` namespace and are skipped for value-name lookup.
 //   2. The binding must already have been declared at the cursor
 //      (`location.end.offset <= offset`).
 //   3. The binding must NOT be inside a fork-isolating AST node
@@ -211,12 +219,16 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 export function bindingNamesVisibleAt(ast, offset) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    // Recognize def(:name, ...) and as(:name) OperandCall patterns.
-    if (node.type !== 'OperandCall') return;
-    if (node.name !== 'def' && node.name !== 'as') return;
-    if (!Array.isArray(node.args) || node.args.length === 0) return;
-    const firstArg = node.args[0];
-    if (firstArg.type !== 'Keyword') return;
+    let bindingName = null;
+    if (node.type === 'BindStep' && node.key.type === 'Keyword') {
+      bindingName = node.key.name;
+    } else if (node.type === 'OperandCall' && node.name === 'as'
+               && Array.isArray(node.args) && node.args.length > 0
+               && node.args[0].type === 'Keyword') {
+      bindingName = node.args[0].name;
+    } else {
+      return;
+    }
     if (!node.location || node.location.end.offset > offset) return;
     let current = node;
     let parent = current.parent;
@@ -231,7 +243,7 @@ export function bindingNamesVisibleAt(ast, offset) {
       current = parent;
       parent = current.parent;
     }
-    visible.add(firstArg.name);
+    visible.add(bindingName);
   });
   return visible;
 }

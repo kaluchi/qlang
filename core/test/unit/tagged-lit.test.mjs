@@ -36,36 +36,36 @@ describe('::conduit constructor builds a Conduit-value', () => {
   });
 
   it('Conduit invokes through def + identifier lookup', async () => {
-    const result = await evalQuery('def(:double, ::conduit[[] ~{mul(2)}]) | 5 | double');
+    const result = await evalQuery(':double ::conduit[[] ~{mul(2)}] | 5 | double');
     expect(result).toBe(10);
   });
 
   it('parametric Conduit binds captured args', async () => {
     const result = await evalQuery(
-      'def(:@surround, ::conduit[[:pfx :sfx] ~{prepend(pfx) | append(sfx)}]) | "x" | @surround("[", "]")'
+      ':@surround ::conduit[[:pfx :sfx] ~{prepend(pfx) | append(sfx)}] | "x" | @surround("[", "]")'
     );
     expect(result).toBe('[x]');
   });
 
   it('3-element payload with self-name produces a recursive Conduit', async () => {
     const result = await evalQuery(
-      'def(:walk, ::conduit[:walk [] ~{if(empty, 0, first | add(1))}]) | [1 2 3] | walk'
+      ':walk ::conduit[:walk [] ~{if(empty, 0, first | add(1))}] | [1 2 3] | walk'
     );
     expect(result).toBe(2);
   });
 });
 
-describe('def(::tag, descriptor) registers a type-namespace binding', () => {
+describe('::tag descriptor registers a type-namespace binding', () => {
   it('makes ::myType invokable through the ::conduit constructor handle', async () => {
     const result = await evalQuery(
-      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | def(:f, ::myType[[] ~{add(1)}]) | 4 | f'
+      '::myType {:qlang/kind :type :qlang/impl :qlang/type/conduit} | :f ::myType[[] ~{add(1)}] | 4 | f'
     );
     expect(result).toBe(5);
   });
 
-  it('axis-operand finds the def(::Tag, …) OperandCall form when navigating ::Tag | source', async () => {
+  it('axis-operand finds the ::Tag … OperandCall form when navigating ::Tag | source', async () => {
     const source = await evalQuery(
-      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | ::myType | source'
+      '::myType {:qlang/kind :type :qlang/impl :qlang/type/conduit} | ::myType | source'
     );
     expect(source.type).toBe('quote');
     expect(source.source).toContain('::myType');
@@ -75,7 +75,7 @@ describe('def(::tag, descriptor) registers a type-namespace binding', () => {
 describe('axis-operand subject classification', () => {
   it('a tagged-instance Map (kind is TagKeyword) resolves through its tag to the type-binding source', async () => {
     const source = await evalQuery(
-      'def(::myType, {:qlang/kind :type :qlang/impl :qlang/type/conduit}) | {:qlang/kind ::myType :qlang/payload []} | source'
+      '::myType {:qlang/kind :type :qlang/impl :qlang/type/conduit} | {:qlang/kind ::myType :qlang/payload []} | source'
     );
     expect(source.type).toBe('quote');
     expect(source.source).toContain('::myType');
@@ -111,7 +111,7 @@ describe('TaggedLit error paths', () => {
   });
 
   it('raises TaggedLitNotType when type-binding resolves to a non-Map value', async () => {
-    const err = await evalQuery('def(::badType, 42) | ::badType[]');
+    const err = await evalQuery('::badType 42 | ::badType[]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitNotType'));
   });
@@ -175,14 +175,17 @@ describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
 describe('printValue named conduit paths', () => {
   it('zero-arity named conduit renders as ::conduit[:name [] ~{body}]', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('def(:double, mul(2)) | env | /:double');
+    const value = await evalQuery(':double mul(2) | env | /:double');
     expect(printValue(value)).toBe('::conduit[:double [] ~{mul(2)}]');
   });
 
   it('parametric named conduit renders with params in :name [params] body form', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('def(:wrap, [:p :s], prepend(p) | append(s)) | env | /:wrap');
-    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] ~{prepend(p) | append(s)}]');
+    const value = await evalQuery(':wrap [:p :s] (prepend(p) | append(s)) | env | /:wrap');
+    // The body source preserves the BindStep's `(…)` ParenGroup
+    // wrapper around a Pipeline-shaped body — Primary-only is the
+    // grammar's body slot, so a multi-step body lives inside parens.
+    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] ~{(prepend(p) | append(s))}]');
   });
 });
 
@@ -244,28 +247,28 @@ describe('parse and eval accept Quote subjects transparently', () => {
 describe('User-defined type binding with Quote :qlang/impl', () => {
   it('applies the Quote body against payload as pipeValue', async () => {
     const result = await evalQuery(
-      'def(::wrap, {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}}) | "x" | ::wrap"x"'
+      '::wrap {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x"'
     );
     expect(result).toBe('[x]');
   });
 
   it('Quote body sees the type-binding payload as its initial pipeValue', async () => {
     const result = await evalQuery(
-      'def(::shout, {:qlang/kind :type :qlang/impl ~{append("!")}}) | ::shout"ready"'
+      '::shout {:qlang/kind :type :qlang/impl ~{append("!")}} | ::shout"ready"'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      'def(:exclaim, append("!")) | def(::shout, {:qlang/kind :type :qlang/impl ~{exclaim}}) | ::shout"go"'
+      ':exclaim append("!") | ::shout {:qlang/kind :type :qlang/impl ~{exclaim}} | ::shout"go"'
     );
     expect(result).toBe('go!');
   });
 
   it(':qlang/impl that is neither Keyword nor Quote raises TaggedLitImplNotResolvable', async () => {
     const err = await evalQuery(
-      'def(::bad, {:qlang/kind :type :qlang/impl 42}) | ::bad"x"'
+      '::bad {:qlang/kind :type :qlang/impl 42} | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitImplNotResolvable'));

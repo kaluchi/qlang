@@ -243,7 +243,7 @@ describe('parse — OperandCall', () => {
   });
 });
 
-describe('parse — let and as as operand calls', () => {
+describe('parse — bindings: BindStep and as operand', () => {
   it('parses as(:name) as an OperandCall', () => {
     const ast = parse('as(:roster)');
     expect(ast.type).toBe('OperandCall');
@@ -253,20 +253,16 @@ describe('parse — let and as as operand calls', () => {
     expect(ast.args[0].name).toBe('roster');
   });
 
-  it('parses def(:name, body) as an OperandCall', () => {
-    const ast = parse('def(:double, mul(2))');
-    expect(ast.type).toBe('OperandCall');
-    expect(ast.name).toBe('def');
-    expect(ast.args).toHaveLength(2);
-    expect(ast.args[0].type).toBe('Keyword');
-    expect(ast.args[1].type).toBe('OperandCall');
+  it('parses :name body as a BindStep', () => {
+    const ast = parse(':double mul(2)');
+    expect(ast.type).toBe('BindStep');
+    expect(ast.key.type).toBe('Keyword');
+    expect(ast.key.name).toBe('double');
+    expect(ast.body.type).toBe('OperandCall');
+    expect(ast.body.name).toBe('mul');
   });
 
-  it('def and as are not reserved — they parse as ordinary identifiers', () => {
-    const defAst = parse('def');
-    expect(defAst.type).toBe('OperandCall');
-    expect(defAst.name).toBe('def');
-
+  it('as is not reserved — it parses as an ordinary identifier reference', () => {
     const asAst = parse('as');
     expect(asAst.type).toBe('OperandCall');
     expect(asAst.name).toBe('as');
@@ -301,11 +297,12 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].step.name).toBe('as');
   });
 
-  it('parses def(:name, body) inside a pipeline', () => {
-    const ast = parse('items | def(:total, count) | total');
+  it('parses :name body as a BindStep inside a pipeline', () => {
+    const ast = parse('items | :total count | total');
     expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('OperandCall');
-    expect(ast.steps[1].step.name).toBe('def');
+    expect(ast.steps[1].step.type).toBe('BindStep');
+    expect(ast.steps[1].step.key.type).toBe('Keyword');
+    expect(ast.steps[1].step.key.name).toBe('total');
   });
 });
 

@@ -877,35 +877,35 @@ points:
 {:total 3 :adult 2}
 ```
 
-### `def(:name, expr)` — named pipeline fragment
+### `:name expr` — named pipeline fragment
 
 Where `as` captures a value, `def` captures a transformation — a
 reusable pipeline fragment called a **conduit**. `pipeValue` is
 unchanged by the declaration itself; the name goes into scope.
 
 ```qlang
-> def(:double, mul(2))
+> :double mul(2)
   | [1 2 3] * double
 [2 4 6]
 ```
 
 The two forms are a single mechanism with different arity:
 
-- `def(:double, mul(2))` — zero-arity conduit, no parameters.
-- `def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx))` —
+- `:double mul(2)` — zero-arity conduit, no parameters.
+- `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx))` —
   two-arity conduit, two parameters.
-- `def(:f, [], body)` — equivalent to zero-arity (empty params list).
+- `:f [] body` — equivalent to zero-arity (empty params list).
 
 Multi-step bodies must be wrapped in parentheses so the `|` inside
 does not bleed into the outer pipeline:
 
 ```qlang
-| def(:isSenior, (/age | gt(65)))
+| :isSenior (/age | gt(65))
 |~| parens required: /age | gt(65) is the body pipeline
 ```
 
 Difference from `as`:
-- `def(:name, expr)` — captures the **expression**. Each reference
+- `:name expr` — captures the **expression**. Each reference
   evaluates `expr` in a lexically-scoped fork.
 - `as(:name)` — captures the **value** of `pipeValue` at the point
   where the operand executes. Frozen — same value every reference.
@@ -937,9 +937,9 @@ level's scope is anchored at its own declaration point. Later
 shadowing in the caller's scope does not affect a conduit's body.
 
 ```qlang
-> def(:@topBy, [:keyFn :n], sortWith(desc(keyFn)) | take(n))
-  | def(:@topNByV, [:n], @topBy(/v, n))
-  | def(:@top2ByV, @topNByV(2))
+> :@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n))
+  | :@topNByV [:n] @topBy(/v, n)
+  | :@top2ByV @topNByV(2)
   | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v
 [30 20]
 ```
@@ -957,7 +957,7 @@ that fires per-element inside `sortWith`, per-iteration inside
 `filter`, per-pair inside `desc`/`asc`:
 
 ```qlang
-> def(:@topBy, [:keyFn :n], sortWith(desc(keyFn)) | take(n))
+> :@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n))
   | [{:score 1} {:score 3} {:score 2}] | @topBy(/score, 2) * /score
 [3 2]
 ```
@@ -968,13 +968,13 @@ element when `desc` invokes it per comparison pair.
 #### Examples
 
 ```qlang
-> def(:@surround, [:pfx :sfx], prepend(pfx) | append(sfx))
+> :@surround [:pfx :sfx] (prepend(pfx) | append(sfx))
   | "world" | @surround("[", "]")
 "[world]"
 
 > [{:name "Alice" :age 25} {:name "Bob" :age 16} {:name "Carol" :age 40}]
-  | def(:votingAge, filter(/age | gte(18)))
-  | def(:nameAndAge, {:name /name :age /age})
+  | :votingAge filter(/age | gte(18))
+  | :nameAndAge {:name /name :age /age}
   | votingAge * nameAndAge
 [{:name "Alice" :age 25} {:name "Carol" :age 40}]
 ```
@@ -982,7 +982,7 @@ element when `desc` invokes it per comparison pair.
 #### Recursion via self-reference
 
 ```qlang
-| def(:walk, {:label /label :children /children * walk})
+| :walk {:label /label :children /children * walk}
 | {:label "root" :children [
     {:label "a" :children []}
     {:label "b" :children [
@@ -997,7 +997,7 @@ comes from `[] * walk → []` at leaves.
 Recursive parametric conduits work the same way:
 
 ```qlang
-| def(:@treeMap, [:fn], {:label (/label | fn) :children /children * @treeMap(fn)})
+| :@treeMap [:fn] {:label (/label | fn) :children /children * @treeMap(fn)}
 ```
 
 See [qlang-internals.md](qlang-internals.md#example-6-recursive-def)
@@ -1139,7 +1139,7 @@ changes are discarded. See the
    elements `[a b c]` and Set elements `#{a, b, c}` — each
    entry is its own sub-pipeline, parallel not sequential.
 
-6. **Shadowing.** A later `as(:name)` or `def(:name, ...)` in the same
+6. **Shadowing.** A later `as(:name)` or `:name ...` in the same
    scope replaces the earlier one for subsequent uses.
 
 7. **Resolution order**: last-write-wins in `env`. Under typical
@@ -1147,7 +1147,7 @@ changes are discarded. See the
    `as` captures during execution), this manifests as
    `as` > `def` > built-in.
 
-   `def(:count, 5)` makes subsequent `count` references resolve to
+   `:count 5` makes subsequent `count` references resolve to
    `5`. Within that pipeline the built-in `count` is inaccessible
    until a later step shadows `count` again.
 
@@ -1230,7 +1230,7 @@ doc comment fails to parse.
 |~~| First remark.
 |~ formatting separator ~|
 |~~| Second remark.
-def(:foo, ...)
+:foo ...
 ```
 
 The binding's `docs` Vec holds two entries (`" First remark."`,
@@ -1246,10 +1246,10 @@ concatenation of adjacent line docs.
 |~~| Second remark.
 |~~ Block-form remark
     with internal newlines. ~~|
-def(:foo, ...)
+:foo ...
 ```
 
-The `def(:foo, ...)` binding's `docs` field holds three entries:
+The `:foo ...` binding's `docs` field holds three entries:
 two single-line strings and one multi-line string.
 
 Plain comments interleaved among the docs do not break the
@@ -1410,10 +1410,10 @@ Side-effectful host operands carry the `@` prefix in qlang source.
 The convention is enforced one-directionally:
 
 ```qlang
-def(:foo, @callers)          |~| ERROR: effectful body, clean name
-def(:@impl, @callers)        |~| OK
-def(:@safe, count)           |~| OK (over-approximation, harmless)
-def(:foo, count)             |~| OK (pure body, clean name)
+:foo @callers          |~| ERROR: effectful body, clean name
+:@impl @callers        |~| OK
+:@safe count           |~| OK (over-approximation, harmless)
+:foo count             |~| OK (pure body, clean name)
 ```
 
 A `def` binding whose body references any `@`-prefixed identifier
@@ -1731,7 +1731,7 @@ Six step types:
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `reify`, `manifest` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
-| 5 | `def(:name, expr)` / `def(:name, [:p..], expr)` | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the `def` attach to the conduit. |
+| 5 | `:name expr` / `:name [:p..] expr` | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the `def` attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (`def` or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|`, `*`, and `>>` are
@@ -1801,7 +1801,7 @@ filter(/age | gt(18))
 | `union`/`minus`/`inter` on incompatible types | type error |
 | `div(0)` | division by zero |
 | `sort` on Vec with non-comparable elements | type error |
-| `def(:cleanName, …@effectful…)` | effect laundering |
+| `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
 
 ---
@@ -2032,8 +2032,8 @@ query syntax.
     {:label "a" :children [
       {:label "a1" :children []}]}
     {:label "b" :children []}]}
-  | def(:renameLabel, {:value /label
-                       :children /children * renameLabel})
+  | :renameLabel {:value /label
+                       :children /children * renameLabel}
   | renameLabel
 ```
 
@@ -2071,7 +2071,7 @@ import { createSession } from '@kaluchi/qlang-core';
 
 const session = await createSession();
 
-await session.evalCell('def(:double, mul(2))');
+await session.evalCell(':double mul(2)');
 await session.evalCell('5 | double');
 // → { source: '5 | double', uri: 'cell-2', ast: ..., result: 10,
 //     error: null, envAfterCell: <Map> }
@@ -2168,7 +2168,7 @@ const session = await createSession();
 installModules(session, catalog);
 
 // Now user code can import namespaces:
-// use(:qlang/error) | def(:guard, ...)
+// use(:qlang/error) | :guard ...
 ```
 
 - **`discoverModules(libDir)`** — scans `libDir` recursively for

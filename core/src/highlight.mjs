@@ -45,7 +45,7 @@ import { parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
 import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
-const BINDING_OPERAND_NAMES = new Set(['def', 'as']);
+const BINDING_OPERAND_NAMES = new Set(['as']);
 const KEYWORD_SIGIL = ':';
 const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
@@ -110,6 +110,18 @@ function collectSemanticSpans(src, ast, builtinNames) {
       case 'QuoteLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'quote' });
         return false;
+
+      case 'BindStep': {
+        // The binding key — Keyword `:name` or BareTypeKeyword `::Tag` —
+        // paints as 'keyword' (binding-introducer) so it is visually
+        // distinct from a plain value-position `:name`. Descend into
+        // params / body / docs for the rest of the spans.
+        const key = node.key;
+        const keyStart = key.location.start.offset;
+        const keyEnd = key.location.end.offset;
+        spans.push({ start: keyStart, end: keyEnd, kind: 'keyword' });
+        return; // descend into docs / params / body
+      }
 
       case 'BareTypeKeyword':
         spans.push({ start: startOffset, end: endOffset, kind: 'type' });

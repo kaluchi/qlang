@@ -26,7 +26,7 @@ async function sessionWithErrorLib() {
   const sessionInstance = await createSession();
   const catalog = await resolveModules(libDir);
   installModules(sessionInstance, catalog);
-  await sessionInstance.evalCell('null | use(:error) | use(:error/observe)');
+  await sessionInstance.evalCell('use(:error) | use(:error/observe)');
   return sessionInstance;
 }
 

@@ -45,35 +45,35 @@ describe('manifest filters out the qlang/ast/ reserved namespace', () => {
 
 describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
   it('stores the module source as a Quote when the locator returns one', async () => {
-    const moduleSource = 'def(:greet, "hi")';
+    const moduleSource = ':greet "hi"';
     const sessionInstance = await createSession({
       locator: async (nsName) => nsName === 'lazy/mod'
         ? { source: moduleSource }
         : null
     });
-    const cellEntry = await sessionInstance.evalCell('null | use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /source');
+    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /source');
     expect(cellEntry.result).toBe(moduleSource);
   });
 
   it('parses the module AST eagerly so /ast skips a re-parse', async () => {
-    const moduleSource = 'def(:answer, 42)';
+    const moduleSource = ':answer 42';
     const sessionInstance = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await sessionInstance.evalCell('null | use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /ast | /:qlang/kind');
-    expect(cellEntry.result).toEqual(keyword('OperandCall'));
+    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /ast | /:qlang/kind');
+    expect(cellEntry.result).toEqual(keyword('BindStep'));
   });
 
   it('module Quote survives subsequent use of a second namespace', async () => {
     const sessionInstance = await createSession({
       locator: async (nsName) => {
-        if (nsName === 'lazy/a') return { source: 'def(:a, 1)' };
-        if (nsName === 'lazy/b') return { source: 'def(:b, 2)' };
+        if (nsName === 'lazy/a') return { source: ':a 1' };
+        if (nsName === 'lazy/b') return { source: ':b 2' };
         return null;
       }
     });
     const cellEntry = await sessionInstance.evalCell(
-      'null | use(:lazy/a) | use(:lazy/b) | env | /:qlang/ast/lazy/a | /source');
-    expect(cellEntry.result).toBe('def(:a, 1)');
+      'use(:lazy/a) | use(:lazy/b) | env | /:qlang/ast/lazy/a | /source');
+    expect(cellEntry.result).toBe(':a 1');
   });
 });

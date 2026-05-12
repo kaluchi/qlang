@@ -264,11 +264,12 @@ StepAfterCombinator
   / RawStep
 
 // One or more doc comments, optionally interleaved with plain
-// comments, followed by a def or as operand call. Each doc comment
-// produces ONE entry in the `docs` Vec attached to the operand call
-// node. The semantic predicate restricts attachment to def / as —
-// the only operands that read `.docs` (def stores them on the
-// resulting snapshot or conduit; as stores them on the snapshot).
+// comments, followed by a binding step — either a BindStep
+// (`:name body`) or an `as` operand call (`as(:name)`). Each doc
+// comment produces ONE entry in the `docs` Vec attached to the
+// step node. BindStep gets its `.docs` field merged with any
+// docs it already carried internally (the `:name __ DocPrefix?`
+// production); `as` gets `.docs` stamped on the OperandCall node.
 // A doc-prefix in front of any other OperandCall (filter, mul, ...)
 // fails this rule and backtracks; the Doc then evaluates as a
 // standalone Doc-value through the DocLit Primary alternative and
@@ -278,13 +279,12 @@ StepAfterCombinator
 // Block docs preserve internal newlines as a single multi-line entry.
 //
 // When no plain comments are interleaved, the rule returns a single
-// operand-call node with `.docs` populated. When interleaved plains
-// are present, the rule returns a compound array that Pipeline
-// flattens into multiple steps (plain identity steps first, then
-// the doc-attached operand call).
+// step node with `.docs` populated. When interleaved plains are
+// present, the rule returns a compound array that Pipeline flattens
+// into multiple steps (plain identity steps first, then the doc-
+// attached step).
 DocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:OperandCall
-    & { return step.name === 'def' || step.name === 'as'; }
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:DocAttachableStep
   {
     const allItems = [firstDoc, ...rest.map(t => t[1])];
     const docs = [];
@@ -296,7 +296,8 @@ DocAttachedSequence
         plainSteps.push(item);
       }
     }
-    const bound = withDocs(step, docs);
+    const existingDocs = Array.isArray(step.docs) ? step.docs : [];
+    const bound = withDocs(step, [...docs, ...existingDocs]);
     bound.docPrefixStart = firstDoc.location.start.offset;
     if (plainSteps.length === 0) return bound;
     // Head-shape compound array: first element is the bare step,
@@ -309,6 +310,13 @@ DocAttachedSequence
       { combinator: '|', step: bound }
     ];
   }
+
+// Steps that accept a doc-prefix attachment: a BindStep declaration
+// or an `as` OperandCall. Both stamp `.docs` onto the result of the
+// declaration, reachable through axis-operands (`:name | docs`).
+DocAttachableStep
+  = BindStep
+  / step:OperandCall & { return step.name === 'as'; } { return step; }
 
 // A single item that may appear in a doc-attached prefix: either a
 // doc comment (contributes to the docs Vec) or a plain comment

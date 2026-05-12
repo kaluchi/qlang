@@ -77,53 +77,21 @@ export async function langRuntime() {
   if (_templateEnvPromise === null) {
     _templateEnvPromise = (async () => {
       const coreAst = parse(CORE_SOURCE, { uri: 'qlang/core' });
-      // Bootstrap env carries the `def` operand as a fully-formed
-      // descriptor — :qlang/impl pre-resolved to the function value
-      // so every def-step in CORE_SOURCE dispatches through it
-      // without needing self-reference. core.qlang itself does not
-      // contain a `def(:def, ...)` step (it would replace this
-      // descriptor with one whose :qlang/impl is still the keyword
-      // handle and break subsequent def calls before the resolution
-      // pass reaches it). The descriptor metadata below mirrors
-      // what an authored entry would carry.
-      const builtinKind = { type: 'keyword', name: 'builtin', literal: ':builtin' };
-      const reflectiveCat = { type: 'keyword', name: 'reflective', literal: ':reflective' };
-      const anyKind = { type: 'keyword', name: 'any', literal: ':any' };
-      const bootstrapEnv = new Map();
-      // The bootstrap `def` descriptor carries structural metadata
-      // only — no `:docs` / `:examples` field. `def` itself is the
-      // primitive that introduces every other binding, so it has no
-      // def-step in the catalog AST and therefore no axis-reachable
-      // prose. Conventional axis-tooling skips it; printed docs for
-      // `def` live in docs/qlang-operands.md.
-      bootstrapEnv.set('def', new Map([
-        ['qlang/kind', builtinKind],
-        ['qlang/impl', PRIMITIVE_REGISTRY.resolve('qlang/prim/def')],
-        ['category', reflectiveCat],
-        ['subject', anyKind],
-        ['returns', anyKind],
-        ['modifiers', Object.freeze([
-          { type: 'keyword', name: 'keyword',  literal: ':keyword' },
-          { type: 'keyword', name: 'pipeline', literal: ':pipeline' }
-        ])],
-        ['throws', Object.freeze([
-          { type: 'keyword', name: 'DefNameNotKeyword',           literal: ':DefNameNotKeyword' },
-          { type: 'keyword', name: 'DefParamsNotVecOfKeywords',   literal: ':DefParamsNotVecOfKeywords' },
-          { type: 'keyword', name: 'DefArityInvalid',             literal: ':DefArityInvalid' },
-          { type: 'keyword', name: 'DefMissingDocOrBody',         literal: ':DefMissingDocOrBody' },
-          { type: 'keyword', name: 'EffectLaunderingAtDefParse', literal: ':EffectLaunderingAtDefParse' }
-        ])]
-      ]));
-      const bootstrapState = makeState(null, bootstrapEnv);
+      // core.qlang is a series of BindStep declarations evaluated
+      // against an empty seed env — `evalBindStep` handles every
+      // binding shape directly on the AST without any pre-installed
+      // operand. The earlier bootstrap dance (a hand-built `def`
+      // descriptor stamped into env so the catalog could call into
+      // it) is gone with the legacy `def` operand.
+      const bootstrapState = makeState(null, new Map());
       const bootstrapResult = await evalAst(coreAst, bootstrapState);
       const templateEnv = bootstrapResult.env;
 
-      // The bootstrap def operand snapshot-binds every pure-literal
-      // descriptor (Map literals are pure), so each entry in
-      // templateEnv lives behind a snapshot wrapper. Unwrap once
-      // here so identifier lookups dispatch through the descriptor
-      // directly without paying the snapshot-projection cost on
-      // every call. Attached doc-prefix strings stay on the
+      // BindStep snapshot-binds every pure-literal descriptor (Map
+      // literals are pure), so each entry in templateEnv lives
+      // behind a snapshot wrapper. Unwrap once here so identifier
+      // lookups dispatch through the descriptor directly without
+      // paying the snapshot-projection cost on every call. Attached doc-prefix strings stay on the
       // qlang/ast/qlang/core Quote AST — axis-operands `docs` /
       // `examples` walk it directly. Reify therefore holds the
       // structural metadata only; prose lives at one address

@@ -54,7 +54,7 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('conduit body first step sees exposed descriptor when called via !|', async () => {
-    const evalResult = await evalQuery('def(:handler, /kind) | !{:kind :oops} !| handler');
+    const evalResult = await evalQuery(':handler /kind | !{:kind :oops} !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -81,7 +81,7 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
 
 describe('reify :source from conduit body', () => {
   it('renders an ErrorLit body as the original source substring', async () => {
-    const evalResult = await evalQuery('def(:x, [], !{:a 1}) | reify(:x) | /source');
+    const evalResult = await evalQuery(':x [] !{:a 1} | reify(:x) | /source');
     expect(evalResult).toBe('!{:a 1}');
   });
 });
@@ -94,7 +94,7 @@ describe('EffectLaunderingAtCall', () => {
     // This simulates the laundering path (via use, as, or session injection)
     // that the parse-time AST check cannot detect.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('def(:@myCount, count)');
+    await sessionInstance.evalCell(':@myCount count');
     const effectfulConduit = sessionInstance.env.get('@myCount');
     sessionInstance.bind('doIt', effectfulConduit);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
@@ -105,26 +105,29 @@ describe('EffectLaunderingAtCall', () => {
 
 describe('reify :source for rare conduit body shapes', () => {
   it('renders bare OperandCall (no args)', async () => {
-    expect(await evalQuery('def(:x, count) | reify(:x) | /source')).toBe('count');
+    expect(await evalQuery(':x count | reify(:x) | /source')).toBe('count');
   });
 
   it('renders LinePlainComment in conduit body', async () => {
-    const evalResult = await evalQuery('def(:x, (42 |~| note\n)) | reify(:x) | /source');
+    const evalResult = await evalQuery(':x (42 |~| note\n) | reify(:x) | /source');
     expect(evalResult).toContain('|~|');
   });
 
   it('attached BlockDocComment surfaces through the axis docs operand', async () => {
-    const evalResult = await evalQuery('|~~ doc ~~| def(:x, 42) | :x | docs | first | /content');
+    const evalResult = await evalQuery('|~~ doc ~~| :x 42 | :x | docs | first | /content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
   });
 
   it('renders ErrorLit in conduit body', async () => {
-    expect(await evalQuery('def(:x, [], !{:a 1}) | reify(:x) | /source')).toBe('!{:a 1}');
+    expect(await evalQuery(':x [] !{:a 1} | reify(:x) | /source')).toBe('!{:a 1}');
   });
 
   it('renders leading fail-apply prefix in conduit body', async () => {
-    expect(await evalQuery('def(:handler, !| /kind) | reify(:handler) | /source')).toBe('!| /kind');
+    // BindStep body is a single Primary, so a `!|` leading
+    // Pipeline-step is wrapped in a ParenGroup at the source level.
+    // `reify | /source` reflects the verbatim AST text, parens and all.
+    expect(await evalQuery(':handler (!| /kind) | reify(:handler) | /source')).toBe('(!| /kind)');
   });
 });
 

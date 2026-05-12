@@ -68,10 +68,9 @@ describe('builtin operands', () => {
     expect(out).toBe('<span class="operand">count</span>');
   });
 
-  it('def keyword gets keyword span, not operand', () => {
-    const out = hl('def(:x, 1)');
-    expect(out).toContain('<span class="keyword">def</span>');
-    expect(out).not.toContain('<span class="operand">def</span>');
+  it('BindStep key gets keyword span', () => {
+    const out = hl(':x 1');
+    expect(out).toContain('<span class="keyword">:x</span>');
   });
 
   it('as keyword gets keyword span', () => {

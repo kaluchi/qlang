@@ -39,7 +39,6 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('count');
     expect(labels).toContain('filter');
     expect(labels).toContain('add');
-    expect(labels).toContain('def');
     expect(labels).toContain('as');
     expect(labels).toContain('reify');
   });
@@ -66,7 +65,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('includes user-defined bindings visible at offset', async () => {
-    const src = 'def(:myVar, 42) | myVar';
+    const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
     const items = await completionsAtOffset(ast, offsetAtEnd);
@@ -75,7 +74,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('user binding has variable kind', async () => {
-    const src = 'def(:myVar, 42) | myVar';
+    const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
@@ -227,17 +226,17 @@ describe('definitionAtOffset', () => {
 
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a user-defined conduit', () => {
-    const src = 'def(:double, mul(2)) | [1 2] * double';
+    const src = ':double mul(2) | [1 2] * double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
-    // declaration (def(:double, ...)) + use site (... * double)
+    // declaration (`:double …`) + use site (`* double`)
     expect(refs.length).toBe(2);
   });
 
   it('finds references from the declaration site', () => {
-    const src = 'def(:x, 42) | x';
+    const src = ':x 42 | x';
     const { ast } = parseDocument(src, 'test.qlang');
-    // Click on :x inside def(:x, ...)
+    // Click on :x in the BindStep key
     const kwOffset = src.indexOf(':x') + 1; // inside the keyword
     const refs = referencesAtOffset(ast, kwOffset);
     expect(refs.length).toBe(2);

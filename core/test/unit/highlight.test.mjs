@@ -96,7 +96,7 @@ describe('tokenize — operand call name classification', () => {
   });
 
   it('the ~{let} binding-introducer resolves to ~{keyword}', async () => {
-    const tokens = tokenize('def(:x, 1)', await builtins());
+    const tokens = tokenize(':x 1', await builtins());
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 

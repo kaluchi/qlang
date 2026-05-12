@@ -259,13 +259,12 @@ describe('astNodeToMap — discriminator and shape', () => {
     expect(steps[0].get(KW_STEP).get(KW_CONTENT)).toBe(' rationale ');
   });
 
-  it('preserves OperandCall :docs on doc-attached bindings', () => {
+  it('preserves BindStep :docs on doc-attached bindings', () => {
     // A single-step pipeline collapses to the bare head per
     // grammar.peggy's Pipeline production, so the doc-attached
-    // OperandCall sits at the root without a Pipeline wrapper.
-    const m = astNodeToMap(parse('|~~| first remark\ndef(:double, mul(2))'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('OperandCall');
-    expect(m.get(KW_NAME)).toBe('def');
+    // BindStep sits at the root without a Pipeline wrapper.
+    const m = astNodeToMap(parse('|~~| first remark\n:double mul(2)'));
+    expect(m.get(KW_QLANG_KIND).name).toBe('BindStep');
     const docs = m.get(KW_DOCS);
     expect(isVec(docs)).toBe(true);
     expect(docs).toContain(' first remark');
@@ -438,13 +437,22 @@ describe('round-trip — operand calls and pipelines', () => {
   it('mixed combinators', () => assertRoundTrip('[1 2 3] | [filter(gt(1)), filter(lt(3))] >> count'));
 });
 
-describe('round-trip — def / as bindings', () => {
-  it('zero-arity conduit', () => assertRoundTrip('def(:double, mul(2))'));
+describe('round-trip — BindStep and as bindings', () => {
+  it('zero-arity conduit', () => assertRoundTrip(':double mul(2)'));
   it('parametric conduit', () =>
-    assertRoundTrip('def(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))'));
+    assertRoundTrip(':@surround [:pfx :sfx] (prepend(pfx) | append(sfx))'));
   it('as snapshot', () => assertRoundTrip('[1 2 3] | as(:nums) | nums | count'));
   it('multi-stage as', () =>
     assertRoundTrip('[1 2 3] | as(:a) | filter(gt(1)) | as(:b) | [a, b]'));
+});
+
+describe('round-trip — as operand with attached docs', () => {
+  // The `as` OperandCall is the only remaining call form that
+  // carries `.docs` after the def-operand retirement; round-trip
+  // a doc-attached `as(:name)` to exercise the codec's :docs
+  // serialisation path on an OperandCall node.
+  it('docs attached to as(:name) round-trip through the codec', () =>
+    assertRoundTrip('42\n|~~| Captured.\nas(:answer)'));
 });
 
 describe('round-trip — BindStep declarative form', () => {
@@ -479,20 +487,20 @@ describe('round-trip — comments', () => {
   it('block plain comment mid-pipeline', () =>
     assertRoundTrip('[1 2 3] |~ rationale ~| filter(gt(1))'));
   it('line doc comment attached to def', () =>
-    assertRoundTrip('|~~| first remark\ndef(:double, mul(2))'));
+    assertRoundTrip('|~~| first remark\n:double mul(2)'));
   it('block doc comment attached to def', () =>
-    assertRoundTrip('|~~ multi-line\n    block remark ~~|\ndef(:helper, add(1))'));
+    assertRoundTrip('|~~ multi-line\n    block remark ~~|\n:helper add(1)'));
   it('multiple doc comments accumulating', () =>
-    assertRoundTrip('|~~| first\n|~~| second\ndef(:x, 1)'));
+    assertRoundTrip('|~~| first\n|~~| second\n:x 1'));
   it('plain comment interleaved between docs', () =>
-    assertRoundTrip('|~~| first\n|~ separator ~|\n|~~| second\ndef(:x, 1)'));
+    assertRoundTrip('|~~| first\n|~ separator ~|\n|~~| second\n:x 1'));
 });
 
 describe('round-trip — effect markers', () => {
   it('effectful bare identifier', () => assertRoundTrip('@callers'));
   it('effectful projection segment', () => assertRoundTrip('/some/@effectful'));
   it('effectful conduit binding', () =>
-    assertRoundTrip('def(:@wrap, @callers | count)'));
+    assertRoundTrip(':@wrap (@callers | count)'));
 });
 
 describe('round-trip — realistic queries', () => {
@@ -503,7 +511,7 @@ describe('round-trip — realistic queries', () => {
     assertRoundTrip('[{:dept :eng} {:dept :sales}] | groupBy(/dept) | keys'));
 
   it('recursive tree walker via let', () =>
-    assertRoundTrip('def(:walker, {:label /label :children /children * walker}) | walker'));
+    assertRoundTrip(':walker {:label /label :children /children * walker} | walker'));
 
   it('sortWith compound comparator', () =>
     assertRoundTrip('nodes | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)'));

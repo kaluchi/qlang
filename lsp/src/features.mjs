@@ -282,19 +282,27 @@ export function referencesAtOffset(ast, offset) {
 
   let name = null;
   if (node.type === 'OperandCall') {
-    if ((node.name === 'def' || node.name === 'as')
+    if (node.name === 'as'
         && Array.isArray(node.args) && node.args.length > 0
         && node.args[0].type === 'Keyword') {
       name = node.args[0].name;
     } else {
       name = node.name;
     }
-  } else if (node.type === 'Keyword' && node.parent
-             && node.parent.type === 'OperandCall'
-             && (node.parent.name === 'def' || node.parent.name === 'as')
-             && Array.isArray(node.parent.args)
-             && node.parent.args[0] === node) {
-    name = node.name;
+  } else if (node.type === 'BindStep' && node.key.type === 'Keyword') {
+    // Click anywhere on the BindStep counts as a reference to the
+    // declared name — `findAstNodeAtOffset` returns the BindStep
+    // wrapper when the cursor sits on the key but the key narrowest
+    // span match runs first; cover both by checking BindStep here.
+    name = node.key.name;
+  } else if (node.type === 'Keyword' && node.parent) {
+    const parent = node.parent;
+    if (parent.type === 'BindStep' && parent.key === node) {
+      name = node.name;
+    } else if (parent.type === 'OperandCall' && parent.name === 'as'
+               && Array.isArray(parent.args) && parent.args[0] === node) {
+      name = node.name;
+    }
   }
 
   if (!name) return [];

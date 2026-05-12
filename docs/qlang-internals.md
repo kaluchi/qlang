@@ -154,7 +154,7 @@ the raw captured value; a reflective `reify(:name)` lookup reads the
 wrapper directly and exposes the `:name`, `:value`, and `:docs` fields
 in the descriptor.
 
-### 5. Conduit binding — `def(:name, expr)` / `def(:name, [:p1..:pN], expr)`
+### 5. Conduit binding — `:name expr` / `:name [:p1..:pN] expr`
 
     (pipeValue, env) → (pipeValue, env[:name := Conduit(expr, params, envRef, docs)])
 
@@ -188,8 +188,8 @@ declaration time, not the caller's env:
   lambda fires per-element inside `sortWith`, per-iteration inside
   `filter`, per-pair inside `desc`/`asc`.
 
-Zero-arity conduits (`def(:f, expr)`) and parametric conduits
-(`def(:f, [:a :b], expr)`) share the same mechanism.
+Zero-arity conduits (`:f expr`) and parametric conduits
+(`:f [:a :b] expr`) share the same mechanism.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -518,14 +518,14 @@ The reference implementation assembles `langRuntime` from two
 co-located sources:
 
 - **`lib/qlang/core.qlang`** — the authored catalog. A series
-  of `def(:name, descriptor)` steps; each binds a keyword
+  of `:name descriptor` steps; each binds a keyword
   identifier (`:count`, `:filter`, `:def`, `:parse`, …) to a
   descriptor Map carrying `:qlang/kind :builtin` plus a
   namespaced `:qlang/impl :qlang/prim/<name>` keyword that
   points into the primitive registry, plus authored metadata
   (`:category`, `:subject`, `:modifiers`, `:returns`,
   `:throws`). Doc-prefixes attached to each `def`-step via
-  DocAttachedSequence (`|~~ ... ~~| def(:count, ...)`) become
+  DocAttachedSequence (`|~~ ... ~~| :count ...`) become
   the binding's `:docs` Vec; example assertions ride inside
   the prose as `::assertion[\`snippet\` \`expected\`]` TaggedLit
   segments — extracted at runtime through the Doc-content
@@ -584,7 +584,7 @@ indistinguishable from built-ins.
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
 | `as(:name)` operand call            | Step 3 — identifier lookup + snapshot capture |
-| `def(:name, expr)` operand call     | Step 3 — identifier lookup + conduit construction |
+| `:name expr` operand call     | Step 3 — identifier lookup + conduit construction |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |
@@ -723,7 +723,7 @@ Three patterns demonstrated on a directory tree:
 
 Starting with the tree literal above as `pipeValue`:
 
-    | def(:totalSize, add(/size, /children * totalSize | sum))
+    | :totalSize add(/size, /children * totalSize | sum)
     | totalSize
 
 For each node, compute `/size + sum of children's totalSize`.
@@ -733,7 +733,7 @@ resolves against the node as a sub-pipeline.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `def(:totalSize, <expr>)` — writes a conduit into `env[:totalSize]`.
+1. `:totalSize <expr>` — writes a conduit into `env[:totalSize]`.
    `pipeValue` (the tree root) unchanged.
 2. `totalSize` — lookup `env[:totalSize]`, force the conduit. Evaluate
    `add(/size, /children * totalSize | sum)` with `pipeValue = root`
@@ -759,7 +759,7 @@ find max depth with `max(0, ... | max) | add(1)`, etc.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | def(:allNames, [[/label], /children * allNames | flat] | flat)
+    | :allNames ([[/label], /children * allNames | flat] | flat)
     | allNames
 
 (The outer parentheses are required because a `def` body is a
@@ -773,7 +773,7 @@ and the outer `| flat` merges them into one list.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `def(:allNames, <expr>)` — writes a conduit into `env[:allNames]`.
+1. `:allNames <expr>` — writes a conduit into `env[:allNames]`.
    `pipeValue` (the tree root) unchanged.
 2. `allNames` — lookup, force conduit. Evaluate the conduit body
    `[[/label], /children * allNames | flat] | flat` with
@@ -805,9 +805,9 @@ tree-to-list conversion.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | def(:withCounts, {:label /label
+    | :withCounts {:label /label
                          :count /children | count
-                         :children /children * withCounts})
+                         :children /children * withCounts}
     | withCounts
 
 Produces a tree with the same shape, where each node gains a
@@ -817,7 +817,7 @@ add computed fields per node.
 
 Trace:
 
-1. `def(:withCounts, <expr>)` — writes conduit into `env[:withCounts]`.
+1. `:withCounts <expr>` — writes conduit into `env[:withCounts]`.
 2. `withCounts` — lookup, force conduit. Reshape each entry against
    `pipeValue = root`:
    - `:label /label` → `"root"`.
@@ -882,8 +882,8 @@ sub-pipeline: `mul(2)` applies to the current `pipeValue` via
 Rule 10 rather than producing a function object. For in-query
 function extension use `def`:
 
-    | def(:double, mul(2))
-    | def(:isSenior, /age | gt(65))
+    | :double mul(2)
+    | :isSenior (/age | gt(65))
     | employees * {:doubledAge /age | double :senior isSenior}
 
 Each `def` writes a conduit that forces against `pipeValue` at
@@ -1100,7 +1100,7 @@ because `astChildrenOf` and the codec share the shape knowledge.
   a UTF-16 offset. Drives editor hover and goto-definition.
 - `findIdentifierOccurrences(ast, name)` — every OperandCall and
   Projection segment naming the given identifier, including
-  `def(:name, ...)` and `as(:name)` declaration patterns.
+  `:name ...` and `as(:name)` declaration patterns.
 - `bindingNamesVisibleAt(ast, offset)` — lexical-scope-correct set
   of binding names visible at a cursor position. Honors fork-
   isolating ancestors (ParenGroup, VecLit, SetLit, MapLit, MapEntry).

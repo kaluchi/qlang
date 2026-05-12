@@ -14,11 +14,11 @@
 //     → per entry with value as pipeValue; key is not visible.
 //   2-arity conduit (`[:k :v]`)
 //     → per entry with (key, value) as captured-arg values; pipeValue
-//       is the value. Writing the predicate as a named let-conduit
-//       is the idiom for both-axis filtering:
+//       is the value. Writing the predicate as a named conduit
+//       binding is the idiom for both-axis filtering:
 //
 //         m
-//           | let(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
+//           | :@hot [:k :v] and(k | eq(:x), v | gt(1))
 //           | filter(@hot)
 //
 //   3+-arity → per-operand arity-error. The language does not

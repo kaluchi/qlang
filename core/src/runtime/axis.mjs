@@ -48,28 +48,23 @@ function matchesDefStep(step, isTypeBinding, targetName) {
       ? key.type === 'BareTypeKeyword' && key.tag === targetName
       : key.type === 'Keyword'         && key.name === targetName;
   }
-  if (step.type === 'OperandCall') {
-    if (step.name !== 'def' && step.name !== 'as') return false;
+  if (step.type === 'OperandCall' && step.name === 'as') {
     if (!Array.isArray(step.args) || step.args.length === 0) return false;
     const firstArg = step.args[0];
-    return isTypeBinding
-      ? firstArg.type === 'BareTypeKeyword' && firstArg.tag === targetName
-      : firstArg.type === 'Keyword'         && firstArg.name === targetName;
+    return firstArg.type === 'Keyword' && firstArg.name === targetName;
   }
   return false;
 }
 
 // Walk the module AST front to back, return the LAST matching binding
 // step. The last-match rule mirrors qlang's shadowing semantics: a
-// later `def(:foo, …)` (or `as(:foo)`) shadows the earlier binding,
-// so axis-operand lookups must surface the docs / source / examples
-// of the binding shadowing-resolved at that point, not the first declaration.
+// later `:foo body` BindStep (or `as(:foo)`) shadows the earlier
+// binding, so axis-operand lookups must surface the docs / source /
+// examples of the binding shadowing-resolved at that point, not the
+// first declaration.
 function findDefStepFor(moduleAst, bindingName) {
   const isTypeBinding = bindingName.startsWith('::');
   const targetName = isTypeBinding ? bindingName.slice(2) : bindingName;
-  if (moduleAst.type === 'OperandCall') {
-    return matchesDefStep(moduleAst, isTypeBinding, targetName) ? moduleAst : null;
-  }
   if (moduleAst.type === 'Pipeline') {
     let lastMatch = null;
     for (let i = 0; i < moduleAst.steps.length; i++) {
@@ -79,7 +74,9 @@ function findDefStepFor(moduleAst, bindingName) {
     }
     return lastMatch;
   }
-  return null;
+  // Single-step module — top-level AST is the step itself (BindStep
+  // or an `as` OperandCall) rather than a Pipeline wrapper.
+  return matchesDefStep(moduleAst, isTypeBinding, targetName) ? moduleAst : null;
 }
 
 // Iterate every module Quote stored in env under `qlang/ast/<uri>`.

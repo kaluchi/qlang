@@ -453,144 +453,6 @@ const AsNameNotKeyword = declareShapeError('AsNameNotKeyword',
 
 import { envSet } from '../state.mjs';
 
-const DefNameNotKeyword = declareShapeError('DefNameNotKeyword',
-  ({ actualType }) => `def requires a keyword as its first argument (the binding name), got ${actualType.name}`);
-const DefParamsNotVecOfKeywords = declareShapeError('DefParamsNotVecOfKeywords',
-  ({ index, actualType }) => `def parameter list must be a Vec of keywords; element ${index} is ${actualType.name}`);
-const DefArityInvalid = declareArityError('DefArityInvalid',
-  ({ actualCount }) => `def requires 1 (name with attached doc), 2 (name, body), or 3 (name, params, body) arguments, got ${actualCount}`);
-const DefMissingDocOrBody = declareShapeError('DefMissingDocOrBody',
-  ({ bindingName }) => `def(:${bindingName}) — 1-arg form requires an attached doc-prefix; without it neither a value nor a documentation source is available`);
-
-import { isPureLiteralAst } from '../walk.mjs';
-
-function checkEffectLaundering(bindingName, bodyAst) {
-  if (classifyEffect(bindingName) || !bodyAst) return;
-  const offender = findFirstEffectfulIdentifier(bodyAst);
-  if (offender !== null) {
-    throw new EffectLaunderingAtDefParse({
-      defName: bindingName,
-      effectfulName: offender,
-      location: bodyAst.location
-    });
-  }
-}
-
-// def(:name) / def(:name, body) / def(:name, [:params], body)
-//
-// Pipeline-transparent declarative binding — pipeValue passes through
-// unchanged so def-steps chain naturally on the success-track. Three
-// arity-driven forms:
-//
-//   1-arg `def(:name)` — attached doc-prefix is materialized as a
-//     Doc-value and bound under :name. Without an attached doc the
-//     call has nothing to bind and raises DefMissingDocOrBody.
-//
-//   2-arg `def(:name, body)` — purity-analysis on the body AST: a
-//     pure literal (NumberLit / StringLit / Keyword / VecLit /
-//     MapLit / ... recursively) evaluates at def-time and binds as a
-//     snapshot of the value; an impure body (containing OperandCall,
-//     Projection, ParenGroup, Pipeline) binds as a zero-param conduit
-//     invoked lazily per-lookup.
-//
-//   3-arg `def(:name, [:p ...], body)` — parametric conduit; always
-//     deferred regardless of body shape.
-//
-// Effect-laundering safety net mirrors the let-time AST scan: a
-// non-`@`-prefixed binding name with an effectful body raises
-// EffectLaunderingAtDefParse.
-export const defOperand = stateOpVariadic('def', 16, async (state, defLambdas) => {
-  const argCount = defLambdas.length;
-  if (argCount < 1 || argCount > 3) {
-    throw new DefArityInvalid({ actualCount: argCount });
-  }
-
-  // The name argument may be either a Keyword (`def(:foo, ...)` —
-  // value-namespace binding) or a BareTypeKeyword AST node
-  // (`def(::foo, ...)` — type-namespace binding stored in env under
-  // the `::`-prefixed key). The grammar disambiguates them; we
-  // route by inspecting the captured-arg AST shape before
-  // evaluating it.
-  const nameAst = defLambdas[0].astNode;
-  let bindingName;
-  if (nameAst && nameAst.type === 'BareTypeKeyword') {
-    bindingName = '::' + nameAst.tag;
-  } else {
-    const nameValue = await defLambdas[0](state.pipeValue);
-    if (!isKeyword(nameValue)) {
-      throw new DefNameNotKeyword({ actualType: typeKeyword(nameValue), actualValue: nameValue });
-    }
-    bindingName = nameValue.name;
-  }
-  const attachedDocs = defLambdas.docs;
-
-  if (argCount === 1) {
-    if (!attachedDocs || attachedDocs.length === 0) {
-      throw new DefMissingDocOrBody({ bindingName });
-    }
-    const docValue = makeDoc(attachedDocs.join('\n'));
-    const docSnapshot = makeSnapshot(docValue, {
-      name: bindingName,
-      docs: attachedDocs,
-      location: defLambdas.location
-    });
-    return makeState(state.pipeValue, envSet(state.env, bindingName, docSnapshot));
-  }
-
-  if (argCount === 3) {
-    const paramsValue = await defLambdas[1](state.pipeValue);
-    if (!isVec(paramsValue)) {
-      throw new DefParamsNotVecOfKeywords({ index: -1, actualType: typeKeyword(paramsValue), actualValue: paramsValue });
-    }
-    for (let pi = 0; pi < paramsValue.length; pi++) {
-      if (!isKeyword(paramsValue[pi])) {
-        throw new DefParamsNotVecOfKeywords({ index: pi, actualType: typeKeyword(paramsValue[pi]), actualValue: paramsValue[pi] });
-      }
-    }
-    const params = paramsValue.map(kw => kw.name);
-    const bodyAst = defLambdas[2].astNode;
-    checkEffectLaundering(bindingName, bodyAst);
-    const envRef = { env: null };
-    const conduit = makeConduit(bodyAst, {
-      name: bindingName,
-      params,
-      envRef,
-      docs: attachedDocs,
-      location: bodyAst.location
-    });
-    const nextEnv = envSet(state.env, bindingName, conduit);
-    envRef.env = nextEnv;
-    return makeState(state.pipeValue, nextEnv);
-  }
-
-  // 2-arg form: purity-analysis routes between snapshot and conduit.
-  const bodyLambda = defLambdas[1];
-  const bodyAst = bodyLambda.astNode;
-  checkEffectLaundering(bindingName, bodyAst);
-
-  if (isPureLiteralAst(bodyAst)) {
-    const evaluatedValue = await bodyLambda(state.pipeValue);
-    const snapshot = makeSnapshot(evaluatedValue, {
-      name: bindingName,
-      docs: attachedDocs,
-      location: bodyAst.location
-    });
-    return makeState(state.pipeValue, envSet(state.env, bindingName, snapshot));
-  }
-
-  const envRef = { env: null };
-  const conduit = makeConduit(bodyAst, {
-    name: bindingName,
-    params: [],
-    envRef,
-    docs: attachedDocs,
-    location: bodyAst.location
-  });
-  const nextEnv = envSet(state.env, bindingName, conduit);
-  envRef.env = nextEnv;
-  return makeState(state.pipeValue, nextEnv);
-}, [1, 3]);
-
 // as(:name) — snapshot the current pipeValue under a keyword name.
 export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
   const asNameValue = await asLambdas[0](state.pipeValue);
@@ -678,17 +540,15 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
 // ── Variant-B primitive registry bindings ─────────────────────
 // Bind each reflective operand impl into PRIMITIVE_REGISTRY under
 // its :qlang/prim/ namespaced key at module-load time. Note that
-// `defOperand` / `asOperand` / `parseOperand` / `evalOperand` are
-// the JS-level identifiers for the qlang operands `def` / `as` /
-// `parse` / `eval` (the qlang names are JS reserved / common enough
-// that the JS-side identifier disambiguates); the registry keys
-// use the qlang names.
+// `asOperand` / `parseOperand` / `evalOperand` are the JS-level
+// identifiers for the qlang operands `as` / `parse` / `eval` (the
+// qlang names are JS reserved / common enough that the JS-side
+// identifier disambiguates); the registry keys use the qlang names.
 PRIMITIVE_REGISTRY.bind('qlang/prim/env',         env);
 PRIMITIVE_REGISTRY.bind('qlang/prim/use',         use);
 PRIMITIVE_REGISTRY.bind('qlang/prim/reify',       reify);
 PRIMITIVE_REGISTRY.bind('qlang/prim/runExamples', runExamples);
 PRIMITIVE_REGISTRY.bind('qlang/prim/manifest',    manifest);
-PRIMITIVE_REGISTRY.bind('qlang/prim/def',         defOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/as',          asOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/parse',       parseOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/eval',        evalOperand);

@@ -203,7 +203,7 @@ describe('container-shape operands preserve JSON-tag on output', () => {
   });
 
   it('reify of an attached JsonObject literal walks through walk codec', async () => {
-    const result = await evalQuery('def(:obj, ::json{:k 1}) | reify(:obj) | /value | isJsonObject');
+    const result = await evalQuery(':obj ::json{:k 1} | reify(:obj) | /value | isJsonObject');
     expect(result).toBe(true);
   });
 

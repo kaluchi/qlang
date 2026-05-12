@@ -207,8 +207,9 @@ LinePlainCommentAbsorbing
 
 // What can follow a comment whose trailing combinator is absorbed:
 // another absorbing comment (block or line), a doc-attached step,
-// another plain comment, or a bare RawStep. May return an array
-// when the follower is itself a chain of absorbing comments.
+// another plain comment, a BindStep declaration, or a bare RawStep.
+// May return an array when the follower is itself a chain of
+// absorbing comments.
 FollowerUnit
   = c:BlockPlainComment _ inner:FollowerUnit
   {
@@ -228,6 +229,7 @@ FollowerUnit
   }
   / DocAttachedSequence
   / PlainCommentStep
+  / BindStep
   / RawStep
 
 // Comment-led continuation: the leading `|` of the comment token is
@@ -258,6 +260,7 @@ ExplicitContinuation
 
 StepAfterCombinator
   = DocAttachedSequence
+  / BindStep
   / RawStep
 
 // One or more doc comments, optionally interleaved with plain
@@ -294,6 +297,7 @@ DocAttachedSequence
       }
     }
     const bound = withDocs(step, docs);
+    bound.docPrefixStart = firstDoc.location.start.offset;
     if (plainSteps.length === 0) return bound;
     // Head-shape compound array: first element is the bare step,
     // remaining elements carry explicit combinator wrappers. This

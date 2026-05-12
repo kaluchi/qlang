@@ -57,65 +57,70 @@
 
 |~ ──────────────── Vec reducers ──────────────── ~|
 
-|~~ Returns the number of elements. Polymorphic over Vec
+:count
+  |~~ Returns the number of elements. Polymorphic over Vec
     (length), Set (size), and Map (entry count).
 
     ~{[1 2 3] | count | eq(3)}
     ~{#{:a :b} | count | eq(2)}
     ~{{:x 1 :y 2 :z 3} | count | eq(3)}
     ~~|
-def(:count, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/count
-        :category :container-reducer
-        :subject [:vec :set :map]
-        :returns :number
-        :modifiers []
-        :throws [:CountSubjectNotContainer]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/count
+          :category :container-reducer
+          :subject [:vec :set :map]
+          :returns :number
+          :modifiers []
+          :throws [:CountSubjectNotContainer]}
 
-|~~ Returns true if the container has zero elements, false
+:empty
+  |~~ Returns true if the container has zero elements, false
     otherwise. Polymorphic over Vec, Set, and Map.
 
     ~{[] | empty | eq(true)}
     ~{[1] | empty | eq(false)}
     ~~|
-def(:empty, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/empty
-        :category :container-reducer
-        :subject [:vec :set :map]
-        :returns :boolean
-        :modifiers []
-        :throws [:EmptySubjectNotContainer]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/empty
+          :category :container-reducer
+          :subject [:vec :set :map]
+          :returns :boolean
+          :modifiers []
+          :throws [:EmptySubjectNotContainer]}
 
-|~~ Returns the first element of a Vec, or null if the Vec
+:first
+  |~~ Returns the first element of a Vec, or null if the Vec
     is empty. Vec-only — Set is unordered, so "first element" is
     undefined on Sets.
 
     ~{[10 20 30] | first | eq(10)}
     ~{[] | first | eq(null)}
     ~~|
-def(:first, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/first
-        :category :vec-reducer
-        :subject :vec
-        :returns :any
-        :modifiers []
-        :throws [:FirstSubjectNotVec]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/first
+          :category :vec-reducer
+          :subject :vec
+          :returns :any
+          :modifiers []
+          :throws [:FirstSubjectNotVec]}
 
-|~~ Returns the last element of a Vec, or null if the Vec
+:last
+  |~~ Returns the last element of a Vec, or null if the Vec
     is empty. Vec-only — Set is unordered.
 
     ~{[10 20 30] | last | eq(30)}
     ~{[] | last | eq(null)}
     ~~|
-def(:last, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/last
-       :category :vec-reducer
-       :subject :vec
-       :returns :any
-       :modifiers []
-       :throws [:LastSubjectNotVec]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/last
+         :category :vec-reducer
+         :subject :vec
+         :returns :any
+         :modifiers []
+         :throws [:LastSubjectNotVec]}
 
-|~~ Returns the numeric sum of elements. Polymorphic over Vec
+:sum
+  |~~ Returns the numeric sum of elements. Polymorphic over Vec
     and Set (sum is commutative, so Set's unordered semantics
     do not affect the result). Empty container yields 0. Every
     element must be a number. For Map, compose through
@@ -126,15 +131,16 @@ def(:last, {:qlang/kind :builtin
     ~{#{1 2 3} | sum | eq(6)}
     ~{{:a 10 :b 20} | vals | sum | eq(30)}
     ~~|
-def(:sum, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/sum
-      :category :vec-reducer
-      :subject [:vec :set]
-      :returns :number
-      :modifiers []
-      :throws [:SumSubjectNotVecOrSet :SumElementNotNumber]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/sum
+        :category :vec-reducer
+        :subject [:vec :set]
+        :returns :number
+        :modifiers []
+        :throws [:SumSubjectNotVecOrSet :SumElementNotNumber]}
 
-|~~ Returns the minimum element under natural ordering.
+:min
+  |~~ Returns the minimum element under natural ordering.
     Polymorphic over Vec and Set (min is order-independent).
     Empty container yields null. All elements must be comparable
     scalars of the same type.
@@ -143,15 +149,16 @@ def(:sum, {:qlang/kind :builtin
     ~{["b" "a" "c"] | min | eq("a")}
     ~{#{3 1 4} | min | eq(1)}
     ~~|
-def(:min, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/min
-      :category :vec-reducer
-      :subject [:vec :set]
-      :returns :any
-      :modifiers []
-      :throws [:MinSubjectNotVecOrSet :MinElementsNotComparable]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/min
+        :category :vec-reducer
+        :subject [:vec :set]
+        :returns :any
+        :modifiers []
+        :throws [:MinSubjectNotVecOrSet :MinElementsNotComparable]}
 
-|~~ Returns the maximum element under natural ordering.
+:max
+  |~~ Returns the maximum element under natural ordering.
     Polymorphic over Vec and Set (max is order-independent).
     Empty container yields null. All elements must be comparable
     scalars of the same type.
@@ -160,15 +167,16 @@ def(:min, {:qlang/kind :builtin
     ~{["b" "a" "c"] | max | eq("c")}
     ~{#{3 1 4} | max | eq(4)}
     ~~|
-def(:max, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/max
-      :category :vec-reducer
-      :subject [:vec :set]
-      :returns :any
-      :modifiers []
-      :throws [:MaxSubjectNotVecOrSet :MaxElementsNotComparable]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/max
+        :category :vec-reducer
+        :subject [:vec :set]
+        :returns :any
+        :modifiers []
+        :throws [:MaxSubjectNotVecOrSet :MaxElementsNotComparable]}
 
-|~~ Returns true iff every item of the container satisfies the
+:every
+  |~~ Returns true iff every item of the container satisfies the
     predicate. Polymorphic over Vec / Set / Map. The predicate
     conduit's :params arity picks the dispatch: 0-arity (inline
     pipeline) fires per item with pipeValue = element (Vec/Set)
@@ -189,15 +197,16 @@ def(:max, {:qlang/kind :builtin
     ~{{:a 1 :b 2} | def(:@pos, [:v], v | gt(0)) | every(@pos) | eq(true)}
     ~{{:a1 1 :a2 2} | def(:@keyAndPos, [:k :v], and(v | gt(0), k | eq(:a1))) | every(@keyAndPos) | eq(false)}
     ~~|
-def(:every, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/every
-        :category :container-selector
-        :subject [:vec :set :map]
-        :returns :boolean
-        :modifiers [:predicate-lambda]
-        :throws [:EverySubjectNotContainer :EveryVecOrSetPredArityInvalid :EveryMapPredArityInvalid]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/every
+          :category :container-selector
+          :subject [:vec :set :map]
+          :returns :boolean
+          :modifiers [:predicate-lambda]
+          :throws [:EverySubjectNotContainer :EveryVecOrSetPredArityInvalid :EveryMapPredArityInvalid]}
 
-|~~ Returns true iff at least one item of the container
+:any
+  |~~ Returns true iff at least one item of the container
     satisfies the predicate. Polymorphic over Vec / Set / Map
     with the same per-container dispatch as every: the predicate
     conduit's arity picks element vs (key, value) binding.
@@ -212,15 +221,16 @@ def(:every, {:qlang/kind :builtin
     ~{{:a -1 :b 2} | def(:@pos, [:v], v | gt(0)) | any(@pos) | eq(true)}
     ~{{:apple 1 :banana 2} | def(:@aKey, [:k :v], k | eq(:apple)) | any(@aKey) | eq(true)}
     ~~|
-def(:any, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/any
-      :category :container-selector
-      :subject [:vec :set :map]
-      :returns :boolean
-      :modifiers [:predicate-lambda]
-      :throws [:AnySubjectNotContainer :AnyVecOrSetPredArityInvalid :AnyMapPredArityInvalid]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/any
+        :category :container-selector
+        :subject [:vec :set :map]
+        :returns :boolean
+        :modifiers [:predicate-lambda]
+        :throws [:AnySubjectNotContainer :AnyVecOrSetPredArityInvalid :AnyMapPredArityInvalid]}
 
-|~~ Returns the first non-zero number in a Vec. If all elements
+:firstNonZero
+  |~~ Returns the first non-zero number in a Vec. If all elements
     are zero or the Vec is empty, returns 0. The composition
     primitive for compound comparators in sortWith: each comparator
     returns -1/0/1, and firstNonZero picks the first non-tie,
@@ -229,17 +239,18 @@ def(:any, {:qlang/kind :builtin
     ~{[0 0 -1 0] | firstNonZero | eq(-1)}
     ~{[0 0 0] | firstNonZero | eq(0)}
     ~~|
-def(:firstNonZero, {:qlang/kind :builtin
-               :qlang/impl :qlang/prim/firstNonZero
-               :category :vec-reducer
-               :subject :vec
-               :returns :number
-               :modifiers []
-               :throws [:FirstNonZeroSubjectNotVec :FirstNonZeroElementNotNumber]})
+  {:qlang/kind :builtin
+                 :qlang/impl :qlang/prim/firstNonZero
+                 :category :vec-reducer
+                 :subject :vec
+                 :returns :number
+                 :modifiers []
+                 :throws [:FirstNonZeroSubjectNotVec :FirstNonZeroElementNotNumber]}
 
 |~ ──────────────── Vec transformers ──────────────── ~|
 
-|~~ Keeps items of the container where the predicate evaluates
+:filter
+  |~~ Keeps items of the container where the predicate evaluates
     truthy, returning a new container of the same shape. Vec and
     Set iterate per element, Map iterates per entry. The
     predicate conduit's :params arity picks the binding:
@@ -272,15 +283,16 @@ def(:firstNonZero, {:qlang/kind :builtin
     ~{{:apple 1 :banana 2 :avocado 3} | def(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot) | eq({:avocado 3})}
     ~{{} | filter(gt(0)) | eq({})}
     ~~|
-def(:filter, {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/filter
-         :category :container-selector
-         :subject [:vec :set :map]
-         :returns [:vec :set :map]
-         :modifiers [:predicate-lambda]
-         :throws [:FilterSubjectNotContainer :FilterVecOrSetPredArityInvalid :FilterMapPredArityInvalid]})
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/filter
+           :category :container-selector
+           :subject [:vec :set :map]
+           :returns [:vec :set :map]
+           :modifiers [:predicate-lambda]
+           :throws [:FilterSubjectNotContainer :FilterVecOrSetPredArityInvalid :FilterMapPredArityInvalid]}
 
-|~~ Returns a new Vec sorted in natural ascending order.
+:sort
+  |~~ Returns a new Vec sorted in natural ascending order.
     Overloaded by arity: bare sort uses natural order, sort(key)
     sorts by the value the key sub-pipeline returns for each
     element.
@@ -288,19 +300,20 @@ def(:filter, {:qlang/kind :builtin
     ~{[3 1 4 1 5] | sort | eq([1 1 3 4 5])}
     ~{[{:age 30} {:age 20}] | sort(/age) | eq([{:age 20} {:age 30}])}
     ~~|
-def(:sort, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/sort
-       :category :vec-transformer
-       :subject :vec
-       :returns :vec
-       :modifiers [:key-lambda]
-       :throws [
-         :SortNaturalSubjectNotVec
-         :SortByKeySubjectNotVec
-         :SortNaturalNotComparable
-         :SortByKeyNotComparable]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/sort
+         :category :vec-transformer
+         :subject :vec
+         :returns :vec
+         :modifiers [:key-lambda]
+         :throws [
+           :SortNaturalSubjectNotVec
+           :SortByKeySubjectNotVec
+           :SortNaturalNotComparable
+           :SortByKeyNotComparable]}
 
-|~~ Sorts a Vec using a custom comparator sub-pipeline. The
+:sortWith
+  |~~ Sorts a Vec using a custom comparator sub-pipeline. The
     comparator receives a pair Map {:left a :right b} and must
     return a number: negative places left before right, positive
     places right before left, zero preserves relative order
@@ -309,28 +322,30 @@ def(:sort, {:qlang/kind :builtin
 
     ~{[3 1 2] | sortWith(sub(/left, /right)) | eq([1 2 3])}
     ~~|
-def(:sortWith, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/sortWith
-           :category :vec-transformer
-           :subject :vec
-           :returns :vec
-           :modifiers [:comparator-lambda]
-           :throws [:SortWithSubjectNotVec :SortWithCmpResultNotNumber]})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/sortWith
+             :category :vec-transformer
+             :subject :vec
+             :returns :vec
+             :modifiers [:comparator-lambda]
+             :throws [:SortWithSubjectNotVec :SortWithCmpResultNotNumber]}
 
-|~~ Returns the first n elements. If n exceeds length, returns
+:take
+  |~~ Returns the first n elements. If n exceeds length, returns
     the whole Vec.
 
     ~{[1 2 3 4 5] | take(3) | eq([1 2 3])}
     ~~|
-def(:take, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/take
-       :category :vec-transformer
-       :subject :vec
-       :returns :vec
-       :modifiers [:number]
-       :throws [:TakeSubjectNotVec :TakeCountNotNumber]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/take
+         :category :vec-transformer
+         :subject :vec
+         :returns :vec
+         :modifiers [:number]
+         :throws [:TakeSubjectNotVec :TakeCountNotNumber]}
 
-|~~ Polymorphic indexed access. On a Vec subject, returns the
+:at
+  |~~ Polymorphic indexed access. On a Vec subject, returns the
     element at integer index n (negative indices count from the end;
     out-of-range returns null). On a Map subject, returns the value
     at string key (missing key returns null — the dynamic counterpart
@@ -342,28 +357,30 @@ def(:take, {:qlang/kind :builtin
     ~{{:a 1 :b 2} | at("a") | eq(1)}
     ~{{:a 1} | at("z") | eq(null)}
     ~~|
-def(:at, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/at
-     :category :indexed-access
-     :subject [:vec :map]
-     :returns :any
-     :modifiers [:any]
-     :throws [:AtSubjectNotVecOrMap :AtIndexNotInteger :AtKeyNotString]})
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/at
+       :category :indexed-access
+       :subject [:vec :map]
+       :returns :any
+       :modifiers [:any]
+       :throws [:AtSubjectNotVecOrMap :AtIndexNotInteger :AtKeyNotString]}
 
-|~~ Returns the Vec with the first n elements removed. If n
+:drop
+  |~~ Returns the Vec with the first n elements removed. If n
     exceeds length, returns [].
 
     ~{[1 2 3 4 5] | drop(2) | eq([3 4 5])}
     ~~|
-def(:drop, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/drop
-       :category :vec-transformer
-       :subject :vec
-       :returns :vec
-       :modifiers [:number]
-       :throws [:DropSubjectNotVec :DropCountNotNumber]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/drop
+         :category :vec-transformer
+         :subject :vec
+         :returns :vec
+         :modifiers [:number]
+         :throws [:DropSubjectNotVec :DropCountNotNumber]}
 
-|~~ Returns a new Vec with duplicate elements removed, preserving
+:distinct
+  |~~ Returns a new Vec with duplicate elements removed, preserving
     first-occurrence order. Duplication is decided by structural
     equality — the same axiom that drives ~{eq}. Two Map / Vec / Set
     values carrying identical content collapse to one even when they
@@ -374,52 +391,56 @@ def(:drop, {:qlang/kind :builtin
     ~{[1 2 1 3 2] | distinct | eq([1 2 3])}
     ~{[{:id 1} {:id 2} {:id 1}] | distinct | eq([{:id 1} {:id 2}])}
     ~~|
-def(:distinct, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/distinct
-           :category :vec-transformer
-           :subject :vec
-           :returns :vec
-           :modifiers []
-           :throws [:DistinctSubjectNotVec]})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/distinct
+             :category :vec-transformer
+             :subject :vec
+             :returns :vec
+             :modifiers []
+             :throws [:DistinctSubjectNotVec]}
 
-|~~ Returns the Vec in reverse order.
+:reverse
+  |~~ Returns the Vec in reverse order.
 
     ~{[1 2 3] | reverse | eq([3 2 1])}
     ~~|
-def(:reverse, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/reverse
-          :category :vec-transformer
-          :subject :vec
-          :returns :vec
-          :modifiers []
-          :throws [:ReverseSubjectNotVec]})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/reverse
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :modifiers []
+            :throws [:ReverseSubjectNotVec]}
 
-|~~ Flattens one level of nesting. Elements that are Vecs are
+:flat
+  |~~ Flattens one level of nesting. Elements that are Vecs are
     spliced in; other elements pass through unchanged.
 
     ~{[[1 2] [3] [4 5]] | flat | eq([1 2 3 4 5])}
     ~~|
-def(:flat, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/flat
-       :category :vec-transformer
-       :subject :vec
-       :returns :vec
-       :modifiers []
-       :throws [:FlatSubjectNotVec]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/flat
+         :category :vec-transformer
+         :subject :vec
+         :returns :vec
+         :modifiers []
+         :throws [:FlatSubjectNotVec]}
 
-|~~ Converts a Vec to a Set, removing duplicates.
+:set
+  |~~ Converts a Vec to a Set, removing duplicates.
 
     ~{[1 2 1 3] | set | eq(#{1 2 3})}
     ~~|
-def(:set, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/set
-      :category :set-op
-      :subject :vec
-      :returns :set
-      :modifiers []
-      :throws [:SetConversionSubjectNotVec]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/set
+        :category :set-op
+        :subject :vec
+        :returns :set
+        :modifiers []
+        :throws [:SetConversionSubjectNotVec]}
 
-|~~ Partitions a Vec into a Map keyed by the result of the key
+:groupBy
+  |~~ Partitions a Vec into a Map keyed by the result of the key
     sub-pipeline applied to each element. Preserves first-occurrence
     order for both the Map entry sequence and each bucket's element
     list. The key sub-pipeline must return a Keyword for every
@@ -427,211 +448,226 @@ def(:set, {:qlang/kind :builtin
 
     ~{[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name | eq(["a" "c"])}
     ~~|
-def(:groupBy, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/groupBy
-          :category :vec-transformer
-          :subject :vec
-          :returns :map
-          :modifiers [:key-lambda]
-          :throws [:GroupBySubjectNotVec :GroupByKeyNotKeyword]})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/groupBy
+            :category :vec-transformer
+            :subject :vec
+            :returns :map
+            :modifiers [:key-lambda]
+            :throws [:GroupBySubjectNotVec :GroupByKeyNotKeyword]}
 
-|~~ Collapses a Vec into a Map keyed by the result of the key
+:indexBy
+  |~~ Collapses a Vec into a Map keyed by the result of the key
     sub-pipeline. On collision (two elements producing the same
     key), the last element wins. The key sub-pipeline must return
     a keyword for every element.
 
     ~{[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name | eq("alice")}
     ~~|
-def(:indexBy, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/indexBy
-          :category :vec-transformer
-          :subject :vec
-          :returns :map
-          :modifiers [:key-lambda]
-          :throws [:IndexBySubjectNotVec :IndexByKeyNotKeyword]})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/indexBy
+            :category :vec-transformer
+            :subject :vec
+            :returns :map
+            :modifiers [:key-lambda]
+            :throws [:IndexBySubjectNotVec :IndexByKeyNotKeyword]}
 
 |~ ──────────────── Comparator builders ──────────────── ~|
 
-|~~ Builds an ascending comparator for sortWith. Applied
+:asc
+  |~~ Builds an ascending comparator for sortWith. Applied
     per-pair, projects the key from /left and /right via the
     captured sub-pipeline and compares them in natural ascending
     order. Returns -1, 0, or 1. The key sub-pipeline can be any
     expression — a bare projection, a computed value, or a
     multi-step pipeline. ~~|
-def(:asc, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/asc
-      :category :comparator
-      :subject :map
-      :returns :number
-      :modifiers [:key-lambda]
-      :throws [:AscPairNotMap :AscKeysNotComparable]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/asc
+        :category :comparator
+        :subject :map
+        :returns :number
+        :modifiers [:key-lambda]
+        :throws [:AscPairNotMap :AscKeysNotComparable]}
 
-|~~ Builds a descending comparator for sortWith. Same as asc
+:desc
+  |~~ Builds a descending comparator for sortWith. Same as asc
     but reversed: higher key values come first. ~~|
-def(:desc, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/desc
-       :category :comparator
-       :subject :map
-       :returns :number
-       :modifiers [:key-lambda]
-       :throws [:DescPairNotMap :DescKeysNotComparable]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/desc
+         :category :comparator
+         :subject :map
+         :returns :number
+         :modifiers [:key-lambda]
+         :throws [:DescPairNotMap :DescKeysNotComparable]}
 
-|~~ Ascending comparator that places null-keyed elements before
+:nullsFirst
+  |~~ Ascending comparator that places null-keyed elements before
     all non-null elements. Non-null keys are sorted in ascending
     order. Use inside sortWith to handle data with missing
     values without tripping AscKeysNotComparable.
 
     ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a | eq([null 1 3])}
     ~~|
-def(:nullsFirst, {:qlang/kind :builtin
-             :qlang/impl :qlang/prim/nullsFirst
-             :category :comparator
-             :subject :map
-             :returns :number
-             :modifiers [:key-lambda]
-             :throws [:NullsFirstPairNotMap]})
+  {:qlang/kind :builtin
+               :qlang/impl :qlang/prim/nullsFirst
+               :category :comparator
+               :subject :map
+               :returns :number
+               :modifiers [:key-lambda]
+               :throws [:NullsFirstPairNotMap]}
 
-|~~ Ascending comparator that places null-keyed elements after
+:nullsLast
+  |~~ Ascending comparator that places null-keyed elements after
     all non-null elements. Non-null keys are sorted in ascending
     order. Use inside sortWith to handle data with missing
     values without tripping AscKeysNotComparable.
 
     ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a | eq([1 3 null])}
     ~~|
-def(:nullsLast, {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/nullsLast
-            :category :comparator
-            :subject :map
-            :returns :number
-            :modifiers [:key-lambda]
-            :throws [:NullsLastPairNotMap]})
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/nullsLast
+              :category :comparator
+              :subject :map
+              :returns :number
+              :modifiers [:key-lambda]
+              :throws [:NullsLastPairNotMap]}
 
 |~ ──────────────── Control flow ──────────────── ~|
 
-|~~ Conditional. Evaluates the cond sub-pipeline against
+:if
+  |~~ Conditional. Evaluates the cond sub-pipeline against
     pipeValue; if truthy, evaluates the then branch, otherwise
     evaluates the else branch. Only the selected branch executes.
     Truthiness: null and false are falsy, everything else
     (including 0, "", [], {}, #{}) is truthy. ~~|
-def(:if, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/if
-     :category :control
-     :subject :any
-     :returns :any
-     :modifiers [:predicate-lambda :pipeline :pipeline]
-     :throws []})
-
-|~~ One-sided conditional with implicit identity on the false
-    branch. If cond evaluated against pipeValue is truthy, runs
-    the then sub-pipeline; otherwise pipeValue passes through
-    unchanged. ~~|
-def(:when, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/when
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/if
        :category :control
        :subject :any
        :returns :any
-       :modifiers [:predicate-lambda :pipeline]
-       :throws []})
+       :modifiers [:predicate-lambda :pipeline :pipeline]
+       :throws []}
 
-|~~ Inverse of when: runs the then sub-pipeline when cond is
-    falsy, otherwise pipeValue passes through unchanged.
-    Reads more naturally for guard-clause patterns where the
-    action fires when the condition fails. ~~|
-def(:unless, {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/unless
+:when
+  |~~ One-sided conditional with implicit identity on the false
+    branch. If cond evaluated against pipeValue is truthy, runs
+    the then sub-pipeline; otherwise pipeValue passes through
+    unchanged. ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/when
          :category :control
          :subject :any
          :returns :any
          :modifiers [:predicate-lambda :pipeline]
-         :throws []})
+         :throws []}
 
-|~~ Returns the first non-null result among the captured
+:unless
+  |~~ Inverse of when: runs the then sub-pipeline when cond is
+    falsy, otherwise pipeValue passes through unchanged.
+    Reads more naturally for guard-clause patterns where the
+    action fires when the condition fails. ~~|
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/unless
+           :category :control
+           :subject :any
+           :returns :any
+           :modifiers [:predicate-lambda :pipeline]
+           :throws []}
+
+:coalesce
+  |~~ Returns the first non-null result among the captured
     alternatives, evaluating each against pipeValue in order and
     short-circuiting on the first non-null value. If all
     alternatives produce null, returns null. Falsy non-null values
     (false, 0, "", [], {}, #{}) are NOT skipped — only
     null counts as missing. ~~|
-def(:coalesce, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/coalesce
-           :category :control
-           :subject :any
-           :returns :any
-           :modifiers [:pipeline]
-           :throws [:CoalesceNoAlternatives]})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/coalesce
+             :category :control
+             :subject :any
+             :returns :any
+             :modifiers [:pipeline]
+             :throws [:CoalesceNoAlternatives]}
 
-|~~ Returns the first truthy result among the captured
+:firstTruthy
+  |~~ Returns the first truthy result among the captured
     alternatives, evaluating each against pipeValue in order and
     short-circuiting on the first truthy value. Both null and
     false are skipped. If all alternatives produce falsy values,
     returns null. Use coalesce when false is a valid explicit
     setting; use firstTruthy when false is a sentinel meaning
     "no value". ~~|
-def(:firstTruthy, {:qlang/kind :builtin
-              :qlang/impl :qlang/prim/firstTruthy
-              :category :control
-              :subject :any
-              :returns :any
-              :modifiers [:pipeline]
-              :throws [:FirstTruthyNoAlternatives]})
+  {:qlang/kind :builtin
+                :qlang/impl :qlang/prim/firstTruthy
+                :category :control
+                :subject :any
+                :returns :any
+                :modifiers [:pipeline]
+                :throws [:FirstTruthyNoAlternatives]}
 
-|~~ Multi-way dispatch over alternating (predicate, branch)
+:cond
+  |~~ Multi-way dispatch over alternating (predicate, branch)
     sub-pipeline pairs. Walks captured args in pairs; returns
     the result of the first branch whose predicate evaluates
     truthy against pipeValue. If captured-arg count is odd, the
     trailing arg is the default branch. If even and no match,
     returns null. Replaces nested-if chains with a flat
     catalog. ~~|
-def(:cond, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/cond
-       :category :control
-       :subject :any
-       :returns :any
-       :modifiers [:pipeline]
-       :throws [:CondNoBranches]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/cond
+         :category :control
+         :subject :any
+         :returns :any
+         :modifiers [:pipeline]
+         :throws [:CondNoBranches]}
 
 |~ ──────────────── Map operations ──────────────── ~|
 
-|~~ Returns the Set of keys (keywords) in the Map.
+:keys
+  |~~ Returns the Set of keys (keywords) in the Map.
 
     ~{{:name "Alice" :age 30} | keys | eq(#{:name :age})}
     ~~|
-def(:keys, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/keys
-       :category :map-op
-       :subject :map
-       :returns :set
-       :modifiers []
-       :throws [:KeysSubjectNotMap]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/keys
+         :category :map-op
+         :subject :map
+         :returns :set
+         :modifiers []
+         :throws [:KeysSubjectNotMap]}
 
-|~~ Returns a Vec of values in insertion order.
+:vals
+  |~~ Returns a Vec of values in insertion order.
 
     ~{{:name "Alice" :age 30} | vals | eq(["Alice" 30])}
     ~~|
-def(:vals, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/vals
-       :category :map-op
-       :subject :map
-       :returns :vec
-       :modifiers []
-       :throws [:ValsSubjectNotMap]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/vals
+         :category :map-op
+         :subject :map
+         :returns :vec
+         :modifiers []
+         :throws [:ValsSubjectNotMap]}
 
-|~~ Returns true if the Map contains the keyword key, or if
+:has
+  |~~ Returns true if the Map contains the keyword key, or if
     the Set contains the value. Polymorphic on subject type.
 
     ~{{:name "Alice"} | has(:name) | eq(true)}
     ~{#{:a :b :c} | has(:b) | eq(true)}
     ~~|
-def(:has, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/has
-      :category :map-op
-      :subject [:map :set]
-      :returns :boolean
-      :modifiers [:any]
-      :throws [:HasSubjectNotMapOrSet :HasKeyNotKeyword]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/has
+        :category :map-op
+        :subject [:map :set]
+        :returns :boolean
+        :modifiers [:any]
+        :throws [:HasSubjectNotMapOrSet :HasKeyNotKeyword]}
 
 |~ ──────────────── Set operations ──────────────── ~|
 
-|~~ Polymorphic union. Set union or Map merge (last wins on
+:union
+  |~~ Polymorphic union. Set union or Map merge (last wins on
     key conflict). Three call shapes: bare form left-folds a
     non-empty Vec of operands, bound form a | union(b) evaluates
     b against a as context, full form union(a, b) resolves both
@@ -639,15 +675,16 @@ def(:has, {:qlang/kind :builtin
 
     ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
     ~~|
-def(:union, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/union
-        :category :set-op
-        :subject [:set :map :vec]
-        :returns [:set :map]
-        :modifiers [:any]
-        :throws [:UnionBareSubjectNotVec :UnionBareEmpty :UnionPairIncompatible]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/union
+          :category :set-op
+          :subject [:set :map :vec]
+          :returns [:set :map]
+          :modifiers [:any]
+          :throws [:UnionBareSubjectNotVec :UnionBareEmpty :UnionPairIncompatible]}
 
-|~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
+:minus
+  |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
     or Map minus Set (drop fields by key set). Same three call
     shapes as union. Values of the second operand are ignored
     for Map minus Map.
@@ -655,15 +692,16 @@ def(:union, {:qlang/kind :builtin
     ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
     ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
     ~~|
-def(:minus, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/minus
-        :category :set-op
-        :subject [:set :map :vec]
-        :returns [:set :map]
-        :modifiers [:any]
-        :throws [:MinusBareSubjectNotVec :MinusBareEmpty :MinusPairIncompatible]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/minus
+          :category :set-op
+          :subject [:set :map :vec]
+          :returns [:set :map]
+          :modifiers [:any]
+          :throws [:MinusBareSubjectNotVec :MinusBareEmpty :MinusPairIncompatible]}
 
-|~~ Polymorphic intersection. Set intersect Set, Map intersect
+:inter
+  |~~ Polymorphic intersection. Set intersect Set, Map intersect
     keys(Map), or Map intersect Set (select fields by key set).
     Same three call shapes as union. Values from the first
     operand are kept.
@@ -671,275 +709,295 @@ def(:minus, {:qlang/kind :builtin
     ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
     ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
     ~~|
-def(:inter, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/inter
-        :category :set-op
-        :subject [:set :map :vec]
-        :returns [:set :map]
-        :modifiers [:any]
-        :throws [:InterBareSubjectNotVec :InterBareEmpty :InterPairIncompatible]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/inter
+          :category :set-op
+          :subject [:set :map :vec]
+          :returns [:set :map]
+          :modifiers [:any]
+          :throws [:InterBareSubjectNotVec :InterBareEmpty :InterPairIncompatible]}
 
 |~ ──────────────── Arithmetic ──────────────── ~|
 
-|~~ Adds two numbers. Bound form a | add(b) computes a+b;
+:add
+  |~~ Adds two numbers. Bound form a | add(b) computes a+b;
     full form add(a, b) resolves both args against pipeValue
     as context.
 
     ~{10 | add(3) | eq(13)}
     ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
     ~~|
-def(:add, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/add
-      :category :arith
-      :subject :number
-      :returns :number
-      :modifiers [:number]
-      :throws [:AddLeftNotNumber :AddRightNotNumber]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/add
+        :category :arith
+        :subject :number
+        :returns :number
+        :modifiers [:number]
+        :throws [:AddLeftNotNumber :AddRightNotNumber]}
 
-|~~ Subtracts the second number from the first. Non-commutative:
+:sub
+  |~~ Subtracts the second number from the first. Non-commutative:
     position 1 is the minuend.
 
     ~{10 | sub(3) | eq(7)}
     ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
     ~~|
-def(:sub, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/sub
-      :category :arith
-      :subject :number
-      :returns :number
-      :modifiers [:number]
-      :throws [:SubLeftNotNumber :SubRightNotNumber]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/sub
+        :category :arith
+        :subject :number
+        :returns :number
+        :modifiers [:number]
+        :throws [:SubLeftNotNumber :SubRightNotNumber]}
 
-|~~ Multiplies two numbers. Commutative.
+:mul
+  |~~ Multiplies two numbers. Commutative.
 
     ~{10 | mul(3) | eq(30)}
     ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
     ~~|
-def(:mul, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/mul
-      :category :arith
-      :subject :number
-      :returns :number
-      :modifiers [:number]
-      :throws [:MulLeftNotNumber :MulRightNotNumber]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/mul
+        :category :arith
+        :subject :number
+        :returns :number
+        :modifiers [:number]
+        :throws [:MulLeftNotNumber :MulRightNotNumber]}
 
-|~~ Divides the first number by the second. Non-commutative:
+:div
+  |~~ Divides the first number by the second. Non-commutative:
     position 1 is the dividend. Raises division-by-zero on
     b == 0.
 
     ~{10 | div(2) | eq(5)}
     ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
     ~~|
-def(:div, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/div
-      :category :arith
-      :subject :number
-      :returns :number
-      :modifiers [:number]
-      :throws [:DivLeftNotNumber :DivRightNotNumber :DivisionByZeroError]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/div
+        :category :arith
+        :subject :number
+        :returns :number
+        :modifiers [:number]
+        :throws [:DivLeftNotNumber :DivRightNotNumber :DivisionByZeroError]}
 
 |~ ──────────────── String ──────────────── ~|
 
-|~~ Splits the subject on every occurrence of separator.
+:split
+  |~~ Splits the subject on every occurrence of separator.
     Returns a Vec of substrings. Inverse of join.
 
     ~{"a,b,c" | split(",") | eq(["a" "b" "c"])}
     ~{"line1\nline2" | split("\n") | eq(["line1" "line2"])}
     ~~|
-def(:split, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/split
-        :category :string
-        :subject :string
-        :returns :vec
-        :modifiers [:string]
-        :throws [:SplitSubjectNotString :SplitSeparatorNotString]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/split
+          :category :string
+          :subject :string
+          :returns :vec
+          :modifiers [:string]
+          :throws [:SplitSubjectNotString :SplitSeparatorNotString]}
 
-|~~ Joins the elements of a Vec of Strings with separator
+:join
+  |~~ Joins the elements of a Vec of Strings with separator
     between consecutive elements. Inverse of split.
 
     ~{["a" "b" "c"] | join(",") | eq("a,b,c")}
     ~{[] | join(",") | eq("")}
     ~~|
-def(:join, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/join
-       :category :string
-       :subject :vec
-       :returns :string
-       :modifiers [:string]
-       :throws [:JoinSubjectNotVec :JoinElementNotString :JoinSeparatorNotString]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/join
+         :category :string
+         :subject :vec
+         :returns :string
+         :modifiers [:string]
+         :throws [:JoinSubjectNotVec :JoinElementNotString :JoinSeparatorNotString]}
 
-|~~ Returns true if the subject string contains needle as a
+:contains
+  |~~ Returns true if the subject string contains needle as a
     substring. Empty needle is always contained.
     Case-sensitive.
 
     ~{"hello world" | contains("world") | eq(true)}
     ~{"hello" | contains("xyz") | eq(false)}
     ~~|
-def(:contains, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/contains
-           :category :string
-           :subject :string
-           :returns :boolean
-           :modifiers [:string]
-           :throws [:ContainsSubjectNotString :ContainsNeedleNotString]})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/contains
+             :category :string
+             :subject :string
+             :returns :boolean
+             :modifiers [:string]
+             :throws [:ContainsSubjectNotString :ContainsNeedleNotString]}
 
-|~~ Returns true if the subject string begins with prefix.
+:startsWith
+  |~~ Returns true if the subject string begins with prefix.
     Empty prefix is always a prefix. Case-sensitive.
 
     ~{"hello world" | startsWith("hello") | eq(true)}
     ~{"hello" | startsWith("world") | eq(false)}
     ~~|
-def(:startsWith, {:qlang/kind :builtin
-             :qlang/impl :qlang/prim/startsWith
-             :category :string
-             :subject :string
-             :returns :boolean
-             :modifiers [:string]
-             :throws [:StartsWithSubjectNotString :StartsWithPrefixNotString]})
+  {:qlang/kind :builtin
+               :qlang/impl :qlang/prim/startsWith
+               :category :string
+               :subject :string
+               :returns :boolean
+               :modifiers [:string]
+               :throws [:StartsWithSubjectNotString :StartsWithPrefixNotString]}
 
-|~~ Returns true if the subject string ends with suffix.
+:endsWith
+  |~~ Returns true if the subject string ends with suffix.
     Empty suffix is always a suffix. Case-sensitive.
 
     ~{"hello world" | endsWith("world") | eq(true)}
     ~{"hello" | endsWith("xyz") | eq(false)}
     ~~|
-def(:endsWith, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/endsWith
-           :category :string
-           :subject :string
-           :returns :boolean
-           :modifiers [:string]
-           :throws [:EndsWithSubjectNotString :EndsWithSuffixNotString]})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/endsWith
+             :category :string
+             :subject :string
+             :returns :boolean
+             :modifiers [:string]
+             :throws [:EndsWithSubjectNotString :EndsWithSuffixNotString]}
 
-|~~ Concatenates the modifier in front of the subject.
+:prepend
+  |~~ Concatenates the modifier in front of the subject.
 
     ~{"world" | prepend("hello ") | eq("hello world")}
     ~~|
-def(:prepend, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/prepend
-          :category :string
-          :subject :string
-          :returns :string
-          :modifiers [:string]
-          :throws [:PrependSubjectNotString :PrependPrefixNotString]})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/prepend
+            :category :string
+            :subject :string
+            :returns :string
+            :modifiers [:string]
+            :throws [:PrependSubjectNotString :PrependPrefixNotString]}
 
-|~~ Concatenates the subject with the modifier on the right.
+:append
+  |~~ Concatenates the subject with the modifier on the right.
 
     ~{"hello" | append(" world") | eq("hello world")}
     ~~|
-def(:append, {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/append
-         :category :string
-         :subject :string
-         :returns :string
-         :modifiers [:string]
-         :throws [:AppendSubjectNotString :AppendSuffixNotString]})
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/append
+           :category :string
+           :subject :string
+           :returns :string
+           :modifiers [:string]
+           :throws [:AppendSubjectNotString :AppendSuffixNotString]}
 
 |~ ──────────────── Boolean ──────────────── ~|
 
-|~~ Logical negation. Returns true if the subject is falsy
+:not
+  |~~ Logical negation. Returns true if the subject is falsy
     (null or false), false otherwise. 0, "", [], {}, #{} are
     all truthy.
 
     ~{null | not | eq(true)}
     ~{0 | not | eq(false)}
     ~~|
-def(:not, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/not
-      :category :predicate
-      :subject :any
-      :returns :boolean
-      :modifiers []
-      :throws []})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/not
+        :category :predicate
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :throws []}
 
 |~ ──────────────── Predicates ──────────────── ~|
 
-|~~ Returns true if the subject equals the captured value by
+:eq
+  |~~ Returns true if the subject equals the captured value by
     structural equality (deep recursive comparison across Maps,
     Vecs, Sets, and scalars).
 
     ~{42 | eq(42) | eq(true)}
     ~{{:a 1} | eq({:a 1}) | eq(true)}
     ~~|
-def(:eq, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/eq
-     :category :predicate
-     :subject :any
-     :returns :boolean
-     :modifiers [:any]
-     :throws []})
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/eq
+       :category :predicate
+       :subject :any
+       :returns :boolean
+       :modifiers [:any]
+       :throws []}
 
-|~~ Subject-first ordering: a | gt(b) computes a > b. Both
+:gt
+  |~~ Subject-first ordering: a | gt(b) computes a > b. Both
     operands must be comparable scalars of the same type.
 
     ~{10 | gt(5) | eq(true)}
     ~~|
-def(:gt, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/gt
-     :category :predicate
-     :subject :number
-     :returns :boolean
-     :modifiers [:number]
-     :throws [:GtOperandsNotComparable]})
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/gt
+       :category :predicate
+       :subject :number
+       :returns :boolean
+       :modifiers [:number]
+       :throws [:GtOperandsNotComparable]}
 
-|~~ Subject-first ordering: a | lt(b) computes a < b.
+:lt
+  |~~ Subject-first ordering: a | lt(b) computes a < b.
 
     ~{5 | lt(10) | eq(true)}
     ~~|
-def(:lt, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/lt
-     :category :predicate
-     :subject :number
-     :returns :boolean
-     :modifiers [:number]
-     :throws [:LtOperandsNotComparable]})
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/lt
+       :category :predicate
+       :subject :number
+       :returns :boolean
+       :modifiers [:number]
+       :throws [:LtOperandsNotComparable]}
 
-|~~ Subject-first ordering: a | gte(b) computes a >= b.
+:gte
+  |~~ Subject-first ordering: a | gte(b) computes a >= b.
 
     ~{10 | gte(10) | eq(true)}
     ~~|
-def(:gte, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/gte
-      :category :predicate
-      :subject :number
-      :returns :boolean
-      :modifiers [:number]
-      :throws [:GteOperandsNotComparable]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/gte
+        :category :predicate
+        :subject :number
+        :returns :boolean
+        :modifiers [:number]
+        :throws [:GteOperandsNotComparable]}
 
-|~~ Subject-first ordering: a | lte(b) computes a <= b.
+:lte
+  |~~ Subject-first ordering: a | lte(b) computes a <= b.
 
     ~{10 | lte(10) | eq(true)}
     ~~|
-def(:lte, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/lte
-      :category :predicate
-      :subject :number
-      :returns :boolean
-      :modifiers [:number]
-      :throws [:LteOperandsNotComparable]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/lte
+        :category :predicate
+        :subject :number
+        :returns :boolean
+        :modifiers [:number]
+        :throws [:LteOperandsNotComparable]}
 
-|~~ Returns true if both operands are truthy. Used in full form
+:and
+  |~~ Returns true if both operands are truthy. Used in full form
     inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
-def(:and, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/and
-      :category :predicate
-      :subject :any
-      :returns :boolean
-      :modifiers [:any]
-      :throws []})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/and
+        :category :predicate
+        :subject :any
+        :returns :boolean
+        :modifiers [:any]
+        :throws []}
 
-|~~ Returns true if either operand is truthy. ~~|
-def(:or, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/or
-     :category :predicate
-     :subject :any
-     :returns :boolean
-     :modifiers [:any]
-     :throws []})
+:or
+  |~~ Returns true if either operand is truthy. ~~|
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/or
+       :category :predicate
+       :subject :any
+       :returns :boolean
+       :modifiers [:any]
+       :throws []}
 
 |~ ──────────────── Type classifiers ──────────────── ~|
 
-|~~ Returns true iff the subject is a String. Nullary predicate
+:isString
+  |~~ Returns true iff the subject is a String. Nullary predicate
     over any pipeValue. Primary use — filter(isString) over a
     heterogeneous Vec, or filter(isString) over a Map where the
     value's type is the predicate axis. Lifts value-type
@@ -950,86 +1008,92 @@ def(:or, {:qlang/kind :builtin
     ~{42 | isString | eq(false)}
     ~{:name | isString | eq(false)}
     ~~|
-def(:isString, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/isString
-           :category :type-classifier
-           :subject :any
-           :returns :boolean
-           :modifiers []
-           :throws []})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/isString
+             :category :type-classifier
+             :subject :any
+             :returns :boolean
+             :modifiers []
+             :throws []}
 
-|~~ Returns true iff the subject is a Number (integer or
+:isNumber
+  |~~ Returns true iff the subject is a Number (integer or
     decimal — qlang has no numeric subtypes).
 
     ~{42 | isNumber | eq(true)}
     ~{3.14 | isNumber | eq(true)}
     ~{"42" | isNumber | eq(false)}
     ~~|
-def(:isNumber, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/isNumber
-           :category :type-classifier
-           :subject :any
-           :returns :boolean
-           :modifiers []
-           :throws []})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/isNumber
+             :category :type-classifier
+             :subject :any
+             :returns :boolean
+             :modifiers []
+             :throws []}
 
-|~~ Returns true iff the subject is a Vec.
+:isVec
+  |~~ Returns true iff the subject is a Vec.
 
     ~{[1 2 3] | isVec | eq(true)}
     ~{[] | isVec | eq(true)}
     ~{#{1} | isVec | eq(false)}
     ~~|
-def(:isVec, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/isVec
-        :category :type-classifier
-        :subject :any
-        :returns :boolean
-        :modifiers []
-        :throws []})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isVec
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
 
-|~~ Returns true iff the subject is a Map.
+:isMap
+  |~~ Returns true iff the subject is a Map.
 
     ~{{:a 1} | isMap | eq(true)}
     ~{{} | isMap | eq(true)}
     ~{[] | isMap | eq(false)}
     ~~|
-def(:isMap, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/isMap
-        :category :type-classifier
-        :subject :any
-        :returns :boolean
-        :modifiers []
-        :throws []})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isMap
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
 
-|~~ Returns true iff the subject is a Set.
+:isSet
+  |~~ Returns true iff the subject is a Set.
 
     ~{#{1 2} | isSet | eq(true)}
     ~{#{} | isSet | eq(true)}
     ~{[1 2] | isSet | eq(false)}
     ~~|
-def(:isSet, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/isSet
-        :category :type-classifier
-        :subject :any
-        :returns :boolean
-        :modifiers []
-        :throws []})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isSet
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
 
-|~~ Returns true iff the subject is a Keyword.
+:isKeyword
+  |~~ Returns true iff the subject is a Keyword.
 
     ~{:name | isKeyword | eq(true)}
     ~{:qlang/kind | isKeyword | eq(true)}
     ~{"name" | isKeyword | eq(false)}
     ~~|
-def(:isKeyword, {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/isKeyword
-            :category :type-classifier
-            :subject :any
-            :returns :boolean
-            :modifiers []
-            :throws []})
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/isKeyword
+              :category :type-classifier
+              :subject :any
+              :returns :boolean
+              :modifiers []
+              :throws []}
 
-|~~ Returns true iff the subject is a Boolean (literal true or
+:isBoolean
+  |~~ Returns true iff the subject is a Boolean (literal true or
     false). Truthy non-boolean values like 0 / "" / [] do NOT
     classify as Boolean.
 
@@ -1038,15 +1102,16 @@ def(:isKeyword, {:qlang/kind :builtin
     ~{0 | isBoolean | eq(false)}
     ~{null | isBoolean | eq(false)}
     ~~|
-def(:isBoolean, {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/isBoolean
-            :category :type-classifier
-            :subject :any
-            :returns :boolean
-            :modifiers []
-            :throws []})
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/isBoolean
+              :category :type-classifier
+              :subject :any
+              :returns :boolean
+              :modifiers []
+              :throws []}
 
-|~~ Returns true iff the subject is null (the absence-of-value
+:isNull
+  |~~ Returns true iff the subject is null (the absence-of-value
     atom). Missing Map keys and operands whose result is undefined
     both produce null.
 
@@ -1055,15 +1120,16 @@ def(:isBoolean, {:qlang/kind :builtin
     ~{0 | isNull | eq(false)}
     ~{"" | isNull | eq(false)}
     ~~|
-def(:isNull, {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/isNull
-         :category :type-classifier
-         :subject :any
-         :returns :boolean
-         :modifiers []
-         :throws []})
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/isNull
+           :category :type-classifier
+           :subject :any
+           :returns :boolean
+           :modifiers []
+           :throws []}
 
-|~~ Returns true iff the subject is a Quote — a frozen
+:isQuote
+  |~~ Returns true iff the subject is a Quote — a frozen
     paired-delimiter code-as-data fragment in source form.
     Quotes carry a :source text field and a lazily-parsed
     :ast AST-Map.
@@ -1072,15 +1138,16 @@ def(:isNull, {:qlang/kind :builtin
     ~{"mul(2)" | isQuote | eq(false)}
     ~{42 | isQuote | eq(false)}
     ~~|
-def(:isQuote, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/isQuote
-          :category :type-classifier
-          :subject :any
-          :returns :boolean
-          :modifiers []
-          :throws []})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isQuote
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :throws []}
 
-|~~ Returns true iff the subject is a Doc — a frozen markdown
+:isDoc
+  |~~ Returns true iff the subject is a Doc — a frozen markdown
     content fragment landed in pipeValue through a DocLit literal
     in any Primary position. Docs carry a :content text field.
 
@@ -1088,95 +1155,102 @@ def(:isQuote, {:qlang/kind :builtin
     ~{"note" | isDoc | eq(false)}
     ~{42 | isDoc | eq(false)}
     ~~|
-def(:isDoc, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/isDoc
-        :category :type-classifier
-        :subject :any
-        :returns :boolean
-        :modifiers []
-        :throws []})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isDoc
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
 
 |~ ──────────────── Formatting ──────────────── ~|
 
-|~~ Returns a JSON string representation of the subject.
+:json
+  |~~ Returns a JSON string representation of the subject.
     Keywords are emitted as colon-prefixed strings, Sets as JSON
     arrays, Maps as JSON objects with Keyword names as keys. ~~|
-def(:json, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/json
-       :category :format
-       :subject :any
-       :returns :string
-       :modifiers []
-       :throws []})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/json
+         :category :format
+         :subject :any
+         :returns :string
+         :modifiers []
+         :throws []}
 
-|~~ Renders a Vec of Maps as a fixed-width tabular string.
+:table
+  |~~ Renders a Vec of Maps as a fixed-width tabular string.
     Columns are derived from keys in first-occurrence order
     across all rows; missing keys render as empty cells.
     Empty Vec yields the marker "(empty)". ~~|
-def(:table, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/table
-        :category :format
-        :subject :vec
-        :returns :string
-        :modifiers []
-        :throws [:TableSubjectNotVec :TableRowNotMap]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/table
+          :category :format
+          :subject :vec
+          :returns :string
+          :modifiers []
+          :throws [:TableSubjectNotVec :TableRowNotMap]}
 
 |~ ──────────────── Reflective ──────────────── ~|
 
-|~~ Replaces pipeValue with the current env Map. Inside a fork,
+:env
+  |~~ Replaces pipeValue with the current env Map. Inside a fork,
     returns the fork-local env including any as/let writes visible
     at this point.
 
     ~{env | has(:count) | eq(true)}
     ~~|
-def(:env, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/env
-      :category :reflective
-      :subject :any
-      :returns :map
-      :modifiers []
-      :throws []})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/env
+        :category :reflective
+        :subject :any
+        :returns :map
+        :modifiers []
+        :throws []}
 
-|~~ Overloaded by arity. Bare form merges pipeValue (a Map)
+:use
+  |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
     into env. With a namespace keyword, imports module bindings.
     With a Vec of keywords, imports modules in order (later
     shadows earlier on collision). With a Set, imports and
     rejects name collisions. With two args (namespace + filter),
     imports only the named bindings. pipeValue unchanged in all
     forms. Inside a fork, merged bindings evaporate on close. ~~|
-def(:use, {:qlang/kind :builtin
-      :qlang/impl :qlang/prim/use
-      :category :reflective
-      :subject :any
-      :returns :any
-      :modifiers [:any]
-      :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]})
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/use
+        :category :reflective
+        :subject :any
+        :returns :any
+        :modifiers [:any]
+        :throws [:UseSubjectNotMap :UseNamespaceNotKeyword :UseNamespaceNotFound :UseNamespaceNotMap :UseNamespaceElementNotKeyword :UseNamespaceCollision :UseNameNotExported]}
 
-|~~ Builds a descriptor Map for a value or named binding.
+:reify
+  |~~ Builds a descriptor Map for a value or named binding.
     Value-level form (no captured args) describes the current
     pipeValue. Named form reify(:name) looks up :name in env
     and describes whatever binding lives there. Descriptor :kind
     is one of :builtin, :conduit, :snapshot, :value. ~~|
-def(:reify, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/reify
-        :category :reflective
-        :subject :any
-        :returns :map
-        :modifiers [:keyword]
-        :throws [:ReifyKeyNotKeyword]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/reify
+          :category :reflective
+          :subject :any
+          :returns :map
+          :modifiers [:keyword]
+          :throws [:ReifyKeyNotKeyword]}
 
-|~~ Returns a Vec of descriptors, one per binding in env,
+:manifest
+  |~~ Returns a Vec of descriptors, one per binding in env,
     sorted alphabetically by binding name. Each descriptor has
     the same shape as reify(:name) for that binding. ~~|
-def(:manifest, {:qlang/kind :builtin
-           :qlang/impl :qlang/prim/manifest
-           :category :reflective
-           :subject :any
-           :returns :vec
-           :modifiers []
-           :throws []})
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/manifest
+             :category :reflective
+             :subject :any
+             :returns :vec
+             :modifiers []
+             :throws []}
 
-|~~ Walks every Quote segment inside the binding's attached
+:runExamples
+  |~~ Walks every Quote segment inside the binding's attached
     doc-prefix and returns a Vec of result Maps shaped
     {:snippet :actual :ok :error}. Each Quote is evalQuery'd in
     an isolated env; :ok is true iff the result is truthy
@@ -1186,15 +1260,16 @@ def(:manifest, {:qlang/kind :builtin
     manifest | every(runExamples | every(/ok)) walks every
     example in the manifest and must return true —
     self-describing catalog drift detection. ~~|
-def(:runExamples, {:qlang/kind :builtin
-              :qlang/impl :qlang/prim/runExamples
-              :category :reflective
-              :subject :map
-              :returns :vec
-              :modifiers []
-              :throws [:RunExamplesSubjectShapeError]})
+  {:qlang/kind :builtin
+                :qlang/impl :qlang/prim/runExamples
+                :category :reflective
+                :subject :map
+                :returns :vec
+                :modifiers []
+                :throws [:RunExamplesSubjectShapeError]}
 
-|~~ Captures the current pipeValue as a frozen snapshot under
+:as
+  |~~ Captures the current pipeValue as a frozen snapshot under
     the given keyword name. pipeValue passes through unchanged.
     Retrievable by name through identifier lookup (auto-unwrapped
     to the raw value) or through reify(:name) for metadata
@@ -1203,17 +1278,18 @@ def(:runExamples, {:qlang/kind :builtin
     ~{42 | as(:answer) | answer | eq(42)}
     ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
     ~~|
-def(:as, {:qlang/kind :builtin
-     :qlang/impl :qlang/prim/as
-     :category :reflective
-     :subject :any
-     :returns :any
-     :modifiers [:keyword]
-     :throws [:AsNameNotKeyword]})
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/as
+       :category :reflective
+       :subject :any
+       :returns :any
+       :modifiers [:keyword]
+       :throws [:AsNameNotKeyword]}
 
 |~ ──────────────── Error ──────────────── ~|
 
-|~~ Lifts a Map into an error value — the sole
+:error
+  |~~ Lifts a Map into an error value — the sole
     constructor for the 5th type at the language
     level alongside the !{…} literal. Bare form
     map | error uses pipeValue as the descriptor;
@@ -1226,15 +1302,16 @@ def(:as, {:qlang/kind :builtin
     ~{{:kind :oops :message "boom"} | error !| /kind | eq(:oops)}
     ~{error({:kind :oops}) !| /kind | eq(:oops)}
     ~~|
-def(:error, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/error
-        :category :error
-        :subject :map
-        :returns :error
-        :modifiers [:map]
-        :throws [:ErrorDescriptorNotMap]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/error
+          :category :error
+          :subject :map
+          :returns :error
+          :modifiers [:map]
+          :throws [:ErrorDescriptorNotMap]}
 
-|~~ Returns true when pipeValue is an error value,
+:isError
+  |~~ Returns true when pipeValue is an error value,
     false otherwise. Plain predicate — carries no
     dispatch flag, inspected as-is by its caller.
     In top-of-pipeline position it only ever sees a
@@ -1248,17 +1325,18 @@ def(:error, {:qlang/kind :builtin
     ~{{:kind :oops} | isError | eq(false)}
     ~{42 | isError | eq(false)}
     ~~|
-def(:isError, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/isError
-          :category :error
-          :subject :any
-          :returns :boolean
-          :modifiers []
-          :throws []})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isError
+            :category :error
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :throws []}
 
 |~ ──────────────── Code as data ──────────────── ~|
 
-|~~ Parses a source string into an AST-Map — the data-form
+:parse
+  |~~ Parses a source string into an AST-Map — the data-form
     representation of the program described by walk.mjs's
     astNodeToMap codec. Half of the code-as-data ring; pair
     with eval to round-trip between source text and
@@ -1270,15 +1348,16 @@ def(:isError, {:qlang/kind :builtin
     ~{"42" | parse | /:qlang/kind | eq(:NumberLit)}
     ~{"add(1, 2)" | parse | /name | eq("add")}
     ~~|
-def(:parse, {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/parse
-        :category :reflective
-        :subject :string
-        :returns :map
-        :modifiers []
-        :throws [:ParseSubjectNotStringOrQuote]})
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/parse
+          :category :reflective
+          :subject :string
+          :returns :map
+          :modifiers []
+          :throws [:ParseSubjectNotStringOrQuote]}
 
-|~~ Evaluates an AST-Map (typically produced by parse or
+:eval
+  |~~ Evaluates an AST-Map (typically produced by parse or
     hand-assembled via walk.mjs::astNodeToMap) against the
     current state. The inner code sees the caller's env and
     pipeValue; any let / as / use writes propagate out the
@@ -1291,15 +1370,16 @@ def(:parse, {:qlang/kind :builtin
     ~{"10 | add(3)" | parse | eval | eq(13)}
     ~{{:qlang/kind :NumberLit :value 42} | eval | eq(42)}
     ~~|
-def(:eval, {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/eval
-       :category :reflective
-       :subject :map
-       :returns :any
-       :modifiers []
-       :throws [:EvalSubjectNotMapOrQuote]})
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/eval
+         :category :reflective
+         :subject :map
+         :returns :any
+         :modifiers []
+         :throws [:EvalSubjectNotMapOrQuote]}
 
-|~~ String↔Keyword involution. On a String subject, produces the
+:keyword
+  |~~ String↔Keyword involution. On a String subject, produces the
     keyword whose name is that string. On a Keyword subject,
     extracts the name as a String. The two directions are inverse:
     ~{"foo" | keyword | keyword} yields ~{"foo"}.
@@ -1312,19 +1392,20 @@ def(:eval, {:qlang/kind :builtin
     ~{"qlang/error" | keyword | eq(:qlang/error)}
     ~{:"foo bar" | keyword | eq("foo bar")}
     ~~|
-def(:keyword, {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/keyword
-          :category :type-conversion
-          :subject [:string :keyword]
-          :returns [:string :keyword]
-          :modifiers []
-          :throws [:KeywordSubjectNotStringOrKeyword]})
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/keyword
+            :category :type-conversion
+            :subject [:string :keyword]
+            :returns [:string :keyword]
+            :modifiers []
+            :throws [:KeywordSubjectNotStringOrKeyword]}
 
 
 
 |~ ──────────────── Type bindings ──────────────── ~|
 
-|~~ Conduit literal — invokeable lexically-scoped value carrying
+::conduit
+  |~~ Conduit literal — invokeable lexically-scoped value carrying
     a frozen body AST plus optional self-name and parameter list.
     Payload Vec shape:
       [params body]            — non-recursive, params is a Vec
@@ -1340,18 +1421,19 @@ def(:keyword, {:qlang/kind :builtin
 
     ~{ def(:double, ::conduit[[] ~{mul(2)}]) | 5 | double | eq(10) }
     ~~|
-def(::conduit, {:qlang/kind :type
-                :qlang/impl :qlang/type/conduit
-                :spec {:payload :vec}
-                :throws [
-                  :ConduitPayloadNotVec
-                  :ConduitArityInvalid
-                  :ConduitSelfNameNotKeyword
-                  :ConduitParamsNotVec
-                  :ConduitParamNotKeyword
-                  :ConduitBodyNotQuote]})
+  {:qlang/kind :type
+                  :qlang/impl :qlang/type/conduit
+                  :spec {:payload :vec}
+                  :throws [
+                    :ConduitPayloadNotVec
+                    :ConduitArityInvalid
+                    :ConduitSelfNameNotKeyword
+                    :ConduitParamsNotVec
+                    :ConduitParamNotKeyword
+                    :ConduitBodyNotQuote]}
 
-|~~ ::qlang<json-shape> — recursively convert a JSON-shape
+::qlang
+  |~~ ::qlang<json-shape> — recursively convert a JSON-shape
     payload (plain object → qlang Map with keyword keys, plain
     array → qlang Vec) down through every nested level. Scalars,
     keywords, sets, and errors pass through unchanged — only
@@ -1359,12 +1441,13 @@ def(::conduit, {:qlang/kind :type
 
     ~{::qlang{"k" "v"} | isMap | eq(true)}
     ~~|
-def(::qlang, {:qlang/kind :type
-              :qlang/impl :qlang/type/qlang
-              :spec {:payload :any}
-              :throws []})
+  {:qlang/kind :type
+                :qlang/impl :qlang/type/qlang
+                :spec {:payload :any}
+                :throws []}
 
-|~~ ::json<qlang-shape> — recursively convert a qlang-shape
+::json
+  |~~ ::json<qlang-shape> — recursively convert a qlang-shape
     payload (qlang Map → JSON Object, qlang Vec → JSON Array;
     both stamped with the appropriate JSON_*_TAG Symbol so
     isJsonObject / isJsonArray identify them) down through
@@ -1373,12 +1456,13 @@ def(::qlang, {:qlang/kind :type
 
     ~{::json{:k "v"} | isJsonObject | eq(true)}
     ~~|
-def(::json, {:qlang/kind :type
-             :qlang/impl :qlang/type/json
-             :spec {:payload :any}
-             :throws []})
+  {:qlang/kind :type
+               :qlang/impl :qlang/type/json
+               :spec {:payload :any}
+               :throws []}
 
-|~~ Returns true iff the subject is a JSON Object — a plain JS
+:isJsonObject
+  |~~ Returns true iff the subject is a JSON Object — a plain JS
     object stamped with the JSON_OBJECT_TAG Symbol. JSON Objects
     are produced by the host JSON-bridge (CLI auto-parsed stdin)
     and the ::json constructor; they are runtime-distinct from
@@ -1387,63 +1471,67 @@ def(::json, {:qlang/kind :type
     ~{::json{:k 1} | isJsonObject | eq(true)}
     ~{{:k 1} | isJsonObject | eq(false)}
     ~~|
-def(:isJsonObject, {:qlang/kind :builtin
-                    :qlang/impl :qlang/prim/isJsonObject
-                    :category :type-classifier
-                    :subject :any
-                    :returns :boolean
-                    :modifiers []
-                    :throws []})
+  {:qlang/kind :builtin
+                      :qlang/impl :qlang/prim/isJsonObject
+                      :category :type-classifier
+                      :subject :any
+                      :returns :boolean
+                      :modifiers []
+                      :throws []}
 
-|~~ Returns true iff the subject is a JSON Array — a frozen JS
+:isJsonArray
+  |~~ Returns true iff the subject is a JSON Array — a frozen JS
     Array stamped with the JSON_ARRAY_TAG Symbol. Distinct from
     qlang Vec at the runtime level.
 
     ~{::json[1 2 3] | isJsonArray | eq(true)}
     ~{[1 2 3] | isJsonArray | eq(false)}
     ~~|
-def(:isJsonArray, {:qlang/kind :builtin
-                   :qlang/impl :qlang/prim/isJsonArray
-                   :category :type-classifier
-                   :subject :any
-                   :returns :boolean
-                   :modifiers []
-                   :throws []})
+  {:qlang/kind :builtin
+                     :qlang/impl :qlang/prim/isJsonArray
+                     :category :type-classifier
+                     :subject :any
+                     :returns :boolean
+                     :modifiers []
+                     :throws []}
 
 |~ ──────────────── Axis-operands ──────────────── ~|
 
-|~~ source(:name) — Quote of the def-step that binds :name in
+:source
+  |~~ source(:name) — Quote of the def-step that binds :name in
     one of the loaded modules. Walks every qlang/ast/<uri> Quote
     in env, finds the def-step whose first arg matches :name,
     returns a Quote-value carrying the verbatim def source. ~~|
-def(:source, {:qlang/kind :builtin
-              :qlang/impl :qlang/prim/source
-              :category :axis
-              :subject :keyword
-              :returns :quote
-              :modifiers []
-              :throws [:SourceSubjectNotKeywordOrType :AxisBindingNotFound]})
+  {:qlang/kind :builtin
+                :qlang/impl :qlang/prim/source
+                :category :axis
+                :subject :keyword
+                :returns :quote
+                :modifiers []
+                :throws [:SourceSubjectNotKeywordOrType :AxisBindingNotFound]}
 
-|~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
+:docs
+  |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
     on the def-step that binds :name. Each Doc-value /segments
     surfaces TaggedLit and Quote inline structure for navigation;
     Quote segments are the evaluable examples runExamples runs. ~~|
-def(:docs, {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/docs
-            :category :axis
-            :subject :keyword
-            :returns :vec
-            :modifiers []
-            :throws [:DocsSubjectNotKeywordOrType :AxisBindingNotFound]})
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/docs
+              :category :axis
+              :subject :keyword
+              :returns :vec
+              :modifiers []
+              :throws [:DocsSubjectNotKeywordOrType :AxisBindingNotFound]}
 
-|~~ examples(:name) — Vec of Quote-values extracted from the
+:examples
+  |~~ examples(:name) — Vec of Quote-values extracted from the
     binding's docs. runExamples consumes this Vec to evaluate
     each Quote against an isolated env; :ok is true iff the
     result is truthy. ~~|
-def(:examples, {:qlang/kind :builtin
-                :qlang/impl :qlang/prim/examples
-                :category :axis
-                :subject :keyword
-                :returns :vec
-                :modifiers []
-                :throws [:ExamplesSubjectNotKeywordOrType :AxisBindingNotFound]})
+  {:qlang/kind :builtin
+                  :qlang/impl :qlang/prim/examples
+                  :category :axis
+                  :subject :keyword
+                  :returns :vec
+                  :modifiers []
+                  :throws [:ExamplesSubjectNotKeywordOrType :AxisBindingNotFound]}

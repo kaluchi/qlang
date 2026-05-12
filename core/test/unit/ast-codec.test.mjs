@@ -51,7 +51,8 @@ const KW_COLUMN       = 'column';
 // .schemaVersion). astNodeToMap does not round-trip these, so we
 // strip them from both sides before structural comparison.
 const DECORATION_KEYS = new Set([
-  'parent', 'id', 'source', 'uri', 'parseId', 'parsedAt', 'schemaVersion'
+  'parent', 'id', 'source', 'uri', 'parseId', 'parsedAt', 'schemaVersion',
+  'docPrefixStart'
 ]);
 
 function stripDecoration(node) {

@@ -1359,7 +1359,7 @@ lift automatically into error values with structured descriptors:
 
 ```qlang
 > "hello" | add(1) !| /thrown
-:AddLeftNotNumber
+::AddLeftNotNumber
 
 > "hello" | add(1) !| /origin
 :qlang/eval

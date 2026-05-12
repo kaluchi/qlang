@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { QlangTypeError, ArityError } from '../../src/errors.mjs';
-import { isQMap, isQSet, keyword } from '../../src/types.mjs';
+import { isQMap, isQSet, keyword, makeTagKeyword } from '../../src/types.mjs';
 import {
   expectErrorThrown,
   expectOriginalError
@@ -96,7 +96,7 @@ describe('filter — container polymorphism', () => {
     // returns null and the per-value predLambda path runs; the lookup
     // error then surfaces on the fail-track.
     const errorValue = await evalQuery('{:a 1} | filter(unknownPred) !| /thrown');
-    expect(errorValue).toEqual(keyword('UnresolvedIdentifierError'));
+    expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 
   it('Map with non-conduit snapshot as pred — falls to per-value path, all entries pass', async () => {
@@ -120,7 +120,7 @@ describe('filter — container polymorphism', () => {
       + '| env | /@hot | as(:clean) '
       + '| {:a 1 :b 2} | filter(clean) !| /thrown'
     );
-    expect(errorValue).toEqual(keyword('EffectLaunderingAtCall'));
+    expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCall'));
   });
 
   it('Map empty subject — returns empty Map for 0-arity pred', async () => {

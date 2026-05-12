@@ -1,10 +1,10 @@
-import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue } from './types.mjs';
+import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue, makeTagKeyword } from './types.mjs';
 
 export function errorFromQlang(qlangError, fault) {
   const d = new Map();
   d.set('origin', keyword('qlang/eval'));
   d.set('kind', keyword(qlangError.kind));
-  d.set('thrown', keyword(qlangError.fingerprint ?? qlangError.name));
+  d.set('thrown', makeTagKeyword(qlangError.fingerprint ?? qlangError.name));
   d.set('message', qlangError.message);
 
   if (qlangError.context) {
@@ -25,7 +25,7 @@ export function errorFromParse(parseError) {
   const d = new Map();
   d.set('origin', keyword('qlang/parse'));
   d.set('kind', keyword('parse-error'));
-  d.set('thrown', keyword('ParseError'));
+  d.set('thrown', makeTagKeyword('ParseError'));
   d.set('message', parseError.message);
   if (parseError.location) d.set('location', locationToMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
@@ -58,7 +58,7 @@ export function errorFromForeign(jsError, astNode, fault) {
   const d = new Map();
   d.set('origin', keyword('host'));
   d.set('kind', keyword('foreign-error'));
-  d.set('thrown', keyword(jsError.name));
+  d.set('thrown', makeTagKeyword(jsError.name));
   d.set('message', jsError.message);
 
   for (const prop of WELL_KNOWN_PROPS) {
@@ -76,7 +76,7 @@ export function errorFromForeign(jsError, astNode, fault) {
     while (current instanceof Error && causes.length < 8) {
       const m = new Map();
       m.set('message', current.message);
-      m.set('thrown', keyword(current.name));
+      m.set('thrown', makeTagKeyword(current.name));
       causes.push(m);
       current = current.cause;
     }
@@ -102,7 +102,7 @@ function coerce(v, depth = 0) {
   if (v instanceof Error) {
     const m = new Map();
     m.set('message', v.message);
-    m.set('thrown', keyword(v.name));
+    m.set('thrown', makeTagKeyword(v.name));
     return m;
   }
   if (t === 'object') {

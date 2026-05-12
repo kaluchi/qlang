@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
+import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('runExamples accepts both keyword and descriptor subjects', () => {
@@ -30,7 +30,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
   it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {
     const err = await evalQuery('42 | runExamples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('RunExamplesSubjectShapeError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
   });
 });
 

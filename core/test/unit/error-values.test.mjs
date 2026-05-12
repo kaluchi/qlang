@@ -1,10 +1,7 @@
 // Tests for error value type, trail, deepEqual, codec, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import {
-  keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType,
-  isQuote
-} from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType, isQuote, makeTagKeyword } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -153,7 +150,7 @@ describe('errorFromQlang', () => {
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('type-error'));
-    expect(desc.get('thrown')).toEqual(keyword('QlangTypeError'));
+    expect(desc.get('thrown')).toEqual(makeTagKeyword('QlangTypeError'));
     expect(desc.get('operand')).toBe('add');
     expect(desc.get('actualValue')).toBe('the-value');
     const fault = desc.get('fault');
@@ -173,7 +170,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(unresolvedErr, faultMap);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('unresolved-identifier'));
-    expect(desc.get('thrown')).toEqual(keyword('UnresolvedIdentifierError'));
+    expect(desc.get('thrown')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('name')).toBe('myName');
     expect(fault.get('input')).toBe(42);
@@ -190,7 +187,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(divErr, faultMap);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('division-by-zero'));
-    expect(desc.get('thrown')).toEqual(keyword('DivisionByZeroError'));
+    expect(desc.get('thrown')).toEqual(makeTagKeyword('DivisionByZeroError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('text')).toBe('div(0)');
     expect(fault.get('input')).toBe(10);
@@ -211,7 +208,7 @@ describe('errorFromForeign', () => {
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('foreign-error'));
-    expect(desc.get('thrown')).toEqual(keyword('Error'));
+    expect(desc.get('thrown')).toEqual(makeTagKeyword('Error'));
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
     expect(errorVal.originalError).toBe(jsErr);

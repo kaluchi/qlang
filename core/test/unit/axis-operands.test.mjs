@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword, isQuote } from '../../src/types.mjs';
+import { isErrorValue, keyword, isQuote, makeTagKeyword } from '../../src/types.mjs';
 
 describe(':name | source returns the def-step source as Quote', () => {
   it(':count | source carries the canonical :count BindStep text', async () => {
@@ -23,7 +23,7 @@ describe(':name | source returns the def-step source as Quote', () => {
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
     });
     const cellEntry = await session.evalCell('null | use(:tests/scalar-only) | :missing | source !| /thrown');
-    expect(cellEntry.result).toEqual(keyword('AxisBindingNotFound'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFound'));
   });
 
   it('inline def-step within the current query is reachable through axis lookup', async () => {
@@ -40,13 +40,13 @@ describe(':name | source returns the def-step source as Quote', () => {
   it('non-keyword subject raises SourceSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('42 | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('SourceSubjectNotKeywordOrType'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrType'));
   });
 
   it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('{:qlang/kind :type :qlang/impl :unbound} | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('SourceSubjectNotKeywordOrType'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrType'));
   });
 });
 
@@ -65,13 +65,13 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
   it('non-keyword subject raises DocsSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('42 | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DocsSubjectNotKeywordOrType'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrType'));
   });
 
   it('unknown binding raises AxisBindingNotFound', async () => {
     const err = await evalQuery(':totallyMadeUp | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AxisBindingNotFound'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('AxisBindingNotFound'));
   });
 });
 
@@ -85,13 +85,13 @@ describe(':name | examples extracts Quote segments from docs', () => {
   it('non-keyword subject raises ExamplesSubjectNotKeywordOrType', async () => {
     const err = await evalQuery('42 | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('ExamplesSubjectNotKeywordOrType'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrType'));
   });
 
   it('unknown binding raises AxisBindingNotFound', async () => {
     const err = await evalQuery(':totallyMadeUp | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('AxisBindingNotFound'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('AxisBindingNotFound'));
   });
 });
 

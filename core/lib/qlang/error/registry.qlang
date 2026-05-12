@@ -1,0 +1,665 @@
+|~ Catalog of named-error type-bindings — one entry per JS-side
+   class declared in core/src/operand-errors.mjs and the
+   special error-convert sources (ParseError, foreign-error
+   names, axis-operand failures). Each declaration is the
+   minimum that makes the tag known to the env so
+   `evalBareTypeKeyword` finds it and authors can write
+   `!{:thrown ::Tag …}` literals or `:add | /throws | first
+   | docs` axis navigations.
+
+   Constructors (Quote-impl validators per §II.3 of the
+   redesign plan) land in a later pass. ~|
+
+|~ ──────────────── Named-error type-bindings ──────────────── ~|
+
+::AddLeftNotNumber
+  |~~ Left operand of `add` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::AddRightNotNumber
+  |~~ Right operand of `add` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::AnyMapPredArityInvalid
+  |~~ `any` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::AnySubjectNotContainer
+  |~~ Subject of `any` is not a Container. ~~|
+  {:qlang/kind :type}
+
+::AnyVecOrSetPredArityInvalid
+  |~~ `any` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::AppendSubjectNotString
+  |~~ Subject of `append` is not a String. ~~|
+  {:qlang/kind :type}
+
+::AppendSuffixNotString
+  |~~ Suffix argument of `append` is not a String. ~~|
+  {:qlang/kind :type}
+
+::ApplyToNonFunction
+  |~~ ApplyToNonFunction — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::AsNameNotKeyword
+  |~~ Name argument of `as` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::AscKeysNotComparable
+  |~~ Keys argument of `asc` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::AscPairNotMap
+  |~~ Pair argument of `asc` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::AstMapKindUnknownError
+  |~~ AstMapKindUnknownError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::AstMapMalformedError
+  |~~ AstMapMalformedError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::AstNodeTypeUnknownError
+  |~~ AstNodeTypeUnknownError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::AtIndexNotInteger
+  |~~ Index argument of `at` is not an Integer. ~~|
+  {:qlang/kind :type}
+
+::AtKeyNotString
+  |~~ Key argument of `at` is not a String. ~~|
+  {:qlang/kind :type}
+
+::AtSubjectNotVecOrMap
+  |~~ Subject of `at` is not a Vec Or Map. ~~|
+  {:qlang/kind :type}
+
+::AxisBindingNotFound
+  |~~ Axis-operand could not find a def-step for the requested binding name. ~~|
+  {:qlang/kind :type}
+
+::CoalesceNoAlternatives
+  |~~ `coalesce` requires at least one alternative. ~~|
+  {:qlang/kind :type}
+
+::CondNoBranches
+  |~~ `cond` requires at least one branch. ~~|
+  {:qlang/kind :type}
+
+::ConduitArityInvalid
+  |~~ `conduit` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::ConduitArityMismatch
+  |~~ `conduit` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::ConduitBodyMissingSource
+  |~~ ConduitBodyMissingSource — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::ConduitBodyNotQuote
+  |~~ Body of `conduit` is not a Quote. ~~|
+  {:qlang/kind :type}
+
+::ConduitParamNotKeyword
+  |~~ Parameter of `conduit` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::ConduitParameterNoCapturedArgs
+  |~~ ConduitParameterNoCapturedArgs — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::ConduitParamsNotVec
+  |~~ Parameter list of `conduit` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::ConduitPayloadNotVec
+  |~~ Payload of `conduit` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::ConduitSelfNameNotKeyword
+  |~~ Self-name of `conduit` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::ContainsNeedleNotString
+  |~~ Needle argument of `contains` is not a String. ~~|
+  {:qlang/kind :type}
+
+::ContainsSubjectNotString
+  |~~ Subject of `contains` is not a String. ~~|
+  {:qlang/kind :type}
+
+::CountSubjectNotContainer
+  |~~ Subject of `count` is not a Container. ~~|
+  {:qlang/kind :type}
+
+::DefArityInvalid
+  |~~ `def` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::DefMissingDocOrBody
+  |~~ `def` invocation has an invalid name / params / body shape. ~~|
+  {:qlang/kind :type}
+
+::DefNameNotKeyword
+  |~~ Name argument of `def` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::DefParamsNotVecOfKeywords
+  |~~ Parameter list of `def` is not a Vec Of Keywords. ~~|
+  {:qlang/kind :type}
+
+::DescKeysNotComparable
+  |~~ Keys argument of `desc` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::DescPairNotMap
+  |~~ Pair argument of `desc` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::DistinctSubjectNotVec
+  |~~ Subject of `distinct` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::DistributeSubjectNotVec
+  |~~ Subject of `distribute` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::DivLeftNotNumber
+  |~~ Left operand of `div` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::DivRightNotNumber
+  |~~ Right operand of `div` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::DivisionByZeroError
+  |~~ Division by zero in `div`. ~~|
+  {:qlang/kind :type}
+
+::DocsSubjectNotKeywordOrType
+  |~~ Subject of `docs` is not a Keyword Or Type. ~~|
+  {:qlang/kind :type}
+
+::DropCountNotNumber
+  |~~ Count argument of `drop` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::DropSubjectNotVec
+  |~~ Subject of `drop` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::EffectLaunderingAtCall
+  |~~ @-effect identifier resolved through env / use / as without an @-prefixed alias at call-time. ~~|
+  {:qlang/kind :type}
+
+::EffectLaunderingAtDefParse
+  |~~ @-effect identifier appears inside a non-@-prefixed def body at parse-time. ~~|
+  {:qlang/kind :type}
+
+::EmptySubjectNotContainer
+  |~~ Subject of `empty` is not a Container. ~~|
+  {:qlang/kind :type}
+
+::EndsWithSubjectNotString
+  |~~ With Subject argument of `ends` is not a String. ~~|
+  {:qlang/kind :type}
+
+::EndsWithSuffixNotString
+  |~~ With Suffix argument of `ends` is not a String. ~~|
+  {:qlang/kind :type}
+
+::ErrorDescriptorNotMap
+  |~~ Descriptor argument of `error` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::EvalSubjectNotMapOrQuote
+  |~~ Subject of `eval` is not a Map Or Quote. ~~|
+  {:qlang/kind :type}
+
+::EveryMapPredArityInvalid
+  |~~ `every` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::EverySubjectNotContainer
+  |~~ Subject of `every` is not a Container. ~~|
+  {:qlang/kind :type}
+
+::EveryVecOrSetPredArityInvalid
+  |~~ `every` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::ExamplesSubjectNotKeywordOrType
+  |~~ Subject of `examples` is not a Keyword Or Type. ~~|
+  {:qlang/kind :type}
+
+::FilterMapPredArityInvalid
+  |~~ `filter` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::FilterSubjectNotContainer
+  |~~ Subject of `filter` is not a Container. ~~|
+  {:qlang/kind :type}
+
+::FilterVecOrSetPredArityInvalid
+  |~~ `filter` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::FirstNonZeroElementNotNumber
+  |~~ Non Zero Element argument of `first` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::FirstNonZeroSubjectNotVec
+  |~~ Non Zero Subject argument of `first` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::FirstSubjectNotVec
+  |~~ Subject of `first` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::FirstTruthyNoAlternatives
+  |~~ `first` requires at least one alternative. ~~|
+  {:qlang/kind :type}
+
+::FlatSubjectNotVec
+  |~~ Subject of `flat` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::FunctionValueLeakedToPrint
+  |~~ FunctionValueLeakedToPrint — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::GroupByKeyNotKeyword
+  |~~ `group` by-key subject is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::GroupBySubjectNotVec
+  |~~ By Subject argument of `group` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::GtOperandsNotComparable
+  |~~ Operands argument of `gt` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::GteOperandsNotComparable
+  |~~ Operands argument of `gte` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::HasKeyNotKeyword
+  |~~ Key argument of `has` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::HasSubjectNotMapOrSet
+  |~~ Subject of `has` is not a Map Or Set. ~~|
+  {:qlang/kind :type}
+
+::HigherOrderOpArityMismatch
+  |~~ `higher` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::HigherOrderOpVariadicMissingCaptured
+  |~~ HigherOrderOpVariadicMissingCaptured — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::IndexByKeyNotKeyword
+  |~~ `index` by-key subject is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::IndexBySubjectNotVec
+  |~~ By Subject argument of `index` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::InterBareEmpty
+  |~~ `inter` bare form received an empty Vec. ~~|
+  {:qlang/kind :type}
+
+::InterBareSubjectNotVec
+  |~~ `inter` bare-form subject is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::InterPairIncompatible
+  |~~ `inter` pair operands have incompatible container types. ~~|
+  {:qlang/kind :type}
+
+::JoinElementNotString
+  |~~ Element of `join` collection is not a String. ~~|
+  {:qlang/kind :type}
+
+::JoinSeparatorNotString
+  |~~ Separator argument of `join` is not a String. ~~|
+  {:qlang/kind :type}
+
+::JoinSubjectNotVec
+  |~~ Subject of `join` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::KeysSubjectNotMap
+  |~~ Subject of `keys` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::KeywordSubjectNotStringOrKeyword
+  |~~ Subject of `keyword` is not a String Or Keyword. ~~|
+  {:qlang/kind :type}
+
+::LastSubjectNotVec
+  |~~ Subject of `last` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::LtOperandsNotComparable
+  |~~ Operands argument of `lt` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::LteOperandsNotComparable
+  |~~ Operands argument of `lte` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::MalformedTaggedJSONError
+  |~~ MalformedTaggedJSONError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::MaxElementsNotComparable
+  |~~ Elements argument of `max` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::MaxSubjectNotVecOrSet
+  |~~ Subject of `max` is not a Vec Or Set. ~~|
+  {:qlang/kind :type}
+
+::MergeSubjectNotVec
+  |~~ Subject of `merge` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::MinElementsNotComparable
+  |~~ Elements argument of `min` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::MinSubjectNotVecOrSet
+  |~~ Subject of `min` is not a Vec Or Set. ~~|
+  {:qlang/kind :type}
+
+::MinusBareEmpty
+  |~~ `minus` bare form received an empty Vec. ~~|
+  {:qlang/kind :type}
+
+::MinusBareSubjectNotVec
+  |~~ `minus` bare-form subject is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::MinusPairIncompatible
+  |~~ `minus` pair operands have incompatible container types. ~~|
+  {:qlang/kind :type}
+
+::MulLeftNotNumber
+  |~~ Left operand of `mul` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::MulRightNotNumber
+  |~~ Right operand of `mul` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::NullaryOpArgsProvided
+  |~~ NullaryOpArgsProvided — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::NullsFirstKeysNotComparable
+  |~~ First Keys argument of `nulls` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::NullsFirstPairNotMap
+  |~~ First Pair argument of `nulls` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::NullsLastKeysNotComparable
+  |~~ Last Keys argument of `nulls` is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::NullsLastPairNotMap
+  |~~ Last Pair argument of `nulls` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::OverloadedOpUnsupportedArity
+  |~~ OverloadedOpUnsupportedArity — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::ParseError
+  |~~ Parser failure — source did not match the grammar. ~~|
+  {:qlang/kind :type}
+
+::ParseSubjectNotStringOrQuote
+  |~~ Subject of `parse` is not a String Or Quote. ~~|
+  {:qlang/kind :type}
+
+::PrependPrefixNotString
+  |~~ Prefix argument of `prepend` is not a String. ~~|
+  {:qlang/kind :type}
+
+::PrependSubjectNotString
+  |~~ Subject of `prepend` is not a String. ~~|
+  {:qlang/kind :type}
+
+::PrimitiveKeyAlreadyBound
+  |~~ PrimitiveKeyAlreadyBound — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::PrimitiveKeyNotString
+  |~~ Key argument of `primitive` is not a String. ~~|
+  {:qlang/kind :type}
+
+::PrimitiveKeyUnbound
+  |~~ PrimitiveKeyUnbound — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::PrimitiveRegistrySealed
+  |~~ PrimitiveRegistrySealed — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::ProjectionSubjectNotMap
+  |~~ Subject of `projection` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::ReifyArityOverflow
+  |~~ `reify` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::ReifyKeyNotKeyword
+  |~~ Key argument of `reify` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::ReverseSubjectNotVec
+  |~~ Subject of `reverse` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::Rule10ArityOverflow
+  |~~ `rule10` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::RunExamplesSubjectShapeError
+  |~~ Subject of `run` does not match the expected shape. ~~|
+  {:qlang/kind :type}
+
+::SessionBindingKindUnknownError
+  |~~ SessionBindingKindUnknownError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::SessionConduitSourceMissingError
+  |~~ SessionConduitSourceMissingError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::SessionPayloadInvalidError
+  |~~ SessionPayloadInvalidError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::SessionSchemaVersionMismatchError
+  |~~ SessionSchemaVersionMismatchError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::SetConversionSubjectNotVec
+  |~~ Conversion Subject argument of `set` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::SortByKeyNotComparable
+  |~~ `sort` by-key subject is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::SortByKeySubjectNotVec
+  |~~ By Key Subject argument of `sort` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::SortNaturalNotComparable
+  |~~ `sort` natural-order subject is not a Comparable. ~~|
+  {:qlang/kind :type}
+
+::SortNaturalSubjectNotVec
+  |~~ `sort` natural-order subject is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::SortWithCmpResultNotNumber
+  |~~ With Cmp Result argument of `sort` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::SortWithSubjectNotVec
+  |~~ With Subject argument of `sort` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::SourceSubjectNotKeywordOrType
+  |~~ Subject of `source` is not a Keyword Or Type. ~~|
+  {:qlang/kind :type}
+
+::SplitSeparatorNotString
+  |~~ Separator argument of `split` is not a String. ~~|
+  {:qlang/kind :type}
+
+::SplitSubjectNotString
+  |~~ Subject of `split` is not a String. ~~|
+  {:qlang/kind :type}
+
+::StartsWithPrefixNotString
+  |~~ With Prefix argument of `starts` is not a String. ~~|
+  {:qlang/kind :type}
+
+::StartsWithSubjectNotString
+  |~~ With Subject argument of `starts` is not a String. ~~|
+  {:qlang/kind :type}
+
+::StateOpArityMismatch
+  |~~ `state` invocation arity invalid. ~~|
+  {:qlang/kind :type}
+
+::StateOpVariadicMissingCaptured
+  |~~ StateOpVariadicMissingCaptured — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::SubLeftNotNumber
+  |~~ Left operand of `sub` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::SubRightNotNumber
+  |~~ Right operand of `sub` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::SumElementNotNumber
+  |~~ Element of `sum` collection is not a Number. ~~|
+  {:qlang/kind :type}
+
+::SumSubjectNotVecOrSet
+  |~~ Subject of `sum` is not a Vec Or Set. ~~|
+  {:qlang/kind :type}
+
+::TableRowNotMap
+  |~~ Row of `table` input is not a Map. ~~|
+  {:qlang/kind :type}
+
+::TableSubjectNotVec
+  |~~ Subject of `table` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::TaggedJSONUnencodableValueError
+  |~~ TaggedJSONUnencodableValueError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::TaggedLitImplNotResolvable
+  |~~ Lit Impl argument of `tagged` is not a Resolvable. ~~|
+  {:qlang/kind :type}
+
+::TaggedLitNotType
+  |~~ Lit argument of `tagged` is not a Type. ~~|
+  {:qlang/kind :type}
+
+::TaggedLitTagNotFound
+  |~~ Lit Tag argument of `tagged` is not a Found. ~~|
+  {:qlang/kind :type}
+
+::TakeCountNotNumber
+  |~~ Count argument of `take` is not a Number. ~~|
+  {:qlang/kind :type}
+
+::TakeSubjectNotVec
+  |~~ Subject of `take` is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::UnionBareEmpty
+  |~~ `union` bare form received an empty Vec. ~~|
+  {:qlang/kind :type}
+
+::UnionBareSubjectNotVec
+  |~~ `union` bare-form subject is not a Vec. ~~|
+  {:qlang/kind :type}
+
+::UnionPairIncompatible
+  |~~ `union` pair operands have incompatible container types. ~~|
+  {:qlang/kind :type}
+
+::UnknownAstNodeTypeError
+  |~~ UnknownAstNodeTypeError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::UnknownCombinatorKindError
+  |~~ UnknownCombinatorKindError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::UnresolvedIdentifierError
+  |~~ Identifier lookup failed — no env binding under that name. ~~|
+  {:qlang/kind :type}
+
+::UseNameNotExported
+  |~~ Name argument of `use` is not a Exported. ~~|
+  {:qlang/kind :type}
+
+::UseNamespaceCollision
+  |~~ `use` encountered a malformed namespace argument or import. ~~|
+  {:qlang/kind :type}
+
+::UseNamespaceElementNotKeyword
+  |~~ Namespace Element argument of `use` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::UseNamespaceNotFound
+  |~~ Namespace argument of `use` is not a Found. ~~|
+  {:qlang/kind :type}
+
+::UseNamespaceNotKeyword
+  |~~ Namespace argument of `use` is not a Keyword. ~~|
+  {:qlang/kind :type}
+
+::UseNamespaceNotMap
+  |~~ Namespace argument of `use` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::UseSubjectNotMap
+  |~~ Subject of `use` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::ValsSubjectNotMap
+  |~~ Subject of `vals` is not a Map. ~~|
+  {:qlang/kind :type}
+
+::ValueOpArityMismatch
+  |~~ `value` invocation arity invalid. ~~|
+  {:qlang/kind :type}

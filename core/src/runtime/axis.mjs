@@ -110,6 +110,7 @@ export function findDefStepAcrossModules(env, bindingName) {
 // the type binding it instantiates.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
+  if (isTagKeyword(subject)) return '::' + subject.name;
   if (isQMap(subject)) {
     const kind = subject.get('qlang/kind');
     if (kind && kind.name === 'type') {

@@ -18,7 +18,7 @@ import {
   resolveModules,
   installModules
 } from '../../host/module-resolver.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeTagKeyword } from '../../src/types.mjs';
 
 const libDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'lib', 'qlang');
 
@@ -69,7 +69,7 @@ describe('retry — recovers from a single transient failure', () => {
     // drops through to the else branch and re-lifts the materialized
     // descriptor into a fresh error on the fail-track.
     const errorResult = await runErr(sessionInstance, '42 | retry(count, 0)');
-    expect(errorResult.descriptor.get('thrown')).toEqual(keyword('CountSubjectNotContainer'));
+    expect(errorResult.descriptor.get('thrown')).toEqual(makeTagKeyword('CountSubjectNotContainer'));
   });
 
   it('retries the documented number of attempts before re-lifting', async () => {

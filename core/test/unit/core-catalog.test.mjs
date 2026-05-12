@@ -26,7 +26,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -358,7 +358,7 @@ describe('parse / eval — the code-as-data ring closer', () => {
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| /thrown');
-    expect(evalResult).toEqual(keyword('ParseSubjectNotStringOrQuote'));
+    expect(evalResult).toEqual(makeTagKeyword('ParseSubjectNotStringOrQuote'));
   });
 
   it('eval takes a hand-assembled AST-Map and runs it', async () => {
@@ -370,7 +370,7 @@ describe('parse / eval — the code-as-data ring closer', () => {
   it('eval errors on non-Map subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-map" | eval !| /thrown');
-    expect(evalResult).toEqual(keyword('EvalSubjectNotMapOrQuote'));
+    expect(evalResult).toEqual(makeTagKeyword('EvalSubjectNotMapOrQuote'));
   });
 
   it('round-trip — "source" | parse | eval is equivalent to evaluating the source', async () => {

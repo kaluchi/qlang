@@ -6,7 +6,7 @@
 {"name":"any-with-projection","query":"[{:active false} {:active true}] | any(/active)","expect":"true"}
 {"name":"any-with-projection-none","query":"[{:active false} {:active false}] | any(/active)","expect":"false"}
 {"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any(/role | eq(:admin))","expect":"true"}
-{"name":"any-on-non-container-throws","query":"42 | any(gt(0))","error":"type-error","expect":"!{\n  :origin :qlang/eval\n  :kind :type-error\n  :thrown :AnySubjectNotContainer\n  :message \"any requires Vec, Set, or Map subject, got number\"\n  :operand \"any\"\n  :position \"subject\"\n  :expectedType \"Vec, Set, or Map\"\n  :actualType :number\n  :actualValue 42\n  :fault {:step ~{any(gt(0))} :input 42}\n  :trail null\n}"}
+{"name":"any-on-non-container-throws","query":"42 | any(gt(0))","error":"type-error","expect":"!{\n  :origin :qlang/eval\n  :kind :type-error\n  :thrown ::AnySubjectNotContainer\n  :message \"any requires Vec, Set, or Map subject, got number\"\n  :operand \"any\"\n  :position \"subject\"\n  :expectedType \"Vec, Set, or Map\"\n  :actualType :number\n  :actualValue 42\n  :fault {:step ~{any(gt(0))} :input 42}\n  :trail null\n}"}
 {"name":"any-short-circuits","query":"[1 2 99] | any(gt(50))","expect":"true"}
 {"name":"any-as-filter-equivalence","query":"[1 2 3] | filter(gt(2)) | empty | not | eq([1 2 3] | any(gt(2)))","expect":"true"}
 {"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any(startsWith(\"al\"))","expect":"true"}
@@ -25,8 +25,8 @@
 {"name":"any-map-1arity-conduit-false","query":"{:a -1 :b -2} | def(:@pos, [:v], v | gt(0)) | any(@pos)","expect":"false"}
 {"name":"any-map-via-2arity-conduit","query":"{:a 1 :b 2} | def(:@isA, [:k :v], k | eq(:a)) | any(@isA)","expect":"true"}
 {"name":"any-map-via-2arity-conduit-false","query":"{:b 1 :c 2} | def(:@isA, [:k :v], k | eq(:a)) | any(@isA)","expect":"false"}
-{"name":"any-vec-2arity-pred-throws","query":"[1 2] | def(:@kv, [:k :v], true) | any(@kv) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
-{"name":"any-set-2arity-pred-throws","query":"#{1 2} | def(:@kv, [:k :v], true) | any(@kv) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
-{"name":"any-vec-3arity-pred-throws","query":"[1] | def(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
-{"name":"any-set-3arity-pred-throws","query":"#{1} | def(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":":AnyVecOrSetPredArityInvalid"}
-{"name":"any-map-3arity-pred-throws","query":"{:a 1} | def(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":":AnyMapPredArityInvalid"}
+{"name":"any-vec-2arity-pred-throws","query":"[1 2] | def(:@kv, [:k :v], true) | any(@kv) !| /thrown","expect":"::AnyVecOrSetPredArityInvalid"}
+{"name":"any-set-2arity-pred-throws","query":"#{1 2} | def(:@kv, [:k :v], true) | any(@kv) !| /thrown","expect":"::AnyVecOrSetPredArityInvalid"}
+{"name":"any-vec-3arity-pred-throws","query":"[1] | def(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":"::AnyVecOrSetPredArityInvalid"}
+{"name":"any-set-3arity-pred-throws","query":"#{1} | def(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":"::AnyVecOrSetPredArityInvalid"}
+{"name":"any-map-3arity-pred-throws","query":"{:a 1} | def(:@tooWide, [:x :y :z], true) | any(@tooWide) !| /thrown","expect":"::AnyMapPredArityInvalid"}

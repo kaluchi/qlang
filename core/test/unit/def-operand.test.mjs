@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
+import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
 
 describe('def — 1-arg form (pure-doc binding)', () => {
   it('binds a Doc-value when the attached doc-prefix is present', async () => {
@@ -19,7 +19,7 @@ describe('def — 1-arg form (pure-doc binding)', () => {
   it('raises DefMissingDocOrBody without attached doc', async () => {
     const err = await evalQuery('def(:nodoc)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DefMissingDocOrBody'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DefMissingDocOrBody'));
   });
 });
 
@@ -64,31 +64,31 @@ describe('def — arity / shape error paths', () => {
   it('raises DefArityInvalid for zero-arg call', async () => {
     const err = await evalQuery('def()');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DefArityInvalid'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DefArityInvalid'));
   });
 
   it('raises DefArityInvalid for 4-arg call', async () => {
     const err = await evalQuery('def(:n, [], 1, 2)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DefArityInvalid'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DefArityInvalid'));
   });
 
   it('raises DefNameNotKeyword when name is not a keyword', async () => {
     const err = await evalQuery('def(42, mul(2))');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DefNameNotKeyword'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DefNameNotKeyword'));
   });
 
   it('raises DefParamsNotVecOfKeywords when params is not a Vec', async () => {
     const err = await evalQuery('def(:n, 42, mul(2))');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DefParamsNotVecOfKeywords'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DefParamsNotVecOfKeywords'));
   });
 
   it('raises DefParamsNotVecOfKeywords when an element of params is not a keyword', async () => {
     const err = await evalQuery('def(:n, [42], mul(2))');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('DefParamsNotVecOfKeywords'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DefParamsNotVecOfKeywords'));
   });
 });
 
@@ -102,6 +102,6 @@ describe('def — effect-laundering safety net', () => {
   it('rejects effectful body under non-@-prefixed name', async () => {
     const err = await evalQuery('def(:safe, @nonExistent)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(keyword('EffectLaunderingAtDefParse'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('EffectLaunderingAtDefParse'));
   });
 });

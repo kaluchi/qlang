@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
+import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 // ── error operand ──────────────────────────────────────────────
@@ -17,7 +17,7 @@ describe('error operand', () => {
 
   it('bare form on non-Map produces ErrorDescriptorNotMap', async () => {
     const evalResult = await evalQuery('42 | error !| /thrown');
-    expect(evalResult).toEqual(keyword('ErrorDescriptorNotMap'));
+    expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMap'));
   });
 });
 

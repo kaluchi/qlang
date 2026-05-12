@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword } from '../../src/types.mjs';
+import { keyword, makeTagKeyword } from '../../src/types.mjs';
 
 describe('doc-prefix inside MapEntry literal is a parse error', () => {
   it('rejects a doc-comment ahead of a MapEntry key', () => {
@@ -38,7 +38,7 @@ describe('DocAttachedSequence restricts to def / as only', () => {
     // lands as a separate pipeline step that the next operand
     // (here `filter`) sees as its subject.
     const result = await evalQuery('|~~ inline note ~~| | filter(gt(0)) !| /thrown');
-    expect(result).toEqual(keyword('FilterSubjectNotContainer'));
+    expect(result).toEqual(makeTagKeyword('FilterSubjectNotContainer'));
   });
 });
 

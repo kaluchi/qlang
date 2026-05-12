@@ -48,7 +48,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword
 } from './types.mjs';
 import { astNodeToMap, isPureLiteralAst } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -436,17 +436,20 @@ async function evalTaggedLit(node, state) {
   throw new TaggedLitImplNotResolvable({ tag: node.tag, actualType: typeKeyword(implKey), actualValue: implKey });
 }
 
-// ::tag — bare reference to the type binding. Returns the
-// descriptor Map directly so axis-operands like `::tag | spec` /
-// `::tag | docs` can project off it.
+// ::tag — bare reference to a type-namespace identifier. The
+// reference value is the TagKeyword itself (identity-as-value) —
+// stable, navigable, equality by name. Env existence check stays
+// (a `::TypoTag` that nothing declared raises `TaggedLitTagNotFound`
+// at this point); hypertext navigation to the descriptor Map
+// happens through axis-operands (`::tag | docs`, `| source`,
+// `| spec`) which take TagKeyword as their pipeValue subject and
+// resolve the binding through `bindingNameOf`.
 async function evalBareTypeKeyword(node, state) {
   const typeKey = '::' + node.tag;
   if (!envHas(state.env, typeKey)) {
     throw new TaggedLitTagNotFound({ tag: node.tag });
   }
-  let typeBinding = envGet(state.env, typeKey);
-  if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('qlang/value');
-  return withPipeValue(state, typeBinding);
+  return withPipeValue(state, makeTagKeyword(node.tag));
 }
 
 // BindStep — declarative binding form. Transparent for pipeValue

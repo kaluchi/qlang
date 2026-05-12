@@ -28,22 +28,35 @@ const ExamplesSubjectNotKeywordOrType = declareSubjectError('ExamplesSubjectNotK
 export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
   ({ axisName, bindingName }) => `${axisName}: no def-step found for binding '${bindingName}' across loaded modules`);
 
-// Walk a module AST for the def-step that binds `bindingName`.
-// Single-step modules collapse to a bare OperandCall at the root;
-// multi-step modules carry a Pipeline. DocAttachedSequence stamps
-// `.docs` on the OperandCall AST node directly, so the def step's
-// name and args are reachable at the same depth as a bare def call.
-// A binding step is either a `def(:name, …)` / `def(::tag, …)` call or
-// an `as(:name)` snapshot capture — both attach docs to the named
-// binding and both should answer to axis-operand lookups.
+// Walk a module AST for the binding-step that binds `bindingName`.
+// Two surface forms produce a binding visible to axis lookup:
+//
+//   BindStep `:name … body` / `::Tag … body` (M3.5 canonical) —
+//   the AST node carries `.key` (Keyword or BareTypeKeyword) and
+//   the doc-prefix in `.docs`.
+//
+//   OperandCall `def(:name, …)` / `def(::Tag, …)` / `as(:name)`
+//   (legacy) — the AST node carries `.args[0]` (Keyword or
+//   BareTypeKeyword) and the doc-prefix in `.docs`.
+//
+// Both forms attach docs to the named binding and both answer to
+// axis-operand lookups.
 function matchesDefStep(step, isTypeBinding, targetName) {
-  if (step.type !== 'OperandCall') return false;
-  if (step.name !== 'def' && step.name !== 'as') return false;
-  if (!Array.isArray(step.args) || step.args.length === 0) return false;
-  const firstArg = step.args[0];
-  return isTypeBinding
-    ? firstArg.type === 'BareTypeKeyword' && firstArg.tag === targetName
-    : firstArg.type === 'Keyword'         && firstArg.name === targetName;
+  if (step.type === 'BindStep') {
+    const key = step.key;
+    return isTypeBinding
+      ? key.type === 'BareTypeKeyword' && key.tag === targetName
+      : key.type === 'Keyword'         && key.name === targetName;
+  }
+  if (step.type === 'OperandCall') {
+    if (step.name !== 'def' && step.name !== 'as') return false;
+    if (!Array.isArray(step.args) || step.args.length === 0) return false;
+    const firstArg = step.args[0];
+    return isTypeBinding
+      ? firstArg.type === 'BareTypeKeyword' && firstArg.tag === targetName
+      : firstArg.type === 'Keyword'         && firstArg.name === targetName;
+  }
+  return false;
 }
 
 // Walk the module AST front to back, return the LAST matching binding

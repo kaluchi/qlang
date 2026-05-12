@@ -50,7 +50,7 @@ import {
   isJsonObject, isJsonArray, isVecShape, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot
 } from './types.mjs';
-import { astNodeToMap } from './walk.mjs';
+import { astNodeToMap, isPureLiteralAst } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
@@ -450,36 +450,49 @@ async function evalBareTypeKeyword(node, state) {
 }
 
 // BindStep — declarative binding form. Transparent for pipeValue
-// (env-write only). Body AST is captured verbatim — never eval'd
-// at decl-time — and bound under the key either as a Conduit
-// (body present, lazy invocation against future pipeValue) or as
-// a Doc-value snapshot (only docs present, materialized from the
-// prefix). Identifier-lookup later sees the bound value and
-// dispatches according to its kind.
+// (env-write only). Three shapes, purity-routed for value bodies:
 //
-// Effect-laundering AST scan runs at decl-time on the body: a
-// non-@-prefixed name with an effectful body raises the
-// EffectLaunderingAtDefParse invariant before any binding gets
-// installed.
+//   doc-only         (body absent, docs present)
+//     → Doc-value snapshot materialized from the joined prefix.
+//
+//   pure-literal body (NumberLit / StringLit / VecLit / MapLit /
+//   ... recursively, no OperandCall / Projection / Pipeline)
+//     → eval'd at decl-time against pipeValue=null (the body does
+//        not depend on pipeValue) and bound as a snapshot of the
+//        resulting value. Catalog descriptor Maps live behind
+//        this path so the langRuntime impl-resolution pass sees a
+//        plain Map, not a Conduit, at each env entry.
+//
+//   impure body / parametric form
+//     → captured AST in a Conduit (zero-arg or parametric) with
+//        the lexical envRef tied for recursive references. Body
+//        evaluates lazily at invocation against the caller's
+//        pipeValue.
+//
+// Effect-laundering AST scan runs on impure body / parametric
+// before installing — a non-@-prefixed name with an effectful
+// body raises EffectLaunderingAtDefParse.
 async function evalBindStep(node, state) {
   const name = node.key.type === 'BareTypeKeyword'
     ? '::' + node.key.tag
     : node.key.name;
+  const docs = node.docs || [];
 
   if (node.body === null) {
-    // doc-only form — bind Doc-value materialized from the prefix.
-    const bound = makeSnapshot(makeDoc(node.docs.join('\n')), {
-      name, docs: node.docs, location: node.location
+    const bound = makeSnapshot(makeDoc(docs.join('\n')), {
+      name, docs, location: node.location
     });
     return makeState(state.pipeValue, envSet(state.env, name, bound));
   }
 
-  // Body present — captured into a Conduit. Pure literal bodies
-  // produce a constant value at invocation (body's eval ignores
-  // pipeValue, replaces with the literal). pipeValue-aware bodies
-  // (OperandCall, Projection, Pipeline) operate on the invocation-
-  // site pipeValue. No purity-routing at this layer — the body's
-  // AST shape decides invocation behaviour.
+  if (node.params === null && isPureLiteralAst(node.body)) {
+    const innerState = await evalNode(node.body, makeState(null, state.env));
+    const bound = makeSnapshot(innerState.pipeValue, {
+      name, docs, location: node.location
+    });
+    return makeState(state.pipeValue, envSet(state.env, name, bound));
+  }
+
   if (!classifyEffect(name)) {
     const offender = findFirstEffectfulIdentifier(node.body);
     if (offender !== null) {
@@ -496,7 +509,7 @@ async function evalBindStep(node, state) {
     name,
     params: paramNames,
     envRef,
-    docs: node.docs || [],
+    docs,
     location: node.body.location
   });
   const nextEnv = envSet(state.env, name, conduit);

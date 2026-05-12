@@ -7,10 +7,10 @@ import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, keyword, isQuote } from '../../src/types.mjs';
 
 describe(':name | source returns the def-step source as Quote', () => {
-  it(':count | source carries the canonical def(:count, ...) text', async () => {
+  it(':count | source carries the canonical :count BindStep text', async () => {
     const result = await evalQuery(':count | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source.startsWith('def(:count')).toBe(true);
+    expect(result.source.startsWith(':count')).toBe(true);
   });
 
   it('a module whose top-level AST is a bare literal contributes no def-steps', async () => {
@@ -96,16 +96,16 @@ describe(':name | examples extracts Quote segments from docs', () => {
 });
 
 describe('axis-operands walk type-namespace bindings via ~{::} prefix', () => {
-  it(':"::conduit" | source finds the type binding def-step via the keyword form', async () => {
+  it(':"::conduit" | source finds the type binding via the keyword form', async () => {
     const result = await evalQuery(':"::conduit" | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source.startsWith('def(::conduit')).toBe(true);
+    expect(result.source.startsWith('::conduit')).toBe(true);
   });
 
   it('::conduit | source resolves the type-binding descriptor through reverse env lookup', async () => {
     const result = await evalQuery('::conduit | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source.startsWith('def(::conduit')).toBe(true);
+    expect(result.source.startsWith('::conduit')).toBe(true);
   });
 
   it('::conduit | docs returns the attached Doc-prefix on the type def-step', async () => {

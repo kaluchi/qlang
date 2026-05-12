@@ -126,6 +126,7 @@ PipelineHead
   / LeadingLinePlainAbsorbing
   / DocAttachedSequence
   / PlainCommentStep
+  / BindStep
   / RawStep
 
 LeadingBlockPlainAbsorbing
@@ -156,7 +157,18 @@ ContinuationUnit
   / LinePlainCommentAbsorbing
   / AbsorbedCommentContinuation
   / DocLitContinuation
+  / BindStepContinuation
   / ExplicitContinuation
+
+// BindStepContinuation — next BindStep follows previous step
+// without an explicit combinator. The keyword in head-position is
+// itself the separator; no `|` between adjacent BindSteps. The
+// combinator stamped on the step-wrapper is `|` (pipeValue flows
+// through, BindStep is transparent so this only matters for what
+// the next step sees as pipeValue).
+BindStepContinuation
+  = step:BindStep
+  { return { combinator: '|', step }; }
 
 DocLitContinuation
   = step:DocLit
@@ -375,13 +387,89 @@ Combinator
 
 // --- Raw steps (non-comment) -----------------------------------
 //
-// With `let` and `as` promoted to regular operand calls in
-// langRuntime, RawStep collapses to just Primary. No special
-// grammar constructs for binding — `let(:name, body)` and
-// `as(:name)` parse as ordinary OperandCall nodes.
+// `RawStep` is the bare-Primary form of a step. The binding-form
+// `BindStep` is introduced separately at the Pipeline-step level
+// (see `PipelineHead` and the `BindStepContinuation` alternative
+// of `ContinuationUnit`); it is intentionally NOT folded into
+// `RawStep` because `RawStep` is shared by `PipelineInLiteral` —
+// inside Vec/Set/Map/ArgList element positions the grammar must
+// stay "Keyword is just a keyword value", so `[:a 42]` parses as
+// a Vec of two keywords + a number, not as a binding.
 
 RawStep
   = Primary
+
+// --- BindStep — declarative binding form -----------------------
+//
+// `:name body` / `:name docs body` / `:name docs` / `::Tag body` /
+// `:name [:p ...] body` — keyword (or BareTypeKeyword) in
+// head-position, optional doc-prefix in spec-slot, optional Vec
+// of keyword-params, optional body (any Primary except a bare
+// Keyword/BareTypeKeyword — for those wrap in ParenGroup). The
+// predicate at the end fails the rule if neither docs nor body
+// nor params is present, so a lone `:foo` falls back to a plain
+// Keyword Primary.
+//
+// BindStep is transparent for pipeValue — it writes the binding
+// into env and lets the incoming pipeValue pass through unchanged.
+// Pure-literal bodies snapshot at decl-time; impure bodies become
+// conduits captured against the lexical envRef.
+BindStep
+  = key:BindName __ docs:DocPrefix? _? rest:BindRest?
+    & { return docs !== null || rest !== null; }
+    {
+      const params = rest && rest.params ? rest.params : null;
+      const body = rest && rest.body ? rest.body : null;
+      return node('BindStep', { key, docs: docs || null, params, body }, location(), text());
+    }
+
+BindName
+  = key:Keyword         { return key; }
+  / key:BareTypeKeyword { return key; }
+
+// DocPrefix in BindStep sits AFTER the name. No combinator-absorb
+// behaviour (the name already separated this step from the
+// previous). Sequence of consecutive doc-comments accumulates into
+// a Vec of contents; plain comments interleaved are dropped (they
+// are layout sugar, not part of attached docs). Returns null when
+// no doc-comment found.
+DocPrefix
+  = first:DocComment rest:(_ DocOrPlainItem)*
+    {
+      const items = [first, ...rest.map(r => r[1])];
+      const docs = [];
+      for (const item of items) {
+        if (item.type === 'LineDocComment' || item.type === 'BlockDocComment') {
+          docs.push(item.content);
+        }
+      }
+      return docs;
+    }
+
+// BindRest covers the trailing `params body` (parametric conduit)
+// or `body` (value/literal). Params is a Vec of Keywords only —
+// if the `[...]` contains anything non-Keyword, params fails and
+// the alternative falls through to body-only where the same
+// `[...]` is parsed as a VecLit body.
+BindRest
+  = params:Params _? body:BindBody { return { params, body }; }
+  / body:BindBody                  { return { params: null, body }; }
+
+Params
+  = "[" _L head:Keyword tail:(_L Keyword)* _L "]"
+    { return [head, ...tail.map(t => t[1])]; }
+  / "[" _L "]" { return []; }
+
+// BindBody is a Primary EXCEPT bare Keyword / BareTypeKeyword —
+// `:foo :bar` would be meaningless as a binding (key + keyword-
+// value, where the name reference is redundant); the predicate
+// rejects those shapes so the parser backtracks to two consecutive
+// Primary steps instead. To bind a key explicitly to a keyword
+// value, wrap in ParenGroup: `:status (:active)`.
+BindBody
+  = body:Primary
+    & { return body.type !== 'Keyword' && body.type !== 'BareTypeKeyword'; }
+    { return body; }
 
 Primary
   = ParenGroup

@@ -129,14 +129,224 @@ Compression — через class-level defaults factored out. Field ordering —
 - `core.qlang` sweep: each `::assertion[~{a} ~{b}]` rewritten to `~{a | eq(b)}` (single Quote-as-test). Prose qlang references that previously appeared as inline emphasis-Quotes (`~{|}`, `~{!|}`, `~{parse}`, `~{vals | sum}` etc.) demoted to bare prose — they were never tests, and runExamples is honest about that now.
 - Catalog self-test re-expressed as `manifest | every(runExamples | every(/ok))` — boolean composition instead of `flat | distinct`.
 
-### M4. Error classes as type-bindings
+### M3.5. BindStep — declarative bindings
 
-- Generic constructor primitive `:qlang/error/auto-thrown` в `runtime/error.mjs` — `(payload, state, tagName) → error-value` stamping `:thrown <TagKeyword(tagName)>` + merge payload, lift via `makeErrorValue`. Требует modify `evalTaggedLit` signature чтобы передать `node.tag` в constructor.
-- `core/src/operand-errors.mjs` factory'и emit'ят type-binding declarations alongside class definitions (либо inline в `core.qlang`, либо separate catalog `core/lib/qlang/error/classes.qlang` loaded at bootstrap).
+Каждый binding в каталоге — синтаксически отдельный step с именем
+в head-position. Doc-prefix в spec-slot. Body — impl. Identifier
+карьерой entropy promotion в front, supplementary context в back.
+
+**Форма:**
+
+```
+:count
+  |~~ Returns the number of elements. Polymorphic over Vec
+      (length), Set (size), and Map (entry count).
+
+      ~{[1 2 3] | count | eq(3)}
+      ~{#{:a :b} | count | eq(2)} ~~|
+  {:qlang/kind :builtin
+   :qlang/impl :qlang/prim/count
+   :category :container-reducer
+   :subject [:vec :set :map]
+   :returns :number
+   :throws [::CountSubjectNotContainer]}
+
+::conduit
+  |~~ Conduit literal — invokeable lexically-scoped value carrying
+      a frozen body AST plus optional self-name and parameter list. ~~|
+  {:qlang/kind :type
+   :qlang/impl :qlang/type/conduit
+   :spec {:payload :vec}
+   :throws [::ConduitPayloadNotVec ::ConduitArityInvalid ...]}
+```
+
+**Grammar:**
+
+```peggy
+RawStep
+  = BindStep
+  / Primary
+
+BindStep
+  = key:BindName _? docs:DocPrefix? rest:BindRest?
+    & { return docs !== null || rest !== null; }
+    { return node('BindStep',
+        { key, docs, params: rest?.params ?? null, body: rest?.body ?? null },
+        location(), text()); }
+
+BindName
+  = Keyword           // value-namespace
+  / BareTypeKeyword   // type-namespace
+
+BindRest
+  = params:Params _? body:BindBody    // parametric conduit
+  / body:BindBody                     // value/literal
+
+Params
+  = "[" _L head:Keyword tail:(_L Keyword)* _L "]"
+
+BindBody
+  = body:Primary
+    &{ return body.type !== 'Keyword' && body.type !== 'BareTypeKeyword'; }
+
+ContinuationUnit
+  = step:BindStep { return { combinator: '|', step }; }
+  / ExplicitContinuation
+  / ... (rest unchanged)
+```
+
+Между BindStep'ами combinator не нужен — следующий `:foo` / `::Foo`
+сам выступает разделителем. Pipeline level only — внутри `[...]` /
+`{...}` / `#{...}` / `(...)` BindStep не пробуется, элементы парсятся
+как обычно (`PipelineInLiteral`).
+
+**Семантика:**
+
+BindStep **прозрачен для pipeValue** — выводит declarations в чистую
+декларативно-эвалящуюся плоскость, независящую от результатов
+предыдущих step'ов. Эффект только на env. После BindStep'а
+`state.pipeValue === incoming pipeValue`.
+
+`evalBindStep(node, state)`:
+1. Если `node.body === null` and `node.docs !== null` — bound =
+   `makeSnapshot(makeDoc(docs.join('\n')), { name, docs, location })`.
+2. Если body есть и `isPureLiteralAst(body)` — eval body в state
+   с `pipeValue = null` (body не зависит от pipeValue), bound =
+   `makeSnapshot(value, { name, docs, location })`.
+3. Если body impure (содержит OperandCall / Projection / ParenGroup /
+   Pipeline) — bound = `makeConduit(body, { name, params, docs, envRef,
+   location })`. envRef tie-the-knot как в текущем `defOperand`.
+4. `envSet(state.env, name, bound)`. pipeValue preserved.
+
+`name` ← `':' + key.name` for Keyword, `'::' + key.tag` for
+BareTypeKeyword. Effect-laundering AST scan тот же что у текущего
+defOperand'а — пер-binding @-prefix check.
+
+**Body restriction.** Bare Keyword / BareTypeKeyword запрещены как
+body (`:foo :bar` не парсится как binding — бессмысленно). Body
+обязан быть structural или non-keyword scalar: Map / Vec / Set /
+Error / Quote / Doc / TaggedLit / ParenGroup / OperandCall /
+Projection / String / Number / Boolean / Null. Для редкого случая
+"bind name to keyword value" — wrap в ParenGroup: `:status (:active)`.
+
+**Что заменяется:**
+
+- `def(:name, body)` 2-арная форма → `:name body` (BindStep).
+- `def(:name)` 1-арная форма с attached doc-prefix → `:name |~~ docs ~~|`.
+- `def(:name, [:p ...], body)` 3-арная (parametric conduit) →
+  `:name [:p ...] body` (BindStep 4-position).
+- `def(::Tag, body)` (type-binding) → `::Tag body`.
+
+**Что остаётся:**
+
+- `as(:foo)` — снапшот current pipeValue в env под `:foo`. Семантика
+  ровно про pipeValue, не покрывается BindStep'ом (там body эксплицитный).
+- `def`-operand — больше нет: BindStep + `as` покрывают все формы.
+
+**Самореференция растворяется.** `:def {desc}` — обычный BindStep,
+grammar-resolved, не env-lookup. Bootstrap-descriptor для `:def` в
+`runtime/index.mjs::langRuntime` удаляется — каталог сам ставит.
+`runtime/index.mjs::langRuntime` reduces к: parse → evalAst →
+snapshot-unwrap pass → resolution pass.
+
+**:throws migrate to `::Tag`.** Вектор `:throws` в descriptor'ах теперь
+несёт `BareTypeKeyword`-references (`[::CountSubjectNotContainer
+::SortNaturalNotComparable]`), не plain `:keyword`'ы. Axis-navigable
+через те же operand'ы что и остальные `::tag` bindings — `:add | /throws |
+first | docs` достанет prose. Entropy promotion в действии — каждое имя
+ошибки становится navigable type-binding.
+
+**Migration:**
+
+- `scripts/sweep-bindsteps.mjs` — regex + balance-aware конвертит
+  `def(:name, body)` → `:name body`, `def(:name)` + attached doc →
+  `:name |~~ docs ~~|`, `def(:name, [:p ...], body)` → `:name [:p ...]
+  body`, `def(::Tag, body)` → `::Tag body`.
+- Sweep `core.qlang`, conformance JSONL, unit-tests, docs.
+- `:throws` Vec sweep: `:CountSubjectNotContainer` → `::CountSubjectNotContainer`
+  внутри `:throws` Vec'ах.
+
+**Walker / codec:**
+
+- `astNodeToMap` для `BindStep` — `{:qlang/kind :BindStep :key {AST-map}
+  :docs [String...] :params [Keyword-map...] :body {AST-map}}`. params/body
+  могут быть `null`.
+- `qlangMapToAst` обратно.
+- `walk.mjs::astChildrenOf` — `BindStep` children = `[key, params?,
+  body?]` (docs не AST, остаются на самом ноде).
+
+**Axis-operands:**
+
+- `findDefStepAcrossModules` → `findBindingAcrossModules`. Walks
+  Pipeline.steps, ищет `BindStep` где `bindingKey(step.key) === target`
+  (с учётом `:` / `::` префикса).
+- `docs / source / examples / runExamples` читают атрибуты с того же
+  AST-нода. Никакого OperandCall-special-casing для def/as.
+
+**Conduits / parametric.** 4-position BindStep `:name [:p ...] body`
+покрывает parametric conduit. Литеральный conduit-литерал
+`::conduit[[:p ...] ~{body}]` остаётся доступен через TaggedLit-body:
+`:double ::conduit[[:x] ~{mul(x, 2)}]` — body=TaggedLit, конструктор
+производит Conduit-value, BindStep snapshot'ит. Эквивалентные пути для
+case'ов где нужно отличить declarative-conduit от literal-conduit-value.
+
+**Reserved symbols.** В пайплайне свободны `=` `.` `:=` `;` — пока не
+используются, зарезервированы под будущие decoupling-формы. Shell-safe
+(не катастрофичны в bash при unquoted query).
+
+---
+
+### M4. Named errors as type-bindings
+
+Каждое named error-имя — first-class type-binding в каталоге, with
+the same machinery как у `::conduit` / `::qlang`. Никакой OOP-flavored
+терминологии (`Class` etc.) — named error / error-kind / type-binding.
+
+**Строгая 1:1 связка JS-class ↔ qlang-tag.** Каждая JS-сторона error-class из `operand-errors.mjs` остаётся как одна точка throw-site'а — 1 throw = 1 JS-class. qlang catalog объявляет zеркальный `::Имя` type-binding под точно совпадающим именем (`AddLeftNotNumber` JS-class ↔ `::AddLeftNotNumber` type-binding). Никакого generic constructor'а — каждый named-error имеет свой qlang-side `:constructor ::conduit[[:payload] ~{validation-body}]` (per §II.3 в redesign-plan'е), validation-body берёт payload Map после `!{...}` и проверяет наличие+тип всех required полей; iff payload корректен — lift'ит как error-value с `:thrown <::Tag>` stamped; иначе throws structural-error на fail-track. Mechanism уже существует в `eval.mjs::evalTaggedLit` L427-431 через Quote-impl path, JS не вовлечён.
+
+- `core/src/operand-errors.mjs` factory'и **сохраняются** (1:1 JS-class per throw-site). Дополнительно emit'ятся type-binding declarations в catalog (либо inline в `core.qlang` как BindStep'ы, либо separate catalog `core/lib/qlang/error/registry.qlang` loaded at bootstrap). Constructors qlang-side добавляются позже — сначала minimum нужный для eval + print.
 - `error-convert.mjs::errorFromQlang` stamps `:thrown` как TagKeyword (`makeTagKeyword(qlangError.fingerprint)`).
-- `printValue` Map handler: если value — error-value и `:thrown` TagKeyword — emit `::Class!{:other-fields}` form. Anonymous (plain keyword `:thrown` или absent) → emit `!{:thrown ... :other-fields}` form.
-- `core.qlang` descriptor'и: `:throws [...]` Vec'и → TagKeyword references.
-- Tests: roundtrip `::Class!{}` parse → eval → print → parse identity; registration discipline (typo'нутый tag → `TaggedLitTagNotFound`); axis-operands работают для error classes (`::AddLeftNotNumber | docs` returns docs).
+- `core.qlang` descriptor'и уже carry `:throws [::Tag ::Tag]` после M3.5 sweep'а — это естественно sticks.
+
+**Печатная форма error-value:**
+
+`printValue` для error-value с TagKeyword'ом в `:thrown` emit'ит TaggedLit-форму `::Tag!{ <fields> }` с tag'ом в structural front position. Внутри `!{...}` идут per-invocation runtime поля упорядоченные по информативности; static / derivable / null-default поля **не выводятся** (round-trip восстановит через makeErrorValue инвариант и через axis-навигацию `::Tag | spec` / `| docs`).
+
+**Правила сериализации полей:**
+
+1. **Identifier-string'и → keyword'ы.** `:operand "add"` → `:operand :add`. `:expectedType "Number"` → `:expectedType :number`. `:position "subject"` → `:position :subject`. (`:position` числовая остаётся числом: `:position 1`.) Структурный qlang-тип identifier'a — Keyword, не String.
+2. **Generated prose выкидывается.** `:message "<template-substituted text>"` не печатается — это шаблон-fill, derivable из `:operand` + `:position` + `:expectedType` + `:actualType`. Hypertext-навигация `::Tag | docs` поднимает каноническую prose.
+3. **Default-equal-null поля выкидываются.** `:trail null` не печатается — `makeErrorValue` инвариант ставит `null` обратно при reconstruction'е (`types.mjs::L351-353`).
+4. **`:thrown <TagKeyword>` field-key elided.** TagKeyword в front-position `::Tag` уже несёт identity. Дублирование выкидывается из payload-Map'ы.
+5. **Ordering по importance** (high-entropy diagnostic data первым, low-entropy taxonomy последним):
+   - `:fault` — Map `{:step ~{...} :input ...}`. Step — Quote AST-anchor'а throw-site'а (может быть **тонкий surface-call** скрывающий conduit с десятками внутренних step'ов — глубина читается через `:trail`).
+   - `:actualValue` — runtime значение что fails.
+   - `:actualType` — type-classification actualValue.
+   - `:expectedType` — constraint.
+   - `:operand` — owning operand.
+   - `:position` — slot (`:subject` / число / `:element`).
+   - `:trail` — Quote propagation-trace. Печатается **только если non-null** (deflection'ы случились).
+   - `:origin` — domain (`:qlang/eval` / `:qlang/parse` / `:host`).
+   - `:kind` — категория (`:type-error` / `:arity-error` / etc.).
+
+**Конкретный пример** — `"1" | add(1)`:
+
+```
+::AddLeftNotNumber!{
+  :fault {:step ~{add(1)} :input "1"}
+  :actualValue "1"
+  :actualType :string
+  :expectedType :number
+  :operand :add
+  :position 1
+  :origin :qlang/eval
+  :kind :type-error
+}
+```
+
+`:fault.step` здесь surface-call `~{add(1)}` потому что `add` — builtin без internal conduit-frame'ов. Если ошибка fired бы изнутри user-defined conduit'a (e.g. `:double mul(2)` declared via BindStep, invocation `"x" | double` → mul throws on string), `:fault.step` пойнтнул бы на innermost AST-узел где JS-factory throw'ом — `~{mul(2)}` внутри conduit's body — а `:trail` накопил бы пройденные deflection'ы surface'а. Истинная глубина не на `:fault.step`, а в combinated `:trail`.
+
+- Tests: roundtrip `::Tag!{ <fields> }` parse → eval → print → parse identity; registration discipline (typo'нутый tag → `TaggedLitTagNotFound`); axis-operands работают для named-error-bindings (`::AddLeftNotNumber | docs` returns docs); `:trail` для nested-conduit-throw'ов содержит propagation chain.
 
 ### M5. Hypertext catalog integration
 

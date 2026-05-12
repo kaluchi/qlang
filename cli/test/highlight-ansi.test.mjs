@@ -33,9 +33,9 @@ describe('highlightAnsi', () => {
   });
 
   it('wraps the ~{::tag} head of a TaggedLit and descends into the payload', () => {
-    const out = highlightAnsi('::assertion[~{x} ~{y}]', noBuiltins);
-    expect(out).toMatch('\x1b[96m::assertion\x1b[0m');
-    expect(out).toMatch('\x1b[3;32m~{x}\x1b[0m');
+    const out = highlightAnsi('::conduit[[:x] ~{mul(2)}]', noBuiltins);
+    expect(out).toMatch('\x1b[96m::conduit\x1b[0m');
+    expect(out).toMatch('\x1b[3;32m~{mul(2)}\x1b[0m');
   });
 
   it('wraps a ~{:keyword} atom in the cyan escape pair', () => {

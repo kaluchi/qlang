@@ -55,6 +55,13 @@ export function astChildrenOf(node) {
     case 'TaggedLit':
       out.push(node.payload);
       break;
+    case 'BindStep':
+      out.push(node.key);
+      if (Array.isArray(node.params)) {
+        for (const param of node.params) out.push(param);
+      }
+      if (node.body) out.push(node.body);
+      break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
     // Projection, QuoteLit (frozen source, lazy AST), DocLit (frozen
     // content), BareTypeKeyword (type-namespace identifier),
@@ -62,6 +69,41 @@ export function astChildrenOf(node) {
     // BlockDocComment have no semantic children.
   }
   return out;
+}
+
+// isPureLiteralAst(node) — recursive purity predicate over an AST
+// subtree. Returns true when evaluation of the subtree depends on
+// neither the surrounding pipeValue nor env nor any side-effect
+// operand. Pure-literal bodies are eval'd at def-time and bound as
+// a snapshot of the resulting value; impure bodies (containing
+// OperandCall, Projection, ParenGroup, Pipeline) bind as a zero-
+// param conduit invoked lazily per-lookup. Used by both the
+// `def` operand impl (runtime/intro.mjs) and the `BindStep` handler
+// (eval.mjs).
+export function isPureLiteralAst(node) {
+  switch (node.type) {
+    case 'NumberLit':
+    case 'StringLit':
+    case 'BooleanLit':
+    case 'NullLit':
+    case 'Keyword':
+    case 'QuoteLit':
+    case 'DocLit':
+    case 'BareTypeKeyword':
+      return true;
+    case 'VecLit':
+    case 'JsonArrayLit':
+    case 'SetLit':
+      return node.elements.every(isPureLiteralAst);
+    case 'MapLit':
+    case 'JsonObjectLit':
+    case 'ErrorLit':
+      return node.entries.every(e => isPureLiteralAst(e.value));
+    case 'TaggedLit':
+      return isPureLiteralAst(node.payload);
+    default:
+      return false;
+  }
 }
 
 // walkAst(node, visit) — pre-order recursive descent over the AST.
@@ -329,6 +371,7 @@ const KIND_TAGGED_LIT          = keyword('TaggedLit');
 const KIND_BARE_TYPE_KEYWORD   = keyword('BareTypeKeyword');
 const KIND_MAP_ENTRY           = keyword('MapEntry');
 const KIND_OPERAND_CALL        = keyword('OperandCall');
+const KIND_BIND_STEP           = keyword('BindStep');
 const KIND_PAREN_GROUP         = keyword('ParenGroup');
 const KIND_PIPELINE            = keyword('Pipeline');
 const KIND_PIPELINE_STEP       = keyword('PipelineStep');
@@ -359,6 +402,7 @@ const AST_KIND_TO_TYPE = new Map([
   ['BareTypeKeyword',    'BareTypeKeyword'],
   ['MapEntry',           'MapEntry'],
   ['OperandCall',        'OperandCall'],
+  ['BindStep',           'BindStep'],
   ['ParenGroup',         'ParenGroup'],
   ['Pipeline',           'Pipeline'],
   ['LinePlainComment',   'LinePlainComment'],
@@ -561,6 +605,20 @@ export function astNodeToMap(node) {
       if (node.effectful !== undefined) m.set(F_EFFECTFUL, node.effectful);
       break;
 
+    case 'BindStep':
+      m.set(F_QLANG_KIND, KIND_BIND_STEP);
+      m.set(F_KEY, astNodeToMap(node.key));
+      // docs / params / body are nullable — each absent in some forms:
+      //   :foo body                  → docs=null, params=null, body=AST
+      //   :foo docs                  → docs=[...], params=null, body=null
+      //   :foo docs body             → docs=[...], params=null, body=AST
+      //   :foo [:p ...] body         → docs=null, params=[Keyword AST...], body=AST
+      //   :foo docs [:p ...] body    → all three
+      m.set(F_DOCS,   node.docs === null   ? null : Object.freeze([...node.docs]));
+      m.set('params', node.params === null ? null : Object.freeze(node.params.map(astNodeToMap)));
+      m.set('body',   node.body === null   ? null : astNodeToMap(node.body));
+      break;
+
     case 'ParenGroup':
       m.set(F_QLANG_KIND, KIND_PAREN_GROUP);
       m.set(F_PIPELINE, astNodeToMap(node.pipeline));
@@ -714,6 +772,17 @@ export function qlangMapToAst(map) {
       node.args = args === null ? null : args.map(qlangMapToAst);
       if (map.has(F_DOCS))      node.docs      = [...map.get(F_DOCS)];
       if (map.has(F_EFFECTFUL)) node.effectful = map.get(F_EFFECTFUL);
+      break;
+    }
+
+    case 'BindStep': {
+      node.key = qlangMapToAst(map.get(F_KEY));
+      const docs = map.get(F_DOCS);
+      node.docs = docs === null ? null : [...docs];
+      const params = map.get('params');
+      node.params = params === null ? null : params.map(qlangMapToAst);
+      const body = map.get('body');
+      node.body = body === null ? null : qlangMapToAst(body);
       break;
     }
 

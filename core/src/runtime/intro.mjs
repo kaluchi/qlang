@@ -462,35 +462,7 @@ const DefArityInvalid = declareArityError('DefArityInvalid',
 const DefMissingDocOrBody = declareShapeError('DefMissingDocOrBody',
   ({ bindingName }) => `def(:${bindingName}) — 1-arg form requires an attached doc-prefix; without it neither a value nor a documentation source is available`);
 
-// Pure-literal AST detection: a body whose evaluation is independent
-// of pipeValue, env, and any side-effect operand. Pure bodies eval at
-// def-time and bind as a snapshot of the resulting value; impure
-// bodies bind as a conduit whose AST is invoked lazily per-lookup.
-function isPureLiteralAst(node) {
-  switch (node.type) {
-    case 'NumberLit':
-    case 'StringLit':
-    case 'BooleanLit':
-    case 'NullLit':
-    case 'Keyword':
-    case 'QuoteLit':
-    case 'DocLit':
-    case 'BareTypeKeyword':
-      return true;
-    case 'VecLit':
-    case 'JsonArrayLit':
-    case 'SetLit':
-      return node.elements.every(isPureLiteralAst);
-    case 'MapLit':
-    case 'JsonObjectLit':
-    case 'ErrorLit':
-      return node.entries.every(e => isPureLiteralAst(e.value));
-    case 'TaggedLit':
-      return isPureLiteralAst(node.payload);
-    default:
-      return false;
-  }
-}
+import { isPureLiteralAst } from '../walk.mjs';
 
 function checkEffectLaundering(bindingName, bodyAst) {
   if (classifyEffect(bindingName) || !bodyAst) return;

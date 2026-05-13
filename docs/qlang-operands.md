@@ -1041,7 +1041,7 @@ missing). This is the introspection-by-name path:
 
 - **Arity** 1. **Subject** Keyword (binding name) or descriptor
   Map carrying a `:name` string.
-- Walks the loaded modules' AST through `findDefStepAcrossModules`
+- Walks the loaded modules' AST through `findBindingStepAcrossModules`
   to locate the binding's source. Collects `::assertion` segments
   embedded in each attached doc-prefix by re-parsing through the
   Doc-content tokenizer. For each assertion, evaluates the

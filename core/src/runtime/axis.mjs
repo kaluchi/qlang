@@ -37,22 +37,21 @@ const ExamplesSubjectNotKeywordOrType = declareSubjectError('ExamplesSubjectNotK
 // read the descriptor.
 export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
   ({ axisName, bindingName }) =>
-    `${axisName}: no def-step found for binding '${bindingName}' across loaded modules`);
+    `${axisName}: no binding-step found for '${bindingName}' across loaded modules`);
 
 // Walk a module AST for the binding-step that binds `bindingName`.
 // Two surface forms produce a binding visible to axis lookup:
 //
-//   BindStep `:name … body` / `::Tag … body` (M3.5 canonical) —
-//   the AST node carries `.key` (Keyword or BareTypeKeyword) and
-//   the doc-prefix in `.docs`.
+//   BindStep `:name … body` / `::Tag … body` — the AST node
+//   carries `.key` (Keyword or BareTypeKeyword) and the
+//   doc-prefix in `.docs`.
 //
-//   OperandCall `def(:name, …)` / `def(::Tag, …)` / `as(:name)`
-//   (legacy) — the AST node carries `.args[0]` (Keyword or
-//   BareTypeKeyword) and the doc-prefix in `.docs`.
+//   OperandCall `as(:name)` — the AST node carries `.args[0]`
+//   (Keyword) and the doc-prefix in `.docs`.
 //
 // Both forms attach docs to the named binding and both answer to
 // axis-operand lookups.
-function matchesDefStep(step, isTypeBinding, targetName) {
+function matchesBindingStep(step, isTypeBinding, targetName) {
   if (step.type === 'BindStep') {
     const key = step.key;
     return isTypeBinding
@@ -73,7 +72,7 @@ function matchesDefStep(step, isTypeBinding, targetName) {
 // binding, so axis-operand lookups must surface the docs / source /
 // examples of the binding shadowing-resolved at that point, not the
 // first declaration.
-function findDefStepFor(moduleAst, bindingName) {
+function findBindingStepFor(moduleAst, bindingName) {
   const isTypeBinding = bindingName.startsWith('::');
   const targetName = isTypeBinding ? bindingName.slice(2) : bindingName;
   if (moduleAst.type === 'Pipeline') {
@@ -81,13 +80,13 @@ function findDefStepFor(moduleAst, bindingName) {
     for (let i = 0; i < moduleAst.steps.length; i++) {
       const stepWrapper = moduleAst.steps[i];
       const step = i === 0 ? stepWrapper : stepWrapper.step;
-      if (matchesDefStep(step, isTypeBinding, targetName)) lastMatch = step;
+      if (matchesBindingStep(step, isTypeBinding, targetName)) lastMatch = step;
     }
     return lastMatch;
   }
   // Single-step module — top-level AST is the step itself (BindStep
   // or an `as` OperandCall) rather than a Pipeline wrapper.
-  return matchesDefStep(moduleAst, isTypeBinding, targetName) ? moduleAst : null;
+  return matchesBindingStep(moduleAst, isTypeBinding, targetName) ? moduleAst : null;
 }
 
 // Iterate every module Quote stored in env under `qlang/ast/<uri>`.
@@ -99,9 +98,9 @@ function* moduleAstsIn(env) {
   }
 }
 
-export function findDefStepAcrossModules(env, bindingName) {
+export function findBindingStepAcrossModules(env, bindingName) {
   for (const moduleAst of moduleAstsIn(env)) {
-    const step = findDefStepFor(moduleAst, bindingName);
+    const step = findBindingStepFor(moduleAst, bindingName);
     if (step !== null) return step;
   }
   return null;
@@ -128,7 +127,7 @@ function bindingNameOf(subject, env, ErrorCls) {
 
 export const source = stateOp('source', 1, (state, _lambdas) => {
   const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrType);
-  const step = findDefStepAcrossModules(state.env, bindingName);
+  const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFound({ axisName: 'source', bindingName });
   }
@@ -137,7 +136,7 @@ export const source = stateOp('source', 1, (state, _lambdas) => {
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {
   const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrType);
-  const step = findDefStepAcrossModules(state.env, bindingName);
+  const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFound({ axisName: 'docs', bindingName });
   }
@@ -147,7 +146,7 @@ export const docs = stateOp('docs', 1, (state, _lambdas) => {
 
 export const examples = stateOp('examples', 1, async (state, _lambdas) => {
   const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrType);
-  const step = findDefStepAcrossModules(state.env, bindingName);
+  const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFound({ axisName: 'examples', bindingName });
   }

@@ -278,9 +278,9 @@ first | docs` достанет prose. Entropy promotion в действии — 
 
 **Axis-operands:**
 
-- `findDefStepAcrossModules` → `findBindingAcrossModules`. Walks
-  Pipeline.steps, ищет `BindStep` где `bindingKey(step.key) === target`
-  (с учётом `:` / `::` префикса).
+- `findDefStepAcrossModules` → `findBindingStepAcrossModules`.
+  Walks Pipeline.steps, ищет `BindStep` где `bindingKey(step.key)
+  === target` (с учётом `:` / `::` префикса).
 - `docs / source / examples / runExamples` читают атрибуты с того же
   AST-нода. Никакого OperandCall-special-casing для def/as.
 

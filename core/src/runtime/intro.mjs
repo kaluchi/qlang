@@ -39,7 +39,7 @@ import { classifyEffect } from '../effect.mjs';
 // loading, so the binding resolves correctly.
 import { evalQuery, evalAst } from '../eval.mjs';
 import { parse as parseSource } from '../parse.mjs';
-import { findDefStepAcrossModules } from './axis.mjs';
+import { findBindingStepAcrossModules } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
 const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'map');
@@ -395,12 +395,12 @@ async function runQuoteEntry(quote) {
 }
 
 async function collectQuotesForBinding(env, bindingName) {
-  const step = findDefStepAcrossModules(env, bindingName);
-  // Bindings without a source-located def-step (the bootstrap def
-  // descriptor itself, host-installed bindings via session.bind)
-  // simply have no examples to run. runExamples returns an empty
-  // Vec — the catalog walk in manifest-self-test treats them as
-  // zero-contribution rather than a failure.
+  const step = findBindingStepAcrossModules(env, bindingName);
+  // Bindings without a source-located BindStep (host-installed
+  // bindings via session.bind, runtime-seeded built-ins) simply
+  // have no examples to run. runExamples returns an empty Vec —
+  // the catalog walk in manifest-self-test treats them as zero-
+  // contribution rather than a failure.
   if (step === null) return [];
   const docStrings = step.docs ?? [];
   const collected = [];

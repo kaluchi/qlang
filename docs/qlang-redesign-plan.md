@@ -26,24 +26,8 @@ Staging area для обсуждения. Содержит:
 - M1 / M2 / M3 / M3.5 / M4 / M6 — landed либо текущая работа.
 - §II.3 Tagged literals (overview / hierarchy `:` vs `::` / constructor flow / qlang-side vs JS-side / payload eval / Quote-payload deferred semantics / tagged-instance round-trip) — landed; перенесено в `qlang-spec.md` "Type bindings" chapter + `qlang-internals.md` "Type bindings and TaggedLit dispatch" chapter.
 - §II.6 Type definitions через `::tag descriptor` — landed; перекрывается с "Type bindings" chapter в spec.
-
----
-
-## §II.8. Hypertext через axis-операнды (частично landed)
-
-(landed: `source`, `docs`, `examples` через `runtime/axis.mjs`. **Not landed**: multi-source aggregation.)
-
-**Identity** — keyword (`:foo` value-level или `::foo` type-level). **Reference** — keyword в pipeline / Map value / Vec element. **Resolution** — env lookup → binding. **Binding** — Map с structured fields (constructor / docs / examples / source). **Navigation** — axis-операнды.
-
-```qlang
-:filter | docs           — value-level navigation       (landed)
-::duration | docs        — type-level navigation        (landed)
-:CountErrorFamily | docs — vocabulary entry navigation  (landed для error tags)
-```
-
-Universal pattern `<keyword | tag> | <axis>` для всех named bindings.
-
-**Multi-source aggregation (не landed).** Один keyword упомянутый в нескольких модулях даёт Vec всех находок с атрибуцией `{:from :ns :text "…"}`. Поиск по declaring `BindStep`-step'ам с совпадающим `:name`. Сейчас `findBindingStepAcrossModules` возвращает last-match по shadowing semantics — нужно extension либо отдельный axis-operand `docsAll` для multi-source форм.
+- §II.8 Hypertext через axis-операнды — `source` / `docs` / `examples` landed; описание перенесено в `qlang-spec.md` "Reflection > Axis-operands" subsection. Multi-source aggregation удалена как фантазия без use-case — текущая last-match-wins семантика согласована с identifier resolution; tooling, которому нужна aggregate-форма, добавит отдельный axis-operand через стандартный путь.
+- Phase 8 — Axis-операнды (остаток) — multi-source aggregation удалена как фантазия без use-case.
 
 ---
 
@@ -138,16 +122,6 @@ vs flat (~16 fields):
 Compression — через class-level defaults factored out. Field ordering — variance-priority (variable first). Truncation at column N — class identity + most diagnostic context survive.
 
 **Contrast с Java pattern** (`private static final long MAX_READ_BYTES = ...`): modifier chain (low-entropy, repetitive) occupies positions highest priority в declaration. Identifier (high-entropy, the actual signal) — pushed past 4-5 boilerplate tokens. Truncation at column 30 → `private static final long MAX_R` — identifier обрезан, modifiers выжили. Wrong information survived. **qlang design pursues inverted ordering** — identifier / class / structural marker в front, modifiers / supplementary context в back.
-
----
-
-## Phase 8 — Axis-операнды (остаток)
-
-(landed: `source` / `docs` / `examples` axes, `parseDocSegments` tokenizer, single-source last-match-wins lookup.)
-
-**Не landed**:
-
-- Multi-source aggregation в `docs` — если keyword documented в двух модулях, axis возвращает Vec всех находок с `{:from :ns :text "…"}` атрибуцией. Сейчас `findBindingStepAcrossModules` last-match-wins.
 
 ---
 

@@ -1882,6 +1882,53 @@ env | manifest | filter(/effectful) * /name
 |~| names of all effectful operands in scope
 ```
 
+### Axis-operands — `source` / `docs` / `examples`
+
+Reify and manifest build a descriptor from the binding's
+**runtime** shape. The three **axis-operands** read declarative
+metadata from the binding's **source AST** — the doc-prefix the
+author attached and the source-text the parser captured at
+declaration time. Subject is a Keyword (value-namespace binding
+name) or a TagKeyword (type-namespace tag), and the axis returns
+the named field as a fresh value.
+
+| Axis | Subject | Returns |
+|---|---|---|
+| `source` | `:name` or `::Tag` | Quote-value carrying the verbatim source of the declaring BindStep |
+| `docs` | `:name` or `::Tag` | Vec of Doc-values, one per attached doc-comment |
+| `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~{…}` segment in the docs |
+
+```qlang
+> :filter | docs | first | isDoc
+true
+
+> ::ParseError | source | /source | startsWith("::ParseError")
+true
+
+> :count | examples | first | isQuote
+true
+```
+
+Lookup walks the `qlang/ast/<uri>` module Quote that
+`langRuntime` and every `use(:ns)` stamp into env at load time.
+The match is **last-write-wins** — the same shadowing rule that
+governs identifier resolution. A `:name` declared in module B
+loaded after module A surfaces B's docs / source / examples; A's
+declaration is hidden by shadowing. Errors:
+
+- Subject is not a Keyword / TagKeyword → per-site subject error
+  (`SourceSubjectNotKeywordOrTypeError`, `DocsSubjectNot…`,
+  `ExamplesSubjectNot…`).
+- No declaring BindStep found in any loaded module →
+  `AxisBindingNotFoundError`.
+
+A tagged-instance Map carrying `:qlang/kind <TagKeyword>` is
+also a valid subject — the axis reads the docs of the type
+binding the instance was constructed from. Calling
+`some-conduit-value | docs` reaches the `::conduit` type
+binding's docs the same way `:count | docs` reaches the `:count`
+catalog entry's docs.
+
 ### `runExamples` — execute Quote segments from a binding's docs
 
 Every catalog binding's attached doc-prefix may carry inline

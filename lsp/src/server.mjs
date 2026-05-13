@@ -41,31 +41,48 @@ const documentStates = new Map();
 
 // ── Catalog context ───────────────────────────────────────────
 //
-// Parsed once at startup. Provides go-to-definition fallback
-// for builtin operands — jumps to the `:name {...}` MapEntry
-// inside lib/qlang/core.qlang's outer catalog MapLit.
+// Two source files participate in goto-definition fallback:
+// `core/lib/qlang/core.qlang` — every value-namespace operand
+// descriptor — and `core/lib/qlang/error/registry.qlang` — every
+// `::Tag` type-binding for runtime per-site errors. Both are
+// parsed at LSP startup; their indices merge into one
+// `name → { uri, source, range }` lookup table so a single
+// `definitionAtOffset` lookup serves both value-namespace
+// identifiers (`count`) and type-namespace identifiers
+// (`::AddLeftNotNumberError`).
 
 let catalogCtx = null;
 
 function loadCatalogContext() {
-  try {
-    // Resolve core.qlang relative to the @kaluchi/qlang-core package
-    // root. Under the monorepo workspace layout, `lsp/` and `core/`
-    // are siblings, so the catalog sits at `../core/lib/qlang/core.qlang`
-    // relative to `lsp/src/`.
-    const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const catalogPath = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'core.qlang');
-    const catalogSource = readFileSync(catalogPath, 'utf8');
-    const catalogAst = parse(catalogSource, { uri: 'qlang/core' });
-    const catalogUri = 'file:///' + catalogPath.replace(/\\/g, '/');
-    catalogCtx = {
-      uri: catalogUri,
-      index: buildCatalogIndex(catalogAst)
-    };
-  } catch (e) {
-    connection.console.warn(`lib/qlang/core.qlang not loaded: ${e.message}`);
-    catalogCtx = null;
+  // Monorepo layout: `lsp/` and `core/` are sibling workspaces,
+  // so the source files sit at `../core/lib/qlang/...` relative
+  // to `lsp/src/`.
+  const lspSrcDir = dirname(fileURLToPath(import.meta.url));
+  const sources = [
+    { path: join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'core.qlang'),
+      uri: 'qlang/core' },
+    { path: join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'error', 'registry.qlang'),
+      uri: 'qlang/error/registry' }
+  ];
+
+  const mergedIndex = new Map();
+  for (const { path, uri } of sources) {
+    try {
+      const source = readFileSync(path, 'utf8');
+      const ast = parse(source, { uri });
+      const fileUri = 'file:///' + path.replace(/\\/g, '/');
+      const entries = buildCatalogIndex(ast);
+      for (const [name, range] of entries) {
+        // Last-write-wins: `error/registry.qlang` loads after
+        // `core.qlang` so a name declared in both surfaces lands
+        // on the registry definition.
+        mergedIndex.set(name, { ...range, fileUri, source });
+      }
+    } catch (e) {
+      connection.console.warn(`catalog source ${path} not loaded: ${e.message}`);
+    }
   }
+  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex } : null;
 }
 
 // ── Initialization ────────────────────────────────────────────
@@ -171,42 +188,24 @@ connection.onDefinition((params) => {
   const def = definitionAtOffset(state.ast, offset, catalogCtx);
   if (!def) return null;
 
-  // def.uri is null for in-document declarations, catalog URI
-  // for builtin fallback.
-  const targetUri = def.uri ?? params.textDocument.uri;
-
-  // For catalog locations, open the catalog file and convert
-  // offsets to positions there. For in-document declarations,
-  // use the current document.
-  if (def.uri) {
+  // Catalog hits carry their own source-text + file URI; in-document
+  // declarations carry only offsets and rely on the current document
+  // for offset→position conversion.
+  if (def.fileUri) {
     return {
-      uri: def.uri,
-      range: offsetRangeToLineCol(catalogSourceText(), def.startOffset, def.endOffset)
+      uri: def.fileUri,
+      range: offsetRangeToLineCol(def.source, def.startOffset, def.endOffset)
     };
   }
 
   return {
-    uri: targetUri,
+    uri: params.textDocument.uri,
     range: {
       start: doc.positionAt(def.startOffset),
       end: doc.positionAt(def.endOffset)
     }
   };
 });
-
-let _catalogSourceText = null;
-
-function catalogSourceText() {
-  if (_catalogSourceText) return _catalogSourceText;
-  try {
-    const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const catalogPath = join(lspSrcDir, '..', '..', 'lib', 'qlang', 'core.qlang');
-    _catalogSourceText = readFileSync(catalogPath, 'utf8');
-  } catch {
-    _catalogSourceText = '';
-  }
-  return _catalogSourceText;
-}
 
 function offsetRangeToLineCol(source, startOffset, endOffset) {
   return {

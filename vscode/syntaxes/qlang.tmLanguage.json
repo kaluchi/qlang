@@ -9,6 +9,7 @@
     { "include": "#comment-line-plain" },
     { "include": "#comment-block-plain" },
     { "include": "#string" },
+    { "include": "#tag-keyword" },
     { "include": "#type-keyword" },
     { "include": "#map-key" },
     { "include": "#keyword-atom" },
@@ -16,6 +17,7 @@
     { "include": "#constant" },
     { "include": "#projection" },
     { "include": "#set-open" },
+    { "include": "#error-lit-brackets" },
     { "include": "#combinator" },
     { "include": "#effect-identifier" },
     { "include": "#keyword-binding" },
@@ -62,6 +64,12 @@
         { "name": "constant.character.escape.qlang", "match": "\\\\[\"\\\\ntr]" },
         { "name": "invalid.illegal.escape.qlang",    "match": "\\\\." }
       ]
+    },
+
+    "tag-keyword": {
+      "comment": "::tag — type-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::conduit | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
+      "name": "entity.name.type.qlang",
+      "match": "::[@_a-zA-Z][a-zA-Z0-9_/-]*"
     },
 
     "type-keyword": {
@@ -154,6 +162,12 @@
       "comment": "Set literal opener #{",
       "name": "punctuation.definition.set.qlang",
       "match": "#\\{"
+    },
+
+    "error-lit-brackets": {
+      "comment": "Error literal !{...} opener and the closing brace inside ErrorLit body. Carries the same fail-track palette as the !| combinator so error-shape syntax reads loud at a glance. Matched before the generic !| combinator so `!{` wins against the trailing `|` of an adjacent comment.",
+      "match": "!\\{",
+      "name": "keyword.operator.fail-apply.qlang"
     },
 
     "combinator": {

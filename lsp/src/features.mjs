@@ -227,18 +227,17 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   else if (node.type === 'TaggedLit')       name = TYPE_BINDING_PREFIX + node.tag;
   else return null;
 
-  // Tier 1: last visible in-document declaration
+  // Tier 1: last visible in-document declaration — only offsets;
+  // the caller maps them through the current document's
+  // positionAt for line/column resolution.
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
-  if (localDecl) {
-    return { uri: null, ...localDecl };
-  }
+  if (localDecl) return localDecl;
 
-  // Tier 2: core.qlang catalog fallback for builtins / type bindings
+  // Tier 2: catalog fallback. The index entry carries
+  // `{ startOffset, endOffset, fileUri, source }` so the caller
+  // can resolve offsets in the originating catalog file.
   if (catalogCtx?.index?.has(name)) {
-    return {
-      uri: catalogCtx.uri,
-      ...catalogCtx.index.get(name)
-    };
+    return catalogCtx.index.get(name);
   }
 
   return null;

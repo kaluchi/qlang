@@ -151,13 +151,21 @@ describe('hoverAtOffset', () => {
 // lib/qlang/core.qlang's BindStep series: each entry is
 // `:name {...descriptor...}`, and `buildCatalogIndex` walks every
 // `BindStep` node and records the entire BindStep span as the
-// declaration site.
+// declaration site. The server merges each catalog file's source
+// and URI onto every index entry so the goto handler can resolve
+// offsets without re-reading the source — the test mirror does
+// the same.
 const catalogSrc = ':count {:category :vec-reducer}';
 const catalogAst = parseDocument(catalogSrc, 'qlang/core').ast;
-const testCatalogCtx = {
-  uri: 'file:///test/core.qlang',
-  index: buildCatalogIndex(catalogAst)
-};
+const testCatalogIndex = new Map();
+for (const [name, range] of buildCatalogIndex(catalogAst)) {
+  testCatalogIndex.set(name, {
+    ...range,
+    fileUri: 'file:///test/core.qlang',
+    source: catalogSrc
+  });
+}
+const testCatalogCtx = { index: testCatalogIndex };
 
 describe('definitionAtOffset', () => {
   it('jumps from conduit use site to BindStep declaration', () => {
@@ -167,7 +175,7 @@ describe('definitionAtOffset', () => {
     const def = definitionAtOffset(ast, useOffset);
     expect(def).not.toBeNull();
     expect(def.startOffset).toBe(0);
-    expect(def.uri).toBeNull(); // in-document
+    expect(def.fileUri).toBeUndefined(); // in-document
   });
 
   it('jumps to last visible declaration when shadowed', () => {
@@ -187,7 +195,7 @@ describe('definitionAtOffset', () => {
     // x is declared inside a ParenGroup fork — invisible at the
     // use site. Falls through to catalog (none provided) or null.
     const def = definitionAtOffset(ast, useOffset);
-    expect(def === null || def.uri !== null).toBe(true);
+    expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
   it('falls back to core.qlang catalog for builtin operands', () => {
@@ -195,7 +203,7 @@ describe('definitionAtOffset', () => {
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.uri).toBe('file:///test/core.qlang');
+    expect(def.fileUri).toBe('file:///test/core.qlang');
   });
 
   it('returns null without catalog context for builtins', () => {
@@ -210,7 +218,7 @@ describe('definitionAtOffset', () => {
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.uri).toBeNull(); // in-document, not catalog
+    expect(def.fileUri).toBeUndefined(); // in-document, not catalog
     expect(def.startOffset).toBe(0);
   });
 

@@ -315,7 +315,7 @@ export function triviaBetweenAstNodes(nodeA, nodeB, ast) {
 //                     [:docs <Vec of strings>] [:effectful <bool>]
 //   ParenGroup        :pipeline <Pipeline AST-Map>
 //   Pipeline          :steps <Vec of PipelineStep Maps>
-//                     :leadingFail <boolean>
+//                     :leadingCombinator <"!|" | "|" | "*" | ">>" | null>
 //   PipelineStep      :combinator <string | null>  :step <AST-Map>
 //                     (wrapper inside Pipeline.steps — first step
 //                      carries null combinator, rest carry "|", "!|",
@@ -350,7 +350,7 @@ const F_CONTENT      = 'content';
 const F_SRC          = 'src';
 const F_PIPELINE     = 'pipeline';
 const F_STEPS        = 'steps';
-const F_LEADING_FAIL = 'leadingFail';
+const F_LEADING_COMBINATOR = 'leadingCombinator';
 const F_COMBINATOR   = 'combinator';
 const F_STEP         = 'step';
 const F_EFFECTFUL    = 'effectful';
@@ -639,7 +639,7 @@ export function astNodeToMap(node) {
     case 'Pipeline':
       m.set(F_QLANG_KIND, KIND_PIPELINE);
       m.set(F_STEPS, Object.freeze(node.steps.map(pipelineStepToMap)));
-      m.set(F_LEADING_FAIL, node.leadingFail === true);
+      m.set(F_LEADING_COMBINATOR, node.leadingCombinator ?? null);
       break;
 
     case 'LinePlainComment':
@@ -805,10 +805,12 @@ export function qlangMapToAst(map) {
     case 'Pipeline': {
       const stepMaps = map.get(F_STEPS);
       node.steps = stepMaps.map(pipelineStepFromMap);
-      // Preserve the shape peggy emits: leadingFail is present only
-      // when true; an absent field reads as falsy and matches the
-      // evalPipeline short-circuit check without an explicit `false`.
-      if (map.get(F_LEADING_FAIL) === true) node.leadingFail = true;
+      // Preserve the shape peggy emits: leadingCombinator is present
+      // only when a leading-prefix was authored; an absent field
+      // reads as falsy and matches evalPipeline's identity-head
+      // short-circuit without an explicit `null`.
+      const leading = map.get(F_LEADING_COMBINATOR);
+      if (leading !== null && leading !== undefined) node.leadingCombinator = leading;
       break;
     }
 

@@ -33,7 +33,7 @@ const KW_KEY          = 'key';
 const KW_STEPS        = 'steps';
 const KW_COMBINATOR   = 'combinator';
 const KW_STEP         = 'step';
-const KW_LEADING_FAIL = 'leadingFail';
+const KW_LEADING_COMBINATOR = 'leadingCombinator';
 const KW_EFFECTFUL    = 'effectful';
 const KW_PIPELINE     = 'pipeline';
 const KW_CONTENT      = 'content';
@@ -231,10 +231,10 @@ describe('astNodeToMap — discriminator and shape', () => {
     expect(steps[0].get(KW_COMBINATOR)).toBe(null);
     expect(steps[1].get(KW_COMBINATOR)).toBe('|');
     expect(steps[2].get(KW_COMBINATOR)).toBe('|');
-    expect(m.get(KW_LEADING_FAIL)).toBe(false);
+    expect(m.get(KW_LEADING_COMBINATOR)).toBe(null);
   });
 
-  it('records :leadingFail true on fail-apply-prefixed pipelines', () => {
+  it('records :leadingCombinator on fail-apply-prefixed pipelines', () => {
     // A leading !| forces the parser to emit a Pipeline node even for
     // a single step. filter's argument is such a context.
     const ast = parse('filter(!| /trail)');
@@ -242,7 +242,7 @@ describe('astNodeToMap — discriminator and shape', () => {
     expect(filterCall.get(KW_QLANG_KIND).name).toBe('OperandCall');
     const innerArg = filterCall.get(KW_ARGS)[0];
     expect(innerArg.get(KW_QLANG_KIND).name).toBe('Pipeline');
-    expect(innerArg.get(KW_LEADING_FAIL)).toBe(true);
+    expect(innerArg.get(KW_LEADING_COMBINATOR)).toBe('!|');
   });
 
   it('encodes ParenGroup :pipeline as a nested Pipeline Map', () => {
@@ -367,7 +367,7 @@ describe('qlangMapToAst — error shape', () => {
     const m = new Map();
     m.set(KW_QLANG_KIND, keyword('Pipeline'));
     m.set(KW_STEPS, ['not-a-map']);
-    m.set(KW_LEADING_FAIL, false);
+    m.set(KW_LEADING_COMBINATOR, null);
     expect(() => qlangMapToAst(m)).toThrow(/Pipeline step at index 0 is not a Map/);
   });
 
@@ -378,7 +378,7 @@ describe('qlangMapToAst — error shape', () => {
     const m = new Map();
     m.set(KW_QLANG_KIND, keyword('Pipeline'));
     m.set(KW_STEPS, [wrongStep]);
-    m.set(KW_LEADING_FAIL, false);
+    m.set(KW_LEADING_COMBINATOR, null);
     expect(() => qlangMapToAst(m)).toThrow(/not a :PipelineStep Map/);
   });
 });

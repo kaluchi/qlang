@@ -7,7 +7,7 @@
 // Architecture: every node-type evaluator is a small function
 // (state, node) → state'. The dispatcher is a lookup table.
 
-import { parse } from './parse.mjs';
+import { parse, ParseError } from './parse.mjs';
 import {
   makeState, withPipeValue, envSet, envGet, envHas
 } from './state.mjs';
@@ -190,6 +190,16 @@ async function evalNode(node, state) {
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
     const faultMap = buildFaultMap(node, state.pipeValue);
+    if (caughtError instanceof ParseError) {
+      // A ParseError raised mid-eval — typically from `apply` / `eval`
+      // parsing a Quote source — lifts to a `::ParseError!{…}`
+      // ErrorValue (same structured shape as a top-level parse
+      // failure), with the originating step's fault stamped.
+      const lifted = errorFromParse(caughtError);
+      const enriched = new Map(lifted.descriptor);
+      enriched.set('fault', faultMap);
+      return withPipeValue(state, { ...lifted, descriptor: enriched });
+    }
     return withPipeValue(state,
       caughtError instanceof QlangError
         ? errorFromQlang(caughtError, faultMap)
@@ -211,18 +221,19 @@ function buildFaultMap(stepNode, pipeValue) {
 async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
   //
-  // If `node.leadingFail === true`, the first step is routed through
-  // the `!|` combinator instead of a raw evalNode call. This is how
-  // the leading-prefix form (`!| firstStep`) opts into fail-track
-  // dispatch for the pipeline's first step — used typically inside
-  // filter/when/if sub-pipelines where the per-element pipeValue may
-  // or may not be an error.
+  // `node.leadingCombinator`, if present, names the combinator the
+  // first step applies through against the inbound pipeValue
+  // (`!|` / `|` / `*` / `>>`). Without it, the first step runs as
+  // an identity-head — straight evalNode against state, no track
+  // dispatch. Pipeline-suffix shapes (`~{| count | add(1)}`) round-
+  // trip through `apply` exactly because the leading combinator
+  // survives parse → eval.
   let current = state;
   for (let i = 0; i < node.steps.length; i++) {
     const step = node.steps[i];
     if (i === 0) {
-      current = node.leadingFail
-        ? await applyCombinator('!|', current, step)
+      current = node.leadingCombinator
+        ? await applyCombinator(node.leadingCombinator, current, step)
         : await evalNode(step, current);
     } else {
       current = await applyCombinator(step.combinator, current, step.step);

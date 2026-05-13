@@ -170,3 +170,22 @@ describe('eval — use', () => {
     expect(await evalQuery('{:taxRate 0.07} | use | taxRate')).toBe(0.07);
   });
 });
+
+describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
+  // `apply` reads its body AST through `astFromQuoteLike`, which
+  // short-circuits when the Quote already has a `.ast` cached. The
+  // runtime stamps cached-ast Quotes under `qlang/ast/<ns>` whenever
+  // `use(:ns)` loads a module — build one through that path and run
+  // `apply` against a fresh subject to exercise the `.ast` truthy
+  // branch.
+  it('use-loaded module Quote (cached .ast) runs through apply against a new subject', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const session = await createSession({
+      locator: async () => ({ source: 'add(1)' })
+    });
+    const cellEntry = await session.evalCell(
+      'use(:demo/snippet) | env | /"qlang/ast/demo/snippet" | apply(41)'
+    );
+    expect(cellEntry.result).toBe(42);
+  });
+});

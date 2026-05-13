@@ -68,52 +68,60 @@ Query
 // semantics. This mirrors the existing ParenGroup role for
 // escaping outer-context precedence.
 //
-// The `leadingFail` prefix (`!| step`) stays valid because a
-// conduit body or captured-arg sub-pipeline may legitimately
-// start on the fail-track (for instance, `let(:handler, !| /kind)`).
-// Explicit combinators between steps (`|`, `*`, `>>`, `!|`) also
-// remain valid — only the bare comment-as-continuation and the
-// absorbing comment-with-follower variants are excluded.
+// The leading-combinator prefix (`!| step` / `| step` / `* step` /
+// `>> step`) is valid at any Pipeline-start position. Semantically
+// the first step is applied against the inbound pipeValue through
+// the named combinator instead of the implicit identity-head. This
+// is what makes a Pipeline-suffix Quote (`~{| count | add(1)}`)
+// parseable as data and re-evaluable against a subject via the
+// `apply(quote)` operand. Explicit combinators between later steps
+// (`|`, `*`, `>>`, `!|`) remain valid as usual.
 PipelineInLiteral
-  = leadingFail:("!|" _)? head:RawStep tail:(_L ExplicitContinuation)*
+  = leadingComb:(LeadingCombinator _)? head:RawStep tail:(_L ExplicitContinuation)*
   {
-    const hasLeadingFail = !!leadingFail;
+    const hasLeadingComb = leadingComb !== null;
     const rest = tail.map(t => t[1]);
-    if (rest.length === 0 && !hasLeadingFail) return head;
+    if (rest.length === 0 && !hasLeadingComb) return head;
     const fields = {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
     };
-    if (hasLeadingFail) fields.leadingFail = true;
+    if (hasLeadingComb) fields.leadingCombinator = leadingComb[0];
     return node('Pipeline', fields, location(), text());
   }
 
 Pipeline
-  = leadingFail:("!|" _)? headRaw:PipelineHead tail:(_ ContinuationUnit)*
+  = leadingComb:(LeadingCombinator _)? headRaw:PipelineHead tail:(_ ContinuationUnit)*
   {
     // PipelineHead may return either a single AST node (the first
     // step) or an array of [headStep, ...continuationUnits] when
     // the head is a BlockPlainComment that absorbed its trailing
     // combinator and ate a follower step.
     //
-    // `leadingFail` is an optional `!|` prefix that applies the first
-    // step on the fail-track. If present, we force a Pipeline node
-    // (even for a single step) and stamp `leadingFail: true` on it so
-    // the evaluator routes the first step through the `!|` combinator
-    // instead of evalNode directly. Without the prefix, a single-step
+    // `leadingCombinator` is an optional `!|` / `|` / `*` / `>>`
+    // prefix that applies the first step against the inbound
+    // pipeValue through the named combinator instead of the implicit
+    // identity-head. If present, a single-step pipeline still wraps
+    // in a Pipeline node so the evaluator can route the first step
+    // through `applyCombinator`. Without the prefix, a single-step
     // pipeline collapses to the bare step node so `astChildrenOf`
     // and downstream walkers see a Primary at the query root.
-    const hasLeadingFail = !!leadingFail;
+    const hasLeadingComb = leadingComb !== null;
     const headUnits = Array.isArray(headRaw) ? headRaw : [headRaw];
     const head = headUnits[0];
     const headTail = headUnits.slice(1);
     const rest = [...headTail, ...tail.flatMap(t => flattenUnits(t[1]))];
-    if (rest.length === 0 && !hasLeadingFail) return head;
+    if (rest.length === 0 && !hasLeadingComb) return head;
     const pipelineFields = {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
     };
-    if (hasLeadingFail) pipelineFields.leadingFail = true;
+    if (hasLeadingComb) pipelineFields.leadingCombinator = leadingComb[0];
     return node('Pipeline', pipelineFields, location(), text());
   }
+
+// The `!"~"` lookahead on `"|"` keeps the comment markers `|~`,
+// `|~|`, `|~~`, `|~~|` from being misread as leading-pipe + Quote.
+LeadingCombinator
+  = "!|" / ">>" / "|" !"~" { return '|'; } / "*"
 
 // The first unit of a pipeline has no preceding combinator
 // (virtually, its leading `|` in a comment-led form is absorbed

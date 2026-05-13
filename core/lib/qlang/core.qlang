@@ -1379,6 +1379,37 @@
          :modifiers []
          :throws [::EvalSubjectNotMapOrQuote]}
 
+:apply
+  |~~ Runs the Quote-or-AST currently in pipeValue against the
+    captured-arg as the initial subject. Mirrors the classical
+    `apply(fn, args)` from Lisp / JS — the body comes first (in
+    pipeValue, the pipeline's natural inlet), the subject second
+    (captured argument).
+
+    Pairs with `eval` to split data-flow on the AST-as-data axis:
+    `quote | eval` runs the Quote against itself (the body IS the
+    subject), `quote | apply(subject)` runs the body against a
+    different value. Same `eval` machinery, different subject
+    binding.
+
+    The Quote may carry a leading combinator (`|`, `*`, `>>`, `!|`)
+    so its first step applies through that combinator against the
+    new subject. A pipeline-suffix shape — exactly the form `:trail`
+    records surface — is therefore directly re-executable.
+
+    ~{~{isNull} | apply(42) | eq(false)}
+    ~{~{| isNull} | apply(42) | eq(false)}
+    ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
+    ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/apply
+          :category :reflective
+          :subject [:quote :map]
+          :returns :any
+          :modifiers [:any]
+          :throws [::EvalSubjectNotMapOrQuote]}
+
 :keyword
   |~~ String↔Keyword involution. On a String subject, produces the
     keyword whose name is that string. On a Keyword subject,

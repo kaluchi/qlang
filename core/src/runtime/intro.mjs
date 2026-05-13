@@ -514,27 +514,62 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
   }
 });
 
+// AST extracted from a Quote-or-Map value, returned for `eval` /
+// `apply` to dispatch through `evalAst`. Throws `EvalSubjectNotMapOrQuote`
+// when the value is neither shape; raises the parse-error path
+// (lifted to `::ParseError`) when a Quote source cannot be parsed.
+function astFromQuoteLike(value) {
+  if (isQMap(value)) return qlangMapToAst(value);
+  if (isQuote(value)) {
+    if (value.ast) return value.ast;
+    try {
+      return parseSource(value.source, { uri: 'quote-source' });
+    } catch (parseErr) {
+      // Re-throw the underlying ParseError; `eval`/`apply` ride the
+      // call out into `evalNode`'s try/catch, which lifts ParseError
+      // through `errorFromParse` to a `::ParseError!{…}` ErrorValue.
+      throw parseErr;
+    }
+  }
+  throw new EvalSubjectNotMapOrQuote(value);
+}
+
 // eval — runs an AST against the current state. Subject is either
 // an AST-Map (the `parse` output, or a hand-constructed Map via
 // astNodeToMap-style data assembly) or a Quote (raw qlang source
 // in string form — parsed on the fly). The current pipeValue
 // becomes the initial pipeValue of the inner evaluation, and env
-// is threaded in unchanged: writes the inner code does through let /
-// as land in state.env exactly as if the code had been inlined at
-// the call site. The result is whatever pipeValue the inner code
-// produces; env changes from inner def / as / use calls propagate
-// out, matching the semantics of a bare paren-group application.
+// is threaded in unchanged: writes the inner code does through
+// BindStep / as land in state.env exactly as if the code had been
+// inlined at the call site. The result is whatever pipeValue the
+// inner code produces; env changes from inner BindStep / as / use
+// calls propagate out, matching the semantics of a bare paren-group
+// application.
 export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
-  const evalSubject = state.pipeValue;
-  let reconstructedAst;
-  if (isQMap(evalSubject)) {
-    reconstructedAst = qlangMapToAst(evalSubject);
-  } else if (isQuote(evalSubject)) {
-    reconstructedAst = evalSubject.ast ?? parseSource(evalSubject.source, { uri: 'eval-operand' });
-  } else {
-    throw new EvalSubjectNotMapOrQuote(evalSubject);
-  }
-  return await evalAst(reconstructedAst, state);
+  return await evalAst(astFromQuoteLike(state.pipeValue), state);
+});
+
+// apply(subject) — runs the Quote-or-Map currently in pipeValue
+// against the captured-arg `subject` as the initial pipeValue. This
+// is the classical Lisp / JS `apply` convention: the function (body)
+// goes first, the argument second — `(apply fn args)` ≡
+// `body | apply(subject)`. Trail-emitted Quotes flow through
+// pipeValue naturally, so a `:trail` step is directly re-executable:
+//
+//   "x" | add(1) | mul(2) !| /trail | first | apply(5)   → 10
+//
+// The Quote's leading combinator (if any — `~{* mul(2)}` /
+// `~{| count}` / `~{>> sort}` / `~{!| /trail}`) routes the first
+// step through that combinator against the new subject, so a
+// pipeline-suffix shape replays semantically.
+export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {
+  const bodyAst = astFromQuoteLike(state.pipeValue);
+  const newSubject = await applyLambdas[0](state.pipeValue);
+  const innerState = makeState(newSubject, state.env);
+  const resultState = await evalAst(bodyAst, innerState);
+  // Propagate inner env changes (BindStep / as / use writes inside
+  // the applied body) outward, matching `eval` semantics.
+  return makeState(resultState.pipeValue, resultState.env);
 });
 
 // ── Variant-B primitive registry bindings ─────────────────────
@@ -552,3 +587,4 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/manifest',    manifest);
 PRIMITIVE_REGISTRY.bind('qlang/prim/as',          asOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/parse',       parseOperand);
 PRIMITIVE_REGISTRY.bind('qlang/prim/eval',        evalOperand);
+PRIMITIVE_REGISTRY.bind('qlang/prim/apply',       applyOperand);

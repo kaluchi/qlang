@@ -52,7 +52,10 @@ import './control.mjs';
 import './error.mjs';
 import './keyword-op.mjs';
 import './tagged.mjs';
-import './intro.mjs';
+import './bind-op.mjs';
+import './use-op.mjs';
+import './reify-op.mjs';
+import './code-as-data.mjs';
 import './axis.mjs';
 
 import { parse } from '../parse.mjs';

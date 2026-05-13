@@ -595,7 +595,7 @@ describe('importSelectiveNamespace single keyword fallback', async () => {
 
 import {
   metaToVec, bindingName, capturedRange, categoryKeyword, errorMessageOf
-} from '../../src/runtime/intro.mjs';
+} from '../../src/runtime/reify-op.mjs';
 
 describe('extracted descriptor helpers', async () => {
   it('metaToVec on array returns copy', async () => {

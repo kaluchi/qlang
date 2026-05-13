@@ -1,0 +1,261 @@
+// `reify`, `manifest`, `runExamples` — reflective operands that
+// surface descriptor Maps for any binding kind and run the inline
+// `~{…}` Quote segments attached to a binding's doc-prefix.
+//
+// `reify` overloads by captured-arg count: value-level form reads
+// the current `pipeValue` and produces its descriptor; named form
+// `reify(:name)` looks up `:name` in env and stamps a descriptor
+// for whatever binding lives there. `manifest` walks every
+// value-namespace binding in env, returning a Vec of descriptors
+// sorted by binding name. `runExamples` pulls every Quote segment
+// from a binding's attached docs and evaluates each as a self-test.
+
+import { stateOp, stateOpVariadic } from './dispatch.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { withPipeValue } from '../state.mjs';
+import {
+  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
+  isErrorValue, typeKeyword, keyword,
+  isModuleAstKey, isTypeBindingName
+} from '../types.mjs';
+import { locationToQlangMap } from '../ast-codec.mjs';
+import {
+  declareShapeError,
+  declareArityError
+} from '../operand-errors.mjs';
+import { UnresolvedIdentifierError } from '../errors.mjs';
+import { evalQuery } from '../eval.mjs';
+import { findBindingStepAcrossModules } from './axis.mjs';
+import { parseDocSegments } from '../doc-segments.mjs';
+
+const ReifyArityOverflowError = declareArityError('ReifyArityOverflowError',
+  ({ actualArity }) => `reify accepts 0 or 1 captured args, got ${actualArity}`);
+const ReifyKeyNotKeywordError = declareShapeError('ReifyKeyNotKeywordError',
+  ({ actualType }) => `reify(:name) requires a keyword captured arg, got ${actualType.name}`);
+const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
+  ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`);
+
+// ── Descriptor-field helpers ───────────────────────────────────
+//
+// Each helper has its own per-site null-fallback path; exporting
+// them lets unit tests cover the synthetic conduit / snapshot /
+// function shapes that the runtime never produces but that
+// `describeBinding` still has to handle defensively.
+
+export function metaToVec(arr) {
+  return arr ? [...arr] : [];
+}
+
+export function bindingName(explicitName, binding) {
+  if (explicitName != null) return explicitName;
+  if (binding && binding.name != null) return binding.name;
+  return null;
+}
+
+export function capturedRange(fn) {
+  if (fn.meta && fn.meta.captured != null) return fn.meta.captured;
+  return null;
+}
+
+export function categoryKeyword(meta) {
+  if (meta.category) return keyword(meta.category);
+  return null;
+}
+
+// Extract a human-readable message from an error value — runtime
+// errors carry `.originalError`, user-created errors carry
+// `:message` in the descriptor.
+export function errorMessageOf(errorValue) {
+  if (errorValue.originalError) return errorValue.originalError.message;
+  return errorValue.descriptor.get('message');
+}
+
+function buildBuiltinDescriptor(fn, explicitName) {
+  const meta = fn.meta;
+  const result = new Map();
+  result.set('kind', keyword('builtin'));
+  result.set('name', bindingName(explicitName, fn));
+  result.set('category', categoryKeyword(meta));
+  result.set('subject', meta.subject);
+  result.set('modifiers', metaToVec(meta.modifiers));
+  result.set('returns', meta.returns);
+  result.set('captured', metaToVec(capturedRange(fn)));
+  result.set('throws', metaToVec(meta.throws));
+  result.set('effectful', fn.effectful);
+  return result;
+}
+
+function buildConduitDescriptor(conduit, explicitName) {
+  const result = new Map();
+  result.set('kind', keyword('conduit'));
+  result.set('name', explicitName ?? conduit.get('name'));
+  result.set('params', metaToVec(conduit.get('params')));
+  result.set('source', conduit.get('qlang/source'));
+  result.set('effectful', conduit.get('effectful'));
+  result.set('location', locationToQlangMap(conduit.get('location')));
+  return result;
+}
+
+function buildSnapshotDescriptor(snap, explicitName) {
+  // Value-level reify on a snapshot is unreachable via projection:
+  // `evalProjection` auto-unwraps snapshots to the underlying
+  // value before returning, so `env | /someAs | reify` calls
+  // `buildValueDescriptor` on the unwrapped value rather than
+  // `buildSnapshotDescriptor` on the wrapper. Every reach into
+  // this builder flows through the named form `reify(:name)` or
+  // through `manifest`, both of which pass `explicitName`. Reading
+  // the descriptor's `:name` field as a fallback would be dead
+  // code.
+  const value = snap.get('qlang/value');
+  const result = new Map();
+  result.set('kind', keyword('snapshot'));
+  result.set('name', explicitName);
+  result.set('value', value);
+  result.set('type', typeKeyword(value));
+  result.set('effectful', snap.get('effectful'));
+  result.set('location', locationToQlangMap(snap.get('location')));
+  return result;
+}
+
+function buildValueDescriptor(value, explicitName) {
+  const result = new Map();
+  result.set('kind', keyword('value'));
+  if (explicitName != null) result.set('name', explicitName);
+  result.set('value', value);
+  result.set('type', typeKeyword(value));
+  return result;
+}
+
+function describeBinding(value, explicitName) {
+  // Built-in bindings: env stores a descriptor Map directly
+  // (authored in lib/qlang/core.qlang, loaded by langRuntime).
+  // Reify transforms the raw descriptor into a user-facing shape:
+  // internal :qlang/kind and :qlang/impl are stripped; :kind
+  // :builtin is stamped; :captured and :effectful are read from
+  // the resolved function value sitting on :qlang/impl (placed
+  // there by the bootstrap resolution pass in runtime/index.mjs).
+  const qlKind = isQMap(value) && value.get('qlang/kind');
+  if (qlKind && qlKind.name === 'builtin') {
+    const reifyResult = new Map();
+    reifyResult.set('kind', keyword('builtin'));
+    if (explicitName != null) reifyResult.set('name', explicitName);
+    for (const [descKey, descVal] of value) {
+      if (descKey === 'qlang/kind' || descKey === 'qlang/impl') continue;
+      reifyResult.set(descKey, descVal);
+    }
+    const implFn = value.get('qlang/impl');
+    reifyResult.set('captured', [...implFn.meta.captured]);
+    reifyResult.set('effectful', implFn.effectful);
+    return reifyResult;
+  }
+  // Conduit-parameters (created at applyConduit time via makeFn)
+  // are function values that can show up as env bindings while a
+  // conduit body is evaluating. `buildBuiltinDescriptor` handles
+  // them via the `fn.meta` path carried by the proxies
+  // `makeConduitParameter` constructs, since their metadata is
+  // inlined rather than living in core.qlang.
+  if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
+  if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
+  if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
+  return buildValueDescriptor(value, explicitName);
+}
+
+export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => {
+  if (reifyLambdas.length === 0) {
+    const reifyDescriptor = describeBinding(state.pipeValue);
+    return withPipeValue(state, reifyDescriptor);
+  }
+  if (reifyLambdas.length === 1) {
+    const reifyKeyValue = await reifyLambdas[0](state.pipeValue);
+    if (!isKeyword(reifyKeyValue)) {
+      throw new ReifyKeyNotKeywordError({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
+    }
+    if (!state.env.has(reifyKeyValue.name)) {
+      throw new UnresolvedIdentifierError(reifyKeyValue.name);
+    }
+    const reifyBound = state.env.get(reifyKeyValue.name);
+    const reifyDescriptor = describeBinding(reifyBound, reifyKeyValue.name);
+    return withPipeValue(state, reifyDescriptor);
+  }
+  throw new ReifyArityOverflowError({ actualArity: reifyLambdas.length });
+}, [0, 1]);
+
+// `manifest` — Vec of descriptors, one per value-namespace binding
+// in env, sorted by name. Reserved namespaces filtered:
+//   `qlang/ast/<uri>` — module Quote storage for axis-operand traversal
+//   `::<tag>`         — type-namespace bindings (type definitions)
+// Both are runtime housekeeping or live in a parallel namespace,
+// not the value-level operand catalog manifest is documenting.
+export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
+  const entries = [];
+  for (const [k, v] of state.env) {
+    if (isModuleAstKey(k)) continue;
+    if (isTypeBindingName(k)) continue;
+    entries.push({ name: k, key: k, value: v });
+  }
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+  const descriptors = entries.map(e => describeBinding(e.value, e.name));
+  return withPipeValue(state, descriptors);
+});
+
+// `runExamples` — execute every Quote segment in a binding's
+// attached doc-prefix as a self-test expression.
+//
+// Each Quote is evaluated against an empty initial state; a result
+// that is not `false`, `null`, or an ErrorValue counts as
+// `:ok true`. The return is a Vec of result Maps, one per Quote
+// segment.
+
+async function runQuoteEntry(quote) {
+  const result = new Map();
+  result.set('snippet', quote);
+  const actualValue = await evalQuery(quote.source);
+  if (isErrorValue(actualValue)) {
+    result.set('actual', null);
+    result.set('error', errorMessageOf(actualValue));
+    result.set('ok', false);
+    return result;
+  }
+  result.set('actual', actualValue);
+  result.set('error', null);
+  result.set('ok', actualValue !== false && actualValue !== null);
+  return result;
+}
+
+async function collectQuotesForBinding(env, bindingName) {
+  const step = findBindingStepAcrossModules(env, bindingName);
+  // Bindings without a source-located BindStep (host-installed
+  // bindings via `session.bind`, runtime-seeded built-ins) have no
+  // examples to run. `runExamples` returns an empty Vec — the
+  // catalog walk in manifest-self-test treats them as
+  // zero-contribution rather than as a failure.
+  if (step === null) return [];
+  const docStrings = step.docs ?? [];
+  const collected = [];
+  for (const docStr of docStrings) {
+    const segments = await parseDocSegments(docStr, env);
+    for (const seg of segments) {
+      if (isQuote(seg)) collected.push(seg);
+    }
+  }
+  return collected;
+}
+
+export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
+  const subject = state.pipeValue;
+  let bindingName;
+  if (isKeyword(subject)) {
+    bindingName = subject.name;
+  } else if (isQMap(subject) && typeof subject.get('name') === 'string') {
+    bindingName = subject.get('name');
+  } else {
+    throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
+  }
+  const quotes = await collectQuotesForBinding(state.env, bindingName);
+  const results = await Promise.all(quotes.map(runQuoteEntry));
+  return withPipeValue(state, results);
+});
+
+PRIMITIVE_REGISTRY.bind('qlang/prim/reify',       reify);
+PRIMITIVE_REGISTRY.bind('qlang/prim/manifest',    manifest);
+PRIMITIVE_REGISTRY.bind('qlang/prim/runExamples', runExamples);

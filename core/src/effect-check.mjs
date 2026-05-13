@@ -15,7 +15,8 @@
 //
 //   findFirstEffectfulIdentifier(node) — returns the first effectful
 //     identifier in a subtree, or null. Used by the `let` operand
-//     impl (runtime/intro.mjs) for eval-time effect validation.
+//     impl (`runtime/reify-op.mjs`) for eval-time effect
+//     validation.
 
 import { walkAst } from './walk.mjs';
 import { classifyEffect } from './effect.mjs';

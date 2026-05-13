@@ -692,7 +692,7 @@ describe('dispatch helper arity error paths', () => {
   });
 });
 
-describe('runtime/intro.mjs reify and manifest', () => {
+describe('runtime/reify-op.mjs reify and manifest', () => {
   it('reify on a number returns a value-kind descriptor', async () => {
     const reifyResult = await evalQuery('42 | reify');
     expect(reifyResult).toBeInstanceOf(Map);

@@ -12,10 +12,10 @@ for the language syntax.
 a fixed set of host operands on top of `langRuntime` — effectful
 I/O (`@in`, `@out`, `@err`, `@tap`), value formatters (`pretty`,
 `tjson`, `template`), and String-to-value parsers (`parseJson`,
-`parseTjson`). These are not part of the language core catalog;
-their contracts live in [`cli/README.md`](../cli/README.md).
-Another host (a browser playground, a server-side evaluator) is
-free to bind a different operand set — every binding uses the same
+`parseTjson`). These are host-scope additions; their contracts
+live in [`cli/README.md`](../cli/README.md). Another host (a
+browser playground, a server-side evaluator) is free to bind a
+different operand set — every binding uses the same
 dispatch wrappers from `@kaluchi/qlang-core/dispatch` and the same
 per-site error factories from `@kaluchi/qlang-core/operand-errors`.
 
@@ -172,9 +172,9 @@ offers to fill:
   `Filter/Every/AnyVecOrSetPredArityInvalidError`.
 - **3+-arity conduit** — per-operand arity-invalid class on both
   Vec/Set and Map (`*VecOrSetPredArityInvalid` /
-  `*MapPredArityInvalid`). The language does not pair-encode keys
-  and values into a single argument; higher arities have no
-  meaning for entry iteration.
+  `*MapPredArityInvalid`). Map iteration binds at most `(key,
+  value)`; higher arities exceed the binding shape and raise the
+  per-operand class.
 
 Compose both-axis predicates by declaring the 2-arity conduit
 through a BindStep inline in the pipeline, then reference it
@@ -830,9 +830,10 @@ shape, and vice versa.
 - Evaluates each alternative against `pipeValue` in order and
   returns the first one that produces a non-`null` result. If all
   alternatives produce `null`, the result is `null`.
-- **Falsy non-null values** (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
-  are NOT skipped — only `null`/`undefined` count as missing.
-  This matches SQL `COALESCE` and JavaScript `??` semantics.
+- **Skipping rule**: only `null` / `undefined` count as missing.
+  Falsy-but-defined values (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
+  flow through as valid alternative results. Matches SQL
+  `COALESCE` and JavaScript `??` semantics.
 - **Short-circuits**: alternatives after the first non-null match
   are not evaluated.
 - **Examples**:
@@ -852,11 +853,11 @@ shape, and vice versa.
   order; the first one that produces a truthy value becomes the
   new `pipeValue`. If all alternatives produce falsy values
   (`null` or `false`), the result is `null`.
-- **Differs from `coalesce`** in that `false` is also skipped:
-  `firstTruthy` treats `false` as "no value", `coalesce` treats
-  it as a valid explicit setting. Note that `0`, `""`, `[]`, `{}`,
-  `#{}` are truthy in qlang and therefore NOT skipped by either
-  operand.
+- **Truthiness contract**: `firstTruthy` skips `false` alongside
+  `null` (treating both as "no value"); `coalesce` keeps `false`
+  as a valid explicit setting. In qlang `0`, `""`, `[]`, `{}`,
+  `#{}` are truthy values and flow through either operand
+  unchanged.
 - **Short-circuits**: alternatives after the first truthy match
   are not evaluated.
 - **Examples**:
@@ -1024,8 +1025,9 @@ depends on the value's provenance. Four descriptor kinds:
    :effectful false
    :location  {:start ... :end ...}}
   ```
-- **Value** — any other Scalar, Vec, Map, or Set that is not a
-  function or wrapper. Descriptor:
+- **Value** — any Scalar, Vec, Map, or Set carrying no
+  binding-kind discriminator (the fall-through case after the
+  builtin / conduit / snapshot branches). Descriptor:
   ```
   {:kind :value
    :value <the value>

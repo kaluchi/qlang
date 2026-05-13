@@ -25,8 +25,8 @@ the evaluator produced.
 "hello"
 ```
 
-The `>` mark is purely typographical — it is not part of qlang
-syntax and never appears in source code.
+The `>` mark is purely typographical — a documentation prompt
+that lives outside qlang syntax.
 
 A token of the form `|~| ... |~|` (line) or `|~ ... ~|` (block)
 is a **comment** — a pipeline step with identity semantics. The
@@ -421,8 +421,8 @@ filter(gt(10))  |~| binding: fix predicate → new function awaiting vec
              application — runs now
 ```
 
-A zero-argument operand does not need binding; it is already
-complete and can be applied immediately:
+A zero-argument operand is complete on its own and applies
+immediately:
 
 ```qlang
 count           |~| complete: needs only (vec)
@@ -1002,7 +1002,7 @@ that fires per-element inside `sortWith`, per-iteration inside
 [3 2]
 ```
 
-`keyFn` is not a frozen value — it evaluates `/score` against each
+`keyFn` is a lazy parameter — it evaluates `/score` against each
 element when `desc` invokes it per comparison pair.
 
 #### Examples
@@ -1068,12 +1068,12 @@ On conflict, the **incoming Map wins** — later writes override
 earlier ones, so a constants table with `:pi 3.14` followed by
 another with `:pi 3.14159` ends up with `pi → 3.14159`.
 
-`use` is not an in-query function-definition mechanism. A Map
-literal `{:double mul(2)}` does not produce
-`{:double <function>}` — Map literal values are sub-pipelines
-that evaluate eagerly against `pipeValue`, so `mul(2)` would
-just multiply pipeValue by 2 and store the result. To declare a
-callable from inside a query, write a BindStep (`:name body`).
+`use` installs **data and host-resolved function values** from
+the given Map; Map literal values evaluate eagerly against
+`pipeValue` (the same Rule 10 every container literal follows),
+so `{:double mul(2)}` writes `{:double <pipeValue * 2>}` into
+env, with the captured-arg expression already fired. To declare
+a callable from inside a query, write a BindStep (`:name body`).
 To install one from outside a query, install it as part of the
 host-provided env or load it as a module through one of the
 namespaced forms below.
@@ -1295,11 +1295,11 @@ concatenation of adjacent line docs.
 The `:foo ...` binding's `docs` field holds three entries:
 two single-line strings and one multi-line string.
 
-Plain comments interleaved among the docs do not break the
-attachment — the docs around them still collect into the binding's
+Plain comments interleaved among the docs are transparent to
+attachment — surrounding docs still collect into the binding's
 `docs` Vec.
 
-A binding's docs are not lost in the AST — they end up on the
+A binding's docs are preserved in the AST and ride onto the
 descriptor that [Reflection](#reflection) exposes through the
 `reify` operand. The full example sits in the `reify` subsection;
 the takeaway here is that docs are addressable.
@@ -2344,8 +2344,8 @@ at evaluation time against the current `env`.
 
 Complete examples demonstrating composition. The `|~|` lines
 are qlang plain comments labelling the technique each example
-demonstrates. The `>` prefix marks a REPL prompt and is not
-query syntax.
+demonstrates. The `>` prefix marks a REPL prompt at the
+documentation level.
 
 ```qlang
 |~| construction
@@ -2664,7 +2664,8 @@ When `use(:ns)` encounters a namespace keyword not in env:
 5. Patches `:qlang/impl` on each exported builtin descriptor with
    the corresponding function from `impls`.
 6. Installs the namespace keyword → exports in env for subsequent
-   lookups (the locator is not called again for the same namespace).
+   lookups (cache hit serves subsequent references to the same
+   namespace).
 7. Merges exports into env (the standard `use` behavior).
 
 The `impls` function values are constructed using dispatch wrappers

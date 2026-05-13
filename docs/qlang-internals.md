@@ -126,8 +126,8 @@ Let `resolved = env[:name]`:
   `state.pipeValue`, compute a result, and ascend back into a new
   state), but the same interface also accommodates **reflective
   operands** (`use`, `env`, `reify`, `manifest`) that read or
-  write the full state directly. The distinction is not visible
-  at the call site: both kinds are invoked the same way.
+  write the full state directly. The distinction stays internal:
+  both kinds are invoked the same way at the call site.
 - If `resolved` is a **non-function value** (Scalar/Vec/Map/Set):
   replace `pipeValue` with `resolved`. Captured args (if any) are
   an error — non-functions cannot be applied.
@@ -263,9 +263,9 @@ into the conduit or snapshot wrapper.
 ## Reflective built-ins
 
 `use`, `env`, `reify`, and `manifest` are reflective operands bound
-in the language runtime. They are not separate step types — a
-lookup of any of them goes through Step 3 exactly like `count` or
-`filter`. Their distinguishing feature is the shape of their impl:
+in the language runtime, dispatched through Step 3 exactly like
+`count` or `filter`. Their distinguishing feature is the shape
+of their impl:
 they receive and return the full `(pipeValue, env)` state, whereas
 ordinary operands project `pipeValue`, compute a pure result, and
 ascend back. The uniform operand interface hides that descent/ascent
@@ -345,8 +345,9 @@ Overloaded by captured-arg count:
   `:name` in `env` and builds the descriptor for whatever binding
   lives there, attaching a `:name` field to the result regardless
   of whether the binding is a function, conduit, snapshot, or bare
-  value. This form is useful when the caller knows the name but
-  does not want to route the binding through `pipeValue` first.
+  value. This form serves the caller who knows the name and wants
+  the descriptor without first staging the binding through
+  `pipeValue`.
 
       (pipeValue, env) → (env[:name] descriptor with :name field, env)
 
@@ -796,9 +797,9 @@ Element 2 analogous. Final:
     [{:key 1 :record {:id 1 :name "Alice"}}
      {:key 2 :record {:id 2 :name "Bob"}}]
 
-Each iteration gets its own fresh `employee` binding; it is not
-visible outside the paren group. A non-function identifier lookup
-replaces `pipeValue` — Step 3, second bullet.
+Each iteration gets its own fresh `employee` binding, scoped to
+the paren group. A non-function identifier lookup replaces
+`pipeValue` — Step 3, second bullet.
 
 ### Example 5 — multi-stage bindings
 
@@ -1345,9 +1346,10 @@ contains no lossy shape. For bijective round-trips use
 returned array is sorted by `start`, non-overlapping, and gap-free
 over `[0, src.length]` — every byte falls inside exactly one
 token. Renderers (HTML, ANSI, LSP semantic tokens) share the
-stream; palettes differ, categorisation does not. Eleven kinds:
-`string`, `number`, `comment`, `atom`, `effect`, `operand`,
-`keyword`, `err`, `set`, `vec`, `punct`, `whitespace`.
+stream; palettes vary per renderer, categorisation stays
+identical. The kinds: `string`, `number`, `comment`, `atom`,
+`effect`, `operand`, `keyword`, `tag`, `err`, `quote`, `set`,
+`vec`, `punct`, `whitespace`.
 
 Effect-marker classification (`atom` vs `effect`) routes through
 `effect.mjs::EFFECT_MARKER_PREFIX` — the single source of truth

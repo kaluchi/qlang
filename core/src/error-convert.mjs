@@ -12,6 +12,7 @@ import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue, makeT
 // `!| /kind`) work without an extra round-trip through axis-operands.
 const RUNTIME_FIELD_ORDER = [
   'thrown', 'fault',
+  'payloadValue', 'payloadType',
   'actualValue', 'actualType',
   'leftValue', 'leftType', 'rightValue', 'rightType',
   'index',

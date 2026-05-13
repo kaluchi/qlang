@@ -100,8 +100,18 @@ const TaggedLitTagNotFoundError = declareShapeError('TaggedLitTagNotFoundError',
   ({ tag }) => `::${tag} — type binding not found in env`);
 const TaggedLitNotTypeError = declareShapeError('TaggedLitNotTypeError',
   ({ tag, actualType }) => `::${tag} — type binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :type`);
+// `TypeBindingHasNoConstructorError` — fired when `::tag<payload>`
+// resolves the type-binding but its `:qlang/impl` slot is empty
+// (`undefined`) or carries a value that is neither a primitive
+// Keyword nor a Quote-impl body. The payload the user supplied is
+// stamped on the descriptor as `:payloadValue` / `:payloadType`
+// (high-entropy first), the expected `:qlang/impl` shape is stamped
+// as `:expectedType [:keyword :quote]`, and the actual `:qlang/impl`
+// value lands as `:actualValue` / `:actualType` so the diagnostic
+// reads as a single shape contract instead of a one-line template.
 const TypeBindingHasNoConstructorError = declareShapeError('TypeBindingHasNoConstructorError',
-  ({ tag, actualType }) => `::${tag} — :qlang/impl is ${actualType.name}, expected a Keyword (built-in handle) or a Quote (qlang body)`);
+  ({ tag, payloadType }) =>
+    `::${tag} has no registered constructor — type-binding's :qlang/impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
 const DistributeSubjectNotVecError = declareSubjectError('DistributeSubjectNotVecError', '*', 'vec');
 const MergeSubjectNotVecError      = declareSubjectError('MergeSubjectNotVecError',      '>>', 'vec');
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
@@ -534,7 +544,14 @@ async function evalTaggedLit(node, state) {
       originalError: payloadValue.originalError
     }));
   }
-  throw new TypeBindingHasNoConstructorError({ tag: node.tag, actualType: typeKeyword(implKey), actualValue: implKey });
+  throw new TypeBindingHasNoConstructorError({
+    tag: node.tag,
+    payloadValue: payloadValue,
+    payloadType: typeKeyword(payloadValue),
+    expectedType: Object.freeze([keyword('keyword'), keyword('quote')]),
+    actualValue: implKey,
+    actualType: typeKeyword(implKey)
+  });
 }
 
 // ::tag — bare reference to a type-namespace identifier. The

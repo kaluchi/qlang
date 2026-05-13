@@ -260,7 +260,7 @@ const PROSE_OVERRIDES = {
 
   TaggedLitTagNotFoundError: '`::tag` constructor invocation failed — the tag is not a registered type-binding in env.',
   TaggedLitNotTypeError: '`::tag` constructor invocation failed — the env binding under `::tag` is not a type-binding descriptor Map.',
-  TypeBindingHasNoConstructorError: '`::tag` constructor invocation failed — the type-binding\'s `:qlang/impl` is neither a primitive Keyword nor a Quote.',
+  TypeBindingHasNoConstructorError: 'Type-binding has no registered constructor — `:qlang/impl` is missing or wrong-shaped (expected a primitive Keyword or a Quote-impl body). The user-supplied payload is captured on the descriptor as `:payloadValue` / `:payloadType`; the actual `:qlang/impl` value as `:actualValue` / `:actualType`; the expected slot shape as `:expectedType [:keyword :quote]`.',
 
   ApplyToNonFunctionError: 'Identifier resolves to a non-function value — captured arguments cannot be applied.',
   AsNameNotKeywordError: '`as` requires a Keyword captured-arg (the binding name).',

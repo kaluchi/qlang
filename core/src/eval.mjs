@@ -141,7 +141,28 @@ export async function evalQuery(source, env) {
   // `env | /count | reify`) work identically.
   const initialState = makeState(null, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
-  return finalState.pipeValue;
+  return materializePendingTrail(finalState.pipeValue);
+}
+
+// Walk `_trailHead`'s linked-list (deflected steps appended by
+// success-track combinators) back into the descriptor's `:trail`
+// field. Deflections through `|` / `*` / `>>` append to the head
+// but only `!|` flushes it; a pipeline that ends without any fail-
+// apply step would otherwise return an ErrorValue whose
+// `_trailHead` carries the chain but whose printValue surface
+// elides `:trail null` entirely. Called at every query / cell
+// boundary so the printed form always reflects the full chain.
+// Idempotent — re-running on an already-materialised ErrorValue is
+// a no-op because `_trailHead` is null at that point.
+export function materializePendingTrail(value) {
+  if (!isErrorValue(value) || value._trailHead === null) return value;
+  const combined = combineTrailQuotes(value.descriptor.get('trail'), materializeTrail(value));
+  const next = new Map(value.descriptor);
+  next.set('trail', combined);
+  return makeErrorValue(next, {
+    location: value.location,
+    originalError: value.originalError
+  });
 }
 
 // evalAst(ast, state) → Promise<state'>

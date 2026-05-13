@@ -924,15 +924,14 @@ current `pipeValue` and produces a descriptor Map whose shape
 depends on the value's provenance. Four descriptor kinds:
 
 - **Builtin** — `pipeValue` is a descriptor Map loaded by
-  `langRuntime()` from `lib/qlang/core.qlang`. Under the
-  Variant-B runtime shape, every built-in binding in `env` IS a
-  descriptor Map directly; `reify` substitutes the internal
-  `:qlang/kind :builtin` / `:qlang/impl :qlang/prim/<name>`
-  discriminator for a user-facing `:kind :builtin` (dropping
-  the `:qlang/impl` handle), stamps `:captured` / `:effectful`
-  from the primitive resolved through `PRIMITIVE_REGISTRY`,
-  and adds `:name` when the caller used the named form
-  `reify(:count)`:
+  `langRuntime()` from `lib/qlang/core.qlang`. Every built-in
+  binding in `env` IS a descriptor Map directly; `reify`
+  substitutes the internal `:qlang/kind :builtin` /
+  `:qlang/impl :qlang/prim/<name>` discriminator for a
+  user-facing `:kind :builtin` (dropping the `:qlang/impl`
+  handle), stamps `:captured` / `:effectful` from the
+  primitive resolved through `PRIMITIVE_REGISTRY`, and adds
+  `:name` when the caller used the named form `reify(:count)`:
   ```
   {:kind      :builtin
    :name      "count"
@@ -966,12 +965,12 @@ depends on the value's provenance. Four descriptor kinds:
   the `:unbounded` keyword as the upper bound (`coalesce` has
   `[1 :unbounded]`). The field is always present.
 
-  Under the Variant-B REPL ergonomic, a bare non-nullary
-  operand lookup (`mul`, `filter`, `coalesce` — any operand
-  whose `min > 0`) short-circuits through the same descriptor
-  path: typing the bare name yields the Map above as the new
-  `pipeValue` rather than firing an arity error. Nullary
-  operands (`count`, `sort` bare form, `env`, etc.) still fire
+  Under the bare-non-nullary REPL ergonomic, a bare lookup
+  for `mul`, `filter`, `coalesce` — any operand whose `min > 0`
+  — short-circuits through the same descriptor path: typing the
+  bare name yields the Map above as the new `pipeValue`
+  instead of firing an arity error. Nullary operands (`count`,
+  `sort` bare form, `env`, etc.) still fire
   on bare lookup because their `min == 0` and bare application
   IS their valid call shape.
 - **Conduit** — `pipeValue` is a BindStep-bound conduit (named

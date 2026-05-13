@@ -1,4 +1,4 @@
-// Tests for lib/qlang/core.qlang — the Variant-B langRuntime source.
+// Tests for lib/qlang/core.qlang — the langRuntime catalog source.
 //
 // core.qlang is a single Map literal where every entry is a
 // descriptor for one built-in operand, carrying :qlang/kind :builtin,
@@ -190,13 +190,13 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through ~{:tag | docs} a
   });
 });
 
-describe('Variant-B bare-non-nullary REPL introspection', () => {
-  // The REPL ergonomic promised by the whole refactor: typing a
-  // non-nullary operand name bare (no parens, no captured args)
-  // returns its descriptor Map as pipeValue instead of firing an
-  // arity error. Nullary operands (count, sort bare form, env,
-  // etc.) still fire on bare lookup because their minCaptured is
-  // 0 and bare application is their valid nullary form.
+describe('bare-non-nullary REPL introspection', () => {
+  // REPL ergonomic: typing a non-nullary operand name bare (no
+  // parens, no captured args) returns its descriptor Map as
+  // pipeValue instead of firing an arity error. Nullary operands
+  // (count, sort bare form, env, etc.) still fire on bare lookup
+  // because their minCaptured is 0 and bare application is their
+  // valid nullary form.
 
   it('bare ~{mul} returns reify-shaped descriptor Map', async () => {
     // mul has minCaptured 1, so bare lookup yields the reify-shaped
@@ -245,12 +245,12 @@ describe('Variant-B bare-non-nullary REPL introspection', () => {
 
 describe('function-value reify path (conduit parameter reflection)', () => {
   // Conduit parameters are the only function values that reach
-  // env under Variant-B dispatch — they are minted at applyConduit
-  // time by makeConduitParameter and live only for the duration of
-  // the body fork. Reifying one inside a conduit body exercises
-  // the isFunctionValue branch of describeBinding, which delegates
-  // to buildBuiltinDescriptor to construct a descriptor Map from
-  // the function-value's inline meta.
+  // env during dispatch — they are minted at applyConduit time by
+  // makeConduitParameter and live only for the duration of the
+  // body fork. Reifying one inside a conduit body exercises the
+  // isFunctionValue branch of describeBinding, which delegates to
+  // buildBuiltinDescriptor to construct a descriptor Map from the
+  // function-value's inline meta.
 
   it('reify on a conduit parameter yields a :kind :builtin descriptor', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -322,12 +322,11 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
 });
 
 describe('parse / eval — the code-as-data ring closer', () => {
-  // Step 10 of the Variant-B refactor: the `parse` operand reads
-  // a source string into the walk.mjs AST-Map form, `eval` takes
-  // that AST-Map and runs it against the current state. Together
-  // they round-trip source text → data → pipeValue without
-  // leaving the language, and land the programmatic-query-
-  // construction surface the whole refactor pointed at.
+  // The `parse` operand reads a source string into the
+  // `ast-codec.mjs` AST-Map form; `eval` takes that AST-Map and
+  // runs it against the current state. Together they round-trip
+  // source text → data → pipeValue without leaving the language,
+  // and ground the programmatic-query-construction surface.
 
   it('parse lifts a scalar literal into an AST-Map', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');

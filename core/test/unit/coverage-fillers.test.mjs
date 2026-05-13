@@ -257,10 +257,11 @@ describe('higherOrderOp / nullaryOp arity errors', async () => {
   });
 
   it('higherOrderOp filter called with zero captured args throws', async () => {
-    // Variant-B: bare `filter` returns filter's descriptor Map for
-    // REPL introspection since it has minCaptured > 0. Force actual
-    // application with the empty-call form to trigger the arity
-    // error from the higherOrderOp dispatch wrapper.
+    // Bare `filter` returns filter's descriptor Map for REPL
+    // introspection because its minCaptured > 0. The empty-call
+    // form `filter()` forces actual application with zero lambdas
+    // and triggers the arity error inside the higherOrderOp
+    // dispatch wrapper.
     expect(isErrorValue(await evalQuery('[1 2 3] | filter()'))).toBe(true);
   });
 });
@@ -356,10 +357,10 @@ describe('count and friends on a Map subject', async () => {
 
 describe('valueOp arity overflow', async () => {
   it('add with zero captured args throws ArityError', async () => {
-    // Variant-B: bare `add` returns add's descriptor for REPL
-    // introspection since its minCaptured is 1. The empty-call
-    // form `add()` forces actual application with zero lambdas
-    // and triggers ValueOpArityMismatchError.
+    // Bare `add` returns add's descriptor for REPL introspection
+    // because its minCaptured is 1. The empty-call form `add()`
+    // forces actual application with zero lambdas and triggers
+    // ValueOpArityMismatchError.
     expect(isErrorValue(await evalQuery('5 | add()'))).toBe(true);
   });
 });

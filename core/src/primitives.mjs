@@ -2,17 +2,17 @@
 // level Map-form binding descriptors (which carry :qlang/impl
 // keyword at authoring time) and their JS-level executable impls.
 //
-// Under the Variant-B runtime model every binding in langRuntime is
-// a qlang Map with :qlang/kind :builtin and an :qlang/impl field.
-// At authoring time in core.qlang, :qlang/impl holds a namespaced
-// keyword like :qlang/prim/mul pointing into this registry. The
-// bootstrap resolution pass in runtime/index.mjs::langRuntime()
-// resolves each keyword through PRIMITIVE_REGISTRY.resolve into the
+// Every binding in langRuntime is a qlang Map with :qlang/kind
+// :builtin and an :qlang/impl field. At authoring time in
+// `core.qlang`, :qlang/impl holds a namespaced keyword like
+// `:qlang/prim/mul` pointing into this registry. The bootstrap
+// resolution pass in `runtime/index.mjs::langRuntime()` resolves
+// each keyword through `PRIMITIVE_REGISTRY.resolve` into the
 // matching JS function value and replaces the keyword on the
-// descriptor with the function directly. After bootstrap, dispatch
-// reads the function from :qlang/impl without consulting the
-// registry — the registry is a build-time bridge, not a dispatch-
-// time lookup table.
+// descriptor with the function directly. After bootstrap,
+// dispatch reads the function from :qlang/impl without consulting
+// the registry — the registry is a build-time bridge, not a
+// dispatch-time lookup table.
 //
 // Lifecycle:
 //   1. Each runtime/*.mjs module binds its impls at import time via

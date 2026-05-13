@@ -38,14 +38,17 @@ development.
 - **Coverage 100/100/100/100** (lines / branches / functions /
   statements). Every workspace's `vitest.config.mjs` pins the threshold.
   A change that dips below is blocker-grade.
-- **Variant-B catalog**: operand metadata — `:docs`, `:examples`,
-  `:throws`, `:category`, `:subject`, `:modifiers`, `:returns` — lives
-  only in `core/lib/qlang/core.qlang`. The JS side registers executable
+- **Operand catalog**: authored metadata — `:throws`, `:category`,
+  `:subject`, `:modifiers`, `:returns` — lives only in
+  `core/lib/qlang/core.qlang`. The JS side registers executable
   impls via `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at
   module-load time. Map keys are plain strings throughout; keyword
   objects exist as pipeline VALUES carrying `.literal` for display.
-  `langRuntime()` resolves `:qlang/impl` handles on the template env
-  once, then seals the registry.
+  `langRuntime()` resolves `:qlang/impl` handles on the template
+  env once, then seals the registry. Authored prose and example
+  `~{…}` Quote segments live on each `BindStep`'s attached
+  doc-prefix in the `qlang/ast/qlang/core` module Quote and are
+  reachable through `:name | docs` and `:name | examples`.
 - **Per-site error classes**: one throw site, one class. Built via the
   factories in `core/src/operand-errors.mjs` (`declareSubjectError`,
   `declareModifierError`, `declareElementError`,

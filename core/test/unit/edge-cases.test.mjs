@@ -70,7 +70,7 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit returns a Variant-B conduit descriptor Map', async () => {
+  it('makeConduit returns a conduit descriptor Map carrying :qlang/kind :conduit', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
     const t = makeConduit(bodyAst);
@@ -702,13 +702,13 @@ describe('runtime/intro.mjs reify and manifest', () => {
   });
 
   it('reify on a builtin descriptor Map returns a builtin descriptor', async () => {
-    // Under Variant-B, env stores each built-in as a descriptor Map
-    // directly. reify(:name) projects it through describeBinding
-    // which substitutes :qlang/kind → :kind, drops :qlang/impl, and
-    // stamps :captured / :effectful / :name from the resolved
+    // env stores each built-in as a descriptor Map directly.
+    // `reify(:name)` projects it through `describeBinding` which
+    // substitutes `:qlang/kind` → `:kind`, drops `:qlang/impl`, and
+    // stamps `:captured` / `:effectful` / `:name` from the resolved
     // primitive. The named form is the canonical spelling; bare
-    // `env | /count | reify` omits :name because no explicit name
-    // is in scope at the value-level reify branch.
+    // `env | /count | reify` omits `:name` because no explicit
+    // name is in scope at the value-level reify branch.
     const reifyCountResult = await evalQuery('reify(:count)');
     expect(reifyCountResult.get('kind')).toEqual(keyword('builtin'));
     expect(reifyCountResult.get('name')).toBe('count');

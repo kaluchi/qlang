@@ -58,13 +58,13 @@ export class MalformedTaggedJSONError extends QlangError {
 // toTaggedJSON(value) → JSON-serializable plain value
 //
 // Conduit and snapshot checks run BEFORE the generic isQMap branch
-// because under Variant-B both are JS Maps carrying a `:qlang/kind`
+// because both value-classes are JS Maps carrying a `:qlang/kind`
 // discriminator. Without the early check the generic `$map`
-// serializer would walk the descriptor's entries and either leak the
-// JS-opaque `:qlang/envRef` holder into the tagged-JSON stream or
-// silently encode a snapshot wrapper as a plain Map — both contrary
-// to the "conduits and snapshots require session-level reconstruction"
-// contract the session serializer relies on.
+// serializer would walk the descriptor's entries and either leak
+// the JS-opaque `:qlang/envRef` holder into the tagged-JSON stream
+// or silently encode a snapshot wrapper as a plain Map — both
+// contrary to the "conduits and snapshots require session-level
+// reconstruction" contract the session serializer relies on.
 export function toTaggedJSON(value) {
   if (value === null || value === undefined) return null;
   const t = typeof value;

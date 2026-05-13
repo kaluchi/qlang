@@ -124,14 +124,13 @@ describe('toTaggedJSON unencodable values', () => {
   });
 
   it('throws TaggedJSONUnencodableValueError for function values', () => {
-    // Under Variant-B, langRuntime() stores each built-in as a
-    // descriptor Map (encodable) rather than a frozen function
-    // value. Function values still exist at the JS level — every
-    // runtime/*.mjs primitive impl is one, and conduit-parameter
-    // proxies create fresh ones at applyConduit time — so the
-    // unencodable-function contract stays load-bearing. Construct
-    // one directly via makeFn to exercise the codec guard without
-    // depending on env contents.
+    // langRuntime stores each built-in as a descriptor Map
+    // (encodable). Function values still exist at the JS level —
+    // every runtime/*.mjs primitive impl is one, and
+    // conduit-parameter proxies create fresh ones at applyConduit
+    // time — so the unencodable-function contract stays
+    // load-bearing. Construct one directly via makeFn to exercise
+    // the codec guard without depending on env contents.
     const fn = makeFn('testFn', 1, (state) => state, { captured: [0, 0] });
     expect(() => toTaggedJSON(fn)).toThrow(TaggedJSONUnencodableValueError);
   });

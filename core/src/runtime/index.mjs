@@ -1,6 +1,6 @@
 // Assemble the langRuntime — the initial environment Map every
-// query starts with. Under the Variant-B model every runtime module
-// lives in one of two places:
+// query starts with. Every runtime module lives in one of two
+// places:
 //
 //   1. lib/qlang/core.qlang — the authored source catalog. A series
 //      of `BindStep` declarations (`:count |~~ … ~~| {…descriptor}`),

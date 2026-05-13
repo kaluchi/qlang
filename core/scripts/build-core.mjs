@@ -1,11 +1,10 @@
 // Compile lib/qlang/core.qlang into gen/core.mjs.
 //
 // Embeds the core runtime source as a string constant so the
-// Variant-B langRuntime bootstrap can parse it at runtime without
-// filesystem access (browser-clean). Mirror of build-grammar.mjs /
-// build-manifest.mjs: hand-authored input in lib/ or src/,
-// generated output in gen/, so source and build artifacts never
-// share a directory.
+// langRuntime bootstrap can parse it at runtime without
+// filesystem access (browser-clean). Mirror of build-grammar.mjs:
+// hand-authored input in lib/ or src/, generated output in gen/,
+// so source and build artifacts never share a directory.
 //
 // Run via `npm run build:core`. Idempotent.
 

@@ -772,10 +772,10 @@ async function evalOperandCall(node, state) {
     resolved = resolved.get('qlang/value');
   }
 
-  // Variant-B binding-descriptor dispatch — one switch over
-  // :qlang/kind routes to either the builtin or the conduit
+  // Binding-descriptor dispatch — one switch over `:qlang/kind`
+  // routes the resolved Map to either the builtin or the conduit
   // dispatch core. Plain user Maps (bound via session.bind or
-  // captured by value-level projection) carry no :qlang/kind and
+  // captured by value-level projection) carry no `:qlang/kind` and
   // fall through as non-function values.
   if (isQMap(resolved)) {
     const dispatched = await applyBindingDescriptor(resolved, node, lookupName, state);
@@ -791,11 +791,11 @@ async function evalOperandCall(node, state) {
     // parse-time AST scan cannot see — installation via use,
     // capture via as, or rebinding via session.bind — because
     // every effectful invocation ultimately flows through an
-    // identifier lookup at this point. Only conduit-parameters
-    // reach this branch — built-ins dispatch through the Variant-B
-    // descriptor path in applyBindingDescriptor above. The check
-    // stays because a conduit-parameter proxy may wrap an effectful
-    // captured-arg lambda under a non-@-prefixed binding.
+    // identifier lookup at this point. Only conduit-parameter
+    // proxies reach this branch — built-ins dispatch through
+    // `applyBindingDescriptor` above. The check stays because a
+    // conduit-parameter proxy may wrap an effectful captured-arg
+    // lambda under a non-@-prefixed binding.
     if (resolved.effectful && !classifyEffect(lookupName)) {
       throw new EffectLaunderingAtCallError({
         bindingName: lookupName,
@@ -915,9 +915,9 @@ async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
 // final pipeValue. The entire operation is one atomic state
 // transformation from the outer pipeline's perspective.
 async function applyConduit(conduit, node, lookupName, state) {
-  // Read the conduit's payload fields once. Under Variant-B every
-  // conduit is a descriptor Map; field access goes through Map.get
-  // against the interned KW_*_FIELD constants declared above.
+  // Read the conduit's payload fields once. Every conduit is a
+  // descriptor Map; field access goes through Map.get against
+  // unnamespaced string keys.
   const conduitName       = conduit.get('name');
   const conduitParams     = conduit.get('params');
   const conduitBody       = conduit.get('qlang/body');

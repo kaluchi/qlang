@@ -32,8 +32,8 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 // if-chain of `isKeyword` / `isVec` / `isQMap` / … repeats per
 // site. Kinds not listed in a handler table fall through to the
 // consumer's `fallback(v)` — normally an exotic-value escape hatch
-// (qlang types that never enter pipeValue under Variant-B dispatch:
-// conduit, snapshot, function).
+// (qlang types that never enter pipeValue: conduit, snapshot,
+// function).
 function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
   // Function values have no grammatical literal — emitting any string
   // here would falsely round-trip through parse / eval into a different
@@ -68,7 +68,7 @@ const TableRowNotMapError     = declareElementError('TableRowNotMapError',     '
 // exotic-value fallback path — the public `json` operand feeds this
 // function from inside nullaryOp, but no qlang-level path reaches
 // the `String(v)` branch because raw function values never enter
-// pipeValue under Variant-B dispatch.
+// pipeValue.
 const TO_PLAIN_HANDLERS = {
   Null:       () => null,
   Number:     v => v,

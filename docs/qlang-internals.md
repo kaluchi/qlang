@@ -315,22 +315,22 @@ Overloaded by captured-arg count:
   `:kind` field distinguishes four provenances:
 
   - `:builtin` — `pipeValue` is a descriptor Map loaded by
-    `langRuntime()` from `lib/qlang/core.qlang`. Under Variant-B,
-    env stores every built-in as a Map directly; `reify`
-    substitutes the internal `:qlang/kind :builtin` /
-    `:qlang/impl :qlang/prim/<name>` discriminator for the
-    user-facing `:kind :builtin`, drops the `:qlang/impl`
-    handle (reify consumers want the descriptor, not the
-    dispatch-time primitive key), and computes `:captured` /
-    `:effectful` by resolving the primitive through
-    `PRIMITIVE_REGISTRY`. All other fields (`:category`,
-    `:subject`, `:modifiers`, `:returns`, `:throws`) pass through
-    from the `core.qlang` entry verbatim. Authored prose lives on
-    the `BindStep`'s attached doc-prefix and is reachable via
-    `:name | docs` (Vec of Doc-values, `/content` for raw text,
-    `/segments` for Prose / Quote / TaggedLit splits) or via
-    `:name | examples` (Vec of Quote-values pulled from every
-    Quote segment in the docs).
+    `langRuntime()` from `lib/qlang/core.qlang`. env stores
+    every built-in as a Map directly; `reify` substitutes the
+    internal `:qlang/kind :builtin` / `:qlang/impl
+    :qlang/prim/<name>` discriminator for the user-facing
+    `:kind :builtin`, drops the `:qlang/impl` handle (reify
+    consumers want the descriptor, not the dispatch-time
+    primitive key), and computes `:captured` / `:effectful` by
+    resolving the primitive through `PRIMITIVE_REGISTRY`. The
+    structural fields (`:category`, `:subject`, `:modifiers`,
+    `:returns`, `:throws`) pass through from the `core.qlang`
+    entry verbatim. Authored prose lives on the `BindStep`'s
+    attached doc-prefix and is reachable via `:name | docs`
+    (Vec of Doc-values, `/content` for raw text, `/segments`
+    for Prose / Quote / TaggedLit splits) or via `:name |
+    examples` (Vec of Quote-values pulled from every Quote
+    segment in the docs).
   - `:conduit` — a BindStep-installed conduit. Descriptor has
     `:kind :conduit`, `:name`, `:source` (textual form of the body
     expression), `:docs` (Vec from parser-attached doc comments).

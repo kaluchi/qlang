@@ -138,7 +138,7 @@ Domain constants (`EFFECT_MARKER_PREFIX`, `AST_SCHEMA_VERSION`, `SESSION_SCHEMA_
 
 `childrenOf` knowledge of the AST shape lives in `core/src/walk.mjs::astChildrenOf` and **only** there. If any module switches on `node.type` to enumerate children, it should import `astChildrenOf` instead.
 
-Operand metadata (docs, examples, throws, category, subject, modifiers, returns) lives exclusively in `core/lib/qlang/core.qlang` — the Variant-B runtime source catalog, one outer Map literal whose 69 entries each bind an identifier to a descriptor Map with `:qlang/kind :builtin` and a `:qlang/impl :qlang/prim/<name>` handle pointing into `PRIMITIVE_REGISTRY`. JS runtime modules carry only executable impls registered under the `:qlang/prim/<name>` key via `PRIMITIVE_REGISTRY.bind` at module-load time — no authored meta. If any dispatch helper call in `core/src/runtime/*.mjs` passes docs, examples, or throws, that is duplication — flag it. If any `:qlang/impl` handle in `core.qlang` does not match a bound primitive, that is drift — the catalog-catalog test in `core/test/unit/core-catalog.test.mjs` pins the handoff, so a breakage there must be diagnosed before merge.
+Operand metadata (`:throws`, `:category`, `:subject`, `:modifiers`, `:returns`) lives exclusively in `core/lib/qlang/core.qlang` — the authored catalog of `BindStep` declarations, each binding an identifier to a descriptor Map with `:qlang/kind :builtin` and a `:qlang/impl :qlang/prim/<name>` handle pointing into `PRIMITIVE_REGISTRY`. JS runtime modules carry only executable impls registered under the `:qlang/prim/<name>` key via `PRIMITIVE_REGISTRY.bind` at module-load time — no authored meta. Authored prose and example `~{…}` Quote segments live on each `BindStep`'s attached doc-prefix and are reachable through `:name | docs` and `:name | examples`. If any dispatch helper call in `core/src/runtime/*.mjs` passes docs, examples, or throws, that is duplication — flag it. If any `:qlang/impl` handle in `core.qlang` does not match a bound primitive, that is drift — the catalog test in `core/test/unit/core-catalog.test.mjs` pins the handoff, so a breakage there must be diagnosed before merge.
 
 ### 8. Spec / model / runtime documentation alignment
 
@@ -245,7 +245,7 @@ Stay inside the qlang surface. Do not propose changes outside the repository.
    - Read `core/src/grammar.peggy` to know the current AST shape.
    - Read `core/src/walk.mjs::astChildrenOf` to know the canonical traversal contract.
    - Read `docs/qlang-spec.md` for the current public surface.
-   - Read `core/lib/qlang/core.qlang` for the authoritative operand catalog (the Variant-B langRuntime source; one outer Map literal whose entries are descriptor Maps with `:qlang/impl :qlang/prim/<name>` handles into `PRIMITIVE_REGISTRY`).
+   - Read `core/lib/qlang/core.qlang` for the authoritative operand catalog (a series of `BindStep` declarations whose bodies are descriptor Maps with `:qlang/impl :qlang/prim/<name>` handles into `PRIMITIVE_REGISTRY`).
    - For added files, also read what they import from to verify the contract assumed at the call site.
 
 3. **Run the checks** in order, recording findings as you go:

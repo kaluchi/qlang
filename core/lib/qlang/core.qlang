@@ -1,12 +1,13 @@
-|~ Canonical catalog of every qlang built-in — the Variant-B
-   langRuntime source. Each entry is a `BindStep` binding an
-   identifier to a descriptor Map carrying :qlang/kind :builtin
-   and a :qlang/impl `:qlang/prim/<name>` keyword pointing into
-   `PRIMITIVE_REGISTRY`, plus the authored metadata (category /
-   subject / returns / modifiers / examples / throws). The
-   doc-comment prefix attached to each `BindStep` lives on the
-   `qlang/ast/qlang/core` Quote AST as `step.docs` and is
-   reachable through axis-operands (`:name | docs`, `| examples`).
+|~ Canonical catalog of every qlang built-in — the langRuntime
+   source parsed once at bootstrap. Each entry is a `BindStep`
+   binding an identifier to a descriptor Map carrying
+   `:qlang/kind :builtin` and a `:qlang/impl :qlang/prim/<name>`
+   keyword pointing into `PRIMITIVE_REGISTRY`, plus the authored
+   metadata (`:category`, `:subject`, `:returns`, `:modifiers`,
+   `:throws`). The doc-comment prefix attached to each `BindStep`
+   lives on the `qlang/ast/qlang/core` Quote AST as `step.docs`
+   and is reachable through axis-operands (`:name | docs`,
+   `:name | examples`).
 
    Sections (plain-comment dividers appear inline between entry
    groups; the grammar's _L rule absorbs them as whitespace inside

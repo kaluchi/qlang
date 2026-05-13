@@ -272,8 +272,6 @@ function buildBuiltinDescriptor(fn, explicitName) {
   return result;
 }
 
-// Variant-B descriptor field constants for Map-based reads.
-
 function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
   result.set('kind', keyword('conduit'));
@@ -315,7 +313,7 @@ function buildValueDescriptor(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
-  // Variant-B built-ins: env stores a descriptor Map directly
+  // Built-in bindings: env stores a descriptor Map directly
   // (authored in lib/qlang/core.qlang, loaded by langRuntime).
   // Reify transforms the raw descriptor into a user-facing shape:
   // internal :qlang/kind and :qlang/impl are stripped; :kind :builtin
@@ -474,13 +472,13 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
 // parse(source-string) → AST-Map      (the `read` primitive)
 // eval(ast-map)        → pipeValue    (the `eval` primitive)
 //
-// Together they close the loop that motivated the whole Variant-B
-// refactor: "qlang code" | parse | eval lifts a source string into
-// an AST-Map (via walk.mjs::astNodeToMap) and then re-enters the
-// evaluator against the current state (via walk.mjs::qlangMapToAst
-// + evalAst). Structured trail entries, programmatic conduit body
-// inspection, and hand-rolled AST construction all become user-
-// level qlang operations from this point on.
+// Together they close the source → data → exec loop: `"qlang
+// code" | parse | eval` lifts a source string into an AST-Map
+// (via `ast-codec.mjs::astNodeToMap`) and then re-enters the
+// evaluator against the current state (via `qlangMapToAst` +
+// `evalAst`). Structured `:trail` entries, programmatic conduit
+// body inspection, and hand-rolled AST construction all become
+// user-level qlang operations through this ring.
 
 const ParseSubjectNotStringOrQuoteError = declareSubjectError(
   'ParseSubjectNotStringOrQuoteError', 'parse', ['string', 'quote']);
@@ -488,7 +486,8 @@ const ParseSubjectNotStringOrQuoteError = declareSubjectError(
 const EvalSubjectNotMapOrQuoteError = declareSubjectError(
   'EvalSubjectNotMapOrQuoteError', 'eval', ['map', 'quote']);
 
-// parse — reads a source string into the Variant-B AST-Map form.
+// parse — reads a source string into the AST-Map form documented
+// in `ast-codec.mjs`.
 // A Quote-value is accepted too: it is "code in string form", so
 // `\`5 | mul(2)\` | parse` is the same as `"5 | mul(2)" | parse`
 // minus the escape boilerplate. Malformed sources surface on the
@@ -567,13 +566,13 @@ export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {
   return makeState(resultState.pipeValue, resultState.env);
 });
 
-// ── Variant-B primitive registry bindings ─────────────────────
+// ── Primitive registry bindings ───────────────────────────────
 // Bind each reflective operand impl into PRIMITIVE_REGISTRY under
-// its :qlang/prim/ namespaced key at module-load time. Note that
-// `asOperand` / `parseOperand` / `evalOperand` are the JS-level
-// identifiers for the qlang operands `as` / `parse` / `eval` (the
-// qlang names are JS reserved / common enough that the JS-side
-// identifier disambiguates); the registry keys use the qlang names.
+// its `:qlang/prim/<name>` key at module-load time. `asOperand`
+// / `parseOperand` / `evalOperand` are the JS-level identifiers
+// for the qlang operands `as` / `parse` / `eval` (the JS-side
+// names disambiguate against JS reserved / common-noun keywords);
+// the registry keys use the qlang names.
 PRIMITIVE_REGISTRY.bind('qlang/prim/env',         env);
 PRIMITIVE_REGISTRY.bind('qlang/prim/use',         use);
 PRIMITIVE_REGISTRY.bind('qlang/prim/reify',       reify);

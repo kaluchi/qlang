@@ -12,12 +12,12 @@ are layered on top of this model.
 
 Names in scope come from several sources — built-in operands
 (`count`, `filter`), domain functions (`@callers` and friends),
-`def`-bindings, and `as`-bindings — and a naive treatment would
-define each category separately with its own lookup rule. That
-path is noisy and leaves gaps: a bare identifier could mean
-"apply a function" or "reference a captured value" depending on
-which category it came from, with no single rule to govern the
-dispatch.
+BindStep declarations (`:name body`), and `as`-bindings — and a
+naive treatment would define each category separately with its
+own lookup rule. That path is noisy and leaves gaps: a bare
+identifier could mean "apply a function" or "reference a
+captured value" depending on which category it came from, with
+no single rule to govern the dispatch.
 
 This model collapses all four categories into **one**: every
 identifier is a field of the environment Map. Looking up a name
@@ -42,7 +42,8 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   `applyCombinator`; `evalNode` is a pure AST-node-type dispatcher.
 - **`env`** — the environment, a Map from identifier names to values
   or functions. Contains the language runtime, domain runtime, user
-  bindings from `def` and `as`, and anything else in scope.
+  bindings from BindStep declarations and `as` snapshots, and
+  anything else in scope.
 
 Every pipeline step is a pure function
 `(pipeValue, env) → (nextPipeValue, nextEnv)`.
@@ -134,13 +135,13 @@ Let `resolved = env[:name]`:
 
 `env` is unchanged by pure operands. Reflective operands may
 change it — that is the whole point of keeping them in the same
-namespace as ordinary lookups. They can be shadowed by `def` or
-`as` like any other name.
+namespace as ordinary lookups. They can be shadowed by a
+BindStep declaration or by `as` like any other name.
 
 This rule unifies built-in operands, domain functions, reflective
-built-ins (`use`, `env`), `def` references, and `as` references.
-They differ only in what is stored in `env[:name]`, never in
-how lookup behaves.
+built-ins (`use`, `env`), BindStep-installed conduits, and
+`as`-bound snapshots. They differ only in what is stored in
+`env[:name]`, never in how lookup behaves.
 
 ### 4. Value binding — `as(:name)`
 
@@ -211,10 +212,10 @@ Four surface forms, two orthogonal axes (line/block, plain/doc):
 
 The two doc forms additionally carry **metadata attachment**: their
 content is absorbed into the `docs` field of the immediately
-following RawStep (`def`, `as`, or any Primary). Multiple doc
-comments preceding the same RawStep accumulate into the `docs` Vec
-in declaration order — one comment token per Vec entry, with no
-concatenation of adjacent line docs.
+following binding — a BindStep (`:name body`) or an `as(:name)`
+OperandCall. Multiple doc comments preceding the same binding
+accumulate into the `docs` Vec in declaration order — one comment
+token per Vec entry, with no concatenation of adjacent line docs.
 
 A block doc with internal newlines produces **one** Vec entry (a
 multi-line string). Two consecutive `|~~|` line docs produce
@@ -237,9 +238,9 @@ At the start of a query, the leading `|` is virtual.
 Since comments are identity steps with no effect on the state
 pair, their evaluation semantics are trivial. The non-trivial
 content — the metadata attachment for doc forms — is a parser-side
-transformation: the parser folds `DocComment* RawStep` into a
-single RawStep AST node with a `docs` Vec field, so the `def` and
-`as` operand impls see the docs at construction time and fold them
+transformation: the parser folds `DocComment*` into the binding
+AST node's `docs` Vec field, so `evalBindStep` and the `as`
+operand impl see the docs at construction time and fold them
 into the conduit or snapshot wrapper.
 
 ## Reflective built-ins
@@ -285,8 +286,8 @@ Enables introspection:
     env | /count       -- read a specific binding
 
 Inside a fork, `env` returns the fork's current env (with any
-fork-local `as` or `def` writes still visible at the point of
-lookup).
+fork-local `as` snapshot or BindStep declaration still visible at
+the point of lookup).
 
 ### `reify`
 
@@ -312,9 +313,9 @@ Overloaded by captured-arg count:
     `::assertion[\`snippet\` \`expected\`]` segments — extract
     them via the Doc-content tokenizer (`/segments` projection
     on a Doc-value) or through `:name | examples`.
-  - `:conduit` — a `def`-bound conduit. Descriptor has `:kind :conduit`,
-    `:name`, `:source` (textual form of the body expression),
-    `:docs` (Vec from parser-attached doc comments).
+  - `:conduit` — a BindStep-installed conduit. Descriptor has
+    `:kind :conduit`, `:name`, `:source` (textual form of the body
+    expression), `:docs` (Vec from parser-attached doc comments).
   - `:snapshot` — an `as`-bound snapshot. Descriptor has `:kind
     :snapshot`, `:name`, `:value`, `:type`, `:docs` (Vec).
   - `:value` — any other scalar, Vec, Map, or Set. Descriptor has
@@ -468,10 +469,11 @@ Three come from the rest of the evaluation model:
 
 1. **Lexical left-to-right** — from `|` combinator threading.
 6. **Shadowing** — from Map last-write-wins on `env[:name]`.
-7. **Resolution order** — `as` > `def` > built-in is just "whoever
-   wrote last to `env[:name]`", which is a consequence of shadowing
-   in the user's typical write order (built-ins loaded first, then
-   user `def`, then `as` captures during query execution).
+7. **Resolution order** — `as` > BindStep > built-in is just
+   "whoever wrote last to `env[:name]`", which is a consequence
+   of shadowing in the user's typical write order (built-ins
+   loaded first, then user BindStep declarations, then `as`
+   captures during query execution).
 
 The four nesting rules collapse to: **nested expressions fork; forks
 don't leak env changes outward**. The other three come from the
@@ -489,7 +491,7 @@ step of any query is `use`, which installs the runtime:
     -- pure conceptual model — runs in host-wrapped context
     use                             -- (langRuntime, {}) → (langRuntime, langRuntime)
     | domainRuntime | use           -- add domain functions
-    | replEnv | use                 -- add REPL-accumulated def-bindings
+    | replEnv | use                 -- add REPL-accumulated BindStep declarations
     | <query body>
 
 **Practical model.** The host starts with `env = langRuntime` and
@@ -518,16 +520,16 @@ The reference implementation assembles `langRuntime` from two
 co-located sources:
 
 - **`lib/qlang/core.qlang`** — the authored catalog. A series
-  of `:name descriptor` steps; each binds a keyword
-  identifier (`:count`, `:filter`, `:def`, `:parse`, …) to a
+  of BindStep declarations; each binds a keyword identifier
+  (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
   descriptor Map carrying `:qlang/kind :builtin` plus a
   namespaced `:qlang/impl :qlang/prim/<name>` keyword that
   points into the primitive registry, plus authored metadata
   (`:category`, `:subject`, `:modifiers`, `:returns`,
-  `:throws`). Doc-prefixes attached to each `def`-step via
-  DocAttachedSequence (`|~~ ... ~~| :count ...`) become
-  the binding's `:docs` Vec; example assertions ride inside
-  the prose as `::assertion[\`snippet\` \`expected\`]` TaggedLit
+  `:throws`). Doc-prefixes attached to each BindStep via
+  DocAttachedSequence (`:count |~~ ... ~~| ...`) become the
+  binding's `:docs` Vec; example assertions ride inside the
+  prose as `::assertion[\`snippet\` \`expected\`]` TaggedLit
   segments — extracted at runtime through the Doc-content
   tokenizer.
 
@@ -701,7 +703,7 @@ replaces `pipeValue` — Step 3, second bullet.
 
 Final `pipeValue = [7 4]`. ✓
 
-### Example 6 — recursive `def`
+### Example 6 — recursive BindStep
 
 The language has no conditionals, so classic base-case recursion
 (factorial, Fibonacci, `if n == 0 then 1 else ...`) cannot be
@@ -762,7 +764,7 @@ Again starting with the tree literal above as `pipeValue`:
     | :allNames ([[/label], /children * allNames | flat] | flat)
     | allNames
 
-(The outer parentheses are required because a `def` body is a
+(The outer parentheses are required because a BindStep body is a
 single Primary — multi-step bodies must be wrapped. See Spec §
 "Named expressions" for the rule.)
 
@@ -842,7 +844,7 @@ whatever. The shape is preserved; fields are added/rewritten per
 node. This is the practical form of the "`walk` template".
 
 In all three examples, recursion works because `env[:name]` is
-written by the `def` step *before* any lookup of `name` occurs.
+written by the BindStep *before* any lookup of `name` occurs.
 When the body of the conduit references itself, the name is already
 resolvable. Termination is guaranteed whenever the tree is finite:
 `[] * self` collapses to `[]` without invoking `self`.
@@ -873,23 +875,23 @@ The user extended the namespace in the middle of a query by merging
 a Map of constants into `env`, then referenced those constants as
 ordinary identifiers downstream.
 
-**Note — `use` vs `def` for extension.** `use` imports a pre-built
-Map whose values are already the bindings you want (typically
-constants or host-provided native functions). It cannot be used to
-define new *functions* from inside the query, because a Map literal
-like `{:double mul(2)}` evaluates each value expression as a
-sub-pipeline: `mul(2)` applies to the current `pipeValue` via
-Rule 10 rather than producing a function object. For in-query
-function extension use `def`:
+**Note — `use` vs BindStep for extension.** `use` imports a
+pre-built Map whose values are already the bindings you want
+(typically constants or host-provided native functions). It
+cannot be used to define new *functions* from inside the query,
+because a Map literal like `{:double mul(2)}` evaluates each
+value expression as a sub-pipeline: `mul(2)` applies to the
+current `pipeValue` via Rule 10 rather than producing a function
+object. For in-query function extension, declare a BindStep:
 
     | :double mul(2)
     | :isSenior (/age | gt(65))
     | employees * {:doubledAge /age | double :senior isSenior}
 
-Each `def` writes a conduit that forces against `pipeValue` at
-each reference site. `use` and `def` are complementary: `use` for
-importing static data and host functions, `def` for derived
-expressions within the query.
+Each BindStep writes a conduit that forces against `pipeValue` at
+each reference site. `use` and BindStep are complementary: `use`
+for importing static data and host functions, BindStep for
+derived expressions within the query.
 
 ### Example 8 — env introspection
 
@@ -1147,10 +1149,9 @@ layering boundary.
   restricted instance to narrow the reachable surface.
 - `PRIMITIVE_REGISTRY` — the production singleton bound by every
   `runtime/*.mjs` module at import time under namespaced
-  `:qlang/prim/<name>` keys (`add`, `filter`, `def`, `parse`,
-  and so on). `evalOperandCall` resolves an
-  `:qlang/impl` handle through `PRIMITIVE_REGISTRY.resolve` at
-  every built-in dispatch.
+  `:qlang/prim/<name>` keys (`add`, `filter`, `parse`, `eval`,
+  and so on). `evalOperandCall` resolves an `:qlang/impl` handle
+  through `PRIMITIVE_REGISTRY.resolve` at every built-in dispatch.
 
 Per-site invariant errors cover the three bind-time failure
 modes: `PrimitiveKeyNotString` (non-string handle),
@@ -1266,8 +1267,8 @@ unrecognized tagged objects.
 - `decorateAstWithEffectMarkers(ast)` — stamps `.effectful` on every
   OperandCall and Projection node. Run automatically by `parse()`.
 - `findFirstEffectfulIdentifier(node)` — returns the first effectful
-  identifier in a subtree, used by the `def` operand for eval-time
-  effect validation.
+  identifier in a subtree, used by `evalBindStep` for eval-time
+  effect-laundering validation.
 
 The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
 when an identifier resolves to an effectful function value but the

@@ -59,7 +59,7 @@ part of the doc surface, not implementation lore.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (def / as / env / use / reify / manifest / runExamples / parse / eval). |
+| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / reify / manifest / runExamples / parse / eval). The declarative binding form `:name body` is a BindStep, not an operand. |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
@@ -176,9 +176,9 @@ offers to fill:
   and values into a single argument; higher arities have no
   meaning for entry iteration.
 
-Compose both-axis predicates by naming the 2-arity conduit with
-`def` inline in the pipeline, then reference it inside `filter` /
-`every` / `any`:
+Compose both-axis predicates by declaring the 2-arity conduit
+through a BindStep inline in the pipeline, then reference it
+inside `filter` / `every` / `any`:
 
 ```qlang
 m
@@ -867,14 +867,19 @@ display defaults where `false` is a sentinel meaning "no value".
 
 ## Reflective built-ins
 
-`env`, `use`, `reify`, `manifest`, `runExamples`, `def`, and `as`
-are **reflective operands**:
-they read or write the full evaluator state rather than working
-at the value level. All four are ordinary entries in `langRuntime`,
-look up like any other identifier, and can be shadowed by `def`
-or `as`. Their distinguishing feature is internal — the impl
+`env`, `use`, `reify`, `manifest`, `runExamples`, and `as` are
+**reflective operands**: they read or write the full evaluator
+state rather than working at the value level. All of them are
+ordinary entries in `langRuntime`, look up like any other
+identifier, and can be shadowed by a `:name body` BindStep or
+by `as`. Their distinguishing feature is internal — the impl
 receives `(state, lambdas)` directly instead of going through the
 descend-compute-ascend pattern of pure operands.
+
+The declarative binding form `:name body` / `:name [:params] body`
+is also covered in this section because it shares the same env-
+writing semantics, even though it is a grammar production (a
+BindStep), not an entry in `langRuntime`.
 
 ### `env`
 
@@ -886,7 +891,8 @@ descend-compute-ascend pattern of pure operands.
   - `env | has(:count)` → `true` (count is a built-in).
   - `env | /taxRate` → the value of a user binding, or `null`.
 - Inside a fork, returns the fork's current `env` (including any
-  fork-local `as` or `def` writes visible at the point of lookup).
+  fork-local `as` snapshot or BindStep declaration visible at the
+  point of lookup).
 - Captured arguments (`env(...)`) are an arity error.
 
 ### `use`
@@ -901,7 +907,7 @@ descend-compute-ascend pattern of pure operands.
   - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi e]`
     → `[3.14159 2.71828]`.
   - Shadow a built-in: `:use mul(2) | 5 | use` → `10`
-    (the user's `def` shadows the reflective `use`).
+    (the user's BindStep shadows the reflective `use`).
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,
   matching the documented fork rule — only the final `pipeValue`
@@ -966,7 +972,7 @@ depends on the value's provenance. Four descriptor kinds:
   operands (`count`, `sort` bare form, `env`, etc.) still fire
   on bare lookup because their `min == 0` and bare application
   IS their valid call shape.
-- **Conduit** — `pipeValue` is a `def`-bound conduit (named
+- **Conduit** — `pipeValue` is a BindStep-bound conduit (named
   pipeline fragment, zero or more parameters). Descriptor:
   ```
   {:kind   :conduit
@@ -1008,7 +1014,7 @@ missing). This is the introspection-by-name path:
 
     reify(:count)    -- descriptor of the count builtin
     reify(:myVar)    -- descriptor of an as-binding
-    reify(:double)   -- descriptor of a def-conduit
+    reify(:double)   -- descriptor of a BindStep-installed conduit
 
 - **Errors**: more than one captured arg → arity error; the
   captured arg is not a keyword → type error; the name is not
@@ -1042,25 +1048,33 @@ missing). This is the introspection-by-name path:
   `:snippet` Quote in an isolated env, deepEqual-compares against
   the `:expected` Quote's evaluation. Returns a Vec of
   `{:snippet :expected :actual :error :ok}` Maps.
-- Bindings without a source-located def-step (the bootstrap
-  `def` descriptor itself, host-installed bindings) return an
-  empty Vec.
+- Bindings without a source-located BindStep (host-installed
+  bindings, runtime-seeded built-ins) return an empty Vec.
 - **Example**: `:count | runExamples | first | /ok` → `true`.
 - **Errors**: subject neither Keyword nor Map-with-`:name`-string
   → `RunExamplesSubjectShapeError`.
 
-### `:name body` / `:name [:params] body`
+### `:name body` / `:name [:params] body` — BindStep
 
-- **Arity** variadic (2 or 3 captured). **Subject** any (pipeValue
-  passes through unchanged).
+- **Form**: grammar production, not a `langRuntime` entry. The
+  parser reads `:name`-or-`::Tag` head plus an optional attached
+  doc-prefix, optional param Vec, and optional body, and emits a
+  BindStep AST node (`core/src/grammar.peggy::BindStep`). Subject
+  passes through unchanged — BindStep is transparent for
+  pipeValue and writes only to env.
 - Declares a conduit (named pipeline fragment) in `env`. Zero-arity
   form `:name body` binds a pipeline fragment. Parametric form
   `:name [:params] body` binds a fragment with named
   parameters for fractal composition.
-- The body is stored as AST and evaluated in a lexically-scoped fork
-  at each call site (envRef tie-the-knot for recursive self-binding).
-  Parameters are lazy conduit-parameter proxies (nullary function
-  values wrapping captured-arg lambdas).
+- Purity-routed at eval time (`core/src/eval.mjs::evalBindStep`):
+  pure-literal bodies snapshot at decl-time and land as plain
+  values; impure or parametric bodies capture against a lexical
+  envRef and land as conduits. Parameters become lazy conduit-
+  parameter proxies (nullary function values wrapping
+  captured-arg lambdas).
+- Doc-only form: a BindStep with attached docs and no body
+  installs a Doc-value snapshot under the name, so prose-only
+  bindings are addressable through `reify(:name) | /value`.
 - **Examples**:
   - `:double mul(2) | 10 | double` → `20`.
   - `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
@@ -1072,11 +1086,11 @@ missing). This is the introspection-by-name path:
   with the payload as its initial pipeValue). Example:
   `::wrap {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
   → `"[x]"`.
-- **Errors**: name not a keyword → `DefNameNotKeyword`; params not
-  a Vec of keywords → `DefParamsNotVecOfKeywords`; captured-arg
-  count outside 1..3 → `DefArityInvalid`; 1-arg form without an
-  attached doc-prefix → `DefMissingDocOrBody`; clean name with
-  effectful body → `EffectLaunderingAtDefParse`.
+- **Errors**: clean binding name carrying an effectful body →
+  `EffectLaunderingAtDefParse` (the only runtime throw inside
+  `evalBindStep`). Name shape, params shape, body presence, and
+  doc-prefix arity are all guaranteed by the grammar — no
+  runtime check needed.
 
 ### `as(:name)`
 
@@ -1122,7 +1136,7 @@ missing). This is the introspection-by-name path:
 - Unwraps an AST-Map through `walk.mjs::qlangMapToAst` and runs
   the reconstructed AST against the current state. The caller's
   `pipeValue` becomes the inner evaluation's `pipeValue`; the
-  caller's `env` threads in unchanged. Any `def` / `as` / `use`
+  caller's `env` threads in unchanged. Any BindStep / `as` / `use`
   writes the inner code performs propagate out the same way a
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
@@ -1238,7 +1252,7 @@ distinct` enumerates).
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
-| `:reflective` | `def`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
+| `:reflective` | `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` (plus the `:name body` BindStep grammar production) |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths

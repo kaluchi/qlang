@@ -19,7 +19,8 @@
 //   'operand'     OperandCall name that resolves to a builtin
 //                 supplied by `langRuntime` AND each key segment
 //                 of a `Projection`
-//   'keyword'     `let` and `as` — the binding-introducing operands
+//   'keyword'     `as` — the binding-introducing operand, plus the
+//                 head Keyword/TagKeyword of a BindStep declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
 //                 the `!|` fail-track combinator — anything that

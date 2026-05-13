@@ -10,9 +10,9 @@
 // without leaving the language. `parse` lifts a string (or a
 // Quote-value) into the AST-Map shape documented in
 // `ast-codec.mjs`. `eval` walks the AST-Map back into a JS-object
-// AST and re-enters evaluation against the current state. `apply`
-// runs the AST-or-Quote currently in `pipeValue` against the
-// captured-arg subject — classical Lisp / JS `apply(fn, args)`
+// AST and re-enters evaluation against the surrounding state.
+// `apply` runs the AST-or-Quote sitting in `pipeValue` against
+// the captured-arg subject — classical Lisp / JS `apply(fn, args)`
 // convention. Trail-emitted suffix Quotes flow through `pipeValue`
 // naturally, so `error !| /trail | apply(start)` re-runs the
 // deflected steps against a fresh subject.

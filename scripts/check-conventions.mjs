@@ -154,7 +154,7 @@ function catalogDocDrift() {
 //
 // Every concrete error class in `core/src/**/*.mjs` must carry the
 // `Error` suffix — the convention that distinguishes named-error
-// type-bindings (`::FooError`) from value-class type-bindings
+// tag-bindings (`::FooError`) from value-class tag-bindings
 // (`::conduit`, `::qlang`, `::json`). Classes are introduced two
 // ways:
 //
@@ -269,7 +269,7 @@ if (errorSuffixViolations.length > 0) {
     `\nError-class \`Error\` suffix convention (${errorSuffixViolations.length}):\n`);
   for (const v of errorSuffixViolations) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
-    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class type-bindings (::conduit / ::qlang / ::json).\n`);
+    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class tag-bindings (::conduit / ::qlang / ::json).\n`);
   }
 }
 process.exit(1);

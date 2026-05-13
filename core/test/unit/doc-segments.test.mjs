@@ -79,7 +79,7 @@ describe('Doc tokenizer edge cases', () => {
   it('TaggedLit with unbound tag still segments — error becomes the segment value', async () => {
     // Bracket-balanced so findTaggedEnd succeeds and the parser
     // recognises a TaggedLit shape; eval then fails because the
-    // tag is not a registered type binding. The error is the
+    // tag is not a registered tag binding. The error is the
     // segment value — the tokenizer does not pre-validate types.
     // Three segments (prose, error, prose) prove the tagged
     // form was tokenized; treating it as prose would give one.

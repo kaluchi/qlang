@@ -5,11 +5,11 @@
 // direct `class Foo extends QlangError|QlangInvariantError|ArityError|
 // EffectLaunderingError` declarations) and emit
 // `core/lib/qlang/error/registry.qlang` — a grouped `BindStep`
-// catalog of type-binding declarations
+// catalog of tag-binding declarations
 //
 //   ::TagName
 //     |~~ <prose derived from the throw site's structured args> ~~|
-//     {:qlang/kind :type}
+//     {:qlang/kind :tag}
 //
 // Sections are grouped by the originating operand's `:category` keyword
 // in `core.qlang`, so arith / string / vec-reducer / container-selector /
@@ -22,7 +22,7 @@
 // The generator's purpose is to make every referenced `::Tag` known
 // to env so `evalBareTypeKeyword` resolves it and `!{:thrown ::Tag
 // …}` literals round-trip. Per-tag payload-shape validation lives
-// on the type binding's `:qlang/impl` Quote body — see
+// on the tag binding's `:qlang/impl` Quote body — see
 // `core/src/eval.mjs::evalTaggedLit`.
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
@@ -163,7 +163,7 @@ for (const path of QLANG_LIB_FILES) {
   const content = readFileSync(path, 'utf8');
   // Each BindStep block: `:operand … :category :catKW … :throws [::Tag …]`
   // We capture every BindStep header (`:opname` at line start, or
-  // `::TypeTag` for type-bindings) plus the next `:category` kw
+  // `::TagName` for tag-bindings) plus the next `:category` kw
   // and `:throws [...]` list within the same descriptor body.
   const bindStepRe = /^(::?\w[\w/-]*)\s*$/gm;
   let bindMatch;
@@ -198,7 +198,7 @@ for (const path of QLANG_LIB_FILES) {
 // (combinator-track errors, parser, codec, registry, session).
 for (const className of factoryInfo.keys()) tagSet.add(className);
 
-// Skip tags that are themselves type-bindings declared in core.qlang
+// Skip tags that are themselves tag-bindings declared in core.qlang
 // (`::conduit`, `::qlang`, `::json`) — they have their own entries
 // and would be duplicated by the registry catalog.
 const skipTags = new Set(['conduit', 'qlang', 'json']);
@@ -259,9 +259,9 @@ const PROSE_OVERRIDES = {
   ProjectionVecKeyNotIntegerError: 'Projection segment is a non-numeric string but the subject is a Vec — Vec indices must be integer offsets.',
   ProjectionFieldNotOnValueClassError: 'Projection segment is not a publicly-projectable field on the value-class subject (Quote / Doc / …).',
 
-  TaggedLitTagNotFoundError: '`::tag` constructor invocation failed — the tag is not a registered type-binding in env.',
-  TaggedLitNotTypeError: '`::tag` constructor invocation failed — the env binding under `::tag` is not a type-binding descriptor Map.',
-  TypeBindingHasNoConstructorError: 'Type-binding has no registered constructor — `:qlang/impl` is missing or wrong-shaped (expected a primitive Keyword or a Quote-impl body). The user-supplied payload is captured on the descriptor as `:payloadValue` / `:payloadType`; the actual `:qlang/impl` value as `:actualValue` / `:actualType`; the expected slot shape as `:expectedType [:keyword :quote]`.',
+  TaggedLitTagNotFoundError: '`::tag` constructor invocation failed — the tag is not a registered tag-binding in env.',
+  TaggedLitNotTagBindingError: '`::tag` constructor invocation failed — the env binding under `::tag` is not a tag-binding descriptor Map.',
+  TagBindingHasNoConstructorError: 'Tag-binding has no registered constructor — `:qlang/impl` is missing or wrong-shaped (expected a primitive Keyword or a Quote-impl body). The user-supplied payload is captured on the descriptor as `:payloadValue` / `:payloadType`; the actual `:qlang/impl` value as `:actualValue` / `:actualType`; the expected slot shape as `:expectedType [:keyword :quote]`.',
 
   ApplyToNonFunctionError: 'Identifier resolves to a non-function value — captured arguments cannot be applied.',
   AsNameNotKeywordError: '`as` requires a Keyword captured-arg (the binding name).',
@@ -280,9 +280,9 @@ const PROSE_OVERRIDES = {
   EffectLaunderingAtCallError: 'Identifier resolves to an `@`-effectful function, but the lookup name is not `@`-prefixed — laundering caught at the call site.',
 
   AxisBindingNotFoundError: 'Axis-operand (`source` / `docs` / `examples`) could not find a `BindStep` for the requested binding name across loaded modules.',
-  SourceSubjectNotKeywordOrTypeError: '`source` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
-  DocsSubjectNotKeywordOrTypeError: '`docs` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
-  ExamplesSubjectNotKeywordOrTypeError: '`examples` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
+  SourceSubjectNotKeywordOrTagError: '`source` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
+  DocsSubjectNotKeywordOrTagError: '`docs` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
+  ExamplesSubjectNotKeywordOrTagError: '`examples` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
   RunExamplesSubjectShapeError: '`runExamples` requires a Keyword (binding name) or a descriptor Map carrying a `:name` String.',
 
   ReifyArityOverflowError: '`reify` accepts 0 or 1 captured arguments, not more.',
@@ -381,8 +381,8 @@ const OPERAND_OVERRIDES = {
   ProjectionVecKeyNotIntegerError: '/',
   ProjectionFieldNotOnValueClassError: '/',
   TaggedLitTagNotFoundError: '::tag',
-  TaggedLitNotTypeError: '::tag',
-  TypeBindingHasNoConstructorError: '::tag',
+  TaggedLitNotTagBindingError: '::tag',
+  TagBindingHasNoConstructorError: '::tag',
   ApplyToNonFunctionError: 'identifier-lookup',
   ConduitArityMismatchError: 'conduit-call',
   ConduitParameterNoCapturedArgsError: 'conduit-parameter',
@@ -492,7 +492,7 @@ const CATEGORY_LABEL = new Map(CATEGORY_SECTION_ORDER);
 const RUNTIME_SECTION_ORDER = [
   ['projection',     'Projection (`/key`) throws',          ['/']],
   ['combinator',     'Combinator track-dispatch throws',    ['*', '>>']],
-  ['type-binding',   'Type-binding (::tag / ::conduit) throws', ['::tag', 'conduit-call', 'conduit-parameter', 'conduit-mint']],
+  ['tag-binding',    'Tag-binding (::tag / ::conduit) throws', ['::tag', 'conduit-call', 'conduit-parameter', 'conduit-mint']],
   ['identifier',     'Identifier-lookup + effect-laundering throws', ['identifier-lookup', 'BindStep']],
   ['parse',          'Parser throws',                       ['parse']],
   ['ast-codec',      'AST / value codec throws',            ['ast-codec', 'codec']],
@@ -547,7 +547,7 @@ const sectionRenderOrder = [
   'Misc throws'
 ];
 
-let out = `|~ Catalog of named-error type-bindings — one entry per JS-side
+let out = `|~ Catalog of named-error tag-bindings — one entry per JS-side
    throw site declared in \`core/src/operand-errors.mjs\` plus the
    special runtime sources (ParseError, foreign-error names,
    axis-operand failures, registry / dispatch / session / parse /
@@ -571,7 +571,7 @@ let out = `|~ Catalog of named-error type-bindings — one entry per JS-side
    \`::Tag!{…}\` literals round-trip through parse → eval → print
    without per-tag JS code. Per-tag payload-shape validators
    register through \`:qlang/impl\` Quote bodies on the
-   type-binding descriptor; the resolver branch one step above
+   tag-binding descriptor; the resolver branch one step above
    the universal shorthand picks them up automatically. ~|
 
 `;
@@ -581,7 +581,7 @@ for (const sectionLabel of sectionRenderOrder) {
   if (!tags || tags.length === 0) continue;
   out += `|~ ──────────────── ${sectionLabel} ──────────────── ~|\n\n`;
   for (const tag of tags) {
-    out += `::${tag}\n  |~~ ${describe(tag)} ~~|\n  {:qlang/kind :type}\n\n`;
+    out += `::${tag}\n  |~~ ${describe(tag)} ~~|\n  {:qlang/kind :tag}\n\n`;
   }
 }
 

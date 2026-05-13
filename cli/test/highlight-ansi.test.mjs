@@ -32,7 +32,7 @@ describe('highlightAnsi', () => {
     expect(out).toContain('\x1b[32m}\x1b[0m');            // upright close
   });
 
-  it('wraps a ~{::tag} BareTypeKeyword in the bright-cyan type escape', () => {
+  it('wraps a ~{::tag} BareTypeKeyword in the bright-cyan tag escape', () => {
     const out = highlightAnsi('::conduit', noBuiltins);
     expect(out).toBe('\x1b[96m::conduit\x1b[0m');
   });

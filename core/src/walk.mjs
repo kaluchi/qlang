@@ -11,7 +11,7 @@
 // `grammar.peggy` extends both this file and `ast-codec.mjs`; every
 // downstream walker inherits the knowledge.
 
-import { TYPE_BINDING_PREFIX, isTypeBindingName } from './types.mjs';
+import { TAG_BINDING_PREFIX, isTagBindingName } from './types.mjs';
 
 // Namespace alias values used by `bindingNamesVisibleAt` to select
 // which BindStep / `as` declaration shapes count toward the result
@@ -19,7 +19,7 @@ import { TYPE_BINDING_PREFIX, isTypeBindingName } from './types.mjs';
 // editor autocomplete) pass a named constant instead of a magic
 // string at every call site.
 export const VALUE_NAMESPACE = 'value';
-export const TYPE_NAMESPACE  = 'type';
+export const TAG_NAMESPACE   = 'tag';
 
 // astChildrenOf(node) — yields the direct semantic children of an
 // AST node. "Semantic" excludes plumbing like the {combinator, step}
@@ -69,7 +69,7 @@ export function astChildrenOf(node) {
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
     // Projection, QuoteLit (frozen source, lazy AST), DocLit (frozen
-    // content), BareTypeKeyword (type-namespace identifier),
+    // content), BareTypeKeyword (tag-namespace identifier),
     // LinePlainComment, BlockPlainComment, LineDocComment,
     // BlockDocComment have no semantic children.
   }
@@ -176,8 +176,8 @@ export function findAstNodeAtOffset(ast, offset) {
 // included because `:foo` is a value of type keyword, not an
 // identifier reference.
 export function findIdentifierOccurrences(ast, name) {
-  if (isTypeBindingName(name)) {
-    return findTypeNamespaceOccurrences(ast, name.slice(TYPE_BINDING_PREFIX.length));
+  if (isTagBindingName(name)) {
+    return findTagNamespaceOccurrences(ast, name.slice(TAG_BINDING_PREFIX.length));
   }
   const occurrences = [];
   walkAst(ast, (node) => {
@@ -197,7 +197,7 @@ export function findIdentifierOccurrences(ast, name) {
   return occurrences;
 }
 
-function findTypeNamespaceOccurrences(ast, tagName) {
+function findTagNamespaceOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'TaggedLit' && node.tag === tagName) occurrences.push(node);
@@ -236,9 +236,9 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // `namespace` picks which declaration shapes contribute:
 //   - `'value'` (default) — BindStep with a Keyword key (`:name body`)
 //     and OperandCall `as(:name)`. Names land bare (`'foo'`).
-//   - `'type'` — BindStep with a BareTypeKeyword key (`::Tag body`).
+//   - `'tag'` — BindStep with a BareTypeKeyword key (`::Tag body`).
 //     Names land with the `::Tag` prefix so the Set is directly
-//     comparable with type-namespace identifiers from env (which
+//     comparable with tag-namespace identifiers from env (which
 //     all carry the `::` prefix as part of their env key).
 //
 // Visibility rules, mirroring the runtime fork semantics:
@@ -254,9 +254,9 @@ export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) 
   const visible = new Set();
   walkAst(ast, (node) => {
     let bindingName;
-    if (namespace === TYPE_NAMESPACE) {
+    if (namespace === TAG_NAMESPACE) {
       if (node.type === 'BindStep' && node.key.type === 'BareTypeKeyword') {
-        bindingName = TYPE_BINDING_PREFIX + node.key.tag;
+        bindingName = TAG_BINDING_PREFIX + node.key.tag;
       } else {
         return;
       }

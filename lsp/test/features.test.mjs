@@ -86,7 +86,7 @@ describe('completionsAtOffset', () => {
     expect(items.length).toBeGreaterThan(60);
   });
 
-  it('mixed completions surface type-namespace bindings alongside builtins', async () => {
+  it('mixed completions surface tag-namespace bindings alongside builtins', async () => {
     const src = 'foo';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, 3, src);
@@ -94,20 +94,20 @@ describe('completionsAtOffset', () => {
     expect(items.some(i => i.label === '::AddLeftNotNumberError')).toBe(true);
   });
 
-  it('cursor right after `::` filters to type-namespace only', async () => {
+  it('cursor right after `::` filters to tag-namespace only', async () => {
     const src = '::';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, 2, src);
     expect(items.length).toBeGreaterThan(0);
     expect(items.every(i => i.label.startsWith('::'))).toBe(true);
-    expect(items.every(i => i.kind === 'class')).toBe(true);
+    expect(items.every(i => i.kind === 'tag')).toBe(true);
   });
 
-  it('in-document `::Type` BindStep contributes to type-namespace completions', async () => {
-    const src = '::MyType {:qlang/kind :type :qlang/impl ~{42}}';
+  it('in-document `::Tag` BindStep contributes to tag-namespace completions', async () => {
+    const src = '::MyTag {:qlang/kind :tag :qlang/impl ~{42}}';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
-    expect(items.some(i => i.label === '::MyType')).toBe(true);
+    expect(items.some(i => i.label === '::MyTag')).toBe(true);
   });
 });
 
@@ -170,7 +170,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/::AddLeftNotNumberError/);
-    expect(hover.content).toMatch(/type-binding/);
+    expect(hover.content).toMatch(/tag-binding/);
   });
 
   it('returns hover for TaggedLit constructor invocation', async () => {
@@ -180,7 +180,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/::conduit/);
-    expect(hover.content).toMatch(/type-binding/);
+    expect(hover.content).toMatch(/tag-binding/);
   });
 
   it('hover on ::Tag spans only the tag head, not the payload', async () => {

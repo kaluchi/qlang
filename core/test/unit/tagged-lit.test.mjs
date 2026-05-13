@@ -1,5 +1,5 @@
 // Tests for TaggedLit / BareTypeKeyword grammar + eval — the
-// type-namespace literal form. Type bindings live in env under the
+// tag-namespace literal form. Tag bindings live in env under the
 // `::`-prefixed key; ::tag<payload> looks up the binding, resolves
 // its constructor, and invokes it against the payload-value.
 
@@ -55,17 +55,17 @@ describe('::conduit constructor builds a Conduit-value', () => {
   });
 });
 
-describe('::tag descriptor registers a type-namespace binding', () => {
+describe('::tag descriptor registers a tag-namespace binding', () => {
   it('makes ::myType invokable through the ::conduit constructor handle', async () => {
     const result = await evalQuery(
-      '::myType {:qlang/kind :type :qlang/impl :qlang/type/conduit} | :f ::myType[[] ~{add(1)}] | 4 | f'
+      '::myType {:qlang/kind :tag :qlang/impl :qlang/type/conduit} | :f ::myType[[] ~{add(1)}] | 4 | f'
     );
     expect(result).toBe(5);
   });
 
   it('axis-operand finds the ::Tag … OperandCall form when navigating ::Tag | source', async () => {
     const source = await evalQuery(
-      '::myType {:qlang/kind :type :qlang/impl :qlang/type/conduit} | ::myType | source'
+      '::myType {:qlang/kind :tag :qlang/impl :qlang/type/conduit} | ::myType | source'
     );
     expect(source.type).toBe('quote');
     expect(source.source).toContain('::myType');
@@ -73,9 +73,9 @@ describe('::tag descriptor registers a type-namespace binding', () => {
 });
 
 describe('axis-operand subject classification', () => {
-  it('a tagged-instance Map (kind is TagKeyword) resolves through its tag to the type-binding source', async () => {
+  it('a tagged-instance Map (kind is TagKeyword) resolves through its tag to the tag-binding source', async () => {
     const source = await evalQuery(
-      '::myType {:qlang/kind :type :qlang/impl :qlang/type/conduit} | {:qlang/kind ::myType :qlang/payload []} | source'
+      '::myType {:qlang/kind :tag :qlang/impl :qlang/type/conduit} | {:qlang/kind ::myType :qlang/payload []} | source'
     );
     expect(source.type).toBe('quote');
     expect(source.source).toContain('::myType');
@@ -110,10 +110,10 @@ describe('TaggedLit error paths', () => {
     expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
   });
 
-  it('raises TaggedLitNotTypeError when type-binding resolves to a non-Map value', async () => {
+  it('raises TaggedLitNotTagBindingError when tag-binding resolves to a non-Map value', async () => {
     const err = await evalQuery('::badType 42 | ::badType[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitNotTypeError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitNotTagBindingError'));
   });
 
   it('::conduit raises ConduitPayloadNotVecError when payload is not a Vec', async () => {
@@ -243,33 +243,33 @@ describe('parse and eval accept Quote subjects transparently', () => {
   });
 });
 
-describe('User-defined type binding with Quote :qlang/impl', () => {
+describe('User-defined tag binding with Quote :qlang/impl', () => {
   it('applies the Quote body against payload as pipeValue', async () => {
     const result = await evalQuery(
-      '::wrap {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x"'
+      '::wrap {:qlang/kind :tag :qlang/impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x"'
     );
     expect(result).toBe('[x]');
   });
 
-  it('Quote body sees the type-binding payload as its initial pipeValue', async () => {
+  it('Quote body sees the tag-binding payload as its initial pipeValue', async () => {
     const result = await evalQuery(
-      '::shout {:qlang/kind :type :qlang/impl ~{append("!")}} | ::shout"ready"'
+      '::shout {:qlang/kind :tag :qlang/impl ~{append("!")}} | ::shout"ready"'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':exclaim append("!") | ::shout {:qlang/kind :type :qlang/impl ~{exclaim}} | ::shout"go"'
+      ':exclaim append("!") | ::shout {:qlang/kind :tag :qlang/impl ~{exclaim}} | ::shout"go"'
     );
     expect(result).toBe('go!');
   });
 
-  it(':qlang/impl that is neither Keyword nor Quote raises TypeBindingHasNoConstructorError', async () => {
+  it(':qlang/impl that is neither Keyword nor Quote raises TagBindingHasNoConstructorError', async () => {
     const err = await evalQuery(
-      '::bad {:qlang/kind :type :qlang/impl 42} | ::bad"x"'
+      '::bad {:qlang/kind :tag :qlang/impl 42} | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TypeBindingHasNoConstructorError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));
   });
 });

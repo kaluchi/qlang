@@ -32,7 +32,7 @@ const KIND_TO_SGR = {
   comment:  '2',          // dim
   atom:     '36',         // cyan
   effect:   '95',         // bright magenta
-  type:     '96',         // bright cyan — `::tag` type identifier
+  tag:      '96',         // bright cyan — `::tag` identifier
   operand:  '94',         // bright blue
   keyword:  '1;94',       // bold bright blue
   err:      '91',         // bright red — `!{}` + `!|`

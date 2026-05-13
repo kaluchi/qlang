@@ -64,7 +64,7 @@ import {
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
   VALUE_NAMESPACE,
-  TYPE_NAMESPACE,
+  TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
@@ -109,9 +109,9 @@ import {
   materializeTrail,
   describeType,
   typeKeyword,
-  TYPE_BINDING_PREFIX,
+  TAG_BINDING_PREFIX,
   MODULE_AST_PREFIX,
-  isTypeBindingName,
+  isTagBindingName,
   isModuleAstKey,
   moduleAstKey
 } from './types.mjs';
@@ -133,7 +133,7 @@ export {
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
   VALUE_NAMESPACE,
-  TYPE_NAMESPACE,
+  TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
@@ -177,9 +177,9 @@ export {
   materializeTrail,
   describeType,
   typeKeyword,
-  TYPE_BINDING_PREFIX,
+  TAG_BINDING_PREFIX,
   MODULE_AST_PREFIX,
-  isTypeBindingName,
+  isTagBindingName,
   isModuleAstKey,
   moduleAstKey
 };

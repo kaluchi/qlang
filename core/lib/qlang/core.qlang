@@ -1250,9 +1250,9 @@
   |~~ Builds a descriptor Map for a value or named binding.
     Value-level form (no captured args) describes the current
     pipeValue. A TagKeyword pipeValue resolves through the
-    type-namespace; everything else describes the pipeValue
+    tag-namespace; everything else describes the pipeValue
     directly. Named form reify(:name) looks up the
-    value-namespace; reify(::Tag) looks up the type-namespace.
+    value-namespace; reify(::Tag) looks up the tag-namespace.
     Descriptor :kind is one of :builtin, :conduit, :snapshot,
     :type, :value. ~~|
   {:qlang/kind :builtin
@@ -1269,7 +1269,7 @@
     the same shape as reify(:name) for that binding. Overloaded
     by captured-arg count: bare manifest or manifest(:value)
     lists value-namespace bindings; manifest(:type) lists
-    type-namespace `::Tag` bindings. ~~|
+    tag-namespace `::Tag` bindings. ~~|
   {:qlang/kind :builtin
              :qlang/impl :qlang/prim/manifest
              :category :reflective
@@ -1462,7 +1462,7 @@
 
 
 
-|~ ──────────────── Type bindings ──────────────── ~|
+|~ ──────────────── Tag bindings ──────────────── ~|
 
 ::conduit
   |~~ Conduit literal — invokeable lexically-scoped value carrying
@@ -1481,7 +1481,7 @@
 
     ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
     ~~|
-  {:qlang/kind :type
+  {:qlang/kind :tag
                   :qlang/impl :qlang/type/conduit
                   :spec {:payload :vec}
                   :throws [
@@ -1501,7 +1501,7 @@
 
     ~{::qlang{"k" "v"} | isMap | eq(true)}
     ~~|
-  {:qlang/kind :type
+  {:qlang/kind :tag
                 :qlang/impl :qlang/type/qlang
                 :spec {:payload :any}
                 :throws []}
@@ -1516,7 +1516,7 @@
 
     ~{::json{:k "v"} | isJsonObject | eq(true)}
     ~~|
-  {:qlang/kind :type
+  {:qlang/kind :tag
                :qlang/impl :qlang/type/json
                :spec {:payload :any}
                :throws []}
@@ -1568,7 +1568,7 @@
                 :subject :keyword
                 :returns :quote
                 :modifiers []
-                :throws [::SourceSubjectNotKeywordOrTypeError ::AxisBindingNotFoundError]}
+                :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 :docs
   |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
@@ -1581,7 +1581,7 @@
               :subject :keyword
               :returns :vec
               :modifiers []
-              :throws [::DocsSubjectNotKeywordOrTypeError ::AxisBindingNotFoundError]}
+              :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 :examples
   |~~ examples(:name) — Vec of Quote-values extracted from the
@@ -1594,4 +1594,4 @@
                   :subject :keyword
                   :returns :vec
                   :modifiers []
-                  :throws [::ExamplesSubjectNotKeywordOrTypeError ::AxisBindingNotFoundError]}
+                  :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}

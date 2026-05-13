@@ -44,11 +44,11 @@ const documentStates = new Map();
 // Two source files participate in goto-definition fallback:
 // `core/lib/qlang/core.qlang` — every value-namespace operand
 // descriptor — and `core/lib/qlang/error/registry.qlang` — every
-// `::Tag` type-binding for runtime per-site errors. Both are
+// `::Tag` tag-binding for runtime per-site errors. Both are
 // parsed at LSP startup; their indices merge into one
 // `name → { uri, source, range }` lookup table so a single
 // `definitionAtOffset` lookup serves both value-namespace
-// identifiers (`count`) and type-namespace identifiers
+// identifiers (`count`) and tag-namespace identifiers
 // (`::AddLeftNotNumberError`).
 
 let catalogCtx = null;
@@ -137,7 +137,7 @@ documents.onDidClose(e => {
 const COMPLETION_KIND_MAP = {
   function: CompletionItemKind.Function,
   variable: CompletionItemKind.Variable,
-  class:    CompletionItemKind.Class
+  tag:      CompletionItemKind.Struct
 };
 
 connection.onCompletion(async (params) => {

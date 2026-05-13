@@ -111,7 +111,7 @@ export async function langRuntime() {
       // Resolve :qlang/impl keywords to function values for
       // built-in operands — the dispatch hot path reads the
       // function from the descriptor without a registry lookup
-      // per call. Type bindings keep their :qlang/impl as a
+      // per call. Tag bindings keep their :qlang/impl as a
       // keyword (`:qlang/type/<tag>`); evalTaggedLit resolves
       // it through PRIMITIVE_REGISTRY at invocation. That keeps
       // `reify(::tag)` output readable — a keyword instead of

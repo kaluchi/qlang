@@ -18,16 +18,16 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc,
-  isModuleAstKey, isTypeBindingName, TYPE_BINDING_PREFIX
+  isModuleAstKey, isTagBindingName, TAG_BINDING_PREFIX
 } from '../types.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const SourceSubjectNotKeywordOrTypeError   = declareSubjectError('SourceSubjectNotKeywordOrTypeError',   'source',   ['keyword', 'tag-keyword']);
-const DocsSubjectNotKeywordOrTypeError     = declareSubjectError('DocsSubjectNotKeywordOrTypeError',     'docs',     ['keyword', 'tag-keyword']);
-const ExamplesSubjectNotKeywordOrTypeError = declareSubjectError('ExamplesSubjectNotKeywordOrTypeError', 'examples', ['keyword', 'tag-keyword']);
+const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tag-keyword']);
+const DocsSubjectNotKeywordOrTagError     = declareSubjectError('DocsSubjectNotKeywordOrTagError',     'docs',     ['keyword', 'tag-keyword']);
+const ExamplesSubjectNotKeywordOrTagError = declareSubjectError('ExamplesSubjectNotKeywordOrTagError', 'examples', ['keyword', 'tag-keyword']);
 // `axisName` ('source' / 'docs' / 'examples') and `bindingName`
-// (a value-namespace identifier or a `::`-prefixed type-binding
+// (a value-namespace identifier or a `::`-prefixed tag-binding
 // reference) are identifier-shaped strings at the JS level; the
 // JS→qlang lift in `error-convert.mjs::liftIdentifier` converts
 // them to Keyword / TagKeyword respectively at descriptor build
@@ -52,10 +52,10 @@ export const AxisBindingNotFoundError = declareShapeError('AxisBindingNotFoundEr
 //
 // Both forms attach docs to the named binding and both answer to
 // axis-operand lookups.
-function matchesBindingStep(step, isTypeBinding, targetName) {
+function matchesBindingStep(step, isTagBinding, targetName) {
   if (step.type === 'BindStep') {
     const key = step.key;
-    return isTypeBinding
+    return isTagBinding
       ? key.type === 'BareTypeKeyword' && key.tag === targetName
       : key.type === 'Keyword'         && key.name === targetName;
   }
@@ -74,20 +74,20 @@ function matchesBindingStep(step, isTypeBinding, targetName) {
 // examples of the binding shadowing-resolved at that point, not the
 // first declaration.
 function findBindingStepFor(moduleAst, bindingName) {
-  const isTypeBinding = isTypeBindingName(bindingName);
-  const targetName = isTypeBinding ? bindingName.slice(TYPE_BINDING_PREFIX.length) : bindingName;
+  const isTagBinding = isTagBindingName(bindingName);
+  const targetName = isTagBinding ? bindingName.slice(TAG_BINDING_PREFIX.length) : bindingName;
   if (moduleAst.type === 'Pipeline') {
     let lastMatch = null;
     for (let i = 0; i < moduleAst.steps.length; i++) {
       const stepWrapper = moduleAst.steps[i];
       const step = i === 0 ? stepWrapper : stepWrapper.step;
-      if (matchesBindingStep(step, isTypeBinding, targetName)) lastMatch = step;
+      if (matchesBindingStep(step, isTagBinding, targetName)) lastMatch = step;
     }
     return lastMatch;
   }
   // Single-step module — top-level AST is the step itself (BindStep
   // or an `as` OperandCall) rather than a Pipeline wrapper.
-  return matchesBindingStep(moduleAst, isTypeBinding, targetName) ? moduleAst : null;
+  return matchesBindingStep(moduleAst, isTagBinding, targetName) ? moduleAst : null;
 }
 
 // Iterate every module Quote stored in env under `qlang/ast/<uri>`.
@@ -109,25 +109,25 @@ export function findBindingStepAcrossModules(env, bindingName) {
 
 // Resolve the subject to a binding name a BindStep lives under.
 // Keyword `:foo`         → `'foo'` (ordinary value/conduit binding).
-// TagKeyword `::Tag`     → `'::Tag'` (type-binding subject — the form
+// TagKeyword `::Tag`     → `'::Tag'` (tag-binding subject — the form
 // `::Tag | source` lands here once BareTypeKeyword evaluation returns
 // a TagKeyword identifier).
 // Tagged-instance Map (`:qlang/kind` is a TagKeyword, e.g.
 // `::conduit[…]` or any user-defined `::tag[…]`) → `'::<tag>'`
 // taken from that kind's name — the instance's `docs` are the docs
-// of the type binding it instantiates.
+// of the tag binding it instantiates.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return TYPE_BINDING_PREFIX + subject.name;
+  if (isTagKeyword(subject)) return TAG_BINDING_PREFIX + subject.name;
   if (isQMap(subject)) {
     const kind = subject.get('qlang/kind');
-    if (isTagKeyword(kind)) return TYPE_BINDING_PREFIX + kind.name;
+    if (isTagKeyword(kind)) return TAG_BINDING_PREFIX + kind.name;
   }
   throw new ErrorCls(subject);
 }
 
 export const source = stateOp('source', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrTypeError);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrTagError);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFoundError({ axisName: 'source', bindingName });
@@ -136,7 +136,7 @@ export const source = stateOp('source', 1, (state, _lambdas) => {
 });
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrTypeError);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrTagError);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFoundError({ axisName: 'docs', bindingName });
@@ -146,7 +146,7 @@ export const docs = stateOp('docs', 1, (state, _lambdas) => {
 });
 
 export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrTypeError);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrTagError);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new AxisBindingNotFoundError({ axisName: 'examples', bindingName });

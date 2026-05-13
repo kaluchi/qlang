@@ -220,10 +220,10 @@ export function isTagKeyword(v) {
 // completion list, axis-walker) imports the constants instead of
 // re-typing the literal.
 //
-// `TYPE_BINDING_PREFIX` — `::Tag` identifiers carrying a type-binding
-// declaration (`::conduit`, `::AddLeftNotNumberError`). Lookup distinguishes
-// type-namespace identifiers from value-namespace `:foo` keys without
-// scanning the binding shape.
+// `TAG_BINDING_PREFIX` — `::Tag` identifiers carrying a tag binding
+// declaration (`::conduit`, `::AddLeftNotNumberError`). Lookup
+// distinguishes tag-namespace identifiers from value-namespace
+// `:foo` keys without scanning the binding shape.
 //
 // `MODULE_AST_PREFIX` — `qlang/ast/<uri>` env keys carry a Quote-value
 // holding the module's source plus the parsed AST. Axis-operands walk
@@ -232,11 +232,11 @@ export function isTagKeyword(v) {
 // LSP completion candidates because module-AST entries are storage,
 // not user-facing bindings.
 
-export const TYPE_BINDING_PREFIX = '::';
+export const TAG_BINDING_PREFIX = '::';
 export const MODULE_AST_PREFIX = 'qlang/ast/';
 
-export function isTypeBindingName(name) {
-  return typeof name === 'string' && name.startsWith(TYPE_BINDING_PREFIX);
+export function isTagBindingName(name) {
+  return typeof name === 'string' && name.startsWith(TAG_BINDING_PREFIX);
 }
 
 export function isModuleAstKey(name) {
@@ -265,10 +265,10 @@ export function isSnapshot(v) {
 // `:qlang/payload` Vec of the original constructor arguments. Any
 // `::tag` constructor that wants printValue / inline rendering
 // to round-trip back to the literal form stamps both fields.
-// The conduit/snapshot/type discriminators are excluded because
-// they own dedicated render paths (def-form, as-form, type-binding)
+// The conduit/snapshot/tag discriminators are excluded because
+// they own dedicated render paths (def-form, as-form, tag-binding)
 // rather than the generic `::<tag>[<payload>]` shape.
-const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'type']);
+const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
 export function isTaggedInstance(v) {
   if (!(v instanceof Map)) return false;
   const kind = v.get('qlang/kind');

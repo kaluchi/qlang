@@ -99,11 +99,11 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
 const TaggedLitTagNotFoundError = declareShapeError('TaggedLitTagNotFoundError',
-  ({ tag }) => `::${tag} — type binding not found in env`);
-const TaggedLitNotTypeError = declareShapeError('TaggedLitNotTypeError',
-  ({ tag, actualType }) => `::${tag} — type binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :type`);
-// `TypeBindingHasNoConstructorError` — fired when `::tag<payload>`
-// resolves the type-binding but its `:qlang/impl` slot is empty
+  ({ tag }) => `::${tag} — tag binding not found in env`);
+const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
+  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :tag`);
+// `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
+// resolves the tag-binding but its `:qlang/impl` slot is empty
 // (`undefined`) or carries a value that is neither a primitive
 // Keyword nor a Quote-impl body. The payload the user supplied is
 // stamped on the descriptor as `:payloadValue` / `:payloadType`
@@ -111,9 +111,9 @@ const TaggedLitNotTypeError = declareShapeError('TaggedLitNotTypeError',
 // as `:expectedType [:keyword :quote]`, and the actual `:qlang/impl`
 // value lands as `:actualValue` / `:actualType` so the diagnostic
 // reads as a single shape contract instead of a one-line template.
-const TypeBindingHasNoConstructorError = declareShapeError('TypeBindingHasNoConstructorError',
+const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
-    `::${tag} has no registered constructor — type-binding's :qlang/impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
+    `::${tag} has no registered constructor — tag-binding's :qlang/impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
 const DistributeSubjectNotVecError = declareSubjectError('DistributeSubjectNotVecError', '*', 'vec');
 const MergeSubjectNotVecError      = declareSubjectError('MergeSubjectNotVecError',      '>>', 'vec');
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
@@ -487,9 +487,9 @@ async function evalSetLit(node, state) {
 
 // ─── TaggedLit / BareTypeKeyword ────────────────────────────────
 
-// ::tag<payload> — type-namespace constructor invocation. Eval the
+// ::tag<payload> — tag-namespace constructor invocation. Eval the
 // payload sub-expression in a fork (inheriting outer pipeValue),
-// look up the type binding under `::tag`, resolve its constructor,
+// look up the tag binding under `::tag`, resolve its constructor,
 // invoke against the payload-value. The result becomes the new
 // pipeValue.
 async function evalTaggedLit(node, state) {
@@ -502,7 +502,7 @@ async function evalTaggedLit(node, state) {
   let typeBinding = envGet(state.env, typeKey);
   if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('qlang/value');
   if (!isQMap(typeBinding)) {
-    throw new TaggedLitNotTypeError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
+    throw new TaggedLitNotTagBindingError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
   // :qlang/impl carries either a `:qlang/prim/<tag>` keyword (built-in
   // type — resolved through PRIMITIVE_REGISTRY at every invocation so
@@ -522,16 +522,16 @@ async function evalTaggedLit(node, state) {
     return withPipeValue(state, resultState.pipeValue);
   }
   // Named-error construction shorthand — `::Tag!{…}` literal where
-  // ::Tag is a registered type-binding without a `:qlang/impl`
+  // ::Tag is a registered tag-binding without a `:qlang/impl`
   // constructor. The payload is already an ErrorValue (evaluated
   // from the ErrorLit one branch above); re-stamp the descriptor
   // with `:thrown ::Tag` so the literal round-trips through parse →
   // eval → print into the same shape `errorFromQlang` produces
   // from a JS throw site. Universal constructor every named-error
-  // type-binding shares; per-tag payload validators register
+  // tag-binding shares; per-tag payload validators register
   // through `:qlang/impl` Quote bodies and take precedence at the
   // `isQuote(implKey)` branch above. Constructor-less non-error
-  // TaggedLits fall through to TypeBindingHasNoConstructorError.
+  // TaggedLits fall through to TagBindingHasNoConstructorError.
   if (implKey === undefined && isErrorValue(payloadValue)) {
     const restamped = new Map(payloadValue.descriptor);
     restamped.set('thrown', makeTagKeyword(node.tag));
@@ -540,7 +540,7 @@ async function evalTaggedLit(node, state) {
       originalError: payloadValue.originalError
     }));
   }
-  throw new TypeBindingHasNoConstructorError({
+  throw new TagBindingHasNoConstructorError({
     tag: node.tag,
     payloadValue: payloadValue,
     payloadType: typeKeyword(payloadValue),
@@ -550,7 +550,7 @@ async function evalTaggedLit(node, state) {
   });
 }
 
-// ::tag — bare reference to a type-namespace identifier. The
+// ::tag — bare reference to a tag-namespace identifier. The
 // reference value is the TagKeyword itself (identity-as-value) —
 // stable, navigable, equality by name. Env existence check stays
 // (a `::TypoTag` that nothing declared raises `TaggedLitTagNotFoundError`

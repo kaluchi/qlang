@@ -6,7 +6,7 @@ import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue, makeT
 // (`:actualValue` / `:actualType` / Comparability pair-fields)
 // follows. Lower-entropy taxonomy (`:operand`, `:position`,
 // `:expectedType`, `:origin`, `:kind`, `:message`) trails — those
-// are derivable from the type-binding's catalog declaration and
+// are derivable from the tag-binding's catalog declaration and
 // reachable via `::Tag | docs / spec / source` hypertext navigation,
 // but stamped here too so programmatic projections (`!| /operand`,
 // `!| /kind`) work without an extra round-trip through axis-operands.

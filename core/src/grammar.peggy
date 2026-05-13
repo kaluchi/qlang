@@ -551,10 +551,10 @@ Primary
   / OperandCall
   / Scalar
 
-// TaggedLit / BareTypeKeyword — type-namespace identifiers under a
+// TaggedLit / BareTypeKeyword — tag-namespace identifiers under a
 // `::` prefix. `::tag<payload>` (TaggedLit) constructs a value
-// through the type's registered constructor; `::tag` alone
-// (BareTypeKeyword) is an identifier reference to the type binding
+// through the tag's registered constructor; `::tag` alone
+// (BareTypeKeyword) is an identifier reference to the tag binding
 // itself.
 //
 // Tag and payload are *atomic* — no whitespace permitted between

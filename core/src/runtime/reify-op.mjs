@@ -16,7 +16,7 @@ import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
   isTagKeyword, isErrorValue, typeKeyword, keyword,
-  isModuleAstKey, isTypeBindingName, TYPE_BINDING_PREFIX
+  isModuleAstKey, isTagBindingName, TAG_BINDING_PREFIX
 } from '../types.mjs';
 import { locationToQlangMap } from '../ast-codec.mjs';
 import {
@@ -35,7 +35,7 @@ const ReifyKeyNotKeywordError = declareShapeError('ReifyKeyNotKeywordError',
 const ManifestNamespaceNotKeywordError = declareShapeError('ManifestNamespaceNotKeywordError',
   ({ actualType }) => `manifest(:namespace) requires a keyword captured arg, got ${actualType.name}`);
 const ManifestNamespaceUnknownError = declareShapeError('ManifestNamespaceUnknownError',
-  ({ namespace }) => `manifest: unknown namespace :${namespace}, expected :value or :type`);
+  ({ namespace }) => `manifest: unknown namespace :${namespace}, expected :value or :tag`);
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
   ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`);
 
@@ -152,24 +152,24 @@ function describeBinding(value, explicitName) {
     reifyResult.set('effectful', implFn.effectful);
     return reifyResult;
   }
-  // Type bindings: env stores a Map with `:qlang/kind :type` plus
+  // Tag bindings: env stores a Map with `:qlang/kind :tag` plus
   // optional `:qlang/impl` (Keyword handle into PRIMITIVE_REGISTRY
   // for JS-side constructors, Quote-value for qlang-side bodies),
   // declared via `::Tag {descriptor}` BindStep. Reify shape mirrors
-  // the builtin path — strip `:qlang/kind`, stamp `:kind :type`,
+  // the builtin path — strip `:qlang/kind`, stamp `:kind :tag`,
   // pass through every other field. `:qlang/impl` stays addressable
-  // because authors composing type registries (manifest(:type),
+  // because authors composing tag registries (manifest(:tag),
   // catalog walks, error registry generation) consume the handle
   // directly.
-  if (qlKind && qlKind.name === 'type') {
-    const typeResult = new Map();
-    typeResult.set('kind', keyword('type'));
-    if (explicitName != null) typeResult.set('name', explicitName);
+  if (qlKind && qlKind.name === 'tag') {
+    const tagResult = new Map();
+    tagResult.set('kind', keyword('tag'));
+    if (explicitName != null) tagResult.set('name', explicitName);
     for (const [descKey, descVal] of value) {
       if (descKey === 'qlang/kind') continue;
-      typeResult.set(descKey, descVal);
+      tagResult.set(descKey, descVal);
     }
-    return typeResult;
+    return tagResult;
   }
   // Conduit-parameters (created at applyConduit time via makeFn)
   // are function values that can show up as env bindings while a
@@ -186,10 +186,10 @@ function describeBinding(value, explicitName) {
 export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => {
   if (reifyLambdas.length === 0) {
     // Subject-form. A TagKeyword pipeValue (from a bare `::Tag`
-    // reference upstream) reaches into the type-namespace; everything
+    // reference upstream) reaches into the tag-namespace; everything
     // else describes the pipeValue directly.
     if (isTagKeyword(state.pipeValue)) {
-      const typeKey = TYPE_BINDING_PREFIX + state.pipeValue.name;
+      const typeKey = TAG_BINDING_PREFIX + state.pipeValue.name;
       if (!state.env.has(typeKey)) {
         throw new UnresolvedIdentifierError(typeKey);
       }
@@ -200,13 +200,13 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
   if (reifyLambdas.length === 1) {
     const reifyKeyValue = await reifyLambdas[0](state.pipeValue);
     // Captured arg can be a value-namespace Keyword (`reify(:count)`)
-    // or a type-namespace TagKeyword (`reify(::ParseError)`); the
-    // lookup name keeps the leading `::` for the type-namespace
+    // or a tag-namespace TagKeyword (`reify(::ParseError)`); the
+    // lookup name keeps the leading `::` for the tag-namespace
     // branch so the env probe and descriptor `:name` field carry the
-    // same identifier shape `manifest(:type)` emits.
+    // same identifier shape `manifest(:tag)` emits.
     let lookupName;
     if (isKeyword(reifyKeyValue))         lookupName = reifyKeyValue.name;
-    else if (isTagKeyword(reifyKeyValue)) lookupName = TYPE_BINDING_PREFIX + reifyKeyValue.name;
+    else if (isTagKeyword(reifyKeyValue)) lookupName = TAG_BINDING_PREFIX + reifyKeyValue.name;
     else throw new ReifyKeyNotKeywordError({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
     if (!state.env.has(lookupName)) {
       throw new UnresolvedIdentifierError(lookupName);
@@ -221,10 +221,10 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
 // name. Overloaded by captured-arg count:
 //
 //   manifest          — value-namespace bindings (operands, conduits,
-//                       snapshots). Type-namespace `::tag` and module
+//                       snapshots). Tag-namespace `::tag` and module
 //                       AST storage filtered out.
 //   manifest(:value)  — explicit alias of the bare form.
-//   manifest(:type)   — type-namespace bindings (`::Tag` declarations
+//   manifest(:tag)    — tag-namespace bindings (`::Tag` declarations
 //                       from `error/registry.qlang` and any in-query
 //                       `::Tag {…}` BindSteps). Names render with the
 //                       `::Tag` prefix so the descriptors round-trip
@@ -243,7 +243,7 @@ export const manifest = stateOpVariadic('manifest', 2, async (state, manifestLam
         actualValue: arg
       });
     }
-    if (arg.name === 'type' || arg.name === 'value') {
+    if (arg.name === 'tag' || arg.name === 'value') {
       namespace = arg.name;
     } else {
       throw new ManifestNamespaceUnknownError({ namespace: arg.name });
@@ -252,9 +252,9 @@ export const manifest = stateOpVariadic('manifest', 2, async (state, manifestLam
   const entries = [];
   for (const [k, v] of state.env) {
     if (isModuleAstKey(k)) continue;
-    const isType = isTypeBindingName(k);
-    if (namespace === 'type' && !isType) continue;
-    if (namespace === 'value' && isType) continue;
+    const isTag = isTagBindingName(k);
+    if (namespace === 'tag' && !isTag) continue;
+    if (namespace === 'value' && isTag) continue;
     entries.push({ name: k, value: v });
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));

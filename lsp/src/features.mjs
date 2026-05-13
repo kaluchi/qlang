@@ -14,12 +14,12 @@ import {
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
   VALUE_NAMESPACE,
-  TYPE_NAMESPACE,
+  TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
   isModuleAstKey,
-  isTypeBindingName,
-  TYPE_BINDING_PREFIX
+  isTagBindingName,
+  TAG_BINDING_PREFIX
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -31,12 +31,12 @@ const F_MODIFIERS = 'modifiers';
 // returns a Vec of Doc-values. LSP wants the raw content strings;
 // pull them once on first request and reuse the array on subsequent
 // hovers / completions for the same binding. Cache key is the full
-// binding name including the `::` prefix for type-namespace lookups
-// so value/type-namespace entries do not collide.
+// binding name including the `::` prefix for tag-namespace lookups
+// so value/tag-namespace entries do not collide.
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
-  const query = name.startsWith(TYPE_BINDING_PREFIX)
+  const query = name.startsWith(TAG_BINDING_PREFIX)
     ? `${name} | docs`
     : `:"${name}" | docs`;
   let docs;
@@ -86,10 +86,10 @@ export function parseDocument(source, uri) {
 // on builtin operands that have no in-document declaration.
 //
 // core.qlang is a series of `BindStep` declarations — one per
-// builtin operand or type-binding — so the index walks for
+// builtin operand or tag-binding — so the index walks for
 // `BindStep` nodes and records the entire BindStep span as the
 // jump-target (the keyword key plus attached docs plus descriptor
-// body). Both value-namespace keys (`:count {…}`) and type-
+// body). Both value-namespace keys (`:count {…}`) and tag-
 // namespace keys (`::AddLeftNotNumberError {…}`) land in the index
 // under the canonical name a `definitionAtOffset` lookup builds.
 
@@ -100,7 +100,7 @@ export function buildCatalogIndex(catalogAst) {
     if (node.type !== 'BindStep') return;
     let name;
     if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = TYPE_BINDING_PREFIX + node.key.tag;
+    else if (node.key.type === 'BareTypeKeyword') name = TAG_BINDING_PREFIX + node.key.tag;
     else return;
     index.set(name, {
       startOffset: node.location.start.offset,
@@ -113,15 +113,15 @@ export function buildCatalogIndex(catalogAst) {
 // ── Completion ────────────────────────────────────────────────
 //
 // Two catalogs cached at startup: value-namespace builtins
-// (`count`, `filter`, `parse`, ...) and type-namespace bindings
+// (`count`, `filter`, `parse`, ...) and tag-namespace bindings
 // (`::AddLeftNotNumberError`, `::conduit`, ...). Walked from
 // `langRuntime` directly because the namespace partitioning runs
-// off `isTypeBindingName` on the env key; the catalog index built
+// off `isTagBindingName` on the env key; the catalog index built
 // in `buildCatalogIndex` covers the same surface but only carries
 // source-range info, not descriptor metadata.
 
 let _valueCompletions = null;
-let _typeCompletions = null;
+let _tagCompletions = null;
 
 async function valueNamespaceCompletions() {
   if (_valueCompletions) return _valueCompletions;
@@ -129,7 +129,7 @@ async function valueNamespaceCompletions() {
   _valueCompletions = [];
   for (const [k, descriptor] of runtime) {
     if (isModuleAstKey(k)) continue;
-    if (isTypeBindingName(k)) continue;
+    if (isTagBindingName(k)) continue;
     const docContents = await fetchDocsContents(k);
     _valueCompletions.push({
       label: k,
@@ -141,26 +141,26 @@ async function valueNamespaceCompletions() {
   return _valueCompletions;
 }
 
-async function typeNamespaceCompletions() {
-  if (_typeCompletions) return _typeCompletions;
+async function tagNamespaceCompletions() {
+  if (_tagCompletions) return _tagCompletions;
   const runtime = await langRuntime();
-  _typeCompletions = [];
+  _tagCompletions = [];
   for (const [k] of runtime) {
-    if (!isTypeBindingName(k)) continue;
+    if (!isTagBindingName(k)) continue;
     const docContents = await fetchDocsContents(k);
-    _typeCompletions.push({
+    _tagCompletions.push({
       label: k,
-      kind: 'class',
-      detail: 'type-binding',
+      kind: 'tag',
+      detail: 'tag-binding',
       documentation: docContents[0] ?? ''
     });
   }
-  return _typeCompletions;
+  return _tagCompletions;
 }
 
 // `source.substring(offset - 2, offset)` tells the completion path
 // whether the cursor sits right after a `::` prefix — that picks
-// the type-namespace catalog instead of (or alongside) the
+// the tag-namespace catalog instead of (or alongside) the
 // value-namespace one. Without source slice fallback, the default
 // surfaces both catalogs so hover-style discovery still works
 // inside `filter(::` / `eq(::` / first-token contexts.
@@ -170,18 +170,18 @@ function justTypedDoubleColon(source, offset) {
 }
 
 export async function completionsAtOffset(ast, offset, source = null) {
-  const typeOnly = justTypedDoubleColon(source, offset);
+  const tagOnly = justTypedDoubleColon(source, offset);
 
   let items;
-  if (typeOnly) {
-    items = [...(await typeNamespaceCompletions())];
+  if (tagOnly) {
+    items = [...(await tagNamespaceCompletions())];
     if (ast) {
-      for (const typeName of bindingNamesVisibleAt(ast, offset, TYPE_NAMESPACE)) {
-        if (!items.some(i => i.label === typeName)) {
+      for (const tagName of bindingNamesVisibleAt(ast, offset, TAG_NAMESPACE)) {
+        if (!items.some(i => i.label === tagName)) {
           items.push({
-            label: typeName,
-            kind: 'class',
-            detail: 'in-document type-binding',
+            label: tagName,
+            kind: 'tag',
+            detail: 'in-document tag-binding',
             documentation: null
           });
         }
@@ -190,7 +190,7 @@ export async function completionsAtOffset(ast, offset, source = null) {
     return items;
   }
 
-  items = [...(await valueNamespaceCompletions()), ...(await typeNamespaceCompletions())];
+  items = [...(await valueNamespaceCompletions()), ...(await tagNamespaceCompletions())];
   if (ast) {
     for (const name of bindingNamesVisibleAt(ast, offset, VALUE_NAMESPACE)) {
       if (!items.some(i => i.label === name)) {
@@ -202,12 +202,12 @@ export async function completionsAtOffset(ast, offset, source = null) {
         });
       }
     }
-    for (const typeName of bindingNamesVisibleAt(ast, offset, TYPE_NAMESPACE)) {
-      if (!items.some(i => i.label === typeName)) {
+    for (const tagName of bindingNamesVisibleAt(ast, offset, TAG_NAMESPACE)) {
+      if (!items.some(i => i.label === tagName)) {
         items.push({
-          label: typeName,
-          kind: 'class',
-          detail: 'in-document type-binding',
+          label: tagName,
+          kind: 'tag',
+          detail: 'in-document tag-binding',
           documentation: null
         });
       }
@@ -229,7 +229,7 @@ export async function hoverAtOffset(ast, source, offset) {
     return await hoverForOperand(node);
   }
   if (node.type === 'BareTypeKeyword' || node.type === 'TaggedLit') {
-    return await hoverForTypeTag(node);
+    return await hoverForTag(node);
   }
   if (node.type === 'Projection') {
     return hoverForProjection(node);
@@ -263,7 +263,7 @@ async function hoverForOperand(node) {
   };
 }
 
-// Type-namespace hover — `::Tag` reference (BareTypeKeyword) or
+// Tag-namespace hover — `::Tag` reference (BareTypeKeyword) or
 // `::Tag<payload>` constructor invocation (TaggedLit). Both resolve
 // the same way: lookup `::Tag` in env, pull `:docs` via the docs
 // axis-operand, render a markdown popup with the tag's identity
@@ -273,18 +273,18 @@ async function hoverForOperand(node) {
 // what reads as the hover range — for a TaggedLit the payload
 // sits outside the popup region so the editor highlights the tag
 // only, not the whole literal.
-async function hoverForTypeTag(node) {
-  const typeKey = TYPE_BINDING_PREFIX + node.tag;
+async function hoverForTag(node) {
+  const tagKey = TAG_BINDING_PREFIX + node.tag;
   const runtime = await langRuntime();
-  if (!runtime.has(typeKey)) return null;
+  if (!runtime.has(tagKey)) return null;
 
-  const docContents = await fetchDocsContents(typeKey);
+  const docContents = await fetchDocsContents(tagKey);
   const headStart = node.location.start.offset;
   const headEnd = headStart + 2 + node.tag.length;
 
   return {
     content: [
-      `**${typeKey}** — type-binding`,
+      `**${tagKey}** — tag-binding`,
       '',
       docContents.join('\n')
     ].join('\n'),
@@ -333,8 +333,8 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   //   * `TaggedLit` — `::` + `.tag` (type constructor invocation).
   let name;
   if (node.type === 'OperandCall')        name = node.name;
-  else if (node.type === 'BareTypeKeyword') name = TYPE_BINDING_PREFIX + node.tag;
-  else if (node.type === 'TaggedLit')       name = TYPE_BINDING_PREFIX + node.tag;
+  else if (node.type === 'BareTypeKeyword') name = TAG_BINDING_PREFIX + node.tag;
+  else if (node.type === 'TaggedLit')       name = TAG_BINDING_PREFIX + node.tag;
   else return null;
 
   // Tier 1: last visible in-document declaration — only offsets;
@@ -357,7 +357,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 //
 // Single recogniser for every AST shape that introduces a binding
 // in env: `BindStep` with a Keyword key (`:name body`), `BindStep`
-// with a BareTypeKeyword key (`::Tag body` — type-binding), or an
+// with a BareTypeKeyword key (`::Tag body` — tag-binding), or an
 // `as(:name)` OperandCall. Returns the bound name and the user-
 // facing symbol kind, or null when the node is not a declaration.
 function bindingDeclarationOf(node) {
@@ -366,7 +366,7 @@ function bindingDeclarationOf(node) {
       return { name: node.key.name, kind: 'conduit' };
     }
     if (node.key.type === 'BareTypeKeyword') {
-      return { name: TYPE_BINDING_PREFIX + node.key.tag, kind: 'conduit' };
+      return { name: TAG_BINDING_PREFIX + node.key.tag, kind: 'conduit' };
     }
     return null;
   }
@@ -441,7 +441,7 @@ export function referencesAtOffset(ast, offset) {
   //   4. Keyword node whose parent is a BindStep key or an
   //      `as(:name)` first arg — the name of the keyword.
   //   5. BareTypeKeyword either standalone or as a BindStep key —
-  //      the type-namespace identifier `::tag`.
+  //      the tag-namespace identifier `::tag`.
   let name = null;
   if (node.type === 'OperandCall') {
     if (node.name === 'as'
@@ -453,7 +453,7 @@ export function referencesAtOffset(ast, offset) {
     }
   } else if (node.type === 'BindStep') {
     if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = TYPE_BINDING_PREFIX + node.key.tag;
+    else if (node.key.type === 'BareTypeKeyword') name = TAG_BINDING_PREFIX + node.key.tag;
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
@@ -463,7 +463,7 @@ export function referencesAtOffset(ast, offset) {
       name = node.name;
     }
   } else if (node.type === 'BareTypeKeyword') {
-    name = TYPE_BINDING_PREFIX + node.tag;
+    name = TAG_BINDING_PREFIX + node.tag;
   }
 
   if (!name) return [];

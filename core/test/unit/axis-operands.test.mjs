@@ -82,16 +82,16 @@ describe(':name | source returns the BindStep source as Quote', () => {
     expect(cellEntry.result).toEqual([' Глава из лендинг пейджа ']);
   });
 
-  it('non-keyword subject raises SourceSubjectNotKeywordOrTypeError', async () => {
+  it('non-keyword subject raises SourceSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTypeError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });
 
-  it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrTypeError', async () => {
-    const err = await evalQuery('{:qlang/kind :type :qlang/impl :unbound} | source');
+  it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrTagError', async () => {
+    const err = await evalQuery('{:qlang/kind :tag :qlang/impl :unbound} | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTypeError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });
 });
 
@@ -107,10 +107,10 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
     expect(result).toContain('Returns the number of elements');
   });
 
-  it('non-keyword subject raises DocsSubjectNotKeywordOrTypeError', async () => {
+  it('non-keyword subject raises DocsSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTypeError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
   });
 
   it('unknown binding raises AxisBindingNotFoundError', async () => {
@@ -127,10 +127,10 @@ describe(':name | examples extracts Quote segments from docs', () => {
     expect(result).toBeGreaterThanOrEqual(0);
   });
 
-  it('non-keyword subject raises ExamplesSubjectNotKeywordOrTypeError', async () => {
+  it('non-keyword subject raises ExamplesSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTypeError'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
   });
 
   it('unknown binding raises AxisBindingNotFoundError', async () => {
@@ -140,14 +140,14 @@ describe(':name | examples extracts Quote segments from docs', () => {
   });
 });
 
-describe('axis-operands walk type-namespace bindings via ~{::} prefix', () => {
-  it(':"::conduit" | source finds the type binding via the keyword form', async () => {
+describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
+  it(':"::conduit" | source finds the tag binding via the keyword form', async () => {
     const result = await evalQuery(':"::conduit" | source');
     expect(isQuote(result)).toBe(true);
     expect(result.source.startsWith('::conduit')).toBe(true);
   });
 
-  it('::conduit | source resolves the type-binding descriptor through reverse env lookup', async () => {
+  it('::conduit | source resolves the tag-binding descriptor through reverse env lookup', async () => {
     const result = await evalQuery('::conduit | source');
     expect(isQuote(result)).toBe(true);
     expect(result.source.startsWith('::conduit')).toBe(true);

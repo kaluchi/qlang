@@ -32,11 +32,11 @@
 {"name":"every-cataloged-builtin-has-axis-docs","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/name | eq(\"def\") | not) | filter(/name | keyword | docs | empty) | count","expect":"0"}
 {"name":"every-cataloged-builtin-axis-doc-has-content","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/name | eq(\"def\") | not) | filter(/name | keyword | docs | first | /content | eq(\"\") | not) | count | gt(40)","expect":"true"}
 {"name":"manifest-via-table-runs","query":"env | manifest | filter(/category | eq(:arith)) | table | eq(\"\") | not","expect":"true"}
-{"name":"manifest-type-namespace-non-empty","query":"manifest(:type) | count | gt(0)","expect":"true"}
-{"name":"manifest-type-namespace-first-kind","query":"manifest(:type) | first | /kind","expect":":type"}
-{"name":"manifest-type-namespace-no-builtins","query":"manifest(:type) | filter(/kind | eq(:builtin)) | count","expect":"0"}
-{"name":"manifest-type-namespace-names-prefixed","query":"manifest(:type) | first | /name | startsWith(\"::\")","expect":"true"}
+{"name":"manifest-tag-namespace-non-empty","query":"manifest(:tag) | count | gt(0)","expect":"true"}
+{"name":"manifest-tag-namespace-first-kind","query":"manifest(:tag) | first | /kind","expect":":tag"}
+{"name":"manifest-tag-namespace-no-builtins","query":"manifest(:tag) | filter(/kind | eq(:builtin)) | count","expect":"0"}
+{"name":"manifest-tag-namespace-names-prefixed","query":"manifest(:tag) | first | /name | startsWith(\"::\")","expect":"true"}
 {"name":"manifest-value-explicit-matches-bare","query":"manifest(:value) | count | eq(manifest | count)","expect":"true"}
-{"name":"manifest-value-no-type-bindings","query":"manifest(:value) | filter(/kind | eq(:type)) | count","expect":"0"}
-{"name":"manifest-namespace-not-keyword","query":"manifest(\"type\") !| /thrown","expect":"::ManifestNamespaceNotKeywordError"}
+{"name":"manifest-value-no-tag-bindings","query":"manifest(:value) | filter(/kind | eq(:tag)) | count","expect":"0"}
+{"name":"manifest-namespace-not-keyword","query":"manifest(\"tag\") !| /thrown","expect":"::ManifestNamespaceNotKeywordError"}
 {"name":"manifest-namespace-unknown","query":"manifest(:wat) !| /thrown","expect":"::ManifestNamespaceUnknownError"}

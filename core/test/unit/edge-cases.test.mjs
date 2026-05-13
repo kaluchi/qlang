@@ -701,7 +701,7 @@ describe('runtime/reify-op.mjs reify and manifest', () => {
     expect(reifyResult.get('type')).toEqual(keyword('number'));
   });
 
-  it('reify subject-form on a TagKeyword whose type binding is missing throws UnresolvedIdentifierError', async () => {
+  it('reify subject-form on a TagKeyword whose tag binding is missing throws UnresolvedIdentifierError', async () => {
     // `evalBareTypeKeyword` already fail-fasts when a `::Tag`
     // reference is missing from env, so a qlang-surface query can't
     // construct an unbound TagKeyword. The reify subject-form's

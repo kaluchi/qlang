@@ -9,10 +9,10 @@
     "body": [":${1:name} [:${2:param}] (${3:body})"],
     "description": "Declare a parametric conduit via BindStep"
   },
-  "BindStep — type-binding": {
-    "prefix": "bindtype",
-    "body": ["::${1:Tag} {:qlang/kind :type}"],
-    "description": "Declare a type-namespace binding via BindStep"
+  "BindStep — tag-binding": {
+    "prefix": "bindtag",
+    "body": ["::${1:Tag} {:qlang/kind :tag}"],
+    "description": "Declare a tag-namespace binding via BindStep"
   },
   "as snapshot": {
     "prefix": "as",

@@ -28,8 +28,8 @@
 //   'quote'       Quote literal `~{ … }`, including the paired
 //                 `~{` opener and `}` closer (DocLit `|~~ … ~~|`
 //                 falls under 'comment')
-//   'type'        `::tag` head of a TaggedLit or a BareTypeKeyword —
-//                 the type-namespace identifier sigil + name
+//   'tag'         `::tag` head of a TaggedLit or a BareTypeKeyword —
+//                 the tag-namespace identifier sigil + name
 //   'set'         `#{` opener and matching `}` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
@@ -183,15 +183,15 @@ function collectSemanticSpans(src, ast, builtinNames) {
       }
 
       case 'BareTypeKeyword':
-        spans.push({ start: startOffset, end: endOffset, kind: 'type' });
+        spans.push({ start: startOffset, end: endOffset, kind: 'tag' });
         return false;
 
       case 'TaggedLit': {
-        // Cover the `::tag` head with a single 'type' span; descend
+        // Cover the `::tag` head with a single 'tag' span; descend
         // into the payload below so VecLit/MapLit/StringLit children
         // emit their own spans.
-        const typeHeadEnd = startOffset + 2 + node.tag.length;
-        spans.push({ start: startOffset, end: typeHeadEnd, kind: 'type' });
+        const tagHeadEnd = startOffset + 2 + node.tag.length;
+        spans.push({ start: startOffset, end: tagHeadEnd, kind: 'tag' });
         return; // descend into payload
       }
 

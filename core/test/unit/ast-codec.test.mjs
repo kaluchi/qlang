@@ -464,10 +464,10 @@ describe('round-trip — BindStep declarative form', () => {
     assertRoundTrip(':forwardDecl |~~| placeholder note'));
   it('Keyword key, docs + body', () =>
     assertRoundTrip(':double |~~| doubles its subject\nmul(2)'));
-  it('BareTypeKeyword key — type-binding form', () =>
-    assertRoundTrip('::Box {:qlang/kind :type}'));
+  it('BareTypeKeyword key — tag-binding form', () =>
+    assertRoundTrip('::Box {:qlang/kind :tag}'));
   it('BareTypeKeyword key, docs + body', () =>
-    assertRoundTrip('::Box |~~| boxes its payload\n{:qlang/kind :type}'));
+    assertRoundTrip('::Box |~~| boxes its payload\n{:qlang/kind :tag}'));
   it('two consecutive BindSteps', () =>
     assertRoundTrip(':a 1 :b 2'));
 });

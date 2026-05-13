@@ -21,9 +21,9 @@ const outputPath        = join(outputDir, 'core.mjs');
 mkdirSync(outputDir, { recursive: true });
 
 // CORE_SOURCE concatenates the authored catalog (core.qlang) with the
-// named-error type-binding registry (error/registry.qlang). The
+// named-error tag-binding registry (error/registry.qlang). The
 // registry declares each `::Tag` referenced in `:throws` Vecs so the
-// env carries a type-binding under every such key — `evalBareTypeKeyword`
+// env carries a tag-binding under every such key — `evalBareTypeKeyword`
 // finds them when an error-value's `:thrown` TagKeyword surfaces or
 // when an authored `!{:thrown ::Tag ...}` literal is evaluated. The
 // two files are joined by a section divider; downstream BindStep
@@ -32,7 +32,7 @@ mkdirSync(outputDir, { recursive: true });
 // entries reference `::Tag` BareTypeKeyword's in their `:throws` Vec
 // values — these evaluate via `evalBareTypeKeyword` at bootstrap and
 // require the target tag to already be present in the env. Loading
-// the registry up-front installs every named-error type-binding so
+// the registry up-front installs every named-error tag-binding so
 // the subsequent core.qlang def-steps see them and produce
 // descriptor Vec'и carrying TagKeyword references (not lifted
 // TaggedLitTagNotFoundError error-values).

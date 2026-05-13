@@ -67,7 +67,7 @@
     },
 
     "tag-keyword": {
-      "comment": "::tag — type-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::conduit | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
+      "comment": "::tag — tag-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::conduit | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
       "name": "entity.name.type.qlang",
       "match": "::[@_a-zA-Z][a-zA-Z0-9_/-]*"
     },

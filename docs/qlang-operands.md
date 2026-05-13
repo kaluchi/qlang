@@ -975,7 +975,7 @@ depends on the value's provenance. Four descriptor kinds:
   per-segment `:ok`. `:category` / `:subject` / `:returns`
   carry keywords because the underlying `core.qlang` entries are
   authored as keywords; `:throws` is a Vec of `::Tag` references
-  — each entry is a navigable type-binding, so
+  — each entry is a navigable tag-binding, so
   `:foo | /throws | first | docs` resolves the canonical prose
   for that throw site. The `:captured` field is a 2-element Vec
   `[min max]` describing the range of captured-arg counts the
@@ -1050,18 +1050,32 @@ missing). This is the introspection-by-name path:
 
 ### `manifest`
 
-- **Arity** 1. **Subject** irrelevant — `manifest` ignores its
-  pipeline input and iterates the current `env`.
+- **Arity** 1 or 2 (0 or 1 captured). **Subject** irrelevant —
+  `manifest` ignores its pipeline input and iterates the current
+  `env`.
 - Returns a Vec of descriptors, one per binding in `env`, sorted
   alphabetically by binding name. Each descriptor has the same
   shape `reify(:name)` would produce for that binding.
-- **Example**:
-  ```
-  env | manifest | filter(/kind | eq(:builtin)) | table
-  ```
-  Renders the full catalog of built-in operands as a tabular
-  report grouped by category.
-- Captured arguments (`manifest(...)`) → arity error.
+- **Namespace selector** (captured Keyword) picks which namespace
+  to walk:
+  - `manifest` / `manifest(:value)` — value-namespace bindings
+    (operands, conduits, snapshots, `use`-installed values).
+    Module-AST storage entries under `qlang/ast/<uri>` are filtered
+    out. Tag-namespace `::Tag` declarations are filtered out.
+  - `manifest(:tag)` — tag-namespace bindings (`::Tag` declarations
+    from `error/registry.qlang` and any in-query `::Tag {…}`
+    BindSteps). Names render with the `::Tag` prefix so the
+    descriptors round-trip through `reify(::Tag)`.
+- **Examples**:
+  - `env | manifest | filter(/kind | eq(:builtin)) | table` —
+    full catalog of built-in operands as a tabular report grouped
+    by category.
+  - `manifest(:tag) | first | /name` — first registered `::Tag`
+    binding, alphabetically.
+- **Errors**: captured arg is not a Keyword →
+  `ManifestNamespaceNotKeywordError`. Captured Keyword is neither
+  `:value` nor `:tag` → `ManifestNamespaceUnknownError`. Two or
+  more captured args → arity error.
 
 ### `runExamples`
 
@@ -1104,13 +1118,13 @@ missing). This is the introspection-by-name path:
 - **Examples**:
   - `:double mul(2) | 10 | double` → `20`.
   - `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
-- **Type-binding form**: `::tag descriptor` installs the
+- **Tag-binding form**: `::tag descriptor` installs the
   given descriptor Map under `::tag` for use as a TaggedLit
-  constructor. The descriptor must carry `:qlang/kind :type` plus
+  constructor. The descriptor must carry `:qlang/kind :tag` plus
   `:qlang/impl` — either a `:qlang/prim/<tag>` keyword (host-bound
   built-in constructor) or a Quote-value (qlang body that runs
   with the payload as its initial pipeValue). Example:
-  `::wrap {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
+  `::wrap {:qlang/kind :tag :qlang/impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
   → `"[x]"`.
 - **Errors**: clean binding name carrying an effectful body →
   `EffectLaunderingAtBindStepParseError` (the only runtime throw inside

@@ -1313,29 +1313,29 @@ the same binding slot, and subsequent lookups see the new docs.
 This is the pipeline-first analogue of "editing": rebind instead
 of mutate.
 
-## Type bindings
+## Tag bindings
 
 Names and modules introduced three forms that write into the
 binding scope (`as`, BindStep, `use`). All three live in the
 **value namespace** — the same namespace as built-in operands.
-A second namespace runs in parallel: the **type namespace**,
+A second namespace runs in parallel: the **tag namespace**,
 reached through identifiers prefixed with `::` instead of `:`.
 
 `:foo` and `::foo` are two distinct bindings. The value-namespace
 `:duration` (say, a Conduit doubling a number of seconds) and the
-type-namespace `::duration` (a constructor for a duration value)
+tag-namespace `::duration` (a constructor for a duration value)
 coexist in env without collision — colon-count picks the
 namespace, no positional rules required.
 
 ```qlang
 > :duration mul(60)
-  | ::duration {:qlang/kind :type :qlang/impl ~{as(:s) | {:seconds s}}}
+  | ::duration {:qlang/kind :tag :qlang/impl ~{as(:s) | {:seconds s}}}
   | [10 | duration, ::duration(10)]
 [600 {:seconds 10}]
 ```
 
 Element 1 (`10 | duration`) invokes the value-namespace Conduit;
-element 2 (`::duration(10)`) invokes the type-namespace
+element 2 (`::duration(10)`) invokes the tag-namespace
 constructor. Both bindings live in the same env, both reachable
 without a namespace switch operand — colon-count alone picks
 the namespace at every identifier site.
@@ -1344,8 +1344,8 @@ the namespace at every identifier site.
 
 `::tag` followed by any Primary expression is a **tagged literal**:
 the parser builds a TaggedLit AST node, the evaluator runs the
-payload, looks up `::tag` in the type namespace, and invokes the
-type's constructor against the payload value. The constructor's
+payload, looks up `::tag` in the tag namespace, and invokes the
+tag's constructor against the payload value. The constructor's
 return becomes the new `pipeValue`. `printValue` emits the same
 `::tag<payload>` form back, so the round-trip invariant holds.
 
@@ -1374,11 +1374,11 @@ The base composite literals — `[...]`, `{...}`, `#{...}`, `!{...}`,
 (Vec, Map, Set, Error, Quote). New value classes ride the `::tag`
 syntax until usage earns them a shorthand.
 
-### Declaring a type binding
+### Declaring a tag binding
 
-A type binding is just a BindStep whose key is a `::Tag`
+A tag binding is just a BindStep whose key is a `::Tag`
 identifier. The body is a descriptor Map carrying
-`:qlang/kind :type` plus a constructor handle (`:qlang/impl`).
+`:qlang/kind :tag` plus a constructor handle (`:qlang/impl`).
 
 Two equivalent paths register the constructor:
 
@@ -1387,13 +1387,13 @@ the payload as initial `pipeValue`. No JavaScript needed; works
 from inside any query or library module.
 
 ```qlang
-::wrap {:qlang/kind :type
+::wrap {:qlang/kind :tag
         :qlang/impl ~{prepend("[") | append("]")}}
 | "world" | ::wrap"world"
 |~| → "[world]"
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
-::permissions {:qlang/kind :type
+::permissions {:qlang/kind :tag
    :allowed #{:read :write :delete}
    :qlang/impl ~{as(:p)
      | every(:permissions/allowed | has)
@@ -1408,7 +1408,7 @@ from inside any query or library module.
 The Quote body sees the env of the invocation site — `:exclaim
 append("!") | ::shout {:qlang/impl ~{exclaim}}` resolves `exclaim`
 through ordinary env lookup. Identifier resolution carries no
-namespace switch — a type-constructor body is a normal
+namespace switch — a tag-constructor body is a normal
 sub-pipeline.
 
 **JS-side** — `:qlang/impl` is a keyword handle into the host
@@ -1429,7 +1429,7 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
 ```
 
 ```qlang
-::duration {:qlang/kind :type :qlang/impl :qlang/prim/duration}
+::duration {:qlang/kind :tag :qlang/impl :qlang/prim/duration}
 | ::duration{:hours 3}
 | /seconds
 |~| → 10800
@@ -1440,7 +1440,7 @@ The runtime catalog uses this path for `::conduit`, `::qlang`,
 register their own native types the same way.
 
 A descriptor whose `:qlang/impl` is neither a Keyword handle nor
-a Quote-value raises `TypeBindingHasNoConstructorError` on first
+a Quote-value raises `TagBindingHasNoConstructorError` on first
 invocation. A reference to a tag that has no env binding raises
 `TaggedLitTagNotFoundError` — typos and catalog drift surface
 loudly at the first use.
@@ -1501,7 +1501,7 @@ is parsed on demand only when the constructor invokes `eval` /
 `apply` / `/ast` against it.
 
 ```qlang
-::cond {:qlang/kind :type
+::cond {:qlang/kind :tag
         :qlang/impl ~{as(:branches)
           | first(/condition | parse | eval | isTruthy)
           | /body | parse | eval}}
@@ -1532,7 +1532,7 @@ TaggedLit value flows through the round-trip invariant.
 
 Three reserved tag names own dedicated render paths
 (`:conduit` → `::conduit[…]` form, `:snapshot` → wrapped value,
-`:type` → BindStep declaration form) and are excluded from the
+`:tag` → BindStep declaration form) and are excluded from the
 generic tagged-instance path; every other tag rides the generic
 shape.
 
@@ -1804,7 +1804,7 @@ Vec of Doc-values (one per attached doc-comment, each with a
 split); `:foo | examples` yields a Vec of every Quote segment
 extracted from those docs, ready for `runExamples` to execute as
 a self-test. The `:throws` Vec carries `::Tag` references — each
-entry is a navigable type-binding, so `:foo | /throws | first |
+entry is a navigable tag-binding, so `:foo | /throws | first |
 docs` resolves the canonical prose for that throw site.
 
 The `:captured` field is a 2-element Vec `[min max]` describing
@@ -1916,7 +1916,7 @@ Reify and manifest build a descriptor from the binding's
 metadata from the binding's **source AST** — the doc-prefix the
 author attached and the source-text the parser captured at
 declaration time. Subject is a Keyword (value-namespace binding
-name) or a TagKeyword (type-namespace tag), and the axis returns
+name) or a TagKeyword (tag-namespace tag), and the axis returns
 the named field as a fresh value.
 
 | Axis | Subject | Returns |
@@ -1944,7 +1944,7 @@ loaded after module A surfaces B's docs / source / examples; A's
 declaration is hidden by shadowing. Errors:
 
 - Subject is not a Keyword / TagKeyword → per-site subject error
-  (`SourceSubjectNotKeywordOrTypeError`, `DocsSubjectNot…`,
+  (`SourceSubjectNotKeywordOrTagError`, `DocsSubjectNot…`,
   `ExamplesSubjectNot…`).
 - No declaring BindStep found in any loaded module →
   `AxisBindingNotFoundError`.
@@ -2192,8 +2192,8 @@ rendering boundaries:
   body AST without a `.text` source slice, because `printConduit`
   emits `::conduit[:self [params] ~{body-source}]` and would
   otherwise produce a non-parseable placeholder.
-- **`TypeBindingHasNoConstructorError`** — `evalTaggedLit` refuses
-  a `::Tag<payload>` invocation when the type-binding's
+- **`TagBindingHasNoConstructorError`** — `evalTaggedLit` refuses
+  a `::Tag<payload>` invocation when the tag-binding's
   `:qlang/impl` is missing or wrong-shaped, surfacing
   `:payloadValue` / `:payloadType` / `:expectedType` on the
   descriptor so the diagnostic itself follows the same shape

@@ -211,14 +211,14 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'conduit')).toBe(true);
   });
 
-  it('finds BareTypeKeyword occurrences for type-namespace lookup', () => {
+  it('finds BareTypeKeyword occurrences for tag-namespace lookup', () => {
     const ast = parse('::conduit | source');
     const refs = findIdentifierOccurrences(ast, '::conduit');
     expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'conduit')).toBe(true);
   });
 
-  it('finds BindStep type-binding declaration via :: lookup', () => {
-    const ast = parse('::Box {:qlang/kind :type}');
+  it('finds BindStep tag-binding declaration via :: lookup', () => {
+    const ast = parse('::Box {:qlang/kind :tag}');
     const refs = findIdentifierOccurrences(ast, '::Box');
     expect(refs.some(n => n.type === 'BindStep' && n.key.type === 'BareTypeKeyword' && n.key.tag === 'Box')).toBe(true);
   });
@@ -308,30 +308,30 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('outer')).toBe(true);
   });
 
-  it('TYPE_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
-    const { TYPE_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '::MyType {:qlang/kind :type :qlang/impl ~{42}} | 42';
+  it('TAG_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
+    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = '::MyType {:qlang/kind :tag :qlang/impl ~{42}} | 42';
     const ast = parse(source);
-    const visible = bindingNamesVisibleAt(ast, source.length, TYPE_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
     expect(visible.has('::MyType')).toBe(true);
   });
 
-  it('TYPE_NAMESPACE skips value-namespace BindStep declarations', async () => {
-    const { TYPE_NAMESPACE } = await import('../../src/walk.mjs');
+  it('TAG_NAMESPACE skips value-namespace BindStep declarations', async () => {
+    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
     const source = ':valueName 1 | 42';
     const ast = parse(source);
-    const visible = bindingNamesVisibleAt(ast, source.length, TYPE_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
     expect(visible.has('valueName')).toBe(false);
     expect(visible.has(':valueName')).toBe(false);
     expect(visible.size).toBe(0);
   });
 
-  it('TYPE_NAMESPACE honours fork-isolation rules', async () => {
-    const { TYPE_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '(::Local {:qlang/kind :type :qlang/impl ~{42}}) | here';
+  it('TAG_NAMESPACE honours fork-isolation rules', async () => {
+    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = '(::Local {:qlang/kind :tag :qlang/impl ~{42}}) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
-    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TYPE_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
     expect(visible.has('::Local')).toBe(false);
   });
 });

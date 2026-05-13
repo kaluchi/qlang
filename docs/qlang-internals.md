@@ -367,19 +367,19 @@ Typical call pattern:
 `manifest` is a convenience wrapper around `reify(:name)` applied
 to every key in `env | keys`.
 
-## Type bindings and TaggedLit dispatch
+## Tag bindings and TaggedLit dispatch
 
 Identifiers prefixed with `::` resolve in a parallel namespace
 from `:` identifiers. Both namespaces share one env Map keyed by
 plain strings — the discriminator is the literal `::` prefix on
 the key, no extra storage. `core/src/types.mjs` exports the
-`TYPE_BINDING_PREFIX` constant (`'::'`) and the `isTypeBindingName`
+`TAG_BINDING_PREFIX` constant (`'::'`) and the `isTagBindingName`
 predicate; every place that needs to walk env entries by namespace
 (`manifest` filtering, axis-operand lookup, LSP completion) reads
 through these helpers rather than re-typing the prefix string.
 
-A type binding is the value stored under `'::Tag'`: a frozen Map
-carrying `:qlang/kind :type` plus a constructor handle on
+A tag binding is the value stored under `'::Tag'`: a frozen Map
+carrying `:qlang/kind :tag` plus a constructor handle on
 `:qlang/impl`.
 
 ### TaggedLit eval flow
@@ -391,12 +391,12 @@ carrying `:qlang/kind :type` plus a constructor handle on
    that inherits the outer `pipeValue` — the same fork rule that
    governs Map / Vec / Set literal entries. The result is the
    **payload-value**.
-2. **Look up the type binding.** `'::' + node.tag` is the env key.
+2. **Look up the tag binding.** `'::' + node.tag` is the env key.
    Absent → `TaggedLitTagNotFoundError` with the missing tag name.
 3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
    snapshots route through here too).
 4. **Validate descriptor shape.** Binding must be a Map (typically
-   carrying `:qlang/kind :type`). Otherwise → `TaggedLitNotTypeError`.
+   carrying `:qlang/kind :tag`). Otherwise → `TaggedLitNotTagBindingError`.
 5. **Read `:qlang/impl`.** Three branches dispatch by the impl
    value's runtime shape:
    - **Keyword handle** (`:qlang/prim/<tag>`) — resolve through
@@ -413,12 +413,12 @@ carrying `:qlang/kind :type` plus a constructor handle on
      promoted tag. Lets every entry in the named-error registry
      work as a constructor without per-tag JS, mirroring the
      shape `errorFromQlang` produces from a runtime throw site.
-6. **Otherwise** → `TypeBindingHasNoConstructorError` carrying
+6. **Otherwise** → `TagBindingHasNoConstructorError` carrying
    `:payloadValue` / `:payloadType` / `:expectedType
    [:keyword :quote]` / `:actualValue` / `:actualType` so the
    diagnostic reads as a structural-shape mismatch.
 
-### `BareTypeKeyword` — type-identifier as value
+### `BareTypeKeyword` — tag-identifier as value
 
 `::tag` without a following Primary parses as a `BareTypeKeyword`
 AST node. Evaluation looks the binding up the same way (step 2
@@ -462,7 +462,7 @@ the generic tagged-instance branch:
   Conduit value-class print).
 - `:snapshot` → wrapped value (snapshot is an env wrapper,
   recursing on the underlying value).
-- `:type` → BindStep declaration form (a type-binding renders
+- `:tag` → BindStep declaration form (a tag-binding renders
   back as `::Tag {descriptor}`, not as an instance).
 
 The named-error promotion (step 5 above, undefined-impl branch)

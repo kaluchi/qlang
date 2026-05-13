@@ -242,10 +242,10 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
   });
 
-  it('round-trips a user-defined type-binding installed via ::tag ...', async () => {
+  it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(
-      '::wrap {:qlang/kind :type :qlang/impl ~{prepend("[") | append("]")}}'
+      '::wrap {:qlang/kind :tag :qlang/impl ~{prepend("[") | append("]")}}'
     );
     const restored = await deserializeSession(
       JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))

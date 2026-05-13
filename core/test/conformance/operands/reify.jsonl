@@ -29,7 +29,7 @@
 {"name":"builtin-captured-env-zero","query":"env | /env | reify | /captured","expect":"[0 0]"}
 {"name":"builtin-captured-if-fixed-three","query":"env | /if | reify | /captured","expect":"[3 3]"}
 {"name":"builtin-captured-when-fixed-two","query":"env | /when | reify | /captured","expect":"[2 2]"}
-{"name":"builtin-captured-manifest-zero","query":"env | /manifest | reify | /captured","expect":"[0 0]"}
+{"name":"builtin-captured-manifest-variadic","query":"env | /manifest | reify | /captured","expect":"[0 1]"}
 {"name":"builtin-category-arith","query":"env | /add | reify | /category","expect":":arith"}
 {"name":"builtin-category-container-reducer","query":"env | /count | reify | /category","expect":":container-reducer"}
 {"name":"builtin-category-container-selector","query":"env | /filter | reify | /category","expect":":container-selector"}
@@ -85,3 +85,9 @@
 {"name":"snapshot-location-non-null","query":"42 | as(:snap) | reify(:snap) | /location | eq(null) | not","expect":"true"}
 {"name":"value-descriptor-name-is-null-without-binding","query":"42 | reify | /name","expect":"::ProjectionKeyNotInMapError!{\n  :fault {\n    :step ~{/name}\n    :input {\n      :kind :value\n      :value 42\n      :type :number\n    }\n  }\n  :key \"name\"\n  :subject {\n    :kind :value\n    :value 42\n    :type :number\n  }\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"manifest-effectful-uniform-false-on-langruntime","query":"manifest * /effectful | distinct","expect":"[false]"}
+{"name":"reify-tag-keyword-captured","query":"reify(::AddLeftNotNumberError) | /kind","expect":":type"}
+{"name":"reify-tag-keyword-name","query":"reify(::AddLeftNotNumberError) | /name","expect":"\"::AddLeftNotNumberError\""}
+{"name":"reify-tag-keyword-via-pipevalue","query":"::AddLeftNotNumberError | reify | /kind","expect":":type"}
+{"name":"reify-tag-keyword-name-via-pipevalue","query":"::AddLeftNotNumberError | reify | /name","expect":"\"::AddLeftNotNumberError\""}
+{"name":"reify-tag-keyword-unbound-via-pipevalue","query":"::UnknownTag !| /thrown","expect":"::TaggedLitTagNotFoundError"}
+{"name":"reify-tag-keyword-non-keyword-captured-arg","query":":foo 42 | reify(::ThisTagDoesNotExist) !| /thrown","expect":"::ReifyKeyNotKeywordError"}

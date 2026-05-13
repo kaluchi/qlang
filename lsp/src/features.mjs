@@ -13,6 +13,8 @@ import {
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
+  VALUE_NAMESPACE,
+  TYPE_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
   isModuleAstKey,
@@ -25,14 +27,24 @@ const F_CATEGORY  = 'category';
 const F_SUBJECT   = 'subject';
 const F_MODIFIERS = 'modifiers';
 
-// Cached docs lookup — `:name | docs` axis-call returns a Vec of
-// Doc-values. LSP wants the raw content strings; pull them once on
-// first request and reuse the array on subsequent hovers /
-// completions for the same operand.
+// Cached docs lookup — `:name | docs` (or `::Tag | docs`) axis-call
+// returns a Vec of Doc-values. LSP wants the raw content strings;
+// pull them once on first request and reuse the array on subsequent
+// hovers / completions for the same binding. Cache key is the full
+// binding name including the `::` prefix for type-namespace lookups
+// so value/type-namespace entries do not collide.
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
-  const docs = await evalQuery(`:"${name}" | docs`);
+  const query = name.startsWith(TYPE_BINDING_PREFIX)
+    ? `${name} | docs`
+    : `:"${name}" | docs`;
+  let docs;
+  try {
+    docs = await evalQuery(query);
+  } catch {
+    docs = [];
+  }
   const contents = Array.isArray(docs) ? docs.map(d => d.content) : [];
   docsCache.set(name, contents);
   return contents;
@@ -99,38 +111,103 @@ export function buildCatalogIndex(catalogAst) {
 }
 
 // ── Completion ────────────────────────────────────────────────
+//
+// Two catalogs cached at startup: value-namespace builtins
+// (`count`, `filter`, `parse`, ...) and type-namespace bindings
+// (`::AddLeftNotNumberError`, `::conduit`, ...). Walked from
+// `langRuntime` directly because the namespace partitioning runs
+// off `isTypeBindingName` on the env key; the catalog index built
+// in `buildCatalogIndex` covers the same surface but only carries
+// source-range info, not descriptor metadata.
 
-let _builtinCompletions = null;
+let _valueCompletions = null;
+let _typeCompletions = null;
 
-async function builtinCompletions() {
-  if (_builtinCompletions) return _builtinCompletions;
+async function valueNamespaceCompletions() {
+  if (_valueCompletions) return _valueCompletions;
   const runtime = await langRuntime();
-  _builtinCompletions = [];
+  _valueCompletions = [];
   for (const [k, descriptor] of runtime) {
     if (isModuleAstKey(k)) continue;
     if (isTypeBindingName(k)) continue;
     const docContents = await fetchDocsContents(k);
-    _builtinCompletions.push({
+    _valueCompletions.push({
       label: k,
       kind: 'function',
       detail: formatMetaValue(descriptor.get(F_CATEGORY)),
       documentation: docContents[0] ?? ''
     });
   }
-  return _builtinCompletions;
+  return _valueCompletions;
 }
 
-export async function completionsAtOffset(ast, offset) {
-  const items = [...(await builtinCompletions())];
+async function typeNamespaceCompletions() {
+  if (_typeCompletions) return _typeCompletions;
+  const runtime = await langRuntime();
+  _typeCompletions = [];
+  for (const [k] of runtime) {
+    if (!isTypeBindingName(k)) continue;
+    const docContents = await fetchDocsContents(k);
+    _typeCompletions.push({
+      label: k,
+      kind: 'class',
+      detail: 'type-binding',
+      documentation: docContents[0] ?? ''
+    });
+  }
+  return _typeCompletions;
+}
 
+// `source.substring(offset - 2, offset)` tells the completion path
+// whether the cursor sits right after a `::` prefix — that picks
+// the type-namespace catalog instead of (or alongside) the
+// value-namespace one. Without source slice fallback, the default
+// surfaces both catalogs so hover-style discovery still works
+// inside `filter(::` / `eq(::` / first-token contexts.
+function justTypedDoubleColon(source, offset) {
+  if (typeof source !== 'string' || offset < 2) return false;
+  return source[offset - 2] === ':' && source[offset - 1] === ':';
+}
+
+export async function completionsAtOffset(ast, offset, source = null) {
+  const typeOnly = justTypedDoubleColon(source, offset);
+
+  let items;
+  if (typeOnly) {
+    items = [...(await typeNamespaceCompletions())];
+    if (ast) {
+      for (const typeName of bindingNamesVisibleAt(ast, offset, TYPE_NAMESPACE)) {
+        if (!items.some(i => i.label === typeName)) {
+          items.push({
+            label: typeName,
+            kind: 'class',
+            detail: 'in-document type-binding',
+            documentation: null
+          });
+        }
+      }
+    }
+    return items;
+  }
+
+  items = [...(await valueNamespaceCompletions()), ...(await typeNamespaceCompletions())];
   if (ast) {
-    const userNames = bindingNamesVisibleAt(ast, offset);
-    for (const name of userNames) {
+    for (const name of bindingNamesVisibleAt(ast, offset, VALUE_NAMESPACE)) {
       if (!items.some(i => i.label === name)) {
         items.push({
           label: name,
           kind: 'variable',
-          detail: 'def/as binding',
+          detail: 'BindStep / as binding',
+          documentation: null
+        });
+      }
+    }
+    for (const typeName of bindingNamesVisibleAt(ast, offset, TYPE_NAMESPACE)) {
+      if (!items.some(i => i.label === typeName)) {
+        items.push({
+          label: typeName,
+          kind: 'class',
+          detail: 'in-document type-binding',
           documentation: null
         });
       }
@@ -150,6 +227,9 @@ export async function hoverAtOffset(ast, source, offset) {
 
   if (node.type === 'OperandCall') {
     return await hoverForOperand(node);
+  }
+  if (node.type === 'BareTypeKeyword' || node.type === 'TaggedLit') {
+    return await hoverForTypeTag(node);
   }
   if (node.type === 'Projection') {
     return hoverForProjection(node);
@@ -180,6 +260,36 @@ async function hoverForOperand(node) {
     ].join('\n'),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
+  };
+}
+
+// Type-namespace hover — `::Tag` reference (BareTypeKeyword) or
+// `::Tag<payload>` constructor invocation (TaggedLit). Both resolve
+// the same way: lookup `::Tag` in env, pull `:docs` via the docs
+// axis-operand, render a markdown popup with the tag's identity
+// banner plus the joined doc content.
+//
+// `::Tag` head span (the two `::` chars + the tag identifier) is
+// what reads as the hover range — for a TaggedLit the payload
+// sits outside the popup region so the editor highlights the tag
+// only, not the whole literal.
+async function hoverForTypeTag(node) {
+  const typeKey = TYPE_BINDING_PREFIX + node.tag;
+  const runtime = await langRuntime();
+  if (!runtime.has(typeKey)) return null;
+
+  const docContents = await fetchDocsContents(typeKey);
+  const headStart = node.location.start.offset;
+  const headEnd = headStart + 2 + node.tag.length;
+
+  return {
+    content: [
+      `**${typeKey}** — type-binding`,
+      '',
+      docContents.join('\n')
+    ].join('\n'),
+    startOffset: headStart,
+    endOffset: headEnd
   };
 }
 

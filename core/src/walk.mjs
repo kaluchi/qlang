@@ -13,6 +13,14 @@
 
 import { TYPE_BINDING_PREFIX, isTypeBindingName } from './types.mjs';
 
+// Namespace alias values used by `bindingNamesVisibleAt` to select
+// which BindStep / `as` declaration shapes count toward the result
+// Set. Kept on the export surface so callers (LSP completion,
+// editor autocomplete) pass a named constant instead of a magic
+// string at every call site.
+export const VALUE_NAMESPACE = 'value';
+export const TYPE_NAMESPACE  = 'type';
+
 // astChildrenOf(node) — yields the direct semantic children of an
 // AST node. "Semantic" excludes plumbing like the {combinator, step}
 // wrapper inside Pipeline.steps[i] (we yield the step itself, not
@@ -219,36 +227,49 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);
 
-// bindingNamesVisibleAt(ast, offset) — returns the Set of binding
-// names lexically visible at the given UTF-16 offset. This is the
-// autocomplete primitive: "what identifiers can the user type at
-// this cursor position without an unresolved-identifier error?"
+// bindingNamesVisibleAt(ast, offset, namespace?) — returns the Set
+// of binding names lexically visible at the given UTF-16 offset.
+// This is the autocomplete primitive: "what identifiers can the
+// user type at this cursor position without an unresolved-
+// identifier error?"
+//
+// `namespace` picks which declaration shapes contribute:
+//   - `'value'` (default) — BindStep with a Keyword key (`:name body`)
+//     and OperandCall `as(:name)`. Names land bare (`'foo'`).
+//   - `'type'` — BindStep with a BareTypeKeyword key (`::Tag body`).
+//     Names land with the `::Tag` prefix so the Set is directly
+//     comparable with type-namespace identifiers from env (which
+//     all carry the `::` prefix as part of their env key).
 //
 // Visibility rules, mirroring the runtime fork semantics:
-//   1. BindStep nodes with a Keyword key, and OperandCall nodes
-//      named `as` with a Keyword first arg, contribute names
-//      (binding declarations). BareTypeKeyword bind into the
-//      `::tag` namespace and are skipped for value-name lookup.
-//   2. The binding must already have been declared at the cursor
-//      (`location.end.offset <= offset`).
-//   3. The binding must NOT be inside a fork-isolating AST node
-//      that has been crossed before reaching the cursor's scope.
+//   1. The declaring node must already have been completed at the
+//      cursor (`location.end.offset <= offset`).
+//   2. The declaration must NOT be inside a fork-isolating AST
+//      node that has been crossed before reaching the cursor.
 //
 // Cursor containment uses the closed interval [start, end] (not
 // half-open) so that a cursor at the end of a fork still sees its
 // bindings.
-export function bindingNamesVisibleAt(ast, offset) {
+export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) {
   const visible = new Set();
   walkAst(ast, (node) => {
     let bindingName;
-    if (node.type === 'BindStep' && node.key.type === 'Keyword') {
-      bindingName = node.key.name;
-    } else if (node.type === 'OperandCall' && node.name === 'as'
-               && Array.isArray(node.args) && node.args.length > 0
-               && node.args[0].type === 'Keyword') {
-      bindingName = node.args[0].name;
+    if (namespace === TYPE_NAMESPACE) {
+      if (node.type === 'BindStep' && node.key.type === 'BareTypeKeyword') {
+        bindingName = TYPE_BINDING_PREFIX + node.key.tag;
+      } else {
+        return;
+      }
     } else {
-      return;
+      if (node.type === 'BindStep' && node.key.type === 'Keyword') {
+        bindingName = node.key.name;
+      } else if (node.type === 'OperandCall' && node.name === 'as'
+                 && Array.isArray(node.args) && node.args.length > 0
+                 && node.args[0].type === 'Keyword') {
+        bindingName = node.args[0].name;
+      } else {
+        return;
+      }
     }
     if (!node.location || node.location.end.offset > offset) return;
     let current = node;

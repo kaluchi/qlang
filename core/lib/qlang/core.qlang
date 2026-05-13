@@ -1249,9 +1249,12 @@
 :reify
   |~~ Builds a descriptor Map for a value or named binding.
     Value-level form (no captured args) describes the current
-    pipeValue. Named form reify(:name) looks up :name in env
-    and describes whatever binding lives there. Descriptor :kind
-    is one of :builtin, :conduit, :snapshot, :value. ~~|
+    pipeValue. A TagKeyword pipeValue resolves through the
+    type-namespace; everything else describes the pipeValue
+    directly. Named form reify(:name) looks up the
+    value-namespace; reify(::Tag) looks up the type-namespace.
+    Descriptor :kind is one of :builtin, :conduit, :snapshot,
+    :type, :value. ~~|
   {:qlang/kind :builtin
           :qlang/impl :qlang/prim/reify
           :category :reflective
@@ -1263,14 +1266,17 @@
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
     sorted alphabetically by binding name. Each descriptor has
-    the same shape as reify(:name) for that binding. ~~|
+    the same shape as reify(:name) for that binding. Overloaded
+    by captured-arg count: bare manifest or manifest(:value)
+    lists value-namespace bindings; manifest(:type) lists
+    type-namespace `::Tag` bindings. ~~|
   {:qlang/kind :builtin
              :qlang/impl :qlang/prim/manifest
              :category :reflective
              :subject :any
              :returns :vec
-             :modifiers []
-             :throws []}
+             :modifiers [:keyword]
+             :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
 
 :runExamples
   |~~ Walks every Quote segment inside the binding's attached

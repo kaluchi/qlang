@@ -136,7 +136,8 @@ documents.onDidClose(e => {
 
 const COMPLETION_KIND_MAP = {
   function: CompletionItemKind.Function,
-  variable: CompletionItemKind.Variable
+  variable: CompletionItemKind.Variable,
+  class:    CompletionItemKind.Class
 };
 
 connection.onCompletion(async (params) => {
@@ -145,7 +146,7 @@ connection.onCompletion(async (params) => {
   if (!doc) return [];
 
   const offset = doc.offsetAt(params.position);
-  const items = await completionsAtOffset(state?.ast ?? null, offset);
+  const items = await completionsAtOffset(state?.ast ?? null, offset, state?.source ?? null);
 
   return items.map(item => ({
     label: item.label,

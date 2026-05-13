@@ -85,6 +85,30 @@ describe('completionsAtOffset', () => {
     const items = await completionsAtOffset(null, 0);
     expect(items.length).toBeGreaterThan(60);
   });
+
+  it('mixed completions surface type-namespace bindings alongside builtins', async () => {
+    const src = 'foo';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(ast, 3, src);
+    expect(items.some(i => i.label === 'count')).toBe(true);
+    expect(items.some(i => i.label === '::AddLeftNotNumberError')).toBe(true);
+  });
+
+  it('cursor right after `::` filters to type-namespace only', async () => {
+    const src = '::';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(ast, 2, src);
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every(i => i.label.startsWith('::'))).toBe(true);
+    expect(items.every(i => i.kind === 'class')).toBe(true);
+  });
+
+  it('in-document `::Type` BindStep contributes to type-namespace completions', async () => {
+    const src = '::MyType {:qlang/kind :type :qlang/impl ~{42}}';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(ast, src.length, src);
+    expect(items.some(i => i.label === '::MyType')).toBe(true);
+  });
 });
 
 describe('hoverAtOffset', () => {
@@ -137,6 +161,35 @@ describe('hoverAtOffset', () => {
 
   it('returns null for null ast', async () => {
     expect(await hoverAtOffset(null, '', 0)).toBeNull();
+  });
+
+  it('returns hover for BareTypeKeyword tag reference', async () => {
+    const src = '::AddLeftNotNumberError | docs';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const tagOffset = src.indexOf('::AddLeftNotNumberError') + 5;
+    const hover = await hoverAtOffset(ast, src, tagOffset);
+    expect(hover).not.toBeNull();
+    expect(hover.content).toMatch(/::AddLeftNotNumberError/);
+    expect(hover.content).toMatch(/type-binding/);
+  });
+
+  it('returns hover for TaggedLit constructor invocation', async () => {
+    const src = '"x" | ::conduit[[] ~{mul(2)}]';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const tagOffset = src.indexOf('::conduit') + 5;
+    const hover = await hoverAtOffset(ast, src, tagOffset);
+    expect(hover).not.toBeNull();
+    expect(hover.content).toMatch(/::conduit/);
+    expect(hover.content).toMatch(/type-binding/);
+  });
+
+  it('hover on ::Tag spans only the tag head, not the payload', async () => {
+    const src = '"x" | ::conduit[[] ~{mul(2)}]';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const tagOffset = src.indexOf('::conduit') + 5;
+    const hover = await hoverAtOffset(ast, src, tagOffset);
+    expect(hover).not.toBeNull();
+    expect(hover.endOffset - hover.startOffset).toBe('::conduit'.length);
   });
 
   it('returns null for offset outside any node', async () => {

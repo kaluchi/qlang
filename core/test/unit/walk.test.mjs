@@ -307,6 +307,33 @@ describe('bindingNamesVisibleAt', () => {
     const visible = bindingNamesVisibleAt(ast, cursorAtInnerOuter);
     expect(visible.has('outer')).toBe(true);
   });
+
+  it('TYPE_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
+    const { TYPE_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = '::MyType {:qlang/kind :type :qlang/impl ~{42}} | 42';
+    const ast = parse(source);
+    const visible = bindingNamesVisibleAt(ast, source.length, TYPE_NAMESPACE);
+    expect(visible.has('::MyType')).toBe(true);
+  });
+
+  it('TYPE_NAMESPACE skips value-namespace BindStep declarations', async () => {
+    const { TYPE_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = ':valueName 1 | 42';
+    const ast = parse(source);
+    const visible = bindingNamesVisibleAt(ast, source.length, TYPE_NAMESPACE);
+    expect(visible.has('valueName')).toBe(false);
+    expect(visible.has(':valueName')).toBe(false);
+    expect(visible.size).toBe(0);
+  });
+
+  it('TYPE_NAMESPACE honours fork-isolation rules', async () => {
+    const { TYPE_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = '(::Local {:qlang/kind :type :qlang/impl ~{42}}) | here';
+    const ast = parse(source);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TYPE_NAMESPACE);
+    expect(visible.has('::Local')).toBe(false);
+  });
 });
 
 describe('astNodeSpan and astNodeContainsOffset', () => {

@@ -84,10 +84,3 @@ Compression — через class-level defaults factored out. Field ordering —
 
 ---
 
-## M5. Hypertext catalog integration (из post-redesign-plan, не landed)
-
-- `manifest` operand surface'ит type-bindings parallel'но value-bindings — отдельный axis или extended `manifest(:axis :type)` overload.
-- LSP `hoverAtOffset` recognize TaggedLit / BareTypeKeyword — surface `::Class | docs` markdown на hover.
-- LSP `definitionAtOffset` resolves `::Class` references через catalog index.
-- LSP completion — `::tag`-prefix references в context'ах принимающих TaggedLit.
-- `bindingNamesVisibleAt` extension на type-namespace — для LSP autocomplete после `::`.

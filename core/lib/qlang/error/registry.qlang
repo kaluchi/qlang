@@ -2,8 +2,8 @@
    throw site declared in `core/src/operand-errors.mjs` plus the
    special runtime sources (ParseError, foreign-error names,
    axis-operand failures, registry / dispatch / session / parse /
-   print invariants). Each declaration registers the tag in env so
-   `evalBareTypeKeyword` resolves it and authors can write
+   print invariants). Each declaration registers the tag in env
+   so `evalBareTypeKeyword` resolves it and authors can write
    `!{:thrown ::Tag …}` literals and `::Tag | docs` axis
    navigations.
 
@@ -447,6 +447,14 @@
 
 ::EvalSubjectNotMapOrQuoteError
   |~~ `eval` requires a Map (AST-Map) or Quote (source-form) subject. ~~|
+  {:qlang/kind :type}
+
+::ManifestNamespaceNotKeywordError
+  |~~ ManifestNamespaceNotKeywordError — see operand documentation. ~~|
+  {:qlang/kind :type}
+
+::ManifestNamespaceUnknownError
+  |~~ ManifestNamespaceUnknownError — see operand documentation. ~~|
   {:qlang/kind :type}
 
 ::ParseSubjectNotStringOrQuoteError

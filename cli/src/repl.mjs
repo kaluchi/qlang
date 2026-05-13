@@ -72,7 +72,7 @@ with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
 projection like \`| /key\` can land on the same cell as the paste.
 
-Bindings introduced via BindStep (`:name body`) or `as(:name)`
+Bindings introduced via BindStep (\`:name body\`) or \`as(:name)\`
 persist across cells within the same REPL session.
 `;
 

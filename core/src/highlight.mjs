@@ -63,6 +63,26 @@ export function tokenize(src, builtinNames) {
   return interleaveGapTokens(src, semanticSpans);
 }
 
+// Recursive call from QuoteLit handling: tokenise the Quote body
+// the same way as the top-level source. Quote bodies allow a
+// leading combinator (`~{| count}`, `~{* mul(2)}`) which the
+// regular `parse` grammar accepts post-M4 — so the same tokeniser
+// pipeline applies without a separate start-rule. When the body
+// is unparseable (rare malformed-suffix case), fall back to a
+// single whitespace span so the renderer still paints the body
+// uniformly italic.
+function subTokenize(src, builtinNames) {
+  if (src.length === 0) return [];
+  let ast;
+  try {
+    ast = parse(src);
+  } catch {
+    return [{ start: 0, end: src.length, kind: 'whitespace' }];
+  }
+  const semanticSpans = collectSemanticSpans(src, ast, builtinNames);
+  return interleaveGapTokens(src, semanticSpans);
+}
+
 // ── AST-driven semantic spans ──────────────────────────────────
 
 // Walk the AST, harvest spans for the leaf nodes that carry
@@ -107,9 +127,30 @@ function collectSemanticSpans(src, ast, builtinNames) {
         emitBracketSpans(startOffset, endOffset, 2, 1, 'err', spans);
         return;
 
-      case 'QuoteLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'quote' });
+      case 'QuoteLit': {
+        // Quote literal — paint the `~{` / `}` delimiters in the
+        // `quote` palette colour, then sub-tokenise the body source
+        // recursively. Every inner span carries `italic: true` so
+        // the renderer can compose italic + the inner kind's
+        // colour (`atom` italic, `operand` italic, etc.) — the
+        // visual cue is "this is code-as-data, painted in the same
+        // palette as code-as-running but italicised".
+        spans.push({ start: startOffset, end: startOffset + 2, kind: 'quote' });
+        const bodyStart = startOffset + 2;
+        const bodyEnd = endOffset - 1;
+        const innerSource = src.slice(bodyStart, bodyEnd);
+        const innerSpans = subTokenize(innerSource, builtinNames);
+        for (const inner of innerSpans) {
+          spans.push({
+            start: bodyStart + inner.start,
+            end:   bodyStart + inner.end,
+            kind:  inner.kind,
+            italic: true
+          });
+        }
+        spans.push({ start: bodyEnd, end: endOffset, kind: 'quote' });
         return false;
+      }
 
       case 'BindStep': {
         // The binding key — Keyword `:name` or BareTypeKeyword `::Tag` —

@@ -43,13 +43,14 @@ const KIND_TO_CLASS = {
 export function highlightQlang(src, builtins) {
   const tokens = tokenize(src, builtins ?? new Set());
   let out = '';
-  for (const { start, end, kind } of tokens) {
+  for (const { start, end, kind, italic } of tokens) {
     const slice = src.slice(start, end);
     const cls = KIND_TO_CLASS[kind];
     if (cls === undefined) {
       out += escHtml(slice);
     } else {
-      out += `<span class="${cls}">${escHtml(slice)}</span>`;
+      const classes = italic ? `${cls} italic` : cls;
+      out += `<span class="${classes}">${escHtml(slice)}</span>`;
     }
   }
   return out;

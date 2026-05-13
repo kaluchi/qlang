@@ -22,9 +22,14 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
-  it('wraps a backtick Quote in the italic-green escape pair', () => {
-    const out = highlightAnsi('~{mul(2)}', noBuiltins);
-    expect(out).toBe('\x1b[3;32m~{mul(2)}\x1b[0m');
+  it('paints a backtick Quote with green upright delimiters and italic body', () => {
+    // `~{` and `}` get the upright green `quote` escape; the body
+    // sub-tokenises with each inner kind's colour combined with
+    // italic (e.g. atom `:active` → italic cyan).
+    const out = highlightAnsi('~{:active}', noBuiltins);
+    expect(out).toContain('\x1b[32m~{\x1b[0m');           // upright open
+    expect(out).toContain('\x1b[3;36m:active\x1b[0m');   // italic atom
+    expect(out).toContain('\x1b[32m}\x1b[0m');            // upright close
   });
 
   it('wraps a ~{::tag} BareTypeKeyword in the bright-cyan type escape', () => {
@@ -34,8 +39,13 @@ describe('highlightAnsi', () => {
 
   it('wraps the ~{::tag} head of a TaggedLit and descends into the payload', () => {
     const out = highlightAnsi('::conduit[[:x] ~{mul(2)}]', noBuiltins);
-    expect(out).toMatch('\x1b[96m::conduit\x1b[0m');
-    expect(out).toMatch('\x1b[3;32m~{mul(2)}\x1b[0m');
+    expect(out).toContain('\x1b[96m::conduit\x1b[0m');
+    // Quote payload — upright delimiters + italic body. With no
+    // builtin names supplied, `mul` falls back to the `atom`
+    // colour (cyan 36) carrying the italic modifier.
+    expect(out).toContain('\x1b[32m~{\x1b[0m');
+    expect(out).toContain('\x1b[3;36mmul\x1b[0m');
+    expect(out).toContain('\x1b[32m}\x1b[0m');
   });
 
   it('wraps a ~{:keyword} atom in the cyan escape pair', () => {

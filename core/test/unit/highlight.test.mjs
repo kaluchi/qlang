@@ -51,9 +51,39 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('classifies a ~{...} QuoteLit as a single quote-kind span', async () => {
+  it('classifies a ~{...} QuoteLit as quote delimiters plus italic-flagged sub-tokens', async () => {
+    // `~{mul(2)}` — `~{` and `}` are upright `quote`-kind delimiters
+    // (green); the body sub-tokenises with the regular tokeniser
+    // pipeline, every inner span carrying `italic: true` so the
+    // renderer composes italic on top of each kind's colour.
     expect(tokenize('~{mul(2)}', await builtins())).toEqual([
-      { start: 0, end: 9, kind: 'quote' }
+      { start: 0, end: 2, kind: 'quote' },
+      { start: 2, end: 5, kind: 'operand', italic: true },
+      { start: 5, end: 6, kind: 'punct',   italic: true },
+      { start: 6, end: 7, kind: 'number',  italic: true },
+      { start: 7, end: 8, kind: 'punct',   italic: true },
+      { start: 8, end: 9, kind: 'quote' }
+    ]);
+  });
+
+  it('paints an empty Quote body as bare delimiters with no inner span', async () => {
+    // `~{}` — zero-length body, sub-tokeniser returns no spans,
+    // only the two delimiter spans land in the output.
+    expect(tokenize('~{}', await builtins())).toEqual([
+      { start: 0, end: 2, kind: 'quote' },
+      { start: 2, end: 3, kind: 'quote' }
+    ]);
+  });
+
+  it('paints an unparseable Quote body as a single italic-whitespace span', async () => {
+    // `~{ , }` — lone comma at the body position is not valid qlang,
+    // the body sub-tokeniser catches the parse error and emits a
+    // single whitespace-kind span covering the entire body so the
+    // renderer still paints it uniformly italic.
+    expect(tokenize('~{ , }', await builtins())).toEqual([
+      { start: 0, end: 2, kind: 'quote' },
+      { start: 2, end: 5, kind: 'whitespace', italic: true },
+      { start: 5, end: 6, kind: 'quote' }
     ]);
   });
 

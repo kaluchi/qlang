@@ -41,22 +41,22 @@ import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
-const OutSubjectNotString =
-  declareSubjectError('OutSubjectNotString', '@out', 'string');
-const OutRendererResultNotString =
-  declareShapeError('OutRendererResultNotString',
+const OutSubjectNotStringError =
+  declareSubjectError('OutSubjectNotStringError', '@out', 'string');
+const OutRendererResultNotStringError =
+  declareShapeError('OutRendererResultNotStringError',
     ({ actualType }) =>
       `@out renderer must produce a String, got ${actualType.name}`);
 
-const ErrSubjectNotString =
-  declareSubjectError('ErrSubjectNotString', '@err', 'string');
-const ErrRendererResultNotString =
-  declareShapeError('ErrRendererResultNotString',
+const ErrSubjectNotStringError =
+  declareSubjectError('ErrSubjectNotStringError', '@err', 'string');
+const ErrRendererResultNotStringError =
+  declareShapeError('ErrRendererResultNotStringError',
     ({ actualType }) =>
       `@err renderer must produce a String, got ${actualType.name}`);
 
-const TapLabelNotKeyword =
-  declareModifierError('TapLabelNotKeyword', '@tap', 1, 'keyword');
+const TapLabelNotKeywordError =
+  declareModifierError('TapLabelNotKeywordError', '@tap', 1, 'keyword');
 
 // ── Operand factories ──────────────────────────────────────────
 
@@ -93,7 +93,7 @@ function makeTapOperand(stderrWrite) {
   return stateOp('@tap', 2, async (state, lambdas) => {
     const labelValue = await lambdas[0](state.pipeValue);
     if (!isKeyword(labelValue)) {
-      throw new TapLabelNotKeyword(labelValue);
+      throw new TapLabelNotKeywordError(labelValue);
     }
     stderrWrite(`[tap ${labelValue.name}] ${printValue(state.pipeValue)}\n`);
     return state;
@@ -116,9 +116,9 @@ export function bindIoOperands(session, ioContext) {
   bindHostBuiltin(session, '@in',  makeInOperand(ioContext.stdinReader));
   bindHostBuiltin(session, '@out', makeWriterOperand(
     '@out', ioContext.stdoutWrite, recordStdoutEffect,
-    OutSubjectNotString, OutRendererResultNotString));
+    OutSubjectNotStringError, OutRendererResultNotStringError));
   bindHostBuiltin(session, '@err', makeWriterOperand(
     '@err', ioContext.stderrWrite, noopEffect,
-    ErrSubjectNotString, ErrRendererResultNotString));
+    ErrSubjectNotStringError, ErrRendererResultNotStringError));
   bindHostBuiltin(session, '@tap', makeTapOperand(ioContext.stderrWrite));
 }

@@ -3,7 +3,7 @@
 // Every operand error site the cli binds lifts its throw onto the
 // fail-track as a qlang error value. The lift stores the class name
 // under the descriptor's `:thrown` keyword (for qlang-visible
-// diagnostics — `!| /thrown` projects to `:OutSubjectNotString` and
+// diagnostics — `!| /thrown` projects to `:OutSubjectNotStringError` and
 // the like) and preserves the original JS instance in the opaque
 // `originalError` slot on the error value (not qlang-visible — for
 // host-boundary re-throwing and for these assertions).

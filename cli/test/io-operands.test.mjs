@@ -43,11 +43,11 @@ describe('@out — bare form (0 captured)', () => {
     expect(cellEntry.result).toBe('hello!');
   });
 
-  it('lifts OutSubjectNotString onto the fail-track when the subject is not a String', async () => {
+  it('lifts OutSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @out', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'OutSubjectNotString', {
+    expectOperandErrorThrown(cellEntry, 'OutSubjectNotStringError', {
       operand: '@out',
       position: 'subject',
       expectedType: { type: 'keyword', name: 'string' },
@@ -65,7 +65,7 @@ describe('@out — full-application form (1 captured)', () => {
     expect(cellEntry.result).toBe(42);
   });
 
-  it('lifts OutRendererResultNotString when the renderer returns a non-String value', async () => {
+  it('lifts OutRendererResultNotStringError when the renderer returns a non-String value', async () => {
     const io = captureIoContext();
     // `add(1)` against a String subject lifts an error inside the
     // renderer lambda — the renderer's resolved value is therefore
@@ -73,7 +73,7 @@ describe('@out — full-application form (1 captured)', () => {
     // check fires.
     const cellEntry = await runQuery('"x" | @out(add(1))', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'OutRendererResultNotString', {
+    expectOperandErrorThrown(cellEntry, 'OutRendererResultNotStringError', {
       actualType: { name: 'error' }
     });
   });
@@ -89,10 +89,10 @@ describe('@err — bare form', () => {
     expect(cellEntry.result).toBe('oops');
   });
 
-  it('lifts ErrSubjectNotString onto the fail-track when the subject is not a String', async () => {
+  it('lifts ErrSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @err', io);
-    expectOperandErrorThrown(cellEntry, 'ErrSubjectNotString', {
+    expectOperandErrorThrown(cellEntry, 'ErrSubjectNotStringError', {
       operand: '@err',
       position: 'subject',
       expectedType: { type: 'keyword', name: 'string' },
@@ -109,10 +109,10 @@ describe('@err — full-application form', () => {
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });
 
-  it('lifts ErrRendererResultNotString when the renderer returns a non-String', async () => {
+  it('lifts ErrRendererResultNotStringError when the renderer returns a non-String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | @err(add(1))', io);
-    expectOperandErrorThrown(cellEntry, 'ErrRendererResultNotString', {
+    expectOperandErrorThrown(cellEntry, 'ErrRendererResultNotStringError', {
       actualType: { name: 'error' }
     });
   });
@@ -128,10 +128,10 @@ describe('@tap', () => {
     expect(io.stdoutText()).toBe('');
   });
 
-  it('lifts TapLabelNotKeyword onto the fail-track when the label is not a keyword', async () => {
+  it('lifts TapLabelNotKeywordError onto the fail-track when the label is not a keyword', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @tap("oops")', io);
-    expectOperandErrorThrown(cellEntry, 'TapLabelNotKeyword', {
+    expectOperandErrorThrown(cellEntry, 'TapLabelNotKeywordError', {
       operand: '@tap',
       position: 1,
       expectedType: { type: 'keyword', name: 'keyword' },

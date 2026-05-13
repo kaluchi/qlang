@@ -44,8 +44,8 @@ import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
-const TemplateModifierNotString =
-  declareModifierError('TemplateModifierNotString', 'template', 1, 'string');
+const TemplateModifierNotStringError =
+  declareModifierError('TemplateModifierNotStringError', 'template', 1, 'string');
 
 // ── template — substitute pipeline values into a String ────────
 
@@ -88,7 +88,7 @@ const tjsonOperand  = nullaryOp('tjson',  (subject) => JSON.stringify(toTaggedJS
 // dispatcher honours both shapes for free.
 const templateOperand = valueOp('template', 2, (subject, templateString) => {
   if (typeof templateString !== 'string') {
-    throw new TemplateModifierNotString(templateString);
+    throw new TemplateModifierNotStringError(templateString);
   }
   return applyTemplate(subject, templateString);
 });

@@ -33,42 +33,42 @@ import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
-const ParseJsonSubjectNotString =
-  declareSubjectError('ParseJsonSubjectNotString', 'parseJson', 'string');
-const ParseJsonInvalidJson =
-  declareShapeError('ParseJsonInvalidJson',
+const ParseJsonSubjectNotStringError =
+  declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
+const ParseJsonInvalidJsonError =
+  declareShapeError('ParseJsonInvalidJsonError',
     ({ message }) => `parseJson: invalid JSON — ${message}`);
 
-const ParseTjsonSubjectNotString =
-  declareSubjectError('ParseTjsonSubjectNotString', 'parseTjson', 'string');
-const ParseTjsonInvalidJson =
-  declareShapeError('ParseTjsonInvalidJson',
+const ParseTjsonSubjectNotStringError =
+  declareSubjectError('ParseTjsonSubjectNotStringError', 'parseTjson', 'string');
+const ParseTjsonInvalidJsonError =
+  declareShapeError('ParseTjsonInvalidJsonError',
     ({ message }) => `parseTjson: invalid tagged-JSON — ${message}`);
 
 // ── Operand factories ──────────────────────────────────────────
 
 const parseJsonOperand = nullaryOp('parseJson', (subject) => {
   if (typeof subject !== 'string') {
-    throw new ParseJsonSubjectNotString(subject);
+    throw new ParseJsonSubjectNotStringError(subject);
   }
   let parsed;
   try {
     parsed = JSON.parse(subject);
   } catch (jsParseError) {
-    throw new ParseJsonInvalidJson({ message: jsParseError.message });
+    throw new ParseJsonInvalidJsonError({ message: jsParseError.message });
   }
   return fromPlain(parsed);
 });
 
 const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {
   if (typeof subject !== 'string') {
-    throw new ParseTjsonSubjectNotString(subject);
+    throw new ParseTjsonSubjectNotStringError(subject);
   }
   let parsed;
   try {
     parsed = JSON.parse(subject);
   } catch (jsParseError) {
-    throw new ParseTjsonInvalidJson({ message: jsParseError.message });
+    throw new ParseTjsonInvalidJsonError({ message: jsParseError.message });
   }
   return fromTaggedJSON(parsed);
 });

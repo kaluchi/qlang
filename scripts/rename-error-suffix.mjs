@@ -45,7 +45,26 @@ function* walkMjs(dir) {
   }
 }
 
-for (const file of walkMjs(join(repoRoot, 'core', 'src'))) {
+// Mirror `scripts/check-conventions.mjs::ERROR_SUFFIX_SCAN_ROOTS`
+// — every workspace that can declare its own host-bound errors.
+// CLI host operands (`parseJson`, `@tap`, `template`, `@out`, …)
+// land their own `declareSubjectError` / `declareShapeError`
+// classes here, all need the suffix convention.
+const DISCOVERY_ROOTS = [
+  ['core', 'src'],
+  ['cli',  'src'],
+  ['lsp',  'src']
+];
+
+const sourceFiles = [];
+for (const segments of DISCOVERY_ROOTS) {
+  const root = join(repoRoot, ...segments);
+  let st;
+  try { st = statSync(root); } catch { continue; }
+  if (st.isDirectory()) sourceFiles.push(...walkMjs(root));
+}
+
+for (const file of sourceFiles) {
   const content = readFileSync(file, 'utf8');
   for (const m of content.matchAll(factoryRe)) classNames.add(m[1]);
   for (const m of content.matchAll(directClassRe)) {

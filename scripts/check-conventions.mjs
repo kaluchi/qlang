@@ -175,14 +175,31 @@ const ABSTRACT_BASES = new Set([
 const factoryDeclRe = /declare(?:Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Z][A-Za-z0-9_]*)'/g;
 const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|Error)\b/g;
 
-function* walkCoreSrc() {
-  const srcRoot = join(repoRoot, 'core', 'src');
-  yield* walkSourceTree(srcRoot);
+// Every workspace that can declare its own host-bound errors
+// (CLI host operands via `declareSubjectError(...)` / direct
+// `class FooError extends QlangError`, LSP server-side errors,
+// future host packages) goes through the same scan. Scope sits
+// at the npm-workspace boundary so a new workspace opt's into
+// the convention by adding its `<ws>/src` here.
+const ERROR_SUFFIX_SCAN_ROOTS = [
+  ['core', 'src'],
+  ['cli',  'src'],
+  ['lsp',  'src']
+];
+
+function* walkErrorScanRoots() {
+  for (const segments of ERROR_SUFFIX_SCAN_ROOTS) {
+    const root = join(repoRoot, ...segments);
+    let st;
+    try { st = statSync(root); } catch { continue; }
+    if (!st.isDirectory()) continue;
+    yield* walkSourceTree(root);
+  }
 }
 
 function errorSuffixDrift() {
   const violations = [];
-  for (const filePath of walkCoreSrc()) {
+  for (const filePath of walkErrorScanRoots()) {
     const text = readFileSync(filePath, 'utf8');
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
     const lines = text.split(/\r?\n/);

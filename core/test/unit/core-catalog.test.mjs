@@ -38,8 +38,8 @@ import { CORE_SOURCE } from '../../gen/core.mjs';
 // langRuntime() returns the catalog as a Map keyed by operand name.
 // Reserved housekeeping keys (`qlang/ast/<uri>`, anything without a
 // `:qlang/kind :builtin` descriptor) are filtered so the returned
-// Map matches the descriptor-only surface the rest of this suite
-// was originally written against.
+// Map carries only operand descriptors — the surface the rest of
+// this suite asserts against.
 async function evalCore() {
   const { langRuntime } = await import('../../src/runtime/index.mjs');
   const fullEnv = await langRuntime();

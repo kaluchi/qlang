@@ -198,13 +198,12 @@ describe('printValue Conduit handles named vs anonymous form', () => {
 });
 
 describe('TagKeyword as :qlang/kind discriminator', () => {
-  // The tagged-instance Map shape (`:qlang/kind <TagKeyword> +
-  // :qlang/payload`) lands in M4 alongside error classes as
-  // first-class type-bindings (`::ClassName!{...}`). The base
-  // TagKeyword machinery is exercised here at the value level
-  // through `makeTagKeyword`; the higher-level Map projection
-  // gets its own coverage once M4 introduces the constructor
-  // primitive that stamps it.
+  // Tagged-instance Maps carry `:qlang/kind <TagKeyword>` plus
+  // `:qlang/payload` (the constructor's source-form Vec). The
+  // base TagKeyword machinery — `makeTagKeyword` /
+  // `describeType` / `typeKeyword` — is exercised at the value
+  // level here; the named-error / `::Tag!{…}` round-trip lives
+  // under the error-values suite.
 
   it('describeType / typeKeyword distinguish TagKeyword from Keyword', async () => {
     const { describeType, typeKeyword, makeTagKeyword, keyword } = await import('../../src/types.mjs');

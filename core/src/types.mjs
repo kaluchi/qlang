@@ -32,7 +32,7 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 // invariant fires at render-time so the leak surface (typically a
 // descriptor Map walked by `env | /count`, or a host binding mounted
 // through `session.bind` with a raw function instead of a descriptor)
-// gets named and migrated to the descriptor-Map ceremony.
+// surfaces by name and routes through the descriptor-Map ceremony.
 export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(

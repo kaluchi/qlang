@@ -7,10 +7,10 @@ pipelines. Domain-agnostic. Pure. Composable.
 > [1 2 3 4 5] | filter(gt(3)) | count
 2
 
-> let(:double, mul(2)) | [10 20 30] * double
+> :double mul(2) | [10 20 30] * double
 [20 40 60]
 
-> let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
+> :@surround [:pfx :sfx] (prepend(pfx) | append(sfx))
   | "world" | @surround("[", "]")
 "[world]"
 

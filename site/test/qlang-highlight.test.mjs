@@ -79,12 +79,12 @@ describe('builtin operands', () => {
   });
 
   it('@-prefixed call gets effect span', () => {
-    const out = hl('let(:@log, []) | 42 | @log');
+    const out = hl(':@log identity | 42 | @log');
     expect(out).toContain('<span class="effect">@log</span>');
   });
 
   it('user-defined name gets atom span (not operand)', () => {
-    const out = hl('let(:double, mul(2)) | 10 | double');
+    const out = hl(':double mul(2) | 10 | double');
     expect(out).toContain('<span class="atom">double</span>');
     expect(out).not.toContain('<span class="operand">double</span>');
   });

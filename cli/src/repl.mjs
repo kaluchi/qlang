@@ -1,5 +1,5 @@
 // REPL for the qlang CLI. Persistent session across cells —
-// `def(:x, 42)` followed by `x | pretty | @out` works inside
+// a BindStep `:x 42` followed by `x | pretty | @out` works inside
 // one session.
 //
 // Built on `cli/src/line-editor.mjs`:
@@ -72,8 +72,8 @@ with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
 projection like \`| /key\` can land on the same cell as the paste.
 
-Bindings introduced with def / as persist across cells within the
-same REPL session.
+Bindings introduced via BindStep (`:name body`) or `as(:name)`
+persist across cells within the same REPL session.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {

@@ -12,14 +12,14 @@ const examples = [
     code: `|~| Vec → filter → count\n> [1 2 3 4 5] | filter(gt(3)) | count\n2`,
   },
   {
-    tab: "let",
-    file: "let + distribute",
-    code: `|~| bind name · spread over Vec\n> let(:double, mul(2)) | [10 20 30] * double\n[20 40 60]`,
+    tab: "bind",
+    file: "BindStep + distribute",
+    code: `|~| bind name · spread over Vec\n> :double mul(2) | [10 20 30] * double\n[20 40 60]`,
   },
   {
     tab: "conduit",
     file: "parametric conduit",
-    code: `|~| parametric conduit · @-effectful binding\n> let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))\n  | "world" | @surround("[", "]")\n"[world]"`,
+    code: `|~| parametric conduit · @-effectful binding\n> :@surround [:pfx :sfx] (prepend(pfx) | append(sfx))\n  | "world" | @surround("[", "]")\n"[world]"`,
   },
   {
     tab: "code-as-data",
@@ -33,7 +33,7 @@ const features = [
   { title: "Immutable value types", desc: "Scalar, Vec, Map, Set, Error — all frozen. No mutation, no surprises." },
   { title: "Two-track error model", desc: "Success-track | deflects on errors, fail-track !| fires. Trail accumulates deflected steps as data." },
   { title: "Code as data", desc: "parse lifts source to an AST-Map, eval re-enters the evaluator. The ring closes." },
-  { title: "Conduits", desc: "let binds named pipeline fragments with parameters. Lexical scope, recursive self-reference, zero-arity aliases." },
+  { title: "Conduits", desc: "BindStep declares named pipeline fragments with parameters. Lexical scope, recursive self-reference, zero-arity aliases." },
   { title: "Effect markers", desc: "@-prefixed identifiers carry side effects visibly. The runtime enforces propagation — no laundering." },
 ]
 ---

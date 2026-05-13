@@ -78,7 +78,7 @@ describe('multi-line blocks', () => {
 
   it('multi-line expression: prompt + continuation share highlighting context', () => {
     const src = [
-      '> let(:double, mul(2))',
+      '> :double mul(2)',
       '  | [10 20] * double'
     ].join('\n');
     const lines = fmt(src).split('\n');

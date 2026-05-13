@@ -177,15 +177,15 @@
 
     "keyword-binding": {
       "comment": "let and as — the two binding forms of qlang. Semantically control-flow-adjacent: let declares a conduit, as captures a snapshot. Distinguished from other builtins.",
-      "match": "(?<![a-zA-Z0-9_@-])(let|as)(?![a-zA-Z0-9_-])",
+      "match": "(?<![a-zA-Z0-9_@-])as(?![a-zA-Z0-9_-])",
       "captures": {
-        "1": { "name": "keyword.control.binding.qlang" }
+        "0": { "name": "keyword.control.binding.qlang" }
       }
     },
 
     "builtin-operand": {
-      "comment": "65 built-in operands from manifest.qlang (let and as handled separately by keyword-binding; error and isError are the two fail-track entry/predicate operands, and the fail-apply combinator !| handled in the combinator rule above covers the error-processing site).",
-      "match": "(?<![a-zA-Z0-9_@-])(count|empty|first|last|sum|min|max|every|any|firstNonZero|filter|sort|sortWith|take|drop|distinct|reverse|flat|set|groupBy|indexBy|asc|desc|nullsFirst|nullsLast|if|when|unless|coalesce|firstTruthy|cond|keys|vals|has|union|minus|inter|add|sub|mul|div|split|join|contains|startsWith|endsWith|prepend|append|not|eq|gt|lt|gte|lte|and|or|json|table|env|use|reify|manifest|runExamples|error|isError)(?![a-zA-Z0-9_-])",
+      "comment": "Built-in operands from core.qlang. The `as` operand is highlighted separately by the binding-keyword rule above; BindStep declarations (`:name body`) carry no operand head; `error` / `isError` are the fail-track lift / predicate; the `!|` fail-apply combinator is handled by the combinator rule.",
+      "match": "(?<![a-zA-Z0-9_@-])(count|empty|first|last|at|sum|min|max|every|any|firstNonZero|filter|sort|sortWith|take|drop|distinct|reverse|flat|set|groupBy|indexBy|asc|desc|nullsFirst|nullsLast|if|when|unless|coalesce|firstTruthy|cond|keys|vals|has|union|minus|inter|add|sub|mul|div|split|join|contains|startsWith|endsWith|prepend|append|not|eq|gt|lt|gte|lte|and|or|isString|isNumber|isVec|isMap|isSet|isKeyword|isBoolean|isNull|isQuote|isDoc|isJsonObject|isJsonArray|json|table|env|use|reify|manifest|runExamples|parse|eval|apply|keyword|source|docs|examples|error|isError)(?![a-zA-Z0-9_-])",
       "captures": {
         "1": { "name": "support.function.builtin.qlang" }
       }

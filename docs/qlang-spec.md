@@ -630,6 +630,33 @@ names a single namespaced keyword, not multiple bare segments):
 
 Both forms can be mixed in a single chain: `/outer/"inner key"/:qlang/ns`.
 
+A standalone `/` (no segments after the slash) is an **identity
+projection** — evaluates to the current `pipeValue` itself.
+Useful as a reference to the implicit subject inside captured
+arguments:
+
+```qlang
+> 5 | mul(/)
+25
+|~| 5 fills slot 1; the captured / resolves to pipeValue = 5,
+|~| fills slot 2 → mul(5, 5) → 25.
+
+> {:price 100 :tax 0.2} | mul(/price, /tax)
+20.0
+
+> [1 2 3] | eq(/)
+true
+|~| compares pipeValue against itself.
+
+> {:order /name :record /} 5
+|~| inside a Map literal `/` captures the whole pipeValue
+|~| alongside the projected /name field.
+```
+
+Without `/` the only path to reference the running pipeValue
+inside a captured arg is the snapshot-and-deref dance
+`as(:_self) | … | _self` — verbose for a single reference.
+
 Type error: projection on a non-Map (Scalar, Vec, Set, null, function)
 produces an Error value — see [Error track](#error-track).
 

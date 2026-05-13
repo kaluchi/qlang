@@ -777,9 +777,20 @@ ArgList
 // Each `KeySegment` produces a plain string slot in `node.keys`, so
 // downstream consumers (eval.mjs::evalProjection) do not care which
 // surface form was used.
+//
+// `/` standalone (no segments) is an **identity projection** — the
+// current `pipeValue` itself. Useful as an alias for the
+// implicit-subject slot inside captured args: `mul(/, /price)` reads
+// "multiply the pipeValue by its `/price` field", `[/, /name]` builds
+// a Vec of the pipeValue and its `/name` field, `{:original /}`
+// captures the pipeValue under a Map entry. Without it the only way
+// to reference the running pipeValue inside a captured arg is the
+// snapshot-and-deref dance `as(:_self) | ... | _self`.
 Projection
   = "/" first:KeySegment rest:("/" KeySegment)*
     { return node('Projection', { keys: [first, ...rest.map(r => r[1])] }, location(), text()); }
+  / "/"
+    { return node('Projection', { keys: [] }, location(), text()); }
 
 // KeySegment bare forms — ordered by specificity:
 //   1. KeywordName handles the ID_Start-led case (letters, `@`,

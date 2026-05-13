@@ -36,8 +36,6 @@ import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printValue,
   isErrorValue,
-  materializeTrail,
-  makeQuote,
   langRuntime
 } from '@kaluchi/qlang-core';
 import { bindIoOperands } from './io-operands.mjs';
@@ -159,24 +157,15 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
 
 function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
   // Parse failures and runtime fail-track errors both surface as
-  // `isErrorValue(cellEntry.result)` — session lifts ParseError
-  // through errorFromParse so the same structured `::Tag!{…}`
-  // print path covers both. The bare `cellEntry.error` channel
-  // catches host-level JS throws that have no qlang ErrorValue
-  // lift (setup failures, etc.); those fall back to the raw JS
-  // message.
-  if (isErrorValue(cellEntry.result)) {
-    const result = materializeForDisplay(cellEntry.result);
-    const rendered = renderForTerminal(result, builtinNames, stderrWrite);
-    if (rendered !== null) stderrWrite(rendered + '\n');
-    return;
-  }
-  if (cellEntry.error !== null) {
-    stderrWrite(`error: ${cellEntry.error.message}\n`);
-    return;
-  }
+  // `isErrorValue(cellEntry.result)` — session.evalCell lifts
+  // ParseError through `errorFromParse` so the same structured
+  // `::Tag!{…}` print path covers both. The descriptor's `:trail`
+  // is already materialised by `materializePendingTrail` inside
+  // session.evalCell (`_trailHead` is null at this point), so the
+  // REPL can render the value as-is.
+  const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
   const rendered = renderForTerminal(cellEntry.result, builtinNames, stderrWrite);
-  if (rendered !== null) stdoutWrite(rendered + '\n');
+  if (rendered !== null) sink(rendered + '\n');
 }
 
 // Output boundary defensive — printValue raises runtime invariants
@@ -191,21 +180,13 @@ function renderForTerminal(value, builtinNames, stderrWrite) {
   try {
     return highlightAnsi(printValue(value), builtinNames);
   } catch (renderInvariant) {
-    stderrWrite(`render invariant: ${renderInvariant.fingerprint ?? renderInvariant.name ?? 'unknown'} — ${renderInvariant.message}\n`);
+    // Every Error carries `.name` — concrete QlangInvariantError
+    // subclasses set it via `brand()` to the per-site class name,
+    // bare JS Errors fall back to the constructor name. The
+    // structurally-stamped `.fingerprint` lives alongside on
+    // qlang invariants but is not used here — `.name` already
+    // identifies the site in the diagnostic.
+    stderrWrite(`render invariant: ${renderInvariant.name} — ${renderInvariant.message}\n`);
     return null;
   }
-}
-
-const TRAIL_KEY = 'trail';
-
-function materializeForDisplay(errorValue) {
-  const freshTrail = materializeTrail(errorValue);
-  if (freshTrail === null) return errorValue;
-  const existingTrail = errorValue.descriptor.get(TRAIL_KEY);
-  const combinedTrail = existingTrail === null
-    ? freshTrail
-    : makeQuote(existingTrail.source + ' ' + freshTrail.source);
-  const desc = new Map(errorValue.descriptor);
-  desc.set(TRAIL_KEY, combinedTrail);
-  return Object.freeze({ ...errorValue, descriptor: desc, _trailHead: null });
 }

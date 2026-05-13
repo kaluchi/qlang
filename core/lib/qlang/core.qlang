@@ -1380,8 +1380,8 @@
          :throws [::EvalSubjectNotMapOrQuote]}
 
 :apply
-  |~~ Runs the Quote-or-AST currently in pipeValue against the
-    captured-arg as the initial subject. Mirrors the classical
+  |~~ Runs the Quote-or-AST in pipeValue against the captured
+    arg as the initial subject. Mirrors the classical
     `apply(fn, args)` from Lisp / JS — the body comes first (in
     pipeValue, the pipeline's natural inlet), the subject second
     (captured argument).

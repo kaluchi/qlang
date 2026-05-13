@@ -48,7 +48,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword,
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword,
   moduleAstKey
 } from './types.mjs';
 import { astNodeToMap, isPureLiteralAst } from './walk.mjs';

@@ -99,10 +99,6 @@ const FACTORY_PATTERNS = [
 // + `this.fingerprint`. The generator captures className → bare
 // "direct" record; prose comes from PROSE_OVERRIDES.
 
-const DIRECT_BASES = new Set([
-  'QlangError', 'QlangTypeError', 'QlangInvariantError',
-  'ArityError', 'EffectLaunderingError'
-]);
 // Abstract roots — the registry never carries them as fingerprints.
 const ABSTRACT_BASES = new Set([
   'QlangError', 'QlangTypeError', 'QlangInvariantError',

@@ -45,6 +45,7 @@ const repoRoot = join(here, '..');
 const IGNORE_DIRS = new Set([
   'node_modules', '.git',
   'core/gen',
+  'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
   'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
   'vscode'

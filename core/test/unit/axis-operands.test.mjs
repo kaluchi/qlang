@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword, isQuote, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQuote, makeTagKeyword } from '../../src/types.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
   it(':count | source carries the canonical :count BindStep text', async () => {

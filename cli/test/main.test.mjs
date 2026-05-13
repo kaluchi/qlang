@@ -8,7 +8,48 @@
 
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
-import { main } from '../src/main.mjs';
+import { main, resolveShouldColorize } from '../src/main.mjs';
+
+describe('resolveShouldColorize — explicit flag, env vars, TTY detection', () => {
+  // Five-way precedence: --color=always > --color=never > FORCE_COLOR
+  // > NO_COLOR > TTY autodetect. Each branch needs its own assertion
+  // for the env-vars + auto-mode arms to land on full coverage.
+  const ttyOut = { isTTY: true };
+  const pipeOut = { isTTY: false };
+
+  it('--color=always wins over a non-TTY stream', () => {
+    expect(resolveShouldColorize('always', pipeOut, {})).toBe(true);
+  });
+
+  it('--color=never wins over a TTY stream', () => {
+    expect(resolveShouldColorize('never', ttyOut, {})).toBe(false);
+  });
+
+  it('FORCE_COLOR=1 forces paint when --color=auto', () => {
+    expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '1' })).toBe(true);
+  });
+
+  it('FORCE_COLOR=0 falls through to TTY check (not truthy as a flag)', () => {
+    expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '0' })).toBe(false);
+    expect(resolveShouldColorize('auto', ttyOut, { FORCE_COLOR: '0' })).toBe(true);
+  });
+
+  it('NO_COLOR=1 disables paint when --color=auto', () => {
+    expect(resolveShouldColorize('auto', ttyOut, { NO_COLOR: '1' })).toBe(false);
+  });
+
+  it('NO_COLOR=empty falls through to TTY check', () => {
+    expect(resolveShouldColorize('auto', ttyOut, { NO_COLOR: '' })).toBe(true);
+  });
+
+  it('--color=auto with no env defers to TTY detection — TTY → true', () => {
+    expect(resolveShouldColorize('auto', ttyOut, {})).toBe(true);
+  });
+
+  it('--color=auto with no env defers to TTY detection — non-TTY → false', () => {
+    expect(resolveShouldColorize('auto', pipeOut, {})).toBe(false);
+  });
+});
 
 function captureStreams(stdinPayload = '') {
   const stdinStream = Readable.from([stdinPayload]);

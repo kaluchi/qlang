@@ -245,7 +245,7 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 export function bindingNamesVisibleAt(ast, offset) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    let bindingName = null;
+    let bindingName;
     if (node.type === 'BindStep' && node.key.type === 'Keyword') {
       bindingName = node.key.name;
     } else if (node.type === 'OperandCall' && node.name === 'as'

@@ -164,6 +164,39 @@ describe('runRepl — output highlighting', () => {
   });
 });
 
+describe('runRepl — render-invariant catch', () => {
+  it('catches FunctionValueLeakedToPrint and continues prompting', async () => {
+    // `env | /mul | /:qlang/impl` walks env → mul's raw descriptor
+    // Map (the env binding still carries `:qlang/kind :builtin` +
+    // `:qlang/impl <fn>` because `env` returns the storage Map, not
+    // the reify-shaped projection) → the resolved function value
+    // sitting on `:qlang/impl`. printValue refuses raw function
+    // values via FunctionValueLeakedToPrint; the REPL renderer
+    // catches that, writes a render-invariant diagnostic to stderr,
+    // and stays open for the next prompt.
+    const r = captureRepl('env | /mul | /:qlang/impl\n.exit\n');
+    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    expect(exitCode).toBe(0);
+    expect(stripAnsi(r.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrint/);
+  });
+
+  it('renders an error-value with materialised :trail through the same printValue path as success values', async () => {
+    // `materializePendingTrail` runs inside `session.evalCell`, so
+    // by the time the REPL receives the cell entry the descriptor's
+    // `:trail` is already a single Quote covering every deflected
+    // step (no `_trailHead` remnant). The REPL renders the value
+    // verbatim through `printValue`.
+    const query = '!{:kind :first} | count !| union({:k 1}) | error | add(1) | mul(2)';
+    const r = captureRepl(query + '\n.exit\n');
+    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    expect(exitCode).toBe(0);
+    const out = stripAnsi(r.stderrText());
+    expect(out).toMatch(/count/);
+    expect(out).toMatch(/add\(1\)/);
+    expect(out).toMatch(/mul\(2\)/);
+  });
+});
+
 describe('runRepl — @in / @out behaviour', () => {
   it('binds ~{@in} to return the empty String so the cell does not deadlock against the prompt', async () => {
     const r = captureRepl('@in | pretty | @out\n.exit\n');

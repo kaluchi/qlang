@@ -1,8 +1,7 @@
 // Binding declarations — BindStep (`:name body` / `:name [params]
 // body`) and the `as` operand (pipeValue snapshot under a name).
-// BindStep replaced the legacy `def` operand; the JS-side `def`
-// has been removed, every binding declaration parses through
-// evalBindStep at the AST level.
+// Every binding declaration parses through `evalBindStep` at the
+// AST level — there is no operand-call ceremony around it.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

@@ -1,12 +1,12 @@
 // Grammar contract: doc-prefix attachment scope.
 //   1. Inside a literal body (Map / Vec / Set entries) — parse error.
-//   2. In pipeline position — DocAttachedSequence binds to def / as only.
+//   2. In pipeline position — DocAttachedSequence binds to BindStep / `as` only.
 //   3. MapEntry AST node carries no .docs field.
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, makeTagKeyword } from '../../src/types.mjs';
+import { makeTagKeyword } from '../../src/types.mjs';
 
 describe('doc-prefix inside MapEntry literal is a parse error', () => {
   it('rejects a doc-comment ahead of a MapEntry key', () => {

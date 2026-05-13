@@ -18,7 +18,7 @@ import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet, isQuote,
-  typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, makeDoc, isErrorValue,
+  typeKeyword, keyword, makeSnapshot, makeQuote, isErrorValue,
   isModuleAstKey, isTypeBindingName, moduleAstKey
 } from '../types.mjs';
 import {
@@ -28,8 +28,6 @@ import {
 } from '../operand-errors.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { UnresolvedIdentifierError } from '../errors.mjs';
-import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
-import { classifyEffect } from '../effect.mjs';
 // Live ESM binding into eval.mjs — runtime/index.mjs → intro.mjs →
 // eval.mjs → runtime/index.mjs forms a cycle; we never touch
 // evalQuery at module-init time, only from inside the runExamples
@@ -523,15 +521,10 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 function astFromQuoteLike(value) {
   if (isQMap(value)) return qlangMapToAst(value);
   if (isQuote(value)) {
-    if (value.ast) return value.ast;
-    try {
-      return parseSource(value.source, { uri: 'quote-source' });
-    } catch (parseErr) {
-      // Re-throw the underlying ParseError; `eval`/`apply` ride the
-      // call out into `evalNode`'s try/catch, which lifts ParseError
-      // through `errorFromParse` to a `::ParseError!{…}` ErrorValue.
-      throw parseErr;
-    }
+    // A ParseError raised here rides out into `evalNode`'s try/catch,
+    // which lifts it through `errorFromParse` to a `::ParseError!{…}`
+    // ErrorValue — no local catch needed.
+    return value.ast ?? parseSource(value.source, { uri: 'quote-source' });
   }
   throw new EvalSubjectNotMapOrQuote(value);
 }
@@ -551,8 +544,8 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
   return await evalAst(astFromQuoteLike(state.pipeValue), state);
 });
 
-// apply(subject) — runs the Quote-or-Map currently in pipeValue
-// against the captured-arg `subject` as the initial pipeValue. This
+// apply(subject) — runs the Quote-or-Map in pipeValue against
+// the captured-arg `subject` as the initial pipeValue. This
 // is the classical Lisp / JS `apply` convention: the function (body)
 // goes first, the argument second — `(apply fn args)` ≡
 // `body | apply(subject)`. Trail-emitted Quotes flow through

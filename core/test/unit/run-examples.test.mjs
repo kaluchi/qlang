@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('runExamples accepts both keyword and descriptor subjects', () => {

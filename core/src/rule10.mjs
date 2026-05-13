@@ -15,10 +15,10 @@
 // the value level — the impl receives the full state and returns
 // a full state, giving it read/write access to `env`.
 //
-// Captured arguments are LAMBDAS, not pre-resolved values: each
-// captured expression becomes an `(input) → value` closure that
-// the operand impl can invoke zero, one, or many times, with
-// whatever input the operand chooses. Higher-order operands like
+// Captured arguments are LAMBDAS: each captured expression becomes
+// an `(input) → value` closure that the operand impl can invoke
+// zero, one, or many times, with whatever input the operand
+// chooses. Higher-order operands like
 // `filter` invoke the lambda per element; value operands like
 // `mul` invoke it once against the subject (or the context, in
 // full application).

@@ -53,10 +53,10 @@ combinator `|` itself is introduced in [Pipeline](#pipeline);
 until then, comments stand alone next to single-step examples.
 
 A second variety of comment, written `|~~| ... |` or
-`|~~ ... ~~|`, attaches as metadata to the binding it precedes
-rather than being pure identity. Doc comments are introduced
-together with the BindStep form `:name body` and the `as` operand
-in [Names and modules](#names-and-modules).
+`|~~ ... ~~|`, attaches as metadata to the binding it precedes.
+Doc comments are introduced together with the BindStep form
+`:name body` and the `as` operand in
+[Names and modules](#names-and-modules).
 
 ---
 
@@ -175,10 +175,10 @@ restriction; nesting is allowed.
 :qlang/error/guards
 ```
 
-Namespaces are an architectural feature, not an edge case. Every
-host module ships under its own namespace, and namespaced
-keywords appear naturally in the examples that follow whenever
-domain vocabulary is involved.
+Namespaces are an architectural feature. Every host module
+ships under its own namespace, and namespaced keywords appear
+naturally in the examples that follow whenever domain
+vocabulary is involved.
 
 **Quoted** — `:"foo bar"`, `:"123"`, `:"$ref"`, `:""`. Lifts the
 identifier restriction so any string is admissible as a keyword
@@ -319,7 +319,7 @@ or as membership tables.
 The fourth composite — Error — is structurally similar to Map but
 carries a special identity in the pipeline. Its literal is `!{}`
 with the same `:key value` entry syntax as Map, and the result is
-an **error value** rather than a plain Map.
+an **error value**.
 
 ```qlang
 > !{:kind :oops :message "boom"}
@@ -334,7 +334,8 @@ An error value wraps a **descriptor Map** — the content between
 including nested Maps, Vecs, and other error values.
 
 Error values can live inside other containers exactly the same
-way ordinary values do — they are values, not exceptions:
+way ordinary values do — they are first-class values in the
+pipeline:
 
 ```qlang
 > [1 !{:kind :oops} 3]
@@ -431,15 +432,15 @@ sort            |~| complete: (vec), natural order
 sort(/name)     |~| binding: fix key → new function (vec)
 ```
 
-Expressions inside `()` are **captured, not evaluated**. When the
-bound function is later applied via `|`, each captured argument
-evaluates against the current `pipeValue`:
+Expressions inside `()` are **captured**: the parser keeps the
+source verbatim and defers evaluation. When the bound function is
+later applied via `|`, each captured argument evaluates against
+the current `pipeValue`:
 
 ```qlang
 filter(/age | gt(18))
        ^^^^^^^^^^^^^
-       captured pipeline — evaluates against each element when filter
-       runs it, not when the binding is created
+       captured pipeline — fires per element at apply time
 
 > [{:name "a" :age 25} {:name "b" :age 15} {:name "c" :age 30}]
   | filter(/age | gt(18))
@@ -491,8 +492,7 @@ is asked for a number but the pipeline hands it a Vec, when `/key`
 is applied to a non-Map, when `div` is asked to divide by zero —
 the result is **an error value** of the `!{}` form introduced in
 [Composite values](#composite-values). The error becomes the new
-`pipeValue` and flows through the rest of the pipeline as data
-rather than crashing the query.
+`pipeValue` and flows through the rest of the pipeline as data.
 
 ```qlang
 > [1 2 3] | add(1)
@@ -519,10 +519,10 @@ broad category (`:kind`), the value the throw site inspected
 as a Quote-value carrying the failing step's source). No `:trail`
 key is shown at the moment of failure because no success-track
 combinator has deflected past it yet; `:trail` accumulates as the
-error flows through subsequent steps. From this point on every
-example in this document may show an error output rather than a
-normal one, and the descriptor shape is the same in every case:
-a `::Tag!{…}` head over a keyword-keyed Map you can read at a glance.
+error flows through subsequent steps. From this point on examples
+in this document may show an error output, and the descriptor
+shape is the same in every case: a `::Tag!{…}` head over a
+keyword-keyed Map you can read at a glance.
 
 The full machinery for inspecting, recovering from, and routing
 around errors — the deflect rule for `|`, the `!|` fail-track
@@ -687,7 +687,7 @@ Apply an expression to each element of a Vec.
 
 This resolves the type error from Partial application: `[1 2 3] | add(1)`
 failed because `add` expects a number in the first position. `*`
-applies the step per element instead of to the Vec as a whole.
+applies the step per element of the Vec.
 
 Type error: `*` on a non-Vec produces an Error value.
 
@@ -985,8 +985,8 @@ shadowing in the caller's scope does not affect a conduit's body.
 ```
 
 Three levels of conduit, each building on the previous via
-zero-arity alias and parametric forwarding. Partial application is
-achieved explicitly through composition, not through auto-curry.
+zero-arity alias and parametric forwarding. Partial application
+is expressed through explicit composition.
 
 #### Higher-order parameters
 
@@ -1319,13 +1319,13 @@ Names and modules introduced three forms that write into the
 binding scope (`as`, BindStep, `use`). All three live in the
 **value namespace** — the same namespace as built-in operands.
 A second namespace runs in parallel: the **tag namespace**,
-reached through identifiers prefixed with `::` instead of `:`.
+reached through identifiers prefixed with `::`.
 
 `:foo` and `::foo` are two distinct bindings. The value-namespace
 `:duration` (say, a Conduit doubling a number of seconds) and the
 tag-namespace `::duration` (a constructor for a duration value)
-coexist in env without collision — colon-count picks the
-namespace, no positional rules required.
+coexist in env without collision — colon-count alone picks the
+namespace.
 
 ```qlang
 > :duration mul(60)
@@ -1553,11 +1553,11 @@ propagates, and how to recover.
 When a step produces a failure — a type mismatch in projection,
 an arity error, a division by zero — the result is an error value
 (the `!{}` type from Part 1). At that point, the success-track
-combinators `|`, `*`, and `>>` switch behavior: instead of firing
-the next step, they **deflect** — they record the upcoming step's
-AST node onto the error's `:trail` Vec and let the error flow
-through unchanged. The entire success-track pipeline after the
-failure becomes a no-op; the error rides through to the end.
+combinators `|`, `*`, and `>>` **deflect**: they record the
+upcoming step's AST node onto the error's `:trail` Vec and let
+the error flow through unchanged. The entire success-track
+pipeline after the failure becomes a no-op; the error rides
+through to the end.
 
 ```qlang
 > "hello" | add(1) | mul(2) | sub(3)
@@ -1748,8 +1748,8 @@ Three mechanisms close the "everything is data" ring:
    their own descriptor Map (not an arity error). `manifest` gives
    the full env as a Vec of descriptors.
 3. **Errors are data** — `!|` materializes the trail as a Vec of
-   AST-Maps. Each deflected step is a structured Map, not a string.
-   (Covered in [Error track](#error-track).)
+   AST-Maps. Each deflected step is a structured Map. (Covered
+   in [Error track](#error-track).)
 
 All three use the same mechanism: Map + pipeline.
 
@@ -1796,9 +1796,9 @@ loaded by `langRuntime` from `lib/qlang/core.qlang`:
 ```
 
 Authored docs and example assertions ride on the catalog
-`BindStep`'s attached doc-prefix, not on the descriptor itself —
-the doc-prefix lives in the `qlang/ast/qlang/core` module Quote
-and is reachable through axis-operands. `:foo | docs` yields a
+`BindStep`'s attached doc-prefix; the doc-prefix lives in the
+`qlang/ast/qlang/core` module Quote and is reachable through
+axis-operands. `:foo | docs` yields a
 Vec of Doc-values (one per attached doc-comment, each with a
 `/content` raw string and a `/segments` Prose / Quote / TaggedLit
 split); `:foo | examples` yields a Vec of every Quote segment
@@ -1866,11 +1866,11 @@ string and a `/segments` Prose / Quote / TaggedLit split.
 
 #### Bare-name introspection ergonomic
 
-There is one extra rule that pairs with `reify`: if you type the
+There is one extra rule that pairs with `reify`: typing the
 **bare name** of a built-in that takes at least one captured
-argument, the lookup yields the **descriptor Map** for that
-built-in instead of an arity error. The descriptor is the same
-shape `reify` would have produced for the same name.
+argument yields the **descriptor Map** for that built-in
+directly. The descriptor is the same shape `reify` would have
+produced for the same name.
 
 ```qlang
 > mul | /category
@@ -2309,11 +2309,10 @@ Ident             ← [@_\p{ID_Start}] [\p{ID_Continue}_-]*  (same shape, !Reser
 ```
 
 Comment productions are matched before bare combinators in the
-ordered-choice sequence, so `|~|`, `|~~|`, `|~`, and `|~~` are
-recognized as comment tokens rather than as `|` + following
-expression. The leading `|` in each comment token serves
-double duty: it absorbs the pipeline combinator that would
-otherwise have preceded the next step.
+ordered-choice sequence, so `|~|`, `|~~|`, `|~`, and `|~~` parse
+as single comment tokens. The leading `|` in each comment token
+serves double duty: it absorbs the pipeline combinator that
+would otherwise have preceded the next step.
 
 Disambiguation:
 - `!{` → Error (same entry syntax as Map)
@@ -2334,10 +2333,10 @@ true false null
 `as` is an ordinary identifier bound to an operand in
 `langRuntime`. It can be shadowed like any other name. The
 declarative binding form `:name body` is a BindStep — a grammar
-production, not an identifier — and shadowing of its target name
-happens by a later BindStep / `as` / `use` write to the same
-`env[:name]` slot. All other identifiers are resolved at
-evaluation time against the current `env`.
+production whose key carries a leading colon. Shadowing of its
+target name happens by a later BindStep / `as` / `use` write to
+the same `env[:name]` slot. All other identifiers are resolved
+at evaluation time against the current `env`.
 
 ---
 
@@ -2821,146 +2820,3 @@ Builtin names are supplied by the caller so the tokenizer stays
 free of `langRuntime` side effects — a bundler-sensitive host can
 tree-shake away the runtime and synthesise the set from a static
 list, and a test can narrow the set to a minimal stub.
-
----
-
-## Design rationale
-
-This appendix collects the load-bearing rationales behind a handful
-of language choices that show up across the rest of the spec. Each
-paragraph is a single claim, the trade-off it accepts, and the
-chapter it manifests in.
-
-### Quote-as-source, not AST-Map-as-value
-
-A failing step exposes the source it tripped on as a **Quote**
-(`~{add(1)}`) — verbatim, copy-pasteable, one line. The runtime
-*has* the AST-Map for the same step (every Quote carries an `.ast`
-projection), but the Map is not the primary surface.
-
-The trade-off: a Map of `{:type :OperandCall :name "add" :args [...]
-:location {...}}` answers structured queries cheaply (`/name`,
-`/args`), but a single-line Quote answers the question a debugger
-actually asks — *what code did this fail on?* — without the reader
-re-rendering anything. Tooling that wants the structured shape
-projects `/ast` on demand; the default surface stays the source.
-
-This shows up in [Error track](#error-track) (`:fault/step` is a
-Quote, not a Map) and [Reflection](#reflection) (`source` /
-`docs` / `examples` axis-operands return Quote / Doc / Vec-of-Quote,
-not AST-Maps).
-
-### `::tag`, not `#tag` or another sigil
-
-Identifiers under the parallel namespace ride a **colon-count**
-distinction (`:foo` vs `::foo`), not a separate sigil family
-(`#foo`, `@foo`, `&foo`, …). The hierarchy is visual: doubling the
-colon doubles the resolution scope, and namespacing inheritance
-(`::qlang/error/guards`) drops out of the keyword grammar with no
-extra rules.
-
-The trade-off: a single literal root means `:`-anything and
-`::`-anything compete for grammar-disambiguation effort, and a
-casual reader has to count colons to pick a namespace. The
-benefit is one parser-state machine instead of three, and one
-visual rule across every reflection / completion / docs surface
-instead of "remember which sigil means which scope".
-
-This shows up in [Tag bindings](#tag-bindings) (the namespace
-chapter), [Lexical structure](#lexical-structure) (one
-identifier production handles `:name`, `::Tag`, and
-`::ns/Sub-tag`), and the LSP completion-trigger rule
-(typing `::` filters to the tag namespace; everything else
-sees both namespaces).
-
-### Two-namespace env, not one
-
-`:foo` and `::foo` resolve to two distinct bindings in the same
-env Map; the colon-count picks the namespace at every identifier
-site, no positional or context-sensitive rules required. The
-alternative — one flat namespace with a runtime kind discriminator
-— pushes the disambig into every read site and into every
-shadowing rule.
-
-The trade-off: env-walks that span both namespaces
-(`manifest(:value)` plus `manifest(:tag)`, hover-completion that
-mixes the two catalogs) cost a second pass. The benefit is that
-identifier resolution stays a single Map lookup, shadowing rules
-stay per-namespace, and the printValue surface preserves the
-visual hierarchy on the way out.
-
-This shows up in [Tag bindings](#tag-bindings) and in the
-[Reflection](#reflection) `manifest` operand (the `:value` /
-`:tag` selector is the namespace switch, not a filter over a
-unified catalog).
-
-### JSON stays JSON
-
-A JSON literal — `{"k": 1}` or `[1, 2, 3]` — produces a
-`JsonObject` / `JsonArray` value, **not** a qlang Map / Vec, and
-flows through the pipeline as the JSON shape it arrived as. The
-parser carries the discriminator from grammar (`{:k 1}` vs
-`{"k": 1}`); `printValue` round-trips each shape back to its
-original surface.
-
-The trade-off: a `jq` author piping `{"k":1} | /k` against a
-qlang operand expects JSON in and JSON out — auto-lifting to a
-qlang Map at the boundary breaks the round-trip and silently
-recolours every downstream operand's output. The benefit is that
-qlang composes with `jq` / `curl` / `kubectl` as a peer without a
-lift-cast contract at every join, and the explicit `qlang` /
-`json` operands (and the `::json[…]` / `::qlang<…>` constructors)
-remain the only conversion points.
-
-This shows up in [Construct](#construct) (JSON-mode vs qlang-mode
-literals at the grammar level) and in [`json` /
-`qlang`](qlang-operands.md#formatting) operands (idempotent
-conversion in both directions).
-
-### Successive refinement — variance-priority field ordering
-
-Field ordering in error descriptors, tagged-instance payloads,
-and reify-shape Maps follows a single rule: **high-variance fields
-in front, class-derivable / constant fields in back**. The model is
-progressive JPEG / SVD truncation — the prefix carries the most
-diagnostic information; a reader who stops scanning early still
-walks away with the high-entropy half.
-
-Applied fractally:
-
-- **At the syntax level**, the per-site class identifier rides the
-  literal tag-head, not a payload field. `::AddLeftNotNumberError!
-  {…}` puts the load-bearing identity first; the alternative,
-  `!{:thrown ::AddLeftNotNumberError …}`, drowns the identity
-  among other equal-prefix entries.
-
-- **At the payload-Map level**, fields ordered by variance:
-  `:fault`, `:actualValue`, `:actualType` (variable per
-  invocation) lead; `:operand`, `:position`, `:expectedType`
-  (class-fixed) trail; `:origin`, `:kind`, `:message`
-  (class-template, fully derivable from the tag) trail further,
-  and `printValue` is free to elide the templated tail when it
-  matches the class default.
-
-The canonical compression pattern for future tag-bindings is for
-each class to declare a `:defaults` Map (class-constant fields)
-plus a `:message-template` Quote that computes the dynamic
-message from the merged payload; the constructor merges author
-payload with defaults, and `printValue` emits the delta — fields
-deviating from class defaults appear in the literal, defaults
-implied by the tag.
-
-This shows up in the [Error descriptor fields](#error-descriptor-fields)
-table (the column order is the variance order) and in
-[Round-trip invariant](#round-trip-invariant) (the elision of
-`:thrown` from `::Tag!{…}` payload is the same rule, applied
-once).
-
-The contrast: a Java declaration `private static final long
-MAX_READ_BYTES = …` puts the low-entropy modifier chain
-(`private static final long`) at the head and the high-entropy
-identifier in the middle. Truncate that line at column 30 and
-the identifier vanishes while the modifiers survive — the wrong
-half made it through. qlang inverts the ordering: identifier,
-tag, structural marker first; modifiers and derivable context
-trail.

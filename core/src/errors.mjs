@@ -102,8 +102,8 @@ export class ArityError extends QlangError {
 // QlangInvariantError — abstract root for registration-time invariant
 // violations raised when a runtime operand is constructed with
 // incomplete or malformed metadata. These fire when langRuntime is
-// assembled, not in response to user queries; they indicate that a
-// runtime-module author forgot to provide a required meta field.
+// assembled and signal that a runtime-module author forgot to
+// provide a required meta field.
 // Per-site subclasses live next to the dispatch wrapper that enforces
 // the invariant (see runtime/dispatch.mjs).
 export class QlangInvariantError extends QlangError {

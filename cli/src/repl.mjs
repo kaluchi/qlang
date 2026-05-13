@@ -6,8 +6,10 @@
 //   * In a real terminal: raw-mode keystroke capture, every byte
 //     re-renders the current line through `highlightAnsi` so input
 //     paints live as the user types; bracketed-paste support means
-//     a multi-line JSON paste lands as ONE cell instead of N
-//     parse failures; cursor motion (Left/Right/Home/End/Ctrl+A/E)
+//     a multi-line JSON paste lands as ONE cell — the terminal-
+//     emitted `\x1b[200~ … \x1b[201~` wrappers gate the newlines
+//     so the editor submits the whole block atomically; cursor
+//     motion (Left/Right/Home/End/Ctrl+A/E)
 //     and Backspace/Delete-forward all work.
 //   * In a pipe / scripted test: line-buffered passthrough, no
 //     escapes, no raw mode — the same handler reads `'line'`

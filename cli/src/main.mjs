@@ -14,12 +14,12 @@
 //      control. Otherwise encode the success-track value back into
 //      the resolvedFormat (JSON in → JSON out, raw in → raw out).
 //
-// Streams (rather than write callbacks) cross the boundary because
-// the REPL needs an actual Readable for raw-mode keystroke capture;
-// the script-mode branch derives its writers and the stdin text
-// from the same stream trio. No direct `process.*` references
-// inside the orchestrator keeps the entire flow unit-testable
-// without spawning a subprocess.
+// Streams cross the boundary because the REPL needs an actual
+// Readable for raw-mode keystroke capture; the script-mode branch
+// derives its writers and the stdin text from the same stream
+// trio. The orchestrator stays free of direct `process.*`
+// references, keeping the entire flow unit-testable without
+// spawning a subprocess.
 
 import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';

@@ -70,9 +70,9 @@ function matchesBindingStep(step, isTagBinding, targetName) {
 // Walk the module AST front to back, return the LAST matching binding
 // step. The last-match rule mirrors qlang's shadowing semantics: a
 // later `:foo body` BindStep (or `as(:foo)`) shadows the earlier
-// binding, so axis-operand lookups must surface the docs / source /
-// examples of the binding shadowing-resolved at that point, not the
-// first declaration.
+// binding, so axis-operand lookups surface the docs / source /
+// examples of the shadowing-resolved binding at that point in the
+// module.
 function findBindingStepFor(moduleAst, bindingName) {
   const isTagBinding = isTagBindingName(bindingName);
   const targetName = isTagBinding ? bindingName.slice(TAG_BINDING_PREFIX.length) : bindingName;
@@ -85,8 +85,8 @@ function findBindingStepFor(moduleAst, bindingName) {
     }
     return lastMatch;
   }
-  // Single-step module — top-level AST is the step itself (BindStep
-  // or an `as` OperandCall) rather than a Pipeline wrapper.
+  // Single-step module — top-level AST is the step itself
+  // (BindStep or an `as` OperandCall) with no Pipeline wrapper.
   return matchesBindingStep(moduleAst, isTagBinding, targetName) ? moduleAst : null;
 }
 

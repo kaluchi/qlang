@@ -249,8 +249,9 @@ function checkComparable(ErrorCls, left, right) {
 //                             MapArityErrorCls on 'pair'.
 //
 // The arity check fires once per container subject (not per entry)
-// because `:params.length` is static — the dispatch rejects up front
-// rather than producing a generic ConduitArityMismatchError per item.
+// because `:params.length` is static — the dispatch rejects up
+// front with a shape-specific class, sparing every entry from
+// a generic ConduitArityMismatchError.
 function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
   const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
   if (resolved) {

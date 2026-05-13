@@ -5,8 +5,7 @@
 // The codec is the data layer behind several upstream features:
 //   - Structured error `:trail` — each deflect stamps the upcoming
 //     step's AST-Map onto the error's trail Vec so user code can
-//     filter / group / inspect deflections as qlang data, not as raw
-//     source strings.
+//     filter / group / inspect deflections as qlang data.
 //   - `parse` / `eval` reflective operands — `"query" | parse` lifts
 //     source text into an AST-Map; `ast-map | eval` re-enters
 //     evaluation against the current state. Closes the source → data
@@ -231,10 +230,10 @@ function stampCommonFields(target, node) {
 //
 // Non-AST values (null, scalars, objects without `.type`) return null,
 // matching the defensive shape of astChildrenOf above — callers that
-// walk arbitrary trees receive a stable signal instead of an exception.
-// A node whose `.type` is not one of the known kinds throws
-// AstNodeTypeUnknownError — this is a runtime invariant violation, not
-// user data, and deserves a loud failure.
+// walk arbitrary trees receive a stable signal.
+// A node whose `.type` is one of the unknown kinds throws
+// AstNodeTypeUnknownError — a runtime invariant violation that
+// deserves a loud failure.
 export function astNodeToMap(node) {
   if (node == null) return null;
   if (typeof node !== 'object' || !('type' in node)) return null;
@@ -430,8 +429,8 @@ function pipelineStepToMap(step, index) {
 // is NOT re-attached — callers that need those fields should run
 // assignAstNodeIds and attachAstParents on the result. Root-level
 // metadata (.source / .uri / .parseId / .parsedAt / .schemaVersion)
-// is also not reconstructed, for the same reason: it is stamped by
-// parse.mjs at parse time, not carried by the node shape.
+// is also out of band, for the same reason: parse.mjs stamps it at
+// parse time onto the root, separate from the node shape.
 //
 // Throws AstMapMalformedError when the input Map is missing a required
 // field or carries a field with the wrong shape.

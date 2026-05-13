@@ -10,9 +10,9 @@
 // each keyword through `PRIMITIVE_REGISTRY.resolve` into the
 // matching JS function value and replaces the keyword on the
 // descriptor with the function directly. After bootstrap,
-// dispatch reads the function from :qlang/impl without consulting
-// the registry — the registry is a build-time bridge, not a
-// dispatch-time lookup table.
+// dispatch reads the function from :qlang/impl directly — the
+// registry is a build-time bridge consulted only during the
+// resolution pass.
 //
 // Lifecycle:
 //   1. Each runtime/*.mjs module binds its impls at import time via
@@ -34,20 +34,20 @@
 // in its descriptor Map" we say "impl key" to differentiate from Map
 // entry keys and other keyword uses.
 //
-// Layering: the module lives at src/ root rather than src/runtime/
-// because both the core evaluator (src/eval.mjs, at dispatch time)
-// and every runtime/*.mjs impl file (at module-load time) consume
-// it; keeping it under runtime/ would force eval.mjs to import
-// downward across the core/runtime layering boundary — the exact
-// wart src/operand-errors.mjs sits at src/ root to avoid.
+// Layering: the module lives at src/ root because both the core
+// evaluator (src/eval.mjs, at dispatch time) and every
+// runtime/*.mjs impl file (at module-load time) consume it. The
+// src/ root sits upstream of both layers, so imports flow inward
+// — the same arrangement that src/operand-errors.mjs uses for
+// the per-site error factories.
 //
 // Two isolation modes:
 //   - createPrimitiveRegistry() — factory producing an isolated
 //     registry instance. Test code binds against isolated instances
 //     to avoid polluting the shared registry between cases;
 //     embedders spawning sandboxed evaluation contexts can bind
-//     primitives into a restricted registry instance instead of the
-//     shared one to narrow which primitives a given context sees.
+//     primitives into a restricted registry instance to narrow
+//     which primitives a given context sees.
 //   - PRIMITIVE_REGISTRY — the production singleton bound by every
 //     runtime/*.mjs at import time and sealed by langRuntime() once
 //     bootstrap completes. Consumers call its .bind / .resolve / .seal
@@ -100,11 +100,10 @@ class PrimitiveRegistrySealedError extends QlangInvariantError {
 
 // PrimitiveKeyUnboundError — the one dispatch-time data error. Fires when
 // a descriptor Map's :qlang/impl keyword points to a primitive that
-// was never bound. Extends QlangError (not QlangInvariantError) so
-// evalNode's try/catch converts it to an error value on the fail-
-// track instead of crashing the evaluator. This gracefully handles
-// hand-crafted descriptor Maps, stale serialized sessions, and mis-
-// edited manifest entries.
+// was never bound. Extends QlangError so evalNode's try/catch
+// converts it to an error value on the fail-track. This gracefully
+// handles hand-crafted descriptor Maps, stale serialized sessions,
+// and mis-edited manifest entries.
 class PrimitiveKeyUnboundError extends QlangError {
   constructor(keyLabel) {
     super(
@@ -129,7 +128,8 @@ class PrimitiveKeyUnboundError extends QlangError {
 // to restrict which primitives are available.
 //
 // Production runtime code uses PRIMITIVE_REGISTRY (the module-level
-// singleton) directly, not this factory.
+// singleton) directly; this factory exists for the test and
+// embedder isolation paths described above.
 export function createPrimitiveRegistry() {
   const bindings = new Map();
   let sealed = false;

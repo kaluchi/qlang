@@ -51,12 +51,13 @@ Every pipeline step is a pure function
 There is no hidden global state. Threading `(pipeValue, env)` through
 steps is the entire evaluation mechanism.
 
-### The state pair is meta-notation, not a value type
+### The state pair as meta-notation
 
-`(pipeValue, env)` is notation used in this document to describe how
-steps transform state. It is **not** a value type in the language —
-the language has only Scalar, Vec, Map, Set. Users never construct,
-destructure, or pass the pair as a single object.
+`(pipeValue, env)` is notation used in this document to describe
+how steps transform state. The language proper has only Scalar,
+Vec, Map, Set as value types; the pair lives at the meta-level
+and is never constructed, destructured, or passed as a single
+object inside qlang code.
 
 Components of the pair are individually first-class, however:
 
@@ -69,19 +70,18 @@ Components of the pair are individually first-class, however:
   it can be inspected with `keys`, `has`, `/key` projection, or any
   other Map operation, and written back with `use`.
 
-There is no operation that exposes the pair as a single object, and
-none of the worked examples needs one. The combinators (`|`, `!|`,
-`*`, `>>`) and fork boundaries (`()`, `[]`, `{}`, `#{}`) transform
-the pair implicitly — that transformation is the semantics of the
-language, described in meta-notation for clarity, not reified as a
-user-visible object.
+No operation exposes the pair as a single object, and none of the
+worked examples needs one. The combinators (`|`, `!|`, `*`, `>>`)
+and fork boundaries (`()`, `[]`, `{}`, `#{}`) transform the pair
+implicitly — that implicit transformation is the semantics of
+the language, described here in meta-notation for clarity.
 
 ## Step types
 
 Seven kinds of steps. Every syntactic form in the language reduces
 to one of them. `use`, `env`, `reify`, `manifest`, `error`, and
-`isError` are not step types — they are ordinary identifiers
-(Step 3) that happen to resolve to built-ins in the language runtime.
+`isError` parse as ordinary identifiers (Step 3) that resolve to
+built-ins in the language runtime.
 
 ### 1. Literal
 
@@ -171,7 +171,7 @@ through. The bound value is shaped by the body's purity and shape:
   the body once at declaration time against `pipeValue=null` and
   binds the resulting value behind a Snapshot wrapper. Catalog
   descriptor Maps land through this path so identifier lookup sees
-  a plain Map directly, not a deferred Conduit.
+  the plain Map directly.
 - **Impure / parametric body** — the body becomes a **Conduit**
   carrying the unevaluated body AST, optional parameter list, the
   doc-prefix Vec, and a **lexical scope anchor** (`envRef`) that
@@ -190,7 +190,7 @@ When the conduit name is later looked up via Step 3:
    preserved.
 
 This is **lexical scope** — the body sees the env frozen at
-declaration time, not the caller's env:
+declaration time:
 
 - **Fractal composition.** Conduits built on other conduits are
   immune to shadowing at the call site. Library-defined conduits
@@ -204,10 +204,10 @@ declaration time, not the caller's env:
   `filter`, per-pair inside `desc`/`asc`.
 
 Zero-arity conduits (`:f body`) and parametric conduits
-(`:f [:a :b] body`) share the same mechanism. Type-binding
+(`:f [:a :b] body`) share the same mechanism. Tag-binding
 declarations (`::Tag descriptor`) use the same BindStep AST node;
 the `BareTypeKeyword` key writes under the `::Tag` env-key prefix
-instead of the value-namespace plain-name slot.
+in the tag namespace.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -320,8 +320,8 @@ Overloaded by captured-arg count:
     internal `:qlang/kind :builtin` / `:qlang/impl
     :qlang/prim/<name>` discriminator for the user-facing
     `:kind :builtin`, drops the `:qlang/impl` handle (reify
-    consumers want the descriptor, not the dispatch-time
-    primitive key), and computes `:captured` / `:effectful` by
+    consumers read the descriptor, the dispatch-time primitive
+    key is internal), and computes `:captured` / `:effectful` by
     resolving the primitive through `PRIMITIVE_REGISTRY`. The
     structural fields (`:category`, `:subject`, `:modifiers`,
     `:returns`, `:throws`) pass through from the `core.qlang`
@@ -376,7 +376,7 @@ the key, no extra storage. `core/src/types.mjs` exports the
 `TAG_BINDING_PREFIX` constant (`'::'`) and the `isTagBindingName`
 predicate; every place that needs to walk env entries by namespace
 (`manifest` filtering, axis-operand lookup, LSP completion) reads
-through these helpers rather than re-typing the prefix string.
+through these helpers.
 
 A tag binding is the value stored under `'::Tag'`: a frozen Map
 carrying `:qlang/kind :tag` plus a constructor handle on
@@ -422,11 +422,11 @@ carrying `:qlang/kind :tag` plus a constructor handle on
 
 `::tag` without a following Primary parses as a `BareTypeKeyword`
 AST node. Evaluation looks the binding up the same way (step 2
-above) but returns a `TagKeyword` value (`makeTagKeyword(tag)`)
-instead of invoking a constructor. This is how `::ParseError | docs`
-works — the `BareTypeKeyword` produces a TagKeyword pipeValue,
-the axis-operand reads it via `bindingNameOf` and walks the
-`qlang/ast/<uri>` module Quote to find the declaring BindStep.
+above) and returns a `TagKeyword` value (`makeTagKeyword(tag)`).
+This is how `::ParseError | docs` works — the `BareTypeKeyword`
+produces a TagKeyword pipeValue, the axis-operand reads it via
+`bindingNameOf` and walks the `qlang/ast/<uri>` module Quote to
+find the declaring BindStep.
 
 ### Constructor invariants
 
@@ -1005,8 +1005,8 @@ pre-built Map whose values are already the bindings you want
 cannot be used to define new *functions* from inside the query,
 because a Map literal like `{:double mul(2)}` evaluates each
 value expression as a sub-pipeline: `mul(2)` applies to the
-current `pipeValue` via Rule 10 rather than producing a function
-object. For in-query function extension, declare a BindStep:
+current `pipeValue` via Rule 10 and yields the applied result.
+For in-query function extension, declare a BindStep:
 
     | :double mul(2)
     | :isSenior (/age | gt(65))
@@ -1087,7 +1087,7 @@ classes; the conversion is transparent to them. Two converters
 from per-site class properties, including `:actualValue`) and
 foreign host errors (best-effort field extraction from JS Error
 objects). `QlangInvariantError` subclasses are never caught — they
-indicate runtime bugs, not data errors.
+mark runtime bugs and surface as JS-level throws.
 
 At the catch point, `evalNode` builds a `:fault` Map via
 `buildFaultMap(stepNode, state.pipeValue)` carrying `:step`
@@ -1127,10 +1127,9 @@ pure AST-node-type dispatcher with no track awareness.
 
 The leading `!|` prefix of a Pipeline (`Pipeline.leadingFail`) is
 handled in `evalPipeline` by routing the first step through
-`applyCombinator('!|', state, step)` instead of the raw
-`evalNode(step, state)` call that un-prefixed pipelines use. This
-is how predicate lambdas inside `filter(…)` / `when(…)` / `if(…)`
-opt into fail-apply for their first step.
+`applyCombinator('!|', state, step)`. This is how predicate
+lambdas inside `filter(…)` / `when(…)` / `if(…)` opt into
+fail-apply for their first step.
 
 ### Trail and materialization
 
@@ -1194,7 +1193,7 @@ in addition to the invariant `:trail`:
 | `:kind` | keyword | Error category |
 | `:thrown` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The descriptor's TaggedLit head echoes the same value, so `printValue` elides this field whenever it matches the head; the field stays addressable through `!\| /thrown` projection |
 | `:message` | string | Human-readable |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which have access to the correct `state.pipeValue` and `bodyNode`) rather than in `evalNode`'s catch, so `:fault/input` carries the actual pipeline value at the combinator, not the Pipeline-level entry state |
+| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
@@ -1213,9 +1212,8 @@ Re-exported from the package entry.
 
 Single source of truth for the qlang AST shape. Every module that
 needs to read, decorate, query, or transform AST nodes imports
-from here rather than duplicating a switch-on-`node.type` —
-adding a new node type in `grammar.peggy` is a one-file edit
-because `astChildrenOf` and the codec share the shape knowledge.
+from here, so adding a node type in `grammar.peggy` is a one-file
+edit — `astChildrenOf` and the codec share the shape knowledge.
 
 - `astChildrenOf(node)` — direct semantic children of an AST node.
 - `walkAst(node, visit)` — pre-order recursive descent. Visitor
@@ -1282,11 +1280,10 @@ modes: `PrimitiveKeyNotStringError` (non-string handle),
 `PrimitiveKeyAlreadyBoundError` (duplicate registration from two
 modules claiming the same name), `PrimitiveRegistrySealedError`
 (late registration after bootstrap closes the registry). The
-sole dispatch-time data error is `PrimitiveKeyUnboundError`, which
-extends `QlangError` (not `QlangInvariantError`) so a
-hand-crafted descriptor Map with a bad `:qlang/impl` handle
-lifts to an error value on the fail-track rather than crashing
-the evaluator.
+sole dispatch-time data error is `PrimitiveKeyUnboundError`,
+which extends `QlangError` so a hand-crafted descriptor Map
+with a bad `:qlang/impl` handle lifts to an error value on the
+fail-track.
 
 ### `session.mjs` — REPL / notebook session lifecycle
 

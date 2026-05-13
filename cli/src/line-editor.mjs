@@ -3,9 +3,9 @@
 // line-buffered flavour for non-TTY stdin (pipes, scripted tests).
 // The TTY flavour reads stdin in raw mode so every keystroke can
 // redraw the current buffer through the caller-supplied
-// `render(buffer)` step — line-buffered input cannot express a
-// keystroke-level redraw, so two flavours live in one factory
-// rather than a shared base.
+// `render(buffer)` step — line-buffered input drops the
+// keystroke-level redraw and ships a single line at a time; both
+// flavours coexist in one factory so callers pick by stdin shape.
 //
 // Two editor flavours, picked by `stdinStream.isTTY`:
 //
@@ -17,10 +17,9 @@
 //       multi-line buffer.
 //     * Multi-line redraw: `\n` in the buffer is a real line break
 //       on screen. The editor tracks how many visual rows the last
-//       render occupied (accounting for the terminal's soft-wrap
-//       at column width, not only the count of logical `\n`), then
-//       walks the cursor up that many rows and clears to end of
-//       screen before re-rendering. Long lines that wrap across
+//       render occupied (logical `\n` count plus terminal soft-wrap
+//       at column width), then walks the cursor up that many rows
+//       and clears to end of screen before re-rendering. Long lines that wrap across
 //       terminal columns collapse back correctly when the buffer
 //       shrinks.
 //     * Bracketed paste — terminal-emitted `\x1b[200~ … \x1b[201~`

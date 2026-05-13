@@ -5,7 +5,7 @@
     ~{start} — the pipeValue snapshotted before the first
     attempt. The action parameter is a lazy lambda — if
     the caller passes an effectful operand, the effect
-    fires at the call site, not inside retry.
+    fires at the call site, in the caller's frame.
 
     Success path: ~{|} fires action against pipeValue;
     the trailing ~{!|} deflects and the successful result

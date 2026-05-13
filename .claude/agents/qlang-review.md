@@ -91,6 +91,26 @@ Documentation, code comments, commit messages, and error strings must read as if
 
 Any match above is blocker-grade drift regardless of context.
 
+### 2a. Apophatic framing — definition by negation against absent alternatives
+
+Reject prose that defines what the code IS by listing what it ISN'T. The rhetorical pattern is **apophasis** (Greek ἀπόφασις, "denial" — definition by negation, also called *via negativa*). It surfaces as:
+
+- "X, not Y" section headings — "Two-namespace env, not one", "Quote-as-source, not AST-Map-as-value", "`::tag`, not `#tag`".
+- Lead sentences that pivot on the rejected alternative — "the BindStep is **not** an operand — it is …", "this is **not** a runtime flag — instead, …".
+- Mid-paragraph contrast filler — "X instead of Y", "X rather than Y", "X as opposed to Y", "no longer Y", "where Y would have …".
+- Trailing reassurance — "and **not** a Conduit", "and **not** an arity error", "**not** a string field".
+
+The reader brings their own set of rejected alternatives. Piling our list of rejected alternatives on top doubles the noise. Texts must land on the **positive form** — principles, invariants, conventions, the actual semantic — and let the absent alternatives stay absent.
+
+Two narrow exceptions:
+
+1. **The contrast IS the rule.** When a single sentence states the literal disambiguation rule the parser / evaluator enforces — `:foo` is the value namespace, `::foo` is the tag namespace — the two halves of the rule are both positive specifications. Keep.
+2. **Single-shot warning against a real mis-read.** When a reader almost certainly arrives with a measurably wrong mental model (e.g. `/qlang/http` reads as a single namespaced keyword segment, not two bare segments separated by `/`), one clarifying negation is allowed. One — not a recurring frame.
+
+Findings in this category must name the apophasis explicitly, quote the offending phrase, and propose the positive rewrite.
+
+Grep heuristic for the reviewer: any non-table line containing `, not ` / `instead of ` / `rather than ` / `as opposed to ` / `no longer ` / `not just ` / `not the ` / `not a ` after the first prose paragraph of a chapter is suspect. Confirm by reading the surrounding sentence — if dropping the negated half loses no specification, the line is apophatic and must be rewritten.
+
 ### 3. Per-site error classes (one throw site, one class)
 
 Every type-error / arity-error / shape-error throw site in the runtime must have its own unique class name. No two operands share an error class. Check `core/src/operand-errors.mjs` for the factories (`declareSubjectError`, `declareModifierError`, `declareElementError`, `declareComparabilityError`, `declareShapeError`, `declareArityError`) and verify each new throw site uses a unique class name.

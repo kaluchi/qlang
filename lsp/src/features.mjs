@@ -117,8 +117,8 @@ export function buildCatalogIndex(catalogAst) {
 // (`::AddLeftNotNumberError`, `::conduit`, ...). Walked from
 // `langRuntime` directly because the namespace partitioning runs
 // off `isTagBindingName` on the env key; the catalog index built
-// in `buildCatalogIndex` covers the same surface but only carries
-// source-range info, not descriptor metadata.
+// in `buildCatalogIndex` covers the same surface and carries the
+// source-range info goto-definition needs.
 
 let _valueCompletions = null;
 let _tagCompletions = null;
@@ -160,9 +160,8 @@ async function tagNamespaceCompletions() {
 
 // `source.substring(offset - 2, offset)` tells the completion path
 // whether the cursor sits right after a `::` prefix — that picks
-// the tag-namespace catalog instead of (or alongside) the
-// value-namespace one. Without source slice fallback, the default
-// surfaces both catalogs so hover-style discovery still works
+// the tag-namespace catalog alone. Without a source slice the
+// default merges both catalogs so hover-style discovery works
 // inside `filter(::` / `eq(::` / first-token contexts.
 function justTypedDoubleColon(source, offset) {
   if (typeof source !== 'string' || offset < 2) return false;
@@ -272,7 +271,7 @@ async function hoverForOperand(node) {
 // `::Tag` head span (the two `::` chars + the tag identifier) is
 // what reads as the hover range — for a TaggedLit the payload
 // sits outside the popup region so the editor highlights the tag
-// only, not the whole literal.
+// head alone.
 async function hoverForTag(node) {
   const tagKey = TAG_BINDING_PREFIX + node.tag;
   const runtime = await langRuntime();
@@ -380,9 +379,10 @@ function bindingDeclarationOf(node) {
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST
 // collecting BindStep / `as(:name)` declarations for `name` that
-// are lexically visible at `offset` (before cursor, not fork-
-// isolated). Returns the LAST one (closest to cursor = most recent
-// shadowing), or null if no in-document declaration is visible.
+// are lexically visible at `offset` (before the cursor, in a
+// fork-reachable ancestor). Returns the LAST one (closest to
+// cursor = most recent shadowing), or null if no in-document
+// declaration is visible.
 function findLastVisibleDeclaration(ast, name, offset) {
   let lastVisible = null;
 

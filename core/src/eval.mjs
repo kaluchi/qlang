@@ -75,10 +75,10 @@ function trailEntry(stepNode, combinatorKind) {
 const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapError',
   ({ key, actualType }) => `/${key} requires Map or Vec subject, got ${actualType.name}`);
 // Map subject does not carry the requested key. Strict fail-first
-// surfaces the typo / mismatched-shape on the projection itself
-// rather than propagating null through downstream steps where the
-// failure surfaces with no breadcrumb pointing back to the missing
-// key. null subject still propagates as null (see projectSegment).
+// surfaces the typo / mismatched-shape on the projection itself,
+// so the diagnostic carries a breadcrumb pointing back to the
+// missing key. null subject still propagates as null (see
+// projectSegment).
 const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
   ({ key }) => `/${key} — key not present in Map subject`);
 // Vec subject indexed past its bounds. Negative indices walk from
@@ -88,13 +88,12 @@ const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfB
   ({ key, length }) => `/${key} — index out of bounds for Vec subject of length ${length}`);
 // Vec subject projected by a non-numeric segment. Vec indices are
 // integer offsets; named keys belong to Map shape, so a `[…] | /name`
-// query is treated as a shape mismatch rather than silently coalescing
-// to null.
+// query surfaces as a shape mismatch on the projection itself.
 const ProjectionVecKeyNotIntegerError = declareShapeError('ProjectionVecKeyNotIntegerError',
   ({ key }) => `/${key} — non-integer segment cannot index a Vec subject`);
 // Value-class subjects (Quote / Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
-// that set is a typo, not an optional read.
+// that set is treated as a typo and lifts to this error.
 const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
@@ -110,14 +109,14 @@ const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingErr
 // (high-entropy first), the expected `:qlang/impl` shape is stamped
 // as `:expectedType [:keyword :quote]`, and the actual `:qlang/impl`
 // value lands as `:actualValue` / `:actualType` so the diagnostic
-// reads as a single shape contract instead of a one-line template.
+// reads as a single shape contract.
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :qlang/impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
 const DistributeSubjectNotVecError = declareSubjectError('DistributeSubjectNotVecError', '*', 'vec');
 const MergeSubjectNotVecError      = declareSubjectError('MergeSubjectNotVecError',      '>>', 'vec');
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
-  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}, not a function`);
+  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`);
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
   ({ conduitName, expectedArity, actualArity }) =>
     `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`);
@@ -132,10 +131,10 @@ const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterN
 // model's reference bootstrap). The parsed AST is stamped into
 // the env under `moduleAstKey('inline')` as a Quote so axis-
 // operands (`source`, `docs`, `examples`) can resolve `BindStep`
-// bindings declared inside the same query — without it,
-// `:foo body | :foo | docs` would raise `AxisBindingNotFoundError`
-// because `foo` lives only in the just-parsed AST, not in any
-// module Quote installed via `use(:ns)`.
+// bindings declared inside the same query. With the inline-AST
+// Quote stamped on env, `:foo body | :foo | docs` finds `foo`
+// in the just-parsed AST without going through a `use(:ns)`
+// module installation.
 export async function evalQuery(source, env) {
   const initialEnv = env ?? await langRuntime();
   let ast;
@@ -354,9 +353,9 @@ async function mergeFlat(state, nextNode) {
 // Per-element transformer tagger: if the source was a JsonArray, the
 // output keeps the JSON tag only when every element is JSON-storeable.
 // A single qlang-only element (Map/Set/Vec/Conduit/Keyword/…) silently
-// degrades the container to a qlang Vec — `| json` downstream will
-// then loud-fail on the qlang shape rather than silently emit a
-// JsonArray of un-serialisable values.
+// degrades the container to a qlang Vec — `| json` downstream then
+// loud-fails on the qlang shape, surfacing the un-serialisable
+// element at the conversion site.
 function retagPerElement(items, source) {
   if (!isJsonArray(source)) return items;
   return items.every(isJsonStoreable) ? makeJsonArray(items) : items;
@@ -505,10 +504,10 @@ async function evalTaggedLit(node, state) {
     throw new TaggedLitNotTagBindingError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
   // :qlang/impl carries either a `:qlang/prim/<tag>` keyword (built-in
-  // type — resolved through PRIMITIVE_REGISTRY at every invocation so
-  // reify(::tag) keeps the readable handle, not a JS-source dump) or
-  // a Quote-value (user-defined type — payload becomes pipeValue, the
-  // Quote body runs against the current env).
+  // tag — resolved through PRIMITIVE_REGISTRY at every invocation so
+  // reify(::tag) keeps the readable keyword handle on the descriptor)
+  // or a Quote-value (user-defined tag — payload becomes pipeValue,
+  // the Quote body runs against the current env).
   const implKey = typeBinding.get('qlang/impl');
   if (isKeyword(implKey)) {
     const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
@@ -579,8 +578,8 @@ async function evalBareTypeKeyword(node, state) {
 //     → eval'd at decl-time against pipeValue=null (the body does
 //        not depend on pipeValue) and bound as a snapshot of the
 //        resulting value. Catalog descriptor Maps live behind
-//        this path so the langRuntime impl-resolution pass sees a
-//        plain Map, not a Conduit, at each env entry.
+//        this path so the langRuntime impl-resolution pass sees
+//        a plain Map at each env entry.
 //
 //   impure body / parametric form
 //     → captured AST in a Conduit (zero-arg or parametric) with
@@ -644,10 +643,10 @@ async function evalBindStep(node, state) {
 // support, value-classes (Quote, Doc) expose a fixed projectable
 // field-set. Every miss / mismatch is a fail-first error so a typo'd
 // key, out-of-range index, or `null` subject surfaces on the
-// projection itself rather than cascading downstream as a typeless
-// blowup with no breadcrumb. The soft counterpart for "optionally
-// read a field" is the `at` operand (Map miss → `null`); explicit
-// fail-track handling stays available via the `!|` combinator.
+// projection itself, carrying a breadcrumb to the failed segment.
+// The soft counterpart for "optionally read a field" is the `at`
+// operand (Map miss → `null`); explicit fail-track handling stays
+// available via the `!|` combinator.
 const INTEGER_SEGMENT_RE = /^-?\d+$/;
 
 async function evalProjection(node, state) {

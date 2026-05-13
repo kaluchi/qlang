@@ -99,7 +99,7 @@ export function errorFromParse(parseError) {
   // No `:message` stamp — `:source` + `:marker` + `:expected` +
   // `:found` carry the diagnostic data structurally; the human-
   // readable prose is reachable through `::ParseError | docs`
-  // hypertext navigation, not as a redundant string field.
+  // hypertext navigation.
   return makeErrorValue(d, {
     location: parseError.location,
     originalError: parseError
@@ -136,9 +136,8 @@ function liftExpectedAlternative(alt) {
 // is a well-known one (whitespace, digits, etc.); fall back to a
 // `:char-class` keyword for ad-hoc classes so the Vec stays
 // uniformly keyword-typed. Inverted char-classes from the grammar
-// (`[^…]`) do not surface in peggy's `expected` set — they are
-// matched greedily as content, not as expected alternatives — so
-// no `non-X` keyword path is wired here.
+// (`[^…]`) match greedily as content and stay out of peggy's
+// `expected` set, so no `non-X` keyword path is wired here.
 function classKeyword(cls) {
   const sig = cls.parts.map(p => Array.isArray(p) ? `${p[0]}-${p[1]}` : p).join('');
   return keyword(NAMED_CLASS_SIGS[sig] ?? 'char-class');

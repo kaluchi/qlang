@@ -101,11 +101,12 @@ Query
 // The leading-combinator prefix (`!| step` / `| step` / `* step` /
 // `>> step`) is valid at any Pipeline-start position. Semantically
 // the first step is applied against the inbound pipeValue through
-// the named combinator instead of the implicit identity-head. This
-// is what makes a Pipeline-suffix Quote (`~{| count | add(1)}`)
-// parseable as data and re-evaluable against a subject via the
-// `apply(quote)` operand. Explicit combinators between later steps
-// (`|`, `*`, `>>`, `!|`) remain valid as usual.
+// the named combinator; without the prefix, the first step rides
+// the implicit identity-head. The prefix is what makes a
+// Pipeline-suffix Quote (`~{| count | add(1)}`) parseable as data
+// and re-evaluable against a subject via the `apply(quote)`
+// operand. Explicit combinators between later steps (`|`, `*`,
+// `>>`, `!|`) remain valid as usual.
 PipelineInLiteral
   = leadingComb:(LeadingCombinator _)? head:RawStep tail:(_L ExplicitContinuation)*
   {
@@ -129,12 +130,12 @@ Pipeline
     //
     // `leadingCombinator` is an optional `!|` / `|` / `*` / `>>`
     // prefix that applies the first step against the inbound
-    // pipeValue through the named combinator instead of the implicit
-    // identity-head. If present, a single-step pipeline still wraps
-    // in a Pipeline node so the evaluator can route the first step
-    // through `applyCombinator`. Without the prefix, a single-step
-    // pipeline collapses to the bare step node so `astChildrenOf`
-    // and downstream walkers see a Primary at the query root.
+    // pipeValue through the named combinator. If present, a
+    // single-step pipeline still wraps in a Pipeline node so the
+    // evaluator can route the first step through `applyCombinator`.
+    // Without the prefix, a single-step pipeline collapses to the
+    // bare step node so `astChildrenOf` and downstream walkers see
+    // a Primary at the query root.
     const hasLeadingComb = leadingComb !== null;
     const headUnits = Array.isArray(headRaw) ? headRaw : [headRaw];
     const head = headUnits[0];
@@ -181,9 +182,11 @@ LeadingLinePlainAbsorbing
     return [c, ...followerUnits];
   }
 
-// Continuations after the first step. Comment-led units are tried
-// first so their leading `|` is absorbed as the combinator into the
-// comment token rather than matched as a bare Combinator.
+// Continuations after the first step. Comment-led units sit at
+// the front of the ordered choice so their leading `|` absorbs
+// as the combinator into the comment token — same precedence
+// rule the Pipeline-head uses to keep `|~|` from splitting into
+// `|` + `~|`.
 //
 // `DocLitContinuation` catches a standalone doc-comment in
 // continuation position (no following operand-call to attach to) —
@@ -440,11 +443,10 @@ Combinator
 // `RawStep` is the bare-Primary form of a step. The binding-form
 // `BindStep` is introduced separately at the Pipeline-step level
 // (see `PipelineHead` and the `BindStepContinuation` alternative
-// of `ContinuationUnit`); it is intentionally NOT folded into
-// `RawStep` because `RawStep` is shared by `PipelineInLiteral` —
-// inside Vec/Set/Map/ArgList element positions the grammar must
-// stay "Keyword is just a keyword value", so `[:a 42]` parses as
-// a Vec of two keywords + a number, not as a binding.
+// of `ContinuationUnit`); the split keeps `RawStep` reusable from
+// `PipelineInLiteral`, where Vec/Set/Map/ArgList element positions
+// treat a keyword head as a plain keyword value. `[:a 42]` parses
+// as a Vec of two keywords plus a number under this rule.
 
 RawStep
   = Primary
@@ -490,9 +492,9 @@ BindName
 // DocPrefix in BindStep sits AFTER the name. No combinator-absorb
 // behaviour (the name already separated this step from the
 // previous). Sequence of consecutive doc-comments accumulates into
-// a Vec of contents; plain comments interleaved are dropped (they
-// are layout sugar, not part of attached docs). Returns null when
-// no doc-comment found.
+// a Vec of contents; interleaved plain comments stay as layout
+// sugar outside the attached-docs payload. Returns null when no
+// doc-comment found.
 DocPrefix
   = first:DocComment rest:(_ DocOrPlainItem)*
     {

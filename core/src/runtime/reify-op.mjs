@@ -175,8 +175,8 @@ function describeBinding(value, explicitName) {
   // are function values that can show up as env bindings while a
   // conduit body is evaluating. `buildBuiltinDescriptor` handles
   // them via the `fn.meta` path carried by the proxies
-  // `makeConduitParameter` constructs, since their metadata is
-  // inlined rather than living in core.qlang.
+  // `makeConduitParameter` constructs — their metadata is inlined
+  // on the proxy itself, addressable through `fn.meta`.
   if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
   if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
   if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
@@ -231,8 +231,8 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
 //                       through reify lookup.
 //
 // Module Quote storage under the `qlang/ast/<uri>` env-key family is
-// always filtered — those entries are runtime housekeeping, not part
-// of either namespace's user-facing catalog.
+// always filtered — those entries are runtime housekeeping outside
+// either namespace's user-facing catalog.
 export const manifest = stateOpVariadic('manifest', 2, async (state, manifestLambdas) => {
   let namespace = 'value';
   if (manifestLambdas.length === 1) {
@@ -291,8 +291,8 @@ async function collectQuotesForBinding(env, bindingName) {
   // Bindings without a source-located BindStep (host-installed
   // bindings via `session.bind`, runtime-seeded built-ins) have no
   // examples to run. `runExamples` returns an empty Vec — the
-  // catalog walk in manifest-self-test treats them as
-  // zero-contribution rather than as a failure.
+  // catalog walk in manifest-self-test counts them as
+  // zero-contribution entries.
   if (step === null) return [];
   const docStrings = step.docs ?? [];
   const collected = [];

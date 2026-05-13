@@ -1,11 +1,10 @@
 // Per-site error class factories — shared infrastructure for every
 // operand throw site in the runtime plus the Rule 10 arity check in
 // `rule10.mjs` and the AST-dispatch shape checks in `eval.mjs`. Lives
-// at the `src/` root rather than under `src/runtime/` because both the
-// core evaluator modules and every `runtime/*.mjs` operand impl
-// consume the factories below; keeping the module in `runtime/` would
-// force `src/eval.mjs` and `src/rule10.mjs` to import downward across
-// the core/runtime layering boundary.
+// at the `src/` root because both the core evaluator modules and
+// every `runtime/*.mjs` operand impl consume the factories below;
+// the `src/` root sits upstream of both layers so the imports flow
+// inward consistently.
 //
 // Principle: **one throw site, one class**. No error class is
 // shared across two different operand sites. Each check raises an

@@ -14,8 +14,8 @@
 //
 // Cross-shape equivalences: a JsonArray and a Vec with the same
 // elements are equal; a JsonObject and a Map with the same entries
-// are equal. The JSON tag is an authoring/round-trip hint, not a
-// semantic distinction at the equality level.
+// are equal. The JSON tag is an authoring/round-trip hint;
+// `deepEqual` collapses it.
 
 import {
   isKeyword, isTagKeyword, isErrorValue, isQuote, isDoc,

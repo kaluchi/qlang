@@ -18,8 +18,9 @@
 //                                                      stdout + '\n', exit 0
 //
 // Error values travel as data on the same channel as plain values —
-// they are first-class qlang values per the spec, not a host-level
-// failure. Agent harnesses parallelise `qlang` invocations; a
+// they are first-class qlang values per the spec, flowing through
+// the success-channel render path. Agent harnesses parallelise
+// `qlang` invocations and rely on exit-0 for a completed run; a
 // non-zero exit on a fail-track result would cancel sibling tool
 // calls. `printValue` renders the descriptor in qlang-rich form
 // (`!{:kind ... :trail ...}`); `toPlain` lifts it to tagged JSON

@@ -16,8 +16,7 @@ import { TAG_BINDING_PREFIX, isTagBindingName } from './types.mjs';
 // Namespace alias values used by `bindingNamesVisibleAt` to select
 // which BindStep / `as` declaration shapes count toward the result
 // Set. Kept on the export surface so callers (LSP completion,
-// editor autocomplete) pass a named constant instead of a magic
-// string at every call site.
+// editor autocomplete) pass a named constant at every call site.
 export const VALUE_NAMESPACE = 'value';
 export const TAG_NAMESPACE   = 'tag';
 
@@ -172,9 +171,10 @@ export function findAstNodeAtOffset(ast, offset) {
 //       - BindStep whose BareTypeKeyword key names the identifier
 //         (declaration site — `::Tag body`)
 //
-// Keyword literals (`:foo` value-position) are intentionally NOT
-// included because `:foo` is a value of type keyword, not an
-// identifier reference.
+// Keyword literals (`:foo` value-position) stay out of the
+// result set: a `:foo` literal in value position is a keyword
+// value, addressable by `eq(:foo)` predicates but separate from
+// identifier resolution.
 export function findIdentifierOccurrences(ast, name) {
   if (isTagBindingName(name)) {
     return findTagNamespaceOccurrences(ast, name.slice(TAG_BINDING_PREFIX.length));

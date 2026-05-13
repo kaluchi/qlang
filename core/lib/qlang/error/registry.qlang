@@ -700,7 +700,7 @@
 |~ ──────────────── Render invariants ──────────────── ~|
 
 ::FunctionValueLeakedToPrintError
-  |~~ `printValue` / `toPlain` invariant — a raw function value reached render. Wrap host operands in a descriptor Map carrying `:qlang/kind :builtin` and `:qlang/impl` instead of binding the function via `session.bind`. ~~|
+  |~~ `printValue` / `toPlain` invariant — a raw function value reached render. Wrap host operands in a descriptor Map carrying `:qlang/kind :builtin` and `:qlang/impl` when binding through `session.bind`. ~~|
   {:qlang/kind :tag}
 
 |~ ──────────────── Misc throws ──────────────── ~|
@@ -738,5 +738,5 @@
   {:qlang/kind :tag}
 
 ::ReifyArityOverflowError
-  |~~ `reify` accepts 0 or 1 captured arguments, not more. ~~|
+  |~~ `reify` accepts 0 or 1 captured arguments — `reify(:name)` resolves a named binding, bare `reify` describes pipeValue. ~~|
   {:qlang/kind :tag}

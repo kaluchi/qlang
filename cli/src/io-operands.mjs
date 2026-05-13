@@ -4,9 +4,9 @@
 // identity step that mirrors the current pipeValue onto stderr with
 // a labelled prefix for diagnostic.
 //
-// All four are host-bound rather than registered as `:qlang/io`
-// module exports — a one-liner `qlang '@in | @out'` should not need
-// `use(:qlang/io)` ceremony. The operand function values close over
+// All four are host-bound directly into the session env, so a
+// one-liner `qlang '@in | @out'` runs without `use(:qlang/io)`
+// ceremony. The operand function values close over
 // the writers passed in `ioContext`, so the same evaluator can run
 // against `process.stdin`/`stdout`/`stderr` in the bin or against
 // captured chunks in a unit test without changing the operand impls.
@@ -106,10 +106,10 @@ export function bindIoOperands(session, ioContext) {
   // `recordStdoutEffect` lets the script-mode renderer suppress its
   // implicit final encode when the user already pushed bytes to
   // stdout via `@out` — explicit output takes the channel; the
-  // tool stops echoing. `@err` and `@tap` write to stderr and do
-  // not flip the flag (stderr is diagnostic, not the primary
-  // delivery channel). Optional in REPL-style ioContexts that do
-  // not care about double-output suppression.
+  // tool stops echoing. `@err` and `@tap` write to stderr (the
+  // diagnostic channel) and leave the flag alone. Optional in
+  // REPL-style ioContexts that do not care about double-output
+  // suppression.
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   const noopEffect = () => {};
 

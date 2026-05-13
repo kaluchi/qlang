@@ -285,7 +285,7 @@ const PROSE_OVERRIDES = {
   ExamplesSubjectNotKeywordOrTagError: '`examples` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.',
   RunExamplesSubjectShapeError: '`runExamples` requires a Keyword (binding name) or a descriptor Map carrying a `:name` String.',
 
-  ReifyArityOverflowError: '`reify` accepts 0 or 1 captured arguments, not more.',
+  ReifyArityOverflowError: '`reify` accepts 0 or 1 captured arguments — `reify(:name)` resolves a named binding, bare `reify` describes pipeValue.',
   ReifyKeyNotKeywordError: '`reify(:name)` requires a Keyword captured-arg (the binding name to look up).',
 
   UseSubjectNotMapError: '`use` (bare form) requires a Map subject — its entries become the merged bindings.',
@@ -347,7 +347,7 @@ const PROSE_OVERRIDES = {
 
   UnknownAstNodeTypeError: 'Evaluator dispatch — encountered an AST node whose `.type` is not in `AST_NODE_EVALUATORS`. Runtime invariant violation, never reaches user code.',
   UnknownCombinatorKindError: 'Combinator dispatch — encountered a combinator kind not in `COMBINATOR_EVALUATORS`. Runtime invariant violation.',
-  FunctionValueLeakedToPrintError: '`printValue` / `toPlain` invariant — a raw function value reached render. Wrap host operands in a descriptor Map carrying `:qlang/kind :builtin` and `:qlang/impl` instead of binding the function via `session.bind`.',
+  FunctionValueLeakedToPrintError: '`printValue` / `toPlain` invariant — a raw function value reached render. Wrap host operands in a descriptor Map carrying `:qlang/kind :builtin` and `:qlang/impl` when binding through `session.bind`.',
 
   Rule10ArityOverflowError: 'Rule 10 — operand call supplied more captured arguments than the operand\'s declared maximum arity.',
   ValueOpArityMismatchError: 'Dispatch invariant — `valueOp` impl received an unexpected captured-arg count for its declared arity.',

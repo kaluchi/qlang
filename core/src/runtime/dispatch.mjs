@@ -12,8 +12,8 @@
 // in lib/qlang/core.qlang as descriptor Maps that langRuntime()
 // parses into env at session construction. The only metadata the
 // helpers compute is the `captured` range — the [min, max] count
-// of captured args the operand accepts — because it is structurally
-// derived from the dispatch shape, not from authored documentation.
+// of captured args the operand accepts — derived structurally
+// from the dispatch shape itself.
 //
 //   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
 //   higherOrderOp(name, n, impl)     — pure `(subject, ...lambdas) → result`

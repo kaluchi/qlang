@@ -7,10 +7,10 @@ import { QlangInvariantError } from './errors.mjs';
 // deserializeSession parsing stored source) hands an AST node with
 // `.text` populated. The slice underwrites printValue's round-trip
 // invariant: `parse(printValue(conduit))` must yield an equivalent
-// conduit, which means the printed form needs literal source. A
-// body without `.text` would force render to emit a non-parseable
-// placeholder, breaking the round-trip theorem; mint refuses up
-// front so the violation surfaces at construction, not at print.
+// conduit, which means the printed form needs literal source.
+// Mint refuses a `.text`-less body up front so the violation
+// surfaces at construction, where the offending caller is on the
+// stack.
 export class ConduitBodyMissingSourceError extends QlangInvariantError {
   constructor() {
     super(
@@ -26,17 +26,17 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 // `:qlang/impl` of builtin descriptor Maps and as conduit-parameter
 // proxies behind reify's :category :conduit-parameter projection. They
 // have no grammatical literal — the only candidate render form
-// (`:qlang/prim/${name}`) parses as a keyword and eval'ing it yields a
-// keyword value, not the original function. Surfacing a function value
-// in pipeValue therefore violates printValue's round-trip theorem. The
-// invariant fires at render-time so the leak surface (typically a
-// descriptor Map walked by `env | /count`, or a host binding mounted
-// through `session.bind` with a raw function instead of a descriptor)
-// surfaces by name and routes through the descriptor-Map ceremony.
+// (`:qlang/prim/${name}`) parses back as a keyword value on the next
+// `eval`. Surfacing a function value in pipeValue therefore violates
+// printValue's round-trip theorem. The invariant fires at render-time
+// so the leak surface (typically a descriptor Map walked by `env |
+// /count`, or a host binding mounted through `session.bind` carrying
+// a raw function) surfaces by name and routes through the descriptor-
+// Map ceremony.
 export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(
-      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :qlang/kind :builtin and :qlang/impl, instead of binding the raw function via session.bind.',
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :qlang/kind :builtin and :qlang/impl when binding through session.bind.',
       {}
     );
     this.name = 'FunctionValueLeakedToPrintError';
@@ -131,8 +131,8 @@ export function vecLikeOf(items, source) {
 // scalar Null/Boolean/Number/String or a JSON-shape Object/Array.
 // A qlang-only element (Keyword, Map, Set, Vec, Conduit, …) silently
 // degrades the container to a qlang Vec, so a downstream `| json`
-// catches the type mismatch loudly instead of silently emitting a
-// JSON Array of un-serialisable values.
+// catches the type mismatch loudly and surfaces the un-serialisable
+// element at the conversion site.
 export function isJsonStoreable(v) {
   return v === null
     || typeof v === 'boolean'
@@ -193,10 +193,10 @@ export function keyword(name) {
   return Object.freeze({ type: 'keyword', name, literal: canonicalKeywordLiteral(name) });
 }
 
-// TagKeyword — `::tag` reference value. Distinct from a plain
-// `:tag` keyword: tagged-instance Maps stamp `:qlang/kind` with a
-// TagKeyword so the discriminator carries "this is an instance
-// of ::tag" rather than the looser "kind is the symbol :tag".
+// TagKeyword — `::tag` reference value. Tagged-instance Maps
+// stamp `:qlang/kind` with a TagKeyword so the discriminator
+// reads as "this is an instance of ::tag" — a tighter
+// classification than the plain-keyword `:tag` symbol carries.
 // `.name` mirrors the keyword shape so existing
 // `kind.name === 'assertion'` checks read both Keyword and
 // TagKeyword uniformly.
@@ -265,9 +265,9 @@ export function isSnapshot(v) {
 // `:qlang/payload` Vec of the original constructor arguments. Any
 // `::tag` constructor that wants printValue / inline rendering
 // to round-trip back to the literal form stamps both fields.
-// The conduit/snapshot/tag discriminators are excluded because
-// they own dedicated render paths (def-form, as-form, tag-binding)
-// rather than the generic `::<tag>[<payload>]` shape.
+// The conduit/snapshot/tag discriminators sit on dedicated render
+// paths (def-form, as-form, tag-binding) and are excluded from
+// the generic `::<tag>[<payload>]` shape used by other tags.
 const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
 export function isTaggedInstance(v) {
   if (!(v instanceof Map)) return false;
@@ -284,11 +284,10 @@ export function isQuote(v) {
 // Quote — frozen JS object carrying `.source` (the verbatim text
 // between `~{` and `}`) and an optional `.ast` (lazily populated when
 // the Quote is run through `eval` or projected via `/ast`). Lives
-// on the JS layer rather than as a Map with `:qlang/kind :quote`
-// so the discriminator stays out of pipeValue projection — Quote
-// lands in pipeValue directly through the `~{…}` literal, so
-// keeping the discriminator in a Map-key would expose runtime
-// housekeeping at the user surface. The lazy `.ast` lets a Quote
+// on the JS layer with its discriminator on the JS object shape
+// (`v.type === 'quote'`); a Map-key discriminator would expose
+// runtime housekeeping at every projection of a Quote-valued
+// pipeValue. The lazy `.ast` lets a Quote
 // hold a pipeline-suffix fragment beginning with a combinator
 // (`~{* inc | sort}`) — eager parse would reject the fragment in
 // startRule=Query mode because the top-level rule expects a value

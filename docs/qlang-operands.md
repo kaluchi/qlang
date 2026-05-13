@@ -41,8 +41,8 @@ form), positions 2..n are modifiers (filled by captured args).
 Every operand descriptor carries a `:category` keyword that groups it
 with its polymorphism siblings. The taxonomy is first-class data —
 `env | manifest | filter(/category | eq(:container-selector))` returns
-the three polymorphic container selectors — so the keywords below are
-part of the doc surface, not implementation lore.
+the three polymorphic container selectors — so the keywords below
+form part of the doc surface and the runtime catalog alike.
 
 | `:category` keyword | Meaning |
 |---|---|
@@ -59,7 +59,7 @@ part of the doc surface, not implementation lore.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / reify / manifest / runExamples / parse / eval). The declarative binding form `:name body` is a BindStep, not an operand. |
+| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / reify / manifest / runExamples / parse / eval). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
@@ -891,12 +891,12 @@ display defaults where `false` is a sentinel meaning "no value".
 
 `env`, `use`, `reify`, `manifest`, `runExamples`, and `as` are
 **reflective operands**: they read or write the full evaluator
-state rather than working at the value level. All of them are
-ordinary entries in `langRuntime`, look up like any other
-identifier, and can be shadowed by a `:name body` BindStep or
-by `as`. Their distinguishing feature is internal — the impl
-receives `(state, lambdas)` directly instead of going through the
-descend-compute-ascend pattern of pure operands.
+state pair. All of them are ordinary entries in `langRuntime`,
+look up like any other identifier, and can be shadowed by a
+`:name body` BindStep or by `as`. Their distinguishing feature
+is internal — the impl receives `(state, lambdas)` directly and
+threads the full state through, in contrast with pure operands
+that take `(pipeValue, args)`.
 
 The declarative binding form `:name body` / `:name [:params] body`
 is also covered in this section because it shares the same env-
@@ -966,8 +966,9 @@ depends on the value's provenance. Four descriptor kinds:
    :effectful false}
   ```
   Authored prose and example assertions live on the catalog
-  `BindStep`'s attached doc-prefix, not on the reify descriptor
-  itself. `:name | docs` returns a Vec of Doc-values (one per
+  `BindStep`'s attached doc-prefix, reached through the
+  axis-operands `docs` / `examples`. `:name | docs`
+  returns a Vec of Doc-values (one per
   attached doc-comment, each with a `/content` raw string and a
   `/segments` Prose / Quote / TaggedLit split); `:name |
   examples` returns a Vec of every Quote segment extracted from
@@ -990,11 +991,10 @@ depends on the value's provenance. Four descriptor kinds:
   Under the bare-non-nullary REPL ergonomic, a bare lookup
   for `mul`, `filter`, `coalesce` — any operand whose `min > 0`
   — short-circuits through the same descriptor path: typing the
-  bare name yields the Map above as the new `pipeValue`
-  instead of firing an arity error. Nullary operands (`count`,
-  `sort` bare form, `env`, etc.) still fire
-  on bare lookup because their `min == 0` and bare application
-  IS their valid call shape.
+  bare name yields the Map above as the new `pipeValue`.
+  Nullary operands (`count`, `sort` bare form, `env`, etc.)
+  still fire on bare lookup because their `min == 0` and bare
+  application IS their valid call shape.
 - **Conduit** — `pipeValue` is a BindStep-bound conduit (named
   pipeline fragment, zero or more parameters). Descriptor:
   ```
@@ -1096,12 +1096,14 @@ missing). This is the introspection-by-name path:
 
 ### `:name body` / `:name [:params] body` — BindStep
 
-- **Form**: grammar production, not a `langRuntime` entry. The
-  parser reads `:name`-or-`::Tag` head plus an optional attached
-  doc-prefix, optional param Vec, and optional body, and emits a
-  BindStep AST node (`core/src/grammar.peggy::BindStep`). Subject
-  passes through unchanged — BindStep is transparent for
-  pipeValue and writes only to env.
+- **Form**: grammar production with its own dispatch path (the
+  evaluator routes BindStep nodes through `evalBindStep`, separate
+  from `langRuntime` lookups). The parser reads `:name`-or-`::Tag`
+  head plus an optional attached doc-prefix, optional param Vec,
+  and optional body, and emits a BindStep AST node
+  (`core/src/grammar.peggy::BindStep`). Subject passes through
+  unchanged — BindStep is transparent for pipeValue and writes
+  only to env.
 - Declares a conduit (named pipeline fragment) in `env`. Zero-arity
   form `:name body` binds a pipeline fragment. Parametric form
   `:name [:params] body` binds a fragment with named
@@ -1159,8 +1161,9 @@ missing). This is the introspection-by-name path:
 - The underlying peggy `ParseError` is caught in-operand and
   converted to an error value via `errorFromParse`, so malformed
   sources surface on the fail-track with
-  `:kind :parse-error` rather than the generic `:foreign-error`
-  flavor evalNode would stamp for an unhandled foreign throw.
+  `:kind :parse-error` (a domain-specific flavor distinct from
+  the generic `:foreign-error` evalNode stamps on unhandled
+  foreign throws).
 - **Examples**:
   - `"42" | parse | /:qlang/kind` → `:NumberLit`.
   - `"add(1, 2)" | parse | /name` → `"add"`.

@@ -184,8 +184,8 @@ function literalOfKeyword(k) { return k.literal; }
 
 // Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
 // when `:thrown` carries a TagKeyword — entropy promotion: the
-// class identity lives in structural front-position, not in a
-// map-entry. The payload-Map below drops three categories of
+// class identity rides at the structural front-position of the
+// literal. The payload-Map below drops three categories of
 // already-known content so the printed form stays terse:
 //   * `:thrown` itself when tagHead absorbed it,
 //   * `:trail null` (makeErrorValue's invariant restores it on
@@ -313,7 +313,7 @@ function printMapLike(open, m, indent) {
 // (strings without quotes, numbers stringified, null as an empty
 // cell). Composites render as inline qlang literals — no newline
 // breaks — so a nested `:location` Map shows up as
-// `{:file … :startLine 12}` rather than as `[object Object]`.
+// `{:file … :startLine 12}`.
 // Nested scalars inside a composite quote strings the same way
 // printValue does; only the top-level String in a cell is bare.
 const CELL_HANDLERS = {
@@ -358,10 +358,10 @@ const INLINE_HANDLERS = {
   Conduit:    printConduit,
   // Snapshot is an immutable value-wrapper — recurse on the
   // captured value (which carries the renderable identity).
-  // The `as(:name)` surface form is a binding statement, not
-  // a value literal: emitting it here would falsely round-trip
-  // through parse + eval into a different shape (env-write +
-  // pipeValue identity, not a Snapshot value).
+  // The `as(:name)` surface form is a binding statement; rendering
+  // a Snapshot back through it would re-enter the parser as a
+  // BindStep, where eval would write env and leave pipeValue at
+  // the captured value, diverging from the Snapshot identity.
   Snapshot:   s => renderInline(s.get('qlang/value')),
   TaggedInstance: renderTaggedInstanceInline,
   Error:      e => `!{${mapEntriesInline(e.descriptor)}}`

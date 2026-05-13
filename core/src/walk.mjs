@@ -13,7 +13,7 @@
 // and the `astNodeToMap` / `qlangMapToAst` codec learn about it here;
 // all downstream helpers inherit the knowledge.
 
-import { isQMap } from './types.mjs';
+import { isQMap, TYPE_BINDING_PREFIX, isTypeBindingName } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
 // astChildrenOf(node) — yields the direct semantic children of an
@@ -151,18 +151,31 @@ export function findAstNodeAtOffset(ast, offset) {
 }
 
 // findIdentifierOccurrences(ast, name) — returns every AST node
-// that names the given qlang identifier. The result includes both
-// declarations and uses, intentionally:
-//   - OperandCall whose .name matches (read site or bare identifier)
-//   - BindStep whose Keyword key names the identifier (declaration
-//     site — `:foo body` form). BareTypeKeyword keys (`::foo body`)
-//     bind under `::foo` and do not match a value-namespace lookup.
-//   - OperandCall named `as` whose first Keyword arg names the
-//     identifier (snapshot declaration site — `as(:foo)`).
-//   - Projection whose .keys contains the name (Map field read by name)
-// Keyword literals are intentionally NOT included because `:foo`
-// is a value of type keyword, not an identifier reference.
+// that names the given qlang identifier. Supports both namespaces:
+//
+//   * Value-namespace lookup (`name` is a plain identifier like
+//     `'foo'`):
+//       - OperandCall whose .name matches (read site or bare ident)
+//       - BindStep whose Keyword key names the identifier
+//         (declaration site — `:foo body` form)
+//       - OperandCall named `as` whose first Keyword arg names the
+//         identifier (snapshot declaration site — `as(:foo)`)
+//       - Projection whose .keys contains the name (Map field read)
+//
+//   * Type-namespace lookup (`name` carries the `::` prefix, e.g.
+//     `'::Tag'`):
+//       - TaggedLit whose .tag matches (constructor invocation)
+//       - BareTypeKeyword whose .tag matches (identifier reference)
+//       - BindStep whose BareTypeKeyword key names the identifier
+//         (declaration site — `::Tag body`)
+//
+// Keyword literals (`:foo` value-position) are intentionally NOT
+// included because `:foo` is a value of type keyword, not an
+// identifier reference.
 export function findIdentifierOccurrences(ast, name) {
+  if (isTypeBindingName(name)) {
+    return findTypeNamespaceOccurrences(ast, name.slice(TYPE_BINDING_PREFIX.length));
+  }
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
@@ -177,6 +190,19 @@ export function findIdentifierOccurrences(ast, name) {
       occurrences.push(node);
     }
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
+  });
+  return occurrences;
+}
+
+function findTypeNamespaceOccurrences(ast, tagName) {
+  const occurrences = [];
+  walkAst(ast, (node) => {
+    if (node.type === 'TaggedLit' && node.tag === tagName) occurrences.push(node);
+    else if (node.type === 'BareTypeKeyword' && node.tag === tagName) occurrences.push(node);
+    else if (node.type === 'BindStep'
+             && node.key.type === 'BareTypeKeyword' && node.key.tag === tagName) {
+      occurrences.push(node);
+    }
   });
   return occurrences;
 }

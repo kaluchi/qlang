@@ -16,7 +16,8 @@ import {
   FORK_ISOLATING_AST_TYPES,
   walkAst,
   isModuleAstKey,
-  isTypeBindingName
+  isTypeBindingName,
+  TYPE_BINDING_PREFIX
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -72,16 +73,24 @@ export function parseDocument(source, uri) {
 // the server at startup. Used as fallback for go-to-definition
 // on builtin operands that have no in-document declaration.
 //
-// Under Variant-B every builtin lives as a MapEntry inside
-// core.qlang's outer MapLit (`:count {:qlang/kind :builtin ...}`),
-// so the index walks for MapEntry nodes whose key is a Keyword.
+// core.qlang is a series of `BindStep` declarations — one per
+// builtin operand or type-binding — so the index walks for
+// `BindStep` nodes and records the entire BindStep span as the
+// jump-target (the keyword key plus attached docs plus descriptor
+// body). Both value-namespace keys (`:count {…}`) and type-
+// namespace keys (`::AddLeftNotNumber {…}`) land in the index
+// under the canonical name a `definitionAtOffset` lookup builds.
 
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
   walkAst(catalogAst, (node) => {
-    if (node.type !== 'MapEntry') return;
-    index.set(node.key.name, {
+    if (node.type !== 'BindStep') return;
+    let name;
+    if (node.key.type === 'Keyword') name = node.key.name;
+    else if (node.key.type === 'BareTypeKeyword') name = TYPE_BINDING_PREFIX + node.key.tag;
+    else return;
+    index.set(name, {
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });
@@ -205,9 +214,18 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   if (!ast) return null;
 
   const node = findAstNodeAtOffset(ast, offset);
-  if (!node || node.type !== 'OperandCall') return null;
+  if (!node) return null;
 
-  const name = node.name;
+  // Resolve the click position to a binding name. Three click-shapes
+  // navigate to a declaration:
+  //   * `OperandCall` — its own `.name` (read site, e.g. `count`).
+  //   * `BareTypeKeyword` — `::` + `.tag` (type identifier reference).
+  //   * `TaggedLit` — `::` + `.tag` (type constructor invocation).
+  let name;
+  if (node.type === 'OperandCall')        name = node.name;
+  else if (node.type === 'BareTypeKeyword') name = TYPE_BINDING_PREFIX + node.tag;
+  else if (node.type === 'TaggedLit')       name = TYPE_BINDING_PREFIX + node.tag;
+  else return null;
 
   // Tier 1: last visible in-document declaration
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
@@ -215,7 +233,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
     return { uri: null, ...localDecl };
   }
 
-  // Tier 2: core.qlang catalog fallback for builtins
+  // Tier 2: core.qlang catalog fallback for builtins / type bindings
   if (catalogCtx?.index?.has(name)) {
     return {
       uri: catalogCtx.uri,
@@ -226,20 +244,42 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   return null;
 }
 
+// bindingDeclarationOf(node) → { name, kind } | null
+//
+// Single recogniser for every AST shape that introduces a binding
+// in env: `BindStep` with a Keyword key (`:name body`), `BindStep`
+// with a BareTypeKeyword key (`::Tag body` — type-binding), or an
+// `as(:name)` OperandCall. Returns the bound name and the user-
+// facing symbol kind, or null when the node is not a declaration.
+function bindingDeclarationOf(node) {
+  if (node.type === 'BindStep') {
+    if (node.key.type === 'Keyword') {
+      return { name: node.key.name, kind: 'conduit' };
+    }
+    if (node.key.type === 'BareTypeKeyword') {
+      return { name: TYPE_BINDING_PREFIX + node.key.tag, kind: 'conduit' };
+    }
+    return null;
+  }
+  if (node.type === 'OperandCall' && node.name === 'as'
+      && Array.isArray(node.args) && node.args.length > 0
+      && node.args[0].type === 'Keyword') {
+    return { name: node.args[0].name, kind: 'snapshot' };
+  }
+  return null;
+}
+
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST
-// collecting def/as declarations for `name` that are lexically
-// visible at `offset` (before cursor, not fork-isolated). Returns
-// the LAST one (closest to cursor = most recent shadowing), or
-// null if no in-document declaration is visible.
+// collecting BindStep / `as(:name)` declarations for `name` that
+// are lexically visible at `offset` (before cursor, not fork-
+// isolated). Returns the LAST one (closest to cursor = most recent
+// shadowing), or null if no in-document declaration is visible.
 function findLastVisibleDeclaration(ast, name, offset) {
   let lastVisible = null;
 
   walkAst(ast, (node) => {
-    if (node.type !== 'OperandCall') return;
-    if (node.name !== 'def' && node.name !== 'as') return;
-    if (!Array.isArray(node.args) || node.args.length === 0) return;
-    const firstArg = node.args[0];
-    if (firstArg.type !== 'Keyword' || firstArg.name !== name) return;
+    const decl = bindingDeclarationOf(node);
+    if (decl === null || decl.name !== name) return;
     if (!node.location || node.location.end.offset > offset) return;
 
     // Fork-isolation check: walk ancestors from the declaration
@@ -282,6 +322,17 @@ export function referencesAtOffset(ast, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return [];
 
+  // Five click-positions resolve to a binding name:
+  //   1. OperandCall named `as` whose first arg is a Keyword
+  //      (`as(:foo)` → 'foo').
+  //   2. Plain OperandCall (`count`) — its own name is the lookup
+  //      target.
+  //   3. BindStep wrapper (cursor between key and body) — the
+  //      declared name from `node.key`.
+  //   4. Keyword node whose parent is a BindStep key or an
+  //      `as(:name)` first arg — the name of the keyword.
+  //   5. BareTypeKeyword either standalone or as a BindStep key —
+  //      the type-namespace identifier `::tag`.
   let name = null;
   if (node.type === 'OperandCall') {
     if (node.name === 'as'
@@ -291,12 +342,9 @@ export function referencesAtOffset(ast, offset) {
     } else {
       name = node.name;
     }
-  } else if (node.type === 'BindStep' && node.key.type === 'Keyword') {
-    // Click anywhere on the BindStep counts as a reference to the
-    // declared name — `findAstNodeAtOffset` returns the BindStep
-    // wrapper when the cursor sits on the key but the key narrowest
-    // span match runs first; cover both by checking BindStep here.
-    name = node.key.name;
+  } else if (node.type === 'BindStep') {
+    if (node.key.type === 'Keyword') name = node.key.name;
+    else if (node.key.type === 'BareTypeKeyword') name = TYPE_BINDING_PREFIX + node.key.tag;
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
@@ -305,6 +353,8 @@ export function referencesAtOffset(ast, offset) {
                && Array.isArray(parent.args) && parent.args[0] === node) {
       name = node.name;
     }
+  } else if (node.type === 'BareTypeKeyword') {
+    name = TYPE_BINDING_PREFIX + node.tag;
   }
 
   if (!name) return [];
@@ -325,16 +375,12 @@ export function documentSymbols(ast) {
 
   const symbols = [];
   walkAst(ast, (node) => {
-    if (node.type !== 'OperandCall') return;
-    if (node.name !== 'def' && node.name !== 'as') return;
-    if (!Array.isArray(node.args) || node.args.length === 0) return;
-    const firstArg = node.args[0];
-    if (firstArg.type !== 'Keyword') return;
-    if (!node.location) return;
+    const decl = bindingDeclarationOf(node);
+    if (decl === null || !node.location) return;
 
     symbols.push({
-      name: firstArg.name,
-      kind: node.name === 'def' ? 'conduit' : 'snapshot',
+      name: decl.name,
+      kind: decl.kind,
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });

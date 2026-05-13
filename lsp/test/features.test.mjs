@@ -148,10 +148,11 @@ describe('hoverAtOffset', () => {
 });
 
 // Build a catalog context for definition fallback tests. Mirrors
-// lib/qlang/core.qlang's outer-MapLit shape: each entry is a
-// `:name {...descriptor...}` pair, and `buildCatalogIndex` walks
-// for MapEntry nodes to record the entry span as the def site.
-const catalogSrc = '{:count {:category :vec-reducer}}';
+// lib/qlang/core.qlang's BindStep series: each entry is
+// `:name {...descriptor...}`, and `buildCatalogIndex` walks every
+// `BindStep` node and records the entire BindStep span as the
+// declaration site.
+const catalogSrc = ':count {:category :vec-reducer}';
 const catalogAst = parseDocument(catalogSrc, 'qlang/core').ast;
 const testCatalogCtx = {
   uri: 'file:///test/core.qlang',
@@ -159,8 +160,8 @@ const testCatalogCtx = {
 };
 
 describe('definitionAtOffset', () => {
-  it('jumps from conduit use site to let declaration', () => {
-    const src = 'def(:double, mul(2)) | 10 | double';
+  it('jumps from conduit use site to BindStep declaration', () => {
+    const src = ':double mul(2) | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
@@ -170,21 +171,21 @@ describe('definitionAtOffset', () => {
   });
 
   it('jumps to last visible declaration when shadowed', () => {
-    const src = 'def(:x, 1) | def(:x, 2) | x';
+    const src = ':x 1 | :x 2 | x';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     const def = definitionAtOffset(ast, useOffset);
     expect(def).not.toBeNull();
-    // Should point to second def(:x, 2), not the first
-    expect(def.startOffset).toBe(src.indexOf('def(:x, 2)'));
+    // Should point to the second `:x 2` BindStep, not the first.
+    expect(def.startOffset).toBe(src.lastIndexOf(':x'));
   });
 
   it('declaration inside fork is invisible outside', () => {
-    const src = '(def(:x, 1)) | x';
+    const src = '(:x 1) | x';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     // x is declared inside a ParenGroup fork — invisible at the
-    // use site. Falls through to manifest or null.
+    // use site. Falls through to catalog (none provided) or null.
     const def = definitionAtOffset(ast, useOffset);
     expect(def === null || def.uri !== null).toBe(true);
   });
@@ -204,8 +205,8 @@ describe('definitionAtOffset', () => {
     expect(def).toBeNull();
   });
 
-  it('in-document let shadows builtin — jumps to let, not catalog', () => {
-    const src = 'def(:count, 42) | count';
+  it('in-document BindStep shadows builtin — jumps to BindStep, not catalog', () => {
+    const src = ':count 42 | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
@@ -213,7 +214,7 @@ describe('definitionAtOffset', () => {
     expect(def.startOffset).toBe(0);
   });
 
-  it('returns null for non-OperandCall nodes', () => {
+  it('returns null for non-resolving nodes', () => {
     const src = '42';
     const { ast } = parseDocument(src, 'test.qlang');
     expect(definitionAtOffset(ast, 0)).toBeNull();
@@ -255,8 +256,8 @@ describe('referencesAtOffset', () => {
 });
 
 describe('documentSymbols', () => {
-  it('collects let bindings as conduit symbols', () => {
-    const src = 'def(:double, mul(2)) | def(:triple, mul(3))';
+  it('collects BindStep bindings as conduit symbols', () => {
+    const src = ':double mul(2) :triple mul(3)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(2);

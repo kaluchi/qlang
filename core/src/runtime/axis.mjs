@@ -25,8 +25,19 @@ import { parseDocSegments } from '../doc-segments.mjs';
 const SourceSubjectNotKeywordOrType   = declareSubjectError('SourceSubjectNotKeywordOrType',   'source',   ['keyword', 'tag-keyword']);
 const DocsSubjectNotKeywordOrType     = declareSubjectError('DocsSubjectNotKeywordOrType',     'docs',     ['keyword', 'tag-keyword']);
 const ExamplesSubjectNotKeywordOrType = declareSubjectError('ExamplesSubjectNotKeywordOrType', 'examples', ['keyword', 'tag-keyword']);
+// `axisName` ('source' / 'docs' / 'examples') and `bindingName`
+// (a value-namespace identifier or a `::`-prefixed type-binding
+// reference) are identifier-shaped strings at the JS level; the
+// JS→qlang lift in `error-convert.mjs::liftIdentifier` converts
+// them to Keyword / TagKeyword respectively at descriptor build
+// time, so the printed message body reads the same regardless of
+// shape. The factory's template stringifies via `${value}` which
+// produces the raw `name` half — the lifted-keyword printValue
+// surface kicks in only when projection consumers (`!| /bindingName`)
+// read the descriptor.
 export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
-  ({ axisName, bindingName }) => `${axisName}: no def-step found for binding '${bindingName}' across loaded modules`);
+  ({ axisName, bindingName }) =>
+    `${axisName}: no def-step found for binding '${bindingName}' across loaded modules`);
 
 // Walk a module AST for the binding-step that binds `bindingName`.
 // Two surface forms produce a binding visible to axis lookup:

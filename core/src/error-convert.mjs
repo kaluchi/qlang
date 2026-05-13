@@ -19,20 +19,28 @@ const RUNTIME_FIELD_ORDER = [
   'origin', 'kind', 'message'
 ];
 
-// `:operand` and `:position` carry identifier-shaped data — the
-// operand's own name, the argument-slot designation. Across the
-// JS→qlang boundary they lift from String to Keyword so the
-// descriptor surface stays uniformly identifier-typed (printValue,
-// `!| /operand` projection, downstream pattern-match all see the
-// same shape). Numeric positions and runtime non-string values pass
-// through. `:expectedType` is already-keyword shape when the throw
-// site uses the `operand-errors.mjs` factories, so no lift needed
-// here.
-const IDENTIFIER_FIELDS = new Set(['operand', 'position']);
+// Identifier-shaped descriptor fields carrying a `name`-like string
+// from a JS throw site — the operand's own name, an argument-slot
+// designation, a referenced conduit / namespace / parameter / etc.
+// Across the JS→qlang boundary every such string lifts to a Keyword
+// (or TagKeyword when the source string carries a `::` prefix) so
+// the descriptor surface stays uniformly identifier-typed
+// (printValue prints `:name` not `"name"`, `!| /operand` projection
+// reads as a Keyword, downstream pattern-match sees one shape).
+// Numeric positions, kept-as-String prose, and runtime non-string
+// values pass through unchanged. `:expectedType` is already-keyword
+// shape when the throw site uses the `operand-errors.mjs` factories,
+// so no lift needed here.
+const IDENTIFIER_FIELDS = new Set([
+  'operand', 'position',
+  'operandName', 'conduitName', 'namespaceName', 'paramName',
+  'effectfulName', 'defName', 'bindingName', 'axisName',
+  'tag'
+]);
 function liftIdentifier(k, v) {
   if (!IDENTIFIER_FIELDS.has(k)) return v;
   if (typeof v !== 'string') return v;
-  return keyword(v);
+  return v.startsWith('::') ? makeTagKeyword(v.slice(2)) : keyword(v);
 }
 
 export function errorFromQlang(qlangError, fault) {

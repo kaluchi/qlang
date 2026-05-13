@@ -2821,3 +2821,146 @@ Builtin names are supplied by the caller so the tokenizer stays
 free of `langRuntime` side effects — a bundler-sensitive host can
 tree-shake away the runtime and synthesise the set from a static
 list, and a test can narrow the set to a minimal stub.
+
+---
+
+## Design rationale
+
+This appendix collects the load-bearing rationales behind a handful
+of language choices that show up across the rest of the spec. Each
+paragraph is a single claim, the trade-off it accepts, and the
+chapter it manifests in.
+
+### Quote-as-source, not AST-Map-as-value
+
+A failing step exposes the source it tripped on as a **Quote**
+(`~{add(1)}`) — verbatim, copy-pasteable, one line. The runtime
+*has* the AST-Map for the same step (every Quote carries an `.ast`
+projection), but the Map is not the primary surface.
+
+The trade-off: a Map of `{:type :OperandCall :name "add" :args [...]
+:location {...}}` answers structured queries cheaply (`/name`,
+`/args`), but a single-line Quote answers the question a debugger
+actually asks — *what code did this fail on?* — without the reader
+re-rendering anything. Tooling that wants the structured shape
+projects `/ast` on demand; the default surface stays the source.
+
+This shows up in [Error track](#error-track) (`:fault/step` is a
+Quote, not a Map) and [Reflection](#reflection) (`source` /
+`docs` / `examples` axis-operands return Quote / Doc / Vec-of-Quote,
+not AST-Maps).
+
+### `::tag`, not `#tag` or another sigil
+
+Identifiers under the parallel namespace ride a **colon-count**
+distinction (`:foo` vs `::foo`), not a separate sigil family
+(`#foo`, `@foo`, `&foo`, …). The hierarchy is visual: doubling the
+colon doubles the resolution scope, and namespacing inheritance
+(`::qlang/error/guards`) drops out of the keyword grammar with no
+extra rules.
+
+The trade-off: a single literal root means `:`-anything and
+`::`-anything compete for grammar-disambiguation effort, and a
+casual reader has to count colons to pick a namespace. The
+benefit is one parser-state machine instead of three, and one
+visual rule across every reflection / completion / docs surface
+instead of "remember which sigil means which scope".
+
+This shows up in [Tag bindings](#tag-bindings) (the namespace
+chapter), [Lexical structure](#lexical-structure) (one
+identifier production handles `:name`, `::Tag`, and
+`::ns/Sub-tag`), and the LSP completion-trigger rule
+(typing `::` filters to the tag namespace; everything else
+sees both namespaces).
+
+### Two-namespace env, not one
+
+`:foo` and `::foo` resolve to two distinct bindings in the same
+env Map; the colon-count picks the namespace at every identifier
+site, no positional or context-sensitive rules required. The
+alternative — one flat namespace with a runtime kind discriminator
+— pushes the disambig into every read site and into every
+shadowing rule.
+
+The trade-off: env-walks that span both namespaces
+(`manifest(:value)` plus `manifest(:tag)`, hover-completion that
+mixes the two catalogs) cost a second pass. The benefit is that
+identifier resolution stays a single Map lookup, shadowing rules
+stay per-namespace, and the printValue surface preserves the
+visual hierarchy on the way out.
+
+This shows up in [Tag bindings](#tag-bindings) and in the
+[Reflection](#reflection) `manifest` operand (the `:value` /
+`:tag` selector is the namespace switch, not a filter over a
+unified catalog).
+
+### JSON stays JSON
+
+A JSON literal — `{"k": 1}` or `[1, 2, 3]` — produces a
+`JsonObject` / `JsonArray` value, **not** a qlang Map / Vec, and
+flows through the pipeline as the JSON shape it arrived as. The
+parser carries the discriminator from grammar (`{:k 1}` vs
+`{"k": 1}`); `printValue` round-trips each shape back to its
+original surface.
+
+The trade-off: a `jq` author piping `{"k":1} | /k` against a
+qlang operand expects JSON in and JSON out — auto-lifting to a
+qlang Map at the boundary breaks the round-trip and silently
+recolours every downstream operand's output. The benefit is that
+qlang composes with `jq` / `curl` / `kubectl` as a peer without a
+lift-cast contract at every join, and the explicit `qlang` /
+`json` operands (and the `::json[…]` / `::qlang<…>` constructors)
+remain the only conversion points.
+
+This shows up in [Construct](#construct) (JSON-mode vs qlang-mode
+literals at the grammar level) and in [`json` /
+`qlang`](qlang-operands.md#formatting) operands (idempotent
+conversion in both directions).
+
+### Successive refinement — variance-priority field ordering
+
+Field ordering in error descriptors, tagged-instance payloads,
+and reify-shape Maps follows a single rule: **high-variance fields
+in front, class-derivable / constant fields in back**. The model is
+progressive JPEG / SVD truncation — the prefix carries the most
+diagnostic information; a reader who stops scanning early still
+walks away with the high-entropy half.
+
+Applied fractally:
+
+- **At the syntax level**, the per-site class identifier rides the
+  literal tag-head, not a payload field. `::AddLeftNotNumberError!
+  {…}` puts the load-bearing identity first; the alternative,
+  `!{:thrown ::AddLeftNotNumberError …}`, drowns the identity
+  among other equal-prefix entries.
+
+- **At the payload-Map level**, fields ordered by variance:
+  `:fault`, `:actualValue`, `:actualType` (variable per
+  invocation) lead; `:operand`, `:position`, `:expectedType`
+  (class-fixed) trail; `:origin`, `:kind`, `:message`
+  (class-template, fully derivable from the tag) trail further,
+  and `printValue` is free to elide the templated tail when it
+  matches the class default.
+
+The canonical compression pattern for future tag-bindings is for
+each class to declare a `:defaults` Map (class-constant fields)
+plus a `:message-template` Quote that computes the dynamic
+message from the merged payload; the constructor merges author
+payload with defaults, and `printValue` emits the delta — fields
+deviating from class defaults appear in the literal, defaults
+implied by the tag.
+
+This shows up in the [Error descriptor fields](#error-descriptor-fields)
+table (the column order is the variance order) and in
+[Round-trip invariant](#round-trip-invariant) (the elision of
+`:thrown` from `::Tag!{…}` payload is the same rule, applied
+once).
+
+The contrast: a Java declaration `private static final long
+MAX_READ_BYTES = …` puts the low-entropy modifier chain
+(`private static final long`) at the head and the high-entropy
+identifier in the middle. Truncate that line at column 30 and
+the identifier vanishes while the modifiers survive — the wrong
+half made it through. qlang inverts the ordering: identifier,
+tag, structural marker first; modifiers and derivable context
+trail.

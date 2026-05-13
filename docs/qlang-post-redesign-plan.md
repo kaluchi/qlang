@@ -298,17 +298,101 @@ case'ов где нужно отличить declarative-conduit от literal-co
 
 ### M4. Named errors as type-bindings — landed
 
-Stage A+B+C complete (`feature/hypertext-redesign`, commits `3ec6c42` + follow-up).
-Constructors qlang-side per §II.3 — deferred (no JS impact, can come at any later
-point). What's live:
+`feature/hypertext-redesign` — full series of commits `3ec6c42 …
+84c2ac8`. Stage A+B+C plus the followup polish below. Constructors
+qlang-side per §II.3 — deferred (no JS impact, can come at any
+later point). What's live:
 
-- `core/lib/qlang/error/registry.qlang` — every JS-class from `operand-errors.mjs`
-  has a `::Tag {:qlang/kind :type}` declaration loaded before `core.qlang`.
-- `errorFromQlang` stamps `:thrown` as `makeTagKeyword(fingerprint)`; the
-  factories pass canonicalised qlang type-name(s) (`'number'`, `['vec','set','map']`)
-  for `expectedType`, lowered to a single keyword or a frozen Vec of keywords.
-- `printValue` for error-values emits `::Tag!{…}` head + payload form with the
-  three elisions below.
+**Core M4 mechanism**
+
+- `core/lib/qlang/error/registry.qlang` — every JS-class from
+  `operand-errors.mjs` carries a matching `::Tag {:qlang/kind :type}`
+  declaration loaded before `core.qlang`.
+- `errorFromQlang` stamps `:thrown` as `makeTagKeyword(fingerprint)`;
+  the factories pass canonicalised qlang type-name(s) (`'number'`,
+  `['vec','set','map']`) for `expectedType`, lowered to a single
+  keyword or a frozen Vec of keywords.
+- `printValue` for error-values emits `::Tag!{…}` head + payload
+  form with the three elisions (`:thrown` absorbed by tag-head;
+  `:trail null`; `:message` when tag-head is present).
+- Tagged-instance round-trip — `::Tag!{…}` literal in source stamps
+  `:thrown ::Tag` onto the payload's descriptor and returns an
+  ErrorValue (universal named-error constructor, no per-tag
+  Quote-impl required yet).
+- Identifier-shaped descriptor fields (`:operand`, `:position`,
+  `:axisName`, `:bindingName`, `:conduitName`, `:paramName`,
+  `:namespaceName`, `:effectfulName`, `:tag`) all lift through
+  `error-convert.mjs::liftIdentifier` to Keyword (or TagKeyword when
+  the source string carries a `::` prefix). Uniform identifier-typed
+  surface across every error descriptor.
+
+**Follow-up polish (same M4 design axis, landed in subsequent commits)**
+
+- **Initial pipeValue = `null`** in `evalQuery` / `session.evalCell`.
+  The pre-M4 default of seeding pipeValue with the env Map made bare
+  identifiers like `count` return "count of env bindings" and dumped
+  the full ~250-entry env into `:fault.input` on every error. Now
+  every pipeline brings its own subject through an explicit head
+  step; the `env` identifier still resolves through env-lookup so
+  `env | keys` / `env | /count | reify` work identically.
+- **Strict projection**. `/key` no longer coalesces misses to null:
+  Map miss → `::ProjectionKeyNotInMap`, Vec OOB →
+  `::ProjectionIndexOutOfBounds`, Vec non-integer segment →
+  `::ProjectionVecKeyNotInteger`, value-class unknown field →
+  `::ProjectionFieldNotOnValueClass`, `null` subject →
+  `::ProjectionSubjectNotMap`. The `at` operand keeps soft-access
+  semantics (Map miss / Vec OOB → null) as the explicit "this field
+  might be absent" path; `coalesce` / `firstTruthy` treat ErrorValue
+  as "try next" alongside null so their "first defined value"
+  semantic survives strict projection.
+- **`::ParseError!{…}` as a first-class lifted ErrorValue**. Parse
+  failures (top-level and Quote-source re-parse mid-`eval`/`apply`)
+  ride through `errorFromParse` to a structured descriptor —
+  `:source` + `:marker` (caret-pointer, same-length keys for
+  column-aligned rendering), deduplicated `:expected` Vec of literal
+  strings / class keywords / `:end-of-input`, `:found`,
+  `:location`, `:uri`. `evalNode`'s catch arm separately recognises
+  `ParseError` so a mid-eval parse failure lifts to the same shape,
+  with the originating step's `:fault` stamped.
+- **`apply(subject)` operand**. Runs the Quote-or-AST currently in
+  pipeValue against the captured subject — the classical Lisp / JS
+  `apply(fn, args)` convention. Together with the Pipeline-leading
+  combinator support (`~{| count}` / `~{* mul(2)}` etc. now parse
+  cleanly), trail-emitted suffix Quotes are directly re-executable:
+  `"x" | add(1) | mul(2) !| /trail | apply(5)` → 10.
+- **CLI `--color={auto,always,never}`** — script-mode now paints
+  printValue output through `highlightAnsi` when stdout is a TTY
+  (or the user passes `--color=always`). JSON-format output stays
+  unpainted unconditionally so `jq` / pipe consumers see clean
+  payloads. `NO_COLOR` / `FORCE_COLOR` env vars resolved at
+  invocation; explicit flag wins.
+- **Quote body highlight with per-kind italic + green delimiters.**
+  `~{` / `}` paint as upright green delimiters; the body sub-
+  tokenises through the regular tokeniser and every inner span
+  carries `italic: true`, so the renderer composes italic on top
+  of each kind's colour (atom / operand / number / string / …).
+  Unparseable body falls back to a single italic-whitespace span.
+- **BindStep / `as` doc-prefix comment span.** Grammar's `DocPrefix`
+  rule stamps the prefix's first-doc start offset on a side-channel
+  field, propagated to the AST node as `docPrefixStart`. The
+  highlighter emits one contiguous `comment`-kind span over the
+  prefix region instead of letting `pushGapTokens` byte-by-byte
+  misclassify the prose as `punct`.
+- **Multi-line list layout for Vec / Set / JsonArray.** Inline
+  `[a b c]` rendering when every rendered element is single-line;
+  one-element-per-row indented column when any element already
+  contains a newline. Removes the "ladder" verticality for shapes
+  like `[~{multi-line-Quote} ~{multi-line-Quote}]`.
+- **`def` operand removed entirely**. Every catalog / test / docs
+  call-site converted to the M3.5 BindStep declarative form
+  (`:name body`, `:name [params] body`); `defOperand` and its
+  four arg-validation error classes (`DefNameNotKeyword`,
+  `DefParamsNotVecOfKeywords`, `DefArityInvalid`,
+  `DefMissingDocOrBody`) deleted. `evalBindStep` is the sole
+  binding mechanism at the AST level.
+- **REPL Enter ↔ Ctrl+Enter swap.** Enter submits (PowerShell /
+  bash muscle-memory parity); Ctrl+Enter / Ctrl+J inserts a soft
+  newline for multi-line composition.
 
 
 Каждое named error-имя — first-class type-binding в каталоге, with

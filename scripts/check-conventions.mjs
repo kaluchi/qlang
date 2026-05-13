@@ -150,12 +150,86 @@ function catalogDocDrift() {
   return missing;
 }
 
+// ── (3) Per-site error class `Error` suffix convention ─────────
+//
+// Every concrete error class in `core/src/**/*.mjs` must carry the
+// `Error` suffix — the convention that distinguishes named-error
+// type-bindings (`::FooError`) from value-class type-bindings
+// (`::conduit`, `::qlang`, `::json`). Classes are introduced two
+// ways:
+//
+//   * `declare(Subject|Modifier|Element|Comparability|Shape|Arity)
+//     Error('Foo', …)` factory call — the first string literal
+//     is the className.
+//   * `class Foo extends QlangError|QlangInvariantError|ArityError|
+//     EffectLaunderingError|Error` direct declaration.
+//
+// Abstract roots are exempt — they ARE the bases everyone extends,
+// not concrete throw sites:
+
+const ABSTRACT_BASES = new Set([
+  'QlangError', 'QlangTypeError', 'QlangInvariantError',
+  'ArityError', 'EffectLaunderingError'
+]);
+
+const factoryDeclRe = /declare(?:Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Z][A-Za-z0-9_]*)'/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|Error)\b/g;
+
+function* walkCoreSrc() {
+  const srcRoot = join(repoRoot, 'core', 'src');
+  yield* walkSourceTree(srcRoot);
+}
+
+function errorSuffixDrift() {
+  const violations = [];
+  for (const filePath of walkCoreSrc()) {
+    const text = readFileSync(filePath, 'utf8');
+    const relFile = relative(repoRoot, filePath).split(sep).join('/');
+    const lines = text.split(/\r?\n/);
+
+    // Collect per-line classNames declared via factory or class
+    // syntax so the violation report cites the exact line.
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      const line = lines[lineIndex];
+
+      factoryDeclRe.lastIndex = 0;
+      let fm;
+      while ((fm = factoryDeclRe.exec(line)) !== null) {
+        const className = fm[1];
+        if (className.endsWith('Error')) continue;
+        violations.push({
+          file: relFile, line: lineIndex + 1,
+          className, kind: 'factory call',
+          snippet: line.trim().slice(0, 120)
+        });
+      }
+
+      directClassRe.lastIndex = 0;
+      let cm;
+      while ((cm = directClassRe.exec(line)) !== null) {
+        const className = cm[1];
+        if (ABSTRACT_BASES.has(className)) continue;
+        if (className.endsWith('Error')) continue;
+        violations.push({
+          file: relFile, line: lineIndex + 1,
+          className, kind: 'class declaration',
+          snippet: line.trim().slice(0, 120)
+        });
+      }
+    }
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
 const driftMissing = catalogDocDrift();
+const errorSuffixViolations = errorSuffixDrift();
 
-if (forbidden.length === 0 && driftMissing.length === 0) {
+if (forbidden.length === 0
+    && driftMissing.length === 0
+    && errorSuffixViolations.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -171,6 +245,14 @@ if (driftMissing.length > 0) {
     `\nOperand catalog ↔ docs drift (${driftMissing.length}):\n`);
   for (const name of driftMissing) {
     process.stdout.write(`  :${name} — present in core.qlang, missing from docs/qlang-operands.md\n`);
+  }
+}
+if (errorSuffixViolations.length > 0) {
+  process.stdout.write(
+    `\nError-class \`Error\` suffix convention (${errorSuffixViolations.length}):\n`);
+  for (const v of errorSuffixViolations) {
+    process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
+    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class type-bindings (::conduit / ::qlang / ::json).\n`);
   }
 }
 process.exit(1);

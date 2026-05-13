@@ -107,7 +107,12 @@ import {
   appendTrailNode,
   materializeTrail,
   describeType,
-  typeKeyword
+  typeKeyword,
+  TYPE_BINDING_PREFIX,
+  MODULE_AST_PREFIX,
+  isTypeBindingName,
+  isModuleAstKey,
+  moduleAstKey
 } from './types.mjs';
 
 export {
@@ -168,5 +173,10 @@ export {
   appendTrailNode,
   materializeTrail,
   describeType,
-  typeKeyword
+  typeKeyword,
+  TYPE_BINDING_PREFIX,
+  MODULE_AST_PREFIX,
+  isTypeBindingName,
+  isModuleAstKey,
+  moduleAstKey
 };

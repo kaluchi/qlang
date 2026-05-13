@@ -209,6 +209,44 @@ export function isTagKeyword(v) {
   return v !== null && typeof v === 'object' && v.type === 'tagKeyword';
 }
 
+// ── env-key namespaces ────────────────────────────────────────
+//
+// Two reserved prefixes carve out housekeeping namespaces inside the
+// env Map so identifier resolution and reflective listings can route
+// past them in a single substring-free predicate. Both predicates
+// live here as the single source of truth for the prefix character
+// sequence — every consumer (`bindingNameOf` for axis-operands,
+// `manifest` filtering, `langRuntime` module-AST stamping, LSP
+// completion list, axis-walker) imports the constants instead of
+// re-typing the literal.
+//
+// `TYPE_BINDING_PREFIX` — `::Tag` identifiers carrying a type-binding
+// declaration (`::conduit`, `::AddLeftNotNumber`). Lookup distinguishes
+// type-namespace identifiers from value-namespace `:foo` keys without
+// scanning the binding shape.
+//
+// `MODULE_AST_PREFIX` — `qlang/ast/<uri>` env keys carry a Quote-value
+// holding the module's source plus the parsed AST. Axis-operands walk
+// every Quote under this prefix to find a binding's originating
+// `BindStep`. The prefix is filtered from `manifest` output and from
+// LSP completion candidates because module-AST entries are storage,
+// not user-facing bindings.
+
+export const TYPE_BINDING_PREFIX = '::';
+export const MODULE_AST_PREFIX = 'qlang/ast/';
+
+export function isTypeBindingName(name) {
+  return typeof name === 'string' && name.startsWith(TYPE_BINDING_PREFIX);
+}
+
+export function isModuleAstKey(name) {
+  return typeof name === 'string' && name.startsWith(MODULE_AST_PREFIX);
+}
+
+export function moduleAstKey(uri) {
+  return MODULE_AST_PREFIX + uri;
+}
+
 // ── conduit / snapshot / quote predicates ─────────────────────
 
 export function isConduit(v) {

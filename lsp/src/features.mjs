@@ -14,7 +14,9 @@ import {
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
   FORK_ISOLATING_AST_TYPES,
-  walkAst
+  walkAst,
+  isModuleAstKey,
+  isTypeBindingName
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -96,8 +98,8 @@ async function builtinCompletions() {
   const runtime = await langRuntime();
   _builtinCompletions = [];
   for (const [k, descriptor] of runtime) {
-    if (k.startsWith('qlang/ast/')) continue;
-    if (k.startsWith('::')) continue;
+    if (isModuleAstKey(k)) continue;
+    if (isTypeBindingName(k)) continue;
     const docContents = await fetchDocsContents(k);
     _builtinCompletions.push({
       label: k,

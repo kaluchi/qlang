@@ -26,7 +26,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeTagKeyword } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword, isModuleAstKey } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -43,7 +43,7 @@ async function evalCore() {
   const fullEnv = await langRuntime();
   const catalog = new Map();
   for (const [k, v] of fullEnv) {
-    if (k.startsWith('qlang/ast/')) continue;
+    if (isModuleAstKey(k)) continue;
     if (!isQMap(v)) continue;
     const kind = v.get('qlang/kind');
     if (!kind || kind.name !== 'builtin') continue;

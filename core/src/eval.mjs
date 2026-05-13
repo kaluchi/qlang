@@ -48,7 +48,8 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword,
+  moduleAstKey
 } from './types.mjs';
 import { astNodeToMap, isPureLiteralAst } from './walk.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -130,7 +131,7 @@ export async function evalQuery(source, env) {
   } catch (parseErr) {
     return errorFromParse(parseErr);
   }
-  const envWithInlineAst = envSet(initialEnv, 'qlang/ast/inline', makeQuote(source, ast));
+  const envWithInlineAst = envSet(initialEnv, moduleAstKey('inline'), makeQuote(source, ast));
   // Initial pipeValue is `null` — every pipeline has to bring its own
   // subject through an explicit head step (`env`, a literal, a
   // captured arg). The pre-M4 default of seeding pipeValue with the

@@ -55,7 +55,7 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { isKeyword, makeQuote } from '../types.mjs';
+import { isKeyword, makeQuote, moduleAstKey } from '../types.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
@@ -131,7 +131,7 @@ export async function langRuntime() {
       // it directly via `node.type` / `node.steps`. The /ast
       // projection converts to AST-Map shape on demand for user
       // code that wants data-form navigation.
-      templateEnv.set('qlang/ast/qlang/core', makeQuote(CORE_SOURCE, coreAst));
+      templateEnv.set(moduleAstKey('qlang/core'), makeQuote(CORE_SOURCE, coreAst));
 
       PRIMITIVE_REGISTRY.seal();
 

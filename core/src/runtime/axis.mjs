@@ -17,7 +17,8 @@ import { stateOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc
+  isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc,
+  isModuleAstKey, isTypeBindingName, TYPE_BINDING_PREFIX
 } from '../types.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
@@ -73,8 +74,8 @@ function matchesBindingStep(step, isTypeBinding, targetName) {
 // examples of the binding shadowing-resolved at that point, not the
 // first declaration.
 function findBindingStepFor(moduleAst, bindingName) {
-  const isTypeBinding = bindingName.startsWith('::');
-  const targetName = isTypeBinding ? bindingName.slice(2) : bindingName;
+  const isTypeBinding = isTypeBindingName(bindingName);
+  const targetName = isTypeBinding ? bindingName.slice(TYPE_BINDING_PREFIX.length) : bindingName;
   if (moduleAst.type === 'Pipeline') {
     let lastMatch = null;
     for (let i = 0; i < moduleAst.steps.length; i++) {
@@ -94,7 +95,7 @@ function findBindingStepFor(moduleAst, bindingName) {
 // at every such key, so the iterator trusts the shape.
 function* moduleAstsIn(env) {
   for (const [k, v] of env) {
-    if (k.startsWith('qlang/ast/') && isQuote(v)) yield v.ast;
+    if (isModuleAstKey(k) && isQuote(v)) yield v.ast;
   }
 }
 
@@ -117,10 +118,10 @@ export function findBindingStepAcrossModules(env, bindingName) {
 // binding it instantiates.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return '::' + subject.name;
+  if (isTagKeyword(subject)) return TYPE_BINDING_PREFIX + subject.name;
   if (isQMap(subject)) {
     const kind = subject.get('qlang/kind');
-    if (isTagKeyword(kind)) return '::' + kind.name;
+    if (isTagKeyword(kind)) return TYPE_BINDING_PREFIX + kind.name;
   }
   throw new ErrorCls(subject);
 }

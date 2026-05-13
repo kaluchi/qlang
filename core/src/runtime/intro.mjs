@@ -18,7 +18,8 @@ import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,
   isVec, isQSet, isQuote,
-  typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, makeDoc, isErrorValue
+  typeKeyword, keyword, makeConduit, makeSnapshot, makeQuote, makeDoc, isErrorValue,
+  isModuleAstKey, isTypeBindingName, moduleAstKey
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -163,7 +164,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   // canonical `qlang/ast/<ns>` env key — same surface the core
   // module gets in langRuntime, so axis-operands walk every
   // loaded namespace through one mechanism.
-  envWithNamespace.set('qlang/ast/' + nsKeyword.name, makeQuote(locatorResult.source, moduleAst));
+  envWithNamespace.set(moduleAstKey(nsKeyword.name), makeQuote(locatorResult.source, moduleAst));
   return [loadedExports, envWithNamespace];
 }
 
@@ -434,8 +435,8 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
 export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
   const entries = [];
   for (const [k, v] of state.env) {
-    if (k.startsWith('qlang/ast/')) continue;
-    if (k.startsWith('::')) continue;
+    if (isModuleAstKey(k)) continue;
+    if (isTypeBindingName(k)) continue;
     entries.push({ name: k, key: k, value: v });
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));

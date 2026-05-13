@@ -28,32 +28,13 @@ Staging area для обсуждения. Содержит:
 - §II.6 Type definitions через `::tag descriptor` — landed; перекрывается с "Type bindings" chapter в spec.
 - §II.8 Hypertext через axis-операнды — `source` / `docs` / `examples` landed; описание перенесено в `qlang-spec.md` "Reflection > Axis-operands" subsection. Multi-source aggregation удалена как фантазия без use-case — текущая last-match-wins семантика согласована с identifier resolution; tooling, которому нужна aggregate-форма, добавит отдельный axis-operand через стандартный путь.
 - Phase 8 — Axis-операнды (остаток) — multi-source aggregation удалена как фантазия без use-case.
+- §II.11.1 Context-aware default для inner empty/single — landed через content-based single-element dispatch (Fix A): `[42]` → JsonArray, `[:foo]` → qlang Vec, `[]` empty default qlang Vec. Inheritance от parent **не нужна** — решение полностью локальное по content head'а. Single-entry MapLit `{"a":1}` уже корректно был JsonObjectLit (через grammar :-separator). Empty `[]` / `{}` остаются qlang-default — explicit JSON-empty через `::json[]` / `::json{}`.
 
 ---
 
 ## §II.11. JSON-bridge — остаток
 
-(landed: JsonObjectLit / JsonArrayLit grammar, `JSON_OBJECT_TAG` / `JSON_ARRAY_TAG`, `makeJsonObject` / `makeJsonArray`, `isJsonObject` / `isJsonArray`, type-preserving operands через `vecLikeOf` / `mapLikeOf` / `retagPerElement`, conversion через `::qlang` / `::json` TaggedLit constructors. **Not landed**: details below.)
-
-### §II.11.1. Context-aware default для inner empty/single (не landed)
-
-Defaults для ambiguous container'ов (нет маркеров) — context-aware:
-
-- **Top-level** (нет parent container'а): default qlang.
-  - `qlang '{}'` → qlang Map.
-  - `qlang '[]'` → qlang Vec.
-  - `qlang '[42]'` → qlang Vec (single element без commas).
-- **Inner** (внутри parent container'а): **inherit** type от parent.
-  - `{"users": []}` — outer JSON Object → inner `[]` JSON Array.
-  - `{"users": [42]}` — inner `[42]` JSON Array (inherit).
-  - `{:wrap []}` — outer qlang Map → inner `[]` qlang Vec.
-  - `{:items [{"k": 1}]}` — inner `[{"k": 1}]` qlang Vec (inherit от qlang Map), внутри JSON Object element.
-
-Сейчас grammar ordered-choice статичный: empty `[]` / `{}` всегда qlang, single-element `[42]` всегда qlang. Inheritance требует context-aware parser pass — либо grammar-level token-state, либо post-parse decoration через `containerKindOf` walker.
-
-**Зачем context-aware:** paste'нутый JSON payload `{"users":[{"name":"alice"}]}` парсится через всё дерево как JSON. Без inheritance inner single-element `[{"name":"alice"}]` становится qlang Vec на top-level правиле — type leakage в середине дерева, JSON-purity ломается на первом single-element шаге.
-
-JSON-empty / JSON-single на top-level — explicit через TaggedLit: `::json{}`, `::json[]`, `::json[42]`.
+(landed: JsonObjectLit / JsonArrayLit grammar (включая content-based single-element dispatch), `JSON_OBJECT_TAG` / `JSON_ARRAY_TAG`, `makeJsonObject` / `makeJsonArray`, `isJsonObject` / `isJsonArray`, type-preserving operands через `vecLikeOf` / `mapLikeOf` / `retagPerElement`, conversion через `::qlang` / `::json` TaggedLit constructors. **Not landed**: details below.)
 
 ### §II.11.5. CollectKindMismatch loud-fail (design drift)
 

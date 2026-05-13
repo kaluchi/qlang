@@ -1,0 +1,16 @@
+{"name":"qlang-json-object-to-map","query":"::json{\"a\" : 1} | qlang | isMap","expect":"true"}
+{"name":"qlang-json-array-to-vec","query":"::json[1, 2] | qlang | isVec","expect":"true"}
+{"name":"qlang-idempotent-on-qlang-map","query":"{:a 1 :b 2} | qlang | isMap","expect":"true"}
+{"name":"qlang-idempotent-on-qlang-vec","query":"[1 2 3] | qlang | isVec","expect":"true"}
+{"name":"qlang-idempotent-on-scalar","query":"42 | qlang | eq(42)","expect":"true"}
+{"name":"qlang-idempotent-on-string","query":"\"hi\" | qlang | eq(\"hi\")","expect":"true"}
+{"name":"qlang-idempotent-on-null","query":"null | qlang | eq(null)","expect":"true"}
+{"name":"qlang-idempotent-on-keyword","query":":foo | qlang | eq(:foo)","expect":"true"}
+{"name":"qlang-roundtrip-json-then-qlang","query":"::json{\"a\" : 1} | qlang | qlang | isMap","expect":"true"}
+{"name":"qlang-nested-jsonobject","query":"::json{\"outer\" : {\"inner\" : 1}} | qlang | /outer | isMap","expect":"true"}
+{"name":"qlang-nested-jsonarray-in-jsonobject","query":"::json{\"items\" : [1, 2, 3]} | qlang | /items | isVec","expect":"true"}
+{"name":"qlang-preserves-string-keys","query":"::json{\"a\" : 1 ,\"b\" : 2} | qlang | keys | count","expect":"2"}
+{"name":"qlang-projection-after-cast","query":"::json{\"a\" : 1} | qlang | /a","expect":"1"}
+{"name":"qlang-vec-of-jsonobjects","query":"[::json{\"x\" : 1}, ::json{\"x\" : 2}] | qlang | first | isMap","expect":"true"}
+{"name":"qlang-empty-jsonobject","query":"::json{} | qlang | isMap","expect":"true"}
+{"name":"qlang-empty-jsonarray","query":"::json[] | qlang | isVec","expect":"true"}

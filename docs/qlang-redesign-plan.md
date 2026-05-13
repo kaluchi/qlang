@@ -29,30 +29,8 @@ Staging area для обсуждения. Содержит:
 - §II.8 Hypertext через axis-операнды — `source` / `docs` / `examples` landed; описание перенесено в `qlang-spec.md` "Reflection > Axis-operands" subsection. Multi-source aggregation удалена как фантазия без use-case — текущая last-match-wins семантика согласована с identifier resolution; tooling, которому нужна aggregate-форма, добавит отдельный axis-operand через стандартный путь.
 - Phase 8 — Axis-операнды (остаток) — multi-source aggregation удалена как фантазия без use-case.
 - §II.11.1 Context-aware default для inner empty/single — landed через content-based single-element dispatch (Fix A): `[42]` → JsonArray, `[:foo]` → qlang Vec, `[]` empty default qlang Vec. Inheritance от parent **не нужна** — решение полностью локальное по content head'а. Single-entry MapLit `{"a":1}` уже корректно был JsonObjectLit (через grammar :-separator). Empty `[]` / `{}` остаются qlang-default — explicit JSON-empty через `::json[]` / `::json{}`.
-
----
-
-## §II.11. JSON-bridge — остаток
-
-(landed: JsonObjectLit / JsonArrayLit grammar (включая content-based single-element dispatch), `JSON_OBJECT_TAG` / `JSON_ARRAY_TAG`, `makeJsonObject` / `makeJsonArray`, `isJsonObject` / `isJsonArray`, type-preserving operands через `vecLikeOf` / `mapLikeOf` / `retagPerElement`, conversion через `::qlang` / `::json` TaggedLit constructors. **Not landed**: details below.)
-
-### §II.11.5. CollectKindMismatch loud-fail (design drift)
-
-**Plan**: `*`-distribute и `>>`-merge при subject = JSON Array но body выдаёт element несовместимого типа (qlang-only) — **runtime type-error** «cannot collect qlang-element into JSON Array». Author явно cast'ит subject через `qlang` operand перед `*` если нужно.
-
-**Реализация**: `eval.mjs::retagPerElement` — silent degradation. Если subject JSON Array но один element не JSON-storeable, container degrades в qlang Vec. Это противоположно plan'у.
-
-Trade-off для решения:
-- Plan-style strict: предсказуемо, loud-fail на shape-mismatch, требует explicit `| qlang` cast.
-- Текущий silent: composable, user-friendly, но скрывает type drift; downstream `| json` все равно ловит на serialize-time.
-
-### §II.11.6. Subject-form `qlang` operand (не landed)
-
-`::qlang{…}` / `::json{…}` (TaggedLit constructors) — landed.
-
-`subject | json` — landed (`runtime/format.mjs::json`, `JSON.stringify(toPlain)`).
-
-`subject | qlang` — **не landed**. Должен symmetric с `json`: pipeValue JSON Object/Array → qlang Map/Vec, рекурсивно через всё дерево. Сейчас доступно только через `::qlang(payload)` ParenGroup hack или через `::qlang<payload>` TaggedLit.
+- §II.11.5 CollectKindMismatch loud-fail — удалена как фантазия без use-case. Текущая silent `retagPerElement` degradation корректнее: composable, drift surface'ит downstream в первом `| json` или `| isJsonArray` тесте. Strict loud-fail вариант заставлял бы author знать runtime type subject'а заранее, ломая jq-style "stream of values, don't care about shape".
+- §II.11.6 Subject-form `qlang` operand — landed как idempotent `runtime/tagged.mjs::qlangOperand`, BindStep entry `:qlang` в `core.qlang` под `:category :json-bridge`. Описан в `qlang-operands.md` под Formatting chapter рядом с `:json`. Pendant `::qlang<payload>` TaggedLit constructor остался как литерал-форма. Conformance `core/test/conformance/operands/qlang.jsonl` (16 cases).
 
 ---
 
@@ -103,18 +81,6 @@ vs flat (~16 fields):
 Compression — через class-level defaults factored out. Field ordering — variance-priority (variable first). Truncation at column N — class identity + most diagnostic context survive.
 
 **Contrast с Java pattern** (`private static final long MAX_READ_BYTES = ...`): modifier chain (low-entropy, repetitive) occupies positions highest priority в declaration. Identifier (high-entropy, the actual signal) — pushed past 4-5 boilerplate tokens. Truncation at column 30 → `private static final long MAX_R` — identifier обрезан, modifiers выжили. Wrong information survived. **qlang design pursues inverted ordering** — identifier / class / structural marker в front, modifiers / supplementary context в back.
-
----
-
-## Phase 10 — JSON default + qlang opt-in (остаток)
-
-(landed: grammar / runtime types / type-preserving operands / `parseJson` / `::qlang` `::json` TaggedLit constructors. Listed unlanded в §II.11.)
-
-**Не landed**:
-
-- **Context-aware default JSON/qlang inheritance** для inner empty / single containers (§II.11.1).
-- **Subject-form `qlang` operand** (value-namespace JSON→qlang converter, симметричный с `json`) — §II.11.6.
-- **`CollectKindMismatch` strict loud-fail** для `*` / `>>` через JSON Array subject + qlang-only body — §II.11.5. Currently silent degradation в `retagPerElement`.
 
 ---
 

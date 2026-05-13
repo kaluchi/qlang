@@ -1,13 +1,18 @@
 // Tagged-type constructors. Each constructor is a function
 // `(payload, state) → value` registered into PRIMITIVE_REGISTRY
-// under `qlang/prim/<tag>`. evalTaggedLit looks up the type
+// under `qlang/type/<tag>`. evalTaggedLit looks up the type
 // binding's :qlang/impl, resolves it to one of these functions,
 // and invokes it against the payload-value.
+//
+// Plus the `qlang` value-namespace operand — a subject-form
+// idempotent JSON-shape → qlang-shape converter, the pipeline
+// pendant to the `::qlang<payload>` literal-time constructor.
 //
 // State is passed through so constructors that need a reference to
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
 
+import { nullaryOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import {
   isVec, isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
@@ -111,3 +116,19 @@ function jsonFromQlang(value) {
 
 PRIMITIVE_REGISTRY.bind('qlang/type/qlang', (payload) => qlangFromJson(payload));
 PRIMITIVE_REGISTRY.bind('qlang/type/json',  (payload) => jsonFromQlang(payload));
+
+// `qlang` value-namespace operand — subject-form converter.
+//
+//   {"a": 1} | qlang      → {:a 1}        (JsonObject → qlang Map)
+//   [1, 2, 3] | qlang     → [1 2 3]       (JsonArray → qlang Vec)
+//   {:a 1} | qlang        → {:a 1}        (idempotent on qlang shape)
+//   42 | qlang            → 42            (scalar unchanged)
+//
+// Recurses through nested containers so a JsonObject-of-JsonArrays
+// lifts fully into a qlang-Map-of-qlang-Vecs in one step. The
+// `::qlang<payload>` TaggedLit constructor shares this impl as
+// `qlang/type/qlang` — `qlang` operand is the pipeline-time pendant.
+
+export const qlangOperand = nullaryOp('qlang', (subject) => qlangFromJson(subject));
+
+PRIMITIVE_REGISTRY.bind('qlang/prim/qlang', qlangOperand);

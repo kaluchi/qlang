@@ -730,6 +730,28 @@ shape, and vice versa.
 - Returns a JSON string representation of the subject.
 - **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2 3]}"`.
 
+### `qlang`
+
+- **Arity** 1. **Subject** any value.
+- Recursively converts JSON shape to qlang shape — `JsonObject`
+  becomes a qlang `Map` (string keys preserved), `JsonArray`
+  becomes a qlang `Vec`. Scalars and qlang-only values
+  (`Keyword`, qlang `Map` / `Vec` / `Set`, `Error`, `Quote`,
+  `Doc`, function values, tagged instances) pass through
+  unchanged.
+- **Idempotent.** Applying twice yields the same result as once
+  — `value | qlang | qlang` ≡ `value | qlang`. The pipeline-time
+  pendant of the `::qlang<payload>` TaggedLit constructor;
+  reach for `qlang` when the JSON value arrives via `pipeValue`
+  (CLI stdin parse, projection out of a JSON Object field) and
+  needs to flow into qlang-shape operands like
+  `union({:adult /age | gt(18)})`.
+- **Examples**:
+  - `::json{"a": 1} | qlang | isMap` → `true`.
+  - `::json[1, 2] | qlang | isVec` → `true`.
+  - `{:a 1} | qlang | isMap` → `true` (already qlang).
+  - `42 | qlang | eq(42)` → `true` (scalar identity).
+
 ### `table`
 
 - **Arity** 1. **Subject** a Vec of Maps.

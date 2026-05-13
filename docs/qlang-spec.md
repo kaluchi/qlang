@@ -1822,6 +1822,92 @@ filter(/age | gt(18))
 
 ---
 
+## Round-trip invariant
+
+The language pins a **literal round-trip theorem** between the
+parser, the evaluator, and the canonical printer in two tiers.
+
+### Strict tier — `deepEqual` round-trip
+
+For every value V that can appear in `pipeValue` and whose
+identity is purely structural (no internal AST nodes, no envRef
+holders, no host-injected JS opaques),
+
+> `eval(parse(printValue(V)))`  is deepEqual to  V
+
+and dually, for every syntactically valid literal source S that
+evaluates to a `pipeValue`,
+
+> `printValue(eval(parse(S)))`  ≡  S
+
+modulo canonical whitespace and modulo equivalent surface forms
+(`:foo` and `:"foo"` both print as the bare form; JSON-mode
+`{"k": 1}` and qlang-mode `{:k 1}` Map literals collapse to the
+same canonical Map shape).
+
+The strict tier covers: Number, String, Boolean, Null, Keyword,
+TagKeyword, Vec, Map, Set, JSON-Object, JSON-Array, Error, Quote,
+Doc, plus the constructor-lifted plain shapes (`::qlang<…>` →
+Map, `::json<…>` → JsonObject).
+
+### Print-idempotency tier — Conduit
+
+`Conduit` carries a parsed body AST node plus a lexical envRef
+holder; both are reference-distinct between independent mints, so
+strict `deepEqual` would surface phantom drift. The **rendered
+form** stabilises across round-trip:
+
+> `printValue(eval(parse(printValue(V))))`  ≡  `printValue(V)`
+
+The `::conduit[:self [params] ~{body-source}]` literal contains
+every input the next `eval` needs to reconstruct an
+observationally-equivalent Conduit; the JS-side identity (envRef,
+body AST) differs but the **behavioural** identity matches.
+
+Three guards enforce the invariant at the construction and
+rendering boundaries:
+
+- **`FunctionValueLeakedToPrintError`** — `printValue` and
+  `toPlain` refuse a raw function value because no grammatical
+  literal renders back to one. Host operands must wrap the
+  function in a descriptor Map carrying `:qlang/kind :builtin`
+  and `:qlang/impl <fn>`; the projection inside `printValue`
+  substitutes the function back to its `:qlang/prim/<name>`
+  keyword handle so the descriptor itself round-trips.
+- **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
+  body AST without a `.text` source slice, because `printConduit`
+  emits `::conduit[:self [params] ~{body-source}]` and would
+  otherwise produce a non-parseable placeholder.
+- **`TypeBindingHasNoConstructorError`** — `evalTaggedLit` refuses
+  a `::Tag<payload>` invocation when the type-binding's
+  `:qlang/impl` is missing or wrong-shaped, surfacing
+  `:payloadValue` / `:payloadType` / `:expectedType` on the
+  descriptor so the diagnostic itself follows the same shape
+  contract.
+
+Three value categories sit **outside** the invariant by design,
+and never reach `pipeValue` through a path that would expose them
+to `printValue`:
+
+- **Function values** — live only on `:qlang/impl` of a
+  descriptor Map, projected back to keyword handle on render.
+  Any leak to `pipeValue` raises the guard above.
+- **Snapshot wrappers** — `as(:name)` snapshots are env entries,
+  not pipeline values. Identifier lookup auto-unwraps a snapshot
+  to its underlying value before the value escapes into
+  `pipeValue`; projection (`/key`) does the same.
+- **Conduit-parameter proxies** — nullary function values minted
+  inside `applyConduit` to fire captured-arg lambdas; live only
+  for the duration of the body fork and never escape via the
+  outer `pipeValue` channel.
+
+Implementation: `runtime/format.mjs::printValue` is the canonical
+implementer; `core/test/unit/round-trip-invariant.test.mjs` pins
+the theorem with a generative property test across every
+value-class above.
+
+---
+
 ## Lexical structure
 
 ### Tokens

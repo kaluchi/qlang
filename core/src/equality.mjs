@@ -36,12 +36,20 @@ export function deepEqual(a, b) {
   }
   if (a instanceof Set) {
     if (!(b instanceof Set) || a.size !== b.size) return false;
-    for (const v of a) {
-      if (isKeyword(v)) {
-        let found = false;
-        for (const w of b) if (isKeyword(w) && w.name === v.name) { found = true; break; }
-        if (!found) return false;
-      } else if (!b.has(v)) return false;
+    // JS Set's `.has` uses reference equality, which mishandles
+    // composite elements (Vec / Map / Set / Error) — two
+    // independently-constructed `[1 2]` Vecs are content-equal
+    // but reference-distinct, so `b.has(v)` would fail. Linear
+    // scan with `deepEqual` covers every shape uniformly:
+    // keyword interning collapses to a single object on the
+    // primitive side; composite shapes need the recursive
+    // structural compare anyway. O(n²) is acceptable — Set
+    // sizes in qlang queries stay small.
+    outer: for (const v of a) {
+      for (const w of b) {
+        if (deepEqual(v, w)) continue outer;
+      }
+      return false;
     }
     return true;
   }

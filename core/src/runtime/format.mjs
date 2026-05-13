@@ -118,11 +118,29 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 
 // printValue(v, indent?) → qlang literal string
 //
-// Serializes any qlang runtime value to the source form that,
-// if parsed and evaluated, reproduces the same value. This is
-// the canonical display function for REPLs and tooling.
-// Maps and errors with more than 2 entries are pretty-printed
-// with one entry per line for readability.
+// Canonical implementer of the round-trip invariant
+// (qlang-spec.md § "Round-trip invariant"):
+//
+//     eval(parse(printValue(V)))  deepEqual  V
+//
+// for every value V that can land in pipeValue — Number, String,
+// Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, JSON-Object,
+// JSON-Array, Error, Quote, Doc, TaggedInstance (Conduit,
+// user-defined `::tag` instances). The shape is enforced by
+// `core/test/unit/round-trip-invariant.test.mjs`.
+//
+// Three categories sit outside the contract by design:
+//   * raw function values — `FunctionValueLeakedToPrintError`
+//     fires here (no grammatical literal exists for them);
+//   * Snapshot wrappers — auto-unwrapped on identifier-lookup /
+//     projection before reaching this code path;
+//   * conduit-parameter proxies — local to `applyConduit`'s body
+//     fork, never escape the outer pipeValue channel.
+//
+// Maps and errors with more than 2 entries (or any entry whose
+// value is itself a composite) pretty-print with one entry per
+// line for readability — the parser's whitespace-tolerant Map
+// grammar means the multi-line form still round-trips.
 const PRINT_HANDLERS = {
   Null:       () => 'null',
   Boolean:    v => String(v),

@@ -37,7 +37,7 @@ describe('renderCellOutcome — error paths', () => {
     // exit on a fail-track result would cancel sibling tool calls in
     // agent harnesses that parallelise qlang invocations.
     const errorDescriptor = new Map([
-      ['thrown', keyword('FilterSubjectNotContainer')]
+      ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({ result: makeErrorValue(errorDescriptor) });
     const cliOutcome = await renderCellOutcome(cellEntry, {
@@ -45,7 +45,7 @@ describe('renderCellOutcome — error paths', () => {
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
-    expect(cliOutcome.stdoutText).toContain(':FilterSubjectNotContainer');
+    expect(cliOutcome.stdoutText).toContain(':FilterSubjectNotContainerError');
     expect(cliOutcome.stderrText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);
   });
@@ -123,7 +123,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
 
   it('paints a fail-track error value in ANSI when shouldColorize is true', async () => {
     const errorDescriptor = new Map([
-      ['thrown', keyword('FilterSubjectNotContainer')]
+      ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({
       result: makeErrorValue(errorDescriptor),

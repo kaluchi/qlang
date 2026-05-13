@@ -11,14 +11,14 @@ import { QlangInvariantError } from './errors.mjs';
 // body without `.text` would force render to emit a non-parseable
 // placeholder, breaking the round-trip theorem; mint refuses up
 // front so the violation surfaces at construction, not at print.
-export class ConduitBodyMissingSource extends QlangInvariantError {
+export class ConduitBodyMissingSourceError extends QlangInvariantError {
   constructor() {
     super(
       'makeConduit: body has no .text — conduit body must carry a source slice so printValue round-trips through parse',
       {}
     );
-    this.name = 'ConduitBodyMissingSource';
-    this.fingerprint = 'ConduitBodyMissingSource';
+    this.name = 'ConduitBodyMissingSourceError';
+    this.fingerprint = 'ConduitBodyMissingSourceError';
   }
 }
 
@@ -33,14 +33,14 @@ export class ConduitBodyMissingSource extends QlangInvariantError {
 // descriptor Map walked by `env | /count`, or a host binding mounted
 // through `session.bind` with a raw function instead of a descriptor)
 // gets named and migrated to the descriptor-Map ceremony.
-export class FunctionValueLeakedToPrint extends QlangInvariantError {
+export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(
       'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :qlang/kind :builtin and :qlang/impl, instead of binding the raw function via session.bind.',
       {}
     );
-    this.name = 'FunctionValueLeakedToPrint';
-    this.fingerprint = 'FunctionValueLeakedToPrint';
+    this.name = 'FunctionValueLeakedToPrintError';
+    this.fingerprint = 'FunctionValueLeakedToPrintError';
   }
 }
 
@@ -221,7 +221,7 @@ export function isTagKeyword(v) {
 // re-typing the literal.
 //
 // `TYPE_BINDING_PREFIX` — `::Tag` identifiers carrying a type-binding
-// declaration (`::conduit`, `::AddLeftNotNumber`). Lookup distinguishes
+// declaration (`::conduit`, `::AddLeftNotNumberError`). Lookup distinguishes
 // type-namespace identifiers from value-namespace `:foo` keys without
 // scanning the binding shape.
 //
@@ -318,7 +318,7 @@ export function makeDoc(content) {
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
   if (body == null || typeof body.text !== 'string') {
-    throw new ConduitBodyMissingSource();
+    throw new ConduitBodyMissingSourceError();
   }
   const m = new Map();
   m.set('qlang/kind', makeTagKeyword('conduit'));

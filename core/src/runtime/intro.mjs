@@ -38,22 +38,22 @@ import { parse as parseSource } from '../parse.mjs';
 import { findBindingStepAcrossModules } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const UseSubjectNotMap = declareSubjectError('UseSubjectNotMap', 'use', 'map');
-const UseNamespaceNotKeyword = declareShapeError('UseNamespaceNotKeyword',
+const UseSubjectNotMapError = declareSubjectError('UseSubjectNotMapError', 'use', 'map');
+const UseNamespaceNotKeywordError = declareShapeError('UseNamespaceNotKeywordError',
   ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`);
-const UseNamespaceNotFound = declareShapeError('UseNamespaceNotFound',
+const UseNamespaceNotFoundError = declareShapeError('UseNamespaceNotFoundError',
   ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`);
-const UseNamespaceNotMap = declareShapeError('UseNamespaceNotMap',
+const UseNamespaceNotMapError = declareShapeError('UseNamespaceNotMapError',
   ({ namespaceName, actualType }) => `use: namespace '${namespaceName}' is ${actualType.name}, expected Map`);
-const UseNamespaceElementNotKeyword = declareShapeError('UseNamespaceElementNotKeyword',
+const UseNamespaceElementNotKeywordError = declareShapeError('UseNamespaceElementNotKeywordError',
   ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType.name}`);
-const UseNamespaceCollision = declareShapeError('UseNamespaceCollision',
+const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError',
   ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple namespaces: ${namespaces.join(', ')}`);
-const UseNameNotExported = declareShapeError('UseNameNotExported',
+const UseNameNotExportedError = declareShapeError('UseNameNotExportedError',
   ({ namespaceName, exportName }) => `use: '${exportName}' not exported by namespace '${namespaceName}'`);
-const ReifyArityOverflow = declareArityError('ReifyArityOverflow',
+const ReifyArityOverflowError = declareArityError('ReifyArityOverflowError',
   ({ actualArity }) => `reify accepts 0 or 1 captured args, got ${actualArity}`);
-const ReifyKeyNotKeyword = declareShapeError('ReifyKeyNotKeyword',
+const ReifyKeyNotKeywordError = declareShapeError('ReifyKeyNotKeywordError',
   ({ actualType }) => `reify(:name) requires a keyword captured arg, got ${actualType.name}`);
 
 // env — replaces pipeValue with the current env Map.
@@ -68,7 +68,7 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
   if (useLambdas.length === 0) {
     // Zero captured args: merge pipeValue Map into env
     if (!isQMap(state.pipeValue)) {
-      throw new UseSubjectNotMap(state.pipeValue);
+      throw new UseSubjectNotMapError(state.pipeValue);
     }
     return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
   }
@@ -80,12 +80,12 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
     if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
     if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
     if (isQSet(useArg))     return await importUnorderedNamespaces(state, useArg);
-    throw new UseNamespaceNotKeyword({ actualType: typeKeyword(useArg), actualValue: useArg });
+    throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
 
   // Two args: namespace keyword + selection filter
   if (!isKeyword(useArg)) {
-    throw new UseNamespaceNotKeyword({ actualType: typeKeyword(useArg), actualValue: useArg });
+    throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
   const useSelection = await useLambdas[1](state.pipeValue);
   return await importSelectiveNamespace(state, useArg, useSelection);
@@ -106,7 +106,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   if (outerEnv.has(nsKeyword.name)) {
     const moduleEnv = outerEnv.get(nsKeyword.name);
     if (!isQMap(moduleEnv)) {
-      throw new UseNamespaceNotMap({
+      throw new UseNamespaceNotMapError({
         namespaceName: nsKeyword.name,
         actualType: typeKeyword(moduleEnv)
       });
@@ -117,11 +117,11 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   // Locator fallback: host-provided lazy module loader.
   const locatorFn = outerEnv.get('qlang/locator');
   if (!locatorFn) {
-    throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
+    throw new UseNamespaceNotFoundError({ namespaceName: nsKeyword.name });
   }
   const locatorResult = await locatorFn(nsKeyword.name);
   if (!locatorResult) {
-    throw new UseNamespaceNotFound({ namespaceName: nsKeyword.name });
+    throw new UseNamespaceNotFoundError({ namespaceName: nsKeyword.name });
   }
 
   // Parse and eval the module source. The module is a Map
@@ -180,7 +180,7 @@ async function importOrderedNamespaces(state, namespaces) {
   for (let i = 0; i < namespaces.length; i++) {
     const ns = namespaces[i];
     if (!isKeyword(ns)) {
-      throw new UseNamespaceElementNotKeyword({ index: i, actualType: typeKeyword(ns) });
+      throw new UseNamespaceElementNotKeywordError({ index: i, actualType: typeKeyword(ns) });
     }
     const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(currentEnv, ns);
     currentEnv = envMerge(updatedEnv, moduleEnv);
@@ -197,7 +197,7 @@ async function importUnorderedNamespaces(state, namespaces) {
     accumulatedEnv = updatedEnv;
     for (const [k, v] of moduleEnv) {
       if (merged.has(k)) {
-        throw new UseNamespaceCollision({
+        throw new UseNamespaceCollisionError({
           collidingName: k,
           namespaces: [origins.get(k), ns.name]
         });
@@ -216,7 +216,7 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
   for (const name of names) {
     const nameStr = isKeyword(name) ? name.name : String(name);
     if (!moduleEnv.has(nameStr)) {
-      throw new UseNameNotExported({
+      throw new UseNameNotExportedError({
         namespaceName: nsKeyword.name,
         exportName: nameStr
       });
@@ -357,7 +357,7 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
   if (reifyLambdas.length === 1) {
     const reifyKeyValue = await reifyLambdas[0](state.pipeValue);
     if (!isKeyword(reifyKeyValue)) {
-      throw new ReifyKeyNotKeyword({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
+      throw new ReifyKeyNotKeywordError({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
     }
     if (!state.env.has(reifyKeyValue.name)) {
       throw new UnresolvedIdentifierError(reifyKeyValue.name);
@@ -366,7 +366,7 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
     const reifyDescriptor = describeBinding(reifyBound, reifyKeyValue.name);
     return withPipeValue(state, reifyDescriptor);
   }
-  throw new ReifyArityOverflow({ actualArity: reifyLambdas.length });
+  throw new ReifyArityOverflowError({ actualArity: reifyLambdas.length });
 }, [0, 1]);
 
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
@@ -448,7 +448,7 @@ export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
 
 // ── let and as — binding operands ─────────────────────────────
 
-const AsNameNotKeyword = declareShapeError('AsNameNotKeyword',
+const AsNameNotKeywordError = declareShapeError('AsNameNotKeywordError',
   ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType.name}`);
 
 import { envSet } from '../state.mjs';
@@ -457,7 +457,7 @@ import { envSet } from '../state.mjs';
 export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
   const asNameValue = await asLambdas[0](state.pipeValue);
   if (!isKeyword(asNameValue)) {
-    throw new AsNameNotKeyword({ actualType: typeKeyword(asNameValue), actualValue: asNameValue });
+    throw new AsNameNotKeywordError({ actualType: typeKeyword(asNameValue), actualValue: asNameValue });
   }
   const asBindingName = asNameValue.name;
   const asSnapshot = makeSnapshot(state.pipeValue, {
@@ -482,11 +482,11 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
 // inspection, and hand-rolled AST construction all become user-
 // level qlang operations from this point on.
 
-const ParseSubjectNotStringOrQuote = declareSubjectError(
-  'ParseSubjectNotStringOrQuote', 'parse', ['string', 'quote']);
+const ParseSubjectNotStringOrQuoteError = declareSubjectError(
+  'ParseSubjectNotStringOrQuoteError', 'parse', ['string', 'quote']);
 
-const EvalSubjectNotMapOrQuote = declareSubjectError(
-  'EvalSubjectNotMapOrQuote', 'eval', ['map', 'quote']);
+const EvalSubjectNotMapOrQuoteError = declareSubjectError(
+  'EvalSubjectNotMapOrQuoteError', 'eval', ['map', 'quote']);
 
 // parse — reads a source string into the Variant-B AST-Map form.
 // A Quote-value is accepted too: it is "code in string form", so
@@ -505,7 +505,7 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
   let sourceText;
   if (typeof parseSrc === 'string') sourceText = parseSrc;
   else if (isQuote(parseSrc))       sourceText = parseSrc.source;
-  else throw new ParseSubjectNotStringOrQuote(parseSrc);
+  else throw new ParseSubjectNotStringOrQuoteError(parseSrc);
   try {
     const parsedAst = parseSource(sourceText, { uri: 'parse-operand' });
     return withPipeValue(state, astNodeToMap(parsedAst));
@@ -515,7 +515,7 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 });
 
 // AST extracted from a Quote-or-Map value, returned for `eval` /
-// `apply` to dispatch through `evalAst`. Throws `EvalSubjectNotMapOrQuote`
+// `apply` to dispatch through `evalAst`. Throws `EvalSubjectNotMapOrQuoteError`
 // when the value is neither shape; raises the parse-error path
 // (lifted to `::ParseError`) when a Quote source cannot be parsed.
 function astFromQuoteLike(value) {
@@ -526,7 +526,7 @@ function astFromQuoteLike(value) {
     // ErrorValue — no local catch needed.
     return value.ast ?? parseSource(value.source, { uri: 'quote-source' });
   }
-  throw new EvalSubjectNotMapOrQuote(value);
+  throw new EvalSubjectNotMapOrQuoteError(value);
 }
 
 // eval — runs an AST against the current state. Subject is either

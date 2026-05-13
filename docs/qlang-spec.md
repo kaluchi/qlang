@@ -496,7 +496,7 @@ rather than crashing the query.
 
 ```qlang
 > [1 2 3] | add(1)
-::AddLeftNotNumber!{
+::AddLeftNotNumberError!{
   :fault {:step ~{add(1)} :input [1 2 3]}
   :actualValue [1 2 3]
   :actualType :vec
@@ -507,12 +507,12 @@ rather than crashing the query.
   :kind :type-error
 }
 |~| add(1) was waiting for a number in position 1; the Vec triggered
-|~| the per-site class ::AddLeftNotNumber, which becomes the error's
+|~| the per-site class ::AddLeftNotNumberError, which becomes the error's
 |~| tag head. The descriptor lays out the failure structure and the
 |~| error becomes the new pipeValue.
 ```
 
-The tag head names the per-site error class (`::AddLeftNotNumber`);
+The tag head names the per-site error class (`::AddLeftNotNumberError`);
 the descriptor names the operand that failed (`:operand`), the
 broad category (`:kind`), the value the throw site inspected
 (`:actualValue` + `:actualType`), and the step itself (`:fault/step`
@@ -1375,7 +1375,7 @@ lift automatically into error values with structured descriptors:
 
 ```qlang
 > "hello" | add(1) !| /thrown
-::AddLeftNotNumber
+::AddLeftNotNumberError
 
 > "hello" | add(1) !| /origin
 :qlang/eval
@@ -1387,7 +1387,7 @@ lift automatically into error values with structured descriptors:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
-| `:thrown` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumber`, `::FilterSubjectNotContainer`, etc. The descriptor's tag head echoes the same value, so `printValue` elides this field; it stays readable through `!\| /thrown` |
+| `:thrown` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The descriptor's tag head echoes the same value, so `printValue` elides this field; it stays readable through `!\| /thrown` |
 | `:message` | string | Human-readable description |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
 | `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
@@ -1444,7 +1444,7 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    When a `:name body` BindStep evaluates, it checks the body AST via
    `findFirstEffectfulIdentifier`: if the binding name is clean but
    the body contains an effectful OperandCall or Projection segment,
-   the step throws `EffectLaunderingAtBindStepParse` carrying the
+   the step throws `EffectLaunderingAtBindStepParseError` carrying the
    source location of the offending identifier. Both direct calls
    (`@callers`) and projection-based extraction (`env | /@callers`)
    are caught.
@@ -1453,7 +1453,7 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    identifier resolves through env to a function value, the call-site
    safety net checks: if the function value carries `.effectful = true`
    but the lookup name does not classify as effectful, the call is
-   refused with `EffectLaunderingAtCall`. This catches every
+   refused with `EffectLaunderingAtCallError`. This catches every
    laundering path the AST scan cannot see — installation through
    `use`, capture through `as`, or programmatic injection via the
    embedding host — because every effectful invocation ultimately
@@ -1535,7 +1535,7 @@ loaded by `langRuntime` from `lib/qlang/core.qlang`:
  :returns  :number
  :captured [0 0]
  :docs     ["Returns the number of elements. ...\n\n    ::assertion[`[1 2 3] | count` `3`]\n    ::assertion[`#{:a :b} | count` `2`]"]
- :throws   [:CountSubjectNotContainer]
+ :throws   [:CountSubjectNotContainerError]
  :effectful false}
 ```
 
@@ -2240,7 +2240,7 @@ const session = await createSession({
   locator: async (namespaceName) => {
     if (namespaceName === 'jdt/search')
       return { source: searchQlangSource, impls: { '@find': findImpl } };
-    return null;  // unknown namespace → UseNamespaceNotFound
+    return null;  // unknown namespace → UseNamespaceNotFoundError
   }
 });
 ```
@@ -2256,7 +2256,7 @@ When `use(:ns)` encounters a namespace keyword not in env:
 
 1. Reads the locator from the reserved `:qlang/locator` keyword in
    env (installed by `createSession` from `opts.locator`).
-2. Calls `locator(namespaceName)`. If null → `UseNamespaceNotFound`.
+2. Calls `locator(namespaceName)`. If null → `UseNamespaceNotFoundError`.
 3. Parses and evaluates `source` against the current env (transitive
    `use(:other-ns)` inside the module triggers the locator
    recursively).

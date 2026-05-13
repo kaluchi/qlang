@@ -38,8 +38,8 @@
 //                                UnresolvedIdentifierError,
 //                                DivisionByZeroError, ParseError,
 //                                EffectLaunderingError,
-//                                EffectLaunderingAtBindStepParse,
-//                                EffectLaunderingAtCall,
+//                                EffectLaunderingAtBindStepParseError,
+//                                EffectLaunderingAtCallError,
 //                                QlangInvariantError
 //   effect-marker classification — classifyEffect, EFFECT_MARKER_PREFIX
 //   keyword interning          — keyword (every call with the same name
@@ -84,8 +84,8 @@ import {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtBindStepParse,
-  EffectLaunderingAtCall,
+  EffectLaunderingAtBindStepParseError,
+  EffectLaunderingAtCallError,
   QlangInvariantError
 } from './errors.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
@@ -151,8 +151,8 @@ export {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtBindStepParse,
-  EffectLaunderingAtCall,
+  EffectLaunderingAtBindStepParseError,
+  EffectLaunderingAtCallError,
   QlangInvariantError,
   classifyEffect,
   EFFECT_MARKER_PREFIX,

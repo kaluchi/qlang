@@ -13,8 +13,8 @@ import {
   isConduit,
   isSnapshot,
   isDoc,
-  ConduitBodyMissingSource,
-  FunctionValueLeakedToPrint
+  ConduitBodyMissingSourceError,
+  FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -38,7 +38,7 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     // force a non-parseable placeholder, so mint refuses up front.
     expect(() =>
       makeConduit({ type: 'NumberLit', value: 1 }, { name: 'noTxt', params: [] })
-    ).toThrow(ConduitBodyMissingSource);
+    ).toThrow(ConduitBodyMissingSourceError);
   });
 
   it('docs do not appear in value-literal — they are declaration metadata, reachable via the ~{:name | docs} axis', () => {
@@ -73,7 +73,7 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
       category: 'test', subject: 'any', modifiers: [],
       returns: 'any', docs: [], examples: [], throws: []
     });
-    expect(() => printValue(fn)).toThrow(FunctionValueLeakedToPrint);
+    expect(() => printValue(fn)).toThrow(FunctionValueLeakedToPrintError);
   });
 
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
@@ -180,12 +180,12 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
 });
 
 describe('toPlain refuses a Function value — same invariant', () => {
-  it('throws FunctionValueLeakedToPrint when a function-value surfaces', () => {
+  it('throws FunctionValueLeakedToPrintError when a function-value surfaces', () => {
     const fn = makeFn('myExotic', 1, async (state) => state, {
       category: 'test', subject: 'any', modifiers: [],
       returns: 'any', docs: [], examples: [], throws: []
     });
-    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrint);
+    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrintError);
   });
 });
 
@@ -227,7 +227,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     await expect(table.fn(
       { pipeValue: [row], env: new Map() },
       []
-    )).rejects.toThrow(FunctionValueLeakedToPrint);
+    )).rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 
   it('renders a Vec-of-Conduit cell — INLINE handler for Conduit fires', async () => {
@@ -263,7 +263,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     await expect(table.fn(
       { pipeValue: [row], env: new Map() },
       []
-    )).rejects.toThrow(FunctionValueLeakedToPrint);
+    )).rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 
   it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {

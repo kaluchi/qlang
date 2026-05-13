@@ -55,16 +55,16 @@ import {
 
 // ── Subject-type classes ───────────────────────────────────────
 
-const CountSubjectNotContainer    = declareSubjectError('CountSubjectNotContainer',    'count',    ['vec', 'set', 'map']);
-const EmptySubjectNotContainer    = declareSubjectError('EmptySubjectNotContainer',    'empty',    ['vec', 'set', 'map']);
-const FirstSubjectNotVec          = declareSubjectError('FirstSubjectNotVec',          'first',    'vec');
-const LastSubjectNotVec           = declareSubjectError('LastSubjectNotVec',           'last',     'vec');
-const SumSubjectNotVecOrSet       = declareSubjectError('SumSubjectNotVecOrSet',       'sum',      ['vec', 'set']);
-const MinSubjectNotVecOrSet       = declareSubjectError('MinSubjectNotVecOrSet',       'min',      ['vec', 'set']);
-const MaxSubjectNotVecOrSet       = declareSubjectError('MaxSubjectNotVecOrSet',       'max',      ['vec', 'set']);
-const FilterSubjectNotContainer   = declareSubjectError('FilterSubjectNotContainer',   'filter',   ['vec', 'set', 'map']);
-const EverySubjectNotContainer    = declareSubjectError('EverySubjectNotContainer',    'every',    ['vec', 'set', 'map']);
-const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer',      'any',      ['vec', 'set', 'map']);
+const CountSubjectNotContainerError    = declareSubjectError('CountSubjectNotContainerError',    'count',    ['vec', 'set', 'map']);
+const EmptySubjectNotContainerError    = declareSubjectError('EmptySubjectNotContainerError',    'empty',    ['vec', 'set', 'map']);
+const FirstSubjectNotVecError          = declareSubjectError('FirstSubjectNotVecError',          'first',    'vec');
+const LastSubjectNotVecError           = declareSubjectError('LastSubjectNotVecError',           'last',     'vec');
+const SumSubjectNotVecOrSetError       = declareSubjectError('SumSubjectNotVecOrSetError',       'sum',      ['vec', 'set']);
+const MinSubjectNotVecOrSetError       = declareSubjectError('MinSubjectNotVecOrSetError',       'min',      ['vec', 'set']);
+const MaxSubjectNotVecOrSetError       = declareSubjectError('MaxSubjectNotVecOrSetError',       'max',      ['vec', 'set']);
+const FilterSubjectNotContainerError   = declareSubjectError('FilterSubjectNotContainerError',   'filter',   ['vec', 'set', 'map']);
+const EverySubjectNotContainerError    = declareSubjectError('EverySubjectNotContainerError',    'every',    ['vec', 'set', 'map']);
+const AnySubjectNotContainerError      = declareSubjectError('AnySubjectNotContainerError',      'any',      ['vec', 'set', 'map']);
 
 // Per-operand arity-invalid classes — predicate conduit arity limits
 // at each filter/every/any call site. On Vec or Set the predicate has
@@ -73,65 +73,65 @@ const AnySubjectNotContainer      = declareSubjectError('AnySubjectNotContainer'
 // no axis to fill → per-operand *VecOrSetPredArityInvalid. On Map the
 // predicate has two axes: 0/1 read value; 2 params [:k :v] bind both.
 // Three or more on Map → per-operand *MapPredArityInvalid.
-const FilterVecOrSetPredArityInvalid = declareArityError('FilterVecOrSetPredArityInvalid',
+const FilterVecOrSetPredArityInvalidError = declareArityError('FilterVecOrSetPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `filter over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
-const EveryVecOrSetPredArityInvalid  = declareArityError('EveryVecOrSetPredArityInvalid',
+const EveryVecOrSetPredArityInvalidError  = declareArityError('EveryVecOrSetPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `every over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
-const AnyVecOrSetPredArityInvalid    = declareArityError('AnyVecOrSetPredArityInvalid',
+const AnyVecOrSetPredArityInvalidError    = declareArityError('AnyVecOrSetPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `any over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
-const FilterMapPredArityInvalid = declareArityError('FilterMapPredArityInvalid',
+const FilterMapPredArityInvalidError = declareArityError('FilterMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `filter over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
-const EveryMapPredArityInvalid  = declareArityError('EveryMapPredArityInvalid',
+const EveryMapPredArityInvalidError  = declareArityError('EveryMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `every over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
-const AnyMapPredArityInvalid    = declareArityError('AnyMapPredArityInvalid',
+const AnyMapPredArityInvalidError    = declareArityError('AnyMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
-const GroupBySubjectNotVec        = declareSubjectError('GroupBySubjectNotVec',        'groupBy',  'vec');
-const IndexBySubjectNotVec        = declareSubjectError('IndexBySubjectNotVec',        'indexBy',  'vec');
-const GroupByKeyNotKeyword        = declareShapeError('GroupByKeyNotKeyword',
+const GroupBySubjectNotVecError        = declareSubjectError('GroupBySubjectNotVecError',        'groupBy',  'vec');
+const IndexBySubjectNotVecError        = declareSubjectError('IndexBySubjectNotVecError',        'indexBy',  'vec');
+const GroupByKeyNotKeywordError        = declareShapeError('GroupByKeyNotKeywordError',
   ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
-const IndexByKeyNotKeyword        = declareShapeError('IndexByKeyNotKeyword',
+const IndexByKeyNotKeywordError        = declareShapeError('IndexByKeyNotKeywordError',
   ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
-const SortNaturalSubjectNotVec    = declareSubjectError('SortNaturalSubjectNotVec',    'sort',     'vec');
-const SortByKeySubjectNotVec      = declareSubjectError('SortByKeySubjectNotVec',      'sort',     'vec');
-const SortWithSubjectNotVec       = declareSubjectError('SortWithSubjectNotVec',       'sortWith', 'vec');
-const FirstNonZeroSubjectNotVec   = declareSubjectError('FirstNonZeroSubjectNotVec',   'firstNonZero', 'vec');
-const TakeSubjectNotVec           = declareSubjectError('TakeSubjectNotVec',           'take',     'vec');
-const DropSubjectNotVec           = declareSubjectError('DropSubjectNotVec',           'drop',     'vec');
-const DistinctSubjectNotVec       = declareSubjectError('DistinctSubjectNotVec',       'distinct', 'vec');
-const ReverseSubjectNotVec        = declareSubjectError('ReverseSubjectNotVec',        'reverse',  'vec');
-const FlatSubjectNotVec           = declareSubjectError('FlatSubjectNotVec',           'flat',     'vec');
+const SortNaturalSubjectNotVecError    = declareSubjectError('SortNaturalSubjectNotVecError',    'sort',     'vec');
+const SortByKeySubjectNotVecError      = declareSubjectError('SortByKeySubjectNotVecError',      'sort',     'vec');
+const SortWithSubjectNotVecError       = declareSubjectError('SortWithSubjectNotVecError',       'sortWith', 'vec');
+const FirstNonZeroSubjectNotVecError   = declareSubjectError('FirstNonZeroSubjectNotVecError',   'firstNonZero', 'vec');
+const TakeSubjectNotVecError           = declareSubjectError('TakeSubjectNotVecError',           'take',     'vec');
+const DropSubjectNotVecError           = declareSubjectError('DropSubjectNotVecError',           'drop',     'vec');
+const DistinctSubjectNotVecError       = declareSubjectError('DistinctSubjectNotVecError',       'distinct', 'vec');
+const ReverseSubjectNotVecError        = declareSubjectError('ReverseSubjectNotVecError',        'reverse',  'vec');
+const FlatSubjectNotVecError           = declareSubjectError('FlatSubjectNotVecError',           'flat',     'vec');
 
-const TakeCountNotNumber = declareModifierError('TakeCountNotNumber', 'take', 2, 'number');
-const DropCountNotNumber = declareModifierError('DropCountNotNumber', 'drop', 2, 'number');
-const AtIndexNotInteger  = declareModifierError('AtIndexNotInteger', 'at',   2, 'integer');
+const TakeCountNotNumberError = declareModifierError('TakeCountNotNumberError', 'take', 2, 'number');
+const DropCountNotNumberError = declareModifierError('DropCountNotNumberError', 'drop', 2, 'number');
+const AtIndexNotIntegerError  = declareModifierError('AtIndexNotIntegerError', 'at',   2, 'integer');
 
-const SumElementNotNumber          = declareElementError('SumElementNotNumber',          'sum',          'number');
-const FirstNonZeroElementNotNumber = declareElementError('FirstNonZeroElementNotNumber', 'firstNonZero', 'number');
+const SumElementNotNumberError          = declareElementError('SumElementNotNumberError',          'sum',          'number');
+const FirstNonZeroElementNotNumberError = declareElementError('FirstNonZeroElementNotNumberError', 'firstNonZero', 'number');
 
-const MinElementsNotComparable    = declareComparabilityError('MinElementsNotComparable',    'min');
-const MaxElementsNotComparable    = declareComparabilityError('MaxElementsNotComparable',    'max');
-const SortNaturalNotComparable    = declareComparabilityError('SortNaturalNotComparable',    'sort');
-const SortByKeyNotComparable      = declareComparabilityError('SortByKeyNotComparable',      'sort(key)');
-const AscKeysNotComparable        = declareComparabilityError('AscKeysNotComparable',        'asc');
-const DescKeysNotComparable       = declareComparabilityError('DescKeysNotComparable',       'desc');
-const NullsFirstKeysNotComparable = declareComparabilityError('NullsFirstKeysNotComparable', 'nullsFirst');
-const NullsLastKeysNotComparable  = declareComparabilityError('NullsLastKeysNotComparable',  'nullsLast');
+const MinElementsNotComparableError    = declareComparabilityError('MinElementsNotComparableError',    'min');
+const MaxElementsNotComparableError    = declareComparabilityError('MaxElementsNotComparableError',    'max');
+const SortNaturalNotComparableError    = declareComparabilityError('SortNaturalNotComparableError',    'sort');
+const SortByKeyNotComparableError      = declareComparabilityError('SortByKeyNotComparableError',      'sort(key)');
+const AscKeysNotComparableError        = declareComparabilityError('AscKeysNotComparableError',        'asc');
+const DescKeysNotComparableError       = declareComparabilityError('DescKeysNotComparableError',       'desc');
+const NullsFirstKeysNotComparableError = declareComparabilityError('NullsFirstKeysNotComparableError', 'nullsFirst');
+const NullsLastKeysNotComparableError  = declareComparabilityError('NullsLastKeysNotComparableError',  'nullsLast');
 
-const SortWithCmpResultNotNumber = declareShapeError('SortWithCmpResultNotNumber',
+const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotNumberError',
   ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`);
-const AscPairNotMap = declareShapeError('AscPairNotMap',
+const AscPairNotMapError = declareShapeError('AscPairNotMapError',
   ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
-const DescPairNotMap = declareShapeError('DescPairNotMap',
+const DescPairNotMapError = declareShapeError('DescPairNotMapError',
   ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
-const NullsFirstPairNotMap = declareShapeError('NullsFirstPairNotMap',
+const NullsFirstPairNotMapError = declareShapeError('NullsFirstPairNotMapError',
   ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
-const NullsLastPairNotMap = declareShapeError('NullsLastPairNotMap',
+const NullsLastPairNotMapError = declareShapeError('NullsLastPairNotMapError',
   ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 
 // ── Polymorphic sizeOf for count/empty ─────────────────────────
@@ -146,10 +146,10 @@ function sizeOfContainer(container, ErrorCls) {
 // ── Vec → Scalar reducers ──────────────────────────────────────
 
 export const count = nullaryOp('count', (container) =>
-  sizeOfContainer(container, CountSubjectNotContainer));
+  sizeOfContainer(container, CountSubjectNotContainerError));
 
 export const empty = nullaryOp('empty', (container) =>
-  sizeOfContainer(container, EmptySubjectNotContainer) === 0);
+  sizeOfContainer(container, EmptySubjectNotContainerError) === 0);
 
 // vecOrSetElements(container, ErrorCls) — returns an array view of a
 // Vec-or-Set subject. Vec yields itself; Set spreads to an array. The
@@ -166,21 +166,21 @@ function vecOrSetElements(container, ErrorCls) {
 }
 
 export const first = nullaryOp('first', (vec) => {
-  if (!isVecShape(vec)) throw new FirstSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new FirstSubjectNotVecError(vec);
   return vec.length === 0 ? NULL : vec[0];
 });
 
 export const last = nullaryOp('last', (vec) => {
-  if (!isVecShape(vec)) throw new LastSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new LastSubjectNotVecError(vec);
   return vec.length === 0 ? NULL : vec[vec.length - 1];
 });
 
 export const sum = nullaryOp('sum', (container) => {
-  const items = vecOrSetElements(container, SumSubjectNotVecOrSet);
+  const items = vecOrSetElements(container, SumSubjectNotVecOrSetError);
   let total = 0;
   for (let i = 0; i < items.length; i++) {
     if (typeof items[i] !== 'number') {
-      throw new SumElementNotNumber(i, items[i]);
+      throw new SumElementNotNumberError(i, items[i]);
     }
     total += items[i];
   }
@@ -188,22 +188,22 @@ export const sum = nullaryOp('sum', (container) => {
 });
 
 export const min = nullaryOp('min', (container) => {
-  const items = vecOrSetElements(container, MinSubjectNotVecOrSet);
+  const items = vecOrSetElements(container, MinSubjectNotVecOrSetError);
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
-    checkComparable(MinElementsNotComparable, acc, items[i]);
+    checkComparable(MinElementsNotComparableError, acc, items[i]);
     if (items[i] < acc) acc = items[i];
   }
   return acc;
 });
 
 export const max = nullaryOp('max', (container) => {
-  const items = vecOrSetElements(container, MaxSubjectNotVecOrSet);
+  const items = vecOrSetElements(container, MaxSubjectNotVecOrSetError);
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
-    checkComparable(MaxElementsNotComparable, acc, items[i]);
+    checkComparable(MaxElementsNotComparableError, acc, items[i]);
     if (items[i] > acc) acc = items[i];
   }
   return acc;
@@ -250,7 +250,7 @@ function checkComparable(ErrorCls, left, right) {
 //
 // The arity check fires once per container subject (not per entry)
 // because `:params.length` is static — the dispatch rejects up front
-// rather than producing a generic ConduitArityMismatch per item.
+// rather than producing a generic ConduitArityMismatchError per item.
 function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
   const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
   if (resolved) {
@@ -284,7 +284,7 @@ function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArit
 
 export const filter = higherOrderOp('filter', 2, async (container, predLambda) => {
   if (isVecShape(container)) {
-    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
+    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
     const filterResult = [];
     for (const filterItem of container) {
       const predResult = await applyItem(filterItem);
@@ -294,7 +294,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
     return vecLikeOf(filterResult, container);
   }
   if (isQSet(container)) {
-    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
+    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
     const filterResult = new Set();
     for (const filterItem of container) {
       const predResult = await applyItem(filterItem);
@@ -304,7 +304,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
     return filterResult;
   }
   if (isMapShape(container)) {
-    const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalid, FilterMapPredArityInvalid);
+    const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
     const filterEntries = [];
     for (const [filterKey, filterValue] of mapShapeEntries(container)) {
       const predResult = await applyEntry(filterKey, filterValue);
@@ -313,12 +313,12 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
     }
     return mapLikeOf(filterEntries, container);
   }
-  throw new FilterSubjectNotContainer(container);
+  throw new FilterSubjectNotContainerError(container);
 });
 
 export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
   if (isVecShape(container) || isQSet(container)) {
-    const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalid, EveryMapPredArityInvalid);
+    const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
     for (const everyItem of container) {
       const everyResult = await applyItem(everyItem);
       if (isErrorValue(everyResult)) return everyResult;
@@ -327,7 +327,7 @@ export const every = higherOrderOp('every', 2, async (container, everyPredLambda
     return true;
   }
   if (isMapShape(container)) {
-    const applyEntry = containerPredDispatch(everyPredLambda, 'pair', EveryVecOrSetPredArityInvalid, EveryMapPredArityInvalid);
+    const applyEntry = containerPredDispatch(everyPredLambda, 'pair', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
     for (const [everyKey, everyValue] of mapShapeEntries(container)) {
       const everyResult = await applyEntry(everyKey, everyValue);
       if (isErrorValue(everyResult)) return everyResult;
@@ -335,12 +335,12 @@ export const every = higherOrderOp('every', 2, async (container, everyPredLambda
     }
     return true;
   }
-  throw new EverySubjectNotContainer(container);
+  throw new EverySubjectNotContainerError(container);
 });
 
 export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
   if (isVecShape(container) || isQSet(container)) {
-    const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalid, AnyMapPredArityInvalid);
+    const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
     for (const anyItem of container) {
       const anyResult = await applyItem(anyItem);
       if (isErrorValue(anyResult)) return anyResult;
@@ -349,7 +349,7 @@ export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
     return false;
   }
   if (isMapShape(container)) {
-    const applyEntry = containerPredDispatch(anyPredLambda, 'pair', AnyVecOrSetPredArityInvalid, AnyMapPredArityInvalid);
+    const applyEntry = containerPredDispatch(anyPredLambda, 'pair', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
     for (const [anyKey, anyValue] of mapShapeEntries(container)) {
       const anyResult = await applyEntry(anyKey, anyValue);
       if (isErrorValue(anyResult)) return anyResult;
@@ -357,18 +357,18 @@ export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
     }
     return false;
   }
-  throw new AnySubjectNotContainer(container);
+  throw new AnySubjectNotContainerError(container);
 });
 
 export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) => {
-  if (!isVecShape(vec)) throw new GroupBySubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new GroupBySubjectNotVecError(vec);
   const groupResult = new Map();
   for (let gi = 0; gi < vec.length; gi++) {
     const groupElem = vec[gi];
     const groupKey = await groupKeyLambda(groupElem);
     if (isErrorValue(groupKey)) return groupKey;
     if (!isKeyword(groupKey)) {
-      throw new GroupByKeyNotKeyword({
+      throw new GroupByKeyNotKeywordError({
         index: gi,
         actualType: typeKeyword(groupKey),
         actualValue: groupKey
@@ -381,14 +381,14 @@ export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) =
 });
 
 export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) => {
-  if (!isVecShape(vec)) throw new IndexBySubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new IndexBySubjectNotVecError(vec);
   const indexResult = new Map();
   for (let ii = 0; ii < vec.length; ii++) {
     const indexElem = vec[ii];
     const indexKey = await indexKeyLambda(indexElem);
     if (isErrorValue(indexKey)) return indexKey;
     if (!isKeyword(indexKey)) {
-      throw new IndexByKeyNotKeyword({
+      throw new IndexByKeyNotKeywordError({
         index: ii,
         actualType: typeKeyword(indexKey),
         actualValue: indexKey
@@ -401,15 +401,15 @@ export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) =
 
 export const sort = overloadedOp('sort', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new SortNaturalSubjectNotVec(vec);
+    if (!isVecShape(vec)) throw new SortNaturalSubjectNotVecError(vec);
     const sorted = [...vec].sort((a, b) => {
-      checkComparable(SortNaturalNotComparable, a, b);
+      checkComparable(SortNaturalNotComparableError, a, b);
       return compareScalars(a, b);
     });
     return vecLikeOf(sorted, vec);
   },
   1: async (vec, sortKeyLambda) => {
-    if (!isVecShape(vec)) throw new SortByKeySubjectNotVec(vec);
+    if (!isVecShape(vec)) throw new SortByKeySubjectNotVecError(vec);
     const sortEntries = await Promise.all(
       [...vec].map(async (sortElem) => ({
         sortElem,
@@ -417,7 +417,7 @@ export const sort = overloadedOp('sort', 2, {
       }))
     );
     sortEntries.sort((a, b) => {
-      checkComparable(SortByKeyNotComparable, a.sortKey, b.sortKey);
+      checkComparable(SortByKeyNotComparableError, a.sortKey, b.sortKey);
       return compareScalars(a.sortKey, b.sortKey);
     });
     return vecLikeOf(sortEntries.map(entry => entry.sortElem), vec);
@@ -431,8 +431,8 @@ function compareScalars(a, b) {
 }
 
 export const take = valueOp('take', 2, (vec, n) => {
-  if (!isVecShape(vec)) throw new TakeSubjectNotVec(vec);
-  if (typeof n !== 'number') throw new TakeCountNotNumber(n);
+  if (!isVecShape(vec)) throw new TakeSubjectNotVecError(vec);
+  if (typeof n !== 'number') throw new TakeCountNotNumberError(n);
   return vecLikeOf(vec.slice(0, n), vec);
 });
 
@@ -442,27 +442,27 @@ export const take = valueOp('take', 2, (vec, n) => {
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
 // for `at(-1)`; the two are semantically identical.
-const AtSubjectNotVecOrMap = declareSubjectError('AtSubjectNotVecOrMap', 'at', ['vec', 'map']);
-const AtKeyNotString       = declareModifierError('AtKeyNotString', 'at', 2, 'string');
+const AtSubjectNotVecOrMapError = declareSubjectError('AtSubjectNotVecOrMapError', 'at', ['vec', 'map']);
+const AtKeyNotStringError       = declareModifierError('AtKeyNotStringError', 'at', 2, 'string');
 
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVecShape(subject)) {
     if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
-      throw new AtIndexNotInteger(atKey);
+      throw new AtIndexNotIntegerError(atKey);
     }
     const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
   }
   if (isMapShape(subject)) {
-    if (typeof atKey !== 'string') throw new AtKeyNotString(atKey);
+    if (typeof atKey !== 'string') throw new AtKeyNotStringError(atKey);
     return mapShapeHas(subject, atKey) ? mapShapeGet(subject, atKey) : NULL;
   }
-  throw new AtSubjectNotVecOrMap(subject);
+  throw new AtSubjectNotVecOrMapError(subject);
 });
 
 export const drop = valueOp('drop', 2, (vec, n) => {
-  if (!isVecShape(vec)) throw new DropSubjectNotVec(vec);
-  if (typeof n !== 'number') throw new DropCountNotNumber(n);
+  if (!isVecShape(vec)) throw new DropSubjectNotVecError(vec);
+  if (typeof n !== 'number') throw new DropCountNotNumberError(n);
   return vecLikeOf(vec.slice(n), vec);
 });
 
@@ -479,7 +479,7 @@ export const drop = valueOp('drop', 2, (vec, n) => {
 // Set, and error values fall through to a structural scan over the
 // composite-seen list. Mixed input is bucketed per element.
 export const distinct = nullaryOp('distinct', (vec) => {
-  if (!isVecShape(vec)) throw new DistinctSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new DistinctSubjectNotVecError(vec);
   const seenAtoms = new Set();
   const seenKeywordNames = new Set();
   const seenComposite = [];
@@ -503,12 +503,12 @@ export const distinct = nullaryOp('distinct', (vec) => {
 });
 
 export const reverse = nullaryOp('reverse', (vec) => {
-  if (!isVecShape(vec)) throw new ReverseSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new ReverseSubjectNotVecError(vec);
   return vecLikeOf([...vec].reverse(), vec);
 });
 
 export const flat = nullaryOp('flat', (vec) => {
-  if (!isVecShape(vec)) throw new FlatSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new FlatSubjectNotVecError(vec);
   const result = [];
   for (const item of vec) {
     if (isVecShape(item)) result.push(...item);
@@ -520,7 +520,7 @@ export const flat = nullaryOp('flat', (vec) => {
 // ── sortWith and comparator builders ──────────────────────────
 
 export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
-  if (!isVecShape(vec)) throw new SortWithSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new SortWithSubjectNotVecError(vec);
   // Array.sort is synchronous; we precompute all pairwise comparisons
   // would be complex. Instead, use an async-compatible merge sort approach:
   // precompute comparison matrix or use a simple insertion sort with awaits.
@@ -538,7 +538,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
       cmpPair.set('right', sortWithCurrent);
       const cmpResult = await cmpLambda(cmpPair);
       if (typeof cmpResult !== 'number') {
-        throw new SortWithCmpResultNotNumber({
+        throw new SortWithCmpResultNotNumberError({
           actualType: typeKeyword(cmpResult),
           actualValue: cmpResult
         });
@@ -553,26 +553,26 @@ export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
 });
 
 export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
-  if (!isQMap(pair)) throw new AscPairNotMap({
+  if (!isQMap(pair)) throw new AscPairNotMapError({
     actualType: typeKeyword(pair), actualValue: pair
   });
   const ascLeft  = pair.get('left');
   const ascRight = pair.get('right');
   const ascLeftKey  = await ascKeyLambda(ascLeft);
   const ascRightKey = await ascKeyLambda(ascRight);
-  checkComparable(AscKeysNotComparable, ascLeftKey, ascRightKey);
+  checkComparable(AscKeysNotComparableError, ascLeftKey, ascRightKey);
   return compareScalars(ascLeftKey, ascRightKey);
 });
 
 export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
-  if (!isQMap(pair)) throw new DescPairNotMap({
+  if (!isQMap(pair)) throw new DescPairNotMapError({
     actualType: typeKeyword(pair), actualValue: pair
   });
   const descLeft  = pair.get('left');
   const descRight = pair.get('right');
   const descLeftKey  = await descKeyLambda(descLeft);
   const descRightKey = await descKeyLambda(descRight);
-  checkComparable(DescKeysNotComparable, descLeftKey, descRightKey);
+  checkComparable(DescKeysNotComparableError, descLeftKey, descRightKey);
   return -compareScalars(descLeftKey, descRightKey);
 });
 
@@ -592,16 +592,16 @@ async function nullsKeyComparator(pair, nullsKeyLambda, nullFirst, PairNotMapErr
 }
 
 export const nullsFirst = higherOrderOp('nullsFirst', 2, async (pair, nullsFirstKeyLambda) =>
-  await nullsKeyComparator(pair, nullsFirstKeyLambda, true, NullsFirstPairNotMap, NullsFirstKeysNotComparable));
+  await nullsKeyComparator(pair, nullsFirstKeyLambda, true, NullsFirstPairNotMapError, NullsFirstKeysNotComparableError));
 
 export const nullsLast = higherOrderOp('nullsLast', 2, async (pair, nullsLastKeyLambda) =>
-  await nullsKeyComparator(pair, nullsLastKeyLambda, false, NullsLastPairNotMap, NullsLastKeysNotComparable));
+  await nullsKeyComparator(pair, nullsLastKeyLambda, false, NullsLastPairNotMapError, NullsLastKeysNotComparableError));
 
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
-  if (!isVecShape(vec)) throw new FirstNonZeroSubjectNotVec(vec);
+  if (!isVecShape(vec)) throw new FirstNonZeroSubjectNotVecError(vec);
   for (let i = 0; i < vec.length; i++) {
     if (typeof vec[i] !== 'number') {
-      throw new FirstNonZeroElementNotNumber(i, vec[i]);
+      throw new FirstNonZeroElementNotNumberError(i, vec[i]);
     }
     if (vec[i] !== 0) return vec[i];
   }

@@ -113,11 +113,11 @@ describe('eval — Map and projection', () => {
     expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
   });
 
-  it('strict-projection: missing key raises ProjectionKeyNotInMap', async () => {
+  it('strict-projection: missing key raises ProjectionKeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('{:name "Alice"} | /age');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.descriptor.get('thrown').name).toBe('ProjectionKeyNotInMap');
+    expect(result.descriptor.get('thrown').name).toBe('ProjectionKeyNotInMapError');
     expect(result.descriptor.get('key')).toBe('age');
   });
 

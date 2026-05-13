@@ -18,7 +18,7 @@ import {
   makeConduit,
   makeErrorValue,
   isErrorValue,
-  FunctionValueLeakedToPrint
+  FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
 import {
   stateOpVariadic,
@@ -75,7 +75,7 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     // substitution does not run because the function is now the
     // pipeValue itself, not an entry of a Map being rendered.
     await expect(evalQuery('env | /count | /:qlang/impl | json'))
-      .rejects.toThrow(FunctionValueLeakedToPrint);
+      .rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 });
 
@@ -184,7 +184,7 @@ describe('dispatch variadic registration invariants', async () => {
 });
 
 describe('setops bare-form non-Vec subject errors', async () => {
-  it('union bare on non-Vec/non-Set throws UnionBareSubjectNotVec', async () => {
+  it('union bare on non-Vec/non-Set throws UnionBareSubjectNotVecError', async () => {
     expect(isErrorValue(await evalQuery('42 | union'))).toBe(true);
   });
 
@@ -192,11 +192,11 @@ describe('setops bare-form non-Vec subject errors', async () => {
     expect(isErrorValue(await evalQuery('#{:a} | union'))).toBe(true);
   });
 
-  it('minus bare on non-Vec throws MinusBareSubjectNotVec', async () => {
+  it('minus bare on non-Vec throws MinusBareSubjectNotVecError', async () => {
     expect(isErrorValue(await evalQuery('42 | minus'))).toBe(true);
   });
 
-  it('inter bare on non-Vec throws InterBareSubjectNotVec', async () => {
+  it('inter bare on non-Vec throws InterBareSubjectNotVecError', async () => {
     expect(isErrorValue(await evalQuery('42 | inter'))).toBe(true);
   });
 });
@@ -245,7 +245,7 @@ describe('vec.min and vec.max on empty Vec', async () => {
 });
 
 describe('vec.sort with key on non-Vec subject', async () => {
-  it('sort with key throws SortByKeySubjectNotVec', async () => {
+  it('sort with key throws SortByKeySubjectNotVecError', async () => {
     expect(isErrorValue(await evalQuery('42 | sort(/x)'))).toBe(true);
   });
 });
@@ -358,7 +358,7 @@ describe('valueOp arity overflow', async () => {
     // Variant-B: bare `add` returns add's descriptor for REPL
     // introspection since its minCaptured is 1. The empty-call
     // form `add()` forces actual application with zero lambdas
-    // and triggers ValueOpArityMismatch.
+    // and triggers ValueOpArityMismatchError.
     expect(isErrorValue(await evalQuery('5 | add()'))).toBe(true);
   });
 });
@@ -464,42 +464,42 @@ describe('walk.mjs — bindingNamesVisibleAt skips as() with non-Keyword first a
 
 
 describe('setops bare-form empty Vec', async () => {
-  it('minus bare on empty Vec throws MinusBareEmpty', async () => {
+  it('minus bare on empty Vec throws MinusBareEmptyError', async () => {
     expect(isErrorValue(await evalQuery('[] | minus'))).toBe(true);
   });
 
-  it('inter bare on empty Vec throws InterBareEmpty', async () => {
+  it('inter bare on empty Vec throws InterBareEmptyError', async () => {
     expect(isErrorValue(await evalQuery('[] | inter'))).toBe(true);
   });
 
-  it('union bare on empty Vec throws UnionBareEmpty', async () => {
+  it('union bare on empty Vec throws UnionBareEmptyError', async () => {
     expect(isErrorValue(await evalQuery('[] | union'))).toBe(true);
   });
 });
 
 describe('conduit effect-laundering at call site', async () => {
-  it('conduit with @-name called via clean alias triggers EffectLaunderingAtCall', async () => {
+  it('conduit with @-name called via clean alias triggers EffectLaunderingAtCallError', async () => {
     const s = await createSession();
     // Declare an @-prefixed conduit, then shadow it under a clean name
     // via use, triggering the runtime safety net in applyConduit.
     await s.evalCell(':@effFn count');
     await s.evalCell('{:clean (env | /@effFn)} | use');
     const cell = await s.evalCell('[1 2 3] | clean');
-    // EffectLaunderingAtCall produces an error value.
+    // EffectLaunderingAtCallError produces an error value.
     expect(isErrorValue(cell.result)).toBe(true);
-    expect(cell.result.originalError.name).toBe('EffectLaunderingAtCall');
+    expect(cell.result.originalError.name).toBe('EffectLaunderingAtCallError');
   });
 });
 
 describe('conduit-parameter arity error', async () => {
-  it('calling a conduit parameter with captured args throws ConduitParameterNoCapturedArgs', async () => {
+  it('calling a conduit parameter with captured args throws ConduitParameterNoCapturedArgsError', async () => {
     // Inside the body, `n` is a conduit-parameter proxy (nullary
     // function value). Calling it with captured args (n(42)) should
-    // raise ConduitParameterNoCapturedArgs with structured context.
+    // raise ConduitParameterNoCapturedArgsError with structured context.
     const result = await evalQuery(':f [:n] n(42) | 0 | f(5)');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
-    expect(e.name).toBe('ConduitParameterNoCapturedArgs');
+    expect(e.name).toBe('ConduitParameterNoCapturedArgsError');
     expect(e.context.paramName).toBe('n');
     expect(e.context.actualCount).toBe(1);
   });
@@ -518,16 +518,16 @@ describe('reify on a snapshot bound directly via session.bind', async () => {
 });
 
 describe('min/max subject type checks', async () => {
-  it('min on a non-Vec-or-Set throws MinSubjectNotVecOrSet', async () => {
+  it('min on a non-Vec-or-Set throws MinSubjectNotVecOrSetError', async () => {
     const result = await evalQuery('42 | min');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('MinSubjectNotVecOrSet');
+    expect(result.originalError.name).toBe('MinSubjectNotVecOrSetError');
   });
 
-  it('max on a non-Vec-or-Set throws MaxSubjectNotVecOrSet', async () => {
+  it('max on a non-Vec-or-Set throws MaxSubjectNotVecOrSetError', async () => {
     const result = await evalQuery('"hello" | max');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('MaxSubjectNotVecOrSet');
+    expect(result.originalError.name).toBe('MaxSubjectNotVecOrSetError');
   });
 });
 
@@ -705,7 +705,7 @@ describe('walk.mjs — qlangMapToAst with non-keyword :qlang/kind uses String() 
 
 // ── intro.mjs uncovered branches ──────────────────────────────
 
-describe('intro.mjs — UseNamespaceCollision (line 138)', async () => {
+describe('intro.mjs — UseNamespaceCollisionError (line 138)', async () => {
   it('keyword-keyed collision uses k.name in error context', async () => {
     // importUnorderedNamespaces — collision on a keyword key.
     // isKeyword(k) is true → k.name branch taken (existing coverage).
@@ -714,7 +714,7 @@ describe('intro.mjs — UseNamespaceCollision (line 138)', async () => {
     s.bind('nsB', new Map([['shared', 2]]));
     const r = await s.evalCell('use(#{:nsA, :nsB})');
     expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseNamespaceCollision');
+    expect(r.result.originalError.name).toBe('UseNamespaceCollisionError');
   });
 
   it('non-keyword-keyed collision uses String(k) fallback in error context (line 138)', async () => {
@@ -729,13 +729,13 @@ describe('intro.mjs — UseNamespaceCollision (line 138)', async () => {
   });
 });
 
-describe('intro.mjs — UseNameNotExported (line 157)', async () => {
+describe('intro.mjs — UseNameNotExportedError (line 157)', async () => {
   it('selective use(:ns, :missing) produces an error when name is absent', async () => {
     const s = await createSession();
     s.bind('myNs', new Map([['x', 99]]));
     const r = await s.evalCell('use(:myNs, :missing)');
     expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseNameNotExported');
+    expect(r.result.originalError.name).toBe('UseNameNotExportedError');
   });
 
   it('non-keyword selection uses String(name) fallback in error context (line 157)', async () => {

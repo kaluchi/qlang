@@ -194,11 +194,11 @@ describe('container-shape operands preserve JSON-tag on output', () => {
     expect(await evalQuery('::json{:k 7} | at("missing")')).toBe(null);
   });
 
-  it('projection on a JsonObject without the key raises ProjectionKeyNotInMap', async () => {
+  it('projection on a JsonObject without the key raises ProjectionKeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('::json{:k 7} | /missing');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.descriptor.get('thrown').name).toBe('ProjectionKeyNotInMap');
+    expect(result.descriptor.get('thrown').name).toBe('ProjectionKeyNotInMapError');
     expect(result.descriptor.get('key')).toBe('missing');
   });
 

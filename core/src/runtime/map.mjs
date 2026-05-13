@@ -12,20 +12,20 @@ import {
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'map');
-const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'map');
-const HasSubjectNotMapOrSet = declareSubjectError('HasSubjectNotMapOrSet', 'has',   ['map', 'set']);
-const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'keyword');
+const KeysSubjectNotMapError    = declareSubjectError('KeysSubjectNotMapError',    'keys',  'map');
+const ValsSubjectNotMapError    = declareSubjectError('ValsSubjectNotMapError',    'vals',  'map');
+const HasSubjectNotMapOrSetError = declareSubjectError('HasSubjectNotMapOrSetError', 'has',   ['map', 'set']);
+const HasKeyNotKeywordError     = declareModifierError('HasKeyNotKeywordError',    'has',   2, 'keyword');
 
 export const keys = nullaryOp('keys', (map) => {
-  if (!isMapShape(map)) throw new KeysSubjectNotMap(map);
+  if (!isMapShape(map)) throw new KeysSubjectNotMapError(map);
   const result = new Set();
   for (const [k] of mapShapeEntries(map)) result.add(keyword(k));
   return result;
 });
 
 export const vals = nullaryOp('vals', (map) => {
-  if (!isMapShape(map)) throw new ValsSubjectNotMap(map);
+  if (!isMapShape(map)) throw new ValsSubjectNotMapError(map);
   const out = [];
   for (const [, v] of mapShapeEntries(map)) out.push(v);
   return out;
@@ -33,7 +33,7 @@ export const vals = nullaryOp('vals', (map) => {
 
 export const has = valueOp('has', 2, (subject, key) => {
   if (isMapShape(subject)) {
-    if (!isKeyword(key)) throw new HasKeyNotKeyword(key);
+    if (!isKeyword(key)) throw new HasKeyNotKeywordError(key);
     return mapShapeHas(subject, key.name);
   }
   if (isQSet(subject)) {
@@ -43,7 +43,7 @@ export const has = valueOp('has', 2, (subject, key) => {
     }
     return subject.has(key);
   }
-  throw new HasSubjectNotMapOrSet(subject);
+  throw new HasSubjectNotMapOrSetError(subject);
 });
 
 // Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.

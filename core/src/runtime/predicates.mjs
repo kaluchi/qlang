@@ -24,10 +24,10 @@ import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const GtOperandsNotComparable  = declareComparabilityError('GtOperandsNotComparable',  'gt');
-const LtOperandsNotComparable  = declareComparabilityError('LtOperandsNotComparable',  'lt');
-const GteOperandsNotComparable = declareComparabilityError('GteOperandsNotComparable', 'gte');
-const LteOperandsNotComparable = declareComparabilityError('LteOperandsNotComparable', 'lte');
+const GtOperandsNotComparableError  = declareComparabilityError('GtOperandsNotComparableError',  'gt');
+const LtOperandsNotComparableError  = declareComparabilityError('LtOperandsNotComparableError',  'lt');
+const GteOperandsNotComparableError = declareComparabilityError('GteOperandsNotComparableError', 'gte');
+const LteOperandsNotComparableError = declareComparabilityError('LteOperandsNotComparableError', 'lte');
 
 function orderingCheck(ErrorCls, left, right) {
   const bothNumbers = typeof left === 'number' && typeof right === 'number';
@@ -40,22 +40,22 @@ function orderingCheck(ErrorCls, left, right) {
 export const eq = valueOp('eq', 2, (subject, value) => deepEqual(subject, value));
 
 export const gt = valueOp('gt', 2, (subject, threshold) => {
-  orderingCheck(GtOperandsNotComparable, subject, threshold);
+  orderingCheck(GtOperandsNotComparableError, subject, threshold);
   return subject > threshold;
 });
 
 export const lt = valueOp('lt', 2, (subject, threshold) => {
-  orderingCheck(LtOperandsNotComparable, subject, threshold);
+  orderingCheck(LtOperandsNotComparableError, subject, threshold);
   return subject < threshold;
 });
 
 export const gte = valueOp('gte', 2, (subject, threshold) => {
-  orderingCheck(GteOperandsNotComparable, subject, threshold);
+  orderingCheck(GteOperandsNotComparableError, subject, threshold);
   return subject >= threshold;
 });
 
 export const lte = valueOp('lte', 2, (subject, threshold) => {
-  orderingCheck(LteOperandsNotComparable, subject, threshold);
+  orderingCheck(LteOperandsNotComparableError, subject, threshold);
   return subject <= threshold;
 });
 

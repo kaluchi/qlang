@@ -444,7 +444,7 @@ finite data structures.
 **Deflection on error pipeValue.** When `pipeValue` is an error
 value, `*` appends `body`'s AST node to the error's trail and
 returns the error unchanged. No per-element fork happens. On any
-other non-Vec `pipeValue` the step raises `DistributeSubjectNotVec`.
+other non-Vec `pipeValue` the step raises `DistributeSubjectNotVecError`.
 
 ### `>>` — flatten then apply
 
@@ -459,7 +459,7 @@ through unchanged).
 **Deflection on error pipeValue.** When `pipeValue` is an error
 value, `>>` appends `nextStep`'s AST node to the error's trail and
 returns the error unchanged. No flatten happens. On any other
-non-Vec `pipeValue` the step raises `MergeSubjectNotVec`.
+non-Vec `pipeValue` the step raises `MergeSubjectNotVecError`.
 
 ## Fork
 
@@ -957,7 +957,7 @@ without any location-passing plumbing — and to the evaluation
 semantics, which are unchanged.
 
 The same `evalNode` chokepoint is also where the
-`EffectLaunderingAtCall` runtime safety net for the `@`-effect-marker
+`EffectLaunderingAtCallError` runtime safety net for the `@`-effect-marker
 invariant fires, inside the `evalOperandCall` branch immediately
 after conduit-forcing and snapshot-unwrapping. See
 [the spec's "Effect markers" section](qlang-spec.md#effect-markers)
@@ -1013,7 +1013,7 @@ pure AST-node-type dispatcher with no track awareness.
   pass-through).
 - **`*`** — `distribute(state, bodyNode)`. Deflects on error into
   the trail like `|`; on a Vec, forks per element and runs the
-  body against each; throws `DistributeSubjectNotVec` when
+  body against each; throws `DistributeSubjectNotVecError` when
   `pipeValue` is neither a Vec nor an error.
 - **`>>`** — `mergeFlat(state, nextNode)`. Deflects on error into
   the trail like `|`; on a Vec, flattens one level and invokes
@@ -1086,7 +1086,7 @@ in addition to the invariant `:trail`:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` or `:host` or `:user` |
 | `:kind` | keyword | Error category |
-| `:thrown` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumber`, `::FilterSubjectNotContainer`). The descriptor's TaggedLit head echoes the same value, so `printValue` elides this field whenever it matches the head; the field stays addressable through `!\| /thrown` projection |
+| `:thrown` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The descriptor's TaggedLit head echoes the same value, so `printValue` elides this field whenever it matches the head; the field stays addressable through `!\| /thrown` projection |
 | `:message` | string | Human-readable |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which have access to the correct `state.pipeValue` and `bodyNode`) rather than in `evalNode`'s catch, so `:fault/input` carries the actual pipeline value at the combinator, not the Pipeline-level entry state |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
@@ -1172,11 +1172,11 @@ layering boundary.
   through `PRIMITIVE_REGISTRY.resolve` at every built-in dispatch.
 
 Per-site invariant errors cover the three bind-time failure
-modes: `PrimitiveKeyNotString` (non-string handle),
-`PrimitiveKeyAlreadyBound` (duplicate registration from two
-modules claiming the same name), `PrimitiveRegistrySealed`
+modes: `PrimitiveKeyNotStringError` (non-string handle),
+`PrimitiveKeyAlreadyBoundError` (duplicate registration from two
+modules claiming the same name), `PrimitiveRegistrySealedError`
 (late registration after bootstrap closes the registry). The
-sole dispatch-time data error is `PrimitiveKeyUnbound`, which
+sole dispatch-time data error is `PrimitiveKeyUnboundError`, which
 extends `QlangError` (not `QlangInvariantError`) so a
 hand-crafted descriptor Map with a bad `:qlang/impl` handle
 lifts to an error value on the fail-track rather than crashing
@@ -1290,7 +1290,7 @@ unrecognized tagged objects.
 
 The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
 when an identifier resolves to an effectful function value but the
-lookup name is clean, the call is refused with `EffectLaunderingAtCall`.
+lookup name is clean, the call is refused with `EffectLaunderingAtCallError`.
 
 ### Public entry point — `core/src/index.mjs`
 

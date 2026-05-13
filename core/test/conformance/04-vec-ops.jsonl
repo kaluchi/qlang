@@ -26,12 +26,12 @@
 {"name":"filter-map-via-2arity-conduit-compound","query":"{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot)","expect":"{:avocado 3}"}
 {"name":"filter-map-empty","query":"{} | filter(gt(0))","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter(gt(1))","expect":"{:c 3 :b 2}"}
-{"name":"filter-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | filter(@kv) !| /thrown","expect":"::FilterVecOrSetPredArityInvalid"}
-{"name":"filter-set-2arity-pred-throws","query":"#{1 2} | :@kv [:k :v] true | filter(@kv) !| /thrown","expect":"::FilterVecOrSetPredArityInvalid"}
-{"name":"filter-vec-3arity-pred-throws","query":"[1] | :@wide [:x :y :z] true | filter(@wide) !| /thrown","expect":"::FilterVecOrSetPredArityInvalid"}
-{"name":"filter-set-3arity-pred-throws","query":"#{1} | :@wide [:x :y :z] true | filter(@wide) !| /thrown","expect":"::FilterVecOrSetPredArityInvalid"}
-{"name":"filter-map-3arity-pred-throws","query":"{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| /thrown","expect":"::FilterMapPredArityInvalid"}
-{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"type-error","expect":"::FilterSubjectNotContainer!{\n  :fault {:step ~{filter(gt(0))} :input 42}\n  :actualValue 42\n  :actualType :number\n  :expectedType [:vec :set :map]\n  :operand :filter\n  :position :subject\n  :origin :qlang/eval\n  :kind :type-error\n}"}
+{"name":"filter-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | filter(@kv) !| /thrown","expect":"::FilterVecOrSetPredArityInvalidError"}
+{"name":"filter-set-2arity-pred-throws","query":"#{1 2} | :@kv [:k :v] true | filter(@kv) !| /thrown","expect":"::FilterVecOrSetPredArityInvalidError"}
+{"name":"filter-vec-3arity-pred-throws","query":"[1] | :@wide [:x :y :z] true | filter(@wide) !| /thrown","expect":"::FilterVecOrSetPredArityInvalidError"}
+{"name":"filter-set-3arity-pred-throws","query":"#{1} | :@wide [:x :y :z] true | filter(@wide) !| /thrown","expect":"::FilterVecOrSetPredArityInvalidError"}
+{"name":"filter-map-3arity-pred-throws","query":"{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| /thrown","expect":"::FilterMapPredArityInvalidError"}
+{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"type-error","expect":"::FilterSubjectNotContainerError!{\n  :fault {:step ~{filter(gt(0))} :input 42}\n  :actualValue 42\n  :actualType :number\n  :expectedType [:vec :set :map]\n  :operand :filter\n  :position :subject\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort(/age)","expect":"[{:age 20} {:age 25} {:age 30}]"}

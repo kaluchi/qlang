@@ -31,12 +31,12 @@ describe('use(Vec) imports in order', () => {
 // ── use(Set) collision ──────────────────────────────────────────
 
 describe('use(Set) detects collision', () => {
-  it('throws UseNamespaceCollision when two namespaces export the same name', async () => {
+  it('throws UseNamespaceCollisionError when two namespaces export the same name', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('nsA', new Map([['x', 1]]));
     sessionInstance.bind('nsB', new Map([['x', 2]]));
     const cellEntry = await sessionInstance.evalCell('use(#{:nsA :nsB}) !| /thrown');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceCollision'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceCollisionError'));
   });
 });
 
@@ -50,52 +50,52 @@ describe('use(:ns, filter) selective import', () => {
     expect(cellEntry.result).toBe(10);
   });
 
-  it('rejects missing export → UseNameNotExported', async () => {
+  it('rejects missing export → UseNameNotExportedError', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('myNs', new Map([['foo', 10]]));
     const cellEntry = await sessionInstance.evalCell('use(:myNs, [:missing]) !| /thrown');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNameNotExported'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNameNotExportedError'));
   });
 });
 
 // ── use(:missing) ───────────────────────────────────────────────
 
-describe('use(:missing) → UseNamespaceNotFound', () => {
-  it('produces UseNamespaceNotFound when namespace not in env', async () => {
+describe('use(:missing) → UseNamespaceNotFoundError', () => {
+  it('produces UseNamespaceNotFoundError when namespace not in env', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('use(:missing) !| /thrown');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFound'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 });
 
 // ── use(:ns) where ns is not Map ────────────────────────────────
 
-describe('use(:ns) where ns is not Map → UseNamespaceNotMap', () => {
-  it('produces UseNamespaceNotMap when namespace bound to non-Map value', async () => {
+describe('use(:ns) where ns is not Map → UseNamespaceNotMapError', () => {
+  it('produces UseNamespaceNotMapError when namespace bound to non-Map value', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('notMap', 42);
     const cellEntry = await sessionInstance.evalCell('use(:notMap) !| /thrown');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotMap'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotMapError'));
   });
 });
 
 // ── use(non-keyword) ────────────────────────────────────────────
 
 describe('use(non-keyword) → type-error', () => {
-  it('produces UseNamespaceNotKeyword error for numeric argument', async () => {
+  it('produces UseNamespaceNotKeywordError error for numeric argument', async () => {
     const evalResult = await evalQuery('use(42) !| /thrown');
-    expect(evalResult).toEqual(makeTagKeyword('UseNamespaceNotKeyword'));
+    expect(evalResult).toEqual(makeTagKeyword('UseNamespaceNotKeywordError'));
   });
 });
 
 // ── use Vec with non-keyword element ────────────────────────────
 
-describe('use Vec with non-keyword element → UseNamespaceElementNotKeyword', () => {
-  it('produces UseNamespaceElementNotKeyword for non-keyword in Vec', async () => {
+describe('use Vec with non-keyword element → UseNamespaceElementNotKeywordError', () => {
+  it('produces UseNamespaceElementNotKeywordError for non-keyword in Vec', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('ns1', new Map([['a', 1]]));
     const cellEntry = await sessionInstance.evalCell('use([:ns1 42]) !| /thrown');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceElementNotKeyword'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceElementNotKeywordError'));
   });
 });
 
@@ -110,9 +110,9 @@ describe('use Set without collision succeeds', () => {
 });
 
 describe('use arity-2 with non-keyword namespace', () => {
-  it('produces UseNamespaceNotKeyword', async () => {
+  it('produces UseNamespaceNotKeywordError', async () => {
     const evalResult = await evalQuery('use(42, #{:x}) !| /thrown');
-    expect(evalResult.name).toBe('UseNamespaceNotKeyword');
+    expect(evalResult.name).toBe('UseNamespaceNotKeywordError');
   });
 });
 
@@ -128,78 +128,78 @@ describe('use selective with Vec filter', () => {
 import { QlangTypeError, ArityError } from '../../src/errors.mjs';
 
 describe('per-site error triple-assertions', () => {
-  it('UseNamespaceNotFound: name, instanceof, context', async () => {
+  it('UseNamespaceNotFoundError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('use(:nonexistent)');
     const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNamespaceNotFound');
+    expect(originalErr.name).toBe('UseNamespaceNotFoundError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.context.namespaceName).toBe('nonexistent');
   });
 
-  it('UseNamespaceNotMap: name, instanceof, context', async () => {
+  it('UseNamespaceNotMapError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('notamap', 42);
     const cellEntry = await sessionInstance.evalCell('use(:notamap)');
     const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNamespaceNotMap');
+    expect(originalErr.name).toBe('UseNamespaceNotMapError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.context.namespaceName).toBe('notamap');
     expect(originalErr.context.actualType.name).toBe('number');
   });
 
-  it('UseNamespaceCollision: name, instanceof, context', async () => {
+  it('UseNamespaceCollisionError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('a', new Map([['x', 1]]));
     sessionInstance.bind('b', new Map([['x', 2]]));
     const cellEntry = await sessionInstance.evalCell('use(#{:a :b})');
     const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNamespaceCollision');
+    expect(originalErr.name).toBe('UseNamespaceCollisionError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.context.collidingName).toBe('x');
   });
 
-  it('UseNameNotExported: name, instanceof, context', async () => {
+  it('UseNameNotExportedError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('lib', new Map([['x', 1]]));
     const cellEntry = await sessionInstance.evalCell('use(:lib, #{:z})');
     const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNameNotExported');
+    expect(originalErr.name).toBe('UseNameNotExportedError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.context.namespaceName).toBe('lib');
     expect(originalErr.context.exportName).toBe('z');
   });
 
-  it('UseNamespaceElementNotKeyword: name, instanceof, context', async () => {
+  it('UseNamespaceElementNotKeywordError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('ns', new Map([['x', 1]]));
     const cellEntry = await sessionInstance.evalCell('use([:ns 42])');
     const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNamespaceElementNotKeyword');
+    expect(originalErr.name).toBe('UseNamespaceElementNotKeywordError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
-  it('UseNamespaceNotKeyword: name, instanceof, context', async () => {
+  it('UseNamespaceNotKeywordError: name, instanceof, context', async () => {
     const evalResult = await evalQuery('use(42, #{:x})');
     const originalErr = evalResult.originalError;
-    expect(originalErr.name).toBe('UseNamespaceNotKeyword');
+    expect(originalErr.name).toBe('UseNamespaceNotKeywordError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
-  it('ErrorDescriptorNotMap: name, instanceof', async () => {
+  it('ErrorDescriptorNotMapError: name, instanceof', async () => {
     const evalResult = await evalQuery('42 | error');
     const originalErr = evalResult.originalError;
-    expect(originalErr.name).toBe('ErrorDescriptorNotMap');
+    expect(originalErr.name).toBe('ErrorDescriptorNotMapError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
-  it('NullaryOpArgsProvided on isError(1): name, instanceof, context', async () => {
+  it('NullaryOpArgsProvidedError on isError(1): name, instanceof, context', async () => {
     // isError is registered via nullaryOp; the dispatch-layer arity
-    // error class is NullaryOpArgsProvided, shared by every nullary
+    // error class is NullaryOpArgsProvidedError, shared by every nullary
     // operand that the caller incorrectly passes captured args to.
     const evalResult = await evalQuery('42 | isError(1)');
     const originalErr = evalResult.originalError;
-    expect(originalErr.name).toBe('NullaryOpArgsProvided');
+    expect(originalErr.name).toBe('NullaryOpArgsProvidedError');
     expect(originalErr).toBeInstanceOf(ArityError);
     expect(originalErr.context.operandName).toBe('isError');
     expect(originalErr.context.actualArity).toBe(1);

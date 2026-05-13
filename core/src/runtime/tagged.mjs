@@ -16,24 +16,24 @@ import {
 import { parse } from '../parse.mjs';
 import { declareSubjectError, declareShapeError, declareArityError } from '../operand-errors.mjs';
 
-const ConduitPayloadNotVec = declareSubjectError('ConduitPayloadNotVec', '::conduit', 'vec');
-const ConduitArityInvalid = declareArityError('ConduitArityInvalid',
+const ConduitPayloadNotVecError = declareSubjectError('ConduitPayloadNotVecError', '::conduit', 'vec');
+const ConduitArityInvalidError = declareArityError('ConduitArityInvalidError',
   ({ actualCount }) => `::conduit payload must be a Vec of 2 ([params, body]) or 3 ([self, params, body]) elements, got ${actualCount}`);
-const ConduitSelfNameNotKeyword = declareShapeError('ConduitSelfNameNotKeyword',
+const ConduitSelfNameNotKeywordError = declareShapeError('ConduitSelfNameNotKeywordError',
   ({ actualType }) => `::conduit self-name must be a Keyword, got ${actualType.name}`);
-const ConduitParamsNotVec = declareShapeError('ConduitParamsNotVec',
+const ConduitParamsNotVecError = declareShapeError('ConduitParamsNotVecError',
   ({ actualType }) => `::conduit params must be a Vec of Keywords, got ${actualType.name}`);
-const ConduitParamNotKeyword = declareShapeError('ConduitParamNotKeyword',
+const ConduitParamNotKeywordError = declareShapeError('ConduitParamNotKeywordError',
   ({ index, actualType }) => `::conduit params[${index}] must be a Keyword, got ${actualType.name}`);
-const ConduitBodyNotQuote = declareShapeError('ConduitBodyNotQuote',
+const ConduitBodyNotQuoteError = declareShapeError('ConduitBodyNotQuoteError',
   ({ actualType }) => `::conduit body must be a Quote-value, got ${actualType.name}`);
 
 // `::conduit[[:p1 :p2] \`body-source\`]` — non-recursive
 // `::conduit[:self [:p1 :p2] \`body-source\`]` — with self-name for recursion
 async function conduitConstructor(payload, state) {
-  if (!isVec(payload)) throw new ConduitPayloadNotVec(payload);
+  if (!isVec(payload)) throw new ConduitPayloadNotVecError(payload);
   if (payload.length !== 2 && payload.length !== 3) {
-    throw new ConduitArityInvalid({ actualCount: payload.length });
+    throw new ConduitArityInvalidError({ actualCount: payload.length });
   }
   let selfName = null;
   let params;
@@ -43,22 +43,22 @@ async function conduitConstructor(payload, state) {
     params = payload[1];
     body = payload[2];
     if (!isKeyword(selfName)) {
-      throw new ConduitSelfNameNotKeyword({ actualType: typeKeyword(selfName), actualValue: selfName });
+      throw new ConduitSelfNameNotKeywordError({ actualType: typeKeyword(selfName), actualValue: selfName });
     }
   } else {
     params = payload[0];
     body = payload[1];
   }
   if (!isVec(params)) {
-    throw new ConduitParamsNotVec({ actualType: typeKeyword(params), actualValue: params });
+    throw new ConduitParamsNotVecError({ actualType: typeKeyword(params), actualValue: params });
   }
   for (let i = 0; i < params.length; i++) {
     if (!isKeyword(params[i])) {
-      throw new ConduitParamNotKeyword({ index: i, actualType: typeKeyword(params[i]), actualValue: params[i] });
+      throw new ConduitParamNotKeywordError({ index: i, actualType: typeKeyword(params[i]), actualValue: params[i] });
     }
   }
   if (!isQuote(body)) {
-    throw new ConduitBodyNotQuote({ actualType: typeKeyword(body), actualValue: body });
+    throw new ConduitBodyNotQuoteError({ actualType: typeKeyword(body), actualValue: body });
   }
   const bodyAst = body.ast ?? parse(body.source, { uri: '::conduit/body' });
   return makeConduit(bodyAst, {

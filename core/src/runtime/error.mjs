@@ -30,8 +30,8 @@ import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const ErrorDescriptorNotMap = declareSubjectError(
-  'ErrorDescriptorNotMap', 'error', 'map');
+const ErrorDescriptorNotMapError = declareSubjectError(
+  'ErrorDescriptorNotMapError', 'error', 'map');
 
 // error — lift a Map into an error value.
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;
@@ -42,7 +42,7 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
     ? state.pipeValue
     : await errorLambdas[0](state.pipeValue);
   if (!isQMap(errorDescriptor)) {
-    throw new ErrorDescriptorNotMap(errorDescriptor);
+    throw new ErrorDescriptorNotMapError(errorDescriptor);
   }
   return withPipeValue(state, makeErrorValue(errorDescriptor));
 }, { captured: [0, 1] });

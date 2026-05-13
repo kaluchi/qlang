@@ -109,18 +109,18 @@ describe('filter — container polymorphism', () => {
     expect(count).toBe(2);
   });
 
-  it('Map with effectful 2-arity conduit reached via clean name → EffectLaunderingAtCall', async () => {
+  it('Map with effectful 2-arity conduit reached via clean name → EffectLaunderingAtCallError', async () => {
     // An @-named (effectful) conduit extracted through env projection and
     // snapshotted under a clean name is then referenced inside filter.
     // invokeConduitWithFixedArgs must refuse the clean-name invocation
-    // with EffectLaunderingAtCall — the same safety net applyConduit
+    // with EffectLaunderingAtCallError — the same safety net applyConduit
     // enforces for ordinary conduit calls.
     const errorValue = await evalQuery(
       ':@hot [:k :v] (v | gt(0)) '
       + '| env | /@hot | as(:clean) '
       + '| {:a 1 :b 2} | filter(clean) !| /thrown'
     );
-    expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCall'));
+    expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCallError'));
   });
 
   it('Map empty subject — returns empty Map for 0-arity pred', async () => {
@@ -143,10 +143,10 @@ describe('filter — container polymorphism', () => {
     expect(orderedKeys).toEqual(['c', 'b']);
   });
 
-  it('non-container subject lifts to FilterSubjectNotContainer on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | filter(gt(0))', 'FilterSubjectNotContainer');
+  it('non-container subject lifts to FilterSubjectNotContainerError on fail-track', async () => {
+    const errorValue = await expectErrorThrown('42 | filter(gt(0))', 'FilterSubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('FilterSubjectNotContainer');
+    expect(originalErr.name).toBe('FilterSubjectNotContainerError');
     expect(originalErr.context.operand).toBe('filter');
     expect(originalErr.context.position).toBe('subject');
     expect(originalErr.context.expectedType.map(k => k.name)).toEqual(['vec', 'set', 'map']);
@@ -177,42 +177,42 @@ describe('filter — container polymorphism', () => {
     expect(mapResult.get('c')).toBe(3);
   });
 
-  it('Vec with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
+  it('Vec with 2-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '[1 2] | :@kv [:k :v] true | filter(@kv)',
-      'FilterVecOrSetPredArityInvalid'
+      'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.name).toBe('FilterVecOrSetPredArityInvalid');
+    expect(originalErr.name).toBe('FilterVecOrSetPredArityInvalidError');
     expect(originalErr.context.conduitName).toBe('@kv');
     expect(originalErr.context.actualArity).toBe(2);
   });
 
-  it('Set with 2-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
+  it('Set with 2-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '#{1 2} | :@kv [:k :v] true | filter(@kv)',
-      'FilterVecOrSetPredArityInvalid'
+      'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
     expect(originalErr.context.actualArity).toBe(2);
   });
 
-  it('Vec with 3-arity conduit — FilterVecOrSetPredArityInvalid', async () => {
+  it('Vec with 3-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '[1 2] | :@tooWide [:x :y :z] true | filter(@tooWide)',
-      'FilterVecOrSetPredArityInvalid'
+      'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
     expect(originalErr.context.actualArity).toBe(3);
   });
 
-  it('Map with 3-arity conduit — FilterMapPredArityInvalid', async () => {
+  it('Map with 3-arity conduit — FilterMapPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '{:a 1} | :@tooWide [:x :y :z] true | filter(@tooWide)',
-      'FilterMapPredArityInvalid'
+      'FilterMapPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.name).toBe('FilterMapPredArityInvalid');
+    expect(originalErr.name).toBe('FilterMapPredArityInvalidError');
     expect(originalErr.context.conduitName).toBe('@tooWide');
     expect(originalErr.context.actualArity).toBe(3);
   });
@@ -261,10 +261,10 @@ describe('every — container polymorphism', () => {
     expect(await evalQuery('{} | every(gt(0))')).toBe(true);
   });
 
-  it('non-container subject lifts to EverySubjectNotContainer on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | every(gt(0))', 'EverySubjectNotContainer');
+  it('non-container subject lifts to EverySubjectNotContainerError on fail-track', async () => {
+    const errorValue = await expectErrorThrown('42 | every(gt(0))', 'EverySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('EverySubjectNotContainer');
+    expect(originalErr.name).toBe('EverySubjectNotContainerError');
     expect(originalErr.context.operand).toBe('every');
     expect(originalErr.context.expectedType.map(k => k.name)).toEqual(['vec', 'set', 'map']);
   });
@@ -293,28 +293,28 @@ describe('every — container polymorphism', () => {
     )).toBe(false);
   });
 
-  it('Vec with 2-arity conduit — EveryVecOrSetPredArityInvalid', async () => {
+  it('Vec with 2-arity conduit — EveryVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '[1 2] | :@kv [:k :v] true | every(@kv)',
-      'EveryVecOrSetPredArityInvalid'
+      'EveryVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
     expect(originalErr.context.actualArity).toBe(2);
   });
 
-  it('Set with 2-arity conduit — EveryVecOrSetPredArityInvalid', async () => {
+  it('Set with 2-arity conduit — EveryVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '#{1 2} | :@kv [:k :v] true | every(@kv)',
-      'EveryVecOrSetPredArityInvalid'
+      'EveryVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
     expect(originalErr.context.actualArity).toBe(2);
   });
 
-  it('Map with 3-arity conduit — EveryMapPredArityInvalid', async () => {
+  it('Map with 3-arity conduit — EveryMapPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide)',
-      'EveryMapPredArityInvalid'
+      'EveryMapPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
     expect(originalErr.context.conduitName).toBe('@tooWide');
@@ -351,17 +351,17 @@ describe('any — container polymorphism', () => {
     expect(await evalQuery('{} | any(gt(0))')).toBe(false);
   });
 
-  it('non-container subject lifts to AnySubjectNotContainer on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | any(gt(0))', 'AnySubjectNotContainer');
+  it('non-container subject lifts to AnySubjectNotContainerError on fail-track', async () => {
+    const errorValue = await expectErrorThrown('42 | any(gt(0))', 'AnySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('AnySubjectNotContainer');
+    expect(originalErr.name).toBe('AnySubjectNotContainerError');
     expect(originalErr.context.operand).toBe('any');
   });
 
-  it('Map with 3-arity conduit — AnyMapPredArityInvalid', async () => {
+  it('Map with 3-arity conduit — AnyMapPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
       '{:a 1} | :@tooWide [:x :y :z] true | any(@tooWide)',
-      'AnyMapPredArityInvalid'
+      'AnyMapPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
     expect(originalErr.context.conduitName).toBe('@tooWide');
@@ -430,7 +430,7 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
     expect(await evalQuery('null | isNull')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
-    // key now errors (::ProjectionKeyNotInMap) instead of silently
+    // key now errors (::ProjectionKeyNotInMapError) instead of silently
     // returning null.
     expect(await evalQuery('{:nothing null} | /nothing | isNull')).toBe(true);
     expect(await evalQuery('0 | isNull')).toBe(false);

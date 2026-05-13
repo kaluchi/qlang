@@ -163,7 +163,7 @@ describe('runtime error location propagation via evalNode', () => {
 
   it('per-site fingerprint is set on type errors thrown by operands', async () => {
     const originalErr = await getOriginalError('42 | filter(gt(0))');
-    expect(originalErr.fingerprint).toBe('FilterSubjectNotContainer');
+    expect(originalErr.fingerprint).toBe('FilterSubjectNotContainerError');
   });
 });
 
@@ -176,9 +176,9 @@ describe('error class branding survives Object.defineProperty (minification prox
   it('class.name set by brand() persists across reassignment', async () => {
     const evalResult = await evalQuery('42 | count');
     const originalErr = isErrorValue(evalResult) ? evalResult.originalError : null;
-    expect(originalErr.name).toBe('CountSubjectNotContainer');
+    expect(originalErr.name).toBe('CountSubjectNotContainerError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('CountSubjectNotContainer');
+    expect(originalErr.constructor.name).toBe('CountSubjectNotContainerError');
   });
 });

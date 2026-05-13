@@ -23,7 +23,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
     // Host-installed bindings (via `session.bind`, or any binding
     // landed in env without an attached AST) carry no BindStep to
     // walk. runExamples gracefully returns an empty Vec rather
-    // than throwing AxisBindingNotFound.
+    // than throwing AxisBindingNotFoundError.
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
     const cellEntry = await sessionInstance.evalCell(':hostInjected | runExamples');

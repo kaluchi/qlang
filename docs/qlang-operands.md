@@ -72,7 +72,7 @@ part of the doc surface, not implementation lore.
   count).
 - **Examples**: `[1 2 3 4 5] | count` → `5`; `#{:a :b :c} | count` →
   `3`; `{:x 1 :y 2} | count` → `2`; `[] | count` → `0`.
-- **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainer`.
+- **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainerError`.
 
 ### `empty`
 
@@ -82,7 +82,7 @@ part of the doc surface, not implementation lore.
   otherwise.
 - **Examples**: `[] | empty` → `true`; `#{} | empty` → `true`;
   `{} | empty` → `true`; `[1] | empty` → `false`.
-- **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainer`.
+- **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainerError`.
 
 ## Vec-or-Set reducers — `(Vec / Set) → Scalar`
 
@@ -95,8 +95,8 @@ part of the doc surface, not implementation lore.
   `0`. Every element must be a number.
 - **Examples**: `[1 2 3 4] | sum` → `10`; `#{1 2 3} | sum` → `6`;
   `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
-- **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSet`;
-  element not a number → `SumElementNotNumber`.
+- **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
+  element not a number → `SumElementNotNumberError`.
 
 ### `min`, `max`
 
@@ -105,9 +105,9 @@ part of the doc surface, not implementation lore.
 - Returns the minimum (or maximum) element under the natural
   ordering. Empty container yields `null`.
 - **Examples**: `[3 1 4 1 5] | min` → `1`; `#{3 1 4} | max` → `4`.
-- **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSet` /
-  `MaxSubjectNotVecOrSet`; elements not comparable →
-  `MinElementsNotComparable` / `MaxElementsNotComparable`.
+- **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSetError` /
+  `MaxSubjectNotVecOrSetError`; elements not comparable →
+  `MinElementsNotComparableError` / `MaxElementsNotComparableError`.
 
 ## Vec reducers — `Vec → Any`
 
@@ -120,14 +120,14 @@ well-defined element ordering live in this section.
 - **Arity** 1. **Subject** `vec`.
 - Returns the first element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | first` → `10`; `[] | first` → `null`.
-- **Errors**: subject not a Vec → `FirstSubjectNotVec`.
+- **Errors**: subject not a Vec → `FirstSubjectNotVecError`.
 
 ### `last`
 
 - **Arity** 1. **Subject** `vec`.
 - Returns the last element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | last` → `30`; `[] | last` → `null`.
-- **Errors**: subject not a Vec → `LastSubjectNotVec`.
+- **Errors**: subject not a Vec → `LastSubjectNotVecError`.
 
 ### `at(n)`
 
@@ -141,9 +141,9 @@ well-defined element ordering live in this section.
   when the key is known statically.
 - **Example**: `[10 20 30] | at(1)` → `20`; `[10 20 30] | at(-1)` →
   `30`; `{:x 1 :y 2} | at("x")` → `1`; `{:x 1} | at("z")` → `null`.
-- **Errors**: non-Vec-or-Map subject → `AtSubjectNotVecOrMap`;
-  non-integer index on Vec → `AtIndexNotInteger`; non-string key on
-  Map → `AtKeyNotString`.
+- **Errors**: non-Vec-or-Map subject → `AtSubjectNotVecOrMapError`;
+  non-integer index on Vec → `AtIndexNotIntegerError`; non-string key on
+  Map → `AtKeyNotStringError`.
 - **See also**: bare-form projection `/n` on a Vec (e.g.
   `/items/0/name`) — same indexed-access semantics without the
   operand-call wrapper, polymorphic over Map (keyword lookup) and
@@ -169,7 +169,7 @@ offers to fill:
   sees **`(key, value)`** as two captured-arg bindings and can
   correlate the two axes freely. On Vec or Set there is no second
   axis to fill; 2+ params raise per-operand
-  `Filter/Every/AnyVecOrSetPredArityInvalid`.
+  `Filter/Every/AnyVecOrSetPredArityInvalidError`.
 - **3+-arity conduit** — per-operand arity-invalid class on both
   Vec/Set and Map (`*VecOrSetPredArityInvalid` /
   `*MapPredArityInvalid`). The language does not pair-encode keys
@@ -205,10 +205,10 @@ m
   - `{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
   - `{} | filter(gt(0))` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainer`. Predicate conduit with 2+ params on
+  `FilterSubjectNotContainerError`. Predicate conduit with 2+ params on
   Vec or Set (only one axis available) →
-  `FilterVecOrSetPredArityInvalid`. Predicate conduit with 3+
-  params on Map → `FilterMapPredArityInvalid`.
+  `FilterVecOrSetPredArityInvalidError`. Predicate conduit with 3+
+  params on Map → `FilterMapPredArityInvalidError`.
 
 ### `every(pred)`
 
@@ -229,10 +229,10 @@ m
   - `#{2 4 6} | every(gt(0))` → `true`.
   - `{:a 1 :b 2 :c 3} | every(gt(0))` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every(gt(0))` → `false`.
-- **Errors**: subject not a container → `EverySubjectNotContainer`.
+- **Errors**: subject not a container → `EverySubjectNotContainerError`.
   Predicate conduit with 2+ params on Vec/Set →
-  `EveryVecOrSetPredArityInvalid`. Predicate conduit with 3+
-  params on Map → `EveryMapPredArityInvalid`.
+  `EveryVecOrSetPredArityInvalidError`. Predicate conduit with 3+
+  params on Map → `EveryMapPredArityInvalidError`.
 
 ### `any(pred)`
 
@@ -250,10 +250,10 @@ m
   - `#{1 2 3} | any(gt(2))` → `true`.
   - `{:a -1 :b 0 :c 2} | any(gt(0))` → `true` — 0-arity, value axis.
   - `{:apple 1 :banana 2} | :@isApple [:k :v] (k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
-- **Errors**: subject not a container → `AnySubjectNotContainer`.
+- **Errors**: subject not a container → `AnySubjectNotContainerError`.
   Predicate conduit with 2+ params on Vec/Set →
-  `AnyVecOrSetPredArityInvalid`. Predicate conduit with 3+ params
-  on Map → `AnyMapPredArityInvalid`.
+  `AnyVecOrSetPredArityInvalidError`. Predicate conduit with 3+ params
+  on Map → `AnyMapPredArityInvalidError`.
 
 ## Vec transformers — `Vec → Vec` / `Vec → Map`
 
@@ -344,7 +344,7 @@ m
 - Ascending comparator that places null-keyed elements before all
   non-null elements. Non-null keys are sorted in ascending order.
   Use inside `sortWith` to handle data with missing values without
-  tripping `AscKeysNotComparable`.
+  tripping `AscKeysNotComparableError`.
 - **Examples**:
   - `sortWith(nullsFirst(/age))` → null ages before all others.
   - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a`
@@ -358,7 +358,7 @@ m
 - Ascending comparator that places null-keyed elements after all
   non-null elements. Non-null keys are sorted in ascending order.
   Use inside `sortWith` to handle data with missing values without
-  tripping `AscKeysNotComparable`.
+  tripping `AscKeysNotComparableError`.
 - **Examples**:
   - `sortWith(nullsLast(/age))` → null ages after all others.
   - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a`
@@ -720,7 +720,7 @@ shape, and vice versa.
   - `"foo bar" | keyword` → `:"foo bar"`.
   - `"foo" | keyword | keyword` → `"foo"` (round-trip).
 - **Errors**: non-String-or-Keyword subject →
-  `KeywordSubjectNotStringOrKeyword`.
+  `KeywordSubjectNotStringOrKeywordError`.
 
 ## Formatting
 
@@ -819,7 +819,7 @@ shape, and vice versa.
   - `config | coalesce(/userOverride, /projectDefault, /globalDefault)`
     → cascading defaults.
   - `lookup | coalesce(/cached, /computed)` → prefer cache.
-- **Errors**: zero captured args → `CoalesceNoAlternatives`.
+- **Errors**: zero captured args → `CoalesceNoAlternativesError`.
 
 ### `firstTruthy(...alts)`
 
@@ -842,7 +842,7 @@ shape, and vice versa.
     → first non-empty name with default fallback.
   - `flag | firstTruthy(/userValue, /default, false)` → ignore
     explicit `false` user values, fall back to default.
-- **Errors**: zero captured args → `FirstTruthyNoAlternatives`.
+- **Errors**: zero captured args → `FirstTruthyNoAlternativesError`.
 
 **Choosing between `coalesce` and `firstTruthy`:** use `coalesce`
 for config cascading where `false` is a meaningful explicit
@@ -863,7 +863,7 @@ display defaults where `false` is a sentinel meaning "no value".
 - **Examples**:
   - `score | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F")`.
   - `value | cond(eq(0), "zero", eq(1), "one", "many")`.
-- **Errors**: fewer than 2 captured args → `CondNoBranches`.
+- **Errors**: fewer than 2 captured args → `CondNoBranchesError`.
 
 ## Reflective built-ins
 
@@ -942,7 +942,7 @@ depends on the value's provenance. Four descriptor kinds:
    :returns  :number
    :captured [0 0]
    :docs     ["Returns the number of elements. Polymorphic over Vec, Set, and Map.\n\n    ::assertion[`[1 2 3] | count` `3`]\n    ::assertion[`#{:a :b} | count` `2`]"]
-   :throws   [:CountSubjectNotContainer]
+   :throws   [:CountSubjectNotContainerError]
    :effectful false}
   ```
   Examples ride inside the `:docs` strings as
@@ -1087,7 +1087,7 @@ missing). This is the introspection-by-name path:
   `::wrap {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
   → `"[x]"`.
 - **Errors**: clean binding name carrying an effectful body →
-  `EffectLaunderingAtBindStepParse` (the only runtime throw inside
+  `EffectLaunderingAtBindStepParseError` (the only runtime throw inside
   `evalBindStep`). Name shape, params shape, body presence, and
   doc-prefix arity are all guaranteed by the grammar — no
   runtime check needed.
@@ -1103,7 +1103,7 @@ missing). This is the introspection-by-name path:
 - **Examples**:
   - `42 | as(:answer) | answer` → `42`.
   - `[1 2 3] | as(:nums) | nums | count` → `3`.
-- **Errors**: name not a keyword → `AsNameNotKeyword`.
+- **Errors**: name not a keyword → `AsNameNotKeywordError`.
 
 ### `parse`
 
@@ -1178,7 +1178,7 @@ compose naturally with `!|` and with every Map-oriented operand.
   and `>>` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
 - **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
-- **Errors**: subject not a Map → `ErrorDescriptorNotMap`.
+- **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
 ### `isError`
 
@@ -1207,9 +1207,9 @@ Filtering to a specific kind of error via leading fail-apply in
 the predicate:
 
 ```qlang
-> [1 "x" 3] * add(10) | filter(!| /thrown | eq(::AddLeftNotNumber))
+> [1 "x" 3] * add(10) | filter(!| /thrown | eq(::AddLeftNotNumberError))
 [
-  ::AddLeftNotNumber!{
+  ::AddLeftNotNumberError!{
     :fault {:step ~{add(10)} :input "x"}
     :actualValue "x"
     :actualType :string

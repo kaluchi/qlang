@@ -17,11 +17,11 @@ import { isTruthy, isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareArityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const CoalesceNoAlternatives = declareArityError('CoalesceNoAlternatives',
+const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline');
-const FirstTruthyNoAlternatives = declareArityError('FirstTruthyNoAlternatives',
+const FirstTruthyNoAlternativesError = declareArityError('FirstTruthyNoAlternativesError',
   () => 'firstTruthy requires at least one alternative sub-pipeline');
-const CondNoBranches = declareArityError('CondNoBranches',
+const CondNoBranchesError = declareArityError('CondNoBranchesError',
   () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default');
 
 export const ifOp = higherOrderOp('if', 4,
@@ -58,7 +58,7 @@ export const unless = higherOrderOp('unless', 3,
 export const coalesce = higherOrderOpVariadic('coalesce', 16,
   async (coalesceSubject, ...coalesceLambdas) => {
     if (coalesceLambdas.length === 0) {
-      throw new CoalesceNoAlternatives();
+      throw new CoalesceNoAlternativesError();
     }
     for (const coalesceAlt of coalesceLambdas) {
       const coalesceVal = await coalesceAlt(coalesceSubject);
@@ -71,7 +71,7 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
 export const cond = higherOrderOpVariadic('cond', 16,
   async (condSubject, ...condLambdas) => {
     if (condLambdas.length < 2) {
-      throw new CondNoBranches();
+      throw new CondNoBranchesError();
     }
     let condIdx = 0;
     while (condIdx + 1 < condLambdas.length) {
@@ -94,7 +94,7 @@ export const cond = higherOrderOpVariadic('cond', 16,
 export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
   async (firstTruthySubject, ...firstTruthyLambdas) => {
     if (firstTruthyLambdas.length === 0) {
-      throw new FirstTruthyNoAlternatives();
+      throw new FirstTruthyNoAlternativesError();
     }
     for (const truthyAlt of firstTruthyLambdas) {
       const truthyVal = await truthyAlt(firstTruthySubject);

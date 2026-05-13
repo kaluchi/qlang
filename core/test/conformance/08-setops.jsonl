@@ -13,6 +13,6 @@
 {"name":"bare-minus-sets","query":"[#{:a :b :c} #{:b :d}] | minus","expect":"#{:a :c}"}
 {"name":"bare-inter-sets","query":"[#{:a :b :c} #{:b :d}] | inter","expect":"#{:b}"}
 {"name":"bare-union-maps","query":"[{:name \"Alice\"} {:score 100}] | union","expect":"{:name \"Alice\" :score 100}"}
-{"name":"bare-union-empty-error","query":"[] | union","error":"type-error","expect":"::UnionBareEmpty!{\n  :fault {\n    :step ~{union}\n    :input []\n  }\n  :origin :qlang/eval\n  :kind :type-error\n}"}
+{"name":"bare-union-empty-error","query":"[] | union","error":"type-error","expect":"::UnionBareEmptyError!{\n  :fault {\n    :step ~{union}\n    :input []\n  }\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"bare-union-singleton","query":"[#{:only}] | union","expect":"#{:only}"}
 {"name":"full-union-maps","query":"{:anchor true} | union({:name \"Alice\"}, {:age 30})","expect":"{:name \"Alice\" :age 30}"}

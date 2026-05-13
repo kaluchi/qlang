@@ -13,36 +13,36 @@ import { DivisionByZeroError } from '../errors.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const AddLeftNotNumber  = declareModifierError('AddLeftNotNumber',  'add', 1, 'number');
-const AddRightNotNumber = declareModifierError('AddRightNotNumber', 'add', 2, 'number');
-const SubLeftNotNumber  = declareModifierError('SubLeftNotNumber',  'sub', 1, 'number');
-const SubRightNotNumber = declareModifierError('SubRightNotNumber', 'sub', 2, 'number');
-const MulLeftNotNumber  = declareModifierError('MulLeftNotNumber',  'mul', 1, 'number');
-const MulRightNotNumber = declareModifierError('MulRightNotNumber', 'mul', 2, 'number');
-const DivLeftNotNumber  = declareModifierError('DivLeftNotNumber',  'div', 1, 'number');
-const DivRightNotNumber = declareModifierError('DivRightNotNumber', 'div', 2, 'number');
+const AddLeftNotNumberError  = declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
+const AddRightNotNumberError = declareModifierError('AddRightNotNumberError', 'add', 2, 'number');
+const SubLeftNotNumberError  = declareModifierError('SubLeftNotNumberError',  'sub', 1, 'number');
+const SubRightNotNumberError = declareModifierError('SubRightNotNumberError', 'sub', 2, 'number');
+const MulLeftNotNumberError  = declareModifierError('MulLeftNotNumberError',  'mul', 1, 'number');
+const MulRightNotNumberError = declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
+const DivLeftNotNumberError  = declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
+const DivRightNotNumberError = declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
 
 export const add = valueOp('add', 2, (a, b) => {
-  if (typeof a !== 'number') throw new AddLeftNotNumber(a);
-  if (typeof b !== 'number') throw new AddRightNotNumber(b);
+  if (typeof a !== 'number') throw new AddLeftNotNumberError(a);
+  if (typeof b !== 'number') throw new AddRightNotNumberError(b);
   return a + b;
 });
 
 export const sub = valueOp('sub', 2, (a, b) => {
-  if (typeof a !== 'number') throw new SubLeftNotNumber(a);
-  if (typeof b !== 'number') throw new SubRightNotNumber(b);
+  if (typeof a !== 'number') throw new SubLeftNotNumberError(a);
+  if (typeof b !== 'number') throw new SubRightNotNumberError(b);
   return a - b;
 });
 
 export const mul = valueOp('mul', 2, (a, b) => {
-  if (typeof a !== 'number') throw new MulLeftNotNumber(a);
-  if (typeof b !== 'number') throw new MulRightNotNumber(b);
+  if (typeof a !== 'number') throw new MulLeftNotNumberError(a);
+  if (typeof b !== 'number') throw new MulRightNotNumberError(b);
   return a * b;
 });
 
 export const div = valueOp('div', 2, (a, b) => {
-  if (typeof a !== 'number') throw new DivLeftNotNumber(a);
-  if (typeof b !== 'number') throw new DivRightNotNumber(b);
+  if (typeof a !== 'number') throw new DivLeftNotNumberError(a);
+  if (typeof b !== 'number') throw new DivRightNotNumberError(b);
   if (b === 0) throw new DivisionByZeroError();
   return a / b;
 });

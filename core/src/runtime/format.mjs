@@ -15,7 +15,7 @@ import {
   isTagKeyword,
   describeType,
   keyword,
-  FunctionValueLeakedToPrint
+  FunctionValueLeakedToPrintError
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -40,7 +40,7 @@ function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
   // value-class. printValue, renderInline, renderCell, and toPlain all
   // route through this dispatcher, so the invariant fires once for
   // every render path.
-  if (isFunctionValue(v)) throw new FunctionValueLeakedToPrint();
+  if (isFunctionValue(v)) throw new FunctionValueLeakedToPrintError();
   const handler = handlers[describeType(v)];
   return handler ? handler(v, ...extraArgs) : fallback(v, ...extraArgs);
 }
@@ -51,8 +51,8 @@ function dispatchPlainValue(v, handlers) {
   return handlers.scalar(v);
 }
 
-const TableSubjectNotVec = declareSubjectError('TableSubjectNotVec', 'table', 'vec');
-const TableRowNotMap     = declareElementError('TableRowNotMap',     'table', 'map');
+const TableSubjectNotVecError = declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
+const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
 
 // Inverse pair: `toPlain` lifts a qlang value to a JSON-serializable
 // plain JS shape (Map → object with keyword-named string keys, Vec →
@@ -360,11 +360,11 @@ function renderCell(v) {
 }
 
 export const table = nullaryOp('table', (subject) => {
-  if (!isVecShape(subject)) throw new TableSubjectNotVec(subject);
+  if (!isVecShape(subject)) throw new TableSubjectNotVecError(subject);
   if (subject.length === 0) return '(empty)';
   for (let i = 0; i < subject.length; i++) {
     if (!isQMap(subject[i])) {
-      throw new TableRowNotMap(i, subject[i]);
+      throw new TableRowNotMapError(i, subject[i]);
     }
   }
 

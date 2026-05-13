@@ -78,7 +78,7 @@ export function parseDocument(source, uri) {
 // `BindStep` nodes and records the entire BindStep span as the
 // jump-target (the keyword key plus attached docs plus descriptor
 // body). Both value-namespace keys (`:count {…}`) and type-
-// namespace keys (`::AddLeftNotNumber {…}`) land in the index
+// namespace keys (`::AddLeftNotNumberError {…}`) land in the index
 // under the canonical name a `definitionAtOffset` lookup builds.
 
 export function buildCatalogIndex(catalogAst) {

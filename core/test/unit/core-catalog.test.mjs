@@ -271,17 +271,17 @@ describe('format.toPlain refuses a raw function value — round-trip invariant',
   // Function values have no grammatical literal: emitting any string
   // for one would falsely round-trip through parse / eval into a
   // different value-class. toPlain shares this round-trip discipline
-  // with printValue and raises FunctionValueLeakedToPrint when a
+  // with printValue and raises FunctionValueLeakedToPrintError when a
   // function surfaces — the leak surface (typically a JS-level
   // caller piping a raw makeFn product through toPlain instead of
   // wrapping it in a descriptor Map) gets named at the boundary.
 
-  it('toPlain on a raw function value throws FunctionValueLeakedToPrint', async () => {
+  it('toPlain on a raw function value throws FunctionValueLeakedToPrintError', async () => {
     const { toPlain } = await import('../../src/runtime/format.mjs');
     const { makeFn } = await import('../../src/rule10.mjs');
-    const { FunctionValueLeakedToPrint } = await import('../../src/types.mjs');
+    const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
     const fn = makeFn('exoticFn', 1, (state) => state, { captured: [0, 0] });
-    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrint);
+    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrintError);
   });
 });
 
@@ -349,7 +349,7 @@ describe('parse / eval — the code-as-data ring closer', () => {
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| /thrown');
-    expect(evalResult).toEqual(makeTagKeyword('ParseSubjectNotStringOrQuote'));
+    expect(evalResult).toEqual(makeTagKeyword('ParseSubjectNotStringOrQuoteError'));
   });
 
   it('eval takes a hand-assembled AST-Map and runs it', async () => {
@@ -361,7 +361,7 @@ describe('parse / eval — the code-as-data ring closer', () => {
   it('eval errors on non-Map subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-map" | eval !| /thrown');
-    expect(evalResult).toEqual(makeTagKeyword('EvalSubjectNotMapOrQuote'));
+    expect(evalResult).toEqual(makeTagKeyword('EvalSubjectNotMapOrQuoteError'));
   });
 
   it('round-trip — "source" | parse | eval is equivalent to evaluating the source', async () => {

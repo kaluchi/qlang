@@ -417,152 +417,152 @@ describe('per-site error classes carry unique identity', () => {
     return isErrorValue(evalResult) ? evalResult.originalError : null;
   }
 
-  it('count on non-container → CountSubjectNotContainer', async () => {
+  it('count on non-container → CountSubjectNotContainerError', async () => {
     const caughtErr = await catchError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('CountSubjectNotContainer');
+    expect(caughtErr.name).toBe('CountSubjectNotContainerError');
     expect(caughtErr.context.operand).toBe('count');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('keys on non-Map → KeysSubjectNotMap', async () => {
+  it('keys on non-Map → KeysSubjectNotMapError', async () => {
     const caughtErr = await catchError('42 | keys');
-    expect(caughtErr.name).toBe('KeysSubjectNotMap');
+    expect(caughtErr.name).toBe('KeysSubjectNotMapError');
     expect(caughtErr.context.operand).toBe('keys');
   });
 
-  it('add left non-number → AddLeftNotNumber', async () => {
+  it('add left non-number → AddLeftNotNumberError', async () => {
     const caughtErr = await catchError('"x" | add(1)');
-    expect(caughtErr.name).toBe('AddLeftNotNumber');
+    expect(caughtErr.name).toBe('AddLeftNotNumberError');
     expect(caughtErr.context.operand).toBe('add');
     expect(caughtErr.context.position).toBe(1);
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
-  it('add right non-number → AddRightNotNumber', async () => {
+  it('add right non-number → AddRightNotNumberError', async () => {
     const caughtErr = await catchError('1 | add("x")');
-    expect(caughtErr.name).toBe('AddRightNotNumber');
+    expect(caughtErr.name).toBe('AddRightNotNumberError');
     expect(caughtErr.context.position).toBe(2);
   });
 
-  it('sub left non-number → SubLeftNotNumber (distinct from add)', async () => {
+  it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
     const caughtErr = await catchError('"x" | sub(1)');
-    expect(caughtErr.name).toBe('SubLeftNotNumber');
+    expect(caughtErr.name).toBe('SubLeftNotNumberError');
   });
 
-  it('mul left non-number → MulLeftNotNumber', async () => {
+  it('mul left non-number → MulLeftNotNumberError', async () => {
     const caughtErr = await catchError('"x" | mul(1)');
-    expect(caughtErr.name).toBe('MulLeftNotNumber');
+    expect(caughtErr.name).toBe('MulLeftNotNumberError');
   });
 
-  it('div left non-number → DivLeftNotNumber', async () => {
+  it('div left non-number → DivLeftNotNumberError', async () => {
     const caughtErr = await catchError('"x" | div(1)');
-    expect(caughtErr.name).toBe('DivLeftNotNumber');
+    expect(caughtErr.name).toBe('DivLeftNotNumberError');
   });
 
-  it('prepend modifier non-string → PrependPrefixNotString', async () => {
+  it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
     const caughtErr = await catchError('"x" | prepend(42)');
-    expect(caughtErr.name).toBe('PrependPrefixNotString');
+    expect(caughtErr.name).toBe('PrependPrefixNotStringError');
     expect(caughtErr.context.position).toBe(2);
   });
 
-  it('append modifier non-string → AppendSuffixNotString', async () => {
+  it('append modifier non-string → AppendSuffixNotStringError', async () => {
     const caughtErr = await catchError('"x" | append(42)');
-    expect(caughtErr.name).toBe('AppendSuffixNotString');
+    expect(caughtErr.name).toBe('AppendSuffixNotStringError');
   });
 
-  it('sum element non-number → SumElementNotNumber', async () => {
+  it('sum element non-number → SumElementNotNumberError', async () => {
     const caughtErr = await catchError('[1 "two" 3] | sum');
-    expect(caughtErr.name).toBe('SumElementNotNumber');
+    expect(caughtErr.name).toBe('SumElementNotNumberError');
     expect(caughtErr.context.index).toBe(1);
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
-  it('gt across types → GtOperandsNotComparable', async () => {
+  it('gt across types → GtOperandsNotComparableError', async () => {
     const caughtErr = await catchError('"a" | gt(5)');
-    expect(caughtErr.name).toBe('GtOperandsNotComparable');
+    expect(caughtErr.name).toBe('GtOperandsNotComparableError');
     expect(caughtErr.context.leftType.name).toBe('string');
     expect(caughtErr.context.rightType.name).toBe('number');
   });
 
-  it('lt across types → LtOperandsNotComparable (distinct class)', async () => {
+  it('lt across types → LtOperandsNotComparableError (distinct class)', async () => {
     const caughtErr = await catchError('"a" | lt(5)');
-    expect(caughtErr.name).toBe('LtOperandsNotComparable');
+    expect(caughtErr.name).toBe('LtOperandsNotComparableError');
   });
 
-  it('projection on non-Map → ProjectionSubjectNotMap', async () => {
+  it('projection on non-Map → ProjectionSubjectNotMapError', async () => {
     const caughtErr = await catchError('42 | /name');
-    expect(caughtErr.name).toBe('ProjectionSubjectNotMap');
+    expect(caughtErr.name).toBe('ProjectionSubjectNotMapError');
     expect(caughtErr.context.key).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('distribute on non-Vec → DistributeSubjectNotVec', async () => {
+  it('distribute on non-Vec → DistributeSubjectNotVecError', async () => {
     const caughtErr = await catchError('{:a 1} * add(1)');
-    expect(caughtErr.name).toBe('DistributeSubjectNotVec');
+    expect(caughtErr.name).toBe('DistributeSubjectNotVecError');
     expect(caughtErr.context.actualType.name).toBe('map');
   });
 
-  it('merge on non-Vec → MergeSubjectNotVec (distinct from distribute)', async () => {
+  it('merge on non-Vec → MergeSubjectNotVecError (distinct from distribute)', async () => {
     const caughtErr = await catchError('42 >> count');
-    expect(caughtErr.name).toBe('MergeSubjectNotVec');
+    expect(caughtErr.name).toBe('MergeSubjectNotVecError');
   });
 
-  it('apply args to non-function → ApplyToNonFunction', async () => {
+  it('apply args to non-function → ApplyToNonFunctionError', async () => {
     // Use `as` to bind a raw value (snapshot), not a conduit.
     // Snapshot-unwrap produces a non-function, so captured args trigger
-    // ApplyToNonFunction on the unwrapped value.
+    // ApplyToNonFunctionError on the unwrapped value.
     const caughtErr = await catchError('5 | as(:five) | five(42)');
-    expect(caughtErr.name).toBe('ApplyToNonFunction');
+    expect(caughtErr.name).toBe('ApplyToNonFunctionError');
     expect(caughtErr.context.name).toBe('five');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('use on non-Map → UseSubjectNotMap', async () => {
+  it('use on non-Map → UseSubjectNotMapError', async () => {
     const caughtErr = await catchError('42 | use');
-    expect(caughtErr.name).toBe('UseSubjectNotMap');
+    expect(caughtErr.name).toBe('UseSubjectNotMapError');
   });
 
-  it('filter on non-container → FilterSubjectNotContainer', async () => {
+  it('filter on non-container → FilterSubjectNotContainerError', async () => {
     const caughtErr = await catchError('42 | filter(gt(1))');
-    expect(caughtErr.name).toBe('FilterSubjectNotContainer');
+    expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
   });
 
-  it('at on non-Vec-or-Map → AtSubjectNotVecOrMap', async () => {
+  it('at on non-Vec-or-Map → AtSubjectNotVecOrMapError', async () => {
     const caughtErr = await catchError('42 | at(0)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtSubjectNotVecOrMap');
+    expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
     expect(caughtErr.context.operand).toBe('at');
     expect(caughtErr.context.position).toBe('subject');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('at with non-string key on Map → AtKeyNotString', async () => {
+  it('at with non-string key on Map → AtKeyNotStringError', async () => {
     const caughtErr = await catchError('{:a 1} | at(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtKeyNotString');
+    expect(caughtErr.name).toBe('AtKeyNotStringError');
     expect(caughtErr.context.operand).toBe('at');
     expect(caughtErr.context.position).toBe(2);
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeyword', async () => {
+  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeywordError', async () => {
     const caughtErr = await catchError('42 | keyword');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeyword');
+    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
     expect(caughtErr.context.operand).toBe('keyword');
     expect(caughtErr.context.position).toBe('subject');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('take count non-number → TakeCountNotNumber', async () => {
+  it('take count non-number → TakeCountNotNumberError', async () => {
     const caughtErr = await catchError('[1 2 3] | take("x")');
-    expect(caughtErr.name).toBe('TakeCountNotNumber');
+    expect(caughtErr.name).toBe('TakeCountNotNumberError');
   });
 
-  it('drop count non-number → DropCountNotNumber (distinct from take)', async () => {
+  it('drop count non-number → DropCountNotNumberError (distinct from take)', async () => {
     const caughtErr = await catchError('[1 2 3] | drop("x")');
-    expect(caughtErr.name).toBe('DropCountNotNumber');
+    expect(caughtErr.name).toBe('DropCountNotNumberError');
   });
 
   it('all per-site type errors inherit QlangTypeError and kind', async () => {
@@ -588,24 +588,24 @@ describe('per-site error classes carry unique identity', () => {
   it('throw sites produce distinct class names (no sharing)', async () => {
     const names = new Set();
     const queries = [
-      '42 | count',        // CountSubjectNotContainer
-      '42 | first',        // FirstSubjectNotVec
-      '42 | last',         // LastSubjectNotVec
-      '42 | sum',          // SumSubjectNotVecOrSet
-      '42 | reverse',      // ReverseSubjectNotVec
-      '42 | distinct',     // DistinctSubjectNotVec
-      '42 | sort',         // SortNaturalSubjectNotVec
-      '42 | keys',         // KeysSubjectNotMap
-      '42 | vals',         // ValsSubjectNotMap
-      '"a" | add(1)',      // AddLeftNotNumber
-      '"a" | sub(1)',      // SubLeftNotNumber
-      '"a" | mul(1)',      // MulLeftNotNumber
-      '"a" | div(1)',      // DivLeftNotNumber
-      '"a" | gt(5)',       // GtOperandsNotComparable
-      '"a" | lt(5)',       // LtOperandsNotComparable
-      '1 | /name',         // ProjectionSubjectNotMap (Number subject — neither Map nor Vec)
-      '{:a 1} * add(1)',   // DistributeSubjectNotVec
-      '42 >> count'        // MergeSubjectNotVec
+      '42 | count',        // CountSubjectNotContainerError
+      '42 | first',        // FirstSubjectNotVecError
+      '42 | last',         // LastSubjectNotVecError
+      '42 | sum',          // SumSubjectNotVecOrSetError
+      '42 | reverse',      // ReverseSubjectNotVecError
+      '42 | distinct',     // DistinctSubjectNotVecError
+      '42 | sort',         // SortNaturalSubjectNotVecError
+      '42 | keys',         // KeysSubjectNotMapError
+      '42 | vals',         // ValsSubjectNotMapError
+      '"a" | add(1)',      // AddLeftNotNumberError
+      '"a" | sub(1)',      // SubLeftNotNumberError
+      '"a" | mul(1)',      // MulLeftNotNumberError
+      '"a" | div(1)',      // DivLeftNotNumberError
+      '"a" | gt(5)',       // GtOperandsNotComparableError
+      '"a" | lt(5)',       // LtOperandsNotComparableError
+      '1 | /name',         // ProjectionSubjectNotMapError (Number subject — neither Map nor Vec)
+      '{:a 1} * add(1)',   // DistributeSubjectNotVecError
+      '42 >> count'        // MergeSubjectNotVecError
     ];
     for (const q of queries) {
       names.add((await catchError(q)).name);
@@ -637,31 +637,31 @@ describe('runtime/string.mjs split and join error sites', () => {
     return isErrorValue(evalResult) ? evalResult.originalError : null;
   }
 
-  it('split on non-string subject → SplitSubjectNotString', async () => {
+  it('split on non-string subject → SplitSubjectNotStringError', async () => {
     const caughtErr = await catchError('42 | split(",")');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('SplitSubjectNotString');
+    expect(caughtErr.name).toBe('SplitSubjectNotStringError');
   });
 
-  it('split with non-string separator → SplitSeparatorNotString', async () => {
+  it('split with non-string separator → SplitSeparatorNotStringError', async () => {
     const caughtErr = await catchError('"abc" | split(42)');
-    expect(caughtErr.name).toBe('SplitSeparatorNotString');
+    expect(caughtErr.name).toBe('SplitSeparatorNotStringError');
   });
 
-  it('join on non-Vec subject → JoinSubjectNotVec', async () => {
+  it('join on non-Vec subject → JoinSubjectNotVecError', async () => {
     const caughtErr = await catchError('42 | join(",")');
-    expect(caughtErr.name).toBe('JoinSubjectNotVec');
+    expect(caughtErr.name).toBe('JoinSubjectNotVecError');
   });
 
-  it('join with non-string element → JoinElementNotString', async () => {
+  it('join with non-string element → JoinElementNotStringError', async () => {
     const caughtErr = await catchError('["a" 42 "c"] | join(",")');
-    expect(caughtErr.name).toBe('JoinElementNotString');
+    expect(caughtErr.name).toBe('JoinElementNotStringError');
     expect(caughtErr.context.index).toBe(1);
   });
 
-  it('join with non-string separator → JoinSeparatorNotString', async () => {
+  it('join with non-string separator → JoinSeparatorNotStringError', async () => {
     const caughtErr = await catchError('["a" "b"] | join(42)');
-    expect(caughtErr.name).toBe('JoinSeparatorNotString');
+    expect(caughtErr.name).toBe('JoinSeparatorNotStringError');
   });
 
   it('every split/join site has a unique class name', async () => {
@@ -778,10 +778,10 @@ describe('runtime/intro.mjs reify and manifest', () => {
     expect(isErrorValue(await evalQuery('reify(:thisDoesNotExist)'))).toBe(true);
   });
 
-  it('reify(non-keyword) → ReifyKeyNotKeyword', async () => {
+  it('reify(non-keyword) → ReifyKeyNotKeywordError', async () => {
     const reifyStrResult = await evalQuery('reify("count")');
     expect(isErrorValue(reifyStrResult)).toBe(true);
-    expect(reifyStrResult.originalError.name).toBe('ReifyKeyNotKeyword');
+    expect(reifyStrResult.originalError.name).toBe('ReifyKeyNotKeywordError');
   });
 
   it('manifest returns a Vec of descriptors sorted by name', async () => {
@@ -903,16 +903,16 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:a 1} | coalesce(/a, div(0))')).toBe(1);
   });
 
-  it('coalesce with zero captured args raises CoalesceNoAlternatives as an ArityError', async () => {
+  it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arity-error');
-    expect(caughtErr.name).toBe('CoalesceNoAlternatives');
+    expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 
   it('coalesce error site has unique class name', async () => {
     const caughtErr = await catchError('{} | coalesce()');
-    expect(caughtErr.name).toBe('CoalesceNoAlternatives');
+    expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 
   it('when with truthy cond runs the then branch', async () => {
@@ -973,11 +973,11 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:s ""} | firstTruthy(/missing, /s, "default")')).toBe('');
   });
 
-  it('firstTruthy with zero captured args raises FirstTruthyNoAlternatives as an ArityError', async () => {
+  it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchError('{} | firstTruthy()');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arity-error');
-    expect(caughtErr.name).toBe('FirstTruthyNoAlternatives');
+    expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');
   });
 
   it('firstTruthy short-circuits after match', async () => {
@@ -995,56 +995,56 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     return isErrorValue(evalResult) ? evalResult.originalError : null;
   }
 
-  it('sortWith on non-Vec subject → SortWithSubjectNotVec', async () => {
+  it('sortWith on non-Vec subject → SortWithSubjectNotVecError', async () => {
     const e = await catchError('42 | sortWith(asc(/x))');
     expect(e).toBeInstanceOf(QlangTypeError);
-    expect(e.name).toBe('SortWithSubjectNotVec');
+    expect(e.name).toBe('SortWithSubjectNotVecError');
   });
 
-  it('sortWith comparator returning non-number → SortWithCmpResultNotNumber', async () => {
+  it('sortWith comparator returning non-number → SortWithCmpResultNotNumberError', async () => {
     const caughtErr = await catchError('[1 2 3] | sortWith("string")');
-    expect(caughtErr.name).toBe('SortWithCmpResultNotNumber');
+    expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
-  it('asc on non-Map pair → AscPairNotMap', async () => {
+  it('asc on non-Map pair → AscPairNotMapError', async () => {
     const caughtErr = await catchError('42 | asc(/x)');
-    expect(caughtErr.name).toBe('AscPairNotMap');
+    expect(caughtErr.name).toBe('AscPairNotMapError');
   });
 
-  it('asc on heterogeneous keys → SortWithCmpResultNotNumber (error value from asc is non-numeric)', async () => {
+  it('asc on heterogeneous keys → SortWithCmpResultNotNumberError (error value from asc is non-numeric)', async () => {
     const caughtErr = await catchError('[{:k 1} {:k "a"}] | sortWith(asc(/k))');
-    expect(caughtErr.name).toBe('SortWithCmpResultNotNumber');
+    expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
-  it('desc on non-Map pair → DescPairNotMap', async () => {
+  it('desc on non-Map pair → DescPairNotMapError', async () => {
     const caughtErr = await catchError('42 | desc(/x)');
-    expect(caughtErr.name).toBe('DescPairNotMap');
+    expect(caughtErr.name).toBe('DescPairNotMapError');
   });
 
-  it('desc on heterogeneous keys → SortWithCmpResultNotNumber (error value from desc is non-numeric)', async () => {
+  it('desc on heterogeneous keys → SortWithCmpResultNotNumberError (error value from desc is non-numeric)', async () => {
     const caughtErr = await catchError('[{:k 1} {:k "a"}] | sortWith(desc(/k))');
-    expect(caughtErr.name).toBe('SortWithCmpResultNotNumber');
+    expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
-  it('firstNonZero on non-Vec → FirstNonZeroSubjectNotVec', async () => {
+  it('firstNonZero on non-Vec → FirstNonZeroSubjectNotVecError', async () => {
     const caughtErr = await catchError('42 | firstNonZero');
-    expect(caughtErr.name).toBe('FirstNonZeroSubjectNotVec');
+    expect(caughtErr.name).toBe('FirstNonZeroSubjectNotVecError');
   });
 
-  it('firstNonZero on Vec with non-number element → FirstNonZeroElementNotNumber', async () => {
+  it('firstNonZero on Vec with non-number element → FirstNonZeroElementNotNumberError', async () => {
     const caughtErr = await catchError('[0 "two" 1] | firstNonZero');
-    expect(caughtErr.name).toBe('FirstNonZeroElementNotNumber');
+    expect(caughtErr.name).toBe('FirstNonZeroElementNotNumberError');
     expect(caughtErr.context.index).toBe(1);
   });
 
   it('every sortWith/asc/desc/firstNonZero site has a unique class name', async () => {
     const queries = [
-      '42 | sortWith(asc(/x))',   // SortWithSubjectNotVec
-      '[1 2] | sortWith("not")',  // SortWithCmpResultNotNumber
-      '42 | asc(/x)',              // AscPairNotMap
-      '42 | desc(/x)',             // DescPairNotMap
-      '42 | firstNonZero',         // FirstNonZeroSubjectNotVec
-      '[0 "x"] | firstNonZero'    // FirstNonZeroElementNotNumber
+      '42 | sortWith(asc(/x))',   // SortWithSubjectNotVecError
+      '[1 2] | sortWith("not")',  // SortWithCmpResultNotNumberError
+      '42 | asc(/x)',              // AscPairNotMapError
+      '42 | desc(/x)',             // DescPairNotMapError
+      '42 | firstNonZero',         // FirstNonZeroSubjectNotVecError
+      '[0 "x"] | firstNonZero'    // FirstNonZeroElementNotNumberError
     ];
     const names = new Set();
     for (const q of queries) names.add((await catchError(q)).name);

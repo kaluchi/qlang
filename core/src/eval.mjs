@@ -16,8 +16,8 @@ import { applyRule10, makeFn } from './rule10.mjs';
 import {
   QlangError,
   UnresolvedIdentifierError,
-  EffectLaunderingAtCall,
-  EffectLaunderingAtBindStepParse
+  EffectLaunderingAtCallError,
+  EffectLaunderingAtBindStepParseError
 } from './errors.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { classifyEffect } from './effect.mjs';
@@ -70,46 +70,46 @@ function trailEntry(stepNode, combinatorKind) {
   });
 }
 
-const ProjectionSubjectNotMap = declareShapeError('ProjectionSubjectNotMap',
+const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapError',
   ({ key, actualType }) => `/${key} requires Map or Vec subject, got ${actualType.name}`);
 // Map subject does not carry the requested key. Strict fail-first
 // surfaces the typo / mismatched-shape on the projection itself
 // rather than propagating null through downstream steps where the
 // failure surfaces with no breadcrumb pointing back to the missing
 // key. null subject still propagates as null (see projectSegment).
-const ProjectionKeyNotInMap = declareShapeError('ProjectionKeyNotInMap',
+const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
   ({ key }) => `/${key} — key not present in Map subject`);
 // Vec subject indexed past its bounds. Negative indices walk from
 // the tail (`/-1` is last); only positions that resolve outside
 // `[0, length)` trip this site.
-const ProjectionIndexOutOfBounds = declareShapeError('ProjectionIndexOutOfBounds',
+const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
   ({ key, length }) => `/${key} — index out of bounds for Vec subject of length ${length}`);
 // Vec subject projected by a non-numeric segment. Vec indices are
 // integer offsets; named keys belong to Map shape, so a `[…] | /name`
 // query is treated as a shape mismatch rather than silently coalescing
 // to null.
-const ProjectionVecKeyNotInteger = declareShapeError('ProjectionVecKeyNotInteger',
+const ProjectionVecKeyNotIntegerError = declareShapeError('ProjectionVecKeyNotIntegerError',
   ({ key }) => `/${key} — non-integer segment cannot index a Vec subject`);
 // Value-class subjects (Quote / Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
 // that set is a typo, not an optional read.
-const ProjectionFieldNotOnValueClass = declareShapeError('ProjectionFieldNotOnValueClass',
+const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
-const TaggedLitTagNotFound = declareShapeError('TaggedLitTagNotFound',
+const TaggedLitTagNotFoundError = declareShapeError('TaggedLitTagNotFoundError',
   ({ tag }) => `::${tag} — type binding not found in env`);
-const TaggedLitNotType = declareShapeError('TaggedLitNotType',
+const TaggedLitNotTypeError = declareShapeError('TaggedLitNotTypeError',
   ({ tag, actualType }) => `::${tag} — type binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :type`);
-const TaggedLitImplNotResolvable = declareShapeError('TaggedLitImplNotResolvable',
+const TypeBindingHasNoConstructorError = declareShapeError('TypeBindingHasNoConstructorError',
   ({ tag, actualType }) => `::${tag} — :qlang/impl is ${actualType.name}, expected a Keyword (built-in handle) or a Quote (qlang body)`);
-const DistributeSubjectNotVec = declareSubjectError('DistributeSubjectNotVec', '*', 'vec');
-const MergeSubjectNotVec      = declareSubjectError('MergeSubjectNotVec',      '>>', 'vec');
-const ApplyToNonFunction      = declareShapeError('ApplyToNonFunction',
+const DistributeSubjectNotVecError = declareSubjectError('DistributeSubjectNotVecError', '*', 'vec');
+const MergeSubjectNotVecError      = declareSubjectError('MergeSubjectNotVecError',      '>>', 'vec');
+const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}, not a function`);
-const ConduitArityMismatch    = declareArityError('ConduitArityMismatch',
+const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
   ({ conduitName, expectedArity, actualArity }) =>
     `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`);
-const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapturedArgs',
+const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterNoCapturedArgsError',
   ({ paramName, actualCount }) =>
     `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
 
@@ -121,7 +121,7 @@ const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapt
 // the env under `moduleAstKey('inline')` as a Quote so axis-
 // operands (`source`, `docs`, `examples`) can resolve `BindStep`
 // bindings declared inside the same query — without it,
-// `:foo body | :foo | docs` would raise `AxisBindingNotFound`
+// `:foo body | :foo | docs` would raise `AxisBindingNotFoundError`
 // because `foo` lives only in the just-parsed AST, not in any
 // module Quote installed via `use(:ns)`.
 export async function evalQuery(source, env) {
@@ -308,7 +308,7 @@ async function distribute(state, bodyNode) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
   if (!isVecShape(state.pipeValue)) {
-    const distributeErr = new DistributeSubjectNotVec(state.pipeValue);
+    const distributeErr = new DistributeSubjectNotVecError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
   }
@@ -327,7 +327,7 @@ async function mergeFlat(state, nextNode) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(nextNode, 'merge')));
   }
   if (!isVecShape(state.pipeValue)) {
-    const mergeErr = new MergeSubjectNotVec(state.pipeValue);
+    const mergeErr = new MergeSubjectNotVecError(state.pipeValue);
     mergeErr.location = nextNode.location;
     return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
   }
@@ -492,12 +492,12 @@ async function evalTaggedLit(node, state) {
   const payloadValue = payloadFork.pipeValue;
   const typeKey = '::' + node.tag;
   if (!envHas(state.env, typeKey)) {
-    throw new TaggedLitTagNotFound({ tag: node.tag });
+    throw new TaggedLitTagNotFoundError({ tag: node.tag });
   }
   let typeBinding = envGet(state.env, typeKey);
   if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('qlang/value');
   if (!isQMap(typeBinding)) {
-    throw new TaggedLitNotType({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
+    throw new TaggedLitNotTypeError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
   // :qlang/impl carries either a `:qlang/prim/<tag>` keyword (built-in
   // type — resolved through PRIMITIVE_REGISTRY at every invocation so
@@ -525,7 +525,7 @@ async function evalTaggedLit(node, state) {
   // throw site. This is the universal constructor every named-error
   // type-binding shares until per-site Quote-impl validators (§II.3)
   // land. Constructor-less non-error TaggedLits still fall through
-  // to TaggedLitImplNotResolvable.
+  // to TypeBindingHasNoConstructorError.
   if (implKey === undefined && isErrorValue(payloadValue)) {
     const restamped = new Map(payloadValue.descriptor);
     restamped.set('thrown', makeTagKeyword(node.tag));
@@ -534,13 +534,13 @@ async function evalTaggedLit(node, state) {
       originalError: payloadValue.originalError
     }));
   }
-  throw new TaggedLitImplNotResolvable({ tag: node.tag, actualType: typeKeyword(implKey), actualValue: implKey });
+  throw new TypeBindingHasNoConstructorError({ tag: node.tag, actualType: typeKeyword(implKey), actualValue: implKey });
 }
 
 // ::tag — bare reference to a type-namespace identifier. The
 // reference value is the TagKeyword itself (identity-as-value) —
 // stable, navigable, equality by name. Env existence check stays
-// (a `::TypoTag` that nothing declared raises `TaggedLitTagNotFound`
+// (a `::TypoTag` that nothing declared raises `TaggedLitTagNotFoundError`
 // at this point); hypertext navigation to the descriptor Map
 // happens through axis-operands (`::tag | docs`, `| source`,
 // `| spec`) which take TagKeyword as their pipeValue subject and
@@ -548,7 +548,7 @@ async function evalTaggedLit(node, state) {
 async function evalBareTypeKeyword(node, state) {
   const typeKey = '::' + node.tag;
   if (!envHas(state.env, typeKey)) {
-    throw new TaggedLitTagNotFound({ tag: node.tag });
+    throw new TaggedLitTagNotFoundError({ tag: node.tag });
   }
   return withPipeValue(state, makeTagKeyword(node.tag));
 }
@@ -577,7 +577,7 @@ async function evalBareTypeKeyword(node, state) {
 //
 // Effect-laundering AST scan runs on impure body / parametric
 // before installing — a non-@-prefixed name with an effectful
-// body raises EffectLaunderingAtBindStepParse.
+// body raises EffectLaunderingAtBindStepParseError.
 async function evalBindStep(node, state) {
   const name = node.key.type === 'BareTypeKeyword'
     ? '::' + node.key.tag
@@ -602,7 +602,7 @@ async function evalBindStep(node, state) {
   if (!classifyEffect(name)) {
     const offender = findFirstEffectfulIdentifier(node.body);
     if (offender !== null) {
-      throw new EffectLaunderingAtBindStepParse({
+      throw new EffectLaunderingAtBindStepParseError({
         bindingName: name,
         effectfulName: offender,
         location: node.body.location
@@ -681,7 +681,7 @@ function projectSegment(subject, projKey, state) {
     const handlers = PROJECTABLE_BY_TYPE[subject.type];
     if (handlers) {
       if (!Object.hasOwn(handlers, projKey)) {
-        throw new ProjectionFieldNotOnValueClass({
+        throw new ProjectionFieldNotOnValueClassError({
           key: projKey,
           valueClass: subject.type,
           availableFields: Object.keys(handlers)
@@ -691,25 +691,25 @@ function projectSegment(subject, projKey, state) {
     }
   }
   if (isJsonObject(subject)) {
-    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMap({ key: projKey, subject });
+    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, subject });
     return subject[projKey];
   }
   if (isQMap(subject)) {
-    if (!subject.has(projKey)) throw new ProjectionKeyNotInMap({ key: projKey, subject });
+    if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, subject });
     return subject.get(projKey);
   }
   if (isJsonArray(subject) || isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionVecKeyNotInteger({ key: projKey, subject });
+      throw new ProjectionVecKeyNotIntegerError({ key: projKey, subject });
     }
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= subject.length) {
-      throw new ProjectionIndexOutOfBounds({ key: projKey, index: segmentIndex, length: subject.length, subject });
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, subject });
     }
     return subject[resolvedIndex];
   }
-  throw new ProjectionSubjectNotMap({
+  throw new ProjectionSubjectNotMapError({
     key: projKey,
     actualType: typeKeyword(subject),
     actualValue: subject
@@ -784,7 +784,7 @@ async function evalOperandCall(node, state) {
     // stays because a conduit-parameter proxy may wrap an effectful
     // captured-arg lambda under a non-@-prefixed binding.
     if (resolved.effectful && !classifyEffect(lookupName)) {
-      throw new EffectLaunderingAtCall({
+      throw new EffectLaunderingAtCallError({
         bindingName: lookupName,
         effectfulName: resolved.name
       });
@@ -810,7 +810,7 @@ async function evalOperandCall(node, state) {
   // Non-function value: replace pipeValue with it. Captured args
   // would be a type error since you cannot apply a non-function.
   if (capturedArgsAst !== null) {
-    throw new ApplyToNonFunction({
+    throw new ApplyToNonFunctionError({
       name: lookupName,
       actualType: typeKeyword(resolved),
       actualValue: resolved
@@ -913,7 +913,7 @@ async function applyConduit(conduit, node, lookupName, state) {
 
   // Effect-laundering safety net (same invariant as intrinsic operands).
   if (conduitEffectful && !classifyEffect(lookupName)) {
-    throw new EffectLaunderingAtCall({
+    throw new EffectLaunderingAtCallError({
       bindingName: lookupName,
       effectfulName: conduitName
     });
@@ -932,7 +932,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   // application is achieved through zero-arity conduit aliases and parametric
   // forwarding patterns (fractal composition).
   if (conduitLambdas.length !== expectedArity) {
-    throw new ConduitArityMismatch({
+    throw new ConduitArityMismatchError({
       conduitName,
       expectedArity,
       actualArity: conduitLambdas.length
@@ -982,7 +982,7 @@ function makeConduitParameter(capturedArgLambda, paramName) {
   // they have no lib/qlang/core.qlang entry.
   return makeFn(paramName, 1, async (state, paramLambdas) => {
     if (paramLambdas.length !== 0) {
-      throw new ConduitParameterNoCapturedArgs({
+      throw new ConduitParameterNoCapturedArgsError({
         paramName,
         actualCount: paramLambdas.length
       });
@@ -995,7 +995,7 @@ function makeConduitParameter(capturedArgLambda, paramName) {
     returns: 'any (the captured expression evaluated against pipeValue)',
     docs: [`Conduit parameter '${paramName}': fires the captured expression against the current pipeValue.`],
     examples: [],
-    throws: ['ConduitParameterNoCapturedArgs']
+    throws: ['ConduitParameterNoCapturedArgsError']
   });
 }
 
@@ -1066,7 +1066,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
   const conduitEffectful = conduit.get('effectful');
 
   if (conduitEffectful && !classifyEffect(lookupName)) {
-    throw new EffectLaunderingAtCall({
+    throw new EffectLaunderingAtCallError({
       bindingName: lookupName,
       effectfulName: conduitName
     });

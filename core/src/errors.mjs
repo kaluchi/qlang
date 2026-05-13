@@ -121,12 +121,12 @@ export class QlangInvariantError extends QlangError {
 // @-prefixed, so the effect propagates through every alias. Two
 // concrete subclasses fire from two different points:
 //
-//   EffectLaunderingAtBindStepParse — fired by `evalBindStep` when
+//   EffectLaunderingAtBindStepParseError — fired by `evalBindStep` when
 //     the body AST scan (findFirstEffectfulIdentifier) finds an
 //     @-prefixed OperandCall or Projection key inside a non-@-
 //     prefixed BindStep body.
 //
-//   EffectLaunderingAtCall — fired at runtime by
+//   EffectLaunderingAtCallError — fired at runtime by
 //     eval.mjs::evalOperandCall and eval.mjs::applyConduit
 //     when a non-@-prefixed identifier resolves to an effectful
 //     function value or conduit (the laundering path where the
@@ -141,20 +141,20 @@ export class EffectLaunderingError extends QlangError {
   }
 }
 
-export class EffectLaunderingAtBindStepParse extends EffectLaunderingError {
+export class EffectLaunderingAtBindStepParseError extends EffectLaunderingError {
   constructor({ bindingName, effectfulName, location = null }) {
     super(
       `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
       `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
       { bindingName, effectfulName }
     );
-    this.name = 'EffectLaunderingAtBindStepParse';
-    this.fingerprint = 'EffectLaunderingAtBindStepParse';
+    this.name = 'EffectLaunderingAtBindStepParseError';
+    this.fingerprint = 'EffectLaunderingAtBindStepParseError';
     this.location = location;
   }
 }
 
-export class EffectLaunderingAtCall extends EffectLaunderingError {
+export class EffectLaunderingAtCallError extends EffectLaunderingError {
   constructor({ bindingName, effectfulName }) {
     super(
       `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
@@ -162,7 +162,7 @@ export class EffectLaunderingAtCall extends EffectLaunderingError {
       `use, or as — rename to '@${bindingName}' to mark the effect`,
       { bindingName, effectfulName }
     );
-    this.name = 'EffectLaunderingAtCall';
-    this.fingerprint = 'EffectLaunderingAtCall';
+    this.name = 'EffectLaunderingAtCallError';
+    this.fingerprint = 'EffectLaunderingAtCallError';
   }
 }

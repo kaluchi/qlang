@@ -90,66 +90,66 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
     expect(result.name).toBe('conduit');
   });
 
-  it('an unbound ::tag still raises TaggedLitTagNotFound at the BareTypeKeyword resolution site', async () => {
+  it('an unbound ::tag still raises TaggedLitTagNotFoundError at the BareTypeKeyword resolution site', async () => {
     const err = await evalQuery('::someUnboundType');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFound'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
   });
 });
 
 describe('TaggedLit error paths', () => {
-  it('raises TaggedLitTagNotFound for an unbound tag in TaggedLit', async () => {
+  it('raises TaggedLitTagNotFoundError for an unbound tag in TaggedLit', async () => {
     const err = await evalQuery('::unboundTag[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFound'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
   });
 
-  it('raises TaggedLitTagNotFound for an unbound bare ::tag reference', async () => {
+  it('raises TaggedLitTagNotFoundError for an unbound bare ::tag reference', async () => {
     const err = await evalQuery('::unboundBare');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFound'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
   });
 
-  it('raises TaggedLitNotType when type-binding resolves to a non-Map value', async () => {
+  it('raises TaggedLitNotTypeError when type-binding resolves to a non-Map value', async () => {
     const err = await evalQuery('::badType 42 | ::badType[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitNotType'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitNotTypeError'));
   });
 
-  it('::conduit raises ConduitPayloadNotVec when payload is not a Vec', async () => {
+  it('::conduit raises ConduitPayloadNotVecError when payload is not a Vec', async () => {
     const err = await evalQuery('::conduit{:not :a-vec}');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitPayloadNotVec'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitPayloadNotVecError'));
   });
 
-  it('::conduit raises ConduitArityInvalid for 1-element payload', async () => {
+  it('::conduit raises ConduitArityInvalidError for 1-element payload', async () => {
     const err = await evalQuery('::conduit[42]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitArityInvalid'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitArityInvalidError'));
   });
 
-  it('::conduit raises ConduitSelfNameNotKeyword for 3-element payload with non-keyword selfName', async () => {
+  it('::conduit raises ConduitSelfNameNotKeywordError for 3-element payload with non-keyword selfName', async () => {
     const err = await evalQuery('::conduit[42 [] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitSelfNameNotKeyword'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitSelfNameNotKeywordError'));
   });
 
-  it('::conduit raises ConduitParamsNotVec when params slot is not a Vec', async () => {
+  it('::conduit raises ConduitParamsNotVecError when params slot is not a Vec', async () => {
     const err = await evalQuery('::conduit[42 ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitParamsNotVec'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitParamsNotVecError'));
   });
 
-  it('::conduit raises ConduitParamNotKeyword when a params element is not a Keyword', async () => {
+  it('::conduit raises ConduitParamNotKeywordError when a params element is not a Keyword', async () => {
     const err = await evalQuery('::conduit[[42] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitParamNotKeyword'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitParamNotKeywordError'));
   });
 
-  it('::conduit raises ConduitBodyNotQuote when body is not a Quote', async () => {
+  it('::conduit raises ConduitBodyNotQuoteError when body is not a Quote', async () => {
     const err = await evalQuery('::conduit[[] 42]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitBodyNotQuote'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitBodyNotQuoteError'));
   });
 });
 
@@ -266,11 +266,11 @@ describe('User-defined type binding with Quote :qlang/impl', () => {
     expect(result).toBe('go!');
   });
 
-  it(':qlang/impl that is neither Keyword nor Quote raises TaggedLitImplNotResolvable', async () => {
+  it(':qlang/impl that is neither Keyword nor Quote raises TypeBindingHasNoConstructorError', async () => {
     const err = await evalQuery(
       '::bad {:qlang/kind :type :qlang/impl 42} | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitImplNotResolvable'));
+    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TypeBindingHasNoConstructorError'));
   });
 });

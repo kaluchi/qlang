@@ -71,7 +71,7 @@
           :subject [:vec :set :map]
           :returns :number
           :modifiers []
-          :throws [::CountSubjectNotContainer]}
+          :throws [::CountSubjectNotContainerError]}
 
 :empty
   |~~ Returns true if the container has zero elements, false
@@ -86,7 +86,7 @@
           :subject [:vec :set :map]
           :returns :boolean
           :modifiers []
-          :throws [::EmptySubjectNotContainer]}
+          :throws [::EmptySubjectNotContainerError]}
 
 :first
   |~~ Returns the first element of a Vec, or null if the Vec
@@ -102,7 +102,7 @@
           :subject :vec
           :returns :any
           :modifiers []
-          :throws [::FirstSubjectNotVec]}
+          :throws [::FirstSubjectNotVecError]}
 
 :last
   |~~ Returns the last element of a Vec, or null if the Vec
@@ -117,7 +117,7 @@
          :subject :vec
          :returns :any
          :modifiers []
-         :throws [::LastSubjectNotVec]}
+         :throws [::LastSubjectNotVecError]}
 
 :sum
   |~~ Returns the numeric sum of elements. Polymorphic over Vec
@@ -137,7 +137,7 @@
         :subject [:vec :set]
         :returns :number
         :modifiers []
-        :throws [::SumSubjectNotVecOrSet ::SumElementNotNumber]}
+        :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
 
 :min
   |~~ Returns the minimum element under natural ordering.
@@ -155,7 +155,7 @@
         :subject [:vec :set]
         :returns :any
         :modifiers []
-        :throws [::MinSubjectNotVecOrSet ::MinElementsNotComparable]}
+        :throws [::MinSubjectNotVecOrSetError ::MinElementsNotComparableError]}
 
 :max
   |~~ Returns the maximum element under natural ordering.
@@ -173,7 +173,7 @@
         :subject [:vec :set]
         :returns :any
         :modifiers []
-        :throws [::MaxSubjectNotVecOrSet ::MaxElementsNotComparable]}
+        :throws [::MaxSubjectNotVecOrSetError ::MaxElementsNotComparableError]}
 
 :every
   |~~ Returns true iff every item of the container satisfies the
@@ -183,8 +183,8 @@
     or value (Map). 1-arity [:x] binds the element / value as
     a captured-arg. 2-arity [:k :v] binds (key, value) — only
     meaningful on Map; on Vec/Set it raises
-    EveryVecOrSetPredArityInvalid (one axis only). 3+ params
-    raise the same class on Vec/Set, EveryMapPredArityInvalid
+    EveryVecOrSetPredArityInvalidError (one axis only). 3+ params
+    raise the same class on Vec/Set, EveryMapPredArityInvalidError
     on Map. Short-circuits on the first falsy result. Vacuously
     true for empty containers.
 
@@ -203,7 +203,7 @@
           :subject [:vec :set :map]
           :returns :boolean
           :modifiers [:predicate-lambda]
-          :throws [::EverySubjectNotContainer ::EveryVecOrSetPredArityInvalid ::EveryMapPredArityInvalid]}
+          :throws [::EverySubjectNotContainerError ::EveryVecOrSetPredArityInvalidError ::EveryMapPredArityInvalidError]}
 
 :any
   |~~ Returns true iff at least one item of the container
@@ -227,7 +227,7 @@
         :subject [:vec :set :map]
         :returns :boolean
         :modifiers [:predicate-lambda]
-        :throws [::AnySubjectNotContainer ::AnyVecOrSetPredArityInvalid ::AnyMapPredArityInvalid]}
+        :throws [::AnySubjectNotContainerError ::AnyVecOrSetPredArityInvalidError ::AnyMapPredArityInvalidError]}
 
 :firstNonZero
   |~~ Returns the first non-zero number in a Vec. If all elements
@@ -245,7 +245,7 @@
                  :subject :vec
                  :returns :number
                  :modifiers []
-                 :throws [::FirstNonZeroSubjectNotVec ::FirstNonZeroElementNotNumber]}
+                 :throws [::FirstNonZeroSubjectNotVecError ::FirstNonZeroElementNotNumberError]}
 
 |~ ──────────────── Vec transformers ──────────────── ~|
 
@@ -261,9 +261,9 @@
                                 single captured-arg.
       2-arity [:k :v]         → only on Map — (key, value) bound
                                 as captured-args. On Vec/Set it
-                                raises FilterVecOrSetPredArityInvalid.
-      3+-arity                → FilterVecOrSetPredArityInvalid on
-                                Vec/Set, FilterMapPredArityInvalid
+                                raises FilterVecOrSetPredArityInvalidError.
+      3+-arity                → FilterVecOrSetPredArityInvalidError on
+                                Vec/Set, FilterMapPredArityInvalidError
                                 on Map.
 
     Compose both-axis predicates via a named conduit binding, then
@@ -289,7 +289,7 @@
            :subject [:vec :set :map]
            :returns [:vec :set :map]
            :modifiers [:predicate-lambda]
-           :throws [::FilterSubjectNotContainer ::FilterVecOrSetPredArityInvalid ::FilterMapPredArityInvalid]}
+           :throws [::FilterSubjectNotContainerError ::FilterVecOrSetPredArityInvalidError ::FilterMapPredArityInvalidError]}
 
 :sort
   |~~ Returns a new Vec sorted in natural ascending order.
@@ -307,10 +307,10 @@
          :returns :vec
          :modifiers [:key-lambda]
          :throws [
-           ::SortNaturalSubjectNotVec
-           ::SortByKeySubjectNotVec
-           ::SortNaturalNotComparable
-           ::SortByKeyNotComparable]}
+           ::SortNaturalSubjectNotVecError
+           ::SortByKeySubjectNotVecError
+           ::SortNaturalNotComparableError
+           ::SortByKeyNotComparableError]}
 
 :sortWith
   |~~ Sorts a Vec using a custom comparator sub-pipeline. The
@@ -328,7 +328,7 @@
              :subject :vec
              :returns :vec
              :modifiers [:comparator-lambda]
-             :throws [::SortWithSubjectNotVec ::SortWithCmpResultNotNumber]}
+             :throws [::SortWithSubjectNotVecError ::SortWithCmpResultNotNumberError]}
 
 :take
   |~~ Returns the first n elements. If n exceeds length, returns
@@ -342,7 +342,7 @@
          :subject :vec
          :returns :vec
          :modifiers [:number]
-         :throws [::TakeSubjectNotVec ::TakeCountNotNumber]}
+         :throws [::TakeSubjectNotVecError ::TakeCountNotNumberError]}
 
 :at
   |~~ Polymorphic indexed access. On a Vec subject, returns the
@@ -350,7 +350,7 @@
     out-of-range returns null). On a Map subject, returns the value
     at string key (missing key returns null). The soft counterpart of
     the strict `/key` projection — `at` coalesces a miss to null,
-    `/key` raises `::ProjectionKeyNotInMap`.
+    `/key` raises `::ProjectionKeyNotInMapError`.
 
     ~{[10 20 30] | at(1) | eq(20)}
     ~{[10 20 30] | at(-1) | eq(30)}
@@ -364,7 +364,7 @@
        :subject [:vec :map]
        :returns :any
        :modifiers [:any]
-       :throws [::AtSubjectNotVecOrMap ::AtIndexNotInteger ::AtKeyNotString]}
+       :throws [::AtSubjectNotVecOrMapError ::AtIndexNotIntegerError ::AtKeyNotStringError]}
 
 :drop
   |~~ Returns the Vec with the first n elements removed. If n
@@ -378,7 +378,7 @@
          :subject :vec
          :returns :vec
          :modifiers [:number]
-         :throws [::DropSubjectNotVec ::DropCountNotNumber]}
+         :throws [::DropSubjectNotVecError ::DropCountNotNumberError]}
 
 :distinct
   |~~ Returns a new Vec with duplicate elements removed, preserving
@@ -398,7 +398,7 @@
              :subject :vec
              :returns :vec
              :modifiers []
-             :throws [::DistinctSubjectNotVec]}
+             :throws [::DistinctSubjectNotVecError]}
 
 :reverse
   |~~ Returns the Vec in reverse order.
@@ -411,7 +411,7 @@
             :subject :vec
             :returns :vec
             :modifiers []
-            :throws [::ReverseSubjectNotVec]}
+            :throws [::ReverseSubjectNotVecError]}
 
 :flat
   |~~ Flattens one level of nesting. Elements that are Vecs are
@@ -425,7 +425,7 @@
          :subject :vec
          :returns :vec
          :modifiers []
-         :throws [::FlatSubjectNotVec]}
+         :throws [::FlatSubjectNotVecError]}
 
 :set
   |~~ Converts a Vec to a Set, removing duplicates.
@@ -438,7 +438,7 @@
         :subject :vec
         :returns :set
         :modifiers []
-        :throws [::SetConversionSubjectNotVec]}
+        :throws [::SetConversionSubjectNotVecError]}
 
 :groupBy
   |~~ Partitions a Vec into a Map keyed by the result of the key
@@ -455,7 +455,7 @@
             :subject :vec
             :returns :map
             :modifiers [:key-lambda]
-            :throws [::GroupBySubjectNotVec ::GroupByKeyNotKeyword]}
+            :throws [::GroupBySubjectNotVecError ::GroupByKeyNotKeywordError]}
 
 :indexBy
   |~~ Collapses a Vec into a Map keyed by the result of the key
@@ -471,7 +471,7 @@
             :subject :vec
             :returns :map
             :modifiers [:key-lambda]
-            :throws [::IndexBySubjectNotVec ::IndexByKeyNotKeyword]}
+            :throws [::IndexBySubjectNotVecError ::IndexByKeyNotKeywordError]}
 
 |~ ──────────────── Comparator builders ──────────────── ~|
 
@@ -488,7 +488,7 @@
         :subject :map
         :returns :number
         :modifiers [:key-lambda]
-        :throws [::AscPairNotMap ::AscKeysNotComparable]}
+        :throws [::AscPairNotMapError ::AscKeysNotComparableError]}
 
 :desc
   |~~ Builds a descending comparator for sortWith. Same as asc
@@ -499,13 +499,13 @@
          :subject :map
          :returns :number
          :modifiers [:key-lambda]
-         :throws [::DescPairNotMap ::DescKeysNotComparable]}
+         :throws [::DescPairNotMapError ::DescKeysNotComparableError]}
 
 :nullsFirst
   |~~ Ascending comparator that places null-keyed elements before
     all non-null elements. Non-null keys are sorted in ascending
     order. Use inside sortWith to handle data with missing
-    values without tripping AscKeysNotComparable.
+    values without tripping AscKeysNotComparableError.
 
     ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a | eq([null 1 3])}
     ~~|
@@ -515,13 +515,13 @@
                :subject :map
                :returns :number
                :modifiers [:key-lambda]
-               :throws [::NullsFirstPairNotMap]}
+               :throws [::NullsFirstPairNotMapError]}
 
 :nullsLast
   |~~ Ascending comparator that places null-keyed elements after
     all non-null elements. Non-null keys are sorted in ascending
     order. Use inside sortWith to handle data with missing
-    values without tripping AscKeysNotComparable.
+    values without tripping AscKeysNotComparableError.
 
     ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a | eq([1 3 null])}
     ~~|
@@ -531,7 +531,7 @@
               :subject :map
               :returns :number
               :modifiers [:key-lambda]
-              :throws [::NullsLastPairNotMap]}
+              :throws [::NullsLastPairNotMapError]}
 
 |~ ──────────────── Control flow ──────────────── ~|
 
@@ -588,7 +588,7 @@
              :subject :any
              :returns :any
              :modifiers [:pipeline]
-             :throws [::CoalesceNoAlternatives]}
+             :throws [::CoalesceNoAlternativesError]}
 
 :firstTruthy
   |~~ Returns the first truthy result among the captured
@@ -604,7 +604,7 @@
                 :subject :any
                 :returns :any
                 :modifiers [:pipeline]
-                :throws [::FirstTruthyNoAlternatives]}
+                :throws [::FirstTruthyNoAlternativesError]}
 
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -620,7 +620,7 @@
          :subject :any
          :returns :any
          :modifiers [:pipeline]
-         :throws [::CondNoBranches]}
+         :throws [::CondNoBranchesError]}
 
 |~ ──────────────── Map operations ──────────────── ~|
 
@@ -635,7 +635,7 @@
          :subject :map
          :returns :set
          :modifiers []
-         :throws [::KeysSubjectNotMap]}
+         :throws [::KeysSubjectNotMapError]}
 
 :vals
   |~~ Returns a Vec of values in insertion order.
@@ -648,7 +648,7 @@
          :subject :map
          :returns :vec
          :modifiers []
-         :throws [::ValsSubjectNotMap]}
+         :throws [::ValsSubjectNotMapError]}
 
 :has
   |~~ Returns true if the Map contains the keyword key, or if
@@ -663,7 +663,7 @@
         :subject [:map :set]
         :returns :boolean
         :modifiers [:any]
-        :throws [::HasSubjectNotMapOrSet ::HasKeyNotKeyword]}
+        :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordError]}
 
 |~ ──────────────── Set operations ──────────────── ~|
 
@@ -682,7 +682,7 @@
           :subject [:set :map :vec]
           :returns [:set :map]
           :modifiers [:any]
-          :throws [::UnionBareSubjectNotVec ::UnionBareEmpty ::UnionPairIncompatible]}
+          :throws [::UnionBareSubjectNotVecError ::UnionBareEmptyError ::UnionPairIncompatibleError]}
 
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
@@ -699,7 +699,7 @@
           :subject [:set :map :vec]
           :returns [:set :map]
           :modifiers [:any]
-          :throws [::MinusBareSubjectNotVec ::MinusBareEmpty ::MinusPairIncompatible]}
+          :throws [::MinusBareSubjectNotVecError ::MinusBareEmptyError ::MinusPairIncompatibleError]}
 
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
@@ -716,7 +716,7 @@
           :subject [:set :map :vec]
           :returns [:set :map]
           :modifiers [:any]
-          :throws [::InterBareSubjectNotVec ::InterBareEmpty ::InterPairIncompatible]}
+          :throws [::InterBareSubjectNotVecError ::InterBareEmptyError ::InterPairIncompatibleError]}
 
 |~ ──────────────── Arithmetic ──────────────── ~|
 
@@ -734,7 +734,7 @@
         :subject :number
         :returns :number
         :modifiers [:number]
-        :throws [::AddLeftNotNumber ::AddRightNotNumber]}
+        :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
 
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
@@ -749,7 +749,7 @@
         :subject :number
         :returns :number
         :modifiers [:number]
-        :throws [::SubLeftNotNumber ::SubRightNotNumber]}
+        :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
 
 :mul
   |~~ Multiplies two numbers. Commutative.
@@ -763,7 +763,7 @@
         :subject :number
         :returns :number
         :modifiers [:number]
-        :throws [::MulLeftNotNumber ::MulRightNotNumber]}
+        :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
@@ -779,7 +779,7 @@
         :subject :number
         :returns :number
         :modifiers [:number]
-        :throws [::DivLeftNotNumber ::DivRightNotNumber ::DivisionByZeroError]}
+        :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
 
 |~ ──────────────── String ──────────────── ~|
 
@@ -796,7 +796,7 @@
           :subject :string
           :returns :vec
           :modifiers [:string]
-          :throws [::SplitSubjectNotString ::SplitSeparatorNotString]}
+          :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
 
 :join
   |~~ Joins the elements of a Vec of Strings with separator
@@ -811,7 +811,7 @@
          :subject :vec
          :returns :string
          :modifiers [:string]
-         :throws [::JoinSubjectNotVec ::JoinElementNotString ::JoinSeparatorNotString]}
+         :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
 
 :contains
   |~~ Returns true if the subject string contains needle as a
@@ -827,7 +827,7 @@
              :subject :string
              :returns :boolean
              :modifiers [:string]
-             :throws [::ContainsSubjectNotString ::ContainsNeedleNotString]}
+             :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
 
 :startsWith
   |~~ Returns true if the subject string begins with prefix.
@@ -842,7 +842,7 @@
                :subject :string
                :returns :boolean
                :modifiers [:string]
-               :throws [::StartsWithSubjectNotString ::StartsWithPrefixNotString]}
+               :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
 
 :endsWith
   |~~ Returns true if the subject string ends with suffix.
@@ -857,7 +857,7 @@
              :subject :string
              :returns :boolean
              :modifiers [:string]
-             :throws [::EndsWithSubjectNotString ::EndsWithSuffixNotString]}
+             :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
 
 :prepend
   |~~ Concatenates the modifier in front of the subject.
@@ -870,7 +870,7 @@
             :subject :string
             :returns :string
             :modifiers [:string]
-            :throws [::PrependSubjectNotString ::PrependPrefixNotString]}
+            :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
 
 :append
   |~~ Concatenates the subject with the modifier on the right.
@@ -883,7 +883,7 @@
            :subject :string
            :returns :string
            :modifiers [:string]
-           :throws [::AppendSubjectNotString ::AppendSuffixNotString]}
+           :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}
 
 |~ ──────────────── Boolean ──────────────── ~|
 
@@ -933,7 +933,7 @@
        :subject :number
        :returns :boolean
        :modifiers [:number]
-       :throws [::GtOperandsNotComparable]}
+       :throws [::GtOperandsNotComparableError]}
 
 :lt
   |~~ Subject-first ordering: a | lt(b) computes a < b.
@@ -946,7 +946,7 @@
        :subject :number
        :returns :boolean
        :modifiers [:number]
-       :throws [::LtOperandsNotComparable]}
+       :throws [::LtOperandsNotComparableError]}
 
 :gte
   |~~ Subject-first ordering: a | gte(b) computes a >= b.
@@ -959,7 +959,7 @@
         :subject :number
         :returns :boolean
         :modifiers [:number]
-        :throws [::GteOperandsNotComparable]}
+        :throws [::GteOperandsNotComparableError]}
 
 :lte
   |~~ Subject-first ordering: a | lte(b) computes a <= b.
@@ -972,7 +972,7 @@
         :subject :number
         :returns :boolean
         :modifiers [:number]
-        :throws [::LteOperandsNotComparable]}
+        :throws [::LteOperandsNotComparableError]}
 
 :and
   |~~ Returns true if both operands are truthy. Used in full form
@@ -1189,7 +1189,7 @@
           :subject :vec
           :returns :string
           :modifiers []
-          :throws [::TableSubjectNotVec ::TableRowNotMap]}
+          :throws [::TableSubjectNotVecError ::TableRowNotMapError]}
 
 |~ ──────────────── Reflective ──────────────── ~|
 
@@ -1222,7 +1222,7 @@
         :subject :any
         :returns :any
         :modifiers [:any]
-        :throws [::UseSubjectNotMap ::UseNamespaceNotKeyword ::UseNamespaceNotFound ::UseNamespaceNotMap ::UseNamespaceElementNotKeyword ::UseNamespaceCollision ::UseNameNotExported]}
+        :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
 
 :reify
   |~~ Builds a descriptor Map for a value or named binding.
@@ -1236,7 +1236,7 @@
           :subject :any
           :returns :map
           :modifiers [:keyword]
-          :throws [::ReifyKeyNotKeyword]}
+          :throws [::ReifyKeyNotKeywordError]}
 
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
@@ -1285,7 +1285,7 @@
        :subject :any
        :returns :any
        :modifiers [:keyword]
-       :throws [::AsNameNotKeyword]}
+       :throws [::AsNameNotKeywordError]}
 
 |~ ──────────────── Error ──────────────── ~|
 
@@ -1309,7 +1309,7 @@
           :subject :map
           :returns :error
           :modifiers [:map]
-          :throws [::ErrorDescriptorNotMap]}
+          :throws [::ErrorDescriptorNotMapError]}
 
 :isError
   |~~ Returns true when pipeValue is an error value,
@@ -1355,7 +1355,7 @@
           :subject :string
           :returns :map
           :modifiers []
-          :throws [::ParseSubjectNotStringOrQuote]}
+          :throws [::ParseSubjectNotStringOrQuoteError]}
 
 :eval
   |~~ Evaluates an AST-Map (typically produced by parse or
@@ -1377,7 +1377,7 @@
          :subject :map
          :returns :any
          :modifiers []
-         :throws [::EvalSubjectNotMapOrQuote]}
+         :throws [::EvalSubjectNotMapOrQuoteError]}
 
 :apply
   |~~ Runs the Quote-or-AST in pipeValue against the captured
@@ -1408,7 +1408,7 @@
           :subject [:quote :map]
           :returns :any
           :modifiers [:any]
-          :throws [::EvalSubjectNotMapOrQuote]}
+          :throws [::EvalSubjectNotMapOrQuoteError]}
 
 :keyword
   |~~ String↔Keyword involution. On a String subject, produces the
@@ -1430,7 +1430,7 @@
             :subject [:string :keyword]
             :returns [:string :keyword]
             :modifiers []
-            :throws [::KeywordSubjectNotStringOrKeyword]}
+            :throws [::KeywordSubjectNotStringOrKeywordError]}
 
 
 
@@ -1457,12 +1457,12 @@
                   :qlang/impl :qlang/type/conduit
                   :spec {:payload :vec}
                   :throws [
-                    ::ConduitPayloadNotVec
-                    ::ConduitArityInvalid
-                    ::ConduitSelfNameNotKeyword
-                    ::ConduitParamsNotVec
-                    ::ConduitParamNotKeyword
-                    ::ConduitBodyNotQuote]}
+                    ::ConduitPayloadNotVecError
+                    ::ConduitArityInvalidError
+                    ::ConduitSelfNameNotKeywordError
+                    ::ConduitParamsNotVecError
+                    ::ConduitParamNotKeywordError
+                    ::ConduitBodyNotQuoteError]}
 
 ::qlang
   |~~ ::qlang<json-shape> — recursively convert a JSON-shape
@@ -1540,7 +1540,7 @@
                 :subject :keyword
                 :returns :quote
                 :modifiers []
-                :throws [::SourceSubjectNotKeywordOrType ::AxisBindingNotFound]}
+                :throws [::SourceSubjectNotKeywordOrTypeError ::AxisBindingNotFoundError]}
 
 :docs
   |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
@@ -1553,7 +1553,7 @@
               :subject :keyword
               :returns :vec
               :modifiers []
-              :throws [::DocsSubjectNotKeywordOrType ::AxisBindingNotFound]}
+              :throws [::DocsSubjectNotKeywordOrTypeError ::AxisBindingNotFoundError]}
 
 :examples
   |~~ examples(:name) — Vec of Quote-values extracted from the
@@ -1566,4 +1566,4 @@
                   :subject :keyword
                   :returns :vec
                   :modifiers []
-                  :throws [::ExamplesSubjectNotKeywordOrType ::AxisBindingNotFound]}
+                  :throws [::ExamplesSubjectNotKeywordOrTypeError ::AxisBindingNotFoundError]}

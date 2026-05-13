@@ -30,19 +30,19 @@ import {
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
-const UnionBareSubjectNotVec    = declareSubjectError('UnionBareSubjectNotVec',    'union', 'vec');
-const MinusBareSubjectNotVec    = declareSubjectError('MinusBareSubjectNotVec',    'minus', 'vec');
-const InterBareSubjectNotVec    = declareSubjectError('InterBareSubjectNotVec',    'inter', 'vec');
+const UnionBareSubjectNotVecError    = declareSubjectError('UnionBareSubjectNotVecError',    'union', 'vec');
+const MinusBareSubjectNotVecError    = declareSubjectError('MinusBareSubjectNotVecError',    'minus', 'vec');
+const InterBareSubjectNotVecError    = declareSubjectError('InterBareSubjectNotVecError',    'inter', 'vec');
 
-const UnionPairIncompatible = declareComparabilityError('UnionPairIncompatible', 'union');
-const MinusPairIncompatible = declareComparabilityError('MinusPairIncompatible', 'minus');
-const InterPairIncompatible = declareComparabilityError('InterPairIncompatible', 'inter');
+const UnionPairIncompatibleError = declareComparabilityError('UnionPairIncompatibleError', 'union');
+const MinusPairIncompatibleError = declareComparabilityError('MinusPairIncompatibleError', 'minus');
+const InterPairIncompatibleError = declareComparabilityError('InterPairIncompatibleError', 'inter');
 
-const UnionBareEmpty = declareShapeError('UnionBareEmpty',
+const UnionBareEmptyError = declareShapeError('UnionBareEmptyError',
   () => 'union (bare form) requires a non-empty Vec of operands');
-const MinusBareEmpty = declareShapeError('MinusBareEmpty',
+const MinusBareEmptyError = declareShapeError('MinusBareEmptyError',
   () => 'minus (bare form) requires a non-empty Vec of operands');
-const InterBareEmpty = declareShapeError('InterBareEmpty',
+const InterBareEmptyError = declareShapeError('InterBareEmptyError',
   () => 'inter (bare form) requires a non-empty Vec of operands');
 
 function setAddDedup(s, v) {
@@ -67,7 +67,7 @@ function unionPair(left, right) {
     }
     return mapLikeOf(merged, left);
   }
-  throw new UnionPairIncompatible(left, right);
+  throw new UnionPairIncompatibleError(left, right);
 }
 
 function minusPair(left, right) {
@@ -95,7 +95,7 @@ function minusPair(left, right) {
     }
     return mapLikeOf(out, left);
   }
-  throw new MinusPairIncompatible(left, right);
+  throw new MinusPairIncompatibleError(left, right);
 }
 
 function interPair(left, right) {
@@ -123,13 +123,13 @@ function interPair(left, right) {
     }
     return mapLikeOf(out, left);
   }
-  throw new InterPairIncompatible(left, right);
+  throw new InterPairIncompatibleError(left, right);
 }
 
 export const union = overloadedOp('union', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new UnionBareSubjectNotVec(vec);
-    if (vec.length === 0) throw new UnionBareEmpty();
+    if (!isVecShape(vec)) throw new UnionBareSubjectNotVecError(vec);
+    if (vec.length === 0) throw new UnionBareEmptyError();
     return [...vec].reduce(unionPair);
   },
   1: async (unionSubject, unionRightLambda) => unionPair(unionSubject, await unionRightLambda(unionSubject)),
@@ -139,8 +139,8 @@ export const union = overloadedOp('union', 2, {
 
 export const minus = overloadedOp('minus', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new MinusBareSubjectNotVec(vec);
-    if (vec.length === 0) throw new MinusBareEmpty();
+    if (!isVecShape(vec)) throw new MinusBareSubjectNotVecError(vec);
+    if (vec.length === 0) throw new MinusBareEmptyError();
     return [...vec].reduce(minusPair);
   },
   1: async (minusSubject, minusRightLambda) => minusPair(minusSubject, await minusRightLambda(minusSubject)),
@@ -150,8 +150,8 @@ export const minus = overloadedOp('minus', 2, {
 
 export const inter = overloadedOp('inter', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new InterBareSubjectNotVec(vec);
-    if (vec.length === 0) throw new InterBareEmpty();
+    if (!isVecShape(vec)) throw new InterBareSubjectNotVecError(vec);
+    if (vec.length === 0) throw new InterBareEmptyError();
     return [...vec].reduce(interPair);
   },
   1: async (interSubject, interRightLambda) => interPair(interSubject, await interRightLambda(interSubject)),

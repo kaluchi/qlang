@@ -1,6 +1,6 @@
 # qlang Hypertext Post-Redesign
 
-Финиш hypertext-направления: каждое named-entity — first-class type-binding с навигируемыми axes (docs / spec / source / runExamples); единый `::tag` синтаксис для navigate / construct / print / reference; registration discipline через `TaggedLitTagNotFound`; entropy-promotion — семантически-сильнейшие bit'ы в structurally-dominant позиции syntax'а.
+Финиш hypertext-направления: каждое named-entity — first-class type-binding с навигируемыми axes (docs / spec / source / runExamples); единый `::tag` синтаксис для navigate / construct / print / reference; registration discipline через `TaggedLitTagNotFoundError`; entropy-promotion — семантически-сильнейшие bit'ы в structurally-dominant позиции syntax'а.
 
 ## Цель
 
@@ -37,7 +37,7 @@ Greedy `` `...` `` заменяется на pair'd `~{...}`:
 ```
 |~~ Subject of `examples` / `docs` / `source` axis must be a Keyword
     (binding-name) or a type-binding descriptor Map. ~~|
-::ExamplesSubjectNotKeywordOrType {
+::ExamplesSubjectNotKeywordOrTypeError {
   :qlang/kind :type
   :qlang/impl :qlang/error/auto-thrown
   :category :type-error
@@ -45,10 +45,10 @@ Greedy `` `...` `` заменяется на pair'd `~{...}`:
 }
 ```
 
-- `:thrown` field error-value — **TagKeyword** (`::ExamplesSubjectNotKeywordOrType`), не plain keyword.
+- `:thrown` field error-value — **TagKeyword** (`::ExamplesSubjectNotKeywordOrTypeError`), не plain keyword.
 - printValue для error-value с TagKeyword `:thrown` emit'ит `::ClassName!{:other-fields}` — class в tag-position, прочие fields в Map. `:thrown` field из Map removed (implied tag'ом).
 - Roundtrip: `::Class!{}` parse → TaggedLit → constructor stamps `:thrown :Class` + merges payload → error-value. Identity.
-- **Registration discipline:** попытка `::FakeClass!{...}` для unregistered tag → `TaggedLitTagNotFound`. Typo'и / catalog drift surface loudly.
+- **Registration discipline:** попытка `::FakeClass!{...}` для unregistered tag → `TaggedLitTagNotFoundError`. Typo'и / catalog drift surface loudly.
 - `:throws` Vec'и в descriptor'ах operand'ов carry TagKeyword references `[::ClassA ::ClassB]` — navigable axis'ами.
 - Existing axis-operands (`::Class | docs`, `| source`, `| spec`, `| runExamples`) уже работают для type-bindings — naturally extend на error-classes.
 
@@ -77,8 +77,8 @@ Borrowed из теории кодирования с потерями (progressi
 **Применяется fractal'но:**
 
 (a) **На уровне syntax structure** — class identifier в front (`::Class!{...}`), supplementary fields в back (`!{...}` payload):
-- `::AddLeftNotNumber!{...}` — class в tag-position, payload context — в map-entries.
-- vs flat `!{:thrown :AddLeftNotNumber ...}` где class drowns среди других equal-prefix entries.
+- `::AddLeftNotNumberError!{...}` — class в tag-position, payload context — в map-entries.
+- vs flat `!{:thrown :AddLeftNotNumberError ...}` где class drowns среди других equal-prefix entries.
 
 (b) **На уровне payload Map field ordering** — context-variable fields в front, class-derivable / constant fields в back (или altogether omitted через class-level defaults в type-binding):
 - Variable: `:actualType :vec`, `:actualValue [1 2 3]`, `:fault {...}`, dynamic `:message` — front.
@@ -89,13 +89,13 @@ Borrowed из теории кодирования с потерями (progressi
 Result форма:
 
 ```
-::AddLeftNotNumber!{:actualType :vec :actualValue [1 2 3] :fault {:step `add(1)` :input [1 2 3]}}
+::AddLeftNotNumberError!{:actualType :vec :actualValue [1 2 3] :fault {:step `add(1)` :input [1 2 3]}}
 ```
 
 vs текущая verbose (~16 fields):
 
 ```
-!{:origin :qlang/eval :kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "Number" :actualType :vec :actualValue [1 2 3] :message "..." :fault {...} :trail null}
+!{:origin :qlang/eval :kind :type-error :thrown :AddLeftNotNumberError :operand "add" :position 1 :expectedType "Number" :actualType :vec :actualValue [1 2 3] :message "..." :fault {...} :trail null}
 ```
 
 Compression — через class-level defaults factored out. Field ordering — variance-priority (variable first). Truncation at column N — class identity + most diagnostic context survive.
@@ -149,7 +149,7 @@ Compression — через class-level defaults factored out. Field ordering —
    :category :container-reducer
    :subject [:vec :set :map]
    :returns :number
-   :throws [::CountSubjectNotContainer]}
+   :throws [::CountSubjectNotContainerError]}
 
 ::conduit
   |~~ Conduit literal — invokeable lexically-scoped value carrying
@@ -157,7 +157,7 @@ Compression — через class-level defaults factored out. Field ordering —
   {:qlang/kind :type
    :qlang/impl :qlang/type/conduit
    :spec {:payload :vec}
-   :throws [::ConduitPayloadNotVec ::ConduitArityInvalid ...]}
+   :throws [::ConduitPayloadNotVecError ::ConduitArityInvalidError ...]}
 ```
 
 **Grammar:**
@@ -252,8 +252,8 @@ grammar-resolved, не env-lookup. Bootstrap-descriptor для `:def` в
 snapshot-unwrap pass → resolution pass.
 
 **:throws migrate to `::Tag`.** Вектор `:throws` в descriptor'ах теперь
-несёт `BareTypeKeyword`-references (`[::CountSubjectNotContainer
-::SortNaturalNotComparable]`), не plain `:keyword`'ы. Axis-navigable
+несёт `BareTypeKeyword`-references (`[::CountSubjectNotContainerError
+::SortNaturalNotComparableError]`), не plain `:keyword`'ы. Axis-navigable
 через те же operand'ы что и остальные `::tag` bindings — `:add | /throws |
 first | docs` достанет prose. Entropy promotion в действии — каждое имя
 ошибки становится navigable type-binding.
@@ -265,7 +265,7 @@ first | docs` достанет prose. Entropy promotion в действии — 
   `:name |~~ docs ~~|`, `:name [:p ...] body` → `:name [:p ...]
   body`, `::Tag body` → `::Tag body`.
 - Sweep `core.qlang`, conformance JSONL, unit-tests, docs.
-- `:throws` Vec sweep: `:CountSubjectNotContainer` → `::CountSubjectNotContainer`
+- `:throws` Vec sweep: `:CountSubjectNotContainerError` → `::CountSubjectNotContainerError`
   внутри `:throws` Vec'ах.
 
 **Walker / codec:**
@@ -338,11 +338,11 @@ later point). What's live:
   step; the `env` identifier still resolves through env-lookup so
   `env | keys` / `env | /count | reify` work identically.
 - **Strict projection**. `/key` no longer coalesces misses to null:
-  Map miss → `::ProjectionKeyNotInMap`, Vec OOB →
-  `::ProjectionIndexOutOfBounds`, Vec non-integer segment →
-  `::ProjectionVecKeyNotInteger`, value-class unknown field →
-  `::ProjectionFieldNotOnValueClass`, `null` subject →
-  `::ProjectionSubjectNotMap`. The `at` operand keeps soft-access
+  Map miss → `::ProjectionKeyNotInMapError`, Vec OOB →
+  `::ProjectionIndexOutOfBoundsError`, Vec non-integer segment →
+  `::ProjectionVecKeyNotIntegerError`, value-class unknown field →
+  `::ProjectionFieldNotOnValueClassError`, `null` subject →
+  `::ProjectionSubjectNotMapError`. The `at` operand keeps soft-access
   semantics (Map miss / Vec OOB → null) as the explicit "this field
   might be absent" path; `coalesce` / `firstTruthy` treat ErrorValue
   as "try next" alongside null so their "first defined value"
@@ -399,7 +399,7 @@ later point). What's live:
 the same machinery как у `::conduit` / `::qlang`. Никакой OOP-flavored
 терминологии (`Class` etc.) — named error / error-kind / type-binding.
 
-**Строгая 1:1 связка JS-class ↔ qlang-tag.** Каждая JS-сторона error-class из `operand-errors.mjs` остаётся как одна точка throw-site'а — 1 throw = 1 JS-class. qlang catalog объявляет zеркальный `::Имя` type-binding под точно совпадающим именем (`AddLeftNotNumber` JS-class ↔ `::AddLeftNotNumber` type-binding). Никакого generic constructor'а — каждый named-error имеет свой qlang-side `:constructor ::conduit[[:payload] ~{validation-body}]` (per §II.3 в redesign-plan'е), validation-body берёт payload Map после `!{...}` и проверяет наличие+тип всех required полей; iff payload корректен — lift'ит как error-value с `:thrown <::Tag>` stamped; иначе throws structural-error на fail-track. Mechanism уже существует в `eval.mjs::evalTaggedLit` L427-431 через Quote-impl path, JS не вовлечён.
+**Строгая 1:1 связка JS-class ↔ qlang-tag.** Каждая JS-сторона error-class из `operand-errors.mjs` остаётся как одна точка throw-site'а — 1 throw = 1 JS-class. qlang catalog объявляет zеркальный `::Имя` type-binding под точно совпадающим именем (`AddLeftNotNumberError` JS-class ↔ `::AddLeftNotNumberError` type-binding). Никакого generic constructor'а — каждый named-error имеет свой qlang-side `:constructor ::conduit[[:payload] ~{validation-body}]` (per §II.3 в redesign-plan'е), validation-body берёт payload Map после `!{...}` и проверяет наличие+тип всех required полей; iff payload корректен — lift'ит как error-value с `:thrown <::Tag>` stamped; иначе throws structural-error на fail-track. Mechanism уже существует в `eval.mjs::evalTaggedLit` L427-431 через Quote-impl path, JS не вовлечён.
 
 - `core/src/operand-errors.mjs` factory'и **сохраняются** (1:1 JS-class per throw-site). Дополнительно emit'ятся type-binding declarations в catalog (либо inline в `core.qlang` как BindStep'ы, либо separate catalog `core/lib/qlang/error/registry.qlang` loaded at bootstrap). Constructors qlang-side добавляются позже — сначала minimum нужный для eval + print.
 - `error-convert.mjs::errorFromQlang` stamps `:thrown` как TagKeyword (`makeTagKeyword(qlangError.fingerprint)`).
@@ -429,7 +429,7 @@ the same machinery как у `::conduit` / `::qlang`. Никакой OOP-flavore
 **Конкретный пример** — `"1" | add(1)`:
 
 ```
-::AddLeftNotNumber!{
+::AddLeftNotNumberError!{
   :fault {:step ~{add(1)} :input "1"}
   :actualValue "1"
   :actualType :string
@@ -443,7 +443,7 @@ the same machinery как у `::conduit` / `::qlang`. Никакой OOP-flavore
 
 `:fault.step` здесь surface-call `~{add(1)}` потому что `add` — builtin без internal conduit-frame'ов. Если ошибка fired бы изнутри user-defined conduit'a (e.g. `:double mul(2)` declared via BindStep, invocation `"x" | double` → mul throws on string), `:fault.step` пойнтнул бы на innermost AST-узел где JS-factory throw'ом — `~{mul(2)}` внутри conduit's body — а `:trail` накопил бы пройденные deflection'ы surface'а. Истинная глубина не на `:fault.step`, а в combinated `:trail`.
 
-- Tests: roundtrip `::Tag!{ <fields> }` parse → eval → print → parse identity; registration discipline (typo'нутый tag → `TaggedLitTagNotFound`); axis-operands работают для named-error-bindings (`::AddLeftNotNumber | docs` returns docs); `:trail` для nested-conduit-throw'ов содержит propagation chain.
+- Tests: roundtrip `::Tag!{ <fields> }` parse → eval → print → parse identity; registration discipline (typo'нутый tag → `TaggedLitTagNotFoundError`); axis-operands работают для named-error-bindings (`::AddLeftNotNumberError | docs` returns docs); `:trail` для nested-conduit-throw'ов содержит propagation chain.
 
 ### M5. Hypertext catalog integration
 
@@ -461,10 +461,10 @@ the same machinery как у `::conduit` / `::qlang`. Никакой OOP-flavore
 
 ## Out of scope (settled elsewhere)
 
-- Function-value handling — invariant `FunctionValueLeakedToPrint` + projection `:qlang/impl` function→keyword в render-paths. Done.
+- Function-value handling — invariant `FunctionValueLeakedToPrintError` + projection `:qlang/impl` function→keyword в render-paths. Done.
 - Conduit value-literal vs declaration-form — display `:name body` через `printConduit`, strict round-trip через codec.mjs (tagged-JSON). Settled.
 - `let` → `def` operand rename — Done in current session.
 - `:trail` Quote vs AST-Map shape — Quote-source. Done.
 - `:fault.step` Quote-shape. Done.
-- ConduitBodyMissingSource invariant в `makeConduit`. Done.
+- ConduitBodyMissingSourceError invariant в `makeConduit`. Done.
 - CLI host operands wrapping в descriptor Map (`bindHostBuiltin`). Done.

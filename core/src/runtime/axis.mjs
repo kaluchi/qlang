@@ -23,9 +23,9 @@ import {
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const SourceSubjectNotKeywordOrType   = declareSubjectError('SourceSubjectNotKeywordOrType',   'source',   ['keyword', 'tag-keyword']);
-const DocsSubjectNotKeywordOrType     = declareSubjectError('DocsSubjectNotKeywordOrType',     'docs',     ['keyword', 'tag-keyword']);
-const ExamplesSubjectNotKeywordOrType = declareSubjectError('ExamplesSubjectNotKeywordOrType', 'examples', ['keyword', 'tag-keyword']);
+const SourceSubjectNotKeywordOrTypeError   = declareSubjectError('SourceSubjectNotKeywordOrTypeError',   'source',   ['keyword', 'tag-keyword']);
+const DocsSubjectNotKeywordOrTypeError     = declareSubjectError('DocsSubjectNotKeywordOrTypeError',     'docs',     ['keyword', 'tag-keyword']);
+const ExamplesSubjectNotKeywordOrTypeError = declareSubjectError('ExamplesSubjectNotKeywordOrTypeError', 'examples', ['keyword', 'tag-keyword']);
 // `axisName` ('source' / 'docs' / 'examples') and `bindingName`
 // (a value-namespace identifier or a `::`-prefixed type-binding
 // reference) are identifier-shaped strings at the JS level; the
@@ -36,7 +36,7 @@ const ExamplesSubjectNotKeywordOrType = declareSubjectError('ExamplesSubjectNotK
 // produces the raw `name` half — the lifted-keyword printValue
 // surface kicks in only when projection consumers (`!| /bindingName`)
 // read the descriptor.
-export const AxisBindingNotFound = declareShapeError('AxisBindingNotFound',
+export const AxisBindingNotFoundError = declareShapeError('AxisBindingNotFoundError',
   ({ axisName, bindingName }) =>
     `${axisName}: no binding-step found for '${bindingName}' across loaded modules`);
 
@@ -127,29 +127,29 @@ function bindingNameOf(subject, env, ErrorCls) {
 }
 
 export const source = stateOp('source', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrType);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrTypeError);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
-    throw new AxisBindingNotFound({ axisName: 'source', bindingName });
+    throw new AxisBindingNotFoundError({ axisName: 'source', bindingName });
   }
   return withPipeValue(state, makeQuote(step.text));
 });
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrType);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrTypeError);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
-    throw new AxisBindingNotFound({ axisName: 'docs', bindingName });
+    throw new AxisBindingNotFoundError({ axisName: 'docs', bindingName });
   }
   const docStrings = step.docs ?? [];
   return withPipeValue(state, Object.freeze(docStrings.map(s => makeDoc(s))));
 });
 
 export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrType);
+  const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrTypeError);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
-    throw new AxisBindingNotFound({ axisName: 'examples', bindingName });
+    throw new AxisBindingNotFoundError({ axisName: 'examples', bindingName });
   }
   const docStrings = step.docs ?? [];
   const collected = [];

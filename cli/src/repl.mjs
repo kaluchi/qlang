@@ -169,7 +169,7 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
 }
 
 // Output boundary defensive — printValue raises runtime invariants
-// (FunctionValueLeakedToPrint, etc.) when an internal-only value-class
+// (FunctionValueLeakedToPrintError, etc.) when an internal-only value-class
 // surfaces in pipeValue. The REPL is a terminal-display surface, so a
 // thrown invariant must not hang the line queue or kill the process;
 // we render a diagnostic line to stderr naming the invariant and

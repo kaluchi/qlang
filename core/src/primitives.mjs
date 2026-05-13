@@ -65,54 +65,54 @@ import { QlangError, QlangInvariantError } from './errors.mjs';
 // subclass (dispatch-time data error that lifts through evalNode's
 // try/catch onto the fail-track).
 
-class PrimitiveKeyNotString extends QlangInvariantError {
+class PrimitiveKeyNotStringError extends QlangInvariantError {
   constructor(actualType) {
     super(
       `bind: primitive key must be a string, got ${actualType}`,
       { actualType }
     );
-    this.name = 'PrimitiveKeyNotString';
-    this.fingerprint = 'PrimitiveKeyNotString';
+    this.name = 'PrimitiveKeyNotStringError';
+    this.fingerprint = 'PrimitiveKeyNotStringError';
   }
 }
 
-class PrimitiveKeyAlreadyBound extends QlangInvariantError {
+class PrimitiveKeyAlreadyBoundError extends QlangInvariantError {
   constructor(keyName) {
     super(
       `bind: primitive key :${keyName} is already bound; duplicate binding indicates two runtime modules claim the same primitive name`,
       { keyName }
     );
-    this.name = 'PrimitiveKeyAlreadyBound';
-    this.fingerprint = 'PrimitiveKeyAlreadyBound';
+    this.name = 'PrimitiveKeyAlreadyBoundError';
+    this.fingerprint = 'PrimitiveKeyAlreadyBoundError';
   }
 }
 
-class PrimitiveRegistrySealed extends QlangInvariantError {
+class PrimitiveRegistrySealedError extends QlangInvariantError {
   constructor(keyLabel) {
     super(
       `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
       { keyLabel }
     );
-    this.name = 'PrimitiveRegistrySealed';
-    this.fingerprint = 'PrimitiveRegistrySealed';
+    this.name = 'PrimitiveRegistrySealedError';
+    this.fingerprint = 'PrimitiveRegistrySealedError';
   }
 }
 
-// PrimitiveKeyUnbound — the one dispatch-time data error. Fires when
+// PrimitiveKeyUnboundError — the one dispatch-time data error. Fires when
 // a descriptor Map's :qlang/impl keyword points to a primitive that
 // was never bound. Extends QlangError (not QlangInvariantError) so
 // evalNode's try/catch converts it to an error value on the fail-
 // track instead of crashing the evaluator. This gracefully handles
 // hand-crafted descriptor Maps, stale serialized sessions, and mis-
 // edited manifest entries.
-class PrimitiveKeyUnbound extends QlangError {
+class PrimitiveKeyUnboundError extends QlangError {
   constructor(keyLabel) {
     super(
       `resolve: no primitive bound under :${keyLabel}`,
       'primitive-unbound'
     );
-    this.name = 'PrimitiveKeyUnbound';
-    this.fingerprint = 'PrimitiveKeyUnbound';
+    this.name = 'PrimitiveKeyUnboundError';
+    this.fingerprint = 'PrimitiveKeyUnboundError';
     this.context = { keyLabel };
   }
 }
@@ -137,13 +137,13 @@ export function createPrimitiveRegistry() {
   return {
     bind(key, impl) {
       if (sealed) {
-        throw new PrimitiveRegistrySealed(key);
+        throw new PrimitiveRegistrySealedError(key);
       }
       if (typeof key !== 'string') {
-        throw new PrimitiveKeyNotString(typeof key);
+        throw new PrimitiveKeyNotStringError(typeof key);
       }
       if (bindings.has(key)) {
-        throw new PrimitiveKeyAlreadyBound(key);
+        throw new PrimitiveKeyAlreadyBoundError(key);
       }
       bindings.set(key, impl);
       return key;
@@ -151,7 +151,7 @@ export function createPrimitiveRegistry() {
 
     resolve(key) {
       if (!bindings.has(key)) {
-        throw new PrimitiveKeyUnbound(key);
+        throw new PrimitiveKeyUnboundError(key);
       }
       return bindings.get(key);
     },

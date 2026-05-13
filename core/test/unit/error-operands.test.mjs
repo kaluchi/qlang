@@ -15,9 +15,9 @@ describe('error operand', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('bare form on non-Map produces ErrorDescriptorNotMap', async () => {
+  it('bare form on non-Map produces ErrorDescriptorNotMapError', async () => {
     const evalResult = await evalQuery('42 | error !| /thrown');
-    expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMap'));
+    expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMapError'));
   });
 });
 
@@ -86,9 +86,9 @@ describe('reify :source from conduit body', () => {
   });
 });
 
-// ── EffectLaunderingAtCall ──────────────────────────────────────
+// ── EffectLaunderingAtCallError ──────────────────────────────────────
 
-describe('EffectLaunderingAtCall', () => {
+describe('EffectLaunderingAtCallError', () => {
   it('calling non-@-prefixed name resolving to effectful conduit produces error', async () => {
     // Install an @-prefixed conduit under a non-@-prefixed name via session.bind.
     // This simulates the laundering path (via use, as, or session injection)

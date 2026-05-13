@@ -165,19 +165,19 @@ describe('runRepl — output highlighting', () => {
 });
 
 describe('runRepl — render-invariant catch', () => {
-  it('catches FunctionValueLeakedToPrint and continues prompting', async () => {
+  it('catches FunctionValueLeakedToPrintError and continues prompting', async () => {
     // `env | /mul | /:qlang/impl` walks env → mul's raw descriptor
     // Map (the env binding still carries `:qlang/kind :builtin` +
     // `:qlang/impl <fn>` because `env` returns the storage Map, not
     // the reify-shaped projection) → the resolved function value
     // sitting on `:qlang/impl`. printValue refuses raw function
-    // values via FunctionValueLeakedToPrint; the REPL renderer
+    // values via FunctionValueLeakedToPrintError; the REPL renderer
     // catches that, writes a render-invariant diagnostic to stderr,
     // and stays open for the next prompt.
     const r = captureRepl('env | /mul | /:qlang/impl\n.exit\n');
     const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(stripAnsi(r.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrint/);
+    expect(stripAnsi(r.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrintError/);
   });
 
   it('renders an error-value with materialised :trail through the same printValue path as success values', async () => {

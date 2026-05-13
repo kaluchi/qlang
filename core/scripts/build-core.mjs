@@ -36,7 +36,7 @@ mkdirSync(outputDir, { recursive: true });
 // the registry up-front installs every named-error type-binding so
 // the subsequent core.qlang def-steps see them and produce
 // descriptor Vec'и carrying TagKeyword references (not lifted
-// TaggedLitTagNotFound error-values).
+// TaggedLitTagNotFoundError error-values).
 const coreSource     = readFileSync(coreInputPath,     'utf8');
 const registrySource = readFileSync(registryInputPath, 'utf8');
 const divider = '\n\n|~ ──────────────── Operand catalog ──────────────── ~|\n\n';

@@ -215,12 +215,13 @@ BindStep **прозрачен для pipeValue** — выводит declarations
    `makeSnapshot(value, { name, docs, location })`.
 3. Если body impure (содержит OperandCall / Projection / ParenGroup /
    Pipeline) — bound = `makeConduit(body, { name, params, docs, envRef,
-   location })`. envRef tie-the-knot как в текущем `defOperand`.
+   location })`. envRef tie-the-knot как был в прежнем `defOperand`
+   до удаления в 26fbc4e.
 4. `envSet(state.env, name, bound)`. pipeValue preserved.
 
 `name` ← `':' + key.name` for Keyword, `'::' + key.tag` for
-BareTypeKeyword. Effect-laundering AST scan тот же что у текущего
-defOperand'а — пер-binding @-prefix check.
+BareTypeKeyword. Effect-laundering AST scan тот же что был у
+прежнего `defOperand` до его удаления — пер-binding @-prefix check.
 
 **Body restriction.** Bare Keyword / BareTypeKeyword запрещены как
 body (`:foo :bar` не парсится как binding — бессмысленно). Body

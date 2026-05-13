@@ -367,6 +367,111 @@ Typical call pattern:
 `manifest` is a convenience wrapper around `reify(:name)` applied
 to every key in `env | keys`.
 
+## Type bindings and TaggedLit dispatch
+
+Identifiers prefixed with `::` resolve in a parallel namespace
+from `:` identifiers. Both namespaces share one env Map keyed by
+plain strings — the discriminator is the literal `::` prefix on
+the key, no extra storage. `core/src/types.mjs` exports the
+`TYPE_BINDING_PREFIX` constant (`'::'`) and the `isTypeBindingName`
+predicate; every place that needs to walk env entries by namespace
+(`manifest` filtering, axis-operand lookup, LSP completion) reads
+through these helpers rather than re-typing the prefix string.
+
+A type binding is the value stored under `'::Tag'`: a frozen Map
+carrying `:qlang/kind :type` plus a constructor handle on
+`:qlang/impl`.
+
+### TaggedLit eval flow
+
+`evalTaggedLit(node, state)` in `core/src/eval.mjs`:
+
+1. **Fork-eval the payload.** The TaggedLit AST has `tag` (Ident)
+   and `payload` (Primary AST). The payload evaluates in a fork
+   that inherits the outer `pipeValue` — the same fork rule that
+   governs Map / Vec / Set literal entries. The result is the
+   **payload-value**.
+2. **Look up the type binding.** `'::' + node.tag` is the env key.
+   Absent → `TaggedLitTagNotFoundError` with the missing tag name.
+3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
+   snapshots route through here too).
+4. **Validate descriptor shape.** Binding must be a Map (typically
+   carrying `:qlang/kind :type`). Otherwise → `TaggedLitNotTypeError`.
+5. **Read `:qlang/impl`.** Three branches dispatch by the impl
+   value's runtime shape:
+   - **Keyword handle** (`:qlang/prim/<tag>`) — resolve through
+     `PRIMITIVE_REGISTRY` to a JS-side constructor function.
+     Invoke `await constructor(payloadValue, state)`; the return
+     becomes the new pipeValue.
+   - **Quote-value** (`~{body}`) — parse the Quote's source
+     (cached as `.ast` after the first parse), build a fresh
+     state with `pipeValue = payloadValue` and the surrounding
+     env, evaluate the body AST, ascend the result.
+   - **Undefined** + payload is an ErrorValue — the **universal
+     named-error shorthand**: re-stamp the descriptor with
+     `:thrown ::Tag` and return a fresh ErrorValue carrying the
+     promoted tag. Lets every entry in the named-error registry
+     work as a constructor without per-tag JS, mirroring the
+     shape `errorFromQlang` produces from a runtime throw site.
+6. **Otherwise** → `TypeBindingHasNoConstructorError` carrying
+   `:payloadValue` / `:payloadType` / `:expectedType
+   [:keyword :quote]` / `:actualValue` / `:actualType` so the
+   diagnostic reads as a structural-shape mismatch.
+
+### `BareTypeKeyword` — type-identifier as value
+
+`::tag` without a following Primary parses as a `BareTypeKeyword`
+AST node. Evaluation looks the binding up the same way (step 2
+above) but returns a `TagKeyword` value (`makeTagKeyword(tag)`)
+instead of invoking a constructor. This is how `::ParseError | docs`
+works — the `BareTypeKeyword` produces a TagKeyword pipeValue,
+the axis-operand reads it via `bindingNameOf` and walks the
+`qlang/ast/<uri>` module Quote to find the declaring BindStep.
+
+### Constructor invariants
+
+Constructors must satisfy:
+
+- **No side effects on env or I/O.** An effectful constructor body
+  under a clean `::tag` name raises
+  `EffectLaunderingAtBindStepParseError` at BindStep evaluation —
+  same invariant as value-namespace BindSteps (the body AST scan
+  catches `@`-prefixed identifiers regardless of which namespace
+  the BindStep declares into).
+- **Deterministic over payload.** Same payload-value → same
+  output. Required by the round-trip theorem (`parse(printValue(V))`
+  yields an equivalent V).
+- **Frozen output.** Constructor returns an immutable value; the
+  enclosing language-level immutability invariant follows from
+  here.
+
+### Tagged-instance round-trip
+
+A constructor that returns a Map carrying `:qlang/kind <TagKeyword>`
+plus `:qlang/payload <Vec>` produces a **tagged instance** —
+`isTaggedInstance` in `types.mjs` recognises the shape and
+`printValue` routes it through `printTaggedInstance`, which emits
+the `::tag[<payload>]` literal. The original source-form
+constructor invocation is recoverable from the value alone, so
+the round-trip theorem covers user-defined tagged types without a
+custom printer per tag.
+
+Three reserved tag names own dedicated render paths and bypass
+the generic tagged-instance branch:
+- `:conduit` → `::conduit[:self [params] ~{body}]` form (the
+  Conduit value-class print).
+- `:snapshot` → wrapped value (snapshot is an env wrapper,
+  recursing on the underlying value).
+- `:type` → BindStep declaration form (a type-binding renders
+  back as `::Tag {descriptor}`, not as an instance).
+
+The named-error promotion (step 5 above, undefined-impl branch)
+piggybacks on the same round-trip: `errorFromQlang` stamps
+`:thrown ::Tag` on the descriptor, `printValue::printErrorValue`
+elides the field and emits `::Tag!{…}` with the rest of the
+payload Map, and a literal `::Tag!{…}` source re-creates the
+same descriptor through the universal shorthand.
+
 ## Combinators
 
 Four combinators thread state between steps. Three are on the

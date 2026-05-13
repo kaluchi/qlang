@@ -1286,6 +1286,236 @@ the same binding slot, and subsequent lookups see the new docs.
 This is the pipeline-first analogue of "editing": rebind instead
 of mutate.
 
+## Type bindings
+
+Names and modules introduced three forms that write into the
+binding scope (`as`, BindStep, `use`). All three live in the
+**value namespace** — the same namespace as built-in operands.
+A second namespace runs in parallel: the **type namespace**,
+reached through identifiers prefixed with `::` instead of `:`.
+
+`:foo` and `::foo` are two distinct bindings. The value-namespace
+`:duration` (say, a Conduit doubling a number of seconds) and the
+type-namespace `::duration` (a constructor for a duration value)
+coexist in env without collision — colon-count picks the
+namespace, no positional rules required.
+
+```qlang
+> :duration mul(60)
+  | ::duration {:qlang/kind :type :qlang/impl ~{as(:s) | {:seconds s}}}
+  | [10 | duration, ::duration(10)]
+[600 {:seconds 10}]
+```
+
+Element 1 (`10 | duration`) invokes the value-namespace Conduit;
+element 2 (`::duration(10)`) invokes the type-namespace
+constructor. Both bindings live in the same env, both reachable
+without a namespace switch operand — colon-count alone picks
+the namespace at every identifier site.
+
+### `::tag<container>` — tagged literal
+
+`::tag` followed by any Primary expression is a **tagged literal**:
+the parser builds a TaggedLit AST node, the evaluator runs the
+payload, looks up `::tag` in the type namespace, and invokes the
+type's constructor against the payload value. The constructor's
+return becomes the new `pipeValue`. `printValue` emits the same
+`::tag<payload>` form back, so the round-trip invariant holds.
+
+```qlang
+::duration{:hours 3}
+::regex"^[a-z]+$"
+::permitted-tags#{:read :write}
+::bytes[72 101 108 108 111]
+```
+
+The angle-bracket notation `<container>` is meta-syntax for "any
+Primary expression"; real source never carries `<...>`. Container
+choice matches the payload's natural shape — Vec for ordered
+positional payload, Map for keyword-keyed slots, Set for an
+unordered collection, String / Quote / etc. for value-class
+specific payload.
+
+**No whitespace between tag and payload.** `::duration{...}` is one
+tagged literal; `::duration {...}` is the BareTypeKeyword
+`::duration` followed by a separate Map primary in the next
+pipeline position. Whitespace forces the split — same rule as
+projection (`/foo` vs `/ foo`).
+
+The base composite literals — `[...]`, `{...}`, `#{...}`, `!{...}`,
+`~{...}` — are short forms for the most-frequent value classes
+(Vec, Map, Set, Error, Quote). New value classes ride the `::tag`
+syntax until usage earns them a shorthand.
+
+### Declaring a type binding
+
+A type binding is just a BindStep whose key is a `::Tag`
+identifier. The body is a descriptor Map carrying
+`:qlang/kind :type` plus a constructor handle (`:qlang/impl`).
+
+Two equivalent paths register the constructor:
+
+**qlang-side** — `:qlang/impl` is a Quote-value, evaluated against
+the payload as initial `pipeValue`. No JavaScript needed; works
+from inside any query or library module.
+
+```qlang
+::wrap {:qlang/kind :type
+        :qlang/impl ~{prepend("[") | append("]")}}
+| "world" | ::wrap"world"
+|~| → "[world]"
+
+|~~ Set permissions — only :read/:write/:delete allowed. ~~|
+::permissions {:qlang/kind :type
+   :allowed #{:read :write :delete}
+   :qlang/impl ~{as(:p)
+     | every(:permissions/allowed | has)
+     | when(not, error({:kind :PermissionUnknown}))
+     | p}}
+
+|~| → returns the Set unchanged on valid input,
+|~| → lifts on fail-track on unknown keyword.
+::permissions#{:read :write}
+```
+
+The Quote body sees the env of the invocation site — `:exclaim
+append("!") | ::shout {:qlang/impl ~{exclaim}}` resolves `exclaim`
+through ordinary env lookup. Identifier resolution carries no
+namespace switch — a type-constructor body is a normal
+sub-pipeline.
+
+**JS-side** — `:qlang/impl` is a keyword handle into the host
+primitive registry. The constructor is a JavaScript function
+registered through `PRIMITIVE_REGISTRY.bind('qlang/prim/<tag>',
+fn)` at module-load time. The descriptor then references the
+function by its handle.
+
+```js
+import { PRIMITIVE_REGISTRY, makeJsonObject } from '@kaluchi/qlang-core';
+
+PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
+  const hours = payload.get('hours') ?? 0;
+  const result = new Map();
+  result.set('seconds', hours * 3600);
+  return Object.freeze(result);
+});
+```
+
+```qlang
+::duration {:qlang/kind :type :qlang/impl :qlang/prim/duration}
+| ::duration{:hours 3}
+| /seconds
+|~| → 10800
+```
+
+The runtime catalog uses this path for `::conduit`, `::qlang`,
+`::json` (see `core/src/runtime/tagged.mjs`); host integrations
+register their own native types the same way.
+
+A descriptor whose `:qlang/impl` is neither a Keyword handle nor
+a Quote-value raises `TypeBindingHasNoConstructorError` on first
+invocation. A reference to a tag that has no env binding raises
+`TaggedLitTagNotFoundError` — typos and catalog drift surface
+loudly at the first use.
+
+### Constructor invariants
+
+- **Pure.** Constructors must not perform I/O or mutate env. An
+  effectful constructor body laundered under a clean `::tag`
+  name raises `EffectLaunderingAtBindStepParseError` — the same
+  invariant as for value-namespace BindSteps.
+- **Deterministic.** Same payload produces the same value.
+  Round-trip integrity depends on this: `parse(printValue(V))`
+  must yield an equivalent V.
+- **Frozen output.** Constructor returns a frozen value (Map /
+  Vec / Set / scalar / nested tagged value).
+
+### Payload evaluation — keyword-keyed-args reading
+
+The payload is a normal Primary expression: it evaluates against
+the outer `pipeValue` before the constructor runs. Map-literal
+payload becomes a constructor call with **keyword-keyed
+arguments** — read it as the dual of positional `op(a, b)`:
+
+```qlang
+value | op(a, b)                       |~| positional args
+value | ::tag{:k1 expr1 :k2 expr2}     |~| keyword-keyed args
+```
+
+Both forms thread `value` as outer `pipeValue` and evaluate the
+arguments against it. Domain DSLs read more naturally in the
+keyword-keyed form — author writes named slots, the constructor
+sees a Map where each entry is the result of evaluating the
+corresponding sub-pipeline.
+
+```qlang
+{:name "alice"}
+  | ::user{:name /name :access ::permissions#{:read :write}}
+```
+
+Step by step:
+1. Outer `pipeValue` = `{:name "alice"}`.
+2. Inner Map `{:name /name :access ::permissions#{...}}` evaluates:
+   - `:name /name` — sub-fork, `/name` against the outer
+     pipeValue → `"alice"`.
+   - `:access ::permissions#{:read :write}` — inner TaggedLit
+     evaluates first; `::permissions` constructor sees the Set,
+     validates, returns it.
+3. Constructor `::user` runs against the payload Map.
+
+The same fork-tree rule that governs `[1 2 3] * /name` governs
+tagged-literal payload — no special-case eval path.
+
+### Quote payload for deferred evaluation
+
+A constructor that wants conditional or lazy semantics receives a
+Quote payload. The Quote captures the source verbatim and its AST
+is parsed on demand only when the constructor invokes `eval` /
+`apply` / `/ast` against it.
+
+```qlang
+::cond {:qlang/kind :type
+        :qlang/impl ~{as(:branches)
+          | first(/condition | parse | eval | isTruthy)
+          | /body | parse | eval}}
+
+| 25 | ::cond[{:condition ~{/ | gt(18)} :body ~{"adult"}}
+              {:condition ~{true}        :body ~{"minor"}}]
+|~| → "adult"
+```
+
+No grammar-level lazy flag — the Quote literal `~{...}` carries
+the deferred semantics.
+
+The Quote-payload pattern composes with Doc-payload for inline
+DSL templating: a constructor that walks `parseDocSegments`
+output binds Quote segments as parameter slots and prose
+segments as static text, the foundation for `::sql`, `::html`,
+`::shell` patterns that route user-supplied values through the
+constructor before splicing into the template — automatic
+parameter binding, no manual escaping.
+
+### Tagged values as round-trip surface
+
+When a constructor returns a Map carrying `:qlang/kind <TagKeyword>`
+plus `:qlang/payload <Vec>`, the resulting value is a
+**tagged instance**: `printValue` reads the discriminator and
+emits the source-form `::tag[<payload>]` literal back, so any
+TaggedLit value flows through the round-trip invariant.
+
+Three reserved tag names own dedicated render paths
+(`:conduit` → `::conduit[…]` form, `:snapshot` → wrapped value,
+`:type` → BindStep declaration form) and are excluded from the
+generic tagged-instance path; every other tag rides the generic
+shape.
+
+A named error value (`!{:thrown ::Tag …}`) is a special case:
+the descriptor's `:thrown` TagKeyword promotes to the literal's
+tag-head, and `printValue` emits `::Tag!{…fields…}` with the
+`:thrown` entry elided from the payload — the same shape both a
+JavaScript throw site and a literal `::Tag!{…}` source produce
+([Error track](#error-track)).
+
 ## Error track
 
 Every chapter so far has been success-track: each step received a

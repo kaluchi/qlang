@@ -92,8 +92,8 @@ function describe(tag) {
   const custom = {
     ParseError: 'Parser failure — source did not match the grammar.',
     DivisionByZeroError: 'Division by zero in `div`.',
-    AxisBindingNotFound: 'Axis-operand could not find a def-step for the requested binding name.',
-    EffectLaunderingAtDefParse: '@-effect identifier appears inside a non-@-prefixed def body at parse-time.',
+    AxisBindingNotFound: 'Axis-operand could not find a BindStep for the requested binding name.',
+    EffectLaunderingAtBindStepParse: '@-effect identifier appears inside a non-@-prefixed BindStep body at parse-time.',
     EffectLaunderingAtCall: '@-effect identifier resolved through env / use / as without an @-prefixed alias at call-time.',
     UnresolvedIdentifierError: 'Identifier lookup failed — no env binding under that name.'
   };

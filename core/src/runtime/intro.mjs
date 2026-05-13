@@ -26,10 +26,7 @@ import {
   declareArityError
 } from '../operand-errors.mjs';
 import { errorFromParse } from '../error-convert.mjs';
-import {
-  UnresolvedIdentifierError,
-  EffectLaunderingAtDefParse
-} from '../errors.mjs';
+import { UnresolvedIdentifierError } from '../errors.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import { classifyEffect } from '../effect.mjs';
 // Live ESM binding into eval.mjs — runtime/index.mjs → intro.mjs →

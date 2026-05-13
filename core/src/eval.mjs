@@ -17,7 +17,7 @@ import {
   QlangError,
   UnresolvedIdentifierError,
   EffectLaunderingAtCall,
-  EffectLaunderingAtDefParse
+  EffectLaunderingAtBindStepParse
 } from './errors.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { classifyEffect } from './effect.mjs';
@@ -556,7 +556,7 @@ async function evalBareTypeKeyword(node, state) {
 //
 // Effect-laundering AST scan runs on impure body / parametric
 // before installing — a non-@-prefixed name with an effectful
-// body raises EffectLaunderingAtDefParse.
+// body raises EffectLaunderingAtBindStepParse.
 async function evalBindStep(node, state) {
   const name = node.key.type === 'BareTypeKeyword'
     ? '::' + node.key.tag
@@ -581,8 +581,8 @@ async function evalBindStep(node, state) {
   if (!classifyEffect(name)) {
     const offender = findFirstEffectfulIdentifier(node.body);
     if (offender !== null) {
-      throw new EffectLaunderingAtDefParse({
-        defName: name,
+      throw new EffectLaunderingAtBindStepParse({
+        bindingName: name,
         effectfulName: offender,
         location: node.body.location
       });

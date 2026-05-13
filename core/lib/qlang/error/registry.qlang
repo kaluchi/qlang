@@ -180,12 +180,12 @@
   |~~ Subject of `drop` is not a Vec. ~~|
   {:qlang/kind :type}
 
-::EffectLaunderingAtCall
-  |~~ @-effect identifier resolved through env / use / as without an @-prefixed alias at call-time. ~~|
+::EffectLaunderingAtBindStepParse
+  |~~ @-effect identifier appears inside a non-@-prefixed BindStep body at parse-time. ~~|
   {:qlang/kind :type}
 
-::EffectLaunderingAtDefParse
-  |~~ @-effect identifier appears inside a non-@-prefixed def body at parse-time. ~~|
+::EffectLaunderingAtCall
+  |~~ @-effect identifier resolved through env / use / as without an @-prefixed alias at call-time. ~~|
   {:qlang/kind :type}
 
 ::EmptySubjectNotContainer

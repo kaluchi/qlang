@@ -18,7 +18,7 @@
 {"name":"conduit-reify-params-two","query":":f [:a :b] add(a, b) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
 {"name":"conduit-reify-source","query":":double mul(2) | reify(:double) | /source","expect":"\"mul(2)\""}
 {"name":"conduit-effect-marker-clean-body-at-name-ok","query":":@safe count | [1 2 3] | @safe","expect":"3"}
-{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":":foo @callers !| /thrown","expect":"::EffectLaunderingAtDefParse"}
+{"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":":foo @callers !| /thrown","expect":"::EffectLaunderingAtBindStepParse"}
 {"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
 {"name":"as-operand-reify","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
 {"name":"as-name-not-keyword-error","query":"42 | as(42)","error":"type-error","expect":"::AsNameNotKeyword!{\n  :fault {:step ~{as(42)} :input 42}\n  :actualValue 42\n  :actualType :number\n  :origin :qlang/eval\n  :kind :type-error\n}"}

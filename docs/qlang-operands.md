@@ -1087,7 +1087,7 @@ missing). This is the introspection-by-name path:
   `::wrap {:qlang/kind :type :qlang/impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
   → `"[x]"`.
 - **Errors**: clean binding name carrying an effectful body →
-  `EffectLaunderingAtDefParse` (the only runtime throw inside
+  `EffectLaunderingAtBindStepParse` (the only runtime throw inside
   `evalBindStep`). Name shape, params shape, body presence, and
   doc-prefix arity are all guaranteed by the grammar — no
   runtime check needed.

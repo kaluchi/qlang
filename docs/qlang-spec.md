@@ -1444,7 +1444,7 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    When a `:name body` BindStep evaluates, it checks the body AST via
    `findFirstEffectfulIdentifier`: if the binding name is clean but
    the body contains an effectful OperandCall or Projection segment,
-   the step throws `EffectLaunderingAtDefParse` carrying the
+   the step throws `EffectLaunderingAtBindStepParse` carrying the
    source location of the offending identifier. Both direct calls
    (`@callers`) and projection-based extraction (`env | /@callers`)
    are caught.

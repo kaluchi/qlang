@@ -115,15 +115,16 @@ export class QlangInvariantError extends QlangError {
 }
 
 // EffectLaunderingError — abstract root for the @-prefix effect-marker
-// invariant: a `let` binding whose body references an @-prefixed
-// identifier (the qlang convention for side-effectful host operands
-// like @callers, @refs, @hierarchy) must itself be @-prefixed, so
-// the effect propagates through every alias. Two concrete subclasses
-// fire from two different points:
+// invariant: a BindStep declaration whose body references an
+// @-prefixed identifier (the qlang convention for side-effectful host
+// operands like @callers, @refs, @hierarchy) must itself be
+// @-prefixed, so the effect propagates through every alias. Two
+// concrete subclasses fire from two different points:
 //
-//   EffectLaunderingAtDefParse — fired by parse-time AST validation
-//     in src/effect-check.mjs when the AST scan finds an @-prefixed
-//     OperandCall or Projection key inside a non-@-prefixed def body.
+//   EffectLaunderingAtBindStepParse — fired by `evalBindStep` when
+//     the body AST scan (findFirstEffectfulIdentifier) finds an
+//     @-prefixed OperandCall or Projection key inside a non-@-
+//     prefixed BindStep body.
 //
 //   EffectLaunderingAtCall — fired at runtime by
 //     eval.mjs::evalOperandCall and eval.mjs::applyConduit
@@ -140,15 +141,15 @@ export class EffectLaunderingError extends QlangError {
   }
 }
 
-export class EffectLaunderingAtDefParse extends EffectLaunderingError {
-  constructor({ defName, effectfulName, location = null }) {
+export class EffectLaunderingAtBindStepParse extends EffectLaunderingError {
+  constructor({ bindingName, effectfulName, location = null }) {
     super(
-      `def '${defName}' has an effectful body (references '${effectfulName}') ` +
-      `but its name is not @-prefixed; rename to '@${defName}' or remove the effectful reference`,
-      { defName, effectfulName }
+      `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
+      `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
+      { bindingName, effectfulName }
     );
-    this.name = 'EffectLaunderingAtDefParse';
-    this.fingerprint = 'EffectLaunderingAtDefParse';
+    this.name = 'EffectLaunderingAtBindStepParse';
+    this.fingerprint = 'EffectLaunderingAtBindStepParse';
     this.location = location;
   }
 }

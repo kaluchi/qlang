@@ -19,7 +19,6 @@ is always `@kaluchi/`. Single rule, applied uniformly:
   `core/lib/qlang/core.qlang` via the build step).
 - `cli/` → `@kaluchi/qlang-cli`. Node CLI, REPL, module loader, session
   persistence. Depends on `@kaluchi/qlang-core` via workspace link.
-  *(Lands in a follow-up commit.)*
 - `lsp/` → `@kaluchi/qlang-lsp`. Language server. Node-only.
 - `site/` → `@kaluchi/qlang-site`. Astro documentation site. Private,
   not published to npm — Pages workflow ships `site/dist`.

@@ -144,14 +144,13 @@ export async function evalQuery(source, env) {
     return errorFromParse(parseErr);
   }
   const envWithInlineAst = envSet(initialEnv, moduleAstKey('inline'), makeQuote(source, ast));
-  // Initial pipeValue is `null` — every pipeline has to bring its own
-  // subject through an explicit head step (`env`, a literal, a
-  // captured arg). The pre-M4 default of seeding pipeValue with the
-  // env Map made `count` standalone "count of env bindings" and
-  // dumped the full env into `:fault.input` on every error — both
-  // surprising and noisy. The `env` identifier still resolves
-  // through env-lookup so introspective queries (`env | keys`,
-  // `env | /count | reify`) work identically.
+  // Initial pipeValue is `null` — every pipeline brings its own
+  // subject through an explicit head step (a literal, a captured
+  // arg, the `env` identifier). The `env` identifier resolves
+  // through env-lookup like any other name, so introspective
+  // queries (`env | keys`, `env | /count | reify`) read the env
+  // Map without seeding pipeValue with it implicitly — keeping the
+  // env out of `:fault.input` on every error descriptor.
   const initialState = makeState(null, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
   return materializePendingTrail(finalState.pipeValue);
@@ -524,13 +523,14 @@ async function evalTaggedLit(node, state) {
   // Named-error construction shorthand — `::Tag!{…}` literal where
   // ::Tag is a registered type-binding without a `:qlang/impl`
   // constructor. The payload is already an ErrorValue (evaluated
-  // from the ErrorLit at line 408); re-stamp the descriptor with
-  // `:thrown ::Tag` so the literal round-trips through parse → eval
-  // → print into the same shape `errorFromQlang` produces from a JS
-  // throw site. This is the universal constructor every named-error
-  // type-binding shares until per-site Quote-impl validators (§II.3)
-  // land. Constructor-less non-error TaggedLits still fall through
-  // to TypeBindingHasNoConstructorError.
+  // from the ErrorLit one branch above); re-stamp the descriptor
+  // with `:thrown ::Tag` so the literal round-trips through parse →
+  // eval → print into the same shape `errorFromQlang` produces
+  // from a JS throw site. Universal constructor every named-error
+  // type-binding shares; per-tag payload validators register
+  // through `:qlang/impl` Quote bodies and take precedence at the
+  // `isQuote(implKey)` branch above. Constructor-less non-error
+  // TaggedLits fall through to TypeBindingHasNoConstructorError.
   if (implKey === undefined && isErrorValue(payloadValue)) {
     const restamped = new Map(payloadValue.descriptor);
     restamped.set('thrown', makeTagKeyword(node.tag));
@@ -964,8 +964,9 @@ async function applyConduit(conduit, node, lookupName, state) {
   // declarations, deserializeSession for restored bindings); both
   // perform the tie-the-knot pattern so the body resolves through
   // the env captured at declaration time. Reading `.env` directly
-  // — no `?? state.env` fallback — is the explicit signal that
-  // dynamic-scope drift is not a supported invocation path.
+  // — no `?? state.env` fallback — pins lexical scope: the body
+  // resolves through the env captured by the construction-site
+  // tie-the-knot, never through the caller's env at invocation.
   let bodyEnv = conduitEnvRef.env;
   for (let i = 0; i < conduitParams.length; i++) {
     const paramProxy = makeConduitParameter(conduitLambdas[i], conduitParams[i]);

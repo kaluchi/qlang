@@ -66,13 +66,13 @@ export function tokenize(src, builtinNames) {
 }
 
 // Recursive call from QuoteLit handling: tokenise the Quote body
-// the same way as the top-level source. Quote bodies allow a
-// leading combinator (`~{| count}`, `~{* mul(2)}`) which the
-// regular `parse` grammar accepts post-M4 — so the same tokeniser
-// pipeline applies without a separate start-rule. When the body
-// is unparseable (rare malformed-suffix case), fall back to a
-// single whitespace span so the renderer still paints the body
-// uniformly italic.
+// the same way as the top-level source. Quote bodies parse through
+// the full `Pipeline` rule including a leading combinator
+// (`~{| count}`, `~{* mul(2)}`), so the same tokeniser pipeline
+// applies without a separate start-rule. When the body is
+// unparseable (rare malformed-suffix case), fall back to a single
+// whitespace span so the renderer still paints the body uniformly
+// italic.
 function subTokenize(src, builtinNames) {
   if (src.length === 0) return [];
   let ast;

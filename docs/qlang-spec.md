@@ -1559,13 +1559,12 @@ bound.
 **Conduit descriptor** — produced for any BindStep-installed binding:
 
 ```
-{:kind   :conduit
- :name   "surround"
- :params ["pfx" "sfx"]
- :source "(prepend(pfx) | append(sfx))"
- :docs   ["Wraps a string between a prefix and suffix."]
+{:kind      :conduit
+ :name      "surround"
+ :params    ["pfx" "sfx"]
+ :source    "(prepend(pfx) | append(sfx))"
  :effectful false
- :location {:start ... :end ...}}
+ :location  {:start ... :end ...}}
 ```
 
 The `:source` field carries the body's original source substring
@@ -1575,12 +1574,12 @@ typed and not a re-rendered AST.
 **Snapshot descriptor** — produced for any `as`-bound binding:
 
 ```
-{:kind  :snapshot
- :name  "captured"
- :value <the wrapped value>
- :type  :vec
- :docs  []
- :effectful false}
+{:kind      :snapshot
+ :name      "captured"
+ :value     <the wrapped value>
+ :type      :vec
+ :effectful false
+ :location  {:start ... :end ...}}
 ```
 
 **Value descriptor** — produced for any other Map / Vec / Set /
@@ -1595,13 +1594,18 @@ scalar that does not carry the binding-kind discriminator:
 
 Once a descriptor is in `pipeValue`, it is an ordinary Map and
 every Map operand (`/key`, `has`, `keys`, `vals`, `union`,
-`filter`, `eq`, ...) applies to it. This is how the doc comments
-attached to a BindStep in [Comments](#comments) become reachable:
+`filter`, `eq`, ...) applies to it. The doc comments attached to
+a BindStep in [Comments](#comments) ride on the `BindStep`'s
+own AST node and surface through the `docs` axis-operand:
 
 ```qlang
-|~| reify(:foo) | /docs
-|~| → ["First remark." "Second remark." "Block-form remark\n    with internal newlines."]
+|~| :foo | docs
+|~| → [|~~ First remark. ~~| |~~ Second remark. ~~|
+|~|     |~~ Block-form remark\n    with internal newlines. ~~|]
 ```
+
+The axis returns a Vec of Doc-values, each with a `/content` raw
+string and a `/segments` Prose / Quote / TaggedLit split.
 
 #### Bare-name introspection ergonomic
 

@@ -976,28 +976,31 @@ depends on the value's provenance. Four descriptor kinds:
 - **Conduit** — `pipeValue` is a BindStep-bound conduit (named
   pipeline fragment, zero or more parameters). Descriptor:
   ```
-  {:kind   :conduit
-   :name   "double"
-   :params []
-   :source "mul(2)"
-   :docs   ["Doubles a number." "Impl note: reuses mul with partial application."]}
+  {:kind      :conduit
+   :name      "double"
+   :params    []
+   :source    "mul(2)"
+   :effectful false
+   :location  {:start ... :end ...}}
   ```
   Parametric conduits carry a non-empty `:params` Vec:
   ```
-  {:kind   :conduit
-   :name   "surround"
-   :params ["pfx" "sfx"]
-   :source "(prepend(pfx) | append(sfx))"
-   :docs   []}
+  {:kind      :conduit
+   :name      "surround"
+   :params    ["pfx" "sfx"]
+   :source    "(prepend(pfx) | append(sfx))"
+   :effectful false
+   :location  {:start ... :end ...}}
   ```
 - **Snapshot** — `pipeValue` is an `as`-bound snapshot wrapper.
   Descriptor:
   ```
-  {:kind :snapshot
-   :name "captured"
-   :value <snapshotted value>
-   :type :vec
-   :docs []}
+  {:kind      :snapshot
+   :name      "captured"
+   :value     <snapshotted value>
+   :type      :vec
+   :effectful false
+   :location  {:start ... :end ...}}
   ```
 - **Value** — any other Scalar, Vec, Map, or Set that is not a
   function or wrapper. Descriptor:

@@ -10,7 +10,7 @@
 
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isQuote, isQMap, isJsonObject,
+  isVec, isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
   makeConduit, makeJsonObject, makeJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';
@@ -31,7 +31,7 @@ const ConduitBodyNotQuoteError = declareShapeError('ConduitBodyNotQuoteError',
 // `::conduit[[:p1 :p2] \`body-source\`]` — non-recursive
 // `::conduit[:self [:p1 :p2] \`body-source\`]` — with self-name for recursion
 async function conduitConstructor(payload, state) {
-  if (!isVec(payload)) throw new ConduitPayloadNotVecError(payload);
+  if (!isVecShape(payload)) throw new ConduitPayloadNotVecError(payload);
   if (payload.length !== 2 && payload.length !== 3) {
     throw new ConduitArityInvalidError({ actualCount: payload.length });
   }
@@ -49,7 +49,7 @@ async function conduitConstructor(payload, state) {
     params = payload[0];
     body = payload[1];
   }
-  if (!isVec(params)) {
+  if (!isVecShape(params)) {
     throw new ConduitParamsNotVecError({ actualType: typeKeyword(params), actualValue: params });
   }
   for (let i = 0; i < params.length; i++) {

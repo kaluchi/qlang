@@ -46,6 +46,36 @@
     if (Array.isArray(unit)) return unit.flatMap(flattenUnits);
     return [unit];
   }
+
+  // AST shapes that round-trip as pure JSON content — scalars
+  // (NumberLit / StringLit / BooleanLit / NullLit) plus the two
+  // JSON containers (JsonObjectLit / JsonArrayLit). Anything else
+  // — Keyword, qlang Vec / Map / Set / Error / Quote / Doc /
+  // TaggedLit literals, identifier OperandCall, Projection,
+  // ParenGroup, Pipeline — is qlang-only or runtime computation.
+  //
+  // Used by single-element `[X]` VecLit dispatch (§II.11.1): a
+  // single-element array whose head is JSON-only content parses as
+  // `JsonArrayLit`, matching the multi-element comma-separated
+  // form. A single-element array carrying qlang-only or
+  // runtime-computed content stays a qlang VecLit. Empty `[]` is
+  // qlang VecLit by default (no content to inspect).
+  const JSON_ONLY_AST_TYPES = new Set([
+    'NumberLit', 'StringLit', 'BooleanLit', 'NullLit',
+    'JsonObjectLit', 'JsonArrayLit'
+  ]);
+  function isJsonOnlyAst(node) {
+    if (node == null) return false;
+    // A Pipeline whose head is JSON-only and which carries no
+    // tail steps (single-step pipeline collapsed to its head)
+    // counts as JSON-only. Multi-step pipelines are runtime
+    // computation.
+    if (node.type === 'Pipeline') {
+      if (node.steps.length === 1) return isJsonOnlyAst(node.steps[0]);
+      return false;
+    }
+    return JSON_ONLY_AST_TYPES.has(node.type);
+  }
 }}
 
 Query
@@ -700,18 +730,25 @@ SetLit
   / "#{" _L elements:PipelineList _L "}"
     { return node('SetLit', { elements }, location(), text()); }
 
-// VecLit — mode-discriminated by separator per §II.11.1:
-//   []                          — empty, defaults to qlang Vec at
-//                                 top level.
+// VecLit — mode-discriminated by separator and content:
+//   []                          — empty, defaults to qlang Vec.
 //   [1, 2, 3]                   — JSON Array: comma-separated.
 //   [1 2 3]                     — qlang Vec: whitespace-separated.
-//   [1]                         — single element, qlang Vec.
+//   [42]                        — single JSON-only element → JSON Array.
+//   [:foo]                      — single qlang-only element → qlang Vec.
+//   [{"a":1}]                   — single JSON-content element → JSON Array.
+// Single-element `[X]` parses by `isJsonOnlyAst(X)` content check —
+// JSON-only scalars and JSON containers retain the JSON Array tag
+// (so pasted-JSON `[{"name":"alice"}]` keeps its shape), while a
+// single qlang-only element falls through to qlang Vec.
 // Mixed separators inside a single literal raise a parse error
 // because the chosen alternative (whichever PEG ordered choice
 // commits to) won't match the second element shape.
 VecLit
   = "[" _L head:PipelineInLiteral tail:(_L "," _L PipelineInLiteral)+ _L "]"
     { return node('JsonArrayLit', { elements: [head, ...tail.map(t => t[3])] }, location(), text()); }
+  / "[" _L head:PipelineInLiteral _L "]" & { return isJsonOnlyAst(head); }
+    { return node('JsonArrayLit', { elements: [head] }, location(), text()); }
   / "[" _L head:PipelineInLiteral tail:(_L PipelineInLiteral)* _L "]"
     { return node('VecLit', { elements: [head, ...tail.map(t => t[1])] }, location(), text()); }
   / "[" _L "]"

@@ -136,9 +136,17 @@ describe('parse — Vec literal', () => {
   });
 
   it('parses a nested Vec', () => {
-    const ast = parse('[[1] [2]]');
+    const ast = parse('[[:a] [:b]]');
+    expect(ast.type).toBe('VecLit');
     expect(ast.elements[0].type).toBe('VecLit');
     expect(ast.elements[1].type).toBe('VecLit');
+  });
+
+  it('parses a nested Vec where each inner is single JSON-only', () => {
+    const ast = parse('[[1] [2]]');
+    expect(ast.type).toBe('VecLit');
+    expect(ast.elements[0].type).toBe('JsonArrayLit');
+    expect(ast.elements[1].type).toBe('JsonArrayLit');
   });
 });
 

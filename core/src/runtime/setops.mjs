@@ -18,17 +18,23 @@ import {
   isQSet, isKeyword,
   isVecShape, isMapShape, mapShapeEntries, mapLikeOf
 } from '../types.mjs';
-
-function setHasKeywordName(s, name) {
-  for (const v of s) if (isKeyword(v) && v.name === name) return true;
-  return false;
-}
 import {
   declareSubjectError,
   declareComparabilityError,
   declareShapeError
 } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
+
+// Map-minus-Set / Map-inter-Set drop or keep entries by their
+// String key. The Set typically carries Keywords (`#{:tmp}`) — the
+// keyword's `.name` matches the Map's String key. Composite Set
+// members would not be meaningful as Map-key filters, so the
+// lookup stays keyword-name-only.
+function setHasMapKey(s, k) {
+  for (const v of s) if (isKeyword(v) && v.name === k) return true;
+  return false;
+}
 
 const UnionBareSubjectNotVecError    = declareSubjectError('UnionBareSubjectNotVecError',    'union', 'vec');
 const MinusBareSubjectNotVecError    = declareSubjectError('MinusBareSubjectNotVecError',    'minus', 'vec');
@@ -45,17 +51,10 @@ const MinusBareEmptyError = declareShapeError('MinusBareEmptyError',
 const InterBareEmptyError = declareShapeError('InterBareEmptyError',
   () => 'inter (bare form) requires a non-empty Vec of operands');
 
-function setAddDedup(s, v) {
-  if (isKeyword(v)) {
-    for (const existing of s) if (isKeyword(existing) && existing.name === v.name) return;
-  }
-  s.add(v);
-}
-
 function unionPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
     const out = new Set(left);
-    for (const v of right) setAddDedup(out, v);
+    for (const v of right) addStructurallyUnique(out, v);
     return out;
   }
   if (isMapShape(left) && isMapShape(right)) {
@@ -74,8 +73,7 @@ function minusPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
     const out = new Set();
     for (const v of left) {
-      const inRight = isKeyword(v) ? setHasKeywordName(right, v.name) : right.has(v);
-      if (!inRight) out.add(v);
+      if (!setHasStructurally(right, v)) addStructurallyUnique(out, v);
     }
     return out;
   }
@@ -91,7 +89,7 @@ function minusPair(left, right) {
   if (isMapShape(left) && isQSet(right)) {
     const out = [];
     for (const [k, v] of mapShapeEntries(left)) {
-      if (!setHasKeywordName(right, k)) out.push([k, v]);
+      if (!setHasMapKey(right, k)) out.push([k, v]);
     }
     return mapLikeOf(out, left);
   }
@@ -102,8 +100,7 @@ function interPair(left, right) {
   if (isQSet(left) && isQSet(right)) {
     const out = new Set();
     for (const v of left) {
-      const inRight = isKeyword(v) ? setHasKeywordName(right, v.name) : right.has(v);
-      if (inRight) out.add(v);
+      if (setHasStructurally(right, v)) addStructurallyUnique(out, v);
     }
     return out;
   }
@@ -119,7 +116,7 @@ function interPair(left, right) {
   if (isMapShape(left) && isQSet(right)) {
     const out = [];
     for (const [k, v] of mapShapeEntries(left)) {
-      if (setHasKeywordName(right, k)) out.push([k, v]);
+      if (setHasMapKey(right, k)) out.push([k, v]);
     }
     return mapLikeOf(out, left);
   }

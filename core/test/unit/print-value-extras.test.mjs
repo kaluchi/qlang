@@ -206,7 +206,13 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] ~{99}]');
   });
 
-  it('renders a Snapshot-valued cell as ~{as(:name)}', async () => {
+  it('renders a Snapshot-valued cell as the unwrapped value (round-trip-safe)', async () => {
+    // Snapshot is an immutable value-wrapper — the cell renderer
+    // recurses on the captured value because that value carries
+    // the renderable identity. The `as(:name)` surface form is a
+    // binding statement, not a value literal; emitting it would
+    // round-trip through parse + eval into env-write + identity
+    // pipeValue, not back into a Snapshot value.
     const { table } = await import('../../src/runtime/format.mjs');
     const snap = makeSnapshot(42, { name: 'cached' });
     const row = new Map([['snap', snap]]);
@@ -214,7 +220,8 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('as(:cached)');
+    expect(rendered.pipeValue).toContain('42');
+    expect(rendered.pipeValue).not.toContain('as(:cached)');
   });
 
   it('table refuses a Function-valued cell — invariant fires through renderCell', async () => {
@@ -242,7 +249,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     expect(rendered.pipeValue).toContain('::conduit[:inner [] ~{7}]');
   });
 
-  it('renders a Vec-of-Snapshot cell — INLINE handler for Snapshot fires', async () => {
+  it('renders a Vec-of-Snapshot cell — INLINE handler recurses on unwrapped value', async () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const snap = makeSnapshot('hi', { name: 'greet' });
     const row = new Map([['snaps', [snap]]]);
@@ -250,7 +257,10 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       { pipeValue: [row], env: new Map() },
       []
     );
-    expect(rendered.pipeValue).toContain('as(:greet)');
+    // Inline-form recurses on the wrapped String "hi", which
+    // round-trips through `escapeQlangStringLiteral` to `"hi"`.
+    expect(rendered.pipeValue).toContain('"hi"');
+    expect(rendered.pipeValue).not.toContain('as(:greet)');
   });
 
   it('table refuses a Vec-of-Function cell — invariant fires through renderInline', async () => {

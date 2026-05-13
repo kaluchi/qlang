@@ -109,7 +109,15 @@ describe('round-trip invariant — Set', () => {
     '#{}',
     '#{:a :b :c}',
     '#{1 2 3}',
-    '#{:name :age :id}'
+    '#{:name :age :id}',
+    // Composite-element dedup at construction — `#{[1 2] [1 2]}`
+    // collapses to a Set of size 1 because two structurally-equal
+    // Vec literals are the same Set member.
+    '#{[1 2] [1 2]}',
+    '#{[1 2] [3 4]}',
+    '#{{:a 1} {:a 1}}',
+    '#{{:a 1} {:b 2}}',
+    '#{[1 2] [1 2] [3 4]}'
   ]) {
     it(`set literal: ${src}`, () => pinRoundTrip(src));
   }

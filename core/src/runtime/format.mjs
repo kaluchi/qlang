@@ -332,7 +332,12 @@ const CELL_HANDLERS = {
   JsonObject: o => renderInline(o),
   JsonArray:  a => renderInline(a),
   Conduit:    printConduit,
-  Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  // Snapshot is an immutable value-wrapper: the captured value
+  // carries the renderable identity, the wrapper itself is env
+  // housekeeping. Cell-renderer recurses on the unwrapped value
+  // so the cell stays a value literal (round-trip-safe), not the
+  // `as(:name)` binding statement.
+  Snapshot:   s => renderCell(s.get('qlang/value')),
   TaggedInstance: renderTaggedInstanceInline
 };
 
@@ -351,7 +356,13 @@ const INLINE_HANDLERS = {
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
   JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,
   Conduit:    printConduit,
-  Snapshot:   s => `as(${canonicalKeywordLiteral(s.get('name'))})`,
+  // Snapshot is an immutable value-wrapper — recurse on the
+  // captured value (which carries the renderable identity).
+  // The `as(:name)` surface form is a binding statement, not
+  // a value literal: emitting it here would falsely round-trip
+  // through parse + eval into a different shape (env-write +
+  // pipeValue identity, not a Snapshot value).
+  Snapshot:   s => renderInline(s.get('qlang/value')),
   TaggedInstance: renderTaggedInstanceInline,
   Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
 };

@@ -52,6 +52,7 @@ import {
   moduleAstKey
 } from './types.mjs';
 import { astNodeToMap, isPureLiteralAst } from './walk.mjs';
+import { addStructurallyUnique } from './equality.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
@@ -477,15 +478,9 @@ function evalDocLit(node, state) {
 
 async function evalSetLit(node, state) {
   const setResult = new Set();
-  const kwNames = new Set();
   for (const setElem of node.elements) {
     const elemFork = await fork(state, inner => evalNode(setElem, inner));
-    const val = elemFork.pipeValue;
-    if (isKeyword(val)) {
-      if (kwNames.has(val.name)) continue;
-      kwNames.add(val.name);
-    }
-    setResult.add(val);
+    addStructurallyUnique(setResult, elemFork.pipeValue);
   }
   return withPipeValue(state, setResult);
 }

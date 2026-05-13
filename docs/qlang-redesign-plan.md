@@ -57,11 +57,10 @@ TaggedLit eval flow:
 1. Парсер строит `TaggedLit` AST с полями `tag` (Ident) и `payload` (Primary AST).
 2. Eval payload по обычным правилам (inference §II.11.1 применяется внутри payload independently). Получаем **payload-value**.
 3. Lookup `::tag` в type-namespace env. Если binding отсутствует — `TaggedLitTagNotFoundError`.
-4. Резолюшен — descriptor type-binding'а это Map с `:qlang/kind :type`, `:qlang/impl :qlang/prim/<tag>`, опциональный `:spec`, `:docs`, `:examples`.
-5. `:qlang/impl` keyword resolve'ится через `PRIMITIVE_REGISTRY` → **constructor function-value**. Альтернатива — Quote-value (qlang-side constructor body) — landed.
-6. (Optional) Generic spec-check: если descriptor содержит `:spec` — payload-value валидируется против spec до invocation. Несоответствие → `TaggedLitSpecMismatch` с structured context (`{tag, expectedSpec, actualValue}`). **Не landed.**
-7. Constructor invoke'ит `(payload) → value`. Может throw'ать дополнительные per-site error'ы.
-8. Returned value становится pipeValue.
+4. Резолюшен — descriptor type-binding'а это Map с `:qlang/kind :type`, `:qlang/impl :qlang/prim/<tag>` (либо Quote-value).
+5. `:qlang/impl` keyword resolve'ится через `PRIMITIVE_REGISTRY` → **constructor function-value**. Альтернатива — Quote-value (qlang-side constructor body).
+6. Constructor invoke'ит `(payload) → value`. Может throw'ать дополнительные per-site error'ы.
+7. Returned value становится pipeValue.
 
 **Constructor может быть JS-side или qlang-side (landed):**
 
@@ -71,7 +70,6 @@ TaggedLit eval flow:
 ```qlang
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
 ::permissions {:qlang/kind :type
-   :spec {:payload :set}
    :allowed #{:read :write :delete}
    :qlang/impl ~{as(:p)
      | every(:permissions/allowed | has)
@@ -80,23 +78,6 @@ TaggedLit eval flow:
 ```
 
 `::permissions#{:read :write}` → constructor invoke с payload Set, every-check проходит, returns payload. `::permissions#{:read :write :lie}` → fail, throws `:PermissionUnknown` на fail-track.
-
-**defineTaggedType helper** (не landed):
-
-```js
-import { defineTaggedType } from '@kaluchi/qlang-core';
-
-defineTaggedType({
-  tag: 'duration',
-  spec: { /* optional shape descriptor */ },
-  construct: (payload) => { /* ... */ },
-  print:     (value)   => { /* ... */ },
-});
-// → bind'ит обе функции в registry под правильными ключами
-//   + регистрирует descriptor в env.
-```
-
-Сейчас embedder пишет два отдельных `PRIMITIVE_REGISTRY.bind` (constructor + optional printer) и BindStep `::tag {…descriptor…}`. Helper экономит boilerplate.
 
 **Constructor invariants:**
 
@@ -156,7 +137,6 @@ Doc-content уже парсится через `parseDocSegments` в Vec из `:
 
 ```qlang
 ::sql {:qlang/kind :type
-   :spec {:payload :doc}
    :qlang/impl ~{/segments
      | as(:parts)
      | { :sql      parts | * (if(/qlang/kind | eq(:prose),
@@ -223,7 +203,7 @@ Constructor получает Vec branches с Quote-value'ями для condition
 
 (landed: BindStep `::Tag {descriptor}` форма + `evalTaggedLit` resolving `:qlang/impl` keyword/Quote. **Not in spec**: chapter про type bindings как такие.)
 
-Type definitions через BindStep `::tag descriptor`. Descriptor — Map с `:qlang/kind :type`, `:qlang/impl :qlang/prim/<tag>` (handle keyword в `PRIMITIVE_REGISTRY`, тот же механизм что builtin descriptor'ов в `core/lib/qlang/core.qlang`) либо Quote-value (qlang-side body), опциональный `:spec` (ожидаемая shape payload), `:docs` (через attached doc-prefix). function-value в descriptor **не хранится** — это нарушает базовую теорему round-trip'а.
+Type definitions через BindStep `::tag descriptor`. Descriptor — Map с `:qlang/kind :type`, `:qlang/impl :qlang/prim/<tag>` (handle keyword в `PRIMITIVE_REGISTRY`, тот же механизм что builtin descriptor'ов в `core/lib/qlang/core.qlang`) либо Quote-value (qlang-side body), `:docs` (через attached doc-prefix). function-value в descriptor **не хранится** — это нарушает базовую теорему round-trip'а.
 
 User-space type'ы регистрируют constructor через `PRIMITIVE_REGISTRY.bind('qlang/prim/<tag>', constructorFn)` и ссылаются на handle keyword'ом из descriptor'а — либо пишут Quote-impl прямо в qlang.
 
@@ -231,27 +211,17 @@ User-space type'ы регистрируют constructor через `PRIMITIVE_RE
 
 ## §II.8. Hypertext через axis-операнды (частично landed)
 
-(landed: `source`, `docs`, `examples` через `runtime/axis.mjs`. **Not landed**: `seeAlso`, `describe`, `spec`, multi-source aggregation.)
+(landed: `source`, `docs`, `examples` через `runtime/axis.mjs`. **Not landed**: multi-source aggregation.)
 
-**Identity** — keyword (`:foo` value-level или `::foo` type-level). **Reference** — keyword в pipeline / Map value / Vec element. **Resolution** — env lookup → binding. **Binding** — Map с structured fields (constructor / docs / spec / examples / source). **Navigation** — axis-операнды.
-
-Семейство axis-операндов: `source`, `docs`, `seeAlso`, `describe`, `spec`, `examples`, `reify`. Каждый — stateOp с доступом к env. Stateless по env (не пишут).
+**Identity** — keyword (`:foo` value-level или `::foo` type-level). **Reference** — keyword в pipeline / Map value / Vec element. **Resolution** — env lookup → binding. **Binding** — Map с structured fields (constructor / docs / examples / source). **Navigation** — axis-операнды.
 
 ```qlang
 :filter | docs           — value-level navigation       (landed)
-::duration | spec        — type-level navigation        (не landed: spec operand)
+::duration | docs        — type-level navigation        (landed)
 :CountErrorFamily | docs — vocabulary entry navigation  (landed для error tags)
 ```
 
-**Token-density минимальна:**
-
-```
-::duration | docs        — 4 токена
-:filter | examples       — 4 токена
-::tag | spec             — 4 токена
-```
-
-Cheap inference для модели per metadata query. Universal pattern `<keyword | tag> | <axis>` для всех named bindings.
+Universal pattern `<keyword | tag> | <axis>` для всех named bindings.
 
 **Multi-source aggregation (не landed).** Один keyword упомянутый в нескольких модулях даёт Vec всех находок с атрибуцией `{:from :ns :text "…"}`. Поиск по declaring `BindStep`-step'ам с совпадающим `:name`. Сейчас `findBindingStepAcrossModules` возвращает last-match по shadowing semantics — нужно extension либо отдельный axis-operand `docsAll` для multi-source форм.
 
@@ -357,7 +327,6 @@ Compression — через class-level defaults factored out. Field ordering —
 
 **Не landed**:
 
-- Axis-операнды `seeAlso`, `describe`, `spec` — design в §II.8.
 - Multi-source aggregation в `docs` — если keyword documented в двух модулях, axis возвращает Vec всех находок с `{:from :ns :text "…"}` атрибуцией. Сейчас `findBindingStepAcrossModules` last-match-wins.
 
 ---

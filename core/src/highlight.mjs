@@ -155,11 +155,27 @@ function collectSemanticSpans(src, ast, builtinNames) {
       case 'BindStep': {
         // The binding key — Keyword `:name` or BareTypeKeyword `::Tag` —
         // paints as 'keyword' (binding-introducer) so it is visually
-        // distinct from a plain value-position `:name`. Descend into
-        // params / body / docs for the rest of the spans.
+        // distinct from a plain value-position `:name`. The attached
+        // doc-prefix delimiters (`|~~ … ~~|` / `|~~| …`) do not
+        // survive into the AST as standalone nodes — DocAttachedSequence
+        // and the BindStep production both fold doc-content into the
+        // `.docs` Vec of strings. The grammar stamps the prefix's
+        // start offset on `docPrefixStart` (set by either the
+        // wrapping DocAttachedSequence rule when docs sit before the
+        // BindStep, or by the BindStep rule itself when docs sit
+        // between key and body). The end of the prefix region is
+        // wherever the next AST node begins: key for the external
+        // case, body for the inline case.
         const key = node.key;
         const keyStart = key.location.start.offset;
         const keyEnd = key.location.end.offset;
+        if (typeof node.docPrefixStart === 'number') {
+          const prefixEnd = node.docPrefixStart < keyStart
+            ? keyStart                                           // external (before key)
+            : (node.body ? node.body.location.start.offset       // inline (key … docs … body)
+                         : endOffset);
+          spans.push({ start: node.docPrefixStart, end: prefixEnd, kind: 'comment' });
+        }
         spans.push({ start: keyStart, end: keyEnd, kind: 'keyword' });
         return; // descend into docs / params / body
       }
@@ -191,6 +207,15 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return false;
 
       case 'OperandCall': {
+        // Doc-attached `as(:name)` calls carry `docPrefixStart` from
+        // DocAttachedSequence; the prose region between the first
+        // doc-comment and the operand head is folded into the AST
+        // as a plain string Vec, so the highlighter paints it with
+        // one `comment`-kind span the same way it does for
+        // BindStep (see the case above).
+        if (typeof node.docPrefixStart === 'number' && node.docPrefixStart < startOffset) {
+          spans.push({ start: node.docPrefixStart, end: startOffset, kind: 'comment' });
+        }
         const nameEndOffset = startOffset + node.name.length;
         spans.push({
           start: startOffset,

@@ -440,7 +440,17 @@ BindStep
     {
       const params = rest && rest.params ? rest.params : null;
       const body = rest && rest.body ? rest.body : null;
-      return node('BindStep', { key, docs: docs || null, params, body }, location(), text());
+      const fields = { key, docs: docs || null, params, body };
+      // The doc-prefix delimiters (`|~~ … ~~|` / `|~~| …`) do not
+      // survive into the AST — `DocPrefix` folds doc-content into
+      // a plain Vec of strings. Downstream consumers that map back
+      // to source bytes (highlighter, source-position editor
+      // features) need the prefix's start offset; carry it through
+      // a side-channel field `docs._start` set inside `DocPrefix`.
+      if (docs && typeof docs._start === 'number') {
+        fields.docPrefixStart = docs._start;
+      }
+      return node('BindStep', fields, location(), text());
     }
 
 BindName
@@ -463,6 +473,12 @@ DocPrefix
           docs.push(item.content);
         }
       }
+      // Side-channel field on the returned Vec — the caller
+      // (BindStep production) lifts it onto the AST node as
+      // `docPrefixStart`. The doc-comment text is otherwise lost
+      // to source-position consumers because the delimiters and
+      // line-by-line shape get folded into plain content strings.
+      docs._start = first.location.start.offset;
       return docs;
     }
 

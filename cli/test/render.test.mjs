@@ -19,18 +19,19 @@ function makeCellEntry({ result = null, error = null } = {}) {
 }
 
 describe('renderCellOutcome — error paths', () => {
-  it('routes a thrown setup-time JS error onto stderr with exit 1', () => {
+  it('routes a thrown setup-time JS error onto stderr with exit 1', async () => {
     const cellEntry = makeCellEntry({ error: new Error('parse blew up') });
-    const cliOutcome = renderCellOutcome(cellEntry, {
+    const cliOutcome = await renderCellOutcome(cellEntry, {
       resolvedFormat: 'raw',
-      didExplicitStdoutEffect: false
+      didExplicitStdoutEffect: false,
+      shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toBe('');
     expect(cliOutcome.stderrText).toBe('qlang: parse blew up\n');
     expect(cliOutcome.exitCode).toBe(1);
   });
 
-  it('encodes a fail-track error value as data on stdout, exit 0', () => {
+  it('encodes a fail-track error value as data on stdout, exit 0', async () => {
     // Error values are first-class qlang values per the spec — they
     // travel as data on the same channel as plain values. A non-zero
     // exit on a fail-track result would cancel sibling tool calls in
@@ -39,9 +40,10 @@ describe('renderCellOutcome — error paths', () => {
       ['thrown', keyword('FilterSubjectNotContainer')]
     ]);
     const cellEntry = makeCellEntry({ result: makeErrorValue(errorDescriptor) });
-    const cliOutcome = renderCellOutcome(cellEntry, {
+    const cliOutcome = await renderCellOutcome(cellEntry, {
       resolvedFormat: 'raw',
-      didExplicitStdoutEffect: false
+      didExplicitStdoutEffect: false,
+      shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toContain(':FilterSubjectNotContainer');
     expect(cliOutcome.stderrText).toBe('');
@@ -50,45 +52,85 @@ describe('renderCellOutcome — error paths', () => {
 });
 
 describe('renderCellOutcome — script-mode encoding', () => {
-  it('encodes a Map success value as pretty JSON when format is json', () => {
+  it('encodes a Map success value as pretty JSON when format is json', async () => {
     const result = new Map([
       ['a', 1],
       ['b', 'two']
     ]);
-    const cliOutcome = renderCellOutcome(makeCellEntry({ result }), {
+    const cliOutcome = await renderCellOutcome(makeCellEntry({ result }), {
       resolvedFormat: 'json',
-      didExplicitStdoutEffect: false
+      didExplicitStdoutEffect: false,
+      shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toBe('{\n  "a": 1,\n  "b": "two"\n}\n');
     expect(cliOutcome.exitCode).toBe(0);
   });
 
-  it('passes a String success value through raw (no quotes) when format is raw', () => {
-    const cliOutcome = renderCellOutcome(
+  it('passes a String success value through raw (no quotes) when format is raw', async () => {
+    const cliOutcome = await renderCellOutcome(
       makeCellEntry({ result: 'hello world' }),
-      { resolvedFormat: 'raw', didExplicitStdoutEffect: false }
+      { resolvedFormat: 'raw', didExplicitStdoutEffect: false, shouldColorize: false }
     );
     expect(cliOutcome.stdoutText).toBe('hello world\n');
   });
 
-  it('falls back to printValue for a non-String composite in raw mode', () => {
+  it('falls back to printValue for a non-String composite in raw mode', async () => {
     // Raw input but the query produced a Map — no natural raw form;
     // printValue renders the qlang literal so the user still sees
     // something structural.
     const result = new Map([['k', 1]]);
-    const cliOutcome = renderCellOutcome(makeCellEntry({ result }), {
+    const cliOutcome = await renderCellOutcome(makeCellEntry({ result }), {
       resolvedFormat: 'raw',
-      didExplicitStdoutEffect: false
+      didExplicitStdoutEffect: false,
+      shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toBe('{:k 1}\n');
   });
 
-  it('suppresses the auto-encoded stdout when the query wrote to ~{@out}', () => {
-    const cliOutcome = renderCellOutcome(
+  it('suppresses the auto-encoded stdout when the query wrote to ~{@out}', async () => {
+    const cliOutcome = await renderCellOutcome(
       makeCellEntry({ result: 'hello' }),
-      { resolvedFormat: 'raw', didExplicitStdoutEffect: true }
+      { resolvedFormat: 'raw', didExplicitStdoutEffect: true, shouldColorize: false }
     );
     expect(cliOutcome.stdoutText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);
+  });
+});
+
+describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => {
+  it('wraps a printValue success output (raw format) in ANSI escapes when shouldColorize is true', async () => {
+    const cliOutcome = await renderCellOutcome(
+      makeCellEntry({ result: new Map([['k', 1]]) }),
+      { resolvedFormat: 'raw', didExplicitStdoutEffect: false, shouldColorize: true }
+    );
+    // ANSI escape pattern present
+    expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
+    // Underlying text content survives stripping
+    expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
+  });
+
+  it('leaves a JSON success output unpainted even when shouldColorize is true', async () => {
+    // JSON output must stay clean for `jq` / downstream readers.
+    const cliOutcome = await renderCellOutcome(
+      makeCellEntry({ result: new Map([['a', 1]]) }),
+      { resolvedFormat: 'json', didExplicitStdoutEffect: false, shouldColorize: true }
+    );
+    expect(cliOutcome.stdoutText).not.toMatch(/\x1b\[/);
+  });
+
+  it('paints a fail-track error value in ANSI when shouldColorize is true', async () => {
+    const errorDescriptor = new Map([
+      ['thrown', keyword('FilterSubjectNotContainer')]
+    ]);
+    const cellEntry = makeCellEntry({
+      result: makeErrorValue(errorDescriptor),
+      error: new Error('lifted parse failure')
+    });
+    const cliOutcome = await renderCellOutcome(cellEntry, {
+      resolvedFormat: 'raw',
+      didExplicitStdoutEffect: false,
+      shouldColorize: true
+    });
+    expect(cliOutcome.stderrText).toMatch(/\x1b\[/);
   });
 });

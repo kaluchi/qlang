@@ -131,17 +131,36 @@ const PRINT_HANDLERS = {
   Keyword:    literalOfKeyword,
   TagKeyword: literalOfKeyword,
   Error:      printErrorValue,
-  Vec:        (v, indent) => `[${v.map(el => printValue(el, indent)).join(' ')}]`,
+  Vec:        (v, indent) => printListLike('[', ']', ' ',  v,      indent),
   Map:        (m, indent) => printMapLike('{', m, indent),
-  Set:        (s, indent) => `#{${[...s].map(el => printValue(el, indent)).join(' ')}}`,
+  Set:        (s, indent) => printListLike('#{', '}', ' ', [...s], indent),
   Quote:      q => '~{' + q.source + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: (o, indent) => printJsonObject(o, indent),
-  JsonArray:  (a, indent) => `[${a.map(el => printValue(el, indent)).join(', ')}]`,
+  JsonArray:  (a, indent) => printListLike('[', ']', ', ', a,      indent),
   Conduit:    printConduit,
   Snapshot:   printSnapshot,
   TaggedInstance: printTaggedInstance
 };
+
+// Vec / Set / JsonArray share one renderer: print every element via
+// printValue, then decide inline vs multi-line. Multi-line fires
+// whenever any rendered element already contains a `\n` — a single
+// multi-line entry would otherwise drag every subsequent entry
+// onto the trailing line of the previous one (the "ladder" layout
+// users complained about for `[~{multi-line} ~{multi-line}]`). One
+// element per row, indented by the surrounding depth, restores the
+// columnar shape.
+function printListLike(open, close, inlineSep, elements, indent) {
+  const rendered = elements.map(el => printValue(el, indent + 1));
+  const anyMultiLine = rendered.some(s => s.includes('\n'));
+  if (!anyMultiLine) {
+    return `${open}${rendered.join(inlineSep)}${close}`;
+  }
+  const pad = '  '.repeat(indent + 1);
+  const closePad = '  '.repeat(indent);
+  return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${closePad}${close}`;
+}
 
 function literalOfKeyword(k) { return k.literal; }
 

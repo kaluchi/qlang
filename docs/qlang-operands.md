@@ -1193,8 +1193,19 @@ Filtering to a specific kind of error via leading fail-apply in
 the predicate:
 
 ```qlang
-> [1 "x" 3] * add(10) | filter(!| /thrown | eq(:AddLeftNotNumber))
-[!{:kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "Number" :actualType "String" :trail []}]
+> [1 "x" 3] * add(10) | filter(!| /thrown | eq(::AddLeftNotNumber))
+[
+  ::AddLeftNotNumber!{
+    :fault {:step ~{add(10)} :input "x"}
+    :actualValue "x"
+    :actualType :string
+    :expectedType :number
+    :operand :add
+    :position 1
+    :origin :qlang/eval
+    :kind :type-error
+  }
+]
 ```
 
 ## Summary: unique operand names by `:category` keyword

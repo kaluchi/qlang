@@ -496,22 +496,33 @@ rather than crashing the query.
 
 ```qlang
 > [1 2 3] | add(1)
-!{:kind :type-error :thrown :AddLeftNotNumber :origin :qlang/eval
-  :operand "add" :position 1 :expectedType "Number"
-  :actualType :vec :trail []}
+::AddLeftNotNumber!{
+  :fault {:step ~{add(1)} :input [1 2 3]}
+  :actualValue [1 2 3]
+  :actualType :vec
+  :expectedType :number
+  :operand :add
+  :position 1
+  :origin :qlang/eval
+  :kind :type-error
+}
 |~| add(1) was waiting for a number in position 1; the Vec triggered
-|~| the per-site class :AddLeftNotNumber. The descriptor lays out
-|~| the failure structure and the error becomes the new pipeValue.
+|~| the per-site class ::AddLeftNotNumber, which becomes the error's
+|~| tag head. The descriptor lays out the failure structure and the
+|~| error becomes the new pipeValue.
 ```
 
-The descriptor names the operand that failed (`:operand`), the
-specific error class (`:thrown`), the broad category (`:kind`),
-and any positional context. The empty `:trail []` is normal at
-the moment of failure — `:trail` accumulates as the error then
-flows through subsequent steps. From this point on every example
-in this document may show an error output rather than a normal
-one, and the descriptor shape is the same in every case: a
-keyword-keyed Map you can read at a glance.
+The tag head names the per-site error class (`::AddLeftNotNumber`);
+the descriptor names the operand that failed (`:operand`), the
+broad category (`:kind`), the value the throw site inspected
+(`:actualValue` + `:actualType`), and the step itself (`:fault/step`
+as a Quote-value carrying the failing step's source). No `:trail`
+key is shown at the moment of failure because no success-track
+combinator has deflected past it yet; `:trail` accumulates as the
+error flows through subsequent steps. From this point on every
+example in this document may show an error output rather than a
+normal one, and the descriptor shape is the same in every case:
+a `::Tag!{…}` head over a keyword-keyed Map you can read at a glance.
 
 The full machinery for inspecting, recovering from, and routing
 around errors — the deflect rule for `|`, the `!|` fail-track
@@ -1371,7 +1382,7 @@ lift automatically into error values with structured descriptors:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
-| `:thrown` | keyword | Per-site class name: `:AddLeftNotNumber`, `:FilterSubjectNotContainer`, etc. |
+| `:thrown` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumber`, `::FilterSubjectNotContainer`, etc. The descriptor's tag head echoes the same value, so `printValue` elides this field; it stays readable through `!\| /thrown` |
 | `:message` | string | Human-readable description |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
 | `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |

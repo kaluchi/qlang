@@ -1066,7 +1066,7 @@ in addition to the invariant `:trail`:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` or `:host` or `:user` |
 | `:kind` | keyword | Error category |
-| `:thrown` | keyword | Per-site class name |
+| `:thrown` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumber`, `::FilterSubjectNotContainer`). The descriptor's TaggedLit head echoes the same value, so `printValue` elides this field whenever it matches the head; the field stays addressable through `!\| /thrown` projection |
 | `:message` | string | Human-readable |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which have access to the correct `state.pipeValue` and `bodyNode`) rather than in `evalNode`'s catch, so `:fault/input` carries the actual pipeline value at the combinator, not the Pipeline-level entry state |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |

@@ -447,9 +447,9 @@ describe('round-trip — BindStep and as bindings', () => {
 });
 
 describe('round-trip — as operand with attached docs', () => {
-  // The `as` OperandCall is the only remaining call form that
-  // carries `.docs` after the def-operand retirement; round-trip
-  // a doc-attached `as(:name)` to exercise the codec's :docs
+  // `as` is the one OperandCall that carries `.docs` (BindStep is
+  // a separate AST kind with its own `.docs`); round-trip a doc-
+  // attached `as(:name)` to exercise the codec's `:docs`
   // serialisation path on an OperandCall node.
   it('docs attached to as(:name) round-trip through the codec', () =>
     assertRoundTrip('42\n|~~| Captured.\nas(:answer)'));
@@ -486,9 +486,9 @@ describe('round-trip — comments', () => {
     assertRoundTrip('[1 2 3] |~| short note\n| count'));
   it('block plain comment mid-pipeline', () =>
     assertRoundTrip('[1 2 3] |~ rationale ~| filter(gt(1))'));
-  it('line doc comment attached to def', () =>
+  it('line doc comment attached to BindStep', () =>
     assertRoundTrip('|~~| first remark\n:double mul(2)'));
-  it('block doc comment attached to def', () =>
+  it('block doc comment attached to BindStep', () =>
     assertRoundTrip('|~~ multi-line\n    block remark ~~|\n:helper add(1)'));
   it('multiple doc comments accumulating', () =>
     assertRoundTrip('|~~| first\n|~~| second\n:x 1'));

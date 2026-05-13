@@ -442,13 +442,15 @@ describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on t
   });
 });
 
-describe('walk.mjs — bindingNamesVisibleAt skips def with non-Keyword first arg', async () => {
-  it('does not add binding when def first arg is not a Keyword AST node', async () => {
-    // Synthetic AST: 42 count — non-Keyword first arg
+describe('walk.mjs — bindingNamesVisibleAt skips as() with non-Keyword first arg', async () => {
+  it('does not add binding when as first arg is not a Keyword AST node', async () => {
+    // Synthetic AST: as(42, count) — non-Keyword first arg, the
+    // shape that drives bindingNamesVisibleAt's `firstArg.type !==
+    // 'Keyword'` early return.
     const loc = { start: { offset: 0 }, end: { offset: 10 } };
     const synAst = {
       type: 'OperandCall',
-      name: 'def',
+      name: 'as',
       args: [
         { type: 'NumberLit', value: 42, location: loc },
         { type: 'OperandCall', name: 'count', args: null, location: loc }
@@ -538,15 +540,14 @@ describe('mergeFlat non-Vec element passthrough', async () => {
 });
 
 describe('bindingNamesVisibleAt edge cases', async () => {
-  it('bare def/as OperandCall with no args does not contribute names', async () => {
-    // `count` at offset after the pipeline exercises the
-    // bindingNamesVisibleAt path where an OperandCall named 'def'
-    // has args=null (bare identifier, no parens).
-    const ast = parse('def | count');
+  it('bare `as` OperandCall with no args does not contribute names', async () => {
+    // `as` at the head of the pipeline parses as an OperandCall
+    // with `args = null` (bare identifier, no parens). That shape
+    // exercises the bindingNamesVisibleAt branch where the
+    // `as`-named OperandCall has no first-arg Keyword to bind
+    // against, so the visible set stays empty.
+    const ast = parse('as | count');
     const visible = bindingNamesVisibleAt(ast, ast.source.length);
-    // bare `def` (args=null) is not a binding declaration —
-    // a declaration requires a keyword first arg — so no names
-    // should land in the visible set.
     expect(visible.size).toBe(0);
   });
 

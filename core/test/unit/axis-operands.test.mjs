@@ -1,23 +1,24 @@
 // Axis-operands — `source`, `docs`, `examples` walk the
 // `qlang/ast/<uri>` Quote-values in env to lift declarative
-// metadata off a binding's def-step.
+// metadata off a binding's BindStep.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, keyword, isQuote, makeTagKeyword } from '../../src/types.mjs';
 
-describe(':name | source returns the def-step source as Quote', () => {
+describe(':name | source returns the BindStep source as Quote', () => {
   it(':count | source carries the canonical :count BindStep text', async () => {
     const result = await evalQuery(':count | source');
     expect(isQuote(result)).toBe(true);
     expect(result.source.startsWith(':count')).toBe(true);
   });
 
-  it('a module whose top-level AST is a bare literal contributes no def-steps', async () => {
-    // findDefStepFor returns null when the moduleAst is neither an
-    // OperandCall nor a Pipeline — bare-literal modules add nothing
-    // to the axis search frontier, so the lookup falls through to
-    // AxisBindingNotFound when no other module has the binding.
+  it('a module whose top-level AST is a bare literal contributes no BindSteps', async () => {
+    // findBindingStepFor returns null when the moduleAst is neither
+    // a Pipeline nor a top-level BindStep — bare-literal modules
+    // add nothing to the axis search frontier, so the lookup falls
+    // through to AxisBindingNotFound when no other module has the
+    // binding.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
@@ -26,10 +27,10 @@ describe(':name | source returns the def-step source as Quote', () => {
     expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFound'));
   });
 
-  it('inline def-step within the current query is reachable through axis lookup', async () => {
-    // evalQuery stamps the parsed AST under qlang/ast/inline so axis
-    // operands can find bindings declared in the same cell — without
-    // this, `:foo … | :foo | source` would raise
+  it('inline BindStep within the current query is reachable through axis lookup', async () => {
+    // evalQuery stamps the parsed AST under moduleAstKey('inline')
+    // so axis-operands can find bindings declared in the same cell
+    // — without this, `:foo … | :foo | source` would raise
     // AxisBindingNotFound because the cell's AST is not among the
     // module Quotes installed via use(:ns).
     const result = await evalQuery(':myLocal 42 | :myLocal | source');
@@ -108,7 +109,7 @@ describe('axis-operands walk type-namespace bindings via ~{::} prefix', () => {
     expect(result.source.startsWith('::conduit')).toBe(true);
   });
 
-  it('::conduit | docs returns the attached Doc-prefix on the type def-step', async () => {
+  it('::conduit | docs returns the attached Doc-prefix on the type BindStep', async () => {
     const result = await evalQuery('::conduit | docs | first | /content');
     expect(typeof result).toBe('string');
     expect(result).toContain('Conduit literal');
@@ -164,9 +165,9 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
   it('single-step module containing a non-binding OperandCall fails axis lookup with AxisBindingNotFound', async () => {
     // A standalone non-binding OperandCall (e.g. `count`) at the
     // module top level evaluates without throwing, but it is not
-    // a binding declaration — `matchesDefStep` falls through the
-    // `name === 'as'` check and returns false, so `:any | source`
-    // resolves to AxisBindingNotFound.
+    // a binding declaration — `matchesBindingStep` falls through
+    // the `name === 'as'` check and returns false, so
+    // `:any | source` resolves to AxisBindingNotFound.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async () => ({ source: 'count' })
@@ -177,9 +178,9 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
 
   it('zero-arg `as()` in a module is structurally not a binding declaration', async () => {
     // Parser shape: OperandCall named `as` with `args === []`.
-    // matchesDefStep enters the `name === 'as'` branch, then the
-    // empty-args guard skips it before pulling out a first-arg key.
-    // Lookup falls through to AxisBindingNotFound.
+    // matchesBindingStep enters the `name === 'as'` branch, then
+    // the empty-args guard skips it before pulling out a first-arg
+    // key. Lookup falls through to AxisBindingNotFound.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async () => ({ source: '42 | as()' })
@@ -198,13 +199,13 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     expect(cellEntry.result.name).toBe('AxisBindingNotFound');
   });
 
-  it('axis lookup skips a module step that is bare ~{def} (no args / null args)', async () => {
-    // A module whose only step is `def` as a bare identifier
-    // reference — args === null per OperandCall grammar — must
-    // not match any binding lookup. Exercises the
-    // `!Array.isArray(step.args)` branch of matchesDefStep.
+  it('axis lookup skips a module step that is a bare unresolved identifier (no args / null args)', async () => {
+    // A module whose only step is a bare identifier reference —
+    // `args === null` per OperandCall grammar — must not match any
+    // binding lookup. Exercises the `!Array.isArray(step.args)`
+    // branch of matchesBindingStep.
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = 'def';
+    const moduleSource = 'someBareIdent';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });

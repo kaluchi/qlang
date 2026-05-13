@@ -19,12 +19,15 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
     expect(result).toEqual([true]);
   });
 
-  it('subject without a source-located def-step returns an empty Vec', async () => {
-    // :def is bootstrap-installed — has no def-step in any
-    // module. runExamples gracefully returns an empty Vec
-    // rather than throwing AxisBindingNotFound.
-    const result = await evalQuery(':def | runExamples');
-    expect(result).toEqual([]);
+  it('subject naming a binding without a source-located BindStep returns an empty Vec', async () => {
+    // Host-installed bindings (via `session.bind`, or any binding
+    // landed in env without an attached AST) carry no BindStep to
+    // walk. runExamples gracefully returns an empty Vec rather
+    // than throwing AxisBindingNotFound.
+    const sessionInstance = await createSession();
+    sessionInstance.bind('hostInjected', 42);
+    const cellEntry = await sessionInstance.evalCell(':hostInjected | runExamples');
+    expect(cellEntry.result).toEqual([]);
   });
 
   it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {

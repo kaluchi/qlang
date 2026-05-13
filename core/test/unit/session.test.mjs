@@ -47,7 +47,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(42);
   });
 
-  it('evalCell persists def bindings across subsequent cells', async () => {
+  it('evalCell persists BindStep bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':double mul(2)');
     const cellEntry = await sessionInstance.evalCell('5 | double');
@@ -115,7 +115,7 @@ describe('createSession lifecycle', () => {
 });
 
 describe('serializeSession / deserializeSession round-trip', () => {
-  it('preserves user def bindings via conduit source replay', async () => {
+  it('preserves user BindStep bindings via conduit source replay', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':double mul(2)');
     await sessionInstance.evalCell(':triple mul(3)');

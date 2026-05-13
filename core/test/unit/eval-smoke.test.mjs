@@ -148,7 +148,7 @@ describe('eval — as binding', () => {
   });
 });
 
-describe('eval — def binding', () => {
+describe('eval — BindStep declaration', () => {
   it('binds and forces a conduit', async () => {
     expect(await evalQuery(':double mul(2) | 10 | double')).toBe(20);
   });

@@ -35,7 +35,7 @@ describe('::conduit constructor builds a Conduit-value', () => {
     expect(describeType(result)).toBe('Conduit');
   });
 
-  it('Conduit invokes through def + identifier lookup', async () => {
+  it('Conduit invokes through BindStep + identifier lookup', async () => {
     const result = await evalQuery(':double ::conduit[[] ~{mul(2)}] | 5 | double');
     expect(result).toBe(10);
   });

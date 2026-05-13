@@ -182,9 +182,10 @@ describe('findIdentifierOccurrences', () => {
   it('finds :name ... declaration alongside read sites', () => {
     const ast = parse(':double mul(2) | double');
     const refs = findIdentifierOccurrences(ast, 'double');
-    // Both the :double ... declaration and the bare `double` read
-    // should be found. The let OperandCall matches because its first
-    // Keyword arg names 'double'.
+    // Both the `:double …` BindStep declaration and the bare
+    // `double` read site land in the result — the BindStep matches
+    // because its `.key` Keyword names `double`, the read site
+    // matches as an OperandCall named `double`.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -203,7 +204,7 @@ describe('findIdentifierOccurrences', () => {
 });
 
 describe('bindingNamesVisibleAt', () => {
-  it('returns let names declared lexically before the cursor', () => {
+  it('returns BindStep names declared lexically before the cursor', () => {
     const source = ':x 1 | :y 2 | z';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
@@ -227,8 +228,8 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('answer')).toBe(true);
   });
 
-  it('skips zero-arg def() — no name to bind', () => {
-    const source = 'def() | here';
+  it('skips zero-arg as() — no name to bind', () => {
+    const source = 'as() | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);

@@ -21,8 +21,10 @@
 //      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
 //      module-load side effects from Step 3).
 //   5. Doc-comment prefixes have folded into :docs Vecs on each
-//      entry's value Map via grammar.peggy's MapEntryDocPrefix and
-//      eval.mjs's foldEntryDocs.
+//      `BindStep`'s `.docs` Vec attached by grammar's `DocPrefix` /
+//      `DocAttachedSequence` rules and reachable through the
+//      axis-operand `:name | docs` (one Doc-value per attached
+//      prefix).
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
@@ -31,13 +33,13 @@ import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { CORE_SOURCE } from '../../gen/core.mjs';
 
 // Evaluate core.qlang against a real langRuntime — CORE_SOURCE is a
-// series of `def`-step bindings, each of which calls the `def`
-// operand to land its descriptor in env. Reading the resolved env
-// from langRuntime() returns the catalog as a Map keyed by operand
-// name. Reserved housekeeping keys (`qlang/ast/<uri>`, anything
-// without a `:qlang/kind :builtin` descriptor) are filtered so the
-// returned Map matches the descriptor-only surface the rest of this
-// suite was originally written against.
+// series of `BindStep` declarations, each of which `evalBindStep`
+// lands as a descriptor Map in env. Reading the resolved env from
+// langRuntime() returns the catalog as a Map keyed by operand name.
+// Reserved housekeeping keys (`qlang/ast/<uri>`, anything without a
+// `:qlang/kind :builtin` descriptor) are filtered so the returned
+// Map matches the descriptor-only surface the rest of this suite
+// was originally written against.
 async function evalCore() {
   const { langRuntime } = await import('../../src/runtime/index.mjs');
   const fullEnv = await langRuntime();

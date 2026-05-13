@@ -4,7 +4,8 @@ import { describe, it, expect } from 'vitest';
 import {
   parseDocument, buildCatalogIndex, completionsAtOffset,
   hoverAtOffset, definitionAtOffset, referencesAtOffset,
-  documentSymbols, signatureHelpAtOffset
+  documentSymbols, signatureHelpAtOffset,
+  semanticTokensFor, SEMANTIC_TOKEN_TYPES
 } from '../src/features.mjs';
 
 describe('parseDocument', () => {
@@ -380,5 +381,107 @@ describe('signatureHelpAtOffset', () => {
 
   it('returns null for null ast', async () => {
     expect(await signatureHelpAtOffset(null, '', 0)).toBeNull();
+  });
+});
+
+// Helper: decode the LSP 5-int semantic-tokens stream into
+// `{ line, char, length, type }` records that align back to source
+// offsets, so assertions can read the token kinds without
+// reproducing the delta-encoding rules.
+function decodeSemanticTokens(data, types) {
+  const out = [];
+  let line = 0;
+  let char = 0;
+  for (let i = 0; i < data.length; i += 5) {
+    const dLine = data[i];
+    const dChar = data[i + 1];
+    line += dLine;
+    char = dLine === 0 ? char + dChar : dChar;
+    out.push({ line, char, length: data[i + 2], type: types[data[i + 3]] });
+  }
+  return out;
+}
+
+describe('semanticTokensFor', () => {
+  it('paints a builtin operand as `function`', async () => {
+    const { data } = await semanticTokensFor('[1 2 3] | count');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const countTok = tokens.find(t => t.type === 'function');
+    expect(countTok).toBeTruthy();
+    expect(countTok.line).toBe(0);
+  });
+
+  it('paints an `@`-prefixed effectful operand as `decorator`', async () => {
+    const { data } = await semanticTokensFor(':@audit add(1) | 5 | @audit');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.filter(t => t.type === 'decorator').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('paints a `::Tag` head as `struct`', async () => {
+    const { data } = await semanticTokensFor('::AddLeftNotNumberError | docs');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const tagTok = tokens.find(t => t.type === 'struct');
+    expect(tagTok).toBeTruthy();
+    expect(tagTok.length).toBe('::AddLeftNotNumberError'.length);
+  });
+
+  it('paints a user-bound identifier reference as `variable`', async () => {
+    const { data } = await semanticTokensFor(':double mul(2) | 5 | double');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'variable')).toBe(true);
+  });
+
+  it('paints a comment span as `comment`', async () => {
+    const { data } = await semanticTokensFor('42 |~| trace');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'comment')).toBe(true);
+  });
+
+  it('paints a string literal as `string`', async () => {
+    const { data } = await semanticTokensFor('"hello"');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('paints a Quote body as `string`', async () => {
+    const { data } = await semanticTokensFor('~{count}');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    // Quote literal renders the ~{ and } delimiters as `string` kind
+    expect(tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('paints a number literal as `number`', async () => {
+    const { data } = await semanticTokensFor('42');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'number')).toBe(true);
+  });
+
+  it('splits a multi-line comment into per-line entries', async () => {
+    const src = '|~ multi-\nline plain ~|\n42';
+    const { data } = await semanticTokensFor(src);
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const commentTokens = tokens.filter(t => t.type === 'comment');
+    expect(commentTokens.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('emits well-formed 5-int stream', async () => {
+    const { data } = await semanticTokensFor('[1 2 3] | filter(gt(1)) | count');
+    expect(data.length % 5).toBe(0);
+    // Each `length` field is positive
+    for (let i = 2; i < data.length; i += 5) {
+      expect(data[i]).toBeGreaterThan(0);
+    }
+  });
+
+  it('returns empty data for empty source', async () => {
+    const { data } = await semanticTokensFor('');
+    expect(data.length).toBe(0);
+  });
+
+  it('returns empty data for parse-failed source', async () => {
+    const { data } = await semanticTokensFor('[1 2 3');
+    // tokenize emits a single whitespace span on parse failure,
+    // which has no semantic-token type — output is empty.
+    expect(data.length).toBe(0);
   });
 });

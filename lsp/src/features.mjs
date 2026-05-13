@@ -19,7 +19,8 @@ import {
   walkAst,
   isModuleAstKey,
   isTagBindingName,
-  TAG_BINDING_PREFIX
+  TAG_BINDING_PREFIX,
+  tokenize
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -539,4 +540,131 @@ function findEnclosingOperandCall(node) {
     current = current.parent;
   }
   return null;
+}
+
+// ── Semantic tokens ───────────────────────────────────────────
+//
+// Bridges the AST-driven `tokenize` from core into LSP's
+// semantic-tokens encoding. Each qlang highlight kind maps to an
+// LSP standard semantic-token type chosen for visual differentiation
+// under default editor themes:
+//
+//   operand  → function   (built-in operand name)
+//   atom     → variable   (user-bound identifier reference)
+//   effect   → decorator  (`@`-prefixed effectful operand)
+//   keyword  → keyword    (`as`, BindStep key)
+//   tag      → struct     (`::Tag` head, matching CompletionItemKind)
+//   string   → string     (String literal)
+//   quote    → string     (Quote literal — source-as-data)
+//   number   → number     (Number / Boolean / Null literal)
+//   comment  → comment    (line / block / doc comment)
+//   err      → keyword    (`!{` / `!|` fail-track sigil)
+//
+// Bracket / punctuation kinds (`vec`, `set`, `punct`, `whitespace`)
+// have no LSP semantic-token type; the tmLanguage grammar paints
+// them as a fallback.
+//
+// Builtin names come from `langRuntime()` and are cached per server
+// process; they drive the operand-vs-atom classification inside
+// `tokenize`.
+
+export const SEMANTIC_TOKEN_TYPES = [
+  'function',
+  'variable',
+  'decorator',
+  'keyword',
+  'struct',
+  'string',
+  'number',
+  'comment'
+];
+
+const KIND_TO_TYPE_INDEX = {
+  operand: 0,
+  atom:    1,
+  effect:  2,
+  keyword: 3,
+  tag:     4,
+  string:  5,
+  quote:   5,
+  number:  6,
+  comment: 7,
+  err:     3
+};
+
+let _builtinNamesCache = null;
+async function builtinNamesForTokenize() {
+  if (_builtinNamesCache) return _builtinNamesCache;
+  const runtime = await langRuntime();
+  _builtinNamesCache = new Set();
+  for (const k of runtime.keys()) {
+    if (isModuleAstKey(k)) continue;
+    if (isTagBindingName(k)) continue;
+    _builtinNamesCache.add(k);
+  }
+  return _builtinNamesCache;
+}
+
+// semanticTokensFor(source) → { data: Uint32Array }
+//
+// Five-int encoding per token (LSP spec): [deltaLine, deltaStart,
+// length, tokenType, tokenModifiers]. deltaLine is relative to the
+// previous token's line; deltaStart is relative to the previous
+// token's start on the same line, or absolute on a new line.
+// Multi-line tokens (block comments, multi-line Quote bodies) split
+// per line because the LSP encoding has no length-spans-newlines
+// representation — each line slice emits its own token entry.
+export async function semanticTokensFor(source) {
+  const builtinNames = await builtinNamesForTokenize();
+  const tokens = tokenize(source, builtinNames);
+  const data = [];
+  let prevLine = 0;
+  let prevChar = 0;
+  // Pre-compute per-offset (line, char) — single linear scan
+  // outperforms repeated indexOf walks across the line table.
+  const offsetToLineChar = buildLineCharIndex(source);
+  for (const tok of tokens) {
+    const typeIndex = KIND_TO_TYPE_INDEX[tok.kind];
+    if (typeIndex === undefined) continue;
+    // Split multi-line span into per-line entries.
+    let segStart = tok.start;
+    while (segStart < tok.end) {
+      const { line: segLine, char: segChar } = offsetToLineChar(segStart);
+      const segLineEnd = offsetOfLineEnd(source, segStart);
+      const segEnd = Math.min(tok.end, segLineEnd);
+      const segLen = segEnd - segStart;
+      if (segLen > 0) {
+        const dLine = segLine - prevLine;
+        const dChar = dLine === 0 ? segChar - prevChar : segChar;
+        data.push(dLine, dChar, segLen, typeIndex, 0);
+        prevLine = segLine;
+        prevChar = segChar;
+      }
+      // Advance past the newline (if any) to the next line's offset 0.
+      segStart = segEnd + (segEnd < tok.end ? 1 : 0);
+    }
+  }
+  return { data: Uint32Array.from(data) };
+}
+
+function buildLineCharIndex(source) {
+  const lineStarts = [0];
+  for (let i = 0; i < source.length; i++) {
+    if (source[i] === '\n') lineStarts.push(i + 1);
+  }
+  return function offsetToLineChar(offset) {
+    let lo = 0;
+    let hi = lineStarts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >>> 1;
+      if (lineStarts[mid] <= offset) lo = mid;
+      else hi = mid - 1;
+    }
+    return { line: lo, char: offset - lineStarts[lo] };
+  };
+}
+
+function offsetOfLineEnd(source, fromOffset) {
+  const nl = source.indexOf('\n', fromOffset);
+  return nl === -1 ? source.length : nl;
 }

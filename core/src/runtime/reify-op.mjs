@@ -185,15 +185,23 @@ function describeBinding(value, explicitName) {
 
 export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => {
   if (reifyLambdas.length === 0) {
-    // Subject-form. A TagKeyword pipeValue (from a bare `::Tag`
-    // reference upstream) reaches into the tag-namespace; everything
-    // else describes the pipeValue directly.
-    if (isTagKeyword(state.pipeValue)) {
-      const typeKey = TAG_BINDING_PREFIX + state.pipeValue.name;
-      if (!state.env.has(typeKey)) {
-        throw new UnresolvedIdentifierError(typeKey);
+    // Subject-form. A Keyword or TagKeyword pipeValue resolves
+    // through env to the matching binding (value- or tag-namespace),
+    // mirroring `:name | source` / `:name | docs` / `:name |
+    // examples`. Any other pipeValue describes itself as a value
+    // descriptor through `describeBinding`.
+    if (isKeyword(state.pipeValue)) {
+      const lookupName = state.pipeValue.name;
+      if (state.env.has(lookupName)) {
+        return withPipeValue(state, describeBinding(state.env.get(lookupName), lookupName));
       }
-      return withPipeValue(state, describeBinding(state.env.get(typeKey), typeKey));
+    }
+    if (isTagKeyword(state.pipeValue)) {
+      const lookupName = TAG_BINDING_PREFIX + state.pipeValue.name;
+      if (!state.env.has(lookupName)) {
+        throw new UnresolvedIdentifierError(lookupName);
+      }
+      return withPipeValue(state, describeBinding(state.env.get(lookupName), lookupName));
     }
     return withPipeValue(state, describeBinding(state.pipeValue));
   }

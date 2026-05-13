@@ -30,7 +30,9 @@ import {
   definitionAtOffset,
   referencesAtOffset,
   documentSymbols,
-  signatureHelpAtOffset
+  signatureHelpAtOffset,
+  semanticTokensFor,
+  SEMANTIC_TOKEN_TYPES
 } from './features.mjs';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -97,7 +99,11 @@ connection.onInitialize(() => {
       definitionProvider: true,
       referencesProvider: true,
       documentSymbolProvider: true,
-      signatureHelpProvider: { triggerCharacters: ['(', ','] }
+      signatureHelpProvider: { triggerCharacters: ['(', ','] },
+      semanticTokensProvider: {
+        legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
+        full: true
+      }
     }
   };
 });
@@ -298,6 +304,22 @@ connection.onSignatureHelp(async (params) => {
     activeSignature: 0,
     activeParameter: sig.activeParameter
   };
+});
+
+// ── Semantic Tokens ───────────────────────────────────────────
+//
+// VS Code requests semantic tokens for the whole document; the
+// returned `{ data }` is a Uint32Array carrying the LSP-encoded
+// token stream (5 ints per token). The editor merges it on top of
+// the tmLanguage grammar tokens so `@`-prefixed effectful operands
+// pick up the `decorator` colour and user-bound atoms get the
+// `variable` colour distinct from the `function` colour of
+// `langRuntime`-resolved built-ins.
+
+connection.languages.semanticTokens.on(async (params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  if (!state?.source) return { data: [] };
+  return await semanticTokensFor(state.source);
 });
 
 // ── Start ─────────────────────────────────────────────────────

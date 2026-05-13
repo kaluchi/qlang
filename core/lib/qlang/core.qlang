@@ -1248,13 +1248,22 @@
 
 :reify
   |~~ Builds a descriptor Map for a value or named binding.
-    Value-level form (no captured args) describes the current
-    pipeValue. A TagKeyword pipeValue resolves through the
-    tag-namespace; everything else describes the pipeValue
-    directly. Named form reify(:name) looks up the
-    value-namespace; reify(::Tag) looks up the tag-namespace.
-    Descriptor :kind is one of :builtin, :conduit, :snapshot,
-    :type, :value. ~~|
+    Bare form (no captured args) inspects pipeValue. A Keyword
+    or TagKeyword pipeValue resolves through env to the matching
+    binding (value- or tag-namespace), mirroring `:name | source`
+    / `:name | docs` / `:name | examples`. Any other pipeValue
+    describes itself as a `:kind :value` descriptor. Captured-arg
+    form `reify(:name)` looks up the value-namespace explicitly;
+    `reify(::Tag)` looks up the tag-namespace. Descriptor `:kind`
+    is one of `:builtin`, `:conduit`, `:snapshot`, `:tag`,
+    `:value`.
+
+    ~{:count | reify | /kind | eq(:builtin)}
+    ~{reify(:filter) | /name | eq("filter")}
+    ~{::AddLeftNotNumberError | reify | /kind | eq(:tag)}
+    ~{42 | reify | /value | eq(42)}
+    ~{:nonexistent-binding | reify | /type | eq(:keyword)}
+    ~~|
   {:qlang/kind :builtin
           :qlang/impl :qlang/prim/reify
           :category :reflective
@@ -1558,40 +1567,53 @@
 |~ ──────────────── Axis-operands ──────────────── ~|
 
 :source
-  |~~ source(:name) — Quote of the `BindStep` that binds :name in
-    one of the loaded modules. Walks every `qlang/ast/<uri>`
-    Quote in env, finds the `BindStep` whose key matches `:name`,
-    returns a Quote-value carrying the verbatim source slice. ~~|
+  |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
+    in one of the loaded modules. Walks every `qlang/ast/<uri>`
+    Quote in env, finds the `BindStep` whose key matches the
+    Keyword (or TagKeyword for `::Tag | source`) on pipeValue,
+    returns a Quote-value carrying the verbatim source slice.
+
+    ~{:filter | source | /source | contains(":filter")}
+    ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
+    ~~|
   {:qlang/kind :builtin
                 :qlang/impl :qlang/prim/source
                 :category :axis
-                :subject :keyword
+                :subject [:keyword :tag-keyword]
                 :returns :quote
                 :modifiers []
                 :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 :docs
-  |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
-    on the `BindStep` that binds :name. Each Doc-value `/segments`
+  |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
+    on the `BindStep` that binds `:name`. Each Doc-value `/segments`
     surfaces TaggedLit and Quote inline structure for navigation;
-    Quote segments are the evaluable examples `runExamples` runs. ~~|
+    Quote segments are the evaluable examples `runExamples` runs.
+
+    ~{:filter | docs | first | /content | contains("Keeps items")}
+    ~{::AddLeftNotNumberError | docs | first | isDoc}
+    ~~|
   {:qlang/kind :builtin
               :qlang/impl :qlang/prim/docs
               :category :axis
-              :subject :keyword
+              :subject [:keyword :tag-keyword]
               :returns :vec
               :modifiers []
               :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 :examples
-  |~~ examples(:name) — Vec of Quote-values extracted from the
-    binding's docs. runExamples consumes this Vec to evaluate
-    each Quote against an isolated env; :ok is true iff the
-    result is truthy. ~~|
+  |~~ `:name | examples` — Vec of Quote-values extracted from the
+    binding's docs. `runExamples` consumes this Vec to evaluate
+    each Quote against an isolated env; `:ok` is true iff the
+    result is truthy.
+
+    ~{:filter | examples | count | gt(0)}
+    ~{:filter | examples | first | /source | contains("filter")}
+    ~~|
   {:qlang/kind :builtin
                   :qlang/impl :qlang/prim/examples
                   :category :axis
-                  :subject :keyword
+                  :subject [:keyword :tag-keyword]
                   :returns :vec
                   :modifiers []
                   :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}

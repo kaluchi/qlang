@@ -51,7 +51,8 @@ import {
   isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword,
   moduleAstKey
 } from './types.mjs';
-import { astNodeToMap, isPureLiteralAst } from './walk.mjs';
+import { isPureLiteralAst } from './walk.mjs';
+import { astNodeToMap } from './ast-codec.mjs';
 import { addStructurallyUnique } from './equality.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';

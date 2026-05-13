@@ -13,7 +13,7 @@
 
 import { stateOp, stateOpVariadic } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { astNodeToMap, qlangMapToAst, locationToQlangMap } from '../walk.mjs';
+import { astNodeToMap, qlangMapToAst, locationToQlangMap } from '../ast-codec.mjs';
 import { makeState, withPipeValue, envMerge } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword,

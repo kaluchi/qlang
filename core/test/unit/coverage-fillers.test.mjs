@@ -26,7 +26,8 @@ import {
 } from '../../src/runtime/dispatch.mjs';
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
-import { bindingNamesVisibleAt, astNodeToMap, qlangMapToAst } from '../../src/walk.mjs';
+import { bindingNamesVisibleAt } from '../../src/walk.mjs';
+import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
 import { makeState } from '../../src/state.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
 import { makeFn } from '../../src/rule10.mjs';

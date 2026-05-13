@@ -20,6 +20,9 @@
     "./walk": {
       "import": "./src/walk.mjs"
     },
+    "./ast-codec": {
+      "import": "./src/ast-codec.mjs"
+    },
     "./session": {
       "import": "./src/session.mjs"
     },

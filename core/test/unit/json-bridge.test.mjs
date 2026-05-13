@@ -208,7 +208,7 @@ describe('container-shape operands preserve JSON-tag on output', () => {
   });
 
   it('astNodeToMap descends into JsonObjectLit AST entries', async () => {
-    const { astNodeToMap } = await import('../../src/walk.mjs');
+    const { astNodeToMap } = await import('../../src/ast-codec.mjs');
     const { parse } = await import('../../src/parse.mjs');
     const ast = parse('{"k": 1, "n": 2}');
     const m = astNodeToMap(ast);

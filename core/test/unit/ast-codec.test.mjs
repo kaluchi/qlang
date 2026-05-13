@@ -18,7 +18,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { astNodeToMap, qlangMapToAst } from '../../src/walk.mjs';
+import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
 import { keyword, isQMap, isVec } from '../../src/types.mjs';
 
 const KW_QLANG_KIND   = 'qlang/kind';

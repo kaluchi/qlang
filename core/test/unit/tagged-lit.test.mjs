@@ -155,7 +155,7 @@ describe('TaggedLit error paths', () => {
 
 describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
   it('TaggedLit round-trips through astNodeToMap / qlangMapToAst', async () => {
-    const { astNodeToMap, qlangMapToAst } = await import('../../src/walk.mjs');
+    const { astNodeToMap, qlangMapToAst } = await import('../../src/ast-codec.mjs');
     const ast = parse('::conduit[[] ~{mul(2)}]');
     const back = qlangMapToAst(astNodeToMap(ast));
     expect(back.type).toBe('TaggedLit');
@@ -164,7 +164,7 @@ describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
   });
 
   it('BareTypeKeyword round-trips through astNodeToMap / qlangMapToAst', async () => {
-    const { astNodeToMap, qlangMapToAst } = await import('../../src/walk.mjs');
+    const { astNodeToMap, qlangMapToAst } = await import('../../src/ast-codec.mjs');
     const ast = parse('::conduit');
     const back = qlangMapToAst(astNodeToMap(ast));
     expect(back.type).toBe('BareTypeKeyword');

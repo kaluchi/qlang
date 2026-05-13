@@ -66,10 +66,9 @@ import {
   FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
-  triviaBetweenAstNodes,
-  astNodeToMap,
-  qlangMapToAst
+  triviaBetweenAstNodes
 } from './walk.mjs';
+import { astNodeToMap, qlangMapToAst } from './ast-codec.mjs';
 import {
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier

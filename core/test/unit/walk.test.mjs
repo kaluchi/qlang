@@ -201,6 +201,27 @@ describe('findIdentifierOccurrences', () => {
     const refs = findIdentifierOccurrences(ast, 'foo');
     expect(refs).toHaveLength(0);
   });
+
+  it('finds TaggedLit occurrences when name carries the :: prefix', () => {
+    const ast = parse('::conduit[[] ~{count}]');
+    const refs = findIdentifierOccurrences(ast, '::conduit');
+    // The TaggedLit node itself plus any nested references; here
+    // only the constructor invocation matches.
+    expect(refs.length).toBeGreaterThanOrEqual(1);
+    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'conduit')).toBe(true);
+  });
+
+  it('finds BareTypeKeyword occurrences for type-namespace lookup', () => {
+    const ast = parse('::conduit | source');
+    const refs = findIdentifierOccurrences(ast, '::conduit');
+    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'conduit')).toBe(true);
+  });
+
+  it('finds BindStep type-binding declaration via :: lookup', () => {
+    const ast = parse('::Box {:qlang/kind :type}');
+    const refs = findIdentifierOccurrences(ast, '::Box');
+    expect(refs.some(n => n.type === 'BindStep' && n.key.type === 'BareTypeKeyword' && n.key.tag === 'Box')).toBe(true);
+  });
 });
 
 describe('bindingNamesVisibleAt', () => {

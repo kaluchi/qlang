@@ -25,8 +25,9 @@
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
 //                 the `!|` fail-track combinator — anything that
 //                 carries the fail-track semantic in qlang
-//   'quote'       backtick-Quote literal, including the surrounding
-//                 backticks (DocLit `|~~ … ~~|` falls under 'comment')
+//   'quote'       Quote literal `~{ … }`, including the paired
+//                 `~{` opener and `}` closer (DocLit `|~~ … ~~|`
+//                 falls under 'comment')
 //   'type'        `::tag` head of a TaggedLit or a BareTypeKeyword —
 //                 the type-namespace identifier sigil + name
 //   'set'         `#{` opener and matching `}` closer of a SetLit

@@ -2,12 +2,15 @@
 // query starts with. Under the Variant-B model every runtime module
 // lives in one of two places:
 //
-//   1. lib/qlang/core.qlang — the authored source catalog. One
-//      Map literal whose entries are descriptor Maps carrying
-//      :qlang/kind :builtin and :qlang/impl :qlang/prim/<name>
-//      keywords that resolve against PRIMITIVE_REGISTRY at dispatch
-//      time. Doc-comment prefixes fold into :docs Vecs at eval
-//      time via MapEntryDocPrefix + foldEntryDocs.
+//   1. lib/qlang/core.qlang — the authored source catalog. A series
+//      of `BindStep` declarations (`:count |~~ … ~~| {…descriptor}`),
+//      each binding an identifier to a descriptor Map carrying
+//      `:qlang/kind :builtin` plus a `:qlang/impl :qlang/prim/<name>`
+//      keyword that resolves against `PRIMITIVE_REGISTRY` at dispatch
+//      time. Each `BindStep`'s attached doc-prefix lives on the
+//      `qlang/ast/qlang/core` Quote AST as the step's `.docs` Vec
+//      and is reachable through axis-operands (`:name | docs`,
+//      `:name | examples`).
 //
 //   2. src/runtime/*.mjs — the JS-level primitive impls. Each
 //      module binds its impls into PRIMITIVE_REGISTRY at import
@@ -80,9 +83,8 @@ export async function langRuntime() {
       // core.qlang is a series of BindStep declarations evaluated
       // against an empty seed env — `evalBindStep` handles every
       // binding shape directly on the AST without any pre-installed
-      // operand. The earlier bootstrap dance (a hand-built `def`
-      // descriptor stamped into env so the catalog could call into
-      // it) is gone with the legacy `def` operand.
+      // operand, so no bootstrap descriptor needs to land in env
+      // before the catalog parses.
       const bootstrapState = makeState(null, new Map());
       const bootstrapResult = await evalAst(coreAst, bootstrapState);
       const templateEnv = bootstrapResult.env;

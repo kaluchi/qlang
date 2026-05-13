@@ -2,13 +2,13 @@
 // declarative metadata living on the binding's source AST.
 //
 // Each operand walks the `qlang/ast/<uri>` Quote-values in env to
-// find the originating `def`-step for the named binding, then
-// returns the field projected from that step (source text, docs,
-// example Quotes, etc.).
+// find the originating `BindStep` (or `as(:name)` OperandCall) for
+// the named binding, then returns the field projected from that
+// step (source text, docs, example Quotes, etc.).
 //
-// `source` returns a Quote of the def-step's source text.
+// `source` returns a Quote of the BindStep's source text.
 // `docs`   returns a Vec of Doc-values built from each attached
-//          doc-prefix on the def-step (one Doc-value per prefix).
+//          doc-prefix on the BindStep (one Doc-value per prefix).
 // `examples` returns a Vec of Quote-values extracted from those
 //          docs — every Quote segment in the doc-content stream
 //          is a candidate test case for runExamples.
@@ -107,15 +107,15 @@ export function findBindingStepAcrossModules(env, bindingName) {
   return null;
 }
 
-// Resolve the subject to a binding name a def-step lives under.
+// Resolve the subject to a binding name a BindStep lives under.
 // Keyword `:foo`         → `'foo'` (ordinary value/conduit binding).
 // TagKeyword `::Tag`     → `'::Tag'` (type-binding subject — the form
 // `::Tag | source` lands here once BareTypeKeyword evaluation returns
 // a TagKeyword identifier).
 // Tagged-instance Map (`:qlang/kind` is a TagKeyword, e.g.
-// `::assertion[…]` or `::conduit[…]`) → `'::<tag>'` taken from that
-// kind's name — the instance's `docs` are the docs of the type
-// binding it instantiates.
+// `::conduit[…]` or any user-defined `::tag[…]`) → `'::<tag>'`
+// taken from that kind's name — the instance's `docs` are the docs
+// of the type binding it instantiates.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
   if (isTagKeyword(subject)) return TYPE_BINDING_PREFIX + subject.name;

@@ -639,6 +639,11 @@ export function astNodeToMap(node) {
     case 'Pipeline':
       m.set(F_QLANG_KIND, KIND_PIPELINE);
       m.set(F_STEPS, Object.freeze(node.steps.map(pipelineStepToMap)));
+      // The grammar emits `leadingCombinator` only when an explicit
+      // prefix was authored; absent it is undefined. The AST-Map
+      // codec pins the field to `null` for that case so the round-
+      // trip reads a consistent type and downstream walkers do not
+      // branch on field-presence.
       m.set(F_LEADING_COMBINATOR, node.leadingCombinator ?? null);
       break;
 

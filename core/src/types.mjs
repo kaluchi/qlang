@@ -282,16 +282,18 @@ export function isQuote(v) {
 }
 
 // Quote — frozen JS object carrying `.source` (the verbatim text
-// between backticks) and an optional `.ast` (lazily populated when
+// between `~{` and `}`) and an optional `.ast` (lazily populated when
 // the Quote is run through `eval` or projected via `/ast`). Lives
 // on the JS layer rather than as a Map with `:qlang/kind :quote`
 // so the discriminator stays out of pipeValue projection — Quote
-// lands in pipeValue directly through the backtick literal, so
+// lands in pipeValue directly through the `~{…}` literal, so
 // keeping the discriminator in a Map-key would expose runtime
 // housekeeping at the user surface. The lazy `.ast` lets a Quote
 // hold a pipeline-suffix fragment beginning with a combinator
-// (`* inc | sort`) — eager parse would reject the fragment because
-// Pipeline head must be a RawStep, not a combinator.
+// (`~{* inc | sort}`) — eager parse would reject the fragment in
+// startRule=Query mode because the top-level rule expects a value
+// expression; Pipeline accepts a leading combinator only inside the
+// `~{…}` body context, which `apply(subject)` re-enters.
 export function makeQuote(source, ast = null) {
   return Object.freeze({ type: 'quote', source, ast });
 }

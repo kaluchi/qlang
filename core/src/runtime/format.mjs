@@ -204,8 +204,15 @@ export function printValue(v, indent = 0) {
   return dispatchQlangValue(v, PRINT_HANDLERS, String, indent);
 }
 
-// Named → `def(:name, [params], body)` with attached doc-prefix.
-// Anonymous → `::conduit[[params] `body`]` TaggedLit form.
+// Both named and anonymous conduits render as the `::conduit[…]`
+// TaggedLit literal — the same shape `evalTaggedLit` accepts on the
+// way back in. Named form carries the self-name keyword in the
+// payload's first slot (`::conduit[:self [params] ~{body}]`),
+// anonymous form omits it (`::conduit[[params] ~{body}]`). Round-
+// trip: parse → evalTaggedLit → conduitConstructor → makeConduit
+// reproduces the same Conduit-value modulo the lexical envRef
+// holder, which the constructor binds to the call-site env at
+// reconstruction time.
 function printConduit(conduit) {
   const name = conduit.get('name');
   const params = conduit.get('params');
@@ -226,8 +233,9 @@ function printSnapshot(snapshot) {
 // TaggedLit literal that produced it. The constructor stamps the
 // original payload Vec under `:qlang/payload` precisely so this
 // renderer can reconstruct the source form without any per-tag
-// hardcoding — the same shape `def(:name, body)` rendering does
-// for Conduit, generalised across every user-defined `::tag`.
+// hardcoding — the same shape `printConduit` produces for the
+// `::conduit` value-class, generalised across every user-defined
+// `::tag`.
 function printTaggedInstance(instance, indent) {
   const tag = instance.get('qlang/kind').name;
   const payload = instance.get('qlang/payload');

@@ -145,8 +145,12 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
     }
   }
 
-  // Patch :qlang/impl on builtin descriptors with host-provided
-  // function values from locatorResult.impls.
+  // Stamp the resolved JS function value onto each freshly-built
+  // builtin descriptor before sealing the export Map. The descriptor
+  // is still the loader's mutable build buffer at this point — it
+  // becomes immutable once it lands in `envWithNamespace` below — so
+  // the `.set` is a single mint-site write under the same factory
+  // ceremony as `makeConduit` / `makeSnapshot`.
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);

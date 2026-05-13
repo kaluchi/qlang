@@ -3,15 +3,14 @@
 //
 //   Prose     — `{:qlang/kind :prose :text "..."}` for the raw
 //               text between special tokens.
-//   Quote     — Quote-value (frozen `.source`) for a backtick-
-//               delimited code fragment.
+//   Quote     — Quote-value (frozen `.source`) for a `~{…}`
+//               paired-delimiter code fragment.
 //   TaggedLit — the value produced by invoking a `::tag`
-//               constructor against its parsed payload (e.g. an
-//               `::assertion[\`snippet\` \`expected\`]` segment
-//               yields an Assertion-value Map).
+//               constructor against its parsed payload (e.g.
+//               `::link~{path}` or `::diagram[…]`).
 //
-// The tokenizer scans char-by-char for backtick (`) and double-
-// colon (`::`) openers, parses the surrounding qlang fragment
+// The tokenizer scans char-by-char for `~{` (Quote opener) and
+// `::` (TaggedLit opener), parses the surrounding qlang fragment
 // through the canonical parse() entry point, and emits the
 // corresponding value-class. Anything between the openers (or
 // before the first / after the last) becomes a Prose segment.
@@ -35,10 +34,11 @@ function makeProseSegment(text) {
 //   kind 'quote'  — `~{...}` paired Quote delimiter.
 //   kind 'tagged' — `::tag<payload>` (TaggedLit, evaluated through
 //                   the registered constructor).
-// Keyword references (`:foo`), type tags, names stay in Prose —
-// the Doc-content canon is `:Prose` / `:Quote` / TaggedLit-built;
-// further structure rides through `::tag` constructors authors
-// register, no per-form grammar specialisation here.
+// Keyword references (`:foo`), bare names, and stray `:` characters
+// stay in Prose — the Doc-content canon is `:Prose` / `:Quote` /
+// TaggedLit-built; further structure rides through `::tag`
+// constructors authors register, no per-form grammar specialisation
+// here.
 function findNextOpener(content, from) {
   let best = null;
   for (let i = from; i < content.length; i++) {

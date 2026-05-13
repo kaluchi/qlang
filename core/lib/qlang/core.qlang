@@ -1,12 +1,12 @@
 |~ Canonical catalog of every qlang built-in — the Variant-B
-   langRuntime source. Each entry binds an identifier to a
-   descriptor Map carrying :qlang/kind :builtin and a :qlang/impl
-   keyword pointing into src/primitives.mjs SHARED_REGISTRY, plus
-   the authored metadata (category / subject / returns / modifiers
-   / examples / throws). Doc-comment prefixes attach to each
-   MapEntry via grammar.peggy's MapEntryDocPrefix; eval.mjs's
-   foldEntryDocs folds them into the value Map under :docs at
-   bootstrap time.
+   langRuntime source. Each entry is a `BindStep` binding an
+   identifier to a descriptor Map carrying :qlang/kind :builtin
+   and a :qlang/impl `:qlang/prim/<name>` keyword pointing into
+   `PRIMITIVE_REGISTRY`, plus the authored metadata (category /
+   subject / returns / modifiers / examples / throws). The
+   doc-comment prefix attached to each `BindStep` lives on the
+   `qlang/ast/qlang/core` Quote AST as `step.docs` and is
+   reachable through axis-operands (`:name | docs`, `| examples`).
 
    Sections (plain-comment dividers appear inline between entry
    groups; the grammar's _L rule absorbs them as whitespace inside
@@ -1530,10 +1530,10 @@
 |~ ──────────────── Axis-operands ──────────────── ~|
 
 :source
-  |~~ source(:name) — Quote of the def-step that binds :name in
-    one of the loaded modules. Walks every qlang/ast/<uri> Quote
-    in env, finds the def-step whose first arg matches :name,
-    returns a Quote-value carrying the verbatim def source. ~~|
+  |~~ source(:name) — Quote of the `BindStep` that binds :name in
+    one of the loaded modules. Walks every `qlang/ast/<uri>`
+    Quote in env, finds the `BindStep` whose key matches `:name`,
+    returns a Quote-value carrying the verbatim source slice. ~~|
   {:qlang/kind :builtin
                 :qlang/impl :qlang/prim/source
                 :category :axis
@@ -1544,9 +1544,9 @@
 
 :docs
   |~~ docs(:name) — Vec of Doc-values, one per attached doc-prefix
-    on the def-step that binds :name. Each Doc-value /segments
+    on the `BindStep` that binds :name. Each Doc-value `/segments`
     surfaces TaggedLit and Quote inline structure for navigation;
-    Quote segments are the evaluable examples runExamples runs. ~~|
+    Quote segments are the evaluable examples `runExamples` runs. ~~|
   {:qlang/kind :builtin
               :qlang/impl :qlang/prim/docs
               :category :axis

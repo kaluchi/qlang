@@ -117,12 +117,13 @@ const ConduitParameterNoCapturedArgs = declareArityError('ConduitParameterNoCapt
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
 // uses langRuntime as both initial env and pipeValue (per the
-// model's reference bootstrap). The parsed AST is stamped into the
-// env under `qlang/ast/inline` as a Quote so axis-operands
-// (`source`, `docs`, `examples`) can find inline `def`-step
-// bindings — without this, `def(:foo, …) | :foo | docs` would
-// raise AxisBindingNotFound because `foo` lives in the just-parsed
-// AST, not in any module Quote installed by use(:ns).
+// model's reference bootstrap). The parsed AST is stamped into
+// the env under `moduleAstKey('inline')` as a Quote so axis-
+// operands (`source`, `docs`, `examples`) can resolve `BindStep`
+// bindings declared inside the same query — without it,
+// `:foo body | :foo | docs` would raise `AxisBindingNotFound`
+// because `foo` lives only in the just-parsed AST, not in any
+// module Quote installed via `use(:ns)`.
 export async function evalQuery(source, env) {
   const initialEnv = env ?? await langRuntime();
   let ast;
@@ -398,7 +399,7 @@ function combineTrailQuotes(existing, fresh) {
   return makeQuote(existing.source + ' ' + fresh.source);
 }
 
-// ─── Step 1: Literals ───────────────────────────────────────────
+// ─── Literal evaluators ─────────────────────────────────────────
 
 function evalNumberLit(node, state)  { return withPipeValue(state, node.value); }
 function evalStringLit(node, state)  { return withPipeValue(state, node.value); }
@@ -463,6 +464,23 @@ function evalQuoteLit(node, state) {
 function evalDocLit(node, state) {
   return withPipeValue(state, makeDoc(node.content));
 }
+
+async function evalSetLit(node, state) {
+  const setResult = new Set();
+  const kwNames = new Set();
+  for (const setElem of node.elements) {
+    const elemFork = await fork(state, inner => evalNode(setElem, inner));
+    const val = elemFork.pipeValue;
+    if (isKeyword(val)) {
+      if (kwNames.has(val.name)) continue;
+      kwNames.add(val.name);
+    }
+    setResult.add(val);
+  }
+  return withPipeValue(state, setResult);
+}
+
+// ─── TaggedLit / BareTypeKeyword ────────────────────────────────
 
 // ::tag<payload> — type-namespace constructor invocation. Eval the
 // payload sub-expression in a fork (inheriting outer pipeValue),
@@ -535,6 +553,8 @@ async function evalBareTypeKeyword(node, state) {
   return withPipeValue(state, makeTagKeyword(node.tag));
 }
 
+// ─── BindStep ───────────────────────────────────────────────────
+
 // BindStep — declarative binding form. Transparent for pipeValue
 // (env-write only). Three shapes, purity-routed for value bodies:
 //
@@ -603,22 +623,7 @@ async function evalBindStep(node, state) {
   return makeState(state.pipeValue, nextEnv);
 }
 
-async function evalSetLit(node, state) {
-  const setResult = new Set();
-  const kwNames = new Set();
-  for (const setElem of node.elements) {
-    const elemFork = await fork(state, inner => evalNode(setElem, inner));
-    const val = elemFork.pipeValue;
-    if (isKeyword(val)) {
-      if (kwNames.has(val.name)) continue;
-      kwNames.add(val.name);
-    }
-    setResult.add(val);
-  }
-  return withPipeValue(state, setResult);
-}
-
-// ─── Step 2: Projection ─────────────────────────────────────────
+// ─── Projection ─────────────────────────────────────────────────
 
 // Projection walks a path of key segments, dispatching per-segment
 // on the current subject's kind — Map does keyword-lookup, Vec does
@@ -711,7 +716,7 @@ function projectSegment(subject, projKey, state) {
   });
 }
 
-// ─── Step 3: Identifier lookup with optional captured args ──────
+// ─── Identifier lookup + Conduit dispatch ──────────────────────
 
 // Interned keyword constants for binding-descriptor dispatch. The
 // :qlang/kind discriminator decides which binding kind a resolved
@@ -1085,8 +1090,8 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
 export const CONDUIT_PARAMS_FIELD = 'params';
 
-// ─── Step 6: comment (plain forms only — doc forms attach
-// during parsing and never appear as standalone steps) ─────────
+// ─── Comment (plain forms only — doc forms attach during
+// parsing and never appear as standalone steps) ───────────────
 
 function evalCommentStep(_node, state) {
   // Identity: state passes through unchanged. The comment node is

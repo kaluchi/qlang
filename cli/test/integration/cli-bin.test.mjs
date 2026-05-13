@@ -83,6 +83,18 @@ describe('CLI: script mode — query argument', () => {
     expect(exitCode).toBe(2);
     expect(stderr).toMatch(/missing query/);
   });
+
+  it('axis-operands resolve cell-local BindStep declarations through script-mode', async () => {
+    // Regression pin: script-mode goes through session.evalCell,
+    // which must stamp the parsed cell AST under
+    // `qlang/ast/<cellUri>` so axis-operands find the inline
+    // `:foo |~~ note ~~|` BindStep declared by the same query.
+    const { stdout, exitCode } = await runCli(
+      [':foo |~~ note ~~| | :foo | docs * /content'],
+      { stdin: '' });
+    expect(exitCode).toBe(0);
+    expect(stdout.trim()).toBe('[" note "]');
+  });
 });
 
 describe('CLI: piped stdin — auto-detect JSON', () => {

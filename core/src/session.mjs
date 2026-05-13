@@ -11,13 +11,15 @@
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, materializePendingTrail } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
-import { makeState } from './state.mjs';
+import { makeState, envSet } from './state.mjs';
 import {
   isConduit,
   isSnapshot,
   isFunctionValue,
   makeConduit,
-  makeSnapshot
+  makeSnapshot,
+  makeQuote,
+  moduleAstKey
 } from './types.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
@@ -109,6 +111,16 @@ export async function createSession(opts = {}) {
       let cellError = null;
       try {
         cellAst = parse(source, { uri: cellUri });
+        // Stamp the parsed cell AST under `qlang/ast/<cellUri>` so
+        // axis-operands (`source`, `docs`, `examples`) resolve
+        // BindStep bindings declared inside the same cell — same
+        // mechanism `evalQuery` uses for inline queries. Without it
+        // a cell's own `:foo |~~ note ~~|` declaration is invisible
+        // to a follow-up `:foo | docs` step, surfacing
+        // `::AxisBindingNotFoundError`. The Quote keeps both the
+        // verbatim source and the pre-parsed AST so axis-walkers
+        // skip a re-parse on every lookup.
+        env = envSet(env, moduleAstKey(cellUri), makeQuote(source, cellAst));
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
           ? evalOpts.initialPipeValue
           : null;

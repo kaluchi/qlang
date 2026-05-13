@@ -38,6 +38,50 @@ describe(':name | source returns the BindStep source as Quote', () => {
     expect(result.source).toBe(':myLocal 42');
   });
 
+  it('session.evalCell stamps cell AST so axis-operands resolve cell-local BindStep declarations', async () => {
+    // session.evalCell mirrors evalQuery's inline-AST stamp under
+    // moduleAstKey(cellUri); without it CLI script-mode + REPL
+    // surface `::AxisBindingNotFoundError` for any axis lookup on a
+    // user-declared BindStep in the same cell — the regression that
+    // initially flagged this gap was `qlang ':foo |~~ note ~~| |
+    // :foo | docs'` returning AxisBindingNotFoundError instead of
+    // the attached doc.
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell(
+      ':foo |~~ a note ~~| | :foo | docs * /content');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([' a note ']);
+  });
+
+  it('cross-cell axis lookup — a BindStep declared in an earlier cell is visible from a later cell', async () => {
+    // Each cell stamps its AST under a distinct moduleAstKey
+    // (`qlang/ast/cell-1`, `qlang/ast/cell-2`, …) so axis-operands
+    // walking every `qlang/ast/<uri>` Quote in env see prior cells'
+    // declarations alongside the current cell's. The session env
+    // accumulates these stamps over the cell history.
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':foo |~~ first cell ~~|');
+    const cellEntry = await sessionInstance.evalCell(':foo | docs * /content');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([' first cell ']);
+  });
+
+  it('namespaced keyword names round-trip cleanly through axis lookup', async () => {
+    // `:landing/chapter01` parses as a single namespaced Keyword;
+    // BindStep stores the binding under that exact name, axis
+    // lookup matches by `step.key.name === bindingName`. Pinned
+    // here so a future grammar change to namespacing semantics
+    // surfaces the regression.
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell(
+      ':landing/chapter01 |~~ Глава из лендинг пейджа ~~| | :landing/chapter01 | docs * /content');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([' Глава из лендинг пейджа ']);
+  });
+
   it('non-keyword subject raises SourceSubjectNotKeywordOrTypeError', async () => {
     const err = await evalQuery('42 | source');
     expect(isErrorValue(err)).toBe(true);

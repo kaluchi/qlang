@@ -155,17 +155,31 @@ the raw captured value; a reflective `reify(:name)` lookup reads the
 wrapper directly and exposes the `:name`, `:value`, and `:docs` fields
 in the descriptor.
 
-### 5. Conduit binding — `:name expr` / `:name [:p1..:pN] expr`
+### 5. BindStep declaration — `:name body` / `:name [:p1..:pN] body` / `:name docs` / `::Tag body`
 
-    (pipeValue, env) → (pipeValue, env[:name := Conduit(expr, params, envRef, docs)])
+    (pipeValue, env) → (pipeValue, env[:name := <bound value>])
 
-Identity on `pipeValue`; writes a **conduit** into `env`. A conduit
-stores `expr` unevaluated, along with the binding name, an optional
-parameter list, any doc-comment contents, and a **lexical scope
-anchor** (`envRef`) that captures the declaration-time env including
-the conduit itself (tie-the-knot for recursive self-binding).
+Identity on `pipeValue`; writes the binding into `env` and falls
+through. The bound value is shaped by the body's purity and shape:
 
-When `name` is later looked up via Step 3:
+- **Doc-only** (`:name |~~ … ~~|`, no body) — `env[:name]` becomes
+  a Snapshot wrapping a `Doc` value built from the joined doc
+  prefix.
+- **Pure-literal body** (`isPureLiteralAst(body)` — Number / String /
+  Boolean / Null / Keyword / Quote / Doc / VecLit / MapLit / SetLit
+  / TaggedLit composed of pure leaves) — `evalBindStep` evaluates
+  the body once at declaration time against `pipeValue=null` and
+  binds the resulting value behind a Snapshot wrapper. Catalog
+  descriptor Maps land through this path so identifier lookup sees
+  a plain Map directly, not a deferred Conduit.
+- **Impure / parametric body** — the body becomes a **Conduit**
+  carrying the unevaluated body AST, optional parameter list, the
+  doc-prefix Vec, and a **lexical scope anchor** (`envRef`) that
+  captures the declaration-time env including the conduit itself
+  (tie-the-knot for recursive self-binding). Identifier lookup
+  forces it through `applyConduit`.
+
+When the conduit name is later looked up via Step 3:
 
 1. Captured-arg expressions (one per parameter) become lazy lambdas.
 2. Each lambda is wrapped in a conduit-parameter — a nullary function
@@ -189,8 +203,11 @@ declaration time, not the caller's env:
   lambda fires per-element inside `sortWith`, per-iteration inside
   `filter`, per-pair inside `desc`/`asc`.
 
-Zero-arity conduits (`:f expr`) and parametric conduits
-(`:f [:a :b] expr`) share the same mechanism.
+Zero-arity conduits (`:f body`) and parametric conduits
+(`:f [:a :b] body`) share the same mechanism. Type-binding
+declarations (`::Tag descriptor`) use the same BindStep AST node;
+the `BareTypeKeyword` key writes under the `::Tag` env-key prefix
+instead of the value-namespace plain-name slot.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -307,12 +324,13 @@ Overloaded by captured-arg count:
     dispatch-time primitive key), and computes `:captured` /
     `:effectful` by resolving the primitive through
     `PRIMITIVE_REGISTRY`. All other fields (`:category`,
-    `:subject`, `:modifiers`, `:returns`, `:docs`, `:throws`)
-    pass through from the `core.qlang` entry verbatim. Examples
-    ride inside the `:docs` strings as
-    `::assertion[\`snippet\` \`expected\`]` segments — extract
-    them via the Doc-content tokenizer (`/segments` projection
-    on a Doc-value) or through `:name | examples`.
+    `:subject`, `:modifiers`, `:returns`, `:throws`) pass through
+    from the `core.qlang` entry verbatim. Authored prose lives on
+    the `BindStep`'s attached doc-prefix and is reachable via
+    `:name | docs` (Vec of Doc-values, `/content` for raw text,
+    `/segments` for Prose / Quote / TaggedLit splits) or via
+    `:name | examples` (Vec of Quote-values pulled from every
+    Quote segment in the docs).
   - `:conduit` — a BindStep-installed conduit. Descriptor has
     `:kind :conduit`, `:name`, `:source` (textual form of the body
     expression), `:docs` (Vec from parser-attached doc comments).
@@ -586,7 +604,7 @@ indistinguishable from built-ins.
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
 | `as(:name)` operand call            | Step 3 — identifier lookup + snapshot capture |
-| `:name expr` operand call     | Step 3 — identifier lookup + conduit construction |
+| `:name body` / `:name [:p] body` / `::Tag body` | Step 5 — BindStep declaration |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |

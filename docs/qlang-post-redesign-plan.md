@@ -215,13 +215,14 @@ BindStep **прозрачен для pipeValue** — выводит declarations
    `makeSnapshot(value, { name, docs, location })`.
 3. Если body impure (содержит OperandCall / Projection / ParenGroup /
    Pipeline) — bound = `makeConduit(body, { name, params, docs, envRef,
-   location })`. envRef tie-the-knot как был в прежнем `defOperand`
-   до удаления в 26fbc4e.
+   location })`. envRef tie-the-knot как при любой conduit-mint
+   ceremony — declaration-time env замыкается на сам conduit.
 4. `envSet(state.env, name, bound)`. pipeValue preserved.
 
 `name` ← `':' + key.name` for Keyword, `'::' + key.tag` for
-BareTypeKeyword. Effect-laundering AST scan тот же что был у
-прежнего `defOperand` до его удаления — пер-binding @-prefix check.
+BareTypeKeyword. Effect-laundering AST scan — пер-binding @-prefix
+check фитильит до makeConduit'a, fail'ит на эффектное body под
+clean именем.
 
 **Body restriction.** Bare Keyword / BareTypeKeyword запрещены как
 body (`:foo :bar` не парсится как binding — бессмысленно). Body
@@ -384,13 +385,11 @@ later point). What's live:
   one-element-per-row indented column when any element already
   contains a newline. Removes the "ladder" verticality for shapes
   like `[~{multi-line-Quote} ~{multi-line-Quote}]`.
-- **`def` operand removed entirely**. Every catalog / test / docs
-  call-site converted to the M3.5 BindStep declarative form
-  (`:name body`, `:name [params] body`); `defOperand` and its
-  four arg-validation error classes (`DefNameNotKeyword`,
-  `DefParamsNotVecOfKeywords`, `DefArityInvalid`,
-  `DefMissingDocOrBody`) deleted. `evalBindStep` is the sole
-  binding mechanism at the AST level.
+- **`evalBindStep` is the sole binding mechanism at the AST
+  level**. Every catalog / test / docs call-site declares
+  bindings through the M3.5 BindStep form (`:name body`,
+  `:name [params] body`); no operand-call ceremony around the
+  binding declaration.
 - **REPL Enter ↔ Ctrl+Enter swap.** Enter submits (PowerShell /
   bash muscle-memory parity); Ctrl+Enter / Ctrl+J inserts a soft
   newline for multi-line composition.

@@ -545,11 +545,12 @@ co-located sources:
   points into the primitive registry, plus authored metadata
   (`:category`, `:subject`, `:modifiers`, `:returns`,
   `:throws`). Doc-prefixes attached to each BindStep via
-  DocAttachedSequence (`:count |~~ ... ~~| ...`) become the
-  binding's `:docs` Vec; example assertions ride inside the
-  prose as `::assertion[\`snippet\` \`expected\`]` TaggedLit
-  segments — extracted at runtime through the Doc-content
-  tokenizer.
+  DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the
+  `qlang/ast/qlang/core` module Quote as `step.docs` and are
+  reachable through axis-operands (`:count | docs` returns a
+  Vec of Doc-values, `:count | examples` returns a Vec of every
+  `~{…}` Quote segment extracted by `parseDocSegments`). Each
+  Quote is a self-test expression `runExamples` evaluates.
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-

@@ -1527,23 +1527,28 @@ Two surface forms:
 loaded by `langRuntime` from `lib/qlang/core.qlang`:
 
 ```
-{:kind     :builtin
- :name     "count"
- :category :vec-reducer
- :subject  [:vec :set :map]
+{:kind      :builtin
+ :name      "count"
+ :category  :container-reducer
+ :subject   [:vec :set :map]
  :modifiers []
- :returns  :number
- :captured [0 0]
- :docs     ["Returns the number of elements. ...\n\n    ::assertion[`[1 2 3] | count` `3`]\n    ::assertion[`#{:a :b} | count` `2`]"]
- :throws   [:CountSubjectNotContainerError]
+ :returns   :number
+ :captured  [0 0]
+ :throws    [::CountSubjectNotContainerError]
  :effectful false}
 ```
 
-Examples for the binding ride inline inside the `:docs` strings
-as `::assertion[\`snippet\` \`expected\`]` segments — a single
-Doc-content stream per binding instead of a parallel `:examples`
-Vec. `runExamples` and `:name | examples` extract them via the
-Doc-content tokenizer.
+Authored docs and example assertions ride on the catalog
+`BindStep`'s attached doc-prefix, not on the descriptor itself —
+the doc-prefix lives in the `qlang/ast/qlang/core` module Quote
+and is reachable through axis-operands. `:foo | docs` yields a
+Vec of Doc-values (one per attached doc-comment, each with a
+`/content` raw string and a `/segments` Prose / Quote / TaggedLit
+split); `:foo | examples` yields a Vec of every Quote segment
+extracted from those docs, ready for `runExamples` to execute as
+a self-test. The `:throws` Vec carries `::Tag` references — each
+entry is a navigable type-binding, so `:foo | /throws | first |
+docs` resolves the canonical prose for that throw site.
 
 The `:captured` field is a 2-element Vec `[min max]` describing
 how many captured args the operand accepts; fixed-arity operands
@@ -1643,34 +1648,35 @@ env | manifest | filter(/effectful) * /name
 |~| names of all effectful operands in scope
 ```
 
-### `runExamples` — execute `::assertion` segments from a binding's docs
+### `runExamples` — execute Quote segments from a binding's docs
 
-Every built-in's attached doc-prefix carries inline
-`::assertion[\`snippet\` \`expected\`]` segments. `runExamples`
-is the self-test driver: given a binding name (Keyword or a
-descriptor Map carrying a `:name` string) as `pipeValue`, it
-walks the loaded modules' AST, collects the binding's
-attached docs, parses each into Doc segments via the
-Doc-content tokenizer, filters for `:qlang/kind :assertion`,
-and evaluates each assertion's `:snippet` Quote against its
-`:expected` Quote — comparing via `deepEqual`.
+Every catalog binding's attached doc-prefix may carry inline
+`~{…}` Quote segments — each Quote is an executable self-test
+expression. `runExamples` is the self-test driver: given a
+binding name (Keyword or a descriptor Map carrying a `:name`
+string) as `pipeValue`, it walks the loaded modules' AST,
+collects the binding's attached docs, parses each through the
+Doc-content tokenizer (`parseDocSegments`), keeps every Quote
+segment, and evaluates each Quote against an empty initial
+state. A Quote whose result is truthy (not `false`, not `null`,
+not an ErrorValue) reports `:ok true`.
 
 ```qlang
 :count | runExamples
-|~| → [{:snippet `[1 2 3] | count` :expected `3` :actual 3 :error null :ok true}
-|~|    {:snippet `#{:a :b} | count` :expected `2` :actual 2 :error null :ok true}
+|~| → [{:snippet ~{[1 2 3] | count | eq(3)}     :actual true :error null :ok true}
+|~|    {:snippet ~{#{:a :b} | count | eq(2)}    :actual true :error null :ok true}
 |~|    ...]
 
 env | manifest * /name
               * (runExamples * /ok)
               | flat | distinct
-|~| catalog-wide self-test: every assertion, every operand, one
+|~| catalog-wide self-test: every Quote, every operand, one
 |~| Vec of booleans showing whether the doc still matches the runtime
 ```
 
 Bindings without a source-located BindStep (host-installed
 bindings via `session.bind`, runtime-seeded built-ins) return an
-empty Vec — `runExamples` makes no assertions about their
+empty Vec — `runExamples` makes no claims about their
 behaviour. Documentation lives in the source; bindings without
 source contribute zero examples.
 

@@ -106,14 +106,14 @@ describe('tokenize — atomic literal kinds', () => {
   });
 
   it('classifies a bare ~{::tag} BareTypeKeyword as a single type-kind span', async () => {
-    expect(tokenize('::conduit', await builtins())).toEqual([
-      { start: 0, end: 9, kind: 'type' }
+    expect(tokenize('::snapshot', await builtins())).toEqual([
+      { start: 0, end: 10, kind: 'type' }
     ]);
   });
 
   it('classifies the ~{::tag} head of a TaggedLit and descends into the payload', async () => {
-    const tokens = tokenize('::assertion[~{x} ~{y}]', await builtins());
-    expect(tokens[0]).toEqual({ start: 0, end: 11, kind: 'type' });
+    const tokens = tokenize('::conduit[~{x} ~{y}]', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 9, kind: 'type' });
     expect(tokens.some(t => t.kind === 'quote')).toBe(true);
     expect(tokens.some(t => t.kind === 'vec')).toBe(true);
   });

@@ -934,35 +934,37 @@ depends on the value's provenance. Four descriptor kinds:
   and adds `:name` when the caller used the named form
   `reify(:count)`:
   ```
-  {:kind     :builtin
-   :name     "count"
-   :category :vec-reducer
-   :subject  [:vec :set :map]
+  {:kind      :builtin
+   :name      "count"
+   :category  :container-reducer
+   :subject   [:vec :set :map]
    :modifiers []
-   :returns  :number
-   :captured [0 0]
-   :docs     ["Returns the number of elements. Polymorphic over Vec, Set, and Map.\n\n    ::assertion[`[1 2 3] | count` `3`]\n    ::assertion[`#{:a :b} | count` `2`]"]
-   :throws   [:CountSubjectNotContainerError]
+   :returns   :number
+   :captured  [0 0]
+   :throws    [::CountSubjectNotContainerError]
    :effectful false}
   ```
-  Examples ride inside the `:docs` strings as
-  `::assertion[\`snippet\` \`expected\`]` segments — extracted
-  by the Doc-content tokenizer. `:name | examples` returns a
-  Vec of Assertion-values; `runExamples` evaluates them.
-  `:category` / `:subject` / `:returns` carry keywords (not
-  strings) because the underlying `core.qlang` entries are
-  authored as keywords; `:throws` is a Vec of keywords (not
-  strings) matching the per-site error class names that
-  downstream consumers filter on. The `:captured` field is a
-  2-element Vec `[min max]` describing the range of captured-
-  arg counts the operand accepts. Fixed operands have
-  `min == max` (e.g. `count` has `[0 0]`; `filter` has
-  `[1 1]`). Partial/full-applicable operands have `[n-1 n]`
-  (`add` has `[1 2]`). Overloaded operands span the Object
-  keys of their impl dispatch table (`sort` has `[0 1]`).
-  Variadic operands use the `:unbounded` keyword as the upper
-  bound (`coalesce` has `[1 :unbounded]`). The field is always
-  present.
+  Authored prose and example assertions live on the catalog
+  `BindStep`'s attached doc-prefix, not on the reify descriptor
+  itself. `:name | docs` returns a Vec of Doc-values (one per
+  attached doc-comment, each with a `/content` raw string and a
+  `/segments` Prose / Quote / TaggedLit split); `:name |
+  examples` returns a Vec of every Quote segment extracted from
+  those docs. `runExamples` runs every Quote and reports
+  per-segment `:ok`. `:category` / `:subject` / `:returns`
+  carry keywords because the underlying `core.qlang` entries are
+  authored as keywords; `:throws` is a Vec of `::Tag` references
+  — each entry is a navigable type-binding, so
+  `:foo | /throws | first | docs` resolves the canonical prose
+  for that throw site. The `:captured` field is a 2-element Vec
+  `[min max]` describing the range of captured-arg counts the
+  operand accepts. Fixed operands have `min == max` (e.g.
+  `count` has `[0 0]`; `filter` has `[1 1]`). Partial/full-
+  applicable operands have `[n-1 n]` (`add` has `[1 2]`).
+  Overloaded operands span the Object keys of their impl
+  dispatch table (`sort` has `[0 1]`). Variadic operands use
+  the `:unbounded` keyword as the upper bound (`coalesce` has
+  `[1 :unbounded]`). The field is always present.
 
   Under the Variant-B REPL ergonomic, a bare non-nullary
   operand lookup (`mul`, `filter`, `coalesce` — any operand
@@ -1042,12 +1044,12 @@ missing). This is the introspection-by-name path:
 - **Arity** 1. **Subject** Keyword (binding name) or descriptor
   Map carrying a `:name` string.
 - Walks the loaded modules' AST through `findBindingStepAcrossModules`
-  to locate the binding's source. Collects `::assertion` segments
-  embedded in each attached doc-prefix by re-parsing through the
-  Doc-content tokenizer. For each assertion, evaluates the
-  `:snippet` Quote in an isolated env, deepEqual-compares against
-  the `:expected` Quote's evaluation. Returns a Vec of
-  `{:snippet :expected :actual :error :ok}` Maps.
+  to locate the binding's source. Pulls every Quote segment from
+  each attached doc-prefix through `parseDocSegments`. For each
+  Quote, evaluates the `:source` against an empty initial state;
+  a result that is not `false`, `null`, or an ErrorValue counts
+  as `:ok true`. Returns a Vec of `{:snippet :actual :error :ok}`
+  Maps — one per Quote segment.
 - Bindings without a source-located BindStep (host-installed
   bindings, runtime-seeded built-ins) return an empty Vec.
 - **Example**: `:count | runExamples | first | /ok` → `true`.

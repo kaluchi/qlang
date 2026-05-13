@@ -234,8 +234,8 @@ export async function deserializeSession(json) {
       // Allocate the envRef holder up front so the second pass below
       // can mutate `.env` after every binding has landed in session.env.
       // The holder identity is shared between the conduit and the
-      // second-pass walker — same tie-the-knot pattern defOperand uses
-      // at original declaration time.
+      // second-pass walker — same tie-the-knot pattern `evalBindStep`
+      // uses at original declaration time.
       const conduit = makeConduit(bodyAst, {
         name: binding.name,
         params: binding.params || [],
@@ -258,7 +258,7 @@ export async function deserializeSession(json) {
   }
   // Second pass — wire each restored conduit's envRef to the now-
   // complete session env so identifier lookup inside the conduit body
-  // resolves through a lexical anchor (matching defOperand) rather
+  // resolves through a lexical anchor (matching `evalBindStep`) rather
   // than falling back to the call-site `state.env` (which would give
   // dynamic scope and break shadowing-immune cross-conduit references
   // and recursive self-binding).

@@ -129,7 +129,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
   });
 
   it('restored conduits honor lexical scope (immune to caller-side shadowing)', async () => {
-    // defOperand wires envRef.env to the env captured at declaration
+    // `evalBindStep` wires envRef.env to the env captured at declaration
     // time, so a later cell that shadows `mul` does not affect the
     // restored conduit's body resolution. deserializeSession must
     // perform the same wiring on every restored conduit; otherwise the

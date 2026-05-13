@@ -942,7 +942,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   // inside sortWith, per-iteration inside filter, etc.).
   //
   // Every conduit reachable at this point has its envRef holder
-  // wired by the construction site (defOperand for in-query
+  // wired by the construction site (`evalBindStep` for in-query
   // declarations, deserializeSession for restored bindings); both
   // perform the tie-the-knot pattern so the body resolves through
   // the env captured at declaration time. Reading `.env` directly

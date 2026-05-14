@@ -40,52 +40,40 @@ const ManifestNamespaceUnknownError = declareShapeError('ManifestNamespaceUnknow
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
   ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`);
 
-// ── Descriptor-field helpers ───────────────────────────────────
-//
-// Each helper has its own per-site null-fallback path; exporting
-// them lets unit tests cover the synthetic conduit / snapshot /
-// function shapes that the runtime never produces but that
-// `describeBinding` still has to handle defensively.
-
-export function metaToVec(arr) {
-  return arr ? [...arr] : [];
-}
-
-export function bindingName(explicitName, binding) {
-  if (explicitName != null) return explicitName;
-  if (binding && binding.name != null) return binding.name;
-  return null;
-}
-
-export function capturedRange(fn) {
-  if (fn.meta && fn.meta.captured != null) return fn.meta.captured;
-  return null;
-}
-
-export function categoryKeyword(meta) {
-  if (meta.category) return keyword(meta.category);
-  return null;
-}
-
 // Extract a human-readable message from an error value — runtime
 // errors carry `.originalError`, user-created errors carry
 // `:message` in the descriptor.
-export function errorMessageOf(errorValue) {
+function errorMessageOf(errorValue) {
   if (errorValue.originalError) return errorValue.originalError.message;
   return errorValue.descriptor.get('message');
 }
 
+// `buildBuiltinDescriptor` reifies a JS function-value into a
+// descriptor Map — invoked only on conduit-parameter proxies that
+// surface inside a conduit body's env. Every such proxy is minted by
+// `makeConduitParameter` in `eval.mjs` with a full `meta` shape
+// (`category`, `subject`, `modifiers`, `returns`, `captured`,
+// `throws` all stamped at construction); the catalog-bound builtins
+// flow through the `qlKind.name === 'builtin'` branch in
+// `describeBinding` instead.
 function buildBuiltinDescriptor(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
   result.set('kind', keyword('builtin'));
-  result.set('name', bindingName(explicitName, fn));
-  result.set('category', categoryKeyword(meta));
+  // Conduit-parameter proxies always reach reify through a named
+  // lookup (`reify(:p)` inside a conduit body, or `manifest` over
+  // the body's env — both pass `explicitName`); a bare-pipeValue
+  // function value cannot surface here without first tripping
+  // FunctionValueLeakedToPrintError on render, so the named path
+  // is the only live entry. `fn.name` echoes `explicitName` in
+  // every reachable case.
+  result.set('name', explicitName);
+  result.set('category', keyword(meta.category));
   result.set('subject', meta.subject);
-  result.set('modifiers', metaToVec(meta.modifiers));
+  result.set('modifiers', [...meta.modifiers]);
   result.set('returns', meta.returns);
-  result.set('captured', metaToVec(capturedRange(fn)));
-  result.set('throws', metaToVec(meta.throws));
+  result.set('captured', [...meta.captured]);
+  result.set('throws', [...meta.throws]);
   result.set('effectful', fn.effectful);
   return result;
 }
@@ -94,7 +82,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   const result = new Map();
   result.set('kind', keyword('conduit'));
   result.set('name', explicitName ?? conduit.get('name'));
-  result.set('params', metaToVec(conduit.get('params')));
+  result.set('params', [...conduit.get('params')]);
   result.set('source', conduit.get('qlang/source'));
   result.set('effectful', conduit.get('effectful'));
   result.set('location', locationToQlangMap(conduit.get('location')));

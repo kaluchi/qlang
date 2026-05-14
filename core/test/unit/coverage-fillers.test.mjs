@@ -593,58 +593,6 @@ describe('importSelectiveNamespace single keyword fallback', async () => {
 });
 
 
-import {
-  metaToVec, bindingName, capturedRange, categoryKeyword, errorMessageOf
-} from '../../src/runtime/reify-op.mjs';
-
-describe('extracted descriptor helpers', async () => {
-  it('metaToVec on array returns copy', async () => {
-    expect(metaToVec([1, 2])).toEqual([1, 2]);
-  });
-  it('metaToVec on null returns empty', async () => {
-    expect(metaToVec(null)).toEqual([]);
-  });
-  it('metaToVec on undefined returns empty', async () => {
-    expect(metaToVec(undefined)).toEqual([]);
-  });
-
-  it('bindingName prefers explicitName', async () => {
-    expect(bindingName('explicit', { name: 'binding' })).toBe('explicit');
-  });
-  it('bindingName falls back to binding.name', async () => {
-    expect(bindingName(null, { name: 'binding' })).toBe('binding');
-  });
-  it('bindingName returns null when both absent', async () => {
-    expect(bindingName(null, {})).toBe(null);
-    expect(bindingName(null, null)).toBe(null);
-  });
-
-  it('capturedRange from meta.captured', async () => {
-    expect(capturedRange({ meta: { captured: [0, 1] } })).toEqual([0, 1]);
-  });
-  it('capturedRange returns null when absent', async () => {
-    expect(capturedRange({ meta: {} })).toBe(null);
-    expect(capturedRange({})).toBe(null);
-  });
-
-  it('categoryKeyword with category', async () => {
-    expect(categoryKeyword({ category: 'arith' })).toEqual(keyword('arith'));
-  });
-  it('categoryKeyword without category', async () => {
-    expect(categoryKeyword({})).toBe(null);
-  });
-
-  it('errorMessageOf with originalError', async () => {
-    const ev = makeErrorValue(new Map(), { originalError: new Error('from JS') });
-    expect(errorMessageOf(ev)).toBe('from JS');
-  });
-  it('errorMessageOf without originalError', async () => {
-    const d = new Map();
-    d.set('message', 'from descriptor');
-    const ev = makeErrorValue(d, {});
-    expect(errorMessageOf(ev)).toBe('from descriptor');
-  });
-});
 
 describe('reify descriptor branch coverage', async () => {
   it('reify value-level on conduit exposes name', async () => {

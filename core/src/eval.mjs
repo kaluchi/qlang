@@ -1007,6 +1007,7 @@ function makeConduitParameter(capturedArgLambda, paramName) {
     subject: 'any (current pipeValue at the lookup site)',
     modifiers: [],
     returns: 'any (the captured expression evaluated against pipeValue)',
+    captured: [0, 0],
     docs: [`Conduit parameter '${paramName}': fires the captured expression against the current pipeValue.`],
     examples: [],
     throws: ['ConduitParameterNoCapturedArgsError']

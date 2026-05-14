@@ -84,4 +84,22 @@ describe('runExamples Quote-as-test outcomes', () => {
     const cellEntry = await session.evalCell('use(:tests/bare) | :bare | runExamples | count');
     expect(cellEntry.result).toBe(0);
   });
+
+  it('Quote that lifts a user-built error → :error reads :message from descriptor', async () => {
+    // User-built errors (via `error(map)` operand) carry no
+    // `.originalError` on the JS-level ErrorValue wrapper —
+    // `errorMessageOf` falls through to the descriptor's :message
+    // entry. Distinct from finding #41's "Quote that lifts an error"
+    // case where the JS throw routed through `errorFromQlang` and
+    // the wrapper retained `.originalError`.
+    const moduleSource =
+      '|~~ user-built error.\n    ~{{:message "hand-built failure" :kind :test} | error}\n    ~~|\n' +
+      ':demo 1';
+    const session = await createSession({
+      locator: async () => ({ source: moduleSource })
+    });
+    const cellEntry = await session.evalCell('use(:tests/user-error) | :demo | runExamples | first');
+    expect(cellEntry.result.get('ok')).toBe(false);
+    expect(cellEntry.result.get('error')).toBe('hand-built failure');
+  });
 });

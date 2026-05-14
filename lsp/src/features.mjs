@@ -66,7 +66,10 @@ function stripQuoteSegments(content) {
     }
     cursor = i;
   }
-  return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim());
+  return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim())
+    .split('\n')
+    .map(l => l + '  ')
+    .join('\n');
 }
 
 // Remove the common leading whitespace from every non-empty line.

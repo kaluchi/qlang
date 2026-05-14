@@ -23,18 +23,17 @@
       ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
   ~~|
   {:qlang/kind :tag
-                  :qlang/impl :qlang/type/conduit
-                  :spec {:payload :vec}
-                  :throws [
-                    ::ConduitPayloadNotVecError
-                    ::ConduitArityInvalidError
-                    ::ConduitSelfNameNotKeywordError
-                    ::ConduitParamsNotVecError
-                    ::ConduitParamNotKeywordError
-                    ::ConduitBodyNotQuoteError
-                    ::ConduitArityMismatchError
-                    ::ConduitParameterNoCapturedArgsError
-                    ::ConduitBodyMissingSourceError]}
+   :qlang/impl :qlang/type/conduit
+   :spec {:payload :vec}
+   :throws [::ConduitPayloadNotVecError
+            ::ConduitArityInvalidError
+            ::ConduitSelfNameNotKeywordError
+            ::ConduitParamsNotVecError
+            ::ConduitParamNotKeywordError
+            ::ConduitBodyNotQuoteError
+            ::ConduitArityMismatchError
+            ::ConduitParameterNoCapturedArgsError
+            ::ConduitBodyMissingSourceError]}
 
 ::ConduitPayloadNotVecError
   |~~ `::conduit[…]` payload must be a Vec.
@@ -135,8 +134,8 @@
       ~{::qlang{"k": "v"} | isMap | eq(true)}
   ~~|
   {:qlang/kind :tag
-                :qlang/impl :qlang/type/qlang
-                :spec {:payload :any}}
+   :qlang/impl :qlang/type/qlang
+   :spec {:payload :any}}
 
 ::json
   |~~ ::json<qlang-shape> — recursively convert a qlang-shape
@@ -149,5 +148,5 @@
       ~{::json{:k "v"} | isJsonObject | eq(true)}
   ~~|
   {:qlang/kind :tag
-               :qlang/impl :qlang/type/json
-               :spec {:payload :any}}
+   :qlang/impl :qlang/type/json
+   :spec {:payload :any}}

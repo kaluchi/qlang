@@ -871,9 +871,9 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // Builds a user-facing reify-shape descriptor from a raw env
 // descriptor. Strips internal :qlang/kind and :qlang/impl, stamps
 // :kind :builtin plus :captured and :effectful read from the
-// resolved function value. Matches the shape intro.mjs::describeBinding
+// resolved function value. Matches the shape reify-op.mjs::describeBinding
 // produces for builtin descriptors — factored here to avoid a
-// circular import (intro → eval → intro).
+// circular import (reify-op → eval → reify-op).
 function reifyBuiltinDescriptor(rawDescriptor, implFn, introspectionName) {
   const reified = new Map();
   reified.set('kind', keyword('builtin'));

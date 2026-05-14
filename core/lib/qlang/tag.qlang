@@ -1,7 +1,9 @@
 |~ Value-class tag-bindings — ::conduit, ::qlang, ::json. Each
    declares :qlang/kind :tag plus a :qlang/impl keyword pointing
    into PRIMITIVE_REGISTRY at the JS-side constructor that builds
-   the corresponding value-class instance from a payload. ~|
+   the corresponding value-class instance from a payload. Per-tag
+   error sites live directly under the constructor they belong
+   to; the constructor's `:throws` Vec references them by name. ~|
 
 ::conduit
   |~~ Conduit literal — invokeable lexically-scoped value carrying
@@ -29,7 +31,62 @@
                     ::ConduitSelfNameNotKeywordError
                     ::ConduitParamsNotVecError
                     ::ConduitParamNotKeywordError
-                    ::ConduitBodyNotQuoteError]}
+                    ::ConduitBodyNotQuoteError
+                    ::ConduitArityMismatchError
+                    ::ConduitParameterNoCapturedArgsError
+                    ::ConduitBodyMissingSourceError]}
+
+::ConduitPayloadNotVecError
+  |~~ `::conduit[…]` payload must be a Vec; a non-Vec payload raises this error.
+    ~{::conduit{:not :a-vec} !| type | eq(::ConduitPayloadNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitArityInvalidError
+  |~~ `::conduit[…]` payload Vec must have either 2 elements (`[params body]`) or 3 elements (`[:self params body]`).
+    ~{::conduit[42] !| type | eq(::ConduitArityInvalidError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitSelfNameNotKeywordError
+  |~~ `::conduit` self-name (3-element payload form) must be a Keyword.
+    ~{::conduit[42 [] ~{mul(2)}] !| type | eq(::ConduitSelfNameNotKeywordError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitParamsNotVecError
+  |~~ `::conduit` params slot must be a Vec of Keywords.
+    ~{::conduit[42 ~{mul(2)}] !| type | eq(::ConduitParamsNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitParamNotKeywordError
+  |~~ `::conduit` params Vec must contain only Keywords; one element is some other type.
+    ~{::conduit[[42] ~{mul(2)}] !| type | eq(::ConduitParamNotKeywordError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitBodyNotQuoteError
+  |~~ `::conduit` body slot must be a Quote-value carrying the body source.
+    ~{::conduit[[] 42] !| type | eq(::ConduitBodyNotQuoteError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitArityMismatchError
+  |~~ Conduit invocation supplied a captured-arg count different from the conduit's declared parameter list.
+    ~{:f [:a] add(a) | 5 | f(1, 2) !| type | eq(::ConduitArityMismatchError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitParameterNoCapturedArgsError
+  |~~ Conduit-parameter proxies are nullary — passing captured arguments to a parameter reference raises this error.
+    ~{:f [:n] n(42) | 0 | f(5) !| type | eq(::ConduitParameterNoCapturedArgsError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ConduitBodyMissingSourceError
+  |~~ `makeConduit` refuses a body AST that has no `.text` source slice — `printValue` round-trip would otherwise emit a non-parseable placeholder. ~~|
+  {:qlang/kind :tag}
 
 ::qlang
   |~~ ::qlang<json-shape> — recursively convert a JSON-shape
@@ -42,8 +99,7 @@
     ~~|
   {:qlang/kind :tag
                 :qlang/impl :qlang/type/qlang
-                :spec {:payload :any}
-                :throws []}
+                :spec {:payload :any}}
 
 ::json
   |~~ ::json<qlang-shape> — recursively convert a qlang-shape
@@ -57,5 +113,4 @@
     ~~|
   {:qlang/kind :tag
                :qlang/impl :qlang/type/json
-               :spec {:payload :any}
-               :throws []}
+               :spec {:payload :any}}

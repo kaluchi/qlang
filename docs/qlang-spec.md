@@ -1536,12 +1536,12 @@ Three reserved tag names own dedicated render paths
 generic tagged-instance path; every other tag rides the generic
 shape.
 
-A named error value (`!{:thrown ::Tag …}`) is a special case:
-the descriptor's `:thrown` TagKeyword promotes to the literal's
-tag-head, and `printValue` emits `::Tag!{…fields…}` with the
-`:thrown` entry elided from the payload — the same shape both a
-JavaScript throw site and a literal `::Tag!{…}` source produce
-([Error track](#error-track)).
+A named error value (`!{:qlang/kind ::Tag …}`) carries the
+universal tagged-instance identity slot — `:qlang/kind` —
+promoted to the literal's tag-head. `printValue` emits
+`::Tag!{…fields…}` with the `:qlang/kind` entry folded into the
+head, the same shape both a JavaScript throw site and a literal
+`::Tag!{…}` source produce ([Error track](#error-track)).
 
 ## Error track
 
@@ -1644,7 +1644,7 @@ lift automatically into error values with structured descriptors:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
-| `:thrown` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The descriptor's tag head echoes the same value, so `printValue` elides this field; it stays readable through `!\| /thrown` |
+| `:qlang/kind` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
 | `:message` | string | Human-readable description |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
 | `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |

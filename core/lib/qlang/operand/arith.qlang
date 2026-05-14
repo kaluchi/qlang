@@ -1,48 +1,6 @@
-|~ qlang operand catalog — arith family. Each operand
-   BindStep below carries its per-site error tag-bindings inline,
-   declared just before the operand that raises them. The
-   :throws Vec on every descriptor references those tags by
-   name. ~|
-
-::AddLeftNotNumberError
-  |~~ Captured argument at position 1 of `add` must be Number.
-    ~{"hello" | add(1) !| type | eq(::AddLeftNotNumberError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::AddRightNotNumberError
-  |~~ Captured argument at position 2 of `add` must be Number. ~~|
-  {:qlang/kind :tag}
-
-::DivisionByZeroError
-  |~~ Division by zero — `div(_, 0)` raises this error.
-    ~{10 | div(0) !| type | eq(::DivisionByZeroError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::DivLeftNotNumberError
-  |~~ Captured argument at position 1 of `div` must be Number. ~~|
-  {:qlang/kind :tag}
-
-::DivRightNotNumberError
-  |~~ Captured argument at position 2 of `div` must be Number. ~~|
-  {:qlang/kind :tag}
-
-::MulLeftNotNumberError
-  |~~ Captured argument at position 1 of `mul` must be Number. ~~|
-  {:qlang/kind :tag}
-
-::MulRightNotNumberError
-  |~~ Captured argument at position 2 of `mul` must be Number. ~~|
-  {:qlang/kind :tag}
-
-::SubLeftNotNumberError
-  |~~ Captured argument at position 1 of `sub` must be Number. ~~|
-  {:qlang/kind :tag}
-
-::SubRightNotNumberError
-  |~~ Captured argument at position 2 of `sub` must be Number. ~~|
-  {:qlang/kind :tag}
+|~ qlang operand catalog — arith family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
 
 :add
   |~~ Adds two numbers. Bound form a | add(b) computes a+b;
@@ -60,6 +18,16 @@
         :modifiers [:number]
         :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
 
+::AddLeftNotNumberError
+  |~~ Captured argument at position 1 of `add` must be Number.
+    ~{"hello" | add(1) !| type | eq(::AddLeftNotNumberError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::AddRightNotNumberError
+  |~~ Captured argument at position 2 of `add` must be Number. ~~|
+  {:qlang/kind :tag}
+
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
     position 1 is the minuend.
@@ -75,6 +43,14 @@
         :modifiers [:number]
         :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
 
+::SubLeftNotNumberError
+  |~~ Captured argument at position 1 of `sub` must be Number. ~~|
+  {:qlang/kind :tag}
+
+::SubRightNotNumberError
+  |~~ Captured argument at position 2 of `sub` must be Number. ~~|
+  {:qlang/kind :tag}
+
 :mul
   |~~ Multiplies two numbers. Commutative.
 
@@ -88,6 +64,14 @@
         :returns :number
         :modifiers [:number]
         :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
+
+::MulLeftNotNumberError
+  |~~ Captured argument at position 1 of `mul` must be Number. ~~|
+  {:qlang/kind :tag}
+
+::MulRightNotNumberError
+  |~~ Captured argument at position 2 of `mul` must be Number. ~~|
+  {:qlang/kind :tag}
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
@@ -104,3 +88,17 @@
         :returns :number
         :modifiers [:number]
         :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
+
+::DivLeftNotNumberError
+  |~~ Captured argument at position 1 of `div` must be Number. ~~|
+  {:qlang/kind :tag}
+
+::DivRightNotNumberError
+  |~~ Captured argument at position 2 of `div` must be Number. ~~|
+  {:qlang/kind :tag}
+
+::DivisionByZeroError
+  |~~ Division by zero — `div(_, 0)` raises this error.
+    ~{10 | div(0) !| type | eq(::DivisionByZeroError)}
+    ~~|
+  {:qlang/kind :tag}

@@ -408,16 +408,20 @@ carrying `:qlang/kind :tag` plus a constructor handle on
      (cached as `.ast` after the first parse), build a fresh
      state with `pipeValue = payloadValue` and the surrounding
      env, evaluate the body AST, ascend the result.
-   - **Undefined** + payload is an ErrorValue — the **universal
-     named-error shorthand**: re-stamp the descriptor with
-     `:thrown ::Tag` and return a fresh ErrorValue carrying the
-     promoted tag. Lets every entry in the named-error registry
-     work as a constructor without per-tag JS, mirroring the
-     shape `errorFromQlang` produces from a runtime throw site.
-6. **Otherwise** → `TagBindingHasNoConstructorError` carrying
-   `:payloadValue` / `:payloadType` / `:expectedType
-   [:keyword :quote]` / `:actualValue` / `:actualType` so the
-   diagnostic reads as a structural-shape mismatch.
+   - **Undefined** + payload is an **ErrorValue** — re-stamp the
+     descriptor with `:qlang/kind ::Tag` and return a fresh
+     ErrorValue carrying the promoted identity. Lets every error
+     tag work as a literal constructor (`::Tag!{…}`) without
+     per-tag JS, mirroring the shape `errorFromQlang` produces
+     from a runtime throw site.
+   - **Undefined** + any other payload — build a success-track
+     **TaggedInstance** Map `{:qlang/kind ::Tag :qlang/payload
+     <value>}`. The payload value rides under the `:qlang/payload`
+     slot for every Primary that doesn't carry error semantics
+     (`::Tag[…]` / `::Tag{…}` / `::Tag"s"` / `::Tag:foo` /
+     `::Tag(42)` / etc.). Generic constructor every tag-binding
+     shares; the printer rebuilds the source-form TaggedLit from
+     the slot's value-class.
 
 ### `BareTypeKeyword` — tag-identifier as value
 
@@ -466,12 +470,13 @@ the generic tagged-instance branch:
 - `:tag` → BindStep declaration form (a tag-binding renders
   back as `::Tag {descriptor}`, not as an instance).
 
-The named-error promotion (step 5 above, undefined-impl branch)
-piggybacks on the same round-trip: `errorFromQlang` stamps
-`:thrown ::Tag` on the descriptor, `printValue::printErrorValue`
-elides the field and emits `::Tag!{…}` with the rest of the
-payload Map, and a literal `::Tag!{…}` source re-creates the
-same descriptor through the universal shorthand.
+The named-error promotion piggybacks on the same round-trip:
+`errorFromQlang` stamps `:qlang/kind ::Tag` on the descriptor
+(the universal tagged-value identity slot), `printErrorValue`
+folds the field into the literal head and emits `::Tag!{…}` with
+the rest of the descriptor as payload, and a literal `::Tag!{…}`
+source re-creates the same descriptor through the
+ErrorLit-payload branch.
 
 ## Combinators
 
@@ -1204,7 +1209,7 @@ in addition to the invariant `:trail`:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` or `:host` or `:user` |
 | `:kind` | keyword | Error category |
-| `:thrown` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The descriptor's TaggedLit head echoes the same value, so `printValue` elides this field whenever it matches the head; the field stays addressable through `!\| /thrown` projection |
+| `:qlang/kind` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
 | `:message` | string | Human-readable |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |

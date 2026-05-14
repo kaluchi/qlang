@@ -1,28 +1,6 @@
-|~ qlang operand catalog — map-op family. Each operand
-   BindStep below carries its per-site error tag-bindings inline,
-   declared just before the operand that raises them. The
-   :throws Vec on every descriptor references those tags by
-   name. ~|
-
-::HasKeyNotKeywordError
-  |~~ Captured argument at position 2 of `has` must be Keyword. ~~|
-  {:qlang/kind :tag}
-
-::HasSubjectNotMapOrSetError
-  |~~ Subject of `has` must be Map or Set. ~~|
-  {:qlang/kind :tag}
-
-::KeysSubjectNotMapError
-  |~~ Subject of `keys` must be Map.
-    ~{42 | keys !| type | eq(::KeysSubjectNotMapError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::ValsSubjectNotMapError
-  |~~ Subject of `vals` must be Map.
-    ~{[1 2] | vals !| type | eq(::ValsSubjectNotMapError)}
-    ~~|
-  {:qlang/kind :tag}
+|~ qlang operand catalog — map-op family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
 
 :keys
   |~~ Returns the Set of keys (keywords) in the Map.
@@ -36,6 +14,12 @@
          :returns :set
          :throws [::KeysSubjectNotMapError]}
 
+::KeysSubjectNotMapError
+  |~~ Subject of `keys` must be Map.
+    ~{42 | keys !| type | eq(::KeysSubjectNotMapError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :vals
   |~~ Returns a Vec of values in insertion order.
 
@@ -47,6 +31,12 @@
          :subject :map
          :returns :vec
          :throws [::ValsSubjectNotMapError]}
+
+::ValsSubjectNotMapError
+  |~~ Subject of `vals` must be Map.
+    ~{[1 2] | vals !| type | eq(::ValsSubjectNotMapError)}
+    ~~|
+  {:qlang/kind :tag}
 
 :has
   |~~ Returns true if the Map contains the keyword key, or if
@@ -62,3 +52,15 @@
         :returns :boolean
         :modifiers [:any]
         :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordError]}
+
+::HasSubjectNotMapOrSetError
+  |~~ Subject of `has` must be Map or Set.
+    ~{42 | has(:k) !| type | eq(::HasSubjectNotMapOrSetError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::HasKeyNotKeywordError
+  |~~ Captured argument at position 2 of `has` must be Keyword.
+    ~{{:a 1} | has("a") !| type | eq(::HasKeyNotKeywordError)}
+    ~~|
+  {:qlang/kind :tag}

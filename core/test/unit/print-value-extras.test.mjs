@@ -96,14 +96,14 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
 });
 
 describe('printErrorValue — head + payload-filter branches', () => {
-  it('an error with no :thrown prints in plain !{…} form (no tag-head prefix)', async () => {
+  it('an error with no :qlang/kind prints in plain !{…} form (no tag-head prefix)', async () => {
     const { makeErrorValue } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]]));
     expect(printValue(err)).toBe('!{:kind :oops}');
   });
 
-  it('an error with no :thrown keeps :message in the payload (user data, not template-fill)', async () => {
-    // Without a TagKeyword `:thrown`, the printer has no class
+  it('an error with no :qlang/kind keeps :message in the payload (user data, not template-fill)', async () => {
+    // Without a TagKeyword `:qlang/kind`, the printer has no class
     // identity to point hypertext docs at — `:message` is therefore
     // user-provided content, not a derivable template-fill, and
     // stays in the printed form.

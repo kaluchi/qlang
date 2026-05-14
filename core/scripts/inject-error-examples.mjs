@@ -3,10 +3,11 @@
 // examples into the catalog's `::Tag {:qlang/kind :tag}` doc-prefix.
 //
 // `runExamples(:Tag)` consumes these — each Quote evaluates to a
-// boolean (true iff the query produces an error whose `:thrown`
-// TagKeyword matches the catalog declaration). Conformance and
-// catalog stay in lockstep: a repro that drifts in conformance
-// rolls through here on next regeneration.
+// boolean (true iff the query produces an error whose identity
+// tag — `:qlang/kind` on the descriptor, surfaced through `type`
+// — matches the catalog declaration). Conformance and catalog
+// stay in lockstep: a repro that drifts in conformance rolls
+// through here on next regeneration.
 //
 // Usage: `node core/scripts/inject-error-examples.mjs`. Run after
 // conformance JSONL edits that add / change error-producing

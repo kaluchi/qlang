@@ -27,13 +27,15 @@ export async function expectErrorKind(query, kind) {
   return errorResult;
 }
 
-// expectErrorThrown(query, thrown) → error value
+// expectErrorThrown(query, classTagName) → error value
 //
-// Asserts the query produces an error value with the given :thrown site.
-export async function expectErrorThrown(query, thrown) {
+// Asserts the query produces an error value whose `:qlang/kind`
+// (the universal tagged-value identity slot) is a TagKeyword with
+// the given class tag name (e.g. `'AddLeftNotNumberError'`).
+export async function expectErrorThrown(query, classTagName) {
   const errorResult = await expectErrorResult(query);
-  const actualThrown = errorResult.descriptor.get('qlang/kind');
-  expect(actualThrown?.name).toBe(thrown);
+  const identityTag = errorResult.descriptor.get('qlang/kind');
+  expect(identityTag?.name).toBe(classTagName);
   return errorResult;
 }
 

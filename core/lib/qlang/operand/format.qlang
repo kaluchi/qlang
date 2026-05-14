@@ -1,20 +1,6 @@
-|~ qlang operand catalog — format family. Each operand
-   BindStep below carries its per-site error tag-bindings inline,
-   declared just before the operand that raises them. The
-   :throws Vec on every descriptor references those tags by
-   name. ~|
-
-::TableRowNotMapError
-  |~~ Element of `table` input collection must be Map.
-    ~{[42 "hello"] | table !| type | eq(::TableRowNotMapError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::TableSubjectNotVecError
-  |~~ Subject of `table` must be Vec.
-    ~{42 | table !| type | eq(::TableSubjectNotVecError)}
-    ~~|
-  {:qlang/kind :tag}
+|~ qlang operand catalog — format family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
 
 :json
   |~~ Returns a JSON string representation of the subject.
@@ -58,3 +44,15 @@
           :subject :vec
           :returns :string
           :throws [::TableSubjectNotVecError ::TableRowNotMapError]}
+
+::TableSubjectNotVecError
+  |~~ Subject of `table` must be Vec.
+    ~{42 | table !| type | eq(::TableSubjectNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::TableRowNotMapError
+  |~~ Element of `table` input collection must be Map.
+    ~{[42 "hello"] | table !| type | eq(::TableRowNotMapError)}
+    ~~|
+  {:qlang/kind :tag}

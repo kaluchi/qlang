@@ -1,98 +1,6 @@
-|~ qlang operand catalog — string family. Each operand
-   BindStep below carries its per-site error tag-bindings inline,
-   declared just before the operand that raises them. The
-   :throws Vec on every descriptor references those tags by
-   name. ~|
-
-::AppendSubjectNotStringError
-  |~~ Captured argument at position 1 of `append` must be String.
-    ~{42 | append("x") !| type | eq(::AppendSubjectNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::AppendSuffixNotStringError
-  |~~ Captured argument at position 2 of `append` must be String.
-    ~{"x" | append(42) !| type | eq(::AppendSuffixNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::ContainsNeedleNotStringError
-  |~~ Captured argument at position 2 of `contains` must be String.
-    ~{"hi" | contains(42) !| type | eq(::ContainsNeedleNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::ContainsSubjectNotStringError
-  |~~ Captured argument at position 1 of `contains` must be String.
-    ~{42 | contains("x") !| type | eq(::ContainsSubjectNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::EndsWithSubjectNotStringError
-  |~~ Captured argument at position 1 of `endsWith` must be String.
-    ~{42 | endsWith("x") !| type | eq(::EndsWithSubjectNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::EndsWithSuffixNotStringError
-  |~~ Captured argument at position 2 of `endsWith` must be String.
-    ~{"hi" | endsWith(42) !| type | eq(::EndsWithSuffixNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::JoinElementNotStringError
-  |~~ Element of `join` input collection must be String.
-    ~{["a" 42 "c"] | join(",") !| type | eq(::JoinElementNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::JoinSeparatorNotStringError
-  |~~ Captured argument at position 2 of `join` must be String.
-    ~{["a" "b"] | join(42) !| type | eq(::JoinSeparatorNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::JoinSubjectNotVecError
-  |~~ Subject of `join` must be Vec.
-    ~{42 | join(",") !| type | eq(::JoinSubjectNotVecError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::PrependPrefixNotStringError
-  |~~ Captured argument at position 2 of `prepend` must be String.
-    ~{"x" | prepend(42) !| type | eq(::PrependPrefixNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::PrependSubjectNotStringError
-  |~~ Captured argument at position 1 of `prepend` must be String.
-    ~{42 | prepend("x") !| type | eq(::PrependSubjectNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::SplitSeparatorNotStringError
-  |~~ Captured argument at position 2 of `split` must be String.
-    ~{"abc" | split(42) !| type | eq(::SplitSeparatorNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::SplitSubjectNotStringError
-  |~~ Captured argument at position 1 of `split` must be String.
-    ~{42 | split(",") !| type | eq(::SplitSubjectNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::StartsWithPrefixNotStringError
-  |~~ Captured argument at position 2 of `startsWith` must be String.
-    ~{"hi" | startsWith(42) !| type | eq(::StartsWithPrefixNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::StartsWithSubjectNotStringError
-  |~~ Captured argument at position 1 of `startsWith` must be String.
-    ~{42 | startsWith("x") !| type | eq(::StartsWithSubjectNotStringError)}
-    ~~|
-  {:qlang/kind :tag}
+|~ qlang operand catalog — string family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
 
 :split
   |~~ Splits the subject on every occurrence of separator.
@@ -109,6 +17,18 @@
           :modifiers [:string]
           :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
 
+::SplitSubjectNotStringError
+  |~~ Captured argument at position 1 of `split` must be String.
+    ~{42 | split(",") !| type | eq(::SplitSubjectNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::SplitSeparatorNotStringError
+  |~~ Captured argument at position 2 of `split` must be String.
+    ~{"abc" | split(42) !| type | eq(::SplitSeparatorNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :join
   |~~ Joins the elements of a Vec of Strings with separator
     between consecutive elements. Inverse of split.
@@ -123,6 +43,24 @@
          :returns :string
          :modifiers [:string]
          :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
+
+::JoinSubjectNotVecError
+  |~~ Subject of `join` must be Vec.
+    ~{42 | join(",") !| type | eq(::JoinSubjectNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::JoinElementNotStringError
+  |~~ Element of `join` input collection must be String.
+    ~{["a" 42 "c"] | join(",") !| type | eq(::JoinElementNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::JoinSeparatorNotStringError
+  |~~ Captured argument at position 2 of `join` must be String.
+    ~{["a" "b"] | join(42) !| type | eq(::JoinSeparatorNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
 
 :contains
   |~~ Returns true if the subject string contains needle as a
@@ -140,6 +78,18 @@
              :modifiers [:string]
              :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
 
+::ContainsSubjectNotStringError
+  |~~ Captured argument at position 1 of `contains` must be String.
+    ~{42 | contains("x") !| type | eq(::ContainsSubjectNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::ContainsNeedleNotStringError
+  |~~ Captured argument at position 2 of `contains` must be String.
+    ~{"hi" | contains(42) !| type | eq(::ContainsNeedleNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :startsWith
   |~~ Returns true if the subject string begins with prefix.
     Empty prefix is always a prefix. Case-sensitive.
@@ -154,6 +104,18 @@
                :returns :boolean
                :modifiers [:string]
                :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
+
+::StartsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `startsWith` must be String.
+    ~{42 | startsWith("x") !| type | eq(::StartsWithSubjectNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::StartsWithPrefixNotStringError
+  |~~ Captured argument at position 2 of `startsWith` must be String.
+    ~{"hi" | startsWith(42) !| type | eq(::StartsWithPrefixNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
 
 :endsWith
   |~~ Returns true if the subject string ends with suffix.
@@ -170,6 +132,18 @@
              :modifiers [:string]
              :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
 
+::EndsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `endsWith` must be String.
+    ~{42 | endsWith("x") !| type | eq(::EndsWithSubjectNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::EndsWithSuffixNotStringError
+  |~~ Captured argument at position 2 of `endsWith` must be String.
+    ~{"hi" | endsWith(42) !| type | eq(::EndsWithSuffixNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :prepend
   |~~ Concatenates the modifier in front of the subject.
 
@@ -183,6 +157,18 @@
             :modifiers [:string]
             :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
 
+::PrependSubjectNotStringError
+  |~~ Captured argument at position 1 of `prepend` must be String.
+    ~{42 | prepend("x") !| type | eq(::PrependSubjectNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::PrependPrefixNotStringError
+  |~~ Captured argument at position 2 of `prepend` must be String.
+    ~{"x" | prepend(42) !| type | eq(::PrependPrefixNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :append
   |~~ Concatenates the subject with the modifier on the right.
 
@@ -195,3 +181,15 @@
            :returns :string
            :modifiers [:string]
            :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}
+
+::AppendSubjectNotStringError
+  |~~ Captured argument at position 1 of `append` must be String.
+    ~{42 | append("x") !| type | eq(::AppendSubjectNotStringError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::AppendSuffixNotStringError
+  |~~ Captured argument at position 2 of `append` must be String.
+    ~{"x" | append(42) !| type | eq(::AppendSuffixNotStringError)}
+    ~~|
+  {:qlang/kind :tag}

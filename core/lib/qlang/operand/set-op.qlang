@@ -1,50 +1,6 @@
-|~ qlang operand catalog — set-op family. Each operand
-   BindStep below carries its per-site error tag-bindings inline,
-   declared just before the operand that raises them. The
-   :throws Vec on every descriptor references those tags by
-   name. ~|
-
-::InterBareEmptyError
-  |~~ `inter` (bare form) requires a non-empty Vec of operands to fold. ~~|
-  {:qlang/kind :tag}
-
-::InterBareSubjectNotVecError
-  |~~ Subject of `inter` must be Vec. ~~|
-  {:qlang/kind :tag}
-
-::InterPairIncompatibleError
-  |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only. ~~|
-  {:qlang/kind :tag}
-
-::MinusBareEmptyError
-  |~~ `minus` (bare form) requires a non-empty Vec of operands to fold. ~~|
-  {:qlang/kind :tag}
-
-::MinusBareSubjectNotVecError
-  |~~ Subject of `minus` must be Vec. ~~|
-  {:qlang/kind :tag}
-
-::MinusPairIncompatibleError
-  |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only. ~~|
-  {:qlang/kind :tag}
-
-::SetConversionSubjectNotVecError
-  |~~ Subject of `set` must be Vec. ~~|
-  {:qlang/kind :tag}
-
-::UnionBareEmptyError
-  |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
-    ~{[] | union !| type | eq(::UnionBareEmptyError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::UnionBareSubjectNotVecError
-  |~~ Subject of `union` must be Vec. ~~|
-  {:qlang/kind :tag}
-
-::UnionPairIncompatibleError
-  |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only. ~~|
-  {:qlang/kind :tag}
+|~ qlang operand catalog — set-op family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
 
 :set
   |~~ Converts a Vec to a Set, removing duplicates.
@@ -57,6 +13,12 @@
         :subject :vec
         :returns :set
         :throws [::SetConversionSubjectNotVecError]}
+
+::SetConversionSubjectNotVecError
+  |~~ Subject of `set` must be Vec.
+    ~{42 | set !| type | eq(::SetConversionSubjectNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
 
 :union
   |~~ Polymorphic union. Set union or Map merge (last wins on
@@ -75,6 +37,24 @@
           :modifiers [:any]
           :throws [::UnionBareSubjectNotVecError ::UnionBareEmptyError ::UnionPairIncompatibleError]}
 
+::UnionBareSubjectNotVecError
+  |~~ Subject of `union` (bare form) must be Vec.
+    ~{42 | union !| type | eq(::UnionBareSubjectNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::UnionBareEmptyError
+  |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
+    ~{[] | union !| type | eq(::UnionBareEmptyError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::UnionPairIncompatibleError
+  |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
+    ~{#{:a} | union({:b 1}) !| type | eq(::UnionPairIncompatibleError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
     or Map minus Set (drop fields by key set). Same three call
@@ -92,6 +72,24 @@
           :modifiers [:any]
           :throws [::MinusBareSubjectNotVecError ::MinusBareEmptyError ::MinusPairIncompatibleError]}
 
+::MinusBareSubjectNotVecError
+  |~~ Subject of `minus` (bare form) must be Vec.
+    ~{42 | minus !| type | eq(::MinusBareSubjectNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::MinusBareEmptyError
+  |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
+    ~{[] | minus !| type | eq(::MinusBareEmptyError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::MinusPairIncompatibleError
+  |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
+    ~{#{:a} | minus({:b 1}) !| type | eq(::MinusPairIncompatibleError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
     keys(Map), or Map intersect Set (select fields by key set).
@@ -108,3 +106,21 @@
           :returns [:set :map]
           :modifiers [:any]
           :throws [::InterBareSubjectNotVecError ::InterBareEmptyError ::InterPairIncompatibleError]}
+
+::InterBareSubjectNotVecError
+  |~~ Subject of `inter` (bare form) must be Vec.
+    ~{42 | inter !| type | eq(::InterBareSubjectNotVecError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::InterBareEmptyError
+  |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
+    ~{[] | inter !| type | eq(::InterBareEmptyError)}
+    ~~|
+  {:qlang/kind :tag}
+
+::InterPairIncompatibleError
+  |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
+    ~{#{:a} | inter({:b 1}) !| type | eq(::InterPairIncompatibleError)}
+    ~~|
+  {:qlang/kind :tag}

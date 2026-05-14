@@ -1,26 +1,6 @@
-|~ qlang operand catalog — control family. Each operand
-   BindStep below carries its per-site error tag-bindings inline,
-   declared just before the operand that raises them. The
-   :throws Vec on every descriptor references those tags by
-   name. ~|
-
-::CoalesceNoAlternativesError
-  |~~ `coalesce` requires at least one captured alternative sub-pipeline.
-    ~{{} | coalesce() !| type | eq(::CoalesceNoAlternativesError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::CondNoBranchesError
-  |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
-    ~{5 | cond() !| type | eq(::CondNoBranchesError)}
-    ~~|
-  {:qlang/kind :tag}
-
-::FirstTruthyNoAlternativesError
-  |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
-    ~{{} | firstTruthy() !| type | eq(::FirstTruthyNoAlternativesError)}
-    ~~|
-  {:qlang/kind :tag}
+|~ qlang operand catalog — control family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
 
 :if
   |~~ Conditional. Evaluates the cond sub-pipeline against
@@ -77,6 +57,12 @@
              :modifiers [:pipeline]
              :throws [::CoalesceNoAlternativesError]}
 
+::CoalesceNoAlternativesError
+  |~~ `coalesce` requires at least one captured alternative sub-pipeline.
+    ~{{} | coalesce() !| type | eq(::CoalesceNoAlternativesError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :firstTruthy
   |~~ Returns the first truthy result among the captured
     alternatives, evaluating each against pipeValue in order and
@@ -93,6 +79,12 @@
                 :modifiers [:pipeline]
                 :throws [::FirstTruthyNoAlternativesError]}
 
+::FirstTruthyNoAlternativesError
+  |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
+    ~{{} | firstTruthy() !| type | eq(::FirstTruthyNoAlternativesError)}
+    ~~|
+  {:qlang/kind :tag}
+
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
     sub-pipeline pairs. Walks captured args in pairs; returns
@@ -108,3 +100,9 @@
          :returns :any
          :modifiers [:pipeline]
          :throws [::CondNoBranchesError]}
+
+::CondNoBranchesError
+  |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
+    ~{5 | cond() !| type | eq(::CondNoBranchesError)}
+    ~~|
+  {:qlang/kind :tag}

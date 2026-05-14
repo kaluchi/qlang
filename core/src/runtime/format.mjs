@@ -96,12 +96,12 @@ const TO_PLAIN_HANDLERS = {
   // for callers that need it.
   Snapshot:       s => toPlain(s.get('qlang/value')),
   // Conduit and TaggedInstance carry their structure as a Map. The
-  // shape's `:qlang/kind` discriminator now lifts through the
-  // TagKeyword handler, so the Map iteration encodes cleanly. Raw
-  // JS slots (`:qlang/body` AST node, `:qlang/envRef` holder) still
-  // surface through the toPlainFallback — those reach `env | json`
-  // only when the env contains user-defined conduits, signalling a
-  // shape outside the toPlain contract.
+  // TagKeyword handler lifts the `:qlang/kind` discriminator so Map
+  // iteration encodes cleanly without leaking `[object Object]`
+  // markers. Raw JS slots (`:qlang/body` AST node, `:qlang/envRef`
+  // holder) reach `env | json` only when env contains user-defined
+  // conduits — those surface through toPlainFallback as a shape
+  // outside the toPlain contract.
   Conduit:        qMapToPlainObject,
   TaggedInstance: qMapToPlainObject,
   Quote:          q => `~{${q.source}}`,

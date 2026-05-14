@@ -14,9 +14,10 @@
 //     name.
 //
 //   findFirstEffectfulIdentifier(node) — returns the first effectful
-//     identifier in a subtree, or null. Used by the `let` operand
-//     impl (`runtime/reify-op.mjs`) for eval-time effect
-//     validation.
+//     identifier in a subtree, or null. Used by `evalBindStep` in
+//     `eval.mjs` to refuse a BindStep declaration whose body
+//     references an `@`-effectful identifier under a non-`@`
+//     binding name.
 
 import { walkAst } from './walk.mjs';
 import { classifyEffect } from './effect.mjs';

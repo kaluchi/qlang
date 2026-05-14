@@ -670,9 +670,10 @@ QuoteChar
 //
 // LineDocComment / BlockDocComment AST nodes are kept distinct
 // (used by DocAttachedSequence for attached-prefix attachment to
-// def/as) — DocLit is its own AST node so the JS-side evaluator
-// can route standalone literals to a Doc-value while the attached
-// path keeps stamping `.docs` strings on the following operand-call.
+// BindStep / `as` OperandCall) — DocLit is its own AST node so the
+// JS-side evaluator can route standalone literals to a Doc-value
+// while the attached path keeps stamping `.docs` strings on the
+// following operand-call.
 DocLit
   = "|~~|" content:LineCommentContent
     { return node('DocLit', { content }, location(), text()); }
@@ -933,11 +934,11 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 // section dividers between entries.
 //
 // Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. In
-// pipeline position they attach to the following def / as call via
-// DocAttachedSequence; standalone, they evaluate to a Doc-value via
-// the DocLit Primary alternative. Inside a literal body they are
-// not valid — a doc-comment ahead of a MapEntry key, Vec element,
-// or Set element fails to parse.
+// pipeline position they attach to the following BindStep or `as`
+// OperandCall via DocAttachedSequence; standalone, they evaluate
+// to a Doc-value via the DocLit Primary alternative. Inside a
+// literal body they are not valid — a doc-comment ahead of a
+// MapEntry key, Vec element, or Set element fails to parse.
 
 _  = Whitespace*
 _L = (Whitespace / PlainCommentStep)*

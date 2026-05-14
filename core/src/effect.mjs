@@ -21,7 +21,7 @@
 //   - parse-time effect decoration (once per OperandCall, conduit declaration,
 //     snapshot declaration, Projection node — i.e. once per identifier in source)
 //   - function-value construction (once per langRuntime registration)
-//   - conduit/snapshot construction (once per `let`/`as` evaluation)
+//   - conduit/snapshot construction (once per BindStep / `as` evaluation)
 //
 // The result is stored as a precomputed boolean on every node and
 // runtime value. The hot path — eval.mjs::evalOperandCall — reads

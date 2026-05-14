@@ -2,11 +2,12 @@
 // invocations. The basic abstraction for REPL, notebook cells, and
 // any embedded use that needs sequential queries to share bindings.
 //
-// A session owns its env and grows it via `let` / `as` writes from
-// each evaluated cell. Builtins from langRuntime() are seeded at
-// construction. Cell history records every cell evaluated (source,
-// AST, result, error, env-after-cell) so a notebook UI can render
-// past cells and step-back navigation can revisit them.
+// A session owns its env and grows it via BindStep declarations
+// and `as(:name)` snapshots written by each evaluated cell.
+// Builtins from langRuntime() are seeded at construction. Cell
+// history records every cell evaluated (source, AST, result,
+// error, env-after-cell) so a notebook UI can render past cells
+// and step-back navigation can revisit them.
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, materializePendingTrail } from './eval.mjs';
@@ -86,11 +87,12 @@ class SessionBindingKindUnknownError extends QlangError {
 //                                 `null`; the cell's first step
 //                                 must provide a head value (a
 //                                 literal, an identifier reference
-//                                 like `env`, a `def`/`as` binding,
-//                                 or a captured arg). Operands that
-//                                 need a typed subject fail fast on
-//                                 `null` with a clear subject-type
-//                                 error — no implicit env leak.
+//                                 like `env`, a BindStep / `as`
+//                                 declaration, or a captured arg).
+//                                 Operands that need a typed
+//                                 subject fail fast on `null` with
+//                                 a clear subject-type error — no
+//                                 implicit env leak.
 //   cellHistory — array of executed cells (read-only inspection)
 //   env — current env Map (read-only inspection)
 //   bind(name, value) — install a binding directly into env (used
@@ -183,10 +185,11 @@ export async function createSession(opts = {}) {
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore.
 //
-// User def bindings serialize as `{ kind: 'conduit', name, source, docs }`
-// where `source` is the parser-captured `.text` of the body AST.
-// User as bindings serialize as `{ kind: 'snapshot', name, value, docs }`
-// where `value` is the captured payload encoded via toTaggedJSON.
+// BindStep-bound conduits serialize as
+// `{ kind: 'conduit', name, source, docs }` where `source` is the
+// parser-captured `.text` of the body AST. `as`-bound snapshots
+// serialize as `{ kind: 'snapshot', name, value, docs }` where
+// `value` is the captured payload encoded via toTaggedJSON.
 export async function serializeSession(session) {
   const builtins = await langRuntime();
   const userBindings = [];

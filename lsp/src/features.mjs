@@ -320,9 +320,11 @@ function formatMetaValue(value) {
 // ── Go to Definition ──────────────────────────────────────────
 //
 // Three-tier resolution:
-//   1. In-document def/as declaration visible at the cursor —
-//      last-write-wins with fork isolation (shadowing-aware)
-//   2. lib/qlang/core.qlang catalog declaration for builtins
+//   1. In-document BindStep / `as(:name)` declaration visible at
+//      the cursor — last-write-wins with fork isolation
+//      (shadowing-aware)
+//   2. Catalog declaration for builtins, walked across every
+//      `core/lib/qlang/**/*.qlang` module
 //   3. null (identifier has no reachable declaration)
 
 export function definitionAtOffset(ast, offset, catalogCtx) {
@@ -363,15 +365,20 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 // Single recogniser for every AST shape that introduces a binding
 // in env: `BindStep` with a Keyword key (`:name body`), `BindStep`
 // with a BareTypeKeyword key (`::Tag body` — tag-binding), or an
-// `as(:name)` OperandCall. Returns the bound name and the user-
-// facing symbol kind, or null when the node is not a declaration.
+// `as(:name)` OperandCall. The user-facing symbol kind tracks what
+// the binding will hold once `evalBindStep` runs:
+//   * `tag`      — BareTypeKeyword head (descriptor under `::Tag`)
+//   * `snapshot` — Keyword head with a pure-literal body or a
+//                  doc-only declaration (no body), or any `as(:name)`
+//   * `conduit`  — Keyword head with an impure / parametric body
 function bindingDeclarationOf(node) {
   if (node.type === 'BindStep') {
-    if (node.key.type === 'Keyword') {
-      return { name: node.key.name, kind: 'conduit' };
-    }
     if (node.key.type === 'BareTypeKeyword') {
-      return { name: TAG_BINDING_PREFIX + node.key.tag, kind: 'conduit' };
+      return { name: TAG_BINDING_PREFIX + node.key.tag, kind: 'tag' };
+    }
+    if (node.key.type === 'Keyword') {
+      const kind = bindingKindForKeywordHead(node);
+      return { name: node.key.name, kind };
     }
     return null;
   }
@@ -381,6 +388,33 @@ function bindingDeclarationOf(node) {
     return { name: node.args[0].name, kind: 'snapshot' };
   }
   return null;
+}
+
+function bindingKindForKeywordHead(bindStepNode) {
+  if (bindStepNode.body === null) return 'snapshot';
+  if (bindStepNode.params !== null) return 'conduit';
+  return isPureLiteralBody(bindStepNode.body) ? 'snapshot' : 'conduit';
+}
+
+// Mirror of `core/src/walk.mjs::isPureLiteralAst` — kept local to
+// the LSP layer to avoid pulling a non-public traversal helper into
+// the public surface. Diverging from the core predicate would mis-
+// label outline entries, so any AST node-type the core treats as
+// pure also lives here.
+const PURE_LITERAL_LEAF_TYPES = new Set([
+  'NumberLit', 'StringLit', 'BooleanLit', 'NullLit',
+  'Keyword', 'QuoteLit', 'DocLit', 'BareTypeKeyword'
+]);
+function isPureLiteralBody(node) {
+  if (PURE_LITERAL_LEAF_TYPES.has(node.type)) return true;
+  if (node.type === 'VecLit' || node.type === 'JsonArrayLit' || node.type === 'SetLit') {
+    return node.elements.every(isPureLiteralBody);
+  }
+  if (node.type === 'MapLit' || node.type === 'JsonObjectLit' || node.type === 'ErrorLit') {
+    return node.entries.every(e => isPureLiteralBody(e.value));
+  }
+  if (node.type === 'TaggedLit') return isPureLiteralBody(node.payload);
+  return false;
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST

@@ -21,13 +21,13 @@
   {:qlang/kind :tag}
 
 ::ManifestNamespaceNotKeywordError
-  |~~ ManifestNamespaceNotKeywordError — see operand documentation.
+  |~~ `manifest(:namespace)` requires a Keyword captured-arg naming the namespace to enumerate (`:value` or `:tag`).
     ~{manifest("tag") !| /thrown !| /thrown | eq(::ManifestNamespaceNotKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ManifestNamespaceUnknownError
-  |~~ ManifestNamespaceUnknownError — see operand documentation.
+  |~~ `manifest(:namespace)` accepts `:value` (operand / conduit / snapshot bindings) or `:tag` (tag-namespace declarations); any other keyword raises this error.
     ~{manifest(:wat) !| /thrown !| /thrown | eq(::ManifestNamespaceUnknownError)}
     ~~|
   {:qlang/kind :tag}
@@ -157,7 +157,7 @@
     sorted alphabetically by binding name. Each descriptor has
     the same shape as reify(:name) for that binding. Overloaded
     by captured-arg count: bare manifest or manifest(:value)
-    lists value-namespace bindings; manifest(:type) lists
+    lists value-namespace bindings; manifest(:tag) lists
     tag-namespace `::Tag` bindings. ~~|
   {:qlang/kind :builtin
              :qlang/impl :qlang/prim/manifest

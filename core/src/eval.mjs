@@ -812,8 +812,8 @@ async function evalOperandCall(node, state) {
       ? []
       : capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv));
     // Stash doc comments from the OperandCall node on the lambdas
-    // array so reflective binding operands (let, as) can access
-    // them without changing the fn(state, lambdas) dispatch signature.
+    // array so the `as` operand can read them without changing
+    // the fn(state, lambdas) dispatch signature.
     operandLambdas.docs = node.docs || [];
     operandLambdas.location = node.location;
     return await applyRule10(resolved, operandLambdas, state);
@@ -974,8 +974,9 @@ async function applyConduit(conduit, node, lookupName, state) {
   }
 
   // Fork body: inner sub-pipeline starts with the caller's pipeValue
-  // and the lexical bodyEnv. Body's env writes (def/as inside the
-  // body) are discarded on return — only the final pipeValue escapes.
+  // and the lexical bodyEnv. Body's env writes (BindStep / `as`
+  // declarations inside the body) are discarded on return — only the
+  // final pipeValue escapes.
   const bodyState = makeState(state.pipeValue, bodyEnv);
   const finalBodyState = await evalNode(conduitBody, bodyState);
   return withPipeValue(state, finalBodyState.pipeValue);
@@ -1019,9 +1020,10 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // time. Operand impls call lambdas to resolve captured args at
 // the moment they need them.
 //
-// The `.astNode` property exposes the raw AST for reflective
-// operands (like `let`) that need to store the body expression
-// unevaluated for conduit construction and reify source rendering.
+// The `.astNode` property exposes the raw AST for higher-order
+// operands (like `filter` / `every` / `any` over Map) that need to
+// inspect the captured expression's shape to dispatch by conduit
+// arity without a test-application round-trip.
 // The `.capturedEnv` property exposes the declaration-time env so
 // higher-order operands can statically resolve a bare-identifier
 // captured arg to its binding descriptor (filter/every/any over

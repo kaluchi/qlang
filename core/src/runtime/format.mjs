@@ -464,13 +464,11 @@ export const table = nullaryOp('table', (subject) => {
     }
   }
 
-  const rowKeyCaches = subject.map(buildRowCache);
-  const columnNames = collectColumnOrder(rowKeyCaches);
+  const columnNames = collectColumnOrder(subject);
   const widths = columnNames.map(name => name.length);
 
-  const cells = rowKeyCaches.map(cache => columnNames.map((name, i) => {
-    const key = cache.get(name);
-    const text = key === undefined ? '' : renderCell(cache.row.get(key));
+  const cells = subject.map(row => columnNames.map((columnName, i) => {
+    const text = row.has(columnName) ? renderCell(row.get(columnName)) : '';
     if (text.length > widths[i]) widths[i] = text.length;
     return text;
   }));
@@ -488,26 +486,14 @@ export const table = nullaryOp('table', (subject) => {
   ].join('\n');
 });
 
-function buildRowCache(row) {
-  const byName = new Map();
-  for (const k of row.keys()) {
-    byName.set(k, k);
-  }
-  return { row, get: (name) => byName.get(name) };
-}
-
-function collectColumnOrder(rowCaches) {
+function collectColumnOrder(rows) {
   const order = [];
   const seen = new Set();
-  for (const cache of rowCaches) {
-    for (const name of (function* () {
-      for (const k of cache.row.keys()) {
-        yield k;
-      }
-    })()) {
-      if (!seen.has(name)) {
-        seen.add(name);
-        order.push(name);
+  for (const row of rows) {
+    for (const columnName of row.keys()) {
+      if (!seen.has(columnName)) {
+        seen.add(columnName);
+        order.push(columnName);
       }
     }
   }

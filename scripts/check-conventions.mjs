@@ -118,33 +118,49 @@ function scanForbiddenWords() {
 
 // ── (2) Operand catalog ↔ operand docs drift ───────────────────
 
+// Each operand BindStep in a family file (`core/lib/qlang/operand/
+// <family>.qlang`) declares `:name |~~ … ~~|  {:qlang/kind :builtin
+// …}` — keyword head at column 0, doc-prefix between, descriptor
+// Map closing the form. The regex matches the head + descriptor
+// shape across the doc-prefix gap so the family files (and any
+// future runtime-invariants / tag entries that grow the same head
+// shape) all flow through one drift check.
+const BUILTIN_OPERAND_DECL_RE =
+  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?\{:qlang\/kind :builtin/gm;
+
 function parseOperandCatalog(catalogText) {
-  // Top-level entries in core.qlang look like `:name {:qlang/kind
-  // :builtin …}` at column 0. Multi-word names (`sortWith`,
-  // `firstNonZero`, …) and the `@`-prefix names all match.
-  const entryRegex = /^:([@a-zA-Z][\w-]*) \{:qlang\/kind :builtin/gm;
   const names = [];
   let match;
-  while ((match = entryRegex.exec(catalogText)) !== null) {
+  BUILTIN_OPERAND_DECL_RE.lastIndex = 0;
+  while ((match = BUILTIN_OPERAND_DECL_RE.exec(catalogText)) !== null) {
     names.push(match[1]);
   }
   return names;
 }
 
+function* walkCatalogFiles() {
+  const root = join(repoRoot, 'core/lib/qlang');
+  for (const entry of readdirSync(root, { recursive: true })) {
+    if (!entry.endsWith('.qlang')) continue;
+    yield join(root, entry);
+  }
+}
+
 function catalogDocDrift() {
-  const catalog = readFileSync(
-    join(repoRoot, 'core/lib/qlang/core.qlang'), 'utf8');
   const docsBody = readFileSync(
     join(repoRoot, 'docs/qlang-operands.md'), 'utf8');
 
   const missing = [];
-  for (const operandName of parseOperandCatalog(catalog)) {
-    // The docs use `### name` or `#### name` section headers; the
-    // simplest robust probe is to ensure the bare name appears in
-    // the doc at all. Flags only operands that land in the catalog
-    // but leave zero footprint in the published doc.
-    if (!docsBody.includes(operandName)) {
-      missing.push(operandName);
+  for (const catalogFile of walkCatalogFiles()) {
+    const source = readFileSync(catalogFile, 'utf8');
+    for (const operandName of parseOperandCatalog(source)) {
+      // The docs use `### name` or `#### name` section headers; the
+      // simplest robust probe is to ensure the bare name appears in
+      // the doc at all. Flags only operands that land in any catalog
+      // file but leave zero footprint in the published doc.
+      if (!docsBody.includes(operandName)) {
+        missing.push(operandName);
+      }
     }
   }
   return missing;

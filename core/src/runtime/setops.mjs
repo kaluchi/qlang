@@ -59,10 +59,15 @@ function unionPair(left, right) {
   }
   if (isMapShape(left) && isMapShape(right)) {
     const merged = [...mapShapeEntries(left)];
-    const seenKeys = new Set(merged.map(([k]) => k));
+    const keyToIndex = new Map(merged.map(([k], i) => [k, i]));
     for (const [k, v] of mapShapeEntries(right)) {
-      const idx = merged.findIndex(([mk]) => mk === k);
-      if (idx >= 0) merged[idx] = [k, v]; else { merged.push([k, v]); seenKeys.add(k); }
+      const existingIdx = keyToIndex.get(k);
+      if (existingIdx !== undefined) {
+        merged[existingIdx] = [k, v];
+      } else {
+        keyToIndex.set(k, merged.length);
+        merged.push([k, v]);
+      }
     }
     return mapLikeOf(merged, left);
   }

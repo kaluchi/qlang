@@ -4,10 +4,10 @@
 
 :if
   |~~ Conditional. Evaluates the cond sub-pipeline against
-    pipeValue; if truthy, evaluates the then branch, otherwise
-    evaluates the else branch. Only the selected branch executes.
-    Truthiness: null and false are falsy, everything else
-    (including 0, "", [], {}, #{}) is truthy. ~~|
+      pipeValue; if truthy, evaluates the then branch, otherwise
+      evaluates the else branch. Only the selected branch executes.
+      Truthiness: null and false are falsy, everything else
+      (including 0, "", [], {}, #{}) is truthy. ~~|
   {:qlang/kind :builtin
        :qlang/impl :qlang/prim/if
        :category :control
@@ -18,9 +18,9 @@
 
 :when
   |~~ One-sided conditional with implicit identity on the false
-    branch. If cond evaluated against pipeValue is truthy, runs
-    the then sub-pipeline; otherwise pipeValue passes through
-    unchanged. ~~|
+      branch. If cond evaluated against pipeValue is truthy, runs
+      the then sub-pipeline; otherwise pipeValue passes through
+      unchanged. ~~|
   {:qlang/kind :builtin
          :qlang/impl :qlang/prim/when
          :category :control
@@ -31,9 +31,9 @@
 
 :unless
   |~~ Inverse of when: runs the then sub-pipeline when cond is
-    falsy, otherwise pipeValue passes through unchanged.
-    Reads more naturally for guard-clause patterns where the
-    action fires when the condition fails. ~~|
+      falsy, otherwise pipeValue passes through unchanged.
+      Reads more naturally for guard-clause patterns where the
+      action fires when the condition fails. ~~|
   {:qlang/kind :builtin
            :qlang/impl :qlang/prim/unless
            :category :control
@@ -44,11 +44,11 @@
 
 :coalesce
   |~~ Returns the first non-null result among the captured
-    alternatives, evaluating each against pipeValue in order and
-    short-circuiting on the first non-null value. If all
-    alternatives produce null, returns null. Falsy non-null values
-    (false, 0, "", [], {}, #{}) are NOT skipped — only
-    null counts as missing. ~~|
+      alternatives, evaluating each against pipeValue in order and
+      short-circuiting on the first non-null value. If all
+      alternatives produce null, returns null. Falsy non-null values
+      (false, 0, "", [], {}, #{}) are NOT skipped — only
+      null counts as missing. ~~|
   {:qlang/kind :builtin
              :qlang/impl :qlang/prim/coalesce
              :category :control
@@ -59,17 +59,17 @@
 
 ::CoalesceNoAlternativesError
   |~~ `coalesce` requires at least one captured alternative sub-pipeline.
-    ~{{} | coalesce() !| type | eq(::CoalesceNoAlternativesError)}
-    ~~|
+      ~{{} | coalesce() !| type | eq(::CoalesceNoAlternativesError)}
+  ~~|
 
 :firstTruthy
   |~~ Returns the first truthy result among the captured
-    alternatives, evaluating each against pipeValue in order and
-    short-circuiting on the first truthy value. Both null and
-    false are skipped. If all alternatives produce falsy values,
-    returns null. Use coalesce when false is a valid explicit
-    setting; use firstTruthy when false is a sentinel meaning
-    "no value". ~~|
+      alternatives, evaluating each against pipeValue in order and
+      short-circuiting on the first truthy value. Both null and
+      false are skipped. If all alternatives produce falsy values,
+      returns null. Use coalesce when false is a valid explicit
+      setting; use firstTruthy when false is a sentinel meaning
+      "no value". ~~|
   {:qlang/kind :builtin
                 :qlang/impl :qlang/prim/firstTruthy
                 :category :control
@@ -80,17 +80,17 @@
 
 ::FirstTruthyNoAlternativesError
   |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
-    ~{{} | firstTruthy() !| type | eq(::FirstTruthyNoAlternativesError)}
-    ~~|
+      ~{{} | firstTruthy() !| type | eq(::FirstTruthyNoAlternativesError)}
+  ~~|
 
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
-    sub-pipeline pairs. Walks captured args in pairs; returns
-    the result of the first branch whose predicate evaluates
-    truthy against pipeValue. If captured-arg count is odd, the
-    trailing arg is the default branch. If even and no match,
-    returns null. Replaces nested-if chains with a flat
-    catalog. ~~|
+      sub-pipeline pairs. Walks captured args in pairs; returns
+      the result of the first branch whose predicate evaluates
+      truthy against pipeValue. If captured-arg count is odd, the
+      trailing arg is the default branch. If even and no match,
+      returns null. Replaces nested-if chains with a flat
+      catalog. ~~|
   {:qlang/kind :builtin
          :qlang/impl :qlang/prim/cond
          :category :control
@@ -101,5 +101,5 @@
 
 ::CondNoBranchesError
   |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
-    ~{5 | cond() !| type | eq(::CondNoBranchesError)}
-    ~~|
+      ~{5 | cond() !| type | eq(::CondNoBranchesError)}
+  ~~|

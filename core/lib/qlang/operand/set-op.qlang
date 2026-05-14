@@ -5,8 +5,8 @@
 :set
   |~~ Converts a Vec to a Set, removing duplicates.
 
-    ~{[1 2 1 3] | set | eq(#{1 2 3})}
-    ~~|
+      ~{[1 2 1 3] | set | eq(#{1 2 3})}
+  ~~|
   {:qlang/kind :builtin
         :qlang/impl :qlang/prim/set
         :category :set-op
@@ -16,18 +16,18 @@
 
 ::SetConversionSubjectNotVecError
   |~~ Subject of `set` must be Vec.
-    ~{42 | set !| type | eq(::SetConversionSubjectNotVecError)}
-    ~~|
+      ~{42 | set !| type | eq(::SetConversionSubjectNotVecError)}
+  ~~|
 
 :union
   |~~ Polymorphic union. Set union or Map merge (last wins on
-    key conflict). Three call shapes: bare form left-folds a
-    non-empty Vec of operands, bound form a | union(b) evaluates
-    b against a as context, full form union(a, b) resolves both
-    args against pipeValue.
+      key conflict). Three call shapes: bare form left-folds a
+      non-empty Vec of operands, bound form a | union(b) evaluates
+      b against a as context, full form union(a, b) resolves both
+      args against pipeValue.
 
-    ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
-    ~~|
+      ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
+  ~~|
   {:qlang/kind :builtin
           :qlang/impl :qlang/prim/union
           :category :set-op
@@ -38,28 +38,28 @@
 
 ::UnionBareSubjectNotVecError
   |~~ Subject of `union` (bare form) must be Vec.
-    ~{42 | union !| type | eq(::UnionBareSubjectNotVecError)}
-    ~~|
+      ~{42 | union !| type | eq(::UnionBareSubjectNotVecError)}
+  ~~|
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
-    ~{[] | union !| type | eq(::UnionBareEmptyError)}
-    ~~|
+      ~{[] | union !| type | eq(::UnionBareEmptyError)}
+  ~~|
 
 ::UnionPairIncompatibleError
   |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
-    ~{#{:a} | union({:b 1}) !| type | eq(::UnionPairIncompatibleError)}
-    ~~|
+      ~{#{:a} | union({:b 1}) !| type | eq(::UnionPairIncompatibleError)}
+  ~~|
 
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
-    or Map minus Set (drop fields by key set). Same three call
-    shapes as union. Values of the second operand are ignored
-    for Map minus Map.
+      or Map minus Set (drop fields by key set). Same three call
+      shapes as union. Values of the second operand are ignored
+      for Map minus Map.
 
-    ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
-    ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
-    ~~|
+      ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
+      ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
+  ~~|
   {:qlang/kind :builtin
           :qlang/impl :qlang/prim/minus
           :category :set-op
@@ -70,28 +70,28 @@
 
 ::MinusBareSubjectNotVecError
   |~~ Subject of `minus` (bare form) must be Vec.
-    ~{42 | minus !| type | eq(::MinusBareSubjectNotVecError)}
-    ~~|
+      ~{42 | minus !| type | eq(::MinusBareSubjectNotVecError)}
+  ~~|
 
 ::MinusBareEmptyError
   |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
-    ~{[] | minus !| type | eq(::MinusBareEmptyError)}
-    ~~|
+      ~{[] | minus !| type | eq(::MinusBareEmptyError)}
+  ~~|
 
 ::MinusPairIncompatibleError
   |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
-    ~{#{:a} | minus({:b 1}) !| type | eq(::MinusPairIncompatibleError)}
-    ~~|
+      ~{#{:a} | minus({:b 1}) !| type | eq(::MinusPairIncompatibleError)}
+  ~~|
 
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
-    keys(Map), or Map intersect Set (select fields by key set).
-    Same three call shapes as union. Values from the first
-    operand are kept.
+      keys(Map), or Map intersect Set (select fields by key set).
+      Same three call shapes as union. Values from the first
+      operand are kept.
 
-    ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
-    ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
-    ~~|
+      ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
+      ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
+  ~~|
   {:qlang/kind :builtin
           :qlang/impl :qlang/prim/inter
           :category :set-op
@@ -102,15 +102,15 @@
 
 ::InterBareSubjectNotVecError
   |~~ Subject of `inter` (bare form) must be Vec.
-    ~{42 | inter !| type | eq(::InterBareSubjectNotVecError)}
-    ~~|
+      ~{42 | inter !| type | eq(::InterBareSubjectNotVecError)}
+  ~~|
 
 ::InterBareEmptyError
   |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
-    ~{[] | inter !| type | eq(::InterBareEmptyError)}
-    ~~|
+      ~{[] | inter !| type | eq(::InterBareEmptyError)}
+  ~~|
 
 ::InterPairIncompatibleError
   |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
-    ~{#{:a} | inter({:b 1}) !| type | eq(::InterPairIncompatibleError)}
-    ~~|
+      ~{#{:a} | inter({:b 1}) !| type | eq(::InterPairIncompatibleError)}
+  ~~|

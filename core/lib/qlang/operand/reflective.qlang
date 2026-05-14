@@ -186,7 +186,7 @@
       ~{
         manifest(:wat)
         !| [type /namespace]
-        |  eq([::ManifestNamespaceUnknownError "wat"])
+        |  eq([::ManifestNamespaceUnknownError :wat])
        }
   ~~|
   {:qlang/kind :tag}

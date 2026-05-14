@@ -148,7 +148,7 @@
       ~{
         5 | as(:five) | five(42)
         !| [type /name /actualType]
-        |  eq([::ApplyToNonFunctionError "five" :number])
+        |  eq([::ApplyToNonFunctionError :five :number])
        }
   ~~|
   {:qlang/kind :tag}

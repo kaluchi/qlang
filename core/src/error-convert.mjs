@@ -41,10 +41,10 @@ const RUNTIME_FIELD_ORDER = [
 // shape when the throw site uses the `operand-errors.mjs` factories,
 // so no lift needed here.
 const IDENTIFIER_FIELDS = new Set([
-  'operand', 'position',
-  'operandName', 'conduitName', 'namespaceName', 'paramName',
+  'operand', 'position', 'name',
+  'operandName', 'conduitName', 'namespaceName', 'namespace', 'paramName',
   'effectfulName', 'bindingName', 'axisName',
-  'tag'
+  'tag', 'exportName'
 ]);
 function liftIdentifier(k, v) {
   if (!IDENTIFIER_FIELDS.has(k)) return v;

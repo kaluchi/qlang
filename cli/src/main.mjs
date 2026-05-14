@@ -41,8 +41,7 @@ import { liftStdinToPipeValue } from './script-mode.mjs';
 //   stdout is piped / file → false    (auto, default)
 //
 // The explicit flag wins over both env vars because the user typed
-// it just now and means it for this invocation; env vars are the
-// shell default.
+// it for this invocation; env vars are the shell default.
 export function resolveShouldColorize(colorMode, stdoutStream, env) {
   if (colorMode === 'always') return true;
   if (colorMode === 'never')  return false;

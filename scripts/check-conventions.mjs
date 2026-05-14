@@ -19,10 +19,11 @@
 //       as part of a legitimate reference, etc.) for a cheap
 //       grep — those stay under human review.
 //
-//   (2) Doc-drift between the core operand catalog and the
-//       published operand docs. Every `:name {:qlang/kind :builtin
-//       …}` entry in `core/lib/qlang/core.qlang` must appear as
-//       an `### name` (or equivalent) section in
+//   (2) Doc-drift between the operand catalog and the published
+//       operand docs. Every `:name {:qlang/kind :builtin …}` entry
+//       across the per-family catalog files in
+//       `core/lib/qlang/operand/<family>.qlang` must appear as an
+//       `### name` (or equivalent) section in
 //       `docs/qlang-operands.md`. A new operand that lands without
 //       its doc section is caught here before review.
 //

@@ -28,7 +28,7 @@
        :subject :any
        :returns :any
        :modifiers [:predicate-lambda :pipeline :pipeline]
-       :throws []}
+}
 
 :when
   |~~ One-sided conditional with implicit identity on the false
@@ -41,7 +41,7 @@
          :subject :any
          :returns :any
          :modifiers [:predicate-lambda :pipeline]
-         :throws []}
+}
 
 :unless
   |~~ Inverse of when: runs the then sub-pipeline when cond is
@@ -54,7 +54,7 @@
            :subject :any
            :returns :any
            :modifiers [:predicate-lambda :pipeline]
-           :throws []}
+}
 
 :coalesce
   |~~ Returns the first non-null result among the captured

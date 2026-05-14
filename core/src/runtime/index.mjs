@@ -157,6 +157,14 @@ export async function buildLangRuntime(locator) {
   // invocation. That keeps `reify(::tag)` output readable — a
   // keyword instead of a JS-source dump of an opaque constructor
   // function.
+  //
+  // Same pass backfills `:modifiers` and `:throws` empty Vecs on
+  // any builtin descriptor that omitted them. Authors leave the
+  // empty case off in the catalog (47 lines saved across the
+  // family files); every consumer downstream — reify output, LSP
+  // signature-help, `/throws` and `/modifiers` projections —
+  // reads the field unconditionally because the env-side
+  // descriptor always carries it after this pass.
   for (const descriptor of templateEnv.values()) {
     if (!(descriptor instanceof Map)) continue;
     if (descriptor.get('qlang/kind')?.name !== 'builtin') continue;
@@ -164,6 +172,8 @@ export async function buildLangRuntime(locator) {
     if (isKeyword(implKey)) {
       descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
     }
+    if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
+    if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));
   }
 
   // Stamp the parsed root module as a Quote-value under the

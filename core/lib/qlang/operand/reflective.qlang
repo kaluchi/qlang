@@ -92,8 +92,7 @@
         :category :reflective
         :subject :any
         :returns :map
-        :modifiers []
-        :throws []}
+}
 
 :use
   |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
@@ -168,7 +167,6 @@
                 :category :reflective
                 :subject :map
                 :returns :vec
-                :modifiers []
                 :throws [::RunExamplesSubjectShapeError]}
 
 :as
@@ -231,8 +229,7 @@
             :category :error
             :subject :any
             :returns :boolean
-            :modifiers []
-            :throws []}
+}
 
 :parse
   |~~ Parses a source string into an AST-Map — the data-form
@@ -252,7 +249,6 @@
           :category :reflective
           :subject :string
           :returns :map
-          :modifiers []
           :throws [::ParseSubjectNotStringOrQuoteError]}
 
 :eval
@@ -274,7 +270,6 @@
          :category :reflective
          :subject :map
          :returns :any
-         :modifiers []
          :throws [::EvalSubjectNotMapOrQuoteError]}
 
 :apply
@@ -323,7 +318,6 @@
                 :category :axis
                 :subject [:keyword :tag-keyword]
                 :returns :quote
-                :modifiers []
                 :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 :docs
@@ -340,7 +334,6 @@
               :category :axis
               :subject [:keyword :tag-keyword]
               :returns :vec
-              :modifiers []
               :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 :examples
@@ -357,5 +350,4 @@
                   :category :axis
                   :subject [:keyword :tag-keyword]
                   :returns :vec
-                  :modifiers []
                   :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}

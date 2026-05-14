@@ -30,7 +30,6 @@
          :category :map-op
          :subject :map
          :returns :set
-         :modifiers []
          :throws [::KeysSubjectNotMapError]}
 
 :vals
@@ -43,7 +42,6 @@
          :category :map-op
          :subject :map
          :returns :vec
-         :modifiers []
          :throws [::ValsSubjectNotMapError]}
 
 :has

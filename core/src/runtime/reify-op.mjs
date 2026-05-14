@@ -133,12 +133,16 @@ function buildValueDescriptor(value, explicitName) {
 
 function describeBinding(value, explicitName) {
   // Built-in bindings: env stores a descriptor Map directly
-  // (authored in lib/qlang/core.qlang, loaded by langRuntime).
-  // Reify transforms the raw descriptor into a user-facing shape:
-  // internal :qlang/kind and :qlang/impl are stripped; :kind
-  // :builtin is stamped; :captured and :effectful are read from
-  // the resolved function value sitting on :qlang/impl (placed
-  // there by the bootstrap resolution pass in runtime/index.mjs).
+  // (authored in the operand-family catalog files, loaded by
+  // langRuntime). Reify transforms the raw descriptor into a
+  // user-facing shape: internal :qlang/kind and :qlang/impl are
+  // stripped; :kind :builtin is stamped; :captured and :effectful
+  // are read from the resolved function value sitting on
+  // :qlang/impl (placed there by the bootstrap resolution pass in
+  // runtime/index.mjs). The same bootstrap pass also backfills
+  // `:modifiers []` and `:throws []` when the authored descriptor
+  // omits them, so every reify output carries those fields
+  // uniformly without a presence check here.
   const qlKind = isQMap(value) && value.get('qlang/kind');
   if (qlKind && qlKind.name === 'builtin') {
     const reifyResult = new Map();

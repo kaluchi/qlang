@@ -54,7 +54,6 @@
         :category :set-op
         :subject :vec
         :returns :set
-        :modifiers []
         :throws [::SetConversionSubjectNotVecError]}
 
 :union

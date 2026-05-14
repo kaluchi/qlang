@@ -119,8 +119,7 @@
         :category :predicate
         :subject :any
         :returns :boolean
-        :modifiers []
-        :throws []}
+}
 
 :eq
   |~~ Returns true if the subject equals the captured value by
@@ -136,7 +135,7 @@
        :subject :any
        :returns :boolean
        :modifiers [:any]
-       :throws []}
+}
 
 :gt
   |~~ Subject-first ordering: a | gt(b) computes a > b. Both
@@ -200,7 +199,7 @@
         :subject :any
         :returns :boolean
         :modifiers [:any]
-        :throws []}
+}
 
 :or
   |~~ Returns true if either operand is truthy. ~~|
@@ -210,7 +209,7 @@
        :subject :any
        :returns :boolean
        :modifiers [:any]
-       :throws []}
+}
 
 :isString
   |~~ Returns true iff the subject is a String. Nullary predicate
@@ -229,8 +228,7 @@
              :category :type-classifier
              :subject :any
              :returns :boolean
-             :modifiers []
-             :throws []}
+}
 
 :isNumber
   |~~ Returns true iff the subject is a Number (integer or
@@ -245,8 +243,7 @@
              :category :type-classifier
              :subject :any
              :returns :boolean
-             :modifiers []
-             :throws []}
+}
 
 :isVec
   |~~ Returns true iff the subject is a Vec.
@@ -260,8 +257,7 @@
           :category :type-classifier
           :subject :any
           :returns :boolean
-          :modifiers []
-          :throws []}
+}
 
 :isMap
   |~~ Returns true iff the subject is a Map.
@@ -275,8 +271,7 @@
           :category :type-classifier
           :subject :any
           :returns :boolean
-          :modifiers []
-          :throws []}
+}
 
 :isSet
   |~~ Returns true iff the subject is a Set.
@@ -290,8 +285,7 @@
           :category :type-classifier
           :subject :any
           :returns :boolean
-          :modifiers []
-          :throws []}
+}
 
 :isKeyword
   |~~ Returns true iff the subject is a Keyword.
@@ -305,8 +299,7 @@
               :category :type-classifier
               :subject :any
               :returns :boolean
-              :modifiers []
-              :throws []}
+}
 
 :isBoolean
   |~~ Returns true iff the subject is a Boolean (literal true or
@@ -323,8 +316,7 @@
               :category :type-classifier
               :subject :any
               :returns :boolean
-              :modifiers []
-              :throws []}
+}
 
 :isNull
   |~~ Returns true iff the subject is null (the absence-of-value
@@ -341,8 +333,7 @@
            :category :type-classifier
            :subject :any
            :returns :boolean
-           :modifiers []
-           :throws []}
+}
 
 :isQuote
   |~~ Returns true iff the subject is a Quote — a frozen
@@ -359,8 +350,7 @@
             :category :type-classifier
             :subject :any
             :returns :boolean
-            :modifiers []
-            :throws []}
+}
 
 :isDoc
   |~~ Returns true iff the subject is a Doc — a frozen markdown
@@ -376,8 +366,7 @@
           :category :type-classifier
           :subject :any
           :returns :boolean
-          :modifiers []
-          :throws []}
+}
 
 :keyword
   |~~ String↔Keyword involution. On a String subject, produces the
@@ -398,7 +387,6 @@
             :category :type-conversion
             :subject [:string :keyword]
             :returns [:string :keyword]
-            :modifiers []
             :throws [::KeywordSubjectNotStringOrKeywordError]}
 
 :isJsonObject
@@ -416,8 +404,7 @@
                       :category :type-classifier
                       :subject :any
                       :returns :boolean
-                      :modifiers []
-                      :throws []}
+}
 
 :isJsonArray
   |~~ Returns true iff the subject is a JSON Array — a frozen JS
@@ -432,5 +419,4 @@
                      :category :type-classifier
                      :subject :any
                      :returns :boolean
-                     :modifiers []
-                     :throws []}
+}

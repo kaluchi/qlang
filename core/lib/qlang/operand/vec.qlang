@@ -137,7 +137,6 @@
           :category :vec-reducer
           :subject :vec
           :returns :any
-          :modifiers []
           :throws [::FirstSubjectNotVecError]}
 
 :last
@@ -152,7 +151,6 @@
          :category :vec-reducer
          :subject :vec
          :returns :any
-         :modifiers []
          :throws [::LastSubjectNotVecError]}
 
 :sum
@@ -172,7 +170,6 @@
         :category :vec-reducer
         :subject [:vec :set]
         :returns :number
-        :modifiers []
         :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
 
 :min
@@ -190,7 +187,6 @@
         :category :vec-reducer
         :subject [:vec :set]
         :returns :any
-        :modifiers []
         :throws [::MinSubjectNotVecOrSetError ::MinElementsNotComparableError]}
 
 :max
@@ -208,7 +204,6 @@
         :category :vec-reducer
         :subject [:vec :set]
         :returns :any
-        :modifiers []
         :throws [::MaxSubjectNotVecOrSetError ::MaxElementsNotComparableError]}
 
 :firstNonZero
@@ -226,7 +221,6 @@
                  :category :vec-reducer
                  :subject :vec
                  :returns :number
-                 :modifiers []
                  :throws [::FirstNonZeroSubjectNotVecError ::FirstNonZeroElementNotNumberError]}
 
 :sort
@@ -335,7 +329,6 @@
              :category :vec-transformer
              :subject :vec
              :returns :vec
-             :modifiers []
              :throws [::DistinctSubjectNotVecError]}
 
 :reverse
@@ -348,7 +341,6 @@
             :category :vec-transformer
             :subject :vec
             :returns :vec
-            :modifiers []
             :throws [::ReverseSubjectNotVecError]}
 
 :flat
@@ -362,7 +354,6 @@
          :category :vec-transformer
          :subject :vec
          :returns :vec
-         :modifiers []
          :throws [::FlatSubjectNotVecError]}
 
 :groupBy

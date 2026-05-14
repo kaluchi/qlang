@@ -21,8 +21,7 @@
          :category :format
          :subject :any
          :returns :string
-         :modifiers []
-         :throws []}
+}
 
 :qlang
   |~~ Recursively converts JSON shape to qlang shape. JsonObject
@@ -42,8 +41,7 @@
          :category :json-bridge
          :subject :any
          :returns :any
-         :modifiers []
-         :throws []}
+}
 
 :table
   |~~ Renders a Vec of Maps as a fixed-width tabular string.
@@ -55,5 +53,4 @@
           :category :format
           :subject :vec
           :returns :string
-          :modifiers []
           :throws [::TableSubjectNotVecError ::TableRowNotMapError]}

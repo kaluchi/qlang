@@ -12,11 +12,17 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
+import { printValue } from '../../src/runtime/format.mjs';
 
 const OK_KW      = 'ok';
 const SNIPPET_KW = 'snippet';
 const ERROR_KW   = 'error';
 const ACTUAL_KW  = 'actual';
+
+function safeprint(v) {
+  try { return printValue(v); }
+  catch { return JSON.stringify(v); }
+}
 
 async function walkManifestExamples() {
   const failures = [];
@@ -27,28 +33,32 @@ async function walkManifestExamples() {
     if (!Array.isArray(exampleResults)) continue;
     for (const exampleResult of exampleResults) {
       if (exampleResult.get(OK_KW) === true) continue;
+      const snippet = exampleResult.get(SNIPPET_KW);
       failures.push({
         operand: name,
-        snippet: exampleResult.get(SNIPPET_KW)?.source ?? exampleResult.get(SNIPPET_KW),
+        snippet: snippet?.source ?? snippet,
         actual:  exampleResult.get(ACTUAL_KW),
-        error:   exampleResult.get(ERROR_KW)
+        error:   exampleResult.get(ERROR_KW),
+        printed: safeprint(exampleResult.get(ACTUAL_KW))
       });
     }
   }
   // Tag-namespace bindings — error tags carry repro Quotes
-  // (`<query> !| type | eq(::TagName)`) injected from
-  // conformance JSONLs; runExamples evaluates each to true.
+  // with F.compact shape-spec (`!| [type /field ...] | eq([...])`)
+  // injected from doc-prefix; runExamples evaluates each to true.
   const tagNames = await evalQuery('manifest(:tag) * /name');
   for (const name of tagNames) {
     const exampleResults = await evalQuery(`reify(:"${name}") | runExamples`);
     if (!Array.isArray(exampleResults)) continue;
     for (const exampleResult of exampleResults) {
       if (exampleResult.get(OK_KW) === true) continue;
+      const snippet = exampleResult.get(SNIPPET_KW);
       failures.push({
         operand: name,
-        snippet: exampleResult.get(SNIPPET_KW)?.source ?? exampleResult.get(SNIPPET_KW),
+        snippet: snippet?.source ?? snippet,
         actual:  exampleResult.get(ACTUAL_KW),
-        error:   exampleResult.get(ERROR_KW)
+        error:   exampleResult.get(ERROR_KW),
+        printed: safeprint(exampleResult.get(ACTUAL_KW))
       });
     }
   }
@@ -60,7 +70,7 @@ describe('manifest catalog self-test via runExamples', () => {
     const failures = await walkManifestExamples();
     if (failures.length > 0) {
       const report = failures
-        .map(f => `[${f.operand}] ~{${f.snippet}} => ${f.error ?? JSON.stringify(f.actual)}`)
+        .map(f => `[${f.operand}] ~{${f.snippet}}\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
         .join('\n');
       throw new Error(`${failures.length} manifest example(s) failed:\n${report}`);
     }

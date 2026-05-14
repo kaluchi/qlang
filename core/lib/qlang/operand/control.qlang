@@ -61,7 +61,6 @@
   |~~ `coalesce` requires at least one captured alternative sub-pipeline.
     ~{{} | coalesce() !| type | eq(::CoalesceNoAlternativesError)}
     ~~|
-  {:qlang/kind :tag}
 
 :firstTruthy
   |~~ Returns the first truthy result among the captured
@@ -83,7 +82,6 @@
   |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
     ~{{} | firstTruthy() !| type | eq(::FirstTruthyNoAlternativesError)}
     ~~|
-  {:qlang/kind :tag}
 
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -105,4 +103,3 @@
   |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
     ~{5 | cond() !| type | eq(::CondNoBranchesError)}
     ~~|
-  {:qlang/kind :tag}

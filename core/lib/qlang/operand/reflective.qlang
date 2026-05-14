@@ -42,7 +42,6 @@
         |  eq([::UseSubjectNotMapError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::UseNamespaceNotKeywordError
   |~~ `use(:ns)` requires a Keyword captured-arg naming the
@@ -54,7 +53,6 @@
         |  eq([::UseNamespaceNotKeywordError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::UseNamespaceNotFoundError
   |~~ `use(:ns)` — namespace not in env and no host-provided
@@ -67,14 +65,12 @@
                 :absolutely-nonexistent-namespace])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::UseNamespaceNotMapError
   |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot
       import as a namespace. Host-boundary error: fires from
       bindings installed via `session.bind('ns', 42)`.
   ~~|
-  {:qlang/kind :tag}
 
 ::UseNamespaceElementNotKeywordError
   |~~ `use([:ns1 :ns2 …])` — every element of the namespace
@@ -86,7 +82,6 @@
         |  eq([::UseNamespaceElementNotKeywordError 0 :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::UseNamespaceCollisionError
   |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name
@@ -94,14 +89,12 @@
       Host-boundary error: requires two host-installed namespace
       Maps with overlapping keys.
   ~~|
-  {:qlang/kind :tag}
 
 ::UseNameNotExportedError
   |~~ `use(:ns, #{:name1 …})` — selection filter names an
       identifier the namespace does not export. Host-boundary
       error: requires a host-installed namespace Map.
   ~~|
-  {:qlang/kind :tag}
 
 :reify
   |~~ Builds a descriptor Map for a value or named binding.
@@ -139,7 +132,6 @@
         |  eq([::ReifyKeyNotKeywordError :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ReifyArityOverflowError
   |~~ `reify` accepts 0 or 1 captured arguments.
@@ -150,7 +142,6 @@
         |  eq([::ReifyArityOverflowError])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
@@ -177,7 +168,6 @@
         |  eq([::ManifestNamespaceNotKeywordError :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ManifestNamespaceUnknownError
   |~~ `manifest(:namespace)` accepts `:value` or `:tag`; any
@@ -189,7 +179,6 @@
         |  eq([::ManifestNamespaceUnknownError :wat])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :runExamples
   |~~ Walks every Quote segment inside the binding's attached
@@ -219,7 +208,6 @@
         |  eq([::RunExamplesSubjectShapeError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :as
   |~~ Captures the current pipeValue as a frozen snapshot under
@@ -248,7 +236,6 @@
         |  eq([::AsNameNotKeywordError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :error
   |~~ Lifts a Map into an error value — the sole
@@ -282,7 +269,6 @@
         |  eq([::ErrorDescriptorNotMapError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :isError
   |~~ Returns true when pipeValue is an error value,
@@ -335,7 +321,6 @@
         |  eq([::ParseSubjectNotStringOrQuoteError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :eval
   |~~ Evaluates an AST-Map (typically produced by parse or
@@ -368,7 +353,6 @@
         |  eq([::EvalSubjectNotMapOrQuoteError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :apply
   |~~ Runs the Quote-or-AST in pipeValue against the captured
@@ -428,7 +412,6 @@
         |  eq([::SourceSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :docs
   |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
@@ -456,7 +439,6 @@
         |  eq([::DocsSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :examples
   |~~ `:name | examples` — Vec of Quote-values extracted from the
@@ -484,7 +466,6 @@
         |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::AxisBindingNotFoundError
   |~~ Axis-operand (`source` / `docs` / `examples`) — no
@@ -498,4 +479,3 @@
                 :source :nonexistent-binding])
        }
   ~~|
-  {:qlang/kind :tag}

@@ -49,10 +49,8 @@
   |~~ Subject of `table` must be Vec.
     ~{42 | table !| type | eq(::TableSubjectNotVecError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::TableRowNotMapError
   |~~ Element of `table` input collection must be Map.
     ~{[42 "hello"] | table !| type | eq(::TableRowNotMapError)}
     ~~|
-  {:qlang/kind :tag}

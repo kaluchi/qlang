@@ -21,7 +21,6 @@
   |~~ Subject of `count` must be Vec, Set, or Map.
     ~{42 | count !| type | eq(::CountSubjectNotContainerError)}
     ~~|
-  {:qlang/kind :tag}
 
 :empty
   |~~ Returns true if the container has zero elements, false
@@ -41,7 +40,6 @@
   |~~ Subject of `empty` must be Vec, Set, or Map.
     ~{42 | empty !| type | eq(::EmptySubjectNotContainerError)}
     ~~|
-  {:qlang/kind :tag}
 
 :every
   |~~ Returns true iff every item of the container satisfies the
@@ -77,19 +75,16 @@
   |~~ Subject of `every` must be Vec, Set, or Map.
     ~{42 | every(gt(0)) !| type | eq(::EverySubjectNotContainerError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::EveryVecOrSetPredArityInvalidError
   |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
     ~{[1 2] | :@kv [:k :v] true | every(@kv) !| type | eq(::EveryVecOrSetPredArityInvalidError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::EveryMapPredArityInvalidError
   |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
     ~{{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide) !| type | eq(::EveryMapPredArityInvalidError)}
     ~~|
-  {:qlang/kind :tag}
 
 :any
   |~~ Returns true iff at least one item of the container
@@ -119,19 +114,16 @@
   |~~ Subject of `any` must be Vec, Set, or Map.
     ~{42 | any(gt(0)) !| type | eq(::AnySubjectNotContainerError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::AnyVecOrSetPredArityInvalidError
   |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
     ~{[1 2] | :@kv [:k :v] true | any(@kv) !| type | eq(::AnyVecOrSetPredArityInvalidError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::AnyMapPredArityInvalidError
   |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
     ~{{:a 1} | :@tooWide [:x :y :z] true | any(@tooWide) !| type | eq(::AnyMapPredArityInvalidError)}
     ~~|
-  {:qlang/kind :tag}
 
 :filter
   |~~ Keeps items of the container where the predicate evaluates
@@ -179,16 +171,13 @@
   |~~ Subject of `filter` must be Vec, Set, or Map.
     ~{42 | filter(gt(0)) !| type | eq(::FilterSubjectNotContainerError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::FilterVecOrSetPredArityInvalidError
   |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
     ~{[1 2] | :@kv [:k :v] true | filter(@kv) !| type | eq(::FilterVecOrSetPredArityInvalidError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::FilterMapPredArityInvalidError
   |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
     ~{{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| type | eq(::FilterMapPredArityInvalidError)}
     ~~|
-  {:qlang/kind :tag}

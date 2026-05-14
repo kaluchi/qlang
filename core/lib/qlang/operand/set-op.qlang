@@ -18,7 +18,6 @@
   |~~ Subject of `set` must be Vec.
     ~{42 | set !| type | eq(::SetConversionSubjectNotVecError)}
     ~~|
-  {:qlang/kind :tag}
 
 :union
   |~~ Polymorphic union. Set union or Map merge (last wins on
@@ -41,19 +40,16 @@
   |~~ Subject of `union` (bare form) must be Vec.
     ~{42 | union !| type | eq(::UnionBareSubjectNotVecError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
     ~{[] | union !| type | eq(::UnionBareEmptyError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::UnionPairIncompatibleError
   |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
     ~{#{:a} | union({:b 1}) !| type | eq(::UnionPairIncompatibleError)}
     ~~|
-  {:qlang/kind :tag}
 
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
@@ -76,19 +72,16 @@
   |~~ Subject of `minus` (bare form) must be Vec.
     ~{42 | minus !| type | eq(::MinusBareSubjectNotVecError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::MinusBareEmptyError
   |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
     ~{[] | minus !| type | eq(::MinusBareEmptyError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::MinusPairIncompatibleError
   |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
     ~{#{:a} | minus({:b 1}) !| type | eq(::MinusPairIncompatibleError)}
     ~~|
-  {:qlang/kind :tag}
 
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
@@ -111,16 +104,13 @@
   |~~ Subject of `inter` (bare form) must be Vec.
     ~{42 | inter !| type | eq(::InterBareSubjectNotVecError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::InterBareEmptyError
   |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
     ~{[] | inter !| type | eq(::InterBareEmptyError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::InterPairIncompatibleError
   |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
     ~{#{:a} | inter({:b 1}) !| type | eq(::InterPairIncompatibleError)}
     ~~|
-  {:qlang/kind :tag}

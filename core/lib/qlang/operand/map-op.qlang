@@ -18,7 +18,6 @@
   |~~ Subject of `keys` must be Map.
     ~{42 | keys !| type | eq(::KeysSubjectNotMapError)}
     ~~|
-  {:qlang/kind :tag}
 
 :vals
   |~~ Returns a Vec of values in insertion order.
@@ -36,7 +35,6 @@
   |~~ Subject of `vals` must be Map.
     ~{[1 2] | vals !| type | eq(::ValsSubjectNotMapError)}
     ~~|
-  {:qlang/kind :tag}
 
 :has
   |~~ Returns true if the Map contains the keyword key, or if
@@ -57,10 +55,8 @@
   |~~ Subject of `has` must be Map or Set.
     ~{42 | has(:k) !| type | eq(::HasSubjectNotMapOrSetError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::HasKeyNotKeywordError
   |~~ Captured argument at position 2 of `has` must be Keyword.
     ~{{:a 1} | has("a") !| type | eq(::HasKeyNotKeywordError)}
     ~~|
-  {:qlang/kind :tag}

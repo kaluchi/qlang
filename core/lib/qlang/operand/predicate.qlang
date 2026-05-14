@@ -21,13 +21,11 @@
   |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
     ~{42 | asc(/x) !| type | eq(::AscPairNotMapError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::AscKeysNotComparableError
   |~~ Operands of `asc` are not pairwise-comparable scalars.
     ~{{:left {:k 1} :right {:k "x"}} | asc(/k) !| type | eq(::AscKeysNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :desc
   |~~ Builds a descending comparator for sortWith. Same as asc
@@ -44,13 +42,11 @@
   |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
     ~{42 | desc(/x) !| type | eq(::DescPairNotMapError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::DescKeysNotComparableError
   |~~ Operands of `desc` are not pairwise-comparable scalars.
     ~{{:left {:k 1} :right {:k "x"}} | desc(/k) !| type | eq(::DescKeysNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :nullsFirst
   |~~ Ascending comparator that places null-keyed elements before
@@ -72,13 +68,11 @@
   |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
     ~{42 | nullsFirst(/a) !| type | eq(::NullsFirstPairNotMapError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::NullsFirstKeysNotComparableError
   |~~ Operands of `nullsFirst` are not pairwise-comparable scalars.
     ~{{:left {:a 1} :right {:a "x"}} | nullsFirst(/a) !| type | eq(::NullsFirstKeysNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :nullsLast
   |~~ Ascending comparator that places null-keyed elements after
@@ -100,13 +94,11 @@
   |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
     ~{42 | nullsLast(/a) !| type | eq(::NullsLastPairNotMapError)}
     ~~|
-  {:qlang/kind :tag}
 
 ::NullsLastKeysNotComparableError
   |~~ Operands of `nullsLast` are not pairwise-comparable scalars.
     ~{{:left {:a 1} :right {:a "x"}} | nullsLast(/a) !| type | eq(::NullsLastKeysNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :not
   |~~ Logical negation. Returns true if the subject is falsy
@@ -185,7 +177,6 @@
   |~~ Operands of `gt` are not pairwise-comparable scalars.
     ~{1 | gt("x") !| type | eq(::GtOperandsNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :lt
   |~~ Subject-first ordering: a | lt(b) computes a < b.
@@ -204,7 +195,6 @@
   |~~ Operands of `lt` are not pairwise-comparable scalars.
     ~{1 | lt("x") !| type | eq(::LtOperandsNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :gte
   |~~ Subject-first ordering: a | gte(b) computes a >= b.
@@ -223,7 +213,6 @@
   |~~ Operands of `gte` are not pairwise-comparable scalars.
     ~{1 | gte("x") !| type | eq(::GteOperandsNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :lte
   |~~ Subject-first ordering: a | lte(b) computes a <= b.
@@ -242,7 +231,6 @@
   |~~ Operands of `lte` are not pairwise-comparable scalars.
     ~{1 | lte("x") !| type | eq(::LteOperandsNotComparableError)}
     ~~|
-  {:qlang/kind :tag}
 
 :and
   |~~ Returns true if both operands are truthy. Used in full form
@@ -447,7 +435,6 @@
   |~~ `keyword` involution requires a String or Keyword subject.
     ~{42 | keyword !| type | eq(::KeywordSubjectNotStringOrKeywordError)}
     ~~|
-  {:qlang/kind :tag}
 
 :isJsonObject
   |~~ Returns true iff the subject is a JSON Object — a plain JS

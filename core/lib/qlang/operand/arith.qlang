@@ -27,7 +27,6 @@
         |  eq([::AddLeftNotNumberError :add 1 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::AddRightNotNumberError
   |~~ Captured argument at position 2 of `add` must be Number.
@@ -38,7 +37,6 @@
         |  eq([::AddRightNotNumberError :add 2 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
@@ -64,7 +62,6 @@
         |  eq([::SubLeftNotNumberError :sub 1 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::SubRightNotNumberError
   |~~ Captured argument at position 2 of `sub` must be Number.
@@ -75,7 +72,6 @@
         |  eq([::SubRightNotNumberError :sub 2 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :mul
   |~~ Multiplies two numbers. Commutative.
@@ -100,7 +96,6 @@
         |  eq([::MulLeftNotNumberError :mul 1 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::MulRightNotNumberError
   |~~ Captured argument at position 2 of `mul` must be Number.
@@ -111,7 +106,6 @@
         |  eq([::MulRightNotNumberError :mul 2 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
@@ -138,7 +132,6 @@
         |  eq([::DivLeftNotNumberError :div 1 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::DivRightNotNumberError
   |~~ Captured argument at position 2 of `div` must be Number.
@@ -149,7 +142,6 @@
         |  eq([::DivRightNotNumberError :div 2 :number :string])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::DivisionByZeroError
   |~~ Division by zero — `div(_, 0)` fires this error.
@@ -160,4 +152,3 @@
         |  eq([::DivisionByZeroError])
        }
   ~~|
-  {:qlang/kind :tag}

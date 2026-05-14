@@ -611,6 +611,19 @@ async function evalBindStep(node, state) {
   const docs = node.docs || [];
 
   if (node.body === null) {
+    // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`) forges
+    // a tag-binding Map automatically — the `::` prefix carries the
+    // tag declaration semantic, no `{:qlang/kind :tag}` body needed.
+    // Value-namespace doc-only BindStep (`:name |~~ docs ~~|`) wraps
+    // the joined prose as a Doc-value snapshot.
+    if (node.key.type === 'BareTypeKeyword') {
+      const tagBinding = new Map();
+      tagBinding.set('qlang/kind', keyword('tag'));
+      const bound = makeSnapshot(tagBinding, {
+        name, docs, location: node.location
+      });
+      return makeState(state.pipeValue, envSet(state.env, name, bound));
+    }
     const bound = makeSnapshot(makeDoc(docs.join('\n')), {
       name, docs, location: node.location
     });

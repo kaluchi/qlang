@@ -45,7 +45,6 @@
         |  eq([::ConduitPayloadNotVecError :map])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitArityInvalidError
   |~~ `::conduit[…]` payload Vec must have 2 (`[params body]`)
@@ -57,7 +56,6 @@
         |  eq([::ConduitArityInvalidError 1])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitSelfNameNotKeywordError
   |~~ `::conduit` self-name (3-element form) must be a Keyword.
@@ -68,7 +66,6 @@
         |  eq([::ConduitSelfNameNotKeywordError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitParamsNotVecError
   |~~ `::conduit` params slot must be a Vec of Keywords.
@@ -79,7 +76,6 @@
         |  eq([::ConduitParamsNotVecError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitParamNotKeywordError
   |~~ `::conduit` params Vec elements must be Keywords.
@@ -90,7 +86,6 @@
         |  eq([::ConduitParamNotKeywordError 0 :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitBodyNotQuoteError
   |~~ `::conduit` body slot must be a Quote-value.
@@ -101,7 +96,6 @@
         |  eq([::ConduitBodyNotQuoteError :number])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitArityMismatchError
   |~~ Conduit invocation supplied a captured-arg count
@@ -113,7 +107,6 @@
         |  eq([::ConduitArityMismatchError :f 1 2])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitParameterNoCapturedArgsError
   |~~ Conduit-parameter proxies are nullary — passing captured
@@ -125,14 +118,12 @@
         |  eq([::ConduitParameterNoCapturedArgsError :n 1])
        }
   ~~|
-  {:qlang/kind :tag}
 
 ::ConduitBodyMissingSourceError
   |~~ `makeConduit` refuses a body AST that has no `.text`
       source slice — `printValue` round-trip requires literal
       source. JS-level invariant.
   ~~|
-  {:qlang/kind :tag}
 
 ::qlang
   |~~ ::qlang<json-shape> — recursively convert a JSON-shape

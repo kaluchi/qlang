@@ -47,10 +47,18 @@
 
 ::TableSubjectNotVecError
   |~~ Subject of `table` must be Vec.
-      ~{42 | table !| type | eq(::TableSubjectNotVecError)}
+      ~{
+        42 | table
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::TableSubjectNotVecError :number :vec :table :subject])
+       }
   ~~|
 
 ::TableRowNotMapError
   |~~ Element of `table` input collection must be Map.
-      ~{[42 "hello"] | table !| type | eq(::TableRowNotMapError)}
+      ~{
+        [42 "hello"] | table
+        !| [type /actualType /index /expectedType /operand]
+        |  eq([::TableRowNotMapError :number 0 :map :table])
+       }
   ~~|

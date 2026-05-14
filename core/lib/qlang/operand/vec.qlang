@@ -19,7 +19,11 @@
 
 ::FirstSubjectNotVecError
   |~~ Subject of `first` must be Vec.
-      ~{42 | first !| type | eq(::FirstSubjectNotVecError)}
+      ~{
+        42 | first
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::FirstSubjectNotVecError :number :vec :first :subject])
+       }
   ~~|
 
 :last
@@ -38,7 +42,11 @@
 
 ::LastSubjectNotVecError
   |~~ Subject of `last` must be Vec.
-      ~{42 | last !| type | eq(::LastSubjectNotVecError)}
+      ~{
+        42 | last
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::LastSubjectNotVecError :number :vec :last :subject])
+       }
   ~~|
 
 :sum
@@ -62,12 +70,20 @@
 
 ::SumSubjectNotVecOrSetError
   |~~ Subject of `sum` must be Vec or Set.
-      ~{42 | sum !| type | eq(::SumSubjectNotVecOrSetError)}
+      ~{
+        42 | sum
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SumSubjectNotVecOrSetError :number [:vec :set] :sum :subject])
+       }
   ~~|
 
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
-      ~{[1 "two" 3] | sum !| type | eq(::SumElementNotNumberError)}
+      ~{
+        [1 "two" 3] | sum
+        !| [type /actualType /index /expectedType /operand]
+        |  eq([::SumElementNotNumberError :string 1 :number :sum])
+       }
   ~~|
 
 :min
@@ -89,12 +105,20 @@
 
 ::MinSubjectNotVecOrSetError
   |~~ Subject of `min` must be Vec or Set.
-      ~{42 | min !| type | eq(::MinSubjectNotVecOrSetError)}
+      ~{
+        42 | min
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::MinSubjectNotVecOrSetError :number [:vec :set] :min :subject])
+       }
   ~~|
 
 ::MinElementsNotComparableError
   |~~ Operands of `min` are not pairwise-comparable scalars.
-      ~{[1 "two"] | min !| type | eq(::MinElementsNotComparableError)}
+      ~{
+        [1 "two"] | min
+        !| [type /leftType /rightType /operand]
+        |  eq([::MinElementsNotComparableError :number :string :min])
+       }
   ~~|
 
 :max
@@ -116,12 +140,20 @@
 
 ::MaxSubjectNotVecOrSetError
   |~~ Subject of `max` must be Vec or Set.
-      ~{42 | max !| type | eq(::MaxSubjectNotVecOrSetError)}
+      ~{
+        42 | max
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::MaxSubjectNotVecOrSetError :number [:vec :set] :max :subject])
+       }
   ~~|
 
 ::MaxElementsNotComparableError
   |~~ Operands of `max` are not pairwise-comparable scalars.
-      ~{[1 "two"] | max !| type | eq(::MaxElementsNotComparableError)}
+      ~{
+        [1 "two"] | max
+        !| [type /leftType /rightType /operand]
+        |  eq([::MaxElementsNotComparableError :number :string :max])
+       }
   ~~|
 
 :firstNonZero
@@ -143,12 +175,20 @@
 
 ::FirstNonZeroSubjectNotVecError
   |~~ Subject of `firstNonZero` must be Vec.
-      ~{42 | firstNonZero !| type | eq(::FirstNonZeroSubjectNotVecError)}
+      ~{
+        42 | firstNonZero
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::FirstNonZeroSubjectNotVecError :number :vec :firstNonZero :subject])
+       }
   ~~|
 
 ::FirstNonZeroElementNotNumberError
   |~~ Element of `firstNonZero` input collection must be Number.
-      ~{[0 null 1] | firstNonZero !| type | eq(::FirstNonZeroElementNotNumberError)}
+      ~{
+        [0 null 1] | firstNonZero
+        !| [type /actualType /index /expectedType /operand]
+        |  eq([::FirstNonZeroElementNotNumberError :null 1 :number :firstNonZero])
+       }
   ~~|
 
 :sort
@@ -174,22 +214,38 @@
 
 ::SortNaturalSubjectNotVecError
   |~~ Subject of `sort` must be Vec.
-      ~{42 | sort !| type | eq(::SortNaturalSubjectNotVecError)}
+      ~{
+        42 | sort
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SortNaturalSubjectNotVecError :number :vec :sort :subject])
+       }
   ~~|
 
 ::SortByKeySubjectNotVecError
   |~~ Subject of `sort(key)` must be Vec.
-      ~{42 | sort(/x) !| type | eq(::SortByKeySubjectNotVecError)}
+      ~{
+        42 | sort(/x)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SortByKeySubjectNotVecError :number :vec :sort :subject])
+       }
   ~~|
 
 ::SortNaturalNotComparableError
   |~~ Operands of `sort` are not pairwise-comparable scalars.
-      ~{[1 "two"] | sort !| type | eq(::SortNaturalNotComparableError)}
+      ~{
+        [1 "two"] | sort
+        !| [type /leftType /rightType /operand]
+        |  eq([::SortNaturalNotComparableError :string :number :sort])
+       }
   ~~|
 
 ::SortByKeyNotComparableError
   |~~ Operands of `sort(key)` are not pairwise-comparable scalars.
-      ~{[{:k 1} {:k "x"}] | sort(/k) !| type | eq(::SortByKeyNotComparableError)}
+      ~{
+        [{:k 1} {:k "x"}] | sort(/k)
+        !| [type /leftType /rightType /operand]
+        |  eq([::SortByKeyNotComparableError :string :number :"sort(key)"])
+       }
   ~~|
 
 :sortWith
@@ -212,12 +268,20 @@
 
 ::SortWithSubjectNotVecError
   |~~ Subject of `sortWith` must be Vec.
-      ~{42 | sortWith(asc(/x)) !| type | eq(::SortWithSubjectNotVecError)}
+      ~{
+        42 | sortWith(asc(/x))
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SortWithSubjectNotVecError :number :vec :sortWith :subject])
+       }
   ~~|
 
 ::SortWithCmpResultNotNumberError
   |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
-      ~{[1 2] | sortWith(:tag) !| type | eq(::SortWithCmpResultNotNumberError)}
+      ~{
+        [1 2] | sortWith(:tag)
+        !| [type /actualType]
+        |  eq([::SortWithCmpResultNotNumberError :keyword])
+       }
   ~~|
 
 :take
@@ -236,12 +300,20 @@
 
 ::TakeSubjectNotVecError
   |~~ Subject of `take` must be Vec.
-      ~{42 | take(1) !| type | eq(::TakeSubjectNotVecError)}
+      ~{
+        42 | take(1)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::TakeSubjectNotVecError :number :vec :take :subject])
+       }
   ~~|
 
 ::TakeCountNotNumberError
   |~~ Captured argument at position 2 of `take` must be Number.
-      ~{[1 2 3] | take("x") !| type | eq(::TakeCountNotNumberError)}
+      ~{
+        [1 2 3] | take("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::TakeCountNotNumberError :string :number :take 2])
+       }
   ~~|
 
 :at
@@ -268,12 +340,20 @@
 
 ::AtSubjectNotVecOrMapError
   |~~ Subject of `at` must be Vec or Map.
-      ~{42 | at(0) !| type | eq(::AtSubjectNotVecOrMapError)}
+      ~{
+        42 | at(0)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::AtSubjectNotVecOrMapError :number [:vec :map] :at :subject])
+       }
   ~~|
 
 ::AtIndexNotIntegerError
   |~~ Captured argument at position 2 of `at` must be Integer.
-      ~{[1 2 3] | at(0.5) !| type | eq(::AtIndexNotIntegerError)}
+      ~{
+        [1 2 3] | at(0.5)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::AtIndexNotIntegerError :number :integer :at 2])
+       }
   ~~|
 
 ::AtKeyNotStringError
@@ -297,12 +377,20 @@
 
 ::DropSubjectNotVecError
   |~~ Subject of `drop` must be Vec.
-      ~{42 | drop(1) !| type | eq(::DropSubjectNotVecError)}
+      ~{
+        42 | drop(1)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::DropSubjectNotVecError :number :vec :drop :subject])
+       }
   ~~|
 
 ::DropCountNotNumberError
   |~~ Captured argument at position 2 of `drop` must be Number.
-      ~{[1 2 3] | drop("x") !| type | eq(::DropCountNotNumberError)}
+      ~{
+        [1 2 3] | drop("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::DropCountNotNumberError :string :number :drop 2])
+       }
   ~~|
 
 :distinct
@@ -326,7 +414,11 @@
 
 ::DistinctSubjectNotVecError
   |~~ Subject of `distinct` must be Vec.
-      ~{42 | distinct !| type | eq(::DistinctSubjectNotVecError)}
+      ~{
+        42 | distinct
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::DistinctSubjectNotVecError :number :vec :distinct :subject])
+       }
   ~~|
 
 :reverse
@@ -343,7 +435,11 @@
 
 ::ReverseSubjectNotVecError
   |~~ Subject of `reverse` must be Vec.
-      ~{42 | reverse !| type | eq(::ReverseSubjectNotVecError)}
+      ~{
+        42 | reverse
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::ReverseSubjectNotVecError :number :vec :reverse :subject])
+       }
   ~~|
 
 :flat
@@ -361,7 +457,11 @@
 
 ::FlatSubjectNotVecError
   |~~ Subject of `flat` must be Vec.
-      ~{42 | flat !| type | eq(::FlatSubjectNotVecError)}
+      ~{
+        42 | flat
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::FlatSubjectNotVecError :number :vec :flat :subject])
+       }
   ~~|
 
 :groupBy
@@ -383,12 +483,20 @@
 
 ::GroupBySubjectNotVecError
   |~~ Subject of `groupBy` must be Vec.
-      ~{42 | groupBy(/k) !| type | eq(::GroupBySubjectNotVecError)}
+      ~{
+        42 | groupBy(/k)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::GroupBySubjectNotVecError :number :vec :groupBy :subject])
+       }
   ~~|
 
 ::GroupByKeyNotKeywordError
   |~~ `groupBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
-      ~{[{:k 1} {:k 2}] | groupBy(/k) !| type | eq(::GroupByKeyNotKeywordError)}
+      ~{
+        [{:k 1} {:k 2}] | groupBy(/k)
+        !| [type /actualType /index]
+        |  eq([::GroupByKeyNotKeywordError :number 0])
+       }
   ~~|
 
 :indexBy
@@ -409,10 +517,18 @@
 
 ::IndexBySubjectNotVecError
   |~~ Subject of `indexBy` must be Vec.
-      ~{42 | indexBy(/k) !| type | eq(::IndexBySubjectNotVecError)}
+      ~{
+        42 | indexBy(/k)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::IndexBySubjectNotVecError :number :vec :indexBy :subject])
+       }
   ~~|
 
 ::IndexByKeyNotKeywordError
   |~~ `indexBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
-      ~{[{:k 1}] | indexBy(/k) !| type | eq(::IndexByKeyNotKeywordError)}
+      ~{
+        [{:k 1}] | indexBy(/k)
+        !| [type /actualType /index]
+        |  eq([::IndexByKeyNotKeywordError :number 0])
+       }
   ~~|

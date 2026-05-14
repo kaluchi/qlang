@@ -19,12 +19,20 @@
 
 ::SplitSubjectNotStringError
   |~~ Captured argument at position 1 of `split` must be String.
-      ~{42 | split(",") !| type | eq(::SplitSubjectNotStringError)}
+      ~{
+        42 | split(",")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SplitSubjectNotStringError :number :string :split 1])
+       }
   ~~|
 
 ::SplitSeparatorNotStringError
   |~~ Captured argument at position 2 of `split` must be String.
-      ~{"abc" | split(42) !| type | eq(::SplitSeparatorNotStringError)}
+      ~{
+        "abc" | split(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SplitSeparatorNotStringError :number :string :split 2])
+       }
   ~~|
 
 :join
@@ -44,17 +52,29 @@
 
 ::JoinSubjectNotVecError
   |~~ Subject of `join` must be Vec.
-      ~{42 | join(",") !| type | eq(::JoinSubjectNotVecError)}
+      ~{
+        42 | join(",")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::JoinSubjectNotVecError :number :vec :join :subject])
+       }
   ~~|
 
 ::JoinElementNotStringError
   |~~ Element of `join` input collection must be String.
-      ~{["a" 42 "c"] | join(",") !| type | eq(::JoinElementNotStringError)}
+      ~{
+        ["a" 42 "c"] | join(",")
+        !| [type /actualType /index /expectedType /operand]
+        |  eq([::JoinElementNotStringError :number 1 :string :join])
+       }
   ~~|
 
 ::JoinSeparatorNotStringError
   |~~ Captured argument at position 2 of `join` must be String.
-      ~{["a" "b"] | join(42) !| type | eq(::JoinSeparatorNotStringError)}
+      ~{
+        ["a" "b"] | join(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::JoinSeparatorNotStringError :number :string :join 2])
+       }
   ~~|
 
 :contains
@@ -75,12 +95,20 @@
 
 ::ContainsSubjectNotStringError
   |~~ Captured argument at position 1 of `contains` must be String.
-      ~{42 | contains("x") !| type | eq(::ContainsSubjectNotStringError)}
+      ~{
+        42 | contains("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::ContainsSubjectNotStringError :number :string :contains 1])
+       }
   ~~|
 
 ::ContainsNeedleNotStringError
   |~~ Captured argument at position 2 of `contains` must be String.
-      ~{"hi" | contains(42) !| type | eq(::ContainsNeedleNotStringError)}
+      ~{
+        "hi" | contains(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::ContainsNeedleNotStringError :number :string :contains 2])
+       }
   ~~|
 
 :startsWith
@@ -100,12 +128,20 @@
 
 ::StartsWithSubjectNotStringError
   |~~ Captured argument at position 1 of `startsWith` must be String.
-      ~{42 | startsWith("x") !| type | eq(::StartsWithSubjectNotStringError)}
+      ~{
+        42 | startsWith("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::StartsWithSubjectNotStringError :number :string :startsWith 1])
+       }
   ~~|
 
 ::StartsWithPrefixNotStringError
   |~~ Captured argument at position 2 of `startsWith` must be String.
-      ~{"hi" | startsWith(42) !| type | eq(::StartsWithPrefixNotStringError)}
+      ~{
+        "hi" | startsWith(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::StartsWithPrefixNotStringError :number :string :startsWith 2])
+       }
   ~~|
 
 :endsWith
@@ -125,12 +161,20 @@
 
 ::EndsWithSubjectNotStringError
   |~~ Captured argument at position 1 of `endsWith` must be String.
-      ~{42 | endsWith("x") !| type | eq(::EndsWithSubjectNotStringError)}
+      ~{
+        42 | endsWith("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::EndsWithSubjectNotStringError :number :string :endsWith 1])
+       }
   ~~|
 
 ::EndsWithSuffixNotStringError
   |~~ Captured argument at position 2 of `endsWith` must be String.
-      ~{"hi" | endsWith(42) !| type | eq(::EndsWithSuffixNotStringError)}
+      ~{
+        "hi" | endsWith(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::EndsWithSuffixNotStringError :number :string :endsWith 2])
+       }
   ~~|
 
 :prepend
@@ -148,12 +192,20 @@
 
 ::PrependSubjectNotStringError
   |~~ Captured argument at position 1 of `prepend` must be String.
-      ~{42 | prepend("x") !| type | eq(::PrependSubjectNotStringError)}
+      ~{
+        42 | prepend("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::PrependSubjectNotStringError :number :string :prepend 1])
+       }
   ~~|
 
 ::PrependPrefixNotStringError
   |~~ Captured argument at position 2 of `prepend` must be String.
-      ~{"x" | prepend(42) !| type | eq(::PrependPrefixNotStringError)}
+      ~{
+        "x" | prepend(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::PrependPrefixNotStringError :number :string :prepend 2])
+       }
   ~~|
 
 :append
@@ -171,10 +223,18 @@
 
 ::AppendSubjectNotStringError
   |~~ Captured argument at position 1 of `append` must be String.
-      ~{42 | append("x") !| type | eq(::AppendSubjectNotStringError)}
+      ~{
+        42 | append("x")
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::AppendSubjectNotStringError :number :string :append 1])
+       }
   ~~|
 
 ::AppendSuffixNotStringError
   |~~ Captured argument at position 2 of `append` must be String.
-      ~{"x" | append(42) !| type | eq(::AppendSuffixNotStringError)}
+      ~{
+        "x" | append(42)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::AppendSuffixNotStringError :number :string :append 2])
+       }
   ~~|

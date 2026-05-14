@@ -16,7 +16,11 @@
 
 ::SetConversionSubjectNotVecError
   |~~ Subject of `set` must be Vec.
-      ~{42 | set !| type | eq(::SetConversionSubjectNotVecError)}
+      ~{
+        42 | set
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::SetConversionSubjectNotVecError :number :vec :set :subject])
+       }
   ~~|
 
 :union
@@ -38,17 +42,29 @@
 
 ::UnionBareSubjectNotVecError
   |~~ Subject of `union` (bare form) must be Vec.
-      ~{42 | union !| type | eq(::UnionBareSubjectNotVecError)}
+      ~{
+        42 | union
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::UnionBareSubjectNotVecError :number :vec :union :subject])
+       }
   ~~|
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
-      ~{[] | union !| type | eq(::UnionBareEmptyError)}
+      ~{
+        [] | union
+        !| [type]
+        |  eq([::UnionBareEmptyError])
+       }
   ~~|
 
 ::UnionPairIncompatibleError
   |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
-      ~{#{:a} | union({:b 1}) !| type | eq(::UnionPairIncompatibleError)}
+      ~{
+        #{:a} | union({:b 1})
+        !| [type /leftType /rightType /operand]
+        |  eq([::UnionPairIncompatibleError :set :map :union])
+       }
   ~~|
 
 :minus
@@ -70,17 +86,29 @@
 
 ::MinusBareSubjectNotVecError
   |~~ Subject of `minus` (bare form) must be Vec.
-      ~{42 | minus !| type | eq(::MinusBareSubjectNotVecError)}
+      ~{
+        42 | minus
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::MinusBareSubjectNotVecError :number :vec :minus :subject])
+       }
   ~~|
 
 ::MinusBareEmptyError
   |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
-      ~{[] | minus !| type | eq(::MinusBareEmptyError)}
+      ~{
+        [] | minus
+        !| [type]
+        |  eq([::MinusBareEmptyError])
+       }
   ~~|
 
 ::MinusPairIncompatibleError
   |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
-      ~{#{:a} | minus({:b 1}) !| type | eq(::MinusPairIncompatibleError)}
+      ~{
+        #{:a} | minus({:b 1})
+        !| [type /leftType /rightType /operand]
+        |  eq([::MinusPairIncompatibleError :set :map :minus])
+       }
   ~~|
 
 :inter
@@ -102,15 +130,27 @@
 
 ::InterBareSubjectNotVecError
   |~~ Subject of `inter` (bare form) must be Vec.
-      ~{42 | inter !| type | eq(::InterBareSubjectNotVecError)}
+      ~{
+        42 | inter
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::InterBareSubjectNotVecError :number :vec :inter :subject])
+       }
   ~~|
 
 ::InterBareEmptyError
   |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
-      ~{[] | inter !| type | eq(::InterBareEmptyError)}
+      ~{
+        [] | inter
+        !| [type]
+        |  eq([::InterBareEmptyError])
+       }
   ~~|
 
 ::InterPairIncompatibleError
   |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
-      ~{#{:a} | inter({:b 1}) !| type | eq(::InterPairIncompatibleError)}
+      ~{
+        #{:a} | inter({:b 1})
+        !| [type /leftType /rightType /operand]
+        |  eq([::InterPairIncompatibleError :set :map :inter])
+       }
   ~~|

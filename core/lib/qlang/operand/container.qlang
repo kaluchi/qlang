@@ -19,7 +19,11 @@
 
 ::CountSubjectNotContainerError
   |~~ Subject of `count` must be Vec, Set, or Map.
-      ~{42 | count !| type | eq(::CountSubjectNotContainerError)}
+      ~{
+        42 | count
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::CountSubjectNotContainerError :number [:vec :set :map] :count :subject])
+       }
   ~~|
 
 :empty
@@ -38,7 +42,11 @@
 
 ::EmptySubjectNotContainerError
   |~~ Subject of `empty` must be Vec, Set, or Map.
-      ~{42 | empty !| type | eq(::EmptySubjectNotContainerError)}
+      ~{
+        42 | empty
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::EmptySubjectNotContainerError :number [:vec :set :map] :empty :subject])
+       }
   ~~|
 
 :every
@@ -73,17 +81,29 @@
 
 ::EverySubjectNotContainerError
   |~~ Subject of `every` must be Vec, Set, or Map.
-      ~{42 | every(gt(0)) !| type | eq(::EverySubjectNotContainerError)}
+      ~{
+        42 | every(gt(0))
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::EverySubjectNotContainerError :number [:vec :set :map] :every :subject])
+       }
   ~~|
 
 ::EveryVecOrSetPredArityInvalidError
   |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
-      ~{[1 2] | :@kv [:k :v] true | every(@kv) !| type | eq(::EveryVecOrSetPredArityInvalidError)}
+      ~{
+        [1 2] | :@kv [:k :v] true | every(@kv)
+        !| [type /conduitName /actualArity]
+        |  eq([::EveryVecOrSetPredArityInvalidError :@kv 2])
+       }
   ~~|
 
 ::EveryMapPredArityInvalidError
   |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
-      ~{{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide) !| type | eq(::EveryMapPredArityInvalidError)}
+      ~{
+        {:a 1} | :@tooWide [:x :y :z] true | every(@tooWide)
+        !| [type /conduitName /actualArity]
+        |  eq([::EveryMapPredArityInvalidError :@tooWide 3])
+       }
   ~~|
 
 :any
@@ -112,17 +132,29 @@
 
 ::AnySubjectNotContainerError
   |~~ Subject of `any` must be Vec, Set, or Map.
-      ~{42 | any(gt(0)) !| type | eq(::AnySubjectNotContainerError)}
+      ~{
+        42 | any(gt(0))
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::AnySubjectNotContainerError :number [:vec :set :map] :any :subject])
+       }
   ~~|
 
 ::AnyVecOrSetPredArityInvalidError
   |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
-      ~{[1 2] | :@kv [:k :v] true | any(@kv) !| type | eq(::AnyVecOrSetPredArityInvalidError)}
+      ~{
+        [1 2] | :@kv [:k :v] true | any(@kv)
+        !| [type /conduitName /actualArity]
+        |  eq([::AnyVecOrSetPredArityInvalidError :@kv 2])
+       }
   ~~|
 
 ::AnyMapPredArityInvalidError
   |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
-      ~{{:a 1} | :@tooWide [:x :y :z] true | any(@tooWide) !| type | eq(::AnyMapPredArityInvalidError)}
+      ~{
+        {:a 1} | :@tooWide [:x :y :z] true | any(@tooWide)
+        !| [type /conduitName /actualArity]
+        |  eq([::AnyMapPredArityInvalidError :@tooWide 3])
+       }
   ~~|
 
 :filter
@@ -169,15 +201,27 @@
 
 ::FilterSubjectNotContainerError
   |~~ Subject of `filter` must be Vec, Set, or Map.
-      ~{42 | filter(gt(0)) !| type | eq(::FilterSubjectNotContainerError)}
+      ~{
+        42 | filter(gt(0))
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::FilterSubjectNotContainerError :number [:vec :set :map] :filter :subject])
+       }
   ~~|
 
 ::FilterVecOrSetPredArityInvalidError
   |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
-      ~{[1 2] | :@kv [:k :v] true | filter(@kv) !| type | eq(::FilterVecOrSetPredArityInvalidError)}
+      ~{
+        [1 2] | :@kv [:k :v] true | filter(@kv)
+        !| [type /conduitName /actualArity]
+        |  eq([::FilterVecOrSetPredArityInvalidError :@kv 2])
+       }
   ~~|
 
 ::FilterMapPredArityInvalidError
   |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
-      ~{{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| type | eq(::FilterMapPredArityInvalidError)}
+      ~{
+        {:a 1} | :@wide [:x :y :z] true | filter(@wide)
+        !| [type /conduitName /actualArity]
+        |  eq([::FilterMapPredArityInvalidError :@wide 3])
+       }
   ~~|

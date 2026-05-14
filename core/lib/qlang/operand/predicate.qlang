@@ -19,12 +19,20 @@
 
 ::AscPairNotMapError
   |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-      ~{42 | asc(/x) !| type | eq(::AscPairNotMapError)}
+      ~{
+        42 | asc(/x)
+        !| [type /actualType]
+        |  eq([::AscPairNotMapError :number])
+       }
   ~~|
 
 ::AscKeysNotComparableError
   |~~ Operands of `asc` are not pairwise-comparable scalars.
-      ~{{:left {:k 1} :right {:k "x"}} | asc(/k) !| type | eq(::AscKeysNotComparableError)}
+      ~{
+        {:left {:k 1} :right {:k "x"}} | asc(/k)
+        !| [type /leftType /rightType /operand]
+        |  eq([::AscKeysNotComparableError :number :string :asc])
+       }
   ~~|
 
 :desc
@@ -40,12 +48,20 @@
 
 ::DescPairNotMapError
   |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-      ~{42 | desc(/x) !| type | eq(::DescPairNotMapError)}
+      ~{
+        42 | desc(/x)
+        !| [type /actualType]
+        |  eq([::DescPairNotMapError :number])
+       }
   ~~|
 
 ::DescKeysNotComparableError
   |~~ Operands of `desc` are not pairwise-comparable scalars.
-      ~{{:left {:k 1} :right {:k "x"}} | desc(/k) !| type | eq(::DescKeysNotComparableError)}
+      ~{
+        {:left {:k 1} :right {:k "x"}} | desc(/k)
+        !| [type /leftType /rightType /operand]
+        |  eq([::DescKeysNotComparableError :number :string :desc])
+       }
   ~~|
 
 :nullsFirst
@@ -66,12 +82,20 @@
 
 ::NullsFirstPairNotMapError
   |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-      ~{42 | nullsFirst(/a) !| type | eq(::NullsFirstPairNotMapError)}
+      ~{
+        42 | nullsFirst(/a)
+        !| [type /actualType]
+        |  eq([::NullsFirstPairNotMapError :number])
+       }
   ~~|
 
 ::NullsFirstKeysNotComparableError
   |~~ Operands of `nullsFirst` are not pairwise-comparable scalars.
-      ~{{:left {:a 1} :right {:a "x"}} | nullsFirst(/a) !| type | eq(::NullsFirstKeysNotComparableError)}
+      ~{
+        {:left {:a 1} :right {:a "x"}} | nullsFirst(/a)
+        !| [type /leftType /rightType /operand]
+        |  eq([::NullsFirstKeysNotComparableError :number :string :nullsFirst])
+       }
   ~~|
 
 :nullsLast
@@ -92,12 +116,20 @@
 
 ::NullsLastPairNotMapError
   |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-      ~{42 | nullsLast(/a) !| type | eq(::NullsLastPairNotMapError)}
+      ~{
+        42 | nullsLast(/a)
+        !| [type /actualType]
+        |  eq([::NullsLastPairNotMapError :number])
+       }
   ~~|
 
 ::NullsLastKeysNotComparableError
   |~~ Operands of `nullsLast` are not pairwise-comparable scalars.
-      ~{{:left {:a 1} :right {:a "x"}} | nullsLast(/a) !| type | eq(::NullsLastKeysNotComparableError)}
+      ~{
+        {:left {:a 1} :right {:a "x"}} | nullsLast(/a)
+        !| [type /leftType /rightType /operand]
+        |  eq([::NullsLastKeysNotComparableError :number :string :nullsLast])
+       }
   ~~|
 
 :not
@@ -134,7 +166,11 @@
       ~{:foo | type | eq(:keyword)}
       ~{[1 2] | type | eq(:vec)}
       ~{::conduit[[] ~{42}] | type | eq(::conduit)}
-      ~{"hello" | add(1) !| type | eq(::AddLeftNotNumberError)}
+      ~{
+        "hello" | add(1)
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::AddLeftNotNumberError :string :number :add 1])
+       }
   ~~|
   {:qlang/kind :builtin
          :qlang/impl :qlang/prim/type
@@ -175,7 +211,11 @@
 
 ::GtOperandsNotComparableError
   |~~ Operands of `gt` are not pairwise-comparable scalars.
-      ~{1 | gt("x") !| type | eq(::GtOperandsNotComparableError)}
+      ~{
+        1 | gt("x")
+        !| [type /leftType /rightType /operand]
+        |  eq([::GtOperandsNotComparableError :number :string :gt])
+       }
   ~~|
 
 :lt
@@ -193,7 +233,11 @@
 
 ::LtOperandsNotComparableError
   |~~ Operands of `lt` are not pairwise-comparable scalars.
-      ~{1 | lt("x") !| type | eq(::LtOperandsNotComparableError)}
+      ~{
+        1 | lt("x")
+        !| [type /leftType /rightType /operand]
+        |  eq([::LtOperandsNotComparableError :number :string :lt])
+       }
   ~~|
 
 :gte
@@ -211,7 +255,11 @@
 
 ::GteOperandsNotComparableError
   |~~ Operands of `gte` are not pairwise-comparable scalars.
-      ~{1 | gte("x") !| type | eq(::GteOperandsNotComparableError)}
+      ~{
+        1 | gte("x")
+        !| [type /leftType /rightType /operand]
+        |  eq([::GteOperandsNotComparableError :number :string :gte])
+       }
   ~~|
 
 :lte
@@ -229,7 +277,11 @@
 
 ::LteOperandsNotComparableError
   |~~ Operands of `lte` are not pairwise-comparable scalars.
-      ~{1 | lte("x") !| type | eq(::LteOperandsNotComparableError)}
+      ~{
+        1 | lte("x")
+        !| [type /leftType /rightType /operand]
+        |  eq([::LteOperandsNotComparableError :number :string :lte])
+       }
   ~~|
 
 :and
@@ -433,7 +485,11 @@
 
 ::KeywordSubjectNotStringOrKeywordError
   |~~ `keyword` involution requires a String or Keyword subject.
-      ~{42 | keyword !| type | eq(::KeywordSubjectNotStringOrKeywordError)}
+      ~{
+        42 | keyword
+        !| [type /actualType /expectedType /operand /position]
+        |  eq([::KeywordSubjectNotStringOrKeywordError :number [:string :keyword] :keyword :subject])
+       }
   ~~|
 
 :isJsonObject

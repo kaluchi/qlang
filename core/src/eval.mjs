@@ -571,8 +571,8 @@ async function evalTaggedLit(node, state) {
 //
 // Each use-site already probes env for its own purpose, so the
 // literal stays env-agnostic. Catalog `:throws [::Foo ::Bar]` Vec
-// constructions now evaluate cleanly regardless of declaration
-// order; `langRuntime`'s post-bootstrap `:throws` walker resolves
+// constructions evaluate cleanly regardless of declaration order;
+// `langRuntime`'s post-bootstrap `:throws` walker resolves
 // every TagKeyword against the loaded tag-bindings at construction
 // time so a structural typo still surfaces.
 async function evalBareTypeKeyword(node, state) {

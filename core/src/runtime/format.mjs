@@ -1,7 +1,7 @@
 // Formatting operands: render a value as JSON or as a tabular
 // string suitable for human consumption.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/format.qlang.
 
 import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -21,6 +21,7 @@ import {
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
+import { QlangInvariantError } from '../errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 
 // One shared dispatch: `describeType(v)` classifies any qlang value
@@ -133,12 +134,11 @@ function toPlainFallback(v) {
 // fallback took). Per-site class so a caller can recover by
 // projecting around the offending slot or by using the
 // lossless `toTaggedJSON` codec instead.
-export class ToPlainUnencodableValueError extends Error {
+export class ToPlainUnencodableValueError extends QlangInvariantError {
   constructor({ actualType, actualValue }) {
-    super(`toPlain: unencodable ${actualType} value — use toTaggedJSON for lossless JSON or project around the slot`);
+    super(`toPlain: unencodable ${actualType} value — use toTaggedJSON for lossless JSON or project around the slot`, { actualType, actualValue });
     this.name = 'ToPlainUnencodableValueError';
     this.fingerprint = 'ToPlainUnencodableValueError';
-    this.context = { actualType, actualValue };
   }
 }
 
@@ -351,7 +351,7 @@ function escapeQlangStringLiteral(s) {
 
 // `:qlang/impl` carries the post-bootstrap-resolved function value
 // on a builtin descriptor Map. The author-form (the keyword shape
-// that lives in core.qlang and that langRuntime resolves at boot)
+// that lives in the operand-family catalog and that langRuntime resolves at boot)
 // is `:qlang/prim/<name>`. printValue projects the function back to
 // that keyword form here so descriptor Maps in pipeValue round-trip
 // through parse → MapLit → eval into an equivalent Map (with the

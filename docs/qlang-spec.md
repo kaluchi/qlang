@@ -418,7 +418,7 @@ filter(gt(10))  |~| binding: fix predicate → new function awaiting vec
 
 [1 2 3 4 5] | filter(gt(10))
              ^
-             application — runs now
+             application — fires here
 ```
 
 A zero-argument operand is complete on its own and applies
@@ -506,10 +506,10 @@ the result is **an error value** of the `!{}` form introduced in
   :origin :qlang/eval
   :kind :type-error
 }
-|~| add(1) was waiting for a number in position 1; the Vec triggered
-|~| the per-site class ::AddLeftNotNumberError, which becomes the error's
-|~| tag head. The descriptor lays out the failure structure and the
-|~| error becomes the new pipeValue.
+|~| add(1) expects a Number in position 1; the Vec fires the per-site
+|~| class ::AddLeftNotNumberError, which becomes the error's tag head.
+|~| The descriptor lays out the failure structure and the error becomes
+|~| the new pipeValue.
 ```
 
 The tag head names the per-site error class (`::AddLeftNotNumberError`);
@@ -1576,7 +1576,7 @@ step only when `pipeValue` is an error value, exposing the error's
 
 > "hello" | add(1) | mul(2) !| /trail | /source
 "| mul(2)"
-|~| mul(2) was deflected; add(1) produced the error
+|~| mul(2) deflected; add(1) produced the error
 ```
 
 ### Descriptor and `:trail`
@@ -2016,7 +2016,7 @@ node type (`:NumberLit`, `:StringLit`, `:Pipeline`, `:OperandCall`,
 ```
 
 The AST-Map shape is the same shape used in `:trail` entries from
-Error track — closing the code-is-data ring. Each trail entry was
+Error track — closing the code-is-data ring. Each trail entry is
 an AST-Map of a deflected step; `parse` produces AST-Maps of any
 source text by the same mechanism.
 
@@ -2586,7 +2586,7 @@ const catalog = await resolveModules('./lib');
 const session = await createSession();
 installModules(session, catalog);
 
-// Now user code can import namespaces:
+// User code can import namespaces:
 // use(:qlang/error) | :guard ...
 ```
 

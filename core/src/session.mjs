@@ -119,7 +119,7 @@ export async function createSession(opts = {}) {
         // BindStep bindings declared inside the same cell — same
         // mechanism `evalQuery` uses for inline queries. Without it
         // a cell's own `:foo |~~ note ~~|` declaration is invisible
-        // to a follow-up `:foo | docs` step, surfacing
+        // to a subsequent `:foo | docs` step, surfacing
         // `::AxisBindingNotFoundError`. The Quote keeps both the
         // verbatim source and the pre-parsed AST so axis-walkers
         // skip a re-parse on every lookup.
@@ -272,7 +272,7 @@ export async function deserializeSession(json) {
       throw new SessionBindingKindUnknownError(binding.kind);
     }
   }
-  // Second pass — wire each restored conduit's envRef to the now-
+  // Second pass — wire each restored conduit's envRef to the
   // complete session env so identifier lookup inside the conduit body
   // resolves through a lexical anchor (matching `evalBindStep`) rather
   // than falling back to the call-site `state.env` (which would give

@@ -8,9 +8,9 @@
 // ascent (withPipeValue) on their behalf.
 //
 // None of the helpers accept operand meta (docs, examples, throws,
-// category, subject, modifiers, returns). Meta lives exclusively
-// in lib/qlang/core.qlang as descriptor Maps that langRuntime()
-// parses into env at session construction. The only metadata the
+// category, subject, modifiers, returns). Meta lives in the per-
+// family catalog files under lib/qlang/operand/<family>.qlang as
+// descriptor Maps that langRuntime() parses into env. The only metadata
 // helpers compute is the `captured` range — the [min, max] count
 // of captured args the operand accepts — derived structurally
 // from the dispatch shape itself.

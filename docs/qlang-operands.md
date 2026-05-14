@@ -685,7 +685,8 @@ shape, and vice versa.
   exactly one classifier. Boolean and null classification is
   strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
   `isMap` reports `false` for conduit and snapshot descriptor
-  Maps — they classify as `Conduit` / `Snapshot`, not `Map`.
+  Maps — they classify as `Conduit` / `Snapshot` through the
+  `:qlang/kind` discriminator.
   `isQuote` matches a frozen backtick-delimited code-as-data
   fragment (`` `expr` `` literal); `isDoc` matches a frozen
   markdown content fragment (`|~~ ... ~~|` block-form or
@@ -901,8 +902,8 @@ that take `(pipeValue, args)`.
 
 The declarative binding form `:name body` / `:name [:params] body`
 is also covered in this section because it shares the same env-
-writing semantics, even though it is a grammar production (a
-BindStep), not an entry in `langRuntime`.
+writing semantics — it is a grammar production (a BindStep) with
+its own eval handler in `eval.mjs`.
 
 ### `env`
 

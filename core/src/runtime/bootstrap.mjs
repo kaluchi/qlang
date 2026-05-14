@@ -18,13 +18,13 @@
 // stays free of any `node:*` import.
 
 import { loadSource } from '#qlang/load-source';
+import { QlangInvariantError } from '../errors.mjs';
 
-export class BootstrapRootMissingError extends Error {
+export class BootstrapRootMissingError extends QlangInvariantError {
   constructor() {
-    super(`qlang bootstrap: '#qlang/core' must resolve to the catalog root module — add an entry to package.json#imports or the import map`);
+    super(`qlang bootstrap: '#qlang/core' must resolve to the catalog root module — add an entry to package.json#imports or the import map`, {});
     this.name = 'BootstrapRootMissingError';
     this.fingerprint = 'BootstrapRootMissingError';
-    this.context = {};
   }
 }
 

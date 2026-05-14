@@ -468,7 +468,7 @@ the generic tagged-instance branch:
 - `:snapshot` → wrapped value (snapshot is an env wrapper,
   recursing on the underlying value).
 - `:tag` → BindStep declaration form (a tag-binding renders
-  back as `::Tag {descriptor}`, not as an instance).
+  back as `::Tag {descriptor}` — the declaration form).
 
 The named-error promotion piggybacks on the same round-trip:
 `errorFromQlang` stamps `:qlang/kind ::Tag` on the descriptor
@@ -999,9 +999,9 @@ resolvable. Termination is guaranteed whenever the tree is finite:
     [6.28318 8.15484]
 
 1. Literal Map: `pipeValue = {:pi 3.14159 :e 2.71828 :goldenRatio 1.61803}`.
-2. `use` — `pipeValue` is a Map, merge into `env`. Now `env[:pi]`,
-   `env[:e]`, and `env[:goldenRatio]` are bound to their number
-   values. `pipeValue` unchanged (still the Map).
+2. `use` — `pipeValue` is a Map, merge into `env`. `env[:pi]`,
+   `env[:e]`, and `env[:goldenRatio]` bind to their number values.
+   `pipeValue` unchanged (still the Map).
 3. `[pi | mul(2), e | mul(3)]` — Vec literal with two element
    sub-forks. Each sub-fork starts with `pipeValue` = the Map from
    step 2 (the outer state).

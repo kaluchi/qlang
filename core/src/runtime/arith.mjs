@@ -5,8 +5,7 @@
 // the source file and line number plus the class name together
 // uniquely identify the failing check.
 //
-// Meta (docs, examples, throws, category, subject, modifiers,
-// returns) lives in lib/qlang/core.qlang — not here.
+// Meta lives in lib/qlang/operand/arith.qlang.
 
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';

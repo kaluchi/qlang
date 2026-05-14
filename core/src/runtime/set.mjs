@@ -2,7 +2,7 @@
 // vec.mjs / map.mjs respectively. This file holds the Vec→Set
 // conversion.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/set-op.qlang.
 
 import { nullaryOp } from './dispatch.mjs';
 import { isVec } from '../types.mjs';

@@ -16,7 +16,7 @@
 // without the descriptor-construction cost of
 // `reify | /type | eq(:string)`.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/predicate.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
 import { isTruthy, describeType, typeKeyword } from '../types.mjs';
@@ -70,10 +70,8 @@ export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 // tagged-instances) and the plain Keyword for scalars and base
 // containers. The single user-facing path to a value's identity
 // tag — symmetric to how `:foo | source` / `| docs` / `| examples`
-// are the user-facing path to binding-namespace metadata. Sat
-// behind `reify | /type` until now; promoted to its own operand
-// so error-track handling reads as `result !| type | eq(::Foo)`
-// instead of the projection-as-field shape `!| type`.
+// are the user-facing path to binding-namespace metadata.
+// Error-track handling reads as `result !| type | eq(::Foo)`.
 export const type = nullaryOp('type', (subject) => typeKeyword(subject));
 
 // ── Type-classifier nullary operands ───────────────────────────

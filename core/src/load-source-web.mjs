@@ -17,6 +17,7 @@
 
 import { SourceLoadError } from './source-load-error.mjs';
 
+/* global fetch */
 export async function loadSource(logicalName) {
   let url;
   try {

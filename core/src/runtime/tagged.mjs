@@ -15,7 +15,7 @@
 import { nullaryOp } from './dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import {
-  isVec, isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
+  isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
   makeConduit, makeJsonObject, makeJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';

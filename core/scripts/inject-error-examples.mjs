@@ -111,7 +111,7 @@ function processCatalogFile(path) {
   // has conformance queries AND the existing prose doesn't
   // already contain `!| type | eq(`.
 
-  const tagRe = /^::([A-Z][A-Za-z0-9_]*)\n  \|~~ ([\s\S]*?) ~~\|\n  (\{:qlang\/kind :tag[^}]*\})/gm;
+  const tagRe = /^::([A-Z][A-Za-z0-9_]*)\n {2}\|~~ ([\s\S]*?) ~~\|\n {2}(\{:qlang\/kind :tag[^}]*\})/gm;
   src = src.replace(tagRe, (match, tagName, prose, descriptor) => {
     const queries = tagToQueries.get(tagName);
     if (!queries || queries.length === 0) return match;

@@ -327,7 +327,7 @@ function printSnapshot(snapshot) {
 // Primary opens with a distinguishing sigil (`"`, `:`, `[`, `{`,
 // `#`, `~`, `|`, `!`, `/`) that the parser splits on cleanly, so
 // no wrap is needed.
-const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w\-]/;
+const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 function printTaggedInstance(instance, indent) {
   const tagLiteral = instance.get('qlang/kind').literal;
   const payload = instance.get('qlang/payload');

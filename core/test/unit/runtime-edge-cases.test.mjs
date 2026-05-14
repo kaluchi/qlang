@@ -1,10 +1,19 @@
-// Targeted tests for coverage gaps in pre-existing modules that
-// the rest of the suite does not exercise: arithmetic right-operand
-// type checks, format.toPlain fallback for non-Map/Vec/Set values,
-// vec.flat non-Vec elements, equality.deepEqual rejection branches,
-// describeType for snapshots, dispatch invariant errors for variadic
-// operand registration without meta.captured, and remaining branches
-// in error-convert, eval, types, walk, and intro.
+// Edge-case branch coverage for runtime modules, grouped per
+// target source file. Each `describe` block names the module and
+// the specific branch / path it exercises (right-operand checks
+// in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
+// `UseNamespaceCollisionError` site, snapshot-classifier in
+// `types.mjs::describeType`, codec round-trip through
+// `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
+// topical test files (`error-values.test.mjs`,
+// `print-value-extras.test.mjs`, `effect-check.test.mjs`,
+// `setops.test.mjs`, …) cover the happy-path semantics; this
+// file fills the per-branch tails the language-spec walkthrough
+// does not name on its own.
+//
+// Adding a new edge case: place its `describe` block alongside
+// the ones already targeting the same source module so the
+// per-module grouping stays derivable top-to-bottom.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
@@ -330,7 +339,7 @@ describe('format.toPlain non-keyword Map keys', async () => {
   });
 });
 
-describe('intro.describeValueType for unknown types via bind', async () => {
+describe('reify-op.mjs — :type :unknown lift for non-classifiable host values', async () => {
   it('reify on a Symbol-bound value returns :unknown for the :type field', async () => {
     const s = await createSession();
     s.bind('weird', Symbol('weird'));
@@ -653,9 +662,9 @@ describe('walk.mjs — qlangMapToAst with non-keyword :qlang/kind uses String() 
   });
 });
 
-// ── intro.mjs uncovered branches ──────────────────────────────
+// ── runtime/use-op.mjs uncovered branches ─────────────────────
 
-describe('intro.mjs — UseNamespaceCollisionError (line 138)', async () => {
+describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collisions', async () => {
   it('keyword-keyed collision uses k.name in error context', async () => {
     // importUnorderedNamespaces — collision on a keyword key.
     // isKeyword(k) is true → k.name branch taken (existing coverage).
@@ -679,7 +688,7 @@ describe('intro.mjs — UseNamespaceCollisionError (line 138)', async () => {
   });
 });
 
-describe('intro.mjs — UseNameNotExportedError (line 157)', async () => {
+describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection', async () => {
   it('selective use(:ns, :missing) produces an error when name is absent', async () => {
     const s = await createSession();
     s.bind('myNs', new Map([['x', 99]]));
@@ -700,11 +709,13 @@ describe('intro.mjs — UseNameNotExportedError (line 157)', async () => {
   });
 });
 
-describe('intro.mjs — describeValueType for error value (line 176)', async () => {
+describe('reify-op.mjs — buildValueDescriptor :type lift for directly-bound error', async () => {
   it('reify on a directly-bound error value returns :error as :type', async () => {
-    // describeValueType is called from buildValueDescriptor (reify value path).
-    // An error value bound directly via session.bind reaches the
-    // isErrorValue(v) branch since it is not a conduit, snapshot, or function.
+    // `buildValueDescriptor` in reify-op.mjs reads `typeKeyword(v)`
+    // for the descriptor's `:type` field. An error value bound
+    // directly through `session.bind` reaches `buildValueDescriptor`
+    // (no `:qlang/kind`, not a conduit, snapshot, or function), and
+    // `typeKeyword`'s isErrorValue branch lifts it to `:error`.
     const s = await createSession();
     const errVal = makeErrorValue(new Map([['kind', keyword('test')]]));
     s.bind('myErr', errVal);

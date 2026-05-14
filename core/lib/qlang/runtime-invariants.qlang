@@ -8,44 +8,66 @@
    constructors in lib/qlang/tag.qlang. ~|
 
 ::ProjectionFieldNotOnValueClassError
-  |~~ Projection segment is not a publicly-projectable field on the value-class subject (Quote / Doc / …).
-    ~{~{mul(2)} | /missing !| type | eq(::ProjectionFieldNotOnValueClassError)}
+  |~~ Projection segment is not a publicly-projectable field
+    on the value-class subject (Quote / Doc / …).
+    ~{~{mul(2)} | /missing
+      !| [type /key]
+      |  eq([::ProjectionFieldNotOnValueClassError "missing"])}
     ~~|
   {:qlang/kind :tag}
 
 ::ProjectionIndexOutOfBoundsError
-  |~~ Projection `/n` — the integer index resolves outside the Vec subject's `[0, length)` range.
-    ~{[10 20 30] | /99 !| type | eq(::ProjectionIndexOutOfBoundsError)}
+  |~~ Projection `/n` — the integer index resolves outside
+    the Vec subject's `[0, length)` range.
+    ~{[10 20 30] | /99
+      !| [type /key /length]
+      |  eq([::ProjectionIndexOutOfBoundsError "99" 3])}
     ~~|
   {:qlang/kind :tag}
 
 ::ProjectionKeyNotInMapError
-  |~~ Projection `/key` — the named key is absent from the Map subject (strict-miss). Use `at(:key)` for null-coalescing access.
-    ~{{:a 1} | /b !| type | eq(::ProjectionKeyNotInMapError)}
+  |~~ Projection `/key` — the named key is absent from the
+    Map subject (strict-miss). Use `at(:key)` for
+    null-coalescing access.
+    ~{{:a 1} | /b
+      !| [type /key]
+      |  eq([::ProjectionKeyNotInMapError "b"])}
     ~~|
   {:qlang/kind :tag}
 
 ::ProjectionSubjectNotMapError
-  |~~ Projection `/key` requires a Map, Vec, or value-class subject; null subject and other shapes lift to this error.
-    ~{42 | /foo !| type | eq(::ProjectionSubjectNotMapError)}
+  |~~ Projection `/key` requires a Map, Vec, or value-class
+    subject; null subject and other shapes lift to this error.
+    ~{42 | /foo
+      !| [type /key /actualType]
+      |  eq([::ProjectionSubjectNotMapError "foo" :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::ProjectionVecKeyNotIntegerError
-  |~~ Projection segment is a non-numeric string but the subject is a Vec — Vec indices must be integer offsets.
-    ~{[10 20 30] | /name !| type | eq(::ProjectionVecKeyNotIntegerError)}
+  |~~ Projection segment is a non-numeric string but the
+    subject is a Vec — Vec indices must be integer offsets.
+    ~{[10 20 30] | /name
+      !| [type /key]
+      |  eq([::ProjectionVecKeyNotIntegerError "name"])}
     ~~|
   {:qlang/kind :tag}
 
 ::DistributeSubjectNotVecError
-  |~~ Distribute combinator (`*`) — subject must be a Vec for per-element forking.
-    ~{42 * add(1) !| type | eq(::DistributeSubjectNotVecError)}
+  |~~ Distribute combinator (`*`) — subject must be a Vec
+    for per-element forking.
+    ~{42 * add(1)
+      !| [type /actualType]
+      |  eq([::DistributeSubjectNotVecError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::MergeSubjectNotVecError
-  |~~ Merge combinator (`>>`) — subject must be a Vec for one-level flattening.
-    ~{42 >> count !| type | eq(::MergeSubjectNotVecError)}
+  |~~ Merge combinator (`>>`) — subject must be a Vec for
+    one-level flattening.
+    ~{42 >> count
+      !| [type /actualType]
+      |  eq([::MergeSubjectNotVecError :number])}
     ~~|
   {:qlang/kind :tag}
 
@@ -58,60 +80,84 @@
   {:qlang/kind :tag}
 
 ::TaggedLitNotTagBindingError
-  |~~ `::tag` constructor invocation failed — the env binding under `::tag` is not a tag-binding descriptor Map.
-    ~{::badType 42 | ::badType[] !| type | eq(::TaggedLitNotTagBindingError)}
+  |~~ `::tag` constructor invocation — the env binding under
+    `::tag` is not a tag-binding descriptor Map.
+    ~{::badType 42 | ::badType[]
+      !| [type /tag /actualType]
+      |  eq([::TaggedLitNotTagBindingError :badType :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::TaggedLitTagNotFoundError
-  |~~ `::tag<payload>` constructor invocation — the tag is not a
-    registered tag-binding in env. Fires on constructor-form
+  |~~ `::tag<payload>` constructor invocation — the tag is not
+    a registered tag-binding in env. Fires on constructor-form
     `::Tag[…]`, on axis-operands `::Tag | source` / `| docs`,
     and on `reify(::Tag)` lookups against unbound tag names.
-
-    ~{::UnknownTag[42] !| type | eq(::TaggedLitTagNotFoundError)}
+    ~{::UnknownTag[42]
+      !| [type /tag]
+      |  eq([::TaggedLitTagNotFoundError :UnknownTag])}
     ~~|
   {:qlang/kind :tag}
 
 ::EffectLaunderingAtBindStepParseError
-  |~~ BindStep declaration body references an `@`-effectful identifier, but the binding name itself is not `@`-prefixed — laundering caught at parse time.
-    ~{1 | (:bad @callers | bad) !| type | eq(::EffectLaunderingAtBindStepParseError)}
+  |~~ BindStep declaration body references an `@`-effectful
+    identifier, but the binding name is not `@`-prefixed —
+    laundering caught at parse time.
+    ~{1 | (:bad @callers | bad)
+      !| [type /bindingName /effectfulName]
+      |  eq([::EffectLaunderingAtBindStepParseError
+              :bad :@callers])}
     ~~|
   {:qlang/kind :tag}
 
 ::ApplyToNonFunctionError
-  |~~ Identifier resolves to a non-function value — captured arguments cannot be applied.
-    ~{5 | as(:five) | five(42) !| type | eq(::ApplyToNonFunctionError)}
+  |~~ Identifier resolves to a non-function value — captured
+    arguments cannot be applied.
+    ~{5 | as(:five) | five(42)
+      !| [type /name /actualType]
+      |  eq([::ApplyToNonFunctionError "five" :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::EffectLaunderingAtCallError
   |~~ Identifier resolves to an `@`-effectful function, but the
     lookup name is not `@`-prefixed — laundering caught at the
-    call site. ~~|
+    call site. Host-boundary error: fires through env-installed
+    bindings (`use`, `session.bind`) that bypass the parse-time
+    AST scan. ~~|
   {:qlang/kind :tag}
 
 ::UnresolvedIdentifierError
   |~~ Identifier lookup failed — no env binding under that name.
-    ~{thisIsNotDefined !| type | eq(::UnresolvedIdentifierError)}
+    ~{thisIsNotDefined
+      !| [type]
+      |  eq([::UnresolvedIdentifierError])}
     ~~|
   {:qlang/kind :tag}
 
 ::ParseError
   |~~ Parser failure — source did not match the grammar.
-    ~{"42 |" | parse !| type | eq(::ParseError)}
+    ~{"42 |" | parse
+      !| [type /origin]
+      |  eq([::ParseError :qlang/parse])}
     ~~|
   {:qlang/kind :tag}
 
 ::AstMapKindUnknownError
-  |~~ AST-Map → AST codec — `:qlang/kind` discriminator names a kind the codec does not know.
-    ~{{:qlang/kind :BogusKind} | eval !| type | eq(::AstMapKindUnknownError)}
+  |~~ AST-Map → AST codec — `:qlang/kind` discriminator names
+    a kind the codec does not know.
+    ~{{:qlang/kind :BogusKind} | eval
+      !| [type]
+      |  eq([::AstMapKindUnknownError])}
     ~~|
   {:qlang/kind :tag}
 
 ::AstMapMalformedError
-  |~~ AST-Map → AST codec — input Map is malformed (missing required field, wrong shape).
-    ~{{:a 1} | eval !| type | eq(::AstMapMalformedError)}
+  |~~ AST-Map → AST codec — input Map is malformed (missing
+    required field, wrong shape).
+    ~{{:a 1} | eval
+      !| [type]
+      |  eq([::AstMapMalformedError])}
     ~~|
   {:qlang/kind :tag}
 
@@ -121,7 +167,8 @@
   {:qlang/kind :tag}
 
 ::MalformedTaggedJSONError
-  |~~ `fromTaggedJSON` received a JSON shape it does not recognise as a tagged-value envelope. ~~|
+  |~~ `fromTaggedJSON` received a JSON shape it does not
+    recognise as a tagged-value envelope. ~~|
   {:qlang/kind :tag}
 
 ::TaggedJSONUnencodableValueError
@@ -131,7 +178,8 @@
   {:qlang/kind :tag}
 
 ::HigherOrderOpArityMismatchError
-  |~~ Dispatch invariant — `higherOrderOp` impl received an unexpected captured-arg count. ~~|
+  |~~ Dispatch invariant — `higherOrderOp` impl received an
+    unexpected captured-arg count. ~~|
   {:qlang/kind :tag}
 
 ::HigherOrderOpVariadicMissingCapturedError
@@ -140,20 +188,27 @@
   {:qlang/kind :tag}
 
 ::NullaryOpArgsProvidedError
-  |~~ Dispatch invariant — nullary operand received captured arguments.
-    ~{[1 2 3] | count(42) !| type | eq(::NullaryOpArgsProvidedError)}
+  |~~ Nullary operand received captured arguments.
+    ~{[1 2 3] | count(42)
+      !| [type /operandName]
+      |  eq([::NullaryOpArgsProvidedError :count])}
     ~~|
   {:qlang/kind :tag}
 
 ::OverloadedOpUnsupportedArityError
-  |~~ Dispatch invariant — overloaded operand has no impl for the supplied captured-arg count.
-    ~{[3 1 2] | sort(:a, :b) !| type | eq(::OverloadedOpUnsupportedArityError)}
+  |~~ Overloaded operand has no impl for the supplied
+    captured-arg count.
+    ~{[3 1 2] | sort(:a, :b)
+      !| [type /operandName]
+      |  eq([::OverloadedOpUnsupportedArityError :sort])}
     ~~|
   {:qlang/kind :tag}
 
 ::StateOpArityMismatchError
-  |~~ Dispatch invariant — `stateOp` impl received an unexpected captured-arg count.
-    ~{examples(:filter) !| type | eq(::StateOpArityMismatchError)}
+  |~~ `stateOp` impl received an unexpected captured-arg count.
+    ~{examples(:filter)
+      !| [type /operandName]
+      |  eq([::StateOpArityMismatchError :examples])}
     ~~|
   {:qlang/kind :tag}
 
@@ -179,17 +234,22 @@
   {:qlang/kind :tag}
 
 ::Rule10ArityOverflowError
-  |~~ Rule 10 — operand call supplied more captured arguments than the operand's declared maximum arity.
-    ~{[1 2 3] | count(1, 2) !| type | eq(::Rule10ArityOverflowError)}
+  |~~ Operand call supplied more captured arguments than the
+    operand's declared maximum arity.
+    ~{[1 2 3] | count(1, 2)
+      !| [type /operandName]
+      |  eq([::Rule10ArityOverflowError :count])}
     ~~|
   {:qlang/kind :tag}
 
 ::PrimitiveKeyAlreadyBoundError
-  |~~ Primitive registry — two runtime modules tried to bind the same primitive name. ~~|
+  |~~ Primitive registry — two runtime modules tried to bind
+    the same primitive name. ~~|
   {:qlang/kind :tag}
 
 ::PrimitiveKeyNotStringError
-  |~~ Primitive registry — bind() received a non-string handle. ~~|
+  |~~ Primitive registry — bind() received a non-string
+    handle. ~~|
   {:qlang/kind :tag}
 
 ::PrimitiveKeyUnboundError
@@ -198,29 +258,33 @@
   {:qlang/kind :tag}
 
 ::PrimitiveRegistrySealedError
-  |~~ Primitive registry — bind() called after the registry was sealed at langRuntime bootstrap. ~~|
+  |~~ Primitive registry — bind() called after the registry
+    was sealed at langRuntime bootstrap. ~~|
   {:qlang/kind :tag}
 
 ::SessionBindingKindUnknownError
-  |~~ Session deserialization — a binding entry carries an unknown `:kind`. ~~|
+  |~~ Session deserialization — a binding entry carries an
+    unknown `:kind`. ~~|
   {:qlang/kind :tag}
 
 ::SessionConduitSourceMissingError
-  |~~ Session deserialization — a conduit binding entry has no `:source` to re-parse. ~~|
+  |~~ Session deserialization — a conduit binding entry has
+    no `:source` to re-parse. ~~|
   {:qlang/kind :tag}
 
 ::SessionPayloadInvalidError
-  |~~ Session deserialization — payload is malformed (missing required fields). ~~|
+  |~~ Session deserialization — payload is malformed (missing
+    required fields). ~~|
   {:qlang/kind :tag}
 
 ::SessionSchemaVersionMismatchError
-  |~~ Session deserialization — payload `:schemaVersion` does not
-    match the current SESSION_SCHEMA_VERSION. ~~|
+  |~~ Session deserialization — payload `:schemaVersion` does
+    not match SESSION_SCHEMA_VERSION. ~~|
   {:qlang/kind :tag}
 
 ::FunctionValueLeakedToPrintError
-  |~~ `printValue` / `toPlain` invariant — a raw function value
-    reached render. Wrap host operands in a descriptor Map
-    carrying `:qlang/kind :builtin` and `:qlang/impl` when
-    binding through `session.bind`. ~~|
+  |~~ `printValue` / `toPlain` invariant — a raw function
+    value reached render. Wrap host operands in a descriptor
+    Map carrying `:qlang/kind :builtin` and `:qlang/impl`
+    when binding through `session.bind`. ~~|
   {:qlang/kind :tag}

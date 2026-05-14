@@ -37,55 +37,76 @@
                     ::ConduitBodyMissingSourceError]}
 
 ::ConduitPayloadNotVecError
-  |~~ `::conduit[…]` payload must be a Vec; a non-Vec payload raises this error.
-    ~{::conduit{:not :a-vec} !| type | eq(::ConduitPayloadNotVecError)}
+  |~~ `::conduit[…]` payload must be a Vec.
+    ~{::conduit{:not :a-vec}
+      !| [type /actualType]
+      |  eq([::ConduitPayloadNotVecError :map])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitArityInvalidError
-  |~~ `::conduit[…]` payload Vec must have either 2 elements (`[params body]`) or 3 elements (`[:self params body]`).
-    ~{::conduit[42] !| type | eq(::ConduitArityInvalidError)}
+  |~~ `::conduit[…]` payload Vec must have 2 (`[params body]`)
+    or 3 (`[:self params body]`) elements.
+    ~{::conduit[42]
+      !| [type /actualCount]
+      |  eq([::ConduitArityInvalidError 1])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitSelfNameNotKeywordError
-  |~~ `::conduit` self-name (3-element payload form) must be a Keyword.
-    ~{::conduit[42 [] ~{mul(2)}] !| type | eq(::ConduitSelfNameNotKeywordError)}
+  |~~ `::conduit` self-name (3-element form) must be a Keyword.
+    ~{::conduit[42 [] ~{mul(2)}]
+      !| [type /actualType]
+      |  eq([::ConduitSelfNameNotKeywordError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitParamsNotVecError
   |~~ `::conduit` params slot must be a Vec of Keywords.
-    ~{::conduit[42 ~{mul(2)}] !| type | eq(::ConduitParamsNotVecError)}
+    ~{::conduit[42 ~{mul(2)}]
+      !| [type /actualType]
+      |  eq([::ConduitParamsNotVecError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitParamNotKeywordError
-  |~~ `::conduit` params Vec must contain only Keywords; one element is some other type.
-    ~{::conduit[[42] ~{mul(2)}] !| type | eq(::ConduitParamNotKeywordError)}
+  |~~ `::conduit` params Vec elements must be Keywords.
+    ~{::conduit[[42] ~{mul(2)}]
+      !| [type /index /actualType]
+      |  eq([::ConduitParamNotKeywordError 0 :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitBodyNotQuoteError
-  |~~ `::conduit` body slot must be a Quote-value carrying the body source.
-    ~{::conduit[[] 42] !| type | eq(::ConduitBodyNotQuoteError)}
+  |~~ `::conduit` body slot must be a Quote-value.
+    ~{::conduit[[] 42]
+      !| [type /actualType]
+      |  eq([::ConduitBodyNotQuoteError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitArityMismatchError
-  |~~ Conduit invocation supplied a captured-arg count different from the conduit's declared parameter list.
-    ~{:f [:a] add(a) | 5 | f(1, 2) !| type | eq(::ConduitArityMismatchError)}
+  |~~ Conduit invocation supplied a captured-arg count
+    different from the conduit's declared parameter list.
+    ~{:f [:a] add(a) | 5 | f(1, 2)
+      !| [type /conduitName /expectedArity /actualArity]
+      |  eq([::ConduitArityMismatchError :f 1 2])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitParameterNoCapturedArgsError
-  |~~ Conduit-parameter proxies are nullary — passing captured arguments to a parameter reference raises this error.
-    ~{:f [:n] n(42) | 0 | f(5) !| type | eq(::ConduitParameterNoCapturedArgsError)}
+  |~~ Conduit-parameter proxies are nullary — passing captured
+    arguments to a parameter reference fires this error.
+    ~{:f [:n] n(42) | 0 | f(5)
+      !| [type /paramName /actualCount]
+      |  eq([::ConduitParameterNoCapturedArgsError :n 1])}
     ~~|
   {:qlang/kind :tag}
 
 ::ConduitBodyMissingSourceError
-  |~~ `makeConduit` refuses a body AST that has no `.text` source slice — `printValue` round-trip would otherwise emit a non-parseable placeholder. ~~|
+  |~~ `makeConduit` refuses a body AST that has no `.text`
+    source slice — `printValue` round-trip requires literal
+    source. JS-level invariant. ~~|
   {:qlang/kind :tag}
 
 ::qlang

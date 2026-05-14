@@ -33,43 +33,59 @@
         :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
 
 ::UseSubjectNotMapError
-  |~~ `use` (bare form) requires a Map subject — its entries become the merged bindings.
-    ~{42 | use !| type | eq(::UseSubjectNotMapError)}
+  |~~ `use` (bare form) requires a Map subject — its entries
+    become the merged bindings.
+    ~{42 | use
+      !| [type /actualType]
+      |  eq([::UseSubjectNotMapError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceNotKeywordError
-  |~~ `use(:ns)` requires a Keyword captured-arg naming the namespace to import.
-    ~{use(42) !| type | eq(::UseNamespaceNotKeywordError)}
+  |~~ `use(:ns)` requires a Keyword captured-arg naming the
+    namespace to import.
+    ~{use(42)
+      !| [type /actualType]
+      |  eq([::UseNamespaceNotKeywordError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceNotFoundError
-  |~~ `use(:ns)` — namespace not in env and no host-provided locator can resolve it.
-    ~{use(:absolutely-nonexistent-namespace) !| type | eq(::UseNamespaceNotFoundError)}
+  |~~ `use(:ns)` — namespace not in env and no host-provided
+    locator can resolve it.
+    ~{use(:absolutely-nonexistent-namespace)
+      !| [type /namespaceName]
+      |  eq([::UseNamespaceNotFoundError
+              :absolutely-nonexistent-namespace])}
     ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceNotMapError
   |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot
-    import as a namespace. Fires from host-installed non-Map
-    bindings (`session.bind('ns', 42)` → `use(:ns)`). ~~|
+    import as a namespace. Host-boundary error: fires from
+    bindings installed via `session.bind('ns', 42)`. ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceElementNotKeywordError
-  |~~ `use([:ns1 :ns2 …])` — every element of the namespace Vec must be a Keyword.
-    ~{use([42 :foo]) !| type | eq(::UseNamespaceElementNotKeywordError)}
+  |~~ `use([:ns1 :ns2 …])` — every element of the namespace
+    Vec must be a Keyword.
+    ~{use([42 :foo])
+      !| [type /index /actualType]
+      |  eq([::UseNamespaceElementNotKeywordError 0 :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceCollisionError
   |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name
-    under the same identifier; Set-form rejects collisions. ~~|
+    under the same identifier; Set-form rejects
+    collisions. Host-boundary error: requires two host-
+    installed namespace Maps with overlapping keys. ~~|
   {:qlang/kind :tag}
 
 ::UseNameNotExportedError
   |~~ `use(:ns, #{:name1 …})` — selection filter names an
-    identifier the namespace does not export. ~~|
+    identifier the namespace does not export. Host-boundary
+    error: requires a host-installed namespace Map. ~~|
   {:qlang/kind :tag}
 
 :reify
@@ -99,14 +115,19 @@
           :throws [::ReifyKeyNotKeywordError ::ReifyArityOverflowError]}
 
 ::ReifyKeyNotKeywordError
-  |~~ `reify(:name)` requires a Keyword captured-arg (the binding name to look up).
-    ~{reify("count") !| type | eq(::ReifyKeyNotKeywordError)}
+  |~~ `reify(:name)` requires a Keyword captured-arg (the
+    binding name to look up).
+    ~{reify("count")
+      !| [type /actualType]
+      |  eq([::ReifyKeyNotKeywordError :string])}
     ~~|
   {:qlang/kind :tag}
 
 ::ReifyArityOverflowError
-  |~~ `reify` accepts 0 or 1 captured arguments — `reify(:name)` resolves a named binding, bare `reify` describes pipeValue.
-    ~{42 | reify(:a, :b) !| type | eq(::ReifyArityOverflowError)}
+  |~~ `reify` accepts 0 or 1 captured arguments.
+    ~{42 | reify(:a, :b)
+      !| [type]
+      |  eq([::ReifyArityOverflowError])}
     ~~|
   {:qlang/kind :tag}
 
@@ -337,8 +358,11 @@
                 :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::SourceSubjectNotKeywordOrTagError
-  |~~ `source` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.
-    ~{42 | source !| type | eq(::SourceSubjectNotKeywordOrTagError)}
+  |~~ `source` requires a Keyword (`:foo`) or TagKeyword
+    (`::Foo`) subject.
+    ~{42 | source
+      !| [type /actualType]
+      |  eq([::SourceSubjectNotKeywordOrTagError :number])}
     ~~|
   {:qlang/kind :tag}
 
@@ -359,8 +383,11 @@
               :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::DocsSubjectNotKeywordOrTagError
-  |~~ `docs` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.
-    ~{42 | docs !| type | eq(::DocsSubjectNotKeywordOrTagError)}
+  |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
+    (`::Foo`) subject.
+    ~{42 | docs
+      !| [type /actualType]
+      |  eq([::DocsSubjectNotKeywordOrTagError :number])}
     ~~|
   {:qlang/kind :tag}
 
@@ -381,13 +408,21 @@
                   :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::ExamplesSubjectNotKeywordOrTagError
-  |~~ `examples` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject.
-    ~{42 | examples !| type | eq(::ExamplesSubjectNotKeywordOrTagError)}
+  |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
+    (`::Foo`) subject.
+    ~{42 | examples
+      !| [type /actualType]
+      |  eq([::ExamplesSubjectNotKeywordOrTagError :number])}
     ~~|
   {:qlang/kind :tag}
 
 ::AxisBindingNotFoundError
-  |~~ Axis-operand (`source` / `docs` / `examples`) could not find a `BindStep` for the requested binding name across loaded modules.
-    ~{:nonexistent-binding | source !| type | eq(::AxisBindingNotFoundError)}
+  |~~ Axis-operand (`source` / `docs` / `examples`) — no
+    `BindStep` found for the requested binding name across
+    loaded modules.
+    ~{:nonexistent-binding | source
+      !| [type /axisName /bindingName]
+      |  eq([::AxisBindingNotFoundError
+              :source :nonexistent-binding])}
     ~~|
   {:qlang/kind :tag}

@@ -51,7 +51,9 @@
   {:qlang/kind :tag}
 
 ::UseNamespaceNotMapError
-  |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot import as a namespace. Fires from host-installed non-Map bindings (`session.bind('ns', 42)` → `use(:ns)`). ~~|
+  |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot
+    import as a namespace. Fires from host-installed non-Map
+    bindings (`session.bind('ns', 42)` → `use(:ns)`). ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceElementNotKeywordError
@@ -61,11 +63,13 @@
   {:qlang/kind :tag}
 
 ::UseNamespaceCollisionError
-  |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name under the same identifier; Set-form rejects collisions. ~~|
+  |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name
+    under the same identifier; Set-form rejects collisions. ~~|
   {:qlang/kind :tag}
 
 ::UseNameNotExportedError
-  |~~ `use(:ns, #{:name1 …})` — selection filter names an identifier the namespace does not export. ~~|
+  |~~ `use(:ns, #{:name1 …})` — selection filter names an
+    identifier the namespace does not export. ~~|
   {:qlang/kind :tag}
 
 :reify

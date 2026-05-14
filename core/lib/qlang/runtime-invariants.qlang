@@ -50,7 +50,11 @@
   {:qlang/kind :tag}
 
 ::TagBindingHasNoConstructorError
-  |~~ Tag-binding has no registered constructor — `:qlang/impl` carries an unexpected value (neither a `:qlang/prim/*` keyword nor a Quote-impl body). The user-supplied payload is captured on the descriptor as `:payloadValue` / `:payloadType`; the actual `:qlang/impl` value as `:actualValue` / `:actualType`; the expected slot shape as `:expectedType [:keyword :quote]`. ~~|
+  |~~ Tag-binding has no registered constructor — `:qlang/impl`
+    carries an unexpected value (neither a `:qlang/prim/*`
+    keyword nor a Quote-impl body). Descriptor fields:
+    `:payloadValue` / `:payloadType`, `:actualValue` /
+    `:actualType`, `:expectedType [:keyword :quote]`. ~~|
   {:qlang/kind :tag}
 
 ::TaggedLitNotTagBindingError
@@ -60,7 +64,11 @@
   {:qlang/kind :tag}
 
 ::TaggedLitTagNotFoundError
-  |~~ `::tag<payload>` constructor invocation failed — the tag is not a registered tag-binding in env. Bare `::tag` literals stay identity-as-value and never fire this site; the throw fires on constructor-form `::Tag[…]` invocation, on `::Tag | source` / `| docs` axis-operands, or on `reify(::Tag)` lookups against unbound tag names.
+  |~~ `::tag<payload>` constructor invocation — the tag is not a
+    registered tag-binding in env. Fires on constructor-form
+    `::Tag[…]`, on axis-operands `::Tag | source` / `| docs`,
+    and on `reify(::Tag)` lookups against unbound tag names.
+
     ~{::UnknownTag[42] !| type | eq(::TaggedLitTagNotFoundError)}
     ~~|
   {:qlang/kind :tag}
@@ -78,7 +86,9 @@
   {:qlang/kind :tag}
 
 ::EffectLaunderingAtCallError
-  |~~ Identifier resolves to an `@`-effectful function, but the lookup name is not `@`-prefixed — laundering caught at the call site. ~~|
+  |~~ Identifier resolves to an `@`-effectful function, but the
+    lookup name is not `@`-prefixed — laundering caught at the
+    call site. ~~|
   {:qlang/kind :tag}
 
 ::UnresolvedIdentifierError
@@ -106,7 +116,8 @@
   {:qlang/kind :tag}
 
 ::AstNodeTypeUnknownError
-  |~~ AST → AST-Map codec — encountered an AST node whose `.type` is not in the codec's known shape table. ~~|
+  |~~ AST → AST-Map codec — encountered an AST node whose
+    `.type` is not in the codec's known shape table. ~~|
   {:qlang/kind :tag}
 
 ::MalformedTaggedJSONError
@@ -114,7 +125,9 @@
   {:qlang/kind :tag}
 
 ::TaggedJSONUnencodableValueError
-  |~~ `toTaggedJSON` cannot encode a function / conduit / snapshot value — use `serializeSession` for the binding-aware path. ~~|
+  |~~ `toTaggedJSON` cannot encode a function / conduit /
+    snapshot value — use `serializeSession` for the
+    binding-aware path. ~~|
   {:qlang/kind :tag}
 
 ::HigherOrderOpArityMismatchError
@@ -122,7 +135,8 @@
   {:qlang/kind :tag}
 
 ::HigherOrderOpVariadicMissingCapturedError
-  |~~ Dispatch invariant — `higherOrderOpVariadic` registration is missing the `captured` range argument. ~~|
+  |~~ Dispatch invariant — `higherOrderOpVariadic` registration
+    is missing the `captured` range argument. ~~|
   {:qlang/kind :tag}
 
 ::NullaryOpArgsProvidedError
@@ -144,19 +158,24 @@
   {:qlang/kind :tag}
 
 ::StateOpVariadicMissingCapturedError
-  |~~ Dispatch invariant — `stateOpVariadic` registration is missing the `captured` range argument. ~~|
+  |~~ Dispatch invariant — `stateOpVariadic` registration is
+    missing the `captured` range argument. ~~|
   {:qlang/kind :tag}
 
 ::ValueOpArityMismatchError
-  |~~ Dispatch invariant — `valueOp` impl received an unexpected captured-arg count for its declared arity. ~~|
+  |~~ Dispatch invariant — `valueOp` impl received an unexpected
+    captured-arg count for its declared arity. ~~|
   {:qlang/kind :tag}
 
 ::UnknownAstNodeTypeError
-  |~~ Evaluator dispatch — encountered an AST node whose `.type` is not in `AST_NODE_EVALUATORS`. Runtime invariant violation, never reaches user code. ~~|
+  |~~ Evaluator dispatch — encountered an AST node whose `.type`
+    is not in `AST_NODE_EVALUATORS`. Runtime invariant
+    violation. ~~|
   {:qlang/kind :tag}
 
 ::UnknownCombinatorKindError
-  |~~ Combinator dispatch — encountered a combinator kind not in `COMBINATOR_EVALUATORS`. Runtime invariant violation. ~~|
+  |~~ Combinator dispatch — encountered a combinator kind not
+    in `COMBINATOR_EVALUATORS`. Runtime invariant violation. ~~|
   {:qlang/kind :tag}
 
 ::Rule10ArityOverflowError
@@ -174,7 +193,8 @@
   {:qlang/kind :tag}
 
 ::PrimitiveKeyUnboundError
-  |~~ Primitive registry — `:qlang/impl` handle on a descriptor Map points to a primitive that was never bound. ~~|
+  |~~ Primitive registry — `:qlang/impl` handle on a descriptor
+    Map points to a primitive that was never bound. ~~|
   {:qlang/kind :tag}
 
 ::PrimitiveRegistrySealedError
@@ -194,9 +214,13 @@
   {:qlang/kind :tag}
 
 ::SessionSchemaVersionMismatchError
-  |~~ Session deserialization — payload `:schemaVersion` does not match the current SESSION_SCHEMA_VERSION. ~~|
+  |~~ Session deserialization — payload `:schemaVersion` does not
+    match the current SESSION_SCHEMA_VERSION. ~~|
   {:qlang/kind :tag}
 
 ::FunctionValueLeakedToPrintError
-  |~~ `printValue` / `toPlain` invariant — a raw function value reached render. Wrap host operands in a descriptor Map carrying `:qlang/kind :builtin` and `:qlang/impl` when binding through `session.bind`. ~~|
+  |~~ `printValue` / `toPlain` invariant — a raw function value
+    reached render. Wrap host operands in a descriptor Map
+    carrying `:qlang/kind :builtin` and `:qlang/impl` when
+    binding through `session.bind`. ~~|
   {:qlang/kind :tag}

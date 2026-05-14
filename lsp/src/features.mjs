@@ -18,7 +18,9 @@ import {
   FORK_ISOLATING_AST_TYPES,
   walkAst,
   isModuleAstKey,
+  isModuleNamespaceKey,
   isTagBindingName,
+  RUNTIME_LOCATOR_KEY,
   TAG_BINDING_PREFIX,
   tokenize
 } from '@kaluchi/qlang-core';
@@ -130,7 +132,10 @@ async function valueNamespaceCompletions() {
   _valueCompletions = [];
   for (const [k, descriptor] of runtime) {
     if (isModuleAstKey(k)) continue;
+    if (isModuleNamespaceKey(k)) continue;
+    if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;
+    if (!(descriptor instanceof Map)) continue;
     const docContents = await fetchDocsContents(k);
     _valueCompletions.push({
       label: k,
@@ -599,6 +604,8 @@ async function builtinNamesForTokenize() {
   _builtinNamesCache = new Set();
   for (const k of runtime.keys()) {
     if (isModuleAstKey(k)) continue;
+    if (isModuleNamespaceKey(k)) continue;
+    if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;
     _builtinNamesCache.add(k);
   }

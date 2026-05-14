@@ -16,7 +16,8 @@ import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
   isTagKeyword, isErrorValue, typeKeyword, keyword,
-  isModuleAstKey, isTagBindingName, TAG_BINDING_PREFIX
+  isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
+  TAG_BINDING_PREFIX, RUNTIME_LOCATOR_KEY
 } from '../types.mjs';
 import { locationToQlangMap } from '../ast-codec.mjs';
 import {
@@ -260,6 +261,8 @@ export const manifest = stateOpVariadic('manifest', 2, async (state, manifestLam
   const entries = [];
   for (const [k, v] of state.env) {
     if (isModuleAstKey(k)) continue;
+    if (isModuleNamespaceKey(k)) continue;
+    if (k === RUNTIME_LOCATOR_KEY) continue;
     const isTag = isTagBindingName(k);
     if (namespace === 'tag' && !isTag) continue;
     if (namespace === 'value' && isTag) continue;

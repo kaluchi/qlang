@@ -19,7 +19,8 @@ import {
   makeConduit,
   makeSnapshot,
   makeQuote,
-  moduleAstKey
+  moduleAstKey,
+  RUNTIME_LOCATOR_KEY
 } from './types.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
@@ -99,7 +100,7 @@ class SessionBindingKindUnknownError extends QlangError {
 export async function createSession(opts = {}) {
   let env = opts.env ?? await langRuntime();
   if (opts.locator) {
-    env = new Map(env).set('qlang/locator', opts.locator);
+    env = new Map(env).set(RUNTIME_LOCATOR_KEY, opts.locator);
   }
   const cellHistory = [];
 

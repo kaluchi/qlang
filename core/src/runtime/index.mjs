@@ -61,9 +61,9 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { isKeyword, makeQuote, moduleAstKey } from '../types.mjs';
+import { isKeyword, makeQuote, moduleAstKey, RUNTIME_LOCATOR_KEY } from '../types.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { CORE_SOURCE } from '../../gen/core.mjs';
+import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 
 // Cached template env — parsed and evaluated once on first call,
 // then shallow-copied for every subsequent caller. Parsing
@@ -81,68 +81,90 @@ let _templateEnvPromise = null;
 // is cached so the parse+eval happens once per process.
 export async function langRuntime() {
   if (_templateEnvPromise === null) {
-    _templateEnvPromise = (async () => {
-      const coreAst = parse(CORE_SOURCE, { uri: 'qlang/core' });
-      // core.qlang is a series of BindStep declarations evaluated
-      // against an empty seed env — `evalBindStep` handles every
-      // binding shape directly on the AST without any pre-installed
-      // operand, so no bootstrap descriptor needs to land in env
-      // before the catalog parses.
-      const bootstrapState = makeState(null, new Map());
-      const bootstrapResult = await evalAst(coreAst, bootstrapState);
-      const templateEnv = bootstrapResult.env;
-
-      // BindStep snapshot-binds every pure-literal descriptor (Map
-      // literals are pure), so each entry in templateEnv lives
-      // behind a snapshot wrapper. Unwrap once here so identifier
-      // lookups dispatch through the descriptor directly without
-      // paying the snapshot-projection cost on every call. Attached doc-prefix strings stay on the
-      // qlang/ast/qlang/core Quote AST — axis-operands `docs` /
-      // `examples` walk it directly. Reify therefore holds the
-      // structural metadata only; prose lives at one address
-      // (the AST attached prefix), reachable through `:tag | docs`.
-      for (const [name, value] of templateEnv) {
-        if (value instanceof Map && value.get('qlang/kind') &&
-            value.get('qlang/kind').name === 'snapshot') {
-          templateEnv.set(name, value.get('qlang/value'));
-        }
-      }
-
-      // Resolve :qlang/impl keywords to function values for
-      // built-in operands — the dispatch hot path reads the
-      // function from the descriptor without a registry lookup
-      // per call. Tag bindings keep their :qlang/impl as a
-      // keyword (`:qlang/type/<tag>`); evalTaggedLit resolves
-      // it through PRIMITIVE_REGISTRY at invocation. That keeps
-      // `reify(::tag)` output readable — a keyword instead of
-      // a JS-source dump of an opaque constructor function.
-      for (const descriptor of templateEnv.values()) {
-        if (descriptor.get('qlang/kind')?.name !== 'builtin') continue;
-        const implKey = descriptor.get('qlang/impl');
-        if (isKeyword(implKey)) {
-          descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
-        }
-      }
-
-      // Stamp the parsed core module as a Quote-value under the
-      // canonical `qlang/ast/qlang/core` env key. Axis-operands
-      // (`source`, `docs`, `examples`, `seeAlso`, `describe`,
-      // `spec`) walk this Quote to lift declarative metadata
-      // directly out of the source AST. Source ships alongside the
-      // lazy AST so `/source` returns the verbatim text and `/ast`
-      // returns the pre-parsed AST-Map without a re-parse
-      // round-trip.
-      // Store the raw JS AST inside the Quote — axis-operands walk
-      // it directly via `node.type` / `node.steps`. The /ast
-      // projection converts to AST-Map shape on demand for user
-      // code that wants data-form navigation.
-      templateEnv.set(moduleAstKey('qlang/core'), makeQuote(CORE_SOURCE, coreAst));
-
-      PRIMITIVE_REGISTRY.seal();
-
-      return templateEnv;
-    })();
+    _templateEnvPromise = buildLangRuntime(platformLocator);
   }
   const templateEnv = await _templateEnvPromise;
   return new Map(templateEnv);
+}
+
+// `buildLangRuntime(locator)` — extracted bootstrap so a test can
+// drive it with a custom locator (e.g. a stub returning `null` to
+// trigger `BootstrapRootMissingError`) without touching the cached
+// module-level template. Production code reaches the runtime
+// through `langRuntime()` which delegates here with the platform
+// locator and memoises the result.
+
+export async function buildLangRuntime(locator) {
+  // Bootstrap seed: the only env entries `core.qlang` needs
+  // before its own BindSteps install everything else. `:use`
+  // is the operand the root module calls on line one
+  // (`use(:qlang/error/registry)`); `:qlang/locator` is the
+  // platform-conditional source resolver `use` threads through
+  // for every namespace lookup (registry first, then every
+  // operand family the catalog pulls in down the line).
+  const seedEnv = new Map();
+  seedEnv.set('use', PRIMITIVE_REGISTRY.resolve('qlang/prim/use'));
+  seedEnv.set(RUNTIME_LOCATOR_KEY, locator);
+
+  // Load the root catalog module — `:qlang/core` — through the
+  // same locator everything else flows through. Browser-side
+  // import map and Node-side `imports` field point this name
+  // at the authored `core.qlang` file.
+  const rootResult = await locator('qlang/core');
+  if (rootResult === null) throw new BootstrapRootMissingError();
+  const coreSource = rootResult.source;
+  const coreAst = parse(coreSource, { uri: 'qlang/core' });
+  const bootstrapState = makeState(null, seedEnv);
+  const bootstrapResult = await evalAst(coreAst, bootstrapState);
+  const templateEnv = bootstrapResult.env;
+
+  // BindStep snapshot-binds every pure-literal descriptor (Map
+  // literals are pure), so each entry in templateEnv lives
+  // behind a snapshot wrapper. Unwrap once here so identifier
+  // lookups dispatch through the descriptor directly without
+  // paying the snapshot-projection cost on every call. Attached
+  // doc-prefix strings stay on the qlang/ast/qlang/core Quote
+  // AST — axis-operands `docs` / `examples` walk it directly.
+  // Reify therefore holds the structural metadata only; prose
+  // lives at one address (the AST attached prefix), reachable
+  // through `:tag | docs`.
+  for (const [name, value] of templateEnv) {
+    if (value instanceof Map && value.get('qlang/kind') &&
+        value.get('qlang/kind').name === 'snapshot') {
+      templateEnv.set(name, value.get('qlang/value'));
+    }
+  }
+
+  // Resolve :qlang/impl keywords to function values for built-in
+  // operands — the dispatch hot path reads the function from the
+  // descriptor without a registry lookup per call. Tag bindings
+  // keep their :qlang/impl as a keyword (`:qlang/type/<tag>`);
+  // evalTaggedLit resolves it through PRIMITIVE_REGISTRY at
+  // invocation. That keeps `reify(::tag)` output readable — a
+  // keyword instead of a JS-source dump of an opaque constructor
+  // function.
+  for (const descriptor of templateEnv.values()) {
+    if (!(descriptor instanceof Map)) continue;
+    if (descriptor.get('qlang/kind')?.name !== 'builtin') continue;
+    const implKey = descriptor.get('qlang/impl');
+    if (isKeyword(implKey)) {
+      descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
+    }
+  }
+
+  // Stamp the parsed core module as a Quote-value under the
+  // canonical `qlang/ast/qlang/core` env key. Axis-operands
+  // (`source`, `docs`, `examples`) walk this Quote to lift
+  // declarative metadata directly out of the source AST. Source
+  // ships alongside the lazy AST so `/source` returns the verbatim
+  // text and `/ast` returns the pre-parsed AST-Map without a
+  // re-parse round-trip. Store the raw JS AST inside the Quote —
+  // axis-operands walk it directly via `node.type` / `node.steps`.
+  // The /ast projection converts to AST-Map shape on demand for
+  // user code that wants data-form navigation.
+  templateEnv.set(moduleAstKey('qlang/core'), makeQuote(coreSource, coreAst));
+
+  PRIMITIVE_REGISTRY.seal();
+
+  return templateEnv;
 }

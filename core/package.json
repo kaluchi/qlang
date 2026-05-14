@@ -48,10 +48,19 @@
       "import": "./host/module-resolver.mjs"
     }
   },
+  "imports": {
+    "#qlang/core": "./lib/qlang/core.qlang",
+    "#qlang/error/registry": "./lib/qlang/error/registry.qlang",
+    "#qlang/load-source": {
+      "node": "./host/load-source-node.mjs",
+      "default": "./src/load-source-web.mjs"
+    }
+  },
   "sideEffects": false,
   "files": [
     "src/",
     "host/",
+    "lib/",
     "gen/"
   ],
   "scripts": {
@@ -59,8 +68,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build:grammar": "node scripts/build-grammar.mjs",
-    "build:core": "node scripts/build-core.mjs",
-    "build": "node scripts/build-grammar.mjs && node scripts/build-core.mjs"
+    "build": "node scripts/build-grammar.mjs"
   },
   "engines": {
     "node": ">=20"

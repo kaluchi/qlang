@@ -31,7 +31,8 @@ import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isQMap, isKeyword, isVec, isQSet,
-  typeKeyword, makeQuote, moduleAstKey
+  typeKeyword, makeQuote, moduleAstKey, moduleNamespaceKey,
+  RUNTIME_LOCATOR_KEY
 } from '../types.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 
@@ -84,8 +85,16 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
 // `moduleEnv` paired with the env that holds the freshly-installed
 // namespace binding so the caller threads it forward.
 async function resolveNamespaceEnv(outerEnv, nsKeyword) {
-  if (outerEnv.has(nsKeyword.name)) {
-    const moduleEnv = outerEnv.get(nsKeyword.name);
+  // Two cache keys for namespace lookup. `session.bind(:ns, map)`
+  // and `installModules(catalog)` write under the bare keyword name
+  // (`<ns>`); the language-level locator caches its own loads under
+  // a separate prefix (`qlang/namespace/<ns>`) so `manifest` can
+  // skip those entries without filtering user-installed namespaces.
+  const bareKey  = nsKeyword.name;
+  const cacheKey = moduleNamespaceKey(nsKeyword.name);
+  for (const key of [bareKey, cacheKey]) {
+    if (!outerEnv.has(key)) continue;
+    const moduleEnv = outerEnv.get(key);
     if (!isQMap(moduleEnv)) {
       throw new UseNamespaceNotMapError({
         namespaceName: nsKeyword.name,
@@ -95,7 +104,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
     return [moduleEnv, outerEnv];
   }
 
-  const locatorFn = outerEnv.get('qlang/locator');
+  const locatorFn = outerEnv.get(RUNTIME_LOCATOR_KEY);
   if (!locatorFn) {
     throw new UseNamespaceNotFoundError({ namespaceName: nsKeyword.name });
   }
@@ -142,7 +151,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   }
 
   const envWithNamespace = new Map(outerEnv);
-  envWithNamespace.set(nsKeyword.name, loadedExports);
+  envWithNamespace.set(cacheKey, loadedExports);
   // Stamp the loaded module's source as a Quote-value under the
   // canonical `qlang/ast/<ns>` env key — same surface the core
   // module gets in langRuntime, so axis-operands walk every

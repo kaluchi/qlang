@@ -28,9 +28,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeTagKeyword, isModuleAstKey } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword, isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/types.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
-import { CORE_SOURCE } from '../../gen/core.mjs';
+import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 
 // Evaluate core.qlang against a real langRuntime — CORE_SOURCE is a
 // series of `BindStep` declarations, each of which `evalBindStep`
@@ -46,6 +46,8 @@ async function evalCore() {
   const catalog = new Map();
   for (const [k, v] of fullEnv) {
     if (isModuleAstKey(k)) continue;
+    if (isModuleNamespaceKey(k)) continue;
+    if (k === RUNTIME_LOCATOR_KEY) continue;
     if (!isQMap(v)) continue;
     const kind = v.get('qlang/kind');
     if (!kind || kind.name !== 'builtin') continue;
@@ -61,8 +63,9 @@ async function primeRegistry() {
 }
 
 describe('lib/qlang/core.qlang — shape and content', () => {
-  it('parses without errors', () => {
-    const ast = parse(CORE_SOURCE, { uri: 'qlang/core' });
+  it('parses without errors', async () => {
+    const rootResult = await platformLocator('qlang/core');
+    const ast = parse(rootResult.source, { uri: 'qlang/core' });
     expect(ast).toBeDefined();
     expect(ast.type).toBeDefined();
   });

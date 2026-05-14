@@ -231,9 +231,21 @@ export function isTagKeyword(v) {
 // `BindStep`. The prefix is filtered from `manifest` output and from
 // LSP completion candidates because module-AST entries are storage,
 // not user-facing bindings.
+//
+// `MODULE_NAMESPACE_PREFIX` — `qlang/namespace/<uri>` env keys carry
+// the exports Map of a namespace once `use(:uri)` has loaded it.
+// Re-entrant `use(:uri)` calls hit this cache instead of re-fetching
+// the source. Filtered alongside module-AST keys for the same reason
+// — it is runtime housekeeping, not a user-facing binding.
+//
+// `RUNTIME_LOCATOR_KEY` — singular env key holding the host's
+// `:qlang/locator` function. Filtered exactly because the locator
+// is platform plumbing, not addressable through identifier lookup.
 
 export const TAG_BINDING_PREFIX = '::';
 export const MODULE_AST_PREFIX = 'qlang/ast/';
+export const MODULE_NAMESPACE_PREFIX = 'qlang/namespace/';
+export const RUNTIME_LOCATOR_KEY = 'qlang/locator';
 
 export function isTagBindingName(name) {
   return typeof name === 'string' && name.startsWith(TAG_BINDING_PREFIX);
@@ -243,8 +255,16 @@ export function isModuleAstKey(name) {
   return typeof name === 'string' && name.startsWith(MODULE_AST_PREFIX);
 }
 
+export function isModuleNamespaceKey(name) {
+  return typeof name === 'string' && name.startsWith(MODULE_NAMESPACE_PREFIX);
+}
+
 export function moduleAstKey(uri) {
   return MODULE_AST_PREFIX + uri;
+}
+
+export function moduleNamespaceKey(uri) {
+  return MODULE_NAMESPACE_PREFIX + uri;
 }
 
 // ── conduit / snapshot / quote predicates ─────────────────────

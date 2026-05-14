@@ -56,6 +56,18 @@
 
 
 
+|~ Bootstrap step — pull in the named-error tag-binding registry
+   so the `:throws [::Foo …]` Vec literals scattered through the
+   operand descriptors below find their target tags in env. The
+   platform locator under `:qlang/locator` (installed by
+   `langRuntime` before this source evaluates) resolves
+   `:qlang/error/registry` through `import.meta.resolve` against
+   the package's `imports` field (Node) or the document's import
+   map (browser). ~|
+
+use(:qlang/error/registry)
+
+
 |~ ──────────────── Vec reducers ──────────────── ~|
 
 :count

@@ -15,8 +15,10 @@ Folder name maps to the suffix of the npm package name; the npm scope
 is always `@kaluchi/`. Single rule, applied uniformly:
 
 - `core/` → `@kaluchi/qlang-core`. Language core. Pure JS, zero runtime
-  deps. Ships `core/src/`, `core/host/`, `core/gen/` (and bundles
-  `core/lib/qlang/core.qlang` via the build step).
+  deps. Ships `core/src/`, `core/host/`, `core/lib/`, `core/gen/`. The
+  catalog source files (`core/lib/qlang/*.qlang`) load at runtime via
+  the platform's `import.meta.resolve` / `package.json#imports`
+  mechanism; no pre-bake step.
 - `cli/` → `@kaluchi/qlang-cli`. Node CLI, REPL, module loader, session
   persistence. Depends on `@kaluchi/qlang-core` via workspace link.
 - `lsp/` → `@kaluchi/qlang-lsp`. Language server. Node-only.
@@ -102,8 +104,9 @@ chapters the main agent keeps in mind at every commit:
 - `npm run test:coverage` — verify the 100/100/100/100 thresholds on
   the core workspace.
 - `npm run build` — rebuild the generated parser
-  (`core/scripts/build-grammar.mjs`) and the packaged core catalog
-  (`core/scripts/build-core.mjs`).
+  (`core/scripts/build-grammar.mjs`). The catalog source files
+  (`core/lib/qlang/*.qlang`) load directly at runtime through
+  `package.json#imports` + `import.meta.resolve`; no pre-bake step.
 - `npm test -w @kaluchi/qlang-cli` — single workspace.
 - `npm run build && npm test` — full rebuild plus verification.
 

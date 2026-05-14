@@ -111,9 +111,13 @@ import {
   typeKeyword,
   TAG_BINDING_PREFIX,
   MODULE_AST_PREFIX,
+  MODULE_NAMESPACE_PREFIX,
+  RUNTIME_LOCATOR_KEY,
   isTagBindingName,
   isModuleAstKey,
-  moduleAstKey
+  isModuleNamespaceKey,
+  moduleAstKey,
+  moduleNamespaceKey
 } from './types.mjs';
 
 export {
@@ -179,7 +183,11 @@ export {
   typeKeyword,
   TAG_BINDING_PREFIX,
   MODULE_AST_PREFIX,
+  MODULE_NAMESPACE_PREFIX,
+  RUNTIME_LOCATOR_KEY,
   isTagBindingName,
   isModuleAstKey,
-  moduleAstKey
+  isModuleNamespaceKey,
+  moduleAstKey,
+  moduleNamespaceKey
 };

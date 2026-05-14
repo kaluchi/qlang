@@ -296,20 +296,20 @@ export function isSnapshot(v) {
   return kind && kind.name === 'snapshot';
 }
 
-// A tagged-instance Map carries `:qlang/kind <tag>` plus a
-// `:qlang/payload` Vec of the original constructor arguments. Any
-// `::tag` constructor that wants printValue / inline rendering
-// to round-trip back to the literal form stamps both fields.
-// The conduit/snapshot/tag discriminators sit on dedicated render
-// paths (def-form, as-form, tag-binding) and are excluded from
-// the generic `::<tag>[<payload>]` shape used by other tags.
+// A tagged-instance Map carries `:qlang/kind <TagKeyword>` plus a
+// `:qlang/payload` slot holding whatever the constructor literal
+// captured — a Vec (`::Tag[1 2 3]`), a Map (`::Tag{:k 1}`), a
+// scalar wrapped via ParenGroup (`::Tag(42)`), a Quote, a Set,
+// any pipeline value. The conduit / snapshot / tag-binding
+// discriminators sit on their own render paths and live outside
+// the generic tagged-instance shape.
 const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
 export function isTaggedInstance(v) {
   if (!(v instanceof Map)) return false;
   const kind = v.get('qlang/kind');
-  if (!kind || RESERVED_TAGGED_KINDS.has(kind.name)) return false;
-  const payload = v.get('qlang/payload');
-  return Array.isArray(payload);
+  if (!isTagKeyword(kind)) return false;
+  if (RESERVED_TAGGED_KINDS.has(kind.name)) return false;
+  return v.has('qlang/payload');
 }
 
 export function isQuote(v) {

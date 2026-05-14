@@ -181,6 +181,114 @@ describe('round-trip invariant — TaggedInstance constructors lifting to plain 
   }
 });
 
+// ── TaggedInstance — default constructor accepts every Primary ─
+//
+// `::Tag<payload>` for a tag declared with `{:qlang/kind :tag}`
+// and no `:qlang/impl` slot routes through `evalTaggedLit`'s
+// default branch. Every payload shape the grammar's `Primary`
+// rule accepts is covered here — payload starts with a bracket
+// character (Vec / JsonArray / Map / JsonObject / Set / Quote /
+// Doc / Error literal) or wraps a non-bracket value through
+// ParenGroup (Scalar / Keyword / TagKeyword / nested TaggedLit /
+// BareTypeKeyword). The printed value re-parses as the same
+// TaggedLit AST and re-evaluates to a deepEqual value.
+
+describe('round-trip invariant — TaggedLit payload covering every Primary form', () => {
+  const TAG_DECL = '::Tag1 {:qlang/kind :tag} | ::Inner {:qlang/kind :tag}';
+
+  for (const tail of [
+    // VecLit payload (whitespace-separated)
+    '::Tag1[]',
+    '::Tag1[1 2 3]',
+    '::Tag1[:a "b" 42]',
+    '::Tag1[[1 2] [3 4]]',
+
+    // JsonArrayLit payload (comma-separated)
+    '::Tag1[1, 2, 3]',
+
+    // MapLit payload (qlang form)
+    '::Tag1{:k 1}',
+    '::Tag1{:k 1 :nested {:inner 42}}',
+
+    // JsonObjectLit payload
+    '::Tag1{"k": 1}',
+
+    // SetLit payload
+    '::Tag1#{1 2 3}',
+    '::Tag1#{:a :b}',
+
+    // QuoteLit payload
+    '::Tag1~{count}',
+    '::Tag1~{| count}',
+
+    // DocLit payload
+    '::Tag1|~~ short doc ~~|',
+
+    // StringLit payload — `"` opens unambiguously, no wrap needed
+    '::Tag1"hello"',
+    '::Tag1""',
+
+    // Keyword payload — `:` opens unambiguously
+    '::Tag1:foo',
+    '::Tag1:qlang/error',
+
+    // TagKeyword payload (BareTypeKeyword) — `::` opens unambiguously
+    '::Tag1::Inner',
+
+    // Nested TaggedLit — `::` opens; payload absorbs the inner literal
+    '::Tag1::Inner[1 2]',
+
+    // Projection payload — `/` opens unambiguously
+    '::Tag1/key',
+
+    // ParenGroup wraps only the identifier-tail scalars (Number /
+    // Boolean / Null), which would otherwise fuse into the tag's
+    // identifier tail under the atomic `"::" TagName Primary` rule.
+    '::Tag1(42)',
+    '::Tag1(-3.14)',
+    '::Tag1(true)',
+    '::Tag1(false)',
+    '::Tag1(null)'
+  ]) {
+    const src = `${TAG_DECL} | ${tail}`;
+    it(`payload form: ${tail}`, async () => {
+      const initial = await evalSource(src);
+      const printed = printValue(initial);
+      // Grammar (peggy) must accept the print form as a TaggedLit
+      // Primary — re-parse under the same decl context, re-eval,
+      // recover deepEqual to the original.
+      const reparsed = await evalSource(`${TAG_DECL} | ${printed}`);
+      expect(deepEqual(reparsed, initial),
+        `round-trip drift on \`${tail}\` — printed as \`${printed}\``).toBe(true);
+    });
+  }
+});
+
+// ── ErrorValue — `::Tag!{…}` literal route ───────────────────
+
+describe('round-trip invariant — named-error literal self-evaluation', () => {
+  // `::Tag!{…}` with ErrorLit payload lands as an ErrorValue.
+  // `printErrorValue` folds `:qlang/kind` back into the head; the
+  // resulting `::Tag!{…}` form re-parses as a TaggedLit whose
+  // payload is an ErrorLit and recovers the same descriptor.
+  const TAG_DECL = '::ErrTag {:qlang/kind :tag}';
+
+  for (const tail of [
+    '::ErrTag!{}',
+    '::ErrTag!{:k 1}',
+    '::ErrTag!{:k 1 :nested {:inner 42}}'
+  ]) {
+    const src = `${TAG_DECL} | ${tail}`;
+    it(`named-error literal: ${tail}`, async () => {
+      const initial = await evalSource(src);
+      const printed = printValue(initial);
+      const reparsed = await evalSource(`${TAG_DECL} | ${printed}`);
+      expect(deepEqual(reparsed, initial),
+        `named-error round-trip drift on \`${tail}\` — printed as \`${printed}\``).toBe(true);
+    });
+  }
+});
+
 // ── Conduit — printValue-idempotency tier ────────────────────
 
 describe('round-trip invariant — Conduit (printValue idempotency)', () => {

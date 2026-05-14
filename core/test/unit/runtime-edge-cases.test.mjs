@@ -142,6 +142,24 @@ describe('describeType for conduit and snapshot', async () => {
     expect(describeType(instance)).toBe('TaggedInstance');
   });
 
+  it('isTaggedInstance rejects the reserved-kind Maps that conduit / snapshot mint', async () => {
+    // Conduit and snapshot factories stamp their own dedicated
+    // TagKeyword on `:qlang/kind`. `isTaggedInstance` excludes them
+    // so the generic tagged-instance render path does not collide
+    // with `printConduit` / `printSnapshot`.
+    const { makeTagKeyword, isTaggedInstance } = await import('../../src/types.mjs');
+    const conduitLike = new Map([
+      ['qlang/kind', makeTagKeyword('conduit')],
+      ['qlang/payload', []]
+    ]);
+    const snapshotLike = new Map([
+      ['qlang/kind', makeTagKeyword('snapshot')],
+      ['qlang/payload', []]
+    ]);
+    expect(isTaggedInstance(conduitLike)).toBe(false);
+    expect(isTaggedInstance(snapshotLike)).toBe(false);
+  });
+
   it('typeKeyword returns the tag as a TagKeyword for a tagged-instance Map', async () => {
     const { makeTagKeyword, isTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([

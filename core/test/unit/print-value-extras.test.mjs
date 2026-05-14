@@ -163,6 +163,21 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     expect(rendered.pipeValue).toContain('::Box[42]');
   });
 
+  it('a tagged-instance with Number payload renders as ::Tag(42) — ParenGroup wrap branch', async () => {
+    const { table } = await import('../../src/runtime/format.mjs');
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = new Map([
+      ['qlang/kind', makeTagKeyword('Count')],
+      ['qlang/payload', 42]
+    ]);
+    const row = new Map([['c', instance]]);
+    const rendered = await table.fn(
+      { pipeValue: [row], env: new Map() },
+      []
+    );
+    expect(rendered.pipeValue).toContain('::Count(42)');
+  });
+
   it('a tagged-instance inside a Vec cell — inline handler fires', async () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const { makeTagKeyword } = await import('../../src/types.mjs');

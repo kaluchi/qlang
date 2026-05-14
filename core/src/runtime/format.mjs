@@ -316,18 +316,26 @@ function printSnapshot(snapshot) {
   return printValue(snapshot.get('qlang/value'));
 }
 
-// Round-trip a tagged-instance Map back into the `::tag[…]`
-// TaggedLit literal that produced it. The constructor stamps the
-// original payload Vec under `:qlang/payload` precisely so this
-// renderer can reconstruct the source form without any per-tag
-// hardcoding — the same shape `printConduit` produces for the
-// `::conduit` value-class, generalised across every user-defined
-// `::tag`.
+// Round-trip a tagged-instance Map back into the TaggedLit literal
+// that produced it. The constructor stamps the original payload
+// value under `:qlang/payload`; the renderer concatenates the tag
+// literal with the printed payload directly. ParenGroup wrap fires
+// only when the payload's print form opens with an identifier
+// character (letter, digit, or leading `-` for negative numbers) —
+// those would otherwise fuse into the tag's TagName tail in the
+// grammar's atomic `"::" TagName Primary` production. Every other
+// Primary opens with a distinguishing sigil (`"`, `:`, `[`, `{`,
+// `#`, `~`, `|`, `!`, `/`) that the parser splits on cleanly, so
+// no wrap is needed.
+const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w\-]/;
 function printTaggedInstance(instance, indent) {
   const tagLiteral = instance.get('qlang/kind').literal;
   const payload = instance.get('qlang/payload');
-  const inner = payload.map(el => printValue(el, indent)).join(' ');
-  return `${tagLiteral}[${inner}]`;
+  const payloadPrint = printValue(payload, indent);
+  if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint)) {
+    return `${tagLiteral}(${payloadPrint})`;
+  }
+  return tagLiteral + payloadPrint;
 }
 
 function escapeQlangStringLiteral(s) {
@@ -439,7 +447,11 @@ const INLINE_HANDLERS = {
 function renderTaggedInstanceInline(instance) {
   const tagLiteral = instance.get('qlang/kind').literal;
   const payload = instance.get('qlang/payload');
-  return `${tagLiteral}[${payload.map(renderInline).join(' ')}]`;
+  const payloadInline = renderInline(payload);
+  if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadInline)) {
+    return `${tagLiteral}(${payloadInline})`;
+  }
+  return tagLiteral + payloadInline;
 }
 
 function renderInline(v) {

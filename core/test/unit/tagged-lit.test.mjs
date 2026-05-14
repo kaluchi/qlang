@@ -152,33 +152,64 @@ describe('TaggedLit error paths', () => {
   });
 });
 
-describe('default error constructor — tag-binding without :qlang/impl', () => {
-  it('Map payload becomes the descriptor directly', async () => {
+describe('default constructor — tag-binding without :qlang/impl', () => {
+  // Two value-class branches by literal form:
+  //   ErrorLit payload   → ErrorValue (fail-track), `:qlang/kind`
+  //                        restamped onto the descriptor.
+  //   Anything else      → TaggedInstance Map (success-track),
+  //                        payload value lifted under
+  //                        `:qlang/payload` slot.
+
+  it('ErrorLit payload (`::Tag!{…}`) lifts to ErrorValue with `:qlang/kind` restamped', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
-    const err = await evalQuery('::AddLeftNotNumberError{:custom "field" :note 42}');
+    const err = await evalQuery('::AddLeftNotNumberError!{:custom "field" :note 42}');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
     expect(err.descriptor.get('custom')).toBe('field');
     expect(err.descriptor.get('note')).toBe(42);
   });
 
-  it('Vec payload lands under :qlang/payload slot', async () => {
-    const { isErrorValue } = await import('../../src/types.mjs');
-    const err = await evalQuery('::AddLeftNotNumberError[1 2 3]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-    expect(err.descriptor.get('qlang/payload')).toEqual([1, 2, 3]);
+  it('Vec payload (`::Tag[…]`) lifts to TaggedInstance Map with `:qlang/payload` slot', async () => {
+    const { isQMap } = await import('../../src/types.mjs');
+    const instance = await evalQuery('::AddLeftNotNumberError[1 2 3]');
+    expect(isQMap(instance)).toBe(true);
+    expect(instance.get('qlang/kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(instance.get('qlang/payload')).toEqual([1, 2, 3]);
   });
 
-  it('ParenGroup-wrapped scalar payload lands under :qlang/payload slot', async () => {
-    // TaggedLit grammar `::tag payload:Primary` requires the payload
-    // immediately after the tag (no whitespace) — bare scalars need
-    // a ParenGroup wrap (`::tag(42)`) so the grammar reads them as
-    // the payload rather than a separate next step.
-    const { isErrorValue } = await import('../../src/types.mjs');
-    const err = await evalQuery('::AddLeftNotNumberError(42)');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('qlang/payload')).toBe(42);
+  it('Map payload (`::Tag{…}`) lifts to TaggedInstance Map with the Map under `:qlang/payload`', async () => {
+    const { isQMap } = await import('../../src/types.mjs');
+    const instance = await evalQuery('::AddLeftNotNumberError{:custom "field"}');
+    expect(isQMap(instance)).toBe(true);
+    expect(instance.get('qlang/kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    const payload = instance.get('qlang/payload');
+    expect(isQMap(payload)).toBe(true);
+    expect(payload.get('custom')).toBe('field');
+  });
+
+  it('String payload (`::Tag"s"`) — `"` opens unambiguously, no ParenGroup needed', async () => {
+    const { isQMap } = await import('../../src/types.mjs');
+    const instance = await evalQuery('::AddLeftNotNumberError"hello"');
+    expect(isQMap(instance)).toBe(true);
+    expect(instance.get('qlang/payload')).toBe('hello');
+  });
+
+  it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, no ParenGroup needed', async () => {
+    const { isQMap, isKeyword } = await import('../../src/types.mjs');
+    const instance = await evalQuery('::AddLeftNotNumberError:foo');
+    expect(isQMap(instance)).toBe(true);
+    const payload = instance.get('qlang/payload');
+    expect(isKeyword(payload)).toBe(true);
+    expect(payload.name).toBe('foo');
+  });
+
+  it('ParenGroup-wrapped scalar payload (`::Tag(42)`) — Number / Boolean / Null need the wrap', async () => {
+    // Bare `42` after `Tag` would fuse into the identifier tail
+    // (`Tag42`). ParenGroup makes the parser split cleanly.
+    const { isQMap } = await import('../../src/types.mjs');
+    const instance = await evalQuery('::AddLeftNotNumberError(42)');
+    expect(isQMap(instance)).toBe(true);
+    expect(instance.get('qlang/payload')).toBe(42);
   });
 });
 

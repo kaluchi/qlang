@@ -315,17 +315,17 @@ Overloaded by captured-arg count:
   `:kind` field distinguishes four provenances:
 
   - `:builtin` — `pipeValue` is a descriptor Map loaded by
-    `langRuntime()` from `lib/qlang/core.qlang`. env stores
-    every built-in as a Map directly; `reify` substitutes the
-    internal `:qlang/kind :builtin` / `:qlang/impl
-    :qlang/prim/<name>` discriminator for the user-facing
-    `:kind :builtin`, drops the `:qlang/impl` handle (reify
-    consumers read the descriptor, the dispatch-time primitive
-    key is internal), and computes `:captured` / `:effectful` by
-    resolving the primitive through `PRIMITIVE_REGISTRY`. The
-    structural fields (`:category`, `:subject`, `:modifiers`,
-    `:returns`, `:throws`) pass through from the `core.qlang`
-    entry verbatim. Authored prose lives on the `BindStep`'s
+    `langRuntime()` from one of the catalog family files under
+    `lib/qlang/operand/`. env stores every built-in as a Map
+    directly; `reify` substitutes the internal `:qlang/kind
+    :builtin` / `:qlang/impl :qlang/prim/<name>` discriminator
+    for the user-facing `:kind :builtin`, drops the `:qlang/impl`
+    handle (reify consumers read the descriptor, the dispatch-time
+    primitive key is internal), and computes `:captured` /
+    `:effectful` by resolving the primitive through
+    `PRIMITIVE_REGISTRY`. The structural fields (`:category`,
+    `:subject`, `:modifiers`, `:returns`, `:throws`) pass through
+    from the operand-family entry verbatim. Authored prose lives on the `BindStep`'s
     attached doc-prefix and is reachable via `:name | docs`
     (Vec of Doc-values, `/content` for raw text, `/segments`
     for Prose / Quote / TaggedLit splits) or via `:name |
@@ -675,8 +675,8 @@ co-located sources:
   `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
   `stateOpVariadic`, `higherOrderOpVariadic`) attach a tiny
   `meta` object carrying only the `captured` range — the rest
-  of the metadata lives in `core.qlang` and is addressable at
-  `reify` / `manifest` time.
+  of the metadata lives in the operand-family catalog files
+  and is addressable at `reify` / `manifest` time.
 
 `langRuntime()` in `core/src/runtime/index.mjs` ties the two together
 by parsing `core.qlang` once (which threads through `use(...)` to
@@ -1268,8 +1268,9 @@ edit — `astChildrenOf` and the codec share the shape knowledge.
 
 ### `primitives.mjs` — the built-in primitive registry
 
-Canonical bridge between `lib/qlang/core.qlang`-authored
-descriptor Maps and the executable JS impls in `runtime/*.mjs`.
+Canonical bridge between the catalog-authored descriptor Maps
+(under `lib/qlang/operand/<family>.qlang`) and the executable
+JS impls in `runtime/*.mjs`.
 Lives at the `core/src/` root (not under `core/src/runtime/`) because both
 the core evaluator (`core/src/eval.mjs::applyBuiltinDescriptor`) and
 every runtime impl module consume it, and a `core/src/runtime/`

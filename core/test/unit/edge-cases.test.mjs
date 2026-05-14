@@ -732,9 +732,9 @@ describe('runtime/reify-op.mjs reify and manifest', () => {
     expect(reifyCountResult.get('kind')).toEqual(keyword('builtin'));
     expect(reifyCountResult.get('name')).toBe('count');
     expect(reifyCountResult.get('captured')).toEqual([0, 0]);
-    // Prose lives on the qlang/ast/qlang/core Quote AST and is read
-    // through the `docs` axis, not the reify result — the descriptor
-    // carries structural metadata only.
+    // Prose lives on the catalog module's `qlang/ast/<uri>` Quote
+    // AST and is read through the `docs` axis, not the reify
+    // result — the descriptor carries structural metadata only.
     expect(reifyCountResult.has('docs')).toBe(false);
     expect((await evalQuery(':count | docs | count'))).toBeGreaterThan(0);
   });

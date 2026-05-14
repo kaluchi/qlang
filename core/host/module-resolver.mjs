@@ -2,12 +2,13 @@
 // modules in dependency order, and produces a catalog of namespace
 // keyword → module env Map pairs ready to install into a session.
 //
-// Convention: filesystem path maps to namespace keyword.
-//   lib/qlang/error.qlang          → :qlang/error
-//   lib/qlang/error/guards.qlang   → :qlang/error/guards
+// Convention: filesystem path under the caller-supplied `libDir`
+// maps to a namespace keyword. With `libDir = "lib/extras"`:
+//   lib/extras/error.qlang         → :error
+//   lib/extras/error/guards.qlang  → :error/guards
 //
 // The .qlang extension is stripped; slashes are namespace separators.
-// Module source is pure qlang — let declarations only. The module's
+// Module source is pure qlang — BindStep declarations. The module's
 // env delta (bindings not in the base env) is its export surface.
 
 import { readdirSync, readFileSync } from 'node:fs';

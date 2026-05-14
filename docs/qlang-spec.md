@@ -1781,7 +1781,8 @@ Two surface forms:
   always stamping `:name` on the result.
 
 **Builtin descriptor** — produced for any built-in operand
-loaded by `langRuntime` from `lib/qlang/core.qlang`:
+loaded by `langRuntime` from the catalog family files under
+`lib/qlang/operand/`:
 
 ```
 {:kind      :builtin
@@ -2559,12 +2560,12 @@ subpath to load them into a session.
 
 The path of a `.qlang` file relative to the library root determines
 its namespace keyword. The `.qlang` extension is stripped and path
-separators become `/`:
+separators become `/`. For a `libDir` of `lib/extras`:
 
 ```
-lib/qlang/error.qlang          → keyword :qlang/error
-lib/qlang/error/guards.qlang   → keyword :qlang/error/guards
-lib/domain/tax.qlang           → keyword :domain/tax
+lib/extras/error.qlang         → keyword :error
+lib/extras/error/guards.qlang  → keyword :error/guards
+lib/extras/domain/tax.qlang    → keyword :domain/tax
 ```
 
 A module's source is pure qlang — only BindStep declarations.

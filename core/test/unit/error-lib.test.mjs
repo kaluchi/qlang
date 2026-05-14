@@ -1,9 +1,9 @@
-// Happy-path and failure-path fixtures for the `lib/qlang/error` and
-// `lib/qlang/error/observe` conduits. These files are installed via
-// the module-resolver into a session that exposes `:error` and
-// `:error/observe` as namespaces, so every test here begins with
-// `use(:error)` or `use(:error/observe)` to pull the conduits into
-// env before invoking them.
+// Happy-path and failure-path fixtures for the `lib/extras/error.qlang`
+// and `lib/extras/error/observe.qlang` conduits. These files are
+// installed via the module-resolver into a session that exposes
+// `:error` and `:error/observe` as namespaces, so every test here
+// begins with `use(:error)` or `use(:error/observe)` to pull the
+// conduits into env before invoking them.
 //
 // Each conduit is exercised against both of the branches that its
 // control flow can take: the success-track path where the incoming

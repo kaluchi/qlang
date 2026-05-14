@@ -2,15 +2,25 @@
 // query starts with. Every runtime module lives in one of two
 // places:
 //
-//   1. lib/qlang/core.qlang — the authored source catalog. A series
-//      of `BindStep` declarations (`:count |~~ … ~~| {…descriptor}`),
-//      each binding an identifier to a descriptor Map carrying
-//      `:qlang/kind :builtin` plus a `:qlang/impl :qlang/prim/<name>`
-//      keyword that resolves against `PRIMITIVE_REGISTRY` at dispatch
-//      time. Each `BindStep`'s attached doc-prefix lives on the
-//      `qlang/ast/qlang/core` Quote AST as the step's `.docs` Vec
-//      and is reachable through axis-operands (`:name | docs`,
-//      `:name | examples`).
+//   1. lib/qlang/ — the authored source catalog, split across:
+//      - core.qlang: orchestrator, one `use([...])` call that
+//        loads the families in order.
+//      - operand/<family>.qlang (arith, vec, container, set-op,
+//        map-op, string, predicate, control, format,
+//        reflective): per-family operand BindSteps and the
+//        per-site error tags they throw, declared inline.
+//      - runtime-invariants.qlang: shared / cross-family
+//        runtime tag-bindings (projection, combinator, parser,
+//        AST codec, dispatch, registry, session, render).
+//      - tag.qlang: value-class constructors (::conduit,
+//        ::qlang, ::json).
+//      Each operand BindStep binds an identifier to a descriptor
+//      Map carrying `:qlang/kind :builtin` plus a
+//      `:qlang/impl :qlang/prim/<name>` keyword that resolves
+//      against `PRIMITIVE_REGISTRY` at dispatch time. Attached
+//      doc-prefixes live on each module's `qlang/ast/<uri>`
+//      Quote AST as the step's `.docs` Vec and are reachable
+//      through axis-operands (`:name | docs`, `:name | examples`).
 //
 //   2. src/runtime/*.mjs — the JS-level primitive impls. Each
 //      module binds its impls into PRIMITIVE_REGISTRY at import
@@ -19,21 +29,24 @@
 //      higherOrderOp, nullaryOp, overloadedOp, stateOp,
 //      stateOpVariadic, higherOrderOpVariadic) attach a tiny
 //      meta object carrying only the `captured` range — the rest
-//      of the metadata lives in core.qlang and is addressed by
-//      descriptor-Map projection at reify / manifest time.
+//      of the metadata lives in the operand-family catalog files
+//      and is addressed by descriptor-Map projection at
+//      reify / manifest time.
 //
-// langRuntime() ties the two together by parsing core.qlang once,
-// evaluating it against an empty env into a template Map, and
-// handing back a shallow copy on every call so callers can add
-// their own bindings (let, as, use) without mutating the template.
-// The descriptor Maps inside the template are frozen and shared
-// between copies — safe because qlang values are immutable at the
-// language level.
+// langRuntime() ties the two together by parsing core.qlang once
+// (which threads through `use(...)` to load every family via the
+// `:qlang/locator`-resolved sources), evaluating it against a
+// seed env carrying just `:use` and the locator, and handing back
+// a shallow copy of the resulting template on every call so callers
+// can add their own bindings (BindStep, as, use) without mutating
+// the template. The descriptor Maps inside the template are frozen
+// and shared between copies — safe because qlang values are
+// immutable at the language level.
 //
 // Importing this file is what wires the primitive registry: every
 // runtime/*.mjs module listed in the import block runs its side-
 // effect registry bindings at module-load time, so by the time
-// langRuntime() parses core.qlang, PRIMITIVE_REGISTRY already
+// langRuntime() parses the catalog, PRIMITIVE_REGISTRY already
 // holds every :qlang/prim/* key that the descriptors reference.
 
 // Side-effect imports — each runtime module binds its impls into
@@ -123,11 +136,12 @@ export async function buildLangRuntime(locator) {
   // behind a snapshot wrapper. Unwrap once here so identifier
   // lookups dispatch through the descriptor directly without
   // paying the snapshot-projection cost on every call. Attached
-  // doc-prefix strings stay on the qlang/ast/qlang/core Quote
-  // AST — axis-operands `docs` / `examples` walk it directly.
+  // doc-prefix strings stay on each catalog module's
+  // `qlang/ast/<uri>` Quote AST — axis-operands `docs` /
+  // `examples` walk the family Quote that declared the binding.
   // Reify therefore holds the structural metadata only; prose
   // lives at one address (the AST attached prefix), reachable
-  // through `:tag | docs`.
+  // through `:name | docs`.
   for (const [name, value] of templateEnv) {
     if (value instanceof Map && value.get('qlang/kind') &&
         value.get('qlang/kind').name === 'snapshot') {
@@ -152,9 +166,12 @@ export async function buildLangRuntime(locator) {
     }
   }
 
-  // Stamp the parsed core module as a Quote-value under the
-  // canonical `qlang/ast/qlang/core` env key. Axis-operands
-  // (`source`, `docs`, `examples`) walk this Quote to lift
+  // Stamp the parsed root module as a Quote-value under the
+  // canonical `qlang/ast/qlang/core` env key. The family modules
+  // (operand/<family>, runtime-invariants, tag) stamp their own
+  // `qlang/ast/<uri>` Quotes through the `use` operand's
+  // resolveNamespaceEnv path. Axis-operands (`source`, `docs`,
+  // `examples`) walk every module Quote in env to lift
   // declarative metadata directly out of the source AST. Source
   // ships alongside the lazy AST so `/source` returns the verbatim
   // text and `/ast` returns the pre-parsed AST-Map without a

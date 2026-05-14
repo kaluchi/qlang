@@ -1,27 +1,34 @@
-// Tests for lib/qlang/core.qlang — the langRuntime catalog source.
+// Tests for the qlang catalog under lib/qlang/ — the source
+// `langRuntime` parses at bootstrap.
 //
-// core.qlang is a single Map literal where every entry is a
-// descriptor for one built-in operand, carrying :qlang/kind :builtin,
-// :qlang/impl <:qlang/prim/*> keyword pointing into SHARED_REGISTRY,
-// plus the authored metadata (category / subject / returns /
-// modifiers / examples / throws) and doc-comment-prefix-attached
-// :docs. langRuntime() evaluates the file once at startup, resolves
-// every `:qlang/impl :qlang/prim/<name>` handle through the JS-side
-// registry bound at module load, and seals the registry. This is
-// the single source of truth for the bound env.
+// The catalog lives across `lib/qlang/core.qlang` (orchestrator that
+// pulls in every family through `use(...)`), `lib/qlang/operand/<family>.qlang`
+// (per-family operand + per-site error-tag declarations), plus
+// `lib/qlang/runtime-invariants.qlang` (shared / runtime tag-bindings)
+// and `lib/qlang/tag.qlang` (value-class constructors ::conduit /
+// ::qlang / ::json). Each operand is a `BindStep` whose body is a
+// descriptor Map carrying :qlang/kind :builtin, a :qlang/impl
+// `:qlang/prim/*` keyword pointing into PRIMITIVE_REGISTRY, plus
+// authored metadata (category / subject / returns / modifiers /
+// throws) and doc-comment-prefix-attached `.docs`. `langRuntime()`
+// evaluates the chain once at startup, resolves every `:qlang/impl
+// :qlang/prim/<name>` handle through the JS-side registry bound at
+// module load, and seals the registry. This is the single source
+// of truth for the bound env.
 //
 // Contract pinned here:
 //
-//   1. CORE_SOURCE parses to a Pipeline/MapLit AST without errors.
-//   2. Evaluating it in an empty env produces a non-empty Map —
-//      one entry per built-in operand.
-//   3. Every entry is itself a Map with :qlang/kind :builtin and a
-//      :qlang/impl keyword prefixed `qlang/prim/`.
+//   1. The root entry `#qlang/core` parses to a Pipeline AST
+//      without errors.
+//   2. Evaluating the catalog through the locator produces a
+//      non-empty Map — one entry per built-in operand.
+//   3. Every operand entry is itself a Map with :qlang/kind :builtin
+//      and a :qlang/impl keyword prefixed `qlang/prim/`.
 //   4. Every :qlang/impl keyword resolves to a real primitive in
 //      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
-//      module-load side effects from Step 3).
-//   5. Doc-comment prefixes have folded into :docs Vecs on each
-//      `BindStep`'s `.docs` Vec attached by grammar's `DocPrefix` /
+//      module-load side effects).
+//   5. Doc-comment prefixes have folded into `.docs` Vecs on each
+//      `BindStep`'s AST node attached by grammar's `DocPrefix` /
 //      `DocAttachedSequence` rules and reachable through the
 //      axis-operand `:name | docs` (one Doc-value per attached
 //      prefix).
@@ -32,14 +39,15 @@ import { keyword, isQMap, isVec, makeTagKeyword, isModuleAstKey, isModuleNamespa
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 
-// Evaluate core.qlang against a real langRuntime — CORE_SOURCE is a
-// series of `BindStep` declarations, each of which `evalBindStep`
-// lands as a descriptor Map in env. Reading the resolved env from
-// langRuntime() returns the catalog as a Map keyed by operand name.
-// Reserved housekeeping keys (`qlang/ast/<uri>`, anything without a
-// `:qlang/kind :builtin` descriptor) are filtered so the returned
-// Map carries only operand descriptors — the surface the rest of
-// this suite asserts against.
+// Evaluate the catalog through a real `langRuntime()` — the chain
+// of `use(...)` calls in `core.qlang` plus every family's BindSteps
+// lands every descriptor Map in env. Reading the resolved env
+// returns the catalog as a Map keyed by operand name. Reserved
+// housekeeping keys (`qlang/ast/<uri>`, `qlang/namespace/<ns>`,
+// `qlang/locator`, anything without a `:qlang/kind :builtin`
+// descriptor) are filtered so the returned Map carries only
+// operand descriptors — the surface the rest of this suite
+// asserts against.
 async function evalCore() {
   const { langRuntime } = await import('../../src/runtime/index.mjs');
   const fullEnv = await langRuntime();

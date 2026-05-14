@@ -197,9 +197,11 @@ export function keyword(name) {
 // stamp `:qlang/kind` with a TagKeyword so the discriminator
 // reads as "this is an instance of ::tag" — a tighter
 // classification than the plain-keyword `:tag` symbol carries.
-// `.name` mirrors the keyword shape so existing
-// `kind.name === 'assertion'` checks read both Keyword and
-// TagKeyword uniformly.
+// `.name` mirrors the keyword shape so a single
+// `kind.name === '<discriminator>'` check reads both Keyword
+// (`:builtin`, `:tag` declarative kinds) and TagKeyword
+// (`::conduit`, `::snapshot`, user-defined ::tag instances)
+// uniformly.
 
 export function makeTagKeyword(tag) {
   return Object.freeze({ type: 'tagKeyword', name: tag, literal: '::' + tag });

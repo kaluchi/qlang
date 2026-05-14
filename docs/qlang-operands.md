@@ -947,8 +947,9 @@ current `pipeValue` and produces a descriptor Map whose shape
 depends on the value's provenance. Four descriptor kinds:
 
 - **Builtin** — `pipeValue` is a descriptor Map loaded by
-  `langRuntime()` from `lib/qlang/core.qlang`. Every built-in
-  binding in `env` IS a descriptor Map directly; `reify`
+  `langRuntime()` from one of the catalog family files under
+  `lib/qlang/operand/`. Every built-in binding in `env` IS a
+  descriptor Map directly; `reify`
   substitutes the internal `:qlang/kind :builtin` /
   `:qlang/impl :qlang/prim/<name>` discriminator for a
   user-facing `:kind :builtin` (dropping the `:qlang/impl`
@@ -975,7 +976,7 @@ depends on the value's provenance. Four descriptor kinds:
   examples` returns a Vec of every Quote segment extracted from
   those docs. `runExamples` runs every Quote and reports
   per-segment `:ok`. `:category` / `:subject` / `:returns`
-  carry keywords because the underlying `core.qlang` entries are
+  carry keywords because the underlying catalog entries are
   authored as keywords; `:throws` is a Vec of `::Tag` references
   — each entry is a navigable tag-binding, so
   `:foo | /throws | first | docs` resolves the canonical prose

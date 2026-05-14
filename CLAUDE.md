@@ -41,15 +41,20 @@ development.
   statements). Every workspace's `vitest.config.mjs` pins the threshold.
   A change that dips below is blocker-grade.
 - **Operand catalog**: authored metadata — `:throws`, `:category`,
-  `:subject`, `:modifiers`, `:returns` — lives only in
-  `core/lib/qlang/core.qlang`. The JS side registers executable
-  impls via `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at
-  module-load time. Map keys are plain strings throughout; keyword
-  objects exist as pipeline VALUES carrying `.literal` for display.
+  `:subject`, `:modifiers`, `:returns` — lives in the per-family
+  catalog files under `core/lib/qlang/operand/<family>.qlang`
+  (plus shared tag-bindings in `core/lib/qlang/runtime-invariants.qlang`
+  and value-class constructors in `core/lib/qlang/tag.qlang`).
+  `core/lib/qlang/core.qlang` orchestrates them via a single
+  `use([:qlang/runtime-invariants :qlang/tag :qlang/operand/arith
+  …])` call. The JS side registers executable impls via
+  `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at module-load
+  time. Map keys are plain strings throughout; keyword objects
+  exist as pipeline VALUES carrying `.literal` for display.
   `langRuntime()` resolves `:qlang/impl` handles on the template
   env once, then seals the registry. Authored prose and example
   `~{…}` Quote segments live on each `BindStep`'s attached
-  doc-prefix in the `qlang/ast/qlang/core` module Quote and are
+  doc-prefix in its `qlang/ast/<uri>` module Quote and are
   reachable through `:name | docs` and `:name | examples`.
 - **Per-site error classes**: one throw site, one class. Built via the
   factories in `core/src/operand-errors.mjs` (`declareSubjectError`,

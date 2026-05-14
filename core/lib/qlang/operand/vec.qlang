@@ -244,7 +244,7 @@
       ~{
         [{:k 1} {:k "x"}] | sort(/k)
         !| [type /leftType /rightType /operand]
-        |  eq([::SortByKeyNotComparableError :string :number :"sort(key)"])
+        |  eq([::SortByKeyNotComparableError :string :number :sort])
        }
   ~~|
 

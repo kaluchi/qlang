@@ -238,11 +238,13 @@ function printListLike(open, close, inlineSep, elements, indent) {
 function literalOfKeyword(k) { return k.literal; }
 
 // Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
-// when `:thrown` carries a TagKeyword — entropy promotion: the
-// class identity rides at the structural front-position of the
-// literal. The payload-Map below drops three categories of
-// already-known content so the printed form stays terse:
-//   * `:thrown` itself when tagHead absorbed it,
+// when `:qlang/kind` carries a TagKeyword — entropy promotion:
+// the class identity rides at the structural front-position of
+// the literal, the same shape `printTaggedInstance` produces for
+// non-error tagged-instances. The payload-Map below drops three
+// categories of already-known content so the printed form stays
+// terse:
+//   * `:qlang/kind` itself when tagHead absorbed it,
 //   * `:trail null` (makeErrorValue's invariant restores it on
 //     reconstruction — see types.mjs::makeErrorValue),
 //   * `:message` when tagHead is present (the canonical prose is
@@ -251,11 +253,11 @@ function literalOfKeyword(k) { return k.literal; }
 //     structured fields).
 function printErrorValue(e, indent) {
   const desc = e.descriptor;
-  const thrown = desc.get('thrown');
-  const tagHead = isTagKeyword(thrown) ? thrown.literal : '';
+  const kind = desc.get('qlang/kind');
+  const tagHead = isTagKeyword(kind) ? kind.literal : '';
   const payload = new Map();
   for (const [k, v] of desc) {
-    if (k === 'thrown' && tagHead) continue;
+    if (k === 'qlang/kind' && tagHead) continue;
     if (k === 'trail' && v === null) continue;
     if (k === 'message' && tagHead) continue;
     payload.set(k, v);

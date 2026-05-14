@@ -1253,7 +1253,7 @@ Filtering to a specific kind of error via leading fail-apply in
 the predicate:
 
 ```qlang
-> [1 "x" 3] * add(10) | filter(!| /thrown | eq(::AddLeftNotNumberError))
+> [1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
 [
   ::AddLeftNotNumberError!{
     :fault {:step ~{add(10)} :input "x"}

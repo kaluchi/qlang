@@ -1631,7 +1631,7 @@ Runtime type errors, arity errors, and other recoverable failures
 lift automatically into error values with structured descriptors:
 
 ```qlang
-> "hello" | add(1) !| /thrown
+> "hello" | add(1) !| type
 ::AddLeftNotNumberError
 
 > "hello" | add(1) !| /origin

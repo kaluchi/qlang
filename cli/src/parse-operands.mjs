@@ -17,7 +17,7 @@
 //
 // Both parsers report parse failures as fail-track error values via
 // per-site classes, never as raw JS SyntaxErrors — the user code can
-// inspect via `!| /thrown` or `!| /message` like any other qlang
+// inspect via `!| type` or `!| /message` like any other qlang
 // operand error.
 
 import { nullaryOp } from '@kaluchi/qlang-core/dispatch';

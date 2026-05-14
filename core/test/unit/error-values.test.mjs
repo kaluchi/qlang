@@ -150,7 +150,7 @@ describe('errorFromQlang', () => {
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('type-error'));
-    expect(desc.get('thrown')).toEqual(makeTagKeyword('QlangTypeError'));
+    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('QlangTypeError'));
     expect(desc.get('operand')).toEqual(keyword('add'));
     expect(desc.get('actualValue')).toBe('the-value');
     const fault = desc.get('fault');
@@ -170,7 +170,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(unresolvedErr, faultMap);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('unresolved-identifier'));
-    expect(desc.get('thrown')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
+    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('name')).toBe('myName');
     expect(fault.get('input')).toBe(42);
@@ -187,7 +187,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(divErr, faultMap);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('division-by-zero'));
-    expect(desc.get('thrown')).toEqual(makeTagKeyword('DivisionByZeroError'));
+    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('DivisionByZeroError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('text')).toBe('div(0)');
     expect(fault.get('input')).toBe(10);
@@ -208,7 +208,7 @@ describe('errorFromForeign', () => {
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.get('kind')).toEqual(keyword('foreign-error'));
-    expect(desc.get('thrown')).toEqual(makeTagKeyword('Error'));
+    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('Error'));
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
     expect(errorVal.originalError).toBe(jsErr);
@@ -278,7 +278,7 @@ describe('errorFromForeign', () => {
     const wrapped = errorVal.descriptor.get('wrapped');
     expect(wrapped instanceof Map).toBe(true);
     expect(wrapped.get('message')).toBe('inner');
-    expect(wrapped.get('thrown').name).toBe('TypeError');
+    expect(wrapped.get('qlang/kind').name).toBe('TypeError');
     expect(errorVal.descriptor.get('fault').get('input')).toBe('wrap-input');
   });
 
@@ -361,7 +361,7 @@ describe('error-convert coercion edge cases', () => {
   it('errorFromQlang without fingerprint uses error name', () => {
     const typeErr = new QlangTypeError('no fingerprint', {});
     const errorVal = errorFromQlang(typeErr, makeFault('count', [1, 2]));
-    expect(errorVal.descriptor.get('thrown').name).toBe('QlangTypeError');
+    expect(errorVal.descriptor.get('qlang/kind').name).toBe('QlangTypeError');
   });
 
   it('errorFromQlang without context field', () => {

@@ -32,7 +32,7 @@ export async function expectErrorKind(query, kind) {
 // Asserts the query produces an error value with the given :thrown site.
 export async function expectErrorThrown(query, thrown) {
   const errorResult = await expectErrorResult(query);
-  const actualThrown = errorResult.descriptor.get('thrown');
+  const actualThrown = errorResult.descriptor.get('qlang/kind');
   expect(actualThrown?.name).toBe(thrown);
   return errorResult;
 }

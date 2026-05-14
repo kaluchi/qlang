@@ -10,43 +10,43 @@
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).
-    ~{42 | as(42) !| /thrown | eq(::AsNameNotKeywordError)}
+    ~{42 | as(42) !| type | eq(::AsNameNotKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
 ::EvalSubjectNotMapOrQuoteError
   |~~ `eval` requires a Map (AST-Map) or Quote (source-form) subject.
-    ~{42 | eval !| /thrown | eq(::EvalSubjectNotMapOrQuoteError)}
+    ~{42 | eval !| type | eq(::EvalSubjectNotMapOrQuoteError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ManifestNamespaceNotKeywordError
   |~~ `manifest(:namespace)` requires a Keyword captured-arg naming the namespace to enumerate (`:value` or `:tag`).
-    ~{manifest("tag") !| /thrown !| /thrown | eq(::ManifestNamespaceNotKeywordError)}
+    ~{manifest("tag") !| type | eq(::ManifestNamespaceNotKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ManifestNamespaceUnknownError
   |~~ `manifest(:namespace)` accepts `:value` (operand / conduit / snapshot bindings) or `:tag` (tag-namespace declarations); any other keyword raises this error.
-    ~{manifest(:wat) !| /thrown !| /thrown | eq(::ManifestNamespaceUnknownError)}
+    ~{manifest(:wat) !| type | eq(::ManifestNamespaceUnknownError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ParseSubjectNotStringOrQuoteError
   |~~ `parse` requires a String or Quote subject.
-    ~{42 | parse !| /thrown | eq(::ParseSubjectNotStringOrQuoteError)}
+    ~{42 | parse !| type | eq(::ParseSubjectNotStringOrQuoteError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ReifyKeyNotKeywordError
   |~~ `reify(:name)` requires a Keyword captured-arg (the binding name to look up).
-    ~{reify("count") !| /thrown !| /thrown | eq(::ReifyKeyNotKeywordError)}
+    ~{reify("count") !| type | eq(::ReifyKeyNotKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
 ::RunExamplesSubjectShapeError
   |~~ `runExamples` requires a Keyword (binding name) or a descriptor Map carrying a `:name` String.
-    ~{42 | runExamples !| /thrown | eq(::RunExamplesSubjectShapeError)}
+    ~{42 | runExamples !| type | eq(::RunExamplesSubjectShapeError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -76,7 +76,7 @@
 
 ::UseSubjectNotMapError
   |~~ `use` (bare form) requires a Map subject — its entries become the merged bindings.
-    ~{42 | use !| /thrown | eq(::UseSubjectNotMapError)}
+    ~{42 | use !| type | eq(::UseSubjectNotMapError)}
     ~~|
   {:qlang/kind :tag}
 

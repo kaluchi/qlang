@@ -24,8 +24,8 @@
 {"name":"every-map-1arity-conduit-fails","query":"{:a 1 :b -2} | :@pos [:v] (v | gt(0)) | every(@pos)","expect":"false"}
 {"name":"every-map-via-2arity-conduit","query":"{:a 1 :b 2} | :@bothPositive [:k :v] and(v | gt(0), k | isKeyword) | every(@bothPositive)","expect":"true"}
 {"name":"every-map-via-2arity-conduit-fails","query":"{:a 1 :b -2} | :@bothPositive [:k :v] (v | gt(0)) | every(@bothPositive)","expect":"false"}
-{"name":"every-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | every(@kv) !| /thrown","expect":"::EveryVecOrSetPredArityInvalidError"}
-{"name":"every-set-2arity-pred-throws","query":"#{1 2} | :@kv [:k :v] true | every(@kv) !| /thrown","expect":"::EveryVecOrSetPredArityInvalidError"}
-{"name":"every-vec-3arity-pred-throws","query":"[1] | :@tooWide [:x :y :z] true | every(@tooWide) !| /thrown","expect":"::EveryVecOrSetPredArityInvalidError"}
-{"name":"every-set-3arity-pred-throws","query":"#{1} | :@tooWide [:x :y :z] true | every(@tooWide) !| /thrown","expect":"::EveryVecOrSetPredArityInvalidError"}
-{"name":"every-map-3arity-pred-throws","query":"{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide) !| /thrown","expect":"::EveryMapPredArityInvalidError"}
+{"name":"every-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | every(@kv) !| type","expect":"::EveryVecOrSetPredArityInvalidError"}
+{"name":"every-set-2arity-pred-throws","query":"#{1 2} | :@kv [:k :v] true | every(@kv) !| type","expect":"::EveryVecOrSetPredArityInvalidError"}
+{"name":"every-vec-3arity-pred-throws","query":"[1] | :@tooWide [:x :y :z] true | every(@tooWide) !| type","expect":"::EveryVecOrSetPredArityInvalidError"}
+{"name":"every-set-3arity-pred-throws","query":"#{1} | :@tooWide [:x :y :z] true | every(@tooWide) !| type","expect":"::EveryVecOrSetPredArityInvalidError"}
+{"name":"every-map-3arity-pred-throws","query":"{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide) !| type","expect":"::EveryMapPredArityInvalidError"}

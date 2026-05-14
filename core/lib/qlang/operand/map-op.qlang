@@ -14,13 +14,13 @@
 
 ::KeysSubjectNotMapError
   |~~ Subject of `keys` must be Map.
-    ~{42 | keys !| /thrown | eq(::KeysSubjectNotMapError)}
+    ~{42 | keys !| type | eq(::KeysSubjectNotMapError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ValsSubjectNotMapError
   |~~ Subject of `vals` must be Map.
-    ~{[1 2] | vals !| /thrown | eq(::ValsSubjectNotMapError)}
+    ~{[1 2] | vals !| type | eq(::ValsSubjectNotMapError)}
     ~~|
   {:qlang/kind :tag}
 

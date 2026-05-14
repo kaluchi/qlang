@@ -34,7 +34,7 @@
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
-    ~{[] | union !| /thrown | eq(::UnionBareEmptyError)}
+    ~{[] | union !| type | eq(::UnionBareEmptyError)}
     ~~|
   {:qlang/kind :tag}
 

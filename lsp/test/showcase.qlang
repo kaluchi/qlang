@@ -155,7 +155,7 @@ x
 
 |~| Leading !| prefix inside a filter predicate —
 |~| per-element dispatch into the fail-track
-[1 "x" 3] * add(10) | filter(!| /thrown | eq(::AddLeftNotNumberError))
+[1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
 
 |~| Trail continuity across re-lift — | error re-wraps the
 |~| enriched descriptor and a later !| reads the

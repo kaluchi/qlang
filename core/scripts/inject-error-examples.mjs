@@ -1,5 +1,5 @@
 // One-shot script — extract repro queries from conformance JSONLs
-// and inject them as `~{<query> !| /thrown | eq(::Tag)}` Quote
+// and inject them as `~{<query> !| type | eq(::Tag)}` Quote
 // examples into the catalog's `::Tag {:qlang/kind :tag}` doc-prefix.
 //
 // `runExamples(:Tag)` consumes these — each Quote evaluates to a
@@ -53,17 +53,17 @@ function ingestConformance(path) {
 walkConformance(conformanceDir);
 
 // Step 2: pick the shortest repro per tag. Skip queries that
-// already invoke `parse` / `eval` / `!| /thrown` — those are
+// already invoke `parse` / `eval` / `!| type` — those are
 // derivative tests, not direct repros.
 
 function pickRepros(tagName, queries) {
   const direct = queries.filter(q =>
     !q.includes('| parse') && !q.includes('| eval') &&
-    !q.includes('!| /thrown') && !q.includes('!| /')
+    !q.includes('!| type') && !q.includes('!| /')
   );
   const pool = direct.length > 0 ? direct : queries;
   pool.sort((a, b) => a.length - b.length);
-  // The wrapped Quote `<query> !| /thrown | eq(::Tag)` must
+  // The wrapped Quote `<query> !| type | eq(::Tag)` must
   // itself parse cleanly — runExamples evaluates the Quote, and
   // a Quote with unparseable body throws on entry. Test-parse
   // each candidate and drop the unparseable ones. ::ParseError
@@ -72,7 +72,7 @@ function pickRepros(tagName, queries) {
   // belongs in a `<string-source> | parse` form instead.
   const parseable = pool.filter(q => {
     try {
-      parse(`${q} !| /thrown | eq(::${tagName})`, { uri: 'repro-probe' });
+      parse(`${q} !| type | eq(::${tagName})`, { uri: 'repro-probe' });
       return true;
     } catch { return false; }
   });
@@ -108,18 +108,18 @@ function processCatalogFile(path) {
   // Replace the doc-prefix's closing `~~|` with the injected
   // Quote examples followed by `~~|`. Only inject if the tag
   // has conformance queries AND the existing prose doesn't
-  // already contain `!| /thrown | eq(`.
+  // already contain `!| type | eq(`.
 
   const tagRe = /^::([A-Z][A-Za-z0-9_]*)\n  \|~~ ([\s\S]*?) ~~\|\n  (\{:qlang\/kind :tag[^}]*\})/gm;
   src = src.replace(tagRe, (match, tagName, prose, descriptor) => {
     const queries = tagToQueries.get(tagName);
     if (!queries || queries.length === 0) return match;
-    if (prose.includes('!| /thrown | eq(')) return match;
+    if (prose.includes('!| type | eq(')) return match;
     const repros = pickRepros(tagName, queries);
     if (repros.length === 0) return match;
     totalInjected++;
     const injected = repros
-      .map(q => `\n    ~{${q} !| /thrown | eq(::${tagName})}`)
+      .map(q => `\n    ~{${q} !| type | eq(::${tagName})}`)
       .join('');
     const newProse = prose.trimEnd() + injected + '\n   ';
     return `::${tagName}\n  |~~ ${newProse} ~~|\n  ${descriptor}`;

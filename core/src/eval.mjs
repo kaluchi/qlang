@@ -520,23 +520,34 @@ async function evalTaggedLit(node, state) {
     const resultState = await evalNode(bodyAst, bodyState);
     return withPipeValue(state, resultState.pipeValue);
   }
-  // Named-error construction shorthand — `::Tag!{…}` literal where
-  // ::Tag is a registered tag-binding without a `:qlang/impl`
-  // constructor. The payload is already an ErrorValue (evaluated
-  // from the ErrorLit one branch above); re-stamp the descriptor
-  // with `:thrown ::Tag` so the literal round-trips through parse →
-  // eval → print into the same shape `errorFromQlang` produces
-  // from a JS throw site. Universal constructor every named-error
-  // tag-binding shares; per-tag payload validators register
+  // Default error constructor — fires when the tag-binding has no
+  // explicit `:qlang/impl` slot. Builds an ErrorValue whose
+  // descriptor carries `:qlang/kind ::Tag` (the universal tagged-
+  // instance identity) plus the payload-derived fields. Payload
+  // shapes:
+  //
+  //   `::Tag!{…}` (ErrorLit payload → ErrorValue) — descriptor
+  //     fields lift through; tag-identity restamps `:qlang/kind`.
+  //   `::Tag{…}`  (Map payload) — Map entries become the descriptor.
+  //   `::Tag[…]`  (Vec payload) — payload Vec lands under
+  //     `:qlang/payload`.
+  //   scalar / keyword / other — same `:qlang/payload` slot.
+  //
+  // Every catalog tag-binding without `:qlang/impl` (the per-site
+  // error classes declared across `core/lib/qlang/**/*.qlang`) thus
+  // shares one constructor. Per-tag payload validators register
   // through `:qlang/impl` Quote bodies and take precedence at the
-  // `isQuote(implKey)` branch above. Constructor-less non-error
-  // TaggedLits fall through to TagBindingHasNoConstructorError.
-  if (implKey === undefined && isErrorValue(payloadValue)) {
-    const restamped = new Map(payloadValue.descriptor);
-    restamped.set('thrown', makeTagKeyword(node.tag));
-    return withPipeValue(state, makeErrorValue(restamped, {
+  // `isQuote(implKey)` branch above.
+  if (implKey === undefined) {
+    const descriptor = isErrorValue(payloadValue)
+      ? new Map(payloadValue.descriptor)
+      : isQMap(payloadValue)
+        ? new Map(payloadValue)
+        : new Map([['qlang/payload', payloadValue]]);
+    descriptor.set('qlang/kind', makeTagKeyword(node.tag));
+    return withPipeValue(state, makeErrorValue(descriptor, {
       location: node.location,
-      originalError: payloadValue.originalError
+      originalError: isErrorValue(payloadValue) ? payloadValue.originalError : null
     }));
   }
   throw new TagBindingHasNoConstructorError({

@@ -10,7 +10,7 @@
 
 ::AscPairNotMapError
   |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-    ~{42 | asc(/x) !| /thrown | eq(::AscPairNotMapError)}
+    ~{42 | asc(/x) !| type | eq(::AscPairNotMapError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -20,19 +20,19 @@
 
 ::DescPairNotMapError
   |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-    ~{42 | desc(/x) !| /thrown | eq(::DescPairNotMapError)}
+    ~{42 | desc(/x) !| type | eq(::DescPairNotMapError)}
     ~~|
   {:qlang/kind :tag}
 
 ::NullsFirstPairNotMapError
   |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-    ~{42 | nullsFirst(/a) !| /thrown | eq(::NullsFirstPairNotMapError)}
+    ~{42 | nullsFirst(/a) !| type | eq(::NullsFirstPairNotMapError)}
     ~~|
   {:qlang/kind :tag}
 
 ::NullsLastPairNotMapError
   |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
-    ~{42 | nullsLast(/a) !| /thrown | eq(::NullsLastPairNotMapError)}
+    ~{42 | nullsLast(/a) !| type | eq(::NullsLastPairNotMapError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -54,7 +54,7 @@
 
 ::KeywordSubjectNotStringOrKeywordError
   |~~ `keyword` involution requires a String or Keyword subject.
-    ~{42 | keyword !| /thrown !| /thrown | eq(::KeywordSubjectNotStringOrKeywordError)}
+    ~{42 | keyword !| type | eq(::KeywordSubjectNotStringOrKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -129,6 +129,34 @@
         :category :predicate
         :subject :any
         :returns :boolean
+}
+
+:type
+  |~~ Returns the value's identity tag. For tagged values
+    (errors, conduits, snapshots, tagged-instances, Maps
+    carrying `:qlang/kind`) returns the TagKeyword stamped
+    on the value. For scalars and base containers returns
+    the plain Keyword that names the kind (`:number`,
+    `:string`, `:keyword`, `:vec`, `:map`, `:set`, …).
+
+    `result !| type` is the user-facing path to an error's
+    class identity — the materialised descriptor exposed by
+    `!|` is a Map carrying `:qlang/kind ::ErrorTag`, and
+    `type` reads it through the same invariant every other
+    tagged value class shares.
+
+    ~{42 | type | eq(:number)}
+    ~{"hi" | type | eq(:string)}
+    ~{:foo | type | eq(:keyword)}
+    ~{[1 2] | type | eq(:vec)}
+    ~{::conduit[[] ~{42}] | type | eq(::conduit)}
+    ~{"hello" | add(1) !| type | eq(::AddLeftNotNumberError)}
+    ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/type
+         :category :type-classifier
+         :subject :any
+         :returns :keyword
 }
 
 :eq

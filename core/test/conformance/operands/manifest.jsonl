@@ -38,5 +38,5 @@
 {"name":"manifest-tag-namespace-names-prefixed","query":"manifest(:tag) | first | /name | startsWith(\"::\")","expect":"true"}
 {"name":"manifest-value-explicit-matches-bare","query":"manifest(:value) | count | eq(manifest | count)","expect":"true"}
 {"name":"manifest-value-no-tag-bindings","query":"manifest(:value) | filter(/kind | eq(:tag)) | count","expect":"0"}
-{"name":"manifest-namespace-not-keyword","query":"manifest(\"tag\") !| /thrown","expect":"::ManifestNamespaceNotKeywordError"}
-{"name":"manifest-namespace-unknown","query":"manifest(:wat) !| /thrown","expect":"::ManifestNamespaceUnknownError"}
+{"name":"manifest-namespace-not-keyword","query":"manifest(\"tag\") !| type","expect":"::ManifestNamespaceNotKeywordError"}
+{"name":"manifest-namespace-unknown","query":"manifest(:wat) !| type","expect":"::ManifestNamespaceUnknownError"}

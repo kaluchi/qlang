@@ -4,18 +4,22 @@ import {
   TAG_BINDING_PREFIX
 } from './types.mjs';
 
-// Descriptor field-order: high-entropy first. `:thrown` TagKeyword
-// names the per-site identity; `:fault` carries the runtime
+// Descriptor field-order: high-entropy first. `:qlang/kind`
+// TagKeyword names the per-site identity (the same invariant
+// every tagged-instance value-class carries — conduit, snapshot,
+// qlang, json, user `::Foo[…]`); `:fault` carries the runtime
 // step + input that triggered the throw; per-invocation context
 // (`:actualValue` / `:actualType` / Comparability pair-fields)
 // follows. Lower-entropy taxonomy (`:operand`, `:position`,
 // `:expectedType`, `:origin`, `:kind`, `:message`) trails — those
 // are derivable from the tag-binding's catalog declaration and
-// reachable via `::Tag | docs / spec / source` hypertext navigation,
-// but stamped here too so programmatic projections (`!| /operand`,
-// `!| /kind`) work without an extra round-trip through axis-operands.
+// reachable via `::Tag | docs / source` hypertext navigation, but
+// stamped here too so programmatic projections work without a
+// round-trip through axis-operands. Identity is surfaced through
+// the `type` operand (`result !| type | eq(::Foo)`), which reads
+// `:qlang/kind` off the descriptor.
 const RUNTIME_FIELD_ORDER = [
-  'thrown', 'fault',
+  'qlang/kind', 'fault',
   'payloadValue', 'payloadType',
   'actualValue', 'actualType',
   'leftValue', 'leftType', 'rightValue', 'rightType',
@@ -52,11 +56,11 @@ function liftIdentifier(k, v) {
 
 export function errorFromQlang(qlangError, fault) {
   const d = new Map();
-  d.set('thrown', makeTagKeyword(qlangError.fingerprint ?? qlangError.name));
+  d.set('qlang/kind', makeTagKeyword(qlangError.fingerprint ?? qlangError.name));
   d.set('fault', fault);
   const ctx = qlangError.context ?? {};
   for (const k of RUNTIME_FIELD_ORDER) {
-    if (k === 'thrown' || k === 'fault') continue;
+    if (k === 'qlang/kind' || k === 'fault') continue;
     if (k in ctx && ctx[k] !== undefined) d.set(k, liftIdentifier(k, ctx[k]));
   }
   for (const [k, v] of Object.entries(ctx)) {
@@ -69,7 +73,7 @@ export function errorFromQlang(qlangError, fault) {
   // No `:message` stamp — the structured per-site fields
   // (`:operand`, `:position`, `:expectedType`, `:actualType`, …)
   // carry every input the JS-side template would re-format, the
-  // class identity (TagKeyword `:thrown`) carries the template
+  // class identity TagKeyword on `:qlang/kind` carries the template
   // itself, and `::Tag | docs` resolves the canonical prose via
   // hypertext navigation. Stamping the redundant prose string
   // here would mean printValue's tag-head elision and a JSONL
@@ -88,7 +92,7 @@ export function errorFromParse(parseError) {
   // taxonomy trail, since they are derivable / less-load-bearing for
   // a human reading the diagnostic.
   const d = new Map();
-  d.set('thrown', makeTagKeyword('ParseError'));
+  d.set('qlang/kind', makeTagKeyword('ParseError'));
   if (parseError.source != null && parseError.location) {
     const excerpt = excerptAroundLocation(parseError.source, parseError.location);
     if (excerpt !== null) {
@@ -205,9 +209,9 @@ const WELL_KNOWN_PROPS = [
 
 export function errorFromForeign(jsError, astNode, fault) {
   const d = new Map();
+  d.set('qlang/kind', makeTagKeyword(jsError.name));
   d.set('origin', keyword('host'));
   d.set('kind', keyword('foreign-error'));
-  d.set('thrown', makeTagKeyword(jsError.name));
   d.set('message', jsError.message);
 
   for (const prop of WELL_KNOWN_PROPS) {
@@ -224,8 +228,8 @@ export function errorFromForeign(jsError, astNode, fault) {
     let current = jsError.cause;
     while (current instanceof Error && causes.length < 8) {
       const m = new Map();
+      m.set('qlang/kind', makeTagKeyword(current.name));
       m.set('message', current.message);
-      m.set('thrown', makeTagKeyword(current.name));
       causes.push(m);
       current = current.cause;
     }
@@ -251,7 +255,7 @@ function coerce(v, depth = 0) {
   if (v instanceof Error) {
     const m = new Map();
     m.set('message', v.message);
-    m.set('thrown', makeTagKeyword(v.name));
+    m.set('qlang/kind', makeTagKeyword(v.name));
     return m;
   }
   if (t === 'object') {

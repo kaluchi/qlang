@@ -16,7 +16,7 @@ describe('error operand', () => {
   });
 
   it('bare form on non-Map produces ErrorDescriptorNotMapError', async () => {
-    const evalResult = await evalQuery('42 | error !| /thrown');
+    const evalResult = await evalQuery('42 | error !| type');
     expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMapError'));
   });
 });

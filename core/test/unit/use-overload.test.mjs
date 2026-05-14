@@ -35,7 +35,7 @@ describe('use(Set) detects collision', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('nsA', new Map([['x', 1]]));
     sessionInstance.bind('nsB', new Map([['x', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use(#{:nsA :nsB}) !| /thrown');
+    const cellEntry = await sessionInstance.evalCell('use(#{:nsA :nsB}) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceCollisionError'));
   });
 });
@@ -53,7 +53,7 @@ describe('use(:ns, filter) selective import', () => {
   it('rejects missing export → UseNameNotExportedError', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('myNs', new Map([['foo', 10]]));
-    const cellEntry = await sessionInstance.evalCell('use(:myNs, [:missing]) !| /thrown');
+    const cellEntry = await sessionInstance.evalCell('use(:myNs, [:missing]) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNameNotExportedError'));
   });
 });
@@ -63,7 +63,7 @@ describe('use(:ns, filter) selective import', () => {
 describe('use(:missing) → UseNamespaceNotFoundError', () => {
   it('produces UseNamespaceNotFoundError when namespace not in env', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use(:missing) !| /thrown');
+    const cellEntry = await sessionInstance.evalCell('use(:missing) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 });
@@ -74,7 +74,7 @@ describe('use(:ns) where ns is not Map → UseNamespaceNotMapError', () => {
   it('produces UseNamespaceNotMapError when namespace bound to non-Map value', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('notMap', 42);
-    const cellEntry = await sessionInstance.evalCell('use(:notMap) !| /thrown');
+    const cellEntry = await sessionInstance.evalCell('use(:notMap) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotMapError'));
   });
 });
@@ -83,7 +83,7 @@ describe('use(:ns) where ns is not Map → UseNamespaceNotMapError', () => {
 
 describe('use(non-keyword) → type-error', () => {
   it('produces UseNamespaceNotKeywordError error for numeric argument', async () => {
-    const evalResult = await evalQuery('use(42) !| /thrown');
+    const evalResult = await evalQuery('use(42) !| type');
     expect(evalResult).toEqual(makeTagKeyword('UseNamespaceNotKeywordError'));
   });
 });
@@ -94,7 +94,7 @@ describe('use Vec with non-keyword element → UseNamespaceElementNotKeywordErro
   it('produces UseNamespaceElementNotKeywordError for non-keyword in Vec', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('ns1', new Map([['a', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use([:ns1 42]) !| /thrown');
+    const cellEntry = await sessionInstance.evalCell('use([:ns1 42]) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceElementNotKeywordError'));
   });
 });
@@ -111,7 +111,7 @@ describe('use Set without collision succeeds', () => {
 
 describe('use arity-2 with non-keyword namespace', () => {
   it('produces UseNamespaceNotKeywordError', async () => {
-    const evalResult = await evalQuery('use(42, #{:x}) !| /thrown');
+    const evalResult = await evalQuery('use(42, #{:x}) !| type');
     expect(evalResult.name).toBe('UseNamespaceNotKeywordError');
   });
 });

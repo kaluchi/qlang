@@ -6,25 +6,25 @@
 
 ::FirstSubjectNotVecError
   |~~ Subject of `first` must be Vec.
-    ~{42 | first !| /thrown | eq(::FirstSubjectNotVecError)}
+    ~{42 | first !| type | eq(::FirstSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::FirstNonZeroElementNotNumberError
   |~~ Element of `firstNonZero` input collection must be Number.
-    ~{[0 null 1] | firstNonZero !| /thrown | eq(::FirstNonZeroElementNotNumberError)}
+    ~{[0 null 1] | firstNonZero !| type | eq(::FirstNonZeroElementNotNumberError)}
     ~~|
   {:qlang/kind :tag}
 
 ::FirstNonZeroSubjectNotVecError
   |~~ Subject of `firstNonZero` must be Vec.
-    ~{42 | firstNonZero !| /thrown | eq(::FirstNonZeroSubjectNotVecError)}
+    ~{42 | firstNonZero !| type | eq(::FirstNonZeroSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::LastSubjectNotVecError
   |~~ Subject of `last` must be Vec.
-    ~{42 | last !| /thrown | eq(::LastSubjectNotVecError)}
+    ~{42 | last !| type | eq(::LastSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -46,7 +46,7 @@
 
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
-    ~{[1 "two" 3] | sum !| /thrown | eq(::SumElementNotNumberError)}
+    ~{[1 "two" 3] | sum !| type | eq(::SumElementNotNumberError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -56,25 +56,25 @@
 
 ::AtIndexNotIntegerError
   |~~ Captured argument at position 2 of `at` must be Integer.
-    ~{[1 2 3] | at(0.5) !| /thrown | eq(::AtIndexNotIntegerError)}
+    ~{[1 2 3] | at(0.5) !| type | eq(::AtIndexNotIntegerError)}
     ~~|
   {:qlang/kind :tag}
 
 ::AtKeyNotStringError
   |~~ Captured argument at position 2 of `at` must be String.
-    ~{{:a 1} | at(42) !| /thrown !| /thrown | eq(::AtKeyNotStringError)}
+    ~{{:a 1} | at(42) !| type | eq(::AtKeyNotStringError)}
     ~~|
   {:qlang/kind :tag}
 
 ::AtSubjectNotVecOrMapError
   |~~ Subject of `at` must be Vec or Map.
-    ~{42 | at(0) !| /thrown | eq(::AtSubjectNotVecOrMapError)}
+    ~{42 | at(0) !| type | eq(::AtSubjectNotVecOrMapError)}
     ~~|
   {:qlang/kind :tag}
 
 ::DistinctSubjectNotVecError
   |~~ Subject of `distinct` must be Vec.
-    ~{42 | distinct !| /thrown | eq(::DistinctSubjectNotVecError)}
+    ~{42 | distinct !| type | eq(::DistinctSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -84,43 +84,43 @@
 
 ::DropSubjectNotVecError
   |~~ Subject of `drop` must be Vec.
-    ~{42 | drop(1) !| /thrown | eq(::DropSubjectNotVecError)}
+    ~{42 | drop(1) !| type | eq(::DropSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::FlatSubjectNotVecError
   |~~ Subject of `flat` must be Vec.
-    ~{42 | flat !| /thrown | eq(::FlatSubjectNotVecError)}
+    ~{42 | flat !| type | eq(::FlatSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::GroupByKeyNotKeywordError
   |~~ `groupBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
-    ~{[{:k 1} {:k 2}] | groupBy(/k) !| /thrown | eq(::GroupByKeyNotKeywordError)}
+    ~{[{:k 1} {:k 2}] | groupBy(/k) !| type | eq(::GroupByKeyNotKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
 ::GroupBySubjectNotVecError
   |~~ Subject of `groupBy` must be Vec.
-    ~{42 | groupBy(/k) !| /thrown | eq(::GroupBySubjectNotVecError)}
+    ~{42 | groupBy(/k) !| type | eq(::GroupBySubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::IndexByKeyNotKeywordError
   |~~ `indexBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
-    ~{[{:k 1}] | indexBy(/k) !| /thrown | eq(::IndexByKeyNotKeywordError)}
+    ~{[{:k 1}] | indexBy(/k) !| type | eq(::IndexByKeyNotKeywordError)}
     ~~|
   {:qlang/kind :tag}
 
 ::IndexBySubjectNotVecError
   |~~ Subject of `indexBy` must be Vec.
-    ~{42 | indexBy(/k) !| /thrown | eq(::IndexBySubjectNotVecError)}
+    ~{42 | indexBy(/k) !| type | eq(::IndexBySubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::ReverseSubjectNotVecError
   |~~ Subject of `reverse` must be Vec.
-    ~{42 | reverse !| /thrown | eq(::ReverseSubjectNotVecError)}
+    ~{42 | reverse !| type | eq(::ReverseSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -138,19 +138,19 @@
 
 ::SortNaturalSubjectNotVecError
   |~~ Subject of `sort` must be Vec.
-    ~{42 | sort !| /thrown | eq(::SortNaturalSubjectNotVecError)}
+    ~{42 | sort !| type | eq(::SortNaturalSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
 ::SortWithCmpResultNotNumberError
   |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
-    ~{[1 2] | sortWith(:tag) !| /thrown | eq(::SortWithCmpResultNotNumberError)}
+    ~{[1 2] | sortWith(:tag) !| type | eq(::SortWithCmpResultNotNumberError)}
     ~~|
   {:qlang/kind :tag}
 
 ::SortWithSubjectNotVecError
   |~~ Subject of `sortWith` must be Vec.
-    ~{42 | sortWith(asc(/x)) !| /thrown | eq(::SortWithSubjectNotVecError)}
+    ~{42 | sortWith(asc(/x)) !| type | eq(::SortWithSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 
@@ -160,7 +160,7 @@
 
 ::TakeSubjectNotVecError
   |~~ Subject of `take` must be Vec.
-    ~{42 | take(1) !| /thrown | eq(::TakeSubjectNotVecError)}
+    ~{42 | take(1) !| type | eq(::TakeSubjectNotVecError)}
     ~~|
   {:qlang/kind :tag}
 

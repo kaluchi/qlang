@@ -106,49 +106,79 @@ describe('TaggedLit error paths', () => {
   it('raises TaggedLitTagNotFoundError when an unbound tag is invoked as a constructor', async () => {
     const err = await evalQuery('::unboundTag[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
   });
 
   it('raises TaggedLitNotTagBindingError when tag-binding resolves to a non-Map value', async () => {
     const err = await evalQuery('::badType 42 | ::badType[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitNotTagBindingError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('TaggedLitNotTagBindingError'));
   });
 
   it('::conduit raises ConduitPayloadNotVecError when payload is not a Vec', async () => {
     const err = await evalQuery('::conduit{:not :a-vec}');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitPayloadNotVecError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ConduitPayloadNotVecError'));
   });
 
   it('::conduit raises ConduitArityInvalidError for 1-element payload', async () => {
     const err = await evalQuery('::conduit[42]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitArityInvalidError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ConduitArityInvalidError'));
   });
 
   it('::conduit raises ConduitSelfNameNotKeywordError for 3-element payload with non-keyword selfName', async () => {
     const err = await evalQuery('::conduit[42 [] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitSelfNameNotKeywordError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ConduitSelfNameNotKeywordError'));
   });
 
   it('::conduit raises ConduitParamsNotVecError when params slot is not a Vec', async () => {
     const err = await evalQuery('::conduit[42 ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitParamsNotVecError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ConduitParamsNotVecError'));
   });
 
   it('::conduit raises ConduitParamNotKeywordError when a params element is not a Keyword', async () => {
     const err = await evalQuery('::conduit[[42] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitParamNotKeywordError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ConduitParamNotKeywordError'));
   });
 
   it('::conduit raises ConduitBodyNotQuoteError when body is not a Quote', async () => {
     const err = await evalQuery('::conduit[[] 42]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ConduitBodyNotQuoteError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ConduitBodyNotQuoteError'));
+  });
+});
+
+describe('default error constructor — tag-binding without :qlang/impl', () => {
+  it('Map payload becomes the descriptor directly', async () => {
+    const { isErrorValue } = await import('../../src/types.mjs');
+    const err = await evalQuery('::AddLeftNotNumberError{:custom "field" :note 42}');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(err.descriptor.get('custom')).toBe('field');
+    expect(err.descriptor.get('note')).toBe(42);
+  });
+
+  it('Vec payload lands under :qlang/payload slot', async () => {
+    const { isErrorValue } = await import('../../src/types.mjs');
+    const err = await evalQuery('::AddLeftNotNumberError[1 2 3]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(err.descriptor.get('qlang/payload')).toEqual([1, 2, 3]);
+  });
+
+  it('ParenGroup-wrapped scalar payload lands under :qlang/payload slot', async () => {
+    // TaggedLit grammar `::tag payload:Primary` requires the payload
+    // immediately after the tag (no whitespace) — bare scalars need
+    // a ParenGroup wrap (`::tag(42)`) so the grammar reads them as
+    // the payload rather than a separate next step.
+    const { isErrorValue } = await import('../../src/types.mjs');
+    const err = await evalQuery('::AddLeftNotNumberError(42)');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.descriptor.get('qlang/payload')).toBe(42);
   });
 });
 
@@ -269,6 +299,6 @@ describe('User-defined tag binding with Quote :qlang/impl', () => {
       '::bad {:qlang/kind :tag :qlang/impl 42} | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));
   });
 });

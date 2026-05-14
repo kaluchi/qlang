@@ -33,7 +33,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
   it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {
     const err = await evalQuery('42 | runExamples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
   });
 });
 

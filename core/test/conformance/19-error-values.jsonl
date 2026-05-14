@@ -23,7 +23,7 @@
 {"name":"trail-materialised-at-query-boundary-single-deflection","query":"\"1\" | add(1) | mul(3) !| /trail","expect":"~{| mul(3)}"}
 {"name":"trail-materialised-at-query-boundary-multi-deflection","query":"\"x\" | add(1) | mul(3) | count !| /trail","expect":"~{| mul(3) | count}"}
 {"name":"runtime-error-kind","query":"\"hello\" | add(1) !| /kind","expect":":type-error"}
-{"name":"runtime-error-thrown","query":"\"hello\" | add(1) !| /thrown","expect":"::AddLeftNotNumberError"}
+{"name":"runtime-error-thrown","query":"\"hello\" | add(1) !| type","expect":"::AddLeftNotNumberError"}
 {"name":"runtime-error-origin","query":"\"hello\" | add(1) !| /origin","expect":":qlang/eval"}
 {"name":"runtime-div-zero-kind","query":"10 | div(0) !| /kind","expect":":division-by-zero"}
 {"name":"runtime-unresolved-kind","query":"blah !| /kind","expect":":unresolved-identifier"}
@@ -34,7 +34,7 @@
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union({:stage 1}) | error | add(1) !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :fault {:step ~{/text} :input ~{| count | add(1)}}\n  :actualValue ~{| count | add(1)}\n  :actualType :quote\n  :expectedType :vec\n  :operand :\"*\"\n  :position :subject\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union({:request \"r-1\"}) | error | count !| /request","expect":"\"r-1\""}
 {"name":"leading-fail-apply-in-filter-predicate","query":"[1 \"x\" 3] * add(10) | filter(!| /kind | eq(:type-error)) | count","expect":"1"}
-{"name":"leading-fail-apply-filter-by-error-kind","query":"[1 \"x\" 3 \"y\"] * add(10) | filter(!| /thrown | eq(::AddLeftNotNumberError)) | count","expect":"2"}
+{"name":"leading-fail-apply-filter-by-error-kind","query":"[1 \"x\" 3 \"y\"] * add(10) | filter(!| type | eq(::AddLeftNotNumberError)) | count","expect":"2"}
 {"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add(1) !| union({:trail []}) | error !| /trail","expect":"[]"}
 {"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [\"pre-1\" \"pre-2\"]} !| /trail","expect":"[\"pre-1\" \"pre-2\"]"}
 {"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:text \"pre\"}]} | count !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :fault {:step ~{/text} :input ~{undefined | count}}\n  :actualValue ~{undefined | count}\n  :actualType :quote\n  :expectedType :vec\n  :operand :\"*\"\n  :position :subject\n  :origin :qlang/eval\n  :kind :type-error\n}"}

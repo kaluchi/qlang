@@ -3,7 +3,7 @@
 // Every operand error site the cli binds lifts its throw onto the
 // fail-track as a qlang error value. The lift stores the class name
 // under the descriptor's `:thrown` keyword (for qlang-visible
-// diagnostics — `!| /thrown` projects to `:OutSubjectNotStringError` and
+// diagnostics — `!| type` projects to `:OutSubjectNotStringError` and
 // the like) and preserves the original JS instance in the opaque
 // `originalError` slot on the error value (not qlang-visible — for
 // host-boundary re-throwing and for these assertions).
@@ -43,7 +43,7 @@ export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedC
   const errorValue = cellEntry.result;
   expect(errorValue?.type, 'cellEntry.result must be an error value').toBe('error');
 
-  const thrownKeyword = errorValue.descriptor.get('thrown');
+  const thrownKeyword = errorValue.descriptor.get('qlang/kind');
   expect(thrownKeyword?.type, ':thrown must be a TagKeyword').toBe('tagKeyword');
   expect(thrownKeyword.name).toBe(expectedClassName);
 

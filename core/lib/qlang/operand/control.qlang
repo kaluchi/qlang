@@ -6,19 +6,19 @@
 
 ::CoalesceNoAlternativesError
   |~~ `coalesce` requires at least one captured alternative sub-pipeline.
-    ~{{} | coalesce() !| /thrown | eq(::CoalesceNoAlternativesError)}
+    ~{{} | coalesce() !| type | eq(::CoalesceNoAlternativesError)}
     ~~|
   {:qlang/kind :tag}
 
 ::CondNoBranchesError
   |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
-    ~{5 | cond() !| /thrown | eq(::CondNoBranchesError)}
+    ~{5 | cond() !| type | eq(::CondNoBranchesError)}
     ~~|
   {:qlang/kind :tag}
 
 ::FirstTruthyNoAlternativesError
   |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
-    ~{{} | firstTruthy() !| /thrown | eq(::FirstTruthyNoAlternativesError)}
+    ~{{} | firstTruthy() !| type | eq(::FirstTruthyNoAlternativesError)}
     ~~|
   {:qlang/kind :tag}
 

@@ -13,7 +13,7 @@
 {"name":"quote-ast-lazy-parse-name","query":"~{mul(2)} | /ast | /name","expect":"\"mul\""}
 {"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:qlang/kind","expect":":Pipeline"}
 {"name":"quote-ast-unparseable-content-returns-null","query":"~{ , } | /ast","expect":"null"}
-{"name":"apply-unparseable-quote-raises-parse-error","query":"~{ , } | apply(42) !| /thrown","expect":"::ParseError"}
+{"name":"apply-unparseable-quote-raises-parse-error","query":"~{ , } | apply(42) !| type","expect":"::ParseError"}
 {"name":"isQuote-literal-true","query":"~{mul(2)} | isQuote","expect":"true"}
 {"name":"isQuote-string-false","query":"\"mul(2)\" | isQuote","expect":"false"}
 {"name":"isQuote-number-false","query":"42 | isQuote","expect":"false"}

@@ -23,7 +23,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
     });
-    const cellEntry = await session.evalCell('use(:tests/scalar-only) | :missing | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/scalar-only) | :missing | source !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
   });
 
@@ -85,13 +85,13 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('non-keyword subject raises SourceSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });
 
   it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('{:qlang/kind :tag :qlang/impl :unbound} | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });
 });
 
@@ -110,13 +110,13 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
   it('non-keyword subject raises DocsSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
   });
 
   it('unknown binding raises AxisBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
   });
 });
 
@@ -130,13 +130,13 @@ describe(':name | examples extracts Quote segments from docs', () => {
   it('non-keyword subject raises ExamplesSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
   });
 
   it('unknown binding raises AxisBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
   });
 });
 
@@ -216,7 +216,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: 'count' })
     });
-    const cellEntry = await session.evalCell('use(:tests/non-binding) | :missing | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/non-binding) | :missing | source !| type');
     expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
   });
 
@@ -229,7 +229,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: '42 | as()' })
     });
-    const cellEntry = await session.evalCell('use(:tests/zero) | :nonexistentBinding | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/zero) | :nonexistentBinding | source !| type');
     expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
   });
 
@@ -239,7 +239,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/other) | :notHere | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/other) | :notHere | source !| type');
     expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
   });
 
@@ -253,7 +253,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| /thrown');
+    const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| type');
     expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
   });
 });

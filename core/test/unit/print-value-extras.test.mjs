@@ -121,16 +121,16 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(printValue(err)).toBe('!{}');
   });
 
-  it('a tag-headed error with only :thrown survives the payload filter as ::Tag!{}', async () => {
+  it('a tag-headed error with only :qlang/kind survives the payload filter as ::Tag!{}', async () => {
     const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
-    const err = makeErrorValue(new Map([['thrown', makeTagKeyword('Foo')]]));
+    const err = makeErrorValue(new Map([['qlang/kind', makeTagKeyword('Foo')]]));
     expect(printValue(err)).toBe('::Foo!{}');
   });
 
-  it('a tag-headed error renders the payload after the head, suppressing :thrown duplication', async () => {
+  it('a tag-headed error renders the payload after the head, suppressing :qlang/kind duplication', async () => {
     const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
-      ['thrown', makeTagKeyword('Foo')],
+      ['qlang/kind', makeTagKeyword('Foo')],
       ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
     expect(printValue(err)).toBe('::Foo!{:kind :oops}');
@@ -139,7 +139,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
   it('a tag-headed error elides :message (template-fill reachable via ::Tag | docs)', async () => {
     const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
-      ['thrown', makeTagKeyword('Foo')],
+      ['qlang/kind', makeTagKeyword('Foo')],
       ['message', 'template-derivable prose'],
       ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));

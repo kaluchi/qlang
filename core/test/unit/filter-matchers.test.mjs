@@ -95,7 +95,7 @@ describe('filter — container polymorphism', () => {
     // the captured-arg identifier is not in env, so conduit resolution
     // returns null and the per-value predLambda path runs; the lookup
     // error then surfaces on the fail-track.
-    const errorValue = await evalQuery('{:a 1} | filter(unknownPred) !| /thrown');
+    const errorValue = await evalQuery('{:a 1} | filter(unknownPred) !| type');
     expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 
@@ -118,7 +118,7 @@ describe('filter — container polymorphism', () => {
     const errorValue = await evalQuery(
       ':@hot [:k :v] (v | gt(0)) '
       + '| env | /@hot | as(:clean) '
-      + '| {:a 1 :b 2} | filter(clean) !| /thrown'
+      + '| {:a 1 :b 2} | filter(clean) !| type'
     );
     expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCallError'));
   });

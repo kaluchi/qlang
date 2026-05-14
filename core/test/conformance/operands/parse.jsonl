@@ -13,4 +13,4 @@
 {"name":"parse-quote-subject-kind","query":"~{5 | mul(2)} | parse | /:qlang/kind","expect":":Pipeline"}
 {"name":"parse-malformed-source-kind","query":"\"this is bad [\" | parse !| /kind","expect":":parse-error"}
 {"name":"parse-malformed-source-origin","query":"\"this is bad [\" | parse !| /origin","expect":":qlang/parse"}
-{"name":"parse-malformed-source-thrown","query":"\"this is bad [\" | parse !| /thrown","expect":"::ParseError"}
+{"name":"parse-malformed-source-thrown","query":"\"this is bad [\" | parse !| type","expect":"::ParseError"}

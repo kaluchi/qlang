@@ -36,7 +36,7 @@ async function walkManifestExamples() {
     }
   }
   // Tag-namespace bindings — error tags carry repro Quotes
-  // (`<query> !| /thrown | eq(::TagName)`) injected from
+  // (`<query> !| type | eq(::TagName)`) injected from
   // conformance JSONLs; runExamples evaluates each to true.
   const tagNames = await evalQuery('manifest(:tag) * /name');
   for (const name of tagNames) {

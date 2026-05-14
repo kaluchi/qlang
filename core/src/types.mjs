@@ -497,10 +497,25 @@ export function typeKeyword(v) {
   if (isSnapshot(v)) return makeTagKeyword('snapshot');
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
-  if (isTaggedInstance(v)) return makeTagKeyword(v.get('qlang/kind').name);
-  if (isQMap(v)) return keyword('map');
+  if (isQMap(v)) {
+    // Identity-via-`:qlang/kind` invariant — every tagged Map
+    // (tagged-instance constructor result, materialised error
+    // descriptor exposed under `!|`, user `{:qlang/kind ::Foo …}`)
+    // surfaces its TagKeyword as identity. Maps without the slot
+    // keep the generic `:map` keyword.
+    const mapKind = v.get('qlang/kind');
+    if (isTagKeyword(mapKind)) return mapKind;
+    return keyword('map');
+  }
   if (isQSet(v)) return keyword('set');
-  if (isErrorValue(v)) return keyword('error');
+  // Error values carry their class identity in `:qlang/kind` (a
+  // TagKeyword), same invariant as every other tagged-instance.
+  // The `type` operand surfaces it as the value's user-facing
+  // identity.
+  if (isErrorValue(v)) {
+    const kind = v.descriptor.get('qlang/kind');
+    return isTagKeyword(kind) ? kind : keyword('error');
+  }
   if (isFunctionValue(v)) return keyword('function');
   if (isJsonObject(v)) return keyword('json-object');
   return keyword('unknown');

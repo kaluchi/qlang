@@ -49,7 +49,7 @@ describe('use without a locator in env raises UseNamespaceNotFoundError', () => 
     // explicit no-locator throw branch in resolveNamespaceEnv.
     const env = new Map(await langRuntime());
     env.delete(RUNTIME_LOCATOR_KEY);
-    const result = await evalQuery('use(:absolutely-nonexistent-namespace) !| /thrown', env);
+    const result = await evalQuery('use(:absolutely-nonexistent-namespace) !| type', env);
     expect(result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 });

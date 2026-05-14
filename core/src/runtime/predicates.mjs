@@ -19,7 +19,7 @@
 // Meta lives in lib/qlang/core.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import { isTruthy, describeType } from '../types.mjs';
+import { isTruthy, describeType, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
@@ -65,6 +65,17 @@ export const or = valueOp('or', 2, (a, b) => isTruthy(a) || isTruthy(b));
 
 export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 
+// `type` — pipeline-time axis on value identity. Returns the
+// TagKeyword for tagged values (errors, conduits, snapshots,
+// tagged-instances) and the plain Keyword for scalars and base
+// containers. The single user-facing path to a value's identity
+// tag — symmetric to how `:foo | source` / `| docs` / `| examples`
+// are the user-facing path to binding-namespace metadata. Sat
+// behind `reify | /type` until now; promoted to its own operand
+// so error-track handling reads as `result !| type | eq(::Foo)`
+// instead of the projection-as-field shape `!| type`.
+export const type = nullaryOp('type', (subject) => typeKeyword(subject));
+
 // ── Type-classifier nullary operands ───────────────────────────
 // Every qlang value produces `true` from exactly one classifier.
 // Each classifier asks `describeType` for a single label — the
@@ -94,6 +105,7 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/lte', lte);
 PRIMITIVE_REGISTRY.bind('qlang/prim/and', and);
 PRIMITIVE_REGISTRY.bind('qlang/prim/or',  or);
 PRIMITIVE_REGISTRY.bind('qlang/prim/not', not);
+PRIMITIVE_REGISTRY.bind('qlang/prim/type', type);
 PRIMITIVE_REGISTRY.bind('qlang/prim/isString',  isString);
 PRIMITIVE_REGISTRY.bind('qlang/prim/isNumber',  isNumber);
 PRIMITIVE_REGISTRY.bind('qlang/prim/isVec',     isVec);

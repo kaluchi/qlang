@@ -49,8 +49,19 @@
     }
   },
   "imports": {
-    "#qlang/core": "./lib/qlang/core.qlang",
-    "#qlang/error/registry": "./lib/qlang/error/registry.qlang",
+    "#qlang/core":                "./lib/qlang/core.qlang",
+    "#qlang/runtime-invariants":  "./lib/qlang/runtime-invariants.qlang",
+    "#qlang/tag":                 "./lib/qlang/tag.qlang",
+    "#qlang/operand/arith":       "./lib/qlang/operand/arith.qlang",
+    "#qlang/operand/vec":         "./lib/qlang/operand/vec.qlang",
+    "#qlang/operand/container":   "./lib/qlang/operand/container.qlang",
+    "#qlang/operand/set-op":      "./lib/qlang/operand/set-op.qlang",
+    "#qlang/operand/map-op":      "./lib/qlang/operand/map-op.qlang",
+    "#qlang/operand/string":      "./lib/qlang/operand/string.qlang",
+    "#qlang/operand/predicate":   "./lib/qlang/operand/predicate.qlang",
+    "#qlang/operand/control":     "./lib/qlang/operand/control.qlang",
+    "#qlang/operand/format":      "./lib/qlang/operand/format.qlang",
+    "#qlang/operand/reflective":  "./lib/qlang/operand/reflective.qlang",
     "#qlang/load-source": {
       "node": "./host/load-source-node.mjs",
       "default": "./src/load-source-web.mjs"

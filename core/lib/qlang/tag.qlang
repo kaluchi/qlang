@@ -1,0 +1,61 @@
+|~ Value-class tag-bindings — ::conduit, ::qlang, ::json. Each
+   declares :qlang/kind :tag plus a :qlang/impl keyword pointing
+   into PRIMITIVE_REGISTRY at the JS-side constructor that builds
+   the corresponding value-class instance from a payload. ~|
+
+::conduit
+  |~~ Conduit literal — invokeable lexically-scoped value carrying
+    a frozen body AST plus optional self-name and parameter list.
+    Payload Vec shape:
+      [params body]            — non-recursive, params is a Vec
+                                 of Keywords, body is a Quote.
+      [:self params body]      — with self-name for recursion;
+                                 inside body the identifier
+                                 matching :self resolves to the
+                                 conduit itself.
+    Body Quote source is parsed at construction time; the
+    returned Conduit-value captures the env at the call site
+    through a tie-the-knot envRef so recursive references resolve
+    against the lexical scope.
+
+    ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
+    ~~|
+  {:qlang/kind :tag
+                  :qlang/impl :qlang/type/conduit
+                  :spec {:payload :vec}
+                  :throws [
+                    ::ConduitPayloadNotVecError
+                    ::ConduitArityInvalidError
+                    ::ConduitSelfNameNotKeywordError
+                    ::ConduitParamsNotVecError
+                    ::ConduitParamNotKeywordError
+                    ::ConduitBodyNotQuoteError]}
+
+::qlang
+  |~~ ::qlang<json-shape> — recursively convert a JSON-shape
+    payload (plain object → qlang Map with keyword keys, plain
+    array → qlang Vec) down through every nested level. Scalars,
+    keywords, sets, and errors pass through unchanged — only
+    the container shape is touched.
+
+    ~{::qlang{"k" "v"} | isMap | eq(true)}
+    ~~|
+  {:qlang/kind :tag
+                :qlang/impl :qlang/type/qlang
+                :spec {:payload :any}
+                :throws []}
+
+::json
+  |~~ ::json<qlang-shape> — recursively convert a qlang-shape
+    payload (qlang Map → JSON Object, qlang Vec → JSON Array;
+    both stamped with the appropriate JSON_*_TAG Symbol so
+    isJsonObject / isJsonArray identify them) down through
+    every nested level. Scalars, keywords, sets, and errors
+    pass through unchanged.
+
+    ~{::json{:k "v"} | isJsonObject | eq(true)}
+    ~~|
+  {:qlang/kind :tag
+               :qlang/impl :qlang/type/json
+               :spec {:payload :any}
+               :throws []}

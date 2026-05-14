@@ -1,0 +1,59 @@
+|~ qlang operand catalog — format family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::TableRowNotMapError
+  |~~ Element of `table` input collection must be Map. ~~|
+  {:qlang/kind :tag}
+
+::TableSubjectNotVecError
+  |~~ Subject of `table` must be Vec. ~~|
+  {:qlang/kind :tag}
+
+:json
+  |~~ Returns a JSON string representation of the subject.
+    Keywords are emitted as colon-prefixed strings, Sets as JSON
+    arrays, Maps as JSON objects with Keyword names as keys. ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/json
+         :category :format
+         :subject :any
+         :returns :string
+         :modifiers []
+         :throws []}
+
+:qlang
+  |~~ Recursively converts JSON shape to qlang shape. JsonObject
+    becomes a qlang Map keyed by the same string keys; JsonArray
+    becomes a qlang Vec. Scalars and qlang-only values pass
+    through unchanged. Idempotent: applying to an already-qlang
+    value returns the same shape. The literal-time pendant is the
+    `::qlang<payload>` TaggedLit constructor.
+
+    ~{::json{"a" : 1} | qlang | isMap | eq(true)}
+    ~{::json[1, 2] | qlang | isVec | eq(true)}
+    ~{{:a 1} | qlang | isMap | eq(true)}
+    ~{[1 2 3] | qlang | isVec | eq(true)}
+    ~{42 | qlang | eq(42)} ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/qlang
+         :category :json-bridge
+         :subject :any
+         :returns :any
+         :modifiers []
+         :throws []}
+
+:table
+  |~~ Renders a Vec of Maps as a fixed-width tabular string.
+    Columns are derived from keys in first-occurrence order
+    across all rows; missing keys render as empty cells.
+    Empty Vec yields the marker "(empty)". ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/table
+          :category :format
+          :subject :vec
+          :returns :string
+          :modifiers []
+          :throws [::TableSubjectNotVecError ::TableRowNotMapError]}

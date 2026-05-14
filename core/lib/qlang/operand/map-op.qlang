@@ -1,0 +1,62 @@
+|~ qlang operand catalog — map-op family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::HasKeyNotKeywordError
+  |~~ Captured argument at position 2 of `has` must be Keyword. ~~|
+  {:qlang/kind :tag}
+
+::HasSubjectNotMapOrSetError
+  |~~ Subject of `has` must be Map or Set. ~~|
+  {:qlang/kind :tag}
+
+::KeysSubjectNotMapError
+  |~~ Subject of `keys` must be Map. ~~|
+  {:qlang/kind :tag}
+
+::ValsSubjectNotMapError
+  |~~ Subject of `vals` must be Map. ~~|
+  {:qlang/kind :tag}
+
+:keys
+  |~~ Returns the Set of keys (keywords) in the Map.
+
+    ~{{:name "Alice" :age 30} | keys | eq(#{:name :age})}
+    ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/keys
+         :category :map-op
+         :subject :map
+         :returns :set
+         :modifiers []
+         :throws [::KeysSubjectNotMapError]}
+
+:vals
+  |~~ Returns a Vec of values in insertion order.
+
+    ~{{:name "Alice" :age 30} | vals | eq(["Alice" 30])}
+    ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/vals
+         :category :map-op
+         :subject :map
+         :returns :vec
+         :modifiers []
+         :throws [::ValsSubjectNotMapError]}
+
+:has
+  |~~ Returns true if the Map contains the keyword key, or if
+    the Set contains the value. Polymorphic on subject type.
+
+    ~{{:name "Alice"} | has(:name) | eq(true)}
+    ~{#{:a :b :c} | has(:b) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/has
+        :category :map-op
+        :subject [:map :set]
+        :returns :boolean
+        :modifiers [:any]
+        :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordError]}

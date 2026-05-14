@@ -643,8 +643,14 @@ langRuntime` to match the conceptual model exactly.)
 The reference implementation assembles `langRuntime` from two
 co-located sources:
 
-- **`lib/qlang/core.qlang`** — the authored catalog. A series
-  of BindStep declarations; each binds a keyword identifier
+- **`lib/qlang/core.qlang`** — the orchestrator. One `use(...)`
+  call that imports the catalog families in order:
+  `runtime-invariants`, `tag`, then every `operand/<family>`.
+  Each family file (`lib/qlang/operand/arith.qlang`,
+  `operand/vec.qlang`, etc.) is a series of BindStep
+  declarations: per-site error tag-bindings inline followed
+  by the operand BindSteps that reference those tags in their
+  `:throws` Vec. Each operand binds a keyword identifier
   (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
   descriptor Map carrying `:qlang/kind :builtin` plus a
   namespaced `:qlang/impl :qlang/prim/<name>` keyword that
@@ -652,11 +658,15 @@ co-located sources:
   (`:category`, `:subject`, `:modifiers`, `:returns`,
   `:throws`). Doc-prefixes attached to each BindStep via
   DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the
-  `qlang/ast/qlang/core` module Quote as `step.docs` and are
+  module's `qlang/ast/<uri>` Quote as `step.docs` and are
   reachable through axis-operands (`:count | docs` returns a
   Vec of Doc-values, `:count | examples` returns a Vec of every
   `~{…}` Quote segment extracted by `parseDocSegments`). Each
   Quote is a self-test expression `runExamples` evaluates.
+  `runtime-invariants.qlang` carries shared and cross-family
+  tag-bindings (parser, codec, dispatch, projection, combinator
+  track-dispatch invariants); `tag.qlang` carries the value-class
+  constructors (`::conduit`, `::qlang`, `::json`).
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-
@@ -669,10 +679,12 @@ co-located sources:
   `reify` / `manifest` time.
 
 `langRuntime()` in `core/src/runtime/index.mjs` ties the two together
-by parsing `core.qlang` once, evaluating it against an empty env
-into a template Map, and returning a shallow copy on every call
-so each session can write its own bindings without mutating the
-template. The inner descriptor Maps are frozen and shared
+by parsing `core.qlang` once (which threads through `use(...)` to
+load every family via the `:qlang/locator`-resolved sources),
+evaluating it against a seed env carrying just `:use` and the
+locator, and returning a shallow copy of the resulting template on
+every call so each session can write its own bindings without
+mutating the template. The inner descriptor Maps are frozen and shared
 between copies — safe because qlang values are immutable at the
 language level.
 

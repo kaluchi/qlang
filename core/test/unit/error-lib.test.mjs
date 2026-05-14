@@ -20,7 +20,7 @@ import {
 } from '../../host/module-resolver.mjs';
 import { keyword, isErrorValue, makeTagKeyword } from '../../src/types.mjs';
 
-const libDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'lib', 'qlang');
+const libDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'lib', 'extras');
 
 async function sessionWithErrorLib() {
   const sessionInstance = await createSession();

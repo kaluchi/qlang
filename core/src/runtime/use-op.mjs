@@ -122,13 +122,17 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   const moduleEvalState = makeState(outerEnv, outerEnv);
   const moduleResultState = await evalAst(moduleAst, moduleEvalState);
 
-  // Export surface = env delta (bindings the module added).
+  // Export surface = env delta. A module exports any binding it
+  // ADDED (key absent from outerEnv) or MODIFIED (key present but
+  // pointing to a different value — the module's BindStep replaced
+  // the entry, producing a fresh Map instance). Identity-compare
+  // on the value separates inherited-unchanged from override.
   // Modules using `| use` to install descriptor Maps into env work
   // through this path. Pure Map-expression modules (no `| use`)
   // pipe through `use` to land their entries in env.
   const loadedExports = new Map();
   for (const [exportKey, exportVal] of moduleResultState.env) {
-    if (!outerEnv.has(exportKey)) {
+    if (!outerEnv.has(exportKey) || outerEnv.get(exportKey) !== exportVal) {
       loadedExports.set(exportKey, exportVal);
     }
   }

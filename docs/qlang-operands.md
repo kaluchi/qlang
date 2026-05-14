@@ -1065,9 +1065,9 @@ missing). This is the introspection-by-name path:
     Module-AST storage entries under `qlang/ast/<uri>` are filtered
     out. Tag-namespace `::Tag` declarations are filtered out.
   - `manifest(:tag)` — tag-namespace bindings (`::Tag` declarations
-    from `error/registry.qlang` and any in-query `::Tag {…}`
-    BindSteps). Names render with the `::Tag` prefix so the
-    descriptors round-trip through `reify(::Tag)`.
+    from the operand catalog family files plus any in-query
+    `::Tag {…}` BindSteps). Names render with the `::Tag` prefix
+    so the descriptors round-trip through `reify(::Tag)`.
 - **Examples**:
   - `env | manifest | filter(/kind | eq(:builtin)) | table` —
     full catalog of built-in operands as a tabular report grouped

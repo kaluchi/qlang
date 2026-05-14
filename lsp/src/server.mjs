@@ -5,7 +5,7 @@
 // in features.mjs; this file only maps between LSP protocol types
 // and the feature functions.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
@@ -43,12 +43,12 @@ const documentStates = new Map();
 
 // ── Catalog context ───────────────────────────────────────────
 //
-// Two source files participate in goto-definition fallback:
-// `core/lib/qlang/core.qlang` — every value-namespace operand
-// descriptor — and `core/lib/qlang/error/registry.qlang` — every
-// `::Tag` tag-binding for runtime per-site errors. Both are
-// parsed at LSP startup; their indices merge into one
-// `name → { uri, source, range }` lookup table so a single
+// Every operand-family file under `core/lib/qlang/operand/*.qlang`
+// plus `runtime-invariants.qlang` and `tag.qlang` participate in
+// goto-definition. Each declares operand descriptors (value-namespace)
+// and per-site error tag-bindings (tag-namespace) inline. The LSP
+// startup walk parses all of them, merging into one `name →
+// { uri, source, range }` lookup table so a single
 // `definitionAtOffset` lookup serves both value-namespace
 // identifiers (`count`) and tag-namespace identifiers
 // (`::AddLeftNotNumberError`).
@@ -57,15 +57,28 @@ let catalogCtx = null;
 
 function loadCatalogContext() {
   // Monorepo layout: `lsp/` and `core/` are sibling workspaces,
-  // so the source files sit at `../core/lib/qlang/...` relative
+  // so catalog files sit under `../core/lib/qlang/...` relative
   // to `lsp/src/`.
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-  const sources = [
-    { path: join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'core.qlang'),
-      uri: 'qlang/core' },
-    { path: join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'error', 'registry.qlang'),
-      uri: 'qlang/error/registry' }
-  ];
+  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang');
+
+  // Discovery walks lib/qlang recursively for every `.qlang` file.
+  // The namespace URI mirrors the relative path with `/` separators
+  // and the `.qlang` suffix stripped; the resolved file URI lets
+  // goto-definition return absolute locations the editor can open.
+  const sources = [];
+  function walk(dir, prefix) {
+    for (const name of readdirSync(dir, { withFileTypes: true })) {
+      const childPath = join(dir, name.name);
+      const childUri = prefix ? prefix + '/' + name.name : name.name;
+      if (name.isDirectory()) {
+        walk(childPath, childUri);
+      } else if (name.name.endsWith('.qlang')) {
+        sources.push({ path: childPath, uri: 'qlang/' + childUri.replace(/\.qlang$/, '') });
+      }
+    }
+  }
+  walk(libDir, '');
 
   const mergedIndex = new Map();
   for (const { path, uri } of sources) {
@@ -75,9 +88,6 @@ function loadCatalogContext() {
       const fileUri = 'file:///' + path.replace(/\\/g, '/');
       const entries = buildCatalogIndex(ast);
       for (const [name, range] of entries) {
-        // Last-write-wins: `error/registry.qlang` loads after
-        // `core.qlang` so a name declared in both surfaces lands
-        // on the registry definition.
         mergedIndex.set(name, { ...range, fileUri, source });
       }
     } catch (e) {

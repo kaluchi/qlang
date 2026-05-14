@@ -1,0 +1,167 @@
+|~ qlang operand catalog — string family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::AppendSubjectNotStringError
+  |~~ Captured argument at position 1 of `append` must be String. ~~|
+  {:qlang/kind :tag}
+
+::AppendSuffixNotStringError
+  |~~ Captured argument at position 2 of `append` must be String. ~~|
+  {:qlang/kind :tag}
+
+::ContainsNeedleNotStringError
+  |~~ Captured argument at position 2 of `contains` must be String. ~~|
+  {:qlang/kind :tag}
+
+::ContainsSubjectNotStringError
+  |~~ Captured argument at position 1 of `contains` must be String. ~~|
+  {:qlang/kind :tag}
+
+::EndsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `endsWith` must be String. ~~|
+  {:qlang/kind :tag}
+
+::EndsWithSuffixNotStringError
+  |~~ Captured argument at position 2 of `endsWith` must be String. ~~|
+  {:qlang/kind :tag}
+
+::JoinElementNotStringError
+  |~~ Element of `join` input collection must be String. ~~|
+  {:qlang/kind :tag}
+
+::JoinSeparatorNotStringError
+  |~~ Captured argument at position 2 of `join` must be String. ~~|
+  {:qlang/kind :tag}
+
+::JoinSubjectNotVecError
+  |~~ Subject of `join` must be Vec. ~~|
+  {:qlang/kind :tag}
+
+::PrependPrefixNotStringError
+  |~~ Captured argument at position 2 of `prepend` must be String. ~~|
+  {:qlang/kind :tag}
+
+::PrependSubjectNotStringError
+  |~~ Captured argument at position 1 of `prepend` must be String. ~~|
+  {:qlang/kind :tag}
+
+::SplitSeparatorNotStringError
+  |~~ Captured argument at position 2 of `split` must be String. ~~|
+  {:qlang/kind :tag}
+
+::SplitSubjectNotStringError
+  |~~ Captured argument at position 1 of `split` must be String. ~~|
+  {:qlang/kind :tag}
+
+::StartsWithPrefixNotStringError
+  |~~ Captured argument at position 2 of `startsWith` must be String. ~~|
+  {:qlang/kind :tag}
+
+::StartsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `startsWith` must be String. ~~|
+  {:qlang/kind :tag}
+
+:split
+  |~~ Splits the subject on every occurrence of separator.
+    Returns a Vec of substrings. Inverse of join.
+
+    ~{"a,b,c" | split(",") | eq(["a" "b" "c"])}
+    ~{"line1\nline2" | split("\n") | eq(["line1" "line2"])}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/split
+          :category :string
+          :subject :string
+          :returns :vec
+          :modifiers [:string]
+          :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
+
+:join
+  |~~ Joins the elements of a Vec of Strings with separator
+    between consecutive elements. Inverse of split.
+
+    ~{["a" "b" "c"] | join(",") | eq("a,b,c")}
+    ~{[] | join(",") | eq("")}
+    ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/join
+         :category :string
+         :subject :vec
+         :returns :string
+         :modifiers [:string]
+         :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
+
+:contains
+  |~~ Returns true if the subject string contains needle as a
+    substring. Empty needle is always contained.
+    Case-sensitive.
+
+    ~{"hello world" | contains("world") | eq(true)}
+    ~{"hello" | contains("xyz") | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/contains
+             :category :string
+             :subject :string
+             :returns :boolean
+             :modifiers [:string]
+             :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
+
+:startsWith
+  |~~ Returns true if the subject string begins with prefix.
+    Empty prefix is always a prefix. Case-sensitive.
+
+    ~{"hello world" | startsWith("hello") | eq(true)}
+    ~{"hello" | startsWith("world") | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+               :qlang/impl :qlang/prim/startsWith
+               :category :string
+               :subject :string
+               :returns :boolean
+               :modifiers [:string]
+               :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
+
+:endsWith
+  |~~ Returns true if the subject string ends with suffix.
+    Empty suffix is always a suffix. Case-sensitive.
+
+    ~{"hello world" | endsWith("world") | eq(true)}
+    ~{"hello" | endsWith("xyz") | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/endsWith
+             :category :string
+             :subject :string
+             :returns :boolean
+             :modifiers [:string]
+             :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
+
+:prepend
+  |~~ Concatenates the modifier in front of the subject.
+
+    ~{"world" | prepend("hello ") | eq("hello world")}
+    ~~|
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/prepend
+            :category :string
+            :subject :string
+            :returns :string
+            :modifiers [:string]
+            :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
+
+:append
+  |~~ Concatenates the subject with the modifier on the right.
+
+    ~{"hello" | append(" world") | eq("hello world")}
+    ~~|
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/append
+           :category :string
+           :subject :string
+           :returns :string
+           :modifiers [:string]
+           :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}

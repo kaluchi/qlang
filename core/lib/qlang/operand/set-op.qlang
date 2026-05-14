@@ -1,0 +1,109 @@
+|~ qlang operand catalog — set-op family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::InterBareEmptyError
+  |~~ `inter` (bare form) requires a non-empty Vec of operands to fold. ~~|
+  {:qlang/kind :tag}
+
+::InterBareSubjectNotVecError
+  |~~ Subject of `inter` must be Vec. ~~|
+  {:qlang/kind :tag}
+
+::InterPairIncompatibleError
+  |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only. ~~|
+  {:qlang/kind :tag}
+
+::MinusBareEmptyError
+  |~~ `minus` (bare form) requires a non-empty Vec of operands to fold. ~~|
+  {:qlang/kind :tag}
+
+::MinusBareSubjectNotVecError
+  |~~ Subject of `minus` must be Vec. ~~|
+  {:qlang/kind :tag}
+
+::MinusPairIncompatibleError
+  |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only. ~~|
+  {:qlang/kind :tag}
+
+::SetConversionSubjectNotVecError
+  |~~ Subject of `set` must be Vec. ~~|
+  {:qlang/kind :tag}
+
+::UnionBareEmptyError
+  |~~ `union` (bare form) requires a non-empty Vec of operands to fold. ~~|
+  {:qlang/kind :tag}
+
+::UnionBareSubjectNotVecError
+  |~~ Subject of `union` must be Vec. ~~|
+  {:qlang/kind :tag}
+
+::UnionPairIncompatibleError
+  |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only. ~~|
+  {:qlang/kind :tag}
+
+:set
+  |~~ Converts a Vec to a Set, removing duplicates.
+
+    ~{[1 2 1 3] | set | eq(#{1 2 3})}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/set
+        :category :set-op
+        :subject :vec
+        :returns :set
+        :modifiers []
+        :throws [::SetConversionSubjectNotVecError]}
+
+:union
+  |~~ Polymorphic union. Set union or Map merge (last wins on
+    key conflict). Three call shapes: bare form left-folds a
+    non-empty Vec of operands, bound form a | union(b) evaluates
+    b against a as context, full form union(a, b) resolves both
+    args against pipeValue.
+
+    ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/union
+          :category :set-op
+          :subject [:set :map :vec]
+          :returns [:set :map]
+          :modifiers [:any]
+          :throws [::UnionBareSubjectNotVecError ::UnionBareEmptyError ::UnionPairIncompatibleError]}
+
+:minus
+  |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
+    or Map minus Set (drop fields by key set). Same three call
+    shapes as union. Values of the second operand are ignored
+    for Map minus Map.
+
+    ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
+    ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/minus
+          :category :set-op
+          :subject [:set :map :vec]
+          :returns [:set :map]
+          :modifiers [:any]
+          :throws [::MinusBareSubjectNotVecError ::MinusBareEmptyError ::MinusPairIncompatibleError]}
+
+:inter
+  |~~ Polymorphic intersection. Set intersect Set, Map intersect
+    keys(Map), or Map intersect Set (select fields by key set).
+    Same three call shapes as union. Values from the first
+    operand are kept.
+
+    ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
+    ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/inter
+          :category :set-op
+          :subject [:set :map :vec]
+          :returns [:set :map]
+          :modifiers [:any]
+          :throws [::InterBareSubjectNotVecError ::InterBareEmptyError ::InterPairIncompatibleError]}

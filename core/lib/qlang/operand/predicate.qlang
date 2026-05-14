@@ -1,0 +1,436 @@
+|~ qlang operand catalog — predicate family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::AscKeysNotComparableError
+  |~~ Operands of `asc` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::AscPairNotMapError
+  |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  {:qlang/kind :tag}
+
+::DescKeysNotComparableError
+  |~~ Operands of `desc` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::DescPairNotMapError
+  |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  {:qlang/kind :tag}
+
+::NullsFirstPairNotMapError
+  |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  {:qlang/kind :tag}
+
+::NullsLastPairNotMapError
+  |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  {:qlang/kind :tag}
+
+::GteOperandsNotComparableError
+  |~~ Operands of `gte` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::GtOperandsNotComparableError
+  |~~ Operands of `gt` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::LteOperandsNotComparableError
+  |~~ Operands of `lte` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::LtOperandsNotComparableError
+  |~~ Operands of `lt` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::KeywordSubjectNotStringOrKeywordError
+  |~~ `keyword` involution requires a String or Keyword subject. ~~|
+  {:qlang/kind :tag}
+
+:asc
+  |~~ Builds an ascending comparator for sortWith. Applied
+    per-pair, projects the key from /left and /right via the
+    captured sub-pipeline and compares them in natural ascending
+    order. Returns -1, 0, or 1. The key sub-pipeline can be any
+    expression — a bare projection, a computed value, or a
+    multi-step pipeline. ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/asc
+        :category :comparator
+        :subject :map
+        :returns :number
+        :modifiers [:key-lambda]
+        :throws [::AscPairNotMapError ::AscKeysNotComparableError]}
+
+:desc
+  |~~ Builds a descending comparator for sortWith. Same as asc
+    but reversed: higher key values come first. ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/desc
+         :category :comparator
+         :subject :map
+         :returns :number
+         :modifiers [:key-lambda]
+         :throws [::DescPairNotMapError ::DescKeysNotComparableError]}
+
+:nullsFirst
+  |~~ Ascending comparator that places null-keyed elements before
+    all non-null elements. Non-null keys are sorted in ascending
+    order. Use inside sortWith to handle data with missing
+    values without tripping AscKeysNotComparableError.
+
+    ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a | eq([null 1 3])}
+    ~~|
+  {:qlang/kind :builtin
+               :qlang/impl :qlang/prim/nullsFirst
+               :category :comparator
+               :subject :map
+               :returns :number
+               :modifiers [:key-lambda]
+               :throws [::NullsFirstPairNotMapError]}
+
+:nullsLast
+  |~~ Ascending comparator that places null-keyed elements after
+    all non-null elements. Non-null keys are sorted in ascending
+    order. Use inside sortWith to handle data with missing
+    values without tripping AscKeysNotComparableError.
+
+    ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a | eq([1 3 null])}
+    ~~|
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/nullsLast
+              :category :comparator
+              :subject :map
+              :returns :number
+              :modifiers [:key-lambda]
+              :throws [::NullsLastPairNotMapError]}
+
+:not
+  |~~ Logical negation. Returns true if the subject is falsy
+    (null or false), false otherwise. 0, "", [], {}, #{} are
+    all truthy.
+
+    ~{null | not | eq(true)}
+    ~{0 | not | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/not
+        :category :predicate
+        :subject :any
+        :returns :boolean
+        :modifiers []
+        :throws []}
+
+:eq
+  |~~ Returns true if the subject equals the captured value by
+    structural equality (deep recursive comparison across Maps,
+    Vecs, Sets, and scalars).
+
+    ~{42 | eq(42) | eq(true)}
+    ~{{:a 1} | eq({:a 1}) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/eq
+       :category :predicate
+       :subject :any
+       :returns :boolean
+       :modifiers [:any]
+       :throws []}
+
+:gt
+  |~~ Subject-first ordering: a | gt(b) computes a > b. Both
+    operands must be comparable scalars of the same type.
+
+    ~{10 | gt(5) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/gt
+       :category :predicate
+       :subject :number
+       :returns :boolean
+       :modifiers [:number]
+       :throws [::GtOperandsNotComparableError]}
+
+:lt
+  |~~ Subject-first ordering: a | lt(b) computes a < b.
+
+    ~{5 | lt(10) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/lt
+       :category :predicate
+       :subject :number
+       :returns :boolean
+       :modifiers [:number]
+       :throws [::LtOperandsNotComparableError]}
+
+:gte
+  |~~ Subject-first ordering: a | gte(b) computes a >= b.
+
+    ~{10 | gte(10) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/gte
+        :category :predicate
+        :subject :number
+        :returns :boolean
+        :modifiers [:number]
+        :throws [::GteOperandsNotComparableError]}
+
+:lte
+  |~~ Subject-first ordering: a | lte(b) computes a <= b.
+
+    ~{10 | lte(10) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/lte
+        :category :predicate
+        :subject :number
+        :returns :boolean
+        :modifiers [:number]
+        :throws [::LteOperandsNotComparableError]}
+
+:and
+  |~~ Returns true if both operands are truthy. Used in full form
+    inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/and
+        :category :predicate
+        :subject :any
+        :returns :boolean
+        :modifiers [:any]
+        :throws []}
+
+:or
+  |~~ Returns true if either operand is truthy. ~~|
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/or
+       :category :predicate
+       :subject :any
+       :returns :boolean
+       :modifiers [:any]
+       :throws []}
+
+:isString
+  |~~ Returns true iff the subject is a String. Nullary predicate
+    over any pipeValue. Primary use — filter(isString) over a
+    heterogeneous Vec, or filter(isString) over a Map where the
+    value's type is the predicate axis. Lifts value-type
+    classification to operand level without the descriptor-
+    construction cost of reify | /type | eq(:string).
+
+    ~{"hello" | isString | eq(true)}
+    ~{42 | isString | eq(false)}
+    ~{:name | isString | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/isString
+             :category :type-classifier
+             :subject :any
+             :returns :boolean
+             :modifiers []
+             :throws []}
+
+:isNumber
+  |~~ Returns true iff the subject is a Number (integer or
+    decimal — qlang has no numeric subtypes).
+
+    ~{42 | isNumber | eq(true)}
+    ~{3.14 | isNumber | eq(true)}
+    ~{"42" | isNumber | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/isNumber
+             :category :type-classifier
+             :subject :any
+             :returns :boolean
+             :modifiers []
+             :throws []}
+
+:isVec
+  |~~ Returns true iff the subject is a Vec.
+
+    ~{[1 2 3] | isVec | eq(true)}
+    ~{[] | isVec | eq(true)}
+    ~{#{1} | isVec | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isVec
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
+
+:isMap
+  |~~ Returns true iff the subject is a Map.
+
+    ~{{:a 1} | isMap | eq(true)}
+    ~{{} | isMap | eq(true)}
+    ~{[] | isMap | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isMap
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
+
+:isSet
+  |~~ Returns true iff the subject is a Set.
+
+    ~{#{1 2} | isSet | eq(true)}
+    ~{#{} | isSet | eq(true)}
+    ~{[1 2] | isSet | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isSet
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
+
+:isKeyword
+  |~~ Returns true iff the subject is a Keyword.
+
+    ~{:name | isKeyword | eq(true)}
+    ~{:qlang/kind | isKeyword | eq(true)}
+    ~{"name" | isKeyword | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/isKeyword
+              :category :type-classifier
+              :subject :any
+              :returns :boolean
+              :modifiers []
+              :throws []}
+
+:isBoolean
+  |~~ Returns true iff the subject is a Boolean (literal true or
+    false). Truthy non-boolean values like 0 / "" / [] do NOT
+    classify as Boolean.
+
+    ~{true | isBoolean | eq(true)}
+    ~{false | isBoolean | eq(true)}
+    ~{0 | isBoolean | eq(false)}
+    ~{null | isBoolean | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/isBoolean
+              :category :type-classifier
+              :subject :any
+              :returns :boolean
+              :modifiers []
+              :throws []}
+
+:isNull
+  |~~ Returns true iff the subject is null (the absence-of-value
+    atom). Missing Map keys and operands whose result is undefined
+    both produce null.
+
+    ~{null | isNull | eq(true)}
+    ~{{:nothing null} | /nothing | isNull | eq(true)}
+    ~{0 | isNull | eq(false)}
+    ~{"" | isNull | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/isNull
+           :category :type-classifier
+           :subject :any
+           :returns :boolean
+           :modifiers []
+           :throws []}
+
+:isQuote
+  |~~ Returns true iff the subject is a Quote — a frozen
+    paired-delimiter code-as-data fragment in source form.
+    Quotes carry a :source text field and a lazily-parsed
+    :ast AST-Map.
+
+    ~{ ~{mul(2)} | isQuote }
+    ~{"mul(2)" | isQuote | eq(false)}
+    ~{42 | isQuote | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isQuote
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :throws []}
+
+:isDoc
+  |~~ Returns true iff the subject is a Doc — a frozen markdown
+    content fragment landed in pipeValue through a DocLit literal
+    in any Primary position. Docs carry a :content text field.
+
+    ~{|~~ note ~~| | isDoc | eq(true)}
+    ~{"note" | isDoc | eq(false)}
+    ~{42 | isDoc | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/isDoc
+          :category :type-classifier
+          :subject :any
+          :returns :boolean
+          :modifiers []
+          :throws []}
+
+:keyword
+  |~~ String↔Keyword involution. On a String subject, produces the
+    keyword whose name is that string. On a Keyword subject,
+    extracts the name as a String. The two directions are inverse:
+    ~{"foo" | keyword | keyword} yields ~{"foo"}.
+    Bridges the String world (JSON data, template building) and
+    the Keyword world (Map key syntax, enum discriminators).
+
+    ~{"foo" | keyword | eq(:foo)}
+    ~{:foo | keyword | eq("foo")}
+    ~{"bar" | keyword | keyword | eq("bar")}
+    ~{"qlang/error" | keyword | eq(:qlang/error)}
+    ~{:"foo bar" | keyword | eq("foo bar")}
+    ~~|
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/keyword
+            :category :type-conversion
+            :subject [:string :keyword]
+            :returns [:string :keyword]
+            :modifiers []
+            :throws [::KeywordSubjectNotStringOrKeywordError]}
+
+:isJsonObject
+  |~~ Returns true iff the subject is a JSON Object — a plain JS
+    object stamped with the JSON_OBJECT_TAG Symbol. JSON Objects
+    are produced by the host JSON-bridge (CLI auto-parsed stdin)
+    and the ::json constructor; they are runtime-distinct from
+    qlang Map so isMap returns false on them.
+
+    ~{::json{:k 1} | isJsonObject | eq(true)}
+    ~{{:k 1} | isJsonObject | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+                      :qlang/impl :qlang/prim/isJsonObject
+                      :category :type-classifier
+                      :subject :any
+                      :returns :boolean
+                      :modifiers []
+                      :throws []}
+
+:isJsonArray
+  |~~ Returns true iff the subject is a JSON Array — a frozen JS
+    Array stamped with the JSON_ARRAY_TAG Symbol. Distinct from
+    qlang Vec at the runtime level.
+
+    ~{::json[1 2 3] | isJsonArray | eq(true)}
+    ~{[1 2 3] | isJsonArray | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+                     :qlang/impl :qlang/prim/isJsonArray
+                     :category :type-classifier
+                     :subject :any
+                     :returns :boolean
+                     :modifiers []
+                     :throws []}

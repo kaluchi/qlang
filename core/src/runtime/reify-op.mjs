@@ -234,7 +234,7 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
 //                       AST storage filtered out.
 //   manifest(:value)  — explicit alias of the bare form.
 //   manifest(:tag)    — tag-namespace bindings (`::Tag` declarations
-//                       from `error/registry.qlang` and any in-query
+//                       from the operand catalog family files and any in-query
 //                       `::Tag {…}` BindSteps). Names render with the
 //                       `::Tag` prefix so the descriptors round-trip
 //                       through reify lookup.

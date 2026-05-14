@@ -1,0 +1,210 @@
+|~ Shared and runtime-invariant tag-bindings. Errors here are either
+   thrown from cross-family runtime machinery (parser, AST codec,
+   evaluator dispatch, primitive registry, session, render invariants,
+   projection, combinator track-dispatch) or shared between operand
+   families. Per-operand errors live inline in the operand's family
+   file (lib/qlang/operand/<family>.qlang). ~|
+
+::ProjectionFieldNotOnValueClassError
+  |~~ Projection segment is not a publicly-projectable field on the value-class subject (Quote / Doc / …). ~~|
+  {:qlang/kind :tag}
+
+::ProjectionIndexOutOfBoundsError
+  |~~ Projection `/n` — the integer index resolves outside the Vec subject's `[0, length)` range. ~~|
+  {:qlang/kind :tag}
+
+::ProjectionKeyNotInMapError
+  |~~ Projection `/key` — the named key is absent from the Map subject (strict-miss). Use `at(:key)` for null-coalescing access. ~~|
+  {:qlang/kind :tag}
+
+::ProjectionSubjectNotMapError
+  |~~ Projection `/key` requires a Map, Vec, or value-class subject; null subject and other shapes lift to this error. ~~|
+  {:qlang/kind :tag}
+
+::ProjectionVecKeyNotIntegerError
+  |~~ Projection segment is a non-numeric string but the subject is a Vec — Vec indices must be integer offsets. ~~|
+  {:qlang/kind :tag}
+
+::DistributeSubjectNotVecError
+  |~~ Distribute combinator (`*`) — subject must be a Vec for per-element forking. ~~|
+  {:qlang/kind :tag}
+
+::MergeSubjectNotVecError
+  |~~ Merge combinator (`>>`) — subject must be a Vec for one-level flattening. ~~|
+  {:qlang/kind :tag}
+
+::TagBindingHasNoConstructorError
+  |~~ Tag-binding has no registered constructor — `:qlang/impl` is missing or wrong-shaped (expected a primitive Keyword or a Quote-impl body). The user-supplied payload is captured on the descriptor as `:payloadValue` / `:payloadType`; the actual `:qlang/impl` value as `:actualValue` / `:actualType`; the expected slot shape as `:expectedType [:keyword :quote]`. ~~|
+  {:qlang/kind :tag}
+
+::TaggedLitNotTagBindingError
+  |~~ `::tag` constructor invocation failed — the env binding under `::tag` is not a tag-binding descriptor Map. ~~|
+  {:qlang/kind :tag}
+
+::TaggedLitTagNotFoundError
+  |~~ `::tag` constructor invocation failed — the tag is not a registered tag-binding in env. ~~|
+  {:qlang/kind :tag}
+
+::ConduitArityMismatchError
+  |~~ Conduit invocation supplied a captured-arg count different from the conduit's declared parameter list. ~~|
+  {:qlang/kind :tag}
+
+::ConduitBodyMissingSourceError
+  |~~ `makeConduit` refuses a body AST that has no `.text` source slice — `printValue` round-trip would otherwise emit a non-parseable placeholder. ~~|
+  {:qlang/kind :tag}
+
+::ConduitParameterNoCapturedArgsError
+  |~~ Conduit-parameter proxies are nullary — passing captured arguments to a parameter reference raises this error. ~~|
+  {:qlang/kind :tag}
+
+::EffectLaunderingAtBindStepParseError
+  |~~ BindStep declaration body references an `@`-effectful identifier, but the binding name itself is not `@`-prefixed — laundering caught at parse time. ~~|
+  {:qlang/kind :tag}
+
+::ApplyToNonFunctionError
+  |~~ Identifier resolves to a non-function value — captured arguments cannot be applied. ~~|
+  {:qlang/kind :tag}
+
+::EffectLaunderingAtCallError
+  |~~ Identifier resolves to an `@`-effectful function, but the lookup name is not `@`-prefixed — laundering caught at the call site. ~~|
+  {:qlang/kind :tag}
+
+::UnresolvedIdentifierError
+  |~~ Identifier lookup failed — no env binding under that name. ~~|
+  {:qlang/kind :tag}
+
+::ParseError
+  |~~ Parser failure — source did not match the grammar. ~~|
+  {:qlang/kind :tag}
+
+::AstMapKindUnknownError
+  |~~ AST-Map → AST codec — `:qlang/kind` discriminator names a kind the codec does not know. ~~|
+  {:qlang/kind :tag}
+
+::AstMapMalformedError
+  |~~ AST-Map → AST codec — input Map is malformed (missing required field, wrong shape). ~~|
+  {:qlang/kind :tag}
+
+::AstNodeTypeUnknownError
+  |~~ AST → AST-Map codec — encountered an AST node whose `.type` is not in the codec's known shape table. ~~|
+  {:qlang/kind :tag}
+
+::MalformedTaggedJSONError
+  |~~ `fromTaggedJSON` received a JSON shape it does not recognise as a tagged-value envelope. ~~|
+  {:qlang/kind :tag}
+
+::TaggedJSONUnencodableValueError
+  |~~ `toTaggedJSON` cannot encode a function / conduit / snapshot value — use `serializeSession` for the binding-aware path. ~~|
+  {:qlang/kind :tag}
+
+::HigherOrderOpArityMismatchError
+  |~~ Dispatch invariant — `higherOrderOp` impl received an unexpected captured-arg count. ~~|
+  {:qlang/kind :tag}
+
+::HigherOrderOpVariadicMissingCapturedError
+  |~~ Dispatch invariant — `higherOrderOpVariadic` registration is missing the `captured` range argument. ~~|
+  {:qlang/kind :tag}
+
+::NullaryOpArgsProvidedError
+  |~~ Dispatch invariant — nullary operand received captured arguments. ~~|
+  {:qlang/kind :tag}
+
+::OverloadedOpUnsupportedArityError
+  |~~ Dispatch invariant — overloaded operand has no impl for the supplied captured-arg count. ~~|
+  {:qlang/kind :tag}
+
+::StateOpArityMismatchError
+  |~~ Dispatch invariant — `stateOp` impl received an unexpected captured-arg count. ~~|
+  {:qlang/kind :tag}
+
+::StateOpVariadicMissingCapturedError
+  |~~ Dispatch invariant — `stateOpVariadic` registration is missing the `captured` range argument. ~~|
+  {:qlang/kind :tag}
+
+::ValueOpArityMismatchError
+  |~~ Dispatch invariant — `valueOp` impl received an unexpected captured-arg count for its declared arity. ~~|
+  {:qlang/kind :tag}
+
+::UnknownAstNodeTypeError
+  |~~ Evaluator dispatch — encountered an AST node whose `.type` is not in `AST_NODE_EVALUATORS`. Runtime invariant violation, never reaches user code. ~~|
+  {:qlang/kind :tag}
+
+::UnknownCombinatorKindError
+  |~~ Combinator dispatch — encountered a combinator kind not in `COMBINATOR_EVALUATORS`. Runtime invariant violation. ~~|
+  {:qlang/kind :tag}
+
+::Rule10ArityOverflowError
+  |~~ Rule 10 — operand call supplied more captured arguments than the operand's declared maximum arity. ~~|
+  {:qlang/kind :tag}
+
+::PrimitiveKeyAlreadyBoundError
+  |~~ Primitive registry — two runtime modules tried to bind the same primitive name. ~~|
+  {:qlang/kind :tag}
+
+::PrimitiveKeyNotStringError
+  |~~ Primitive registry — bind() received a non-string handle. ~~|
+  {:qlang/kind :tag}
+
+::PrimitiveKeyUnboundError
+  |~~ Primitive registry — `:qlang/impl` handle on a descriptor Map points to a primitive that was never bound. ~~|
+  {:qlang/kind :tag}
+
+::PrimitiveRegistrySealedError
+  |~~ Primitive registry — bind() called after the registry was sealed at langRuntime bootstrap. ~~|
+  {:qlang/kind :tag}
+
+::SessionBindingKindUnknownError
+  |~~ Session deserialization — a binding entry carries an unknown `:kind`. ~~|
+  {:qlang/kind :tag}
+
+::SessionConduitSourceMissingError
+  |~~ Session deserialization — a conduit binding entry has no `:source` to re-parse. ~~|
+  {:qlang/kind :tag}
+
+::SessionPayloadInvalidError
+  |~~ Session deserialization — payload is malformed (missing required fields). ~~|
+  {:qlang/kind :tag}
+
+::SessionSchemaVersionMismatchError
+  |~~ Session deserialization — payload `:schemaVersion` does not match the current SESSION_SCHEMA_VERSION. ~~|
+  {:qlang/kind :tag}
+
+::FunctionValueLeakedToPrintError
+  |~~ `printValue` / `toPlain` invariant — a raw function value reached render. Wrap host operands in a descriptor Map carrying `:qlang/kind :builtin` and `:qlang/impl` when binding through `session.bind`. ~~|
+  {:qlang/kind :tag}
+
+::ConduitPayloadNotVecError
+  |~~ `::conduit[…]` payload must be a Vec; a non-Vec payload raises this error. ~~|
+  {:qlang/kind :tag}
+
+::ConduitArityInvalidError
+  |~~ `::conduit[…]` payload Vec must have either 2 elements (`[params body]`) or 3 elements (`[:self params body]`). ~~|
+  {:qlang/kind :tag}
+
+::ConduitBodyNotQuoteError
+  |~~ `::conduit` body slot must be a Quote-value carrying the body source. ~~|
+  {:qlang/kind :tag}
+
+::ConduitParamNotKeywordError
+  |~~ `::conduit` params Vec must contain only Keywords; one element is some other type. ~~|
+  {:qlang/kind :tag}
+
+::ConduitParamsNotVecError
+  |~~ `::conduit` params slot must be a Vec of Keywords. ~~|
+  {:qlang/kind :tag}
+
+::ConduitSelfNameNotKeywordError
+  |~~ `::conduit` self-name (3-element payload form) must be a Keyword. ~~|
+  {:qlang/kind :tag}
+
+::NullsFirstKeysNotComparableError
+  |~~ Operands of `nullsFirst` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::NullsLastKeysNotComparableError
+  |~~ Operands of `nullsLast` are not pairwise-comparable scalars. ~~|
+  {:qlang/kind :tag}
+
+::ReifyArityOverflowError
+  |~~ `reify` accepts 0 or 1 captured arguments — `reify(:name)` resolves a named binding, bare `reify` describes pipeValue. ~~|
+  {:qlang/kind :tag}

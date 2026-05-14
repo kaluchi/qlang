@@ -1,0 +1,361 @@
+|~ qlang operand catalog — reflective family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::ErrorDescriptorNotMapError
+  |~~ `error` lift requires a Map descriptor (the error's payload). ~~|
+  {:qlang/kind :tag}
+
+::AsNameNotKeywordError
+  |~~ `as` requires a Keyword captured-arg (the binding name). ~~|
+  {:qlang/kind :tag}
+
+::EvalSubjectNotMapOrQuoteError
+  |~~ `eval` requires a Map (AST-Map) or Quote (source-form) subject. ~~|
+  {:qlang/kind :tag}
+
+::ManifestNamespaceNotKeywordError
+  |~~ ManifestNamespaceNotKeywordError — see operand documentation. ~~|
+  {:qlang/kind :tag}
+
+::ManifestNamespaceUnknownError
+  |~~ ManifestNamespaceUnknownError — see operand documentation. ~~|
+  {:qlang/kind :tag}
+
+::ParseSubjectNotStringOrQuoteError
+  |~~ `parse` requires a String or Quote subject. ~~|
+  {:qlang/kind :tag}
+
+::ReifyKeyNotKeywordError
+  |~~ `reify(:name)` requires a Keyword captured-arg (the binding name to look up). ~~|
+  {:qlang/kind :tag}
+
+::RunExamplesSubjectShapeError
+  |~~ `runExamples` requires a Keyword (binding name) or a descriptor Map carrying a `:name` String. ~~|
+  {:qlang/kind :tag}
+
+::UseNameNotExportedError
+  |~~ `use(:ns, #{:name1 …})` — selection filter names an identifier the namespace does not export. ~~|
+  {:qlang/kind :tag}
+
+::UseNamespaceCollisionError
+  |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name under the same identifier; Set-form rejects collisions. ~~|
+  {:qlang/kind :tag}
+
+::UseNamespaceElementNotKeywordError
+  |~~ `use([:ns1 :ns2 …])` — every element of the namespace Vec must be a Keyword. ~~|
+  {:qlang/kind :tag}
+
+::UseNamespaceNotFoundError
+  |~~ `use(:ns)` — namespace not in env and no host-provided locator can resolve it. ~~|
+  {:qlang/kind :tag}
+
+::UseNamespaceNotKeywordError
+  |~~ `use(:ns)` requires a Keyword captured-arg naming the namespace to import. ~~|
+  {:qlang/kind :tag}
+
+::UseNamespaceNotMapError
+  |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot import as a namespace. ~~|
+  {:qlang/kind :tag}
+
+::UseSubjectNotMapError
+  |~~ `use` (bare form) requires a Map subject — its entries become the merged bindings. ~~|
+  {:qlang/kind :tag}
+
+::AxisBindingNotFoundError
+  |~~ Axis-operand (`source` / `docs` / `examples`) could not find a `BindStep` for the requested binding name across loaded modules. ~~|
+  {:qlang/kind :tag}
+
+::DocsSubjectNotKeywordOrTagError
+  |~~ `docs` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject. ~~|
+  {:qlang/kind :tag}
+
+::ExamplesSubjectNotKeywordOrTagError
+  |~~ `examples` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject. ~~|
+  {:qlang/kind :tag}
+
+::SourceSubjectNotKeywordOrTagError
+  |~~ `source` requires a Keyword (`:foo`) or TagKeyword (`::Foo`) subject. ~~|
+  {:qlang/kind :tag}
+
+:env
+  |~~ Replaces pipeValue with the current env Map. Inside a fork,
+    returns the fork-local env including any as/let writes visible
+    at this point.
+
+    ~{env | has(:count) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/env
+        :category :reflective
+        :subject :any
+        :returns :map
+        :modifiers []
+        :throws []}
+
+:use
+  |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
+    into env. With a namespace keyword, imports module bindings.
+    With a Vec of keywords, imports modules in order (later
+    shadows earlier on collision). With a Set, imports and
+    rejects name collisions. With two args (namespace + filter),
+    imports only the named bindings. pipeValue unchanged in all
+    forms. Inside a fork, merged bindings evaporate on close. ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/use
+        :category :reflective
+        :subject :any
+        :returns :any
+        :modifiers [:any]
+        :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
+
+:reify
+  |~~ Builds a descriptor Map for a value or named binding.
+    Bare form (no captured args) inspects pipeValue. A Keyword
+    or TagKeyword pipeValue resolves through env to the matching
+    binding (value- or tag-namespace), mirroring `:name | source`
+    / `:name | docs` / `:name | examples`. Any other pipeValue
+    describes itself as a `:kind :value` descriptor. Captured-arg
+    form `reify(:name)` looks up the value-namespace explicitly;
+    `reify(::Tag)` looks up the tag-namespace. Descriptor `:kind`
+    is one of `:builtin`, `:conduit`, `:snapshot`, `:tag`,
+    `:value`.
+
+    ~{:count | reify | /kind | eq(:builtin)}
+    ~{reify(:filter) | /name | eq("filter")}
+    ~{::AddLeftNotNumberError | reify | /kind | eq(:tag)}
+    ~{42 | reify | /value | eq(42)}
+    ~{:nonexistent-binding | reify | /type | eq(:keyword)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/reify
+          :category :reflective
+          :subject :any
+          :returns :map
+          :modifiers [:keyword]
+          :throws [::ReifyKeyNotKeywordError]}
+
+:manifest
+  |~~ Returns a Vec of descriptors, one per binding in env,
+    sorted alphabetically by binding name. Each descriptor has
+    the same shape as reify(:name) for that binding. Overloaded
+    by captured-arg count: bare manifest or manifest(:value)
+    lists value-namespace bindings; manifest(:type) lists
+    tag-namespace `::Tag` bindings. ~~|
+  {:qlang/kind :builtin
+             :qlang/impl :qlang/prim/manifest
+             :category :reflective
+             :subject :any
+             :returns :vec
+             :modifiers [:keyword]
+             :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
+
+:runExamples
+  |~~ Walks every Quote segment inside the binding's attached
+    doc-prefix and returns a Vec of result Maps shaped
+    {:snippet :actual :ok :error}. Each Quote is evalQuery'd in
+    an isolated env; :ok is true iff the result is truthy
+    (anything that is neither false nor null nor an error value).
+    Subject is a Keyword (binding name) or a descriptor Map
+    carrying a :name string. The composition
+    manifest | every(runExamples | every(/ok)) walks every
+    example in the manifest and must return true —
+    self-describing catalog drift detection. ~~|
+  {:qlang/kind :builtin
+                :qlang/impl :qlang/prim/runExamples
+                :category :reflective
+                :subject :map
+                :returns :vec
+                :modifiers []
+                :throws [::RunExamplesSubjectShapeError]}
+
+:as
+  |~~ Captures the current pipeValue as a frozen snapshot under
+    the given keyword name. pipeValue passes through unchanged.
+    Retrievable by name through identifier lookup (auto-unwrapped
+    to the raw value) or through reify(:name) for metadata
+    inspection including docs.
+
+    ~{42 | as(:answer) | answer | eq(42)}
+    ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
+    ~~|
+  {:qlang/kind :builtin
+       :qlang/impl :qlang/prim/as
+       :category :reflective
+       :subject :any
+       :returns :any
+       :modifiers [:keyword]
+       :throws [::AsNameNotKeywordError]}
+
+:error
+  |~~ Lifts a Map into an error value — the sole
+    constructor for the 5th type at the language
+    level alongside the !{…} literal. Bare form
+    map | error uses pipeValue as the descriptor;
+    full form error(map) evaluates the captured
+    Map against pipeValue as context. The resulting
+    error rides the fail-track: |, *, and >>
+    deflect it into the trail, !| fires its step
+    against the materialized descriptor.
+
+    ~{{:kind :oops :message "boom"} | error !| /kind | eq(:oops)}
+    ~{error({:kind :oops}) !| /kind | eq(:oops)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/error
+          :category :error
+          :subject :map
+          :returns :error
+          :modifiers [:map]
+          :throws [::ErrorDescriptorNotMapError]}
+
+:isError
+  |~~ Returns true when pipeValue is an error value,
+    false otherwise. Plain predicate — carries no
+    dispatch flag, inspected as-is by its caller.
+    In top-of-pipeline position it only ever sees a
+    success-track value because | deflects errors
+    before isError could fire; it is intended for
+    raw first-step positions inside predicate
+    lambdas (filter(isError), any(isError),
+    every(isError | not), * isError).
+
+    ~{[!{:kind :oops}] * isError | first | eq(true)}
+    ~{{:kind :oops} | isError | eq(false)}
+    ~{42 | isError | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+            :qlang/impl :qlang/prim/isError
+            :category :error
+            :subject :any
+            :returns :boolean
+            :modifiers []
+            :throws []}
+
+:parse
+  |~~ Parses a source string into an AST-Map — the data-form
+    representation of the program described by walk.mjs's
+    astNodeToMap codec. Half of the code-as-data ring; pair
+    with eval to round-trip between source text and
+    evaluated pipeValue without leaving qlang. Parse errors
+    from the underlying peggy parser lift onto the fail-track
+    as ordinary error values, so malformed sources surface
+    through !| like every other runtime failure.
+
+    ~{"42" | parse | /:qlang/kind | eq(:NumberLit)}
+    ~{"add(1, 2)" | parse | /name | eq("add")}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/parse
+          :category :reflective
+          :subject :string
+          :returns :map
+          :modifiers []
+          :throws [::ParseSubjectNotStringOrQuoteError]}
+
+:eval
+  |~~ Evaluates an AST-Map (typically produced by parse or
+    hand-assembled via walk.mjs::astNodeToMap) against the
+    current state. The inner code sees the caller's env and
+    pipeValue; any let / as / use writes propagate out the
+    same way a paren-group would. Completes the ring
+    "source" | parse | eval equivalent to directly evaluating
+    the source string, and enables programmatic query
+    construction from data without source-string splicing.
+
+    ~{"42" | parse | eval | eq(42)}
+    ~{"10 | add(3)" | parse | eval | eq(13)}
+    ~{{:qlang/kind :NumberLit :value 42} | eval | eq(42)}
+    ~~|
+  {:qlang/kind :builtin
+         :qlang/impl :qlang/prim/eval
+         :category :reflective
+         :subject :map
+         :returns :any
+         :modifiers []
+         :throws [::EvalSubjectNotMapOrQuoteError]}
+
+:apply
+  |~~ Runs the Quote-or-AST in pipeValue against the captured
+    arg as the initial subject. Mirrors the classical
+    `apply(fn, args)` from Lisp / JS — the body comes first (in
+    pipeValue, the pipeline's natural inlet), the subject second
+    (captured argument).
+
+    Pairs with `eval` to split data-flow on the AST-as-data axis:
+    `quote | eval` runs the Quote against itself (the body IS the
+    subject), `quote | apply(subject)` runs the body against a
+    different value. Same `eval` machinery, different subject
+    binding.
+
+    The Quote may carry a leading combinator (`|`, `*`, `>>`, `!|`)
+    so its first step applies through that combinator against the
+    new subject. A pipeline-suffix shape — exactly the form `:trail`
+    records surface — is therefore directly re-executable.
+
+    ~{~{isNull} | apply(42) | eq(false)}
+    ~{~{| isNull} | apply(42) | eq(false)}
+    ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
+    ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/apply
+          :category :reflective
+          :subject [:quote :map]
+          :returns :any
+          :modifiers [:any]
+          :throws [::EvalSubjectNotMapOrQuoteError]}
+
+:source
+  |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
+    in one of the loaded modules. Walks every `qlang/ast/<uri>`
+    Quote in env, finds the `BindStep` whose key matches the
+    Keyword (or TagKeyword for `::Tag | source`) on pipeValue,
+    returns a Quote-value carrying the verbatim source slice.
+
+    ~{:filter | source | /source | contains(":filter")}
+    ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
+    ~~|
+  {:qlang/kind :builtin
+                :qlang/impl :qlang/prim/source
+                :category :axis
+                :subject [:keyword :tag-keyword]
+                :returns :quote
+                :modifiers []
+                :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+:docs
+  |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
+    on the `BindStep` that binds `:name`. Each Doc-value `/segments`
+    surfaces TaggedLit and Quote inline structure for navigation;
+    Quote segments are the evaluable examples `runExamples` runs.
+
+    ~{:filter | docs | first | /content | contains("Keeps items")}
+    ~{::AddLeftNotNumberError | docs | first | isDoc}
+    ~~|
+  {:qlang/kind :builtin
+              :qlang/impl :qlang/prim/docs
+              :category :axis
+              :subject [:keyword :tag-keyword]
+              :returns :vec
+              :modifiers []
+              :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+:examples
+  |~~ `:name | examples` — Vec of Quote-values extracted from the
+    binding's docs. `runExamples` consumes this Vec to evaluate
+    each Quote against an isolated env; `:ok` is true iff the
+    result is truthy.
+
+    ~{:filter | examples | count | gt(0)}
+    ~{:filter | examples | first | /source | contains("filter")}
+    ~~|
+  {:qlang/kind :builtin
+                  :qlang/impl :qlang/prim/examples
+                  :category :axis
+                  :subject [:keyword :tag-keyword]
+                  :returns :vec
+                  :modifiers []
+                  :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}

@@ -12,7 +12,7 @@ import { keyword } from '../../src/types.mjs';
 // fileURLToPath/dirname/join are synchronous).
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const libDir = join(__dirname, '..', '..', 'lib', 'qlang');
+const libDir = join(__dirname, '..', '..', 'lib', 'extras');
 
 // ── discoverModules ─────────────────────────────────────────────
 

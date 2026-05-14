@@ -1,0 +1,176 @@
+|~ qlang operand catalog — container family. Each operand
+   BindStep below carries its per-site error tag-bindings inline,
+   declared just before the operand that raises them. The
+   :throws Vec on every descriptor references those tags by
+   name. ~|
+
+::CountSubjectNotContainerError
+  |~~ Subject of `count` must be Vec, Set, or Map. ~~|
+  {:qlang/kind :tag}
+
+::EmptySubjectNotContainerError
+  |~~ Subject of `empty` must be Vec, Set, or Map. ~~|
+  {:qlang/kind :tag}
+
+::AnyMapPredArityInvalidError
+  |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value). ~~|
+  {:qlang/kind :tag}
+
+::AnySubjectNotContainerError
+  |~~ Subject of `any` must be Vec, Set, or Map. ~~|
+  {:qlang/kind :tag}
+
+::AnyVecOrSetPredArityInvalidError
+  |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map. ~~|
+  {:qlang/kind :tag}
+
+::EveryMapPredArityInvalidError
+  |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value). ~~|
+  {:qlang/kind :tag}
+
+::EverySubjectNotContainerError
+  |~~ Subject of `every` must be Vec, Set, or Map. ~~|
+  {:qlang/kind :tag}
+
+::EveryVecOrSetPredArityInvalidError
+  |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map. ~~|
+  {:qlang/kind :tag}
+
+::FilterMapPredArityInvalidError
+  |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value). ~~|
+  {:qlang/kind :tag}
+
+::FilterSubjectNotContainerError
+  |~~ Subject of `filter` must be Vec, Set, or Map. ~~|
+  {:qlang/kind :tag}
+
+::FilterVecOrSetPredArityInvalidError
+  |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map. ~~|
+  {:qlang/kind :tag}
+
+:count
+  |~~ Returns the number of elements. Polymorphic over Vec
+    (length), Set (size), and Map (entry count).
+
+    ~{[1 2 3] | count | eq(3)}
+    ~{#{:a :b} | count | eq(2)}
+    ~{{:x 1 :y 2 :z 3} | count | eq(3)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/count
+          :category :container-reducer
+          :subject [:vec :set :map]
+          :returns :number
+          :modifiers []
+          :throws [::CountSubjectNotContainerError]}
+
+:empty
+  |~~ Returns true if the container has zero elements, false
+    otherwise. Polymorphic over Vec, Set, and Map.
+
+    ~{[] | empty | eq(true)}
+    ~{[1] | empty | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/empty
+          :category :container-reducer
+          :subject [:vec :set :map]
+          :returns :boolean
+          :modifiers []
+          :throws [::EmptySubjectNotContainerError]}
+
+:every
+  |~~ Returns true iff every item of the container satisfies the
+    predicate. Polymorphic over Vec / Set / Map. The predicate
+    conduit's :params arity picks the dispatch: 0-arity (inline
+    pipeline) fires per item with pipeValue = element (Vec/Set)
+    or value (Map). 1-arity [:x] binds the element / value as
+    a captured-arg. 2-arity [:k :v] binds (key, value) — only
+    meaningful on Map; on Vec/Set it raises
+    EveryVecOrSetPredArityInvalidError (one axis only). 3+ params
+    raise the same class on Vec/Set, EveryMapPredArityInvalidError
+    on Map. Short-circuits on the first falsy result. Vacuously
+    true for empty containers.
+
+    ~{[2 4 6 8] | every(gt(0)) | eq(true)}
+    ~{[1 2 3] | every(gt(2)) | eq(false)}
+    ~{[2 4 6] | :@pos [:v] (v | gt(0)) | every(@pos) | eq(true)}
+    ~{[] | every(gt(0)) | eq(true)}
+    ~{{:a 1 :b 2 :c 3} | every(gt(0)) | eq(true)}
+    ~{{:a 1 :b -2 :c 3} | every(gt(0)) | eq(false)}
+    ~{{:a 1 :b 2} | :@pos [:v] (v | gt(0)) | every(@pos) | eq(true)}
+    ~{{:a1 1 :a2 2} | :@keyAndPos [:k :v] and(v | gt(0), k | eq(:a1)) | every(@keyAndPos) | eq(false)}
+    ~~|
+  {:qlang/kind :builtin
+          :qlang/impl :qlang/prim/every
+          :category :container-selector
+          :subject [:vec :set :map]
+          :returns :boolean
+          :modifiers [:predicate-lambda]
+          :throws [::EverySubjectNotContainerError ::EveryVecOrSetPredArityInvalidError ::EveryMapPredArityInvalidError]}
+
+:any
+  |~~ Returns true iff at least one item of the container
+    satisfies the predicate. Polymorphic over Vec / Set / Map
+    with the same per-container dispatch as every: the predicate
+    conduit's arity picks element vs (key, value) binding.
+    Short-circuits on the first truthy result. Vacuously false
+    for empty containers.
+
+    ~{[1 2 3] | any(gt(2)) | eq(true)}
+    ~{[1 2 3] | any(gt(99)) | eq(false)}
+    ~{[1 2 3] | :@big [:v] (v | gt(2)) | any(@big) | eq(true)}
+    ~{[] | any(gt(0)) | eq(false)}
+    ~{{:a -1 :b 0 :c 2} | any(gt(0)) | eq(true)}
+    ~{{:a -1 :b 2} | :@pos [:v] (v | gt(0)) | any(@pos) | eq(true)}
+    ~{{:apple 1 :banana 2} | :@aKey [:k :v] (k | eq(:apple)) | any(@aKey) | eq(true)}
+    ~~|
+  {:qlang/kind :builtin
+        :qlang/impl :qlang/prim/any
+        :category :container-selector
+        :subject [:vec :set :map]
+        :returns :boolean
+        :modifiers [:predicate-lambda]
+        :throws [::AnySubjectNotContainerError ::AnyVecOrSetPredArityInvalidError ::AnyMapPredArityInvalidError]}
+
+:filter
+  |~~ Keeps items of the container where the predicate evaluates
+    truthy, returning a new container of the same shape. Vec and
+    Set iterate per element, Map iterates per entry. The
+    predicate conduit's :params arity picks the binding:
+
+      0-arity inline pipeline → element (Vec/Set) or value (Map)
+                                as pipeValue.
+      1-arity [:x]            → element / value bound as the
+                                single captured-arg.
+      2-arity [:k :v]         → only on Map — (key, value) bound
+                                as captured-args. On Vec/Set it
+                                raises FilterVecOrSetPredArityInvalidError.
+      3+-arity                → FilterVecOrSetPredArityInvalidError on
+                                Vec/Set, FilterMapPredArityInvalidError
+                                on Map.
+
+    Compose both-axis predicates via a named conduit binding, then
+    reference it in filter:
+
+      m
+        | :@hot [:k :v] and(k | eq(:x), v | gt(1))
+        | filter(@hot)
+
+    ~{[1 2 3 4 5] | filter(gt(2)) | eq([3 4 5])}
+    ~{[{:age 25} {:age 15}] | filter(/age | gte(18)) | eq([{:age 25}])}
+    ~{[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos) | eq([1 3])}
+    ~{#{1 2 3 4 5} | filter(gt(2)) | eq(#{3 4 5})}
+    ~{#{1 -2 3} | :@pos [:v] (v | gt(0)) | filter(@pos) | eq(#{1 3})}
+    ~{{:a 1 :b 2 :c 3} | filter(gt(1)) | eq({:b 2 :c 3})}
+    ~{{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt(0)) | filter(@pos) | eq({:a 1 :c 3})}
+    ~{{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot) | eq({:avocado 3})}
+    ~{{} | filter(gt(0)) | eq({})}
+    ~~|
+  {:qlang/kind :builtin
+           :qlang/impl :qlang/prim/filter
+           :category :container-selector
+           :subject [:vec :set :map]
+           :returns [:vec :set :map]
+           :modifiers [:predicate-lambda]
+           :throws [::FilterSubjectNotContainerError ::FilterVecOrSetPredArityInvalidError ::FilterMapPredArityInvalidError]}

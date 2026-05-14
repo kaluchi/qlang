@@ -53,3 +53,69 @@ describe('use without a locator in env raises UseNamespaceNotFoundError', () => 
     expect(result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 });
+
+describe('SourceLoadError shared base — Node and Web loaders share the class', () => {
+  // Both loaders (`host/load-source-node.mjs`,
+  // `src/load-source-web.mjs`) raise the same `SourceLoadError`
+  // class imported from `src/source-load-error.mjs`. The class
+  // carries `host` / `logicalName` / `sourceLocation` plus a
+  // host-specific tail (`cause` for Node, `status` for Web).
+
+  it('Node-shape error carries host="node" and the inner cause message', async () => {
+    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
+    const cause = new Error('EACCES: permission denied');
+    const err = new SourceLoadError({
+      host: 'node',
+      logicalName: '#qlang/core',
+      sourceLocation: '/locked/core.qlang',
+      cause
+    });
+    expect(err.name).toBe('SourceLoadError');
+    expect(err.fingerprint).toBe('SourceLoadError');
+    expect(err.message).toContain('#qlang/core');
+    expect(err.message).toContain('/locked/core.qlang');
+    expect(err.message).toContain('EACCES: permission denied');
+    expect(err.context).toEqual({
+      host: 'node',
+      logicalName: '#qlang/core',
+      sourceLocation: '/locked/core.qlang',
+      cause,
+      status: undefined
+    });
+  });
+
+  it('Web-shape error carries host="web" and the HTTP status tail', async () => {
+    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new SourceLoadError({
+      host: 'web',
+      logicalName: '#qlang/core',
+      sourceLocation: 'https://cdn.example/qlang/core.qlang',
+      status: 503
+    });
+    expect(err.name).toBe('SourceLoadError');
+    expect(err.message).toContain('HTTP 503');
+    expect(err.context.host).toBe('web');
+    expect(err.context.status).toBe(503);
+  });
+
+  it('cause-shaped object without `.message` falls through to String(cause)', async () => {
+    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new SourceLoadError({
+      host: 'node',
+      logicalName: '#qlang/core',
+      sourceLocation: '/x.qlang',
+      cause: 'raw-string-cause'
+    });
+    expect(err.message).toContain('raw-string-cause');
+  });
+
+  it('no cause and no status — message ends after the source location', async () => {
+    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new SourceLoadError({
+      host: 'node',
+      logicalName: '#qlang/core',
+      sourceLocation: '/x.qlang'
+    });
+    expect(err.message).toBe(`failed to read qlang source '#qlang/core' from /x.qlang`);
+  });
+});

@@ -164,12 +164,12 @@ function describeBinding(value, explicitName) {
     }
     return tagResult;
   }
-  // Conduit-parameters (created at applyConduit time via makeFn)
-  // are function values that can show up as env bindings while a
-  // conduit body is evaluating. `buildBuiltinDescriptor` handles
-  // them via the `fn.meta` path carried by the proxies
-  // `makeConduitParameter` constructs — their metadata is inlined
-  // on the proxy itself, addressable through `fn.meta`.
+  // Conduit-parameters — function values minted by
+  // `makeConduitParameter` in `eval.mjs` that surface inside a
+  // conduit body's env. `reify(:paramName)` from within the body
+  // routes the proxy here; `buildBuiltinDescriptor` reads the
+  // full meta the proxy carries inline (`category`, `subject`,
+  // `modifiers`, `returns`, `captured`, `throws`).
   if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
   if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
   if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);

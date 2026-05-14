@@ -15,6 +15,8 @@
 // (HTTP error, parse error inside the loaded source) propagates as
 // `SourceLoadError`.
 
+import { SourceLoadError } from './source-load-error.mjs';
+
 export async function loadSource(logicalName) {
   let url;
   try {
@@ -23,15 +25,13 @@ export async function loadSource(logicalName) {
     return null;
   }
   const res = await fetch(url);
-  if (!res.ok) throw new SourceLoadError({ logicalName, url, status: res.status });
-  return res.text();
-}
-
-export class SourceLoadError extends Error {
-  constructor({ logicalName, url, status }) {
-    super(`failed to load qlang source '${logicalName}' from ${url} — HTTP ${status}`);
-    this.name = 'SourceLoadError';
-    this.fingerprint = 'SourceLoadError';
-    this.context = { logicalName, url, status };
+  if (!res.ok) {
+    throw new SourceLoadError({
+      host: 'web',
+      logicalName,
+      sourceLocation: url,
+      status: res.status
+    });
   }
+  return res.text();
 }

@@ -16,6 +16,7 @@
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
+import { SourceLoadError } from '../src/source-load-error.mjs';
 
 export async function loadSource(logicalName) {
   let filePath;
@@ -30,15 +31,11 @@ export async function loadSource(logicalName) {
   try {
     return await readFile(filePath, 'utf8');
   } catch (cause) {
-    throw new SourceLoadError({ logicalName, filePath, cause });
-  }
-}
-
-export class SourceLoadError extends Error {
-  constructor({ logicalName, filePath, cause }) {
-    super(`failed to read qlang source '${logicalName}' from ${filePath} — ${cause?.message ?? cause}`);
-    this.name = 'SourceLoadError';
-    this.fingerprint = 'SourceLoadError';
-    this.context = { logicalName, filePath, cause };
+    throw new SourceLoadError({
+      host: 'node',
+      logicalName,
+      sourceLocation: filePath,
+      cause
+    });
   }
 }

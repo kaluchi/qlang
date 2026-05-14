@@ -130,6 +130,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, filterOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/predicate/i);
+    expect(hover.content).not.toMatch(/~\{/);
   });
 
   it('returns hover for a projection', async () => {

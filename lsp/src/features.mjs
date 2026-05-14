@@ -30,6 +30,45 @@ const F_CATEGORY  = 'category';
 const F_SUBJECT   = 'subject';
 const F_MODIFIERS = 'modifiers';
 
+// Strip `~{...}` Quote segments from doc content, leaving only
+// prose. Balanced-brace scan handles nested `~{` and string
+// literals inside the Quote body. The result is the human-readable
+// description without executable examples — hover and completion
+// show prose; examples surface through `| examples` in the detail
+// view.
+function stripQuoteSegments(content) {
+  const parts = [];
+  let cursor = 0;
+  while (cursor < content.length) {
+    const tildePos = content.indexOf('~{', cursor);
+    if (tildePos === -1) {
+      parts.push(content.slice(cursor));
+      break;
+    }
+    parts.push(content.slice(cursor, tildePos));
+    let depth = 1;
+    let i = tildePos + 2;
+    while (i < content.length && depth > 0) {
+      const ch = content[i];
+      if (ch === '"') {
+        i++;
+        while (i < content.length && content[i] !== '"') {
+          if (content[i] === '\\') i++;
+          i++;
+        }
+        i++;
+        continue;
+      }
+      if (ch === '~' && content[i + 1] === '{') { depth++; i += 2; continue; }
+      if (ch === '{') { depth++; i++; continue; }
+      if (ch === '}') { depth--; i++; continue; }
+      i++;
+    }
+    cursor = i;
+  }
+  return parts.join('').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 // Cached docs lookup — `:name | docs` (or `::Tag | docs`) axis-call
 // returns a Vec of Doc-values. LSP wants the raw content strings;
 // pull them once on first request and reuse the array on subsequent
@@ -141,7 +180,7 @@ async function valueNamespaceCompletions() {
       label: k,
       kind: 'function',
       detail: formatMetaValue(descriptor.get(F_CATEGORY)),
-      documentation: docContents[0] ?? ''
+      documentation: stripQuoteSegments(docContents[0] ?? '')
     });
   }
   return _valueCompletions;
@@ -158,7 +197,7 @@ async function tagNamespaceCompletions() {
       label: k,
       kind: 'tag',
       detail: 'tag-binding',
-      documentation: docContents[0] ?? ''
+      documentation: stripQuoteSegments(docContents[0] ?? '')
     });
   }
   return _tagCompletions;
@@ -256,12 +295,13 @@ async function hoverForOperand(node) {
   const descriptor = runtime.get(node.name);
   const docContents = await fetchDocsContents(node.name);
 
+  const prose = stripQuoteSegments(docContents.join('\n'));
   return {
     content: [
       `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
       `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
       '',
-      docContents.join('\n')
+      prose
     ].join('\n'),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
@@ -287,11 +327,12 @@ async function hoverForTag(node) {
   const headStart = node.location.start.offset;
   const headEnd = headStart + 2 + node.tag.length;
 
+  const prose = stripQuoteSegments(docContents.join('\n'));
   return {
     content: [
       `**${tagKey}** — tag-binding`,
       '',
-      docContents.join('\n')
+      prose
     ].join('\n'),
     startOffset: headStart,
     endOffset: headEnd
@@ -564,7 +605,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
     label: modifiers.length > 0
       ? `${operandCall.name}(${modifiers.join(', ')})`
       : `${operandCall.name}()`,
-    documentation: docContents[0] ?? '',
+    documentation: stripQuoteSegments(docContents[0] ?? ''),
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
   };

@@ -45,6 +45,18 @@ function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
   return handler ? handler(v, ...extraArgs) : fallback(v, ...extraArgs);
 }
 
+// Raw JS function reaching a render path comes from a host-bound
+// env entry — `:qlang/locator` is the canonical example, but
+// embedders may install others via `session.bind(name, jsFn)`.
+// `printValue` routes through this helper so the rendered form
+// is a host-marker string literal that parses back as a String
+// value, keeping the env's surface display round-trippable. The
+// actual function stays reachable through direct projection off
+// env for embedders that care.
+function hostFunctionLiteral(fn) {
+  return escapeQlangStringLiteral(`<host-fn ${fn.name}>`);
+}
+
 function dispatchPlainValue(v, handlers) {
   if (Array.isArray(v)) return handlers.array(v);
   if (v !== null && typeof v === 'object') return handlers.object(v);
@@ -70,21 +82,64 @@ const TableRowNotMapError     = declareElementError('TableRowNotMapError',     '
 // the `String(v)` branch because raw function values never enter
 // pipeValue.
 const TO_PLAIN_HANDLERS = {
-  Null:       () => null,
-  Number:     v => v,
-  String:     v => v,
-  Boolean:    v => v,
-  Keyword:    k => ':' + k.name,
-  Vec:        v => v.map(toPlain),
-  Map:        qMapToPlainObject,
-  Set:        s => [...s].map(toPlain),
-  Error:      e => ({ $error: toPlain(e.descriptor) }),
-  JsonObject: o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, toPlain(v)])),
-  JsonArray:  a => a.map(toPlain)
+  Null:           () => null,
+  Number:         v => v,
+  String:         v => v,
+  Boolean:        v => v,
+  Keyword:        k => ':' + k.name,
+  TagKeyword:     k => '::' + k.name,
+  Vec:            v => v.map(toPlain),
+  Map:            qMapToPlainObject,
+  // Snapshot wraps a captured value plus a :name / :docs / :location
+  // bundle. Encode the wrapped value transparently — toPlain is the
+  // lossy codec, the wrapper metadata is reachable through reify
+  // for callers that need it.
+  Snapshot:       s => toPlain(s.get('qlang/value')),
+  // Conduit and TaggedInstance carry their structure as a Map. The
+  // shape's `:qlang/kind` discriminator now lifts through the
+  // TagKeyword handler, so the Map iteration encodes cleanly. Raw
+  // JS slots (`:qlang/body` AST node, `:qlang/envRef` holder) still
+  // surface through the toPlainFallback — those reach `env | json`
+  // only when the env contains user-defined conduits, signalling a
+  // shape outside the toPlain contract.
+  Conduit:        qMapToPlainObject,
+  TaggedInstance: qMapToPlainObject,
+  Quote:          q => `~{${q.source}}`,
+  Doc:            d => `|~~${d.content}~~|`,
+  Set:            s => [...s].map(toPlain),
+  Error:          e => ({ $error: toPlain(e.descriptor) }),
+  JsonObject:     o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, toPlain(v)])),
+  JsonArray:      a => a.map(toPlain)
 };
 
 export function toPlain(v) {
-  return dispatchQlangValue(v, TO_PLAIN_HANDLERS, String);
+  return dispatchQlangValue(v, TO_PLAIN_HANDLERS, toPlainFallback);
+}
+
+// Fallback for values `describeType` classifies as `Unknown`. The
+// only live consumer reaching this branch is the host-bound
+// raw JS function slot (`:qlang/locator` and any embedder
+// `session.bind(name, fn)` installs); those render as a
+// host-marker string so `env | json` produces a parseable plain
+// shape. `dispatchQlangValue` already routes qlang function-values
+// (the `makeFn` shape) through `FunctionValueLeakedToPrintError`.
+function toPlainFallback(v) {
+  if (typeof v === 'function') return `<host-fn ${v.name}>`;
+  throw new ToPlainUnencodableValueError({ actualType: typeof v, actualValue: v });
+}
+
+// `toPlain` refuses to silently coerce unknown shapes to garbage
+// strings (the `String([object Object])` path the previous
+// fallback took). Per-site class so a caller can recover by
+// projecting around the offending slot or by using the
+// lossless `toTaggedJSON` codec instead.
+export class ToPlainUnencodableValueError extends Error {
+  constructor({ actualType, actualValue }) {
+    super(`toPlain: unencodable ${actualType} value — use toTaggedJSON for lossless JSON or project around the slot`);
+    this.name = 'ToPlainUnencodableValueError';
+    this.fingerprint = 'ToPlainUnencodableValueError';
+    this.context = { actualType, actualValue };
+  }
 }
 
 function qMapToPlainObject(m) {
@@ -219,7 +274,18 @@ function printJsonObject(obj, indent) {
 }
 
 export function printValue(v, indent = 0) {
-  return dispatchQlangValue(v, PRINT_HANDLERS, String, indent);
+  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent);
+}
+
+// Fallback for values `describeType` classifies as `Unknown`.
+// A raw JS function (typically `:qlang/locator` or other host-bound
+// env entries) renders as a host-marker string literal so the
+// surface display round-trips through the parser as a String value.
+// Everything else stringifies via `String(v)` — the same behaviour
+// the previous direct-`String` fallback gave, just routed.
+function printFallback(v) {
+  if (typeof v === 'function') return hostFunctionLiteral(v);
+  return String(v);
 }
 
 // Both named and anonymous conduits render as the `::conduit[…]`

@@ -225,3 +225,79 @@ describe('round-trip invariant — BareTypeKeyword', () => {
     it(`bare type-keyword: ${src}`, () => pinRoundTrip(src));
   }
 });
+
+// ── env-as-Map — `env` operand output parses back ────────────
+
+describe('env output is parseable', () => {
+  // The `env` operand exposes the full runtime env as a Map. Every
+  // entry — operand descriptor, tag-binding, module-AST Quote,
+  // namespace cache, host-bound function (`:qlang/locator`), user
+  // `as` snapshots, user BindStep conduits — must render through a
+  // path the parser accepts on the way back. A leak (raw JS
+  // function source landing in the output) breaks REPL `env`
+  // display and every downstream `env | …` pipeline that hands
+  // the output to a tool expecting qlang syntax.
+
+  it('printValue(env) parses without errors', async () => {
+    const env = await evalSource('env');
+    const printed = printValue(env);
+    expect(() => parse(printed, { uri: 'env-round-trip' })).not.toThrow();
+  });
+
+  it('printValue(env) emits no raw JS function source', async () => {
+    const env = await evalSource('env');
+    const printed = printValue(env);
+    // The literal leak pattern this test guards against — undici's
+    // async-function source landing in the output as `async
+    // function platformLocator(...) { ... }`.
+    expect(printed).not.toMatch(/async function\b/);
+    expect(printed).not.toMatch(/=>\s*\{/);
+  });
+
+  it('host-bound raw JS function in env renders as a parseable host-marker string', async () => {
+    // The locator slot is the live example; this test generalises
+    // to any embedder-installed function value under `session.bind`.
+    const env = new Map(await langRuntime());
+    env.set('myHostFn', async function helloFn() { return 42; });
+    const printed = printValue(env);
+    expect(printed).toContain('"<host-fn helloFn>"');
+    expect(() => parse(printed, { uri: 'host-fn-round-trip' })).not.toThrow();
+  });
+
+  it('env | json produces valid JSON (TagKeyword + host function paths)', async () => {
+    // The `json` operand is `JSON.stringify(toPlain(subject))`. The
+    // env Map contains TagKeyword values (in every `:throws` Vec)
+    // and a host-bound function (`:qlang/locator`). Both used to
+    // fall through to `String(v)` and produce `"[object Object]"` /
+    // raw function source. The toPlain handlers now route them as
+    // `"::Name"` and `"<host-fn name>"` strings — `JSON.parse` of
+    // the output must succeed and the locator value lands as the
+    // host-marker string.
+    const jsonText = await evalSource('env | json');
+    const parsed = JSON.parse(jsonText);
+    expect(parsed['qlang/locator']).toMatch(/^<host-fn [A-Za-z]+>$/);
+    expect(parsed['use'].throws[0]).toMatch(/^::[A-Z]/);
+  });
+});
+
+// ── toPlain unencodable shapes ───────────────────────────────
+
+describe('toPlain refuses unencodable values', async () => {
+  const { toPlain, ToPlainUnencodableValueError } = await import('../../src/runtime/format.mjs');
+
+  it('throws ToPlainUnencodableValueError on a raw foreign object', () => {
+    // A JS Date isn't a qlang value-class and isn't a function —
+    // the lossy plain-JSON encoder refuses rather than silently
+    // emitting `"[object Date]"`.
+    expect(() => toPlain(new Date())).toThrow(ToPlainUnencodableValueError);
+  });
+
+  it('error context carries the offending value\'s typeof for diagnosis', () => {
+    try { toPlain(Symbol('s')); }
+    catch (e) {
+      expect(e.context.actualType).toBe('symbol');
+      return;
+    }
+    throw new Error('expected toPlain to throw');
+  });
+});

@@ -14,3 +14,7 @@
 {"name":"table-mixed","query":"[42 \"hello\"] | table","error":"type-error","expect":"::TableRowNotMapError!{\n  :fault {\n    :step ~{table}\n    :input [42 \"hello\"]\n  }\n  :actualValue 42\n  :actualType :number\n  :index 0\n  :expectedType :map\n  :operand :table\n  :origin :qlang/eval\n  :kind :type-error\n}"}
 {"name":"table-empty","query":"[] | table","expect":"\"(empty)\""}
 {"name":"json-keyword","query":":foo | json","expect":"\"\\\":foo\\\"\""}
+{"name":"json-tag-keyword","query":"::ParseError | json","expect":"\"\\\"::ParseError\\\"\""}
+{"name":"json-quote-renders-as-source","query":"~{count} | json","expect":"\"\\\"~{count}\\\"\""}
+{"name":"json-doc-renders-as-source","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\""}
+{"name":"json-on-host-locator-renders-host-marker","query":"env | /:qlang/locator | json | startsWith(\"\\\"<host-fn \")","expect":"true"}

@@ -38,7 +38,7 @@
     keywords, sets, and errors pass through unchanged — only
     the container shape is touched.
 
-    ~{::qlang{"k" "v"} | isMap | eq(true)}
+    ~{::qlang{"k": "v"} | isMap | eq(true)}
     ~~|
   {:qlang/kind :tag
                 :qlang/impl :qlang/type/qlang

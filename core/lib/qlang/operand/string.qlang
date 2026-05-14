@@ -5,63 +5,93 @@
    name. ~|
 
 ::AppendSubjectNotStringError
-  |~~ Captured argument at position 1 of `append` must be String. ~~|
+  |~~ Captured argument at position 1 of `append` must be String.
+    ~{42 | append("x") !| /thrown | eq(::AppendSubjectNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AppendSuffixNotStringError
-  |~~ Captured argument at position 2 of `append` must be String. ~~|
+  |~~ Captured argument at position 2 of `append` must be String.
+    ~{"x" | append(42) !| /thrown | eq(::AppendSuffixNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ContainsNeedleNotStringError
-  |~~ Captured argument at position 2 of `contains` must be String. ~~|
+  |~~ Captured argument at position 2 of `contains` must be String.
+    ~{"hi" | contains(42) !| /thrown | eq(::ContainsNeedleNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ContainsSubjectNotStringError
-  |~~ Captured argument at position 1 of `contains` must be String. ~~|
+  |~~ Captured argument at position 1 of `contains` must be String.
+    ~{42 | contains("x") !| /thrown | eq(::ContainsSubjectNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EndsWithSubjectNotStringError
-  |~~ Captured argument at position 1 of `endsWith` must be String. ~~|
+  |~~ Captured argument at position 1 of `endsWith` must be String.
+    ~{42 | endsWith("x") !| /thrown | eq(::EndsWithSubjectNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EndsWithSuffixNotStringError
-  |~~ Captured argument at position 2 of `endsWith` must be String. ~~|
+  |~~ Captured argument at position 2 of `endsWith` must be String.
+    ~{"hi" | endsWith(42) !| /thrown | eq(::EndsWithSuffixNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::JoinElementNotStringError
-  |~~ Element of `join` input collection must be String. ~~|
+  |~~ Element of `join` input collection must be String.
+    ~{["a" 42 "c"] | join(",") !| /thrown | eq(::JoinElementNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::JoinSeparatorNotStringError
-  |~~ Captured argument at position 2 of `join` must be String. ~~|
+  |~~ Captured argument at position 2 of `join` must be String.
+    ~{["a" "b"] | join(42) !| /thrown | eq(::JoinSeparatorNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::JoinSubjectNotVecError
-  |~~ Subject of `join` must be Vec. ~~|
+  |~~ Subject of `join` must be Vec.
+    ~{42 | join(",") !| /thrown | eq(::JoinSubjectNotVecError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::PrependPrefixNotStringError
-  |~~ Captured argument at position 2 of `prepend` must be String. ~~|
+  |~~ Captured argument at position 2 of `prepend` must be String.
+    ~{"x" | prepend(42) !| /thrown | eq(::PrependPrefixNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::PrependSubjectNotStringError
-  |~~ Captured argument at position 1 of `prepend` must be String. ~~|
+  |~~ Captured argument at position 1 of `prepend` must be String.
+    ~{42 | prepend("x") !| /thrown | eq(::PrependSubjectNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::SplitSeparatorNotStringError
-  |~~ Captured argument at position 2 of `split` must be String. ~~|
+  |~~ Captured argument at position 2 of `split` must be String.
+    ~{"abc" | split(42) !| /thrown | eq(::SplitSeparatorNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::SplitSubjectNotStringError
-  |~~ Captured argument at position 1 of `split` must be String. ~~|
+  |~~ Captured argument at position 1 of `split` must be String.
+    ~{42 | split(",") !| /thrown | eq(::SplitSubjectNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::StartsWithPrefixNotStringError
-  |~~ Captured argument at position 2 of `startsWith` must be String. ~~|
+  |~~ Captured argument at position 2 of `startsWith` must be String.
+    ~{"hi" | startsWith(42) !| /thrown | eq(::StartsWithPrefixNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::StartsWithSubjectNotStringError
-  |~~ Captured argument at position 1 of `startsWith` must be String. ~~|
+  |~~ Captured argument at position 1 of `startsWith` must be String.
+    ~{42 | startsWith("x") !| /thrown | eq(::StartsWithSubjectNotStringError)}
+    ~~|
   {:qlang/kind :tag}
 
 :split

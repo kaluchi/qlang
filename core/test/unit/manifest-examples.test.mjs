@@ -20,9 +20,27 @@ const ACTUAL_KW  = 'actual';
 
 async function walkManifestExamples() {
   const failures = [];
+  // Value-namespace bindings — operands, conduits, etc.
   const bindingNames = await evalQuery('manifest * /name');
   for (const name of bindingNames) {
     const exampleResults = await evalQuery(`reify(:${name}) | runExamples`);
+    if (!Array.isArray(exampleResults)) continue;
+    for (const exampleResult of exampleResults) {
+      if (exampleResult.get(OK_KW) === true) continue;
+      failures.push({
+        operand: name,
+        snippet: exampleResult.get(SNIPPET_KW)?.source ?? exampleResult.get(SNIPPET_KW),
+        actual:  exampleResult.get(ACTUAL_KW),
+        error:   exampleResult.get(ERROR_KW)
+      });
+    }
+  }
+  // Tag-namespace bindings — error tags carry repro Quotes
+  // (`<query> !| /thrown | eq(::TagName)`) injected from
+  // conformance JSONLs; runExamples evaluates each to true.
+  const tagNames = await evalQuery('manifest(:tag) * /name');
+  for (const name of tagNames) {
+    const exampleResults = await evalQuery(`reify(:"${name}") | runExamples`);
     if (!Array.isArray(exampleResults)) continue;
     for (const exampleResult of exampleResults) {
       if (exampleResult.get(OK_KW) === true) continue;

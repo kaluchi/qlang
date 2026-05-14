@@ -9,7 +9,9 @@
   {:qlang/kind :tag}
 
 ::AscPairNotMapError
-  |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
+    ~{42 | asc(/x) !| /thrown | eq(::AscPairNotMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::DescKeysNotComparableError
@@ -17,15 +19,21 @@
   {:qlang/kind :tag}
 
 ::DescPairNotMapError
-  |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
+    ~{42 | desc(/x) !| /thrown | eq(::DescPairNotMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::NullsFirstPairNotMapError
-  |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
+    ~{42 | nullsFirst(/a) !| /thrown | eq(::NullsFirstPairNotMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::NullsLastPairNotMapError
-  |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`). ~~|
+  |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
+    ~{42 | nullsLast(/a) !| /thrown | eq(::NullsLastPairNotMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::GteOperandsNotComparableError
@@ -45,7 +53,9 @@
   {:qlang/kind :tag}
 
 ::KeywordSubjectNotStringOrKeywordError
-  |~~ `keyword` involution requires a String or Keyword subject. ~~|
+  |~~ `keyword` involution requires a String or Keyword subject.
+    ~{42 | keyword !| /thrown !| /thrown | eq(::KeywordSubjectNotStringOrKeywordError)}
+    ~~|
   {:qlang/kind :tag}
 
 :asc

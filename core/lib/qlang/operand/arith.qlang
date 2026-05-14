@@ -5,7 +5,9 @@
    name. ~|
 
 ::AddLeftNotNumberError
-  |~~ Captured argument at position 1 of `add` must be Number. ~~|
+  |~~ Captured argument at position 1 of `add` must be Number.
+    ~{"hello" | add(1) !| /thrown | eq(::AddLeftNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AddRightNotNumberError
@@ -13,7 +15,9 @@
   {:qlang/kind :tag}
 
 ::DivisionByZeroError
-  |~~ Division by zero — `div(_, 0)` raises this error. ~~|
+  |~~ Division by zero — `div(_, 0)` raises this error.
+    ~{10 | div(0) !| /thrown | eq(::DivisionByZeroError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::DivLeftNotNumberError

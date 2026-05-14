@@ -5,11 +5,15 @@
    name. ~|
 
 ::TableRowNotMapError
-  |~~ Element of `table` input collection must be Map. ~~|
+  |~~ Element of `table` input collection must be Map.
+    ~{[42 "hello"] | table !| /thrown | eq(::TableRowNotMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::TableSubjectNotVecError
-  |~~ Subject of `table` must be Vec. ~~|
+  |~~ Subject of `table` must be Vec.
+    ~{42 | table !| /thrown | eq(::TableSubjectNotVecError)}
+    ~~|
   {:qlang/kind :tag}
 
 :json

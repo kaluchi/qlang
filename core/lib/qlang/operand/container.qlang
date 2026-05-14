@@ -5,47 +5,69 @@
    name. ~|
 
 ::CountSubjectNotContainerError
-  |~~ Subject of `count` must be Vec, Set, or Map. ~~|
+  |~~ Subject of `count` must be Vec, Set, or Map.
+    ~{42 | count !| /thrown | eq(::CountSubjectNotContainerError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EmptySubjectNotContainerError
-  |~~ Subject of `empty` must be Vec, Set, or Map. ~~|
+  |~~ Subject of `empty` must be Vec, Set, or Map.
+    ~{42 | empty !| /thrown | eq(::EmptySubjectNotContainerError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AnyMapPredArityInvalidError
-  |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value). ~~|
+  |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
+    ~{{:a 1} | :@tooWide [:x :y :z] true | any(@tooWide) !| /thrown !| /thrown | eq(::AnyMapPredArityInvalidError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AnySubjectNotContainerError
-  |~~ Subject of `any` must be Vec, Set, or Map. ~~|
+  |~~ Subject of `any` must be Vec, Set, or Map.
+    ~{42 | any(gt(0)) !| /thrown | eq(::AnySubjectNotContainerError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AnyVecOrSetPredArityInvalidError
-  |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map. ~~|
+  |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
+    ~{[1 2] | :@kv [:k :v] true | any(@kv) !| /thrown !| /thrown | eq(::AnyVecOrSetPredArityInvalidError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EveryMapPredArityInvalidError
-  |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value). ~~|
+  |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
+    ~{{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide) !| /thrown !| /thrown | eq(::EveryMapPredArityInvalidError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EverySubjectNotContainerError
-  |~~ Subject of `every` must be Vec, Set, or Map. ~~|
+  |~~ Subject of `every` must be Vec, Set, or Map.
+    ~{42 | every(gt(0)) !| /thrown | eq(::EverySubjectNotContainerError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EveryVecOrSetPredArityInvalidError
-  |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map. ~~|
+  |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
+    ~{[1 2] | :@kv [:k :v] true | every(@kv) !| /thrown !| /thrown | eq(::EveryVecOrSetPredArityInvalidError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::FilterMapPredArityInvalidError
-  |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value). ~~|
+  |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
+    ~{{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| /thrown !| /thrown | eq(::FilterMapPredArityInvalidError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::FilterSubjectNotContainerError
-  |~~ Subject of `filter` must be Vec, Set, or Map. ~~|
+  |~~ Subject of `filter` must be Vec, Set, or Map.
+    ~{42 | filter(gt(0)) !| /thrown | eq(::FilterSubjectNotContainerError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::FilterVecOrSetPredArityInvalidError
-  |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map. ~~|
+  |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
+    ~{[1 2] | :@kv [:k :v] true | filter(@kv) !| /thrown !| /thrown | eq(::FilterVecOrSetPredArityInvalidError)}
+    ~~|
   {:qlang/kind :tag}
 
 :count

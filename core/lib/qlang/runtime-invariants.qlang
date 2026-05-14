@@ -6,31 +6,45 @@
    file (lib/qlang/operand/<family>.qlang). ~|
 
 ::ProjectionFieldNotOnValueClassError
-  |~~ Projection segment is not a publicly-projectable field on the value-class subject (Quote / Doc / …). ~~|
+  |~~ Projection segment is not a publicly-projectable field on the value-class subject (Quote / Doc / …).
+    ~{~{mul(2)} | /missing !| /thrown | eq(::ProjectionFieldNotOnValueClassError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ProjectionIndexOutOfBoundsError
-  |~~ Projection `/n` — the integer index resolves outside the Vec subject's `[0, length)` range. ~~|
+  |~~ Projection `/n` — the integer index resolves outside the Vec subject's `[0, length)` range.
+    ~{[10 20 30] | /99 !| /thrown | eq(::ProjectionIndexOutOfBoundsError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ProjectionKeyNotInMapError
-  |~~ Projection `/key` — the named key is absent from the Map subject (strict-miss). Use `at(:key)` for null-coalescing access. ~~|
+  |~~ Projection `/key` — the named key is absent from the Map subject (strict-miss). Use `at(:key)` for null-coalescing access.
+    ~{{:a 1} | /b !| /thrown | eq(::ProjectionKeyNotInMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ProjectionSubjectNotMapError
-  |~~ Projection `/key` requires a Map, Vec, or value-class subject; null subject and other shapes lift to this error. ~~|
+  |~~ Projection `/key` requires a Map, Vec, or value-class subject; null subject and other shapes lift to this error.
+    ~{42 | /foo !| /thrown | eq(::ProjectionSubjectNotMapError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ProjectionVecKeyNotIntegerError
-  |~~ Projection segment is a non-numeric string but the subject is a Vec — Vec indices must be integer offsets. ~~|
+  |~~ Projection segment is a non-numeric string but the subject is a Vec — Vec indices must be integer offsets.
+    ~{[10 20 30] | /name !| /thrown | eq(::ProjectionVecKeyNotIntegerError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::DistributeSubjectNotVecError
-  |~~ Distribute combinator (`*`) — subject must be a Vec for per-element forking. ~~|
+  |~~ Distribute combinator (`*`) — subject must be a Vec for per-element forking.
+    ~{42 * add(1) !| /thrown | eq(::DistributeSubjectNotVecError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::MergeSubjectNotVecError
-  |~~ Merge combinator (`>>`) — subject must be a Vec for one-level flattening. ~~|
+  |~~ Merge combinator (`>>`) — subject must be a Vec for one-level flattening.
+    ~{42 >> count !| /thrown | eq(::MergeSubjectNotVecError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::TagBindingHasNoConstructorError
@@ -42,11 +56,15 @@
   {:qlang/kind :tag}
 
 ::TaggedLitTagNotFoundError
-  |~~ `::tag` constructor invocation failed — the tag is not a registered tag-binding in env. ~~|
+  |~~ `::tag` constructor invocation failed — the tag is not a registered tag-binding in env.
+    ~{::UnknownTag !| /thrown !| /thrown | eq(::TaggedLitTagNotFoundError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ConduitArityMismatchError
-  |~~ Conduit invocation supplied a captured-arg count different from the conduit's declared parameter list. ~~|
+  |~~ Conduit invocation supplied a captured-arg count different from the conduit's declared parameter list.
+    ~{:f [:a] add(a) | 5 | f(1, 2) !| /thrown | eq(::ConduitArityMismatchError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ConduitBodyMissingSourceError
@@ -54,15 +72,21 @@
   {:qlang/kind :tag}
 
 ::ConduitParameterNoCapturedArgsError
-  |~~ Conduit-parameter proxies are nullary — passing captured arguments to a parameter reference raises this error. ~~|
+  |~~ Conduit-parameter proxies are nullary — passing captured arguments to a parameter reference raises this error.
+    ~{:f [:n] n(42) | 0 | f(5) !| /thrown | eq(::ConduitParameterNoCapturedArgsError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EffectLaunderingAtBindStepParseError
-  |~~ BindStep declaration body references an `@`-effectful identifier, but the binding name itself is not `@`-prefixed — laundering caught at parse time. ~~|
+  |~~ BindStep declaration body references an `@`-effectful identifier, but the binding name itself is not `@`-prefixed — laundering caught at parse time.
+    ~{1 | (:bad @callers | bad) !| /thrown | eq(::EffectLaunderingAtBindStepParseError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ApplyToNonFunctionError
-  |~~ Identifier resolves to a non-function value — captured arguments cannot be applied. ~~|
+  |~~ Identifier resolves to a non-function value — captured arguments cannot be applied.
+    ~{5 | as(:five) | five(42) !| /thrown | eq(::ApplyToNonFunctionError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::EffectLaunderingAtCallError
@@ -70,7 +94,9 @@
   {:qlang/kind :tag}
 
 ::UnresolvedIdentifierError
-  |~~ Identifier lookup failed — no env binding under that name. ~~|
+  |~~ Identifier lookup failed — no env binding under that name.
+    ~{thisIsNotDefined !| /thrown !| /thrown | eq(::UnresolvedIdentifierError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ParseError
@@ -198,11 +224,15 @@
   {:qlang/kind :tag}
 
 ::NullsFirstKeysNotComparableError
-  |~~ Operands of `nullsFirst` are not pairwise-comparable scalars. ~~|
+  |~~ Operands of `nullsFirst` are not pairwise-comparable scalars.
+    ~{{:left {:a 1} :right {:a "x"}} | nullsFirst(/a) !| /thrown | eq(::NullsFirstKeysNotComparableError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::NullsLastKeysNotComparableError
-  |~~ Operands of `nullsLast` are not pairwise-comparable scalars. ~~|
+  |~~ Operands of `nullsLast` are not pairwise-comparable scalars.
+    ~{{:left {:a 1} :right {:a "x"}} | nullsLast(/a) !| /thrown | eq(::NullsLastKeysNotComparableError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::ReifyArityOverflowError

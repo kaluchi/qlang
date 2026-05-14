@@ -66,7 +66,25 @@ function stripQuoteSegments(content) {
     }
     cursor = i;
   }
-  return parts.join('').replace(/\n{3,}/g, '\n\n').trim();
+  return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim());
+}
+
+// Remove the common leading whitespace from every non-empty line.
+// Doc-prefix content carries the catalog-file indent (6 spaces for
+// B+I convention); hover/completion output reads as prose, so the
+// indent must go. Markdown renders 4+ leading spaces as a code
+// block — dedenting prevents accidental code-block promotion.
+function dedent(text) {
+  const lines = text.split('\n');
+  // Compute indent from continuation lines (index 1+) — the first
+  // line often sits right after `|~~ ` with less indent than the
+  // body. Empty lines do not contribute.
+  const continuationNonEmpty = lines.slice(1).filter(l => l.trim().length > 0);
+  const minIndent = continuationNonEmpty.length > 0
+    ? Math.min(...continuationNonEmpty.map(l => l.match(/^( *)/)[1].length))
+    : 0;
+  if (minIndent === 0) return text;
+  return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
 }
 
 // Cached docs lookup — `:name | docs` (or `::Tag | docs`) axis-call

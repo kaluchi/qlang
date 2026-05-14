@@ -51,7 +51,7 @@
   {:qlang/kind :tag}
 
 ::UseNamespaceNotMapError
-  |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot import as a namespace. ~~|
+  |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot import as a namespace. Fires from host-installed non-Map bindings (`session.bind('ns', 42)` → `use(:ns)`). ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceElementNotKeywordError
@@ -101,7 +101,9 @@
   {:qlang/kind :tag}
 
 ::ReifyArityOverflowError
-  |~~ `reify` accepts 0 or 1 captured arguments — `reify(:name)` resolves a named binding, bare `reify` describes pipeValue. ~~|
+  |~~ `reify` accepts 0 or 1 captured arguments — `reify(:name)` resolves a named binding, bare `reify` describes pipeValue.
+    ~{42 | reify(:a, :b) !| type | eq(::ReifyArityOverflowError)}
+    ~~|
   {:qlang/kind :tag}
 
 :manifest
@@ -381,5 +383,7 @@
   {:qlang/kind :tag}
 
 ::AxisBindingNotFoundError
-  |~~ Axis-operand (`source` / `docs` / `examples`) could not find a `BindStep` for the requested binding name across loaded modules. ~~|
+  |~~ Axis-operand (`source` / `docs` / `examples`) could not find a `BindStep` for the requested binding name across loaded modules.
+    ~{:nonexistent-binding | source !| type | eq(::AxisBindingNotFoundError)}
+    ~~|
   {:qlang/kind :tag}

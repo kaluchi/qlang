@@ -88,15 +88,21 @@
   {:qlang/kind :tag}
 
 ::ParseError
-  |~~ Parser failure — source did not match the grammar. ~~|
+  |~~ Parser failure — source did not match the grammar.
+    ~{"42 |" | parse !| type | eq(::ParseError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AstMapKindUnknownError
-  |~~ AST-Map → AST codec — `:qlang/kind` discriminator names a kind the codec does not know. ~~|
+  |~~ AST-Map → AST codec — `:qlang/kind` discriminator names a kind the codec does not know.
+    ~{{:qlang/kind :BogusKind} | eval !| type | eq(::AstMapKindUnknownError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AstMapMalformedError
-  |~~ AST-Map → AST codec — input Map is malformed (missing required field, wrong shape). ~~|
+  |~~ AST-Map → AST codec — input Map is malformed (missing required field, wrong shape).
+    ~{{:a 1} | eval !| type | eq(::AstMapMalformedError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::AstNodeTypeUnknownError
@@ -120,11 +126,15 @@
   {:qlang/kind :tag}
 
 ::NullaryOpArgsProvidedError
-  |~~ Dispatch invariant — nullary operand received captured arguments. ~~|
+  |~~ Dispatch invariant — nullary operand received captured arguments.
+    ~{[1 2 3] | count(42) !| type | eq(::NullaryOpArgsProvidedError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::OverloadedOpUnsupportedArityError
-  |~~ Dispatch invariant — overloaded operand has no impl for the supplied captured-arg count. ~~|
+  |~~ Dispatch invariant — overloaded operand has no impl for the supplied captured-arg count.
+    ~{[3 1 2] | sort(:a, :b) !| type | eq(::OverloadedOpUnsupportedArityError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::StateOpArityMismatchError
@@ -150,7 +160,9 @@
   {:qlang/kind :tag}
 
 ::Rule10ArityOverflowError
-  |~~ Rule 10 — operand call supplied more captured arguments than the operand's declared maximum arity. ~~|
+  |~~ Rule 10 — operand call supplied more captured arguments than the operand's declared maximum arity.
+    ~{[1 2 3] | count(1, 2) !| type | eq(::Rule10ArityOverflowError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::PrimitiveKeyAlreadyBoundError

@@ -25,7 +25,9 @@
   {:qlang/kind :tag}
 
 ::AddRightNotNumberError
-  |~~ Captured argument at position 2 of `add` must be Number. ~~|
+  |~~ Captured argument at position 2 of `add` must be Number.
+    ~{1 | add("x") !| type | eq(::AddRightNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 :sub
@@ -44,11 +46,15 @@
         :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
 
 ::SubLeftNotNumberError
-  |~~ Captured argument at position 1 of `sub` must be Number. ~~|
+  |~~ Captured argument at position 1 of `sub` must be Number.
+    ~{"hello" | sub(1) !| type | eq(::SubLeftNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::SubRightNotNumberError
-  |~~ Captured argument at position 2 of `sub` must be Number. ~~|
+  |~~ Captured argument at position 2 of `sub` must be Number.
+    ~{1 | sub("x") !| type | eq(::SubRightNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 :mul
@@ -66,11 +72,15 @@
         :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
 
 ::MulLeftNotNumberError
-  |~~ Captured argument at position 1 of `mul` must be Number. ~~|
+  |~~ Captured argument at position 1 of `mul` must be Number.
+    ~{"hello" | mul(2) !| type | eq(::MulLeftNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::MulRightNotNumberError
-  |~~ Captured argument at position 2 of `mul` must be Number. ~~|
+  |~~ Captured argument at position 2 of `mul` must be Number.
+    ~{1 | mul("x") !| type | eq(::MulRightNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 :div
@@ -90,11 +100,15 @@
         :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
 
 ::DivLeftNotNumberError
-  |~~ Captured argument at position 1 of `div` must be Number. ~~|
+  |~~ Captured argument at position 1 of `div` must be Number.
+    ~{"hello" | div(2) !| type | eq(::DivLeftNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::DivRightNotNumberError
-  |~~ Captured argument at position 2 of `div` must be Number. ~~|
+  |~~ Captured argument at position 2 of `div` must be Number.
+    ~{1 | div("x") !| type | eq(::DivRightNotNumberError)}
+    ~~|
   {:qlang/kind :tag}
 
 ::DivisionByZeroError

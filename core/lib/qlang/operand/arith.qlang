@@ -4,12 +4,12 @@
 
 :add
   |~~ Adds two numbers. Bound form a | add(b) computes a+b;
-    full form add(a, b) resolves both args against pipeValue
-    as context.
+      full form add(a, b) resolves both args against pipeValue
+      as context.
 
-    ~{10 | add(3) | eq(13)}
-    ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
-    ~~|
+      ~{10 | add(3) | eq(13)}
+      ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
+  ~~|
   {:qlang/kind :builtin
         :qlang/impl :qlang/prim/add
         :category :arith
@@ -20,27 +20,33 @@
 
 ::AddLeftNotNumberError
   |~~ Captured argument at position 1 of `add` must be Number.
-    ~{"hello" | add(1)
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::AddLeftNotNumberError :add 1 :number :string])}
-    ~~|
+
+      ~{
+        "hello" | add(1)
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::AddLeftNotNumberError :add 1 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::AddRightNotNumberError
   |~~ Captured argument at position 2 of `add` must be Number.
-    ~{1 | add("x")
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::AddRightNotNumberError :add 2 :number :string])}
-    ~~|
+
+      ~{
+        1 | add("x")
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::AddRightNotNumberError :add 2 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
-    position 1 is the minuend.
+      position 1 is the minuend.
 
-    ~{10 | sub(3) | eq(7)}
-    ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
-    ~~|
+      ~{10 | sub(3) | eq(7)}
+      ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
+  ~~|
   {:qlang/kind :builtin
         :qlang/impl :qlang/prim/sub
         :category :arith
@@ -51,26 +57,32 @@
 
 ::SubLeftNotNumberError
   |~~ Captured argument at position 1 of `sub` must be Number.
-    ~{"hello" | sub(1)
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::SubLeftNotNumberError :sub 1 :number :string])}
-    ~~|
+
+      ~{
+        "hello" | sub(1)
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::SubLeftNotNumberError :sub 1 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::SubRightNotNumberError
   |~~ Captured argument at position 2 of `sub` must be Number.
-    ~{1 | sub("x")
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::SubRightNotNumberError :sub 2 :number :string])}
-    ~~|
+
+      ~{
+        1 | sub("x")
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::SubRightNotNumberError :sub 2 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :mul
   |~~ Multiplies two numbers. Commutative.
 
-    ~{10 | mul(3) | eq(30)}
-    ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
-    ~~|
+      ~{10 | mul(3) | eq(30)}
+      ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
+  ~~|
   {:qlang/kind :builtin
         :qlang/impl :qlang/prim/mul
         :category :arith
@@ -81,28 +93,34 @@
 
 ::MulLeftNotNumberError
   |~~ Captured argument at position 1 of `mul` must be Number.
-    ~{"hello" | mul(2)
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::MulLeftNotNumberError :mul 1 :number :string])}
-    ~~|
+
+      ~{
+        "hello" | mul(2)
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::MulLeftNotNumberError :mul 1 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::MulRightNotNumberError
   |~~ Captured argument at position 2 of `mul` must be Number.
-    ~{1 | mul("x")
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::MulRightNotNumberError :mul 2 :number :string])}
-    ~~|
+
+      ~{
+        1 | mul("x")
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::MulRightNotNumberError :mul 2 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
-    position 1 is the dividend. Raises division-by-zero on
-    b == 0.
+      position 1 is the dividend. Raises division-by-zero on
+      b == 0.
 
-    ~{10 | div(2) | eq(5)}
-    ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
-    ~~|
+      ~{10 | div(2) | eq(5)}
+      ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
+  ~~|
   {:qlang/kind :builtin
         :qlang/impl :qlang/prim/div
         :category :arith
@@ -113,22 +131,33 @@
 
 ::DivLeftNotNumberError
   |~~ Captured argument at position 1 of `div` must be Number.
-    ~{"hello" | div(2)
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::DivLeftNotNumberError :div 1 :number :string])}
-    ~~|
+
+      ~{
+        "hello" | div(2)
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::DivLeftNotNumberError :div 1 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::DivRightNotNumberError
   |~~ Captured argument at position 2 of `div` must be Number.
-    ~{1 | div("x")
-      !| [type /operand /position /expectedType /actualType]
-      |  eq([::DivRightNotNumberError :div 2 :number :string])}
-    ~~|
+
+      ~{
+        1 | div("x")
+        !| [type /operand /position /expectedType /actualType]
+        |  eq([::DivRightNotNumberError :div 2 :number :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::DivisionByZeroError
   |~~ Division by zero — `div(_, 0)` fires this error.
-    ~{10 | div(0) !| [type] | eq([::DivisionByZeroError])}
-    ~~|
+
+      ~{
+        10 | div(0)
+        !| [type]
+        |  eq([::DivisionByZeroError])
+       }
+  ~~|
   {:qlang/kind :tag}

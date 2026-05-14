@@ -7,21 +7,21 @@
 
 ::conduit
   |~~ Conduit literal — invokeable lexically-scoped value carrying
-    a frozen body AST plus optional self-name and parameter list.
-    Payload Vec shape:
-      [params body]            — non-recursive, params is a Vec
-                                 of Keywords, body is a Quote.
-      [:self params body]      — with self-name for recursion;
-                                 inside body the identifier
-                                 matching :self resolves to the
-                                 conduit itself.
-    Body Quote source is parsed at construction time; the
-    returned Conduit-value captures the env at the call site
-    through a tie-the-knot envRef so recursive references resolve
-    against the lexical scope.
+      a frozen body AST plus optional self-name and parameter list.
+      Payload Vec shape:
+        [params body]            — non-recursive, params is a Vec
+                                   of Keywords, body is a Quote.
+        [:self params body]      — with self-name for recursion;
+                                   inside body the identifier
+                                   matching :self resolves to the
+                                   conduit itself.
+      Body Quote source is parsed at construction time; the
+      returned Conduit-value captures the env at the call site
+      through a tie-the-knot envRef so recursive references resolve
+      against the lexical scope.
 
-    ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
-    ~~|
+      ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
+  ~~|
   {:qlang/kind :tag
                   :qlang/impl :qlang/type/conduit
                   :spec {:payload :vec}
@@ -38,100 +38,125 @@
 
 ::ConduitPayloadNotVecError
   |~~ `::conduit[…]` payload must be a Vec.
-    ~{::conduit{:not :a-vec}
-      !| [type /actualType]
-      |  eq([::ConduitPayloadNotVecError :map])}
-    ~~|
+
+      ~{
+        ::conduit{:not :a-vec}
+        !| [type /actualType]
+        |  eq([::ConduitPayloadNotVecError :map])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitArityInvalidError
   |~~ `::conduit[…]` payload Vec must have 2 (`[params body]`)
-    or 3 (`[:self params body]`) elements.
-    ~{::conduit[42]
-      !| [type /actualCount]
-      |  eq([::ConduitArityInvalidError 1])}
-    ~~|
+      or 3 (`[:self params body]`) elements.
+
+      ~{
+        ::conduit[42]
+        !| [type /actualCount]
+        |  eq([::ConduitArityInvalidError 1])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitSelfNameNotKeywordError
   |~~ `::conduit` self-name (3-element form) must be a Keyword.
-    ~{::conduit[42 [] ~{mul(2)}]
-      !| [type /actualType]
-      |  eq([::ConduitSelfNameNotKeywordError :number])}
-    ~~|
+
+      ~{
+        ::conduit[42 [] ~{mul(2)}]
+        !| [type /actualType]
+        |  eq([::ConduitSelfNameNotKeywordError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitParamsNotVecError
   |~~ `::conduit` params slot must be a Vec of Keywords.
-    ~{::conduit[42 ~{mul(2)}]
-      !| [type /actualType]
-      |  eq([::ConduitParamsNotVecError :number])}
-    ~~|
+
+      ~{
+        ::conduit[42 ~{mul(2)}]
+        !| [type /actualType]
+        |  eq([::ConduitParamsNotVecError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitParamNotKeywordError
   |~~ `::conduit` params Vec elements must be Keywords.
-    ~{::conduit[[42] ~{mul(2)}]
-      !| [type /index /actualType]
-      |  eq([::ConduitParamNotKeywordError 0 :number])}
-    ~~|
+
+      ~{
+        ::conduit[[42] ~{mul(2)}]
+        !| [type /index /actualType]
+        |  eq([::ConduitParamNotKeywordError 0 :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitBodyNotQuoteError
   |~~ `::conduit` body slot must be a Quote-value.
-    ~{::conduit[[] 42]
-      !| [type /actualType]
-      |  eq([::ConduitBodyNotQuoteError :number])}
-    ~~|
+
+      ~{
+        ::conduit[[] 42]
+        !| [type /actualType]
+        |  eq([::ConduitBodyNotQuoteError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitArityMismatchError
   |~~ Conduit invocation supplied a captured-arg count
-    different from the conduit's declared parameter list.
-    ~{:f [:a] add(a) | 5 | f(1, 2)
-      !| [type /conduitName /expectedArity /actualArity]
-      |  eq([::ConduitArityMismatchError :f 1 2])}
-    ~~|
+      different from the conduit's declared parameter list.
+
+      ~{
+        :f [:a] add(a) | 5 | f(1, 2)
+        !| [type /conduitName /expectedArity /actualArity]
+        |  eq([::ConduitArityMismatchError :f 1 2])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitParameterNoCapturedArgsError
   |~~ Conduit-parameter proxies are nullary — passing captured
-    arguments to a parameter reference fires this error.
-    ~{:f [:n] n(42) | 0 | f(5)
-      !| [type /paramName /actualCount]
-      |  eq([::ConduitParameterNoCapturedArgsError :n 1])}
-    ~~|
+      arguments to a parameter reference fires this error.
+
+      ~{
+        :f [:n] n(42) | 0 | f(5)
+        !| [type /paramName /actualCount]
+        |  eq([::ConduitParameterNoCapturedArgsError :n 1])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ConduitBodyMissingSourceError
   |~~ `makeConduit` refuses a body AST that has no `.text`
-    source slice — `printValue` round-trip requires literal
-    source. JS-level invariant. ~~|
+      source slice — `printValue` round-trip requires literal
+      source. JS-level invariant.
+  ~~|
   {:qlang/kind :tag}
 
 ::qlang
   |~~ ::qlang<json-shape> — recursively convert a JSON-shape
-    payload (plain object → qlang Map with keyword keys, plain
-    array → qlang Vec) down through every nested level. Scalars,
-    keywords, sets, and errors pass through unchanged — only
-    the container shape is touched.
+      payload (plain object → qlang Map with keyword keys, plain
+      array → qlang Vec) down through every nested level. Scalars,
+      keywords, sets, and errors pass through unchanged — only
+      the container shape is touched.
 
-    ~{::qlang{"k": "v"} | isMap | eq(true)}
-    ~~|
+      ~{::qlang{"k": "v"} | isMap | eq(true)}
+  ~~|
   {:qlang/kind :tag
                 :qlang/impl :qlang/type/qlang
                 :spec {:payload :any}}
 
 ::json
   |~~ ::json<qlang-shape> — recursively convert a qlang-shape
-    payload (qlang Map → JSON Object, qlang Vec → JSON Array;
-    both stamped with the appropriate JSON_*_TAG Symbol so
-    isJsonObject / isJsonArray identify them) down through
-    every nested level. Scalars, keywords, sets, and errors
-    pass through unchanged.
+      payload (qlang Map → JSON Object, qlang Vec → JSON Array;
+      both stamped with the appropriate JSON_*_TAG Symbol so
+      isJsonObject / isJsonArray identify them) down through
+      every nested level. Scalars, keywords, sets, and errors
+      pass through unchanged.
 
-    ~{::json{:k "v"} | isJsonObject | eq(true)}
-    ~~|
+      ~{::json{:k "v"} | isJsonObject | eq(true)}
+  ~~|
   {:qlang/kind :tag
                :qlang/impl :qlang/type/json
                :spec {:payload :any}}

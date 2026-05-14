@@ -34,58 +34,73 @@
 
 ::UseSubjectNotMapError
   |~~ `use` (bare form) requires a Map subject — its entries
-    become the merged bindings.
-    ~{42 | use
-      !| [type /actualType]
-      |  eq([::UseSubjectNotMapError :number])}
-    ~~|
+      become the merged bindings.
+
+      ~{
+        42 | use
+        !| [type /actualType]
+        |  eq([::UseSubjectNotMapError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceNotKeywordError
   |~~ `use(:ns)` requires a Keyword captured-arg naming the
-    namespace to import.
-    ~{use(42)
-      !| [type /actualType]
-      |  eq([::UseNamespaceNotKeywordError :number])}
-    ~~|
+      namespace to import.
+
+      ~{
+        use(42)
+        !| [type /actualType]
+        |  eq([::UseNamespaceNotKeywordError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceNotFoundError
   |~~ `use(:ns)` — namespace not in env and no host-provided
-    locator can resolve it.
-    ~{use(:absolutely-nonexistent-namespace)
-      !| [type /namespaceName]
-      |  eq([::UseNamespaceNotFoundError
-              :absolutely-nonexistent-namespace])}
-    ~~|
+      locator can resolve it.
+
+      ~{
+        use(:absolutely-nonexistent-namespace)
+        !| [type /namespaceName]
+        |  eq([::UseNamespaceNotFoundError
+                :absolutely-nonexistent-namespace])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceNotMapError
   |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot
-    import as a namespace. Host-boundary error: fires from
-    bindings installed via `session.bind('ns', 42)`. ~~|
+      import as a namespace. Host-boundary error: fires from
+      bindings installed via `session.bind('ns', 42)`.
+  ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceElementNotKeywordError
   |~~ `use([:ns1 :ns2 …])` — every element of the namespace
-    Vec must be a Keyword.
-    ~{use([42 :foo])
-      !| [type /index /actualType]
-      |  eq([::UseNamespaceElementNotKeywordError 0 :number])}
-    ~~|
+      Vec must be a Keyword.
+
+      ~{
+        use([42 :foo])
+        !| [type /index /actualType]
+        |  eq([::UseNamespaceElementNotKeywordError 0 :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::UseNamespaceCollisionError
   |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name
-    under the same identifier; Set-form rejects
-    collisions. Host-boundary error: requires two host-
-    installed namespace Maps with overlapping keys. ~~|
+      under the same identifier; Set-form rejects collisions.
+      Host-boundary error: requires two host-installed namespace
+      Maps with overlapping keys.
+  ~~|
   {:qlang/kind :tag}
 
 ::UseNameNotExportedError
   |~~ `use(:ns, #{:name1 …})` — selection filter names an
-    identifier the namespace does not export. Host-boundary
-    error: requires a host-installed namespace Map. ~~|
+      identifier the namespace does not export. Host-boundary
+      error: requires a host-installed namespace Map.
+  ~~|
   {:qlang/kind :tag}
 
 :reify
@@ -116,19 +131,25 @@
 
 ::ReifyKeyNotKeywordError
   |~~ `reify(:name)` requires a Keyword captured-arg (the
-    binding name to look up).
-    ~{reify("count")
-      !| [type /actualType]
-      |  eq([::ReifyKeyNotKeywordError :string])}
-    ~~|
+      binding name to look up).
+
+      ~{
+        reify("count")
+        !| [type /actualType]
+        |  eq([::ReifyKeyNotKeywordError :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ReifyArityOverflowError
   |~~ `reify` accepts 0 or 1 captured arguments.
-    ~{42 | reify(:a, :b)
-      !| [type]
-      |  eq([::ReifyArityOverflowError])}
-    ~~|
+
+      ~{
+        42 | reify(:a, :b)
+        !| [type]
+        |  eq([::ReifyArityOverflowError])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :manifest
@@ -147,15 +168,27 @@
              :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
 
 ::ManifestNamespaceNotKeywordError
-  |~~ `manifest(:namespace)` requires a Keyword captured-arg naming the namespace to enumerate (`:value` or `:tag`).
-    ~{manifest("tag") !| type | eq(::ManifestNamespaceNotKeywordError)}
-    ~~|
+  |~~ `manifest(:namespace)` requires a Keyword captured-arg
+      naming the namespace to enumerate (`:value` or `:tag`).
+
+      ~{
+        manifest("tag")
+        !| [type /actualType]
+        |  eq([::ManifestNamespaceNotKeywordError :string])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::ManifestNamespaceUnknownError
-  |~~ `manifest(:namespace)` accepts `:value` (operand / conduit / snapshot bindings) or `:tag` (tag-namespace declarations); any other keyword raises this error.
-    ~{manifest(:wat) !| type | eq(::ManifestNamespaceUnknownError)}
-    ~~|
+  |~~ `manifest(:namespace)` accepts `:value` or `:tag`; any
+      other keyword fires this error.
+
+      ~{
+        manifest(:wat)
+        !| [type /namespace]
+        |  eq([::ManifestNamespaceUnknownError "wat"])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :runExamples
@@ -177,9 +210,15 @@
                 :throws [::RunExamplesSubjectShapeError]}
 
 ::RunExamplesSubjectShapeError
-  |~~ `runExamples` requires a Keyword (binding name) or a descriptor Map carrying a `:name` String.
-    ~{42 | runExamples !| type | eq(::RunExamplesSubjectShapeError)}
-    ~~|
+  |~~ `runExamples` requires a Keyword (binding name) or a
+      descriptor Map carrying a `:name` String.
+
+      ~{
+        42 | runExamples
+        !| [type /actualType]
+        |  eq([::RunExamplesSubjectShapeError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :as
@@ -202,8 +241,13 @@
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).
-    ~{42 | as(42) !| type | eq(::AsNameNotKeywordError)}
-    ~~|
+
+      ~{
+        42 | as(42)
+        !| [type /actualType]
+        |  eq([::AsNameNotKeywordError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :error
@@ -229,9 +273,15 @@
           :throws [::ErrorDescriptorNotMapError]}
 
 ::ErrorDescriptorNotMapError
-  |~~ `error` lift requires a Map descriptor (the error's payload).
-    ~{42 | error !| type | eq(::ErrorDescriptorNotMapError)}
-    ~~|
+  |~~ `error` lift requires a Map descriptor (the error's
+      payload).
+
+      ~{
+        42 | error
+        !| [type /actualType]
+        |  eq([::ErrorDescriptorNotMapError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :isError
@@ -278,8 +328,13 @@
 
 ::ParseSubjectNotStringOrQuoteError
   |~~ `parse` requires a String or Quote subject.
-    ~{42 | parse !| type | eq(::ParseSubjectNotStringOrQuoteError)}
-    ~~|
+
+      ~{
+        42 | parse
+        !| [type /actualType]
+        |  eq([::ParseSubjectNotStringOrQuoteError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :eval
@@ -304,9 +359,15 @@
          :throws [::EvalSubjectNotMapOrQuoteError]}
 
 ::EvalSubjectNotMapOrQuoteError
-  |~~ `eval` requires a Map (AST-Map) or Quote (source-form) subject.
-    ~{42 | eval !| type | eq(::EvalSubjectNotMapOrQuoteError)}
-    ~~|
+  |~~ `eval` requires a Map (AST-Map) or Quote (source-form)
+      subject.
+
+      ~{
+        42 | eval
+        !| [type /actualType]
+        |  eq([::EvalSubjectNotMapOrQuoteError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :apply
@@ -359,11 +420,14 @@
 
 ::SourceSubjectNotKeywordOrTagError
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
-    (`::Foo`) subject.
-    ~{42 | source
-      !| [type /actualType]
-      |  eq([::SourceSubjectNotKeywordOrTagError :number])}
-    ~~|
+      (`::Foo`) subject.
+
+      ~{
+        42 | source
+        !| [type /actualType]
+        |  eq([::SourceSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :docs
@@ -384,11 +448,14 @@
 
 ::DocsSubjectNotKeywordOrTagError
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
-    (`::Foo`) subject.
-    ~{42 | docs
-      !| [type /actualType]
-      |  eq([::DocsSubjectNotKeywordOrTagError :number])}
-    ~~|
+      (`::Foo`) subject.
+
+      ~{
+        42 | docs
+        !| [type /actualType]
+        |  eq([::DocsSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 :examples
@@ -409,20 +476,26 @@
 
 ::ExamplesSubjectNotKeywordOrTagError
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
-    (`::Foo`) subject.
-    ~{42 | examples
-      !| [type /actualType]
-      |  eq([::ExamplesSubjectNotKeywordOrTagError :number])}
-    ~~|
+      (`::Foo`) subject.
+
+      ~{
+        42 | examples
+        !| [type /actualType]
+        |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
   {:qlang/kind :tag}
 
 ::AxisBindingNotFoundError
   |~~ Axis-operand (`source` / `docs` / `examples`) — no
-    `BindStep` found for the requested binding name across
-    loaded modules.
-    ~{:nonexistent-binding | source
-      !| [type /axisName /bindingName]
-      |  eq([::AxisBindingNotFoundError
-              :source :nonexistent-binding])}
-    ~~|
+      `BindStep` found for the requested binding name across
+      loaded modules.
+
+      ~{
+        :nonexistent-binding | source
+        !| [type /axisName /bindingName]
+        |  eq([::AxisBindingNotFoundError
+                :source :nonexistent-binding])
+       }
+  ~~|
   {:qlang/kind :tag}

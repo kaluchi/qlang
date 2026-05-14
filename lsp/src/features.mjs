@@ -21,7 +21,7 @@ import {
   isModuleNamespaceKey,
   isTagBindingName,
   RUNTIME_LOCATOR_KEY,
-  TAG_BINDING_PREFIX,
+  tagBindingKey,
   tokenize
 } from '@kaluchi/qlang-core';
 
@@ -39,7 +39,7 @@ const F_MODIFIERS = 'modifiers';
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
-  const query = name.startsWith(TAG_BINDING_PREFIX)
+  const query = isTagBindingName(name)
     ? `${name} | docs`
     : `:"${name}" | docs`;
   let docs;
@@ -103,7 +103,7 @@ export function buildCatalogIndex(catalogAst) {
     if (node.type !== 'BindStep') return;
     let name;
     if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = TAG_BINDING_PREFIX + node.key.tag;
+    else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
     else return;
     index.set(name, {
       startOffset: node.location.start.offset,
@@ -279,7 +279,7 @@ async function hoverForOperand(node) {
 // sits outside the popup region so the editor highlights the tag
 // head alone.
 async function hoverForTag(node) {
-  const tagKey = TAG_BINDING_PREFIX + node.tag;
+  const tagKey = tagBindingKey(node.tag);
   const runtime = await langRuntime();
   if (!runtime.has(tagKey)) return null;
 
@@ -340,8 +340,8 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   //   * `TaggedLit` — `::` + `.tag` (type constructor invocation).
   let name;
   if (node.type === 'OperandCall')        name = node.name;
-  else if (node.type === 'BareTypeKeyword') name = TAG_BINDING_PREFIX + node.tag;
-  else if (node.type === 'TaggedLit')       name = TAG_BINDING_PREFIX + node.tag;
+  else if (node.type === 'BareTypeKeyword') name = tagBindingKey(node.tag);
+  else if (node.type === 'TaggedLit')       name = tagBindingKey(node.tag);
   else return null;
 
   // Tier 1: last visible in-document declaration — only offsets;
@@ -374,7 +374,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 function bindingDeclarationOf(node) {
   if (node.type === 'BindStep') {
     if (node.key.type === 'BareTypeKeyword') {
-      return { name: TAG_BINDING_PREFIX + node.key.tag, kind: 'tag' };
+      return { name: tagBindingKey(node.key.tag), kind: 'tag' };
     }
     if (node.key.type === 'Keyword') {
       const kind = bindingKindForKeywordHead(node);
@@ -493,7 +493,7 @@ export function referencesAtOffset(ast, offset) {
     }
   } else if (node.type === 'BindStep') {
     if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = TAG_BINDING_PREFIX + node.key.tag;
+    else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
@@ -503,7 +503,7 @@ export function referencesAtOffset(ast, offset) {
       name = node.name;
     }
   } else if (node.type === 'BareTypeKeyword') {
-    name = TAG_BINDING_PREFIX + node.tag;
+    name = tagBindingKey(node.tag);
   }
 
   if (!name) return [];

@@ -204,7 +204,7 @@ export function keyword(name) {
 // uniformly.
 
 export function makeTagKeyword(tag) {
-  return Object.freeze({ type: 'tagKeyword', name: tag, literal: '::' + tag });
+  return Object.freeze({ type: 'tagKeyword', name: tag, literal: TAG_BINDING_PREFIX + tag });
 }
 
 export function isTagKeyword(v) {
@@ -251,6 +251,19 @@ export const RUNTIME_LOCATOR_KEY = 'qlang/locator';
 
 export function isTagBindingName(name) {
   return typeof name === 'string' && name.startsWith(TAG_BINDING_PREFIX);
+}
+
+// tagBindingKey(tagName) — `::Tag` env-lookup key from a raw tag
+// name. The single mint site for the prefix+name pair every reader
+// that probes env for a tag binding uses. Renderers should pull
+// the same literal off the TagKeyword value's `.literal` field
+// (set once at TagKeyword construction).
+export function tagBindingKey(tagName) {
+  return TAG_BINDING_PREFIX + tagName;
+}
+
+export function stripTagBindingPrefix(envKey) {
+  return envKey.slice(TAG_BINDING_PREFIX.length);
 }
 
 export function isModuleAstKey(name) {

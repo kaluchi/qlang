@@ -17,7 +17,7 @@ import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
   isTagKeyword, isErrorValue, typeKeyword, keyword,
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
-  TAG_BINDING_PREFIX, RUNTIME_LOCATOR_KEY
+  tagBindingKey, RUNTIME_LOCATOR_KEY
 } from '../types.mjs';
 import { locationToQlangMap } from '../ast-codec.mjs';
 import {
@@ -202,7 +202,7 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
       }
     }
     if (isTagKeyword(state.pipeValue)) {
-      const lookupName = TAG_BINDING_PREFIX + state.pipeValue.name;
+      const lookupName = tagBindingKey(state.pipeValue.name);
       if (!state.env.has(lookupName)) {
         throw new UnresolvedIdentifierError(lookupName);
       }
@@ -219,7 +219,7 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
     // same identifier shape `manifest(:tag)` emits.
     let lookupName;
     if (isKeyword(reifyKeyValue))         lookupName = reifyKeyValue.name;
-    else if (isTagKeyword(reifyKeyValue)) lookupName = TAG_BINDING_PREFIX + reifyKeyValue.name;
+    else if (isTagKeyword(reifyKeyValue)) lookupName = tagBindingKey(reifyKeyValue.name);
     else throw new ReifyKeyNotKeywordError({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
     if (!state.env.has(lookupName)) {
       throw new UnresolvedIdentifierError(lookupName);

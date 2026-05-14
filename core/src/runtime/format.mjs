@@ -86,8 +86,8 @@ const TO_PLAIN_HANDLERS = {
   Number:         v => v,
   String:         v => v,
   Boolean:        v => v,
-  Keyword:        k => ':' + k.name,
-  TagKeyword:     k => '::' + k.name,
+  Keyword:        k => k.literal,
+  TagKeyword:     k => k.literal,
   Vec:            v => v.map(toPlain),
   Map:            qMapToPlainObject,
   // Snapshot wraps a captured value plus a :name / :docs / :location
@@ -252,7 +252,7 @@ function literalOfKeyword(k) { return k.literal; }
 function printErrorValue(e, indent) {
   const desc = e.descriptor;
   const thrown = desc.get('thrown');
-  const tagHead = isTagKeyword(thrown) ? '::' + thrown.name : '';
+  const tagHead = isTagKeyword(thrown) ? thrown.literal : '';
   const payload = new Map();
   for (const [k, v] of desc) {
     if (k === 'thrown' && tagHead) continue;
@@ -298,15 +298,16 @@ function printFallback(v) {
 // holder, which the constructor binds to the call-site env at
 // reconstruction time.
 function printConduit(conduit) {
+  const conduitTagLiteral = conduit.get('qlang/kind').literal;
   const name = conduit.get('name');
   const params = conduit.get('params');
   const source = conduit.get('qlang/source');
   const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
   const quotedBody = '~{' + source + '}';
   if (name == null) {
-    return `::conduit[${paramList} ${quotedBody}]`;
+    return `${conduitTagLiteral}[${paramList} ${quotedBody}]`;
   }
-  return `::conduit[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
+  return `${conduitTagLiteral}[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
 }
 
 function printSnapshot(snapshot) {
@@ -321,10 +322,10 @@ function printSnapshot(snapshot) {
 // `::conduit` value-class, generalised across every user-defined
 // `::tag`.
 function printTaggedInstance(instance, indent) {
-  const tag = instance.get('qlang/kind').name;
+  const tagLiteral = instance.get('qlang/kind').literal;
   const payload = instance.get('qlang/payload');
   const inner = payload.map(el => printValue(el, indent)).join(' ');
-  return `::${tag}[${inner}]`;
+  return `${tagLiteral}[${inner}]`;
 }
 
 function escapeQlangStringLiteral(s) {
@@ -434,9 +435,9 @@ const INLINE_HANDLERS = {
 };
 
 function renderTaggedInstanceInline(instance) {
-  const tag = instance.get('qlang/kind').name;
+  const tagLiteral = instance.get('qlang/kind').literal;
   const payload = instance.get('qlang/payload');
-  return `::${tag}[${payload.map(renderInline).join(' ')}]`;
+  return `${tagLiteral}[${payload.map(renderInline).join(' ')}]`;
 }
 
 function renderInline(v) {

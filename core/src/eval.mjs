@@ -49,7 +49,7 @@ import {
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword,
-  moduleAstKey
+  moduleAstKey, tagBindingKey
 } from './types.mjs';
 import { isPureLiteralAst } from './walk.mjs';
 import { astNodeToMap } from './ast-codec.mjs';
@@ -494,7 +494,7 @@ async function evalSetLit(node, state) {
 async function evalTaggedLit(node, state) {
   const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
   const payloadValue = payloadFork.pipeValue;
-  const typeKey = '::' + node.tag;
+  const typeKey = tagBindingKey(node.tag);
   if (!envHas(state.env, typeKey)) {
     throw new TaggedLitTagNotFoundError({ tag: node.tag });
   }
@@ -558,7 +558,7 @@ async function evalTaggedLit(node, state) {
 // `| spec`) which take TagKeyword as their pipeValue subject and
 // resolve the binding through `bindingNameOf`.
 async function evalBareTypeKeyword(node, state) {
-  const typeKey = '::' + node.tag;
+  const typeKey = tagBindingKey(node.tag);
   if (!envHas(state.env, typeKey)) {
     throw new TaggedLitTagNotFoundError({ tag: node.tag });
   }
@@ -592,7 +592,7 @@ async function evalBareTypeKeyword(node, state) {
 // body raises EffectLaunderingAtBindStepParseError.
 async function evalBindStep(node, state) {
   const name = node.key.type === 'BareTypeKeyword'
-    ? '::' + node.key.tag
+    ? tagBindingKey(node.key.tag)
     : node.key.name;
   const docs = node.docs || [];
 

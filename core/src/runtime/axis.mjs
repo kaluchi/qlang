@@ -18,7 +18,7 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc,
-  isModuleAstKey, isTagBindingName, TAG_BINDING_PREFIX
+  isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
 } from '../types.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
@@ -75,7 +75,7 @@ function matchesBindingStep(step, isTagBinding, targetName) {
 // module.
 function findBindingStepFor(moduleAst, bindingName) {
   const isTagBinding = isTagBindingName(bindingName);
-  const targetName = isTagBinding ? bindingName.slice(TAG_BINDING_PREFIX.length) : bindingName;
+  const targetName = isTagBinding ? stripTagBindingPrefix(bindingName) : bindingName;
   if (moduleAst.type === 'Pipeline') {
     let lastMatch = null;
     for (let i = 0; i < moduleAst.steps.length; i++) {
@@ -118,10 +118,10 @@ export function findBindingStepAcrossModules(env, bindingName) {
 // of the tag binding it instantiates.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return TAG_BINDING_PREFIX + subject.name;
+  if (isTagKeyword(subject)) return tagBindingKey(subject.name);
   if (isQMap(subject)) {
     const kind = subject.get('qlang/kind');
-    if (isTagKeyword(kind)) return TAG_BINDING_PREFIX + kind.name;
+    if (isTagKeyword(kind)) return tagBindingKey(kind.name);
   }
   throw new ErrorCls(subject);
 }

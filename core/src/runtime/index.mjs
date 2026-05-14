@@ -109,12 +109,12 @@ export async function langRuntime() {
 
 export async function buildLangRuntime(locator) {
   // Bootstrap seed: the only env entries `core.qlang` needs
-  // before its own BindSteps install everything else. `:use`
-  // is the operand the root module calls on line one
-  // (`use(:qlang/error/registry)`); `:qlang/locator` is the
-  // platform-conditional source resolver `use` threads through
-  // for every namespace lookup (registry first, then every
-  // operand family the catalog pulls in down the line).
+  // before its own `use([...])` call pulls in the operand family
+  // catalog and shared-runtime tag-bindings. `:use` is the operand
+  // the root module invokes on every family namespace; `:qlang/
+  // locator` is the platform-conditional source resolver `use`
+  // threads through for every namespace lookup
+  // (runtime-invariants, tag, operand/arith, operand/vec, …).
   const seedEnv = new Map();
   seedEnv.set('use', PRIMITIVE_REGISTRY.resolve('qlang/prim/use'));
   seedEnv.set(RUNTIME_LOCATOR_KEY, locator);

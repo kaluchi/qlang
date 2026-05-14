@@ -11,7 +11,7 @@
 // `grammar.peggy` extends both this file and `ast-codec.mjs`; every
 // downstream walker inherits the knowledge.
 
-import { TAG_BINDING_PREFIX, isTagBindingName } from './types.mjs';
+import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey } from './types.mjs';
 
 // Namespace alias values used by `bindingNamesVisibleAt` to select
 // which BindStep / `as` declaration shapes count toward the result
@@ -256,7 +256,7 @@ export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) 
     let bindingName;
     if (namespace === TAG_NAMESPACE) {
       if (node.type === 'BindStep' && node.key.type === 'BareTypeKeyword') {
-        bindingName = TAG_BINDING_PREFIX + node.key.tag;
+        bindingName = tagBindingKey(node.key.tag);
       } else {
         return;
       }

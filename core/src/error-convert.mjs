@@ -1,4 +1,8 @@
-import { keyword, isKeyword, isQMap, isQSet, isErrorValue, makeErrorValue, makeTagKeyword } from './types.mjs';
+import {
+  keyword, isKeyword, isQMap, isQSet, isErrorValue,
+  makeErrorValue, makeTagKeyword,
+  TAG_BINDING_PREFIX
+} from './types.mjs';
 
 // Descriptor field-order: high-entropy first. `:thrown` TagKeyword
 // names the per-site identity; `:fault` carries the runtime
@@ -35,13 +39,15 @@ const RUNTIME_FIELD_ORDER = [
 const IDENTIFIER_FIELDS = new Set([
   'operand', 'position',
   'operandName', 'conduitName', 'namespaceName', 'paramName',
-  'effectfulName', 'defName', 'bindingName', 'axisName',
+  'effectfulName', 'bindingName', 'axisName',
   'tag'
 ]);
 function liftIdentifier(k, v) {
   if (!IDENTIFIER_FIELDS.has(k)) return v;
   if (typeof v !== 'string') return v;
-  return v.startsWith('::') ? makeTagKeyword(v.slice(2)) : keyword(v);
+  return v.startsWith(TAG_BINDING_PREFIX)
+    ? makeTagKeyword(v.slice(TAG_BINDING_PREFIX.length))
+    : keyword(v);
 }
 
 export function errorFromQlang(qlangError, fault) {

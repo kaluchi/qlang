@@ -37,8 +37,8 @@ export class BootstrapRootMissingError extends Error {
 // catalog or from user code.
 //
 // Logical names mirror the namespace keyword 1:1 under the
-// `#`-prefix convention: `:qlang/error/registry` →
-// `#qlang/error/registry`, `:my/lib` → `#my/lib`. The runtime
+// `#`-prefix convention: `:qlang/operand/arith` →
+// `#qlang/operand/arith`, `:my/lib` → `#my/lib`. The runtime
 // never inspects what's behind the prefix; the host's `imports`
 // field / import map carries the only mapping table.
 //

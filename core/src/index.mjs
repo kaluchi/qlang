@@ -117,7 +117,9 @@ import {
   isModuleAstKey,
   isModuleNamespaceKey,
   moduleAstKey,
-  moduleNamespaceKey
+  moduleNamespaceKey,
+  tagBindingKey,
+  stripTagBindingPrefix
 } from './types.mjs';
 
 export {
@@ -189,5 +191,7 @@ export {
   isModuleAstKey,
   isModuleNamespaceKey,
   moduleAstKey,
-  moduleNamespaceKey
+  moduleNamespaceKey,
+  tagBindingKey,
+  stripTagBindingPrefix
 };

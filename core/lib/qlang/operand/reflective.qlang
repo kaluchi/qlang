@@ -10,11 +10,11 @@
       ~{env | has(:count) | eq(true)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/env
-        :category :reflective
-        :subject :any
-        :returns :map
-}
+   :qlang/impl :qlang/prim/env
+   :category :reflective
+   :subject :any
+   :returns :map
+   }
 
 :use
   |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
@@ -25,12 +25,12 @@
       imports only the named bindings. pipeValue unchanged in all
       forms. Inside a fork, merged bindings evaporate on close. ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/use
-        :category :reflective
-        :subject :any
-        :returns :any
-        :modifiers [:any]
-        :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
+   :qlang/impl :qlang/prim/use
+   :category :reflective
+   :subject :any
+   :returns :any
+   :modifiers [:any]
+   :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
 
 ::UseSubjectNotMapError
   |~~ `use` (bare form) requires a Map subject — its entries
@@ -115,12 +115,12 @@
       ~{:nonexistent-binding | reify | /type | eq(:keyword)}
   ~~|
   {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/reify
-          :category :reflective
-          :subject :any
-          :returns :map
-          :modifiers [:keyword]
-          :throws [::ReifyKeyNotKeywordError ::ReifyArityOverflowError]}
+   :qlang/impl :qlang/prim/reify
+   :category :reflective
+   :subject :any
+   :returns :map
+   :modifiers [:keyword]
+   :throws [::ReifyKeyNotKeywordError ::ReifyArityOverflowError]}
 
 ::ReifyKeyNotKeywordError
   |~~ `reify(:name)` requires a Keyword captured-arg (the
@@ -151,12 +151,12 @@
       lists value-namespace bindings; manifest(:tag) lists
       tag-namespace `::Tag` bindings. ~~|
   {:qlang/kind :builtin
-             :qlang/impl :qlang/prim/manifest
-             :category :reflective
-             :subject :any
-             :returns :vec
-             :modifiers [:keyword]
-             :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
+   :qlang/impl :qlang/prim/manifest
+   :category :reflective
+   :subject :any
+   :returns :vec
+   :modifiers [:keyword]
+   :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
 
 ::ManifestNamespaceNotKeywordError
   |~~ `manifest(:namespace)` requires a Keyword captured-arg
@@ -192,11 +192,11 @@
       example in the manifest and must return true —
       self-describing catalog drift detection. ~~|
   {:qlang/kind :builtin
-                :qlang/impl :qlang/prim/runExamples
-                :category :reflective
-                :subject :map
-                :returns :vec
-                :throws [::RunExamplesSubjectShapeError]}
+   :qlang/impl :qlang/prim/runExamples
+   :category :reflective
+   :subject :map
+   :returns :vec
+   :throws [::RunExamplesSubjectShapeError]}
 
 ::RunExamplesSubjectShapeError
   |~~ `runExamples` requires a Keyword (binding name) or a
@@ -220,12 +220,12 @@
       ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
   ~~|
   {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/as
-       :category :reflective
-       :subject :any
-       :returns :any
-       :modifiers [:keyword]
-       :throws [::AsNameNotKeywordError]}
+   :qlang/impl :qlang/prim/as
+   :category :reflective
+   :subject :any
+   :returns :any
+   :modifiers [:keyword]
+   :throws [::AsNameNotKeywordError]}
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).
@@ -252,12 +252,12 @@
       ~{error({:kind :oops}) !| /kind | eq(:oops)}
   ~~|
   {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/error
-          :category :error
-          :subject :map
-          :returns :error
-          :modifiers [:map]
-          :throws [::ErrorDescriptorNotMapError]}
+   :qlang/impl :qlang/prim/error
+   :category :error
+   :subject :map
+   :returns :error
+   :modifiers [:map]
+   :throws [::ErrorDescriptorNotMapError]}
 
 ::ErrorDescriptorNotMapError
   |~~ `error` lift requires a Map descriptor (the error's
@@ -286,11 +286,11 @@
       ~{42 | isError | eq(false)}
   ~~|
   {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/isError
-            :category :error
-            :subject :any
-            :returns :boolean
-}
+   :qlang/impl :qlang/prim/isError
+   :category :error
+   :subject :any
+   :returns :boolean
+   }
 
 :parse
   |~~ Parses a source string into an AST-Map — the data-form
@@ -306,11 +306,11 @@
       ~{"add(1, 2)" | parse | /name | eq("add")}
   ~~|
   {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/parse
-          :category :reflective
-          :subject :string
-          :returns :map
-          :throws [::ParseSubjectNotStringOrQuoteError]}
+   :qlang/impl :qlang/prim/parse
+   :category :reflective
+   :subject :string
+   :returns :map
+   :throws [::ParseSubjectNotStringOrQuoteError]}
 
 ::ParseSubjectNotStringOrQuoteError
   |~~ `parse` requires a String or Quote subject.
@@ -337,11 +337,11 @@
       ~{{:qlang/kind :NumberLit :value 42} | eval | eq(42)}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/eval
-         :category :reflective
-         :subject :map
-         :returns :any
-         :throws [::EvalSubjectNotMapOrQuoteError]}
+   :qlang/impl :qlang/prim/eval
+   :category :reflective
+   :subject :map
+   :returns :any
+   :throws [::EvalSubjectNotMapOrQuoteError]}
 
 ::EvalSubjectNotMapOrQuoteError
   |~~ `eval` requires a Map (AST-Map) or Quote (source-form)
@@ -378,12 +378,12 @@
       ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
   ~~|
   {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/apply
-          :category :reflective
-          :subject [:quote :map]
-          :returns :any
-          :modifiers [:any]
-          :throws [::EvalSubjectNotMapOrQuoteError]}
+   :qlang/impl :qlang/prim/apply
+   :category :reflective
+   :subject [:quote :map]
+   :returns :any
+   :modifiers [:any]
+   :throws [::EvalSubjectNotMapOrQuoteError]}
 
 :source
   |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
@@ -396,11 +396,11 @@
       ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
   ~~|
   {:qlang/kind :builtin
-                :qlang/impl :qlang/prim/source
-                :category :axis
-                :subject [:keyword :tag-keyword]
-                :returns :quote
-                :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+   :qlang/impl :qlang/prim/source
+   :category :axis
+   :subject [:keyword :tag-keyword]
+   :returns :quote
+   :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::SourceSubjectNotKeywordOrTagError
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
@@ -423,11 +423,11 @@
       ~{::AddLeftNotNumberError | docs | first | isDoc}
   ~~|
   {:qlang/kind :builtin
-              :qlang/impl :qlang/prim/docs
-              :category :axis
-              :subject [:keyword :tag-keyword]
-              :returns :vec
-              :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+   :qlang/impl :qlang/prim/docs
+   :category :axis
+   :subject [:keyword :tag-keyword]
+   :returns :vec
+   :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::DocsSubjectNotKeywordOrTagError
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
@@ -450,11 +450,11 @@
       ~{:filter | examples | first | /source | contains("filter")}
   ~~|
   {:qlang/kind :builtin
-                  :qlang/impl :qlang/prim/examples
-                  :category :axis
-                  :subject [:keyword :tag-keyword]
-                  :returns :vec
-                  :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+   :qlang/impl :qlang/prim/examples
+   :category :axis
+   :subject [:keyword :tag-keyword]
+   :returns :vec
+   :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::ExamplesSubjectNotKeywordOrTagError
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword

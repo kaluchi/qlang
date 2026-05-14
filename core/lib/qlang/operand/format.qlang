@@ -7,11 +7,11 @@
       Keywords are emitted as colon-prefixed strings, Sets as JSON
       arrays, Maps as JSON objects with Keyword names as keys. ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/json
-         :category :format
-         :subject :any
-         :returns :string
-}
+   :qlang/impl :qlang/prim/json
+   :category :format
+   :subject :any
+   :returns :string
+   }
 
 :qlang
   |~~ Recursively converts JSON shape to qlang shape. JsonObject
@@ -27,11 +27,11 @@
       ~{[1 2 3] | qlang | isVec | eq(true)}
       ~{42 | qlang | eq(42)} ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/qlang
-         :category :json-bridge
-         :subject :any
-         :returns :any
-}
+   :qlang/impl :qlang/prim/qlang
+   :category :json-bridge
+   :subject :any
+   :returns :any
+   }
 
 :table
   |~~ Renders a Vec of Maps as a fixed-width tabular string.
@@ -39,11 +39,11 @@
       across all rows; missing keys render as empty cells.
       Empty Vec yields the marker "(empty)". ~~|
   {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/table
-          :category :format
-          :subject :vec
-          :returns :string
-          :throws [::TableSubjectNotVecError ::TableRowNotMapError]}
+   :qlang/impl :qlang/prim/table
+   :category :format
+   :subject :vec
+   :returns :string
+   :throws [::TableSubjectNotVecError ::TableRowNotMapError]}
 
 ::TableSubjectNotVecError
   |~~ Subject of `table` must be Vec.

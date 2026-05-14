@@ -11,12 +11,12 @@
       ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/add
-        :category :arith
-        :subject :number
-        :returns :number
-        :modifiers [:number]
-        :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
+   :qlang/impl :qlang/prim/add
+   :category :arith
+   :subject :number
+   :returns :number
+   :modifiers [:number]
+   :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
 
 ::AddLeftNotNumberError
   |~~ Captured argument at position 1 of `add` must be Number.
@@ -46,12 +46,12 @@
       ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/sub
-        :category :arith
-        :subject :number
-        :returns :number
-        :modifiers [:number]
-        :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
+   :qlang/impl :qlang/prim/sub
+   :category :arith
+   :subject :number
+   :returns :number
+   :modifiers [:number]
+   :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
 
 ::SubLeftNotNumberError
   |~~ Captured argument at position 1 of `sub` must be Number.
@@ -80,12 +80,12 @@
       ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/mul
-        :category :arith
-        :subject :number
-        :returns :number
-        :modifiers [:number]
-        :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
+   :qlang/impl :qlang/prim/mul
+   :category :arith
+   :subject :number
+   :returns :number
+   :modifiers [:number]
+   :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
 
 ::MulLeftNotNumberError
   |~~ Captured argument at position 1 of `mul` must be Number.
@@ -116,12 +116,12 @@
       ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/div
-        :category :arith
-        :subject :number
-        :returns :number
-        :modifiers [:number]
-        :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
+   :qlang/impl :qlang/prim/div
+   :category :arith
+   :subject :number
+   :returns :number
+   :modifiers [:number]
+   :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
 
 ::DivLeftNotNumberError
   |~~ Captured argument at position 1 of `div` must be Number.

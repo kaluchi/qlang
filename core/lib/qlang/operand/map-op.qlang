@@ -8,11 +8,11 @@
       ~{{:name "Alice" :age 30} | keys | eq(#{:name :age})}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/keys
-         :category :map-op
-         :subject :map
-         :returns :set
-         :throws [::KeysSubjectNotMapError]}
+   :qlang/impl :qlang/prim/keys
+   :category :map-op
+   :subject :map
+   :returns :set
+   :throws [::KeysSubjectNotMapError]}
 
 ::KeysSubjectNotMapError
   |~~ Subject of `keys` must be Map.
@@ -29,11 +29,11 @@
       ~{{:name "Alice" :age 30} | vals | eq(["Alice" 30])}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/vals
-         :category :map-op
-         :subject :map
-         :returns :vec
-         :throws [::ValsSubjectNotMapError]}
+   :qlang/impl :qlang/prim/vals
+   :category :map-op
+   :subject :map
+   :returns :vec
+   :throws [::ValsSubjectNotMapError]}
 
 ::ValsSubjectNotMapError
   |~~ Subject of `vals` must be Map.
@@ -52,12 +52,12 @@
       ~{#{:a :b :c} | has(:b) | eq(true)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/has
-        :category :map-op
-        :subject [:map :set]
-        :returns :boolean
-        :modifiers [:any]
-        :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordError]}
+   :qlang/impl :qlang/prim/has
+   :category :map-op
+   :subject [:map :set]
+   :returns :boolean
+   :modifiers [:any]
+   :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordError]}
 
 ::HasSubjectNotMapOrSetError
   |~~ Subject of `has` must be Map or Set.

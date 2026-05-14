@@ -11,11 +11,11 @@
       ~{[] | first | eq(null)}
   ~~|
   {:qlang/kind :builtin
-          :qlang/impl :qlang/prim/first
-          :category :vec-reducer
-          :subject :vec
-          :returns :any
-          :throws [::FirstSubjectNotVecError]}
+   :qlang/impl :qlang/prim/first
+   :category :vec-reducer
+   :subject :vec
+   :returns :any
+   :throws [::FirstSubjectNotVecError]}
 
 ::FirstSubjectNotVecError
   |~~ Subject of `first` must be Vec.
@@ -34,11 +34,11 @@
       ~{[] | last | eq(null)}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/last
-         :category :vec-reducer
-         :subject :vec
-         :returns :any
-         :throws [::LastSubjectNotVecError]}
+   :qlang/impl :qlang/prim/last
+   :category :vec-reducer
+   :subject :vec
+   :returns :any
+   :throws [::LastSubjectNotVecError]}
 
 ::LastSubjectNotVecError
   |~~ Subject of `last` must be Vec.
@@ -62,11 +62,11 @@
       ~{{:a 10 :b 20} | vals | sum | eq(30)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/sum
-        :category :vec-reducer
-        :subject [:vec :set]
-        :returns :number
-        :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
+   :qlang/impl :qlang/prim/sum
+   :category :vec-reducer
+   :subject [:vec :set]
+   :returns :number
+   :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
 
 ::SumSubjectNotVecOrSetError
   |~~ Subject of `sum` must be Vec or Set.
@@ -97,11 +97,11 @@
       ~{#{3 1 4} | min | eq(1)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/min
-        :category :vec-reducer
-        :subject [:vec :set]
-        :returns :any
-        :throws [::MinSubjectNotVecOrSetError ::MinElementsNotComparableError]}
+   :qlang/impl :qlang/prim/min
+   :category :vec-reducer
+   :subject [:vec :set]
+   :returns :any
+   :throws [::MinSubjectNotVecOrSetError ::MinElementsNotComparableError]}
 
 ::MinSubjectNotVecOrSetError
   |~~ Subject of `min` must be Vec or Set.
@@ -132,11 +132,11 @@
       ~{#{3 1 4} | max | eq(4)}
   ~~|
   {:qlang/kind :builtin
-        :qlang/impl :qlang/prim/max
-        :category :vec-reducer
-        :subject [:vec :set]
-        :returns :any
-        :throws [::MaxSubjectNotVecOrSetError ::MaxElementsNotComparableError]}
+   :qlang/impl :qlang/prim/max
+   :category :vec-reducer
+   :subject [:vec :set]
+   :returns :any
+   :throws [::MaxSubjectNotVecOrSetError ::MaxElementsNotComparableError]}
 
 ::MaxSubjectNotVecOrSetError
   |~~ Subject of `max` must be Vec or Set.
@@ -167,11 +167,11 @@
       ~{[0 0 0] | firstNonZero | eq(0)}
   ~~|
   {:qlang/kind :builtin
-                 :qlang/impl :qlang/prim/firstNonZero
-                 :category :vec-reducer
-                 :subject :vec
-                 :returns :number
-                 :throws [::FirstNonZeroSubjectNotVecError ::FirstNonZeroElementNotNumberError]}
+   :qlang/impl :qlang/prim/firstNonZero
+   :category :vec-reducer
+   :subject :vec
+   :returns :number
+   :throws [::FirstNonZeroSubjectNotVecError ::FirstNonZeroElementNotNumberError]}
 
 ::FirstNonZeroSubjectNotVecError
   |~~ Subject of `firstNonZero` must be Vec.
@@ -201,16 +201,16 @@
       ~{[{:age 30} {:age 20}] | sort(/age) | eq([{:age 20} {:age 30}])}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/sort
-         :category :vec-transformer
-         :subject :vec
-         :returns :vec
-         :modifiers [:key-lambda]
-         :throws [
-           ::SortNaturalSubjectNotVecError
-           ::SortByKeySubjectNotVecError
-           ::SortNaturalNotComparableError
-           ::SortByKeyNotComparableError]}
+   :qlang/impl :qlang/prim/sort
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :modifiers [:key-lambda]
+   :throws [
+   ::SortNaturalSubjectNotVecError
+   ::SortByKeySubjectNotVecError
+   ::SortNaturalNotComparableError
+   ::SortByKeyNotComparableError]}
 
 ::SortNaturalSubjectNotVecError
   |~~ Subject of `sort` must be Vec.
@@ -259,12 +259,12 @@
       ~{[3 1 2] | sortWith(sub(/left, /right)) | eq([1 2 3])}
   ~~|
   {:qlang/kind :builtin
-             :qlang/impl :qlang/prim/sortWith
-             :category :vec-transformer
-             :subject :vec
-             :returns :vec
-             :modifiers [:comparator-lambda]
-             :throws [::SortWithSubjectNotVecError ::SortWithCmpResultNotNumberError]}
+   :qlang/impl :qlang/prim/sortWith
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :modifiers [:comparator-lambda]
+   :throws [::SortWithSubjectNotVecError ::SortWithCmpResultNotNumberError]}
 
 ::SortWithSubjectNotVecError
   |~~ Subject of `sortWith` must be Vec.
@@ -291,12 +291,12 @@
       ~{[1 2 3 4 5] | take(3) | eq([1 2 3])}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/take
-         :category :vec-transformer
-         :subject :vec
-         :returns :vec
-         :modifiers [:number]
-         :throws [::TakeSubjectNotVecError ::TakeCountNotNumberError]}
+   :qlang/impl :qlang/prim/take
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :modifiers [:number]
+   :throws [::TakeSubjectNotVecError ::TakeCountNotNumberError]}
 
 ::TakeSubjectNotVecError
   |~~ Subject of `take` must be Vec.
@@ -331,12 +331,12 @@
       ~{{:a 1} | at("z") | eq(null)}
   ~~|
   {:qlang/kind :builtin
-       :qlang/impl :qlang/prim/at
-       :category :indexed-access
-       :subject [:vec :map]
-       :returns :any
-       :modifiers [:any]
-       :throws [::AtSubjectNotVecOrMapError ::AtIndexNotIntegerError ::AtKeyNotStringError]}
+   :qlang/impl :qlang/prim/at
+   :category :indexed-access
+   :subject [:vec :map]
+   :returns :any
+   :modifiers [:any]
+   :throws [::AtSubjectNotVecOrMapError ::AtIndexNotIntegerError ::AtKeyNotStringError]}
 
 ::AtSubjectNotVecOrMapError
   |~~ Subject of `at` must be Vec or Map.
@@ -373,12 +373,12 @@
       ~{[1 2 3 4 5] | drop(2) | eq([3 4 5])}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/drop
-         :category :vec-transformer
-         :subject :vec
-         :returns :vec
-         :modifiers [:number]
-         :throws [::DropSubjectNotVecError ::DropCountNotNumberError]}
+   :qlang/impl :qlang/prim/drop
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :modifiers [:number]
+   :throws [::DropSubjectNotVecError ::DropCountNotNumberError]}
 
 ::DropSubjectNotVecError
   |~~ Subject of `drop` must be Vec.
@@ -411,11 +411,11 @@
       ~{[{:id 1} {:id 2} {:id 1}] | distinct | eq([{:id 1} {:id 2}])}
   ~~|
   {:qlang/kind :builtin
-             :qlang/impl :qlang/prim/distinct
-             :category :vec-transformer
-             :subject :vec
-             :returns :vec
-             :throws [::DistinctSubjectNotVecError]}
+   :qlang/impl :qlang/prim/distinct
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :throws [::DistinctSubjectNotVecError]}
 
 ::DistinctSubjectNotVecError
   |~~ Subject of `distinct` must be Vec.
@@ -432,11 +432,11 @@
       ~{[1 2 3] | reverse | eq([3 2 1])}
   ~~|
   {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/reverse
-            :category :vec-transformer
-            :subject :vec
-            :returns :vec
-            :throws [::ReverseSubjectNotVecError]}
+   :qlang/impl :qlang/prim/reverse
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :throws [::ReverseSubjectNotVecError]}
 
 ::ReverseSubjectNotVecError
   |~~ Subject of `reverse` must be Vec.
@@ -454,11 +454,11 @@
       ~{[[1 2] [3] [4 5]] | flat | eq([1 2 3 4 5])}
   ~~|
   {:qlang/kind :builtin
-         :qlang/impl :qlang/prim/flat
-         :category :vec-transformer
-         :subject :vec
-         :returns :vec
-         :throws [::FlatSubjectNotVecError]}
+   :qlang/impl :qlang/prim/flat
+   :category :vec-transformer
+   :subject :vec
+   :returns :vec
+   :throws [::FlatSubjectNotVecError]}
 
 ::FlatSubjectNotVecError
   |~~ Subject of `flat` must be Vec.
@@ -479,12 +479,12 @@
       ~{[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name | eq(["a" "c"])}
   ~~|
   {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/groupBy
-            :category :vec-transformer
-            :subject :vec
-            :returns :map
-            :modifiers [:key-lambda]
-            :throws [::GroupBySubjectNotVecError ::GroupByKeyNotKeywordError]}
+   :qlang/impl :qlang/prim/groupBy
+   :category :vec-transformer
+   :subject :vec
+   :returns :map
+   :modifiers [:key-lambda]
+   :throws [::GroupBySubjectNotVecError ::GroupByKeyNotKeywordError]}
 
 ::GroupBySubjectNotVecError
   |~~ Subject of `groupBy` must be Vec.
@@ -513,12 +513,12 @@
       ~{[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name | eq("alice")}
   ~~|
   {:qlang/kind :builtin
-            :qlang/impl :qlang/prim/indexBy
-            :category :vec-transformer
-            :subject :vec
-            :returns :map
-            :modifiers [:key-lambda]
-            :throws [::IndexBySubjectNotVecError ::IndexByKeyNotKeywordError]}
+   :qlang/impl :qlang/prim/indexBy
+   :category :vec-transformer
+   :subject :vec
+   :returns :map
+   :modifiers [:key-lambda]
+   :throws [::IndexBySubjectNotVecError ::IndexByKeyNotKeywordError]}
 
 ::IndexBySubjectNotVecError
   |~~ Subject of `indexBy` must be Vec.

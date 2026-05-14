@@ -54,18 +54,26 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // `runtime/dispatch.mjs` build value-core friendly wrappers on
 // top of this base.
 //
-// `meta` is an object carrying the operand's documentation and
-// contract — read by `reify` to build descriptors. Required for
-// every operand registered in `langRuntime`. Shape:
-//   {
-//     category:  string         // e.g. 'vec-reducer', 'arith'
-//     subject:   string         // type label of the subject (pos 1)
-//     modifiers: string[]       // type labels of captured arg slots
-//     returns:   string         // type label of the result
-//     docs:      string[]       // Vec of doc-block contents
-//     examples:  string[]       // example query strings
-//     throws:    string[]       // names of error sites this op raises
-//   }
+// `meta` carries only the per-impl structural fields the runtime
+// itself reads. For the dispatch wrappers (`valueOp`,
+// `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
+// `stateOpVariadic`, `higherOrderOpVariadic`) the shape is
+// `{ captured: [min, max] }` — the [min, max] count of captured
+// arg slots the operand accepts, derived structurally from the
+// dispatch helper itself. Catalog-bound builtin descriptors keep
+// their `category` / `subject` / `modifiers` / `returns` / `throws`
+// fields on the authored `core/lib/qlang/**/*.qlang` Map; reify
+// reads them through descriptor projection at every lookup, so the
+// JS layer holds no duplicated authored meta.
+//
+// `makeConduitParameter` (in `eval.mjs`) is the lone JS-side
+// builder that mints a function value WITH a full meta shape
+// inline — conduit-parameter proxies are ephemeral, live only
+// for the duration of a conduit body fork, and have no catalog
+// entry to project meta from. The proxy's full meta lets the
+// `isFunctionValue` branch of `reify`'s `describeBinding` build
+// a `:kind :builtin` descriptor for the proxy without a
+// descriptor-Map round-trip.
 export function makeFn(name, arity, impl, meta) {
   return Object.freeze({
     type: 'function',

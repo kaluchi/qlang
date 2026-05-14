@@ -107,6 +107,15 @@ export function findBindingStepAcrossModules(env, bindingName) {
   return null;
 }
 
+// `as(:name)` OperandCall nodes without an attached doc-prefix
+// carry no `.docs` field; `BindStep` always carries `.docs` (null
+// or string Vec). `stepDocStrings` lifts both shapes to a plain
+// array of doc strings — the single normalisation seam every axis-
+// operand reader (`docs`, `examples`, `runExamples`) flows through.
+export function stepDocStrings(step) {
+  return step.docs ?? [];
+}
+
 // Resolve the subject to a binding name a BindStep lives under.
 // Keyword `:foo`         → `'foo'` (ordinary value/conduit binding).
 // TagKeyword `::Tag`     → `'::Tag'` (tag-binding subject — the form
@@ -141,7 +150,7 @@ export const docs = stateOp('docs', 1, (state, _lambdas) => {
   if (step === null) {
     throw new AxisBindingNotFoundError({ axisName: 'docs', bindingName });
   }
-  const docStrings = step.docs ?? [];
+  const docStrings = stepDocStrings(step);
   return withPipeValue(state, Object.freeze(docStrings.map(s => makeDoc(s))));
 });
 
@@ -151,7 +160,7 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
   if (step === null) {
     throw new AxisBindingNotFoundError({ axisName: 'examples', bindingName });
   }
-  const docStrings = step.docs ?? [];
+  const docStrings = stepDocStrings(step);
   const collected = [];
   for (const docStr of docStrings) {
     const segments = await parseDocSegments(docStr, state.env);

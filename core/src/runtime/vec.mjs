@@ -522,14 +522,16 @@ export const flat = nullaryOp('flat', (vec) => {
 
 export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
   if (!isVecShape(vec)) throw new SortWithSubjectNotVecError(vec);
-  // Array.sort is synchronous; we precompute all pairwise comparisons
-  // would be complex. Instead, use an async-compatible merge sort approach:
-  // precompute comparison matrix or use a simple insertion sort with awaits.
-  // Pragmatic approach: use a comparison cache with indices.
+  // Insertion sort — `Array.prototype.sort` accepts only a sync
+  // comparator, and each pairwise comparison here may invoke a
+  // captured-arg lambda that awaits inside the conduit body. The
+  // sort stays correct under awaited comparator results; the
+  // O(n²) profile is acceptable for the Vec sizes sortWith
+  // services (config rows, query results, comparator-built
+  // orderings — none of them scale unboundedly).
   const sortWithSource = vec;
   const sortWithArr = [...vec];
   const sortWithLen = sortWithArr.length;
-  // Insertion sort with async comparator — O(n²) but correct with async.
   for (let outerIdx = 1; outerIdx < sortWithLen; outerIdx++) {
     const sortWithCurrent = sortWithArr[outerIdx];
     let insertIdx = outerIdx - 1;

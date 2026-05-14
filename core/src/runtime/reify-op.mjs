@@ -26,7 +26,7 @@ import {
 } from '../operand-errors.mjs';
 import { UnresolvedIdentifierError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { findBindingStepAcrossModules } from './axis.mjs';
+import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
 const ReifyArityOverflowError = declareArityError('ReifyArityOverflowError',
@@ -289,15 +289,15 @@ async function runQuoteEntry(quote) {
   return result;
 }
 
-async function collectQuotesForBinding(env, bindingName) {
-  const step = findBindingStepAcrossModules(env, bindingName);
+async function collectQuotesForBinding(env, lookupName) {
+  const step = findBindingStepAcrossModules(env, lookupName);
   // Bindings without a source-located BindStep (host-installed
   // bindings via `session.bind`, runtime-seeded built-ins) have no
   // examples to run. `runExamples` returns an empty Vec — the
   // catalog walk in manifest-self-test counts them as
   // zero-contribution entries.
   if (step === null) return [];
-  const docStrings = step.docs ?? [];
+  const docStrings = stepDocStrings(step);
   const collected = [];
   for (const docStr of docStrings) {
     const segments = await parseDocSegments(docStr, env);
@@ -310,15 +310,15 @@ async function collectQuotesForBinding(env, bindingName) {
 
 export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
   const subject = state.pipeValue;
-  let bindingName;
+  let lookupName;
   if (isKeyword(subject)) {
-    bindingName = subject.name;
+    lookupName = subject.name;
   } else if (isQMap(subject) && typeof subject.get('name') === 'string') {
-    bindingName = subject.get('name');
+    lookupName = subject.get('name');
   } else {
     throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
-  const quotes = await collectQuotesForBinding(state.env, bindingName);
+  const quotes = await collectQuotesForBinding(state.env, lookupName);
   const results = await Promise.all(quotes.map(runQuoteEntry));
   return withPipeValue(state, results);
 });

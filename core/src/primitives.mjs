@@ -184,11 +184,13 @@ export function createPrimitiveRegistry() {
 // its .bind / .resolve / .seal methods:
 //
 //     import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-//     export const add = PRIMITIVE_REGISTRY.bind(
-//       keyword('qlang/prim/add'),
-//       valueOp('add', 2, (a, b) => ...));
+//     export const add = valueOp('add', 2, (a, b) => a + b);
+//     PRIMITIVE_REGISTRY.bind('qlang/prim/add', add);
 //
-// The returned keyword IS the exported primitive handle; core.qlang's
-// :qlang/impl field for :add points to that same keyword, completing
-// the descriptor → registry → impl handoff at evalOperandCall time.
+// The first argument is a plain string — the `:qlang/prim/<name>`
+// namespaced keyword's `.name`. The catalog file
+// (`core/lib/qlang/operand/arith.qlang`) declares the same string
+// under `:qlang/impl :qlang/prim/add` on the `:add` descriptor Map,
+// completing the descriptor → registry → impl handoff
+// `langRuntime`'s bootstrap pass resolves at construction time.
 export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();

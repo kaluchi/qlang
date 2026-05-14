@@ -357,8 +357,13 @@
   ~~|
 
 ::AtKeyNotStringError
-  |~~ Captured argument at position 2 of `at` must be String.
-      ~{{:a 1} | at(42) !| type !| type | eq(::AtKeyNotStringError)}
+  |~~ Captured argument at position 2 of `at` must be String (Map key).
+
+      ~{
+        {:a 1} | at(42)
+        !| [type /operand /position /actualType]
+        |  eq([::AtKeyNotStringError :at 2 :number])
+       }
   ~~|
 
 :drop

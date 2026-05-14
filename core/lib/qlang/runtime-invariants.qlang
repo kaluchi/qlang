@@ -56,8 +56,8 @@
   {:qlang/kind :tag}
 
 ::TaggedLitTagNotFoundError
-  |~~ `::tag` constructor invocation failed — the tag is not a registered tag-binding in env.
-    ~{::UnknownTag !| /thrown !| /thrown | eq(::TaggedLitTagNotFoundError)}
+  |~~ `::tag<payload>` constructor invocation failed — the tag is not a registered tag-binding in env. Bare `::tag` literals stay identity-as-value and never fire this site; the throw fires on constructor-form `::Tag[…]` invocation, on `::Tag | source` / `| docs` axis-operands, or on `reify(::Tag)` lookups against unbound tag names.
+    ~{::UnknownTag[42] !| /thrown | eq(::TaggedLitTagNotFoundError)}
     ~~|
   {:qlang/kind :tag}
 

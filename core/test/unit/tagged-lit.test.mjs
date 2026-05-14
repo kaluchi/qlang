@@ -90,22 +90,21 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
     expect(result.name).toBe('conduit');
   });
 
-  it('an unbound ::tag still raises TaggedLitTagNotFoundError at the BareTypeKeyword resolution site', async () => {
-    const err = await evalQuery('::someUnboundType');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
+  it('an unbound ::tag literal is identity-as-value — TagKeyword with no env touch', async () => {
+    // Symmetric to `:foo` (value-namespace Keyword) which evaluates
+    // to `keyword('foo')` whether anything declared `:foo` or not.
+    // Typos catch on use-site probes (TaggedLit constructor, axis
+    // operands, reify) rather than at literal construction.
+    const { isTagKeyword } = await import('../../src/types.mjs');
+    const result = await evalQuery('::someUnboundType');
+    expect(isTagKeyword(result)).toBe(true);
+    expect(result.name).toBe('someUnboundType');
   });
 });
 
 describe('TaggedLit error paths', () => {
-  it('raises TaggedLitTagNotFoundError for an unbound tag in TaggedLit', async () => {
+  it('raises TaggedLitTagNotFoundError when an unbound tag is invoked as a constructor', async () => {
     const err = await evalQuery('::unboundTag[]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
-  });
-
-  it('raises TaggedLitTagNotFoundError for an unbound bare ::tag reference', async () => {
-    const err = await evalQuery('::unboundBare');
     expect(isErrorValue(err)).toBe(true);
     expect(err.descriptor.get('thrown')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
   });

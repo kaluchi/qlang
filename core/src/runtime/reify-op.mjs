@@ -178,11 +178,16 @@ function describeBinding(value, explicitName) {
 
 export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => {
   if (reifyLambdas.length === 0) {
-    // Subject-form. A Keyword or TagKeyword pipeValue resolves
-    // through env to the matching binding (value- or tag-namespace),
-    // mirroring `:name | source` / `:name | docs` / `:name |
-    // examples`. Any other pipeValue describes itself as a value
-    // descriptor through `describeBinding`.
+    // Subject-form. A Keyword or TagKeyword pipeValue probes env
+    // for a matching binding (`:foo` → value-namespace; `::Foo` →
+    // tag-namespace); on a hit the binding's descriptor surfaces
+    // (mirroring `:name | source` / `| docs` / `| examples`). On a
+    // miss — or any non-identifier pipeValue — `describeBinding`
+    // falls through to `buildValueDescriptor`, so the literal
+    // identity itself becomes the reified subject (`:kind :value`
+    // plus `:type` from the value-class ladder). Identity-as-value
+    // semantics: an unbound `:foo` or `::Foo` is still a valid
+    // keyword / tag-keyword reify subject.
     if (isKeyword(state.pipeValue)) {
       const lookupName = state.pipeValue.name;
       if (state.env.has(lookupName)) {
@@ -191,10 +196,9 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
     }
     if (isTagKeyword(state.pipeValue)) {
       const lookupName = tagBindingKey(state.pipeValue.name);
-      if (!state.env.has(lookupName)) {
-        throw new UnresolvedIdentifierError(lookupName);
+      if (state.env.has(lookupName)) {
+        return withPipeValue(state, describeBinding(state.env.get(lookupName), lookupName));
       }
-      return withPipeValue(state, describeBinding(state.env.get(lookupName), lookupName));
     }
     return withPipeValue(state, describeBinding(state.pipeValue));
   }

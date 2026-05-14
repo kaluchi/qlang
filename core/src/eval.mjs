@@ -551,17 +551,22 @@ async function evalTaggedLit(node, state) {
 
 // ::tag — bare reference to a tag-namespace identifier. The
 // reference value is the TagKeyword itself (identity-as-value) —
-// stable, navigable, equality by name. Env existence check stays
-// (a `::TypoTag` that nothing declared raises `TaggedLitTagNotFoundError`
-// at this point); hypertext navigation to the descriptor Map
-// happens through axis-operands (`::tag | docs`, `| source`,
-// `| spec`) which take TagKeyword as their pipeValue subject and
-// resolve the binding through `bindingNameOf`.
+// symmetric to the value-namespace `:foo` keyword literal, which
+// produces `keyword('foo')` without consulting env. Typos surface
+// on use, not on literal construction:
+//
+//   `::TypoTag[payload]`  → TaggedLitTagNotFoundError (evalTaggedLit)
+//   `::TypoTag | source`  → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag | docs`    → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag | reify`   → UnresolvedIdentifierError (reify-op)
+//
+// Each use-site already probes env for its own purpose, so the
+// literal stays env-agnostic. Catalog `:throws [::Foo ::Bar]` Vec
+// constructions now evaluate cleanly regardless of declaration
+// order; `langRuntime`'s post-bootstrap `:throws` walker resolves
+// every TagKeyword against the loaded tag-bindings at construction
+// time so a structural typo still surfaces.
 async function evalBareTypeKeyword(node, state) {
-  const typeKey = tagBindingKey(node.tag);
-  if (!envHas(state.env, typeKey)) {
-    throw new TaggedLitTagNotFoundError({ tag: node.tag });
-  }
   return withPipeValue(state, makeTagKeyword(node.tag));
 }
 

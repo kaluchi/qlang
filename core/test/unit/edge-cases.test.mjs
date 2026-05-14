@@ -701,23 +701,18 @@ describe('runtime/reify-op.mjs reify and manifest', () => {
     expect(reifyResult.get('type')).toEqual(keyword('number'));
   });
 
-  it('reify subject-form on a TagKeyword whose tag binding is missing throws UnresolvedIdentifierError', async () => {
-    // `evalBareTypeKeyword` already fail-fasts when a `::Tag`
-    // reference is missing from env, so a qlang-surface query can't
-    // construct an unbound TagKeyword. The reify subject-form's
-    // "TagKeyword + env miss" branch is reachable only when a
-    // TagKeyword arrives in pipeValue through a non-`::Tag` path —
-    // for example a host operand returning makeTagKeyword('Foo'),
-    // or a session.bind passing a pre-built TagKeyword. Drive the
-    // reify implementation directly to cover the branch.
-    const { reify } = await import('../../src/runtime/reify-op.mjs');
-    const { makeTagKeyword } = await import('../../src/types.mjs');
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { makeState } = await import('../../src/state.mjs');
-    const env = await langRuntime();
-    const subject = makeTagKeyword('NoSuchType');
-    const initialState = makeState(subject, env);
-    await expect(reify.fn(initialState, [])).rejects.toThrowError(/::NoSuchType/);
+  it('reify subject-form on a TagKeyword whose tag binding is missing falls through to buildValueDescriptor', async () => {
+    // Bare `::Foo` literal evaluates to a TagKeyword identity
+    // regardless of env binding state — symmetric to `:foo`
+    // Keyword. Reify's subject-form mirrors that symmetry: an
+    // env miss falls through to `describeBinding(pipeValue)` and
+    // surfaces the TagKeyword as `:kind :value, :type :tag-keyword`
+    // instead of raising. `manifest(:tag)` lists every declared
+    // tag-binding for callers that want a guaranteed-bound view.
+    const result = await evalQuery('::SomeFreshTag | reify');
+    expect(result).toBeInstanceOf(Map);
+    expect(result.get('kind')).toEqual(keyword('value'));
+    expect(result.get('type')).toEqual(keyword('tag-keyword'));
   });
 
   it('reify on a builtin descriptor Map returns a builtin descriptor', async () => {

@@ -89,8 +89,10 @@
 {"name":"reify-tag-keyword-name","query":"reify(::AddLeftNotNumberError) | /name","expect":"\"::AddLeftNotNumberError\""}
 {"name":"reify-tag-keyword-via-pipevalue","query":"::AddLeftNotNumberError | reify | /kind","expect":":tag"}
 {"name":"reify-tag-keyword-name-via-pipevalue","query":"::AddLeftNotNumberError | reify | /name","expect":"\"::AddLeftNotNumberError\""}
-{"name":"reify-tag-keyword-unbound-via-pipevalue","query":"::UnknownTag !| /thrown","expect":"::TaggedLitTagNotFoundError"}
-{"name":"reify-tag-keyword-non-keyword-captured-arg","query":":foo 42 | reify(::ThisTagDoesNotExist) !| /thrown","expect":"::ReifyKeyNotKeywordError"}
+{"name":"reify-tag-keyword-unbound-literal-falls-back-to-value-descriptor","query":"::UnknownTag | reify | /kind","expect":":value"}
+{"name":"reify-tag-keyword-unbound-literal-type-is-tag-keyword","query":"::UnknownTag | reify | /type","expect":":tag-keyword"}
+{"name":"reify-tag-keyword-unbound-via-lookup","query":":foo 42 | reify(::ThisTagDoesNotExist) !| /thrown","expect":"::UnresolvedIdentifierError"}
+{"name":"reify-tag-keyword-non-keyword-captured-arg","query":"reify(\"not-a-keyword\") !| /thrown","expect":"::ReifyKeyNotKeywordError"}
 {"name":"reify-keyword-subject-form-resolves-builtin","query":":filter | reify | /kind","expect":":builtin"}
 {"name":"reify-keyword-subject-form-name","query":":filter | reify | /name","expect":"\"filter\""}
 {"name":"reify-keyword-subject-form-mirrors-captured","query":":filter | reify | eq(reify(:filter))","expect":"true"}

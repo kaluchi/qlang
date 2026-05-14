@@ -291,7 +291,7 @@ export async function hoverAtOffset(ast, source, offset) {
   if (!node) return null;
 
   if (node.type === 'OperandCall') {
-    return await hoverForOperand(node);
+    return await hoverForOperand(node, ast);
   }
   if (node.type === 'BareTypeKeyword' || node.type === 'TaggedLit') {
     return await hoverForTag(node);
@@ -309,24 +309,55 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-async function hoverForOperand(node) {
+async function hoverForOperand(node, documentAst) {
   const runtime = await langRuntime();
-  if (!runtime.has(node.name)) return null;
-
-  const descriptor = runtime.get(node.name);
-  const docContents = await fetchDocsContents(node.name);
-
-  const prose = stripQuoteSegments(docContents.join('\n'));
+  if (runtime.has(node.name)) {
+    const descriptor = runtime.get(node.name);
+    const docContents = await fetchDocsContents(node.name);
+    const prose = stripQuoteSegments(docContents.join('\n'));
+    return {
+      content: [
+        `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
+        `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
+        '',
+        prose
+      ].join('\n'),
+      startOffset: node.location.start.offset,
+      endOffset: node.location.end.offset
+    };
+  }
+  // User-defined binding — search the in-document AST for a
+  // BindStep or `as(:name)` declaration that carries docs.
+  const docStrings = findInDocumentDocs(documentAst, node.name);
+  if (docStrings.length === 0) return null;
+  const prose = stripQuoteSegments(docStrings.join('\n'));
   return {
     content: [
-      `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
-      `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
+      `**${node.name}** — user binding`,
       '',
       prose
     ].join('\n'),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };
+}
+
+// Walk the document AST for a BindStep (or `as(:name)`) whose key
+// matches `name` and return its `.docs` string Vec. Last-match
+// wins (shadowing semantics).
+function findInDocumentDocs(ast, name) {
+  if (!ast) return [];
+  let lastDocs = null;
+  walkAst(ast, (step) => {
+    if (step.type === 'BindStep' && step.key.type === 'Keyword' && step.key.name === name) {
+      lastDocs = step.docs;
+    } else if (step.type === 'OperandCall' && step.name === 'as'
+               && Array.isArray(step.args) && step.args.length > 0
+               && step.args[0].type === 'Keyword' && step.args[0].name === name) {
+      lastDocs = step.docs;
+    }
+  });
+  return lastDocs ?? [];
 }
 
 // Tag-namespace hover — `::Tag` reference (BareTypeKeyword) or

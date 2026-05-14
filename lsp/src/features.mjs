@@ -66,10 +66,13 @@ function stripQuoteSegments(content) {
     }
     cursor = i;
   }
-  return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim())
-    .split('\n')
-    .map(l => l + '  ')
-    .join('\n');
+  return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim());
+}
+
+// Append Markdown hard line breaks (trailing double-space) to every
+// line so single \n renders as a real break in hover popups.
+function markdownHardBreaks(text) {
+  return text.split('\n').map(l => l + '  ').join('\n');
 }
 
 // Remove the common leading whitespace from every non-empty line.
@@ -316,12 +319,12 @@ async function hoverForOperand(node, documentAst) {
     const docContents = await fetchDocsContents(node.name);
     const prose = stripQuoteSegments(docContents.join('\n'));
     return {
-      content: [
+      content: markdownHardBreaks([
         `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
         `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
         '',
         prose
-      ].join('\n'),
+      ].join('\n')),
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     };
@@ -332,11 +335,11 @@ async function hoverForOperand(node, documentAst) {
   if (docStrings.length === 0) return null;
   const prose = stripQuoteSegments(docStrings.join('\n'));
   return {
-    content: [
+    content: markdownHardBreaks([
       `**${node.name}** — user binding`,
       '',
       prose
-    ].join('\n'),
+    ].join('\n')),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };
@@ -381,11 +384,11 @@ async function hoverForTag(node) {
 
   const prose = stripQuoteSegments(docContents.join('\n'));
   return {
-    content: [
+    content: markdownHardBreaks([
       `**${tagKey}** — tag-binding`,
       '',
       prose
-    ].join('\n'),
+    ].join('\n')),
     startOffset: headStart,
     endOffset: headEnd
   };

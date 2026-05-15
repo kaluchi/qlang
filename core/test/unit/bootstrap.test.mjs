@@ -11,7 +11,8 @@ import {
 } from '../../src/runtime/bootstrap.mjs';
 import { langRuntime, buildLangRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { makeTagKeyword, RUNTIME_LOCATOR_KEY } from '../../src/types.mjs';
+import { makeTagKeyword } from '../../src/types.mjs';
+import { RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 
 describe('platformLocator', () => {
   it('returns null for an unmapped namespace', async () => {

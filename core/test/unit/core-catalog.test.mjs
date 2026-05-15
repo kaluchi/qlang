@@ -35,7 +35,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeTagKeyword, isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword } from '../../src/types.mjs';
+import { isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 

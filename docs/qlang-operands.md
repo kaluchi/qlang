@@ -1172,7 +1172,7 @@ missing). This is the introspection-by-name path:
   - `"add(1, 2)" | parse | /name` → `"add"`.
   - `"add(1, 2)" | parse | /args | count` → `2`.
   - `"this is not qlang [" | parse !| /kind` → `:parse-error`.
-- **Errors**: subject not a string → `ParseSubjectNotString`.
+- **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
   Malformed source → error value with `:kind :parse-error`
   (not thrown; passes onto fail-track as `pipeValue`).
 
@@ -1198,9 +1198,86 @@ missing). This is the introspection-by-name path:
   - `"[1 2 3] | filter(gt(1)) | count" | parse | eval` → `2`.
   - `{:qlang/kind :NumberLit :value 42} | eval` → `42`
     (hand-assembled AST-Map bypasses the parser).
-- **Errors**: subject not a Map → `EvalSubjectNotMap`.
+- **Errors**: subject not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
   Runtime errors inside the inner evaluation lift through the
   normal fail-track just like any other qlang failure.
+
+### `apply(subject)`
+
+- **Arity** 2 (1 captured). **Subject** Quote-value or AST-Map
+  sitting in `pipeValue`.
+- Runs the Quote-or-Map body against the captured-arg `subject` as
+  the initial `pipeValue`. A Quote's leading combinator (if any —
+  `~{* mul(2)}` / `~{| count}` / `~{!| /trail}`) routes the first
+  step through that combinator against the new subject, so a
+  pipeline-suffix shape replays semantically.
+- BindStep / `as` / `use` writes inside the applied body propagate
+  outward, matching `eval` semantics.
+- **Examples**:
+  - `~{mul(2)} | apply(5)` → `10`.
+  - `~{| count | add(1)} | apply([1 2 3])` → `4`.
+  - `error !| /trail | apply(start)` — re-runs deflected steps
+    against a fresh subject.
+- **Errors**: pipeValue not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
+
+### `source`
+
+- **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
+- Returns a Quote carrying the verbatim source text of the
+  binding's declaring BindStep (or `as(:name)` OperandCall) found
+  across loaded modules.
+- **Examples**:
+  - `:count | source | /source` → the `:count` BindStep source.
+  - `::conduit | source | /source` → the `::conduit` tag-binding source.
+- **Errors**: subject not a Keyword or TagKeyword →
+  `SourceSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
+### `docs`
+
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- Returns a Vec of Doc-values from the binding's attached doc-prefix,
+  one Doc per prefix entry.
+- **Examples**:
+  - `:count | docs` → Vec of Doc-values from the `:count` catalog entry.
+  - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
+- **Errors**: subject not a Keyword / TagKeyword →
+  `DocsSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
+### `examples`
+
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- Returns a Vec of Quote-values extracted from the binding's
+  doc-prefix — every `~{…}` Quote segment in the doc-content stream
+  is a candidate test case for `runExamples`.
+- **Examples**:
+  - `:count | examples` → Vec of `~{…}` Quotes from the `:count` docs.
+  - `:add | examples | count` → number of inline Quote examples on `:add`.
+- **Errors**: subject not a Keyword / TagKeyword →
+  `ExamplesSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
+### `type`
+
+- **Arity** 1. **Subject** any value.
+- Returns the Keyword or TagKeyword identity of the value's type.
+  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
+  `:null`); qlang value-classes produce their type keyword (`:vec`,
+  `:map`, `:set`, `:keyword`, `:tag-keyword`, `:quote`, `:doc`,
+  `:function`, `:json-object`, `:json-array`); tagged-instance Maps
+  (conduit, snapshot, user `::Foo[…]`) produce their `:qlang/kind`
+  TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
+  produce the `:qlang/kind` TagKeyword from their descriptor
+  (`::AddLeftNotNumberError`, `::ParseError`, etc.).
+- **Examples**:
+  - `42 | type` → `:number`.
+  - `"hello" | type` → `:string`.
+  - `:foo | type` → `:keyword`.
+  - `[1 2] | type` → `:vec`.
+  - `{:a 1} | type` → `:map`.
+  - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
+  - `!{:kind :oops} | type` → `:error`.
 
 ## Error operands
 

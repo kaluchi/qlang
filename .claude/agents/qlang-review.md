@@ -167,7 +167,7 @@ The language specification lives in `docs/qlang-spec.md`, the formal evaluation 
 For each diff:
 
 - New AST node type → grammar production in spec, evaluator handler note in internals, dispatch entry in runtime
-- New operand → `core/lib/qlang/core.qlang` entry (descriptor Map with `:qlang/kind :builtin` and `:qlang/impl :qlang/prim/<name>`), `PRIMITIVE_REGISTRY.bind` call in the corresponding `core/src/runtime/*.mjs` module, catalog entry in `qlang-operands.md`, size bump in `core/test/unit/core-catalog.test.mjs` catalog-count pins
+- New operand → BindStep entry in the per-family catalog file under `core/lib/qlang/operand/<family>.qlang` (descriptor Map with `:qlang/kind :builtin` and `:qlang/impl :qlang/prim/<name>`), `PRIMITIVE_REGISTRY.bind` call in the corresponding `core/src/runtime/*.mjs` module, catalog entry in `qlang-operands.md`, size bump in `core/test/unit/core-catalog.test.mjs` catalog-count pins
 - New error class kind → error conditions table in spec
 - New surface syntax → lexical structure table in spec, grammar production updated
 - Renamed identifier → grep the docs for the old name and verify it's gone
@@ -265,7 +265,7 @@ Stay inside the qlang surface. Do not propose changes outside the repository.
    - Read `core/src/grammar.peggy` to know the current AST shape.
    - Read `core/src/walk.mjs::astChildrenOf` to know the canonical traversal contract.
    - Read `docs/qlang-spec.md` for the current public surface.
-   - Read `core/lib/qlang/core.qlang` for the authoritative operand catalog (a series of `BindStep` declarations whose bodies are descriptor Maps with `:qlang/impl :qlang/prim/<name>` handles into `PRIMITIVE_REGISTRY`).
+   - Read the per-family catalog files under `core/lib/qlang/operand/<family>.qlang` plus `core/lib/qlang/runtime-invariants.qlang` and `core/lib/qlang/tag.qlang` for the authoritative operand catalog (a series of `BindStep` declarations whose bodies are descriptor Maps with `:qlang/impl :qlang/prim/<name>` handles into `PRIMITIVE_REGISTRY`). `core/lib/qlang/core.qlang` is the orchestrator that loads every family via `use([…])`.
    - For added files, also read what they import from to verify the contract assumed at the call site.
 
 3. **Run the checks** in order, recording findings as you go:

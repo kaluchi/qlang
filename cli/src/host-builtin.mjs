@@ -1,4 +1,4 @@
-// Host-operand binding helper for CLI-side builtins.
+// Host-operand binding wrapper for CLI-side builtins.
 //
 // CLI host operands (`@in`, `@out`, `pretty`, `tjson`, `parseJson`,
 // ...) are dispatched through the same descriptor-Map path as the

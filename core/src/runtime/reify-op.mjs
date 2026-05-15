@@ -25,7 +25,7 @@ import {
   declareArityError
 } from '../operand-errors.mjs';
 import { UnresolvedIdentifierError } from '../errors.mjs';
-import { evalQuery } from '../eval.mjs';
+import { evalQuery, reifyBuiltinDescriptor } from '../eval.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
@@ -120,30 +120,9 @@ function buildValueDescriptor(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
-  // Built-in bindings: env stores a descriptor Map directly
-  // (authored in the operand-family catalog files, loaded by
-  // langRuntime). Reify transforms the raw descriptor into a
-  // user-facing shape: internal :qlang/kind and :qlang/impl are
-  // stripped; :kind :builtin is stamped; :captured and :effectful
-  // are read from the resolved function value sitting on
-  // :qlang/impl (placed there by the bootstrap resolution pass in
-  // runtime/index.mjs). The same bootstrap pass also backfills
-  // `:modifiers []` and `:throws []` when the authored descriptor
-  // omits them, so every reify output carries those fields
-  // uniformly without a presence check here.
   const qlKind = isQMap(value) && value.get('qlang/kind');
   if (qlKind && qlKind.name === 'builtin') {
-    const reifyResult = new Map();
-    reifyResult.set('kind', keyword('builtin'));
-    if (explicitName != null) reifyResult.set('name', explicitName);
-    for (const [descKey, descVal] of value) {
-      if (descKey === 'qlang/kind' || descKey === 'qlang/impl') continue;
-      reifyResult.set(descKey, descVal);
-    }
-    const implFn = value.get('qlang/impl');
-    reifyResult.set('captured', [...implFn.meta.captured]);
-    reifyResult.set('effectful', implFn.effectful);
-    return reifyResult;
+    return reifyBuiltinDescriptor(value, value.get('qlang/impl'), explicitName);
   }
   // Tag bindings: env stores a Map with `:qlang/kind :tag` plus
   // optional `:qlang/impl` (Keyword handle into PRIMITIVE_REGISTRY

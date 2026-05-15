@@ -687,10 +687,9 @@ shape, and vice versa.
   `isMap` reports `false` for conduit and snapshot descriptor
   Maps — they classify as `Conduit` / `Snapshot` through the
   `:qlang/kind` discriminator.
-  `isQuote` matches a frozen backtick-delimited code-as-data
-  fragment (`` `expr` `` literal); `isDoc` matches a frozen
-  markdown content fragment (`|~~ ... ~~|` block-form or
-  `|~~| ...` line-form literal).
+  `isQuote` matches a frozen `~{…}`-delimited code-as-data
+  fragment; `isDoc` matches a frozen content fragment
+  (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
 - **Examples**:
   - `"hello" | isString` → `true`; `42 | isString` → `false`.
   - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;

@@ -22,7 +22,7 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
-  it('paints a backtick Quote with green upright delimiters and italic body', () => {
+  it('paints a ~{…} Quote with green upright delimiters and italic body', () => {
     // `~{` and `}` get the upright green `quote` escape; the body
     // sub-tokenises with each inner kind's colour combined with
     // italic (e.g. atom `:active` → italic cyan).

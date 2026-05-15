@@ -1078,7 +1078,7 @@ missing). This is the introspection-by-name path:
 - **Errors**: captured arg is not a Keyword →
   `ManifestNamespaceNotKeywordError`. Captured Keyword is neither
   `:value` nor `:tag` → `ManifestNamespaceUnknownError`. Two or
-  more captured args → arity error.
+  more captured args → `Rule10ArityOverflowError`.
 
 ### `runExamples`
 

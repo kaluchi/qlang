@@ -58,6 +58,7 @@ import {
 import {
   walkAst,
   astChildrenOf,
+  isPureLiteralAst,
   assignAstNodeIds,
   attachAstParents,
   findAstNodeAtOffset,
@@ -133,6 +134,7 @@ export {
   deserializeSession,
   walkAst,
   astChildrenOf,
+  isPureLiteralAst,
   assignAstNodeIds,
   attachAstParents,
   findAstNodeAtOffset,

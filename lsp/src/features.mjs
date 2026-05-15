@@ -16,6 +16,7 @@ import {
   VALUE_NAMESPACE,
   TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
+  isPureLiteralAst,
   walkAst,
   isModuleAstKey,
   isModuleNamespaceKey,
@@ -489,28 +490,7 @@ function bindingDeclarationOf(node) {
 function bindingKindForKeywordHead(bindStepNode) {
   if (bindStepNode.body === null) return 'snapshot';
   if (bindStepNode.params !== null) return 'conduit';
-  return isPureLiteralBody(bindStepNode.body) ? 'snapshot' : 'conduit';
-}
-
-// Mirror of `core/src/walk.mjs::isPureLiteralAst` — kept local to
-// the LSP layer to avoid pulling a non-public traversal helper into
-// the public surface. Diverging from the core predicate would mis-
-// label outline entries, so any AST node-type the core treats as
-// pure also lives here.
-const PURE_LITERAL_LEAF_TYPES = new Set([
-  'NumberLit', 'StringLit', 'BooleanLit', 'NullLit',
-  'Keyword', 'QuoteLit', 'DocLit', 'BareTypeKeyword'
-]);
-function isPureLiteralBody(node) {
-  if (PURE_LITERAL_LEAF_TYPES.has(node.type)) return true;
-  if (node.type === 'VecLit' || node.type === 'JsonArrayLit' || node.type === 'SetLit') {
-    return node.elements.every(isPureLiteralBody);
-  }
-  if (node.type === 'MapLit' || node.type === 'JsonObjectLit' || node.type === 'ErrorLit') {
-    return node.entries.every(e => isPureLiteralBody(e.value));
-  }
-  if (node.type === 'TaggedLit') return isPureLiteralBody(node.payload);
-  return false;
+  return isPureLiteralAst(bindStepNode.body) ? 'snapshot' : 'conduit';
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST

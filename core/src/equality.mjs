@@ -25,7 +25,7 @@ import {
 // setHasStructurally(set, v) — does the Set already carry a member
 // structurally equal to `v`? Keyword interning collapses to
 // `name`-equality (interned keywords have a single object identity
-// per `name`, but the helper still goes through `name` so a freshly
+// per `name`, but the predicate still goes through `name` so a freshly
 // constructed `keyword(name)` matches an interned member); every
 // other shape goes through `deepEqual`.
 export function setHasStructurally(set, v) {

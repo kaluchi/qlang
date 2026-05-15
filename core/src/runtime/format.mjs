@@ -49,7 +49,7 @@ function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
 // Raw JS function reaching a render path comes from a host-bound
 // env entry — `:qlang/locator` is the canonical example, but
 // embedders may install others via `session.bind(name, jsFn)`.
-// `printValue` routes through this helper so the rendered form
+// `printValue` routes through this renderer so the rendered form
 // is a host-marker string literal that parses back as a String
 // value, keeping the env's surface display round-trippable. The
 // actual function stays reachable through direct projection off

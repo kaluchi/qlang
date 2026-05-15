@@ -156,7 +156,7 @@ export const empty = nullaryOp('empty', (container) =>
 // order of the returned array is NOT part of qlang's public contract
 // on Set (the spec declares Set as unordered), so only commutative /
 // order-independent reducers are allowed to dispatch through this
-// helper — sum, min, max. Order-dependent operands (first, last, at,
+// accessor — sum, min, max. Order-dependent operands (first, last, at,
 // firstNonZero, sort, reverse, take, drop, distinct, flat) stay
 // Vec-only.
 function vecOrSetElements(container, ErrorCls) {

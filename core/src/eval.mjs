@@ -1099,7 +1099,7 @@ export function resolveCapturedConduit(astNode, env) {
 // Enforces the same effect-laundering invariant as applyConduit: an
 // effectful conduit cannot be invoked through a clean lookup name.
 // Caller must guarantee fixedArgs.length === conduit's params.length —
-// this helper performs no arity check because the dispatching operand
+// this invoker performs no arity check because the dispatching operand
 // has already verified the arity.
 export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue) {
   const conduitName      = conduit.get('name');

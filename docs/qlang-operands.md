@@ -265,7 +265,7 @@ m
   applied to each element. Preserves first-occurrence order for
   both the Map entry sequence and each bucket's element list.
 - **Example**: `[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name` → `["a" "c"]`.
-- **Errors**: subject not a Vec → type error; key not a keyword → type error.
+- **Errors**: subject not a Vec → `GroupBySubjectNotVecError`; key not a keyword → `GroupByKeyNotKeywordError`.
 
 ### `indexBy(keyFn)`
 
@@ -274,14 +274,14 @@ m
 - Collapses a Vec into a Map keyed by the result of `keyFn`. On
   collision, the last element wins.
 - **Example**: `[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name` → `"alice"`.
-- **Errors**: subject not a Vec → type error; key not a keyword → type error.
+- **Errors**: subject not a Vec → `IndexBySubjectNotVecError`; key not a keyword → `IndexByKeyNotKeywordError`.
 
 ### `sort`
 
 - **Arity** 1. **Subject** `vec`.
 - Returns a new Vec sorted in natural (ascending) order.
 - **Example**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`.
-- **Errors**: elements not comparable → type error.
+- **Errors**: elements not comparable → `SortNaturalNotComparableError`.
 
 ### `sort(key)`
 
@@ -307,8 +307,8 @@ m
   - `events | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)`
     → events sorted by priority ascending, then timestamp descending
     as tie-breaker.
-- **Errors**: subject not a Vec → type error; comparator returns
-  non-number → type error.
+- **Errors**: subject not a Vec → `SortWithSubjectNotVecError`; comparator returns
+  non-number → `SortWithCmpResultNotNumberError`.
 
 ### `asc(keyExpr)`
 
@@ -324,8 +324,8 @@ m
   - `sortWith(asc(/age))` → ascending by `:age`.
   - `sortWith(asc(mul(/price, /qty)))` → ascending by computed total.
   - `sortWith(asc(/profile/joined))` → ascending by nested field.
-- **Errors**: pair subject not a Map → type error; left and right
-  keys not comparable scalars of the same type → type error.
+- **Errors**: pair subject not a Map → `AscPairNotMapError`; left and right
+  keys not comparable scalars of the same type → `AscKeysNotComparableError`.
 
 ### `desc(keyExpr)`
 
@@ -334,8 +334,8 @@ m
 - **Examples**:
   - `sortWith(desc(/timestamp))` → most recent first.
   - `sortWith(desc(/score))` → highest score first.
-- **Errors**: pair subject not a Map → type error; keys not
-  comparable → type error.
+- **Errors**: pair subject not a Map → `DescPairNotMapError`; keys not
+  comparable → `DescKeysNotComparableError`.
 
 ### `nullsFirst(keyExpr)`
 
@@ -349,7 +349,7 @@ m
   - `sortWith(nullsFirst(/age))` → null ages before all others.
   - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a`
     → `[null 1 3]`.
-- **Errors**: pair subject not a Map → type error.
+- **Errors**: pair subject not a Map → `NullsFirstPairNotMapError`.
 
 ### `nullsLast(keyExpr)`
 
@@ -363,7 +363,7 @@ m
   - `sortWith(nullsLast(/age))` → null ages after all others.
   - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a`
     → `[1 3 null]`.
-- **Errors**: pair subject not a Map → type error.
+- **Errors**: pair subject not a Map → `NullsLastPairNotMapError`.
 
 ### `firstNonZero`
 
@@ -379,8 +379,8 @@ m
   - `[0 0 0] | firstNonZero` → `0`.
   - `sortWith([asc(/lastName), desc(/age)] | firstNonZero)` →
     sort by last name ascending, age descending as tie-breaker.
-- **Errors**: subject not a Vec → type error; any element not a
-  number → type error.
+- **Errors**: subject not a Vec → `FirstNonZeroSubjectNotVecError`; any element not a
+  number → `FirstNonZeroElementNotNumberError`.
 
 ### `take(n)`
 
@@ -423,7 +423,7 @@ m
 - Flattens one level of nesting. Elements that are Vecs are
   spliced in; other elements pass through unchanged.
 - **Example**: `[[1 2] [3] [4 5]] | flat` → `[1 2 3 4 5]`.
-- **Errors**: subject not a Vec → type error.
+- **Errors**: subject not a Vec → `FlatSubjectNotVecError`.
 
 ### `set`
 
@@ -496,7 +496,7 @@ shapes are supported:
   - `[#{:a :b :c} #{:b :d}] | inter` → `#{:b}`.
   - `[{:name "a"} {:score 100}] | union`
     → `{:name "a" :score 100}`.
-- **Errors**: empty Vec → type error (no identity element).
+- **Errors**: empty Vec → `UnionBareSubjectNotVecError` / `MinusBareSubjectNotVecError` / `InterBareSubjectNotVecError`.
 
 ### Full form — two captured args
 
@@ -518,7 +518,7 @@ shapes are supported:
 of `M₂` are ignored). `M × M` for `inter` keeps keys present in both
 and takes values from `M₁`.
 
-**Errors**: incompatible types (e.g., Set and number) → type error.
+**Errors**: incompatible types (e.g., Set and number) → `UnionPairIncompatibleError` / `MinusPairIncompatibleError` / `InterPairIncompatibleError`.
 
 ## Arithmetic — `Scalar → Scalar`
 
@@ -568,8 +568,8 @@ and takes values from `M₁`.
   - `"a,b,c" | split(",")` → `["a" "b" "c"]`.
   - `"line1\nline2\nline3" | split("\n")` → `["line1" "line2" "line3"]`.
   - `"" | split(",")` → `[""]`.
-- **Errors**: subject not a string → type error; separator not a
-  string → type error.
+- **Errors**: subject not a string → `SplitSubjectNotStringError`; separator not a
+  string → `SplitSeparatorNotStringError`.
 
 ### `join(separator)`
 
@@ -580,8 +580,8 @@ and takes values from `M₁`.
   - `["a" "b" "c"] | join(",")` → `"a,b,c"`.
   - `["x" "y"] | join("")` → `"xy"`.
   - `[] | join(",")` → `""`.
-- **Errors**: subject not a Vec → type error; any element not a
-  string → type error; separator not a string → type error.
+- **Errors**: subject not a Vec → `JoinSubjectNotVecError`; any element not a
+  string → `JoinElementNotStringError`; separator not a string → `JoinSeparatorNotStringError`.
 
 `split` and `join` are inverses: `"a,b,c" | split(",") | join(",")`
 round-trips to `"a,b,c"`.
@@ -594,7 +594,7 @@ round-trips to `"a,b,c"`.
 - **Examples**:
   - `"hello world" | contains("world")` → `true`.
   - `"hello" | contains("xyz")` → `false`.
-- **Errors**: subject or needle not a string → type error.
+- **Errors**: subject not a string → `ContainsSubjectNotStringError`; needle not a string → `ContainsNeedleNotStringError`.
 
 ### `startsWith(prefix)`
 
@@ -604,7 +604,7 @@ round-trips to `"a,b,c"`.
 - **Examples**:
   - `"hello world" | startsWith("hello")` → `true`.
   - `"hello" | startsWith("world")` → `false`.
-- **Errors**: subject or prefix not a string → type error.
+- **Errors**: subject not a string → `StartsWithSubjectNotStringError`; prefix not a string → `StartsWithPrefixNotStringError`.
 
 ### `endsWith(suffix)`
 
@@ -614,7 +614,7 @@ round-trips to `"a,b,c"`.
 - **Examples**:
   - `"hello world" | endsWith("world")` → `true`.
   - `"hello" | endsWith("xyz")` → `false`.
-- **Errors**: subject or suffix not a string → type error.
+- **Errors**: subject not a string → `EndsWithSubjectNotStringError`; suffix not a string → `EndsWithSuffixNotStringError`.
 
 ## Boolean
 
@@ -766,7 +766,7 @@ shape, and vice versa.
   `!{:kind :oops}` — so nested structure stays readable on one row.
   Reshape with `* {:col1 /a :col2 /b/c}` to lift sub-Map fields
   into columns before the table call.
-- **Errors**: subject not a Vec of Maps → type error.
+- **Errors**: subject not a Vec → `TableSubjectNotVecError`; row not a Map → `TableRowNotMapError`.
 
 ## Control flow
 
@@ -936,8 +936,7 @@ its own eval handler in `eval.mjs`.
   iteration), the merged bindings evaporate when the fork closes,
   matching the documented fork rule — only the final `pipeValue`
   of the sub-pipeline escapes.
-- **Errors**: subject not a Map → type error. Captured arguments
-  (`use(...)`) → arity error.
+- **Errors**: subject not a Map → `UseSubjectNotMapError`.
 
 ### `reify`
 
@@ -1046,9 +1045,9 @@ missing). This is the introspection-by-name path:
     reify(:myVar)    -- descriptor of an as-binding
     reify(:double)   -- descriptor of a BindStep-installed conduit
 
-- **Errors**: more than one captured arg → arity error; the
-  captured arg is not a keyword → type error; the name is not
-  in `env` → unresolved-identifier error.
+- **Errors**: more than one captured arg → `ReifyArityOverflowError`; the
+  captured arg is not a Keyword or TagKeyword → `ReifyKeyNotKeywordError`; the name is not
+  in `env` → `UnresolvedIdentifierError`.
 
 `reify` never mutates `env`.
 

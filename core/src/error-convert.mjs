@@ -3,6 +3,7 @@ import {
   makeErrorValue, makeTagKeyword,
   TAG_BINDING_PREFIX
 } from './types.mjs';
+import { locationToQlangMap } from './ast-codec.mjs';
 
 // Descriptor field-order: high-entropy first. `:qlang/kind`
 // TagKeyword names the per-site identity (the same invariant
@@ -102,7 +103,7 @@ export function errorFromParse(parseError) {
   }
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
-  if (parseError.location) d.set('location', locationToMap(parseError.location));
+  if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
   d.set('origin', keyword('qlang/parse'));
   d.set('kind', keyword('parse-error'));
@@ -186,20 +187,6 @@ function excerptAroundLocation(source, location) {
   const caret = '^' + '~'.repeat(Math.max(0, markerWidth - 1));
   const tail = ' '.repeat(Math.max(0, line.length - lead.length - caret.length));
   return { source: line, marker: lead + caret + tail };
-}
-
-function locationToMap(loc) {
-  const posToMap = (pos) => {
-    const m = new Map();
-    m.set('offset', pos.offset);
-    m.set('line', pos.line);
-    m.set('column', pos.column);
-    return m;
-  };
-  const m = new Map();
-  if (loc.start) m.set('start', posToMap(loc.start));
-  if (loc.end) m.set('end', posToMap(loc.end));
-  return m;
 }
 
 const WELL_KNOWN_PROPS = [

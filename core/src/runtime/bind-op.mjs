@@ -12,7 +12,7 @@
 // for metadata inspection including attached docs).
 
 import { stateOp } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { makeState, withPipeValue, envSet } from '../state.mjs';
 import { isKeyword, typeKeyword, makeSnapshot } from '../types.mjs';
 import { declareShapeError } from '../operand-errors.mjs';
@@ -44,5 +44,5 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
   return makeState(state.pipeValue, asNextEnv);
 });
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/env', env);
-PRIMITIVE_REGISTRY.bind('qlang/prim/as',  asOperand);
+bindPrim('env', env);
+bindPrim('as',  asOperand);

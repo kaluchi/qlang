@@ -15,6 +15,7 @@ import { fork, forkWith } from './fork.mjs';
 import { applyRule10, makeFn } from './rule10.mjs';
 import {
   QlangError,
+  QlangInvariantError,
   UnresolvedIdentifierError,
   EffectLaunderingAtCallError,
   EffectLaunderingAtBindStepParseError
@@ -26,7 +27,32 @@ import {
   declareShapeError,
   declareArityError
 } from './operand-errors.mjs';
-import { QlangInvariantError } from './errors.mjs';
+import {
+  isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
+  typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
+  materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
+  isJsonObject, isJsonArray, isVecShape, isQuote,
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword,
+  moduleAstKey, tagBindingKey
+} from './types.mjs';
+import { isPureLiteralAst } from './walk.mjs';
+import { astNodeToMap } from './ast-codec.mjs';
+import { addStructurallyUnique } from './equality.mjs';
+import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
+import { langRuntime } from './runtime/index.mjs';
+import { PRIMITIVE_REGISTRY } from './primitives.mjs';
+import { parseDocSegments } from './doc-segments.mjs';
+
+// ─── Dispatch-table invariants ─────────────────────────────────
+//
+// Both classes fire only when the evaluator hits an AST shape or
+// combinator kind the dispatcher does not name — a parser change
+// that lands a new AST.type without wiring `AST_NODE_EVALUATORS`,
+// or a grammar change that introduces a new combinator token
+// without wiring `COMBINATOR_EVALUATORS`. They extend
+// `QlangInvariantError` so `evalNode`'s fault-conversion seam
+// rethrows them (invariant violations bypass the lift-to-error-value
+// path that user-facing errors ride).
 
 class UnknownAstNodeTypeError extends QlangInvariantError {
   constructor(nodeType) {
@@ -43,21 +69,6 @@ class UnknownCombinatorKindError extends QlangInvariantError {
     this.fingerprint = 'UnknownCombinatorKindError';
   }
 }
-import {
-  isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
-  typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
-  isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword,
-  moduleAstKey, tagBindingKey
-} from './types.mjs';
-import { isPureLiteralAst } from './walk.mjs';
-import { astNodeToMap } from './ast-codec.mjs';
-import { addStructurallyUnique } from './equality.mjs';
-import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
-import { langRuntime } from './runtime/index.mjs';
-import { PRIMITIVE_REGISTRY } from './primitives.mjs';
-import { parseDocSegments } from './doc-segments.mjs';
 
 // Trail-fragment record stamped onto the linked-list head at every
 // success-track combinator deflect site. `combinator` is one of the

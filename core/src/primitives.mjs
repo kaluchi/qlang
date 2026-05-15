@@ -14,12 +14,26 @@
 // registry is a build-time bridge consulted only during the
 // resolution pass.
 //
+// Two parallel namespaces ride through the registry:
+//
+//   `qlang/prim/<name>` — value-namespace operands (`add`, `count`,
+//     `filter`, `reify`, …). Resolved once at bootstrap; the
+//     descriptor's `:qlang/impl` keyword is replaced with the
+//     resulting JS function value.
+//
+//   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
+//     `::qlang`, `::json`). The keyword stays a keyword on the
+//     descriptor; `evalTaggedLit` resolves it through the registry
+//     at every invocation so `reify(::tag)` keeps the readable
+//     `:qlang/impl :qlang/type/<tag>` handle on the descriptor.
+//
 // Lifecycle:
-//   1. Each runtime/*.mjs module binds its impls at import time via
-//      PRIMITIVE_REGISTRY.bind(keyword('qlang/prim/<name>'), impl).
-//   2. langRuntime() resolves every :qlang/impl keyword on the
-//      template env descriptors to its function value, then calls
-//      PRIMITIVE_REGISTRY.seal().
+//   1. Each runtime/*.mjs module binds its impls at import time
+//      via `bindPrim(name, impl)` (value-namespace) or
+//      `bindTypeConstructor(tagName, ctor)` (tag-namespace).
+//   2. langRuntime() resolves every :qlang/impl `qlang/prim/*`
+//      keyword on the template env descriptors to its function
+//      value, then calls `PRIMITIVE_REGISTRY.seal()`.
 //
 // Verb vocabulary: the registry uses **bind** for the write site
 // (matching qlang's `let` binding-into-env verb), **resolve** for
@@ -180,17 +194,53 @@ export function createPrimitiveRegistry() {
 // runtime/*.mjs module at import time and sealed by langRuntime() on
 // first bootstrap. Test code should NOT touch this directly — use
 // createPrimitiveRegistry() for isolated instances so tests stay
-// deterministic regardless of order. Runtime call-site usage is via
-// its .bind / .resolve / .seal methods:
+// deterministic regardless of order. Runtime call-site usage rides
+// through `bindPrim` / `bindTypeConstructor` so the namespace prefix
+// stays a single-source-of-truth string here:
 //
-//     import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+//     import { bindPrim } from '../primitives.mjs';
 //     export const add = valueOp('add', 2, (a, b) => a + b);
-//     PRIMITIVE_REGISTRY.bind('qlang/prim/add', add);
+//     bindPrim('add', add);
 //
-// The first argument is a plain string — the `:qlang/prim/<name>`
-// namespaced keyword's `.name`. The catalog file
-// (`core/lib/qlang/operand/arith.qlang`) declares the same string
-// under `:qlang/impl :qlang/prim/add` on the `:add` descriptor Map,
-// completing the descriptor → registry → impl handoff
-// `langRuntime`'s bootstrap pass resolves at construction time.
+// The catalog file (`core/lib/qlang/operand/arith.qlang`) declares
+// the same name under `:qlang/impl :qlang/prim/add` on the `:add`
+// descriptor Map, completing the descriptor → registry → impl
+// handoff `langRuntime`'s bootstrap pass resolves at construction
+// time.
 export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();
+
+// ── Namespace prefixes for impl-key minting ───────────────────
+//
+// `PRIM_KEY_PREFIX` and `TYPE_KEY_PREFIX` are the single-source
+// strings for the two impl-key namespaces. Every consumer that
+// composes or pattern-matches a `qlang/prim/…` or `qlang/type/…`
+// key imports these constants instead of typing the literal — a
+// future rename (e.g. `qlang/prim/` → `qlang/op/`) touches one
+// line here, not seventeen runtime files.
+
+export const PRIM_KEY_PREFIX = 'qlang/prim/';
+export const TYPE_KEY_PREFIX = 'qlang/type/';
+
+// bindPrim(name, impl) — bind a value-namespace operand under the
+// `qlang/prim/<name>` key. The boilerplate seam every runtime/*.mjs
+// flows through at module-load time.
+export function bindPrim(name, impl) {
+  return PRIMITIVE_REGISTRY.bind(PRIM_KEY_PREFIX + name, impl);
+}
+
+// bindTypeConstructor(tagName, ctor) — bind a tag-namespace
+// constructor under the `qlang/type/<tag>` key. Pairs with the
+// `:qlang/impl :qlang/type/<tag>` slot the catalog tag-binding
+// declares.
+export function bindTypeConstructor(tagName, ctor) {
+  return PRIMITIVE_REGISTRY.bind(TYPE_KEY_PREFIX + tagName, ctor);
+}
+
+// primKey(name) — mint a `qlang/prim/<name>` plain-string key
+// without binding. Used by `runtime/index.mjs` to resolve the
+// bootstrap `use` operand against the seed env and by `format.mjs`
+// to project a resolved FunctionValue back to its catalog-handle
+// keyword.
+export function primKey(name) {
+  return PRIM_KEY_PREFIX + name;
+}

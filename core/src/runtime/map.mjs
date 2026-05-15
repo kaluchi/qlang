@@ -10,7 +10,7 @@ import {
   isMapShape, mapShapeEntries, mapShapeHas
 } from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 const KeysSubjectNotMapError    = declareSubjectError('KeysSubjectNotMapError',    'keys',  'map');
 const ValsSubjectNotMapError    = declareSubjectError('ValsSubjectNotMapError',    'vals',  'map');
@@ -46,7 +46,7 @@ export const has = valueOp('has', 2, (subject, key) => {
   throw new HasSubjectNotMapOrSetError(subject);
 });
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/keys', keys);
-PRIMITIVE_REGISTRY.bind('qlang/prim/vals', vals);
-PRIMITIVE_REGISTRY.bind('qlang/prim/has',  has);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('keys', keys);
+bindPrim('vals', vals);
+bindPrim('has',  has);

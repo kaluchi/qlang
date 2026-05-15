@@ -18,7 +18,7 @@
 // deflected steps against a fresh subject.
 
 import { stateOp } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { makeState, withPipeValue } from '../state.mjs';
 import { astNodeToMap, qlangMapToAst } from '../ast-codec.mjs';
 import { isQMap, isQuote } from '../types.mjs';
@@ -107,6 +107,6 @@ export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {
   return makeState(resultState.pipeValue, resultState.env);
 });
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/parse', parseOperand);
-PRIMITIVE_REGISTRY.bind('qlang/prim/eval',  evalOperand);
-PRIMITIVE_REGISTRY.bind('qlang/prim/apply', applyOperand);
+bindPrim('parse', parseOperand);
+bindPrim('eval',  evalOperand);
+bindPrim('apply', applyOperand);

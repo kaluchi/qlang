@@ -28,7 +28,7 @@ import {
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 const ErrorDescriptorNotMapError = declareSubjectError(
   'ErrorDescriptorNotMapError', 'error', 'map');
@@ -51,6 +51,6 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
 // error value, false otherwise.
 export const isError = nullaryOp('isError', (subject) => isErrorValue(subject));
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/error',   error);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isError', isError);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('error',   error);
+bindPrim('isError', isError);

@@ -22,7 +22,7 @@ import {
   declareElementError
 } from '../operand-errors.mjs';
 import { QlangInvariantError } from '../errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim, primKey } from '../primitives.mjs';
 
 // One shared dispatch: `describeType(v)` classifies any qlang value
 // into a stable string kind ('Null' | 'Number' | 'String' |
@@ -363,7 +363,7 @@ function escapeQlangStringLiteral(s) {
 // which is the actual leak surface we want flagged.
 function projectMapEntryForPrint(k, v) {
   if (k === 'qlang/impl' && isFunctionValue(v)) {
-    return [k, keyword(`qlang/prim/${v.name}`)];
+    return [k, keyword(primKey(v.name))];
   }
   return [k, v];
 }
@@ -514,6 +514,6 @@ function collectColumnOrder(rows) {
   return order;
 }
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/json',  json);
-PRIMITIVE_REGISTRY.bind('qlang/prim/table', table);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('json',  json);
+bindPrim('table', table);

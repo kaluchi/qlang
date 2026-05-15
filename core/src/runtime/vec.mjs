@@ -46,7 +46,7 @@ import {
   declareShapeError,
   declareArityError
 } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import {
   resolveCapturedConduit,
   invokeConduitWithFixedArgs,
@@ -611,29 +611,29 @@ export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   return 0;
 });
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/count',        count);
-PRIMITIVE_REGISTRY.bind('qlang/prim/empty',        empty);
-PRIMITIVE_REGISTRY.bind('qlang/prim/first',        first);
-PRIMITIVE_REGISTRY.bind('qlang/prim/last',         last);
-PRIMITIVE_REGISTRY.bind('qlang/prim/sum',          sum);
-PRIMITIVE_REGISTRY.bind('qlang/prim/min',          min);
-PRIMITIVE_REGISTRY.bind('qlang/prim/max',          max);
-PRIMITIVE_REGISTRY.bind('qlang/prim/filter',       filter);
-PRIMITIVE_REGISTRY.bind('qlang/prim/every',        every);
-PRIMITIVE_REGISTRY.bind('qlang/prim/any',          any);
-PRIMITIVE_REGISTRY.bind('qlang/prim/groupBy',      groupBy);
-PRIMITIVE_REGISTRY.bind('qlang/prim/indexBy',      indexBy);
-PRIMITIVE_REGISTRY.bind('qlang/prim/sort',         sort);
-PRIMITIVE_REGISTRY.bind('qlang/prim/take',         take);
-PRIMITIVE_REGISTRY.bind('qlang/prim/at',           at);
-PRIMITIVE_REGISTRY.bind('qlang/prim/drop',         drop);
-PRIMITIVE_REGISTRY.bind('qlang/prim/distinct',     distinct);
-PRIMITIVE_REGISTRY.bind('qlang/prim/reverse',      reverse);
-PRIMITIVE_REGISTRY.bind('qlang/prim/flat',         flat);
-PRIMITIVE_REGISTRY.bind('qlang/prim/sortWith',     sortWith);
-PRIMITIVE_REGISTRY.bind('qlang/prim/asc',          asc);
-PRIMITIVE_REGISTRY.bind('qlang/prim/desc',         desc);
-PRIMITIVE_REGISTRY.bind('qlang/prim/nullsFirst',   nullsFirst);
-PRIMITIVE_REGISTRY.bind('qlang/prim/nullsLast',    nullsLast);
-PRIMITIVE_REGISTRY.bind('qlang/prim/firstNonZero', firstNonZero);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('count',        count);
+bindPrim('empty',        empty);
+bindPrim('first',        first);
+bindPrim('last',         last);
+bindPrim('sum',          sum);
+bindPrim('min',          min);
+bindPrim('max',          max);
+bindPrim('filter',       filter);
+bindPrim('every',        every);
+bindPrim('any',          any);
+bindPrim('groupBy',      groupBy);
+bindPrim('indexBy',      indexBy);
+bindPrim('sort',         sort);
+bindPrim('take',         take);
+bindPrim('at',           at);
+bindPrim('drop',         drop);
+bindPrim('distinct',     distinct);
+bindPrim('reverse',      reverse);
+bindPrim('flat',         flat);
+bindPrim('sortWith',     sortWith);
+bindPrim('asc',          asc);
+bindPrim('desc',         desc);
+bindPrim('nullsFirst',   nullsFirst);
+bindPrim('nullsLast',    nullsLast);
+bindPrim('firstNonZero', firstNonZero);

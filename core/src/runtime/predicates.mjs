@@ -22,7 +22,7 @@ import { valueOp, nullaryOp } from './dispatch.mjs';
 import { isTruthy, describeType, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 const GtOperandsNotComparableError  = declareComparabilityError('GtOperandsNotComparableError',  'gt');
 const LtOperandsNotComparableError  = declareComparabilityError('LtOperandsNotComparableError',  'lt');
@@ -94,25 +94,25 @@ export const isDoc        = nullaryOp('isDoc',        (subject) => describeType(
 export const isJsonObject = nullaryOp('isJsonObject', (subject) => describeType(subject) === 'JsonObject');
 export const isJsonArray  = nullaryOp('isJsonArray',  (subject) => describeType(subject) === 'JsonArray');
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/eq',  eq);
-PRIMITIVE_REGISTRY.bind('qlang/prim/gt',  gt);
-PRIMITIVE_REGISTRY.bind('qlang/prim/lt',  lt);
-PRIMITIVE_REGISTRY.bind('qlang/prim/gte', gte);
-PRIMITIVE_REGISTRY.bind('qlang/prim/lte', lte);
-PRIMITIVE_REGISTRY.bind('qlang/prim/and', and);
-PRIMITIVE_REGISTRY.bind('qlang/prim/or',  or);
-PRIMITIVE_REGISTRY.bind('qlang/prim/not', not);
-PRIMITIVE_REGISTRY.bind('qlang/prim/type', type);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isString',  isString);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isNumber',  isNumber);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isVec',     isVec);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isMap',     isMap);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isSet',     isSet);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isKeyword', isKeyword);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isBoolean', isBoolean);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isNull',    isNull);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isQuote',      isQuote);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isDoc',        isDoc);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isJsonObject', isJsonObject);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isJsonArray',  isJsonArray);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('eq',  eq);
+bindPrim('gt',  gt);
+bindPrim('lt',  lt);
+bindPrim('gte', gte);
+bindPrim('lte', lte);
+bindPrim('and', and);
+bindPrim('or',  or);
+bindPrim('not', not);
+bindPrim('type', type);
+bindPrim('isString',  isString);
+bindPrim('isNumber',  isNumber);
+bindPrim('isVec',     isVec);
+bindPrim('isMap',     isMap);
+bindPrim('isSet',     isSet);
+bindPrim('isKeyword', isKeyword);
+bindPrim('isBoolean', isBoolean);
+bindPrim('isNull',    isNull);
+bindPrim('isQuote',      isQuote);
+bindPrim('isDoc',        isDoc);
+bindPrim('isJsonObject', isJsonObject);
+bindPrim('isJsonArray',  isJsonArray);

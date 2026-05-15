@@ -25,7 +25,7 @@
 //                                        out of scope.
 
 import { stateOpVariadic } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { makeState, envMerge } from '../state.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
@@ -220,4 +220,4 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
   return makeState(state.pipeValue, envMerge(updatedEnv, filtered));
 }
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/use', use);
+bindPrim('use', use);

@@ -75,7 +75,7 @@ import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
 import { isKeyword, makeQuote, moduleAstKey, RUNTIME_LOCATOR_KEY } from '../types.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
 import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 
 // Cached template env — parsed and evaluated once on first call,
@@ -116,7 +116,7 @@ export async function buildLangRuntime(locator) {
   // threads through for every namespace lookup
   // (runtime-invariants, tag, operand/arith, operand/vec, …).
   const seedEnv = new Map();
-  seedEnv.set('use', PRIMITIVE_REGISTRY.resolve('qlang/prim/use'));
+  seedEnv.set('use', PRIMITIVE_REGISTRY.resolve(primKey('use')));
   seedEnv.set(RUNTIME_LOCATOR_KEY, locator);
 
   // Load the root catalog module — `:qlang/core` — through the

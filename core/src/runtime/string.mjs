@@ -11,7 +11,7 @@ import {
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 const PrependSubjectNotStringError    = declareModifierError('PrependSubjectNotStringError',    'prepend',    1, 'string');
 const PrependPrefixNotStringError     = declareModifierError('PrependPrefixNotStringError',     'prepend',    2, 'string');
@@ -76,11 +76,11 @@ export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
   return subject.endsWith(suffix);
 });
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/prepend',    prepend);
-PRIMITIVE_REGISTRY.bind('qlang/prim/append',     append);
-PRIMITIVE_REGISTRY.bind('qlang/prim/split',      split);
-PRIMITIVE_REGISTRY.bind('qlang/prim/join',       join);
-PRIMITIVE_REGISTRY.bind('qlang/prim/contains',   contains);
-PRIMITIVE_REGISTRY.bind('qlang/prim/startsWith', startsWith);
-PRIMITIVE_REGISTRY.bind('qlang/prim/endsWith',   endsWith);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('prepend',    prepend);
+bindPrim('append',     append);
+bindPrim('split',      split);
+bindPrim('join',       join);
+bindPrim('contains',   contains);
+bindPrim('startsWith', startsWith);
+bindPrim('endsWith',   endsWith);

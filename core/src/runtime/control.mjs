@@ -15,7 +15,7 @@ import {
 } from './dispatch.mjs';
 import { isTruthy, isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareArityError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline');
@@ -104,12 +104,12 @@ export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
     return NULL;
   }, [1, UNBOUNDED]);
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
 // `ifOp` is the JS-level identifier for the qlang `if` operand
 // (because `if` is a JS reserved word).
-PRIMITIVE_REGISTRY.bind('qlang/prim/if',          ifOp);
-PRIMITIVE_REGISTRY.bind('qlang/prim/when',        when);
-PRIMITIVE_REGISTRY.bind('qlang/prim/unless',      unless);
-PRIMITIVE_REGISTRY.bind('qlang/prim/coalesce',    coalesce);
-PRIMITIVE_REGISTRY.bind('qlang/prim/cond',        cond);
-PRIMITIVE_REGISTRY.bind('qlang/prim/firstTruthy', firstTruthy);
+bindPrim('if',          ifOp);
+bindPrim('when',        when);
+bindPrim('unless',      unless);
+bindPrim('coalesce',    coalesce);
+bindPrim('cond',        cond);
+bindPrim('firstTruthy', firstTruthy);

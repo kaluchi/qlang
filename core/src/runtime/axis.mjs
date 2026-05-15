@@ -14,7 +14,7 @@
 //          is a candidate test case for runExamples.
 
 import { stateOp } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc,
@@ -171,6 +171,6 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
   return withPipeValue(state, Object.freeze(collected));
 });
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/source',   source);
-PRIMITIVE_REGISTRY.bind('qlang/prim/docs',     docs);
-PRIMITIVE_REGISTRY.bind('qlang/prim/examples', examples);
+bindPrim('source',   source);
+bindPrim('docs',     docs);
+bindPrim('examples', examples);

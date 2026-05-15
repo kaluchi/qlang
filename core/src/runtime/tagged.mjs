@@ -13,7 +13,7 @@
 // for body invocation) can pick it up directly.
 
 import { nullaryOp } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
   makeConduit, makeJsonObject, makeJsonArray, typeKeyword
@@ -75,7 +75,7 @@ async function conduitConstructor(payload, state) {
   });
 }
 
-PRIMITIVE_REGISTRY.bind('qlang/type/conduit', conduitConstructor);
+bindTypeConstructor('conduit', conduitConstructor);
 
 // ::qlang<...> / ::json<...> — pair of cross-domain converters.
 // `::qlang` recursively converts a JSON-shape payload (plain
@@ -114,8 +114,8 @@ function jsonFromQlang(value) {
   return value;
 }
 
-PRIMITIVE_REGISTRY.bind('qlang/type/qlang', (payload) => qlangFromJson(payload));
-PRIMITIVE_REGISTRY.bind('qlang/type/json',  (payload) => jsonFromQlang(payload));
+bindTypeConstructor('qlang', (payload) => qlangFromJson(payload));
+bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 
 // `qlang` value-namespace operand — subject-form converter.
 //
@@ -131,4 +131,4 @@ PRIMITIVE_REGISTRY.bind('qlang/type/json',  (payload) => jsonFromQlang(payload))
 
 export const qlangOperand = nullaryOp('qlang', (subject) => qlangFromJson(subject));
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/qlang', qlangOperand);
+bindPrim('qlang', qlangOperand);

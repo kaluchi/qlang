@@ -10,7 +10,7 @@
 import { valueOp } from './dispatch.mjs';
 import { DivisionByZeroError } from '../errors.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 const AddLeftNotNumberError  = declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
 const AddRightNotNumberError = declareModifierError('AddRightNotNumberError', 'add', 2, 'number');
@@ -46,8 +46,8 @@ export const div = valueOp('div', 2, (a, b) => {
   return a / b;
 });
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/add', add);
-PRIMITIVE_REGISTRY.bind('qlang/prim/sub', sub);
-PRIMITIVE_REGISTRY.bind('qlang/prim/mul', mul);
-PRIMITIVE_REGISTRY.bind('qlang/prim/div', div);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('add', add);
+bindPrim('sub', sub);
+bindPrim('mul', mul);
+bindPrim('div', div);

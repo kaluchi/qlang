@@ -23,7 +23,7 @@ import {
   declareComparabilityError,
   declareShapeError
 } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
 
 // Map-minus-Set / Map-inter-Set drop or keep entries by their
@@ -161,7 +161,7 @@ export const inter = overloadedOp('inter', 2, {
     interPair(await interLeftLambda(interCtx), await interRightLambda(interCtx))
 });
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/union', union);
-PRIMITIVE_REGISTRY.bind('qlang/prim/minus', minus);
-PRIMITIVE_REGISTRY.bind('qlang/prim/inter', inter);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('union', union);
+bindPrim('minus', minus);
+bindPrim('inter', inter);

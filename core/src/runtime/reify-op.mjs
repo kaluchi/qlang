@@ -11,7 +11,7 @@
 // from a binding's attached docs and evaluates each as a self-test.
 
 import { stateOp, stateOpVariadic } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
@@ -306,6 +306,6 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   return withPipeValue(state, results);
 });
 
-PRIMITIVE_REGISTRY.bind('qlang/prim/reify',       reify);
-PRIMITIVE_REGISTRY.bind('qlang/prim/manifest',    manifest);
-PRIMITIVE_REGISTRY.bind('qlang/prim/runExamples', runExamples);
+bindPrim('reify',       reify);
+bindPrim('manifest',    manifest);
+bindPrim('runExamples', runExamples);

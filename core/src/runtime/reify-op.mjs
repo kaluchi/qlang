@@ -15,10 +15,12 @@ import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
-  isTagKeyword, isErrorValue, typeKeyword, keyword,
+  isTagKeyword, isErrorValue, typeKeyword, keyword
+} from '../types.mjs';
+import {
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
   tagBindingKey, RUNTIME_LOCATOR_KEY
-} from '../types.mjs';
+} from '../env-keys.mjs';
 import { locationToQlangMap } from '../ast-codec.mjs';
 import {
   declareShapeError,

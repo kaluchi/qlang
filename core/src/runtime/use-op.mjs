@@ -31,9 +31,11 @@ import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isQMap, isKeyword, isVec, isQSet,
-  typeKeyword, makeQuote, moduleAstKey, moduleNamespaceKey,
-  RUNTIME_LOCATOR_KEY
+  typeKeyword, makeQuote
 } from '../types.mjs';
+import {
+  moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
+} from '../env-keys.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 
 const UseSubjectNotMapError = declareSubjectError('UseSubjectNotMapError', 'use', 'map');

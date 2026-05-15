@@ -19,10 +19,9 @@ import {
   isFunctionValue,
   makeConduit,
   makeSnapshot,
-  makeQuote,
-  moduleAstKey,
-  RUNTIME_LOCATOR_KEY
+  makeQuote
 } from './types.mjs';
+import { moduleAstKey, RUNTIME_LOCATOR_KEY } from './env-keys.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { errorFromParse } from './error-convert.mjs';

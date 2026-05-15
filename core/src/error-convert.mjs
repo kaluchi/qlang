@@ -1,8 +1,8 @@
 import {
   keyword, isKeyword, isQMap, isQSet, isErrorValue,
-  makeErrorValue, makeTagKeyword,
-  TAG_BINDING_PREFIX
+  makeErrorValue, makeTagKeyword
 } from './types.mjs';
+import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 import { locationToQlangMap } from './ast-codec.mjs';
 
 // Descriptor field-order: high-entropy first. `:qlang/kind`

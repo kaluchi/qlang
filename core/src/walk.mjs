@@ -11,7 +11,7 @@
 // `grammar.peggy` extends both this file and `ast-codec.mjs`; every
 // downstream walker inherits the knowledge.
 
-import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey } from './types.mjs';
+import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey } from './env-keys.mjs';
 
 // Namespace alias values used by `bindingNamesVisibleAt` to select
 // which BindStep / `as` declaration shapes count toward the result

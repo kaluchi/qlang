@@ -109,7 +109,9 @@ import {
   appendTrailNode,
   materializeTrail,
   describeType,
-  typeKeyword,
+  typeKeyword
+} from './types.mjs';
+import {
   TAG_BINDING_PREFIX,
   MODULE_AST_PREFIX,
   MODULE_NAMESPACE_PREFIX,
@@ -121,7 +123,7 @@ import {
   moduleNamespaceKey,
   tagBindingKey,
   stripTagBindingPrefix
-} from './types.mjs';
+} from './env-keys.mjs';
 
 export {
   parse,

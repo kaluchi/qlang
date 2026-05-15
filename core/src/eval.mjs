@@ -32,9 +32,9 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword,
-  moduleAstKey, tagBindingKey
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword
 } from './types.mjs';
+import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
 import { astNodeToMap } from './ast-codec.mjs';
 import { addStructurallyUnique } from './equality.mjs';

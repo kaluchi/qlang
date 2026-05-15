@@ -17,9 +17,11 @@ import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc,
-  isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
+  isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc
 } from '../types.mjs';
+import {
+  isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
+} from '../env-keys.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 

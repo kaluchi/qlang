@@ -74,7 +74,8 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { isKeyword, makeQuote, moduleAstKey, RUNTIME_LOCATOR_KEY } from '../types.mjs';
+import { isKeyword, makeQuote } from '../types.mjs';
+import { moduleAstKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
 import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 

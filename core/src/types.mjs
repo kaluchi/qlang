@@ -1,6 +1,7 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { classifyEffect } from './effect.mjs';
 import { QlangInvariantError } from './errors.mjs';
+import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 
 // Conduit body must carry a `.text` source slice — every production
 // path (parser-built AST, ::conduit constructor parsing a Quote,
@@ -211,76 +212,11 @@ export function isTagKeyword(v) {
   return v !== null && typeof v === 'object' && v.type === 'tagKeyword';
 }
 
-// ── env-key namespaces ────────────────────────────────────────
-//
-// Two reserved prefixes carve out housekeeping namespaces inside the
-// env Map so identifier resolution and reflective listings can route
-// past them in a single substring-free predicate. Both predicates
-// live here as the single source of truth for the prefix character
-// sequence — every consumer (`bindingNameOf` for axis-operands,
-// `manifest` filtering, `langRuntime` module-AST stamping, LSP
-// completion list, axis-walker) imports the constants instead of
-// re-typing the literal.
-//
-// `TAG_BINDING_PREFIX` — `::Tag` identifiers carrying a tag binding
-// declaration (`::conduit`, `::AddLeftNotNumberError`). Lookup
-// distinguishes tag-namespace identifiers from value-namespace
-// `:foo` keys without scanning the binding shape.
-//
-// `MODULE_AST_PREFIX` — `qlang/ast/<uri>` env keys carry a Quote-value
-// holding the module's source plus the parsed AST. Axis-operands walk
-// every Quote under this prefix to find a binding's originating
-// `BindStep`. The prefix is filtered from `manifest` output and from
-// LSP completion candidates because module-AST entries are storage,
-// not user-facing bindings.
-//
-// `MODULE_NAMESPACE_PREFIX` — `qlang/namespace/<uri>` env keys carry
-// the exports Map of a namespace once `use(:uri)` has loaded it.
-// Re-entrant `use(:uri)` calls hit this cache instead of re-fetching
-// the source. Filtered alongside module-AST keys for the same reason
-// — it is runtime housekeeping, not a user-facing binding.
-//
-// `RUNTIME_LOCATOR_KEY` — singular env key holding the host's
-// `:qlang/locator` function. Filtered exactly because the locator
-// is platform plumbing, not addressable through identifier lookup.
-
-export const TAG_BINDING_PREFIX = '::';
-export const MODULE_AST_PREFIX = 'qlang/ast/';
-export const MODULE_NAMESPACE_PREFIX = 'qlang/namespace/';
-export const RUNTIME_LOCATOR_KEY = 'qlang/locator';
-
-export function isTagBindingName(name) {
-  return typeof name === 'string' && name.startsWith(TAG_BINDING_PREFIX);
-}
-
-// tagBindingKey(tagName) — `::Tag` env-lookup key from a raw tag
-// name. The single mint site for the prefix+name pair every reader
-// that probes env for a tag binding uses. Renderers should pull
-// the same literal off the TagKeyword value's `.literal` field
-// (set once at TagKeyword construction).
-export function tagBindingKey(tagName) {
-  return TAG_BINDING_PREFIX + tagName;
-}
-
-export function stripTagBindingPrefix(envKey) {
-  return envKey.slice(TAG_BINDING_PREFIX.length);
-}
-
-export function isModuleAstKey(name) {
-  return typeof name === 'string' && name.startsWith(MODULE_AST_PREFIX);
-}
-
-export function isModuleNamespaceKey(name) {
-  return typeof name === 'string' && name.startsWith(MODULE_NAMESPACE_PREFIX);
-}
-
-export function moduleAstKey(uri) {
-  return MODULE_AST_PREFIX + uri;
-}
-
-export function moduleNamespaceKey(uri) {
-  return MODULE_NAMESPACE_PREFIX + uri;
-}
+// Env-key namespaces live in `./env-keys.mjs`. The TagKeyword
+// factory above stamps `TAG_BINDING_PREFIX + tag` onto every
+// `::tag` literal, which is the only place value-class code needs
+// the prefix; every other env-keys-aware consumer imports from
+// `env-keys.mjs` directly.
 
 // ── conduit / snapshot / quote predicates ─────────────────────
 

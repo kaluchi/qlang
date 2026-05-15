@@ -721,10 +721,9 @@ QlangMapEntry
   = key:Keyword __ value:PipelineInLiteral
     { return node('MapEntry', { key, value }, location(), text()); }
 
-// Backward-compatibility alias: existing AST consumers reference
-// `MapEntry` by node type without distinguishing the surface form
-// they came from. JSON / qlang-mode entries both carry the same
-// `MapEntry` discriminator and shape.
+// MapEntry alias — both JSON-form and qlang-form entries carry the
+// same `MapEntry` discriminator and shape, so AST walkers consume
+// one node type uniformly regardless of which surface produced it.
 MapEntry = QlangMapEntry / JsonMapEntry
 
 SetLit

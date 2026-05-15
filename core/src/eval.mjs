@@ -75,10 +75,10 @@ function trailEntry(stepNode, combinatorKind) {
 const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapError',
   ({ key, actualType }) => `/${key} requires Map or Vec subject, got ${actualType.name}`);
 // Map subject does not carry the requested key. Strict fail-first
-// surfaces the typo / mismatched-shape on the projection itself,
-// so the diagnostic carries a breadcrumb pointing back to the
-// missing key. null subject still propagates as null (see
-// projectSegment).
+// surfaces the typo / mismatched-shape on the projection itself; the
+// lifted descriptor carries `:key` plus the `:fault` step/input so
+// downstream `!| /key` reads the failed segment directly. null
+// subject still deflects as null (see projectSegment).
 const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
   ({ key }) => `/${key} — key not present in Map subject`);
 // Vec subject indexed past its bounds. Negative indices walk from
@@ -415,8 +415,10 @@ function evalNumberLit(node, state)  { return withPipeValue(state, node.value); 
 function evalStringLit(node, state)  { return withPipeValue(state, node.value); }
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
 function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
+// keyword() forges a Keyword VALUE that lands as the next pipeValue.
+// Map keys are plain strings; the Keyword value-class exists for
+// type-level display distinction from String.
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
-// keyword() here creates a keyword VALUE for the pipeline — not a Map key.
 
 async function evalVecLit(node, state) {
   // Each element is a sub-pipeline forked against the outer state.
@@ -608,7 +610,7 @@ async function evalBindStep(node, state) {
   const name = node.key.type === 'BareTypeKeyword'
     ? tagBindingKey(node.key.tag)
     : node.key.name;
-  const docs = node.docs || [];
+  const docs = node.docs ?? [];
 
   if (node.body === null) {
     // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`) forges
@@ -668,12 +670,12 @@ async function evalBindStep(node, state) {
 // on the current subject's kind — Map does keyword-lookup, Vec does
 // integer-index access with `Array.prototype.at`-style negative
 // support, value-classes (Quote, Doc) expose a fixed projectable
-// field-set. Every miss / mismatch is a fail-first error so a typo'd
-// key, out-of-range index, or `null` subject surfaces on the
-// projection itself, carrying a breadcrumb to the failed segment.
-// The soft counterpart for "optionally read a field" is the `at`
-// operand (Map miss → `null`); explicit fail-track handling stays
-// available via the `!|` combinator.
+// field-set. Every miss / mismatch lifts a fail-first error whose
+// descriptor carries the failed segment under `:key` plus the
+// `:fault` step/input that triggered the miss. The soft counterpart
+// for "optionally read a field" is the `at` operand (Map miss →
+// `null`); explicit fail-track handling stays available via the
+// `!|` combinator.
 const INTEGER_SEGMENT_RE = /^-?\d+$/;
 
 async function evalProjection(node, state) {
@@ -841,7 +843,7 @@ async function evalOperandCall(node, state) {
     // Stash doc comments from the OperandCall node on the lambdas
     // array so the `as` operand can read them without changing
     // the fn(state, lambdas) dispatch signature.
-    operandLambdas.docs = node.docs || [];
+    operandLambdas.docs = node.docs ?? [];
     operandLambdas.location = node.location;
     return await applyRule10(resolved, operandLambdas, state);
   }
@@ -927,7 +929,7 @@ async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
   const builtinLambdas = hasArgs
     ? capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv))
     : [];
-  builtinLambdas.docs = node.docs || [];
+  builtinLambdas.docs = node.docs ?? [];
   builtinLambdas.location = node.location;
   return await applyRule10(resolvedImpl, builtinLambdas, state);
 }

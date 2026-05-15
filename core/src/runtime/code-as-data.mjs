@@ -65,8 +65,9 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 // it through `qlangMapToAst` to rebuild the JS-object AST shape
 // peggy emits). Throws `EvalSubjectNotMapOrQuoteError` when the
 // value is neither shape; a `ParseError` raised mid-parse rides
-// out into `evalNode`'s try/catch, which lifts it via
-// `errorFromParse` to a `::ParseError!{…}` ErrorValue.
+// out into the per-node fault-conversion seam in `evalNode`,
+// which lifts it via `errorFromParse` to a `::ParseError!{…}`
+// ErrorValue.
 function astFromQuoteLike(value) {
   if (isQMap(value)) return qlangMapToAst(value);
   if (isQuote(value)) {

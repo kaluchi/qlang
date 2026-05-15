@@ -35,15 +35,15 @@ import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 // consumer's `fallback(v)` — normally an exotic-value escape hatch
 // (qlang types that never enter pipeValue: conduit, snapshot,
 // function).
-function dispatchQlangValue(v, handlers, fallback, ...extraArgs) {
+function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
   // Function values have no grammatical literal — emitting any string
   // here would falsely round-trip through parse / eval into a different
   // value-class. printValue, renderInline, renderCell, and toPlain all
   // route through this dispatcher, so the invariant fires once for
   // every render path.
-  if (isFunctionValue(v)) throw new FunctionValueLeakedToPrintError();
-  const handler = handlers[describeType(v)];
-  return handler ? handler(v, ...extraArgs) : fallback(v, ...extraArgs);
+  if (isFunctionValue(pipeValue)) throw new FunctionValueLeakedToPrintError();
+  const handler = handlers[describeType(pipeValue)];
+  return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
 }
 
 // Raw JS function reaching a render path comes from a host-bound

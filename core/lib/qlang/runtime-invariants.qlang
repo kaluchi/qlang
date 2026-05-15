@@ -5,7 +5,23 @@
    errors live inline in the operand's family file
    (lib/qlang/operand/<family>.qlang); value-class-constructor
    errors (::conduit / ::qlang / ::json) live next to their
-   constructors in lib/qlang/tag.qlang. ~|
+   constructors in lib/qlang/tag.qlang.
+
+   Section layout, top to bottom:
+     1. Projection segment-miss family
+     2. Distribute / merge combinator subject mismatches
+     3. Tag-binding constructor invariants
+     4. Effect-laundering at parse and call seams
+     5. Identifier-lookup and parse-time failures
+     6. AST codec invariants
+     7. Tagged-JSON codec invariants
+     8. Dispatch wrapper invariants
+     9. Evaluator dispatch invariants
+    10. Primitive registry invariants
+    11. Session lifecycle invariants
+    12. Render-path invariants ~|
+
+|~ ── 1. Projection segment-miss family ──────────────────── ~|
 
 ::ProjectionFieldNotOnValueClassError
   |~~ Projection segment is not a publicly-projectable field
@@ -63,6 +79,8 @@
        }
   ~~|
 
+|~ ── 2. Distribute / merge combinator subject mismatches ── ~|
+
 ::DistributeSubjectNotVecError
   |~~ Distribute combinator (`*`) — subject must be a Vec
       for per-element forking.
@@ -84,6 +102,8 @@
         |  eq([::MergeSubjectNotVecError :number])
        }
   ~~|
+
+|~ ── 3. Tag-binding constructor invariants ─────────────── ~|
 
 ::TagBindingHasNoConstructorError
   |~~ Tag-binding has no registered constructor — `:qlang/impl`
@@ -117,6 +137,8 @@
        }
   ~~|
 
+|~ ── 4. Effect-laundering at parse and call seams ──────── ~|
+
 ::EffectLaunderingAtBindStepParseError
   |~~ BindStep declaration body references an `@`-effectful
       identifier, but the binding name is not `@`-prefixed —
@@ -129,6 +151,8 @@
                 :bad :@callers])
        }
   ~~|
+
+|~ ── 5. Identifier-lookup and parse-time failures ───────── ~|
 
 ::ApplyToNonFunctionError
   |~~ Identifier resolves to a non-function value — captured
@@ -169,6 +193,8 @@
        }
   ~~|
 
+|~ ── 6. AST codec invariants ──────────────────────────── ~|
+
 ::AstMapKindUnknownError
   |~~ AST-Map → AST codec — `:qlang/kind` discriminator names
       a kind the codec does not know.
@@ -196,6 +222,8 @@
       `.type` is not in the codec's known shape table.
   ~~|
 
+|~ ── 7. Tagged-JSON codec invariants ──────────────────── ~|
+
 ::MalformedTaggedJSONError
   |~~ `fromTaggedJSON` received a JSON shape it does not
       recognise as a tagged-value envelope.
@@ -206,6 +234,8 @@
       snapshot value — use `serializeSession` for the
       binding-aware path.
   ~~|
+
+|~ ── 8. Dispatch wrapper invariants ───────────────────── ~|
 
 ::HigherOrderOpArityMismatchError
   |~~ Dispatch invariant — `higherOrderOp` impl received an
@@ -258,6 +288,8 @@
       captured-arg count for its declared arity.
   ~~|
 
+|~ ── 9. Evaluator dispatch invariants ─────────────────── ~|
+
 ::UnknownAstNodeTypeError
   |~~ Evaluator dispatch — encountered an AST node whose `.type`
       is not in `AST_NODE_EVALUATORS`. Runtime invariant
@@ -280,6 +312,8 @@
        }
   ~~|
 
+|~ ── 10. Primitive registry invariants ─────────────────── ~|
+
 ::PrimitiveKeyAlreadyBoundError
   |~~ Primitive registry — two runtime modules tried to bind
       the same primitive name.
@@ -296,9 +330,13 @@
   ~~|
 
 ::PrimitiveRegistrySealedError
-  |~~ Primitive registry — bind() called after the registry
-      was sealed at langRuntime bootstrap.
+  |~~ Primitive registry — bind() invoked against a sealed
+      registry. langRuntime seals at bootstrap completion;
+      later bind sites must split into a fresh
+      createPrimitiveRegistry() instance.
   ~~|
+
+|~ ── 11. Session lifecycle invariants ──────────────────── ~|
 
 ::SessionBindingKindUnknownError
   |~~ Session deserialization — a binding entry carries an
@@ -319,6 +357,8 @@
   |~~ Session deserialization — payload `:schemaVersion` does
       not match SESSION_SCHEMA_VERSION.
   ~~|
+
+|~ ── 12. Render-path invariants ───────────────────────── ~|
 
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function

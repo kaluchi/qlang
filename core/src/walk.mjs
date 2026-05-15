@@ -211,8 +211,8 @@ function findTagNamespaceOccurrences(ast, tagName) {
 }
 
 // Fork-isolating AST node types — those whose evaluation creates a
-// new fork via fork.mjs, so def/as bindings declared inside them do
-// not leak to siblings or to the parent scope:
+// new fork via fork.mjs, so BindStep / `as` bindings declared inside
+// them stay local to the fork:
 //
 //   ParenGroup — inner pipeline runs in its own fork
 //   VecLit, SetLit — each element is its own fork
@@ -220,9 +220,9 @@ function findTagNamespaceOccurrences(ast, tagName) {
 //   MapEntry — accessor for the value-fork; isolates value from
 //              the key and from sibling entries
 //
-// Pipeline is NOT in this set: the steps of a Pipeline run in
-// sequence and share the same env progressively (every def/as in
-// step k is visible to step k+1).
+// Pipeline steps run sequentially in a shared env: every BindStep /
+// `as` in step k shadows visibly through step k+1 onwards, so a
+// Pipeline node propagates env writes through its successor steps.
 export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);

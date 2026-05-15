@@ -42,6 +42,12 @@ import { errorFromQlang, errorFromForeign, errorFromParse } from './error-conver
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
+import { reifyBuiltinDescriptor } from './descriptor-ops.mjs';
+import {
+  trailEntry, combineTrailQuotes, materializePendingTrail
+} from './eval-trail.mjs';
+
+export { materializePendingTrail };
 
 // ─── Dispatch-table invariants ─────────────────────────────────
 //
@@ -68,19 +74,6 @@ class UnknownCombinatorKindError extends QlangInvariantError {
     this.name = 'UnknownCombinatorKindError';
     this.fingerprint = 'UnknownCombinatorKindError';
   }
-}
-
-// Trail-fragment record stamped onto the linked-list head at every
-// success-track combinator deflect site. `combinator` is one of the
-// COMBINATOR_SYNTAX keys ('pipe' / 'distribute' / 'merge');
-// `text` is the deflected step's source slice. materializeTrail
-// joins fragments through COMBINATOR_SYNTAX into a single
-// Quote-source carrying the pipeline-suffix as copy-pasteable code.
-function trailEntry(stepNode, combinatorKind) {
-  return Object.freeze({
-    combinator: combinatorKind,
-    text: stepNode.text
-  });
 }
 
 const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapError',
@@ -165,27 +158,6 @@ export async function evalQuery(source, env) {
   const initialState = makeState(null, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
   return materializePendingTrail(finalState.pipeValue);
-}
-
-// Walk `_trailHead`'s linked-list (deflected steps appended by
-// success-track combinators) back into the descriptor's `:trail`
-// field. Deflections through `|` / `*` / `>>` append to the head
-// but only `!|` flushes it; a pipeline that ends without any fail-
-// apply step would otherwise return an ErrorValue whose
-// `_trailHead` carries the chain but whose printValue surface
-// elides `:trail null` entirely. Called at every query / cell
-// boundary so the printed form always reflects the full chain.
-// Idempotent — re-running on an already-materialised ErrorValue is
-// a no-op because `_trailHead` is null at that point.
-export function materializePendingTrail(value) {
-  if (!isErrorValue(value) || value._trailHead === null) return value;
-  const combined = combineTrailQuotes(value.descriptor.get('trail'), materializeTrail(value));
-  const next = new Map(value.descriptor);
-  next.set('trail', combined);
-  return makeErrorValue(next, {
-    location: value.location,
-    originalError: value.originalError
-  });
 }
 
 // evalAst(ast, state) → Promise<state'>
@@ -406,18 +378,6 @@ async function applyFailTrack(state, stepNode) {
   const materializedDescriptor = new Map(errorVal.descriptor);
   materializedDescriptor.set('trail', combinedTrail);
   return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
-}
-
-// combineTrailQuotes(existing, fresh) — both arguments are either a
-// Quote-value (carrying a pipeline-suffix source string) or null.
-// Concatenates their `.source` strings with a single space when both
-// present so the joined fragment remains a syntactically valid
-// pipeline-suffix; when only one side carries a Quote, it passes
-// through unchanged. null + null → null.
-function combineTrailQuotes(existing, fresh) {
-  if (existing == null) return fresh;
-  if (fresh == null)    return existing;
-  return makeQuote(existing.source + ' ' + fresh.source);
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -890,27 +850,6 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
     return await applyConduit(descriptor, node, lookupName, state);
   }
   return null;
-}
-
-// reifyBuiltinDescriptor(rawDescriptor, implFn, name?) → Map
-//
-// Builds a user-facing reify-shape descriptor from a raw env
-// descriptor. Strips internal :qlang/kind and :qlang/impl, stamps
-// :kind :builtin plus :captured and :effectful read from the
-// resolved function value. Shared between the bare-lookup reify
-// path here and the explicit `reify(:name)` / `manifest` path in
-// reify-op.mjs.
-export function reifyBuiltinDescriptor(rawDescriptor, implFn, name) {
-  const reified = new Map();
-  reified.set('kind', keyword('builtin'));
-  if (name != null) reified.set('name', name);
-  for (const [fieldKey, fieldVal] of rawDescriptor) {
-    if (fieldKey === 'qlang/kind' || fieldKey === 'qlang/impl') continue;
-    reified.set(fieldKey, fieldVal);
-  }
-  reified.set('captured', [...implFn.meta.captured]);
-  reified.set('effectful', implFn.effectful);
-  return reified;
 }
 
 // applyBuiltinDescriptor(descriptor, node, lookupName, state) → state'

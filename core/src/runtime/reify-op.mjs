@@ -27,7 +27,8 @@ import {
   declareArityError
 } from '../operand-errors.mjs';
 import { UnresolvedIdentifierError } from '../errors.mjs';
-import { evalQuery, reifyBuiltinDescriptor } from '../eval.mjs';
+import { evalQuery } from '../eval.mjs';
+import { reifyBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 

@@ -278,7 +278,7 @@ if (driftMissing.length > 0) {
   process.stdout.write(
     `\nOperand catalog ↔ docs drift (${driftMissing.length}):\n`);
   for (const name of driftMissing) {
-    process.stdout.write(`  :${name} — present in core.qlang, missing from docs/qlang-operands.md\n`);
+    process.stdout.write(`  :${name} — present in operand catalog, missing from docs/qlang-operands.md\n`);
   }
 }
 if (errorSuffixViolations.length > 0) {

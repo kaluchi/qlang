@@ -8,6 +8,7 @@
    constructors in lib/qlang/tag.qlang.
 
    Section layout, top to bottom:
+     0. ::builtin — the primordial tag
      1. Projection segment-miss family
      2. Distribute / merge combinator subject mismatches
      3. Tag-binding constructor invariants
@@ -20,6 +21,26 @@
     10. Primitive registry invariants
     11. Session lifecycle invariants
     12. Render-path invariants ~|
+
+|~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
+
+::builtin
+  |~~ Tag-binding declaration shape. Every catalog entry — operand
+      declarations, value-class-constructor declarations, error
+      tag-binding declarations — uses ::builtin{…} as its body.
+
+        :name ::builtin{:impl :qlang/prim/<name> …catalog metadata}
+          binds a runtime callback under the impl handle.
+
+        ::Name ::builtin{…tag-side metadata}
+          declares an identity (error tag, value-class tag) carrying
+          docs / category / position / expectedType metadata that
+          downstream `::Name | reify` exposes.
+
+        ::Name (doc-prefix-only, no body)
+          equivalent to `::Name ::builtin{}` — declares an identity
+          whose only payload is the attached docs.
+  ~~|
 
 |~ ── 1. Projection segment-miss family ──────────────────── ~|
 

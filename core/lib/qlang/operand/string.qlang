@@ -9,13 +9,12 @@
       ~{"a,b,c" | split(",") | eq(["a" "b" "c"])}
       ~{"line1\nline2" | split("\n") | eq(["line1" "line2"])}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/split
-   :category :string
-   :subject :string
-   :returns :vec
-   :modifiers [:string]
-   :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
+  ::builtin{:impl :qlang/prim/split
+            :category :string
+            :subject :string
+            :returns :vec
+            :modifiers [:string]
+            :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
 
 ::SplitSubjectNotStringError
   |~~ Captured argument at position 1 of `split` must be String.
@@ -42,13 +41,12 @@
       ~{["a" "b" "c"] | join(",") | eq("a,b,c")}
       ~{[] | join(",") | eq("")}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/join
-   :category :string
-   :subject :vec
-   :returns :string
-   :modifiers [:string]
-   :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
+  ::builtin{:impl :qlang/prim/join
+            :category :string
+            :subject :vec
+            :returns :string
+            :modifiers [:string]
+            :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
 
 ::JoinSubjectNotVecError
   |~~ Subject of `join` must be Vec.
@@ -85,13 +83,12 @@
       ~{"hello world" | contains("world") | eq(true)}
       ~{"hello" | contains("xyz") | eq(false)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/contains
-   :category :string
-   :subject :string
-   :returns :boolean
-   :modifiers [:string]
-   :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
+  ::builtin{:impl :qlang/prim/contains
+            :category :string
+            :subject :string
+            :returns :boolean
+            :modifiers [:string]
+            :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
 
 ::ContainsSubjectNotStringError
   |~~ Captured argument at position 1 of `contains` must be String.
@@ -118,13 +115,12 @@
       ~{"hello world" | startsWith("hello") | eq(true)}
       ~{"hello" | startsWith("world") | eq(false)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/startsWith
-   :category :string
-   :subject :string
-   :returns :boolean
-   :modifiers [:string]
-   :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
+  ::builtin{:impl :qlang/prim/startsWith
+            :category :string
+            :subject :string
+            :returns :boolean
+            :modifiers [:string]
+            :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
 
 ::StartsWithSubjectNotStringError
   |~~ Captured argument at position 1 of `startsWith` must be String.
@@ -151,13 +147,12 @@
       ~{"hello world" | endsWith("world") | eq(true)}
       ~{"hello" | endsWith("xyz") | eq(false)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/endsWith
-   :category :string
-   :subject :string
-   :returns :boolean
-   :modifiers [:string]
-   :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
+  ::builtin{:impl :qlang/prim/endsWith
+            :category :string
+            :subject :string
+            :returns :boolean
+            :modifiers [:string]
+            :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
 
 ::EndsWithSubjectNotStringError
   |~~ Captured argument at position 1 of `endsWith` must be String.
@@ -182,13 +177,12 @@
 
       ~{"world" | prepend("hello ") | eq("hello world")}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/prepend
-   :category :string
-   :subject :string
-   :returns :string
-   :modifiers [:string]
-   :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
+  ::builtin{:impl :qlang/prim/prepend
+            :category :string
+            :subject :string
+            :returns :string
+            :modifiers [:string]
+            :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
 
 ::PrependSubjectNotStringError
   |~~ Captured argument at position 1 of `prepend` must be String.
@@ -213,13 +207,12 @@
 
       ~{"hello" | append(" world") | eq("hello world")}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/append
-   :category :string
-   :subject :string
-   :returns :string
-   :modifiers [:string]
-   :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}
+  ::builtin{:impl :qlang/prim/append
+            :category :string
+            :subject :string
+            :returns :string
+            :modifiers [:string]
+            :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}
 
 ::AppendSubjectNotStringError
   |~~ Captured argument at position 1 of `append` must be String.

@@ -10,12 +10,11 @@
       ~{#{:a :b} | count | eq(2)}
       ~{{:x 1 :y 2 :z 3} | count | eq(3)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/count
-   :category :container-reducer
-   :subject [:vec :set :map]
-   :returns :number
-   :throws [::CountSubjectNotContainerError]}
+  ::builtin{:impl :qlang/prim/count
+            :category :container-reducer
+            :subject [:vec :set :map]
+            :returns :number
+            :throws [::CountSubjectNotContainerError]}
 
 ::CountSubjectNotContainerError
   |~~ Subject of `count` must be Vec, Set, or Map.
@@ -33,12 +32,11 @@
       ~{[] | empty | eq(true)}
       ~{[1] | empty | eq(false)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/empty
-   :category :container-reducer
-   :subject [:vec :set :map]
-   :returns :boolean
-   :throws [::EmptySubjectNotContainerError]}
+  ::builtin{:impl :qlang/prim/empty
+            :category :container-reducer
+            :subject [:vec :set :map]
+            :returns :boolean
+            :throws [::EmptySubjectNotContainerError]}
 
 ::EmptySubjectNotContainerError
   |~~ Subject of `empty` must be Vec, Set, or Map.
@@ -71,13 +69,12 @@
       ~{{:a 1 :b 2} | :@pos [:v] (v | gt(0)) | every(@pos) | eq(true)}
       ~{{:a1 1 :a2 2} | :@keyAndPos [:k :v] and(v | gt(0), k | eq(:a1)) | every(@keyAndPos) | eq(false)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/every
-   :category :container-selector
-   :subject [:vec :set :map]
-   :returns :boolean
-   :modifiers [:predicate-lambda]
-   :throws [::EverySubjectNotContainerError ::EveryVecOrSetPredArityInvalidError ::EveryMapPredArityInvalidError]}
+  ::builtin{:impl :qlang/prim/every
+            :category :container-selector
+            :subject [:vec :set :map]
+            :returns :boolean
+            :modifiers [:predicate-lambda]
+            :throws [::EverySubjectNotContainerError ::EveryVecOrSetPredArityInvalidError ::EveryMapPredArityInvalidError]}
 
 ::EverySubjectNotContainerError
   |~~ Subject of `every` must be Vec, Set, or Map.
@@ -122,13 +119,12 @@
       ~{{:a -1 :b 2} | :@pos [:v] (v | gt(0)) | any(@pos) | eq(true)}
       ~{{:apple 1 :banana 2} | :@aKey [:k :v] (k | eq(:apple)) | any(@aKey) | eq(true)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/any
-   :category :container-selector
-   :subject [:vec :set :map]
-   :returns :boolean
-   :modifiers [:predicate-lambda]
-   :throws [::AnySubjectNotContainerError ::AnyVecOrSetPredArityInvalidError ::AnyMapPredArityInvalidError]}
+  ::builtin{:impl :qlang/prim/any
+            :category :container-selector
+            :subject [:vec :set :map]
+            :returns :boolean
+            :modifiers [:predicate-lambda]
+            :throws [::AnySubjectNotContainerError ::AnyVecOrSetPredArityInvalidError ::AnyMapPredArityInvalidError]}
 
 ::AnySubjectNotContainerError
   |~~ Subject of `any` must be Vec, Set, or Map.
@@ -191,13 +187,12 @@
       ~{{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot) | eq({:avocado 3})}
       ~{{} | filter(gt(0)) | eq({})}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/filter
-   :category :container-selector
-   :subject [:vec :set :map]
-   :returns [:vec :set :map]
-   :modifiers [:predicate-lambda]
-   :throws [::FilterSubjectNotContainerError ::FilterVecOrSetPredArityInvalidError ::FilterMapPredArityInvalidError]}
+  ::builtin{:impl :qlang/prim/filter
+            :category :container-selector
+            :subject [:vec :set :map]
+            :returns [:vec :set :map]
+            :modifiers [:predicate-lambda]
+            :throws [::FilterSubjectNotContainerError ::FilterVecOrSetPredArityInvalidError ::FilterMapPredArityInvalidError]}
 
 ::FilterSubjectNotContainerError
   |~~ Subject of `filter` must be Vec, Set, or Map.

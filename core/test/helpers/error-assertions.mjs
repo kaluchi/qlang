@@ -22,7 +22,7 @@ export async function expectErrorResult(query) {
 // Asserts the query produces an error value carrying the given
 // :category (broader bucket — `:type-error`, `:arity-error`,
 // `:effect-laundering`, `:parse-error`, `:foreign-error`,
-// `:division-by-zero`, `:invariant-error`, ...). For per-class
+// `:division-by-zero`, `:invariant-error`, ...). For per-tag
 // identity assertions use `expectErrorThrown` against `:kind`.
 export async function expectErrorCategory(query, category) {
   const errorResult = await expectErrorResult(query);

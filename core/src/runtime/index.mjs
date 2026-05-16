@@ -166,9 +166,16 @@ export async function buildLangRuntime(locator) {
   // signature-help, `/throws` and `/modifiers` projections —
   // reads the field unconditionally because the env-side
   // descriptor always carries it after this pass.
-  for (const descriptor of templateEnv.values()) {
+  for (const [envKey, descriptor] of templateEnv) {
     if (!(descriptor instanceof Map)) continue;
     if (descriptor.get('kind')?.name !== 'builtin') continue;
+    // Tag-binding declarations carry the same `:kind ::builtin`
+    // shape but live under `::Tag` env-keys. Their `:impl` keyword
+    // names a tag-namespace constructor (`qlang/type/<tag>`) that
+    // `evalTaggedLit` resolves per call — keeping the keyword
+    // readable in `reify(::Tag)` output. Skip resolving here so
+    // tag-binding descriptors keep their author-form `:impl`.
+    if (envKey.startsWith('::')) continue;
     const implKey = descriptor.get('impl');
     if (isKeyword(implKey)) {
       descriptor.set('impl', PRIMITIVE_REGISTRY.resolve(implKey.name));

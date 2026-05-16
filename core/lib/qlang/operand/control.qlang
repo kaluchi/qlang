@@ -8,12 +8,11 @@
       evaluates the else branch. Only the selected branch executes.
       Truthiness: null and false are falsy, everything else
       (including 0, "", [], {}, #{}) is truthy. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/if
-   :category :control
-   :subject :any
-   :returns :any
-   :modifiers [:predicate-lambda :pipeline :pipeline]
+  ::builtin{:impl :qlang/prim/if
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:predicate-lambda :pipeline :pipeline]
    }
 
 :when
@@ -21,12 +20,11 @@
       branch. If cond evaluated against pipeValue is truthy, runs
       the then sub-pipeline; otherwise pipeValue passes through
       unchanged. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/when
-   :category :control
-   :subject :any
-   :returns :any
-   :modifiers [:predicate-lambda :pipeline]
+  ::builtin{:impl :qlang/prim/when
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:predicate-lambda :pipeline]
    }
 
 :unless
@@ -34,12 +32,11 @@
       falsy, otherwise pipeValue passes through unchanged.
       Reads more naturally for guard-clause patterns where the
       action fires when the condition fails. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/unless
-   :category :control
-   :subject :any
-   :returns :any
-   :modifiers [:predicate-lambda :pipeline]
+  ::builtin{:impl :qlang/prim/unless
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:predicate-lambda :pipeline]
    }
 
 :coalesce
@@ -49,13 +46,12 @@
       alternatives produce null, returns null. Falsy non-null values
       (false, 0, "", [], {}, #{}) are NOT skipped — only
       null counts as missing. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/coalesce
-   :category :control
-   :subject :any
-   :returns :any
-   :modifiers [:pipeline]
-   :throws [::CoalesceNoAlternativesError]}
+  ::builtin{:impl :qlang/prim/coalesce
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::CoalesceNoAlternativesError]}
 
 ::CoalesceNoAlternativesError
   |~~ `coalesce` requires at least one captured alternative sub-pipeline.
@@ -74,13 +70,12 @@
       returns null. Use coalesce when false is a valid explicit
       setting; use firstTruthy when false is a sentinel meaning
       "no value". ~~|
-  {:kind :builtin
-   :impl :qlang/prim/firstTruthy
-   :category :control
-   :subject :any
-   :returns :any
-   :modifiers [:pipeline]
-   :throws [::FirstTruthyNoAlternativesError]}
+  ::builtin{:impl :qlang/prim/firstTruthy
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::FirstTruthyNoAlternativesError]}
 
 ::FirstTruthyNoAlternativesError
   |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
@@ -99,13 +94,12 @@
       trailing arg is the default branch. If even and no match,
       returns null. Replaces nested-if chains with a flat
       catalog. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/cond
-   :category :control
-   :subject :any
-   :returns :any
-   :modifiers [:pipeline]
-   :throws [::CondNoBranchesError]}
+  ::builtin{:impl :qlang/prim/cond
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::CondNoBranchesError]}
 
 ::CondNoBranchesError
   |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.

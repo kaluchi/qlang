@@ -9,11 +9,10 @@
 
       ~{env | has(:count) | eq(true)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/env
-   :category :reflective
-   :subject :any
-   :returns :map
+  ::builtin{:impl :qlang/prim/env
+            :category :reflective
+            :subject :any
+            :returns :map
    }
 
 :use
@@ -24,13 +23,12 @@
       rejects name collisions. With two args (namespace + filter),
       imports only the named bindings. pipeValue unchanged in all
       forms. Inside a fork, merged bindings evaporate on close. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/use
-   :category :reflective
-   :subject :any
-   :returns :any
-   :modifiers [:any]
-   :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
+  ::builtin{:impl :qlang/prim/use
+            :category :reflective
+            :subject :any
+            :returns :any
+            :modifiers [:any]
+            :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
 
 ::UseSubjectNotMapError
   |~~ `use` (bare form) requires a Map subject — its entries
@@ -114,13 +112,12 @@
       ~{42 | reify | /value | eq(42)}
       ~{:nonexistent-binding | reify | /type | eq(:keyword)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/reify
-   :category :reflective
-   :subject :any
-   :returns :map
-   :modifiers [:keyword]
-   :throws [::ReifyKeyNotKeywordError ::ReifyArityOverflowError]}
+  ::builtin{:impl :qlang/prim/reify
+            :category :reflective
+            :subject :any
+            :returns :map
+            :modifiers [:keyword]
+            :throws [::ReifyKeyNotKeywordError ::ReifyArityOverflowError]}
 
 ::ReifyKeyNotKeywordError
   |~~ `reify(:name)` requires a Keyword captured-arg (the
@@ -150,13 +147,12 @@
       by captured-arg count: bare manifest or manifest(:value)
       lists value-namespace bindings; manifest(:tag) lists
       tag-namespace `::Tag` bindings. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/manifest
-   :category :reflective
-   :subject :any
-   :returns :vec
-   :modifiers [:keyword]
-   :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
+  ::builtin{:impl :qlang/prim/manifest
+            :category :reflective
+            :subject :any
+            :returns :vec
+            :modifiers [:keyword]
+            :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
 
 ::ManifestNamespaceNotKeywordError
   |~~ `manifest(:namespace)` requires a Keyword captured-arg
@@ -191,12 +187,11 @@
       manifest | every(runExamples | every(/ok)) walks every
       example in the manifest and must return true —
       self-describing catalog drift detection. ~~|
-  {:kind :builtin
-   :impl :qlang/prim/runExamples
-   :category :reflective
-   :subject :map
-   :returns :vec
-   :throws [::RunExamplesSubjectShapeError]}
+  ::builtin{:impl :qlang/prim/runExamples
+            :category :reflective
+            :subject :map
+            :returns :vec
+            :throws [::RunExamplesSubjectShapeError]}
 
 ::RunExamplesSubjectShapeError
   |~~ `runExamples` requires a Keyword (binding name) or a
@@ -219,13 +214,12 @@
       ~{42 | as(:answer) | answer | eq(42)}
       ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/as
-   :category :reflective
-   :subject :any
-   :returns :any
-   :modifiers [:keyword]
-   :throws [::AsNameNotKeywordError]}
+  ::builtin{:impl :qlang/prim/as
+            :category :reflective
+            :subject :any
+            :returns :any
+            :modifiers [:keyword]
+            :throws [::AsNameNotKeywordError]}
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).
@@ -251,13 +245,12 @@
       ~{{:kind :oops :message "boom"} | error !| /kind | eq(:oops)}
       ~{error({:kind :oops}) !| /kind | eq(:oops)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/error
-   :category :error
-   :subject :map
-   :returns :error
-   :modifiers [:map]
-   :throws [::ErrorDescriptorNotMapError]}
+  ::builtin{:impl :qlang/prim/error
+            :category :error
+            :subject :map
+            :returns :error
+            :modifiers [:map]
+            :throws [::ErrorDescriptorNotMapError]}
 
 ::ErrorDescriptorNotMapError
   |~~ `error` lift requires a Map descriptor (the error's
@@ -285,11 +278,10 @@
       ~{{:kind :oops} | isError | eq(false)}
       ~{42 | isError | eq(false)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/isError
-   :category :error
-   :subject :any
-   :returns :boolean
+  ::builtin{:impl :qlang/prim/isError
+            :category :error
+            :subject :any
+            :returns :boolean
    }
 
 :parse
@@ -305,12 +297,11 @@
       ~{"42" | parse | /:kind | eq(:NumberLit)}
       ~{"add(1, 2)" | parse | /name | eq("add")}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/parse
-   :category :reflective
-   :subject :string
-   :returns :map
-   :throws [::ParseSubjectNotStringOrQuoteError]}
+  ::builtin{:impl :qlang/prim/parse
+            :category :reflective
+            :subject :string
+            :returns :map
+            :throws [::ParseSubjectNotStringOrQuoteError]}
 
 ::ParseSubjectNotStringOrQuoteError
   |~~ `parse` requires a String or Quote subject.
@@ -336,12 +327,11 @@
       ~{"10 | add(3)" | parse | eval | eq(13)}
       ~{{:kind :NumberLit :value 42} | eval | eq(42)}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/eval
-   :category :reflective
-   :subject :map
-   :returns :any
-   :throws [::EvalSubjectNotMapOrQuoteError]}
+  ::builtin{:impl :qlang/prim/eval
+            :category :reflective
+            :subject :map
+            :returns :any
+            :throws [::EvalSubjectNotMapOrQuoteError]}
 
 ::EvalSubjectNotMapOrQuoteError
   |~~ `eval` requires a Map (AST-Map) or Quote (source-form)
@@ -377,13 +367,12 @@
       ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
       ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/apply
-   :category :reflective
-   :subject [:quote :map]
-   :returns :any
-   :modifiers [:any]
-   :throws [::EvalSubjectNotMapOrQuoteError]}
+  ::builtin{:impl :qlang/prim/apply
+            :category :reflective
+            :subject [:quote :map]
+            :returns :any
+            :modifiers [:any]
+            :throws [::EvalSubjectNotMapOrQuoteError]}
 
 :source
   |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
@@ -395,12 +384,11 @@
       ~{:filter | source | /source | contains(":filter")}
       ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/source
-   :category :axis
-   :subject [:keyword :tag-keyword]
-   :returns :quote
-   :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+  ::builtin{:impl :qlang/prim/source
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :quote
+            :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::SourceSubjectNotKeywordOrTagError
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
@@ -422,12 +410,11 @@
       ~{:filter | docs | first | /content | contains("Keeps items")}
       ~{::AddLeftNotNumberError | docs | first | isDoc}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/docs
-   :category :axis
-   :subject [:keyword :tag-keyword]
-   :returns :vec
-   :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+  ::builtin{:impl :qlang/prim/docs
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :vec
+            :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::DocsSubjectNotKeywordOrTagError
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
@@ -449,12 +436,11 @@
       ~{:filter | examples | count | gt(0)}
       ~{:filter | examples | first | /source | contains("filter")}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/examples
-   :category :axis
-   :subject [:keyword :tag-keyword]
-   :returns :vec
-   :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+  ::builtin{:impl :qlang/prim/examples
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :vec
+            :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
 ::ExamplesSubjectNotKeywordOrTagError
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword

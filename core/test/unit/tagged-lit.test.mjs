@@ -177,14 +177,20 @@ describe('default constructor — tag-binding without :impl', () => {
     expect(instance.get('payload')).toEqual([1, 2, 3]);
   });
 
-  it('Map payload (`::Tag{…}`) lifts to TaggedInstance Map with the Map under `:payload`', async () => {
+  it('Map payload (`::Tag{…}`) flat-merges fields into the TaggedInstance descriptor', async () => {
+    // Map payload is already a named-field bundle, so the default
+    // constructor merges its entries at the top level of the
+    // resulting descriptor alongside the stamped `:kind ::Tag`.
+    // No `:payload` wrapping — that nesting fires only for
+    // single-value payloads (scalar / Vec / Set / Quote / Doc /
+    // Keyword) that have no inherent field structure.
     const { isQMap } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::AddLeftNotNumberError{:custom "field"}');
+    const instance = await evalQuery('::AddLeftNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);
     expect(instance.get('kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-    const payload = instance.get('payload');
-    expect(isQMap(payload)).toBe(true);
-    expect(payload.get('custom')).toBe('field');
+    expect(instance.get('custom')).toBe('field');
+    expect(instance.get('position')).toBe(1);
+    expect(instance.has('payload')).toBe(false);
   });
 
   it('String payload (`::Tag"s"`) — `"` opens unambiguously, no ParenGroup needed', async () => {

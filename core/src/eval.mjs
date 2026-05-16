@@ -494,19 +494,25 @@ async function evalTaggedLit(node, state) {
     return withPipeValue(state, resultState.pipeValue);
   }
   // Default constructor — fires when the tag-binding has no
-  // explicit `:impl` slot. Two paths by payload shape:
+  // explicit `:impl` slot. Branches by payload shape:
   //
-  //   ErrorLit payload (already an ErrorValue) → `::Tag` re-stamps
-  //     `:kind` on the descriptor; result stays on the
-  //     fail-track. Prints back as `::Tag!{…}`.
+  //   ErrorLit payload (already an ErrorValue) → re-stamp
+  //     `:kind ::Tag` on the descriptor and keep the result on
+  //     the fail-track. Prints back as `::Tag!{…}`.
   //
-  //   Any other Primary payload (Vec / Map / Set / Quote / Doc /
-  //     scalar / Keyword / nested TaggedLit / …) → success-track
-  //     TaggedInstance Map `{:kind ::Tag :payload
-  //     <value>}`. Prints back as `::Tag<bracketed-payload>` for
-  //     bracket-prefixed values (Vec / Map / Set / Quote / Doc)
-  //     and `::Tag(<scalar>)` for the rest — every shape the
-  //     grammar's `Primary` rule accepts as TaggedLit payload.
+  //   Map payload → flat-merge into the instance descriptor:
+  //     `:kind ::Tag` plus every entry of the payload Map at the
+  //     top level. The Map is already structured as a named-field
+  //     bundle, so no nesting under `:payload` is needed. Prints
+  //     back as `::Tag{…fields…}`.
+  //
+  //   Other Primary payload (Vec / Set / Quote / Doc / scalar /
+  //     Keyword / nested TaggedLit / …) → nest under `:payload`:
+  //     `{:kind ::Tag :payload <value>}`. Prints back as
+  //     `::Tag<bracketed-payload>` for bracket-prefixed values
+  //     (Vec / Set / Quote / Doc) and `::Tag(<scalar>)` for the
+  //     rest — every shape the grammar's `Primary` rule accepts
+  //     as TaggedLit payload that is not itself a Map.
   if (implKey === undefined) {
     if (isErrorValue(payloadValue)) {
       const restamped = new Map(payloadValue.descriptor);
@@ -518,7 +524,14 @@ async function evalTaggedLit(node, state) {
     }
     const instance = new Map();
     instance.set('kind', makeTagKeyword(node.tag));
-    instance.set('payload', payloadValue);
+    if (isQMap(payloadValue)) {
+      for (const [fieldKey, fieldVal] of payloadValue) {
+        if (fieldKey === 'kind') continue;
+        instance.set(fieldKey, fieldVal);
+      }
+    } else {
+      instance.set('payload', payloadValue);
+    }
     return withPipeValue(state, instance);
   }
   throw new TagBindingHasNoConstructorError({
@@ -585,13 +598,16 @@ async function evalBindStep(node, state) {
 
   if (node.body === null) {
     // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`) forges
-    // a tag-binding Map automatically — the `::` prefix carries the
-    // tag declaration semantic, no `{:kind :tag}` body needed.
+    // an empty tag-binding Map automatically — equivalent to
+    // `::Tag ::builtin{}` body-form. The `::` prefix carries the
+    // declaration semantic; the auto-forged Map stamps the
+    // canonical `::builtin` shape identity under `:kind`, matching
+    // every body-form declaration the catalog uses elsewhere.
     // Value-namespace doc-only BindStep (`:name |~~ docs ~~|`) wraps
     // the joined prose as a Doc-value snapshot.
     if (node.key.type === 'BareTypeKeyword') {
       const tagBinding = new Map();
-      tagBinding.set('kind', keyword('tag'));
+      tagBinding.set('kind', makeTagKeyword('builtin'));
       const bound = makeSnapshot(tagBinding, {
         name, docs, location: node.location
       });

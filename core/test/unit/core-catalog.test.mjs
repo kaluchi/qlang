@@ -51,12 +51,14 @@ import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 // asserts against.
 async function evalCore() {
   const { langRuntime } = await import('../../src/runtime/index.mjs');
+  const { isTagBindingName } = await import('../../src/env-keys.mjs');
   const fullEnv = await langRuntime();
   const catalog = new Map();
   for (const [k, v] of fullEnv) {
     if (isModuleAstKey(k)) continue;
     if (isModuleNamespaceKey(k)) continue;
     if (k === RUNTIME_LOCATOR_KEY) continue;
+    if (isTagBindingName(k)) continue;       // skip ::Tag declarations
     if (!isQMap(v)) continue;
     const kind = v.get('kind');
     if (!kind || kind.name !== 'builtin') continue;
@@ -98,13 +100,13 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     }
   });
 
-  it('every entry value is a Map with :kind :builtin', async () => {
+  it('every entry value is a Map with :kind ::builtin', async () => {
     const coreEnv = await evalCore();
-    
+
     for (const [entryKey, entryVal] of coreEnv) {
       expect(isQMap(entryVal), `entry :${entryKey} value is not a Map`).toBe(true);
-      expect(entryVal.get('kind'), `entry :${entryKey} missing :kind :builtin`)
-        .toEqual(keyword('builtin'));
+      expect(entryVal.get('kind'), `entry :${entryKey} missing :kind ::builtin`)
+        .toEqual(makeTagKeyword('builtin'));
     }
   });
 

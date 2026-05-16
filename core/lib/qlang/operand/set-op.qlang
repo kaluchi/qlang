@@ -7,12 +7,11 @@
 
       ~{[1 2 1 3] | set | eq(#{1 2 3})}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/set
-   :category :set-op
-   :subject :vec
-   :returns :set
-   :throws [::SetConversionSubjectNotVecError]}
+  ::builtin{:impl :qlang/prim/set
+            :category :set-op
+            :subject :vec
+            :returns :set
+            :throws [::SetConversionSubjectNotVecError]}
 
 ::SetConversionSubjectNotVecError
   |~~ Subject of `set` must be Vec.
@@ -32,13 +31,12 @@
 
       ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/union
-   :category :set-op
-   :subject [:set :map :vec]
-   :returns [:set :map]
-   :modifiers [:any]
-   :throws [::UnionBareSubjectNotVecError ::UnionBareEmptyError ::UnionPairIncompatibleError]}
+  ::builtin{:impl :qlang/prim/union
+            :category :set-op
+            :subject [:set :map :vec]
+            :returns [:set :map]
+            :modifiers [:any]
+            :throws [::UnionBareSubjectNotVecError ::UnionBareEmptyError ::UnionPairIncompatibleError]}
 
 ::UnionBareSubjectNotVecError
   |~~ Subject of `union` (bare form) must be Vec.
@@ -76,13 +74,12 @@
       ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
       ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/minus
-   :category :set-op
-   :subject [:set :map :vec]
-   :returns [:set :map]
-   :modifiers [:any]
-   :throws [::MinusBareSubjectNotVecError ::MinusBareEmptyError ::MinusPairIncompatibleError]}
+  ::builtin{:impl :qlang/prim/minus
+            :category :set-op
+            :subject [:set :map :vec]
+            :returns [:set :map]
+            :modifiers [:any]
+            :throws [::MinusBareSubjectNotVecError ::MinusBareEmptyError ::MinusPairIncompatibleError]}
 
 ::MinusBareSubjectNotVecError
   |~~ Subject of `minus` (bare form) must be Vec.
@@ -120,13 +117,12 @@
       ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
       ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
   ~~|
-  {:kind :builtin
-   :impl :qlang/prim/inter
-   :category :set-op
-   :subject [:set :map :vec]
-   :returns [:set :map]
-   :modifiers [:any]
-   :throws [::InterBareSubjectNotVecError ::InterBareEmptyError ::InterPairIncompatibleError]}
+  ::builtin{:impl :qlang/prim/inter
+            :category :set-op
+            :subject [:set :map :vec]
+            :returns [:set :map]
+            :modifiers [:any]
+            :throws [::InterBareSubjectNotVecError ::InterBareEmptyError ::InterPairIncompatibleError]}
 
 ::InterBareSubjectNotVecError
   |~~ Subject of `inter` (bare form) must be Vec.

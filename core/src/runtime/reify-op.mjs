@@ -125,26 +125,25 @@ function buildValueDescriptor(value, explicitName) {
 function describeBinding(value, explicitName) {
   const qlKind = isQMap(value) && value.get('kind');
   if (qlKind && qlKind.name === 'builtin') {
-    return reifyBuiltinDescriptor(value, value.get('impl'), explicitName);
-  }
-  // Tag bindings: env stores a Map with `:kind :tag` plus
-  // optional `:impl` (Keyword handle into PRIMITIVE_REGISTRY
-  // for JS-side constructors, Quote-value for qlang-side bodies),
-  // declared via `::Tag {descriptor}` BindStep. Reify shape mirrors
-  // the builtin path — strip `:kind`, stamp `:kind :tag`,
-  // pass through every other field. `:impl` stays addressable
-  // because authors composing tag registries (manifest(:tag),
-  // catalog walks, error registry generation) consume the handle
-  // directly.
-  if (qlKind && qlKind.name === 'tag') {
-    const tagResult = new Map();
-    tagResult.set('kind', keyword('tag'));
-    if (explicitName != null) tagResult.set('name', explicitName);
-    for (const [descKey, descVal] of value) {
-      if (descKey === 'kind') continue;
-      tagResult.set(descKey, descVal);
+    // `::builtin{:impl …}` carries either an operand declaration
+    // (env-key is a plain identifier, `:impl` is a resolved JS
+    // function value after the bootstrap pass) or a tag-binding
+    // declaration (env-key carries the `::` prefix, `:impl` stays
+    // a keyword pointing into PRIMITIVE_REGISTRY, or is absent for
+    // doc-only declarations). Distinguish by env-key shape.
+    const isTagBindingEntry = typeof explicitName === 'string'
+                              && explicitName.startsWith('::');
+    if (isTagBindingEntry) {
+      const tagResult = new Map();
+      tagResult.set('kind', keyword('tag'));
+      tagResult.set('name', explicitName);
+      for (const [descKey, descVal] of value) {
+        if (descKey === 'kind') continue;
+        tagResult.set(descKey, descVal);
+      }
+      return tagResult;
     }
-    return tagResult;
+    return reifyBuiltinDescriptor(value, value.get('impl'), explicitName);
   }
   // Conduit-parameters — function values minted by
   // `makeConduitParameter` in `eval.mjs` that surface inside a

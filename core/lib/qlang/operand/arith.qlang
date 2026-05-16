@@ -10,8 +10,8 @@
       ~{10 | add(3) | eq(13)}
       ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/add
+  {:kind :builtin
+   :impl :qlang/prim/add
    :category :arith
    :subject :number
    :returns :number
@@ -45,8 +45,8 @@
       ~{10 | sub(3) | eq(7)}
       ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/sub
+  {:kind :builtin
+   :impl :qlang/prim/sub
    :category :arith
    :subject :number
    :returns :number
@@ -79,8 +79,8 @@
       ~{10 | mul(3) | eq(30)}
       ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/mul
+  {:kind :builtin
+   :impl :qlang/prim/mul
    :category :arith
    :subject :number
    :returns :number
@@ -115,8 +115,8 @@
       ~{10 | div(2) | eq(5)}
       ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/div
+  {:kind :builtin
+   :impl :qlang/prim/div
    :category :arith
    :subject :number
    :returns :number

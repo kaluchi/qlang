@@ -104,19 +104,19 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
 const TaggedLitTagNotFoundError = declareShapeError('TaggedLitTagNotFoundError',
   ({ tag }) => `::${tag} — tag binding not found in env`);
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
-  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor with :qlang/kind :tag`);
+  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor with :kind :tag`);
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
-// resolves the tag-binding but its `:qlang/impl` slot is empty
+// resolves the tag-binding but its `:impl` slot is empty
 // (`undefined`) or carries a value that is neither a primitive
 // Keyword nor a Quote-impl body. The payload the user supplied is
 // stamped on the descriptor as `:payloadValue` / `:payloadType`
-// (high-entropy first), the expected `:qlang/impl` shape is stamped
-// as `:expectedType [:keyword :quote]`, and the actual `:qlang/impl`
+// (high-entropy first), the expected `:impl` shape is stamped
+// as `:expectedType [:keyword :quote]`, and the actual `:impl`
 // value lands as `:actualValue` / `:actualType` so the diagnostic
 // reads as a single shape contract.
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
-    `::${tag} has no registered constructor — tag-binding's :qlang/impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
+    `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
 const DistributeSubjectNotVecError = declareSubjectError('DistributeSubjectNotVecError', '*', 'vec');
 const MergeSubjectNotVecError      = declareSubjectError('MergeSubjectNotVecError',      '>>', 'vec');
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
@@ -472,16 +472,16 @@ async function evalTaggedLit(node, state) {
     throw new TaggedLitTagNotFoundError({ tag: node.tag });
   }
   let typeBinding = envGet(state.env, typeKey);
-  if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('qlang/value');
+  if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('payload');
   if (!isQMap(typeBinding)) {
     throw new TaggedLitNotTagBindingError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
-  // :qlang/impl carries either a `:qlang/prim/<tag>` keyword (built-in
+  // :impl carries either a `:qlang/prim/<tag>` keyword (built-in
   // tag — resolved through PRIMITIVE_REGISTRY at every invocation so
   // reify(::tag) keeps the readable keyword handle on the descriptor)
   // or a Quote-value (user-defined tag — payload becomes pipeValue,
   // the Quote body runs against the current env).
-  const implKey = typeBinding.get('qlang/impl');
+  const implKey = typeBinding.get('impl');
   if (isKeyword(implKey)) {
     const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
     const value = await constructor(payloadValue, state);
@@ -494,15 +494,15 @@ async function evalTaggedLit(node, state) {
     return withPipeValue(state, resultState.pipeValue);
   }
   // Default constructor — fires when the tag-binding has no
-  // explicit `:qlang/impl` slot. Two paths by payload shape:
+  // explicit `:impl` slot. Two paths by payload shape:
   //
   //   ErrorLit payload (already an ErrorValue) → `::Tag` re-stamps
-  //     `:qlang/kind` on the descriptor; result stays on the
+  //     `:kind` on the descriptor; result stays on the
   //     fail-track. Prints back as `::Tag!{…}`.
   //
   //   Any other Primary payload (Vec / Map / Set / Quote / Doc /
   //     scalar / Keyword / nested TaggedLit / …) → success-track
-  //     TaggedInstance Map `{:qlang/kind ::Tag :qlang/payload
+  //     TaggedInstance Map `{:kind ::Tag :payload
   //     <value>}`. Prints back as `::Tag<bracketed-payload>` for
   //     bracket-prefixed values (Vec / Map / Set / Quote / Doc)
   //     and `::Tag(<scalar>)` for the rest — every shape the
@@ -510,15 +510,15 @@ async function evalTaggedLit(node, state) {
   if (implKey === undefined) {
     if (isErrorValue(payloadValue)) {
       const restamped = new Map(payloadValue.descriptor);
-      restamped.set('qlang/kind', makeTagKeyword(node.tag));
+      restamped.set('kind', makeTagKeyword(node.tag));
       return withPipeValue(state, makeErrorValue(restamped, {
         location: node.location,
         originalError: payloadValue.originalError
       }));
     }
     const instance = new Map();
-    instance.set('qlang/kind', makeTagKeyword(node.tag));
-    instance.set('qlang/payload', payloadValue);
+    instance.set('kind', makeTagKeyword(node.tag));
+    instance.set('payload', payloadValue);
     return withPipeValue(state, instance);
   }
   throw new TagBindingHasNoConstructorError({
@@ -586,12 +586,12 @@ async function evalBindStep(node, state) {
   if (node.body === null) {
     // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`) forges
     // a tag-binding Map automatically — the `::` prefix carries the
-    // tag declaration semantic, no `{:qlang/kind :tag}` body needed.
+    // tag declaration semantic, no `{:kind :tag}` body needed.
     // Value-namespace doc-only BindStep (`:name |~~ docs ~~|`) wraps
     // the joined prose as a Doc-value snapshot.
     if (node.key.type === 'BareTypeKeyword') {
       const tagBinding = new Map();
-      tagBinding.set('qlang/kind', keyword('tag'));
+      tagBinding.set('kind', keyword('tag'));
       const bound = makeSnapshot(tagBinding, {
         name, docs, location: node.location
       });
@@ -657,7 +657,7 @@ async function evalProjection(node, state) {
     // projection so user code sees the raw captured value. The
     // wrapper itself is reachable only via reify, which reads env
     // directly without going through projection.
-    if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get('qlang/value');
+    if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get('payload');
   }
   return withPipeValue(state, projectionCurrent);
 }
@@ -731,18 +731,18 @@ function projectSegment(subject, projKey, state) {
 // ─── Identifier lookup + Conduit dispatch ──────────────────────
 
 // Interned keyword constants for binding-descriptor dispatch. The
-// :qlang/kind discriminator decides which binding kind a resolved
-// env value represents; :qlang/impl carries the namespaced primitive
+// :kind discriminator decides which binding kind a resolved
+// env value represents; :impl carries the namespaced primitive
 // key that PRIMITIVE_REGISTRY.resolve walks into the matching JS
 // function value. Conduit and snapshot descriptors carry their own
 // payload field set documented in src/types.mjs.
 
 function isBuiltinDescriptor(m) {
-  const v = m.get('qlang/kind');
+  const v = m.get('kind');
   return v && v.name === 'builtin';
 }
 function isConduitDescriptor(m) {
-  const v = m.get('qlang/kind');
+  const v = m.get('kind');
   return v && v.name === 'conduit';
 }
 
@@ -756,25 +756,25 @@ async function evalOperandCall(node, state) {
 
   let resolved = envGet(lookupEnv, lookupName);
 
-  // Snapshot auto-unwrap — a Map with :qlang/kind :snapshot exposes
-  // its wrapped :qlang/value transparently to identifier lookup so
+  // Snapshot auto-unwrap — a Map with :kind :snapshot exposes
+  // its wrapped :payload transparently to identifier lookup so
   // `as(:name) | name` sees the raw data. The wrapper itself stays
   // reachable through `reify(:name)`, which reads env directly
   // without going through evalOperandCall. Unwrapping upstream of
-  // applyBindingDescriptor keeps the :qlang/kind switch exhaustive
+  // applyBindingDescriptor keeps the :kind switch exhaustive
   // over {:builtin, :conduit}; the remaining non-Map branches handle
   // conduit-parameter proxies (isFunctionValue) and plain user values
   // (tail) — and preserves the "snapshot wrapping an effectful
   // function value" safety-net path documented in the effect-marker
   // section of qlang-spec.md.
   if (isSnapshot(resolved)) {
-    resolved = resolved.get('qlang/value');
+    resolved = resolved.get('payload');
   }
 
-  // Binding-descriptor dispatch — one switch over `:qlang/kind`
+  // Binding-descriptor dispatch — one switch over `:kind`
   // routes the resolved Map to either the builtin or the conduit
   // dispatch core. Plain user Maps (bound via session.bind or
-  // captured by value-level projection) carry no `:qlang/kind` and
+  // captured by value-level projection) carry no `:kind` and
   // fall through as non-function values.
   if (isQMap(resolved)) {
     const dispatched = await applyBindingDescriptor(resolved, node, lookupName, state);
@@ -833,12 +833,12 @@ async function evalOperandCall(node, state) {
 
 // applyBindingDescriptor(descriptor, node, lookupName, state) → state' | null
 //
-// Single switch over :qlang/kind that routes a Map-shaped env
+// Single switch over :kind that routes a Map-shaped env
 // binding to its dispatch core: :builtin rides through
-// applyBuiltinDescriptor (resolve :qlang/impl → PRIMITIVE_REGISTRY,
+// applyBuiltinDescriptor (resolve :impl → PRIMITIVE_REGISTRY,
 // apply via Rule 10), :conduit rides through applyConduit (lexical
 // envRef + parameter proxies + body fork). Returns null when the
-// descriptor has no recognized :qlang/kind — the caller treats the
+// descriptor has no recognized :kind — the caller treats the
 // null return as "this Map is user data, fall through to plain-
 // value handling". Snapshot is handled upstream by the auto-unwrap
 // step in evalOperandCall, so no :snapshot branch here.
@@ -855,7 +855,7 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // applyBuiltinDescriptor(descriptor, node, lookupName, state) → state'
 //
 // Dispatch core for built-in operands. Reads the resolved function
-// value directly from the descriptor's :qlang/impl field (set by
+// value directly from the descriptor's :impl field (set by
 // the bootstrap resolution pass in runtime/index.mjs) and delegates
 // to applyRule10.
 //
@@ -865,7 +865,7 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // because their minCaptured is 0 and bare application IS their
 // valid call shape.
 async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
-  const resolvedImpl = descriptor.get('qlang/impl');
+  const resolvedImpl = descriptor.get('impl');
 
   const capturedArgsAst = node.args;
   const hasArgs = capturedArgsAst !== null;
@@ -898,8 +898,8 @@ async function applyConduit(conduit, node, lookupName, state) {
   // unnamespaced string keys.
   const conduitName       = conduit.get('name');
   const conduitParams     = conduit.get('params');
-  const conduitBody       = conduit.get('qlang/body');
-  const conduitEnvRef     = conduit.get('qlang/envRef');
+  const conduitBody       = conduit.get('body');
+  const conduitEnvRef     = conduit.get('envRef');
   const conduitEffectful  = conduit.get('effectful');
 
   // Effect-laundering safety net (same invariant as intrinsic operands).
@@ -1032,7 +1032,7 @@ export function resolveCapturedConduit(astNode, env) {
   const lookupName = astNode.name;
   if (!envHas(env, lookupName)) return null;
   let resolved = envGet(env, lookupName);
-  if (isSnapshot(resolved)) resolved = resolved.get('qlang/value');
+  if (isSnapshot(resolved)) resolved = resolved.get('payload');
   if (!(resolved instanceof Map)) return null;
   if (!isConduitDescriptor(resolved)) return null;
   return { conduit: resolved, lookupName };
@@ -1056,8 +1056,8 @@ export function resolveCapturedConduit(astNode, env) {
 export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue) {
   const conduitName      = conduit.get('name');
   const conduitParams    = conduit.get('params');
-  const conduitBody      = conduit.get('qlang/body');
-  const conduitEnvRef    = conduit.get('qlang/envRef');
+  const conduitBody      = conduit.get('body');
+  const conduitEnvRef    = conduit.get('envRef');
   const conduitEffectful = conduit.get('effectful');
 
   if (conduitEffectful && !classifyEffect(lookupName)) {

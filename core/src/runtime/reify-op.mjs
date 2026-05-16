@@ -86,7 +86,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   result.set('kind', keyword('conduit'));
   result.set('name', explicitName ?? conduit.get('name'));
   result.set('params', [...conduit.get('params')]);
-  result.set('source', conduit.get('qlang/source'));
+  result.set('source', conduit.get('source'));
   result.set('effectful', conduit.get('effectful'));
   result.set('location', locationToQlangMap(conduit.get('location')));
   return result;
@@ -102,7 +102,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
   // through `manifest`, both of which pass `explicitName`. Reading
   // the descriptor's `:name` field as a fallback would be dead
   // code.
-  const value = snap.get('qlang/value');
+  const value = snap.get('payload');
   const result = new Map();
   result.set('kind', keyword('snapshot'));
   result.set('name', explicitName);
@@ -123,16 +123,16 @@ function buildValueDescriptor(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
-  const qlKind = isQMap(value) && value.get('qlang/kind');
+  const qlKind = isQMap(value) && value.get('kind');
   if (qlKind && qlKind.name === 'builtin') {
-    return reifyBuiltinDescriptor(value, value.get('qlang/impl'), explicitName);
+    return reifyBuiltinDescriptor(value, value.get('impl'), explicitName);
   }
-  // Tag bindings: env stores a Map with `:qlang/kind :tag` plus
-  // optional `:qlang/impl` (Keyword handle into PRIMITIVE_REGISTRY
+  // Tag bindings: env stores a Map with `:kind :tag` plus
+  // optional `:impl` (Keyword handle into PRIMITIVE_REGISTRY
   // for JS-side constructors, Quote-value for qlang-side bodies),
   // declared via `::Tag {descriptor}` BindStep. Reify shape mirrors
-  // the builtin path — strip `:qlang/kind`, stamp `:kind :tag`,
-  // pass through every other field. `:qlang/impl` stays addressable
+  // the builtin path — strip `:kind`, stamp `:kind :tag`,
+  // pass through every other field. `:impl` stays addressable
   // because authors composing tag registries (manifest(:tag),
   // catalog walks, error registry generation) consume the handle
   // directly.
@@ -141,7 +141,7 @@ function describeBinding(value, explicitName) {
     tagResult.set('kind', keyword('tag'));
     if (explicitName != null) tagResult.set('name', explicitName);
     for (const [descKey, descVal] of value) {
-      if (descKey === 'qlang/kind') continue;
+      if (descKey === 'kind') continue;
       tagResult.set(descKey, descVal);
     }
     return tagResult;

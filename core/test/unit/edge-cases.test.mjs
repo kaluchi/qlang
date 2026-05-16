@@ -24,7 +24,7 @@ import {
   makeConduit,
   isErrorValue
 } from '../../src/types.mjs';
-import { expectErrorKind } from '../helpers/error-assertions.mjs';
+import { expectErrorCategory } from '../helpers/error-assertions.mjs';
 import {
   makeState,
   envSet,
@@ -70,14 +70,14 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit returns a conduit descriptor Map carrying :qlang/kind :conduit', async () => {
+  it('makeConduit returns a conduit descriptor Map carrying :kind :conduit', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
     const t = makeConduit(bodyAst);
     expect(t).toBeInstanceOf(Map);
-    expect(t.get('qlang/kind')).toEqual(makeTagKeyword('conduit'));
-    expect(t.get('qlang/body')).toBe(bodyAst);
-    expect(t.get('qlang/source')).toBe('1');
+    expect(t.get('kind')).toEqual(makeTagKeyword('conduit'));
+    expect(t.get('body')).toBe(bodyAst);
+    expect(t.get('source')).toBe('1');
   });
 });
 
@@ -139,19 +139,19 @@ describe('errors.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison', async () => {
-    await expectErrorKind('"a" | gt(5)', 'type-error');
+    await expectErrorCategory('"a" | gt(5)', 'type-error');
   });
   it('lt rejects non-comparable subject', async () => {
-    await expectErrorKind('null | lt(5)', 'type-error');
+    await expectErrorCategory('null | lt(5)', 'type-error');
   });
   it('min raises on mixed Vec', async () => {
-    await expectErrorKind('[1 "a"] | min', 'type-error');
+    await expectErrorCategory('[1 "a"] | min', 'type-error');
   });
   it('max raises on non-comparable', async () => {
-    await expectErrorKind('[null null] | max', 'type-error');
+    await expectErrorCategory('[null null] | max', 'type-error');
   });
   it('sort raises on mixed-type Vec', async () => {
-    await expectErrorKind('[1 "a"] | sort', 'type-error');
+    await expectErrorCategory('[1 "a"] | sort', 'type-error');
   });
 });
 
@@ -169,40 +169,40 @@ describe('parse.mjs', () => {
 
 describe('runtime/arith.mjs error paths', () => {
   it('add rejects non-numeric subject', async () => {
-    await expectErrorKind('"x" | add(1)', 'type-error');
+    await expectErrorCategory('"x" | add(1)', 'type-error');
   });
   it('add rejects non-numeric modifier', async () => {
-    await expectErrorKind('1 | add("x")', 'type-error');
+    await expectErrorCategory('1 | add("x")', 'type-error');
   });
   it('sub rejects non-numeric subject', async () => {
-    await expectErrorKind('"x" | sub(1)', 'type-error');
+    await expectErrorCategory('"x" | sub(1)', 'type-error');
   });
   it('mul rejects non-numeric subject', async () => {
-    await expectErrorKind('"x" | mul(1)', 'type-error');
+    await expectErrorCategory('"x" | mul(1)', 'type-error');
   });
   it('div rejects non-numeric subject', async () => {
-    await expectErrorKind('"x" | div(1)', 'type-error');
+    await expectErrorCategory('"x" | div(1)', 'type-error');
   });
 });
 
 describe('runtime/vec.mjs error paths', () => {
   it('count rejects non-Vec', async () => {
-    await expectErrorKind('42 | count', 'type-error');
+    await expectErrorCategory('42 | count', 'type-error');
   });
   it('first rejects non-Vec', async () => {
-    await expectErrorKind('42 | first', 'type-error');
+    await expectErrorCategory('42 | first', 'type-error');
   });
   it('sum rejects non-Vec', async () => {
-    await expectErrorKind('42 | sum', 'type-error');
+    await expectErrorCategory('42 | sum', 'type-error');
   });
   it('filter rejects non-Vec', async () => {
-    await expectErrorKind('42 | filter(gt(1))', 'type-error');
+    await expectErrorCategory('42 | filter(gt(1))', 'type-error');
   });
   it('take rejects non-numeric n', async () => {
-    await expectErrorKind('[1 2 3] | take("x")', 'type-error');
+    await expectErrorCategory('[1 2 3] | take("x")', 'type-error');
   });
   it('drop rejects non-numeric n', async () => {
-    await expectErrorKind('[1 2 3] | drop("x")', 'type-error');
+    await expectErrorCategory('[1 2 3] | drop("x")', 'type-error');
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort(/n)'))
@@ -212,28 +212,28 @@ describe('runtime/vec.mjs error paths', () => {
 
 describe('runtime/map.mjs error paths', () => {
   it('keys rejects non-Map', async () => {
-    await expectErrorKind('42 | keys', 'type-error');
+    await expectErrorCategory('42 | keys', 'type-error');
   });
   it('vals rejects non-Map', async () => {
-    await expectErrorKind('42 | vals', 'type-error');
+    await expectErrorCategory('42 | vals', 'type-error');
   });
   it('has rejects non-Map/non-Set subject', async () => {
-    await expectErrorKind('42 | has(:foo)', 'type-error');
+    await expectErrorCategory('42 | has(:foo)', 'type-error');
   });
   it('has on Map requires keyword key', async () => {
-    await expectErrorKind('{:k 1} | has("k")', 'type-error');
+    await expectErrorCategory('{:k 1} | has("k")', 'type-error');
   });
 });
 
 describe('runtime/set.mjs error paths', () => {
   it('set rejects non-Vec', async () => {
-    await expectErrorKind('42 | set', 'type-error');
+    await expectErrorCategory('42 | set', 'type-error');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorKind('#{:a} | union({:b 1})', 'type-error');
+    await expectErrorCategory('#{:a} | union({:b 1})', 'type-error');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus({:b 99 :d 5})');
@@ -244,10 +244,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorKind('#{:a} | minus({:a 1})', 'type-error');
+    await expectErrorCategory('#{:a} | minus({:a 1})', 'type-error');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorKind('#{:a} | inter({:a 1})', 'type-error');
+    await expectErrorCategory('#{:a} | inter({:a 1})', 'type-error');
   });
 });
 
@@ -682,13 +682,13 @@ describe('dispatch helper arity error paths', () => {
   it('overloadedOp throws ArityError on unsupported captured-arg count', async () => {
     // sort accepts 0 or 1 captured args; calling with 2 hits the
     // overloadedOp dispatch's `if (!impl)` branch.
-    await expectErrorKind('[1 2] | sort(/x, /y)', 'arity-error');
+    await expectErrorCategory('[1 2] | sort(/x, /y)', 'arity-error');
   });
 
   it('stateOp throws ArityError when captured-arg count mismatches expected', async () => {
     // env accepts 0 captured args; calling env(arg) fires the
     // stateOp's `lambdas.length !== expected` branch.
-    await expectErrorKind('env(:foo)', 'arity-error');
+    await expectErrorCategory('env(:foo)', 'arity-error');
   });
 });
 
@@ -718,7 +718,7 @@ describe('runtime/reify-op.mjs reify and manifest', () => {
   it('reify on a builtin descriptor Map returns a builtin descriptor', async () => {
     // env stores each built-in as a descriptor Map directly.
     // `reify(:name)` projects it through `describeBinding` which
-    // substitutes `:qlang/kind` → `:kind`, drops `:qlang/impl`, and
+    // substitutes `:kind` → `:kind`, drops `:impl`, and
     // stamps `:captured` / `:effectful` / `:name` from the resolved
     // primitive. The named form is the canonical spelling; bare
     // `env | /count | reify` omits `:name` because no explicit

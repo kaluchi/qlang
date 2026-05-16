@@ -200,14 +200,14 @@ export async function serializeSession(session) {
         kind: 'conduit',
         name: v.get('name'),
         params: [...v.get('params')],
-        source: v.get('qlang/source'),
+        source: v.get('source'),
         docs: [...v.get('docs')]
       });
     } else if (isSnapshot(v)) {
       userBindings.push({
         kind: 'snapshot',
         name: v.get('name'),
-        value: toTaggedJSON(v.get('qlang/value')),
+        value: toTaggedJSON(v.get('payload')),
         docs: [...v.get('docs')]
       });
     } else {
@@ -279,7 +279,7 @@ export async function deserializeSession(json) {
   // and recursive self-binding).
   for (const v of session.env.values()) {
     if (isConduit(v)) {
-      v.get('qlang/envRef').env = session.env;
+      v.get('envRef').env = session.env;
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

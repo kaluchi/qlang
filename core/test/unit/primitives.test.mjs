@@ -1,5 +1,5 @@
 // Tests for src/primitives.mjs — the primitive registry that bridges
-// qlang-level Map-form binding descriptors (carrying :qlang/impl
+// qlang-level Map-form binding descriptors (carrying :impl
 // keywords) and their JS-level executable impls in runtime/*.mjs.
 //
 // Every test binds into an isolated registry via createPrimitiveRegistry()
@@ -40,7 +40,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
   it('bind returns the key to enable fluent re-export', () => {
     // The idiom: `export const add = PRIMITIVE_REGISTRY.bind(key, impl);`
     // so the runtime module's export IS the keyword that core.qlang's
-    // :qlang/impl field points to.
+    // :impl field points to.
     const k = 'qlang/test-prim/re-export';
     const impl = () => null;
     const returned = registry.bind(k, impl);
@@ -183,7 +183,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
 
   it('unbound-key is a QlangError (lifts to fail-track)', () => {
     // Critical classification: this is a DATA error, not an invariant.
-    // A hand-crafted descriptor Map with a bad :qlang/impl keyword
+    // A hand-crafted descriptor Map with a bad :impl keyword
     // should fail gracefully through evalNode's try/catch and become
     // an error value, not crash the evaluator.
     const k = 'qlang/test-prim/missing';

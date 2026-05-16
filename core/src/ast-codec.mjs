@@ -1,5 +1,5 @@
 // Bidirectional AST ↔ qlang-Map codec — encodes every parser-produced
-// AST node type into a frozen Map keyed under `:qlang/kind :<NodeType>`
+// AST node type into a frozen Map keyed under `:kind :<NodeType>`
 // plus its type-specific payload, and decodes back without loss.
 //
 // The codec is the data layer behind several upstream features:
@@ -59,11 +59,11 @@ import { isQMap, keyword } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
 // Interned keyword constants for the AST-Map field namespace. The
-// discriminator lives under :qlang/kind so user-level Map fields do
+// discriminator lives under :kind so user-level Map fields do
 // not collide; payload fields use unnamespaced keywords because they
 // are addressable via `ast | /name`, `ast | /args`, and so on, the
 // same way any other qlang Map field is addressed.
-const F_QLANG_KIND   = 'qlang/kind';
+const F_KIND         = 'kind';
 const F_VALUE        = 'value';
 const F_NAME         = 'name';
 const F_KEYS         = 'keys';
@@ -173,7 +173,7 @@ class AstMapMalformedError extends QlangError {
 
 class AstMapKindUnknownError extends QlangError {
   constructor(kindName) {
-    super(`qlangMapToAst: unknown :qlang/kind '${kindName}'`, 'ast-codec-error');
+    super(`qlangMapToAst: unknown :kind '${kindName}'`, 'ast-codec-error');
     this.name = 'AstMapKindUnknownError';
     this.fingerprint = 'AstMapKindUnknownError';
     this.context = { kindName };
@@ -224,7 +224,7 @@ function stampCommonFields(target, node) {
 // astNodeToMap(node) → frozen qlang Map (or null for null / non-AST
 // input).
 //
-// Converts a JS-object AST node into a frozen Map carrying :qlang/kind
+// Converts a JS-object AST node into a frozen Map carrying :kind
 // plus type-specific payload fields. Nested child nodes recurse into
 // their own Maps; collections of children become frozen Vecs.
 //
@@ -242,94 +242,94 @@ export function astNodeToMap(node) {
 
   switch (node.type) {
     case 'NumberLit':
-      m.set(F_QLANG_KIND, KIND_NUMBER_LIT);
+      m.set(F_KIND, KIND_NUMBER_LIT);
       m.set(F_VALUE, node.value);
       break;
 
     case 'StringLit':
-      m.set(F_QLANG_KIND, KIND_STRING_LIT);
+      m.set(F_KIND, KIND_STRING_LIT);
       m.set(F_VALUE, node.value);
       break;
 
     case 'BooleanLit':
-      m.set(F_QLANG_KIND, KIND_BOOLEAN_LIT);
+      m.set(F_KIND, KIND_BOOLEAN_LIT);
       m.set(F_VALUE, node.value);
       break;
 
     case 'NullLit':
-      m.set(F_QLANG_KIND, KIND_NULL_LIT);
+      m.set(F_KIND, KIND_NULL_LIT);
       break;
 
     case 'Keyword':
-      m.set(F_QLANG_KIND, KIND_KEYWORD);
+      m.set(F_KIND, KIND_KEYWORD);
       m.set(F_NAME, node.name);
       break;
 
     case 'Projection':
-      m.set(F_QLANG_KIND, KIND_PROJECTION);
+      m.set(F_KIND, KIND_PROJECTION);
       m.set(F_KEYS, Object.freeze([...node.keys]));
       if (node.effectful !== undefined) m.set(F_EFFECTFUL, node.effectful);
       break;
 
     case 'VecLit':
-      m.set(F_QLANG_KIND, KIND_VEC_LIT);
+      m.set(F_KIND, KIND_VEC_LIT);
       m.set(F_ELEMENTS, Object.freeze(node.elements.map(astNodeToMap)));
       break;
 
     case 'JsonArrayLit':
-      m.set(F_QLANG_KIND, KIND_JSON_ARRAY_LIT);
+      m.set(F_KIND, KIND_JSON_ARRAY_LIT);
       m.set(F_ELEMENTS, Object.freeze(node.elements.map(astNodeToMap)));
       break;
 
     case 'SetLit':
-      m.set(F_QLANG_KIND, KIND_SET_LIT);
+      m.set(F_KIND, KIND_SET_LIT);
       m.set(F_ELEMENTS, Object.freeze(node.elements.map(astNodeToMap)));
       break;
 
     case 'MapLit':
-      m.set(F_QLANG_KIND, KIND_MAP_LIT);
+      m.set(F_KIND, KIND_MAP_LIT);
       m.set(F_ENTRIES, Object.freeze(node.entries.map(astNodeToMap)));
       break;
 
     case 'JsonObjectLit':
-      m.set(F_QLANG_KIND, KIND_JSON_OBJECT_LIT);
+      m.set(F_KIND, KIND_JSON_OBJECT_LIT);
       m.set(F_ENTRIES, Object.freeze(node.entries.map(astNodeToMap)));
       break;
 
     case 'ErrorLit':
-      m.set(F_QLANG_KIND, KIND_ERROR_LIT);
+      m.set(F_KIND, KIND_ERROR_LIT);
       m.set(F_ENTRIES, Object.freeze(node.entries.map(astNodeToMap)));
       break;
 
     case 'QuoteLit':
-      m.set(F_QLANG_KIND, KIND_QUOTE_LIT);
+      m.set(F_KIND, KIND_QUOTE_LIT);
       m.set(F_SRC, node.src);
       break;
 
     case 'DocLit':
-      m.set(F_QLANG_KIND, KIND_DOC_LIT);
+      m.set(F_KIND, KIND_DOC_LIT);
       m.set(F_CONTENT, node.content);
       break;
 
     case 'TaggedLit':
-      m.set(F_QLANG_KIND, KIND_TAGGED_LIT);
+      m.set(F_KIND, KIND_TAGGED_LIT);
       m.set('tag', node.tag);
       m.set('payload', astNodeToMap(node.payload));
       break;
 
     case 'BareTypeKeyword':
-      m.set(F_QLANG_KIND, KIND_BARE_TYPE_KEYWORD);
+      m.set(F_KIND, KIND_BARE_TYPE_KEYWORD);
       m.set('tag', node.tag);
       break;
 
     case 'MapEntry':
-      m.set(F_QLANG_KIND, KIND_MAP_ENTRY);
+      m.set(F_KIND, KIND_MAP_ENTRY);
       m.set(F_KEY,   astNodeToMap(node.key));
       m.set(F_VALUE, astNodeToMap(node.value));
       break;
 
     case 'OperandCall':
-      m.set(F_QLANG_KIND, KIND_OPERAND_CALL);
+      m.set(F_KIND, KIND_OPERAND_CALL);
       m.set(F_NAME, node.name);
       // args === null  → bare identifier (no parens)
       // args === []    → empty call site `f()`
@@ -342,7 +342,7 @@ export function astNodeToMap(node) {
       break;
 
     case 'BindStep':
-      m.set(F_QLANG_KIND, KIND_BIND_STEP);
+      m.set(F_KIND, KIND_BIND_STEP);
       m.set(F_KEY, astNodeToMap(node.key));
       // docs / params / body are nullable — each absent in some forms:
       //   :foo body                  → docs=null, params=null, body=AST
@@ -356,12 +356,12 @@ export function astNodeToMap(node) {
       break;
 
     case 'ParenGroup':
-      m.set(F_QLANG_KIND, KIND_PAREN_GROUP);
+      m.set(F_KIND, KIND_PAREN_GROUP);
       m.set(F_PIPELINE, astNodeToMap(node.pipeline));
       break;
 
     case 'Pipeline':
-      m.set(F_QLANG_KIND, KIND_PIPELINE);
+      m.set(F_KIND, KIND_PIPELINE);
       m.set(F_STEPS, Object.freeze(node.steps.map(pipelineStepToMap)));
       // The grammar emits `leadingCombinator` only when an explicit
       // prefix was authored; absent it is undefined. The AST-Map
@@ -372,22 +372,22 @@ export function astNodeToMap(node) {
       break;
 
     case 'LinePlainComment':
-      m.set(F_QLANG_KIND, KIND_LINE_PLAIN_COMMENT);
+      m.set(F_KIND, KIND_LINE_PLAIN_COMMENT);
       m.set(F_CONTENT, node.content);
       break;
 
     case 'BlockPlainComment':
-      m.set(F_QLANG_KIND, KIND_BLOCK_PLAIN_COMMENT);
+      m.set(F_KIND, KIND_BLOCK_PLAIN_COMMENT);
       m.set(F_CONTENT, node.content);
       break;
 
     case 'LineDocComment':
-      m.set(F_QLANG_KIND, KIND_LINE_DOC_COMMENT);
+      m.set(F_KIND, KIND_LINE_DOC_COMMENT);
       m.set(F_CONTENT, node.content);
       break;
 
     case 'BlockDocComment':
-      m.set(F_QLANG_KIND, KIND_BLOCK_DOC_COMMENT);
+      m.set(F_KIND, KIND_BLOCK_DOC_COMMENT);
       m.set(F_CONTENT, node.content);
       break;
 
@@ -407,10 +407,10 @@ export function astNodeToMap(node) {
 // PipelineStep Maps, each carrying a :combinator field (null for the
 // head, string for the rest) and a :step field holding the step's own
 // AST-Map. The PipelineStep wrapper itself is an AST-Map kind so that
-// downstream walkers recognize it via :qlang/kind like any other node.
+// downstream walkers recognize it via :kind like any other node.
 function pipelineStepToMap(step, index) {
   const m = new Map();
-  m.set(F_QLANG_KIND, KIND_PIPELINE_STEP);
+  m.set(F_KIND, KIND_PIPELINE_STEP);
   if (index === 0) {
     m.set(F_COMBINATOR, null);
     m.set(F_STEP, astNodeToMap(step));
@@ -423,7 +423,7 @@ function pipelineStepToMap(step, index) {
 
 // qlangMapToAst(map) → plain JS AST node (or null for null input).
 //
-// Inverse of astNodeToMap. Reads the :qlang/kind discriminator and
+// Inverse of astNodeToMap. Reads the :kind discriminator and
 // reconstructs the JS-object AST node with the same shape peggy would
 // have produced at parse time. Post-parse decoration (.id / .parent)
 // is NOT re-attached — callers that need those fields should run
@@ -434,17 +434,17 @@ function pipelineStepToMap(step, index) {
 //
 // Throws AstMapMalformedError when the input Map is missing a required
 // field or carries a field with the wrong shape.
-// Throws AstMapKindUnknownError when :qlang/kind is a keyword that
+// Throws AstMapKindUnknownError when :kind is a keyword that
 // does not correspond to any known AST type.
 export function qlangMapToAst(map) {
   if (map == null) return null;
   if (!isQMap(map)) {
     throw new AstMapMalformedError(`expected a Map, got ${typeof map}`);
   }
-  if (!map.has(F_QLANG_KIND)) {
-    throw new AstMapMalformedError('missing :qlang/kind discriminator');
+  if (!map.has(F_KIND)) {
+    throw new AstMapMalformedError('missing :kind discriminator');
   }
-  const kindVal = map.get(F_QLANG_KIND);
+  const kindVal = map.get(F_KIND);
   const kindName = kindVal && kindVal.name ? kindVal.name : String(kindVal);
   const type = AST_KIND_TO_TYPE.get(kindName);
   if (!type) {
@@ -565,7 +565,7 @@ function pipelineStepFromMap(stepMap, index) {
   if (!isQMap(stepMap)) {
     throw new AstMapMalformedError(`Pipeline step at index ${index} is not a Map`);
   }
-  if (stepMap.get(F_QLANG_KIND) !== KIND_PIPELINE_STEP) {
+  if (stepMap.get(F_KIND) !== KIND_PIPELINE_STEP) {
     throw new AstMapMalformedError(`Pipeline step at index ${index} is not a :PipelineStep Map`);
   }
   if (index === 0) {

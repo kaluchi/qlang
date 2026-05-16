@@ -7,8 +7,8 @@
 
       ~{{:name "Alice" :age 30} | keys | eq(#{:name :age})}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/keys
+  {:kind :builtin
+   :impl :qlang/prim/keys
    :category :map-op
    :subject :map
    :returns :set
@@ -28,8 +28,8 @@
 
       ~{{:name "Alice" :age 30} | vals | eq(["Alice" 30])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/vals
+  {:kind :builtin
+   :impl :qlang/prim/vals
    :category :map-op
    :subject :map
    :returns :vec
@@ -51,8 +51,8 @@
       ~{{:name "Alice"} | has(:name) | eq(true)}
       ~{#{:a :b :c} | has(:b) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/has
+  {:kind :builtin
+   :impl :qlang/prim/has
    :category :map-op
    :subject [:map :set]
    :returns :boolean

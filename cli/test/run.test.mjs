@@ -43,7 +43,7 @@ describe('runQuery', () => {
     expect(cellEntry.error.name).toBe('ParseError');
     expect(cellEntry.result).not.toBeNull();
     expect(cellEntry.result.type).toBe('error');
-    expect(cellEntry.result.descriptor.get('qlang/kind').name).toBe('ParseError');
+    expect(cellEntry.result.descriptor.get('kind').name).toBe('ParseError');
   });
 
   it('binds the ioContext writers so ~{@out} reaches the captured stdout chunks', async () => {

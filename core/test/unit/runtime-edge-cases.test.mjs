@@ -58,33 +58,33 @@ describe('arith right-operand type checks', () => {
 });
 
 describe('descriptor Maps in pipeValue round-trip through render', async () => {
-  // A builtin descriptor Map carries `:qlang/impl` as the post-bootstrap-
+  // A builtin descriptor Map carries `:impl` as the post-bootstrap-
   // resolved function value. Render paths (printValue, toPlain) project
   // that single slot back to its authoring keyword form — `:qlang/prim/<name>` —
   // so the Map's literal stays round-trip-able through parse → MapLit →
   // eval. Strict round-trip identity for the value-class shape, with
   // dispatchability reconstituted at host bootstrap time.
 
-  it('json on a raw descriptor Map renders :qlang/impl as the :qlang/prim/<name> keyword', async () => {
+  it('json on a raw descriptor Map renders :impl as the :qlang/prim/<name> keyword', async () => {
     const jsonOutput = await evalQuery('env | /count | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"qlang/impl":":qlang/prim/count"');
+    expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
   });
 
-  it('reify-shaped descriptor renders cleanly — :qlang/impl is stripped at reify time', async () => {
+  it('reify-shaped descriptor renders cleanly — :impl is stripped at reify time', async () => {
     const jsonOutput = await evalQuery('reify(:count) | json');
     expect(typeof jsonOutput).toBe('string');
     expect(jsonOutput).toContain('"kind":":builtin"');
   });
 
-  it('direct projection at :qlang/impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {
-    // `env | /count | /:qlang/impl` deliberately reaches past the
+  it('direct projection at :impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {
+    // `env | /count | /:impl` deliberately reaches past the
     // Map projection to the raw function-value (note the namespaced
-    // keyword segment `/:qlang/impl` — without the colon, the
+    // keyword segment `/:impl` — without the colon, the
     // slash splits into two bare segments). The Map-handler
     // substitution does not run because the function is now the
     // pipeValue itself, not an entry of a Map being rendered.
-    await expect(evalQuery('env | /count | /:qlang/impl | json'))
+    await expect(evalQuery('env | /count | /:impl | json'))
       .rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 });
@@ -136,25 +136,25 @@ describe('describeType for conduit and snapshot', async () => {
   it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Box')],
-      ['qlang/payload', [42]]
+      ['kind', makeTagKeyword('Box')],
+      ['payload', [42]]
     ]);
     expect(describeType(instance)).toBe('TaggedInstance');
   });
 
   it('isTaggedInstance rejects the reserved-kind Maps that conduit / snapshot mint', async () => {
     // Conduit and snapshot factories stamp their own dedicated
-    // TagKeyword on `:qlang/kind`. `isTaggedInstance` excludes them
+    // TagKeyword on `:kind`. `isTaggedInstance` excludes them
     // so the generic tagged-instance render path does not collide
     // with `printConduit` / `printSnapshot`.
     const { makeTagKeyword, isTaggedInstance } = await import('../../src/types.mjs');
     const conduitLike = new Map([
-      ['qlang/kind', makeTagKeyword('conduit')],
-      ['qlang/payload', []]
+      ['kind', makeTagKeyword('conduit')],
+      ['payload', []]
     ]);
     const snapshotLike = new Map([
-      ['qlang/kind', makeTagKeyword('snapshot')],
-      ['qlang/payload', []]
+      ['kind', makeTagKeyword('snapshot')],
+      ['payload', []]
     ]);
     expect(isTaggedInstance(conduitLike)).toBe(false);
     expect(isTaggedInstance(snapshotLike)).toBe(false);
@@ -163,8 +163,8 @@ describe('describeType for conduit and snapshot', async () => {
   it('typeKeyword returns the tag as a TagKeyword for a tagged-instance Map', async () => {
     const { makeTagKeyword, isTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Box')],
-      ['qlang/payload', [42, 'inner']]
+      ['kind', makeTagKeyword('Box')],
+      ['payload', [42, 'inner']]
     ]);
     const tk = typeKeyword(instance);
     expect(isTagKeyword(tk)).toBe(true);
@@ -434,7 +434,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
     expect(entry.result.descriptor.get('origin')).toEqual(keyword('host'));
-    expect(entry.result.descriptor.get('kind')).toEqual(keyword('foreign-error'));
+    expect(entry.result.descriptor.get('category')).toEqual(keyword('foreign-error'));
   });
 });
 
@@ -661,7 +661,7 @@ describe('walk.mjs — locationToQlangMap(null) → null (line 397)', async () =
     // qlangMapToAst fires locationFromQlangMap(null) (line 405: !isQMap → null),
     // then astNodeToMap on the result fires locationToQlangMap(null) (line 397: !loc → null).
     const m = new Map();
-    m.set('qlang/kind', keyword('NumberLit'));
+    m.set('kind', keyword('NumberLit'));
     m.set('value', 42);
     m.set('location', null);            // present but non-Map → fires 405
     const node = qlangMapToAst(m);
@@ -672,10 +672,10 @@ describe('walk.mjs — locationToQlangMap(null) → null (line 397)', async () =
   });
 });
 
-describe('walk.mjs — qlangMapToAst with non-keyword :qlang/kind uses String() fallback (line 603)', async () => {
+describe('walk.mjs — qlangMapToAst with non-keyword :kind uses String() fallback (line 603)', async () => {
   it('throws AstMapKindUnknownError with String(kindKw) label when kind is not a keyword', async () => {
     const m = new Map();
-    m.set('qlang/kind', null);   // present but null → String(null) = "null"
+    m.set('kind', null);   // present but null → String(null) = "null"
     expect(() => qlangMapToAst(m)).toThrow('null');
   });
 });
@@ -732,7 +732,7 @@ describe('reify-op.mjs — buildValueDescriptor :type lift for directly-bound er
     // `buildValueDescriptor` in reify-op.mjs reads `typeKeyword(v)`
     // for the descriptor's `:type` field. An error value bound
     // directly through `session.bind` reaches `buildValueDescriptor`
-    // (no `:qlang/kind`, not a conduit, snapshot, or function), and
+    // (no `:kind`, not a conduit, snapshot, or function), and
     // `typeKeyword`'s isErrorValue branch lifts it to `:error`.
     const s = await createSession();
     const errVal = makeErrorValue(new Map([['kind', keyword('test')]]));

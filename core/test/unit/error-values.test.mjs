@@ -149,8 +149,8 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(typeErr, faultMap);
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('type-error'));
-    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('QlangTypeError'));
+    expect(desc.get('category')).toEqual(keyword('type-error'));
+    expect(desc.get('kind')).toEqual(makeTagKeyword('QlangTypeError'));
     expect(desc.get('operand')).toEqual(keyword('add'));
     expect(desc.get('actualValue')).toBe('the-value');
     const fault = desc.get('fault');
@@ -162,15 +162,15 @@ describe('errorFromQlang', () => {
   it('converts UnresolvedIdentifierError with fault carrying AST-Map step', () => {
     const unresolvedErr = new UnresolvedIdentifierError('myName');
     const stepMap = Object.freeze(new Map([
-      ['qlang/kind', keyword('OperandCall')],
+      ['kind', keyword('OperandCall')],
       ['name', 'myName'],
       ['text', 'myName']
     ]));
     const faultMap = Object.freeze(new Map([['step', stepMap], ['input', 42]]));
     const errorVal = errorFromQlang(unresolvedErr, faultMap);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('unresolved-identifier'));
-    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
+    expect(desc.get('category')).toEqual(keyword('unresolved-identifier'));
+    expect(desc.get('kind')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('name')).toBe('myName');
     expect(fault.get('input')).toBe(42);
@@ -179,15 +179,15 @@ describe('errorFromQlang', () => {
   it('converts DivisionByZeroError with fault carrying pipeline input', () => {
     const divErr = new DivisionByZeroError();
     const stepMap = Object.freeze(new Map([
-      ['qlang/kind', keyword('OperandCall')],
+      ['kind', keyword('OperandCall')],
       ['name', 'div'],
       ['text', 'div(0)']
     ]));
     const faultMap = Object.freeze(new Map([['step', stepMap], ['input', 10]]));
     const errorVal = errorFromQlang(divErr, faultMap);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('division-by-zero'));
-    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('DivisionByZeroError'));
+    expect(desc.get('category')).toEqual(keyword('division-by-zero'));
+    expect(desc.get('kind')).toEqual(makeTagKeyword('DivisionByZeroError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('text')).toBe('div(0)');
     expect(fault.get('input')).toBe(10);
@@ -207,8 +207,8 @@ describe('errorFromForeign', () => {
     const errorVal = errorFromForeign(jsErr, astNode, faultMap);
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('foreign-error'));
-    expect(desc.get('qlang/kind')).toEqual(makeTagKeyword('Error'));
+    expect(desc.get('category')).toEqual(keyword('foreign-error'));
+    expect(desc.get('kind')).toEqual(makeTagKeyword('Error'));
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
     expect(errorVal.originalError).toBe(jsErr);
@@ -278,7 +278,7 @@ describe('errorFromForeign', () => {
     const wrapped = errorVal.descriptor.get('wrapped');
     expect(wrapped instanceof Map).toBe(true);
     expect(wrapped.get('message')).toBe('inner');
-    expect(wrapped.get('qlang/kind').name).toBe('TypeError');
+    expect(wrapped.get('kind').name).toBe('TypeError');
     expect(errorVal.descriptor.get('fault').get('input')).toBe('wrap-input');
   });
 
@@ -309,7 +309,7 @@ describe('withName coverage', () => {
     const renamed = withName(snapVal, 'new');
     expect(isSnapshot(renamed)).toBe(true);
     expect(renamed.get('name')).toBe('new');
-    expect(renamed.get('qlang/value')).toBe(42);
+    expect(renamed.get('payload')).toBe(42);
     expect([...renamed.get('docs')]).toEqual(['snap doc']);
   });
 
@@ -361,13 +361,13 @@ describe('error-convert coercion edge cases', () => {
   it('errorFromQlang without fingerprint uses error name', () => {
     const typeErr = new QlangTypeError('no fingerprint', {});
     const errorVal = errorFromQlang(typeErr, makeFault('count', [1, 2]));
-    expect(errorVal.descriptor.get('qlang/kind').name).toBe('QlangTypeError');
+    expect(errorVal.descriptor.get('kind').name).toBe('QlangTypeError');
   });
 
   it('errorFromQlang without context field', () => {
     const divErr = new DivisionByZeroError();
     const errorVal = errorFromQlang(divErr, makeFault('div(0)', 10));
-    expect(errorVal.descriptor.get('kind').name).toBe('division-by-zero');
+    expect(errorVal.descriptor.get('category').name).toBe('division-by-zero');
   });
 
   it('errorFromForeign without cause (no causes field)', () => {

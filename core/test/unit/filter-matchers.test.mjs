@@ -413,7 +413,7 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
 
   it('isKeyword classifies bare and namespaced keywords', async () => {
     expect(await evalQuery(':name | isKeyword')).toBe(true);
-    expect(await evalQuery(':qlang/kind | isKeyword')).toBe(true);
+    expect(await evalQuery(':kind | isKeyword')).toBe(true);
     expect(await evalQuery('"name" | isKeyword')).toBe(false);
     expect(await evalQuery('42 | isKeyword')).toBe(false);
   });

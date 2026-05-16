@@ -17,24 +17,28 @@ export async function expectErrorResult(query) {
   return evalResult;
 }
 
-// expectErrorKind(query, kind) → error value
+// expectErrorCategory(query, category) → error value
 //
-// Asserts the query produces an error value with the given :kind.
-export async function expectErrorKind(query, kind) {
+// Asserts the query produces an error value carrying the given
+// :category (broader bucket — `:type-error`, `:arity-error`,
+// `:effect-laundering`, `:parse-error`, `:foreign-error`,
+// `:division-by-zero`, `:invariant-error`, ...). For per-class
+// identity assertions use `expectErrorThrown` against `:kind`.
+export async function expectErrorCategory(query, category) {
   const errorResult = await expectErrorResult(query);
-  const actualKind = errorResult.descriptor.get('kind');
-  expect(actualKind?.name).toBe(kind);
+  const actualCategory = errorResult.descriptor.get('category');
+  expect(actualCategory?.name).toBe(category);
   return errorResult;
 }
 
 // expectErrorThrown(query, classTagName) → error value
 //
-// Asserts the query produces an error value whose `:qlang/kind`
+// Asserts the query produces an error value whose `:kind`
 // (the universal tagged-value identity slot) is a TagKeyword with
 // the given class tag name (e.g. `'AddLeftNotNumberError'`).
 export async function expectErrorThrown(query, classTagName) {
   const errorResult = await expectErrorResult(query);
-  const identityTag = errorResult.descriptor.get('qlang/kind');
+  const identityTag = errorResult.descriptor.get('kind');
   expect(identityTag?.name).toBe(classTagName);
   return errorResult;
 }

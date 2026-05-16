@@ -15,8 +15,8 @@
 //      - tag.qlang: value-class constructors (::conduit,
 //        ::qlang, ::json).
 //      Each operand BindStep binds an identifier to a descriptor
-//      Map carrying `:qlang/kind :builtin` plus a
-//      `:qlang/impl :qlang/prim/<name>` keyword that resolves
+//      Map carrying `:kind :builtin` plus a
+//      `:impl :qlang/prim/<name>` keyword that resolves
 //      against `PRIMITIVE_REGISTRY` at dispatch time. Attached
 //      doc-prefixes live on each module's `qlang/ast/<uri>`
 //      Quote AST as the step's `.docs` Vec and are reachable
@@ -144,16 +144,16 @@ export async function buildLangRuntime(locator) {
   // lives at one address (the AST attached prefix), reachable
   // through `:name | docs`.
   for (const [name, value] of templateEnv) {
-    if (value instanceof Map && value.get('qlang/kind') &&
-        value.get('qlang/kind').name === 'snapshot') {
-      templateEnv.set(name, value.get('qlang/value'));
+    if (value instanceof Map && value.get('kind') &&
+        value.get('kind').name === 'snapshot') {
+      templateEnv.set(name, value.get('payload'));
     }
   }
 
-  // Resolve :qlang/impl keywords to function values for built-in
+  // Resolve :impl keywords to function values for built-in
   // operands — the dispatch hot path reads the function from the
   // descriptor without a registry lookup per call. Tag bindings
-  // keep their :qlang/impl as a keyword (`:qlang/type/<tag>`);
+  // keep their :impl as a keyword (`:qlang/type/<tag>`);
   // evalTaggedLit resolves it through PRIMITIVE_REGISTRY at
   // invocation. That keeps `reify(::tag)` output readable — a
   // keyword instead of a JS-source dump of an opaque constructor
@@ -168,10 +168,10 @@ export async function buildLangRuntime(locator) {
   // descriptor always carries it after this pass.
   for (const descriptor of templateEnv.values()) {
     if (!(descriptor instanceof Map)) continue;
-    if (descriptor.get('qlang/kind')?.name !== 'builtin') continue;
-    const implKey = descriptor.get('qlang/impl');
+    if (descriptor.get('kind')?.name !== 'builtin') continue;
+    const implKey = descriptor.get('impl');
     if (isKeyword(implKey)) {
-      descriptor.set('qlang/impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
+      descriptor.set('impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
     }
     if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
     if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));

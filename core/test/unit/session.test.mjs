@@ -245,7 +245,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(
-      '::wrap {:qlang/kind :tag :qlang/impl ~{prepend("[") | append("]")}}'
+      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}}'
     );
     const restored = await deserializeSession(
       JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))
@@ -270,18 +270,18 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
 // Minimal .qlang source for a module with one builtin descriptor
 // and one qlang-only conduit. The builtin descriptor carries
-// :qlang/kind :builtin and :qlang/impl null (patched by the locator
+// :kind :builtin and :impl null (patched by the locator
 // with the actual function value).
 // Module source: a Map literal with one builtin descriptor, piped
 // through `use` to install it in env, then a let-conduit that
-// builds on it. The locator patches :qlang/impl on the builtin
+// builds on it. The locator patches :impl on the builtin
 // descriptor with the host function after eval.
 // Module source: descriptor Map merged via | use to install
-// bindings in env. The locator patches :qlang/impl on the builtin
+// bindings in env. The locator patches :impl on the builtin
 // descriptor after eval. Env delta = the exports.
 const MOCK_MODULE_SOURCE = [
-  '{:@fetch {:qlang/kind :builtin',
-  '         :qlang/impl null',
+  '{:@fetch {:kind :builtin',
+  '         :impl null',
   '         :category :test-io',
   '         :subject :string',
   '         :modifiers []',

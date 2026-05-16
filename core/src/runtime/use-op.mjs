@@ -81,7 +81,7 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
 // Looks up the namespace keyword in env. When absent, falls back
 // to the host-provided locator (stored under `:qlang/locator` in
 // env by `createSession`). The locator parses and evals the module
-// source, patches `:qlang/impl` on builtin descriptors with the
+// source, patches `:impl` on builtin descriptors with the
 // impls from the locator result, and installs the namespace
 // keyword in env for subsequent lookups. Returns the resolved
 // `moduleEnv` paired with the env that holds the freshly-installed
@@ -149,9 +149,9 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);
-      const descKind = isQMap(implDescriptor) && implDescriptor.get('qlang/kind');
+      const descKind = isQMap(implDescriptor) && implDescriptor.get('kind');
       if (descKind && descKind.name === 'builtin') {
-        implDescriptor.set('qlang/impl', implFn);
+        implDescriptor.set('impl', implFn);
       }
     }
   }

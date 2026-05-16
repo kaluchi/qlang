@@ -24,7 +24,7 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 }
 
 // Function values (`makeFn` output) are runtime-internal: they live on
-// `:qlang/impl` of builtin descriptor Maps and as conduit-parameter
+// `:impl` of builtin descriptor Maps and as conduit-parameter
 // proxies behind reify's :category :conduit-parameter projection. They
 // have no grammatical literal — the only candidate render form
 // (`:qlang/prim/${name}`) parses back as a keyword value on the next
@@ -37,7 +37,7 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(
-      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :qlang/kind :builtin and :qlang/impl when binding through session.bind.',
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :kind :builtin and :impl when binding through session.bind.',
       {}
     );
     this.name = 'FunctionValueLeakedToPrintError';
@@ -195,7 +195,7 @@ export function keyword(name) {
 }
 
 // TagKeyword — `::tag` reference value. Tagged-instance Maps
-// stamp `:qlang/kind` with a TagKeyword so the discriminator
+// stamp `:kind` with a TagKeyword so the discriminator
 // reads as "this is an instance of ::tag" — a tighter
 // classification than the plain-keyword `:tag` symbol carries.
 // `.name` mirrors the keyword shape so a single
@@ -222,18 +222,18 @@ export function isTagKeyword(v) {
 
 export function isConduit(v) {
   if (!(v instanceof Map)) return false;
-  const kind = v.get('qlang/kind');
+  const kind = v.get('kind');
   return kind && kind.name === 'conduit';
 }
 
 export function isSnapshot(v) {
   if (!(v instanceof Map)) return false;
-  const kind = v.get('qlang/kind');
+  const kind = v.get('kind');
   return kind && kind.name === 'snapshot';
 }
 
-// A tagged-instance Map carries `:qlang/kind <TagKeyword>` plus a
-// `:qlang/payload` slot holding whatever the constructor literal
+// A tagged-instance Map carries `:kind <TagKeyword>` plus a
+// `:payload` slot holding whatever the constructor literal
 // captured — a Vec (`::Tag[1 2 3]`), a Map (`::Tag{:k 1}`), a
 // scalar wrapped via ParenGroup (`::Tag(42)`), a Quote, a Set,
 // any pipeline value. The conduit / snapshot / tag-binding
@@ -242,10 +242,10 @@ export function isSnapshot(v) {
 const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
 export function isTaggedInstance(v) {
   if (!(v instanceof Map)) return false;
-  const kind = v.get('qlang/kind');
+  const kind = v.get('kind');
   if (!isTagKeyword(kind)) return false;
   if (RESERVED_TAGGED_KINDS.has(kind.name)) return false;
-  return v.has('qlang/payload');
+  return v.has('payload');
 }
 
 export function isQuote(v) {
@@ -271,7 +271,7 @@ export function makeQuote(source, ast = null) {
 // Doc — frozen JS object carrying `.content` (the verbatim text
 // between `|~~ ... ~~|` markers, or after `|~~|` up to newline).
 // Same JS-layer discriminator pattern as Quote — `.type === 'doc'`
-// keeps `:qlang/kind` housekeeping out of the user-visible Map
+// keeps `:kind` housekeeping out of the user-visible Map
 // surface. Doc value lands in pipeValue through DocLit literal in
 // any Primary position; the attached-prefix path
 // (DocAttachedSequence) is unrelated — there docs travel as
@@ -291,12 +291,12 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
     throw new ConduitBodyMissingSourceError();
   }
   const m = new Map();
-  m.set('qlang/kind', makeTagKeyword('conduit'));
+  m.set('kind', makeTagKeyword('conduit'));
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
-  m.set('qlang/body', body);
-  m.set('qlang/source', body.text);
-  m.set('qlang/envRef', envRef);
+  m.set('body', body);
+  m.set('source', body.text);
+  m.set('envRef', envRef);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
@@ -307,9 +307,9 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
 
 export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   const m = new Map();
-  m.set('qlang/kind', makeTagKeyword('snapshot'));
+  m.set('kind', makeTagKeyword('snapshot'));
   m.set('name', name);
-  m.set('qlang/value', value);
+  m.set('payload', value);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
@@ -321,17 +321,17 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 export function withName(binding, newName) {
   if (isConduit(binding)) {
     // Pass the original body through — makeConduit re-stamps
-    // qlang/source from body.text under the new name.
-    return makeConduit(binding.get('qlang/body'), {
+    // source from body.text under the new name.
+    return makeConduit(binding.get('body'), {
       name: newName,
       params: [...binding.get('params')],
-      envRef: binding.get('qlang/envRef'),
+      envRef: binding.get('envRef'),
       docs: [...binding.get('docs')],
       location: binding.get('location')
     });
   }
   if (isSnapshot(binding)) {
-    return makeSnapshot(binding.get('qlang/value'), {
+    return makeSnapshot(binding.get('payload'), {
       name: newName,
       docs: [...binding.get('docs')],
       location: binding.get('location')
@@ -434,22 +434,22 @@ export function typeKeyword(v) {
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) {
-    // Identity-via-`:qlang/kind` invariant — every tagged Map
+    // Identity-via-`:kind` invariant — every tagged Map
     // (tagged-instance constructor result, materialised error
-    // descriptor exposed under `!|`, user `{:qlang/kind ::Foo …}`)
+    // descriptor exposed under `!|`, user `{:kind ::Foo …}`)
     // surfaces its TagKeyword as identity. Maps without the slot
     // keep the generic `:map` keyword.
-    const mapKind = v.get('qlang/kind');
+    const mapKind = v.get('kind');
     if (isTagKeyword(mapKind)) return mapKind;
     return keyword('map');
   }
   if (isQSet(v)) return keyword('set');
-  // Error values carry their class identity in `:qlang/kind` (a
+  // Error values carry their class identity in `:kind` (a
   // TagKeyword), same invariant as every other tagged-instance.
   // The `type` operand surfaces it as the value's user-facing
   // identity.
   if (isErrorValue(v)) {
-    const kind = v.descriptor.get('qlang/kind');
+    const kind = v.descriptor.get('kind');
     return isTagKeyword(kind) ? kind : keyword('error');
   }
   if (isFunctionValue(v)) return keyword('function');

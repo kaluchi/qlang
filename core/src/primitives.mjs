@@ -1,16 +1,16 @@
 // Primitive registry — bootstrap-time binding table between qlang-
-// level Map-form binding descriptors (which carry :qlang/impl
+// level Map-form binding descriptors (which carry :impl
 // keyword at authoring time) and their JS-level executable impls.
 //
-// Every binding in langRuntime is a qlang Map with :qlang/kind
-// :builtin and an :qlang/impl field. At authoring time in
-// `core.qlang`, :qlang/impl holds a namespaced keyword like
+// Every binding in langRuntime is a qlang Map with :kind
+// :builtin and an :impl field. At authoring time in
+// `core.qlang`, :impl holds a namespaced keyword like
 // `:qlang/prim/mul` pointing into this registry. The bootstrap
 // resolution pass in `runtime/index.mjs::langRuntime()` resolves
 // each keyword through `PRIMITIVE_REGISTRY.resolve` into the
 // matching JS function value and replaces the keyword on the
 // descriptor with the function directly. After bootstrap,
-// dispatch reads the function from :qlang/impl directly — the
+// dispatch reads the function from :impl directly — the
 // registry is a build-time bridge consulted only during the
 // resolution pass.
 //
@@ -18,20 +18,20 @@
 //
 //   `qlang/prim/<name>` — value-namespace operands (`add`, `count`,
 //     `filter`, `reify`, …). Resolved once at bootstrap; the
-//     descriptor's `:qlang/impl` keyword is replaced with the
+//     descriptor's `:impl` keyword is replaced with the
 //     resulting JS function value.
 //
 //   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
 //     `::qlang`, `::json`). The keyword stays a keyword on the
 //     descriptor; `evalTaggedLit` resolves it through the registry
 //     at every invocation so `reify(::tag)` keeps the readable
-//     `:qlang/impl :qlang/type/<tag>` handle on the descriptor.
+//     `:impl :qlang/type/<tag>` handle on the descriptor.
 //
 // Lifecycle:
 //   1. Each runtime/*.mjs module binds its impls at import time
 //      via `bindPrim(name, impl)` (value-namespace) or
 //      `bindTypeConstructor(tagName, ctor)` (tag-namespace).
-//   2. langRuntime() resolves every :qlang/impl `qlang/prim/*`
+//   2. langRuntime() resolves every :impl `qlang/prim/*`
 //      keyword on the template env descriptors to its function
 //      value, then calls `PRIMITIVE_REGISTRY.seal()`.
 //
@@ -113,7 +113,7 @@ class PrimitiveRegistrySealedError extends QlangInvariantError {
 }
 
 // PrimitiveKeyUnboundError — the one dispatch-time data error. Fires when
-// a descriptor Map's :qlang/impl keyword points to a primitive that
+// a descriptor Map's :impl keyword points to a primitive that
 // was never bound. Extends QlangError so evalNode's try/catch
 // converts it to an error value on the fail-track. This gracefully
 // handles hand-crafted descriptor Maps, stale serialized sessions,
@@ -203,7 +203,7 @@ export function createPrimitiveRegistry() {
 //     bindPrim('add', add);
 //
 // The catalog file (`core/lib/qlang/operand/arith.qlang`) declares
-// the same name under `:qlang/impl :qlang/prim/add` on the `:add`
+// the same name under `:impl :qlang/prim/add` on the `:add`
 // descriptor Map, completing the descriptor → registry → impl
 // handoff `langRuntime`'s bootstrap pass resolves at construction
 // time.
@@ -230,7 +230,7 @@ export function bindPrim(name, impl) {
 
 // bindTypeConstructor(tagName, ctor) — bind a tag-namespace
 // constructor under the `qlang/type/<tag>` key. Pairs with the
-// `:qlang/impl :qlang/type/<tag>` slot the catalog tag-binding
+// `:impl :qlang/type/<tag>` slot the catalog tag-binding
 // declares.
 export function bindTypeConstructor(tagName, ctor) {
   return PRIMITIVE_REGISTRY.bind(TYPE_KEY_PREFIX + tagName, ctor);

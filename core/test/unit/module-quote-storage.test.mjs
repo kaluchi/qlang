@@ -18,7 +18,7 @@ describe('langRuntime stamps the core module as a Quote', () => {
   });
 
   it('exposes pre-parsed AST through /ast — no re-parse needed', async () => {
-    const result = await evalQuery('env | /:qlang/ast/qlang/core | /ast | /:qlang/kind');
+    const result = await evalQuery('env | /:qlang/ast/qlang/core | /ast | /:kind');
     expect(result).toEqual(keyword('Pipeline'));
   });
 
@@ -60,7 +60,7 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
     const sessionInstance = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /ast | /:qlang/kind');
+    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /ast | /:kind');
     expect(cellEntry.result).toEqual(keyword('BindStep'));
   });
 

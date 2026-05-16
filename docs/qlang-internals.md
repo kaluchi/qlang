@@ -317,9 +317,9 @@ Overloaded by captured-arg count:
   - `:builtin` — `pipeValue` is a descriptor Map loaded by
     `langRuntime()` from one of the catalog family files under
     `lib/qlang/operand/`. env stores every built-in as a Map
-    directly; `reify` substitutes the internal `:qlang/kind
-    :builtin` / `:qlang/impl :qlang/prim/<name>` discriminator
-    for the user-facing `:kind :builtin`, drops the `:qlang/impl`
+    directly; `reify` substitutes the internal `:kind
+    :builtin` / `:impl :qlang/prim/<name>` discriminator
+    for the user-facing `:kind :builtin`, drops the `:impl`
     handle (reify consumers read the descriptor, the dispatch-time
     primitive key is internal), and computes `:captured` /
     `:effectful` by resolving the primitive through
@@ -380,8 +380,8 @@ predicate; every place that needs to walk env entries by namespace
 through these helpers.
 
 A tag binding is the value stored under `'::Tag'`: a frozen Map
-carrying `:qlang/kind :tag` plus a constructor handle on
-`:qlang/impl`.
+carrying `:kind :tag` plus a constructor handle on
+`:impl`.
 
 ### TaggedLit eval flow
 
@@ -397,8 +397,8 @@ carrying `:qlang/kind :tag` plus a constructor handle on
 3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
    snapshots route through here too).
 4. **Validate descriptor shape.** Binding must be a Map (typically
-   carrying `:qlang/kind :tag`). Otherwise → `TaggedLitNotTagBindingError`.
-5. **Read `:qlang/impl`.** Three branches dispatch by the impl
+   carrying `:kind :tag`). Otherwise → `TaggedLitNotTagBindingError`.
+5. **Read `:impl`.** Three branches dispatch by the impl
    value's runtime shape:
    - **Keyword handle** (`:qlang/prim/<tag>`) — resolve through
      `PRIMITIVE_REGISTRY` to a JS-side constructor function.
@@ -409,14 +409,14 @@ carrying `:qlang/kind :tag` plus a constructor handle on
      state with `pipeValue = payloadValue` and the surrounding
      env, evaluate the body AST, ascend the result.
    - **Undefined** + payload is an **ErrorValue** — re-stamp the
-     descriptor with `:qlang/kind ::Tag` and return a fresh
+     descriptor with `:kind ::Tag` and return a fresh
      ErrorValue carrying the promoted identity. Lets every error
      tag work as a literal constructor (`::Tag!{…}`) without
      per-tag JS, mirroring the shape `errorFromQlang` produces
      from a runtime throw site.
    - **Undefined** + any other payload — build a success-track
-     **TaggedInstance** Map `{:qlang/kind ::Tag :qlang/payload
-     <value>}`. The payload value rides under the `:qlang/payload`
+     **TaggedInstance** Map `{:kind ::Tag :payload
+     <value>}`. The payload value rides under the `:payload`
      slot for every Primary that doesn't carry error semantics
      (`::Tag[…]` / `::Tag{…}` / `::Tag"s"` / `::Tag:foo` /
      `::Tag(42)` / etc.). Generic constructor every tag-binding
@@ -452,8 +452,8 @@ Constructors must satisfy:
 
 ### Tagged-instance round-trip
 
-A constructor that returns a Map carrying `:qlang/kind <TagKeyword>`
-plus `:qlang/payload <Vec>` produces a **tagged instance** —
+A constructor that returns a Map carrying `:kind <TagKeyword>`
+plus `:payload <Vec>` produces a **tagged instance** —
 `isTaggedInstance` in `types.mjs` recognises the shape and
 `printValue` routes it through `printTaggedInstance`, which emits
 the `::tag[<payload>]` literal. The original source-form
@@ -471,7 +471,7 @@ the generic tagged-instance branch:
   back as `::Tag {descriptor}` — the declaration form).
 
 The named-error promotion piggybacks on the same round-trip:
-`errorFromQlang` stamps `:qlang/kind ::Tag` on the descriptor
+`errorFromQlang` stamps `:kind ::Tag` on the descriptor
 (the universal tagged-value identity slot), `printErrorValue`
 folds the field into the literal head and emits `::Tag!{…}` with
 the rest of the descriptor as payload, and a literal `::Tag!{…}`
@@ -657,8 +657,8 @@ co-located sources:
   by the operand BindSteps that reference those tags in their
   `:throws` Vec. Each operand binds a keyword identifier
   (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
-  descriptor Map carrying `:qlang/kind :builtin` plus a
-  namespaced `:qlang/impl :qlang/prim/<name>` keyword that
+  descriptor Map carrying `:kind :builtin` plus a
+  namespaced `:impl :qlang/prim/<name>` keyword that
   points into the primitive registry, plus authored metadata
   (`:category`, `:subject`, `:modifiers`, `:returns`,
   `:throws`). Doc-prefixes attached to each BindStep via
@@ -695,9 +695,9 @@ language level.
 
 Dispatch at an operand call site is straightforward under this
 shape. `eval.mjs::evalOperandCall` looks up the identifier in
-`env`; if the resolved value is a Map carrying `:qlang/kind
+`env`; if the resolved value is a Map carrying `:kind
 :builtin`, control flows through `applyBuiltinDescriptor` which
-reads the `:qlang/impl` handle, resolves it through
+reads the `:impl` handle, resolves it through
 `PRIMITIVE_REGISTRY.resolve` into the backing function value,
 and invokes it via Rule 10. A bare non-nullary lookup (no captured args,
 `impl.meta.captured[0] > 0`) short-circuits to return the
@@ -1209,7 +1209,7 @@ in addition to the invariant `:trail`:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` or `:host` or `:user` |
 | `:kind` | keyword | Error category |
-| `:qlang/kind` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
+| `:kind` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
 | `:message` | string | Human-readable |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
@@ -1251,7 +1251,7 @@ edit — `astChildrenOf` and the codec share the shape knowledge.
 - `triviaBetweenAstNodes(nodeA, nodeB, ast)` — source slice between
   two adjacent nodes (whitespace, punctuation, plain comments).
 - `astNodeToMap(node)` — encodes a JS-object AST node into a
-  frozen qlang-Map representation, stamping `:qlang/kind
+  frozen qlang-Map representation, stamping `:kind
   :<NodeType>` as the discriminator plus type-specific payload
   fields (`:value`, `:name`, `:args`, `:elements`, `:entries`,
   `:keys`, `:steps`, etc.) and the shared `:text` / `:location`
@@ -1291,7 +1291,7 @@ layering boundary.
 - `PRIMITIVE_REGISTRY` — the production singleton bound by every
   `runtime/*.mjs` module at import time under namespaced
   `:qlang/prim/<name>` keys (`add`, `filter`, `parse`, `eval`,
-  and so on). `evalOperandCall` resolves an `:qlang/impl` handle
+  and so on). `evalOperandCall` resolves an `:impl` handle
   through `PRIMITIVE_REGISTRY.resolve` at every built-in dispatch.
 
 Per-site invariant errors cover the three bind-time failure
@@ -1301,7 +1301,7 @@ modules claiming the same name), `PrimitiveRegistrySealedError`
 (late registration after bootstrap closes the registry). The
 sole dispatch-time data error is `PrimitiveKeyUnboundError`,
 which extends `QlangError` so a hand-crafted descriptor Map
-with a bad `:qlang/impl` handle lifts to an error value on the
+with a bad `:impl` handle lifts to an error value on the
 fail-track.
 
 ### `session.mjs` — REPL / notebook session lifecycle

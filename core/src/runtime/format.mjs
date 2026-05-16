@@ -95,11 +95,11 @@ const TO_PLAIN_HANDLERS = {
   // bundle. Encode the wrapped value transparently — toPlain is the
   // lossy codec, the wrapper metadata is reachable through reify
   // for callers that need it.
-  Snapshot:       s => toPlain(s.get('qlang/value')),
+  Snapshot:       s => toPlain(s.get('payload')),
   // Conduit and TaggedInstance carry their structure as a Map. The
-  // TagKeyword handler lifts the `:qlang/kind` discriminator so Map
+  // TagKeyword handler lifts the `:kind` discriminator so Map
   // iteration encodes cleanly without leaking `[object Object]`
-  // markers. Raw JS slots (`:qlang/body` AST node, `:qlang/envRef`
+  // markers. Raw JS slots (`:body` AST node, `:envRef`
   // holder) reach `env | json` only when env contains user-defined
   // conduits — those surface through toPlainFallback as a shape
   // outside the toPlain contract.
@@ -238,13 +238,13 @@ function printListLike(open, close, inlineSep, elements, indent) {
 function literalOfKeyword(k) { return k.literal; }
 
 // Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
-// when `:qlang/kind` carries a TagKeyword — entropy promotion:
+// when `:kind` carries a TagKeyword — entropy promotion:
 // the class identity rides at the structural front-position of
 // the literal, the same shape `printTaggedInstance` produces for
 // non-error tagged-instances. The payload-Map below drops three
 // categories of already-known content so the printed form stays
 // terse:
-//   * `:qlang/kind` itself when tagHead absorbed it,
+//   * `:kind` itself when tagHead absorbed it,
 //   * `:trail null` (makeErrorValue's invariant restores it on
 //     reconstruction — see types.mjs::makeErrorValue),
 //   * `:message` when tagHead is present (the canonical prose is
@@ -253,11 +253,11 @@ function literalOfKeyword(k) { return k.literal; }
 //     structured fields).
 function printErrorValue(e, indent) {
   const desc = e.descriptor;
-  const kind = desc.get('qlang/kind');
+  const kind = desc.get('kind');
   const tagHead = isTagKeyword(kind) ? kind.literal : '';
   const payload = new Map();
   for (const [k, v] of desc) {
-    if (k === 'qlang/kind' && tagHead) continue;
+    if (k === 'kind' && tagHead) continue;
     if (k === 'trail' && v === null) continue;
     if (k === 'message' && tagHead) continue;
     payload.set(k, v);
@@ -300,10 +300,10 @@ function printFallback(v) {
 // holder, which the constructor binds to the call-site env at
 // reconstruction time.
 function printConduit(conduit) {
-  const conduitTagLiteral = conduit.get('qlang/kind').literal;
+  const conduitTagLiteral = conduit.get('kind').literal;
   const name = conduit.get('name');
   const params = conduit.get('params');
-  const source = conduit.get('qlang/source');
+  const source = conduit.get('source');
   const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
   const quotedBody = '~{' + source + '}';
   if (name == null) {
@@ -313,12 +313,12 @@ function printConduit(conduit) {
 }
 
 function printSnapshot(snapshot) {
-  return printValue(snapshot.get('qlang/value'));
+  return printValue(snapshot.get('payload'));
 }
 
 // Round-trip a tagged-instance Map back into the TaggedLit literal
 // that produced it. The constructor stamps the original payload
-// value under `:qlang/payload`; the renderer concatenates the tag
+// value under `:payload`; the renderer concatenates the tag
 // literal with the printed payload directly. ParenGroup wrap fires
 // only when the payload's print form opens with an identifier
 // character (letter, digit, or leading `-` for negative numbers) —
@@ -329,8 +329,8 @@ function printSnapshot(snapshot) {
 // no wrap is needed.
 const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 function printTaggedInstance(instance, indent) {
-  const tagLiteral = instance.get('qlang/kind').literal;
-  const payload = instance.get('qlang/payload');
+  const tagLiteral = instance.get('kind').literal;
+  const payload = instance.get('payload');
   const payloadPrint = printValue(payload, indent);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint)) {
     return `${tagLiteral}(${payloadPrint})`;
@@ -349,20 +349,20 @@ function escapeQlangStringLiteral(s) {
     .replace(/\f/g, '\\f')}"`;
 }
 
-// `:qlang/impl` carries the post-bootstrap-resolved function value
+// `:impl` carries the post-bootstrap-resolved function value
 // on a builtin descriptor Map. The author-form (the keyword shape
 // that lives in the operand-family catalog and that langRuntime resolves at boot)
 // is `:qlang/prim/<name>`. printValue projects the function back to
 // that keyword form here so descriptor Maps in pipeValue round-trip
 // through parse → MapLit → eval into an equivalent Map (with the
-// keyword in `:qlang/impl`, which langRuntime would re-resolve at
+// keyword in `:impl`, which langRuntime would re-resolve at
 // bootstrap if it ever reached env again). The Function-leak
 // invariant still fires for any function value that surfaces
-// outside this single slot — `env | /count | /qlang/impl` strips
+// outside this single slot — `env | /count | /impl` strips
 // the descriptor and feeds the raw function into printValue,
 // which is the actual leak surface we want flagged.
 function projectMapEntryForPrint(k, v) {
-  if (k === 'qlang/impl' && isFunctionValue(v)) {
+  if (k === 'impl' && isFunctionValue(v)) {
     return [k, keyword(primKey(v.name))];
   }
   return [k, v];
@@ -414,7 +414,7 @@ const CELL_HANDLERS = {
   // housekeeping. Cell-renderer recurses on the unwrapped value
   // so the cell stays a value literal (round-trip-safe), not the
   // `as(:name)` binding statement.
-  Snapshot:   s => renderCell(s.get('qlang/value')),
+  Snapshot:   s => renderCell(s.get('payload')),
   TaggedInstance: renderTaggedInstanceInline
 };
 
@@ -439,14 +439,14 @@ const INLINE_HANDLERS = {
   // a Snapshot back through it would re-enter the parser as a
   // BindStep, where eval would write env and leave pipeValue at
   // the captured value, diverging from the Snapshot identity.
-  Snapshot:   s => renderInline(s.get('qlang/value')),
+  Snapshot:   s => renderInline(s.get('payload')),
   TaggedInstance: renderTaggedInstanceInline,
   Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
 };
 
 function renderTaggedInstanceInline(instance) {
-  const tagLiteral = instance.get('qlang/kind').literal;
-  const payload = instance.get('qlang/payload');
+  const tagLiteral = instance.get('kind').literal;
+  const payload = instance.get('payload');
   const payloadInline = renderInline(payload);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadInline)) {
     return `${tagLiteral}(${payloadInline})`;

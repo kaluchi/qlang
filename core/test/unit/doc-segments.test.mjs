@@ -9,7 +9,7 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
     expect(result).toBe(1);
   });
 
-  it('Prose segment has :qlang/kind :prose and :text', async () => {
+  it('Prose segment has :kind :prose and :text', async () => {
     const result = await evalQuery('|~~ hello ~~| | /segments | first | /text');
     expect(result).toBe(' hello ');
   });

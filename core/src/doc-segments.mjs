@@ -1,7 +1,7 @@
 // Doc-content tokenizer — splits a Doc-value's `.content` string
 // into a Vec of segments, each one of:
 //
-//   Prose     — `{:qlang/kind :prose :text "..."}` for the raw
+//   Prose     — `{:kind :prose :text "..."}` for the raw
 //               text between special tokens.
 //   Quote     — Quote-value (frozen `.source`) for a `~{…}`
 //               paired-delimiter code fragment.
@@ -24,7 +24,7 @@ const PROSE_KIND = keyword('prose');
 
 function makeProseSegment(text) {
   const m = new Map();
-  m.set('qlang/kind', PROSE_KIND);
+  m.set('kind', PROSE_KIND);
   m.set('text', text);
   return Object.freeze(m);
 }

@@ -79,8 +79,8 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Box')],
-      ['qlang/payload', [42, 'inner']]
+      ['kind', makeTagKeyword('Box')],
+      ['payload', [42, 'inner']]
     ]);
     expect(printValue(instance)).toBe('::Box[42 "inner"]');
   });
@@ -88,22 +88,22 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Marker')],
-      ['qlang/payload', []]
+      ['kind', makeTagKeyword('Marker')],
+      ['payload', []]
     ]);
     expect(printValue(instance)).toBe('::Marker[]');
   });
 });
 
 describe('printErrorValue — head + payload-filter branches', () => {
-  it('an error with no :qlang/kind prints in plain !{…} form (no tag-head prefix)', async () => {
+  it('an error with no :kind prints in plain !{…} form (no tag-head prefix)', async () => {
     const { makeErrorValue } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]]));
     expect(printValue(err)).toBe('!{:kind :oops}');
   });
 
-  it('an error with no :qlang/kind keeps :message in the payload (user data, not template-fill)', async () => {
-    // Without a TagKeyword `:qlang/kind`, the printer has no class
+  it('an error with no :kind keeps :message in the payload (user data, not template-fill)', async () => {
+    // Without a TagKeyword `:kind`, the printer has no class
     // identity to point hypertext docs at — `:message` is therefore
     // user-provided content, not a derivable template-fill, and
     // stays in the printed form.
@@ -121,29 +121,29 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(printValue(err)).toBe('!{}');
   });
 
-  it('a tag-headed error with only :qlang/kind survives the payload filter as ::Tag!{}', async () => {
+  it('a tag-headed error with only :kind survives the payload filter as ::Tag!{}', async () => {
     const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
-    const err = makeErrorValue(new Map([['qlang/kind', makeTagKeyword('Foo')]]));
+    const err = makeErrorValue(new Map([['kind', makeTagKeyword('Foo')]]));
     expect(printValue(err)).toBe('::Foo!{}');
   });
 
-  it('a tag-headed error renders the payload after the head, suppressing :qlang/kind duplication', async () => {
+  it('a tag-headed error renders the payload after the head, suppressing :kind duplication', async () => {
     const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
-      ['qlang/kind', makeTagKeyword('Foo')],
-      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+      ['kind', makeTagKeyword('Foo')],
+      ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
-    expect(printValue(err)).toBe('::Foo!{:kind :oops}');
+    expect(printValue(err)).toBe('::Foo!{:category :oops}');
   });
 
   it('a tag-headed error elides :message (template-fill reachable via ::Tag | docs)', async () => {
     const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
-      ['qlang/kind', makeTagKeyword('Foo')],
+      ['kind', makeTagKeyword('Foo')],
       ['message', 'template-derivable prose'],
-      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+      ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
-    expect(printValue(err)).toBe('::Foo!{:kind :oops}');
+    expect(printValue(err)).toBe('::Foo!{:category :oops}');
   });
 });
 
@@ -152,8 +152,8 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Box')],
-      ['qlang/payload', [42]]
+      ['kind', makeTagKeyword('Box')],
+      ['payload', [42]]
     ]);
     const row = new Map([['boxed', instance]]);
     const rendered = await table.fn(
@@ -167,8 +167,8 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Count')],
-      ['qlang/payload', 42]
+      ['kind', makeTagKeyword('Count')],
+      ['payload', 42]
     ]);
     const row = new Map([['c', instance]]);
     const rendered = await table.fn(
@@ -182,8 +182,8 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     const { table } = await import('../../src/runtime/format.mjs');
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
-      ['qlang/kind', makeTagKeyword('Pair')],
-      ['qlang/payload', [1, 2]]
+      ['kind', makeTagKeyword('Pair')],
+      ['payload', [1, 2]]
     ]);
     const row = new Map([['pairs', [instance]]]);
     const rendered = await table.fn(

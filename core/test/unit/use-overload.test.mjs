@@ -212,29 +212,29 @@ describe('higher-order lambda fail-track deflection into !|', () => {
   // the higher-order operand returns that error value as its own
   // result. Downstream the success-track `|` deflects the error, so
   // we route the next step through `!|` to fire on it and project
-  // `:kind` out of the materialized descriptor.
+  // `:category` out of the materialized descriptor.
   it('every returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | every(thisIsNotDefined) !| /kind');
+    const evalResult = await evalQuery('[1 2 3] | every(thisIsNotDefined) !| /category');
     expect(evalResult).toEqual(keyword('unresolved-identifier'));
   });
 
   it('any returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | any(thisIsNotDefined) !| /kind');
+    const evalResult = await evalQuery('[1 2 3] | any(thisIsNotDefined) !| /category');
     expect(evalResult).toEqual(keyword('unresolved-identifier'));
   });
 
   it('groupBy returns the error raised by its key lambda', async () => {
-    const evalResult = await evalQuery('[1 2 3] | groupBy(thisIsNotDefined) !| /kind');
+    const evalResult = await evalQuery('[1 2 3] | groupBy(thisIsNotDefined) !| /category');
     expect(evalResult).toEqual(keyword('unresolved-identifier'));
   });
 
   it('indexBy returns the error raised by its key lambda', async () => {
-    const evalResult = await evalQuery('[1 2 3] | indexBy(thisIsNotDefined) !| /kind');
+    const evalResult = await evalQuery('[1 2 3] | indexBy(thisIsNotDefined) !| /category');
     expect(evalResult).toEqual(keyword('unresolved-identifier'));
   });
 
   it('filter returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | filter(thisIsNotDefined) !| /kind');
+    const evalResult = await evalQuery('[1 2 3] | filter(thisIsNotDefined) !| /category');
     expect(evalResult).toEqual(keyword('unresolved-identifier'));
   });
 });

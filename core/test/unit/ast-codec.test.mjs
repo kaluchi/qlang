@@ -6,7 +6,7 @@
 //
 // Two guarantees are under test:
 //
-//   1. Shape — astNodeToMap produces Maps whose :qlang/kind
+//   1. Shape — astNodeToMap produces Maps whose :kind
 //      discriminator, payload fields, and nested structure match the
 //      AST-Map layout documented in walk.mjs.
 //
@@ -21,7 +21,7 @@ import { parse } from '../../src/parse.mjs';
 import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
 import { keyword, isQMap, isVec } from '../../src/types.mjs';
 
-const KW_QLANG_KIND   = 'qlang/kind';
+const KW_KIND   = 'kind';
 const KW_VALUE        = 'value';
 const KW_NAME         = 'name';
 const KW_KEYS         = 'keys';
@@ -79,10 +79,10 @@ function assertRoundTrip(source) {
 }
 
 describe('astNodeToMap — discriminator and shape', () => {
-  it('stamps :qlang/kind on every produced Map', () => {
+  it('stamps :kind on every produced Map', () => {
     const m = astNodeToMap(parse('42'));
     expect(isQMap(m)).toBe(true);
-    expect(m.get(KW_QLANG_KIND).name).toBe('NumberLit');
+    expect(m.get(KW_KIND).name).toBe('NumberLit');
     expect(m.get(KW_VALUE)).toBe(42);
   });
 
@@ -107,12 +107,12 @@ describe('astNodeToMap — discriminator and shape', () => {
   });
 
   it('encodes scalar literals by kind and value', () => {
-    expect(astNodeToMap(parse('42')).get(KW_QLANG_KIND).name).toBe('NumberLit');
-    expect(astNodeToMap(parse('"hi"')).get(KW_QLANG_KIND).name).toBe('StringLit');
-    expect(astNodeToMap(parse('true')).get(KW_QLANG_KIND).name).toBe('BooleanLit');
-    expect(astNodeToMap(parse('false')).get(KW_QLANG_KIND).name).toBe('BooleanLit');
-    expect(astNodeToMap(parse('null')).get(KW_QLANG_KIND).name).toBe('NullLit');
-    expect(astNodeToMap(parse(':foo')).get(KW_QLANG_KIND).name).toBe('Keyword');
+    expect(astNodeToMap(parse('42')).get(KW_KIND).name).toBe('NumberLit');
+    expect(astNodeToMap(parse('"hi"')).get(KW_KIND).name).toBe('StringLit');
+    expect(astNodeToMap(parse('true')).get(KW_KIND).name).toBe('BooleanLit');
+    expect(astNodeToMap(parse('false')).get(KW_KIND).name).toBe('BooleanLit');
+    expect(astNodeToMap(parse('null')).get(KW_KIND).name).toBe('NullLit');
+    expect(astNodeToMap(parse(':foo')).get(KW_KIND).name).toBe('Keyword');
   });
 
   it('encodes Keyword :name as its source-form string', () => {
@@ -123,40 +123,40 @@ describe('astNodeToMap — discriminator and shape', () => {
 
   it('encodes VecLit :elements as a frozen Vec of nested AST-Maps', () => {
     const m = astNodeToMap(parse('[1 2 3]'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('VecLit');
+    expect(m.get(KW_KIND).name).toBe('VecLit');
     const elems = m.get(KW_ELEMENTS);
     expect(isVec(elems)).toBe(true);
     expect(elems).toHaveLength(3);
     expect(Object.isFrozen(elems)).toBe(true);
-    expect(elems[0].get(KW_QLANG_KIND).name).toBe('NumberLit');
+    expect(elems[0].get(KW_KIND).name).toBe('NumberLit');
     expect(elems[0].get(KW_VALUE)).toBe(1);
   });
 
   it('encodes SetLit :elements', () => {
     const m = astNodeToMap(parse('#{:a :b :c}'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('SetLit');
+    expect(m.get(KW_KIND).name).toBe('SetLit');
     expect(m.get(KW_ELEMENTS)).toHaveLength(3);
   });
 
   it('encodes MapLit :entries with MapEntry wrappers', () => {
     const m = astNodeToMap(parse('{:name "a" :age 30}'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('MapLit');
+    expect(m.get(KW_KIND).name).toBe('MapLit');
     const entries = m.get(KW_ENTRIES);
     expect(entries).toHaveLength(2);
-    expect(entries[0].get(KW_QLANG_KIND).name).toBe('MapEntry');
-    expect(entries[0].get(KW_KEY).get(KW_QLANG_KIND).name).toBe('Keyword');
+    expect(entries[0].get(KW_KIND).name).toBe('MapEntry');
+    expect(entries[0].get(KW_KEY).get(KW_KIND).name).toBe('Keyword');
     expect(entries[0].get(KW_KEY).get(KW_NAME)).toBe('name');
   });
 
   it('encodes ErrorLit with :ErrorLit kind and :entries payload', () => {
     const m = astNodeToMap(parse('!{:kind :oops}'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('ErrorLit');
+    expect(m.get(KW_KIND).name).toBe('ErrorLit');
     expect(m.get(KW_ENTRIES)).toHaveLength(1);
   });
 
   it('encodes QuoteLit with :QuoteLit kind and :src payload', () => {
     const m = astNodeToMap(parse('~{mul(2)}'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('QuoteLit');
+    expect(m.get(KW_KIND).name).toBe('QuoteLit');
     expect(m.get('src')).toBe('mul(2)');
   });
 
@@ -178,7 +178,7 @@ describe('astNodeToMap — discriminator and shape', () => {
 
   it('encodes DocLit with :DocLit kind and :content payload', () => {
     const m = astNodeToMap(parse('|~~ note ~~|'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('DocLit');
+    expect(m.get(KW_KIND).name).toBe('DocLit');
     expect(m.get('content')).toBe(' note ');
   });
 
@@ -192,13 +192,13 @@ describe('astNodeToMap — discriminator and shape', () => {
 
   it('encodes Projection :keys as a Vec of segment strings', () => {
     const m = astNodeToMap(parse('/a/b/c'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('Projection');
+    expect(m.get(KW_KIND).name).toBe('Projection');
     expect(m.get(KW_KEYS)).toEqual(['a', 'b', 'c']);
   });
 
   it('encodes OperandCall with null :args for bare identifiers', () => {
     const m = astNodeToMap(parse('count'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('OperandCall');
+    expect(m.get(KW_KIND).name).toBe('OperandCall');
     expect(m.get(KW_NAME)).toBe('count');
     expect(m.get(KW_ARGS)).toBe(null);
   });
@@ -220,13 +220,13 @@ describe('astNodeToMap — discriminator and shape', () => {
 
   it('encodes Pipeline :steps as uniform PipelineStep wrappers', () => {
     const m = astNodeToMap(parse('[1 2 3] | count | add(1)'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('Pipeline');
+    expect(m.get(KW_KIND).name).toBe('Pipeline');
     const steps = m.get(KW_STEPS);
     expect(isVec(steps)).toBe(true);
     expect(steps).toHaveLength(3);
     for (const s of steps) {
       expect(isQMap(s)).toBe(true);
-      expect(s.get(KW_QLANG_KIND).name).toBe('PipelineStep');
+      expect(s.get(KW_KIND).name).toBe('PipelineStep');
     }
     expect(steps[0].get(KW_COMBINATOR)).toBe(null);
     expect(steps[1].get(KW_COMBINATOR)).toBe('|');
@@ -239,23 +239,23 @@ describe('astNodeToMap — discriminator and shape', () => {
     // a single step. filter's argument is such a context.
     const ast = parse('filter(!| /trail)');
     const filterCall = astNodeToMap(ast);
-    expect(filterCall.get(KW_QLANG_KIND).name).toBe('OperandCall');
+    expect(filterCall.get(KW_KIND).name).toBe('OperandCall');
     const innerArg = filterCall.get(KW_ARGS)[0];
-    expect(innerArg.get(KW_QLANG_KIND).name).toBe('Pipeline');
+    expect(innerArg.get(KW_KIND).name).toBe('Pipeline');
     expect(innerArg.get(KW_LEADING_COMBINATOR)).toBe('!|');
   });
 
   it('encodes ParenGroup :pipeline as a nested Pipeline Map', () => {
     const m = astNodeToMap(parse('(1 | add(2))'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('ParenGroup');
+    expect(m.get(KW_KIND).name).toBe('ParenGroup');
     const inner = m.get(KW_PIPELINE);
-    expect(inner.get(KW_QLANG_KIND).name).toBe('Pipeline');
+    expect(inner.get(KW_KIND).name).toBe('Pipeline');
   });
 
   it('encodes plain comments as standalone pipeline steps', () => {
     const m = astNodeToMap(parse('|~ rationale ~| [1 2 3] | count'));
     const steps = m.get(KW_STEPS);
-    expect(steps[0].get(KW_STEP).get(KW_QLANG_KIND).name).toBe('BlockPlainComment');
+    expect(steps[0].get(KW_STEP).get(KW_KIND).name).toBe('BlockPlainComment');
     expect(steps[0].get(KW_STEP).get(KW_CONTENT)).toBe(' rationale ');
   });
 
@@ -264,7 +264,7 @@ describe('astNodeToMap — discriminator and shape', () => {
     // grammar.peggy's Pipeline production, so the doc-attached
     // BindStep sits at the root without a Pipeline wrapper.
     const m = astNodeToMap(parse('|~~| first remark\n:double mul(2)'));
-    expect(m.get(KW_QLANG_KIND).name).toBe('BindStep');
+    expect(m.get(KW_KIND).name).toBe('BindStep');
     const docs = m.get(KW_DOCS);
     expect(isVec(docs)).toBe(true);
     expect(docs).toContain(' first remark');
@@ -292,7 +292,7 @@ describe('astNodeToMap — programmatic doc-comment nodes', () => {
       }
     };
     const m = astNodeToMap(node);
-    expect(m.get(KW_QLANG_KIND).name).toBe('LineDocComment');
+    expect(m.get(KW_KIND).name).toBe('LineDocComment');
     expect(m.get(KW_CONTENT)).toBe(' a line doc');
     const back = qlangMapToAst(m);
     expect(back.type).toBe('LineDocComment');
@@ -312,7 +312,7 @@ describe('astNodeToMap — programmatic doc-comment nodes', () => {
       }
     };
     const m = astNodeToMap(node);
-    expect(m.get(KW_QLANG_KIND).name).toBe('BlockDocComment');
+    expect(m.get(KW_KIND).name).toBe('BlockDocComment');
     expect(m.get(KW_CONTENT)).toBe(' multi\n    line ');
     const back = qlangMapToAst(m);
     expect(back.type).toBe('BlockDocComment');
@@ -351,21 +351,21 @@ describe('qlangMapToAst — error shape', () => {
     expect(() => qlangMapToAst([])).toThrow(/expected a Map/);
   });
 
-  it('throws AstMapMalformedError on Map without :qlang/kind', () => {
+  it('throws AstMapMalformedError on Map without :kind', () => {
     const m = new Map();
     m.set('foo', 'bar');
-    expect(() => qlangMapToAst(m)).toThrow(/missing :qlang\/kind discriminator/);
+    expect(() => qlangMapToAst(m)).toThrow(/missing :kind discriminator/);
   });
 
-  it('throws AstMapKindUnknownError on unknown :qlang/kind keyword', () => {
+  it('throws AstMapKindUnknownError on unknown :kind keyword', () => {
     const m = new Map();
-    m.set(KW_QLANG_KIND, keyword('NotARealKind'));
-    expect(() => qlangMapToAst(m)).toThrow(/unknown :qlang\/kind 'NotARealKind'/);
+    m.set(KW_KIND, keyword('NotARealKind'));
+    expect(() => qlangMapToAst(m)).toThrow(/unknown :kind 'NotARealKind'/);
   });
 
   it('throws AstMapMalformedError on non-Map pipeline step', () => {
     const m = new Map();
-    m.set(KW_QLANG_KIND, keyword('Pipeline'));
+    m.set(KW_KIND, keyword('Pipeline'));
     m.set(KW_STEPS, ['not-a-map']);
     m.set(KW_LEADING_COMBINATOR, null);
     expect(() => qlangMapToAst(m)).toThrow(/Pipeline step at index 0 is not a Map/);
@@ -373,10 +373,10 @@ describe('qlangMapToAst — error shape', () => {
 
   it('throws AstMapMalformedError on pipeline step Map without :PipelineStep kind', () => {
     const wrongStep = new Map();
-    wrongStep.set(KW_QLANG_KIND, keyword('NumberLit'));
+    wrongStep.set(KW_KIND, keyword('NumberLit'));
     wrongStep.set(KW_VALUE, 42);
     const m = new Map();
-    m.set(KW_QLANG_KIND, keyword('Pipeline'));
+    m.set(KW_KIND, keyword('Pipeline'));
     m.set(KW_STEPS, [wrongStep]);
     m.set(KW_LEADING_COMBINATOR, null);
     expect(() => qlangMapToAst(m)).toThrow(/not a :PipelineStep Map/);
@@ -465,9 +465,9 @@ describe('round-trip — BindStep declarative form', () => {
   it('Keyword key, docs + body', () =>
     assertRoundTrip(':double |~~| doubles its subject\nmul(2)'));
   it('BareTypeKeyword key — tag-binding form', () =>
-    assertRoundTrip('::Box {:qlang/kind :tag}'));
+    assertRoundTrip('::Box {:kind :tag}'));
   it('BareTypeKeyword key, docs + body', () =>
-    assertRoundTrip('::Box |~~| boxes its payload\n{:qlang/kind :tag}'));
+    assertRoundTrip('::Box |~~| boxes its payload\n{:kind :tag}'));
   it('two consecutive BindSteps', () =>
     assertRoundTrip(':a 1 :b 2'));
 });
@@ -534,14 +534,14 @@ describe('AST-Map semantic properties for trail use', () => {
     for (const pipelineStep of steps) {
       const inner = pipelineStep.get(KW_STEP);
       expect(isQMap(inner)).toBe(true);
-      expect(inner.has(KW_QLANG_KIND)).toBe(true);
+      expect(inner.has(KW_KIND)).toBe(true);
     }
   });
 
   it('OperandCall in a step exposes :name and :args for filtering', () => {
     const m = astNodeToMap(parse('[1 2 3] | filter(gt(2))'));
     const filterStep = m.get(KW_STEPS)[1].get(KW_STEP);
-    expect(filterStep.get(KW_QLANG_KIND).name).toBe('OperandCall');
+    expect(filterStep.get(KW_KIND).name).toBe('OperandCall');
     expect(filterStep.get(KW_NAME)).toBe('filter');
     expect(filterStep.get(KW_ARGS)).toHaveLength(1);
   });
@@ -549,7 +549,7 @@ describe('AST-Map semantic properties for trail use', () => {
   it('Projection step exposes :keys Vec for inspection', () => {
     const m = astNodeToMap(parse('{:a 1} | /a'));
     const projStep = m.get(KW_STEPS)[1].get(KW_STEP);
-    expect(projStep.get(KW_QLANG_KIND).name).toBe('Projection');
+    expect(projStep.get(KW_KIND).name).toBe('Projection');
     expect(projStep.get(KW_KEYS)).toEqual(['a']);
   });
 

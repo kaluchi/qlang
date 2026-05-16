@@ -9,8 +9,8 @@
 
       ~{env | has(:count) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/env
+  {:kind :builtin
+   :impl :qlang/prim/env
    :category :reflective
    :subject :any
    :returns :map
@@ -24,8 +24,8 @@
       rejects name collisions. With two args (namespace + filter),
       imports only the named bindings. pipeValue unchanged in all
       forms. Inside a fork, merged bindings evaporate on close. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/use
+  {:kind :builtin
+   :impl :qlang/prim/use
    :category :reflective
    :subject :any
    :returns :any
@@ -114,8 +114,8 @@
       ~{42 | reify | /value | eq(42)}
       ~{:nonexistent-binding | reify | /type | eq(:keyword)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/reify
+  {:kind :builtin
+   :impl :qlang/prim/reify
    :category :reflective
    :subject :any
    :returns :map
@@ -150,8 +150,8 @@
       by captured-arg count: bare manifest or manifest(:value)
       lists value-namespace bindings; manifest(:tag) lists
       tag-namespace `::Tag` bindings. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/manifest
+  {:kind :builtin
+   :impl :qlang/prim/manifest
    :category :reflective
    :subject :any
    :returns :vec
@@ -191,8 +191,8 @@
       manifest | every(runExamples | every(/ok)) walks every
       example in the manifest and must return true —
       self-describing catalog drift detection. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/runExamples
+  {:kind :builtin
+   :impl :qlang/prim/runExamples
    :category :reflective
    :subject :map
    :returns :vec
@@ -219,8 +219,8 @@
       ~{42 | as(:answer) | answer | eq(42)}
       ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/as
+  {:kind :builtin
+   :impl :qlang/prim/as
    :category :reflective
    :subject :any
    :returns :any
@@ -251,8 +251,8 @@
       ~{{:kind :oops :message "boom"} | error !| /kind | eq(:oops)}
       ~{error({:kind :oops}) !| /kind | eq(:oops)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/error
+  {:kind :builtin
+   :impl :qlang/prim/error
    :category :error
    :subject :map
    :returns :error
@@ -285,8 +285,8 @@
       ~{{:kind :oops} | isError | eq(false)}
       ~{42 | isError | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isError
+  {:kind :builtin
+   :impl :qlang/prim/isError
    :category :error
    :subject :any
    :returns :boolean
@@ -302,11 +302,11 @@
       as ordinary error values, so malformed sources surface
       through !| like every other runtime failure.
 
-      ~{"42" | parse | /:qlang/kind | eq(:NumberLit)}
+      ~{"42" | parse | /:kind | eq(:NumberLit)}
       ~{"add(1, 2)" | parse | /name | eq("add")}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/parse
+  {:kind :builtin
+   :impl :qlang/prim/parse
    :category :reflective
    :subject :string
    :returns :map
@@ -334,10 +334,10 @@
 
       ~{"42" | parse | eval | eq(42)}
       ~{"10 | add(3)" | parse | eval | eq(13)}
-      ~{{:qlang/kind :NumberLit :value 42} | eval | eq(42)}
+      ~{{:kind :NumberLit :value 42} | eval | eq(42)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/eval
+  {:kind :builtin
+   :impl :qlang/prim/eval
    :category :reflective
    :subject :map
    :returns :any
@@ -377,8 +377,8 @@
       ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
       ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/apply
+  {:kind :builtin
+   :impl :qlang/prim/apply
    :category :reflective
    :subject [:quote :map]
    :returns :any
@@ -395,8 +395,8 @@
       ~{:filter | source | /source | contains(":filter")}
       ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/source
+  {:kind :builtin
+   :impl :qlang/prim/source
    :category :axis
    :subject [:keyword :tag-keyword]
    :returns :quote
@@ -422,8 +422,8 @@
       ~{:filter | docs | first | /content | contains("Keeps items")}
       ~{::AddLeftNotNumberError | docs | first | isDoc}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/docs
+  {:kind :builtin
+   :impl :qlang/prim/docs
    :category :axis
    :subject [:keyword :tag-keyword]
    :returns :vec
@@ -449,8 +449,8 @@
       ~{:filter | examples | count | gt(0)}
       ~{:filter | examples | first | /source | contains("filter")}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/examples
+  {:kind :builtin
+   :impl :qlang/prim/examples
    :category :axis
    :subject [:keyword :tag-keyword]
    :returns :vec

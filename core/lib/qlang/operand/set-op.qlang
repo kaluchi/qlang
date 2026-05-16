@@ -7,8 +7,8 @@
 
       ~{[1 2 1 3] | set | eq(#{1 2 3})}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/set
+  {:kind :builtin
+   :impl :qlang/prim/set
    :category :set-op
    :subject :vec
    :returns :set
@@ -32,8 +32,8 @@
 
       ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/union
+  {:kind :builtin
+   :impl :qlang/prim/union
    :category :set-op
    :subject [:set :map :vec]
    :returns [:set :map]
@@ -76,8 +76,8 @@
       ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
       ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/minus
+  {:kind :builtin
+   :impl :qlang/prim/minus
    :category :set-op
    :subject [:set :map :vec]
    :returns [:set :map]
@@ -120,8 +120,8 @@
       ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
       ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/inter
+  {:kind :builtin
+   :impl :qlang/prim/inter
    :category :set-op
    :subject [:set :map :vec]
    :returns [:set :map]

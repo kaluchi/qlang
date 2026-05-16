@@ -2,7 +2,7 @@
 //
 // Every operand error site the cli binds lifts its throw onto the
 // fail-track as a qlang error value. The lift stores the class
-// tag under the descriptor's `:qlang/kind` slot (the universal
+// tag under the descriptor's `:kind` slot (the universal
 // tagged-value identity invariant — `result !| type` surfaces it
 // as `::OutSubjectNotStringError` and the like) and preserves the
 // original JS instance in the opaque `originalError` slot on the
@@ -12,7 +12,7 @@
 // A disciplined per-site assertion pins three independent legs of
 // the contract:
 //
-//   1. descriptor-visible class identity — `:qlang/kind` carries
+//   1. descriptor-visible class identity — `:kind` carries
 //      the TagKeyword every qlang-side `!|` handler can match on
 //      through the `type` operand.
 //   2. JS-side class identity — `errorValue.originalError instanceof
@@ -45,8 +45,8 @@ export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedC
   const errorValue = cellEntry.result;
   expect(errorValue?.type, 'cellEntry.result must be an error value').toBe('error');
 
-  const identityTag = errorValue.descriptor.get('qlang/kind');
-  expect(identityTag?.type, ':qlang/kind must be a TagKeyword').toBe('tagKeyword');
+  const identityTag = errorValue.descriptor.get('kind');
+  expect(identityTag?.type, ':kind must be a TagKeyword').toBe('tagKeyword');
   expect(identityTag.name).toBe(expectedClassName);
 
   const originalError = errorValue.originalError;

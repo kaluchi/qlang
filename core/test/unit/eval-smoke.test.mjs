@@ -117,7 +117,7 @@ describe('eval — Map and projection', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('{:name "Alice"} | /age');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.descriptor.get('qlang/kind').name).toBe('ProjectionKeyNotInMapError');
+    expect(result.descriptor.get('kind').name).toBe('ProjectionKeyNotInMapError');
     expect(result.descriptor.get('key')).toBe('age');
   });
 

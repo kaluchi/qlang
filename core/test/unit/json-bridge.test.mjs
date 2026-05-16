@@ -198,7 +198,7 @@ describe('container-shape operands preserve JSON-tag on output', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('::json{:k 7} | /missing');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.descriptor.get('qlang/kind').name).toBe('ProjectionKeyNotInMapError');
+    expect(result.descriptor.get('kind').name).toBe('ProjectionKeyNotInMapError');
     expect(result.descriptor.get('key')).toBe('missing');
   });
 
@@ -212,7 +212,7 @@ describe('container-shape operands preserve JSON-tag on output', () => {
     const { parse } = await import('../../src/parse.mjs');
     const ast = parse('{"k": 1, "n": 2}');
     const m = astNodeToMap(ast);
-    expect(m.get('qlang/kind').name).toBe('JsonObjectLit');
+    expect(m.get('kind').name).toBe('JsonObjectLit');
     expect(m.get('entries').length).toBe(2);
   });
 });

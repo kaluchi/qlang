@@ -1329,7 +1329,7 @@ namespace.
 
 ```qlang
 > :duration mul(60)
-  | ::duration {:qlang/kind :tag :qlang/impl ~{as(:s) | {:seconds s}}}
+  | ::duration {:kind :tag :impl ~{as(:s) | {:seconds s}}}
   | [10 | duration, ::duration(10)]
 [600 {:seconds 10}]
 ```
@@ -1378,24 +1378,24 @@ syntax until usage earns them a shorthand.
 
 A tag binding is just a BindStep whose key is a `::Tag`
 identifier. The body is a descriptor Map carrying
-`:qlang/kind :tag` plus a constructor handle (`:qlang/impl`).
+`:kind :tag` plus a constructor handle (`:impl`).
 
 Two equivalent paths register the constructor:
 
-**qlang-side** — `:qlang/impl` is a Quote-value, evaluated against
+**qlang-side** — `:impl` is a Quote-value, evaluated against
 the payload as initial `pipeValue`. No JavaScript needed; works
 from inside any query or library module.
 
 ```qlang
-::wrap {:qlang/kind :tag
-        :qlang/impl ~{prepend("[") | append("]")}}
+::wrap {:kind :tag
+        :impl ~{prepend("[") | append("]")}}
 | "world" | ::wrap"world"
 |~| → "[world]"
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
-::permissions {:qlang/kind :tag
+::permissions {:kind :tag
    :allowed #{:read :write :delete}
-   :qlang/impl ~{as(:p)
+   :impl ~{as(:p)
      | every(:permissions/allowed | has)
      | when(not, error({:kind :PermissionUnknown}))
      | p}}
@@ -1406,12 +1406,12 @@ from inside any query or library module.
 ```
 
 The Quote body sees the env of the invocation site — `:exclaim
-append("!") | ::shout {:qlang/impl ~{exclaim}}` resolves `exclaim`
+append("!") | ::shout {:impl ~{exclaim}}` resolves `exclaim`
 through ordinary env lookup. Identifier resolution carries no
 namespace switch — a tag-constructor body is a normal
 sub-pipeline.
 
-**JS-side** — `:qlang/impl` is a keyword handle into the host
+**JS-side** — `:impl` is a keyword handle into the host
 primitive registry. The constructor is a JavaScript function
 registered through `PRIMITIVE_REGISTRY.bind('qlang/prim/<tag>',
 fn)` at module-load time. The descriptor then references the
@@ -1429,7 +1429,7 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
 ```
 
 ```qlang
-::duration {:qlang/kind :tag :qlang/impl :qlang/prim/duration}
+::duration {:kind :tag :impl :qlang/prim/duration}
 | ::duration{:hours 3}
 | /seconds
 |~| → 10800
@@ -1439,7 +1439,7 @@ The runtime catalog uses this path for `::conduit`, `::qlang`,
 `::json` (see `core/src/runtime/tagged.mjs`); host integrations
 register their own native types the same way.
 
-A descriptor whose `:qlang/impl` is neither a Keyword handle nor
+A descriptor whose `:impl` is neither a Keyword handle nor
 a Quote-value raises `TagBindingHasNoConstructorError` on first
 invocation. A reference to a tag that has no env binding raises
 `TaggedLitTagNotFoundError` — typos and catalog drift surface
@@ -1501,8 +1501,8 @@ is parsed on demand only when the constructor invokes `eval` /
 `apply` / `/ast` against it.
 
 ```qlang
-::cond {:qlang/kind :tag
-        :qlang/impl ~{as(:branches)
+::cond {:kind :tag
+        :impl ~{as(:branches)
           | first(/condition | parse | eval | isTruthy)
           | /body | parse | eval}}
 
@@ -1524,8 +1524,8 @@ parameter binding, no manual escaping.
 
 ### Tagged values as round-trip surface
 
-When a constructor returns a Map carrying `:qlang/kind <TagKeyword>`
-plus `:qlang/payload <Vec>`, the resulting value is a
+When a constructor returns a Map carrying `:kind <TagKeyword>`
+plus `:payload <Vec>`, the resulting value is a
 **tagged instance**: `printValue` reads the discriminator and
 emits the source-form `::tag[<payload>]` literal back, so any
 TaggedLit value flows through the round-trip invariant.
@@ -1536,10 +1536,10 @@ Three reserved tag names own dedicated render paths
 generic tagged-instance path; every other tag rides the generic
 shape.
 
-A named error value (`!{:qlang/kind ::Tag …}`) carries the
-universal tagged-instance identity slot — `:qlang/kind` —
+A named error value (`!{:kind ::Tag …}`) carries the
+universal tagged-instance identity slot — `:kind` —
 promoted to the literal's tag-head. `printValue` emits
-`::Tag!{…fields…}` with the `:qlang/kind` entry folded into the
+`::Tag!{…fields…}` with the `:kind` entry folded into the
 head, the same shape both a JavaScript throw site and a literal
 `::Tag!{…}` source produce ([Error track](#error-track)).
 
@@ -1571,7 +1571,7 @@ step only when `pipeValue` is an error value, exposing the error's
 `pipeValue`, `!|` is a pass-through.
 
 ```qlang
-> "hello" | add(1) | mul(2) !| /kind
+> "hello" | add(1) | mul(2) !| /category
 :type-error
 
 > "hello" | add(1) | mul(2) !| /trail | /source
@@ -1644,7 +1644,7 @@ lift automatically into error values with structured descriptors:
 |---|---|---|
 | `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
 | `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
-| `:qlang/kind` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
+| `:kind` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
 | `:message` | string | Human-readable description |
 | `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
 | `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
@@ -1950,7 +1950,7 @@ declaration is hidden by shadowing. Errors:
 - No declaring BindStep found in any loaded module →
   `AxisBindingNotFoundError`.
 
-A tagged-instance Map carrying `:qlang/kind <TagKeyword>` is
+A tagged-instance Map carrying `:kind <TagKeyword>` is
 also a valid subject — the axis reads the docs of the type
 binding the instance was constructed from. Calling
 `some-conduit-value | docs` reaches the `::conduit` type
@@ -1995,14 +1995,14 @@ source contribute zero examples.
 is ordinary qlang data — addressable by projection, filterable by
 `filter`, passable to `eval`.
 
-Every AST-Map carries a `:qlang/kind` discriminator naming its AST
+Every AST-Map carries a `:kind` discriminator naming its AST
 node type (`:NumberLit`, `:StringLit`, `:Pipeline`, `:OperandCall`,
 `:Projection`, `:Keyword`, `:VecLit`, `:MapLit`, `:ErrorLit`,
 `:SetLit`, …) plus the type-specific payload fields described in
 [qlang-operands.md](qlang-operands.md#parse).
 
 ```qlang
-> "1 | add(1)" | parse | /:qlang/kind
+> "1 | add(1)" | parse | /:kind
 :Pipeline
 
 > "1 | add(1)" | parse | /steps | count
@@ -2185,8 +2185,8 @@ rendering boundaries:
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
   `toPlain` refuse a raw function value because no grammatical
   literal renders back to one. Host operands must wrap the
-  function in a descriptor Map carrying `:qlang/kind :builtin`
-  and `:qlang/impl <fn>`; the projection inside `printValue`
+  function in a descriptor Map carrying `:kind :builtin`
+  and `:impl <fn>`; the projection inside `printValue`
   substitutes the function back to its `:qlang/prim/<name>`
   keyword handle so the descriptor itself round-trips.
 - **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
@@ -2195,7 +2195,7 @@ rendering boundaries:
   otherwise produce a non-parseable placeholder.
 - **`TagBindingHasNoConstructorError`** — `evalTaggedLit` refuses
   a `::Tag<payload>` invocation when the tag-binding's
-  `:qlang/impl` is missing or wrong-shaped, surfacing
+  `:impl` is missing or wrong-shaped, surfacing
   `:payloadValue` / `:payloadType` / `:expectedType` on the
   descriptor so the diagnostic itself follows the same shape
   contract.
@@ -2204,7 +2204,7 @@ Three value categories sit **outside** the invariant by design,
 and never reach `pipeValue` through a path that would expose them
 to `printValue`:
 
-- **Function values** — live only on `:qlang/impl` of a
+- **Function values** — live only on `:impl` of a
   descriptor Map, projected back to keyword handle on render.
   Any leak to `pipeValue` raises the guard above.
 - **Snapshot wrappers** — `as(:name)` snapshots are env entries,
@@ -2662,7 +2662,7 @@ When `use(:ns)` encounters a namespace keyword not in env:
    recursively).
 4. Computes the module's export surface (env delta — bindings the
    module added beyond the base env).
-5. Patches `:qlang/impl` on each exported builtin descriptor with
+5. Patches `:impl` on each exported builtin descriptor with
    the corresponding function from `impls`.
 6. Installs the namespace keyword → exports in env for subsequent
    lookups (cache hit serves subsequent references to the same

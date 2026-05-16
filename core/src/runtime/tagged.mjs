@@ -1,7 +1,7 @@
 // Tagged-type constructors. Each constructor is a function
 // `(payload, state) → value` registered into PRIMITIVE_REGISTRY
 // under `qlang/type/<tag>`. evalTaggedLit looks up the type
-// binding's :qlang/impl, resolves it to one of these functions,
+// binding's :impl, resolves it to one of these functions,
 // and invokes it against the payload-value.
 //
 // Plus the `qlang` value-namespace operand — a subject-form

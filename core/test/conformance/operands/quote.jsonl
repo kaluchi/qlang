@@ -7,11 +7,11 @@
 {"name":"quote-literal-multiline","query":"~{{\n  :a 1\n  :b 2\n}}","expect":"~{{\n  :a 1\n  :b 2\n}}"}
 {"name":"quote-source-projection","query":"~{mul(2)} | /source","expect":"\"mul(2)\""}
 {"name":"quote-source-empty","query":"~{} | /source","expect":"\"\""}
-{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:qlang/kind","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/:qlang/kind} :input ~{mul(2)}}\n  :key \"qlang/kind\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n  :origin :qlang/eval\n  :kind :type-error\n}"}
-{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/missing} :input ~{mul(2)}}\n  :key \"missing\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n  :origin :qlang/eval\n  :kind :type-error\n}"}
-{"name":"quote-ast-lazy-parse","query":"~{mul(2)} | /ast | /:qlang/kind","expect":":OperandCall"}
+{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:kind","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/:kind} :input ~{mul(2)}}\n  :key \"kind\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n  :origin :qlang/eval\n  :category :type-error\n}"}
+{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/missing} :input ~{mul(2)}}\n  :key \"missing\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n  :origin :qlang/eval\n  :category :type-error\n}"}
+{"name":"quote-ast-lazy-parse","query":"~{mul(2)} | /ast | /:kind","expect":":OperandCall"}
 {"name":"quote-ast-lazy-parse-name","query":"~{mul(2)} | /ast | /name","expect":"\"mul\""}
-{"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:qlang/kind","expect":":Pipeline"}
+{"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:kind","expect":":Pipeline"}
 {"name":"quote-ast-unparseable-content-returns-null","query":"~{ , } | /ast","expect":"null"}
 {"name":"apply-unparseable-quote-raises-parse-error","query":"~{ , } | apply(42) !| type","expect":"::ParseError"}
 {"name":"isQuote-literal-true","query":"~{mul(2)} | isQuote","expect":"true"}
@@ -34,4 +34,4 @@
 {"name":"quote-with-special-chars","query":"~{a > b}","expect":"~{a > b}"}
 {"name":"quote-with-pipe-operator","query":"~{a | b} | /source","expect":"\"a | b\""}
 {"name":"quote-with-leading-combinator-trail-style","query":"~{* inc | sort} | /source","expect":"\"* inc | sort\""}
-{"name":"quote-source-eval-via-parse","query":"~{mul(2)} | /source | parse | /:qlang/kind","expect":":OperandCall"}
+{"name":"quote-source-eval-via-parse","query":"~{mul(2)} | /source | parse | /:kind","expect":":OperandCall"}

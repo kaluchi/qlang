@@ -10,8 +10,8 @@
       ~{#{:a :b} | count | eq(2)}
       ~{{:x 1 :y 2 :z 3} | count | eq(3)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/count
+  {:kind :builtin
+   :impl :qlang/prim/count
    :category :container-reducer
    :subject [:vec :set :map]
    :returns :number
@@ -33,8 +33,8 @@
       ~{[] | empty | eq(true)}
       ~{[1] | empty | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/empty
+  {:kind :builtin
+   :impl :qlang/prim/empty
    :category :container-reducer
    :subject [:vec :set :map]
    :returns :boolean
@@ -71,8 +71,8 @@
       ~{{:a 1 :b 2} | :@pos [:v] (v | gt(0)) | every(@pos) | eq(true)}
       ~{{:a1 1 :a2 2} | :@keyAndPos [:k :v] and(v | gt(0), k | eq(:a1)) | every(@keyAndPos) | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/every
+  {:kind :builtin
+   :impl :qlang/prim/every
    :category :container-selector
    :subject [:vec :set :map]
    :returns :boolean
@@ -122,8 +122,8 @@
       ~{{:a -1 :b 2} | :@pos [:v] (v | gt(0)) | any(@pos) | eq(true)}
       ~{{:apple 1 :banana 2} | :@aKey [:k :v] (k | eq(:apple)) | any(@aKey) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/any
+  {:kind :builtin
+   :impl :qlang/prim/any
    :category :container-selector
    :subject [:vec :set :map]
    :returns :boolean
@@ -191,8 +191,8 @@
       ~{{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot) | eq({:avocado 3})}
       ~{{} | filter(gt(0)) | eq({})}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/filter
+  {:kind :builtin
+   :impl :qlang/prim/filter
    :category :container-selector
    :subject [:vec :set :map]
    :returns [:vec :set :map]

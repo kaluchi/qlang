@@ -1,5 +1,5 @@
 |~ Value-class tag-bindings — ::conduit, ::qlang, ::json. Each
-   declares :qlang/kind :tag plus a :qlang/impl keyword pointing
+   declares :kind :tag plus a :impl keyword pointing
    into PRIMITIVE_REGISTRY at the JS-side constructor that builds
    the corresponding value-class instance from a payload. Per-tag
    error sites live directly under the constructor they belong
@@ -22,8 +22,8 @@
 
       ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
   ~~|
-  {:qlang/kind :tag
-   :qlang/impl :qlang/type/conduit
+  {:kind :tag
+   :impl :qlang/type/conduit
    :spec {:payload :vec}
    :throws [::ConduitPayloadNotVecError
             ::ConduitArityInvalidError
@@ -133,8 +133,8 @@
 
       ~{::qlang{"k": "v"} | isMap | eq(true)}
   ~~|
-  {:qlang/kind :tag
-   :qlang/impl :qlang/type/qlang
+  {:kind :tag
+   :impl :qlang/type/qlang
    :spec {:payload :any}}
 
 ::json
@@ -147,6 +147,6 @@
 
       ~{::json{:k "v"} | isJsonObject | eq(true)}
   ~~|
-  {:qlang/kind :tag
-   :qlang/impl :qlang/type/json
+  {:kind :tag
+   :impl :qlang/type/json
    :spec {:payload :any}}

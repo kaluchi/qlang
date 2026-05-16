@@ -10,8 +10,8 @@
       ~{[10 20 30] | first | eq(10)}
       ~{[] | first | eq(null)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/first
+  {:kind :builtin
+   :impl :qlang/prim/first
    :category :vec-reducer
    :subject :vec
    :returns :any
@@ -33,8 +33,8 @@
       ~{[10 20 30] | last | eq(30)}
       ~{[] | last | eq(null)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/last
+  {:kind :builtin
+   :impl :qlang/prim/last
    :category :vec-reducer
    :subject :vec
    :returns :any
@@ -61,8 +61,8 @@
       ~{#{1 2 3} | sum | eq(6)}
       ~{{:a 10 :b 20} | vals | sum | eq(30)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/sum
+  {:kind :builtin
+   :impl :qlang/prim/sum
    :category :vec-reducer
    :subject [:vec :set]
    :returns :number
@@ -96,8 +96,8 @@
       ~{["b" "a" "c"] | min | eq("a")}
       ~{#{3 1 4} | min | eq(1)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/min
+  {:kind :builtin
+   :impl :qlang/prim/min
    :category :vec-reducer
    :subject [:vec :set]
    :returns :any
@@ -131,8 +131,8 @@
       ~{["b" "a" "c"] | max | eq("c")}
       ~{#{3 1 4} | max | eq(4)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/max
+  {:kind :builtin
+   :impl :qlang/prim/max
    :category :vec-reducer
    :subject [:vec :set]
    :returns :any
@@ -166,8 +166,8 @@
       ~{[0 0 -1 0] | firstNonZero | eq(-1)}
       ~{[0 0 0] | firstNonZero | eq(0)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/firstNonZero
+  {:kind :builtin
+   :impl :qlang/prim/firstNonZero
    :category :vec-reducer
    :subject :vec
    :returns :number
@@ -200,8 +200,8 @@
       ~{[3 1 4 1 5] | sort | eq([1 1 3 4 5])}
       ~{[{:age 30} {:age 20}] | sort(/age) | eq([{:age 20} {:age 30}])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/sort
+  {:kind :builtin
+   :impl :qlang/prim/sort
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -258,8 +258,8 @@
 
       ~{[3 1 2] | sortWith(sub(/left, /right)) | eq([1 2 3])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/sortWith
+  {:kind :builtin
+   :impl :qlang/prim/sortWith
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -290,8 +290,8 @@
 
       ~{[1 2 3 4 5] | take(3) | eq([1 2 3])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/take
+  {:kind :builtin
+   :impl :qlang/prim/take
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -330,8 +330,8 @@
       ~{{:a 1 :b 2} | at("a") | eq(1)}
       ~{{:a 1} | at("z") | eq(null)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/at
+  {:kind :builtin
+   :impl :qlang/prim/at
    :category :indexed-access
    :subject [:vec :map]
    :returns :any
@@ -372,8 +372,8 @@
 
       ~{[1 2 3 4 5] | drop(2) | eq([3 4 5])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/drop
+  {:kind :builtin
+   :impl :qlang/prim/drop
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -410,8 +410,8 @@
       ~{[1 2 1 3 2] | distinct | eq([1 2 3])}
       ~{[{:id 1} {:id 2} {:id 1}] | distinct | eq([{:id 1} {:id 2}])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/distinct
+  {:kind :builtin
+   :impl :qlang/prim/distinct
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -431,8 +431,8 @@
 
       ~{[1 2 3] | reverse | eq([3 2 1])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/reverse
+  {:kind :builtin
+   :impl :qlang/prim/reverse
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -453,8 +453,8 @@
 
       ~{[[1 2] [3] [4 5]] | flat | eq([1 2 3 4 5])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/flat
+  {:kind :builtin
+   :impl :qlang/prim/flat
    :category :vec-transformer
    :subject :vec
    :returns :vec
@@ -478,8 +478,8 @@
 
       ~{[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name | eq(["a" "c"])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/groupBy
+  {:kind :builtin
+   :impl :qlang/prim/groupBy
    :category :vec-transformer
    :subject :vec
    :returns :map
@@ -512,8 +512,8 @@
 
       ~{[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name | eq("alice")}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/indexBy
+  {:kind :builtin
+   :impl :qlang/prim/indexBy
    :category :vec-transformer
    :subject :vec
    :returns :map

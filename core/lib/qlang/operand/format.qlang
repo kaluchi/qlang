@@ -6,8 +6,8 @@
   |~~ Returns a JSON string representation of the subject.
       Keywords are emitted as colon-prefixed strings, Sets as JSON
       arrays, Maps as JSON objects with Keyword names as keys. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/json
+  {:kind :builtin
+   :impl :qlang/prim/json
    :category :format
    :subject :any
    :returns :string
@@ -26,8 +26,8 @@
       ~{{:a 1} | qlang | isMap | eq(true)}
       ~{[1 2 3] | qlang | isVec | eq(true)}
       ~{42 | qlang | eq(42)} ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/qlang
+  {:kind :builtin
+   :impl :qlang/prim/qlang
    :category :json-bridge
    :subject :any
    :returns :any
@@ -38,8 +38,8 @@
       Columns are derived from keys in first-occurrence order
       across all rows; missing keys render as empty cells.
       Empty Vec yields the marker "(empty)". ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/table
+  {:kind :builtin
+   :impl :qlang/prim/table
    :category :format
    :subject :vec
    :returns :string

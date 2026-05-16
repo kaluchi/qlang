@@ -8,8 +8,8 @@
       evaluates the else branch. Only the selected branch executes.
       Truthiness: null and false are falsy, everything else
       (including 0, "", [], {}, #{}) is truthy. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/if
+  {:kind :builtin
+   :impl :qlang/prim/if
    :category :control
    :subject :any
    :returns :any
@@ -21,8 +21,8 @@
       branch. If cond evaluated against pipeValue is truthy, runs
       the then sub-pipeline; otherwise pipeValue passes through
       unchanged. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/when
+  {:kind :builtin
+   :impl :qlang/prim/when
    :category :control
    :subject :any
    :returns :any
@@ -34,8 +34,8 @@
       falsy, otherwise pipeValue passes through unchanged.
       Reads more naturally for guard-clause patterns where the
       action fires when the condition fails. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/unless
+  {:kind :builtin
+   :impl :qlang/prim/unless
    :category :control
    :subject :any
    :returns :any
@@ -49,8 +49,8 @@
       alternatives produce null, returns null. Falsy non-null values
       (false, 0, "", [], {}, #{}) are NOT skipped — only
       null counts as missing. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/coalesce
+  {:kind :builtin
+   :impl :qlang/prim/coalesce
    :category :control
    :subject :any
    :returns :any
@@ -74,8 +74,8 @@
       returns null. Use coalesce when false is a valid explicit
       setting; use firstTruthy when false is a sentinel meaning
       "no value". ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/firstTruthy
+  {:kind :builtin
+   :impl :qlang/prim/firstTruthy
    :category :control
    :subject :any
    :returns :any
@@ -99,8 +99,8 @@
       trailing arg is the default branch. If even and no match,
       returns null. Replaces nested-if chains with a flat
       catalog. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/cond
+  {:kind :builtin
+   :impl :qlang/prim/cond
    :category :control
    :subject :any
    :returns :any

@@ -686,7 +686,7 @@ shape, and vice versa.
   strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
   `isMap` reports `false` for conduit and snapshot descriptor
   Maps — they classify as `Conduit` / `Snapshot` through the
-  `:qlang/kind` discriminator.
+  `:kind` discriminator.
   `isQuote` matches a frozen `~{…}`-delimited code-as-data
   fragment; `isDoc` matches a frozen content fragment
   (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
@@ -697,7 +697,7 @@ shape, and vice versa.
   - `[1 2] | isVec` → `true`; `#{1} | isVec` → `false`.
   - `{:a 1} | isMap` → `true`; `[] | isMap` → `false`.
   - `#{1 2} | isSet` → `true`; `[1 2] | isSet` → `false`.
-  - `:name | isKeyword` → `true`; `:qlang/kind | isKeyword` → `true`.
+  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`.
   - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
   - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
@@ -949,9 +949,9 @@ depends on the value's provenance. Four descriptor kinds:
   `langRuntime()` from one of the catalog family files under
   `lib/qlang/operand/`. Every built-in binding in `env` IS a
   descriptor Map directly; `reify`
-  substitutes the internal `:qlang/kind :builtin` /
-  `:qlang/impl :qlang/prim/<name>` discriminator for a
-  user-facing `:kind :builtin` (dropping the `:qlang/impl`
+  substitutes the internal `:kind :builtin` /
+  `:impl :qlang/prim/<name>` discriminator for a
+  user-facing `:kind :builtin` (dropping the `:impl`
   handle), stamps `:captured` / `:effectful` from the
   primitive resolved through `PRIMITIVE_REGISTRY`, and adds
   `:name` when the caller used the named form `reify(:count)`:
@@ -1124,11 +1124,11 @@ missing). This is the introspection-by-name path:
   - `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
 - **Tag-binding form**: `::tag descriptor` installs the
   given descriptor Map under `::tag` for use as a TaggedLit
-  constructor. The descriptor must carry `:qlang/kind :tag` plus
-  `:qlang/impl` — either a `:qlang/prim/<tag>` keyword (host-bound
+  constructor. The descriptor must carry `:kind :tag` plus
+  `:impl` — either a `:qlang/prim/<tag>` keyword (host-bound
   built-in constructor) or a Quote-value (qlang body that runs
   with the payload as its initial pipeValue). Example:
-  `::wrap {:qlang/kind :tag :qlang/impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
+  `::wrap {:kind :tag :impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
   → `"[x]"`.
 - **Errors**: clean binding name carrying an effectful body →
   `EffectLaunderingAtBindStepParseError` (the only runtime throw inside
@@ -1154,7 +1154,7 @@ missing). This is the introspection-by-name path:
 - **Arity** 1. **Subject** `string` — the source to parse.
 - Reads the subject string into an **AST-Map** — the data-form
   representation of the program, produced by `walk.mjs::astNodeToMap`.
-  Each AST node becomes a frozen Map carrying `:qlang/kind` (the
+  Each AST node becomes a frozen Map carrying `:kind` (the
   AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
   `:Pipeline`, and so on), type-specific payload fields (`:value`,
   `:name`, `:args`, `:elements`, `:entries`, `:keys`, `:steps`,
@@ -1167,7 +1167,7 @@ missing). This is the introspection-by-name path:
   the generic `:foreign-error` evalNode stamps on unhandled
   foreign throws).
 - **Examples**:
-  - `"42" | parse | /:qlang/kind` → `:NumberLit`.
+  - `"42" | parse | /:kind` → `:NumberLit`.
   - `"add(1, 2)" | parse | /name` → `"add"`.
   - `"add(1, 2)" | parse | /args | count` → `2`.
   - `"this is not qlang [" | parse !| /kind` → `:parse-error`.
@@ -1195,7 +1195,7 @@ missing). This is the introspection-by-name path:
   - `"42" | parse | eval` → `42`.
   - `"10 | add(3)" | parse | eval` → `13`.
   - `"[1 2 3] | filter(gt(1)) | count" | parse | eval` → `2`.
-  - `{:qlang/kind :NumberLit :value 42} | eval` → `42`
+  - `{:kind :NumberLit :value 42} | eval` → `42`
     (hand-assembled AST-Map bypasses the parser).
 - **Errors**: subject not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
   Runtime errors inside the inner evaluation lift through the
@@ -1265,9 +1265,9 @@ missing). This is the introspection-by-name path:
   `:null`); qlang value-classes produce their type keyword (`:vec`,
   `:map`, `:set`, `:keyword`, `:tag-keyword`, `:quote`, `:doc`,
   `:function`, `:json-object`, `:json-array`); tagged-instance Maps
-  (conduit, snapshot, user `::Foo[…]`) produce their `:qlang/kind`
+  (conduit, snapshot, user `::Foo[…]`) produce their `:kind`
   TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
-  produce the `:qlang/kind` TagKeyword from their descriptor
+  produce the `:kind` TagKeyword from their descriptor
   (`::AddLeftNotNumberError`, `::ParseError`, etc.).
 - **Examples**:
   - `42 | type` → `:number`.

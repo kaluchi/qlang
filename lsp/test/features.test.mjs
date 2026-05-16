@@ -105,7 +105,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('in-document `::Tag` BindStep contributes to tag-namespace completions', async () => {
-    const src = '::MyTag {:qlang/kind :tag :qlang/impl ~{42}}';
+    const src = '::MyTag {:kind :tag :impl ~{42}}';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
     expect(items.some(i => i.label === '::MyTag')).toBe(true);

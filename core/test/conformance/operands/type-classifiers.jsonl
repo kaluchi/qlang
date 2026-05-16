@@ -22,7 +22,7 @@
 {"name":"isSet-vec-false","query":"[1 2] | isSet","expect":"false"}
 {"name":"isSet-map-false","query":"{:a 1} | isSet","expect":"false"}
 {"name":"isKeyword-bare-true","query":":name | isKeyword","expect":"true"}
-{"name":"isKeyword-namespaced-true","query":":qlang/kind | isKeyword","expect":"true"}
+{"name":"isKeyword-namespaced-true","query":":kind | isKeyword","expect":"true"}
 {"name":"isKeyword-string-false","query":"\"name\" | isKeyword","expect":"false"}
 {"name":"isKeyword-number-false","query":"42 | isKeyword","expect":"false"}
 {"name":"isBoolean-true-literal-true","query":"true | isBoolean","expect":"true"}
@@ -31,7 +31,7 @@
 {"name":"isBoolean-null-false","query":"null | isBoolean","expect":"false"}
 {"name":"isBoolean-empty-string-false","query":"\"\" | isBoolean","expect":"false"}
 {"name":"isNull-null-literal-true","query":"null | isNull","expect":"true"}
-{"name":"isNull-missing-key-true","query":"{} | /missing | isNull","expect":"::ProjectionKeyNotInMapError!{\n  :fault {\n    :step ~{/missing}\n    :input {}\n  }\n  :key \"missing\"\n  :subject {}\n  :origin :qlang/eval\n  :kind :type-error\n  :trail ~{| isNull}\n}"}
+{"name":"isNull-missing-key-true","query":"{} | /missing | isNull","expect":"::ProjectionKeyNotInMapError!{\n  :fault {\n    :step ~{/missing}\n    :input {}\n  }\n  :key \"missing\"\n  :subject {}\n  :origin :qlang/eval\n  :category :type-error\n  :trail ~{| isNull}\n}"}
 {"name":"isNull-zero-false","query":"0 | isNull","expect":"false"}
 {"name":"isNull-empty-string-false","query":"\"\" | isNull","expect":"false"}
 {"name":"isNull-false-false","query":"false | isNull","expect":"false"}

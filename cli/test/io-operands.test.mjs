@@ -69,7 +69,7 @@ describe('@out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     // `add(1)` against a String subject lifts an error inside the
     // renderer lambda — the renderer's resolved value is therefore
-    // an error value carrying `:qlang/kind ::AddLeftNotNumberError`
+    // an error value carrying `:kind ::AddLeftNotNumberError`
     // (every error's identity rides on the tagged-instance
     // invariant). @out's renderer-result type check stamps the
     // inner error's identity tag on `:actualType`.

@@ -9,8 +9,8 @@
       order. Returns -1, 0, or 1. The key sub-pipeline can be any
       expression — a bare projection, a computed value, or a
       multi-step pipeline. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/asc
+  {:kind :builtin
+   :impl :qlang/prim/asc
    :category :comparator
    :subject :map
    :returns :number
@@ -38,8 +38,8 @@
 :desc
   |~~ Builds a descending comparator for sortWith. Same as asc
       but reversed: higher key values come first. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/desc
+  {:kind :builtin
+   :impl :qlang/prim/desc
    :category :comparator
    :subject :map
    :returns :number
@@ -72,8 +72,8 @@
 
       ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a | eq([null 1 3])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/nullsFirst
+  {:kind :builtin
+   :impl :qlang/prim/nullsFirst
    :category :comparator
    :subject :map
    :returns :number
@@ -106,8 +106,8 @@
 
       ~{[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a | eq([1 3 null])}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/nullsLast
+  {:kind :builtin
+   :impl :qlang/prim/nullsLast
    :category :comparator
    :subject :map
    :returns :number
@@ -140,8 +140,8 @@
       ~{null | not | eq(true)}
       ~{0 | not | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/not
+  {:kind :builtin
+   :impl :qlang/prim/not
    :category :predicate
    :subject :any
    :returns :boolean
@@ -150,14 +150,14 @@
 :type
   |~~ Returns the value's identity tag. For tagged values
       (errors, conduits, snapshots, tagged-instances, Maps
-      carrying `:qlang/kind`) returns the TagKeyword stamped
+      carrying `:kind`) returns the TagKeyword stamped
       on the value. For scalars and base containers returns
       the plain Keyword that names the kind (`:number`,
       `:string`, `:keyword`, `:vec`, `:map`, `:set`, …).
 
       `result !| type` is the user-facing path to an error's
       class identity — the materialised descriptor exposed by
-      `!|` is a Map carrying `:qlang/kind ::ErrorTag`, and
+      `!|` is a Map carrying `:kind ::ErrorTag`, and
       `type` reads it through the same invariant every other
       tagged value class shares.
 
@@ -172,8 +172,8 @@
         |  eq([::AddLeftNotNumberError :string :number :add 1])
        }
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/type
+  {:kind :builtin
+   :impl :qlang/prim/type
    :category :type-classifier
    :subject :any
    :returns :keyword
@@ -187,8 +187,8 @@
       ~{42 | eq(42) | eq(true)}
       ~{{:a 1} | eq({:a 1}) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/eq
+  {:kind :builtin
+   :impl :qlang/prim/eq
    :category :predicate
    :subject :any
    :returns :boolean
@@ -201,8 +201,8 @@
 
       ~{10 | gt(5) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/gt
+  {:kind :builtin
+   :impl :qlang/prim/gt
    :category :predicate
    :subject :number
    :returns :boolean
@@ -223,8 +223,8 @@
 
       ~{5 | lt(10) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/lt
+  {:kind :builtin
+   :impl :qlang/prim/lt
    :category :predicate
    :subject :number
    :returns :boolean
@@ -245,8 +245,8 @@
 
       ~{10 | gte(10) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/gte
+  {:kind :builtin
+   :impl :qlang/prim/gte
    :category :predicate
    :subject :number
    :returns :boolean
@@ -267,8 +267,8 @@
 
       ~{10 | lte(10) | eq(true)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/lte
+  {:kind :builtin
+   :impl :qlang/prim/lte
    :category :predicate
    :subject :number
    :returns :boolean
@@ -287,8 +287,8 @@
 :and
   |~~ Returns true if both operands are truthy. Used in full form
       inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/and
+  {:kind :builtin
+   :impl :qlang/prim/and
    :category :predicate
    :subject :any
    :returns :boolean
@@ -297,8 +297,8 @@
 
 :or
   |~~ Returns true if either operand is truthy. ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/or
+  {:kind :builtin
+   :impl :qlang/prim/or
    :category :predicate
    :subject :any
    :returns :boolean
@@ -317,8 +317,8 @@
       ~{42 | isString | eq(false)}
       ~{:name | isString | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isString
+  {:kind :builtin
+   :impl :qlang/prim/isString
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -332,8 +332,8 @@
       ~{3.14 | isNumber | eq(true)}
       ~{"42" | isNumber | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isNumber
+  {:kind :builtin
+   :impl :qlang/prim/isNumber
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -346,8 +346,8 @@
       ~{[] | isVec | eq(true)}
       ~{#{1} | isVec | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isVec
+  {:kind :builtin
+   :impl :qlang/prim/isVec
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -360,8 +360,8 @@
       ~{{} | isMap | eq(true)}
       ~{[] | isMap | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isMap
+  {:kind :builtin
+   :impl :qlang/prim/isMap
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -374,8 +374,8 @@
       ~{#{} | isSet | eq(true)}
       ~{[1 2] | isSet | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isSet
+  {:kind :builtin
+   :impl :qlang/prim/isSet
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -385,11 +385,11 @@
   |~~ Returns true iff the subject is a Keyword.
 
       ~{:name | isKeyword | eq(true)}
-      ~{:qlang/kind | isKeyword | eq(true)}
+      ~{:kind | isKeyword | eq(true)}
       ~{"name" | isKeyword | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isKeyword
+  {:kind :builtin
+   :impl :qlang/prim/isKeyword
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -405,8 +405,8 @@
       ~{0 | isBoolean | eq(false)}
       ~{null | isBoolean | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isBoolean
+  {:kind :builtin
+   :impl :qlang/prim/isBoolean
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -422,8 +422,8 @@
       ~{0 | isNull | eq(false)}
       ~{"" | isNull | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isNull
+  {:kind :builtin
+   :impl :qlang/prim/isNull
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -439,8 +439,8 @@
       ~{"mul(2)" | isQuote | eq(false)}
       ~{42 | isQuote | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isQuote
+  {:kind :builtin
+   :impl :qlang/prim/isQuote
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -455,8 +455,8 @@
       ~{"note" | isDoc | eq(false)}
       ~{42 | isDoc | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isDoc
+  {:kind :builtin
+   :impl :qlang/prim/isDoc
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -476,8 +476,8 @@
       ~{"qlang/error" | keyword | eq(:qlang/error)}
       ~{:"foo bar" | keyword | eq("foo bar")}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/keyword
+  {:kind :builtin
+   :impl :qlang/prim/keyword
    :category :type-conversion
    :subject [:string :keyword]
    :returns [:string :keyword]
@@ -502,8 +502,8 @@
       ~{::json{:k 1} | isJsonObject | eq(true)}
       ~{{:k 1} | isJsonObject | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isJsonObject
+  {:kind :builtin
+   :impl :qlang/prim/isJsonObject
    :category :type-classifier
    :subject :any
    :returns :boolean
@@ -517,8 +517,8 @@
       ~{::json[1 2 3] | isJsonArray | eq(true)}
       ~{[1 2 3] | isJsonArray | eq(false)}
   ~~|
-  {:qlang/kind :builtin
-   :qlang/impl :qlang/prim/isJsonArray
+  {:kind :builtin
+   :impl :qlang/prim/isJsonArray
    :category :type-classifier
    :subject :any
    :returns :boolean

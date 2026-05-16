@@ -1,7 +1,7 @@
 // Shared shape helpers for builtin descriptor Maps.
 //
 // A "raw" builtin descriptor is what the env Map stores after
-// `langRuntime` bootstrap: `{:qlang/kind :builtin :qlang/impl
+// `langRuntime` bootstrap: `{:kind :builtin :impl
 // <FunctionValue> :category … :subject … …}`. Several consumers
 // need to project the user-facing reify-shape from it (strip
 // internals, stamp display fields) without going through the full
@@ -23,7 +23,7 @@ import { keyword } from './types.mjs';
 // reifyBuiltinDescriptor(rawDescriptor, implFn, name?) → Map
 //
 // Builds a user-facing reify-shape descriptor from a raw env
-// descriptor. Strips internal :qlang/kind and :qlang/impl, stamps
+// descriptor. Strips internal :kind and :impl, stamps
 // :kind :builtin plus :captured and :effectful read from the
 // resolved function value.
 export function reifyBuiltinDescriptor(rawDescriptor, implFn, name) {
@@ -31,7 +31,7 @@ export function reifyBuiltinDescriptor(rawDescriptor, implFn, name) {
   reified.set('kind', keyword('builtin'));
   if (name != null) reified.set('name', name);
   for (const [fieldKey, fieldVal] of rawDescriptor) {
-    if (fieldKey === 'qlang/kind' || fieldKey === 'qlang/impl') continue;
+    if (fieldKey === 'kind' || fieldKey === 'impl') continue;
     reified.set(fieldKey, fieldVal);
   }
   reified.set('captured', [...implFn.meta.captured]);

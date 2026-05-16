@@ -71,6 +71,6 @@ describe('BindStep — effect-laundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
     const err = await evalQuery(':safe @nonExistent');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('qlang/kind')).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
+    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
   });
 });

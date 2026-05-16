@@ -106,7 +106,7 @@
 |~ ── 3. Tag-binding constructor invariants ─────────────── ~|
 
 ::TagBindingHasNoConstructorError
-  |~~ Tag-binding has no registered constructor — `:qlang/impl`
+  |~~ Tag-binding has no registered constructor — `:impl`
       carries an unexpected value (neither a `:qlang/prim/*`
       keyword nor a Quote-impl body). Descriptor fields:
       `:payloadValue` / `:payloadType`, `:actualValue` /
@@ -196,11 +196,11 @@
 |~ ── 6. AST codec invariants ──────────────────────────── ~|
 
 ::AstMapKindUnknownError
-  |~~ AST-Map → AST codec — `:qlang/kind` discriminator names
+  |~~ AST-Map → AST codec — `:kind` discriminator names
       a kind the codec does not know.
 
       ~{
-        {:qlang/kind :BogusKind} | eval
+        {:kind :BogusKind} | eval
         !| [type]
         |  eq([::AstMapKindUnknownError])
        }
@@ -325,7 +325,7 @@
   ~~|
 
 ::PrimitiveKeyUnboundError
-  |~~ Primitive registry — `:qlang/impl` handle on a descriptor
+  |~~ Primitive registry — `:impl` handle on a descriptor
       Map points to a primitive that was never bound.
   ~~|
 
@@ -363,6 +363,6 @@
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function
       value reached render. Wrap host operands in a descriptor
-      Map carrying `:qlang/kind :builtin` and `:qlang/impl`
+      Map carrying `:kind :builtin` and `:impl`
       when binding through `session.bind`.
   ~~|

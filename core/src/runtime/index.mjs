@@ -155,9 +155,8 @@ export async function buildLangRuntime(locator) {
   // descriptor without a registry lookup per call. Tag bindings
   // keep their :impl as a keyword (`:qlang/type/<tag>`);
   // evalTaggedLit resolves it through PRIMITIVE_REGISTRY at
-  // invocation. That keeps `reify(::tag)` output readable — a
-  // keyword instead of a JS-source dump of an opaque constructor
-  // function.
+  // every invocation, so `reify(::tag)` surfaces the readable
+  // `:qlang/type/<tag>` keyword handle the catalog declared.
   //
   // Same pass backfills `:modifiers` and `:throws` empty Vecs on
   // any builtin descriptor that omitted them. Authors leave the

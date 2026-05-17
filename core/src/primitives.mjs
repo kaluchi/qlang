@@ -17,14 +17,14 @@
 // Two parallel namespaces ride through the registry:
 //
 //   `qlang/prim/<name>` — value-namespace operands (`add`, `count`,
-//     `filter`, `reify`, …). Resolved once at bootstrap; the
+//     `filter`, `manifest`, …). Resolved once at bootstrap; the
 //     descriptor's `:impl` keyword is replaced with the
 //     resulting JS function value.
 //
 //   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
 //     `::qlang`, `::json`). The keyword stays a keyword on the
 //     descriptor; `evalTaggedLit` resolves it through the registry
-//     at every invocation so `reify(::tag)` keeps the readable
+//     at every invocation so `manifest(:tag)` keeps the readable
 //     `:impl :qlang/type/<tag>` handle on the descriptor.
 //
 // Lifecycle:

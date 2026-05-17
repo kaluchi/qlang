@@ -93,7 +93,7 @@ describe('installModules', () => {
     expect(sessionInstance.env.has('error')).toBe(true);
 
     // use(:error) imports retry into current env
-    const cellEntry = await sessionInstance.evalCell('use(:error) | reify(:retry) | /kind');
+    const cellEntry = await sessionInstance.evalCell('use(:error) | manifest | filter(/name | eq("retry")) | first | /kind');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual(keyword('conduit'));
   });
@@ -120,7 +120,7 @@ describe('installModules', () => {
     await sessionInstance.evalCell('use(:error/observe)');
 
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
-      const cellEntry = await sessionInstance.evalCell(`reify(:${name}) | /kind`);
+      const cellEntry = await sessionInstance.evalCell(`manifest | filter(/name | eq("${name}")) | first | /kind`);
       expect(cellEntry.error).toBeNull();
       expect(cellEntry.result).toEqual(keyword('conduit'));
     }

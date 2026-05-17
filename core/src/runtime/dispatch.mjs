@@ -47,7 +47,7 @@ const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
     `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`);
 
 // Unbounded-upper-limit sentinel for variadic operand `captured`
-// ranges. Surfaced into reify descriptors as a keyword value so
+// ranges. Surfaced into manifest descriptors as a keyword value so
 // user code can pattern-match with `eq(:unbounded)`.
 export const UNBOUNDED = keyword('unbounded');
 

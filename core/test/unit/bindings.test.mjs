@@ -9,7 +9,7 @@ import { isErrorValue, keyword, makeTagKeyword, describeType } from '../../src/t
 
 describe('BindStep — docs-only form', () => {
   it('binds a Doc-value when the prefix is the only attached content', async () => {
-    const result = await evalQuery(':guide |~~ A guide. ~~|\n| reify(:guide) | /type');
+    const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | type');
     expect(result).toEqual(keyword('doc'));
   });
 
@@ -26,19 +26,22 @@ describe('BindStep — docs-only form', () => {
 });
 
 describe('BindStep — value-body purity routing', () => {
-  it('pure scalar literal lands as a snapshot', async () => {
-    const result = await evalQuery(':pi 3.14 | reify(:pi) | /kind');
-    expect(result).toEqual(keyword('snapshot'));
+  // Pure-literal bodies land as Snapshot wrappers; identifier lookup
+  // auto-unwraps to the captured value, so the user-observable
+  // contract is "lookup yields the eval-at-bind-time value". The
+  // snapshot wrapper is internal — there is no user-facing axis
+  // that surfaces it.
+
+  it('pure scalar literal lookup yields the literal value', async () => {
+    expect(await evalQuery(':pi 3.14 | pi')).toBe(3.14);
   });
 
-  it('pure Vec literal lands as a snapshot', async () => {
-    const result = await evalQuery(':xs [1 2 3] | reify(:xs) | /kind');
-    expect(result).toEqual(keyword('snapshot'));
+  it('pure Vec literal lookup yields the literal Vec', async () => {
+    expect(await evalQuery(':xs [1 2 3] | xs')).toEqual([1, 2, 3]);
   });
 
-  it('impure body containing OperandCall lands as a conduit', async () => {
-    const result = await evalQuery(':double mul(2) | reify(:double) | /kind');
-    expect(result).toEqual(keyword('conduit'));
+  it('impure body containing OperandCall fires the deferred body per call', async () => {
+    expect(await evalQuery(':double mul(2) | 5 | double')).toBe(10);
   });
 
   it('snapshot lookup returns the eval-at-bind-time value', async () => {

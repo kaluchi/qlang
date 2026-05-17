@@ -1,7 +1,10 @@
 // runExamples — execute each Quote segment in a binding's attached
 // docs as an executable test case. Truthy result (anything not
 // false / null / error-value) means pass. Subject can be a keyword
-// (binding name) or a descriptor Map carrying a :name string.
+// (binding name) or a descriptor Map carrying a :name string —
+// the Map shape is what `manifest` yields per entry, so
+// `manifest * runExamples` walks the whole catalog without an
+// intermediate name-projection step.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -14,8 +17,11 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
     expect(result).toEqual([true]);
   });
 
-  it('descriptor subject — reify(:count) | runExamples', async () => {
-    const result = await evalQuery('reify(:count) | runExamples * /ok | distinct');
+  it('descriptor subject — manifest-yielded Map with :name passes through', async () => {
+    // `manifest` enumerates env into descriptor Maps carrying `:name`;
+    // composing it with `* runExamples` per-entry covers the
+    // Map-with-:name subject path on the runExamples contract.
+    const result = await evalQuery('manifest | filter(/name | eq("count")) | first | runExamples * /ok | distinct');
     expect(result).toEqual([true]);
   });
 

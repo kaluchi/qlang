@@ -79,7 +79,7 @@ the language, described here in meta-notation for clarity.
 ## Step types
 
 Seven kinds of steps. Every syntactic form in the language reduces
-to one of them. `use`, `env`, `reify`, `manifest`, `error`, and
+to one of them. `use`, `env`, `manifest`, `error`, and
 `isError` parse as ordinary identifiers (Step 3) that resolve to
 built-ins in the language runtime.
 
@@ -125,7 +125,7 @@ Let `resolved = env[:name]`:
   state`. Most built-ins are pure value transformers (they project
   `state.pipeValue`, compute a result, and ascend back into a new
   state), but the same interface also accommodates **reflective
-  operands** (`use`, `env`, `reify`, `manifest`) that read or
+  operands** (`use`, `env`, `manifest`) that read or
   write the full state directly. The distinction stays internal:
   both kinds are invoked the same way at the call site.
 - If `resolved` is a **non-function value** (Scalar/Vec/Map/Set):
@@ -151,9 +151,8 @@ Identity on `pipeValue`; writes the current value into `env[:name]`
 as a `Snapshot` wrapper carrying the captured value, the binding name,
 and any doc-comment contents attached at parse time. A later bare
 `name` lookup (Step 3) transparently unwraps the snapshot and returns
-the raw captured value; a reflective `reify(:name)` lookup reads the
-wrapper directly and exposes the `:name`, `:value`, and `:docs` fields
-in the descriptor.
+the raw captured value; the `:name | source` / `:name | docs` axis
+operands surface the declaring source slice and the attached prose.
 
 ### 5. BindStep declaration — `:name body` / `:name [:p1..:pN] body` / `:name docs` / `::Tag body`
 
@@ -306,58 +305,35 @@ Inside a fork, `env` returns the fork's current env (with any
 fork-local `as` snapshot or BindStep declaration still visible at
 the point of lookup).
 
-### `reify`
-
-Overloaded by captured-arg count:
-
-- **Arity 1, zero captured** — value-level. Reads the current
-  `pipeValue` and produces a descriptor Map. The descriptor's
-  `:kind` field distinguishes four provenances:
-
-  - `:builtin` — `pipeValue` is a descriptor Map loaded by
-    `langRuntime()` from one of the catalog family files under
-    `lib/qlang/operand/`. env stores every built-in as a Map
-    directly; `reify` substitutes the internal `:kind
-    :builtin` / `:impl :qlang/prim/<name>` discriminator
-    for the user-facing `:kind :builtin`, drops the `:impl`
-    handle (reify consumers read the descriptor, the dispatch-time
-    primitive key is internal), and computes `:captured` /
-    `:effectful` by resolving the primitive through
-    `PRIMITIVE_REGISTRY`. The structural fields (`:category`,
-    `:subject`, `:modifiers`, `:returns`, `:throws`) pass through
-    from the operand-family entry verbatim. Authored prose lives on the `BindStep`'s
-    attached doc-prefix and is reachable via `:name | docs`
-    (Vec of Doc-values, `/content` for raw text, `/segments`
-    for Prose / Quote / TaggedLit splits) or via `:name |
-    examples` (Vec of Quote-values pulled from every Quote
-    segment in the docs).
-  - `:conduit` — a BindStep-installed conduit. Descriptor has
-    `:kind :conduit`, `:name`, `:source` (textual form of the body
-    expression), `:docs` (Vec from parser-attached doc comments).
-  - `:snapshot` — an `as`-bound snapshot. Descriptor has `:kind
-    :snapshot`, `:name`, `:value`, `:type`, `:docs` (Vec).
-  - `:value` — any other scalar, Vec, Map, or Set. Descriptor has
-    `:kind :value`, `:value`, `:type`.
-
-      (pipeValue, env) → (descriptorMap, env)
-
-- **Arity 2, one captured keyword** — `reify(:name)`. Looks up
-  `:name` in `env` and builds the descriptor for whatever binding
-  lives there, attaching a `:name` field to the result regardless
-  of whether the binding is a function, conduit, snapshot, or bare
-  value. This form serves the caller who knows the name and wants
-  the descriptor without first staging the binding through
-  `pipeValue`.
-
-      (pipeValue, env) → (env[:name] descriptor with :name field, env)
-
-`reify` never mutates `env` — it is read-only on the state pair.
-
 ### `manifest`
 
 Arity 1. Ignores `pipeValue`; iterates over every binding in the
-current `env`, building a reify-style descriptor for each, and
-returns a Vec of descriptors sorted by binding name.
+current `env`, building a descriptor Map per entry via
+`describeBinding` in `runtime/manifest-op.mjs`, and returns a Vec
+of descriptors sorted by binding name. The descriptor `:kind`
+field distinguishes four provenances:
+
+- `:builtin` — env entry is a descriptor Map loaded by
+  `langRuntime()` from one of the catalog family files under
+  `lib/qlang/operand/`. The user-facing descriptor stamps
+  `:kind :builtin` (plain Keyword, dropping the internal
+  `::builtin` TagKeyword), drops the `:impl` handle (dispatch-
+  time primitive key is internal), and copies `:category`,
+  `:subject`, `:modifiers`, `:returns`, `:throws` verbatim. The
+  derived `:captured` / `:effectful` fields are stamped from the
+  resolved primitive's `meta`. Authored prose lives on the
+  `BindStep`'s attached doc-prefix and is reachable via the
+  `:name | docs` axis (Vec of Doc-values) or `:name | examples`
+  axis (Vec of Quote-values pulled from every `~{…}` segment in
+  the docs).
+- `:conduit` — a BindStep-installed conduit. Descriptor has
+  `:kind :conduit`, `:name`, `:params`, `:source` (textual form
+  of the body), `:effectful`, `:location`.
+- `:snapshot` — an `as`-bound snapshot. Descriptor has `:kind
+  :snapshot`, `:name`, `:value`, `:type`, `:effectful`, `:location`.
+- `:value` — any other plain JS value (scalar, Vec, Map, Set,
+  error value, function value, etc.). Descriptor has `:kind
+  :value`, `:name`, `:value`, `:type`.
 
     (pipeValue, env) → (Vec<descriptor>, env)
 
@@ -365,8 +341,10 @@ Typical call pattern:
 
     env | manifest | filter(/kind | eq(:builtin)) | table
 
-`manifest` is a convenience wrapper around `reify(:name)` applied
-to every key in `env | keys`.
+`manifest` is the enumeration surface. For per-binding source-level
+introspection reach for the axis trio (`:name | source` / `| docs`
+/ `| examples`) — they read the catalog AST directly and never
+touch the runtime descriptor Map.
 
 ## Tag bindings and TaggedLit dispatch
 
@@ -681,7 +659,8 @@ co-located sources:
   `stateOpVariadic`, `higherOrderOpVariadic`) attach a tiny
   `meta` object carrying only the `captured` range — the rest
   of the metadata lives in the operand-family catalog files
-  and is addressable at `reify` / `manifest` time.
+  and is addressable via `manifest` enumeration or the axis trio
+  (`:name | source / docs / examples`).
 
 `langRuntime()` in `core/src/runtime/index.mjs` ties the two together
 by parsing `core.qlang` once (which threads through `use(...)` to
@@ -729,7 +708,7 @@ indistinguishable from built-ins.
 | `:name body` / `:name [:p] body` / `::Tag body` | Step 5 — BindStep declaration |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
-| `use`, `env`, `reify`, `manifest`   | Step 3 — reflective built-in          |
+| `use`, `env`, `manifest`   | Step 3 — reflective built-in          |
 | `error`, `isError`                  | Step 3 — error built-in               |
 | `\|`, `!\|`, `*`, `>>`              | Combinators                           |
 | `(...)` grouping                    | Fork                                  |
@@ -1338,7 +1317,8 @@ invocations.
   `:number`, `:string`, `:vec`, `:map`, `:set`, `:keyword`,
   `:boolean`, `:null`, `:conduit`, `:snapshot`, `:error`,
   `:function`. Used by error factories for structured
-  `context.actualType` fields and by `reify` for descriptor `:type`.
+  `context.actualType` fields and by `manifest`'s descriptor for
+  the `:type` field on each entry.
 
 Three public entries, all kind-table dispatches keyed off
 `describeType`:

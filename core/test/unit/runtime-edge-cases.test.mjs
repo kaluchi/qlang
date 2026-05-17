@@ -22,6 +22,7 @@ import {
   describeType,
   typeKeyword,
   keyword,
+  makeTagKeyword,
   makeSnapshot,
   makeConduit,
   makeErrorValue,
@@ -258,11 +259,15 @@ describe('higherOrderOp / nullaryOp arity errors', async () => {
   });
 });
 
-describe('reify-op.mjs — :type :unknown lift for non-classifiable host values', async () => {
-  it('reify on a Symbol-bound value returns :unknown for the :type field', async () => {
+describe('manifest-op.mjs — :type :unknown lift for non-classifiable host values', async () => {
+  it('manifest descriptor for a Symbol-bound value carries :type :unknown', async () => {
+    // session.bind drops any JS value into env. The describeBinding
+    // fall-through (non-Map / non-conduit / non-snapshot / non-function)
+    // wraps it as a :kind :value descriptor and stamps :type via
+    // typeKeyword — which lifts unrecognised host values to :unknown.
     const s = await createSession();
     s.bind('weird', Symbol('weird'));
-    const result = (await s.evalCell('reify(:weird) | /type')).result;
+    const result = (await s.evalCell('manifest | filter(/name | eq("weird")) | first | /type')).result;
     expect(result).toEqual(keyword('unknown'));
   });
 });
@@ -390,11 +395,11 @@ describe('conduit-parameter arity error', async () => {
 });
 
 
-describe('reify on a snapshot bound directly via session.bind', async () => {
-  it('reify(:name) returns a snapshot descriptor with :type and :value', async () => {
+describe('manifest descriptor for a snapshot bound directly via session.bind', async () => {
+  it('manifest entry carries :kind :snapshot plus :type and :value', async () => {
     const s = await createSession();
     s.bind('snap', makeSnapshot(42, { name: 'snap' }));
-    const result = (await s.evalCell('reify(:snap)')).result;
+    const result = (await s.evalCell('manifest | filter(/name | eq("snap")) | first')).result;
     expect(result.get('kind')).toEqual(keyword('snapshot'));
     expect(result.get('value')).toBe(42);
     expect(result.get('type')).toEqual(keyword('number'));
@@ -453,33 +458,23 @@ describe('importSelectiveNamespace single keyword fallback', async () => {
 
 
 
-describe('reify descriptor branch coverage', async () => {
-  it('reify value-level on conduit exposes name', async () => {
-    const r = await evalQuery(':x mul(2) | env | /x | reify | /name');
-    expect(r).toBe('x');
+describe('manifest descriptor — describeBinding branch coverage', async () => {
+  // `describeBinding` in manifest-op.mjs switches on the env-value's
+  // runtime shape (builtin descriptor / conduit / snapshot / function
+  // value / plain). Each branch lands in `manifest`'s output Vec
+  // through its dedicated build* helper.
+
+  it('conduit binding surfaces :kind :conduit with the declared name', async () => {
+    const r = await evalQuery(':x mul(2) | manifest | filter(/name | eq("x")) | first');
+    expect(r.get('kind')).toEqual(keyword('conduit'));
+    expect(r.get('name')).toBe('x');
   });
 
-  it('reify value-level on snapshot exposes name', async () => {
-    // env | /val returns the snapshot wrapper; reify on it gives descriptor
-    const r = await evalQuery('42 | as(:val) | reify(:val) | /name');
-    expect(r).toBe('val');
+  it('snapshot binding surfaces :kind :snapshot with the declared name', async () => {
+    const r = await evalQuery('42 | as(:v) | manifest | filter(/name | eq("v")) | first');
+    expect(r.get('kind')).toEqual(keyword('snapshot'));
+    expect(r.get('name')).toBe('v');
   });
-
-  it('reify named form on conduit', async () => {
-    const r = await evalQuery(':x mul(2) | reify(:x) | /kind');
-    expect(r).toEqual(keyword('conduit'));
-  });
-
-  it('reify named form on snapshot', async () => {
-    const r = await evalQuery('42 | as(:v) | reify(:v) | /kind');
-    expect(r).toEqual(keyword('snapshot'));
-  });
-
-  it('reify on plain value', async () => {
-    const r = await evalQuery('42 | reify | /kind');
-    expect(r).toEqual(keyword('value'));
-  });
-
 });
 
 // ── walk.mjs uncovered branches ────────────────────────────────
@@ -559,17 +554,27 @@ describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection',
   });
 });
 
-describe('reify-op.mjs — buildValueDescriptor :type lift for directly-bound error', async () => {
-  it('reify on a directly-bound error value returns :error as :type', async () => {
-    // `buildValueDescriptor` in reify-op.mjs reads `typeKeyword(v)`
-    // for the descriptor's `:type` field. An error value bound
-    // directly through `session.bind` reaches `buildValueDescriptor`
-    // (no `:kind`, not a conduit, snapshot, or function), and
-    // `typeKeyword`'s isErrorValue branch lifts it to `:error`.
+describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound error', async () => {
+  // `buildValueDescriptor` reads `typeKeyword(v)` for the
+  // descriptor's `:type` field. `typeKeyword`'s isErrorValue
+  // branch surfaces the error's `:kind` TagKeyword when one is
+  // present (tagged-instance identity-via-:kind invariant), or
+  // the generic `:error` Keyword fallback when `:kind` is a plain
+  // Keyword (or missing). Cover both branches.
+
+  it('error :kind as TagKeyword surfaces as the TagKeyword on the :type field', async () => {
+    const s = await createSession();
+    const errVal = makeErrorValue(new Map([['kind', makeTagKeyword('test')]]));
+    s.bind('myErr', errVal);
+    const r = await s.evalCell('manifest | filter(/name | eq("myErr")) | first | /type');
+    expect(r.result).toEqual(makeTagKeyword('test'));
+  });
+
+  it('error :kind as plain Keyword falls through to the generic :error :type', async () => {
     const s = await createSession();
     const errVal = makeErrorValue(new Map([['kind', keyword('test')]]));
     s.bind('myErr', errVal);
-    const r = await s.evalCell('reify(:myErr) | /type');
+    const r = await s.evalCell('manifest | filter(/name | eq("myErr")) | first | /type');
     expect(r.result).toEqual(keyword('error'));
   });
 });

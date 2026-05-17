@@ -2,14 +2,13 @@
 // or write the env directly.
 //
 // `env` exposes the current env Map as the new `pipeValue`, so
-// introspective queries (`env | keys`, `env | /count | reify`)
+// introspective queries (`env | keys`, `env | manifest | …`)
 // compose through the regular Map operand surface.
 //
 // `as(:name)` snapshots the current `pipeValue` under a keyword
 // name and threads `pipeValue` through unchanged. The snapshot is
 // reachable through identifier lookup (auto-unwrapped to the raw
-// value) and through `reify(:name)` (with the wrapper preserved
-// for metadata inspection including attached docs).
+// value); the attached doc-prefix surfaces through `:name | docs`.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';

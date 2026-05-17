@@ -1,7 +1,7 @@
 |~ qlang operand catalog — type-classifier family. Nullary
    predicates that lift a single value-class question to operand
-   level — `:foo | isString` instead of `:foo | reify | /type |
-   eq(:string)`. Plus `:type`, the canonical identity-tag reader
+   level — `:foo | isString` instead of `:foo | type | eq(:string)`.
+   Plus `:type`, the canonical identity-tag reader
    that returns the value's TagKeyword (for tagged-instance Maps,
    error values, conduits, snapshots) or its plain Keyword (for
    scalars and base containers). Every operand BindStep sits
@@ -45,8 +45,8 @@
       over any pipeValue. Primary use — filter(isString) over a
       heterogeneous Vec, or filter(isString) over a Map where the
       value's type is the predicate axis. Lifts value-type
-      classification to operand level without the descriptor-
-      construction cost of reify | /type | eq(:string).
+      classification to operand level without an intermediate
+      `| type | eq(:string)` chain.
 
       ~{"hello" | isString | eq(true)}
       ~{42 | isString | eq(false)}

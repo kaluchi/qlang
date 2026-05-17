@@ -79,15 +79,6 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 });
 
-// ── reify :source field ─────────────────────────────────────────
-
-describe('reify :source from conduit body', () => {
-  it('renders an ErrorLit body as the original source substring', async () => {
-    const evalResult = await evalQuery(':x [] !{:a 1} | reify(:x) | /source');
-    expect(evalResult).toBe('!{:a 1}');
-  });
-});
-
 // ── EffectLaunderingAtCallError ──────────────────────────────────────
 
 describe('EffectLaunderingAtCallError', () => {
@@ -105,31 +96,32 @@ describe('EffectLaunderingAtCallError', () => {
   });
 });
 
-describe('reify :source for rare conduit body shapes', () => {
+describe('source axis surfaces verbatim BindStep slice for rare body shapes', () => {
   it('renders bare OperandCall (no args)', async () => {
-    expect(await evalQuery(':x count | reify(:x) | /source')).toBe('count');
+    expect(await evalQuery(':x count | :x | source | /source')).toBe(':x count');
   });
 
-  it('renders LinePlainComment in conduit body', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | reify(:x) | /source');
+  it('renders LinePlainComment inside conduit body', async () => {
+    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | /source');
     expect(evalResult).toContain('|~|');
   });
 
-  it('attached BlockDocComment surfaces through the axis docs operand', async () => {
+  it('attached BlockDocComment surfaces through the docs axis operand', async () => {
     const evalResult = await evalQuery('|~~ doc ~~| :x 42 | :x | docs | first | /content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
   });
 
-  it('renders ErrorLit in conduit body', async () => {
-    expect(await evalQuery(':x [] !{:a 1} | reify(:x) | /source')).toBe('!{:a 1}');
+  it('renders ErrorLit body', async () => {
+    expect(await evalQuery(':x [] !{:a 1} | :x | source | /source')).toContain('!{:a 1}');
   });
 
   it('renders leading fail-apply prefix in conduit body', async () => {
     // BindStep body is a single Primary, so a `!|` leading
     // Pipeline-step is wrapped in a ParenGroup at the source level.
-    // `reify | /source` reflects the verbatim AST text, parens and all.
-    expect(await evalQuery(':handler (!| /kind) | reify(:handler) | /source')).toBe('(!| /kind)');
+    // The source axis reflects the verbatim BindStep text, parens
+    // and all.
+    expect(await evalQuery(':handler (!| /kind) | :handler | source | /source')).toBe(':handler (!| /kind)');
   });
 });
 

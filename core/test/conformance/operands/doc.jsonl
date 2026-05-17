@@ -16,9 +16,6 @@
 {"name":"doc-eq-different-content","query":"eq(|~~ a ~~|, |~~ b ~~|)","expect":"false"}
 {"name":"doc-eq-doc-vs-string","query":"eq(|~~ x ~~|, \"x\")","expect":"false"}
 {"name":"doc-eq-doc-vs-quote","query":"eq(|~~ x ~~|, ~{x})","expect":"false"}
-{"name":"doc-reify-type","query":"|~~ x ~~| | reify | /type","expect":":doc"}
-{"name":"doc-reify-kind","query":"|~~ x ~~| | reify | /kind","expect":":value"}
-{"name":"doc-reify-value-content","query":"|~~ x ~~| | reify | /value | /content","expect":"\" x \""}
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | isDoc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | isDoc","expect":"true"}
 {"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | /content","expect":"\" second \""}

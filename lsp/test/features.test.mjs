@@ -41,7 +41,7 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('filter');
     expect(labels).toContain('add');
     expect(labels).toContain('as');
-    expect(labels).toContain('reify');
+    expect(labels).toContain('manifest');
   });
 
   it('returns more than 60 builtin completions', async () => {

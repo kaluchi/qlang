@@ -10,7 +10,7 @@
 // captured-arg lambdas against it, call the pure core, and wrap
 // the result back into a new state with `withPipeValue`.
 //
-// Reflective operands (env, use, reify, manifest) use the
+// Reflective operands (env, use, manifest, runExamples) use the
 // `stateOp` / `stateOpVariadic` helpers, which do NOT descend to
 // the value level — the impl receives the full state and returns
 // a full state, giving it read/write access to `env`.
@@ -62,16 +62,16 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // arg slots the operand accepts, derived structurally from the
 // dispatch wrapper itself. Catalog-bound builtin descriptors keep
 // their `category` / `subject` / `modifiers` / `returns` / `throws`
-// fields on the authored `core/lib/qlang/**/*.qlang` Map; reify
-// reads them through descriptor projection at every lookup, so the
-// JS layer holds no duplicated authored meta.
+// fields on the authored `core/lib/qlang/**/*.qlang` Map; `manifest`
+// reads them through descriptor projection at enumeration time, so
+// the JS layer holds no duplicated authored meta.
 //
 // `makeConduitParameter` (in `eval.mjs`) is the lone JS-side
 // builder that mints a function value WITH a full meta shape
 // inline — conduit-parameter proxies are ephemeral, live only
 // for the duration of a conduit body fork, and have no catalog
 // entry to project meta from. The proxy's full meta lets the
-// `isFunctionValue` branch of `reify`'s `describeBinding` build
+// `isFunctionValue` branch of `manifest`'s `describeBinding` build
 // a `:kind :builtin` descriptor for the proxy without a
 // descriptor-Map round-trip.
 export function makeFn(name, arity, impl, meta) {

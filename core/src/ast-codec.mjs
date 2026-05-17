@@ -11,8 +11,8 @@
 //     evaluation against the current state. Closes the source → data
 //     → exec ring that makes `| parse | eval` a first-class
 //     combinator.
-//   - Conduit body inspection — `reify(:helper) | /body` exposes a
-//     user-defined conduit's body as an AST-Map for programmatic
+//   - Conduit body inspection — `:helper | source | /ast` exposes
+//     a user-defined conduit's source as an AST-Map for programmatic
 //     navigation or editor tooling.
 //
 // Round-trip invariant: `qlangMapToAst(astNodeToMap(n))` is

@@ -317,110 +317,19 @@ describe('dispatch helper arity error paths', () => {
   });
 });
 
-describe('runtime/reify-op.mjs reify and manifest', () => {
-  it('reify on a number returns a value-kind descriptor', async () => {
-    const reifyResult = await evalQuery('42 | reify');
-    expect(reifyResult).toBeInstanceOf(Map);
-    expect(reifyResult.get('kind')).toEqual(keyword('value'));
-    expect(reifyResult.get('value')).toBe(42);
-    expect(reifyResult.get('type')).toEqual(keyword('number'));
-  });
-
-  it('reify subject-form on a TagKeyword whose tag binding is missing falls through to buildValueDescriptor', async () => {
-    // Bare `::Foo` literal evaluates to a TagKeyword identity
-    // regardless of env binding state — symmetric to `:foo`
-    // Keyword. Reify's subject-form mirrors that symmetry: an
-    // env miss falls through to `describeBinding(pipeValue)` and
-    // surfaces the TagKeyword as `:kind :value, :type :tag-keyword`
-    // instead of raising. `manifest(:tag)` lists every declared
-    // tag-binding for callers that want a guaranteed-bound view.
-    const result = await evalQuery('::SomeFreshTag | reify');
-    expect(result).toBeInstanceOf(Map);
-    expect(result.get('kind')).toEqual(keyword('value'));
-    expect(result.get('type')).toEqual(keyword('tag-keyword'));
-  });
-
-  it('reify on a builtin descriptor Map returns a builtin descriptor', async () => {
-    // env stores each built-in as a descriptor Map directly.
-    // `reify(:name)` projects it through `describeBinding` which
-    // substitutes `:kind` → `:kind`, drops `:impl`, and
-    // stamps `:captured` / `:effectful` / `:name` from the resolved
-    // primitive. The named form is the canonical spelling; bare
-    // `env | /count | reify` omits `:name` because no explicit
-    // name is in scope at the value-level reify branch.
-    const reifyCountResult = await evalQuery('reify(:count)');
-    expect(reifyCountResult.get('kind')).toEqual(keyword('builtin'));
-    expect(reifyCountResult.get('name')).toBe('count');
-    expect(reifyCountResult.get('captured')).toEqual([0, 0]);
-    // Prose lives on the catalog module's `qlang/ast/<uri>` Quote
-    // AST and is read through the `docs` axis, not the reify
-    // result — the descriptor carries structural metadata only.
-    expect(reifyCountResult.has('docs')).toBe(false);
-    expect((await evalQuery(':count | docs | count'))).toBeGreaterThan(0);
-  });
-
-  it('builtin descriptor surfaces :effectful=false for clean langRuntime operands', async () => {
-    expect(await evalQuery('reify(:count) | /effectful')).toBe(false);
-    expect(await evalQuery('reify(:filter) | /effectful')).toBe(false);
-  });
-
-  it('conduit descriptor surfaces :effectful from the binding name', async () => {
-    expect(await evalQuery(':foo count | reify(:foo) | /effectful')).toBe(false);
-    expect(await evalQuery(':@foo count | reify(:@foo) | /effectful')).toBe(true);
-  });
-
-  it('conduit descriptor surfaces :location of the body AST', async () => {
-    const locationResult = await evalQuery(':foo count | reify(:foo) | /location');
-    expect(locationResult).not.toBeNull();
-  });
-
-  it('snapshot descriptor surfaces :effectful from the binding name', async () => {
-    expect(await evalQuery('42 | as(:snap) | reify(:snap) | /effectful')).toBe(false);
-    expect(await evalQuery('42 | as(:@snap) | reify(:@snap) | /effectful')).toBe(true);
-  });
-
-  it('snapshot descriptor carries location from the as(:name) call site', async () => {
-    const offsetResult = await evalQuery('42 | as(:snap) | reify(:snap) | /location/start/offset');
-    expect(typeof offsetResult).toBe('number');
-  });
-
-  it('value descriptor omits :name when no binding name', async () => {
-    const reifyValResult = await evalQuery('42 | reify');
-    expect(reifyValResult.has('name')).toBe(false);
-  });
+describe('runtime/manifest-op.mjs manifest enumeration', () => {
+  // `manifest` walks env, building a per-binding descriptor through
+  // `describeBinding`. The descriptor `:effectful` field is the only
+  // user-visible bit derived at enumeration time from the impl
+  // function-value; everything else is read straight off the env
+  // entry. For per-binding introspection (source / docs / examples
+  // of a single name) reach for the axis trio instead — manifest
+  // is the enumeration surface, not the navigation surface.
 
   it('manifest descriptors all have :effectful field for builtin entries', async () => {
     const effectfulResult = await evalQuery('manifest * /effectful | distinct');
     // Every langRuntime builtin is a clean (non-effectful) function.
     expect(effectfulResult).toEqual([false]);
-  });
-
-  it('reify reports :captured [min, UNBOUNDED] for variadic operands', async () => {
-    const capturedResult = await evalQuery('env | /coalesce | reify | /captured');
-    expect(Array.isArray(capturedResult)).toBe(true);
-    expect(capturedResult[0]).toBe(1);
-    expect(capturedResult[1]).toEqual(keyword('unbounded'));
-  });
-
-  it('reify reports :captured [min, max] for overloaded operands', async () => {
-    const capturedResult = await evalQuery('env | /sort | reify | /captured');
-    expect(capturedResult).toEqual([0, 1]);
-  });
-
-  it('reify(:name) named form attaches the name explicitly', async () => {
-    const reifyFilterResult = await evalQuery('reify(:filter)');
-    expect(reifyFilterResult.get('name')).toBe('filter');
-    expect(reifyFilterResult.get('kind')).toEqual(keyword('builtin'));
-  });
-
-  it('reify(:name) on unresolved name throws', async () => {
-    expect(isErrorValue(await evalQuery('reify(:thisDoesNotExist)'))).toBe(true);
-  });
-
-  it('reify(non-keyword) → ReifyKeyNotKeywordError', async () => {
-    const reifyStrResult = await evalQuery('reify("count")');
-    expect(isErrorValue(reifyStrResult)).toBe(true);
-    expect(reifyStrResult.originalError.name).toBe('ReifyKeyNotKeywordError');
   });
 
   it('manifest returns a Vec of descriptors sorted by name', async () => {
@@ -433,47 +342,45 @@ describe('runtime/reify-op.mjs reify and manifest', () => {
     expect(names).toEqual(sorted);
   });
 
-  it('reify with too many captured args raises ArityError', async () => {
-    // reify accepts 0 or 1 captured args; calling with 2 hits the
-    // stateOpVariadic-controlled overflow path inside reify itself.
-    expect(isErrorValue(await evalQuery('reify(:a, :b)'))).toBe(true);
-  });
-
-  it('reify of a conduit whose body is a Pipeline renders multi-step source', async () => {
-    // The :source field exposes the parser-captured `.text` substring
-    // of the conduit body verbatim, including the inner combinators.
+  it('conduit descriptor through manifest surfaces :source verbatim', async () => {
+    // The :source field exposes the parser-captured `.text` slice of
+    // the conduit body. Manifest stamps it via buildConduitDescriptor.
+    // Per-binding access goes through the source axis (`:chained |
+    // source | /source` returns the whole BindStep); manifest's
+    // descriptor surface keeps the body-only slice for enumeration
+    // composition.
     const sourceResult = await evalQuery(
-      ':chained (mul(2) | add(1)) | reify(:chained) | /source'
+      ':chained (mul(2) | add(1)) | manifest | filter(/name | eq("chained")) | first | /source'
     );
     expect(sourceResult).toContain('mul(2)');
     expect(sourceResult).toContain('add(1)');
     expect(sourceResult).toContain('|');
   });
+});
 
-  it('reify of a parametric conduit whose body is a VecLit renders the literal', async () => {
-    const sourceResult = await evalQuery(':xs [] [1 2 3] | reify(:xs) | /source');
-    expect(sourceResult).toBe('[1 2 3]');
+describe('source axis on conduit / snapshot / TagKeyword subjects', () => {
+  // `:name | source` returns a Quote carrying the verbatim source
+  // slice of the declaring BindStep — the canonical "what did the
+  // user write" answer. Same axis covers value-namespace bindings
+  // (Keyword subject) and tag-namespace bindings (TagKeyword subject).
+
+  it('source on a conduit binding name returns the full BindStep slice', async () => {
+    const source = await evalQuery(':double mul(2) | :double | source | /source');
+    expect(source).toBe(':double mul(2)');
   });
 
-  it('reify of a parametric conduit whose body is a SetLit renders the literal', async () => {
-    const sourceResult = await evalQuery(':s [] #{1 2 3} | reify(:s) | /source');
-    expect(sourceResult).toContain('#{');
+  it('source on a parametric conduit captures the params slot', async () => {
+    const source = await evalQuery(':@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | :@surround | source | /source');
+    expect(source).toContain('[:pfx :sfx]');
+    expect(source).toContain('prepend(pfx)');
   });
 
-  it('reify of a parametric conduit whose body is a MapLit renders the literal', async () => {
-    const sourceResult = await evalQuery(':m [] {:a 1 :b 2} | reify(:m) | /source');
-    expect(sourceResult).toContain(':a 1');
-    expect(sourceResult).toContain(':b 2');
-  });
-
-  it('reify of a conduit whose body is a Projection renders the keys', async () => {
-    const sourceResult = await evalQuery(':pluck /name | reify(:pluck) | /source');
-    expect(sourceResult).toBe('/name');
-  });
-
-  it('reify of a conduit whose body is a nested Projection renders all keys', async () => {
-    const sourceResult = await evalQuery(':deep /a/b/c | reify(:deep) | /source');
-    expect(sourceResult).toBe('/a/b/c');
+  it('source on a snapshot binding name returns the as(:name) BindStep equivalent', async () => {
+    // `as(:snap)` is an OperandCall, not a BindStep — the axis
+    // walks both shapes and returns the OperandCall's verbatim
+    // slice as the declaration source.
+    const source = await evalQuery('42 | as(:snap) | :snap | source | /source');
+    expect(source).toContain('as(:snap)');
   });
 });
 

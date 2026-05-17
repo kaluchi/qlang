@@ -1,41 +1,47 @@
-// `reify`, `manifest`, `runExamples` — reflective operands that
-// surface descriptor Maps for any binding kind and run the inline
-// `~{…}` Quote segments attached to a binding's doc-prefix.
+// `manifest`, `runExamples` — reflective operands over env.
 //
-// `reify` overloads by captured-arg count: value-level form reads
-// the current `pipeValue` and produces its descriptor; named form
-// `reify(:name)` looks up `:name` in env and stamps a descriptor
-// for whatever binding lives there. `manifest` walks every
-// value-namespace binding in env, returning a Vec of descriptors
-// sorted by binding name. `runExamples` pulls every Quote segment
-// from a binding's attached docs and evaluates each as a self-test.
+// `manifest` walks every binding in env, returning a Vec of
+// descriptor Maps sorted by name. `runExamples` pulls every Quote
+// segment from a named binding's attached doc-prefix and evaluates
+// each as a self-test, yielding `{:snippet :actual :ok :error}`
+// per Quote. Together they drive catalog-wide self-tests
+// (`manifest * runExamples * every(/ok)`) and the LSP / doc-site
+// surfaces that enumerate operands.
+//
+// The per-binding descriptor shape `manifest` produces is built by
+// `describeBinding`, a switch over the env-value's runtime shape
+// (`::builtin` Map, conduit Map, snapshot Map, raw function value
+// for conduit-parameter proxies, or plain pipeValue). The same
+// `buildBuiltinDescriptor` / `buildConduitDescriptor` /
+// `buildSnapshotDescriptor` / `buildValueDescriptor` helpers
+// stamp the user-facing fields per kind.
+//
+// The introspection surface for "what does THIS one binding do"
+// is the axis trio in `axis.mjs` (`:name | source` / `| docs` /
+// `| examples`) — reads source AST directly, never touches the
+// runtime descriptor. Reach for `manifest` when the question is
+// "which bindings exist" rather than "what does this one do".
 
 import { stateOp, stateOpVariadic } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
-  isTagKeyword, isErrorValue, typeKeyword, keyword
+  isErrorValue, typeKeyword, keyword
 } from '../types.mjs';
 import {
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
-  tagBindingKey, RUNTIME_LOCATOR_KEY
+  RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
 import { locationToQlangMap } from '../ast-codec.mjs';
 import {
-  declareShapeError,
-  declareArityError
+  declareShapeError
 } from '../operand-errors.mjs';
-import { UnresolvedIdentifierError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { reifyBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const ReifyArityOverflowError = declareArityError('ReifyArityOverflowError',
-  ({ actualArity }) => `reify accepts 0 or 1 captured args, got ${actualArity}`);
-const ReifyKeyNotKeywordError = declareShapeError('ReifyKeyNotKeywordError',
-  ({ actualType }) => `reify requires a Keyword or TagKeyword captured arg, got ${actualType.name}`);
 const ManifestNamespaceNotKeywordError = declareShapeError('ManifestNamespaceNotKeywordError',
   ({ actualType }) => `manifest(:namespace) requires a keyword captured arg, got ${actualType.name}`);
 const ManifestNamespaceUnknownError = declareShapeError('ManifestNamespaceUnknownError',
@@ -51,10 +57,10 @@ function errorMessageOf(errorValue) {
   return errorValue.descriptor.get('message');
 }
 
-// `buildBuiltinDescriptor` reifies a JS function-value into a
+// `buildBuiltinDescriptor` lifts a JS function-value into a
 // descriptor Map — invoked only on conduit-parameter proxies that
-// surface inside a conduit body's env. Every such proxy is minted by
-// `makeConduitParameter` in `eval.mjs` with a full `meta` shape
+// surface inside a conduit body's env. Every such proxy is minted
+// by `makeConduitParameter` in `eval.mjs` with a full `meta` shape
 // (`category`, `subject`, `modifiers`, `returns`, `captured`,
 // `throws` all stamped at construction); the catalog-bound builtins
 // flow through the `qlKind.name === 'builtin'` branch in
@@ -63,13 +69,6 @@ function buildBuiltinDescriptor(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
   result.set('kind', keyword('builtin'));
-  // Conduit-parameter proxies always reach reify through a named
-  // lookup (`reify(:p)` inside a conduit body, or `manifest` over
-  // the body's env — both pass `explicitName`); a bare-pipeValue
-  // function value cannot surface here without first tripping
-  // FunctionValueLeakedToPrintError on render, so the named path
-  // is the only live entry. `fn.name` echoes `explicitName` in
-  // every reachable case.
   result.set('name', explicitName);
   result.set('category', keyword(meta.category));
   result.set('subject', meta.subject);
@@ -82,9 +81,13 @@ function buildBuiltinDescriptor(fn, explicitName) {
 }
 
 function buildConduitDescriptor(conduit, explicitName) {
+  // `explicitName` is always the env key (manifest iterates env entries
+  // and threads each key as the name); the conduit's own `:name`
+  // payload mirrors it under normal BindStep declarations but the
+  // env-key is the source of truth for the descriptor.
   const result = new Map();
   result.set('kind', keyword('conduit'));
-  result.set('name', explicitName ?? conduit.get('name'));
+  result.set('name', explicitName);
   result.set('params', [...conduit.get('params')]);
   result.set('source', conduit.get('source'));
   result.set('effectful', conduit.get('effectful'));
@@ -93,15 +96,6 @@ function buildConduitDescriptor(conduit, explicitName) {
 }
 
 function buildSnapshotDescriptor(snap, explicitName) {
-  // Value-level reify on a snapshot is unreachable via projection:
-  // `evalProjection` auto-unwraps snapshots to the underlying
-  // value before returning, so `env | /someAs | reify` calls
-  // `buildValueDescriptor` on the unwrapped value rather than
-  // `buildSnapshotDescriptor` on the wrapper. Every reach into
-  // this builder flows through the named form `reify(:name)` or
-  // through `manifest`, both of which pass `explicitName`. Reading
-  // the descriptor's `:name` field as a fallback would be dead
-  // code.
   const value = snap.get('payload');
   const result = new Map();
   result.set('kind', keyword('snapshot'));
@@ -116,7 +110,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
 function buildValueDescriptor(value, explicitName) {
   const result = new Map();
   result.set('kind', keyword('value'));
-  if (explicitName != null) result.set('name', explicitName);
+  result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
   return result;
@@ -147,61 +141,15 @@ function describeBinding(value, explicitName) {
   }
   // Conduit-parameters — function values minted by
   // `makeConduitParameter` in `eval.mjs` that surface inside a
-  // conduit body's env. `reify(:paramName)` from within the body
-  // routes the proxy here; `buildBuiltinDescriptor` reads the
-  // full meta the proxy carries inline (`category`, `subject`,
-  // `modifiers`, `returns`, `captured`, `throws`).
+  // conduit body's env. `manifest` over the body's env routes the
+  // proxy here; `buildBuiltinDescriptor` reads the full meta the
+  // proxy carries inline (`category`, `subject`, `modifiers`,
+  // `returns`, `captured`, `throws`).
   if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
   if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
   if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
   return buildValueDescriptor(value, explicitName);
 }
-
-export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => {
-  if (reifyLambdas.length === 0) {
-    // Subject-form. A Keyword or TagKeyword pipeValue probes env
-    // for a matching binding (`:foo` → value-namespace; `::Foo` →
-    // tag-namespace); on a hit the binding's descriptor surfaces
-    // (mirroring `:name | source` / `| docs` / `| examples`). On a
-    // miss — or any non-identifier pipeValue — `describeBinding`
-    // falls through to `buildValueDescriptor`, so the literal
-    // identity itself becomes the reified subject (`:kind :value`
-    // plus `:type` from the value-class ladder). Identity-as-value
-    // semantics: an unbound `:foo` or `::Foo` is still a valid
-    // keyword / tag-keyword reify subject.
-    if (isKeyword(state.pipeValue)) {
-      const lookupName = state.pipeValue.name;
-      if (state.env.has(lookupName)) {
-        return withPipeValue(state, describeBinding(state.env.get(lookupName), lookupName));
-      }
-    }
-    if (isTagKeyword(state.pipeValue)) {
-      const lookupName = tagBindingKey(state.pipeValue.name);
-      if (state.env.has(lookupName)) {
-        return withPipeValue(state, describeBinding(state.env.get(lookupName), lookupName));
-      }
-    }
-    return withPipeValue(state, describeBinding(state.pipeValue));
-  }
-  if (reifyLambdas.length === 1) {
-    const reifyKeyValue = await reifyLambdas[0](state.pipeValue);
-    // Captured arg can be a value-namespace Keyword (`reify(:count)`)
-    // or a tag-namespace TagKeyword (`reify(::ParseError)`); the
-    // lookup name keeps the leading `::` for the tag-namespace
-    // branch so the env probe and descriptor `:name` field carry the
-    // same identifier shape `manifest(:tag)` emits.
-    let lookupName;
-    if (isKeyword(reifyKeyValue))         lookupName = reifyKeyValue.name;
-    else if (isTagKeyword(reifyKeyValue)) lookupName = tagBindingKey(reifyKeyValue.name);
-    else throw new ReifyKeyNotKeywordError({ actualType: typeKeyword(reifyKeyValue), actualValue: reifyKeyValue });
-    if (!state.env.has(lookupName)) {
-      throw new UnresolvedIdentifierError(lookupName);
-    }
-    const reifyBound = state.env.get(lookupName);
-    return withPipeValue(state, describeBinding(reifyBound, lookupName));
-  }
-  throw new ReifyArityOverflowError({ actualArity: reifyLambdas.length });
-}, [0, 1]);
 
 // `manifest` — Vec of descriptors, one per binding in env, sorted by
 // name. Overloaded by captured-arg count:
@@ -211,10 +159,9 @@ export const reify = stateOpVariadic('reify', 2, async (state, reifyLambdas) => 
 //                       AST storage filtered out.
 //   manifest(:value)  — explicit alias of the bare form.
 //   manifest(:tag)    — tag-namespace bindings (`::Tag` declarations
-//                       from the operand catalog family files and any in-query
-//                       `::Tag {…}` BindSteps). Names render with the
-//                       `::Tag` prefix so the descriptors round-trip
-//                       through reify lookup.
+//                       from the operand catalog family files and any
+//                       in-query `::Tag {…}` BindSteps). Names render
+//                       with the `::Tag` prefix.
 //
 // Module Quote storage under the `qlang/ast/<uri>` env-key family is
 // always filtered — those entries are runtime housekeeping outside
@@ -308,6 +255,5 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   return withPipeValue(state, results);
 });
 
-bindPrim('reify',       reify);
 bindPrim('manifest',    manifest);
 bindPrim('runExamples', runExamples);

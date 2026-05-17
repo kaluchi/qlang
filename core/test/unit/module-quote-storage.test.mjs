@@ -8,7 +8,7 @@ import { isQuote, keyword } from '../../src/types.mjs';
 
 describe('langRuntime stamps the core module as a Quote', () => {
   it('exposes the core module under :qlang/ast/qlang/core', async () => {
-    const result = await evalQuery('env | /:qlang/ast/qlang/core | reify | /type');
+    const result = await evalQuery('env | /:qlang/ast/qlang/core | type');
     expect(result).toEqual(keyword('quote'));
   });
 

@@ -425,9 +425,9 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
   });
 
-  it('reify-shaped descriptor renders cleanly — :impl is stripped at reify time', async () => {
+  it('manifest descriptor renders cleanly — :impl is stripped at enumeration time', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('reify(:count) | json');
+    const jsonOutput = await evalQuery('manifest | filter(/name | eq("count")) | first | json');
     expect(typeof jsonOutput).toBe('string');
     expect(jsonOutput).toContain('"kind":":builtin"');
   });

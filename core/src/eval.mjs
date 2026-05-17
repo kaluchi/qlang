@@ -151,7 +151,7 @@ export async function evalQuery(source, env) {
   // subject through an explicit head step (a literal, a captured
   // arg, the `env` identifier). The `env` identifier resolves
   // through env-lookup like any other name, so introspective
-  // queries (`env | keys`, `env | /count | reify`) read the env
+  // queries (`env | keys`, `env | manifest | …`) read the env
   // Map without seeding pipeValue with it implicitly — keeping the
   // env out of `:fault.input` on every error descriptor.
   const initialState = makeState(null, envWithInlineAst);
@@ -477,9 +477,9 @@ async function evalTaggedLit(node, state) {
   }
   // :impl carries either a `:qlang/prim/<tag>` keyword (built-in
   // tag — resolved through PRIMITIVE_REGISTRY at every invocation so
-  // reify(::tag) keeps the readable keyword handle on the descriptor)
-  // or a Quote-value (user-defined tag — payload becomes pipeValue,
-  // the Quote body runs against the current env).
+  // `manifest(:tag)` keeps the readable keyword handle on the
+  // descriptor) or a Quote-value (user-defined tag — payload
+  // becomes pipeValue, the Quote body runs against the current env).
   const implKey = typeBinding.get('impl');
   if (isKeyword(implKey)) {
     const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
@@ -552,7 +552,7 @@ async function evalTaggedLit(node, state) {
 //   `::TypoTag[payload]`  → TaggedLitTagNotFoundError (evalTaggedLit)
 //   `::TypoTag | source`  → AxisBindingNotFoundError (axis-op)
 //   `::TypoTag | docs`    → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | reify`   → UnresolvedIdentifierError (reify-op)
+//   `::TypoTag | examples` → AxisBindingNotFoundError (axis-op)
 //
 // Each use-site already probes env for its own purpose, so the
 // literal stays env-agnostic. Catalog `:throws [::Foo ::Bar]` Vec
@@ -670,8 +670,8 @@ async function evalProjection(node, state) {
     projectionCurrent = await projectSegment(projectionCurrent, projKey, state);
     // Snapshots are transparent value wrappers — unwrap during
     // projection so user code sees the raw captured value. The
-    // wrapper itself is reachable only via reify, which reads env
-    // directly without going through projection.
+    // wrapper itself is reachable only via `manifest` enumeration,
+    // which walks env directly without going through projection.
     if (isSnapshot(projectionCurrent)) projectionCurrent = projectionCurrent.get('payload');
   }
   return withPipeValue(state, projectionCurrent);

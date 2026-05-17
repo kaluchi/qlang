@@ -15,9 +15,6 @@
 {"name":"doc-on-as-binding","query":"42\n|~~| Captured value.\nas(:snapshot)\n| :snapshot | docs * /content","expect":"[\" Captured value.\"]"}
 {"name":"snapshot-unwrap-on-projection","query":"42 | as(:answer) | env | /answer","expect":"42"}
 {"name":"snapshot-unwrap-on-identifier","query":"42 | as(:answer) | answer","expect":"42"}
-{"name":"reify-by-name-on-snapshot","query":"42 | as(:answer) | reify(:answer) | /value","expect":"42"}
-{"name":"reify-by-name-snapshot-name","query":"42 | as(:answer) | reify(:answer) | /name","expect":"\"answer\""}
-{"name":"reify-by-name-snapshot-kind","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
 {"name":"doc-survives-shadowing-redeclare","query":"|~~| Old doc.\n:foo 1\n|~~| New doc.\n|~~| With second remark.\n:foo 2\n| :foo | docs * /content","expect":"[\" New doc.\" \" With second remark.\"]"}
 {"name":"comment-step-is-identity-on-pipevalue","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"name":"doc-on-bind-succeeds","query":"|~~| doc\n:foo 42\n| foo","expect":"42"}

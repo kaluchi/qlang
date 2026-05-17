@@ -1299,10 +1299,10 @@ Plain comments interleaved among the docs are transparent to
 attachment — surrounding docs still collect into the binding's
 `docs` Vec.
 
-A binding's docs are preserved in the AST and ride onto the
-descriptor that [Reflection](#reflection) exposes through the
-`reify` operand. The full example sits in the `reify` subsection;
-the takeaway here is that docs are addressable.
+A binding's docs are preserved in the AST and reachable through
+the `:name | docs` axis-operand introduced in
+[Reflection](#reflection). The takeaway here is that docs are
+addressable.
 
 #### Enrichment via shadowing
 
@@ -1764,130 +1764,29 @@ env | /count                |~| the built-in count function
 env | manifest | count      |~| how many bindings are in scope
 ```
 
-### `reify` — get a binding's descriptor
+### Axis-operands — `source` / `docs` / `examples`
 
-`reify` builds a **descriptor Map** for a binding. The Map's
-shape depends on what kind of binding it represents — built-in
-operand, BindStep-installed conduit, `as`-bound snapshot, or
-plain value — but always carries enough metadata for tooling to
-render it without consulting the JS implementation.
+The canonical "what does this binding do" surface. The three
+**axis-operands** read declarative metadata from the binding's
+**source AST** — the doc-prefix the author attached and the
+source-text the parser captured at declaration time. Subject is a
+Keyword (value-namespace binding name) or a TagKeyword (tag-
+namespace tag), and the axis returns the named field as a fresh
+value.
 
-Two surface forms:
-
-- **Value form** — `pipeValue | reify`. Reads the current
-  pipeValue and builds its descriptor.
-- **Named form** — `reify(:name)`. Looks up `:name` in the
-  binding scope and builds a descriptor for whatever lives there,
-  always stamping `:name` on the result.
-
-**Builtin descriptor** — produced for any built-in operand
-loaded by `langRuntime` from the catalog family files under
-`lib/qlang/operand/`:
-
-```
-{:kind      :builtin
- :name      "count"
- :category  :container-reducer
- :subject   [:vec :set :map]
- :modifiers []
- :returns   :number
- :captured  [0 0]
- :throws    [::CountSubjectNotContainerError]
- :effectful false}
-```
-
-Authored docs and example assertions ride on the catalog
-`BindStep`'s attached doc-prefix; the doc-prefix lives in the
-`qlang/ast/qlang/core` module Quote and is reachable through
-axis-operands. `:foo | docs` yields a
-Vec of Doc-values (one per attached doc-comment, each with a
-`/content` raw string and a `/segments` Prose / Quote / TaggedLit
-split); `:foo | examples` yields a Vec of every Quote segment
-extracted from those docs, ready for `runExamples` to execute as
-a self-test. The `:throws` Vec carries `::Tag` references — each
-entry is a navigable tag-binding, so `:foo | /throws | first |
-docs` resolves the canonical prose for that throw site.
-
-The `:captured` field is a 2-element Vec `[min max]` describing
-how many captured args the operand accepts; fixed-arity operands
-have `min == max`, partial/full operands have `[n-1 n]`,
-variadic operands use the `:unbounded` keyword as the upper
-bound.
-
-**Conduit descriptor** — produced for any BindStep-installed binding:
-
-```
-{:kind      :conduit
- :name      "surround"
- :params    ["pfx" "sfx"]
- :source    "(prepend(pfx) | append(sfx))"
- :effectful false
- :location  {:start ... :end ...}}
-```
-
-The `:source` field carries the body's original source substring
-verbatim from the parser, so `reify` reproduces what the user
-typed and not a re-rendered AST.
-
-**Snapshot descriptor** — produced for any `as`-bound binding:
-
-```
-{:kind      :snapshot
- :name      "captured"
- :value     <the wrapped value>
- :type      :vec
- :effectful false
- :location  {:start ... :end ...}}
-```
-
-**Value descriptor** — produced for any other Map / Vec / Set /
-scalar that does not carry the binding-kind discriminator:
-
-```
-{:kind  :value
- :name  null
- :value <the value>
- :type  :number}
-```
-
-Once a descriptor is in `pipeValue`, it is an ordinary Map and
-every Map operand (`/key`, `has`, `keys`, `vals`, `union`,
-`filter`, `eq`, ...) applies to it. The doc comments attached to
-a BindStep in [Comments](#comments) ride on the `BindStep`'s
-own AST node and surface through the `docs` axis-operand:
-
-```qlang
-|~| :foo | docs
-|~| → [|~~ First remark. ~~| |~~ Second remark. ~~|
-|~|     |~~ Block-form remark\n    with internal newlines. ~~|]
-```
-
-The axis returns a Vec of Doc-values, each with a `/content` raw
-string and a `/segments` Prose / Quote / TaggedLit split.
-
-#### Inspecting an operand
-
-To see what an operand does, walk through the source axis instead
-of poking at runtime descriptor shape:
-
-- `:mul | source` — Quote of the BindStep declaration (the
-  verbatim catalog entry).
-- `:mul | docs` — Vec of Doc-values from the attached doc-prefix.
-- `:mul | examples` — Vec of `~{…}` Quote-values extracted from
-  the docs, runnable through `apply` against any subject.
-
-These three axes are the canonical introspection surface. The
-runtime descriptor Map that env stores under each binding is an
-internal structure the evaluator uses for dispatch, not a
-user-facing API — a bare `mul` lookup fires the operand against
-`pipeValue` like any other call site (and surfaces an arity-error
-if no captured args were supplied).
+The runtime descriptor Map that env stores under each binding is
+an internal structure the evaluator uses for dispatch — not a
+user-facing API. Reach for the axis trio when the question is
+"what does this one binding do", and for `manifest` when the
+question is "which bindings exist".
 
 ### `manifest` — list all bindings
 
 `manifest` returns the full binding scope as a Vec of descriptors
 — one per binding, sorted alphabetically by name. Each descriptor
-has the same shape `reify(:name)` would produce for that binding.
+carries `:kind` (`:builtin` / `:conduit` / `:snapshot` / `:tag` /
+`:value`), `:name`, plus per-kind fields stamped by
+`describeBinding` in `runtime/manifest-op.mjs`.
 
 ```qlang
 env | manifest | filter(/kind | eq(:builtin)) | count
@@ -1897,15 +1796,12 @@ env | manifest | filter(/effectful) * /name
 |~| names of all effectful operands in scope
 ```
 
-### Axis-operands — `source` / `docs` / `examples`
+`manifest` is the enumeration surface; for per-binding source-level
+introspection compose with the axis trio
+(`manifest * /name * keyword * source`) or skip enumeration
+entirely and address the binding directly (`:filter | source`).
 
-Reify and manifest build a descriptor from the binding's
-**runtime** shape. The three **axis-operands** read declarative
-metadata from the binding's **source AST** — the doc-prefix the
-author attached and the source-text the parser captured at
-declaration time. Subject is a Keyword (value-namespace binding
-name) or a TagKeyword (tag-namespace tag), and the axis returns
-the named field as a fresh value.
+#### Axis-operand contract
 
 | Axis | Subject | Returns |
 |---|---|---|
@@ -2047,7 +1943,7 @@ Six step types:
 |---|---|---|
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `reify`, `manifest` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
+| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |

@@ -35,7 +35,7 @@
         ::Name ::builtin{…tag-side metadata}
           declares an identity (error tag, value-class tag) carrying
           docs / category / position / expectedType metadata that
-          downstream `::Name | reify` exposes.
+          downstream `::Name | source / docs / examples` exposes.
 
         ::Name (doc-prefix-only, no body)
           equivalent to `::Name ::builtin{}` — declares an identity
@@ -148,8 +148,8 @@
 ::TaggedLitTagNotFoundError
   |~~ `::tag<payload>` constructor invocation — the tag is not
       a registered tag-binding in env. Fires on constructor-form
-      `::Tag[…]`, on axis-operands `::Tag | source` / `| docs`,
-      and on `reify(::Tag)` lookups against unbound tag names.
+      `::Tag[…]` and on axis-operands `::Tag | source` / `| docs`
+      / `| examples` against unbound tag names.
 
       ~{
         ::UnknownTag[42]

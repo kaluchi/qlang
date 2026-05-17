@@ -202,8 +202,8 @@ describe('container-shape operands preserve JSON-tag on output', () => {
     expect(result.descriptor.get('key')).toBe('missing');
   });
 
-  it('reify of an attached JsonObject literal walks through walk codec', async () => {
-    const result = await evalQuery(':obj ::json{:k 1} | reify(:obj) | /value | isJsonObject');
+  it('snapshot-bound JsonObject literal survives identifier-lookup unwrap as JsonObject', async () => {
+    const result = await evalQuery(':obj ::json{:k 1} | obj | isJsonObject');
     expect(result).toBe(true);
   });
 

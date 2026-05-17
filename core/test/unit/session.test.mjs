@@ -343,16 +343,18 @@ describe('createSession with locator — lazy module loading', () => {
     expect(locatorMissErr.context.namespaceName).toBe('nonexistent/ns');
   });
 
-  it('reify on a locator-loaded builtin includes captured and effectful', async () => {
+  it('manifest descriptor for a locator-loaded builtin includes captured and effectful', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     await locatorSession.evalCell('use(:test/io)');
-    const reifyCell = await locatorSession.evalCell('reify(:@fetch)');
-    expect(reifyCell.error).toBeNull();
-    const reifyDesc = reifyCell.result;
-    expect(isQMap(reifyDesc)).toBe(true);
-    expect(reifyDesc.get('kind')).toEqual(keyword('builtin'));
-    expect(reifyDesc.get('captured')).toEqual([0, 0]);
-    expect(reifyDesc.get('effectful')).toBe(true);
+    const manifestCell = await locatorSession.evalCell(
+      'manifest | filter(/name | eq("@fetch")) | first'
+    );
+    expect(manifestCell.error).toBeNull();
+    const fetchDesc = manifestCell.result;
+    expect(isQMap(fetchDesc)).toBe(true);
+    expect(fetchDesc.get('kind')).toEqual(keyword('builtin'));
+    expect(fetchDesc.get('captured')).toEqual([0, 0]);
+    expect(fetchDesc.get('effectful')).toBe(true);
   });
 
   it('session without locator throws UseNamespaceNotFoundError on unknown namespace', async () => {

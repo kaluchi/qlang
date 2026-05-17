@@ -2,14 +2,14 @@
 //
 // A "raw" builtin descriptor is what the env Map stores after
 // `langRuntime` bootstrap: `{:kind :builtin :impl
-// <FunctionValue> :category … :subject … …}`. The `reify` /
-// `manifest` reflective operands in `runtime/reify-op.mjs`
-// project a user-facing shape from this raw form (strip internals,
-// stamp display fields). `reifyBuiltinDescriptor` lives here
-// rather than next to its consumer so the dependency edge stays
+// <FunctionValue> :category … :subject … …}`. The `manifest`
+// reflective operand in `runtime/manifest-op.mjs` projects a
+// user-facing shape from this raw form (strip internals, stamp
+// display fields). `reifyBuiltinDescriptor` lives here rather
+// than next to its consumer so the dependency edge stays
 // single-sourced — any future user-facing descriptor surface that
 // wants the same projection imports from here without dragging
-// `reify-op.mjs` into the graph.
+// `manifest-op.mjs` into the graph.
 
 import { keyword } from './types.mjs';
 

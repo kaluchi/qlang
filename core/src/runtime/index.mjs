@@ -31,7 +31,8 @@
 //      meta object carrying only the `captured` range — the rest
 //      of the metadata lives in the operand-family catalog files
 //      and is addressed by descriptor-Map projection at
-//      reify / manifest time.
+//      `manifest` enumeration time, or by axis-operand walk over
+//      the binding's source AST.
 //
 // langRuntime() ties the two together by parsing core.qlang once
 // (which threads through `use(...)` to load every family via the
@@ -67,7 +68,7 @@ import './keyword-op.mjs';
 import './tagged.mjs';
 import './bind-op.mjs';
 import './use-op.mjs';
-import './reify-op.mjs';
+import './manifest-op.mjs';
 import './code-as-data.mjs';
 import './axis.mjs';
 
@@ -140,9 +141,9 @@ export async function buildLangRuntime(locator) {
   // doc-prefix strings stay on each catalog module's
   // `qlang/ast/<uri>` Quote AST — axis-operands `docs` /
   // `examples` walk the family Quote that declared the binding.
-  // Reify therefore holds the structural metadata only; prose
-  // lives at one address (the AST attached prefix), reachable
-  // through `:name | docs`.
+  // The `manifest` descriptor therefore holds the structural
+  // metadata only; prose lives at one address (the AST attached
+  // prefix), reachable through `:name | docs`.
   for (const [name, value] of templateEnv) {
     if (value instanceof Map && value.get('kind') &&
         value.get('kind').name === 'snapshot') {
@@ -155,14 +156,14 @@ export async function buildLangRuntime(locator) {
   // descriptor without a registry lookup per call. Tag bindings
   // keep their :impl as a keyword (`:qlang/type/<tag>`);
   // evalTaggedLit resolves it through PRIMITIVE_REGISTRY at
-  // every invocation, so `reify(::tag)` surfaces the readable
+  // every invocation, so `manifest(:tag)` surfaces the readable
   // `:qlang/type/<tag>` keyword handle the catalog declared.
   //
   // Same pass backfills `:modifiers` and `:throws` empty Vecs on
   // any builtin descriptor that omitted them. Authors leave the
   // empty case off in the catalog (47 lines saved across the
-  // family files); every consumer downstream — reify output, LSP
-  // signature-help, `/throws` and `/modifiers` projections —
+  // family files); every consumer downstream — `manifest` output,
+  // LSP signature-help, `/throws` and `/modifiers` projections —
   // reads the field unconditionally because the env-side
   // descriptor always carries it after this pass.
   for (const [envKey, descriptor] of templateEnv) {
@@ -172,7 +173,7 @@ export async function buildLangRuntime(locator) {
     // shape but live under `::Tag` env-keys. Their `:impl` keyword
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
-    // readable in `reify(::Tag)` output. Skip resolving here so
+    // readable in `manifest(:tag)` output. Skip resolving here so
     // tag-binding descriptors keep their author-form `:impl`.
     if (envKey.startsWith('::')) continue;
     const implKey = descriptor.get('impl');

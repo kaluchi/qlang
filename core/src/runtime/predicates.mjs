@@ -14,7 +14,7 @@
 // mixed types, or `filter(isString)` over a Map to keep only
 // String-valued entries. Lifts a type question to operand level
 // without the descriptor-construction cost of
-// `reify | /type | eq(:string)`.
+// `| type | eq(:string)`.
 //
 // Meta lives in lib/qlang/operand/predicate.qlang.
 

@@ -94,7 +94,7 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
     // Symmetric to `:foo` (value-namespace Keyword) which evaluates
     // to `keyword('foo')` whether anything declared `:foo` or not.
     // Typos catch on use-site probes (TaggedLit constructor, axis
-    // operands, reify) rather than at literal construction.
+    // operands) rather than at literal construction.
     const { isTagKeyword } = await import('../../src/types.mjs');
     const result = await evalQuery('::someUnboundType');
     expect(isTagKeyword(result)).toBe(true);

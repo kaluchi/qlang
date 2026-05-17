@@ -1,16 +1,18 @@
 |~ qlang operand catalog — reflective family. The handful of
    operands whose impl receives the full evaluator state pair
    `(pipeValue, env)` directly instead of projecting pipeValue:
-   `env` reads, `use` merges, `as` snapshots, `reify` /
-   `manifest` / `runExamples` build descriptor surfaces over
-   bindings. Error-track entry / exit lives in
+   `env` reads, `use` merges, `as` snapshots, `manifest` /
+   `runExamples` build descriptor / self-test surfaces over the
+   enumerable bindings. Per-binding declarative introspection
+   ("what does THIS one do") lives in
+   `core/lib/qlang/operand/axis.qlang` (`source` / `docs` /
+   `examples`). Error-track entry / exit lives in
    `core/lib/qlang/operand/error.qlang`; the code-as-data ring
    (`parse` / `eval` / `apply`) lives in
-   `core/lib/qlang/operand/code-as-data.qlang`; declarative-metadata
-   axes (`source` / `docs` / `examples`) live in
-   `core/lib/qlang/operand/axis.qlang`. Each operand BindStep
-   below sits directly under the per-site error tags it raises;
-   the operand's `:throws` Vec references those tags by name. ~|
+   `core/lib/qlang/operand/code-as-data.qlang`. Each operand
+   BindStep below sits directly under the per-site error tags it
+   raises; the operand's `:throws` Vec references those tags by
+   name. ~|
 
 :env
   |~~ Replaces pipeValue with the current env Map. Inside a fork,
@@ -104,59 +106,20 @@
       error: requires a host-installed namespace Map.
   ~~|
 
-:reify
-  |~~ Builds a descriptor Map for a value or named binding.
-      Bare form (no captured args) inspects pipeValue. A Keyword
-      or TagKeyword pipeValue resolves through env to the matching
-      binding (value- or tag-namespace), mirroring `:name | source`
-      / `:name | docs` / `:name | examples`. Any other pipeValue
-      describes itself as a `:kind :value` descriptor. Captured-arg
-      form `reify(:name)` looks up the value-namespace explicitly;
-      `reify(::Tag)` looks up the tag-namespace. Descriptor `:kind`
-      is one of `:builtin`, `:conduit`, `:snapshot`, `:tag`,
-      `:value`.
-
-      ~{:count | reify | /kind | eq(:builtin)}
-      ~{reify(:filter) | /name | eq("filter")}
-      ~{::AddLeftNotNumberError | reify | /kind | eq(:tag)}
-      ~{42 | reify | /value | eq(42)}
-      ~{:nonexistent-binding | reify | /type | eq(:keyword)}
-  ~~|
-  ::builtin{:impl :qlang/prim/reify
-            :category :reflective
-            :subject :any
-            :returns :map
-            :modifiers [:keyword]
-            :throws [::ReifyKeyNotKeywordError ::ReifyArityOverflowError]}
-
-::ReifyKeyNotKeywordError
-  |~~ `reify(:name)` requires a Keyword captured-arg (the
-      binding name to look up).
-
-      ~{
-        reify("count")
-        !| [type /actualType]
-        |  eq([::ReifyKeyNotKeywordError :string])
-       }
-  ~~|
-
-::ReifyArityOverflowError
-  |~~ `reify` accepts 0 or 1 captured arguments.
-
-      ~{
-        42 | reify(:a, :b)
-        !| [type]
-        |  eq([::ReifyArityOverflowError])
-       }
-  ~~|
-
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
-      sorted alphabetically by binding name. Each descriptor has
-      the same shape as reify(:name) for that binding. Overloaded
-      by captured-arg count: bare manifest or manifest(:value)
-      lists value-namespace bindings; manifest(:tag) lists
-      tag-namespace `::Tag` bindings. ~~|
+      sorted alphabetically by binding name. Each descriptor
+      carries `:kind` (`:builtin` / `:conduit` / `:snapshot` /
+      `:tag` / `:value`), `:name`, plus per-kind fields stamped
+      by `describeBinding` in `runtime/manifest-op.mjs`.
+      Overloaded by captured-arg count: bare manifest or
+      manifest(:value) lists value-namespace bindings; manifest(:tag)
+      lists tag-namespace `::Tag` bindings. For per-binding
+      source-level introspection reach for the axis trio
+      (`:name | source` / `:name | docs` / `:name | examples`)
+      instead — the manifest descriptors are a runtime-derived
+      enumeration surface, not a substitute for the AST-axis
+      navigation. ~~|
   ::builtin{:impl :qlang/prim/manifest
             :category :reflective
             :subject :any
@@ -218,8 +181,8 @@
   |~~ Captures the current pipeValue as a frozen snapshot under
       the given keyword name. pipeValue passes through unchanged.
       Retrievable by name through identifier lookup (auto-unwrapped
-      to the raw value) or through reify(:name) for metadata
-      inspection including docs.
+      to the raw value). For the binding's doc-prefix / source slice
+      reach for the axis trio (`:name | source / docs / examples`).
 
       ~{42 | as(:answer) | answer | eq(42)}
       ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
@@ -230,6 +193,13 @@
             :returns :any
             :modifiers [:keyword]
             :throws [::AsNameNotKeywordError]}
+
+|~ Snapshot wrappers carry their captured value transparently on
+   identifier lookup — `as(:name) | name` returns the raw value
+   the snapshot captured. For declarative metadata about the
+   binding (its attached doc-prefix, source slice, runnable
+   `~{…}` examples) reach for the axis trio (`:name | source` /
+   `| docs` / `| examples`) in `operand/axis.qlang`. ~|
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).

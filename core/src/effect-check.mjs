@@ -9,7 +9,7 @@
 //   decorateAstWithEffectMarkers(ast) — post-parse pass that stamps
 //     a boolean `.effectful` field on every OperandCall and Projection
 //     node. Downstream consumers (editor highlight, refactor,
-//     autocomplete, reify descriptors, runtime safety net) read
+//     autocomplete, manifest descriptors, runtime safety net) read
 //     `.effectful` and never re-derive the property from the source
 //     name.
 //

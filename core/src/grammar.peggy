@@ -928,7 +928,7 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 // / PipelineList separator positions, where a plain comment serves
 // as a section divider or per-entry annotation and carries no value
 // role. Comment tokens matched here are silently consumed — they
-// never enter the AST — so walkers, reify, astNodeToMap, and the
+// never enter the AST — so walkers, manifest, astNodeToMap, and the
 // AST-as-data surface are unaffected by whether an author sprinkles
 // section dividers between entries.
 //

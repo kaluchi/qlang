@@ -59,7 +59,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / reify / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
+| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:code-as-data` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
@@ -667,10 +667,10 @@ predicates to operand level. Primary use — inside `filter`,
 where the value's type is the predicate axis
 (`{:ID "SGML" :GlossDef {...}} | filter(isMap)` keeps only the
 Map-valued entries). Without them the same classification lands
-through `reify | /type | eq(:string)` — correct but it
-constructs the full descriptor Map per item for a single bit of
-information. Each classifier matches exactly one
-`describeType(v)` label and never throws.
+through `| type | eq(:string)` — also correct, but the dedicated
+classifier reads as a single predicate at the call site. Each
+classifier matches exactly one `describeType(v)` label and never
+throws.
 
 `isJsonObject` and `isJsonArray` discriminate the JSON-tagged
 shapes (plain JS object / Array stamped with the `JSON_OBJECT_TAG`
@@ -892,7 +892,7 @@ display defaults where `false` is a sentinel meaning "no value".
 
 ## Reflective built-ins
 
-`env`, `use`, `reify`, `manifest`, `runExamples`, and `as` are
+`env`, `use`, `manifest`, `runExamples`, and `as` are
 **reflective operands**: they read or write the full evaluator
 state pair. All of them are ordinary entries in `langRuntime`,
 look up like any other identifier, and can be shadowed by a
@@ -939,119 +939,74 @@ its own eval handler in `eval.mjs`.
   of the sub-pipeline escapes.
 - **Errors**: subject not a Map → `UseSubjectNotMapError`.
 
-### `reify`
-
-Overloaded by captured-arg count.
-
-**Arity 1 (zero captured args) — value-level form.** Reads the
-current `pipeValue` and produces a descriptor Map whose shape
-depends on the value's provenance. Four descriptor kinds:
-
-- **Builtin** — `pipeValue` is a descriptor Map loaded by
-  `langRuntime()` from one of the catalog family files under
-  `lib/qlang/operand/`. Every built-in binding in `env` IS a
-  descriptor Map directly; `reify`
-  substitutes the internal `:kind :builtin` /
-  `:impl :qlang/prim/<name>` discriminator for a
-  user-facing `:kind :builtin` (dropping the `:impl`
-  handle), stamps `:captured` / `:effectful` from the
-  primitive resolved through `PRIMITIVE_REGISTRY`, and adds
-  `:name` when the caller used the named form `reify(:count)`:
-  ```
-  {:kind      :builtin
-   :name      "count"
-   :category  :container-reducer
-   :subject   [:vec :set :map]
-   :modifiers []
-   :returns   :number
-   :captured  [0 0]
-   :throws    [::CountSubjectNotContainerError]
-   :effectful false}
-  ```
-  Authored prose and example assertions live on the catalog
-  `BindStep`'s attached doc-prefix, reached through the
-  axis-operands `docs` / `examples`. `:name | docs`
-  returns a Vec of Doc-values (one per
-  attached doc-comment, each with a `/content` raw string and a
-  `/segments` Prose / Quote / TaggedLit split); `:name |
-  examples` returns a Vec of every Quote segment extracted from
-  those docs. `runExamples` runs every Quote and reports
-  per-segment `:ok`. `:category` / `:subject` / `:returns`
-  carry keywords because the underlying catalog entries are
-  authored as keywords; `:throws` is a Vec of `::Tag` references
-  — each entry is a navigable tag-binding, so
-  `:foo | /throws | first | docs` resolves the canonical prose
-  for that throw site. The `:captured` field is a 2-element Vec
-  `[min max]` describing the range of captured-arg counts the
-  operand accepts. Fixed operands have `min == max` (e.g.
-  `count` has `[0 0]`; `filter` has `[1 1]`). Partial/full-
-  applicable operands have `[n-1 n]` (`add` has `[1 2]`).
-  Overloaded operands span the Object keys of their impl
-  dispatch table (`sort` has `[0 1]`). Variadic operands use
-  the `:unbounded` keyword as the upper bound (`coalesce` has
-  `[1 :unbounded]`). The field is always present.
-- **Conduit** — `pipeValue` is a BindStep-bound conduit (named
-  pipeline fragment, zero or more parameters). Descriptor:
-  ```
-  {:kind      :conduit
-   :name      "double"
-   :params    []
-   :source    "mul(2)"
-   :effectful false
-   :location  {:start ... :end ...}}
-  ```
-  Parametric conduits carry a non-empty `:params` Vec:
-  ```
-  {:kind      :conduit
-   :name      "surround"
-   :params    ["pfx" "sfx"]
-   :source    "(prepend(pfx) | append(sfx))"
-   :effectful false
-   :location  {:start ... :end ...}}
-  ```
-- **Snapshot** — `pipeValue` is an `as`-bound snapshot wrapper.
-  Descriptor:
-  ```
-  {:kind      :snapshot
-   :name      "captured"
-   :value     <snapshotted value>
-   :type      :vec
-   :effectful false
-   :location  {:start ... :end ...}}
-  ```
-- **Value** — any Scalar, Vec, Map, or Set carrying no
-  binding-kind discriminator (the fall-through case after the
-  builtin / conduit / snapshot branches). Descriptor:
-  ```
-  {:kind :value
-   :value <the value>
-   :type :number}
-  ```
-
-**Arity 2 (one captured keyword) — named form.** `reify(:name)`
-looks up `:name` in `env` and builds the descriptor for whatever
-binding lives there, attaching a `:name` field in all cases
-(including `:value` kind where the name would otherwise be
-missing). This is the introspection-by-name path:
-
-    reify(:count)    -- descriptor of the count builtin
-    reify(:myVar)    -- descriptor of an as-binding
-    reify(:double)   -- descriptor of a BindStep-installed conduit
-
-- **Errors**: more than one captured arg → `ReifyArityOverflowError`; the
-  captured arg is not a Keyword or TagKeyword → `ReifyKeyNotKeywordError`; the name is not
-  in `env` → `UnresolvedIdentifierError`.
-
-`reify` never mutates `env`.
-
 ### `manifest`
 
 - **Arity** 1 or 2 (0 or 1 captured). **Subject** irrelevant —
   `manifest` ignores its pipeline input and iterates the current
   `env`.
 - Returns a Vec of descriptors, one per binding in `env`, sorted
-  alphabetically by binding name. Each descriptor has the same
-  shape `reify(:name)` would produce for that binding.
+  alphabetically by binding name. The descriptor's `:kind` field
+  distinguishes four provenances:
+  - **Builtin** — env entry is a descriptor Map loaded by
+    `langRuntime()` from one of the catalog family files under
+    `lib/qlang/operand/`. The user-facing descriptor stamps
+    `:kind :builtin` (plain Keyword, dropping the internal
+    `::builtin` TagKeyword), drops the `:impl` handle (the
+    dispatch-time primitive key is internal), and copies
+    `:category` / `:subject` / `:modifiers` / `:returns` /
+    `:throws` verbatim. The derived `:captured` / `:effectful`
+    fields are stamped from the resolved primitive's `meta`:
+    ```
+    {:kind      :builtin
+     :name      "count"
+     :category  :container-reducer
+     :subject   [:vec :set :map]
+     :modifiers []
+     :returns   :number
+     :captured  [0 0]
+     :throws    [::CountSubjectNotContainerError]
+     :effectful false}
+    ```
+    The `:captured` field is a 2-element Vec `[min max]`
+    describing the range of captured-arg counts the operand
+    accepts. Fixed operands have `min == max` (e.g. `count` has
+    `[0 0]`; `filter` has `[1 1]`). Partial/full-applicable
+    operands have `[n-1 n]` (`add` has `[1 2]`). Overloaded
+    operands span the Object keys of their impl dispatch table
+    (`sort` has `[0 1]`). Variadic operands use the `:unbounded`
+    keyword as the upper bound (`coalesce` has `[1 :unbounded]`).
+    `:throws` is a Vec of `::Tag` references — each entry is a
+    navigable tag-binding, so `:foo | /throws | first | docs`
+    resolves the canonical prose for that throw site.
+  - **Conduit** — env entry is a BindStep-bound conduit (named
+    pipeline fragment, zero or more parameters). Descriptor:
+    ```
+    {:kind      :conduit
+     :name      "surround"
+     :params    ["pfx" "sfx"]
+     :source    "(prepend(pfx) | append(sfx))"
+     :effectful false
+     :location  {:start ... :end ...}}
+    ```
+  - **Snapshot** — env entry is an `as`-bound snapshot wrapper.
+    Descriptor:
+    ```
+    {:kind      :snapshot
+     :name      "captured"
+     :value     <snapshotted value>
+     :type      :vec
+     :effectful false
+     :location  {:start ... :end ...}}
+    ```
+  - **Value** — any other plain JS value (scalar, Vec, Map, Set,
+    error value, function value, …). Descriptor: `:kind :value`,
+    `:name`, `:value`, `:type` (from `typeKeyword`).
+
+  Per-binding source-level introspection goes through the axis
+  trio (`:name | source` / `| docs` / `| examples`) — those read
+  the catalog AST directly without staging the runtime descriptor
+  Map. `manifest` is the enumeration surface; the axis trio is
+  the navigation surface.
 - **Namespace selector** (captured Keyword) picks which namespace
   to walk:
   - `manifest` / `manifest(:value)` — value-namespace bindings
@@ -1061,7 +1016,8 @@ missing). This is the introspection-by-name path:
   - `manifest(:tag)` — tag-namespace bindings (`::Tag` declarations
     from the operand catalog family files plus any in-query
     `::Tag {…}` BindSteps). Names render with the `::Tag` prefix
-    so the descriptors round-trip through `reify(::Tag)`.
+    so the descriptors compose with the tag-namespace axis trio
+    (`::Tag | source` / `::Tag | docs` / `::Tag | examples`).
 - **Examples**:
   - `env | manifest | filter(/kind | eq(:builtin)) | table` —
     full catalog of built-in operands as a tabular report grouped
@@ -1111,8 +1067,9 @@ missing). This is the introspection-by-name path:
   parameter proxies (nullary function values wrapping
   captured-arg lambdas).
 - Doc-only form: a BindStep with attached docs and no body
-  installs a Doc-value snapshot under the name, so prose-only
-  bindings are addressable through `reify(:name) | /value`.
+  installs a Doc-value snapshot under the name; an identifier
+  lookup unwraps the snapshot and returns the Doc-value directly
+  (`:guide | /content`).
 - **Examples**:
   - `:double mul(2) | 10 | double` → `20`.
   - `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
@@ -1135,9 +1092,10 @@ missing). This is the introspection-by-name path:
 - **Arity** 2 (1 captured). **Subject** any (the value to snapshot).
 - Captures the current `pipeValue` as a frozen snapshot under the
   given keyword name. `pipeValue` passes through unchanged. The
-  snapshot is retrievable by name through identifier lookup (auto-
-  unwrapped to the raw value) or through `reify(:name)` for
-  metadata inspection including docs.
+  snapshot is retrievable by name through identifier lookup
+  (auto-unwrapped to the raw value); for the binding's attached
+  doc-prefix reach for the axis trio (`:name | source / docs /
+  examples`).
 - **Examples**:
   - `42 | as(:answer) | answer` → `42`.
   - `[1 2 3] | as(:nums) | nums | count` → `3`.
@@ -1343,12 +1301,13 @@ the predicate:
 `count`, `empty`, and `has` are polymorphic — one identifier
 dispatches on subject type. `filter`, `every`, `any` are
 polymorphic over Vec / Set / Map. `sort` is overloaded by arity —
-same identifier, 0 or 1 captured arg. `reify` is overloaded by
-arity (value-level or named form). `use` is overloaded by arity
-(bare merge, namespace import, selective import). Each name is
-listed once; rows are keyed by the `:category` keyword each entry's
-descriptor carries (the same keywords `env | manifest | /category |
-distinct` enumerates).
+same identifier, 0 or 1 captured arg. `manifest` is overloaded by
+arity (bare value-namespace enumeration or `manifest(:tag)` for
+the tag-namespace). `use` is overloaded by arity (bare merge,
+namespace import, selective import). Each name is listed once;
+rows are keyed by the `:category` keyword each entry's descriptor
+carries (the same keywords `env | manifest | /category | distinct`
+enumerates).
 
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
@@ -1368,7 +1327,7 @@ distinct` enumerates).
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
-| `:reflective` | `as`, `env`, `use`, `reify`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
+| `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
 | `:code-as-data` | `parse`, `eval`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 

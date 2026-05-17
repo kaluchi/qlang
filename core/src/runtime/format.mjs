@@ -93,8 +93,8 @@ const TO_PLAIN_HANDLERS = {
   Map:            qMapToPlainObject,
   // Snapshot wraps a captured value plus a :name / :docs / :location
   // bundle. Encode the wrapped value transparently — toPlain is the
-  // lossy codec, the wrapper metadata is reachable through reify
-  // for callers that need it.
+  // lossy codec, the wrapper metadata is reachable through
+  // `manifest` enumeration for callers that need it.
   Snapshot:       s => toPlain(s.get('payload')),
   // Conduit and TaggedInstance carry their structure as a Map. The
   // TagKeyword handler lifts the `:kind` discriminator so Map

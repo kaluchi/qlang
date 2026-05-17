@@ -239,27 +239,24 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   });
 });
 
-describe('function-value reify path (conduit parameter reflection)', () => {
-  // Conduit parameters are the only function values that reach
-  // env during dispatch — they are minted at applyConduit time by
-  // makeConduitParameter and live only for the duration of the
-  // body fork. Reifying one inside a conduit body exercises the
-  // isFunctionValue branch of describeBinding, which delegates to
-  // buildBuiltinDescriptor to construct a descriptor Map from the
-  // function-value's inline meta.
+describe('manifest descriptor for a conduit-parameter proxy', () => {
+  // Conduit parameters are the only function values that reach env
+  // during dispatch — `makeConduitParameter` in `eval.mjs` mints
+  // them at applyConduit time with a full `meta` shape inline.
+  // Running `manifest` inside a conduit body iterates the body's
+  // fork env, which carries the proxy; `describeBinding` takes the
+  // `isFunctionValue` path and stamps a `:kind :builtin` descriptor
+  // through `buildBuiltinDescriptor`. The descriptor's `:category`
+  // tracks the proxy's authored slot (`:conduit-parameter`), so
+  // catalog walkers can distinguish synthetic-per-call entries from
+  // the static catalog operands.
 
-  it('reify on a conduit parameter yields a :kind :builtin descriptor', async () => {
+  it('manifest inside a conduit body surfaces the param proxy as :category :conduit-parameter', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    // The conduit body captures a param and calls reify(:p) to
-    // get its descriptor. The param is a function value (not a
-    // Map), so describeBinding takes the isFunctionValue path and
-    // builds a descriptor via buildBuiltinDescriptor from the
-    // inlined meta that makeConduitParameter stamps on the proxy.
-    const evalResult = await evalQuery(':f [:p] reify(:p) | 42 | f(add(1))');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
-    expect(evalResult.get('category')).toEqual(keyword('conduit-parameter'));
-    expect(evalResult.get('name')).toBe('p');
+    const evalResult = await evalQuery(
+      ':f [:p] (manifest | filter(/name | eq("p")) | first | /category) | 42 | f(add(1))'
+    );
+    expect(evalResult).toEqual(keyword('conduit-parameter'));
   });
 });
 
@@ -310,7 +307,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('type-classifier')).toBe(13);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
     expect(categories.get('type-conversion')).toBe(1);  // keyword
     expect(categories.get('format')).toBe(2);
-    expect(categories.get('reflective')).toBe(6);   // env use reify manifest runExamples as
+    expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
     expect(categories.get('code-as-data')).toBe(3); // parse eval apply
     expect(categories.get('axis')).toBe(3);         // source docs examples
     expect(categories.get('error')).toBe(2);        // error isError

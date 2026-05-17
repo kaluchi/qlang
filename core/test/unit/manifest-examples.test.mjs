@@ -29,7 +29,7 @@ async function walkManifestExamples() {
   // Value-namespace bindings — operands, conduits, etc.
   const bindingNames = await evalQuery('manifest * /name');
   for (const name of bindingNames) {
-    const exampleResults = await evalQuery(`reify(:${name}) | runExamples`);
+    const exampleResults = await evalQuery(`:"${name}" | runExamples`);
     if (!Array.isArray(exampleResults)) continue;
     for (const exampleResult of exampleResults) {
       if (exampleResult.get(OK_KW) === true) continue;
@@ -46,9 +46,15 @@ async function walkManifestExamples() {
   // Tag-namespace bindings — error tags carry repro Quotes
   // with F.compact shape-spec (`!| [type /field ...] | eq([...])`)
   // injected from doc-prefix; runExamples evaluates each to true.
+  // Tag-namespace lookup needs the `::` prefix preserved on the
+  // Keyword subject so runExamples walks the tag's BindStep
+  // through `findBindingStepAcrossModules`. The bare `manifest(:tag)
+  // * /name` yields strings like `"::AddLeftNotNumberError"` — the
+  // `:"…"` keyword-literal form lifts each name back to a Keyword
+  // that carries the prefix through axis lookup.
   const tagNames = await evalQuery('manifest(:tag) * /name');
   for (const name of tagNames) {
-    const exampleResults = await evalQuery(`reify(:"${name}") | runExamples`);
+    const exampleResults = await evalQuery(`:"${name}" | runExamples`);
     if (!Array.isArray(exampleResults)) continue;
     for (const exampleResult of exampleResults) {
       if (exampleResult.get(OK_KW) === true) continue;

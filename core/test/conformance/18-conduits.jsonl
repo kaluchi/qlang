@@ -13,13 +13,9 @@
 {"name":"lexical-scope-isolation","query":":double mul(2) | :apply_double double | :double mul(3) | 5 | apply_double","expect":"10"}
 {"name":"conduit-as-inside-body-does-not-leak","query":":f [:n] (n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)","expect":"false"}
 {"name":"conduit-param-is-lazy-per-element","query":":@pluck [:proj] proj | [{:a 1} {:a 2} {:a 3}] * @pluck(/a)","expect":"[1 2 3]"}
-{"name":"conduit-reify-kind","query":":foo 42 | reify(:foo) | /kind","expect":":snapshot"}
-{"name":"conduit-reify-params-zero","query":":foo 42 | reify(:foo) | /params","expect":"::ProjectionKeyNotInMapError!{\n  :fault {\n    :step ~{/params}\n    :input {\n      :kind :snapshot\n      :name \"foo\"\n      :value 42\n      :type :number\n      :effectful false\n      :location {\n        :start {\n          :offset 0\n          :line 1\n          :column 1\n        }\n        :end {\n          :offset 7\n          :line 1\n          :column 8\n        }\n      }\n    }\n  }\n  :key \"params\"\n  :subject {\n    :kind :snapshot\n    :name \"foo\"\n    :value 42\n    :type :number\n    :effectful false\n    :location {\n      :start {\n        :offset 0\n        :line 1\n        :column 1\n      }\n      :end {\n        :offset 7\n        :line 1\n        :column 8\n      }\n    }\n  }\n  :origin :qlang/eval\n  :category :type-error\n}"}
-{"name":"conduit-reify-params-two","query":":f [:a :b] add(a, b) | reify(:f) | /params","expect":"[\"a\" \"b\"]"}
-{"name":"conduit-reify-source","query":":double mul(2) | reify(:double) | /source","expect":"\"mul(2)\""}
+{"name":"conduit-source-axis","query":":double mul(2) | :double | source | /source","expect":"\":double mul(2)\""}
 {"name":"conduit-effect-marker-clean-body-at-name-ok","query":":@safe count | [1 2 3] | @safe","expect":"3"}
 {"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":":foo @callers !| type","expect":"::EffectLaunderingAtBindStepParseError"}
 {"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
-{"name":"as-operand-reify","query":"42 | as(:answer) | reify(:answer) | /kind","expect":":snapshot"}
 {"name":"as-name-not-keyword-error","query":"42 | as(42)","error":"type-error","expect":"::AsNameNotKeywordError!{\n  :fault {:step ~{as(42)} :input 42}\n  :actualValue 42\n  :actualType :number\n  :origin :qlang/eval\n  :category :type-error\n}"}
 {"name":"conduit-parameter-no-captured-args","query":":f [:n] n(42) | 0 | f(5)","error":"arity-error","expect":"::ConduitParameterNoCapturedArgsError!{\n  :fault {:step ~{n(42)} :input 0}\n  :paramName :n\n  :actualCount 1\n  :origin :qlang/eval\n  :category :arity-error\n}"}

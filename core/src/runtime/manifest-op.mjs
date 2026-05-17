@@ -9,12 +9,23 @@
 // surfaces that enumerate operands.
 //
 // The per-binding descriptor shape `manifest` produces is built by
-// `describeBinding`, a switch over the env-value's runtime shape
-// (`::builtin` Map, conduit Map, snapshot Map, raw function value
-// for conduit-parameter proxies, or plain pipeValue). The same
-// `buildBuiltinDescriptor` / `buildConduitDescriptor` /
-// `buildSnapshotDescriptor` / `buildValueDescriptor` helpers
-// stamp the user-facing fields per kind.
+// `describeBinding`, a switch over the env-value's runtime shape:
+//
+//   `::builtin` Map (catalog-bound operand or tag-binding)
+//     → `manifestBuiltinDescriptor` in `descriptor-ops.mjs` —
+//       strips internal `:impl`, re-stamps `:kind ::builtin`,
+//       passes the structural fields (`:category` / `:subject` /
+//       `:modifiers` / `:returns` / `:throws` / `:captured` /
+//       `:effectful`) through.
+//
+//   raw FunctionValue (conduit-parameter proxy minted by
+//   `makeConduitParameter` inside an `applyConduit` body fork)
+//     → `describeConduitParameter` (below) — lifts the proxy's
+//       inline `meta` shape into a manifest-form descriptor.
+//
+//   Conduit Map → `describeConduit`.
+//   Snapshot Map → `describeSnapshot`.
+//   Plain pipeValue → `describeValue` (catch-all).
 //
 // The introspection surface for "what does THIS one binding do"
 // is the axis trio in `axis.mjs` (`:name | source` / `| docs` /
@@ -57,15 +68,17 @@ function errorMessageOf(errorValue) {
   return errorValue.descriptor.get('message');
 }
 
-// `buildBuiltinDescriptor` lifts a JS function-value into a
-// descriptor Map — invoked only on conduit-parameter proxies that
-// surface inside a conduit body's env. Every such proxy is minted
-// by `makeConduitParameter` in `eval.mjs` with a full `meta` shape
-// (`category`, `subject`, `modifiers`, `returns`, `captured`,
-// `throws` all stamped at construction); the catalog-bound builtins
-// flow through the `qlKind.name === 'builtin'` branch in
-// `describeBinding` instead.
-function buildBuiltinDescriptor(fn, explicitName) {
+// `describeConduitParameter` lifts a conduit-parameter proxy
+// (nullary FunctionValue minted by `makeConduitParameter` in
+// `eval.mjs`) into a manifest-form descriptor Map. The proxy
+// stamps a full `meta` shape inline at construction
+// (`category :conduit-parameter`, `subject` / `modifiers` /
+// `returns` / `captured` / `throws`), so the descriptor reads
+// every field straight off the proxy. Catalog-bound `::builtin`
+// descriptors flow through the `qlKind.name === 'builtin'`
+// branch in `describeBinding` instead, which delegates to
+// `manifestBuiltinDescriptor` in `descriptor-ops.mjs`.
+function describeConduitParameter(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
   result.set('kind', makeTagKeyword('builtin'));
@@ -80,7 +93,7 @@ function buildBuiltinDescriptor(fn, explicitName) {
   return result;
 }
 
-function buildConduitDescriptor(conduit, explicitName) {
+function describeConduit(conduit, explicitName) {
   // `explicitName` is always the env key (manifest iterates env entries
   // and threads each key as the name); the conduit's own `:name`
   // payload mirrors it under normal BindStep declarations but the
@@ -95,7 +108,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   return result;
 }
 
-function buildSnapshotDescriptor(snap, explicitName) {
+function describeSnapshot(snap, explicitName) {
   const value = snap.get('payload');
   const result = new Map();
   result.set('kind', makeTagKeyword('snapshot'));
@@ -107,7 +120,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
   return result;
 }
 
-function buildValueDescriptor(value, explicitName) {
+function describeValue(value, explicitName) {
   const result = new Map();
   result.set('kind', makeTagKeyword('value'));
   result.set('name', explicitName);
@@ -139,16 +152,16 @@ function describeBinding(value, explicitName) {
     }
     return manifestBuiltinDescriptor(value, explicitName);
   }
-  // Conduit-parameters — function values minted by
+  // Conduit-parameter proxies — nullary function values minted by
   // `makeConduitParameter` in `eval.mjs` that surface inside a
   // conduit body's env. `manifest` over the body's env routes the
-  // proxy here; `buildBuiltinDescriptor` reads the full meta the
-  // proxy carries inline (`category`, `subject`, `modifiers`,
-  // `returns`, `captured`, `throws`).
-  if (isFunctionValue(value)) return buildBuiltinDescriptor(value, explicitName);
-  if (isConduit(value)) return buildConduitDescriptor(value, explicitName);
-  if (isSnapshot(value)) return buildSnapshotDescriptor(value, explicitName);
-  return buildValueDescriptor(value, explicitName);
+  // proxy here; `describeConduitParameter` reads the full meta the
+  // proxy carries inline (`category :conduit-parameter`,
+  // `subject`, `modifiers`, `returns`, `captured`, `throws`).
+  if (isFunctionValue(value)) return describeConduitParameter(value, explicitName);
+  if (isConduit(value)) return describeConduit(value, explicitName);
+  if (isSnapshot(value)) return describeSnapshot(value, explicitName);
+  return describeValue(value, explicitName);
 }
 
 // `manifest` — Vec of descriptors, one per binding in env, sorted by

@@ -7,13 +7,14 @@
 // the wrapper performs the state descent (extract pipeValue) and
 // ascent (withPipeValue) on their behalf.
 //
-// None of the helpers accept operand meta (docs, examples, throws,
-// category, subject, modifiers, returns). Meta lives in the per-
-// family catalog files under lib/qlang/operand/<family>.qlang as
-// descriptor Maps that langRuntime() parses into env. The only metadata
-// helpers compute is the `captured` range — the [min, max] count
-// of captured args the operand accepts — derived structurally
-// from the dispatch shape itself.
+// None of the wrappers accept authored meta (docs, examples,
+// throws, category, subject, modifiers, returns). That metadata
+// lives in the per-family catalog files under
+// lib/qlang/operand/<family>.qlang as descriptor Maps that
+// langRuntime() parses into env. The only structural fact each
+// wrapper computes is the `captured` range — the [min, max] count
+// of captured args the operand accepts — derived from the
+// dispatch shape itself.
 //
 //   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
 //   higherOrderOp(name, n, impl)     — pure `(subject, ...lambdas) → result`
@@ -29,7 +30,7 @@ import { QlangInvariantError } from '../errors.mjs';
 import { declareArityError } from '../operand-errors.mjs';
 import { keyword } from '../types.mjs';
 
-// Per-site arity error classes for dispatch helpers.
+// Per-site arity error classes for the dispatch wrappers.
 const ValueOpArityMismatchError = declareArityError('ValueOpArityMismatchError',
   ({ operandName, expectedArity, actualArity }) =>
     `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`);

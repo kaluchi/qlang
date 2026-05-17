@@ -1,6 +1,6 @@
 // AST traversal primitives — `astChildrenOf` plus the toolkit of
-// position-query, identifier-occurrence-search, and lexical-binding-
-// scope helpers that build on it.
+// position-query, identifier-occurrence-search, and binding-
+// visibility-scope walkers that build on it.
 //
 // `astChildrenOf` is the single source of truth for the qlang AST
 // shape: parse.mjs's post-pass decoration (`attachAstParents`,

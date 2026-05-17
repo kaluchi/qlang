@@ -1,10 +1,11 @@
 |~ Value-class tag-bindings — ::conduit, ::qlang, ::json. Each
    declares its identity through ::builtin{…} with an :impl
    keyword pointing into PRIMITIVE_REGISTRY at the JS-side
-   constructor that builds the corresponding value-class instance
-   from a payload. Per-tag error sites live directly under the
-   constructor they belong to; the constructor's `:throws` Vec
-   references them by name. ~|
+   constructor that mints the corresponding value-class instance
+   from a payload. Per-tag error sites sit directly under the
+   constructor BindStep they belong to (so axis-operand walks
+   stay one-pass within this file); the constructor's `:throws`
+   Vec references each error tag by name. ~|
 
 ::conduit
   |~~ Conduit literal — invokeable lexically-scoped value carrying

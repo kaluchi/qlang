@@ -1235,14 +1235,15 @@ its own eval handler in `eval.mjs`.
 
 ## Error operands
 
-Error inspection and transformation are driven by the `!|`
-combinator (fail-apply), not by operands. `!|` fires its step
-against a materialized error descriptor — ordinary Map operations
-(`/key`, `has`, `keys`, `vals`, `union`, `minus`, `inter`, `eq`,
-`filter` over `:trail`, etc.) apply directly to the descriptor
-without special error-handling support. The two operands below
-exist as entry and exit points for the fail-track itself; they
-compose naturally with `!|` and with every Map-oriented operand.
+Error inspection and transformation ride through the `!|`
+combinator (fail-apply), which owns the track-dispatch decision.
+`!|` fires its step against a materialized error descriptor —
+ordinary Map operations (`/key`, `has`, `keys`, `vals`, `union`,
+`minus`, `inter`, `eq`, `filter` over `:trail`, etc.) apply
+directly to the descriptor exactly as they would on any other
+Map. The two operands below cover the two endpoints of the
+fail-track itself: `error` lifts a Map into the fail-track and
+`isError` reports whether `pipeValue` already rides there.
 
 ### `error`
 

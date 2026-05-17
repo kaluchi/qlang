@@ -35,7 +35,7 @@
 // (`is<X>Key`) that asks "does this env key sit in this namespace?".
 // Pairing factory and predicate per namespace keeps the prefix
 // literal a single-source-of-truth string — every consumer imports
-// the helpers, never re-types `'qlang/ast/'` or `'::'`.
+// the named primitives below, never re-types `'qlang/ast/'` or `'::'`.
 
 export const TAG_BINDING_PREFIX     = '::';
 export const MODULE_AST_PREFIX      = 'qlang/ast/';

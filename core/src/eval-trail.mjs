@@ -1,4 +1,4 @@
-// Trail-materialisation helpers.
+// Trail-fragment primitives.
 //
 // Three pure operations on an error value's deflection trail:
 //

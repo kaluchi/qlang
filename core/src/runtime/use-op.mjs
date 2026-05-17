@@ -37,6 +37,7 @@ import {
   moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
+import { stampStructuralFacts } from '../descriptor-ops.mjs';
 
 const UseSubjectNotMapError = declareSubjectError('UseSubjectNotMapError', 'use', 'map');
 const UseNamespaceNotKeywordError = declareShapeError('UseNamespaceNotKeywordError',
@@ -140,26 +141,19 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   }
 
   // Stamp the resolved JS function value onto each freshly-built
-  // builtin descriptor. The descriptor Map is freshly forged this
-  // bootstrap pass and not yet observable through any other env
-  // key — the impl backfill rides through the same mint-site
-  // `.set` ceremony `langRuntime`'s own impl-resolution pass uses
-  // on the core catalog (see `runtime/index.mjs::buildLangRuntime`),
-  // so the descriptor lands in env carrying a resolved JS function
-  // value on `:impl` rather than the authored keyword handle.
+  // builtin descriptor through the shared `stampStructuralFacts`
+  // mint-site — same surface `runtime/index.mjs::buildLangRuntime`
+  // uses for the core catalog. Locator-loaded descriptors land in
+  // env carrying a resolved JS function value on `:impl` plus the
+  // structural-from-impl backfill (`:captured` / `:effectful` /
+  // empty-fallback `:modifiers` / `:throws`) so `spec` axis and
+  // `manifest` enumeration read them off the env entry uniformly.
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);
       const descKind = isQMap(implDescriptor) && implDescriptor.get('kind');
       if (descKind && descKind.name === 'builtin') {
-        implDescriptor.set('impl', implFn);
-        // Backfill structural-from-impl facts so locator-loaded
-        // descriptors carry the same `:captured` / `:effectful`
-        // shape `runtime/index.mjs::buildLangRuntime` stamps on
-        // core-catalog descriptors. `spec` axis and `manifest`
-        // enumeration read them off the env entry uniformly.
-        implDescriptor.set('captured', [...implFn.meta.captured]);
-        implDescriptor.set('effectful', implFn.effectful);
+        stampStructuralFacts(implDescriptor, implFn);
       }
     }
   }

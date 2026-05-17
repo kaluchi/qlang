@@ -18,7 +18,10 @@
       becomes a qlang Vec. Scalars and qlang-only values pass
       through unchanged. Idempotent: applying to an already-qlang
       value returns the same shape. The literal-time pendant is the
-      `::qlang<payload>` TaggedLit constructor.
+      `::qlang<payload>` TaggedLit constructor; the inverse
+      direction (qlang shape to JSON shape) is the `::json`
+      constructor — both ride the `:type-conversion` taxonomy
+      slot alongside the String↔Keyword involution `keyword`.
 
       ~{::json{"a" : 1} | qlang | isMap | eq(true)}
       ~{::json[1, 2] | qlang | isVec | eq(true)}
@@ -26,7 +29,7 @@
       ~{[1 2 3] | qlang | isVec | eq(true)}
       ~{42 | qlang | eq(42)} ~~|
   ::builtin{:impl :qlang/prim/qlang
-            :category :json-bridge
+            :category :type-conversion
             :subject :any
             :returns :any
    }

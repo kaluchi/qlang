@@ -1,16 +1,17 @@
 // Structural deep equality across qlang values, plus the
-// `setHasStructurally` / `addStructurallyUnique` helpers that
-// every Set-builder site (`evalSetLit`, `setops::union/inter/
-// minus`, this module's own Set-equality branch) routes through.
+// `setHasStructurally` / `addStructurallyUnique` Set-builder
+// primitives that every Set-mint site (`evalSetLit`,
+// `setops::union/inter/minus`, this module's own Set-equality
+// branch) routes through.
 //
 // JS `Set` uses reference equality on `.has` / `.add`, which would
 // mishandle composite elements (Vec / Map / Set / Error / etc.) —
 // two independently-constructed `[1 2]` Vecs are content-equal
-// but reference-distinct. The helpers below take a linear-scan
-// `deepEqual` lookup over the existing members; O(n²) per Set
-// build is acceptable because qlang Set sizes stay small enough
-// that the constant on a hash-set would dominate, and structural
-// dedup is the spec'd Set semantics.
+// but reference-distinct. The Set-builder primitives below take a
+// linear-scan `deepEqual` lookup over the existing members; O(n²)
+// per Set build is acceptable because qlang Set sizes stay small
+// enough that the constant on a hash-set would dominate, and
+// structural dedup is the spec'd Set semantics.
 //
 // Cross-shape equivalences: a JsonArray and a Vec with the same
 // elements are equal; a JsonObject and a Map with the same entries

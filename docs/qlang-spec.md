@@ -964,12 +964,14 @@ A conduit is invoked like any operand: `value | double`,
 
 #### Lexical scope and fractal composition
 
-Conduits use **lexical scope** — the body sees the env that existed
-at declaration time (including itself for recursion via tie-the-knot),
-not the caller's env. This is the foundation of **fractal
-composition**: nested conduits compose predictably because each
-level's scope is anchored at its own declaration point. Later
-shadowing in the caller's scope does not affect a conduit's body.
+Conduits use **lexical scope** — the body sees the env that
+existed at declaration time (including itself for recursion via
+tie-the-knot). This is the foundation of **fractal composition**:
+nested conduits compose predictably because each level's scope is
+anchored at its own declaration point. Shadowing inside a caller's
+scope writes a fresh entry in the caller's env without touching
+the conduit's frozen lexical anchor, so the conduit body keeps
+resolving identifiers through the env captured at declaration.
 
 ```qlang
 > :@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n))
@@ -1726,8 +1728,8 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    funnels through identifier lookup.
 
 `as` is exempt from the effect invariant: `@callers | as(:result)`
-captures the *call result* (a frozen value), not the function value
-itself. The effect already fired by the time `as` runs, so the
+captures the *call result* — the frozen value the host operand
+produced. The effect already fired by the time `as` runs, so the
 snapshot is pure data that downstream pipelines can reference under
 any name without re-triggering the host call.
 

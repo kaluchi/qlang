@@ -1,9 +1,11 @@
-// State pair (pipeValue, env) helpers.
+// State pair (pipeValue, env) accessors and immutable updaters.
 //
 // State is meta-notation: it lives only inside the evaluator.
 // Users never see or construct it. Within the evaluator we model
-// it as a frozen object with two fields. Every step returns a new
-// State; mutation is forbidden.
+// it as a frozen object with two fields. Every step returns a
+// fresh State carrying the next pipeValue or the next env; the
+// previous State stays observable to ancestor frames so fork
+// boundaries can discard inner-env writes without copying.
 //
 // The env is a JS Map whose keys are plain strings (identifier
 // names). Identifier lookup passes the name string directly.

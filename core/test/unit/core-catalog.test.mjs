@@ -246,7 +246,7 @@ describe('manifest descriptor for a conduit-parameter proxy', () => {
   // Running `manifest` inside a conduit body iterates the body's
   // fork env, which carries the proxy; `describeBinding` takes the
   // `isFunctionValue` path and stamps a `:kind ::builtin` descriptor
-  // through `buildBuiltinDescriptor`. The descriptor's `:category`
+  // through `describeConduitParameter`. The descriptor's `:category`
   // tracks the proxy's authored slot (`:conduit-parameter`), so
   // catalog walkers can distinguish synthetic-per-call entries from
   // the static catalog operands.
@@ -305,7 +305,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
     expect(categories.get('type-classifier')).toBe(13);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
-    expect(categories.get('type-conversion')).toBe(1);  // keyword
+    expect(categories.get('type-conversion')).toBe(2);  // keyword + qlang
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
     expect(categories.get('code-as-data')).toBe(3); // parse eval apply

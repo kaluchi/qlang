@@ -78,6 +78,7 @@ import { makeState } from '../state.mjs';
 import { isKeyword, makeQuote } from '../types.mjs';
 import { moduleAstKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
+import { stampStructuralFacts } from '../descriptor-ops.mjs';
 import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 
 // Cached template env — parsed and evaluated once on first call,
@@ -159,13 +160,14 @@ export async function buildLangRuntime(locator) {
   // every invocation, so `manifest(:tag)` surfaces the readable
   // `:qlang/type/<tag>` keyword handle the catalog declared.
   //
-  // Same pass backfills `:modifiers` and `:throws` empty Vecs on
-  // any builtin descriptor that omitted them. Authors leave the
-  // empty case off in the catalog (47 lines saved across the
-  // family files); every consumer downstream — `manifest` output,
-  // LSP signature-help, `/throws` and `/modifiers` projections —
-  // reads the field unconditionally because the env-side
-  // descriptor always carries it after this pass.
+  // `stampStructuralFacts` is the single mint-site backfill —
+  // swaps `:impl` for the callable, stamps `:captured` /
+  // `:effectful` straight off the resolved function's meta, and
+  // forges empty `:modifiers` / `:throws` Vecs when the catalog
+  // author omitted them. Every consumer downstream — `manifest`
+  // output, LSP signature-help, `/throws` and `/modifiers`
+  // projections — reads the field unconditionally because the
+  // env-side descriptor always carries it after this pass.
   for (const [envKey, descriptor] of templateEnv) {
     if (!(descriptor instanceof Map)) continue;
     if (descriptor.get('kind')?.name !== 'builtin') continue;
@@ -178,18 +180,11 @@ export async function buildLangRuntime(locator) {
     if (envKey.startsWith('::')) continue;
     const implKey = descriptor.get('impl');
     if (isKeyword(implKey)) {
-      const fn = PRIMITIVE_REGISTRY.resolve(implKey.name);
-      descriptor.set('impl', fn);
-      // Backfill structural-from-impl facts so env entries carry
-      // the full runtime shape — `:add | spec` and `manifest |
-      // filter(/name | eq("add")) | first` both surface the same
-      // descriptor without manifest having to re-project from the
-      // function value at enumeration time.
-      descriptor.set('captured', [...fn.meta.captured]);
-      descriptor.set('effectful', fn.effectful);
+      stampStructuralFacts(descriptor, PRIMITIVE_REGISTRY.resolve(implKey.name));
+    } else {
+      if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
+      if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));
     }
-    if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
-    if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));
   }
 
   // Stamp the parsed root module as a Quote-value under the

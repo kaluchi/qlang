@@ -27,7 +27,7 @@
 //                                astNodeSpan, astNodeContainsOffset,
 //                                triviaBetweenAstNodes
 //   value codec                — toTaggedJSON, fromTaggedJSON
-//   format helpers             — printValue (qlang-literal display),
+//   format renderers           — printValue (qlang-literal display),
 //                                toPlain (qlang value → JSON-
 //                                serializable JS shape; lossy for
 //                                Set / Error / Keyword-as-value),

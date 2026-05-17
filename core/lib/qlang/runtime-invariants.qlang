@@ -1,8 +1,10 @@
-|~ Shared and runtime-invariant tag-bindings. Errors here are
-   thrown from cross-family runtime machinery (parser, AST codec,
-   evaluator dispatch, primitive registry, session, render
-   invariants, projection, combinator track-dispatch). Per-operand
-   errors live inline in the operand's family file
+|~ Cross-family invariant tag-bindings. Each error tag below is
+   stamped on `:kind` by a runtime site that no single operand
+   family owns — the parser, the AST codec, the evaluator
+   dispatcher, the primitive registry, the session lifecycle, the
+   projection segment-walker, the combinator track-dispatcher,
+   the render-path round-trip guards. Per-operand errors live
+   inline in the operand's own family file
    (lib/qlang/operand/<family>.qlang); value-class-constructor
    errors (::conduit / ::qlang / ::json) live next to their
    constructors in lib/qlang/tag.qlang.

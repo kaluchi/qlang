@@ -28,4 +28,7 @@ use([:qlang/runtime-invariants
      :qlang/operand/type-conversion
      :qlang/operand/control
      :qlang/operand/format
-     :qlang/operand/reflective])
+     :qlang/operand/reflective
+     :qlang/operand/error
+     :qlang/operand/code-as-data
+     :qlang/operand/axis])

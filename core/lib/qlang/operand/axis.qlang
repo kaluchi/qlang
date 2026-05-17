@@ -1,0 +1,101 @@
+|~ qlang operand catalog — axis family. Reflective navigation
+   from a binding name (Keyword `:foo` or TagKeyword `::Foo`) to
+   declarative metadata living on the binding's source AST. Each
+   axis walks every `qlang/ast/<uri>` module Quote stored in env
+   to find the originating `BindStep` (or `as(:name)` OperandCall)
+   and returns the named field as a fresh value — `source` the
+   verbatim source slice as a Quote, `docs` the attached
+   doc-prefix Vec of Doc-values, `examples` every `~{…}` Quote
+   segment from those docs ready for `runExamples` to fire. ~|
+
+:source
+  |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
+      in one of the loaded modules. Walks every `qlang/ast/<uri>`
+      Quote in env, finds the `BindStep` whose key matches the
+      Keyword (or TagKeyword for `::Tag | source`) on pipeValue,
+      returns a Quote-value carrying the verbatim source slice.
+
+      ~{:filter | source | /source | contains(":filter")}
+      ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
+  ~~|
+  ::builtin{:impl :qlang/prim/source
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :quote
+            :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::SourceSubjectNotKeywordOrTagError
+  |~~ `source` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | source
+        !| [type /actualType]
+        |  eq([::SourceSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+
+:docs
+  |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
+      on the `BindStep` that binds `:name`. Each Doc-value `/segments`
+      surfaces TaggedLit and Quote inline structure for navigation;
+      Quote segments are the evaluable examples `runExamples` runs.
+
+      ~{:filter | docs | first | /content | contains("Keeps items")}
+      ~{::AddLeftNotNumberError | docs | first | isDoc}
+  ~~|
+  ::builtin{:impl :qlang/prim/docs
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :vec
+            :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::DocsSubjectNotKeywordOrTagError
+  |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | docs
+        !| [type /actualType]
+        |  eq([::DocsSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+
+:examples
+  |~~ `:name | examples` — Vec of Quote-values extracted from the
+      binding's docs. `runExamples` consumes this Vec to evaluate
+      each Quote against an isolated env; `:ok` is true iff the
+      result is truthy.
+
+      ~{:filter | examples | count | gt(0)}
+      ~{:filter | examples | first | /source | contains("filter")}
+  ~~|
+  ::builtin{:impl :qlang/prim/examples
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :vec
+            :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::ExamplesSubjectNotKeywordOrTagError
+  |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | examples
+        !| [type /actualType]
+        |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+
+::AxisBindingNotFoundError
+  |~~ Axis-operand (`source` / `docs` / `examples`) — no
+      `BindStep` found for the requested binding name across
+      loaded modules.
+
+      ~{
+        :nonexistent-binding | source
+        !| [type /axisName /bindingName]
+        |  eq([::AxisBindingNotFoundError
+                :source :nonexistent-binding])
+       }
+  ~~|

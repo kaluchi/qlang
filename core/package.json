@@ -65,6 +65,9 @@
     "#qlang/operand/control":          "./lib/qlang/operand/control.qlang",
     "#qlang/operand/format":           "./lib/qlang/operand/format.qlang",
     "#qlang/operand/reflective":       "./lib/qlang/operand/reflective.qlang",
+    "#qlang/operand/error":            "./lib/qlang/operand/error.qlang",
+    "#qlang/operand/code-as-data":     "./lib/qlang/operand/code-as-data.qlang",
+    "#qlang/operand/axis":             "./lib/qlang/operand/axis.qlang",
     "#qlang/load-source": {
       "node": "./host/load-source-node.mjs",
       "default": "./src/load-source-web.mjs"

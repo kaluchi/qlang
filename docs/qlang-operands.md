@@ -59,7 +59,9 @@ form part of the doc surface and the runtime catalog alike.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / reify / manifest / runExamples / parse / eval). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
+| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / reify / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
+| `:code-as-data` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
+| `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
@@ -1374,7 +1376,9 @@ distinct` enumerates).
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
-| `:reflective` | `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` (plus the `:name body` BindStep grammar production) |
+| `:reflective` | `as`, `env`, `use`, `reify`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
+| `:code-as-data` | `parse`, `eval`, `apply` |
+| `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths

@@ -217,7 +217,7 @@ async function evalNode(node, state) {
     }
     return withPipeValue(state,
       caughtError instanceof QlangError
-        ? errorFromQlang(caughtError, faultMap)
+        ? errorFromQlang(caughtError, faultMap, state.env)
         : errorFromForeign(caughtError, node, faultMap));
   }
 }
@@ -302,7 +302,7 @@ async function distribute(state, bodyNode) {
   if (!isVecShape(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotVecError(state.pipeValue);
     distributeErr.location = bodyNode.location;
-    return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
+    return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue), state.env));
   }
   const subjectVec = state.pipeValue;
   const forkResults = await Promise.all(
@@ -321,7 +321,7 @@ async function mergeFlat(state, nextNode) {
   if (!isVecShape(state.pipeValue)) {
     const mergeErr = new MergeSubjectNotVecError(state.pipeValue);
     mergeErr.location = nextNode.location;
-    return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
+    return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue), state.env));
   }
   const sourceVec = state.pipeValue;
   const flattened = [];

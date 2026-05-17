@@ -17,8 +17,8 @@
   |~~ Subject of `keys` must be Map.
       ~{
         42 | keys
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::KeysSubjectNotMapError :number :map :keys :subject])
+        !| [type /actualType]
+        |  eq([::KeysSubjectNotMapError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :keys :position :subject :expectedType :map}
@@ -38,8 +38,8 @@
   |~~ Subject of `vals` must be Map.
       ~{
         [1 2] | vals
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::ValsSubjectNotMapError :vec :map :vals :subject])
+        !| [type /actualType]
+        |  eq([::ValsSubjectNotMapError :vec])
        }
   ~~|
   ::builtin{:category :type-error :operand :vals :position :subject :expectedType :map}
@@ -62,8 +62,8 @@
   |~~ Subject of `has` must be Map or Set.
       ~{
         42 | has(:k)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::HasSubjectNotMapOrSetError :number [:map :set] :has :subject])
+        !| [type /actualType]
+        |  eq([::HasSubjectNotMapOrSetError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :has :position :subject :expectedType [:map :set]}
@@ -72,8 +72,8 @@
   |~~ Captured argument at position 2 of `has` must be Keyword.
       ~{
         {:a 1} | has("a")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::HasKeyNotKeywordError :string :keyword :has 2])
+        !| [type /actualType]
+        |  eq([::HasKeyNotKeywordError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :has :position 2 :expectedType :keyword}

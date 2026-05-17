@@ -43,9 +43,6 @@ describe('parseJson — error sites', () => {
   it('lifts ParseJsonSubjectNotStringError when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseJson', noopIo);
     expectOperandErrorThrown(cellEntry, 'ParseJsonSubjectNotStringError', {
-      operand: 'parseJson',
-      position: 'subject',
-      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });
@@ -83,9 +80,6 @@ describe('parseTjson — error sites', () => {
   it('lifts ParseTjsonSubjectNotStringError when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseTjson', noopIo);
     expectOperandErrorThrown(cellEntry, 'ParseTjsonSubjectNotStringError', {
-      operand: 'parseTjson',
-      position: 'subject',
-      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });

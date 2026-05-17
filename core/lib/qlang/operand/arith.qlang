@@ -22,8 +22,8 @@
 
       ~{
         "hello" | add(1)
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::AddLeftNotNumberError :add 1 :number :string])
+        !| [type /actualType]
+        |  eq([::AddLeftNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :add :position 1 :expectedType :number}
@@ -33,8 +33,8 @@
 
       ~{
         1 | add("x")
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::AddRightNotNumberError :add 2 :number :string])
+        !| [type /actualType]
+        |  eq([::AddRightNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :add :position 2 :expectedType :number}
@@ -58,8 +58,8 @@
 
       ~{
         "hello" | sub(1)
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::SubLeftNotNumberError :sub 1 :number :string])
+        !| [type /actualType]
+        |  eq([::SubLeftNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :sub :position 1 :expectedType :number}
@@ -69,8 +69,8 @@
 
       ~{
         1 | sub("x")
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::SubRightNotNumberError :sub 2 :number :string])
+        !| [type /actualType]
+        |  eq([::SubRightNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :sub :position 2 :expectedType :number}
@@ -93,8 +93,8 @@
 
       ~{
         "hello" | mul(2)
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::MulLeftNotNumberError :mul 1 :number :string])
+        !| [type /actualType]
+        |  eq([::MulLeftNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :mul :position 1 :expectedType :number}
@@ -104,8 +104,8 @@
 
       ~{
         1 | mul("x")
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::MulRightNotNumberError :mul 2 :number :string])
+        !| [type /actualType]
+        |  eq([::MulRightNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :mul :position 2 :expectedType :number}
@@ -130,8 +130,8 @@
 
       ~{
         "hello" | div(2)
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::DivLeftNotNumberError :div 1 :number :string])
+        !| [type /actualType]
+        |  eq([::DivLeftNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :div :position 1 :expectedType :number}
@@ -141,8 +141,8 @@
 
       ~{
         1 | div("x")
-        !| [type /operand /position /expectedType /actualType]
-        |  eq([::DivRightNotNumberError :div 2 :number :string])
+        !| [type /actualType]
+        |  eq([::DivRightNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :div :position 2 :expectedType :number}

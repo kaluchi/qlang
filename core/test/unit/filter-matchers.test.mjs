@@ -147,9 +147,6 @@ describe('filter — container polymorphism', () => {
     const errorValue = await expectErrorThrown('42 | filter(gt(0))', 'FilterSubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('FilterSubjectNotContainerError');
-    expect(originalErr.context.operand).toBe('filter');
-    expect(originalErr.context.position).toBe('subject');
-    expect(originalErr.context.expectedType.map(k => k.name)).toEqual(['vec', 'set', 'map']);
     expect(originalErr.context.actualType.name).toBe('number');
   });
 
@@ -265,8 +262,6 @@ describe('every — container polymorphism', () => {
     const errorValue = await expectErrorThrown('42 | every(gt(0))', 'EverySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('EverySubjectNotContainerError');
-    expect(originalErr.context.operand).toBe('every');
-    expect(originalErr.context.expectedType.map(k => k.name)).toEqual(['vec', 'set', 'map']);
   });
 
   it('Vec with 1-arity conduit — every applies element as captured-arg', async () => {
@@ -355,7 +350,6 @@ describe('any — container polymorphism', () => {
     const errorValue = await expectErrorThrown('42 | any(gt(0))', 'AnySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('AnySubjectNotContainerError');
-    expect(originalErr.context.operand).toBe('any');
   });
 
   it('Map with 3-arity conduit — AnyMapPredArityInvalidError', async () => {

@@ -36,8 +36,8 @@
   |~~ Operands of `asc` are not pairwise-comparable scalars.
       ~{
         {:left {:k 1} :right {:k "x"}} | asc(/k)
-        !| [type /leftType /rightType /operand]
-        |  eq([::AscKeysNotComparableError :number :string :asc])
+        !| [type /leftType /rightType]
+        |  eq([::AscKeysNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :asc}
@@ -66,8 +66,8 @@
   |~~ Operands of `desc` are not pairwise-comparable scalars.
       ~{
         {:left {:k 1} :right {:k "x"}} | desc(/k)
-        !| [type /leftType /rightType /operand]
-        |  eq([::DescKeysNotComparableError :number :string :desc])
+        !| [type /leftType /rightType]
+        |  eq([::DescKeysNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :desc}
@@ -101,8 +101,8 @@
   |~~ Operands of `nullsFirst` are not pairwise-comparable scalars.
       ~{
         {:left {:a 1} :right {:a "x"}} | nullsFirst(/a)
-        !| [type /leftType /rightType /operand]
-        |  eq([::NullsFirstKeysNotComparableError :number :string :nullsFirst])
+        !| [type /leftType /rightType]
+        |  eq([::NullsFirstKeysNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :nullsFirst}
@@ -136,8 +136,8 @@
   |~~ Operands of `nullsLast` are not pairwise-comparable scalars.
       ~{
         {:left {:a 1} :right {:a "x"}} | nullsLast(/a)
-        !| [type /leftType /rightType /operand]
-        |  eq([::NullsLastKeysNotComparableError :number :string :nullsLast])
+        !| [type /leftType /rightType]
+        |  eq([::NullsLastKeysNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :nullsLast}

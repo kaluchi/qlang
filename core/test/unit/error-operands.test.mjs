@@ -151,28 +151,23 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('CountSubjectNotContainerError');
-    expect(caughtErr.context.operand).toBe('count');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('keys on non-Map → KeysSubjectNotMapError', async () => {
     const caughtErr = await catchOriginalError('42 | keys');
     expect(caughtErr.name).toBe('KeysSubjectNotMapError');
-    expect(caughtErr.context.operand).toBe('keys');
   });
 
   it('add left non-number → AddLeftNotNumberError', async () => {
     const caughtErr = await catchOriginalError('"x" | add(1)');
     expect(caughtErr.name).toBe('AddLeftNotNumberError');
-    expect(caughtErr.context.operand).toBe('add');
-    expect(caughtErr.context.position).toBe(1);
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
   it('add right non-number → AddRightNotNumberError', async () => {
     const caughtErr = await catchOriginalError('1 | add("x")');
     expect(caughtErr.name).toBe('AddRightNotNumberError');
-    expect(caughtErr.context.position).toBe(2);
   });
 
   it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
@@ -193,7 +188,6 @@ describe('per-site error classes carry unique identity', () => {
   it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
     const caughtErr = await catchOriginalError('"x" | prepend(42)');
     expect(caughtErr.name).toBe('PrependPrefixNotStringError');
-    expect(caughtErr.context.position).toBe(2);
   });
 
   it('append modifier non-string → AppendSuffixNotStringError', async () => {
@@ -262,8 +256,6 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchOriginalError('42 | at(0)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
-    expect(caughtErr.context.operand).toBe('at');
-    expect(caughtErr.context.position).toBe('subject');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
@@ -271,8 +263,6 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchOriginalError('{:a 1} | at(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('AtKeyNotStringError');
-    expect(caughtErr.context.operand).toBe('at');
-    expect(caughtErr.context.position).toBe(2);
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
@@ -280,8 +270,6 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchOriginalError('42 | keyword');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
-    expect(caughtErr.context.operand).toBe('keyword');
-    expect(caughtErr.context.position).toBe('subject');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 

@@ -1,5 +1,5 @@
 {"name":"single-key","query":"{:name \"Alice\"} | /name","expect":"\"Alice\""}
-{"name":"missing-key","query":"{:name \"Alice\"} | /age","expect":"::ProjectionKeyNotInMapError!{\n  :fault {\n    :step ~{/age}\n    :input {:name \"Alice\"}\n  }\n  :key \"age\"\n  :subject {:name \"Alice\"}\n  :origin :qlang/eval\n  :category :type-error\n}"}
+{"name":"missing-key","query":"{:name \"Alice\"} | /age","expect":"::ProjectionKeyNotInMapError!{\n  :fault {\n    :step ~{/age}\n    :input {:name \"Alice\"}\n  }\n  :key \"age\"\n  :subject {:name \"Alice\"}\n  :category :type-error\n}"}
 {"name":"nested-keys","query":"{:point {:x 5 :y 7}} | /point/x","expect":"5"}
 {"name":"deeply-nested","query":"{:a {:b {:c {:d 42}}}} | /a/b/c/d","expect":"42"}
 {"name":"projection-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter(/age | gte(18)) * /name","expect":"[\"Alice\"]"}
@@ -11,12 +11,12 @@
 {"name":"vec-bare-index-zero","query":"[10 20 30] | /0","expect":"10"}
 {"name":"vec-bare-index-mid","query":"[10 20 30] | /1","expect":"20"}
 {"name":"vec-bare-index-negative","query":"[10 20 30] | /-1","expect":"30"}
-{"name":"vec-bare-index-oob","query":"[10 20 30] | /99","expect":"::ProjectionIndexOutOfBoundsError!{\n  :fault {\n    :step ~{/99}\n    :input [10 20 30]\n  }\n  :index 99\n  :key \"99\"\n  :length 3\n  :subject [10 20 30]\n  :origin :qlang/eval\n  :category :type-error\n}"}
-{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | /-99","expect":"::ProjectionIndexOutOfBoundsError!{\n  :fault {\n    :step ~{/-99}\n    :input [10 20 30]\n  }\n  :index -99\n  :key \"-99\"\n  :length 3\n  :subject [10 20 30]\n  :origin :qlang/eval\n  :category :type-error\n}"}
-{"name":"vec-non-integer-segment-null","query":"[10 20 30] | /name","expect":"::ProjectionVecKeyNotIntegerError!{\n  :fault {\n    :step ~{/name}\n    :input [10 20 30]\n  }\n  :key \"name\"\n  :subject [10 20 30]\n  :origin :qlang/eval\n  :category :type-error\n}"}
+{"name":"vec-bare-index-oob","query":"[10 20 30] | /99","expect":"::ProjectionIndexOutOfBoundsError!{\n  :fault {\n    :step ~{/99}\n    :input [10 20 30]\n  }\n  :index 99\n  :key \"99\"\n  :length 3\n  :subject [10 20 30]\n  :category :type-error\n}"}
+{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | /-99","expect":"::ProjectionIndexOutOfBoundsError!{\n  :fault {\n    :step ~{/-99}\n    :input [10 20 30]\n  }\n  :index -99\n  :key \"-99\"\n  :length 3\n  :subject [10 20 30]\n  :category :type-error\n}"}
+{"name":"vec-non-integer-segment-null","query":"[10 20 30] | /name","expect":"::ProjectionVecKeyNotIntegerError!{\n  :fault {\n    :step ~{/name}\n    :input [10 20 30]\n  }\n  :key \"name\"\n  :subject [10 20 30]\n  :category :type-error\n}"}
 {"name":"polymorphic-deep-path","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | /items/0/id","expect":"1"}
 {"name":"polymorphic-negative-through-vec","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | /users/-1/email","expect":"\"b@x\""}
 {"name":"polymorphic-vec-then-map","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | /1/name","expect":"\"bob\""}
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | /0","expect":"[0 1]"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | /rows/1/0","expect":"3"}
-{"name":"null-subject-strict","query":"null | /any","expect":"::ProjectionSubjectNotMapError!{\n  :fault {:step ~{/any} :input null}\n  :actualValue null\n  :actualType :null\n  :key \"any\"\n  :origin :qlang/eval\n  :category :type-error\n}"}
+{"name":"null-subject-strict","query":"null | /any","expect":"::ProjectionSubjectNotMapError!{\n  :fault {:step ~{/any} :input null}\n  :actualValue null\n  :actualType :null\n  :key \"any\"\n  :category :type-error\n}"}

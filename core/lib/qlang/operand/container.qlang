@@ -20,8 +20,8 @@
   |~~ Subject of `count` must be Vec, Set, or Map.
       ~{
         42 | count
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::CountSubjectNotContainerError :number [:vec :set :map] :count :subject])
+        !| [type /actualType]
+        |  eq([::CountSubjectNotContainerError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :count :position :subject :expectedType [:vec :set :map]}
@@ -43,8 +43,8 @@
   |~~ Subject of `empty` must be Vec, Set, or Map.
       ~{
         42 | empty
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::EmptySubjectNotContainerError :number [:vec :set :map] :empty :subject])
+        !| [type /actualType]
+        |  eq([::EmptySubjectNotContainerError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :empty :position :subject :expectedType [:vec :set :map]}
@@ -82,8 +82,8 @@
   |~~ Subject of `every` must be Vec, Set, or Map.
       ~{
         42 | every(gt(0))
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::EverySubjectNotContainerError :number [:vec :set :map] :every :subject])
+        !| [type /actualType]
+        |  eq([::EverySubjectNotContainerError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :every :position :subject :expectedType [:vec :set :map]}
@@ -135,8 +135,8 @@
   |~~ Subject of `any` must be Vec, Set, or Map.
       ~{
         42 | any(gt(0))
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::AnySubjectNotContainerError :number [:vec :set :map] :any :subject])
+        !| [type /actualType]
+        |  eq([::AnySubjectNotContainerError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :any :position :subject :expectedType [:vec :set :map]}
@@ -206,8 +206,8 @@
   |~~ Subject of `filter` must be Vec, Set, or Map.
       ~{
         42 | filter(gt(0))
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::FilterSubjectNotContainerError :number [:vec :set :map] :filter :subject])
+        !| [type /actualType]
+        |  eq([::FilterSubjectNotContainerError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :filter :position :subject :expectedType [:vec :set :map]}

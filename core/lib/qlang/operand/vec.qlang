@@ -20,8 +20,8 @@
   |~~ Subject of `first` must be Vec.
       ~{
         42 | first
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::FirstSubjectNotVecError :number :vec :first :subject])
+        !| [type /actualType]
+        |  eq([::FirstSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :first :position :subject :expectedType :vec}
@@ -43,8 +43,8 @@
   |~~ Subject of `last` must be Vec.
       ~{
         42 | last
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::LastSubjectNotVecError :number :vec :last :subject])
+        !| [type /actualType]
+        |  eq([::LastSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :last :position :subject :expectedType :vec}
@@ -71,8 +71,8 @@
   |~~ Subject of `sum` must be Vec or Set.
       ~{
         42 | sum
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::SumSubjectNotVecOrSetError :number [:vec :set] :sum :subject])
+        !| [type /actualType]
+        |  eq([::SumSubjectNotVecOrSetError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :sum :position :subject :expectedType [:vec :set]}
@@ -81,8 +81,8 @@
   |~~ Element of `sum` input collection must be Number.
       ~{
         [1 "two" 3] | sum
-        !| [type /actualType /index /expectedType /operand]
-        |  eq([::SumElementNotNumberError :string 1 :number :sum])
+        !| [type /actualType /index]
+        |  eq([::SumElementNotNumberError :string 1])
        }
   ~~|
   ::builtin{:category :type-error :operand :sum :expectedType :number}
@@ -107,8 +107,8 @@
   |~~ Subject of `min` must be Vec or Set.
       ~{
         42 | min
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::MinSubjectNotVecOrSetError :number [:vec :set] :min :subject])
+        !| [type /actualType]
+        |  eq([::MinSubjectNotVecOrSetError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :min :position :subject :expectedType [:vec :set]}
@@ -117,8 +117,8 @@
   |~~ Operands of `min` are not pairwise-comparable scalars.
       ~{
         [1 "two"] | min
-        !| [type /leftType /rightType /operand]
-        |  eq([::MinElementsNotComparableError :number :string :min])
+        !| [type /leftType /rightType]
+        |  eq([::MinElementsNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :min}
@@ -143,8 +143,8 @@
   |~~ Subject of `max` must be Vec or Set.
       ~{
         42 | max
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::MaxSubjectNotVecOrSetError :number [:vec :set] :max :subject])
+        !| [type /actualType]
+        |  eq([::MaxSubjectNotVecOrSetError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :max :position :subject :expectedType [:vec :set]}
@@ -153,8 +153,8 @@
   |~~ Operands of `max` are not pairwise-comparable scalars.
       ~{
         [1 "two"] | max
-        !| [type /leftType /rightType /operand]
-        |  eq([::MaxElementsNotComparableError :number :string :max])
+        !| [type /leftType /rightType]
+        |  eq([::MaxElementsNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :max}
@@ -179,8 +179,8 @@
   |~~ Subject of `firstNonZero` must be Vec.
       ~{
         42 | firstNonZero
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::FirstNonZeroSubjectNotVecError :number :vec :firstNonZero :subject])
+        !| [type /actualType]
+        |  eq([::FirstNonZeroSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :firstNonZero :position :subject :expectedType :vec}
@@ -189,8 +189,8 @@
   |~~ Element of `firstNonZero` input collection must be Number.
       ~{
         [0 null 1] | firstNonZero
-        !| [type /actualType /index /expectedType /operand]
-        |  eq([::FirstNonZeroElementNotNumberError :null 1 :number :firstNonZero])
+        !| [type /actualType /index]
+        |  eq([::FirstNonZeroElementNotNumberError :null 1])
        }
   ~~|
   ::builtin{:category :type-error :operand :firstNonZero :expectedType :number}
@@ -219,8 +219,8 @@
   |~~ Subject of `sort` must be Vec.
       ~{
         42 | sort
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::SortNaturalSubjectNotVecError :number :vec :sort :subject])
+        !| [type /actualType]
+        |  eq([::SortNaturalSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :sort :position :subject :expectedType :vec}
@@ -229,8 +229,8 @@
   |~~ Subject of `sort(key)` must be Vec.
       ~{
         42 | sort(/x)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::SortByKeySubjectNotVecError :number :vec :sort :subject])
+        !| [type /actualType]
+        |  eq([::SortByKeySubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :sort :position :subject :expectedType :vec}
@@ -239,8 +239,8 @@
   |~~ Operands of `sort` are not pairwise-comparable scalars.
       ~{
         [1 "two"] | sort
-        !| [type /leftType /rightType /operand]
-        |  eq([::SortNaturalNotComparableError :string :number :sort])
+        !| [type /leftType /rightType]
+        |  eq([::SortNaturalNotComparableError :string :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :sort}
@@ -249,8 +249,8 @@
   |~~ Operands of `sort(key)` are not pairwise-comparable scalars.
       ~{
         [{:k 1} {:k "x"}] | sort(/k)
-        !| [type /leftType /rightType /operand]
-        |  eq([::SortByKeyNotComparableError :string :number :sort])
+        !| [type /leftType /rightType]
+        |  eq([::SortByKeyNotComparableError :string :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :sort}
@@ -276,8 +276,8 @@
   |~~ Subject of `sortWith` must be Vec.
       ~{
         42 | sortWith(asc(/x))
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::SortWithSubjectNotVecError :number :vec :sortWith :subject])
+        !| [type /actualType]
+        |  eq([::SortWithSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :sortWith :position :subject :expectedType :vec}
@@ -309,8 +309,8 @@
   |~~ Subject of `take` must be Vec.
       ~{
         42 | take(1)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::TakeSubjectNotVecError :number :vec :take :subject])
+        !| [type /actualType]
+        |  eq([::TakeSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :take :position :subject :expectedType :vec}
@@ -319,8 +319,8 @@
   |~~ Captured argument at position 2 of `take` must be Number.
       ~{
         [1 2 3] | take("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::TakeCountNotNumberError :string :number :take 2])
+        !| [type /actualType]
+        |  eq([::TakeCountNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :take :position 2 :expectedType :number}
@@ -350,8 +350,8 @@
   |~~ Subject of `at` must be Vec or Map.
       ~{
         42 | at(0)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::AtSubjectNotVecOrMapError :number [:vec :map] :at :subject])
+        !| [type /actualType]
+        |  eq([::AtSubjectNotVecOrMapError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :at :position :subject :expectedType [:vec :map]}
@@ -360,8 +360,8 @@
   |~~ Captured argument at position 2 of `at` must be Integer.
       ~{
         [1 2 3] | at(0.5)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::AtIndexNotIntegerError :number :integer :at 2])
+        !| [type /actualType]
+        |  eq([::AtIndexNotIntegerError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :at :position 2 :expectedType :integer}
@@ -371,8 +371,8 @@
 
       ~{
         {:a 1} | at(42)
-        !| [type /operand /position /actualType]
-        |  eq([::AtKeyNotStringError :at 2 :number])
+        !| [type /actualType]
+        |  eq([::AtKeyNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :at :position 2 :expectedType :string}
@@ -394,8 +394,8 @@
   |~~ Subject of `drop` must be Vec.
       ~{
         42 | drop(1)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::DropSubjectNotVecError :number :vec :drop :subject])
+        !| [type /actualType]
+        |  eq([::DropSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :drop :position :subject :expectedType :vec}
@@ -404,8 +404,8 @@
   |~~ Captured argument at position 2 of `drop` must be Number.
       ~{
         [1 2 3] | drop("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::DropCountNotNumberError :string :number :drop 2])
+        !| [type /actualType]
+        |  eq([::DropCountNotNumberError :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :drop :position 2 :expectedType :number}
@@ -432,8 +432,8 @@
   |~~ Subject of `distinct` must be Vec.
       ~{
         42 | distinct
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::DistinctSubjectNotVecError :number :vec :distinct :subject])
+        !| [type /actualType]
+        |  eq([::DistinctSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :distinct :position :subject :expectedType :vec}
@@ -453,8 +453,8 @@
   |~~ Subject of `reverse` must be Vec.
       ~{
         42 | reverse
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::ReverseSubjectNotVecError :number :vec :reverse :subject])
+        !| [type /actualType]
+        |  eq([::ReverseSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :reverse :position :subject :expectedType :vec}
@@ -475,8 +475,8 @@
   |~~ Subject of `flat` must be Vec.
       ~{
         42 | flat
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::FlatSubjectNotVecError :number :vec :flat :subject])
+        !| [type /actualType]
+        |  eq([::FlatSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :flat :position :subject :expectedType :vec}
@@ -501,8 +501,8 @@
   |~~ Subject of `groupBy` must be Vec.
       ~{
         42 | groupBy(/k)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::GroupBySubjectNotVecError :number :vec :groupBy :subject])
+        !| [type /actualType]
+        |  eq([::GroupBySubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :groupBy :position :subject :expectedType :vec}
@@ -536,8 +536,8 @@
   |~~ Subject of `indexBy` must be Vec.
       ~{
         42 | indexBy(/k)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::IndexBySubjectNotVecError :number :vec :indexBy :subject])
+        !| [type /actualType]
+        |  eq([::IndexBySubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :indexBy :position :subject :expectedType :vec}

@@ -56,8 +56,8 @@
   |~~ Operands of `gt` are not pairwise-comparable scalars.
       ~{
         1 | gt("x")
-        !| [type /leftType /rightType /operand]
-        |  eq([::GtOperandsNotComparableError :number :string :gt])
+        !| [type /leftType /rightType]
+        |  eq([::GtOperandsNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :gt}
@@ -78,8 +78,8 @@
   |~~ Operands of `lt` are not pairwise-comparable scalars.
       ~{
         1 | lt("x")
-        !| [type /leftType /rightType /operand]
-        |  eq([::LtOperandsNotComparableError :number :string :lt])
+        !| [type /leftType /rightType]
+        |  eq([::LtOperandsNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :lt}
@@ -100,8 +100,8 @@
   |~~ Operands of `gte` are not pairwise-comparable scalars.
       ~{
         1 | gte("x")
-        !| [type /leftType /rightType /operand]
-        |  eq([::GteOperandsNotComparableError :number :string :gte])
+        !| [type /leftType /rightType]
+        |  eq([::GteOperandsNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :gte}
@@ -122,8 +122,8 @@
   |~~ Operands of `lte` are not pairwise-comparable scalars.
       ~{
         1 | lte("x")
-        !| [type /leftType /rightType /operand]
-        |  eq([::LteOperandsNotComparableError :number :string :lte])
+        !| [type /leftType /rightType]
+        |  eq([::LteOperandsNotComparableError :number :string])
        }
   ~~|
   ::builtin{:category :type-error :operand :lte}

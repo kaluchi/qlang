@@ -30,8 +30,8 @@
       ~{::conduit[[] ~{42}] | type | eq(::conduit)}
       ~{
         "hello" | add(1)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::AddLeftNotNumberError :string :number :add 1])
+        !| [type /actualType]
+        |  eq([::AddLeftNotNumberError :string])
        }
   ~~|
   ::builtin{:impl :qlang/prim/type

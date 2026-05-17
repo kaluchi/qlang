@@ -12,18 +12,20 @@ import { locationToQlangMap } from './ast-codec.mjs';
 // step + input that triggered the throw; per-invocation context
 // (`:actualValue` / `:actualType` / Comparability pair-fields)
 // follows. Lower-entropy taxonomy (`:operand`, `:position`,
-// `:expectedType`, `:origin`, `:category`, `:message`) trails —
-// those are derivable from the tag-binding's catalog declaration
-// and reachable via `::Tag | docs / source` hypertext navigation,
-// but stamped here too so programmatic projections work without a
-// round-trip through axis-operands. Identity is surfaced through
-// the `type` operand (`result !| type | eq(::Foo)`), which reads
+// `:expectedType`, `:category`) trails — those are class-level
+// static facts authored once on the tag-binding's
+// `::TagName ::builtin{:category … :operand … :position …
+// :expectedType …}` body in the catalog; `errorFromQlang` merges
+// them into the instance descriptor at throw time from the env
+// tag-binding lookup, so the catalog is the single source of truth.
+// The instance descriptor still surfaces them so programmatic
+// projections (`result !| /operand`) work without a hypertext hop;
+// the catalog navigation (`::Foo | source / docs / examples`) is
+// the wider-scope path. Identity itself is surfaced through the
+// `type` operand (`result !| type | eq(::Foo)`), which reads
 // `:kind` off the descriptor. `:category` carries the broader
 // taxonomy (`:type-error`, `:arity-error`, `:effect-laundering`,
-// `:parse-error`, `:foreign-error`) which the `:kind` TagKeyword
-// implies through its tag-binding declaration but stamps here
-// inline for code that wants the broader bucket without a
-// hypertext hop.
+// `:parse-error`, `:foreign-error`).
 const RUNTIME_FIELD_ORDER = [
   'kind', 'fault',
   'payloadValue', 'payloadType',
@@ -31,39 +33,44 @@ const RUNTIME_FIELD_ORDER = [
   'leftValue', 'leftType', 'rightValue', 'rightType',
   'index',
   'expectedType', 'operand', 'position',
-  'origin', 'category', 'message'
+  'category', 'message'
 ];
 
 // Identifier-shaped descriptor fields carrying a `name`-like string
-// from a JS throw site — the operand's own name, an argument-slot
-// designation, a referenced conduit / namespace / parameter / etc.
-// Across the JS→qlang boundary every such string lifts to a Keyword
-// (or TagKeyword when the source string carries a `::` prefix) so
-// the descriptor surface stays uniformly identifier-typed
-// (printValue prints `:name` not `"name"`, `!| /operand` projection
-// reads as a Keyword, downstream pattern-match sees one shape).
-// Numeric positions, kept-as-String prose, and runtime non-string
-// values pass through unchanged. `:expectedType` is already-keyword
-// shape when the throw site uses the `operand-errors.mjs` factories,
-// so no lift needed here.
+// from a JS throw site — a referenced conduit / namespace /
+// parameter / operand / axis / binding. The JS→qlang boundary lifts
+// each such string to a Keyword so the descriptor surface stays
+// uniformly identifier-typed: `printValue` prints `:name` rather
+// than `"name"`, `!| /operandName` projection reads as a Keyword,
+// downstream pattern-match against `eq(:foo)` works. Numeric and
+// non-string slots pass through unchanged (`fieldName in
+// IDENTIFIER_FIELDS` gate).
 const IDENTIFIER_FIELDS = new Set([
-  'operand', 'position', 'name',
+  'name',
   'operandName', 'conduitName', 'namespaceName', 'namespace', 'paramName',
   'effectfulName', 'bindingName', 'axisName',
   'tag', 'exportName'
 ]);
 function liftIdentifier(k, v) {
   if (!IDENTIFIER_FIELDS.has(k)) return v;
-  if (typeof v !== 'string') return v;
-  return v.startsWith(TAG_BINDING_PREFIX)
-    ? makeTagKeyword(v.slice(TAG_BINDING_PREFIX.length))
-    : keyword(v);
+  return keyword(v);
 }
 
-export function errorFromQlang(qlangError, fault) {
+export function errorFromQlang(qlangError, fault, _env) {
   const d = new Map();
-  d.set('kind', makeTagKeyword(qlangError.fingerprint ?? qlangError.name));
+  const tagName = qlangError.fingerprint ?? qlangError.name;
+  d.set('kind', makeTagKeyword(tagName));
   d.set('fault', fault);
+
+  // Instance carries only the dynamic facts the JS context attached
+  // (`:actualValue` / `:actualType`, comparability pair-types,
+  // `:index`, dispatch-time `:operandName` / `:conduitName`, etc.).
+  // Class-level static facts — `:category`, `:operand`, `:position`,
+  // `:expectedType` — live on the tag-binding's catalog body
+  // (`::TagName ::builtin{:category … :operand … :position …
+  // :expectedType …}`) and are reachable through hypertext
+  // navigation: `result !| type | source` walks the tag-binding's
+  // source, `result !| type | docs` returns the canonical prose.
   const ctx = qlangError.context ?? {};
   for (const k of RUNTIME_FIELD_ORDER) {
     if (k === 'kind' || k === 'fault') continue;
@@ -74,16 +81,21 @@ export function errorFromQlang(qlangError, fault) {
     if (v === undefined) continue;
     d.set(k, liftIdentifier(k, v));
   }
-  d.set('origin', keyword('qlang/eval'));
+
+  // `:category` is the broad bucket — `:type-error`, `:arity-error`,
+  // `:effect-laundering`, `:parse-error`, `:foreign-error`,
+  // `:invariant-error`, `:division-by-zero`, `:primitive-unbound`,
+  // `:session-error`, `:codec-error`, `:ast-codec-error`,
+  // `:unresolved-identifier`. The JS error's `.kind` names it
+  // uniformly across every per-site class; the same value appears
+  // on the catalog body so the two surfaces stay aligned.
   d.set('category', keyword(qlangError.kind));
+
   // No `:message` stamp — the structured per-site fields
-  // (`:operand`, `:position`, `:expectedType`, `:actualType`, …)
-  // carry every input the JS-side template would re-format, the
-  // class identity TagKeyword on `:kind` carries the template
-  // itself, and `::Tag | docs` resolves the canonical prose via
-  // hypertext navigation. Stamping the redundant prose string
-  // here would mean printValue's tag-head elision and a JSONL
-  // round-trip disagree on descriptor shape.
+  // (`:actualType`, `:leftType`, …) carry every input the JS-side
+  // template would re-format, the class identity TagKeyword on
+  // `:kind` carries the template itself, and `::Tag | docs`
+  // resolves the canonical prose via hypertext navigation.
   return makeErrorValue(d, {
     location: qlangError.location,
     originalError: qlangError
@@ -110,7 +122,6 @@ export function errorFromParse(parseError) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  d.set('origin', keyword('qlang/parse'));
   d.set('category', keyword('parse-error'));
   // No `:message` stamp — `:source` + `:marker` + `:expected` +
   // `:found` carry the diagnostic data structurally; the human-
@@ -202,7 +213,6 @@ const WELL_KNOWN_PROPS = [
 export function errorFromForeign(jsError, astNode, fault) {
   const d = new Map();
   d.set('kind', makeTagKeyword(jsError.name));
-  d.set('origin', keyword('host'));
   d.set('category', keyword('foreign-error'));
   d.set('message', jsError.message);
 

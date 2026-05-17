@@ -19,7 +19,7 @@
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | isDoc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | isDoc","expect":"true"}
 {"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | /content","expect":"\" second \""}
-{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/unknownKey} :input |~~ x ~~|}\n  :key \"unknownKey\"\n  :valueClass \"doc\"\n  :availableFields [\"content\" \"segments\"]\n  :origin :qlang/eval\n  :category :type-error\n}"}
+{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/unknownKey} :input |~~ x ~~|}\n  :key \"unknownKey\"\n  :valueClass \"doc\"\n  :availableFields [\"content\" \"segments\"]\n  :category :type-error\n}"}
 {"name":"doc-isVec-false","query":"|~~ x ~~| | isVec","expect":"false"}
 {"name":"doc-isMap-false","query":"|~~ x ~~| | isMap","expect":"false"}
 {"name":"doc-isString-false","query":"|~~ x ~~| | isString","expect":"false"}

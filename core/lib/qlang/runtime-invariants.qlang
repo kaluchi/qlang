@@ -223,8 +223,8 @@
 
       ~{
         "42 |" | parse
-        !| [type /origin]
-        |  eq([::ParseError :qlang/parse])
+        !| [type /category]
+        |  eq([::ParseError :parse-error])
        }
   ~~|
   ::builtin{:category :parse-error}

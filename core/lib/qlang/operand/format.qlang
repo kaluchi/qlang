@@ -46,8 +46,8 @@
   |~~ Subject of `table` must be Vec.
       ~{
         42 | table
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::TableSubjectNotVecError :number :vec :table :subject])
+        !| [type /actualType]
+        |  eq([::TableSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :table :position :subject :expectedType :vec}
@@ -56,8 +56,8 @@
   |~~ Element of `table` input collection must be Map.
       ~{
         [42 "hello"] | table
-        !| [type /actualType /index /expectedType /operand]
-        |  eq([::TableRowNotMapError :number 0 :map :table])
+        !| [type /actualType /index]
+        |  eq([::TableRowNotMapError :number 0])
        }
   ~~|
   ::builtin{:category :type-error :operand :table :expectedType :map}

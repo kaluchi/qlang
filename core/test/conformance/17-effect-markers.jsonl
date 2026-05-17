@@ -5,4 +5,4 @@
 {"name":"bindstep-with-clean-body-and-clean-name-accepted","query":":foo count | [1 2 3] | foo","expect":"3"}
 {"name":"transitive-laundering-via-alias-rejected","query":":@a count | :b @a !| type","expect":"::EffectLaunderingAtBindStepParseError"}
 {"name":"as-binding-on-effectful-source-not-rejected","query":"[1 2 3] | as(:result) | result | count","expect":"3"}
-{"name":"bindstep-inside-paren-group-with-effectful-body-rejected","query":"1 | (:bad @callers | bad)","error":"effect-laundering","expect":"::EffectLaunderingAtBindStepParseError!{\n  :fault {:step ~{:bad @callers} :input 1}\n  :bindingName :bad\n  :effectfulName :@callers\n  :origin :qlang/eval\n  :category :effect-laundering\n  :trail ~{| bad}\n}"}
+{"name":"bindstep-inside-paren-group-with-effectful-body-rejected","query":"1 | (:bad @callers | bad)","error":"effect-laundering","expect":"::EffectLaunderingAtBindStepParseError!{\n  :fault {:step ~{:bad @callers} :input 1}\n  :bindingName :bad\n  :effectfulName :@callers\n  :category :effect-laundering\n  :trail ~{| bad}\n}"}

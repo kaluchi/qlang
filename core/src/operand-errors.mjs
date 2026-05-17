@@ -67,7 +67,12 @@ function formatExpectedTypeHuman(names) {
 // without adding information.
 
 // declareSubjectError — thrown when an operand receives a subject
-// value whose type is not acceptable.
+// value whose type is not acceptable. `operand` / `position` /
+// `expectedType` are class-level constants — the catalog body
+// `::TagName ::builtin{:category :type-error :operand :op
+// :position :subject :expectedType :type}` holds them and
+// `errorFromQlang` merges them into the descriptor at throw time.
+// JS-side context carries only dynamic facts.
 export function declareSubjectError(className, operand, expectedTypeInput) {
   const expectedType = lowerExpectedType(expectedTypeInput);
   const Cls = class extends QlangTypeError {
@@ -75,13 +80,7 @@ export function declareSubjectError(className, operand, expectedTypeInput) {
       const actualType = typeKeyword(actualValue);
       super(
         `${operand} requires ${expectedType.human} subject, got ${actualType.name}`,
-        {
-          operand,
-          position: 'subject',
-          expectedType: expectedType.value,
-          actualType,
-          actualValue
-        }
+        { actualType, actualValue }
       );
       this.name = className;
       this.fingerprint = className;
@@ -91,7 +90,9 @@ export function declareSubjectError(className, operand, expectedTypeInput) {
 }
 
 // declareModifierError — thrown when a captured argument has the
-// wrong type at a specific numeric position.
+// wrong type at a specific numeric position. Class-level constants
+// (`:operand` / `:position` / `:expectedType`) live in the catalog
+// body; JS context carries only `:actualType` / `:actualValue`.
 export function declareModifierError(className, operand, position, expectedTypeInput) {
   const expectedType = lowerExpectedType(expectedTypeInput);
   const Cls = class extends QlangTypeError {
@@ -99,13 +100,7 @@ export function declareModifierError(className, operand, position, expectedTypeI
       const actualType = typeKeyword(actualValue);
       super(
         `${operand} expects ${expectedType.human} at position ${position}, got ${actualType.name}`,
-        {
-          operand,
-          position,
-          expectedType: expectedType.value,
-          actualType,
-          actualValue
-        }
+        { actualType, actualValue }
       );
       this.name = className;
       this.fingerprint = className;
@@ -115,7 +110,9 @@ export function declareModifierError(className, operand, position, expectedTypeI
 }
 
 // declareElementError — thrown when a specific element of a
-// collection subject has the wrong type.
+// collection subject has the wrong type. Class-level `:operand` /
+// `:expectedType` live in the catalog body; per-instance `:index`
+// stays in JS context because it varies per throw.
 export function declareElementError(className, operand, expectedTypeInput) {
   const expectedType = lowerExpectedType(expectedTypeInput);
   const Cls = class extends QlangTypeError {
@@ -123,13 +120,7 @@ export function declareElementError(className, operand, expectedTypeInput) {
       const actualType = typeKeyword(actualValue);
       super(
         `${operand}: element ${index} expects ${expectedType.human}, got ${actualType.name}`,
-        {
-          operand,
-          index,
-          expectedType: expectedType.value,
-          actualType,
-          actualValue
-        }
+        { index, actualType, actualValue }
       );
       this.name = className;
       this.fingerprint = className;
@@ -139,7 +130,8 @@ export function declareElementError(className, operand, expectedTypeInput) {
 }
 
 // declareComparabilityError — thrown when an ordering or
-// shape-matching check fails.
+// shape-matching check fails. Class-level `:operand` lives in the
+// catalog body; JS context carries the pairwise dynamic types.
 export function declareComparabilityError(className, operand) {
   const Cls = class extends QlangTypeError {
     constructor(leftValue, rightValue) {
@@ -147,11 +139,7 @@ export function declareComparabilityError(className, operand) {
       const rightType = typeKeyword(rightValue);
       super(
         `${operand} cannot compare ${leftType.name} with ${rightType.name}`,
-        {
-          operand,
-          leftType,
-          rightType
-        }
+        { leftType, rightType }
       );
       this.name = className;
       this.fingerprint = className;

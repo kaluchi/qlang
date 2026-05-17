@@ -135,14 +135,12 @@ describe('codec round-trips error values through tagged JSON', () => {
 // ── errorFromQlang ──────────────────────────────────────────────
 
 describe('errorFromQlang', () => {
-  it('converts QlangTypeError — kind, thrown, operand, actualValue preserved, fault stamped', () => {
+  it('converts QlangTypeError — kind, category, actualValue preserved, fault stamped', () => {
     const faultMap = Object.freeze(new Map([
       ['step', new Map([['text', 'add(1)']])],
       ['input', 'the-subject']
     ]));
     const typeErr = new QlangTypeError('bad type', {
-      operand: 'add',
-      expectedType: keyword('number'),
       actualType: { name: 'string' },
       actualValue: 'the-value'
     });
@@ -151,8 +149,8 @@ describe('errorFromQlang', () => {
     const desc = errorVal.descriptor;
     expect(desc.get('category')).toEqual(keyword('type-error'));
     expect(desc.get('kind')).toEqual(makeTagKeyword('QlangTypeError'));
-    expect(desc.get('operand')).toEqual(keyword('add'));
     expect(desc.get('actualValue')).toBe('the-value');
+    expect(desc.get('actualType')).toEqual({ name: 'string' });
     const fault = desc.get('fault');
     expect(fault).toBeInstanceOf(Map);
     expect(fault.get('step').get('text')).toBe('add(1)');

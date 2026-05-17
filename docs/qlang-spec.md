@@ -1634,8 +1634,8 @@ lift automatically into error values with structured descriptors:
 > "hello" | add(1) !| type
 ::AddLeftNotNumberError
 
-> "hello" | add(1) !| /origin
-:qlang/eval
+> "hello" | add(1) !| /category
+:type-error
 ```
 
 ### Error descriptor fields

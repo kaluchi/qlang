@@ -20,8 +20,8 @@
   |~~ Captured argument at position 1 of `split` must be String.
       ~{
         42 | split(",")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::SplitSubjectNotStringError :number :string :split 1])
+        !| [type /actualType]
+        |  eq([::SplitSubjectNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :split :position 1 :expectedType :string}
@@ -30,8 +30,8 @@
   |~~ Captured argument at position 2 of `split` must be String.
       ~{
         "abc" | split(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::SplitSeparatorNotStringError :number :string :split 2])
+        !| [type /actualType]
+        |  eq([::SplitSeparatorNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :split :position 2 :expectedType :string}
@@ -54,8 +54,8 @@
   |~~ Subject of `join` must be Vec.
       ~{
         42 | join(",")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::JoinSubjectNotVecError :number :vec :join :subject])
+        !| [type /actualType]
+        |  eq([::JoinSubjectNotVecError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :join :position :subject :expectedType :vec}
@@ -64,8 +64,8 @@
   |~~ Element of `join` input collection must be String.
       ~{
         ["a" 42 "c"] | join(",")
-        !| [type /actualType /index /expectedType /operand]
-        |  eq([::JoinElementNotStringError :number 1 :string :join])
+        !| [type /actualType /index]
+        |  eq([::JoinElementNotStringError :number 1])
        }
   ~~|
   ::builtin{:category :type-error :operand :join :expectedType :string}
@@ -74,8 +74,8 @@
   |~~ Captured argument at position 2 of `join` must be String.
       ~{
         ["a" "b"] | join(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::JoinSeparatorNotStringError :number :string :join 2])
+        !| [type /actualType]
+        |  eq([::JoinSeparatorNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :join :position 2 :expectedType :string}
@@ -99,8 +99,8 @@
   |~~ Captured argument at position 1 of `contains` must be String.
       ~{
         42 | contains("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::ContainsSubjectNotStringError :number :string :contains 1])
+        !| [type /actualType]
+        |  eq([::ContainsSubjectNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :contains :position 1 :expectedType :string}
@@ -109,8 +109,8 @@
   |~~ Captured argument at position 2 of `contains` must be String.
       ~{
         "hi" | contains(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::ContainsNeedleNotStringError :number :string :contains 2])
+        !| [type /actualType]
+        |  eq([::ContainsNeedleNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :contains :position 2 :expectedType :string}
@@ -133,8 +133,8 @@
   |~~ Captured argument at position 1 of `startsWith` must be String.
       ~{
         42 | startsWith("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::StartsWithSubjectNotStringError :number :string :startsWith 1])
+        !| [type /actualType]
+        |  eq([::StartsWithSubjectNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :startsWith :position 1 :expectedType :string}
@@ -143,8 +143,8 @@
   |~~ Captured argument at position 2 of `startsWith` must be String.
       ~{
         "hi" | startsWith(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::StartsWithPrefixNotStringError :number :string :startsWith 2])
+        !| [type /actualType]
+        |  eq([::StartsWithPrefixNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :startsWith :position 2 :expectedType :string}
@@ -167,8 +167,8 @@
   |~~ Captured argument at position 1 of `endsWith` must be String.
       ~{
         42 | endsWith("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::EndsWithSubjectNotStringError :number :string :endsWith 1])
+        !| [type /actualType]
+        |  eq([::EndsWithSubjectNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :endsWith :position 1 :expectedType :string}
@@ -177,8 +177,8 @@
   |~~ Captured argument at position 2 of `endsWith` must be String.
       ~{
         "hi" | endsWith(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::EndsWithSuffixNotStringError :number :string :endsWith 2])
+        !| [type /actualType]
+        |  eq([::EndsWithSuffixNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :endsWith :position 2 :expectedType :string}
@@ -199,8 +199,8 @@
   |~~ Captured argument at position 1 of `prepend` must be String.
       ~{
         42 | prepend("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::PrependSubjectNotStringError :number :string :prepend 1])
+        !| [type /actualType]
+        |  eq([::PrependSubjectNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :prepend :position 1 :expectedType :string}
@@ -209,8 +209,8 @@
   |~~ Captured argument at position 2 of `prepend` must be String.
       ~{
         "x" | prepend(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::PrependPrefixNotStringError :number :string :prepend 2])
+        !| [type /actualType]
+        |  eq([::PrependPrefixNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :prepend :position 2 :expectedType :string}
@@ -231,8 +231,8 @@
   |~~ Captured argument at position 1 of `append` must be String.
       ~{
         42 | append("x")
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::AppendSubjectNotStringError :number :string :append 1])
+        !| [type /actualType]
+        |  eq([::AppendSubjectNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :append :position 1 :expectedType :string}
@@ -241,8 +241,8 @@
   |~~ Captured argument at position 2 of `append` must be String.
       ~{
         "x" | append(42)
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::AppendSuffixNotStringError :number :string :append 2])
+        !| [type /actualType]
+        |  eq([::AppendSuffixNotStringError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :append :position 2 :expectedType :string}

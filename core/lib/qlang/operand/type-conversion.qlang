@@ -28,8 +28,8 @@
   |~~ `keyword` involution requires a String or Keyword subject.
       ~{
         42 | keyword
-        !| [type /actualType /expectedType /operand /position]
-        |  eq([::KeywordSubjectNotStringOrKeywordError :number [:string :keyword] :keyword :subject])
+        !| [type /actualType]
+        |  eq([::KeywordSubjectNotStringOrKeywordError :number])
        }
   ~~|
   ::builtin{:category :type-error :operand :keyword :position :subject :expectedType [:string :keyword]}

@@ -104,9 +104,6 @@ describe('template — error sites', () => {
   it('lifts TemplateModifierNotStringError when the captured arg is not a String', async () => {
     const cellEntry = await runQuery('"x" | template(42)', noopIo);
     expectOperandErrorThrown(cellEntry, 'TemplateModifierNotStringError', {
-      operand: 'template',
-      position: 1,
-      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });

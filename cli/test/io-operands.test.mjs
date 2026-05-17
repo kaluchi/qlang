@@ -48,9 +48,6 @@ describe('@out — bare form (0 captured)', () => {
     const cellEntry = await runQuery('42 | @out', io);
     expect(io.stdoutText()).toBe('');
     expectOperandErrorThrown(cellEntry, 'OutSubjectNotStringError', {
-      operand: '@out',
-      position: 'subject',
-      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'number' }
     });
   });
@@ -95,9 +92,6 @@ describe('@err — bare form', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @err', io);
     expectOperandErrorThrown(cellEntry, 'ErrSubjectNotStringError', {
-      operand: '@err',
-      position: 'subject',
-      expectedType: { type: 'keyword', name: 'string' },
       actualType: { name: 'vec' }
     });
   });
@@ -134,9 +128,6 @@ describe('@tap', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @tap("oops")', io);
     expectOperandErrorThrown(cellEntry, 'TapLabelNotKeywordError', {
-      operand: '@tap',
-      position: 1,
-      expectedType: { type: 'keyword', name: 'keyword' },
       actualType: { name: 'string' }
     });
   });

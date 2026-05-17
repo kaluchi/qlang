@@ -20,7 +20,7 @@
 //       grep — those stay under human review.
 //
 //   (2) Doc-drift between the operand catalog and the published
-//       operand docs. Every `:name {:qlang/kind :builtin …}` entry
+//       operand docs. Every `:name … ::builtin{:impl …}` entry
 //       across the per-family catalog files in
 //       `core/lib/qlang/operand/<family>.qlang` must appear as an
 //       `### name` (or equivalent) section in
@@ -120,14 +120,14 @@ function scanForbiddenWords() {
 // ── (2) Operand catalog ↔ operand docs drift ───────────────────
 
 // Each operand BindStep in a family file (`core/lib/qlang/operand/
-// <family>.qlang`) declares `:name |~~ … ~~|  {:qlang/kind :builtin
-// …}` — keyword head at column 0, doc-prefix between, descriptor
-// Map closing the form. The regex matches the head + descriptor
-// shape across the doc-prefix gap so the family files (and any
-// future runtime-invariants / tag entries that grow the same head
-// shape) all flow through one drift check.
+// <family>.qlang`) declares `:name |~~ … ~~| ::builtin{:impl …}` —
+// keyword head at column 0, optional doc-prefix between, TaggedLit
+// descriptor body (`::builtin{…}`) closing the form. The regex
+// matches the head + descriptor shape across the doc-prefix gap so
+// the family files (and any future runtime-invariants entries that
+// grow the same head shape) all flow through one drift check.
 const BUILTIN_OPERAND_DECL_RE =
-  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?\{:qlang\/kind :builtin/gm;
+  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?::builtin\{/gm;
 
 function parseOperandCatalog(catalogText) {
   const names = [];

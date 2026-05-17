@@ -39,12 +39,16 @@ const EvalSubjectNotMapOrQuoteError = declareSubjectError(
 // `"5 | mul(2)" | parse` minus the escape boilerplate. Malformed
 // sources surface on the fail-track: the peggy `ParseError` is
 // caught and converted to a qlang error value through
-// `errorFromParse`, which stamps `:category :parse-error` and the
-// peggy source location onto the descriptor. The converted error
+// `errorFromParse`, which stamps `:kind ::ParseError` plus the
+// peggy source location and excerpt onto the descriptor (the
+// `::ParseError` tag-binding's catalog body carries
+// `:category :parse-error` for the broad-bucket reading via
+// `result !| type | spec | /category`). The converted error
 // becomes the new pipeValue directly without throwing — the
-// evalNode fallback would treat ParseError as a foreign error
-// (`:category :foreign-error`) and lose the parse-specific
-// discriminator a user-facing operand should preserve.
+// evalNode fallback would route ParseError through `errorFromForeign`
+// (yielding a host-shaped descriptor) and lose the parse-specific
+// excerpt + expected/found fields a user-facing operand should
+// preserve.
 export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => {
   const parseSrc = state.pipeValue;
   let sourceText;

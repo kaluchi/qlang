@@ -241,7 +241,7 @@ function literalOfKeyword(k) { return k.literal; }
 
 // Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
 // when `:kind` carries a TagKeyword — entropy promotion:
-// the class identity rides at the structural front-position of
+// the tag identity rides at the structural front-position of
 // the literal, the same shape `printTaggedInstance` produces for
 // non-error tagged-instances. The payload-Map below drops three
 // categories of already-known content so the printed form stays

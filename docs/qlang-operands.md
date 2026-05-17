@@ -1115,17 +1115,19 @@ its own eval handler in `eval.mjs`.
   stamps on every node. Nested nodes recurse into their own Maps.
 - The underlying peggy `ParseError` is caught in-operand and
   converted to an error value via `errorFromParse`, so malformed
-  sources surface on the fail-track with
-  `:kind :parse-error` (a domain-specific flavor distinct from
-  the generic `:foreign-error` evalNode stamps on unhandled
-  foreign throws).
+  sources surface on the fail-track with `:kind ::ParseError`
+  (the per-site tag identity; the `::ParseError` tag-binding's
+  catalog body carries `:category :parse-error` for the broad
+  bucket — distinct from the `:foreign-error` catalog category
+  every host JS throw lands under).
 - **Examples**:
   - `"42" | parse | /:kind` → `:NumberLit`.
   - `"add(1, 2)" | parse | /name` → `"add"`.
   - `"add(1, 2)" | parse | /args | count` → `2`.
-  - `"this is not qlang [" | parse !| /kind` → `:parse-error`.
+  - `"this is not qlang [" | parse !| type` → `::ParseError`.
+  - `"this is not qlang [" | parse !| type | spec | /category` → `:parse-error`.
 - **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
-  Malformed source → error value with `:kind :parse-error`
+  Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
 
 ### `eval`
@@ -1288,11 +1290,6 @@ the predicate:
     :fault {:step ~{add(10)} :input "x"}
     :actualValue "x"
     :actualType :string
-    :expectedType :number
-    :operand :add
-    :position 1
-    :origin :qlang/eval
-    :kind :type-error
   }
 ]
 ```

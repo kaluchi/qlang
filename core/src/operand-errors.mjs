@@ -24,7 +24,7 @@ import {
   QlangTypeError,
   ArityError
 } from './errors.mjs';
-import { typeKeyword, keyword as makeKeyword } from './types.mjs';
+import { typeKeyword } from './types.mjs';
 
 // ── Factory primitives ─────────────────────────────────────────
 
@@ -35,25 +35,14 @@ function brand(cls, name) {
 
 // expectedType authoring form is one or more qlang type-keyword
 // names — `'number'`, `'vec'`, or `['vec', 'set', 'map']`. The
-// factory lowers each form to (a) a context value (single Keyword
-// or frozen Vec of Keywords) for the structured `:expectedType`
-// field, and (b) a humanised string ("Number", "Vec or Set",
-// "Vec, Set, or Map") for the diagnostic message body.
-function lowerExpectedType(input) {
+// factory lowers each form to a humanised string ("Number",
+// "Vec or Set", "Vec, Set, or Map") for the diagnostic message
+// body. The structured Keyword form lives on the tag-binding's
+// catalog `::Tag ::builtin{:expectedType :number}` body; consumers
+// reach it through `result !| type | spec | /expectedType`.
+function lowerExpectedTypeHuman(input) {
   const names = Array.isArray(input) ? input : [input];
-  const value = names.length === 1
-    ? makeKeyword(names[0])
-    : Object.freeze(names.map(makeKeyword));
-  const human = formatExpectedTypeHuman(names);
-  return { value, human };
-}
-
-function capitalise(name) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-function formatExpectedTypeHuman(names) {
-  const caps = names.map(capitalise);
+  const caps = names.map(name => name.charAt(0).toUpperCase() + name.slice(1));
   if (caps.length === 1) return caps[0];
   if (caps.length === 2) return `${caps[0]} or ${caps[1]}`;
   return caps.slice(0, -1).join(', ') + ', or ' + caps[caps.length - 1];
@@ -63,23 +52,23 @@ function formatExpectedTypeHuman(names) {
 // stamped by every factory below from its `className` argument. The
 // context bag carries only structured data the throw site wants the
 // downstream catch (or the user-facing :trail descriptor) to read —
-// no `site` field, because that would duplicate the class identity
+// no `site` field, because that would duplicate the tag identity
 // without adding information.
 
 // declareSubjectError — thrown when an operand receives a subject
 // value whose type is not acceptable. `operand` / `position` /
-// `expectedType` are class-level constants — the catalog body
+// `expectedType` are per-tag static constants — the catalog body
 // `::TagName ::builtin{:category :type-error :operand :op
-// :position :subject :expectedType :type}` holds them and
-// `errorFromQlang` merges them into the descriptor at throw time.
+// :position :subject :expectedType :type}` holds them and the
+// `spec` axis returns them on demand (`::TagName | spec | /operand`).
 // JS-side context carries only dynamic facts.
 export function declareSubjectError(className, operand, expectedTypeInput) {
-  const expectedType = lowerExpectedType(expectedTypeInput);
+  const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
   const Cls = class extends QlangTypeError {
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} requires ${expectedType.human} subject, got ${actualType.name}`,
+        `${operand} requires ${expectedTypeHuman} subject, got ${actualType.name}`,
         { actualType, actualValue }
       );
       this.name = className;
@@ -90,16 +79,16 @@ export function declareSubjectError(className, operand, expectedTypeInput) {
 }
 
 // declareModifierError — thrown when a captured argument has the
-// wrong type at a specific numeric position. Class-level constants
-// (`:operand` / `:position` / `:expectedType`) live in the catalog
+// wrong type at a specific numeric position. Per-tag static
+// (`:operand` / `:position` / `:expectedType`) lives in the catalog
 // body; JS context carries only `:actualType` / `:actualValue`.
 export function declareModifierError(className, operand, position, expectedTypeInput) {
-  const expectedType = lowerExpectedType(expectedTypeInput);
+  const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
   const Cls = class extends QlangTypeError {
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} expects ${expectedType.human} at position ${position}, got ${actualType.name}`,
+        `${operand} expects ${expectedTypeHuman} at position ${position}, got ${actualType.name}`,
         { actualType, actualValue }
       );
       this.name = className;
@@ -110,16 +99,16 @@ export function declareModifierError(className, operand, position, expectedTypeI
 }
 
 // declareElementError — thrown when a specific element of a
-// collection subject has the wrong type. Class-level `:operand` /
-// `:expectedType` live in the catalog body; per-instance `:index`
+// collection subject has the wrong type. Per-tag static `:operand` /
+// `:expectedType` lives in the catalog body; per-instance `:index`
 // stays in JS context because it varies per throw.
 export function declareElementError(className, operand, expectedTypeInput) {
-  const expectedType = lowerExpectedType(expectedTypeInput);
+  const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
   const Cls = class extends QlangTypeError {
     constructor(index, actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand}: element ${index} expects ${expectedType.human}, got ${actualType.name}`,
+        `${operand}: element ${index} expects ${expectedTypeHuman}, got ${actualType.name}`,
         { index, actualType, actualValue }
       );
       this.name = className;
@@ -130,7 +119,7 @@ export function declareElementError(className, operand, expectedTypeInput) {
 }
 
 // declareComparabilityError — thrown when an ordering or
-// shape-matching check fails. Class-level `:operand` lives in the
+// shape-matching check fails. Per-tag static `:operand` lives in the
 // catalog body; JS context carries the pairwise dynamic types.
 export function declareComparabilityError(className, operand) {
   const Cls = class extends QlangTypeError {

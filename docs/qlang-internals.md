@@ -1185,13 +1185,25 @@ in addition to the invariant `:trail`:
 
 | Field | Type | Content |
 |---|---|---|
-| `:origin` | keyword | `:qlang/eval` or `:host` or `:user` |
-| `:kind` | keyword | Error category |
-| `:kind` | TagKeyword | Per-site class name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
-| `:message` | string | Human-readable |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on `:origin :qlang/eval` and `:origin :host` errors. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
+| `:kind` | TagKeyword | Per-site tag name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
+| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on every runtime and foreign error. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
 | `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
+| `:actualType` | Keyword | The `typeKeyword` of `:actualValue` — `:string`, `:vec`, etc. The per-site dynamic field every type-error fires |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
+
+Per-tag static facts — `:category` (broad bucket: `:type-error` /
+`:arity-error` / `:parse-error` / `:foreign-error` /
+`:invariant-error` / `:division-by-zero` / `:primitive-unbound` /
+`:session-error` / `:codec-error` / `:ast-codec-error` /
+`:effect-laundering` / `:unresolved-identifier`), `:operand`,
+`:position`, `:expectedType` — live on the tag-binding's catalog
+body (`::TagName ::builtin{:category … :operand … :position …
+:expectedType …}`) and reach the reader through the `spec` axis:
+`result !| type | spec | /category` for the broad-bucket,
+`result !| type | spec | /operand` for the per-site origin. The
+runtime instance descriptor itself carries only the dynamic
+fields above so each fault stays compact and consumers go through
+hypertext for tag-binding metadata.
 
 User-created error values (`!{...}` or `error(map)`) carry
 whatever fields the author provides — no mandatory schema beyond

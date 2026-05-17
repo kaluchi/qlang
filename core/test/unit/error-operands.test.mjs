@@ -334,7 +334,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce / firstTruthy arity-error sites carry unique class identity', () => {
+describe('coalesce / firstTruthy arity-error sites carry unique per-site identity', () => {
   it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);

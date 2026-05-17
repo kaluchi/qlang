@@ -12,9 +12,9 @@ import { locationToQlangMap } from './ast-codec.mjs';
 // input that triggered the throw; per-invocation context
 // (`:actualValue` / `:actualType` / Comparability pair-fields,
 // `:index`, dispatch-time `:operandName` / `:conduitName`)
-// follows. Identity itself is surfaced through the `type` operand
+// follows. Identity is surfaced through the `type` operand
 // (`result !| type | eq(::Foo)`), which reads `:kind` off the
-// descriptor. Class-level static facts — `:category`, `:operand`,
+// descriptor. Per-tag static facts — `:category`, `:operand`,
 // `:position`, `:expectedType` — live on the tag-binding's catalog
 // body (`::TagName ::builtin{:category … :operand … :position …
 // :expectedType …}`) and are reachable through hypertext
@@ -60,12 +60,13 @@ export function errorFromQlang(qlangError, fault, _env) {
   // Instance carries only the dynamic facts the JS context attached
   // (`:actualValue` / `:actualType`, comparability pair-types,
   // `:index`, dispatch-time `:operandName` / `:conduitName`, etc.).
-  // Class-level static facts — `:category`, `:operand`, `:position`,
+  // Per-tag static facts — `:category`, `:operand`, `:position`,
   // `:expectedType` — live on the tag-binding's catalog body
   // (`::TagName ::builtin{:category … :operand … :position …
-  // :expectedType …}`) and are reachable through hypertext
-  // navigation: `result !| type | source` walks the tag-binding's
-  // source, `result !| type | docs` returns the canonical prose.
+  // :expectedType …}`) and reach the reader through hypertext
+  // navigation: `result !| type | spec` returns the catalog body
+  // directly; `result !| type | source` walks the BindStep source;
+  // `result !| type | docs` returns the canonical prose.
   const ctx = qlangError.context ?? {};
   for (const k of RUNTIME_FIELD_ORDER) {
     if (k === 'kind' || k === 'fault') continue;
@@ -84,7 +85,7 @@ export function errorFromQlang(qlangError, fault, _env) {
   //
   // No `:message` stamp — the structured per-site fields
   // (`:actualType`, `:leftType`, …) carry every input the JS-side
-  // template would re-format, the class identity TagKeyword on
+  // template would re-format, the tag identity TagKeyword on
   // `:kind` carries the template itself, and `::Tag | docs`
   // resolves the canonical prose via hypertext navigation.
   return makeErrorValue(d, {
@@ -97,7 +98,7 @@ export function errorFromParse(parseError) {
   // Field ordering — highest-information-density first. The eye lands
   // on `:source` + `:marker` (visual pinpoint: WHERE the failure is)
   // before consulting `:expected` / `:found` (WHAT the parser wanted
-  // vs. saw). Numeric `:location`, `:uri`, and the `:origin` / `:kind`
+  // vs. saw). Numeric `:location`, `:uri`, and the `:kind`
   // taxonomy trail, since they are derivable / less-load-bearing for
   // a human reading the diagnostic.
   const d = new Map();

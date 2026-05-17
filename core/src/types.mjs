@@ -445,7 +445,7 @@ export function typeKeyword(v) {
     return keyword('map');
   }
   if (isQSet(v)) return keyword('set');
-  // Error values carry their class identity in `:kind` (a
+  // Error values carry their tag identity in `:kind` (a
   // TagKeyword), same invariant as every other tagged-instance.
   // The `type` operand surfaces it as the value's user-facing
   // identity.

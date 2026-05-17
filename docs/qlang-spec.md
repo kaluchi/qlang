@@ -500,11 +500,6 @@ the result is **an error value** of the `!{}` form introduced in
   :fault {:step ~{add(1)} :input [1 2 3]}
   :actualValue [1 2 3]
   :actualType :vec
-  :expectedType :number
-  :operand :add
-  :position 1
-  :origin :qlang/eval
-  :kind :type-error
 }
 |~| add(1) expects a Number in position 1; the Vec fires the per-site
 |~| class ::AddLeftNotNumberError, which becomes the error's tag head.
@@ -1561,7 +1556,7 @@ through to the end.
 
 ```qlang
 > "hello" | add(1) | mul(2) | sub(3)
-!{:kind :type-error ...}
+::AddLeftNotNumberError!{:fault {...} :actualValue "hello" :actualType :string}
 |~| add(1) produces the error; mul(2) and sub(3) are deflected
 ```
 
@@ -1642,16 +1637,30 @@ lift automatically into error values with structured descriptors:
 
 | Field | Type | Content |
 |---|---|---|
-| `:origin` | keyword | `:qlang/eval` for runtime, `:host` for foreign, `:user` for user-created |
-| `:kind` | keyword | `:type-error`, `:arity-error`, `:division-by-zero`, `:unresolved-identifier`, `:effect-laundering` |
-| `:kind` | TagKeyword | Per-site class name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
-| `:message` | string | Human-readable description |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every `:origin :qlang/eval` and `:origin :host` error; absent on `:origin :user` (user-created) and `:origin :qlang/parse` (parse errors) |
-| `:actualValue` | any | The per-site value that triggered the type check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
+| `:kind` | TagKeyword | Per-site tag name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
+| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors |
+| `:actualValue` | any | The per-site dynamic value that triggered the check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
+| `:actualType` | Keyword | `typeKeyword` of `:actualValue` — `:string`, `:vec`, `:number`, etc. The per-site dynamic field every type-error stamps |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until a deflection materializes through `!\|`. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
-Additional context fields vary by error site (`:operand`,
-`:expectedType`, `:actualType`, `:position`, `:index`, etc.).
+Additional dynamic context fields vary by error site (comparability
+errors carry `:leftType` / `:rightType`; element errors carry
+`:index`; dispatch errors carry `:operandName` / `:conduitName` /
+`:expectedArity` / `:actualArity` for the dispatch-time variants).
+
+Per-tag static facts — `:category` (broad bucket: `:type-error`,
+`:arity-error`, `:effect-laundering`, `:parse-error`,
+`:foreign-error`, `:invariant-error`, `:division-by-zero`,
+`:primitive-unbound`, `:session-error`, `:codec-error`,
+`:ast-codec-error`, `:unresolved-identifier`), `:operand`,
+`:position`, `:expectedType` — live on the tag-binding's catalog
+body (`::TagName ::builtin{:category … :operand … :position …
+:expectedType …}`) and reach the reader through the `spec` axis:
+`result !| type | spec | /category` returns the broad-bucket
+keyword; `result !| type | spec | /operand` returns the per-site
+origin. The runtime instance descriptor itself stays compact at
+the dynamic facts above; consumers go through hypertext for
+tag-binding metadata.
 
 The `:fault` Map enables pipeline-level diagnostic inspection:
 

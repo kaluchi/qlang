@@ -13,7 +13,7 @@
 // `parse.mjs` (→ `parse.test.mjs`), `eval.mjs unknown node / unknown
 // combinator / quoted-keyword identity` (→ `eval-smoke.test.mjs`),
 // `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
-// `per-site error class identity` (→ `error-operands.test.mjs`),
+// `per-site error tag identity` (→ `error-operands.test.mjs`),
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
 // `errors.mjs kind-tag survey` (covered by `errors.test.mjs`).
 
@@ -510,9 +510,9 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if(/role | eq(:admin), coalesce(/displayName, /name, "???"), "guest")')).toBe('Bob');
   });
 
-  // Per-site coalesce / firstTruthy arity-error class identity is
+  // Per-site coalesce / firstTruthy arity-error tag identity is
   // pinned by `error-operands.test.mjs`; the control-flow block
-  // tests the operand semantics, not the throw-class wiring.
+  // tests the operand semantics, not the per-site wiring.
   it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);

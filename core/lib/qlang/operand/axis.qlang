@@ -102,7 +102,7 @@
       Conduit value-class Map; `as`-bound snapshots as the
       Snapshot's auto-unwrapped payload.
 
-      The discriminator path for class-level static facts attached
+      The discriminator path for per-tag static facts attached
       to any tagged value-class — `result !| type | spec |
       /category` reads `:type-error` off the error tag's catalog
       body; `:add | spec | /throws` lists the per-site error

@@ -644,14 +644,14 @@ describe('printValue — qlang literal serialization', async () => {
 
   it('pretty-prints error with many descriptor fields', async () => {
     const desc = new Map([
-      ['origin', keyword('qlang/eval')],
-      ['kind', keyword('type-error')],
+      ['kind', keyword('test')],
+      ['actualType', keyword('number')],
       ['message', 'boom']
     ]);
     const err = makeErrorValue(desc);
     const out = printValue(err);
     expect(out).toContain('\n');
-    expect(out).toContain(':origin :qlang/eval');
+    expect(out).toContain(':actualType :number');
     expect(out).toContain(':message "boom"');
   });
 

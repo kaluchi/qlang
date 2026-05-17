@@ -3,6 +3,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['test/**/*.test.mjs'],
+    // Default 5s timeout fires under v8 coverage instrumentation
+    // on tests that load the full langRuntime bootstrap (catalog
+    // parse + evaluate). 15s leaves room for instrumented bootstrap
+    // while still catching genuine hangs.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],

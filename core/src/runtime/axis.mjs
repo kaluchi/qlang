@@ -181,8 +181,8 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // declared — the same Map that lives under the binding's env-key
 // after `langRuntime`'s snapshot-unwrap + impl-resolution pass.
 //
-// The discriminator path for class-level static facts attached to
-// any tagged value-class: `result !| type | spec | /category`
+// The discriminator path for per-tag static facts attached to any
+// tagged value-class: `result !| type | spec | /category`
 // reads `:type-error` / `:arity-error` / etc. off the error tag's
 // catalog body; `:add | spec | /throws` lists the per-site error
 // classes `add` raises; `::conduit | spec | /impl` returns the

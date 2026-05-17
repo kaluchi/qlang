@@ -18,10 +18,10 @@
       `:string`, `:keyword`, `:vec`, `:map`, `:set`, …).
 
       `result !| type` is the user-facing path to an error's
-      class identity — the materialised descriptor exposed by
+      tag identity — the materialised descriptor exposed by
       `!|` is a Map carrying `:kind ::ErrorTag`, and
       `type` reads it through the same invariant every other
-      tagged value class shares.
+      tagged value-class shares.
 
       ~{42 | type | eq(:number)}
       ~{"hi" | type | eq(:string)}

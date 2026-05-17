@@ -4,7 +4,7 @@
     unchanged on success. ~~|
   [:pred :msg]
   (as(:_v) | if(pred, _v,
-      error({:origin :user :kind :assertion-failed :message msg :value _v})))
+      error({:kind ::AssertionFailedError :message msg :value _v})))
 
 :ensure
   |~~ Postcondition: check predicate on pipeValue after
@@ -13,4 +13,4 @@
     end of a pipeline section. ~~|
   [:pred :msg]
   (as(:_v) | if(pred, _v,
-      error({:origin :user :kind :postcondition-failed :message msg :value _v})))
+      error({:kind ::PostconditionFailedError :message msg :value _v})))

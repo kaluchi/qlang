@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isQuote, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQuote, makeTagKeyword, keyword as makeKeyword } from '../../src/types.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
   it(':count | source carries the canonical :count BindStep text', async () => {
@@ -255,5 +255,34 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     });
     const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| type');
     expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
+  });
+});
+
+describe(':name | spec returns the env-side declaration descriptor', () => {
+  it(':add | spec surfaces the operand descriptor Map with :category :arith', async () => {
+    expect(await evalQuery(':add | spec | /category')).toEqual(makeKeyword('arith'));
+  });
+
+  it('::AddLeftNotNumberError | spec surfaces per-tag static :operand', async () => {
+    expect(await evalQuery('::AddLeftNotNumberError | spec | /operand')).toEqual(makeKeyword('add'));
+  });
+
+  it('non-keyword subject lifts SpecSubjectNotKeywordOrTagError', async () => {
+    const evalResult = await evalQuery('42 | spec !| type');
+    expect(evalResult).toEqual(makeTagKeyword('SpecSubjectNotKeywordOrTagError'));
+  });
+
+  it('keyword naming an unbound identifier lifts AxisBindingNotFoundError', async () => {
+    const evalResult = await evalQuery(':nonexistentBindingForSpec | spec !| type');
+    expect(evalResult).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+  });
+
+  it('as-bound snapshot auto-unwraps under spec lookup', async () => {
+    // `as(:name)` stores a Snapshot wrapper under :name in env.
+    // Identifier lookup auto-unwraps via evalOperandCall, but spec
+    // reads env directly and unwraps inline so the surface stays
+    // the captured payload rather than the Snapshot housekeeping
+    // Map.
+    expect(await evalQuery('42 | as(:answer) | :answer | spec')).toBe(42);
   });
 });

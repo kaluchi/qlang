@@ -97,9 +97,16 @@ function walkCatalog(dir) {
 let totalInjected = 0;
 
 function processCatalogFile(path) {
-  // Normalise line endings — the catalog files mix CRLF / LF after
-  // various migrations. Inject against canonical LF, write back LF.
-  let src = readFileSync(path, 'utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  // Normalise line endings on the in-memory copy used for matching
+  // and rewriting. The catalog files mix CRLF / LF after various
+  // migrations; the regex compares against a canonical LF form, and
+  // the rewritten output is also LF-normal. Writing back only fires
+  // when an injection actually lands — a no-op pass must leave the
+  // on-disk bytes untouched so Windows working trees with
+  // core.autocrlf=true do not surface every family file as modified.
+  const rawSrc = readFileSync(path, 'utf8');
+  let src = rawSrc.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const canonicalBefore = src;
   // Match a tag BindStep with its block-doc prefix:
   //
   //   ::TagName
@@ -139,7 +146,7 @@ function processCatalogFile(path) {
     return `::${tagName}\n  |~~ ${newProse} ~~|`;
   });
 
-  writeFileSync(path, src);
+  if (src !== canonicalBefore) writeFileSync(path, src);
 }
 
 // Decide whether the prose already carries an identity-pinning

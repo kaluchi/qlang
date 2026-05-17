@@ -21,7 +21,6 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import {
   ArityError,
-  QlangError,
   QlangTypeError
 } from '../../src/errors.mjs';
 import {
@@ -33,8 +32,7 @@ import {
   isQMap,
   isQSet,
   isVec,
-  makeConduit,
-  isErrorValue
+  makeConduit
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
 import {

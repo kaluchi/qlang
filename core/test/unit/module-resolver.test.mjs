@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { discoverModules, resolveModules, installModules } from '../../host/module-resolver.mjs';
 import { createSession } from '../../src/session.mjs';
-import { keyword, makeTagKeyword } from '../../src/types.mjs';
+import { makeTagKeyword } from '../../src/types.mjs';
 
 // Compute lib directory at module scope (no top-level await needed —
 // fileURLToPath/dirname/join are synchronous).

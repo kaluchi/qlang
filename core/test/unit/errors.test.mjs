@@ -11,7 +11,6 @@ import {
   ArityError,
   QlangInvariantError
 } from '../../src/errors.mjs';
-import { evalQuery } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 

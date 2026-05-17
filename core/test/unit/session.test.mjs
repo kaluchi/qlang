@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { keyword, makeTagKeyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
+import { makeTagKeyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 

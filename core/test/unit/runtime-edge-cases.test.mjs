@@ -16,7 +16,7 @@
 // per-module grouping stays derivable top-to-bottom.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery, evalAst } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/eval.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
@@ -35,10 +35,7 @@ import {
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
 import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
-import { makeState } from '../../src/state.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
-import { makeFn } from '../../src/rule10.mjs';
-import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 
 describe('arith right-operand type checks', () => {

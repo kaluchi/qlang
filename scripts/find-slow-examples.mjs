@@ -1,56 +1,60 @@
-// Per-binding stall detector. Spawns a child node process for each
-// manifest binding, runs `reify(:NAME) | runExamples` with a 10-sec
-// budget, and prints the names that did not finish (the rest get a
-// one-line "ok" with timing). Helps isolate which docstring contains
+// Per-binding stall detector. For every value-namespace binding in
+// `manifest`, spawns a child node process that runs
+// `reify(:NAME) | runExamples` under a 10-second budget; prints the
+// names whose run did not finish in time (the rest get a one-line
+// "ok" with timing). Use when `runExamples` catalog-self-test takes
+// longer than expected — isolates which binding's doc-prefix carries
 // a Quote whose evaluation diverges (recursion, super-slow eval,
-// fail-track storm, ...).
+// fail-track storm, …).
 
 import { spawn } from 'node:child_process';
 import { evalQuery } from '../core/src/eval.mjs';
 
-const TIMEOUT_MS = 10_000;
+const RUN_EXAMPLES_BUDGET_MS = 10_000;
 
-const names = await evalQuery('manifest * /name');
-console.log(`Probing ${names.length} bindings, ${TIMEOUT_MS / 1000}s budget each…\n`);
+const probedBindingNames = await evalQuery('manifest * /name');
+console.log(`Probing ${probedBindingNames.length} bindings, ${RUN_EXAMPLES_BUDGET_MS / 1000}s budget each…\n`);
 
-function probe(name) {
+function probeBinding(bindingName) {
   return new Promise(resolve => {
-    const t0 = Date.now();
-    const child = spawn(process.execPath, [
+    const probeStartMs = Date.now();
+    const childProcess = spawn(process.execPath, [
       '-e',
       `import('./core/src/eval.mjs').then(({evalQuery}) =>
-         evalQuery('reify(:${name}) | runExamples | count').then(n =>
+         evalQuery('reify(:${bindingName}) | runExamples | count').then(n =>
            process.stdout.write(String(n))));`
     ], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'] });
 
-    let out = '';
-    child.stdout.on('data', d => { out += d.toString(); });
+    let childStdoutText = '';
+    childProcess.stdout.on('data', chunk => { childStdoutText += chunk.toString(); });
 
-    const killTimer = setTimeout(() => {
-      child.kill('SIGKILL');
-      resolve({ name, status: 'STALL', elapsed: Date.now() - t0 });
-    }, TIMEOUT_MS);
+    const stallTimer = setTimeout(() => {
+      childProcess.kill('SIGKILL');
+      resolve({ bindingName, status: 'STALL', elapsedMs: Date.now() - probeStartMs });
+    }, RUN_EXAMPLES_BUDGET_MS);
 
-    child.on('exit', code => {
-      clearTimeout(killTimer);
+    childProcess.on('exit', exitCode => {
+      clearTimeout(stallTimer);
       resolve({
-        name,
-        status: code === 0 ? 'ok' : 'EXIT-' + code,
-        count: parseInt(out, 10),
-        elapsed: Date.now() - t0
+        bindingName,
+        status: exitCode === 0 ? 'ok' : 'EXIT-' + exitCode,
+        exampleCount: parseInt(childStdoutText, 10),
+        elapsedMs: Date.now() - probeStartMs
       });
     });
   });
 }
 
-const stalls = [];
-for (const name of names) {
-  const r = await probe(name);
-  if (r.status === 'STALL') stalls.push(r.name);
-  const tag = r.status === 'STALL' ? 'STALL' : (r.status === 'ok' ? 'ok  ' : r.status);
-  console.log(`  ${tag}  ${name.padEnd(22)} ${r.elapsed}ms ${r.count ?? ''}`);
+const stalledBindingNames = [];
+for (const bindingName of probedBindingNames) {
+  const probeOutcome = await probeBinding(bindingName);
+  if (probeOutcome.status === 'STALL') stalledBindingNames.push(probeOutcome.bindingName);
+  const statusLabel = probeOutcome.status === 'STALL'
+    ? 'STALL'
+    : (probeOutcome.status === 'ok' ? 'ok  ' : probeOutcome.status);
+  console.log(`  ${statusLabel}  ${bindingName.padEnd(22)} ${probeOutcome.elapsedMs}ms ${probeOutcome.exampleCount ?? ''}`);
 }
 
 console.log();
-if (stalls.length === 0) console.log('No stalls.');
-else console.log(`Stalled (${stalls.length}): ${stalls.join(', ')}`);
+if (stalledBindingNames.length === 0) console.log('No stalls.');
+else console.log(`Stalled (${stalledBindingNames.length}): ${stalledBindingNames.join(', ')}`);

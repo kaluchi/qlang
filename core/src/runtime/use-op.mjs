@@ -140,12 +140,13 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   }
 
   // Stamp the resolved JS function value onto each freshly-built
-  // builtin descriptor before sealing the export Map. The
-  // descriptor is still the loader's mutable build buffer at this
-  // point — it becomes immutable once it lands in
-  // `envWithNamespace` below — so the `.set` is a single
-  // mint-site write under the same factory ceremony as
-  // `makeConduit` / `makeSnapshot`.
+  // builtin descriptor. The descriptor Map is freshly forged this
+  // bootstrap pass and not yet observable through any other env
+  // key — the impl backfill rides through the same mint-site
+  // `.set` ceremony `langRuntime`'s own impl-resolution pass uses
+  // on the core catalog (see `runtime/index.mjs::buildLangRuntime`),
+  // so the descriptor lands in env carrying a resolved JS function
+  // value on `:impl` rather than the authored keyword handle.
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);

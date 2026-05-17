@@ -15,7 +15,7 @@
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { withPipeValue } from '../state.mjs';
+import { withPipeValue, envGet, envHas } from '../state.mjs';
 import {
   isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeQuote, makeDoc
 } from '../types.mjs';
@@ -191,10 +191,10 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // `:qlang/type/conduit` constructor handle.
 export const spec = stateOp('spec', 1, (state, _lambdas) => {
   const bindingName = bindingNameOf(state.pipeValue, state.env, SpecSubjectNotKeywordOrTagError);
-  if (!state.env.has(bindingName)) {
+  if (!envHas(state.env, bindingName)) {
     throw new AxisBindingNotFoundError({ axisName: 'spec', bindingName });
   }
-  let entry = state.env.get(bindingName);
+  let entry = envGet(state.env, bindingName);
   if (isSnapshot(entry)) entry = entry.get('payload');
   return withPipeValue(state, entry);
 });

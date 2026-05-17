@@ -487,7 +487,12 @@ async function evalTaggedLit(node, state) {
     return withPipeValue(state, value);
   }
   if (isQuote(implKey)) {
-    const bodyAst = implKey.ast ?? parse(implKey.source);
+    // Stamp the tag-impl URI on the parse so a malformed Quote
+    // body surfaces as `::ParseError!{:uri "::Tag/impl" …}` —
+    // the descriptor names the originating tag-binding instead
+    // of the default `'inline'` placeholder, so the user lands
+    // on the constructor's declaration site directly.
+    const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${node.tag}/impl` });
     const bodyState = makeState(payloadValue, state.env);
     const resultState = await evalNode(bodyAst, bodyState);
     return withPipeValue(state, resultState.pipeValue);

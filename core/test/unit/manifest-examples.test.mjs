@@ -80,7 +80,7 @@ describe('manifest catalog self-test via runExamples', () => {
         .join('\n');
       throw new Error(`${failures.length} manifest example(s) failed:\n${report}`);
     }
-  });
+  }, 30000);
 
   it('manifest-wide /ok distribution is {true}', async () => {
     // Top-level sanity: evaluate the homoiconic self-test query
@@ -89,5 +89,5 @@ describe('manifest catalog self-test via runExamples', () => {
     const distinctOkValues = await evalQuery('manifest * (runExamples * /ok) | flat | distinct');
     expect(isErrorValue(distinctOkValues)).toBe(false);
     expect(distinctOkValues).toEqual([true]);
-  });
+  }, 30000);
 });

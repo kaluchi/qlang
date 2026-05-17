@@ -1571,7 +1571,7 @@ step only when `pipeValue` is an error value, exposing the error's
 `pipeValue`, `!|` is a pass-through.
 
 ```qlang
-> "hello" | add(1) | mul(2) !| /category
+> "hello" | add(1) | mul(2) !| type | spec | /category
 :type-error
 
 > "hello" | add(1) | mul(2) !| /trail | /source
@@ -1634,7 +1634,7 @@ lift automatically into error values with structured descriptors:
 > "hello" | add(1) !| type
 ::AddLeftNotNumberError
 
-> "hello" | add(1) !| /category
+> "hello" | add(1) !| type | spec | /category
 :type-error
 ```
 

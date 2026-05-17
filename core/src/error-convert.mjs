@@ -5,27 +5,22 @@ import {
 import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 import { locationToQlangMap } from './ast-codec.mjs';
 
-// Descriptor field-order: high-entropy first. `:kind`
-// TagKeyword names the per-site identity (the same invariant
-// every tagged-instance value-class carries — conduit, snapshot,
-// qlang, json, user `::Foo[…]`); `:fault` carries the runtime
-// step + input that triggered the throw; per-invocation context
-// (`:actualValue` / `:actualType` / Comparability pair-fields)
-// follows. Lower-entropy taxonomy (`:operand`, `:position`,
-// `:expectedType`, `:category`) trails — those are class-level
-// static facts authored once on the tag-binding's
-// `::TagName ::builtin{:category … :operand … :position …
-// :expectedType …}` body in the catalog; `errorFromQlang` merges
-// them into the instance descriptor at throw time from the env
-// tag-binding lookup, so the catalog is the single source of truth.
-// The instance descriptor still surfaces them so programmatic
-// projections (`result !| /operand`) work without a hypertext hop;
-// the catalog navigation (`::Foo | source / docs / examples`) is
-// the wider-scope path. Identity itself is surfaced through the
-// `type` operand (`result !| type | eq(::Foo)`), which reads
-// `:kind` off the descriptor. `:category` carries the broader
-// taxonomy (`:type-error`, `:arity-error`, `:effect-laundering`,
-// `:parse-error`, `:foreign-error`).
+// Descriptor field-order: high-entropy first. `:kind` TagKeyword
+// names the per-site identity (the same invariant every
+// tagged-instance value-class carries — conduit, snapshot, qlang,
+// json, user `::Foo[…]`); `:fault` carries the runtime step +
+// input that triggered the throw; per-invocation context
+// (`:actualValue` / `:actualType` / Comparability pair-fields,
+// `:index`, dispatch-time `:operandName` / `:conduitName`)
+// follows. Identity itself is surfaced through the `type` operand
+// (`result !| type | eq(::Foo)`), which reads `:kind` off the
+// descriptor. Class-level static facts — `:category`, `:operand`,
+// `:position`, `:expectedType` — live on the tag-binding's catalog
+// body (`::TagName ::builtin{:category … :operand … :position …
+// :expectedType …}`) and are reachable through hypertext
+// navigation via the `spec` axis: `result !| type | spec |
+// /category` reads the broad-bucket; `result !| type | spec |
+// /operand` reads the per-site origin.
 const RUNTIME_FIELD_ORDER = [
   'kind', 'fault',
   'payloadValue', 'payloadType',
@@ -33,7 +28,7 @@ const RUNTIME_FIELD_ORDER = [
   'leftValue', 'leftType', 'rightValue', 'rightType',
   'index',
   'expectedType', 'operand', 'position',
-  'category', 'message'
+  'message'
 ];
 
 // Identifier-shaped descriptor fields carrying a `name`-like string
@@ -82,15 +77,11 @@ export function errorFromQlang(qlangError, fault, _env) {
     d.set(k, liftIdentifier(k, v));
   }
 
-  // `:category` is the broad bucket — `:type-error`, `:arity-error`,
-  // `:effect-laundering`, `:parse-error`, `:foreign-error`,
-  // `:invariant-error`, `:division-by-zero`, `:primitive-unbound`,
-  // `:session-error`, `:codec-error`, `:ast-codec-error`,
-  // `:unresolved-identifier`. The JS error's `.kind` names it
-  // uniformly across every per-site class; the same value appears
-  // on the catalog body so the two surfaces stay aligned.
-  d.set('category', keyword(qlangError.kind));
-
+  // No `:category` stamp — the broad-bucket taxonomy lives on the
+  // tag-binding's catalog body (`::TagName ::builtin{:category
+  // :type-error …}`); `result !| type | spec | /category` reads
+  // it through the `spec` axis.
+  //
   // No `:message` stamp — the structured per-site fields
   // (`:actualType`, `:leftType`, …) carry every input the JS-side
   // template would re-format, the class identity TagKeyword on
@@ -122,7 +113,6 @@ export function errorFromParse(parseError) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  d.set('category', keyword('parse-error'));
   // No `:message` stamp — `:source` + `:marker` + `:expected` +
   // `:found` carry the diagnostic data structurally; the human-
   // readable prose is reachable through `::ParseError | docs`
@@ -213,7 +203,6 @@ const WELL_KNOWN_PROPS = [
 export function errorFromForeign(jsError, astNode, fault) {
   const d = new Map();
   d.set('kind', makeTagKeyword(jsError.name));
-  d.set('category', keyword('foreign-error'));
   d.set('message', jsError.message);
 
   for (const prop of WELL_KNOWN_PROPS) {

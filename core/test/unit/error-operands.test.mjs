@@ -27,7 +27,7 @@ describe('error operand', () => {
 
 describe('isError operand', () => {
   it('with captured args produces arity error', async () => {
-    const evalResult = await evalQuery('42 | isError(1) !| /category');
+    const evalResult = await evalQuery('42 | isError(1) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('arity-error'));
   });
 });
@@ -92,7 +92,7 @@ describe('EffectLaunderingAtCallError', () => {
     sessionInstance.bind('doIt', effectfulConduit);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.descriptor.get('category')).toEqual(keyword('effect-laundering'));
+    expect(cellEntry.result.descriptor.get('kind').name).toBe('EffectLaunderingAtCallError');
   });
 });
 

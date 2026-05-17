@@ -4,8 +4,8 @@
 {"name":"every-result-map-has-error-null-on-success","query":":add | runExamples | first | /error","expect":"null"}
 {"name":"every-result-map-has-actual-truthy-on-pass","query":":add | runExamples | first | /actual","expect":"true"}
 {"name":"result-count-equals-examples-count","query":":count | runExamples | count | eq(:count | examples | count)","expect":"true"}
-{"name":"subject-not-descriptor-throws","query":"42 | runExamples","error":"type-error","expect":"::RunExamplesSubjectShapeError!{\n  :fault {:step ~{runExamples} :input 42}\n  :actualValue 42\n  :actualType :number\n  :category :type-error\n}"}
-{"name":"subject-without-examples-field-throws","query":"{:kind :builtin} | runExamples","error":"type-error","expect":"::RunExamplesSubjectShapeError!{\n  :fault {\n    :step ~{runExamples}\n    :input {:kind :builtin}\n  }\n  :actualValue {:kind :builtin}\n  :actualType :map\n  :category :type-error\n}"}
+{"name":"subject-not-descriptor-throws","query":"42 | runExamples","error":"type-error","expect":"::RunExamplesSubjectShapeError!{\n  :fault {:step ~{runExamples} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"subject-without-examples-field-throws","query":"{:kind :builtin} | runExamples","error":"type-error","expect":"::RunExamplesSubjectShapeError!{\n  :fault {\n    :step ~{runExamples}\n    :input {:kind :builtin}\n  }\n  :actualValue {:kind :builtin}\n  :actualType :map\n}"}
 {"name":"every-arith-builtin-example-passes","query":":sub | runExamples * /ok | distinct","expect":"[true]"}
 {"name":"every-vec-reducer-builtin-example-passes","query":":sum | runExamples * /ok | distinct","expect":"[true]"}
 {"name":"manifest-runExamples-catalog-self-test-arith","query":"manifest | filter(/category | eq(:arith)) | every(runExamples | every(/ok))","expect":"true"}

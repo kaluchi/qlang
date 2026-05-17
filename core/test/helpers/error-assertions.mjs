@@ -19,15 +19,21 @@ export async function expectErrorResult(query) {
 
 // expectErrorCategory(query, category) → error value
 //
-// Asserts the query produces an error value carrying the given
-// :category (broader bucket — `:type-error`, `:arity-error`,
-// `:effect-laundering`, `:parse-error`, `:foreign-error`,
-// `:division-by-zero`, `:invariant-error`, ...). For per-tag
-// identity assertions use `expectErrorThrown` against `:kind`.
+// Asserts the query produces an error value whose underlying JS
+// error class names the given broad-bucket category (`'type-error'`,
+// `'arity-error'`, `'effect-laundering'`, `'parse-error'`,
+// `'foreign-error'`, `'division-by-zero'`, `'invariant-error'`,
+// `'unresolved-identifier'`, ...). The instance descriptor no
+// longer carries `:category` — that field lives on the tag-binding's
+// catalog body, reachable through `result !| type | spec |
+// /category`. JS-side this check rides the equivalent `.kind`
+// shortcut on the originating QlangError (the same string the
+// catalog body's `:category` value reads as a Keyword).
+// For per-tag identity assertions use `expectErrorThrown` against
+// `:kind`.
 export async function expectErrorCategory(query, category) {
   const errorResult = await expectErrorResult(query);
-  const actualCategory = errorResult.descriptor.get('category');
-  expect(actualCategory?.name).toBe(category);
+  expect(errorResult.originalError?.kind).toBe(category);
   return errorResult;
 }
 

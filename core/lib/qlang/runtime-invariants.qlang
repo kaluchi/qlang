@@ -223,8 +223,8 @@
 
       ~{
         "42 |" | parse
-        !| [type /category]
-        |  eq([::ParseError :parse-error])
+        !| type | spec | /category
+        |  eq(:parse-error)
        }
   ~~|
   ::builtin{:category :parse-error}

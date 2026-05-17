@@ -77,7 +77,7 @@ describe('retry — recovers from a single transient failure', () => {
     // The returned error's :trail accumulates the deflected steps
     // from the recursive body of retry.
     const errorResult = await runErr(sessionInstance, '42 | retry(count, 2)');
-    expect(errorResult.descriptor.get('category')).toEqual(keyword('type-error'));
+    expect(errorResult.descriptor.get('kind').name).toBe('CountSubjectNotContainerError');
   });
 });
 

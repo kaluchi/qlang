@@ -7,8 +7,8 @@
 {"name":"quote-literal-multiline","query":"~{{\n  :a 1\n  :b 2\n}}","expect":"~{{\n  :a 1\n  :b 2\n}}"}
 {"name":"quote-source-projection","query":"~{mul(2)} | /source","expect":"\"mul(2)\""}
 {"name":"quote-source-empty","query":"~{} | /source","expect":"\"\""}
-{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:kind","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/:kind} :input ~{mul(2)}}\n  :key \"kind\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n  :category :type-error\n}"}
-{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/missing} :input ~{mul(2)}}\n  :key \"missing\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n  :category :type-error\n}"}
+{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:kind","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/:kind} :input ~{mul(2)}}\n  :key \"kind\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
+{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/missing} :input ~{mul(2)}}\n  :key \"missing\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
 {"name":"quote-ast-lazy-parse","query":"~{mul(2)} | /ast | /:kind","expect":":OperandCall"}
 {"name":"quote-ast-lazy-parse-name","query":"~{mul(2)} | /ast | /name","expect":"\"mul\""}
 {"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:kind","expect":":Pipeline"}

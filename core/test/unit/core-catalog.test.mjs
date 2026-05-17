@@ -378,7 +378,7 @@ describe('parse / eval — the code-as-data ring closer', () => {
 
   it('parse errors on malformed source lift to fail-track', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"this is not qlang [" | parse !| /category');
+    const evalResult = await evalQuery('"this is not qlang [" | parse !| type | spec | /category');
     expect(evalResult).toEqual(keyword('parse-error'));
   });
 });

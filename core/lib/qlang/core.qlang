@@ -22,7 +22,10 @@ use([:qlang/runtime-invariants
      :qlang/operand/set-op
      :qlang/operand/map-op
      :qlang/operand/string
+     :qlang/operand/comparator
      :qlang/operand/predicate
+     :qlang/operand/type-classifier
+     :qlang/operand/type-conversion
      :qlang/operand/control
      :qlang/operand/format
      :qlang/operand/reflective])

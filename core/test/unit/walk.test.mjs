@@ -401,3 +401,24 @@ describe('triviaBetweenAstNodes', () => {
     expect(triviaBetweenAstNodes({}, {}, { source: 'x' })).toBe('');
   });
 });
+
+describe('bindingNamesVisibleAt — skips as() with non-Keyword first arg', () => {
+  it('does not add binding when as first arg is not a Keyword AST node', async () => {
+    // Synthetic AST: as(42, count) — non-Keyword first arg, the
+    // shape that drives bindingNamesVisibleAt's `firstArg.type !==
+    // 'Keyword'` early return.
+    const { bindingNamesVisibleAt } = await import('../../src/walk.mjs');
+    const loc = { start: { offset: 0 }, end: { offset: 10 } };
+    const synAst = {
+      type: 'OperandCall',
+      name: 'as',
+      args: [
+        { type: 'NumberLit', value: 42, location: loc },
+        { type: 'OperandCall', name: 'count', args: null, location: loc }
+      ],
+      location: loc
+    };
+    const names = bindingNamesVisibleAt(synAst, 999);
+    expect(names.size).toBe(0);
+  });
+});

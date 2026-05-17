@@ -26,8 +26,7 @@ import {
   makeSnapshot,
   makeConduit,
   makeErrorValue,
-  isErrorValue,
-  FunctionValueLeakedToPrintError
+  isErrorValue
 } from '../../src/types.mjs';
 import {
   stateOpVariadic,
@@ -54,38 +53,6 @@ describe('arith right-operand type checks', () => {
 
   it('div with non-numeric right operand throws', async () => {
     expect(isErrorValue(await evalQuery('5 | div("x")'))).toBe(true);
-  });
-});
-
-describe('descriptor Maps in pipeValue round-trip through render', async () => {
-  // A builtin descriptor Map carries `:impl` as the post-bootstrap-
-  // resolved function value. Render paths (printValue, toPlain) project
-  // that single slot back to its authoring keyword form — `:qlang/prim/<name>` —
-  // so the Map's literal stays round-trip-able through parse → MapLit →
-  // eval. Strict round-trip identity for the value-class shape, with
-  // dispatchability reconstituted at host bootstrap time.
-
-  it('json on a raw descriptor Map renders :impl as the :qlang/prim/<name> keyword', async () => {
-    const jsonOutput = await evalQuery('env | /count | json');
-    expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
-  });
-
-  it('reify-shaped descriptor renders cleanly — :impl is stripped at reify time', async () => {
-    const jsonOutput = await evalQuery('reify(:count) | json');
-    expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"kind":":builtin"');
-  });
-
-  it('direct projection at :impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {
-    // `env | /count | /:impl` deliberately reaches past the
-    // Map projection to the raw function-value (note the namespaced
-    // keyword segment `/:impl` — without the colon, the
-    // slash splits into two bare segments). The Map-handler
-    // substitution does not run because the function is now the
-    // pipeValue itself, not an entry of a Map being rendered.
-    await expect(evalQuery('env | /count | /:impl | json'))
-      .rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 });
 
@@ -293,70 +260,6 @@ describe('higherOrderOp / nullaryOp arity errors', async () => {
   });
 });
 
-describe('format.fromPlain — inverse of toPlain', async () => {
-  // `fromPlain` lifts a JSON-parsed plain JS value back into qlang:
-  // plain object → Map keyed by interned keywords; plain array →
-  // Vec; scalars pass through. Used by `parseJson` and by the CLI
-  // script-mode auto-pipe of stdin.
-
-  it('scalar values pass through unchanged', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
-    expect(fromPlain(42)).toBe(42);
-    expect(fromPlain('hi')).toBe('hi');
-    expect(fromPlain(true)).toBe(true);
-    expect(fromPlain(null)).toBe(null);
-  });
-
-  it('arrays lift into Vec (plain JS array) elementwise', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
-    const lifted = fromPlain([1, 'two', true]);
-    expect(lifted).toEqual([1, 'two', true]);
-  });
-
-  it('objects lift into Map keyed by interned keywords', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
-    const { isQMap } = await import('../../src/types.mjs');
-    const lifted = fromPlain({ a: 1, b: 2 });
-    expect(isQMap(lifted)).toBe(true);
-    expect(lifted.get('a')).toBe(1);
-    expect(lifted.get('b')).toBe(2);
-  });
-
-  it('round-trips nested plain JSON through toPlain and back', async () => {
-    const { fromPlain, toPlain } = await import('../../src/runtime/format.mjs');
-    const plain = { user: { name: 'alice', tags: ['admin', 'dev'] } };
-    const roundtrip = toPlain(fromPlain(plain));
-    expect(roundtrip).toEqual(plain);
-  });
-});
-
-describe('format.toPlain non-keyword Map keys', async () => {
-  it('json on a Map with string (non-keyword) keys uses String(k) fallback', async () => {
-    // Inject a Map whose keys are plain strings, not interned keywords.
-    // Construct via session.bind so we bypass the parser's
-    // keyword-only Map literal syntax.
-    const s = await createSession();
-    const map = new Map();
-    map.set('rawKey', 'rawValue');
-    s.bind('rawMap', map);
-    const out = (await s.evalCell('rawMap | json')).result;
-    expect(typeof out).toBe('string');
-    expect(out).toContain('rawKey');
-    expect(out).toContain('rawValue');
-  });
-
-  it('table on a Vec of Maps with non-keyword keys still renders', async () => {
-    const s = await createSession();
-    const row = new Map();
-    row.set('rawCol', 'rawCell');
-    s.bind('rows', [row]);
-    const out = (await s.evalCell('rows | table')).result;
-    expect(typeof out).toBe('string');
-    expect(out).toContain('rawCol');
-    expect(out).toContain('rawCell');
-  });
-});
-
 describe('reify-op.mjs — :type :unknown lift for non-classifiable host values', async () => {
   it('reify on a Symbol-bound value returns :unknown for the :type field', async () => {
     const s = await createSession();
@@ -425,31 +328,6 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   });
 });
 
-describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('wraps a plain JS Error from an operand as a foreign error value', async () => {
-    // Create a function value that throws a raw Error (not QlangError)
-    const bombFn = makeFn('bomb', 1, () => { throw new Error('raw boom'); }, { captured: [0, 0] });
-    const s = await createSession();
-    s.bind('bomb', bombFn);
-    const entry = await s.evalCell('42 | bomb');
-    expect(isErrorValue(entry.result)).toBe(true);
-    expect(entry.result.descriptor.get('origin')).toEqual(keyword('host'));
-    expect(entry.result.descriptor.get('category')).toEqual(keyword('foreign-error'));
-  });
-});
-
-describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () => {
-  it('lambdas.docs falls back to [] when node has no .docs field', async () => {
-    // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
-    const ast = { type: 'OperandCall', name: 'count', args: null, location: null };
-    const runtimeEnv = await langRuntime();
-    const state = makeState([1, 2, 3], runtimeEnv);
-    const evalResult = await evalAst(ast, state);
-    const result = evalResult.pipeValue;
-    expect(result).toBe(3);
-  });
-});
-
 describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on the trail head', async () => {
   it('stamps the fragment frozen-as-given and materializes through COMBINATOR_SYNTAX', async () => {
     // appendTrailNode stamps the fragment record onto _trailHead in
@@ -470,27 +348,6 @@ describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on t
     expect(quote.source).toBe('| count');
   });
 });
-
-describe('walk.mjs — bindingNamesVisibleAt skips as() with non-Keyword first arg', async () => {
-  it('does not add binding when as first arg is not a Keyword AST node', async () => {
-    // Synthetic AST: as(42, count) — non-Keyword first arg, the
-    // shape that drives bindingNamesVisibleAt's `firstArg.type !==
-    // 'Keyword'` early return.
-    const loc = { start: { offset: 0 }, end: { offset: 10 } };
-    const synAst = {
-      type: 'OperandCall',
-      name: 'as',
-      args: [
-        { type: 'NumberLit', value: 42, location: loc },
-        { type: 'OperandCall', name: 'count', args: null, location: loc }
-      ],
-      location: loc
-    };
-    const names = bindingNamesVisibleAt(synAst, 999);
-    expect(names.size).toBe(0);
-  });
-});
-
 
 describe('setops bare-form empty Vec', async () => {
   it('minus bare on empty Vec throws MinusBareEmptyError', async () => {

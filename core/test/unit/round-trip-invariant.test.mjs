@@ -409,3 +409,39 @@ describe('toPlain refuses unencodable values', async () => {
     throw new Error('expected toPlain to throw');
   });
 });
+
+describe('descriptor Maps in pipeValue round-trip through render', async () => {
+  // A builtin descriptor Map carries `:impl` as the post-bootstrap-
+  // resolved function value. Render paths (printValue, toPlain) project
+  // that single slot back to its authoring keyword form — `:qlang/prim/<name>` —
+  // so the Map's literal stays round-trip-able through parse → MapLit →
+  // eval. Strict round-trip identity for the value-class shape, with
+  // dispatchability reconstituted at host bootstrap time.
+
+  it('json on a raw descriptor Map renders :impl as the :qlang/prim/<name> keyword', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const jsonOutput = await evalQuery('env | /count | json');
+    expect(typeof jsonOutput).toBe('string');
+    expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
+  });
+
+  it('reify-shaped descriptor renders cleanly — :impl is stripped at reify time', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const jsonOutput = await evalQuery('reify(:count) | json');
+    expect(typeof jsonOutput).toBe('string');
+    expect(jsonOutput).toContain('"kind":":builtin"');
+  });
+
+  it('direct projection at :impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {
+    // `env | /count | /:impl` deliberately reaches past the
+    // Map projection to the raw function-value (note the namespaced
+    // keyword segment `/:impl` — without the colon, the
+    // slash splits into two bare segments). The Map-handler
+    // substitution does not run because the function is now the
+    // pipeValue itself, not an entry of a Map being rendered.
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
+    await expect(evalQuery('env | /count | /:impl | json'))
+      .rejects.toThrow(FunctionValueLeakedToPrintError);
+  });
+});

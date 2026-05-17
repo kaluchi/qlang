@@ -250,3 +250,31 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
     expect(cellEntry.result).toBe(42);
   });
 });
+
+describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
+  it('wraps a plain JS Error from an operand as a foreign error value', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const { makeFn } = await import('../../src/rule10.mjs');
+    const { isErrorValue } = await import('../../src/types.mjs');
+    // Create a function value that throws a raw Error (not QlangError)
+    const bombFn = makeFn('bomb', 1, () => { throw new Error('raw boom'); }, { captured: [0, 0] });
+    const s = await createSession();
+    s.bind('bomb', bombFn);
+    const entry = await s.evalCell('42 | bomb');
+    expect(isErrorValue(entry.result)).toBe(true);
+    expect(entry.result.descriptor.get('origin')).toEqual(keyword('host'));
+    expect(entry.result.descriptor.get('category')).toEqual(keyword('foreign-error'));
+  });
+});
+
+describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () => {
+  it('lambdas.docs falls back to [] when node has no .docs field', async () => {
+    // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
+    const ast = { type: 'OperandCall', name: 'count', args: null, location: null };
+    const runtimeEnv = await langRuntime();
+    const state = makeState([1, 2, 3], runtimeEnv);
+    const evalResult = await evalAst(ast, state);
+    const result = evalResult.pipeValue;
+    expect(result).toBe(3);
+  });
+});

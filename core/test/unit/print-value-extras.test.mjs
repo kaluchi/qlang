@@ -431,3 +431,69 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
     expect(await evalQuery('false | json')).toBe('false');
   });
 });
+
+describe('format.fromPlain — inverse of toPlain', async () => {
+  // `fromPlain` lifts a JSON-parsed plain JS value back into qlang:
+  // plain object → Map keyed by interned keywords; plain array →
+  // Vec; scalars pass through. Used by `parseJson` and by the CLI
+  // script-mode auto-pipe of stdin.
+
+  it('scalar values pass through unchanged', async () => {
+    const { fromPlain } = await import('../../src/runtime/format.mjs');
+    expect(fromPlain(42)).toBe(42);
+    expect(fromPlain('hi')).toBe('hi');
+    expect(fromPlain(true)).toBe(true);
+    expect(fromPlain(null)).toBe(null);
+  });
+
+  it('arrays lift into Vec (plain JS array) elementwise', async () => {
+    const { fromPlain } = await import('../../src/runtime/format.mjs');
+    const lifted = fromPlain([1, 'two', true]);
+    expect(lifted).toEqual([1, 'two', true]);
+  });
+
+  it('objects lift into Map keyed by interned keywords', async () => {
+    const { fromPlain } = await import('../../src/runtime/format.mjs');
+    const { isQMap } = await import('../../src/types.mjs');
+    const lifted = fromPlain({ a: 1, b: 2 });
+    expect(isQMap(lifted)).toBe(true);
+    expect(lifted.get('a')).toBe(1);
+    expect(lifted.get('b')).toBe(2);
+  });
+
+  it('round-trips nested plain JSON through toPlain and back', async () => {
+    const { fromPlain, toPlain } = await import('../../src/runtime/format.mjs');
+    const plain = { user: { name: 'alice', tags: ['admin', 'dev'] } };
+    const roundtrip = toPlain(fromPlain(plain));
+    expect(roundtrip).toEqual(plain);
+  });
+});
+
+describe('format.toPlain non-keyword Map keys', async () => {
+  it('json on a Map with string (non-keyword) keys uses String(k) fallback', async () => {
+    // Inject a Map whose keys are plain strings, not interned keywords.
+    // Construct via session.bind so we bypass the parser's
+    // keyword-only Map literal syntax.
+    const { createSession } = await import('../../src/session.mjs');
+    const s = await createSession();
+    const map = new Map();
+    map.set('rawKey', 'rawValue');
+    s.bind('rawMap', map);
+    const out = (await s.evalCell('rawMap | json')).result;
+    expect(typeof out).toBe('string');
+    expect(out).toContain('rawKey');
+    expect(out).toContain('rawValue');
+  });
+
+  it('table on a Vec of Maps with non-keyword keys still renders', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const s = await createSession();
+    const row = new Map();
+    row.set('rawCol', 'rawCell');
+    s.bind('rows', [row]);
+    const out = (await s.evalCell('rows | table')).result;
+    expect(typeof out).toBe('string');
+    expect(out).toContain('rawCol');
+    expect(out).toContain('rawCell');
+  });
+});

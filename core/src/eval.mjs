@@ -753,13 +753,13 @@ function projectSegment(subject, projKey, state) {
 // function value. Conduit and snapshot descriptors carry their own
 // payload field set documented in src/types.mjs.
 
-function isBuiltinDescriptor(m) {
-  const v = m.get('kind');
-  return v && v.name === 'builtin';
+function isBuiltinDescriptor(descriptor) {
+  const kind = descriptor.get('kind');
+  return kind && kind.name === 'builtin';
 }
-function isConduitDescriptor(m) {
-  const v = m.get('kind');
-  return v && v.name === 'conduit';
+function isConduitDescriptor(descriptor) {
+  const kind = descriptor.get('kind');
+  return kind && kind.name === 'conduit';
 }
 
 async function evalOperandCall(node, state) {

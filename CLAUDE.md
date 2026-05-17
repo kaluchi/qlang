@@ -51,8 +51,10 @@ development.
   `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at module-load
   time. Map keys are plain strings throughout; keyword objects
   exist as pipeline VALUES carrying `.literal` for display.
-  `langRuntime()` resolves `:qlang/impl` handles on the template
-  env once, then seals the registry. Authored prose and example
+  `langRuntime()` resolves `:impl` handles on the template
+  env once (replacing each `:qlang/prim/<name>` keyword with its
+  bound JS function value), then seals the registry. Authored
+  prose and example
   `~{…}` Quote segments live on each `BindStep`'s attached
   doc-prefix in its `qlang/ast/<uri>` module Quote and are
   reachable through `:name | docs` and `:name | examples`.

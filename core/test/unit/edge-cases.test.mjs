@@ -1,16 +1,28 @@
 // Edge-case unit tests covering error paths and rare branches
 // that the conformance suite alone does not exercise. The goal is
 // to push coverage to ≥95% on every src module.
+//
+// What lives here vs in per-source test files: edge-cases stays a
+// staging ground for tests whose source module has no dedicated
+// `<module>.test.mjs` (`types.mjs`, `state.mjs`, `rule10.mjs`,
+// `runtime/arith.mjs`, `runtime/vec.mjs`, `runtime/map.mjs`,
+// `runtime/set.mjs`, `runtime/setops.mjs`, `runtime/predicates.mjs`,
+// `runtime/string.mjs`, `runtime/control.mjs`, `runtime/reify-op.mjs`,
+// dispatch helpers). When a `<module>.test.mjs` lands, its
+// describe block migrates out of here. Blocks already migrated:
+// `parse.mjs` (→ `parse.test.mjs`), `eval.mjs unknown node / unknown
+// combinator / quoted-keyword identity` (→ `eval-smoke.test.mjs`),
+// `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
+// `per-site error class identity` (→ `error-operands.test.mjs`),
+// `parser doc-comment attachment` (→ `parse.test.mjs`),
+// `errors.mjs kind-tag survey` (covered by `errors.test.mjs`).
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery, evalAst } from '../../src/eval.mjs';
-import { parse } from '../../src/parse.mjs';
+import { evalQuery } from '../../src/eval.mjs';
 import {
+  ArityError,
   QlangError,
-  QlangTypeError,
-  UnresolvedIdentifierError,
-  DivisionByZeroError,
-  ArityError
+  QlangTypeError
 } from '../../src/errors.mjs';
 import {
   keyword,
@@ -126,17 +138,6 @@ describe('rule10.mjs', () => {
   });
 });
 
-describe('errors.mjs', () => {
-  it('all error subclasses carry kind tags', () => {
-    expect(new QlangTypeError('msg').kind).toBe('type-error');
-    expect(new UnresolvedIdentifierError('foo').kind).toBe('unresolved-identifier');
-    expect(new UnresolvedIdentifierError('foo').identifierName).toBe('foo');
-    expect(new DivisionByZeroError().kind).toBe('division-by-zero');
-    expect(new ArityError('arity').kind).toBe('arity-error');
-    expect(new QlangError('generic', 'custom').kind).toBe('custom');
-  });
-});
-
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison', async () => {
     await expectErrorCategory('"a" | gt(5)', 'type-error');
@@ -152,18 +153,6 @@ describe('runtime/predicates.mjs ordering type errors', () => {
   });
   it('sort raises on mixed-type Vec', async () => {
     await expectErrorCategory('[1 "a"] | sort', 'type-error');
-  });
-});
-
-describe('parse.mjs', () => {
-  it('rethrows non-PeggySyntaxError as-is', () => {
-    expect(() => parse(undefined)).toThrow(/string source/);
-  });
-
-  it('exposes ParseError with location', () => {
-    try { parse('{:k}'); } catch (e) {
-      expect(e.location).toBeTruthy();
-    }
   });
 });
 
@@ -269,365 +258,6 @@ describe('runtime/predicates.mjs deepEqual', () => {
   });
   it('eq nested', async () => {
     expect(await evalQuery('[{:a 1}] | eq([{:a 1}])')).toBe(true);
-  });
-});
-
-describe('eval.mjs unknown node type', () => {
-  it('throws on unknown AST node', async () => {
-    const fakeNode = { type: 'BogusNode' };
-    const runtimeEnv = await langRuntime();
-    const state = makeState(null, runtimeEnv);
-    await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
-  });
-});
-
-describe('quoted keywords — eval-level identity and Map interop', () => {
-  it(':"name" interns to the same keyword as :name', async () => {
-    expect(await evalQuery(':"name" | eq(:name)')).toBe(true);
-  });
-
-  it('Map literal with a quoted-key entry is queryable via /"key"', async () => {
-    expect(await evalQuery('{:"weird key" 42} | /"weird key"')).toBe(42);
-  });
-
-  it('Map literal with a quoted key is queryable via has(:"weird key")', async () => {
-    expect(await evalQuery('{:"weird key" 1} | has(:"weird key")')).toBe(true);
-  });
-
-  it('the empty-string keyword survives a Map round-trip', async () => {
-    expect(await evalQuery('{:"" "empty key value"} | /""')).toBe('empty key value');
-  });
-
-  it('digit-leading keys are reachable through quoted projection', async () => {
-    expect(await evalQuery('{:"123" "digit"} | /"123"')).toBe('digit');
-  });
-
-  it('keys returns interned keywords regardless of declaration form', async () => {
-    // The set returned by keys contains keywords; verify the bare and
-    // quoted forms produce equivalent keyword identity downstream.
-    expect(await evalQuery('{:foo 1} | keys | has(:"foo")')).toBe(true);
-    expect(await evalQuery('{:"foo" 1} | keys | has(:foo)')).toBe(true);
-  });
-
-  it('json operand emits arbitrary JSON object keys via quoted Map keys', async () => {
-    const jsonOutput = await evalQuery('{:"foo bar" 1 :"$ref" "x"} | json');
-    expect(jsonOutput).toContain('"foo bar"');
-    expect(jsonOutput).toContain('"$ref"');
-  });
-});
-
-describe('runtime/format.mjs structural', () => {
-  it('table renders headers and rows', async () => {
-    const tableOutput = await evalQuery('[{:name "Alice" :age 30} {:name "Bob" :age 25}] | table');
-    expect(tableOutput).toContain('name');
-    expect(tableOutput).toContain('age');
-    expect(tableOutput).toContain('Alice');
-    expect(tableOutput).toContain('Bob');
-    expect(tableOutput).toContain('30');
-    expect(tableOutput).toContain('25');
-    expect(tableOutput.split('\n').length).toBeGreaterThan(4);
-  });
-
-  it('table aligns columns of varying widths', async () => {
-    const tableOutput = await evalQuery('[{:short "a" :long "longerValue"} {:short "bbb" :long "x"}] | table');
-    expect(tableOutput).toContain('longerValue');
-    expect(tableOutput).toContain('bbb');
-  });
-
-  it('table tolerates missing fields', async () => {
-    const tableOutput = await evalQuery('[{:a 1} {:b 2}] | table');
-    expect(tableOutput).toContain('a');
-    expect(tableOutput).toContain('b');
-  });
-
-  it('table renders composite cells as inline qlang literals', async () => {
-    // Map-valued cell: :loc is a nested Map with three keys.
-    // Expected form `{:file "f.java" :line 12 :ok true}` — inline,
-    // nested String quoted, no multi-line break, no [object Object].
-    const mapCell = await evalQuery(
-      '[{:loc {:file "f.java" :line 12 :ok true}}] | table');
-    expect(mapCell).toContain('{:file "f.java" :line 12 :ok true}');
-    expect(mapCell).not.toContain('[object Object]');
-    // Vec-valued cell: rendered as a qlang Vec literal inline.
-    const vecCell = await evalQuery('[{:tags [1 2 3]}] | table');
-    expect(vecCell).toContain('[1 2 3]');
-    // Set-valued cell — insertion order preserved by the Set literal.
-    const setCell = await evalQuery('[{:tags #{:a :b}}] | table');
-    expect(setCell).toContain('#{:a :b}');
-    // Error-valued cell: !{…} wrapped descriptor inline. The
-    // runtime materializes an error descriptor with `:trail null`
-    // when no success-track combinator has deflected past the
-    // fault, so the rendered cell reflects that shape verbatim
-    // rather than the source literal.
-    const errCell = await evalQuery('[{:err !{:kind :oops}}] | table');
-    expect(errCell).toContain('!{:kind :oops :trail null}');
-    // Null cell renders as an empty column, not the string "null".
-    const nullCell = await evalQuery('[{:a 1 :b null} {:a 2 :b 3}] | table');
-    const nullCellRow = nullCell.split('\n').find(l => l.includes('| 1 '));
-    expect(nullCellRow).toMatch(/\|\s+\|$/);
-  });
-
-  it('table renders scalar cells bare: Boolean, Keyword, null-in-Vec', async () => {
-    // Top-level Boolean and Keyword cells — bare, without quotes.
-    const boolCell = await evalQuery('[{:ok true} {:ok false}] | table');
-    expect(boolCell).toContain('| true  |');
-    expect(boolCell).toContain('| false |');
-    const kwCell = await evalQuery('[{:status :ready}] | table');
-    expect(kwCell).toContain('| :ready |');
-    // Null nested inside a composite — INLINE_HANDLERS.Null emits
-    // the literal `null` (distinct from a null cell, which is bare).
-    const nullInVec = await evalQuery('[{:tags [null 1]}] | table');
-    expect(nullInVec).toContain('[null 1]');
-  });
-
-  it('table unquotes top-level String cells but quotes nested Strings', async () => {
-    // Top-level :name is a String — printed bare inside the cell.
-    // Inside a composite :tags cell the same String is quoted per
-    // qlang-literal convention.
-    const out = await evalQuery('[{:name "Alice" :tags ["x" "y"]}] | table');
-    expect(out).toMatch(/\| Alice\s+\|/);
-    expect(out).toContain('["x" "y"]');
-  });
-
-  it('json roundtrips Set as array', async () => {
-    expect(await evalQuery('#{1 2 3} | json')).toMatch(/^\[/);
-  });
-
-  it('json roundtrips keyword as colon-prefixed string', async () => {
-    expect(await evalQuery(':foo | json')).toBe('":foo"');
-  });
-
-  it('json roundtrips Boolean as JSON boolean', async () => {
-    expect(await evalQuery('true | json')).toBe('true');
-    expect(await evalQuery('false | json')).toBe('false');
-  });
-});
-
-describe('per-site error classes carry unique identity', () => {
-  // Each test catches a concrete error from a known source site
-  // and asserts its unique class name + structured context. The
-  // class name alone identifies the throw location, and tests
-  // match on `e.name` (stable identifier) so they stay readable
-  // without importing every per-site class.
-
-  // Runtime errors are error values (5th type). Extract the
-  // underlying QlangError via .originalError for structured inspection.
-  async function catchError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
-
-  it('count on non-container → CountSubjectNotContainerError', async () => {
-    const caughtErr = await catchError('42 | count');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('CountSubjectNotContainerError');
-    expect(caughtErr.context.operand).toBe('count');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('keys on non-Map → KeysSubjectNotMapError', async () => {
-    const caughtErr = await catchError('42 | keys');
-    expect(caughtErr.name).toBe('KeysSubjectNotMapError');
-    expect(caughtErr.context.operand).toBe('keys');
-  });
-
-  it('add left non-number → AddLeftNotNumberError', async () => {
-    const caughtErr = await catchError('"x" | add(1)');
-    expect(caughtErr.name).toBe('AddLeftNotNumberError');
-    expect(caughtErr.context.operand).toBe('add');
-    expect(caughtErr.context.position).toBe(1);
-    expect(caughtErr.context.actualType.name).toBe('string');
-  });
-
-  it('add right non-number → AddRightNotNumberError', async () => {
-    const caughtErr = await catchError('1 | add("x")');
-    expect(caughtErr.name).toBe('AddRightNotNumberError');
-    expect(caughtErr.context.position).toBe(2);
-  });
-
-  it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
-    const caughtErr = await catchError('"x" | sub(1)');
-    expect(caughtErr.name).toBe('SubLeftNotNumberError');
-  });
-
-  it('mul left non-number → MulLeftNotNumberError', async () => {
-    const caughtErr = await catchError('"x" | mul(1)');
-    expect(caughtErr.name).toBe('MulLeftNotNumberError');
-  });
-
-  it('div left non-number → DivLeftNotNumberError', async () => {
-    const caughtErr = await catchError('"x" | div(1)');
-    expect(caughtErr.name).toBe('DivLeftNotNumberError');
-  });
-
-  it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
-    const caughtErr = await catchError('"x" | prepend(42)');
-    expect(caughtErr.name).toBe('PrependPrefixNotStringError');
-    expect(caughtErr.context.position).toBe(2);
-  });
-
-  it('append modifier non-string → AppendSuffixNotStringError', async () => {
-    const caughtErr = await catchError('"x" | append(42)');
-    expect(caughtErr.name).toBe('AppendSuffixNotStringError');
-  });
-
-  it('sum element non-number → SumElementNotNumberError', async () => {
-    const caughtErr = await catchError('[1 "two" 3] | sum');
-    expect(caughtErr.name).toBe('SumElementNotNumberError');
-    expect(caughtErr.context.index).toBe(1);
-    expect(caughtErr.context.actualType.name).toBe('string');
-  });
-
-  it('gt across types → GtOperandsNotComparableError', async () => {
-    const caughtErr = await catchError('"a" | gt(5)');
-    expect(caughtErr.name).toBe('GtOperandsNotComparableError');
-    expect(caughtErr.context.leftType.name).toBe('string');
-    expect(caughtErr.context.rightType.name).toBe('number');
-  });
-
-  it('lt across types → LtOperandsNotComparableError (distinct class)', async () => {
-    const caughtErr = await catchError('"a" | lt(5)');
-    expect(caughtErr.name).toBe('LtOperandsNotComparableError');
-  });
-
-  it('projection on non-Map → ProjectionSubjectNotMapError', async () => {
-    const caughtErr = await catchError('42 | /name');
-    expect(caughtErr.name).toBe('ProjectionSubjectNotMapError');
-    expect(caughtErr.context.key).toBe('name');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('distribute on non-Vec → DistributeSubjectNotVecError', async () => {
-    const caughtErr = await catchError('{:a 1} * add(1)');
-    expect(caughtErr.name).toBe('DistributeSubjectNotVecError');
-    expect(caughtErr.context.actualType.name).toBe('map');
-  });
-
-  it('merge on non-Vec → MergeSubjectNotVecError (distinct from distribute)', async () => {
-    const caughtErr = await catchError('42 >> count');
-    expect(caughtErr.name).toBe('MergeSubjectNotVecError');
-  });
-
-  it('apply args to non-function → ApplyToNonFunctionError', async () => {
-    // Use `as` to bind a raw value (snapshot), not a conduit.
-    // Snapshot-unwrap produces a non-function, so captured args trigger
-    // ApplyToNonFunctionError on the unwrapped value.
-    const caughtErr = await catchError('5 | as(:five) | five(42)');
-    expect(caughtErr.name).toBe('ApplyToNonFunctionError');
-    expect(caughtErr.context.name).toBe('five');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('use on non-Map → UseSubjectNotMapError', async () => {
-    const caughtErr = await catchError('42 | use');
-    expect(caughtErr.name).toBe('UseSubjectNotMapError');
-  });
-
-  it('filter on non-container → FilterSubjectNotContainerError', async () => {
-    const caughtErr = await catchError('42 | filter(gt(1))');
-    expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
-  });
-
-  it('at on non-Vec-or-Map → AtSubjectNotVecOrMapError', async () => {
-    const caughtErr = await catchError('42 | at(0)');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
-    expect(caughtErr.context.operand).toBe('at');
-    expect(caughtErr.context.position).toBe('subject');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('at with non-string key on Map → AtKeyNotStringError', async () => {
-    const caughtErr = await catchError('{:a 1} | at(42)');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtKeyNotStringError');
-    expect(caughtErr.context.operand).toBe('at');
-    expect(caughtErr.context.position).toBe(2);
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeywordError', async () => {
-    const caughtErr = await catchError('42 | keyword');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
-    expect(caughtErr.context.operand).toBe('keyword');
-    expect(caughtErr.context.position).toBe('subject');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('take count non-number → TakeCountNotNumberError', async () => {
-    const caughtErr = await catchError('[1 2 3] | take("x")');
-    expect(caughtErr.name).toBe('TakeCountNotNumberError');
-  });
-
-  it('drop count non-number → DropCountNotNumberError (distinct from take)', async () => {
-    const caughtErr = await catchError('[1 2 3] | drop("x")');
-    expect(caughtErr.name).toBe('DropCountNotNumberError');
-  });
-
-  it('all per-site type errors inherit QlangTypeError and kind', async () => {
-    const queries = [
-      '42 | count',
-      '"x" | add(1)',
-      '[1 "two"] | sum',
-      '"a" | gt(5)',
-      '42 | /name',
-      '{:a 1} * add(1)',
-      '42 >> count',
-      '5 | as(:five) | five(42)',
-      '42 | use'
-    ];
-    for (const q of queries) {
-      const caughtErr = await catchError(q);
-      expect(caughtErr).toBeInstanceOf(QlangTypeError);
-      expect(caughtErr).toBeInstanceOf(QlangError);
-      expect(caughtErr.kind).toBe('type-error');
-    }
-  });
-
-  it('throw sites produce distinct class names (no sharing)', async () => {
-    const names = new Set();
-    const queries = [
-      '42 | count',        // CountSubjectNotContainerError
-      '42 | first',        // FirstSubjectNotVecError
-      '42 | last',         // LastSubjectNotVecError
-      '42 | sum',          // SumSubjectNotVecOrSetError
-      '42 | reverse',      // ReverseSubjectNotVecError
-      '42 | distinct',     // DistinctSubjectNotVecError
-      '42 | sort',         // SortNaturalSubjectNotVecError
-      '42 | keys',         // KeysSubjectNotMapError
-      '42 | vals',         // ValsSubjectNotMapError
-      '"a" | add(1)',      // AddLeftNotNumberError
-      '"a" | sub(1)',      // SubLeftNotNumberError
-      '"a" | mul(1)',      // MulLeftNotNumberError
-      '"a" | div(1)',      // DivLeftNotNumberError
-      '"a" | gt(5)',       // GtOperandsNotComparableError
-      '"a" | lt(5)',       // LtOperandsNotComparableError
-      '1 | /name',         // ProjectionSubjectNotMapError (Number subject — neither Map nor Vec)
-      '{:a 1} * add(1)',   // DistributeSubjectNotVecError
-      '42 >> count'        // MergeSubjectNotVecError
-    ];
-    for (const q of queries) {
-      names.add((await catchError(q)).name);
-    }
-    // Every query produces a distinct class — the whole point of
-    // the refactor is that no two sites share an exception type.
-    expect(names.size).toBe(queries.length);
-  });
-});
-
-describe('eval.mjs unknown combinator', () => {
-  it('throws on a hand-built unknown combinator', async () => {
-    const ast = {
-      type: 'Pipeline',
-      steps: [
-        { type: 'NumberLit', value: 1 },
-        { combinator: '?', step: { type: 'NumberLit', value: 2 } }
-      ]
-    };
-    const runtimeEnv = await langRuntime();
-    const state = makeState(null, runtimeEnv);
-    await expect(evalAst(ast, state)).rejects.toThrow(/unknown combinator/);
   });
 });
 
@@ -917,18 +547,6 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:a 1} | coalesce(/a, div(0))')).toBe(1);
   });
 
-  it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
-    const caughtErr = await catchError('{} | coalesce()');
-    expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arity-error');
-    expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
-  });
-
-  it('coalesce error site has unique class name', async () => {
-    const caughtErr = await catchError('{} | coalesce()');
-    expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
-  });
-
   it('when with truthy cond runs the then branch', async () => {
     expect(await evalQuery('5 | when(gt(0), mul(2))')).toBe(10);
   });
@@ -987,19 +605,25 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:s ""} | firstTruthy(/missing, /s, "default")')).toBe('');
   });
 
-  it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
-    const caughtErr = await catchError('{} | firstTruthy()');
-    expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arity-error');
-    expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');
-  });
-
   it('firstTruthy short-circuits after match', async () => {
     expect(await evalQuery('{:a 1} | firstTruthy(/a, div(0))')).toBe(1);
   });
 
   it('if and coalesce compose for guarded defaulting', async () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if(/role | eq(:admin), coalesce(/displayName, /name, "???"), "guest")')).toBe('Bob');
+  });
+
+  // Per-site coalesce / firstTruthy arity-error class identity is
+  // pinned by `error-operands.test.mjs`; the control-flow block
+  // tests the operand semantics, not the throw-class wiring.
+  it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
+    const caughtErr = await catchError('{} | coalesce()');
+    expect(caughtErr).toBeInstanceOf(ArityError);
+  });
+
+  it('firstTruthy raises FirstTruthyNoAlternativesError on bare call', async () => {
+    const caughtErr = await catchError('{} | firstTruthy()');
+    expect(caughtErr).toBeInstanceOf(ArityError);
   });
 });
 
@@ -1081,46 +705,5 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
       '| sortWith([asc(/n), desc(/a)] | firstNonZero) * /a'
     );
     expect(sortedResult).toEqual([20, 30, 25]);
-  });
-});
-
-describe('parser doc-comment attachment Vec semantics', () => {
-  it('attaches one entry per doc comment, not concatenated', async () => {
-    const docsResult = await evalQuery(
-      '|~~| First.\n|~~| Second.\n|~~| Third.\n:foo 42 | :foo | docs * /content'
-    );
-    expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
-  });
-
-  it('block doc preserves internal newlines as one entry', async () => {
-    const docsResult = await evalQuery(
-      '|~~ line one\nline two\nline three ~~|\n:foo 42\n| :foo | docs * /content'
-    );
-    expect(docsResult.length).toBe(1);
-    expect(docsResult[0]).toContain('line one');
-    expect(docsResult[0]).toContain('line two');
-    expect(docsResult[0]).toContain('line three');
-  });
-
-  it('mixes line and block docs preserving order', async () => {
-    const docsResult = await evalQuery(
-      '|~~| line one\n|~~ block two ~~|\n|~~| line three\n:foo 42 | :foo | docs * /content'
-    );
-    expect(docsResult.length).toBe(3);
-    expect(docsResult[0]).toBe(' line one');
-    expect(docsResult[1]).toContain('block two');
-    expect(docsResult[2]).toBe(' line three');
-  });
-
-  it('shadowing redeclare overrides docs Vec', async () => {
-    const docsResult = await evalQuery(
-      '|~~| Old.\n:foo 1\n|~~| Brand new.\n|~~| With extra remark.\n:foo 2\n| :foo | docs * /content'
-    );
-    expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
-  });
-
-  it('comment step is identity on pipeValue', async () => {
-    expect(await evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
-    expect(await evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);
   });
 });

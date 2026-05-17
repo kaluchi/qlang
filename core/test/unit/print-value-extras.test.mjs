@@ -335,3 +335,99 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     expect(rendered.pipeValue).toContain('|~~ inner ~~|');
   });
 });
+
+describe('runtime/format.mjs structural — table layout and json round-trips', () => {
+  it('table renders headers and rows', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const tableOutput = await evalQuery('[{:name "Alice" :age 30} {:name "Bob" :age 25}] | table');
+    expect(tableOutput).toContain('name');
+    expect(tableOutput).toContain('age');
+    expect(tableOutput).toContain('Alice');
+    expect(tableOutput).toContain('Bob');
+    expect(tableOutput).toContain('30');
+    expect(tableOutput).toContain('25');
+    expect(tableOutput.split('\n').length).toBeGreaterThan(4);
+  });
+
+  it('table aligns columns of varying widths', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const tableOutput = await evalQuery('[{:short "a" :long "longerValue"} {:short "bbb" :long "x"}] | table');
+    expect(tableOutput).toContain('longerValue');
+    expect(tableOutput).toContain('bbb');
+  });
+
+  it('table tolerates missing fields', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const tableOutput = await evalQuery('[{:a 1} {:b 2}] | table');
+    expect(tableOutput).toContain('a');
+    expect(tableOutput).toContain('b');
+  });
+
+  it('table renders composite cells as inline qlang literals', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    // Map-valued cell: :loc is a nested Map with three keys.
+    // Expected form `{:file "f.java" :line 12 :ok true}` — inline,
+    // nested String quoted, no multi-line break, no [object Object].
+    const mapCell = await evalQuery(
+      '[{:loc {:file "f.java" :line 12 :ok true}}] | table');
+    expect(mapCell).toContain('{:file "f.java" :line 12 :ok true}');
+    expect(mapCell).not.toContain('[object Object]');
+    // Vec-valued cell: rendered as a qlang Vec literal inline.
+    const vecCell = await evalQuery('[{:tags [1 2 3]}] | table');
+    expect(vecCell).toContain('[1 2 3]');
+    // Set-valued cell — insertion order preserved by the Set literal.
+    const setCell = await evalQuery('[{:tags #{:a :b}}] | table');
+    expect(setCell).toContain('#{:a :b}');
+    // Error-valued cell: !{…} wrapped descriptor inline. The
+    // runtime materializes an error descriptor with `:trail null`
+    // when no success-track combinator has deflected past the
+    // fault, so the rendered cell reflects that shape verbatim
+    // rather than the source literal.
+    const errCell = await evalQuery('[{:err !{:kind :oops}}] | table');
+    expect(errCell).toContain('!{:kind :oops :trail null}');
+    // Null cell renders as an empty column, not the string "null".
+    const nullCell = await evalQuery('[{:a 1 :b null} {:a 2 :b 3}] | table');
+    const nullCellRow = nullCell.split('\n').find(l => l.includes('| 1 '));
+    expect(nullCellRow).toMatch(/\|\s+\|$/);
+  });
+
+  it('table renders scalar cells bare: Boolean, Keyword, null-in-Vec', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    // Top-level Boolean and Keyword cells — bare, without quotes.
+    const boolCell = await evalQuery('[{:ok true} {:ok false}] | table');
+    expect(boolCell).toContain('| true  |');
+    expect(boolCell).toContain('| false |');
+    const kwCell = await evalQuery('[{:status :ready}] | table');
+    expect(kwCell).toContain('| :ready |');
+    // Null nested inside a composite — INLINE_HANDLERS.Null emits
+    // the literal `null` (distinct from a null cell, which is bare).
+    const nullInVec = await evalQuery('[{:tags [null 1]}] | table');
+    expect(nullInVec).toContain('[null 1]');
+  });
+
+  it('table unquotes top-level String cells but quotes nested Strings', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    // Top-level :name is a String — printed bare inside the cell.
+    // Inside a composite :tags cell the same String is quoted per
+    // qlang-literal convention.
+    const out = await evalQuery('[{:name "Alice" :tags ["x" "y"]}] | table');
+    expect(out).toMatch(/\| Alice\s+\|/);
+    expect(out).toContain('["x" "y"]');
+  });
+
+  it('json roundtrips Set as array', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('#{1 2 3} | json')).toMatch(/^\[/);
+  });
+
+  it('json roundtrips keyword as colon-prefixed string', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery(':foo | json')).toBe('":foo"');
+  });
+
+  it('json roundtrips Boolean as JSON boolean', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('true | json')).toBe('true');
+    expect(await evalQuery('false | json')).toBe('false');
+  });
+});

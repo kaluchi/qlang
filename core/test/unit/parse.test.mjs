@@ -624,3 +624,61 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     expect(ast.name).toBe('🙂');
   });
 });
+
+describe('parse.mjs — input guards and ParseError shape', () => {
+  it('rethrows non-PeggySyntaxError as-is', () => {
+    expect(() => parse(undefined)).toThrow(/string source/);
+  });
+
+  it('exposes ParseError with location', () => {
+    try { parse('{:k}'); } catch (e) {
+      expect(e.location).toBeTruthy();
+    }
+  });
+});
+
+describe('parser doc-comment attachment Vec semantics', () => {
+  it('attaches one entry per doc comment, not concatenated', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~| First.\n|~~| Second.\n|~~| Third.\n:foo 42 | :foo | docs * /content'
+    );
+    expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
+  });
+
+  it('block doc preserves internal newlines as one entry', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~ line one\nline two\nline three ~~|\n:foo 42\n| :foo | docs * /content'
+    );
+    expect(docsResult.length).toBe(1);
+    expect(docsResult[0]).toContain('line one');
+    expect(docsResult[0]).toContain('line two');
+    expect(docsResult[0]).toContain('line three');
+  });
+
+  it('mixes line and block docs preserving order', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\n:foo 42 | :foo | docs * /content'
+    );
+    expect(docsResult.length).toBe(3);
+    expect(docsResult[0]).toBe(' line one');
+    expect(docsResult[1]).toContain('block two');
+    expect(docsResult[2]).toBe(' line three');
+  });
+
+  it('shadowing redeclare overrides docs Vec', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~| Old.\n:foo 1\n|~~| Brand new.\n|~~| With extra remark.\n:foo 2\n| :foo | docs * /content'
+    );
+    expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
+  });
+
+  it('comment step is identity on pipeValue', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
+    expect(await evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);
+  });
+});

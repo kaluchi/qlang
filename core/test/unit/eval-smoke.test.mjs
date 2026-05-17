@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
+import { makeState } from '../../src/state.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('eval — literals', () => {
   it('evaluates a number literal', async () => {
@@ -168,6 +170,65 @@ describe('eval — env operand', () => {
 describe('eval — use', () => {
   it('use installs constants from a Map', async () => {
     expect(await evalQuery('{:taxRate 0.07} | use | taxRate')).toBe(0.07);
+  });
+});
+
+describe('eval.mjs unknown node type', () => {
+  it('throws on unknown AST node', async () => {
+    const fakeNode = { type: 'BogusNode' };
+    const runtimeEnv = await langRuntime();
+    const state = makeState(null, runtimeEnv);
+    await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
+  });
+});
+
+describe('eval.mjs unknown combinator', () => {
+  it('throws on a hand-built unknown combinator', async () => {
+    const ast = {
+      type: 'Pipeline',
+      steps: [
+        { type: 'NumberLit', value: 1 },
+        { combinator: '?', step: { type: 'NumberLit', value: 2 } }
+      ]
+    };
+    const runtimeEnv = await langRuntime();
+    const state = makeState(null, runtimeEnv);
+    await expect(evalAst(ast, state)).rejects.toThrow(/unknown combinator/);
+  });
+});
+
+describe('quoted keywords — eval-level identity and Map interop', () => {
+  it(':"name" interns to the same keyword as :name', async () => {
+    expect(await evalQuery(':"name" | eq(:name)')).toBe(true);
+  });
+
+  it('Map literal with a quoted-key entry is queryable via /"key"', async () => {
+    expect(await evalQuery('{:"weird key" 42} | /"weird key"')).toBe(42);
+  });
+
+  it('Map literal with a quoted key is queryable via has(:"weird key")', async () => {
+    expect(await evalQuery('{:"weird key" 1} | has(:"weird key")')).toBe(true);
+  });
+
+  it('the empty-string keyword survives a Map round-trip', async () => {
+    expect(await evalQuery('{:"" "empty key value"} | /""')).toBe('empty key value');
+  });
+
+  it('digit-leading keys are reachable through quoted projection', async () => {
+    expect(await evalQuery('{:"123" "digit"} | /"123"')).toBe('digit');
+  });
+
+  it('keys returns interned keywords regardless of declaration form', async () => {
+    // The set returned by keys contains keywords; verify the bare and
+    // quoted forms produce equivalent keyword identity downstream.
+    expect(await evalQuery('{:foo 1} | keys | has(:"foo")')).toBe(true);
+    expect(await evalQuery('{:"foo" 1} | keys | has(:foo)')).toBe(true);
+  });
+
+  it('json operand emits arbitrary JSON object keys via quoted Map keys', async () => {
+    const jsonOutput = await evalQuery('{:"foo bar" 1 :"$ref" "x"} | json');
+    expect(jsonOutput).toContain('"foo bar"');
+    expect(jsonOutput).toContain('"$ref"');
   });
 });
 

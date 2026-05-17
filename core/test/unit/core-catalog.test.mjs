@@ -204,57 +204,38 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through ~{:tag | docs} a
   });
 });
 
-describe('bare-non-nullary REPL introspection', () => {
-  // REPL ergonomic: typing a non-nullary operand name bare (no
-  // parens, no captured args) returns its descriptor Map as
-  // pipeValue instead of firing an arity error. Nullary operands
-  // (count, sort bare form, env, etc.) still fire on bare lookup
-  // because their minCaptured is 0 and bare application is their
-  // valid nullary form.
+describe('bare-name operand dispatch — uniform Rule 10 path', () => {
+  // Bare operand identifier (no captured args) fires the operand
+  // against the current pipeValue regardless of arity. Non-nullary
+  // operands without captured args hit Rule 10's arity check and
+  // surface a per-site arity-error; nullary operands fire because
+  // bare application IS their valid call shape. The introspection
+  // surface for "what does this operand do" is `:name | source` /
+  // `:name | docs` / `:name | examples`, not a bare-name descriptor
+  // shortcut.
 
-  it('bare ~{mul} returns reify-shaped descriptor Map', async () => {
-    // mul has minCaptured 1, so bare lookup yields the reify-shaped
-    // descriptor — :kind :builtin (plain Keyword discriminator
-    // stamped by reifyBuiltinDescriptor, dropping the internal
-    // :impl handle), :category from the catalog declaration,
-    // :captured and :effectful stamped from the resolved impl.
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('mul');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
-    expect(evalResult.get('category')).toEqual(keyword('arith'));
-    expect(evalResult.has('impl')).toBe(false);
-  });
-
-  it('bare ~{filter} returns reify-shaped descriptor Map', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('filter');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
-    expect(evalResult.get('category')).toEqual(keyword('container-selector'));
-  });
-
-  it('bare ~{coalesce} returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('coalesce');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('category')).toEqual(keyword('control'));
-  });
-
-  it('bare ~{count} fires because count is nullary', async () => {
-    // count has minCaptured 0, so the nullary dispatch path applies
-    // bare lookup rather than substituting the descriptor. That is
-    // what makes `[1 2 3] | count` mean "apply count to the Vec".
+  it('bare ~{count} fires against the inbound Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('bare ~{sort} fires because sort overload includes nullary', async () => {
+  it('bare ~{sort} fires the nullary overload branch', async () => {
     // sort is overloaded at 0 or 1 captured args. overloadedOp
-    // emits captured [0, 1], so minCaptured is 0 and bare sort
-    // fires its nullary branch.
+    // emits captured [0, 1], so the nullary form sorts naturally.
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
+  });
+
+  it('bare ~{mul} (non-nullary) on null pipeValue fires an arity-error', async () => {
+    // mul has captured [1, 2]. Bare call has zero captured args,
+    // so Rule 10's value-op arity check fires before the impl
+    // could mishandle the call. The diagnostic carries the
+    // operand name and the expected range.
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const { isErrorValue } = await import('../../src/types.mjs');
+    const evalResult = await evalQuery('mul');
+    expect(isErrorValue(evalResult)).toBe(true);
+    expect(evalResult.descriptor.get('kind').name).toBe('ValueOpArityMismatchError');
   });
 });
 

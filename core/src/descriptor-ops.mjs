@@ -2,21 +2,14 @@
 //
 // A "raw" builtin descriptor is what the env Map stores after
 // `langRuntime` bootstrap: `{:kind :builtin :impl
-// <FunctionValue> :category … :subject … …}`. Several consumers
-// need to project the user-facing reify-shape from it (strip
-// internals, stamp display fields) without going through the full
-// reify dispatch path:
-//
-//   * `eval.mjs::applyBuiltinDescriptor` — bare non-nullary lookup
-//     returns the reify-shape as the new pipeValue, matching the
-//     reify(:name) output for the same binding.
-//
-//   * `runtime/reify-op.mjs::describeBinding` — both `reify` and
-//     `manifest` route every value-namespace builtin through here.
-//
-// Living in a third-party module keeps the dependency edge
-// directed: eval.mjs and reify-op.mjs both import this file,
-// neither depends on the other for this purpose.
+// <FunctionValue> :category … :subject … …}`. The `reify` /
+// `manifest` reflective operands in `runtime/reify-op.mjs`
+// project a user-facing shape from this raw form (strip internals,
+// stamp display fields). `reifyBuiltinDescriptor` lives here
+// rather than next to its consumer so the dependency edge stays
+// single-sourced — any future user-facing descriptor surface that
+// wants the same projection imports from here without dragging
+// `reify-op.mjs` into the graph.
 
 import { keyword } from './types.mjs';
 

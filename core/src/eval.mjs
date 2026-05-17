@@ -42,7 +42,6 @@ import { errorFromQlang, errorFromForeign, errorFromParse } from './error-conver
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
-import { reifyBuiltinDescriptor } from './descriptor-ops.mjs';
 import {
   trailEntry, combineTrailQuotes, materializePendingTrail
 } from './eval-trail.mjs';
@@ -774,9 +773,7 @@ async function evalOperandCall(node, state) {
 
   // Snapshot auto-unwrap — a Map with :kind :snapshot exposes
   // its wrapped :payload transparently to identifier lookup so
-  // `as(:name) | name` sees the raw data. The wrapper itself stays
-  // reachable through `reify(:name)`, which reads env directly
-  // without going through evalOperandCall. Unwrapping upstream of
+  // `as(:name) | name` sees the raw data. Unwrapping upstream of
   // applyBindingDescriptor keeps the :kind switch exhaustive
   // over {:builtin, :conduit}; the remaining non-Map branches handle
   // conduit-parameter proxies (isFunctionValue) and plain user values
@@ -860,7 +857,7 @@ async function evalOperandCall(node, state) {
 // step in evalOperandCall, so no :snapshot branch here.
 async function applyBindingDescriptor(descriptor, node, lookupName, state) {
   if (isBuiltinDescriptor(descriptor)) {
-    return await applyBuiltinDescriptor(descriptor, node, lookupName, state);
+    return await applyBuiltinDescriptor(descriptor, node, state);
   }
   if (isConduitDescriptor(descriptor)) {
     return await applyConduit(descriptor, node, lookupName, state);
@@ -868,28 +865,22 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
   return null;
 }
 
-// applyBuiltinDescriptor(descriptor, node, lookupName, state) → state'
+// applyBuiltinDescriptor(descriptor, node, state) → state'
 //
 // Dispatch core for built-in operands. Reads the resolved function
 // value directly from the descriptor's :impl field (set by
 // the bootstrap resolution pass in runtime/index.mjs) and delegates
-// to applyRule10.
-//
-// Bare non-nullary lookup returns a reify-shaped descriptor as
-// pipeValue — internal fields stripped, :captured and :effectful
-// stamped from the impl. Nullary operands fire on bare lookup
-// because their minCaptured is 0 and bare application IS their
-// valid call shape.
-async function applyBuiltinDescriptor(descriptor, node, lookupName, state) {
+// to applyRule10. Bare lookup fires the operand against the current
+// pipeValue regardless of arity — non-nullary operands without
+// captured args hit Rule 10's arity check and surface a per-site
+// arity-error. The introspection surface for "what does this operand
+// do" is `:name | source` / `:name | docs` / `:name | examples`,
+// not a bare-name shortcut into the descriptor Map.
+async function applyBuiltinDescriptor(descriptor, node, state) {
   const resolvedImpl = descriptor.get('impl');
 
   const capturedArgsAst = node.args;
   const hasArgs = capturedArgsAst !== null;
-
-  const minCaptured = resolvedImpl.meta.captured[0];
-  if (!hasArgs && minCaptured > 0) {
-    return withPipeValue(state, reifyBuiltinDescriptor(descriptor, resolvedImpl, lookupName));
-  }
 
   const capturedEnv = state.env;
   const builtinLambdas = hasArgs

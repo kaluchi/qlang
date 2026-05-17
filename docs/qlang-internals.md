@@ -699,14 +699,12 @@ shape. `eval.mjs::evalOperandCall` looks up the identifier in
 :builtin`, control flows through `applyBuiltinDescriptor` which
 reads the `:impl` handle, resolves it through
 `PRIMITIVE_REGISTRY.resolve` into the backing function value,
-and invokes it via Rule 10. A bare non-nullary lookup (no captured args,
-`impl.meta.captured[0] > 0`) short-circuits to return the
-descriptor Map itself as `pipeValue` — the REPL ergonomic that
-lets `mul` at the prompt yield mul's descriptor rather than
-firing an arity error. Nullary operands (`count`, bare-form
-`sort`, `env`, etc.) still fire on bare lookup because their
-`captured[0]` is zero and bare application is their valid call
-shape.
+and invokes it via Rule 10. Bare lookup fires the operand against
+the current `pipeValue` regardless of arity — non-nullary operands
+without captured args hit Rule 10's arity check and surface a
+per-site arity-error. The introspection surface for "what does this
+operand do" is `:name | source` / `:name | docs` / `:name |
+examples`, not a bare-name shortcut into the descriptor Map.
 
 Additional runtimes and user libraries are loaded anywhere in a query
 by providing a Map and applying `use`:

@@ -390,11 +390,11 @@
 :distinct
   |~~ Returns a new Vec with duplicate elements removed, preserving
       first-occurrence order. Duplication is decided by structural
-      equality — the same axiom that drives ~{eq}. Two Map / Vec / Set
-      values carrying identical content collapse to one even when they
-      are distinct JS objects, so a recursive walk that reaches the
-      same logical node via multiple paths (diamond hierarchies,
-      fan-in references) yields a clean set.
+      equality — the same axiom that drives the `eq` operand. Two
+      Map / Vec / Set values carrying identical content collapse to
+      one even when they are distinct JS objects, so a recursive walk
+      that reaches the same logical node via multiple paths (diamond
+      hierarchies, fan-in references) yields a clean set.
 
       ~{[1 2 1 3 2] | distinct | eq([1 2 3])}
       ~{[{:id 1} {:id 2} {:id 1}] | distinct | eq([{:id 1} {:id 2}])}

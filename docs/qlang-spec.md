@@ -1865,36 +1865,23 @@ own AST node and surface through the `docs` axis-operand:
 The axis returns a Vec of Doc-values, each with a `/content` raw
 string and a `/segments` Prose / Quote / TaggedLit split.
 
-#### Bare-name introspection ergonomic
+#### Inspecting an operand
 
-There is one extra rule that pairs with `reify`: typing the
-**bare name** of a built-in that takes at least one captured
-argument yields the **descriptor Map** for that built-in
-directly. The descriptor is the same shape `reify` would have
-produced for the same name.
+To see what an operand does, walk through the source axis instead
+of poking at runtime descriptor shape:
 
-```qlang
-> mul | /category
-:arith
+- `:mul | source` — Quote of the BindStep declaration (the
+  verbatim catalog entry).
+- `:mul | docs` — Vec of Doc-values from the attached doc-prefix.
+- `:mul | examples` — Vec of `~{…}` Quote-values extracted from
+  the docs, runnable through `apply` against any subject.
 
-> reify(:filter) | /captured
-[1 1]
-
-> reify(:coalesce) | /captured
-[1 :unbounded]
-```
-
-The first example shows the **bare-name shortcut**: `mul` is a
-non-nullary operand (its minimum captured-arg count is 1), so a
-bare `mul` lookup short-circuits into the descriptor instead of
-firing as an arity error. The second and third examples take the
-explicit `reify(:name)` route, which works regardless of arity
-and is the right form when scripting catalog inspection.
-
-Nullary operands (`count`, bare-form `sort`, `env`, `manifest`,
-`runExamples`) still fire on bare lookup because their valid call
-shape IS the bare form; only operands whose minimum captured
-count is greater than zero short-circuit into the descriptor.
+These three axes are the canonical introspection surface. The
+runtime descriptor Map that env stores under each binding is an
+internal structure the evaluator uses for dispatch, not a
+user-facing API — a bare `mul` lookup fires the operand against
+`pipeValue` like any other call site (and surfaces an arity-error
+if no captured args were supplied).
 
 ### `manifest` — list all bindings
 

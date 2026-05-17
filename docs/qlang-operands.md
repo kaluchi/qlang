@@ -990,14 +990,6 @@ depends on the value's provenance. Four descriptor kinds:
   dispatch table (`sort` has `[0 1]`). Variadic operands use
   the `:unbounded` keyword as the upper bound (`coalesce` has
   `[1 :unbounded]`). The field is always present.
-
-  Under the bare-non-nullary REPL ergonomic, a bare lookup
-  for `mul`, `filter`, `coalesce` — any operand whose `min > 0`
-  — short-circuits through the same descriptor path: typing the
-  bare name yields the Map above as the new `pipeValue`.
-  Nullary operands (`count`, `sort` bare form, `env`, etc.)
-  still fire on bare lookup because their `min == 0` and bare
-  application IS their valid call shape.
 - **Conduit** — `pipeValue` is a BindStep-bound conduit (named
   pipeline fragment, zero or more parameters). Descriptor:
   ```

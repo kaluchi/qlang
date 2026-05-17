@@ -1,13 +1,14 @@
 // One-shot script — extract repro queries from conformance JSONLs
 // and inject them as `~{<query> !| type | eq(::Tag)}` Quote
-// examples into the catalog's `::Tag {:qlang/kind :tag}` doc-prefix.
+// examples into the catalog's `::Tag` doc-only declaration's
+// attached doc-prefix.
 //
-// `runExamples(:Tag)` consumes these — each Quote evaluates to a
+// `runExamples(::Tag)` consumes these — each Quote evaluates to a
 // boolean (true iff the query produces an error whose identity
-// tag — `:qlang/kind` on the descriptor, surfaced through `type`
-// — matches the catalog declaration). Conformance and catalog
-// stay in lockstep: a repro that drifts in conformance rolls
-// through here on next regeneration.
+// tag — `:kind` TagKeyword on the descriptor, surfaced through
+// `type` — matches the catalog declaration). Conformance and
+// catalog stay in lockstep: a repro that drifts in conformance
+// rolls through here on next regeneration.
 //
 // Usage: `node core/scripts/inject-error-examples.mjs`. Run after
 // conformance JSONL edits that add / change error-producing
@@ -104,15 +105,22 @@ function processCatalogFile(path) {
   //   ::TagName
   //     |~~ <prose>
   //     <maybe more lines> ~~|
-  //     {:qlang/kind :tag<...>}
+  //
+  // Optional `::builtin{…}` body trails the doc-prefix on
+  // value-class tags (::conduit / ::qlang / ::json) but error tags
+  // are doc-only — every entry the script targets is the
+  // doc-only form (its `:trail` semantic rides through `!|`
+  // dispatch, no constructor body required). The lookahead skips
+  // any tag whose doc-prefix is immediately followed by an
+  // `::builtin{` body so the script touches only error tags.
   //
   // Replace the doc-prefix's closing `~~|` with the injected
-  // Quote examples followed by `~~|`. Only inject if the tag
-  // has conformance queries AND the existing prose doesn't
-  // already contain `!| type | eq(`.
+  // Quote examples followed by `~~|`. Only inject if the tag has
+  // conformance queries AND the existing prose does not already
+  // contain `!| type | eq(`.
 
-  const tagRe = /^::([A-Z][A-Za-z0-9_]*)\n {2}\|~~ ([\s\S]*?) ~~\|\n {2}(\{:qlang\/kind :tag[^}]*\})/gm;
-  src = src.replace(tagRe, (match, tagName, prose, descriptor) => {
+  const tagRe = /^::([A-Z][A-Za-z0-9_]*)\n {2}\|~~ ([\s\S]*?) ~~\|(?!\n {2}::builtin\{)/gm;
+  src = src.replace(tagRe, (match, tagName, prose) => {
     const queries = tagToQueries.get(tagName);
     if (!queries || queries.length === 0) return match;
     if (prose.includes('!| type | eq(')) return match;
@@ -123,7 +131,7 @@ function processCatalogFile(path) {
       .map(q => `\n    ~{${q} !| type | eq(::${tagName})}`)
       .join('');
     const newProse = prose.trimEnd() + injected + '\n   ';
-    return `::${tagName}\n  |~~ ${newProse} ~~|\n  ${descriptor}`;
+    return `::${tagName}\n  |~~ ${newProse} ~~|`;
   });
 
   writeFileSync(path, src);

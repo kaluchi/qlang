@@ -24,8 +24,9 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 }
 
 // Function values (`makeFn` output) are runtime-internal: they live on
-// `:impl` of builtin descriptor Maps and as conduit-parameter
-// proxies behind reify's :category :conduit-parameter projection. They
+// `:impl` of builtin descriptor Maps and as conduit-parameter proxies
+// reachable through the manifest descriptor's `:category :conduit-parameter`
+// field when a conduit body's env enumerates. They
 // have no grammatical literal — the only candidate render form
 // (`:qlang/prim/${name}`) parses back as a keyword value on the next
 // `eval`. Surfacing a function value in pipeValue therefore violates

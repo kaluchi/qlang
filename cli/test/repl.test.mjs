@@ -167,10 +167,10 @@ describe('runRepl — output highlighting', () => {
 describe('runRepl — render-invariant catch', () => {
   it('catches FunctionValueLeakedToPrintError and continues prompting', async () => {
     // `env | /mul | /:impl` walks env → mul's raw descriptor
-    // Map (the env binding still carries `:kind :builtin` +
-    // `:impl <fn>` because `env` returns the storage Map, not
-    // the reify-shaped projection) → the resolved function value
-    // sitting on `:impl`. printValue refuses raw function
+    // Map (the env binding carries `:kind ::builtin` + `:impl <fn>`
+    // — `env` returns the storage Map directly, while `manifest`
+    // builds its own user-facing projection) → the resolved function
+    // value sitting on `:impl`. printValue refuses raw function
     // values via FunctionValueLeakedToPrintError; the REPL renderer
     // catches that, writes a render-invariant diagnostic to stderr,
     // and stays open for the next prompt.

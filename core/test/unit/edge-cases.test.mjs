@@ -7,7 +7,7 @@
 // `<module>.test.mjs` (`types.mjs`, `state.mjs`, `rule10.mjs`,
 // `runtime/arith.mjs`, `runtime/vec.mjs`, `runtime/map.mjs`,
 // `runtime/set.mjs`, `runtime/setops.mjs`, `runtime/predicates.mjs`,
-// `runtime/string.mjs`, `runtime/control.mjs`, `runtime/reify-op.mjs`,
+// `runtime/string.mjs`, `runtime/control.mjs`, `runtime/manifest-op.mjs`,
 // dispatch helpers). When a `<module>.test.mjs` lands, its
 // describe block migrates out of here. Blocks already migrated:
 // `parse.mjs` (→ `parse.test.mjs`), `eval.mjs unknown node / unknown

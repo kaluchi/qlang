@@ -74,9 +74,10 @@ export function parse(source, opts = {}) {
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
   // root receives .parent = null and id 0), then effect-marker
-  // decoration so every OperandCall/conduit declaration/snapshot declaration/Projection node
-  // carries a structured `.effectful` field, then root metadata,
-  // then semantic validation that depends on the decorated tree.
+  // decoration so every OperandCall and Projection node carries a
+  // structured `.effectful` field that downstream consumers read
+  // without re-derivation; root metadata; finally any semantic
+  // validation that depends on the decorated tree.
   attachAstParents(ast);
   assignAstNodeIds(ast);
   decorateAstWithEffectMarkers(ast);

@@ -38,7 +38,7 @@ import {
   declareShapeError
 } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { reifyBuiltinDescriptor } from '../descriptor-ops.mjs';
+import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
@@ -137,7 +137,7 @@ function describeBinding(value, explicitName) {
       }
       return tagResult;
     }
-    return reifyBuiltinDescriptor(value, value.get('impl'), explicitName);
+    return manifestBuiltinDescriptor(value, value.get('impl'), explicitName);
   }
   // Conduit-parameters — function values minted by
   // `makeConduitParameter` in `eval.mjs` that surface inside a

@@ -128,10 +128,5 @@
     "prefix": "use",
     "body": ["{${1::key ${2:value}}} | use"],
     "description": "Import bindings into env via use"
-  },
-  "reify": {
-    "prefix": "reify",
-    "body": ["reify(:${1:name})"],
-    "description": "Inspect a binding's descriptor"
   }
 }

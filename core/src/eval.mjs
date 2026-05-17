@@ -979,7 +979,7 @@ async function applyConduit(conduit, node, lookupName, state) {
 // the conduit body.
 function makeConduitParameter(capturedArgLambda, paramName) {
   // Conduit parameters are ephemeral — meta is inline because
-  // they have no lib/qlang/core.qlang entry.
+  // they have no operand-family catalog entry.
   return makeFn(paramName, 1, async (state, paramLambdas) => {
     if (paramLambdas.length !== 0) {
       throw new ConduitParameterNoCapturedArgsError({

@@ -261,7 +261,7 @@ into the conduit or snapshot wrapper.
 
 ## Reflective built-ins
 
-`use`, `env`, `reify`, and `manifest` are reflective operands bound
+`use`, `env`, and `manifest` are reflective operands bound
 in the language runtime, dispatched through Step 3 exactly like
 `count` or `filter`. Their distinguishing feature is the shape
 of their impl:

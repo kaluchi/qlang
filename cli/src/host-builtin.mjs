@@ -10,9 +10,9 @@
 // authoring keyword form `:qlang/prim/<name>` for round-trip.
 //
 // Without this wrapping, raw function-values leak through env when
-// the user introspects env (`env | reify | source`, `manifest`,
-// `:name | reify`, etc.) — printValue's Function-leak invariant
-// fires because a bare function has no grammatical literal.
+// the user introspects env (`manifest`, `:name | source`, etc.) —
+// printValue's Function-leak invariant fires because a bare function
+// has no grammatical literal.
 
 import { keyword } from '@kaluchi/qlang-core';
 

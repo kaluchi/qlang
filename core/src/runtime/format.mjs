@@ -180,8 +180,10 @@ export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subjec
 //
 // for every value V that can land in pipeValue — Number, String,
 // Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, JSON-Object,
-// JSON-Array, Error, Quote, Doc, TaggedInstance (Conduit,
-// user-defined `::tag` instances). The shape is enforced by
+// JSON-Array, Error, Quote, Doc, Conduit, Snapshot (auto-unwrapped
+// before reaching this code path under identifier-lookup, kept here
+// for direct projection), TaggedInstance (user-defined `::tag`
+// instances). The shape is enforced by
 // `core/test/unit/round-trip-invariant.test.mjs`.
 //
 // Three categories sit outside the contract by design:
@@ -283,8 +285,9 @@ export function printValue(v, indent = 0) {
 // A raw JS function (typically `:qlang/locator` or other host-bound
 // env entries) renders as a host-marker string literal so the
 // surface display round-trips through the parser as a String value.
-// Everything else stringifies via `String(v)` — the same behaviour
-// the previous direct-`String` fallback gave, just routed.
+// Any other unknown shape stringifies via `String(v)` so the
+// host-marker handles the function case and the generic stringifier
+// covers shapes describeType does not classify.
 function printFallback(v) {
   if (typeof v === 'function') return hostFunctionLiteral(v);
   return String(v);

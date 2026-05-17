@@ -15,8 +15,8 @@
 
 
 |~| ── 1. Hover ──────────────────────────────────────────
-|~| Hover over count, filter, sort, union, reify, if,
-|~| coalesce, sortWith, asc, desc to see manifest docs.
+|~| Hover over count, filter, sort, union, manifest, if,
+|~| coalesce, sortWith, asc, desc to see catalog docs.
 
 [1 2 3 4 5] | count
 

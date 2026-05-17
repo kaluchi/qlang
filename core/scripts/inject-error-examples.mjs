@@ -115,15 +115,20 @@ function processCatalogFile(path) {
   // `::builtin{` body so the script touches only error tags.
   //
   // Replace the doc-prefix's closing `~~|` with the injected
-  // Quote examples followed by `~~|`. Only inject if the tag has
-  // conformance queries AND the existing prose does not already
-  // contain `!| type | eq(`.
+  // Quote examples followed by `~~|`. Skip injection when the tag
+  // has no conformance queries OR the prose already pins the tag
+  // identity through any of the recognised shape-check forms (see
+  // `proseAlreadyPinsTagIdentity`). The script's injected weak form
+  // (`!| type | eq(::Tag)`) is a baseline coverage seed — once a
+  // hand-curated structured shape check lands in the prose, the
+  // script must stay idle on that tag so re-runs do not stack
+  // weak-and-structured pairs.
 
   const tagRe = /^::([A-Z][A-Za-z0-9_]*)\n {2}\|~~ ([\s\S]*?) ~~\|(?!\n {2}::builtin\{)/gm;
   src = src.replace(tagRe, (match, tagName, prose) => {
     const queries = tagToQueries.get(tagName);
     if (!queries || queries.length === 0) return match;
-    if (prose.includes('!| type | eq(')) return match;
+    if (proseAlreadyPinsTagIdentity(prose, tagName)) return match;
     const repros = pickRepros(tagName, queries);
     if (repros.length === 0) return match;
     totalInjected++;
@@ -135,6 +140,29 @@ function processCatalogFile(path) {
   });
 
   writeFileSync(path, src);
+}
+
+// Decide whether the prose already carries an identity-pinning
+// shape check. Recognises both forms the catalog uses:
+//
+//   weak form       — `!| type | eq(::TagName)` (this script's
+//                     own injection shape; a single re-run must
+//                     not stack a duplicate).
+//   structured form — `!| [type /field …] | eq([::TagName …])`
+//                     (the hand-curated rich shape-pin form that
+//                     dominates the current catalog — checks
+//                     identity + the relevant descriptor fields in
+//                     one Vec-equality step).
+//
+// A tag name appearing inside the Vec-equality literal counts as
+// the identity anchor for both forms; matching by literal tag name
+// keeps the check tied to the surrounding declaration so an
+// unrelated `::OtherTag` mention in prose does not falsely suppress
+// the inject pass.
+function proseAlreadyPinsTagIdentity(prose, tagName) {
+  if (prose.includes(`!| type | eq(::${tagName})`)) return true;
+  const structuredEqRe = new RegExp(`!\\|\\s*\\[type\\b[\\s\\S]*?\\|\\s*eq\\(\\[::${tagName}\\b`);
+  return structuredEqRe.test(prose);
 }
 
 walkCatalog(catalogDir);

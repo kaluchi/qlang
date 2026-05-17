@@ -21,6 +21,7 @@
         |  eq([::SetConversionSubjectNotVecError :number :vec :set :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :set :position :subject :expectedType :vec}
 
 :union
   |~~ Polymorphic union. Set union or Map merge (last wins on
@@ -46,6 +47,7 @@
         |  eq([::UnionBareSubjectNotVecError :number :vec :union :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :union :position :subject :expectedType :vec}
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
@@ -55,6 +57,7 @@
         |  eq([::UnionBareEmptyError])
        }
   ~~|
+  ::builtin{:category :type-error :operand :union}
 
 ::UnionPairIncompatibleError
   |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
@@ -64,6 +67,7 @@
         |  eq([::UnionPairIncompatibleError :set :map :union])
        }
   ~~|
+  ::builtin{:category :type-error :operand :union}
 
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
@@ -89,6 +93,7 @@
         |  eq([::MinusBareSubjectNotVecError :number :vec :minus :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :minus :position :subject :expectedType :vec}
 
 ::MinusBareEmptyError
   |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
@@ -98,6 +103,7 @@
         |  eq([::MinusBareEmptyError])
        }
   ~~|
+  ::builtin{:category :type-error :operand :minus}
 
 ::MinusPairIncompatibleError
   |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
@@ -107,6 +113,7 @@
         |  eq([::MinusPairIncompatibleError :set :map :minus])
        }
   ~~|
+  ::builtin{:category :type-error :operand :minus}
 
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
@@ -132,6 +139,7 @@
         |  eq([::InterBareSubjectNotVecError :number :vec :inter :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :inter :position :subject :expectedType :vec}
 
 ::InterBareEmptyError
   |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
@@ -141,6 +149,7 @@
         |  eq([::InterBareEmptyError])
        }
   ~~|
+  ::builtin{:category :type-error :operand :inter}
 
 ::InterPairIncompatibleError
   |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
@@ -150,3 +159,4 @@
         |  eq([::InterPairIncompatibleError :set :map :inter])
        }
   ~~|
+  ::builtin{:category :type-error :operand :inter}

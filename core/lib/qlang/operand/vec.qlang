@@ -24,6 +24,7 @@
         |  eq([::FirstSubjectNotVecError :number :vec :first :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :first :position :subject :expectedType :vec}
 
 :last
   |~~ Returns the last element of a Vec, or null if the Vec
@@ -46,6 +47,7 @@
         |  eq([::LastSubjectNotVecError :number :vec :last :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :last :position :subject :expectedType :vec}
 
 :sum
   |~~ Returns the numeric sum of elements. Polymorphic over Vec
@@ -73,6 +75,7 @@
         |  eq([::SumSubjectNotVecOrSetError :number [:vec :set] :sum :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sum :position :subject :expectedType [:vec :set]}
 
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
@@ -82,6 +85,7 @@
         |  eq([::SumElementNotNumberError :string 1 :number :sum])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sum :expectedType :number}
 
 :min
   |~~ Returns the minimum element under natural ordering.
@@ -107,6 +111,7 @@
         |  eq([::MinSubjectNotVecOrSetError :number [:vec :set] :min :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :min :position :subject :expectedType [:vec :set]}
 
 ::MinElementsNotComparableError
   |~~ Operands of `min` are not pairwise-comparable scalars.
@@ -116,6 +121,7 @@
         |  eq([::MinElementsNotComparableError :number :string :min])
        }
   ~~|
+  ::builtin{:category :type-error :operand :min}
 
 :max
   |~~ Returns the maximum element under natural ordering.
@@ -141,6 +147,7 @@
         |  eq([::MaxSubjectNotVecOrSetError :number [:vec :set] :max :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :max :position :subject :expectedType [:vec :set]}
 
 ::MaxElementsNotComparableError
   |~~ Operands of `max` are not pairwise-comparable scalars.
@@ -150,6 +157,7 @@
         |  eq([::MaxElementsNotComparableError :number :string :max])
        }
   ~~|
+  ::builtin{:category :type-error :operand :max}
 
 :firstNonZero
   |~~ Returns the first non-zero number in a Vec. If all elements
@@ -175,6 +183,7 @@
         |  eq([::FirstNonZeroSubjectNotVecError :number :vec :firstNonZero :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :firstNonZero :position :subject :expectedType :vec}
 
 ::FirstNonZeroElementNotNumberError
   |~~ Element of `firstNonZero` input collection must be Number.
@@ -184,6 +193,7 @@
         |  eq([::FirstNonZeroElementNotNumberError :null 1 :number :firstNonZero])
        }
   ~~|
+  ::builtin{:category :type-error :operand :firstNonZero :expectedType :number}
 
 :sort
   |~~ Returns a new Vec sorted in natural ascending order.
@@ -213,6 +223,7 @@
         |  eq([::SortNaturalSubjectNotVecError :number :vec :sort :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sort :position :subject :expectedType :vec}
 
 ::SortByKeySubjectNotVecError
   |~~ Subject of `sort(key)` must be Vec.
@@ -222,6 +233,7 @@
         |  eq([::SortByKeySubjectNotVecError :number :vec :sort :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sort :position :subject :expectedType :vec}
 
 ::SortNaturalNotComparableError
   |~~ Operands of `sort` are not pairwise-comparable scalars.
@@ -231,6 +243,7 @@
         |  eq([::SortNaturalNotComparableError :string :number :sort])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sort}
 
 ::SortByKeyNotComparableError
   |~~ Operands of `sort(key)` are not pairwise-comparable scalars.
@@ -240,6 +253,7 @@
         |  eq([::SortByKeyNotComparableError :string :number :sort])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sort}
 
 :sortWith
   |~~ Sorts a Vec using a custom comparator sub-pipeline. The
@@ -266,6 +280,7 @@
         |  eq([::SortWithSubjectNotVecError :number :vec :sortWith :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sortWith :position :subject :expectedType :vec}
 
 ::SortWithCmpResultNotNumberError
   |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
@@ -275,6 +290,7 @@
         |  eq([::SortWithCmpResultNotNumberError :keyword])
        }
   ~~|
+  ::builtin{:category :type-error :operand :sortWith :expectedType :number}
 
 :take
   |~~ Returns the first n elements. If n exceeds length, returns
@@ -297,6 +313,7 @@
         |  eq([::TakeSubjectNotVecError :number :vec :take :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :take :position :subject :expectedType :vec}
 
 ::TakeCountNotNumberError
   |~~ Captured argument at position 2 of `take` must be Number.
@@ -306,6 +323,7 @@
         |  eq([::TakeCountNotNumberError :string :number :take 2])
        }
   ~~|
+  ::builtin{:category :type-error :operand :take :position 2 :expectedType :number}
 
 :at
   |~~ Polymorphic indexed access. On a Vec subject, returns the
@@ -336,6 +354,7 @@
         |  eq([::AtSubjectNotVecOrMapError :number [:vec :map] :at :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :at :position :subject :expectedType [:vec :map]}
 
 ::AtIndexNotIntegerError
   |~~ Captured argument at position 2 of `at` must be Integer.
@@ -345,6 +364,7 @@
         |  eq([::AtIndexNotIntegerError :number :integer :at 2])
        }
   ~~|
+  ::builtin{:category :type-error :operand :at :position 2 :expectedType :integer}
 
 ::AtKeyNotStringError
   |~~ Captured argument at position 2 of `at` must be String (Map key).
@@ -355,6 +375,7 @@
         |  eq([::AtKeyNotStringError :at 2 :number])
        }
   ~~|
+  ::builtin{:category :type-error :operand :at :position 2 :expectedType :string}
 
 :drop
   |~~ Returns the Vec with the first n elements removed. If n
@@ -377,6 +398,7 @@
         |  eq([::DropSubjectNotVecError :number :vec :drop :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :drop :position :subject :expectedType :vec}
 
 ::DropCountNotNumberError
   |~~ Captured argument at position 2 of `drop` must be Number.
@@ -386,6 +408,7 @@
         |  eq([::DropCountNotNumberError :string :number :drop 2])
        }
   ~~|
+  ::builtin{:category :type-error :operand :drop :position 2 :expectedType :number}
 
 :distinct
   |~~ Returns a new Vec with duplicate elements removed, preserving
@@ -413,6 +436,7 @@
         |  eq([::DistinctSubjectNotVecError :number :vec :distinct :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :distinct :position :subject :expectedType :vec}
 
 :reverse
   |~~ Returns the Vec in reverse order.
@@ -433,6 +457,7 @@
         |  eq([::ReverseSubjectNotVecError :number :vec :reverse :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :reverse :position :subject :expectedType :vec}
 
 :flat
   |~~ Flattens one level of nesting. Elements that are Vecs are
@@ -454,6 +479,7 @@
         |  eq([::FlatSubjectNotVecError :number :vec :flat :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :flat :position :subject :expectedType :vec}
 
 :groupBy
   |~~ Partitions a Vec into a Map keyed by the result of the key
@@ -479,6 +505,7 @@
         |  eq([::GroupBySubjectNotVecError :number :vec :groupBy :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :groupBy :position :subject :expectedType :vec}
 
 ::GroupByKeyNotKeywordError
   |~~ `groupBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
@@ -488,6 +515,7 @@
         |  eq([::GroupByKeyNotKeywordError :number 0])
        }
   ~~|
+  ::builtin{:category :type-error :operand :groupBy :expectedType :keyword}
 
 :indexBy
   |~~ Collapses a Vec into a Map keyed by the result of the key
@@ -512,6 +540,7 @@
         |  eq([::IndexBySubjectNotVecError :number :vec :indexBy :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :indexBy :position :subject :expectedType :vec}
 
 ::IndexByKeyNotKeywordError
   |~~ `indexBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
@@ -521,3 +550,4 @@
         |  eq([::IndexByKeyNotKeywordError :number 0])
        }
   ~~|
+  ::builtin{:category :type-error :operand :indexBy :expectedType :keyword}

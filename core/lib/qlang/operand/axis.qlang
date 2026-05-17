@@ -34,6 +34,7 @@
         |  eq([::SourceSubjectNotKeywordOrTagError :number])
        }
   ~~|
+  ::builtin{:category :type-error :operand :source :position :subject :expectedType [:keyword :tag-keyword]}
 
 :docs
   |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
@@ -60,6 +61,7 @@
         |  eq([::DocsSubjectNotKeywordOrTagError :number])
        }
   ~~|
+  ::builtin{:category :type-error :operand :docs :position :subject :expectedType [:keyword :tag-keyword]}
 
 :examples
   |~~ `:name | examples` — Vec of Quote-values extracted from the
@@ -86,6 +88,7 @@
         |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
        }
   ~~|
+  ::builtin{:category :type-error :operand :examples :position :subject :expectedType [:keyword :tag-keyword]}
 
 ::AxisBindingNotFoundError
   |~~ Axis-operand (`source` / `docs` / `examples`) — no
@@ -99,3 +102,4 @@
                 :source :nonexistent-binding])
        }
   ~~|
+  ::builtin{:category :type-error}

@@ -37,6 +37,7 @@
         |  eq([::ParseSubjectNotStringOrQuoteError :number])
        }
   ~~|
+  ::builtin{:category :type-error :operand :parse :position :subject :expectedType [:string :quote]}
 
 :eval
   |~~ Evaluates an AST-Map (typically produced by parse or
@@ -68,6 +69,7 @@
         |  eq([::EvalSubjectNotMapOrQuoteError :number])
        }
   ~~|
+  ::builtin{:category :type-error :operand :eval :position :subject :expectedType [:map :quote]}
 
 :apply
   |~~ Runs the Quote-or-AST in pipeValue against the captured

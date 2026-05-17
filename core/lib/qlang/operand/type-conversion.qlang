@@ -32,3 +32,4 @@
         |  eq([::KeywordSubjectNotStringOrKeywordError :number [:string :keyword] :keyword :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :keyword :position :subject :expectedType [:string :keyword]}

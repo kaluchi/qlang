@@ -60,6 +60,7 @@
         |  eq([::GtOperandsNotComparableError :number :string :gt])
        }
   ~~|
+  ::builtin{:category :type-error :operand :gt}
 
 :lt
   |~~ Subject-first ordering: a | lt(b) computes a < b.
@@ -81,6 +82,7 @@
         |  eq([::LtOperandsNotComparableError :number :string :lt])
        }
   ~~|
+  ::builtin{:category :type-error :operand :lt}
 
 :gte
   |~~ Subject-first ordering: a | gte(b) computes a >= b.
@@ -102,6 +104,7 @@
         |  eq([::GteOperandsNotComparableError :number :string :gte])
        }
   ~~|
+  ::builtin{:category :type-error :operand :gte}
 
 :lte
   |~~ Subject-first ordering: a | lte(b) computes a <= b.
@@ -123,6 +126,7 @@
         |  eq([::LteOperandsNotComparableError :number :string :lte])
        }
   ~~|
+  ::builtin{:category :type-error :operand :lte}
 
 :and
   |~~ Returns true if both operands are truthy. Used in full form

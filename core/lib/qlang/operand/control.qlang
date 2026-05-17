@@ -61,6 +61,7 @@
         |  eq([::CoalesceNoAlternativesError])
        }
   ~~|
+  ::builtin{:category :arity-error :operand :coalesce}
 
 :firstTruthy
   |~~ Returns the first truthy result among the captured
@@ -85,6 +86,7 @@
         |  eq([::FirstTruthyNoAlternativesError])
        }
   ~~|
+  ::builtin{:category :arity-error :operand :firstTruthy}
 
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -109,3 +111,4 @@
         |  eq([::CondNoBranchesError])
        }
   ~~|
+  ::builtin{:category :arity-error :operand :cond}

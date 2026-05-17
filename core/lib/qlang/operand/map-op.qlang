@@ -21,6 +21,7 @@
         |  eq([::KeysSubjectNotMapError :number :map :keys :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :keys :position :subject :expectedType :map}
 
 :vals
   |~~ Returns a Vec of values in insertion order.
@@ -41,6 +42,7 @@
         |  eq([::ValsSubjectNotMapError :vec :map :vals :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :vals :position :subject :expectedType :map}
 
 :has
   |~~ Returns true if the Map contains the keyword key, or if
@@ -64,6 +66,7 @@
         |  eq([::HasSubjectNotMapOrSetError :number [:map :set] :has :subject])
        }
   ~~|
+  ::builtin{:category :type-error :operand :has :position :subject :expectedType [:map :set]}
 
 ::HasKeyNotKeywordError
   |~~ Captured argument at position 2 of `has` must be Keyword.
@@ -73,3 +76,4 @@
         |  eq([::HasKeyNotKeywordError :string :keyword :has 2])
        }
   ~~|
+  ::builtin{:category :type-error :operand :has :position 2 :expectedType :keyword}

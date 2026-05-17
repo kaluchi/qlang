@@ -51,10 +51,11 @@ export const AxisBindingNotFoundError = declareShapeError('AxisBindingNotFoundEr
 //   doc-prefix in `.docs`.
 //
 //   OperandCall `as(:name)` — the AST node carries `.args[0]`
-//   (Keyword) and the doc-prefix in `.docs`.
-//
-// Both forms attach docs to the named binding and both answer to
-// axis-operand lookups.
+//   (Keyword) and the doc-prefix in `.docs`. `as` mints into the
+//   value namespace only, so a tag-namespace lookup
+//   (`::Tag | source`) must never reach the `as` branch — the
+//   value-namespace `:Tag` snapshot and the tag-namespace `::Tag`
+//   binding are distinct env entries.
 function matchesBindingStep(step, isTagBinding, targetName) {
   if (step.type === 'BindStep') {
     const key = step.key;
@@ -63,6 +64,7 @@ function matchesBindingStep(step, isTagBinding, targetName) {
       : key.type === 'Keyword'         && key.name === targetName;
   }
   if (step.type === 'OperandCall' && step.name === 'as') {
+    if (isTagBinding) return false;
     if (!Array.isArray(step.args) || step.args.length === 0) return false;
     const firstArg = step.args[0];
     return firstArg.type === 'Keyword' && firstArg.name === targetName;

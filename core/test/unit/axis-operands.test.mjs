@@ -163,6 +163,29 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
     const result = await evalQuery('::conduit | examples | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
+
+  // Regression — `as` mints only into the value namespace, so the
+  // axis walker's `OperandCall as` recogniser must skip when the
+  // lookup is in the tag namespace. A `42 | as(:Foo)` snapshot under
+  // a value-namespace `:Foo` keyword must not satisfy a
+  // tag-namespace lookup `::Foo | source` — they are distinct env
+  // entries by colon-count.
+  it('::Tag | source ignores a same-stem as(:Tag) value-namespace snapshot', async () => {
+    const result = await evalQuery('42 | as(:Foo) | ::Foo | source');
+    const { isErrorValue } = await import('../../src/types.mjs');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.originalError.name).toBe('AxisBindingNotFoundError');
+    expect(result.originalError.context.axisName).toBe('source');
+    expect(result.originalError.context.bindingName).toBe('::Foo');
+  });
+
+  it('::Tag | docs ignores a same-stem as(:Tag) value-namespace snapshot', async () => {
+    const result = await evalQuery('42 | as(:Foo) | ::Foo | docs');
+    const { isErrorValue } = await import('../../src/types.mjs');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.originalError.name).toBe('AxisBindingNotFoundError');
+    expect(result.originalError.context.axisName).toBe('docs');
+  });
 });
 
 describe('examples axis extracts Quote segments from a loaded module', () => {

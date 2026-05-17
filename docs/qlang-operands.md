@@ -950,14 +950,15 @@ its own eval handler in `eval.mjs`.
   - **Builtin** — env entry is a descriptor Map loaded by
     `langRuntime()` from one of the catalog family files under
     `lib/qlang/operand/`. The user-facing descriptor stamps
-    `:kind :builtin` (plain Keyword, dropping the internal
-    `::builtin` TagKeyword), drops the `:impl` handle (the
-    dispatch-time primitive key is internal), and copies
-    `:category` / `:subject` / `:modifiers` / `:returns` /
-    `:throws` verbatim. The derived `:captured` / `:effectful`
-    fields are stamped from the resolved primitive's `meta`:
+    `:kind ::builtin` (TagKeyword matching the env-side shape, so
+    `manifest | first | type` and `env | /:name | type` both surface
+    `::builtin`), drops the `:impl` handle (the dispatch-time
+    primitive key is internal), and copies `:category` / `:subject`
+    / `:modifiers` / `:returns` / `:throws` verbatim. The derived
+    `:captured` / `:effectful` fields are stamped from the resolved
+    primitive's `meta`:
     ```
-    {:kind      :builtin
+    {:kind      ::builtin
      :name      "count"
      :category  :container-reducer
      :subject   [:vec :set :map]
@@ -981,7 +982,7 @@ its own eval handler in `eval.mjs`.
   - **Conduit** — env entry is a BindStep-bound conduit (named
     pipeline fragment, zero or more parameters). Descriptor:
     ```
-    {:kind      :conduit
+    {:kind      ::conduit
      :name      "surround"
      :params    ["pfx" "sfx"]
      :source    "(prepend(pfx) | append(sfx))"
@@ -991,7 +992,7 @@ its own eval handler in `eval.mjs`.
   - **Snapshot** — env entry is an `as`-bound snapshot wrapper.
     Descriptor:
     ```
-    {:kind      :snapshot
+    {:kind      ::snapshot
      :name      "captured"
      :value     <snapshotted value>
      :type      :vec
@@ -999,7 +1000,7 @@ its own eval handler in `eval.mjs`.
      :location  {:start ... :end ...}}
     ```
   - **Value** — any other plain JS value (scalar, Vec, Map, Set,
-    error value, function value, …). Descriptor: `:kind :value`,
+    error value, function value, …). Descriptor: `:kind ::value`,
     `:name`, `:value`, `:type` (from `typeKeyword`).
 
   Per-binding source-level introspection goes through the axis
@@ -1019,7 +1020,7 @@ its own eval handler in `eval.mjs`.
     so the descriptors compose with the tag-namespace axis trio
     (`::Tag | source` / `::Tag | docs` / `::Tag | examples`).
 - **Examples**:
-  - `env | manifest | filter(/kind | eq(:builtin)) | table` —
+  - `env | manifest | filter(/kind | eq(::builtin)) | table` —
     full catalog of built-in operands as a tabular report grouped
     by category.
   - `manifest(:tag) | first | /name` — first registered `::Tag`

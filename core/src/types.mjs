@@ -38,7 +38,7 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(
-      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :kind :builtin and :impl when binding through session.bind.',
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :kind ::builtin and :impl when binding through session.bind.',
       {}
     );
     this.name = 'FunctionValueLeakedToPrintError';

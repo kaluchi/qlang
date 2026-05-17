@@ -429,7 +429,7 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const jsonOutput = await evalQuery('manifest | filter(/name | eq("count")) | first | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"kind":":builtin"');
+    expect(jsonOutput).toContain('"kind":"::builtin"');
   });
 
   it('direct projection at :impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {

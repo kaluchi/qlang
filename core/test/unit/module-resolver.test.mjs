@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { discoverModules, resolveModules, installModules } from '../../host/module-resolver.mjs';
 import { createSession } from '../../src/session.mjs';
-import { keyword } from '../../src/types.mjs';
+import { keyword, makeTagKeyword } from '../../src/types.mjs';
 
 // Compute lib directory at module scope (no top-level await needed —
 // fileURLToPath/dirname/join are synchronous).
@@ -95,7 +95,7 @@ describe('installModules', () => {
     // use(:error) imports retry into current env
     const cellEntry = await sessionInstance.evalCell('use(:error) | manifest | filter(/name | eq("retry")) | first | /kind');
     expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual(keyword('conduit'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
   });
 
   it('resolveModules with explicit dependencies uses topo sort', async () => {
@@ -122,7 +122,7 @@ describe('installModules', () => {
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
       const cellEntry = await sessionInstance.evalCell(`manifest | filter(/name | eq("${name}")) | first | /kind`);
       expect(cellEntry.error).toBeNull();
-      expect(cellEntry.result).toEqual(keyword('conduit'));
+      expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
     }
   });
 });

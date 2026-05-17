@@ -27,7 +27,7 @@ import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
-  isErrorValue, typeKeyword, keyword
+  isErrorValue, typeKeyword, keyword, makeTagKeyword
 } from '../types.mjs';
 import {
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
@@ -68,7 +68,7 @@ function errorMessageOf(errorValue) {
 function buildBuiltinDescriptor(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
-  result.set('kind', keyword('builtin'));
+  result.set('kind', makeTagKeyword('builtin'));
   result.set('name', explicitName);
   result.set('category', keyword(meta.category));
   result.set('subject', meta.subject);
@@ -86,7 +86,7 @@ function buildConduitDescriptor(conduit, explicitName) {
   // payload mirrors it under normal BindStep declarations but the
   // env-key is the source of truth for the descriptor.
   const result = new Map();
-  result.set('kind', keyword('conduit'));
+  result.set('kind', makeTagKeyword('conduit'));
   result.set('name', explicitName);
   result.set('params', [...conduit.get('params')]);
   result.set('source', conduit.get('source'));
@@ -98,7 +98,7 @@ function buildConduitDescriptor(conduit, explicitName) {
 function buildSnapshotDescriptor(snap, explicitName) {
   const value = snap.get('payload');
   const result = new Map();
-  result.set('kind', keyword('snapshot'));
+  result.set('kind', makeTagKeyword('snapshot'));
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
@@ -109,7 +109,7 @@ function buildSnapshotDescriptor(snap, explicitName) {
 
 function buildValueDescriptor(value, explicitName) {
   const result = new Map();
-  result.set('kind', keyword('value'));
+  result.set('kind', makeTagKeyword('value'));
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
@@ -129,7 +129,7 @@ function describeBinding(value, explicitName) {
                               && explicitName.startsWith('::');
     if (isTagBindingEntry) {
       const tagResult = new Map();
-      tagResult.set('kind', keyword('tag'));
+      tagResult.set('kind', makeTagKeyword('tag'));
       tagResult.set('name', explicitName);
       for (const [descKey, descVal] of value) {
         if (descKey === 'kind') continue;

@@ -396,11 +396,11 @@ describe('conduit-parameter arity error', async () => {
 
 
 describe('manifest descriptor for a snapshot bound directly via session.bind', async () => {
-  it('manifest entry carries :kind :snapshot plus :type and :value', async () => {
+  it('manifest entry carries :kind ::snapshot plus :type and :value', async () => {
     const s = await createSession();
     s.bind('snap', makeSnapshot(42, { name: 'snap' }));
     const result = (await s.evalCell('manifest | filter(/name | eq("snap")) | first')).result;
-    expect(result.get('kind')).toEqual(keyword('snapshot'));
+    expect(result.get('kind')).toEqual(makeTagKeyword('snapshot'));
     expect(result.get('value')).toBe(42);
     expect(result.get('type')).toEqual(keyword('number'));
   });
@@ -464,15 +464,15 @@ describe('manifest descriptor — describeBinding branch coverage', async () => 
   // value / plain). Each branch lands in `manifest`'s output Vec
   // through its dedicated build* helper.
 
-  it('conduit binding surfaces :kind :conduit with the declared name', async () => {
+  it('conduit binding surfaces :kind ::conduit with the declared name', async () => {
     const r = await evalQuery(':x mul(2) | manifest | filter(/name | eq("x")) | first');
-    expect(r.get('kind')).toEqual(keyword('conduit'));
+    expect(r.get('kind')).toEqual(makeTagKeyword('conduit'));
     expect(r.get('name')).toBe('x');
   });
 
-  it('snapshot binding surfaces :kind :snapshot with the declared name', async () => {
+  it('snapshot binding surfaces :kind ::snapshot with the declared name', async () => {
     const r = await evalQuery('42 | as(:v) | manifest | filter(/name | eq("v")) | first');
-    expect(r.get('kind')).toEqual(keyword('snapshot'));
+    expect(r.get('kind')).toEqual(makeTagKeyword('snapshot'));
     expect(r.get('name')).toBe('v');
   });
 });

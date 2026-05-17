@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { keyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
+import { keyword, makeTagKeyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
@@ -352,7 +352,7 @@ describe('createSession with locator — lazy module loading', () => {
     expect(manifestCell.error).toBeNull();
     const fetchDesc = manifestCell.result;
     expect(isQMap(fetchDesc)).toBe(true);
-    expect(fetchDesc.get('kind')).toEqual(keyword('builtin'));
+    expect(fetchDesc.get('kind')).toEqual(makeTagKeyword('builtin'));
     expect(fetchDesc.get('captured')).toEqual([0, 0]);
     expect(fetchDesc.get('effectful')).toBe(true);
   });

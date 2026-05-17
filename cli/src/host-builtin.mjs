@@ -3,7 +3,7 @@
 // CLI host operands (`@in`, `@out`, `pretty`, `tjson`, `parseJson`,
 // ...) are dispatched through the same descriptor-Map path as the
 // core catalog: every binding in env is a Map carrying
-// `:kind :builtin` plus `:impl <function-value>`.
+// `:kind ::builtin` plus `:impl <function-value>`.
 // Wrapping host operands the same way means the function value
 // lives in exactly one slot — `:impl` — where the render
 // projection in `runtime/format.mjs` substitutes it back to the

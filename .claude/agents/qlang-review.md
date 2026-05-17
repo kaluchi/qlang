@@ -111,6 +111,25 @@ Findings in this category must name the apophasis explicitly, quote the offendin
 
 Grep heuristic for the reviewer: any non-table line containing `, not ` / `instead of ` / `rather than ` / `as opposed to ` / `no longer ` / `not just ` / `not the ` / `not a ` after the first prose paragraph of a chapter is suspect. Confirm by reading the surrounding sentence — if dropping the negated half loses no specification, the line is apophatic and must be rewritten.
 
+### 2b. No `Class` / `Class-level` vocabulary
+
+Reject `Class` (capitalised standalone noun) and `Class-level` (compound adjective) wherever they appear in qlang prose — comments, doc strings, spec chapters, commit messages, review findings, design discussions. qlang's surface vocabulary speaks in `tag` / `:kind` discriminator / `kind` / `per-site` / `tag-level` / `static` / `binding kind`. The word `Class` imports OOP-shaped framing into a language that has no inheritance, no constructors-as-classes, no `new`, no class hierarchy — just tags, kinds, and per-site error classes (the one legacy compound the rules already pin in §3).
+
+Specific surface-level rejections:
+
+- `Class-level facts` → `tag-level facts` / `static facts` / `per-tag spec`
+- `Class identity` → `tag identity` / `:kind` identity
+- `the class of X` → `the kind of X` / `the tag of X`
+- `class-level metadata` → `catalog metadata` / `tag-binding metadata`
+- `each class carries` → `each tag-binding carries` / `each per-site error carries`
+
+Two narrow exceptions:
+
+1. **The idiom `first-class` / `first class`.** "First-class value", "first-class citizen", "lift X to first-class status" — universal English usage that lands at the qlang value-class surface without OOP baggage. Keep.
+2. **Established domain compounds.** `value-class` (used throughout `types.mjs` for the JS-side value-shape predicates — `value-class predicates`, `value-class instance`) and `per-site error class` (the §3 rule name itself) are coined qlang compounds that pre-date this rule. Keep existing usage; do **not** add new `value-class`-style compounds unless the qlang domain genuinely needs one — prefer `tag` / `kind` / `binding` first.
+
+Findings in this category must quote the offending phrase, name which exception applies (if any), and propose the positive rewrite in the language's own vocabulary.
+
 ### 3. Per-site error classes (one throw site, one class)
 
 Every type-error / arity-error / shape-error throw site in the runtime must have its own unique class name. No two operands share an error class. Check `core/src/operand-errors.mjs` for the factories (`declareSubjectError`, `declareModifierError`, `declareElementError`, `declareComparabilityError`, `declareShapeError`, `declareArityError`) and verify each new throw site uses a unique class name.

@@ -72,7 +72,7 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // for the duration of a conduit body fork, and have no catalog
 // entry to project meta from. The proxy's full meta lets the
 // `isFunctionValue` branch of `manifest`'s `describeBinding` build
-// a `:kind :builtin` descriptor for the proxy without a
+// a `:kind ::builtin` descriptor for the proxy without a
 // descriptor-Map round-trip.
 export function makeFn(name, arity, impl, meta) {
   return Object.freeze({

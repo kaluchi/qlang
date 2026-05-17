@@ -2068,7 +2068,7 @@ rendering boundaries:
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
   `toPlain` refuse a raw function value because no grammatical
   literal renders back to one. Host operands must wrap the
-  function in a descriptor Map carrying `:kind :builtin`
+  function in a descriptor Map carrying `:kind ::builtin`
   and `:impl <fn>`; the projection inside `printValue`
   substitutes the function back to its `:qlang/prim/<name>`
   keyword handle so the descriptor itself round-trips.

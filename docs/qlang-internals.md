@@ -313,12 +313,13 @@ current `env`, building a descriptor Map per entry via
 of descriptors sorted by binding name. The descriptor `:kind`
 field distinguishes four provenances:
 
-- `:builtin` — env entry is a descriptor Map loaded by
+- `::builtin` — env entry is a descriptor Map loaded by
   `langRuntime()` from one of the catalog family files under
   `lib/qlang/operand/`. The user-facing descriptor stamps
-  `:kind :builtin` (plain Keyword, dropping the internal
-  `::builtin` TagKeyword), drops the `:impl` handle (dispatch-
-  time primitive key is internal), and copies `:category`,
+  `:kind ::builtin` (TagKeyword matching the env-side shape, so
+  `manifest | first | type` reads `::builtin` identically to
+  `env | /:name | type`), drops the `:impl` handle (dispatch-time
+  primitive key is internal), and copies `:category`,
   `:subject`, `:modifiers`, `:returns`, `:throws` verbatim. The
   derived `:captured` / `:effectful` fields are stamped from the
   resolved primitive's `meta`. Authored prose lives on the
@@ -635,7 +636,7 @@ co-located sources:
   by the operand BindSteps that reference those tags in their
   `:throws` Vec. Each operand binds a keyword identifier
   (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
-  descriptor Map carrying `:kind :builtin` plus a
+  descriptor Map carrying `:kind ::builtin` plus a
   namespaced `:impl :qlang/prim/<name>` keyword that
   points into the primitive registry, plus authored metadata
   (`:category`, `:subject`, `:modifiers`, `:returns`,

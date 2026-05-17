@@ -384,6 +384,6 @@
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function
       value reached render. Wrap host operands in a descriptor
-      Map carrying `:kind :builtin` and `:impl`
+      Map carrying `:kind ::builtin` and `:impl`
       when binding through `session.bind`.
   ~~|

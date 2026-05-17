@@ -7,7 +7,7 @@
 // `lib/qlang/runtime-invariants.qlang` (shared / runtime tag-bindings)
 // and `lib/qlang/tag.qlang` (value-class constructors ::conduit /
 // ::qlang / ::json). Each operand is a `BindStep` whose body is a
-// descriptor Map carrying :kind :builtin, a :impl
+// descriptor Map carrying :kind ::builtin, a :impl
 // `:qlang/prim/*` keyword pointing into PRIMITIVE_REGISTRY, plus
 // authored metadata (category / subject / returns / modifiers /
 // throws) and doc-comment-prefix-attached `.docs`. `langRuntime()`
@@ -22,7 +22,7 @@
 //      without errors.
 //   2. Evaluating the catalog through the locator produces a
 //      non-empty Map — one entry per built-in operand.
-//   3. Every operand entry is itself a Map with :kind :builtin
+//   3. Every operand entry is itself a Map with :kind ::builtin
 //      and a :impl keyword prefixed `qlang/prim/`.
 //   4. Every :impl keyword resolves to a real primitive in
 //      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
@@ -45,7 +45,7 @@ import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 // lands every descriptor Map in env. Reading the resolved env
 // returns the catalog as a Map keyed by operand name. Reserved
 // housekeeping keys (`qlang/ast/<uri>`, `qlang/namespace/<ns>`,
-// `qlang/locator`, anything without a `:kind :builtin`
+// `qlang/locator`, anything without a `:kind ::builtin`
 // descriptor) are filtered so the returned Map carries only
 // operand descriptors — the surface the rest of this suite
 // asserts against.
@@ -245,7 +245,7 @@ describe('manifest descriptor for a conduit-parameter proxy', () => {
   // them at applyConduit time with a full `meta` shape inline.
   // Running `manifest` inside a conduit body iterates the body's
   // fork env, which carries the proxy; `describeBinding` takes the
-  // `isFunctionValue` path and stamps a `:kind :builtin` descriptor
+  // `isFunctionValue` path and stamps a `:kind ::builtin` descriptor
   // through `buildBuiltinDescriptor`. The descriptor's `:category`
   // tracks the proxy's authored slot (`:conduit-parameter`), so
   // catalog walkers can distinguish synthetic-per-call entries from

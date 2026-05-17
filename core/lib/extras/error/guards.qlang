@@ -1,3 +1,25 @@
+|~ Guard conduits — `:assert` / `:ensure`. Each lifts the per-site
+   tag (`::AssertionFailedError` / `::PostconditionFailedError`)
+   declared below as the error identity, so `result !| type | spec
+   | /category` reads the broad-bucket the same way runtime errors
+   do. ~|
+
+::AssertionFailedError
+  |~~ `assert` precondition raised — the supplied predicate
+      returned a falsy result against `pipeValue`. The error
+      descriptor carries `:message` (the caller-supplied hint)
+      and `:value` (the offending `pipeValue` snapshot).
+  ~~|
+  ::builtin{:category :assertion-failed :operand :assert}
+
+::PostconditionFailedError
+  |~~ `ensure` postcondition raised — the predicate returned
+      falsy against the transformed `pipeValue`. Same descriptor
+      shape as `::AssertionFailedError`; distinct tag identity
+      so `!| type` reads the contract that failed.
+  ~~|
+  ::builtin{:category :postcondition-failed :operand :ensure}
+
 :assert
   |~~ Guard: check predicate on pipeValue, raise error
     if the predicate fails. pipeValue passes through

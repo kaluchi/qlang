@@ -153,6 +153,13 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
       const descKind = isQMap(implDescriptor) && implDescriptor.get('kind');
       if (descKind && descKind.name === 'builtin') {
         implDescriptor.set('impl', implFn);
+        // Backfill structural-from-impl facts so locator-loaded
+        // descriptors carry the same `:captured` / `:effectful`
+        // shape `runtime/index.mjs::buildLangRuntime` stamps on
+        // core-catalog descriptors. `spec` axis and `manifest`
+        // enumeration read them off the env entry uniformly.
+        implDescriptor.set('captured', [...implFn.meta.captured]);
+        implDescriptor.set('effectful', implFn.effectful);
       }
     }
   }

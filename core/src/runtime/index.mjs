@@ -178,7 +178,15 @@ export async function buildLangRuntime(locator) {
     if (envKey.startsWith('::')) continue;
     const implKey = descriptor.get('impl');
     if (isKeyword(implKey)) {
-      descriptor.set('impl', PRIMITIVE_REGISTRY.resolve(implKey.name));
+      const fn = PRIMITIVE_REGISTRY.resolve(implKey.name);
+      descriptor.set('impl', fn);
+      // Backfill structural-from-impl facts so env entries carry
+      // the full runtime shape — `:add | spec` and `manifest |
+      // filter(/name | eq("add")) | first` both surface the same
+      // descriptor without manifest having to re-project from the
+      // function value at enumeration time.
+      descriptor.set('captured', [...fn.meta.captured]);
+      descriptor.set('effectful', fn.effectful);
     }
     if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
     if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));

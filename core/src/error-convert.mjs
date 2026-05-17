@@ -50,7 +50,7 @@ function liftIdentifier(k, v) {
   return keyword(v);
 }
 
-export function errorFromQlang(qlangError, fault, _env) {
+export function errorFromQlang(qlangError, fault) {
   const d = new Map();
   const tagName = qlangError.fingerprint ?? qlangError.name;
   d.set('kind', makeTagKeyword(tagName));

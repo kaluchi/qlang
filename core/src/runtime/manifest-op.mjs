@@ -137,7 +137,7 @@ function describeBinding(value, explicitName) {
       }
       return tagResult;
     }
-    return manifestBuiltinDescriptor(value, value.get('impl'), explicitName);
+    return manifestBuiltinDescriptor(value, explicitName);
   }
   // Conduit-parameters — function values minted by
   // `makeConduitParameter` in `eval.mjs` that surface inside a

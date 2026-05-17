@@ -99,7 +99,7 @@ chapters the main agent keeps in mind at every commit:
 11. Retroactive fixing of pre-existing violations in any file touched by
     a diff.
 12. Conceptual completeness — flag organic next steps (sibling operands
-    missing, `reify` field not surfaced by `manifest`, etc.).
+    missing, axis-operand surface incomplete for a new value-class, etc.).
 13. Structural coherence — no code dumps. Every file in `core/src/`,
     `core/test/`, `docs/` must have a derivable one-sentence grouping
     principle.

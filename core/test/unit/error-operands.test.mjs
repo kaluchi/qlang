@@ -7,6 +7,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
+import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 // ── error operand ──────────────────────────────────────────────
 
@@ -147,16 +148,15 @@ describe('per-site error classes carry unique identity', () => {
   // class name alone identifies the throw location, and tests
   // match on `e.name` (stable identifier) so they stay readable
   // without importing every per-site class.
-
-  // Runtime errors are error values (5th type). Extract the
-  // underlying QlangError via .originalError for structured inspection.
-  async function catchError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
+  //
+  // `catchOriginalError(query)` lives in
+  // `../helpers/error-assertions.mjs` — runtime errors are error
+  // values, the helper unwraps the underlying QlangError off
+  // `.originalError` for structured (`.name`, `.context.*`,
+  // `instanceof QlangTypeError`) inspection.
 
   it('count on non-container → CountSubjectNotContainerError', async () => {
-    const caughtErr = await catchError('42 | count');
+    const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('CountSubjectNotContainerError');
     expect(caughtErr.context.operand).toBe('count');
@@ -164,13 +164,13 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('keys on non-Map → KeysSubjectNotMapError', async () => {
-    const caughtErr = await catchError('42 | keys');
+    const caughtErr = await catchOriginalError('42 | keys');
     expect(caughtErr.name).toBe('KeysSubjectNotMapError');
     expect(caughtErr.context.operand).toBe('keys');
   });
 
   it('add left non-number → AddLeftNotNumberError', async () => {
-    const caughtErr = await catchError('"x" | add(1)');
+    const caughtErr = await catchOriginalError('"x" | add(1)');
     expect(caughtErr.name).toBe('AddLeftNotNumberError');
     expect(caughtErr.context.operand).toBe('add');
     expect(caughtErr.context.position).toBe(1);
@@ -178,71 +178,71 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('add right non-number → AddRightNotNumberError', async () => {
-    const caughtErr = await catchError('1 | add("x")');
+    const caughtErr = await catchOriginalError('1 | add("x")');
     expect(caughtErr.name).toBe('AddRightNotNumberError');
     expect(caughtErr.context.position).toBe(2);
   });
 
   it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
-    const caughtErr = await catchError('"x" | sub(1)');
+    const caughtErr = await catchOriginalError('"x" | sub(1)');
     expect(caughtErr.name).toBe('SubLeftNotNumberError');
   });
 
   it('mul left non-number → MulLeftNotNumberError', async () => {
-    const caughtErr = await catchError('"x" | mul(1)');
+    const caughtErr = await catchOriginalError('"x" | mul(1)');
     expect(caughtErr.name).toBe('MulLeftNotNumberError');
   });
 
   it('div left non-number → DivLeftNotNumberError', async () => {
-    const caughtErr = await catchError('"x" | div(1)');
+    const caughtErr = await catchOriginalError('"x" | div(1)');
     expect(caughtErr.name).toBe('DivLeftNotNumberError');
   });
 
   it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
-    const caughtErr = await catchError('"x" | prepend(42)');
+    const caughtErr = await catchOriginalError('"x" | prepend(42)');
     expect(caughtErr.name).toBe('PrependPrefixNotStringError');
     expect(caughtErr.context.position).toBe(2);
   });
 
   it('append modifier non-string → AppendSuffixNotStringError', async () => {
-    const caughtErr = await catchError('"x" | append(42)');
+    const caughtErr = await catchOriginalError('"x" | append(42)');
     expect(caughtErr.name).toBe('AppendSuffixNotStringError');
   });
 
   it('sum element non-number → SumElementNotNumberError', async () => {
-    const caughtErr = await catchError('[1 "two" 3] | sum');
+    const caughtErr = await catchOriginalError('[1 "two" 3] | sum');
     expect(caughtErr.name).toBe('SumElementNotNumberError');
     expect(caughtErr.context.index).toBe(1);
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
   it('gt across types → GtOperandsNotComparableError', async () => {
-    const caughtErr = await catchError('"a" | gt(5)');
+    const caughtErr = await catchOriginalError('"a" | gt(5)');
     expect(caughtErr.name).toBe('GtOperandsNotComparableError');
     expect(caughtErr.context.leftType.name).toBe('string');
     expect(caughtErr.context.rightType.name).toBe('number');
   });
 
   it('lt across types → LtOperandsNotComparableError (distinct class)', async () => {
-    const caughtErr = await catchError('"a" | lt(5)');
+    const caughtErr = await catchOriginalError('"a" | lt(5)');
     expect(caughtErr.name).toBe('LtOperandsNotComparableError');
   });
 
   it('projection on non-Map → ProjectionSubjectNotMapError', async () => {
-    const caughtErr = await catchError('42 | /name');
+    const caughtErr = await catchOriginalError('42 | /name');
     expect(caughtErr.name).toBe('ProjectionSubjectNotMapError');
     expect(caughtErr.context.key).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('distribute on non-Vec → DistributeSubjectNotVecError', async () => {
-    const caughtErr = await catchError('{:a 1} * add(1)');
+    const caughtErr = await catchOriginalError('{:a 1} * add(1)');
     expect(caughtErr.name).toBe('DistributeSubjectNotVecError');
     expect(caughtErr.context.actualType.name).toBe('map');
   });
 
   it('merge on non-Vec → MergeSubjectNotVecError (distinct from distribute)', async () => {
-    const caughtErr = await catchError('42 >> count');
+    const caughtErr = await catchOriginalError('42 >> count');
     expect(caughtErr.name).toBe('MergeSubjectNotVecError');
   });
 
@@ -250,24 +250,24 @@ describe('per-site error classes carry unique identity', () => {
     // Use `as` to bind a raw value (snapshot), not a conduit.
     // Snapshot-unwrap produces a non-function, so captured args trigger
     // ApplyToNonFunctionError on the unwrapped value.
-    const caughtErr = await catchError('5 | as(:five) | five(42)');
+    const caughtErr = await catchOriginalError('5 | as(:five) | five(42)');
     expect(caughtErr.name).toBe('ApplyToNonFunctionError');
     expect(caughtErr.context.name).toBe('five');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('use on non-Map → UseSubjectNotMapError', async () => {
-    const caughtErr = await catchError('42 | use');
+    const caughtErr = await catchOriginalError('42 | use');
     expect(caughtErr.name).toBe('UseSubjectNotMapError');
   });
 
   it('filter on non-container → FilterSubjectNotContainerError', async () => {
-    const caughtErr = await catchError('42 | filter(gt(1))');
+    const caughtErr = await catchOriginalError('42 | filter(gt(1))');
     expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
   });
 
   it('at on non-Vec-or-Map → AtSubjectNotVecOrMapError', async () => {
-    const caughtErr = await catchError('42 | at(0)');
+    const caughtErr = await catchOriginalError('42 | at(0)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
     expect(caughtErr.context.operand).toBe('at');
@@ -276,7 +276,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('at with non-string key on Map → AtKeyNotStringError', async () => {
-    const caughtErr = await catchError('{:a 1} | at(42)');
+    const caughtErr = await catchOriginalError('{:a 1} | at(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('AtKeyNotStringError');
     expect(caughtErr.context.operand).toBe('at');
@@ -285,7 +285,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeywordError', async () => {
-    const caughtErr = await catchError('42 | keyword');
+    const caughtErr = await catchOriginalError('42 | keyword');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
     expect(caughtErr.context.operand).toBe('keyword');
@@ -294,12 +294,12 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('take count non-number → TakeCountNotNumberError', async () => {
-    const caughtErr = await catchError('[1 2 3] | take("x")');
+    const caughtErr = await catchOriginalError('[1 2 3] | take("x")');
     expect(caughtErr.name).toBe('TakeCountNotNumberError');
   });
 
   it('drop count non-number → DropCountNotNumberError (distinct from take)', async () => {
-    const caughtErr = await catchError('[1 2 3] | drop("x")');
+    const caughtErr = await catchOriginalError('[1 2 3] | drop("x")');
     expect(caughtErr.name).toBe('DropCountNotNumberError');
   });
 
@@ -316,7 +316,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | use'
     ];
     for (const q of queries) {
-      const caughtErr = await catchError(q);
+      const caughtErr = await catchOriginalError(q);
       expect(caughtErr).toBeInstanceOf(QlangTypeError);
       expect(caughtErr).toBeInstanceOf(QlangError);
       expect(caughtErr.kind).toBe('type-error');
@@ -346,7 +346,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 >> count'        // MergeSubjectNotVecError
     ];
     for (const q of queries) {
-      names.add((await catchError(q)).name);
+      names.add((await catchOriginalError(q)).name);
     }
     // Every query produces a distinct class — the whole point of
     // the refactor is that no two sites share an exception type.
@@ -355,20 +355,15 @@ describe('per-site error classes carry unique identity', () => {
 });
 
 describe('coalesce / firstTruthy arity-error sites carry unique class identity', () => {
-  async function catchError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
-
   it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
-    const caughtErr = await catchError('{} | coalesce()');
+    const caughtErr = await catchOriginalError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arity-error');
     expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 
   it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
-    const caughtErr = await catchError('{} | firstTruthy()');
+    const caughtErr = await catchOriginalError('{} | firstTruthy()');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arity-error');
     expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');

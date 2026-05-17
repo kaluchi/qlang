@@ -22,6 +22,7 @@ import { classifyEffect, EFFECT_MARKER_PREFIX } from '../../src/effect.mjs';
 import { createSession } from '../../src/session.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
+import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 function fakeEffectfulOperand(name = '@callers') {
   return makeFn(name, 1, (state, _lambdas) => state, {
@@ -124,37 +125,35 @@ describe('findFirstEffectfulIdentifier', () => {
 });
 
 describe('eval-time effect validation in evalBindStep', () => {
-  // EffectLaunderingAtBindStepParseError produces an error value (5th type).
-  // Use isErrorValue + .originalError to inspect.
-  async function getEffectError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
+  // EffectLaunderingAtBindStepParseError produces an error value
+  // (5th type). `catchOriginalError` (shared helper) unwraps the
+  // originating JS-side QlangError off the ErrorValue for the
+  // `instanceof EffectLaunderingAtBindStepParseError` checks below.
 
   it('rejects :foo @callers — effectful body, clean name', async () => {
-    const effectErr = await getEffectError(':foo @callers');
+    const effectErr = await catchOriginalError(':foo @callers');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
   it('rejects nested effectful body', async () => {
-    const effectErr = await getEffectError(':foo filter(@callers | count)');
+    const effectErr = await catchOriginalError(':foo filter(@callers | count)');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
   it('rejects projection-laundering', async () => {
-    const effectErr = await getEffectError(':bad (env | /@callers)');
+    const effectErr = await catchOriginalError(':bad (env | /@callers)');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
   it('accepts :@impl @callers — effectful body, @-prefixed name', async () => {
     // @callers resolves to unresolved-identifier in langRuntime (no host plugin),
     // but the let itself should NOT produce an effect-laundering error.
-    const effectErr = await getEffectError(':@impl @callers');
+    const effectErr = await catchOriginalError(':@impl @callers');
     expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
   it('accepts :@safe count — over-approximation harmless', async () => {
-    const effectErr = await getEffectError(':@safe count');
+    const effectErr = await catchOriginalError(':@safe count');
     expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
@@ -164,24 +163,24 @@ describe('eval-time effect validation in evalBindStep', () => {
   });
 
   it('rejects transitive aliasing through a clean name', async () => {
-    const effectErr = await getEffectError(':@a count | :b @a');
+    const effectErr = await catchOriginalError(':@a count | :b @a');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
   it('error carries the offending binding name and effectful identifier', async () => {
-    const effectErr = await getEffectError(':foo @callers');
+    const effectErr = await catchOriginalError(':foo @callers');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
     expect(effectErr.context.bindingName).toBe('foo');
     expect(effectErr.context.effectfulName).toBe('@callers');
   });
 
   it('error has stable fingerprint for Sentry grouping', async () => {
-    const effectErr = await getEffectError(':foo @callers');
+    const effectErr = await catchOriginalError(':foo @callers');
     expect(effectErr.fingerprint).toBe('EffectLaunderingAtBindStepParseError');
   });
 
   it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {
-    const effectErr = await getEffectError(':foo @callers');
+    const effectErr = await catchOriginalError(':foo @callers');
     expect(effectErr).toBeInstanceOf(EffectLaunderingError);
     expect(effectErr).toBeInstanceOf(QlangError);
     expect(effectErr.kind).toBe('effect-laundering');
@@ -194,7 +193,7 @@ describe('eval-time effect validation in evalBindStep', () => {
   });
 
   it('rejects BindStep inside a ParenGroup with effectful body', async () => {
-    const effectErr = await getEffectError('1 | (:bad @callers | bad)');
+    const effectErr = await catchOriginalError('1 | (:bad @callers | bad)');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 

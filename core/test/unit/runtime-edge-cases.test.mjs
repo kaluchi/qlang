@@ -17,7 +17,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
-import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import {
   describeType,
@@ -34,7 +33,6 @@ import {
 } from '../../src/runtime/dispatch.mjs';
 import { QlangInvariantError } from '../../src/errors.mjs';
 import { createSession } from '../../src/session.mjs';
-import { bindingNamesVisibleAt } from '../../src/walk.mjs';
 import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
 import { makeState } from '../../src/state.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
@@ -422,29 +420,6 @@ describe('mergeFlat non-Vec element passthrough', async () => {
   it('>> passes non-Vec elements through unchanged', async () => {
     const result = await evalQuery('[1, [2, 3], 4] >> count');
     expect(result).toBe(4);
-  });
-});
-
-describe('bindingNamesVisibleAt edge cases', async () => {
-  it('bare `as` OperandCall with no args does not contribute names', async () => {
-    // `as` at the head of the pipeline parses as an OperandCall
-    // with `args = null` (bare identifier, no parens). That shape
-    // exercises the bindingNamesVisibleAt branch where the
-    // `as`-named OperandCall has no first-arg Keyword to bind
-    // against, so the visible set stays empty.
-    const ast = parse('as | count');
-    const visible = bindingNamesVisibleAt(ast, ast.source.length);
-    expect(visible.size).toBe(0);
-  });
-
-  it('binding inside a fork-isolating ancestor not containing offset is invisible', async () => {
-    // The as(:x) inside the paren group is fork-isolated.
-    // At offset past the paren group, :x should not be visible.
-    const src = '(42 | as(:x)) | count';
-    const ast = parse(src);
-    const offsetAfterParen = src.indexOf('| count');
-    const visible = bindingNamesVisibleAt(ast, offsetAfterParen);
-    expect(visible.has('x')).toBe(false);
   });
 });
 

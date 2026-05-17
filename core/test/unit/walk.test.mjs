@@ -334,6 +334,51 @@ describe('bindingNamesVisibleAt', () => {
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
     expect(visible.has('::Local')).toBe(false);
   });
+
+  it('bare `as` OperandCall with no args does not contribute names', () => {
+    // `as` at the head of the pipeline parses as an OperandCall with
+    // `args = null` (bare identifier, no parens) — distinct shape
+    // from `as()` which parses with `args = []`. Both routes lead
+    // through the same `firstArg.type !== 'Keyword'` short-circuit
+    // because there is no `firstArg` to inspect at all.
+    const ast = parse('as | count');
+    const visible = bindingNamesVisibleAt(ast, ast.source.length);
+    expect(visible.size).toBe(0);
+  });
+
+  it('does not add binding when as first arg is not a Keyword AST node', () => {
+    // Synthetic AST: `as(42, count)` — non-Keyword first arg, the
+    // shape that drives the `firstArg.type !== 'Keyword'` early
+    // return inside the `as`-recogniser branch. Parser never emits
+    // this shape (the grammar requires a Keyword in the first slot),
+    // but the walker hardens against hand-assembled or codec-replay
+    // AST input that bypasses the grammar.
+    const loc = { start: { offset: 0 }, end: { offset: 10 } };
+    const synAst = {
+      type: 'OperandCall',
+      name: 'as',
+      args: [
+        { type: 'NumberLit', value: 42, location: loc },
+        { type: 'OperandCall', name: 'count', args: null, location: loc }
+      ],
+      location: loc
+    };
+    expect(bindingNamesVisibleAt(synAst, 999).size).toBe(0);
+  });
+
+  it('`as` binding inside a fork-isolating paren not containing offset stays invisible', () => {
+    // Fork-isolation: paren-group siblings hide their writes from
+    // each other and from the outer scope. `as(:x)` writes a
+    // snapshot under :x inside the paren; offset past the paren
+    // closer must not see it. Companion check to the BindStep
+    // form `(:local 1 | local) | here` above — same isolation rule
+    // governs both binding mechanisms.
+    const src = '(42 | as(:x)) | count';
+    const ast = parse(src);
+    const offsetAfterParen = src.indexOf('| count');
+    const visible = bindingNamesVisibleAt(ast, offsetAfterParen);
+    expect(visible.has('x')).toBe(false);
+  });
 });
 
 describe('astNodeSpan and astNodeContainsOffset', () => {
@@ -402,23 +447,3 @@ describe('triviaBetweenAstNodes', () => {
   });
 });
 
-describe('bindingNamesVisibleAt — skips as() with non-Keyword first arg', () => {
-  it('does not add binding when as first arg is not a Keyword AST node', async () => {
-    // Synthetic AST: as(42, count) — non-Keyword first arg, the
-    // shape that drives bindingNamesVisibleAt's `firstArg.type !==
-    // 'Keyword'` early return.
-    const { bindingNamesVisibleAt } = await import('../../src/walk.mjs');
-    const loc = { start: { offset: 0 }, end: { offset: 10 } };
-    const synAst = {
-      type: 'OperandCall',
-      name: 'as',
-      args: [
-        { type: 'NumberLit', value: 42, location: loc },
-        { type: 'OperandCall', name: 'count', args: null, location: loc }
-      ],
-      location: loc
-    };
-    const names = bindingNamesVisibleAt(synAst, 999);
-    expect(names.size).toBe(0);
-  });
-});

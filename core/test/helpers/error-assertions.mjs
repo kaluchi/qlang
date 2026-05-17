@@ -50,3 +50,19 @@ export function expectOriginalError(errorValue, ErrorClass) {
   expect(errorValue.originalError).toBeInstanceOf(ErrorClass);
   return errorValue.originalError;
 }
+
+// catchOriginalError(query) → originalError | null
+//
+// Evaluates the query and unwraps the originating JS-side QlangError
+// off the resulting ErrorValue's `.originalError` slot (the per-site
+// class instance with structured context). Returns `null` on a
+// success-track result so the caller can assert pessimistically
+// (`expect(caughtErr.name).toBe('FooError')` reads cleanly even when
+// the query unexpectedly succeeded — the assertion fails on the null
+// rather than on a TypeError). Used by per-site error-identity
+// tests where assertions read against `caughtErr.name`,
+// `caughtErr.context.*`, or `instanceof QlangTypeError`.
+export async function catchOriginalError(query) {
+  const evalResult = await evalQuery(query);
+  return isErrorValue(evalResult) ? evalResult.originalError : null;
+}

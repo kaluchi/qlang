@@ -36,7 +36,7 @@ import {
   makeConduit,
   isErrorValue
 } from '../../src/types.mjs';
-import { expectErrorCategory } from '../helpers/error-assertions.mjs';
+import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
 import {
   makeState,
   envSet,
@@ -262,35 +262,30 @@ describe('runtime/predicates.mjs deepEqual', () => {
 });
 
 describe('runtime/string.mjs split and join error sites', () => {
-  async function catchError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
-
   it('split on non-string subject → SplitSubjectNotStringError', async () => {
-    const caughtErr = await catchError('42 | split(",")');
+    const caughtErr = await catchOriginalError('42 | split(",")');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('SplitSubjectNotStringError');
   });
 
   it('split with non-string separator → SplitSeparatorNotStringError', async () => {
-    const caughtErr = await catchError('"abc" | split(42)');
+    const caughtErr = await catchOriginalError('"abc" | split(42)');
     expect(caughtErr.name).toBe('SplitSeparatorNotStringError');
   });
 
   it('join on non-Vec subject → JoinSubjectNotVecError', async () => {
-    const caughtErr = await catchError('42 | join(",")');
+    const caughtErr = await catchOriginalError('42 | join(",")');
     expect(caughtErr.name).toBe('JoinSubjectNotVecError');
   });
 
   it('join with non-string element → JoinElementNotStringError', async () => {
-    const caughtErr = await catchError('["a" 42 "c"] | join(",")');
+    const caughtErr = await catchOriginalError('["a" 42 "c"] | join(",")');
     expect(caughtErr.name).toBe('JoinElementNotStringError');
     expect(caughtErr.context.index).toBe(1);
   });
 
   it('join with non-string separator → JoinSeparatorNotStringError', async () => {
-    const caughtErr = await catchError('["a" "b"] | join(42)');
+    const caughtErr = await catchOriginalError('["a" "b"] | join(42)');
     expect(caughtErr.name).toBe('JoinSeparatorNotStringError');
   });
 
@@ -303,7 +298,7 @@ describe('runtime/string.mjs split and join error sites', () => {
       '["a" "b"] | join(42)'
     ];
     const names = new Set();
-    for (const q of queries) names.add((await catchError(q)).name);
+    for (const q of queries) names.add((await catchOriginalError(q)).name);
     expect(names.size).toBe(queries.length);
   });
 });
@@ -483,11 +478,6 @@ describe('runtime/reify-op.mjs reify and manifest', () => {
 });
 
 describe('runtime/control.mjs if and coalesce', () => {
-  async function catchError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
-
   it('if with cond truthy runs the then branch', async () => {
     expect(await evalQuery('75 | if(gte(60), "pass", "fail")')).toBe('pass');
   });
@@ -617,60 +607,55 @@ describe('runtime/control.mjs if and coalesce', () => {
   // pinned by `error-operands.test.mjs`; the control-flow block
   // tests the operand semantics, not the throw-class wiring.
   it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
-    const caughtErr = await catchError('{} | coalesce()');
+    const caughtErr = await catchOriginalError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);
   });
 
   it('firstTruthy raises FirstTruthyNoAlternativesError on bare call', async () => {
-    const caughtErr = await catchError('{} | firstTruthy()');
+    const caughtErr = await catchOriginalError('{} | firstTruthy()');
     expect(caughtErr).toBeInstanceOf(ArityError);
   });
 });
 
 describe('runtime/vec.mjs sortWith and comparator builders', () => {
-  async function catchError(query) {
-    const evalResult = await evalQuery(query);
-    return isErrorValue(evalResult) ? evalResult.originalError : null;
-  }
-
   it('sortWith on non-Vec subject → SortWithSubjectNotVecError', async () => {
-    const e = await catchError('42 | sortWith(asc(/x))');
+    const e = await catchOriginalError('42 | sortWith(asc(/x))');
     expect(e).toBeInstanceOf(QlangTypeError);
     expect(e.name).toBe('SortWithSubjectNotVecError');
   });
 
   it('sortWith comparator returning non-number → SortWithCmpResultNotNumberError', async () => {
-    const caughtErr = await catchError('[1 2 3] | sortWith("string")');
+    const caughtErr = await catchOriginalError('[1 2 3] | sortWith("string")');
     expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
   it('asc on non-Map pair → AscPairNotMapError', async () => {
-    const caughtErr = await catchError('42 | asc(/x)');
+    const caughtErr = await catchOriginalError('42 | asc(/x)');
     expect(caughtErr.name).toBe('AscPairNotMapError');
   });
 
   it('asc on heterogeneous keys → SortWithCmpResultNotNumberError (error value from asc is non-numeric)', async () => {
-    const caughtErr = await catchError('[{:k 1} {:k "a"}] | sortWith(asc(/k))');
+    const caughtErr = await catchOriginalError('[{:k 1} {:k "a"}] | sortWith(asc(/k))');
     expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
   it('desc on non-Map pair → DescPairNotMapError', async () => {
-    const caughtErr = await catchError('42 | desc(/x)');
+    const caughtErr = await catchOriginalError('42 | desc(/x)');
     expect(caughtErr.name).toBe('DescPairNotMapError');
   });
 
   it('desc on heterogeneous keys → SortWithCmpResultNotNumberError (error value from desc is non-numeric)', async () => {
-    const caughtErr = await catchError('[{:k 1} {:k "a"}] | sortWith(desc(/k))');
+    const caughtErr = await catchOriginalError('[{:k 1} {:k "a"}] | sortWith(desc(/k))');
     expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
   it('firstNonZero on non-Vec → FirstNonZeroSubjectNotVecError', async () => {
-    const caughtErr = await catchError('42 | firstNonZero');
+    const caughtErr = await catchOriginalError('42 | firstNonZero');
     expect(caughtErr.name).toBe('FirstNonZeroSubjectNotVecError');
   });
 
   it('firstNonZero on Vec with non-number element → FirstNonZeroElementNotNumberError', async () => {
-    const caughtErr = await catchError('[0 "two" 1] | firstNonZero');
+    const caughtErr = await catchOriginalError('[0 "two" 1] | firstNonZero');
     expect(caughtErr.name).toBe('FirstNonZeroElementNotNumberError');
     expect(caughtErr.context.index).toBe(1);
   });
@@ -685,7 +670,7 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
       '[0 "x"] | firstNonZero'    // FirstNonZeroElementNotNumberError
     ];
     const names = new Set();
-    for (const q of queries) names.add((await catchError(q)).name);
+    for (const q of queries) names.add((await catchOriginalError(q)).name);
     expect(names.size).toBe(queries.length);
   });
 

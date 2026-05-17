@@ -1,3 +1,17 @@
+|~ ::AssertionFailedError and ::PostconditionFailedError below
+   are user-error tag identifiers stamped on `:kind` of the lifted
+   descriptor — no catalog declaration sits behind them. The
+   guards library loads through `use(:error/guards)` outside the
+   `langRuntime` bootstrap, so a manifest-wide self-test driver
+   walking the default env has no path to reach those tags; the
+   `::builtin` shape marker is also unsuitable since user-error
+   tags carry no runtime callable handle (no `:impl :qlang/prim/…`
+   or `:impl :qlang/type/…`). The discoverability question for
+   user-defined error tags through axis-operands (`spec` / `docs`
+   / `source`) stays an open design item — caller code that wants
+   the failure prose addresses the raised value's descriptor
+   directly through `!| /message`. ~|
+
 :assert
   |~~ Guard: check predicate on pipeValue, raise error
     if the predicate fails. pipeValue passes through

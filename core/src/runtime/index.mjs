@@ -75,7 +75,7 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { isKeyword, makeQuote } from '../types.mjs';
+import { makeQuote } from '../types.mjs';
 import { moduleAstKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
 import { stampStructuralFacts } from '../descriptor-ops.mjs';
@@ -178,13 +178,15 @@ export async function buildLangRuntime(locator) {
     // readable in `manifest(:tag)` output. Skip resolving here so
     // tag-binding descriptors keep their author-form `:impl`.
     if (envKey.startsWith('::')) continue;
+    // Every non-`::` builtin descriptor in the catalog carries
+    // `:impl :qlang/prim/<name>` by contract — catalog-test
+    // `lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY`
+    // pins the invariant, and a missing handle would surface as
+    // a PrimitiveKeyUnboundError at first dispatch. The straight
+    // `stampStructuralFacts` call here trusts the contract; a
+    // descriptor authored without `:impl` cannot reach env.
     const implKey = descriptor.get('impl');
-    if (isKeyword(implKey)) {
-      stampStructuralFacts(descriptor, PRIMITIVE_REGISTRY.resolve(implKey.name));
-    } else {
-      if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
-      if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));
-    }
+    stampStructuralFacts(descriptor, PRIMITIVE_REGISTRY.resolve(implKey.name));
   }
 
   // Stamp the parsed root module as a Quote-value under the

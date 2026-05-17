@@ -90,8 +90,48 @@
   ~~|
   ::builtin{:category :type-error :operand :examples :position :subject :expectedType [:keyword :tag-keyword]}
 
+:spec
+  |~~ `:name | spec` — env-side declaration descriptor Map for the
+      named binding. Operand declarations surface as
+      `{:kind ::builtin :impl <fn> :category … :subject …
+      :modifiers … :returns … :throws …}`. Tag-binding error tags
+      surface as `{:kind ::builtin :category :type-error :operand
+      … :position … :expectedType …}`. Value-class constructors
+      surface as `{:kind ::builtin :impl :qlang/type/<tag>
+      :throws […]}`. BindStep-bound conduits surface as the
+      Conduit value-class Map; `as`-bound snapshots as the
+      Snapshot's auto-unwrapped payload.
+
+      The discriminator path for class-level static facts attached
+      to any tagged value-class — `result !| type | spec |
+      /category` reads `:type-error` off the error tag's catalog
+      body; `:add | spec | /throws` lists the per-site error
+      classes `add` raises.
+
+      ~{:add | spec | /category | eq(:arith)}
+      ~{::AddLeftNotNumberError | spec | /operand | eq(:add)}
+      ~{::conduit | spec | /impl | eq(:qlang/type/conduit)}
+  ~~|
+  ::builtin{:impl :qlang/prim/spec
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :map
+            :throws [::SpecSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::SpecSubjectNotKeywordOrTagError
+  |~~ `spec` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | spec
+        !| [type /actualType]
+        |  eq([::SpecSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :spec :position :subject :expectedType [:keyword :tag-keyword]}
+
 ::AxisBindingNotFoundError
-  |~~ Axis-operand (`source` / `docs` / `examples`) — no
+  |~~ Axis-operand (`source` / `docs` / `examples` / `spec`) — no
       `BindStep` found for the requested binding name across
       loaded modules.
 

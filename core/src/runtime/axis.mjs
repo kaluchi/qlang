@@ -17,7 +17,7 @@ import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, isTagKeyword, makeQuote, makeDoc
+  isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeQuote, makeDoc
 } from '../types.mjs';
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
@@ -28,6 +28,7 @@ import { parseDocSegments } from '../doc-segments.mjs';
 const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tag-keyword']);
 const DocsSubjectNotKeywordOrTagError     = declareSubjectError('DocsSubjectNotKeywordOrTagError',     'docs',     ['keyword', 'tag-keyword']);
 const ExamplesSubjectNotKeywordOrTagError = declareSubjectError('ExamplesSubjectNotKeywordOrTagError', 'examples', ['keyword', 'tag-keyword']);
+const SpecSubjectNotKeywordOrTagError     = declareSubjectError('SpecSubjectNotKeywordOrTagError',     'spec',     ['keyword', 'tag-keyword']);
 // `axisName` ('source' / 'docs' / 'examples') and `bindingName`
 // (a value-namespace identifier or a `::`-prefixed tag-binding
 // reference) are identifier-shaped strings at the JS level; the
@@ -173,6 +174,30 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
   return withPipeValue(state, Object.freeze(collected));
 });
 
+// `spec` — env-side declaration descriptor Map for the named binding.
+// Where `source` returns a Quote of the BindStep's verbatim text and
+// `docs` returns a Vec of attached doc-prefix Doc-values, `spec`
+// returns the structured Map the catalog `::builtin{…}` body
+// declared — the same Map that lives under the binding's env-key
+// after `langRuntime`'s snapshot-unwrap + impl-resolution pass.
+//
+// The discriminator path for class-level static facts attached to
+// any tagged value-class: `result !| type | spec | /category`
+// reads `:type-error` / `:arity-error` / etc. off the error tag's
+// catalog body; `:add | spec | /throws` lists the per-site error
+// classes `add` raises; `::conduit | spec | /impl` returns the
+// `:qlang/type/conduit` constructor handle.
+export const spec = stateOp('spec', 1, (state, _lambdas) => {
+  const bindingName = bindingNameOf(state.pipeValue, state.env, SpecSubjectNotKeywordOrTagError);
+  if (!state.env.has(bindingName)) {
+    throw new AxisBindingNotFoundError({ axisName: 'spec', bindingName });
+  }
+  let entry = state.env.get(bindingName);
+  if (isSnapshot(entry)) entry = entry.get('payload');
+  return withPipeValue(state, entry);
+});
+
 bindPrim('source',   source);
 bindPrim('docs',     docs);
 bindPrim('examples', examples);
+bindPrim('spec',     spec);

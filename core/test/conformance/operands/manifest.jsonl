@@ -18,14 +18,14 @@
 {"name":"filter-by-comparator-category-four-operands","query":"env | manifest | filter(/category | eq(:comparator)) | count","expect":"4"}
 {"name":"filter-by-reflective-category-five-operands","query":"env | manifest | filter(/category | eq(:reflective)) | count","expect":"5"}
 {"name":"filter-by-code-as-data-category-three-operands","query":"env | manifest | filter(/category | eq(:code-as-data)) | count","expect":"3"}
-{"name":"filter-by-axis-category-three-operands","query":"env | manifest | filter(/category | eq(:axis)) | count","expect":"3"}
+{"name":"filter-by-axis-category-four-operands","query":"env | manifest | filter(/category | eq(:axis)) | count","expect":"4"}
 {"name":"filter-by-error-category-two-operands","query":"env | manifest | filter(/category | eq(:error)) | count","expect":"2"}
 {"name":"all-arith-have-add-sub-mul-div","query":"env | manifest | filter(/category | eq(:arith)) * /name | sort","expect":"[\"add\" \"div\" \"mul\" \"sub\"]"}
 {"name":"all-control-six-operands-sorted","query":"env | manifest | filter(/category | eq(:control)) * /name | sort","expect":"[\"coalesce\" \"cond\" \"firstTruthy\" \"if\" \"unless\" \"when\"]"}
 {"name":"all-comparator-sorted","query":"env | manifest | filter(/category | eq(:comparator)) * /name | sort","expect":"[\"asc\" \"desc\" \"nullsFirst\" \"nullsLast\"]"}
 {"name":"all-reflective-sorted","query":"env | manifest | filter(/category | eq(:reflective)) * /name | sort","expect":"[\"as\" \"env\" \"manifest\" \"runExamples\" \"use\"]"}
 {"name":"all-code-as-data-sorted","query":"env | manifest | filter(/category | eq(:code-as-data)) * /name | sort","expect":"[\"apply\" \"eval\" \"parse\"]"}
-{"name":"all-axis-sorted","query":"env | manifest | filter(/category | eq(:axis)) * /name | sort","expect":"[\"docs\" \"examples\" \"source\"]"}
+{"name":"all-axis-sorted","query":"env | manifest | filter(/category | eq(:axis)) * /name | sort","expect":"[\"docs\" \"examples\" \"source\" \"spec\"]"}
 {"name":"all-error-sorted","query":"env | manifest | filter(/category | eq(:error)) * /name | sort","expect":"[\"error\" \"isError\"]"}
 {"name":"first-name-alphabetical","query":"env | manifest | first | /name","expect":"\"add\""}
 {"name":"names-are-sorted-asc","query":"env | manifest * /name | as(:got) | got | sort | eq(got)","expect":"true"}

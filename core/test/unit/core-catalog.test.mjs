@@ -309,7 +309,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
     expect(categories.get('code-as-data')).toBe(3); // parse eval apply
-    expect(categories.get('axis')).toBe(3);         // source docs examples
+    expect(categories.get('axis')).toBe(4);         // source docs examples spec
     expect(categories.get('error')).toBe(2);        // error isError
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);

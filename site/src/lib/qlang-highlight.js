@@ -31,7 +31,7 @@ const KIND_TO_CLASS = {
   comment:  'comment',
   atom:     'atom',
   effect:   'effect',
-  type:     'type',
+  tag:      'tag',
   operand:  'operand',
   keyword:  'keyword',
   err:      'err',

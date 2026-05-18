@@ -30,7 +30,7 @@ import { makeState, envMerge } from '../state.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
-  isQMap, isKeyword, isVec, isQSet,
+  isQMap, isKeyword, isVec, isQSet, isSnapshot,
   typeKeyword, makeQuote
 } from '../types.mjs';
 import {
@@ -137,6 +137,28 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   for (const [exportKey, exportVal] of moduleResultState.env) {
     if (!outerEnv.has(exportKey) || outerEnv.get(exportKey) !== exportVal) {
       loadedExports.set(exportKey, exportVal);
+    }
+  }
+
+  // Unwrap snapshot-wrapped `::builtin` descriptors before
+  // stamping. `evalBindStep` routes a pure-literal body (every
+  // `::builtin{…}` TaggedLit qualifies) through `makeSnapshot`,
+  // so a freshly-evaluated catalog lands the descriptor under a
+  // Snapshot wrapper. `langRuntime`'s own bootstrap unwraps the
+  // same shape (see `runtime/index.mjs`); locator-loaded
+  // namespaces need the same unwrap pass before
+  // `stampStructuralFacts` mutates the descriptor — otherwise
+  // the stamping would mint `:impl` / `:captured` /
+  // `:effectful` on the Snapshot wrapper, leaving the inner
+  // builtin Map untouched and downstream dispatch reaching for
+  // an undefined `fn.arity`.
+  for (const [exportKey, exportVal] of loadedExports) {
+    if (!isSnapshot(exportVal)) continue;
+    const payload = exportVal.get('payload');
+    if (!isQMap(payload)) continue;
+    const payloadKind = payload.get('kind');
+    if (payloadKind && payloadKind.name === 'builtin') {
+      loadedExports.set(exportKey, payload);
     }
   }
 

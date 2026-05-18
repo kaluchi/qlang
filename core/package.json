@@ -73,7 +73,7 @@
       "default": "./src/load-source-web.mjs"
     }
   },
-  "sideEffects": false,
+  "sideEffects": ["./src/runtime/*.mjs"],
   "files": [
     "src/",
     "host/",

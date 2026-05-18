@@ -6,8 +6,15 @@
 // `@kaluchi/qlang-core/codec`, `@kaluchi/qlang-core/errors`,
 // `@kaluchi/qlang-core/parse`, `@kaluchi/qlang-core/eval`,
 // `@kaluchi/qlang-core/runtime`) remain available through the
-// package.json exports map for tree-shaking-sensitive bundles. The
-// package declares `sideEffects: false` so unused subpaths drop out.
+// package.json exports map for tree-shaking-sensitive bundles.
+//
+// `core/package.json#sideEffects` pins `./src/runtime/*.mjs` as
+// side-effectful so bundler tree-shaking keeps the
+// `PRIMITIVE_REGISTRY.bind(…)` registration block at the tail of
+// every operand-family module. Every other source file under
+// `src/` flows through ESM-named-export tree-shaking unimpeded;
+// the registry-stamping subset is the single seam that has to
+// survive a bundler pass.
 //
 // Host-only subpath exports live under `@kaluchi/qlang-core/host/…`
 // (`discoverModules`, `resolveModules`, `installModules` from

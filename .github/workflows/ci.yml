@@ -99,10 +99,32 @@ jobs:
       - run: npm run build -w @kaluchi/qlang-core
       - run: npm run test:integration -w ${{ matrix.workspace }}
 
+  # Astro site build — runs the same `astro build` the Pages
+  # workflow runs on push to master, but earlier in the PR cycle.
+  # This is the only job that exercises Vite's SSR bundler against
+  # the qlang-core package; the site-tests job above runs unit
+  # tests through vitest, which does not bundle, so a regression
+  # in `package.json#sideEffects` / `astro.config.mjs#vite.ssr`
+  # would slip past every other matrix entry.
+  site-build:
+    name: Astro site build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build -w @kaluchi/qlang-core
+      - run: npm run build -w @kaluchi/qlang-site
+
   all-green:
     name: All checks passed
     if: always()
-    needs: [lint, conventions, workspace-tests, coverage, integration]
+    needs: [lint, conventions, workspace-tests, coverage, integration, site-build]
     runs-on: ubuntu-latest
     steps:
       - name: Verify no failures
@@ -116,6 +138,8 @@ jobs:
                 "${{ needs.coverage.result }}"        == "failure" || \
                 "${{ needs.coverage.result }}"        == "cancelled" || \
                 "${{ needs.integration.result }}"     == "failure" || \
-                "${{ needs.integration.result }}"     == "cancelled" ]]; then
+                "${{ needs.integration.result }}"     == "cancelled" || \
+                "${{ needs.site-build.result }}"      == "failure" || \
+                "${{ needs.site-build.result }}"      == "cancelled" ]]; then
             exit 1
           fi

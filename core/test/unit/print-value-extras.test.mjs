@@ -5,14 +5,18 @@
 // execution. Tests build the values directly and call printValue.
 
 import { describe, it, expect } from 'vitest';
-import { printValue, toPlain } from '../../src/runtime/format.mjs';
+import { printValue, toPlain, fromPlain, table } from '../../src/runtime/format.mjs';
 import {
   makeConduit,
   makeSnapshot,
   makeDoc,
+  makeQuote,
+  makeTagKeyword,
+  makeErrorValue,
   isConduit,
   isSnapshot,
   isDoc,
+  isQMap,
   ConduitBodyMissingSourceError,
   FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
@@ -77,7 +81,6 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   });
 
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
-    const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
       ['kind', makeTagKeyword('Box')],
       ['payload', [42, 'inner']]
@@ -86,7 +89,6 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   });
 
   it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
-    const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
       ['kind', makeTagKeyword('Marker')],
       ['payload', []]
@@ -97,7 +99,6 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
 
 describe('printErrorValue — head + payload-filter branches', () => {
   it('an error with no :kind prints in plain !{…} form (no tag-head prefix)', async () => {
-    const { makeErrorValue } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]]));
     expect(printValue(err)).toBe('!{:kind :oops}');
   });
@@ -107,7 +108,6 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // identity to point hypertext docs at — `:message` is therefore
     // user-provided content, not a derivable template-fill, and
     // stays in the printed form.
-    const { makeErrorValue } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
       ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }],
       ['message', 'something broke']
@@ -116,19 +116,16 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 
   it('an empty error descriptor (only auto-injected :trail null) renders as !{}', async () => {
-    const { makeErrorValue } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map());
     expect(printValue(err)).toBe('!{}');
   });
 
   it('a tag-headed error with only :kind survives the payload filter as ::Tag!{}', async () => {
-    const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([['kind', makeTagKeyword('Foo')]]));
     expect(printValue(err)).toBe('::Foo!{}');
   });
 
   it('a tag-headed error renders the payload after the head, suppressing :kind duplication', async () => {
-    const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
       ['kind', makeTagKeyword('Foo')],
       ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
@@ -137,7 +134,6 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 
   it('a tag-headed error elides :message (template-fill reachable via ::Tag | docs)', async () => {
-    const { makeErrorValue, makeTagKeyword } = await import('../../src/types.mjs');
     const err = makeErrorValue(new Map([
       ['kind', makeTagKeyword('Foo')],
       ['message', 'template-derivable prose'],
@@ -149,8 +145,6 @@ describe('printErrorValue — head + payload-filter branches', () => {
 
 describe('renderTaggedInstanceInline — table cell handler', () => {
   it('a tagged-instance in cell position round-trips through ::Tag[payload…]', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
       ['kind', makeTagKeyword('Box')],
       ['payload', [42]]
@@ -164,8 +158,6 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
   });
 
   it('a tagged-instance with Number payload renders as ::Tag(42) — ParenGroup wrap branch', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
       ['kind', makeTagKeyword('Count')],
       ['payload', 42]
@@ -179,8 +171,6 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
   });
 
   it('a tagged-instance inside a Vec cell — inline handler fires', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeTagKeyword } = await import('../../src/types.mjs');
     const instance = new Map([
       ['kind', makeTagKeyword('Pair')],
       ['payload', [1, 2]]
@@ -210,7 +200,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   // user explicitly piped them in (e.g. `env | /name | wrap-in-Map |
   // table`). Tests build the Vec directly so the cell handlers fire.
   it('renders a Conduit-valued cell as ~{::conduit[:name [] }body~{]}', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
     const bodyAst = { type: 'NumberLit', value: 99, text: '99' };
     const conduit = makeConduit(bodyAst, { name: 'ninetyNine', params: [] });
     const row = new Map([['fn', conduit]]);
@@ -228,7 +217,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     // binding statement, not a value literal; emitting it would
     // round-trip through parse + eval into env-write + identity
     // pipeValue, not back into a Snapshot value.
-    const { table } = await import('../../src/runtime/format.mjs');
     const snap = makeSnapshot(42, { name: 'cached' });
     const row = new Map([['snap', snap]]);
     const rendered = await table.fn(
@@ -240,7 +228,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('table refuses a Function-valued cell — invariant fires through renderCell', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
     const fn = makeFn('myFn', 1, async (state) => state, {
       category: 'test', subject: 'any', modifiers: [],
       returns: 'any', docs: [], examples: [], throws: []
@@ -253,7 +240,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Vec-of-Conduit cell — INLINE handler for Conduit fires', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
     const bodyAst = { type: 'NumberLit', value: 7, text: '7' };
     const conduit = makeConduit(bodyAst, { name: 'inner', params: [] });
     const row = new Map([['fns', [conduit]]]);
@@ -265,7 +251,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Vec-of-Snapshot cell — INLINE handler recurses on unwrapped value', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
     const snap = makeSnapshot('hi', { name: 'greet' });
     const row = new Map([['snaps', [snap]]]);
     const rendered = await table.fn(
@@ -279,7 +264,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('table refuses a Vec-of-Function cell — invariant fires through renderInline', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
     const fn = makeFn('inlineFn', 1, async (state) => state, {
       category: 'test', subject: 'any', modifiers: [],
       returns: 'any', docs: [], examples: [], throws: []
@@ -292,8 +276,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeQuote } = await import('../../src/types.mjs');
     const row = new Map([['q', [makeQuote('mul(2)')]]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -303,8 +285,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Quote-valued cell — CELL_HANDLERS.Quote fires', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeQuote } = await import('../../src/types.mjs');
     const row = new Map([['q', makeQuote('add(1)')]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -314,8 +294,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Doc-valued cell — CELL_HANDLERS.Doc fires', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeDoc } = await import('../../src/types.mjs');
     const row = new Map([['d', makeDoc(' note ')]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -325,8 +303,6 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Vec-of-Doc cell — INLINE handler for Doc fires', async () => {
-    const { table } = await import('../../src/runtime/format.mjs');
-    const { makeDoc } = await import('../../src/types.mjs');
     const row = new Map([['ds', [makeDoc(' inner ')]]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -432,14 +408,13 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
   });
 });
 
-describe('format.fromPlain — inverse of toPlain', async () => {
+describe('format.fromPlain — inverse of toPlain', () => {
   // `fromPlain` lifts a JSON-parsed plain JS value back into qlang:
   // plain object → Map keyed by interned keywords; plain array →
   // Vec; scalars pass through. Used by `parseJson` and by the CLI
   // script-mode auto-pipe of stdin.
 
   it('scalar values pass through unchanged', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
     expect(fromPlain(42)).toBe(42);
     expect(fromPlain('hi')).toBe('hi');
     expect(fromPlain(true)).toBe(true);
@@ -447,14 +422,11 @@ describe('format.fromPlain — inverse of toPlain', async () => {
   });
 
   it('arrays lift into Vec (plain JS array) elementwise', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
     const lifted = fromPlain([1, 'two', true]);
     expect(lifted).toEqual([1, 'two', true]);
   });
 
   it('objects lift into Map keyed by interned keywords', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
-    const { isQMap } = await import('../../src/types.mjs');
     const lifted = fromPlain({ a: 1, b: 2 });
     expect(isQMap(lifted)).toBe(true);
     expect(lifted.get('a')).toBe(1);
@@ -462,24 +434,21 @@ describe('format.fromPlain — inverse of toPlain', async () => {
   });
 
   it('round-trips nested plain JSON through toPlain and back', async () => {
-    const { fromPlain, toPlain } = await import('../../src/runtime/format.mjs');
     const plain = { user: { name: 'alice', tags: ['admin', 'dev'] } };
     const roundtrip = toPlain(fromPlain(plain));
     expect(roundtrip).toEqual(plain);
   });
 });
 
-describe('format.toPlain unwraps Snapshot transparently', async () => {
-  it('toPlain on a Snapshot lifts the captured payload through the codec', async () => {
-    const { toPlain } = await import('../../src/runtime/format.mjs');
-    const { makeSnapshot } = await import('../../src/types.mjs');
+describe('format.toPlain unwraps Snapshot transparently', () => {
+  it('toPlain on a Snapshot lifts the captured payload through the codec', () => {
     expect(toPlain(makeSnapshot(42, { name: 'answer' }))).toBe(42);
     const innerMap = new Map([['k', 'v']]);
     expect(toPlain(makeSnapshot(innerMap, { name: 'wrap' }))).toEqual({ k: 'v' });
   });
 });
 
-describe('format.toPlain non-keyword Map keys', async () => {
+describe('format.toPlain non-keyword Map keys', () => {
   it('json on a Map with string (non-keyword) keys uses String(k) fallback', async () => {
     // Inject a Map whose keys are plain strings, not interned keywords.
     // Construct via session.bind so we bypass the parser's

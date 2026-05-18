@@ -469,10 +469,8 @@ describe('format.fromPlain — inverse of toPlain', async () => {
   });
 });
 
-describe('format.toPlain unwraps Snapshot transparently', async () => {
-  it('toPlain on a Snapshot lifts the captured payload through the codec', async () => {
-    const { toPlain } = await import('../../src/runtime/format.mjs');
-    const { makeSnapshot } = await import('../../src/types.mjs');
+describe('format.toPlain unwraps Snapshot transparently', () => {
+  it('toPlain on a Snapshot lifts the captured payload through the codec', () => {
     expect(toPlain(makeSnapshot(42, { name: 'answer' }))).toBe(42);
     const innerMap = new Map([['k', 'v']]);
     expect(toPlain(makeSnapshot(innerMap, { name: 'wrap' }))).toEqual({ k: 'v' });

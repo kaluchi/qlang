@@ -101,6 +101,8 @@ import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
 import {
   keyword,
   isKeyword,
+  makeTagKeyword,
+  isTagKeyword,
   isErrorValue,
   isQuote,
   isDoc,
@@ -178,6 +180,8 @@ export {
   EFFECT_MARKER_PREFIX,
   keyword,
   isKeyword,
+  makeTagKeyword,
+  isTagKeyword,
   isErrorValue,
   isQuote,
   isDoc,

@@ -375,12 +375,10 @@ describe('env output is parseable', () => {
   it('env | json produces valid JSON (TagKeyword + host function paths)', async () => {
     // The `json` operand is `JSON.stringify(toPlain(subject))`. The
     // env Map contains TagKeyword values (in every `:throws` Vec)
-    // and a host-bound function (`:qlang/locator`). Both used to
-    // fall through to `String(v)` and produce `"[object Object]"` /
-    // raw function source. The toPlain handlers now route them as
-    // `"::Name"` and `"<host-fn name>"` strings — `JSON.parse` of
-    // the output must succeed and the locator value lands as the
-    // host-marker string.
+    // and a host-bound function (`:qlang/locator`). The toPlain
+    // handlers route them to `"::Name"` and `"<host-fn name>"`
+    // strings — `JSON.parse` of the output must succeed and the
+    // locator value lands as the host-marker string.
     const jsonText = await evalSource('env | json');
     const parsed = JSON.parse(jsonText);
     expect(parsed['qlang/locator']).toMatch(/^<host-fn [A-Za-z]+>$/);
@@ -437,8 +435,8 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     // Map projection to the raw function-value (note the namespaced
     // keyword segment `/:impl` — without the colon, the
     // slash splits into two bare segments). The Map-handler
-    // substitution does not run because the function is now the
-    // pipeValue itself, not an entry of a Map being rendered.
+    // substitution does not fire — the function is the pipeValue
+    // itself, not an entry of a Map being rendered.
     const { evalQuery } = await import('../../src/eval.mjs');
     const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
     await expect(evalQuery('env | /count | /:impl | json'))

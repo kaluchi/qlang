@@ -13,12 +13,18 @@
 // the user introspects env (`manifest`, `:name | source`, etc.) —
 // printValue's Function-leak invariant fires because a bare function
 // has no grammatical literal.
+//
+// `:kind` is stamped as a TagKeyword (`::builtin`), matching the
+// shape every `::builtin{…}` TaggedLit in the operand catalog
+// produces — so `env | /pretty | /kind` reads back the same
+// `::builtin` discriminator regardless of whether the operand
+// originated from the catalog or from a host-side binding.
 
-import { keyword } from '@kaluchi/qlang-core';
+import { makeTagKeyword } from '@kaluchi/qlang-core';
 
 export function bindHostBuiltin(session, name, operandFn) {
   const descriptor = new Map([
-    ['kind', keyword('builtin')],
+    ['kind', makeTagKeyword('builtin')],
     ['impl', operandFn]
   ]);
   session.bind(name, descriptor);

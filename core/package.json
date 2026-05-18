@@ -1,6 +1,6 @@
 {
   "name": "@kaluchi/qlang-core",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Reference implementation of the qlang pipeline query language",
   "type": "module",
   "main": "src/index.mjs",

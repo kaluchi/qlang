@@ -235,7 +235,7 @@ import Base from "../layouts/Base.astro"
 
       const entries: HTMLElement[] = [];
       for (const cell of cells) {
-        const result = await evalQuery(cell.trim());
+        const result = await evalQuery(cell.trim(), env);
         const isError = result && typeof result === 'object' && result.type === 'error';
         const entry = document.createElement('div');
         entry.className = 'pg-entry';

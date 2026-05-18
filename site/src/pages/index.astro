@@ -252,7 +252,7 @@ const features = [
       '{:name "alice" :age 30} | /age | mul(2)',
     ];
     for (const src of demos) {
-      history.appendChild(makeEntry(src, await evalQuery(src)));
+      history.appendChild(makeEntry(src, await evalQuery(src, env)));
       cmdHistory.unshift(src);   // oldest demo ends up deepest in history
     }
 
@@ -273,7 +273,7 @@ const features = [
         cmdHistory.unshift(source);   // newest first
         histIdx = -1;
         savedDraft = '';
-        history.appendChild(makeEntry(source, await evalQuery(source)));
+        history.appendChild(makeEntry(source, await evalQuery(source, env)));
         history.scrollTop = history.scrollHeight;
         input.value = '';
         updateReplHighlight();

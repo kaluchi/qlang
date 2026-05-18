@@ -152,13 +152,23 @@ function describeBinding(value, explicitName) {
     }
     return manifestBuiltinDescriptor(value, explicitName);
   }
-  // Conduit-parameter proxies — nullary function values minted by
-  // `makeConduitParameter` in `eval.mjs` that surface inside a
-  // conduit body's env. `manifest` over the body's env routes the
-  // proxy here; `describeConduitParameter` reads the full meta the
-  // proxy carries inline (`category :conduit-parameter`,
-  // `subject`, `modifiers`, `returns`, `captured`, `throws`).
-  if (isFunctionValue(value)) return describeConduitParameter(value, explicitName);
+  // Conduit-parameter proxies stamp `meta.category :conduit-parameter`
+  // through `makeConduitParameter` in `eval.mjs` — the discriminator
+  // that lets `describeConduitParameter` reach for the full inline
+  // meta shape (`subject` / `modifiers` / `returns` / `captured` /
+  // `throws`). Other function values in env land through
+  // `session.bind(name, fn)` from a host integration: they carry only
+  // the dispatch-wrapper meta (`{ captured: [...] }`) and route to
+  // `describeValue` so their entry surfaces as `:kind ::value`
+  // alongside any other host-bound payload. Host integrations that
+  // want a richer manifest entry wrap their operand in a descriptor
+  // Map carrying `:kind :builtin :impl <fn>` before `session.bind` —
+  // the Map branch above then routes through
+  // `manifestBuiltinDescriptor` with every authored field intact.
+  if (isFunctionValue(value)
+      && value.meta && value.meta.category === 'conduit-parameter') {
+    return describeConduitParameter(value, explicitName);
+  }
   if (isConduit(value)) return describeConduit(value, explicitName);
   if (isSnapshot(value)) return describeSnapshot(value, explicitName);
   return describeValue(value, explicitName);
@@ -218,10 +228,18 @@ export const manifest = stateOpVariadic('manifest', 2, async (state, manifestLam
 // `:ok true`. The return is a Vec of result Maps, one per Quote
 // segment.
 
-async function runQuoteEntry(quote) {
+// Each example evaluates against a copy of the caller's env so the
+// snippet sees every module loaded through `use(:ns)` in the
+// surrounding session — without `use(:jdt/graph)` propagating from
+// the session, an example like `"no.such.Type" | @type !| type` would
+// surface `::UnresolvedIdentifierError` instead of the documented
+// `::TypeNotFound`. The copy isolates the example's BindStep / `as`
+// writes from the session env so a tested snippet cannot leak
+// bindings back into the calling session.
+async function runQuoteEntry(quote, env) {
   const result = new Map();
   result.set('snippet', quote);
-  const actualValue = await evalQuery(quote.source);
+  const actualValue = await evalQuery(quote.source, new Map(env));
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
     result.set('error', errorMessageOf(actualValue));
@@ -264,7 +282,7 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
     throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
   const quotes = await collectQuotesForBinding(state.env, lookupName);
-  const results = await Promise.all(quotes.map(runQuoteEntry));
+  const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state.env)));
   return withPipeValue(state, results);
 });
 

@@ -91,6 +91,55 @@ describe('runExamples Quote-as-test outcomes', () => {
     expect(cellEntry.result).toBe(0);
   });
 
+  it('example sees module bindings loaded through the calling session', async () => {
+    // The Quote inside `:fortytwo`'s doc-prefix references `add` —
+    // an operand pulled in via `use(:qlang/operand/arith)` inside
+    // the test's transient module. runExamples must evaluate the
+    // Quote against the calling session's env so the operand
+    // resolves; falling back to a fresh `langRuntime()` env would
+    // leak the example into an isolated runtime that already has
+    // `add` — masking the contract.
+    //
+    // The stronger surface is in the JDT module: `:@type`'s example
+    // calls the host-bound `@type` operand. Without env propagation
+    // the call would lift to `::UnresolvedIdentifierError`; with it
+    // the operand fires against the live bridge and the example
+    // verifies the documented fail-track tag. Coverage here uses
+    // bare-qlang `add` to keep the test runtime-free.
+    const moduleSource =
+      '|~~ tracks env propagation through runExamples.\n' +
+      '    ~{40 | add(2) | eq(42)}\n ~~|\n' +
+      ':fortytwo 1';
+    const session = await createSession({
+      locator: async () => ({ source: moduleSource })
+    });
+    const cellEntry = await session.evalCell(
+      'use(:tests/env-propagation) | :fortytwo | runExamples | first | /ok');
+    expect(cellEntry.result).toBe(true);
+  });
+
+  it('example does not leak BindStep writes back into the calling session', async () => {
+    // The Quote in `:writer`'s prefix runs a BindStep — the
+    // session-env copy isolates the write so the calling session
+    // still sees no `:scratch` after runExamples completes. Reading
+    // `:scratch` on the session after `runExamples` therefore lifts
+    // ::UnresolvedIdentifierError.
+    const moduleSource =
+      '|~~ leaks BindStep into session env.\n' +
+      '    ~{:scratch 99 | scratch | eq(99)}\n ~~|\n' +
+      ':writer 1';
+    const session = await createSession({
+      locator: async () => ({ source: moduleSource })
+    });
+    const cellRun = await session.evalCell(
+      'use(:tests/isolation) | :writer | runExamples | first | /ok');
+    expect(cellRun.result).toBe(true);
+    const cellProbe = await session.evalCell('scratch');
+    expect(isErrorValue(cellProbe.result)).toBe(true);
+    expect(cellProbe.result.descriptor.get('kind'))
+      .toEqual(makeTagKeyword('UnresolvedIdentifierError'));
+  });
+
   it('Quote that lifts a user-built error → :error reads :message from descriptor', async () => {
     // User-built errors (via `error(map)` operand) carry no
     // `.originalError` on the JS-level ErrorValue wrapper —

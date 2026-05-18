@@ -340,6 +340,27 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
     expect(names).toEqual(sorted);
   });
 
+  it('host-bound raw function value surfaces as :kind ::value rather than crashing', async () => {
+    // A function value landed in env through `session.bind(name, fn)`
+    // without a descriptor-Map wrapper carries only the dispatch-
+    // wrapper's `{ captured }` meta — no `category` / `subject` /
+    // `returns` shape. `describeBinding` routes such entries to
+    // `describeValue` (host-fn marker) rather than the conduit-
+    // parameter proxy descriptor builder; conduit-parameter proxies
+    // are the only function values that stamp `meta.category
+    // :conduit-parameter` inline and therefore the only ones that
+    // route through `describeConduitParameter`.
+    const { createSession } = await import('../../src/session.mjs');
+    const { nullaryOp } = await import('../../src/runtime/dispatch.mjs');
+    const sessionInstance = await createSession();
+    sessionInstance.bind('hostFn', nullaryOp('hostFn', async () => 42));
+    const cellEntry = await sessionInstance.evalCell(
+      'manifest | filter(/name | eq("hostFn")) | first');
+    expect(cellEntry.result instanceof Map).toBe(true);
+    expect(cellEntry.result.get('kind').name).toBe('value');
+    expect(cellEntry.result.get('name')).toBe('hostFn');
+  });
+
   it('conduit descriptor through manifest surfaces :source verbatim', async () => {
     // The :source field exposes the parser-captured `.text` slice of
     // the conduit body. Manifest stamps it via buildConduitDescriptor.

@@ -1,0 +1,145 @@
+|~ qlang operand catalog — axis family. Reflective navigation
+   from a binding name (Keyword `:foo` or TagKeyword `::Foo`) to
+   declarative metadata living on the binding's source AST. Each
+   axis walks every `qlang/ast/<uri>` module Quote stored in env
+   to find the originating `BindStep` (or `as(:name)` OperandCall)
+   and returns the named field as a fresh value — `source` the
+   verbatim source slice as a Quote, `docs` the attached
+   doc-prefix Vec of Doc-values, `examples` every `~{…}` Quote
+   segment from those docs ready for `runExamples` to fire. ~|
+
+:source
+  |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
+      in one of the loaded modules. Walks every `qlang/ast/<uri>`
+      Quote in env, finds the `BindStep` whose key matches the
+      Keyword (or TagKeyword for `::Tag | source`) on pipeValue,
+      returns a Quote-value carrying the verbatim source slice.
+
+      ~{:filter | source | /source | contains(":filter")}
+      ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
+  ~~|
+  ::builtin{:impl :qlang/prim/source
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :quote
+            :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::SourceSubjectNotKeywordOrTagError
+  |~~ `source` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | source
+        !| [type /actualType]
+        |  eq([::SourceSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :source :position :subject :expectedType [:keyword :tag-keyword]}
+
+:docs
+  |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
+      on the `BindStep` that binds `:name`. Each Doc-value `/segments`
+      surfaces TaggedLit and Quote inline structure for navigation;
+      Quote segments are the evaluable examples `runExamples` runs.
+
+      ~{:filter | docs | first | /content | contains("Keeps items")}
+      ~{::AddLeftNotNumberError | docs | first | isDoc}
+  ~~|
+  ::builtin{:impl :qlang/prim/docs
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :vec
+            :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::DocsSubjectNotKeywordOrTagError
+  |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | docs
+        !| [type /actualType]
+        |  eq([::DocsSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :docs :position :subject :expectedType [:keyword :tag-keyword]}
+
+:examples
+  |~~ `:name | examples` — Vec of Quote-values extracted from the
+      binding's docs. `runExamples` consumes this Vec to evaluate
+      each Quote against an isolated env; `:ok` is true iff the
+      result is truthy.
+
+      ~{:filter | examples | count | gt(0)}
+      ~{:filter | examples | first | /source | contains("filter")}
+  ~~|
+  ::builtin{:impl :qlang/prim/examples
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :vec
+            :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::ExamplesSubjectNotKeywordOrTagError
+  |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | examples
+        !| [type /actualType]
+        |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :examples :position :subject :expectedType [:keyword :tag-keyword]}
+
+:spec
+  |~~ `:name | spec` — env-side declaration descriptor Map for the
+      named binding. Operand declarations surface as
+      `{:kind ::builtin :impl <fn> :category … :subject …
+      :modifiers … :returns … :throws …}`. Tag-binding error tags
+      surface as `{:kind ::builtin :category :type-error :operand
+      … :position … :expectedType …}`. Value-class constructors
+      surface as `{:kind ::builtin :impl :qlang/type/<tag>
+      :throws […]}`. BindStep-bound conduits surface as the
+      Conduit value-class Map; `as`-bound snapshots as the
+      Snapshot's auto-unwrapped payload.
+
+      The discriminator path for per-tag static facts attached
+      to any tagged value-class — `result !| type | spec |
+      /category` reads `:type-error` off the error tag's catalog
+      body; `:add | spec | /throws` lists the per-site error
+      classes `add` raises.
+
+      ~{:add | spec | /category | eq(:arith)}
+      ~{::AddLeftNotNumberError | spec | /operand | eq(:add)}
+      ~{::conduit | spec | /impl | eq(:qlang/type/conduit)}
+  ~~|
+  ::builtin{:impl :qlang/prim/spec
+            :category :axis
+            :subject [:keyword :tag-keyword]
+            :returns :map
+            :throws [::SpecSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+
+::SpecSubjectNotKeywordOrTagError
+  |~~ `spec` requires a Keyword (`:foo`) or TagKeyword
+      (`::Foo`) subject.
+
+      ~{
+        42 | spec
+        !| [type /actualType]
+        |  eq([::SpecSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :spec :position :subject :expectedType [:keyword :tag-keyword]}
+
+::AxisBindingNotFoundError
+  |~~ Axis-operand (`source` / `docs` / `examples` / `spec`) — no
+      `BindStep` found for the requested binding name across
+      loaded modules.
+
+      ~{
+        :nonexistent-binding | source
+        !| [type /axisName /bindingName]
+        |  eq([::AxisBindingNotFoundError
+                :source :nonexistent-binding])
+       }
+  ~~|
+  ::builtin{:category :type-error}

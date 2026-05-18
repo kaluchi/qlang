@@ -47,7 +47,7 @@ The principle propagates:
 
 The qlang vocabulary you must absorb from reading the codebase before reviewing covers (non-exhaustively):
 
-`pipeValue`, `env`, `state`, `fork`, `forkWith`, `snapshot`, `langRuntime`, `makeFn`, `makeConduit`, `makeSnapshot`, `makeErrorValue`, `pipeline`, `pipeline step`, `combinator`, `OperandCall`, `Projection`, `MapEntry`, `ParenGroup`, `VecLit`, `MapLit`, `SetLit`, `ErrorLit`, `LineDocComment`, `BlockDocComment`, `LinePlainComment`, `BlockPlainComment`, `captured args`, `captured lambdas`, `Rule 10`, `applyRule10`, `per-site error class`, `valueOp`, `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`, `higherOrderOpVariadic`, `reify`, `manifest`, `descriptor`, `descriptor Map`, `binding descriptor`, `:captured`, `:effectful`, `:trail`, `:qlang/kind`, `:qlang/impl`, `:qlang/prim/…`, `fork-isolating node`, `astChildrenOf`, `walkAst`, `findAstNodeAtOffset`, `findIdentifierOccurrences`, `bindingNamesVisibleAt`, `triviaBetweenAstNodes`, `astNodeContainsOffset`, `astNodeSpan`, `astNodeToMap`, `qlangMapToAst`, `AST-Map`, `PipelineStep` wrapper, `EFFECT_MARKER_PREFIX`, `classifyEffect`, `effectful`, `tagged JSON`, `toTaggedJSON`, `fromTaggedJSON`, `Session`, `evalCell`, `cellHistory`, `takeSnapshot`, `restoreSnapshot`, `session.bind`, `serializeSession`, `deserializeSession`, `decorateAstWithEffectMarkers`, `findFirstEffectfulIdentifier`, `createPrimitiveRegistry`, `PRIMITIVE_REGISTRY`, `PRIMITIVE_REGISTRY.bind`, `PRIMITIVE_REGISTRY.resolve`, `PRIMITIVE_REGISTRY.seal`, `PrimitiveKeyNotKeyword`, `PrimitiveKeyAlreadyBound`, `PrimitiveRegistrySealed`, `PrimitiveKeyUnbound`, `applyBuiltinDescriptor`, `foldEntryDocs`, `MapEntryDocPrefix`, `bare-non-nullary REPL lookup`, `core.qlang`, `CORE_SOURCE`, `parseOperand`, `evalOperand`, `code-as-data ring`, `fail-track`, `success-track`, `fail-apply`, `applyFailTrack`, `deflect`, `fire`, `leading fail-apply prefix`, `leadingFail`, `materialize`, `materializeTrail`, `appendTrailNode`, `trail`, `trail continuity`, `structured trail entry`, `expose (a materialized descriptor)`, `lift (Map → error value)`, `error value`, `error literal`, `!{…}`, `!|`, `isError`, `error operand`, `sourceOfAst`.
+`pipeValue`, `env`, `state`, `fork`, `forkWith`, `snapshot`, `langRuntime`, `makeFn`, `makeConduit`, `makeSnapshot`, `makeErrorValue`, `pipeline`, `pipeline step`, `combinator`, `OperandCall`, `Projection`, `MapEntry`, `ParenGroup`, `VecLit`, `MapLit`, `SetLit`, `ErrorLit`, `LineDocComment`, `BlockDocComment`, `LinePlainComment`, `BlockPlainComment`, `captured args`, `captured lambdas`, `Rule 10`, `applyRule10`, `per-site error class`, `valueOp`, `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`, `higherOrderOpVariadic`, `manifest`, `runExamples`, `descriptor`, `descriptor Map`, `binding descriptor`, `::builtin`, `:captured`, `:effectful`, `:trail`, `:kind`, `:impl`, `:qlang/prim/…`, `:qlang/type/…`, `fork-isolating node`, `astChildrenOf`, `walkAst`, `findAstNodeAtOffset`, `findIdentifierOccurrences`, `bindingNamesVisibleAt`, `triviaBetweenAstNodes`, `astNodeContainsOffset`, `astNodeSpan`, `astNodeToMap`, `qlangMapToAst`, `AST-Map`, `PipelineStep` wrapper, `EFFECT_MARKER_PREFIX`, `classifyEffect`, `effectful`, `tagged JSON`, `toTaggedJSON`, `fromTaggedJSON`, `Session`, `evalCell`, `cellHistory`, `takeSnapshot`, `restoreSnapshot`, `session.bind`, `serializeSession`, `deserializeSession`, `decorateAstWithEffectMarkers`, `findFirstEffectfulIdentifier`, `createPrimitiveRegistry`, `PRIMITIVE_REGISTRY`, `PRIMITIVE_REGISTRY.bind`, `PRIMITIVE_REGISTRY.resolve`, `PRIMITIVE_REGISTRY.seal`, `PrimitiveKeyNotStringError`, `PrimitiveKeyAlreadyBoundError`, `PrimitiveRegistrySealedError`, `PrimitiveKeyUnboundError`, `applyBuiltinDescriptor`, `manifestBuiltinDescriptor`, `core.qlang`, `operand-family`, `runtime-invariants`, `platformLocator`, `:qlang/locator`, `buildLangRuntime`, `parseOperand`, `evalOperand`, `code-as-data ring`, `fail-track`, `success-track`, `fail-apply`, `applyFailTrack`, `deflect`, `fire`, `leading fail-apply prefix`, `leadingFail`, `materialize`, `materializeTrail`, `materializePendingTrail`, `combineTrailQuotes`, `trailEntry`, `appendTrailNode`, `trail`, `trail continuity`, `Quote-typed trail`, `expose (a materialized descriptor)`, `lift (Map → error value)`, `error value`, `error literal`, `!{…}`, `!|`, `isError`, `error operand`, `axis-operand`, `source axis`, `docs axis`, `examples axis`, `module-AST Quote`, `qlang/ast/<uri>`, `qlang/namespace/<uri>`.
 
 When the codebase introduces a new domain term in the diff under review, add it to your working vocabulary for that review and use it in your findings.
 
@@ -57,9 +57,9 @@ When you flag a generic name, the finding must propose a specific qlang replacem
 
 qlang's error model is **two-track**: pipeline values flow on either the **success-track** (Scalar / Vec / Map / Set / function) or the **fail-track** (error value `!{…}`). Which track a step fires on is decided by the **combinator** at the call site, not by any runtime flag on the operand:
 
-- `|`, `*`, `>>` are **success-track combinators**. On an error pipeValue they **deflect**: the step is bypassed and the **AST-Map form** of that step (produced by `walk.mjs::astNodeToMap` at deflect time) is appended to the error's `_trailHead` linked list via `appendTrailNode`. Trail entries carry full structural payload — `:qlang/kind`, `:name`, `:args`, `:keys`, `:elements`, `:entries`, `:location`, `:text` — so downstream `!|` consumers can filter, project, or re-eval them as ordinary qlang data, not just read them as source strings.
-- `!|` is the **fail-track combinator** (fail-apply). On an error pipeValue it **fires**: `applyFailTrack` in `eval.mjs` **materializes** the error's trail (existing `:trail` Vec in the descriptor, plus the linked-list entries since the last materialization, combined into a single Vec), stamps the combined trail back onto a fresh descriptor Map, and **exposes** that materialized descriptor to the step by invoking `evalNode(stepNode, state-with-descriptor)`. On a success pipeValue `!|` deflects as identity pass-through.
-- Every error value's descriptor carries `:trail` as a Vec by **invariant** — enforced once by `makeErrorValue` in `types.mjs`. Hot-path readers read `:trail` unconditionally; no defensive fallback.
+- `|`, `*`, `>>` are **success-track combinators**. On an error pipeValue they **deflect**: the step is bypassed and a `trailEntry(stepNode, kind)` fragment record `{combinator, text}` is appended to the error's `_trailHead` linked list via `appendTrailNode`. The fragment carries the deflected step's verbatim source slice (`stepNode.text`) plus its combinator kind (`pipe` / `distribute` / `merge`) so the suffix can be replayed byte-for-byte.
+- `!|` is the **fail-track combinator** (fail-apply). On an error pipeValue it **fires**: `applyFailTrack` in `eval.mjs` **materializes** the error's trail (existing `:trail` Quote in the descriptor, plus the `_trailHead` linked-list fragments joined through `COMBINATOR_SYNTAX` into a fresh Quote since the last materialization, combined via `combineTrailQuotes`), stamps the combined Quote back onto a fresh descriptor Map, and **exposes** that materialized descriptor to the step by invoking `evalNode(stepNode, state-with-descriptor)`. On a success pipeValue `!|` deflects as identity pass-through.
+- Every error value's descriptor carries `:trail` as either a Quote-value or `null` by **invariant** — enforced once by `makeErrorValue` in `types.mjs`. The Quote holds the joined pipeline-suffix source as copy-pasteable code; `/source` projects raw text, `/ast` lazy-parses on demand. Hot-path readers read `:trail` unconditionally; no defensive fallback.
 - A conduit called via `!|` receives the materialized descriptor as its body's first pipeValue; the body is an ordinary sub-pipeline that composes through `|`, `!|`, `*`, `>>` like any other.
 - The leading `!|` prefix (captured in `Pipeline.leadingFail`) is the first-step form: it routes the first step of a sub-pipeline through fail-apply even though there is no preceding combinator. Used inside `filter(…)` / `when(…)` / `if(…)` lambdas where the per-element pipeValue may or may not be an error.
 - Explicit truncation of the trail uses `union({:trail []})` inside a fail-apply step before re-lift via `| error`.
@@ -87,9 +87,48 @@ Documentation, code comments, commit messages, and error strings must read as if
 - `PROPAGATION_ENTER`, `PROPAGATION_SILENT`, "propagation check", "propagation block", "error propagation" used as a mechanism name: the mechanism is **deflect** (a success-track combinator bypassing its step on an error pipeValue) and **fire** (a combinator applying its step because pipeValue is on the combinator's track). "Propagation" survives only as a descriptive noun for the observable behavior ("the error propagates past `|` steps"), never as a code-level machinery name.
 - `isError` carrying special dispatch semantics, "transparent conduit" as a dispatch category: conduits are ordinary OperandCalls; `!|` routes them into the fail-track, `|` routes them into the success-track with deflection on an error.
 - `| catch | /…` patterns in tests, docs, or lib modules: replace with `!| /…`.
-- `catch(as(:_err) | … | error(_err))` patterns in `core/lib/qlang/error*.qlang` conduits: replace with `!| … | error`.
+- `catch(as(:_err) | … | error(_err))` patterns in `core/lib/extras/error*.qlang` conduits: replace with `!| … | error`.
 
 Any match above is blocker-grade drift regardless of context.
+
+### 2a. Apophatic framing — definition by negation against absent alternatives
+
+Reject prose that defines what the code IS by listing what it ISN'T. The rhetorical pattern is **apophasis** (Greek ἀπόφασις, "denial" — definition by negation, also called *via negativa*). It surfaces as:
+
+- "X, not Y" section headings — "Two-namespace env, not one", "Quote-as-source, not AST-Map-as-value", "`::tag`, not `#tag`".
+- Lead sentences that pivot on the rejected alternative — "the BindStep is **not** an operand — it is …", "this is **not** a runtime flag — instead, …".
+- Mid-paragraph contrast filler — "X instead of Y", "X rather than Y", "X as opposed to Y", "no longer Y", "where Y would have …".
+- Trailing reassurance — "and **not** a Conduit", "and **not** an arity error", "**not** a string field".
+
+The reader brings their own set of rejected alternatives. Piling our list of rejected alternatives on top doubles the noise. Texts must land on the **positive form** — principles, invariants, conventions, the actual semantic — and let the absent alternatives stay absent.
+
+Two narrow exceptions:
+
+1. **The contrast IS the rule.** When a single sentence states the literal disambiguation rule the parser / evaluator enforces — `:foo` is the value namespace, `::foo` is the tag namespace — the two halves of the rule are both positive specifications. Keep.
+2. **Single-shot warning against a real mis-read.** When a reader almost certainly arrives with a measurably wrong mental model (e.g. `/qlang/http` reads as a single namespaced keyword segment, not two bare segments separated by `/`), one clarifying negation is allowed. One — not a recurring frame.
+
+Findings in this category must name the apophasis explicitly, quote the offending phrase, and propose the positive rewrite.
+
+Grep heuristic for the reviewer: any non-table line containing `, not ` / `instead of ` / `rather than ` / `as opposed to ` / `no longer ` / `not just ` / `not the ` / `not a ` after the first prose paragraph of a chapter is suspect. Confirm by reading the surrounding sentence — if dropping the negated half loses no specification, the line is apophatic and must be rewritten.
+
+### 2b. No `Class` / `Class-level` vocabulary
+
+Reject `Class` (capitalised standalone noun) and `Class-level` (compound adjective) wherever they appear in qlang prose — comments, doc strings, spec chapters, commit messages, review findings, design discussions. qlang's surface vocabulary speaks in `tag` / `:kind` discriminator / `kind` / `per-site` / `tag-level` / `static` / `binding kind`. The word `Class` imports OOP-shaped framing into a language that has no inheritance, no constructors-as-classes, no `new`, no class hierarchy — just tags, kinds, and per-site error classes (the one legacy compound the rules already pin in §3).
+
+Specific surface-level rejections:
+
+- `Class-level facts` → `tag-level facts` / `static facts` / `per-tag spec`
+- `Class identity` → `tag identity` / `:kind` identity
+- `the class of X` → `the kind of X` / `the tag of X`
+- `class-level metadata` → `catalog metadata` / `tag-binding metadata`
+- `each class carries` → `each tag-binding carries` / `each per-site error carries`
+
+Two narrow exceptions:
+
+1. **The idiom `first-class` / `first class`.** "First-class value", "first-class citizen", "lift X to first-class status" — universal English usage that lands at the qlang value-class surface without OOP baggage. Keep.
+2. **Established domain compounds.** `value-class` (used throughout `types.mjs` for the JS-side value-shape predicates — `value-class predicates`, `value-class instance`) and `per-site error class` (the §3 rule name itself) are coined qlang compounds that pre-date this rule. Keep existing usage; do **not** add new `value-class`-style compounds unless the qlang domain genuinely needs one — prefer `tag` / `kind` / `binding` first.
+
+Findings in this category must quote the offending phrase, name which exception applies (if any), and propose the positive rewrite in the language's own vocabulary.
 
 ### 3. Per-site error classes (one throw site, one class)
 
@@ -138,7 +177,7 @@ Domain constants (`EFFECT_MARKER_PREFIX`, `AST_SCHEMA_VERSION`, `SESSION_SCHEMA_
 
 `childrenOf` knowledge of the AST shape lives in `core/src/walk.mjs::astChildrenOf` and **only** there. If any module switches on `node.type` to enumerate children, it should import `astChildrenOf` instead.
 
-Operand metadata (docs, examples, throws, category, subject, modifiers, returns) lives exclusively in `core/lib/qlang/core.qlang` — the Variant-B runtime source catalog, one outer Map literal whose 69 entries each bind an identifier to a descriptor Map with `:qlang/kind :builtin` and a `:qlang/impl :qlang/prim/<name>` handle pointing into `PRIMITIVE_REGISTRY`. JS runtime modules carry only executable impls registered under the `:qlang/prim/<name>` key via `PRIMITIVE_REGISTRY.bind` at module-load time — no authored meta. If any dispatch helper call in `core/src/runtime/*.mjs` passes docs, examples, or throws, that is duplication — flag it. If any `:qlang/impl` handle in `core.qlang` does not match a bound primitive, that is drift — the catalog-catalog test in `core/test/unit/core-catalog.test.mjs` pins the handoff, so a breakage there must be diagnosed before merge.
+Operand metadata (`:throws`, `:category`, `:subject`, `:modifiers`, `:returns`) lives exclusively in the per-family catalog files under `core/lib/qlang/operand/<family>.qlang` — series of `BindStep` declarations, each binding an identifier to a `::builtin{:impl :qlang/prim/<name> …}` TaggedLit descriptor that the parser folds into a Map with `:kind ::builtin` plus the authored fields, including the `:impl :qlang/prim/<name>` handle that resolves through `PRIMITIVE_REGISTRY` at bootstrap. JS runtime modules carry only executable impls registered under the `:qlang/prim/<name>` key via `PRIMITIVE_REGISTRY.bind` at module-load time — no authored meta. Authored prose and example `~{…}` Quote segments live on each `BindStep`'s attached doc-prefix and are reachable through `:name | docs` and `:name | examples`. If any dispatch helper call in `core/src/runtime/*.mjs` passes docs, examples, or throws, that is duplication — flag it. If any `:impl` handle in a catalog descriptor does not match a bound primitive, that is drift — the catalog test in `core/test/unit/core-catalog.test.mjs` pins the handoff, so a breakage there must be diagnosed before merge.
 
 ### 8. Spec / model / runtime documentation alignment
 
@@ -147,7 +186,7 @@ The language specification lives in `docs/qlang-spec.md`, the formal evaluation 
 For each diff:
 
 - New AST node type → grammar production in spec, evaluator handler note in internals, dispatch entry in runtime
-- New operand → `core/lib/qlang/core.qlang` entry (descriptor Map with `:qlang/kind :builtin` and `:qlang/impl :qlang/prim/<name>`), `PRIMITIVE_REGISTRY.bind` call in the corresponding `core/src/runtime/*.mjs` module, catalog entry in `qlang-operands.md`, size bump in `core/test/unit/core-catalog.test.mjs` catalog-count pins
+- New operand → BindStep entry in the per-family catalog file under `core/lib/qlang/operand/<family>.qlang` (`::builtin{:impl :qlang/prim/<name> :category … :subject … …}` TaggedLit body), `PRIMITIVE_REGISTRY.bind` call in the corresponding `core/src/runtime/*.mjs` module, catalog entry in `qlang-operands.md`, size bump in `core/test/unit/core-catalog.test.mjs` catalog-count pins
 - New error class kind → error conditions table in spec
 - New surface syntax → lexical structure table in spec, grammar production updated
 - Renamed identifier → grep the docs for the old name and verify it's gone
@@ -157,7 +196,7 @@ Drift in either direction (code without docs, or docs without code) is a finding
 ### 9. Test discipline
 
 - AST shape assertions use **explicit field checks** (`expect(ast.type).toBe(...)`, `expect(ast.value).toBe(...)`), NOT `toMatchObject` against an inline literal nor a `astShape`/`stripMeta` helper indirection. Such helpers are review-blocking unless they exist in the conformance runner that explicitly hydrates test fixtures.
-- Per-site errors are asserted by class name (`expect(e.name).toBe('FilterSubjectNotContainer')`) AND by `instanceof QlangTypeError` AND by structured context fields (`expect(e.context.position).toBe(2)`). All three.
+- Per-site errors are asserted by class name (`expect(e.name).toBe('FilterSubjectNotContainerError')`) AND by `instanceof QlangTypeError` AND by structured context fields (`expect(e.context.actualType.name).toBe('number')`). All three. The dynamic JS-side context carries `actualValue` / `actualType` / comparability pair-types / `index` / dispatch-time `operandName` / `conduitName`; per-tag static facts (`:operand` / `:position` / `:expectedType` / `:category`) live on the catalog `::Foo ::builtin{…}` body and reach test code through `result !\| type \| spec \| /…` axis chains.
 - Conformance JSONL cases are the source of truth for end-to-end semantics. If a feature lacks at least one happy-path conformance case, that's a finding.
 - Coverage must meet the thresholds in `vitest.config.mjs` — 100/100/100/100 on statements, branches, functions, lines. If a new file dips below, that's a finding.
 - Tests must not be skipped, marked `.todo`, or commented out.
@@ -184,12 +223,45 @@ Specific patterns to flag:
 
 **Severity**: major for source and test files; minor for documentation. If a file is particularly severe — more than ~30% of its top-level entries are misplaced relative to any derivable grouping — the finding must include a **proposed reorganization**: a concrete sketch of the target grouping (by subject type, by pipeline stage, by error class family, by AST node kind, etc.) that the author should adopt. Name the sections by their qlang-vocabulary headings, not generic ones.
 
+### 14. Immutable-vocabulary discipline
+
+The runtime invariant is that `env`, `pipeValue`, `state`, descriptor Maps, conduit / snapshot / error / Quote / Doc values are all immutable: every "modification" is a fresh value forged from the prior one. Prose — comments, doc strings, spec chapters, error messages, commit messages — must reflect this. Reject mutation-flavoured verbs whenever they describe one of these immutable surfaces:
+
+- `modify`, `mutate`, `update in place`, `change`, `replace`, `overwrite`, `set on X`, `delete from X`, `clear X`, `reset X` — when X is `env` / `pipeValue` / `state` / descriptor / Conduit / Snapshot / error value / Quote / Doc / trail.
+- `the env now contains`, `the value becomes`, `then we modify`, `state is changed to`, `we update the descriptor with`, `the trail is mutated by appending`.
+
+Prefer verbs that carry "fresh object" semantics in qlang's evaluation model:
+
+- **forge** / **mint** / **stamp** — for one-shot construction at a mint site (`makeConduit forges a fresh Conduit Map`, `makeErrorValue mints a descriptor invariant onto a fresh Map`, `appendTrailNode stamps a fragment record onto a fresh _trailHead cons cell`).
+- **propagate**, **thread**, **ascend with**, **descend into** — for state flow through the evaluator.
+- **yield**, **lift**, **expose**, **deflect**, **fire**, **materialize** — for combinator / track operations already in qlang vocabulary.
+- **shadow** — for env-level last-write-wins replacement (a later `def(:foo, ...)` *shadows* the earlier binding; it does not "overwrite" it).
+- **fresh X carrying Y** / **a fresh X with Y stamped on** — for snapshot-style derivation (`a fresh descriptor with :trail stamped from the combined source`).
+- **succeeded by**, **followed by**, **layered on top** — for ordered chains of pure transformations.
+
+The only place mutation-vocabulary is OK is at the JS-layer construction boundary inside a factory body itself (a freshly-allocated Map being filled via `.set(...)` before being frozen and returned). Once the value escapes the factory, every downstream description must speak in immutable terms.
+
+Match the violation in the report: when you flag mutability drift, propose the immutable-vocabulary replacement.
+
+### 15. Token-projection naming — Loose Coupling / High Cohesion
+
+Identifiers live inside a tokenizer-projected namespace. The qlang repository should occupy a tight **high-entropy island** in that namespace — names whose composed tokens read as a unique qlang-domain knot that does not collide with arbitrary JS / Python / generic-CS corpus tokens (Loose Coupling), and whose internal vocabulary is **uniform** across the codebase so qlang-specific terms reinforce each other (High Cohesion).
+
+The naming bar:
+
+- **Generic single-token names are rejected** wherever a qlang term names the same thing: `Error`, `Type`, `Value`, `Name`, `Function`, `Result`, `Data`, `Info`, `Item`, `Element`, `Node` (when AST node), `Handler`, `Helper`, `Manager`, `Processor`, `Util`, `Tool`. Each of those is one token landing inside the most generic possible domain.
+- **Composed names** carry a unique qlang-domain knot — `pipeValue`, `OperandCall`, `astChildrenOf`, `bindingNamesVisibleAt`, `decorateAstWithEffectMarkers`, `findFirstEffectfulIdentifier`, `materializeTrail`, `appendTrailNode`, `qlangMapToAst`, `evalTaggedLit`, `applyFailTrack`, `combineTrailQuotes`. Each composition pins the name to qlang-specific structure unfindable in other corpora.
+- **Token-count is informative, not prescriptive.** When proposing a rename, count the tokens (BPE-style for the canonical Claude / GPT tokenizer) and prefer fewer tokens **only if** the shorter form preserves the high-entropy knot. `qlangError` (3 tokens: `q` + `lang` + `Error`) leaks `Error` into the generic CS corpus — a 2-token alternative landing entirely inside qlang vocabulary (`thrown`, `qlangFault`, `qlangThrow`) is preferable. `materializeTrail` (3-4 tokens) is fine because every constituent is qlang-specific — `materialize` is the spec verb, `trail` is the descriptor field.
+- **Why this matters for design.** qlang's `:keyword` and `::tag` syntax exist precisely to give each domain term its own first-class lexical slot — the language itself models High Cohesion in its grammar. The codebase that implements it should hold the same property in its identifier surface.
+
+A finding under this section names the offending identifier, the qlang-domain alternative, and the cohesion gain ("identifier no longer leaks into the generic-error corpus").
+
 ### 12. Conceptual completeness — propose organic next steps
 
 Beyond gating the diff, you reason about whether the change leaves the qlang surface in a **conceptually complete** state. After reviewing what is in the diff, look at what is **next-step-natural**:
 
 - If the diff adds an operand family but leaves obvious siblings unimplemented (e.g. `firstNonZero` ships without `lastNonZero`, `coalesce` ships without `every`/`any`, comparator builders ship without `nullsFirst`/`nullsLast`), name the gap.
-- If the diff introduces a new descriptor field on `reify` but `manifest` does not surface it, name the gap.
+- If the diff introduces a new descriptor field on a binding kind but `manifest`'s `describeBinding` projection does not surface it, name the gap.
 - If the diff teaches the AST a new node type but `astChildrenOf` only learns about it in one place and the editor primitives (`findAstNodeAtOffset`, `bindingNamesVisibleAt`) silently ignore it, name the gap.
 - If the diff adds a parse-time check but the runtime has no symmetric safety net for laundering paths (or vice versa), name the gap.
 - If the diff adds a public API but `core/src/index.mjs` does not re-export it, name the gap.
@@ -212,7 +284,7 @@ Stay inside the qlang surface. Do not propose changes outside the repository.
    - Read `core/src/grammar.peggy` to know the current AST shape.
    - Read `core/src/walk.mjs::astChildrenOf` to know the canonical traversal contract.
    - Read `docs/qlang-spec.md` for the current public surface.
-   - Read `core/lib/qlang/core.qlang` for the authoritative operand catalog (the Variant-B langRuntime source; one outer Map literal whose entries are descriptor Maps with `:qlang/impl :qlang/prim/<name>` handles into `PRIMITIVE_REGISTRY`).
+   - Read the per-family catalog files under `core/lib/qlang/operand/<family>.qlang` plus `core/lib/qlang/runtime-invariants.qlang` and `core/lib/qlang/tag.qlang` for the authoritative operand catalog (a series of `BindStep` declarations whose bodies are `::builtin{:impl :qlang/prim/<name> …}` TaggedLit descriptors that fold into Maps with `:kind ::builtin` plus the `:impl` handle that resolves through `PRIMITIVE_REGISTRY`). `core/lib/qlang/core.qlang` is the orchestrator that loads every family via `use([…])`.
    - For added files, also read what they import from to verify the contract assumed at the call site.
 
 3. **Run the checks** in order, recording findings as you go:

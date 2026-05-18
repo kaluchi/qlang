@@ -46,6 +46,36 @@
     if (Array.isArray(unit)) return unit.flatMap(flattenUnits);
     return [unit];
   }
+
+  // AST shapes that round-trip as pure JSON content — scalars
+  // (NumberLit / StringLit / BooleanLit / NullLit) plus the two
+  // JSON containers (JsonObjectLit / JsonArrayLit). Anything else
+  // — Keyword, qlang Vec / Map / Set / Error / Quote / Doc /
+  // TaggedLit literals, identifier OperandCall, Projection,
+  // ParenGroup, Pipeline — is qlang-only or runtime computation.
+  //
+  // Used by single-element `[X]` VecLit dispatch (§II.11.1): a
+  // single-element array whose head is JSON-only content parses as
+  // `JsonArrayLit`, matching the multi-element comma-separated
+  // form. A single-element array carrying qlang-only or
+  // runtime-computed content stays a qlang VecLit. Empty `[]` is
+  // qlang VecLit by default (no content to inspect).
+  const JSON_ONLY_AST_TYPES = new Set([
+    'NumberLit', 'StringLit', 'BooleanLit', 'NullLit',
+    'JsonObjectLit', 'JsonArrayLit'
+  ]);
+  function isJsonOnlyAst(node) {
+    if (node == null) return false;
+    // A Pipeline whose head is JSON-only and which carries no
+    // tail steps (single-step pipeline collapsed to its head)
+    // counts as JSON-only. Multi-step pipelines are runtime
+    // computation.
+    if (node.type === 'Pipeline') {
+      if (node.steps.length === 1) return isJsonOnlyAst(node.steps[0]);
+      return false;
+    }
+    return JSON_ONLY_AST_TYPES.has(node.type);
+  }
 }}
 
 Query
@@ -68,52 +98,61 @@ Query
 // semantics. This mirrors the existing ParenGroup role for
 // escaping outer-context precedence.
 //
-// The `leadingFail` prefix (`!| step`) stays valid because a
-// conduit body or captured-arg sub-pipeline may legitimately
-// start on the fail-track (for instance, `let(:handler, !| /kind)`).
-// Explicit combinators between steps (`|`, `*`, `>>`, `!|`) also
-// remain valid — only the bare comment-as-continuation and the
-// absorbing comment-with-follower variants are excluded.
+// The leading-combinator prefix (`!| step` / `| step` / `* step` /
+// `>> step`) is valid at any Pipeline-start position. Semantically
+// the first step is applied against the inbound pipeValue through
+// the named combinator; without the prefix, the first step rides
+// the implicit identity-head. The prefix is what makes a
+// Pipeline-suffix Quote (`~{| count | add(1)}`) parseable as data
+// and re-evaluable against a subject via the `apply(quote)`
+// operand. Explicit combinators between later steps (`|`, `*`,
+// `>>`, `!|`) remain valid as usual.
 PipelineInLiteral
-  = leadingFail:("!|" _)? head:RawStep tail:(_L ExplicitContinuation)*
+  = leadingComb:(LeadingCombinator _)? head:RawStep tail:(_L ExplicitContinuation)*
   {
-    const hasLeadingFail = !!leadingFail;
+    const hasLeadingComb = leadingComb !== null;
     const rest = tail.map(t => t[1]);
-    if (rest.length === 0 && !hasLeadingFail) return head;
+    if (rest.length === 0 && !hasLeadingComb) return head;
     const fields = {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
     };
-    if (hasLeadingFail) fields.leadingFail = true;
+    if (hasLeadingComb) fields.leadingCombinator = leadingComb[0];
     return node('Pipeline', fields, location(), text());
   }
 
 Pipeline
-  = leadingFail:("!|" _)? headRaw:PipelineHead tail:(_ ContinuationUnit)*
+  = leadingComb:(LeadingCombinator _)? headRaw:PipelineHead tail:(_ ContinuationUnit)*
   {
     // PipelineHead may return either a single AST node (the first
     // step) or an array of [headStep, ...continuationUnits] when
     // the head is a BlockPlainComment that absorbed its trailing
     // combinator and ate a follower step.
     //
-    // `leadingFail` is an optional `!|` prefix that applies the first
-    // step on the fail-track. If present, we force a Pipeline node
-    // (even for a single step) and stamp `leadingFail: true` on it so
-    // the evaluator routes the first step through the `!|` combinator
-    // instead of evalNode directly. Without the prefix, a single-step
-    // pipeline collapses to the bare step node so `astChildrenOf`
-    // and downstream walkers see a Primary at the query root.
-    const hasLeadingFail = !!leadingFail;
+    // `leadingCombinator` is an optional `!|` / `|` / `*` / `>>`
+    // prefix that applies the first step against the inbound
+    // pipeValue through the named combinator. If present, a
+    // single-step pipeline still wraps in a Pipeline node so the
+    // evaluator can route the first step through `applyCombinator`.
+    // Without the prefix, a single-step pipeline collapses to the
+    // bare step node so `astChildrenOf` and downstream walkers see
+    // a Primary at the query root.
+    const hasLeadingComb = leadingComb !== null;
     const headUnits = Array.isArray(headRaw) ? headRaw : [headRaw];
     const head = headUnits[0];
     const headTail = headUnits.slice(1);
     const rest = [...headTail, ...tail.flatMap(t => flattenUnits(t[1]))];
-    if (rest.length === 0 && !hasLeadingFail) return head;
+    if (rest.length === 0 && !hasLeadingComb) return head;
     const pipelineFields = {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
     };
-    if (hasLeadingFail) pipelineFields.leadingFail = true;
+    if (hasLeadingComb) pipelineFields.leadingCombinator = leadingComb[0];
     return node('Pipeline', pipelineFields, location(), text());
   }
+
+// The `!"~"` lookahead on `"|"` keeps the comment markers `|~`,
+// `|~|`, `|~~`, `|~~|` from being misread as leading-pipe + Quote.
+LeadingCombinator
+  = "!|" / ">>" / "|" !"~" { return '|'; } / "*"
 
 // The first unit of a pipeline has no preceding combinator
 // (virtually, its leading `|` in a comment-led form is absorbed
@@ -126,6 +165,7 @@ PipelineHead
   / LeadingLinePlainAbsorbing
   / DocAttachedSequence
   / PlainCommentStep
+  / BindStep
   / RawStep
 
 LeadingBlockPlainAbsorbing
@@ -142,14 +182,38 @@ LeadingLinePlainAbsorbing
     return [c, ...followerUnits];
   }
 
-// Continuations after the first step. Comment-led units are tried
-// first so their leading `|` is absorbed as the combinator into the
-// comment token rather than matched as a bare Combinator.
+// Continuations after the first step. Comment-led units sit at
+// the front of the ordered choice so their leading `|` absorbs
+// as the combinator into the comment token — same precedence
+// rule the Pipeline-head uses to keep `|~|` from splitting into
+// `|` + `~|`.
+//
+// `DocLitContinuation` catches a standalone doc-comment in
+// continuation position (no following operand-call to attach to) —
+// the doc-token's leading `|` absorbs the implicit `|` combinator
+// from the previous step, the doc itself becomes a Primary step
+// that evaluates into a Doc-value.
 ContinuationUnit
   = BlockPlainCommentAbsorbing
   / LinePlainCommentAbsorbing
   / AbsorbedCommentContinuation
+  / DocLitContinuation
+  / BindStepContinuation
   / ExplicitContinuation
+
+// BindStepContinuation — next BindStep follows previous step
+// without an explicit combinator. The keyword in head-position is
+// itself the separator; no `|` between adjacent BindSteps. The
+// combinator stamped on the step-wrapper is `|` (pipeValue flows
+// through, BindStep is transparent so this only matters for what
+// the next step sees as pipeValue).
+BindStepContinuation
+  = step:BindStep
+  { return { combinator: '|', step }; }
+
+DocLitContinuation
+  = step:DocLit
+  { return { combinator: '|', step }; }
 
 // Block plain comment that absorbs BOTH leading and trailing
 // combinators. The leading `|` of `|~` is the combinator from the
@@ -184,8 +248,9 @@ LinePlainCommentAbsorbing
 
 // What can follow a comment whose trailing combinator is absorbed:
 // another absorbing comment (block or line), a doc-attached step,
-// another plain comment, or a bare RawStep. May return an array
-// when the follower is itself a chain of absorbing comments.
+// another plain comment, a BindStep declaration, or a bare RawStep.
+// May return an array when the follower is itself a chain of
+// absorbing comments.
 FollowerUnit
   = c:BlockPlainComment _ inner:FollowerUnit
   {
@@ -205,6 +270,7 @@ FollowerUnit
   }
   / DocAttachedSequence
   / PlainCommentStep
+  / BindStep
   / RawStep
 
 // Comment-led continuation: the leading `|` of the comment token is
@@ -235,23 +301,31 @@ ExplicitContinuation
 
 StepAfterCombinator
   = DocAttachedSequence
+  / BindStep
   / RawStep
 
 // One or more doc comments, optionally interleaved with plain
-// comments, followed by an operand call. Each doc comment produces
-// ONE entry in the `docs` Vec attached to the operand call node.
-// Binding operands (let, as) consume docs and store them on the
-// conduit/snapshot; other operands ignore docs (harmless metadata).
+// comments, followed by a binding step — either a BindStep
+// (`:name body`) or an `as` operand call (`as(:name)`). Each doc
+// comment produces ONE entry in the `docs` Vec attached to the
+// step node. BindStep gets its `.docs` field merged with any
+// docs it already carried internally (the `:name __ DocPrefix?`
+// production); `as` gets `.docs` stamped on the OperandCall node.
+// A doc-prefix in front of any other OperandCall (filter, mul, ...)
+// fails this rule and backtracks; the Doc then evaluates as a
+// standalone Doc-value through the DocLit Primary alternative and
+// the operand follows as the next pipe-step.
+//
 // Adjacent line docs do NOT concatenate — each is its own entry.
 // Block docs preserve internal newlines as a single multi-line entry.
 //
 // When no plain comments are interleaved, the rule returns a single
-// operand-call node with `.docs` populated. When interleaved plains
-// are present, the rule returns a compound array that Pipeline
-// flattens into multiple steps (plain identity steps first, then
-// the doc-attached operand call).
+// step node with `.docs` populated. When interleaved plains are
+// present, the rule returns a compound array that Pipeline flattens
+// into multiple steps (plain identity steps first, then the doc-
+// attached step).
 DocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:OperandCall
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:DocAttachableStep
   {
     const allItems = [firstDoc, ...rest.map(t => t[1])];
     const docs = [];
@@ -263,7 +337,9 @@ DocAttachedSequence
         plainSteps.push(item);
       }
     }
-    const bound = withDocs(step, docs);
+    const existingDocs = Array.isArray(step.docs) ? step.docs : [];
+    const bound = withDocs(step, [...docs, ...existingDocs]);
+    bound.docPrefixStart = firstDoc.location.start.offset;
     if (plainSteps.length === 0) return bound;
     // Head-shape compound array: first element is the bare step,
     // remaining elements carry explicit combinator wrappers. This
@@ -275,6 +351,13 @@ DocAttachedSequence
       { combinator: '|', step: bound }
     ];
   }
+
+// Steps that accept a doc-prefix attachment: a BindStep declaration
+// or an `as` OperandCall. Both stamp `.docs` onto the result of the
+// declaration, reachable through axis-operands (`:name | docs`).
+DocAttachableStep
+  = BindStep
+  / step:OperandCall & { return step.name === 'as'; } { return step; }
 
 // A single item that may appear in a doc-attached prefix: either a
 // doc comment (contributes to the docs Vec) or a plain comment
@@ -318,11 +401,23 @@ BlockPlainComment
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
 
+// Quote-spans inside a block comment / block doc are preserved
+// verbatim so the inner Quote's content (which may include `~|`
+// or `~~|` substrings) does not trip the outer block-comment
+// close marker. QuoteSpan tracks `~{` / `}` balance same as
+// QuoteContent, so the span returned matches exactly the inner
+// `~{...}` source slice including its delimiters.
+QuoteSpan
+  = "~{" content:QuoteContent "}"
+    { return '~{' + content + '}'; }
+
 BlockPlainContent
-  = chars:(!"~|" .)* { return chars.map(c => c[1]).join(''); }
+  = chars:(QuoteSpan / (!"~|" .))*
+    { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 BlockDocContent
-  = chars:(!"~~|" .)* { return chars.map(c => c[1]).join(''); }
+  = chars:(QuoteSpan / (!"~~|" .))*
+    { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 // --- Combinators ------------------------------------------------
 //
@@ -345,13 +440,104 @@ Combinator
 
 // --- Raw steps (non-comment) -----------------------------------
 //
-// With `let` and `as` promoted to regular operand calls in
-// langRuntime, RawStep collapses to just Primary. No special
-// grammar constructs for binding — `let(:name, body)` and
-// `as(:name)` parse as ordinary OperandCall nodes.
+// `RawStep` is the bare-Primary form of a step. The binding-form
+// `BindStep` is introduced separately at the Pipeline-step level
+// (see `PipelineHead` and the `BindStepContinuation` alternative
+// of `ContinuationUnit`); the split keeps `RawStep` reusable from
+// `PipelineInLiteral`, where Vec/Set/Map/ArgList element positions
+// treat a keyword head as a plain keyword value. `[:a 42]` parses
+// as a Vec of two keywords plus a number under this rule.
 
 RawStep
   = Primary
+
+// --- BindStep — declarative binding form -----------------------
+//
+// `:name body` / `:name docs body` / `:name docs` / `::Tag body` /
+// `:name [:p ...] body` — keyword (or BareTypeKeyword) in
+// head-position, optional doc-prefix in spec-slot, optional Vec
+// of keyword-params, optional body (any Primary except a bare
+// Keyword/BareTypeKeyword — for those wrap in ParenGroup). The
+// predicate at the end fails the rule if neither docs nor body
+// nor params is present, so a lone `:foo` falls back to a plain
+// Keyword Primary.
+//
+// BindStep is transparent for pipeValue — it writes the binding
+// into env and lets the incoming pipeValue pass through unchanged.
+// Pure-literal bodies snapshot at decl-time; impure bodies become
+// conduits captured against the lexical envRef.
+BindStep
+  = key:BindName __ docs:DocPrefix? _? rest:BindRest?
+    & { return docs !== null || rest !== null; }
+    {
+      const params = rest && rest.params ? rest.params : null;
+      const body = rest && rest.body ? rest.body : null;
+      const fields = { key, docs: docs || null, params, body };
+      // The doc-prefix delimiters (`|~~ … ~~|` / `|~~| …`) do not
+      // survive into the AST — `DocPrefix` folds doc-content into
+      // a plain Vec of strings. Downstream consumers that map back
+      // to source bytes (highlighter, source-position editor
+      // features) need the prefix's start offset; carry it through
+      // a side-channel field `docs._start` set inside `DocPrefix`.
+      if (docs && typeof docs._start === 'number') {
+        fields.docPrefixStart = docs._start;
+      }
+      return node('BindStep', fields, location(), text());
+    }
+
+BindName
+  = key:Keyword         { return key; }
+  / key:BareTypeKeyword { return key; }
+
+// DocPrefix in BindStep sits AFTER the name. No combinator-absorb
+// behaviour (the name already separated this step from the
+// previous). Sequence of consecutive doc-comments accumulates into
+// a Vec of contents; interleaved plain comments stay as layout
+// sugar outside the attached-docs payload. Returns null when no
+// doc-comment found.
+DocPrefix
+  = first:DocComment rest:(_ DocOrPlainItem)*
+    {
+      const items = [first, ...rest.map(r => r[1])];
+      const docs = [];
+      for (const item of items) {
+        if (item.type === 'LineDocComment' || item.type === 'BlockDocComment') {
+          docs.push(item.content);
+        }
+      }
+      // Side-channel field on the returned Vec — the caller
+      // (BindStep production) lifts it onto the AST node as
+      // `docPrefixStart`. The doc-comment text is otherwise lost
+      // to source-position consumers because the delimiters and
+      // line-by-line shape get folded into plain content strings.
+      docs._start = first.location.start.offset;
+      return docs;
+    }
+
+// BindRest covers the trailing `params body` (parametric conduit)
+// or `body` (value/literal). Params is a Vec of Keywords only —
+// if the `[...]` contains anything non-Keyword, params fails and
+// the alternative falls through to body-only where the same
+// `[...]` is parsed as a VecLit body.
+BindRest
+  = params:Params _? body:BindBody { return { params, body }; }
+  / body:BindBody                  { return { params: null, body }; }
+
+Params
+  = "[" _L head:Keyword tail:(_L Keyword)* _L "]"
+    { return [head, ...tail.map(t => t[1])]; }
+  / "[" _L "]" { return []; }
+
+// BindBody is a Primary EXCEPT bare Keyword / BareTypeKeyword —
+// `:foo :bar` would be meaningless as a binding (key + keyword-
+// value, where the name reference is redundant); the predicate
+// rejects those shapes so the parser backtracks to two consecutive
+// Primary steps instead. To bind a key explicitly to a keyword
+// value, wrap in ParenGroup: `:status (:active)`.
+BindBody
+  = body:Primary
+    & { return body.type !== 'Keyword' && body.type !== 'BareTypeKeyword'; }
+    { return body; }
 
 Primary
   = ParenGroup
@@ -359,53 +545,186 @@ Primary
   / SetLit
   / VecLit
   / MapLit
+  / QuoteLit
+  / DocLit
+  / TaggedLit
+  / BareTypeKeyword
   / Projection
   / OperandCall
   / Scalar
+
+// TaggedLit / BareTypeKeyword — tag-namespace identifiers under a
+// `::` prefix. `::tag<payload>` (TaggedLit) constructs a value
+// through the tag's registered constructor; `::tag` alone
+// (BareTypeKeyword) is an identifier reference to the tag binding
+// itself.
+//
+// Tag and payload are *atomic* — no whitespace permitted between
+// them. `::tag[1 2]` is one TaggedLit; `::tag [1 2]` is the
+// BareTypeKeyword `::tag` followed by a separate Vec primary at the
+// outer Pipeline / Vec / arg position. Whitespace forces splitting
+// — same rule that distinguishes `/foo` projection from `/ foo`
+// (which isn't legal). Scalar / identifier payload wraps through
+// ParenGroup: `::tag(42)`, `::tag(foo)`, `::tag(a | b)`.
+//
+// Tag name accepts NamespacedName (`::ns/sub/leaf`) symmetric with
+// keyword namespacing — same TagName production used by both.
+//
+// PEG ordered choice tries TaggedLit first; if no Primary follows
+// the tag identifier, parsing backtracks to BareTypeKeyword so a
+// bare reference like `::duration | spec` parses cleanly.
+TaggedLit
+  = "::" tag:TagName payload:Primary
+    { return node('TaggedLit', { tag, payload }, location(), text()); }
+
+BareTypeKeyword
+  = "::" tag:TagName
+    { return node('BareTypeKeyword', { tag }, location(), text()); }
+
+TagName
+  = NamespacedName
+  / Ident
 
 ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
 
+// QuoteLit captures content verbatim as a source string. AST is
+// parsed lazily by the runtime so a Quote may hold a pipeline
+// fragment beginning with a combinator (`* inc | sort`) — eager
+// parse would reject such a fragment.
+//
+// `~{...}` delimiter — paired (open ≠ close). Content matches an
+// ordinary qlang `Pipeline` greedy-style; whatever the Pipeline
+// rule can't consume (leading combinator, stray separator,
+// whitespace) falls through to `QuoteChar` which accepts every
+// byte except `}`. Balance derives entirely from the standard
+// qlang grammar — `MapLit` / `SetLit` / `VecLit` / `ErrorLit` /
+// `ParenGroup` / `QuoteLit` / string literals / comment tokens
+// each end on their own closer, so the outer `}` is reached only
+// when nothing nests at the cursor. No separate escape mechanism —
+// valid qlang never carries unbalanced `{` / `}` / `` ` `` outside
+// a string literal or comment.
+//
+// `src` (not `source`) — `parse.mjs` stamps `ast.source` on the
+// root node, which would override a QuoteLit field of the same
+// name when the QuoteLit is the entire query. The AST keeps `src`;
+// the runtime Quote value-class projects `:source` on its own Map
+// shape.
+QuoteLit
+  = "~{" content:QuoteContent "}"
+    { return node('QuoteLit', { src: content }, location(), text()); }
+
+QuoteContent
+  = parts:QuotePart* { return parts.join(''); }
+
+QuotePart
+  = NestedQuoteSpan
+  / Pipeline { return text(); }
+  / QuoteStringSpan
+  / QuoteBlockDocSpan
+  / QuoteBlockPlainSpan
+  / QuoteLineDocSpan
+  / QuoteLinePlainSpan
+  / QuoteChar
+
+NestedQuoteSpan
+  = "~{" inner:QuoteContent "}"
+    { return text(); }
+
+QuoteStringSpan
+  = '"' chars:QuoteStringChar* '"' { return text(); }
+
+QuoteStringChar
+  = "\\" .
+  / [^"\\]
+
+QuoteBlockDocSpan
+  = "|~~" !"|" QuoteBlockDocChar* "~~|" { return text(); }
+
+QuoteBlockDocChar
+  = !"~~|" .
+
+QuoteBlockPlainSpan
+  = "|~" !"~" !"|" QuoteBlockPlainChar* "~|" { return text(); }
+
+QuoteBlockPlainChar
+  = !"~|" .
+
+QuoteLineDocSpan
+  = "|~~|" [^\n]* { return text(); }
+
+QuoteLinePlainSpan
+  = "|~|" [^\n]* { return text(); }
+
+QuoteChar
+  = !"}" c:. { return c; }
+
+// DocLit — standalone doc-comment as a Primary value-form. Two
+// surface variants share one AST node type:
+//   |~~| ...        line form (until newline), input convenience
+//   |~~ ... ~~|     block form, output canonical
+// Both produce the same Doc value-class at eval time; printValue
+// only emits the block form (line-form newline closes the token, so
+// multi-line round-trip would be lossy).
+//
+// LineDocComment / BlockDocComment AST nodes are kept distinct
+// (used by DocAttachedSequence for attached-prefix attachment to
+// BindStep / `as` OperandCall) — DocLit is its own AST node so the
+// JS-side evaluator can route standalone literals to a Doc-value
+// while the attached path keeps stamping `.docs` strings on the
+// following operand-call.
+DocLit
+  = "|~~|" content:LineCommentContent
+    { return node('DocLit', { content }, location(), text()); }
+  / "|~~" !"|" content:BlockDocContent "~~|"
+    { return node('DocLit', { content }, location(), text()); }
+
+// ErrorLit — qlang descriptor literal `!{...}`. Always uses qlang
+// MapEntry shape (keyword key, whitespace separator); JSON-style
+// commas inside an ErrorLit body raise a parse error.
 ErrorLit
   = "!{" _L "}"
     { return node('ErrorLit', { entries: [] }, location(), text()); }
-  / "!{" _L entries:MapEntries _L "}"
-    { return node('ErrorLit', { entries }, location(), text()); }
+  / "!{" _L head:MapEntry tail:(_L MapEntry)* _L "}"
+    { return node('ErrorLit', { entries: [head, ...tail.map(t => t[1])] }, location(), text()); }
 
+// MapLit — mode-discriminated by markers per §II.11.1:
+//   {}                          — empty, defaults to qlang Map at
+//                                 top level (eval may inherit JSON
+//                                 from a parent JSON container).
+//   {"k": 1, "k2": 2}           — JSON Object: string-keyed entries
+//                                 separated by `:` and commas.
+//   {:k 1 :k2 2}                — qlang Map: keyword-keyed entries
+//                                 separated by whitespace.
+//   {:k 1, :k2 2}               — mode conflict (keyword key with
+//                                 comma separator) → parse error.
+//   {"k": 1 "k2": 2}            — mode conflict (string key without
+//                                 comma) → parse error.
+// Order of alternatives: JSON-form first (requires explicit comma
+// markers), then qlang-form. Empty case last.
 MapLit
-  = "{" _L "}"
+  = "{" _L head:JsonMapEntry tail:(_L "," _L JsonMapEntry)* _L "}"
+    { return node('JsonObjectLit', { entries: [head, ...tail.map(t => t[3])] }, location(), text()); }
+  / "{" _L head:QlangMapEntry tail:(_L QlangMapEntry)* _L "}"
+    { return node('MapLit', { entries: [head, ...tail.map(t => t[1])] }, location(), text()); }
+  / "{" _L "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
-  / "{" _L entries:MapEntries _L "}"
-    { return node('MapLit', { entries }, location(), text()); }
 
-MapEntries
-  = head:MapEntry tail:(_L ","? _L MapEntry)*
-    { return [head, ...tail.map(t => t[3])]; }
+// JSON map entry: `"key": value` separated by colon.
+JsonMapEntry
+  = key:StringLit _L ":" _L value:PipelineInLiteral
+    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value }, location(), text()); }
 
-// A MapEntry may be preceded by a run of doc comments that attach
-// as metadata to the entry. At eval time (src/eval.mjs::evalMapLit,
-// evalErrorLit) the accumulated docs are folded into the entry's
-// value Map as a `:docs` Vec of strings — this is how the Variant-B
-// manifest migration preserves the readable `|~~ ... ~~|` writing
-// experience for built-in descriptors while eliminating the
-// let(:let, ...) self-shadow and the three-hop bootstrap enrichment
-// path that the fake-conduit manifest required.
-//
-// Plain comments between the doc prefix and the key (and between
-// individual doc-comment tokens inside the prefix) are absorbed as
-// whitespace via `_L`, so a section-divider plain comment is free
-// to sit directly before or after a doc-attached entry without
-// disrupting the attachment chain.
-MapEntry
-  = docs:MapEntryDocPrefix? _L key:StringLit _L ":" _L value:PipelineInLiteral
-    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value, docs: docs ?? [] }, location(), text()); }
-  / docs:MapEntryDocPrefix? _L key:Keyword __ value:PipelineInLiteral
-    { return node('MapEntry', { key, value, docs: docs ?? [] }, location(), text()); }
+// qlang map entry: `:key value` separated by required whitespace.
+QlangMapEntry
+  = key:Keyword __ value:PipelineInLiteral
+    { return node('MapEntry', { key, value }, location(), text()); }
 
-MapEntryDocPrefix
-  = head:DocComment rest:(_L DocComment)*
-    { return [head.content, ...rest.map(t => t[1].content)]; }
+// MapEntry alias — both JSON-form and qlang-form entries carry the
+// same `MapEntry` discriminator and shape, so AST walkers consume
+// one node type uniformly regardless of which surface produced it.
+MapEntry = QlangMapEntry / JsonMapEntry
 
 SetLit
   = "#{" _L "}"
@@ -413,12 +732,34 @@ SetLit
   / "#{" _L elements:PipelineList _L "}"
     { return node('SetLit', { elements }, location(), text()); }
 
+// VecLit — mode-discriminated by separator and content:
+//   []                          — empty, defaults to qlang Vec.
+//   [1, 2, 3]                   — JSON Array: comma-separated.
+//   [1 2 3]                     — qlang Vec: whitespace-separated.
+//   [42]                        — single JSON-only element → JSON Array.
+//   [:foo]                      — single qlang-only element → qlang Vec.
+//   [{"a":1}]                   — single JSON-content element → JSON Array.
+// Single-element `[X]` parses by `isJsonOnlyAst(X)` content check —
+// JSON-only scalars and JSON containers retain the JSON Array tag
+// (so pasted-JSON `[{"name":"alice"}]` keeps its shape), while a
+// single qlang-only element falls through to qlang Vec.
+// Mixed separators inside a single literal raise a parse error
+// because the chosen alternative (whichever PEG ordered choice
+// commits to) won't match the second element shape.
 VecLit
-  = "[" _L "]"
+  = "[" _L head:PipelineInLiteral tail:(_L "," _L PipelineInLiteral)+ _L "]"
+    { return node('JsonArrayLit', { elements: [head, ...tail.map(t => t[3])] }, location(), text()); }
+  / "[" _L head:PipelineInLiteral _L "]" & { return isJsonOnlyAst(head); }
+    { return node('JsonArrayLit', { elements: [head] }, location(), text()); }
+  / "[" _L head:PipelineInLiteral tail:(_L PipelineInLiteral)* _L "]"
+    { return node('VecLit', { elements: [head, ...tail.map(t => t[1])] }, location(), text()); }
+  / "[" _L "]"
     { return node('VecLit', { elements: [] }, location(), text()); }
-  / "[" _L elements:PipelineList _L "]"
-    { return node('VecLit', { elements }, location(), text()); }
 
+// SetLit / ErrorLit / ArgList retain their ad-hoc whitespace-or-
+// comma list form — neither is a JSON-shaped construct, and an
+// ArgList comma is the required argument separator (not a
+// container marker).
 PipelineList
   = head:PipelineInLiteral tail:(_L ","? _L PipelineInLiteral)*
     { return [head, ...tail.map(t => t[3])]; }
@@ -438,9 +779,20 @@ ArgList
 // Each `KeySegment` produces a plain string slot in `node.keys`, so
 // downstream consumers (eval.mjs::evalProjection) do not care which
 // surface form was used.
+//
+// `/` standalone (no segments) is an **identity projection** — the
+// current `pipeValue` itself. Useful as an alias for the
+// implicit-subject slot inside captured args: `mul(/, /price)` reads
+// "multiply the pipeValue by its `/price` field", `[/, /name]` builds
+// a Vec of the pipeValue and its `/name` field, `{:original /}`
+// captures the pipeValue under a Map entry. Without it the only way
+// to reference the running pipeValue inside a captured arg is the
+// snapshot-and-deref dance `as(:_self) | ... | _self`.
 Projection
   = "/" first:KeySegment rest:("/" KeySegment)*
     { return node('Projection', { keys: [first, ...rest.map(r => r[1])] }, location(), text()); }
+  / "/"
+    { return node('Projection', { keys: [] }, location(), text()); }
 
 // KeySegment bare forms — ordered by specificity:
 //   1. KeywordName handles the ID_Start-led case (letters, `@`,
@@ -573,18 +925,19 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 // `_L` is inside-literal whitespace — it absorbs plain comment
 // tokens as whitespace-equivalent. Used inside MapLit / ErrorLit
 // / SetLit / VecLit body positions and inside ArgList / MapEntries
-// / PipelineList / MapEntryDocPrefix separator positions, where a
-// plain comment serves as a section divider or per-entry
-// annotation and carries no value role. Comment tokens matched
-// here are silently consumed — they never enter the AST — so
-// walkers, reify, astNodeToMap, and the AST-as-data surface are
-// unaffected by whether an author sprinkles section dividers
-// between entries.
+// / PipelineList separator positions, where a plain comment serves
+// as a section divider or per-entry annotation and carries no value
+// role. Comment tokens matched here are silently consumed — they
+// never enter the AST — so walkers, manifest, astNodeToMap, and the
+// AST-as-data surface are unaffected by whether an author sprinkles
+// section dividers between entries.
 //
-// Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. They
-// attach as metadata to the following binding / MapEntry via the
-// MapEntryDocPrefix / DocAttachedSequence productions, and
-// swallowing them as whitespace here would break the attachment.
+// Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. In
+// pipeline position they attach to the following BindStep or `as`
+// OperandCall via DocAttachedSequence; standalone, they evaluate
+// to a Doc-value via the DocLit Primary alternative. Inside a
+// literal body they are not valid — a doc-comment ahead of a
+// MapEntry key, Vec element, or Set element fails to parse.
 
 _  = Whitespace*
 _L = (Whitespace / PlainCommentStep)*

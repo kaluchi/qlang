@@ -28,8 +28,12 @@ import {
   isFunctionValue,
   isConduit,
   isSnapshot,
+  isQuote,
+  isDoc,
   isErrorValue,
-  makeErrorValue
+  makeErrorValue,
+  makeQuote,
+  makeDoc
 } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
@@ -54,13 +58,13 @@ export class MalformedTaggedJSONError extends QlangError {
 // toTaggedJSON(value) → JSON-serializable plain value
 //
 // Conduit and snapshot checks run BEFORE the generic isQMap branch
-// because under Variant-B both are JS Maps carrying a `:qlang/kind`
+// because both value-classes are JS Maps carrying a `:kind`
 // discriminator. Without the early check the generic `$map`
-// serializer would walk the descriptor's entries and either leak the
-// JS-opaque `:qlang/envRef` holder into the tagged-JSON stream or
-// silently encode a snapshot wrapper as a plain Map — both contrary
-// to the "conduits and snapshots require session-level reconstruction"
-// contract the session serializer relies on.
+// serializer would walk the descriptor's entries and either leak
+// the JS-opaque `:envRef` holder into the tagged-JSON stream
+// or silently encode a snapshot wrapper as a plain Map — both
+// contrary to the "conduits and snapshots require session-level
+// reconstruction" contract the session serializer relies on.
 export function toTaggedJSON(value) {
   if (value === null || value === undefined) return null;
   const t = typeof value;
@@ -69,6 +73,8 @@ export function toTaggedJSON(value) {
   if (isVec(value)) return value.map(toTaggedJSON);
   if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
+  if (isQuote(value)) return { $quote: value.source };
+  if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {
     return {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
@@ -108,6 +114,8 @@ export function fromTaggedJSON(json) {
     if ('$error' in json) {
       return makeErrorValue(fromTaggedJSON(json.$error), {});
     }
+    if ('$quote' in json) return makeQuote(json.$quote);
+    if ('$doc' in json) return makeDoc(json.$doc);
   }
   throw new MalformedTaggedJSONError(json);
 }

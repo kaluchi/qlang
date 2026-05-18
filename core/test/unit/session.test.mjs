@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { keyword, isErrorValue, isQMap } from '../../src/types.mjs';
+import { makeTagKeyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
@@ -47,9 +47,9 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(42);
   });
 
-  it('evalCell persists let bindings across subsequent cells', async () => {
+  it('evalCell persists BindStep bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:double, mul(2))');
+    await sessionInstance.evalCell(':double mul(2)');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
@@ -75,7 +75,7 @@ describe('createSession lifecycle', () => {
     // evalCell succeeds; result is an error value, entry.error is null.
     expect(cellEntry.error).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.originalError.name).toBe('CountSubjectNotContainer');
+    expect(cellEntry.result.originalError.name).toBe('CountSubjectNotContainerError');
   });
 
   it('evalCell uri defaults to cell-N', async () => {
@@ -94,9 +94,9 @@ describe('createSession lifecycle', () => {
 
   it('takeSnapshot/restoreSnapshot round-trips env and history length', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:x, 1)');
+    await sessionInstance.evalCell(':x 1');
     const snap = sessionInstance.takeSnapshot();
-    await sessionInstance.evalCell('let(:y, 2)');
+    await sessionInstance.evalCell(':y 2');
     expect(sessionInstance.cellHistory).toHaveLength(2);
     sessionInstance.restoreSnapshot(snap);
     expect(sessionInstance.cellHistory).toHaveLength(1);
@@ -115,10 +115,10 @@ describe('createSession lifecycle', () => {
 });
 
 describe('serializeSession / deserializeSession round-trip', () => {
-  it('preserves user let bindings via conduit source replay', async () => {
+  it('preserves user BindStep bindings via conduit source replay', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:double, mul(2))');
-    await sessionInstance.evalCell('let(:triple, mul(3))');
+    await sessionInstance.evalCell(':double mul(2)');
+    await sessionInstance.evalCell(':triple mul(3)');
 
     const payload = await serializeSession(sessionInstance);
     const jsonText = JSON.stringify(payload);
@@ -129,21 +129,21 @@ describe('serializeSession / deserializeSession round-trip', () => {
   });
 
   it('restored conduits honor lexical scope (immune to caller-side shadowing)', async () => {
-    // letOperand wires envRef.env to the env captured at declaration
+    // `evalBindStep` wires envRef.env to the env captured at declaration
     // time, so a later cell that shadows `mul` does not affect the
     // restored conduit's body resolution. deserializeSession must
     // perform the same wiring on every restored conduit; otherwise the
     // applyConduit fallback to state.env gives dynamic scope and the
     // shadow leaks into the body.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:double, mul(2))');
+    await sessionInstance.evalCell(':double mul(2)');
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
     // Shadow mul AFTER restore. Lexical scope means double's body
     // still resolves mul through the env captured at deserialize
     // time (the original builtin), not the call-site env carrying
     // the shadow.
-    await restored.evalCell('let(:mul, sub(1))');
+    await restored.evalCell(':mul sub(1)');
     expect((await restored.evalCell('5 | double')).result).toBe(10);
   });
 
@@ -161,13 +161,13 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('preserves cell history sources without re-running them', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:x, 1)');
-    await sessionInstance.evalCell('let(:y, 2)');
+    await sessionInstance.evalCell(':x 1');
+    await sessionInstance.evalCell(':y 2');
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(payload);
     expect(restored.cellHistory).toHaveLength(2);
-    expect(restored.cellHistory[0].source).toBe('let(:x, 1)');
-    expect(restored.cellHistory[1].source).toBe('let(:y, 2)');
+    expect(restored.cellHistory[0].source).toBe(':x 1');
+    expect(restored.cellHistory[1].source).toBe(':y 2');
   });
 
   it('does not serialize built-in functions', async () => {
@@ -242,18 +242,27 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
   });
 
-  it('serializes a synthesized conduit (no .text on body) with source = null', async () => {
-    // Construct a conduit whose expr is a hand-built AST node that
-    // never came from the parser, so has no .text. The session
-    // serializer must emit source: null without throwing.
+  it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(
+      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}}'
+    );
+    const restored = await deserializeSession(
+      JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))
+    );
+    const cellEntry = await restored.evalCell('"x" | ::wrap"x"');
+    expect(cellEntry.result).toBe('[x]');
+  });
+
+  it('makeConduit refuses a body without .text so session payload always carries parseable source', async () => {
+    // Round-trip invariant: every conduit in a serialized session must
+    // deserialize back through parse(binding.source). A body without
+    // .text would emit a non-parseable placeholder, so mint refuses
+    // up front and the session payload never carries a lossy entry.
     const { makeConduit } = await import('../../src/types.mjs');
     const synthAst = { type: 'NumberLit', value: 99 };
-    const sessionInstance = await createSession();
-    sessionInstance.bind('synth', makeConduit(synthAst, { name: 'synth' }));
-    const payload = await serializeSession(sessionInstance);
-    const synthBinding = payload.bindings.find(b => b.name === 'synth');
-    expect(synthBinding.kind).toBe('conduit');
-    expect(synthBinding.source).toBeNull();
+    expect(() => makeConduit(synthAst, { name: 'synth' }))
+      .toThrow(ConduitBodyMissingSourceError);
   });
 });
 
@@ -261,18 +270,18 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
 // Minimal .qlang source for a module with one builtin descriptor
 // and one qlang-only conduit. The builtin descriptor carries
-// :qlang/kind :builtin and :qlang/impl null (patched by the locator
+// :kind :builtin and :impl null (patched by the locator
 // with the actual function value).
 // Module source: a Map literal with one builtin descriptor, piped
 // through `use` to install it in env, then a let-conduit that
-// builds on it. The locator patches :qlang/impl on the builtin
+// builds on it. The locator patches :impl on the builtin
 // descriptor with the host function after eval.
 // Module source: descriptor Map merged via | use to install
-// bindings in env. The locator patches :qlang/impl on the builtin
+// bindings in env. The locator patches :impl on the builtin
 // descriptor after eval. Env delta = the exports.
 const MOCK_MODULE_SOURCE = [
-  '{:@fetch {:qlang/kind :builtin',
-  '         :qlang/impl null',
+  '{:@fetch {:kind :builtin',
+  '         :impl null',
   '         :category :test-io',
   '         :subject :string',
   '         :modifiers []',
@@ -281,7 +290,7 @@ const MOCK_MODULE_SOURCE = [
   '         :examples []',
   '         :throws []}}',
   '| use',
-  '| let(:@doubled, @fetch | append(@fetch))'
+  '| :@doubled (@fetch | append(@fetch))'
 ].join('\n');
 
 // Host-provided impl for the @fetch builtin — returns a fixed string.
@@ -323,36 +332,38 @@ describe('createSession with locator — lazy module loading', () => {
     expect(secondUse.result).toBe('fetched-value');
   });
 
-  it('locator returning null falls through to UseNamespaceNotFound', async () => {
+  it('locator returning null falls through to UseNamespaceNotFoundError', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     const missingCell = await locatorSession.evalCell('use(:nonexistent/ns)');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
     const locatorMissErr = missingCell.result.originalError;
-    expect(locatorMissErr.name).toBe('UseNamespaceNotFound');
+    expect(locatorMissErr.name).toBe('UseNamespaceNotFoundError');
     expect(locatorMissErr).toBeInstanceOf(QlangTypeError);
     expect(locatorMissErr.context.namespaceName).toBe('nonexistent/ns');
   });
 
-  it('reify on a locator-loaded builtin includes captured and effectful', async () => {
+  it('manifest descriptor for a locator-loaded builtin includes captured and effectful', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     await locatorSession.evalCell('use(:test/io)');
-    const reifyCell = await locatorSession.evalCell('reify(:@fetch)');
-    expect(reifyCell.error).toBeNull();
-    const reifyDesc = reifyCell.result;
-    expect(isQMap(reifyDesc)).toBe(true);
-    expect(reifyDesc.get('kind')).toEqual(keyword('builtin'));
-    expect(reifyDesc.get('captured')).toEqual([0, 0]);
-    expect(reifyDesc.get('effectful')).toBe(true);
+    const manifestCell = await locatorSession.evalCell(
+      'manifest | filter(/name | eq("@fetch")) | first'
+    );
+    expect(manifestCell.error).toBeNull();
+    const fetchDesc = manifestCell.result;
+    expect(isQMap(fetchDesc)).toBe(true);
+    expect(fetchDesc.get('kind')).toEqual(makeTagKeyword('builtin'));
+    expect(fetchDesc.get('captured')).toEqual([0, 0]);
+    expect(fetchDesc.get('effectful')).toBe(true);
   });
 
-  it('session without locator throws UseNamespaceNotFound on unknown namespace', async () => {
+  it('session without locator throws UseNamespaceNotFoundError on unknown namespace', async () => {
     const plainSession = await createSession();
     const missingCell = await plainSession.evalCell('use(:anything)');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
     const noLocatorErr = missingCell.result.originalError;
-    expect(noLocatorErr.name).toBe('UseNamespaceNotFound');
+    expect(noLocatorErr.name).toBe('UseNamespaceNotFoundError');
     expect(noLocatorErr).toBeInstanceOf(QlangTypeError);
     expect(noLocatorErr.context.namespaceName).toBe('anything');
   });

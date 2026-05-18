@@ -4,11 +4,10 @@
 {"name":"contains-count-binding","query":"env | manifest | filter(/name | eq(\"count\")) | count","expect":"1"}
 {"name":"contains-filter-binding","query":"env | manifest | filter(/name | eq(\"filter\")) | count","expect":"1"}
 {"name":"contains-add-binding","query":"env | manifest | filter(/name | eq(\"add\")) | count","expect":"1"}
-{"name":"contains-reify-binding","query":"env | manifest | filter(/name | eq(\"reify\")) | count","expect":"1"}
 {"name":"contains-manifest-binding","query":"env | manifest | filter(/name | eq(\"manifest\")) | count","expect":"1"}
 {"name":"contains-if-binding","query":"env | manifest | filter(/name | eq(\"if\")) | count","expect":"1"}
 {"name":"contains-sortWith-binding","query":"env | manifest | filter(/name | eq(\"sortWith\")) | count","expect":"1"}
-{"name":"filter-by-builtin-kind-many","query":"env | manifest | filter(/kind | eq(:builtin)) | count | gt(40)","expect":"true"}
+{"name":"filter-by-builtin-kind-many","query":"env | manifest | filter(/kind | eq(::builtin)) | count | gt(40)","expect":"true"}
 {"name":"filter-by-arith-category-exactly-four","query":"env | manifest | filter(/category | eq(:arith)) | count","expect":"4"}
 {"name":"filter-by-vec-reducer-category","query":"env | manifest | filter(/category | eq(:vec-reducer)) | count | gt(5)","expect":"true"}
 {"name":"filter-by-vec-transformer-category","query":"env | manifest | filter(/category | eq(:vec-transformer)) | count | gt(5)","expect":"true"}
@@ -17,18 +16,32 @@
 {"name":"filter-by-string-category-includes-split-join-and-substring-predicates","query":"env | manifest | filter(/category | eq(:string)) | count","expect":"7"}
 {"name":"filter-by-control-category-six-operands","query":"env | manifest | filter(/category | eq(:control)) | count","expect":"6"}
 {"name":"filter-by-comparator-category-four-operands","query":"env | manifest | filter(/category | eq(:comparator)) | count","expect":"4"}
-{"name":"filter-by-reflective-category-nine-operands","query":"env | manifest | filter(/category | eq(:reflective)) | count","expect":"9"}
+{"name":"filter-by-reflective-category-five-operands","query":"env | manifest | filter(/category | eq(:reflective)) | count","expect":"5"}
+{"name":"filter-by-code-as-data-category-three-operands","query":"env | manifest | filter(/category | eq(:code-as-data)) | count","expect":"3"}
+{"name":"filter-by-axis-category-four-operands","query":"env | manifest | filter(/category | eq(:axis)) | count","expect":"4"}
+{"name":"filter-by-error-category-two-operands","query":"env | manifest | filter(/category | eq(:error)) | count","expect":"2"}
 {"name":"all-arith-have-add-sub-mul-div","query":"env | manifest | filter(/category | eq(:arith)) * /name | sort","expect":"[\"add\" \"div\" \"mul\" \"sub\"]"}
 {"name":"all-control-six-operands-sorted","query":"env | manifest | filter(/category | eq(:control)) * /name | sort","expect":"[\"coalesce\" \"cond\" \"firstTruthy\" \"if\" \"unless\" \"when\"]"}
 {"name":"all-comparator-sorted","query":"env | manifest | filter(/category | eq(:comparator)) * /name | sort","expect":"[\"asc\" \"desc\" \"nullsFirst\" \"nullsLast\"]"}
-{"name":"all-reflective-sorted","query":"env | manifest | filter(/category | eq(:reflective)) * /name | sort","expect":"[\"as\" \"env\" \"eval\" \"let\" \"manifest\" \"parse\" \"reify\" \"runExamples\" \"use\"]"}
+{"name":"all-reflective-sorted","query":"env | manifest | filter(/category | eq(:reflective)) * /name | sort","expect":"[\"as\" \"env\" \"manifest\" \"runExamples\" \"use\"]"}
+{"name":"all-code-as-data-sorted","query":"env | manifest | filter(/category | eq(:code-as-data)) * /name | sort","expect":"[\"apply\" \"eval\" \"parse\"]"}
+{"name":"all-axis-sorted","query":"env | manifest | filter(/category | eq(:axis)) * /name | sort","expect":"[\"docs\" \"examples\" \"source\" \"spec\"]"}
+{"name":"all-error-sorted","query":"env | manifest | filter(/category | eq(:error)) * /name | sort","expect":"[\"error\" \"isError\"]"}
 {"name":"first-name-alphabetical","query":"env | manifest | first | /name","expect":"\"add\""}
 {"name":"names-are-sorted-asc","query":"env | manifest * /name | as(:got) | got | sort | eq(got)","expect":"true"}
-{"name":"manifest-after-let","query":"let(:myBinding, 42) | env | manifest | filter(/kind | eq(:conduit)) | count","expect":"1"}
-{"name":"manifest-after-as","query":"42 | as(:captured) | env | manifest | filter(/kind | eq(:snapshot)) | count","expect":"1"}
-{"name":"manifest-after-use","query":"{:myConst 42} | use | env | manifest | filter(/kind | eq(:value)) | filter(/name | eq(\"myConst\")) | count","expect":"1"}
-{"name":"conduit-shows-up-with-name","query":"let(:foo, mul(2)) | env | manifest | filter(/kind | eq(:conduit)) | first | /name","expect":"\"foo\""}
-{"name":"snapshot-shows-up-with-value","query":"42 | as(:bar) | env | manifest | filter(/kind | eq(:snapshot)) | first | /value","expect":"42"}
-{"name":"every-builtin-has-docs-vec","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | empty) | count","expect":"0"}
-{"name":"every-builtin-has-non-empty-first-doc","query":"env | manifest | filter(/kind | eq(:builtin)) | filter(/docs | first | eq(\"\") | not) | count | gt(40)","expect":"true"}
+{"name":"manifest-after-let","query":":myBinding 42 | env | manifest | filter(/kind | eq(::conduit)) | count","expect":"0"}
+{"name":"manifest-after-as","query":"42 | as(:captured) | env | manifest | filter(/kind | eq(::snapshot)) | count","expect":"1"}
+{"name":"manifest-after-use","query":"{:myConst 42} | use | env | manifest | filter(/kind | eq(::value)) | filter(/name | eq(\"myConst\")) | count","expect":"1"}
+{"name":"conduit-shows-up-with-name","query":":foo mul(2) | env | manifest | filter(/kind | eq(::conduit)) | first | /name","expect":"\"foo\""}
+{"name":"snapshot-shows-up-with-value","query":"42 | as(:bar) | env | manifest | filter(/kind | eq(::snapshot)) | first | /value","expect":"42"}
+{"name":"every-cataloged-builtin-has-axis-docs","query":"env | manifest | filter(/kind | eq(::builtin)) | filter(/name | eq(\"def\") | not) | filter(/name | keyword | docs | empty) | count","expect":"0"}
+{"name":"every-cataloged-builtin-axis-doc-has-content","query":"env | manifest | filter(/kind | eq(::builtin)) | filter(/name | eq(\"def\") | not) | filter(/name | keyword | docs | first | /content | eq(\"\") | not) | count | gt(40)","expect":"true"}
 {"name":"manifest-via-table-runs","query":"env | manifest | filter(/category | eq(:arith)) | table | eq(\"\") | not","expect":"true"}
+{"name":"manifest-tag-namespace-non-empty","query":"manifest(:tag) | count | gt(0)","expect":"true"}
+{"name":"manifest-tag-namespace-first-kind","query":"manifest(:tag) | first | /kind","expect":"::tag"}
+{"name":"manifest-tag-namespace-no-builtins","query":"manifest(:tag) | filter(/kind | eq(::builtin)) | count","expect":"0"}
+{"name":"manifest-tag-namespace-names-prefixed","query":"manifest(:tag) | first | /name | startsWith(\"::\")","expect":"true"}
+{"name":"manifest-value-explicit-matches-bare","query":"manifest(:value) | count | eq(manifest | count)","expect":"true"}
+{"name":"manifest-value-no-tag-bindings","query":"manifest(:value) | filter(/kind | eq(::tag)) | count","expect":"0"}
+{"name":"manifest-namespace-not-keyword","query":"manifest(\"tag\") !| type","expect":"::ManifestNamespaceNotKeywordError"}
+{"name":"manifest-namespace-unknown","query":"manifest(:wat) !| type","expect":"::ManifestNamespaceUnknownError"}

@@ -8,5 +8,5 @@
 {"name":"string-to-quoted-keyword","query":"\"foo bar\" | keyword","expect":":\"foo bar\""}
 {"name":"empty-string-to-keyword","query":"\"\" | keyword","expect":":\"\""}
 {"name":"empty-keyword-to-string","query":":\"\" | keyword","expect":"\"\""}
-{"name":"keyword-on-number-errors","query":"42 | keyword !| /thrown","expect":":KeywordSubjectNotStringOrKeyword"}
-{"name":"keyword-on-vec-errors","query":"[1] | keyword !| /thrown","expect":":KeywordSubjectNotStringOrKeyword"}
+{"name":"keyword-on-number-errors","query":"42 | keyword !| type","expect":"::KeywordSubjectNotStringOrKeywordError"}
+{"name":"keyword-on-vec-errors","query":"[1] | keyword !| type","expect":"::KeywordSubjectNotStringOrKeywordError"}

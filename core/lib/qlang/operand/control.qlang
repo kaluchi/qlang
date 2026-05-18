@@ -1,0 +1,114 @@
+|~ qlang operand catalog — control family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
+
+:if
+  |~~ Conditional. Evaluates the cond sub-pipeline against
+      pipeValue; if truthy, evaluates the then branch, otherwise
+      evaluates the else branch. Only the selected branch executes.
+      Truthiness: null and false are falsy, everything else
+      (including 0, "", [], {}, #{}) is truthy. ~~|
+  ::builtin{:impl :qlang/prim/if
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:predicate-lambda :pipeline :pipeline]
+   }
+
+:when
+  |~~ One-sided conditional with implicit identity on the false
+      branch. If cond evaluated against pipeValue is truthy, runs
+      the then sub-pipeline; otherwise pipeValue passes through
+      unchanged. ~~|
+  ::builtin{:impl :qlang/prim/when
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:predicate-lambda :pipeline]
+   }
+
+:unless
+  |~~ Inverse of when: runs the then sub-pipeline when cond is
+      falsy, otherwise pipeValue passes through unchanged.
+      Reads more naturally for guard-clause patterns where the
+      action fires when the condition fails. ~~|
+  ::builtin{:impl :qlang/prim/unless
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:predicate-lambda :pipeline]
+   }
+
+:coalesce
+  |~~ Returns the first non-null result among the captured
+      alternatives, evaluating each against pipeValue in order and
+      short-circuiting on the first non-null value. If all
+      alternatives produce null, returns null. Falsy non-null values
+      (false, 0, "", [], {}, #{}) are NOT skipped — only
+      null counts as missing. ~~|
+  ::builtin{:impl :qlang/prim/coalesce
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::CoalesceNoAlternativesError]}
+
+::CoalesceNoAlternativesError
+  |~~ `coalesce` requires at least one captured alternative sub-pipeline.
+      ~{
+        {} | coalesce()
+        !| [type]
+        |  eq([::CoalesceNoAlternativesError])
+       }
+  ~~|
+  ::builtin{:category :arity-error :operand :coalesce}
+
+:firstTruthy
+  |~~ Returns the first truthy result among the captured
+      alternatives, evaluating each against pipeValue in order and
+      short-circuiting on the first truthy value. Both null and
+      false are skipped. If all alternatives produce falsy values,
+      returns null. Use coalesce when false is a valid explicit
+      setting; use firstTruthy when false is a sentinel meaning
+      "no value". ~~|
+  ::builtin{:impl :qlang/prim/firstTruthy
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::FirstTruthyNoAlternativesError]}
+
+::FirstTruthyNoAlternativesError
+  |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
+      ~{
+        {} | firstTruthy()
+        !| [type]
+        |  eq([::FirstTruthyNoAlternativesError])
+       }
+  ~~|
+  ::builtin{:category :arity-error :operand :firstTruthy}
+
+:cond
+  |~~ Multi-way dispatch over alternating (predicate, branch)
+      sub-pipeline pairs. Walks captured args in pairs; returns
+      the result of the first branch whose predicate evaluates
+      truthy against pipeValue. If captured-arg count is odd, the
+      trailing arg is the default branch. If even and no match,
+      returns null. Replaces nested-if chains with a flat
+      catalog. ~~|
+  ::builtin{:impl :qlang/prim/cond
+            :category :control
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::CondNoBranchesError]}
+
+::CondNoBranchesError
+  |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
+      ~{
+        5 | cond()
+        !| [type]
+        |  eq([::CondNoBranchesError])
+       }
+  ~~|
+  ::builtin{:category :arity-error :operand :cond}

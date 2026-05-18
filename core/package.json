@@ -20,6 +20,9 @@
     "./walk": {
       "import": "./src/walk.mjs"
     },
+    "./ast-codec": {
+      "import": "./src/ast-codec.mjs"
+    },
     "./session": {
       "import": "./src/session.mjs"
     },
@@ -45,10 +48,36 @@
       "import": "./host/module-resolver.mjs"
     }
   },
+  "imports": {
+    "#qlang/core":                "./lib/qlang/core.qlang",
+    "#qlang/runtime-invariants":  "./lib/qlang/runtime-invariants.qlang",
+    "#qlang/tag":                 "./lib/qlang/tag.qlang",
+    "#qlang/operand/arith":       "./lib/qlang/operand/arith.qlang",
+    "#qlang/operand/vec":         "./lib/qlang/operand/vec.qlang",
+    "#qlang/operand/container":   "./lib/qlang/operand/container.qlang",
+    "#qlang/operand/set-op":      "./lib/qlang/operand/set-op.qlang",
+    "#qlang/operand/map-op":      "./lib/qlang/operand/map-op.qlang",
+    "#qlang/operand/string":           "./lib/qlang/operand/string.qlang",
+    "#qlang/operand/comparator":       "./lib/qlang/operand/comparator.qlang",
+    "#qlang/operand/predicate":        "./lib/qlang/operand/predicate.qlang",
+    "#qlang/operand/type-classifier":  "./lib/qlang/operand/type-classifier.qlang",
+    "#qlang/operand/type-conversion":  "./lib/qlang/operand/type-conversion.qlang",
+    "#qlang/operand/control":          "./lib/qlang/operand/control.qlang",
+    "#qlang/operand/format":           "./lib/qlang/operand/format.qlang",
+    "#qlang/operand/reflective":       "./lib/qlang/operand/reflective.qlang",
+    "#qlang/operand/error":            "./lib/qlang/operand/error.qlang",
+    "#qlang/operand/code-as-data":     "./lib/qlang/operand/code-as-data.qlang",
+    "#qlang/operand/axis":             "./lib/qlang/operand/axis.qlang",
+    "#qlang/load-source": {
+      "node": "./host/load-source-node.mjs",
+      "default": "./src/load-source-web.mjs"
+    }
+  },
   "sideEffects": false,
   "files": [
     "src/",
     "host/",
+    "lib/",
     "gen/"
   ],
   "scripts": {
@@ -56,8 +85,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build:grammar": "node scripts/build-grammar.mjs",
-    "build:core": "node scripts/build-core.mjs",
-    "build": "node scripts/build-grammar.mjs && node scripts/build-core.mjs"
+    "build": "node scripts/build-grammar.mjs"
   },
   "engines": {
     "node": ">=20"

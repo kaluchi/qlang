@@ -1,0 +1,248 @@
+|~ qlang operand catalog — string family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
+
+:split
+  |~~ Splits the subject on every occurrence of separator.
+      Returns a Vec of substrings. Inverse of join.
+
+      ~{"a,b,c" | split(",") | eq(["a" "b" "c"])}
+      ~{"line1\nline2" | split("\n") | eq(["line1" "line2"])}
+  ~~|
+  ::builtin{:impl :qlang/prim/split
+            :category :string
+            :subject :string
+            :returns :vec
+            :modifiers [:string]
+            :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
+
+::SplitSubjectNotStringError
+  |~~ Captured argument at position 1 of `split` must be String.
+      ~{
+        42 | split(",")
+        !| [type /actualType]
+        |  eq([::SplitSubjectNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :split :position 1 :expectedType :string}
+
+::SplitSeparatorNotStringError
+  |~~ Captured argument at position 2 of `split` must be String.
+      ~{
+        "abc" | split(42)
+        !| [type /actualType]
+        |  eq([::SplitSeparatorNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :split :position 2 :expectedType :string}
+
+:join
+  |~~ Joins the elements of a Vec of Strings with separator
+      between consecutive elements. Inverse of split.
+
+      ~{["a" "b" "c"] | join(",") | eq("a,b,c")}
+      ~{[] | join(",") | eq("")}
+  ~~|
+  ::builtin{:impl :qlang/prim/join
+            :category :string
+            :subject :vec
+            :returns :string
+            :modifiers [:string]
+            :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
+
+::JoinSubjectNotVecError
+  |~~ Subject of `join` must be Vec.
+      ~{
+        42 | join(",")
+        !| [type /actualType]
+        |  eq([::JoinSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :join :position :subject :expectedType :vec}
+
+::JoinElementNotStringError
+  |~~ Element of `join` input collection must be String.
+      ~{
+        ["a" 42 "c"] | join(",")
+        !| [type /actualType /index]
+        |  eq([::JoinElementNotStringError :number 1])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :join :expectedType :string}
+
+::JoinSeparatorNotStringError
+  |~~ Captured argument at position 2 of `join` must be String.
+      ~{
+        ["a" "b"] | join(42)
+        !| [type /actualType]
+        |  eq([::JoinSeparatorNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :join :position 2 :expectedType :string}
+
+:contains
+  |~~ Returns true if the subject string contains needle as a
+      substring. Empty needle is always contained.
+      Case-sensitive.
+
+      ~{"hello world" | contains("world") | eq(true)}
+      ~{"hello" | contains("xyz") | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/contains
+            :category :string
+            :subject :string
+            :returns :boolean
+            :modifiers [:string]
+            :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
+
+::ContainsSubjectNotStringError
+  |~~ Captured argument at position 1 of `contains` must be String.
+      ~{
+        42 | contains("x")
+        !| [type /actualType]
+        |  eq([::ContainsSubjectNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :contains :position 1 :expectedType :string}
+
+::ContainsNeedleNotStringError
+  |~~ Captured argument at position 2 of `contains` must be String.
+      ~{
+        "hi" | contains(42)
+        !| [type /actualType]
+        |  eq([::ContainsNeedleNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :contains :position 2 :expectedType :string}
+
+:startsWith
+  |~~ Returns true if the subject string begins with prefix.
+      Empty prefix is always a prefix. Case-sensitive.
+
+      ~{"hello world" | startsWith("hello") | eq(true)}
+      ~{"hello" | startsWith("world") | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/startsWith
+            :category :string
+            :subject :string
+            :returns :boolean
+            :modifiers [:string]
+            :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
+
+::StartsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `startsWith` must be String.
+      ~{
+        42 | startsWith("x")
+        !| [type /actualType]
+        |  eq([::StartsWithSubjectNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :startsWith :position 1 :expectedType :string}
+
+::StartsWithPrefixNotStringError
+  |~~ Captured argument at position 2 of `startsWith` must be String.
+      ~{
+        "hi" | startsWith(42)
+        !| [type /actualType]
+        |  eq([::StartsWithPrefixNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :startsWith :position 2 :expectedType :string}
+
+:endsWith
+  |~~ Returns true if the subject string ends with suffix.
+      Empty suffix is always a suffix. Case-sensitive.
+
+      ~{"hello world" | endsWith("world") | eq(true)}
+      ~{"hello" | endsWith("xyz") | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/endsWith
+            :category :string
+            :subject :string
+            :returns :boolean
+            :modifiers [:string]
+            :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
+
+::EndsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `endsWith` must be String.
+      ~{
+        42 | endsWith("x")
+        !| [type /actualType]
+        |  eq([::EndsWithSubjectNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :endsWith :position 1 :expectedType :string}
+
+::EndsWithSuffixNotStringError
+  |~~ Captured argument at position 2 of `endsWith` must be String.
+      ~{
+        "hi" | endsWith(42)
+        !| [type /actualType]
+        |  eq([::EndsWithSuffixNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :endsWith :position 2 :expectedType :string}
+
+:prepend
+  |~~ Concatenates the modifier in front of the subject.
+
+      ~{"world" | prepend("hello ") | eq("hello world")}
+  ~~|
+  ::builtin{:impl :qlang/prim/prepend
+            :category :string
+            :subject :string
+            :returns :string
+            :modifiers [:string]
+            :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
+
+::PrependSubjectNotStringError
+  |~~ Captured argument at position 1 of `prepend` must be String.
+      ~{
+        42 | prepend("x")
+        !| [type /actualType]
+        |  eq([::PrependSubjectNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :prepend :position 1 :expectedType :string}
+
+::PrependPrefixNotStringError
+  |~~ Captured argument at position 2 of `prepend` must be String.
+      ~{
+        "x" | prepend(42)
+        !| [type /actualType]
+        |  eq([::PrependPrefixNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :prepend :position 2 :expectedType :string}
+
+:append
+  |~~ Concatenates the subject with the modifier on the right.
+
+      ~{"hello" | append(" world") | eq("hello world")}
+  ~~|
+  ::builtin{:impl :qlang/prim/append
+            :category :string
+            :subject :string
+            :returns :string
+            :modifiers [:string]
+            :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}
+
+::AppendSubjectNotStringError
+  |~~ Captured argument at position 1 of `append` must be String.
+      ~{
+        42 | append("x")
+        !| [type /actualType]
+        |  eq([::AppendSubjectNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :append :position 1 :expectedType :string}
+
+::AppendSuffixNotStringError
+  |~~ Captured argument at position 2 of `append` must be String.
+      ~{
+        "x" | append(42)
+        !| [type /actualType]
+        |  eq([::AppendSuffixNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :append :position 2 :expectedType :string}

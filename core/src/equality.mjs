@@ -1,9 +1,53 @@
-// Structural deep equality across qlang values.
+// Structural deep equality across qlang values, plus the
+// `setHasStructurally` / `addStructurallyUnique` Set-builder
+// primitives that every Set-mint site (`evalSetLit`,
+// `setops::union/inter/minus`, this module's own Set-equality
+// branch) routes through.
 //
-// Shared by predicates.mjs (for the `eq` operand) and the
-// conformance test runner.
+// JS `Set` uses reference equality on `.has` / `.add`, which would
+// mishandle composite elements (Vec / Map / Set / Error / etc.) —
+// two independently-constructed `[1 2]` Vecs are content-equal
+// but reference-distinct. The Set-builder primitives below take a
+// linear-scan `deepEqual` lookup over the existing members; O(n²)
+// per Set build is acceptable because qlang Set sizes stay small
+// enough that the constant on a hash-set would dominate, and
+// structural dedup is the spec'd Set semantics.
+//
+// Cross-shape equivalences: a JsonArray and a Vec with the same
+// elements are equal; a JsonObject and a Map with the same entries
+// are equal. The JSON tag is an authoring/round-trip hint;
+// `deepEqual` collapses it.
 
-import { isKeyword, isErrorValue } from './types.mjs';
+import {
+  isKeyword, isTagKeyword, isErrorValue, isQuote, isDoc,
+  isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet
+} from './types.mjs';
+
+// setHasStructurally(set, v) — does the Set already carry a member
+// structurally equal to `v`? Keyword interning collapses to
+// `name`-equality (interned keywords have a single object identity
+// per `name`, but the predicate still goes through `name` so a freshly
+// constructed `keyword(name)` matches an interned member); every
+// other shape goes through `deepEqual`.
+export function setHasStructurally(set, v) {
+  if (isKeyword(v)) {
+    for (const existing of set) {
+      if (isKeyword(existing) && existing.name === v.name) return true;
+    }
+    return false;
+  }
+  for (const existing of set) {
+    if (deepEqual(existing, v)) return true;
+  }
+  return false;
+}
+
+// addStructurallyUnique(set, v) — Set's spec'd `.add`: insert iff
+// no structurally-equal member already lives there. The single
+// builder primitive every Set mint site routes through.
+export function addStructurallyUnique(set, v) {
+  if (!setHasStructurally(set, v)) set.add(v);
+}
 
 export function deepEqual(a, b) {
   if (a === b) return true;
@@ -13,26 +57,29 @@ export function deepEqual(a, b) {
     if (!Array.isArray(b) || a.length !== b.length) return false;
     return a.every((x, i) => deepEqual(x, b[i]));
   }
-  if (a instanceof Map) {
-    if (!(b instanceof Map) || a.size !== b.size) return false;
-    for (const [k, v] of a) {
-      if (!b.has(k) || !deepEqual(v, b.get(k))) return false;
+  if (isQuote(a)) {
+    return isQuote(b) && a.source === b.source;
+  }
+  if (isDoc(a)) {
+    return isDoc(b) && a.content === b.content;
+  }
+  if (isMapShape(a)) {
+    if (!isMapShape(b) || mapShapeSize(a) !== mapShapeSize(b)) return false;
+    for (const [k, v] of mapShapeEntries(a)) {
+      if (!mapShapeHas(b, k) || !deepEqual(v, mapShapeGet(b, k))) return false;
     }
     return true;
   }
   if (a instanceof Set) {
     if (!(b instanceof Set) || a.size !== b.size) return false;
-    for (const v of a) {
-      if (isKeyword(v)) {
-        let found = false;
-        for (const w of b) if (isKeyword(w) && w.name === v.name) { found = true; break; }
-        if (!found) return false;
-      } else if (!b.has(v)) return false;
-    }
+    for (const v of a) if (!setHasStructurally(b, v)) return false;
     return true;
   }
   if (isKeyword(a)) {
     return isKeyword(b) && a.name === b.name;
+  }
+  if (isTagKeyword(a)) {
+    return isTagKeyword(b) && a.name === b.name;
   }
   if (isErrorValue(a)) {
     return isErrorValue(b) && deepEqual(a.descriptor, b.descriptor);

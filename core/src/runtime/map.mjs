@@ -2,34 +2,39 @@
 // and therefore owns three distinct error classes — one for each
 // branch of the type check.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/map-op.qlang.
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
-import { keyword, isQMap, isQSet, isKeyword } from '../types.mjs';
+import {
+  keyword, isQSet, isKeyword,
+  isMapShape, mapShapeEntries, mapShapeHas
+} from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
-const KeysSubjectNotMap    = declareSubjectError('KeysSubjectNotMap',    'keys',  'Map');
-const ValsSubjectNotMap    = declareSubjectError('ValsSubjectNotMap',    'vals',  'Map');
-const HasSubjectNotMapOrSet = declareSubjectError('HasSubjectNotMapOrSet', 'has',   'Map or Set');
-const HasKeyNotKeyword     = declareModifierError('HasKeyNotKeyword',    'has',   2, 'Keyword (Map subject)');
+const KeysSubjectNotMapError    = declareSubjectError('KeysSubjectNotMapError',    'keys',  'map');
+const ValsSubjectNotMapError    = declareSubjectError('ValsSubjectNotMapError',    'vals',  'map');
+const HasSubjectNotMapOrSetError = declareSubjectError('HasSubjectNotMapOrSetError', 'has',   ['map', 'set']);
+const HasKeyNotKeywordError     = declareModifierError('HasKeyNotKeywordError',    'has',   2, 'keyword');
 
 export const keys = nullaryOp('keys', (map) => {
-  if (!isQMap(map)) throw new KeysSubjectNotMap(map);
+  if (!isMapShape(map)) throw new KeysSubjectNotMapError(map);
   const result = new Set();
-  for (const k of map.keys()) result.add(keyword(k));
+  for (const [k] of mapShapeEntries(map)) result.add(keyword(k));
   return result;
 });
 
 export const vals = nullaryOp('vals', (map) => {
-  if (!isQMap(map)) throw new ValsSubjectNotMap(map);
-  return [...map.values()];
+  if (!isMapShape(map)) throw new ValsSubjectNotMapError(map);
+  const out = [];
+  for (const [, v] of mapShapeEntries(map)) out.push(v);
+  return out;
 });
 
 export const has = valueOp('has', 2, (subject, key) => {
-  if (isQMap(subject)) {
-    if (!isKeyword(key)) throw new HasKeyNotKeyword(key);
-    return subject.has(key.name);
+  if (isMapShape(subject)) {
+    if (!isKeyword(key)) throw new HasKeyNotKeywordError(key);
+    return mapShapeHas(subject, key.name);
   }
   if (isQSet(subject)) {
     if (isKeyword(key)) {
@@ -38,10 +43,10 @@ export const has = valueOp('has', 2, (subject, key) => {
     }
     return subject.has(key);
   }
-  throw new HasSubjectNotMapOrSet(subject);
+  throw new HasSubjectNotMapOrSetError(subject);
 });
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/keys', keys);
-PRIMITIVE_REGISTRY.bind('qlang/prim/vals', vals);
-PRIMITIVE_REGISTRY.bind('qlang/prim/has',  has);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('keys', keys);
+bindPrim('vals', vals);
+bindPrim('has',  has);

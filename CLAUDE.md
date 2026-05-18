@@ -15,11 +15,12 @@ Folder name maps to the suffix of the npm package name; the npm scope
 is always `@kaluchi/`. Single rule, applied uniformly:
 
 - `core/` → `@kaluchi/qlang-core`. Language core. Pure JS, zero runtime
-  deps. Ships `core/src/`, `core/host/`, `core/gen/` (and bundles
-  `core/lib/qlang/core.qlang` via the build step).
+  deps. Ships `core/src/`, `core/host/`, `core/lib/`, `core/gen/`. The
+  catalog source files (`core/lib/qlang/*.qlang`) load at runtime via
+  the platform's `import.meta.resolve` / `package.json#imports`
+  mechanism; no pre-bake step.
 - `cli/` → `@kaluchi/qlang-cli`. Node CLI, REPL, module loader, session
   persistence. Depends on `@kaluchi/qlang-core` via workspace link.
-  *(Lands in a follow-up commit.)*
 - `lsp/` → `@kaluchi/qlang-lsp`. Language server. Node-only.
 - `site/` → `@kaluchi/qlang-site`. Astro documentation site. Private,
   not published to npm — Pages workflow ships `site/dist`.
@@ -39,14 +40,24 @@ development.
 - **Coverage 100/100/100/100** (lines / branches / functions /
   statements). Every workspace's `vitest.config.mjs` pins the threshold.
   A change that dips below is blocker-grade.
-- **Variant-B catalog**: operand metadata — `:docs`, `:examples`,
-  `:throws`, `:category`, `:subject`, `:modifiers`, `:returns` — lives
-  only in `core/lib/qlang/core.qlang`. The JS side registers executable
-  impls via `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at
-  module-load time. Map keys are plain strings throughout; keyword
-  objects exist as pipeline VALUES carrying `.literal` for display.
-  `langRuntime()` resolves `:qlang/impl` handles on the template env
-  once, then seals the registry.
+- **Operand catalog**: authored metadata — `:throws`, `:category`,
+  `:subject`, `:modifiers`, `:returns` — lives in the per-family
+  catalog files under `core/lib/qlang/operand/<family>.qlang`
+  (plus shared tag-bindings in `core/lib/qlang/runtime-invariants.qlang`
+  and value-class constructors in `core/lib/qlang/tag.qlang`).
+  `core/lib/qlang/core.qlang` orchestrates them via a single
+  `use([:qlang/runtime-invariants :qlang/tag :qlang/operand/arith
+  …])` call. The JS side registers executable impls via
+  `PRIMITIVE_REGISTRY.bind('qlang/prim/<name>', …)` at module-load
+  time. Map keys are plain strings throughout; keyword objects
+  exist as pipeline VALUES carrying `.literal` for display.
+  `langRuntime()` resolves `:impl` handles on the template
+  env once (replacing each `:qlang/prim/<name>` keyword with its
+  bound JS function value), then seals the registry. Authored
+  prose and example
+  `~{…}` Quote segments live on each `BindStep`'s attached
+  doc-prefix in its `qlang/ast/<uri>` module Quote and are
+  reachable through `:name | docs` and `:name | examples`.
 - **Per-site error classes**: one throw site, one class. Built via the
   factories in `core/src/operand-errors.mjs` (`declareSubjectError`,
   `declareModifierError`, `declareElementError`,
@@ -88,7 +99,7 @@ chapters the main agent keeps in mind at every commit:
 11. Retroactive fixing of pre-existing violations in any file touched by
     a diff.
 12. Conceptual completeness — flag organic next steps (sibling operands
-    missing, `reify` field not surfaced by `manifest`, etc.).
+    missing, axis-operand surface incomplete for a new value-class, etc.).
 13. Structural coherence — no code dumps. Every file in `core/src/`,
     `core/test/`, `docs/` must have a derivable one-sentence grouping
     principle.
@@ -100,8 +111,9 @@ chapters the main agent keeps in mind at every commit:
 - `npm run test:coverage` — verify the 100/100/100/100 thresholds on
   the core workspace.
 - `npm run build` — rebuild the generated parser
-  (`core/scripts/build-grammar.mjs`) and the packaged core catalog
-  (`core/scripts/build-core.mjs`).
+  (`core/scripts/build-grammar.mjs`). The catalog source files
+  (`core/lib/qlang/*.qlang`) load directly at runtime through
+  `package.json#imports` + `import.meta.resolve`; no pre-bake step.
 - `npm test -w @kaluchi/qlang-cli` — single workspace.
 - `npm run build && npm test` — full rebuild plus verification.
 

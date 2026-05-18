@@ -7,13 +7,14 @@
 // the wrapper performs the state descent (extract pipeValue) and
 // ascent (withPipeValue) on their behalf.
 //
-// None of the helpers accept operand meta (docs, examples, throws,
-// category, subject, modifiers, returns). Meta lives exclusively
-// in lib/qlang/core.qlang as descriptor Maps that langRuntime()
-// parses into env at session construction. The only metadata the
-// helpers compute is the `captured` range — the [min, max] count
-// of captured args the operand accepts — because it is structurally
-// derived from the dispatch shape, not from authored documentation.
+// None of the wrappers accept authored meta (docs, examples,
+// throws, category, subject, modifiers, returns). That metadata
+// lives in the per-family catalog files under
+// lib/qlang/operand/<family>.qlang as descriptor Maps that
+// langRuntime() parses into env. The only structural fact each
+// wrapper computes is the `captured` range — the [min, max] count
+// of captured args the operand accepts — derived from the
+// dispatch shape itself.
 //
 //   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
 //   higherOrderOp(name, n, impl)     — pure `(subject, ...lambdas) → result`
@@ -29,49 +30,49 @@ import { QlangInvariantError } from '../errors.mjs';
 import { declareArityError } from '../operand-errors.mjs';
 import { keyword } from '../types.mjs';
 
-// Per-site arity error classes for dispatch helpers.
-const ValueOpArityMismatch = declareArityError('ValueOpArityMismatch',
+// Per-site arity error classes for the dispatch wrappers.
+const ValueOpArityMismatchError = declareArityError('ValueOpArityMismatchError',
   ({ operandName, expectedArity, actualArity }) =>
     `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`);
-const HigherOrderOpArityMismatch = declareArityError('HigherOrderOpArityMismatch',
+const HigherOrderOpArityMismatchError = declareArityError('HigherOrderOpArityMismatchError',
   ({ operandName, expectedCaptured, actualArity }) =>
     `${operandName} expects ${expectedCaptured} captured args (higher-order), got ${actualArity}`);
-const NullaryOpArgsProvided = declareArityError('NullaryOpArgsProvided',
+const NullaryOpArgsProvidedError = declareArityError('NullaryOpArgsProvidedError',
   ({ operandName, actualArity }) =>
     `${operandName} takes no arguments, got ${actualArity}`);
-const OverloadedOpUnsupportedArity = declareArityError('OverloadedOpUnsupportedArity',
+const OverloadedOpUnsupportedArityError = declareArityError('OverloadedOpUnsupportedArityError',
   ({ operandName, supportedCounts, actualArity }) =>
     `${operandName} accepts ${supportedCounts} captured args, got ${actualArity}`);
-const StateOpArityMismatch = declareArityError('StateOpArityMismatch',
+const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
   ({ operandName, expectedCaptured, actualArity }) =>
     `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`);
 
 // Unbounded-upper-limit sentinel for variadic operand `captured`
-// ranges. Surfaced into reify descriptors as a keyword value so
+// ranges. Surfaced into manifest descriptors as a keyword value so
 // user code can pattern-match with `eq(:unbounded)`.
 export const UNBOUNDED = keyword('unbounded');
 
 // ── Per-site invariant errors for variadic registration ───────
 
-class StateOpVariadicMissingCaptured extends QlangInvariantError {
+class StateOpVariadicMissingCapturedError extends QlangInvariantError {
   constructor(operandName) {
     super(
       `stateOpVariadic('${operandName}') requires captured range`,
       { operandName }
     );
-    this.name = 'StateOpVariadicMissingCaptured';
-    this.fingerprint = 'StateOpVariadicMissingCaptured';
+    this.name = 'StateOpVariadicMissingCapturedError';
+    this.fingerprint = 'StateOpVariadicMissingCapturedError';
   }
 }
 
-class HigherOrderOpVariadicMissingCaptured extends QlangInvariantError {
+class HigherOrderOpVariadicMissingCapturedError extends QlangInvariantError {
   constructor(operandName) {
     super(
       `higherOrderOpVariadic('${operandName}') requires captured range`,
       { operandName }
     );
-    this.name = 'HigherOrderOpVariadicMissingCaptured';
-    this.fingerprint = 'HigherOrderOpVariadicMissingCaptured';
+    this.name = 'HigherOrderOpVariadicMissingCapturedError';
+    this.fingerprint = 'HigherOrderOpVariadicMissingCapturedError';
   }
 }
 
@@ -87,7 +88,7 @@ export function valueOp(name, n, impl) {
       const resolvedSlots = await Promise.all(valueOpLambdas.map(lam => lam(subjectValue)));
       return withPipeValue(state, await impl(...resolvedSlots));
     }
-    throw new ValueOpArityMismatch({
+    throw new ValueOpArityMismatchError({
       operandName: name, expectedArity: n, actualArity: capturedCount
     });
   }, { captured: [n - 1, n] });
@@ -99,7 +100,7 @@ export function higherOrderOp(name, n, impl) {
     if (capturedCount === n - 1) {
       return withPipeValue(state, await impl(state.pipeValue, ...hoLambdas));
     }
-    throw new HigherOrderOpArityMismatch({
+    throw new HigherOrderOpArityMismatchError({
       operandName: name, expectedCaptured: n - 1, actualArity: capturedCount
     });
   }, { captured: [n - 1, n - 1] });
@@ -108,7 +109,7 @@ export function higherOrderOp(name, n, impl) {
 export function nullaryOp(name, impl) {
   return makeFn(name, 1, async (state, nullaryLambdas) => {
     if (nullaryLambdas.length !== 0) {
-      throw new NullaryOpArgsProvided({ operandName: name, actualArity: nullaryLambdas.length });
+      throw new NullaryOpArgsProvidedError({ operandName: name, actualArity: nullaryLambdas.length });
     }
     return withPipeValue(state, await impl(state.pipeValue));
   }, { captured: [0, 0] });
@@ -120,7 +121,7 @@ export function overloadedOp(name, maxArity, overloadImpls) {
     const capturedCount = overloadLambdas.length;
     const selectedImpl = overloadImpls[capturedCount];
     if (!selectedImpl) {
-      throw new OverloadedOpUnsupportedArity({
+      throw new OverloadedOpUnsupportedArityError({
         operandName: name,
         supportedCounts: Object.keys(overloadImpls).join(' or '),
         actualArity: capturedCount
@@ -134,7 +135,7 @@ export function stateOp(name, arity, impl) {
   const expectedCaptured = arity - 1;
   return makeFn(name, arity, async (state, stateOpLambdas) => {
     if (stateOpLambdas.length !== expectedCaptured) {
-      throw new StateOpArityMismatch({
+      throw new StateOpArityMismatchError({
         operandName: name, expectedCaptured, actualArity: stateOpLambdas.length
       });
     }
@@ -144,7 +145,7 @@ export function stateOp(name, arity, impl) {
 
 export function stateOpVariadic(name, maxArity, impl, captured) {
   if (!captured) {
-    throw new StateOpVariadicMissingCaptured(name);
+    throw new StateOpVariadicMissingCapturedError(name);
   }
   return makeFn(name, maxArity, async (state, variadicLambdas) => {
     return await impl(state, variadicLambdas);
@@ -153,7 +154,7 @@ export function stateOpVariadic(name, maxArity, impl, captured) {
 
 export function higherOrderOpVariadic(name, maxArity, impl, captured) {
   if (!captured) {
-    throw new HigherOrderOpVariadicMissingCaptured(name);
+    throw new HigherOrderOpVariadicMissingCapturedError(name);
   }
   return makeFn(name, maxArity, async (state, hoVariadicLambdas) => {
     return withPipeValue(state, await impl(state.pipeValue, ...hoVariadicLambdas));

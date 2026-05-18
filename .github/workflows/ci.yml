@@ -79,10 +79,30 @@ jobs:
       - run: npm run build -w @kaluchi/qlang-core
       - run: npm run test:coverage -w ${{ matrix.workspace }}
 
+  integration:
+    name: ${{ matrix.workspace }} integration tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - "@kaluchi/qlang-cli"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build -w @kaluchi/qlang-core
+      - run: npm run test:integration -w ${{ matrix.workspace }}
+
   all-green:
     name: All checks passed
     if: always()
-    needs: [lint, conventions, workspace-tests, coverage]
+    needs: [lint, conventions, workspace-tests, coverage, integration]
     runs-on: ubuntu-latest
     steps:
       - name: Verify no failures
@@ -94,6 +114,8 @@ jobs:
                 "${{ needs.workspace-tests.result }}" == "failure" || \
                 "${{ needs.workspace-tests.result }}" == "cancelled" || \
                 "${{ needs.coverage.result }}"        == "failure" || \
-                "${{ needs.coverage.result }}"        == "cancelled" ]]; then
+                "${{ needs.coverage.result }}"        == "cancelled" || \
+                "${{ needs.integration.result }}"     == "failure" || \
+                "${{ needs.integration.result }}"     == "cancelled" ]]; then
             exit 1
           fi

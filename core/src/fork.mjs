@@ -27,9 +27,9 @@ export async function fork(state, sub) {
 
 // forkWith(state, forkPipeValue, sub) → Promise<state'>
 //
-// Same as fork() but seeds the inner pipeValue with a different
-// value (used by `*` distribute, where each iteration's inner
-// pipeValue is a Vec element rather than the outer Vec).
+// Same as fork() but seeds the inner pipeValue with the caller-
+// supplied value (used by `*` distribute, where each iteration's
+// inner pipeValue is a Vec element drawn from the outer Vec).
 export async function forkWith(state, forkPipeValue, sub) {
   const innerStart = makeState(forkPipeValue, state.env);
   const innerEnd = await sub(innerStart);

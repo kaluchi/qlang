@@ -1,5 +1,50 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { classifyEffect } from './effect.mjs';
+import { QlangInvariantError } from './errors.mjs';
+import { TAG_BINDING_PREFIX } from './env-keys.mjs';
+
+// Conduit body must carry a `.text` source slice — every production
+// path (parser-built AST, ::conduit constructor parsing a Quote,
+// deserializeSession parsing stored source) hands an AST node with
+// `.text` populated. The slice underwrites printValue's round-trip
+// invariant: `parse(printValue(conduit))` must yield an equivalent
+// conduit, which means the printed form needs literal source.
+// Mint refuses a `.text`-less body up front so the violation
+// surfaces at construction, where the offending caller is on the
+// stack.
+export class ConduitBodyMissingSourceError extends QlangInvariantError {
+  constructor() {
+    super(
+      'makeConduit: body has no .text — conduit body must carry a source slice so printValue round-trips through parse',
+      {}
+    );
+    this.name = 'ConduitBodyMissingSourceError';
+    this.fingerprint = 'ConduitBodyMissingSourceError';
+  }
+}
+
+// Function values (`makeFn` output) are runtime-internal: they live on
+// `:impl` of builtin descriptor Maps and as conduit-parameter proxies
+// reachable through the manifest descriptor's `:category :conduit-parameter`
+// field when a conduit body's env enumerates. They
+// have no grammatical literal — the only candidate render form
+// (`:qlang/prim/${name}`) parses back as a keyword value on the next
+// `eval`. Surfacing a function value in pipeValue therefore violates
+// printValue's round-trip theorem. The invariant fires at render-time
+// so the leak surface (typically a descriptor Map walked by `env |
+// /count`, or a host binding mounted through `session.bind` carrying
+// a raw function) surfaces by name and routes through the descriptor-
+// Map ceremony.
+export class FunctionValueLeakedToPrintError extends QlangInvariantError {
+  constructor() {
+    super(
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :kind ::builtin and :impl when binding through session.bind.',
+      {}
+    );
+    this.name = 'FunctionValueLeakedToPrintError';
+    this.fingerprint = 'FunctionValueLeakedToPrintError';
+  }
+}
 
 export const NULL = null;
 
@@ -12,9 +57,117 @@ export function isString(v) { return typeof v === 'string'; }
 export function isKeyword(v) {
   return v !== null && typeof v === 'object' && v.type === 'keyword';
 }
-export function isVec(v) { return Array.isArray(v); }
-export function isQMap(v) { return v instanceof Map; }
+export function isVec(v) {
+  return Array.isArray(v) && v[JSON_ARRAY_TAG] !== true;
+}
+export function isQMap(v) {
+  return v instanceof Map;
+}
 export function isQSet(v) { return v instanceof Set; }
+
+// JSON Object / JSON Array — runtime-type-distinct from qlang Map /
+// Vec. Built via makeJsonObject / makeJsonArray, stamped with a
+// non-enumerable Symbol so JSON.stringify and Object.keys see them
+// as ordinary plain objects / arrays (the JSON-bridge invariant —
+// they are JSON). qlang-side identification through the predicates
+// below.
+
+export const JSON_OBJECT_TAG = Symbol('qlang/json-object');
+export const JSON_ARRAY_TAG  = Symbol('qlang/json-array');
+
+export function isJsonObject(v) {
+  return v !== null
+    && typeof v === 'object'
+    && !Array.isArray(v)
+    && !(v instanceof Map)
+    && !(v instanceof Set)
+    && v[JSON_OBJECT_TAG] === true;
+}
+
+export function isJsonArray(v) {
+  return Array.isArray(v) && v[JSON_ARRAY_TAG] === true;
+}
+
+// Shape-level predicates — for container-shape-preserving operands
+// (filter, sort, take, distinct, union, …). A JsonArray subject
+// passes through the same operand path as a Vec subject and the
+// result re-wraps as JsonArray; same symmetry for JsonObject↔Map.
+// JS-side iteration / .length / spread work uniformly across both
+// halves of the shape, so operand bodies stay shape-agnostic.
+
+export function isVecShape(v) {
+  return isVec(v) || isJsonArray(v);
+}
+
+export function isMapShape(v) {
+  return isQMap(v) || isJsonObject(v);
+}
+
+// Iterate a Map-shape subject as [key, value] pairs.
+export function mapShapeEntries(v) {
+  if (isJsonObject(v)) return Object.entries(v);
+  return v;
+}
+
+export function mapShapeSize(v) {
+  if (isJsonObject(v)) return Object.keys(v).length;
+  return v.size;
+}
+
+export function mapShapeGet(v, k) {
+  return isJsonObject(v) ? v[k] : v.get(k);
+}
+
+export function mapShapeHas(v, k) {
+  if (isJsonObject(v)) return Object.prototype.hasOwnProperty.call(v, k);
+  return v.has(k);
+}
+
+// Re-wrap operand output to match the source's tag.
+export function vecLikeOf(items, source) {
+  return isJsonArray(source) ? makeJsonArray(items) : items;
+}
+
+// Per-element transformers (`*`, `>>`) preserve a JsonArray subject's
+// tag only when every produced element is itself JSON-storeable —
+// scalar Null/Boolean/Number/String or a JSON-shape Object/Array.
+// A qlang-only element (Keyword, Map, Set, Vec, Conduit, …) silently
+// degrades the container to a qlang Vec, so a downstream `| json`
+// catches the type mismatch loudly and surfaces the un-serialisable
+// element at the conversion site.
+export function isJsonStoreable(v) {
+  return v === null
+    || typeof v === 'boolean'
+    || typeof v === 'number'
+    || typeof v === 'string'
+    || isJsonObject(v)
+    || isJsonArray(v);
+}
+
+export function mapLikeOf(entries, source) {
+  if (isJsonObject(source)) {
+    const obj = {};
+    for (const [k, v] of entries) obj[k] = v;
+    return makeJsonObject(obj);
+  }
+  return new Map(entries);
+}
+
+export function makeJsonObject(plainObj) {
+  const obj = { ...plainObj };
+  Object.defineProperty(obj, JSON_OBJECT_TAG, {
+    value: true, enumerable: false, configurable: false, writable: false
+  });
+  return Object.freeze(obj);
+}
+
+export function makeJsonArray(items) {
+  const arr = [...items];
+  Object.defineProperty(arr, JSON_ARRAY_TAG, {
+    value: true, enumerable: false, configurable: false, writable: false
+  });
+  return Object.freeze(arr);
+}
 
 // ── language value-class predicates ────────────────────────────
 
@@ -42,29 +195,109 @@ export function keyword(name) {
   return Object.freeze({ type: 'keyword', name, literal: canonicalKeywordLiteral(name) });
 }
 
-// ── conduit / snapshot predicates ─────────────────────────────
+// TagKeyword — `::tag` reference value. Tagged-instance Maps
+// stamp `:kind` with a TagKeyword so the discriminator
+// reads as "this is an instance of ::tag" — a tighter
+// classification than the plain-keyword `:tag` symbol carries.
+// `.name` mirrors the keyword shape so a single
+// `kind.name === '<discriminator>'` check reads both Keyword
+// (`:builtin`, `:tag` declarative kinds) and TagKeyword
+// (`::conduit`, `::snapshot`, user-defined ::tag instances)
+// uniformly.
+
+export function makeTagKeyword(tag) {
+  return Object.freeze({ type: 'tagKeyword', name: tag, literal: TAG_BINDING_PREFIX + tag });
+}
+
+export function isTagKeyword(v) {
+  return v !== null && typeof v === 'object' && v.type === 'tagKeyword';
+}
+
+// Env-key namespaces live in `./env-keys.mjs`. The TagKeyword
+// factory above stamps `TAG_BINDING_PREFIX + tag` onto every
+// `::tag` literal, which is the only place value-class code needs
+// the prefix; every other env-keys-aware consumer imports from
+// `env-keys.mjs` directly.
+
+// ── conduit / snapshot / quote predicates ─────────────────────
 
 export function isConduit(v) {
   if (!(v instanceof Map)) return false;
-  const kind = v.get('qlang/kind');
+  const kind = v.get('kind');
   return kind && kind.name === 'conduit';
 }
 
 export function isSnapshot(v) {
   if (!(v instanceof Map)) return false;
-  const kind = v.get('qlang/kind');
+  const kind = v.get('kind');
   return kind && kind.name === 'snapshot';
+}
+
+// A tagged-instance Map carries `:kind <TagKeyword>` plus a
+// `:payload` slot holding whatever the constructor literal
+// captured — a Vec (`::Tag[1 2 3]`), a Map (`::Tag{:k 1}`), a
+// scalar wrapped via ParenGroup (`::Tag(42)`), a Quote, a Set,
+// any pipeline value. The conduit / snapshot / tag-binding
+// discriminators sit on their own render paths and live outside
+// the generic tagged-instance shape.
+const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
+export function isTaggedInstance(v) {
+  if (!(v instanceof Map)) return false;
+  const kind = v.get('kind');
+  if (!isTagKeyword(kind)) return false;
+  if (RESERVED_TAGGED_KINDS.has(kind.name)) return false;
+  return v.has('payload');
+}
+
+export function isQuote(v) {
+  return v !== null && typeof v === 'object' && v.type === 'quote';
+}
+
+// Quote — frozen JS object carrying `.source` (the verbatim text
+// between `~{` and `}`) and an optional `.ast` (lazily populated when
+// the Quote is run through `eval` or projected via `/ast`). Lives
+// on the JS layer with its discriminator on the JS object shape
+// (`v.type === 'quote'`); a Map-key discriminator would expose
+// runtime housekeeping at every projection of a Quote-valued
+// pipeValue. The lazy `.ast` lets a Quote
+// hold a pipeline-suffix fragment beginning with a combinator
+// (`~{* inc | sort}`) — eager parse would reject the fragment in
+// startRule=Query mode because the top-level rule expects a value
+// expression; Pipeline accepts a leading combinator only inside the
+// `~{…}` body context, which `apply(subject)` re-enters.
+export function makeQuote(source, ast = null) {
+  return Object.freeze({ type: 'quote', source, ast });
+}
+
+// Doc — frozen JS object carrying `.content` (the verbatim text
+// between `|~~ ... ~~|` markers, or after `|~~|` up to newline).
+// Same JS-layer discriminator pattern as Quote — `.type === 'doc'`
+// keeps `:kind` housekeeping out of the user-visible Map
+// surface. Doc value lands in pipeValue through DocLit literal in
+// any Primary position; the attached-prefix path
+// (DocAttachedSequence) is unrelated — there docs travel as
+// `.docs` strings on the following operand-call AST node.
+export function isDoc(v) {
+  return v !== null && typeof v === 'object' && v.type === 'doc';
+}
+
+export function makeDoc(content) {
+  return Object.freeze({ type: 'doc', content });
 }
 
 // ── conduit factory ───────────────────────────────────────────
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
+  if (body == null || typeof body.text !== 'string') {
+    throw new ConduitBodyMissingSourceError();
+  }
   const m = new Map();
-  m.set('qlang/kind', keyword('conduit'));
+  m.set('kind', makeTagKeyword('conduit'));
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
-  m.set('qlang/body', body);
-  m.set('qlang/envRef', envRef);
+  m.set('body', body);
+  m.set('source', body.text);
+  m.set('envRef', envRef);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
@@ -75,9 +308,9 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
 
 export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   const m = new Map();
-  m.set('qlang/kind', keyword('snapshot'));
+  m.set('kind', makeTagKeyword('snapshot'));
   m.set('name', name);
-  m.set('qlang/value', value);
+  m.set('payload', value);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
@@ -88,16 +321,18 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 
 export function withName(binding, newName) {
   if (isConduit(binding)) {
-    return makeConduit(binding.get('qlang/body'), {
+    // Pass the original body through — makeConduit re-stamps
+    // source from body.text under the new name.
+    return makeConduit(binding.get('body'), {
       name: newName,
       params: [...binding.get('params')],
-      envRef: binding.get('qlang/envRef'),
+      envRef: binding.get('envRef'),
       docs: [...binding.get('docs')],
       location: binding.get('location')
     });
   }
   if (isSnapshot(binding)) {
-    return makeSnapshot(binding.get('qlang/value'), {
+    return makeSnapshot(binding.get('payload'), {
       name: newName,
       docs: [...binding.get('docs')],
       location: binding.get('location')
@@ -107,14 +342,26 @@ export function withName(binding, newName) {
 }
 
 // ── error value factory ───────────────────────────────────────
+//
+// `:trail` carries either a Quote-value holding the joined
+// pipeline-suffix source — copy-pasteable code the user can splice
+// back into a query — or `null` when no success-track combinator
+// has deflected after the fault. Linked-list nodes hold
+// `{combinator, text}` fragment records; materializeTrail joins
+// them via COMBINATOR_SYNTAX into the Quote source on demand
+// inside applyFailTrack.
 
-const EMPTY_TRAIL = Object.freeze([]);
+export const COMBINATOR_SYNTAX = Object.freeze({
+  pipe:       '|',
+  distribute: '*',
+  merge:      '>>'
+});
 
 export function makeErrorValue(descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (!descriptor.has('trail')) {
     finalDescriptor = new Map(descriptor);
-    finalDescriptor.set('trail', EMPTY_TRAIL);
+    finalDescriptor.set('trail', null);
   }
   return Object.freeze({
     type: 'error',
@@ -139,11 +386,15 @@ export function appendTrailNode(errorValue, trailEntry) {
 }
 
 export function materializeTrail(errorValue) {
-  const trail = [];
+  if (errorValue._trailHead === null) return null;
+  const fragments = [];
   let cur = errorValue._trailHead;
-  while (cur) { trail.push(cur.entry); cur = cur.prev; }
-  trail.reverse();
-  return trail;
+  while (cur) { fragments.push(cur.entry); cur = cur.prev; }
+  fragments.reverse();
+  const source = fragments
+    .map(f => `${COMBINATOR_SYNTAX[f.combinator]} ${f.text}`)
+    .join(' ');
+  return makeQuote(source);
 }
 
 // ── describeType ──────────────────────────────────────────────
@@ -154,13 +405,19 @@ export function describeType(v) {
   if (isNumber(v)) return 'Number';
   if (isString(v)) return 'String';
   if (isKeyword(v)) return 'Keyword';
+  if (isTagKeyword(v)) return 'TagKeyword';
+  if (isJsonArray(v)) return 'JsonArray';
   if (isVec(v)) return 'Vec';
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
+  if (isQuote(v)) return 'Quote';
+  if (isDoc(v)) return 'Doc';
+  if (isTaggedInstance(v)) return 'TaggedInstance';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
   if (isFunctionValue(v)) return 'Function';
+  if (isJsonObject(v)) return 'JsonObject';
   return 'Unknown';
 }
 
@@ -170,12 +427,33 @@ export function typeKeyword(v) {
   if (isNumber(v)) return keyword('number');
   if (isString(v)) return keyword('string');
   if (isKeyword(v)) return keyword('keyword');
+  if (isTagKeyword(v)) return keyword('tag-keyword');
+  if (isJsonArray(v)) return keyword('json-array');
   if (isVec(v)) return keyword('vec');
-  if (isConduit(v)) return keyword('conduit');
-  if (isSnapshot(v)) return keyword('snapshot');
-  if (isQMap(v)) return keyword('map');
+  if (isConduit(v)) return makeTagKeyword('conduit');
+  if (isSnapshot(v)) return makeTagKeyword('snapshot');
+  if (isQuote(v)) return keyword('quote');
+  if (isDoc(v)) return keyword('doc');
+  if (isQMap(v)) {
+    // Identity-via-`:kind` invariant — every tagged Map
+    // (tagged-instance constructor result, materialised error
+    // descriptor exposed under `!|`, user `{:kind ::Foo …}`)
+    // surfaces its TagKeyword as identity. Maps without the slot
+    // keep the generic `:map` keyword.
+    const mapKind = v.get('kind');
+    if (isTagKeyword(mapKind)) return mapKind;
+    return keyword('map');
+  }
   if (isQSet(v)) return keyword('set');
-  if (isErrorValue(v)) return keyword('error');
+  // Error values carry their tag identity in `:kind` (a
+  // TagKeyword), same invariant as every other tagged-instance.
+  // The `type` operand surfaces it as the value's user-facing
+  // identity.
+  if (isErrorValue(v)) {
+    const kind = v.descriptor.get('kind');
+    return isTagKeyword(kind) ? kind : keyword('error');
+  }
   if (isFunctionValue(v)) return keyword('function');
+  if (isJsonObject(v)) return keyword('json-object');
   return keyword('unknown');
 }

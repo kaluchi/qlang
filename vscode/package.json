@@ -6,10 +6,6 @@
   "publisher": "local",
   "engines": { "vscode": "^1.75.0" },
   "main": "./src/extension.js",
-  "activationEvents": [
-    "onLanguage:qlang",
-    "onStartupFinished"
-  ],
   "contributes": {
     "markdown.markdownItPlugins": true,
     "languages": [

@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
+import { makeState } from '../../src/state.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('eval — literals', () => {
   it('evaluates a number literal', async () => {
@@ -113,8 +115,12 @@ describe('eval — Map and projection', () => {
     expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
   });
 
-  it('returns null for missing key', async () => {
-    expect(await evalQuery('{:name "Alice"} | /age')).toBe(null);
+  it('strict-projection: missing key raises ProjectionKeyNotInMapError', async () => {
+    const { isErrorValue } = await import('../../src/types.mjs');
+    const result = await evalQuery('{:name "Alice"} | /age');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.descriptor.get('kind').name).toBe('ProjectionKeyNotInMapError');
+    expect(result.descriptor.get('key')).toBe('age');
   });
 
   it('chains nested projection', async () => {
@@ -144,9 +150,9 @@ describe('eval — as binding', () => {
   });
 });
 
-describe('eval — let binding', () => {
+describe('eval — BindStep declaration', () => {
   it('binds and forces a conduit', async () => {
-    expect(await evalQuery('let(:double, mul(2)) | 10 | double')).toBe(20);
+    expect(await evalQuery(':double mul(2) | 10 | double')).toBe(20);
   });
 });
 
@@ -164,5 +170,111 @@ describe('eval — env operand', () => {
 describe('eval — use', () => {
   it('use installs constants from a Map', async () => {
     expect(await evalQuery('{:taxRate 0.07} | use | taxRate')).toBe(0.07);
+  });
+});
+
+describe('eval.mjs unknown node type', () => {
+  it('throws on unknown AST node', async () => {
+    const fakeNode = { type: 'BogusNode' };
+    const runtimeEnv = await langRuntime();
+    const state = makeState(null, runtimeEnv);
+    await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
+  });
+});
+
+describe('eval.mjs unknown combinator', () => {
+  it('throws on a hand-built unknown combinator', async () => {
+    const ast = {
+      type: 'Pipeline',
+      steps: [
+        { type: 'NumberLit', value: 1 },
+        { combinator: '?', step: { type: 'NumberLit', value: 2 } }
+      ]
+    };
+    const runtimeEnv = await langRuntime();
+    const state = makeState(null, runtimeEnv);
+    await expect(evalAst(ast, state)).rejects.toThrow(/unknown combinator/);
+  });
+});
+
+describe('quoted keywords — eval-level identity and Map interop', () => {
+  it(':"name" interns to the same keyword as :name', async () => {
+    expect(await evalQuery(':"name" | eq(:name)')).toBe(true);
+  });
+
+  it('Map literal with a quoted-key entry is queryable via /"key"', async () => {
+    expect(await evalQuery('{:"weird key" 42} | /"weird key"')).toBe(42);
+  });
+
+  it('Map literal with a quoted key is queryable via has(:"weird key")', async () => {
+    expect(await evalQuery('{:"weird key" 1} | has(:"weird key")')).toBe(true);
+  });
+
+  it('the empty-string keyword survives a Map round-trip', async () => {
+    expect(await evalQuery('{:"" "empty key value"} | /""')).toBe('empty key value');
+  });
+
+  it('digit-leading keys are reachable through quoted projection', async () => {
+    expect(await evalQuery('{:"123" "digit"} | /"123"')).toBe('digit');
+  });
+
+  it('keys returns interned keywords regardless of declaration form', async () => {
+    // The set returned by keys contains keywords; verify the bare and
+    // quoted forms produce equivalent keyword identity downstream.
+    expect(await evalQuery('{:foo 1} | keys | has(:"foo")')).toBe(true);
+    expect(await evalQuery('{:"foo" 1} | keys | has(:foo)')).toBe(true);
+  });
+
+  it('json operand emits arbitrary JSON object keys via quoted Map keys', async () => {
+    const jsonOutput = await evalQuery('{:"foo bar" 1 :"$ref" "x"} | json');
+    expect(jsonOutput).toContain('"foo bar"');
+    expect(jsonOutput).toContain('"$ref"');
+  });
+});
+
+describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
+  // `apply` reads its body AST through `astFromQuoteLike`, which
+  // short-circuits when the Quote already has a `.ast` cached. The
+  // runtime stamps cached-ast Quotes under `qlang/ast/<ns>` whenever
+  // `use(:ns)` loads a module — build one through that path and run
+  // `apply` against a fresh subject to exercise the `.ast` truthy
+  // branch.
+  it('use-loaded module Quote (cached .ast) runs through apply against a new subject', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const session = await createSession({
+      locator: async () => ({ source: 'add(1)' })
+    });
+    const cellEntry = await session.evalCell(
+      'use(:demo/snippet) | env | /"qlang/ast/demo/snippet" | apply(41)'
+    );
+    expect(cellEntry.result).toBe(42);
+  });
+});
+
+describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
+  it('wraps a plain JS Error from an operand as a foreign error value', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const { makeFn } = await import('../../src/rule10.mjs');
+    const { isErrorValue } = await import('../../src/types.mjs');
+    // Create a function value that throws a raw Error (not QlangError)
+    const bombFn = makeFn('bomb', 1, () => { throw new Error('raw boom'); }, { captured: [0, 0] });
+    const s = await createSession();
+    s.bind('bomb', bombFn);
+    const entry = await s.evalCell('42 | bomb');
+    expect(isErrorValue(entry.result)).toBe(true);
+    expect(entry.result.descriptor.get('kind').name).toBe('Error');
+    expect(entry.result.descriptor.has('category')).toBe(false);
+  });
+});
+
+describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () => {
+  it('lambdas.docs falls back to [] when node has no .docs field', async () => {
+    // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
+    const ast = { type: 'OperandCall', name: 'count', args: null, location: null };
+    const runtimeEnv = await langRuntime();
+    const state = makeState([1, 2, 3], runtimeEnv);
+    const evalResult = await evalAst(ast, state);
+    const result = evalResult.pipeValue;
+    expect(result).toBe(3);
   });
 });

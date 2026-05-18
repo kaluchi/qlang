@@ -8,7 +8,48 @@
 
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
-import { main } from '../src/main.mjs';
+import { main, resolveShouldColorize } from '../src/main.mjs';
+
+describe('resolveShouldColorize — explicit flag, env vars, TTY detection', () => {
+  // Five-way precedence: --color=always > --color=never > FORCE_COLOR
+  // > NO_COLOR > TTY autodetect. Each branch needs its own assertion
+  // for the env-vars + auto-mode arms to land on full coverage.
+  const ttyOut = { isTTY: true };
+  const pipeOut = { isTTY: false };
+
+  it('--color=always wins over a non-TTY stream', () => {
+    expect(resolveShouldColorize('always', pipeOut, {})).toBe(true);
+  });
+
+  it('--color=never wins over a TTY stream', () => {
+    expect(resolveShouldColorize('never', ttyOut, {})).toBe(false);
+  });
+
+  it('FORCE_COLOR=1 forces paint when --color=auto', () => {
+    expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '1' })).toBe(true);
+  });
+
+  it('FORCE_COLOR=0 falls through to TTY check (not truthy as a flag)', () => {
+    expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '0' })).toBe(false);
+    expect(resolveShouldColorize('auto', ttyOut, { FORCE_COLOR: '0' })).toBe(true);
+  });
+
+  it('NO_COLOR=1 disables paint when --color=auto', () => {
+    expect(resolveShouldColorize('auto', ttyOut, { NO_COLOR: '1' })).toBe(false);
+  });
+
+  it('NO_COLOR=empty falls through to TTY check', () => {
+    expect(resolveShouldColorize('auto', ttyOut, { NO_COLOR: '' })).toBe(true);
+  });
+
+  it('--color=auto with no env defers to TTY detection — TTY → true', () => {
+    expect(resolveShouldColorize('auto', ttyOut, {})).toBe(true);
+  });
+
+  it('--color=auto with no env defers to TTY detection — non-TTY → false', () => {
+    expect(resolveShouldColorize('auto', pipeOut, {})).toBe(false);
+  });
+});
 
 function captureStreams(stdinPayload = '') {
   const stdinStream = Readable.from([stdinPayload]);
@@ -55,14 +96,14 @@ describe('main — flag dispatch', () => {
     expect(s.stderrText()).toMatch(/missing query/);
   });
 
-  it('dispatches `--repl` into the line-editor REPL and exits cleanly on `.exit`', async () => {
+  it('dispatches ~{--repl} into the line-editor REPL and exits cleanly on ~{.exit}', async () => {
     const s = captureStreams('.exit\n');
     const exitCode = await main(
       ['--repl'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toMatch(/qlang>/);
+    expect(s.stdoutText()).toMatch(/qlang.*>/);
   });
 });
 
@@ -144,8 +185,8 @@ describe('main — script mode auto-pipe', () => {
   });
 });
 
-describe('main — `@out` suppression of auto-encoded stdout', () => {
-  it('routes `@out` emissions to stdout and skips the auto-encode', async () => {
+describe('main — ~{@out} suppression of auto-encoded stdout', () => {
+  it('routes ~{@out} emissions to stdout and skips the auto-encode', async () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | count | pretty | @out'],
@@ -158,7 +199,7 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('feeds stdin into `@in` alongside the auto-pipe so explicit queries still work', async () => {
+  it('feeds stdin into ~{@in} alongside the auto-pipe so explicit queries still work', async () => {
     const s = captureStreams('hello world');
     const exitCode = await main(
       ['@in | @out'],
@@ -170,22 +211,30 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
 });
 
 describe('main — error paths', () => {
-  it('returns exit 1 with a stderr message for a parse failure', async () => {
+  it('returns exit 1 with a structured ::ParseError!{…} diagnostic on stderr for a parse failure', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toBe('');
-    expect(s.stderrText()).toMatch(/^qlang:/);
+    // Structured printValue form — `::ParseError!{:expected …
+    // :found … :source "[1 2" :marker "    ^" :location {…}}`.
+    expect(s.stderrText()).toContain('::ParseError!{');
+    expect(s.stderrText()).toContain(':source "[1 2"');
+    expect(s.stderrText()).toContain(':marker');
   });
 
-  it('returns exit 1 silently for an unhandled fail-track error value', async () => {
+  it('encodes a fail-track error value as data on stdout, exit 0', async () => {
+    // Per spec, error values travel as data on the same channel as
+    // plain values. Non-zero exit reserved for host-level setup
+    // failure (parse error, config blowup), not for in-language
+    // fail-track results.
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | add(1)'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
-    expect(exitCode).toBe(1);
-    expect(s.stdoutText()).toBe('');
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('AddLeftNotNumberError');
     expect(s.stderrText()).toBe('');
   });
 });

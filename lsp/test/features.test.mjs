@@ -4,7 +4,8 @@ import { describe, it, expect } from 'vitest';
 import {
   parseDocument, buildCatalogIndex, completionsAtOffset,
   hoverAtOffset, definitionAtOffset, referencesAtOffset,
-  documentSymbols, signatureHelpAtOffset
+  documentSymbols, signatureHelpAtOffset,
+  semanticTokensFor, SEMANTIC_TOKEN_TYPES
 } from '../src/features.mjs';
 
 describe('parseDocument', () => {
@@ -39,9 +40,8 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('count');
     expect(labels).toContain('filter');
     expect(labels).toContain('add');
-    expect(labels).toContain('let');
     expect(labels).toContain('as');
-    expect(labels).toContain('reify');
+    expect(labels).toContain('manifest');
   });
 
   it('returns more than 60 builtin completions', async () => {
@@ -66,7 +66,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('includes user-defined bindings visible at offset', async () => {
-    const src = 'let(:myVar, 42) | myVar';
+    const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
     const items = await completionsAtOffset(ast, offsetAtEnd);
@@ -75,7 +75,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('user binding has variable kind', async () => {
-    const src = 'let(:myVar, 42) | myVar';
+    const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
@@ -85,6 +85,30 @@ describe('completionsAtOffset', () => {
   it('works with null ast (parse failure)', async () => {
     const items = await completionsAtOffset(null, 0);
     expect(items.length).toBeGreaterThan(60);
+  });
+
+  it('mixed completions surface tag-namespace bindings alongside builtins', async () => {
+    const src = 'foo';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(ast, 3, src);
+    expect(items.some(i => i.label === 'count')).toBe(true);
+    expect(items.some(i => i.label === '::AddLeftNotNumberError')).toBe(true);
+  });
+
+  it('cursor right after `::` filters to tag-namespace only', async () => {
+    const src = '::';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(ast, 2, src);
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every(i => i.label.startsWith('::'))).toBe(true);
+    expect(items.every(i => i.kind === 'tag')).toBe(true);
+  });
+
+  it('in-document `::Tag` BindStep contributes to tag-namespace completions', async () => {
+    const src = '::MyTag {:kind :tag :impl ~{42}}';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(ast, src.length, src);
+    expect(items.some(i => i.label === '::MyTag')).toBe(true);
   });
 });
 
@@ -106,6 +130,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, filterOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/predicate/i);
+    expect(hover.content).not.toMatch(/~\{/);
   });
 
   it('returns hover for a projection', async () => {
@@ -140,6 +165,35 @@ describe('hoverAtOffset', () => {
     expect(await hoverAtOffset(null, '', 0)).toBeNull();
   });
 
+  it('returns hover for BareTypeKeyword tag reference', async () => {
+    const src = '::AddLeftNotNumberError | docs';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const tagOffset = src.indexOf('::AddLeftNotNumberError') + 5;
+    const hover = await hoverAtOffset(ast, src, tagOffset);
+    expect(hover).not.toBeNull();
+    expect(hover.content).toMatch(/::AddLeftNotNumberError/);
+    expect(hover.content).toMatch(/tag-binding/);
+  });
+
+  it('returns hover for TaggedLit constructor invocation', async () => {
+    const src = '"x" | ::conduit[[] ~{mul(2)}]';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const tagOffset = src.indexOf('::conduit') + 5;
+    const hover = await hoverAtOffset(ast, src, tagOffset);
+    expect(hover).not.toBeNull();
+    expect(hover.content).toMatch(/::conduit/);
+    expect(hover.content).toMatch(/tag-binding/);
+  });
+
+  it('hover on ::Tag spans only the tag head, not the payload', async () => {
+    const src = '"x" | ::conduit[[] ~{mul(2)}]';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const tagOffset = src.indexOf('::conduit') + 5;
+    const hover = await hoverAtOffset(ast, src, tagOffset);
+    expect(hover).not.toBeNull();
+    expect(hover.endOffset - hover.startOffset).toBe('::conduit'.length);
+  });
+
   it('returns null for offset outside any node', async () => {
     const src = '42';
     const { ast } = parseDocument(src, 'test.qlang');
@@ -149,45 +203,54 @@ describe('hoverAtOffset', () => {
 });
 
 // Build a catalog context for definition fallback tests. Mirrors
-// lib/qlang/core.qlang's outer-MapLit shape: each entry is a
-// `:name {...descriptor...}` pair, and `buildCatalogIndex` walks
-// for MapEntry nodes to record the entry span as the def site.
-const catalogSrc = '{:count {:category :vec-reducer}}';
+// lib/qlang/core.qlang's BindStep series: each entry is
+// `:name {...descriptor...}`, and `buildCatalogIndex` walks every
+// `BindStep` node and records the entire BindStep span as the
+// declaration site. The server merges each catalog file's source
+// and URI onto every index entry so the goto handler can resolve
+// offsets without re-reading the source — the test mirror does
+// the same.
+const catalogSrc = ':count {:category :vec-reducer}';
 const catalogAst = parseDocument(catalogSrc, 'qlang/core').ast;
-const testCatalogCtx = {
-  uri: 'file:///test/core.qlang',
-  index: buildCatalogIndex(catalogAst)
-};
+const testCatalogIndex = new Map();
+for (const [name, range] of buildCatalogIndex(catalogAst)) {
+  testCatalogIndex.set(name, {
+    ...range,
+    fileUri: 'file:///test/core.qlang',
+    source: catalogSrc
+  });
+}
+const testCatalogCtx = { index: testCatalogIndex };
 
 describe('definitionAtOffset', () => {
-  it('jumps from conduit use site to let declaration', () => {
-    const src = 'let(:double, mul(2)) | 10 | double';
+  it('jumps from conduit use site to BindStep declaration', () => {
+    const src = ':double mul(2) | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
     expect(def).not.toBeNull();
     expect(def.startOffset).toBe(0);
-    expect(def.uri).toBeNull(); // in-document
+    expect(def.fileUri).toBeUndefined(); // in-document
   });
 
   it('jumps to last visible declaration when shadowed', () => {
-    const src = 'let(:x, 1) | let(:x, 2) | x';
+    const src = ':x 1 | :x 2 | x';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     const def = definitionAtOffset(ast, useOffset);
     expect(def).not.toBeNull();
-    // Should point to second let(:x, 2), not the first
-    expect(def.startOffset).toBe(src.indexOf('let(:x, 2)'));
+    // Should point to the second `:x 2` BindStep, not the first.
+    expect(def.startOffset).toBe(src.lastIndexOf(':x'));
   });
 
   it('declaration inside fork is invisible outside', () => {
-    const src = '(let(:x, 1)) | x';
+    const src = '(:x 1) | x';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     // x is declared inside a ParenGroup fork — invisible at the
-    // use site. Falls through to manifest or null.
+    // use site. Falls through to catalog (none provided) or null.
     const def = definitionAtOffset(ast, useOffset);
-    expect(def === null || def.uri !== null).toBe(true);
+    expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
   it('falls back to core.qlang catalog for builtin operands', () => {
@@ -195,7 +258,7 @@ describe('definitionAtOffset', () => {
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.uri).toBe('file:///test/core.qlang');
+    expect(def.fileUri).toBe('file:///test/core.qlang');
   });
 
   it('returns null without catalog context for builtins', () => {
@@ -205,16 +268,16 @@ describe('definitionAtOffset', () => {
     expect(def).toBeNull();
   });
 
-  it('in-document let shadows builtin — jumps to let, not catalog', () => {
-    const src = 'let(:count, 42) | count';
+  it('in-document BindStep shadows builtin — jumps to BindStep, not catalog', () => {
+    const src = ':count 42 | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.uri).toBeNull(); // in-document, not catalog
+    expect(def.fileUri).toBeUndefined(); // in-document, not catalog
     expect(def.startOffset).toBe(0);
   });
 
-  it('returns null for non-OperandCall nodes', () => {
+  it('returns null for non-resolving nodes', () => {
     const src = '42';
     const { ast } = parseDocument(src, 'test.qlang');
     expect(definitionAtOffset(ast, 0)).toBeNull();
@@ -227,17 +290,17 @@ describe('definitionAtOffset', () => {
 
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a user-defined conduit', () => {
-    const src = 'let(:double, mul(2)) | [1 2] * double';
+    const src = ':double mul(2) | [1 2] * double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
-    // declaration (let(:double, ...)) + use site (... * double)
+    // declaration (`:double …`) + use site (`* double`)
     expect(refs.length).toBe(2);
   });
 
   it('finds references from the declaration site', () => {
-    const src = 'let(:x, 42) | x';
+    const src = ':x 42 | x';
     const { ast } = parseDocument(src, 'test.qlang');
-    // Click on :x inside let(:x, ...)
+    // Click on :x in the BindStep key
     const kwOffset = src.indexOf(':x') + 1; // inside the keyword
     const refs = referencesAtOffset(ast, kwOffset);
     expect(refs.length).toBe(2);
@@ -256,8 +319,8 @@ describe('referencesAtOffset', () => {
 });
 
 describe('documentSymbols', () => {
-  it('collects let bindings as conduit symbols', () => {
-    const src = 'let(:double, mul(2)) | let(:triple, mul(3))';
+  it('collects BindStep bindings as conduit symbols', () => {
+    const src = ':double mul(2) :triple mul(3)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(2);
@@ -319,5 +382,107 @@ describe('signatureHelpAtOffset', () => {
 
   it('returns null for null ast', async () => {
     expect(await signatureHelpAtOffset(null, '', 0)).toBeNull();
+  });
+});
+
+// Helper: decode the LSP 5-int semantic-tokens stream into
+// `{ line, char, length, type }` records that align back to source
+// offsets, so assertions can read the token kinds without
+// reproducing the delta-encoding rules.
+function decodeSemanticTokens(data, types) {
+  const out = [];
+  let line = 0;
+  let char = 0;
+  for (let i = 0; i < data.length; i += 5) {
+    const dLine = data[i];
+    const dChar = data[i + 1];
+    line += dLine;
+    char = dLine === 0 ? char + dChar : dChar;
+    out.push({ line, char, length: data[i + 2], type: types[data[i + 3]] });
+  }
+  return out;
+}
+
+describe('semanticTokensFor', () => {
+  it('paints a builtin operand as `function`', async () => {
+    const { data } = await semanticTokensFor('[1 2 3] | count');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const countTok = tokens.find(t => t.type === 'function');
+    expect(countTok).toBeTruthy();
+    expect(countTok.line).toBe(0);
+  });
+
+  it('paints an `@`-prefixed effectful operand as `decorator`', async () => {
+    const { data } = await semanticTokensFor(':@audit add(1) | 5 | @audit');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.filter(t => t.type === 'decorator').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('paints a `::Tag` head as `struct`', async () => {
+    const { data } = await semanticTokensFor('::AddLeftNotNumberError | docs');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const tagTok = tokens.find(t => t.type === 'struct');
+    expect(tagTok).toBeTruthy();
+    expect(tagTok.length).toBe('::AddLeftNotNumberError'.length);
+  });
+
+  it('paints a user-bound identifier reference as `variable`', async () => {
+    const { data } = await semanticTokensFor(':double mul(2) | 5 | double');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'variable')).toBe(true);
+  });
+
+  it('paints a comment span as `comment`', async () => {
+    const { data } = await semanticTokensFor('42 |~| trace');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'comment')).toBe(true);
+  });
+
+  it('paints a string literal as `string`', async () => {
+    const { data } = await semanticTokensFor('"hello"');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('paints a Quote body as `string`', async () => {
+    const { data } = await semanticTokensFor('~{count}');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    // Quote literal renders the ~{ and } delimiters as `string` kind
+    expect(tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('paints a number literal as `number`', async () => {
+    const { data } = await semanticTokensFor('42');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.some(t => t.type === 'number')).toBe(true);
+  });
+
+  it('splits a multi-line comment into per-line entries', async () => {
+    const src = '|~ multi-\nline plain ~|\n42';
+    const { data } = await semanticTokensFor(src);
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const commentTokens = tokens.filter(t => t.type === 'comment');
+    expect(commentTokens.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('emits well-formed 5-int stream', async () => {
+    const { data } = await semanticTokensFor('[1 2 3] | filter(gt(1)) | count');
+    expect(data.length % 5).toBe(0);
+    // Each `length` field is positive
+    for (let i = 2; i < data.length; i += 5) {
+      expect(data[i]).toBeGreaterThan(0);
+    }
+  });
+
+  it('returns empty data for empty source', async () => {
+    const { data } = await semanticTokensFor('');
+    expect(data.length).toBe(0);
+  });
+
+  it('returns empty data for parse-failed source', async () => {
+    const { data } = await semanticTokensFor('[1 2 3');
+    // tokenize emits a single whitespace span on parse failure,
+    // which has no semantic-token type — output is empty.
+    expect(data.length).toBe(0);
   });
 });

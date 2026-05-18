@@ -22,12 +22,38 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
-  it('wraps a `:keyword` atom in the cyan escape pair', () => {
+  it('paints a ~{…} Quote with green upright delimiters and italic body', () => {
+    // `~{` and `}` get the upright green `quote` escape; the body
+    // sub-tokenises with each inner kind's colour combined with
+    // italic (e.g. atom `:active` → italic cyan).
+    const out = highlightAnsi('~{:active}', noBuiltins);
+    expect(out).toContain('\x1b[32m~{\x1b[0m');           // upright open
+    expect(out).toContain('\x1b[3;36m:active\x1b[0m');   // italic atom
+    expect(out).toContain('\x1b[32m}\x1b[0m');            // upright close
+  });
+
+  it('wraps a ~{::tag} BareTypeKeyword in the bright-cyan tag escape', () => {
+    const out = highlightAnsi('::conduit', noBuiltins);
+    expect(out).toBe('\x1b[96m::conduit\x1b[0m');
+  });
+
+  it('wraps the ~{::tag} head of a TaggedLit and descends into the payload', () => {
+    const out = highlightAnsi('::conduit[[:x] ~{mul(2)}]', noBuiltins);
+    expect(out).toContain('\x1b[96m::conduit\x1b[0m');
+    // Quote payload — upright delimiters + italic body. With no
+    // builtin names supplied, `mul` falls back to the `atom`
+    // colour (cyan 36) carrying the italic modifier.
+    expect(out).toContain('\x1b[32m~{\x1b[0m');
+    expect(out).toContain('\x1b[3;36mmul\x1b[0m');
+    expect(out).toContain('\x1b[32m}\x1b[0m');
+  });
+
+  it('wraps a ~{:keyword} atom in the cyan escape pair', () => {
     const out = highlightAnsi(':active', noBuiltins);
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
 
-  it('wraps an `@`-prefixed call in the bright-magenta effect escape', () => {
+  it('wraps an ~{@}-prefixed call in the bright-magenta effect escape', () => {
     const out = highlightAnsi('@log', noBuiltins);
     expect(out).toBe('\x1b[95m@log\x1b[0m');
   });
@@ -38,9 +64,9 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[94mcount\x1b[0m');
   });
 
-  it('wraps `let` in the bold-bright-blue keyword escape', () => {
-    const out = highlightAnsi('let(:x, 1)', new Set());
-    expect(out).toMatch('\x1b[1;94mlet\x1b[0m');
+  it('wraps a BindStep key in the bold-bright-blue keyword escape', () => {
+    const out = highlightAnsi(':x 1', new Set());
+    expect(out).toMatch('\x1b[1;94m:x\x1b[0m');
   });
 
   it('wraps a comment in the dim escape', () => {
@@ -56,28 +82,28 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m \x1b[33m2\x1b[0m\x1b[93m]\x1b[0m');
   });
 
-  it('wraps `!{` / `}` error-literal brackets in bright red', () => {
+  it('wraps ~{!{} / ~{}} error-literal brackets in bright red', () => {
     const out = highlightAnsi('!{}', new Set());
     expect(out).toBe('\x1b[91m!{\x1b[0m\x1b[91m}\x1b[0m');
   });
 
-  it('wraps the `!|` fail-track combinator in bright red', () => {
+  it('wraps the ~{!|} fail-track combinator in bright red', () => {
     const out = highlightAnsi('1 !| /k', new Set());
     expect(out).toMatch('\x1b[91m!|\x1b[0m');
   });
 
-  it('wraps `#{` / `}` set brackets in bright green', () => {
+  it('wraps ~{#{} / ~{}} set brackets in bright green', () => {
     const out = highlightAnsi('#{:a}', new Set());
     expect(out).toMatch('\x1b[92m#{\x1b[0m');
     expect(out).toMatch('\x1b[92m}\x1b[0m');
   });
 
-  it('wraps `[` / `]` vec brackets in bright yellow', () => {
+  it('wraps ~{[} / ~{]} vec brackets in bright yellow', () => {
     const out = highlightAnsi('[1]', new Set());
     expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m\x1b[93m]\x1b[0m');
   });
 
-  it('keeps the `{` / `}` of an ordinary map in the default punct escape', () => {
+  it('keeps the ~{{} / ~{}} of an ordinary map in the default punct escape', () => {
     const out = highlightAnsi('{:a 1}', new Set());
     expect(out).toMatch('\x1b[90m{\x1b[0m');
     expect(out).toMatch('\x1b[90m}\x1b[0m');

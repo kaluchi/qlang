@@ -23,7 +23,7 @@ describe('pretty', () => {
     expect(cellEntry.result).toBe('"hello"');
   });
 
-  it('renders a Vec as the literal `[1 2 3]`', async () => {
+  it('renders a Vec as the literal ~{[1 2 3]}', async () => {
     const cellEntry = await runQuery('[1 2 3] | pretty', noopIo);
     expect(cellEntry.result).toBe('[1 2 3]');
   });
@@ -56,7 +56,7 @@ describe('tjson', () => {
   });
 });
 
-describe('template — `{{.}}` whole-subject substitution', () => {
+describe('template — ~{{{.}}} whole-subject substitution', () => {
   it('embeds a String subject as raw characters without surrounding quotes', async () => {
     const cellEntry = await runQuery('"alice" | template("user: {{.}}")', noopIo);
     expect(cellEntry.result).toBe('user: alice');
@@ -68,7 +68,7 @@ describe('template — `{{.}}` whole-subject substitution', () => {
   });
 });
 
-describe('template — `{{key}}` Map projection', () => {
+describe('template — ~{{{key}}} Map projection', () => {
   it('projects a single keyword field from a Map subject', async () => {
     const cellEntry = await runQuery(
       '{:name "alice"} | template("got {{name}}")', noopIo);
@@ -101,12 +101,9 @@ describe('template — `{{key}}` Map projection', () => {
 });
 
 describe('template — error sites', () => {
-  it('lifts TemplateModifierNotString when the captured arg is not a String', async () => {
+  it('lifts TemplateModifierNotStringError when the captured arg is not a String', async () => {
     const cellEntry = await runQuery('"x" | template(42)', noopIo);
-    expectOperandErrorThrown(cellEntry, 'TemplateModifierNotString', {
-      operand: 'template',
-      position: 1,
-      expectedType: 'String',
+    expectOperandErrorThrown(cellEntry, 'TemplateModifierNotStringError', {
       actualType: { name: 'number' }
     });
   });

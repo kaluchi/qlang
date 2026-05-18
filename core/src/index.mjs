@@ -27,7 +27,7 @@
 //                                astNodeSpan, astNodeContainsOffset,
 //                                triviaBetweenAstNodes
 //   value codec                — toTaggedJSON, fromTaggedJSON
-//   format helpers             — printValue (qlang-literal display),
+//   format renderers           — printValue (qlang-literal display),
 //                                toPlain (qlang value → JSON-
 //                                serializable JS shape; lossy for
 //                                Set / Error / Keyword-as-value),
@@ -38,8 +38,8 @@
 //                                UnresolvedIdentifierError,
 //                                DivisionByZeroError, ParseError,
 //                                EffectLaunderingError,
-//                                EffectLaunderingAtLetParse,
-//                                EffectLaunderingAtCall,
+//                                EffectLaunderingAtBindStepParseError,
+//                                EffectLaunderingAtCallError,
 //                                QlangInvariantError
 //   effect-marker classification — classifyEffect, EFFECT_MARKER_PREFIX
 //   keyword interning          — keyword (every call with the same name
@@ -58,18 +58,20 @@ import {
 import {
   walkAst,
   astChildrenOf,
+  isPureLiteralAst,
   assignAstNodeIds,
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
+  VALUE_NAMESPACE,
+  TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
-  triviaBetweenAstNodes,
-  astNodeToMap,
-  qlangMapToAst
+  triviaBetweenAstNodes
 } from './walk.mjs';
+import { astNodeToMap, qlangMapToAst } from './ast-codec.mjs';
 import {
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier
@@ -84,8 +86,8 @@ import {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtLetParse,
-  EffectLaunderingAtCall,
+  EffectLaunderingAtBindStepParseError,
+  EffectLaunderingAtCallError,
   QlangInvariantError
 } from './errors.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
@@ -93,12 +95,35 @@ import {
   keyword,
   isKeyword,
   isErrorValue,
+  isQuote,
+  isDoc,
+  isJsonObject,
+  isJsonArray,
   makeErrorValue,
+  makeQuote,
+  makeDoc,
+  makeJsonObject,
+  makeJsonArray,
+  JSON_OBJECT_TAG,
+  JSON_ARRAY_TAG,
   appendTrailNode,
   materializeTrail,
   describeType,
   typeKeyword
 } from './types.mjs';
+import {
+  TAG_BINDING_PREFIX,
+  MODULE_AST_PREFIX,
+  MODULE_NAMESPACE_PREFIX,
+  RUNTIME_LOCATOR_KEY,
+  isTagBindingName,
+  isModuleAstKey,
+  isModuleNamespaceKey,
+  moduleAstKey,
+  moduleNamespaceKey,
+  tagBindingKey,
+  stripTagBindingPrefix
+} from './env-keys.mjs';
 
 export {
   parse,
@@ -111,11 +136,14 @@ export {
   deserializeSession,
   walkAst,
   astChildrenOf,
+  isPureLiteralAst,
   assignAstNodeIds,
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   bindingNamesVisibleAt,
+  VALUE_NAMESPACE,
+  TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   astNodeSpan,
   astNodeContainsOffset,
@@ -136,17 +164,38 @@ export {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,
-  EffectLaunderingAtLetParse,
-  EffectLaunderingAtCall,
+  EffectLaunderingAtBindStepParseError,
+  EffectLaunderingAtCallError,
   QlangInvariantError,
   classifyEffect,
   EFFECT_MARKER_PREFIX,
   keyword,
   isKeyword,
   isErrorValue,
+  isQuote,
+  isDoc,
+  isJsonObject,
+  isJsonArray,
   makeErrorValue,
+  makeQuote,
+  makeDoc,
+  makeJsonObject,
+  makeJsonArray,
+  JSON_OBJECT_TAG,
+  JSON_ARRAY_TAG,
   appendTrailNode,
   materializeTrail,
   describeType,
-  typeKeyword
+  typeKeyword,
+  TAG_BINDING_PREFIX,
+  MODULE_AST_PREFIX,
+  MODULE_NAMESPACE_PREFIX,
+  RUNTIME_LOCATOR_KEY,
+  isTagBindingName,
+  isModuleAstKey,
+  isModuleNamespaceKey,
+  moduleAstKey,
+  moduleNamespaceKey,
+  tagBindingKey,
+  stripTagBindingPrefix
 };

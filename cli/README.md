@@ -140,8 +140,8 @@ qlang> [1 2 3] | filter(gt(1)) | count
 2
 qlang> "hello" | append(" world")
 "hello world"
-qlang> let(:double, mul(2))
-…  (let returns its incoming pipeValue — the env Map by default)
+qlang> :double mul(2)
+null  (BindStep is identity on pipeValue — the cell's seed pipeValue is null)
 qlang> 21 | double
 42
 qlang> .help

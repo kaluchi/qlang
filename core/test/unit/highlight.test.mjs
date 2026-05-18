@@ -51,61 +51,110 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
+  it('classifies a ~{...} QuoteLit as quote delimiters plus italic-flagged sub-tokens', async () => {
+    // `~{mul(2)}` — `~{` and `}` are upright `quote`-kind delimiters
+    // (green); the body sub-tokenises with the regular tokeniser
+    // pipeline, every inner span carrying `italic: true` so the
+    // renderer composes italic on top of each kind's colour.
+    expect(tokenize('~{mul(2)}', await builtins())).toEqual([
+      { start: 0, end: 2, kind: 'quote' },
+      { start: 2, end: 5, kind: 'operand', italic: true },
+      { start: 5, end: 6, kind: 'punct',   italic: true },
+      { start: 6, end: 7, kind: 'number',  italic: true },
+      { start: 7, end: 8, kind: 'punct',   italic: true },
+      { start: 8, end: 9, kind: 'quote' }
+    ]);
+  });
+
+  it('paints an empty Quote body as bare delimiters with no inner span', async () => {
+    // `~{}` — zero-length body, sub-tokeniser returns no spans,
+    // only the two delimiter spans land in the output.
+    expect(tokenize('~{}', await builtins())).toEqual([
+      { start: 0, end: 2, kind: 'quote' },
+      { start: 2, end: 3, kind: 'quote' }
+    ]);
+  });
+
+  it('paints an unparseable Quote body as a single italic-whitespace span', async () => {
+    // `~{ , }` — lone comma at the body position is not valid qlang,
+    // the body sub-tokeniser catches the parse error and emits a
+    // single whitespace-kind span covering the entire body so the
+    // renderer still paints it uniformly italic.
+    expect(tokenize('~{ , }', await builtins())).toEqual([
+      { start: 0, end: 2, kind: 'quote' },
+      { start: 2, end: 5, kind: 'whitespace', italic: true },
+      { start: 5, end: 6, kind: 'quote' }
+    ]);
+  });
+
   it('classifies boolean and null literals as numbers', async () => {
     expect(tokenize('true',  await builtins())[0].kind).toBe('number');
     expect(tokenize('false', await builtins())[0].kind).toBe('number');
     expect(tokenize('null',  await builtins())[0].kind).toBe('number');
   });
 
-  it('classifies a `:name` keyword atom', async () => {
+  it('classifies a ~{:name} keyword atom', async () => {
     expect(tokenize(':foo', await builtins())).toEqual([
       { start: 0, end: 4, kind: 'atom' }
     ]);
   });
 
-  it('classifies a `:@name` effect-marked keyword', async () => {
+  it('classifies a ~{:@name} effect-marked keyword', async () => {
     expect(tokenize(':@log', await builtins())).toEqual([
       { start: 0, end: 5, kind: 'effect' }
     ]);
   });
+
+  it('classifies a bare ~{::tag} BareTypeKeyword as a single tag-kind span', async () => {
+    expect(tokenize('::snapshot', await builtins())).toEqual([
+      { start: 0, end: 10, kind: 'tag' }
+    ]);
+  });
+
+  it('classifies the ~{::tag} head of a TaggedLit and descends into the payload', async () => {
+    const tokens = tokenize('::conduit[~{x} ~{y}]', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 9, kind: 'tag' });
+    expect(tokens.some(t => t.kind === 'quote')).toBe(true);
+    expect(tokens.some(t => t.kind === 'vec')).toBe(true);
+  });
 });
 
 describe('tokenize — operand call name classification', () => {
-  it('a builtin name resolves to `operand`', async () => {
+  it('a builtin name resolves to ~{operand}', async () => {
     const tokens = tokenize('count', await builtins());
     expect(tokens[0].kind).toBe('operand');
   });
 
-  it('the `let` binding-introducer resolves to `keyword`', async () => {
-    const tokens = tokenize('let(:x, 1)', await builtins());
+  it('the ~{let} binding-introducer resolves to ~{keyword}', async () => {
+    const tokens = tokenize(':x 1', await builtins());
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('the `as` binding-introducer resolves to `keyword`', async () => {
+  it('the ~{as} binding-introducer resolves to ~{keyword}', async () => {
     const tokens = tokenize('1 | as(:x)', await builtins());
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('an `@`-prefixed call name resolves to `effect`', async () => {
+  it('an ~{@}-prefixed call name resolves to ~{effect}', async () => {
     const tokens = tokenize('@log', await builtins());
     expect(tokens[0].kind).toBe('effect');
   });
 
-  it('a user-defined name (not in builtins, no `@`) resolves to `atom`', async () => {
+  it('a user-defined name (not in builtins, no ~{@}) resolves to ~{atom}', async () => {
     const tokens = tokenize('myConduit', await builtins());
     expect(tokens[0].kind).toBe('atom');
   });
 });
 
 describe('tokenize — projections', () => {
-  it('renders `/name` as a `punct` slash plus an `operand` key', async () => {
+  it('renders ~{/name} as a ~{punct} slash plus an ~{operand} key', async () => {
     expect(tokenize('/name', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
       { start: 1, end: 5, kind: 'operand' }
     ]);
   });
 
-  it('renders `/a/b` as two slash + key pairs', async () => {
+  it('renders ~{/a/b} as two slash + key pairs', async () => {
     const tokens = tokenize('/a/b', await builtins());
     expect(tokens.filter(t => t.kind === 'punct')).toHaveLength(2);
     expect(tokens.filter(t => t.kind === 'operand')).toHaveLength(2);
@@ -129,13 +178,13 @@ describe('tokenize — comments', () => {
   // binding nodes — out of scope for the parity surface this
   // module ships, parking it for a future enhancement.
 
-  it('classifies a line plain comment as `comment`', async () => {
+  it('classifies a line plain comment as ~{comment}', async () => {
     const src = '|~| short note |~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
   });
 
-  it('classifies a block plain comment as `comment`', async () => {
+  it('classifies a block plain comment as ~{comment}', async () => {
     const src = '|~ block ~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
@@ -143,7 +192,7 @@ describe('tokenize — comments', () => {
 });
 
 describe('tokenize — gap interleaving', () => {
-  it('splits `[1 2 3]` into bracketed number sequence with `vec` openers/closers', async () => {
+  it('splits ~{[1 2 3]} into bracketed number sequence with ~{vec} openers/closers', async () => {
     const tokens = tokenize('[1 2 3]', await builtins());
     expect(tokens.map(t => t.kind)).toEqual([
       'vec', 'number', 'whitespace',
@@ -151,29 +200,29 @@ describe('tokenize — gap interleaving', () => {
     ]);
   });
 
-  it('keeps the `>>` merge combinator as a single `punct` token', async () => {
+  it('keeps the ~{>>} merge combinator as a single ~{punct} token', async () => {
     const merge = tokenize('1 >> 2', await builtins());
     expect(merge.find(t => t.kind === 'punct' && t.end - t.start === 2)).toBeDefined();
   });
 
-  it('labels the `!|` fail-track combinator with kind `err`', async () => {
+  it('labels the ~{!|} fail-track combinator with kind ~{err}', async () => {
     const fail = tokenize('1 !| /k', await builtins());
     expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();
   });
 
-  it('labels the `#{` set opener and matching `}` with kind `set`', async () => {
+  it('labels the ~{#{} set opener and matching ~{}} with kind ~{set}', async () => {
     const tokens = tokenize('#{:a}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'set' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 4, end: 5, kind: 'set' });
   });
 
-  it('labels `{:a 1}` map braces with kind `punct`', async () => {
+  it('labels ~{{:a 1}} map braces with kind ~{punct}', async () => {
     const tokens = tokenize('{:a 1}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 1, kind: 'punct' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 5, end: 6, kind: 'punct' });
   });
 
-  it('labels the `!{` opener and matching `}` of an error literal with kind `err`', async () => {
+  it('labels the ~{!{} opener and matching ~{}} of an error literal with kind ~{err}', async () => {
     const tokens = tokenize('!{:a 1}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'err' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 6, end: 7, kind: 'err' });
@@ -186,13 +235,13 @@ describe('tokenize — gap interleaving', () => {
 });
 
 describe('tokenize — coverage invariant', () => {
-  it('every byte of `[1 2 3] | filter(gt(1)) | count` lies inside exactly one token', async () => {
+  it('every byte of ~{[1 2 3] | filter(gt(1)) | count} lies inside exactly one token', async () => {
     const src = '[1 2 3] | filter(gt(1)) | count';
     const tokens = tokenize(src, await builtins());
     expectCoversInputExactly(tokens, src);
   });
 
-  it('every byte of `{:name "alice" :tags #{:a :b}}` lies inside exactly one token', async () => {
+  it('every byte of ~{{:name "alice" :tags #{:a :b}}} lies inside exactly one token', async () => {
     const src = '{:name "alice" :tags #{:a :b}}';
     const tokens = tokenize(src, await builtins());
     expectCoversInputExactly(tokens, src);
@@ -211,5 +260,54 @@ describe('tokenize — parse-error fallback', () => {
     expect(tokenize(src, await builtins())).toEqual([
       { start: 0, end: src.length, kind: 'whitespace' }
     ]);
+  });
+});
+
+describe('tokenize — doc-prefix spans', () => {
+  // Doc-comment delimiters (`|~~ … ~~|` / `|~~| …`) do not surface as
+  // standalone AST nodes — DocAttachedSequence and the inline
+  // BindStep doc-prefix production both fold doc-content into a
+  // plain string Vec. The grammar stamps `docPrefixStart` on the
+  // wrapping AST node so the highlighter paints one contiguous
+  // `comment` span over the prefix region instead of letting
+  // `pushGapTokens` byte-by-byte misclassify the prose as punct.
+
+  it('inline BindStep doc-prefix gets one comment span between key and body', async () => {
+    const src = ':double |~~ Doubles the input. ~~| mul(2)';
+    const tokens = tokenize(src, await builtins());
+    const commentSpan = tokens.find(t => t.kind === 'comment');
+    expect(commentSpan).toBeDefined();
+    expect(src.slice(commentSpan.start, commentSpan.end))
+      .toMatch(/^\|~~ Doubles the input\. ~~\|/);
+  });
+
+  it('external doc-prefix on a BindStep (DocAttachedSequence path) gets one comment span before the key', async () => {
+    const src = '|~~ Note. ~~|\n:double mul(2)';
+    const tokens = tokenize(src, await builtins());
+    const commentSpan = tokens.find(t => t.kind === 'comment');
+    expect(commentSpan).toBeDefined();
+    expect(commentSpan.start).toBe(0);
+    expect(src.slice(commentSpan.start, commentSpan.end))
+      .toMatch(/^\|~~ Note\. ~~\|/);
+  });
+
+  it('external doc-prefix on as(:name) (DocAttachedSequence path) gets one comment span before the call', async () => {
+    const src = '42\n|~~ Captured. ~~|\nas(:answer)';
+    const tokens = tokenize(src, await builtins());
+    const commentSpan = tokens.find(t => t.kind === 'comment'
+                                    && src.slice(t.start, t.end).startsWith('|~~ Captured'));
+    expect(commentSpan).toBeDefined();
+  });
+
+  it('docs-only BindStep (no body) extends the comment span to the BindStep end', async () => {
+    // `:name |~~ docs ~~|` — no body. The inline doc-prefix region
+    // ends at the BindStep's own end offset (the closing `~~|`)
+    // rather than a non-existent body.start.
+    const src = ':forward |~~ placeholder ~~|';
+    const tokens = tokenize(src, await builtins());
+    const commentSpan = tokens.find(t => t.kind === 'comment');
+    expect(commentSpan).toBeDefined();
+    expect(src.slice(commentSpan.start, commentSpan.end))
+      .toBe('|~~ placeholder ~~|');
   });
 });

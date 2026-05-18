@@ -3,9 +3,9 @@
 // line-buffered flavour for non-TTY stdin (pipes, scripted tests).
 // The TTY flavour reads stdin in raw mode so every keystroke can
 // redraw the current buffer through the caller-supplied
-// `render(buffer)` step — line-buffered input cannot express a
-// keystroke-level redraw, so two flavours live in one factory
-// rather than a shared base.
+// `render(buffer)` step — line-buffered input drops the
+// keystroke-level redraw and ships a single line at a time; both
+// flavours coexist in one factory so callers pick by stdin shape.
 //
 // Two editor flavours, picked by `stdinStream.isTTY`:
 //
@@ -17,10 +17,9 @@
 //       multi-line buffer.
 //     * Multi-line redraw: `\n` in the buffer is a real line break
 //       on screen. The editor tracks how many visual rows the last
-//       render occupied (accounting for the terminal's soft-wrap
-//       at column width, not only the count of logical `\n`), then
-//       walks the cursor up that many rows and clears to end of
-//       screen before re-rendering. Long lines that wrap across
+//       render occupied (logical `\n` count plus terminal soft-wrap
+//       at column width), then walks the cursor up that many rows
+//       and clears to end of screen before re-rendering. Long lines that wrap across
 //       terminal columns collapse back correctly when the buffer
 //       shrinks.
 //     * Bracketed paste — terminal-emitted `\x1b[200~ … \x1b[201~`
@@ -35,14 +34,17 @@
 //       path. A solitary LF that arrives with the paste closes
 //       the accumulator window deterministically rather than
 //       being mistaken for a submit.
-//     * Enter (CR 0x0d) inserts a soft newline — multi-line cell
-//       composition is the default case, matching a notebook-style
-//       editor.
-//     * Ctrl+Enter / Ctrl+J / Alt+Enter submit the current buffer
-//       as one cell. Ctrl+Enter emits LF (0x0a) in every modern
-//       terminal that distinguishes it from plain Enter; Ctrl+J
-//       emits the same LF, so the two are one binding. Alt+Enter
-//       arrives as `ESC + CR` and is handled in the escape path.
+//     * Enter (CR 0x0d) submits the current buffer as one cell —
+//       PowerShell / bash / cmd.exe parity, so muscle memory from
+//       any host shell carries over.
+//     * Ctrl+Enter / Ctrl+J inserts a soft newline at the cursor.
+//       Ctrl+Enter emits LF (0x0a) in every modern terminal that
+//       distinguishes it from plain Enter; Ctrl+J emits the same
+//       LF, so the two are one binding. Multi-line cell composition
+//       (continuing a pipeline across rows) uses this keystroke.
+//     * Alt+Enter (`ESC + CR` / `ESC + LF`) also submits — alternate
+//       submit binding for hosts that intercept Ctrl+Enter or where
+//       a single physical Enter press is the natural muscle memory.
 //     * Cursor: Left / Right / Home / End / Ctrl+A / Ctrl+E walk
 //       across the multi-line layout, stepping across embedded
 //       `\n` the same way any GUI editor handles line breaks.
@@ -283,8 +285,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     if (code === 0x1b) { pendingEscape = ESC; return; }
     if (code === 0x03) { interruptCurrentLine();   return; }   // Ctrl+C
     if (code === 0x04) { closeOnEmptyBuffer();     return; }   // Ctrl+D
-    if (code === 0x0d) { insertNewlineAtCursor();  return; }   // Enter (CR) — soft newline
-    if (code === 0x0a) { submitCurrentLine();      return; }   // Ctrl+Enter / Ctrl+J — submit
+    if (code === 0x0d) { submitCurrentLine();      return; }   // Enter (CR) — submit (PowerShell / bash parity)
+    if (code === 0x0a) { insertNewlineAtCursor();  return; }   // Ctrl+Enter / Ctrl+J — soft newline
     if (code === 0x08 || code === 0x7f) { backspaceAtCursor();  return; }
     if (code === 0x01) { moveCursorHome(); return; }            // Ctrl+A
     if (code === 0x05) { moveCursorEnd();  return; }            // Ctrl+E

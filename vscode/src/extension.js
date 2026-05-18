@@ -24,9 +24,11 @@ function activate(context) {
   client.start();
 
   // Load qlang parser async — CJS can dynamic-import ESM.
-  // Falls back to regex tokenizer until ready.
+  // Falls back to regex tokenizer until ready. Path resolves
+  // through the monorepo layout: this file is `vscode/src/
+  // extension.js`, the parser entry sits at `core/src/index.mjs`.
   const qlangEntry = pathToFileURL(
-    path.resolve(__dirname, '..', '..', 'src', 'index.mjs')
+    path.resolve(__dirname, '..', '..', 'core', 'src', 'index.mjs')
   ).href;
   import(qlangEntry)
     .then(m => { qlang = m; })

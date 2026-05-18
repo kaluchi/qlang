@@ -4,9 +4,9 @@
 // identity step that mirrors the current pipeValue onto stderr with
 // a labelled prefix for diagnostic.
 //
-// All four are host-bound rather than registered as `:qlang/io`
-// module exports — a one-liner `qlang '@in | @out'` should not need
-// `use(:qlang/io)` ceremony. The operand function values close over
+// All four are host-bound directly into the session env, so a
+// one-liner `qlang '@in | @out'` runs without `use(:qlang/io)`
+// ceremony. The operand function values close over
 // the writers passed in `ioContext`, so the same evaluator can run
 // against `process.stdin`/`stdout`/`stderr` in the bin or against
 // captured chunks in a unit test without changing the operand impls.
@@ -37,25 +37,26 @@ import {
   typeKeyword,
   printValue
 } from '@kaluchi/qlang-core';
+import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
-const OutSubjectNotString =
-  declareSubjectError('OutSubjectNotString', '@out', 'String');
-const OutRendererResultNotString =
-  declareShapeError('OutRendererResultNotString',
+const OutSubjectNotStringError =
+  declareSubjectError('OutSubjectNotStringError', '@out', 'string');
+const OutRendererResultNotStringError =
+  declareShapeError('OutRendererResultNotStringError',
     ({ actualType }) =>
       `@out renderer must produce a String, got ${actualType.name}`);
 
-const ErrSubjectNotString =
-  declareSubjectError('ErrSubjectNotString', '@err', 'String');
-const ErrRendererResultNotString =
-  declareShapeError('ErrRendererResultNotString',
+const ErrSubjectNotStringError =
+  declareSubjectError('ErrSubjectNotStringError', '@err', 'string');
+const ErrRendererResultNotStringError =
+  declareShapeError('ErrRendererResultNotStringError',
     ({ actualType }) =>
       `@err renderer must produce a String, got ${actualType.name}`);
 
-const TapLabelNotKeyword =
-  declareModifierError('TapLabelNotKeyword', '@tap', 1, 'Keyword');
+const TapLabelNotKeywordError =
+  declareModifierError('TapLabelNotKeywordError', '@tap', 1, 'keyword');
 
 // ── Operand factories ──────────────────────────────────────────
 
@@ -92,7 +93,7 @@ function makeTapOperand(stderrWrite) {
   return stateOp('@tap', 2, async (state, lambdas) => {
     const labelValue = await lambdas[0](state.pipeValue);
     if (!isKeyword(labelValue)) {
-      throw new TapLabelNotKeyword(labelValue);
+      throw new TapLabelNotKeywordError(labelValue);
     }
     stderrWrite(`[tap ${labelValue.name}] ${printValue(state.pipeValue)}\n`);
     return state;
@@ -105,19 +106,19 @@ export function bindIoOperands(session, ioContext) {
   // `recordStdoutEffect` lets the script-mode renderer suppress its
   // implicit final encode when the user already pushed bytes to
   // stdout via `@out` — explicit output takes the channel; the
-  // tool stops echoing. `@err` and `@tap` write to stderr and do
-  // not flip the flag (stderr is diagnostic, not the primary
-  // delivery channel). Optional in REPL-style ioContexts that do
-  // not care about double-output suppression.
+  // tool stops echoing. `@err` and `@tap` write to stderr (the
+  // diagnostic channel) and leave the flag alone. Optional in
+  // REPL-style ioContexts that do not care about double-output
+  // suppression.
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   const noopEffect = () => {};
 
-  session.bind('@in',  makeInOperand(ioContext.stdinReader));
-  session.bind('@out', makeWriterOperand(
+  bindHostBuiltin(session, '@in',  makeInOperand(ioContext.stdinReader));
+  bindHostBuiltin(session, '@out', makeWriterOperand(
     '@out', ioContext.stdoutWrite, recordStdoutEffect,
-    OutSubjectNotString, OutRendererResultNotString));
-  session.bind('@err', makeWriterOperand(
+    OutSubjectNotStringError, OutRendererResultNotStringError));
+  bindHostBuiltin(session, '@err', makeWriterOperand(
     '@err', ioContext.stderrWrite, noopEffect,
-    ErrSubjectNotString, ErrRendererResultNotString));
-  session.bind('@tap', makeTapOperand(ioContext.stderrWrite));
+    ErrSubjectNotStringError, ErrRendererResultNotStringError));
+  bindHostBuiltin(session, '@tap', makeTapOperand(ioContext.stderrWrite));
 }

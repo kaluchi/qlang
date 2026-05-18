@@ -1,0 +1,159 @@
+|~ qlang operand catalog — arith family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
+
+:add
+  |~~ Adds two numbers. Bound form a | add(b) computes a+b;
+      full form add(a, b) resolves both args against pipeValue
+      as context.
+
+      ~{10 | add(3) | eq(13)}
+      ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
+  ~~|
+  ::builtin{:impl :qlang/prim/add
+            :category :arith
+            :subject :number
+            :returns :number
+            :modifiers [:number]
+            :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
+
+::AddLeftNotNumberError
+  |~~ Captured argument at position 1 of `add` must be Number.
+
+      ~{
+        "hello" | add(1)
+        !| [type /actualType]
+        |  eq([::AddLeftNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :add :position 1 :expectedType :number}
+
+::AddRightNotNumberError
+  |~~ Captured argument at position 2 of `add` must be Number.
+
+      ~{
+        1 | add("x")
+        !| [type /actualType]
+        |  eq([::AddRightNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :add :position 2 :expectedType :number}
+
+:sub
+  |~~ Subtracts the second number from the first. Non-commutative:
+      position 1 is the minuend.
+
+      ~{10 | sub(3) | eq(7)}
+      ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
+  ~~|
+  ::builtin{:impl :qlang/prim/sub
+            :category :arith
+            :subject :number
+            :returns :number
+            :modifiers [:number]
+            :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
+
+::SubLeftNotNumberError
+  |~~ Captured argument at position 1 of `sub` must be Number.
+
+      ~{
+        "hello" | sub(1)
+        !| [type /actualType]
+        |  eq([::SubLeftNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sub :position 1 :expectedType :number}
+
+::SubRightNotNumberError
+  |~~ Captured argument at position 2 of `sub` must be Number.
+
+      ~{
+        1 | sub("x")
+        !| [type /actualType]
+        |  eq([::SubRightNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sub :position 2 :expectedType :number}
+
+:mul
+  |~~ Multiplies two numbers. Commutative.
+
+      ~{10 | mul(3) | eq(30)}
+      ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
+  ~~|
+  ::builtin{:impl :qlang/prim/mul
+            :category :arith
+            :subject :number
+            :returns :number
+            :modifiers [:number]
+            :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
+
+::MulLeftNotNumberError
+  |~~ Captured argument at position 1 of `mul` must be Number.
+
+      ~{
+        "hello" | mul(2)
+        !| [type /actualType]
+        |  eq([::MulLeftNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :mul :position 1 :expectedType :number}
+
+::MulRightNotNumberError
+  |~~ Captured argument at position 2 of `mul` must be Number.
+
+      ~{
+        1 | mul("x")
+        !| [type /actualType]
+        |  eq([::MulRightNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :mul :position 2 :expectedType :number}
+
+:div
+  |~~ Divides the first number by the second. Non-commutative:
+      position 1 is the dividend. Raises division-by-zero on
+      b == 0.
+
+      ~{10 | div(2) | eq(5)}
+      ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
+  ~~|
+  ::builtin{:impl :qlang/prim/div
+            :category :arith
+            :subject :number
+            :returns :number
+            :modifiers [:number]
+            :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
+
+::DivLeftNotNumberError
+  |~~ Captured argument at position 1 of `div` must be Number.
+
+      ~{
+        "hello" | div(2)
+        !| [type /actualType]
+        |  eq([::DivLeftNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :div :position 1 :expectedType :number}
+
+::DivRightNotNumberError
+  |~~ Captured argument at position 2 of `div` must be Number.
+
+      ~{
+        1 | div("x")
+        !| [type /actualType]
+        |  eq([::DivRightNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :div :position 2 :expectedType :number}
+
+::DivisionByZeroError
+  |~~ Division by zero — `div(_, 0)` fires this error.
+
+      ~{
+        10 | div(0)
+        !| [type]
+        |  eq([::DivisionByZeroError])
+       }
+  ~~|
+  ::builtin{:category :division-by-zero :operand :div}

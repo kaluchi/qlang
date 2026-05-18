@@ -5,7 +5,7 @@
 // in features.mjs; this file only maps between LSP protocol types
 // and the feature functions.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
@@ -30,7 +30,9 @@ import {
   definitionAtOffset,
   referencesAtOffset,
   documentSymbols,
-  signatureHelpAtOffset
+  signatureHelpAtOffset,
+  semanticTokensFor,
+  SEMANTIC_TOKEN_TYPES
 } from './features.mjs';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -41,31 +43,58 @@ const documentStates = new Map();
 
 // ── Catalog context ───────────────────────────────────────────
 //
-// Parsed once at startup. Provides go-to-definition fallback
-// for builtin operands — jumps to the `:name {...}` MapEntry
-// inside lib/qlang/core.qlang's outer catalog MapLit.
+// Every operand-family file under `core/lib/qlang/operand/*.qlang`
+// plus `runtime-invariants.qlang` and `tag.qlang` participate in
+// goto-definition. Each declares operand descriptors (value-namespace)
+// and per-site error tag-bindings (tag-namespace) inline. The LSP
+// startup walk parses all of them, merging into one `name →
+// { uri, source, range }` lookup table so a single
+// `definitionAtOffset` lookup serves both value-namespace
+// identifiers (`count`) and tag-namespace identifiers
+// (`::AddLeftNotNumberError`).
 
 let catalogCtx = null;
 
 function loadCatalogContext() {
-  try {
-    // Resolve core.qlang relative to the @kaluchi/qlang-core package
-    // root. Under the monorepo workspace layout, `lsp/` and `core/`
-    // are siblings, so the catalog sits at `../core/lib/qlang/core.qlang`
-    // relative to `lsp/src/`.
-    const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const catalogPath = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang', 'core.qlang');
-    const catalogSource = readFileSync(catalogPath, 'utf8');
-    const catalogAst = parse(catalogSource, { uri: 'qlang/core' });
-    const catalogUri = 'file:///' + catalogPath.replace(/\\/g, '/');
-    catalogCtx = {
-      uri: catalogUri,
-      index: buildCatalogIndex(catalogAst)
-    };
-  } catch (e) {
-    connection.console.warn(`lib/qlang/core.qlang not loaded: ${e.message}`);
-    catalogCtx = null;
+  // Monorepo layout: `lsp/` and `core/` are sibling workspaces,
+  // so catalog files sit under `../core/lib/qlang/...` relative
+  // to `lsp/src/`.
+  const lspSrcDir = dirname(fileURLToPath(import.meta.url));
+  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang');
+
+  // Discovery walks lib/qlang recursively for every `.qlang` file.
+  // The namespace URI mirrors the relative path with `/` separators
+  // and the `.qlang` suffix stripped; the resolved file URI lets
+  // goto-definition return absolute locations the editor can open.
+  const sources = [];
+  function walk(dir, prefix) {
+    for (const name of readdirSync(dir, { withFileTypes: true })) {
+      const childPath = join(dir, name.name);
+      const childUri = prefix ? prefix + '/' + name.name : name.name;
+      if (name.isDirectory()) {
+        walk(childPath, childUri);
+      } else if (name.name.endsWith('.qlang')) {
+        sources.push({ path: childPath, uri: 'qlang/' + childUri.replace(/\.qlang$/, '') });
+      }
+    }
   }
+  walk(libDir, '');
+
+  const mergedIndex = new Map();
+  for (const { path, uri } of sources) {
+    try {
+      const source = readFileSync(path, 'utf8');
+      const ast = parse(source, { uri });
+      const fileUri = 'file:///' + path.replace(/\\/g, '/');
+      const entries = buildCatalogIndex(ast);
+      for (const [name, range] of entries) {
+        mergedIndex.set(name, { ...range, fileUri, source });
+      }
+    } catch (e) {
+      connection.console.warn(`catalog source ${path} not loaded: ${e.message}`);
+    }
+  }
+  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex } : null;
 }
 
 // ── Initialization ────────────────────────────────────────────
@@ -80,7 +109,11 @@ connection.onInitialize(() => {
       definitionProvider: true,
       referencesProvider: true,
       documentSymbolProvider: true,
-      signatureHelpProvider: { triggerCharacters: ['(', ','] }
+      signatureHelpProvider: { triggerCharacters: ['(', ','] },
+      semanticTokensProvider: {
+        legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
+        full: true
+      }
     }
   };
 });
@@ -119,7 +152,8 @@ documents.onDidClose(e => {
 
 const COMPLETION_KIND_MAP = {
   function: CompletionItemKind.Function,
-  variable: CompletionItemKind.Variable
+  variable: CompletionItemKind.Variable,
+  tag:      CompletionItemKind.Struct
 };
 
 connection.onCompletion(async (params) => {
@@ -128,7 +162,7 @@ connection.onCompletion(async (params) => {
   if (!doc) return [];
 
   const offset = doc.offsetAt(params.position);
-  const items = await completionsAtOffset(state?.ast ?? null, offset);
+  const items = await completionsAtOffset(state?.ast ?? null, offset, state?.source ?? null);
 
   return items.map(item => ({
     label: item.label,
@@ -171,42 +205,24 @@ connection.onDefinition((params) => {
   const def = definitionAtOffset(state.ast, offset, catalogCtx);
   if (!def) return null;
 
-  // def.uri is null for in-document declarations, catalog URI
-  // for builtin fallback.
-  const targetUri = def.uri ?? params.textDocument.uri;
-
-  // For catalog locations, open the catalog file and convert
-  // offsets to positions there. For in-document declarations,
-  // use the current document.
-  if (def.uri) {
+  // Catalog hits carry their own source-text + file URI; in-document
+  // declarations carry only offsets and rely on the current document
+  // for offset→position conversion.
+  if (def.fileUri) {
     return {
-      uri: def.uri,
-      range: offsetRangeToLineCol(catalogSourceText(), def.startOffset, def.endOffset)
+      uri: def.fileUri,
+      range: offsetRangeToLineCol(def.source, def.startOffset, def.endOffset)
     };
   }
 
   return {
-    uri: targetUri,
+    uri: params.textDocument.uri,
     range: {
       start: doc.positionAt(def.startOffset),
       end: doc.positionAt(def.endOffset)
     }
   };
 });
-
-let _catalogSourceText = null;
-
-function catalogSourceText() {
-  if (_catalogSourceText) return _catalogSourceText;
-  try {
-    const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-    const catalogPath = join(lspSrcDir, '..', '..', 'lib', 'qlang', 'core.qlang');
-    _catalogSourceText = readFileSync(catalogPath, 'utf8');
-  } catch {
-    _catalogSourceText = '';
-  }
-  return _catalogSourceText;
-}
 
 function offsetRangeToLineCol(source, startOffset, endOffset) {
   return {
@@ -249,8 +265,9 @@ connection.onReferences((params) => {
 // ── Document Symbols (Outline) ────────────────────────────────
 
 const SYMBOL_KIND_MAP = {
-  conduit: SymbolKind.Function,
-  snapshot: SymbolKind.Variable
+  conduit:  SymbolKind.Function,
+  snapshot: SymbolKind.Variable,
+  tag:      SymbolKind.Struct
 };
 
 connection.onDocumentSymbol((params) => {
@@ -298,6 +315,22 @@ connection.onSignatureHelp(async (params) => {
     activeSignature: 0,
     activeParameter: sig.activeParameter
   };
+});
+
+// ── Semantic Tokens ───────────────────────────────────────────
+//
+// VS Code requests semantic tokens for the whole document; the
+// returned `{ data }` is a Uint32Array carrying the LSP-encoded
+// token stream (5 ints per token). The editor merges it on top of
+// the tmLanguage grammar tokens so `@`-prefixed effectful operands
+// pick up the `decorator` colour and user-bound atoms get the
+// `variable` colour distinct from the `function` colour of
+// `langRuntime`-resolved built-ins.
+
+connection.languages.semanticTokens.on(async (params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  if (!state?.source) return { data: [] };
+  return await semanticTokensFor(state.source);
 });
 
 // ── Start ─────────────────────────────────────────────────────

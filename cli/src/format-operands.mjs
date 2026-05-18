@@ -40,22 +40,31 @@ import {
   printValue,
   toTaggedJSON
 } from '@kaluchi/qlang-core';
+import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
-const TemplateModifierNotString =
-  declareModifierError('TemplateModifierNotString', 'template', 1, 'String');
+const TemplateModifierNotStringError =
+  declareModifierError('TemplateModifierNotStringError', 'template', 1, 'string');
 
 // ── template — substitute pipeline values into a String ────────
+//
+// `{{slotSource}}` is the substitution-slot grammar: `{{.}}` projects
+// the subject itself, `{{key}}` performs a single-segment projection
+// against a Map subject, `{{a/b/c}}` chains projections segment by
+// segment. The slot regex captures everything between the doubled
+// braces; `renderSubstitutionSlot` interprets that slice as the
+// projection path and renders the resolved value either as a raw
+// String (when the value is a String) or through `printValue`.
 
-const TEMPLATE_PLACEHOLDER = /\{\{([^}]+)\}\}/g;
+const SUBSTITUTION_SLOT_RE = /\{\{([^}]+)\}\}/g;
 
-function renderTemplatePlaceholder(subject, placeholderExpr) {
-  const trimmedExpr = placeholderExpr.trim();
-  if (trimmedExpr === '.') {
+function renderSubstitutionSlot(subject, slotSource) {
+  const slotPath = slotSource.trim();
+  if (slotPath === '.') {
     return typeof subject === 'string' ? subject : printValue(subject);
   }
-  const projectionSegments = trimmedExpr.split('/').filter((s) => s.length > 0);
+  const projectionSegments = slotPath.split('/').filter((s) => s.length > 0);
   let projectedValue = subject;
   for (const segmentName of projectionSegments) {
     if (!(projectedValue instanceof Map)) {
@@ -70,8 +79,8 @@ function renderTemplatePlaceholder(subject, placeholderExpr) {
 }
 
 function applyTemplate(subject, templateString) {
-  return templateString.replace(TEMPLATE_PLACEHOLDER, (_match, placeholderExpr) =>
-    renderTemplatePlaceholder(subject, placeholderExpr));
+  return templateString.replace(SUBSTITUTION_SLOT_RE, (_match, slotSource) =>
+    renderSubstitutionSlot(subject, slotSource));
 }
 
 // ── Operand factories ──────────────────────────────────────────
@@ -87,7 +96,7 @@ const tjsonOperand  = nullaryOp('tjson',  (subject) => JSON.stringify(toTaggedJS
 // dispatcher honours both shapes for free.
 const templateOperand = valueOp('template', 2, (subject, templateString) => {
   if (typeof templateString !== 'string') {
-    throw new TemplateModifierNotString(templateString);
+    throw new TemplateModifierNotStringError(templateString);
   }
   return applyTemplate(subject, templateString);
 });
@@ -95,7 +104,7 @@ const templateOperand = valueOp('template', 2, (subject, templateString) => {
 // ── Binding ────────────────────────────────────────────────────
 
 export function bindFormatOperands(session) {
-  session.bind('pretty',   prettyOperand);
-  session.bind('tjson',    tjsonOperand);
-  session.bind('template', templateOperand);
+  bindHostBuiltin(session, 'pretty',   prettyOperand);
+  bindHostBuiltin(session, 'tjson',    tjsonOperand);
+  bindHostBuiltin(session, 'template', templateOperand);
 }

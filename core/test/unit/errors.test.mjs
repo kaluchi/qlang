@@ -11,8 +11,8 @@ import {
   ArityError,
   QlangInvariantError
 } from '../../src/errors.mjs';
-import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue } from '../../src/types.mjs';
+import { keyword } from '../../src/types.mjs';
+import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
   it('carries kind, location=null, fingerprint=null, schemaVersion=1', () => {
@@ -44,7 +44,7 @@ describe('QlangError base class', () => {
     const typeErr = new QlangTypeError('typed', {
       site: 'TestSite',
       operand: 'op',
-      expectedType: 'Vec',
+      expectedType: keyword('vec'),
       actualType: { name: 'number' },
       actualValue: 'SECRET-PII-DO-NOT-LEAK'
     });
@@ -52,7 +52,7 @@ describe('QlangError base class', () => {
     expect(jsonPayload.context).toEqual({
       site: 'TestSite',
       operand: 'op',
-      expectedType: 'Vec',
+      expectedType: keyword('vec'),
       actualType: { name: 'number' }
     });
     expect(jsonPayload.context).not.toHaveProperty('actualValue');
@@ -125,16 +125,12 @@ describe('QlangInvariantError', () => {
 });
 
 describe('runtime error location propagation via evalNode', () => {
-  // Runtime errors are error values. Use .originalError to access
-  // the underlying QlangError with location, fingerprint, etc.
-  async function getOriginalError(query) {
-    const evalResult = await evalQuery(query);
-    if (isErrorValue(evalResult)) return evalResult.originalError;
-    return null;
-  }
+  // Runtime errors are error values; `catchOriginalError` (shared
+  // helper) unwraps the underlying QlangError off `.originalError`
+  // so the location / fingerprint assertions below read structurally.
 
   it('attaches a location to a runtime type error', async () => {
-    const originalErr = await getOriginalError('42 | filter(gt(0))');
+    const originalErr = await catchOriginalError('42 | filter(gt(0))');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.location).not.toBeNull();
     expect(typeof originalErr.location.start.offset).toBe('number');
@@ -144,7 +140,7 @@ describe('runtime error location propagation via evalNode', () => {
     const source = '[1 2 3] | filter(gt(0)) | 99 | filter(gt(0))';
     //              0         1         2         3         4
     //              0123456789012345678901234567890123456789012345
-    const originalErr = await getOriginalError(source);
+    const originalErr = await catchOriginalError(source);
     expect(originalErr).not.toBeNull();
     // The second filter is at offset 31 (`filter` after the `99 | `)
     expect(originalErr.location.start.offset).toBe(source.indexOf('filter', 25));
@@ -154,7 +150,7 @@ describe('runtime error location propagation via evalNode', () => {
     // An error in an inner step carries its location through the pipeline.
     // The outer step (mul) is never reached — the error value propagates.
     // Location references the inner `count` call site, not the outer `mul`.
-    const originalErr = await getOriginalError('42 | count | mul(2)');
+    const originalErr = await catchOriginalError('42 | count | mul(2)');
     expect(originalErr).toBeInstanceOf(QlangError);
     expect(originalErr.location).not.toBeNull();
     // count is at offset 5 in the source
@@ -162,8 +158,8 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site fingerprint is set on type errors thrown by operands', async () => {
-    const originalErr = await getOriginalError('42 | filter(gt(0))');
-    expect(originalErr.fingerprint).toBe('FilterSubjectNotContainer');
+    const originalErr = await catchOriginalError('42 | filter(gt(0))');
+    expect(originalErr.fingerprint).toBe('FilterSubjectNotContainerError');
   });
 });
 
@@ -174,11 +170,10 @@ describe('error class branding survives Object.defineProperty (minification prox
   // verify the contract here: even if we artificially shadow the
   // class identifier, the runtime `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const evalResult = await evalQuery('42 | count');
-    const originalErr = isErrorValue(evalResult) ? evalResult.originalError : null;
-    expect(originalErr.name).toBe('CountSubjectNotContainer');
+    const originalErr = await catchOriginalError('42 | count');
+    expect(originalErr.name).toBe('CountSubjectNotContainerError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('CountSubjectNotContainer');
+    expect(originalErr.constructor.name).toBe('CountSubjectNotContainerError');
   });
 });

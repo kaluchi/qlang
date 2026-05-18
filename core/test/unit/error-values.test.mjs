@@ -1,9 +1,7 @@
 // Tests for error value type, trail, deepEqual, codec, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import {
-  keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType
-} from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, appendTrailNode, materializeTrail, describeType, isQuote, makeTagKeyword } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -12,27 +10,29 @@ import { QlangTypeError, UnresolvedIdentifierError, DivisionByZeroError } from '
 // ── makeErrorValue ──────────────────────────────────────────────
 
 describe('makeErrorValue', () => {
-  it('produces frozen error object with :trail invariant', () => {
+  it('produces frozen error object with :trail null when descriptor lacks one', () => {
     // makeErrorValue enforces the invariant that every error
-    // descriptor carries :trail as a Vec — so the descriptor
-    // returned on the wrapper is a fresh Map, not the caller's
-    // original input, when the input lacked :trail.
+    // descriptor carries :trail — null when no success-track
+    // combinator has deflected after the fault, otherwise a
+    // Quote-value carrying the joined pipeline-suffix source. The
+    // returned descriptor is a fresh Map (not the caller's
+    // original input) when the input lacked :trail.
     const descriptor = new Map([['kind', keyword('oops')]]);
     const errorVal = makeErrorValue(descriptor);
     expect(isErrorValue(errorVal)).toBe(true);
     expect(Object.isFrozen(errorVal)).toBe(true);
     expect(errorVal.type).toBe('error');
     expect(errorVal.descriptor.get('kind')).toEqual(keyword('oops'));
-    expect(errorVal.descriptor.get('trail')).toEqual([]);
+    expect(errorVal.descriptor.get('trail')).toBeNull();
   });
 
   it('preserves caller-supplied :trail in descriptor', () => {
     // When the caller already includes :trail in the descriptor
-    // — for example a re-lifted descriptor that carries a trail
-    // from an earlier fail-apply materialization, or a user literal
-    // `!{:trail [...]}` — makeErrorValue keeps the supplied Vec
-    // untouched and skips the invariant-fill branch.
-    const preTrail = ['phase-1', 'phase-2'];
+    // — typically a re-lifted descriptor carrying a Quote-value
+    // trail from an earlier fail-apply materialization — makeErrorValue
+    // keeps the supplied value untouched and skips the
+    // invariant-fill branch.
+    const preTrail = '| mul(2) | count';
     const descriptor = new Map([
       ['kind', keyword('oops')],
       ['trail', preTrail]
@@ -55,62 +55,44 @@ describe('describeType for error values', () => {
 // ── trail (appendTrailNode / materializeTrail) ──────────────────
 
 describe('trail', () => {
-  it('appendTrailNode stores entries verbatim in a linked list', () => {
-    // Under the structured-trail design, appendTrailNode accepts any
-    // qlang value as a trail entry and stores it verbatim — the
-    // eval.mjs callsites pass Maps produced by walk.mjs::astNodeToMap,
-    // but the value-class module stays agnostic about shape.
-    const trailEntry1 = new Map([
-      ['qlang/kind', keyword('OperandCall')],
-      ['name', 'count'],
-      ['text', 'count']
-    ]);
+  it('appendTrailNode stores {combinator, text} fragments in a linked list', () => {
+    // Trail-fragment shape: a frozen `{combinator, text}` record
+    // where `combinator` is one of the COMBINATOR_SYNTAX keys
+    // ('pipe' / 'distribute' / 'merge') and `text` is the deflected
+    // step's source slice. eval.mjs::trailEntry produces this shape
+    // at every success-track combinator deflect site;
+    // materializeTrail joins the chain into a Quote source on demand.
+    const fragment1 = Object.freeze({ combinator: 'pipe', text: 'count' });
     const errorVal0 = makeErrorValue(new Map());
-    const errorVal1 = appendTrailNode(errorVal0, trailEntry1);
+    const errorVal1 = appendTrailNode(errorVal0, fragment1);
     expect(Object.isFrozen(errorVal1)).toBe(true);
-    expect(errorVal1._trailHead.entry).toBe(trailEntry1);
+    expect(errorVal1._trailHead.entry).toBe(fragment1);
     expect(errorVal1._trailHead.prev).toBeNull();
 
-    const trailEntry2 = new Map([
-      ['qlang/kind', keyword('OperandCall')],
-      ['name', 'filter'],
-      ['text', 'filter(gt(2))']
-    ]);
-    const errorVal2 = appendTrailNode(errorVal1, trailEntry2);
-    expect(errorVal2._trailHead.entry).toBe(trailEntry2);
-    expect(errorVal2._trailHead.prev.entry).toBe(trailEntry1);
+    const fragment2 = Object.freeze({ combinator: 'pipe', text: 'filter(gt(2))' });
+    const errorVal2 = appendTrailNode(errorVal1, fragment2);
+    expect(errorVal2._trailHead.entry).toBe(fragment2);
+    expect(errorVal2._trailHead.prev.entry).toBe(fragment1);
   });
 
-  it('materializeTrail returns chronological Vec of entries', () => {
-    const firstEntry  = new Map([['text', 'first']]);
-    const secondEntry = new Map([['text', 'second']]);
-    const thirdEntry  = new Map([['text', 'third']]);
+  it('materializeTrail joins chronological fragments into a Quote-value source', () => {
+    // Chronological order is reconstructed by walking the linked list
+    // and reversing — first deflect ends up first in the source.
     const errorVal0 = makeErrorValue(new Map());
-    const errorVal1 = appendTrailNode(errorVal0, firstEntry);
-    const errorVal2 = appendTrailNode(errorVal1, secondEntry);
-    const errorVal3 = appendTrailNode(errorVal2, thirdEntry);
-    const trail = materializeTrail(errorVal3);
-    expect(trail).toHaveLength(3);
-    expect(trail[0]).toBe(firstEntry);
-    expect(trail[1]).toBe(secondEntry);
-    expect(trail[2]).toBe(thirdEntry);
+    const errorVal1 = appendTrailNode(errorVal0,
+      Object.freeze({ combinator: 'pipe',       text: 'mul(2)' }));
+    const errorVal2 = appendTrailNode(errorVal1,
+      Object.freeze({ combinator: 'distribute', text: 'inc' }));
+    const errorVal3 = appendTrailNode(errorVal2,
+      Object.freeze({ combinator: 'merge',      text: 'flatten' }));
+    const quote = materializeTrail(errorVal3);
+    expect(isQuote(quote)).toBe(true);
+    expect(quote.source).toBe('| mul(2) * inc >> flatten');
   });
 
-  it('materializeTrail on fresh error returns empty', () => {
+  it('materializeTrail on fresh error returns null', () => {
     const errorVal = makeErrorValue(new Map());
-    expect(materializeTrail(errorVal)).toEqual([]);
-  });
-
-  it('stores non-Map entries unchanged — shape-agnostic storage', () => {
-    // While the production caller passes AST-Maps, types.mjs is not
-    // a validator; any qlang value (string, Vec, Scalar) round-trips
-    // through the linked list as-is. This keeps the value-class
-    // module free of AST shape knowledge.
-    const errorVal0 = makeErrorValue(new Map());
-    const errorVal1 = appendTrailNode(errorVal0, 'plain-string');
-    const errorVal2 = appendTrailNode(errorVal1, [1, 2, 3]);
-    const trail = materializeTrail(errorVal2);
-    expect(trail).toEqual(['plain-string', [1, 2, 3]]);
+    expect(materializeTrail(errorVal)).toBeNull();
   });
 });
 
@@ -153,24 +135,23 @@ describe('codec round-trips error values through tagged JSON', () => {
 // ── errorFromQlang ──────────────────────────────────────────────
 
 describe('errorFromQlang', () => {
-  it('converts QlangTypeError — kind, thrown, operand, actualValue preserved, fault stamped', () => {
+  it('converts QlangTypeError — kind, category, actualValue preserved, fault stamped', () => {
     const faultMap = Object.freeze(new Map([
       ['step', new Map([['text', 'add(1)']])],
       ['input', 'the-subject']
     ]));
     const typeErr = new QlangTypeError('bad type', {
-      operand: 'add',
-      expectedType: 'Number',
       actualType: { name: 'string' },
       actualValue: 'the-value'
     });
     const errorVal = errorFromQlang(typeErr, faultMap);
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('type-error'));
-    expect(desc.get('thrown')).toEqual(keyword('QlangTypeError'));
-    expect(desc.get('operand')).toBe('add');
+    expect(desc.has('category')).toBe(false);
+    expect(typeErr.kind).toBe('type-error');
+    expect(desc.get('kind')).toEqual(makeTagKeyword('QlangTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
+    expect(desc.get('actualType')).toEqual({ name: 'string' });
     const fault = desc.get('fault');
     expect(fault).toBeInstanceOf(Map);
     expect(fault.get('step').get('text')).toBe('add(1)');
@@ -180,15 +161,16 @@ describe('errorFromQlang', () => {
   it('converts UnresolvedIdentifierError with fault carrying AST-Map step', () => {
     const unresolvedErr = new UnresolvedIdentifierError('myName');
     const stepMap = Object.freeze(new Map([
-      ['qlang/kind', keyword('OperandCall')],
+      ['kind', keyword('OperandCall')],
       ['name', 'myName'],
       ['text', 'myName']
     ]));
     const faultMap = Object.freeze(new Map([['step', stepMap], ['input', 42]]));
     const errorVal = errorFromQlang(unresolvedErr, faultMap);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('unresolved-identifier'));
-    expect(desc.get('thrown')).toEqual(keyword('UnresolvedIdentifierError'));
+    expect(desc.has('category')).toBe(false);
+    expect(unresolvedErr.kind).toBe('unresolved-identifier');
+    expect(desc.get('kind')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('name')).toBe('myName');
     expect(fault.get('input')).toBe(42);
@@ -197,15 +179,16 @@ describe('errorFromQlang', () => {
   it('converts DivisionByZeroError with fault carrying pipeline input', () => {
     const divErr = new DivisionByZeroError();
     const stepMap = Object.freeze(new Map([
-      ['qlang/kind', keyword('OperandCall')],
+      ['kind', keyword('OperandCall')],
       ['name', 'div'],
       ['text', 'div(0)']
     ]));
     const faultMap = Object.freeze(new Map([['step', stepMap], ['input', 10]]));
     const errorVal = errorFromQlang(divErr, faultMap);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('division-by-zero'));
-    expect(desc.get('thrown')).toEqual(keyword('DivisionByZeroError'));
+    expect(desc.has('category')).toBe(false);
+    expect(divErr.kind).toBe('division-by-zero');
+    expect(desc.get('kind')).toEqual(makeTagKeyword('DivisionByZeroError'));
     const fault = desc.get('fault');
     expect(fault.get('step').get('text')).toBe('div(0)');
     expect(fault.get('input')).toBe(10);
@@ -225,8 +208,8 @@ describe('errorFromForeign', () => {
     const errorVal = errorFromForeign(jsErr, astNode, faultMap);
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
-    expect(desc.get('kind')).toEqual(keyword('foreign-error'));
-    expect(desc.get('thrown')).toEqual(keyword('Error'));
+    expect(desc.has('category')).toBe(false);
+    expect(desc.get('kind')).toEqual(makeTagKeyword('Error'));
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
     expect(errorVal.originalError).toBe(jsErr);
@@ -296,7 +279,7 @@ describe('errorFromForeign', () => {
     const wrapped = errorVal.descriptor.get('wrapped');
     expect(wrapped instanceof Map).toBe(true);
     expect(wrapped.get('message')).toBe('inner');
-    expect(wrapped.get('thrown').name).toBe('TypeError');
+    expect(wrapped.get('kind').name).toBe('TypeError');
     expect(errorVal.descriptor.get('fault').get('input')).toBe('wrap-input');
   });
 
@@ -314,7 +297,7 @@ import { withName, makeConduit, makeSnapshot, isConduit, isSnapshot } from '../.
 
 describe('withName coverage', () => {
   it('renames a conduit', () => {
-    const conduitVal = makeConduit(null, { name: 'old', params: ['a'], docs: ['doc'] });
+    const conduitVal = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'old', params: ['a'], docs: ['doc'] });
     const renamed = withName(conduitVal, 'new');
     expect(isConduit(renamed)).toBe(true);
     expect(renamed.get('name')).toBe('new');
@@ -327,7 +310,7 @@ describe('withName coverage', () => {
     const renamed = withName(snapVal, 'new');
     expect(isSnapshot(renamed)).toBe(true);
     expect(renamed.get('name')).toBe('new');
-    expect(renamed.get('qlang/value')).toBe(42);
+    expect(renamed.get('payload')).toBe(42);
     expect([...renamed.get('docs')]).toEqual(['snap doc']);
   });
 
@@ -379,13 +362,14 @@ describe('error-convert coercion edge cases', () => {
   it('errorFromQlang without fingerprint uses error name', () => {
     const typeErr = new QlangTypeError('no fingerprint', {});
     const errorVal = errorFromQlang(typeErr, makeFault('count', [1, 2]));
-    expect(errorVal.descriptor.get('thrown').name).toBe('QlangTypeError');
+    expect(errorVal.descriptor.get('kind').name).toBe('QlangTypeError');
   });
 
   it('errorFromQlang without context field', () => {
     const divErr = new DivisionByZeroError();
     const errorVal = errorFromQlang(divErr, makeFault('div(0)', 10));
-    expect(errorVal.descriptor.get('kind').name).toBe('division-by-zero');
+    expect(errorVal.descriptor.get('kind').name).toBe('DivisionByZeroError');
+    expect(errorVal.descriptor.has('category')).toBe(false);
   });
 
   it('errorFromForeign without cause (no causes field)', () => {

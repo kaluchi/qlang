@@ -15,8 +15,8 @@
 
 
 |~| ── 1. Hover ──────────────────────────────────────────
-|~| Hover over count, filter, sort, union, reify, if,
-|~| coalesce, sortWith, asc, desc to see manifest docs.
+|~| Hover over count, filter, sort, union, manifest, if,
+|~| coalesce, sortWith, asc, desc to see catalog docs.
 
 [1 2 3 4 5] | count
 
@@ -27,22 +27,22 @@
 
 
 |~| ── 2. Go to Definition ───────────────────────────────
-|~| Ctrl+Click on a user binding → its let/as declaration.
-|~| Ctrl+Click on a builtin → manifest.qlang.
+|~| Ctrl+Click on a user binding → its BindStep declaration.
+|~| Ctrl+Click on a builtin → core.qlang.
 
 |~~| Doubles a number via partial mul. ~~|
-let(:double, mul(2))
+:double mul(2)
 
 |~~| Triples a number via partial mul. ~~|
-let(:triple, mul(3))
+:triple mul(3)
 
-|~| Ctrl+Click on double below → jumps to the let above
+|~| Ctrl+Click on double below → jumps to the BindStep above
 [1 2 3] * double
 
-|~| Ctrl+Click on triple below → jumps to the let above
+|~| Ctrl+Click on triple below → jumps to the BindStep above
 [10 20] * triple
 
-|~| Ctrl+Click on count below → jumps to manifest.qlang
+|~| Ctrl+Click on count below → jumps to core.qlang
 [1 2 3] | count
 
 
@@ -50,10 +50,10 @@ let(:triple, mul(3))
 |~| When an identifier is rebound, go-to-definition jumps
 |~| to the LAST visible declaration, not the first.
 
-let(:x, 1)
+:x 1
 |~| x here resolves to 1
-let(:x, 99)
-|~| Ctrl+Click on x below → jumps to let(:x, 99)
+:x 99
+|~| Ctrl+Click on x below → jumps to :x 99
 x
 
 
@@ -69,17 +69,17 @@ x
 |~| ── 5. Find References ────────────────────────────────
 |~| Shift+F12 shows all occurrences: declaration + uses.
 
-let(:greet, prepend("hello "))
+:greet prepend("hello ")
 | "world" | greet | as(:greeted1)
 | "qlang" | greet | as(:greeted2)
 |~| Shift+F12 on greet → 3 hits (1 decl + 2 uses)
 
 
 |~| ── 6. Outline ────────────────────────────────────────
-|~| Ctrl+Shift+O → let bindings show as Function,
+|~| Ctrl+Shift+O → BindStep bindings show as Function,
 |~| as bindings show as Variable.
 
-let(:votingAge, filter(/age | gte(18)))
+:votingAge filter(/age | gte(18))
 | 42 | as(:answer)
 |~| Outline lists: double, triple, x, greet, greeted1,
 |~| greeted2, votingAge, answer
@@ -99,10 +99,10 @@ let(:votingAge, filter(/age | gte(18)))
 
 |~| ── 8. Completion ─────────────────────────────────────
 |~| Ctrl+Space → every langRuntime entry (67 operands
-|~| including let, as, error, isError) + user bindings
+|~| including as, error, isError) + user bindings
 |~| visible at the cursor position.
 
-let(:myHelper, mul(10))
+:myHelper mul(10)
 |~| Ctrl+Space here → myHelper alongside every builtin
 
 
@@ -114,16 +114,16 @@ let(:myHelper, mul(10))
 |~| ── 10. Comments ───────────────────────────────────────
 |~| Four comment forms, all syntax-highlighted:
 |~|   line plain, block plain, line doc, block doc.
-|~| Doc comments attach to the next let/as binding.
+|~| Doc comments attach to the next BindStep / as binding.
 
 |~~| Computes the absolute value via conditional negation. ~~|
-let(:abs, if(lt(0), mul(-1)))
+:abs if(lt(0), mul(-1))
 
 |~~ Surround a string with a prefix and suffix.
     Parametric conduit with two captured parameters. ~~|
-let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
+:@surround [:pfx :sfx] (prepend(pfx) | append(sfx))
 
-|~| Ctrl+Click on @surround → jumps to the let above
+|~| Ctrl+Click on @surround → jumps to the BindStep above
 "world" | @surround("[", "]")
 
 
@@ -155,9 +155,9 @@ let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx))
 
 |~| Leading !| prefix inside a filter predicate —
 |~| per-element dispatch into the fail-track
-[1 "x" 3] * add(10) | filter(!| /thrown | eq(:AddLeftNotNumber))
+[1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
 
 |~| Trail continuity across re-lift — | error re-wraps the
 |~| enriched descriptor and a later !| reads the
-|~| accumulated :trail Vec
+|~| accumulated :trail Quote
 !{:kind :oops} | count !| union({:request "r-1"}) | error | add(1) !| /trail

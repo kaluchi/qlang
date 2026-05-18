@@ -10,8 +10,8 @@ import { createLineEditor } from '../src/line-editor.mjs';
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
 const BRACKETED_PASTE_END   = ESC + '[201~';
-const SUBMIT = '\n';   // Ctrl+Enter / Ctrl+J — the submit keystroke
-const NEWLINE = '\r';  // plain Enter — soft newline
+const SUBMIT = '\r';   // plain Enter (CR) — the submit keystroke (PowerShell parity)
+const NEWLINE = '\n';  // Ctrl+Enter / Ctrl+J — soft newline at cursor
 
 function captureWrites() {
   const chunks = [];
@@ -43,7 +43,7 @@ function makePipedSetup() {
 }
 
 describe('createLineEditor — non-TTY (piped) mode', () => {
-  it('emits one `line` per `\\n`-terminated chunk', async () => {
+  it('emits one ~{line} per ~{\\n}-terminated chunk', async () => {
     const { stdinStream, editor, capture } = makePipedSetup();
     editor.start();
     stdinStream.write('first line\nsecond line\n');
@@ -100,7 +100,7 @@ function feed(stdinStream, ...chunks) {
 }
 
 describe('createLineEditor — TTY printable input', () => {
-  it('inserts each printable byte and emits the buffer on Ctrl+Enter', () => {
+  it('inserts each printable byte and emits the buffer on Enter', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc', SUBMIT);
@@ -118,7 +118,7 @@ describe('createLineEditor — TTY printable input', () => {
 });
 
 describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
-  it('plain Enter (CR) inserts a newline at the cursor without submitting', () => {
+  it('Ctrl+Enter (LF) inserts a soft newline at the cursor without submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', NEWLINE, 'second', SUBMIT);
@@ -139,7 +139,7 @@ describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
     expect(capture.lines).toEqual(['a']);
   });
 
-  it('Ctrl+Enter (LF) submits even after several soft newlines', () => {
+  it('Enter (CR) submits even after several soft newlines', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a', NEWLINE, 'b', NEWLINE, 'c', SUBMIT);
@@ -271,7 +271,7 @@ describe('createLineEditor — TTY control bytes', () => {
 });
 
 describe('createLineEditor — TTY escape sequence handling', () => {
-  it('drops a half-formed `ESC + non-[` sequence without injecting bytes', () => {
+  it('drops a half-formed ~{ESC + non-[} sequence without injecting bytes', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, 'Z', 'a', SUBMIT);
@@ -537,7 +537,7 @@ describe('createLineEditor — TTY lifecycle', () => {
     expect(out.text()).toContain(ESC + '[?2004l');
   });
 
-  it('emits `close` when the underlying stream ends', async () => {
+  it('emits ~{close} when the underlying stream ends', async () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     stdinStream.end();

@@ -10,7 +10,11 @@ import {
 import {
   keyword,
   makeConduit,
-  makeSnapshot
+  makeSnapshot,
+  makeQuote,
+  isQuote,
+  makeDoc,
+  isDoc
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -39,6 +43,38 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
   it('round-trips a Vec of numbers', () => {
     expect(roundTrip([1, 2, 3])).toEqual([1, 2, 3]);
+  });
+
+  it('round-trips a Quote via $quote tag', () => {
+    const original = makeQuote('mul(2)');
+    const encoded = toTaggedJSON(original);
+    expect(encoded).toEqual({ $quote: 'mul(2)' });
+    const restored = fromTaggedJSON(encoded);
+    expect(isQuote(restored)).toBe(true);
+    expect(restored.source).toBe('mul(2)');
+  });
+
+  it('round-trips a Quote with combinator-prefixed source (trail-suffix)', () => {
+    const original = makeQuote('* inc | sort');
+    const restored = roundTrip(original);
+    expect(isQuote(restored)).toBe(true);
+    expect(restored.source).toBe('* inc | sort');
+  });
+
+  it('round-trips a Doc via $doc tag', () => {
+    const original = makeDoc(' note ');
+    const encoded = toTaggedJSON(original);
+    expect(encoded).toEqual({ $doc: ' note ' });
+    const restored = fromTaggedJSON(encoded);
+    expect(isDoc(restored)).toBe(true);
+    expect(restored.content).toBe(' note ');
+  });
+
+  it('round-trips a Doc with multi-line content preserving newlines', () => {
+    const original = makeDoc('\n  one\n  two\n');
+    const restored = roundTrip(original);
+    expect(isDoc(restored)).toBe(true);
+    expect(restored.content).toBe('\n  one\n  two\n');
   });
 
   it('round-trips a nested Vec', () => {
@@ -78,7 +114,7 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 
 describe('toTaggedJSON unencodable values', () => {
   it('throws TaggedJSONUnencodableValueError for conduits', () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1 }, { name: 'x' });
+    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
     expect(() => toTaggedJSON(conduit)).toThrow(TaggedJSONUnencodableValueError);
   });
 
@@ -88,14 +124,13 @@ describe('toTaggedJSON unencodable values', () => {
   });
 
   it('throws TaggedJSONUnencodableValueError for function values', () => {
-    // Under Variant-B, langRuntime() stores each built-in as a
-    // descriptor Map (encodable) rather than a frozen function
-    // value. Function values still exist at the JS level — every
-    // runtime/*.mjs primitive impl is one, and conduit-parameter
-    // proxies create fresh ones at applyConduit time — so the
-    // unencodable-function contract stays load-bearing. Construct
-    // one directly via makeFn to exercise the codec guard without
-    // depending on env contents.
+    // langRuntime stores each built-in as a descriptor Map
+    // (encodable). Function values still exist at the JS level —
+    // every runtime/*.mjs primitive impl is one, and
+    // conduit-parameter proxies create fresh ones at applyConduit
+    // time — so the unencodable-function contract stays
+    // load-bearing. Construct one directly via makeFn to exercise
+    // the codec guard without depending on env contents.
     const fn = makeFn('testFn', 1, (state) => state, { captured: [0, 0] });
     expect(() => toTaggedJSON(fn)).toThrow(TaggedJSONUnencodableValueError);
   });

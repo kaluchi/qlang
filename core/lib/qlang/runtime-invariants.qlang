@@ -1,0 +1,430 @@
+|~ Cross-family invariant tag-bindings. Each error tag below is
+   stamped on `:kind` by a runtime site that no single operand
+   family owns — the parser, the AST codec, the evaluator
+   dispatcher, the primitive registry, the session lifecycle, the
+   projection segment-walker, the combinator track-dispatcher,
+   the render-path round-trip guards. Per-operand errors live
+   inline in the operand's own family file
+   (lib/qlang/operand/<family>.qlang); value-class-constructor
+   errors (::conduit / ::qlang / ::json) live next to their
+   constructors in lib/qlang/tag.qlang.
+
+   Section layout, top to bottom:
+     0. ::builtin — the primordial tag
+     1. Projection segment-miss family
+     2. Distribute / merge combinator subject mismatches
+     3. Tag-binding constructor invariants
+     4. Effect-laundering at parse and call seams
+     5. Identifier-lookup and parse-time failures
+     6. AST codec invariants
+     7. Tagged-JSON codec invariants
+     8. Dispatch wrapper invariants
+     9. Evaluator dispatch invariants
+    10. Primitive registry invariants
+    11. Session lifecycle invariants
+    12. Render-path invariants ~|
+
+|~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
+
+::builtin
+  |~~ Tag-binding declaration shape. Every catalog entry — operand
+      declarations, value-class-constructor declarations, error
+      tag-binding declarations — uses ::builtin{…} as its body.
+
+        :name ::builtin{:impl :qlang/prim/<name> …catalog metadata}
+          binds a runtime callback under the impl handle.
+
+        ::Name ::builtin{…tag-side metadata}
+          declares an identity (error tag, value-class tag) carrying
+          docs / category / position / expectedType metadata that
+          downstream `::Name | source / docs / examples` exposes.
+
+        ::Name (doc-prefix-only, no body)
+          equivalent to `::Name ::builtin{}` — declares an identity
+          whose only payload is the attached docs.
+  ~~|
+
+|~ ── 1. Projection segment-miss family ──────────────────── ~|
+
+::ProjectionFieldNotOnValueClassError
+  |~~ Projection segment is not a publicly-projectable field
+      on the value-class subject (Quote / Doc / …).
+
+      ~{
+        ~{mul(2)} | /missing
+        !| [type /key]
+        |  eq([::ProjectionFieldNotOnValueClassError "missing"])
+       }
+  ~~|
+  ::builtin{:category :type-error}
+
+::ProjectionIndexOutOfBoundsError
+  |~~ Projection `/n` — the integer index resolves outside
+      the Vec subject's `[0, length)` range.
+
+      ~{
+        [10 20 30] | /99
+        !| [type /key /length]
+        |  eq([::ProjectionIndexOutOfBoundsError "99" 3])
+       }
+  ~~|
+  ::builtin{:category :type-error}
+
+::ProjectionKeyNotInMapError
+  |~~ Projection `/key` — the named key is absent from the
+      Map subject (strict-miss). Use `at(:key)` for
+      null-coalescing access.
+
+      ~{
+        {:a 1} | /b
+        !| [type /key]
+        |  eq([::ProjectionKeyNotInMapError "b"])
+       }
+  ~~|
+  ::builtin{:category :type-error}
+
+::ProjectionSubjectNotMapError
+  |~~ Projection `/key` requires a Map, Vec, or value-class
+      subject; null subject and other shapes lift to this error.
+
+      ~{
+        42 | /foo
+        !| [type /key /actualType]
+        |  eq([::ProjectionSubjectNotMapError "foo" :number])
+       }
+  ~~|
+  ::builtin{:category :type-error}
+
+::ProjectionVecKeyNotIntegerError
+  |~~ Projection segment is a non-numeric string but the
+      subject is a Vec — Vec indices must be integer offsets.
+
+      ~{
+        [10 20 30] | /name
+        !| [type /key]
+        |  eq([::ProjectionVecKeyNotIntegerError "name"])
+       }
+  ~~|
+  ::builtin{:category :type-error}
+
+|~ ── 2. Distribute / merge combinator subject mismatches ── ~|
+
+::DistributeSubjectNotVecError
+  |~~ Distribute combinator (`*`) — subject must be a Vec
+      for per-element forking.
+
+      ~{
+        42 * add(1)
+        !| [type /actualType]
+        |  eq([::DistributeSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :distribute :position :subject :expectedType :vec}
+
+::MergeSubjectNotVecError
+  |~~ Merge combinator (`>>`) — subject must be a Vec for
+      one-level flattening.
+
+      ~{
+        42 >> count
+        !| [type /actualType]
+        |  eq([::MergeSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :merge :position :subject :expectedType :vec}
+
+|~ ── 3. Tag-binding constructor invariants ─────────────── ~|
+
+::TagBindingHasNoConstructorError
+  |~~ Tag-binding has no registered constructor — `:impl`
+      carries an unexpected value (neither a `:qlang/prim/*`
+      keyword nor a Quote-impl body). Descriptor fields:
+      `:payloadValue` / `:payloadType`, `:actualValue` /
+      `:actualType`, `:expectedType [:keyword :quote]`.
+  ~~|
+  ::builtin{:category :type-error}
+
+::TaggedLitNotTagBindingError
+  |~~ `::tag` constructor invocation — the env binding under
+      `::tag` is not a tag-binding descriptor Map.
+
+      ~{
+        ::badType 42 | ::badType[]
+        !| [type /tag /actualType]
+        |  eq([::TaggedLitNotTagBindingError :badType :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :expectedType :map}
+
+::TaggedLitTagNotFoundError
+  |~~ `::tag<payload>` constructor invocation — the tag is not
+      a registered tag-binding in env. Fires on constructor-form
+      `::Tag[…]` and on axis-operands `::Tag | source` / `| docs`
+      / `| examples` against unbound tag names.
+
+      ~{
+        ::UnknownTag[42]
+        !| [type /tag]
+        |  eq([::TaggedLitTagNotFoundError :UnknownTag])
+       }
+  ~~|
+  ::builtin{:category :type-error}
+
+|~ ── 4. Effect-laundering at parse and call seams ──────── ~|
+
+::EffectLaunderingAtBindStepParseError
+  |~~ BindStep declaration body references an `@`-effectful
+      identifier, but the binding name is not `@`-prefixed —
+      laundering caught at parse time.
+
+      ~{
+        1 | (:bad @callers | bad)
+        !| [type /bindingName /effectfulName]
+        |  eq([::EffectLaunderingAtBindStepParseError
+                :bad :@callers])
+       }
+  ~~|
+  ::builtin{:category :effect-laundering}
+
+|~ ── 5. Identifier-lookup and parse-time failures ───────── ~|
+
+::ApplyToNonFunctionError
+  |~~ Identifier resolves to a non-function value — captured
+      arguments cannot be applied.
+
+      ~{
+        5 | as(:five) | five(42)
+        !| [type /name /actualType]
+        |  eq([::ApplyToNonFunctionError :five :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :expectedType :function}
+
+::EffectLaunderingAtCallError
+  |~~ Identifier resolves to an `@`-effectful function, but the
+      lookup name is not `@`-prefixed — laundering caught at the
+      call site. Host-boundary error: fires through env-installed
+      bindings (`use`, `session.bind`) that bypass the parse-time
+      AST scan.
+  ~~|
+  ::builtin{:category :effect-laundering}
+
+::UnresolvedIdentifierError
+  |~~ Identifier lookup failed — no env binding under that name.
+
+      ~{
+        thisIsNotDefined
+        !| [type]
+        |  eq([::UnresolvedIdentifierError])
+       }
+  ~~|
+  ::builtin{:category :unresolved-identifier}
+
+::ParseError
+  |~~ Parser failure — source did not match the grammar.
+
+      ~{
+        "42 |" | parse
+        !| type | spec | /category
+        |  eq(:parse-error)
+       }
+  ~~|
+  ::builtin{:category :parse-error}
+
+|~ ── 6. AST codec invariants ──────────────────────────── ~|
+
+::AstMapKindUnknownError
+  |~~ AST-Map → AST codec — `:kind` discriminator names
+      a kind the codec does not know.
+
+      ~{
+        {:kind :BogusKind} | eval
+        !| [type]
+        |  eq([::AstMapKindUnknownError])
+       }
+  ~~|
+  ::builtin{:category :ast-codec-error}
+
+::AstMapMalformedError
+  |~~ AST-Map → AST codec — input Map is malformed (missing
+      required field, wrong shape).
+
+      ~{
+        {:a 1} | eval
+        !| [type]
+        |  eq([::AstMapMalformedError])
+       }
+  ~~|
+  ::builtin{:category :ast-codec-error}
+
+::AstNodeTypeUnknownError
+  |~~ AST → AST-Map codec — encountered an AST node whose
+      `.type` is not in the codec's known shape table.
+  ~~|
+  ::builtin{:category :ast-codec-error}
+
+|~ ── 7. Tagged-JSON codec invariants ──────────────────── ~|
+
+::MalformedTaggedJSONError
+  |~~ `fromTaggedJSON` received a JSON shape it does not
+      recognise as a tagged-value envelope.
+  ~~|
+  ::builtin{:category :codec-error}
+
+::TaggedJSONUnencodableValueError
+  |~~ `toTaggedJSON` cannot encode a function / conduit /
+      snapshot value — use `serializeSession` for the
+      binding-aware path.
+  ~~|
+  ::builtin{:category :codec-error}
+
+|~ ── 8. Dispatch wrapper invariants ───────────────────── ~|
+
+::HigherOrderOpArityMismatchError
+  |~~ Dispatch invariant — `higherOrderOp` impl received an
+      unexpected captured-arg count.
+  ~~|
+  ::builtin{:category :arity-error}
+
+::HigherOrderOpVariadicMissingCapturedError
+  |~~ Dispatch invariant — `higherOrderOpVariadic` registration
+      is missing the `captured` range argument.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+::NullaryOpArgsProvidedError
+  |~~ Nullary operand received captured arguments.
+
+      ~{
+        [1 2 3] | count(42)
+        !| [type /operandName]
+        |  eq([::NullaryOpArgsProvidedError :count])
+       }
+  ~~|
+  ::builtin{:category :arity-error}
+
+::OverloadedOpUnsupportedArityError
+  |~~ Overloaded operand has no impl for the supplied
+      captured-arg count.
+
+      ~{
+        [3 1 2] | sort(:a, :b)
+        !| [type /operandName]
+        |  eq([::OverloadedOpUnsupportedArityError :sort])
+       }
+  ~~|
+  ::builtin{:category :arity-error}
+
+::StateOpArityMismatchError
+  |~~ `stateOp` impl received an unexpected captured-arg count.
+
+      ~{
+        examples(:filter)
+        !| [type /operandName]
+        |  eq([::StateOpArityMismatchError :examples])
+       }
+  ~~|
+  ::builtin{:category :arity-error}
+
+::StateOpVariadicMissingCapturedError
+  |~~ Dispatch invariant — `stateOpVariadic` registration is
+      missing the `captured` range argument.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+::ValueOpArityMismatchError
+  |~~ Dispatch invariant — `valueOp` impl received an unexpected
+      captured-arg count for its declared arity.
+  ~~|
+  ::builtin{:category :arity-error}
+
+|~ ── 9. Evaluator dispatch invariants ─────────────────── ~|
+
+::UnknownAstNodeTypeError
+  |~~ Evaluator dispatch — encountered an AST node whose `.type`
+      is not in `AST_NODE_EVALUATORS`. Runtime invariant
+      violation.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+::UnknownCombinatorKindError
+  |~~ Combinator dispatch — encountered a combinator kind not
+      in `COMBINATOR_EVALUATORS`. Runtime invariant violation.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+::Rule10ArityOverflowError
+  |~~ Operand call supplied more captured arguments than the
+      operand's declared maximum arity.
+
+      ~{
+        [1 2 3] | count(1, 2)
+        !| [type /operandName]
+        |  eq([::Rule10ArityOverflowError :count])
+       }
+  ~~|
+  ::builtin{:category :arity-error}
+
+|~ ── 10. Primitive registry invariants ─────────────────── ~|
+
+::PrimitiveKeyAlreadyBoundError
+  |~~ Primitive registry — two runtime modules tried to bind
+      the same primitive name.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+::PrimitiveKeyNotStringError
+  |~~ Primitive registry — bind() received a non-string
+      handle.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+::PrimitiveKeyUnboundError
+  |~~ Primitive registry — `:impl` handle on a descriptor
+      Map points to a primitive that was never bound.
+  ~~|
+  ::builtin{:category :primitive-unbound}
+
+::PrimitiveRegistrySealedError
+  |~~ Primitive registry — bind() invoked against a sealed
+      registry. langRuntime seals at bootstrap completion;
+      later bind sites must split into a fresh
+      createPrimitiveRegistry() instance.
+  ~~|
+  ::builtin{:category :invariant-error}
+
+|~ ── 11. Session lifecycle invariants ──────────────────── ~|
+
+::SessionBindingKindUnknownError
+  |~~ Session deserialization — a binding entry carries an
+      unknown `:kind`.
+  ~~|
+  ::builtin{:category :session-error}
+
+::SessionConduitSourceMissingError
+  |~~ Session deserialization — a conduit binding entry has
+      no `:source` to re-parse.
+  ~~|
+  ::builtin{:category :session-error}
+
+::SessionPayloadInvalidError
+  |~~ Session deserialization — payload is malformed (missing
+      required fields).
+  ~~|
+  ::builtin{:category :session-error}
+
+::SessionSchemaVersionMismatchError
+  |~~ Session deserialization — payload `:schemaVersion` does
+      not match SESSION_SCHEMA_VERSION.
+  ~~|
+  ::builtin{:category :session-error}
+
+|~ ── 12. Render-path invariants ───────────────────────── ~|
+
+::FunctionValueLeakedToPrintError
+  |~~ `printValue` / `toPlain` invariant — a raw function
+      value reached render. Wrap host operands in a descriptor
+      Map carrying `:kind ::builtin` and `:impl`
+      when binding through `session.bind`.
+  ~~|
+  ::builtin{:category :invariant-error}

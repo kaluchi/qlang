@@ -294,6 +294,12 @@ code, pre {
 .repl-input-highlight .effect,
 .repl-entry-input .effect, .repl-entry-output .effect   { color: #c2410c; }
 
+.code-editor-body .type,
+.pg-source .type,          .pg-value .type,
+.playground-highlight .type,
+.repl-input-highlight .type,
+.repl-entry-input .type,   .repl-entry-output .type     { color: #7c3aed; }
+
 .code-editor-body .operand,
 .pg-source .operand,       .pg-value .operand,
 .playground-highlight .operand,
@@ -305,6 +311,24 @@ code, pre {
 .playground-highlight .string,
 .repl-input-highlight .string,
 .repl-entry-input .string, .repl-entry-output .string   { color: #b45309; }
+
+.code-editor-body .quote,
+.pg-source .quote,         .pg-value .quote,
+.playground-highlight .quote,
+.repl-input-highlight .quote,
+.repl-entry-input .quote,  .repl-entry-output .quote    { color: #15803d; }
+
+/* `italic` is a modifier added to every token inside a `~{...}`
+   Quote — the body keeps its per-kind colour (atom / operand /
+   number / string / …) and gains italic to mark "code-as-data".
+   The `~{` / `}` delimiters themselves get the `.quote` class
+   only, without italic, so the boundary reads upright while the
+   interior leans. */
+.code-editor-body .italic,
+.pg-source .italic,        .pg-value .italic,
+.playground-highlight .italic,
+.repl-input-highlight .italic,
+.repl-entry-input .italic, .repl-entry-output .italic   { font-style: italic; }
 
 .code-editor-body .number,
 .pg-source .number,        .pg-value .number,

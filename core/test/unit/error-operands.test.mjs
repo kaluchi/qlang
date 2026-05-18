@@ -4,8 +4,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword } from '../../src/types.mjs';
+import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
+import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
+import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 // ── error operand ──────────────────────────────────────────────
 
@@ -15,9 +17,9 @@ describe('error operand', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('bare form on non-Map produces ErrorDescriptorNotMap', async () => {
-    const evalResult = await evalQuery('42 | error !| /thrown');
-    expect(evalResult).toEqual(keyword('ErrorDescriptorNotMap'));
+  it('bare form on non-Map produces ErrorDescriptorNotMapError', async () => {
+    const evalResult = await evalQuery('42 | error !| type');
+    expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMapError'));
   });
 });
 
@@ -25,7 +27,7 @@ describe('error operand', () => {
 
 describe('isError operand', () => {
   it('with captured args produces arity error', async () => {
-    const evalResult = await evalQuery('42 | isError(1) !| /kind');
+    const evalResult = await evalQuery('42 | isError(1) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('arity-error'));
   });
 });
@@ -54,7 +56,7 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('conduit body first step sees exposed descriptor when called via !|', async () => {
-    const evalResult = await evalQuery('let(:handler, /kind) | !{:kind :oops} !| handler');
+    const evalResult = await evalQuery(':handler /kind | !{:kind :oops} !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -63,68 +65,63 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
     expect(evalResult).toBe(1);
   });
 
-  it('plain comment between a deflecting step and a fail-apply step is silent in the trail', async () => {
-    // Structured trail: /trail yields Vec of AST-Maps; * /text
-    // projects the source-text field of each deflected step. Plain
-    // comments participate as identity pipeline steps and therefore
-    // DO land on the trail when the pipeline deflects past them
-    // — the assertion here is that the operand-carrying step
-    // (`count`) is present; the plain-comment step presence is a
-    // separate property exercised by other cases.
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail * /text');
-    expect(Array.isArray(evalResult)).toBe(true);
+  it('plain comment between a deflecting step and a fail-apply step lands on the trail', async () => {
+    // /trail yields a Quote-value carrying the joined
+    // pipeline-suffix source. Plain comments participate as
+    // identity pipeline steps and therefore DO land on the trail
+    // when the pipeline deflects past them — the assertion here is
+    // that the operand-carrying step (`count`) appears in the trail
+    // source. Quote.source carries both fragments verbatim through
+    // /source.
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | /source');
+    expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('count');
   });
 });
 
-// ── reify :source field ─────────────────────────────────────────
+// ── EffectLaunderingAtCallError ──────────────────────────────────────
 
-describe('reify :source from conduit body', () => {
-  it('renders an ErrorLit body as the original source substring', async () => {
-    const evalResult = await evalQuery('let(:x, !{:a 1}) | reify(:x) | /source');
-    expect(evalResult).toBe('!{:a 1}');
-  });
-});
-
-// ── EffectLaunderingAtCall ──────────────────────────────────────
-
-describe('EffectLaunderingAtCall', () => {
+describe('EffectLaunderingAtCallError', () => {
   it('calling non-@-prefixed name resolving to effectful conduit produces error', async () => {
     // Install an @-prefixed conduit under a non-@-prefixed name via session.bind.
     // This simulates the laundering path (via use, as, or session injection)
     // that the parse-time AST check cannot detect.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('let(:@myCount, count)');
+    await sessionInstance.evalCell(':@myCount count');
     const effectfulConduit = sessionInstance.env.get('@myCount');
     sessionInstance.bind('doIt', effectfulConduit);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.descriptor.get('kind')).toEqual(keyword('effect-laundering'));
+    expect(cellEntry.result.descriptor.get('kind').name).toBe('EffectLaunderingAtCallError');
   });
 });
 
-describe('reify :source for rare conduit body shapes', () => {
+describe('source axis surfaces verbatim BindStep slice for rare body shapes', () => {
   it('renders bare OperandCall (no args)', async () => {
-    expect(await evalQuery('let(:x, count) | reify(:x) | /source')).toBe('count');
+    expect(await evalQuery(':x count | :x | source | /source')).toBe(':x count');
   });
 
-  it('renders LinePlainComment in conduit body', async () => {
-    const evalResult = await evalQuery('let(:x, (42 |~| note\n)) | reify(:x) | /source');
+  it('renders LinePlainComment inside conduit body', async () => {
+    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | /source');
     expect(evalResult).toContain('|~|');
   });
 
-  it('renders BlockDocComment in conduit body', async () => {
-    const evalResult = await evalQuery('|~~ doc ~~| let(:x, 42) | reify(:x) | /docs | first');
+  it('attached BlockDocComment surfaces through the docs axis operand', async () => {
+    const evalResult = await evalQuery('|~~ doc ~~| :x 42 | :x | docs | first | /content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
   });
 
-  it('renders ErrorLit in conduit body', async () => {
-    expect(await evalQuery('let(:x, !{:a 1}) | reify(:x) | /source')).toBe('!{:a 1}');
+  it('renders ErrorLit body', async () => {
+    expect(await evalQuery(':x [] !{:a 1} | :x | source | /source')).toContain('!{:a 1}');
   });
 
   it('renders leading fail-apply prefix in conduit body', async () => {
-    expect(await evalQuery('let(:handler, !| /kind) | reify(:handler) | /source')).toBe('!| /kind');
+    // BindStep body is a single Primary, so a `!|` leading
+    // Pipeline-step is wrapped in a ParenGroup at the source level.
+    // The source axis reflects the verbatim BindStep text, parens
+    // and all.
+    expect(await evalQuery(':handler (!| /kind) | :handler | source | /source')).toBe(':handler (!| /kind)');
   });
 });
 
@@ -137,10 +134,219 @@ describe('json operand on error values inside containers', () => {
   });
 });
 
-describe('runExamples error value without originalError', () => {
-  it('reports error from descriptor message when no originalError', async () => {
-    const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('{:kind :builtin :examples [{:snippet "{:kind :oops :message \\"boom\\"} | error" :expected "42"}]} | runExamples | first | /ok');
-    expect(cellEntry.result).toBe(false);
+describe('per-site error classes carry unique identity', () => {
+  // Each test catches a concrete error from a known source site
+  // and asserts its unique class name + structured context. The
+  // class name alone identifies the throw location, and tests
+  // match on `e.name` (stable identifier) so they stay readable
+  // without importing every per-site class.
+  //
+  // `catchOriginalError(query)` lives in
+  // `../helpers/error-assertions.mjs` — runtime errors are error
+  // values, the helper unwraps the underlying QlangError off
+  // `.originalError` for structured (`.name`, `.context.*`,
+  // `instanceof QlangTypeError`) inspection.
+
+  it('count on non-container → CountSubjectNotContainerError', async () => {
+    const caughtErr = await catchOriginalError('42 | count');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('CountSubjectNotContainerError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('keys on non-Map → KeysSubjectNotMapError', async () => {
+    const caughtErr = await catchOriginalError('42 | keys');
+    expect(caughtErr.name).toBe('KeysSubjectNotMapError');
+  });
+
+  it('add left non-number → AddLeftNotNumberError', async () => {
+    const caughtErr = await catchOriginalError('"x" | add(1)');
+    expect(caughtErr.name).toBe('AddLeftNotNumberError');
+    expect(caughtErr.context.actualType.name).toBe('string');
+  });
+
+  it('add right non-number → AddRightNotNumberError', async () => {
+    const caughtErr = await catchOriginalError('1 | add("x")');
+    expect(caughtErr.name).toBe('AddRightNotNumberError');
+  });
+
+  it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
+    const caughtErr = await catchOriginalError('"x" | sub(1)');
+    expect(caughtErr.name).toBe('SubLeftNotNumberError');
+  });
+
+  it('mul left non-number → MulLeftNotNumberError', async () => {
+    const caughtErr = await catchOriginalError('"x" | mul(1)');
+    expect(caughtErr.name).toBe('MulLeftNotNumberError');
+  });
+
+  it('div left non-number → DivLeftNotNumberError', async () => {
+    const caughtErr = await catchOriginalError('"x" | div(1)');
+    expect(caughtErr.name).toBe('DivLeftNotNumberError');
+  });
+
+  it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
+    const caughtErr = await catchOriginalError('"x" | prepend(42)');
+    expect(caughtErr.name).toBe('PrependPrefixNotStringError');
+  });
+
+  it('append modifier non-string → AppendSuffixNotStringError', async () => {
+    const caughtErr = await catchOriginalError('"x" | append(42)');
+    expect(caughtErr.name).toBe('AppendSuffixNotStringError');
+  });
+
+  it('sum element non-number → SumElementNotNumberError', async () => {
+    const caughtErr = await catchOriginalError('[1 "two" 3] | sum');
+    expect(caughtErr.name).toBe('SumElementNotNumberError');
+    expect(caughtErr.context.index).toBe(1);
+    expect(caughtErr.context.actualType.name).toBe('string');
+  });
+
+  it('gt across types → GtOperandsNotComparableError', async () => {
+    const caughtErr = await catchOriginalError('"a" | gt(5)');
+    expect(caughtErr.name).toBe('GtOperandsNotComparableError');
+    expect(caughtErr.context.leftType.name).toBe('string');
+    expect(caughtErr.context.rightType.name).toBe('number');
+  });
+
+  it('lt across types → LtOperandsNotComparableError (distinct class)', async () => {
+    const caughtErr = await catchOriginalError('"a" | lt(5)');
+    expect(caughtErr.name).toBe('LtOperandsNotComparableError');
+  });
+
+  it('projection on non-Map → ProjectionSubjectNotMapError', async () => {
+    const caughtErr = await catchOriginalError('42 | /name');
+    expect(caughtErr.name).toBe('ProjectionSubjectNotMapError');
+    expect(caughtErr.context.key).toBe('name');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('distribute on non-Vec → DistributeSubjectNotVecError', async () => {
+    const caughtErr = await catchOriginalError('{:a 1} * add(1)');
+    expect(caughtErr.name).toBe('DistributeSubjectNotVecError');
+    expect(caughtErr.context.actualType.name).toBe('map');
+  });
+
+  it('merge on non-Vec → MergeSubjectNotVecError (distinct from distribute)', async () => {
+    const caughtErr = await catchOriginalError('42 >> count');
+    expect(caughtErr.name).toBe('MergeSubjectNotVecError');
+  });
+
+  it('apply args to non-function → ApplyToNonFunctionError', async () => {
+    // Use `as` to bind a raw value (snapshot), not a conduit.
+    // Snapshot-unwrap produces a non-function, so captured args trigger
+    // ApplyToNonFunctionError on the unwrapped value.
+    const caughtErr = await catchOriginalError('5 | as(:five) | five(42)');
+    expect(caughtErr.name).toBe('ApplyToNonFunctionError');
+    expect(caughtErr.context.name).toBe('five');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('use on non-Map → UseSubjectNotMapError', async () => {
+    const caughtErr = await catchOriginalError('42 | use');
+    expect(caughtErr.name).toBe('UseSubjectNotMapError');
+  });
+
+  it('filter on non-container → FilterSubjectNotContainerError', async () => {
+    const caughtErr = await catchOriginalError('42 | filter(gt(1))');
+    expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
+  });
+
+  it('at on non-Vec-or-Map → AtSubjectNotVecOrMapError', async () => {
+    const caughtErr = await catchOriginalError('42 | at(0)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('at with non-string key on Map → AtKeyNotStringError', async () => {
+    const caughtErr = await catchOriginalError('{:a 1} | at(42)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('AtKeyNotStringError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeywordError', async () => {
+    const caughtErr = await catchOriginalError('42 | keyword');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('take count non-number → TakeCountNotNumberError', async () => {
+    const caughtErr = await catchOriginalError('[1 2 3] | take("x")');
+    expect(caughtErr.name).toBe('TakeCountNotNumberError');
+  });
+
+  it('drop count non-number → DropCountNotNumberError (distinct from take)', async () => {
+    const caughtErr = await catchOriginalError('[1 2 3] | drop("x")');
+    expect(caughtErr.name).toBe('DropCountNotNumberError');
+  });
+
+  it('all per-site type errors inherit QlangTypeError and kind', async () => {
+    const queries = [
+      '42 | count',
+      '"x" | add(1)',
+      '[1 "two"] | sum',
+      '"a" | gt(5)',
+      '42 | /name',
+      '{:a 1} * add(1)',
+      '42 >> count',
+      '5 | as(:five) | five(42)',
+      '42 | use'
+    ];
+    for (const q of queries) {
+      const caughtErr = await catchOriginalError(q);
+      expect(caughtErr).toBeInstanceOf(QlangTypeError);
+      expect(caughtErr).toBeInstanceOf(QlangError);
+      expect(caughtErr.kind).toBe('type-error');
+    }
+  });
+
+  it('throw sites produce distinct class names (no sharing)', async () => {
+    const names = new Set();
+    const queries = [
+      '42 | count',        // CountSubjectNotContainerError
+      '42 | first',        // FirstSubjectNotVecError
+      '42 | last',         // LastSubjectNotVecError
+      '42 | sum',          // SumSubjectNotVecOrSetError
+      '42 | reverse',      // ReverseSubjectNotVecError
+      '42 | distinct',     // DistinctSubjectNotVecError
+      '42 | sort',         // SortNaturalSubjectNotVecError
+      '42 | keys',         // KeysSubjectNotMapError
+      '42 | vals',         // ValsSubjectNotMapError
+      '"a" | add(1)',      // AddLeftNotNumberError
+      '"a" | sub(1)',      // SubLeftNotNumberError
+      '"a" | mul(1)',      // MulLeftNotNumberError
+      '"a" | div(1)',      // DivLeftNotNumberError
+      '"a" | gt(5)',       // GtOperandsNotComparableError
+      '"a" | lt(5)',       // LtOperandsNotComparableError
+      '1 | /name',         // ProjectionSubjectNotMapError (Number subject — neither Map nor Vec)
+      '{:a 1} * add(1)',   // DistributeSubjectNotVecError
+      '42 >> count'        // MergeSubjectNotVecError
+    ];
+    for (const q of queries) {
+      names.add((await catchOriginalError(q)).name);
+    }
+    // Every query produces a distinct class — the whole point of
+    // the refactor is that no two sites share an exception type.
+    expect(names.size).toBe(queries.length);
   });
 });
+
+describe('coalesce / firstTruthy arity-error sites carry unique per-site identity', () => {
+  it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
+    const caughtErr = await catchOriginalError('{} | coalesce()');
+    expect(caughtErr).toBeInstanceOf(ArityError);
+    expect(caughtErr.kind).toBe('arity-error');
+    expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
+  });
+
+  it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
+    const caughtErr = await catchOriginalError('{} | firstTruthy()');
+    expect(caughtErr).toBeInstanceOf(ArityError);
+    expect(caughtErr.kind).toBe('arity-error');
+    expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');
+  });
+});
+

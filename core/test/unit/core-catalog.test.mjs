@@ -1,58 +1,82 @@
-// Tests for lib/qlang/core.qlang — the Variant-B langRuntime source.
+// Tests for the qlang catalog under lib/qlang/ — the source
+// `langRuntime` parses at bootstrap.
 //
-// core.qlang is a single Map literal where every entry is a
-// descriptor for one built-in operand, carrying :qlang/kind :builtin,
-// :qlang/impl <:qlang/prim/*> keyword pointing into SHARED_REGISTRY,
-// plus the authored metadata (category / subject / returns /
-// modifiers / examples / throws) and doc-comment-prefix-attached
-// :docs. langRuntime() evaluates the file once at startup, resolves
-// every `:qlang/impl :qlang/prim/<name>` handle through the JS-side
-// registry bound at module load, and seals the registry. This is
-// the single source of truth for the bound env.
+// The catalog lives across `lib/qlang/core.qlang` (orchestrator that
+// pulls in every family through `use(...)`), `lib/qlang/operand/<family>.qlang`
+// (per-family operand + per-site error-tag declarations), plus
+// `lib/qlang/runtime-invariants.qlang` (shared / runtime tag-bindings)
+// and `lib/qlang/tag.qlang` (value-class constructors ::conduit /
+// ::qlang / ::json). Each operand is a `BindStep` whose body is a
+// descriptor Map carrying :kind ::builtin, a :impl
+// `:qlang/prim/*` keyword pointing into PRIMITIVE_REGISTRY, plus
+// authored metadata (category / subject / returns / modifiers /
+// throws) and doc-comment-prefix-attached `.docs`. `langRuntime()`
+// evaluates the chain once at startup, resolves every `:impl
+// :qlang/prim/<name>` handle through the JS-side registry bound at
+// module load, and seals the registry. This is the single source
+// of truth for the bound env.
 //
 // Contract pinned here:
 //
-//   1. CORE_SOURCE parses to a Pipeline/MapLit AST without errors.
-//   2. Evaluating it in an empty env produces a non-empty Map —
-//      one entry per built-in operand.
-//   3. Every entry is itself a Map with :qlang/kind :builtin and a
-//      :qlang/impl keyword prefixed `qlang/prim/`.
-//   4. Every :qlang/impl keyword resolves to a real primitive in
+//   1. The root entry `#qlang/core` parses to a Pipeline AST
+//      without errors.
+//   2. Evaluating the catalog through the locator produces a
+//      non-empty Map — one entry per built-in operand.
+//   3. Every operand entry is itself a Map with :kind ::builtin
+//      and a :impl keyword prefixed `qlang/prim/`.
+//   4. Every :impl keyword resolves to a real primitive in
 //      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
-//      module-load side effects from Step 3).
-//   5. Doc-comment prefixes have folded into :docs Vecs on each
-//      entry's value Map via grammar.peggy's MapEntryDocPrefix and
-//      eval.mjs's foldEntryDocs.
+//      module-load side effects).
+//   5. Doc-comment prefixes have folded into `.docs` Vecs on each
+//      `BindStep`'s AST node attached by grammar's `DocPrefix` /
+//      `DocAttachedSequence` rules and reachable through the
+//      axis-operand `:name | docs` (one Doc-value per attached
+//      prefix).
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { evalAst } from '../../src/eval.mjs';
-import { makeState } from '../../src/state.mjs';
-import { keyword, isQMap, isVec } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword } from '../../src/types.mjs';
+import { isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
-import { CORE_SOURCE } from '../../gen/core.mjs';
+import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 
-// Evaluate core.qlang in a completely empty env — this is the
-// Variant-B bootstrap contract. Map literals need no bindings to
-// evaluate, so the only precondition is that CORE_SOURCE parses
-// cleanly and contains nothing but a single Map literal plus its
-// prefacing comment.
+// Evaluate the catalog through a real `langRuntime()` — the chain
+// of `use(...)` calls in `core.qlang` plus every family's BindSteps
+// lands every descriptor Map in env. Reading the resolved env
+// returns the catalog as a Map keyed by operand name. Reserved
+// housekeeping keys (`qlang/ast/<uri>`, `qlang/namespace/<ns>`,
+// `qlang/locator`, anything without a `:kind ::builtin`
+// descriptor) are filtered so the returned Map carries only
+// operand descriptors — the surface the rest of this suite
+// asserts against.
 async function evalCore() {
-  const ast = parse(CORE_SOURCE, { uri: 'qlang/core' });
-  const state = makeState(null, new Map());
-  const evalResult = await evalAst(ast, state);
-  return evalResult.pipeValue;
+  const { langRuntime } = await import('../../src/runtime/index.mjs');
+  const { isTagBindingName } = await import('../../src/env-keys.mjs');
+  const fullEnv = await langRuntime();
+  const catalog = new Map();
+  for (const [k, v] of fullEnv) {
+    if (isModuleAstKey(k)) continue;
+    if (isModuleNamespaceKey(k)) continue;
+    if (k === RUNTIME_LOCATOR_KEY) continue;
+    if (isTagBindingName(k)) continue;       // skip ::Tag declarations
+    if (!isQMap(v)) continue;
+    const kind = v.get('kind');
+    if (!kind || kind.name !== 'builtin') continue;
+    catalog.set(k, v);
+  }
+  return catalog;
 }
 
 // Force runtime/*.mjs import so PRIMITIVE_REGISTRY gets populated
-// before we cross-check :qlang/impl handles.
+// before we cross-check :impl handles.
 async function primeRegistry() {
   await import('../../src/runtime/index.mjs');
 }
 
 describe('lib/qlang/core.qlang — shape and content', () => {
-  it('parses without errors', () => {
-    const ast = parse(CORE_SOURCE, { uri: 'qlang/core' });
+  it('parses without errors', async () => {
+    const rootResult = await platformLocator('qlang/core');
+    const ast = parse(rootResult.source, { uri: 'qlang/core' });
     expect(ast).toBeDefined();
     expect(ast.type).toBeDefined();
   });
@@ -76,52 +100,43 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     }
   });
 
-  it('every entry value is a Map with :qlang/kind :builtin', async () => {
+  it('every entry value is a Map with :kind ::builtin', async () => {
     const coreEnv = await evalCore();
-    
+
     for (const [entryKey, entryVal] of coreEnv) {
       expect(isQMap(entryVal), `entry :${entryKey} value is not a Map`).toBe(true);
-      expect(entryVal.get('qlang/kind'), `entry :${entryKey} missing :qlang/kind :builtin`)
-        .toEqual(keyword('builtin'));
+      expect(entryVal.get('kind'), `entry :${entryKey} missing :kind ::builtin`)
+        .toEqual(makeTagKeyword('builtin'));
     }
   });
 
-  it('every entry carries a :qlang/impl keyword in the qlang/prim/ namespace', async () => {
+  it('every entry carries a :impl function value resolved from PRIMITIVE_REGISTRY', async () => {
+    // langRuntime() runs the resolution pass over every builtin
+    // descriptor before returning, so :impl arrives at
+    // user-side as the live function value (not a keyword handle).
+    // The naming convention — function value's .name matches the
+    // operand name — keeps the dispatch target identifiable.
     const coreEnv = await evalCore();
-    
+
     for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get('qlang/impl');
-      expect(impl, `entry :${entryKey} missing :qlang/impl`).toBeDefined();
-      expect(impl.type).toBe('keyword');
-      expect(impl.name.startsWith('qlang/prim/'),
-        `entry :${entryKey} :qlang/impl ${impl.name} not in qlang/prim/ namespace`
-      ).toBe(true);
+      const impl = entryVal.get('impl');
+      expect(impl, `entry :${entryKey} missing :impl`).toBeDefined();
+      expect(typeof impl).toBe('object');
+      expect(impl.name, `entry :${entryKey} :impl resolves to function with mismatched name`)
+        .toBe(entryKey);
     }
   });
 
-  it(':qlang/impl keyword name matches the entry name for every operand', async () => {
-    // Convention: the entry :count has :qlang/impl :qlang/prim/count.
-    // Catches copy-paste typos between the keyword handle and its
-    // dispatch target at build-verification time instead of at
-    // runtime dispatch time.
-    const coreEnv = await evalCore();
-    
-    for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get('qlang/impl');
-      expect(impl.name).toBe(`qlang/prim/${entryKey}`);
-    }
-  });
 });
 
 describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
-  it('every :qlang/impl keyword resolves to a live primitive', async () => {
+  it('every catalog operand has a backing primitive in PRIMITIVE_REGISTRY', async () => {
     await primeRegistry();
     const coreEnv = await evalCore();
 
-    for (const [entryKey, entryVal] of coreEnv) {
-      const implKey = entryVal.get('qlang/impl');
-      expect(PRIMITIVE_REGISTRY.has(implKey.name),
-        `entry :${entryKey} → :${implKey.name} has no backing primitive`
+    for (const entryKey of coreEnv.keys()) {
+      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${entryKey}`),
+        `entry :${entryKey} has no backing primitive at qlang/prim/${entryKey}`
       ).toBe(true);
     }
   });
@@ -133,7 +148,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(isQMap(addDescriptor)).toBe(true);
     expect(addDescriptor.get('category')).toEqual(keyword('arith'));
     expect(addDescriptor.get('subject')).toEqual(keyword('number'));
-    const impl = addDescriptor.get('qlang/impl');
+    const impl = addDescriptor.get('impl');
     expect(impl.name).toBe('add');
     expect(impl.arity).toBe(2);
   });
@@ -144,150 +159,122 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     const filterDescriptor = resolved.get('filter');
     expect(filterDescriptor.get('category')).toEqual(keyword('container-selector'));
     expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicate-lambda')]);
-    const impl = filterDescriptor.get('qlang/impl');
+    const impl = filterDescriptor.get('impl');
     expect(impl.name).toBe('filter');
   });
 
-  it('spot-check — :let / :as reflective operands land with :category :reflective', async () => {
+  it('spot-check — :as reflective operand lands with :category :reflective', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    expect(resolved.get('let').get('category')).toEqual(keyword('reflective'));
     expect(resolved.get('as').get('category')).toEqual(keyword('reflective'));
-    const letImpl = resolved.get('let').get('qlang/impl');
-    expect(letImpl.name).toBe('let');
-    const asImpl = resolved.get('as').get('qlang/impl');
+    const asImpl = resolved.get('as').get('impl');
     expect(asImpl.name).toBe('as');
   });
 });
 
-describe('lib/qlang/core.qlang — doc-prefix folded into :docs', () => {
-  it('every entry has a non-empty :docs Vec of strings', async () => {
+describe('lib/qlang/core.qlang — doc-prefix reachable through ~{:tag | docs} axis', () => {
+  it('every cataloged binding has at least one Doc-value on the axis', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
     const coreEnv = await evalCore();
-    
-    for (const [entryKey, entryVal] of coreEnv) {
-      const docs = entryVal.get('docs');
-      expect(isVec(docs), `entry :${entryKey} has no :docs Vec`).toBe(true);
-      expect(docs.length, `entry :${entryKey} :docs is empty`).toBeGreaterThan(0);
+    for (const entryKey of coreEnv.keys()) {
+      // Skip section-divider plain comments / non-binding env entries.
+      if (!isQMap(coreEnv.get(entryKey))) continue;
+      const docs = await evalQuery(`:"${entryKey}" | docs`);
+      expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
       for (const doc of docs) {
-        expect(typeof doc).toBe('string');
+        expect(typeof doc.content).toBe('string');
       }
     }
   });
 
   it('spot-check — :count docs mention polymorphic and container kinds', async () => {
-    const coreEnv = await evalCore();
-    const countDocs = coreEnv.get('count').get('docs');
-    const joined = countDocs.join(' ');
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docs = await evalQuery(':count | docs');
+    const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('number of elements');
     expect(joined).toContain('Polymorphic');
   });
 
   it('spot-check — :filter docs describe the predicate semantics', async () => {
-    const coreEnv = await evalCore();
-    const filterDocs = coreEnv.get('filter').get('docs');
-    const joined = filterDocs.join(' ');
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docs = await evalQuery(':filter | docs');
+    const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('truthy');
   });
 });
 
-describe('Variant-B bare-non-nullary REPL introspection', () => {
-  // The REPL ergonomic promised by the whole refactor: typing a
-  // non-nullary operand name bare (no parens, no captured args)
-  // returns its descriptor Map as pipeValue instead of firing an
-  // arity error. Nullary operands (count, sort bare form, env,
-  // etc.) still fire on bare lookup because their minCaptured is
-  // 0 and bare application is their valid nullary form.
+describe('bare-name operand dispatch — uniform Rule 10 path', () => {
+  // Bare operand identifier (no captured args) fires the operand
+  // against the current pipeValue regardless of arity. Non-nullary
+  // operands without captured args hit Rule 10's arity check and
+  // surface a per-site arity-error; nullary operands fire because
+  // bare application IS their valid call shape. The introspection
+  // surface for "what does this operand do" is `:name | source` /
+  // `:name | docs` / `:name | examples`, not a bare-name descriptor
+  // shortcut.
 
-  it('bare `mul` returns reify-shaped descriptor Map', async () => {
-    // mul has minCaptured 1, so bare lookup yields the reify-shaped
-    // descriptor — :kind :builtin (not the internal :qlang/kind),
-    // :captured and :effectful stamped from the resolved impl.
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('mul');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
-    expect(evalResult.get('category')).toEqual(keyword('arith'));
-    expect(evalResult.has('qlang/kind')).toBe(false);
-    expect(evalResult.has('qlang/impl')).toBe(false);
-  });
-
-  it('bare `filter` returns reify-shaped descriptor Map', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('filter');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
-    expect(evalResult.get('category')).toEqual(keyword('container-selector'));
-  });
-
-  it('bare `coalesce` returns coalesce\'s descriptor Map (minCaptured 1)', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('coalesce');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('category')).toEqual(keyword('control'));
-  });
-
-  it('bare `count` fires because count is nullary', async () => {
-    // count has minCaptured 0, so the nullary dispatch path applies
-    // bare lookup rather than substituting the descriptor. That is
-    // what makes `[1 2 3] | count` mean "apply count to the Vec".
+  it('bare ~{count} fires against the inbound Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('bare `sort` fires because sort overload includes nullary', async () => {
+  it('bare ~{sort} fires the nullary overload branch', async () => {
     // sort is overloaded at 0 or 1 captured args. overloadedOp
-    // emits captured [0, 1], so minCaptured is 0 and bare sort
-    // fires its nullary branch.
+    // emits captured [0, 1], so the nullary form sorts naturally.
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
-});
 
-describe('function-value reify path (conduit parameter reflection)', () => {
-  // Conduit parameters are the only function values that reach
-  // env under Variant-B dispatch — they are minted at applyConduit
-  // time by makeConduitParameter and live only for the duration of
-  // the body fork. Reifying one inside a conduit body exercises
-  // the isFunctionValue branch of describeBinding, which delegates
-  // to buildBuiltinDescriptor to construct a descriptor Map from
-  // the function-value's inline meta.
-
-  it('reify on a conduit parameter yields a :kind :builtin descriptor', async () => {
+  it('bare ~{mul} (non-nullary) on null pipeValue fires an arity-error', async () => {
+    // mul has captured [1, 2]. Bare call has zero captured args,
+    // so Rule 10's value-op arity check fires before the impl
+    // could mishandle the call. The diagnostic carries the
+    // operand name and the expected range.
     const { evalQuery } = await import('../../src/eval.mjs');
-    // The conduit body captures a param and calls reify(:p) to
-    // get its descriptor. The param is a function value (not a
-    // Map), so describeBinding takes the isFunctionValue path and
-    // builds a descriptor via buildBuiltinDescriptor from the
-    // inlined meta that makeConduitParameter stamps on the proxy.
-    const evalResult = await evalQuery('let(:f, [:p], reify(:p)) | 42 | f(add(1))');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('builtin'));
-    expect(evalResult.get('category')).toEqual(keyword('conduit-parameter'));
-    expect(evalResult.get('name')).toBe('p');
+    const { isErrorValue } = await import('../../src/types.mjs');
+    const evalResult = await evalQuery('mul');
+    expect(isErrorValue(evalResult)).toBe(true);
+    expect(evalResult.descriptor.get('kind').name).toBe('ValueOpArityMismatchError');
   });
 });
 
-describe('format.toPlain exotic-value fallback', () => {
-  // toPlain's String(v) fallback covers qlang values that do not
-  // match the known shapes (scalar / keyword / Vec / Map / Set /
-  // error). Under Variant-B dispatch, no qlang-level path ever
-  // reaches this branch — raw function values never enter
-  // pipeValue, so user code cannot feed one to the json operand.
-  // The branch remains as a safety net for JS-level callers that
-  // might construct exotic objects (makeFn frozen values, host
-  // closures injected via session.bind) and pipe them through
-  // toPlain. Direct unit exercise keeps the line covered.
+describe('manifest descriptor for a conduit-parameter proxy', () => {
+  // Conduit parameters are the only function values that reach env
+  // during dispatch — `makeConduitParameter` in `eval.mjs` mints
+  // them at applyConduit time with a full `meta` shape inline.
+  // Running `manifest` inside a conduit body iterates the body's
+  // fork env, which carries the proxy; `describeBinding` takes the
+  // `isFunctionValue` path and stamps a `:kind ::builtin` descriptor
+  // through `describeConduitParameter`. The descriptor's `:category`
+  // tracks the proxy's authored slot (`:conduit-parameter`), so
+  // catalog walkers can distinguish synthetic-per-call entries from
+  // the static catalog operands.
 
-  it('String(v) fallback on a raw function value', async () => {
+  it('manifest inside a conduit body surfaces the param proxy as :category :conduit-parameter', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const evalResult = await evalQuery(
+      ':f [:p] (manifest | filter(/name | eq("p")) | first | /category) | 42 | f(add(1))'
+    );
+    expect(evalResult).toEqual(keyword('conduit-parameter'));
+  });
+});
+
+describe('format.toPlain refuses a raw function value — round-trip invariant', () => {
+  // Function values have no grammatical literal: emitting any string
+  // for one would falsely round-trip through parse / eval into a
+  // different value-class. toPlain shares this round-trip discipline
+  // with printValue and raises FunctionValueLeakedToPrintError when a
+  // function surfaces — the leak surface (typically a JS-level
+  // caller piping a raw makeFn product through toPlain instead of
+  // wrapping it in a descriptor Map) gets named at the boundary.
+
+  it('toPlain on a raw function value throws FunctionValueLeakedToPrintError', async () => {
     const { toPlain } = await import('../../src/runtime/format.mjs');
     const { makeFn } = await import('../../src/rule10.mjs');
+    const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
     const fn = makeFn('exoticFn', 1, (state) => state, { captured: [0, 0] });
-    const plain = toPlain(fn);
-    // Frozen function-value objects stringify to "[object Object]"
-    // under the default toString; the fallback returns that verbatim.
-    expect(typeof plain).toBe('string');
-    expect(plain).toBe('[object Object]');
+    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrintError);
   });
 });
 
@@ -317,36 +304,37 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
-    expect(categories.get('type-classifier')).toBe(8);  // isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull
-    expect(categories.get('type-conversion')).toBe(1);  // keyword
+    expect(categories.get('type-classifier')).toBe(13);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
+    expect(categories.get('type-conversion')).toBe(2);  // keyword + qlang
     expect(categories.get('format')).toBe(2);
-    expect(categories.get('reflective')).toBe(9);  // env use reify manifest runExamples as let parse eval
-    expect(categories.get('error')).toBe(2);
+    expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
+    expect(categories.get('code-as-data')).toBe(3); // parse eval apply
+    expect(categories.get('axis')).toBe(4);         // source docs examples spec
+    expect(categories.get('error')).toBe(2);        // error isError
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);
   });
 });
 
 describe('parse / eval — the code-as-data ring closer', () => {
-  // Step 10 of the Variant-B refactor: the `parse` operand reads
-  // a source string into the walk.mjs AST-Map form, `eval` takes
-  // that AST-Map and runs it against the current state. Together
-  // they round-trip source text → data → pipeValue without
-  // leaving the language, and land the programmatic-query-
-  // construction surface the whole refactor pointed at.
+  // The `parse` operand reads a source string into the
+  // `ast-codec.mjs` AST-Map form; `eval` takes that AST-Map and
+  // runs it against the current state. Together they round-trip
+  // source text → data → pipeValue without leaving the language,
+  // and ground the programmatic-query-construction surface.
 
   it('parse lifts a scalar literal into an AST-Map', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"42" | parse');
     expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('qlang/kind')).toEqual(keyword('NumberLit'));
+    expect(evalResult.get('kind')).toEqual(keyword('NumberLit'));
     expect(evalResult.get('value')).toBe(42);
   });
 
   it('parse lifts an OperandCall into an AST-Map with :name / :args', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"add(1, 2)" | parse');
-    expect(evalResult.get('qlang/kind')).toEqual(keyword('OperandCall'));
+    expect(evalResult.get('kind')).toEqual(keyword('OperandCall'));
     expect(evalResult.get('name')).toBe('add');
     expect(isVec(evalResult.get('args'))).toBe(true);
     expect(evalResult.get('args')).toHaveLength(2);
@@ -354,20 +342,20 @@ describe('parse / eval — the code-as-data ring closer', () => {
 
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('42 | parse !| /thrown');
-    expect(evalResult).toEqual(keyword('ParseSubjectNotString'));
+    const evalResult = await evalQuery('42 | parse !| type');
+    expect(evalResult).toEqual(makeTagKeyword('ParseSubjectNotStringOrQuoteError'));
   });
 
   it('eval takes a hand-assembled AST-Map and runs it', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('{:qlang/kind :NumberLit :value 42} | eval');
+    const evalResult = await evalQuery('{:kind :NumberLit :value 42} | eval');
     expect(evalResult).toBe(42);
   });
 
   it('eval errors on non-Map subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"not-a-map" | eval !| /thrown');
-    expect(evalResult).toEqual(keyword('EvalSubjectNotMap'));
+    const evalResult = await evalQuery('"not-a-map" | eval !| type');
+    expect(evalResult).toEqual(makeTagKeyword('EvalSubjectNotMapOrQuoteError'));
   });
 
   it('round-trip — "source" | parse | eval is equivalent to evaluating the source', async () => {
@@ -390,7 +378,7 @@ describe('parse / eval — the code-as-data ring closer', () => {
 
   it('parse errors on malformed source lift to fail-track', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"this is not qlang [" | parse !| /kind');
+    const evalResult = await evalQuery('"this is not qlang [" | parse !| type | spec | /category');
     expect(evalResult).toEqual(keyword('parse-error'));
   });
 });

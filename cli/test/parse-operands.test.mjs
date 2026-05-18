@@ -40,19 +40,16 @@ describe('parseJson — happy path', () => {
 });
 
 describe('parseJson — error sites', () => {
-  it('lifts ParseJsonSubjectNotString when the subject is not a String', async () => {
+  it('lifts ParseJsonSubjectNotStringError when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseJson', noopIo);
-    expectOperandErrorThrown(cellEntry, 'ParseJsonSubjectNotString', {
-      operand: 'parseJson',
-      position: 'subject',
-      expectedType: 'String',
+    expectOperandErrorThrown(cellEntry, 'ParseJsonSubjectNotStringError', {
       actualType: { name: 'number' }
     });
   });
 
-  it('lifts ParseJsonInvalidJson when the subject is not valid JSON', async () => {
+  it('lifts ParseJsonInvalidJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
-    const thrown = expectOperandErrorThrown(cellEntry, 'ParseJsonInvalidJson', {});
+    const thrown = expectOperandErrorThrown(cellEntry, 'ParseJsonInvalidJsonError', {});
     expect(typeof thrown.context.message).toBe('string');
     expect(thrown.context.message.length).toBeGreaterThan(0);
   });
@@ -80,19 +77,16 @@ describe('parseTjson — happy path', () => {
 });
 
 describe('parseTjson — error sites', () => {
-  it('lifts ParseTjsonSubjectNotString when the subject is not a String', async () => {
+  it('lifts ParseTjsonSubjectNotStringError when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseTjson', noopIo);
-    expectOperandErrorThrown(cellEntry, 'ParseTjsonSubjectNotString', {
-      operand: 'parseTjson',
-      position: 'subject',
-      expectedType: 'String',
+    expectOperandErrorThrown(cellEntry, 'ParseTjsonSubjectNotStringError', {
       actualType: { name: 'number' }
     });
   });
 
-  it('lifts ParseTjsonInvalidJson when the subject is not valid JSON', async () => {
+  it('lifts ParseTjsonInvalidJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseTjson', noopIo);
-    const thrown = expectOperandErrorThrown(cellEntry, 'ParseTjsonInvalidJson', {});
+    const thrown = expectOperandErrorThrown(cellEntry, 'ParseTjsonInvalidJsonError', {});
     expect(typeof thrown.context.message).toBe('string');
     expect(thrown.context.message.length).toBeGreaterThan(0);
   });

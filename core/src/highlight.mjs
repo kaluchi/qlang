@@ -19,11 +19,17 @@
 //   'operand'     OperandCall name that resolves to a builtin
 //                 supplied by `langRuntime` AND each key segment
 //                 of a `Projection`
-//   'keyword'     `let` and `as` — the binding-introducing operands
+//   'keyword'     `as` — the binding-introducing operand, plus the
+//                 head Keyword/TagKeyword of a BindStep declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
 //                 the `!|` fail-track combinator — anything that
 //                 carries the fail-track semantic in qlang
+//   'quote'       Quote literal `~{ … }`, including the paired
+//                 `~{` opener and `}` closer (DocLit `|~~ … ~~|`
+//                 falls under 'comment')
+//   'tag'         `::tag` head of a TaggedLit or a BareTypeKeyword —
+//                 the tag-namespace identifier sigil + name
 //   'set'         `#{` opener and matching `}` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
@@ -41,13 +47,33 @@ import { parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
 import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
-const BINDING_OPERAND_NAMES = new Set(['let', 'as']);
+const BINDING_OPERAND_NAMES = new Set(['as']);
 const KEYWORD_SIGIL = ':';
 const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
 // ── Public surface ────────────────────────────────────────────
 
 export function tokenize(src, builtinNames) {
+  if (src.length === 0) return [];
+  let ast;
+  try {
+    ast = parse(src);
+  } catch {
+    return [{ start: 0, end: src.length, kind: 'whitespace' }];
+  }
+  const semanticSpans = collectSemanticSpans(src, ast, builtinNames);
+  return interleaveGapTokens(src, semanticSpans);
+}
+
+// Recursive call from QuoteLit handling: tokenise the Quote body
+// the same way as the top-level source. Quote bodies parse through
+// the full `Pipeline` rule including a leading combinator
+// (`~{| count}`, `~{* mul(2)}`), so the same tokeniser pipeline
+// applies without a separate start-rule. When the body is
+// unparseable (rare malformed-suffix case), fall back to a single
+// whitespace span so the renderer still paints the body uniformly
+// italic.
+function subTokenize(src, builtinNames) {
   if (src.length === 0) return [];
   let ast;
   try {
@@ -78,6 +104,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
       case 'LineDocComment':
       case 'BlockPlainComment':
       case 'BlockDocComment':
+      case 'DocLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'comment' });
         return false;
 
@@ -102,11 +129,78 @@ function collectSemanticSpans(src, ast, builtinNames) {
         emitBracketSpans(startOffset, endOffset, 2, 1, 'err', spans);
         return;
 
+      case 'QuoteLit': {
+        // Quote literal — paint the `~{` / `}` delimiters in the
+        // `quote` palette colour, then sub-tokenise the body source
+        // recursively. Every inner span carries `italic: true` so
+        // the renderer can compose italic + the inner kind's
+        // colour (`atom` italic, `operand` italic, etc.) — the
+        // visual cue is "this is code-as-data, painted in the same
+        // palette as code-as-running but italicised".
+        spans.push({ start: startOffset, end: startOffset + 2, kind: 'quote' });
+        const bodyStart = startOffset + 2;
+        const bodyEnd = endOffset - 1;
+        const innerSource = src.slice(bodyStart, bodyEnd);
+        const innerSpans = subTokenize(innerSource, builtinNames);
+        for (const inner of innerSpans) {
+          spans.push({
+            start: bodyStart + inner.start,
+            end:   bodyStart + inner.end,
+            kind:  inner.kind,
+            italic: true
+          });
+        }
+        spans.push({ start: bodyEnd, end: endOffset, kind: 'quote' });
+        return false;
+      }
+
+      case 'BindStep': {
+        // The binding key — Keyword `:name` or BareTypeKeyword `::Tag` —
+        // paints as 'keyword' (binding-introducer) so it is visually
+        // distinct from a plain value-position `:name`. The attached
+        // doc-prefix delimiters (`|~~ … ~~|` / `|~~| …`) do not
+        // survive into the AST as standalone nodes — DocAttachedSequence
+        // and the BindStep production both fold doc-content into the
+        // `.docs` Vec of strings. The grammar stamps the prefix's
+        // start offset on `docPrefixStart` (set by either the
+        // wrapping DocAttachedSequence rule when docs sit before the
+        // BindStep, or by the BindStep rule itself when docs sit
+        // between key and body). The end of the prefix region is
+        // wherever the next AST node begins: key for the external
+        // case, body for the inline case.
+        const key = node.key;
+        const keyStart = key.location.start.offset;
+        const keyEnd = key.location.end.offset;
+        if (typeof node.docPrefixStart === 'number') {
+          const prefixEnd = node.docPrefixStart < keyStart
+            ? keyStart                                           // external (before key)
+            : (node.body ? node.body.location.start.offset       // inline (key … docs … body)
+                         : endOffset);
+          spans.push({ start: node.docPrefixStart, end: prefixEnd, kind: 'comment' });
+        }
+        spans.push({ start: keyStart, end: keyEnd, kind: 'keyword' });
+        return; // descend into docs / params / body
+      }
+
+      case 'BareTypeKeyword':
+        spans.push({ start: startOffset, end: endOffset, kind: 'tag' });
+        return false;
+
+      case 'TaggedLit': {
+        // Cover the `::tag` head with a single 'tag' span; descend
+        // into the payload below so VecLit/MapLit/StringLit children
+        // emit their own spans.
+        const tagHeadEnd = startOffset + 2 + node.tag.length;
+        spans.push({ start: startOffset, end: tagHeadEnd, kind: 'tag' });
+        return; // descend into payload
+      }
+
       case 'SetLit':
         emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);
         return;
 
       case 'VecLit':
+      case 'JsonArrayLit':
         emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
         return;
 
@@ -115,6 +209,15 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return false;
 
       case 'OperandCall': {
+        // Doc-attached `as(:name)` calls carry `docPrefixStart` from
+        // DocAttachedSequence; the prose region between the first
+        // doc-comment and the operand head is folded into the AST
+        // as a plain string Vec, so the highlighter paints it with
+        // one `comment`-kind span the same way it does for
+        // BindStep (see the case above).
+        if (typeof node.docPrefixStart === 'number' && node.docPrefixStart < startOffset) {
+          spans.push({ start: node.docPrefixStart, end: startOffset, kind: 'comment' });
+        }
         const nameEndOffset = startOffset + node.name.length;
         spans.push({
           start: startOffset,

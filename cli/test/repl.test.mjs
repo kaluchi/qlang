@@ -32,13 +32,13 @@ function captureRepl(scriptedInput) {
 }
 
 describe('runRepl — meta commands', () => {
-  it('closes on `.exit` and resolves to exit code 0', async () => {
+  it('closes on ~{.exit} and resolves to exit code 0', async () => {
     const r = captureRepl('.exit\n');
     const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(exitCode).toBe(0);
   });
 
-  it('writes the help banner on `.help` and stays open until EOF', async () => {
+  it('writes the help banner on ~{.help} and stays open until EOF', async () => {
     const r = captureRepl('.help\n');
     const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(exitCode).toBe(0);
@@ -62,7 +62,7 @@ describe('runRepl — query evaluation', () => {
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const r = captureRepl('let(:double, mul(2))\n10 | double\n.exit\n');
+    const r = captureRepl(':double mul(2)\n10 | double\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     expect(stripAnsi(r.stdoutText())).toMatch(/20/);
   });
@@ -83,10 +83,14 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('writes a JS host-throw message on stderr for parse failures', async () => {
+  it('writes a structured ::ParseError!{…} diagnostic on stderr for parse failures', async () => {
     const r = captureRepl('[1 2\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(r.stderrText()).toMatch(/^error:/m);
+    // REPL paints output with ANSI colour codes — strip before
+    // matching the structural shape.
+    const text = r.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
+    expect(text).toContain('::ParseError!{');
+    expect(text).toContain(':source "[1 2"');
   });
 });
 
@@ -98,14 +102,14 @@ describe('runRepl — output highlighting', () => {
     expect(r.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
-  it('paints the prompt with bold-cyan escape on every line', async () => {
+  it('paints the prompt with bright-white name + bold-cyan angle on every line', async () => {
     const r = captureRepl('.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(r.stdoutText()).toMatch(/\x1b\[1;36m/);
-    expect(r.stdoutText()).toMatch(/qlang>/);
+    expect(r.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
+    expect(r.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
-  it('translates `\\n` into `\\r\\n` for stderr writes in TTY mode', async () => {
+  it('translates ~{\\n} into ~{\\r\\n} for stderr writes in TTY mode', async () => {
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
@@ -115,17 +119,17 @@ describe('runRepl — output highlighting', () => {
     const stderrWrite = (text) => stderrChunks.push(text);
 
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
-    // A bare `[1 2` is a parse failure → host-level JS throw,
-    // which the REPL routes to stderr through writeDiagnostic.
-    // Ctrl+Enter (LF) is the submit keystroke in the multi-line
-    // editor; plain Enter (CR) would insert a soft newline.
-    ttyStdin.write(Buffer.from('[1 2\n'));
+    // A bare `[1 2` is a parse failure that the REPL routes to
+    // stderr through writeDiagnostic. Enter (CR) is the submit
+    // keystroke in the multi-line editor; Ctrl+Enter (LF) would
+    // insert a soft newline.
+    ttyStdin.write(Buffer.from('[1 2\r'));
     await new Promise((r) => setImmediate(r));
     ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
     await replPromise;
 
     const stderrText = stderrChunks.join('');
-    expect(stderrText).toMatch(/^error:/m);
+    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::ParseError!{');
     expect(stderrText).toMatch(/\r\n/);
   });
 
@@ -147,10 +151,10 @@ describe('runRepl — output highlighting', () => {
 
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
     // Type "42", which should redraw with the yellow escape, then
-    // submit Ctrl+Enter (LF), then close on Ctrl+D from an empty
+    // submit with Enter (CR), then close on Ctrl+D from an empty
     // buffer.
     ttyStdin.write(Buffer.from('42'));
-    ttyStdin.write(Buffer.from('\n'));
+    ttyStdin.write(Buffer.from('\r'));
     await new Promise((r) => setImmediate(r));
     ttyStdin.write(Buffer.from([0x04])); // Ctrl+D on empty buffer
     await replPromise;
@@ -160,8 +164,41 @@ describe('runRepl — output highlighting', () => {
   });
 });
 
+describe('runRepl — render-invariant catch', () => {
+  it('catches FunctionValueLeakedToPrintError and continues prompting', async () => {
+    // `env | /mul | /:impl` walks env → mul's raw descriptor
+    // Map (the env binding carries `:kind ::builtin` + `:impl <fn>`
+    // — `env` returns the storage Map directly, while `manifest`
+    // builds its own user-facing projection) → the resolved function
+    // value sitting on `:impl`. printValue refuses raw function
+    // values via FunctionValueLeakedToPrintError; the REPL renderer
+    // catches that, writes a render-invariant diagnostic to stderr,
+    // and stays open for the next prompt.
+    const r = captureRepl('env | /mul | /:impl\n.exit\n');
+    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    expect(exitCode).toBe(0);
+    expect(stripAnsi(r.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrintError/);
+  });
+
+  it('renders an error-value with materialised :trail through the same printValue path as success values', async () => {
+    // `materializePendingTrail` runs inside `session.evalCell`, so
+    // by the time the REPL receives the cell entry the descriptor's
+    // `:trail` is already a single Quote covering every deflected
+    // step (no `_trailHead` remnant). The REPL renders the value
+    // verbatim through `printValue`.
+    const query = '!{:kind :first} | count !| union({:k 1}) | error | add(1) | mul(2)';
+    const r = captureRepl(query + '\n.exit\n');
+    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    expect(exitCode).toBe(0);
+    const out = stripAnsi(r.stderrText());
+    expect(out).toMatch(/count/);
+    expect(out).toMatch(/add\(1\)/);
+    expect(out).toMatch(/mul\(2\)/);
+  });
+});
+
 describe('runRepl — @in / @out behaviour', () => {
-  it('binds `@in` to return the empty String so the cell does not deadlock against the prompt', async () => {
+  it('binds ~{@in} to return the empty String so the cell does not deadlock against the prompt', async () => {
     const r = captureRepl('@in | pretty | @out\n.exit\n');
     await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
     // `@in` resolves to ''. pretty renders it as the qlang String

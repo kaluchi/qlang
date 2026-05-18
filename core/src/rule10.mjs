@@ -10,15 +10,15 @@
 // captured-arg lambdas against it, call the pure core, and wrap
 // the result back into a new state with `withPipeValue`.
 //
-// Reflective operands (env, use, reify, manifest) use the
+// Reflective operands (env, use, manifest, runExamples) use the
 // `stateOp` / `stateOpVariadic` helpers, which do NOT descend to
 // the value level — the impl receives the full state and returns
 // a full state, giving it read/write access to `env`.
 //
-// Captured arguments are LAMBDAS, not pre-resolved values: each
-// captured expression becomes an `(input) → value` closure that
-// the operand impl can invoke zero, one, or many times, with
-// whatever input the operand chooses. Higher-order operands like
+// Captured arguments are LAMBDAS: each captured expression becomes
+// an `(input) → value` closure that the operand impl can invoke
+// zero, one, or many times, with whatever input the operand
+// chooses. Higher-order operands like
 // `filter` invoke the lambda per element; value operands like
 // `mul` invoke it once against the subject (or the context, in
 // full application).
@@ -26,7 +26,7 @@
 import { declareArityError } from './operand-errors.mjs';
 import { classifyEffect } from './effect.mjs';
 
-const Rule10ArityOverflow = declareArityError('Rule10ArityOverflow',
+const Rule10ArityOverflowError = declareArityError('Rule10ArityOverflowError',
   ({ operandName, maxArity, actualArity }) =>
     `${operandName} accepts at most ${maxArity} captured arguments, got ${actualArity}`);
 
@@ -38,7 +38,7 @@ const Rule10ArityOverflow = declareArityError('Rule10ArityOverflow',
 // maximum.
 export async function applyRule10(fn, appliedLambdas, state) {
   if (appliedLambdas.length > fn.arity) {
-    throw new Rule10ArityOverflow({
+    throw new Rule10ArityOverflowError({
       operandName: fn.name,
       maxArity: fn.arity,
       actualArity: appliedLambdas.length
@@ -54,18 +54,26 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // `runtime/dispatch.mjs` build value-core friendly wrappers on
 // top of this base.
 //
-// `meta` is an object carrying the operand's documentation and
-// contract — read by `reify` to build descriptors. Required for
-// every operand registered in `langRuntime`. Shape:
-//   {
-//     category:  string         // e.g. 'vec-reducer', 'arith'
-//     subject:   string         // type label of the subject (pos 1)
-//     modifiers: string[]       // type labels of captured arg slots
-//     returns:   string         // type label of the result
-//     docs:      string[]       // Vec of doc-block contents
-//     examples:  string[]       // example query strings
-//     throws:    string[]       // names of error sites this op raises
-//   }
+// `meta` carries only the per-impl structural fields the runtime
+// itself reads. For the dispatch wrappers (`valueOp`,
+// `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
+// `stateOpVariadic`, `higherOrderOpVariadic`) the shape is
+// `{ captured: [min, max] }` — the [min, max] count of captured
+// arg slots the operand accepts, derived structurally from the
+// dispatch wrapper itself. Catalog-bound builtin descriptors keep
+// their `category` / `subject` / `modifiers` / `returns` / `throws`
+// fields on the authored `core/lib/qlang/**/*.qlang` Map; `manifest`
+// reads them through descriptor projection at enumeration time, so
+// the JS layer holds no duplicated authored meta.
+//
+// `makeConduitParameter` (in `eval.mjs`) is the lone JS-side
+// builder that mints a function value WITH a full meta shape
+// inline — conduit-parameter proxies are ephemeral, live only
+// for the duration of a conduit body fork, and have no catalog
+// entry to project meta from. The proxy's full meta lets the
+// `isFunctionValue` branch of `manifest`'s `describeBinding` build
+// a `:kind ::builtin` descriptor for the proxy without a
+// descriptor-Map round-trip.
 export function makeFn(name, arity, impl, meta) {
   return Object.freeze({
     type: 'function',

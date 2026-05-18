@@ -44,8 +44,8 @@ describe('astChildrenOf', () => {
     expect(keyAndValue[0].name).toBe('name');
   });
 
-  it('yields args for a let(:name, body) OperandCall', () => {
-    const ast = parse('let(:double, mul(2))');
+  it('yields args for a :name body OperandCall', () => {
+    const ast = parse(':double mul(2)');
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('Keyword');
@@ -179,12 +179,13 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.every(n => n.type === 'OperandCall' && n.name === 'count')).toBe(true);
   });
 
-  it('finds let(:name, ...) declaration alongside read sites', () => {
-    const ast = parse('let(:double, mul(2)) | double');
+  it('finds :name ... declaration alongside read sites', () => {
+    const ast = parse(':double mul(2) | double');
     const refs = findIdentifierOccurrences(ast, 'double');
-    // Both the let(:double, ...) declaration and the bare `double` read
-    // should be found. The let OperandCall matches because its first
-    // Keyword arg names 'double'.
+    // Both the `:double …` BindStep declaration and the bare
+    // `double` read site land in the result — the BindStep matches
+    // because its `.key` Keyword names `double`, the read site
+    // matches as an OperandCall named `double`.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -200,11 +201,32 @@ describe('findIdentifierOccurrences', () => {
     const refs = findIdentifierOccurrences(ast, 'foo');
     expect(refs).toHaveLength(0);
   });
+
+  it('finds TaggedLit occurrences when name carries the :: prefix', () => {
+    const ast = parse('::conduit[[] ~{count}]');
+    const refs = findIdentifierOccurrences(ast, '::conduit');
+    // The TaggedLit node itself plus any nested references; here
+    // only the constructor invocation matches.
+    expect(refs.length).toBeGreaterThanOrEqual(1);
+    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'conduit')).toBe(true);
+  });
+
+  it('finds BareTypeKeyword occurrences for tag-namespace lookup', () => {
+    const ast = parse('::conduit | source');
+    const refs = findIdentifierOccurrences(ast, '::conduit');
+    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'conduit')).toBe(true);
+  });
+
+  it('finds BindStep tag-binding declaration via :: lookup', () => {
+    const ast = parse('::Box {:kind :tag}');
+    const refs = findIdentifierOccurrences(ast, '::Box');
+    expect(refs.some(n => n.type === 'BindStep' && n.key.type === 'BareTypeKeyword' && n.key.tag === 'Box')).toBe(true);
+  });
 });
 
 describe('bindingNamesVisibleAt', () => {
-  it('returns let names declared lexically before the cursor', () => {
-    const source = 'let(:x, 1) | let(:y, 2) | z';
+  it('returns BindStep names declared lexically before the cursor', () => {
+    const source = ':x 1 | :y 2 | z';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('x')).toBe(true);
@@ -212,7 +234,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('does not include bindings that are still ahead of the cursor', () => {
-    const source = 'let(:early, 1) | here | let(:late, 2)';
+    const source = ':early 1 | here | :late 2';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
@@ -227,8 +249,27 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('answer')).toBe(true);
   });
 
+  it('skips zero-arg as() — no name to bind', () => {
+    const source = 'as() | here';
+    const ast = parse(source);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere);
+    expect(visible.size).toBe(0);
+  });
+
+  it('a non-binding Pipeline step does not contribute names', () => {
+    // `mul(2)` is an OperandCall, not a BindStep or `as`; the
+    // binding-name walker skips it. With no binders in scope at the
+    // cursor, the visible set stays empty.
+    const source = '42 | mul(2) | here';
+    const ast = parse(source);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere);
+    expect(visible.size).toBe(0);
+  });
+
   it('hides bindings whose enclosing ParenGroup has already closed', () => {
-    const source = '(let(:local, 1) | local) | here';
+    const source = '(:local 1 | local) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
@@ -236,7 +277,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('still sees a binding while inside its enclosing ParenGroup', () => {
-    const source = '(let(:local, 1) | local | other)';
+    const source = '(:local 1 | local | other)';
     const ast = parse(source);
     const cursorAtOther = source.indexOf('other');
     const visible = bindingNamesVisibleAt(ast, cursorAtOther);
@@ -244,7 +285,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Vec element from a sibling element', () => {
-    const source = '[let(:x, 1), x]';
+    const source = '[:x 1 x]';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -252,7 +293,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Map entry value from a sibling entry value', () => {
-    const source = '{:a let(:x, 1) :b x}';
+    const source = '{:a (:x 1 | x) :b x}';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -260,11 +301,83 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('top-level binding remains visible inside any number of nested forks', () => {
-    const source = 'let(:outer, 1) | (([{:k outer}]))';
+    const source = ':outer 1 | (([{:k outer}]))';
     const ast = parse(source);
     const cursorAtInnerOuter = source.lastIndexOf('outer');
     const visible = bindingNamesVisibleAt(ast, cursorAtInnerOuter);
     expect(visible.has('outer')).toBe(true);
+  });
+
+  it('TAG_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
+    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = '::MyType {:kind :tag :impl ~{42}} | 42';
+    const ast = parse(source);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
+    expect(visible.has('::MyType')).toBe(true);
+  });
+
+  it('TAG_NAMESPACE skips value-namespace BindStep declarations', async () => {
+    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = ':valueName 1 | 42';
+    const ast = parse(source);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
+    expect(visible.has('valueName')).toBe(false);
+    expect(visible.has(':valueName')).toBe(false);
+    expect(visible.size).toBe(0);
+  });
+
+  it('TAG_NAMESPACE honours fork-isolation rules', async () => {
+    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+    const source = '(::Local {:kind :tag :impl ~{42}}) | here';
+    const ast = parse(source);
+    const cursorAtHere = source.indexOf('here');
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
+    expect(visible.has('::Local')).toBe(false);
+  });
+
+  it('bare `as` OperandCall with no args does not contribute names', () => {
+    // `as` at the head of the pipeline parses as an OperandCall with
+    // `args = null` (bare identifier, no parens) — distinct shape
+    // from `as()` which parses with `args = []`. Both routes lead
+    // through the same `firstArg.type !== 'Keyword'` short-circuit
+    // because there is no `firstArg` to inspect at all.
+    const ast = parse('as | count');
+    const visible = bindingNamesVisibleAt(ast, ast.source.length);
+    expect(visible.size).toBe(0);
+  });
+
+  it('does not add binding when as first arg is not a Keyword AST node', () => {
+    // Synthetic AST: `as(42, count)` — non-Keyword first arg, the
+    // shape that drives the `firstArg.type !== 'Keyword'` early
+    // return inside the `as`-recogniser branch. Parser never emits
+    // this shape (the grammar requires a Keyword in the first slot),
+    // but the walker hardens against hand-assembled or codec-replay
+    // AST input that bypasses the grammar.
+    const loc = { start: { offset: 0 }, end: { offset: 10 } };
+    const synAst = {
+      type: 'OperandCall',
+      name: 'as',
+      args: [
+        { type: 'NumberLit', value: 42, location: loc },
+        { type: 'OperandCall', name: 'count', args: null, location: loc }
+      ],
+      location: loc
+    };
+    expect(bindingNamesVisibleAt(synAst, 999).size).toBe(0);
+  });
+
+  it('`as` binding inside a fork-isolating paren not containing offset stays invisible', () => {
+    // Fork-isolation: paren-group siblings hide their writes from
+    // each other and from the outer scope. `as(:x)` writes a
+    // snapshot under :x inside the paren; offset past the paren
+    // closer must not see it. Companion check to the BindStep
+    // form `(:local 1 | local) | here` above — same isolation rule
+    // governs both binding mechanisms.
+    const src = '(42 | as(:x)) | count';
+    const ast = parse(src);
+    const offsetAfterParen = src.indexOf('| count');
+    const visible = bindingNamesVisibleAt(ast, offsetAfterParen);
+    expect(visible.has('x')).toBe(false);
   });
 });
 
@@ -333,3 +446,4 @@ describe('triviaBetweenAstNodes', () => {
     expect(triviaBetweenAstNodes({}, {}, { source: 'x' })).toBe('');
   });
 });
+

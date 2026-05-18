@@ -9,13 +9,15 @@
 //   decorateAstWithEffectMarkers(ast) — post-parse pass that stamps
 //     a boolean `.effectful` field on every OperandCall and Projection
 //     node. Downstream consumers (editor highlight, refactor,
-//     autocomplete, reify descriptors, runtime safety net) read
+//     autocomplete, manifest descriptors, runtime safety net) read
 //     `.effectful` and never re-derive the property from the source
 //     name.
 //
 //   findFirstEffectfulIdentifier(node) — returns the first effectful
-//     identifier in a subtree, or null. Used by the `let` operand
-//     impl (runtime/intro.mjs) for eval-time effect validation.
+//     identifier in a subtree, or null. Used by `evalBindStep` in
+//     `eval.mjs` to refuse a BindStep declaration whose body
+//     references an `@`-effectful identifier under a non-`@`
+//     binding name.
 
 import { walkAst } from './walk.mjs';
 import { classifyEffect } from './effect.mjs';

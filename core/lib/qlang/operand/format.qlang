@@ -1,0 +1,66 @@
+|~ qlang operand catalog — format family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
+
+:json
+  |~~ Returns a JSON string representation of the subject.
+      Keywords are emitted as colon-prefixed strings, Sets as JSON
+      arrays, Maps as JSON objects with Keyword names as keys. ~~|
+  ::builtin{:impl :qlang/prim/json
+            :category :format
+            :subject :any
+            :returns :string
+   }
+
+:qlang
+  |~~ Recursively converts JSON shape to qlang shape. JsonObject
+      becomes a qlang Map keyed by the same string keys; JsonArray
+      becomes a qlang Vec. Scalars and qlang-only values pass
+      through unchanged. Idempotent: applying to an already-qlang
+      value returns the same shape. The literal-time pendant is the
+      `::qlang<payload>` TaggedLit constructor; the inverse
+      direction (qlang shape to JSON shape) is the `::json`
+      constructor — both ride the `:type-conversion` taxonomy
+      slot alongside the String↔Keyword involution `keyword`.
+
+      ~{::json{"a" : 1} | qlang | isMap | eq(true)}
+      ~{::json[1, 2] | qlang | isVec | eq(true)}
+      ~{{:a 1} | qlang | isMap | eq(true)}
+      ~{[1 2 3] | qlang | isVec | eq(true)}
+      ~{42 | qlang | eq(42)} ~~|
+  ::builtin{:impl :qlang/prim/qlang
+            :category :type-conversion
+            :subject :any
+            :returns :any
+   }
+
+:table
+  |~~ Renders a Vec of Maps as a fixed-width tabular string.
+      Columns are derived from keys in first-occurrence order
+      across all rows; missing keys render as empty cells.
+      Empty Vec yields the marker "(empty)". ~~|
+  ::builtin{:impl :qlang/prim/table
+            :category :format
+            :subject :vec
+            :returns :string
+            :throws [::TableSubjectNotVecError ::TableRowNotMapError]}
+
+::TableSubjectNotVecError
+  |~~ Subject of `table` must be Vec.
+      ~{
+        42 | table
+        !| [type /actualType]
+        |  eq([::TableSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :table :position :subject :expectedType :vec}
+
+::TableRowNotMapError
+  |~~ Element of `table` input collection must be Map.
+      ~{
+        [42 "hello"] | table
+        !| [type /actualType /index]
+        |  eq([::TableRowNotMapError :number 0])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :table :expectedType :map}

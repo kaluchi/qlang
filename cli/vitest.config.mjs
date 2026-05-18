@@ -3,6 +3,13 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['test/**/*.test.mjs'],
+    // Integration tests live under `test/integration/` and run
+    // through `vitest.integration.config.mjs` via a dedicated
+    // `test:integration` script — they spawn child processes and
+    // pay an order-of-magnitude longer wall-clock per case, so
+    // the default `npm test` keeps fast-feedback semantics and
+    // the coverage gate stays in-process.
+    exclude: ['node_modules/**', 'test/integration/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],

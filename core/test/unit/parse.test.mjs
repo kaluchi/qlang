@@ -136,9 +136,17 @@ describe('parse — Vec literal', () => {
   });
 
   it('parses a nested Vec', () => {
-    const ast = parse('[[1] [2]]');
+    const ast = parse('[[:a] [:b]]');
+    expect(ast.type).toBe('VecLit');
     expect(ast.elements[0].type).toBe('VecLit');
     expect(ast.elements[1].type).toBe('VecLit');
+  });
+
+  it('parses a nested Vec where each inner is single JSON-only', () => {
+    const ast = parse('[[1] [2]]');
+    expect(ast.type).toBe('VecLit');
+    expect(ast.elements[0].type).toBe('JsonArrayLit');
+    expect(ast.elements[1].type).toBe('JsonArrayLit');
   });
 });
 
@@ -160,11 +168,6 @@ describe('parse — Map literal', () => {
     const ast = parse('{:name "Alice" :age 30}');
     expect(ast.entries).toHaveLength(2);
     expect(ast.entries.map(e => e.key.name)).toEqual(['name', 'age']);
-  });
-
-  it('parses a Map with comma separators', () => {
-    const ast = parse('{:a 1, :b 2}');
-    expect(ast.entries).toHaveLength(2);
   });
 
   it('parses a Map whose value is itself a Map', () => {
@@ -248,7 +251,7 @@ describe('parse — OperandCall', () => {
   });
 });
 
-describe('parse — let and as as operand calls', () => {
+describe('parse — bindings: BindStep and as operand', () => {
   it('parses as(:name) as an OperandCall', () => {
     const ast = parse('as(:roster)');
     expect(ast.type).toBe('OperandCall');
@@ -258,21 +261,16 @@ describe('parse — let and as as operand calls', () => {
     expect(ast.args[0].name).toBe('roster');
   });
 
-  it('parses let(:name, body) as an OperandCall', () => {
-    const ast = parse('let(:double, mul(2))');
-    expect(ast.type).toBe('OperandCall');
-    expect(ast.name).toBe('let');
-    expect(ast.args).toHaveLength(2);
-    expect(ast.args[0].type).toBe('Keyword');
-    expect(ast.args[1].type).toBe('OperandCall');
+  it('parses :name body as a BindStep', () => {
+    const ast = parse(':double mul(2)');
+    expect(ast.type).toBe('BindStep');
+    expect(ast.key.type).toBe('Keyword');
+    expect(ast.key.name).toBe('double');
+    expect(ast.body.type).toBe('OperandCall');
+    expect(ast.body.name).toBe('mul');
   });
 
-  it('let and as are no longer reserved words', () => {
-    // They parse as ordinary identifiers / OperandCall names.
-    const letAst = parse('let');
-    expect(letAst.type).toBe('OperandCall');
-    expect(letAst.name).toBe('let');
-
+  it('as is not reserved — it parses as an ordinary identifier reference', () => {
     const asAst = parse('as');
     expect(asAst.type).toBe('OperandCall');
     expect(asAst.name).toBe('as');
@@ -307,11 +305,12 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].step.name).toBe('as');
   });
 
-  it('parses let(:name, body) inside a pipeline', () => {
-    const ast = parse('items | let(:total, count) | total');
+  it('parses :name body as a BindStep inside a pipeline', () => {
+    const ast = parse('items | :total count | total');
     expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('OperandCall');
-    expect(ast.steps[1].step.name).toBe('let');
+    expect(ast.steps[1].step.type).toBe('BindStep');
+    expect(ast.steps[1].step.key.type).toBe('Keyword');
+    expect(ast.steps[1].step.key.name).toBe('total');
   });
 });
 
@@ -486,24 +485,24 @@ describe('parse — per-node location and text', () => {
 });
 
 describe('parse — projection with digit-led / hyphen-led bare segments', () => {
-  it('parses `/0` as a single-segment projection with key "0"', () => {
+  it('parses ~{/0} as a single-segment projection with key "0"', () => {
     const ast = parse('/0');
     expect(ast.type).toBe('Projection');
     expect(ast.keys).toEqual(['0']);
   });
 
-  it('parses `/-1` as a single-segment projection with key "-1"', () => {
+  it('parses ~{/-1} as a single-segment projection with key "-1"', () => {
     const ast = parse('/-1');
     expect(ast.type).toBe('Projection');
     expect(ast.keys).toEqual(['-1']);
   });
 
-  it('parses `/items/0/name` as a three-segment mixed path', () => {
+  it('parses ~{/items/0/name} as a three-segment mixed path', () => {
     const ast = parse('/items/0/name');
     expect(ast.keys).toEqual(['items', '0', 'name']);
   });
 
-  it('parses `/rows/-1/0` as a three-segment mixed path with negative index', () => {
+  it('parses ~{/rows/-1/0} as a three-segment mixed path with negative index', () => {
     const ast = parse('/rows/-1/0');
     expect(ast.keys).toEqual(['rows', '-1', '0']);
   });
@@ -516,10 +515,10 @@ describe('parse — projection with digit-led / hyphen-led bare segments', () =>
   });
 });
 
-describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
+describe('parse — MapLit whitespace tolerance around string-key ~{:}', () => {
   it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
     const ast = parse('{ "name" : "alice" }');
-    expect(ast.type).toBe('MapLit');
+    expect(ast.type).toBe('JsonObjectLit');
     expect(ast.entries).toHaveLength(1);
     expect(ast.entries[0].key.name).toBe('name');
     expect(ast.entries[0].value.value).toBe('alice');
@@ -528,7 +527,7 @@ describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
   it('accepts whitespace around colon with digit-led string key', () => {
     const ast = parse('{ "0" : [0, 1] }');
     expect(ast.entries[0].key.name).toBe('0');
-    expect(ast.entries[0].value.type).toBe('VecLit');
+    expect(ast.entries[0].value.type).toBe('JsonArrayLit');
   });
 
   it('accepts newline between string key and colon', () => {
@@ -623,5 +622,63 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     const ast = parse(':"🙂"');
     expect(ast.type).toBe('Keyword');
     expect(ast.name).toBe('🙂');
+  });
+});
+
+describe('parse.mjs — input guards and ParseError shape', () => {
+  it('rethrows non-PeggySyntaxError as-is', () => {
+    expect(() => parse(undefined)).toThrow(/string source/);
+  });
+
+  it('exposes ParseError with location', () => {
+    try { parse('{:k}'); } catch (e) {
+      expect(e.location).toBeTruthy();
+    }
+  });
+});
+
+describe('parser doc-comment attachment Vec semantics', () => {
+  it('attaches one entry per doc comment, not concatenated', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~| First.\n|~~| Second.\n|~~| Third.\n:foo 42 | :foo | docs * /content'
+    );
+    expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
+  });
+
+  it('block doc preserves internal newlines as one entry', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~ line one\nline two\nline three ~~|\n:foo 42\n| :foo | docs * /content'
+    );
+    expect(docsResult.length).toBe(1);
+    expect(docsResult[0]).toContain('line one');
+    expect(docsResult[0]).toContain('line two');
+    expect(docsResult[0]).toContain('line three');
+  });
+
+  it('mixes line and block docs preserving order', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~| line one\n|~~ block two ~~|\n|~~| line three\n:foo 42 | :foo | docs * /content'
+    );
+    expect(docsResult.length).toBe(3);
+    expect(docsResult[0]).toBe(' line one');
+    expect(docsResult[1]).toContain('block two');
+    expect(docsResult[2]).toBe(' line three');
+  });
+
+  it('shadowing redeclare overrides docs Vec', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const docsResult = await evalQuery(
+      '|~~| Old.\n:foo 1\n|~~| Brand new.\n|~~| With extra remark.\n:foo 2\n| :foo | docs * /content'
+    );
+    expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
+  });
+
+  it('comment step is identity on pipeValue', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
+    expect(await evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);
   });
 });

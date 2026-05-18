@@ -1,0 +1,553 @@
+|~ qlang operand catalog — vec family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
+
+:first
+  |~~ Returns the first element of a Vec, or null if the Vec
+      is empty. Vec-only — Set is unordered, so "first element" is
+      undefined on Sets.
+
+      ~{[10 20 30] | first | eq(10)}
+      ~{[] | first | eq(null)}
+  ~~|
+  ::builtin{:impl :qlang/prim/first
+            :category :vec-reducer
+            :subject :vec
+            :returns :any
+            :throws [::FirstSubjectNotVecError]}
+
+::FirstSubjectNotVecError
+  |~~ Subject of `first` must be Vec.
+      ~{
+        42 | first
+        !| [type /actualType]
+        |  eq([::FirstSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :first :position :subject :expectedType :vec}
+
+:last
+  |~~ Returns the last element of a Vec, or null if the Vec
+      is empty. Vec-only — Set is unordered.
+
+      ~{[10 20 30] | last | eq(30)}
+      ~{[] | last | eq(null)}
+  ~~|
+  ::builtin{:impl :qlang/prim/last
+            :category :vec-reducer
+            :subject :vec
+            :returns :any
+            :throws [::LastSubjectNotVecError]}
+
+::LastSubjectNotVecError
+  |~~ Subject of `last` must be Vec.
+      ~{
+        42 | last
+        !| [type /actualType]
+        |  eq([::LastSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :last :position :subject :expectedType :vec}
+
+:sum
+  |~~ Returns the numeric sum of elements. Polymorphic over Vec
+      and Set (sum is commutative, so Set's unordered semantics
+      do not affect the result). Empty container yields 0. Every
+      element must be a number. For Map, compose through
+      vals | sum or keys | sum depending on the axis.
+
+      ~{[1 2 3 4] | sum | eq(10)}
+      ~{[] | sum | eq(0)}
+      ~{#{1 2 3} | sum | eq(6)}
+      ~{{:a 10 :b 20} | vals | sum | eq(30)}
+  ~~|
+  ::builtin{:impl :qlang/prim/sum
+            :category :vec-reducer
+            :subject [:vec :set]
+            :returns :number
+            :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
+
+::SumSubjectNotVecOrSetError
+  |~~ Subject of `sum` must be Vec or Set.
+      ~{
+        42 | sum
+        !| [type /actualType]
+        |  eq([::SumSubjectNotVecOrSetError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sum :position :subject :expectedType [:vec :set]}
+
+::SumElementNotNumberError
+  |~~ Element of `sum` input collection must be Number.
+      ~{
+        [1 "two" 3] | sum
+        !| [type /actualType /index]
+        |  eq([::SumElementNotNumberError :string 1])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sum :expectedType :number}
+
+:min
+  |~~ Returns the minimum element under natural ordering.
+      Polymorphic over Vec and Set (min is order-independent).
+      Empty container yields null. All elements must be comparable
+      scalars of the same type.
+
+      ~{[3 1 4 1 5] | min | eq(1)}
+      ~{["b" "a" "c"] | min | eq("a")}
+      ~{#{3 1 4} | min | eq(1)}
+  ~~|
+  ::builtin{:impl :qlang/prim/min
+            :category :vec-reducer
+            :subject [:vec :set]
+            :returns :any
+            :throws [::MinSubjectNotVecOrSetError ::MinElementsNotComparableError]}
+
+::MinSubjectNotVecOrSetError
+  |~~ Subject of `min` must be Vec or Set.
+      ~{
+        42 | min
+        !| [type /actualType]
+        |  eq([::MinSubjectNotVecOrSetError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :min :position :subject :expectedType [:vec :set]}
+
+::MinElementsNotComparableError
+  |~~ Operands of `min` are not pairwise-comparable scalars.
+      ~{
+        [1 "two"] | min
+        !| [type /leftType /rightType]
+        |  eq([::MinElementsNotComparableError :number :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :min}
+
+:max
+  |~~ Returns the maximum element under natural ordering.
+      Polymorphic over Vec and Set (max is order-independent).
+      Empty container yields null. All elements must be comparable
+      scalars of the same type.
+
+      ~{[3 1 4 1 5] | max | eq(5)}
+      ~{["b" "a" "c"] | max | eq("c")}
+      ~{#{3 1 4} | max | eq(4)}
+  ~~|
+  ::builtin{:impl :qlang/prim/max
+            :category :vec-reducer
+            :subject [:vec :set]
+            :returns :any
+            :throws [::MaxSubjectNotVecOrSetError ::MaxElementsNotComparableError]}
+
+::MaxSubjectNotVecOrSetError
+  |~~ Subject of `max` must be Vec or Set.
+      ~{
+        42 | max
+        !| [type /actualType]
+        |  eq([::MaxSubjectNotVecOrSetError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :max :position :subject :expectedType [:vec :set]}
+
+::MaxElementsNotComparableError
+  |~~ Operands of `max` are not pairwise-comparable scalars.
+      ~{
+        [1 "two"] | max
+        !| [type /leftType /rightType]
+        |  eq([::MaxElementsNotComparableError :number :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :max}
+
+:firstNonZero
+  |~~ Returns the first non-zero number in a Vec. If all elements
+      are zero or the Vec is empty, returns 0. The composition
+      primitive for compound comparators in sortWith: each comparator
+      returns -1/0/1, and firstNonZero picks the first non-tie,
+      giving lexicographic ordering.
+
+      ~{[0 0 -1 0] | firstNonZero | eq(-1)}
+      ~{[0 0 0] | firstNonZero | eq(0)}
+  ~~|
+  ::builtin{:impl :qlang/prim/firstNonZero
+            :category :vec-reducer
+            :subject :vec
+            :returns :number
+            :throws [::FirstNonZeroSubjectNotVecError ::FirstNonZeroElementNotNumberError]}
+
+::FirstNonZeroSubjectNotVecError
+  |~~ Subject of `firstNonZero` must be Vec.
+      ~{
+        42 | firstNonZero
+        !| [type /actualType]
+        |  eq([::FirstNonZeroSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :firstNonZero :position :subject :expectedType :vec}
+
+::FirstNonZeroElementNotNumberError
+  |~~ Element of `firstNonZero` input collection must be Number.
+      ~{
+        [0 null 1] | firstNonZero
+        !| [type /actualType /index]
+        |  eq([::FirstNonZeroElementNotNumberError :null 1])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :firstNonZero :expectedType :number}
+
+:sort
+  |~~ Returns a new Vec sorted in natural ascending order.
+      Overloaded by arity: bare sort uses natural order, sort(key)
+      sorts by the value the key sub-pipeline returns for each
+      element.
+
+      ~{[3 1 4 1 5] | sort | eq([1 1 3 4 5])}
+      ~{[{:age 30} {:age 20}] | sort(/age) | eq([{:age 20} {:age 30}])}
+  ~~|
+  ::builtin{:impl :qlang/prim/sort
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :modifiers [:key-lambda]
+            :throws [
+   ::SortNaturalSubjectNotVecError
+   ::SortByKeySubjectNotVecError
+   ::SortNaturalNotComparableError
+   ::SortByKeyNotComparableError]}
+
+::SortNaturalSubjectNotVecError
+  |~~ Subject of `sort` must be Vec.
+      ~{
+        42 | sort
+        !| [type /actualType]
+        |  eq([::SortNaturalSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sort :position :subject :expectedType :vec}
+
+::SortByKeySubjectNotVecError
+  |~~ Subject of `sort(key)` must be Vec.
+      ~{
+        42 | sort(/x)
+        !| [type /actualType]
+        |  eq([::SortByKeySubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sort :position :subject :expectedType :vec}
+
+::SortNaturalNotComparableError
+  |~~ Operands of `sort` are not pairwise-comparable scalars.
+      ~{
+        [1 "two"] | sort
+        !| [type /leftType /rightType]
+        |  eq([::SortNaturalNotComparableError :string :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sort}
+
+::SortByKeyNotComparableError
+  |~~ Operands of `sort(key)` are not pairwise-comparable scalars.
+      ~{
+        [{:k 1} {:k "x"}] | sort(/k)
+        !| [type /leftType /rightType]
+        |  eq([::SortByKeyNotComparableError :string :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sort}
+
+:sortWith
+  |~~ Sorts a Vec using a custom comparator sub-pipeline. The
+      comparator receives a pair Map {:left a :right b} and must
+      return a number: negative places left before right, positive
+      places right before left, zero preserves relative order
+      (stable sort). Pair with asc/desc/firstNonZero for
+      declarative compound comparators.
+
+      ~{[3 1 2] | sortWith(sub(/left, /right)) | eq([1 2 3])}
+  ~~|
+  ::builtin{:impl :qlang/prim/sortWith
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :modifiers [:comparator-lambda]
+            :throws [::SortWithSubjectNotVecError ::SortWithCmpResultNotNumberError]}
+
+::SortWithSubjectNotVecError
+  |~~ Subject of `sortWith` must be Vec.
+      ~{
+        42 | sortWith(asc(/x))
+        !| [type /actualType]
+        |  eq([::SortWithSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sortWith :position :subject :expectedType :vec}
+
+::SortWithCmpResultNotNumberError
+  |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
+      ~{
+        [1 2] | sortWith(:tag)
+        !| [type /actualType]
+        |  eq([::SortWithCmpResultNotNumberError :keyword])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :sortWith :expectedType :number}
+
+:take
+  |~~ Returns the first n elements. If n exceeds length, returns
+      the whole Vec.
+
+      ~{[1 2 3 4 5] | take(3) | eq([1 2 3])}
+  ~~|
+  ::builtin{:impl :qlang/prim/take
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :modifiers [:number]
+            :throws [::TakeSubjectNotVecError ::TakeCountNotNumberError]}
+
+::TakeSubjectNotVecError
+  |~~ Subject of `take` must be Vec.
+      ~{
+        42 | take(1)
+        !| [type /actualType]
+        |  eq([::TakeSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :take :position :subject :expectedType :vec}
+
+::TakeCountNotNumberError
+  |~~ Captured argument at position 2 of `take` must be Number.
+      ~{
+        [1 2 3] | take("x")
+        !| [type /actualType]
+        |  eq([::TakeCountNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :take :position 2 :expectedType :number}
+
+:at
+  |~~ Polymorphic indexed access. On a Vec subject, returns the
+      element at integer index n (negative indices count from the end;
+      out-of-range returns null). On a Map subject, returns the value
+      at string key (missing key returns null). The soft counterpart of
+      the strict `/key` projection — `at` coalesces a miss to null,
+      `/key` raises `::ProjectionKeyNotInMapError`.
+
+      ~{[10 20 30] | at(1) | eq(20)}
+      ~{[10 20 30] | at(-1) | eq(30)}
+      ~{[10 20 30] | at(99) | eq(null)}
+      ~{{:a 1 :b 2} | at("a") | eq(1)}
+      ~{{:a 1} | at("z") | eq(null)}
+  ~~|
+  ::builtin{:impl :qlang/prim/at
+            :category :indexed-access
+            :subject [:vec :map]
+            :returns :any
+            :modifiers [:any]
+            :throws [::AtSubjectNotVecOrMapError ::AtIndexNotIntegerError ::AtKeyNotStringError]}
+
+::AtSubjectNotVecOrMapError
+  |~~ Subject of `at` must be Vec or Map.
+      ~{
+        42 | at(0)
+        !| [type /actualType]
+        |  eq([::AtSubjectNotVecOrMapError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :at :position :subject :expectedType [:vec :map]}
+
+::AtIndexNotIntegerError
+  |~~ Captured argument at position 2 of `at` must be Integer.
+      ~{
+        [1 2 3] | at(0.5)
+        !| [type /actualType]
+        |  eq([::AtIndexNotIntegerError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :at :position 2 :expectedType :integer}
+
+::AtKeyNotStringError
+  |~~ Captured argument at position 2 of `at` must be String (Map key).
+
+      ~{
+        {:a 1} | at(42)
+        !| [type /actualType]
+        |  eq([::AtKeyNotStringError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :at :position 2 :expectedType :string}
+
+:drop
+  |~~ Returns the Vec with the first n elements removed. If n
+      exceeds length, returns [].
+
+      ~{[1 2 3 4 5] | drop(2) | eq([3 4 5])}
+  ~~|
+  ::builtin{:impl :qlang/prim/drop
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :modifiers [:number]
+            :throws [::DropSubjectNotVecError ::DropCountNotNumberError]}
+
+::DropSubjectNotVecError
+  |~~ Subject of `drop` must be Vec.
+      ~{
+        42 | drop(1)
+        !| [type /actualType]
+        |  eq([::DropSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :drop :position :subject :expectedType :vec}
+
+::DropCountNotNumberError
+  |~~ Captured argument at position 2 of `drop` must be Number.
+      ~{
+        [1 2 3] | drop("x")
+        !| [type /actualType]
+        |  eq([::DropCountNotNumberError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :drop :position 2 :expectedType :number}
+
+:distinct
+  |~~ Returns a new Vec with duplicate elements removed, preserving
+      first-occurrence order. Duplication is decided by structural
+      equality — the same axiom that drives the `eq` operand. Two
+      Map / Vec / Set values carrying identical content collapse to
+      one even when they are distinct JS objects, so a recursive walk
+      that reaches the same logical node via multiple paths (diamond
+      hierarchies, fan-in references) yields a clean set.
+
+      ~{[1 2 1 3 2] | distinct | eq([1 2 3])}
+      ~{[{:id 1} {:id 2} {:id 1}] | distinct | eq([{:id 1} {:id 2}])}
+  ~~|
+  ::builtin{:impl :qlang/prim/distinct
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :throws [::DistinctSubjectNotVecError]}
+
+::DistinctSubjectNotVecError
+  |~~ Subject of `distinct` must be Vec.
+      ~{
+        42 | distinct
+        !| [type /actualType]
+        |  eq([::DistinctSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :distinct :position :subject :expectedType :vec}
+
+:reverse
+  |~~ Returns the Vec in reverse order.
+
+      ~{[1 2 3] | reverse | eq([3 2 1])}
+  ~~|
+  ::builtin{:impl :qlang/prim/reverse
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :throws [::ReverseSubjectNotVecError]}
+
+::ReverseSubjectNotVecError
+  |~~ Subject of `reverse` must be Vec.
+      ~{
+        42 | reverse
+        !| [type /actualType]
+        |  eq([::ReverseSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :reverse :position :subject :expectedType :vec}
+
+:flat
+  |~~ Flattens one level of nesting. Elements that are Vecs are
+      spliced in; other elements pass through unchanged.
+
+      ~{[[1 2] [3] [4 5]] | flat | eq([1 2 3 4 5])}
+  ~~|
+  ::builtin{:impl :qlang/prim/flat
+            :category :vec-transformer
+            :subject :vec
+            :returns :vec
+            :throws [::FlatSubjectNotVecError]}
+
+::FlatSubjectNotVecError
+  |~~ Subject of `flat` must be Vec.
+      ~{
+        42 | flat
+        !| [type /actualType]
+        |  eq([::FlatSubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :flat :position :subject :expectedType :vec}
+
+:groupBy
+  |~~ Partitions a Vec into a Map keyed by the result of the key
+      sub-pipeline applied to each element. Preserves first-occurrence
+      order for both the Map entry sequence and each bucket's element
+      list. The key sub-pipeline must return a Keyword for every
+      element.
+
+      ~{[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name | eq(["a" "c"])}
+  ~~|
+  ::builtin{:impl :qlang/prim/groupBy
+            :category :vec-transformer
+            :subject :vec
+            :returns :map
+            :modifiers [:key-lambda]
+            :throws [::GroupBySubjectNotVecError ::GroupByKeyNotKeywordError]}
+
+::GroupBySubjectNotVecError
+  |~~ Subject of `groupBy` must be Vec.
+      ~{
+        42 | groupBy(/k)
+        !| [type /actualType]
+        |  eq([::GroupBySubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :groupBy :position :subject :expectedType :vec}
+
+::GroupByKeyNotKeywordError
+  |~~ `groupBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
+      ~{
+        [{:k 1} {:k 2}] | groupBy(/k)
+        !| [type /actualType /index]
+        |  eq([::GroupByKeyNotKeywordError :number 0])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :groupBy :expectedType :keyword}
+
+:indexBy
+  |~~ Collapses a Vec into a Map keyed by the result of the key
+      sub-pipeline. On collision (two elements producing the same
+      key), the last element wins. The key sub-pipeline must return
+      a keyword for every element.
+
+      ~{[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name | eq("alice")}
+  ~~|
+  ::builtin{:impl :qlang/prim/indexBy
+            :category :vec-transformer
+            :subject :vec
+            :returns :map
+            :modifiers [:key-lambda]
+            :throws [::IndexBySubjectNotVecError ::IndexByKeyNotKeywordError]}
+
+::IndexBySubjectNotVecError
+  |~~ Subject of `indexBy` must be Vec.
+      ~{
+        42 | indexBy(/k)
+        !| [type /actualType]
+        |  eq([::IndexBySubjectNotVecError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :indexBy :position :subject :expectedType :vec}
+
+::IndexByKeyNotKeywordError
+  |~~ `indexBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
+      ~{
+        [{:k 1}] | indexBy(/k)
+        !| [type /actualType /index]
+        |  eq([::IndexByKeyNotKeywordError :number 0])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :indexBy :expectedType :keyword}

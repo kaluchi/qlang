@@ -2,25 +2,29 @@
 // invocations. The basic abstraction for REPL, notebook cells, and
 // any embedded use that needs sequential queries to share bindings.
 //
-// A session owns its env and grows it via `let` / `as` writes from
-// each evaluated cell. Builtins from langRuntime() are seeded at
-// construction. Cell history records every cell evaluated (source,
-// AST, result, error, env-after-cell) so a notebook UI can render
-// past cells and step-back navigation can revisit them.
+// A session owns its env and grows it via BindStep declarations
+// and `as(:name)` snapshots written by each evaluated cell.
+// Builtins from langRuntime() are seeded at construction. Cell
+// history records every cell evaluated (source, AST, result,
+// error, env-after-cell) so a notebook UI can render past cells
+// and step-back navigation can revisit them.
 
-import { parse } from './parse.mjs';
-import { evalAst } from './eval.mjs';
+import { parse, ParseError } from './parse.mjs';
+import { evalAst, materializePendingTrail } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
-import { makeState } from './state.mjs';
+import { makeState, envSet } from './state.mjs';
 import {
   isConduit,
   isSnapshot,
   isFunctionValue,
   makeConduit,
-  makeSnapshot
+  makeSnapshot,
+  makeQuote
 } from './types.mjs';
+import { moduleAstKey, RUNTIME_LOCATOR_KEY } from './env-keys.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
+import { errorFromParse } from './error-convert.mjs';
 import { QlangError } from './errors.mjs';
 
 const SESSION_SCHEMA_VERSION = 1;
@@ -78,10 +82,16 @@ class SessionBindingKindUnknownError extends QlangError {
 //                                 implicit subject of the query,
 //                                 so `qlang '/path'` acts as a
 //                                 filter without ceremony. When
-//                                 absent, pipeValue falls back to
-//                                 the env itself (REPL / historical
-//                                 behaviour for queries that start
-//                                 with a value producer)
+//                                 absent, pipeValue starts at
+//                                 `null`; the cell's first step
+//                                 must provide a head value (a
+//                                 literal, an identifier reference
+//                                 like `env`, a BindStep / `as`
+//                                 declaration, or a captured arg).
+//                                 Operands that need a typed
+//                                 subject fail fast on `null` with
+//                                 a clear subject-type error — no
+//                                 implicit env leak.
 //   cellHistory — array of executed cells (read-only inspection)
 //   env — current env Map (read-only inspection)
 //   bind(name, value) — install a binding directly into env (used
@@ -91,7 +101,7 @@ class SessionBindingKindUnknownError extends QlangError {
 export async function createSession(opts = {}) {
   let env = opts.env ?? await langRuntime();
   if (opts.locator) {
-    env = new Map(env).set('qlang/locator', opts.locator);
+    env = new Map(env).set(RUNTIME_LOCATOR_KEY, opts.locator);
   }
   const cellHistory = [];
 
@@ -103,14 +113,43 @@ export async function createSession(opts = {}) {
       let cellError = null;
       try {
         cellAst = parse(source, { uri: cellUri });
+        // Stamp the parsed cell AST under `qlang/ast/<cellUri>` so
+        // axis-operands (`source`, `docs`, `examples`) resolve
+        // BindStep bindings declared inside the same cell — same
+        // mechanism `evalQuery` uses for inline queries. Without it
+        // a cell's own `:foo |~~ note ~~|` declaration is invisible
+        // to a subsequent `:foo | docs` step, surfacing
+        // `::AxisBindingNotFoundError`. The Quote keeps both the
+        // verbatim source and the pre-parsed AST so axis-walkers
+        // skip a re-parse on every lookup.
+        env = envSet(env, moduleAstKey(cellUri), makeQuote(source, cellAst));
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
           ? evalOpts.initialPipeValue
-          : env;
+          : null;
         const cellInitialState = makeState(cellSeedPipeValue, env);
         const cellFinalState = await evalAst(cellAst, cellInitialState);
-        cellResult = cellFinalState.pipeValue;
+        // Flush any pending `_trailHead` linked-list into the
+        // descriptor's `:trail` field so the cell's result reflects
+        // the full deflection chain (`|` / `*` / `>>` deflections
+        // never auto-materialise; only `!|` does mid-pipeline). The
+        // script-mode renderer and the REPL both read the descriptor
+        // through printValue, which would otherwise elide
+        // `:trail null` and hide every deflected step.
+        cellResult = materializePendingTrail(cellFinalState.pipeValue);
         env = cellFinalState.env;
       } catch (evalCellErr) {
+        // Parse failures land BOTH as a first-class ErrorValue on
+        // the result channel AND keep a host-level marker on the
+        // error channel. The ErrorValue carries the structured
+        // `::ParseError!{:expected :found :excerpt …}` descriptor
+        // so `printValue` / projection consumers read the failure
+        // through the same path as any other error; the host-error
+        // marker lets `script-mode` distinguish a syntactic-failure
+        // exit (non-zero) from a runtime fail-track value that
+        // travels with exit 0 by spec.
+        if (evalCellErr instanceof ParseError) {
+          cellResult = errorFromParse(evalCellErr);
+        }
         cellError = evalCellErr;
       }
       const cellEntry = { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, envAfterCell: env };
@@ -145,10 +184,11 @@ export async function createSession(opts = {}) {
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore.
 //
-// User let bindings serialize as `{ kind: 'conduit', name, source, docs }`
-// where `source` is the parser-captured `.text` of the body AST.
-// User as bindings serialize as `{ kind: 'snapshot', name, value, docs }`
-// where `value` is the captured payload encoded via toTaggedJSON.
+// BindStep-bound conduits serialize as
+// `{ kind: 'conduit', name, source, docs }` where `source` is the
+// parser-captured `.text` of the body AST. `as`-bound snapshots
+// serialize as `{ kind: 'snapshot', name, value, docs }` where
+// `value` is the captured payload encoded via toTaggedJSON.
 export async function serializeSession(session) {
   const builtins = await langRuntime();
   const userBindings = [];
@@ -156,19 +196,18 @@ export async function serializeSession(session) {
     if (builtins.has(k)) continue;
     if (isFunctionValue(v)) continue; // user-installed functions are not portable
     if (isConduit(v)) {
-      const body = v.get('qlang/body');
       userBindings.push({
         kind: 'conduit',
         name: v.get('name'),
         params: [...v.get('params')],
-        source: body?.text ?? null,
+        source: v.get('source'),
         docs: [...v.get('docs')]
       });
     } else if (isSnapshot(v)) {
       userBindings.push({
         kind: 'snapshot',
         name: v.get('name'),
-        value: toTaggedJSON(v.get('qlang/value')),
+        value: toTaggedJSON(v.get('payload')),
         docs: [...v.get('docs')]
       });
     } else {
@@ -210,8 +249,8 @@ export async function deserializeSession(json) {
       // Allocate the envRef holder up front so the second pass below
       // can mutate `.env` after every binding has landed in session.env.
       // The holder identity is shared between the conduit and the
-      // second-pass walker — same tie-the-knot pattern letOperand uses
-      // at original declaration time.
+      // second-pass walker — same tie-the-knot pattern `evalBindStep`
+      // uses at original declaration time.
       const conduit = makeConduit(bodyAst, {
         name: binding.name,
         params: binding.params || [],
@@ -232,15 +271,15 @@ export async function deserializeSession(json) {
       throw new SessionBindingKindUnknownError(binding.kind);
     }
   }
-  // Second pass — wire each restored conduit's envRef to the now-
+  // Second pass — wire each restored conduit's envRef to the
   // complete session env so identifier lookup inside the conduit body
-  // resolves through a lexical anchor (matching letOperand) rather
+  // resolves through a lexical anchor (matching `evalBindStep`) rather
   // than falling back to the call-site `state.env` (which would give
   // dynamic scope and break shadowing-immune cross-conduit references
   // and recursive self-binding).
   for (const v of session.env.values()) {
     if (isConduit(v)) {
-      v.get('qlang/envRef').env = session.env;
+      v.get('envRef').env = session.env;
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

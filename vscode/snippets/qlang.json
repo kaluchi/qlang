@@ -1,13 +1,18 @@
 {
-  "let binding": {
-    "prefix": "let",
-    "body": ["let(:${1:name}, ${2:body})"],
-    "description": "Declare a zero-arity conduit"
+  "BindStep — zero-arity conduit": {
+    "prefix": "bind",
+    "body": [":${1:name} ${2:body}"],
+    "description": "Declare a zero-arity conduit via BindStep"
   },
-  "let parametric": {
-    "prefix": "letp",
-    "body": ["let(:${1:name}, [:${2:param}], ${3:body})"],
-    "description": "Declare a parametric conduit"
+  "BindStep — parametric conduit": {
+    "prefix": "bindp",
+    "body": [":${1:name} [:${2:param}] (${3:body})"],
+    "description": "Declare a parametric conduit via BindStep"
+  },
+  "BindStep — tag-binding": {
+    "prefix": "bindtag",
+    "body": ["::${1:Tag} {:kind :tag}"],
+    "description": "Declare a tag-namespace binding via BindStep"
   },
   "as snapshot": {
     "prefix": "as",
@@ -77,12 +82,12 @@
   "line doc comment": {
     "prefix": "|~~|",
     "body": ["|~~| ${1:doc}"],
-    "description": "Line doc comment — attaches to next operand call"
+    "description": "Line doc comment — attaches to next BindStep / as binding"
   },
   "block doc comment": {
     "prefix": "|~~",
     "body": ["|~~ ${1:doc} ~~|"],
-    "description": "Block doc comment — attaches to next operand call"
+    "description": "Block doc comment — attaches to next BindStep / as binding"
   },
   "unless": {
     "prefix": "unless",
@@ -123,10 +128,5 @@
     "prefix": "use",
     "body": ["{${1::key ${2:value}}} | use"],
     "description": "Import bindings into env via use"
-  },
-  "reify": {
-    "prefix": "reify",
-    "body": ["reify(:${1:name})"],
-    "description": "Inspect a binding's descriptor"
   }
 }

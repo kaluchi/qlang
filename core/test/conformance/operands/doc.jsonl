@@ -1,0 +1,31 @@
+{"name":"doc-block-empty","query":"|~~~~|","expect":"|~~~~|"}
+{"name":"doc-block-prose","query":"|~~ hello ~~|","expect":"|~~ hello ~~|"}
+{"name":"doc-block-multiline","query":"|~~\n  paragraph one\n  paragraph two\n~~|","expect":"|~~\n  paragraph one\n  paragraph two\n~~|"}
+{"name":"doc-block-with-keyword-references","query":"|~~ see :filter and :every ~~|","expect":"|~~ see :filter and :every ~~|"}
+{"name":"doc-line-form-renders-as-block","query":"|~~| oneliner","expect":"|~~ oneliner~~|"}
+{"name":"doc-line-form-empty","query":"|~~|","expect":"|~~~~|"}
+{"name":"doc-replaces-pipevalue","query":"42 | |~~ replaced ~~|","expect":"|~~ replaced ~~|"}
+{"name":"doc-content-projection","query":"|~~ x ~~| | /content","expect":"\" x \""}
+{"name":"doc-content-projection-empty","query":"|~~~~| | /content","expect":"\"\""}
+{"name":"doc-isDoc-true","query":"|~~ x ~~| | isDoc","expect":"true"}
+{"name":"doc-isDoc-false-string","query":"\"x\" | isDoc","expect":"false"}
+{"name":"doc-isDoc-false-quote","query":"~{x} | isDoc","expect":"false"}
+{"name":"doc-isDoc-false-number","query":"42 | isDoc","expect":"false"}
+{"name":"doc-isDoc-false-null","query":"null | isDoc","expect":"false"}
+{"name":"doc-eq-same-content","query":"eq(|~~ a ~~|, |~~ a ~~|)","expect":"true"}
+{"name":"doc-eq-different-content","query":"eq(|~~ a ~~|, |~~ b ~~|)","expect":"false"}
+{"name":"doc-eq-doc-vs-string","query":"eq(|~~ x ~~|, \"x\")","expect":"false"}
+{"name":"doc-eq-doc-vs-quote","query":"eq(|~~ x ~~|, ~{x})","expect":"false"}
+{"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | isDoc","expect":"true"}
+{"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | isDoc","expect":"true"}
+{"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | /content","expect":"\" second \""}
+{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/unknownKey} :input |~~ x ~~|}\n  :key \"unknownKey\"\n  :valueClass \"doc\"\n  :availableFields [\"content\" \"segments\"]\n}"}
+{"name":"doc-isVec-false","query":"|~~ x ~~| | isVec","expect":"false"}
+{"name":"doc-isMap-false","query":"|~~ x ~~| | isMap","expect":"false"}
+{"name":"doc-isString-false","query":"|~~ x ~~| | isString","expect":"false"}
+{"name":"doc-isNull-false","query":"|~~ x ~~| | isNull","expect":"false"}
+{"name":"doc-line-isDoc","query":"|~~| line content\n  | isDoc","expect":"true"}
+{"name":"doc-with-backticks-in-content","query":"|~~ see ~{mul(2)} for ref ~~|","expect":"|~~ see ~{mul(2)} for ref ~~|"}
+{"name":"doc-eq-self","query":"|~~ same ~~| | as(:d) | eq(d)","expect":"true"}
+{"name":"doc-as-binding","query":"|~~ note ~~| | as(:n) | n | /content","expect":"\" note \""}
+{"name":"doc-isFunction-keyword-not-doc","query":":isDoc | isDoc","expect":"false"}

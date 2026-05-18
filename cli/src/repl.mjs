@@ -1,13 +1,15 @@
 // REPL for the qlang CLI. Persistent session across cells —
-// `let(:x, 42)` followed later by `x | pretty | @out` works inside
+// a BindStep `:x 42` followed by `x | pretty | @out` works inside
 // one session.
 //
 // Built on `cli/src/line-editor.mjs`:
 //   * In a real terminal: raw-mode keystroke capture, every byte
 //     re-renders the current line through `highlightAnsi` so input
 //     paints live as the user types; bracketed-paste support means
-//     a multi-line JSON paste lands as ONE cell instead of N
-//     parse failures; cursor motion (Left/Right/Home/End/Ctrl+A/E)
+//     a multi-line JSON paste lands as ONE cell — the terminal-
+//     emitted `\x1b[200~ … \x1b[201~` wrappers gate the newlines
+//     so the editor submits the whole block atomically; cursor
+//     motion (Left/Right/Home/End/Ctrl+A/E)
 //     and Backspace/Delete-forward all work.
 //   * In a pipe / scripted test: line-buffered passthrough, no
 //     escapes, no raw mode — the same handler reads `'line'`
@@ -19,8 +21,9 @@
 //     script mode stays silent without `@out` by design.
 //   * Error values auto-materialize their trail before display —
 //     deflected steps accumulated in `_trailHead` are folded into
-//     the `:trail` Vec so the printed output shows the full
-//     picture without requiring an explicit `!|` step.
+//     the `:trail` Quote-value so the printed output shows the
+//     full pipeline-suffix source without requiring an explicit
+//     `!|` step.
 //   * `@in` resolves to the empty String — interactive stdin is
 //     consumed by the prompt itself, so reading "stdin" from
 //     inside a cell would deadlock against the line editor.
@@ -35,7 +38,6 @@ import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printValue,
   isErrorValue,
-  materializeTrail,
   langRuntime
 } from '@kaluchi/qlang-core';
 import { bindIoOperands } from './io-operands.mjs';
@@ -44,18 +46,19 @@ import { bindParseOperands } from './parse-operands.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
 
-const PROMPT = '\x1b[1;36mqlang>\x1b[0m ';
+const PROMPT = '\x1b[1;97mqlang\x1b[0m\x1b[1;36m>\x1b[0m ';
 
 const REPL_HELP = `Meta commands:
   .help    list meta commands
   .exit    close the REPL (Ctrl+D on an empty line works too)
 
 Editing:
-  Enter               insert a newline (the buffer stays open;
-                      multi-line cells are the default)
-  Ctrl+Enter / Ctrl+J evaluate the current cell
-  Alt+Enter           evaluate the current cell (fallback for
-                      terminals that do not distinguish Ctrl+Enter)
+  Enter               evaluate the current cell (PowerShell / bash
+                      muscle-memory parity)
+  Ctrl+Enter / Ctrl+J insert a soft newline at the cursor — keep
+                      composing a multi-line cell
+  Alt+Enter           evaluate the current cell (alternate submit
+                      for hosts that intercept Ctrl+Enter)
   Backspace           delete the character before the cursor
                       (across \`\\n\` if needed — rows collapse)
   Left / Right        move the cursor by one character
@@ -69,8 +72,8 @@ with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
 projection like \`| /key\` can land on the same cell as the paste.
 
-Bindings introduced with let / as persist across cells within the
-same REPL session.
+Bindings introduced via BindStep (\`:name body\`) or \`as(:name)\`
+persist across cells within the same REPL session.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
@@ -155,29 +158,37 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
 }
 
 function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
-  if (cellEntry.error !== null) {
-    stderrWrite(`error: ${cellEntry.error.message}\n`);
-    return;
-  }
-  let result = cellEntry.result;
-  if (isErrorValue(result)) {
-    result = materializeForDisplay(result);
-    const rendered = highlightAnsi(printValue(result), builtinNames);
-    stderrWrite(rendered + '\n');
-    return;
-  }
-  stdoutWrite(highlightAnsi(printValue(result), builtinNames) + '\n');
+  // Parse failures and runtime fail-track errors both surface as
+  // `isErrorValue(cellEntry.result)` — session.evalCell lifts
+  // ParseError through `errorFromParse` so the same structured
+  // `::Tag!{…}` print path covers both. The descriptor's `:trail`
+  // is already materialised by `materializePendingTrail` inside
+  // session.evalCell (`_trailHead` is null at this point), so the
+  // REPL can render the value as-is.
+  const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
+  const rendered = renderForTerminal(cellEntry.result, builtinNames, stderrWrite);
+  if (rendered !== null) sink(rendered + '\n');
 }
 
-const TRAIL_KEY = 'trail';
-
-function materializeForDisplay(errorValue) {
-  const trailEntries = materializeTrail(errorValue);
-  if (trailEntries.length === 0) return errorValue;
-  const desc = new Map(errorValue.descriptor);
-  desc.set(TRAIL_KEY, [
-    ...errorValue.descriptor.get(TRAIL_KEY),
-    ...trailEntries
-  ]);
-  return Object.freeze({ ...errorValue, descriptor: desc, _trailHead: null });
+// Output boundary defensive — printValue raises runtime invariants
+// (FunctionValueLeakedToPrintError, etc.) when an internal-only value-class
+// surfaces in pipeValue. The REPL is a terminal-display surface, so a
+// thrown invariant must not hang the line queue or kill the process;
+// we render a diagnostic line to stderr naming the invariant and
+// continue prompting. The underlying leak is still surfaced — the
+// user sees the invariant name and can chase the binding ceremony
+// that caused it.
+function renderForTerminal(value, builtinNames, stderrWrite) {
+  try {
+    return highlightAnsi(printValue(value), builtinNames);
+  } catch (renderInvariant) {
+    // Every Error carries `.name` — concrete QlangInvariantError
+    // subclasses set it via `brand()` to the per-site class name,
+    // bare JS Errors fall back to the constructor name. The
+    // structurally-stamped `.fingerprint` lives alongside on
+    // qlang invariants but is not used here — `.name` already
+    // identifies the site in the diagnostic.
+    stderrWrite(`render invariant: ${renderInvariant.name} — ${renderInvariant.message}\n`);
+    return null;
+  }
 }

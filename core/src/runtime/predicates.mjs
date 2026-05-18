@@ -14,20 +14,20 @@
 // mixed types, or `filter(isString)` over a Map to keep only
 // String-valued entries. Lifts a type question to operand level
 // without the descriptor-construction cost of
-// `reify | /type | eq(:string)`.
+// `| type | eq(:string)`.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/predicate.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import { isTruthy, describeType } from '../types.mjs';
+import { isTruthy, describeType, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
-const GtOperandsNotComparable  = declareComparabilityError('GtOperandsNotComparable',  'gt');
-const LtOperandsNotComparable  = declareComparabilityError('LtOperandsNotComparable',  'lt');
-const GteOperandsNotComparable = declareComparabilityError('GteOperandsNotComparable', 'gte');
-const LteOperandsNotComparable = declareComparabilityError('LteOperandsNotComparable', 'lte');
+const GtOperandsNotComparableError  = declareComparabilityError('GtOperandsNotComparableError',  'gt');
+const LtOperandsNotComparableError  = declareComparabilityError('LtOperandsNotComparableError',  'lt');
+const GteOperandsNotComparableError = declareComparabilityError('GteOperandsNotComparableError', 'gte');
+const LteOperandsNotComparableError = declareComparabilityError('LteOperandsNotComparableError', 'lte');
 
 function orderingCheck(ErrorCls, left, right) {
   const bothNumbers = typeof left === 'number' && typeof right === 'number';
@@ -40,22 +40,22 @@ function orderingCheck(ErrorCls, left, right) {
 export const eq = valueOp('eq', 2, (subject, value) => deepEqual(subject, value));
 
 export const gt = valueOp('gt', 2, (subject, threshold) => {
-  orderingCheck(GtOperandsNotComparable, subject, threshold);
+  orderingCheck(GtOperandsNotComparableError, subject, threshold);
   return subject > threshold;
 });
 
 export const lt = valueOp('lt', 2, (subject, threshold) => {
-  orderingCheck(LtOperandsNotComparable, subject, threshold);
+  orderingCheck(LtOperandsNotComparableError, subject, threshold);
   return subject < threshold;
 });
 
 export const gte = valueOp('gte', 2, (subject, threshold) => {
-  orderingCheck(GteOperandsNotComparable, subject, threshold);
+  orderingCheck(GteOperandsNotComparableError, subject, threshold);
   return subject >= threshold;
 });
 
 export const lte = valueOp('lte', 2, (subject, threshold) => {
-  orderingCheck(LteOperandsNotComparable, subject, threshold);
+  orderingCheck(LteOperandsNotComparableError, subject, threshold);
   return subject <= threshold;
 });
 
@@ -64,6 +64,15 @@ export const and = valueOp('and', 2, (a, b) => isTruthy(a) && isTruthy(b));
 export const or = valueOp('or', 2, (a, b) => isTruthy(a) || isTruthy(b));
 
 export const not = nullaryOp('not', (subject) => !isTruthy(subject));
+
+// `type` — pipeline-time axis on value identity. Returns the
+// TagKeyword for tagged values (errors, conduits, snapshots,
+// tagged-instances) and the plain Keyword for scalars and base
+// containers. The single user-facing path to a value's identity
+// tag — symmetric to how `:foo | source` / `| docs` / `| examples`
+// are the user-facing path to binding-namespace metadata.
+// Error-track handling reads as `result !| type | eq(::Foo)`.
+export const type = nullaryOp('type', (subject) => typeKeyword(subject));
 
 // ── Type-classifier nullary operands ───────────────────────────
 // Every qlang value produces `true` from exactly one classifier.
@@ -80,21 +89,30 @@ export const isSet     = nullaryOp('isSet',     (subject) => describeType(subjec
 export const isKeyword = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
 export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
 export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
+export const isQuote      = nullaryOp('isQuote',      (subject) => describeType(subject) === 'Quote');
+export const isDoc        = nullaryOp('isDoc',        (subject) => describeType(subject) === 'Doc');
+export const isJsonObject = nullaryOp('isJsonObject', (subject) => describeType(subject) === 'JsonObject');
+export const isJsonArray  = nullaryOp('isJsonArray',  (subject) => describeType(subject) === 'JsonArray');
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/eq',  eq);
-PRIMITIVE_REGISTRY.bind('qlang/prim/gt',  gt);
-PRIMITIVE_REGISTRY.bind('qlang/prim/lt',  lt);
-PRIMITIVE_REGISTRY.bind('qlang/prim/gte', gte);
-PRIMITIVE_REGISTRY.bind('qlang/prim/lte', lte);
-PRIMITIVE_REGISTRY.bind('qlang/prim/and', and);
-PRIMITIVE_REGISTRY.bind('qlang/prim/or',  or);
-PRIMITIVE_REGISTRY.bind('qlang/prim/not', not);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isString',  isString);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isNumber',  isNumber);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isVec',     isVec);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isMap',     isMap);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isSet',     isSet);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isKeyword', isKeyword);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isBoolean', isBoolean);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isNull',    isNull);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('eq',  eq);
+bindPrim('gt',  gt);
+bindPrim('lt',  lt);
+bindPrim('gte', gte);
+bindPrim('lte', lte);
+bindPrim('and', and);
+bindPrim('or',  or);
+bindPrim('not', not);
+bindPrim('type', type);
+bindPrim('isString',  isString);
+bindPrim('isNumber',  isNumber);
+bindPrim('isVec',     isVec);
+bindPrim('isMap',     isMap);
+bindPrim('isSet',     isSet);
+bindPrim('isKeyword', isKeyword);
+bindPrim('isBoolean', isBoolean);
+bindPrim('isNull',    isNull);
+bindPrim('isQuote',      isQuote);
+bindPrim('isDoc',        isDoc);
+bindPrim('isJsonObject', isJsonObject);
+bindPrim('isJsonArray',  isJsonArray);

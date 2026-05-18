@@ -6,13 +6,13 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { discoverModules, resolveModules, installModules } from '../../host/module-resolver.mjs';
 import { createSession } from '../../src/session.mjs';
-import { keyword } from '../../src/types.mjs';
+import { makeTagKeyword } from '../../src/types.mjs';
 
 // Compute lib directory at module scope (no top-level await needed —
 // fileURLToPath/dirname/join are synchronous).
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const libDir = join(__dirname, '..', '..', 'lib', 'qlang');
+const libDir = join(__dirname, '..', '..', 'lib', 'extras');
 
 // ── discoverModules ─────────────────────────────────────────────
 
@@ -93,9 +93,9 @@ describe('installModules', () => {
     expect(sessionInstance.env.has('error')).toBe(true);
 
     // use(:error) imports retry into current env
-    const cellEntry = await sessionInstance.evalCell('null | use(:error) | reify(:retry) | /kind');
+    const cellEntry = await sessionInstance.evalCell('use(:error) | manifest | filter(/name | eq("retry")) | first | /kind');
     expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual(keyword('conduit'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
   });
 
   it('resolveModules with explicit dependencies uses topo sort', async () => {
@@ -115,14 +115,14 @@ describe('installModules', () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    await sessionInstance.evalCell('null | use(:error)');
-    await sessionInstance.evalCell('null | use(:error/guards)');
-    await sessionInstance.evalCell('null | use(:error/observe)');
+    await sessionInstance.evalCell('use(:error)');
+    await sessionInstance.evalCell('use(:error/guards)');
+    await sessionInstance.evalCell('use(:error/observe)');
 
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
-      const cellEntry = await sessionInstance.evalCell(`reify(:${name}) | /kind`);
+      const cellEntry = await sessionInstance.evalCell(`manifest | filter(/name | eq("${name}")) | first | /kind`);
       expect(cellEntry.error).toBeNull();
-      expect(cellEntry.result).toEqual(keyword('conduit'));
+      expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
     }
   });
 });

@@ -102,8 +102,8 @@ export class ArityError extends QlangError {
 // QlangInvariantError — abstract root for registration-time invariant
 // violations raised when a runtime operand is constructed with
 // incomplete or malformed metadata. These fire when langRuntime is
-// assembled, not in response to user queries; they indicate that a
-// runtime-module author forgot to provide a required meta field.
+// assembled and signal that a runtime-module author forgot to
+// provide a required meta field.
 // Per-site subclasses live next to the dispatch wrapper that enforces
 // the invariant (see runtime/dispatch.mjs).
 export class QlangInvariantError extends QlangError {
@@ -115,17 +115,18 @@ export class QlangInvariantError extends QlangError {
 }
 
 // EffectLaunderingError — abstract root for the @-prefix effect-marker
-// invariant: a `let` binding whose body references an @-prefixed
-// identifier (the qlang convention for side-effectful host operands
-// like @callers, @refs, @hierarchy) must itself be @-prefixed, so
-// the effect propagates through every alias. Two concrete subclasses
-// fire from two different points:
+// invariant: a BindStep declaration whose body references an
+// @-prefixed identifier (the qlang convention for side-effectful host
+// operands like @callers, @refs, @hierarchy) must itself be
+// @-prefixed, so the effect propagates through every alias. Two
+// concrete subclasses fire from two different points:
 //
-//   EffectLaunderingAtLetParse — fired by parse-time AST validation
-//     in src/effect-check.mjs when the AST scan finds an @-prefixed
-//     OperandCall or Projection key inside a non-@-prefixed let body.
+//   EffectLaunderingAtBindStepParseError — fired by `evalBindStep` when
+//     the body AST scan (findFirstEffectfulIdentifier) finds an
+//     @-prefixed OperandCall or Projection key inside a non-@-
+//     prefixed BindStep body.
 //
-//   EffectLaunderingAtCall — fired at runtime by
+//   EffectLaunderingAtCallError — fired at runtime by
 //     eval.mjs::evalOperandCall and eval.mjs::applyConduit
 //     when a non-@-prefixed identifier resolves to an effectful
 //     function value or conduit (the laundering path where the
@@ -140,20 +141,20 @@ export class EffectLaunderingError extends QlangError {
   }
 }
 
-export class EffectLaunderingAtLetParse extends EffectLaunderingError {
-  constructor({ letName, effectfulName, location = null }) {
+export class EffectLaunderingAtBindStepParseError extends EffectLaunderingError {
+  constructor({ bindingName, effectfulName, location = null }) {
     super(
-      `let '${letName}' has an effectful body (references '${effectfulName}') ` +
-      `but its name is not @-prefixed; rename to '@${letName}' or remove the effectful reference`,
-      { letName, effectfulName }
+      `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
+      `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
+      { bindingName, effectfulName }
     );
-    this.name = 'EffectLaunderingAtLetParse';
-    this.fingerprint = 'EffectLaunderingAtLetParse';
+    this.name = 'EffectLaunderingAtBindStepParseError';
+    this.fingerprint = 'EffectLaunderingAtBindStepParseError';
     this.location = location;
   }
 }
 
-export class EffectLaunderingAtCall extends EffectLaunderingError {
+export class EffectLaunderingAtCallError extends EffectLaunderingError {
   constructor({ bindingName, effectfulName }) {
     super(
       `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
@@ -161,7 +162,7 @@ export class EffectLaunderingAtCall extends EffectLaunderingError {
       `use, or as — rename to '@${bindingName}' to mark the effect`,
       { bindingName, effectfulName }
     );
-    this.name = 'EffectLaunderingAtCall';
-    this.fingerprint = 'EffectLaunderingAtCall';
+    this.name = 'EffectLaunderingAtCallError';
+    this.fingerprint = 'EffectLaunderingAtCallError';
   }
 }

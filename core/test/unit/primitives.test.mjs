@@ -1,5 +1,5 @@
 // Tests for src/primitives.mjs — the primitive registry that bridges
-// qlang-level Map-form binding descriptors (carrying :qlang/impl
+// qlang-level Map-form binding descriptors (carrying :impl
 // keywords) and their JS-level executable impls in runtime/*.mjs.
 //
 // Every test binds into an isolated registry via createPrimitiveRegistry()
@@ -40,7 +40,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
   it('bind returns the key to enable fluent re-export', () => {
     // The idiom: `export const add = PRIMITIVE_REGISTRY.bind(key, impl);`
     // so the runtime module's export IS the keyword that core.qlang's
-    // :qlang/impl field points to.
+    // :impl field points to.
     const k = 'qlang/test-prim/re-export';
     const impl = () => null;
     const returned = registry.bind(k, impl);
@@ -90,7 +90,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('rejects non-string keys with PrimitiveKeyNotString', () => {
+  it('rejects non-string keys with PrimitiveKeyNotStringError', () => {
     expect(() => registry.bind(Symbol('bad'), () => null))
       .toThrow(/primitive key must be a string, got symbol/);
   });
@@ -111,13 +111,13 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveKeyNotString');
+      expect(e.fingerprint).toBe('PrimitiveKeyNotStringError');
       expect(e.kind).toBe('invariant-error');
       expect(e.context.actualType).toBe('object');
     }
   });
 
-  it('rejects duplicate keys with PrimitiveKeyAlreadyBound', () => {
+  it('rejects duplicate keys with PrimitiveKeyAlreadyBoundError', () => {
     const k = 'qlang/test-prim/dup';
     registry.bind(k, () => 'first');
     expect(() => registry.bind(k, () => 'second'))
@@ -132,12 +132,12 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveKeyAlreadyBound');
+      expect(e.fingerprint).toBe('PrimitiveKeyAlreadyBoundError');
       expect(e.context.keyName).toBe('qlang/test-prim/dup');
     }
   });
 
-  it('rejects binding after seal with PrimitiveRegistrySealed', () => {
+  it('rejects binding after seal with PrimitiveRegistrySealedError', () => {
     registry.seal();
     const k = 'qlang/test-prim/late';
     expect(() => registry.bind(k, () => null))
@@ -152,7 +152,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveRegistrySealed');
+      expect(e.fingerprint).toBe('PrimitiveRegistrySealedError');
       expect(e.context.keyLabel).toBe('qlang/test-prim/late');
     }
   });
@@ -175,7 +175,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('throws PrimitiveKeyUnbound on missing key', () => {
+  it('throws PrimitiveKeyUnboundError on missing key', () => {
     const k = 'qlang/test-prim/missing';
     expect(() => registry.resolve(k))
       .toThrow(/no primitive bound under :qlang\/test-prim\/missing/);
@@ -183,7 +183,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
 
   it('unbound-key is a QlangError (lifts to fail-track)', () => {
     // Critical classification: this is a DATA error, not an invariant.
-    // A hand-crafted descriptor Map with a bad :qlang/impl keyword
+    // A hand-crafted descriptor Map with a bad :impl keyword
     // should fail gracefully through evalNode's try/catch and become
     // an error value, not crash the evaluator.
     const k = 'qlang/test-prim/missing';
@@ -194,14 +194,14 @@ describe('createPrimitiveRegistry — resolve error class', () => {
       expect(e).toBeInstanceOf(QlangError);
       expect(e).not.toBeInstanceOf(QlangInvariantError);
       expect(e.kind).toBe('primitive-unbound');
-      expect(e.fingerprint).toBe('PrimitiveKeyUnbound');
+      expect(e.fingerprint).toBe('PrimitiveKeyUnboundError');
       expect(e.context.keyLabel).toContain('qlang/test-prim/missing');
     }
   });
 
   it('tolerates non-keyword lookup with a readable label', () => {
     // resolve() is stricter than bind() because it only throws
-    // PrimitiveKeyUnbound when the key is unknown — it does not
+    // PrimitiveKeyUnboundError when the key is unknown — it does not
     // separately validate the key type. A non-keyword lookup
     // produces the missing-key error with a typeof label.
     expect(() => registry.resolve('not-a-keyword'))
@@ -292,7 +292,7 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
 
   it('holds the reflective primitives', async () => {
     await import('../../src/runtime/index.mjs');
-    for (const name of ['env', 'use', 'reify', 'manifest', 'runExamples', 'let', 'as']) {
+    for (const name of ['env', 'use', 'manifest', 'runExamples', 'as']) {
       expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });

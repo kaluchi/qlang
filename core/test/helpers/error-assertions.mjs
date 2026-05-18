@@ -17,23 +17,35 @@ export async function expectErrorResult(query) {
   return evalResult;
 }
 
-// expectErrorKind(query, kind) → error value
+// expectErrorCategory(query, category) → error value
 //
-// Asserts the query produces an error value with the given :kind.
-export async function expectErrorKind(query, kind) {
+// Asserts the query produces an error value whose underlying JS
+// error class names the given broad-bucket category (`'type-error'`,
+// `'arity-error'`, `'effect-laundering'`, `'parse-error'`,
+// `'foreign-error'`, `'division-by-zero'`, `'invariant-error'`,
+// `'unresolved-identifier'`, ...). The instance descriptor no
+// longer carries `:category` — that field lives on the tag-binding's
+// catalog body, reachable through `result !| type | spec |
+// /category`. JS-side this check rides the equivalent `.kind`
+// shortcut on the originating QlangError (the same string the
+// catalog body's `:category` value reads as a Keyword).
+// For per-tag identity assertions use `expectErrorThrown` against
+// `:kind`.
+export async function expectErrorCategory(query, category) {
   const errorResult = await expectErrorResult(query);
-  const actualKind = errorResult.descriptor.get('kind');
-  expect(actualKind?.name).toBe(kind);
+  expect(errorResult.originalError?.kind).toBe(category);
   return errorResult;
 }
 
-// expectErrorThrown(query, thrown) → error value
+// expectErrorThrown(query, classTagName) → error value
 //
-// Asserts the query produces an error value with the given :thrown site.
-export async function expectErrorThrown(query, thrown) {
+// Asserts the query produces an error value whose `:kind`
+// (the universal tagged-value identity slot) is a TagKeyword with
+// the given class tag name (e.g. `'AddLeftNotNumberError'`).
+export async function expectErrorThrown(query, classTagName) {
   const errorResult = await expectErrorResult(query);
-  const actualThrown = errorResult.descriptor.get('thrown');
-  expect(actualThrown?.name).toBe(thrown);
+  const identityTag = errorResult.descriptor.get('kind');
+  expect(identityTag?.name).toBe(classTagName);
   return errorResult;
 }
 
@@ -43,4 +55,20 @@ export async function expectErrorThrown(query, thrown) {
 export function expectOriginalError(errorValue, ErrorClass) {
   expect(errorValue.originalError).toBeInstanceOf(ErrorClass);
   return errorValue.originalError;
+}
+
+// catchOriginalError(query) → originalError | null
+//
+// Evaluates the query and unwraps the originating JS-side QlangError
+// off the resulting ErrorValue's `.originalError` slot (the per-site
+// class instance with structured context). Returns `null` on a
+// success-track result so the caller can assert pessimistically
+// (`expect(caughtErr.name).toBe('FooError')` reads cleanly even when
+// the query unexpectedly succeeded — the assertion fails on the null
+// rather than on a TypeError). Used by per-site error-identity
+// tests where assertions read against `caughtErr.name`,
+// `caughtErr.context.*`, or `instanceof QlangTypeError`.
+export async function catchOriginalError(query) {
+  const evalResult = await evalQuery(query);
+  return isErrorValue(evalResult) ? evalResult.originalError : null;
 }

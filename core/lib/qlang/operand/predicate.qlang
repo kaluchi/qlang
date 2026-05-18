@@ -1,0 +1,148 @@
+|~ qlang operand catalog — predicate family. Subject-first
+   boolean operators (`eq`, ordering family `gt`/`lt`/`gte`/`lte`,
+   logical combinators `and`/`or`/`not`). The shape stays uniform:
+   each fires per-call as a pure value test that the higher-order
+   `filter` / `every` / `any` / `if` / `when` / `unless` chain
+   composes over. Type classifiers and the `keyword` involution
+   ride parallel axes and live in
+   `core/lib/qlang/operand/type-classifier.qlang` and
+   `core/lib/qlang/operand/type-conversion.qlang` respectively;
+   comparator builders (`asc`/`desc`/`nullsFirst`/`nullsLast`) for
+   sortWith live in `core/lib/qlang/operand/comparator.qlang`. ~|
+
+:not
+  |~~ Logical negation. Returns true if the subject is falsy
+      (null or false), false otherwise. 0, "", [], {}, #{} are
+      all truthy.
+
+      ~{null | not | eq(true)}
+      ~{0 | not | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/not
+            :category :predicate
+            :subject :any
+            :returns :boolean
+   }
+
+:eq
+  |~~ Returns true if the subject equals the captured value by
+      structural equality (deep recursive comparison across Maps,
+      Vecs, Sets, and scalars).
+
+      ~{42 | eq(42) | eq(true)}
+      ~{{:a 1} | eq({:a 1}) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/eq
+            :category :predicate
+            :subject :any
+            :returns :boolean
+            :modifiers [:any]
+   }
+
+:gt
+  |~~ Subject-first ordering: a | gt(b) computes a > b. Both
+      operands must be comparable scalars of the same type.
+
+      ~{10 | gt(5) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/gt
+            :category :predicate
+            :subject :number
+            :returns :boolean
+            :modifiers [:number]
+            :throws [::GtOperandsNotComparableError]}
+
+::GtOperandsNotComparableError
+  |~~ Operands of `gt` are not pairwise-comparable scalars.
+      ~{
+        1 | gt("x")
+        !| [type /leftType /rightType]
+        |  eq([::GtOperandsNotComparableError :number :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :gt}
+
+:lt
+  |~~ Subject-first ordering: a | lt(b) computes a < b.
+
+      ~{5 | lt(10) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/lt
+            :category :predicate
+            :subject :number
+            :returns :boolean
+            :modifiers [:number]
+            :throws [::LtOperandsNotComparableError]}
+
+::LtOperandsNotComparableError
+  |~~ Operands of `lt` are not pairwise-comparable scalars.
+      ~{
+        1 | lt("x")
+        !| [type /leftType /rightType]
+        |  eq([::LtOperandsNotComparableError :number :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :lt}
+
+:gte
+  |~~ Subject-first ordering: a | gte(b) computes a >= b.
+
+      ~{10 | gte(10) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/gte
+            :category :predicate
+            :subject :number
+            :returns :boolean
+            :modifiers [:number]
+            :throws [::GteOperandsNotComparableError]}
+
+::GteOperandsNotComparableError
+  |~~ Operands of `gte` are not pairwise-comparable scalars.
+      ~{
+        1 | gte("x")
+        !| [type /leftType /rightType]
+        |  eq([::GteOperandsNotComparableError :number :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :gte}
+
+:lte
+  |~~ Subject-first ordering: a | lte(b) computes a <= b.
+
+      ~{10 | lte(10) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/lte
+            :category :predicate
+            :subject :number
+            :returns :boolean
+            :modifiers [:number]
+            :throws [::LteOperandsNotComparableError]}
+
+::LteOperandsNotComparableError
+  |~~ Operands of `lte` are not pairwise-comparable scalars.
+      ~{
+        1 | lte("x")
+        !| [type /leftType /rightType]
+        |  eq([::LteOperandsNotComparableError :number :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :lte}
+
+:and
+  |~~ Returns true if both operands are truthy. Used in full form
+      inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
+  ::builtin{:impl :qlang/prim/and
+            :category :predicate
+            :subject :any
+            :returns :boolean
+            :modifiers [:any]
+   }
+
+:or
+  |~~ Returns true if either operand is truthy. ~~|
+  ::builtin{:impl :qlang/prim/or
+            :category :predicate
+            :subject :any
+            :returns :boolean
+            :modifiers [:any]
+   }

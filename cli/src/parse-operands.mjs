@@ -17,7 +17,7 @@
 //
 // Both parsers report parse failures as fail-track error values via
 // per-site classes, never as raw JS SyntaxErrors — the user code can
-// inspect via `!| /thrown` or `!| /message` like any other qlang
+// inspect via `!| type` or `!| /message` like any other qlang
 // operand error.
 
 import { nullaryOp } from '@kaluchi/qlang-core/dispatch';
@@ -29,45 +29,46 @@ import {
   fromPlain,
   fromTaggedJSON
 } from '@kaluchi/qlang-core';
+import { bindHostBuiltin } from './host-builtin.mjs';
 
 // ── Per-site error classes ─────────────────────────────────────
 
-const ParseJsonSubjectNotString =
-  declareSubjectError('ParseJsonSubjectNotString', 'parseJson', 'String');
-const ParseJsonInvalidJson =
-  declareShapeError('ParseJsonInvalidJson',
+const ParseJsonSubjectNotStringError =
+  declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
+const ParseJsonInvalidJsonError =
+  declareShapeError('ParseJsonInvalidJsonError',
     ({ message }) => `parseJson: invalid JSON — ${message}`);
 
-const ParseTjsonSubjectNotString =
-  declareSubjectError('ParseTjsonSubjectNotString', 'parseTjson', 'String');
-const ParseTjsonInvalidJson =
-  declareShapeError('ParseTjsonInvalidJson',
+const ParseTjsonSubjectNotStringError =
+  declareSubjectError('ParseTjsonSubjectNotStringError', 'parseTjson', 'string');
+const ParseTjsonInvalidJsonError =
+  declareShapeError('ParseTjsonInvalidJsonError',
     ({ message }) => `parseTjson: invalid tagged-JSON — ${message}`);
 
 // ── Operand factories ──────────────────────────────────────────
 
 const parseJsonOperand = nullaryOp('parseJson', (subject) => {
   if (typeof subject !== 'string') {
-    throw new ParseJsonSubjectNotString(subject);
+    throw new ParseJsonSubjectNotStringError(subject);
   }
   let parsed;
   try {
     parsed = JSON.parse(subject);
   } catch (jsParseError) {
-    throw new ParseJsonInvalidJson({ message: jsParseError.message });
+    throw new ParseJsonInvalidJsonError({ message: jsParseError.message });
   }
   return fromPlain(parsed);
 });
 
 const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {
   if (typeof subject !== 'string') {
-    throw new ParseTjsonSubjectNotString(subject);
+    throw new ParseTjsonSubjectNotStringError(subject);
   }
   let parsed;
   try {
     parsed = JSON.parse(subject);
   } catch (jsParseError) {
-    throw new ParseTjsonInvalidJson({ message: jsParseError.message });
+    throw new ParseTjsonInvalidJsonError({ message: jsParseError.message });
   }
   return fromTaggedJSON(parsed);
 });
@@ -75,6 +76,6 @@ const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {
 // ── Binding ────────────────────────────────────────────────────
 
 export function bindParseOperands(session) {
-  session.bind('parseJson',  parseJsonOperand);
-  session.bind('parseTjson', parseTjsonOperand);
+  bindHostBuiltin(session, 'parseJson',  parseJsonOperand);
+  bindHostBuiltin(session, 'parseTjson', parseTjsonOperand);
 }

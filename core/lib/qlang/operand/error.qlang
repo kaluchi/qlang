@@ -1,0 +1,61 @@
+|~ qlang operand catalog — error family. Lifts a Map into an
+   error value (sole non-literal constructor for the 5th type
+   alongside the `!{…}` literal) and the plain predicate that
+   asks whether pipeValue carries error-track identity. Error
+   inspection and transformation are driven by the `!|` combinator
+   (fail-apply); these two operands are entry and exit points for
+   the fail-track that compose with every Map-oriented operand. ~|
+
+:error
+  |~~ Lifts a Map into an error value — the sole
+      constructor for the 5th type at the language
+      level alongside the !{…} literal. Bare form
+      map | error uses pipeValue as the descriptor;
+      full form error(map) evaluates the captured
+      Map against pipeValue as context. The resulting
+      error rides the fail-track: |, *, and >>
+      deflect it into the trail, !| fires its step
+      against the materialized descriptor.
+
+      ~{{:kind :oops :message "boom"} | error !| /kind | eq(:oops)}
+      ~{error({:kind :oops}) !| /kind | eq(:oops)}
+  ~~|
+  ::builtin{:impl :qlang/prim/error
+            :category :error
+            :subject :map
+            :returns :error
+            :modifiers [:map]
+            :throws [::ErrorDescriptorNotMapError]}
+
+::ErrorDescriptorNotMapError
+  |~~ `error` lift requires a Map descriptor (the error's
+      payload).
+
+      ~{
+        42 | error
+        !| [type /actualType]
+        |  eq([::ErrorDescriptorNotMapError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :error :position :subject :expectedType :map}
+
+:isError
+  |~~ Returns true when pipeValue is an error value,
+      false otherwise. Plain predicate — carries no
+      dispatch flag, inspected as-is by its caller.
+      In top-of-pipeline position it only ever sees a
+      success-track value because | deflects errors
+      before isError could fire; it is intended for
+      raw first-step positions inside predicate
+      lambdas (filter(isError), any(isError),
+      every(isError | not), * isError).
+
+      ~{[!{:kind :oops}] * isError | first | eq(true)}
+      ~{{:kind :oops} | isError | eq(false)}
+      ~{42 | isError | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/isError
+            :category :error
+            :subject :any
+            :returns :boolean
+   }

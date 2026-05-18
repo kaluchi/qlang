@@ -19,10 +19,11 @@
 //       as part of a legitimate reference, etc.) for a cheap
 //       grep — those stay under human review.
 //
-//   (2) Doc-drift between the core operand catalog and the
-//       published operand docs. Every `:name {:qlang/kind :builtin
-//       …}` entry in `core/lib/qlang/core.qlang` must appear as
-//       an `### name` (or equivalent) section in
+//   (2) Doc-drift between the operand catalog and the published
+//       operand docs. Every `:name … ::builtin{:impl …}` entry
+//       across the per-family catalog files in
+//       `core/lib/qlang/operand/<family>.qlang` must appear as an
+//       `### name` (or equivalent) section in
 //       `docs/qlang-operands.md`. A new operand that lands without
 //       its doc section is caught here before review.
 //
@@ -45,6 +46,7 @@ const repoRoot = join(here, '..');
 const IGNORE_DIRS = new Set([
   'node_modules', '.git',
   'core/gen',
+  'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
   'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
   'vscode'
@@ -117,44 +119,151 @@ function scanForbiddenWords() {
 
 // ── (2) Operand catalog ↔ operand docs drift ───────────────────
 
+// Each operand BindStep in a family file (`core/lib/qlang/operand/
+// <family>.qlang`) declares `:name |~~ … ~~| ::builtin{:impl …}` —
+// keyword head at column 0, optional doc-prefix between, TaggedLit
+// descriptor body (`::builtin{…}`) closing the form. The regex
+// matches the head + descriptor shape across the doc-prefix gap so
+// the family files (and any future runtime-invariants entries that
+// grow the same head shape) all flow through one drift check.
+const BUILTIN_OPERAND_DECL_RE =
+  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?::builtin\{/gm;
+
 function parseOperandCatalog(catalogText) {
-  // Top-level entries in core.qlang look like `:name {:qlang/kind
-  // :builtin …}` at column 0. Multi-word names (`sortWith`,
-  // `firstNonZero`, …) and the `@`-prefix names all match.
-  const entryRegex = /^:([@a-zA-Z][\w-]*) \{:qlang\/kind :builtin/gm;
   const names = [];
   let match;
-  while ((match = entryRegex.exec(catalogText)) !== null) {
+  BUILTIN_OPERAND_DECL_RE.lastIndex = 0;
+  while ((match = BUILTIN_OPERAND_DECL_RE.exec(catalogText)) !== null) {
     names.push(match[1]);
   }
   return names;
 }
 
+function* walkCatalogFiles() {
+  const root = join(repoRoot, 'core/lib/qlang');
+  for (const entry of readdirSync(root, { recursive: true })) {
+    if (!entry.endsWith('.qlang')) continue;
+    yield join(root, entry);
+  }
+}
+
 function catalogDocDrift() {
-  const catalog = readFileSync(
-    join(repoRoot, 'core/lib/qlang/core.qlang'), 'utf8');
   const docsBody = readFileSync(
     join(repoRoot, 'docs/qlang-operands.md'), 'utf8');
 
   const missing = [];
-  for (const operandName of parseOperandCatalog(catalog)) {
-    // The docs use `### name` or `#### name` section headers; the
-    // simplest robust probe is to ensure the bare name appears in
-    // the doc at all. Flags only operands that land in the catalog
-    // but leave zero footprint in the published doc.
-    if (!docsBody.includes(operandName)) {
-      missing.push(operandName);
+  for (const catalogFile of walkCatalogFiles()) {
+    const source = readFileSync(catalogFile, 'utf8');
+    for (const operandName of parseOperandCatalog(source)) {
+      // The docs use `### name` or `#### name` section headers; the
+      // simplest robust probe is to ensure the bare name appears in
+      // the doc at all. Flags only operands that land in any catalog
+      // file but leave zero footprint in the published doc.
+      if (!docsBody.includes(operandName)) {
+        missing.push(operandName);
+      }
     }
   }
   return missing;
+}
+
+// ── (3) Per-site error class `Error` suffix convention ─────────
+//
+// Every concrete error class in `core/src/**/*.mjs` must carry the
+// `Error` suffix — the convention that distinguishes named-error
+// tag-bindings (`::FooError`) from value-class tag-bindings
+// (`::conduit`, `::qlang`, `::json`). Classes are introduced two
+// ways:
+//
+//   * `declare(Subject|Modifier|Element|Comparability|Shape|Arity)
+//     Error('Foo', …)` factory call — the first string literal
+//     is the className.
+//   * `class Foo extends QlangError|QlangInvariantError|ArityError|
+//     EffectLaunderingError|Error` direct declaration.
+//
+// Abstract roots are exempt — they ARE the bases everyone extends,
+// not concrete throw sites:
+
+const ABSTRACT_BASES = new Set([
+  'QlangError', 'QlangTypeError', 'QlangInvariantError',
+  'ArityError', 'EffectLaunderingError'
+]);
+
+const factoryDeclRe = /declare(?:Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Z][A-Za-z0-9_]*)'/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|Error)\b/g;
+
+// Every workspace that can declare its own host-bound errors
+// (CLI host operands via `declareSubjectError(...)` / direct
+// `class FooError extends QlangError`, LSP server-side errors,
+// future host packages) goes through the same scan. Scope sits
+// at the npm-workspace boundary so a new workspace opt's into
+// the convention by adding its `<ws>/src` here.
+const ERROR_SUFFIX_SCAN_ROOTS = [
+  ['core', 'src'],
+  ['cli',  'src'],
+  ['lsp',  'src']
+];
+
+function* walkErrorScanRoots() {
+  for (const segments of ERROR_SUFFIX_SCAN_ROOTS) {
+    const root = join(repoRoot, ...segments);
+    let st;
+    try { st = statSync(root); } catch { continue; }
+    if (!st.isDirectory()) continue;
+    yield* walkSourceTree(root);
+  }
+}
+
+function errorSuffixDrift() {
+  const violations = [];
+  for (const filePath of walkErrorScanRoots()) {
+    const text = readFileSync(filePath, 'utf8');
+    const relFile = relative(repoRoot, filePath).split(sep).join('/');
+    const lines = text.split(/\r?\n/);
+
+    // Collect per-line classNames declared via factory or class
+    // syntax so the violation report cites the exact line.
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      const line = lines[lineIndex];
+
+      factoryDeclRe.lastIndex = 0;
+      let fm;
+      while ((fm = factoryDeclRe.exec(line)) !== null) {
+        const className = fm[1];
+        if (className.endsWith('Error')) continue;
+        violations.push({
+          file: relFile, line: lineIndex + 1,
+          className, kind: 'factory call',
+          snippet: line.trim().slice(0, 120)
+        });
+      }
+
+      directClassRe.lastIndex = 0;
+      let cm;
+      while ((cm = directClassRe.exec(line)) !== null) {
+        const className = cm[1];
+        if (ABSTRACT_BASES.has(className)) continue;
+        if (className.endsWith('Error')) continue;
+        violations.push({
+          file: relFile, line: lineIndex + 1,
+          className, kind: 'class declaration',
+          snippet: line.trim().slice(0, 120)
+        });
+      }
+    }
+  }
+  return violations;
 }
 
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
 const driftMissing = catalogDocDrift();
+const errorSuffixViolations = errorSuffixDrift();
 
-if (forbidden.length === 0 && driftMissing.length === 0) {
+if (forbidden.length === 0
+    && driftMissing.length === 0
+    && errorSuffixViolations.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -169,7 +278,15 @@ if (driftMissing.length > 0) {
   process.stdout.write(
     `\nOperand catalog ↔ docs drift (${driftMissing.length}):\n`);
   for (const name of driftMissing) {
-    process.stdout.write(`  :${name} — present in core.qlang, missing from docs/qlang-operands.md\n`);
+    process.stdout.write(`  :${name} — present in operand catalog, missing from docs/qlang-operands.md\n`);
+  }
+}
+if (errorSuffixViolations.length > 0) {
+  process.stdout.write(
+    `\nError-class \`Error\` suffix convention (${errorSuffixViolations.length}):\n`);
+  for (const v of errorSuffixViolations) {
+    process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
+    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class tag-bindings (::conduit / ::qlang / ::json).\n`);
   }
 }
 process.exit(1);

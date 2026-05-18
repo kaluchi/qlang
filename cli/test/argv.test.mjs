@@ -41,7 +41,8 @@ describe('parseArgv', () => {
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
       queryText: '[1 2 3] | count',
-      inputFormat: 'auto'
+      inputFormat: 'auto',
+      colorMode: 'auto'
     });
   });
 
@@ -50,7 +51,8 @@ describe('parseArgv', () => {
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
       queryText: '1 | add(2)',
-      inputFormat: 'auto'
+      inputFormat: 'auto',
+      colorMode: 'auto'
     });
   });
 
@@ -58,7 +60,8 @@ describe('parseArgv', () => {
     expect(parseArgv(['--json', '/key'])).toEqual({
       kind: 'evalQuery',
       queryText: '/key',
-      inputFormat: 'json'
+      inputFormat: 'json',
+      colorMode: 'auto'
     });
   });
 
@@ -66,8 +69,33 @@ describe('parseArgv', () => {
     expect(parseArgv(['--raw', 'append(" world")'])).toEqual({
       kind: 'evalQuery',
       queryText: 'append(" world")',
-      inputFormat: 'raw'
+      inputFormat: 'raw',
+      colorMode: 'auto'
     });
+  });
+
+  it('parses --color=always as the explicit always-paint mode', () => {
+    expect(parseArgv(['--color=always', '42'])).toEqual({
+      kind: 'evalQuery',
+      queryText: '42',
+      inputFormat: 'auto',
+      colorMode: 'always'
+    });
+  });
+
+  it('parses --color=never as the explicit never-paint mode', () => {
+    expect(parseArgv(['--color=never', '42'])).toEqual({
+      kind: 'evalQuery',
+      queryText: '42',
+      inputFormat: 'auto',
+      colorMode: 'never'
+    });
+  });
+
+  it('rejects --color with an unknown value as a usageError', () => {
+    const result = parseArgv(['--color=rainbow', '42']);
+    expect(result.kind).toBe('usageError');
+    expect(result.message).toMatch(/--color expects auto \/ always \/ never/);
   });
 
   it('reports a usageError when only an input-mode flag is supplied without a query', () => {

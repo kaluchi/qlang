@@ -1,0 +1,223 @@
+|~ qlang operand catalog — reflective family. The handful of
+   operands whose impl receives the full evaluator state pair
+   `(pipeValue, env)` directly instead of projecting pipeValue:
+   `env` reads, `use` merges, `as` snapshots, `manifest` /
+   `runExamples` build descriptor / self-test surfaces over the
+   enumerable bindings. Per-binding declarative introspection
+   ("what does THIS one do") lives in
+   `core/lib/qlang/operand/axis.qlang` (`source` / `docs` /
+   `examples`). Error-track entry / exit lives in
+   `core/lib/qlang/operand/error.qlang`; the code-as-data ring
+   (`parse` / `eval` / `apply`) lives in
+   `core/lib/qlang/operand/code-as-data.qlang`. Each operand
+   BindStep below sits directly under the per-site error tags it
+   raises; the operand's `:throws` Vec references those tags by
+   name. ~|
+
+:env
+  |~~ Replaces pipeValue with the current env Map. Inside a fork,
+      returns the fork-local env including any as/let writes visible
+      at this point.
+
+      ~{env | has(:count) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/env
+            :category :reflective
+            :subject :any
+            :returns :map
+   }
+
+:use
+  |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
+      into env. With a namespace keyword, imports module bindings.
+      With a Vec of keywords, imports modules in order (later
+      shadows earlier on collision). With a Set, imports and
+      rejects name collisions. With two args (namespace + filter),
+      imports only the named bindings. pipeValue unchanged in all
+      forms. Inside a fork, merged bindings evaporate on close. ~~|
+  ::builtin{:impl :qlang/prim/use
+            :category :reflective
+            :subject :any
+            :returns :any
+            :modifiers [:any]
+            :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceNotMapError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
+
+::UseSubjectNotMapError
+  |~~ `use` (bare form) requires a Map subject — its entries
+      become the merged bindings.
+
+      ~{
+        42 | use
+        !| [type /actualType]
+        |  eq([::UseSubjectNotMapError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :use :position :subject :expectedType :map}
+
+::UseNamespaceNotKeywordError
+  |~~ `use(:ns)` requires a Keyword captured-arg naming the
+      namespace to import.
+
+      ~{
+        use(42)
+        !| [type /actualType]
+        |  eq([::UseNamespaceNotKeywordError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :use :expectedType :keyword}
+
+::UseNamespaceNotFoundError
+  |~~ `use(:ns)` — namespace not in env and no host-provided
+      locator can resolve it.
+
+      ~{
+        use(:absolutely-nonexistent-namespace)
+        !| [type /namespaceName]
+        |  eq([::UseNamespaceNotFoundError
+                :absolutely-nonexistent-namespace])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :use}
+
+::UseNamespaceNotMapError
+  |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot
+      import as a namespace. Host-boundary error: fires from
+      bindings installed via `session.bind('ns', 42)`.
+  ~~|
+  ::builtin{:category :type-error :operand :use :expectedType :map}
+
+::UseNamespaceElementNotKeywordError
+  |~~ `use([:ns1 :ns2 …])` — every element of the namespace
+      Vec must be a Keyword.
+
+      ~{
+        use([42 :foo])
+        !| [type /index /actualType]
+        |  eq([::UseNamespaceElementNotKeywordError 0 :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :use :expectedType :keyword}
+
+::UseNamespaceCollisionError
+  |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name
+      under the same identifier; Set-form rejects collisions.
+      Host-boundary error: requires two host-installed namespace
+      Maps with overlapping keys.
+  ~~|
+  ::builtin{:category :type-error :operand :use}
+
+::UseNameNotExportedError
+  |~~ `use(:ns, #{:name1 …})` — selection filter names an
+      identifier the namespace does not export. Host-boundary
+      error: requires a host-installed namespace Map.
+  ~~|
+  ::builtin{:category :type-error :operand :use}
+
+:manifest
+  |~~ Returns a Vec of descriptors, one per binding in env,
+      sorted alphabetically by binding name. Each descriptor
+      carries `:kind` (`:builtin` / `:conduit` / `:snapshot` /
+      `:tag` / `:value`), `:name`, plus per-kind fields stamped
+      by `describeBinding` in `runtime/manifest-op.mjs`.
+      Overloaded by captured-arg count: bare manifest or
+      manifest(:value) lists value-namespace bindings; manifest(:tag)
+      lists tag-namespace `::Tag` bindings. For per-binding
+      source-level introspection reach for the axis trio
+      (`:name | source` / `:name | docs` / `:name | examples`)
+      instead — the manifest descriptors are a runtime-derived
+      enumeration surface, not a substitute for the AST-axis
+      navigation. ~~|
+  ::builtin{:impl :qlang/prim/manifest
+            :category :reflective
+            :subject :any
+            :returns :vec
+            :modifiers [:keyword]
+            :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
+
+::ManifestNamespaceNotKeywordError
+  |~~ `manifest(:namespace)` requires a Keyword captured-arg
+      naming the namespace to enumerate (`:value` or `:tag`).
+
+      ~{
+        manifest("tag")
+        !| [type /actualType]
+        |  eq([::ManifestNamespaceNotKeywordError :string])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :manifest :expectedType :keyword}
+
+::ManifestNamespaceUnknownError
+  |~~ `manifest(:namespace)` accepts `:value` or `:tag`; any
+      other keyword fires this error.
+
+      ~{
+        manifest(:wat)
+        !| [type /namespace]
+        |  eq([::ManifestNamespaceUnknownError :wat])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :manifest}
+
+:runExamples
+  |~~ Walks every Quote segment inside the binding's attached
+      doc-prefix and returns a Vec of result Maps shaped
+      {:snippet :actual :ok :error}. Each Quote is evalQuery'd in
+      an isolated env; :ok is true iff the result is truthy
+      (anything that is neither false nor null nor an error value).
+      Subject is a Keyword (binding name) or a descriptor Map
+      carrying a :name string. The composition
+      manifest | every(runExamples | every(/ok)) walks every
+      example in the manifest and must return true —
+      self-describing catalog drift detection. ~~|
+  ::builtin{:impl :qlang/prim/runExamples
+            :category :reflective
+            :subject :map
+            :returns :vec
+            :throws [::RunExamplesSubjectShapeError]}
+
+::RunExamplesSubjectShapeError
+  |~~ `runExamples` requires a Keyword (binding name) or a
+      descriptor Map carrying a `:name` String.
+
+      ~{
+        42 | runExamples
+        !| [type /actualType]
+        |  eq([::RunExamplesSubjectShapeError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :runExamples :position :subject :expectedType [:keyword :map]}
+
+:as
+  |~~ Captures the current pipeValue as a frozen snapshot under
+      the given keyword name. pipeValue passes through unchanged.
+      Retrievable by name through identifier lookup (auto-unwrapped
+      to the raw value). For the binding's doc-prefix / source slice
+      reach for the axis trio (`:name | source / docs / examples`).
+
+      ~{42 | as(:answer) | answer | eq(42)}
+      ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
+  ~~|
+  ::builtin{:impl :qlang/prim/as
+            :category :reflective
+            :subject :any
+            :returns :any
+            :modifiers [:keyword]
+            :throws [::AsNameNotKeywordError]}
+
+|~ Snapshot wrappers carry their captured value transparently on
+   identifier lookup — `as(:name) | name` returns the raw value
+   the snapshot captured. For declarative metadata about the
+   binding (its attached doc-prefix, source slice, runnable
+   `~{…}` examples) reach for the axis trio (`:name | source` /
+   `| docs` / `| examples`) in `operand/axis.qlang`. ~|
+
+::AsNameNotKeywordError
+  |~~ `as` requires a Keyword captured-arg (the binding name).
+
+      ~{
+        42 | as(42)
+        !| [type /actualType]
+        |  eq([::AsNameNotKeywordError :number])
+       }
+  ~~|
+  ::builtin{:category :type-error :operand :as :expectedType :keyword}

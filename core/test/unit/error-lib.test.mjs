@@ -1,9 +1,9 @@
-// Happy-path and failure-path fixtures for the `lib/qlang/error` and
-// `lib/qlang/error/observe` conduits. These files are installed via
-// the module-resolver into a session that exposes `:error` and
-// `:error/observe` as namespaces, so every test here begins with
-// `use(:error)` or `use(:error/observe)` to pull the conduits into
-// env before invoking them.
+// Happy-path and failure-path fixtures for the `lib/extras/error.qlang`
+// and `lib/extras/error/observe.qlang` conduits. These files are
+// installed via the module-resolver into a session that exposes
+// `:error` and `:error/observe` as namespaces, so every test here
+// begins with `use(:error)` or `use(:error/observe)` to pull the
+// conduits into env before invoking them.
 //
 // Each conduit is exercised against both of the branches that its
 // control flow can take: the success-track path where the incoming
@@ -18,15 +18,15 @@ import {
   resolveModules,
   installModules
 } from '../../host/module-resolver.mjs';
-import { keyword, isErrorValue } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeTagKeyword } from '../../src/types.mjs';
 
-const libDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'lib', 'qlang');
+const libDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'lib', 'extras');
 
 async function sessionWithErrorLib() {
   const sessionInstance = await createSession();
   const catalog = await resolveModules(libDir);
   installModules(sessionInstance, catalog);
-  await sessionInstance.evalCell('null | use(:error) | use(:error/observe)');
+  await sessionInstance.evalCell('use(:error) | use(:error/observe)');
   return sessionInstance;
 }
 
@@ -69,7 +69,7 @@ describe('retry — recovers from a single transient failure', () => {
     // drops through to the else branch and re-lifts the materialized
     // descriptor into a fresh error on the fail-track.
     const errorResult = await runErr(sessionInstance, '42 | retry(count, 0)');
-    expect(errorResult.descriptor.get('thrown')).toEqual(keyword('CountSubjectNotContainer'));
+    expect(errorResult.descriptor.get('kind')).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 
   it('retries the documented number of attempts before re-lifting', async () => {
@@ -77,7 +77,7 @@ describe('retry — recovers from a single transient failure', () => {
     // The returned error's :trail accumulates the deflected steps
     // from the recursive body of retry.
     const errorResult = await runErr(sessionInstance, '42 | retry(count, 2)');
-    expect(errorResult.descriptor.get('kind')).toEqual(keyword('type-error'));
+    expect(errorResult.descriptor.get('kind').name).toBe('CountSubjectNotContainerError');
   });
 });
 
@@ -131,17 +131,16 @@ describe('withContext — merges a context Map into the descriptor', () => {
   });
 
   it('trail continuity survives withContext re-lift', async () => {
-    // Structured trail: /trail yields Vec of AST-Maps; * /text
-    // extracts the source-text display form so the assertion can
-    // still compare against plain strings. The continuity property
-    // under test: count deflects into the trail as an AST-Map;
-    // after withContext + re-lift via the conduit's internal
-    // `| error`, the :trail Vec stays populated; `| add(5)` then
-    // deflects and the outer !| combines that into the exposed
-    // materialized descriptor, so the final text projection holds
-    // both step labels in chronological order.
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail * /text');
-    expect(ctxResult).toEqual(['count', 'add(5)']);
+    // /trail yields a Quote-value carrying the joined
+    // pipeline-suffix source. The continuity property under test:
+    // `| count` deflects into the trail as a fragment; after
+    // withContext + re-lift via the conduit's internal `| error`,
+    // the :trail Quote stays populated; `| add(5)` then deflects
+    // and the outer !| concatenates that into the exposed
+    // materialized descriptor, so the final /source projection
+    // holds both step combinators+text in chronological order.
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail | /source');
+    expect(ctxResult).toBe('| count | add(5)');
   });
 });
 

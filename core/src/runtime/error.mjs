@@ -19,7 +19,7 @@
 // aware" from ordinary operands; the combinator is the sole
 // mechanism that decides which track fires its step.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/reflective.qlang.
 
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
@@ -28,10 +28,10 @@ import {
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
-const ErrorDescriptorNotMap = declareSubjectError(
-  'ErrorDescriptorNotMap', 'error', 'Map');
+const ErrorDescriptorNotMapError = declareSubjectError(
+  'ErrorDescriptorNotMapError', 'error', 'map');
 
 // error — lift a Map into an error value.
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;
@@ -42,7 +42,7 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
     ? state.pipeValue
     : await errorLambdas[0](state.pipeValue);
   if (!isQMap(errorDescriptor)) {
-    throw new ErrorDescriptorNotMap(errorDescriptor);
+    throw new ErrorDescriptorNotMapError(errorDescriptor);
   }
   return withPipeValue(state, makeErrorValue(errorDescriptor));
 }, { captured: [0, 1] });
@@ -51,6 +51,6 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
 // error value, false otherwise.
 export const isError = nullaryOp('isError', (subject) => isErrorValue(subject));
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
-PRIMITIVE_REGISTRY.bind('qlang/prim/error',   error);
-PRIMITIVE_REGISTRY.bind('qlang/prim/isError', isError);
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
+bindPrim('error',   error);
+bindPrim('isError', isError);

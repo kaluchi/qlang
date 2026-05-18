@@ -6,22 +6,22 @@
 // evaluate against pipeValue. The `then`/`else`/`alt` slots are
 // never eagerly resolved.
 //
-// Meta lives in lib/qlang/core.qlang.
+// Meta lives in lib/qlang/operand/control.qlang.
 
 import {
   higherOrderOp,
   higherOrderOpVariadic,
   UNBOUNDED
 } from './dispatch.mjs';
-import { isTruthy, isNull, NULL } from '../types.mjs';
+import { isTruthy, isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareArityError } from '../operand-errors.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 
-const CoalesceNoAlternatives = declareArityError('CoalesceNoAlternatives',
+const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline');
-const FirstTruthyNoAlternatives = declareArityError('FirstTruthyNoAlternatives',
+const FirstTruthyNoAlternativesError = declareArityError('FirstTruthyNoAlternativesError',
   () => 'firstTruthy requires at least one alternative sub-pipeline');
-const CondNoBranches = declareArityError('CondNoBranches',
+const CondNoBranchesError = declareArityError('CondNoBranchesError',
   () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default');
 
 export const ifOp = higherOrderOp('if', 4,
@@ -45,14 +45,25 @@ export const unless = higherOrderOp('unless', 3,
       : await unlessThenLambda(unlessSubject);
   });
 
+// Returns the first alternative that resolves to a non-null,
+// non-error value — both `null` (the "no value" sentinel) and
+// `ErrorValue` (typically a strict-projection miss like `/missing`
+// on a Map without the key) count as "skip and try next". The
+// fall-back is `null` when every alternative fails or yields
+// `null`. Treating ErrorValue as "try next" is what makes
+// `coalesce(/a, /b, "default")` continue past a missing-key error
+// from `/a` — the operand's intent is "first defined value",
+// strict projection turned "undefined" into an error, this catch
+// restores the iteration semantics.
 export const coalesce = higherOrderOpVariadic('coalesce', 16,
   async (coalesceSubject, ...coalesceLambdas) => {
     if (coalesceLambdas.length === 0) {
-      throw new CoalesceNoAlternatives();
+      throw new CoalesceNoAlternativesError();
     }
     for (const coalesceAlt of coalesceLambdas) {
       const coalesceVal = await coalesceAlt(coalesceSubject);
-      if (!isNull(coalesceVal)) return coalesceVal;
+      if (isNull(coalesceVal) || isErrorValue(coalesceVal)) continue;
+      return coalesceVal;
     }
     return NULL;
   }, [1, UNBOUNDED]);
@@ -60,7 +71,7 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
 export const cond = higherOrderOpVariadic('cond', 16,
   async (condSubject, ...condLambdas) => {
     if (condLambdas.length < 2) {
-      throw new CondNoBranches();
+      throw new CondNoBranchesError();
     }
     let condIdx = 0;
     while (condIdx + 1 < condLambdas.length) {
@@ -77,24 +88,28 @@ export const cond = higherOrderOpVariadic('cond', 16,
     return NULL;
   }, [2, UNBOUNDED]);
 
+// Same skip-on-error rule as `coalesce` (see comment above) — an
+// ErrorValue from an alternative counts as falsy and the iteration
+// moves to the next.
 export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
   async (firstTruthySubject, ...firstTruthyLambdas) => {
     if (firstTruthyLambdas.length === 0) {
-      throw new FirstTruthyNoAlternatives();
+      throw new FirstTruthyNoAlternativesError();
     }
     for (const truthyAlt of firstTruthyLambdas) {
       const truthyVal = await truthyAlt(firstTruthySubject);
+      if (isErrorValue(truthyVal)) continue;
       if (isTruthy(truthyVal)) return truthyVal;
     }
     return NULL;
   }, [1, UNBOUNDED]);
 
-// Bind into PRIMITIVE_REGISTRY under :qlang/prim/<name> at module-load time.
+// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
 // `ifOp` is the JS-level identifier for the qlang `if` operand
 // (because `if` is a JS reserved word).
-PRIMITIVE_REGISTRY.bind('qlang/prim/if',          ifOp);
-PRIMITIVE_REGISTRY.bind('qlang/prim/when',        when);
-PRIMITIVE_REGISTRY.bind('qlang/prim/unless',      unless);
-PRIMITIVE_REGISTRY.bind('qlang/prim/coalesce',    coalesce);
-PRIMITIVE_REGISTRY.bind('qlang/prim/cond',        cond);
-PRIMITIVE_REGISTRY.bind('qlang/prim/firstTruthy', firstTruthy);
+bindPrim('if',          ifOp);
+bindPrim('when',        when);
+bindPrim('unless',      unless);
+bindPrim('coalesce',    coalesce);
+bindPrim('cond',        cond);
+bindPrim('firstTruthy', firstTruthy);

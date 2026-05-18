@@ -12,10 +12,10 @@ for the language syntax.
 a fixed set of host operands on top of `langRuntime` — effectful
 I/O (`@in`, `@out`, `@err`, `@tap`), value formatters (`pretty`,
 `tjson`, `template`), and String-to-value parsers (`parseJson`,
-`parseTjson`). These are not part of the language core catalog;
-their contracts live in [`cli/README.md`](../cli/README.md).
-Another host (a browser playground, a server-side evaluator) is
-free to bind a different operand set — every binding uses the same
+`parseTjson`). These are host-scope additions; their contracts
+live in [`cli/README.md`](../cli/README.md). Another host (a
+browser playground, a server-side evaluator) is free to bind a
+different operand set — every binding uses the same
 dispatch wrappers from `@kaluchi/qlang-core/dispatch` and the same
 per-site error factories from `@kaluchi/qlang-core/operand-errors`.
 
@@ -41,8 +41,8 @@ form), positions 2..n are modifiers (filled by captured args).
 Every operand descriptor carries a `:category` keyword that groups it
 with its polymorphism siblings. The taxonomy is first-class data —
 `env | manifest | filter(/category | eq(:container-selector))` returns
-the three polymorphic container selectors — so the keywords below are
-part of the doc surface, not implementation lore.
+the three polymorphic container selectors — so the keywords below
+form part of the doc surface and the runtime catalog alike.
 
 | `:category` keyword | Meaning |
 |---|---|
@@ -59,7 +59,9 @@ part of the doc surface, not implementation lore.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (let / as / env / use / reify / manifest / runExamples / parse / eval). |
+| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
+| `:code-as-data` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
+| `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
@@ -72,7 +74,7 @@ part of the doc surface, not implementation lore.
   count).
 - **Examples**: `[1 2 3 4 5] | count` → `5`; `#{:a :b :c} | count` →
   `3`; `{:x 1 :y 2} | count` → `2`; `[] | count` → `0`.
-- **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainer`.
+- **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainerError`.
 
 ### `empty`
 
@@ -82,7 +84,7 @@ part of the doc surface, not implementation lore.
   otherwise.
 - **Examples**: `[] | empty` → `true`; `#{} | empty` → `true`;
   `{} | empty` → `true`; `[1] | empty` → `false`.
-- **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainer`.
+- **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainerError`.
 
 ## Vec-or-Set reducers — `(Vec / Set) → Scalar`
 
@@ -95,8 +97,8 @@ part of the doc surface, not implementation lore.
   `0`. Every element must be a number.
 - **Examples**: `[1 2 3 4] | sum` → `10`; `#{1 2 3} | sum` → `6`;
   `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
-- **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSet`;
-  element not a number → `SumElementNotNumber`.
+- **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
+  element not a number → `SumElementNotNumberError`.
 
 ### `min`, `max`
 
@@ -105,9 +107,9 @@ part of the doc surface, not implementation lore.
 - Returns the minimum (or maximum) element under the natural
   ordering. Empty container yields `null`.
 - **Examples**: `[3 1 4 1 5] | min` → `1`; `#{3 1 4} | max` → `4`.
-- **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSet` /
-  `MaxSubjectNotVecOrSet`; elements not comparable →
-  `MinElementsNotComparable` / `MaxElementsNotComparable`.
+- **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSetError` /
+  `MaxSubjectNotVecOrSetError`; elements not comparable →
+  `MinElementsNotComparableError` / `MaxElementsNotComparableError`.
 
 ## Vec reducers — `Vec → Any`
 
@@ -120,14 +122,14 @@ well-defined element ordering live in this section.
 - **Arity** 1. **Subject** `vec`.
 - Returns the first element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | first` → `10`; `[] | first` → `null`.
-- **Errors**: subject not a Vec → `FirstSubjectNotVec`.
+- **Errors**: subject not a Vec → `FirstSubjectNotVecError`.
 
 ### `last`
 
 - **Arity** 1. **Subject** `vec`.
 - Returns the last element, or `null` if the Vec is empty.
 - **Example**: `[10 20 30] | last` → `30`; `[] | last` → `null`.
-- **Errors**: subject not a Vec → `LastSubjectNotVec`.
+- **Errors**: subject not a Vec → `LastSubjectNotVecError`.
 
 ### `at(n)`
 
@@ -141,9 +143,9 @@ well-defined element ordering live in this section.
   when the key is known statically.
 - **Example**: `[10 20 30] | at(1)` → `20`; `[10 20 30] | at(-1)` →
   `30`; `{:x 1 :y 2} | at("x")` → `1`; `{:x 1} | at("z")` → `null`.
-- **Errors**: non-Vec-or-Map subject → `AtSubjectNotVecOrMap`;
-  non-integer index on Vec → `AtIndexNotInteger`; non-string key on
-  Map → `AtKeyNotString`.
+- **Errors**: non-Vec-or-Map subject → `AtSubjectNotVecOrMapError`;
+  non-integer index on Vec → `AtIndexNotIntegerError`; non-string key on
+  Map → `AtKeyNotStringError`.
 - **See also**: bare-form projection `/n` on a Vec (e.g.
   `/items/0/name`) — same indexed-access semantics without the
   operand-call wrapper, polymorphic over Map (keyword lookup) and
@@ -158,7 +160,7 @@ same on every shape; what changes is which axis the language
 offers to fill:
 
 - **0-arity inline pipeline** (`filter(gt(1))`) or **0-arity named
-  conduit** (`let(:big, gt(1)) | ... | filter(big)`) — per item
+  conduit** (`:big gt(1) | ... | filter(big)`) — per item
   with pipeValue = element on Vec/Set, value on Map. Covers the
   90% case.
 - **1-arity conduit `[:x]`** — the element (Vec/Set) or value
@@ -169,20 +171,20 @@ offers to fill:
   sees **`(key, value)`** as two captured-arg bindings and can
   correlate the two axes freely. On Vec or Set there is no second
   axis to fill; 2+ params raise per-operand
-  `Filter/Every/AnyVecOrSetPredArityInvalid`.
+  `Filter/Every/AnyVecOrSetPredArityInvalidError`.
 - **3+-arity conduit** — per-operand arity-invalid class on both
   Vec/Set and Map (`*VecOrSetPredArityInvalid` /
-  `*MapPredArityInvalid`). The language does not pair-encode keys
-  and values into a single argument; higher arities have no
-  meaning for entry iteration.
+  `*MapPredArityInvalid`). Map iteration binds at most `(key,
+  value)`; higher arities exceed the binding shape and raise the
+  per-operand class.
 
-Compose both-axis predicates by naming the 2-arity conduit with
-`let` inline in the pipeline, then reference it inside `filter` /
-`every` / `any`:
+Compose both-axis predicates by declaring the 2-arity conduit
+through a BindStep inline in the pipeline, then reference it
+inside `filter` / `every` / `any`:
 
 ```qlang
 m
-  | let(:@hot, [:k :v], and(k | eq(:x), v | gt(1)))
+  | :@hot [:k :v] and(k | eq(:x), v | gt(1))
   | filter(@hot)
 ```
 
@@ -198,17 +200,17 @@ m
 - **Examples**:
   - `[1 2 3 4 5] | filter(gt(2))` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter(/age | gte(18))` → `[{:age 25}]`.
-  - `[1 -2 3] | let(:@pos, [:v], v | gt(0)) | filter(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
+  - `[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
   - `#{1 2 3 4 5} | filter(gt(2))` → `#{3 4 5}`.
   - `{:a 1 :b 2 :c 3} | filter(gt(1))` → `{:b 2 :c 3}` — 0-arity pred, value axis.
-  - `{:a 1 :b -2 :c 3} | let(:@pos, [:v], v | gt(0)) | filter(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
-  - `{:apple 1 :banana 2 :avocado 3} | let(:@hot, [:k :v], and(k | eq(:avocado), v | gt(1))) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
+  - `{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt(0)) | filter(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
+  - `{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
   - `{} | filter(gt(0))` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainer`. Predicate conduit with 2+ params on
+  `FilterSubjectNotContainerError`. Predicate conduit with 2+ params on
   Vec or Set (only one axis available) →
-  `FilterVecOrSetPredArityInvalid`. Predicate conduit with 3+
-  params on Map → `FilterMapPredArityInvalid`.
+  `FilterVecOrSetPredArityInvalidError`. Predicate conduit with 3+
+  params on Map → `FilterMapPredArityInvalidError`.
 
 ### `every(pred)`
 
@@ -224,15 +226,15 @@ m
 - **Examples**:
   - `[2 4 6] | every(gt(0))` → `true`.
   - `[1 2 3] | every(gt(2))` → `false`.
-  - `[2 4 6] | let(:@pos, [:v], v | gt(0)) | every(@pos)` → `true` — 1-arity conduit.
+  - `[2 4 6] | :@pos [:v] (v | gt(0)) | every(@pos)` → `true` — 1-arity conduit.
   - `[] | every(gt(0))` → `true`.
   - `#{2 4 6} | every(gt(0))` → `true`.
   - `{:a 1 :b 2 :c 3} | every(gt(0))` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every(gt(0))` → `false`.
-- **Errors**: subject not a container → `EverySubjectNotContainer`.
+- **Errors**: subject not a container → `EverySubjectNotContainerError`.
   Predicate conduit with 2+ params on Vec/Set →
-  `EveryVecOrSetPredArityInvalid`. Predicate conduit with 3+
-  params on Map → `EveryMapPredArityInvalid`.
+  `EveryVecOrSetPredArityInvalidError`. Predicate conduit with 3+
+  params on Map → `EveryMapPredArityInvalidError`.
 
 ### `any(pred)`
 
@@ -245,15 +247,15 @@ m
 - **Examples**:
   - `[1 2 3] | any(gt(2))` → `true`.
   - `[1 2 3] | any(gt(99))` → `false`.
-  - `[1 2 3] | let(:@big, [:v], v | gt(2)) | any(@big)` → `true` — 1-arity conduit.
+  - `[1 2 3] | :@big [:v] (v | gt(2)) | any(@big)` → `true` — 1-arity conduit.
   - `[] | any(gt(0))` → `false`.
   - `#{1 2 3} | any(gt(2))` → `true`.
   - `{:a -1 :b 0 :c 2} | any(gt(0))` → `true` — 0-arity, value axis.
-  - `{:apple 1 :banana 2} | let(:@isApple, [:k :v], k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
-- **Errors**: subject not a container → `AnySubjectNotContainer`.
+  - `{:apple 1 :banana 2} | :@isApple [:k :v] (k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
+- **Errors**: subject not a container → `AnySubjectNotContainerError`.
   Predicate conduit with 2+ params on Vec/Set →
-  `AnyVecOrSetPredArityInvalid`. Predicate conduit with 3+ params
-  on Map → `AnyMapPredArityInvalid`.
+  `AnyVecOrSetPredArityInvalidError`. Predicate conduit with 3+ params
+  on Map → `AnyMapPredArityInvalidError`.
 
 ## Vec transformers — `Vec → Vec` / `Vec → Map`
 
@@ -265,7 +267,7 @@ m
   applied to each element. Preserves first-occurrence order for
   both the Map entry sequence and each bucket's element list.
 - **Example**: `[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name` → `["a" "c"]`.
-- **Errors**: subject not a Vec → type error; key not a keyword → type error.
+- **Errors**: subject not a Vec → `GroupBySubjectNotVecError`; key not a keyword → `GroupByKeyNotKeywordError`.
 
 ### `indexBy(keyFn)`
 
@@ -274,14 +276,14 @@ m
 - Collapses a Vec into a Map keyed by the result of `keyFn`. On
   collision, the last element wins.
 - **Example**: `[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name` → `"alice"`.
-- **Errors**: subject not a Vec → type error; key not a keyword → type error.
+- **Errors**: subject not a Vec → `IndexBySubjectNotVecError`; key not a keyword → `IndexByKeyNotKeywordError`.
 
 ### `sort`
 
 - **Arity** 1. **Subject** `vec`.
 - Returns a new Vec sorted in natural (ascending) order.
 - **Example**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`.
-- **Errors**: elements not comparable → type error.
+- **Errors**: elements not comparable → `SortNaturalNotComparableError`.
 
 ### `sort(key)`
 
@@ -307,8 +309,8 @@ m
   - `events | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)`
     → events sorted by priority ascending, then timestamp descending
     as tie-breaker.
-- **Errors**: subject not a Vec → type error; comparator returns
-  non-number → type error.
+- **Errors**: subject not a Vec → `SortWithSubjectNotVecError`; comparator returns
+  non-number → `SortWithCmpResultNotNumberError`.
 
 ### `asc(keyExpr)`
 
@@ -324,8 +326,8 @@ m
   - `sortWith(asc(/age))` → ascending by `:age`.
   - `sortWith(asc(mul(/price, /qty)))` → ascending by computed total.
   - `sortWith(asc(/profile/joined))` → ascending by nested field.
-- **Errors**: pair subject not a Map → type error; left and right
-  keys not comparable scalars of the same type → type error.
+- **Errors**: pair subject not a Map → `AscPairNotMapError`; left and right
+  keys not comparable scalars of the same type → `AscKeysNotComparableError`.
 
 ### `desc(keyExpr)`
 
@@ -334,8 +336,8 @@ m
 - **Examples**:
   - `sortWith(desc(/timestamp))` → most recent first.
   - `sortWith(desc(/score))` → highest score first.
-- **Errors**: pair subject not a Map → type error; keys not
-  comparable → type error.
+- **Errors**: pair subject not a Map → `DescPairNotMapError`; keys not
+  comparable → `DescKeysNotComparableError`.
 
 ### `nullsFirst(keyExpr)`
 
@@ -344,12 +346,12 @@ m
 - Ascending comparator that places null-keyed elements before all
   non-null elements. Non-null keys are sorted in ascending order.
   Use inside `sortWith` to handle data with missing values without
-  tripping `AscKeysNotComparable`.
+  tripping `AscKeysNotComparableError`.
 - **Examples**:
   - `sortWith(nullsFirst(/age))` → null ages before all others.
   - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsFirst(/a)) * /a`
     → `[null 1 3]`.
-- **Errors**: pair subject not a Map → type error.
+- **Errors**: pair subject not a Map → `NullsFirstPairNotMapError`.
 
 ### `nullsLast(keyExpr)`
 
@@ -358,12 +360,12 @@ m
 - Ascending comparator that places null-keyed elements after all
   non-null elements. Non-null keys are sorted in ascending order.
   Use inside `sortWith` to handle data with missing values without
-  tripping `AscKeysNotComparable`.
+  tripping `AscKeysNotComparableError`.
 - **Examples**:
   - `sortWith(nullsLast(/age))` → null ages after all others.
   - `[{:a 3} {:a null} {:a 1}] | sortWith(nullsLast(/a)) * /a`
     → `[1 3 null]`.
-- **Errors**: pair subject not a Map → type error.
+- **Errors**: pair subject not a Map → `NullsLastPairNotMapError`.
 
 ### `firstNonZero`
 
@@ -379,8 +381,8 @@ m
   - `[0 0 0] | firstNonZero` → `0`.
   - `sortWith([asc(/lastName), desc(/age)] | firstNonZero)` →
     sort by last name ascending, age descending as tie-breaker.
-- **Errors**: subject not a Vec → type error; any element not a
-  number → type error.
+- **Errors**: subject not a Vec → `FirstNonZeroSubjectNotVecError`; any element not a
+  number → `FirstNonZeroElementNotNumberError`.
 
 ### `take(n)`
 
@@ -423,7 +425,7 @@ m
 - Flattens one level of nesting. Elements that are Vecs are
   spliced in; other elements pass through unchanged.
 - **Example**: `[[1 2] [3] [4 5]] | flat` → `[1 2 3 4 5]`.
-- **Errors**: subject not a Vec → type error.
+- **Errors**: subject not a Vec → `FlatSubjectNotVecError`.
 
 ### `set`
 
@@ -488,7 +490,7 @@ shapes are supported:
 ### Bare form — zero captured args
 
 - **Arity** 1. **Subject** `vec` — a non-empty Vec of operands.
-- Left-fold: `[a, b, c] | union` = `(a ∪ b) ∪ c`. Same for `minus`
+- Left-fold: `[a b c] | union` = `(a ∪ b) ∪ c`. Same for `minus`
   and `inter`.
 - **Examples**:
   - `[#{:a :b :c} #{:b :d}] | union` → `#{:a :b :c :d}`.
@@ -496,7 +498,7 @@ shapes are supported:
   - `[#{:a :b :c} #{:b :d}] | inter` → `#{:b}`.
   - `[{:name "a"} {:score 100}] | union`
     → `{:name "a" :score 100}`.
-- **Errors**: empty Vec → type error (no identity element).
+- **Errors**: empty Vec → `UnionBareSubjectNotVecError` / `MinusBareSubjectNotVecError` / `InterBareSubjectNotVecError`.
 
 ### Full form — two captured args
 
@@ -518,7 +520,7 @@ shapes are supported:
 of `M₂` are ignored). `M × M` for `inter` keeps keys present in both
 and takes values from `M₁`.
 
-**Errors**: incompatible types (e.g., Set and number) → type error.
+**Errors**: incompatible types (e.g., Set and number) → `UnionPairIncompatibleError` / `MinusPairIncompatibleError` / `InterPairIncompatibleError`.
 
 ## Arithmetic — `Scalar → Scalar`
 
@@ -568,8 +570,8 @@ and takes values from `M₁`.
   - `"a,b,c" | split(",")` → `["a" "b" "c"]`.
   - `"line1\nline2\nline3" | split("\n")` → `["line1" "line2" "line3"]`.
   - `"" | split(",")` → `[""]`.
-- **Errors**: subject not a string → type error; separator not a
-  string → type error.
+- **Errors**: subject not a string → `SplitSubjectNotStringError`; separator not a
+  string → `SplitSeparatorNotStringError`.
 
 ### `join(separator)`
 
@@ -580,8 +582,8 @@ and takes values from `M₁`.
   - `["a" "b" "c"] | join(",")` → `"a,b,c"`.
   - `["x" "y"] | join("")` → `"xy"`.
   - `[] | join(",")` → `""`.
-- **Errors**: subject not a Vec → type error; any element not a
-  string → type error; separator not a string → type error.
+- **Errors**: subject not a Vec → `JoinSubjectNotVecError`; any element not a
+  string → `JoinElementNotStringError`; separator not a string → `JoinSeparatorNotStringError`.
 
 `split` and `join` are inverses: `"a,b,c" | split(",") | join(",")`
 round-trips to `"a,b,c"`.
@@ -594,7 +596,7 @@ round-trips to `"a,b,c"`.
 - **Examples**:
   - `"hello world" | contains("world")` → `true`.
   - `"hello" | contains("xyz")` → `false`.
-- **Errors**: subject or needle not a string → type error.
+- **Errors**: subject not a string → `ContainsSubjectNotStringError`; needle not a string → `ContainsNeedleNotStringError`.
 
 ### `startsWith(prefix)`
 
@@ -604,7 +606,7 @@ round-trips to `"a,b,c"`.
 - **Examples**:
   - `"hello world" | startsWith("hello")` → `true`.
   - `"hello" | startsWith("world")` → `false`.
-- **Errors**: subject or prefix not a string → type error.
+- **Errors**: subject not a string → `StartsWithSubjectNotStringError`; prefix not a string → `StartsWithPrefixNotStringError`.
 
 ### `endsWith(suffix)`
 
@@ -614,7 +616,7 @@ round-trips to `"a,b,c"`.
 - **Examples**:
   - `"hello world" | endsWith("world")` → `true`.
   - `"hello" | endsWith("xyz")` → `false`.
-- **Errors**: subject or suffix not a string → type error.
+- **Errors**: subject not a string → `EndsWithSubjectNotStringError`; suffix not a string → `EndsWithSuffixNotStringError`.
 
 ## Boolean
 
@@ -658,19 +660,26 @@ round-trips to `"a,b,c"`.
 
 ## Type classifiers
 
-Eight nullary predicates lift the `types.mjs` value-class
+Twelve nullary predicates lift the `types.mjs` value-class
 predicates to operand level. Primary use — inside `filter`,
 `every`, `any` predicates over heterogeneous containers:
 `filter(isString)` over a Vec of mixed types, or over a Map
 where the value's type is the predicate axis
 (`{:ID "SGML" :GlossDef {...}} | filter(isMap)` keeps only the
 Map-valued entries). Without them the same classification lands
-through `reify | /type | eq(:string)` — correct but it
-constructs the full descriptor Map per item for a single bit of
-information. Each classifier matches exactly one
-`describeType(v)` label and never throws.
+through `| type | eq(:string)` — also correct, but the dedicated
+classifier reads as a single predicate at the call site. Each
+classifier matches exactly one `describeType(v)` label and never
+throws.
 
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull`
+`isJsonObject` and `isJsonArray` discriminate the JSON-tagged
+shapes (plain JS object / Array stamped with the `JSON_OBJECT_TAG`
+/ `JSON_ARRAY_TAG` Symbol, produced by the host JSON-bridge and
+by the `::json` constructor). They are runtime-distinct from
+qlang Map and Vec — `isMap` and `isVec` return `false` on a JSON
+shape, and vice versa.
+
+### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
 
 - **Arity** 1. **Subject** any value.
 - Returns `true` iff the subject is of the named value class,
@@ -678,7 +687,11 @@ information. Each classifier matches exactly one
   exactly one classifier. Boolean and null classification is
   strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
   `isMap` reports `false` for conduit and snapshot descriptor
-  Maps — they classify as `Conduit` / `Snapshot`, not `Map`.
+  Maps — they classify as `Conduit` / `Snapshot` through the
+  `:kind` discriminator.
+  `isQuote` matches a frozen `~{…}`-delimited code-as-data
+  fragment; `isDoc` matches a frozen content fragment
+  (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
 - **Examples**:
   - `"hello" | isString` → `true`; `42 | isString` → `false`.
   - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;
@@ -686,9 +699,13 @@ information. Each classifier matches exactly one
   - `[1 2] | isVec` → `true`; `#{1} | isVec` → `false`.
   - `{:a 1} | isMap` → `true`; `[] | isMap` → `false`.
   - `#{1 2} | isSet` → `true`; `[1 2] | isSet` → `false`.
-  - `:name | isKeyword` → `true`; `:qlang/kind | isKeyword` → `true`.
+  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`.
   - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
+  - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
+  - `|~~ note ~~| | isDoc` → `true`; `"note" | isDoc` → `false`.
+  - `::json{:k 1} | isJsonObject` → `true`; `{:k 1} | isJsonObject` → `false`.
+  - `::json[1 2 3] | isJsonArray` → `true`; `[1 2 3] | isJsonArray` → `false`.
 - **Errors**: none — classification is total.
 
 ## Type Conversion
@@ -705,7 +722,7 @@ information. Each classifier matches exactly one
   - `"foo bar" | keyword` → `:"foo bar"`.
   - `"foo" | keyword | keyword` → `"foo"` (round-trip).
 - **Errors**: non-String-or-Keyword subject →
-  `KeywordSubjectNotStringOrKeyword`.
+  `KeywordSubjectNotStringOrKeywordError`.
 
 ## Formatting
 
@@ -713,7 +730,29 @@ information. Each classifier matches exactly one
 
 - **Arity** 1. **Subject** any value.
 - Returns a JSON string representation of the subject.
-- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`.
+- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2 3]}"`.
+
+### `qlang`
+
+- **Arity** 1. **Subject** any value.
+- Recursively converts JSON shape to qlang shape — `JsonObject`
+  becomes a qlang `Map` (string keys preserved), `JsonArray`
+  becomes a qlang `Vec`. Scalars and qlang-only values
+  (`Keyword`, qlang `Map` / `Vec` / `Set`, `Error`, `Quote`,
+  `Doc`, function values, tagged instances) pass through
+  unchanged.
+- **Idempotent.** Applying twice yields the same result as once
+  — `value | qlang | qlang` ≡ `value | qlang`. The pipeline-time
+  pendant of the `::qlang<payload>` TaggedLit constructor;
+  reach for `qlang` when the JSON value arrives via `pipeValue`
+  (CLI stdin parse, projection out of a JSON Object field) and
+  needs to flow into qlang-shape operands like
+  `union({:adult /age | gt(18)})`.
+- **Examples**:
+  - `::json{"a": 1} | qlang | isMap` → `true`.
+  - `::json[1, 2] | qlang | isVec` → `true`.
+  - `{:a 1} | qlang | isMap` → `true` (already qlang).
+  - `42 | qlang | eq(42)` → `true` (scalar identity).
 
 ### `table`
 
@@ -728,7 +767,7 @@ information. Each classifier matches exactly one
   `!{:kind :oops}` — so nested structure stays readable on one row.
   Reshape with `* {:col1 /a :col2 /b/c}` to lift sub-Map fields
   into columns before the table call.
-- **Errors**: subject not a Vec of Maps → type error.
+- **Errors**: subject not a Vec → `TableSubjectNotVecError`; row not a Map → `TableRowNotMapError`.
 
 ## Control flow
 
@@ -793,9 +832,10 @@ information. Each classifier matches exactly one
 - Evaluates each alternative against `pipeValue` in order and
   returns the first one that produces a non-`null` result. If all
   alternatives produce `null`, the result is `null`.
-- **Falsy non-null values** (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
-  are NOT skipped — only `null`/`undefined` count as missing.
-  This matches SQL `COALESCE` and JavaScript `??` semantics.
+- **Skipping rule**: only `null` / `undefined` count as missing.
+  Falsy-but-defined values (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
+  flow through as valid alternative results. Matches SQL
+  `COALESCE` and JavaScript `??` semantics.
 - **Short-circuits**: alternatives after the first non-null match
   are not evaluated.
 - **Examples**:
@@ -804,7 +844,7 @@ information. Each classifier matches exactly one
   - `config | coalesce(/userOverride, /projectDefault, /globalDefault)`
     → cascading defaults.
   - `lookup | coalesce(/cached, /computed)` → prefer cache.
-- **Errors**: zero captured args → `CoalesceNoAlternatives`.
+- **Errors**: zero captured args → `CoalesceNoAlternativesError`.
 
 ### `firstTruthy(...alts)`
 
@@ -815,11 +855,11 @@ information. Each classifier matches exactly one
   order; the first one that produces a truthy value becomes the
   new `pipeValue`. If all alternatives produce falsy values
   (`null` or `false`), the result is `null`.
-- **Differs from `coalesce`** in that `false` is also skipped:
-  `firstTruthy` treats `false` as "no value", `coalesce` treats
-  it as a valid explicit setting. Note that `0`, `""`, `[]`, `{}`,
-  `#{}` are truthy in qlang and therefore NOT skipped by either
-  operand.
+- **Truthiness contract**: `firstTruthy` skips `false` alongside
+  `null` (treating both as "no value"); `coalesce` keeps `false`
+  as a valid explicit setting. In qlang `0`, `""`, `[]`, `{}`,
+  `#{}` are truthy values and flow through either operand
+  unchanged.
 - **Short-circuits**: alternatives after the first truthy match
   are not evaluated.
 - **Examples**:
@@ -827,7 +867,7 @@ information. Each classifier matches exactly one
     → first non-empty name with default fallback.
   - `flag | firstTruthy(/userValue, /default, false)` → ignore
     explicit `false` user values, fall back to default.
-- **Errors**: zero captured args → `FirstTruthyNoAlternatives`.
+- **Errors**: zero captured args → `FirstTruthyNoAlternativesError`.
 
 **Choosing between `coalesce` and `firstTruthy`:** use `coalesce`
 for config cascading where `false` is a meaningful explicit
@@ -848,18 +888,23 @@ display defaults where `false` is a sentinel meaning "no value".
 - **Examples**:
   - `score | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F")`.
   - `value | cond(eq(0), "zero", eq(1), "one", "many")`.
-- **Errors**: fewer than 2 captured args → `CondNoBranches`.
+- **Errors**: fewer than 2 captured args → `CondNoBranchesError`.
 
 ## Reflective built-ins
 
-`env`, `use`, `reify`, `manifest`, `runExamples`, `let`, and `as`
-are **reflective operands**:
-they read or write the full evaluator state rather than working
-at the value level. All four are ordinary entries in `langRuntime`,
-look up like any other identifier, and can be shadowed by `let`
-or `as`. Their distinguishing feature is internal — the impl
-receives `(state, lambdas)` directly instead of going through the
-descend-compute-ascend pattern of pure operands.
+`env`, `use`, `manifest`, `runExamples`, and `as` are
+**reflective operands**: they read or write the full evaluator
+state pair. All of them are ordinary entries in `langRuntime`,
+look up like any other identifier, and can be shadowed by a
+`:name body` BindStep or by `as`. Their distinguishing feature
+is internal — the impl receives `(state, lambdas)` directly and
+threads the full state through, in contrast with pure operands
+that take `(pipeValue, args)`.
+
+The declarative binding form `:name body` / `:name [:params] body`
+is also covered in this section because it shares the same env-
+writing semantics — it is a grammar production (a BindStep) with
+its own eval handler in `eval.mjs`.
 
 ### `env`
 
@@ -871,7 +916,8 @@ descend-compute-ascend pattern of pure operands.
   - `env | has(:count)` → `true` (count is a built-in).
   - `env | /taxRate` → the value of a user binding, or `null`.
 - Inside a fork, returns the fork's current `env` (including any
-  fork-local `as` or `let` writes visible at the point of lookup).
+  fork-local `as` snapshot or BindStep declaration visible at the
+  point of lookup).
 - Captured arguments (`env(...)`) are an arity error.
 
 ### `use`
@@ -883,189 +929,185 @@ descend-compute-ascend pattern of pure operands.
   Map can be inspected further or discarded by the next step.
   On conflict, the incoming Map wins.
 - **Examples**:
-  - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi, e]`
+  - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi e]`
     → `[3.14159 2.71828]`.
-  - Shadow a built-in: `let(:use, mul(2)) | 5 | use` → `10`
-    (the user's `let` shadows the reflective `use`).
+  - Shadow a built-in: `:use mul(2) | 5 | use` → `10`
+    (the user's BindStep shadows the reflective `use`).
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,
   matching the documented fork rule — only the final `pipeValue`
   of the sub-pipeline escapes.
-- **Errors**: subject not a Map → type error. Captured arguments
-  (`use(...)`) → arity error.
-
-### `reify`
-
-Overloaded by captured-arg count.
-
-**Arity 1 (zero captured args) — value-level form.** Reads the
-current `pipeValue` and produces a descriptor Map whose shape
-depends on the value's provenance. Four descriptor kinds:
-
-- **Builtin** — `pipeValue` is a descriptor Map loaded by
-  `langRuntime()` from `lib/qlang/core.qlang`. Under the
-  Variant-B runtime shape, every built-in binding in `env` IS a
-  descriptor Map directly; `reify` substitutes the internal
-  `:qlang/kind :builtin` / `:qlang/impl :qlang/prim/<name>`
-  discriminator for a user-facing `:kind :builtin` (dropping
-  the `:qlang/impl` handle), stamps `:captured` / `:effectful`
-  from the primitive resolved through `PRIMITIVE_REGISTRY`,
-  and adds `:name` when the caller used the named form
-  `reify(:count)`:
-  ```
-  {:kind     :builtin
-   :name     "count"
-   :category :vec-reducer
-   :subject  [:vec :set :map]
-   :modifiers []
-   :returns  :number
-   :captured [0 0]
-   :docs     ["Returns the number of elements. Polymorphic over Vec, Set, and Map."]
-   :examples [{:doc "Vec length" :snippet "[1 2 3] | count" :expected "3"}
-              {:doc "Set size"   :snippet "#{:a :b} | count" :expected "2"}]
-   :throws   [:CountSubjectNotContainer]
-   :effectful false}
-  ```
-  `:category` / `:subject` / `:returns` carry keywords (not
-  strings) because the underlying `core.qlang` entries are
-  authored as keywords; `:throws` is a Vec of keywords (not
-  strings) matching the per-site error class names that
-  downstream consumers filter on. The `:captured` field is a
-  2-element Vec `[min, max]` describing the range of captured-
-  arg counts the operand accepts. Fixed operands have
-  `min == max` (e.g. `count` has `[0 0]`; `filter` has
-  `[1 1]`). Partial/full-applicable operands have `[n-1, n]`
-  (`add` has `[1 2]`). Overloaded operands span the Object
-  keys of their impl dispatch table (`sort` has `[0 1]`).
-  Variadic operands use the `:unbounded` keyword as the upper
-  bound (`coalesce` has `[1 :unbounded]`). The field is always
-  present.
-
-  Under the Variant-B REPL ergonomic, a bare non-nullary
-  operand lookup (`mul`, `filter`, `coalesce` — any operand
-  whose `min > 0`) short-circuits through the same descriptor
-  path: typing the bare name yields the Map above as the new
-  `pipeValue` rather than firing an arity error. Nullary
-  operands (`count`, `sort` bare form, `env`, etc.) still fire
-  on bare lookup because their `min == 0` and bare application
-  IS their valid call shape.
-- **Conduit** — `pipeValue` is a `let`-bound conduit (named
-  pipeline fragment, zero or more parameters). Descriptor:
-  ```
-  {:kind   :conduit
-   :name   "double"
-   :params []
-   :source "mul(2)"
-   :docs   ["Doubles a number." "Impl note: reuses mul with partial application."]}
-  ```
-  Parametric conduits carry a non-empty `:params` Vec:
-  ```
-  {:kind   :conduit
-   :name   "surround"
-   :params ["pfx" "sfx"]
-   :source "(prepend(pfx) | append(sfx))"
-   :docs   []}
-  ```
-- **Snapshot** — `pipeValue` is an `as`-bound snapshot wrapper.
-  Descriptor:
-  ```
-  {:kind :snapshot
-   :name "captured"
-   :value <snapshotted value>
-   :type :vec
-   :docs []}
-  ```
-- **Value** — any other Scalar, Vec, Map, or Set that is not a
-  function or wrapper. Descriptor:
-  ```
-  {:kind :value
-   :value <the value>
-   :type :number}
-  ```
-
-**Arity 2 (one captured keyword) — named form.** `reify(:name)`
-looks up `:name` in `env` and builds the descriptor for whatever
-binding lives there, attaching a `:name` field in all cases
-(including `:value` kind where the name would otherwise be
-missing). This is the introspection-by-name path:
-
-    reify(:count)    -- descriptor of the count builtin
-    reify(:myVar)    -- descriptor of an as-binding
-    reify(:double)   -- descriptor of a let-conduit
-
-- **Errors**: more than one captured arg → arity error; the
-  captured arg is not a keyword → type error; the name is not
-  in `env` → unresolved-identifier error.
-
-`reify` never mutates `env`.
+- **Errors**: subject not a Map → `UseSubjectNotMapError`.
 
 ### `manifest`
 
-- **Arity** 1. **Subject** irrelevant — `manifest` ignores its
-  pipeline input and iterates the current `env`.
+- **Arity** 1 or 2 (0 or 1 captured). **Subject** irrelevant —
+  `manifest` ignores its pipeline input and iterates the current
+  `env`.
 - Returns a Vec of descriptors, one per binding in `env`, sorted
-  alphabetically by binding name. Each descriptor has the same
-  shape `reify(:name)` would produce for that binding.
-- **Example**:
-  ```
-  env | manifest | filter(/kind | eq(:builtin)) | table
-  ```
-  Renders the full catalog of built-in operands as a tabular
-  report grouped by category.
-- Captured arguments (`manifest(...)`) → arity error.
+  alphabetically by binding name. The descriptor's `:kind` field
+  distinguishes four provenances:
+  - **Builtin** — env entry is a descriptor Map loaded by
+    `langRuntime()` from one of the catalog family files under
+    `lib/qlang/operand/`. The user-facing descriptor stamps
+    `:kind ::builtin` (TagKeyword matching the env-side shape, so
+    `manifest | first | type` and `env | /:name | type` both surface
+    `::builtin`), drops the `:impl` handle (the dispatch-time
+    primitive key is internal), and copies `:category` / `:subject`
+    / `:modifiers` / `:returns` / `:throws` verbatim. The derived
+    `:captured` / `:effectful` fields are stamped from the resolved
+    primitive's `meta`:
+    ```
+    {:kind      ::builtin
+     :name      "count"
+     :category  :container-reducer
+     :subject   [:vec :set :map]
+     :modifiers []
+     :returns   :number
+     :captured  [0 0]
+     :throws    [::CountSubjectNotContainerError]
+     :effectful false}
+    ```
+    The `:captured` field is a 2-element Vec `[min max]`
+    describing the range of captured-arg counts the operand
+    accepts. Fixed operands have `min == max` (e.g. `count` has
+    `[0 0]`; `filter` has `[1 1]`). Partial/full-applicable
+    operands have `[n-1 n]` (`add` has `[1 2]`). Overloaded
+    operands span the Object keys of their impl dispatch table
+    (`sort` has `[0 1]`). Variadic operands use the `:unbounded`
+    keyword as the upper bound (`coalesce` has `[1 :unbounded]`).
+    `:throws` is a Vec of `::Tag` references — each entry is a
+    navigable tag-binding, so `:foo | /throws | first | docs`
+    resolves the canonical prose for that throw site.
+  - **Conduit** — env entry is a BindStep-bound conduit (named
+    pipeline fragment, zero or more parameters). Descriptor:
+    ```
+    {:kind      ::conduit
+     :name      "surround"
+     :params    ["pfx" "sfx"]
+     :source    "(prepend(pfx) | append(sfx))"
+     :effectful false
+     :location  {:start ... :end ...}}
+    ```
+  - **Snapshot** — env entry is an `as`-bound snapshot wrapper.
+    Descriptor:
+    ```
+    {:kind      ::snapshot
+     :name      "captured"
+     :value     <snapshotted value>
+     :type      :vec
+     :effectful false
+     :location  {:start ... :end ...}}
+    ```
+  - **Value** — any other plain JS value (scalar, Vec, Map, Set,
+    error value, function value, …). Descriptor: `:kind ::value`,
+    `:name`, `:value`, `:type` (from `typeKeyword`).
+
+  Per-binding source-level introspection goes through the axis
+  trio (`:name | source` / `| docs` / `| examples`) — those read
+  the catalog AST directly without staging the runtime descriptor
+  Map. `manifest` is the enumeration surface; the axis trio is
+  the navigation surface.
+- **Namespace selector** (captured Keyword) picks which namespace
+  to walk:
+  - `manifest` / `manifest(:value)` — value-namespace bindings
+    (operands, conduits, snapshots, `use`-installed values).
+    Module-AST storage entries under `qlang/ast/<uri>` are filtered
+    out. Tag-namespace `::Tag` declarations are filtered out.
+  - `manifest(:tag)` — tag-namespace bindings (`::Tag` declarations
+    from the operand catalog family files plus any in-query
+    `::Tag {…}` BindSteps). Names render with the `::Tag` prefix
+    so the descriptors compose with the tag-namespace axis trio
+    (`::Tag | source` / `::Tag | docs` / `::Tag | examples`).
+- **Examples**:
+  - `env | manifest | filter(/kind | eq(::builtin)) | table` —
+    full catalog of built-in operands as a tabular report grouped
+    by category.
+  - `manifest(:tag) | first | /name` — first registered `::Tag`
+    binding, alphabetically.
+- **Errors**: captured arg is not a Keyword →
+  `ManifestNamespaceNotKeywordError`. Captured Keyword is neither
+  `:value` nor `:tag` → `ManifestNamespaceUnknownError`. Two or
+  more captured args → `Rule10ArityOverflowError`.
 
 ### `runExamples`
 
-- **Arity** 1. **Subject** descriptor Map (the output of `reify`).
-- Parses and evaluates every entry of the descriptor's `:examples`
-  Vec, comparing each result against the optional `→ expected`
-  suffix. Returns a Vec of `{:query :expected :actual :error :ok}`
-  Maps. Homoiconic catalog self-test — `manifest * runExamples >>
-  /ok | distinct` exercises every documented example and reports
-  whether it still matches its actual evaluation result.
-- **Example**: `reify(:count) | runExamples | first | /ok` → `true`.
-- **Errors**: subject not a descriptor Map → type error; no
-  `:examples` field → type error.
+- **Arity** 1. **Subject** Keyword (binding name) or descriptor
+  Map carrying a `:name` string.
+- Walks the loaded modules' AST through `findBindingStepAcrossModules`
+  to locate the binding's source. Pulls every Quote segment from
+  each attached doc-prefix through `parseDocSegments`. For each
+  Quote, evaluates the `:source` against an empty initial state;
+  a result that is not `false`, `null`, or an ErrorValue counts
+  as `:ok true`. Returns a Vec of `{:snippet :actual :error :ok}`
+  Maps — one per Quote segment.
+- Bindings without a source-located BindStep (host-installed
+  bindings, runtime-seeded built-ins) return an empty Vec.
+- **Example**: `:count | runExamples | first | /ok` → `true`.
+- **Errors**: subject neither Keyword nor Map-with-`:name`-string
+  → `RunExamplesSubjectShapeError`.
 
-### `let(:name, body)` / `let(:name, [:params], body)`
+### `:name body` / `:name [:params] body` — BindStep
 
-- **Arity** variadic (2 or 3 captured). **Subject** any (pipeValue
-  passes through unchanged).
+- **Form**: grammar production with its own dispatch path (the
+  evaluator routes BindStep nodes through `evalBindStep`, separate
+  from `langRuntime` lookups). The parser reads `:name`-or-`::Tag`
+  head plus an optional attached doc-prefix, optional param Vec,
+  and optional body, and emits a BindStep AST node
+  (`core/src/grammar.peggy::BindStep`). Subject passes through
+  unchanged — BindStep is transparent for pipeValue and writes
+  only to env.
 - Declares a conduit (named pipeline fragment) in `env`. Zero-arity
-  form `let(:name, body)` binds a pipeline fragment. Parametric form
-  `let(:name, [:params], body)` binds a fragment with named
+  form `:name body` binds a pipeline fragment. Parametric form
+  `:name [:params] body` binds a fragment with named
   parameters for fractal composition.
-- The body is stored as AST and evaluated in a lexically-scoped fork
-  at each call site (envRef tie-the-knot for recursive self-binding).
-  Parameters are lazy conduit-parameter proxies (nullary function
-  values wrapping captured-arg lambdas).
+- Purity-routed at eval time (`core/src/eval.mjs::evalBindStep`):
+  pure-literal bodies snapshot at decl-time and land as plain
+  values; impure or parametric bodies capture against a lexical
+  envRef and land as conduits. Parameters become lazy conduit-
+  parameter proxies (nullary function values wrapping
+  captured-arg lambdas).
+- Doc-only form: a BindStep with attached docs and no body
+  installs a Doc-value snapshot under the name; an identifier
+  lookup unwraps the snapshot and returns the Doc-value directly
+  (`:guide | /content`).
 - **Examples**:
-  - `let(:double, mul(2)) | 10 | double` → `20`.
-  - `let(:@surround, [:pfx, :sfx], prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
-- **Errors**: name not a keyword → `LetNameNotKeyword`; params not
-  a Vec of keywords → `LetParamsNotVecOfKeywords`; fewer than 2
-  captured args → `LetBodyMissing`; clean name with effectful body
-  → `EffectLaunderingAtLetParse`.
+  - `:double mul(2) | 10 | double` → `20`.
+  - `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
+- **Tag-binding form**: `::tag descriptor` installs the
+  given descriptor Map under `::tag` for use as a TaggedLit
+  constructor. The descriptor must carry `:kind :tag` plus
+  `:impl` — either a `:qlang/prim/<tag>` keyword (host-bound
+  built-in constructor) or a Quote-value (qlang body that runs
+  with the payload as its initial pipeValue). Example:
+  `::wrap {:kind :tag :impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
+  → `"[x]"`.
+- **Errors**: clean binding name carrying an effectful body →
+  `EffectLaunderingAtBindStepParseError` (the only runtime throw inside
+  `evalBindStep`). Name shape, params shape, body presence, and
+  doc-prefix arity are all guaranteed by the grammar — no
+  runtime check needed.
 
 ### `as(:name)`
 
 - **Arity** 2 (1 captured). **Subject** any (the value to snapshot).
 - Captures the current `pipeValue` as a frozen snapshot under the
   given keyword name. `pipeValue` passes through unchanged. The
-  snapshot is retrievable by name through identifier lookup (auto-
-  unwrapped to the raw value) or through `reify(:name)` for
-  metadata inspection including docs.
+  snapshot is retrievable by name through identifier lookup
+  (auto-unwrapped to the raw value); for the binding's attached
+  doc-prefix reach for the axis trio (`:name | source / docs /
+  examples`).
 - **Examples**:
   - `42 | as(:answer) | answer` → `42`.
   - `[1 2 3] | as(:nums) | nums | count` → `3`.
-- **Errors**: name not a keyword → `AsNameNotKeyword`.
+- **Errors**: name not a keyword → `AsNameNotKeywordError`.
 
 ### `parse`
 
 - **Arity** 1. **Subject** `string` — the source to parse.
 - Reads the subject string into an **AST-Map** — the data-form
   representation of the program, produced by `walk.mjs::astNodeToMap`.
-  Each AST node becomes a frozen Map carrying `:qlang/kind` (the
+  Each AST node becomes a frozen Map carrying `:kind` (the
   AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
   `:Pipeline`, and so on), type-specific payload fields (`:value`,
   `:name`, `:args`, `:elements`, `:entries`, `:keys`, `:steps`,
@@ -1073,16 +1115,19 @@ missing). This is the introspection-by-name path:
   stamps on every node. Nested nodes recurse into their own Maps.
 - The underlying peggy `ParseError` is caught in-operand and
   converted to an error value via `errorFromParse`, so malformed
-  sources surface on the fail-track with
-  `:kind :parse-error` rather than the generic `:foreign-error`
-  flavor evalNode would stamp for an unhandled foreign throw.
+  sources surface on the fail-track with `:kind ::ParseError`
+  (the per-site tag identity; the `::ParseError` tag-binding's
+  catalog body carries `:category :parse-error` for the broad
+  bucket — distinct from the `:foreign-error` catalog category
+  every host JS throw lands under).
 - **Examples**:
-  - `"42" | parse | /:qlang/kind` → `:NumberLit`.
+  - `"42" | parse | /:kind` → `:NumberLit`.
   - `"add(1, 2)" | parse | /name` → `"add"`.
   - `"add(1, 2)" | parse | /args | count` → `2`.
-  - `"this is not qlang [" | parse !| /kind` → `:parse-error`.
-- **Errors**: subject not a string → `ParseSubjectNotString`.
-  Malformed source → error value with `:kind :parse-error`
+  - `"this is not qlang [" | parse !| type` → `::ParseError`.
+  - `"this is not qlang [" | parse !| type | spec | /category` → `:parse-error`.
+- **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
+  Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
 
 ### `eval`
@@ -1091,7 +1136,7 @@ missing). This is the introspection-by-name path:
 - Unwraps an AST-Map through `walk.mjs::qlangMapToAst` and runs
   the reconstructed AST against the current state. The caller's
   `pipeValue` becomes the inner evaluation's `pipeValue`; the
-  caller's `env` threads in unchanged. Any `let` / `as` / `use`
+  caller's `env` threads in unchanged. Any BindStep / `as` / `use`
   writes the inner code performs propagate out the same way a
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
@@ -1105,22 +1150,100 @@ missing). This is the introspection-by-name path:
   - `"42" | parse | eval` → `42`.
   - `"10 | add(3)" | parse | eval` → `13`.
   - `"[1 2 3] | filter(gt(1)) | count" | parse | eval` → `2`.
-  - `{:qlang/kind :NumberLit :value 42} | eval` → `42`
+  - `{:kind :NumberLit :value 42} | eval` → `42`
     (hand-assembled AST-Map bypasses the parser).
-- **Errors**: subject not a Map → `EvalSubjectNotMap`.
+- **Errors**: subject not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
   Runtime errors inside the inner evaluation lift through the
   normal fail-track just like any other qlang failure.
 
+### `apply(subject)`
+
+- **Arity** 2 (1 captured). **Subject** Quote-value or AST-Map
+  sitting in `pipeValue`.
+- Runs the Quote-or-Map body against the captured-arg `subject` as
+  the initial `pipeValue`. A Quote's leading combinator (if any —
+  `~{* mul(2)}` / `~{| count}` / `~{!| /trail}`) routes the first
+  step through that combinator against the new subject, so a
+  pipeline-suffix shape replays semantically.
+- BindStep / `as` / `use` writes inside the applied body propagate
+  outward, matching `eval` semantics.
+- **Examples**:
+  - `~{mul(2)} | apply(5)` → `10`.
+  - `~{| count | add(1)} | apply([1 2 3])` → `4`.
+  - `error !| /trail | apply(start)` — re-runs deflected steps
+    against a fresh subject.
+- **Errors**: pipeValue not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
+
+### `source`
+
+- **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
+- Returns a Quote carrying the verbatim source text of the
+  binding's declaring BindStep (or `as(:name)` OperandCall) found
+  across loaded modules.
+- **Examples**:
+  - `:count | source | /source` → the `:count` BindStep source.
+  - `::conduit | source | /source` → the `::conduit` tag-binding source.
+- **Errors**: subject not a Keyword or TagKeyword →
+  `SourceSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
+### `docs`
+
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- Returns a Vec of Doc-values from the binding's attached doc-prefix,
+  one Doc per prefix entry.
+- **Examples**:
+  - `:count | docs` → Vec of Doc-values from the `:count` catalog entry.
+  - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
+- **Errors**: subject not a Keyword / TagKeyword →
+  `DocsSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
+### `examples`
+
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- Returns a Vec of Quote-values extracted from the binding's
+  doc-prefix — every `~{…}` Quote segment in the doc-content stream
+  is a candidate test case for `runExamples`.
+- **Examples**:
+  - `:count | examples` → Vec of `~{…}` Quotes from the `:count` docs.
+  - `:add | examples | count` → number of inline Quote examples on `:add`.
+- **Errors**: subject not a Keyword / TagKeyword →
+  `ExamplesSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
+### `type`
+
+- **Arity** 1. **Subject** any value.
+- Returns the Keyword or TagKeyword identity of the value's type.
+  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
+  `:null`); qlang value-classes produce their type keyword (`:vec`,
+  `:map`, `:set`, `:keyword`, `:tag-keyword`, `:quote`, `:doc`,
+  `:function`, `:json-object`, `:json-array`); tagged-instance Maps
+  (conduit, snapshot, user `::Foo[…]`) produce their `:kind`
+  TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
+  produce the `:kind` TagKeyword from their descriptor
+  (`::AddLeftNotNumberError`, `::ParseError`, etc.).
+- **Examples**:
+  - `42 | type` → `:number`.
+  - `"hello" | type` → `:string`.
+  - `:foo | type` → `:keyword`.
+  - `[1 2] | type` → `:vec`.
+  - `{:a 1} | type` → `:map`.
+  - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
+  - `!{:kind :oops} | type` → `:error`.
+
 ## Error operands
 
-Error inspection and transformation are driven by the `!|`
-combinator (fail-apply), not by operands. `!|` fires its step
-against a materialized error descriptor — ordinary Map operations
-(`/key`, `has`, `keys`, `vals`, `union`, `minus`, `inter`, `eq`,
-`filter` over `:trail`, etc.) apply directly to the descriptor
-without special error-handling support. The two operands below
-exist as entry and exit points for the fail-track itself; they
-compose naturally with `!|` and with every Map-oriented operand.
+Error inspection and transformation ride through the `!|`
+combinator (fail-apply), which owns the track-dispatch decision.
+`!|` fires its step against a materialized error descriptor —
+ordinary Map operations (`/key`, `has`, `keys`, `vals`, `union`,
+`minus`, `inter`, `eq`, `filter` over `:trail`, etc.) apply
+directly to the descriptor exactly as they would on any other
+Map. The two operands below cover the two endpoints of the
+fail-track itself: `error` lifts a Map into the fail-track and
+`isError` reports whether `pipeValue` already rides there.
 
 ### `error`
 
@@ -1133,7 +1256,7 @@ compose naturally with `!|` and with every Map-oriented operand.
   and `>>` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
 - **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
-- **Errors**: subject not a Map → `ErrorDescriptorNotMap`.
+- **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
 ### `isError`
 
@@ -1162,8 +1285,14 @@ Filtering to a specific kind of error via leading fail-apply in
 the predicate:
 
 ```qlang
-> [1 "x" 3] * add(10) | filter(!| /thrown | eq(:AddLeftNotNumber))
-[!{:kind :type-error :thrown :AddLeftNotNumber :operand "add" :position 1 :expectedType "Number" :actualType "String" :trail []}]
+> [1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
+[
+  ::AddLeftNotNumberError!{
+    :fault {:step ~{add(10)} :input "x"}
+    :actualValue "x"
+    :actualType :string
+  }
+]
 ```
 
 ## Summary: unique operand names by `:category` keyword
@@ -1171,12 +1300,13 @@ the predicate:
 `count`, `empty`, and `has` are polymorphic — one identifier
 dispatches on subject type. `filter`, `every`, `any` are
 polymorphic over Vec / Set / Map. `sort` is overloaded by arity —
-same identifier, 0 or 1 captured arg. `reify` is overloaded by
-arity (value-level or named form). `use` is overloaded by arity
-(bare merge, namespace import, selective import). Each name is
-listed once; rows are keyed by the `:category` keyword each entry's
-descriptor carries (the same keywords `env | manifest | /category |
-distinct` enumerates).
+same identifier, 0 or 1 captured arg. `manifest` is overloaded by
+arity (bare value-namespace enumeration or `manifest(:tag)` for
+the tag-namespace). `use` is overloaded by arity (bare merge,
+namespace import, selective import). Each name is listed once;
+rows are keyed by the `:category` keyword each entry's descriptor
+carries (the same keywords `env | manifest | /category | distinct`
+enumerates).
 
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
@@ -1191,12 +1321,14 @@ distinct` enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull` |
+| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
 | `:type-conversion` | `keyword` |
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
-| `:reflective` | `let`, `as`, `env`, `use`, `reify`, `manifest`, `runExamples`, `parse`, `eval` |
+| `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
+| `:code-as-data` | `parse`, `eval`, `apply` |
+| `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths

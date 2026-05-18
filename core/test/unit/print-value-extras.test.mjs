@@ -469,6 +469,16 @@ describe('format.fromPlain — inverse of toPlain', async () => {
   });
 });
 
+describe('format.toPlain unwraps Snapshot transparently', async () => {
+  it('toPlain on a Snapshot lifts the captured payload through the codec', async () => {
+    const { toPlain } = await import('../../src/runtime/format.mjs');
+    const { makeSnapshot } = await import('../../src/types.mjs');
+    expect(toPlain(makeSnapshot(42, { name: 'answer' }))).toBe(42);
+    const innerMap = new Map([['k', 'v']]);
+    expect(toPlain(makeSnapshot(innerMap, { name: 'wrap' }))).toEqual({ k: 'v' });
+  });
+});
+
 describe('format.toPlain non-keyword Map keys', async () => {
   it('json on a Map with string (non-keyword) keys uses String(k) fallback', async () => {
     // Inject a Map whose keys are plain strings, not interned keywords.

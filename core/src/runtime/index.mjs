@@ -150,24 +150,6 @@ export async function buildLangRuntime(locator) {
   const bootstrapResult = await evalAst(coreAst, bootstrapState);
   const templateEnv = bootstrapResult.env;
 
-  // BindStep snapshot-binds every pure-literal descriptor (Map
-  // literals are pure), so each entry in templateEnv lives
-  // behind a snapshot wrapper. Unwrap once here so identifier
-  // lookups dispatch through the descriptor directly without
-  // paying the snapshot-projection cost on every call. Attached
-  // doc-prefix strings stay on each catalog module's
-  // `qlang/ast/<uri>` Quote AST — axis-operands `docs` /
-  // `examples` walk the family Quote that declared the binding.
-  // The `manifest` descriptor therefore holds the structural
-  // metadata only; prose lives at one address (the AST attached
-  // prefix), reachable through `:name | docs`.
-  for (const [name, value] of templateEnv) {
-    if (value instanceof Map && value.get('kind') &&
-        value.get('kind').name === 'snapshot') {
-      templateEnv.set(name, value.get('payload'));
-    }
-  }
-
   // Resolve :impl keywords to function values for built-in
   // operands — the dispatch hot path reads the function from the
   // descriptor without a registry lookup per call. Tag bindings

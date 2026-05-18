@@ -81,25 +81,41 @@ import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
 import { stampStructuralFacts } from '../descriptor-ops.mjs';
 import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 
-// Cached template env — parsed and evaluated once on first call,
-// then shallow-copied for every subsequent caller. Parsing
-// core.qlang on every session construction would be wasteful;
-// reusing the frozen descriptor Maps across sessions is safe
-// because they are immutable.
-let _templateEnvPromise = null;
+// Per-locator template env cache — `buildLangRuntime` parses the
+// root catalog module and resolves every operand family once per
+// distinct locator function. Each subsequent `langRuntime()` call
+// against the same locator hands back a shallow copy of the cached
+// template; inner descriptor Maps are frozen and shared across
+// copies, so caller-side bindings (BindStep, as, use, session.bind)
+// land in the top-level Map without leaking into other sessions.
+const _templateEnvByLocator = new WeakMap();
 
-// langRuntime() — returns a Promise<fresh env Map> seeded with the
-// full built-in catalog. Each call returns a new top-level Map, so
-// callers can write their own bindings (through def / as / use,
-// or through session.bind at the host level) without affecting
-// other sessions. The inner descriptor Maps are shared frozen
-// values. Bootstrap is async because evalAst is async; the template
-// is cached so the parse+eval happens once per process.
-export async function langRuntime() {
-  if (_templateEnvPromise === null) {
-    _templateEnvPromise = buildLangRuntime(platformLocator);
+// langRuntime({ locator? }) — returns a Promise<fresh env Map>
+// seeded with the full built-in catalog. The catalog source comes
+// from `opts.locator` — a `(namespaceName: string) → Promise<{
+// source } | null>` function. Without an explicit locator the
+// runtime falls back to `platformLocator`, which reads `.qlang`
+// files through `package.json#imports` (Node `createRequire` +
+// `fs.readFile`, browser `import.meta.resolve` + `fetch`).
+// Embedders without an import map (browser bundles, Deno servers
+// with restricted permissions, …) pass their own locator —
+// typically one that closes over an in-process Map of catalog
+// sources. The bundled browser entry point at
+// `site/scripts/bundle-qlang.mjs` is the reference example: it
+// ships `qlang.js` with an `inlineCatalogLocator` named export,
+// and consumers call `langRuntime({ locator: inlineCatalogLocator })`.
+//
+// Bootstrap is async because `evalAst` is async; the template is
+// cached per locator so the parse+eval happens once per locator
+// per process.
+export async function langRuntime(opts = {}) {
+  const locator = opts.locator ?? platformLocator;
+  let templatePromise = _templateEnvByLocator.get(locator);
+  if (!templatePromise) {
+    templatePromise = buildLangRuntime(locator);
+    _templateEnvByLocator.set(locator, templatePromise);
   }
-  const templateEnv = await _templateEnvPromise;
+  const templateEnv = await templatePromise;
   return new Map(templateEnv);
 }
 

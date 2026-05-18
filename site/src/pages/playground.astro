@@ -200,11 +200,12 @@ import Base from "../layouts/Base.astro"
   import { highlightQlang } from '../lib/qlang-highlight.js';
 
   async function initPlayground() {
-    const { evalQuery, printValue, langRuntime } = await import(
+    const { evalQuery, printValue, langRuntime, inlineCatalogLocator } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
-    const builtins = new Set([...(await langRuntime()).keys()]);
+    const env = await langRuntime({ locator: inlineCatalogLocator });
+    const builtins = new Set([...env.keys()]);
 
     const editor = document.getElementById('editor') as HTMLTextAreaElement;
     const results = document.getElementById('results')!;

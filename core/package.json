@@ -46,7 +46,8 @@
     },
     "./host/module-resolver": {
       "import": "./host/module-resolver.mjs"
-    }
+    },
+    "./lib/qlang/*.qlang": "./lib/qlang/*.qlang"
   },
   "imports": {
     "#qlang/core":                "./lib/qlang/core.qlang",

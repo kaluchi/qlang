@@ -121,6 +121,20 @@ describe('TaggedLit error paths', () => {
     expect(err.tag).toEqual(makeTagKeyword('ConduitPayloadNotVecError'));
   });
 
+  it('::builtin raises BuiltinPayloadNotMapError when payload is a String (would silently char-iterate)', async () => {
+    const err = await evalQuery('::builtin"hello"');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('BuiltinPayloadNotMapError'));
+    expect(err.descriptor.get('actualType')).toEqual(keyword('string'));
+  });
+
+  it('::builtin raises BuiltinPayloadNotMapError when payload is a Vec', async () => {
+    const err = await evalQuery('::builtin[1 2 3]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('BuiltinPayloadNotMapError'));
+    expect(err.descriptor.get('actualType')).toEqual(keyword('vec'));
+  });
+
   it('::conduit raises ConduitArityInvalidError for 1-element payload', async () => {
     const err = await evalQuery('::conduit[42]');
     expect(isErrorValue(err)).toBe(true);

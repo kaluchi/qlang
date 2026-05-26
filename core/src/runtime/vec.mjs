@@ -442,6 +442,11 @@ export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyLambd
     if (subjectIsSet) addStructurallyUnique(bucket, groupElem);
     else bucket.push(groupElem);
   }
+  if (!subjectIsSet) {
+    for (const [bucketKey, bucketItems] of groupResult) {
+      groupResult.set(bucketKey, vecLikeOf(bucketItems, subject));
+    }
+  }
   return groupResult;
 });
 

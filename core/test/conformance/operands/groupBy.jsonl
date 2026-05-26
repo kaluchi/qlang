@@ -8,3 +8,6 @@
 {"name":"groupBy-non-keyword-key-throws","query":"[{:k 1} {:k 2}] | groupBy(/k)","error":"typeError","expect":"::GroupByKeyNotKeywordError!{\n  :faultStep ~{groupBy(/k)}\n  :faultInput [{:k 1} {:k 2}]\n  :actualValue 1\n  :actualType :number\n  :index 0\n}"}
 {"name":"groupBy-then-distribute-count","query":"[{:c :a} {:c :b} {:c :a} {:c :a}] | groupBy(/c) | vals * count","expect":"[3 1]"}
 {"name":"groupBy-roundtrip-via-vals-flat","query":":xs [{:k :a} {:k :b} {:k :a}] | xs | groupBy(/k) | vals | flat | count | eq(xs | count)","expect":"true"}
+{"name":"groupBy-jsonarray-subject-preserves-bucket-jsonarray-tag","query":"::json[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /big | type","expect":":jsonArray"}
+{"name":"groupBy-jsonarray-subject-small-bucket-also-jsonarray","query":"::json[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /small | type","expect":":jsonArray"}
+{"name":"groupBy-vec-subject-bucket-stays-vec","query":"[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /big | type","expect":":vec"}

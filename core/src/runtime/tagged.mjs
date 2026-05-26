@@ -23,6 +23,7 @@ import { parse } from '../parse.mjs';
 import { declareSubjectError, declareShapeError, declareArityError, declareModifierError } from '../operand-errors.mjs';
 
 const ConduitPayloadNotVecError = declareSubjectError('ConduitPayloadNotVecError', '::conduit', 'vec');
+const BuiltinPayloadNotMapError = declareSubjectError('BuiltinPayloadNotMapError', '::builtin', 'map');
 const ConduitArityInvalidError = declareArityError('ConduitArityInvalidError',
   ({ actualCount }) => `::conduit payload must be a Vec of 2 ([params, body]) or 3 ([self, params, body]) elements, got ${actualCount}`);
 const ConduitSelfNameNotKeywordError = declareShapeError('ConduitSelfNameNotKeywordError',
@@ -140,9 +141,12 @@ import { BUILTIN_TAG, stampTagHeader } from '../types.mjs';
 function builtinConstructor(payload) {
   // Catalog declarations always pass a Map payload — every
   // `::builtin{…fields…}` literal in `core/lib/qlang/**` writes
-  // a keyword-keyed body. A non-Map payload would be a catalog
-  // authoring bug; the iterator throws cleanly at that point
-  // instead of silently nesting the scalar under `:payload`.
+  // a keyword-keyed body. The explicit Map check guards user-
+  // site invocations (`::builtin"hello"`, `::builtin[1 2 3]`)
+  // that would otherwise destructure-iterate a String into
+  // single-character keys or a Vec into index/value pairs and
+  // mint a garbage descriptor.
+  if (!isQMap(payload)) throw new BuiltinPayloadNotMapError(payload);
   const descriptor = new Map();
   for (const [k, v] of payload) descriptor.set(k, v);
   stampTagHeader(descriptor, BUILTIN_TAG);

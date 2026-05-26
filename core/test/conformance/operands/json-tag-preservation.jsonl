@@ -1,0 +1,20 @@
+{"name":"filter-jsonarray-preserves-tag","query":"::json[1 2 3 4] | filter(gt(2)) | type","expect":":jsonArray"}
+{"name":"sort-jsonarray-preserves-tag","query":"::json[3 1 2] | sort | type","expect":":jsonArray"}
+{"name":"sort-keyed-jsonarray-preserves-tag","query":"::json[{:k 2} {:k 1}] | sort(/k) | type","expect":":jsonArray"}
+{"name":"take-jsonarray-preserves-tag","query":"::json[1 2 3 4] | take(2) | type","expect":":jsonArray"}
+{"name":"drop-jsonarray-preserves-tag","query":"::json[1 2 3 4] | drop(2) | type","expect":":jsonArray"}
+{"name":"reverse-jsonarray-preserves-tag","query":"::json[1 2 3] | reverse | type","expect":":jsonArray"}
+{"name":"flat-jsonarray-preserves-tag","query":"::json[[1] [2 3]] | flat | type","expect":":jsonArray"}
+{"name":"sortWith-jsonarray-preserves-tag","query":"::json[3 1 2] | sortWith(sub(/left, /right)) | type","expect":":jsonArray"}
+{"name":"groupBy-jsonarray-buckets-preserve-tag","query":"::json[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /big | type","expect":":jsonArray"}
+{"name":"distribute-jsonarray-jsonscalar-preserves-tag","query":"::json[1 2 3] * mul(2) | type","expect":":jsonArray"}
+{"name":"distribute-jsonarray-qlangonly-element-drops-to-vec","query":"::json[1 2 3] * keyword | type","expect":":vec"}
+{"name":"union-jsonobject-preserves-tag","query":"::json{:a 1} | union(::json{:b 2}) | type","expect":":jsonObject"}
+{"name":"inter-jsonobject-preserves-tag","query":"::json{:a 1 :b 2} | inter(::json{:a 9}) | type","expect":":jsonObject"}
+{"name":"minus-jsonobject-preserves-tag","query":"::json{:a 1 :b 2} | minus(::json{:a 9}) | type","expect":":jsonObject"}
+{"name":"vals-jsonobject-yields-jsonarray","query":"::json{:a 1 :b 2} | vals | type","expect":":jsonArray"}
+{"name":"vals-jsonobject-elements-pass-through","query":"::json{:a 1 :b 2} | vals | sum","expect":"3"}
+{"name":"vals-qlangmap-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":":vec"}
+{"name":"keys-jsonobject-yields-set-of-strings","query":"::json{:a 1 :b 2} | keys | first | type","expect":":string"}
+{"name":"keys-qlangmap-yields-set-of-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":":keyword"}
+{"name":"keys-jsonobject-roundtrip-key-equality","query":"::json{:a 1 :b 2} | keys | first | eq(\"a\")","expect":"true"}

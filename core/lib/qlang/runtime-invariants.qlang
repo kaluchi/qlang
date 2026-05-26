@@ -43,7 +43,28 @@
           equivalent to `::Name ::builtin{}` — declares an identity
           whose only payload is the attached docs.
   ~~|
-  ::builtin{:impl :qlang/type/builtin}
+  ::builtin{:impl :qlang/type/builtin
+            :spec {:payload :map}
+            :throws [::BuiltinPayloadNotMapError]}
+
+::BuiltinPayloadNotMapError
+  |~~ `::builtin<payload>` payload must be a Map descriptor.
+      User-site invocations on a String / Vec / Scalar payload
+      fire this tag rather than silently destructure-iterating
+      the payload into a garbage descriptor.
+
+      ~{
+        ::builtin"hello"
+        !| [type /actualType]
+        |  eq([::BuiltinPayloadNotMapError :string])
+       }
+      ~{
+        ::builtin[1 2 3]
+        !| [type /actualType]
+        |  eq([::BuiltinPayloadNotMapError :vec])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand ::builtin :position :subject :expectedType :map}
 
 ::Error
   |~~ Generic error identity. The universal default tag every

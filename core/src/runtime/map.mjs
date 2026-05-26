@@ -12,6 +12,7 @@ import {
 } from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
+import { setHasStructurally } from '../equality.mjs';
 
 const KeysSubjectNotMapError       = declareSubjectError('KeysSubjectNotMapError',       'keys', 'map');
 const ValsSubjectNotMapError       = declareSubjectError('ValsSubjectNotMapError',       'vals', 'map');
@@ -64,11 +65,14 @@ export const has = valueOp('has', 2, (subject, key) => {
     return mapShapeHas(subject, lookupKey);
   }
   if (isQSet(subject)) {
-    if (isKeyword(key)) {
-      for (const v of subject) if (isKeyword(v) && v.name === key.name) return true;
-      return false;
-    }
-    return subject.has(key);
+    // Structural membership mirrors `evalSetLit`'s dedup contract:
+    // Keywords compare by name, Maps / Vecs / Sets / TaggedInstances
+    // by structural equality (the `equality.mjs` value plane).
+    // JS `Set.prototype.has` would lookup by reference identity and
+    // miss freshly-built `[1 2]` / `{:a 1}` queries — composite-key
+    // membership has to flow through the same primitive that built
+    // the Set in the first place.
+    return setHasStructurally(subject, key);
   }
   throw new HasSubjectNotMapOrSetError(subject);
 });

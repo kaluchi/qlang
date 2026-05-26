@@ -4,6 +4,11 @@
 {"name":"has-map-false","query":"{:name \"Alice\"} | has(:age)","expect":"false"}
 {"name":"has-set-true","query":"#[:a :b :c] | has(:b)","expect":"true"}
 {"name":"has-set-false","query":"#[:a :b :c] | has(:d)","expect":"false"}
+{"name":"has-set-structural-vec-key-true","query":"#[[1 2] [3 4]] | has([1 2])","expect":"true"}
+{"name":"has-set-structural-vec-key-false","query":"#[[1 2] [3 4]] | has([5 6])","expect":"false"}
+{"name":"has-set-structural-map-key-true","query":"#[{:a 1} {:b 2}] | has({:a 1})","expect":"true"}
+{"name":"has-set-structural-map-key-false","query":"#[{:a 1} {:b 2}] | has({:c 3})","expect":"false"}
+{"name":"has-set-structural-nested-set-key","query":"#[#[:x :y] #[:z]] | has(#[:x :y])","expect":"true"}
 {"name":"distinct-as-vec-to-set-converter","query":"[1 2 1 3 2] | distinct","expect":"#[1 2 3]"}
 {"name":"set-literal","query":"#[1 2 3]","expect":"#[1 2 3]"}
 {"name":"set-literal-with-projections","query":"{:name \"Alice\" :age 30} | #[/name, /age]","expect":"#[\"Alice\" 30]"}

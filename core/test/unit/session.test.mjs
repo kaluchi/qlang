@@ -280,15 +280,14 @@ describe('serializeSession / deserializeSession round-trip', () => {
 // bindings in env. The locator patches :impl on the builtin
 // descriptor after eval. Env delta = the exports.
 const MOCK_MODULE_SOURCE = [
-  '{:@fetch {:kind :builtin',
-  '         :impl null',
-  '         :category :test-io',
-  '         :subject :string',
-  '         :modifiers []',
-  '         :returns :string',
-  '         :docs ["Fetches a resource by URL."]',
-  '         :examples []',
-  '         :throws []}}',
+  '{:@fetch ::builtin{:impl null',
+  '                   :category :test-io',
+  '                   :subject :string',
+  '                   :modifiers []',
+  '                   :returns :string',
+  '                   :docs ["Fetches a resource by URL."]',
+  '                   :examples []',
+  '                   :throws []}}',
   '| use',
   '| :@doubled (@fetch | append(@fetch))'
 ].join('\n');

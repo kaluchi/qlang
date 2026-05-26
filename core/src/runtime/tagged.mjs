@@ -133,7 +133,7 @@ bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 // unify the discriminator onto the Map JS-header
 // TAG_HEADER_SYMBOL slot once every catalog reader migrates off
 // the `:kind ::builtin` Map-field shape.
-import { BUILTIN_TAG } from '../types.mjs';
+import { BUILTIN_TAG, stampTagHeader } from '../types.mjs';
 
 function builtinConstructor(payload) {
   // Catalog declarations always pass a Map payload — every
@@ -141,9 +141,16 @@ function builtinConstructor(payload) {
   // a keyword-keyed body. A non-Map payload would be a catalog
   // authoring bug; the iterator throws cleanly at that point
   // instead of silently nesting the scalar under `:payload`.
+  // Identity rides on the Map JS-header TAG_HEADER_SYMBOL slot
+  // — Phase 4 lifted the `:kind ::builtin` discriminator off the
+  // descriptor entries the same way Conduit / Snapshot / Tagged
+  // Instance use the header. The catalog reader sites
+  // (`isBuiltinDescriptor`, `runtime/use-op.mjs` snapshot-unwrap,
+  // `manifest-op.mjs::describeBinding`) probe the header instead
+  // of `:kind`.
   const descriptor = new Map();
-  descriptor.set('kind', BUILTIN_TAG);
   for (const [k, v] of payload) descriptor.set(k, v);
+  stampTagHeader(descriptor, BUILTIN_TAG);
   return descriptor;
 }
 

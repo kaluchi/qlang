@@ -33,7 +33,7 @@ import {
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  ERROR_TAG, BUILTIN_TAG
+  ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
@@ -626,7 +626,7 @@ async function evalBindStep(node, state) {
     // the joined prose as a Doc-value snapshot.
     if (node.key.type === 'BareTypeKeyword') {
       const tagBinding = new Map();
-      tagBinding.set('kind', BUILTIN_TAG);
+      stampTagHeader(tagBinding, BUILTIN_TAG);
       const bound = makeSnapshot(tagBinding, {
         name, docs, location: node.location
       });
@@ -785,8 +785,7 @@ function projectSegment(subject, projKey, state) {
 // payload field set documented in src/types.mjs.
 
 function isBuiltinDescriptor(descriptor) {
-  const kind = descriptor.get('kind');
-  return kind && kind.name === 'builtin';
+  return descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
 // Conduit identity rides on the Map's JS-header `CONDUIT_TAG_SYMBOL`
 // flag (Phase 2) — `isConduit` is the single discriminator.

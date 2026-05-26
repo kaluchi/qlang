@@ -31,7 +31,7 @@ import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isQMap, isKeyword, isVec, isQSet, isSnapshot,
-  typeKeyword, makeQuote
+  typeKeyword, makeQuote, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
@@ -156,8 +156,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
     if (!isSnapshot(exportVal)) continue;
     const payload = exportVal.get('payload');
     if (!isQMap(payload)) continue;
-    const payloadKind = payload.get('kind');
-    if (payloadKind && payloadKind.name === 'builtin') {
+    if (payload[TAG_HEADER_SYMBOL]?.name === 'builtin') {
       loadedExports.set(exportKey, payload);
     }
   }
@@ -173,8 +172,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);
-      const descKind = isQMap(implDescriptor) && implDescriptor.get('kind');
-      if (descKind && descKind.name === 'builtin') {
+      if (isQMap(implDescriptor) && implDescriptor[TAG_HEADER_SYMBOL]?.name === 'builtin') {
         stampStructuralFacts(implDescriptor, implFn);
       }
     }

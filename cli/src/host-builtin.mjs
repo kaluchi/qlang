@@ -20,12 +20,16 @@
 // `::builtin` discriminator regardless of whether the operand
 // originated from the catalog or from a host-side binding.
 
-import { BUILTIN_TAG } from '@kaluchi/qlang-core';
+import { BUILTIN_TAG, stampTagHeader } from '@kaluchi/qlang-core';
 
 export function bindHostBuiltin(session, name, operandFn) {
-  const descriptor = new Map([
-    ['kind', BUILTIN_TAG],
-    ['impl', operandFn]
-  ]);
+  // Identity rides on the Map JS-header TAG_HEADER_SYMBOL slot —
+  // the same channel `langRuntime` stamps for catalog builtin
+  // descriptors after Phase 4. `evalOperandCall`'s
+  // `isBuiltinDescriptor` probe and `manifest`'s descriptor
+  // routing both read the header, so a host-installed binding
+  // dispatches through the same path as a catalog operand.
+  const descriptor = new Map([['impl', operandFn]]);
+  stampTagHeader(descriptor, BUILTIN_TAG);
   session.bind(name, descriptor);
 }

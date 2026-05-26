@@ -308,7 +308,7 @@ export function makeDoc(content) {
 
 export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');
 
-function stampTagHeader(m, tag) {
+export function stampTagHeader(m, tag) {
   Object.defineProperty(m, TAG_HEADER_SYMBOL, {
     value: tag, enumerable: false, configurable: false, writable: false
   });

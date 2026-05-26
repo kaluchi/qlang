@@ -74,7 +74,7 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { keyword, makeQuote, BUILTIN_TAG } from '../types.mjs';
+import { keyword, makeQuote, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampStructuralFacts } from '../descriptor-ops.mjs';
@@ -147,8 +147,8 @@ export async function buildLangRuntime(locator) {
   // under the same key — same shape, same `:impl`, shadow without
   // observable drift.
   const seedBuiltinDescriptor = new Map();
-  seedBuiltinDescriptor.set('kind', BUILTIN_TAG);
   seedBuiltinDescriptor.set('impl', keyword(TYPE_KEY_PREFIX + 'builtin'));
+  stampTagHeader(seedBuiltinDescriptor, BUILTIN_TAG);
   seedEnv.set(tagBindingKey('builtin'), seedBuiltinDescriptor);
 
   // Load the root catalog module — `:qlang/core` — through the
@@ -181,9 +181,9 @@ export async function buildLangRuntime(locator) {
   // env-side descriptor always carries it after this pass.
   for (const [envKey, descriptor] of templateEnv) {
     if (!(descriptor instanceof Map)) continue;
-    if (descriptor.get('kind')?.name !== 'builtin') continue;
-    // Tag-binding declarations carry the same `:kind ::builtin`
-    // shape but live under `::Tag` env-keys. Their `:impl` keyword
+    if (descriptor[TAG_HEADER_SYMBOL]?.name !== 'builtin') continue;
+    // Tag-binding declarations carry the same builtin JS-header
+    // tag but live under `::Tag` env-keys. Their `:impl` keyword
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
     // readable in `manifest(:tag)` output. Skip resolving here so

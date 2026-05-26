@@ -35,7 +35,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeTagKeyword } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
 import { isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
@@ -60,8 +60,7 @@ async function evalCore() {
     if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;       // skip ::Tag declarations
     if (!isQMap(v)) continue;
-    const kind = v.get('kind');
-    if (!kind || kind.name !== 'builtin') continue;
+    if (v[TAG_HEADER_SYMBOL]?.name !== 'builtin') continue;
     catalog.set(k, v);
   }
   return catalog;
@@ -100,13 +99,19 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     }
   });
 
-  it('every entry value is a Map with :kind ::builtin', async () => {
+  it('every entry value is a Map with ::builtin identity on the JS-header tag slot', async () => {
+    // Phase 4 lifted the catalog descriptor's identity off the
+    // `:kind` Map field onto the JS-header TAG_HEADER_SYMBOL slot.
+    // `evalCore` already filters by that slot; this test pins the
+    // invariant explicitly per entry so a single drifted descriptor
+    // (catalog authoring bug, host integration that bypasses
+    // `::builtin{…}`) surfaces with its env key in the failure
+    // message.
     const coreEnv = await evalCore();
-
     for (const [entryKey, entryVal] of coreEnv) {
       expect(isQMap(entryVal), `entry :${entryKey} value is not a Map`).toBe(true);
-      expect(entryVal.get('kind'), `entry :${entryKey} missing :kind ::builtin`)
-        .toEqual(makeTagKeyword('builtin'));
+      expect(entryVal[TAG_HEADER_SYMBOL], `entry :${entryKey} missing ::builtin JS-header tag`)
+        .toBe(BUILTIN_TAG);
     }
   });
 

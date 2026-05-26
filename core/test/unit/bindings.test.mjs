@@ -32,11 +32,12 @@ describe('BindStep — docs-only form', () => {
     // or params) after the key; the doc-prefix attaches to the
     // BindStep, evalBindStep no-body branch fires the auto-forge.
     // Subsequent `::Tag | docs` axis lookup resolves the attached
-    // prose, and `::Tag | spec` exposes the auto-forged descriptor
-    // Map carrying `:kind ::builtin`.
+    // prose, and `::Tag | spec | type` surfaces the ::builtin
+    // identity through the JS-header tag slot (Phase 4 dropped
+    // the `:kind` Map field).
     const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | /content');
     expect(doc).toContain('short tag prose');
-    const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | /kind');
+    const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | type');
     expect(spec).toEqual(makeTagKeyword('builtin'));
   });
 });

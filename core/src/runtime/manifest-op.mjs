@@ -39,7 +39,7 @@ import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
   isErrorValue, typeKeyword, keyword,
-  BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG
+  BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
@@ -131,8 +131,7 @@ function describeValue(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
-  const qlKind = isQMap(value) && value.get('kind');
-  if (qlKind && qlKind.name === 'builtin') {
+  if (isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin') {
     // `::builtin{:impl …}` carries either an operand declaration
     // (env-key is a plain identifier, `:impl` is a resolved JS
     // function value after the bootstrap pass) or a tag-binding
@@ -146,7 +145,6 @@ function describeBinding(value, explicitName) {
       tagResult.set('kind', TAG_BINDING_TAG);
       tagResult.set('name', explicitName);
       for (const [descKey, descVal] of value) {
-        if (descKey === 'kind') continue;
         tagResult.set(descKey, descVal);
       }
       return tagResult;

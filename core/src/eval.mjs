@@ -375,16 +375,17 @@ async function applyFailTrack(state, stepNode) {
   const newTrail = materializeTrail(errorVal);
   const combinedTrail = combineTrailQuotes(existingTrail, newTrail);
   // Materialize for fail-track exposure: descriptor data fields
-  // ride flat on the Map, the error tag stamps both the JS-header
-  // `TAG_HEADER_SYMBOL` slot (so `!| type` / `!| payload` route
-  // through the same identity-overlay path Conduit / Snapshot /
-  // TaggedInstance use) and the `:kind` Map field (legacy
-  // projection surface, `!| /kind | source` keeps working).
-  // The opaque storage form (tag on `error.tag` JS-header,
-  // descriptor without `:kind`) re-emerges through the next
-  // `evalErrorLit` / `errorFromQlang` mint.
+  // ride flat on the Map, the error tag rides on the JS-header
+  // `TAG_HEADER_SYMBOL` slot — `!| type` reads it directly, the
+  // identity-overlay invariant stays uniform with Conduit /
+  // Snapshot / TaggedInstance. Identity intentionally does not
+  // duplicate as a `:kind` Map field: any `:kind` slot the user
+  // stamped on the source descriptor (e.g. `!{:kind :oops :…}`)
+  // rides through verbatim as ordinary data, but the runtime
+  // never mints a redundant `:kind <tag>` entry that would
+  // shadow user content or print twice next to the literal
+  // head.
   const materializedDescriptor = new Map();
-  materializedDescriptor.set('kind', errorVal.tag);
   for (const [k, v] of errorVal.descriptor) {
     materializedDescriptor.set(k, v);
   }

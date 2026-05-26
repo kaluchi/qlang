@@ -24,7 +24,7 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isErrorValue, isTagKeyword, makeErrorValue, ERROR_TAG
+  isQMap, isErrorValue, isTagKeyword, makeErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -37,12 +37,18 @@ const ErrorDescriptorNotMapError = declareSubjectError(
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;
 // full form `error(map)` evaluates the captured-arg lambda against
 // pipeValue as context and uses the result as the descriptor.
-// `:kind ::TagName` entry in the source Map lifts onto the error
-// value's JS-header `tag` slot (the universal identity invariant
-// every tagged value-class follows); descriptors without `:kind`
-// default to generic `::Error` identity. A non-TagKeyword `:kind`
-// value stays in the descriptor — the user explicitly chose a
-// non-tag identity, the default `::Error` covers the surface.
+// Tag identity resolution rides the same uniform channel every
+// tagged value-class uses:
+//   1. JS-header `TAG_HEADER_SYMBOL` slot on the source Map —
+//      covers the `!|`-materialized descriptor round-trip
+//      (`error !| ... | error` preserves identity through the
+//      Map view's header).
+//   2. `:kind ::TagName` entry where the value is a TagKeyword
+//      — covers literal user descriptors `{:kind ::Foo …} |
+//      error`. Lifted to the header, dropped from the descriptor.
+//   3. Default `::Error` tag — covers Map descriptors without
+//      either form. A non-TagKeyword `:kind` value stays in the
+//      descriptor as ordinary data.
 export const error = makeFn('error', 1, async (state, errorLambdas) => {
   const sourceMap = errorLambdas.length === 0
     ? state.pipeValue
@@ -50,10 +56,10 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
   if (!isQMap(sourceMap)) {
     throw new ErrorDescriptorNotMapError(sourceMap);
   }
-  let tag = ERROR_TAG;
+  let tag = sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
   const descriptor = new Map();
   for (const [k, v] of sourceMap) {
-    if (k === 'kind' && isTagKeyword(v)) {
+    if (k === 'kind' && isTagKeyword(v) && tag === ERROR_TAG) {
       tag = v;
       continue;
     }

@@ -287,6 +287,18 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('keyword');
   });
 
+  it('error operand lifts `:kind ::TagKeyword` field onto the JS-header tag', async () => {
+    // When the source Map carries no JS-header tag but has a
+    // `:kind ::Foo` TagKeyword entry, the operand lifts it onto
+    // the resulting error's `tag` slot and drops the field from
+    // the descriptor — the same identity invariant the
+    // `evalErrorLit` literal path enforces.
+    const result = await evalQuery('::MyTag {} | {:kind ::MyTag :detail "x"} | error');
+    expect(result.tag.name).toBe('MyTag');
+    expect(result.descriptor.has('kind')).toBe(false);
+    expect(result.descriptor.get('detail')).toBe('x');
+  });
+
   it('payload strips header off every TaggedInstance shape', async () => {
     // Each shape exercises its own `payload` operand branch:
     // tagged Set returns a fresh Set without header, tagged Map

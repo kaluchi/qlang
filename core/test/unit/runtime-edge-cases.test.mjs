@@ -331,7 +331,7 @@ describe('walk.mjs — qlangMapToAst with non-keyword :kind uses String() fallba
 
 describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collisions', async () => {
   it('keyword-keyed collision uses k.name in error context', async () => {
-    // importUnorderedNamespaces — collision on a keyword key.
+    // importCollisionStrictNamespaces — collision on a keyword key.
     // isKeyword(k) is true → k.name branch taken (existing coverage).
     const s = await createSession();
     s.bind('nsA', new Map([['shared', 1]]));

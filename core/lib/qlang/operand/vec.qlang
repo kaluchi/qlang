@@ -55,10 +55,10 @@
 
 :sum
   |~~ Returns the numeric sum of elements. Polymorphic over Vec
-      and Set (sum is commutative, so Set's unordered semantics
-      do not affect the result). Empty container yields 0. Every
-      element must be a number. For Map, compose through
-      vals | sum or keys | sum depending on the axis.
+      and Set — sum is commutative, so the result is shape-
+      independent. Empty container yields 0. Every element must
+      be a number. For Map, compose through vals | sum or
+      keys | sum depending on the axis.
 
       ~{[1 2 3 4] | sum | eq(10)}
       ~{[] | sum | eq(0)}

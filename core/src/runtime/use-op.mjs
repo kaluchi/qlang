@@ -12,10 +12,10 @@
 //                                        through the
 //                                        `:qlang/locator` host
 //                                        callback).
-//   `use([:ns1 :ns2 …])`              — ordered namespace import.
+//   `use([:ns1 :ns2 …])`              — Vec-form namespace import.
 //                                        Later namespaces shadow
 //                                        earlier on conflict.
-//   `use(#[:ns1 :ns2 …])`             — unordered namespace import.
+//   `use(#[:ns1 :ns2 …])`             — Set-form namespace import.
 //                                        Collisions raise a
 //                                        `UseNamespaceCollisionError`
 //                                        so the host disambiguates.
@@ -66,7 +66,7 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
   if (useLambdas.length === 1) {
     if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
     if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
-    if (isQSet(useArg))     return await importUnorderedNamespaces(state, useArg);
+    if (isQSet(useArg))     return await importCollisionStrictNamespaces(state, useArg);
     throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
 
@@ -208,7 +208,7 @@ async function importOrderedNamespaces(state, namespaces) {
   return makeState(state.pipeValue, currentEnv);
 }
 
-async function importUnorderedNamespaces(state, namespaces) {
+async function importCollisionStrictNamespaces(state, namespaces) {
   const merged = new Map();
   const origins = new Map();
   let accumulatedEnv = state.env;

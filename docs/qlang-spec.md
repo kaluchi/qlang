@@ -211,7 +211,7 @@ the quoted form is the general case.
 
 Four composite types layer on top of the atomics. Each is a
 distinct shape — ordered sequence (Vec), keyword-keyed
-association (Map), unordered unique collection (Set), and
+association (Map), insertion-ordered structurally-unique collection (Set), and
 structured failure marker (Error). All four are immutable; an
 operation that "modifies" a composite returns a new value rather
 than mutating in place.
@@ -1127,8 +1127,10 @@ captured-arg shapes:
 |~| Vec — ordered list, later entries override earlier conflicts
 use([:qlang/error :domain/tax])
 
-|~| Set — unordered, collisions raise an error so the host can
-|~| disambiguate. Use Set when shadowing is NOT what you want.
+|~| Set — collision-raising, when shadowing is NOT what you want.
+|~| Two namespaces exporting the same name raise an error so the
+|~| host disambiguates explicitly instead of letting one silently
+|~| overwrite the other.
 use(#[:qlang/error :domain/tax])
 
 |~| Two captured args — namespace plus selection filter.
@@ -1382,8 +1384,8 @@ return becomes the new `pipeValue`. `printValue` emits the same
 The angle-bracket notation `<container>` is meta-syntax for "any
 Primary expression"; real source never carries `<...>`. Container
 choice matches the payload's natural shape — Vec for ordered
-positional payload, Map for keyword-keyed slots, Set for an
-unordered collection, String / Quote / etc. for value-class
+positional payload, Map for keyword-keyed slots, Set for a
+deduplicated collection, String / Quote / etc. for value-class
 specific payload.
 
 **No whitespace between tag and payload.** `::duration{...}` is one

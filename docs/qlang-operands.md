@@ -91,8 +91,7 @@ form part of the doc surface and the runtime catalog alike.
 ### `sum`
 
 - **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
-  `sum` is commutative, so Set's unordered semantics do not
-  affect the result.
+  `sum` is commutative, so the result is shape-independent.
 - Returns the numeric sum of elements. Empty container yields
   `0`. Every element must be a number.
 - **Examples**: `[1 2 3 4] | sum` → `10`; `#[1 2 3] | sum` → `6`;

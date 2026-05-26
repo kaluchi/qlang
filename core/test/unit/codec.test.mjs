@@ -14,7 +14,11 @@ import {
   makeQuote,
   isQuote,
   makeDoc,
-  isDoc
+  isDoc,
+  makeJsonObject,
+  makeJsonArray,
+  isJsonObject,
+  isJsonArray
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -109,6 +113,65 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
     expect(restored).toBeInstanceOf(Map);
     const items = restored.get('items');
     expect(items[2]).toBeInstanceOf(Set);
+  });
+
+  it('round-trips a JsonObject preserving the JSON_OBJECT_TAG', () => {
+    const original = makeJsonObject({ a: 1, b: 'two', c: true });
+    const restored = roundTrip(original);
+    expect(isJsonObject(restored)).toBe(true);
+    expect(restored.a).toBe(1);
+    expect(restored.b).toBe('two');
+    expect(restored.c).toBe(true);
+  });
+
+  it('round-trips a JsonArray preserving the JSON_ARRAY_TAG', () => {
+    const original = makeJsonArray([1, 2, 3]);
+    const restored = roundTrip(original);
+    expect(isJsonArray(restored)).toBe(true);
+    expect(restored).toEqual([1, 2, 3]);
+  });
+
+  it('round-trips a JsonArray of JsonObjects (nested JSON shape)', () => {
+    const original = makeJsonArray([
+      makeJsonObject({ id: 1, name: 'a' }),
+      makeJsonObject({ id: 2, name: 'b' })
+    ]);
+    const restored = roundTrip(original);
+    expect(isJsonArray(restored)).toBe(true);
+    expect(restored.length).toBe(2);
+    expect(isJsonObject(restored[0])).toBe(true);
+    expect(restored[0].name).toBe('a');
+    expect(isJsonObject(restored[1])).toBe(true);
+    expect(restored[1].id).toBe(2);
+  });
+
+  it('round-trips a JsonObject with nested JsonArray values', () => {
+    const original = makeJsonObject({
+      tags: makeJsonArray(['x', 'y']),
+      meta: makeJsonObject({ depth: 2 })
+    });
+    const restored = roundTrip(original);
+    expect(isJsonObject(restored)).toBe(true);
+    expect(isJsonArray(restored.tags)).toBe(true);
+    expect(restored.tags).toEqual(['x', 'y']);
+    expect(isJsonObject(restored.meta)).toBe(true);
+    expect(restored.meta.depth).toBe(2);
+  });
+
+  it('JsonArray vs Vec stay distinguishable across the encode/decode boundary', () => {
+    const jArr = roundTrip(makeJsonArray([1, 2]));
+    const vec  = roundTrip([1, 2]);
+    expect(isJsonArray(jArr)).toBe(true);
+    expect(isJsonArray(vec)).toBe(false);
+  });
+
+  it('JsonObject vs qlang Map stay distinguishable across the encode/decode boundary', () => {
+    const jObj = roundTrip(makeJsonObject({ a: 1 }));
+    const qMap = roundTrip(new Map([['a', 1]]));
+    expect(isJsonObject(jObj)).toBe(true);
+    expect(jObj instanceof Map).toBe(false);
+    expect(qMap).toBeInstanceOf(Map);
+    expect(isJsonObject(qMap)).toBe(false);
   });
 });
 

@@ -13,6 +13,12 @@
 //   { "$keyword": "name" }    → interned keyword
 //   { "$map": [[k, v], ...] } → JS Map (entries pairs, recursively encoded)
 //   { "$set": [v1, v2, ...] } → JS Set (recursively encoded)
+//   { "$jsonObject": {k: v…} } → JsonObject value-class (plain object stamped
+//                               with JSON_OBJECT_TAG); values are recursively
+//                               encoded so nested qlang-only shapes round-trip.
+//   { "$jsonArray": [v…] }    → JsonArray value-class (plain array stamped with
+//                               JSON_ARRAY_TAG); distinct envelope from a bare
+//                               JSON array (which decodes to a qlang Vec).
 //   { "$tagged": { "$tag": "Name", "payload": <encoded-value> } }
 //                             → TaggedInstance with tag on JS-header,
 //                               payload reconstructed through
@@ -36,6 +42,8 @@ import {
   isVec,
   isQMap,
   isQSet,
+  isJsonObject,
+  isJsonArray,
   isFunctionValue,
   isConduit,
   isSnapshot,
@@ -46,6 +54,8 @@ import {
   makeErrorValue,
   makeTaggedInstance,
   makeTagKeyword,
+  makeJsonObject,
+  makeJsonArray,
   makeQuote,
   makeDoc,
   TAG_HEADER_SYMBOL
@@ -112,9 +122,22 @@ export function toTaggedJSON(value) {
   }
   if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
+  // JsonArray and JsonObject ride dedicated envelopes so a bare
+  // JSON array on the wire decodes to a qlang Vec (the historical
+  // contract `isVec` exposes), while a stamped JsonArray keeps the
+  // JSON_ARRAY_TAG across the boundary — same split as Vec vs Set
+  // on the input side.
+  if (isJsonArray(value)) {
+    return { $jsonArray: value.map(toTaggedJSON) };
+  }
   if (isVec(value)) return value.map(toTaggedJSON);
   if (isQuote(value)) return { $quote: value.source };
   if (isDoc(value)) return { $doc: value.content };
+  if (isJsonObject(value)) {
+    const encoded = {};
+    for (const [k, v] of Object.entries(value)) encoded[k] = toTaggedJSON(v);
+    return { $jsonObject: encoded };
+  }
   if (isQMap(value)) {
     return {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
@@ -155,6 +178,16 @@ export function fromTaggedJSON(json) {
       const s = new Set();
       for (const v of json.$set) s.add(fromTaggedJSON(v));
       return s;
+    }
+    if ('$jsonArray' in json) {
+      return makeJsonArray(json.$jsonArray.map(fromTaggedJSON));
+    }
+    if ('$jsonObject' in json) {
+      const obj = {};
+      for (const [k, v] of Object.entries(json.$jsonObject)) {
+        obj[k] = fromTaggedJSON(v);
+      }
+      return makeJsonObject(obj);
     }
     if ('$tagged' in json) {
       const taggedEnvelope = json.$tagged;

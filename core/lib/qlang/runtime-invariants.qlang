@@ -60,12 +60,12 @@
 
 ::ProjectionIndexOutOfBoundsError
   |~~ Projection `/n` — the integer index resolves outside
-      the Vec subject's `[0, length)` range.
+      the Vec or Set subject's `[0, length)` range.
 
       ~{
         [10 20 30] | /99
-        !| [type /key /length]
-        |  eq([::ProjectionIndexOutOfBoundsError "99" 3])
+        !| [type /index /length]
+        |  eq([::ProjectionIndexOutOfBoundsError 99 3])
        }
   ~~|
   ::builtin{:category :type-error}

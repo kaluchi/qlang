@@ -523,7 +523,8 @@ the result is **an error value** of the `!{}` form introduced in
 ```qlang
 > [1 2 3] | add(1)
 ::AddLeftNotNumberError!{
-  :fault {:step ~{add(1)} :input [1 2 3]}
+  :faultStep ~{add(1)}
+  :faultInput [1 2 3]
   :actualValue [1 2 3]
   :actualType :vec
 }
@@ -534,13 +535,16 @@ the result is **an error value** of the `!{}` form introduced in
 ```
 
 The tag head names the per-site error class (`::AddLeftNotNumberError`);
-the descriptor names the operand that failed (`:operand`), the
-broad category (`:kind`), the value the throw site inspected
-(`:actualValue` + `:actualType`), and the step itself (`:fault/step`
-as a Quote-value carrying the failing step's source). No `:trail`
-key is shown at the moment of failure because no success-track
-combinator has deflected past it yet; `:trail` accumulates as the
-error flows through subsequent steps. From this point on examples
+the descriptor names the failing step verbatim (`:faultStep`, a
+Quote-value carrying the source-slice), the pipeValue it received
+(`:faultInput`), and the type the throw site inspected
+(`:actualType`). `:actualValue` would also be stamped if the throw
+site had drilled below `:faultInput`, but for a subject-shape error
+on a partial application like this one the offending value equals
+`:faultInput` and the dedup-rule skips the redundant lift. No
+`:trail` key is shown at the moment of failure because no
+success-track combinator has deflected past it yet; `:trail`
+accumulates as the error flows through subsequent steps. From this point on examples
 in this document may show an error output, and the descriptor
 shape is the same in every case: a `::Tag!{…}` head over a
 keyword-keyed Map you can read at a glance.
@@ -1586,7 +1590,7 @@ through to the end.
 
 ```qlang
 > "hello" | add(1) | mul(2) | sub(3)
-::AddLeftNotNumberError!{:fault {...} :actualValue "hello" :actualType :string}
+::AddLeftNotNumberError!{:faultStep ~{add(1)} :faultInput "hello" :actualType :string}
 |~| add(1) produces the error; mul(2) and sub(3) are deflected
 ```
 
@@ -1668,14 +1672,16 @@ lift automatically into error values with structured descriptors:
 | Field | Type | Content |
 |---|---|---|
 | `:kind` | TagKeyword | Per-site tag name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors |
-| `:actualValue` | any | The per-site dynamic value that triggered the check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
-| `:actualType` | Keyword | `typeKeyword` of `:actualValue` — `:string`, `:vec`, `:number`, etc. The per-site dynamic field every type-error stamps |
+| `:faultStep` | Quote | Verbatim source-text of the failing step lifted to a Quote-value (from the AST node's `.text`). Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
+| `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
+| `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
+| `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until a deflection materializes through `!\|`. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry
-`:index`; dispatch errors carry `:operandName` / `:conduitName` /
+`:index`; modifier errors carry `:actualValue` for the captured-arg
+value; dispatch errors carry `:operandName` / `:conduitName` /
 `:expectedArity` / `:actualArity` for the dispatch-time variants).
 
 Per-tag static facts — `:category` (broad bucket: `:type-error`,
@@ -1692,13 +1698,14 @@ origin. The runtime instance descriptor itself stays compact at
 the dynamic facts above; consumers go through hypertext for
 tag-binding metadata.
 
-The `:fault` Map enables pipeline-level diagnostic inspection:
+`:faultStep` and `:faultInput` enable pipeline-level diagnostic
+inspection:
 
 ```qlang
-!| /fault/step | /source     -- source text of the failing step
-!| /fault/step | /ast        -- AST-Map of the failing step (lazy)
-!| /fault/input | keys       -- keys available on the Map the step received
-!| /fault/input              -- the full value the step received
+!| /faultStep | /source       -- source text of the failing step
+!| /faultStep | /ast          -- AST-Map of the failing step (lazy)
+!| /faultInput | keys         -- keys available on the Map the step received
+!| /faultInput                -- the full value the step received
 ```
 
 ### Trail continuity across re-lift

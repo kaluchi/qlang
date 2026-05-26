@@ -1085,18 +1085,22 @@ foreign host errors (best-effort field extraction from JS Error
 objects). `QlangInvariantError` subclasses are never caught — they
 mark runtime bugs and surface as JS-level throws.
 
-At the catch point, `evalNode` builds a `:fault` Map via
-`buildFaultMap(stepNode, state.pipeValue)` carrying `:step`
-(the AST-Map of the failing step, same shape as trail entries)
-and `:input` (the pipeValue the step received). The fault Map is
-passed to `errorFromQlang` / `errorFromForeign` and stamped onto
-the descriptor. For `distribute` and `mergeFlat` combinator
-type-check errors, the fault is built directly inside the
-combinator function (which has access to the correct
-`state.pipeValue` and `bodyNode`) and the error is returned as
-an error value without throwing — matching the existing
-deflection return pattern those combinators use for error
-pipeValues.
+At the catch point, `evalNode` lifts two flat fields onto the
+descriptor via `errorFromQlang` / `errorFromForeign`: `:faultStep`
+(a Quote-value lifted from the failing AST node's `.text` via
+`makeQuote`) and `:faultInput` (the `state.pipeValue` the step
+received). No wrapper Map between them — they are the two
+top-level identity slots of every runtime / foreign error.
+`errorFromQlang` additionally applies ref-equality dedup against
+`:faultInput` when stamping per-site `:actualValue` from the
+`QlangError.context` bag — the redundant lift is skipped when
+the offending value is the same reference as `:faultInput`. For
+`distribute` and `mergeFlat` combinator type-check errors, both
+fields are forged directly inside the combinator function (which
+has access to the correct `state.pipeValue` and `bodyNode`) and
+the error is returned as an error value without throwing —
+matching the existing deflection return pattern those combinators
+use for error pipeValues.
 
 ### Combinator-level track dispatch
 
@@ -1186,9 +1190,10 @@ in addition to the invariant `:trail`:
 | Field | Type | Content |
 |---|---|---|
 | `:kind` | TagKeyword | Per-site tag name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on every runtime and foreign error. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
-| `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
-| `:actualType` | Keyword | The `typeKeyword` of `:actualValue` — `:string`, `:vec`, etc. The per-site dynamic field every type-error fires |
+| `:faultStep` | Quote | Verbatim source-text of the failing step, lifted to a Quote-value via `makeQuote(node.text)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` and `>>` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
+| `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
+| `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |
+| `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
 Per-tag static facts — `:category` (broad bucket: `:type-error` /

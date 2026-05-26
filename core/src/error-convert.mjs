@@ -7,9 +7,11 @@ import { locationToQlangMap } from './ast-codec.mjs';
 // Descriptor field-order: high-entropy first. `:kind` TagKeyword
 // names the per-site identity (the same invariant every
 // tagged-instance value-class carries — conduit, snapshot, qlang,
-// json, user `::Foo[…]`); `:fault` carries the runtime step +
-// input that triggered the throw; per-invocation context
-// (`:actualValue` / `:actualType` / Comparability pair-fields,
+// json, user `::Foo[…]`); `:faultStep` (Quote of failing source
+// slice) and `:faultInput` (pipeValue at step entry) carry the
+// runtime fault frame as two flat fields — no wrapper Map; per-
+// invocation context (`:actualType`, `:actualValue` when it
+// differs from `:faultInput`, Comparability pair-fields,
 // `:index`, dispatch-time `:operandName` / `:conduitName`)
 // follows. Identity is surfaced through the `type` operand
 // (`result !| type | eq(::Foo)`), which reads `:kind` off the
@@ -20,8 +22,17 @@ import { locationToQlangMap } from './ast-codec.mjs';
 // navigation via the `spec` axis: `result !| type | spec |
 // /category` reads the broad-bucket; `result !| type | spec |
 // /operand` reads the per-site origin.
+//
+// `:actualValue` lift rule: stamped only when the throw site
+// drilled below `:faultInput` (multi-segment projection,
+// full-application captured-arg resolution, element-iteration).
+// Reader sees the presence-as-signal: absent → fault landed at
+// the top of the step's `:faultInput`; present → drill-down,
+// look at `:actualValue` for the offending sub-value. The dedup
+// runs ref-equality against `:faultInput` inside the lift loop
+// below — no per-site code needs to know.
 const RUNTIME_FIELD_ORDER = [
-  'kind', 'fault',
+  'kind', 'faultStep', 'faultInput',
   'payloadValue', 'payloadType',
   'actualValue', 'actualType',
   'leftValue', 'leftType', 'rightValue', 'rightType',
@@ -50,28 +61,47 @@ function liftIdentifier(k, v) {
   return keyword(v);
 }
 
-export function errorFromQlang(qlangError, fault) {
+export function errorFromQlang(qlangError, faultStep, faultInput) {
   const d = new Map();
   const tagName = qlangError.fingerprint ?? qlangError.name;
   d.set('kind', makeTagKeyword(tagName));
-  d.set('fault', fault);
+  d.set('faultStep', faultStep);
+  d.set('faultInput', faultInput);
 
   // Instance carries only the dynamic facts the JS context attached
-  // (`:actualValue` / `:actualType`, comparability pair-types,
-  // `:index`, dispatch-time `:operandName` / `:conduitName`, etc.).
-  // Per-tag static facts — `:category`, `:operand`, `:position`,
-  // `:expectedType` — live on the tag-binding's catalog body
-  // (`::TagName ::builtin{:category … :operand … :position …
-  // :expectedType …}`) and reach the reader through hypertext
-  // navigation: `result !| type | spec` returns the catalog body
-  // directly; `result !| type | source` walks the BindStep source;
-  // `result !| type | docs` returns the canonical prose.
+  // (`:actualType`, comparability pair-types, `:index`, dispatch-time
+  // `:operandName` / `:conduitName`, etc.). Per-tag static facts —
+  // `:category`, `:operand`, `:position`, `:expectedType` — live on
+  // the tag-binding's catalog body (`::TagName ::builtin{:category …
+  // :operand … :position … :expectedType …}`) and reach the reader
+  // through hypertext navigation: `result !| type | spec` returns
+  // the catalog body directly; `result !| type | source` walks the
+  // BindStep source; `result !| type | docs` returns the canonical
+  // prose.
+  //
+  // `:actualValue` ref-eq dedup against `:faultInput` — when the
+  // throw site's per-instance `actualValue` is the very pipeValue
+  // the step received (subject-shape errors on a partial application,
+  // single-segment projection on a leaf subject), the redundant lift
+  // is skipped. When the throw site drilled below `:faultInput`
+  // (multi-segment projection, full-application captured-arg, element
+  // iteration), `actualValue` is stamped — its presence is the
+  // type-level signal «drill-down happened, look here».
   const ctx = qlangError.context ?? {};
+  const liftedFromOrder = new Set();
   for (const k of RUNTIME_FIELD_ORDER) {
-    if (k === 'kind' || k === 'fault') continue;
-    if (k in ctx && ctx[k] !== undefined) d.set(k, liftIdentifier(k, ctx[k]));
+    if (k === 'kind' || k === 'faultStep' || k === 'faultInput') continue;
+    if (!(k in ctx) || ctx[k] === undefined) continue;
+    if (k === 'actualValue' && ctx[k] === faultInput) continue;
+    d.set(k, liftIdentifier(k, ctx[k]));
+    liftedFromOrder.add(k);
   }
   for (const [k, v] of Object.entries(ctx)) {
+    if (liftedFromOrder.has(k)) continue;
+    // 'actualValue' is in RUNTIME_FIELD_ORDER, so the ref-eq dedup
+    // against `faultInput` runs in the loop above; tail-loop fields
+    // are exclusively per-site shape extras (operand-, conduit-,
+    // namespace-, etc.) and never need the same gate.
     if (RUNTIME_FIELD_ORDER.includes(k)) continue;
     if (v === undefined) continue;
     d.set(k, liftIdentifier(k, v));
@@ -79,7 +109,7 @@ export function errorFromQlang(qlangError, fault) {
 
   // No `:category` stamp — the broad-bucket taxonomy lives on the
   // tag-binding's catalog body (`::TagName ::builtin{:category
-  // :type-error …}`); `result !| type | spec | /category` reads
+  // :typeError …}`); `result !| type | spec | /category` reads
   // it through the `spec` axis.
   //
   // No `:message` stamp — the structured per-site fields
@@ -200,7 +230,7 @@ const WELL_KNOWN_PROPS = [
   'status', 'statusCode', 'statusText'
 ];
 
-export function errorFromForeign(jsError, astNode, fault) {
+export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
   const d = new Map();
   d.set('kind', makeTagKeyword(jsError.name));
   d.set('message', jsError.message);
@@ -228,7 +258,8 @@ export function errorFromForeign(jsError, astNode, fault) {
   }
 
   d.set('operand', astNode?.text ?? null);
-  d.set('fault', fault);
+  if (faultStep !== undefined) d.set('faultStep', faultStep);
+  if (faultInput !== undefined) d.set('faultInput', faultInput);
 
   return makeErrorValue(d, {
     location: astNode?.location ?? null,

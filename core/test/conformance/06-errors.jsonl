@@ -1,32 +1,32 @@
-{"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotProjectableError!{\n  :fault {:step ~{/foo} :input 42}\n  :actualValue 42\n  :actualType :number\n  :key \"foo\"\n}"}
-{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::ProjectionSequenceKeyNotIntegerError!{\n  :fault {\n    :step ~{/foo}\n    :input #[:a]\n  }\n  :key \"foo\"\n  :subject #[:a]\n}"}
+{"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotProjectableError!{\n  :faultStep ~{/foo}\n  :faultInput 42\n  :actualType :number\n  :key \"foo\"\n}"}
+{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::ProjectionSequenceKeyNotIntegerError!{\n  :faultStep ~{/foo}\n  :faultInput #[:a]\n  :key \"foo\"\n}"}
 {"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":z"}
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":y"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::ProjectionIndexOutOfBoundsError"}
-{"name":"distribute-on-number","query":"42 * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :fault {:step ~{add(1)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"distribute-on-map","query":"{:a 1} * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :fault {\n    :step ~{add(1)}\n    :input {:a 1}\n  }\n  :actualValue {:a 1}\n  :actualType :map\n}"}
-{"name":"distribute-on-set","query":"#[1 2] * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :fault {\n    :step ~{add(1)}\n    :input #[1 2]\n  }\n  :actualValue #[1 2]\n  :actualType :set\n}"}
-{"name":"merge-on-number","query":"42 >> count","expect":"::MergeSubjectNotVecError!{\n  :fault {:step ~{count} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"merge-on-set","query":"#[1 2] >> count","expect":"::MergeSubjectNotVecError!{\n  :fault {\n    :step ~{count}\n    :input #[1 2]\n  }\n  :actualValue #[1 2]\n  :actualType :set\n}"}
-{"name":"use-on-number","query":"42 | use","expect":"::UseSubjectNotMapError!{\n  :fault {:step ~{use} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"use-on-vec","query":"[1 2] | use","expect":"::UseSubjectNotMapError!{\n  :fault {\n    :step ~{use}\n    :input [1 2]\n  }\n  :actualValue [1 2]\n  :actualType :vec\n}"}
-{"name":"div-by-zero","query":"10 | div(0)","expect":"::DivisionByZeroError!{\n  :fault {:step ~{div(0)} :input 10}\n}"}
-{"name":"sum-non-numeric","query":"[1 \"two\" 3] | sum","expect":"::SumElementNotNumberError!{\n  :fault {\n    :step ~{sum}\n    :input [1 \"two\" 3]\n  }\n  :actualValue \"two\"\n  :actualType :string\n  :index 1\n}"}
-{"name":"count-on-number","query":"42 | count","expect":"::CountSubjectNotContainerError!{\n  :fault {:step ~{count} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"empty-on-number","query":"42 | empty","expect":"::EmptySubjectNotContainerError!{\n  :fault {:step ~{empty} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"first-on-number","query":"42 | first","expect":"::FirstSubjectNotSequenceError!{\n  :fault {:step ~{first} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"last-on-number","query":"42 | last","expect":"::LastSubjectNotSequenceError!{\n  :fault {:step ~{last} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"reverse-on-number","query":"42 | reverse","expect":"::ReverseSubjectNotSequenceError!{\n  :fault {:step ~{reverse} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"distinct-on-number","query":"42 | distinct","expect":"::DistinctSubjectNotSequenceError!{\n  :fault {:step ~{distinct} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"drop-on-number","query":"42 | drop(1)","expect":"::DropSubjectNotSequenceError!{\n  :fault {:step ~{drop(1)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"take-on-number","query":"42 | take(1)","expect":"::TakeSubjectNotSequenceError!{\n  :fault {:step ~{take(1)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"sort-on-number","query":"42 | sort","expect":"::SortNaturalSubjectNotSequenceError!{\n  :fault {:step ~{sort} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"flat-on-number","query":"42 | flat","expect":"::FlatSubjectNotSequenceError!{\n  :fault {:step ~{flat} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"keys-on-number","query":"42 | keys","expect":"::KeysSubjectNotMapError!{\n  :fault {:step ~{keys} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"vals-on-vec","query":"[1 2] | vals","expect":"::ValsSubjectNotMapError!{\n  :fault {\n    :step ~{vals}\n    :input [1 2]\n  }\n  :actualValue [1 2]\n  :actualType :vec\n}"}
-{"name":"prepend-modifier-not-string","query":"\"x\" | prepend(42)","expect":"::PrependPrefixNotStringError!{\n  :fault {:step ~{prepend(42)} :input \"x\"}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"append-modifier-not-string","query":"\"x\" | append(42)","expect":"::AppendSuffixNotStringError!{\n  :fault {:step ~{append(42)} :input \"x\"}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"cannot-apply-args-to-value","query":"5 | as(:five) | five(42)","expect":"::ApplyToNonFunctionError!{\n  :fault {:step ~{five(42)} :input 5}\n  :actualValue 5\n  :actualType :number\n  :name :five\n}"}
+{"name":"distribute-on-number","query":"42 * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{add(1)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"distribute-on-map","query":"{:a 1} * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{add(1)}\n  :faultInput {:a 1}\n  :actualType :map\n}"}
+{"name":"distribute-on-set","query":"#[1 2] * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{add(1)}\n  :faultInput #[1 2]\n  :actualType :set\n}"}
+{"name":"merge-on-number","query":"42 >> count","expect":"::MergeSubjectNotVecError!{\n  :faultStep ~{count}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"merge-on-set","query":"#[1 2] >> count","expect":"::MergeSubjectNotVecError!{\n  :faultStep ~{count}\n  :faultInput #[1 2]\n  :actualType :set\n}"}
+{"name":"use-on-number","query":"42 | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~{use}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"use-on-vec","query":"[1 2] | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~{use}\n  :faultInput [1 2]\n  :actualType :vec\n}"}
+{"name":"div-by-zero","query":"10 | div(0)","expect":"::DivisionByZeroError!{:faultStep ~{div(0)} :faultInput 10}"}
+{"name":"sum-non-numeric","query":"[1 \"two\" 3] | sum","expect":"::SumElementNotNumberError!{\n  :faultStep ~{sum}\n  :faultInput [1 \"two\" 3]\n  :actualValue \"two\"\n  :actualType :string\n  :index 1\n}"}
+{"name":"count-on-number","query":"42 | count","expect":"::CountSubjectNotContainerError!{\n  :faultStep ~{count}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"empty-on-number","query":"42 | empty","expect":"::EmptySubjectNotContainerError!{\n  :faultStep ~{empty}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"first-on-number","query":"42 | first","expect":"::FirstSubjectNotSequenceError!{\n  :faultStep ~{first}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"last-on-number","query":"42 | last","expect":"::LastSubjectNotSequenceError!{\n  :faultStep ~{last}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"reverse-on-number","query":"42 | reverse","expect":"::ReverseSubjectNotSequenceError!{\n  :faultStep ~{reverse}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"distinct-on-number","query":"42 | distinct","expect":"::DistinctSubjectNotSequenceError!{\n  :faultStep ~{distinct}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"drop-on-number","query":"42 | drop(1)","expect":"::DropSubjectNotSequenceError!{\n  :faultStep ~{drop(1)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"take-on-number","query":"42 | take(1)","expect":"::TakeSubjectNotSequenceError!{\n  :faultStep ~{take(1)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"sort-on-number","query":"42 | sort","expect":"::SortNaturalSubjectNotSequenceError!{\n  :faultStep ~{sort}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"flat-on-number","query":"42 | flat","expect":"::FlatSubjectNotSequenceError!{\n  :faultStep ~{flat}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"keys-on-number","query":"42 | keys","expect":"::KeysSubjectNotMapError!{\n  :faultStep ~{keys}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"vals-on-vec","query":"[1 2] | vals","expect":"::ValsSubjectNotMapError!{\n  :faultStep ~{vals}\n  :faultInput [1 2]\n  :actualType :vec\n}"}
+{"name":"prepend-modifier-not-string","query":"\"x\" | prepend(42)","expect":"::PrependPrefixNotStringError!{\n  :faultStep ~{prepend(42)}\n  :faultInput \"x\"\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"append-modifier-not-string","query":"\"x\" | append(42)","expect":"::AppendSuffixNotStringError!{\n  :faultStep ~{append(42)}\n  :faultInput \"x\"\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"cannot-apply-args-to-value","query":"5 | as(:five) | five(42)","expect":"::ApplyToNonFunctionError!{\n  :faultStep ~{five(42)}\n  :faultInput 5\n  :actualType :number\n  :name :five\n}"}
 {"name":"unresolved-identifier","query":"thisIsNotDefined !| type","expect":"::UnresolvedIdentifierError"}
-{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /fault/step | /name","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/name} :input ~{thisIsNotDefined}}\n  :key \"name\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
+{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /faultStep | /name","expect":"::ProjectionFieldNotOnValueClassError!{\n  :faultStep ~{/name}\n  :faultInput ~{thisIsNotDefined}\n  :key \"name\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter(thisIsNotDefined) !| type","expect":"::UnresolvedIdentifierError"}

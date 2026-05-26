@@ -7,7 +7,7 @@
 {"name":"empty-subject-not-contains-non-empty","query":"\"\" | contains(\"x\")","expect":"false"}
 {"name":"case-sensitive","query":"\"Hello\" | contains(\"hello\")","expect":"false"}
 {"name":"needle-equals-subject","query":"\"foo\" | contains(\"foo\")","expect":"true"}
-{"name":"subject-not-string-throws","query":"42 | contains(\"x\")","error":"type-error","expect":"::ContainsSubjectNotStringError!{\n  :fault {:step ~{contains(\"x\")} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"needle-not-string-throws","query":"\"hi\" | contains(42)","error":"type-error","expect":"::ContainsNeedleNotStringError!{\n  :fault {:step ~{contains(42)} :input \"hi\"}\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"subject-not-string-throws","query":"42 | contains(\"x\")","error":"type-error","expect":"::ContainsSubjectNotStringError!{\n  :faultStep ~{contains(\"x\")}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"needle-not-string-throws","query":"\"hi\" | contains(42)","error":"type-error","expect":"::ContainsNeedleNotStringError!{\n  :faultStep ~{contains(42)}\n  :faultInput \"hi\"\n  :actualValue 42\n  :actualType :number\n}"}
 {"name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter(contains(\"al\"))","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-projection-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter(/name | contains(\"al\")) * /name","expect":"[\"alice\" \"alex\"]"}

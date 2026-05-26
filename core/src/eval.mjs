@@ -206,31 +206,25 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangError && !caughtError.location && node.location)
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
-    const faultMap = buildFaultMap(node, state.pipeValue);
+    const faultStep = makeQuote(node.text);
+    const faultInput = state.pipeValue;
     if (caughtError instanceof ParseError) {
       // A ParseError raised mid-eval — typically from `apply` / `eval`
       // parsing a Quote source — lifts to a `::ParseError!{…}`
       // ErrorValue (same structured shape as a top-level parse
-      // failure), with the originating step's fault stamped.
+      // failure), with the originating step's faultStep / faultInput
+      // stamped flat on the descriptor.
       const lifted = errorFromParse(caughtError);
       const enriched = new Map(lifted.descriptor);
-      enriched.set('fault', faultMap);
+      enriched.set('faultStep', faultStep);
+      enriched.set('faultInput', faultInput);
       return withPipeValue(state, { ...lifted, descriptor: enriched });
     }
     return withPipeValue(state,
       caughtError instanceof QlangError
-        ? errorFromQlang(caughtError, faultMap)
-        : errorFromForeign(caughtError, node, faultMap));
+        ? errorFromQlang(caughtError, faultStep, faultInput)
+        : errorFromForeign(caughtError, node, faultStep, faultInput));
   }
-}
-
-// ─── :fault Map builder ─────────────────────────────────────────
-
-function buildFaultMap(stepNode, pipeValue) {
-  const m = new Map();
-  m.set('step', makeQuote(stepNode.text));
-  m.set('input', pipeValue);
-  return Object.freeze(m);
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -304,7 +298,7 @@ async function distribute(state, bodyNode) {
   if (!isVecShape(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotVecError(state.pipeValue);
     distributeErr.location = bodyNode.location;
-    return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
+    return withPipeValue(state, errorFromQlang(distributeErr, makeQuote(bodyNode.text), state.pipeValue));
   }
   const subjectVec = state.pipeValue;
   const forkResults = await Promise.all(
@@ -323,7 +317,7 @@ async function mergeFlat(state, nextNode) {
   if (!isVecShape(state.pipeValue)) {
     const mergeErr = new MergeSubjectNotVecError(state.pipeValue);
     mergeErr.location = nextNode.location;
-    return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
+    return withPipeValue(state, errorFromQlang(mergeErr, makeQuote(nextNode.text), state.pipeValue));
   }
   const sourceVec = state.pipeValue;
   const flattened = [];
@@ -725,33 +719,33 @@ function projectSegment(subject, projKey, state) {
     }
   }
   if (isJsonObject(subject)) {
-    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, subject });
+    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
     return subject[projKey];
   }
   if (isQMap(subject)) {
-    if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, subject });
+    if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
     return subject.get(projKey);
   }
   if (isJsonArray(subject) || isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, subject });
+      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
     }
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= subject.length) {
-      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, subject });
+      throw new ProjectionIndexOutOfBoundsError({ index: segmentIndex, length: subject.length, actualValue: subject });
     }
     return subject[resolvedIndex];
   }
   if (isQSet(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, subject });
+      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
     }
     const items = [...subject];
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? items.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= items.length) {
-      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: items.length, subject });
+      throw new ProjectionIndexOutOfBoundsError({ index: segmentIndex, length: items.length, actualValue: subject });
     }
     return items[resolvedIndex];
   }

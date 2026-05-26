@@ -9,7 +9,7 @@
 {"name":"parse-projection-keys","query":"\"/a/b/c\" | parse | /keys","expect":"[\"a\" \"b\" \"c\"]"}
 {"name":"parse-pipeline-kind","query":"\"42 | add(1)\" | parse | /:kind","expect":":Pipeline"}
 {"name":"parse-pipeline-step-count","query":"\"42 | add(1) | mul(2)\" | parse | /steps | count","expect":"3"}
-{"name":"parse-non-string-subject","query":"42 | parse","expect":"::ParseSubjectNotStringOrQuoteError!{\n  :fault {:step ~{parse} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"parse-non-string-subject","query":"42 | parse","expect":"::ParseSubjectNotStringOrQuoteError!{\n  :faultStep ~{parse}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"parse-quote-subject-kind","query":"~{5 | mul(2)} | parse | /:kind","expect":":Pipeline"}
 {"name":"parse-malformed-source-category","query":"\"this is bad [\" | parse !| type | spec | /category","expect":":parse-error"}
 {"name":"parse-malformed-source-thrown","query":"\"this is bad [\" | parse !| type","expect":"::ParseError"}

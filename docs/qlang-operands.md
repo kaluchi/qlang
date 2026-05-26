@@ -1327,7 +1327,8 @@ the predicate:
 > [1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
 [
   ::AddLeftNotNumberError!{
-    :fault {:step ~{add(10)} :input "x"}
+    :faultStep ~{add(10)}
+    :faultInput "x"
     :actualValue "x"
     :actualType :string
   }

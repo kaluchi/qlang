@@ -112,13 +112,41 @@
    }
 
 :isKeyword
-  |~~ Returns true iff the subject is a Keyword.
+  |~~ Returns true iff the subject is a Keyword (value-namespace
+      `:foo`). Tag-namespace identifiers `::Foo` classify as
+      `:tag-keyword` and answer `isTag`, not `isKeyword` — the
+      two namespaces stay separable on the type plane.
 
       ~{:name | isKeyword | eq(true)}
       ~{:kind | isKeyword | eq(true)}
       ~{"name" | isKeyword | eq(false)}
+      ~{::Foo | isKeyword | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isKeyword
+            :category :type-classifier
+            :subject :any
+            :returns :boolean
+   }
+
+:isTag
+  |~~ Returns true iff the subject is a TagKeyword — a bare
+      `::Tag` identifier from the tag namespace. Symmetric pair
+      to `isKeyword` for the value namespace: every identifier-
+      shape value answers true on exactly one of the two, never
+      both, because Keyword and TagKeyword are distinct value-
+      classes. The `result !| type` axis on any tagged value
+      (error, conduit, snapshot, user `::Foo[…]` instance)
+      yields a TagKeyword, so `isTag` is the natural guard for
+      «is this a tag identity» dispatch over heterogeneous
+      collections of type values.
+
+      ~{::Foo | isTag | eq(true)}
+      ~{::conduit | isTag | eq(true)}
+      ~{:foo | isTag | eq(false)}
+      ~{"::Foo" | isTag | eq(false)}
+      ~{42 | isTag | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/isTag
             :category :type-classifier
             :subject :any
             :returns :boolean

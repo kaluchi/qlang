@@ -715,7 +715,7 @@ by the `::json` constructor). They are runtime-distinct from
 qlang Map and Vec — `isMap` and `isVec` return `false` on a JSON
 shape, and vice versa.
 
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
+### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isTag` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
 
 - **Arity** 1. **Subject** any value.
 - Returns `true` iff the subject is of the named value class,
@@ -735,7 +735,10 @@ shape, and vice versa.
   - `[1 2] | isVec` → `true`; `#[1] | isVec` → `false`.
   - `{:a 1} | isMap` → `true`; `[] | isMap` → `false`.
   - `#[1 2] | isSet` → `true`; `[1 2] | isSet` → `false`.
-  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`.
+  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`;
+    `::Foo | isKeyword` → `false` (TagKeyword, not Keyword).
+  - `::Foo | isTag` → `true`; `::conduit | isTag` → `true`;
+    `:foo | isTag` → `false`; `"::Foo" | isTag` → `false`.
   - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
   - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
@@ -1357,7 +1360,7 @@ enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
+| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
 | `:type-conversion` | `keyword` |
 | `:indexed-access` | `at` |
 | `:format` | `json`, `table` |

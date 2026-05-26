@@ -106,6 +106,7 @@ export const isVec     = nullaryOp('isVec',     (subject) => describeType(subjec
 export const isMap     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
 export const isSet     = nullaryOp('isSet',     (subject) => describeType(subject) === 'Set');
 export const isKeyword = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
+export const isTag     = nullaryOp('isTag',     (subject) => describeType(subject) === 'TagKeyword');
 export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
 export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
 export const isQuote      = nullaryOp('isQuote',      (subject) => describeType(subject) === 'Quote');
@@ -129,6 +130,7 @@ bindPrim('isVec',     isVec);
 bindPrim('isMap',     isMap);
 bindPrim('isSet',     isSet);
 bindPrim('isKeyword', isKeyword);
+bindPrim('isTag',     isTag);
 bindPrim('isBoolean', isBoolean);
 bindPrim('isNull',    isNull);
 bindPrim('isQuote',      isQuote);

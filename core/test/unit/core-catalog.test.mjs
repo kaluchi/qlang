@@ -304,7 +304,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
-    expect(categories.get('type-classifier')).toBe(13);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
+    expect(categories.get('type-classifier')).toBe(14);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isTag + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
     expect(categories.get('type-conversion')).toBe(2);  // keyword + qlang
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as

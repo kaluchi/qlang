@@ -341,24 +341,29 @@
   |~~ Polymorphic indexed access. On a Vec or Set subject, returns
       the element at integer index n in insertion-order (negative
       indices count from the end; out-of-range returns null). On a
-      Map subject, returns the value at string key (missing key
-      returns null). The soft counterpart of the strict `/key`
-      projection — `at` coalesces a miss to null, `/key` raises
+      Map subject, returns the value at the key (missing key
+      returns null) — the captured-arg shape accepts either a
+      Keyword or a String over qlang Map and JsonObject alike
+      (both normalise to the storage-side String). The soft
+      counterpart of the strict `/key` projection — `at`
+      coalesces a miss to null, `/key` raises
       `::ProjectionKeyNotInMapError`.
 
       ~{[10 20 30] | at(1) | eq(20)}
       ~{[10 20 30] | at(-1) | eq(30)}
       ~{[10 20 30] | at(99) | eq(null)}
       ~{#[:a :b :c] | at(-1) | eq(:c)}
-      ~{{:a 1 :b 2} | at("a") | eq(1)}
-      ~{{:a 1} | at("z") | eq(null)}
+      ~{{:a 1 :b 2} | at(:a) | eq(1)}
+      ~{::json{:a 1 :b 2} | at("a") | eq(1)}
+      ~{::json{:a 1 :b 2} | at(:a) | eq(1)}
+      ~{{:a 1} | at(:z) | eq(null)}
   ~~|
   ::builtin{:impl :qlang/prim/at
             :category :indexedAccess
             :subject [:vec :set :map]
             :returns :any
             :modifiers [:any]
-            :throws [::AtSubjectNotSequenceOrMapError ::AtIndexNotIntegerError ::AtKeyNotStringError]}
+            :throws [::AtSubjectNotSequenceOrMapError ::AtIndexNotIntegerError ::AtKeyNotKeywordOrStringError]}
 
 ::AtSubjectNotSequenceOrMapError
   |~~ Subject of `at` must be Vec, Set, or Map.
@@ -380,16 +385,17 @@
   ~~|
   ::builtin{:category :typeError :operand :at :position 2 :expectedType :integer}
 
-::AtKeyNotStringError
-  |~~ Captured argument at position 2 of `at` must be String (Map key).
-
+::AtKeyNotKeywordOrStringError
+  |~~ Captured argument at position 2 of `at` on a Map subject
+      must be a Keyword or String — both normalise to the
+      storage-side string key.
       ~{
         {:a 1} | at(42)
         !| [type /actualType]
-        |  eq([::AtKeyNotStringError :number])
+        |  eq([::AtKeyNotKeywordOrStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :at :position 2 :expectedType :string}
+  ::builtin{:category :typeError :operand :at :position 2 :expectedType [:keyword :string]}
 
 :drop
   |~~ Returns the sequence with the first n elements removed.

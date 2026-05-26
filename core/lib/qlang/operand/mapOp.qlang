@@ -45,10 +45,18 @@
   ::builtin{:category :typeError :operand :vals :position :subject :expectedType :map}
 
 :has
-  |~~ Returns true if the Map contains the keyword key, or if
-      the Set contains the value. Polymorphic on subject type.
+  |~~ Returns true if the Map contains the key, or if the Set
+      contains the value. Polymorphic on subject type. On every
+      Map-shape subject the key argument accepts either a
+      Keyword or a String — both normalise to the storage-side
+      String (`key.name` for Keyword, identity for String), so
+      `has(:k)` works uniformly over qlang Map and JsonObject
+      and the `keys | first | has(_)` chain composes regardless
+      of `keys`' shape on the source.
 
       ~{{:name "Alice"} | has(:name) | eq(true)}
+      ~{::json{:name "Alice"} | has("name") | eq(true)}
+      ~{::json{:name "Alice"} | has(:name) | eq(true)}
       ~{#[:a :b :c] | has(:b) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/prim/has
@@ -56,7 +64,7 @@
             :subject [:map :set]
             :returns :boolean
             :modifiers [:any]
-            :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordError]}
+            :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordOrStringError]}
 
 ::HasSubjectNotMapOrSetError
   |~~ Subject of `has` must be Map or Set.
@@ -68,12 +76,14 @@
   ~~|
   ::builtin{:category :typeError :operand :has :position :subject :expectedType [:map :set]}
 
-::HasKeyNotKeywordError
-  |~~ Captured argument at position 2 of `has` must be Keyword.
+::HasKeyNotKeywordOrStringError
+  |~~ Captured argument at position 2 of `has` on a Map subject
+      must be a Keyword or String — both normalise to the
+      storage-side string key.
       ~{
-        {:a 1} | has("a")
+        {:a 1} | has(42)
         !| [type /actualType]
-        |  eq([::HasKeyNotKeywordError :string])
+        |  eq([::HasKeyNotKeywordOrStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :has :position 2 :expectedType :keyword}
+  ::builtin{:category :typeError :operand :has :position 2 :expectedType [:keyword :string]}

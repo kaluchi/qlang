@@ -209,8 +209,8 @@ describe('runtime/map.mjs error paths', () => {
   it('has rejects non-Map/non-Set subject', async () => {
     await expectErrorCategory('42 | has(:foo)', 'typeError');
   });
-  it('has on Map requires keyword key', async () => {
-    await expectErrorCategory('{:k 1} | has("k")', 'typeError');
+  it('has on Map requires keyword-or-string key', async () => {
+    await expectErrorCategory('{:k 1} | has(42)', 'typeError');
   });
 });
 

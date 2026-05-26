@@ -259,10 +259,17 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('at with non-string key on Map → AtKeyNotStringError', async () => {
+  it('at with non-keyword-and-non-string key on Map → AtKeyNotKeywordOrStringError', async () => {
     const caughtErr = await catchOriginalError('{:a 1} | at(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtKeyNotStringError');
+    expect(caughtErr.name).toBe('AtKeyNotKeywordOrStringError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('has with non-keyword-and-non-string key on Map → HasKeyNotKeywordOrStringError', async () => {
+    const caughtErr = await catchOriginalError('{:a 1} | has(42)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('HasKeyNotKeywordOrStringError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 

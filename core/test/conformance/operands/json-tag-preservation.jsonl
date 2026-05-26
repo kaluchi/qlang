@@ -18,3 +18,13 @@
 {"name":"keys-jsonobject-yields-set-of-strings","query":"::json{:a 1 :b 2} | keys | first | type","expect":":string"}
 {"name":"keys-qlangmap-yields-set-of-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":":keyword"}
 {"name":"keys-jsonobject-roundtrip-key-equality","query":"::json{:a 1 :b 2} | keys | first | eq(\"a\")","expect":"true"}
+{"name":"has-jsonobject-by-string-key","query":"::json{:a 1 :b 2} | has(\"a\")","expect":"true"}
+{"name":"has-jsonobject-by-missing-string-key","query":"::json{:a 1 :b 2} | has(\"c\")","expect":"false"}
+{"name":"has-qlangmap-by-keyword-key","query":"{:a 1 :b 2} | has(:a)","expect":"true"}
+{"name":"keys-then-has-roundtrip-jsonobject","query":":src ::json{:a 1 :b 2} | src | keys | first | as(:k) | src | has(k)","expect":"true"}
+{"name":"keys-then-has-roundtrip-qlangmap","query":":src {:a 1 :b 2} | src | keys | first | as(:k) | src | has(k)","expect":"true"}
+{"name":"at-jsonobject-by-string-key","query":"::json{:a 1 :b 2} | at(\"a\")","expect":"1"}
+{"name":"at-qlangmap-by-keyword-key","query":"{:a 1 :b 2} | at(:a)","expect":"1"}
+{"name":"keys-then-at-roundtrip-jsonobject","query":":src ::json{:a 1 :b 2} | src | keys | first | as(:k) | src | at(k)","expect":"1"}
+{"name":"keys-then-at-roundtrip-qlangmap","query":":src {:a 1 :b 2} | src | keys | first | as(:k) | src | at(k)","expect":"1"}
+

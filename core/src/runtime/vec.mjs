@@ -520,9 +520,16 @@ export const take = valueOp('take', 2, (subject, n) => {
 // for `at(-1)`; the two are semantically identical. Set is polymorphic
 // here through insertion-order indexing — `myset | at(0)` returns the
 // first-added element, same definition `first` uses.
-const AtSubjectNotSequenceOrMapError = declareSubjectError('AtSubjectNotSequenceOrMapError', 'at', ['vec', 'set', 'map']);
-const AtKeyNotStringError            = declareModifierError('AtKeyNotStringError', 'at', 2, 'string');
+const AtSubjectNotSequenceOrMapError  = declareSubjectError('AtSubjectNotSequenceOrMapError', 'at', ['vec', 'set', 'map']);
+const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrStringError',  'at', 2, ['keyword', 'string']);
 
+// Map-shape branch is a soft lookup — no key-back-into-container
+// roundtrip, so the captured-arg shape can be either Keyword or
+// String over every Map-shape subject (both normalise to the
+// storage-side String via `key.name`/identity, matching
+// `mapShapeHas` / `mapShapeGet`). The `src | keys | first |
+// as(:k) | src | at(k)` chain composes through either source
+// without an inter-shape coercion.
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVecShape(subject)) {
     if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
@@ -540,8 +547,11 @@ export const at = valueOp('at', 2, (subject, atKey) => {
     return (resolvedIndex >= 0 && resolvedIndex < items.length) ? items[resolvedIndex] : NULL;
   }
   if (isMapShape(subject)) {
-    if (typeof atKey !== 'string') throw new AtKeyNotStringError(atKey);
-    return mapShapeHas(subject, atKey) ? mapShapeGet(subject, atKey) : NULL;
+    let lookupKey;
+    if (isKeyword(atKey)) lookupKey = atKey.name;
+    else if (typeof atKey === 'string') lookupKey = atKey;
+    else throw new AtKeyNotKeywordOrStringError(atKey);
+    return mapShapeHas(subject, lookupKey) ? mapShapeGet(subject, lookupKey) : NULL;
   }
   throw new AtSubjectNotSequenceOrMapError(subject);
 });

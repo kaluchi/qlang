@@ -13,10 +13,10 @@ import {
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-const KeysSubjectNotMapError    = declareSubjectError('KeysSubjectNotMapError',    'keys',  'map');
-const ValsSubjectNotMapError    = declareSubjectError('ValsSubjectNotMapError',    'vals',  'map');
-const HasSubjectNotMapOrSetError = declareSubjectError('HasSubjectNotMapOrSetError', 'has',   ['map', 'set']);
-const HasKeyNotKeywordError     = declareModifierError('HasKeyNotKeywordError',    'has',   2, 'keyword');
+const KeysSubjectNotMapError       = declareSubjectError('KeysSubjectNotMapError',       'keys', 'map');
+const ValsSubjectNotMapError       = declareSubjectError('ValsSubjectNotMapError',       'vals', 'map');
+const HasSubjectNotMapOrSetError   = declareSubjectError('HasSubjectNotMapOrSetError',   'has',  ['map', 'set']);
+const HasKeyNotKeywordOrStringError = declareModifierError('HasKeyNotKeywordOrStringError', 'has', 2, ['keyword', 'string']);
 
 // `keys` and `vals` preserve the JSON-shape signal: a JsonObject
 // subject keeps its sub-shape on the produced collection. Keys mint
@@ -44,10 +44,21 @@ export const vals = nullaryOp('vals', (map) => {
   return isJsonObject(map) ? makeJsonArray(out) : out;
 });
 
+// `has` is a boolean lookup — no key-back-into-container roundtrip,
+// so the captured-arg shape can be either Keyword or String over
+// every Map-shape subject (both normalise to the storage-side
+// String via `key.name`/identity, matching `mapShapeHas`). The
+// `keys | first | as(:k) | src | has(k)` chain composes through
+// either source without an inter-shape coercion. Set subject
+// keeps structural membership — Keyword elements compare by
+// name, every other shape by ref/value.
 export const has = valueOp('has', 2, (subject, key) => {
   if (isMapShape(subject)) {
-    if (!isKeyword(key)) throw new HasKeyNotKeywordError(key);
-    return mapShapeHas(subject, key.name);
+    let lookupKey;
+    if (isKeyword(key)) lookupKey = key.name;
+    else if (typeof key === 'string') lookupKey = key;
+    else throw new HasKeyNotKeywordOrStringError(key);
+    return mapShapeHas(subject, lookupKey);
   }
   if (isQSet(subject)) {
     if (isKeyword(key)) {

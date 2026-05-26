@@ -146,28 +146,37 @@ A GitHub App named `gemini-code-assist[bot]` reviews PRs against
 on push to feature branches — so a PR must exist before either CI
 or Gemini can run.
 
+Three node scripts under `scripts/` automate the loop end to end
+— call them with the PR number, no `MSYS_NO_PATHCONV` / GraphQL
+ceremony in the user-facing flow:
+
+```bash
+# 1. Trigger Gemini Code Assist on PR #N. A 👀 reaction on the
+#    comment is the Gemini-side ACK.
+node scripts/gemini-review.mjs <N>
+
+# 2. Print every Gemini comment added since the last review.
+#    Pass --since <ISO_TIMESTAMP> to scope to a specific window.
+node scripts/gemini-show.mjs <N>
+node scripts/gemini-show.mjs <N> --since 2026-05-26T21:00:00Z
+
+# 3. Resolve every open review thread on PR #N. Run after applying
+#    fixes so the next round's comments do not queue under the
+#    previous round's open threads.
+node scripts/gemini-resolve.mjs <N>
+```
+
 The iteration loop, end to end:
 
-1. **Trigger a review.** Comment `/gemini review` on the PR. Git
-   Bash on Windows rewrites a `/`-prefixed argument as a path, so
-   prefix the command with `MSYS_NO_PATHCONV=1`:
+1. **Trigger a review** via `scripts/gemini-review.mjs <N>`. The
+   script posts `/gemini review` through `gh pr comment
+   --body-file -` reading the body off stdin — the slash-prefixed
+   payload bypasses any argument-side path translation Git Bash
+   would otherwise perform on Windows.
 
-   ```bash
-   MSYS_NO_PATHCONV=1 gh pr comment <N> --body "/gemini review"
-   ```
-
-   Without the prefix the body lands as `C:/Program
-   Files/Git/gemini review` and Gemini ignores it. A 👀 reaction
-   on the trigger comment is the Gemini-side ACK.
-
-2. **Read the review.** Two surfaces — top-level summary and inline
-   suggestions:
-
-   ```bash
-   gh pr view <N> --json reviews --jq '.reviews[] | select(.submittedAt > "<since>") | {state, body}'
-   gh api repos/<owner>/<repo>/pulls/<N>/comments \
-     --jq '[.[] | select(.created_at > "<since>")] | .[] | {path, line, body}'
-   ```
+2. **Read the review** via `scripts/gemini-show.mjs <N>` (top-level
+   summary + inline file comments in one pass, filtered to the
+   `gemini-code-assist[bot]` author).
 
 3. **Apply or reject each comment with a test-first cadence.**
    For every comment that lands a real bug or DRY violation:
@@ -181,28 +190,10 @@ The iteration loop, end to end:
    roughly once per round), document the rejection in the commit
    message body and resolve the thread anyway.
 
-4. **Resolve every thread before re-triggering.** Threads stay
-   open by default; Gemini will not re-surface the same issue, but
-   leaving them open buries the next round's comments. Resolve via
-   GraphQL:
-
-   ```bash
-   # List unresolved IDs
-   gh api graphql -f query='
-     query { repository(owner: "<owner>", name: "<repo>") {
-       pullRequest(number: <N>) {
-         reviewThreads(first: 30) {
-           nodes { id isResolved comments(first:1) { nodes { path body } } }
-         }
-       }
-     }
-   ' --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
-
-   # Resolve each
-   gh api graphql -f query='
-     mutation { resolveReviewThread(input: {threadId: "<id>"}) { thread { isResolved } } }
-   '
-   ```
+4. **Resolve every thread before re-triggering** via
+   `scripts/gemini-resolve.mjs <N>`. Threads stay open by default;
+   Gemini will not re-surface the same issue, but leaving them
+   open buries the next round's comments under the inline list.
 
 5. **Push, wait for CI, re-trigger Gemini.** Each round catches
    distinct issues — keep iterating until the round comes back

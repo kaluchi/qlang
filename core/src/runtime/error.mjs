@@ -53,6 +53,11 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
   const sourceMap = errorLambdas.length === 0
     ? state.pipeValue
     : await errorLambdas[0](state.pipeValue);
+  // Fail-track propagation: a descriptor-lambda that itself raised
+  // an ErrorValue rides through `error` unchanged. Without this
+  // pass-through the next branch would throw a generic
+  // `ErrorDescriptorNotMapError` and bury the original cause.
+  if (isErrorValue(sourceMap)) return withPipeValue(state, sourceMap);
   if (!isQMap(sourceMap)) {
     throw new ErrorDescriptorNotMapError(sourceMap);
   }

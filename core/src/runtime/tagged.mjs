@@ -16,7 +16,7 @@ import { nullaryOp, overloadedOp } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
-  isTaggedInstance, isTagKeyword,
+  isTaggedInstance, isTagKeyword, isErrorValue,
   makeConduit, makeTaggedInstance, makeJsonObject, makeJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';
@@ -250,10 +250,16 @@ export const tagOperand = overloadedOp('tag', 2, {
     return makeTaggedFromKw(subject[1], subject[0]);
   },
   1: async (subject, tagKwLambda) => {
-    return makeTaggedFromKw(subject, await tagKwLambda(subject));
+    const tagKw = await tagKwLambda(subject);
+    if (isErrorValue(tagKw)) return tagKw;
+    return makeTaggedFromKw(subject, tagKw);
   },
   2: async (ctx, valLambda, tagKwLambda) => {
-    return makeTaggedFromKw(await valLambda(ctx), await tagKwLambda(ctx));
+    const val = await valLambda(ctx);
+    if (isErrorValue(val)) return val;
+    const tagKw = await tagKwLambda(ctx);
+    if (isErrorValue(tagKw)) return tagKw;
+    return makeTaggedFromKw(val, tagKw);
   }
 });
 

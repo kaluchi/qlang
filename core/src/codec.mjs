@@ -190,6 +190,16 @@ function envelopeKeyOf(obj) {
   return ENVELOPE_KEYS.has(onlyKey) ? onlyKey : null;
 }
 
+// `$tagged` / `$error` envelopes both carry an inner object with a
+// required `$tag` slot — anything else (null, primitive, missing
+// `$tag`) is wire corruption; surface it as `MalformedTaggedJSONError`
+// instead of letting a property-access TypeError escape.
+function isTaggedOrErrorEnvelopeShape(envelope) {
+  return envelope !== null
+      && typeof envelope === 'object'
+      && '$tag' in envelope;
+}
+
 // fromTaggedJSON(json) → qlang runtime value
 export function fromTaggedJSON(json) {
   if (json === null || json === undefined) return null;
@@ -215,6 +225,9 @@ export function fromTaggedJSON(json) {
       }
       case '$tagged': {
         const taggedEnvelope = json.$tagged;
+        if (!isTaggedOrErrorEnvelopeShape(taggedEnvelope)) {
+          throw new MalformedTaggedJSONError(json);
+        }
         return makeTaggedInstance(
           makeTagKeyword(taggedEnvelope.$tag),
           fromTaggedJSON(taggedEnvelope.payload)
@@ -222,6 +235,9 @@ export function fromTaggedJSON(json) {
       }
       case '$error': {
         const errEnvelope = json.$error;
+        if (!isTaggedOrErrorEnvelopeShape(errEnvelope)) {
+          throw new MalformedTaggedJSONError(json);
+        }
         return makeErrorValue(
           makeTagKeyword(errEnvelope.$tag),
           fromTaggedJSON(errEnvelope.descriptor),

@@ -21,6 +21,11 @@ describe('error operand', () => {
     const evalResult = await evalQuery('42 | error !| type');
     expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMapError'));
   });
+
+  it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
+    const evalResult = await evalQuery('null | error("not-a-number" | add(1)) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
 });
 
 // ── isError operand ─────────────────────────────────────────────

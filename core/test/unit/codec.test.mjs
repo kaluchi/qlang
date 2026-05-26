@@ -225,4 +225,20 @@ describe('fromTaggedJSON malformed input', () => {
     expect(restored.$keyword).toBe('kw');
     expect(restored.other).toBe(2);
   });
+
+  it('throws MalformedTaggedJSONError on a $tagged envelope without an inner object', () => {
+    expect(() => fromTaggedJSON({ $tagged: null })).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('throws MalformedTaggedJSONError on a $tagged envelope missing the $tag slot', () => {
+    expect(() => fromTaggedJSON({ $tagged: { payload: 42 } })).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('throws MalformedTaggedJSONError on an $error envelope without an inner object', () => {
+    expect(() => fromTaggedJSON({ $error: null })).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('throws MalformedTaggedJSONError on an $error envelope missing the $tag slot', () => {
+    expect(() => fromTaggedJSON({ $error: { descriptor: { $map: [] } } })).toThrow(MalformedTaggedJSONError);
+  });
 });

@@ -135,6 +135,24 @@ describe('TaggedLit error paths', () => {
     expect(err.descriptor.get('actualType')).toEqual(keyword('vec'));
   });
 
+  it('tag bound-form propagates a fail-track tag-keyword expression instead of wrapping it', async () => {
+    const err = await evalQuery('42 | tag("not-a-number" | add(1))');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
+
+  it('tag full-form propagates a fail-track value expression instead of wrapping it', async () => {
+    const err = await evalQuery('null | tag("not-a-number" | add(1), ::Box)');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
+
+  it('tag full-form propagates a fail-track tag-keyword expression', async () => {
+    const err = await evalQuery('null | tag(42, "not-a-number" | add(1))');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
+
   it('::conduit raises ConduitArityInvalidError for 1-element payload', async () => {
     const err = await evalQuery('::conduit[42]');
     expect(isErrorValue(err)).toBe(true);

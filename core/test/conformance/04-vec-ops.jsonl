@@ -4,6 +4,8 @@
 {"name":"empty-false","query":"[1] | empty","expect":"false"}
 {"name":"first","query":"[10 20 30] | first","expect":"10"}
 {"name":"first-empty","query":"[] | first","expect":"null"}
+{"name":"first-set","query":"#[10 20 30] | first","expect":"10"}
+{"name":"first-set-empty","query":"#[] | first","expect":"null"}
 {"name":"last","query":"[10 20 30] | last","expect":"30"}
 {"name":"last-empty","query":"[] | last","expect":"null"}
 {"name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}

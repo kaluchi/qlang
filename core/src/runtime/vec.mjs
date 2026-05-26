@@ -203,9 +203,16 @@ function sequenceOrThrow(container, ErrorCls) {
   throw new ErrorCls(container);
 }
 
+// O(1) Set fast path — `subject.values().next().value` skips the
+// `[...subject]` materialization `sequenceOrThrow` performs.
 export const first = nullaryOp('first', (subject) => {
-  const items = sequenceOrThrow(subject, FirstSubjectNotSequenceError);
-  return items.length === 0 ? NULL : items[0];
+  if (isVecShape(subject)) {
+    return subject.length === 0 ? NULL : subject[0];
+  }
+  if (isQSet(subject)) {
+    return subject.size === 0 ? NULL : subject.values().next().value;
+  }
+  throw new FirstSubjectNotSequenceError(subject);
 });
 
 export const last = nullaryOp('last', (subject) => {
@@ -481,7 +488,7 @@ export const sort = overloadedOp('sort', 2, {
   1: async (subject, sortKeyLambda) => {
     const items = sequenceOrThrow(subject, SortByKeySubjectNotSequenceError);
     const sortEntries = await Promise.all(
-      [...items].map(async (sortElem) => ({
+      items.map(async (sortElem) => ({
         sortElem,
         sortKey: await sortKeyLambda(sortElem)
       }))
@@ -575,14 +582,21 @@ export const drop = valueOp('drop', 2, (subject, n) => {
 export const distinct = nullaryOp('distinct', (subject) => {
   if (!isOrderedSequence(subject)) throw new DistinctSubjectNotSequenceError(subject);
   if (isQSet(subject)) return subject;
+  // Subject reduced to Vec/JsonArray after the Set early-return —
+  // iterate the array directly without `sequenceElements` (which
+  // would no-op for Vec but would copy a Set, and the Set case
+  // never reaches here).
   const out = new Set();
-  for (const v of sequenceElements(subject)) addStructurallyUnique(out, v);
+  for (const v of subject) addStructurallyUnique(out, v);
   return out;
 });
 
 export const reverse = nullaryOp('reverse', (subject) => {
   if (!isOrderedSequence(subject)) throw new ReverseSubjectNotSequenceError(subject);
-  return containerLikeOf([...sequenceElements(subject)].reverse(), subject);
+  // Single copy via spread — works uniformly across Vec / JsonArray
+  // / Set (all iterable). `sequenceElements` on a Set would copy
+  // first, then `[...…]` again, doubling the work.
+  return containerLikeOf([...subject].reverse(), subject);
 });
 
 // `flat` lifts one level of nesting. On Set subject the inner Set / Vec
@@ -592,9 +606,12 @@ export const reverse = nullaryOp('reverse', (subject) => {
 // without dedup, matching the existing Vec-flat contract.
 export const flat = nullaryOp('flat', (subject) => {
   if (!isOrderedSequence(subject)) throw new FlatSubjectNotSequenceError(subject);
+  // Outer and inner iteration both go through the value directly —
+  // spread accepts any iterable, so Vec / JsonArray / Set splice
+  // in without an intermediate array copy.
   const result = [];
-  for (const item of sequenceElements(subject)) {
-    if (isOrderedSequence(item)) result.push(...sequenceElements(item));
+  for (const item of subject) {
+    if (isOrderedSequence(item)) result.push(...item);
     else result.push(item);
   }
   return containerLikeOf(result, subject);
@@ -611,7 +628,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) 
   // O(n²) profile is acceptable for the sequence sizes sortWith
   // services (config rows, query results, comparator-built
   // orderings — none of them scale unboundedly).
-  const sortWithArr = [...sequenceElements(subject)];
+  const sortWithArr = [...subject];
   const sortWithLen = sortWithArr.length;
   for (let outerIdx = 1; outerIdx < sortWithLen; outerIdx++) {
     const sortWithCurrent = sortWithArr[outerIdx];

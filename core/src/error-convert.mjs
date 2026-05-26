@@ -1,6 +1,6 @@
 import {
   keyword, isKeyword, isQMap, isQSet, isErrorValue,
-  makeErrorValue, makeTagKeyword
+  makeErrorValue, makeTagKeyword, PARSE_ERROR_TAG
 } from './types.mjs';
 import { locationToQlangMap } from './ast-codec.mjs';
 
@@ -147,7 +147,7 @@ export function errorFromParse(parseError) {
   // `:found` carry the diagnostic data structurally; the human-
   // readable prose is reachable through `::ParseError | docs`
   // hypertext navigation.
-  return makeErrorValue(makeTagKeyword('ParseError'), d, {
+  return makeErrorValue(PARSE_ERROR_TAG, d, {
     location: parseError.location,
     originalError: parseError
   });

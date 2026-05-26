@@ -20,11 +20,11 @@
 // `::builtin` discriminator regardless of whether the operand
 // originated from the catalog or from a host-side binding.
 
-import { makeTagKeyword } from '@kaluchi/qlang-core';
+import { BUILTIN_TAG } from '@kaluchi/qlang-core';
 
 export function bindHostBuiltin(session, name, operandFn) {
   const descriptor = new Map([
-    ['kind', makeTagKeyword('builtin')],
+    ['kind', BUILTIN_TAG],
     ['impl', operandFn]
   ]);
   session.bind(name, descriptor);

@@ -80,12 +80,14 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit returns a conduit descriptor Map carrying :kind :conduit', async () => {
-    const { makeTagKeyword } = await import('../../src/types.mjs');
+  it('makeConduit stamps ::conduit on the Map JS-header and exposes body/source as fields', async () => {
+    const { TAG_HEADER_SYMBOL, CONDUIT_TAG, typeKeyword } = await import('../../src/types.mjs');
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
     const t = makeConduit(bodyAst);
     expect(t).toBeInstanceOf(Map);
-    expect(t.get('kind')).toEqual(makeTagKeyword('conduit'));
+    expect(t.has('kind')).toBe(false);
+    expect(t[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
+    expect(typeKeyword(t)).toBe(CONDUIT_TAG);
     expect(t.get('body')).toBe(bodyAst);
     expect(t.get('source')).toBe('1');
   });

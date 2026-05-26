@@ -220,32 +220,39 @@ export function isTagKeyword(v) {
 // `env-keys.mjs` directly.
 
 // ── conduit / snapshot / quote predicates ─────────────────────
+//
+// Conduit and Snapshot identity rides on the Map's non-enumerable
+// JS-header `tag` slot (a TagKeyword), stamped at construction
+// through `defineConduitTag` / `defineSnapshotTag` below. The
+// `:kind` Map field is reserved for the value's own data; user-
+// built Maps that happen to carry `:kind ::Foo` flow through
+// `isTaggedInstance` rather than colliding with the conduit /
+// snapshot render paths.
 
 export function isConduit(v) {
-  if (!(v instanceof Map)) return false;
-  const kind = v.get('kind');
-  return kind && kind.name === 'conduit';
+  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'conduit';
 }
 
 export function isSnapshot(v) {
-  if (!(v instanceof Map)) return false;
-  const kind = v.get('kind');
-  return kind && kind.name === 'snapshot';
+  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'snapshot';
 }
 
 // A tagged-instance Map carries `:kind <TagKeyword>` plus a
 // `:payload` slot holding whatever the constructor literal
 // captured — a Vec (`::Tag[1 2 3]`), a Map (`::Tag{:k 1}`), a
 // scalar wrapped via ParenGroup (`::Tag(42)`), a Quote, a Set,
-// any pipeline value. The conduit / snapshot / tag-binding
-// discriminators sit on their own render paths and live outside
-// the generic tagged-instance shape.
-const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
+// any pipeline value. Conduit / snapshot identity rides on the
+// Map JS-header `TAG_HEADER_SYMBOL` slot, so they trip
+// `isConduit` / `isSnapshot` upstream and never reach this
+// predicate. Catalog tag-binding declarations carry their
+// payload on `:impl` rather than `:payload`, so the
+// `v.has('payload')` requirement already keeps them outside the
+// generic tagged-instance render path.
 export function isTaggedInstance(v) {
   if (!(v instanceof Map)) return false;
+  if (isConduit(v) || isSnapshot(v)) return false;
   const kind = v.get('kind');
   if (!isTagKeyword(kind)) return false;
-  if (RESERVED_TAGGED_KINDS.has(kind.name)) return false;
   return v.has('payload');
 }
 
@@ -285,6 +292,45 @@ export function makeDoc(content) {
   return Object.freeze({ type: 'doc', content });
 }
 
+// ── tag-header symbol — Map identity slot ────────────────────
+//
+// Non-enumerable Symbol key under which a Map carries its
+// identity TagKeyword. Mirrors `JSON_OBJECT_TAG` /
+// `JSON_ARRAY_TAG` for plain JS Objects / Arrays: invisible to
+// Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
+// to JSON serialization, and to the manifest enumeration
+// surface — runtime predicates (`isConduit`, `isSnapshot`,
+// `typeKeyword` Map branch) read the discriminator off the
+// header in one property access without touching the data
+// surface. Phase 3 will route `TaggedInstance` through the same
+// slot; the catalog's `::builtin` descriptors stay on
+// `:kind ::builtin` field shape until Phase 4 because their
+// data plane already publishes `:kind` as part of the user-
+// facing surface.
+
+export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');
+
+function stampTagHeader(m, tag) {
+  Object.defineProperty(m, TAG_HEADER_SYMBOL, {
+    value: tag, enumerable: false, configurable: false, writable: false
+  });
+}
+
+// Pre-computed TagKeyword constants for runtime-internal
+// identities — Map JS-header tags, error defaults, and the
+// manifest view-Map discriminators. Each constant is the single
+// source of truth for its tag; factories, printers, and
+// manifest paths all reach for the shared instance instead of
+// minting a fresh TagKeyword on every call. Listed alphabetically.
+
+export const BUILTIN_TAG     = makeTagKeyword('builtin');
+export const CONDUIT_TAG     = makeTagKeyword('conduit');
+export const ERROR_TAG       = makeTagKeyword('Error');
+export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
+export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
+export const TAG_BINDING_TAG = makeTagKeyword('tag');
+export const VALUE_TAG       = makeTagKeyword('value');
+
 // ── conduit factory ───────────────────────────────────────────
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
@@ -292,7 +338,6 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
     throw new ConduitBodyMissingSourceError();
   }
   const m = new Map();
-  m.set('kind', makeTagKeyword('conduit'));
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
   m.set('body', body);
@@ -301,6 +346,7 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
+  stampTagHeader(m, CONDUIT_TAG);
   return m;
 }
 
@@ -308,12 +354,12 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
 
 export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   const m = new Map();
-  m.set('kind', makeTagKeyword('snapshot'));
   m.set('name', name);
   m.set('payload', value);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
+  stampTagHeader(m, SNAPSHOT_TAG);
   return m;
 }
 
@@ -443,16 +489,18 @@ export function typeKeyword(v) {
   if (isTagKeyword(v)) return keyword('tagKeyword');
   if (isJsonArray(v)) return keyword('jsonArray');
   if (isVec(v)) return keyword('vec');
-  if (isConduit(v)) return makeTagKeyword('conduit');
-  if (isSnapshot(v)) return makeTagKeyword('snapshot');
+  if (isConduit(v)) return CONDUIT_TAG;
+  if (isSnapshot(v)) return SNAPSHOT_TAG;
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) {
-    // Identity-via-`:kind` invariant — every tagged Map
-    // (tagged-instance constructor result, materialised error
-    // descriptor exposed under `!|`, user `{:kind ::Foo …}`)
-    // surfaces its TagKeyword as identity. Maps without the slot
-    // keep the generic `:map` keyword.
+    // Conduit and Snapshot read identity off the Map JS-header
+    // via the `isConduit` / `isSnapshot` checks above. Maps
+    // reaching this branch fall back to the legacy `:kind` field —
+    // covers the catalog `::builtin{…}` descriptors (Phase 4
+    // still pending), the materialized error descriptor exposed
+    // under `!|`, and user-built `{:kind ::Foo …}` Maps that
+    // ride the tagged-instance render path.
     const mapKind = v.get('kind');
     if (isTagKeyword(mapKind)) return mapKind;
     return keyword('map');

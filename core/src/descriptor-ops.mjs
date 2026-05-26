@@ -22,7 +22,7 @@
 // any future surface that wants the same manifest shape imports
 // it without dragging `manifest-op.mjs` into the graph.
 
-import { makeTagKeyword } from './types.mjs';
+import { BUILTIN_TAG } from './types.mjs';
 
 // stampStructuralFacts(descriptor, fn) → descriptor (mutated in place)
 //
@@ -56,7 +56,7 @@ export function stampStructuralFacts(descriptor, fn) {
 // all stamped on the env entry at bootstrap).
 export function manifestBuiltinDescriptor(rawDescriptor, name) {
   const result = new Map();
-  result.set('kind', makeTagKeyword('builtin'));
+  result.set('kind', BUILTIN_TAG);
   if (name != null) result.set('name', name);
   for (const [fieldKey, fieldVal] of rawDescriptor) {
     if (fieldKey === 'kind' || fieldKey === 'impl') continue;

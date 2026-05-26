@@ -28,11 +28,12 @@ import {
   declareArityError
 } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
+  isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword,
+  ERROR_TAG, BUILTIN_TAG
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
@@ -451,7 +452,7 @@ async function evalErrorLit(node, state) {
   // identity through a non-tag value, the default `::Error`
   // covers the surface identity.
   const errorDescriptor = new Map();
-  let tag = makeTagKeyword('Error');
+  let tag = ERROR_TAG;
   for (const entry of node.entries) {
     const entryFork = await fork(state, inner => evalNode(entry.value, inner));
     const entryValue = entryFork.pipeValue;
@@ -644,7 +645,7 @@ async function evalBindStep(node, state) {
     // the joined prose as a Doc-value snapshot.
     if (node.key.type === 'BareTypeKeyword') {
       const tagBinding = new Map();
-      tagBinding.set('kind', makeTagKeyword('builtin'));
+      tagBinding.set('kind', BUILTIN_TAG);
       const bound = makeSnapshot(tagBinding, {
         name, docs, location: node.location
       });
@@ -806,10 +807,9 @@ function isBuiltinDescriptor(descriptor) {
   const kind = descriptor.get('kind');
   return kind && kind.name === 'builtin';
 }
-function isConduitDescriptor(descriptor) {
-  const kind = descriptor.get('kind');
-  return kind && kind.name === 'conduit';
-}
+// Conduit identity rides on the Map's JS-header `CONDUIT_TAG_SYMBOL`
+// flag (Phase 2) — `isConduit` is the single discriminator.
+const isConduitDescriptor = isConduit;
 
 async function evalOperandCall(node, state) {
   const lookupName = node.name;

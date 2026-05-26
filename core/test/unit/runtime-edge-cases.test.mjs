@@ -80,22 +80,19 @@ describe('describeType for conduit and snapshot', async () => {
     expect(describeType(instance)).toBe('TaggedInstance');
   });
 
-  it('isTaggedInstance rejects the reserved-kind Maps that conduit / snapshot mint', async () => {
-    // Conduit and snapshot factories stamp their own dedicated
-    // TagKeyword on `:kind`. `isTaggedInstance` excludes them
-    // so the generic tagged-instance render path does not collide
-    // with `printConduit` / `printSnapshot`.
-    const { makeTagKeyword, isTaggedInstance } = await import('../../src/types.mjs');
-    const conduitLike = new Map([
-      ['kind', makeTagKeyword('conduit')],
-      ['payload', []]
-    ]);
-    const snapshotLike = new Map([
-      ['kind', makeTagKeyword('snapshot')],
-      ['payload', []]
-    ]);
-    expect(isTaggedInstance(conduitLike)).toBe(false);
-    expect(isTaggedInstance(snapshotLike)).toBe(false);
+  it('isTaggedInstance rejects real conduit / snapshot values without checking :kind field shape', async () => {
+    // After Phase 2 the conduit / snapshot identity rides on the
+    // Map's JS-header `TAG_HEADER_SYMBOL` slot. `isTaggedInstance`
+    // routes through `isConduit` / `isSnapshot` first so the
+    // generic tagged-instance render path stays disjoint from
+    // `printConduit` / `printSnapshot`, regardless of whether a
+    // bystander Map happens to carry `:kind ::conduit` as ordinary
+    // data.
+    const { makeConduit, makeSnapshot, isTaggedInstance } = await import('../../src/types.mjs');
+    const realConduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' });
+    const realSnapshot = makeSnapshot(42, { name: 'x' });
+    expect(isTaggedInstance(realConduit)).toBe(false);
+    expect(isTaggedInstance(realSnapshot)).toBe(false);
   });
 
   it('typeKeyword returns the tag as a TagKeyword for a tagged-instance Map', async () => {

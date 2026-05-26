@@ -24,7 +24,7 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isErrorValue, isTagKeyword, makeErrorValue, makeTagKeyword
+  isQMap, isErrorValue, isTagKeyword, makeErrorValue, ERROR_TAG
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -50,7 +50,7 @@ export const error = makeFn('error', 1, async (state, errorLambdas) => {
   if (!isQMap(sourceMap)) {
     throw new ErrorDescriptorNotMapError(sourceMap);
   }
-  let tag = makeTagKeyword('Error');
+  let tag = ERROR_TAG;
   const descriptor = new Map();
   for (const [k, v] of sourceMap) {
     if (k === 'kind' && isTagKeyword(v)) {

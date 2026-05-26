@@ -66,25 +66,42 @@
   ::builtin{:category :typeError :operand :payload :position :subject :expectedType :taggedInstance}
 
 :tag
-  |~~ TaggedInstance assemble — mints `::Tag<subject>` at runtime
-      from a value and a TagKeyword. Subject becomes the wrapped
-      payload, the captured TagKeyword becomes the identity tag.
-      Pair with `payload` for round-trip (`value | tag(::Foo) |
-      payload | eq(value)`). A TaggedInstance subject wraps into
-      a nested layer (`tagged | tag(::Outer)` → `::Outer[tagged]`);
-      to replace identity rather than nest, route through
+  |~~ TaggedInstance assemble — mints `::Tag<value>` at runtime
+      from a value and a TagKeyword. Three call shapes form the
+      symmetric partner to the `[type, payload]` split:
+
+        bare  `[tag, value] | tag` — subject is a 2-element Vec
+              `[tagKeyword, value]` (exactly the shape
+              `[type payload]` projects from any tagged value).
+              Round-trip pair: `tagged | [type payload] | tag`
+              recovers the same TaggedInstance for composite-
+              shape payloads.
+
+        bound `value | tag(::Foo)` — subject becomes the wrapped
+              value, captured TagKeyword becomes identity.
+
+        full  `tag(value-expr, tag-expr)` — both args captured,
+              pipeValue is context. Compact rebuild patterns:
+              `pair | tag(/1, /0)` reorders Vec elements into
+              the operand's `value, tag` order.
+
+      A TaggedInstance subject (bound form) wraps into a nested
+      layer (`tagged | tag(::Outer)` → `::Outer[tagged]`); to
+      replace identity rather than nest, route through
       `tagged | payload | tag(::Other)`.
 
       ~{42 | tag(::Box) | payload | eq(42)}
       ~{[1 2 3] | tag(::Triple) | type | eq(::Triple)}
+      ~{::Box {} | ::Box[1 2 3] | [type payload] | tag | type | eq(::Box)}
+      ~{1 | add("1") !| [type payload] | tag | error !| type | eq(::AddRightNotNumberError)}
       ~{::Inner {} | ::Outer {} | ::Inner[1] | tag(::Outer) | payload | type | eq(::Inner)}
   ~~|
   ::builtin{:impl :qlang/prim/tag
             :category :typeConversion
-            :subject :any
+            :subject [:any :vec]
             :returns :taggedInstance
             :modifiers [:tagKeyword]
-            :throws [::TagModifierNotTagKeywordError]}
+            :throws [::TagModifierNotTagKeywordError ::TagBareSubjectShapeError]}
 
 ::TagModifierNotTagKeywordError
   |~~ Captured argument at position 2 of `tag` must be a TagKeyword.
@@ -95,3 +112,20 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :tag :position 2 :expectedType :tagKeyword}
+
+::TagBareSubjectShapeError
+  |~~ `tag` (bare form) requires a 2-element Vec `[tagKeyword,
+      value]` subject. Non-Vec subject or Vec of length != 2 fires
+      this error.
+      ~{
+        42 | tag
+        !| [type /actualType]
+        |  eq([::TagBareSubjectShapeError :number])
+       }
+      ~{
+        [::Foo 1 2] | tag
+        !| [type /actualLength]
+        |  eq([::TagBareSubjectShapeError 3])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :tag :position :subject :expectedType :vec}

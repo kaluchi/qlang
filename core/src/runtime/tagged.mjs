@@ -12,7 +12,7 @@
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
 
-import { nullaryOp, valueOp } from './dispatch.mjs';
+import { nullaryOp, valueOp, overloadedOp } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
@@ -183,36 +183,44 @@ bindPrim('qlang', qlangOperand);
 // `:typeConversion` family alongside `keyword` / `qlang` / `json`.
 //
 // `tagged | payload` — strip identity, return the underlying
-// data plane. Two TaggedInstance shapes drive two branches of
-// the result:
+// data plane. Composite-shape returns a fresh clone of the
+// payload without the header (the result re-enters the
+// untagged value-class surface, ready to be re-tagged through
+// `tag(::Other)`); wrap-object shape returns the `.payload`
+// value directly. Inverse of every `tag(::Foo)` mint and the
+// natural «open the envelope» step for tagged-value workflow.
 //
-//   Wrapped (single-payload TaggedInstance, `:payload` slot
-//     holds the value) → returns the `:payload` value. Inverse
-//     of `value | tag(::Foo)` when `value` is not a Map.
+// `tag` mints `TaggedInstance` from a value plus a TagKeyword.
+// Three arities through overloadedOp form a symmetric partner
+// for `[type, payload]` split:
 //
-//   Flat-merged (Map-payload TaggedInstance, fields stamped
-//     directly on the instance Map) → returns a fresh Map
-//     carrying the same fields without the header tag. The data
-//     plane stays inspectable via `keys` / `/field`, identity
-//     is stripped so the result can be re-tagged through
-//     `payload | tag(::Other)` to replace identity.
+//   bare  — subject is a `[tag, value]` 2-element Vec (the
+//     shape `[type payload]` projects from any tagged value).
+//     Unpacks the pair and routes through `makeTaggedInstance`.
+//     Round-trip pair: `tagged | [type payload] | tag` yields
+//     the same TaggedInstance for composite-shape payloads;
+//     wrap-shape payloads with already-tagged inner content
+//     fold through the makeTaggedInstance wrap branch.
 //
-// `value | tag(::Foo)` — runtime constructor. Subject is any
-// pipeValue, captured arg must be a TagKeyword. Routes through
-// `makeTaggedInstance(::Foo, subject)`, which picks the
-// flat-merge or `:payload`-slot branch by subject shape. A
-// TaggedInstance Map subject flat-merges into a fresh tagged
-// Map under the new identity — `tag` of a tagged-flat is a
-// rebrand, not a nested wrap. A wrapped TaggedInstance (with
-// `:payload` slot) flat-merges its `:payload` slot too, because
-// the slot's value lives on the wrapping Map directly; to nest
-// explicitly, route through `[value] | tag(::Outer)` so the Vec
-// payload lands in the new instance's `:payload` slot.
+//   bound — `value | tag(::Foo)`. Subject is any pipeValue,
+//     captured arg is the TagKeyword. The everyday partial-
+//     application form.
+//
+//   full  — `tag(value-expr, tag-expr)`. Both args captured,
+//     pipeValue is context for both — lets compact rebuild
+//     patterns like `pair | tag(/1, /0)` reorder elements of
+//     a positional Vec into the operand's value-then-tag
+//     order without an intermediate `as` snapshot.
 
 const PayloadSubjectNotTaggedInstanceError = declareSubjectError(
   'PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
 const TagModifierNotTagKeywordError = declareModifierError(
   'TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
+const TagBareSubjectShapeError = declareShapeError('TagBareSubjectShapeError',
+  ({ actualType, actualLength }) =>
+    actualLength === undefined
+      ? `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got ${actualType.name}`
+      : `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got Vec of length ${actualLength}`);
 
 export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {
@@ -226,9 +234,28 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
   return subject.payload;
 });
 
-export const tagOperand = valueOp('tag', 2, (subject, tagKw) => {
+function makeTaggedFromKw(value, tagKw) {
   if (!isTagKeyword(tagKw)) throw new TagModifierNotTagKeywordError(tagKw);
-  return makeTaggedInstance(tagKw, subject);
+  return makeTaggedInstance(tagKw, value);
+}
+
+export const tagOperand = overloadedOp('tag', 2, {
+  0: (subject) => {
+    if (!isVecShape(subject) || subject.length !== 2) {
+      throw new TagBareSubjectShapeError({
+        actualType: typeKeyword(subject),
+        actualValue: subject,
+        actualLength: isVecShape(subject) ? subject.length : undefined
+      });
+    }
+    return makeTaggedFromKw(subject[1], subject[0]);
+  },
+  1: async (subject, tagKwLambda) => {
+    return makeTaggedFromKw(subject, await tagKwLambda(subject));
+  },
+  2: async (ctx, valLambda, tagKwLambda) => {
+    return makeTaggedFromKw(await valLambda(ctx), await tagKwLambda(ctx));
+  }
 });
 
 bindPrim('payload', payloadOperand);

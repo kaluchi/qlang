@@ -287,6 +287,16 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('keyword');
   });
 
+  it('tag full-application rebuilds a TaggedInstance from a [value, tagKeyword] context Vec', async () => {
+    // The split/assemble round-trip can ride a positional Vec
+    // by reordering with full-app captured args — useful when
+    // the surface produced split-then-swapped pairs:
+    // `[value, tag] | tag(/0, /1)` mints the same instance as
+    // `value | tag(tag)`.
+    const r = await evalQuery('[42 ::Box] | tag(/0, /1) | type');
+    expect(r).toEqual(makeTagKeyword('Box'));
+  });
+
   it('error operand lifts `:kind ::TagKeyword` field onto the JS-header tag', async () => {
     // When the source Map carries no JS-header tag but has a
     // `:kind ::Foo` TagKeyword entry, the operand lifts it onto

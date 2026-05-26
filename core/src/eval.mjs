@@ -33,6 +33,7 @@ import {
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+  isTaggedInstance,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
@@ -539,7 +540,24 @@ async function evalTaggedLit(node, state) {
     const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${node.tag}/impl` });
     const bodyState = makeState(payloadValue, state.env);
     const resultState = await evalNode(bodyAst, bodyState);
-    return withPipeValue(state, resultState.pipeValue);
+    const constructorResult = resultState.pipeValue;
+    // Fail-track propagation: a `:impl` body that raised an
+    // ErrorValue rides out untagged on the fail-track.
+    if (isErrorValue(constructorResult)) {
+      return withPipeValue(state, constructorResult);
+    }
+    // Auto-wrap the constructor result with `::Tag` identity so
+    // every `::Tag<payload>` literal mints a `::Tag` instance,
+    // independent of what the Quote body returned. The user opt-
+    // out is explicit `| tag(::Other)` in the body to re-tag.
+    // If the body already returned a TaggedInstance with this
+    // tag (e.g., `~{… | tag(::Tag)}`), pass through unchanged.
+    const tagKw = makeTagKeyword(node.tag);
+    if (isTaggedInstance(constructorResult)
+        && constructorResult[TAG_HEADER_SYMBOL]?.name === node.tag) {
+      return withPipeValue(state, constructorResult);
+    }
+    return withPipeValue(state, makeTaggedInstance(tagKw, constructorResult));
   }
   // Default constructor — fires when the tag-binding has no
   // explicit `:impl` slot. Single always-wrap strategy: the

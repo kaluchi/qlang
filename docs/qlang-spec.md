@@ -1360,8 +1360,17 @@ namespace.
 > :duration mul(60)
   | ::duration {:kind :tag :impl ~{as(:s) | {:seconds s}}}
   | [10 | duration, ::duration(10)]
-[600 {:seconds 10}]
+[600 ::duration{:seconds 10}]
 ```
+
+The tag-namespace branch auto-wraps the constructor's Quote-body
+result with `::duration` identity (the body returns `{:seconds
+10}`, the runtime stamps the tag header on the result), so
+`::duration(10) | type` reads `::duration`. To opt out and
+return the raw shape, end the Quote body with `| tag(::Other)`
+to re-brand under a different identity, or use a value-namespace
+Conduit (as `:duration mul(60)` above) which carries no
+auto-wrap.
 
 Element 1 (`10 | duration`) invokes the value-namespace Conduit;
 element 2 (`::duration(10)`) invokes the tag-namespace

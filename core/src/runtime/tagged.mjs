@@ -17,7 +17,7 @@ import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
   isTaggedInstance, isTagKeyword, isErrorValue,
-  makeConduit, makeTaggedInstance, makeJsonObject, makeJsonArray, typeKeyword
+  makeConduit, makeTaggedInstance, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';
 import { declareSubjectError, declareShapeError, declareArityError, declareModifierError } from '../operand-errors.mjs';
@@ -225,10 +225,16 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {
     throw new PayloadSubjectNotTaggedInstanceError(subject);
   }
-  // Composite-shape — fresh clone without header.
-  if (Array.isArray(subject)) return Object.freeze([...subject]);
-  if (subject instanceof Set)  return new Set(subject);
-  if (subject instanceof Map)  return new Map(subject);
+  // Composite-shape — fresh clone without the TaggedInstance
+  // header. JsonArray composite restamps `JSON_ARRAY_TAG` on
+  // the clone (a plain `[...subject]` spread would drop the
+  // JSON-shape signal alongside the TaggedInstance header);
+  // every other Array clone yields a plain Vec.
+  if (Array.isArray(subject)) {
+    return isJsonArray(subject) ? makeJsonArray([...subject]) : Object.freeze([...subject]);
+  }
+  if (subject instanceof Set) return new Set(subject);
+  if (subject instanceof Map) return new Map(subject);
   // Opaque wrap object — return the wrapped value directly.
   return subject.payload;
 });

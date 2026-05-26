@@ -370,25 +370,47 @@ describe('parse and eval accept Quote subjects transparently', () => {
 });
 
 describe('User-defined tag binding with Quote :impl', () => {
-  it('applies the Quote body against payload as pipeValue', async () => {
+  it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
     const result = await evalQuery(
-      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x"'
+      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x" | payload'
     );
     expect(result).toBe('[x]');
   });
 
-  it('Quote body sees the tag-binding payload as its initial pipeValue', async () => {
+  it('Quote body sees the tag-binding payload as its initial pipeValue (read through payload after auto-wrap)', async () => {
     const result = await evalQuery(
-      '::shout {:kind :tag :impl ~{append("!")}} | ::shout"ready"'
+      '::shout {:kind :tag :impl ~{append("!")}} | ::shout"ready" | payload'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':exclaim append("!") | ::shout {:kind :tag :impl ~{exclaim}} | ::shout"go"'
+      ':exclaim append("!") | ::shout {:kind :tag :impl ~{exclaim}} | ::shout"go" | payload'
     );
     expect(result).toBe('go!');
+  });
+
+  it('auto-wrap stamps the tag identity on the constructor result', async () => {
+    const result = await evalQuery(
+      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | ::wrap"x" | type'
+    );
+    expect(result).toEqual(makeTagKeyword('wrap'));
+  });
+
+  it('Quote body that already produces the same-tag TaggedInstance passes through (no double-wrap)', async () => {
+    const result = await evalQuery(
+      '::echo {:kind :tag :impl ~{tag(::echo)}} | ::echo"hi" | payload'
+    );
+    expect(result).toBe('hi');
+  });
+
+  it('Quote body that fails on the fail-track propagates the error untagged', async () => {
+    const err = await evalQuery(
+      '::strictAdd {:kind :tag :impl ~{add("not-a-number")}} | ::strictAdd(5)'
+    );
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddRightNotNumberError'));
   });
 
   it(':impl that is neither Keyword nor Quote raises TagBindingHasNoConstructorError', async () => {

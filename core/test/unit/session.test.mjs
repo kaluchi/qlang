@@ -250,7 +250,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
     const restored = await deserializeSession(
       JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))
     );
-    const cellEntry = await restored.evalCell('"x" | ::wrap"x"');
+    const cellEntry = await restored.evalCell('"x" | ::wrap"x" | payload');
     expect(cellEntry.result).toBe('[x]');
   });
 

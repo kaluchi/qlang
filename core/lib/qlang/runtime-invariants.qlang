@@ -43,6 +43,7 @@
           equivalent to `::Name ::builtin{}` — declares an identity
           whose only payload is the attached docs.
   ~~|
+  ::builtin{:impl :qlang/type/builtin}
 
 ::Error
   |~~ Generic error identity. The universal default tag every

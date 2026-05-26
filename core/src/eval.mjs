@@ -32,7 +32,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword,
+  isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   ERROR_TAG, BUILTIN_TAG
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
@@ -524,33 +524,24 @@ async function evalTaggedLit(node, state) {
     return withPipeValue(state, resultState.pipeValue);
   }
   // Default constructor — fires when the tag-binding has no
-  // explicit `:impl` slot. Branches by payload shape:
+  // explicit `:impl` slot. Single always-wrap strategy: the
+  // payload value rides as-is on the instance's `:payload`
+  // slot, identity sits on the Map JS-header
+  // `TAG_HEADER_SYMBOL` (`makeTaggedInstance`). One render shape
+  // (`::Tag<payload>`) covers every Primary payload — Vec
+  // (`::Tag[1 2 3]`), Map (`::Tag{:k 1}`), Set (`::Tag#[…]`),
+  // Quote (`::Tag~{body}`), scalar via ParenGroup
+  // (`::Tag(42)`), nested TaggedInstance (`::Outer[::Inner[X]]`)
+  // — without per-shape branches in the constructor or
+  // identity-loss surprises (a Map payload no longer
+  // flat-merges away an inner `:kind` slot).
   //
-  //   ErrorLit payload (already an ErrorValue) → re-stamp
-  //     `:kind ::Tag` on the descriptor and keep the result on
-  //     the fail-track. Prints back as `::Tag!{…}`.
-  //
-  //   Map payload → flat-merge into the instance descriptor:
-  //     `:kind ::Tag` plus every entry of the payload Map at the
-  //     top level. The Map is already structured as a named-field
-  //     bundle, so no nesting under `:payload` is needed. Prints
-  //     back as `::Tag{…fields…}`.
-  //
-  //   Other Primary payload (Vec / Set / Quote / Doc / scalar /
-  //     Keyword / nested TaggedLit / …) → nest under `:payload`:
-  //     `{:kind ::Tag :payload <value>}`. Prints back as
-  //     `::Tag<bracketed-payload>` for bracket-prefixed values
-  //     (Vec / Set / Quote / Doc) and `::Tag(<scalar>)` for the
-  //     rest — every shape the grammar's `Primary` rule accepts
-  //     as TaggedLit payload that is not itself a Map.
+  // ErrorLit payload stays special: an ErrorValue rebrands its
+  // JS-header `tag` (Phase 1) to `::Tag` so the result remains
+  // an ErrorValue on the fail-track, not a wrapped success-track
+  // TaggedInstance.
   if (implKey === undefined) {
     if (isErrorValue(payloadValue)) {
-      // `::Tag!{…}` rebrands an ErrorLit payload: the new tag
-      // identity replaces whatever generic `::Error` (or earlier
-      // `::Other`) the inner literal carried, while the
-      // descriptor passes through unchanged. The default
-      // constructor stays a one-line rebrand; explicit field
-      // edits route through `!| union(…)` instead.
       return withPipeValue(state, makeErrorValue(
         makeTagKeyword(node.tag),
         payloadValue.descriptor,
@@ -560,17 +551,7 @@ async function evalTaggedLit(node, state) {
         }
       ));
     }
-    const instance = new Map();
-    instance.set('kind', makeTagKeyword(node.tag));
-    if (isQMap(payloadValue)) {
-      for (const [fieldKey, fieldVal] of payloadValue) {
-        if (fieldKey === 'kind') continue;
-        instance.set(fieldKey, fieldVal);
-      }
-    } else {
-      instance.set('payload', payloadValue);
-    }
-    return withPipeValue(state, instance);
+    return withPipeValue(state, makeTaggedInstance(makeTagKeyword(node.tag), payloadValue));
   }
   throw new TagBindingHasNoConstructorError({
     tag: node.tag,

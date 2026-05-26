@@ -170,27 +170,33 @@ describe('default constructor — tag-binding without :impl', () => {
   });
 
   it('Vec payload (`::Tag[…]`) lifts to TaggedInstance Map with `:payload` slot', async () => {
-    const { isQMap } = await import('../../src/types.mjs');
+    const { isQMap, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError[1 2 3]');
     expect(isQMap(instance)).toBe(true);
-    expect(instance.get('kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(instance.has('kind')).toBe(false);
+    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(typeKeyword(instance)).toEqual(makeTagKeyword('AddLeftNotNumberError'));
     expect(instance.get('payload')).toEqual([1, 2, 3]);
   });
 
-  it('Map payload (`::Tag{…}`) flat-merges fields into the TaggedInstance descriptor', async () => {
-    // Map payload is already a named-field bundle, so the default
-    // constructor merges its entries at the top level of the
-    // resulting descriptor alongside the stamped `:kind ::Tag`.
-    // No `:payload` wrapping — that nesting fires only for
-    // single-value payloads (scalar / Vec / Set / Quote / Doc /
-    // Keyword) that have no inherent field structure.
-    const { isQMap } = await import('../../src/types.mjs');
+  it('Map payload (`::Tag{…}`) rides under the `:payload` slot — always-wrap, no flat-merge', async () => {
+    // Phase 3 always-wrap: the default constructor stores the
+    // payload value as-is under `:payload`, never spreading Map
+    // entries into the instance. That keeps nested identities
+    // intact (`::Outer[::Inner[X]]` no longer drops the inner
+    // `:kind` slot through Map-merge collision) and makes the
+    // render form uniform across every payload shape.
+    const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);
-    expect(instance.get('kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-    expect(instance.get('custom')).toBe('field');
-    expect(instance.get('position')).toBe(1);
-    expect(instance.has('payload')).toBe(false);
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(instance.has('kind')).toBe(false);
+    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    const payloadMap = instance.get('payload');
+    expect(isQMap(payloadMap)).toBe(true);
+    expect(payloadMap.get('custom')).toBe('field');
+    expect(payloadMap.get('position')).toBe(1);
   });
 
   it('String payload (`::Tag"s"`) — `"` opens unambiguously, no ParenGroup needed', async () => {

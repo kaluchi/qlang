@@ -15,7 +15,8 @@ import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import {
   isQMap,
-  isVecShape
+  isVecShape,
+  TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -73,15 +74,19 @@ const TO_PLAIN_HANDLERS = {
   // lossy codec, the wrapper metadata is reachable through
   // `manifest` enumeration for callers that need it.
   Snapshot:       s => toPlain(s.get('payload')),
-  // Conduit and TaggedInstance carry their structure as a Map. The
-  // TagKeyword handler lifts the `:kind` discriminator so Map
-  // iteration encodes cleanly without leaking `[object Object]`
-  // markers. Raw JS slots (`:body` AST node, `:envRef` holder)
-  // reach `env | json` only when env contains user-defined
-  // conduits — those surface through toPlainFallback as a shape
-  // outside the toPlain contract.
-  Conduit:        qMapToPlainObject,
-  TaggedInstance: qMapToPlainObject,
+  // TaggedInstance carries its structure as a Map. Identity rides
+  // on the JS-header `TAG_HEADER_SYMBOL` slot (invisible to
+  // `for (const [k, v] of m)`), so plain Map iteration encodes
+  // the data surface cleanly. The header tag surfaces as the
+  // leading `$tag` field of the envelope so the lossy plain-JSON
+  // form carries identity explicitly — same shape as `Error`
+  // above. Conduit deliberately has no handler: its `:body` AST
+  // node and `:envRef` holder are JS-opaque, and the bidirectional
+  // codec for conduits is `serializeSession` / `deserializeSession`
+  // (`session.mjs`), not `toPlain`. Falling through to
+  // `toPlainFallback` flags the leak loudly through
+  // `ToPlainUnencodableValueError` at the call site.
+  TaggedInstance: t => ({ $tag: t[TAG_HEADER_SYMBOL].name, ...qMapToPlainObject(t) }),
   Quote:          q => `~{${q.source}}`,
   Doc:            d => `|~~${d.content}~~|`,
   Set:            s => [...s].map(toPlain),
@@ -214,7 +219,7 @@ const INLINE_HANDLERS = {
 };
 
 function renderTaggedInstanceInline(instance) {
-  const tagLiteral = instance.get('kind').literal;
+  const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   const payload = instance.get('payload');
   const payloadInline = renderInline(payload);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadInline)) {

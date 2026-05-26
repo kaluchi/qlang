@@ -81,18 +81,14 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   });
 
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Box')],
-      ['payload', [42, 'inner']]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
     expect(printValue(instance)).toBe('::Box[42 "inner"]');
   });
 
   it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Marker')],
-      ['payload', []]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Marker'), []);
     expect(printValue(instance)).toBe('::Marker[]');
   });
 });
@@ -153,10 +149,8 @@ describe('printErrorValue — head + payload-filter branches', () => {
 
 describe('renderTaggedInstanceInline — table cell handler', () => {
   it('a tagged-instance in cell position round-trips through ::Tag[payload…]', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Box')],
-      ['payload', [42]]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
     const row = new Map([['boxed', instance]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -166,10 +160,8 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
   });
 
   it('a tagged-instance with Number payload renders as ::Tag(42) — ParenGroup wrap branch', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Count')],
-      ['payload', 42]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Count'), 42);
     const row = new Map([['c', instance]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -179,10 +171,8 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
   });
 
   it('a tagged-instance inside a Vec cell — inline handler fires', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Pair')],
-      ['payload', [1, 2]]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Pair'), [1, 2]);
     const row = new Map([['pairs', [instance]]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },

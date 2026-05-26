@@ -234,7 +234,7 @@ function printSnapshot(snapshot) {
 // parser splits on cleanly, so no wrap is needed.
 export const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 function printTaggedInstance(instance, indent) {
-  const tagLiteral = instance.get('kind').literal;
+  const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   const payload = instance.get('payload');
   const payloadPrint = printValue(payload, indent);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint)) {

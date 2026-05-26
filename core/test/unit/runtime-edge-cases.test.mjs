@@ -72,12 +72,26 @@ describe('describeType for conduit and snapshot', async () => {
   });
 
   it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
-    const { makeTagKeyword } = await import('../../src/types.mjs');
-    const instance = new Map([
-      ['kind', makeTagKeyword('Box')],
-      ['payload', [42]]
-    ]);
+    const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
     expect(describeType(instance)).toBe('TaggedInstance');
+  });
+
+  it('TaggedInstance toPlain carries the JS-header tag on the envelope $tag slot', async () => {
+    // The TaggedInstance `toPlain` handler surfaces the JS-header
+    // TagKeyword onto the encoded envelope as `$tag` so the lossy
+    // plain-JSON form carries identity explicitly — same shape
+    // `Error` uses for its own `$error: {$tag, …}` envelope.
+    // `Conduit` toPlain rides the same handler shape, but its
+    // internal `:envRef` / `:body` slots are JS-opaque
+    // (`ToPlainUnencodableValueError`) — the bidirectional
+    // codec for conduits is the session serializer, not toPlain.
+    const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
+    const { toPlain } = await import('../../src/runtime/format.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), 42);
+    const plainTagged = toPlain(tagged);
+    expect(plainTagged.$tag).toBe('Box');
+    expect(plainTagged.payload).toBe(42);
   });
 
   it('isTaggedInstance rejects real conduit / snapshot values without checking :kind field shape', async () => {

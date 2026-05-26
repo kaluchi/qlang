@@ -251,9 +251,7 @@ export function isSnapshot(v) {
 export function isTaggedInstance(v) {
   if (!(v instanceof Map)) return false;
   if (isConduit(v) || isSnapshot(v)) return false;
-  const kind = v.get('kind');
-  if (!isTagKeyword(kind)) return false;
-  return v.has('payload');
+  return v[TAG_HEADER_SYMBOL] !== undefined;
 }
 
 export function isQuote(v) {
@@ -360,6 +358,25 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
   stampTagHeader(m, SNAPSHOT_TAG);
+  return m;
+}
+
+// ── tagged-instance factory ──────────────────────────────────
+//
+// Single mint site for user-defined `::Tag<payload>` constructor
+// invocations through the default branch of `evalTaggedLit`.
+// Always-wrap strategy: the payload rides as-is under the
+// `:payload` field — Map payloads no longer flat-merge into the
+// instance (the Phase-2-pre bug that silently dropped a nested
+// `::Inner[::Outer[X]]` identity by overwriting `:kind` on the
+// outer instance's descriptor), Vec / Set / Quote / scalar
+// payloads land under the same slot. Identity rides on the Map
+// JS-header `TAG_HEADER_SYMBOL` slot.
+
+export function makeTaggedInstance(tag, payload) {
+  const m = new Map();
+  m.set('payload', payload);
+  stampTagHeader(m, tag);
   return m;
 }
 
@@ -494,13 +511,17 @@ export function typeKeyword(v) {
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) {
-    // Conduit and Snapshot read identity off the Map JS-header
-    // via the `isConduit` / `isSnapshot` checks above. Maps
-    // reaching this branch fall back to the legacy `:kind` field —
-    // covers the catalog `::builtin{…}` descriptors (Phase 4
-    // still pending), the materialized error descriptor exposed
-    // under `!|`, and user-built `{:kind ::Foo …}` Maps that
-    // ride the tagged-instance render path.
+    // Identity-on-JS-header takes precedence — TaggedInstance
+    // stamps its user-defined TagKeyword on TAG_HEADER_SYMBOL
+    // at construction (Conduit / Snapshot already exited above).
+    // Maps without the header fall back to the legacy `:kind`
+    // field — covers the catalog `::builtin{…}` descriptors
+    // (Phase 4 still pending), the materialized error descriptor
+    // exposed under `!|`, and user-built `{:kind ::Foo …}` Maps
+    // that ride the tagged-instance render path through `:kind`
+    // discriminator until Phase 4 unifies them under the header.
+    const headerTag = v[TAG_HEADER_SYMBOL];
+    if (headerTag) return headerTag;
     const mapKind = v.get('kind');
     if (isTagKeyword(mapKind)) return mapKind;
     return keyword('map');

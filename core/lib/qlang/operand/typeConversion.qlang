@@ -33,3 +33,65 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :keyword :position :subject :expectedType [:string :keyword]}
+
+:payload
+  |~~ TaggedInstance split — opaque-unwrap of a `::Tag<payload>`
+      value into its captured payload value. Pair with `tag(::Foo)`
+      for the round-trip: `value | tag(::Foo) | payload | eq(value)`
+      on any qlang value. The dedicated operand sidesteps the
+      `/payload` Map-field projection, which would expose the
+      wrapper Map's internal shape; `payload` reads identity
+      through the JS-header `tag` slot and returns the payload
+      slot's value directly.
+
+      ~{::Box {} | ::Box[42] | payload | eq([42])}
+      ~{::Pair {} | ::Pair[1 2] | payload | eq([1 2])}
+      ~{::Note {} | ::Note"hello" | payload | eq("hello")}
+  ~~|
+  ::builtin{:impl :qlang/prim/payload
+            :category :typeConversion
+            :subject :taggedInstance
+            :returns :any
+            :throws [::PayloadSubjectNotTaggedInstanceError]}
+
+::PayloadSubjectNotTaggedInstanceError
+  |~~ `payload` requires a TaggedInstance subject (a value built
+      through a `::Tag<payload>` constructor invocation).
+      ~{
+        42 | payload
+        !| [type /actualType]
+        |  eq([::PayloadSubjectNotTaggedInstanceError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :payload :position :subject :expectedType :taggedInstance}
+
+:tag
+  |~~ TaggedInstance assemble — mints `::Tag<subject>` at runtime
+      from a value and a TagKeyword. Subject becomes the wrapped
+      payload, the captured TagKeyword becomes the identity tag.
+      Pair with `payload` for round-trip (`value | tag(::Foo) |
+      payload | eq(value)`). A TaggedInstance subject wraps into
+      a nested layer (`tagged | tag(::Outer)` → `::Outer[tagged]`);
+      to replace identity rather than nest, route through
+      `tagged | payload | tag(::Other)`.
+
+      ~{42 | tag(::Box) | payload | eq(42)}
+      ~{[1 2 3] | tag(::Triple) | type | eq(::Triple)}
+      ~{::Inner {} | ::Outer {} | ::Inner[1] | tag(::Outer) | payload | type | eq(::Inner)}
+  ~~|
+  ::builtin{:impl :qlang/prim/tag
+            :category :typeConversion
+            :subject :any
+            :returns :taggedInstance
+            :modifiers [:tagKeyword]
+            :throws [::TagModifierNotTagKeywordError]}
+
+::TagModifierNotTagKeywordError
+  |~~ Captured argument at position 2 of `tag` must be a TagKeyword.
+      ~{
+        42 | tag(:foo)
+        !| [type /actualType]
+        |  eq([::TagModifierNotTagKeywordError :keyword])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :tag :position 2 :expectedType :tagKeyword}

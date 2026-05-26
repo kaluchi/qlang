@@ -12,14 +12,15 @@
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
 
-import { nullaryOp } from './dispatch.mjs';
+import { nullaryOp, valueOp } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
-  makeConduit, makeJsonObject, makeJsonArray, typeKeyword
+  isTaggedInstance, isTagKeyword,
+  makeConduit, makeTaggedInstance, makeJsonObject, makeJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';
-import { declareSubjectError, declareShapeError, declareArityError } from '../operand-errors.mjs';
+import { declareSubjectError, declareShapeError, declareArityError, declareModifierError } from '../operand-errors.mjs';
 
 const ConduitPayloadNotVecError = declareSubjectError('ConduitPayloadNotVecError', '::conduit', 'vec');
 const ConduitArityInvalidError = declareArityError('ConduitArityInvalidError',
@@ -117,6 +118,37 @@ function jsonFromQlang(value) {
 bindTypeConstructor('qlang', (payload) => qlangFromJson(payload));
 bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 
+// `::builtin{…fields…}` — catalog descriptor constructor.
+// Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`
+// declares its body as `::builtin{:impl :qlang/prim/<name>
+// :category … :subject … :modifiers … :returns … :throws …}`;
+// every error tag declares its body as `::builtin{:category
+// :typeError :operand …}` (no `:impl`). The catalog reader and
+// the bootstrap fill loop in `runtime/index.mjs` address the
+// stamped fields directly through `descriptor.get(<field>)`, so
+// `::builtin` flattens the payload Map into a descriptor Map
+// carrying `:kind ::builtin` plus every payload entry at the
+// top level. The dedicated constructor keeps catalog descriptors
+// outside the generic TaggedInstance render path; Phase 4 will
+// unify the discriminator onto the Map JS-header
+// TAG_HEADER_SYMBOL slot once every catalog reader migrates off
+// the `:kind ::builtin` Map-field shape.
+import { BUILTIN_TAG } from '../types.mjs';
+
+function builtinConstructor(payload) {
+  // Catalog declarations always pass a Map payload — every
+  // `::builtin{…fields…}` literal in `core/lib/qlang/**` writes
+  // a keyword-keyed body. A non-Map payload would be a catalog
+  // authoring bug; the iterator throws cleanly at that point
+  // instead of silently nesting the scalar under `:payload`.
+  const descriptor = new Map();
+  descriptor.set('kind', BUILTIN_TAG);
+  for (const [k, v] of payload) descriptor.set(k, v);
+  return descriptor;
+}
+
+bindTypeConstructor('builtin', builtinConstructor);
+
 // `qlang` value-namespace operand — subject-form converter.
 //
 //   {"a": 1} | qlang      → {:a 1}        (JsonObject → qlang Map)
@@ -132,3 +164,44 @@ bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 export const qlangOperand = nullaryOp('qlang', (subject) => qlangFromJson(subject));
 
 bindPrim('qlang', qlangOperand);
+
+// ── tag / payload — TaggedInstance split/assemble pair ──────
+//
+// After Phase 3 the default `::Tag<payload>` constructor always
+// wraps: the payload value rides as-is on the instance's
+// `:payload` slot, identity sits on the Map JS-header. These two
+// operands give user code a clean way to deconstruct the wrap
+// (`payload`) and to mint a new TaggedInstance at runtime from a
+// value + tag pair (`tag(::Foo)`). Both ride the
+// `:typeConversion` family alongside `keyword` / `qlang` / `json`.
+//
+// `tagged | payload` — opaque-unwrap. Subject must be a
+// TaggedInstance; returns the payload value. Re-tagging through
+// `payload | tag(::Other)` is the explicit two-step path.
+//
+// `value | tag(::Foo)` — runtime constructor. Subject is any
+// pipeValue, captured arg must be a TagKeyword. Returns
+// `makeTaggedInstance(::Foo, subject)`. A TaggedInstance subject
+// wraps into a nested layer (`::Foo[<inner-tagged>]`) — the
+// straightforward semantic; re-tag through `payload | tag(::Foo)`
+// when the goal is to replace identity rather than nest.
+
+const PayloadSubjectNotTaggedInstanceError = declareSubjectError(
+  'PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
+const TagModifierNotTagKeywordError = declareModifierError(
+  'TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
+
+export const payloadOperand = nullaryOp('payload', (subject) => {
+  if (!isTaggedInstance(subject)) {
+    throw new PayloadSubjectNotTaggedInstanceError(subject);
+  }
+  return subject.get('payload');
+});
+
+export const tagOperand = valueOp('tag', 2, (subject, tagKw) => {
+  if (!isTagKeyword(tagKw)) throw new TagModifierNotTagKeywordError(tagKw);
+  return makeTaggedInstance(tagKw, subject);
+});
+
+bindPrim('payload', payloadOperand);
+bindPrim('tag',     tagOperand);

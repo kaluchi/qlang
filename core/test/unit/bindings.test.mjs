@@ -23,6 +23,22 @@ describe('BindStep — docs-only form', () => {
     expect(describeType(doc)).toBe('Doc');
     expect(doc.content).toBe(' placeholder note');
   });
+
+  it('::Tag |~~ ~~| doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
+    // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`)
+    // mints an empty `::builtin{}` descriptor under the `::Tag`
+    // env key automatically — equivalent to `::Tag ::builtin{}`
+    // body-form. The BindStep production requires docs (or body
+    // or params) after the key; the doc-prefix attaches to the
+    // BindStep, evalBindStep no-body branch fires the auto-forge.
+    // Subsequent `::Tag | docs` axis lookup resolves the attached
+    // prose, and `::Tag | spec` exposes the auto-forged descriptor
+    // Map carrying `:kind ::builtin`.
+    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | /content');
+    expect(doc).toContain('short tag prose');
+    const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | /kind');
+    expect(spec).toEqual(makeTagKeyword('builtin'));
+  });
 });
 
 describe('BindStep — value-body purity routing', () => {

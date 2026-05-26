@@ -74,9 +74,9 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { makeQuote } from '../types.mjs';
-import { moduleAstKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
-import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
+import { keyword, makeQuote, BUILTIN_TAG } from '../types.mjs';
+import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
+import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampStructuralFacts } from '../descriptor-ops.mjs';
 import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 
@@ -136,6 +136,20 @@ export async function buildLangRuntime(locator) {
   const seedEnv = new Map();
   seedEnv.set('use', PRIMITIVE_REGISTRY.resolve(primKey('use')));
   seedEnv.set(RUNTIME_LOCATOR_KEY, locator);
+  // Chicken-and-egg: `::builtin{…}` is the constructor shape every
+  // catalog descriptor body rides on, including `::builtin`'s own
+  // declaration in runtime-invariants.qlang. Seed the env with a
+  // minimal `::builtin` tag-binding pointing at the registered
+  // `qlang/type/builtin` constructor so the first `::builtin{…}`
+  // TaggedLit in the catalog finds an `:impl` to dispatch on. The
+  // runtime-invariants module then redeclares `::builtin` formally
+  // (through the same constructor) and the snapshot lands in env
+  // under the same key — same shape, same `:impl`, shadow without
+  // observable drift.
+  const seedBuiltinDescriptor = new Map();
+  seedBuiltinDescriptor.set('kind', BUILTIN_TAG);
+  seedBuiltinDescriptor.set('impl', keyword(TYPE_KEY_PREFIX + 'builtin'));
+  seedEnv.set(tagBindingKey('builtin'), seedBuiltinDescriptor);
 
   // Load the root catalog module — `:qlang/core` — through the
   // same locator everything else flows through. Browser-side

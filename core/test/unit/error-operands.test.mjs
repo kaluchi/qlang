@@ -273,6 +273,20 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
+  it('payload on non-TaggedInstance → PayloadSubjectNotTaggedInstanceError', async () => {
+    const caughtErr = await catchOriginalError('42 | payload');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('PayloadSubjectNotTaggedInstanceError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('tag with non-TagKeyword captured-arg → TagModifierNotTagKeywordError', async () => {
+    const caughtErr = await catchOriginalError('42 | tag(:foo)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('TagModifierNotTagKeywordError');
+    expect(caughtErr.context.actualType.name).toBe('keyword');
+  });
+
   it('take count non-number → TakeCountNotNumberError', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | take("x")');
     expect(caughtErr.name).toBe('TakeCountNotNumberError');

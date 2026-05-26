@@ -336,7 +336,7 @@ describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collision
     const s = await createSession();
     s.bind('nsA', new Map([['shared', 1]]));
     s.bind('nsB', new Map([['shared', 2]]));
-    const r = await s.evalCell('use(#{:nsA, :nsB})');
+    const r = await s.evalCell('use(#[:nsA, :nsB])');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.name).toBe('UseNamespaceCollisionError');
   });
@@ -347,7 +347,7 @@ describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collision
     const s = await createSession();
     s.bind('nsC', new Map([['rawKey', 1]]));
     s.bind('nsD', new Map([['rawKey', 2]]));
-    const r = await s.evalCell('use(#{:nsC, :nsD})');
+    const r = await s.evalCell('use(#[:nsC, :nsD])');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.context.collidingName).toBe('rawKey');
   });
@@ -431,7 +431,7 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints Set', async () => {
-    expect(printValue(new Set([1, 2]))).toBe('#{1 2}');
+    expect(printValue(new Set([1, 2]))).toBe('#[1 2]');
   });
 
   it('prints small Map inline', async () => {
@@ -530,15 +530,15 @@ describe('printValue round-trip — all composite types', async () => {
   });
 
   it('Set of keywords', async () => {
-    await assertRoundTrip('#{:a :b :c}', 'keyword Set');
+    await assertRoundTrip('#[:a :b :c]', 'keyword Set');
   });
 
   it('Set with quoted keywords', async () => {
-    await assertRoundTrip('#{:"$ref" :normal}', 'quoted kw Set');
+    await assertRoundTrip('#[:"$ref" :normal]', 'quoted kw Set');
   });
 
   it('Set of numbers', async () => {
-    await assertRoundTrip('#{1 2 3}', 'number Set');
+    await assertRoundTrip('#[1 2 3]', 'number Set');
   });
 
   it('Map with bare keys', async () => {
@@ -566,6 +566,6 @@ describe('printValue round-trip — all composite types', async () => {
   });
 
   it('deeply nested composite', async () => {
-    await assertRoundTrip('{:data [{:id 1 :tags #{:a :b}} {:id 2 :tags #{:c}}]}', 'deep composite');
+    await assertRoundTrip('{:data [{:id 1 :tags #[:a :b]} {:id 2 :tags #[:c]}]}', 'deep composite');
   });
 });

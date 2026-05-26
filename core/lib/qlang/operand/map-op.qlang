@@ -5,7 +5,7 @@
 :keys
   |~~ Returns the Set of keys (keywords) in the Map.
 
-      ~{{:name "Alice" :age 30} | keys | eq(#{:name :age})}
+      ~{{:name "Alice" :age 30} | keys | eq(#[:name :age])}
   ~~|
   ::builtin{:impl :qlang/prim/keys
             :category :map-op
@@ -49,7 +49,7 @@
       the Set contains the value. Polymorphic on subject type.
 
       ~{{:name "Alice"} | has(:name) | eq(true)}
-      ~{#{:a :b :c} | has(:b) | eq(true)}
+      ~{#[:a :b :c] | has(:b) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/prim/has
             :category :map-op

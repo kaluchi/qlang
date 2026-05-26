@@ -106,18 +106,18 @@ describe('round-trip invariant — Map', () => {
 
 describe('round-trip invariant — Set', () => {
   for (const src of [
-    '#{}',
-    '#{:a :b :c}',
-    '#{1 2 3}',
-    '#{:name :age :id}',
-    // Composite-element dedup at construction — `#{[1 2] [1 2]}`
+    '#[]',
+    '#[:a :b :c]',
+    '#[1 2 3]',
+    '#[:name :age :id]',
+    // Composite-element dedup at construction — `#[[1 2] [1 2]]`
     // collapses to a Set of size 1 because two structurally-equal
     // Vec literals are the same Set member.
-    '#{[1 2] [1 2]}',
-    '#{[1 2] [3 4]}',
-    '#{{:a 1} {:a 1}}',
-    '#{{:a 1} {:b 2}}',
-    '#{[1 2] [1 2] [3 4]}'
+    '#[[1 2] [1 2]]',
+    '#[[1 2] [3 4]]',
+    '#[{:a 1} {:a 1}]',
+    '#[{:a 1} {:b 2}]',
+    '#[[1 2] [1 2] [3 4]]'
   ]) {
     it(`set literal: ${src}`, () => pinRoundTrip(src));
   }
@@ -214,8 +214,8 @@ describe('round-trip invariant — TaggedLit payload covering every Primary form
     '::Tag1{"k": 1}',
 
     // SetLit payload
-    '::Tag1#{1 2 3}',
-    '::Tag1#{:a :b}',
+    '::Tag1#[1 2 3]',
+    '::Tag1#[:a :b]',
 
     // QuoteLit payload
     '::Tag1~{count}',
@@ -312,8 +312,8 @@ describe('round-trip invariant — Conduit (printValue idempotency)', () => {
 describe('round-trip invariant — nested composites', () => {
   for (const src of [
     '[{:k [1 2]} {:k [3 4]}]',
-    '{:list [1 2 3] :set #{:a :b} :inner {:x 1}}',
-    '#{[1 2] [3 4]}',
+    '{:list [1 2 3] :set #[:a :b] :inner {:x 1}}',
+    '#[[1 2] [3 4]]',
     '[:a !{:kind :oops} :c]',
     '{:err !{:kind :timeout} :ok 42}',
     '~{[1 2 3] | filter(gt(1))}'

@@ -7,7 +7,7 @@
       (length), Set (size), and Map (entry count).
 
       ~{[1 2 3] | count | eq(3)}
-      ~{#{:a :b} | count | eq(2)}
+      ~{#[:a :b] | count | eq(2)}
       ~{{:x 1 :y 2 :z 3} | count | eq(3)}
   ~~|
   ::builtin{:impl :qlang/prim/count
@@ -188,8 +188,8 @@
       ~{[1 2 3 4 5] | filter(gt(2)) | eq([3 4 5])}
       ~{[{:age 25} {:age 15}] | filter(/age | gte(18)) | eq([{:age 25}])}
       ~{[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos) | eq([1 3])}
-      ~{#{1 2 3 4 5} | filter(gt(2)) | eq(#{3 4 5})}
-      ~{#{1 -2 3} | :@pos [:v] (v | gt(0)) | filter(@pos) | eq(#{1 3})}
+      ~{#[1 2 3 4 5] | filter(gt(2)) | eq(#[3 4 5])}
+      ~{#[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos) | eq(#[1 3])}
       ~{{:a 1 :b 2 :c 3} | filter(gt(1)) | eq({:b 2 :c 3})}
       ~{{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt(0)) | filter(@pos) | eq({:a 1 :c 3})}
       ~{{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot) | eq({:avocado 3})}

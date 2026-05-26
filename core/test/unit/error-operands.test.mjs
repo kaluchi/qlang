@@ -252,10 +252,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
   });
 
-  it('at on non-Vec-or-Map → AtSubjectNotVecOrMapError', async () => {
+  it('at on non-Vec-or-Map → AtSubjectNotSequenceOrMapError', async () => {
     const caughtErr = await catchOriginalError('42 | at(0)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
+    expect(caughtErr.name).toBe('AtSubjectNotSequenceOrMapError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
@@ -307,12 +307,12 @@ describe('per-site error classes carry unique identity', () => {
     const names = new Set();
     const queries = [
       '42 | count',        // CountSubjectNotContainerError
-      '42 | first',        // FirstSubjectNotVecError
-      '42 | last',         // LastSubjectNotVecError
+      '42 | first',        // FirstSubjectNotSequenceError
+      '42 | last',         // LastSubjectNotSequenceError
       '42 | sum',          // SumSubjectNotVecOrSetError
-      '42 | reverse',      // ReverseSubjectNotVecError
-      '42 | distinct',     // DistinctSubjectNotVecError
-      '42 | sort',         // SortNaturalSubjectNotVecError
+      '42 | reverse',      // ReverseSubjectNotSequenceError
+      '42 | distinct',     // DistinctSubjectNotSequenceError
+      '42 | sort',         // SortNaturalSubjectNotSequenceError
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
       '"a" | add(1)',      // AddLeftNotNumberError

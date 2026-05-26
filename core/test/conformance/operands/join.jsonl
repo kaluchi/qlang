@@ -14,7 +14,6 @@
 {"name":"two-elements","query":"[\"first\" \"second\"] | join(\" \")","expect":"\"first second\""}
 {"name":"many-elements","query":"[\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\"] | join(\"\")","expect":"\"abcdefghij\""}
 {"name":"join-after-split-roundtrip","query":"[\"a\" \"b\" \"c\"] | join(\",\") | split(\",\")","expect":"[\"a\" \"b\" \"c\"]"}
-{"name":"join-after-distinct","query":"[\"a\" \"b\" \"a\" \"c\"] | distinct | join(\",\")","expect":"\"a,b,c\""}
 {"name":"join-after-filter","query":"[\"\" \"a\" \"\" \"b\"] | filter(eq(\"\") | not) | join(\",\")","expect":"\"a,b\""}
 {"name":"join-after-sort","query":"[\"c\" \"a\" \"b\"] | sort | join(\",\")","expect":"\"a,b,c\""}
 {"name":"join-after-take","query":"[\"a\" \"b\" \"c\" \"d\"] | take(2) | join(\",\")","expect":"\"a,b\""}
@@ -22,7 +21,7 @@
 {"name":"join-after-distribute","query":"[\"a\" \"b\" \"c\"] * append(\"!\") | join(\",\")","expect":"\"a!,b!,c!\""}
 {"name":"join-error-non-vec-subject","query":"42 | join(\",\")","error":"type-error","expect":"::JoinSubjectNotVecError!{\n  :fault {:step ~{join(\",\")} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
 {"name":"join-error-string-subject","query":"\"abc\" | join(\",\")","error":"type-error","expect":"::JoinSubjectNotVecError!{\n  :fault {:step ~{join(\",\")} :input \"abc\"}\n  :actualValue \"abc\"\n  :actualType :string\n}"}
-{"name":"join-error-set-subject","query":"#{1 2 3} | join(\",\")","error":"type-error","expect":"::JoinSubjectNotVecError!{\n  :fault {\n    :step ~{join(\",\")}\n    :input #{1 2 3}\n  }\n  :actualValue #{1 2 3}\n  :actualType :set\n}"}
+{"name":"join-error-set-subject","query":"#[1 2 3] | join(\",\")","error":"type-error","expect":"::JoinSubjectNotVecError!{\n  :fault {\n    :step ~{join(\",\")}\n    :input #[1 2 3]\n  }\n  :actualValue #[1 2 3]\n  :actualType :set\n}"}
 {"name":"join-error-map-subject","query":"{:a 1} | join(\",\")","error":"type-error","expect":"::JoinSubjectNotVecError!{\n  :fault {\n    :step ~{join(\",\")}\n    :input {:a 1}\n  }\n  :actualValue {:a 1}\n  :actualType :map\n}"}
 {"name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join(\",\")","error":"type-error","expect":"::JoinElementNotStringError!{\n  :fault {\n    :step ~{join(\",\")}\n    :input [\"a\" 42 \"c\"]\n  }\n  :actualValue 42\n  :actualType :number\n  :index 1\n}"}
 {"name":"join-error-element-null","query":"[\"a\" null \"c\"] | join(\",\")","error":"type-error","expect":"::JoinElementNotStringError!{\n  :fault {\n    :step ~{join(\",\")}\n    :input [\"a\" null \"c\"]\n  }\n  :actualValue null\n  :actualType :null\n  :index 1\n}"}

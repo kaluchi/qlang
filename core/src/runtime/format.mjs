@@ -189,7 +189,7 @@ const INLINE_HANDLERS = {
   TagKeyword: literalOfKeyword,
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
-  Set:        s => `#{${[...s].map(renderInline).join(' ')}}`,
+  Set:        s => `#[${[...s].map(renderInline).join(' ')}]`,
   Quote:      q => '~{' + q.source + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,

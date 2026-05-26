@@ -296,19 +296,45 @@ binding wins:
 
 ### Set
 
-Unordered collection of unique values. Literal `#{}`.
-Deduplication happens at construction; specifying the same value
-twice has no effect.
+Collection with an **invariant of structural uniqueness**.
+Literal `#[…]` — the `#` marker over the `[…]` bracket pair
+visually signals «this is a collection like Vec, but the type
+carries a no-duplicates promise». Deduplication happens at
+construction time through structural equality (the same axiom
+that drives `eq`); declaring the same value twice has no effect.
 
 ```qlang
-> #{:name :age :id}
-#{:name :age :id}
+> #[:name :age :id]
+#[:name :age :id]
 
-> #{1 2 3 2 1}
-#{1 2 3}
+> #[1 2 3 2 1]
+#[1 2 3]
 
-> #{}
-#{}
+> #[]
+#[]
+```
+
+A Set's elements preserve **insertion-order**: first-added stays
+first. This is part of the public contract, not an implementation
+detail — every operand traversal, every `printValue` output, every
+`toTaggedJSON` encoding produces the same sequence between runs.
+The determinism enables reproducible builds, idempotent deployments,
+and stable snapshot tests for any pipeline that flows through Set
+values. Order-aware operands (`first`, `last`, `at`, `take`, `drop`,
+`reverse`, `sort`, `sortWith`, `flat`) work the natural way on a
+Set subject.
+
+The uniqueness invariant is the primary value of the type — a
+reader receiving `#[…]` (human or LLM) **knows by type** that no
+duplicates will reach subsequent steps and is freed from defensive
+`… | distinct` chains:
+
+```qlang
+|~| with the type-level signal, distinct is redundant
+| keys * processOne
+
+|~| without it, the author is forced to defend at every step
+| someVec | distinct * processOne
 ```
 
 Sets are most often used as key sets — the shape of a record —
@@ -477,7 +503,7 @@ are evaluated — this is **full application**:
 ### Truthiness
 
 `null` and `false` are falsy. Every other value is truthy —
-including `0`, `""`, `[]`, `{}`, `#{}`. Predicates such as
+including `0`, `""`, `[]`, `{}`, `#[]`. Predicates such as
 `filter`, `if`, `when`, and `not` honour this rule uniformly.
 
 ```qlang
@@ -766,12 +792,12 @@ A Set literal after `|` collects values — each element expression
 receives `pipeValue`:
 
 ```qlang
-> {:name "alice" :age 30} | #{/name, /age}
-#{"alice" 30}
+> {:name "alice" :age 30} | #[/name, /age]
+#["alice" 30]
 
 |~| equivalent via operands
-> {:name "alice" :age 30} | vals | set
-#{"alice" 30}
+> {:name "alice" :age 30} | vals | distinct
+#["alice" 30]
 ```
 
 ### Set operations
@@ -782,14 +808,14 @@ or Maps. Left-fold.
 **Set × Set:**
 
 ```qlang
-> [#{:a :b :c}, #{:b :d}] | union
-#{:a :b :c :d}
+> [#[:a :b :c], #[:b :d]] | union
+#[:a :b :c :d]
 
-> [#{:a :b :c}, #{:b :d}] | minus
-#{:a :c}
+> [#[:a :b :c], #[:b :d]] | minus
+#[:a :c]
 
-> [#{:a :b :c}, #{:b :d}] | inter
-#{:b}
+> [#[:a :b :c], #[:b :d]] | inter
+#[:b]
 ```
 
 **Map × Map:**
@@ -810,10 +836,10 @@ or Maps. Left-fold.
 **Map × Set** — field operations (Set = which keys to keep or drop):
 
 ```qlang
-> [{:name "a" :age 20 :tmp 1}, #{:tmp}] | minus
+> [{:name "a" :age 20 :tmp 1}, #[:tmp]] | minus
 {:name "a" :age 20}
 
-> [{:name "a" :age 20 :tmp 1}, #{:name :age}] | inter
+> [{:name "a" :age 20 :tmp 1}, #[:name :age]] | inter
 {:name "a" :age 20}
 ```
 
@@ -823,10 +849,10 @@ Bound operand forms — single argument, no Vec wrapper needed:
 > {:name "a" :age 20} | union({:adult /age | gt(18)})
 {:name "a" :age 20 :adult true}
 
-> {:name "a" :age 20 :tmp 1} | minus(#{:tmp})
+> {:name "a" :age 20 :tmp 1} | minus(#[:tmp])
 {:name "a" :age 20}
 
-> {:name "a" :age 20 :tmp 1} | inter(#{:name :age})
+> {:name "a" :age 20 :tmp 1} | inter(#[:name :age])
 {:name "a" :age 20}
 ```
 
@@ -885,7 +911,7 @@ computed delta:
 
 ```qlang
 > {:name "a" :age 20 :tmp 1}
-  | as(:r) | [r, #{:tmp}] | minus
+  | as(:r) | [r, #[:tmp]] | minus
 {:name "a" :age 20}
 
 > {:name "a" :age 20}
@@ -893,8 +919,8 @@ computed delta:
 {:name "a" :age 20 :adult true}
 
 record | as(:r) | [r, {:adult /age | gt(18)}] | union
-record | as(:r) | [r, #{:tmp}] | minus
-record | as(:r) | [r, #{:name :age}] | inter
+record | as(:r) | [r, #[:tmp]] | minus
+record | as(:r) | [r, #[:name :age]] | inter
 ```
 
 Multi-step reference — capture at one point, use at several later
@@ -1103,12 +1129,12 @@ use([:qlang/error :domain/tax])
 
 |~| Set — unordered, collisions raise an error so the host can
 |~| disambiguate. Use Set when shadowing is NOT what you want.
-use(#{:qlang/error :domain/tax})
+use(#[:qlang/error :domain/tax])
 
 |~| Two captured args — namespace plus selection filter.
 |~| Only the named identifiers are imported; everything else
 |~| stays out of scope.
-use(:qlang/error, #{:guard :assert})
+use(:qlang/error, #[:guard :assert])
 ```
 
 The host-side mechanism that installs module Maps into env under
@@ -1138,7 +1164,7 @@ treatment.
 ### Scoping rules
 
 All seven rules below follow from a single principle: **nested
-expressions `(...)`, `[...]`, `{...}`, `#{...}` open a fork** — a
+expressions `(...)`, `[...]`, `{...}`, `#[...]` open a fork** — a
 sub-pipeline that starts with a copy of the outer state. When the
 fork closes, its final `pipeValue` propagates out but its env
 changes are discarded. See the
@@ -1149,7 +1175,7 @@ changes are discarded. See the
    expression evaluated by those steps.
 
 2. **Nested pipelines inherit outer bindings.** Inside `()`,
-   `[]`, `{}`, `#{}`, all `as`-bindings from the enclosing
+   `[]`, `{}`, `#[]`, all `as`-bindings from the enclosing
    scope are visible.
 
    ```qlang
@@ -1174,7 +1200,7 @@ changes are discarded. See the
 
 5. **Sibling expressions are independent.** In `{:a e1 :b e2}`,
    bindings from `e1` are NOT visible in `e2`. Same for Vec
-   elements `[a b c]` and Set elements `#{a, b, c}` — each
+   elements `[a b c]` and Set elements `#[a, b, c]` — each
    entry is its own sub-pipeline, parallel not sequential.
 
 6. **Shadowing.** A later `as(:name)` or `:name ...` in the same
@@ -1349,7 +1375,7 @@ return becomes the new `pipeValue`. `printValue` emits the same
 ```qlang
 ::duration{:hours 3}
 ::regex"^[a-z]+$"
-::permitted-tags#{:read :write}
+::permitted-tags#[:read :write]
 ::bytes[72 101 108 108 111]
 ```
 
@@ -1366,7 +1392,7 @@ tagged literal; `::duration {...}` is the BareTypeKeyword
 pipeline position. Whitespace forces the split — same rule as
 projection (`/foo` vs `/ foo`).
 
-The base composite literals — `[...]`, `{...}`, `#{...}`, `!{...}`,
+The base composite literals — `[...]`, `{...}`, `#[...]`, `!{...}`,
 `~{...}` — are short forms for the most-frequent value classes
 (Vec, Map, Set, Error, Quote). New value classes ride the `::tag`
 syntax until usage earns them a shorthand.
@@ -1391,7 +1417,7 @@ from inside any query or library module.
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
 ::permissions {:kind :tag
-   :allowed #{:read :write :delete}
+   :allowed #[:read :write :delete]
    :impl ~{as(:p)
      | every(:permissions/allowed | has)
      | when(not, error({:kind :PermissionUnknown}))
@@ -1399,7 +1425,7 @@ from inside any query or library module.
 
 |~| → returns the Set unchanged on valid input,
 |~| → lifts on fail-track on unknown keyword.
-::permissions#{:read :write}
+::permissions#[:read :write]
 ```
 
 The Quote body sees the env of the invocation site — `:exclaim
@@ -1474,15 +1500,15 @@ corresponding sub-pipeline.
 
 ```qlang
 {:name "alice"}
-  | ::user{:name /name :access ::permissions#{:read :write}}
+  | ::user{:name /name :access ::permissions#[:read :write]}
 ```
 
 Step by step:
 1. Outer `pipeValue` = `{:name "alice"}`.
-2. Inner Map `{:name /name :access ::permissions#{...}}` evaluates:
+2. Inner Map `{:name /name :access ::permissions#[...]}` evaluates:
    - `:name /name` — sub-fork, `/name` against the outer
      pipeValue → `"alice"`.
-   - `:access ::permissions#{:read :write}` — inner TaggedLit
+   - `:access ::permissions#[:read :write]` — inner TaggedLit
      evaluates first; `::permissions` constructor sees the Set,
      validates, returns it.
 3. Constructor `::user` runs against the payload Map.
@@ -1867,7 +1893,7 @@ not an ErrorValue) reports `:ok true`.
 ```qlang
 :count | runExamples
 |~| → [{:snippet ~{[1 2 3] | count | eq(3)}     :actual true :error null :ok true}
-|~|    {:snippet ~{#{:a :b} | count | eq(2)}    :actual true :error null :ok true}
+|~|    {:snippet ~{#[:a :b] | count | eq(2)}    :actual true :error null :ok true}
 |~|    ...]
 
 env | manifest * /name
@@ -1952,7 +1978,7 @@ Six step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
-| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
+| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a,b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
@@ -1975,7 +2001,7 @@ success `pipeValue` it deflects as identity pass-through.
 | `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
 | `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. On error `pipeValue`, deflect. |
 
-**Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#{...}`.
+**Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#[...]`.
 Inner sub-pipeline starts with a copy of outer `(pipeValue, env)`.
 When it finishes, the inner `pipeValue'` becomes the result, but
 the inner `env'` is discarded. This one rule produces the seven
@@ -2139,7 +2165,7 @@ value-class above.
 | RParen | `)` | |
 | LBrace | `{` | |
 | RBrace | `}` | |
-| HashBrace | `#{` | |
+| HashBracket | `#[` | |
 | BangBrace | `!{` | |
 | LBracket | `[` | |
 | RBracket | `]` | |
@@ -2185,7 +2211,7 @@ MapBody       ← MapEntry (','? MapEntry)*
 MapEntry      ← String ':' Pipeline  (JSON-style string key, converted to keyword)
               / Keyword Pipeline      (qlang-style :key)
 
-Set           ← '#{' (Pipeline (','? Pipeline)*)? '}'
+Set           ← '#[' (Pipeline (','? Pipeline)*)? ']'
 
 Vec           ← '[' (Pipeline (','? Pipeline)*)? ']'
 
@@ -2214,7 +2240,7 @@ Disambiguation:
 - `{` `}` → empty Map
 - `{` `:` → Map (qlang-style `:key expr` entry)
 - `{` `"` → Map (JSON-style `"key": expr` entry; string key converts to keyword)
-- `#{` → Set
+- `#[` → Set
 - `[` → Vec (elements evaluated against current `pipeValue`)
 - `/:` → keyword projection segment (namespaced key)
 - `/ident` or `/null` `/true` `/false` → bare projection segment
@@ -2298,11 +2324,11 @@ documentation level.
 {:name "a" :age 20 :adult true}
 
 |~| drop fields via bound minus
-> {:name "a" :age 20 :tmp 1} | minus(#{:tmp})
+> {:name "a" :age 20 :tmp 1} | minus(#[:tmp])
 {:name "a" :age 20}
 
 |~| select fields via bound inter
-> {:name "a" :age 20 :tmp 1} | inter(#{:name :age})
+> {:name "a" :age 20 :tmp 1} | inter(#[:name :age])
 {:name "a" :age 20}
 
 |~| enrich each element in distribute
@@ -2643,7 +2669,7 @@ Example:
 ```js
 import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang-core';
 
-const value = await evalQuery('{:name "alice" :tags #{:admin :ops}}');
+const value = await evalQuery('{:name "alice" :tags #[:admin :ops]}');
 const wire = JSON.stringify(toTaggedJSON(value));
 // '{"$map":[[{"$keyword":"name"},"alice"],[{"$keyword":"tags"},{"$set":[{"$keyword":"admin"},{"$keyword":"ops"}]}]]}'
 
@@ -2707,7 +2733,7 @@ walk the array and concatenate slices without extra bookkeeping.
 | `operand` | OperandCall name that resolves to a builtin from `langRuntime`, plus each key segment of a `Projection` |
 | `keyword` | `as` — the binding-introducing operand — plus the head Keyword/TagKeyword of a BindStep declaration |
 | `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
-| `set` | `#{` opener and matching `}` closer of a SetLit |
+| `set` | `#[` opener and matching `]` closer of a SetLit |
 | `vec` | `[` opener and matching `]` closer of a VecLit |
 | `punct` | Every other combinator (`\|`, `*`, `>>`), MapLit / arg-list brackets, commas, dots, and the `/` separator inside a `Projection` |
 | `whitespace` | Runs of whitespace between meaningful tokens; also the entire input on a parse failure (safe fallback for live-typing render paths) |

@@ -56,7 +56,6 @@
 // registration blocks at the tail of each file.
 import './vec.mjs';
 import './map.mjs';
-import './set.mjs';
 import './setops.mjs';
 import './arith.mjs';
 import './string.mjs';

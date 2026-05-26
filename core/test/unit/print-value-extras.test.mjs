@@ -352,8 +352,8 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
     const vecCell = await evalQuery('[{:tags [1 2 3]}] | table');
     expect(vecCell).toContain('[1 2 3]');
     // Set-valued cell — insertion order preserved by the Set literal.
-    const setCell = await evalQuery('[{:tags #{:a :b}}] | table');
-    expect(setCell).toContain('#{:a :b}');
+    const setCell = await evalQuery('[{:tags #[:a :b]}] | table');
+    expect(setCell).toContain('#[:a :b]');
     // Error-valued cell: !{…} wrapped descriptor inline. The
     // runtime materializes an error descriptor with `:trail null`
     // when no success-track combinator has deflected past the
@@ -393,7 +393,7 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
 
   it('json roundtrips Set as array', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('#{1 2 3} | json')).toMatch(/^\[/);
+    expect(await evalQuery('#[1 2 3] | json')).toMatch(/^\[/);
   });
 
   it('json roundtrips keyword as colon-prefixed string', async () => {

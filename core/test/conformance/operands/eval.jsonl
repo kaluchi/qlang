@@ -3,7 +3,7 @@
 {"name":"eval-keyword-literal","query":"\":foo\" | parse | eval","expect":":foo"}
 {"name":"eval-vec-literal","query":"\"[1 2 3]\" | parse | eval","expect":"[1 2 3]"}
 {"name":"eval-map-literal","query":"\"{:a 1 :b 2}\" | parse | eval","expect":"{:a 1 :b 2}"}
-{"name":"eval-set-literal","query":"\"#{1 2 3}\" | parse | eval","expect":"#{1 2 3}"}
+{"name":"eval-set-literal","query":"\"#[1 2 3]\" | parse | eval","expect":"#[1 2 3]"}
 {"name":"eval-arithmetic-pipeline","query":"\"10 | add(5)\" | parse | eval","expect":"15"}
 {"name":"eval-vec-reducer","query":"\"[1 2 3 4 5] | filter(gt(2)) | count\" | parse | eval","expect":"3"}
 {"name":"eval-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | eval","expect":"\"alice\""}

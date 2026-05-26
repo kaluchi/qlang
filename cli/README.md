@@ -116,7 +116,7 @@ qlang '[1 2 3] | @tap(:before) | filter(gt(1)) | @tap(:after) | count | pretty |
 2
 
 # Chain two qlang processes losslessly through tagged-JSON
-qlang '#{:admin :user} | tjson | @out' \
+qlang '#[:admin :user] | tjson | @out' \
   | qlang '@in | parseTjson | count | pretty | @out'
 2
 

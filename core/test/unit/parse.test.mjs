@@ -178,18 +178,18 @@ describe('parse — Map literal', () => {
 
 describe('parse — Set literal', () => {
   it('parses an empty Set', () => {
-    const ast = parse('#{}');
+    const ast = parse('#[]');
     expect(ast.type).toBe('SetLit');
     expect(ast.elements).toEqual([]);
   });
 
   it('parses a single-element Set', () => {
-    const ast = parse('#{:tag}');
+    const ast = parse('#[:tag]');
     expect(ast.elements[0].type).toBe('Keyword');
   });
 
   it('parses a multi-element Set with commas', () => {
-    const ast = parse('#{:a, :b, :c}');
+    const ast = parse('#[:a, :b, :c]');
     expect(ast.elements).toHaveLength(3);
   });
 });

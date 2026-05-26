@@ -58,7 +58,7 @@ x
 
 
 |~| ── 4. Fork isolation ─────────────────────────────────
-|~| Bindings inside (parens), [vecs], {maps}, #{sets} are
+|~| Bindings inside (parens), [vecs], {maps}, #[sets] are
 |~| fork-isolated — invisible outside the fork boundary.
 
 (42 | as(:inner) | inner)

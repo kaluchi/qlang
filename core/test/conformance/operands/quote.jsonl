@@ -27,7 +27,7 @@
 {"name":"quote-in-vec","query":"[~{a} ~{b} ~{c}] | count","expect":"3"}
 {"name":"quote-in-vec-projection","query":"[~{a} ~{b} ~{c}] | first | /source","expect":"\"a\""}
 {"name":"quote-in-map","query":"{:body ~{mul(2)}} | /body | /source","expect":"\"mul(2)\""}
-{"name":"quote-in-set","query":"#{~{a} ~{b}} | count","expect":"2"}
+{"name":"quote-in-set","query":"#[~{a} ~{b}] | count","expect":"2"}
 {"name":"quote-pipeline-passthrough","query":"5 | ~{mul(2)}","expect":"~{mul(2)}"}
 {"name":"quote-isMap-false","query":"~{x} | isMap","expect":"false"}
 {"name":"quote-with-special-chars","query":"~{a > b}","expect":"~{a > b}"}

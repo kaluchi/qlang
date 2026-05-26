@@ -15,11 +15,11 @@
 //   `use([:ns1 :ns2 …])`              — ordered namespace import.
 //                                        Later namespaces shadow
 //                                        earlier on conflict.
-//   `use(#{:ns1 :ns2 …})`             — unordered namespace import.
+//   `use(#[:ns1 :ns2 …])`             — unordered namespace import.
 //                                        Collisions raise a
 //                                        `UseNamespaceCollisionError`
 //                                        so the host disambiguates.
-//   `use(:ns, #{:nameA :nameB})`      — selective import. Only the
+//   `use(:ns, #[:nameA :nameB])`      — selective import. Only the
 //                                        named identifiers land in
 //                                        env; everything else stays
 //                                        out of scope.

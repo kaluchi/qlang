@@ -300,7 +300,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('comparator')).toBe(4);
     expect(categories.get('control')).toBe(6);
     expect(categories.get('map-op')).toBe(3);  // keys + vals + has
-    expect(categories.get('set-op')).toBe(4);  // set + union + minus + inter
+    expect(categories.get('set-op')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or

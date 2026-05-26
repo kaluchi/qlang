@@ -7,7 +7,7 @@
       pipeValue; if truthy, evaluates the then branch, otherwise
       evaluates the else branch. Only the selected branch executes.
       Truthiness: null and false are falsy, everything else
-      (including 0, "", [], {}, #{}) is truthy. ~~|
+      (including 0, "", [], {}, #[]) is truthy. ~~|
   ::builtin{:impl :qlang/prim/if
             :category :control
             :subject :any
@@ -44,7 +44,7 @@
       alternatives, evaluating each against pipeValue in order and
       short-circuiting on the first non-null value. If all
       alternatives produce null, returns null. Falsy non-null values
-      (false, 0, "", [], {}, #{}) are NOT skipped — only
+      (false, 0, "", [], {}, #[]) are NOT skipped — only
       null counts as missing. ~~|
   ::builtin{:impl :qlang/prim/coalesce
             :category :control

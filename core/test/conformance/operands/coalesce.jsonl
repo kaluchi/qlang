@@ -13,7 +13,7 @@
 {"name":"empty-string-is-non-null","query":"{:s \"\"} | coalesce(/missing, /s, \"default\")","expect":"\"\""}
 {"name":"empty-vec-is-non-null","query":"{:list []} | coalesce(/missing, /list, \"default\")","expect":"[]"}
 {"name":"empty-map-is-non-null","query":"{:obj {}} | coalesce(/missing, /obj, \"default\")","expect":"{}"}
-{"name":"empty-set-is-non-null","query":"{:tags #{}} | coalesce(/missing, /tags, \"default\")","expect":"#{}"}
+{"name":"empty-set-is-non-null","query":"{:tags #[]} | coalesce(/missing, /tags, \"default\")","expect":"#[]"}
 {"name":"keyword-is-non-null","query":"{:k :foo} | coalesce(/missing, /k)","expect":":foo"}
 {"name":"literal-default-string","query":"{} | coalesce(/missing, \"fallback\")","expect":"\"fallback\""}
 {"name":"literal-default-number","query":"{} | coalesce(/missing, 42)","expect":"42"}

@@ -72,7 +72,7 @@ Components of the pair are individually first-class, however:
 
 No operation exposes the pair as a single object, and none of the
 worked examples needs one. The combinators (`|`, `!|`, `*`, `>>`)
-and fork boundaries (`()`, `[]`, `{}`, `#{}`) transform the pair
+and fork boundaries (`()`, `[]`, `{}`, `#[]`) transform the pair
 implicitly — that implicit transformation is the semantics of
 the language, described here in meta-notation for clarity.
 
@@ -97,7 +97,7 @@ combinators and fired on by `!|` (see the fail-track dispatch
 section below).
 
 For compound literals with expression elements (e.g., `[/name, /age]`,
-`{:greeting /name}`, `#{/tag}`), each element or value is evaluated as
+`{:greeting /name}`, `#[/tag]`), each element or value is evaluated as
 a sub-pipeline in a **fork** of `(pipeValue, env)` — see Fork below.
 
 ### 2. Projection — `/key`
@@ -553,7 +553,7 @@ non-Vec `pipeValue` the step raises `MergeSubjectNotVecError`.
 
 ## Fork
 
-Nested expressions `(...)`, `[...]`, `{...}`, `#{...}` each open a
+Nested expressions `(...)`, `[...]`, `{...}`, `#[...]` each open a
 **fork**: a sub-pipeline that starts with a copy of the outer state.
 
 When the inner sub-pipeline finishes, its final `nextPipeValue`
@@ -1337,7 +1337,7 @@ Three public entries, all kind-table dispatches keyed off
 `describeType`:
 
 - `printValue(v)` — qlang-literal display form (`42`, `"hi"`,
-  `:role`, `[1 2 3]`, `#{:a :b}`, `{:k :v}`, `!{:kind :K}`).
+  `:role`, `[1 2 3]`, `#[:a :b]`, `{:k :v}`, `!{:kind :K}`).
   Round-trips through `parse + evalQuery` back to the same value.
 - `toPlain(v)` — qlang value → JSON-serializable JS shape. Lossy
   for Set (→ array) and keyword-as-value (→ colon-prefixed string).

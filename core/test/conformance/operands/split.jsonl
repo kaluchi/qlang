@@ -16,7 +16,7 @@
 {"name":"split-then-count","query":"\"a,b,c,d\" | split(\",\") | count","expect":"4"}
 {"name":"split-then-first","query":"\"a,b,c\" | split(\",\") | first","expect":"\"a\""}
 {"name":"split-then-last","query":"\"a,b,c\" | split(\",\") | last","expect":"\"c\""}
-{"name":"split-then-distinct","query":"\"a,b,a,c,b\" | split(\",\") | distinct","expect":"[\"a\" \"b\" \"c\"]"}
+{"name":"split-then-distinct","query":"\"a,b,a,c,b\" | split(\",\") | distinct","expect":"#[\"a\" \"b\" \"c\"]"}
 {"name":"split-then-filter","query":"\"a,b,c,d\" | split(\",\") | filter(and(eq(\"a\") | not, eq(\"c\") | not))","expect":"[\"b\" \"d\"]"}
 {"name":"split-then-distribute","query":"\"1,2,3\" | split(\",\") * append(\"!\")","expect":"[\"1!\" \"2!\" \"3!\"]"}
 {"name":"split-roundtrip-with-join","query":"\"a,b,c\" | split(\",\") | join(\",\")","expect":"\"a,b,c\""}

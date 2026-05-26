@@ -92,10 +92,10 @@ describe('highlightAnsi', () => {
     expect(out).toMatch('\x1b[91m!|\x1b[0m');
   });
 
-  it('wraps ~{#{} / ~{}} set brackets in bright green', () => {
-    const out = highlightAnsi('#{:a}', new Set());
-    expect(out).toMatch('\x1b[92m#{\x1b[0m');
-    expect(out).toMatch('\x1b[92m}\x1b[0m');
+  it('wraps ~{#[] / ~{}} set brackets in bright green', () => {
+    const out = highlightAnsi('#[:a]', new Set());
+    expect(out).toMatch('\x1b[92m#[\x1b[0m');
+    expect(out).toMatch('\x1b[92m]\x1b[0m');
   });
 
   it('wraps ~{[} / ~{]} vec brackets in bright yellow', () => {

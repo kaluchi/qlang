@@ -4,8 +4,8 @@
 {"name":"namespaced-keyword-equality","query":":qlang/error | eq(:qlang/error)","expect":"true"}
 {"name":"namespaced-keyword-not-equal","query":":qlang/error | eq(:qlang/http)","expect":"false"}
 {"name":"projection-still-multi-segment","query":"{:a {:b 99}} | /a/b","expect":"99"}
-{"name":"namespaced-in-set","query":"#{:qlang/a :qlang/b} | count","expect":"2"}
-{"name":"namespaced-in-has","query":"#{:qlang/error :qlang/http} | has(:qlang/error)","expect":"true"}
+{"name":"namespaced-in-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
+{"name":"namespaced-in-has","query":"#[:qlang/error :qlang/http] | has(:qlang/error)","expect":"true"}
 {"name":"keyword-projection-simple","query":"{:name \"alice\"} | /:name","expect":"\"alice\""}
 {"name":"keyword-projection-namespaced","query":"{:qlang/error 42} | /:qlang/error","expect":"42"}
 {"name":"keyword-projection-deep-ns","query":"{:qlang/core/strings 99} | /:qlang/core/strings","expect":"99"}

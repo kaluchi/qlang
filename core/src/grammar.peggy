@@ -727,9 +727,9 @@ QlangMapEntry
 MapEntry = QlangMapEntry / JsonMapEntry
 
 SetLit
-  = "#{" _L "}"
+  = "#[" _L "]"
     { return node('SetLit', { elements: [] }, location(), text()); }
-  / "#{" _L elements:PipelineList _L "}"
+  / "#[" _L elements:PipelineList _L "]"
     { return node('SetLit', { elements }, location(), text()); }
 
 // VecLit — mode-discriminated by separator and content:

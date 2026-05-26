@@ -46,7 +46,7 @@ describe('tjson', () => {
   });
 
   it('renders a Set as the $set tagged form', async () => {
-    const cellEntry = await runQuery('#{:a :b} | tjson', noopIo);
+    const cellEntry = await runQuery('#[:a :b] | tjson', noopIo);
     expect(cellEntry.result).toBe('{"$set":[{"$keyword":"a"},{"$keyword":"b"}]}');
   });
 

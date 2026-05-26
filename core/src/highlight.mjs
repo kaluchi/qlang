@@ -30,7 +30,7 @@
 //                 falls under 'comment')
 //   'tag'         `::tag` head of a TaggedLit or a BareTypeKeyword —
 //                 the tag-namespace identifier sigil + name
-//   'set'         `#{` opener and matching `}` closer of a SetLit
+//   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
 //                 (`|`, `*`, `>>`), the `{` / `}` of an ordinary
@@ -314,7 +314,7 @@ function interleaveGapTokens(src, semanticSpans) {
 }
 
 // Walk a gap region, splitting into `whitespace` runs and `punct`
-// tokens. Multi-char combinators (`>>`, `!|`, `#{`) bind tighter
+// tokens. Multi-char combinators (`>>`, `!|`, `#[`) bind tighter
 // than single-char punct. Any single byte that is neither
 // whitespace nor a known multi-char prefix advances by one as
 // `punct` — gaps between AST nodes contain only structural
@@ -340,7 +340,7 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
 // Resolve the kind of a single- or multi-char combinator run in a
 // gap region. `!|` is the fail-track combinator and takes the `err`
 // kind so renderers can paint it in the same palette as the `!{}`
-// descriptor brackets. `#{` is not listed here because a well-
+// descriptor brackets. `#[` is not listed here because a well-
 // formed set opener always arrives through the SetLit AST case
 // above, and an unparseable source collapses to a single
 // `whitespace` token before this scanner ever runs.

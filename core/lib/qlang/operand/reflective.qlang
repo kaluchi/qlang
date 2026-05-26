@@ -99,7 +99,7 @@
   ::builtin{:category :type-error :operand :use :expectedType :keyword}
 
 ::UseNamespaceCollisionError
-  |~~ `use(#{:ns1 :ns2 …})` — two namespaces export a name
+  |~~ `use(#[:ns1 :ns2 …])` — two namespaces export a name
       under the same identifier; Set-form rejects collisions.
       Host-boundary error: requires two host-installed namespace
       Maps with overlapping keys.
@@ -107,7 +107,7 @@
   ::builtin{:category :type-error :operand :use}
 
 ::UseNameNotExportedError
-  |~~ `use(:ns, #{:name1 …})` — selection filter names an
+  |~~ `use(:ns, #[:name1 …])` — selection filter names an
       identifier the namespace does not export. Host-boundary
       error: requires a host-installed namespace Map.
   ~~|

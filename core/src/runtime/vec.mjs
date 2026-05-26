@@ -33,11 +33,50 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL, keyword,
-  isVecShape, isMapShape, mapShapeEntries, mapShapeSize, mapShapeGet, mapShapeHas,
-  vecLikeOf, mapLikeOf
+  isQMap, isQSet, isKeyword, isTagKeyword, isTruthy, isErrorValue, typeKeyword,
+  NULL, keyword, isVecShape, isMapShape, mapShapeEntries, mapShapeSize,
+  mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf
 } from '../types.mjs';
-import { deepEqual } from '../equality.mjs';
+import { addStructurallyUnique } from '../equality.mjs';
+
+// isOrderedSequence(v) — Vec / JsonArray / Set. The shape over which
+// every order-aware operand (first / last / take / drop / reverse /
+// sort / sortWith / at / flat) dispatches polymorphically. Set is
+// insertion-ordered + structurally-unique by §Set in qlang-spec.md,
+// so first-added is well-defined and slicing/reordering operations
+// keep meaning. Returns the elements as an iterable view together
+// with the discriminator that `containerLikeOf` reads back to mint
+// a same-shape result.
+function isOrderedSequence(v) {
+  return isVecShape(v) || isQSet(v);
+}
+
+// sequenceElements(v) — array view of a Vec / JsonArray / Set
+// subject. Vec / JsonArray yield themselves; Set is spread into an
+// array in insertion-order. Used by order-aware operands that need
+// indexed access (first / last / at) or full materialisation
+// (sort / sortWith).
+function sequenceElements(v) {
+  if (isVecShape(v)) return v;
+  return [...v];
+}
+
+// containerLikeOf(items, source) — minting site for shape-preserving
+// transformers (filter / take / drop / reverse / sort / sortWith /
+// flat) over an ordered sequence. JsonArray keeps the JSON tag,
+// Set re-mints with structural dedup (the only path where dedup
+// is needed in this module — slice / reverse / sort over a Set
+// inherit Set members which are already unique, but `flat` on a
+// Set of Vecs may introduce duplicates that addStructurallyUnique
+// has to collapse). Vec subject passes through unchanged.
+function containerLikeOf(items, source) {
+  if (isQSet(source)) {
+    const out = new Set();
+    for (const v of items) addStructurallyUnique(out, v);
+    return out;
+  }
+  return vecLikeOf(items, source);
+}
 import {
   declareSubjectError,
   declareModifierError,
@@ -57,8 +96,8 @@ import {
 
 const CountSubjectNotContainerError    = declareSubjectError('CountSubjectNotContainerError',    'count',    ['vec', 'set', 'map']);
 const EmptySubjectNotContainerError    = declareSubjectError('EmptySubjectNotContainerError',    'empty',    ['vec', 'set', 'map']);
-const FirstSubjectNotVecError          = declareSubjectError('FirstSubjectNotVecError',          'first',    'vec');
-const LastSubjectNotVecError           = declareSubjectError('LastSubjectNotVecError',           'last',     'vec');
+const FirstSubjectNotSequenceError     = declareSubjectError('FirstSubjectNotSequenceError',     'first',    ['vec', 'set']);
+const LastSubjectNotSequenceError      = declareSubjectError('LastSubjectNotSequenceError',      'last',     ['vec', 'set']);
 const SumSubjectNotVecOrSetError       = declareSubjectError('SumSubjectNotVecOrSetError',       'sum',      ['vec', 'set']);
 const MinSubjectNotVecOrSetError       = declareSubjectError('MinSubjectNotVecOrSetError',       'min',      ['vec', 'set']);
 const MaxSubjectNotVecOrSetError       = declareSubjectError('MaxSubjectNotVecOrSetError',       'max',      ['vec', 'set']);
@@ -91,21 +130,21 @@ const EveryMapPredArityInvalidError  = declareArityError('EveryMapPredArityInval
 const AnyMapPredArityInvalidError    = declareArityError('AnyMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
     `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
-const GroupBySubjectNotVecError        = declareSubjectError('GroupBySubjectNotVecError',        'groupBy',  'vec');
-const IndexBySubjectNotVecError        = declareSubjectError('IndexBySubjectNotVecError',        'indexBy',  'vec');
+const GroupBySubjectNotSequenceError   = declareSubjectError('GroupBySubjectNotSequenceError',   'groupBy',  ['vec', 'set']);
+const IndexBySubjectNotSequenceError   = declareSubjectError('IndexBySubjectNotSequenceError',   'indexBy',  ['vec', 'set']);
 const GroupByKeyNotKeywordError        = declareShapeError('GroupByKeyNotKeywordError',
   ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
 const IndexByKeyNotKeywordError        = declareShapeError('IndexByKeyNotKeywordError',
   ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
-const SortNaturalSubjectNotVecError    = declareSubjectError('SortNaturalSubjectNotVecError',    'sort',     'vec');
-const SortByKeySubjectNotVecError      = declareSubjectError('SortByKeySubjectNotVecError',      'sort',     'vec');
-const SortWithSubjectNotVecError       = declareSubjectError('SortWithSubjectNotVecError',       'sortWith', 'vec');
-const FirstNonZeroSubjectNotVecError   = declareSubjectError('FirstNonZeroSubjectNotVecError',   'firstNonZero', 'vec');
-const TakeSubjectNotVecError           = declareSubjectError('TakeSubjectNotVecError',           'take',     'vec');
-const DropSubjectNotVecError           = declareSubjectError('DropSubjectNotVecError',           'drop',     'vec');
-const DistinctSubjectNotVecError       = declareSubjectError('DistinctSubjectNotVecError',       'distinct', 'vec');
-const ReverseSubjectNotVecError        = declareSubjectError('ReverseSubjectNotVecError',        'reverse',  'vec');
-const FlatSubjectNotVecError           = declareSubjectError('FlatSubjectNotVecError',           'flat',     'vec');
+const SortNaturalSubjectNotSequenceError = declareSubjectError('SortNaturalSubjectNotSequenceError', 'sort',     ['vec', 'set']);
+const SortByKeySubjectNotSequenceError   = declareSubjectError('SortByKeySubjectNotSequenceError',   'sort',     ['vec', 'set']);
+const SortWithSubjectNotSequenceError    = declareSubjectError('SortWithSubjectNotSequenceError',    'sortWith', ['vec', 'set']);
+const FirstNonZeroSubjectNotVecError     = declareSubjectError('FirstNonZeroSubjectNotVecError',     'firstNonZero', 'vec');
+const TakeSubjectNotSequenceError        = declareSubjectError('TakeSubjectNotSequenceError',        'take',     ['vec', 'set']);
+const DropSubjectNotSequenceError        = declareSubjectError('DropSubjectNotSequenceError',        'drop',     ['vec', 'set']);
+const DistinctSubjectNotSequenceError    = declareSubjectError('DistinctSubjectNotSequenceError',    'distinct', ['vec', 'set']);
+const ReverseSubjectNotSequenceError     = declareSubjectError('ReverseSubjectNotSequenceError',     'reverse',  ['vec', 'set']);
+const FlatSubjectNotSequenceError        = declareSubjectError('FlatSubjectNotSequenceError',        'flat',     ['vec', 'set']);
 
 const TakeCountNotNumberError = declareModifierError('TakeCountNotNumberError', 'take', 2, 'number');
 const DropCountNotNumberError = declareModifierError('DropCountNotNumberError', 'drop', 2, 'number');
@@ -151,32 +190,31 @@ export const count = nullaryOp('count', (container) =>
 export const empty = nullaryOp('empty', (container) =>
   sizeOfContainer(container, EmptySubjectNotContainerError) === 0);
 
-// vecOrSetElements(container, ErrorCls) — returns an array view of a
-// Vec-or-Set subject. Vec yields itself; Set spreads to an array. The
-// order of the returned array is NOT part of qlang's public contract
-// on Set (the spec declares Set as unordered), so only commutative /
-// order-independent reducers are allowed to dispatch through this
-// accessor — sum, min, max. Order-dependent operands (first, last, at,
-// firstNonZero, sort, reverse, take, drop, distinct, flat) stay
-// Vec-only.
-function vecOrSetElements(container, ErrorCls) {
+// sequenceOrThrow(container, ErrorCls) — array view of an ordered
+// sequence (Vec / JsonArray / Set) for reducers that need indexed
+// access. Vec / JsonArray pass through; Set spreads in insertion-
+// order. Set's insertion-order is part of qlang's public contract
+// per §Set in qlang-spec.md, so order-dependent operands (first /
+// last / at / sort / reverse / take / drop / flat) compose
+// meaningfully with a Set subject.
+function sequenceOrThrow(container, ErrorCls) {
   if (isVecShape(container)) return container;
   if (isQSet(container))     return [...container];
   throw new ErrorCls(container);
 }
 
-export const first = nullaryOp('first', (vec) => {
-  if (!isVecShape(vec)) throw new FirstSubjectNotVecError(vec);
-  return vec.length === 0 ? NULL : vec[0];
+export const first = nullaryOp('first', (subject) => {
+  const items = sequenceOrThrow(subject, FirstSubjectNotSequenceError);
+  return items.length === 0 ? NULL : items[0];
 });
 
-export const last = nullaryOp('last', (vec) => {
-  if (!isVecShape(vec)) throw new LastSubjectNotVecError(vec);
-  return vec.length === 0 ? NULL : vec[vec.length - 1];
+export const last = nullaryOp('last', (subject) => {
+  const items = sequenceOrThrow(subject, LastSubjectNotSequenceError);
+  return items.length === 0 ? NULL : items[items.length - 1];
 });
 
 export const sum = nullaryOp('sum', (container) => {
-  const items = vecOrSetElements(container, SumSubjectNotVecOrSetError);
+  const items = sequenceOrThrow(container, SumSubjectNotVecOrSetError);
   let total = 0;
   for (let i = 0; i < items.length; i++) {
     if (typeof items[i] !== 'number') {
@@ -188,31 +226,48 @@ export const sum = nullaryOp('sum', (container) => {
 });
 
 export const min = nullaryOp('min', (container) => {
-  const items = vecOrSetElements(container, MinSubjectNotVecOrSetError);
+  const items = sequenceOrThrow(container, MinSubjectNotVecOrSetError);
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
     checkComparable(MinElementsNotComparableError, acc, items[i]);
-    if (items[i] < acc) acc = items[i];
+    if (compareScalars(items[i], acc) < 0) acc = items[i];
   }
   return acc;
 });
 
 export const max = nullaryOp('max', (container) => {
-  const items = vecOrSetElements(container, MaxSubjectNotVecOrSetError);
+  const items = sequenceOrThrow(container, MaxSubjectNotVecOrSetError);
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
     checkComparable(MaxElementsNotComparableError, acc, items[i]);
-    if (items[i] > acc) acc = items[i];
+    if (compareScalars(items[i], acc) > 0) acc = items[i];
   }
   return acc;
 });
 
+// checkComparable / compareScalars — the ordering primitives every
+// sort / min / max / gt-family operand routes through. Three matched-
+// type pairings are well-defined: Number↔Number, String↔String, and
+// identifier-shape pairs (Keyword↔Keyword and TagKeyword↔TagKeyword).
+// Identifier pairs compare lexicographically by `.name` — the same
+// `.name` field that drives keyword identity and `manifest`
+// alphabetical sort — so `[:x :y] | sort`, `#[:b :a :c] | sort`,
+// and `[::A ::B] | sort` all behave the natural way without per-call
+// `as(:k) | k | keyword` ceremony to dip into the string axis.
+// Cross-type ordering (Keyword vs String, Number vs Boolean, …)
+// stays a comparability error — silent coercion across value-classes
+// would mask the typical bug «sort a heterogeneous collection by
+// accident». TagKeyword cross-pairs with Keyword stay disallowed —
+// they live in different namespaces and ordering across them carries
+// no spec meaning.
 function checkComparable(ErrorCls, left, right) {
-  const bothNumbers = typeof left === 'number' && typeof right === 'number';
-  const bothStrings = typeof left === 'string' && typeof right === 'string';
-  if (!bothNumbers && !bothStrings) {
+  const bothNumbers     = typeof left === 'number' && typeof right === 'number';
+  const bothStrings     = typeof left === 'string' && typeof right === 'string';
+  const bothKeywords    = isKeyword(left)    && isKeyword(right);
+  const bothTagKeywords = isTagKeyword(left) && isTagKeyword(right);
+  if (!bothNumbers && !bothStrings && !bothKeywords && !bothTagKeywords) {
     throw new ErrorCls(left, right);
   }
 }
@@ -361,11 +416,16 @@ export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
   throw new AnySubjectNotContainerError(container);
 });
 
-export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) => {
-  if (!isVecShape(vec)) throw new GroupBySubjectNotVecError(vec);
+// groupBy on a Set subject mints Set-typed buckets so the value-class
+// signal of the original sequence (uniqueness) survives partitioning.
+// On a Vec / JsonArray subject the buckets are same-shape Vec / JsonArray
+// — same construction-time invariant kept on each branch.
+export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyLambda) => {
+  const items = sequenceOrThrow(subject, GroupBySubjectNotSequenceError);
+  const subjectIsSet = isQSet(subject);
   const groupResult = new Map();
-  for (let gi = 0; gi < vec.length; gi++) {
-    const groupElem = vec[gi];
+  for (let gi = 0; gi < items.length; gi++) {
+    const groupElem = items[gi];
     const groupKey = await groupKeyLambda(groupElem);
     if (isErrorValue(groupKey)) return groupKey;
     if (!isKeyword(groupKey)) {
@@ -375,17 +435,21 @@ export const groupBy = higherOrderOp('groupBy', 2, async (vec, groupKeyLambda) =
         actualValue: groupKey
       });
     }
-    if (!groupResult.has(groupKey.name)) groupResult.set(groupKey.name, []);
-    groupResult.get(groupKey.name).push(groupElem);
+    if (!groupResult.has(groupKey.name)) {
+      groupResult.set(groupKey.name, subjectIsSet ? new Set() : []);
+    }
+    const bucket = groupResult.get(groupKey.name);
+    if (subjectIsSet) addStructurallyUnique(bucket, groupElem);
+    else bucket.push(groupElem);
   }
   return groupResult;
 });
 
-export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) => {
-  if (!isVecShape(vec)) throw new IndexBySubjectNotVecError(vec);
+export const indexBy = higherOrderOp('indexBy', 2, async (subject, indexKeyLambda) => {
+  const items = sequenceOrThrow(subject, IndexBySubjectNotSequenceError);
   const indexResult = new Map();
-  for (let ii = 0; ii < vec.length; ii++) {
-    const indexElem = vec[ii];
+  for (let ii = 0; ii < items.length; ii++) {
+    const indexElem = items[ii];
     const indexKey = await indexKeyLambda(indexElem);
     if (isErrorValue(indexKey)) return indexKey;
     if (!isKeyword(indexKey)) {
@@ -401,18 +465,18 @@ export const indexBy = higherOrderOp('indexBy', 2, async (vec, indexKeyLambda) =
 });
 
 export const sort = overloadedOp('sort', 2, {
-  0: (vec) => {
-    if (!isVecShape(vec)) throw new SortNaturalSubjectNotVecError(vec);
-    const sorted = [...vec].sort((a, b) => {
+  0: (subject) => {
+    const items = sequenceOrThrow(subject, SortNaturalSubjectNotSequenceError);
+    const sorted = [...items].sort((a, b) => {
       checkComparable(SortNaturalNotComparableError, a, b);
       return compareScalars(a, b);
     });
-    return vecLikeOf(sorted, vec);
+    return containerLikeOf(sorted, subject);
   },
-  1: async (vec, sortKeyLambda) => {
-    if (!isVecShape(vec)) throw new SortByKeySubjectNotVecError(vec);
+  1: async (subject, sortKeyLambda) => {
+    const items = sequenceOrThrow(subject, SortByKeySubjectNotSequenceError);
     const sortEntries = await Promise.all(
-      [...vec].map(async (sortElem) => ({
+      [...items].map(async (sortElem) => ({
         sortElem,
         sortKey: await sortKeyLambda(sortElem)
       }))
@@ -421,20 +485,26 @@ export const sort = overloadedOp('sort', 2, {
       checkComparable(SortByKeyNotComparableError, a.sortKey, b.sortKey);
       return compareScalars(a.sortKey, b.sortKey);
     });
-    return vecLikeOf(sortEntries.map(entry => entry.sortElem), vec);
+    return containerLikeOf(sortEntries.map(entry => entry.sortElem), subject);
   }
 });
 
 function compareScalars(a, b) {
+  if (isKeyword(a) || isTagKeyword(a)) {
+    if (a.name < b.name) return -1;
+    if (a.name > b.name) return 1;
+    return 0;
+  }
   if (a < b) return -1;
   if (a > b) return 1;
   return 0;
 }
 
-export const take = valueOp('take', 2, (vec, n) => {
-  if (!isVecShape(vec)) throw new TakeSubjectNotVecError(vec);
+export const take = valueOp('take', 2, (subject, n) => {
+  if (!isOrderedSequence(subject)) throw new TakeSubjectNotSequenceError(subject);
   if (typeof n !== 'number') throw new TakeCountNotNumberError(n);
-  return vecLikeOf(vec.slice(0, n), vec);
+  const items = sequenceElements(subject);
+  return containerLikeOf(items.slice(0, n), subject);
 });
 
 // `at` — indexed access with Array.prototype.at-style negative indices.
@@ -442,9 +512,11 @@ export const take = valueOp('take', 2, (vec, n) => {
 // of the projection operator. Non-integer Number subjects (e.g. `at(0.5)`)
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
-// for `at(-1)`; the two are semantically identical.
-const AtSubjectNotVecOrMapError = declareSubjectError('AtSubjectNotVecOrMapError', 'at', ['vec', 'map']);
-const AtKeyNotStringError       = declareModifierError('AtKeyNotStringError', 'at', 2, 'string');
+// for `at(-1)`; the two are semantically identical. Set is polymorphic
+// here through insertion-order indexing — `myset | at(0)` returns the
+// first-added element, same definition `first` uses.
+const AtSubjectNotSequenceOrMapError = declareSubjectError('AtSubjectNotSequenceOrMapError', 'at', ['vec', 'set', 'map']);
+const AtKeyNotStringError            = declareModifierError('AtKeyNotStringError', 'at', 2, 'string');
 
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVecShape(subject)) {
@@ -454,83 +526,77 @@ export const at = valueOp('at', 2, (subject, atKey) => {
     const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
   }
+  if (isQSet(subject)) {
+    if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
+      throw new AtIndexNotIntegerError(atKey);
+    }
+    const items = [...subject];
+    const resolvedIndex = atKey < 0 ? items.length + atKey : atKey;
+    return (resolvedIndex >= 0 && resolvedIndex < items.length) ? items[resolvedIndex] : NULL;
+  }
   if (isMapShape(subject)) {
     if (typeof atKey !== 'string') throw new AtKeyNotStringError(atKey);
     return mapShapeHas(subject, atKey) ? mapShapeGet(subject, atKey) : NULL;
   }
-  throw new AtSubjectNotVecOrMapError(subject);
+  throw new AtSubjectNotSequenceOrMapError(subject);
 });
 
-export const drop = valueOp('drop', 2, (vec, n) => {
-  if (!isVecShape(vec)) throw new DropSubjectNotVecError(vec);
+export const drop = valueOp('drop', 2, (subject, n) => {
+  if (!isOrderedSequence(subject)) throw new DropSubjectNotSequenceError(subject);
   if (typeof n !== 'number') throw new DropCountNotNumberError(n);
-  return vecLikeOf(vec.slice(n), vec);
+  const items = sequenceElements(subject);
+  return containerLikeOf(items.slice(n), subject);
 });
 
-// `distinct` dedupes by structural equality, aligning with the `eq`
-// operand: `[x, y] | distinct` collapses to `[x]` iff `x | eq(y)`.
-// Two Map objects carrying identical content — the common shape a
-// recursive graph walk produces when it reaches the same logical node
-// via multiple paths (diamond hierarchies, fan-in references) — are
-// therefore one.
-//
-// Hybrid dedup: primitives and interned keywords use a JS Set (their
-// ref-eq is structural — same-name keywords intern to the same object,
-// scalars compare by value), so atom-heavy input stays O(n). Vec, Map,
-// Set, and error values fall through to a structural scan over the
-// composite-seen list. Mixed input is bucketed per element.
-export const distinct = nullaryOp('distinct', (vec) => {
-  if (!isVecShape(vec)) throw new DistinctSubjectNotVecError(vec);
-  const seenAtoms = new Set();
-  const seenKeywordNames = new Set();
-  const seenComposite = [];
+// `distinct` is the canonical Vec → Set converter. The return type
+// carries the structural-uniqueness invariant in the value-class
+// signal (§Set in qlang-spec.md), so downstream operands receive a
+// value that announces «no duplicates» on the type plane — no
+// defensive `… | distinct` chain needed before subsequent steps.
+// Idempotent on a Set subject (Set already carries the invariant).
+// Uses `addStructurallyUnique` from `equality.mjs`, the single
+// dedup-by-construction primitive that `evalSetLit` and `setops`
+// share.
+export const distinct = nullaryOp('distinct', (subject) => {
+  if (!isOrderedSequence(subject)) throw new DistinctSubjectNotSequenceError(subject);
+  if (isQSet(subject)) return subject;
+  const out = new Set();
+  for (const v of sequenceElements(subject)) addStructurallyUnique(out, v);
+  return out;
+});
+
+export const reverse = nullaryOp('reverse', (subject) => {
+  if (!isOrderedSequence(subject)) throw new ReverseSubjectNotSequenceError(subject);
+  return containerLikeOf([...sequenceElements(subject)].reverse(), subject);
+});
+
+// `flat` lifts one level of nesting. On Set subject the inner Set / Vec
+// elements splice into a fresh Set with `addStructurallyUnique` collapsing
+// any cross-bucket duplicates, so the result still carries the Set
+// signal. On Vec / JsonArray subject inner sequences splice in order
+// without dedup, matching the existing Vec-flat contract.
+export const flat = nullaryOp('flat', (subject) => {
+  if (!isOrderedSequence(subject)) throw new FlatSubjectNotSequenceError(subject);
   const result = [];
-  for (const v of vec) {
-    if (isKeyword(v)) {
-      if (seenKeywordNames.has(v.name)) continue;
-      seenKeywordNames.add(v.name);
-      result.push(v);
-    } else if (v !== null && typeof v === 'object') {
-      if (seenComposite.some(prev => deepEqual(prev, v))) continue;
-      seenComposite.push(v);
-      result.push(v);
-    } else {
-      if (seenAtoms.has(v)) continue;
-      seenAtoms.add(v);
-      result.push(v);
-    }
-  }
-  return vecLikeOf(result, vec);
-});
-
-export const reverse = nullaryOp('reverse', (vec) => {
-  if (!isVecShape(vec)) throw new ReverseSubjectNotVecError(vec);
-  return vecLikeOf([...vec].reverse(), vec);
-});
-
-export const flat = nullaryOp('flat', (vec) => {
-  if (!isVecShape(vec)) throw new FlatSubjectNotVecError(vec);
-  const result = [];
-  for (const item of vec) {
-    if (isVecShape(item)) result.push(...item);
+  for (const item of sequenceElements(subject)) {
+    if (isOrderedSequence(item)) result.push(...sequenceElements(item));
     else result.push(item);
   }
-  return vecLikeOf(result, vec);
+  return containerLikeOf(result, subject);
 });
 
 // ── sortWith and comparator builders ──────────────────────────
 
-export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
-  if (!isVecShape(vec)) throw new SortWithSubjectNotVecError(vec);
+export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) => {
+  if (!isOrderedSequence(subject)) throw new SortWithSubjectNotSequenceError(subject);
   // Insertion sort — `Array.prototype.sort` accepts only a sync
   // comparator, and each pairwise comparison here may invoke a
   // captured-arg lambda that awaits inside the conduit body. The
   // sort stays correct under awaited comparator results; the
-  // O(n²) profile is acceptable for the Vec sizes sortWith
+  // O(n²) profile is acceptable for the sequence sizes sortWith
   // services (config rows, query results, comparator-built
   // orderings — none of them scale unboundedly).
-  const sortWithSource = vec;
-  const sortWithArr = [...vec];
+  const sortWithArr = [...sequenceElements(subject)];
   const sortWithLen = sortWithArr.length;
   for (let outerIdx = 1; outerIdx < sortWithLen; outerIdx++) {
     const sortWithCurrent = sortWithArr[outerIdx];
@@ -552,7 +618,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (vec, cmpLambda) => {
     }
     sortWithArr[insertIdx + 1] = sortWithCurrent;
   }
-  return vecLikeOf(sortWithArr, sortWithSource);
+  return containerLikeOf(sortWithArr, subject);
 });
 
 export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {

@@ -29,8 +29,8 @@
 {"name":"inline-plain-comment-between-vec-elements","query":"[1 |~ middle ~| 2 3]","expect":"[1 2 3]"}
 {"name":"inline-plain-comment-at-end-of-vec","query":"[1 2 3 |~ trailing ~|]","expect":"[1 2 3]"}
 {"name":"inline-plain-comment-in-empty-vec","query":"[|~ only ~|]","expect":"[]"}
-{"name":"inline-plain-comment-before-set-element","query":"#{|~ header ~| :a :b :c}","expect":"#{:a :b :c}"}
-{"name":"inline-plain-comment-in-empty-set","query":"#{|~ only ~|}","expect":"#{}"}
+{"name":"inline-plain-comment-before-set-element","query":"#[|~ header ~| :a :b :c]","expect":"#[:a :b :c]"}
+{"name":"inline-plain-comment-in-empty-set","query":"#[|~ only ~|]","expect":"#[]"}
 {"name":"inline-plain-comment-before-map-entry","query":"{|~ header ~| :a 1 :b 2}","expect":"{:a 1 :b 2}"}
 {"name":"inline-plain-comment-between-map-entries","query":"{:a 1 |~ divider ~| :b 2 |~ divider ~| :c 3}","expect":"{:a 1 :b 2 :c 3}"}
 {"name":"inline-plain-comment-in-empty-map","query":"{|~ only ~|}","expect":"{}"}

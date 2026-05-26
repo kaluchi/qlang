@@ -212,15 +212,9 @@ describe('runtime/map.mjs error paths', () => {
   });
 });
 
-describe('runtime/set.mjs error paths', () => {
-  it('set rejects non-Vec', async () => {
-    await expectErrorCategory('42 | set', 'type-error');
-  });
-});
-
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorCategory('#{:a} | union({:b 1})', 'type-error');
+    await expectErrorCategory('#[:a] | union({:b 1})', 'type-error');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus({:b 99 :d 5})');
@@ -231,10 +225,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorCategory('#{:a} | minus({:a 1})', 'type-error');
+    await expectErrorCategory('#[:a] | minus({:a 1})', 'type-error');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorCategory('#{:a} | inter({:a 1})', 'type-error');
+    await expectErrorCategory('#[:a] | inter({:a 1})', 'type-error');
   });
 });
 
@@ -246,7 +240,7 @@ describe('runtime/predicates.mjs deepEqual', () => {
     expect(await evalQuery('{:a 1} | eq({:a 2})')).toBe(false);
   });
   it('eq of Sets', async () => {
-    expect(await evalQuery('#{:a :b} | eq(#{:b :a})')).toBe(true);
+    expect(await evalQuery('#[:a :b] | eq(#[:b :a])')).toBe(true);
   });
   it('eq of mismatched types', async () => {
     expect(await evalQuery('42 | eq("42")')).toBe(false);
@@ -327,7 +321,7 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
   it('manifest descriptors all have :effectful field for builtin entries', async () => {
     const effectfulResult = await evalQuery('manifest * /effectful | distinct');
     // Every langRuntime builtin is a clean (non-effectful) function.
-    expect(effectfulResult).toEqual([false]);
+    expect(effectfulResult).toEqual(new Set([false]));
   });
 
   it('manifest returns a Vec of descriptors sorted by name', async () => {
@@ -544,10 +538,10 @@ describe('runtime/control.mjs if and coalesce', () => {
 });
 
 describe('runtime/vec.mjs sortWith and comparator builders', () => {
-  it('sortWith on non-Vec subject → SortWithSubjectNotVecError', async () => {
+  it('sortWith on non-Vec subject → SortWithSubjectNotSequenceError', async () => {
     const e = await catchOriginalError('42 | sortWith(asc(/x))');
     expect(e).toBeInstanceOf(QlangTypeError);
-    expect(e.name).toBe('SortWithSubjectNotVecError');
+    expect(e.name).toBe('SortWithSubjectNotSequenceError');
   });
 
   it('sortWith comparator returning non-number → SortWithCmpResultNotNumberError', async () => {
@@ -588,7 +582,7 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
 
   it('every sortWith/asc/desc/firstNonZero site has a unique class name', async () => {
     const queries = [
-      '42 | sortWith(asc(/x))',   // SortWithSubjectNotVecError
+      '42 | sortWith(asc(/x))',   // SortWithSubjectNotSequenceError
       '[1 2] | sortWith("not")',  // SortWithCmpResultNotNumberError
       '42 | asc(/x)',              // AscPairNotMapError
       '42 | desc(/x)',             // DescPairNotMapError

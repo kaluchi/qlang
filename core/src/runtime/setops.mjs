@@ -27,7 +27,7 @@ import { bindPrim } from '../primitives.mjs';
 import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
 
 // Map-minus-Set / Map-inter-Set drop or keep entries by their
-// String key. The Set typically carries Keywords (`#{:tmp}`) — the
+// String key. The Set typically carries Keywords (`#[:tmp]`) — the
 // keyword's `.name` matches the Map's String key. Composite Set
 // members would not be meaningful as Map-key filters, so the
 // lookup stays keyword-name-only.

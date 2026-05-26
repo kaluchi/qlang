@@ -10,7 +10,7 @@
 {"name":"at-on-empty","query":"[] | at(0)","expect":"null"}
 {"name":"at-preserves-element-type","query":"[{:id 1} {:id 2}] | at(0)","expect":"{:id 1}"}
 {"name":"at-chained-with-projection","query":"[{:name \"alice\"} {:name \"bob\"}] | at(1) | /name","expect":"\"bob\""}
-{"name":"at-subject-not-vec-or-map-error","query":"42 | at(0)","error":"type-error","expect":"::AtSubjectNotVecOrMapError!{\n  :fault {:step ~{at(0)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"at-subject-not-vec-or-map-error","query":"42 | at(0)","error":"type-error","expect":"::AtSubjectNotSequenceOrMapError!{\n  :fault {:step ~{at(0)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
 {"name":"at-on-map-via-vals","query":"{:a 10 :b 20 :c 30} | vals | at(1)","expect":"20"}
 {"name":"at-index-not-integer-error","query":"[1 2 3] | at(0.5)","error":"type-error","expect":"::AtIndexNotIntegerError!{\n  :fault {\n    :step ~{at(0.5)}\n    :input [1 2 3]\n  }\n  :actualValue 0.5\n  :actualType :number\n}"}
 {"name":"at-map-string-key","query":"{:a 1 :b 2 :c 3} | at(\"b\")","expect":"2"}

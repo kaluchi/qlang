@@ -113,7 +113,7 @@ const PRINT_HANDLERS = {
   Error:      printErrorValue,
   Vec:        (v, indent) => printListLike('[', ']', ' ',  v,      indent),
   Map:        (m, indent) => printMapLike('{', m, indent),
-  Set:        (s, indent) => printListLike('#{', '}', ' ', [...s], indent),
+  Set:        (s, indent) => printListLike('#[', ']', ' ', [...s], indent),
   Quote:      q => '~{' + q.source + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: (o, indent) => printJsonObject(o, indent),

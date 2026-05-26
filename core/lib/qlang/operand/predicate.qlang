@@ -12,7 +12,7 @@
 
 :not
   |~~ Logical negation. Returns true if the subject is falsy
-      (null or false), false otherwise. 0, "", [], {}, #{} are
+      (null or false), false otherwise. 0, "", [], {}, #[] are
       all truthy.
 
       ~{null | not | eq(true)}

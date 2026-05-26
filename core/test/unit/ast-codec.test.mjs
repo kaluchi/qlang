@@ -133,7 +133,7 @@ describe('astNodeToMap — discriminator and shape', () => {
   });
 
   it('encodes SetLit :elements', () => {
-    const m = astNodeToMap(parse('#{:a :b :c}'));
+    const m = astNodeToMap(parse('#[:a :b :c]'));
     expect(m.get(KW_KIND).name).toBe('SetLit');
     expect(m.get(KW_ELEMENTS)).toHaveLength(3);
   });
@@ -406,8 +406,8 @@ describe('round-trip — compound literals', () => {
   it('Map', () => assertRoundTrip('{:name "a" :age 30}'));
   it('empty Map', () => assertRoundTrip('{}'));
   it('nested Map', () => assertRoundTrip('{:nested {:deep 42}}'));
-  it('Set', () => assertRoundTrip('#{:a :b :c}'));
-  it('empty Set', () => assertRoundTrip('#{}'));
+  it('Set', () => assertRoundTrip('#[:a :b :c]'));
+  it('empty Set', () => assertRoundTrip('#[]'));
   it('Error literal', () => assertRoundTrip('!{:kind :oops :message "boom"}'));
   it('empty Error literal', () => assertRoundTrip('!{}'));
   it('heterogeneous Vec', () => assertRoundTrip('[1 "two" null :three {:x 4}]'));

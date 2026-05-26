@@ -18,22 +18,25 @@ const ValsSubjectNotMapError       = declareSubjectError('ValsSubjectNotMapError
 const HasSubjectNotMapOrSetError   = declareSubjectError('HasSubjectNotMapOrSetError',   'has',  ['map', 'set']);
 const HasKeyNotKeywordOrStringError = declareModifierError('HasKeyNotKeywordOrStringError', 'has', 2, ['keyword', 'string']);
 
-// `keys` and `vals` preserve the JSON-shape signal: a JsonObject
-// subject keeps its sub-shape on the produced collection. Keys mint
-// as plain Strings (the JSON-side key shape — round-trip through
-// `union`/`inter`/`minus` reconstructs the original JsonObject) and
-// vals mint as a JsonArray (uniformity with `filter`/`sort`/`take`
-// over a JsonArray subject — JSON-shape stays in JSON across every
-// shape-preserving operand). A qlang Map subject keeps keyword keys
-// in the Set and a Vec of vals; the keyword-vs-string discriminator
-// matches the source's key shape exactly.
+// `keys` and `vals` preserve the source's value-class plane:
+// a JsonObject extracts to JsonArrays of JSON-side data (strings
+// for keys, raw values for vals — JSON in, JSON out, no qlang-only
+// container surfaces in the result); a qlang Map extracts to a Set
+// of Keyword keys (uniqueness invariant explicit in the
+// value-class signal) and a Vec of values. The two key shapes —
+// keyword on qlang Map, string on JsonObject — match the
+// storage-side encoding directly; round-trip through
+// `union`/`inter`/`minus` reconstructs the same value-class on
+// either branch.
 export const keys = nullaryOp('keys', (map) => {
   if (!isMapShape(map)) throw new KeysSubjectNotMapError(map);
-  const sourceIsJsonObject = isJsonObject(map);
-  const result = new Set();
-  for (const [k] of mapShapeEntries(map)) {
-    result.add(sourceIsJsonObject ? k : keyword(k));
+  if (isJsonObject(map)) {
+    const out = [];
+    for (const [k] of mapShapeEntries(map)) out.push(k);
+    return makeJsonArray(out);
   }
+  const result = new Set();
+  for (const [k] of mapShapeEntries(map)) result.add(keyword(k));
   return result;
 });
 

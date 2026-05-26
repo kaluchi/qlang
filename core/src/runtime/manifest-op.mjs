@@ -134,22 +134,26 @@ function describeValue(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
-  if (isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin') {
-    // `::builtin{:impl …}` carries either an operand declaration
-    // (env-key is a plain identifier, `:impl` is a resolved JS
-    // function value after the bootstrap pass) or a tag-binding
-    // declaration (env-key carries the `::` prefix, `:impl` stays
-    // a keyword pointing into PRIMITIVE_REGISTRY, or is absent for
-    // doc-only declarations). Distinguish by env-key shape.
-    if (isTagBindingName(explicitName)) {
-      const tagResult = new Map();
-      tagResult.set('kind', TAG_BINDING_TAG);
-      tagResult.set('name', explicitName);
-      for (const [descKey, descVal] of value) {
-        tagResult.set(descKey, descVal);
-      }
-      return tagResult;
+  if (isTagBindingName(explicitName) && isQMap(value)) {
+    // Any Map binding under a `::Tag` name routes through the
+    // tag-binding manifest surface — whether `::builtin{…}`-
+    // declared by the catalog, user-declared via `::Tag {…}`
+    // BindStep, or auto-declared on first `::Tag<payload>` use
+    // (the implicit-decl path stamps a single
+    // `:declarationOrigin :implicit` field, so the view shows
+    // every tag the env owns regardless of how it landed).
+    const tagResult = new Map();
+    tagResult.set('kind', TAG_BINDING_TAG);
+    tagResult.set('name', explicitName);
+    for (const [descKey, descVal] of value) {
+      tagResult.set(descKey, descVal);
     }
+    return tagResult;
+  }
+  if (isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin') {
+    // `::builtin{:impl …}` operand declaration in the value
+    // namespace (env-key is a plain identifier, `:impl` is a
+    // resolved JS function value after the bootstrap pass).
     return manifestBuiltinDescriptor(value, explicitName);
   }
   // Conduit-parameter proxies stamp `meta.category :conduitParameter`

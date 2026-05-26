@@ -103,8 +103,6 @@ const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequen
 const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
-const TaggedLitTagNotFoundError = declareShapeError('TaggedLitTagNotFoundError',
-  ({ tag }) => `::${tag} — tag binding not found in env`);
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
   ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor with :kind :tag`);
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
@@ -498,7 +496,23 @@ async function evalTaggedLit(node, state) {
   const payloadValue = payloadFork.pipeValue;
   const typeKey = tagBindingKey(node.tag);
   if (!envHas(state.env, typeKey)) {
-    throw new TaggedLitTagNotFoundError({ tag: node.tag });
+    // Auto-declare an identity-only tag binding on first use.
+    // The binding carries a single marker field
+    // `:declarationOrigin :implicit` so `manifest(:tag) |
+    // filter(/declarationOrigin | eq(:implicit))` surfaces every
+    // tag that the source never explicitly bound — opt-in lint /
+    // strict-mode tooling reads that view. Catalog tags and
+    // user-declared `::Tag {…}` BindSteps carry no marker (the
+    // absence reads as `:explicit`).
+    const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
+    // Mutate state.env directly — the env Map at this point is the
+    // per-evalQuery local copy `envSet(langRuntime, …)` produced in
+    // the top-level entry, so the write does not leak into the
+    // shared langRuntime template. Auto-declared bindings persist
+    // within the query for subsequent `::Tag<payload>` invocations
+    // to re-use the same Map (so `manifest(:tag)` shows one entry,
+    // not one per use).
+    state.env.set(typeKey, implicitBinding);
   }
   let typeBinding = envGet(state.env, typeKey);
   if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('payload');
@@ -570,16 +584,19 @@ async function evalTaggedLit(node, state) {
 // ::tag — bare reference to a tag-namespace identifier. The
 // reference value is the TagKeyword itself (identity-as-value) —
 // symmetric to the value-namespace `:foo` keyword literal, which
-// produces `keyword('foo')` without consulting env. Typos surface
-// on use, not on literal construction:
+// produces `keyword('foo')` without consulting env. Use-sites
+// dispatch on env presence:
 //
-//   `::TypoTag[payload]`  → TaggedLitTagNotFoundError (evalTaggedLit)
-//   `::TypoTag | source`  → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | docs`    → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag[payload]`   → auto-declares an identity-only
+//                            binding with `:declarationOrigin
+//                            :implicit` (evalTaggedLit), mints
+//                            a tagged instance; lint sweeps over
+//                            `manifest(:tag)` flag the auto-decl.
+//   `::TypoTag | source`   → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag | docs`     → AxisBindingNotFoundError (axis-op)
 //   `::TypoTag | examples` → AxisBindingNotFoundError (axis-op)
 //
-// Each use-site already probes env for its own purpose, so the
-// literal stays env-agnostic. Catalog `:throws [::Foo ::Bar]` Vec
+// Catalog `:throws [::Foo ::Bar]` Vec
 // constructions evaluate cleanly regardless of declaration order;
 // `langRuntime`'s post-bootstrap `:throws` walker resolves
 // every TagKeyword against the loaded tag-bindings at construction

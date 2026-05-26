@@ -203,20 +203,6 @@
   ~~|
   ::builtin{:category :typeError :expectedType :map}
 
-::TaggedLitTagNotFoundError
-  |~~ `::tag<payload>` constructor invocation — the tag is not
-      a registered tag-binding in env. Fires on constructor-form
-      `::Tag[…]` and on axis-operands `::Tag | source` / `| docs`
-      / `| examples` against unbound tag names.
-
-      ~{
-        ::UnknownTag[42]
-        !| [type /tag]
-        |  eq([::TaggedLitTagNotFoundError :UnknownTag])
-       }
-  ~~|
-  ::builtin{:category :typeError}
-
 |~ ── 4. Effect-laundering at parse and call seams ──────── ~|
 
 ::EffectLaunderingAtBindStepParseError

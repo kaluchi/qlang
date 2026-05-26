@@ -103,10 +103,16 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
 });
 
 describe('TaggedLit error paths', () => {
-  it('raises TaggedLitTagNotFoundError when an unbound tag is invoked as a constructor', async () => {
-    const err = await evalQuery('::unboundTag[]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
+  it('auto-declares an identity-only binding for an unbound tag and mints the instance', async () => {
+    const evalResult = await evalQuery('::unboundTag[1 2 3] | type');
+    expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
+  });
+
+  it('auto-declared binding surfaces under manifest(:tag) with :declarationOrigin :implicit', async () => {
+    const evalResult = await evalQuery(
+      '::silentBox[1] | manifest(:tag) | filter(/name | eq("::silentBox")) | first | /declarationOrigin'
+    );
+    expect(evalResult).toEqual(keyword('implicit'));
   });
 
   it('raises TaggedLitNotTagBindingError when tag-binding resolves to a non-Map value', async () => {

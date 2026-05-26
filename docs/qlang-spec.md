@@ -1470,9 +1470,13 @@ register their own native types the same way.
 
 A descriptor whose `:impl` is neither a Keyword handle nor
 a Quote-value raises `TagBindingHasNoConstructorError` on first
-invocation. A reference to a tag that has no env binding raises
-`TaggedLitTagNotFoundError` — typos and catalog drift surface
-loudly at the first use.
+invocation. A reference to a tag that has no env binding
+auto-declares an identity-only Map binding on the spot (carrying
+`:declarationOrigin :implicit` for `manifest(:tag)` introspection)
+— `::Tag<payload>` always succeeds shape-wise, regardless of
+whether the source explicitly declared `::Tag {…}`. Strict-mode
+tooling reads the `:implicit` marker through manifest to flag
+unbound usage; runtime stays permissive.
 
 ### Constructor invariants
 

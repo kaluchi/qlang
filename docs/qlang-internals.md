@@ -380,7 +380,12 @@ carrying `:kind :tag` plus a constructor handle on
    governs Map / Vec / Set literal entries. The result is the
    **payload-value**.
 2. **Look up the tag binding.** `'::' + node.tag` is the env key.
-   Absent → `TaggedLitTagNotFoundError` with the missing tag name.
+   Absent → auto-declare an identity-only Map binding carrying
+   `:declarationOrigin :implicit` in the query-local env, then
+   continue with the default constructor branch below. The
+   marker field lets `manifest(:tag) | filter(/declarationOrigin
+   | eq(:implicit))` surface every tag the source never bound
+   explicitly — strict-mode lint and CI tooling read that view.
 3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
    snapshots route through here too).
 4. **Validate descriptor shape.** Binding must be a Map (typically

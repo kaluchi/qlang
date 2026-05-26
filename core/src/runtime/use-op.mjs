@@ -12,14 +12,14 @@
 //                                        through the
 //                                        `:qlang/locator` host
 //                                        callback).
-//   `use([:ns1 :ns2 …])`              — ordered namespace import.
+//   `use([:ns1 :ns2 …])`              — Vec-form namespace import.
 //                                        Later namespaces shadow
 //                                        earlier on conflict.
-//   `use(#{:ns1 :ns2 …})`             — unordered namespace import.
+//   `use(#[:ns1 :ns2 …])`             — Set-form namespace import.
 //                                        Collisions raise a
 //                                        `UseNamespaceCollisionError`
 //                                        so the host disambiguates.
-//   `use(:ns, #{:nameA :nameB})`      — selective import. Only the
+//   `use(:ns, #[:nameA :nameB])`      — selective import. Only the
 //                                        named identifiers land in
 //                                        env; everything else stays
 //                                        out of scope.
@@ -31,7 +31,7 @@ import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isQMap, isKeyword, isVec, isQSet, isSnapshot,
-  typeKeyword, makeQuote
+  typeKeyword, makeQuote, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
@@ -66,7 +66,7 @@ export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
   if (useLambdas.length === 1) {
     if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
     if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
-    if (isQSet(useArg))     return await importUnorderedNamespaces(state, useArg);
+    if (isQSet(useArg))     return await importCollisionStrictNamespaces(state, useArg);
     throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
 
@@ -156,8 +156,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
     if (!isSnapshot(exportVal)) continue;
     const payload = exportVal.get('payload');
     if (!isQMap(payload)) continue;
-    const payloadKind = payload.get('kind');
-    if (payloadKind && payloadKind.name === 'builtin') {
+    if (payload[TAG_HEADER_SYMBOL]?.name === 'builtin') {
       loadedExports.set(exportKey, payload);
     }
   }
@@ -173,8 +172,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);
-      const descKind = isQMap(implDescriptor) && implDescriptor.get('kind');
-      if (descKind && descKind.name === 'builtin') {
+      if (isQMap(implDescriptor) && implDescriptor[TAG_HEADER_SYMBOL]?.name === 'builtin') {
         stampStructuralFacts(implDescriptor, implFn);
       }
     }
@@ -208,7 +206,7 @@ async function importOrderedNamespaces(state, namespaces) {
   return makeState(state.pipeValue, currentEnv);
 }
 
-async function importUnorderedNamespaces(state, namespaces) {
+async function importCollisionStrictNamespaces(state, namespaces) {
   const merged = new Map();
   const origins = new Map();
   let accumulatedEnv = state.env;

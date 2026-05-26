@@ -45,7 +45,7 @@ export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedC
   const errorValue = cellEntry.result;
   expect(errorValue?.type, 'cellEntry.result must be an error value').toBe('error');
 
-  const identityTag = errorValue.descriptor.get('kind');
+  const identityTag = errorValue.tag;
   expect(identityTag?.type, ':kind must be a TagKeyword').toBe('tagKeyword');
   expect(identityTag.name).toBe(expectedClassName);
 

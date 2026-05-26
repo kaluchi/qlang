@@ -37,16 +37,16 @@ describe('makeJsonObject / makeJsonArray stamp the discriminator Symbol', () => 
 });
 
 describe('describeType / typeKeyword distinguish JSON vs qlang shapes', () => {
-  it('JSON Object → JsonObject / :json-object', () => {
+  it('JSON Object → JsonObject / :jsonObject', () => {
     const o = makeJsonObject({});
     expect(describeType(o)).toBe('JsonObject');
-    expect(typeKeyword(o)).toEqual(keyword('json-object'));
+    expect(typeKeyword(o)).toEqual(keyword('jsonObject'));
   });
 
-  it('JSON Array → JsonArray / :json-array', () => {
+  it('JSON Array → JsonArray / :jsonArray', () => {
     const a = makeJsonArray([]);
     expect(describeType(a)).toBe('JsonArray');
-    expect(typeKeyword(a)).toEqual(keyword('json-array'));
+    expect(typeKeyword(a)).toEqual(keyword('jsonArray'));
   });
 
   it('qlang Map / Vec keep their original kinds', () => {
@@ -198,7 +198,7 @@ describe('container-shape operands preserve JSON-tag on output', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('::json{:k 7} | /missing');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.descriptor.get('kind').name).toBe('ProjectionKeyNotInMapError');
+    expect(result.tag.name).toBe('ProjectionKeyNotInMapError');
     expect(result.descriptor.get('key')).toBe('missing');
   });
 

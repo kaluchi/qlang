@@ -103,52 +103,90 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
 });
 
 describe('TaggedLit error paths', () => {
-  it('raises TaggedLitTagNotFoundError when an unbound tag is invoked as a constructor', async () => {
-    const err = await evalQuery('::unboundTag[]');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('TaggedLitTagNotFoundError'));
+  it('auto-declares an identity-only binding for an unbound tag and mints the instance', async () => {
+    const evalResult = await evalQuery('::unboundTag[1 2 3] | type');
+    expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
+  });
+
+  it('auto-declared binding surfaces under manifest(:tag) with :declarationOrigin :implicit', async () => {
+    const evalResult = await evalQuery(
+      '::silentBox[1] | manifest(:tag) | filter(/name | eq("::silentBox")) | first | /declarationOrigin'
+    );
+    expect(evalResult).toEqual(keyword('implicit'));
   });
 
   it('raises TaggedLitNotTagBindingError when tag-binding resolves to a non-Map value', async () => {
     const err = await evalQuery('::badType 42 | ::badType[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('TaggedLitNotTagBindingError'));
+    expect(err.tag).toEqual(makeTagKeyword('TaggedLitNotTagBindingError'));
   });
 
   it('::conduit raises ConduitPayloadNotVecError when payload is not a Vec', async () => {
     const err = await evalQuery('::conduit{:not :a-vec}');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ConduitPayloadNotVecError'));
+    expect(err.tag).toEqual(makeTagKeyword('ConduitPayloadNotVecError'));
+  });
+
+  it('::builtin raises BuiltinPayloadNotMapError when payload is a String (would silently char-iterate)', async () => {
+    const err = await evalQuery('::builtin"hello"');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('BuiltinPayloadNotMapError'));
+    expect(err.descriptor.get('actualType')).toEqual(keyword('string'));
+  });
+
+  it('::builtin raises BuiltinPayloadNotMapError when payload is a Vec', async () => {
+    const err = await evalQuery('::builtin[1 2 3]');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('BuiltinPayloadNotMapError'));
+    expect(err.descriptor.get('actualType')).toEqual(keyword('vec'));
+  });
+
+  it('tag bound-form propagates a fail-track tag-keyword expression instead of wrapping it', async () => {
+    const err = await evalQuery('42 | tag("not-a-number" | add(1))');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
+
+  it('tag full-form propagates a fail-track value expression instead of wrapping it', async () => {
+    const err = await evalQuery('null | tag("not-a-number" | add(1), ::Box)');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
+
+  it('tag full-form propagates a fail-track tag-keyword expression', async () => {
+    const err = await evalQuery('null | tag(42, "not-a-number" | add(1))');
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
 
   it('::conduit raises ConduitArityInvalidError for 1-element payload', async () => {
     const err = await evalQuery('::conduit[42]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ConduitArityInvalidError'));
+    expect(err.tag).toEqual(makeTagKeyword('ConduitArityInvalidError'));
   });
 
   it('::conduit raises ConduitSelfNameNotKeywordError for 3-element payload with non-keyword selfName', async () => {
     const err = await evalQuery('::conduit[42 [] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ConduitSelfNameNotKeywordError'));
+    expect(err.tag).toEqual(makeTagKeyword('ConduitSelfNameNotKeywordError'));
   });
 
   it('::conduit raises ConduitParamsNotVecError when params slot is not a Vec', async () => {
     const err = await evalQuery('::conduit[42 ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ConduitParamsNotVecError'));
+    expect(err.tag).toEqual(makeTagKeyword('ConduitParamsNotVecError'));
   });
 
   it('::conduit raises ConduitParamNotKeywordError when a params element is not a Keyword', async () => {
     const err = await evalQuery('::conduit[[42] ~{mul(2)}]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ConduitParamNotKeywordError'));
+    expect(err.tag).toEqual(makeTagKeyword('ConduitParamNotKeywordError'));
   });
 
   it('::conduit raises ConduitBodyNotQuoteError when body is not a Quote', async () => {
     const err = await evalQuery('::conduit[[] 42]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ConduitBodyNotQuoteError'));
+    expect(err.tag).toEqual(makeTagKeyword('ConduitBodyNotQuoteError'));
   });
 });
 
@@ -164,58 +202,80 @@ describe('default constructor — tag-binding without :impl', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const err = await evalQuery('::AddLeftNotNumberError!{:custom "field" :note 42}');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
     expect(err.descriptor.get('custom')).toBe('field');
     expect(err.descriptor.get('note')).toBe(42);
   });
 
-  it('Vec payload (`::Tag[…]`) lifts to TaggedInstance Map with `:payload` slot', async () => {
-    const { isQMap } = await import('../../src/types.mjs');
+  it('Vec payload (`::Tag[…]`) overlays the tag identity onto the Array — `/n` indexes the Vec directly', async () => {
+    // Identity-overlay design: the tag stamps the JS-header
+    // TAG_HEADER_SYMBOL slot on the Array payload itself. The
+    // value stays `isVec`, indexes through `/n`, iterates via
+    // `*`, reduces via `count` / `first` — every Vec affordance
+    // unchanged. Identity reads through `type` operand.
+    const { isVec, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError[1 2 3]');
-    expect(isQMap(instance)).toBe(true);
-    expect(instance.get('kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-    expect(instance.get('payload')).toEqual([1, 2, 3]);
+    expect(Array.isArray(instance)).toBe(true);
+    expect(isVec(instance)).toBe(true);
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(typeKeyword(instance)).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(instance.length).toBe(3);
+    expect(instance[0]).toBe(1);
+    expect(instance[1]).toBe(2);
   });
 
-  it('Map payload (`::Tag{…}`) flat-merges fields into the TaggedInstance descriptor', async () => {
-    // Map payload is already a named-field bundle, so the default
-    // constructor merges its entries at the top level of the
-    // resulting descriptor alongside the stamped `:kind ::Tag`.
-    // No `:payload` wrapping — that nesting fires only for
-    // single-value payloads (scalar / Vec / Set / Quote / Doc /
-    // Keyword) that have no inherent field structure.
-    const { isQMap } = await import('../../src/types.mjs');
+  it('Map payload (`::Tag{…}`) overlays the tag identity onto the Map — `keys` / `/field` work directly', async () => {
+    // Identity-overlay: tag stamps the JS-header slot on the
+    // Map payload, fields land as ordinary Map entries. `keys`,
+    // `vals`, `/field` projection read the underlying Map data
+    // plane unchanged. The pre-Phase-3 nested-identity-loss bug
+    // (Map-merge collision on `:kind`) cannot recur because
+    // identity rides on the header, not in a Map field.
+    const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);
-    expect(instance.get('kind')).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(instance.has('kind')).toBe(false);
+    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('AddLeftNotNumberError'));
     expect(instance.get('custom')).toBe('field');
     expect(instance.get('position')).toBe(1);
-    expect(instance.has('payload')).toBe(false);
   });
 
-  it('String payload (`::Tag"s"`) — `"` opens unambiguously, no ParenGroup needed', async () => {
-    const { isQMap } = await import('../../src/types.mjs');
+  it('String payload (`::Tag"s"`) — wrap-object shape, `payload` operand extracts', async () => {
+    // Scalars / value-class objects (String / Number / Keyword
+    // / Quote / Doc / Error / Conduit / Snapshot / already-
+    // tagged composite) cannot carry the header on themselves,
+    // so the constructor returns an opaque frozen `{type, tag,
+    // payload}` wrapper. The wrap shape keeps `/payload`
+    // projection out of reach (the wrapper is not a Map);
+    // the `payload` operand is the dedicated extractor.
+    const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError"hello"');
-    expect(isQMap(instance)).toBe(true);
-    expect(instance.get('payload')).toBe('hello');
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(typeKeyword(instance)).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(instance.payload).toBe('hello');
+    const extracted = await evalQuery('::AddLeftNotNumberError"hello" | payload');
+    expect(extracted).toBe('hello');
   });
 
-  it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, no ParenGroup needed', async () => {
-    const { isQMap, isKeyword } = await import('../../src/types.mjs');
+  it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, wraps in an opaque object', async () => {
+    const { isTaggedInstance, isKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError:foo');
-    expect(isQMap(instance)).toBe(true);
-    const payload = instance.get('payload');
-    expect(isKeyword(payload)).toBe(true);
-    expect(payload.name).toBe('foo');
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(isKeyword(instance.payload)).toBe(true);
+    expect(instance.payload.name).toBe('foo');
   });
 
   it('ParenGroup-wrapped scalar payload (`::Tag(42)`) — Number / Boolean / Null need the wrap', async () => {
     // Bare `42` after `Tag` would fuse into the identifier tail
-    // (`Tag42`). ParenGroup makes the parser split cleanly.
-    const { isQMap } = await import('../../src/types.mjs');
+    // (`Tag42`). ParenGroup makes the parser split cleanly. The
+    // scalar payload routes through the wrap-object branch of
+    // the constructor.
+    const { isTaggedInstance } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError(42)');
-    expect(isQMap(instance)).toBe(true);
-    expect(instance.get('payload')).toBe(42);
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(instance.payload).toBe(42);
   });
 });
 
@@ -275,7 +335,7 @@ describe('TagKeyword as :kind discriminator', () => {
     const { describeType, typeKeyword, makeTagKeyword, keyword } = await import('../../src/types.mjs');
     const k = makeTagKeyword('foo');
     expect(describeType(k)).toBe('TagKeyword');
-    expect(typeKeyword(k)).toEqual(keyword('tag-keyword'));
+    expect(typeKeyword(k)).toEqual(keyword('tagKeyword'));
   });
 
   it('TagKeyword equality compares by name', async () => {
@@ -310,25 +370,47 @@ describe('parse and eval accept Quote subjects transparently', () => {
 });
 
 describe('User-defined tag binding with Quote :impl', () => {
-  it('applies the Quote body against payload as pipeValue', async () => {
+  it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
     const result = await evalQuery(
-      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x"'
+      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x" | payload'
     );
     expect(result).toBe('[x]');
   });
 
-  it('Quote body sees the tag-binding payload as its initial pipeValue', async () => {
+  it('Quote body sees the tag-binding payload as its initial pipeValue (read through payload after auto-wrap)', async () => {
     const result = await evalQuery(
-      '::shout {:kind :tag :impl ~{append("!")}} | ::shout"ready"'
+      '::shout {:kind :tag :impl ~{append("!")}} | ::shout"ready" | payload'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':exclaim append("!") | ::shout {:kind :tag :impl ~{exclaim}} | ::shout"go"'
+      ':exclaim append("!") | ::shout {:kind :tag :impl ~{exclaim}} | ::shout"go" | payload'
     );
     expect(result).toBe('go!');
+  });
+
+  it('auto-wrap stamps the tag identity on the constructor result', async () => {
+    const result = await evalQuery(
+      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | ::wrap"x" | type'
+    );
+    expect(result).toEqual(makeTagKeyword('wrap'));
+  });
+
+  it('Quote body that already produces the same-tag TaggedInstance passes through (no double-wrap)', async () => {
+    const result = await evalQuery(
+      '::echo {:kind :tag :impl ~{tag(::echo)}} | ::echo"hi" | payload'
+    );
+    expect(result).toBe('hi');
+  });
+
+  it('Quote body that fails on the fail-track propagates the error untagged', async () => {
+    const err = await evalQuery(
+      '::strictAdd {:kind :tag :impl ~{add("not-a-number")}} | ::strictAdd(5)'
+    );
+    expect(isErrorValue(err)).toBe(true);
+    expect(err.tag).toEqual(makeTagKeyword('AddRightNotNumberError'));
   });
 
   it(':impl that is neither Keyword nor Quote raises TagBindingHasNoConstructorError', async () => {
@@ -336,6 +418,6 @@ describe('User-defined tag binding with Quote :impl', () => {
       '::bad {:kind :tag :impl 42} | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));
+    expect(err.tag).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));
   });
 });

@@ -11,7 +11,7 @@
 {"name":"multi-element-vec","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}
 {"name":"vec-of-strings","query":"[\"a\" \"b\" \"c\"]","expect":"[\"a\" \"b\" \"c\"]"}
 {"name":"nested-vec","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
-{"name":"empty-set","query":"#{}","expect":"#{}"}
+{"name":"empty-set","query":"#[]","expect":"#[]"}
 {"name":"empty-map","query":"{}","expect":"{}"}
 {"name":"quoted-keyword-with-space","query":":\"foo bar\"","expect":":\"foo bar\""}
 {"name":"quoted-keyword-empty-string","query":":\"\"","expect":":\"\""}

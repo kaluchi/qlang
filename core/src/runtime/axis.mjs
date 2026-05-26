@@ -25,10 +25,10 @@ import {
 import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tag-keyword']);
-const DocsSubjectNotKeywordOrTagError     = declareSubjectError('DocsSubjectNotKeywordOrTagError',     'docs',     ['keyword', 'tag-keyword']);
-const ExamplesSubjectNotKeywordOrTagError = declareSubjectError('ExamplesSubjectNotKeywordOrTagError', 'examples', ['keyword', 'tag-keyword']);
-const SpecSubjectNotKeywordOrTagError     = declareSubjectError('SpecSubjectNotKeywordOrTagError',     'spec',     ['keyword', 'tag-keyword']);
+const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tagKeyword']);
+const DocsSubjectNotKeywordOrTagError     = declareSubjectError('DocsSubjectNotKeywordOrTagError',     'docs',     ['keyword', 'tagKeyword']);
+const ExamplesSubjectNotKeywordOrTagError = declareSubjectError('ExamplesSubjectNotKeywordOrTagError', 'examples', ['keyword', 'tagKeyword']);
+const SpecSubjectNotKeywordOrTagError     = declareSubjectError('SpecSubjectNotKeywordOrTagError',     'spec',     ['keyword', 'tagKeyword']);
 // `axisName` ('source' / 'docs' / 'examples') and `bindingName`
 // (a value-namespace identifier or a `::`-prefixed tag-binding
 // reference) are identifier-shaped strings at the JS level; the
@@ -185,7 +185,7 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 //
 // The discriminator path for per-tag static facts attached to any
 // tagged value-class: `result !| type | spec | /category`
-// reads `:type-error` / `:arity-error` / etc. off the error tag's
+// reads `:typeError` / `:arityError` / etc. off the error tag's
 // catalog body; `:add | spec | /throws` lists the per-site error
 // classes `add` raises; `::conduit | spec | /impl` returns the
 // `:qlang/type/conduit` constructor handle.

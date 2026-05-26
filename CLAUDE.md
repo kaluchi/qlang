@@ -107,7 +107,14 @@ chapters the main agent keeps in mind at every commit:
 ## Commands
 
 - `npm test` — every workspace's test suite via `npm test --workspaces
-  --if-present`.
+  --if-present`. Faster than `ci`; use during inner-loop iteration.
+- `npm run ci` — the gate for any commit-ready change. Runs build +
+  eslint + `check:conventions` + every workspace's tests + coverage
+  thresholds + cli integration + site build, in order. Anything you
+  intend to push must come out of this command green. `npm test`
+  alone misses lint, conventions, coverage threshold violations,
+  integration, and site build — every one of those has blocked CI
+  on push in this repo.
 - `npm run test:coverage` — verify the 100/100/100/100 thresholds on
   the core workspace.
 - `npm run build` — rebuild the generated parser
@@ -127,4 +134,107 @@ chapters the main agent keeps in mind at every commit:
    same commit.
 4. Self-review against `.claude/agents/qlang-review.md` before opening
    the PR.
-5. Squash-merge, delete the branch both locally and on the remote.
+5. `npm run ci` green end-to-end before push. No exceptions.
+6. Push requires an explicit user invitation — commit on request is
+   fine, push is a separate action.
+7. Squash-merge, delete the branch both locally and on the remote.
+
+## PR review with Gemini Code Assist
+
+A GitHub App named `gemini-code-assist[bot]` reviews PRs against
+`master`. CI is configured to trigger on `pull_request: master`, not
+on push to feature branches — so a PR must exist before either CI
+or Gemini can run.
+
+Three node scripts under `scripts/` automate the loop end to end
+— call them with the PR number, no `MSYS_NO_PATHCONV` / GraphQL
+ceremony in the user-facing flow:
+
+```bash
+# 1. Trigger Gemini Code Assist on PR #N. A 👀 reaction on the
+#    comment is the Gemini-side ACK.
+node scripts/gemini-review.mjs <N>
+
+# 2. Print every Gemini comment added since the last review.
+#    Pass --since <ISO_TIMESTAMP> to scope to a specific window.
+node scripts/gemini-show.mjs <N>
+node scripts/gemini-show.mjs <N> --since 2026-05-26T21:00:00Z
+
+# 3. Resolve every open review thread on PR #N. Run after applying
+#    fixes so the next round's comments do not queue under the
+#    previous round's open threads.
+node scripts/gemini-resolve.mjs <N>
+```
+
+The iteration loop, end to end:
+
+1. **Trigger a review** via `scripts/gemini-review.mjs <N>`. The
+   script posts `/gemini review` through `gh pr comment
+   --body-file -` reading the body off stdin — the slash-prefixed
+   payload bypasses any argument-side path translation Git Bash
+   would otherwise perform on Windows.
+
+2. **Read the review** via `scripts/gemini-show.mjs <N>` (top-level
+   summary + inline file comments in one pass, filtered to the
+   `gemini-code-assist[bot]` author).
+
+3. **Apply or reject each comment with a test-first cadence.**
+   For every comment that lands a real bug or DRY violation:
+   - Write a regression test that fails on `master`'s behaviour
+     before the fix (`vitest run` once to confirm red).
+   - Apply the fix in the runtime / catalog / docs.
+   - `vitest run` again to confirm green.
+   - `npm run ci` green end-to-end before push.
+
+   For comments that misread the code (false positives — happens
+   roughly once per round), document the rejection in the commit
+   message body and resolve the thread anyway.
+
+4. **Resolve every thread before re-triggering** via
+   `scripts/gemini-resolve.mjs <N>`. Threads stay open by default;
+   Gemini will not re-surface the same issue, but leaving them
+   open buries the next round's comments under the inline list.
+
+5. **Push, wait for CI, re-trigger Gemini.** Each round catches
+   distinct issues — keep iterating until the round comes back
+   with zero high/medium findings (low/style comments are a
+   judgement call).
+
+### Catch-all smoke tests over the catalog
+
+When Gemini surfaces an issue that fits a *pattern* affecting many
+sites — e.g., a `declareShapeError` message-builder destructures
+`{ key }` and one throw site forgot to pass it — write the
+per-site fix AND a catch-all smoke test that would have caught
+every same-shape regression on the first affected case. Pattern:
+
+- Walk every existing conformance / unit case for the affected
+  contract.
+- Run each query, inspect the runtime-observable surface (here,
+  `originalError.message` for the missing-`undefined` interpolation
+  family), assert the failure mode absent.
+
+`core/test/unit/error-message-completeness.test.mjs` is the
+example: 1192 conformance cases auto-checked for «message contains
+literal `undefined`». Every future missing-throw-site-param across
+all 186 error classes would surface there on the first conformance
+case that exercises it — without writing per-class regressions.
+
+### Audit own diffs for DRY violations before each push
+
+The same DRY trap keeps catching me on this repo: when a
+value-class redesign moves one site to a new equality / shape
+primitive, every consumer must reuse the same helper in the same
+commit. Mint-site and query-site must share semantics. The audit
+checklist on any value-class change:
+
+- For Set/Map equality changes: `has`, `at`, `/key` projection,
+  `eq`/`deepEqual`, `union`/`inter`/`minus`, `distinct`,
+  `groupBy`, `indexBy`, codec round-trip.
+- For key-shape changes (e.g., JsonObject string keys vs qlang Map
+  keyword keys): `keys`, `vals`, `entries` (if added), codec
+  envelope shapes.
+
+Never copy-paste the equality logic inline — extract or reuse the
+helper. The inline copy is the signal you're walking back into the
+dual-implementation trap.

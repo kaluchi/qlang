@@ -15,7 +15,8 @@ import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import {
   isQMap,
-  isVecShape
+  isVecShape,
+  TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -73,19 +74,33 @@ const TO_PLAIN_HANDLERS = {
   // lossy codec, the wrapper metadata is reachable through
   // `manifest` enumeration for callers that need it.
   Snapshot:       s => toPlain(s.get('payload')),
-  // Conduit and TaggedInstance carry their structure as a Map. The
-  // TagKeyword handler lifts the `:kind` discriminator so Map
-  // iteration encodes cleanly without leaking `[object Object]`
-  // markers. Raw JS slots (`:body` AST node, `:envRef` holder)
-  // reach `env | json` only when env contains user-defined
-  // conduits — those surface through toPlainFallback as a shape
-  // outside the toPlain contract.
-  Conduit:        qMapToPlainObject,
-  TaggedInstance: qMapToPlainObject,
+  // TaggedInstance: identity rides on the JS-header
+  // TAG_HEADER_SYMBOL slot, payload shape varies (Array / Set /
+  // Map / opaque wrap-object). The envelope carries identity
+  // through `$tag` and encodes the payload through `toPlain`
+  // recursively — mirrors the symmetric `Error` envelope.
+  // Conduit deliberately has no handler: its `:body` AST node
+  // and `:envRef` holder are JS-opaque, and the bidirectional
+  // codec for conduits is `serializeSession` /
+  // `deserializeSession` (`session.mjs`), not `toPlain`. Falling
+  // through to `toPlainFallback` flags the leak loudly through
+  // `ToPlainUnencodableValueError` at the call site.
+  TaggedInstance: t => {
+    let inner;
+    if (Array.isArray(t)) inner = [...t];
+    else if (t instanceof Set) inner = new Set(t);
+    else if (t instanceof Map) inner = new Map(t);
+    else inner = t.payload;
+    return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
+  },
   Quote:          q => `~{${q.source}}`,
   Doc:            d => `|~~${d.content}~~|`,
   Set:            s => [...s].map(toPlain),
-  Error:          e => ({ $error: toPlain(e.descriptor) }),
+  // Error → `$error: {$tag, descriptor}` — the tag sits at the
+  // head of the envelope so the lossy plain-JSON form carries
+  // the identity slot explicitly. Round-trip is one-way at this
+  // codec; `toTaggedJSON` is the bijective pair.
+  Error:          e => ({ $error: { $tag: e.tag.name, descriptor: toPlain(e.descriptor) } }),
   JsonObject:     o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, toPlain(v)])),
   JsonArray:      a => a.map(toPlain)
 };
@@ -189,7 +204,7 @@ const INLINE_HANDLERS = {
   TagKeyword: literalOfKeyword,
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
-  Set:        s => `#{${[...s].map(renderInline).join(' ')}}`,
+  Set:        s => `#[${[...s].map(renderInline).join(' ')}]`,
   Quote:      q => '~{' + q.source + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
@@ -203,13 +218,24 @@ const INLINE_HANDLERS = {
   // the captured value, diverging from the Snapshot identity.
   Snapshot:   s => renderInline(s.get('payload')),
   TaggedInstance: renderTaggedInstanceInline,
-  Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
+  // Tag-head precedes the `!{…}` envelope so the inline form
+  // mirrors the canonical printer: `::Tag!{…fields…}` reads as
+  // one literal, identity at the front.
+  Error:      e => `${e.tag.literal}!{${mapEntriesInline(e.descriptor)}}`
 };
 
 function renderTaggedInstanceInline(instance) {
-  const tagLiteral = instance.get('kind').literal;
-  const payload = instance.get('payload');
-  const payloadInline = renderInline(payload);
+  const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
+  if (Array.isArray(instance)) {
+    return `${tagLiteral}[${instance.map(renderInline).join(' ')}]`;
+  }
+  if (instance instanceof Set) {
+    return `${tagLiteral}#[${[...instance].map(renderInline).join(' ')}]`;
+  }
+  if (instance instanceof Map) {
+    return `${tagLiteral}{${mapEntriesInline(instance)}}`;
+  }
+  const payloadInline = renderInline(instance.payload);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadInline)) {
     return `${tagLiteral}(${payloadInline})`;
   }

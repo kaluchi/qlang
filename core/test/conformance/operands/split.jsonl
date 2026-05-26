@@ -16,15 +16,15 @@
 {"name":"split-then-count","query":"\"a,b,c,d\" | split(\",\") | count","expect":"4"}
 {"name":"split-then-first","query":"\"a,b,c\" | split(\",\") | first","expect":"\"a\""}
 {"name":"split-then-last","query":"\"a,b,c\" | split(\",\") | last","expect":"\"c\""}
-{"name":"split-then-distinct","query":"\"a,b,a,c,b\" | split(\",\") | distinct","expect":"[\"a\" \"b\" \"c\"]"}
+{"name":"split-then-distinct","query":"\"a,b,a,c,b\" | split(\",\") | distinct","expect":"#[\"a\" \"b\" \"c\"]"}
 {"name":"split-then-filter","query":"\"a,b,c,d\" | split(\",\") | filter(and(eq(\"a\") | not, eq(\"c\") | not))","expect":"[\"b\" \"d\"]"}
 {"name":"split-then-distribute","query":"\"1,2,3\" | split(\",\") * append(\"!\")","expect":"[\"1!\" \"2!\" \"3!\"]"}
 {"name":"split-roundtrip-with-join","query":"\"a,b,c\" | split(\",\") | join(\",\")","expect":"\"a,b,c\""}
 {"name":"split-then-join-different-separator","query":"\"a,b,c\" | split(\",\") | join(\";\")","expect":"\"a;b;c\""}
 {"name":"split-csv-line","query":"\"alice,30,engineer\" | split(\",\")","expect":"[\"alice\" \"30\" \"engineer\"]"}
-{"name":"split-error-non-string-subject","query":"42 | split(\",\")","error":"type-error","expect":"::SplitSubjectNotStringError!{\n  :fault {:step ~{split(\",\")} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"split-error-vec-subject","query":"[1 2] | split(\",\")","error":"type-error","expect":"::SplitSubjectNotStringError!{\n  :fault {\n    :step ~{split(\",\")}\n    :input [1 2]\n  }\n  :actualValue [1 2]\n  :actualType :vec\n}"}
-{"name":"split-error-null-subject","query":"null | split(\",\")","error":"type-error","expect":"::SplitSubjectNotStringError!{\n  :fault {:step ~{split(\",\")} :input null}\n  :actualValue null\n  :actualType :null\n}"}
-{"name":"split-error-non-string-separator","query":"\"abc\" | split(42)","error":"type-error","expect":"::SplitSeparatorNotStringError!{\n  :fault {:step ~{split(42)} :input \"abc\"}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"split-error-keyword-separator","query":"\"abc\" | split(:foo)","error":"type-error","expect":"::SplitSeparatorNotStringError!{\n  :fault {:step ~{split(:foo)} :input \"abc\"}\n  :actualValue :foo\n  :actualType :keyword\n}"}
-{"name":"split-error-vec-separator","query":"\"abc\" | split([])","error":"type-error","expect":"::SplitSeparatorNotStringError!{\n  :fault {:step ~{split([])} :input \"abc\"}\n  :actualValue []\n  :actualType :vec\n}"}
+{"name":"split-error-non-string-subject","query":"42 | split(\",\")","error":"typeError","expect":"::SplitSubjectNotStringError!{\n  :faultStep ~{split(\",\")}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"split-error-vec-subject","query":"[1 2] | split(\",\")","error":"typeError","expect":"::SplitSubjectNotStringError!{\n  :faultStep ~{split(\",\")}\n  :faultInput [1 2]\n  :actualType :vec\n}"}
+{"name":"split-error-null-subject","query":"null | split(\",\")","error":"typeError","expect":"::SplitSubjectNotStringError!{\n  :faultStep ~{split(\",\")}\n  :faultInput null\n  :actualType :null\n}"}
+{"name":"split-error-non-string-separator","query":"\"abc\" | split(42)","error":"typeError","expect":"::SplitSeparatorNotStringError!{\n  :faultStep ~{split(42)}\n  :faultInput \"abc\"\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"split-error-keyword-separator","query":"\"abc\" | split(:foo)","error":"typeError","expect":"::SplitSeparatorNotStringError!{\n  :faultStep ~{split(:foo)}\n  :faultInput \"abc\"\n  :actualValue :foo\n  :actualType :keyword\n}"}
+{"name":"split-error-vec-separator","query":"\"abc\" | split([])","error":"typeError","expect":"::SplitSeparatorNotStringError!{\n  :faultStep ~{split([])}\n  :faultInput \"abc\"\n  :actualValue []\n  :actualType :vec\n}"}

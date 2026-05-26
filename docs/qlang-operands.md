@@ -40,27 +40,27 @@ form), positions 2..n are modifiers (filled by captured args).
 
 Every operand descriptor carries a `:category` keyword that groups it
 with its polymorphism siblings. The taxonomy is first-class data —
-`env | manifest | filter(/category | eq(:container-selector))` returns
+`env | manifest | filter(/category | eq(:containerSelector))` returns
 the three polymorphic container selectors — so the keywords below
 form part of the doc surface and the runtime catalog alike.
 
 | `:category` keyword | Meaning |
 |---|---|
-| `:container-reducer` | Reduce any Vec / Set / Map to a scalar. Polymorphic over all three container shapes; the result is order- and shape-independent. |
-| `:container-selector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
-| `:vec-reducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
-| `:vec-transformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
+| `:containerReducer` | Reduce any Vec / Set / Map to a scalar. Polymorphic over all three container shapes; the result is order- and shape-independent. |
+| `:containerSelector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
+| `:vecReducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
+| `:vecTransformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
 | `:comparator` | Pair-Map comparator builder for sortWith. |
 | `:control` | Control-flow operand (if / when / unless / coalesce / firstTruthy / cond). |
-| `:map-op` | Map-only operand (keys / vals / has on Map). |
-| `:set-op` | Set operation (set conversion plus the polymorphic union / minus / inter). |
+| `:mapOp` | Map-only operand (keys / vals / has on Map). |
+| `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vecTransformer). |
 | `:arith` | Binary numeric operand. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
-| `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
+| `:typeClassifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:code-as-data` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
+| `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
@@ -72,7 +72,7 @@ form part of the doc surface and the runtime catalog alike.
   Polymorphic — `count` reads the cardinality of any container.
 - Returns the number of elements (Vec length, Set size, Map entry
   count).
-- **Examples**: `[1 2 3 4 5] | count` → `5`; `#{:a :b :c} | count` →
+- **Examples**: `[1 2 3 4 5] | count` → `5`; `#[:a :b :c] | count` →
   `3`; `{:x 1 :y 2} | count` → `2`; `[] | count` → `0`.
 - **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainerError`.
 
@@ -82,7 +82,7 @@ form part of the doc surface and the runtime catalog alike.
   Polymorphic — empty-check is container-shape-independent.
 - Returns `true` if the container holds zero items, `false`
   otherwise.
-- **Examples**: `[] | empty` → `true`; `#{} | empty` → `true`;
+- **Examples**: `[] | empty` → `true`; `#[] | empty` → `true`;
   `{} | empty` → `true`; `[1] | empty` → `false`.
 - **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainerError`.
 
@@ -91,11 +91,10 @@ form part of the doc surface and the runtime catalog alike.
 ### `sum`
 
 - **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
-  `sum` is commutative, so Set's unordered semantics do not
-  affect the result.
+  `sum` is commutative, so the result is shape-independent.
 - Returns the numeric sum of elements. Empty container yields
   `0`. Every element must be a number.
-- **Examples**: `[1 2 3 4] | sum` → `10`; `#{1 2 3} | sum` → `6`;
+- **Examples**: `[1 2 3 4] | sum` → `10`; `#[1 2 3] | sum` → `6`;
   `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
 - **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
   element not a number → `SumElementNotNumberError`.
@@ -103,51 +102,60 @@ form part of the doc surface and the runtime catalog alike.
 ### `min`, `max`
 
 - **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
-  `min` / `max` are order-independent.
+  `min` / `max` are order-independent over their result.
 - Returns the minimum (or maximum) element under the natural
-  ordering. Empty container yields `null`.
-- **Examples**: `[3 1 4 1 5] | min` → `1`; `#{3 1 4} | max` → `4`.
+  ordering. Empty container yields `null`. Comparable pairings:
+  Number↔Number, String↔String, Keyword↔Keyword (lexicographic by
+  `.name`), TagKeyword↔TagKeyword.
+- **Examples**: `[3 1 4 1 5] | min` → `1`; `#[3 1 4] | max` → `4`;
+  `[:y :a :m] | min` → `:a`; `#[::B ::A ::C] | min` → `::A`.
 - **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSetError` /
   `MaxSubjectNotVecOrSetError`; elements not comparable →
   `MinElementsNotComparableError` / `MaxElementsNotComparableError`.
 
-## Vec reducers — `Vec → Any`
+## Ordered-sequence reducers — `Vec / Set → Any`
 
-Vec-only because Set is declared unordered by spec
-([qlang-spec.md § Set](qlang-spec.md)); operands that depend on a
-well-defined element ordering live in this section.
+Polymorphic across Vec and Set subjects. Set carries insertion-order
+as part of its public contract (§Set in qlang-spec.md), so first /
+last / at have well-defined semantics: «first-added», «last-added»,
+«n-th-added» respectively. The operands in this section work
+identically on either shape.
 
 ### `first`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns the first element, or `null` if the Vec is empty.
-- **Example**: `[10 20 30] | first` → `10`; `[] | first` → `null`.
-- **Errors**: subject not a Vec → `FirstSubjectNotVecError`.
+- **Arity** 1. **Subject** `vec` or `set`.
+- Returns the first element (first-added on a Set), or `null` if the
+  sequence is empty.
+- **Example**: `[10 20 30] | first` → `10`; `#[:a :b :c] | first` →
+  `:a`; `[] | first` → `null`.
+- **Errors**: subject not Vec/Set → `FirstSubjectNotSequenceError`.
 
 ### `last`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns the last element, or `null` if the Vec is empty.
-- **Example**: `[10 20 30] | last` → `30`; `[] | last` → `null`.
-- **Errors**: subject not a Vec → `LastSubjectNotVecError`.
+- **Arity** 1. **Subject** `vec` or `set`.
+- Returns the last element (last-added on a Set), or `null` if the
+  sequence is empty.
+- **Example**: `[10 20 30] | last` → `30`; `#[:a :b :c] | last` →
+  `:c`; `[] | last` → `null`.
+- **Errors**: subject not Vec/Set → `LastSubjectNotSequenceError`.
 
 ### `at(n)`
 
-- **Arity** 2. **Subject** `vec` or `map`. **Modifier** integer index
-  (Vec) or string key (Map).
-- **Vec subject**: returns the element at position `n`. Accepts
-  negative indices — `at(-1)` is the last element, `at(-2)` the
-  second-last. Out-of-range indices return `null`.
+- **Arity** 2. **Subject** `vec`, `set`, or `map`. **Modifier**
+  integer index (Vec/Set) or string key (Map).
+- **Vec / Set subject**: returns the element at position `n` in
+  insertion-order. Accepts negative indices — `at(-1)` is the last
+  element. Out-of-range returns `null`.
 - **Map subject**: returns the value at string key `n`, or `null` on
-  miss. This is dynamic string-key projection — equivalent to `/key`
-  when the key is known statically.
-- **Example**: `[10 20 30] | at(1)` → `20`; `[10 20 30] | at(-1)` →
-  `30`; `{:x 1 :y 2} | at("x")` → `1`; `{:x 1} | at("z")` → `null`.
-- **Errors**: non-Vec-or-Map subject → `AtSubjectNotVecOrMapError`;
-  non-integer index on Vec → `AtIndexNotIntegerError`; non-string key on
-  Map → `AtKeyNotStringError`.
+  miss. Dynamic string-key projection — equivalent to `/key` when the
+  key is known statically.
+- **Example**: `[10 20 30] | at(1)` → `20`; `#[:a :b :c] | at(-1)` →
+  `:c`; `{:x 1} | at("x")` → `1`; `{:x 1} | at("z")` → `null`.
+- **Errors**: non-Vec/Set/Map subject → `AtSubjectNotSequenceOrMapError`;
+  non-integer index on Vec/Set → `AtIndexNotIntegerError`; non-string key
+  on Map → `AtKeyNotStringError`.
 - **See also**: bare-form projection `/n` on a Vec (e.g.
-  `/items/0/name`) — same indexed-access semantics without the
+  `/items/0/name`) — same indexedAccess semantics without the
   operand-call wrapper, polymorphic over Map (keyword lookup) and
   Vec (integer index) so mixed JSON paths like `/users/-1/email`
   descend through nested containers uniformly.
@@ -201,7 +209,7 @@ m
   - `[1 2 3 4 5] | filter(gt(2))` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter(/age | gte(18))` → `[{:age 25}]`.
   - `[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
-  - `#{1 2 3 4 5} | filter(gt(2))` → `#{3 4 5}`.
+  - `#[1 2 3 4 5] | filter(gt(2))` → `#[3 4 5]`.
   - `{:a 1 :b 2 :c 3} | filter(gt(1))` → `{:b 2 :c 3}` — 0-arity pred, value axis.
   - `{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt(0)) | filter(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
   - `{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
@@ -228,7 +236,7 @@ m
   - `[1 2 3] | every(gt(2))` → `false`.
   - `[2 4 6] | :@pos [:v] (v | gt(0)) | every(@pos)` → `true` — 1-arity conduit.
   - `[] | every(gt(0))` → `true`.
-  - `#{2 4 6} | every(gt(0))` → `true`.
+  - `#[2 4 6] | every(gt(0))` → `true`.
   - `{:a 1 :b 2 :c 3} | every(gt(0))` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every(gt(0))` → `false`.
 - **Errors**: subject not a container → `EverySubjectNotContainerError`.
@@ -249,7 +257,7 @@ m
   - `[1 2 3] | any(gt(99))` → `false`.
   - `[1 2 3] | :@big [:v] (v | gt(2)) | any(@big)` → `true` — 1-arity conduit.
   - `[] | any(gt(0))` → `false`.
-  - `#{1 2 3} | any(gt(2))` → `true`.
+  - `#[1 2 3] | any(gt(2))` → `true`.
   - `{:a -1 :b 0 :c 2} | any(gt(0))` → `true` — 0-arity, value axis.
   - `{:apple 1 :banana 2} | :@isApple [:k :v] (k | eq(:apple)) | any(@isApple)` → `true` — 2-arity conduit, key axis.
 - **Errors**: subject not a container → `AnySubjectNotContainerError`.
@@ -257,46 +265,60 @@ m
   `AnyVecOrSetPredArityInvalidError`. Predicate conduit with 3+ params
   on Map → `AnyMapPredArityInvalidError`.
 
-## Vec transformers — `Vec → Vec` / `Vec → Map`
+## Ordered-sequence transformers — `Vec / Set → Vec / Set` / `Vec / Set → Map`
+
+Shape-preserving on Vec/Set: a Vec subject returns a Vec, a Set
+subject returns a Set with the structural-uniqueness invariant
+maintained. JsonArray subjects ride the Vec branch and keep the
+JSON tag.
 
 ### `groupBy(keyFn)`
 
-- **Arity** 2. **Subject** `vec`, **modifier** `keyFn` (key pipeline
-  returning a keyword).
-- Partitions a Vec into a Map keyed by the result of `keyFn`
-  applied to each element. Preserves first-occurrence order for
-  both the Map entry sequence and each bucket's element list.
+- **Arity** 2. **Subject** `vec` or `set`, **modifier** `keyFn` (key
+  pipeline returning a keyword).
+- Partitions a sequence into a Map keyed by the result of `keyFn`
+  applied to each element. Preserves first-occurrence order for the
+  Map entry sequence; each bucket is a Vec for Vec subject, a Set
+  for Set subject — the bucket inherits the subject's uniqueness
+  invariant.
 - **Example**: `[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name` → `["a" "c"]`.
-- **Errors**: subject not a Vec → `GroupBySubjectNotVecError`; key not a keyword → `GroupByKeyNotKeywordError`.
+- **Errors**: subject not Vec/Set → `GroupBySubjectNotSequenceError`;
+  key not a keyword → `GroupByKeyNotKeywordError`.
 
 ### `indexBy(keyFn)`
 
-- **Arity** 2. **Subject** `vec`, **modifier** `keyFn` (key pipeline
-  returning a keyword).
-- Collapses a Vec into a Map keyed by the result of `keyFn`. On
+- **Arity** 2. **Subject** `vec` or `set`, **modifier** `keyFn` (key
+  pipeline returning a keyword).
+- Collapses a sequence into a Map keyed by the result of `keyFn`. On
   collision, the last element wins.
 - **Example**: `[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name` → `"alice"`.
-- **Errors**: subject not a Vec → `IndexBySubjectNotVecError`; key not a keyword → `IndexByKeyNotKeywordError`.
+- **Errors**: subject not Vec/Set → `IndexBySubjectNotSequenceError`;
+  key not a keyword → `IndexByKeyNotKeywordError`.
 
 ### `sort`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns a new Vec sorted in natural (ascending) order.
-- **Example**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`.
+- **Arity** 1. **Subject** `vec` or `set`.
+- Returns a new sequence sorted in natural (ascending) order. Same
+  shape as subject. Pairwise-comparable scalars only: Number↔Number,
+  String↔String, Keyword↔Keyword (lexicographic by `.name`), or
+  TagKeyword↔TagKeyword.
+- **Example**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`;
+  `#[:y :x :z] | sort` → `#[:x :y :z]`;
+  `[::B ::A] | sort` → `[::A ::B]`.
 - **Errors**: elements not comparable → `SortNaturalNotComparableError`.
 
 ### `sort(key)`
 
-- **Arity** 2. **Subject** `vec`, **modifier** `key` (a projection
-  pipeline).
-- Returns a new Vec sorted by the value returned by `key` for each
-  element.
+- **Arity** 2. **Subject** `vec` or `set`, **modifier** `key` (a
+  projection pipeline).
+- Returns a new sequence sorted by the value returned by `key` for
+  each element. Same shape as subject.
 - **Example**: `[{:age 30} {:age 20}] | sort(/age)` → `[{:age 20} {:age 30}]`.
 
 ### `sortWith(cmp)`
 
-- **Arity** 2. **Subject** `vec`, **modifier** `cmp` (a comparator
-  sub-pipeline).
+- **Arity** 2. **Subject** `vec` or `set`, **modifier** `cmp` (a
+  comparator sub-pipeline).
 - Sorts using a custom comparator. The comparator receives a pair
   Map `{ :left a :right b }` for each comparison and must return a
   number: negative places `left` before `right`, positive places
@@ -309,7 +331,7 @@ m
   - `events | sortWith([asc(/priority), desc(/timestamp)] | firstNonZero)`
     → events sorted by priority ascending, then timestamp descending
     as tie-breaker.
-- **Errors**: subject not a Vec → `SortWithSubjectNotVecError`; comparator returns
+- **Errors**: subject not a Vec → `SortWithSubjectNotSequenceError`; comparator returns
   non-number → `SortWithCmpResultNotNumberError`.
 
 ### `asc(keyExpr)`
@@ -386,52 +408,61 @@ m
 
 ### `take(n)`
 
-- **Arity** 2. **Subject** `vec`, **modifier** `n` (non-negative int).
-- Returns the first `n` elements. If `n` exceeds length, returns the
-  whole Vec.
-- **Example**: `[1 2 3 4 5] | take(3)` → `[1 2 3]`.
+- **Arity** 2. **Subject** `vec` or `set`, **modifier** `n`
+  (non-negative int).
+- Returns the first `n` elements in insertion-order. If `n` exceeds
+  length, returns the whole sequence. Same shape as subject.
+- **Example**: `[1 2 3 4 5] | take(3)` → `[1 2 3]`;
+  `#[:a :b :c :d] | take(2)` → `#[:a :b]`.
 
 ### `drop(n)`
 
-- **Arity** 2. **Subject** `vec`, **modifier** `n` (non-negative int).
-- Returns the Vec with the first `n` elements removed. If `n`
-  exceeds length, returns `[]`.
-- **Example**: `[1 2 3 4 5] | drop(2)` → `[3 4 5]`.
+- **Arity** 2. **Subject** `vec` or `set`, **modifier** `n`
+  (non-negative int).
+- Returns the sequence with the first `n` elements removed. Same
+  shape as subject.
+- **Example**: `[1 2 3 4 5] | drop(2)` → `[3 4 5]`;
+  `#[:a :b :c :d] | drop(2)` → `#[:c :d]`.
 
 ### `distinct`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns a new Vec with duplicate elements removed, preserving
-  first-occurrence order. Duplication is decided by structural
-  equality — the same axiom that drives `eq`, so two Map / Vec /
-  Set values with identical content collapse even when they are
-  distinct JS objects. A recursive walk that reaches the same
-  logical node via multiple paths (diamond hierarchies, fan-in
-  references) therefore yields a clean set without a separate
-  key-projection step.
+- **Arity** 1. **Subject** `vec` or `set`.
+- **Returns** a `Set` — the canonical Vec → Set converter. Lifts the
+  structural-uniqueness invariant onto the type plane: downstream
+  operands receive a value that announces «no duplicates» through
+  its value-class signal, freeing the author from defensive
+  `… | distinct` chains before subsequent steps. Idempotent on a Set
+  subject — the type already carries the invariant.
+- Duplication is decided by structural equality (the same axiom that
+  drives `eq`) — two Map / Vec / Set values with identical content
+  collapse even when they are distinct JS objects. A recursive walk
+  that reaches the same logical node via multiple paths (diamond
+  hierarchies, fan-in references) therefore yields a clean Set
+  without a separate key-projection step.
+- Insertion-order matches first-occurrence in the source sequence.
 - **Examples**:
-  - `[1 2 1 3 2] | distinct` → `[1 2 3]`.
-  - `[{:id 1} {:id 2} {:id 1}] | distinct` → `[{:id 1} {:id 2}]`.
+  - `[1 2 1 3 2] | distinct` → `#[1 2 3]`.
+  - `[{:id 1} {:id 2} {:id 1}] | distinct` → `#[{:id 1} {:id 2}]`.
+  - `#[1 2 3] | distinct` → `#[1 2 3]` (identity on Set).
 
 ### `reverse`
 
-- **Arity** 1. **Subject** `vec`.
-- Returns the Vec in reverse order.
-- **Example**: `[1 2 3] | reverse` → `[3 2 1]`.
+- **Arity** 1. **Subject** `vec` or `set`.
+- Returns the sequence in reverse order. Same shape as subject.
+- **Example**: `[1 2 3] | reverse` → `[3 2 1]`;
+  `#[:a :b :c] | reverse` → `#[:c :b :a]`.
 
 ### `flat`
 
-- **Arity** 1. **Subject** `vec`.
-- Flattens one level of nesting. Elements that are Vecs are
-  spliced in; other elements pass through unchanged.
-- **Example**: `[[1 2] [3] [4 5]] | flat` → `[1 2 3 4 5]`.
-- **Errors**: subject not a Vec → `FlatSubjectNotVecError`.
-
-### `set`
-
-- **Arity** 1. **Subject** `vec`.
-- Converts a Vec to a Set, removing duplicates.
-- **Example**: `[1 2 1 3] | set` → `#{1 2 3}`.
+- **Arity** 1. **Subject** `vec` or `set`.
+- Flattens one level of nesting. Elements that are Vecs or Sets are
+  spliced in; other elements pass through unchanged. Same shape as
+  subject; Set subject keeps the uniqueness invariant — cross-bucket
+  duplicates that appear in flat output collapse through
+  `addStructurallyUnique`.
+- **Example**: `[[1 2] [3] [4 5]] | flat` → `[1 2 3 4 5]`;
+  `#[#[1 2] #[2 3]] | flat` → `#[1 2 3]`.
+- **Errors**: subject not Vec/Set → `FlatSubjectNotSequenceError`.
 
 ## Map operations
 
@@ -439,7 +470,7 @@ m
 
 - **Arity** 1. **Subject** `map`.
 - Returns the Set of keys (keywords).
-- **Example**: `{:name "Alice" :age 30} | keys` → `#{:name :age}`.
+- **Example**: `{:name "Alice" :age 30} | keys` → `#[:name :age]`.
 
 ### `vals`
 
@@ -460,10 +491,10 @@ m
 
 - **Arity** 2. **Subject** `set`, **modifier** `value`.
 - Returns `true` if the value is a member of the Set.
-- **Example**: `#{:a :b :c} | has(:b)` → `true`.
+- **Example**: `#[:a :b :c] | has(:b)` → `true`.
 
 `count` and `empty` on a Set (and on a Map) dispatch through the
-polymorphic `:container-reducer` entries above — one descriptor each
+polymorphic `:containerReducer` entries above — one descriptor each
 in the catalog, one doc entry here.
 
 ## Polymorphic set operations — `union`, `minus`, `inter`
@@ -480,9 +511,9 @@ shapes are supported:
 - **Examples**:
   - Enrich a Map: `{:name "a" :age 20} | union({:adult /age | gt(18)})`
     → `{:name "a" :age 20 :adult true}`.
-  - Drop fields: `{:name "a" :age 20 :tmp 1} | minus(#{:tmp})`
+  - Drop fields: `{:name "a" :age 20 :tmp 1} | minus(#[:tmp])`
     → `{:name "a" :age 20}`.
-  - Select fields: `{:name "a" :age 20 :tmp 1} | inter(#{:name :age})`
+  - Select fields: `{:name "a" :age 20 :tmp 1} | inter(#[:name :age])`
     → `{:name "a" :age 20}`.
   - Override: `{:name "a" :age 20} | union({:age /age | add(1)})`
     → `{:name "a" :age 21}`.
@@ -493,9 +524,9 @@ shapes are supported:
 - Left-fold: `[a b c] | union` = `(a ∪ b) ∪ c`. Same for `minus`
   and `inter`.
 - **Examples**:
-  - `[#{:a :b :c} #{:b :d}] | union` → `#{:a :b :c :d}`.
-  - `[#{:a :b :c} #{:b :d}] | minus` → `#{:a :c}`.
-  - `[#{:a :b :c} #{:b :d}] | inter` → `#{:b}`.
+  - `[#[:a :b :c] #[:b :d]] | union` → `#[:a :b :c :d]`.
+  - `[#[:a :b :c] #[:b :d]] | minus` → `#[:a :c]`.
+  - `[#[:a :b :c] #[:b :d]] | inter` → `#[:b]`.
   - `[{:name "a"} {:score 100}] | union`
     → `{:name "a" :score 100}`.
 - **Errors**: empty Vec → `UnionBareSubjectNotVecError` / `MinusBareSubjectNotVecError` / `InterBareSubjectNotVecError`.
@@ -545,7 +576,7 @@ and takes values from `M₁`.
 
 - **Arity** 2. Non-commutative: `a / b` (position 1 dividend).
 - **Example**: `10 | div(2)` → `5`; `{:x 20 :y 4} | div(/x, /y)` → `5`.
-- **Errors**: divisor = 0 → division-by-zero error.
+- **Errors**: divisor = 0 → divisionByZero error.
 
 ## String
 
@@ -637,13 +668,18 @@ round-trips to `"a,b,c"`.
 
 ### `gt(n)`, `lt(n)`
 
-- **Arity** 2. Subject-first: `a | gt(b)` = `a > b`.
-- **Example**: `10 | gt(5)` → `true`; `10 | lt(5)` → `false`.
+- **Arity** 2. Subject-first: `a | gt(b)` = `a > b`. Same matched-type
+  comparability rule as `sort` / `min` / `max`: Number↔Number,
+  String↔String, Keyword↔Keyword (lexicographic by `.name`), or
+  TagKeyword↔TagKeyword.
+- **Example**: `10 | gt(5)` → `true`; `:b | gt(:a)` → `true`;
+  `::B | lt(::C)` → `true`.
 
 ### `gte(n)`, `lte(n)`
 
-- **Arity** 2. Subject-first: `a | gte(b)` = `a ≥ b`.
-- **Example**: `10 | gte(10)` → `true`; `10 | lte(5)` → `false`.
+- **Arity** 2. Subject-first: `a | gte(b)` = `a ≥ b`. Same comparability
+  rule as `gt` / `lt`.
+- **Example**: `10 | gte(10)` → `true`; `:a | lte(:a)` → `true`.
 
 ### `and(a, b)`
 
@@ -679,7 +715,7 @@ by the `::json` constructor). They are runtime-distinct from
 qlang Map and Vec — `isMap` and `isVec` return `false` on a JSON
 shape, and vice versa.
 
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
+### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isTag` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
 
 - **Arity** 1. **Subject** any value.
 - Returns `true` iff the subject is of the named value class,
@@ -689,17 +725,20 @@ shape, and vice versa.
   `isMap` reports `false` for conduit and snapshot descriptor
   Maps — they classify as `Conduit` / `Snapshot` through the
   `:kind` discriminator.
-  `isQuote` matches a frozen `~{…}`-delimited code-as-data
+  `isQuote` matches a frozen `~{…}`-delimited codeAsData
   fragment; `isDoc` matches a frozen content fragment
   (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
 - **Examples**:
   - `"hello" | isString` → `true`; `42 | isString` → `false`.
   - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;
     `"42" | isNumber` → `false`.
-  - `[1 2] | isVec` → `true`; `#{1} | isVec` → `false`.
+  - `[1 2] | isVec` → `true`; `#[1] | isVec` → `false`.
   - `{:a 1} | isMap` → `true`; `[] | isMap` → `false`.
-  - `#{1 2} | isSet` → `true`; `[1 2] | isSet` → `false`.
-  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`.
+  - `#[1 2] | isSet` → `true`; `[1 2] | isSet` → `false`.
+  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`;
+    `::Foo | isKeyword` → `false` (TagKeyword, not Keyword).
+  - `::Foo | isTag` → `true`; `::conduit | isTag` → `true`;
+    `:foo | isTag` → `false`; `"::Foo" | isTag` → `false`.
   - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
   - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
@@ -723,6 +762,58 @@ shape, and vice versa.
   - `"foo" | keyword | keyword` → `"foo"` (round-trip).
 - **Errors**: non-String-or-Keyword subject →
   `KeywordSubjectNotStringOrKeywordError`.
+
+### `payload`
+
+- **Arity** 1. **Subject** TaggedInstance.
+- Strips the identity tag and returns the underlying value:
+  - **Composite-shape TaggedInstance** (tagged Vec / Set / Map —
+    identity overlay on the payload's JS-header slot) → a fresh
+    clone of the payload without the header.
+  - **Wrap-object shape** (opaque frozen `{type, tag, payload}`
+    object, the constructor's branch for scalar / Keyword / Quote
+    / Doc / Error / Conduit / Snapshot / already-tagged payloads
+    that cannot carry the header themselves) → the `.payload`
+    value directly.
+- Inverse of `tag(::Foo)` mint. The dedicated extractor sidesteps
+  the `/payload` Map-field projection — wrap-object shapes are
+  opaque to `/key` projection, so the wrapping shape never leaks
+  through to user code.
+- **Examples**:
+  - `::Box[1 2 3] | payload` → `[1 2 3]` (fresh Array sans header).
+  - `::User{:name "alice"} | payload` → `{:name "alice"}` (fresh Map sans header).
+  - `::Count(42) | payload` → `42` (wrapped value).
+  - `42 | tag(::Box) | payload | eq(42)` → `true` (round-trip).
+- **Errors**: non-TaggedInstance subject →
+  `PayloadSubjectNotTaggedInstanceError`.
+
+### `tag`
+
+- **Arity** 2. Three call shapes form the symmetric assemble-side
+  partner for the `[type, payload]` split:
+  - **bare** `[tag, value] | tag` — subject is a 2-element Vec
+    `[tagKeyword, value]` (exactly the shape `[type payload]`
+    projects from any tagged value). Round-trip pair:
+    `tagged | [type payload] | tag` recovers an observationally-
+    equivalent TaggedInstance.
+  - **bound** `value | tag(::Foo)` — subject becomes the wrapped
+    value, captured TagKeyword becomes the identity tag.
+  - **full** `tag(value-expr, tag-expr)` — both args captured,
+    pipeValue is context. Compact pair-Vec reordering:
+    `pair | tag(/1, /0)` rebuilds from a `[value, tag]`-order Vec
+    without an intermediate snapshot.
+- A composite TaggedInstance subject (bound form) clones-and-
+  rebrands the underlying composite; an opaque-wrap subject
+  re-wraps into a nested layer. To replace identity rather than
+  nest, route through `tagged | payload | tag(::Other)`.
+- **Examples**:
+  - `42 | tag(::Box) | payload | eq(42)` → `true`.
+  - `[1 2 3] | tag(::Triple) | type` → `::Triple`.
+  - `::Box {} | ::Box[1 2 3] | [type payload] | tag | eq(::Box[1 2 3])` → `true` — split/assemble round-trip.
+  - `1 | add("1") !| [type payload] | tag | error !| type` → `::AddRightNotNumberError` — short rebuild of a fail-track error from its `[tag, descriptor]` projection.
+- **Errors**: captured arg / first Vec element not a TagKeyword →
+  `TagModifierNotTagKeywordError`; bare-form subject not a 2-element
+  Vec → `TagBareSubjectShapeError`.
 
 ## Formatting
 
@@ -763,7 +854,7 @@ shape, and vice versa.
   quotes, Numbers stringified, Keywords as `:name`, Booleans as
   `true`/`false`, `null` as an empty column. Composite cells
   (Vec, Map, Set, Error) render as **inline qlang literals** —
-  `[1 2 3]`, `{:file "f.java" :line 12}`, `#{:a :b}`,
+  `[1 2 3]`, `{:file "f.java" :line 12}`, `#[:a :b]`,
   `!{:kind :oops}` — so nested structure stays readable on one row.
   Reshape with `* {:col1 /a :col2 /b/c}` to lift sub-Map fields
   into columns before the table call.
@@ -778,7 +869,7 @@ shape, and vice versa.
 - The `cond` sub-pipeline is evaluated against `pipeValue` and its
   result is checked for truthiness (per language rules: `null` and
   `false` are falsy, everything else — including `0`, `""`, `[]`,
-  `{}`, `#{}` — is truthy). If truthy, the `then` sub-pipeline is
+  `{}`, `#[]` — is truthy). If truthy, the `then` sub-pipeline is
   evaluated against the same `pipeValue` and its result becomes the
   new `pipeValue`. Otherwise the `else` branch runs the same way.
 - All three arguments are captured sub-pipelines, so **only the
@@ -833,7 +924,7 @@ shape, and vice versa.
   returns the first one that produces a non-`null` result. If all
   alternatives produce `null`, the result is `null`.
 - **Skipping rule**: only `null` / `undefined` count as missing.
-  Falsy-but-defined values (`false`, `0`, `""`, `[]`, `{}`, `#{}`)
+  Falsy-but-defined values (`false`, `0`, `""`, `[]`, `{}`, `#[]`)
   flow through as valid alternative results. Matches SQL
   `COALESCE` and JavaScript `??` semantics.
 - **Short-circuits**: alternatives after the first non-null match
@@ -858,7 +949,7 @@ shape, and vice versa.
 - **Truthiness contract**: `firstTruthy` skips `false` alongside
   `null` (treating both as "no value"); `coalesce` keeps `false`
   as a valid explicit setting. In qlang `0`, `""`, `[]`, `{}`,
-  `#{}` are truthy values and flow through either operand
+  `#[]` are truthy values and flow through either operand
   unchanged.
 - **Short-circuits**: alternatives after the first truthy match
   are not evaluated.
@@ -946,13 +1037,16 @@ its own eval handler in `eval.mjs`.
   `env`.
 - Returns a Vec of descriptors, one per binding in `env`, sorted
   alphabetically by binding name. The descriptor's `:kind` field
-  distinguishes four provenances:
+  is an explicit enum-bucket TagKeyword on the view-Map (distinct
+  from identity which rides on the underlying env entry's
+  JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
+  same way, so `manifest | filter(/kind | eq(::builtin))` and
+  `manifest | filter(type | eq(::builtin))` agree). Five
+  provenances:
   - **Builtin** — env entry is a descriptor Map loaded by
     `langRuntime()` from one of the catalog family files under
     `lib/qlang/operand/`. The user-facing descriptor stamps
-    `:kind ::builtin` (TagKeyword matching the env-side shape, so
-    `manifest | first | type` and `env | /:name | type` both surface
-    `::builtin`), drops the `:impl` handle (the dispatch-time
+    `:kind ::builtin`, drops the `:impl` handle (the dispatch-time
     primitive key is internal), and copies `:category` / `:subject`
     / `:modifiers` / `:returns` / `:throws` verbatim. The derived
     `:captured` / `:effectful` fields are stamped from the resolved
@@ -960,7 +1054,7 @@ its own eval handler in `eval.mjs`.
     ```
     {:kind      ::builtin
      :name      "count"
-     :category  :container-reducer
+     :category  :containerReducer
      :subject   [:vec :set :map]
      :modifiers []
      :returns   :number
@@ -999,6 +1093,13 @@ its own eval handler in `eval.mjs`.
      :effectful false
      :location  {:start ... :end ...}}
     ```
+  - **Tag binding** — env entry under a `::Tag` name (catalog
+    tag declaration: error tags, value-class tags, the
+    `::builtin` meta-tag itself). Descriptor stamps `:kind
+    ::tagBinding` plus every catalog field copied through
+    (`:category` / `:operand` / `:position` / `:expectedType`
+    for error tags; `:impl` handle for value-class
+    constructors). Surfaces under `manifest(:tag)`.
   - **Value** — any other plain JS value (scalar, Vec, Map, Set,
     error value, function value, …). Descriptor: `:kind ::value`,
     `:name`, `:value`, `:type` (from `typeKeyword`).
@@ -1117,15 +1218,15 @@ its own eval handler in `eval.mjs`.
   converted to an error value via `errorFromParse`, so malformed
   sources surface on the fail-track with `:kind ::ParseError`
   (the per-site tag identity; the `::ParseError` tag-binding's
-  catalog body carries `:category :parse-error` for the broad
-  bucket — distinct from the `:foreign-error` catalog category
+  catalog body carries `:category :parseError` for the broad
+  bucket — distinct from the `:foreignError` catalog category
   every host JS throw lands under).
 - **Examples**:
   - `"42" | parse | /:kind` → `:NumberLit`.
   - `"add(1, 2)" | parse | /name` → `"add"`.
   - `"add(1, 2)" | parse | /args | count` → `2`.
   - `"this is not qlang [" | parse !| type` → `::ParseError`.
-  - `"this is not qlang [" | parse !| type | spec | /category` → `:parse-error`.
+  - `"this is not qlang [" | parse !| type | spec | /category` → `:parseError`.
 - **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
   Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
@@ -1141,7 +1242,7 @@ its own eval handler in `eval.mjs`.
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
   next pipeline step.
-- Pairs with `parse` to close the code-as-data ring:
+- Pairs with `parse` to close the codeAsData ring:
   `"source" | parse | eval` is equivalent to evaluating the
   source string directly, and the intermediate AST-Map can be
   inspected, filtered, re-assembled, or handed around as
@@ -1189,7 +1290,7 @@ its own eval handler in `eval.mjs`.
 
 ### `docs`
 
-- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged value (any value carrying a TagKeyword on its JS-header identity slot — TaggedInstance, Conduit, Snapshot, materialized error).
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
@@ -1201,7 +1302,7 @@ its own eval handler in `eval.mjs`.
 
 ### `examples`
 
-- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged value (any value carrying a TagKeyword on its JS-header identity slot — TaggedInstance, Conduit, Snapshot, materialized error).
 - Returns a Vec of Quote-values extracted from the binding's
   doc-prefix — every `~{…}` Quote segment in the doc-content stream
   is a candidate test case for `runExamples`.
@@ -1218,12 +1319,15 @@ its own eval handler in `eval.mjs`.
 - Returns the Keyword or TagKeyword identity of the value's type.
   Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
   `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tag-keyword`, `:quote`, `:doc`,
-  `:function`, `:json-object`, `:json-array`); tagged-instance Maps
-  (conduit, snapshot, user `::Foo[…]`) produce their `:kind`
-  TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
-  produce the `:kind` TagKeyword from their descriptor
-  (`::AddLeftNotNumberError`, `::ParseError`, etc.).
+  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
+  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
+  Snapshot, TaggedInstance, materialized error, catalog builtin
+  descriptor) produce the user-stamped TagKeyword off the JS-header
+  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
+  error tag, `::builtin`); error values produce the per-site `::Tag`
+  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
+  `::ParseError`, generic `::Error` for user `!{}` without an
+  explicit `:kind ::Foo` lift.
 - **Examples**:
   - `42 | type` → `:number`.
   - `"hello" | type` → `:string`.
@@ -1231,7 +1335,8 @@ its own eval handler in `eval.mjs`.
   - `[1 2] | type` → `:vec`.
   - `{:a 1} | type` → `:map`.
   - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
-  - `!{:kind :oops} | type` → `:error`.
+  - `!{} | type` → `::Error`.
+  - `!{:kind ::Oops} | type` → `::Oops`.
 
 ## Error operands
 
@@ -1255,6 +1360,13 @@ fail-track itself: `error` lifts a Map into the fail-track and
   as context. The resulting error rides the fail-track: `|`, `*`,
   and `>>` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
+- Identity sources, in priority order: the source Map's
+  `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-
+  materialization and `tag(::Foo)` use); then a `:kind ::Tag`
+  field if the header is absent (qlang-level rebrand); falling
+  back to the generic `::Error` tag. The first branch makes
+  `error !| [type payload] | tag | error` recover the original
+  per-site tag without a manual `:kind` field stamp.
 - **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
 - **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
@@ -1288,7 +1400,8 @@ the predicate:
 > [1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
 [
   ::AddLeftNotNumberError!{
-    :fault {:step ~{add(10)} :input "x"}
+    :faultStep ~{add(10)}
+    :faultInput "x"
     :actualValue "x"
     :actualType :string
   }
@@ -1310,30 +1423,30 @@ enumerates).
 
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
-| `:container-reducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
-| `:container-selector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
-| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
-| `:vec-transformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
+| `:containerReducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
+| `:containerSelector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
+| `:vecReducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
+| `:vecTransformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
-| `:map-op` | `keys`, `vals`, `has` (polymorphic with Set) |
-| `:set-op` | `set`, `union`, `minus`, `inter` |
+| `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
+| `:setOp` | `union`, `minus`, `inter` |
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
-| `:type-conversion` | `keyword` |
-| `:indexed-access` | `at` |
+| `:typeClassifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
+| `:typeConversion` | `keyword`, `payload`, `tag` |
+| `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
 | `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
-| `:code-as-data` | `parse`, `eval`, `apply` |
+| `:codeAsData` | `parse`, `eval`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths
 it carries. The reflective pair `parse` /
-`eval` closes the code-as-data ring: a source string lifts into an
+`eval` closes the codeAsData ring: a source string lifts into an
 AST-Map through `parse`, runs through `eval` to become a
 `pipeValue`, and the intermediate Map is addressable as ordinary
 qlang data.

@@ -1,5 +1,5 @@
 // Unit tests for polymorphic filter / every / any over Vec / Set /
-// Map with N-arity conduit dispatch on Map, plus the type-classifier
+// Map with N-arity conduit dispatch on Map, plus the typeClassifier
 // nullary operands.
 //
 // Map dispatch rule under test: the predicate conduit's `:params`
@@ -35,7 +35,7 @@ describe('filter — container polymorphism', () => {
   });
 
   it('Set element predicate — returns Set, preserves insertion order', async () => {
-    const setResult = await evalQuery('#{1 2 3 4 5} | filter(gt(2))');
+    const setResult = await evalQuery('#[1 2 3 4 5] | filter(gt(2))');
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([3, 4, 5]);
   });
@@ -90,7 +90,7 @@ describe('filter — container polymorphism', () => {
     expect(mapResult.has('c')).toBe(false);
   });
 
-  it('Map with unresolved-identifier pred — falls to per-value path, surfaces on fail-track', async () => {
+  it('Map with unresolvedIdentifier pred — falls to per-value path, surfaces on fail-track', async () => {
     // Exercises the envHas=false branch of resolveCapturedConduit:
     // the captured-arg identifier is not in env, so conduit resolution
     // returns null and the per-value predLambda path runs; the lookup
@@ -158,7 +158,7 @@ describe('filter — container polymorphism', () => {
 
   it('Set with 1-arity conduit — element is bound as captured-arg', async () => {
     const setResult = await evalQuery(
-      '#{1 -2 3} | :@pos [:v] (v | gt(0)) | filter(@pos)'
+      '#[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos)'
     );
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([-2, 1, 3].filter(n => n > 0).sort());
@@ -187,7 +187,7 @@ describe('filter — container polymorphism', () => {
 
   it('Set with 2-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '#{1 2} | :@kv [:k :v] true | filter(@kv)',
+      '#[1 2] | :@kv [:k :v] true | filter(@kv)',
       'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -227,11 +227,11 @@ describe('every — container polymorphism', () => {
   });
 
   it('Set all-match', async () => {
-    expect(await evalQuery('#{2 4 6} | every(gt(0))')).toBe(true);
+    expect(await evalQuery('#[2 4 6] | every(gt(0))')).toBe(true);
   });
 
   it('Set some-fail', async () => {
-    expect(await evalQuery('#{1 2 3} | every(gt(2))')).toBe(false);
+    expect(await evalQuery('#[1 2 3] | every(gt(2))')).toBe(false);
   });
 
   it('Map 0-arity — all values positive', async () => {
@@ -275,7 +275,7 @@ describe('every — container polymorphism', () => {
 
   it('Set with 1-arity conduit — every applies element as captured-arg', async () => {
     expect(await evalQuery(
-      '#{2 4 6} | :@pos [:v] (v | gt(0)) | every(@pos)'
+      '#[2 4 6] | :@pos [:v] (v | gt(0)) | every(@pos)'
     )).toBe(true);
   });
 
@@ -299,7 +299,7 @@ describe('every — container polymorphism', () => {
 
   it('Set with 2-arity conduit — EveryVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '#{1 2} | :@kv [:k :v] true | every(@kv)',
+      '#[1 2] | :@kv [:k :v] true | every(@kv)',
       'EveryVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -329,7 +329,7 @@ describe('any — container polymorphism', () => {
   });
 
   it('Set one-matches', async () => {
-    expect(await evalQuery('#{1 2 3} | any(gt(2))')).toBe(true);
+    expect(await evalQuery('#[1 2 3] | any(gt(2))')).toBe(true);
   });
 
   it('Map 0-arity — any value positive', async () => {
@@ -383,7 +383,7 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
   it('isVec classifies Vec vs Set and the rest', async () => {
     expect(await evalQuery('[1 2 3] | isVec')).toBe(true);
     expect(await evalQuery('[] | isVec')).toBe(true);
-    expect(await evalQuery('#{1} | isVec')).toBe(false);
+    expect(await evalQuery('#[1] | isVec')).toBe(false);
     expect(await evalQuery('{:a 1} | isVec')).toBe(false);
   });
 
@@ -391,7 +391,7 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
     expect(await evalQuery('{:a 1} | isMap')).toBe(true);
     expect(await evalQuery('{} | isMap')).toBe(true);
     expect(await evalQuery('[] | isMap')).toBe(false);
-    expect(await evalQuery('#{:a} | isMap')).toBe(false);
+    expect(await evalQuery('#[:a] | isMap')).toBe(false);
   });
 
   it('isMap reports false for conduit descriptor Maps', async () => {
@@ -399,8 +399,8 @@ describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isK
   });
 
   it('isSet classifies Set vs the rest', async () => {
-    expect(await evalQuery('#{1 2} | isSet')).toBe(true);
-    expect(await evalQuery('#{} | isSet')).toBe(true);
+    expect(await evalQuery('#[1 2] | isSet')).toBe(true);
+    expect(await evalQuery('#[] | isSet')).toBe(true);
     expect(await evalQuery('[1 2] | isSet')).toBe(false);
     expect(await evalQuery('{:a 1} | isSet')).toBe(false);
   });
@@ -481,7 +481,7 @@ describe('filter — conduit portability across containers', () => {
 
 describe('filter/every/any — predicate returning error value propagates on fail-track', () => {
   it('filter over Set — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('#{1 2} | filter(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('#[1 2] | filter(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 

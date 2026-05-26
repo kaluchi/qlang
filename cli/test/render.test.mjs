@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderCellOutcome } from '../src/render.mjs';
-import { makeErrorValue, keyword } from '@kaluchi/qlang-core';
+import { makeErrorValue, keyword, makeTagKeyword } from '@kaluchi/qlang-core';
 
 function makeCellEntry({ result = null, error = null } = {}) {
   return {
@@ -39,13 +39,15 @@ describe('renderCellOutcome — error paths', () => {
     const errorDescriptor = new Map([
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
-    const cellEntry = makeCellEntry({ result: makeErrorValue(errorDescriptor) });
+    const cellEntry = makeCellEntry({
+      result: makeErrorValue(makeTagKeyword('FilterSubjectNotContainerError'), errorDescriptor)
+    });
     const cliOutcome = await renderCellOutcome(cellEntry, {
       resolvedFormat: 'raw',
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
-    expect(cliOutcome.stdoutText).toContain(':FilterSubjectNotContainerError');
+    expect(cliOutcome.stdoutText).toContain('::FilterSubjectNotContainerError');
     expect(cliOutcome.stderrText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);
   });
@@ -126,7 +128,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({
-      result: makeErrorValue(errorDescriptor),
+      result: makeErrorValue(makeTagKeyword('FilterSubjectNotContainerError'), errorDescriptor),
       error: new Error('lifted parse failure')
     });
     const cliOutcome = await renderCellOutcome(cellEntry, {

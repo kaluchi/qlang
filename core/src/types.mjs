@@ -24,8 +24,8 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 }
 
 // Function values (`makeFn` output) are runtime-internal: they live on
-// `:impl` of builtin descriptor Maps and as conduit-parameter proxies
-// reachable through the manifest descriptor's `:category :conduit-parameter`
+// `:impl` of builtin descriptor Maps and as conduitParameter proxies
+// reachable through the manifest descriptor's `:category :conduitParameter`
 // field when a conduit body's env enumerates. They
 // have no grammatical literal — the only candidate render form
 // (`:qlang/prim/${name}`) parses back as a keyword value on the next
@@ -38,7 +38,7 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(
-      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :kind ::builtin and :impl when binding through session.bind.',
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :impl with identity stamped on the JS-header (stampTagHeader(map, BUILTIN_TAG)) before binding through session.bind — see bindHostBuiltin in cli/src/host-builtin.mjs.',
       {}
     );
     this.name = 'FunctionValueLeakedToPrintError';
@@ -72,8 +72,8 @@ export function isQSet(v) { return v instanceof Set; }
 // they are JSON). qlang-side identification through the predicates
 // below.
 
-export const JSON_OBJECT_TAG = Symbol('qlang/json-object');
-export const JSON_ARRAY_TAG  = Symbol('qlang/json-array');
+export const JSON_OBJECT_TAG = Symbol('qlang/jsonObject');
+export const JSON_ARRAY_TAG  = Symbol('qlang/jsonArray');
 
 export function isJsonObject(v) {
   return v !== null
@@ -220,33 +220,40 @@ export function isTagKeyword(v) {
 // `env-keys.mjs` directly.
 
 // ── conduit / snapshot / quote predicates ─────────────────────
+//
+// Conduit and Snapshot identity rides on the Map's non-enumerable
+// JS-header `tag` slot (a TagKeyword), stamped at construction
+// through `defineConduitTag` / `defineSnapshotTag` below. The
+// `:kind` Map field is reserved for the value's own data; user-
+// built Maps that happen to carry `:kind ::Foo` flow through
+// `isTaggedInstance` rather than colliding with the conduit /
+// snapshot render paths.
 
 export function isConduit(v) {
-  if (!(v instanceof Map)) return false;
-  const kind = v.get('kind');
-  return kind && kind.name === 'conduit';
+  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'conduit';
 }
 
 export function isSnapshot(v) {
-  if (!(v instanceof Map)) return false;
-  const kind = v.get('kind');
-  return kind && kind.name === 'snapshot';
+  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'snapshot';
 }
 
 // A tagged-instance Map carries `:kind <TagKeyword>` plus a
 // `:payload` slot holding whatever the constructor literal
 // captured — a Vec (`::Tag[1 2 3]`), a Map (`::Tag{:k 1}`), a
 // scalar wrapped via ParenGroup (`::Tag(42)`), a Quote, a Set,
-// any pipeline value. The conduit / snapshot / tag-binding
-// discriminators sit on their own render paths and live outside
-// the generic tagged-instance shape.
-const RESERVED_TAGGED_KINDS = new Set(['conduit', 'snapshot', 'tag']);
+// any pipeline value. Conduit / snapshot identity rides on the
+// Map JS-header `TAG_HEADER_SYMBOL` slot, so they trip
+// `isConduit` / `isSnapshot` upstream and never reach this
+// predicate. Catalog tag-binding declarations carry their
+// payload on `:impl` rather than `:payload`, so the
+// `v.has('payload')` requirement already keeps them outside the
+// generic tagged-instance render path.
+const RESERVED_HEADER_TAG_NAMES = new Set(['conduit', 'snapshot', 'builtin']);
 export function isTaggedInstance(v) {
-  if (!(v instanceof Map)) return false;
-  const kind = v.get('kind');
-  if (!isTagKeyword(kind)) return false;
-  if (RESERVED_TAGGED_KINDS.has(kind.name)) return false;
-  return v.has('payload');
+  if (v === null || typeof v !== 'object') return false;
+  const tag = v[TAG_HEADER_SYMBOL];
+  if (tag === undefined) return false;
+  return !RESERVED_HEADER_TAG_NAMES.has(tag.name);
 }
 
 export function isQuote(v) {
@@ -285,6 +292,45 @@ export function makeDoc(content) {
   return Object.freeze({ type: 'doc', content });
 }
 
+// ── tag-header symbol — Map identity slot ────────────────────
+//
+// Non-enumerable Symbol key under which a Map carries its
+// identity TagKeyword. Mirrors `JSON_OBJECT_TAG` /
+// `JSON_ARRAY_TAG` for plain JS Objects / Arrays: invisible to
+// Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
+// to JSON serialization, and to the manifest enumeration
+// surface — runtime predicates (`isConduit`, `isSnapshot`,
+// `typeKeyword` Map branch) read the discriminator off the
+// header in one property access without touching the data
+// surface. Phase 3 will route `TaggedInstance` through the same
+// slot; the catalog's `::builtin` descriptors stay on
+// `:kind ::builtin` field shape until Phase 4 because their
+// data plane already publishes `:kind` as part of the user-
+// facing surface.
+
+export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');
+
+export function stampTagHeader(m, tag) {
+  Object.defineProperty(m, TAG_HEADER_SYMBOL, {
+    value: tag, enumerable: false, configurable: false, writable: false
+  });
+}
+
+// Pre-computed TagKeyword constants for runtime-internal
+// identities — Map JS-header tags, error defaults, and the
+// manifest view-Map discriminators. Each constant is the single
+// source of truth for its tag; factories, printers, and
+// manifest paths all reach for the shared instance instead of
+// minting a fresh TagKeyword on every call. Listed alphabetically.
+
+export const BUILTIN_TAG     = makeTagKeyword('builtin');
+export const CONDUIT_TAG     = makeTagKeyword('conduit');
+export const ERROR_TAG       = makeTagKeyword('Error');
+export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
+export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
+export const TAG_BINDING_TAG = makeTagKeyword('tag');
+export const VALUE_TAG       = makeTagKeyword('value');
+
 // ── conduit factory ───────────────────────────────────────────
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
@@ -292,7 +338,6 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
     throw new ConduitBodyMissingSourceError();
   }
   const m = new Map();
-  m.set('kind', makeTagKeyword('conduit'));
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
   m.set('body', body);
@@ -301,6 +346,7 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
+  stampTagHeader(m, CONDUIT_TAG);
   return m;
 }
 
@@ -308,13 +354,101 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
 
 export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   const m = new Map();
-  m.set('kind', makeTagKeyword('snapshot'));
   m.set('name', name);
   m.set('payload', value);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);
   m.set('effectful', classifyEffect(name));
+  stampTagHeader(m, SNAPSHOT_TAG);
   return m;
+}
+
+// ── tagged-instance factory ──────────────────────────────────
+//
+// Identity overlay on a payload value. The TagKeyword rides on
+// the payload's JS-header `TAG_HEADER_SYMBOL` slot — Array, Set,
+// and Map carry symbol-keyed non-enumerable properties natively,
+// so the tag stays invisible to iteration, `m.get(…)`,
+// `arr[idx]`, `Set.has(…)`, JSON serialization. Operands routed
+// through `isVec` / `isQSet` / `isQMap` predicates see the same
+// shape they always see — `::Tag[1 2 3] | /1` indexes the
+// underlying Array, `::Tag{:a 1} | keys` lists the underlying
+// Map keys, `::Tag#[:a :b] | union(#[:c])` merges the underlying
+// Set. `typeKeyword` reads the header first so identity comes
+// through `result | type`. Reserved header tags
+// (`::conduit`, `::snapshot`, `::builtin`) are matched against
+// in `isTaggedInstance` so the dedicated render / dispatch
+// paths for those value-classes stay disjoint from generic
+// TaggedInstance.
+//
+// Payload shapes:
+//
+//   Untagged Vec / Set / Map — clone and stamp header. The
+//     clone keeps the payload's native shape so isVec / isQSet /
+//     isQMap and every shape-preserving operand work without
+//     unwrap. Flat-merging the Map payload's fields onto the
+//     tagged Map (rather than nesting under `:payload`) makes
+//     `tagged | keys` / `/field` / `vals` read identical to an
+//     untagged Map literal — the pre-Phase-3 nested-identity-
+//     loss bug cannot recur because `:kind` fields are ordinary
+//     data after Phase 4.
+//
+//   Scalar / Keyword / TagKeyword / Quote / Doc / Error /
+//     Conduit / Snapshot / already-tagged composite — wrap in a
+//     Map carrying the payload under `:payload` slot, stamp the
+//     header on the wrapper. JS scalars cannot carry symbol-
+//     keyed properties (they are immutable primitives); frozen
+//     value-class objects (Quote / Doc / Error) refuse
+//     `defineProperty` after freeze; nested tagged composites
+//     already own the header slot and re-stamping would
+//     overwrite the inner identity. The wrap branch covers all
+//     three concerns uniformly. `tagged | payload` recovers
+//     the wrapped value through the operand's dedicated branch.
+
+export function makeTaggedInstance(tag, payload) {
+  // Untagged composite — overlay header on a clone of the
+  // payload, native shape preserved. For JsonArray payloads the
+  // JSON_ARRAY_TAG sentinel is restamped manually on the clone
+  // before freezing (calling `makeJsonArray` then `stampTagHeader`
+  // is a no-go — `makeJsonArray` freezes its result, so the header
+  // stamp would hit a non-extensible object). Both Symbol slots
+  // coexist on the same Array; downstream predicates read each
+  // independently.
+  if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
+    const arr = [...payload];
+    if (isJsonArray(payload)) {
+      Object.defineProperty(arr, JSON_ARRAY_TAG, {
+        value: true, enumerable: false, configurable: false, writable: false
+      });
+    }
+    stampTagHeader(arr, tag);
+    return Object.freeze(arr);
+  }
+  if (payload instanceof Set
+      && payload[TAG_HEADER_SYMBOL] === undefined) {
+    const s = new Set(payload);
+    stampTagHeader(s, tag);
+    return s;
+  }
+  if (payload instanceof Map
+      && payload[TAG_HEADER_SYMBOL] === undefined) {
+    const m = new Map(payload);
+    stampTagHeader(m, tag);
+    return m;
+  }
+  // Scalar / Keyword / TagKeyword / Quote / Doc / Error /
+  // Conduit / Snapshot / already-tagged composite — wrap in an
+  // opaque frozen JS object with `tag` and `payload` fields.
+  // The opaque shape keeps `/payload` projection out of reach
+  // (the wrapper is not a Map, so projectSegment throws
+  // `ProjectionSubjectNotProjectableError` on any `/key`);
+  // `payload` operand is the dedicated extractor that returns
+  // the wrapped value. TAG_HEADER_SYMBOL is stamped so the
+  // uniform identity-read path (typeKeyword / isTaggedInstance)
+  // works through the same channel composite shapes use.
+  const wrap = { type: 'taggedInstance', tag, payload };
+  stampTagHeader(wrap, tag);
+  return Object.freeze(wrap);
 }
 
 // ── rename factory ────────────────────────────────────────────
@@ -343,6 +477,17 @@ export function withName(binding, newName) {
 
 // ── error value factory ───────────────────────────────────────
 //
+// Identity rides on the `tag` JS-header field (a TagKeyword) —
+// every error value carries one, defaulting to `::Error` for
+// user-created `!{}` literals that omit `:kind`. The descriptor
+// Map is pure data: `:faultStep`, `:faultInput`, `:actualType`,
+// dynamic per-site fields, and `:trail`. `:kind` never appears in
+// the descriptor — the universal identity slot lives on the
+// header so dataflow against the descriptor stays composable
+// (`result !| / spec | union | error` round-trips without losing
+// identity), and the `type` operand reads `error.tag` directly
+// without descriptor projection.
+//
 // `:trail` carries either a Quote-value holding the joined
 // pipeline-suffix source — copy-pasteable code the user can splice
 // back into a query — or `null` when no success-track combinator
@@ -357,7 +502,7 @@ export const COMBINATOR_SYNTAX = Object.freeze({
   merge:      '>>'
 });
 
-export function makeErrorValue(descriptor, { location = null, originalError = null } = {}) {
+export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (!descriptor.has('trail')) {
     finalDescriptor = new Map(descriptor);
@@ -365,6 +510,7 @@ export function makeErrorValue(descriptor, { location = null, originalError = nu
   }
   return Object.freeze({
     type: 'error',
+    tag,
     descriptor: finalDescriptor,
     location,
     originalError,
@@ -375,6 +521,7 @@ export function makeErrorValue(descriptor, { location = null, originalError = nu
 export function appendTrailNode(errorValue, trailEntry) {
   return Object.freeze({
     type: 'error',
+    tag: errorValue.tag,
     descriptor: errorValue.descriptor,
     location: errorValue.location,
     originalError: errorValue.originalError,
@@ -406,13 +553,17 @@ export function describeType(v) {
   if (isString(v)) return 'String';
   if (isKeyword(v)) return 'Keyword';
   if (isTagKeyword(v)) return 'TagKeyword';
-  if (isJsonArray(v)) return 'JsonArray';
-  if (isVec(v)) return 'Vec';
+  // TaggedInstance reads the JS-header tag slot first; the
+  // reserved-tag check rules out conduit / snapshot which live
+  // on the same header but ride dedicated render paths
+  // (`Conduit` / `Snapshot` handlers below).
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
+  if (isTaggedInstance(v)) return 'TaggedInstance';
+  if (isJsonArray(v)) return 'JsonArray';
+  if (isVec(v)) return 'Vec';
   if (isQuote(v)) return 'Quote';
   if (isDoc(v)) return 'Doc';
-  if (isTaggedInstance(v)) return 'TaggedInstance';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
@@ -427,33 +578,37 @@ export function typeKeyword(v) {
   if (isNumber(v)) return keyword('number');
   if (isString(v)) return keyword('string');
   if (isKeyword(v)) return keyword('keyword');
-  if (isTagKeyword(v)) return keyword('tag-keyword');
-  if (isJsonArray(v)) return keyword('json-array');
+  if (isTagKeyword(v)) return keyword('tagKeyword');
+  // Identity-on-JS-header takes precedence on every composite:
+  // tagged Vec, tagged Set, tagged Map — `result | type`
+  // returns the user-stamped TagKeyword directly. Conduit /
+  // Snapshot share the same slot under reserved tag names
+  // (`::conduit` / `::snapshot`) and fall through this branch
+  // too; their identity reads exactly the same way.
+  if (v !== null && typeof v === 'object') {
+    const headerTag = v[TAG_HEADER_SYMBOL];
+    if (headerTag !== undefined) return headerTag;
+  }
+  if (isJsonArray(v)) return keyword('jsonArray');
   if (isVec(v)) return keyword('vec');
-  if (isConduit(v)) return makeTagKeyword('conduit');
-  if (isSnapshot(v)) return makeTagKeyword('snapshot');
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) {
-    // Identity-via-`:kind` invariant — every tagged Map
-    // (tagged-instance constructor result, materialised error
-    // descriptor exposed under `!|`, user `{:kind ::Foo …}`)
-    // surfaces its TagKeyword as identity. Maps without the slot
-    // keep the generic `:map` keyword.
+    // `:kind` field fallback — covers manifest view-Maps
+    // (`:kind ::builtin` enum bucket) and user-built `{:kind
+    // ::Foo …}` Maps that ride the descriptor surface without
+    // stamping the header.
     const mapKind = v.get('kind');
     if (isTagKeyword(mapKind)) return mapKind;
     return keyword('map');
   }
   if (isQSet(v)) return keyword('set');
-  // Error values carry their tag identity in `:kind` (a
-  // TagKeyword), same invariant as every other tagged-instance.
-  // The `type` operand surfaces it as the value's user-facing
-  // identity.
-  if (isErrorValue(v)) {
-    const kind = v.descriptor.get('kind');
-    return isTagKeyword(kind) ? kind : keyword('error');
-  }
+  // Error values carry their tag identity on the JS-header `tag`
+  // slot — opaque to descriptor projection. `typeKeyword` reads
+  // it directly so `result !| type` returns the per-site
+  // `::Tag` without consulting any Map field.
+  if (isErrorValue(v)) return v.tag;
   if (isFunctionValue(v)) return keyword('function');
-  if (isJsonObject(v)) return keyword('json-object');
+  if (isJsonObject(v)) return keyword('jsonObject');
   return keyword('unknown');
 }

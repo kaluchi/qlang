@@ -7,8 +7,8 @@
 {"name":"fractal-composition-three-levels","query":":@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n)) | :@topNByV [:n] @topBy(/v, n) | :@top2ByV @topNByV(2) | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
 {"name":"recursive-conduit-tree-sum","query":":totalSize add(/size, /children * totalSize | sum) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
 {"name":"recursive-conduit-with-params","query":":@treeMap [:fn] {:label (/label | fn) :children /children * @treeMap(fn)} | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap(append(\"!\")) | /label","expect":"\"a!\""}
-{"name":"conduit-arity-mismatch-too-few","query":":f [:a :b] add(a, b) | 0 | f(1)","error":"arity-error","expect":"::ConduitArityMismatchError!{\n  :fault {:step ~{f(1)} :input 0}\n  :conduitName :f\n  :expectedArity 2\n  :actualArity 1\n}"}
-{"name":"conduit-arity-mismatch-too-many","query":":f [:a] add(a) | 5 | f(1, 2)","error":"arity-error","expect":"::ConduitArityMismatchError!{\n  :fault {:step ~{f(1, 2)} :input 5}\n  :conduitName :f\n  :expectedArity 1\n  :actualArity 2\n}"}
+{"name":"conduit-arity-mismatch-too-few","query":":f [:a :b] add(a, b) | 0 | f(1)","error":"arityError","expect":"::ConduitArityMismatchError!{\n  :faultStep ~{f(1)}\n  :faultInput 0\n  :conduitName :f\n  :expectedArity 2\n  :actualArity 1\n}"}
+{"name":"conduit-arity-mismatch-too-many","query":":f [:a] add(a) | 5 | f(1, 2)","error":"arityError","expect":"::ConduitArityMismatchError!{\n  :faultStep ~{f(1, 2)}\n  :faultInput 5\n  :conduitName :f\n  :expectedArity 1\n  :actualArity 2\n}"}
 {"name":"conduit-param-shadows-builtin","query":":f [:count] count | 42 | f(99)","expect":"99"}
 {"name":"lexical-scope-isolation","query":":double mul(2) | :apply_double double | :double mul(3) | 5 | apply_double","expect":"10"}
 {"name":"conduit-as-inside-body-does-not-leak","query":":f [:n] (n | as(:captured) | add(captured, n)) | 0 | f(3) | env | has(:captured)","expect":"false"}
@@ -17,5 +17,5 @@
 {"name":"conduit-effect-marker-clean-body-at-name-ok","query":":@safe count | [1 2 3] | @safe","expect":"3"}
 {"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":":foo @callers !| type","expect":"::EffectLaunderingAtBindStepParseError"}
 {"name":"as-operand-basic","query":"42 | as(:answer) | answer","expect":"42"}
-{"name":"as-name-not-keyword-error","query":"42 | as(42)","error":"type-error","expect":"::AsNameNotKeywordError!{\n  :fault {:step ~{as(42)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"conduit-parameter-no-captured-args","query":":f [:n] n(42) | 0 | f(5)","error":"arity-error","expect":"::ConduitParameterNoCapturedArgsError!{\n  :fault {:step ~{n(42)} :input 0}\n  :paramName :n\n  :actualCount 1\n}"}
+{"name":"as-name-not-keyword-error","query":"42 | as(42)","error":"typeError","expect":"::AsNameNotKeywordError!{\n  :faultStep ~{as(42)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"conduit-parameter-no-captured-args","query":":f [:n] n(42) | 0 | f(5)","error":"arityError","expect":"::ConduitParameterNoCapturedArgsError!{\n  :faultStep ~{n(42)}\n  :faultInput 0\n  :paramName :n\n  :actualCount 1\n}"}

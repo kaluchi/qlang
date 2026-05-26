@@ -1,27 +1,9 @@
-|~ qlang operand catalog — set-op family. Each operand BindStep
+|~ qlang operand catalog — setOp family. Each operand BindStep
    below sits directly under the per-site error tags it raises;
-   the operand's `:throws` Vec references those tags by name. ~|
-
-:set
-  |~~ Converts a Vec to a Set, removing duplicates.
-
-      ~{[1 2 1 3] | set | eq(#{1 2 3})}
-  ~~|
-  ::builtin{:impl :qlang/prim/set
-            :category :set-op
-            :subject :vec
-            :returns :set
-            :throws [::SetConversionSubjectNotVecError]}
-
-::SetConversionSubjectNotVecError
-  |~~ Subject of `set` must be Vec.
-      ~{
-        42 | set
-        !| [type /actualType]
-        |  eq([::SetConversionSubjectNotVecError :number])
-       }
-  ~~|
-  ::builtin{:category :type-error :operand :set :position :subject :expectedType :vec}
+   the operand's `:throws` Vec references those tags by name.
+   The Vec→Set conversion lives on the `:distinct` operand
+   (vec family) — it dedupes and lifts the type-level uniqueness
+   invariant in one step. ~|
 
 :union
   |~~ Polymorphic union. Set union or Map merge (last wins on
@@ -30,10 +12,10 @@
       b against a as context, full form union(a, b) resolves both
       args against pipeValue.
 
-      ~{[#{:a :b} #{:b :c}] | union | eq(#{:a :b :c})}
+      ~{[#[:a :b] #[:b :c]] | union | eq(#[:a :b :c])}
   ~~|
   ::builtin{:impl :qlang/prim/union
-            :category :set-op
+            :category :setOp
             :subject [:set :map :vec]
             :returns [:set :map]
             :modifiers [:any]
@@ -47,7 +29,7 @@
         |  eq([::UnionBareSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :union :position :subject :expectedType :vec}
+  ::builtin{:category :typeError :operand :union :position :subject :expectedType :vec}
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
@@ -57,17 +39,17 @@
         |  eq([::UnionBareEmptyError])
        }
   ~~|
-  ::builtin{:category :type-error :operand :union}
+  ::builtin{:category :typeError :operand :union}
 
 ::UnionPairIncompatibleError
   |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
       ~{
-        #{:a} | union({:b 1})
+        #[:a] | union({:b 1})
         !| [type /leftType /rightType]
         |  eq([::UnionPairIncompatibleError :set :map])
        }
   ~~|
-  ::builtin{:category :type-error :operand :union}
+  ::builtin{:category :typeError :operand :union}
 
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
@@ -75,11 +57,11 @@
       shapes as union. Values of the second operand are ignored
       for Map minus Map.
 
-      ~{[#{:a :b :c} #{:b}] | minus | eq(#{:a :c})}
-      ~{{:a 1 :b 2 :tmp 3} | minus(#{:tmp}) | eq({:a 1 :b 2})}
+      ~{[#[:a :b :c] #[:b]] | minus | eq(#[:a :c])}
+      ~{{:a 1 :b 2 :tmp 3} | minus(#[:tmp]) | eq({:a 1 :b 2})}
   ~~|
   ::builtin{:impl :qlang/prim/minus
-            :category :set-op
+            :category :setOp
             :subject [:set :map :vec]
             :returns [:set :map]
             :modifiers [:any]
@@ -93,7 +75,7 @@
         |  eq([::MinusBareSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :minus :position :subject :expectedType :vec}
+  ::builtin{:category :typeError :operand :minus :position :subject :expectedType :vec}
 
 ::MinusBareEmptyError
   |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
@@ -103,17 +85,17 @@
         |  eq([::MinusBareEmptyError])
        }
   ~~|
-  ::builtin{:category :type-error :operand :minus}
+  ::builtin{:category :typeError :operand :minus}
 
 ::MinusPairIncompatibleError
   |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
       ~{
-        #{:a} | minus({:b 1})
+        #[:a] | minus({:b 1})
         !| [type /leftType /rightType]
         |  eq([::MinusPairIncompatibleError :set :map])
        }
   ~~|
-  ::builtin{:category :type-error :operand :minus}
+  ::builtin{:category :typeError :operand :minus}
 
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
@@ -121,11 +103,11 @@
       Same three call shapes as union. Values from the first
       operand are kept.
 
-      ~{[#{:a :b :c} #{:b :d}] | inter | eq(#{:b})}
-      ~{{:a 1 :b 2 :c 3} | inter(#{:a :b}) | eq({:a 1 :b 2})}
+      ~{[#[:a :b :c] #[:b :d]] | inter | eq(#[:b])}
+      ~{{:a 1 :b 2 :c 3} | inter(#[:a :b]) | eq({:a 1 :b 2})}
   ~~|
   ::builtin{:impl :qlang/prim/inter
-            :category :set-op
+            :category :setOp
             :subject [:set :map :vec]
             :returns [:set :map]
             :modifiers [:any]
@@ -139,7 +121,7 @@
         |  eq([::InterBareSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :inter :position :subject :expectedType :vec}
+  ::builtin{:category :typeError :operand :inter :position :subject :expectedType :vec}
 
 ::InterBareEmptyError
   |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
@@ -149,14 +131,14 @@
         |  eq([::InterBareEmptyError])
        }
   ~~|
-  ::builtin{:category :type-error :operand :inter}
+  ::builtin{:category :typeError :operand :inter}
 
 ::InterPairIncompatibleError
   |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
       ~{
-        #{:a} | inter({:b 1})
+        #[:a] | inter({:b 1})
         !| [type /leftType /rightType]
         |  eq([::InterPairIncompatibleError :set :map])
        }
   ~~|
-  ::builtin{:category :type-error :operand :inter}
+  ::builtin{:category :typeError :operand :inter}

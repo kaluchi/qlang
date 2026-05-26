@@ -14,7 +14,7 @@ pipelines. Domain-agnostic. Pure. Composable.
   | "world" | @surround("[", "]")
 "[world]"
 
-|~| code-as-data ring — source → AST-Map → pipeValue
+|~| codeAsData ring — source → AST-Map → pipeValue
 > "10 | add(3)" | parse | eval
 13
 

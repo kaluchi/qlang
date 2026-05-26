@@ -21,6 +21,11 @@ describe('error operand', () => {
     const evalResult = await evalQuery('42 | error !| type');
     expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMapError'));
   });
+
+  it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
+    const evalResult = await evalQuery('null | error("not-a-number" | add(1)) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+  });
 });
 
 // ── isError operand ─────────────────────────────────────────────
@@ -28,7 +33,7 @@ describe('error operand', () => {
 describe('isError operand', () => {
   it('with captured args produces arity error', async () => {
     const evalResult = await evalQuery('42 | isError(1) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('arity-error'));
+    expect(evalResult).toEqual(keyword('arityError'));
   });
 });
 
@@ -92,7 +97,7 @@ describe('EffectLaunderingAtCallError', () => {
     sessionInstance.bind('doIt', effectfulConduit);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.descriptor.get('kind').name).toBe('EffectLaunderingAtCallError');
+    expect(cellEntry.result.tag.name).toBe('EffectLaunderingAtCallError');
   });
 });
 
@@ -214,9 +219,9 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('LtOperandsNotComparableError');
   });
 
-  it('projection on non-Map → ProjectionSubjectNotMapError', async () => {
+  it('projection on non-Map → ProjectionSubjectNotProjectableError', async () => {
     const caughtErr = await catchOriginalError('42 | /name');
-    expect(caughtErr.name).toBe('ProjectionSubjectNotMapError');
+    expect(caughtErr.name).toBe('ProjectionSubjectNotProjectableError');
     expect(caughtErr.context.key).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
@@ -252,17 +257,24 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
   });
 
-  it('at on non-Vec-or-Map → AtSubjectNotVecOrMapError', async () => {
+  it('at on non-Vec-or-Map → AtSubjectNotSequenceOrMapError', async () => {
     const caughtErr = await catchOriginalError('42 | at(0)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtSubjectNotVecOrMapError');
+    expect(caughtErr.name).toBe('AtSubjectNotSequenceOrMapError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('at with non-string key on Map → AtKeyNotStringError', async () => {
+  it('at with non-keyword-and-non-string key on Map → AtKeyNotKeywordOrStringError', async () => {
     const caughtErr = await catchOriginalError('{:a 1} | at(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtKeyNotStringError');
+    expect(caughtErr.name).toBe('AtKeyNotKeywordOrStringError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('has with non-keyword-and-non-string key on Map → HasKeyNotKeywordOrStringError', async () => {
+    const caughtErr = await catchOriginalError('{:a 1} | has(42)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('HasKeyNotKeywordOrStringError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
@@ -271,6 +283,58 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
     expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('payload on non-TaggedInstance → PayloadSubjectNotTaggedInstanceError', async () => {
+    const caughtErr = await catchOriginalError('42 | payload');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('PayloadSubjectNotTaggedInstanceError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('tag with non-TagKeyword captured-arg → TagModifierNotTagKeywordError', async () => {
+    const caughtErr = await catchOriginalError('42 | tag(:foo)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('TagModifierNotTagKeywordError');
+    expect(caughtErr.context.actualType.name).toBe('keyword');
+  });
+
+  it('tag full-application rebuilds a TaggedInstance from a [value, tagKeyword] context Vec', async () => {
+    // The split/assemble round-trip can ride a positional Vec
+    // by reordering with full-app captured args — useful when
+    // the surface produced split-then-swapped pairs:
+    // `[value, tag] | tag(/0, /1)` mints the same instance as
+    // `value | tag(tag)`.
+    const r = await evalQuery('[42 ::Box] | tag(/0, /1) | type');
+    expect(r).toEqual(makeTagKeyword('Box'));
+  });
+
+  it('error operand lifts `:kind ::TagKeyword` field onto the JS-header tag', async () => {
+    // When the source Map carries no JS-header tag but has a
+    // `:kind ::Foo` TagKeyword entry, the operand lifts it onto
+    // the resulting error's `tag` slot and drops the field from
+    // the descriptor — the same identity invariant the
+    // `evalErrorLit` literal path enforces.
+    const result = await evalQuery('::MyTag {} | {:kind ::MyTag :detail "x"} | error');
+    expect(result.tag.name).toBe('MyTag');
+    expect(result.descriptor.has('kind')).toBe(false);
+    expect(result.descriptor.get('detail')).toBe('x');
+  });
+
+  it('payload strips header off every TaggedInstance shape', async () => {
+    // Each shape exercises its own `payload` operand branch:
+    // tagged Set returns a fresh Set without header, tagged Map
+    // returns a fresh Map without header. The tagged Vec / wrap-
+    // scalar branches are covered above via the per-shape
+    // identity-overlay tests.
+    const { isTaggedInstance } = await import('../../src/types.mjs');
+    const setResult = await evalQuery('::Tags {} | ::Tags#[:a :b] | payload');
+    expect(setResult instanceof Set).toBe(true);
+    expect(isTaggedInstance(setResult)).toBe(false);
+    const mapResult = await evalQuery('::User {} | ::User{:name "alice"} | payload');
+    expect(mapResult instanceof Map).toBe(true);
+    expect(isTaggedInstance(mapResult)).toBe(false);
+    expect(mapResult.get('name')).toBe('alice');
   });
 
   it('take count non-number → TakeCountNotNumberError', async () => {
@@ -299,7 +363,7 @@ describe('per-site error classes carry unique identity', () => {
       const caughtErr = await catchOriginalError(q);
       expect(caughtErr).toBeInstanceOf(QlangTypeError);
       expect(caughtErr).toBeInstanceOf(QlangError);
-      expect(caughtErr.kind).toBe('type-error');
+      expect(caughtErr.kind).toBe('typeError');
     }
   });
 
@@ -307,12 +371,12 @@ describe('per-site error classes carry unique identity', () => {
     const names = new Set();
     const queries = [
       '42 | count',        // CountSubjectNotContainerError
-      '42 | first',        // FirstSubjectNotVecError
-      '42 | last',         // LastSubjectNotVecError
+      '42 | first',        // FirstSubjectNotSequenceError
+      '42 | last',         // LastSubjectNotSequenceError
       '42 | sum',          // SumSubjectNotVecOrSetError
-      '42 | reverse',      // ReverseSubjectNotVecError
-      '42 | distinct',     // DistinctSubjectNotVecError
-      '42 | sort',         // SortNaturalSubjectNotVecError
+      '42 | reverse',      // ReverseSubjectNotSequenceError
+      '42 | distinct',     // DistinctSubjectNotSequenceError
+      '42 | sort',         // SortNaturalSubjectNotSequenceError
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
       '"a" | add(1)',      // AddLeftNotNumberError
@@ -321,7 +385,7 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | div(1)',      // DivLeftNotNumberError
       '"a" | gt(5)',       // GtOperandsNotComparableError
       '"a" | lt(5)',       // LtOperandsNotComparableError
-      '1 | /name',         // ProjectionSubjectNotMapError (Number subject — neither Map nor Vec)
+      '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '{:a 1} * add(1)',   // DistributeSubjectNotVecError
       '42 >> count'        // MergeSubjectNotVecError
     ];
@@ -334,18 +398,18 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce / firstTruthy arity-error sites carry unique per-site identity', () => {
+describe('coalesce / firstTruthy arityError sites carry unique per-site identity', () => {
   it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arity-error');
+    expect(caughtErr.kind).toBe('arityError');
     expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 
   it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchOriginalError('{} | firstTruthy()');
     expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arity-error');
+    expect(caughtErr.kind).toBe('arityError');
     expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');
   });
 });

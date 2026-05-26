@@ -7,12 +7,12 @@
       pipeValue; if truthy, evaluates the then branch, otherwise
       evaluates the else branch. Only the selected branch executes.
       Truthiness: null and false are falsy, everything else
-      (including 0, "", [], {}, #{}) is truthy. ~~|
+      (including 0, "", [], {}, #[]) is truthy. ~~|
   ::builtin{:impl :qlang/prim/if
             :category :control
             :subject :any
             :returns :any
-            :modifiers [:predicate-lambda :pipeline :pipeline]
+            :modifiers [:predicateLambda :pipeline :pipeline]
    }
 
 :when
@@ -24,7 +24,7 @@
             :category :control
             :subject :any
             :returns :any
-            :modifiers [:predicate-lambda :pipeline]
+            :modifiers [:predicateLambda :pipeline]
    }
 
 :unless
@@ -36,7 +36,7 @@
             :category :control
             :subject :any
             :returns :any
-            :modifiers [:predicate-lambda :pipeline]
+            :modifiers [:predicateLambda :pipeline]
    }
 
 :coalesce
@@ -44,7 +44,7 @@
       alternatives, evaluating each against pipeValue in order and
       short-circuiting on the first non-null value. If all
       alternatives produce null, returns null. Falsy non-null values
-      (false, 0, "", [], {}, #{}) are NOT skipped — only
+      (false, 0, "", [], {}, #[]) are NOT skipped — only
       null counts as missing. ~~|
   ::builtin{:impl :qlang/prim/coalesce
             :category :control
@@ -61,7 +61,7 @@
         |  eq([::CoalesceNoAlternativesError])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :coalesce}
+  ::builtin{:category :arityError :operand :coalesce}
 
 :firstTruthy
   |~~ Returns the first truthy result among the captured
@@ -86,7 +86,7 @@
         |  eq([::FirstTruthyNoAlternativesError])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :firstTruthy}
+  ::builtin{:category :arityError :operand :firstTruthy}
 
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -111,4 +111,4 @@
         |  eq([::CondNoBranchesError])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :cond}
+  ::builtin{:category :arityError :operand :cond}

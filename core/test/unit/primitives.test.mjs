@@ -112,7 +112,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.fingerprint).toBe('PrimitiveKeyNotStringError');
-      expect(e.kind).toBe('invariant-error');
+      expect(e.kind).toBe('invariantError');
       expect(e.context.actualType).toBe('object');
     }
   });
@@ -193,7 +193,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangError);
       expect(e).not.toBeInstanceOf(QlangInvariantError);
-      expect(e.kind).toBe('primitive-unbound');
+      expect(e.kind).toBe('primitiveUnbound');
       expect(e.fingerprint).toBe('PrimitiveKeyUnboundError');
       expect(e.context.keyLabel).toContain('qlang/test-prim/missing');
     }

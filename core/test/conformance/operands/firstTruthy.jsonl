@@ -16,7 +16,7 @@
 {"name":"empty-string-is-truthy-kept","query":"{:s \"\"} | firstTruthy(/missing, /s, \"default\")","expect":"\"\""}
 {"name":"empty-vec-is-truthy-kept","query":"{:list []} | firstTruthy(/missing, /list, \"default\")","expect":"[]"}
 {"name":"empty-map-is-truthy-kept","query":"{:obj {}} | firstTruthy(/missing, /obj, \"default\")","expect":"{}"}
-{"name":"empty-set-is-truthy-kept","query":"{:tags #{}} | firstTruthy(/missing, /tags, \"default\")","expect":"#{}"}
+{"name":"empty-set-is-truthy-kept","query":"{:tags #[]} | firstTruthy(/missing, /tags, \"default\")","expect":"#[]"}
 {"name":"true-is-truthy-kept","query":"{:flag true} | firstTruthy(/missing, /flag)","expect":"true"}
 {"name":"literal-default-string","query":"{} | firstTruthy(/missing, \"fallback\")","expect":"\"fallback\""}
 {"name":"literal-default-number","query":"{} | firstTruthy(/missing, 42)","expect":"42"}
@@ -25,7 +25,7 @@
 {"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | firstTruthy(/a, div(0))","expect":"1"}
 {"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | firstTruthy(/a, /b, div(0), \"unreached\")","expect":"99"}
 {"name":"short-circuit-after-skipping-false","query":"{:a false :b 7} | firstTruthy(/a, /b, div(0))","expect":"7"}
-{"name":"no-args-error","query":"{} | firstTruthy()","error":"arity-error","expect":"::FirstTruthyNoAlternativesError!{\n  :fault {\n    :step ~{firstTruthy()}\n    :input {}\n  }\n}"}
+{"name":"no-args-error","query":"{} | firstTruthy()","error":"arityError","expect":"::FirstTruthyNoAlternativesError!{\n  :faultStep ~{firstTruthy()}\n  :faultInput {}\n}"}
 {"name":"differs-from-coalesce-on-false","query":"{:flag false :name \"Alice\"} | firstTruthy(/flag, /name)","expect":"\"Alice\""}
 {"name":"coalesce-by-contrast-keeps-false","query":"{:flag false :name \"Alice\"} | coalesce(/flag, /name)","expect":"false"}
 {"name":"differs-from-coalesce-on-null","query":"{:a null :b 1} | firstTruthy(/a, /b)","expect":"1"}

@@ -80,12 +80,14 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit returns a conduit descriptor Map carrying :kind :conduit', async () => {
-    const { makeTagKeyword } = await import('../../src/types.mjs');
+  it('makeConduit stamps ::conduit on the Map JS-header and exposes body/source as fields', async () => {
+    const { TAG_HEADER_SYMBOL, CONDUIT_TAG, typeKeyword } = await import('../../src/types.mjs');
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
     const t = makeConduit(bodyAst);
     expect(t).toBeInstanceOf(Map);
-    expect(t.get('kind')).toEqual(makeTagKeyword('conduit'));
+    expect(t.has('kind')).toBe(false);
+    expect(t[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
+    expect(typeKeyword(t)).toBe(CONDUIT_TAG);
     expect(t.get('body')).toBe(bodyAst);
     expect(t.get('source')).toBe('1');
   });
@@ -138,58 +140,58 @@ describe('rule10.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison', async () => {
-    await expectErrorCategory('"a" | gt(5)', 'type-error');
+    await expectErrorCategory('"a" | gt(5)', 'typeError');
   });
   it('lt rejects non-comparable subject', async () => {
-    await expectErrorCategory('null | lt(5)', 'type-error');
+    await expectErrorCategory('null | lt(5)', 'typeError');
   });
   it('min raises on mixed Vec', async () => {
-    await expectErrorCategory('[1 "a"] | min', 'type-error');
+    await expectErrorCategory('[1 "a"] | min', 'typeError');
   });
   it('max raises on non-comparable', async () => {
-    await expectErrorCategory('[null null] | max', 'type-error');
+    await expectErrorCategory('[null null] | max', 'typeError');
   });
   it('sort raises on mixed-type Vec', async () => {
-    await expectErrorCategory('[1 "a"] | sort', 'type-error');
+    await expectErrorCategory('[1 "a"] | sort', 'typeError');
   });
 });
 
 describe('runtime/arith.mjs error paths', () => {
   it('add rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | add(1)', 'type-error');
+    await expectErrorCategory('"x" | add(1)', 'typeError');
   });
   it('add rejects non-numeric modifier', async () => {
-    await expectErrorCategory('1 | add("x")', 'type-error');
+    await expectErrorCategory('1 | add("x")', 'typeError');
   });
   it('sub rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | sub(1)', 'type-error');
+    await expectErrorCategory('"x" | sub(1)', 'typeError');
   });
   it('mul rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | mul(1)', 'type-error');
+    await expectErrorCategory('"x" | mul(1)', 'typeError');
   });
   it('div rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | div(1)', 'type-error');
+    await expectErrorCategory('"x" | div(1)', 'typeError');
   });
 });
 
 describe('runtime/vec.mjs error paths', () => {
   it('count rejects non-Vec', async () => {
-    await expectErrorCategory('42 | count', 'type-error');
+    await expectErrorCategory('42 | count', 'typeError');
   });
   it('first rejects non-Vec', async () => {
-    await expectErrorCategory('42 | first', 'type-error');
+    await expectErrorCategory('42 | first', 'typeError');
   });
   it('sum rejects non-Vec', async () => {
-    await expectErrorCategory('42 | sum', 'type-error');
+    await expectErrorCategory('42 | sum', 'typeError');
   });
   it('filter rejects non-Vec', async () => {
-    await expectErrorCategory('42 | filter(gt(1))', 'type-error');
+    await expectErrorCategory('42 | filter(gt(1))', 'typeError');
   });
   it('take rejects non-numeric n', async () => {
-    await expectErrorCategory('[1 2 3] | take("x")', 'type-error');
+    await expectErrorCategory('[1 2 3] | take("x")', 'typeError');
   });
   it('drop rejects non-numeric n', async () => {
-    await expectErrorCategory('[1 2 3] | drop("x")', 'type-error');
+    await expectErrorCategory('[1 2 3] | drop("x")', 'typeError');
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort(/n)'))
@@ -199,28 +201,22 @@ describe('runtime/vec.mjs error paths', () => {
 
 describe('runtime/map.mjs error paths', () => {
   it('keys rejects non-Map', async () => {
-    await expectErrorCategory('42 | keys', 'type-error');
+    await expectErrorCategory('42 | keys', 'typeError');
   });
   it('vals rejects non-Map', async () => {
-    await expectErrorCategory('42 | vals', 'type-error');
+    await expectErrorCategory('42 | vals', 'typeError');
   });
   it('has rejects non-Map/non-Set subject', async () => {
-    await expectErrorCategory('42 | has(:foo)', 'type-error');
+    await expectErrorCategory('42 | has(:foo)', 'typeError');
   });
-  it('has on Map requires keyword key', async () => {
-    await expectErrorCategory('{:k 1} | has("k")', 'type-error');
-  });
-});
-
-describe('runtime/set.mjs error paths', () => {
-  it('set rejects non-Vec', async () => {
-    await expectErrorCategory('42 | set', 'type-error');
+  it('has on Map requires keyword-or-string key', async () => {
+    await expectErrorCategory('{:k 1} | has(42)', 'typeError');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorCategory('#{:a} | union({:b 1})', 'type-error');
+    await expectErrorCategory('#[:a] | union({:b 1})', 'typeError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus({:b 99 :d 5})');
@@ -231,10 +227,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorCategory('#{:a} | minus({:a 1})', 'type-error');
+    await expectErrorCategory('#[:a] | minus({:a 1})', 'typeError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorCategory('#{:a} | inter({:a 1})', 'type-error');
+    await expectErrorCategory('#[:a] | inter({:a 1})', 'typeError');
   });
 });
 
@@ -246,7 +242,7 @@ describe('runtime/predicates.mjs deepEqual', () => {
     expect(await evalQuery('{:a 1} | eq({:a 2})')).toBe(false);
   });
   it('eq of Sets', async () => {
-    expect(await evalQuery('#{:a :b} | eq(#{:b :a})')).toBe(true);
+    expect(await evalQuery('#[:a :b] | eq(#[:b :a])')).toBe(true);
   });
   it('eq of mismatched types', async () => {
     expect(await evalQuery('42 | eq("42")')).toBe(false);
@@ -305,13 +301,13 @@ describe('dispatch helper arity error paths', () => {
   it('overloadedOp throws ArityError on unsupported captured-arg count', async () => {
     // sort accepts 0 or 1 captured args; calling with 2 hits the
     // overloadedOp dispatch's `if (!impl)` branch.
-    await expectErrorCategory('[1 2] | sort(/x, /y)', 'arity-error');
+    await expectErrorCategory('[1 2] | sort(/x, /y)', 'arityError');
   });
 
   it('stateOp throws ArityError when captured-arg count mismatches expected', async () => {
     // env accepts 0 captured args; calling env(arg) fires the
     // stateOp's `lambdas.length !== expected` branch.
-    await expectErrorCategory('env(:foo)', 'arity-error');
+    await expectErrorCategory('env(:foo)', 'arityError');
   });
 });
 
@@ -327,7 +323,7 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
   it('manifest descriptors all have :effectful field for builtin entries', async () => {
     const effectfulResult = await evalQuery('manifest * /effectful | distinct');
     // Every langRuntime builtin is a clean (non-effectful) function.
-    expect(effectfulResult).toEqual([false]);
+    expect(effectfulResult).toEqual(new Set([false]));
   });
 
   it('manifest returns a Vec of descriptors sorted by name', async () => {
@@ -346,9 +342,9 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
     // wrapper's `{ captured }` meta — no `category` / `subject` /
     // `returns` shape. `describeBinding` routes such entries to
     // `describeValue` (host-fn marker) rather than the conduit-
-    // parameter proxy descriptor builder; conduit-parameter proxies
+    // parameter proxy descriptor builder; conduitParameter proxies
     // are the only function values that stamp `meta.category
-    // :conduit-parameter` inline and therefore the only ones that
+    // :conduitParameter` inline and therefore the only ones that
     // route through `describeConduitParameter`.
     const { createSession } = await import('../../src/session.mjs');
     const { nullaryOp } = await import('../../src/runtime/dispatch.mjs');
@@ -425,7 +421,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if only the selected branch runs (else branch never evaluates)', async () => {
-    // The else branch contains div(0), which would raise division-by-zero
+    // The else branch contains div(0), which would raise divisionByZero
     // if evaluated. The cond is truthy so the else branch is skipped.
     expect(await evalQuery('10 | if(gt(0), "positive", div(0))')).toBe('positive');
   });
@@ -529,7 +525,7 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if(/role | eq(:admin), coalesce(/displayName, /name, "???"), "guest")')).toBe('Bob');
   });
 
-  // Per-site coalesce / firstTruthy arity-error tag identity is
+  // Per-site coalesce / firstTruthy arityError tag identity is
   // pinned by `error-operands.test.mjs`; the control-flow block
   // tests the operand semantics, not the per-site wiring.
   it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
@@ -544,10 +540,10 @@ describe('runtime/control.mjs if and coalesce', () => {
 });
 
 describe('runtime/vec.mjs sortWith and comparator builders', () => {
-  it('sortWith on non-Vec subject → SortWithSubjectNotVecError', async () => {
+  it('sortWith on non-Vec subject → SortWithSubjectNotSequenceError', async () => {
     const e = await catchOriginalError('42 | sortWith(asc(/x))');
     expect(e).toBeInstanceOf(QlangTypeError);
-    expect(e.name).toBe('SortWithSubjectNotVecError');
+    expect(e.name).toBe('SortWithSubjectNotSequenceError');
   });
 
   it('sortWith comparator returning non-number → SortWithCmpResultNotNumberError', async () => {
@@ -588,7 +584,7 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
 
   it('every sortWith/asc/desc/firstNonZero site has a unique class name', async () => {
     const queries = [
-      '42 | sortWith(asc(/x))',   // SortWithSubjectNotVecError
+      '42 | sortWith(asc(/x))',   // SortWithSubjectNotSequenceError
       '[1 2] | sortWith("not")',  // SortWithCmpResultNotNumberError
       '42 | asc(/x)',              // AscPairNotMapError
       '42 | desc(/x)',             // DescPairNotMapError

@@ -7,8 +7,8 @@
 {"name":"quote-literal-multiline","query":"~{{\n  :a 1\n  :b 2\n}}","expect":"~{{\n  :a 1\n  :b 2\n}}"}
 {"name":"quote-source-projection","query":"~{mul(2)} | /source","expect":"\"mul(2)\""}
 {"name":"quote-source-empty","query":"~{} | /source","expect":"\"\""}
-{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:kind","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/:kind} :input ~{mul(2)}}\n  :key \"kind\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
-{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"::ProjectionFieldNotOnValueClassError!{\n  :fault {:step ~{/missing} :input ~{mul(2)}}\n  :key \"missing\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
+{"name":"quote-internal-discriminator-not-leaked","query":"~{mul(2)} | /:kind","expect":"::ProjectionFieldNotOnValueClassError!{\n  :faultStep ~{/:kind}\n  :faultInput ~{mul(2)}\n  :key \"kind\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
+{"name":"quote-unknown-projection-null","query":"~{mul(2)} | /missing","expect":"::ProjectionFieldNotOnValueClassError!{\n  :faultStep ~{/missing}\n  :faultInput ~{mul(2)}\n  :key \"missing\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
 {"name":"quote-ast-lazy-parse","query":"~{mul(2)} | /ast | /:kind","expect":":OperandCall"}
 {"name":"quote-ast-lazy-parse-name","query":"~{mul(2)} | /ast | /name","expect":"\"mul\""}
 {"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:kind","expect":":Pipeline"}
@@ -27,7 +27,7 @@
 {"name":"quote-in-vec","query":"[~{a} ~{b} ~{c}] | count","expect":"3"}
 {"name":"quote-in-vec-projection","query":"[~{a} ~{b} ~{c}] | first | /source","expect":"\"a\""}
 {"name":"quote-in-map","query":"{:body ~{mul(2)}} | /body | /source","expect":"\"mul(2)\""}
-{"name":"quote-in-set","query":"#{~{a} ~{b}} | count","expect":"2"}
+{"name":"quote-in-set","query":"#[~{a} ~{b}] | count","expect":"2"}
 {"name":"quote-pipeline-passthrough","query":"5 | ~{mul(2)}","expect":"~{mul(2)}"}
 {"name":"quote-isMap-false","query":"~{x} | isMap","expect":"false"}
 {"name":"quote-with-special-chars","query":"~{a > b}","expect":"~{a > b}"}

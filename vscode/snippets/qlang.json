@@ -36,8 +36,8 @@
   },
   "set literal": {
     "prefix": "set",
-    "body": ["#{${1:elements}}"],
-    "description": "Set literal"
+    "body": ["#[${1:elements}]"],
+    "description": "Set literal — invariant of structural uniqueness, insertion-ordered"
   },
   "if": {
     "prefix": "if",
@@ -116,12 +116,12 @@
   },
   "minus bound": {
     "prefix": "minusb",
-    "body": ["minus(#{${1::key}})"],
+    "body": ["minus(#[${1::key}])"],
     "description": "Drop fields via bound minus"
   },
   "inter bound": {
     "prefix": "interb",
-    "body": ["inter(#{${1::key}})"],
+    "body": ["inter(#[${1::key}])"],
     "description": "Select fields via bound inter"
   },
   "use": {

@@ -1,7 +1,7 @@
 // tokenize coverage. The function backs every renderer (HTML for
 // the docs site, ANSI for the CLI REPL, eventually LSP semantic
 // tokens) so the contract is exercised here at the value level —
-// kind classification, gap interleaving, parse-error fallback, and
+// kind classification, gap interleaving, parseError fallback, and
 // the [0, src.length] coverage invariant.
 
 import { describe, it, expect } from 'vitest';
@@ -210,8 +210,8 @@ describe('tokenize — gap interleaving', () => {
     expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();
   });
 
-  it('labels the ~{#{} set opener and matching ~{}} with kind ~{set}', async () => {
-    const tokens = tokenize('#{:a}', await builtins());
+  it('labels the ~{#[] set opener and matching ~{}} with kind ~{set}', async () => {
+    const tokens = tokenize('#[:a]', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'set' });
     expect(tokens[tokens.length - 1]).toEqual({ start: 4, end: 5, kind: 'set' });
   });
@@ -241,8 +241,8 @@ describe('tokenize — coverage invariant', () => {
     expectCoversInputExactly(tokens, src);
   });
 
-  it('every byte of ~{{:name "alice" :tags #{:a :b}}} lies inside exactly one token', async () => {
-    const src = '{:name "alice" :tags #{:a :b}}';
+  it('every byte of ~{{:name "alice" :tags #[:a :b]}} lies inside exactly one token', async () => {
+    const src = '{:name "alice" :tags #[:a :b]}';
     const tokens = tokenize(src, await builtins());
     expectCoversInputExactly(tokens, src);
   });
@@ -254,7 +254,7 @@ describe('tokenize — coverage invariant', () => {
   });
 });
 
-describe('tokenize — parse-error fallback', () => {
+describe('tokenize — parseError fallback', () => {
   it('returns a single whitespace token covering the full input on a parse failure', async () => {
     const src = '[unclosed';
     expect(tokenize(src, await builtins())).toEqual([

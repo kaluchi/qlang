@@ -120,7 +120,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, countOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/count/);
-    expect(hover.content).toMatch(/container-reducer/);
+    expect(hover.content).toMatch(/containerReducer/);
   });
 
   it('hover includes docs from manifest', async () => {
@@ -210,7 +210,7 @@ describe('hoverAtOffset', () => {
 // and URI onto every index entry so the goto handler can resolve
 // offsets without re-reading the source — the test mirror does
 // the same.
-const catalogSrc = ':count {:category :vec-reducer}';
+const catalogSrc = ':count {:category :vecReducer}';
 const catalogAst = parseDocument(catalogSrc, 'qlang/core').ast;
 const testCatalogIndex = new Map();
 for (const [name, range] of buildCatalogIndex(catalogAst)) {

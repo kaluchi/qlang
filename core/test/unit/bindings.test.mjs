@@ -23,6 +23,23 @@ describe('BindStep — docs-only form', () => {
     expect(describeType(doc)).toBe('Doc');
     expect(doc.content).toBe(' placeholder note');
   });
+
+  it('::Tag |~~ ~~| doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
+    // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`)
+    // mints an empty `::builtin{}` descriptor under the `::Tag`
+    // env key automatically — equivalent to `::Tag ::builtin{}`
+    // body-form. The BindStep production requires docs (or body
+    // or params) after the key; the doc-prefix attaches to the
+    // BindStep, evalBindStep no-body branch fires the auto-forge.
+    // Subsequent `::Tag | docs` axis lookup resolves the attached
+    // prose, and `::Tag | spec | type` surfaces the ::builtin
+    // identity through the JS-header tag slot (Phase 4 dropped
+    // the `:kind` Map field).
+    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | /content');
+    expect(doc).toContain('short tag prose');
+    const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | type');
+    expect(spec).toEqual(makeTagKeyword('builtin'));
+  });
 });
 
 describe('BindStep — value-body purity routing', () => {
@@ -70,10 +87,10 @@ describe('BindStep — pipeline-transparency', () => {
   });
 });
 
-describe('BindStep — effect-laundering safety net', () => {
+describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
     const err = await evalQuery(':safe @nonExistent');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
+    expect(err.tag).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
   });
 });

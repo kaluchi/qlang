@@ -1,0 +1,89 @@
+|~ qlang operand catalog — mapOp family. Each operand BindStep
+   below sits directly under the per-site error tags it raises;
+   the operand's `:throws` Vec references those tags by name. ~|
+
+:keys
+  |~~ Returns the Set of keys (keywords) in the Map.
+
+      ~{{:name "Alice" :age 30} | keys | eq(#[:name :age])}
+  ~~|
+  ::builtin{:impl :qlang/prim/keys
+            :category :mapOp
+            :subject :map
+            :returns :set
+            :throws [::KeysSubjectNotMapError]}
+
+::KeysSubjectNotMapError
+  |~~ Subject of `keys` must be Map.
+      ~{
+        42 | keys
+        !| [type /actualType]
+        |  eq([::KeysSubjectNotMapError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :keys :position :subject :expectedType :map}
+
+:vals
+  |~~ Returns a Vec of values in insertion order.
+
+      ~{{:name "Alice" :age 30} | vals | eq(["Alice" 30])}
+  ~~|
+  ::builtin{:impl :qlang/prim/vals
+            :category :mapOp
+            :subject :map
+            :returns :vec
+            :throws [::ValsSubjectNotMapError]}
+
+::ValsSubjectNotMapError
+  |~~ Subject of `vals` must be Map.
+      ~{
+        [1 2] | vals
+        !| [type /actualType]
+        |  eq([::ValsSubjectNotMapError :vec])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :vals :position :subject :expectedType :map}
+
+:has
+  |~~ Returns true if the Map contains the key, or if the Set
+      contains the value. Polymorphic on subject type. On every
+      Map-shape subject the key argument accepts either a
+      Keyword or a String — both normalise to the storage-side
+      String (`key.name` for Keyword, identity for String), so
+      `has(:k)` works uniformly over qlang Map and JsonObject
+      and the `keys | first | has(_)` chain composes regardless
+      of `keys`' shape on the source.
+
+      ~{{:name "Alice"} | has(:name) | eq(true)}
+      ~{::json{:name "Alice"} | has("name") | eq(true)}
+      ~{::json{:name "Alice"} | has(:name) | eq(true)}
+      ~{#[:a :b :c] | has(:b) | eq(true)}
+  ~~|
+  ::builtin{:impl :qlang/prim/has
+            :category :mapOp
+            :subject [:map :set]
+            :returns :boolean
+            :modifiers [:any]
+            :throws [::HasSubjectNotMapOrSetError ::HasKeyNotKeywordOrStringError]}
+
+::HasSubjectNotMapOrSetError
+  |~~ Subject of `has` must be Map or Set.
+      ~{
+        42 | has(:k)
+        !| [type /actualType]
+        |  eq([::HasSubjectNotMapOrSetError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :has :position :subject :expectedType [:map :set]}
+
+::HasKeyNotKeywordOrStringError
+  |~~ Captured argument at position 2 of `has` on a Map subject
+      must be a Keyword or String — both normalise to the
+      storage-side string key.
+      ~{
+        {:a 1} | has(42)
+        !| [type /actualType]
+        |  eq([::HasKeyNotKeywordOrStringError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :has :position 2 :expectedType [:keyword :string]}

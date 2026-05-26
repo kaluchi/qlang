@@ -1,15 +1,15 @@
 // qlang runtime errors — base hierarchy.
 //
-// Concrete per-site type-error classes live next to the operand
+// Concrete per-site typeError classes live next to the operand
 // that raises them (see operand-errors.mjs for the factory and
 // runtime/*.mjs for the generated classes). Every per-site class
-// extends QlangTypeError so `instanceof` and `.kind === 'type-error'`
+// extends QlangTypeError so `instanceof` and `.kind === 'typeError'`
 // still match the broad category.
 //
 // This file declares the hierarchy roots:
 //
 //   QlangError                       — abstract root
-//     QlangTypeError                 — abstract type-error class
+//     QlangTypeError                 — abstract typeError class
 //     UnresolvedIdentifierError      — identifier not in env
 //     DivisionByZeroError            — div(_, 0)
 //     ArityError                     — too many captured args
@@ -68,7 +68,7 @@ export class QlangError extends Error {
 
 export class QlangTypeError extends QlangError {
   constructor(message, context = {}) {
-    super(message, 'type-error');
+    super(message, 'typeError');
     this.name = 'QlangTypeError';
     this.context = context;
   }
@@ -76,7 +76,7 @@ export class QlangTypeError extends QlangError {
 
 export class UnresolvedIdentifierError extends QlangError {
   constructor(name) {
-    super(`unresolved identifier: ${name}`, 'unresolved-identifier');
+    super(`unresolved identifier: ${name}`, 'unresolvedIdentifier');
     this.name = 'UnresolvedIdentifierError';
     this.identifierName = name;
     this.fingerprint = 'UnresolvedIdentifierError';
@@ -85,7 +85,7 @@ export class UnresolvedIdentifierError extends QlangError {
 
 export class DivisionByZeroError extends QlangError {
   constructor() {
-    super('division by zero', 'division-by-zero');
+    super('division by zero', 'divisionByZero');
     this.name = 'DivisionByZeroError';
     this.fingerprint = 'DivisionByZeroError';
   }
@@ -93,7 +93,7 @@ export class DivisionByZeroError extends QlangError {
 
 export class ArityError extends QlangError {
   constructor(message, context = {}) {
-    super(message, 'arity-error');
+    super(message, 'arityError');
     this.name = 'ArityError';
     this.context = context;
   }
@@ -108,7 +108,7 @@ export class ArityError extends QlangError {
 // the invariant (see runtime/dispatch.mjs).
 export class QlangInvariantError extends QlangError {
   constructor(message, context = {}) {
-    super(message, 'invariant-error');
+    super(message, 'invariantError');
     this.name = 'QlangInvariantError';
     this.context = context;
   }
@@ -135,7 +135,7 @@ export class QlangInvariantError extends QlangError {
 //     detect the effect).
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
-    super(message, 'effect-laundering');
+    super(message, 'effectLaundering');
     this.name = 'EffectLaunderingError';
     this.context = context;
   }

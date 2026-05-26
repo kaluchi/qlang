@@ -142,9 +142,9 @@ describe('punctuation', () => {
   });
 
   it('set brackets become set', () => {
-    const out = hl('#{:a}');
-    expect(out).toContain('<span class="set">#{</span>');
-    expect(out).toContain('<span class="set">}</span>');
+    const out = hl('#[:a]');
+    expect(out).toContain('<span class="set">#[</span>');
+    expect(out).toContain('<span class="set">]</span>');
   });
 
   it('map braces stay as punct', () => {

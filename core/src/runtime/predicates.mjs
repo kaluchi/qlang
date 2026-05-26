@@ -1,5 +1,5 @@
 // Predicates: subject-first comparisons, combinators, and
-// type-classifier nullary operands.
+// typeClassifier nullary operands.
 //
 // Equality (`eq`) uses the shared deepEqual from src/equality.mjs.
 // Ordering (`gt`/`lt`/`gte`/`lte`) enforces matched comparable
@@ -19,7 +19,7 @@
 // Meta lives in lib/qlang/operand/predicate.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import { isTruthy, describeType, typeKeyword } from '../types.mjs';
+import { isTruthy, isKeyword as isKeywordValue, isTagKeyword as isTagKeywordValue, describeType, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -29,34 +29,53 @@ const LtOperandsNotComparableError  = declareComparabilityError('LtOperandsNotCo
 const GteOperandsNotComparableError = declareComparabilityError('GteOperandsNotComparableError', 'gte');
 const LteOperandsNotComparableError = declareComparabilityError('LteOperandsNotComparableError', 'lte');
 
+// orderingCheck + compareOrdering — ordering primitives for the
+// gt/lt/gte/lte family. Mirror the contract used by sort/min/max
+// in vec.mjs: matched-type pairings only (Number↔Number, String↔
+// String, Keyword↔Keyword, TagKeyword↔TagKeyword); identifier
+// pairs compare lexicographically by `.name` — the same axis that
+// drives sort over a keyword Vec / Set.
 function orderingCheck(ErrorCls, left, right) {
-  const bothNumbers = typeof left === 'number' && typeof right === 'number';
-  const bothStrings = typeof left === 'string' && typeof right === 'string';
-  if (!bothNumbers && !bothStrings) {
+  const bothNumbers     = typeof left === 'number' && typeof right === 'number';
+  const bothStrings     = typeof left === 'string' && typeof right === 'string';
+  const bothKeywords    = isKeywordValue(left)    && isKeywordValue(right);
+  const bothTagKeywords = isTagKeywordValue(left) && isTagKeywordValue(right);
+  if (!bothNumbers && !bothStrings && !bothKeywords && !bothTagKeywords) {
     throw new ErrorCls(left, right);
   }
+}
+
+function compareOrdering(left, right) {
+  if (isKeywordValue(left) || isTagKeywordValue(left)) {
+    if (left.name < right.name) return -1;
+    if (left.name > right.name) return 1;
+    return 0;
+  }
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 
 export const eq = valueOp('eq', 2, (subject, value) => deepEqual(subject, value));
 
 export const gt = valueOp('gt', 2, (subject, threshold) => {
   orderingCheck(GtOperandsNotComparableError, subject, threshold);
-  return subject > threshold;
+  return compareOrdering(subject, threshold) > 0;
 });
 
 export const lt = valueOp('lt', 2, (subject, threshold) => {
   orderingCheck(LtOperandsNotComparableError, subject, threshold);
-  return subject < threshold;
+  return compareOrdering(subject, threshold) < 0;
 });
 
 export const gte = valueOp('gte', 2, (subject, threshold) => {
   orderingCheck(GteOperandsNotComparableError, subject, threshold);
-  return subject >= threshold;
+  return compareOrdering(subject, threshold) >= 0;
 });
 
 export const lte = valueOp('lte', 2, (subject, threshold) => {
   orderingCheck(LteOperandsNotComparableError, subject, threshold);
-  return subject <= threshold;
+  return compareOrdering(subject, threshold) <= 0;
 });
 
 export const and = valueOp('and', 2, (a, b) => isTruthy(a) && isTruthy(b));
@@ -87,6 +106,7 @@ export const isVec     = nullaryOp('isVec',     (subject) => describeType(subjec
 export const isMap     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
 export const isSet     = nullaryOp('isSet',     (subject) => describeType(subject) === 'Set');
 export const isKeyword = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
+export const isTag     = nullaryOp('isTag',     (subject) => describeType(subject) === 'TagKeyword');
 export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
 export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
 export const isQuote      = nullaryOp('isQuote',      (subject) => describeType(subject) === 'Quote');
@@ -110,6 +130,7 @@ bindPrim('isVec',     isVec);
 bindPrim('isMap',     isMap);
 bindPrim('isSet',     isSet);
 bindPrim('isKeyword', isKeyword);
+bindPrim('isTag',     isTag);
 bindPrim('isBoolean', isBoolean);
 bindPrim('isNull',    isNull);
 bindPrim('isQuote',      isQuote);

@@ -11,7 +11,7 @@
    :modifiers across every family:
      :number :string :boolean :keyword :null :any
      :vec :map :set
-     :predicate-lambda :key-lambda :comparator-lambda
+     :predicateLambda :keyLambda :comparatorLambda
      :pipeline (captured sub-pipeline, lazy) ~|
 
 use([:qlang/runtime-invariants
@@ -19,16 +19,16 @@ use([:qlang/runtime-invariants
      :qlang/operand/arith
      :qlang/operand/vec
      :qlang/operand/container
-     :qlang/operand/set-op
-     :qlang/operand/map-op
+     :qlang/operand/setOp
+     :qlang/operand/mapOp
      :qlang/operand/string
      :qlang/operand/comparator
      :qlang/operand/predicate
-     :qlang/operand/type-classifier
-     :qlang/operand/type-conversion
+     :qlang/operand/typeClassifier
+     :qlang/operand/typeConversion
      :qlang/operand/control
      :qlang/operand/format
      :qlang/operand/reflective
      :qlang/operand/error
-     :qlang/operand/code-as-data
+     :qlang/operand/codeAsData
      :qlang/operand/axis])

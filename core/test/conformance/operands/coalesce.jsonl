@@ -13,7 +13,7 @@
 {"name":"empty-string-is-non-null","query":"{:s \"\"} | coalesce(/missing, /s, \"default\")","expect":"\"\""}
 {"name":"empty-vec-is-non-null","query":"{:list []} | coalesce(/missing, /list, \"default\")","expect":"[]"}
 {"name":"empty-map-is-non-null","query":"{:obj {}} | coalesce(/missing, /obj, \"default\")","expect":"{}"}
-{"name":"empty-set-is-non-null","query":"{:tags #{}} | coalesce(/missing, /tags, \"default\")","expect":"#{}"}
+{"name":"empty-set-is-non-null","query":"{:tags #[]} | coalesce(/missing, /tags, \"default\")","expect":"#[]"}
 {"name":"keyword-is-non-null","query":"{:k :foo} | coalesce(/missing, /k)","expect":":foo"}
 {"name":"literal-default-string","query":"{} | coalesce(/missing, \"fallback\")","expect":"\"fallback\""}
 {"name":"literal-default-number","query":"{} | coalesce(/missing, 42)","expect":"42"}
@@ -23,7 +23,7 @@
 {"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | coalesce(/a, div(0))","expect":"1"}
 {"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce(/a, /b, div(0), \"unreached\")","expect":"99"}
 {"name":"evaluates-failing-when-needed","query":"{} | coalesce(/missing, \"safe\")","expect":"\"safe\""}
-{"name":"no-args-error","query":"{} | coalesce()","error":"arity-error","expect":"::CoalesceNoAlternativesError!{\n  :fault {\n    :step ~{coalesce()}\n    :input {}\n  }\n}"}
+{"name":"no-args-error","query":"{} | coalesce()","error":"arityError","expect":"::CoalesceNoAlternativesError!{\n  :faultStep ~{coalesce()}\n  :faultInput {}\n}"}
 {"name":"with-projection-chain","query":"{:user {:name \"Alice\"}} | coalesce(/admin, /user/name, \"Unknown\")","expect":"\"Alice\""}
 {"name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce(/a/b/c, /a/b, /a, 0)","expect":"42"}
 {"name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if(/active, coalesce(/preferredName, /name, \"???\"), \"inactive\")","expect":"\"Bob\""}

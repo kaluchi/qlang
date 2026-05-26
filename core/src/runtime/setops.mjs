@@ -11,7 +11,7 @@
 //                        resolve against it, then apply the pair.
 //
 // Each throw site has its own unique error class.
-// Meta lives in lib/qlang/operand/set-op.qlang.
+// Meta lives in lib/qlang/operand/setOp.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
 import {
@@ -27,7 +27,7 @@ import { bindPrim } from '../primitives.mjs';
 import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
 
 // Map-minus-Set / Map-inter-Set drop or keep entries by their
-// String key. The Set typically carries Keywords (`#{:tmp}`) — the
+// String key. The Set typically carries Keywords (`#[:tmp]`) — the
 // keyword's `.name` matches the Map's String key. Composite Set
 // members would not be meaningful as Map-key filters, so the
 // lookup stays keyword-name-only.

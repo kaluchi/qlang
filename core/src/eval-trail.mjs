@@ -71,7 +71,7 @@ export function materializePendingTrail(value) {
   const combined = combineTrailQuotes(value.descriptor.get('trail'), materializeTrail(value));
   const next = new Map(value.descriptor);
   next.set('trail', combined);
-  return makeErrorValue(next, {
+  return makeErrorValue(value.tag, next, {
     location: value.location,
     originalError: value.originalError
   });

@@ -88,6 +88,6 @@ describe('manifest catalog self-test via runExamples', () => {
     // distinct set of :ok values is exactly `[true]`.
     const distinctOkValues = await evalQuery('manifest * (runExamples * /ok) | flat | distinct');
     expect(isErrorValue(distinctOkValues)).toBe(false);
-    expect(distinctOkValues).toEqual([true]);
+    expect(distinctOkValues).toEqual(new Set([true]));
   }, 30000);
 });

@@ -1,0 +1,44 @@
+{"name":"filter-jsonarray-preserves-tag","query":"::json[1 2 3 4] | filter(gt(2)) | type","expect":":jsonArray"}
+{"name":"sort-jsonarray-preserves-tag","query":"::json[3 1 2] | sort | type","expect":":jsonArray"}
+{"name":"sort-keyed-jsonarray-preserves-tag","query":"::json[{:k 2} {:k 1}] | sort(/k) | type","expect":":jsonArray"}
+{"name":"take-jsonarray-preserves-tag","query":"::json[1 2 3 4] | take(2) | type","expect":":jsonArray"}
+{"name":"drop-jsonarray-preserves-tag","query":"::json[1 2 3 4] | drop(2) | type","expect":":jsonArray"}
+{"name":"reverse-jsonarray-preserves-tag","query":"::json[1 2 3] | reverse | type","expect":":jsonArray"}
+{"name":"flat-jsonarray-preserves-tag","query":"::json[[1] [2 3]] | flat | type","expect":":jsonArray"}
+{"name":"sortWith-jsonarray-preserves-tag","query":"::json[3 1 2] | sortWith(sub(/left, /right)) | type","expect":":jsonArray"}
+{"name":"groupBy-jsonarray-buckets-preserve-tag","query":"::json[1 2 3 4 5] | groupBy(if(gt(2), :big, :small)) | /big | type","expect":":jsonArray"}
+{"name":"distribute-jsonarray-jsonscalar-preserves-tag","query":"::json[1 2 3] * mul(2) | type","expect":":jsonArray"}
+{"name":"distribute-jsonarray-qlangonly-element-drops-to-vec","query":"::json[1 2 3] * keyword | type","expect":":vec"}
+{"name":"union-jsonobject-preserves-tag","query":"::json{:a 1} | union(::json{:b 2}) | type","expect":":jsonObject"}
+{"name":"inter-jsonobject-preserves-tag","query":"::json{:a 1 :b 2} | inter(::json{:a 9}) | type","expect":":jsonObject"}
+{"name":"minus-jsonobject-preserves-tag","query":"::json{:a 1 :b 2} | minus(::json{:a 9}) | type","expect":":jsonObject"}
+{"name":"vals-jsonobject-yields-jsonarray","query":"::json{:a 1 :b 2} | vals | type","expect":":jsonArray"}
+{"name":"vals-jsonobject-elements-pass-through","query":"::json{:a 1 :b 2} | vals | sum","expect":"3"}
+{"name":"vals-qlangmap-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":":vec"}
+{"name":"keys-jsonobject-yields-jsonarray","query":"::json{:a 1 :b 2} | keys | type","expect":":jsonArray"}
+{"name":"keys-jsonobject-elements-are-strings","query":"::json{:a 1 :b 2} | keys | first | type","expect":":string"}
+{"name":"keys-jsonobject-roundtrip-key-equality","query":"::json{:a 1 :b 2} | keys | first | eq(\"a\")","expect":"true"}
+{"name":"keys-qlangmap-yields-set","query":"{:a 1 :b 2} | keys | type","expect":":set"}
+{"name":"keys-qlangmap-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":":keyword"}
+{"name":"has-jsonobject-by-string-key","query":"::json{:a 1 :b 2} | has(\"a\")","expect":"true"}
+{"name":"has-jsonobject-by-missing-string-key","query":"::json{:a 1 :b 2} | has(\"c\")","expect":"false"}
+{"name":"has-qlangmap-by-keyword-key","query":"{:a 1 :b 2} | has(:a)","expect":"true"}
+{"name":"keys-then-has-roundtrip-jsonobject","query":":src ::json{:a 1 :b 2} | src | keys | first | as(:k) | src | has(k)","expect":"true"}
+{"name":"keys-then-has-roundtrip-qlangmap","query":":src {:a 1 :b 2} | src | keys | first | as(:k) | src | has(k)","expect":"true"}
+{"name":"at-jsonobject-by-string-key","query":"::json{:a 1 :b 2} | at(\"a\")","expect":"1"}
+{"name":"at-qlangmap-by-keyword-key","query":"{:a 1 :b 2} | at(:a)","expect":"1"}
+{"name":"keys-then-at-roundtrip-jsonobject","query":":src ::json{:a 1 :b 2} | src | keys | first | as(:k) | src | at(k)","expect":"1"}
+{"name":"keys-then-at-roundtrip-qlangmap","query":":src {:a 1 :b 2} | src | keys | first | as(:k) | src | at(k)","expect":"1"}
+{"name":"union-cross-shape-leftqlangmap-wins","query":"{:a 1} | union(::json{:b 2}) | type","expect":":map"}
+{"name":"union-cross-shape-leftjsonobject-wins","query":"::json{:a 1} | union({:b 2}) | type","expect":":jsonObject"}
+{"name":"distribute-jsonarray-of-jsonobjects-projection","query":"::json[{:a 1} {:a 2}] * /a | type","expect":":jsonArray"}
+{"name":"first-jsonarray-of-jsonobjects-element-preserved","query":"::json[{:a 1} {:a 2}] | first | type","expect":":jsonObject"}
+{"name":"keys-qlangmap-set-deepequal-by-structural-membership","query":"{:a 1 :b 2} | keys | eq(#[:b :a])","expect":"true"}
+{"name":"keys-jsonobject-jsonarray-deepequal-by-order","query":"::json{:a 1 :b 2} | keys | eq(::json[\"a\" \"b\"])","expect":"true"}
+{"name":"keys-jsonobject-jsonarray-not-equal-reversed","query":"::json{:a 1 :b 2} | keys | eq(::json[\"b\" \"a\"])","expect":"false"}
+{"name":"keys-cross-shape-set-vs-jsonarray-not-equal","query":"{:a 1} | keys | eq(::json[\"a\"])","expect":"false"}
+{"name":"keys-cross-shape-jsonarray-vs-set-not-equal","query":"::json{:a 1} | keys | eq(#[\"a\"])","expect":"false"}
+{"name":"keys-jsonarray-vec-cross-equal-by-elements","query":"::json{:a 1 :b 2} | keys | eq([\"a\" \"b\"])","expect":"true"}
+
+
+

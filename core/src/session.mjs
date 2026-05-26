@@ -32,14 +32,14 @@ const SESSION_SCHEMA_VERSION = 1;
 // Per-site session deserialization errors.
 class SessionPayloadInvalidError extends QlangError {
   constructor() {
-    super('deserializeSession: invalid session payload', 'session-error');
+    super('deserializeSession: invalid session payload', 'sessionError');
     this.name = 'SessionPayloadInvalidError';
     this.fingerprint = 'SessionPayloadInvalidError';
   }
 }
 class SessionSchemaVersionMismatchError extends QlangError {
   constructor(actual, expected) {
-    super(`deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`, 'session-error');
+    super(`deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`, 'sessionError');
     this.name = 'SessionSchemaVersionMismatchError';
     this.fingerprint = 'SessionSchemaVersionMismatchError';
     this.context = { actual, expected };
@@ -47,7 +47,7 @@ class SessionSchemaVersionMismatchError extends QlangError {
 }
 class SessionConduitSourceMissingError extends QlangError {
   constructor(bindingName) {
-    super(`deserializeSession: conduit binding ${bindingName} has no source`, 'session-error');
+    super(`deserializeSession: conduit binding ${bindingName} has no source`, 'sessionError');
     this.name = 'SessionConduitSourceMissingError';
     this.fingerprint = 'SessionConduitSourceMissingError';
     this.context = { bindingName };
@@ -55,7 +55,7 @@ class SessionConduitSourceMissingError extends QlangError {
 }
 class SessionBindingKindUnknownError extends QlangError {
   constructor(kind) {
-    super(`deserializeSession: unknown binding kind '${kind}'`, 'session-error');
+    super(`deserializeSession: unknown binding kind '${kind}'`, 'sessionError');
     this.name = 'SessionBindingKindUnknownError';
     this.fingerprint = 'SessionBindingKindUnknownError';
     this.context = { kind };

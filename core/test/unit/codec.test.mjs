@@ -14,7 +14,11 @@ import {
   makeQuote,
   isQuote,
   makeDoc,
-  isDoc
+  isDoc,
+  makeJsonObject,
+  makeJsonArray,
+  isJsonObject,
+  isJsonArray
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
@@ -110,6 +114,81 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
     const items = restored.get('items');
     expect(items[2]).toBeInstanceOf(Set);
   });
+
+  it('round-trips a JsonObject preserving the JSON_OBJECT_TAG', () => {
+    const original = makeJsonObject({ a: 1, b: 'two', c: true });
+    const restored = roundTrip(original);
+    expect(isJsonObject(restored)).toBe(true);
+    expect(restored.a).toBe(1);
+    expect(restored.b).toBe('two');
+    expect(restored.c).toBe(true);
+  });
+
+  it('round-trips a JsonArray preserving the JSON_ARRAY_TAG', () => {
+    const original = makeJsonArray([1, 2, 3]);
+    const restored = roundTrip(original);
+    expect(isJsonArray(restored)).toBe(true);
+    expect(restored).toEqual([1, 2, 3]);
+  });
+
+  it('round-trips a JsonArray of JsonObjects (nested JSON shape)', () => {
+    const original = makeJsonArray([
+      makeJsonObject({ id: 1, name: 'a' }),
+      makeJsonObject({ id: 2, name: 'b' })
+    ]);
+    const restored = roundTrip(original);
+    expect(isJsonArray(restored)).toBe(true);
+    expect(restored.length).toBe(2);
+    expect(isJsonObject(restored[0])).toBe(true);
+    expect(restored[0].name).toBe('a');
+    expect(isJsonObject(restored[1])).toBe(true);
+    expect(restored[1].id).toBe(2);
+  });
+
+  it('round-trips a JsonObject with nested JsonArray values', () => {
+    const original = makeJsonObject({
+      tags: makeJsonArray(['x', 'y']),
+      meta: makeJsonObject({ depth: 2 })
+    });
+    const restored = roundTrip(original);
+    expect(isJsonObject(restored)).toBe(true);
+    expect(isJsonArray(restored.tags)).toBe(true);
+    expect(restored.tags).toEqual(['x', 'y']);
+    expect(isJsonObject(restored.meta)).toBe(true);
+    expect(restored.meta.depth).toBe(2);
+  });
+
+  it('JsonArray vs Vec stay distinguishable across the encode/decode boundary', () => {
+    const jArr = roundTrip(makeJsonArray([1, 2]));
+    const vec  = roundTrip([1, 2]);
+    expect(isJsonArray(jArr)).toBe(true);
+    expect(isJsonArray(vec)).toBe(false);
+  });
+
+  it('JsonObject vs qlang Map stay distinguishable across the encode/decode boundary', () => {
+    const jObj = roundTrip(makeJsonObject({ a: 1 }));
+    const qMap = roundTrip(new Map([['a', 1]]));
+    expect(isJsonObject(jObj)).toBe(true);
+    expect(jObj instanceof Map).toBe(false);
+    expect(qMap).toBeInstanceOf(Map);
+    expect(isJsonObject(qMap)).toBe(false);
+  });
+
+  it('tagged JsonArray preserves inner JSON_ARRAY_TAG through the $tagged envelope', async () => {
+    const { makeTagKeyword, makeTaggedInstance, isTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), makeJsonArray([1, 2, 3]));
+    const restored = roundTrip(tagged);
+    expect(isTaggedInstance(restored)).toBe(true);
+    expect(isJsonArray(restored)).toBe(true);
+    expect(restored).toEqual([1, 2, 3]);
+  });
+
+  it('tagged-instance encode of a JsonArray serialises as a bare JSON array inside $tagged, not as $vec', async () => {
+    const { makeTagKeyword, makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), makeJsonArray([1, 2]));
+    const encoded = toTaggedJSON(tagged);
+    expect(encoded).toEqual({ $tagged: { $tag: 'Box', payload: [1, 2] } });
+  });
 });
 
 describe('toTaggedJSON unencodable values', () => {
@@ -127,7 +206,7 @@ describe('toTaggedJSON unencodable values', () => {
     // langRuntime stores each built-in as a descriptor Map
     // (encodable). Function values still exist at the JS level —
     // every runtime/*.mjs primitive impl is one, and
-    // conduit-parameter proxies create fresh ones at applyConduit
+    // conduitParameter proxies create fresh ones at applyConduit
     // time — so the unencodable-function contract stays
     // load-bearing. Construct one directly via makeFn to exercise
     // the codec guard without depending on env contents.
@@ -141,12 +220,41 @@ describe('toTaggedJSON unencodable values', () => {
 });
 
 describe('fromTaggedJSON malformed input', () => {
-  it('throws MalformedTaggedJSONError on unrecognized tagged objects', () => {
-    expect(() => fromTaggedJSON({ $weird: 1 })).toThrow(MalformedTaggedJSONError);
-  });
-
   it('treats null/undefined as null', () => {
     expect(fromTaggedJSON(null)).toBeNull();
     expect(fromTaggedJSON(undefined)).toBeNull();
+  });
+
+  it('throws MalformedTaggedJSONError on a non-JSON JS value (Symbol)', () => {
+    expect(() => fromTaggedJSON(Symbol('weird'))).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('decodes a single-key object with an unknown $-prefixed key as a JsonObject (data-as-object)', () => {
+    const restored = fromTaggedJSON({ $weird: 1 });
+    expect(isJsonObject(restored)).toBe(true);
+    expect(restored.$weird).toBe(1);
+  });
+
+  it('decodes a multi-key object even when one key looks like an envelope marker', () => {
+    const restored = fromTaggedJSON({ $keyword: 'kw', other: 2 });
+    expect(isJsonObject(restored)).toBe(true);
+    expect(restored.$keyword).toBe('kw');
+    expect(restored.other).toBe(2);
+  });
+
+  it('throws MalformedTaggedJSONError on a $tagged envelope without an inner object', () => {
+    expect(() => fromTaggedJSON({ $tagged: null })).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('throws MalformedTaggedJSONError on a $tagged envelope missing the $tag slot', () => {
+    expect(() => fromTaggedJSON({ $tagged: { payload: 42 } })).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('throws MalformedTaggedJSONError on an $error envelope without an inner object', () => {
+    expect(() => fromTaggedJSON({ $error: null })).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('throws MalformedTaggedJSONError on an $error envelope missing the $tag slot', () => {
+    expect(() => fromTaggedJSON({ $error: { descriptor: { $map: [] } } })).toThrow(MalformedTaggedJSONError);
   });
 });

@@ -36,7 +36,7 @@ const KIND_TO_SGR = {
   operand:  '94',         // bright blue
   keyword:  '1;94',       // bold bright blue
   err:      '91',         // bright red — `!{}` + `!|`
-  set:      '92',         // bright green — `#{}` set brackets
+  set:      '92',         // bright green — `#[]` set brackets
   vec:      '93',         // bright yellow — `[]` vec brackets
   punct:    '90'          // bright black (subtle grey)
   // 'whitespace' has no entry — emitted raw, no escape sequence.

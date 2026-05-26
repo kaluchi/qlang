@@ -17,7 +17,7 @@
 //   * setops.mjs — bare-form (non-Vec subject, empty Vec) and
 //     full-form (two captured args) error / behaviour branches
 //     for `union` / `minus` / `inter`.
-//   * map-op.mjs — `count` polymorphism over Map subject.
+//   * mapOp.mjs — `count` polymorphism over Map subject.
 //   * Rule 10 dispatcher — `valueOp` arity overflow, `nullaryOp`
 //     called with captured args, `higherOrderOp` called with zero
 //     captured args.
@@ -80,7 +80,7 @@ describe('setops bare-form non-Vec subject errors', async () => {
   });
 
   it('union bare on a Set (which is also non-Array) throws', async () => {
-    expect(isErrorValue(await evalQuery('#{:a} | union'))).toBe(true);
+    expect(isErrorValue(await evalQuery('#[:a] | union'))).toBe(true);
   });
 
   it('minus bare on non-Vec throws MinusBareSubjectNotVecError', async () => {
@@ -94,7 +94,7 @@ describe('setops bare-form non-Vec subject errors', async () => {
 
 describe('setops full form (two captured args)', async () => {
   it('minus full form computes left minus right via two captured pipelines', async () => {
-    const result = await evalQuery('null | minus({:a 1 :b 2 :tmp 3}, #{:tmp})');
+    const result = await evalQuery('null | minus({:a 1 :b 2 :tmp 3}, #[:tmp])');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
@@ -102,7 +102,7 @@ describe('setops full form (two captured args)', async () => {
   });
 
   it('inter full form computes left inter right via two captured pipelines', async () => {
-    const result = await evalQuery('null | inter({:a 1 :b 2 :c 3}, #{:a :b})');
+    const result = await evalQuery('null | inter({:a 1 :b 2 :c 3}, #[:a :b])');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
@@ -136,7 +136,7 @@ describe('vec.min and vec.max on empty Vec', async () => {
 });
 
 describe('vec.sort with key on non-Vec subject', async () => {
-  it('sort with key throws SortByKeySubjectNotVecError', async () => {
+  it('sort with key throws SortByKeySubjectNotSequenceError', async () => {
     expect(isErrorValue(await evalQuery('42 | sort(/x)'))).toBe(true);
   });
 });

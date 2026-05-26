@@ -81,74 +81,76 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   });
 
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Box')],
-      ['payload', [42, 'inner']]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
     expect(printValue(instance)).toBe('::Box[42 "inner"]');
   });
 
   it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Marker')],
-      ['payload', []]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Marker'), []);
     expect(printValue(instance)).toBe('::Marker[]');
   });
 });
 
 describe('printErrorValue — head + payload-filter branches', () => {
-  it('an error with no :kind prints in plain !{…} form (no tag-head prefix)', async () => {
-    const err = makeErrorValue(new Map([['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]]));
-    expect(printValue(err)).toBe('!{:kind :oops}');
+  it('default ::Error tag heads an otherwise-empty error', async () => {
+    // After Phase 1, every error carries an identity tag on the
+    // JS-header `tag` slot — `::Error` is the universal default
+    // for user `!{}` without explicit `:kind ::Foo`. The printer
+    // emits the tag unconditionally so the round-trip recovers
+    // the same identity.
+    const err = makeErrorValue(makeTagKeyword('Error'), new Map());
+    expect(printValue(err)).toBe('::Error!{}');
   });
 
-  it('an error with no :kind keeps :message in the payload (user data, not template-fill)', async () => {
-    // Without a TagKeyword `:kind`, the printer has no class
-    // identity to point hypertext docs at — `:message` is therefore
-    // user-provided content, not a derivable template-fill, and
-    // stays in the printed form.
-    const err = makeErrorValue(new Map([
-      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }],
+  it('descriptor fields ride after the tag head', async () => {
+    const err = makeErrorValue(makeTagKeyword('Error'), new Map([
       ['message', 'something broke']
     ]));
-    expect(printValue(err)).toBe('!{:kind :oops :message "something broke"}');
+    expect(printValue(err)).toBe('::Error!{:message "something broke"}');
   });
 
-  it('an empty error descriptor (only auto-injected :trail null) renders as !{}', async () => {
-    const err = makeErrorValue(new Map());
-    expect(printValue(err)).toBe('!{}');
+  it('descriptor with non-TagKeyword :kind keeps the field verbatim under the default ::Error head', async () => {
+    // The runtime treats `:kind` only as an identity slot when its
+    // value is a TagKeyword. A plain-keyword `:kind` stays in the
+    // descriptor as ordinary user data — the universal `::Error`
+    // tag still appears at the head.
+    const err = makeErrorValue(makeTagKeyword('Error'), new Map([
+      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+    ]));
+    expect(printValue(err)).toBe('::Error!{:kind :oops}');
   });
 
-  it('a tag-headed error with only :kind survives the payload filter as ::Tag!{}', async () => {
-    const err = makeErrorValue(new Map([['kind', makeTagKeyword('Foo')]]));
+  it('an empty user-defined tag-headed error renders as ::Foo!{}', async () => {
+    const err = makeErrorValue(makeTagKeyword('Foo'), new Map());
     expect(printValue(err)).toBe('::Foo!{}');
   });
 
-  it('a tag-headed error renders the payload after the head, suppressing :kind duplication', async () => {
-    const err = makeErrorValue(new Map([
-      ['kind', makeTagKeyword('Foo')],
+  it('a tag-headed error renders the payload after the head', async () => {
+    const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
       ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
   });
 
-  it('a tag-headed error elides :message (template-fill reachable via ::Tag | docs)', async () => {
-    const err = makeErrorValue(new Map([
-      ['kind', makeTagKeyword('Foo')],
-      ['message', 'template-derivable prose'],
+  it(':message rides through the printer verbatim — user content, not template-fill', async () => {
+    // Earlier shape elided `:message` when a tag head was present;
+    // Phase 1 keeps the field so user-stamped messages round-trip
+    // exactly. Runtime-side errors (`errorFromQlang`) simply omit
+    // `:message` from the descriptor at construction.
+    const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
+      ['message', 'user-stamped prose'],
       ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
-    expect(printValue(err)).toBe('::Foo!{:category :oops}');
+    expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
   });
 });
 
 describe('renderTaggedInstanceInline — table cell handler', () => {
   it('a tagged-instance in cell position round-trips through ::Tag[payload…]', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Box')],
-      ['payload', [42]]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
     const row = new Map([['boxed', instance]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -158,10 +160,8 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
   });
 
   it('a tagged-instance with Number payload renders as ::Tag(42) — ParenGroup wrap branch', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Count')],
-      ['payload', 42]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Count'), 42);
     const row = new Map([['c', instance]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
@@ -171,16 +171,61 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
   });
 
   it('a tagged-instance inside a Vec cell — inline handler fires', async () => {
-    const instance = new Map([
-      ['kind', makeTagKeyword('Pair')],
-      ['payload', [1, 2]]
-    ]);
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTagKeyword('Pair'), [1, 2]);
     const row = new Map([['pairs', [instance]]]);
     const rendered = await table.fn(
       { pipeValue: [row], env: new Map() },
       []
     );
     expect(rendered.pipeValue).toContain('::Pair[1 2]');
+  });
+
+  it('renders tagged Map / tagged Set / tagged scalar inside a Vec cell — inline handler branches', async () => {
+    // `renderTaggedInstanceInline` dispatches by payload shape:
+    // tagged Map renders as `::Tag{…}`, tagged Set as `::Tag#[…]`,
+    // tagged scalar (wrap-object) as `::Tag<payload>` (or
+    // `::Tag(payload)` for identifier-shaped scalars). String
+    // payload opens with `"` and skips the ParenGroup wrap, so
+    // the bare-concatenation branch fires.
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const taggedMap = makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']]));
+    const taggedSet = makeTaggedInstance(makeTagKeyword('Keys'), new Set([1, 2]));
+    const taggedStr = makeTaggedInstance(makeTagKeyword('Note'), 'remember');
+    const row = new Map([
+      ['users', [taggedMap]],
+      ['perms', [taggedSet]],
+      ['notes', [taggedStr]]
+    ]);
+    const rendered = await table.fn(
+      { pipeValue: [row], env: new Map() },
+      []
+    );
+    expect(rendered.pipeValue).toContain('::User{:name "alice"}');
+    expect(rendered.pipeValue).toContain('::Keys#[1 2]');
+    expect(rendered.pipeValue).toContain('::Note"remember"');
+  });
+});
+
+describe('toPlain encodes every TaggedInstance shape through the $tag envelope', () => {
+  it('Set / Map / wrap-object payload shapes each encode their inner data plane', async () => {
+    // The TaggedInstance `toPlain` handler routes by payload
+    // shape — Set / Map / opaque wrap-object branches are
+    // exercised here; the Array branch is covered through the
+    // earlier `Box[42]` test.
+    const { makeTaggedInstance, makeTagKeyword: makeTag } = await import('../../src/types.mjs');
+    const taggedSet = makeTaggedInstance(makeTag('Keys'), new Set([1, 2]));
+    const plainSet = toPlain(taggedSet);
+    expect(plainSet.$tag).toBe('Keys');
+    expect(plainSet.payload).toEqual([1, 2]);
+    const taggedMap = makeTaggedInstance(makeTag('User'), new Map([['name', 'alice']]));
+    const plainMap = toPlain(taggedMap);
+    expect(plainMap.$tag).toBe('User');
+    expect(plainMap.payload).toEqual({ name: 'alice' });
+    const taggedStr = makeTaggedInstance(makeTag('Note'), 'hello');
+    const plainStr = toPlain(taggedStr);
+    expect(plainStr.$tag).toBe('Note');
+    expect(plainStr.payload).toBe('hello');
   });
 });
 
@@ -352,8 +397,8 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
     const vecCell = await evalQuery('[{:tags [1 2 3]}] | table');
     expect(vecCell).toContain('[1 2 3]');
     // Set-valued cell — insertion order preserved by the Set literal.
-    const setCell = await evalQuery('[{:tags #{:a :b}}] | table');
-    expect(setCell).toContain('#{:a :b}');
+    const setCell = await evalQuery('[{:tags #[:a :b]}] | table');
+    expect(setCell).toContain('#[:a :b]');
     // Error-valued cell: !{…} wrapped descriptor inline. The
     // runtime materializes an error descriptor with `:trail null`
     // when no success-track combinator has deflected past the
@@ -393,7 +438,7 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
 
   it('json roundtrips Set as array', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('#{1 2 3} | json')).toMatch(/^\[/);
+    expect(await evalQuery('#[1 2 3] | json')).toMatch(/^\[/);
   });
 
   it('json roundtrips keyword as colon-prefixed string', async () => {

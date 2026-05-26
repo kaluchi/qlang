@@ -5,14 +5,14 @@
    `filter` / `every` / `any` / `if` / `when` / `unless` chain
    composes over. Type classifiers and the `keyword` involution
    ride parallel axes and live in
-   `core/lib/qlang/operand/type-classifier.qlang` and
-   `core/lib/qlang/operand/type-conversion.qlang` respectively;
+   `core/lib/qlang/operand/typeClassifier.qlang` and
+   `core/lib/qlang/operand/typeConversion.qlang` respectively;
    comparator builders (`asc`/`desc`/`nullsFirst`/`nullsLast`) for
    sortWith live in `core/lib/qlang/operand/comparator.qlang`. ~|
 
 :not
   |~~ Logical negation. Returns true if the subject is falsy
-      (null or false), false otherwise. 0, "", [], {}, #{} are
+      (null or false), false otherwise. 0, "", [], {}, #[] are
       all truthy.
 
       ~{null | not | eq(true)}
@@ -60,7 +60,7 @@
         |  eq([::GtOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :gt}
+  ::builtin{:category :typeError :operand :gt}
 
 :lt
   |~~ Subject-first ordering: a | lt(b) computes a < b.
@@ -82,7 +82,7 @@
         |  eq([::LtOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :lt}
+  ::builtin{:category :typeError :operand :lt}
 
 :gte
   |~~ Subject-first ordering: a | gte(b) computes a >= b.
@@ -104,7 +104,7 @@
         |  eq([::GteOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :gte}
+  ::builtin{:category :typeError :operand :gte}
 
 :lte
   |~~ Subject-first ordering: a | lte(b) computes a <= b.
@@ -126,7 +126,7 @@
         |  eq([::LteOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :lte}
+  ::builtin{:category :typeError :operand :lte}
 
 :and
   |~~ Returns true if both operands are truthy. Used in full form

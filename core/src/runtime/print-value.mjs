@@ -10,7 +10,7 @@
 //   * raw qlang function values → `FunctionValueLeakedToPrintError`
 //   * Snapshot wrappers — auto-unwrapped on identifier-lookup /
 //     projection before reaching this code path
-//   * conduit-parameter proxies — local to `applyConduit`'s body
+//   * conduitParameter proxies — local to `applyConduit`'s body
 //     fork, never escape the outer pipeValue channel
 //
 // `dispatchQlangValue` is the per-value-class lookup-table walker
@@ -27,9 +27,9 @@ import {
   isQSet,
   isErrorValue,
   isFunctionValue,
-  isTagKeyword,
   describeType,
   keyword,
+  TAG_HEADER_SYMBOL,
   FunctionValueLeakedToPrintError
 } from '../types.mjs';
 import { primKey } from '../primitives.mjs';
@@ -113,7 +113,7 @@ const PRINT_HANDLERS = {
   Error:      printErrorValue,
   Vec:        (v, indent) => printListLike('[', ']', ' ',  v,      indent),
   Map:        (m, indent) => printMapLike('{', m, indent),
-  Set:        (s, indent) => printListLike('#{', '}', ' ', [...s], indent),
+  Set:        (s, indent) => printListLike('#[', ']', ' ', [...s], indent),
   Quote:      q => '~{' + q.source + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: (o, indent) => printJsonObject(o, indent),
@@ -158,28 +158,22 @@ function printListLike(open, close, inlineSep, elements, indent) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${closePad}${close}`;
 }
 
-// Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
-// when `:kind` carries a TagKeyword — entropy promotion: the tag
-// identity rides at the structural front-position of the literal,
-// the same shape `printTaggedInstance` produces for non-error
-// tagged-instances. The payload-Map below drops three categories
-// of already-known content so the printed form stays terse:
-//   * `:kind` itself when tagHead absorbed it,
-//   * `:trail null` (makeErrorValue's invariant restores it on
-//     reconstruction — see types.mjs::makeErrorValue),
-//   * `:message` when tagHead is present (the canonical prose is
-//     reachable through `::Tag | docs` hypertext navigation; the
-//     stamped string is template-fill derivable from the other
-//     structured fields).
+// Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map —
+// the tag identity rides at the structural front-position of the
+// literal, the same shape `printTaggedInstance` produces for
+// non-error tagged-instances. `error.tag` is always a TagKeyword
+// (universal identity invariant for the value-class), so the
+// head is unconditional. The payload-Map drops the auto-injected
+// `:trail null` (makeErrorValue's invariant restores it on
+// reconstruction — see types.mjs::makeErrorValue); every other
+// descriptor field — `:message`, per-site dynamic context, user-
+// stamped slots — rides through verbatim so the print form is
+// round-trip exact under `parse(printValue(V))`.
 function printErrorValue(e, indent) {
-  const desc = e.descriptor;
-  const kind = desc.get('kind');
-  const tagHead = isTagKeyword(kind) ? kind.literal : '';
+  const tagHead = e.tag.literal;
   const payload = new Map();
-  for (const [k, v] of desc) {
-    if (k === 'kind' && tagHead) continue;
+  for (const [k, v] of e.descriptor) {
     if (k === 'trail' && v === null) continue;
-    if (k === 'message' && tagHead) continue;
     payload.set(k, v);
   }
   if (payload.size === 0) return tagHead + '!{}';
@@ -204,17 +198,23 @@ function printJsonObject(obj, indent) {
 // makeConduit reproduces the same Conduit-value modulo the
 // lexical envRef holder, which the constructor binds to the
 // call-site env at reconstruction time.
+// The `::conduit` literal head sits on the Map's TAG_HEADER_SYMBOL
+// slot — Phase 2 lifted the identity off the descriptor onto the
+// header, so the printer reads it through the same channel
+// `typeKeyword` / `isConduit` use. Mirrors the fixed `::Tag` heads
+// JsonObject / JsonArray emit through their own Symbol-tag
+// round-trip paths.
 export function printConduit(conduit) {
-  const conduitTagLiteral = conduit.get('kind').literal;
+  const tagLiteral = conduit[TAG_HEADER_SYMBOL].literal;
   const name = conduit.get('name');
   const params = conduit.get('params');
   const source = conduit.get('source');
   const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
   const quotedBody = '~{' + source + '}';
   if (name == null) {
-    return `${conduitTagLiteral}[${paramList} ${quotedBody}]`;
+    return `${tagLiteral}[${paramList} ${quotedBody}]`;
   }
-  return `${conduitTagLiteral}[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
+  return `${tagLiteral}[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
 }
 
 function printSnapshot(snapshot) {
@@ -233,10 +233,36 @@ function printSnapshot(snapshot) {
 // sigil (`"`, `:`, `[`, `{`, `#`, `~`, `|`, `!`, `/`) that the
 // parser splits on cleanly, so no wrap is needed.
 export const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
+// Render shape mirrors the payload shape — the identity-overlay
+// design preserves the payload's native type through the header
+// stamp on composites, and uses an opaque wrap object for
+// payloads that cannot carry the header themselves:
+//
+//   Tagged Vec (Array + header) → `::Tag[…elements…]`.
+//   Tagged Set (Set + header)   → `::Tag#[…elements…]`.
+//   Tagged Map (Map + header)   → `::Tag{:field value …}`.
+//   Tagged wrap (opaque frozen `{type, tag, payload}` object)
+//     → `::Tag<payload>` where `<payload>` is the payload's
+//     printed form, with ParenGroup wrap for identifier-shaped
+//     scalars (`::Tag(42)`, `::Tag(true)`) so the parser splits
+//     cleanly at the tag boundary.
+//
+// `isTaggedInstance(instance)` always holds at this entry —
+// `dispatchQlangValue` routes through the `TaggedInstance`
+// handler off `describeType`.
 function printTaggedInstance(instance, indent) {
-  const tagLiteral = instance.get('kind').literal;
-  const payload = instance.get('payload');
-  const payloadPrint = printValue(payload, indent);
+  const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
+  if (Array.isArray(instance)) {
+    return tagLiteral + printListLike('[', ']', ' ', [...instance], indent);
+  }
+  if (instance instanceof Set) {
+    return tagLiteral + printListLike('#[', ']', ' ', [...instance], indent);
+  }
+  if (instance instanceof Map) {
+    return tagLiteral + printMapLike('{', instance, indent);
+  }
+  // Opaque wrap object — read `.payload` directly.
+  const payloadPrint = printValue(instance.payload, indent);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint)) {
     return `${tagLiteral}(${payloadPrint})`;
   }

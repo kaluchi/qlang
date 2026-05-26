@@ -1,7 +1,7 @@
 // Fork semantics.
 //
 // On entry to a nested expression — `(...)`, `[...]`, `{...}`,
-// `#{...}` — the inner sub-pipeline starts with a copy of the
+// `#[...]` — the inner sub-pipeline starts with a copy of the
 // outer state. When the sub-pipeline finishes, its final
 // pipeValue propagates out, but its env changes are discarded.
 //

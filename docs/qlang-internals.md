@@ -72,7 +72,7 @@ Components of the pair are individually first-class, however:
 
 No operation exposes the pair as a single object, and none of the
 worked examples needs one. The combinators (`|`, `!|`, `*`, `>>`)
-and fork boundaries (`()`, `[]`, `{}`, `#{}`) transform the pair
+and fork boundaries (`()`, `[]`, `{}`, `#[]`) transform the pair
 implicitly — that implicit transformation is the semantics of
 the language, described here in meta-notation for clarity.
 
@@ -97,7 +97,7 @@ combinators and fired on by `!|` (see the fail-track dispatch
 section below).
 
 For compound literals with expression elements (e.g., `[/name, /age]`,
-`{:greeting /name}`, `#{/tag}`), each element or value is evaluated as
+`{:greeting /name}`, `#[/tag]`), each element or value is evaluated as
 a sub-pipeline in a **fork** of `(pipeValue, env)` — see Fork below.
 
 ### 2. Projection — `/key`
@@ -181,10 +181,10 @@ through. The bound value is shaped by the body's purity and shape:
 When the conduit name is later looked up via Step 3:
 
 1. Captured-arg expressions (one per parameter) become lazy lambdas.
-2. Each lambda is wrapped in a conduit-parameter — a nullary function
+2. Each lambda is wrapped in a conduitParameter — a nullary function
    value that fires the lambda against the lookup-site `pipeValue`.
 3. The body evaluates in a fork with `envRef.env` (the declaration-
-   time env) plus the conduit-parameter proxies layered on top.
+   time env) plus the conduitParameter proxies layered on top.
 4. The fork's final `pipeValue` propagates out; the outer env is
    preserved.
 
@@ -310,15 +310,17 @@ the point of lookup).
 Arity 1. Ignores `pipeValue`; iterates over every binding in the
 current `env`, building a descriptor Map per entry via
 `describeBinding` in `runtime/manifest-op.mjs`, and returns a Vec
-of descriptors sorted by binding name. The descriptor `:kind`
-field distinguishes four provenances:
+of descriptors sorted by binding name. The descriptor's `:kind`
+field is an explicit enum-bucket TagKeyword on the view-Map
+(distinct from identity which rides on the underlying env entry's
+JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
+same way, so `manifest | filter(/kind | eq(::builtin))` and
+`manifest | filter(type | eq(::builtin))` agree). Five provenances:
 
 - `::builtin` — env entry is a descriptor Map loaded by
   `langRuntime()` from one of the catalog family files under
   `lib/qlang/operand/`. The user-facing descriptor stamps
-  `:kind ::builtin` (TagKeyword matching the env-side shape, so
-  `manifest | first | type` reads `::builtin` identically to
-  `env | /:name | type`), drops the `:impl` handle (dispatch-time
+  `:kind ::builtin`, drops the `:impl` handle (dispatch-time
   primitive key is internal), and copies `:category`,
   `:subject`, `:modifiers`, `:returns`, `:throws` verbatim. The
   derived `:captured` / `:effectful` fields are stamped from the
@@ -327,14 +329,20 @@ field distinguishes four provenances:
   `:name | docs` axis (Vec of Doc-values) or `:name | examples`
   axis (Vec of Quote-values pulled from every `~{…}` segment in
   the docs).
-- `:conduit` — a BindStep-installed conduit. Descriptor has
-  `:kind :conduit`, `:name`, `:params`, `:source` (textual form
+- `::tagBinding` — env entry under a `::Tag` name (catalog tag
+  declaration: error tags, value-class tags, the `::builtin`
+  meta-tag itself). Descriptor stamps `:kind ::tagBinding` and
+  copies every descriptor field through (category, position,
+  expectedType, impl handle for value-class constructors, …).
+- `::conduit` — a BindStep-installed conduit. Descriptor has
+  `:kind ::conduit`, `:name`, `:params`, `:source` (textual form
   of the body), `:effectful`, `:location`.
-- `:snapshot` — an `as`-bound snapshot. Descriptor has `:kind
-  :snapshot`, `:name`, `:value`, `:type`, `:effectful`, `:location`.
-- `:value` — any other plain JS value (scalar, Vec, Map, Set,
+- `::snapshot` — an `as`-bound snapshot. Descriptor has `:kind
+  ::snapshot`, `:name`, `:value`, `:type`, `:effectful`,
+  `:location`.
+- `::value` — any other plain JS value (scalar, Vec, Map, Set,
   error value, function value, etc.). Descriptor has `:kind
-  :value`, `:name`, `:value`, `:type`.
+  ::value`, `:name`, `:value`, `:type`.
 
     (pipeValue, env) → (Vec<descriptor>, env)
 
@@ -372,7 +380,12 @@ carrying `:kind :tag` plus a constructor handle on
    governs Map / Vec / Set literal entries. The result is the
    **payload-value**.
 2. **Look up the tag binding.** `'::' + node.tag` is the env key.
-   Absent → `TaggedLitTagNotFoundError` with the missing tag name.
+   Absent → auto-declare an identity-only Map binding carrying
+   `:declarationOrigin :implicit` in the query-local env, then
+   continue with the default constructor branch below. The
+   marker field lets `manifest(:tag) | filter(/declarationOrigin
+   | eq(:implicit))` surface every tag the source never bound
+   explicitly — strict-mode lint and CI tooling read that view.
 3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
    snapshots route through here too).
 4. **Validate descriptor shape.** Binding must be a Map (typically
@@ -387,20 +400,35 @@ carrying `:kind :tag` plus a constructor handle on
      (cached as `.ast` after the first parse), build a fresh
      state with `pipeValue = payloadValue` and the surrounding
      env, evaluate the body AST, ascend the result.
-   - **Undefined** + payload is an **ErrorValue** — re-stamp the
-     descriptor with `:kind ::Tag` and return a fresh
+   - **Undefined** + payload is an **ErrorValue** — rebrand
+     the JS-header `tag` slot to `::Tag` and return a fresh
      ErrorValue carrying the promoted identity. Lets every error
      tag work as a literal constructor (`::Tag!{…}`) without
      per-tag JS, mirroring the shape `errorFromQlang` produces
-     from a runtime throw site.
-   - **Undefined** + any other payload — build a success-track
-     **TaggedInstance** Map `{:kind ::Tag :payload
-     <value>}`. The payload value rides under the `:payload`
-     slot for every Primary that doesn't carry error semantics
-     (`::Tag[…]` / `::Tag{…}` / `::Tag"s"` / `::Tag:foo` /
-     `::Tag(42)` / etc.). Generic constructor every tag-binding
-     shares; the printer rebuilds the source-form TaggedLit from
-     the slot's value-class.
+     from a runtime throw site. The descriptor passes through
+     unchanged — identity-stamping touches the header alone.
+   - **Undefined** + any other payload — `makeTaggedInstance`
+     builds a success-track **TaggedInstance** with identity
+     overlay on the payload's JS-header `TAG_HEADER_SYMBOL`
+     slot. Two payload shapes:
+     - **Composite** (untagged Vec / Set / Map): the constructor
+       clones the payload and stamps the header — native shape
+       preserved, `isVec` / `isQSet` / `isQMap` still hold, every
+       Vec / Set / Map operand works without unwrap. Identity
+       reads through `typeKeyword` / `type` operand.
+     - **Wrap-object** (scalar / Keyword / Quote / Doc / Error /
+       Conduit / Snapshot / already-tagged composite): the
+       payload cannot carry the header (primitives have no
+       property storage, frozen value-class objects refuse
+       `defineProperty`, nested tagged composites already own
+       the slot). The constructor returns a frozen opaque
+       `{type: 'taggedInstance', tag, payload}` object stamped
+       with the same header. The wrapper is not a Map, so
+       `/payload` projection throws cleanly — the dedicated
+       `payload` operand is the only extractor.
+     The same single mint site backs the runtime `value |
+     tag(::Foo)` operand; both literal and operand paths produce
+     observationally-identical values.
 
 ### `BareTypeKeyword` — tag-identifier as value
 
@@ -431,31 +459,41 @@ Constructors must satisfy:
 
 ### Tagged-instance round-trip
 
-A constructor that returns a Map carrying `:kind <TagKeyword>`
-plus `:payload <Vec>` produces a **tagged instance** —
-`isTaggedInstance` in `types.mjs` recognises the shape and
-`printValue` routes it through `printTaggedInstance`, which emits
-the `::tag[<payload>]` literal. The original source-form
-constructor invocation is recoverable from the value alone, so
-the round-trip theorem covers user-defined tagged types without a
-custom printer per tag.
+`makeTaggedInstance(tag, payload)` produces a **tagged instance**
+identified through the JS-header `TAG_HEADER_SYMBOL` slot —
+`isTaggedInstance` in `types.mjs` reads the slot directly
+(excluding the reserved tag names `conduit`, `snapshot`,
+`builtin` that ride their own dedicated render paths) and
+`printValue` routes the value through `printTaggedInstance`,
+which dispatches on the payload's native shape:
+- Tagged Array → `::tag[…]`.
+- Tagged Set   → `::tag#[…]`.
+- Tagged Map   → `::tag{…}`.
+- Opaque wrap object (`{type: 'taggedInstance', tag, payload}`)
+  → `::tag<payload>` (`::tag(scalar)` when the payload print
+  opens with an identifier character so the ParenGroup wrap
+  splits the parser cleanly at the tag boundary).
+The original source-form constructor invocation is recoverable
+from the value alone, so the round-trip theorem covers
+user-defined tagged types without a custom printer per tag.
 
-Three reserved tag names own dedicated render paths and bypass
-the generic tagged-instance branch:
-- `:conduit` → `::conduit[:self [params] ~{body}]` form (the
+Reserved tag names own dedicated render paths:
+- `::conduit` → `::conduit[:self [params] ~{body}]` form (the
   Conduit value-class print).
-- `:snapshot` → wrapped value (snapshot is an env wrapper,
+- `::snapshot` → wrapped value (snapshot is an env wrapper,
   recursing on the underlying value).
-- `:tag` → BindStep declaration form (a tag-binding renders
-  back as `::Tag {descriptor}` — the declaration form).
+- `::builtin` → catalog descriptor Map (manifest enumeration
+  surface, `:kind ::builtin` retained on the manifest view-Map
+  as an explicit enum bucket).
 
 The named-error promotion piggybacks on the same round-trip:
-`errorFromQlang` stamps `:kind ::Tag` on the descriptor
-(the universal tagged-value identity slot), `printErrorValue`
-folds the field into the literal head and emits `::Tag!{…}` with
-the rest of the descriptor as payload, and a literal `::Tag!{…}`
-source re-creates the same descriptor through the
-ErrorLit-payload branch.
+`errorFromQlang` stamps `::Tag` on the error value's JS-header
+`tag` slot, `printErrorValue` reads the header field straight
+into the literal head and emits `::Tag!{…}` with the descriptor
+fields as payload, and a literal `::Tag!{…}` source re-creates
+the same identity through the ErrorLit-payload branch of
+`evalTaggedLit` (which rebrands the JS-header tag on the
+inner ErrorValue without touching its descriptor).
 
 ## Combinators
 
@@ -494,8 +532,11 @@ and returns the error as the new `pipeValue`. Implementation:
 Fail-track dispatch dual of `|`. When `pipeValue` is an error,
 `applyFailTrack` combines the descriptor's existing `:trail` Vec
 with any new entries walked out of `_trailHead`, rebuilds the
-descriptor Map with the combined trail stamped onto `:trail`, and
-evaluates `nextStep` against that Map as the new `pipeValue`. The
+descriptor Map with the JS-header `tag` stamped back as the
+leading `:kind` field plus the combined trail stamped onto
+`:trail`, and evaluates `nextStep` against that Map as the new
+`pipeValue` — so per-instance explainers read identity through
+ordinary projection (`/kind`, `/kind | source`). The
 step sees the descriptor as an ordinary Map and may use any
 Map-oriented operand (`/key`, `has`, `keys`, `vals`, `union`,
 `filter` over `:trail`, etc.) without special error-handling
@@ -553,7 +594,7 @@ non-Vec `pipeValue` the step raises `MergeSubjectNotVecError`.
 
 ## Fork
 
-Nested expressions `(...)`, `[...]`, `{...}`, `#{...}` each open a
+Nested expressions `(...)`, `[...]`, `{...}`, `#[...]` each open a
 **fork**: a sub-pipeline that starts with a copy of the outer state.
 
 When the inner sub-pipeline finishes, its final `nextPipeValue`
@@ -636,11 +677,14 @@ co-located sources:
   by the operand BindSteps that reference those tags in their
   `:throws` Vec. Each operand binds a keyword identifier
   (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
-  descriptor Map carrying `:kind ::builtin` plus a
-  namespaced `:impl :qlang/prim/<name>` keyword that
-  points into the primitive registry, plus authored metadata
-  (`:category`, `:subject`, `:modifiers`, `:returns`,
-  `:throws`). Doc-prefixes attached to each BindStep via
+  descriptor Map carrying a namespaced `:impl :qlang/prim/<name>`
+  keyword that points into the primitive registry, plus
+  authored metadata (`:category`, `:subject`, `:modifiers`,
+  `:returns`, `:throws`). Identity (`::builtin`) rides on the
+  descriptor's JS-header `TAG_HEADER_SYMBOL` slot, stamped by
+  the `::builtin{…}` constructor in `runtime/tagged.mjs`; the
+  reader sites (`isBuiltinDescriptor`, `manifest`-op routing)
+  probe the header directly. Doc-prefixes attached to each BindStep via
   DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the
   module's `qlang/ast/<uri>` Quote as `step.docs` and are
   reachable through axis-operands (`:count | docs` returns a
@@ -682,7 +726,7 @@ reads the `:impl` handle, resolves it through
 and invokes it via Rule 10. Bare lookup fires the operand against
 the current `pipeValue` regardless of arity — non-nullary operands
 without captured args hit Rule 10's arity check and surface a
-per-site arity-error. The introspection surface for "what does this
+per-site arityError. The introspection surface for "what does this
 operand do" is `:name | source` / `:name | docs` / `:name |
 examples`, not a bare-name shortcut into the descriptor Map.
 
@@ -1085,18 +1129,26 @@ foreign host errors (best-effort field extraction from JS Error
 objects). `QlangInvariantError` subclasses are never caught — they
 mark runtime bugs and surface as JS-level throws.
 
-At the catch point, `evalNode` builds a `:fault` Map via
-`buildFaultMap(stepNode, state.pipeValue)` carrying `:step`
-(the AST-Map of the failing step, same shape as trail entries)
-and `:input` (the pipeValue the step received). The fault Map is
-passed to `errorFromQlang` / `errorFromForeign` and stamped onto
-the descriptor. For `distribute` and `mergeFlat` combinator
-type-check errors, the fault is built directly inside the
-combinator function (which has access to the correct
-`state.pipeValue` and `bodyNode`) and the error is returned as
-an error value without throwing — matching the existing
-deflection return pattern those combinators use for error
-pipeValues.
+At the catch point, `evalNode` stamps the error value's
+identity tag (a `::Tag` built from the throw site's
+`.fingerprint ?? .name`) on the fresh ErrorValue's JS-header
+`tag` slot via `errorFromQlang` / `errorFromForeign` — opaque
+to descriptor projection, read through `result !| type`. The
+descriptor itself takes two flat fields at the head: `:faultStep`
+(a Quote-value lifted from the failing AST node's `.text` via
+`makeQuote`) and `:faultInput` (the `state.pipeValue` the step
+received). No wrapper Map between them — they are the two
+top-level descriptor slots every runtime / foreign error carries.
+`errorFromQlang` additionally applies ref-equality dedup against
+`:faultInput` when stamping per-site `:actualValue` from the
+`QlangError.context` bag — the redundant lift is skipped when
+the offending value is the same reference as `:faultInput`. For
+`distribute` and `mergeFlat` combinator type-check errors, both
+fields are forged directly inside the combinator function (which
+has access to the correct `state.pipeValue` and `bodyNode`) and
+the error is returned as an error value without throwing —
+matching the existing deflection return pattern those combinators
+use for error pipeValues.
 
 ### Combinator-level track dispatch
 
@@ -1185,17 +1237,36 @@ in addition to the invariant `:trail`:
 
 | Field | Type | Content |
 |---|---|---|
-| `:kind` | TagKeyword | Per-site tag name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault (`:step`, a Quote-value lifted from the failing step's verbatim `.text` source slice via `makeQuote`) and the pipeline value it received as input (`:input`, the `state.pipeValue` at the `evalNode` catch point). Present on every runtime and foreign error. For `*` and `>>` combinator type-check errors, the fault is forged directly inside `distribute` / `mergeFlat` (which see the correct `state.pipeValue` and `bodyNode`), so `:fault/input` carries the actual pipeline value the combinator received |
-| `:actualValue` | any | The per-site value that triggered the type check — the value the throw site inspected. Differs from `:fault/input` for multi-segment projections (where `:actualValue` is the intermediate value, e.g., `null`, while `:fault/input` is the Map the Projection step received) |
-| `:actualType` | Keyword | The `typeKeyword` of `:actualValue` — `:string`, `:vec`, etc. The per-site dynamic field every type-error fires |
+Identity for an error value rides on the JS-header `tag` slot
+(`error.tag`, a TagKeyword) — opaque to descriptor projection,
+read directly by `typeKeyword(errorValue)` and through the
+`type` operand. The descriptor Map below carries only data
+fields; `!|` materialization stamps the tag onto the exposed
+Map's JS-header `TAG_HEADER_SYMBOL` slot (the uniform
+identity-overlay channel TaggedInstance / Conduit / Snapshot /
+catalog builtin descriptor all use), so `result !| type` reads
+the same identity, and the `payload` operand strips it cleanly.
+No redundant `:kind <tag>` Map field — any user-stamped `:kind`
+slot on the source descriptor (`{:kind :oops :…} | error`)
+rides through verbatim as ordinary data without identity-
+slot collision. Errors without an explicit `:kind ::Foo`
+literal entry default to the `::Error` generic identity so
+`error.tag` is always present without defensive checks at
+consumer sites.
+
+| Field | Type | Content |
+|---|---|---|
+| `:faultStep` | Quote | Verbatim source-text of the failing step, lifted to a Quote-value via `makeQuote(node.text)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` and `>>` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
+| `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
+| `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |
+| `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
-Per-tag static facts — `:category` (broad bucket: `:type-error` /
-`:arity-error` / `:parse-error` / `:foreign-error` /
-`:invariant-error` / `:division-by-zero` / `:primitive-unbound` /
-`:session-error` / `:codec-error` / `:ast-codec-error` /
-`:effect-laundering` / `:unresolved-identifier`), `:operand`,
+Per-tag static facts — `:category` (broad bucket: `:typeError` /
+`:arityError` / `:parseError` / `:foreignError` /
+`:invariantError` / `:divisionByZero` / `:primitiveUnbound` /
+`:sessionError` / `:codecError` / `:astCodecError` /
+`:effectLaundering` / `:unresolvedIdentifier`), `:operand`,
 `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
@@ -1337,7 +1408,7 @@ Three public entries, all kind-table dispatches keyed off
 `describeType`:
 
 - `printValue(v)` — qlang-literal display form (`42`, `"hi"`,
-  `:role`, `[1 2 3]`, `#{:a :b}`, `{:k :v}`, `!{:kind :K}`).
+  `:role`, `[1 2 3]`, `#[:a :b]`, `{:k :v}`, `!{:kind :K}`).
   Round-trips through `parse + evalQuery` back to the same value.
 - `toPlain(v)` — qlang value → JSON-serializable JS shape. Lossy
   for Set (→ array) and keyword-as-value (→ colon-prefixed string).
@@ -1400,7 +1471,7 @@ unrecognized tagged objects.
   OperandCall and Projection node. Run automatically by `parse()`.
 - `findFirstEffectfulIdentifier(node)` — returns the first effectful
   identifier in a subtree, used by `evalBindStep` for eval-time
-  effect-laundering validation.
+  effectLaundering validation.
 
 The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
 when an identifier resolves to an effectful function value but the

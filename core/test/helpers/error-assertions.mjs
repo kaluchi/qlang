@@ -20,10 +20,10 @@ export async function expectErrorResult(query) {
 // expectErrorCategory(query, category) → error value
 //
 // Asserts the query produces an error value whose underlying JS
-// error class names the given broad-bucket category (`'type-error'`,
-// `'arity-error'`, `'effect-laundering'`, `'parse-error'`,
-// `'foreign-error'`, `'division-by-zero'`, `'invariant-error'`,
-// `'unresolved-identifier'`, ...). The instance descriptor no
+// error class names the given broad-bucket category (`'typeError'`,
+// `'arityError'`, `'effectLaundering'`, `'parseError'`,
+// `'foreignError'`, `'divisionByZero'`, `'invariantError'`,
+// `'unresolvedIdentifier'`, ...). The instance descriptor no
 // longer carries `:category` — that field lives on the tag-binding's
 // catalog body, reachable through `result !| type | spec |
 // /category`. JS-side this check rides the equivalent `.kind`
@@ -44,7 +44,7 @@ export async function expectErrorCategory(query, category) {
 // the given class tag name (e.g. `'AddLeftNotNumberError'`).
 export async function expectErrorThrown(query, classTagName) {
   const errorResult = await expectErrorResult(query);
-  const identityTag = errorResult.descriptor.get('kind');
+  const identityTag = errorResult.tag;
   expect(identityTag?.name).toBe(classTagName);
   return errorResult;
 }

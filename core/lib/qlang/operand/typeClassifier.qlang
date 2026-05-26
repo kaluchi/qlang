@@ -1,4 +1,4 @@
-|~ qlang operand catalog — type-classifier family. Nullary
+|~ qlang operand catalog — typeClassifier family. Nullary
    predicates that lift a single value-class question to operand
    level — `:foo | isString` instead of `:foo | type | eq(:string)`.
    Plus `:type`, the canonical identity-tag reader
@@ -11,17 +11,18 @@
 
 :type
   |~~ Returns the value's identity tag. For tagged values
-      (errors, conduits, snapshots, tagged-instances, Maps
-      carrying `:kind`) returns the TagKeyword stamped
-      on the value. For scalars and base containers returns
-      the plain Keyword that names the kind (`:number`,
-      `:string`, `:keyword`, `:vec`, `:map`, `:set`, …).
+      (errors, conduits, snapshots, tagged-instances, builtin
+      descriptors) returns the TagKeyword stamped on the
+      value's JS-header `TAG_HEADER_SYMBOL` slot. For scalars
+      and base containers returns the plain Keyword that names
+      the kind (`:number`, `:string`, `:keyword`, `:vec`,
+      `:map`, `:set`, …).
 
       `result !| type` is the user-facing path to an error's
       tag identity — the materialised descriptor exposed by
-      `!|` is a Map carrying `:kind ::ErrorTag`, and
-      `type` reads it through the same invariant every other
-      tagged value-class shares.
+      `!|` is a Map with the per-site `::ErrorTag` riding on
+      the JS-header slot, and `type` reads through the same
+      invariant every other tagged value-class shares.
 
       ~{42 | type | eq(:number)}
       ~{"hi" | type | eq(:string)}
@@ -35,7 +36,7 @@
        }
   ~~|
   ::builtin{:impl :qlang/prim/type
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :keyword
    }
@@ -53,7 +54,7 @@
       ~{:name | isString | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isString
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -67,7 +68,7 @@
       ~{"42" | isNumber | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isNumber
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -77,10 +78,10 @@
 
       ~{[1 2 3] | isVec | eq(true)}
       ~{[] | isVec | eq(true)}
-      ~{#{1} | isVec | eq(false)}
+      ~{#[1] | isVec | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isVec
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -93,7 +94,7 @@
       ~{[] | isMap | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isMap
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -101,25 +102,53 @@
 :isSet
   |~~ Returns true iff the subject is a Set.
 
-      ~{#{1 2} | isSet | eq(true)}
-      ~{#{} | isSet | eq(true)}
+      ~{#[1 2] | isSet | eq(true)}
+      ~{#[] | isSet | eq(true)}
       ~{[1 2] | isSet | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isSet
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
 
 :isKeyword
-  |~~ Returns true iff the subject is a Keyword.
+  |~~ Returns true iff the subject is a Keyword (value-namespace
+      `:foo`). Tag-namespace identifiers `::Foo` classify as
+      `:tagKeyword` and answer `isTag`, not `isKeyword` — the
+      two namespaces stay separable on the type plane.
 
       ~{:name | isKeyword | eq(true)}
       ~{:kind | isKeyword | eq(true)}
       ~{"name" | isKeyword | eq(false)}
+      ~{::Foo | isKeyword | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isKeyword
-            :category :type-classifier
+            :category :typeClassifier
+            :subject :any
+            :returns :boolean
+   }
+
+:isTag
+  |~~ Returns true iff the subject is a TagKeyword — a bare
+      `::Tag` identifier from the tag namespace. Symmetric pair
+      to `isKeyword` for the value namespace: every identifier-
+      shape value answers true on exactly one of the two, never
+      both, because Keyword and TagKeyword are distinct value-
+      classes. The `result !| type` axis on any tagged value
+      (error, conduit, snapshot, user `::Foo[…]` instance)
+      yields a TagKeyword, so `isTag` is the natural guard for
+      «is this a tag identity» dispatch over heterogeneous
+      collections of type values.
+
+      ~{::Foo | isTag | eq(true)}
+      ~{::conduit | isTag | eq(true)}
+      ~{:foo | isTag | eq(false)}
+      ~{"::Foo" | isTag | eq(false)}
+      ~{42 | isTag | eq(false)}
+  ~~|
+  ::builtin{:impl :qlang/prim/isTag
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -135,7 +164,7 @@
       ~{null | isBoolean | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isBoolean
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -151,14 +180,14 @@
       ~{"" | isNull | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isNull
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
 
 :isQuote
   |~~ Returns true iff the subject is a Quote — a frozen
-      paired-delimiter code-as-data fragment in source form.
+      paired-delimiter codeAsData fragment in source form.
       Quotes carry a :source text field and a lazily-parsed
       :ast AST-Map.
 
@@ -167,7 +196,7 @@
       ~{42 | isQuote | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isQuote
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -182,7 +211,7 @@
       ~{42 | isDoc | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isDoc
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -198,7 +227,7 @@
       ~{{:k 1} | isJsonObject | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isJsonObject
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }
@@ -212,7 +241,7 @@
       ~{[1 2 3] | isJsonArray | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/isJsonArray
-            :category :type-classifier
+            :category :typeClassifier
             :subject :any
             :returns :boolean
    }

@@ -11,14 +11,17 @@
 // The per-binding descriptor shape `manifest` produces is built by
 // `describeBinding`, a switch over the env-value's runtime shape:
 //
-//   `::builtin` Map (catalog-bound operand or tag-binding)
+//   `::builtin` Map (catalog-bound operand or tag-binding —
+//   identity on the JS-header `TAG_HEADER_SYMBOL` slot, no `:kind`
+//   field in the env entry)
 //     → `manifestBuiltinDescriptor` in `descriptor-ops.mjs` —
-//       strips internal `:impl`, re-stamps `:kind ::builtin`,
-//       passes the structural fields (`:category` / `:subject` /
+//       strips internal `:impl`, stamps `:kind ::builtin` as the
+//       view-Map's explicit enum-bucket field, passes the
+//       structural fields (`:category` / `:subject` /
 //       `:modifiers` / `:returns` / `:throws` / `:captured` /
 //       `:effectful`) through.
 //
-//   raw FunctionValue (conduit-parameter proxy minted by
+//   raw FunctionValue (conduitParameter proxy minted by
 //   `makeConduitParameter` inside an `applyConduit` body fork)
 //     → `describeConduitParameter` (below) — lifts the proxy's
 //       inline `meta` shape into a manifest-form descriptor.
@@ -38,7 +41,8 @@ import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
-  isErrorValue, typeKeyword, keyword, makeTagKeyword
+  isErrorValue, typeKeyword, keyword,
+  BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
@@ -68,11 +72,11 @@ function errorMessageOf(errorValue) {
   return errorValue.descriptor.get('message');
 }
 
-// `describeConduitParameter` lifts a conduit-parameter proxy
+// `describeConduitParameter` lifts a conduitParameter proxy
 // (nullary FunctionValue minted by `makeConduitParameter` in
 // `eval.mjs`) into a manifest-form descriptor Map. The proxy
 // stamps a full `meta` shape inline at construction
-// (`category :conduit-parameter`, `subject` / `modifiers` /
+// (`category :conduitParameter`, `subject` / `modifiers` /
 // `returns` / `captured` / `throws`), so the descriptor reads
 // every field straight off the proxy. Catalog-bound `::builtin`
 // descriptors flow through the `qlKind.name === 'builtin'`
@@ -81,7 +85,7 @@ function errorMessageOf(errorValue) {
 function describeConduitParameter(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
-  result.set('kind', makeTagKeyword('builtin'));
+  result.set('kind', BUILTIN_TAG);
   result.set('name', explicitName);
   result.set('category', keyword(meta.category));
   result.set('subject', meta.subject);
@@ -99,7 +103,7 @@ function describeConduit(conduit, explicitName) {
   // payload mirrors it under normal BindStep declarations but the
   // env-key is the source of truth for the descriptor.
   const result = new Map();
-  result.set('kind', makeTagKeyword('conduit'));
+  result.set('kind', CONDUIT_TAG);
   result.set('name', explicitName);
   result.set('params', [...conduit.get('params')]);
   result.set('source', conduit.get('source'));
@@ -111,7 +115,7 @@ function describeConduit(conduit, explicitName) {
 function describeSnapshot(snap, explicitName) {
   const value = snap.get('payload');
   const result = new Map();
-  result.set('kind', makeTagKeyword('snapshot'));
+  result.set('kind', SNAPSHOT_TAG);
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
@@ -122,7 +126,7 @@ function describeSnapshot(snap, explicitName) {
 
 function describeValue(value, explicitName) {
   const result = new Map();
-  result.set('kind', makeTagKeyword('value'));
+  result.set('kind', VALUE_TAG);
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
@@ -130,29 +134,29 @@ function describeValue(value, explicitName) {
 }
 
 function describeBinding(value, explicitName) {
-  const qlKind = isQMap(value) && value.get('kind');
-  if (qlKind && qlKind.name === 'builtin') {
-    // `::builtin{:impl …}` carries either an operand declaration
-    // (env-key is a plain identifier, `:impl` is a resolved JS
-    // function value after the bootstrap pass) or a tag-binding
-    // declaration (env-key carries the `::` prefix, `:impl` stays
-    // a keyword pointing into PRIMITIVE_REGISTRY, or is absent for
-    // doc-only declarations). Distinguish by env-key shape.
-    const isTagBindingEntry = typeof explicitName === 'string'
-                              && explicitName.startsWith('::');
-    if (isTagBindingEntry) {
-      const tagResult = new Map();
-      tagResult.set('kind', makeTagKeyword('tag'));
-      tagResult.set('name', explicitName);
-      for (const [descKey, descVal] of value) {
-        if (descKey === 'kind') continue;
-        tagResult.set(descKey, descVal);
-      }
-      return tagResult;
+  if (isTagBindingName(explicitName) && isQMap(value)) {
+    // Any Map binding under a `::Tag` name routes through the
+    // tag-binding manifest surface — whether `::builtin{…}`-
+    // declared by the catalog, user-declared via `::Tag {…}`
+    // BindStep, or auto-declared on first `::Tag<payload>` use
+    // (the implicit-decl path stamps a single
+    // `:declarationOrigin :implicit` field, so the view shows
+    // every tag the env owns regardless of how it landed).
+    const tagResult = new Map();
+    tagResult.set('kind', TAG_BINDING_TAG);
+    tagResult.set('name', explicitName);
+    for (const [descKey, descVal] of value) {
+      tagResult.set(descKey, descVal);
     }
+    return tagResult;
+  }
+  if (isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin') {
+    // `::builtin{:impl …}` operand declaration in the value
+    // namespace (env-key is a plain identifier, `:impl` is a
+    // resolved JS function value after the bootstrap pass).
     return manifestBuiltinDescriptor(value, explicitName);
   }
-  // Conduit-parameter proxies stamp `meta.category :conduit-parameter`
+  // Conduit-parameter proxies stamp `meta.category :conduitParameter`
   // through `makeConduitParameter` in `eval.mjs` — the discriminator
   // that lets `describeConduitParameter` reach for the full inline
   // meta shape (`subject` / `modifiers` / `returns` / `captured` /
@@ -162,11 +166,13 @@ function describeBinding(value, explicitName) {
   // `describeValue` so their entry surfaces as `:kind ::value`
   // alongside any other host-bound payload. Host integrations that
   // want a richer manifest entry wrap their operand in a descriptor
-  // Map carrying `:kind :builtin :impl <fn>` before `session.bind` —
-  // the Map branch above then routes through
-  // `manifestBuiltinDescriptor` with every authored field intact.
+  // Map (`new Map([['impl', fn]])` + `stampTagHeader(map,
+  // BUILTIN_TAG)` — `bindHostBuiltin` in the CLI demonstrates the
+  // pattern) before `session.bind`; the Map branch above then
+  // routes through `manifestBuiltinDescriptor` with every authored
+  // field intact.
   if (isFunctionValue(value)
-      && value.meta && value.meta.category === 'conduit-parameter') {
+      && value.meta && value.meta.category === 'conduitParameter') {
     return describeConduitParameter(value, explicitName);
   }
   if (isConduit(value)) return describeConduit(value, explicitName);

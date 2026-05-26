@@ -5,8 +5,8 @@
 //   1. lib/qlang/ — the authored source catalog, split across:
 //      - core.qlang: orchestrator, one `use([...])` call that
 //        loads the families in order.
-//      - operand/<family>.qlang (arith, vec, container, set-op,
-//        map-op, string, predicate, control, format,
+//      - operand/<family>.qlang (arith, vec, container, setOp,
+//        mapOp, string, predicate, control, format,
 //        reflective): per-family operand BindSteps and the
 //        per-site error tags they throw, declared inline.
 //      - runtime-invariants.qlang: shared / cross-family
@@ -56,7 +56,6 @@
 // registration blocks at the tail of each file.
 import './vec.mjs';
 import './map.mjs';
-import './set.mjs';
 import './setops.mjs';
 import './arith.mjs';
 import './string.mjs';
@@ -69,15 +68,15 @@ import './tagged.mjs';
 import './bind-op.mjs';
 import './use-op.mjs';
 import './manifest-op.mjs';
-import './code-as-data.mjs';
+import './codeAsData.mjs';
 import './axis.mjs';
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { makeState } from '../state.mjs';
-import { makeQuote } from '../types.mjs';
-import { moduleAstKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
-import { PRIMITIVE_REGISTRY, primKey } from '../primitives.mjs';
+import { keyword, makeQuote, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
+import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampStructuralFacts } from '../descriptor-ops.mjs';
 import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
 
@@ -137,6 +136,20 @@ export async function buildLangRuntime(locator) {
   const seedEnv = new Map();
   seedEnv.set('use', PRIMITIVE_REGISTRY.resolve(primKey('use')));
   seedEnv.set(RUNTIME_LOCATOR_KEY, locator);
+  // Chicken-and-egg: `::builtin{…}` is the constructor shape every
+  // catalog descriptor body rides on, including `::builtin`'s own
+  // declaration in runtime-invariants.qlang. Seed the env with a
+  // minimal `::builtin` tag-binding pointing at the registered
+  // `qlang/type/builtin` constructor so the first `::builtin{…}`
+  // TaggedLit in the catalog finds an `:impl` to dispatch on. The
+  // runtime-invariants module then redeclares `::builtin` formally
+  // (through the same constructor) and the snapshot lands in env
+  // under the same key — same shape, same `:impl`, shadow without
+  // observable drift.
+  const seedBuiltinDescriptor = new Map();
+  seedBuiltinDescriptor.set('impl', keyword(TYPE_KEY_PREFIX + 'builtin'));
+  stampTagHeader(seedBuiltinDescriptor, BUILTIN_TAG);
+  seedEnv.set(tagBindingKey('builtin'), seedBuiltinDescriptor);
 
   // Load the root catalog module — `:qlang/core` — through the
   // same locator everything else flows through. Browser-side
@@ -168,9 +181,9 @@ export async function buildLangRuntime(locator) {
   // env-side descriptor always carries it after this pass.
   for (const [envKey, descriptor] of templateEnv) {
     if (!(descriptor instanceof Map)) continue;
-    if (descriptor.get('kind')?.name !== 'builtin') continue;
-    // Tag-binding declarations carry the same `:kind ::builtin`
-    // shape but live under `::Tag` env-keys. Their `:impl` keyword
+    if (descriptor[TAG_HEADER_SYMBOL]?.name !== 'builtin') continue;
+    // Tag-binding declarations carry the same builtin JS-header
+    // tag but live under `::Tag` env-keys. Their `:impl` keyword
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
     // readable in `manifest(:tag)` output. Skip resolving here so

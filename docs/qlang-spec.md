@@ -211,7 +211,7 @@ the quoted form is the general case.
 
 Four composite types layer on top of the atomics. Each is a
 distinct shape — ordered sequence (Vec), keyword-keyed
-association (Map), unordered unique collection (Set), and
+association (Map), insertion-ordered structurally-unique collection (Set), and
 structured failure marker (Error). All four are immutable; an
 operation that "modifies" a composite returns a new value rather
 than mutating in place.
@@ -296,19 +296,45 @@ binding wins:
 
 ### Set
 
-Unordered collection of unique values. Literal `#{}`.
-Deduplication happens at construction; specifying the same value
-twice has no effect.
+Collection with an **invariant of structural uniqueness**.
+Literal `#[…]` — the `#` marker over the `[…]` bracket pair
+visually signals «this is a collection like Vec, but the type
+carries a no-duplicates promise». Deduplication happens at
+construction time through structural equality (the same axiom
+that drives `eq`); declaring the same value twice has no effect.
 
 ```qlang
-> #{:name :age :id}
-#{:name :age :id}
+> #[:name :age :id]
+#[:name :age :id]
 
-> #{1 2 3 2 1}
-#{1 2 3}
+> #[1 2 3 2 1]
+#[1 2 3]
 
-> #{}
-#{}
+> #[]
+#[]
+```
+
+A Set's elements preserve **insertion-order**: first-added stays
+first. This is part of the public contract, not an implementation
+detail — every operand traversal, every `printValue` output, every
+`toTaggedJSON` encoding produces the same sequence between runs.
+The determinism enables reproducible builds, idempotent deployments,
+and stable snapshot tests for any pipeline that flows through Set
+values. Order-aware operands (`first`, `last`, `at`, `take`, `drop`,
+`reverse`, `sort`, `sortWith`, `flat`) work the natural way on a
+Set subject.
+
+The uniqueness invariant is the primary value of the type — a
+reader receiving `#[…]` (human or LLM) **knows by type** that no
+duplicates will reach subsequent steps and is freed from defensive
+`… | distinct` chains:
+
+```qlang
+|~| with the type-level signal, distinct is redundant
+| keys * processOne
+
+|~| without it, the author is forced to defend at every step
+| someVec | distinct * processOne
 ```
 
 Sets are most often used as key sets — the shape of a record —
@@ -477,7 +503,7 @@ are evaluated — this is **full application**:
 ### Truthiness
 
 `null` and `false` are falsy. Every other value is truthy —
-including `0`, `""`, `[]`, `{}`, `#{}`. Predicates such as
+including `0`, `""`, `[]`, `{}`, `#[]`. Predicates such as
 `filter`, `if`, `when`, and `not` honour this rule uniformly.
 
 ```qlang
@@ -497,7 +523,8 @@ the result is **an error value** of the `!{}` form introduced in
 ```qlang
 > [1 2 3] | add(1)
 ::AddLeftNotNumberError!{
-  :fault {:step ~{add(1)} :input [1 2 3]}
+  :faultStep ~{add(1)}
+  :faultInput [1 2 3]
   :actualValue [1 2 3]
   :actualType :vec
 }
@@ -508,13 +535,16 @@ the result is **an error value** of the `!{}` form introduced in
 ```
 
 The tag head names the per-site error class (`::AddLeftNotNumberError`);
-the descriptor names the operand that failed (`:operand`), the
-broad category (`:kind`), the value the throw site inspected
-(`:actualValue` + `:actualType`), and the step itself (`:fault/step`
-as a Quote-value carrying the failing step's source). No `:trail`
-key is shown at the moment of failure because no success-track
-combinator has deflected past it yet; `:trail` accumulates as the
-error flows through subsequent steps. From this point on examples
+the descriptor names the failing step verbatim (`:faultStep`, a
+Quote-value carrying the source-slice), the pipeValue it received
+(`:faultInput`), and the type the throw site inspected
+(`:actualType`). `:actualValue` would also be stamped if the throw
+site had drilled below `:faultInput`, but for a subject-shape error
+on a partial application like this one the offending value equals
+`:faultInput` and the dedup-rule skips the redundant lift. No
+`:trail` key is shown at the moment of failure because no
+success-track combinator has deflected past it yet; `:trail`
+accumulates as the error flows through subsequent steps. From this point on examples
 in this document may show an error output, and the descriptor
 shape is the same in every case: a `::Tag!{…}` head over a
 keyword-keyed Map you can read at a glance.
@@ -766,12 +796,12 @@ A Set literal after `|` collects values — each element expression
 receives `pipeValue`:
 
 ```qlang
-> {:name "alice" :age 30} | #{/name, /age}
-#{"alice" 30}
+> {:name "alice" :age 30} | #[/name, /age]
+#["alice" 30]
 
 |~| equivalent via operands
-> {:name "alice" :age 30} | vals | set
-#{"alice" 30}
+> {:name "alice" :age 30} | vals | distinct
+#["alice" 30]
 ```
 
 ### Set operations
@@ -782,14 +812,14 @@ or Maps. Left-fold.
 **Set × Set:**
 
 ```qlang
-> [#{:a :b :c}, #{:b :d}] | union
-#{:a :b :c :d}
+> [#[:a :b :c], #[:b :d]] | union
+#[:a :b :c :d]
 
-> [#{:a :b :c}, #{:b :d}] | minus
-#{:a :c}
+> [#[:a :b :c], #[:b :d]] | minus
+#[:a :c]
 
-> [#{:a :b :c}, #{:b :d}] | inter
-#{:b}
+> [#[:a :b :c], #[:b :d]] | inter
+#[:b]
 ```
 
 **Map × Map:**
@@ -810,10 +840,10 @@ or Maps. Left-fold.
 **Map × Set** — field operations (Set = which keys to keep or drop):
 
 ```qlang
-> [{:name "a" :age 20 :tmp 1}, #{:tmp}] | minus
+> [{:name "a" :age 20 :tmp 1}, #[:tmp]] | minus
 {:name "a" :age 20}
 
-> [{:name "a" :age 20 :tmp 1}, #{:name :age}] | inter
+> [{:name "a" :age 20 :tmp 1}, #[:name :age]] | inter
 {:name "a" :age 20}
 ```
 
@@ -823,10 +853,10 @@ Bound operand forms — single argument, no Vec wrapper needed:
 > {:name "a" :age 20} | union({:adult /age | gt(18)})
 {:name "a" :age 20 :adult true}
 
-> {:name "a" :age 20 :tmp 1} | minus(#{:tmp})
+> {:name "a" :age 20 :tmp 1} | minus(#[:tmp])
 {:name "a" :age 20}
 
-> {:name "a" :age 20 :tmp 1} | inter(#{:name :age})
+> {:name "a" :age 20 :tmp 1} | inter(#[:name :age])
 {:name "a" :age 20}
 ```
 
@@ -885,7 +915,7 @@ computed delta:
 
 ```qlang
 > {:name "a" :age 20 :tmp 1}
-  | as(:r) | [r, #{:tmp}] | minus
+  | as(:r) | [r, #[:tmp]] | minus
 {:name "a" :age 20}
 
 > {:name "a" :age 20}
@@ -893,8 +923,8 @@ computed delta:
 {:name "a" :age 20 :adult true}
 
 record | as(:r) | [r, {:adult /age | gt(18)}] | union
-record | as(:r) | [r, #{:tmp}] | minus
-record | as(:r) | [r, #{:name :age}] | inter
+record | as(:r) | [r, #[:tmp]] | minus
+record | as(:r) | [r, #[:name :age]] | inter
 ```
 
 Multi-step reference — capture at one point, use at several later
@@ -954,10 +984,10 @@ A conduit is invoked like any operand: `value | double`,
 `"world" | @surround("[", "]")`. At the call site:
 
 1. Captured-arg expressions become lazy lambdas (not eagerly fired).
-2. Each lambda is wrapped in a conduit-parameter that fires against
+2. Each lambda is wrapped in a conduitParameter that fires against
    whatever `pipeValue` exists at the lookup site inside the body.
 3. The body runs in a fork with a **lexical env** — the env frozen
-   at declaration time, plus conduit-parameter bindings. Body's
+   at declaration time, plus conduitParameter bindings. Body's
    BindStep / `as` writes are local to the fork.
 4. The body's final `pipeValue` propagates out; the outer `env` is
    preserved unchanged.
@@ -1101,14 +1131,16 @@ captured-arg shapes:
 |~| Vec — ordered list, later entries override earlier conflicts
 use([:qlang/error :domain/tax])
 
-|~| Set — unordered, collisions raise an error so the host can
-|~| disambiguate. Use Set when shadowing is NOT what you want.
-use(#{:qlang/error :domain/tax})
+|~| Set — collision-raising, when shadowing is NOT what you want.
+|~| Two namespaces exporting the same name raise an error so the
+|~| host disambiguates explicitly instead of letting one silently
+|~| overwrite the other.
+use(#[:qlang/error :domain/tax])
 
 |~| Two captured args — namespace plus selection filter.
 |~| Only the named identifiers are imported; everything else
 |~| stays out of scope.
-use(:qlang/error, #{:guard :assert})
+use(:qlang/error, #[:guard :assert])
 ```
 
 The host-side mechanism that installs module Maps into env under
@@ -1138,7 +1170,7 @@ treatment.
 ### Scoping rules
 
 All seven rules below follow from a single principle: **nested
-expressions `(...)`, `[...]`, `{...}`, `#{...}` open a fork** — a
+expressions `(...)`, `[...]`, `{...}`, `#[...]` open a fork** — a
 sub-pipeline that starts with a copy of the outer state. When the
 fork closes, its final `pipeValue` propagates out but its env
 changes are discarded. See the
@@ -1149,7 +1181,7 @@ changes are discarded. See the
    expression evaluated by those steps.
 
 2. **Nested pipelines inherit outer bindings.** Inside `()`,
-   `[]`, `{}`, `#{}`, all `as`-bindings from the enclosing
+   `[]`, `{}`, `#[]`, all `as`-bindings from the enclosing
    scope are visible.
 
    ```qlang
@@ -1174,7 +1206,7 @@ changes are discarded. See the
 
 5. **Sibling expressions are independent.** In `{:a e1 :b e2}`,
    bindings from `e1` are NOT visible in `e2`. Same for Vec
-   elements `[a b c]` and Set elements `#{a, b, c}` — each
+   elements `[a b c]` and Set elements `#[a, b, c]` — each
    entry is its own sub-pipeline, parallel not sequential.
 
 6. **Shadowing.** A later `as(:name)` or `:name ...` in the same
@@ -1328,8 +1360,17 @@ namespace.
 > :duration mul(60)
   | ::duration {:kind :tag :impl ~{as(:s) | {:seconds s}}}
   | [10 | duration, ::duration(10)]
-[600 {:seconds 10}]
+[600 ::duration{:seconds 10}]
 ```
+
+The tag-namespace branch auto-wraps the constructor's Quote-body
+result with `::duration` identity (the body returns `{:seconds
+10}`, the runtime stamps the tag header on the result), so
+`::duration(10) | type` reads `::duration`. To opt out and
+return the raw shape, end the Quote body with `| tag(::Other)`
+to re-brand under a different identity, or use a value-namespace
+Conduit (as `:duration mul(60)` above) which carries no
+auto-wrap.
 
 Element 1 (`10 | duration`) invokes the value-namespace Conduit;
 element 2 (`::duration(10)`) invokes the tag-namespace
@@ -1349,15 +1390,15 @@ return becomes the new `pipeValue`. `printValue` emits the same
 ```qlang
 ::duration{:hours 3}
 ::regex"^[a-z]+$"
-::permitted-tags#{:read :write}
+::permitted-tags#[:read :write]
 ::bytes[72 101 108 108 111]
 ```
 
 The angle-bracket notation `<container>` is meta-syntax for "any
 Primary expression"; real source never carries `<...>`. Container
 choice matches the payload's natural shape — Vec for ordered
-positional payload, Map for keyword-keyed slots, Set for an
-unordered collection, String / Quote / etc. for value-class
+positional payload, Map for keyword-keyed slots, Set for a
+deduplicated collection, String / Quote / etc. for value-class
 specific payload.
 
 **No whitespace between tag and payload.** `::duration{...}` is one
@@ -1366,7 +1407,7 @@ tagged literal; `::duration {...}` is the BareTypeKeyword
 pipeline position. Whitespace forces the split — same rule as
 projection (`/foo` vs `/ foo`).
 
-The base composite literals — `[...]`, `{...}`, `#{...}`, `!{...}`,
+The base composite literals — `[...]`, `{...}`, `#[...]`, `!{...}`,
 `~{...}` — are short forms for the most-frequent value classes
 (Vec, Map, Set, Error, Quote). New value classes ride the `::tag`
 syntax until usage earns them a shorthand.
@@ -1391,7 +1432,7 @@ from inside any query or library module.
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
 ::permissions {:kind :tag
-   :allowed #{:read :write :delete}
+   :allowed #[:read :write :delete]
    :impl ~{as(:p)
      | every(:permissions/allowed | has)
      | when(not, error({:kind :PermissionUnknown}))
@@ -1399,7 +1440,7 @@ from inside any query or library module.
 
 |~| → returns the Set unchanged on valid input,
 |~| → lifts on fail-track on unknown keyword.
-::permissions#{:read :write}
+::permissions#[:read :write]
 ```
 
 The Quote body sees the env of the invocation site — `:exclaim
@@ -1438,9 +1479,13 @@ register their own native types the same way.
 
 A descriptor whose `:impl` is neither a Keyword handle nor
 a Quote-value raises `TagBindingHasNoConstructorError` on first
-invocation. A reference to a tag that has no env binding raises
-`TaggedLitTagNotFoundError` — typos and catalog drift surface
-loudly at the first use.
+invocation. A reference to a tag that has no env binding
+auto-declares an identity-only Map binding on the spot (carrying
+`:declarationOrigin :implicit` for `manifest(:tag)` introspection)
+— `::Tag<payload>` always succeeds shape-wise, regardless of
+whether the source explicitly declared `::Tag {…}`. Strict-mode
+tooling reads the `:implicit` marker through manifest to flag
+unbound usage; runtime stays permissive.
 
 ### Constructor invariants
 
@@ -1474,15 +1519,15 @@ corresponding sub-pipeline.
 
 ```qlang
 {:name "alice"}
-  | ::user{:name /name :access ::permissions#{:read :write}}
+  | ::user{:name /name :access ::permissions#[:read :write]}
 ```
 
 Step by step:
 1. Outer `pipeValue` = `{:name "alice"}`.
-2. Inner Map `{:name /name :access ::permissions#{...}}` evaluates:
+2. Inner Map `{:name /name :access ::permissions#[...]}` evaluates:
    - `:name /name` — sub-fork, `/name` against the outer
      pipeValue → `"alice"`.
-   - `:access ::permissions#{:read :write}` — inner TaggedLit
+   - `:access ::permissions#[:read :write]` — inner TaggedLit
      evaluates first; `::permissions` constructor sees the Set,
      validates, returns it.
 3. Constructor `::user` runs against the payload Map.
@@ -1521,24 +1566,41 @@ parameter binding, no manual escaping.
 
 ### Tagged values as round-trip surface
 
-When a constructor returns a Map carrying `:kind <TagKeyword>`
-plus `:payload <Vec>`, the resulting value is a
-**tagged instance**: `printValue` reads the discriminator and
-emits the source-form `::tag[<payload>]` literal back, so any
-TaggedLit value flows through the round-trip invariant.
+A constructor invocation `::Tag<payload>` produces a
+**tagged instance**: identity rides on the payload's JS-header
+`tag` slot (a `TagKeyword`), the payload's native shape is
+preserved. Vec payload → tagged Vec (`isVec` still true,
+`/1` indexes elements directly, `count` returns the length);
+Map payload → tagged Map (`keys` lists the fields, `/field`
+projects, iteration sees the data plane); Set payload → tagged
+Set. Scalar / Keyword / Quote / Doc / Error / Conduit /
+Snapshot / already-tagged composite payloads ride an opaque
+wrap object that holds the value out of reach of `/key`
+projection — the dedicated `payload` operand is the only
+extractor.
 
-Three reserved tag names own dedicated render paths
-(`:conduit` → `::conduit[…]` form, `:snapshot` → wrapped value,
-`:tag` → BindStep declaration form) and are excluded from the
-generic tagged-instance path; every other tag rides the generic
-shape.
+`printValue` reads identity off the JS-header and re-emits the
+source-form `::tag<payload>` literal (`::Tag[…]`, `::Tag{…}`,
+`::Tag#[…]`, `::Tag~{…}`, `::Tag"…"`, `::Tag(scalar)`), so any
+TaggedLit value flows through the round-trip invariant. The
+`type` operand returns the identity tag directly; the `payload`
+operand strips identity and returns the underlying value (a
+fresh clone of the composite, or the wrapped value from the
+opaque wrap object). Two reserved tag names (`::conduit`,
+`::snapshot`) own dedicated render paths and ride distinct
+value-class handlers; every other tag rides the generic shape.
 
 A named error value (`!{:kind ::Tag …}`) carries the
-universal tagged-instance identity slot — `:kind` —
-promoted to the literal's tag-head. `printValue` emits
-`::Tag!{…fields…}` with the `:kind` entry folded into the
-head, the same shape both a JavaScript throw site and a literal
-`::Tag!{…}` source produce ([Error track](#error-track)).
+universal tagged-instance identity slot on the error value's
+**JS-header `tag` field** — opaque to descriptor projection,
+read through the `type` operand. The `:kind ::Tag` entry in
+the literal lifts to that header slot at construction; the
+descriptor itself holds only data fields. `printValue` emits
+`::Tag!{…fields…}` with the tag at the head and the descriptor
+fields after, the same shape both a JavaScript throw site and a
+literal `::Tag!{…}` source produce ([Error track](#error-track)).
+Errors without an explicit `:kind` lift carry the generic
+`::Error` tag — every ErrorValue has an identity.
 
 ## Error track
 
@@ -1558,7 +1620,7 @@ through to the end.
 
 ```qlang
 > "hello" | add(1) | mul(2) | sub(3)
-::AddLeftNotNumberError!{:fault {...} :actualValue "hello" :actualType :string}
+::AddLeftNotNumberError!{:faultStep ~{add(1)} :faultInput "hello" :actualType :string}
 |~| add(1) produces the error; mul(2) and sub(3) are deflected
 ```
 
@@ -1569,7 +1631,7 @@ step only when `pipeValue` is an error value, exposing the error's
 
 ```qlang
 > "hello" | add(1) | mul(2) !| type | spec | /category
-:type-error
+:typeError
 
 > "hello" | add(1) | mul(2) !| /trail | /source
 "| mul(2)"
@@ -1632,29 +1694,50 @@ lift automatically into error values with structured descriptors:
 ::AddLeftNotNumberError
 
 > "hello" | add(1) !| type | spec | /category
-:type-error
+:typeError
 ```
+
+### Error identity — JS-header `tag` slot
+
+Every error value carries its per-site identity on a dedicated
+JS-header field, addressed through the `type` operand:
+`result !| type` returns the `::Tag` (TagKeyword). User-facing
+literals (`::Tag!{…}`, `!{:kind ::Tag …}`) lift `:kind` into
+this slot at construction; errors without an explicit `:kind`
+default to `::Error`. The descriptor Map below carries only
+data — no `:kind` field — so `result !| union(…) | error`
+re-lift round-trips preserve identity automatically.
+
+The materialized descriptor exposed by `!|` stamps the tag onto
+the Map's JS-header identity slot (the same channel
+TaggedInstance / Conduit / Snapshot use) — `result !| type`
+reads the identity directly, `result !| payload` strips it and
+returns the data plane Map sans tag, `result !| /faultStep`
+projects fields as on any ordinary Map. Identity stays in one
+place; no duplicate `:kind <tag>` Map field shadows user data
+or duplicates the literal head on print.
 
 ### Error descriptor fields
 
 | Field | Type | Content |
 |---|---|---|
-| `:kind` | TagKeyword | Per-site tag name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
-| `:fault` | Map | `{:step <Quote> :input <value>}` — the step that produced the fault and the pipeValue it received as input. `:step` is a Quote-value carrying the failing step's verbatim source-text (from the AST node's `.text`); `:input` is the pipeValue at the moment the step was entered. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors |
-| `:actualValue` | any | The per-site dynamic value that triggered the check — the specific value the throw site inspected. For multi-segment projections this is the intermediate value (e.g., `null`); for operand subject checks it equals `:fault/input` |
-| `:actualType` | Keyword | `typeKeyword` of `:actualValue` — `:string`, `:vec`, `:number`, etc. The per-site dynamic field every type-error stamps |
+| `:faultStep` | Quote | Verbatim source-text of the failing step lifted to a Quote-value (from the AST node's `.text`). Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
+| `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
+| `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
+| `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until a deflection materializes through `!\|`. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry
-`:index`; dispatch errors carry `:operandName` / `:conduitName` /
+`:index`; modifier errors carry `:actualValue` for the captured-arg
+value; dispatch errors carry `:operandName` / `:conduitName` /
 `:expectedArity` / `:actualArity` for the dispatch-time variants).
 
-Per-tag static facts — `:category` (broad bucket: `:type-error`,
-`:arity-error`, `:effect-laundering`, `:parse-error`,
-`:foreign-error`, `:invariant-error`, `:division-by-zero`,
-`:primitive-unbound`, `:session-error`, `:codec-error`,
-`:ast-codec-error`, `:unresolved-identifier`), `:operand`,
+Per-tag static facts — `:category` (broad bucket: `:typeError`,
+`:arityError`, `:effectLaundering`, `:parseError`,
+`:foreignError`, `:invariantError`, `:divisionByZero`,
+`:primitiveUnbound`, `:sessionError`, `:codecError`,
+`:astCodecError`, `:unresolvedIdentifier`), `:operand`,
 `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
@@ -1664,13 +1747,14 @@ origin. The runtime instance descriptor itself stays compact at
 the dynamic facts above; consumers go through hypertext for
 tag-binding metadata.
 
-The `:fault` Map enables pipeline-level diagnostic inspection:
+`:faultStep` and `:faultInput` enable pipeline-level diagnostic
+inspection:
 
 ```qlang
-!| /fault/step | /source     -- source text of the failing step
-!| /fault/step | /ast        -- AST-Map of the failing step (lazy)
-!| /fault/input | keys       -- keys available on the Map the step received
-!| /fault/input              -- the full value the step received
+!| /faultStep | /source       -- source text of the failing step
+!| /faultStep | /ast          -- AST-Map of the failing step (lazy)
+!| /faultInput | keys         -- keys available on the Map the step received
+!| /faultInput                -- the full value the step received
 ```
 
 ### Trail continuity across re-lift
@@ -1795,12 +1879,18 @@ question is "which bindings exist".
 
 `manifest` returns the full binding scope as a Vec of descriptors
 — one per binding, sorted alphabetically by name. Each descriptor
-carries `:kind` (`:builtin` / `:conduit` / `:snapshot` / `:tag` /
-`:value`), `:name`, plus per-kind fields stamped by
-`describeBinding` in `runtime/manifest-op.mjs`.
+carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
+`::tag` / `::value`) as an explicit enum bucket alongside `:name`
+and per-kind fields stamped by `describeBinding` in
+`runtime/manifest-op.mjs`. The `:kind` field on manifest entries
+is a view-only enumeration surface — distinct from the JS-header
+identity slot the underlying env values carry; both `manifest |
+* /kind | eq(::builtin)` (field projection) and `manifest | * type
+| eq(::builtin)` (identity through the `type` operand) produce
+the same partition.
 
 ```qlang
-env | manifest | filter(/kind | eq(:builtin)) | count
+env | manifest | filter(/kind | eq(::builtin)) | count
 |~| how many built-in operands are in scope
 
 env | manifest | filter(/effectful) * /name
@@ -1844,9 +1934,10 @@ declaration is hidden by shadowing. Errors:
 - No declaring BindStep found in any loaded module →
   `AxisBindingNotFoundError`.
 
-A tagged-instance Map carrying `:kind <TagKeyword>` is
-also a valid subject — the axis reads the docs of the type
-binding the instance was constructed from. Calling
+A tagged-value subject (any value carrying a TagKeyword on its
+JS-header identity slot — TaggedInstance, Conduit, Snapshot,
+materialized error) is also valid — the axis reads the docs
+of the type binding the instance was constructed from. Calling
 `some-conduit-value | docs` reaches the `::conduit` type
 binding's docs the same way `:count | docs` reaches the `:count`
 catalog entry's docs.
@@ -1867,7 +1958,7 @@ not an ErrorValue) reports `:ok true`.
 ```qlang
 :count | runExamples
 |~| → [{:snippet ~{[1 2 3] | count | eq(3)}     :actual true :error null :ok true}
-|~|    {:snippet ~{#{:a :b} | count | eq(2)}    :actual true :error null :ok true}
+|~|    {:snippet ~{#[:a :b] | count | eq(2)}    :actual true :error null :ok true}
 |~|    ...]
 
 env | manifest * /name
@@ -1952,11 +2043,11 @@ Six step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
-| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#{a,b}`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
+| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a,b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
+| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
-| 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
+| 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|`, `*`, and `>>` are
@@ -1975,7 +2066,7 @@ success `pipeValue` it deflects as identity pass-through.
 | `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
 | `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. On error `pipeValue`, deflect. |
 
-**Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#{...}`.
+**Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#[...]`.
 Inner sub-pipeline starts with a copy of outer `(pipeValue, env)`.
 When it finishes, the inner `pipeValue'` becomes the result, but
 the inner `env'` is discarded. This one rule produces the seven
@@ -2079,10 +2170,13 @@ rendering boundaries:
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
   `toPlain` refuse a raw function value because no grammatical
   literal renders back to one. Host operands must wrap the
-  function in a descriptor Map carrying `:kind ::builtin`
-  and `:impl <fn>`; the projection inside `printValue`
-  substitutes the function back to its `:qlang/prim/<name>`
-  keyword handle so the descriptor itself round-trips.
+  function in a descriptor Map carrying `:impl <fn>` with
+  identity stamped on the Map's JS-header `TAG_HEADER_SYMBOL`
+  slot (`stampTagHeader(map, BUILTIN_TAG)` — same channel the
+  `::builtin{…}` constructor uses); the projection inside
+  `printValue` substitutes the function back to its
+  `:qlang/prim/<name>` keyword handle so the descriptor itself
+  round-trips.
 - **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
   body AST without a `.text` source slice, because `printConduit`
   emits `::conduit[:self [params] ~{body-source}]` and would
@@ -2139,7 +2233,7 @@ value-class above.
 | RParen | `)` | |
 | LBrace | `{` | |
 | RBrace | `}` | |
-| HashBrace | `#{` | |
+| HashBracket | `#[` | |
 | BangBrace | `!{` | |
 | LBracket | `[` | |
 | RBracket | `]` | |
@@ -2185,7 +2279,7 @@ MapBody       ← MapEntry (','? MapEntry)*
 MapEntry      ← String ':' Pipeline  (JSON-style string key, converted to keyword)
               / Keyword Pipeline      (qlang-style :key)
 
-Set           ← '#{' (Pipeline (','? Pipeline)*)? '}'
+Set           ← '#[' (Pipeline (','? Pipeline)*)? ']'
 
 Vec           ← '[' (Pipeline (','? Pipeline)*)? ']'
 
@@ -2214,7 +2308,7 @@ Disambiguation:
 - `{` `}` → empty Map
 - `{` `:` → Map (qlang-style `:key expr` entry)
 - `{` `"` → Map (JSON-style `"key": expr` entry; string key converts to keyword)
-- `#{` → Set
+- `#[` → Set
 - `[` → Vec (elements evaluated against current `pipeValue`)
 - `/:` → keyword projection segment (namespaced key)
 - `/ident` or `/null` `/true` `/false` → bare projection segment
@@ -2298,11 +2392,11 @@ documentation level.
 {:name "a" :age 20 :adult true}
 
 |~| drop fields via bound minus
-> {:name "a" :age 20 :tmp 1} | minus(#{:tmp})
+> {:name "a" :age 20 :tmp 1} | minus(#[:tmp])
 {:name "a" :age 20}
 
 |~| select fields via bound inter
-> {:name "a" :age 20 :tmp 1} | inter(#{:name :age})
+> {:name "a" :age 20 :tmp 1} | inter(#[:name :age])
 {:name "a" :age 20}
 
 |~| enrich each element in distribute
@@ -2643,7 +2737,7 @@ Example:
 ```js
 import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang-core';
 
-const value = await evalQuery('{:name "alice" :tags #{:admin :ops}}');
+const value = await evalQuery('{:name "alice" :tags #[:admin :ops]}');
 const wire = JSON.stringify(toTaggedJSON(value));
 // '{"$map":[[{"$keyword":"name"},"alice"],[{"$keyword":"tags"},{"$set":[{"$keyword":"admin"},{"$keyword":"ops"}]}]]}'
 
@@ -2707,7 +2801,7 @@ walk the array and concatenate slices without extra bookkeeping.
 | `operand` | OperandCall name that resolves to a builtin from `langRuntime`, plus each key segment of a `Projection` |
 | `keyword` | `as` — the binding-introducing operand — plus the head Keyword/TagKeyword of a BindStep declaration |
 | `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
-| `set` | `#{` opener and matching `}` closer of a SetLit |
+| `set` | `#[` opener and matching `]` closer of a SetLit |
 | `vec` | `[` opener and matching `]` closer of a VecLit |
 | `punct` | Every other combinator (`\|`, `*`, `>>`), MapLit / arg-list brackets, commas, dots, and the `/` separator inside a `Projection` |
 | `whitespace` | Runs of whitespace between meaningful tokens; also the entire input on a parse failure (safe fallback for live-typing render paths) |

@@ -4,6 +4,8 @@
 {"name":"empty-false","query":"[1] | empty","expect":"false"}
 {"name":"first","query":"[10 20 30] | first","expect":"10"}
 {"name":"first-empty","query":"[] | first","expect":"null"}
+{"name":"first-set","query":"#[10 20 30] | first","expect":"10"}
+{"name":"first-set-empty","query":"#[] | first","expect":"null"}
 {"name":"last","query":"[10 20 30] | last","expect":"30"}
 {"name":"last-empty","query":"[] | last","expect":"null"}
 {"name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
@@ -13,13 +15,13 @@
 {"name":"filter-gt","query":"[1 2 3 4 5] | filter(gt(2))","expect":"[3 4 5]"}
 {"name":"filter-lt","query":"[1 2 3 4 5] | filter(lt(3))","expect":"[1 2]"}
 {"name":"filter-then-count","query":"[1 2 3 4 5] | filter(gt(3)) | count","expect":"2"}
-{"name":"filter-set-gt","query":"#{1 2 3 4 5} | filter(gt(2))","expect":"#{3 4 5}"}
-{"name":"filter-set-empty-result","query":"#{1 2 3} | filter(gt(99))","expect":"#{}"}
+{"name":"filter-set-gt","query":"#[1 2 3 4 5] | filter(gt(2))","expect":"#[3 4 5]"}
+{"name":"filter-set-empty-result","query":"#[1 2 3] | filter(gt(99))","expect":"#[]"}
 {"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter(gt(1))","expect":"{:b 2 :c 3}"}
 {"name":"filter-vec-0arity-conduit","query":"[1 2 3 4 5] | :big gt(2) | filter(big)","expect":"[3 4 5]"}
 {"name":"filter-vec-1arity-conduit","query":"[1 -2 3 -4 5] | :@pos [:v] (v | gt(0)) | filter(@pos)","expect":"[1 3 5]"}
-{"name":"filter-set-0arity-conduit","query":"#{1 2 3 4 5} | :big gt(2) | filter(big)","expect":"#{3 4 5}"}
-{"name":"filter-set-1arity-conduit","query":"#{1 -2 3 -4 5} | :@pos [:v] (v | gt(0)) | filter(@pos)","expect":"#{1 3 5}"}
+{"name":"filter-set-0arity-conduit","query":"#[1 2 3 4 5] | :big gt(2) | filter(big)","expect":"#[3 4 5]"}
+{"name":"filter-set-1arity-conduit","query":"#[1 -2 3 -4 5] | :@pos [:v] (v | gt(0)) | filter(@pos)","expect":"#[1 3 5]"}
 {"name":"filter-map-0arity-conduit","query":"{:a 1 :b 2 :c 3} | :big gt(1) | filter(big)","expect":"{:b 2 :c 3}"}
 {"name":"filter-map-1arity-conduit","query":"{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt(0)) | filter(@pos)","expect":"{:a 1 :c 3}"}
 {"name":"filter-map-via-2arity-conduit-key","query":"{:a 1 :b 2 :c 3} | :@isA [:k :v] (k | eq(:a)) | filter(@isA)","expect":"{:a 1}"}
@@ -27,18 +29,19 @@
 {"name":"filter-map-empty","query":"{} | filter(gt(0))","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter(gt(1))","expect":"{:c 3 :b 2}"}
 {"name":"filter-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | filter(@kv) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
-{"name":"filter-set-2arity-pred-throws","query":"#{1 2} | :@kv [:k :v] true | filter(@kv) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
+{"name":"filter-set-2arity-pred-throws","query":"#[1 2] | :@kv [:k :v] true | filter(@kv) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
 {"name":"filter-vec-3arity-pred-throws","query":"[1] | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
-{"name":"filter-set-3arity-pred-throws","query":"#{1} | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
+{"name":"filter-set-3arity-pred-throws","query":"#[1] | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
 {"name":"filter-map-3arity-pred-throws","query":"{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterMapPredArityInvalidError"}
-{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"type-error","expect":"::FilterSubjectNotContainerError!{\n  :fault {:step ~{filter(gt(0))} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"typeError","expect":"::FilterSubjectNotContainerError!{\n  :faultStep ~{filter(gt(0))}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort(/age)","expect":"[{:age 20} {:age 25} {:age 30}]"}
 {"name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort(/name)","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
 {"name":"take","query":"[1 2 3 4 5] | take(3)","expect":"[1 2 3]"}
 {"name":"drop","query":"[1 2 3 4 5] | drop(2)","expect":"[3 4 5]"}
-{"name":"distinct","query":"[1 2 1 3 2 4] | distinct","expect":"[1 2 3 4]"}
+{"name":"distinct","query":"[1 2 1 3 2 4] | distinct","expect":"#[1 2 3 4]"}
+{"name":"distinct-on-set","query":"#[1 2 3] | distinct","expect":"#[1 2 3]"}
 {"name":"reverse","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
 {"name":"flat","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
 {"name":"distribute-add","query":"[1 2 3] * add(1)","expect":"[2 3 4]"}

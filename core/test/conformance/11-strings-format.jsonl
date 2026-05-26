@@ -2,16 +2,16 @@
 {"name":"append","query":"\"hello\" | append(\" world\")","expect":"\"hello world\""}
 {"name":"prepend-empty","query":"\"x\" | prepend(\"\")","expect":"\"x\""}
 {"name":"append-empty","query":"\"x\" | append(\"\")","expect":"\"x\""}
-{"name":"prepend-non-string","query":"42 | prepend(\"x\")","error":"type-error","expect":"::PrependSubjectNotStringError!{\n  :fault {:step ~{prepend(\"x\")} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"append-non-string","query":"42 | append(\"x\")","error":"type-error","expect":"::AppendSubjectNotStringError!{\n  :fault {:step ~{append(\"x\")} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
+{"name":"prepend-non-string","query":"42 | prepend(\"x\")","error":"typeError","expect":"::PrependSubjectNotStringError!{\n  :faultStep ~{prepend(\"x\")}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"append-non-string","query":"42 | append(\"x\")","error":"typeError","expect":"::AppendSubjectNotStringError!{\n  :faultStep ~{append(\"x\")}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"json-number","query":"42 | json","expect":"\"42\""}
 {"name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
 {"name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
 {"name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
 {"name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
 {"name":"json-null","query":"null | json","expect":"\"null\""}
-{"name":"table-non-vec","query":"42 | table","error":"type-error","expect":"::TableSubjectNotVecError!{\n  :fault {:step ~{table} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
-{"name":"table-mixed","query":"[42 \"hello\"] | table","error":"type-error","expect":"::TableRowNotMapError!{\n  :fault {\n    :step ~{table}\n    :input [42 \"hello\"]\n  }\n  :actualValue 42\n  :actualType :number\n  :index 0\n}"}
+{"name":"table-non-vec","query":"42 | table","error":"typeError","expect":"::TableSubjectNotVecError!{\n  :faultStep ~{table}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"table-mixed","query":"[42 \"hello\"] | table","error":"typeError","expect":"::TableRowNotMapError!{\n  :faultStep ~{table}\n  :faultInput [42 \"hello\"]\n  :actualValue 42\n  :actualType :number\n  :index 0\n}"}
 {"name":"table-empty","query":"[] | table","expect":"\"(empty)\""}
 {"name":"json-keyword","query":":foo | json","expect":"\"\\\":foo\\\"\""}
 {"name":"json-tag-keyword","query":"::ParseError | json","expect":"\"\\\"::ParseError\\\"\""}

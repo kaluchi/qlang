@@ -84,7 +84,7 @@ describe('UnresolvedIdentifierError', () => {
   it('sets identifierName, kind, fingerprint', () => {
     const unresolvedErr = new UnresolvedIdentifierError('foo');
     expect(unresolvedErr.identifierName).toBe('foo');
-    expect(unresolvedErr.kind).toBe('unresolved-identifier');
+    expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
     expect(unresolvedErr.fingerprint).toBe('UnresolvedIdentifierError');
     expect(unresolvedErr.message).toContain('foo');
   });
@@ -100,7 +100,7 @@ describe('UnresolvedIdentifierError', () => {
 describe('DivisionByZeroError', () => {
   it('has a fixed message and fingerprint', () => {
     const divErr = new DivisionByZeroError();
-    expect(divErr.kind).toBe('division-by-zero');
+    expect(divErr.kind).toBe('divisionByZero');
     expect(divErr.fingerprint).toBe('DivisionByZeroError');
     expect(divErr.message).toBe('division by zero');
   });
@@ -109,7 +109,7 @@ describe('DivisionByZeroError', () => {
 describe('ArityError', () => {
   it('carries context and kind', () => {
     const arityErr = new ArityError('too many args', { count: 5 });
-    expect(arityErr.kind).toBe('arity-error');
+    expect(arityErr.kind).toBe('arityError');
     expect(arityErr.context.count).toBe(5);
   });
 });
@@ -117,7 +117,7 @@ describe('ArityError', () => {
 describe('QlangInvariantError', () => {
   it('is constructible with message and context', () => {
     const invariantErr = new QlangInvariantError('registration failed', { site: 'X', operandName: 'foo' });
-    expect(invariantErr.kind).toBe('invariant-error');
+    expect(invariantErr.kind).toBe('invariantError');
     expect(invariantErr.context.site).toBe('X');
     expect(invariantErr.context.operandName).toBe('foo');
     expect(invariantErr).toBeInstanceOf(QlangError);

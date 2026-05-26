@@ -85,13 +85,13 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('non-keyword subject raises SourceSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
+    expect(err.tag).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });
 
   it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('{:kind :tag :impl :unbound} | source');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
+    expect(err.tag).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });
 });
 
@@ -110,13 +110,13 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
   it('non-keyword subject raises DocsSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
+    expect(err.tag).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
   });
 
   it('unknown binding raises AxisBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(err.tag).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
   });
 });
 
@@ -130,13 +130,13 @@ describe(':name | examples extracts Quote segments from docs', () => {
   it('non-keyword subject raises ExamplesSubjectNotKeywordOrTagError', async () => {
     const err = await evalQuery('42 | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
+    expect(err.tag).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
   });
 
   it('unknown binding raises AxisBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(err.tag).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
   });
 });
 

@@ -28,11 +28,13 @@ import {
   declareArityError
 } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
+  isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword
+  isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+  isTaggedInstance,
+  ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
@@ -75,8 +77,8 @@ class UnknownCombinatorKindError extends QlangInvariantError {
   }
 }
 
-const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapError',
-  ({ key, actualType }) => `/${key} requires Map or Vec subject, got ${actualType.name}`);
+const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',
+  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`);
 // Map subject does not carry the requested key. Strict fail-first
 // surfaces the typo / mismatched-shape on the projection itself; the
 // lifted descriptor carries `:key` plus the `:fault` step/input so
@@ -84,24 +86,24 @@ const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapE
 // subject still deflects as null (see projectSegment).
 const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
   ({ key }) => `/${key} — key not present in Map subject`);
-// Vec subject indexed past its bounds. Negative indices walk from
-// the tail (`/-1` is last); only positions that resolve outside
-// `[0, length)` trip this site.
+// Vec or Set subject indexed past its bounds. Negative indices walk
+// from the tail (`/-1` is last); only positions that resolve outside
+// `[0, length)` trip this site. Set length is insertion-order
+// cardinality per §Set in qlang-spec.md.
 const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
-  ({ key, length }) => `/${key} — index out of bounds for Vec subject of length ${length}`);
-// Vec subject projected by a non-numeric segment. Vec indices are
-// integer offsets; named keys belong to Map shape, so a `[…] | /name`
-// query surfaces as a shape mismatch on the projection itself.
-const ProjectionVecKeyNotIntegerError = declareShapeError('ProjectionVecKeyNotIntegerError',
-  ({ key }) => `/${key} — non-integer segment cannot index a Vec subject`);
+  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`);
+// Vec or Set subject projected by a non-numeric segment. Sequence
+// indices are integer offsets; named keys belong to Map shape, so
+// a `[…] | /name` query surfaces as a shape mismatch on the
+// projection itself.
+const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequenceKeyNotIntegerError',
+  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`);
 // Value-class subjects (Quote / Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
 // that set is treated as a typo and lifts to this error.
 const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
-const TaggedLitTagNotFoundError = declareShapeError('TaggedLitTagNotFoundError',
-  ({ tag }) => `::${tag} — tag binding not found in env`);
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
   ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor with :kind :tag`);
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
@@ -204,31 +206,28 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangError && !caughtError.location && node.location)
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
-    const faultMap = buildFaultMap(node, state.pipeValue);
+    const faultStep = makeQuote(node.text);
+    const faultInput = state.pipeValue;
     if (caughtError instanceof ParseError) {
       // A ParseError raised mid-eval — typically from `apply` / `eval`
       // parsing a Quote source — lifts to a `::ParseError!{…}`
       // ErrorValue (same structured shape as a top-level parse
-      // failure), with the originating step's fault stamped.
+      // failure), with the originating step's faultStep / faultInput
+      // stamped flat on the descriptor.
       const lifted = errorFromParse(caughtError);
       const enriched = new Map(lifted.descriptor);
-      enriched.set('fault', faultMap);
-      return withPipeValue(state, { ...lifted, descriptor: enriched });
+      enriched.set('faultStep', faultStep);
+      enriched.set('faultInput', faultInput);
+      return withPipeValue(state, makeErrorValue(lifted.tag, enriched, {
+        location: lifted.location,
+        originalError: lifted.originalError
+      }));
     }
     return withPipeValue(state,
       caughtError instanceof QlangError
-        ? errorFromQlang(caughtError, faultMap)
-        : errorFromForeign(caughtError, node, faultMap));
+        ? errorFromQlang(caughtError, faultStep, faultInput)
+        : errorFromForeign(caughtError, node, faultStep, faultInput));
   }
-}
-
-// ─── :fault Map builder ─────────────────────────────────────────
-
-function buildFaultMap(stepNode, pipeValue) {
-  const m = new Map();
-  m.set('step', makeQuote(stepNode.text));
-  m.set('input', pipeValue);
-  return Object.freeze(m);
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -302,7 +301,7 @@ async function distribute(state, bodyNode) {
   if (!isVecShape(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotVecError(state.pipeValue);
     distributeErr.location = bodyNode.location;
-    return withPipeValue(state, errorFromQlang(distributeErr, buildFaultMap(bodyNode, state.pipeValue)));
+    return withPipeValue(state, errorFromQlang(distributeErr, makeQuote(bodyNode.text), state.pipeValue));
   }
   const subjectVec = state.pipeValue;
   const forkResults = await Promise.all(
@@ -321,7 +320,7 @@ async function mergeFlat(state, nextNode) {
   if (!isVecShape(state.pipeValue)) {
     const mergeErr = new MergeSubjectNotVecError(state.pipeValue);
     mergeErr.location = nextNode.location;
-    return withPipeValue(state, errorFromQlang(mergeErr, buildFaultMap(nextNode, state.pipeValue)));
+    return withPipeValue(state, errorFromQlang(mergeErr, makeQuote(nextNode.text), state.pipeValue));
   }
   const sourceVec = state.pipeValue;
   const flattened = [];
@@ -374,8 +373,23 @@ async function applyFailTrack(state, stepNode) {
   const existingTrail = errorVal.descriptor.get('trail');
   const newTrail = materializeTrail(errorVal);
   const combinedTrail = combineTrailQuotes(existingTrail, newTrail);
-  const materializedDescriptor = new Map(errorVal.descriptor);
+  // Materialize for fail-track exposure: descriptor data fields
+  // ride flat on the Map, the error tag rides on the JS-header
+  // `TAG_HEADER_SYMBOL` slot — `!| type` reads it directly, the
+  // identity-overlay invariant stays uniform with Conduit /
+  // Snapshot / TaggedInstance. Identity intentionally does not
+  // duplicate as a `:kind` Map field: any `:kind` slot the user
+  // stamped on the source descriptor (e.g. `!{:kind :oops :…}`)
+  // rides through verbatim as ordinary data, but the runtime
+  // never mints a redundant `:kind <tag>` entry that would
+  // shadow user content or print twice next to the literal
+  // head.
+  const materializedDescriptor = new Map();
+  for (const [k, v] of errorVal.descriptor) {
+    materializedDescriptor.set(k, v);
+  }
   materializedDescriptor.set('trail', combinedTrail);
+  stampTagHeader(materializedDescriptor, errorVal.tag);
   return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
 }
 
@@ -431,12 +445,27 @@ async function evalJsonArrayLit(node, state) {
 }
 
 async function evalErrorLit(node, state) {
+  // `:kind ::TagName` entry in the literal lifts to the error's
+  // JS-header `tag` slot — the universal identity invariant for
+  // every tagged value-class. Literals without `:kind` default
+  // to `::Error` generic identity so `error.tag` is always
+  // present without defensive checks at consumer sites. A non-
+  // TagKeyword `:kind` value (`!{:kind :foo}`, `!{:kind "x"}`)
+  // stays in the descriptor — the user explicitly chose to ride
+  // identity through a non-tag value, the default `::Error`
+  // covers the surface identity.
   const errorDescriptor = new Map();
+  let tag = ERROR_TAG;
   for (const entry of node.entries) {
     const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    errorDescriptor.set(entry.key.name, entryFork.pipeValue);
+    const entryValue = entryFork.pipeValue;
+    if (entry.key.name === 'kind' && isTagKeyword(entryValue)) {
+      tag = entryValue;
+      continue;
+    }
+    errorDescriptor.set(entry.key.name, entryValue);
   }
-  return withPipeValue(state, makeErrorValue(errorDescriptor, { location: node.location }));
+  return withPipeValue(state, makeErrorValue(tag, errorDescriptor, { location: node.location }));
 }
 
 function evalQuoteLit(node, state) {
@@ -463,104 +492,88 @@ async function evalSetLit(node, state) {
 // look up the tag binding under `::tag`, resolve its constructor,
 // invoke against the payload-value. The result becomes the new
 // pipeValue.
-async function evalTaggedLit(node, state) {
-  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
-  const payloadValue = payloadFork.pipeValue;
-  const typeKey = tagBindingKey(node.tag);
+// mintTaggedInstance(tagName, payload, state) → tagged value
+//
+// Single mint site for any `::Tag<payload>` invocation: auto-
+// declares an identity-only binding on first use, validates the
+// binding shape, dispatches by `:impl` slot (keyword handle →
+// PRIMITIVE_REGISTRY, Quote → eval body + auto-wrap, default →
+// identity-only `makeTaggedInstance`). Called by `evalTaggedLit`
+// for the literal-syntax path and by shape-preserving transforms
+// (`filter` / `sort` / `distinct` / …) that re-validate the
+// post-transform payload through the same constructor — the
+// «invariant re-run on transforms» contract for tags carrying
+// `:impl`.
+export async function mintTaggedInstance(tagName, payload, state, location = null) {
+  const typeKey = tagBindingKey(tagName);
   if (!envHas(state.env, typeKey)) {
-    throw new TaggedLitTagNotFoundError({ tag: node.tag });
+    const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
+    state.env.set(typeKey, implicitBinding);
   }
   let typeBinding = envGet(state.env, typeKey);
   if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('payload');
   if (!isQMap(typeBinding)) {
-    throw new TaggedLitNotTagBindingError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
+    throw new TaggedLitNotTagBindingError({ tag: tagName, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
-  // :impl carries either a `:qlang/prim/<tag>` keyword (built-in
-  // tag — resolved through PRIMITIVE_REGISTRY at every invocation so
-  // `manifest(:tag)` keeps the readable keyword handle on the
-  // descriptor) or a Quote-value (user-defined tag — payload
-  // becomes pipeValue, the Quote body runs against the current env).
   const implKey = typeBinding.get('impl');
   if (isKeyword(implKey)) {
     const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
-    const value = await constructor(payloadValue, state);
-    return withPipeValue(state, value);
+    return await constructor(payload, state);
   }
   if (isQuote(implKey)) {
-    // Stamp the tag-impl URI on the parse so a malformed Quote
-    // body surfaces as `::ParseError!{:uri "::Tag/impl" …}` —
-    // the descriptor names the originating tag-binding instead
-    // of the default `'inline'` placeholder, so the user lands
-    // on the constructor's declaration site directly.
-    const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${node.tag}/impl` });
-    const bodyState = makeState(payloadValue, state.env);
+    const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${tagName}/impl` });
+    const bodyState = makeState(payload, state.env);
     const resultState = await evalNode(bodyAst, bodyState);
-    return withPipeValue(state, resultState.pipeValue);
+    const constructorResult = resultState.pipeValue;
+    if (isErrorValue(constructorResult)) return constructorResult;
+    const tagKw = makeTagKeyword(tagName);
+    if (isTaggedInstance(constructorResult)
+        && constructorResult[TAG_HEADER_SYMBOL]?.name === tagName) {
+      return constructorResult;
+    }
+    return makeTaggedInstance(tagKw, constructorResult);
   }
-  // Default constructor — fires when the tag-binding has no
-  // explicit `:impl` slot. Branches by payload shape:
-  //
-  //   ErrorLit payload (already an ErrorValue) → re-stamp
-  //     `:kind ::Tag` on the descriptor and keep the result on
-  //     the fail-track. Prints back as `::Tag!{…}`.
-  //
-  //   Map payload → flat-merge into the instance descriptor:
-  //     `:kind ::Tag` plus every entry of the payload Map at the
-  //     top level. The Map is already structured as a named-field
-  //     bundle, so no nesting under `:payload` is needed. Prints
-  //     back as `::Tag{…fields…}`.
-  //
-  //   Other Primary payload (Vec / Set / Quote / Doc / scalar /
-  //     Keyword / nested TaggedLit / …) → nest under `:payload`:
-  //     `{:kind ::Tag :payload <value>}`. Prints back as
-  //     `::Tag<bracketed-payload>` for bracket-prefixed values
-  //     (Vec / Set / Quote / Doc) and `::Tag(<scalar>)` for the
-  //     rest — every shape the grammar's `Primary` rule accepts
-  //     as TaggedLit payload that is not itself a Map.
   if (implKey === undefined) {
-    if (isErrorValue(payloadValue)) {
-      const restamped = new Map(payloadValue.descriptor);
-      restamped.set('kind', makeTagKeyword(node.tag));
-      return withPipeValue(state, makeErrorValue(restamped, {
-        location: node.location,
-        originalError: payloadValue.originalError
-      }));
+    if (isErrorValue(payload)) {
+      return makeErrorValue(
+        makeTagKeyword(tagName),
+        payload.descriptor,
+        { location, originalError: payload.originalError }
+      );
     }
-    const instance = new Map();
-    instance.set('kind', makeTagKeyword(node.tag));
-    if (isQMap(payloadValue)) {
-      for (const [fieldKey, fieldVal] of payloadValue) {
-        if (fieldKey === 'kind') continue;
-        instance.set(fieldKey, fieldVal);
-      }
-    } else {
-      instance.set('payload', payloadValue);
-    }
-    return withPipeValue(state, instance);
+    return makeTaggedInstance(makeTagKeyword(tagName), payload);
   }
   throw new TagBindingHasNoConstructorError({
-    tag: node.tag,
-    payloadValue: payloadValue,
-    payloadType: typeKeyword(payloadValue),
+    tag: tagName,
+    payloadValue: payload,
+    payloadType: typeKeyword(payload),
     expectedType: Object.freeze([keyword('keyword'), keyword('quote')]),
-    actualValue: implKey,
-    actualType: typeKeyword(implKey)
   });
 }
+
+async function evalTaggedLit(node, state) {
+  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
+  const payloadValue = payloadFork.pipeValue;
+  return withPipeValue(state, await mintTaggedInstance(node.tag, payloadValue, state, node.location));
+}
+
 
 // ::tag — bare reference to a tag-namespace identifier. The
 // reference value is the TagKeyword itself (identity-as-value) —
 // symmetric to the value-namespace `:foo` keyword literal, which
-// produces `keyword('foo')` without consulting env. Typos surface
-// on use, not on literal construction:
+// produces `keyword('foo')` without consulting env. Use-sites
+// dispatch on env presence:
 //
-//   `::TypoTag[payload]`  → TaggedLitTagNotFoundError (evalTaggedLit)
-//   `::TypoTag | source`  → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | docs`    → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag[payload]`   → auto-declares an identity-only
+//                            binding with `:declarationOrigin
+//                            :implicit` (evalTaggedLit), mints
+//                            a tagged instance; lint sweeps over
+//                            `manifest(:tag)` flag the auto-decl.
+//   `::TypoTag | source`   → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag | docs`     → AxisBindingNotFoundError (axis-op)
 //   `::TypoTag | examples` → AxisBindingNotFoundError (axis-op)
 //
-// Each use-site already probes env for its own purpose, so the
-// literal stays env-agnostic. Catalog `:throws [::Foo ::Bar]` Vec
+// Catalog `:throws [::Foo ::Bar]` Vec
 // constructions evaluate cleanly regardless of declaration order;
 // `langRuntime`'s post-bootstrap `:throws` walker resolves
 // every TagKeyword against the loaded tag-bindings at construction
@@ -611,7 +624,7 @@ async function evalBindStep(node, state) {
     // the joined prose as a Doc-value snapshot.
     if (node.key.type === 'BareTypeKeyword') {
       const tagBinding = new Map();
-      tagBinding.set('kind', makeTagKeyword('builtin'));
+      stampTagHeader(tagBinding, BUILTIN_TAG);
       const bound = makeSnapshot(tagBinding, {
         name, docs, location: node.location
       });
@@ -723,25 +736,37 @@ function projectSegment(subject, projKey, state) {
     }
   }
   if (isJsonObject(subject)) {
-    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, subject });
+    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
     return subject[projKey];
   }
   if (isQMap(subject)) {
-    if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, subject });
+    if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
     return subject.get(projKey);
   }
   if (isJsonArray(subject) || isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionVecKeyNotIntegerError({ key: projKey, subject });
+      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
     }
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= subject.length) {
-      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, subject });
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, actualValue: subject });
     }
     return subject[resolvedIndex];
   }
-  throw new ProjectionSubjectNotMapError({
+  if (isQSet(subject)) {
+    if (!INTEGER_SEGMENT_RE.test(projKey)) {
+      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
+    }
+    const items = [...subject];
+    const segmentIndex = parseInt(projKey, 10);
+    const resolvedIndex = segmentIndex < 0 ? items.length + segmentIndex : segmentIndex;
+    if (resolvedIndex < 0 || resolvedIndex >= items.length) {
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: items.length, actualValue: subject });
+    }
+    return items[resolvedIndex];
+  }
+  throw new ProjectionSubjectNotProjectableError({
     key: projKey,
     actualType: typeKeyword(subject),
     actualValue: subject
@@ -758,13 +783,11 @@ function projectSegment(subject, projKey, state) {
 // payload field set documented in src/types.mjs.
 
 function isBuiltinDescriptor(descriptor) {
-  const kind = descriptor.get('kind');
-  return kind && kind.name === 'builtin';
+  return descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
-function isConduitDescriptor(descriptor) {
-  const kind = descriptor.get('kind');
-  return kind && kind.name === 'conduit';
-}
+// Conduit identity rides on the Map's JS-header `CONDUIT_TAG_SYMBOL`
+// flag (Phase 2) — `isConduit` is the single discriminator.
+const isConduitDescriptor = isConduit;
 
 async function evalOperandCall(node, state) {
   const lookupName = node.name;
@@ -781,7 +804,7 @@ async function evalOperandCall(node, state) {
   // `as(:name) | name` sees the raw data. Unwrapping upstream of
   // applyBindingDescriptor keeps the :kind switch exhaustive
   // over {:builtin, :conduit}; the remaining non-Map branches handle
-  // conduit-parameter proxies (isFunctionValue) and plain user values
+  // conduitParameter proxies (isFunctionValue) and plain user values
   // (tail) — and preserves the "snapshot wrapping an effectful
   // function value" safety-net path documented in the effect-marker
   // section of qlang-spec.md.
@@ -808,10 +831,10 @@ async function evalOperandCall(node, state) {
     // parse-time AST scan cannot see — installation via use,
     // capture via as, or rebinding via session.bind — because
     // every effectful invocation ultimately flows through an
-    // identifier lookup at this point. Only conduit-parameter
+    // identifier lookup at this point. Only conduitParameter
     // proxies reach this branch — built-ins dispatch through
     // `applyBindingDescriptor` above. The check stays because a
-    // conduit-parameter proxy may wrap an effectful captured-arg
+    // conduitParameter proxy may wrap an effectful captured-arg
     // lambda under a non-@-prefixed binding.
     if (resolved.effectful && !classifyEffect(lookupName)) {
       throw new EffectLaunderingAtCallError({
@@ -878,7 +901,7 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // to applyRule10. Bare lookup fires the operand against the current
 // pipeValue regardless of arity — non-nullary operands without
 // captured args hit Rule 10's arity check and surface a per-site
-// arity-error. The introspection surface for "what does this operand
+// arityError. The introspection surface for "what does this operand
 // do" is `:name | source` / `:name | docs` / `:name | examples`,
 // not a bare-name shortcut into the descriptor Map.
 async function applyBuiltinDescriptor(descriptor, node, state) {
@@ -899,7 +922,7 @@ async function applyBuiltinDescriptor(descriptor, node, state) {
 // applyConduit(conduit, node, lookupName, state) → state'
 //
 // Dispatches a conduit call — the "bonus fruit" in the Pac-man model.
-// Builds conduit-parameter proxies (lazy nullary function values) from
+// Builds conduitParameter proxies (lazy nullary function values) from
 // captured-arg lambdas, constructs a bodyEnv from the lexical envRef
 // anchor plus the params, forks the body, and ascends with only the
 // final pipeValue. The entire operation is one atomic state
@@ -943,7 +966,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   }
 
   // Build bodyEnv: start from the lexical scope anchor
-  // (envRef.env), then layer conduit-parameter proxies on top. Each
+  // (envRef.env), then layer conduitParameter proxies on top. Each
   // param proxy is a nullary function value that fires the
   // captured-arg lambda against whatever pipeValue the identifier
   // lookup sees at the moment — this is the lazy binding that
@@ -994,7 +1017,7 @@ function makeConduitParameter(capturedArgLambda, paramName) {
     }
     return withPipeValue(state, await capturedArgLambda(state.pipeValue));
   }, {
-    category: 'conduit-parameter',
+    category: 'conduitParameter',
     subject: 'any (current pipeValue at the lookup site)',
     modifiers: [],
     returns: 'any (the captured expression evaluated against pipeValue)',
@@ -1056,11 +1079,11 @@ export function resolveCapturedConduit(astNode, env) {
 // Applies a parametric conduit with caller-supplied captured values,
 // bypassing the AST-args construction path. Each fixedArgs[i] becomes
 // a nullary captured-arg lambda that ignores pipeValue and returns the
-// fixed value — matching the conduit-parameter lazy-proxy contract for
+// fixed value — matching the conduitParameter lazy-proxy contract for
 // a value the caller has already resolved. Used by filter/every/any
 // over Map to supply (key, value) to a 2-arity predicate per entry.
 //
-// Enforces the same effect-laundering invariant as applyConduit: an
+// Enforces the same effectLaundering invariant as applyConduit: an
 // effectful conduit cannot be invoked through a clean lookup name.
 // Caller must guarantee fixedArgs.length === conduit's params.length —
 // this invoker performs no arity check because the dispatching operand

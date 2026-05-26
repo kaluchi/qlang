@@ -57,7 +57,7 @@ describe('parseJson — error sites', () => {
 
 describe('parseTjson — happy path', () => {
   it('round-trips a qlang Set through tjson | parseTjson', async () => {
-    const cellEntry = await runQuery('#{:admin :user} | tjson | parseTjson | count', noopIo);
+    const cellEntry = await runQuery('#[:admin :user] | tjson | parseTjson | count', noopIo);
     expect(cellEntry.result).toBe(2);
   });
 

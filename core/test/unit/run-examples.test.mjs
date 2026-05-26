@@ -14,7 +14,7 @@ import { createSession } from '../../src/session.mjs';
 describe('runExamples accepts both keyword and descriptor subjects', () => {
   it('keyword subject — :count | runExamples', async () => {
     const result = await evalQuery(':count | runExamples * /ok | distinct');
-    expect(result).toEqual([true]);
+    expect(result).toEqual(new Set([true]));
   });
 
   it('descriptor subject — manifest-yielded Map with :name passes through', async () => {
@@ -22,7 +22,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
     // composing it with `* runExamples` per-entry covers the
     // Map-with-:name subject path on the runExamples contract.
     const result = await evalQuery('manifest | filter(/name | eq("count")) | first | runExamples * /ok | distinct');
-    expect(result).toEqual([true]);
+    expect(result).toEqual(new Set([true]));
   });
 
   it('subject naming a binding without a source-located BindStep returns an empty Vec', async () => {
@@ -39,7 +39,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
   it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {
     const err = await evalQuery('42 | runExamples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
+    expect(err.tag).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
   });
 });
 
@@ -136,7 +136,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
-    expect(cellProbe.result.descriptor.get('kind'))
+    expect(cellProbe.result.tag)
       .toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 

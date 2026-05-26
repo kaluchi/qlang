@@ -1,0 +1,22 @@
+{"name":"auto-decl-single-use-mints-tagged-instance","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
+{"name":"auto-decl-payload-survives","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
+{"name":"auto-decl-keeps-vec-shape-after-payload-strip","query":"::AutoBox[1 2 3] | payload | type","expect":":vec"}
+{"name":"auto-decl-keeps-set-shape","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
+{"name":"auto-decl-keeps-set-shape-after-payload-strip","query":"::AutoSet#[1 2 3] | payload | type","expect":":set"}
+{"name":"auto-decl-keeps-map-shape","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
+{"name":"auto-decl-keeps-map-shape-after-payload-strip","query":"::AutoMap{:k 1} | payload | type","expect":":map"}
+{"name":"auto-decl-scalar-payload-wraps","query":"::AutoScalar(42) | type","expect":"::AutoScalar"}
+{"name":"auto-decl-scalar-payload-roundtrip","query":"::AutoScalar(42) | payload","expect":"42"}
+{"name":"auto-decl-jsonarray-payload-composite","query":"::AutoJson(::json[1 2 3]) | type","expect":"::AutoJson"}
+{"name":"auto-decl-jsonarray-payload-keeps-json-shape","query":"::AutoJson(::json[1 2 3]) | payload | type","expect":":jsonArray"}
+{"name":"auto-decl-two-uses-same-tag-reuse-binding","query":"::AutoFoo[1] | ::AutoFoo[2] | manifest(:tag) | filter(/name | eq(\"::AutoFoo\")) | count","expect":"1"}
+{"name":"auto-decl-distinct-tags-each-decl-once","query":"::AutoA[1] | ::AutoB[2] | manifest(:tag) | filter(at(:declarationOrigin) | eq(:implicit)) | count | gt(1)","expect":"true"}
+{"name":"auto-decl-bare-tag-keyword-does-not-trigger","query":"::AutoBareOnly | manifest(:tag) | filter(/name | eq(\"::AutoBareOnly\")) | count","expect":"0"}
+{"name":"auto-decl-bare-tag-keyword-yields-tag-keyword-value","query":"::AutoBareOnly | type","expect":":tagKeyword"}
+{"name":"explicit-decl-before-use-no-implicit-marker","query":"::ExplicitFirst {} | ::ExplicitFirst[1 2] | manifest(:tag) | filter(/name | eq(\"::ExplicitFirst\")) | first | at(:declarationOrigin)","expect":"null"}
+{"name":"explicit-impl-decl-runs-constructor","query":"::AutoAdd10 {:impl ~{add(10)}} | ::AutoAdd10(5) | payload","expect":"15"}
+{"name":"auto-decl-then-explicit-redecl-overwrites","query":"::AutoLater[5] | ::AutoLater {:impl ~{add(100)}} | ::AutoLater(7) | payload","expect":"107"}
+{"name":"auto-decl-filter-preserves-tag","query":"::AutoFilter[1 2 3 4] | filter(gt(2)) | type","expect":"::AutoFilter"}
+{"name":"auto-decl-sort-preserves-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
+{"name":"auto-decl-distinct-flips-to-tagged-set","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::AutoDist"}
+{"name":"manifest-implicit-only-filter-count-gt-0","query":"::OnlyImplicit[1] | manifest(:tag) | filter(at(:declarationOrigin) | eq(:implicit)) | filter(/name | eq(\"::OnlyImplicit\")) | count","expect":"1"}

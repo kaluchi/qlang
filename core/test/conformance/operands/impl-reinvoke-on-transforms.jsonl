@@ -1,0 +1,15 @@
+{"name":"impl-reinvoke-sort-after-reverse-restores-order","query":"::Sorted {:impl ~{sort}} | ::Sorted[3 1 2] | reverse | payload","expect":"[1 2 3]"}
+{"name":"impl-reinvoke-sort-after-filter-restores-order","query":"::Sorted {:impl ~{sort}} | ::Sorted[5 3 1 2] | filter(gt(1)) | payload","expect":"[2 3 5]"}
+{"name":"impl-reinvoke-validator-passes-on-valid-subset","query":"::Positive {:impl ~{as(:s) | every(gt(0)) | when(not, error({:kind :InvalidPositive})) | s}} | ::Positive[1 2 3] | filter(gt(1)) | payload","expect":"[2 3]"}
+{"name":"impl-reinvoke-validator-fires-on-violation","query":"::Positive {:impl ~{as(:s) | every(gt(0)) | when(not, error({:kind ::InvalidPositive})) | s}} | ::Positive[1 2 -3] !| type","expect":"::InvalidPositive"}
+{"name":"impl-reinvoke-validator-tag-on-success","query":"::Positive {:impl ~{as(:s) | every(gt(0)) | when(not, error({:kind :InvalidPositive})) | s}} | ::Positive[1 2 3] | filter(gt(0)) | type","expect":"::Positive"}
+{"name":"identity-tag-no-impl-sticky-after-filter","query":"::Box {} | ::Box[1 2 3 4] | filter(gt(2)) | type","expect":"::Box"}
+{"name":"identity-tag-no-impl-sticky-after-distinct","query":"::Box {} | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
+{"name":"identity-tag-no-impl-sticky-after-sort","query":"::Box {} | ::Box[3 1 2] | sort | type","expect":"::Box"}
+{"name":"impl-tag-reinvoke-on-take","query":"::Sorted {:impl ~{sort}} | ::Sorted[5 3 1 2] | take(2) | payload","expect":"[1 2]"}
+{"name":"impl-tag-reinvoke-on-drop","query":"::Sorted {:impl ~{sort}} | ::Sorted[5 3 1 2] | drop(2) | payload","expect":"[3 5]"}
+{"name":"impl-tag-preserved-through-sortwith","query":"::Box {:impl ~{sort}} | ::Box[3 1 2] | sortWith(sub(/left, /right)) | type","expect":"::Box"}
+{"name":"impl-tag-reinvoke-flat-distributes-sort","query":"::Sorted {:impl ~{sort}} | ::Sorted[2 3 1] | flat | payload","expect":"[1 2 3]"}
+{"name":"non-preserving-count-drops-tag-naturally","query":"::Box {} | ::Box[1 2 3] | count","expect":"3"}
+{"name":"non-preserving-sum-drops-tag-naturally","query":"::Box {} | ::Box[1 2 3] | sum","expect":"6"}
+{"name":"non-preserving-first-drops-tag-naturally","query":"::Box {} | ::Box[42 100] | first","expect":"42"}

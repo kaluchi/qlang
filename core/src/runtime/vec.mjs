@@ -36,7 +36,7 @@ import {
   isQMap, isQSet, isKeyword, isTagKeyword, isTruthy, isErrorValue, typeKeyword,
   NULL, keyword, isVecShape, isMapShape, mapShapeEntries, mapShapeSize,
   mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
-  isJsonArray, JSON_ARRAY_TAG, TAG_HEADER_SYMBOL, stampTagHeader
+  isJsonArray, JSON_ARRAY_TAG
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
 
@@ -78,28 +78,31 @@ function sequenceElements(v) {
 //     downstream `type` axis still reads `::Box` after the
 //     transform. Same single-mint pattern keeps every consumer
 //     symmetric without per-operand stamping.
+// containerLikeOf(items, source) — single mint site for shape-
+// preserving transformers (filter / sort / take / drop / reverse /
+// flat / sortWith) over an ordered sequence. Three shape branches:
+// Set re-mints via `addStructurallyUnique` (the only path where
+// dedup matters — `flat` of a Set of Vecs can introduce
+// duplicates); JsonArray inline-builds with `JSON_ARRAY_TAG` but
+// does NOT freeze (the dispatch-level `applyTagPreservation` hook
+// stamps the optional TaggedInstance header and freezes at the
+// end); Vec passes through `vecLikeOf`. Tag preservation /
+// re-invocation rides entirely on the dispatch wrapper —
+// containerLikeOf stays shape-only.
 function containerLikeOf(items, source) {
-  let result;
   if (isQSet(source)) {
-    result = new Set();
-    for (const v of items) addStructurallyUnique(result, v);
-  } else if (isJsonArray(source)) {
-    // Build the JsonArray inline rather than through `vecLikeOf`'s
-    // `makeJsonArray` path — the latter freezes its output, which
-    // would block the downstream TaggedInstance header stamp.
-    // Defer the freeze until both JSON_ARRAY_TAG and the optional
-    // TAG_HEADER_SYMBOL are in place.
-    result = [...items];
-    Object.defineProperty(result, JSON_ARRAY_TAG, {
+    const out = new Set();
+    for (const v of items) addStructurallyUnique(out, v);
+    return out;
+  }
+  if (isJsonArray(source)) {
+    const arr = [...items];
+    Object.defineProperty(arr, JSON_ARRAY_TAG, {
       value: true, enumerable: false, configurable: false, writable: false
     });
-  } else {
-    result = vecLikeOf(items, source);
+    return arr;
   }
-  const sourceTag = source[TAG_HEADER_SYMBOL];
-  if (sourceTag !== undefined) stampTagHeader(result, sourceTag);
-  if (isJsonArray(source)) Object.freeze(result);
-  return result;
+  return vecLikeOf(items, source);
 }
 import {
   declareSubjectError,
@@ -391,7 +394,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
     return mapLikeOf(filterEntries, container);
   }
   throw new FilterSubjectNotContainerError(container);
-});
+}, { preservesTag: true });
 
 export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
   if (isVecShape(container) || isQSet(container)) {
@@ -513,7 +516,7 @@ export const sort = overloadedOp('sort', 2, {
     });
     return containerLikeOf(sortEntries.map(entry => entry.sortElem), subject);
   }
-});
+}, { preservesTag: true });
 
 function compareScalars(a, b) {
   if (isKeyword(a) || isTagKeyword(a)) {
@@ -531,7 +534,7 @@ export const take = valueOp('take', 2, (subject, n) => {
   if (typeof n !== 'number') throw new TakeCountNotNumberError(n);
   const items = sequenceElements(subject);
   return containerLikeOf(items.slice(0, n), subject);
-});
+}, { preservesTag: true });
 
 // `at` — indexed access with Array.prototype.at-style negative indices.
 // Out-of-bounds returns null, mirroring the Map-miss / Vec-miss symmetry
@@ -582,7 +585,7 @@ export const drop = valueOp('drop', 2, (subject, n) => {
   if (typeof n !== 'number') throw new DropCountNotNumberError(n);
   const items = sequenceElements(subject);
   return containerLikeOf(items.slice(n), subject);
-});
+}, { preservesTag: true });
 
 // `distinct` is the canonical Vec → Set converter. The return type
 // carries the structural-uniqueness invariant in the value-class
@@ -597,26 +600,21 @@ export const distinct = nullaryOp('distinct', (subject) => {
   if (!isOrderedSequence(subject)) throw new DistinctSubjectNotSequenceError(subject);
   if (isQSet(subject)) return subject;
   // Subject reduced to Vec/JsonArray after the Set early-return —
-  // iterate the array directly without `sequenceElements` (which
-  // would no-op for Vec but would copy a Set, and the Set case
-  // never reaches here). TaggedInstance identity copies to the
-  // Set result so `::Box[1 2 1] | distinct | type` reads `::Box`
-  // — the value-class «no duplicates» signal pivots from Vec to
-  // Set, but the per-site identity stays attached.
+  // iterate the array directly (`sequenceElements` would no-op
+  // for Vec but copy a Set, and the Set case never reaches here).
+  // Tag preservation rides on the dispatch wrapper's
+  // `applyTagPreservation` post-pass.
   const out = new Set();
   for (const v of subject) addStructurallyUnique(out, v);
-  const subjectTag = subject[TAG_HEADER_SYMBOL];
-  if (subjectTag !== undefined) stampTagHeader(out, subjectTag);
   return out;
-});
+}, { preservesTag: true });
 
 export const reverse = nullaryOp('reverse', (subject) => {
   if (!isOrderedSequence(subject)) throw new ReverseSubjectNotSequenceError(subject);
   // Single copy via spread — works uniformly across Vec / JsonArray
-  // / Set (all iterable). `sequenceElements` on a Set would copy
-  // first, then `[...…]` again, doubling the work.
+  // / Set (all iterable).
   return containerLikeOf([...subject].reverse(), subject);
-});
+}, { preservesTag: true });
 
 // `flat` lifts one level of nesting. On Set subject the inner Set / Vec
 // elements splice into a fresh Set with `addStructurallyUnique` collapsing
@@ -634,7 +632,7 @@ export const flat = nullaryOp('flat', (subject) => {
     else result.push(item);
   }
   return containerLikeOf(result, subject);
-});
+}, { preservesTag: true });
 
 // ── sortWith and comparator builders ──────────────────────────
 
@@ -670,7 +668,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) 
     sortWithArr[insertIdx + 1] = sortWithCurrent;
   }
   return containerLikeOf(sortWithArr, subject);
-});
+}, { preservesTag: true });
 
 export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
   if (!isQMap(pair)) throw new AscPairNotMapError({

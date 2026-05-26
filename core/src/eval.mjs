@@ -492,112 +492,71 @@ async function evalSetLit(node, state) {
 // look up the tag binding under `::tag`, resolve its constructor,
 // invoke against the payload-value. The result becomes the new
 // pipeValue.
-async function evalTaggedLit(node, state) {
-  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
-  const payloadValue = payloadFork.pipeValue;
-  const typeKey = tagBindingKey(node.tag);
+// mintTaggedInstance(tagName, payload, state) → tagged value
+//
+// Single mint site for any `::Tag<payload>` invocation: auto-
+// declares an identity-only binding on first use, validates the
+// binding shape, dispatches by `:impl` slot (keyword handle →
+// PRIMITIVE_REGISTRY, Quote → eval body + auto-wrap, default →
+// identity-only `makeTaggedInstance`). Called by `evalTaggedLit`
+// for the literal-syntax path and by shape-preserving transforms
+// (`filter` / `sort` / `distinct` / …) that re-validate the
+// post-transform payload through the same constructor — the
+// «invariant re-run on transforms» contract for tags carrying
+// `:impl`.
+export async function mintTaggedInstance(tagName, payload, state, location = null) {
+  const typeKey = tagBindingKey(tagName);
   if (!envHas(state.env, typeKey)) {
-    // Auto-declare an identity-only tag binding on first use.
-    // The binding carries a single marker field
-    // `:declarationOrigin :implicit` so `manifest(:tag) |
-    // filter(/declarationOrigin | eq(:implicit))` surfaces every
-    // tag that the source never explicitly bound — opt-in lint /
-    // strict-mode tooling reads that view. Catalog tags and
-    // user-declared `::Tag {…}` BindSteps carry no marker (the
-    // absence reads as `:explicit`).
     const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
-    // Mutate state.env directly — the env Map at this point is the
-    // per-evalQuery local copy `envSet(langRuntime, …)` produced in
-    // the top-level entry, so the write does not leak into the
-    // shared langRuntime template. Auto-declared bindings persist
-    // within the query for subsequent `::Tag<payload>` invocations
-    // to re-use the same Map (so `manifest(:tag)` shows one entry,
-    // not one per use).
     state.env.set(typeKey, implicitBinding);
   }
   let typeBinding = envGet(state.env, typeKey);
   if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('payload');
   if (!isQMap(typeBinding)) {
-    throw new TaggedLitNotTagBindingError({ tag: node.tag, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
+    throw new TaggedLitNotTagBindingError({ tag: tagName, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
   }
-  // :impl carries either a `:qlang/prim/<tag>` keyword (built-in
-  // tag — resolved through PRIMITIVE_REGISTRY at every invocation so
-  // `manifest(:tag)` keeps the readable keyword handle on the
-  // descriptor) or a Quote-value (user-defined tag — payload
-  // becomes pipeValue, the Quote body runs against the current env).
   const implKey = typeBinding.get('impl');
   if (isKeyword(implKey)) {
     const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
-    const value = await constructor(payloadValue, state);
-    return withPipeValue(state, value);
+    return await constructor(payload, state);
   }
   if (isQuote(implKey)) {
-    // Stamp the tag-impl URI on the parse so a malformed Quote
-    // body surfaces as `::ParseError!{:uri "::Tag/impl" …}` —
-    // the descriptor names the originating tag-binding instead
-    // of the default `'inline'` placeholder, so the user lands
-    // on the constructor's declaration site directly.
-    const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${node.tag}/impl` });
-    const bodyState = makeState(payloadValue, state.env);
+    const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${tagName}/impl` });
+    const bodyState = makeState(payload, state.env);
     const resultState = await evalNode(bodyAst, bodyState);
     const constructorResult = resultState.pipeValue;
-    // Fail-track propagation: a `:impl` body that raised an
-    // ErrorValue rides out untagged on the fail-track.
-    if (isErrorValue(constructorResult)) {
-      return withPipeValue(state, constructorResult);
-    }
-    // Auto-wrap the constructor result with `::Tag` identity so
-    // every `::Tag<payload>` literal mints a `::Tag` instance,
-    // independent of what the Quote body returned. The user opt-
-    // out is explicit `| tag(::Other)` in the body to re-tag.
-    // If the body already returned a TaggedInstance with this
-    // tag (e.g., `~{… | tag(::Tag)}`), pass through unchanged.
-    const tagKw = makeTagKeyword(node.tag);
+    if (isErrorValue(constructorResult)) return constructorResult;
+    const tagKw = makeTagKeyword(tagName);
     if (isTaggedInstance(constructorResult)
-        && constructorResult[TAG_HEADER_SYMBOL]?.name === node.tag) {
-      return withPipeValue(state, constructorResult);
+        && constructorResult[TAG_HEADER_SYMBOL]?.name === tagName) {
+      return constructorResult;
     }
-    return withPipeValue(state, makeTaggedInstance(tagKw, constructorResult));
+    return makeTaggedInstance(tagKw, constructorResult);
   }
-  // Default constructor — fires when the tag-binding has no
-  // explicit `:impl` slot. Single always-wrap strategy: the
-  // payload value rides as-is on the instance's `:payload`
-  // slot, identity sits on the Map JS-header
-  // `TAG_HEADER_SYMBOL` (`makeTaggedInstance`). One render shape
-  // (`::Tag<payload>`) covers every Primary payload — Vec
-  // (`::Tag[1 2 3]`), Map (`::Tag{:k 1}`), Set (`::Tag#[…]`),
-  // Quote (`::Tag~{body}`), scalar via ParenGroup
-  // (`::Tag(42)`), nested TaggedInstance (`::Outer[::Inner[X]]`)
-  // — without per-shape branches in the constructor or
-  // identity-loss surprises (a Map payload no longer
-  // flat-merges away an inner `:kind` slot).
-  //
-  // ErrorLit payload stays special: an ErrorValue rebrands its
-  // JS-header `tag` (Phase 1) to `::Tag` so the result remains
-  // an ErrorValue on the fail-track, not a wrapped success-track
-  // TaggedInstance.
   if (implKey === undefined) {
-    if (isErrorValue(payloadValue)) {
-      return withPipeValue(state, makeErrorValue(
-        makeTagKeyword(node.tag),
-        payloadValue.descriptor,
-        {
-          location: node.location,
-          originalError: payloadValue.originalError
-        }
-      ));
+    if (isErrorValue(payload)) {
+      return makeErrorValue(
+        makeTagKeyword(tagName),
+        payload.descriptor,
+        { location, originalError: payload.originalError }
+      );
     }
-    return withPipeValue(state, makeTaggedInstance(makeTagKeyword(node.tag), payloadValue));
+    return makeTaggedInstance(makeTagKeyword(tagName), payload);
   }
   throw new TagBindingHasNoConstructorError({
-    tag: node.tag,
-    payloadValue: payloadValue,
-    payloadType: typeKeyword(payloadValue),
+    tag: tagName,
+    payloadValue: payload,
+    payloadType: typeKeyword(payload),
     expectedType: Object.freeze([keyword('keyword'), keyword('quote')]),
-    actualValue: implKey,
-    actualType: typeKeyword(implKey)
   });
 }
+
+async function evalTaggedLit(node, state) {
+  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
+  const payloadValue = payloadFork.pipeValue;
+  return withPipeValue(state, await mintTaggedInstance(node.tag, payloadValue, state, node.location));
+}
+
 
 // ::tag — bare reference to a tag-namespace identifier. The
 // reference value is the TagKeyword itself (identity-as-value) —

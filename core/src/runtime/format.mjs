@@ -85,7 +85,11 @@ const TO_PLAIN_HANDLERS = {
   Quote:          q => `~{${q.source}}`,
   Doc:            d => `|~~${d.content}~~|`,
   Set:            s => [...s].map(toPlain),
-  Error:          e => ({ $error: toPlain(e.descriptor) }),
+  // Error → `$error: {$tag, descriptor}` — the tag sits at the
+  // head of the envelope so the lossy plain-JSON form carries
+  // the identity slot explicitly. Round-trip is one-way at this
+  // codec; `toTaggedJSON` is the bijective pair.
+  Error:          e => ({ $error: { $tag: e.tag.name, descriptor: toPlain(e.descriptor) } }),
   JsonObject:     o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, toPlain(v)])),
   JsonArray:      a => a.map(toPlain)
 };
@@ -203,7 +207,10 @@ const INLINE_HANDLERS = {
   // the captured value, diverging from the Snapshot identity.
   Snapshot:   s => renderInline(s.get('payload')),
   TaggedInstance: renderTaggedInstanceInline,
-  Error:      e => `!{${mapEntriesInline(e.descriptor)}}`
+  // Tag-head precedes the `!{…}` envelope so the inline form
+  // mirrors the canonical printer: `::Tag!{…fields…}` reads as
+  // one literal, identity at the front.
+  Error:      e => `${e.tag.literal}!{${mapEntriesInline(e.descriptor)}}`
 };
 
 function renderTaggedInstanceInline(instance) {

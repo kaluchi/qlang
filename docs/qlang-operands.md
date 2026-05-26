@@ -1261,8 +1261,10 @@ its own eval handler in `eval.mjs`.
   `:function`, `:jsonObject`, `:jsonArray`); tagged-instance Maps
   (conduit, snapshot, user `::Foo[…]`) produce their `:kind`
   TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
-  produce the `:kind` TagKeyword from their descriptor
-  (`::AddLeftNotNumberError`, `::ParseError`, etc.).
+  produce the per-site `::Tag` straight off the JS-header `tag`
+  slot — `::AddLeftNotNumberError`, `::ParseError`, generic
+  `::Error` for user `!{}` without an explicit `:kind ::Foo`
+  lift.
 - **Examples**:
   - `42 | type` → `:number`.
   - `"hello" | type` → `:string`.
@@ -1270,7 +1272,8 @@ its own eval handler in `eval.mjs`.
   - `[1 2] | type` → `:vec`.
   - `{:a 1} | type` → `:map`.
   - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
-  - `!{:kind :oops} | type` → `:error`.
+  - `!{} | type` → `::Error`.
+  - `!{:kind ::Oops} | type` → `::Oops`.
 
 ## Error operands
 

@@ -92,7 +92,7 @@ describe('EffectLaunderingAtCallError', () => {
     sessionInstance.bind('doIt', effectfulConduit);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.descriptor.get('kind').name).toBe('EffectLaunderingAtCallError');
+    expect(cellEntry.result.tag.name).toBe('EffectLaunderingAtCallError');
   });
 });
 

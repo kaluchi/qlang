@@ -27,7 +27,6 @@ import {
   isQSet,
   isErrorValue,
   isFunctionValue,
-  isTagKeyword,
   describeType,
   keyword,
   FunctionValueLeakedToPrintError
@@ -158,28 +157,22 @@ function printListLike(open, close, inlineSep, elements, indent) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${closePad}${close}`;
 }
 
-// Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map
-// when `:kind` carries a TagKeyword — entropy promotion: the tag
-// identity rides at the structural front-position of the literal,
-// the same shape `printTaggedInstance` produces for non-error
-// tagged-instances. The payload-Map below drops three categories
-// of already-known content so the printed form stays terse:
-//   * `:kind` itself when tagHead absorbed it,
-//   * `:trail null` (makeErrorValue's invariant restores it on
-//     reconstruction — see types.mjs::makeErrorValue),
-//   * `:message` when tagHead is present (the canonical prose is
-//     reachable through `::Tag | docs` hypertext navigation; the
-//     stamped string is template-fill derivable from the other
-//     structured fields).
+// Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map —
+// the tag identity rides at the structural front-position of the
+// literal, the same shape `printTaggedInstance` produces for
+// non-error tagged-instances. `error.tag` is always a TagKeyword
+// (universal identity invariant for the value-class), so the
+// head is unconditional. The payload-Map drops the auto-injected
+// `:trail null` (makeErrorValue's invariant restores it on
+// reconstruction — see types.mjs::makeErrorValue); every other
+// descriptor field — `:message`, per-site dynamic context, user-
+// stamped slots — rides through verbatim so the print form is
+// round-trip exact under `parse(printValue(V))`.
 function printErrorValue(e, indent) {
-  const desc = e.descriptor;
-  const kind = desc.get('kind');
-  const tagHead = isTagKeyword(kind) ? kind.literal : '';
+  const tagHead = e.tag.literal;
   const payload = new Map();
-  for (const [k, v] of desc) {
-    if (k === 'kind' && tagHead) continue;
+  for (const [k, v] of e.descriptor) {
     if (k === 'trail' && v === null) continue;
-    if (k === 'message' && tagHead) continue;
     payload.set(k, v);
   }
   if (payload.size === 0) return tagHead + '!{}';

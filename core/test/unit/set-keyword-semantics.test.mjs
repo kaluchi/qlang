@@ -247,6 +247,6 @@ describe('at on a Set subject', async () => {
   it('non-integer index raises AtIndexNotIntegerError', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const err = await evalQuery('#[:a :b] | at(0.5)');
-    expect(err.descriptor.get('kind').name).toBe('AtIndexNotIntegerError');
+    expect(err.tag.name).toBe('AtIndexNotIntegerError');
   });
 });

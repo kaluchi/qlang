@@ -39,7 +39,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
   it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {
     const err = await evalQuery('42 | runExamples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.descriptor.get('kind')).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
+    expect(err.tag).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
   });
 });
 
@@ -136,7 +136,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
-    expect(cellProbe.result.descriptor.get('kind'))
+    expect(cellProbe.result.tag)
       .toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 

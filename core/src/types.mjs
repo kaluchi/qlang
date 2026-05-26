@@ -343,6 +343,17 @@ export function withName(binding, newName) {
 
 // ── error value factory ───────────────────────────────────────
 //
+// Identity rides on the `tag` JS-header field (a TagKeyword) —
+// every error value carries one, defaulting to `::Error` for
+// user-created `!{}` literals that omit `:kind`. The descriptor
+// Map is pure data: `:faultStep`, `:faultInput`, `:actualType`,
+// dynamic per-site fields, and `:trail`. `:kind` never appears in
+// the descriptor — the universal identity slot lives on the
+// header so dataflow against the descriptor stays composable
+// (`result !| / spec | union | error` round-trips without losing
+// identity), and the `type` operand reads `error.tag` directly
+// without descriptor projection.
+//
 // `:trail` carries either a Quote-value holding the joined
 // pipeline-suffix source — copy-pasteable code the user can splice
 // back into a query — or `null` when no success-track combinator
@@ -357,7 +368,7 @@ export const COMBINATOR_SYNTAX = Object.freeze({
   merge:      '>>'
 });
 
-export function makeErrorValue(descriptor, { location = null, originalError = null } = {}) {
+export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (!descriptor.has('trail')) {
     finalDescriptor = new Map(descriptor);
@@ -365,6 +376,7 @@ export function makeErrorValue(descriptor, { location = null, originalError = nu
   }
   return Object.freeze({
     type: 'error',
+    tag,
     descriptor: finalDescriptor,
     location,
     originalError,
@@ -375,6 +387,7 @@ export function makeErrorValue(descriptor, { location = null, originalError = nu
 export function appendTrailNode(errorValue, trailEntry) {
   return Object.freeze({
     type: 'error',
+    tag: errorValue.tag,
     descriptor: errorValue.descriptor,
     location: errorValue.location,
     originalError: errorValue.originalError,
@@ -445,14 +458,11 @@ export function typeKeyword(v) {
     return keyword('map');
   }
   if (isQSet(v)) return keyword('set');
-  // Error values carry their tag identity in `:kind` (a
-  // TagKeyword), same invariant as every other tagged-instance.
-  // The `type` operand surfaces it as the value's user-facing
-  // identity.
-  if (isErrorValue(v)) {
-    const kind = v.descriptor.get('kind');
-    return isTagKeyword(kind) ? kind : keyword('error');
-  }
+  // Error values carry their tag identity on the JS-header `tag`
+  // slot — opaque to descriptor projection. `typeKeyword` reads
+  // it directly so `result !| type` returns the per-site
+  // `::Tag` without consulting any Map field.
+  if (isErrorValue(v)) return v.tag;
   if (isFunctionValue(v)) return keyword('function');
   if (isJsonObject(v)) return keyword('jsonObject');
   return keyword('unknown');

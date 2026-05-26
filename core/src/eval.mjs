@@ -32,7 +32,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword
+  isJsonStoreable, makeConduit, makeSnapshot, makeTagKeyword, isTagKeyword
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
@@ -218,7 +218,10 @@ async function evalNode(node, state) {
       const enriched = new Map(lifted.descriptor);
       enriched.set('faultStep', faultStep);
       enriched.set('faultInput', faultInput);
-      return withPipeValue(state, { ...lifted, descriptor: enriched });
+      return withPipeValue(state, makeErrorValue(lifted.tag, enriched, {
+        location: lifted.location,
+        originalError: lifted.originalError
+      }));
     }
     return withPipeValue(state,
       caughtError instanceof QlangError
@@ -370,7 +373,18 @@ async function applyFailTrack(state, stepNode) {
   const existingTrail = errorVal.descriptor.get('trail');
   const newTrail = materializeTrail(errorVal);
   const combinedTrail = combineTrailQuotes(existingTrail, newTrail);
-  const materializedDescriptor = new Map(errorVal.descriptor);
+  // Materialize for fail-track exposure: tag becomes the leading
+  // `:kind` Map field so the step's descriptor view carries the
+  // universal identity slot every catalog explainer addresses
+  // (`!| /kind`, `!| /kind | source`, descriptor reshaping). The
+  // opaque storage form (tag on JS-header, descriptor without
+  // `:kind`) re-emerges through `error.tag` on the next
+  // `evalErrorLit` / `errorFromQlang` mint.
+  const materializedDescriptor = new Map();
+  materializedDescriptor.set('kind', errorVal.tag);
+  for (const [k, v] of errorVal.descriptor) {
+    materializedDescriptor.set(k, v);
+  }
   materializedDescriptor.set('trail', combinedTrail);
   return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
 }
@@ -427,12 +441,27 @@ async function evalJsonArrayLit(node, state) {
 }
 
 async function evalErrorLit(node, state) {
+  // `:kind ::TagName` entry in the literal lifts to the error's
+  // JS-header `tag` slot — the universal identity invariant for
+  // every tagged value-class. Literals without `:kind` default
+  // to `::Error` generic identity so `error.tag` is always
+  // present without defensive checks at consumer sites. A non-
+  // TagKeyword `:kind` value (`!{:kind :foo}`, `!{:kind "x"}`)
+  // stays in the descriptor — the user explicitly chose to ride
+  // identity through a non-tag value, the default `::Error`
+  // covers the surface identity.
   const errorDescriptor = new Map();
+  let tag = makeTagKeyword('Error');
   for (const entry of node.entries) {
     const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    errorDescriptor.set(entry.key.name, entryFork.pipeValue);
+    const entryValue = entryFork.pipeValue;
+    if (entry.key.name === 'kind' && isTagKeyword(entryValue)) {
+      tag = entryValue;
+      continue;
+    }
+    errorDescriptor.set(entry.key.name, entryValue);
   }
-  return withPipeValue(state, makeErrorValue(errorDescriptor, { location: node.location }));
+  return withPipeValue(state, makeErrorValue(tag, errorDescriptor, { location: node.location }));
 }
 
 function evalQuoteLit(node, state) {
@@ -515,12 +544,20 @@ async function evalTaggedLit(node, state) {
   //     as TaggedLit payload that is not itself a Map.
   if (implKey === undefined) {
     if (isErrorValue(payloadValue)) {
-      const restamped = new Map(payloadValue.descriptor);
-      restamped.set('kind', makeTagKeyword(node.tag));
-      return withPipeValue(state, makeErrorValue(restamped, {
-        location: node.location,
-        originalError: payloadValue.originalError
-      }));
+      // `::Tag!{…}` rebrands an ErrorLit payload: the new tag
+      // identity replaces whatever generic `::Error` (or earlier
+      // `::Other`) the inner literal carried, while the
+      // descriptor passes through unchanged. The default
+      // constructor stays a one-line rebrand; explicit field
+      // edits route through `!| union(…)` instead.
+      return withPipeValue(state, makeErrorValue(
+        makeTagKeyword(node.tag),
+        payloadValue.descriptor,
+        {
+          location: node.location,
+          originalError: payloadValue.originalError
+        }
+      ));
     }
     const instance = new Map();
     instance.set('kind', makeTagKeyword(node.tag));

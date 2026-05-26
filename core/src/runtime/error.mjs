@@ -24,7 +24,7 @@
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isErrorValue, makeErrorValue
+  isQMap, isErrorValue, isTagKeyword, makeErrorValue, makeTagKeyword
 } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -37,14 +37,29 @@ const ErrorDescriptorNotMapError = declareSubjectError(
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;
 // full form `error(map)` evaluates the captured-arg lambda against
 // pipeValue as context and uses the result as the descriptor.
+// `:kind ::TagName` entry in the source Map lifts onto the error
+// value's JS-header `tag` slot (the universal identity invariant
+// every tagged value-class follows); descriptors without `:kind`
+// default to generic `::Error` identity. A non-TagKeyword `:kind`
+// value stays in the descriptor — the user explicitly chose a
+// non-tag identity, the default `::Error` covers the surface.
 export const error = makeFn('error', 1, async (state, errorLambdas) => {
-  const errorDescriptor = errorLambdas.length === 0
+  const sourceMap = errorLambdas.length === 0
     ? state.pipeValue
     : await errorLambdas[0](state.pipeValue);
-  if (!isQMap(errorDescriptor)) {
-    throw new ErrorDescriptorNotMapError(errorDescriptor);
+  if (!isQMap(sourceMap)) {
+    throw new ErrorDescriptorNotMapError(sourceMap);
   }
-  return withPipeValue(state, makeErrorValue(errorDescriptor));
+  let tag = makeTagKeyword('Error');
+  const descriptor = new Map();
+  for (const [k, v] of sourceMap) {
+    if (k === 'kind' && isTagKeyword(v)) {
+      tag = v;
+      continue;
+    }
+    descriptor.set(k, v);
+  }
+  return withPipeValue(state, makeErrorValue(tag, descriptor));
 }, { captured: [0, 1] });
 
 // isError — plain predicate. Returns true when pipeValue is an

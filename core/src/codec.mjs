@@ -13,6 +13,11 @@
 //   { "$keyword": "name" }    → interned keyword
 //   { "$map": [[k, v], ...] } → JS Map (entries pairs, recursively encoded)
 //   { "$set": [v1, v2, ...] } → JS Set (recursively encoded)
+//   { "$error": { "$tag": "Name", "descriptor": <encoded-Map> } }
+//                             → ErrorValue with tag on JS-header,
+//                               descriptor as the inner Map (no
+//                               `:kind` field — identity rides on
+//                               the envelope's `$tag` slot)
 //
 // Function values, conduits, and snapshots cannot be encoded as JSON
 // directly — they require the higher-level session serializer to
@@ -32,6 +37,7 @@ import {
   isDoc,
   isErrorValue,
   makeErrorValue,
+  makeTagKeyword,
   makeQuote,
   makeDoc
 } from './types.mjs';
@@ -84,7 +90,12 @@ export function toTaggedJSON(value) {
     return { $set: Array.from(value, toTaggedJSON) };
   }
   if (isErrorValue(value)) {
-    return { $error: toTaggedJSON(value.descriptor) };
+    return {
+      $error: {
+        $tag: value.tag.name,
+        descriptor: toTaggedJSON(value.descriptor)
+      }
+    };
   }
   if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError('function');
   throw new TaggedJSONUnencodableValueError(t);
@@ -112,7 +123,12 @@ export function fromTaggedJSON(json) {
       return s;
     }
     if ('$error' in json) {
-      return makeErrorValue(fromTaggedJSON(json.$error), {});
+      const errEnvelope = json.$error;
+      return makeErrorValue(
+        makeTagKeyword(errEnvelope.$tag),
+        fromTaggedJSON(errEnvelope.descriptor),
+        {}
+      );
     }
     if ('$quote' in json) return makeQuote(json.$quote);
     if ('$doc' in json) return makeDoc(json.$doc);

@@ -235,7 +235,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const evalResult = await evalQuery('mul');
     expect(isErrorValue(evalResult)).toBe(true);
-    expect(evalResult.descriptor.get('kind').name).toBe('ValueOpArityMismatchError');
+    expect(evalResult.tag.name).toBe('ValueOpArityMismatchError');
   });
 });
 

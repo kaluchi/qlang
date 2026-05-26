@@ -44,6 +44,23 @@
           whose only payload is the attached docs.
   ~~|
 
+::Error
+  |~~ Generic error identity. The universal default tag every
+      ErrorValue carries on its JS-header `tag` slot when no
+      explicit `:kind ::Foo` lifts in. `!{}` and `!{:kind :oops}`
+      (plain-keyword `:kind`) both default to this tag; per-site
+      runtime errors (`::AddLeftNotNumberError`, `::FilterSubject
+      NotContainerError`, etc.) stamp their own tag and never
+      fall back here. `!|` exposes the descriptor with `:kind`
+      stamped back from the JS-header tag so per-instance
+      examples below can read the tag through ordinary Map
+      projection.
+
+      ~{!{} !| type | eq(::Error)}
+      ~{!{:detail "boom"} !| type | eq(::Error)}
+  ~~|
+  ::builtin{:category :error}
+
 |~ ── 1. Projection segment-miss family ──────────────────── ~|
 
 ::ProjectionFieldNotOnValueClassError

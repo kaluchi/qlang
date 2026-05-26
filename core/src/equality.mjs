@@ -82,7 +82,9 @@ export function deepEqual(a, b) {
     return isTagKeyword(b) && a.name === b.name;
   }
   if (isErrorValue(a)) {
-    return isErrorValue(b) && deepEqual(a.descriptor, b.descriptor);
+    return isErrorValue(b)
+      && a.tag.name === b.tag.name
+      && deepEqual(a.descriptor, b.descriptor);
   }
   return false;
 }

@@ -387,12 +387,13 @@ carrying `:kind :tag` plus a constructor handle on
      (cached as `.ast` after the first parse), build a fresh
      state with `pipeValue = payloadValue` and the surrounding
      env, evaluate the body AST, ascend the result.
-   - **Undefined** + payload is an **ErrorValue** — re-stamp the
-     descriptor with `:kind ::Tag` and return a fresh
+   - **Undefined** + payload is an **ErrorValue** — rebrand
+     the JS-header `tag` slot to `::Tag` and return a fresh
      ErrorValue carrying the promoted identity. Lets every error
      tag work as a literal constructor (`::Tag!{…}`) without
      per-tag JS, mirroring the shape `errorFromQlang` produces
-     from a runtime throw site.
+     from a runtime throw site. The descriptor passes through
+     unchanged — identity-stamping touches the header alone.
    - **Undefined** + any other payload — build a success-track
      **TaggedInstance** Map `{:kind ::Tag :payload
      <value>}`. The payload value rides under the `:payload`
@@ -450,12 +451,13 @@ the generic tagged-instance branch:
   back as `::Tag {descriptor}` — the declaration form).
 
 The named-error promotion piggybacks on the same round-trip:
-`errorFromQlang` stamps `:kind ::Tag` on the descriptor
-(the universal tagged-value identity slot), `printErrorValue`
-folds the field into the literal head and emits `::Tag!{…}` with
-the rest of the descriptor as payload, and a literal `::Tag!{…}`
-source re-creates the same descriptor through the
-ErrorLit-payload branch.
+`errorFromQlang` stamps `::Tag` on the error value's JS-header
+`tag` slot, `printErrorValue` reads the header field straight
+into the literal head and emits `::Tag!{…}` with the descriptor
+fields as payload, and a literal `::Tag!{…}` source re-creates
+the same identity through the ErrorLit-payload branch of
+`evalTaggedLit` (which rebrands the JS-header tag on the
+inner ErrorValue without touching its descriptor).
 
 ## Combinators
 
@@ -494,8 +496,11 @@ and returns the error as the new `pipeValue`. Implementation:
 Fail-track dispatch dual of `|`. When `pipeValue` is an error,
 `applyFailTrack` combines the descriptor's existing `:trail` Vec
 with any new entries walked out of `_trailHead`, rebuilds the
-descriptor Map with the combined trail stamped onto `:trail`, and
-evaluates `nextStep` against that Map as the new `pipeValue`. The
+descriptor Map with the JS-header `tag` stamped back as the
+leading `:kind` field plus the combined trail stamped onto
+`:trail`, and evaluates `nextStep` against that Map as the new
+`pipeValue` — so per-instance explainers read identity through
+ordinary projection (`/kind`, `/kind | source`). The
 step sees the descriptor as an ordinary Map and may use any
 Map-oriented operand (`/key`, `has`, `keys`, `vals`, `union`,
 `filter` over `:trail`, etc.) without special error-handling
@@ -1085,12 +1090,16 @@ foreign host errors (best-effort field extraction from JS Error
 objects). `QlangInvariantError` subclasses are never caught — they
 mark runtime bugs and surface as JS-level throws.
 
-At the catch point, `evalNode` lifts two flat fields onto the
-descriptor via `errorFromQlang` / `errorFromForeign`: `:faultStep`
+At the catch point, `evalNode` stamps the error value's
+identity tag (a `::Tag` built from the throw site's
+`.fingerprint ?? .name`) on the fresh ErrorValue's JS-header
+`tag` slot via `errorFromQlang` / `errorFromForeign` — opaque
+to descriptor projection, read through `result !| type`. The
+descriptor itself takes two flat fields at the head: `:faultStep`
 (a Quote-value lifted from the failing AST node's `.text` via
 `makeQuote`) and `:faultInput` (the `state.pipeValue` the step
 received). No wrapper Map between them — they are the two
-top-level identity slots of every runtime / foreign error.
+top-level descriptor slots every runtime / foreign error carries.
 `errorFromQlang` additionally applies ref-equality dedup against
 `:faultInput` when stamping per-site `:actualValue` from the
 `QlangError.context` bag — the redundant lift is skipped when
@@ -1189,7 +1198,20 @@ in addition to the invariant `:trail`:
 
 | Field | Type | Content |
 |---|---|---|
-| `:kind` | TagKeyword | Per-site tag name as a `::Tag` (`::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`). The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
+Identity for an error value rides on the JS-header `tag` slot
+(`error.tag`, a TagKeyword) — opaque to descriptor projection,
+read directly by `typeKeyword(errorValue)` and through the
+`type` operand. The descriptor Map below carries only data
+fields; `!|` materialization stamps the tag back as a leading
+`:kind` Map field so the exposed descriptor view round-trips
+through every operand that reads `:kind` (`/kind`,
+`/kind | source`). Errors without an explicit `:kind ::Foo`
+literal entry default to the `::Error` generic identity so
+`error.tag` is always present without defensive checks at
+consumer sites.
+
+| Field | Type | Content |
+|---|---|---|
 | `:faultStep` | Quote | Verbatim source-text of the failing step, lifted to a Quote-value via `makeQuote(node.text)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` and `>>` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
 | `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
 | `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |

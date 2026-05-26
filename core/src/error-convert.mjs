@@ -4,24 +4,25 @@ import {
 } from './types.mjs';
 import { locationToQlangMap } from './ast-codec.mjs';
 
-// Descriptor field-order: high-entropy first. `:kind` TagKeyword
-// names the per-site identity (the same invariant every
-// tagged-instance value-class carries — conduit, snapshot, qlang,
-// json, user `::Foo[…]`); `:faultStep` (Quote of failing source
-// slice) and `:faultInput` (pipeValue at step entry) carry the
-// runtime fault frame as two flat fields — no wrapper Map; per-
-// invocation context (`:actualType`, `:actualValue` when it
-// differs from `:faultInput`, Comparability pair-fields,
-// `:index`, dispatch-time `:operandName` / `:conduitName`)
-// follows. Identity is surfaced through the `type` operand
-// (`result !| type | eq(::Foo)`), which reads `:kind` off the
-// descriptor. Per-tag static facts — `:category`, `:operand`,
-// `:position`, `:expectedType` — live on the tag-binding's catalog
-// body (`::TagName ::builtin{:category … :operand … :position …
-// :expectedType …}`) and are reachable through hypertext
-// navigation via the `spec` axis: `result !| type | spec |
-// /category` reads the broad-bucket; `result !| type | spec |
-// /operand` reads the per-site origin.
+// Descriptor field-order: high-entropy first. The per-site
+// identity (the same invariant every tagged-instance value-class
+// carries — conduit, snapshot, qlang, json, user `::Foo[…]`)
+// rides on the error value's JS-header `tag` slot, not on the
+// descriptor Map. `:faultStep` (Quote of failing source slice)
+// and `:faultInput` (pipeValue at step entry) carry the runtime
+// fault frame as two flat fields — no wrapper Map; per-invocation
+// context (`:actualType`, `:actualValue` when it differs from
+// `:faultInput`, Comparability pair-fields, `:index`, dispatch-
+// time `:operandName` / `:conduitName`) follows. Identity is
+// surfaced through the `type` operand (`result !| type |
+// eq(::Foo)`), which reads `error.tag` straight off the JS
+// header. Per-tag static facts — `:category`, `:operand`,
+// `:position`, `:expectedType` — live on the tag-binding's
+// catalog body (`::TagName ::builtin{:category … :operand …
+// :position … :expectedType …}`) and are reachable through
+// hypertext navigation via the `spec` axis: `result !| type |
+// spec | /category` reads the broad-bucket; `result !| type |
+// spec | /operand` reads the per-site origin.
 //
 // `:actualValue` lift rule: stamped only when the throw site
 // drilled below `:faultInput` (multi-segment projection,
@@ -32,7 +33,7 @@ import { locationToQlangMap } from './ast-codec.mjs';
 // runs ref-equality against `:faultInput` inside the lift loop
 // below — no per-site code needs to know.
 const RUNTIME_FIELD_ORDER = [
-  'kind', 'faultStep', 'faultInput',
+  'faultStep', 'faultInput',
   'payloadValue', 'payloadType',
   'actualValue', 'actualType',
   'leftValue', 'leftType', 'rightValue', 'rightType',
@@ -62,9 +63,8 @@ function liftIdentifier(k, v) {
 }
 
 export function errorFromQlang(qlangError, faultStep, faultInput) {
+  const tag = makeTagKeyword(qlangError.fingerprint ?? qlangError.name);
   const d = new Map();
-  const tagName = qlangError.fingerprint ?? qlangError.name;
-  d.set('kind', makeTagKeyword(tagName));
   d.set('faultStep', faultStep);
   d.set('faultInput', faultInput);
 
@@ -90,7 +90,7 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   const ctx = qlangError.context ?? {};
   const liftedFromOrder = new Set();
   for (const k of RUNTIME_FIELD_ORDER) {
-    if (k === 'kind' || k === 'faultStep' || k === 'faultInput') continue;
+    if (k === 'faultStep' || k === 'faultInput') continue;
     if (!(k in ctx) || ctx[k] === undefined) continue;
     if (k === 'actualValue' && ctx[k] === faultInput) continue;
     d.set(k, liftIdentifier(k, ctx[k]));
@@ -114,10 +114,10 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   //
   // No `:message` stamp — the structured per-site fields
   // (`:actualType`, `:leftType`, …) carry every input the JS-side
-  // template would re-format, the tag identity TagKeyword on
-  // `:kind` carries the template itself, and `::Tag | docs`
-  // resolves the canonical prose via hypertext navigation.
-  return makeErrorValue(d, {
+  // template would re-format, the tag identity TagKeyword on the
+  // error's JS-header carries the template itself, and `::Tag |
+  // docs` resolves the canonical prose via hypertext navigation.
+  return makeErrorValue(tag, d, {
     location: qlangError.location,
     originalError: qlangError
   });
@@ -127,11 +127,11 @@ export function errorFromParse(parseError) {
   // Field ordering — highest-information-density first. The eye lands
   // on `:source` + `:marker` (visual pinpoint: WHERE the failure is)
   // before consulting `:expected` / `:found` (WHAT the parser wanted
-  // vs. saw). Numeric `:location`, `:uri`, and the `:kind`
-  // taxonomy trail, since they are derivable / less-load-bearing for
-  // a human reading the diagnostic.
+  // vs. saw). Numeric `:location` and `:uri` trail since they are
+  // derivable / less-load-bearing for a human reading the diagnostic.
+  // The `::ParseError` tag identity rides on the error's JS-header
+  // `tag` slot.
   const d = new Map();
-  d.set('kind', makeTagKeyword('ParseError'));
   if (parseError.source != null && parseError.location) {
     const excerpt = excerptAroundLocation(parseError.source, parseError.location);
     if (excerpt !== null) {
@@ -147,7 +147,7 @@ export function errorFromParse(parseError) {
   // `:found` carry the diagnostic data structurally; the human-
   // readable prose is reachable through `::ParseError | docs`
   // hypertext navigation.
-  return makeErrorValue(d, {
+  return makeErrorValue(makeTagKeyword('ParseError'), d, {
     location: parseError.location,
     originalError: parseError
   });
@@ -231,8 +231,8 @@ const WELL_KNOWN_PROPS = [
 ];
 
 export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
+  const tag = makeTagKeyword(jsError.name);
   const d = new Map();
-  d.set('kind', makeTagKeyword(jsError.name));
   d.set('message', jsError.message);
 
   for (const prop of WELL_KNOWN_PROPS) {
@@ -244,6 +244,13 @@ export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
       d.set(k, coerce(v));
   }
 
+  // Cause-chain entries are inert Map records (not error values
+  // themselves) — they document the JS-side cause provenance for
+  // a foreign throw site. The `:kind` field here is a domain-level
+  // discriminator, not the identity-slot invariant Phase 1 lifts
+  // off error values: a plain Map carries whatever fields its
+  // builder chooses, and `:kind <TagKeyword>` keeps the record
+  // structurally addressable through `error !| /causes * /kind`.
   if (jsError.cause instanceof Error) {
     const causes = [];
     let current = jsError.cause;
@@ -261,7 +268,7 @@ export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
   if (faultStep !== undefined) d.set('faultStep', faultStep);
   if (faultInput !== undefined) d.set('faultInput', faultInput);
 
-  return makeErrorValue(d, {
+  return makeErrorValue(tag, d, {
     location: astNode?.location ?? null,
     originalError: jsError
   });
@@ -275,6 +282,12 @@ function coerce(v, depth = 0) {
   if (isKeyword(v) || isQMap(v) || isQSet(v) || isErrorValue(v)) return v;
   if (Array.isArray(v)) return v.map(el => coerce(el, depth + 1));
   if (v instanceof Error) {
+    // Mirror the cause-chain shape: a coerced JS Error is a Map
+    // record (not an error value) carrying the originating JS-side
+    // name on `:kind` plus `:message`. `:kind` here is a domain-
+    // level discriminator — Phase 1's identity-on-JS-header
+    // invariant covers error values, not the plain Maps they
+    // shelter.
     const m = new Map();
     m.set('message', v.message);
     m.set('kind', makeTagKeyword(v.name));

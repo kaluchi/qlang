@@ -98,48 +98,56 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
 });
 
 describe('printErrorValue — head + payload-filter branches', () => {
-  it('an error with no :kind prints in plain !{…} form (no tag-head prefix)', async () => {
-    const err = makeErrorValue(new Map([['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]]));
-    expect(printValue(err)).toBe('!{:kind :oops}');
+  it('default ::Error tag heads an otherwise-empty error', async () => {
+    // After Phase 1, every error carries an identity tag on the
+    // JS-header `tag` slot — `::Error` is the universal default
+    // for user `!{}` without explicit `:kind ::Foo`. The printer
+    // emits the tag unconditionally so the round-trip recovers
+    // the same identity.
+    const err = makeErrorValue(makeTagKeyword('Error'), new Map());
+    expect(printValue(err)).toBe('::Error!{}');
   });
 
-  it('an error with no :kind keeps :message in the payload (user data, not template-fill)', async () => {
-    // Without a TagKeyword `:kind`, the printer has no class
-    // identity to point hypertext docs at — `:message` is therefore
-    // user-provided content, not a derivable template-fill, and
-    // stays in the printed form.
-    const err = makeErrorValue(new Map([
-      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }],
+  it('descriptor fields ride after the tag head', async () => {
+    const err = makeErrorValue(makeTagKeyword('Error'), new Map([
       ['message', 'something broke']
     ]));
-    expect(printValue(err)).toBe('!{:kind :oops :message "something broke"}');
+    expect(printValue(err)).toBe('::Error!{:message "something broke"}');
   });
 
-  it('an empty error descriptor (only auto-injected :trail null) renders as !{}', async () => {
-    const err = makeErrorValue(new Map());
-    expect(printValue(err)).toBe('!{}');
+  it('descriptor with non-TagKeyword :kind keeps the field verbatim under the default ::Error head', async () => {
+    // The runtime treats `:kind` only as an identity slot when its
+    // value is a TagKeyword. A plain-keyword `:kind` stays in the
+    // descriptor as ordinary user data — the universal `::Error`
+    // tag still appears at the head.
+    const err = makeErrorValue(makeTagKeyword('Error'), new Map([
+      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+    ]));
+    expect(printValue(err)).toBe('::Error!{:kind :oops}');
   });
 
-  it('a tag-headed error with only :kind survives the payload filter as ::Tag!{}', async () => {
-    const err = makeErrorValue(new Map([['kind', makeTagKeyword('Foo')]]));
+  it('an empty user-defined tag-headed error renders as ::Foo!{}', async () => {
+    const err = makeErrorValue(makeTagKeyword('Foo'), new Map());
     expect(printValue(err)).toBe('::Foo!{}');
   });
 
-  it('a tag-headed error renders the payload after the head, suppressing :kind duplication', async () => {
-    const err = makeErrorValue(new Map([
-      ['kind', makeTagKeyword('Foo')],
+  it('a tag-headed error renders the payload after the head', async () => {
+    const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
       ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
   });
 
-  it('a tag-headed error elides :message (template-fill reachable via ::Tag | docs)', async () => {
-    const err = makeErrorValue(new Map([
-      ['kind', makeTagKeyword('Foo')],
-      ['message', 'template-derivable prose'],
+  it(':message rides through the printer verbatim — user content, not template-fill', async () => {
+    // Earlier shape elided `:message` when a tag head was present;
+    // Phase 1 keeps the field so user-stamped messages round-trip
+    // exactly. Runtime-side errors (`errorFromQlang`) simply omit
+    // `:message` from the descriptor at construction.
+    const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
+      ['message', 'user-stamped prose'],
       ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
     ]));
-    expect(printValue(err)).toBe('::Foo!{:category :oops}');
+    expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
   });
 });
 

@@ -178,7 +178,7 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   });
 
   it('coerce passes through an errorValue unchanged', async () => {
-    const inner = makeErrorValue(new Map(), { originalError: new Error('inner') });
+    const inner = makeErrorValue(makeTagKeyword('Inner'), new Map(), { originalError: new Error('inner') });
     const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
     const errVal = errorFromForeign(err, null, coerceFaultStep, coerceFaultInput);
     expect(isErrorValue(errVal)).toBe(true);
@@ -196,7 +196,7 @@ describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on t
     // `${COMBINATOR_SYNTAX[combinator]} ${text}` into the
     // pipeline-suffix Quote source.
     const { appendTrailNode, materializeTrail, isQuote } = await import('../../src/types.mjs');
-    const errVal = makeErrorValue(new Map([['kind', keyword('typeError')]]));
+    const errVal = makeErrorValue(makeTagKeyword('TypeError'), new Map());
     const fragment = Object.freeze({ combinator: 'pipe', text: 'count' });
     const trailed = appendTrailNode(errVal, fragment);
     expect(isErrorValue(trailed)).toBe(true);
@@ -375,26 +375,27 @@ describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection',
 
 describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound error', async () => {
   // `buildValueDescriptor` reads `typeKeyword(v)` for the
-  // descriptor's `:type` field. `typeKeyword`'s isErrorValue
-  // branch surfaces the error's `:kind` TagKeyword when one is
-  // present (tagged-instance identity-via-:kind invariant), or
-  // the generic `:error` Keyword fallback when `:kind` is a plain
-  // Keyword (or missing). Cover both branches.
+  // descriptor's `:type` field. After Phase 1's identity-on-JS-
+  // header refactor, `typeKeyword`'s isErrorValue branch returns
+  // `error.tag` directly — the universal identity slot every
+  // error carries on the JS-header `tag` field (defaulting to
+  // `::Error` for user `!{}` without explicit `:kind`). No
+  // generic fallback path remains.
 
-  it('error :kind as TagKeyword surfaces as the TagKeyword on the :type field', async () => {
+  it('error tag surfaces as the TagKeyword on the :type field', async () => {
     const s = await createSession();
-    const errVal = makeErrorValue(new Map([['kind', makeTagKeyword('test')]]));
+    const errVal = makeErrorValue(makeTagKeyword('test'), new Map());
     s.bind('myErr', errVal);
     const r = await s.evalCell('manifest | filter(/name | eq("myErr")) | first | /type');
     expect(r.result).toEqual(makeTagKeyword('test'));
   });
 
-  it('error :kind as plain Keyword falls through to the generic :error :type', async () => {
+  it('default ::Error tag surfaces when no explicit tag was lifted', async () => {
     const s = await createSession();
-    const errVal = makeErrorValue(new Map([['kind', keyword('test')]]));
+    const errVal = makeErrorValue(makeTagKeyword('Error'), new Map());
     s.bind('myErr', errVal);
     const r = await s.evalCell('manifest | filter(/name | eq("myErr")) | first | /type');
-    expect(r.result).toEqual(keyword('error'));
+    expect(r.result).toEqual(makeTagKeyword('Error'));
   });
 });
 
@@ -453,22 +454,21 @@ describe('printValue — qlang literal serialization', async () => {
     expect(out).toContain(':c 3');
   });
 
-  it('prints error value with descriptor', async () => {
-    const desc = new Map([['kind', keyword('test')]]);
-    const err = makeErrorValue(desc);
+  it('prints error value with tag head and descriptor', async () => {
+    const err = makeErrorValue(makeTagKeyword('Test'), new Map([['faultInput', 1]]));
     const out = printValue(err);
-    expect(out).toMatch(/^!\{/);
-    expect(out).toContain(':kind :test');
+    expect(out).toMatch(/^::Test!\{/);
+    expect(out).toContain(':faultInput 1');
   });
 
   it('pretty-prints error with many descriptor fields', async () => {
-    const desc = new Map([
-      ['kind', keyword('test')],
+    const err = makeErrorValue(makeTagKeyword('Test'), new Map([
       ['actualType', keyword('number')],
-      ['message', 'boom']
-    ]);
-    const err = makeErrorValue(desc);
+      ['message', 'boom'],
+      ['faultInput', 1]
+    ]));
     const out = printValue(err);
+    expect(out).toMatch(/^::Test!\{/);
     expect(out).toContain('\n');
     expect(out).toContain(':actualType :number');
     expect(out).toContain(':message "boom"');
@@ -556,12 +556,19 @@ describe('printValue round-trip — all composite types', async () => {
     await assertRoundTrip('{:a {:b {:c 42}}}', 'nested Map');
   });
 
-  it('Error value', async () => {
+  it('Error value with TagKeyword :kind lift', async () => {
+    // `:kind` carrying a TagKeyword lifts to `error.tag` on
+    // construction; the print form re-emits `::Error!{…}` with the
+    // remaining fields, and re-parse recovers the same value.
+    await assertRoundTrip('!{:kind ::Error :message "boom"}', 'Error');
+  });
+
+  it('Error value with plain-keyword :kind stays in descriptor under default ::Error tag', async () => {
     await assertRoundTrip('!{:kind :oops :message "boom"}', 'Error');
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind :oops :trail ~{| count}}', 'Error trail');
+    await assertRoundTrip('!{:kind ::Error :trail ~{| count}}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

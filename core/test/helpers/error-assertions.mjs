@@ -44,7 +44,7 @@ export async function expectErrorCategory(query, category) {
 // the given class tag name (e.g. `'AddLeftNotNumberError'`).
 export async function expectErrorThrown(query, classTagName) {
   const errorResult = await expectErrorResult(query);
-  const identityTag = errorResult.descriptor.get('kind');
+  const identityTag = errorResult.tag;
   expect(identityTag?.name).toBe(classTagName);
   return errorResult;
 }

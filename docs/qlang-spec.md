@@ -1566,11 +1566,16 @@ generic tagged-instance path; every other tag rides the generic
 shape.
 
 A named error value (`!{:kind ::Tag …}`) carries the
-universal tagged-instance identity slot — `:kind` —
-promoted to the literal's tag-head. `printValue` emits
-`::Tag!{…fields…}` with the `:kind` entry folded into the
-head, the same shape both a JavaScript throw site and a literal
-`::Tag!{…}` source produce ([Error track](#error-track)).
+universal tagged-instance identity slot on the error value's
+**JS-header `tag` field** — opaque to descriptor projection,
+read through the `type` operand. The `:kind ::Tag` entry in
+the literal lifts to that header slot at construction; the
+descriptor itself holds only data fields. `printValue` emits
+`::Tag!{…fields…}` with the tag at the head and the descriptor
+fields after, the same shape both a JavaScript throw site and a
+literal `::Tag!{…}` source produce ([Error track](#error-track)).
+Errors without an explicit `:kind` lift carry the generic
+`::Error` tag — every ErrorValue has an identity.
 
 ## Error track
 
@@ -1667,11 +1672,26 @@ lift automatically into error values with structured descriptors:
 :typeError
 ```
 
+### Error identity — JS-header `tag` slot
+
+Every error value carries its per-site identity on a dedicated
+JS-header field, addressed through the `type` operand:
+`result !| type` returns the `::Tag` (TagKeyword). User-facing
+literals (`::Tag!{…}`, `!{:kind ::Tag …}`) lift `:kind` into
+this slot at construction; errors without an explicit `:kind`
+default to `::Error`. The descriptor Map below carries only
+data — no `:kind` field — so `result !| union(…) | error`
+re-lift round-trips preserve identity automatically.
+
+The materialized descriptor exposed by `!|` does stamp `:kind`
+back as the head field of the Map, so per-instance explainers
+read identity through ordinary projection
+(`result !| /kind | source` resolves the originating BindStep).
+
 ### Error descriptor fields
 
 | Field | Type | Content |
 |---|---|---|
-| `:kind` | TagKeyword | Per-site tag name as a `::Tag`: `::AddLeftNotNumberError`, `::FilterSubjectNotContainerError`, etc. The universal identity slot every tagged value-class carries (conduit, snapshot, ::qlang, ::json, user `::Foo[…]`, ErrorValue). The descriptor's literal head folds in this value, so `printValue` elides the field whenever it matches the head; the identity stays reachable through `result !\| type` |
 | `:faultStep` | Quote | Verbatim source-text of the failing step lifted to a Quote-value (from the AST node's `.text`). Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
 | `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
 | `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |

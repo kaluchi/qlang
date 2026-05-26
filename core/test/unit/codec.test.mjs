@@ -204,12 +204,25 @@ describe('toTaggedJSON unencodable values', () => {
 });
 
 describe('fromTaggedJSON malformed input', () => {
-  it('throws MalformedTaggedJSONError on unrecognized tagged objects', () => {
-    expect(() => fromTaggedJSON({ $weird: 1 })).toThrow(MalformedTaggedJSONError);
-  });
-
   it('treats null/undefined as null', () => {
     expect(fromTaggedJSON(null)).toBeNull();
     expect(fromTaggedJSON(undefined)).toBeNull();
+  });
+
+  it('throws MalformedTaggedJSONError on a non-JSON JS value (Symbol)', () => {
+    expect(() => fromTaggedJSON(Symbol('weird'))).toThrow(MalformedTaggedJSONError);
+  });
+
+  it('decodes a single-key object with an unknown $-prefixed key as a JsonObject (data-as-object)', () => {
+    const restored = fromTaggedJSON({ $weird: 1 });
+    expect(isJsonObject(restored)).toBe(true);
+    expect(restored.$weird).toBe(1);
+  });
+
+  it('decodes a multi-key object even when one key looks like an envelope marker', () => {
+    const restored = fromTaggedJSON({ $keyword: 'kw', other: 2 });
+    expect(isJsonObject(restored)).toBe(true);
+    expect(restored.$keyword).toBe('kw');
+    expect(restored.other).toBe(2);
   });
 });

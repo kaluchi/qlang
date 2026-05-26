@@ -8,28 +8,43 @@
 // persistence across browser reloads, and any serialization
 // caller all share one wire format.
 //
+// Wire-format convention: bare JSON shapes on the wire decode to the
+// JSON value-classes (JsonObject / JsonArray) — they ARE JSON,
+// nothing more to envelope. qlang-only value-classes (Vec / Map /
+// Set / Keyword / TaggedInstance / ErrorValue / Quote / Doc) ride
+// dedicated `$tag`-keyed envelopes because plain JSON has no
+// surface for them.
+//
 // Tag conventions:
-//   plain JSON value          → itself (number, string, boolean, null, array)
-//   { "$keyword": "name" }    → interned keyword
-//   { "$map": [[k, v], ...] } → JS Map (entries pairs, recursively encoded)
-//   { "$set": [v1, v2, ...] } → JS Set (recursively encoded)
-//   { "$jsonObject": {k: v…} } → JsonObject value-class (plain object stamped
-//                               with JSON_OBJECT_TAG); values are recursively
-//                               encoded so nested qlang-only shapes round-trip.
-//   { "$jsonArray": [v…] }    → JsonArray value-class (plain array stamped with
-//                               JSON_ARRAY_TAG); distinct envelope from a bare
-//                               JSON array (which decodes to a qlang Vec).
-//   { "$tagged": { "$tag": "Name", "payload": <encoded-value> } }
-//                             → TaggedInstance with tag on JS-header,
-//                               payload reconstructed through
-//                               `makeTaggedInstance` so the same
-//                               header / wrap branch chosen at mint
-//                               time fires on decode.
+//   number / string / boolean / null          → itself
+//   bare JSON array `[v1, v2, …]`             → JsonArray (recursively decoded)
+//   bare JSON object `{ "k": v, … }` (no `$tag` envelope key)
+//                                             → JsonObject (recursively decoded)
+//   { "$keyword": "name" }                    → interned keyword
+//   { "$vec": [v1, v2, …] }                   → qlang Vec
+//   { "$map": [[k, v], …] }                   → qlang Map (entries pairs)
+//   { "$set": [v1, v2, …] }                   → qlang Set
+//   { "$quote": "source" }                    → Quote-value
+//   { "$doc": "content" }                     → Doc-value
+//   { "$tagged": { "$tag": "Name", "payload": <encoded> } }
+//                                             → TaggedInstance with tag
+//                                               on JS-header, payload
+//                                               reconstructed through
+//                                               `makeTaggedInstance`.
 //   { "$error": { "$tag": "Name", "descriptor": <encoded-Map> } }
-//                             → ErrorValue with tag on JS-header,
-//                               descriptor as the inner Map (no
-//                               `:kind` field — identity rides on
-//                               the envelope's `$tag` slot)
+//                                             → ErrorValue with tag on JS-
+//                                               header, descriptor as the
+//                                               inner Map (no `:kind` field
+//                                               — identity rides on the
+//                                               envelope's `$tag` slot)
+//
+// Envelope detection on decode: an Object whose only own key is a
+// `$`-prefixed string in the known set (`$keyword` / `$vec` / `$map`
+// / `$set` / `$quote` / `$doc` / `$tagged` / `$error`) routes
+// through the envelope branch; anything else (including objects
+// with `$`-prefixed keys outside the known set, or multiple keys)
+// decodes as a JsonObject. JsonObject is the catch-all because JSON
+// has no «type» slot — a generic JSON document is a JsonObject.
 //
 // Function values, conduits, and snapshots cannot be encoded as JSON
 // directly — they require the higher-level session serializer to
@@ -122,22 +137,18 @@ export function toTaggedJSON(value) {
   }
   if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
-  // JsonArray and JsonObject ride dedicated envelopes so a bare
-  // JSON array on the wire decodes to a qlang Vec (the historical
-  // contract `isVec` exposes), while a stamped JsonArray keeps the
-  // JSON_ARRAY_TAG across the boundary — same split as Vec vs Set
-  // on the input side.
-  if (isJsonArray(value)) {
-    return { $jsonArray: value.map(toTaggedJSON) };
-  }
-  if (isVec(value)) return value.map(toTaggedJSON);
-  if (isQuote(value)) return { $quote: value.source };
-  if (isDoc(value)) return { $doc: value.content };
+  // JsonArray and JsonObject ride bare JSON on the wire — they ARE
+  // JSON, no envelope needed. Vec / Map are qlang-only and need
+  // dedicated envelopes since plain JSON has no surface for them.
+  if (isJsonArray(value)) return value.map(toTaggedJSON);
   if (isJsonObject(value)) {
     const encoded = {};
     for (const [k, v] of Object.entries(value)) encoded[k] = toTaggedJSON(v);
-    return { $jsonObject: encoded };
+    return encoded;
   }
+  if (isVec(value)) return { $vec: value.map(toTaggedJSON) };
+  if (isQuote(value)) return { $quote: value.source };
+  if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {
     return {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
@@ -158,54 +169,72 @@ export function toTaggedJSON(value) {
   throw new TaggedJSONUnencodableValueError(t);
 }
 
+// Envelope detection sentinel: an Object is a qlang-only-value
+// envelope iff it has exactly one own key and that key is one of
+// the reserved `$`-prefixed strings below. Anything else
+// (multi-key object, single-key with unknown `$`-prefix, single-
+// key without `$`-prefix) decodes as a JsonObject — the catch-all
+// for «JSON object on the wire» since plain JSON has no «type»
+// slot. This narrow rule keeps real JSON data (`{"a":1}`,
+// `{"name":"x", "age":2}`) safe from envelope-misinterpretation
+// while still single-keying the qlang-only envelopes on the wire.
+const ENVELOPE_KEYS = new Set([
+  '$keyword', '$vec', '$map', '$set',
+  '$tagged', '$error', '$quote', '$doc'
+]);
+
+function envelopeKeyOf(obj) {
+  const ownKeys = Object.keys(obj);
+  if (ownKeys.length !== 1) return null;
+  const onlyKey = ownKeys[0];
+  return ENVELOPE_KEYS.has(onlyKey) ? onlyKey : null;
+}
+
 // fromTaggedJSON(json) → qlang runtime value
 export function fromTaggedJSON(json) {
   if (json === null || json === undefined) return null;
   const t = typeof json;
   if (t === 'number' || t === 'string' || t === 'boolean') return json;
-  if (Array.isArray(json)) return json.map(fromTaggedJSON);
+  if (Array.isArray(json)) return makeJsonArray(json.map(fromTaggedJSON));
   if (typeof json === 'object') {
-    if ('$keyword' in json) return keyword(json.$keyword);
-    if ('$map' in json) {
-      const m = new Map();
-      for (const [k, v] of json.$map) {
-        const decodedKey = fromTaggedJSON(k);
-        m.set(typeof decodedKey === 'object' && decodedKey?.type === 'keyword' ? decodedKey.name : decodedKey, fromTaggedJSON(v));
+    switch (envelopeKeyOf(json)) {
+      case '$keyword': return keyword(json.$keyword);
+      case '$vec':     return json.$vec.map(fromTaggedJSON);
+      case '$map': {
+        const m = new Map();
+        for (const [k, v] of json.$map) {
+          const decodedKey = fromTaggedJSON(k);
+          m.set(typeof decodedKey === 'object' && decodedKey?.type === 'keyword' ? decodedKey.name : decodedKey, fromTaggedJSON(v));
+        }
+        return m;
       }
-      return m;
-    }
-    if ('$set' in json) {
-      const s = new Set();
-      for (const v of json.$set) s.add(fromTaggedJSON(v));
-      return s;
-    }
-    if ('$jsonArray' in json) {
-      return makeJsonArray(json.$jsonArray.map(fromTaggedJSON));
-    }
-    if ('$jsonObject' in json) {
-      const obj = {};
-      for (const [k, v] of Object.entries(json.$jsonObject)) {
-        obj[k] = fromTaggedJSON(v);
+      case '$set': {
+        const s = new Set();
+        for (const v of json.$set) s.add(fromTaggedJSON(v));
+        return s;
       }
-      return makeJsonObject(obj);
+      case '$tagged': {
+        const taggedEnvelope = json.$tagged;
+        return makeTaggedInstance(
+          makeTagKeyword(taggedEnvelope.$tag),
+          fromTaggedJSON(taggedEnvelope.payload)
+        );
+      }
+      case '$error': {
+        const errEnvelope = json.$error;
+        return makeErrorValue(
+          makeTagKeyword(errEnvelope.$tag),
+          fromTaggedJSON(errEnvelope.descriptor),
+          {}
+        );
+      }
+      case '$quote': return makeQuote(json.$quote);
+      case '$doc':   return makeDoc(json.$doc);
     }
-    if ('$tagged' in json) {
-      const taggedEnvelope = json.$tagged;
-      return makeTaggedInstance(
-        makeTagKeyword(taggedEnvelope.$tag),
-        fromTaggedJSON(taggedEnvelope.payload)
-      );
-    }
-    if ('$error' in json) {
-      const errEnvelope = json.$error;
-      return makeErrorValue(
-        makeTagKeyword(errEnvelope.$tag),
-        fromTaggedJSON(errEnvelope.descriptor),
-        {}
-      );
-    }
-    if ('$quote' in json) return makeQuote(json.$quote);
-    if ('$doc' in json) return makeDoc(json.$doc);
+    // Catch-all: bare JSON object → JsonObject (recursively decoded).
+    const obj = {};
+    for (const [k, v] of Object.entries(json)) obj[k] = fromTaggedJSON(v);
+    return makeJsonObject(obj);
   }
   throw new MalformedTaggedJSONError(json);
 }

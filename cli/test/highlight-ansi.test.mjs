@@ -118,7 +118,7 @@ describe('highlightAnsi', () => {
     expect(resets.length * 2).toBe(opens.length);
   });
 
-  it('passes parse-error input through without escape sequences', () => {
+  it('passes parseError input through without escape sequences', () => {
     const out = highlightAnsi('[unclosed', noBuiltins);
     expect(out).toBe('[unclosed');
     expect(out).not.toMatch(ANY_ANSI);

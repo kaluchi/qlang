@@ -20,7 +20,7 @@
       value returns the same shape. The literal-time pendant is the
       `::qlang<payload>` TaggedLit constructor; the inverse
       direction (qlang shape to JSON shape) is the `::json`
-      constructor — both ride the `:type-conversion` taxonomy
+      constructor — both ride the `:typeConversion` taxonomy
       slot alongside the String↔Keyword involution `keyword`.
 
       ~{::json{"a" : 1} | qlang | isMap | eq(true)}
@@ -29,7 +29,7 @@
       ~{[1 2 3] | qlang | isVec | eq(true)}
       ~{42 | qlang | eq(42)} ~~|
   ::builtin{:impl :qlang/prim/qlang
-            :category :type-conversion
+            :category :typeConversion
             :subject :any
             :returns :any
    }
@@ -53,7 +53,7 @@
         |  eq([::TableSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :table :position :subject :expectedType :vec}
+  ::builtin{:category :typeError :operand :table :position :subject :expectedType :vec}
 
 ::TableRowNotMapError
   |~~ Element of `table` input collection must be Map.
@@ -63,4 +63,4 @@
         |  eq([::TableRowNotMapError :number 0])
        }
   ~~|
-  ::builtin{:category :type-error :operand :table :expectedType :map}
+  ::builtin{:category :typeError :operand :table :expectedType :map}

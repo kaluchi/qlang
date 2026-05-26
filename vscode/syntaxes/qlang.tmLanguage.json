@@ -9,7 +9,7 @@
     { "include": "#comment-line-plain" },
     { "include": "#comment-block-plain" },
     { "include": "#string" },
-    { "include": "#tag-keyword" },
+    { "include": "#tagKeyword" },
     { "include": "#type-keyword" },
     { "include": "#map-key" },
     { "include": "#keyword-atom" },
@@ -66,7 +66,7 @@
       ]
     },
 
-    "tag-keyword": {
+    "tagKeyword": {
       "comment": "::tag — tag-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::conduit | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
       "name": "entity.name.type.qlang",
       "match": "::[@_a-zA-Z][a-zA-Z0-9_/-]*"
@@ -75,7 +75,7 @@
     "type-keyword": {
       "comment": "qlang type-vocabulary keywords — the scalar, container, and lambda-parameter types from the spec. Tried before map-key and keyword-atom so type references get support.type scope.",
       "name": "support.type.qlang",
-      "match": ":(number|string|boolean|keyword|null|any|vec|map|set|predicate-lambda|key-lambda|comparator-lambda|pipeline)(?![a-zA-Z0-9_-])"
+      "match": ":(number|string|boolean|keyword|null|any|vec|map|set|predicateLambda|keyLambda|comparatorLambda|pipeline)(?![a-zA-Z0-9_-])"
     },
 
     "map-key": {

@@ -26,7 +26,7 @@
         |  eq([::AddLeftNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :add :position 1 :expectedType :number}
+  ::builtin{:category :typeError :operand :add :position 1 :expectedType :number}
 
 ::AddRightNotNumberError
   |~~ Captured argument at position 2 of `add` must be Number.
@@ -37,7 +37,7 @@
         |  eq([::AddRightNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :add :position 2 :expectedType :number}
+  ::builtin{:category :typeError :operand :add :position 2 :expectedType :number}
 
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
@@ -62,7 +62,7 @@
         |  eq([::SubLeftNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :sub :position 1 :expectedType :number}
+  ::builtin{:category :typeError :operand :sub :position 1 :expectedType :number}
 
 ::SubRightNotNumberError
   |~~ Captured argument at position 2 of `sub` must be Number.
@@ -73,7 +73,7 @@
         |  eq([::SubRightNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :sub :position 2 :expectedType :number}
+  ::builtin{:category :typeError :operand :sub :position 2 :expectedType :number}
 
 :mul
   |~~ Multiplies two numbers. Commutative.
@@ -97,7 +97,7 @@
         |  eq([::MulLeftNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :mul :position 1 :expectedType :number}
+  ::builtin{:category :typeError :operand :mul :position 1 :expectedType :number}
 
 ::MulRightNotNumberError
   |~~ Captured argument at position 2 of `mul` must be Number.
@@ -108,11 +108,11 @@
         |  eq([::MulRightNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :mul :position 2 :expectedType :number}
+  ::builtin{:category :typeError :operand :mul :position 2 :expectedType :number}
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
-      position 1 is the dividend. Raises division-by-zero on
+      position 1 is the dividend. Raises divisionByZero on
       b == 0.
 
       ~{10 | div(2) | eq(5)}
@@ -134,7 +134,7 @@
         |  eq([::DivLeftNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :div :position 1 :expectedType :number}
+  ::builtin{:category :typeError :operand :div :position 1 :expectedType :number}
 
 ::DivRightNotNumberError
   |~~ Captured argument at position 2 of `div` must be Number.
@@ -145,7 +145,7 @@
         |  eq([::DivRightNotNumberError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :div :position 2 :expectedType :number}
+  ::builtin{:category :typeError :operand :div :position 2 :expectedType :number}
 
 ::DivisionByZeroError
   |~~ Division by zero — `div(_, 0)` fires this error.
@@ -156,4 +156,4 @@
         |  eq([::DivisionByZeroError])
        }
   ~~|
-  ::builtin{:category :division-by-zero :operand :div}
+  ::builtin{:category :divisionByZero :operand :div}

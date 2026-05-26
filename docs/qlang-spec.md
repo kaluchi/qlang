@@ -984,10 +984,10 @@ A conduit is invoked like any operand: `value | double`,
 `"world" | @surround("[", "]")`. At the call site:
 
 1. Captured-arg expressions become lazy lambdas (not eagerly fired).
-2. Each lambda is wrapped in a conduit-parameter that fires against
+2. Each lambda is wrapped in a conduitParameter that fires against
    whatever `pipeValue` exists at the lookup site inside the body.
 3. The body runs in a fork with a **lexical env** — the env frozen
-   at declaration time, plus conduit-parameter bindings. Body's
+   at declaration time, plus conduitParameter bindings. Body's
    BindStep / `as` writes are local to the fork.
 4. The body's final `pipeValue` propagates out; the outer `env` is
    preserved unchanged.
@@ -1601,7 +1601,7 @@ step only when `pipeValue` is an error value, exposing the error's
 
 ```qlang
 > "hello" | add(1) | mul(2) !| type | spec | /category
-:type-error
+:typeError
 
 > "hello" | add(1) | mul(2) !| /trail | /source
 "| mul(2)"
@@ -1664,7 +1664,7 @@ lift automatically into error values with structured descriptors:
 ::AddLeftNotNumberError
 
 > "hello" | add(1) !| type | spec | /category
-:type-error
+:typeError
 ```
 
 ### Error descriptor fields
@@ -1684,11 +1684,11 @@ errors carry `:leftType` / `:rightType`; element errors carry
 value; dispatch errors carry `:operandName` / `:conduitName` /
 `:expectedArity` / `:actualArity` for the dispatch-time variants).
 
-Per-tag static facts — `:category` (broad bucket: `:type-error`,
-`:arity-error`, `:effect-laundering`, `:parse-error`,
-`:foreign-error`, `:invariant-error`, `:division-by-zero`,
-`:primitive-unbound`, `:session-error`, `:codec-error`,
-`:ast-codec-error`, `:unresolved-identifier`), `:operand`,
+Per-tag static facts — `:category` (broad bucket: `:typeError`,
+`:arityError`, `:effectLaundering`, `:parseError`,
+`:foreignError`, `:invariantError`, `:divisionByZero`,
+`:primitiveUnbound`, `:sessionError`, `:codecError`,
+`:astCodecError`, `:unresolvedIdentifier`), `:operand`,
 `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
@@ -1989,9 +1989,9 @@ Six step types:
 |---|---|---|
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a,b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolved-identifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
+| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
-| 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduit-parameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
+| 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|`, `*`, and `>>` are

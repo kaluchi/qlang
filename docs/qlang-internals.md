@@ -181,10 +181,10 @@ through. The bound value is shaped by the body's purity and shape:
 When the conduit name is later looked up via Step 3:
 
 1. Captured-arg expressions (one per parameter) become lazy lambdas.
-2. Each lambda is wrapped in a conduit-parameter — a nullary function
+2. Each lambda is wrapped in a conduitParameter — a nullary function
    value that fires the lambda against the lookup-site `pipeValue`.
 3. The body evaluates in a fork with `envRef.env` (the declaration-
-   time env) plus the conduit-parameter proxies layered on top.
+   time env) plus the conduitParameter proxies layered on top.
 4. The fork's final `pipeValue` propagates out; the outer env is
    preserved.
 
@@ -682,7 +682,7 @@ reads the `:impl` handle, resolves it through
 and invokes it via Rule 10. Bare lookup fires the operand against
 the current `pipeValue` regardless of arity — non-nullary operands
 without captured args hit Rule 10's arity check and surface a
-per-site arity-error. The introspection surface for "what does this
+per-site arityError. The introspection surface for "what does this
 operand do" is `:name | source` / `:name | docs` / `:name |
 examples`, not a bare-name shortcut into the descriptor Map.
 
@@ -1196,11 +1196,11 @@ in addition to the invariant `:trail`:
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
 | `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
-Per-tag static facts — `:category` (broad bucket: `:type-error` /
-`:arity-error` / `:parse-error` / `:foreign-error` /
-`:invariant-error` / `:division-by-zero` / `:primitive-unbound` /
-`:session-error` / `:codec-error` / `:ast-codec-error` /
-`:effect-laundering` / `:unresolved-identifier`), `:operand`,
+Per-tag static facts — `:category` (broad bucket: `:typeError` /
+`:arityError` / `:parseError` / `:foreignError` /
+`:invariantError` / `:divisionByZero` / `:primitiveUnbound` /
+`:sessionError` / `:codecError` / `:astCodecError` /
+`:effectLaundering` / `:unresolvedIdentifier`), `:operand`,
 `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
@@ -1405,7 +1405,7 @@ unrecognized tagged objects.
   OperandCall and Projection node. Run automatically by `parse()`.
 - `findFirstEffectfulIdentifier(node)` — returns the first effectful
   identifier in a subtree, used by `evalBindStep` for eval-time
-  effect-laundering validation.
+  effectLaundering validation.
 
 The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
 when an identifier resolves to an effectful function value but the

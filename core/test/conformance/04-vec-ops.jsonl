@@ -31,7 +31,7 @@
 {"name":"filter-vec-3arity-pred-throws","query":"[1] | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
 {"name":"filter-set-3arity-pred-throws","query":"#[1] | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterVecOrSetPredArityInvalidError"}
 {"name":"filter-map-3arity-pred-throws","query":"{:a 1} | :@wide [:x :y :z] true | filter(@wide) !| type","expect":"::FilterMapPredArityInvalidError"}
-{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"type-error","expect":"::FilterSubjectNotContainerError!{\n  :faultStep ~{filter(gt(0))}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"filter-non-container-throws","query":"42 | filter(gt(0))","error":"typeError","expect":"::FilterSubjectNotContainerError!{\n  :faultStep ~{filter(gt(0))}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort(/age)","expect":"[{:age 20} {:age 25} {:age 30}]"}

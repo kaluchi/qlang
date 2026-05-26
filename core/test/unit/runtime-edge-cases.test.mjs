@@ -196,7 +196,7 @@ describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on t
     // `${COMBINATOR_SYNTAX[combinator]} ${text}` into the
     // pipeline-suffix Quote source.
     const { appendTrailNode, materializeTrail, isQuote } = await import('../../src/types.mjs');
-    const errVal = makeErrorValue(new Map([['kind', keyword('type-error')]]));
+    const errVal = makeErrorValue(new Map([['kind', keyword('typeError')]]));
     const fragment = Object.freeze({ combinator: 'pipe', text: 'count' });
     const trailed = appendTrailNode(errVal, fragment);
     expect(isErrorValue(trailed)).toBe(true);
@@ -207,7 +207,7 @@ describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on t
   });
 });
 
-describe('conduit effect-laundering at call site', async () => {
+describe('conduit effectLaundering at call site', async () => {
   it('conduit with @-name called via clean alias triggers EffectLaunderingAtCallError', async () => {
     const s = await createSession();
     // Declare an @-prefixed conduit, then shadow it under a clean name
@@ -221,9 +221,9 @@ describe('conduit effect-laundering at call site', async () => {
   });
 });
 
-describe('conduit-parameter arity error', async () => {
+describe('conduitParameter arity error', async () => {
   it('calling a conduit parameter with captured args throws ConduitParameterNoCapturedArgsError', async () => {
-    // Inside the body, `n` is a conduit-parameter proxy (nullary
+    // Inside the body, `n` is a conduitParameter proxy (nullary
     // function value). Calling it with captured args (n(42)) should
     // raise ConduitParameterNoCapturedArgsError with structured context.
     const result = await evalQuery(':f [:n] n(42) | 0 | f(5)');
@@ -549,7 +549,7 @@ describe('printValue round-trip — all composite types', async () => {
   });
 
   it('Map with keyword values', async () => {
-    await assertRoundTrip('{:kind :type-error :origin :qlang/eval}', 'keyword val Map');
+    await assertRoundTrip('{:kind :typeError :origin :qlang/eval}', 'keyword val Map');
   });
 
   it('nested Map', async () => {

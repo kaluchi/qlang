@@ -155,7 +155,7 @@ const AST_KIND_TO_TYPE = new Map([
 // pipelines.
 class AstNodeTypeUnknownError extends QlangError {
   constructor(nodeType) {
-    super(`astNodeToMap: unknown AST node type '${nodeType}'`, 'ast-codec-error');
+    super(`astNodeToMap: unknown AST node type '${nodeType}'`, 'astCodecError');
     this.name = 'AstNodeTypeUnknownError';
     this.fingerprint = 'AstNodeTypeUnknownError';
     this.context = { nodeType };
@@ -164,7 +164,7 @@ class AstNodeTypeUnknownError extends QlangError {
 
 class AstMapMalformedError extends QlangError {
   constructor(reason) {
-    super(`qlangMapToAst: malformed AST-Map — ${reason}`, 'ast-codec-error');
+    super(`qlangMapToAst: malformed AST-Map — ${reason}`, 'astCodecError');
     this.name = 'AstMapMalformedError';
     this.fingerprint = 'AstMapMalformedError';
     this.context = { reason };
@@ -173,7 +173,7 @@ class AstMapMalformedError extends QlangError {
 
 class AstMapKindUnknownError extends QlangError {
   constructor(kindName) {
-    super(`qlangMapToAst: unknown :kind '${kindName}'`, 'ast-codec-error');
+    super(`qlangMapToAst: unknown :kind '${kindName}'`, 'astCodecError');
     this.name = 'AstMapKindUnknownError';
     this.fingerprint = 'AstMapKindUnknownError';
     this.context = { kindName };

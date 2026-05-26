@@ -1,4 +1,4 @@
-// Regenerate :message strings inside docs/conformance parse-error
+// Regenerate :message strings inside docs/conformance parseError
 // JSONL fixtures — peggy emits an updated "Expected ..." token list
 // whenever a Primary alternative is added or removed. Run after a
 // grammar change that introduces / removes a top-level token.

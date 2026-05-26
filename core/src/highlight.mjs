@@ -135,7 +135,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         // recursively. Every inner span carries `italic: true` so
         // the renderer can compose italic + the inner kind's
         // colour (`atom` italic, `operand` italic, etc.) — the
-        // visual cue is "this is code-as-data, painted in the same
+        // visual cue is "this is codeAsData, painted in the same
         // palette as code-as-running but italicised".
         spans.push({ start: startOffset, end: startOffset + 2, kind: 'quote' });
         const bodyStart = startOffset + 2;

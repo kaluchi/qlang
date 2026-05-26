@@ -21,7 +21,7 @@
 //           | :@hot [:k :v] and(k | eq(:x), v | gt(1))
 //           | filter(@hot)
 //
-//   3+-arity → per-operand arity-error. The language does not
+//   3+-arity → per-operand arityError. The language does not
 //     pair-encode keys/values into a single argument; higher arities
 //     are not meaningful for entry iteration.
 //

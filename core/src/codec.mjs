@@ -39,7 +39,7 @@ import { QlangError } from './errors.mjs';
 
 export class TaggedJSONUnencodableValueError extends QlangError {
   constructor(typeName) {
-    super(`cannot encode ${typeName} value to tagged JSON; use serializeSession`, 'codec-error');
+    super(`cannot encode ${typeName} value to tagged JSON; use serializeSession`, 'codecError');
     this.name = 'TaggedJSONUnencodableValueError';
     this.fingerprint = 'TaggedJSONUnencodableValueError';
     this.context = { typeName };
@@ -48,7 +48,7 @@ export class TaggedJSONUnencodableValueError extends QlangError {
 
 export class MalformedTaggedJSONError extends QlangError {
   constructor(json) {
-    super(`fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(json)}`, 'codec-error');
+    super(`fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(json)}`, 'codecError');
     this.name = 'MalformedTaggedJSONError';
     this.fingerprint = 'MalformedTaggedJSONError';
     this.context = { payload: json };

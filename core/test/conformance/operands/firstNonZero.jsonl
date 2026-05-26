@@ -14,15 +14,15 @@
 {"name":"decimal-non-zero","query":"[0 3.14 0] | firstNonZero","expect":"3.14"}
 {"name":"very-small-non-zero","query":"[0 0.0001 0] | firstNonZero","expect":"0.0001"}
 {"name":"negative-decimal","query":"[0 -2.5] | firstNonZero","expect":"-2.5"}
-{"name":"subject-not-vec-error","query":"42 | firstNonZero","error":"type-error","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput 42\n  :actualType :number\n}"}
-{"name":"subject-string-error","query":"\"abc\" | firstNonZero","error":"type-error","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput \"abc\"\n  :actualType :string\n}"}
-{"name":"subject-map-error","query":"{:a 1} | firstNonZero","error":"type-error","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput {:a 1}\n  :actualType :map\n}"}
-{"name":"subject-set-error","query":"#[1 2 3] | firstNonZero","error":"type-error","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput #[1 2 3]\n  :actualType :set\n}"}
-{"name":"subject-null-error","query":"null | firstNonZero","error":"type-error","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput null\n  :actualType :null\n}"}
-{"name":"element-string-error","query":"[0 \"two\" 1] | firstNonZero","error":"type-error","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 \"two\" 1]\n  :actualValue \"two\"\n  :actualType :string\n  :index 1\n}"}
-{"name":"element-null-error","query":"[0 null 1] | firstNonZero","error":"type-error","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 null 1]\n  :actualValue null\n  :actualType :null\n  :index 1\n}"}
-{"name":"element-vec-error","query":"[0 [:tag] 1] | firstNonZero","error":"type-error","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 [:tag] 1]\n  :actualValue [:tag]\n  :actualType :vec\n  :index 1\n}"}
-{"name":"element-keyword-error","query":"[0 :foo 1] | firstNonZero","error":"type-error","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 :foo 1]\n  :actualValue :foo\n  :actualType :keyword\n  :index 1\n}"}
-{"name":"element-bool-error","query":"[0 true 1] | firstNonZero","error":"type-error","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 true 1]\n  :actualValue true\n  :actualType :boolean\n  :index 1\n}"}
+{"name":"subject-not-vec-error","query":"42 | firstNonZero","error":"typeError","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"subject-string-error","query":"\"abc\" | firstNonZero","error":"typeError","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput \"abc\"\n  :actualType :string\n}"}
+{"name":"subject-map-error","query":"{:a 1} | firstNonZero","error":"typeError","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput {:a 1}\n  :actualType :map\n}"}
+{"name":"subject-set-error","query":"#[1 2 3] | firstNonZero","error":"typeError","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput #[1 2 3]\n  :actualType :set\n}"}
+{"name":"subject-null-error","query":"null | firstNonZero","error":"typeError","expect":"::FirstNonZeroSubjectNotVecError!{\n  :faultStep ~{firstNonZero}\n  :faultInput null\n  :actualType :null\n}"}
+{"name":"element-string-error","query":"[0 \"two\" 1] | firstNonZero","error":"typeError","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 \"two\" 1]\n  :actualValue \"two\"\n  :actualType :string\n  :index 1\n}"}
+{"name":"element-null-error","query":"[0 null 1] | firstNonZero","error":"typeError","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 null 1]\n  :actualValue null\n  :actualType :null\n  :index 1\n}"}
+{"name":"element-vec-error","query":"[0 [:tag] 1] | firstNonZero","error":"typeError","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 [:tag] 1]\n  :actualValue [:tag]\n  :actualType :vec\n  :index 1\n}"}
+{"name":"element-keyword-error","query":"[0 :foo 1] | firstNonZero","error":"typeError","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 :foo 1]\n  :actualValue :foo\n  :actualType :keyword\n  :index 1\n}"}
+{"name":"element-bool-error","query":"[0 true 1] | firstNonZero","error":"typeError","expect":"::FirstNonZeroElementNotNumberError!{\n  :faultStep ~{firstNonZero}\n  :faultInput [0 true 1]\n  :actualValue true\n  :actualType :boolean\n  :index 1\n}"}
 {"name":"compose-with-vec-of-comparators","query":"[{:a 1 :b 2} {:a 1 :b 5} {:a 2 :b 1}] | sortWith([asc(/a), desc(/b)] | firstNonZero) * /b","expect":"[5 2 1]"}
 {"name":"compose-bare-numeric-vec-from-arithmetic","query":"[{:n 1} {:n 2} {:n 3}] * /n | as(:nums) | nums * sub(2) | firstNonZero","expect":"-1"}

@@ -1,7 +1,7 @@
 // tokenize coverage. The function backs every renderer (HTML for
 // the docs site, ANSI for the CLI REPL, eventually LSP semantic
 // tokens) so the contract is exercised here at the value level —
-// kind classification, gap interleaving, parse-error fallback, and
+// kind classification, gap interleaving, parseError fallback, and
 // the [0, src.length] coverage invariant.
 
 import { describe, it, expect } from 'vitest';
@@ -254,7 +254,7 @@ describe('tokenize — coverage invariant', () => {
   });
 });
 
-describe('tokenize — parse-error fallback', () => {
+describe('tokenize — parseError fallback', () => {
   it('returns a single whitespace token covering the full input on a parse failure', async () => {
     const src = '[unclosed';
     expect(tokenize(src, await builtins())).toEqual([

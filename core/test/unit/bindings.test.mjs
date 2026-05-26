@@ -70,7 +70,7 @@ describe('BindStep — pipeline-transparency', () => {
   });
 });
 
-describe('BindStep — effect-laundering safety net', () => {
+describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
     const err = await evalQuery(':safe @nonExistent');
     expect(isErrorValue(err)).toBe(true);

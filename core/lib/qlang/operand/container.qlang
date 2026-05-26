@@ -11,7 +11,7 @@
       ~{{:x 1 :y 2 :z 3} | count | eq(3)}
   ~~|
   ::builtin{:impl :qlang/prim/count
-            :category :container-reducer
+            :category :containerReducer
             :subject [:vec :set :map]
             :returns :number
             :throws [::CountSubjectNotContainerError]}
@@ -24,7 +24,7 @@
         |  eq([::CountSubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :count :position :subject :expectedType [:vec :set :map]}
+  ::builtin{:category :typeError :operand :count :position :subject :expectedType [:vec :set :map]}
 
 :empty
   |~~ Returns true if the container has zero elements, false
@@ -34,7 +34,7 @@
       ~{[1] | empty | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/empty
-            :category :container-reducer
+            :category :containerReducer
             :subject [:vec :set :map]
             :returns :boolean
             :throws [::EmptySubjectNotContainerError]}
@@ -47,7 +47,7 @@
         |  eq([::EmptySubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :empty :position :subject :expectedType [:vec :set :map]}
+  ::builtin{:category :typeError :operand :empty :position :subject :expectedType [:vec :set :map]}
 
 :every
   |~~ Returns true iff every item of the container satisfies the
@@ -72,10 +72,10 @@
       ~{{:a1 1 :a2 2} | :@keyAndPos [:k :v] and(v | gt(0), k | eq(:a1)) | every(@keyAndPos) | eq(false)}
   ~~|
   ::builtin{:impl :qlang/prim/every
-            :category :container-selector
+            :category :containerSelector
             :subject [:vec :set :map]
             :returns :boolean
-            :modifiers [:predicate-lambda]
+            :modifiers [:predicateLambda]
             :throws [::EverySubjectNotContainerError ::EveryVecOrSetPredArityInvalidError ::EveryMapPredArityInvalidError]}
 
 ::EverySubjectNotContainerError
@@ -86,7 +86,7 @@
         |  eq([::EverySubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :every :position :subject :expectedType [:vec :set :map]}
+  ::builtin{:category :typeError :operand :every :position :subject :expectedType [:vec :set :map]}
 
 ::EveryVecOrSetPredArityInvalidError
   |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
@@ -96,7 +96,7 @@
         |  eq([::EveryVecOrSetPredArityInvalidError :@kv 2])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :every}
+  ::builtin{:category :arityError :operand :every}
 
 ::EveryMapPredArityInvalidError
   |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
@@ -106,7 +106,7 @@
         |  eq([::EveryMapPredArityInvalidError :@tooWide 3])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :every}
+  ::builtin{:category :arityError :operand :every}
 
 :any
   |~~ Returns true iff at least one item of the container
@@ -125,10 +125,10 @@
       ~{{:apple 1 :banana 2} | :@aKey [:k :v] (k | eq(:apple)) | any(@aKey) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/prim/any
-            :category :container-selector
+            :category :containerSelector
             :subject [:vec :set :map]
             :returns :boolean
-            :modifiers [:predicate-lambda]
+            :modifiers [:predicateLambda]
             :throws [::AnySubjectNotContainerError ::AnyVecOrSetPredArityInvalidError ::AnyMapPredArityInvalidError]}
 
 ::AnySubjectNotContainerError
@@ -139,7 +139,7 @@
         |  eq([::AnySubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :any :position :subject :expectedType [:vec :set :map]}
+  ::builtin{:category :typeError :operand :any :position :subject :expectedType [:vec :set :map]}
 
 ::AnyVecOrSetPredArityInvalidError
   |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
@@ -149,7 +149,7 @@
         |  eq([::AnyVecOrSetPredArityInvalidError :@kv 2])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :any}
+  ::builtin{:category :arityError :operand :any}
 
 ::AnyMapPredArityInvalidError
   |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
@@ -159,7 +159,7 @@
         |  eq([::AnyMapPredArityInvalidError :@tooWide 3])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :any}
+  ::builtin{:category :arityError :operand :any}
 
 :filter
   |~~ Keeps items of the container where the predicate evaluates
@@ -196,10 +196,10 @@
       ~{{} | filter(gt(0)) | eq({})}
   ~~|
   ::builtin{:impl :qlang/prim/filter
-            :category :container-selector
+            :category :containerSelector
             :subject [:vec :set :map]
             :returns [:vec :set :map]
-            :modifiers [:predicate-lambda]
+            :modifiers [:predicateLambda]
             :throws [::FilterSubjectNotContainerError ::FilterVecOrSetPredArityInvalidError ::FilterMapPredArityInvalidError]}
 
 ::FilterSubjectNotContainerError
@@ -210,7 +210,7 @@
         |  eq([::FilterSubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :filter :position :subject :expectedType [:vec :set :map]}
+  ::builtin{:category :typeError :operand :filter :position :subject :expectedType [:vec :set :map]}
 
 ::FilterVecOrSetPredArityInvalidError
   |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
@@ -220,7 +220,7 @@
         |  eq([::FilterVecOrSetPredArityInvalidError :@kv 2])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :filter}
+  ::builtin{:category :arityError :operand :filter}
 
 ::FilterMapPredArityInvalidError
   |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
@@ -230,4 +230,4 @@
         |  eq([::FilterMapPredArityInvalidError :@wide 3])
        }
   ~~|
-  ::builtin{:category :arity-error :operand :filter}
+  ::builtin{:category :arityError :operand :filter}

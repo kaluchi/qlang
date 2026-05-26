@@ -11,7 +11,7 @@
 //                        resolve against it, then apply the pair.
 //
 // Each throw site has its own unique error class.
-// Meta lives in lib/qlang/operand/set-op.qlang.
+// Meta lives in lib/qlang/operand/setOp.qlang.
 
 import { overloadedOp } from './dispatch.mjs';
 import {

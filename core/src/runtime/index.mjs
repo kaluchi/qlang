@@ -5,8 +5,8 @@
 //   1. lib/qlang/ — the authored source catalog, split across:
 //      - core.qlang: orchestrator, one `use([...])` call that
 //        loads the families in order.
-//      - operand/<family>.qlang (arith, vec, container, set-op,
-//        map-op, string, predicate, control, format,
+//      - operand/<family>.qlang (arith, vec, container, setOp,
+//        mapOp, string, predicate, control, format,
 //        reflective): per-family operand BindSteps and the
 //        per-site error tags they throw, declared inline.
 //      - runtime-invariants.qlang: shared / cross-family
@@ -68,7 +68,7 @@ import './tagged.mjs';
 import './bind-op.mjs';
 import './use-op.mjs';
 import './manifest-op.mjs';
-import './code-as-data.mjs';
+import './codeAsData.mjs';
 import './axis.mjs';
 
 import { parse } from '../parse.mjs';

@@ -1,4 +1,4 @@
-|~ qlang operand catalog — map-op family. Each operand BindStep
+|~ qlang operand catalog — mapOp family. Each operand BindStep
    below sits directly under the per-site error tags it raises;
    the operand's `:throws` Vec references those tags by name. ~|
 
@@ -8,7 +8,7 @@
       ~{{:name "Alice" :age 30} | keys | eq(#[:name :age])}
   ~~|
   ::builtin{:impl :qlang/prim/keys
-            :category :map-op
+            :category :mapOp
             :subject :map
             :returns :set
             :throws [::KeysSubjectNotMapError]}
@@ -21,7 +21,7 @@
         |  eq([::KeysSubjectNotMapError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :keys :position :subject :expectedType :map}
+  ::builtin{:category :typeError :operand :keys :position :subject :expectedType :map}
 
 :vals
   |~~ Returns a Vec of values in insertion order.
@@ -29,7 +29,7 @@
       ~{{:name "Alice" :age 30} | vals | eq(["Alice" 30])}
   ~~|
   ::builtin{:impl :qlang/prim/vals
-            :category :map-op
+            :category :mapOp
             :subject :map
             :returns :vec
             :throws [::ValsSubjectNotMapError]}
@@ -42,7 +42,7 @@
         |  eq([::ValsSubjectNotMapError :vec])
        }
   ~~|
-  ::builtin{:category :type-error :operand :vals :position :subject :expectedType :map}
+  ::builtin{:category :typeError :operand :vals :position :subject :expectedType :map}
 
 :has
   |~~ Returns true if the Map contains the keyword key, or if
@@ -52,7 +52,7 @@
       ~{#[:a :b :c] | has(:b) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/prim/has
-            :category :map-op
+            :category :mapOp
             :subject [:map :set]
             :returns :boolean
             :modifiers [:any]
@@ -66,7 +66,7 @@
         |  eq([::HasSubjectNotMapOrSetError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :has :position :subject :expectedType [:map :set]}
+  ::builtin{:category :typeError :operand :has :position :subject :expectedType [:map :set]}
 
 ::HasKeyNotKeywordError
   |~~ Captured argument at position 2 of `has` must be Keyword.
@@ -76,4 +76,4 @@
         |  eq([::HasKeyNotKeywordError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :has :position 2 :expectedType :keyword}
+  ::builtin{:category :typeError :operand :has :position 2 :expectedType :keyword}

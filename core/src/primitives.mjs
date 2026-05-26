@@ -122,7 +122,7 @@ class PrimitiveKeyUnboundError extends QlangError {
   constructor(keyLabel) {
     super(
       `resolve: no primitive bound under :${keyLabel}`,
-      'primitive-unbound'
+      'primitiveUnbound'
     );
     this.name = 'PrimitiveKeyUnboundError';
     this.fingerprint = 'PrimitiveKeyUnboundError';

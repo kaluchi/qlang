@@ -28,7 +28,7 @@ describe('error operand', () => {
 describe('isError operand', () => {
   it('with captured args produces arity error', async () => {
     const evalResult = await evalQuery('42 | isError(1) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('arity-error'));
+    expect(evalResult).toEqual(keyword('arityError'));
   });
 });
 
@@ -299,7 +299,7 @@ describe('per-site error classes carry unique identity', () => {
       const caughtErr = await catchOriginalError(q);
       expect(caughtErr).toBeInstanceOf(QlangTypeError);
       expect(caughtErr).toBeInstanceOf(QlangError);
-      expect(caughtErr.kind).toBe('type-error');
+      expect(caughtErr.kind).toBe('typeError');
     }
   });
 
@@ -334,18 +334,18 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce / firstTruthy arity-error sites carry unique per-site identity', () => {
+describe('coalesce / firstTruthy arityError sites carry unique per-site identity', () => {
   it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce()');
     expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arity-error');
+    expect(caughtErr.kind).toBe('arityError');
     expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 
   it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchOriginalError('{} | firstTruthy()');
     expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arity-error');
+    expect(caughtErr.kind).toBe('arityError');
     expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');
   });
 });

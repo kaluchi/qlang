@@ -152,7 +152,7 @@ describe('errorFromQlang', () => {
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
-    expect(typeErr.kind).toBe('type-error');
+    expect(typeErr.kind).toBe('typeError');
     expect(desc.get('kind')).toEqual(makeTagKeyword('QlangTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
     expect(desc.get('actualType')).toEqual({ name: 'string' });
@@ -165,7 +165,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(unresolvedErr, ...fault('myName', 42));
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
-    expect(unresolvedErr.kind).toBe('unresolved-identifier');
+    expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
     expect(desc.get('kind')).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
     expect(desc.get('faultStep').source).toBe('myName');
     expect(desc.get('faultInput')).toBe(42);
@@ -176,7 +176,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(divErr, ...fault('div(0)', 10));
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
-    expect(divErr.kind).toBe('division-by-zero');
+    expect(divErr.kind).toBe('divisionByZero');
     expect(desc.get('kind')).toEqual(makeTagKeyword('DivisionByZeroError'));
     expect(desc.get('faultStep').source).toBe('div(0)');
     expect(desc.get('faultInput')).toBe(10);

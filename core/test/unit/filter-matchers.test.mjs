@@ -1,5 +1,5 @@
 // Unit tests for polymorphic filter / every / any over Vec / Set /
-// Map with N-arity conduit dispatch on Map, plus the type-classifier
+// Map with N-arity conduit dispatch on Map, plus the typeClassifier
 // nullary operands.
 //
 // Map dispatch rule under test: the predicate conduit's `:params`
@@ -90,7 +90,7 @@ describe('filter — container polymorphism', () => {
     expect(mapResult.has('c')).toBe(false);
   });
 
-  it('Map with unresolved-identifier pred — falls to per-value path, surfaces on fail-track', async () => {
+  it('Map with unresolvedIdentifier pred — falls to per-value path, surfaces on fail-track', async () => {
     // Exercises the envHas=false branch of resolveCapturedConduit:
     // the captured-arg identifier is not in env, so conduit resolution
     // returns null and the per-value predLambda path runs; the lookup

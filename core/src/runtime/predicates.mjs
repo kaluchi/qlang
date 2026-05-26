@@ -1,5 +1,5 @@
 // Predicates: subject-first comparisons, combinators, and
-// type-classifier nullary operands.
+// typeClassifier nullary operands.
 //
 // Equality (`eq`) uses the shared deepEqual from src/equality.mjs.
 // Ordering (`gt`/`lt`/`gte`/`lte`) enforces matched comparable

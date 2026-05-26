@@ -23,13 +23,13 @@
 {"name":"trail-materialised-at-query-boundary-single-deflection","query":"\"1\" | add(1) | mul(3) !| /trail","expect":"~{| mul(3)}"}
 {"name":"trail-materialised-at-query-boundary-multi-deflection","query":"\"x\" | add(1) | mul(3) | count !| /trail","expect":"~{| mul(3) | count}"}
 {"name":"runtime-error-thrown","query":"\"hello\" | add(1) !| type","expect":"::AddLeftNotNumberError"}
-{"name":"runtime-error-category","query":"\"hello\" | add(1) !| type | spec | /category","expect":":type-error"}
-{"name":"runtime-div-zero-category","query":"10 | div(0) !| type | spec | /category","expect":":division-by-zero"}
-{"name":"runtime-unresolved-category","query":"blah !| type | spec | /category","expect":":unresolved-identifier"}
+{"name":"runtime-error-category","query":"\"hello\" | add(1) !| type | spec | /category","expect":":typeError"}
+{"name":"runtime-div-zero-category","query":"10 | div(0) !| type | spec | /category","expect":":divisionByZero"}
+{"name":"runtime-unresolved-category","query":"blah !| type | spec | /category","expect":":unresolvedIdentifier"}
 {"name":"distribute-per-element-errors","query":"[1 \"x\" 3] * add(10) | filter(isError | not)","expect":"[11 13]"}
 {"name":"distribute-error-count","query":"[1 \"x\" 3] * add(10) | filter(isError) | count","expect":"1"}
 {"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add(10) !| 0)","expect":"[11 0 13]"}
-{"name":"error-descriptor-not-map","query":"42 | error !| type | spec | /category","expect":":type-error"}
+{"name":"error-descriptor-not-map","query":"42 | error !| type | spec | /category","expect":":typeError"}
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union({:stage 1}) | error | add(1) !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count | add(1)}\n  :actualType :quote\n}"}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union({:request \"r-1\"}) | error | count !| /request","expect":"\"r-1\""}
 {"name":"leading-fail-apply-filter-by-error-kind","query":"[1 \"x\" 3 \"y\"] * add(10) | filter(!| type | eq(::AddLeftNotNumberError)) | count","expect":"2"}

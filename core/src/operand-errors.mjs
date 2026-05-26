@@ -12,10 +12,10 @@
 // so a stack trace or `instanceof` check pinpoints the failure
 // without scraping the message string.
 //
-// Classes are built by small factories. Every generated type-error
+// Classes are built by small factories. Every generated typeError
 // class extends `QlangTypeError` so `instanceof QlangTypeError`
-// holds and `.kind` reads `type-error`; every generated arity-error
-// class extends `ArityError` with `.kind === 'arity-error'`. The
+// holds and `.kind` reads `typeError`; every generated arityError
+// class extends `ArityError` with `.kind === 'arityError'`. The
 // concrete class narrows the throw site to a single operand +
 // position + condition: `FilterSubjectNotContainerError`, `AddLeftNotNumberError`,
 // `SortElementsNotComparable`, and so on.
@@ -58,7 +58,7 @@ function lowerExpectedTypeHuman(input) {
 // declareSubjectError — thrown when an operand receives a subject
 // value whose type is not acceptable. `operand` / `position` /
 // `expectedType` are per-tag static constants — the catalog body
-// `::TagName ::builtin{:category :type-error :operand :op
+// `::TagName ::builtin{:category :typeError :operand :op
 // :position :subject :expectedType :type}` holds them and the
 // `spec` axis returns them on demand (`::TagName | spec | /operand`).
 // JS-side context carries only dynamic facts.
@@ -154,7 +154,7 @@ export function declareShapeError(className, buildMessage) {
 
 // declareArityError — thrown by a site whose failure is an
 // incorrect captured-arg count (too few, too many, or an unsupported
-// specific count). Extends ArityError so `.kind === 'arity-error'`
+// specific count). Extends ArityError so `.kind === 'arityError'`
 // and `instanceof ArityError` both match, while the concrete
 // per-site class still identifies the throw location uniquely.
 export function declareArityError(className, buildMessage) {

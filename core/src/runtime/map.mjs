@@ -2,7 +2,7 @@
 // and therefore owns three distinct error classes — one for each
 // branch of the type check.
 //
-// Meta lives in lib/qlang/operand/map-op.qlang.
+// Meta lives in lib/qlang/operand/mapOp.qlang.
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
 import {

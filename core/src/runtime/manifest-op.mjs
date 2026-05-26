@@ -18,7 +18,7 @@
 //       `:modifiers` / `:returns` / `:throws` / `:captured` /
 //       `:effectful`) through.
 //
-//   raw FunctionValue (conduit-parameter proxy minted by
+//   raw FunctionValue (conduitParameter proxy minted by
 //   `makeConduitParameter` inside an `applyConduit` body fork)
 //     → `describeConduitParameter` (below) — lifts the proxy's
 //       inline `meta` shape into a manifest-form descriptor.
@@ -68,11 +68,11 @@ function errorMessageOf(errorValue) {
   return errorValue.descriptor.get('message');
 }
 
-// `describeConduitParameter` lifts a conduit-parameter proxy
+// `describeConduitParameter` lifts a conduitParameter proxy
 // (nullary FunctionValue minted by `makeConduitParameter` in
 // `eval.mjs`) into a manifest-form descriptor Map. The proxy
 // stamps a full `meta` shape inline at construction
-// (`category :conduit-parameter`, `subject` / `modifiers` /
+// (`category :conduitParameter`, `subject` / `modifiers` /
 // `returns` / `captured` / `throws`), so the descriptor reads
 // every field straight off the proxy. Catalog-bound `::builtin`
 // descriptors flow through the `qlKind.name === 'builtin'`
@@ -152,7 +152,7 @@ function describeBinding(value, explicitName) {
     }
     return manifestBuiltinDescriptor(value, explicitName);
   }
-  // Conduit-parameter proxies stamp `meta.category :conduit-parameter`
+  // Conduit-parameter proxies stamp `meta.category :conduitParameter`
   // through `makeConduitParameter` in `eval.mjs` — the discriminator
   // that lets `describeConduitParameter` reach for the full inline
   // meta shape (`subject` / `modifiers` / `returns` / `captured` /
@@ -166,7 +166,7 @@ function describeBinding(value, explicitName) {
   // the Map branch above then routes through
   // `manifestBuiltinDescriptor` with every authored field intact.
   if (isFunctionValue(value)
-      && value.meta && value.meta.category === 'conduit-parameter') {
+      && value.meta && value.meta.category === 'conduitParameter') {
     return describeConduitParameter(value, explicitName);
   }
   if (isConduit(value)) return describeConduit(value, explicitName);

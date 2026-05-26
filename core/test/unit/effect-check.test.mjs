@@ -146,8 +146,8 @@ describe('eval-time effect validation in evalBindStep', () => {
   });
 
   it('accepts :@impl @callers — effectful body, @-prefixed name', async () => {
-    // @callers resolves to unresolved-identifier in langRuntime (no host plugin),
-    // but the let itself should NOT produce an effect-laundering error.
+    // @callers resolves to unresolvedIdentifier in langRuntime (no host plugin),
+    // but the let itself should NOT produce an effectLaundering error.
     const effectErr = await catchOriginalError(':@impl @callers');
     expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
@@ -183,7 +183,7 @@ describe('eval-time effect validation in evalBindStep', () => {
     const effectErr = await catchOriginalError(':foo @callers');
     expect(effectErr).toBeInstanceOf(EffectLaunderingError);
     expect(effectErr).toBeInstanceOf(QlangError);
-    expect(effectErr.kind).toBe('effect-laundering');
+    expect(effectErr.kind).toBe('effectLaundering');
   });
 
   it('as binding on an effectful expression result is exempt', async () => {

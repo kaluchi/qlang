@@ -72,7 +72,7 @@ describe('CLI: script mode — query argument', () => {
     expect(stdout.trim()).toBe('3');
   });
 
-  it('writes a parse-error diagnostic to stderr with exit code 1', async () => {
+  it('writes a parseError diagnostic to stderr with exit code 1', async () => {
     const { stderr, exitCode } = await runCli(['[1 2'], { stdin: '' });
     expect(exitCode).toBe(1);
     expect(stderr.length).toBeGreaterThan(0);

@@ -7,9 +7,9 @@
    ("what does THIS one do") lives in
    `core/lib/qlang/operand/axis.qlang` (`source` / `docs` /
    `examples`). Error-track entry / exit lives in
-   `core/lib/qlang/operand/error.qlang`; the code-as-data ring
+   `core/lib/qlang/operand/error.qlang`; the codeAsData ring
    (`parse` / `eval` / `apply`) lives in
-   `core/lib/qlang/operand/code-as-data.qlang`. Each operand
+   `core/lib/qlang/operand/codeAsData.qlang`. Each operand
    BindStep below sits directly under the per-site error tags it
    raises; the operand's `:throws` Vec references those tags by
    name. ~|
@@ -52,7 +52,7 @@
         |  eq([::UseSubjectNotMapError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :use :position :subject :expectedType :map}
+  ::builtin{:category :typeError :operand :use :position :subject :expectedType :map}
 
 ::UseNamespaceNotKeywordError
   |~~ `use(:ns)` requires a Keyword captured-arg naming the
@@ -64,7 +64,7 @@
         |  eq([::UseNamespaceNotKeywordError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :use :expectedType :keyword}
+  ::builtin{:category :typeError :operand :use :expectedType :keyword}
 
 ::UseNamespaceNotFoundError
   |~~ `use(:ns)` — namespace not in env and no host-provided
@@ -77,14 +77,14 @@
                 :absolutely-nonexistent-namespace])
        }
   ~~|
-  ::builtin{:category :type-error :operand :use}
+  ::builtin{:category :typeError :operand :use}
 
 ::UseNamespaceNotMapError
   |~~ `use(:ns)` — env binding under `:ns` is not a Map; cannot
       import as a namespace. Host-boundary error: fires from
       bindings installed via `session.bind('ns', 42)`.
   ~~|
-  ::builtin{:category :type-error :operand :use :expectedType :map}
+  ::builtin{:category :typeError :operand :use :expectedType :map}
 
 ::UseNamespaceElementNotKeywordError
   |~~ `use([:ns1 :ns2 …])` — every element of the namespace
@@ -96,7 +96,7 @@
         |  eq([::UseNamespaceElementNotKeywordError 0 :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :use :expectedType :keyword}
+  ::builtin{:category :typeError :operand :use :expectedType :keyword}
 
 ::UseNamespaceCollisionError
   |~~ `use(#[:ns1 :ns2 …])` — two namespaces export a name
@@ -104,14 +104,14 @@
       Host-boundary error: requires two host-installed namespace
       Maps with overlapping keys.
   ~~|
-  ::builtin{:category :type-error :operand :use}
+  ::builtin{:category :typeError :operand :use}
 
 ::UseNameNotExportedError
   |~~ `use(:ns, #[:name1 …])` — selection filter names an
       identifier the namespace does not export. Host-boundary
       error: requires a host-installed namespace Map.
   ~~|
-  ::builtin{:category :type-error :operand :use}
+  ::builtin{:category :typeError :operand :use}
 
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
@@ -144,7 +144,7 @@
         |  eq([::ManifestNamespaceNotKeywordError :string])
        }
   ~~|
-  ::builtin{:category :type-error :operand :manifest :expectedType :keyword}
+  ::builtin{:category :typeError :operand :manifest :expectedType :keyword}
 
 ::ManifestNamespaceUnknownError
   |~~ `manifest(:namespace)` accepts `:value` or `:tag`; any
@@ -156,7 +156,7 @@
         |  eq([::ManifestNamespaceUnknownError :wat])
        }
   ~~|
-  ::builtin{:category :type-error :operand :manifest}
+  ::builtin{:category :typeError :operand :manifest}
 
 :runExamples
   |~~ Walks every Quote segment inside the binding's attached
@@ -185,7 +185,7 @@
         |  eq([::RunExamplesSubjectShapeError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :runExamples :position :subject :expectedType [:keyword :map]}
+  ::builtin{:category :typeError :operand :runExamples :position :subject :expectedType [:keyword :map]}
 
 :as
   |~~ Captures the current pipeValue as a frozen snapshot under
@@ -220,4 +220,4 @@
         |  eq([::AsNameNotKeywordError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :as :expectedType :keyword}
+  ::builtin{:category :typeError :operand :as :expectedType :keyword}

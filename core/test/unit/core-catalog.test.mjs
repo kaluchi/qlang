@@ -153,12 +153,12 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(impl.arity).toBe(2);
   });
 
-  it('spot-check — :filter is a higher-order container-selector', async () => {
+  it('spot-check — :filter is a higher-order containerSelector', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
     const filterDescriptor = resolved.get('filter');
-    expect(filterDescriptor.get('category')).toEqual(keyword('container-selector'));
-    expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicate-lambda')]);
+    expect(filterDescriptor.get('category')).toEqual(keyword('containerSelector'));
+    expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicateLambda')]);
     const impl = filterDescriptor.get('impl');
     expect(impl.name).toBe('filter');
   });
@@ -208,7 +208,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   // Bare operand identifier (no captured args) fires the operand
   // against the current pipeValue regardless of arity. Non-nullary
   // operands without captured args hit Rule 10's arity check and
-  // surface a per-site arity-error; nullary operands fire because
+  // surface a per-site arityError; nullary operands fire because
   // bare application IS their valid call shape. The introspection
   // surface for "what does this operand do" is `:name | source` /
   // `:name | docs` / `:name | examples`, not a bare-name descriptor
@@ -226,7 +226,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
 
-  it('bare ~{mul} (non-nullary) on null pipeValue fires an arity-error', async () => {
+  it('bare ~{mul} (non-nullary) on null pipeValue fires an arityError', async () => {
     // mul has captured [1, 2]. Bare call has zero captured args,
     // so Rule 10's value-op arity check fires before the impl
     // could mishandle the call. The diagnostic carries the
@@ -239,7 +239,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   });
 });
 
-describe('manifest descriptor for a conduit-parameter proxy', () => {
+describe('manifest descriptor for a conduitParameter proxy', () => {
   // Conduit parameters are the only function values that reach env
   // during dispatch — `makeConduitParameter` in `eval.mjs` mints
   // them at applyConduit time with a full `meta` shape inline.
@@ -247,16 +247,16 @@ describe('manifest descriptor for a conduit-parameter proxy', () => {
   // fork env, which carries the proxy; `describeBinding` takes the
   // `isFunctionValue` path and stamps a `:kind ::builtin` descriptor
   // through `describeConduitParameter`. The descriptor's `:category`
-  // tracks the proxy's authored slot (`:conduit-parameter`), so
+  // tracks the proxy's authored slot (`:conduitParameter`), so
   // catalog walkers can distinguish synthetic-per-call entries from
   // the static catalog operands.
 
-  it('manifest inside a conduit body surfaces the param proxy as :category :conduit-parameter', async () => {
+  it('manifest inside a conduit body surfaces the param proxy as :category :conduitParameter', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery(
       ':f [:p] (manifest | filter(/name | eq("p")) | first | /category) | 42 | f(add(1))'
     );
-    expect(evalResult).toEqual(keyword('conduit-parameter'));
+    expect(evalResult).toEqual(keyword('conduitParameter'));
   });
 });
 
@@ -292,23 +292,23 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get('category');
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('container-reducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
-    expect(categories.get('container-selector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
-    expect(categories.get('vec-reducer')).toBe(6);  // first, last, sum, min, max, firstNonZero
-    expect(categories.get('indexed-access')).toBe(1);  // at (Vec + Map polymorphic)
-    expect(categories.get('vec-transformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy
+    expect(categories.get('containerReducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
+    expect(categories.get('containerSelector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
+    expect(categories.get('vecReducer')).toBe(6);  // first, last, sum, min, max, firstNonZero
+    expect(categories.get('indexedAccess')).toBe(1);  // at (Vec + Map polymorphic)
+    expect(categories.get('vecTransformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy
     expect(categories.get('comparator')).toBe(4);
     expect(categories.get('control')).toBe(6);
-    expect(categories.get('map-op')).toBe(3);  // keys + vals + has
-    expect(categories.get('set-op')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)
+    expect(categories.get('mapOp')).toBe(3);  // keys + vals + has
+    expect(categories.get('setOp')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
-    expect(categories.get('type-classifier')).toBe(14);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isTag + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
-    expect(categories.get('type-conversion')).toBe(2);  // keyword + qlang
+    expect(categories.get('typeClassifier')).toBe(14);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isTag + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
+    expect(categories.get('typeConversion')).toBe(2);  // keyword + qlang
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
-    expect(categories.get('code-as-data')).toBe(3); // parse eval apply
+    expect(categories.get('codeAsData')).toBe(3); // parse eval apply
     expect(categories.get('axis')).toBe(4);         // source docs examples spec
     expect(categories.get('error')).toBe(2);        // error isError
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
@@ -316,7 +316,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
   });
 });
 
-describe('parse / eval — the code-as-data ring closer', () => {
+describe('parse / eval — the codeAsData ring closer', () => {
   // The `parse` operand reads a source string into the
   // `ast-codec.mjs` AST-Map form; `eval` takes that AST-Map and
   // runs it against the current state. Together they round-trip
@@ -379,6 +379,6 @@ describe('parse / eval — the code-as-data ring closer', () => {
   it('parse errors on malformed source lift to fail-track', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"this is not qlang [" | parse !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('parse-error'));
+    expect(evalResult).toEqual(keyword('parseError'));
   });
 });

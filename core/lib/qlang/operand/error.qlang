@@ -37,7 +37,7 @@
         |  eq([::ErrorDescriptorNotMapError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :error :position :subject :expectedType :map}
+  ::builtin{:category :typeError :operand :error :position :subject :expectedType :map}
 
 :isError
   |~~ Returns true when pipeValue is an error value,

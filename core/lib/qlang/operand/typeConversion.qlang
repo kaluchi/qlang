@@ -1,7 +1,7 @@
-|~ qlang operand catalog — type-conversion family. Involutive
+|~ qlang operand catalog — typeConversion family. Involutive
    lifts between sibling value-classes — `keyword` swings a value
    between the String and Keyword surfaces, `keyword | keyword`
-   round-trips. Future entries on this axis (`tag-keyword`,
+   round-trips. Future entries on this axis (`tagKeyword`,
    `quote ↔ string`, …) land here. ~|
 
 :keyword
@@ -19,7 +19,7 @@
       ~{:"foo bar" | keyword | eq("foo bar")}
   ~~|
   ::builtin{:impl :qlang/prim/keyword
-            :category :type-conversion
+            :category :typeConversion
             :subject [:string :keyword]
             :returns [:string :keyword]
             :throws [::KeywordSubjectNotStringOrKeywordError]}
@@ -32,4 +32,4 @@
         |  eq([::KeywordSubjectNotStringOrKeywordError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :keyword :position :subject :expectedType [:string :keyword]}
+  ::builtin{:category :typeError :operand :keyword :position :subject :expectedType [:string :keyword]}

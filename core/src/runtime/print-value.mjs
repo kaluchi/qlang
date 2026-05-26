@@ -10,7 +10,7 @@
 //   * raw qlang function values → `FunctionValueLeakedToPrintError`
 //   * Snapshot wrappers — auto-unwrapped on identifier-lookup /
 //     projection before reaching this code path
-//   * conduit-parameter proxies — local to `applyConduit`'s body
+//   * conduitParameter proxies — local to `applyConduit`'s body
 //     fork, never escape the outer pipeValue channel
 //
 // `dispatchQlangValue` is the per-value-class lookup-table walker

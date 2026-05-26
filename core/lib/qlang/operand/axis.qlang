@@ -20,7 +20,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/source
             :category :axis
-            :subject [:keyword :tag-keyword]
+            :subject [:keyword :tagKeyword]
             :returns :quote
             :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
@@ -34,7 +34,7 @@
         |  eq([::SourceSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :source :position :subject :expectedType [:keyword :tag-keyword]}
+  ::builtin{:category :typeError :operand :source :position :subject :expectedType [:keyword :tagKeyword]}
 
 :docs
   |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
@@ -47,7 +47,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/docs
             :category :axis
-            :subject [:keyword :tag-keyword]
+            :subject [:keyword :tagKeyword]
             :returns :vec
             :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
@@ -61,7 +61,7 @@
         |  eq([::DocsSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :docs :position :subject :expectedType [:keyword :tag-keyword]}
+  ::builtin{:category :typeError :operand :docs :position :subject :expectedType [:keyword :tagKeyword]}
 
 :examples
   |~~ `:name | examples` — Vec of Quote-values extracted from the
@@ -74,7 +74,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/examples
             :category :axis
-            :subject [:keyword :tag-keyword]
+            :subject [:keyword :tagKeyword]
             :returns :vec
             :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
@@ -88,14 +88,14 @@
         |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :examples :position :subject :expectedType [:keyword :tag-keyword]}
+  ::builtin{:category :typeError :operand :examples :position :subject :expectedType [:keyword :tagKeyword]}
 
 :spec
   |~~ `:name | spec` — env-side declaration descriptor Map for the
       named binding. Operand declarations surface as
       `{:kind ::builtin :impl <fn> :category … :subject …
       :modifiers … :returns … :throws …}`. Tag-binding error tags
-      surface as `{:kind ::builtin :category :type-error :operand
+      surface as `{:kind ::builtin :category :typeError :operand
       … :position … :expectedType …}`. Value-class constructors
       surface as `{:kind ::builtin :impl :qlang/type/<tag>
       :throws […]}`. BindStep-bound conduits surface as the
@@ -104,7 +104,7 @@
 
       The discriminator path for per-tag static facts attached
       to any tagged value-class — `result !| type | spec |
-      /category` reads `:type-error` off the error tag's catalog
+      /category` reads `:typeError` off the error tag's catalog
       body; `:add | spec | /throws` lists the per-site error
       classes `add` raises.
 
@@ -114,7 +114,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/spec
             :category :axis
-            :subject [:keyword :tag-keyword]
+            :subject [:keyword :tagKeyword]
             :returns :map
             :throws [::SpecSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
 
@@ -128,7 +128,7 @@
         |  eq([::SpecSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :type-error :operand :spec :position :subject :expectedType [:keyword :tag-keyword]}
+  ::builtin{:category :typeError :operand :spec :position :subject :expectedType [:keyword :tagKeyword]}
 
 ::AxisBindingNotFoundError
   |~~ Axis-operand (`source` / `docs` / `examples` / `spec`) — no
@@ -142,4 +142,4 @@
                 :source :nonexistent-binding])
        }
   ~~|
-  ::builtin{:category :type-error}
+  ::builtin{:category :typeError}

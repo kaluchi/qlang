@@ -24,8 +24,8 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 }
 
 // Function values (`makeFn` output) are runtime-internal: they live on
-// `:impl` of builtin descriptor Maps and as conduit-parameter proxies
-// reachable through the manifest descriptor's `:category :conduit-parameter`
+// `:impl` of builtin descriptor Maps and as conduitParameter proxies
+// reachable through the manifest descriptor's `:category :conduitParameter`
 // field when a conduit body's env enumerates. They
 // have no grammatical literal — the only candidate render form
 // (`:qlang/prim/${name}`) parses back as a keyword value on the next
@@ -72,8 +72,8 @@ export function isQSet(v) { return v instanceof Set; }
 // they are JSON). qlang-side identification through the predicates
 // below.
 
-export const JSON_OBJECT_TAG = Symbol('qlang/json-object');
-export const JSON_ARRAY_TAG  = Symbol('qlang/json-array');
+export const JSON_OBJECT_TAG = Symbol('qlang/jsonObject');
+export const JSON_ARRAY_TAG  = Symbol('qlang/jsonArray');
 
 export function isJsonObject(v) {
   return v !== null
@@ -427,8 +427,8 @@ export function typeKeyword(v) {
   if (isNumber(v)) return keyword('number');
   if (isString(v)) return keyword('string');
   if (isKeyword(v)) return keyword('keyword');
-  if (isTagKeyword(v)) return keyword('tag-keyword');
-  if (isJsonArray(v)) return keyword('json-array');
+  if (isTagKeyword(v)) return keyword('tagKeyword');
+  if (isJsonArray(v)) return keyword('jsonArray');
   if (isVec(v)) return keyword('vec');
   if (isConduit(v)) return makeTagKeyword('conduit');
   if (isSnapshot(v)) return makeTagKeyword('snapshot');
@@ -454,6 +454,6 @@ export function typeKeyword(v) {
     return isTagKeyword(kind) ? kind : keyword('error');
   }
   if (isFunctionValue(v)) return keyword('function');
-  if (isJsonObject(v)) return keyword('json-object');
+  if (isJsonObject(v)) return keyword('jsonObject');
   return keyword('unknown');
 }

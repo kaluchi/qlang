@@ -27,6 +27,6 @@
 {"name":"prepend-modifier-not-string","query":"\"x\" | prepend(42)","expect":"::PrependPrefixNotStringError!{\n  :faultStep ~{prepend(42)}\n  :faultInput \"x\"\n  :actualValue 42\n  :actualType :number\n}"}
 {"name":"append-modifier-not-string","query":"\"x\" | append(42)","expect":"::AppendSuffixNotStringError!{\n  :faultStep ~{append(42)}\n  :faultInput \"x\"\n  :actualValue 42\n  :actualType :number\n}"}
 {"name":"cannot-apply-args-to-value","query":"5 | as(:five) | five(42)","expect":"::ApplyToNonFunctionError!{\n  :faultStep ~{five(42)}\n  :faultInput 5\n  :actualType :number\n  :name :five\n}"}
-{"name":"unresolved-identifier","query":"thisIsNotDefined !| type","expect":"::UnresolvedIdentifierError"}
+{"name":"unresolvedIdentifier","query":"thisIsNotDefined !| type","expect":"::UnresolvedIdentifierError"}
 {"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /faultStep | /name","expect":"::ProjectionFieldNotOnValueClassError!{\n  :faultStep ~{/name}\n  :faultInput ~{thisIsNotDefined}\n  :key \"name\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter(thisIsNotDefined) !| type","expect":"::UnresolvedIdentifierError"}

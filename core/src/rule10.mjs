@@ -68,7 +68,7 @@ export async function applyRule10(fn, appliedLambdas, state) {
 //
 // `makeConduitParameter` (in `eval.mjs`) is the lone JS-side
 // builder that mints a function value WITH a full meta shape
-// inline — conduit-parameter proxies are ephemeral, live only
+// inline — conduitParameter proxies are ephemeral, live only
 // for the duration of a conduit body fork, and have no catalog
 // entry to project meta from. The proxy's full meta lets the
 // `isFunctionValue` branch of `manifest`'s `describeBinding` build

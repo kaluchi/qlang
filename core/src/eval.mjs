@@ -789,7 +789,7 @@ async function evalOperandCall(node, state) {
   // `as(:name) | name` sees the raw data. Unwrapping upstream of
   // applyBindingDescriptor keeps the :kind switch exhaustive
   // over {:builtin, :conduit}; the remaining non-Map branches handle
-  // conduit-parameter proxies (isFunctionValue) and plain user values
+  // conduitParameter proxies (isFunctionValue) and plain user values
   // (tail) — and preserves the "snapshot wrapping an effectful
   // function value" safety-net path documented in the effect-marker
   // section of qlang-spec.md.
@@ -816,10 +816,10 @@ async function evalOperandCall(node, state) {
     // parse-time AST scan cannot see — installation via use,
     // capture via as, or rebinding via session.bind — because
     // every effectful invocation ultimately flows through an
-    // identifier lookup at this point. Only conduit-parameter
+    // identifier lookup at this point. Only conduitParameter
     // proxies reach this branch — built-ins dispatch through
     // `applyBindingDescriptor` above. The check stays because a
-    // conduit-parameter proxy may wrap an effectful captured-arg
+    // conduitParameter proxy may wrap an effectful captured-arg
     // lambda under a non-@-prefixed binding.
     if (resolved.effectful && !classifyEffect(lookupName)) {
       throw new EffectLaunderingAtCallError({
@@ -886,7 +886,7 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // to applyRule10. Bare lookup fires the operand against the current
 // pipeValue regardless of arity — non-nullary operands without
 // captured args hit Rule 10's arity check and surface a per-site
-// arity-error. The introspection surface for "what does this operand
+// arityError. The introspection surface for "what does this operand
 // do" is `:name | source` / `:name | docs` / `:name | examples`,
 // not a bare-name shortcut into the descriptor Map.
 async function applyBuiltinDescriptor(descriptor, node, state) {
@@ -907,7 +907,7 @@ async function applyBuiltinDescriptor(descriptor, node, state) {
 // applyConduit(conduit, node, lookupName, state) → state'
 //
 // Dispatches a conduit call — the "bonus fruit" in the Pac-man model.
-// Builds conduit-parameter proxies (lazy nullary function values) from
+// Builds conduitParameter proxies (lazy nullary function values) from
 // captured-arg lambdas, constructs a bodyEnv from the lexical envRef
 // anchor plus the params, forks the body, and ascends with only the
 // final pipeValue. The entire operation is one atomic state
@@ -951,7 +951,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   }
 
   // Build bodyEnv: start from the lexical scope anchor
-  // (envRef.env), then layer conduit-parameter proxies on top. Each
+  // (envRef.env), then layer conduitParameter proxies on top. Each
   // param proxy is a nullary function value that fires the
   // captured-arg lambda against whatever pipeValue the identifier
   // lookup sees at the moment — this is the lazy binding that
@@ -1002,7 +1002,7 @@ function makeConduitParameter(capturedArgLambda, paramName) {
     }
     return withPipeValue(state, await capturedArgLambda(state.pipeValue));
   }, {
-    category: 'conduit-parameter',
+    category: 'conduitParameter',
     subject: 'any (current pipeValue at the lookup site)',
     modifiers: [],
     returns: 'any (the captured expression evaluated against pipeValue)',
@@ -1064,11 +1064,11 @@ export function resolveCapturedConduit(astNode, env) {
 // Applies a parametric conduit with caller-supplied captured values,
 // bypassing the AST-args construction path. Each fixedArgs[i] becomes
 // a nullary captured-arg lambda that ignores pipeValue and returns the
-// fixed value — matching the conduit-parameter lazy-proxy contract for
+// fixed value — matching the conduitParameter lazy-proxy contract for
 // a value the caller has already resolved. Used by filter/every/any
 // over Map to supply (key, value) to a 2-arity predicate per entry.
 //
-// Enforces the same effect-laundering invariant as applyConduit: an
+// Enforces the same effectLaundering invariant as applyConduit: an
 // effectful conduit cannot be invoked through a clean lookup name.
 // Caller must guarantee fixedArgs.length === conduit's params.length —
 // this invoker performs no arity check because the dispatching operand

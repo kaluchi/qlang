@@ -17,7 +17,7 @@
 //   * setops.mjs — bare-form (non-Vec subject, empty Vec) and
 //     full-form (two captured args) error / behaviour branches
 //     for `union` / `minus` / `inter`.
-//   * map-op.mjs — `count` polymorphism over Map subject.
+//   * mapOp.mjs — `count` polymorphism over Map subject.
 //   * Rule 10 dispatcher — `valueOp` arity overflow, `nullaryOp`
 //     called with captured args, `higherOrderOp` called with zero
 //     captured args.

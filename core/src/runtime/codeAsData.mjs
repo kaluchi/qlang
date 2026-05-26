@@ -1,4 +1,4 @@
-// `parse` / `eval` / `apply` — the code-as-data ring closer.
+// `parse` / `eval` / `apply` — the codeAsData ring closer.
 //
 //   parse(source-string) → AST-Map      (the `read` primitive)
 //   eval(ast-map)        → pipeValue    (the `eval` primitive)
@@ -42,7 +42,7 @@ const EvalSubjectNotMapOrQuoteError = declareSubjectError(
 // `errorFromParse`, which stamps `:kind ::ParseError` plus the
 // peggy source location and excerpt onto the descriptor (the
 // `::ParseError` tag-binding's catalog body carries
-// `:category :parse-error` for the broad-bucket reading via
+// `:category :parseError` for the broad-bucket reading via
 // `result !| type | spec | /category`). The converted error
 // becomes the new pipeValue directly without throwing — the
 // evalNode fallback would route ParseError through `errorFromForeign`

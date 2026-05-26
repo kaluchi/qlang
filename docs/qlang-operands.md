@@ -40,27 +40,27 @@ form), positions 2..n are modifiers (filled by captured args).
 
 Every operand descriptor carries a `:category` keyword that groups it
 with its polymorphism siblings. The taxonomy is first-class data —
-`env | manifest | filter(/category | eq(:container-selector))` returns
+`env | manifest | filter(/category | eq(:containerSelector))` returns
 the three polymorphic container selectors — so the keywords below
 form part of the doc surface and the runtime catalog alike.
 
 | `:category` keyword | Meaning |
 |---|---|
-| `:container-reducer` | Reduce any Vec / Set / Map to a scalar. Polymorphic over all three container shapes; the result is order- and shape-independent. |
-| `:container-selector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
-| `:vec-reducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
-| `:vec-transformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
+| `:containerReducer` | Reduce any Vec / Set / Map to a scalar. Polymorphic over all three container shapes; the result is order- and shape-independent. |
+| `:containerSelector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
+| `:vecReducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
+| `:vecTransformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
 | `:comparator` | Pair-Map comparator builder for sortWith. |
 | `:control` | Control-flow operand (if / when / unless / coalesce / firstTruthy / cond). |
-| `:map-op` | Map-only operand (keys / vals / has on Map). |
-| `:set-op` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vec-transformer). |
+| `:mapOp` | Map-only operand (keys / vals / has on Map). |
+| `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vecTransformer). |
 | `:arith` | Binary numeric operand. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
-| `:type-classifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
+| `:typeClassifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:code-as-data` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
+| `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error) or predicate (isError). |
 
@@ -155,7 +155,7 @@ identically on either shape.
   non-integer index on Vec/Set → `AtIndexNotIntegerError`; non-string key
   on Map → `AtKeyNotStringError`.
 - **See also**: bare-form projection `/n` on a Vec (e.g.
-  `/items/0/name`) — same indexed-access semantics without the
+  `/items/0/name`) — same indexedAccess semantics without the
   operand-call wrapper, polymorphic over Map (keyword lookup) and
   Vec (integer index) so mixed JSON paths like `/users/-1/email`
   descend through nested containers uniformly.
@@ -494,7 +494,7 @@ JSON tag.
 - **Example**: `#[:a :b :c] | has(:b)` → `true`.
 
 `count` and `empty` on a Set (and on a Map) dispatch through the
-polymorphic `:container-reducer` entries above — one descriptor each
+polymorphic `:containerReducer` entries above — one descriptor each
 in the catalog, one doc entry here.
 
 ## Polymorphic set operations — `union`, `minus`, `inter`
@@ -576,7 +576,7 @@ and takes values from `M₁`.
 
 - **Arity** 2. Non-commutative: `a / b` (position 1 dividend).
 - **Example**: `10 | div(2)` → `5`; `{:x 20 :y 4} | div(/x, /y)` → `5`.
-- **Errors**: divisor = 0 → division-by-zero error.
+- **Errors**: divisor = 0 → divisionByZero error.
 
 ## String
 
@@ -725,7 +725,7 @@ shape, and vice versa.
   `isMap` reports `false` for conduit and snapshot descriptor
   Maps — they classify as `Conduit` / `Snapshot` through the
   `:kind` discriminator.
-  `isQuote` matches a frozen `~{…}`-delimited code-as-data
+  `isQuote` matches a frozen `~{…}`-delimited codeAsData
   fragment; `isDoc` matches a frozen content fragment
   (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
 - **Examples**:
@@ -999,7 +999,7 @@ its own eval handler in `eval.mjs`.
     ```
     {:kind      ::builtin
      :name      "count"
-     :category  :container-reducer
+     :category  :containerReducer
      :subject   [:vec :set :map]
      :modifiers []
      :returns   :number
@@ -1156,15 +1156,15 @@ its own eval handler in `eval.mjs`.
   converted to an error value via `errorFromParse`, so malformed
   sources surface on the fail-track with `:kind ::ParseError`
   (the per-site tag identity; the `::ParseError` tag-binding's
-  catalog body carries `:category :parse-error` for the broad
-  bucket — distinct from the `:foreign-error` catalog category
+  catalog body carries `:category :parseError` for the broad
+  bucket — distinct from the `:foreignError` catalog category
   every host JS throw lands under).
 - **Examples**:
   - `"42" | parse | /:kind` → `:NumberLit`.
   - `"add(1, 2)" | parse | /name` → `"add"`.
   - `"add(1, 2)" | parse | /args | count` → `2`.
   - `"this is not qlang [" | parse !| type` → `::ParseError`.
-  - `"this is not qlang [" | parse !| type | spec | /category` → `:parse-error`.
+  - `"this is not qlang [" | parse !| type | spec | /category` → `:parseError`.
 - **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
   Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
@@ -1180,7 +1180,7 @@ its own eval handler in `eval.mjs`.
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
   next pipeline step.
-- Pairs with `parse` to close the code-as-data ring:
+- Pairs with `parse` to close the codeAsData ring:
   `"source" | parse | eval` is equivalent to evaluating the
   source string directly, and the intermediate AST-Map can be
   inspected, filtered, re-assembled, or handed around as
@@ -1257,8 +1257,8 @@ its own eval handler in `eval.mjs`.
 - Returns the Keyword or TagKeyword identity of the value's type.
   Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
   `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tag-keyword`, `:quote`, `:doc`,
-  `:function`, `:json-object`, `:json-array`); tagged-instance Maps
+  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
+  `:function`, `:jsonObject`, `:jsonArray`); tagged-instance Maps
   (conduit, snapshot, user `::Foo[…]`) produce their `:kind`
   TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
   produce the `:kind` TagKeyword from their descriptor
@@ -1350,30 +1350,30 @@ enumerates).
 
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
-| `:container-reducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
-| `:container-selector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
-| `:vec-reducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
-| `:vec-transformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
+| `:containerReducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
+| `:containerSelector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
+| `:vecReducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
+| `:vecTransformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
-| `:map-op` | `keys`, `vals`, `has` (polymorphic with Set) |
-| `:set-op` | `union`, `minus`, `inter` |
+| `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
+| `:setOp` | `union`, `minus`, `inter` |
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:type-classifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
-| `:type-conversion` | `keyword` |
-| `:indexed-access` | `at` |
+| `:typeClassifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
+| `:typeConversion` | `keyword` |
+| `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |
 | `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
-| `:code-as-data` | `parse`, `eval`, `apply` |
+| `:codeAsData` | `parse`, `eval`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths
 it carries. The reflective pair `parse` /
-`eval` closes the code-as-data ring: a source string lifts into an
+`eval` closes the codeAsData ring: a source string lifts into an
 AST-Map through `parse`, runs through `eval` to become a
 `pipeValue`, and the intermediate Map is addressable as ordinary
 qlang data.

@@ -275,7 +275,7 @@ describe('TagKeyword as :kind discriminator', () => {
     const { describeType, typeKeyword, makeTagKeyword, keyword } = await import('../../src/types.mjs');
     const k = makeTagKeyword('foo');
     expect(describeType(k)).toBe('TagKeyword');
-    expect(typeKeyword(k)).toEqual(keyword('tag-keyword'));
+    expect(typeKeyword(k)).toEqual(keyword('tagKeyword'));
   });
 
   it('TagKeyword equality compares by name', async () => {

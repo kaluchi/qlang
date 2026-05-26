@@ -13,6 +13,12 @@
 //   { "$keyword": "name" }    → interned keyword
 //   { "$map": [[k, v], ...] } → JS Map (entries pairs, recursively encoded)
 //   { "$set": [v1, v2, ...] } → JS Set (recursively encoded)
+//   { "$tagged": { "$tag": "Name", "payload": <encoded-value> } }
+//                             → TaggedInstance with tag on JS-header,
+//                               payload reconstructed through
+//                               `makeTaggedInstance` so the same
+//                               header / wrap branch chosen at mint
+//                               time fires on decode.
 //   { "$error": { "$tag": "Name", "descriptor": <encoded-Map> } }
 //                             → ErrorValue with tag on JS-header,
 //                               descriptor as the inner Map (no
@@ -36,10 +42,13 @@ import {
   isQuote,
   isDoc,
   isErrorValue,
+  isTaggedInstance,
   makeErrorValue,
+  makeTaggedInstance,
   makeTagKeyword,
   makeQuote,
-  makeDoc
+  makeDoc,
+  TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { QlangError } from './errors.mjs';
 
@@ -76,9 +85,34 @@ export function toTaggedJSON(value) {
   const t = typeof value;
   if (t === 'number' || t === 'string' || t === 'boolean') return value;
   if (isKeyword(value)) return { $keyword: value.name };
-  if (isVec(value)) return value.map(toTaggedJSON);
+  // TaggedInstance check before generic Vec / Map / Set branches —
+  // a tagged Vec is still `isVec(true)`, but the bare Vec encoder
+  // strips identity. The envelope below recovers identity through
+  // the `$tag` slot and re-routes payload through
+  // `toTaggedJSON` recursively (the `payload` operand strip-path
+  // for the source-value type).
+  if (isTaggedInstance(value)) {
+    let inner;
+    if (Array.isArray(value)) {
+      inner = Object.freeze([...value]);
+    } else if (value instanceof Set) {
+      inner = new Set(value);
+    } else if (value instanceof Map) {
+      inner = new Map(value);
+    } else {
+      // Opaque wrap object — read `.payload` directly.
+      inner = value.payload;
+    }
+    return {
+      $tagged: {
+        $tag: value[TAG_HEADER_SYMBOL].name,
+        payload: toTaggedJSON(inner)
+      }
+    };
+  }
   if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
   if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
+  if (isVec(value)) return value.map(toTaggedJSON);
   if (isQuote(value)) return { $quote: value.source };
   if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {
@@ -121,6 +155,13 @@ export function fromTaggedJSON(json) {
       const s = new Set();
       for (const v of json.$set) s.add(fromTaggedJSON(v));
       return s;
+    }
+    if ('$tagged' in json) {
+      const taggedEnvelope = json.$tagged;
+      return makeTaggedInstance(
+        makeTagKeyword(taggedEnvelope.$tag),
+        fromTaggedJSON(taggedEnvelope.payload)
+      );
     }
     if ('$error' in json) {
       const errEnvelope = json.$error;

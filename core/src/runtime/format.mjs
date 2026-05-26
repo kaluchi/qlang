@@ -74,19 +74,25 @@ const TO_PLAIN_HANDLERS = {
   // lossy codec, the wrapper metadata is reachable through
   // `manifest` enumeration for callers that need it.
   Snapshot:       s => toPlain(s.get('payload')),
-  // TaggedInstance carries its structure as a Map. Identity rides
-  // on the JS-header `TAG_HEADER_SYMBOL` slot (invisible to
-  // `for (const [k, v] of m)`), so plain Map iteration encodes
-  // the data surface cleanly. The header tag surfaces as the
-  // leading `$tag` field of the envelope so the lossy plain-JSON
-  // form carries identity explicitly — same shape as `Error`
-  // above. Conduit deliberately has no handler: its `:body` AST
-  // node and `:envRef` holder are JS-opaque, and the bidirectional
-  // codec for conduits is `serializeSession` / `deserializeSession`
-  // (`session.mjs`), not `toPlain`. Falling through to
-  // `toPlainFallback` flags the leak loudly through
+  // TaggedInstance: identity rides on the JS-header
+  // TAG_HEADER_SYMBOL slot, payload shape varies (Array / Set /
+  // Map / opaque wrap-object). The envelope carries identity
+  // through `$tag` and encodes the payload through `toPlain`
+  // recursively — mirrors the symmetric `Error` envelope.
+  // Conduit deliberately has no handler: its `:body` AST node
+  // and `:envRef` holder are JS-opaque, and the bidirectional
+  // codec for conduits is `serializeSession` /
+  // `deserializeSession` (`session.mjs`), not `toPlain`. Falling
+  // through to `toPlainFallback` flags the leak loudly through
   // `ToPlainUnencodableValueError` at the call site.
-  TaggedInstance: t => ({ $tag: t[TAG_HEADER_SYMBOL].name, ...qMapToPlainObject(t) }),
+  TaggedInstance: t => {
+    let inner;
+    if (Array.isArray(t)) inner = [...t];
+    else if (t instanceof Set) inner = new Set(t);
+    else if (t instanceof Map) inner = new Map(t);
+    else inner = t.payload;
+    return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
+  },
   Quote:          q => `~{${q.source}}`,
   Doc:            d => `|~~${d.content}~~|`,
   Set:            s => [...s].map(toPlain),
@@ -220,8 +226,16 @@ const INLINE_HANDLERS = {
 
 function renderTaggedInstanceInline(instance) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  const payload = instance.get('payload');
-  const payloadInline = renderInline(payload);
+  if (Array.isArray(instance)) {
+    return `${tagLiteral}[${instance.map(renderInline).join(' ')}]`;
+  }
+  if (instance instanceof Set) {
+    return `${tagLiteral}#[${[...instance].map(renderInline).join(' ')}]`;
+  }
+  if (instance instanceof Map) {
+    return `${tagLiteral}{${mapEntriesInline(instance)}}`;
+  }
+  const payloadInline = renderInline(instance.payload);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadInline)) {
     return `${tagLiteral}(${payloadInline})`;
   }

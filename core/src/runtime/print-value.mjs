@@ -233,10 +233,36 @@ function printSnapshot(snapshot) {
 // sigil (`"`, `:`, `[`, `{`, `#`, `~`, `|`, `!`, `/`) that the
 // parser splits on cleanly, so no wrap is needed.
 export const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
+// Render shape mirrors the payload shape — the identity-overlay
+// design preserves the payload's native type through the header
+// stamp on composites, and uses an opaque wrap object for
+// payloads that cannot carry the header themselves:
+//
+//   Tagged Vec (Array + header) → `::Tag[…elements…]`.
+//   Tagged Set (Set + header)   → `::Tag#[…elements…]`.
+//   Tagged Map (Map + header)   → `::Tag{:field value …}`.
+//   Tagged wrap (opaque frozen `{type, tag, payload}` object)
+//     → `::Tag<payload>` where `<payload>` is the payload's
+//     printed form, with ParenGroup wrap for identifier-shaped
+//     scalars (`::Tag(42)`, `::Tag(true)`) so the parser splits
+//     cleanly at the tag boundary.
+//
+// `isTaggedInstance(instance)` always holds at this entry —
+// `dispatchQlangValue` routes through the `TaggedInstance`
+// handler off `describeType`.
 function printTaggedInstance(instance, indent) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  const payload = instance.get('payload');
-  const payloadPrint = printValue(payload, indent);
+  if (Array.isArray(instance)) {
+    return tagLiteral + printListLike('[', ']', ' ', [...instance], indent);
+  }
+  if (instance instanceof Set) {
+    return tagLiteral + printListLike('#[', ']', ' ', [...instance], indent);
+  }
+  if (instance instanceof Map) {
+    return tagLiteral + printMapLike('{', instance, indent);
+  }
+  // Opaque wrap object — read `.payload` directly.
+  const payloadPrint = printValue(instance.payload, indent);
   if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint)) {
     return `${tagLiteral}(${payloadPrint})`;
   }

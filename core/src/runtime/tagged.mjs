@@ -182,16 +182,32 @@ bindPrim('qlang', qlangOperand);
 // value + tag pair (`tag(::Foo)`). Both ride the
 // `:typeConversion` family alongside `keyword` / `qlang` / `json`.
 //
-// `tagged | payload` — opaque-unwrap. Subject must be a
-// TaggedInstance; returns the payload value. Re-tagging through
-// `payload | tag(::Other)` is the explicit two-step path.
+// `tagged | payload` — strip identity, return the underlying
+// data plane. Two TaggedInstance shapes drive two branches of
+// the result:
+//
+//   Wrapped (single-payload TaggedInstance, `:payload` slot
+//     holds the value) → returns the `:payload` value. Inverse
+//     of `value | tag(::Foo)` when `value` is not a Map.
+//
+//   Flat-merged (Map-payload TaggedInstance, fields stamped
+//     directly on the instance Map) → returns a fresh Map
+//     carrying the same fields without the header tag. The data
+//     plane stays inspectable via `keys` / `/field`, identity
+//     is stripped so the result can be re-tagged through
+//     `payload | tag(::Other)` to replace identity.
 //
 // `value | tag(::Foo)` — runtime constructor. Subject is any
-// pipeValue, captured arg must be a TagKeyword. Returns
-// `makeTaggedInstance(::Foo, subject)`. A TaggedInstance subject
-// wraps into a nested layer (`::Foo[<inner-tagged>]`) — the
-// straightforward semantic; re-tag through `payload | tag(::Foo)`
-// when the goal is to replace identity rather than nest.
+// pipeValue, captured arg must be a TagKeyword. Routes through
+// `makeTaggedInstance(::Foo, subject)`, which picks the
+// flat-merge or `:payload`-slot branch by subject shape. A
+// TaggedInstance Map subject flat-merges into a fresh tagged
+// Map under the new identity — `tag` of a tagged-flat is a
+// rebrand, not a nested wrap. A wrapped TaggedInstance (with
+// `:payload` slot) flat-merges its `:payload` slot too, because
+// the slot's value lives on the wrapping Map directly; to nest
+// explicitly, route through `[value] | tag(::Outer)` so the Vec
+// payload lands in the new instance's `:payload` slot.
 
 const PayloadSubjectNotTaggedInstanceError = declareSubjectError(
   'PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
@@ -202,7 +218,12 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {
     throw new PayloadSubjectNotTaggedInstanceError(subject);
   }
-  return subject.get('payload');
+  // Composite-shape — fresh clone without header.
+  if (Array.isArray(subject)) return Object.freeze([...subject]);
+  if (subject instanceof Set)  return new Set(subject);
+  if (subject instanceof Map)  return new Map(subject);
+  // Opaque wrap object — return the wrapped value directly.
+  return subject.payload;
 });
 
 export const tagOperand = valueOp('tag', 2, (subject, tagKw) => {

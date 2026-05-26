@@ -169,59 +169,75 @@ describe('default constructor — tag-binding without :impl', () => {
     expect(err.descriptor.get('note')).toBe(42);
   });
 
-  it('Vec payload (`::Tag[…]`) lifts to TaggedInstance Map with `:payload` slot', async () => {
-    const { isQMap, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
+  it('Vec payload (`::Tag[…]`) overlays the tag identity onto the Array — `/n` indexes the Vec directly', async () => {
+    // Identity-overlay design: the tag stamps the JS-header
+    // TAG_HEADER_SYMBOL slot on the Array payload itself. The
+    // value stays `isVec`, indexes through `/n`, iterates via
+    // `*`, reduces via `count` / `first` — every Vec affordance
+    // unchanged. Identity reads through `type` operand.
+    const { isVec, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError[1 2 3]');
-    expect(isQMap(instance)).toBe(true);
+    expect(Array.isArray(instance)).toBe(true);
+    expect(isVec(instance)).toBe(true);
     expect(isTaggedInstance(instance)).toBe(true);
-    expect(instance.has('kind')).toBe(false);
     expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('AddLeftNotNumberError'));
     expect(typeKeyword(instance)).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-    expect(instance.get('payload')).toEqual([1, 2, 3]);
+    expect(instance.length).toBe(3);
+    expect(instance[0]).toBe(1);
+    expect(instance[1]).toBe(2);
   });
 
-  it('Map payload (`::Tag{…}`) rides under the `:payload` slot — always-wrap, no flat-merge', async () => {
-    // Phase 3 always-wrap: the default constructor stores the
-    // payload value as-is under `:payload`, never spreading Map
-    // entries into the instance. That keeps nested identities
-    // intact (`::Outer[::Inner[X]]` no longer drops the inner
-    // `:kind` slot through Map-merge collision) and makes the
-    // render form uniform across every payload shape.
+  it('Map payload (`::Tag{…}`) overlays the tag identity onto the Map — `keys` / `/field` work directly', async () => {
+    // Identity-overlay: tag stamps the JS-header slot on the
+    // Map payload, fields land as ordinary Map entries. `keys`,
+    // `vals`, `/field` projection read the underlying Map data
+    // plane unchanged. The pre-Phase-3 nested-identity-loss bug
+    // (Map-merge collision on `:kind`) cannot recur because
+    // identity rides on the header, not in a Map field.
     const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);
     expect(isTaggedInstance(instance)).toBe(true);
     expect(instance.has('kind')).toBe(false);
     expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-    const payloadMap = instance.get('payload');
-    expect(isQMap(payloadMap)).toBe(true);
-    expect(payloadMap.get('custom')).toBe('field');
-    expect(payloadMap.get('position')).toBe(1);
+    expect(instance.get('custom')).toBe('field');
+    expect(instance.get('position')).toBe(1);
   });
 
-  it('String payload (`::Tag"s"`) — `"` opens unambiguously, no ParenGroup needed', async () => {
-    const { isQMap } = await import('../../src/types.mjs');
+  it('String payload (`::Tag"s"`) — wrap-object shape, `payload` operand extracts', async () => {
+    // Scalars / value-class objects (String / Number / Keyword
+    // / Quote / Doc / Error / Conduit / Snapshot / already-
+    // tagged composite) cannot carry the header on themselves,
+    // so the constructor returns an opaque frozen `{type, tag,
+    // payload}` wrapper. The wrap shape keeps `/payload`
+    // projection out of reach (the wrapper is not a Map);
+    // the `payload` operand is the dedicated extractor.
+    const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError"hello"');
-    expect(isQMap(instance)).toBe(true);
-    expect(instance.get('payload')).toBe('hello');
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(typeKeyword(instance)).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(instance.payload).toBe('hello');
+    const extracted = await evalQuery('::AddLeftNotNumberError"hello" | payload');
+    expect(extracted).toBe('hello');
   });
 
-  it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, no ParenGroup needed', async () => {
-    const { isQMap, isKeyword } = await import('../../src/types.mjs');
+  it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, wraps in an opaque object', async () => {
+    const { isTaggedInstance, isKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError:foo');
-    expect(isQMap(instance)).toBe(true);
-    const payload = instance.get('payload');
-    expect(isKeyword(payload)).toBe(true);
-    expect(payload.name).toBe('foo');
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(isKeyword(instance.payload)).toBe(true);
+    expect(instance.payload.name).toBe('foo');
   });
 
   it('ParenGroup-wrapped scalar payload (`::Tag(42)`) — Number / Boolean / Null need the wrap', async () => {
     // Bare `42` after `Tag` would fuse into the identifier tail
-    // (`Tag42`). ParenGroup makes the parser split cleanly.
-    const { isQMap } = await import('../../src/types.mjs');
+    // (`Tag42`). ParenGroup makes the parser split cleanly. The
+    // scalar payload routes through the wrap-object branch of
+    // the constructor.
+    const { isTaggedInstance } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError(42)');
-    expect(isQMap(instance)).toBe(true);
-    expect(instance.get('payload')).toBe(42);
+    expect(isTaggedInstance(instance)).toBe(true);
+    expect(instance.payload).toBe(42);
   });
 });
 

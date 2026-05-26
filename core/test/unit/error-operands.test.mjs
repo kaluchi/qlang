@@ -287,6 +287,22 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('keyword');
   });
 
+  it('payload strips header off every TaggedInstance shape', async () => {
+    // Each shape exercises its own `payload` operand branch:
+    // tagged Set returns a fresh Set without header, tagged Map
+    // returns a fresh Map without header. The tagged Vec / wrap-
+    // scalar branches are covered above via the per-shape
+    // identity-overlay tests.
+    const { isTaggedInstance } = await import('../../src/types.mjs');
+    const setResult = await evalQuery('::Tags {} | ::Tags#[:a :b] | payload');
+    expect(setResult instanceof Set).toBe(true);
+    expect(isTaggedInstance(setResult)).toBe(false);
+    const mapResult = await evalQuery('::User {} | ::User{:name "alice"} | payload');
+    expect(mapResult instanceof Map).toBe(true);
+    expect(isTaggedInstance(mapResult)).toBe(false);
+    expect(mapResult.get('name')).toBe('alice');
+  });
+
   it('take count non-number → TakeCountNotNumberError', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | take("x")');
     expect(caughtErr.name).toBe('TakeCountNotNumberError');

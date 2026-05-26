@@ -148,6 +148,75 @@ describe('codec round-trips error values through tagged JSON', () => {
   });
 });
 
+describe('codec round-trips TaggedInstance through $tagged envelope', () => {
+  // The TaggedInstance encoder envelopes identity on `$tag` and
+  // recurses on the payload, so every overlay shape (Vec / Set /
+  // Map) plus the opaque wrap-object scalar shape survives a
+  // `JSON.stringify` round-trip. Each shape exercises a distinct
+  // encoder branch — listed compactly here so coverage hits the
+  // full quartet.
+  it('round-trips tagged Vec (overlay on Array)', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]);
+    const envelope = toTaggedJSON(tagged);
+    expect(envelope.$tagged.$tag).toBe('Box');
+    const restored = fromTaggedJSON(envelope);
+    expect(deepEqual(restored, tagged)).toBe(true);
+  });
+
+  it('round-trips tagged Set (overlay on Set)', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Keys'), new Set([keyword('a'), keyword('b')]));
+    const envelope = toTaggedJSON(tagged);
+    expect(envelope.$tagged.$tag).toBe('Keys');
+    const restored = fromTaggedJSON(envelope);
+    expect(deepEqual(restored, tagged)).toBe(true);
+  });
+
+  it('round-trips tagged Map (overlay on Map)', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']]));
+    const envelope = toTaggedJSON(tagged);
+    expect(envelope.$tagged.$tag).toBe('User');
+    const restored = fromTaggedJSON(envelope);
+    expect(deepEqual(restored, tagged)).toBe(true);
+  });
+
+  it('round-trips tagged scalar (wrap-object shape)', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Count'), 42);
+    const envelope = toTaggedJSON(tagged);
+    expect(envelope.$tagged.$tag).toBe('Count');
+    expect(envelope.$tagged.payload).toBe(42);
+    const restored = fromTaggedJSON(envelope);
+    expect(deepEqual(restored, tagged)).toBe(true);
+    expect(restored.payload).toBe(42);
+  });
+});
+
+describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () => {
+  // Tag mismatch on overlay-shape collections — same content,
+  // different (or absent) header tag — must not compare equal.
+  // Each branch (Array / Map / Set) gets its own assertion.
+  it('rejects tagged Array vs untagged Array with same elements', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('A'), [1, 2, 3]);
+    expect(deepEqual(tagged, [1, 2, 3])).toBe(false);
+  });
+
+  it('rejects tagged Map vs untagged Map with same entries', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('U'), new Map([['k', 1]]));
+    expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
+  });
+
+  it('rejects tagged Set vs untagged Set with same members', async () => {
+    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('S'), new Set([1, 2]));
+    expect(deepEqual(tagged, new Set([1, 2]))).toBe(false);
+  });
+});
+
 // ── errorFromQlang ──────────────────────────────────────────────
 
 describe('errorFromQlang', () => {

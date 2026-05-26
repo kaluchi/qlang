@@ -20,8 +20,19 @@
 
 import {
   isKeyword, isTagKeyword, isErrorValue, isQuote, isDoc,
-  isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet
+  isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet,
+  TAG_HEADER_SYMBOL
 } from './types.mjs';
+
+// Tag identity comparator — Array/Set/Map carry their identity
+// on the JS-header `TAG_HEADER_SYMBOL` slot, so two collections
+// with same elements but different (or absent) headers are not
+// equal. `tagA?.name === tagB?.name` handles all three cases:
+// both untagged (both undefined), both tagged identically, or
+// tagged vs untagged / tagged differently.
+function tagHeadersEqual(a, b) {
+  return a[TAG_HEADER_SYMBOL]?.name === b[TAG_HEADER_SYMBOL]?.name;
+}
 
 // setHasStructurally(set, v) — does the Set already carry a member
 // structurally equal to `v`? Keyword interning collapses to
@@ -53,8 +64,17 @@ export function deepEqual(a, b) {
   if (a === b) return true;
   if (a === null || b === null) return false;
   if (typeof a !== typeof b) return false;
+  // Opaque TaggedInstance wrap object — checked before generic
+  // object branches so its `.payload` recurses through the right
+  // value-class path.
+  if (typeof a === 'object' && a.type === 'taggedInstance') {
+    return typeof b === 'object' && b !== null && b.type === 'taggedInstance'
+      && a.tag.name === b.tag.name
+      && deepEqual(a.payload, b.payload);
+  }
   if (Array.isArray(a)) {
     if (!Array.isArray(b) || a.length !== b.length) return false;
+    if (!tagHeadersEqual(a, b)) return false;
     return a.every((x, i) => deepEqual(x, b[i]));
   }
   if (isQuote(a)) {
@@ -65,6 +85,7 @@ export function deepEqual(a, b) {
   }
   if (isMapShape(a)) {
     if (!isMapShape(b) || mapShapeSize(a) !== mapShapeSize(b)) return false;
+    if (!tagHeadersEqual(a, b)) return false;
     for (const [k, v] of mapShapeEntries(a)) {
       if (!mapShapeHas(b, k) || !deepEqual(v, mapShapeGet(b, k))) return false;
     }
@@ -72,6 +93,7 @@ export function deepEqual(a, b) {
   }
   if (a instanceof Set) {
     if (!(b instanceof Set) || a.size !== b.size) return false;
+    if (!tagHeadersEqual(a, b)) return false;
     for (const v of a) if (!setHasStructurally(b, v)) return false;
     return true;
   }

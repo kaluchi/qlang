@@ -374,12 +374,14 @@ async function applyFailTrack(state, stepNode) {
   const existingTrail = errorVal.descriptor.get('trail');
   const newTrail = materializeTrail(errorVal);
   const combinedTrail = combineTrailQuotes(existingTrail, newTrail);
-  // Materialize for fail-track exposure: tag becomes the leading
-  // `:kind` Map field so the step's descriptor view carries the
-  // universal identity slot every catalog explainer addresses
-  // (`!| /kind`, `!| /kind | source`, descriptor reshaping). The
-  // opaque storage form (tag on JS-header, descriptor without
-  // `:kind`) re-emerges through `error.tag` on the next
+  // Materialize for fail-track exposure: descriptor data fields
+  // ride flat on the Map, the error tag stamps both the JS-header
+  // `TAG_HEADER_SYMBOL` slot (so `!| type` / `!| payload` route
+  // through the same identity-overlay path Conduit / Snapshot /
+  // TaggedInstance use) and the `:kind` Map field (legacy
+  // projection surface, `!| /kind | source` keeps working).
+  // The opaque storage form (tag on `error.tag` JS-header,
+  // descriptor without `:kind`) re-emerges through the next
   // `evalErrorLit` / `errorFromQlang` mint.
   const materializedDescriptor = new Map();
   materializedDescriptor.set('kind', errorVal.tag);
@@ -387,6 +389,7 @@ async function applyFailTrack(state, stepNode) {
     materializedDescriptor.set(k, v);
   }
   materializedDescriptor.set('trail', combinedTrail);
+  stampTagHeader(materializedDescriptor, errorVal.tag);
   return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
 }
 

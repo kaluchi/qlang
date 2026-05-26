@@ -77,21 +77,19 @@ describe('describeType for conduit and snapshot', async () => {
     expect(describeType(instance)).toBe('TaggedInstance');
   });
 
-  it('TaggedInstance toPlain carries the JS-header tag on the envelope $tag slot', async () => {
-    // The TaggedInstance `toPlain` handler surfaces the JS-header
-    // TagKeyword onto the encoded envelope as `$tag` so the lossy
-    // plain-JSON form carries identity explicitly — same shape
-    // `Error` uses for its own `$error: {$tag, …}` envelope.
-    // `Conduit` toPlain rides the same handler shape, but its
-    // internal `:envRef` / `:body` slots are JS-opaque
-    // (`ToPlainUnencodableValueError`) — the bidirectional
-    // codec for conduits is the session serializer, not toPlain.
+  it('TaggedInstance toPlain on Vec payload — overlay identity, encoded payload is the Array data', async () => {
+    // Identity-overlay design: tag rides on the JS-header slot
+    // of the Array payload itself. `toPlain` encodes the
+    // underlying array as `payload`, identity rides on `$tag`.
+    // (`Conduit` deliberately has no toPlain handler — its
+    // internal `:envRef` / `:body` slots are JS-opaque and the
+    // bidirectional codec for conduits is the session serializer.)
     const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
     const { toPlain } = await import('../../src/runtime/format.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Box'), 42);
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
     const plainTagged = toPlain(tagged);
     expect(plainTagged.$tag).toBe('Box');
-    expect(plainTagged.payload).toBe(42);
+    expect(plainTagged.payload).toEqual([42, 'inner']);
   });
 
   it('isTaggedInstance rejects real conduit / snapshot values without checking :kind field shape', async () => {

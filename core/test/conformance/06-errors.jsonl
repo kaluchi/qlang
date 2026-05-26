@@ -1,5 +1,8 @@
-{"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotMapError!{\n  :fault {:step ~{/foo} :input 42}\n  :actualValue 42\n  :actualType :number\n  :key \"foo\"\n}"}
-{"name":"projection-on-set","query":"#[:a] | /foo","expect":"::ProjectionSubjectNotMapError!{\n  :fault {\n    :step ~{/foo}\n    :input #[:a]\n  }\n  :actualValue #[:a]\n  :actualType :set\n  :key \"foo\"\n}"}
+{"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotProjectableError!{\n  :fault {:step ~{/foo} :input 42}\n  :actualValue 42\n  :actualType :number\n  :key \"foo\"\n}"}
+{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::ProjectionSequenceKeyNotIntegerError!{\n  :fault {\n    :step ~{/foo}\n    :input #[:a]\n  }\n  :key \"foo\"\n  :subject #[:a]\n}"}
+{"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":z"}
+{"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":y"}
+{"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::ProjectionIndexOutOfBoundsError"}
 {"name":"distribute-on-number","query":"42 * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :fault {:step ~{add(1)} :input 42}\n  :actualValue 42\n  :actualType :number\n}"}
 {"name":"distribute-on-map","query":"{:a 1} * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :fault {\n    :step ~{add(1)}\n    :input {:a 1}\n  }\n  :actualValue {:a 1}\n  :actualType :map\n}"}
 {"name":"distribute-on-set","query":"#[1 2] * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :fault {\n    :step ~{add(1)}\n    :input #[1 2]\n  }\n  :actualValue #[1 2]\n  :actualType :set\n}"}

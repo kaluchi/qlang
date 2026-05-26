@@ -214,9 +214,9 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('LtOperandsNotComparableError');
   });
 
-  it('projection on non-Map → ProjectionSubjectNotMapError', async () => {
+  it('projection on non-Map → ProjectionSubjectNotProjectableError', async () => {
     const caughtErr = await catchOriginalError('42 | /name');
-    expect(caughtErr.name).toBe('ProjectionSubjectNotMapError');
+    expect(caughtErr.name).toBe('ProjectionSubjectNotProjectableError');
     expect(caughtErr.context.key).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
@@ -321,7 +321,7 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | div(1)',      // DivLeftNotNumberError
       '"a" | gt(5)',       // GtOperandsNotComparableError
       '"a" | lt(5)',       // LtOperandsNotComparableError
-      '1 | /name',         // ProjectionSubjectNotMapError (Number subject — neither Map nor Vec)
+      '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '{:a 1} * add(1)',   // DistributeSubjectNotVecError
       '42 >> count'        // MergeSubjectNotVecError
     ];

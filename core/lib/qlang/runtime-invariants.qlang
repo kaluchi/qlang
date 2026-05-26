@@ -83,26 +83,33 @@
   ~~|
   ::builtin{:category :type-error}
 
-::ProjectionSubjectNotMapError
-  |~~ Projection `/key` requires a Map, Vec, or value-class
+::ProjectionSubjectNotProjectableError
+  |~~ Projection `/key` requires a Map, Vec, Set, or value-class
       subject; null subject and other shapes lift to this error.
 
       ~{
         42 | /foo
         !| [type /key /actualType]
-        |  eq([::ProjectionSubjectNotMapError "foo" :number])
+        |  eq([::ProjectionSubjectNotProjectableError "foo" :number])
        }
   ~~|
   ::builtin{:category :type-error}
 
-::ProjectionVecKeyNotIntegerError
+::ProjectionSequenceKeyNotIntegerError
   |~~ Projection segment is a non-numeric string but the
-      subject is a Vec — Vec indices must be integer offsets.
+      subject is a Vec or Set — sequence indices must be integer
+      offsets (insertion-order on a Set per §Set in
+      qlang-spec.md).
 
       ~{
         [10 20 30] | /name
         !| [type /key]
-        |  eq([::ProjectionVecKeyNotIntegerError "name"])
+        |  eq([::ProjectionSequenceKeyNotIntegerError "name"])
+       }
+       ~{
+        #[:a :b :c] | /name
+        !| [type /key]
+        |  eq([::ProjectionSequenceKeyNotIntegerError "name"])
        }
   ~~|
   ::builtin{:category :type-error}

@@ -28,7 +28,7 @@ import {
   declareArityError
 } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
+  isVec, isQMap, isQSet, isKeyword, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isVecShape, isQuote,
@@ -75,8 +75,8 @@ class UnknownCombinatorKindError extends QlangInvariantError {
   }
 }
 
-const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapError',
-  ({ key, actualType }) => `/${key} requires Map or Vec subject, got ${actualType.name}`);
+const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',
+  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`);
 // Map subject does not carry the requested key. Strict fail-first
 // surfaces the typo / mismatched-shape on the projection itself; the
 // lifted descriptor carries `:key` plus the `:fault` step/input so
@@ -84,16 +84,18 @@ const ProjectionSubjectNotMapError = declareShapeError('ProjectionSubjectNotMapE
 // subject still deflects as null (see projectSegment).
 const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
   ({ key }) => `/${key} — key not present in Map subject`);
-// Vec subject indexed past its bounds. Negative indices walk from
-// the tail (`/-1` is last); only positions that resolve outside
-// `[0, length)` trip this site.
+// Vec or Set subject indexed past its bounds. Negative indices walk
+// from the tail (`/-1` is last); only positions that resolve outside
+// `[0, length)` trip this site. Set length is insertion-order
+// cardinality per §Set in qlang-spec.md.
 const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
-  ({ key, length }) => `/${key} — index out of bounds for Vec subject of length ${length}`);
-// Vec subject projected by a non-numeric segment. Vec indices are
-// integer offsets; named keys belong to Map shape, so a `[…] | /name`
-// query surfaces as a shape mismatch on the projection itself.
-const ProjectionVecKeyNotIntegerError = declareShapeError('ProjectionVecKeyNotIntegerError',
-  ({ key }) => `/${key} — non-integer segment cannot index a Vec subject`);
+  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`);
+// Vec or Set subject projected by a non-numeric segment. Sequence
+// indices are integer offsets; named keys belong to Map shape, so
+// a `[…] | /name` query surfaces as a shape mismatch on the
+// projection itself.
+const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequenceKeyNotIntegerError',
+  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`);
 // Value-class subjects (Quote / Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
 // that set is treated as a typo and lifts to this error.
@@ -732,7 +734,7 @@ function projectSegment(subject, projKey, state) {
   }
   if (isJsonArray(subject) || isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionVecKeyNotIntegerError({ key: projKey, subject });
+      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, subject });
     }
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
@@ -741,7 +743,19 @@ function projectSegment(subject, projKey, state) {
     }
     return subject[resolvedIndex];
   }
-  throw new ProjectionSubjectNotMapError({
+  if (isQSet(subject)) {
+    if (!INTEGER_SEGMENT_RE.test(projKey)) {
+      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, subject });
+    }
+    const items = [...subject];
+    const segmentIndex = parseInt(projKey, 10);
+    const resolvedIndex = segmentIndex < 0 ? items.length + segmentIndex : segmentIndex;
+    if (resolvedIndex < 0 || resolvedIndex >= items.length) {
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: items.length, subject });
+    }
+    return items[resolvedIndex];
+  }
+  throw new ProjectionSubjectNotProjectableError({
     key: projKey,
     actualType: typeKeyword(subject),
     actualValue: subject

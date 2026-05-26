@@ -35,7 +35,8 @@ import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs'
 import {
   isQMap, isQSet, isKeyword, isTagKeyword, isTruthy, isErrorValue, typeKeyword,
   NULL, keyword, isVecShape, isMapShape, mapShapeEntries, mapShapeSize,
-  mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf
+  mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
+  isJsonArray, JSON_ARRAY_TAG, TAG_HEADER_SYMBOL, stampTagHeader
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
 
@@ -63,19 +64,42 @@ function sequenceElements(v) {
 
 // containerLikeOf(items, source) — minting site for shape-preserving
 // transformers (filter / take / drop / reverse / sort / sortWith /
-// flat) over an ordered sequence. JsonArray keeps the JSON tag,
-// Set re-mints with structural dedup (the only path where dedup
-// is needed in this module — slice / reverse / sort over a Set
-// inherit Set members which are already unique, but `flat` on a
-// Set of Vecs may introduce duplicates that addStructurallyUnique
-// has to collapse). Vec subject passes through unchanged.
+// flat) over an ordered sequence. Three shape signals carry through:
+//   - JsonArray vs Vec — `vecLikeOf` re-stamps `JSON_ARRAY_TAG`
+//     when the source carries it.
+//   - Set vs Vec — Set re-mints with structural dedup (the only
+//     path where dedup is needed in this module — slice / reverse
+//     / sort over a Set inherit Set members which are already
+//     unique, but `flat` on a Set of Vecs may introduce duplicates
+//     that addStructurallyUnique has to collapse).
+//   - TaggedInstance identity — when the source is a tagged
+//     composite (`::Box[…]`, `::Tag#[…]`, `::Tag(::json[…])`), the
+//     `TAG_HEADER_SYMBOL` slot copies onto the result so the
+//     downstream `type` axis still reads `::Box` after the
+//     transform. Same single-mint pattern keeps every consumer
+//     symmetric without per-operand stamping.
 function containerLikeOf(items, source) {
+  let result;
   if (isQSet(source)) {
-    const out = new Set();
-    for (const v of items) addStructurallyUnique(out, v);
-    return out;
+    result = new Set();
+    for (const v of items) addStructurallyUnique(result, v);
+  } else if (isJsonArray(source)) {
+    // Build the JsonArray inline rather than through `vecLikeOf`'s
+    // `makeJsonArray` path — the latter freezes its output, which
+    // would block the downstream TaggedInstance header stamp.
+    // Defer the freeze until both JSON_ARRAY_TAG and the optional
+    // TAG_HEADER_SYMBOL are in place.
+    result = [...items];
+    Object.defineProperty(result, JSON_ARRAY_TAG, {
+      value: true, enumerable: false, configurable: false, writable: false
+    });
+  } else {
+    result = vecLikeOf(items, source);
   }
-  return vecLikeOf(items, source);
+  const sourceTag = source[TAG_HEADER_SYMBOL];
+  if (sourceTag !== undefined) stampTagHeader(result, sourceTag);
+  if (isJsonArray(source)) Object.freeze(result);
+  return result;
 }
 import {
   declareSubjectError,
@@ -346,7 +370,7 @@ function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArit
 }
 
 export const filter = higherOrderOp('filter', 2, async (container, predLambda) => {
-  if (isVecShape(container)) {
+  if (isOrderedSequence(container)) {
     const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
     const filterResult = [];
     for (const filterItem of container) {
@@ -354,17 +378,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
       if (isErrorValue(predResult)) return predResult;
       if (isTruthy(predResult)) filterResult.push(filterItem);
     }
-    return vecLikeOf(filterResult, container);
-  }
-  if (isQSet(container)) {
-    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
-    const filterResult = new Set();
-    for (const filterItem of container) {
-      const predResult = await applyItem(filterItem);
-      if (isErrorValue(predResult)) return predResult;
-      if (isTruthy(predResult)) filterResult.add(filterItem);
-    }
-    return filterResult;
+    return containerLikeOf(filterResult, container);
   }
   if (isMapShape(container)) {
     const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
@@ -585,9 +599,14 @@ export const distinct = nullaryOp('distinct', (subject) => {
   // Subject reduced to Vec/JsonArray after the Set early-return —
   // iterate the array directly without `sequenceElements` (which
   // would no-op for Vec but would copy a Set, and the Set case
-  // never reaches here).
+  // never reaches here). TaggedInstance identity copies to the
+  // Set result so `::Box[1 2 1] | distinct | type` reads `::Box`
+  // — the value-class «no duplicates» signal pivots from Vec to
+  // Set, but the per-site identity stays attached.
   const out = new Set();
   for (const v of subject) addStructurallyUnique(out, v);
+  const subjectTag = subject[TAG_HEADER_SYMBOL];
+  if (subjectTag !== undefined) stampTagHeader(out, subjectTag);
   return out;
 });
 

@@ -407,11 +407,20 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 
 export function makeTaggedInstance(tag, payload) {
   // Untagged composite — overlay header on a clone of the
-  // payload, native shape preserved.
-  if (Array.isArray(payload)
-      && payload[JSON_ARRAY_TAG] !== true
-      && payload[TAG_HEADER_SYMBOL] === undefined) {
+  // payload, native shape preserved. For JsonArray payloads the
+  // JSON_ARRAY_TAG sentinel is restamped manually on the clone
+  // before freezing (calling `makeJsonArray` then `stampTagHeader`
+  // is a no-go — `makeJsonArray` freezes its result, so the header
+  // stamp would hit a non-extensible object). Both Symbol slots
+  // coexist on the same Array; downstream predicates read each
+  // independently.
+  if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
+    if (isJsonArray(payload)) {
+      Object.defineProperty(arr, JSON_ARRAY_TAG, {
+        value: true, enumerable: false, configurable: false, writable: false
+      });
+    }
     stampTagHeader(arr, tag);
     return Object.freeze(arr);
   }

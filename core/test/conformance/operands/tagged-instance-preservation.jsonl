@@ -1,0 +1,19 @@
+{"name":"filter-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3 4] | filter(gt(2)) | type","expect":"::Box"}
+{"name":"filter-tagged-set-preserves-tag","query":"::Box {} | ::Box#[1 2 3 4] | filter(gt(2)) | type","expect":"::Box"}
+{"name":"filter-tagged-jsonarray-preserves-tag","query":"::Box {} | ::Box(::json[1 2 3 4]) | filter(gt(2)) | type","expect":"::Box"}
+{"name":"sort-tagged-vec-preserves-tag","query":"::Box {} | ::Box[3 1 2] | sort | type","expect":"::Box"}
+{"name":"sort-tagged-set-preserves-tag","query":"::Box {} | ::Box#[3 1 2] | sort | type","expect":"::Box"}
+{"name":"sort-keyed-tagged-vec-preserves-tag","query":"::Box {} | ::Box[{:k 2} {:k 1}] | sort(/k) | type","expect":"::Box"}
+{"name":"take-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3 4] | take(2) | type","expect":"::Box"}
+{"name":"take-tagged-set-preserves-tag","query":"::Box {} | ::Box#[1 2 3 4] | take(2) | type","expect":"::Box"}
+{"name":"drop-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3 4] | drop(2) | type","expect":"::Box"}
+{"name":"drop-tagged-set-preserves-tag","query":"::Box {} | ::Box#[1 2 3 4] | drop(2) | type","expect":"::Box"}
+{"name":"reverse-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3] | reverse | type","expect":"::Box"}
+{"name":"reverse-tagged-set-preserves-tag","query":"::Box {} | ::Box#[1 2 3] | reverse | type","expect":"::Box"}
+{"name":"flat-tagged-vec-preserves-tag","query":"::Box {} | ::Box[[1] [2 3]] | flat | type","expect":"::Box"}
+{"name":"sortWith-tagged-vec-preserves-tag","query":"::Box {} | ::Box[3 1 2] | sortWith(sub(/left, /right)) | type","expect":"::Box"}
+{"name":"distinct-tagged-vec-yields-tagged-set","query":"::Box {} | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
+{"name":"distinct-tagged-set-passthrough-tag","query":"::Box {} | ::Box#[1 2 3] | distinct | type","expect":"::Box"}
+{"name":"filter-tagged-vec-elements-unchanged","query":"::Box {} | ::Box[1 2 3 4] | filter(gt(2)) | sum","expect":"7"}
+{"name":"sort-tagged-vec-elements-sorted","query":"::Box {} | ::Box[3 1 2] | sort | first","expect":"1"}
+{"name":"distinct-tagged-vec-dedup-correct","query":"::Box {} | ::Box[1 2 1 3 2] | distinct | count","expect":"3"}

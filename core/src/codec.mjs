@@ -119,7 +119,15 @@ export function toTaggedJSON(value) {
   if (isTaggedInstance(value)) {
     let inner;
     if (Array.isArray(value)) {
-      inner = Object.freeze([...value]);
+      // Restamp JSON_ARRAY_TAG on the clone so the inner payload
+      // round-trips as a bare JSON array (the JSON-shape signal)
+      // rather than collapsing into `{$vec: …}`. Same pattern the
+      // `payload` operand uses to peel the TaggedInstance header
+      // off a composite JsonArray without dropping the inner
+      // shape's identity.
+      inner = isJsonArray(value)
+        ? makeJsonArray([...value])
+        : Object.freeze([...value]);
     } else if (value instanceof Set) {
       inner = new Set(value);
     } else if (value instanceof Map) {

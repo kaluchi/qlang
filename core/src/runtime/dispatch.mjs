@@ -90,23 +90,29 @@ class HigherOrderOpVariadicMissingCapturedError extends QlangInvariantError {
 // tag naturally — the operand body knows whether its output is
 // the same value-class as its input.
 async function applyTagPreservation(state, source, result) {
-  // Optional chaining on source handles the `null` pipeValue
-  // case without an explicit guard — `null?.[Symbol]` yields
-  // undefined and the early return below catches it. preservesTag
-  // operands that throw on a null/non-sequence subject never
-  // reach this post-pass anyway; the chaining is a single-line
-  // safety on the principle that subject lookup is well-defined
-  // across every JS value.
+  // JsonArray hardening — `containerLikeOf` returns the mint
+  // unfrozen so the post-pass freezes after any header stamping.
+  // Both the tagged and untagged exits go through `freezeIfJsonArray`
+  // so freezing is not coupled to the tag-stamping path.
+  // Optional chaining on source handles a `null` pipeValue safely
+  // — `null?.[Symbol]` yields undefined and falls through here.
   const sourceTag = source?.[TAG_HEADER_SYMBOL];
-  if (sourceTag === undefined) return result;
+  if (sourceTag === undefined) {
+    freezeIfJsonArray(result);
+    return result;
+  }
   let resolved = envGet(state.env, tagBindingKey(sourceTag.name));
   if (isSnapshot(resolved)) resolved = resolved.get('payload');
   if (isQMap(resolved) && resolved.has('impl')) {
     return await mintTaggedInstance(sourceTag.name, result, state);
   }
   if (result[TAG_HEADER_SYMBOL] === undefined) stampTagHeader(result, sourceTag);
-  if (isJsonArray(result) && !Object.isFrozen(result)) Object.freeze(result);
+  freezeIfJsonArray(result);
   return result;
+}
+
+function freezeIfJsonArray(value) {
+  if (isJsonArray(value) && !Object.isFrozen(value)) Object.freeze(value);
 }
 
 export function valueOp(name, n, impl, options = {}) {

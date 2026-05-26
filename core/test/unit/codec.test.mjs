@@ -173,6 +173,22 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
     expect(qMap).toBeInstanceOf(Map);
     expect(isJsonObject(qMap)).toBe(false);
   });
+
+  it('tagged JsonArray preserves inner JSON_ARRAY_TAG through the $tagged envelope', async () => {
+    const { makeTagKeyword, makeTaggedInstance, isTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), makeJsonArray([1, 2, 3]));
+    const restored = roundTrip(tagged);
+    expect(isTaggedInstance(restored)).toBe(true);
+    expect(isJsonArray(restored)).toBe(true);
+    expect(restored).toEqual([1, 2, 3]);
+  });
+
+  it('tagged-instance encode of a JsonArray serialises as a bare JSON array inside $tagged, not as $vec', async () => {
+    const { makeTagKeyword, makeTaggedInstance } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Box'), makeJsonArray([1, 2]));
+    const encoded = toTaggedJSON(tagged);
+    expect(encoded).toEqual({ $tagged: { $tag: 'Box', payload: [1, 2] } });
+  });
 });
 
 describe('toTaggedJSON unencodable values', () => {

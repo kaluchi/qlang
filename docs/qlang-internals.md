@@ -310,15 +310,17 @@ the point of lookup).
 Arity 1. Ignores `pipeValue`; iterates over every binding in the
 current `env`, building a descriptor Map per entry via
 `describeBinding` in `runtime/manifest-op.mjs`, and returns a Vec
-of descriptors sorted by binding name. The descriptor `:kind`
-field distinguishes four provenances:
+of descriptors sorted by binding name. The descriptor's `:kind`
+field is an explicit enum-bucket TagKeyword on the view-Map
+(distinct from identity which rides on the underlying env entry's
+JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
+same way, so `manifest | filter(/kind | eq(::builtin))` and
+`manifest | filter(type | eq(::builtin))` agree). Five provenances:
 
 - `::builtin` — env entry is a descriptor Map loaded by
   `langRuntime()` from one of the catalog family files under
   `lib/qlang/operand/`. The user-facing descriptor stamps
-  `:kind ::builtin` (TagKeyword matching the env-side shape, so
-  `manifest | first | type` reads `::builtin` identically to
-  `env | /:name | type`), drops the `:impl` handle (dispatch-time
+  `:kind ::builtin`, drops the `:impl` handle (dispatch-time
   primitive key is internal), and copies `:category`,
   `:subject`, `:modifiers`, `:returns`, `:throws` verbatim. The
   derived `:captured` / `:effectful` fields are stamped from the
@@ -327,14 +329,20 @@ field distinguishes four provenances:
   `:name | docs` axis (Vec of Doc-values) or `:name | examples`
   axis (Vec of Quote-values pulled from every `~{…}` segment in
   the docs).
-- `:conduit` — a BindStep-installed conduit. Descriptor has
-  `:kind :conduit`, `:name`, `:params`, `:source` (textual form
+- `::tagBinding` — env entry under a `::Tag` name (catalog tag
+  declaration: error tags, value-class tags, the `::builtin`
+  meta-tag itself). Descriptor stamps `:kind ::tagBinding` and
+  copies every descriptor field through (category, position,
+  expectedType, impl handle for value-class constructors, …).
+- `::conduit` — a BindStep-installed conduit. Descriptor has
+  `:kind ::conduit`, `:name`, `:params`, `:source` (textual form
   of the body), `:effectful`, `:location`.
-- `:snapshot` — an `as`-bound snapshot. Descriptor has `:kind
-  :snapshot`, `:name`, `:value`, `:type`, `:effectful`, `:location`.
-- `:value` — any other plain JS value (scalar, Vec, Map, Set,
+- `::snapshot` — an `as`-bound snapshot. Descriptor has `:kind
+  ::snapshot`, `:name`, `:value`, `:type`, `:effectful`,
+  `:location`.
+- `::value` — any other plain JS value (scalar, Vec, Map, Set,
   error value, function value, etc.). Descriptor has `:kind
-  :value`, `:name`, `:value`, `:type`.
+  ::value`, `:name`, `:value`, `:type`.
 
     (pipeValue, env) → (Vec<descriptor>, env)
 
@@ -394,14 +402,28 @@ carrying `:kind :tag` plus a constructor handle on
      per-tag JS, mirroring the shape `errorFromQlang` produces
      from a runtime throw site. The descriptor passes through
      unchanged — identity-stamping touches the header alone.
-   - **Undefined** + any other payload — build a success-track
-     **TaggedInstance** Map `{:kind ::Tag :payload
-     <value>}`. The payload value rides under the `:payload`
-     slot for every Primary that doesn't carry error semantics
-     (`::Tag[…]` / `::Tag{…}` / `::Tag"s"` / `::Tag:foo` /
-     `::Tag(42)` / etc.). Generic constructor every tag-binding
-     shares; the printer rebuilds the source-form TaggedLit from
-     the slot's value-class.
+   - **Undefined** + any other payload — `makeTaggedInstance`
+     builds a success-track **TaggedInstance** with identity
+     overlay on the payload's JS-header `TAG_HEADER_SYMBOL`
+     slot. Two payload shapes:
+     - **Composite** (untagged Vec / Set / Map): the constructor
+       clones the payload and stamps the header — native shape
+       preserved, `isVec` / `isQSet` / `isQMap` still hold, every
+       Vec / Set / Map operand works without unwrap. Identity
+       reads through `typeKeyword` / `type` operand.
+     - **Wrap-object** (scalar / Keyword / Quote / Doc / Error /
+       Conduit / Snapshot / already-tagged composite): the
+       payload cannot carry the header (primitives have no
+       property storage, frozen value-class objects refuse
+       `defineProperty`, nested tagged composites already own
+       the slot). The constructor returns a frozen opaque
+       `{type: 'taggedInstance', tag, payload}` object stamped
+       with the same header. The wrapper is not a Map, so
+       `/payload` projection throws cleanly — the dedicated
+       `payload` operand is the only extractor.
+     The same single mint site backs the runtime `value |
+     tag(::Foo)` operand; both literal and operand paths produce
+     observationally-identical values.
 
 ### `BareTypeKeyword` — tag-identifier as value
 
@@ -432,23 +454,32 @@ Constructors must satisfy:
 
 ### Tagged-instance round-trip
 
-A constructor that returns a Map carrying `:kind <TagKeyword>`
-plus `:payload <Vec>` produces a **tagged instance** —
-`isTaggedInstance` in `types.mjs` recognises the shape and
-`printValue` routes it through `printTaggedInstance`, which emits
-the `::tag[<payload>]` literal. The original source-form
-constructor invocation is recoverable from the value alone, so
-the round-trip theorem covers user-defined tagged types without a
-custom printer per tag.
+`makeTaggedInstance(tag, payload)` produces a **tagged instance**
+identified through the JS-header `TAG_HEADER_SYMBOL` slot —
+`isTaggedInstance` in `types.mjs` reads the slot directly
+(excluding the reserved tag names `conduit`, `snapshot`,
+`builtin` that ride their own dedicated render paths) and
+`printValue` routes the value through `printTaggedInstance`,
+which dispatches on the payload's native shape:
+- Tagged Array → `::tag[…]`.
+- Tagged Set   → `::tag#[…]`.
+- Tagged Map   → `::tag{…}`.
+- Opaque wrap object (`{type: 'taggedInstance', tag, payload}`)
+  → `::tag<payload>` (`::tag(scalar)` when the payload print
+  opens with an identifier character so the ParenGroup wrap
+  splits the parser cleanly at the tag boundary).
+The original source-form constructor invocation is recoverable
+from the value alone, so the round-trip theorem covers
+user-defined tagged types without a custom printer per tag.
 
-Three reserved tag names own dedicated render paths and bypass
-the generic tagged-instance branch:
-- `:conduit` → `::conduit[:self [params] ~{body}]` form (the
+Reserved tag names own dedicated render paths:
+- `::conduit` → `::conduit[:self [params] ~{body}]` form (the
   Conduit value-class print).
-- `:snapshot` → wrapped value (snapshot is an env wrapper,
+- `::snapshot` → wrapped value (snapshot is an env wrapper,
   recursing on the underlying value).
-- `:tag` → BindStep declaration form (a tag-binding renders
-  back as `::Tag {descriptor}` — the declaration form).
+- `::builtin` → catalog descriptor Map (manifest enumeration
+  surface, `:kind ::builtin` retained on the manifest view-Map
+  as an explicit enum bucket).
 
 The named-error promotion piggybacks on the same round-trip:
 `errorFromQlang` stamps `::Tag` on the error value's JS-header
@@ -641,11 +672,14 @@ co-located sources:
   by the operand BindSteps that reference those tags in their
   `:throws` Vec. Each operand binds a keyword identifier
   (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
-  descriptor Map carrying `:kind ::builtin` plus a
-  namespaced `:impl :qlang/prim/<name>` keyword that
-  points into the primitive registry, plus authored metadata
-  (`:category`, `:subject`, `:modifiers`, `:returns`,
-  `:throws`). Doc-prefixes attached to each BindStep via
+  descriptor Map carrying a namespaced `:impl :qlang/prim/<name>`
+  keyword that points into the primitive registry, plus
+  authored metadata (`:category`, `:subject`, `:modifiers`,
+  `:returns`, `:throws`). Identity (`::builtin`) rides on the
+  descriptor's JS-header `TAG_HEADER_SYMBOL` slot, stamped by
+  the `::builtin{…}` constructor in `runtime/tagged.mjs`; the
+  reader sites (`isBuiltinDescriptor`, `manifest`-op routing)
+  probe the header directly. Doc-prefixes attached to each BindStep via
   DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the
   module's `qlang/ast/<uri>` Quote as `step.docs` and are
   reachable through axis-operands (`:count | docs` returns a
@@ -1202,10 +1236,15 @@ Identity for an error value rides on the JS-header `tag` slot
 (`error.tag`, a TagKeyword) — opaque to descriptor projection,
 read directly by `typeKeyword(errorValue)` and through the
 `type` operand. The descriptor Map below carries only data
-fields; `!|` materialization stamps the tag back as a leading
-`:kind` Map field so the exposed descriptor view round-trips
-through every operand that reads `:kind` (`/kind`,
-`/kind | source`). Errors without an explicit `:kind ::Foo`
+fields; `!|` materialization stamps the tag onto the exposed
+Map's JS-header `TAG_HEADER_SYMBOL` slot (the uniform
+identity-overlay channel TaggedInstance / Conduit / Snapshot /
+catalog builtin descriptor all use), so `result !| type` reads
+the same identity, and the `payload` operand strips it cleanly.
+No redundant `:kind <tag>` Map field — any user-stamped `:kind`
+slot on the source descriptor (`{:kind :oops :…} | error`)
+rides through verbatim as ordinary data without identity-
+slot collision. Errors without an explicit `:kind ::Foo`
 literal entry default to the `::Error` generic identity so
 `error.tag` is always present without defensive checks at
 consumer sites.

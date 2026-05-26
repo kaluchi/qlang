@@ -52,10 +52,11 @@
       (plain-keyword `:kind`) both default to this tag; per-site
       runtime errors (`::AddLeftNotNumberError`, `::FilterSubject
       NotContainerError`, etc.) stamp their own tag and never
-      fall back here. `!|` exposes the descriptor with `:kind`
-      stamped back from the JS-header tag so per-instance
-      examples below can read the tag through ordinary Map
-      projection.
+      fall back here. `!|` exposes the descriptor with identity
+      on the same JS-header slot — `type` projects it directly,
+      and `[type payload] | tag | error` round-trips the
+      per-site tag back into the fail-track without an
+      intermediate `:kind` field.
 
       ~{!{} !| type | eq(::Error)}
       ~{!{:detail "boom"} !| type | eq(::Error)}
@@ -449,7 +450,9 @@
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function
       value reached render. Wrap host operands in a descriptor
-      Map carrying `:kind ::builtin` and `:impl`
-      when binding through `session.bind`.
+      Map carrying `:impl` with identity stamped on the JS-header
+      `TAG_HEADER_SYMBOL` slot (`stampTagHeader(map, BUILTIN_TAG)`)
+      before binding through `session.bind`; the CLI's
+      `bindHostBuiltin` helper demonstrates the pattern.
   ~~|
   ::builtin{:category :invariantError}

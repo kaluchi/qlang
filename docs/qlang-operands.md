@@ -763,6 +763,58 @@ shape, and vice versa.
 - **Errors**: non-String-or-Keyword subject →
   `KeywordSubjectNotStringOrKeywordError`.
 
+### `payload`
+
+- **Arity** 1. **Subject** TaggedInstance.
+- Strips the identity tag and returns the underlying value:
+  - **Composite-shape TaggedInstance** (tagged Vec / Set / Map —
+    identity overlay on the payload's JS-header slot) → a fresh
+    clone of the payload without the header.
+  - **Wrap-object shape** (opaque frozen `{type, tag, payload}`
+    object, the constructor's branch for scalar / Keyword / Quote
+    / Doc / Error / Conduit / Snapshot / already-tagged payloads
+    that cannot carry the header themselves) → the `.payload`
+    value directly.
+- Inverse of `tag(::Foo)` mint. The dedicated extractor sidesteps
+  the `/payload` Map-field projection — wrap-object shapes are
+  opaque to `/key` projection, so the wrapping shape never leaks
+  through to user code.
+- **Examples**:
+  - `::Box[1 2 3] | payload` → `[1 2 3]` (fresh Array sans header).
+  - `::User{:name "alice"} | payload` → `{:name "alice"}` (fresh Map sans header).
+  - `::Count(42) | payload` → `42` (wrapped value).
+  - `42 | tag(::Box) | payload | eq(42)` → `true` (round-trip).
+- **Errors**: non-TaggedInstance subject →
+  `PayloadSubjectNotTaggedInstanceError`.
+
+### `tag`
+
+- **Arity** 2. Three call shapes form the symmetric assemble-side
+  partner for the `[type, payload]` split:
+  - **bare** `[tag, value] | tag` — subject is a 2-element Vec
+    `[tagKeyword, value]` (exactly the shape `[type payload]`
+    projects from any tagged value). Round-trip pair:
+    `tagged | [type payload] | tag` recovers an observationally-
+    equivalent TaggedInstance.
+  - **bound** `value | tag(::Foo)` — subject becomes the wrapped
+    value, captured TagKeyword becomes the identity tag.
+  - **full** `tag(value-expr, tag-expr)` — both args captured,
+    pipeValue is context. Compact pair-Vec reordering:
+    `pair | tag(/1, /0)` rebuilds from a `[value, tag]`-order Vec
+    without an intermediate snapshot.
+- A composite TaggedInstance subject (bound form) clones-and-
+  rebrands the underlying composite; an opaque-wrap subject
+  re-wraps into a nested layer. To replace identity rather than
+  nest, route through `tagged | payload | tag(::Other)`.
+- **Examples**:
+  - `42 | tag(::Box) | payload | eq(42)` → `true`.
+  - `[1 2 3] | tag(::Triple) | type` → `::Triple`.
+  - `::Box {} | ::Box[1 2 3] | [type payload] | tag | eq(::Box[1 2 3])` → `true` — split/assemble round-trip.
+  - `1 | add("1") !| [type payload] | tag | error !| type` → `::AddRightNotNumberError` — short rebuild of a fail-track error from its `[tag, descriptor]` projection.
+- **Errors**: captured arg / first Vec element not a TagKeyword →
+  `TagModifierNotTagKeywordError`; bare-form subject not a 2-element
+  Vec → `TagBareSubjectShapeError`.
+
 ## Formatting
 
 ### `json`
@@ -985,13 +1037,16 @@ its own eval handler in `eval.mjs`.
   `env`.
 - Returns a Vec of descriptors, one per binding in `env`, sorted
   alphabetically by binding name. The descriptor's `:kind` field
-  distinguishes four provenances:
+  is an explicit enum-bucket TagKeyword on the view-Map (distinct
+  from identity which rides on the underlying env entry's
+  JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
+  same way, so `manifest | filter(/kind | eq(::builtin))` and
+  `manifest | filter(type | eq(::builtin))` agree). Five
+  provenances:
   - **Builtin** — env entry is a descriptor Map loaded by
     `langRuntime()` from one of the catalog family files under
     `lib/qlang/operand/`. The user-facing descriptor stamps
-    `:kind ::builtin` (TagKeyword matching the env-side shape, so
-    `manifest | first | type` and `env | /:name | type` both surface
-    `::builtin`), drops the `:impl` handle (the dispatch-time
+    `:kind ::builtin`, drops the `:impl` handle (the dispatch-time
     primitive key is internal), and copies `:category` / `:subject`
     / `:modifiers` / `:returns` / `:throws` verbatim. The derived
     `:captured` / `:effectful` fields are stamped from the resolved
@@ -1038,6 +1093,13 @@ its own eval handler in `eval.mjs`.
      :effectful false
      :location  {:start ... :end ...}}
     ```
+  - **Tag binding** — env entry under a `::Tag` name (catalog
+    tag declaration: error tags, value-class tags, the
+    `::builtin` meta-tag itself). Descriptor stamps `:kind
+    ::tagBinding` plus every catalog field copied through
+    (`:category` / `:operand` / `:position` / `:expectedType`
+    for error tags; `:impl` handle for value-class
+    constructors). Surfaces under `manifest(:tag)`.
   - **Value** — any other plain JS value (scalar, Vec, Map, Set,
     error value, function value, …). Descriptor: `:kind ::value`,
     `:name`, `:value`, `:type` (from `typeKeyword`).
@@ -1228,7 +1290,7 @@ its own eval handler in `eval.mjs`.
 
 ### `docs`
 
-- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged value (any value carrying a TagKeyword on its JS-header identity slot — TaggedInstance, Conduit, Snapshot, materialized error).
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
@@ -1240,7 +1302,7 @@ its own eval handler in `eval.mjs`.
 
 ### `examples`
 
-- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged-instance Map.
+- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged value (any value carrying a TagKeyword on its JS-header identity slot — TaggedInstance, Conduit, Snapshot, materialized error).
 - Returns a Vec of Quote-values extracted from the binding's
   doc-prefix — every `~{…}` Quote segment in the doc-content stream
   is a candidate test case for `runExamples`.
@@ -1258,13 +1320,14 @@ its own eval handler in `eval.mjs`.
   Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
   `:null`); qlang value-classes produce their type keyword (`:vec`,
   `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
-  `:function`, `:jsonObject`, `:jsonArray`); tagged-instance Maps
-  (conduit, snapshot, user `::Foo[…]`) produce their `:kind`
-  TagKeyword (`::conduit`, `::snapshot`, `::Foo`); error values
-  produce the per-site `::Tag` straight off the JS-header `tag`
-  slot — `::AddLeftNotNumberError`, `::ParseError`, generic
-  `::Error` for user `!{}` without an explicit `:kind ::Foo`
-  lift.
+  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
+  Snapshot, TaggedInstance, materialized error, catalog builtin
+  descriptor) produce the user-stamped TagKeyword off the JS-header
+  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
+  error tag, `::builtin`); error values produce the per-site `::Tag`
+  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
+  `::ParseError`, generic `::Error` for user `!{}` without an
+  explicit `:kind ::Foo` lift.
 - **Examples**:
   - `42 | type` → `:number`.
   - `"hello" | type` → `:string`.
@@ -1297,6 +1360,13 @@ fail-track itself: `error` lifts a Map into the fail-track and
   as context. The resulting error rides the fail-track: `|`, `*`,
   and `>>` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
+- Identity sources, in priority order: the source Map's
+  `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-
+  materialization and `tag(::Foo)` use); then a `:kind ::Tag`
+  field if the header is absent (qlang-level rebrand); falling
+  back to the generic `::Error` tag. The first branch makes
+  `error !| [type payload] | tag | error` recover the original
+  per-site tag without a manual `:kind` field stamp.
 - **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
 - **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
@@ -1365,7 +1435,7 @@ enumerates).
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
 | `:typeClassifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
-| `:typeConversion` | `keyword` |
+| `:typeConversion` | `keyword`, `payload`, `tag` |
 | `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |
 | `:error` | `error`, `isError` |

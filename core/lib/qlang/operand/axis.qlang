@@ -93,14 +93,16 @@
 :spec
   |~~ `:name | spec` — env-side declaration descriptor Map for the
       named binding. Operand declarations surface as
-      `{:kind ::builtin :impl <fn> :category … :subject …
-      :modifiers … :returns … :throws …}`. Tag-binding error tags
-      surface as `{:kind ::builtin :category :typeError :operand
-      … :position … :expectedType …}`. Value-class constructors
-      surface as `{:kind ::builtin :impl :qlang/type/<tag>
-      :throws […]}`. BindStep-bound conduits surface as the
-      Conduit value-class Map; `as`-bound snapshots as the
-      Snapshot's auto-unwrapped payload.
+      `{:impl <fn> :category … :subject … :modifiers … :returns …
+      :throws …}` with identity `::builtin` on the JS-header
+      slot (reachable through `:name | spec | type`). Tag-binding
+      error tags surface as `{:category :typeError :operand …
+      :position … :expectedType …}`. Value-class constructors
+      surface as `{:impl :qlang/type/<tag> :throws […]}`. All
+      three carry the same `::builtin` header identity.
+      BindStep-bound conduits surface as the Conduit value-class
+      Map; `as`-bound snapshots as the Snapshot's auto-unwrapped
+      payload.
 
       The discriminator path for per-tag static facts attached
       to any tagged value-class — `result !| type | spec |

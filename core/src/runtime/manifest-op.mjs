@@ -11,10 +11,13 @@
 // The per-binding descriptor shape `manifest` produces is built by
 // `describeBinding`, a switch over the env-value's runtime shape:
 //
-//   `::builtin` Map (catalog-bound operand or tag-binding)
+//   `::builtin` Map (catalog-bound operand or tag-binding —
+//   identity on the JS-header `TAG_HEADER_SYMBOL` slot, no `:kind`
+//   field in the env entry)
 //     → `manifestBuiltinDescriptor` in `descriptor-ops.mjs` —
-//       strips internal `:impl`, re-stamps `:kind ::builtin`,
-//       passes the structural fields (`:category` / `:subject` /
+//       strips internal `:impl`, stamps `:kind ::builtin` as the
+//       view-Map's explicit enum-bucket field, passes the
+//       structural fields (`:category` / `:subject` /
 //       `:modifiers` / `:returns` / `:throws` / `:captured` /
 //       `:effectful`) through.
 //
@@ -138,9 +141,7 @@ function describeBinding(value, explicitName) {
     // declaration (env-key carries the `::` prefix, `:impl` stays
     // a keyword pointing into PRIMITIVE_REGISTRY, or is absent for
     // doc-only declarations). Distinguish by env-key shape.
-    const isTagBindingEntry = typeof explicitName === 'string'
-                              && explicitName.startsWith('::');
-    if (isTagBindingEntry) {
+    if (isTagBindingName(explicitName)) {
       const tagResult = new Map();
       tagResult.set('kind', TAG_BINDING_TAG);
       tagResult.set('name', explicitName);
@@ -161,9 +162,11 @@ function describeBinding(value, explicitName) {
   // `describeValue` so their entry surfaces as `:kind ::value`
   // alongside any other host-bound payload. Host integrations that
   // want a richer manifest entry wrap their operand in a descriptor
-  // Map carrying `:kind :builtin :impl <fn>` before `session.bind` —
-  // the Map branch above then routes through
-  // `manifestBuiltinDescriptor` with every authored field intact.
+  // Map (`new Map([['impl', fn]])` + `stampTagHeader(map,
+  // BUILTIN_TAG)` — `bindHostBuiltin` in the CLI demonstrates the
+  // pattern) before `session.bind`; the Map branch above then
+  // routes through `manifestBuiltinDescriptor` with every authored
+  // field intact.
   if (isFunctionValue(value)
       && value.meta && value.meta.category === 'conduitParameter') {
     return describeConduitParameter(value, explicitName);

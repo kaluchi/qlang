@@ -16,14 +16,21 @@
 // module load, and seals the registry. This is the single source
 // of truth for the bound env.
 //
+// (The descriptor Map's identity rides on the JS-header
+// `TAG_HEADER_SYMBOL` slot — stamped to `::builtin` by the
+// `::builtin{…}` tag-literal constructor in `runtime/tagged.mjs`
+// — not on a `:kind` Map field; the descriptor body carries only
+// `:impl` plus authored metadata.)
+//
 // Contract pinned here:
 //
 //   1. The root entry `#qlang/core` parses to a Pipeline AST
 //      without errors.
 //   2. Evaluating the catalog through the locator produces a
 //      non-empty Map — one entry per built-in operand.
-//   3. Every operand entry is itself a Map with :kind ::builtin
-//      and a :impl keyword prefixed `qlang/prim/`.
+//   3. Every operand entry is itself a Map with the `::builtin`
+//      identity on its JS-header slot and a `:impl` keyword
+//      prefixed `qlang/prim/`.
 //   4. Every :impl keyword resolves to a real primitive in
 //      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
 //      module-load side effects).
@@ -45,8 +52,8 @@ import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 // lands every descriptor Map in env. Reading the resolved env
 // returns the catalog as a Map keyed by operand name. Reserved
 // housekeeping keys (`qlang/ast/<uri>`, `qlang/namespace/<ns>`,
-// `qlang/locator`, anything without a `:kind ::builtin`
-// descriptor) are filtered so the returned Map carries only
+// `qlang/locator`, anything without a `::builtin` header on its
+// descriptor Map) are filtered so the returned Map carries only
 // operand descriptors — the surface the rest of this suite
 // asserts against.
 async function evalCore() {

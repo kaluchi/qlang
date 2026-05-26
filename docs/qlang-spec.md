@@ -1553,17 +1553,29 @@ parameter binding, no manual escaping.
 
 ### Tagged values as round-trip surface
 
-When a constructor returns a Map carrying `:kind <TagKeyword>`
-plus `:payload <Vec>`, the resulting value is a
-**tagged instance**: `printValue` reads the discriminator and
-emits the source-form `::tag[<payload>]` literal back, so any
-TaggedLit value flows through the round-trip invariant.
+A constructor invocation `::Tag<payload>` produces a
+**tagged instance**: identity rides on the payload's JS-header
+`tag` slot (a `TagKeyword`), the payload's native shape is
+preserved. Vec payload → tagged Vec (`isVec` still true,
+`/1` indexes elements directly, `count` returns the length);
+Map payload → tagged Map (`keys` lists the fields, `/field`
+projects, iteration sees the data plane); Set payload → tagged
+Set. Scalar / Keyword / Quote / Doc / Error / Conduit /
+Snapshot / already-tagged composite payloads ride an opaque
+wrap object that holds the value out of reach of `/key`
+projection — the dedicated `payload` operand is the only
+extractor.
 
-Three reserved tag names own dedicated render paths
-(`:conduit` → `::conduit[…]` form, `:snapshot` → wrapped value,
-`:tag` → BindStep declaration form) and are excluded from the
-generic tagged-instance path; every other tag rides the generic
-shape.
+`printValue` reads identity off the JS-header and re-emits the
+source-form `::tag<payload>` literal (`::Tag[…]`, `::Tag{…}`,
+`::Tag#[…]`, `::Tag~{…}`, `::Tag"…"`, `::Tag(scalar)`), so any
+TaggedLit value flows through the round-trip invariant. The
+`type` operand returns the identity tag directly; the `payload`
+operand strips identity and returns the underlying value (a
+fresh clone of the composite, or the wrapped value from the
+opaque wrap object). Two reserved tag names (`::conduit`,
+`::snapshot`) own dedicated render paths and ride distinct
+value-class handlers; every other tag rides the generic shape.
 
 A named error value (`!{:kind ::Tag …}`) carries the
 universal tagged-instance identity slot on the error value's
@@ -1683,10 +1695,14 @@ default to `::Error`. The descriptor Map below carries only
 data — no `:kind` field — so `result !| union(…) | error`
 re-lift round-trips preserve identity automatically.
 
-The materialized descriptor exposed by `!|` does stamp `:kind`
-back as the head field of the Map, so per-instance explainers
-read identity through ordinary projection
-(`result !| /kind | source` resolves the originating BindStep).
+The materialized descriptor exposed by `!|` stamps the tag onto
+the Map's JS-header identity slot (the same channel
+TaggedInstance / Conduit / Snapshot use) — `result !| type`
+reads the identity directly, `result !| payload` strips it and
+returns the data plane Map sans tag, `result !| /faultStep`
+projects fields as on any ordinary Map. Identity stays in one
+place; no duplicate `:kind <tag>` Map field shadows user data
+or duplicates the literal head on print.
 
 ### Error descriptor fields
 
@@ -1850,12 +1866,18 @@ question is "which bindings exist".
 
 `manifest` returns the full binding scope as a Vec of descriptors
 — one per binding, sorted alphabetically by name. Each descriptor
-carries `:kind` (`:builtin` / `:conduit` / `:snapshot` / `:tag` /
-`:value`), `:name`, plus per-kind fields stamped by
-`describeBinding` in `runtime/manifest-op.mjs`.
+carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
+`::tag` / `::value`) as an explicit enum bucket alongside `:name`
+and per-kind fields stamped by `describeBinding` in
+`runtime/manifest-op.mjs`. The `:kind` field on manifest entries
+is a view-only enumeration surface — distinct from the JS-header
+identity slot the underlying env values carry; both `manifest |
+* /kind | eq(::builtin)` (field projection) and `manifest | * type
+| eq(::builtin)` (identity through the `type` operand) produce
+the same partition.
 
 ```qlang
-env | manifest | filter(/kind | eq(:builtin)) | count
+env | manifest | filter(/kind | eq(::builtin)) | count
 |~| how many built-in operands are in scope
 
 env | manifest | filter(/effectful) * /name
@@ -1899,9 +1921,10 @@ declaration is hidden by shadowing. Errors:
 - No declaring BindStep found in any loaded module →
   `AxisBindingNotFoundError`.
 
-A tagged-instance Map carrying `:kind <TagKeyword>` is
-also a valid subject — the axis reads the docs of the type
-binding the instance was constructed from. Calling
+A tagged-value subject (any value carrying a TagKeyword on its
+JS-header identity slot — TaggedInstance, Conduit, Snapshot,
+materialized error) is also valid — the axis reads the docs
+of the type binding the instance was constructed from. Calling
 `some-conduit-value | docs` reaches the `::conduit` type
 binding's docs the same way `:count | docs` reaches the `:count`
 catalog entry's docs.
@@ -2134,10 +2157,13 @@ rendering boundaries:
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
   `toPlain` refuse a raw function value because no grammatical
   literal renders back to one. Host operands must wrap the
-  function in a descriptor Map carrying `:kind ::builtin`
-  and `:impl <fn>`; the projection inside `printValue`
-  substitutes the function back to its `:qlang/prim/<name>`
-  keyword handle so the descriptor itself round-trips.
+  function in a descriptor Map carrying `:impl <fn>` with
+  identity stamped on the Map's JS-header `TAG_HEADER_SYMBOL`
+  slot (`stampTagHeader(map, BUILTIN_TAG)` — same channel the
+  `::builtin{…}` constructor uses); the projection inside
+  `printValue` substitutes the function back to its
+  `:qlang/prim/<name>` keyword handle so the descriptor itself
+  round-trips.
 - **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
   body AST without a `.text` source slice, because `printConduit`
   emits `::conduit[:self [params] ~{body-source}]` and would

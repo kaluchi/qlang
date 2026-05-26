@@ -11,17 +11,18 @@
 
 :type
   |~~ Returns the value's identity tag. For tagged values
-      (errors, conduits, snapshots, tagged-instances, Maps
-      carrying `:kind`) returns the TagKeyword stamped
-      on the value. For scalars and base containers returns
-      the plain Keyword that names the kind (`:number`,
-      `:string`, `:keyword`, `:vec`, `:map`, `:set`, …).
+      (errors, conduits, snapshots, tagged-instances, builtin
+      descriptors) returns the TagKeyword stamped on the
+      value's JS-header `TAG_HEADER_SYMBOL` slot. For scalars
+      and base containers returns the plain Keyword that names
+      the kind (`:number`, `:string`, `:keyword`, `:vec`,
+      `:map`, `:set`, …).
 
       `result !| type` is the user-facing path to an error's
       tag identity — the materialised descriptor exposed by
-      `!|` is a Map carrying `:kind ::ErrorTag`, and
-      `type` reads it through the same invariant every other
-      tagged value-class shares.
+      `!|` is a Map with the per-site `::ErrorTag` riding on
+      the JS-header slot, and `type` reads through the same
+      invariant every other tagged value-class shares.
 
       ~{42 | type | eq(:number)}
       ~{"hi" | type | eq(:string)}

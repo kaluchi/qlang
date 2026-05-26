@@ -585,7 +585,7 @@ export function typeKeyword(v) {
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) {
-    // Legacy `:kind` field fallback — covers manifest view-Maps
+    // `:kind` field fallback — covers manifest view-Maps
     // (`:kind ::builtin` enum bucket) and user-built `{:kind
     // ::Foo …}` Maps that ride the descriptor surface without
     // stamping the header.

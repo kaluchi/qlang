@@ -12,7 +12,7 @@
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
 
-import { nullaryOp, valueOp, overloadedOp } from './dispatch.mjs';
+import { nullaryOp, overloadedOp } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,

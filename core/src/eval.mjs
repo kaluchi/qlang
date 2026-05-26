@@ -756,7 +756,7 @@ function projectSegment(subject, projKey, state) {
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= subject.length) {
-      throw new ProjectionIndexOutOfBoundsError({ index: segmentIndex, length: subject.length, actualValue: subject });
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, actualValue: subject });
     }
     return subject[resolvedIndex];
   }
@@ -768,7 +768,7 @@ function projectSegment(subject, projKey, state) {
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? items.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= items.length) {
-      throw new ProjectionIndexOutOfBoundsError({ index: segmentIndex, length: items.length, actualValue: subject });
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: items.length, actualValue: subject });
     }
     return items[resolvedIndex];
   }

@@ -229,9 +229,9 @@ describe('default constructor — tag-binding without :impl', () => {
     // Identity-overlay: tag stamps the JS-header slot on the
     // Map payload, fields land as ordinary Map entries. `keys`,
     // `vals`, `/field` projection read the underlying Map data
-    // plane unchanged. The pre-Phase-3 nested-identity-loss bug
-    // (Map-merge collision on `:kind`) cannot recur because
-    // identity rides on the header, not in a Map field.
+    // plane unchanged. A `:kind` field on the inner Map data
+    // coexists with the instance's identity because identity
+    // rides on the JS-header alone.
     const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::AddLeftNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);

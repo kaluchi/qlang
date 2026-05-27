@@ -24,8 +24,15 @@
 // `NO_COLOR` / `FORCE_COLOR` env vars feed into the resolution
 // downstream; the explicit `--color` flag wins over both.
 //
+// `VERSION_LINE` reads `@kaluchi/qlang-cli`'s own `package.json` at
+// module-load time through `createRequire` so the release script's
+// `package.json` bump propagates without a per-release source edit.
+//
 // Pure function, no side effects. main.mjs branches on `kind` to
 // dispatch into the rest of the runtime.
+
+import { createRequire } from 'node:module';
+const _cliPackage = createRequire(import.meta.url)('../package.json');
 
 export const HELP_TEXT = `qlang \u2014 pipeline query language
 
@@ -63,7 +70,7 @@ Examples:
 See https://github.com/kaluchi/qlang for the language reference.
 `;
 
-export const VERSION_LINE = '@kaluchi/qlang-cli 0.1.0\n';
+export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;
 
 const COLOR_MODES = new Set(['auto', 'always', 'never']);
 

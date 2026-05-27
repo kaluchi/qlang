@@ -95,11 +95,11 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
 
 describe('printErrorValue — head + payload-filter branches', () => {
   it('default ::Error tag heads an otherwise-empty error', async () => {
-    // After Phase 1, every error carries an identity tag on the
-    // JS-header `tag` slot — `::Error` is the universal default
-    // for user `!{}` without explicit `:kind ::Foo`. The printer
-    // emits the tag unconditionally so the round-trip recovers
-    // the same identity.
+    // Every error carries an identity tag on the JS-header `tag`
+    // slot — `::Error` is the universal default for user `!{}`
+    // without explicit `:kind ::Foo`. The printer emits the tag
+    // unconditionally so the round-trip recovers the same
+    // identity.
     const err = makeErrorValue(makeTagKeyword('Error'), new Map());
     expect(printValue(err)).toBe('::Error!{}');
   });
@@ -135,10 +135,10 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 
   it(':message rides through the printer verbatim — user content, not template-fill', async () => {
-    // Earlier shape elided `:message` when a tag head was present;
-    // Phase 1 keeps the field so user-stamped messages round-trip
-    // exactly. Runtime-side errors (`errorFromQlang`) simply omit
-    // `:message` from the descriptor at construction.
+    // User-stamped `:message` fields ride through the printer
+    // verbatim so round-trip preserves them exactly. Runtime-
+    // side errors (`errorFromQlang`) simply omit `:message` from
+    // the descriptor at construction.
     const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
       ['message', 'user-stamped prose'],
       ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]

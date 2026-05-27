@@ -173,13 +173,14 @@ bindPrim('qlang', qlangOperand);
 
 // ── tag / payload — TaggedInstance split/assemble pair ──────
 //
-// After Phase 3 the default `::Tag<payload>` constructor always
-// wraps: the payload value rides as-is on the instance's
-// `:payload` slot, identity sits on the Map JS-header. These two
-// operands give user code a clean way to deconstruct the wrap
-// (`payload`) and to mint a new TaggedInstance at runtime from a
-// value + tag pair (`tag(::Foo)`). Both ride the
-// `:typeConversion` family alongside `keyword` / `qlang` / `json`.
+// `tag(::Foo)` mints a TaggedInstance through `makeTaggedInstance`
+// — composite payloads (Vec / Set / Map / JsonArray) clone with
+// the TagKeyword stamped on the JS-header slot, leaving the data
+// plane intact; non-extensible payloads (scalar, Keyword, Quote,
+// Doc, Error, Conduit, Snapshot, already-tagged composite) ride
+// an opaque frozen `{type, tag, payload}` wrapper. `payload`
+// reverses each shape. Both operands ride the `:typeConversion`
+// family alongside `keyword` / `qlang` / `json`.
 //
 // `tagged | payload` — strip identity, return the underlying
 // data plane. Composite-shape returns a fresh clone of the

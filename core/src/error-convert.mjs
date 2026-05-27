@@ -244,13 +244,13 @@ export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
       d.set(k, coerce(v));
   }
 
-  // Cause-chain entries are inert Map records (not error values
-  // themselves) — they document the JS-side cause provenance for
-  // a foreign throw site. The `:kind` field here is a domain-level
-  // discriminator, not the identity-slot invariant Phase 1 lifts
-  // off error values: a plain Map carries whatever fields its
-  // builder chooses, and `:kind <TagKeyword>` keeps the record
-  // structurally addressable through `error !| /causes * /kind`.
+  // Cause-chain entries are inert Map records that document the
+  // JS-side cause provenance for a foreign throw site. The
+  // `:kind` field on these records is a domain-level
+  // discriminator on a plain Map; the identity-on-JS-header
+  // invariant covers ErrorValue wrappers alone, leaving `:kind`
+  // available as ordinary data — `error !| /causes * /kind`
+  // projects it through the regular field-projection path.
   if (jsError.cause instanceof Error) {
     const causes = [];
     let current = jsError.cause;
@@ -282,12 +282,11 @@ function coerce(v, depth = 0) {
   if (isKeyword(v) || isQMap(v) || isQSet(v) || isErrorValue(v)) return v;
   if (Array.isArray(v)) return v.map(el => coerce(el, depth + 1));
   if (v instanceof Error) {
-    // Mirror the cause-chain shape: a coerced JS Error is a Map
-    // record (not an error value) carrying the originating JS-side
-    // name on `:kind` plus `:message`. `:kind` here is a domain-
-    // level discriminator — Phase 1's identity-on-JS-header
-    // invariant covers error values, not the plain Maps they
-    // shelter.
+    // Mirror the cause-chain shape: a coerced JS Error becomes a
+    // Map record carrying the originating JS-side name on `:kind`
+    // plus `:message`. `:kind` here is a domain-level
+    // discriminator on the plain Map shelter; the identity-on-
+    // JS-header invariant covers ErrorValue wrappers alone.
     const m = new Map();
     m.set('message', v.message);
     m.set('kind', makeTagKeyword(v.name));

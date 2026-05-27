@@ -306,11 +306,11 @@ describe('errorFromForeign', () => {
     const causes = errorVal.descriptor.get('causes');
     expect(Array.isArray(causes)).toBe(true);
     expect(causes).toHaveLength(2);
-    // Cause-chain entries are inert Map records, not error values:
-    // each carries `:kind` (a TagKeyword documenting the JS-side
-    // cause name) plus `:message`. `:kind` here is a domain-level
-    // discriminator — Phase 1's identity-on-JS-header invariant
-    // covers error values, not the plain Maps they shelter.
+    // Cause-chain entries are inert Map records: each carries
+    // `:kind` (a TagKeyword documenting the JS-side cause name)
+    // plus `:message`. `:kind` here is a domain-level
+    // discriminator on the plain Map shelter; the identity-on-
+    // JS-header invariant covers ErrorValue wrappers alone.
     expect(causes[0].get('message')).toBe('intermediate');
     expect(causes[0].get('kind').name).toBe('Error');
     expect(causes[1].get('message')).toBe('root cause');

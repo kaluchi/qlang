@@ -270,7 +270,7 @@ describe('parse — bindings: BindStep and as operand', () => {
     expect(ast.body.name).toBe('mul');
   });
 
-  it('as is not reserved — it parses as an ordinary identifier reference', () => {
+  it('as parses as an ordinary identifier reference', () => {
     const asAst = parse('as');
     expect(asAst.type).toBe('OperandCall');
     expect(asAst.name).toBe('as');

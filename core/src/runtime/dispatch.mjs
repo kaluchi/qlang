@@ -106,14 +106,12 @@ async function applyTagPreservation(state, source, result) {
   if (isQMap(resolved) && resolved.has('impl')) {
     return await mintTaggedInstance(sourceTag.name, result, state);
   }
-  // No primitive guard around `result[TAG_HEADER_SYMBOL]` —
-  // `preservesTag` operands return composite by construction
-  // (filter / sort / take / drop / reverse / flat / sortWith /
-  // distinct — every preserve-path produces Vec / Set / Map /
-  // JsonArray, no scalar reducer carries the option). A future
-  // operand returning a primitive under the same option is a
-  // contract bug; an explicit TypeError at the bad operand site
-  // is more diagnostic than a silent no-op through the post-pass.
+  // `result[TAG_HEADER_SYMBOL]` reads safely through every
+  // `preservesTag` return shape — those operands (filter / sort
+  // / take / drop / reverse / flat / sortWith / distinct) always
+  // produce composite Vec / Set / Map / JsonArray. A preserve-
+  // path operand that returns a primitive surfaces the contract
+  // bug as a TypeError at the operand site.
   if (result[TAG_HEADER_SYMBOL] === undefined) stampTagHeader(result, sourceTag);
   freezeIfJsonArray(result);
   return result;

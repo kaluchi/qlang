@@ -76,6 +76,16 @@ const BRACKETED_PASTE_BEGIN = ESC + '[200~';
 const BRACKETED_PASTE_END   = ESC + '[201~';
 const ENABLE_BRACKETED_PASTE  = ESC + '[?2004h';
 const DISABLE_BRACKETED_PASTE = ESC + '[?2004l';
+const HIDE_CURSOR             = ESC + '[?25l';
+const SHOW_CURSOR             = ESC + '[?25h';
+// Synchronized Output (DECSET 2026) — terminals that support it
+// buffer every byte between BEGIN_SYNC and END_SYNC and present
+// them as one atomic frame, so the clear-then-repaint cycle no
+// longer flashes a blank line of text. Terminals that don't
+// recognise the sequence treat it as an unknown CSI and drop it,
+// matching the prior behaviour without regression.
+const BEGIN_SYNC              = ESC + '[?2026h';
+const END_SYNC                = ESC + '[?2026l';
 
 export function createLineEditor(stdinStream, stdoutWrite, options) {
   if (stdinStream.isTTY === true) {
@@ -193,6 +203,15 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   function redrawCurrentLine() {
     const width = getColumns();
 
+    // Open a synchronized-output frame so a supporting terminal
+    // commits the whole clear-and-repaint sequence as one atomic
+    // update — without it, the empty window between `\x1b[J` and
+    // the prompt repaint flashes a blank cell on the screen. The
+    // hardware cursor is also hidden so a terminal without sync
+    // support cannot park it in an intermediate column either.
+    stdoutWrite(BEGIN_SYNC);
+    stdoutWrite(HIDE_CURSOR);
+
     // 1. Walk the terminal cursor up to row 0 of the prior render.
     if (lastCursorRow > 0) {
       stdoutWrite(ESC + `[${lastCursorRow}A`);
@@ -221,6 +240,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
 
     lastVisualRows = totalRows;
     lastCursorRow  = cursorVisual.row;
+
+    stdoutWrite(SHOW_CURSOR);
+    stdoutWrite(END_SYNC);
   }
 
   function submitCurrentLine() {
@@ -634,6 +656,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       clearTimeout(pasteAccumTimer);
       pasteAccumTimer = null;
     }
+    stdoutWrite(SHOW_CURSOR);
     stdoutWrite(DISABLE_BRACKETED_PASTE);
     stdinStream.setRawMode(false);
     stdinStream.removeListener('data', onData);

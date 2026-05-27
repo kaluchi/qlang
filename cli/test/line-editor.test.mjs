@@ -788,6 +788,27 @@ describe('createLineEditor — TTY lifecycle', () => {
     expect(rawModeCalls).toEqual([true, false]);
   });
 
+  it('wraps every redraw in synchronized-output and hide/show-cursor escapes', () => {
+    // Each redraw opens a DECSET 2026 sync block and hides the
+    // cursor so a supporting terminal commits the clear-and-
+    // repaint as one atomic frame; both pairs close before the
+    // next keystroke can drive another redraw.
+    const { stdinStream, editor, out } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a');
+    expect(out.text()).toContain(ESC + '[?2026h');
+    expect(out.text()).toContain(ESC + '[?2026l');
+    expect(out.text()).toContain(ESC + '[?25l');
+    expect(out.text()).toContain(ESC + '[?25h');
+  });
+
+  it('restores the cursor on close so an interrupted teardown does not leave the terminal hidden', () => {
+    const { editor, out } = makeTtySetup();
+    editor.start();
+    editor.close();
+    expect(out.text()).toContain(ESC + '[?25h');
+  });
+
   it('writes the bracketed-paste enable + disable escapes around start/close', () => {
     const { editor, out } = makeTtySetup();
     editor.start();

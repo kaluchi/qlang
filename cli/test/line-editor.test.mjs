@@ -261,6 +261,37 @@ describe('createLineEditor — TTY control bytes', () => {
     expect(capture.isClosed()).toBe(true);
   });
 
+  it('Ctrl+C resets the history navigation index to the latest entry', () => {
+    // After recalling 'one' the user cancels with Ctrl+C. The next
+    // Up must walk back to the latest entry ('two'), not resume
+    // from the recalled 'one' position — symmetry with submit.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream,
+      'one', SUBMIT,
+      'two', SUBMIT,
+      ESC + '[A',                  // recall 'two'
+      ESC + '[A',                  // recall 'one'
+      Buffer.from([0x03]),          // Ctrl+C
+      ESC + '[A',                  // Up must hit latest ('two'), not 'one'
+      SUBMIT);
+    expect(capture.lines).toEqual(['one', 'two', 'two']);
+  });
+
+  it('Ctrl+C clears per-entry history drafts', () => {
+    // Edits made inside a recalled cell must NOT survive Ctrl+C.
+    // Without the clear, a subsequent walk to index 1 would see
+    // the stale 'BX' draft instead of the stored 'B'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream,
+      'A', SUBMIT, 'B', SUBMIT,
+      ESC + '[A', 'X',              // recall 'B', edit to 'BX'
+      Buffer.from([0x03]),           // Ctrl+C — drafts must clear
+      ESC + '[A', SUBMIT);          // Up recalls 'B' from history, not 'BX'
+    expect(capture.lines).toEqual(['A', 'B', 'B']);
+  });
+
   it('Ctrl+D with a non-empty buffer is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();

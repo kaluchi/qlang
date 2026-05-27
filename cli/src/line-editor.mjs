@@ -463,6 +463,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     stdoutWrite('\r\n^C\r\n');
     buffer = '';
     cursor = 0;
+    historyIndex = history.length;
+    historyDrafts.clear();
     desiredColumn = null;
     lastVisualRows = 0;
     lastCursorRow  = 0;

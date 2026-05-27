@@ -43,41 +43,44 @@ describe('discoverModules', () => {
 // ── resolveModules ──────────────────────────────────────────────
 
 describe('resolveModules', () => {
-  it('produces a catalog of Maps (keyword → export Map)', async () => {
+  it('produces a catalog of { exports, source, ast } entries per namespace', async () => {
     const catalog = await resolveModules(libDir);
     expect(catalog instanceof Map).toBe(true);
     expect(catalog.size).toBeGreaterThan(0);
-    for (const [catalogKey, catalogVal] of catalog) {
+    for (const [catalogKey, entry] of catalog) {
       expect(typeof catalogKey === 'string').toBe(true);
-      // Values are Maps (module export envs)
-      expect(catalogVal instanceof Map).toBe(true);
+      expect(entry.exports instanceof Map).toBe(true);
+      expect(typeof entry.source).toBe('string');
+      expect(entry.source.length).toBeGreaterThan(0);
+      expect(entry.ast).not.toBeNull();
+      expect(entry.ast.type).toBeDefined();
     }
   });
 
   it('resolved error module exports retry, recover, mapError, withContext', async () => {
     const catalog = await resolveModules(libDir);
-    const errorModule = catalog.get('error');
-    expect(errorModule instanceof Map).toBe(true);
-    expect(errorModule.has('retry')).toBe(true);
-    expect(errorModule.has('recover')).toBe(true);
-    expect(errorModule.has('mapError')).toBe(true);
-    expect(errorModule.has('withContext')).toBe(true);
+    const errorEntry = catalog.get('error');
+    expect(errorEntry.exports instanceof Map).toBe(true);
+    expect(errorEntry.exports.has('retry')).toBe(true);
+    expect(errorEntry.exports.has('recover')).toBe(true);
+    expect(errorEntry.exports.has('mapError')).toBe(true);
+    expect(errorEntry.exports.has('withContext')).toBe(true);
   });
 
   it('resolved error/guards module exports assert and ensure', async () => {
     const catalog = await resolveModules(libDir);
-    const guards = catalog.get('error/guards');
-    expect(guards instanceof Map).toBe(true);
-    expect(guards.has('assert')).toBe(true);
-    expect(guards.has('ensure')).toBe(true);
+    const guardsEntry = catalog.get('error/guards');
+    expect(guardsEntry.exports instanceof Map).toBe(true);
+    expect(guardsEntry.exports.has('assert')).toBe(true);
+    expect(guardsEntry.exports.has('ensure')).toBe(true);
   });
 
   it('resolved error/observe module exports tap and finally', async () => {
     const catalog = await resolveModules(libDir);
-    const observe = catalog.get('error/observe');
-    expect(observe instanceof Map).toBe(true);
-    expect(observe.has('tap')).toBe(true);
-    expect(observe.has('finally')).toBe(true);
+    const observeEntry = catalog.get('error/observe');
+    expect(observeEntry.exports instanceof Map).toBe(true);
+    expect(observeEntry.exports.has('tap')).toBe(true);
+    expect(observeEntry.exports.has('finally')).toBe(true);
   });
 });
 
@@ -124,5 +127,20 @@ describe('installModules', () => {
       expect(cellEntry.error).toBeNull();
       expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
     }
+  });
+
+  it('install-loaded module AST is stamped under qlang/ast/<ns> so axis-operands reach the BindStep', async () => {
+    // Symmetry with locator-pathway: `use(:ns)` via createSession({locator}) stamps
+    // moduleAstKey(ns) so `:name | source / docs / examples` resolve. installModules
+    // must stamp the same key, otherwise install-loaded modules' bindings are invisible
+    // to the axis trio even after `use(:ns)` merges their exports into env.
+    const catalog = await resolveModules(libDir);
+    const sessionInstance = await createSession();
+    installModules(sessionInstance, catalog);
+    await sessionInstance.evalCell('use(:error)');
+    const docsCell = await sessionInstance.evalCell(':retry | docs | first | /content');
+    expect(docsCell.error).toBeNull();
+    expect(typeof docsCell.result).toBe('string');
+    expect(docsCell.result).toContain('Retry');
   });
 });

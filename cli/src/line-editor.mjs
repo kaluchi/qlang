@@ -102,14 +102,25 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   // code point.
   const utf8Decoder = new StringDecoder('utf8');
 
-  // History ring of submitted cells plus a per-session draft slot
-  // holding whatever the user was typing before they pressed Up.
-  // Up walks back; Down walks forward; reaching the bottom restores
-  // the draft. Recalled entries keep their internal newlines — the
-  // multi-line redraw lays them out as they were submitted.
+  // History ring of submitted cells plus per-index draft slots that
+  // hold whatever the user is typing while parked at each index —
+  // the bottom slot (`history.length`) is the draft the user
+  // started before any recall, intermediate slots capture in-place
+  // edits to recalled entries. A walk away saves the current
+  // buffer into `historyDrafts[oldIndex]`; a walk back reads from
+  // it. Drafts clear on submit. Recalled buffers keep their
+  // internal newlines — the multi-line redraw lays them out as
+  // they were submitted.
   const history = [];
   let historyIndex = 0;
-  let historyDraft = '';
+  const historyDrafts = new Map();
+
+  // Sticky desired column for vertical navigation. A series of
+  // Up/Down keystrokes through rows of varying length keeps
+  // returning to the column the user originally aimed at; any
+  // horizontal motion, edit, or history recall resets it so the
+  // next vertical walk starts from the current local column.
+  let desiredColumn = null;
 
   // Visible width of the prompt — ANSI colour escapes never advance
   // the cursor, only the printable bytes do. Computed once.
@@ -226,7 +237,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     buffer = '';
     cursor = 0;
     historyIndex = history.length;
-    historyDraft = '';
+    historyDrafts.clear();
+    desiredColumn = null;
     lastVisualRows = 0;
     lastCursorRow  = 0;
     emitter.emit('line', lineText);
@@ -238,22 +250,131 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     history.push(lineText);
   }
 
+  // The recall helpers are only reached after arrowUp / arrowDown
+  // have verified that a step in their direction is in range —
+  // they unconditionally save the leaving slot's draft, advance
+  // the index, and reload the buffer from the next slot. Walking
+  // away from `history.length` always seeds its draft slot first,
+  // so a subsequent Down back into `history.length` reads from
+  // `historyDrafts`; the bare `history[i]` branch only fires for
+  // strictly-internal indices.
   function recallHistoryPrev() {
-    if (historyIndex === 0) return;
-    if (historyIndex === history.length) {
-      historyDraft = buffer;
-    }
+    historyDrafts.set(historyIndex, buffer);
     historyIndex -= 1;
-    buffer = history[historyIndex];
+    buffer = bufferForHistoryIndex(historyIndex);
     cursor = buffer.length;
+    desiredColumn = null;
     redrawCurrentLine();
   }
 
   function recallHistoryNext() {
-    if (historyIndex === history.length) return;
+    historyDrafts.set(historyIndex, buffer);
     historyIndex += 1;
-    buffer = historyIndex === history.length ? historyDraft : history[historyIndex];
+    buffer = bufferForHistoryIndex(historyIndex);
     cursor = buffer.length;
+    desiredColumn = null;
+    redrawCurrentLine();
+  }
+
+  function bufferForHistoryIndex(i) {
+    return historyDrafts.has(i) ? historyDrafts.get(i) : history[i];
+  }
+
+  // Vertical navigation. Up/Down step across logical `\n`
+  // boundaries inside the current buffer; on the edge row in the
+  // direction of motion the fallback is history recall, and when
+  // no neighbouring history entry exists the cursor jumps to
+  // Home / End. `desiredColumn` is sticky across the
+  // vertical-only run so a single tall column survives walks
+  // through shorter intermediate rows.
+
+  function getLogicalCursorPosition() {
+    const before = buffer.slice(0, cursor);
+    const beforeLines = before.split('\n');
+    return {
+      lineIndex: beforeLines.length - 1,
+      columnInLine: beforeLines[beforeLines.length - 1].length
+    };
+  }
+
+  function setCursorAtLogicalPosition(lineIndex, columnInLine) {
+    const lines = buffer.split('\n');
+    let offset = 0;
+    for (let i = 0; i < lineIndex; i += 1) {
+      offset += lines[i].length + 1; // +1 for the `\n` separator
+    }
+    let column = Math.min(columnInLine, lines[lineIndex].length);
+    // The cursor is a code-unit offset; a target column derived
+    // from a row whose surrogate-pair layout differs from the
+    // landing row's may aim between the high and low halves of a
+    // pair. Snap to the start of the pair so subsequent edits
+    // operate on whole characters rather than orphan halves.
+    if (column > 0 && column < lines[lineIndex].length) {
+      const before = lines[lineIndex].charCodeAt(column - 1);
+      const after  = lines[lineIndex].charCodeAt(column);
+      if (before >= 0xd800 && before <= 0xdbff &&
+          after  >= 0xdc00 && after  <= 0xdfff) {
+        column -= 1;
+      }
+    }
+    cursor = offset + column;
+  }
+
+  // JS strings are UTF-16; non-BMP characters (emoji, ancient
+  // scripts, …) occupy a surrogate pair — two adjacent code
+  // units. Editing primitives that walk one code unit at a time
+  // would leak orphan halves, so the cursor steps across a pair
+  // in one move. The two helpers report the code-unit footprint
+  // of the character immediately before or at the given offset.
+  function codeUnitsForCharBefore(s, i) {
+    if (i >= 2) {
+      const lo = s.charCodeAt(i - 1);
+      const hi = s.charCodeAt(i - 2);
+      if (hi >= 0xd800 && hi <= 0xdbff && lo >= 0xdc00 && lo <= 0xdfff) return 2;
+    }
+    return 1;
+  }
+  function codeUnitsForCharAt(s, i) {
+    if (i + 1 < s.length) {
+      const hi = s.charCodeAt(i);
+      const lo = s.charCodeAt(i + 1);
+      if (hi >= 0xd800 && hi <= 0xdbff && lo >= 0xdc00 && lo <= 0xdfff) return 2;
+    }
+    return 1;
+  }
+
+  function arrowUp() {
+    const { lineIndex, columnInLine } = getLogicalCursorPosition();
+    if (lineIndex > 0) {
+      if (desiredColumn === null) desiredColumn = columnInLine;
+      setCursorAtLogicalPosition(lineIndex - 1, desiredColumn);
+      redrawCurrentLine();
+      return;
+    }
+    if (historyIndex > 0) {
+      recallHistoryPrev();
+      return;
+    }
+    cursor = 0;
+    desiredColumn = null;
+    redrawCurrentLine();
+  }
+
+  function arrowDown() {
+    const { lineIndex, columnInLine } = getLogicalCursorPosition();
+    const totalLines = buffer.split('\n').length;
+    if (lineIndex < totalLines - 1) {
+      if (desiredColumn === null) desiredColumn = columnInLine;
+      setCursorAtLogicalPosition(lineIndex + 1, desiredColumn);
+      redrawCurrentLine();
+      return;
+    }
+    if (historyIndex < history.length) {
+      recallHistoryNext();
+      return;
+    }
+    cursor = buffer.length;
+    desiredColumn = null;
     redrawCurrentLine();
   }
 
@@ -331,41 +452,61 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       case ESC + '[F':
       case ESC + '[4~': moveCursorEnd();    break;
       case ESC + '[3~': deleteAtCursor();   break;
-      case ESC + '[A': recallHistoryPrev(); break;
-      case ESC + '[B': recallHistoryNext(); break;
+      case ESC + '[A': arrowUp();   break;
+      case ESC + '[B': arrowDown(); break;
     }
     pendingEscape = '';
   }
 
   function insertCharAtCursor(ch) {
+    // The chunk decoder hands `handleChar` one code point at a
+    // time, so `ch.length` is 2 for a non-BMP character and 1
+    // otherwise — advancing by it keeps the cursor on a
+    // character boundary.
     buffer = buffer.slice(0, cursor) + ch + buffer.slice(cursor);
-    cursor += 1;
+    cursor += ch.length;
+    desiredColumn = null;
     redrawCurrentLine();
   }
 
   function insertNewlineAtCursor() {
     buffer = buffer.slice(0, cursor) + '\n' + buffer.slice(cursor);
     cursor += 1;
+    desiredColumn = null;
     redrawCurrentLine();
   }
 
   function backspaceAtCursor() {
     if (cursor === 0) return;
-    buffer = buffer.slice(0, cursor - 1) + buffer.slice(cursor);
-    cursor -= 1;
+    const width = codeUnitsForCharBefore(buffer, cursor);
+    buffer = buffer.slice(0, cursor - width) + buffer.slice(cursor);
+    cursor -= width;
+    desiredColumn = null;
     redrawCurrentLine();
   }
 
   function deleteAtCursor() {
     if (cursor >= buffer.length) return;
-    buffer = buffer.slice(0, cursor) + buffer.slice(cursor + 1);
+    const width = codeUnitsForCharAt(buffer, cursor);
+    buffer = buffer.slice(0, cursor) + buffer.slice(cursor + width);
+    desiredColumn = null;
     redrawCurrentLine();
   }
 
-  function moveCursorLeft()  { if (cursor > 0)             { cursor -= 1; redrawCurrentLine(); } }
-  function moveCursorRight() { if (cursor < buffer.length) { cursor += 1; redrawCurrentLine(); } }
-  function moveCursorHome()  { cursor = 0;             redrawCurrentLine(); }
-  function moveCursorEnd()   { cursor = buffer.length; redrawCurrentLine(); }
+  function moveCursorLeft() {
+    if (cursor === 0) return;
+    cursor -= codeUnitsForCharBefore(buffer, cursor);
+    desiredColumn = null;
+    redrawCurrentLine();
+  }
+  function moveCursorRight() {
+    if (cursor >= buffer.length) return;
+    cursor += codeUnitsForCharAt(buffer, cursor);
+    desiredColumn = null;
+    redrawCurrentLine();
+  }
+  function moveCursorHome()  { cursor = 0;             desiredColumn = null; redrawCurrentLine(); }
+  function moveCursorEnd()   { cursor = buffer.length; desiredColumn = null; redrawCurrentLine(); }
 
   function interruptCurrentLine() {
     // Walk to the last row of the block, print ^C on its own line,
@@ -375,6 +516,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     stdoutWrite('\r\n^C\r\n');
     buffer = '';
     cursor = 0;
+    historyIndex = history.length;
+    historyDrafts.clear();
+    desiredColumn = null;
     lastVisualRows = 0;
     lastCursorRow  = 0;
     redrawCurrentLine();
@@ -470,6 +614,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       .replace(/\n+$/, '');
     buffer = buffer.slice(0, cursor) + normalised + buffer.slice(cursor);
     cursor += normalised.length;
+    desiredColumn = null;
     redrawCurrentLine();
   }
 

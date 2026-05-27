@@ -1,0 +1,74 @@
+|~ qlang operand catalog — CLI format family. Pure value-to-String
+   formatters the CLI binds alongside the io operands. Each takes a
+   pipeValue subject and returns a rendered String; chaining them
+   in front of `@out` is how a query produces stdout. JS impls live
+   in `cli/src/format-operands.mjs`. Each operand BindStep sits
+   directly under the per-site error tags it raises. ~|
+
+:pretty
+  |~~ Renders any value as its canonical qlang-literal display
+      form — the same bytes `printValue` produces. Round-trips
+      through `parse | eval` back to the same value, so
+      `pretty | parse | eval | pretty` is an identity for any
+      qlang-shaped subject.
+
+      ~{42 | pretty | eq("42")}
+      ~{"hi" | pretty | eq("\"hi\"")}
+      ~{[1 2 3] | pretty | eq("[1 2 3]")}
+      ~{{:a 1} | pretty | eq("{:a 1}")}
+      ~{:foo | pretty | eq(":foo")}
+  ~~|
+  ::builtin{:impl :qlang/cli/prim/pretty
+            :category :format
+            :subject :any
+            :returns :string
+            :modifiers []
+   }
+
+:tjson
+  |~~ Renders any value as the tagged-JSON wire format from core's
+      `codec.mjs`. Round-trips through `parseTjson`, so two qlang
+      processes chained over a Unix pipe preserve identity for
+      keyword / Set / Map / TaggedInstance / error values that
+      plain JSON cannot represent. Use it for qlang-to-qlang IPC;
+      use `json` (in `:format` family of core) for talking to
+      non-qlang consumers.
+
+      ~{42 | tjson | parseTjson | eq(42)}
+      ~{[1 :foo "hi"] | tjson | parseTjson | eq([1 :foo "hi"])}
+      ~{#[1 2 3] | tjson | parseTjson | eq(#[1 2 3])}
+      ~{{:a 1 :b :keyword} | tjson | parseTjson | eq({:a 1 :b :keyword})}
+  ~~|
+  ::builtin{:impl :qlang/cli/prim/tjson
+            :category :format
+            :subject :any
+            :returns :string
+            :modifiers []
+   }
+
+:template
+  |~~ Substitutes pipeline values into a template String through
+      the `{{...}}` slot grammar. `{{.}}` projects the subject
+      itself, `{{key}}` performs a single-segment projection
+      against a Map subject, `{{a/b/c}}` chains projections.
+      String-typed substitutions embed as raw characters (so URLs
+      and names appear without surrounding quotes); other types
+      render via `pretty`. Missing fields render as `"null"`.
+
+      ~{"world" | template("Hello, {{.}}!") | eq("Hello, world!")}
+      ~{{:name "alice"} | template("hi {{name}}") | eq("hi alice")}
+      ~{{:user {:name "alice"}} | template("hi {{user/name}}") | eq("hi alice")}
+      ~{42 | template("answer is {{.}}") | eq("answer is 42")}
+  ~~|
+  ::builtin{:impl :qlang/cli/prim/template
+            :category :format
+            :subject :any
+            :returns :string
+            :modifiers [:string]
+            :throws [::TemplateModifierNotStringError]}
+
+::TemplateModifierNotStringError
+  |~~ `template` captured-arg must be a String — the template
+      itself. Pass the literal template text, not a Keyword or
+      number. ~~|
+  ::builtin{:category :typeError :operand :template :position 1 :expectedType :string}

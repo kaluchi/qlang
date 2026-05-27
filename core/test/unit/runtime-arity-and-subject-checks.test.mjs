@@ -58,19 +58,19 @@ describe('vec.flat non-Vec elements', async () => {
 
 describe('dispatch variadic registration invariants', async () => {
   it('stateOpVariadic without captured throws QlangInvariantError', async () => {
-    expect(() => stateOpVariadic('badOp', 2, (s) => s)).toThrow(QlangInvariantError);
+    expect(() => stateOpVariadic('badOp', (s) => s)).toThrow(QlangInvariantError);
   });
 
   it('stateOpVariadic with null captured throws QlangInvariantError', async () => {
-    expect(() => stateOpVariadic('badOp', 2, (s) => s, null)).toThrow(QlangInvariantError);
+    expect(() => stateOpVariadic('badOp', (s) => s, null)).toThrow(QlangInvariantError);
   });
 
   it('higherOrderOpVariadic without captured throws QlangInvariantError', async () => {
-    expect(() => higherOrderOpVariadic('badOp', 2, (pv) => pv)).toThrow(QlangInvariantError);
+    expect(() => higherOrderOpVariadic('badOp', (pv) => pv)).toThrow(QlangInvariantError);
   });
 
   it('higherOrderOpVariadic with null captured throws QlangInvariantError', async () => {
-    expect(() => higherOrderOpVariadic('badOp', 2, (pv) => pv, null)).toThrow(QlangInvariantError);
+    expect(() => higherOrderOpVariadic('badOp', (pv) => pv, null)).toThrow(QlangInvariantError);
   });
 });
 

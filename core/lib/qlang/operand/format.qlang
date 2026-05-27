@@ -3,9 +3,17 @@
    the operand's `:throws` Vec references those tags by name. ~|
 
 :json
-  |~~ Returns a JSON string representation of the subject.
-      Keywords are emitted as colon-prefixed strings, Sets as JSON
-      arrays, Maps as JSON objects with Keyword names as keys. ~~|
+  |~~ Renders the subject as a JSON string. qlang-only shapes
+      lose round-trip identity at this boundary: Keywords become
+      colon-prefixed strings (`:foo` → `":foo"`), Sets flatten to
+      arrays, Maps emit with Keyword names as object keys. Use
+      this for handing values to non-qlang consumers; for in-pipeline
+      pretty-printing reach for `pretty`.
+
+      ~{{:a 1 :b 2} | json | eq("{\"a\":1,\"b\":2}")}
+      ~{[:foo :bar] | json | eq("[\":foo\",\":bar\"]")}
+      ~{#[1 2 3] | json | eq("[1,2,3]")}
+  ~~|
   ::builtin{:impl :qlang/prim/json
             :category :format
             :subject :any
@@ -38,7 +46,11 @@
   |~~ Renders a Vec of Maps as a fixed-width tabular string.
       Columns are derived from keys in first-occurrence order
       across all rows; missing keys render as empty cells.
-      Empty Vec yields the marker "(empty)". ~~|
+      Empty Vec yields the marker "(empty)".
+
+      ~{[{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains("alice")}
+      ~{[] | table | eq("(empty)")}
+  ~~|
   ::builtin{:impl :qlang/prim/table
             :category :format
             :subject :vec

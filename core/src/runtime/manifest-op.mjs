@@ -195,7 +195,7 @@ function describeBinding(value, explicitName) {
 // Module Quote storage under the `qlang/ast/<uri>` env-key family is
 // always filtered — those entries are runtime housekeeping outside
 // either namespace's user-facing catalog.
-export const manifest = stateOpVariadic('manifest', 2, async (state, manifestLambdas) => {
+export const manifest = stateOpVariadic('manifest', async (state, manifestLambdas) => {
   let namespace = 'value';
   if (manifestLambdas.length === 1) {
     const arg = await manifestLambdas[0](state.pipeValue);

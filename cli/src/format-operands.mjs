@@ -32,6 +32,9 @@
 // `vec * json | join("\n")` already yields the same byte sequence
 // without a dedicated operand.
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { valueOp, nullaryOp } from '@kaluchi/qlang-core/dispatch';
 import {
   declareModifierError
@@ -40,7 +43,11 @@ import {
   printValue,
   toTaggedJSON
 } from '@kaluchi/qlang-core';
-import { bindHostBuiltin } from './host-builtin.mjs';
+import { bindCatalog } from '@kaluchi/qlang-core/host/catalog';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CATALOG_SOURCE = readFileSync(
+  join(__dirname, '..', 'lib', 'qlang', 'format.qlang'), 'utf8');
 
 // ── Per-site error classes ─────────────────────────────────────
 
@@ -103,8 +110,14 @@ const templateOperand = valueOp('template', 2, (subject, templateString) => {
 
 // ── Binding ────────────────────────────────────────────────────
 
-export function bindFormatOperands(session) {
-  bindHostBuiltin(session, 'pretty',   prettyOperand);
-  bindHostBuiltin(session, 'tjson',    tjsonOperand);
-  bindHostBuiltin(session, 'template', templateOperand);
+export async function bindFormatOperands(session) {
+  await bindCatalog(session, {
+    source: CATALOG_SOURCE,
+    uri: 'cli/format',
+    impls: {
+      pretty:   prettyOperand,
+      tjson:    tjsonOperand,
+      template: templateOperand
+    }
+  });
 }

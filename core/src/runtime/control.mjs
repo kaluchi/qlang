@@ -55,7 +55,7 @@ export const unless = higherOrderOp('unless', 3,
 // from `/a` — the operand's intent is "first defined value",
 // strict projection turned "undefined" into an error, this catch
 // restores the iteration semantics.
-export const coalesce = higherOrderOpVariadic('coalesce', 16,
+export const coalesce = higherOrderOpVariadic('coalesce',
   async (coalesceSubject, ...coalesceLambdas) => {
     if (coalesceLambdas.length === 0) {
       throw new CoalesceNoAlternativesError();
@@ -68,7 +68,7 @@ export const coalesce = higherOrderOpVariadic('coalesce', 16,
     return NULL;
   }, [1, UNBOUNDED]);
 
-export const cond = higherOrderOpVariadic('cond', 16,
+export const cond = higherOrderOpVariadic('cond',
   async (condSubject, ...condLambdas) => {
     if (condLambdas.length < 2) {
       throw new CondNoBranchesError();
@@ -91,7 +91,7 @@ export const cond = higherOrderOpVariadic('cond', 16,
 // Same skip-on-error rule as `coalesce` (see comment above) — an
 // ErrorValue from an alternative counts as falsy and the iteration
 // moves to the next.
-export const firstTruthy = higherOrderOpVariadic('firstTruthy', 16,
+export const firstTruthy = higherOrderOpVariadic('firstTruthy',
   async (firstTruthySubject, ...firstTruthyLambdas) => {
     if (firstTruthyLambdas.length === 0) {
       throw new FirstTruthyNoAlternativesError();

@@ -25,9 +25,9 @@ import { bindParseOperands } from './parse-operands.mjs';
 
 export async function runQuery(queryText, ioContext, runOpts = {}) {
   const session = await createSession();
-  bindIoOperands(session, ioContext);
-  bindFormatOperands(session);
-  bindParseOperands(session);
+  await bindIoOperands(session, ioContext);
+  await bindFormatOperands(session);
+  await bindParseOperands(session);
   const evalOpts = 'initialPipeValue' in runOpts
     ? { initialPipeValue: runOpts.initialPipeValue }
     : {};

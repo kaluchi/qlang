@@ -100,13 +100,13 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
     : stderrWrite;
 
   const session = await createSession();
-  bindIoOperands(session, {
+  await bindIoOperands(session, {
     stdinReader: () => Promise.resolve(''),
     stdoutWrite: writeOutput,
     stderrWrite: writeDiagnostic
   });
-  bindFormatOperands(session);
-  bindParseOperands(session);
+  await bindFormatOperands(session);
+  await bindParseOperands(session);
 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,

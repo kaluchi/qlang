@@ -20,6 +20,9 @@
 // inspect via `!| type` or `!| /message` like any other qlang
 // operand error.
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { nullaryOp } from '@kaluchi/qlang-core/dispatch';
 import {
   declareSubjectError,
@@ -29,7 +32,11 @@ import {
   fromPlain,
   fromTaggedJSON
 } from '@kaluchi/qlang-core';
-import { bindHostBuiltin } from './host-builtin.mjs';
+import { bindCatalog } from '@kaluchi/qlang-core/host/catalog';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CATALOG_SOURCE = readFileSync(
+  join(__dirname, '..', 'lib', 'qlang', 'parse.qlang'), 'utf8');
 
 // ── Per-site error classes ─────────────────────────────────────
 
@@ -75,7 +82,13 @@ const parseTjsonOperand = nullaryOp('parseTjson', (subject) => {
 
 // ── Binding ────────────────────────────────────────────────────
 
-export function bindParseOperands(session) {
-  bindHostBuiltin(session, 'parseJson',  parseJsonOperand);
-  bindHostBuiltin(session, 'parseTjson', parseTjsonOperand);
+export async function bindParseOperands(session) {
+  await bindCatalog(session, {
+    source: CATALOG_SOURCE,
+    uri: 'cli/parse',
+    impls: {
+      parseJson:  parseJsonOperand,
+      parseTjson: parseTjsonOperand
+    }
+  });
 }

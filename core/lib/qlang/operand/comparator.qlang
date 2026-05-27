@@ -14,7 +14,11 @@
       captured sub-pipeline and compares them in natural ascending
       order. Returns -1, 0, or 1. The key sub-pipeline can be any
       expression — a bare projection, a computed value, or a
-      multi-step pipeline. ~~|
+      multi-step pipeline.
+
+      ~{[{:age 30} {:age 20} {:age 40}] | sortWith(asc(/age)) * /age | eq([20 30 40])}
+      ~{[{:name "bb"} {:name "aaa"} {:name "c"}] | sortWith(asc(/name)) * /name | eq(["aaa" "bb" "c"])}
+  ~~|
   ::builtin{:impl :qlang/prim/asc
             :category :comparator
             :subject :map
@@ -44,7 +48,11 @@
 
 :desc
   |~~ Builds a descending comparator for sortWith. Same as asc
-      but reversed: higher key values come first. ~~|
+      but reversed: higher key values come first.
+
+      ~{[{:age 30} {:age 20} {:age 40}] | sortWith(desc(/age)) * /age | eq([40 30 20])}
+      ~{[{:name "bb"} {:name "aaa"} {:name "c"}] | sortWith(desc(/name)) * /name | eq(["c" "bb" "aaa"])}
+  ~~|
   ::builtin{:impl :qlang/prim/desc
             :category :comparator
             :subject :map

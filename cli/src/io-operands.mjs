@@ -22,6 +22,9 @@
 //                      `[tap label] <printValue(pipeValue)>\n` to
 //                      stderr. Label must be a keyword.
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   nullaryOp,
   overloadedOp,
@@ -37,7 +40,11 @@ import {
   typeKeyword,
   printValue
 } from '@kaluchi/qlang-core';
-import { bindHostBuiltin } from './host-builtin.mjs';
+import { bindCatalog } from '@kaluchi/qlang-core/host/catalog';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CATALOG_SOURCE = readFileSync(
+  join(__dirname, '..', 'lib', 'qlang', 'io.qlang'), 'utf8');
 
 // ── Per-site error classes ─────────────────────────────────────
 
@@ -102,23 +109,22 @@ function makeTapOperand(stderrWrite) {
 
 // ── Binding ────────────────────────────────────────────────────
 
-export function bindIoOperands(session, ioContext) {
-  // `recordStdoutEffect` lets the script-mode renderer suppress its
-  // implicit final encode when the user already pushed bytes to
-  // stdout via `@out` — explicit output takes the channel; the
-  // tool stops echoing. `@err` and `@tap` write to stderr (the
-  // diagnostic channel) and leave the flag alone. Optional in
-  // REPL-style ioContexts that do not care about double-output
-  // suppression.
+export async function bindIoOperands(session, ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   const noopEffect = () => {};
 
-  bindHostBuiltin(session, '@in',  makeInOperand(ioContext.stdinReader));
-  bindHostBuiltin(session, '@out', makeWriterOperand(
-    '@out', ioContext.stdoutWrite, recordStdoutEffect,
-    OutSubjectNotStringError, OutRendererResultNotStringError));
-  bindHostBuiltin(session, '@err', makeWriterOperand(
-    '@err', ioContext.stderrWrite, noopEffect,
-    ErrSubjectNotStringError, ErrRendererResultNotStringError));
-  bindHostBuiltin(session, '@tap', makeTapOperand(ioContext.stderrWrite));
+  await bindCatalog(session, {
+    source: CATALOG_SOURCE,
+    uri: 'cli/io',
+    impls: {
+      '@in':  makeInOperand(ioContext.stdinReader),
+      '@out': makeWriterOperand(
+        '@out', ioContext.stdoutWrite, recordStdoutEffect,
+        OutSubjectNotStringError, OutRendererResultNotStringError),
+      '@err': makeWriterOperand(
+        '@err', ioContext.stderrWrite, noopEffect,
+        ErrSubjectNotStringError, ErrRendererResultNotStringError),
+      '@tap': makeTapOperand(ioContext.stderrWrite)
+    }
+  });
 }

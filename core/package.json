@@ -47,6 +47,9 @@
     "./host/module-resolver": {
       "import": "./host/module-resolver.mjs"
     },
+    "./host/catalog": {
+      "import": "./host/catalog-host.mjs"
+    },
     "./lib/qlang/*.qlang": "./lib/qlang/*.qlang"
   },
   "imports": {

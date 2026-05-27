@@ -1,0 +1,106 @@
+|~ qlang operand catalog — CLI io family. Four effectful operands
+   the CLI binds into every freshly-seeded session: @in reads
+   stdin, @out writes stdout, @err writes stderr, @tap mirrors
+   pipeValue to stderr with a labelled prefix. JS impls live in
+   `cli/src/io-operands.mjs`; this file is the declarative surface
+   (`spec` / `docs` / `examples` axes). Each operand BindStep sits
+   directly under the per-site error tags it raises. ~|
+
+:@in
+  |~~ Reads stdin to completion and returns it as a String,
+      ignoring the incoming pipeValue. A TTY-attached stdin (no
+      piped input) yields the empty string immediately so a
+      prompt-less `qlang '@in | ...'` does not hang. Producer —
+      use as the head of a pipeline.
+
+      Pattern: `echo '{"x":42}' | qlang '@in | parseJson | /x'`
+      reads the JSON payload, parses it, and projects `:x`. ~~|
+  ::builtin{:impl :qlang/cli/prim/@in
+            :category :io
+            :subject :any
+            :returns :string
+            :modifiers []
+   }
+
+:@out
+  |~~ Writes a String to stdout followed by `\n` and passes the
+      original pipeValue through unchanged on the success track.
+      Overloaded by captured-arg count:
+      bare form requires String subject;
+      one-arg form runs the renderer against pipeValue and writes
+      its String result. The pipeValue itself stays put either
+      way — `@out` is identity on the success track regardless of
+      what bytes left the channel.
+
+      Pattern: `"hello" | @out` writes "hello\n", value continues
+      as "hello". With a renderer: `42 | @out(json)` writes "42\n",
+      value continues as 42 — the rest of the pipeline still sees
+      the number, not the string. ~~|
+  ::builtin{:impl :qlang/cli/prim/@out
+            :category :io
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::OutSubjectNotStringError ::OutRendererResultNotStringError]}
+
+::OutSubjectNotStringError
+  |~~ Bare `@out` requires a String subject — the bytes
+      written to stdout must already be a String. Wrap a
+      non-String value in a renderer:
+      `42 | @out(json)` or `{:x 1} | @out(pretty)`. ~~|
+  ::builtin{:category :typeError :operand :@out :position :subject :expectedType :string}
+
+::OutRendererResultNotStringError
+  |~~ `@out(renderer)` requires the renderer to produce a
+      String. A renderer that returns a Number / Map / null
+      cannot be written to stdout — wrap through `json`,
+      `pretty`, or `template`. ~~|
+  ::builtin{:category :typeError :operand :@out :expectedType :string}
+
+:@err
+  |~~ Same shape as `@out` but writes to stderr — the diagnostic
+      channel. Use for log lines, traces, progress indicators
+      that should not enter the program's data output.
+
+      Pattern: `:result fetch(:fqn) | @err("looked up") | @out` —
+      a trace breadcrumb on stderr alongside the data result on
+      stdout. ~~|
+  ::builtin{:impl :qlang/cli/prim/@err
+            :category :io
+            :subject :any
+            :returns :any
+            :modifiers [:pipeline]
+            :throws [::ErrSubjectNotStringError ::ErrRendererResultNotStringError]}
+
+::ErrSubjectNotStringError
+  |~~ Bare `@err` requires a String subject. Wrap non-String
+      values through a renderer (`json`, `pretty`, `template`). ~~|
+  ::builtin{:category :typeError :operand :@err :position :subject :expectedType :string}
+
+::ErrRendererResultNotStringError
+  |~~ `@err(renderer)` requires the renderer to produce a
+      String. ~~|
+  ::builtin{:category :typeError :operand :@err :expectedType :string}
+
+:@tap
+  |~~ Identity step on (pipeValue, env). Writes
+      `[tap <label>] <printValue(pipeValue)>\n` to stderr,
+      keyword label included verbatim for grep'ability. Use
+      to peek at intermediate values without altering the
+      pipeline shape.
+
+      Pattern: `data | @tap(:before) | filter(active) | @tap(:after) | count`
+      prints both pre- and post-filter snapshots to stderr,
+      then returns the count. ~~|
+  ::builtin{:impl :qlang/cli/prim/@tap
+            :category :io
+            :subject :any
+            :returns :any
+            :modifiers [:keyword]
+            :throws [::TapLabelNotKeywordError]}
+
+::TapLabelNotKeywordError
+  |~~ `@tap` label must be a Keyword — use `:foo` not `"foo"`
+      so the prefix renders as `[tap foo]` consistent with the
+      keyword's grammatical form. ~~|
+  ::builtin{:category :typeError :operand :@tap :expectedType :keyword}

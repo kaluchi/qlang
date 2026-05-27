@@ -1,0 +1,72 @@
+|~ qlang operand catalog — CLI parse family. String → qlang-value
+   parsers the CLI binds alongside the format operands. Two
+   parsers, each for a different IPC scenario: `parseJson` bridges
+   to the external world (curl / kubectl / gh / jq output);
+   `parseTjson` bridges between qlang processes round-trippably
+   over `tjson | @out`. JS impls live in
+   `cli/src/parse-operands.mjs`. Each operand BindStep sits
+   directly under the per-site error tags it raises. ~|
+
+:parseJson
+  |~~ Parses a String of plain JSON into a qlang value. Object
+      keys become qlang keywords; arrays become Vecs; scalars
+      pass through. Lossy with respect to qlang-only types — a
+      Set arriving from JSON looks like a Vec, a keyword-as-
+      value cannot be distinguished from a String, error values
+      have no plain-JSON form. Use this for input from any non-
+      qlang producer; reach for `parseTjson` when both ends are
+      qlang.
+
+      ~{"42" | parseJson | eq(42)}
+      ~{"\"hello\"" | parseJson | eq("hello")}
+      ~{"[1,2,3]" | parseJson | eq([1 2 3])}
+      ~{"{\"name\":\"alice\"}" | parseJson | eq({:name "alice"})}
+  ~~|
+  ::builtin{:impl :qlang/cli/prim/parseJson
+            :category :format
+            :subject :string
+            :returns :any
+            :modifiers []
+            :throws [::ParseJsonSubjectNotStringError ::ParseJsonInvalidJsonError]}
+
+::ParseJsonSubjectNotStringError
+  |~~ Subject of `parseJson` must be a String — the raw JSON
+      text. Wrap non-String values through `pretty` / `json` /
+      `tjson` first if you need to re-parse them. ~~|
+  ::builtin{:category :typeError :operand :parseJson :position :subject :expectedType :string}
+
+::ParseJsonInvalidJsonError
+  |~~ `parseJson` could not parse the subject as JSON. The
+      original `JSON.parse` message rides on `:message` for
+      diagnostic. ~~|
+  ::builtin{:category :shapeError :operand :parseJson}
+
+:parseTjson
+  |~~ Parses a String of tagged-JSON into a qlang value. The
+      tagged-JSON envelope ($keyword / $map / $set / $error
+      markers) preserves every qlang-only type — Sets, Maps with
+      Keyword keys, error values, tagged instances — so
+      `value | tjson | parseTjson` is identity. Use it as the
+      symmetric pair for `tjson` when piping qlang process to
+      qlang process.
+
+      ~{42 | tjson | parseTjson | eq(42)}
+      ~{[1 :foo "hi"] | tjson | parseTjson | eq([1 :foo "hi"])}
+      ~{#[1 2 3] | tjson | parseTjson | eq(#[1 2 3])}
+  ~~|
+  ::builtin{:impl :qlang/cli/prim/parseTjson
+            :category :format
+            :subject :string
+            :returns :any
+            :modifiers []
+            :throws [::ParseTjsonSubjectNotStringError ::ParseTjsonInvalidJsonError]}
+
+::ParseTjsonSubjectNotStringError
+  |~~ Subject of `parseTjson` must be a String — the tagged-JSON
+      text. ~~|
+  ::builtin{:category :typeError :operand :parseTjson :position :subject :expectedType :string}
+
+::ParseTjsonInvalidJsonError
+  |~~ `parseTjson` could not parse the subject as tagged-JSON.
+      The original `JSON.parse` message rides on `:message`. ~~|
+  ::builtin{:category :shapeError :operand :parseTjson}

@@ -129,8 +129,14 @@
   ::builtin{:category :typeError :operand :lte}
 
 :and
-  |~~ Returns true if both operands are truthy. Used in full form
-      inside compound predicates: filter(and(/active, /age | gte(18))). ~~|
+  |~~ Conjunction across captured sub-pipelines: each fires
+      against pipeValue, all results must be truthy. Use inside
+      `filter` / `every` / `if` to compose multi-clause predicates
+      over a single subject.
+
+      ~{{:active true :age 25} | and(/active, /age | gte(18)) | eq(true)}
+      ~{{:active false :age 25} | and(/active, /age | gte(18)) | eq(false)}
+  ~~|
   ::builtin{:impl :qlang/prim/and
             :category :predicate
             :subject :any
@@ -139,7 +145,13 @@
    }
 
 :or
-  |~~ Returns true if either operand is truthy. ~~|
+  |~~ Disjunction across captured sub-pipelines: each fires
+      against pipeValue, at least one result must be truthy.
+
+      ~{5  | or(eq(5), eq(10)) | eq(true)}
+      ~{7  | or(eq(5), eq(10)) | eq(false)}
+      ~{{:role "admin"} | or(/role | eq("admin"), /role | eq("owner")) | eq(true)}
+  ~~|
   ::builtin{:impl :qlang/prim/or
             :category :predicate
             :subject :any

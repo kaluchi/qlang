@@ -334,7 +334,7 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
   }
   const m = new Map();
   m.set('name', name);
-  m.set('params', Object.freeze([...params]));
+  m.set('params', Object.freeze(params.map(p => typeof p === 'string' ? keyword(p) : p)));
   m.set('body', body);
   m.set('source', makeQuote(body.text, body));
   m.set('envRef', envRef);

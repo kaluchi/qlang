@@ -208,7 +208,7 @@ export function printConduit(conduit) {
   const name = conduit.get('name');
   const params = conduit.get('params');
   const sourceQuote = conduit.get('source');
-  const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
+  const paramList = `[${params.map(p => p.literal).join(' ')}]`;
   const quotedBody = printValue(sourceQuote);
   if (name == null) {
     return `${tagLiteral}[${paramList} ${quotedBody}]`;

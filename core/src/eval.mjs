@@ -984,8 +984,9 @@ async function applyConduit(conduit, node, lookupName, state) {
   // tie-the-knot, never through the caller's env at invocation.
   let bodyEnv = conduitEnvRef.env;
   for (let i = 0; i < conduitParams.length; i++) {
-    const paramProxy = makeConduitParameter(conduitLambdas[i], conduitParams[i]);
-    bodyEnv = envSet(bodyEnv, conduitParams[i], paramProxy);
+    const paramName = conduitParams[i].name;
+    const paramProxy = makeConduitParameter(conduitLambdas[i], paramName);
+    bodyEnv = envSet(bodyEnv, paramName, paramProxy);
   }
 
   // Fork body: inner sub-pipeline starts with the caller's pipeValue
@@ -1107,8 +1108,9 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
   for (let pi = 0; pi < conduitParams.length; pi++) {
     const fixedValue = fixedArgs[pi];
     const fixedArgLambda = async () => fixedValue;
-    const paramProxy = makeConduitParameter(fixedArgLambda, conduitParams[pi]);
-    bodyEnv = envSet(bodyEnv, conduitParams[pi], paramProxy);
+    const paramName = conduitParams[pi].name;
+    const paramProxy = makeConduitParameter(fixedArgLambda, paramName);
+    bodyEnv = envSet(bodyEnv, paramName, paramProxy);
   }
 
   const bodyState = makeState(pipeValue, bodyEnv);

@@ -303,7 +303,44 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     for (let i = 0; i < lineIndex; i += 1) {
       offset += lines[i].length + 1; // +1 for the `\n` separator
     }
-    cursor = offset + Math.min(columnInLine, lines[lineIndex].length);
+    let column = Math.min(columnInLine, lines[lineIndex].length);
+    // The cursor is a code-unit offset; a target column derived
+    // from a row whose surrogate-pair layout differs from the
+    // landing row's may aim between the high and low halves of a
+    // pair. Snap to the start of the pair so subsequent edits
+    // operate on whole characters rather than orphan halves.
+    if (column > 0 && column < lines[lineIndex].length) {
+      const before = lines[lineIndex].charCodeAt(column - 1);
+      const after  = lines[lineIndex].charCodeAt(column);
+      if (before >= 0xd800 && before <= 0xdbff &&
+          after  >= 0xdc00 && after  <= 0xdfff) {
+        column -= 1;
+      }
+    }
+    cursor = offset + column;
+  }
+
+  // JS strings are UTF-16; non-BMP characters (emoji, ancient
+  // scripts, …) occupy a surrogate pair — two adjacent code
+  // units. Editing primitives that walk one code unit at a time
+  // would leak orphan halves, so the cursor steps across a pair
+  // in one move. The two helpers report the code-unit footprint
+  // of the character immediately before or at the given offset.
+  function codeUnitsForCharBefore(s, i) {
+    if (i >= 2) {
+      const lo = s.charCodeAt(i - 1);
+      const hi = s.charCodeAt(i - 2);
+      if (hi >= 0xd800 && hi <= 0xdbff && lo >= 0xdc00 && lo <= 0xdfff) return 2;
+    }
+    return 1;
+  }
+  function codeUnitsForCharAt(s, i) {
+    if (i + 1 < s.length) {
+      const hi = s.charCodeAt(i);
+      const lo = s.charCodeAt(i + 1);
+      if (hi >= 0xd800 && hi <= 0xdbff && lo >= 0xdc00 && lo <= 0xdfff) return 2;
+    }
+    return 1;
   }
 
   function arrowUp() {
@@ -422,8 +459,12 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   }
 
   function insertCharAtCursor(ch) {
+    // The chunk decoder hands `handleChar` one code point at a
+    // time, so `ch.length` is 2 for a non-BMP character and 1
+    // otherwise — advancing by it keeps the cursor on a
+    // character boundary.
     buffer = buffer.slice(0, cursor) + ch + buffer.slice(cursor);
-    cursor += 1;
+    cursor += ch.length;
     desiredColumn = null;
     redrawCurrentLine();
   }
@@ -437,21 +478,33 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
 
   function backspaceAtCursor() {
     if (cursor === 0) return;
-    buffer = buffer.slice(0, cursor - 1) + buffer.slice(cursor);
-    cursor -= 1;
+    const width = codeUnitsForCharBefore(buffer, cursor);
+    buffer = buffer.slice(0, cursor - width) + buffer.slice(cursor);
+    cursor -= width;
     desiredColumn = null;
     redrawCurrentLine();
   }
 
   function deleteAtCursor() {
     if (cursor >= buffer.length) return;
-    buffer = buffer.slice(0, cursor) + buffer.slice(cursor + 1);
+    const width = codeUnitsForCharAt(buffer, cursor);
+    buffer = buffer.slice(0, cursor) + buffer.slice(cursor + width);
     desiredColumn = null;
     redrawCurrentLine();
   }
 
-  function moveCursorLeft()  { if (cursor > 0)             { cursor -= 1; desiredColumn = null; redrawCurrentLine(); } }
-  function moveCursorRight() { if (cursor < buffer.length) { cursor += 1; desiredColumn = null; redrawCurrentLine(); } }
+  function moveCursorLeft() {
+    if (cursor === 0) return;
+    cursor -= codeUnitsForCharBefore(buffer, cursor);
+    desiredColumn = null;
+    redrawCurrentLine();
+  }
+  function moveCursorRight() {
+    if (cursor >= buffer.length) return;
+    cursor += codeUnitsForCharAt(buffer, cursor);
+    desiredColumn = null;
+    redrawCurrentLine();
+  }
   function moveCursorHome()  { cursor = 0;             desiredColumn = null; redrawCurrentLine(); }
   function moveCursorEnd()   { cursor = buffer.length; desiredColumn = null; redrawCurrentLine(); }
 

@@ -177,6 +177,15 @@ describe('createLineEditor — TTY editing keys', () => {
     expect(capture.lines).toEqual(['ac']);
   });
 
+  it('Left past start is a no-op', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', Buffer.from([0x01]),    // 'a', cursor → 0
+                      ESC + '[D', ESC + '[D',       // Left at start
+                      SUBMIT);
+    expect(capture.lines).toEqual(['a']);
+  });
+
   it('Right past end is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
@@ -642,6 +651,95 @@ describe('createLineEditor — TTY UTF-8 input', () => {
     editor.start();
     feed(stdinStream, '{\n  "имя": "Аня"\n}', SUBMIT);
     expect(capture.lines).toEqual(['{\n  "имя": "Аня"\n}']);
+  });
+});
+
+describe('createLineEditor — TTY surrogate-pair editing', () => {
+  // JS strings are UTF-16; non-BMP characters (emoji, ancient
+  // scripts, …) occupy a surrogate pair — two adjacent code units.
+  // Every editing primitive must step over a pair as one atomic
+  // character; otherwise the buffer leaks orphan halves and the
+  // cell submits mojibake.
+
+  it('inserting a surrogate-pair character advances the cursor by both code units', () => {
+    // After inserting '🎉' the cursor must land at offset 2, not
+    // mid-pair. A trailing 'X' inserts after the emoji, so the
+    // submitted cell is '🎉X' — not '\uD83CX\uDF89'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', 'X', SUBMIT);
+    expect(capture.lines).toEqual(['🎉X']);
+  });
+
+  it('backspace removes a surrogate-pair character as one unit', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', Buffer.from([0x7f]), 'A', SUBMIT);
+    expect(capture.lines).toEqual(['A']);
+  });
+
+  it('delete-forward removes a surrogate-pair character as one unit', () => {
+    // buffer '🎉B', cursor parked at column 0 via Ctrl+A.
+    // Delete-forward must remove the entire emoji, leaving 'B'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', 'B',
+                      Buffer.from([0x01]),  // Ctrl+A → cursor=0
+                      ESC + '[3~',           // delete-forward
+                      SUBMIT);
+    expect(capture.lines).toEqual(['B']);
+  });
+
+  it('Left arrow skips a surrogate-pair character in one step', () => {
+    // buffer '🎉X', cursor at end. Two Lefts must land at offset 0
+    // (before the emoji), so a trailing 'A' produces 'A🎉X'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', 'X',
+                      ESC + '[D', ESC + '[D',
+                      'A', SUBMIT);
+    expect(capture.lines).toEqual(['A🎉X']);
+  });
+
+  it('Right arrow skips a surrogate-pair character in one step', () => {
+    // buffer '🎉X', cursor=0 via Ctrl+A. One Right must land at
+    // offset 2 (after the emoji), so an inserted 'A' produces '🎉AX'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', 'X',
+                      Buffer.from([0x01]),
+                      ESC + '[C',
+                      'A', SUBMIT);
+    expect(capture.lines).toEqual(['🎉AX']);
+  });
+
+  it('Up snaps the cursor to a character boundary when the desired column lands mid-surrogate-pair', () => {
+    // row 0 = '🎉' (length 2 code units)
+    // row 1 = 'X' (length 1)
+    // Cursor at end of row 1 (column 1). Up targets column 1 on
+    // row 0 — mid-pair. Without a snap the cursor would park
+    // between the high and low surrogate; the snap moves it to
+    // column 0, so 'Z' inserts at the start: 'Z🎉\nX'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉', NEWLINE, 'X',
+                      ESC + '[A',
+                      'Z', SUBMIT);
+    expect(capture.lines).toEqual(['Z🎉\nX']);
+  });
+
+  it('round-trips a chain of surrogate-pair characters through repeated backspace without leaving orphans', () => {
+    // Insert three emojis, backspace each one, submit. Without
+    // surrogate-aware editing the buffer would carry orphan low
+    // surrogates between deletions and submit non-empty mojibake.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, '🎉🎊🎈',
+                      Buffer.from([0x7f]),
+                      Buffer.from([0x7f]),
+                      Buffer.from([0x7f]),
+                      SUBMIT);
+    expect(capture.lines).toEqual(['']);
   });
 });
 

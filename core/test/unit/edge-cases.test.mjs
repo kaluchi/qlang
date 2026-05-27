@@ -31,6 +31,7 @@ import {
   isKeyword,
   isQMap,
   isQSet,
+  isQuote,
   isVec,
   makeConduit
 } from '../../src/types.mjs';
@@ -89,7 +90,10 @@ describe('types.mjs', () => {
     expect(t[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
     expect(typeKeyword(t)).toBe(CONDUIT_TAG);
     expect(t.get('body')).toBe(bodyAst);
-    expect(t.get('source')).toBe('1');
+    const sourceQuote = t.get('source');
+    expect(isQuote(sourceQuote)).toBe(true);
+    expect(sourceQuote.source).toBe('1');
+    expect(sourceQuote.ast).toBe(bodyAst);
   });
 });
 
@@ -357,19 +361,14 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
     expect(cellEntry.result.get('name')).toBe('hostFn');
   });
 
-  it('conduit descriptor through manifest surfaces :source verbatim', async () => {
-    // The :source field exposes the parser-captured `.text` slice of
-    // the conduit body. Manifest stamps it via buildConduitDescriptor.
-    // Per-binding access goes through the source axis (`:chained |
-    // source | /source` returns the whole BindStep); manifest's
-    // descriptor surface keeps the body-only slice for enumeration
-    // composition.
-    const sourceResult = await evalQuery(
+  it('conduit descriptor through manifest surfaces :source as a Quote', async () => {
+    const sourceQuote = await evalQuery(
       ':chained (mul(2) | add(1)) | manifest | filter(/name | eq("chained")) | first | /source'
     );
-    expect(sourceResult).toContain('mul(2)');
-    expect(sourceResult).toContain('add(1)');
-    expect(sourceResult).toContain('|');
+    expect(isQuote(sourceQuote)).toBe(true);
+    expect(sourceQuote.source).toContain('mul(2)');
+    expect(sourceQuote.source).toContain('add(1)');
+    expect(sourceQuote.source).toContain('|');
   });
 });
 

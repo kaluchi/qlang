@@ -336,7 +336,7 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
   m.set('name', name);
   m.set('params', Object.freeze([...params]));
   m.set('body', body);
-  m.set('source', body.text);
+  m.set('source', makeQuote(body.text, body));
   m.set('envRef', envRef);
   m.set('docs', Object.freeze([...docs]));
   m.set('location', location);

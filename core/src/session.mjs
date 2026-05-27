@@ -200,7 +200,7 @@ export async function serializeSession(session) {
         kind: 'conduit',
         name: v.get('name'),
         params: [...v.get('params')],
-        source: v.get('source'),
+        source: v.get('source').source,
         docs: [...v.get('docs')]
       });
     } else if (isSnapshot(v)) {

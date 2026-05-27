@@ -207,9 +207,9 @@ export function printConduit(conduit) {
   const tagLiteral = conduit[TAG_HEADER_SYMBOL].literal;
   const name = conduit.get('name');
   const params = conduit.get('params');
-  const source = conduit.get('source');
+  const sourceQuote = conduit.get('source');
   const paramList = `[${params.map(p => canonicalKeywordLiteral(p)).join(' ')}]`;
-  const quotedBody = '~{' + source + '}';
+  const quotedBody = printValue(sourceQuote);
   if (name == null) {
     return `${tagLiteral}[${paramList} ${quotedBody}]`;
   }

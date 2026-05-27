@@ -301,11 +301,14 @@ describe('createLineEditor — TTY history navigation', () => {
     expect(capture.lines).toEqual(['first', 'second', 'first']);
   });
 
-  it('Up at oldest entry is a no-op', () => {
+  it('Up at the oldest entry parks the cursor at the start of the buffer', () => {
+    // First Up recalls 'only' (cursor lands at end). Second Up has
+    // no history.prev — the fallback is Home (cursor → 0), so a
+    // trailing 'Z' lands at position 0.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'only', SUBMIT, ESC + '[A', ESC + '[A', SUBMIT);
-    expect(capture.lines).toEqual(['only', 'only']);
+    feed(stdinStream, 'only', SUBMIT, ESC + '[A', ESC + '[A', 'Z', SUBMIT);
+    expect(capture.lines).toEqual(['only', 'Zonly']);
   });
 
   it('Up + Down returns to the in-progress draft', () => {
@@ -325,11 +328,48 @@ describe('createLineEditor — TTY history navigation', () => {
     expect(capture.lines).toEqual(['first', 'second', 'second']);
   });
 
-  it('Down at the bottom (current draft) is a no-op', () => {
+  it('Down at the draft bottom parks the cursor at the end of the buffer', () => {
+    // Empty history, single-line buffer 'x'. Ctrl+A parks cursor=0.
+    // Down has no history.next — fallback is End (cursor → length),
+    // so a trailing 'Y' lands after 'x'.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'x', ESC + '[B', ESC + '[B', SUBMIT);
-    expect(capture.lines).toEqual(['x']);
+    feed(stdinStream, 'x', Buffer.from([0x01]), ESC + '[B', 'Y', SUBMIT);
+    expect(capture.lines).toEqual(['xY']);
+  });
+
+  it('preserves edits made inside a recalled cell across further Up/Down', () => {
+    // Per-entry drafts: appending 'X' to recalled 'three' must
+    // survive walking back to 'two' and forward again.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream,
+      'one', SUBMIT,
+      'two', SUBMIT,
+      'three', SUBMIT,
+      ESC + '[A',                 // recall 'three'
+      'X',                         // edited to 'threeX'
+      ESC + '[A',                 // walk to 'two' — saves drafts[2]='threeX'
+      ESC + '[B',                 // back to drafts[2]
+      SUBMIT);
+    expect(capture.lines).toEqual(['one', 'two', 'three', 'threeX']);
+  });
+
+  it('clears per-entry drafts on submit so the next recall sees the stored entry', () => {
+    // After 'B' is recalled, edited to 'BX', and a different cell
+    // gets submitted, walking back to index 1 must find the stored
+    // 'B' — not a stale draft.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream,
+      'A', SUBMIT, 'B', SUBMIT,
+      ESC + '[A', 'X',            // recall 'B', edit to 'BX'
+      ESC + '[A',                 // walk to 'A' — drafts[1]='BX'
+      SUBMIT,                      // emit 'A'; drafts cleared on submit
+      ESC + '[A',                 // recall 'A' (latest history entry)
+      ESC + '[A',                 // recall 'B' from history, not 'BX' from a stale draft
+      SUBMIT);
+    expect(capture.lines).toEqual(['A', 'B', 'A', 'B']);
   });
 
   it('does not store empty submissions in history', () => {
@@ -352,6 +392,96 @@ describe('createLineEditor — TTY history navigation', () => {
     feed(stdinStream, 'a', NEWLINE, 'b', SUBMIT,   // submit 'a\nb'
                       ESC + '[A', SUBMIT);         // recall + submit
     expect(capture.lines).toEqual(['a\nb', 'a\nb']);
+  });
+});
+
+describe('createLineEditor — TTY multi-line arrow navigation', () => {
+  // Inside a multi-line buffer Up/Down move the cursor across
+  // logical rows. History recall fires only when the cursor is
+  // already on the edge row in the direction of motion. Without
+  // history available in that direction the keys fall back to
+  // Home / End — never silent no-ops.
+
+  it('Up from a lower logical row steps the cursor onto the row above', () => {
+    // buffer = 'first\nsecond', cursor at end. Up clamps column 6
+    // to 'first'.length=5 → cursor parks at end of 'first', so a
+    // trailing 'X' lands inside 'firstX\nsecond'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first', NEWLINE, 'second',
+                      ESC + '[A',
+                      'X', SUBMIT);
+    expect(capture.lines).toEqual(['firstX\nsecond']);
+  });
+
+  it('Down from an upper logical row steps the cursor onto the row below', () => {
+    // Ctrl+A parks cursor at column 0 of 'first'. Down lands at
+    // column 0 of 'second'; 'Y' inserts at the start of row 1.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'first', NEWLINE, 'second',
+                      Buffer.from([0x01]),  // Ctrl+A → cursor=0, logical row 0
+                      ESC + '[B',
+                      'Y', SUBMIT);
+    expect(capture.lines).toEqual(['first\nYsecond']);
+  });
+
+  it('Up on the first logical row of a multi-line buffer recalls the previous history entry', () => {
+    // Multi-line draft, cursor parked at column 0 of row 0 via
+    // Ctrl+A. Up sees no row above → history recall.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'prev', SUBMIT,
+                      'a', NEWLINE, 'b',
+                      Buffer.from([0x01]),  // Ctrl+A → cursor=0
+                      ESC + '[A',
+                      SUBMIT);
+    expect(capture.lines).toEqual(['prev', 'prev']);
+  });
+
+  it('Down on the last logical row of a multi-line buffer recalls the next history entry', () => {
+    // Build 'first\nsecond' as the bottom draft; Up Up walks
+    // through the multi-line then recalls 'one'. Down from the
+    // single-line recalled buffer restores the multi-line draft
+    // intact.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'one', SUBMIT,
+                      'first', NEWLINE, 'second',
+                      ESC + '[A',          // intra-buffer: cursor → end of 'first'
+                      ESC + '[A',          // first row + history available → recall 'one'
+                      ESC + '[B',          // last row + next history → restore the multi-line draft
+                      SUBMIT);
+    expect(capture.lines).toEqual(['one', 'first\nsecond']);
+  });
+
+  it('keeps a sticky desired column across short intermediate rows', () => {
+    // buffer = 'AAAAA\nB\nCCCCC', cursor at end (column 5). First
+    // Up clamps to 'B'.length=1 but remembers desiredColumn=5.
+    // Second Up lands at column 5 of 'AAAAA' (its end), so 'X'
+    // inserts AFTER 'AAAAA'. Without sticky the column would have
+    // collapsed to 1 and 'X' would land after the first 'A'.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'AAAAA', NEWLINE, 'B', NEWLINE, 'CCCCC',
+                      ESC + '[A', ESC + '[A',
+                      'X', SUBMIT);
+    expect(capture.lines).toEqual(['AAAAAX\nB\nCCCCC']);
+  });
+
+  it('resets the sticky desired column on any horizontal motion', () => {
+    // After the first Up desiredColumn=5. Left+Right returns the
+    // cursor to the same byte offset but resets stickiness; the
+    // next Up uses the local column (1), so 'X' lands at position
+    // 1 of 'AAAAA' — not at its end.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'AAAAA', NEWLINE, 'B', NEWLINE, 'CCCCC',
+                      ESC + '[A',             // cursor → end of 'B', desiredColumn=5
+                      ESC + '[D', ESC + '[C', // Left+Right → resets desiredColumn
+                      ESC + '[A',             // Up with local column=1
+                      'X', SUBMIT);
+    expect(capture.lines).toEqual(['AXAAAA\nB\nCCCCC']);
   });
 });
 

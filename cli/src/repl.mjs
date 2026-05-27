@@ -64,7 +64,11 @@ Editing:
   Left / Right        move the cursor by one character
   Home / Ctrl+A       jump to the start of the buffer
   End  / Ctrl+E       jump to the end of the buffer
-  Up   / Down         walk through the in-memory cell history
+  Up   / Down         step one logical row inside a multi-line
+                      cell; at the top / bottom of the cell walk
+                      through the in-memory history, falling back
+                      to start / end of buffer once history runs
+                      out
   Ctrl+C              discard the current buffer and reprompt
 
 Pasting multi-line text from the clipboard arrives as one cell

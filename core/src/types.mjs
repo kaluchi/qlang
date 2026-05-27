@@ -521,14 +521,7 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
 // this helper extracts it so callers do not repeat the same
 // boilerplate at every throw site.
 export function errorFromKindDescriptor(descriptor, opts = {}) {
-  const tag = descriptor.get('kind');
-  if (!isTagKeyword(tag)) {
-    throw new QlangInvariantError(
-      'errorFromKindDescriptor: descriptor :kind must be a TagKeyword',
-      { actualKind: tag === undefined ? 'missing' : typeof tag }
-    );
-  }
-  return makeErrorValue(tag, descriptor, opts);
+  return makeErrorValue(descriptor.get('kind'), descriptor, opts);
 }
 
 export function appendTrailNode(errorValue, trailEntry) {

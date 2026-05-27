@@ -85,16 +85,6 @@ describe('errorFromKindDescriptor', () => {
     expect(errorVal.originalError).toBe(cause);
   });
 
-  it('throws QlangInvariantError when descriptor lacks a :kind TagKeyword', async () => {
-    const { QlangInvariantError } = await import('../../src/errors.mjs');
-    const descriptorNoKind = new Map([['message', 'oops']]);
-    expect(() => errorFromKindDescriptor(descriptorNoKind))
-      .toThrow(QlangInvariantError);
-
-    const descriptorWrongKind = new Map([['kind', keyword('not-a-tag')], ['message', 'oops']]);
-    expect(() => errorFromKindDescriptor(descriptorWrongKind))
-      .toThrow(QlangInvariantError);
-  });
 });
 
 

@@ -1,16 +1,33 @@
-|~ ::AssertionFailedError and ::PostconditionFailedError below
-   are user-error tag identifiers stamped on `:kind` of the lifted
-   descriptor — no catalog declaration sits behind them. The
-   guards library loads through `use(:error/guards)` outside the
-   `langRuntime` bootstrap, so a manifest-wide self-test driver
-   walking the default env has no path to reach those tags; the
-   `::builtin` shape marker is also unsuitable since user-error
-   tags carry no runtime callable handle (no `:impl :qlang/prim/…`
-   or `:impl :qlang/type/…`). The discoverability question for
-   user-defined error tags through axis-operands (`spec` / `docs`
-   / `source`) stays an open design item — caller code that wants
-   the failure prose addresses the raised value's descriptor
-   directly through `!| /message`. ~|
+|~ User-error tag identifiers raised by the guards in this
+   module. Both ride the universal identity-on-JS-header invariant
+   that every ErrorValue carries: `error({:kind ::FooError …})`
+   lifts the TagKeyword to the value's tag slot, and `result !|
+   type` reads it back. The doc-only `::Tag |~~ ~~|` BindSteps
+   below give axis-operands (`::AssertionFailedError | docs`,
+   `| source`, `| examples`) a discoverable declaration through
+   the loaded module's AST, symmetric with catalog error tags. ~|
+
+::AssertionFailedError
+  |~~ Raised by `assert` when the predicate evaluates falsy
+      against pipeValue. Descriptor carries `:message` (the
+      caller-supplied prose) and `:value` (the pipeValue that
+      tripped the assertion).
+
+      ~{
+        42
+        |  (as(:_v) | if(gt(100), _v,
+              error({:kind ::AssertionFailedError :message "must exceed 100" :value _v})))
+        !| type | eq(::AssertionFailedError)
+       }
+  ~~|
+
+::PostconditionFailedError
+  |~~ Raised by `ensure` when the postcondition predicate
+      evaluates falsy after a pipeline transformation. Same
+      descriptor shape as ::AssertionFailedError: `:message`
+      (caller prose) and `:value` (pipeValue at the moment of
+      failure).
+  ~~|
 
 :assert
   |~~ Guard: check predicate on pipeValue, raise error

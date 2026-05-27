@@ -107,10 +107,10 @@ describe('lib/qlang/core.qlang — shape and content', () => {
   });
 
   it('every entry value is a Map with ::builtin identity on the JS-header tag slot', async () => {
-    // Phase 4 lifted the catalog descriptor's identity off the
-    // `:kind` Map field onto the JS-header TAG_HEADER_SYMBOL slot.
-    // `evalCore` already filters by that slot; this test pins the
-    // invariant explicitly per entry so a single drifted descriptor
+    // The catalog descriptor carries its identity on the
+    // JS-header TAG_HEADER_SYMBOL slot. `evalCore` already
+    // filters by that slot; this test pins the invariant
+    // explicitly per entry so a single drifted descriptor
     // (catalog authoring bug, host integration that bypasses
     // `::builtin{…}`) surfaces with its env key in the failure
     // message.

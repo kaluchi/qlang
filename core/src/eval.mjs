@@ -785,8 +785,9 @@ function projectSegment(subject, projKey, state) {
 function isBuiltinDescriptor(descriptor) {
   return descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
-// Conduit identity rides on the Map's JS-header `CONDUIT_TAG_SYMBOL`
-// flag (Phase 2) — `isConduit` is the single discriminator.
+// Conduit identity rides on the Map's JS-header
+// `TAG_HEADER_SYMBOL` slot under the `CONDUIT_TAG` value —
+// `isConduit` is the single discriminator.
 const isConduitDescriptor = isConduit;
 
 async function evalOperandCall(node, state) {

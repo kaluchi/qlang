@@ -146,6 +146,13 @@ A GitHub App named `gemini-code-assist[bot]` reviews PRs against
 on push to feature branches — so a PR must exist before either CI
 or Gemini can run.
 
+**Gemini auto-runs on PR open.** Opening a PR via `gh pr create`
+automatically triggers the first Gemini review — do NOT call
+`scripts/gemini-review.mjs` immediately after `gh pr create`, that
+just queues a redundant duplicate. The trigger script is for
+SUBSEQUENT rounds after pushing fixes. Wait ~2-3 minutes after
+opening, then `scripts/gemini-show.mjs <N>` for the first review.
+
 Three node scripts under `scripts/` automate the loop end to end
 — call them with the PR number, no `MSYS_NO_PATHCONV` / GraphQL
 ceremony in the user-facing flow:

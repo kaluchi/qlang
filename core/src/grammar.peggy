@@ -411,12 +411,85 @@ QuoteSpan
   = "~{" content:QuoteContent "}"
     { return '~{' + content + '}'; }
 
+// Block comments nest recursively. The block-marker design picks
+// distinct open (`|~`, `|~~`) and close (`~|`, `~~|`) shapes
+// specifically so the parser can descend into a NESTED span
+// without an escape mechanism — when content position sees the
+// open of another comment, that whole comment (including its
+// own balanced close) is consumed as opaque content of the outer
+// span. Line-form markers (`|~|`, `|~~|`) absorb their entire
+// line. Mirrors the recursion pattern `QuoteContent` already uses
+// for `NestedQuoteSpan` (`~{ … ~{…} … }`).
+//
+// Lookaheads mirror the top-level `BlockPlainComment` /
+// `BlockDocComment` productions so the four marker shapes stay
+// mutually exclusive at every nesting level:
+//   `|~`   open block plain — `![|~]` rejects `|~|` (line plain) and
+//                              `|~~` (doc open / line doc).
+//   `|~~`  open block doc   — `!"|"` rejects `|~~|` (line doc).
+//   `|~|`  line plain       — exact 3-char open.
+//   `|~~|` line doc         — exact 4-char open.
+// PEG-ordered alternatives list LINE forms BEFORE BLOCK forms so a
+// line marker is not misread as an opening block marker that would
+// greedily descend and steal the outer span's close marker.
+//
+// `text()` returns the matched substring including delimiters, so
+// the outer comment's `content` field reads back as the verbatim
+// source slice — a downstream consumer (`printValue`, the
+// AST-codec round-trip, the highlighter) walks the same bytes
+// the author typed.
+// Inside a block comment, the LINE forms collapse to bare marker
+// tokens — only the 4/3-char marker itself is consumed as opaque
+// content. The rest of the source line stays in the OUTER body
+// and is parsed by the normal content rule, so the outer's close
+// marker still terminates on the same line if it appears there.
+// The line-marker has no addressable role inside a block (it
+// doesn't open its own attached doc, doesn't become a step), so
+// consuming only the marker bytes matches the author's intent of
+// "mention the marker spelling without giving it semantic weight".
+NestedLineDocSpan
+  = "|~~|"
+    { return text(); }
+NestedLinePlainSpan
+  = "|~|"
+    { return text(); }
+NestedBlockDocSpan
+  = "|~~" !"|" BlockDocContent "~~|"
+    { return text(); }
+NestedBlockPlainSpan
+  = "|~" ![|~] BlockPlainContent "~|"
+    { return text(); }
+
+// A bare close marker of the OTHER block-comment shape is safe to
+// accept as content — `~~|` (close-of-doc) inside a plain body,
+// `~|` (close-of-plain) inside a doc body — because the host
+// container's close marker is the other shape. This makes a bare
+// mention of the sibling marker work without requiring authors
+// to surround it with an opening of its own kind. The container's
+// own close marker still terminates the body via the trailing
+// outer rule (`"~|"` for plain, `"~~|"` for doc).
 BlockPlainContent
-  = chars:(QuoteSpan / (!"~|" .))*
+  = chars:(
+      QuoteSpan
+      / NestedLineDocSpan
+      / NestedLinePlainSpan
+      / NestedBlockDocSpan
+      / NestedBlockPlainSpan
+      / "~~|"
+      / (!"~|" .)
+    )*
     { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 BlockDocContent
-  = chars:(QuoteSpan / (!"~~|" .))*
+  = chars:(
+      QuoteSpan
+      / NestedLineDocSpan
+      / NestedLinePlainSpan
+      / NestedBlockDocSpan
+      / NestedBlockPlainSpan
+      / "~|"
+      / (!"~~|" .)
+    )*
     { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 // --- Combinators ------------------------------------------------

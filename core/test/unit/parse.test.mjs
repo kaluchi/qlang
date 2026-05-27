@@ -270,7 +270,7 @@ describe('parse — bindings: BindStep and as operand', () => {
     expect(ast.body.name).toBe('mul');
   });
 
-  it('as is not reserved — it parses as an ordinary identifier reference', () => {
+  it('as parses as an ordinary identifier reference', () => {
     const asAst = parse('as');
     expect(asAst.type).toBe('OperandCall');
     expect(asAst.name).toBe('as');
@@ -680,5 +680,263 @@ describe('parser doc-comment attachment Vec semantics', () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
     expect(await evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);
+  });
+});
+
+// Recursive nesting of block-comments. The block-marker design picks
+// distinct open / close shapes (`|~`/`~|`, `|~~`/`~~|`) so the parser
+// descends into a nested span without an escape mechanism — when
+// content position sees the open of another comment, the whole pair
+// (including its own balanced close) is consumed as opaque content
+// of the outer body. Line markers (`|~|`, `|~~|`) collapse to their
+// 3- / 4-char form inside a block; the marker has no addressable
+// role there, so consuming only the marker bytes preserves the
+// author's intent ("mention the spelling, not the semantics").
+//
+// The cases below pin: (1) every nested combination round-trips the
+// outer `.content` as the verbatim source slice between delimiters;
+// (2) bare close-of-other-shape (`~~|` inside plain, `~|` inside
+// doc) is accepted as content; (3) the container's own close still
+// terminates the body; (4) every unbalanced/malformed nesting raises
+// ParseError with a usable location.
+describe('parse — block comment nesting', () => {
+  const blockStep = (src) => {
+    const ast = parse(src);
+    return ast.steps[0];
+  };
+
+  describe('positive — content captured verbatim', () => {
+    it('plain block nests plain block pair', () => {
+      const step = blockStep('|~ outer |~ inner ~| more ~|\n| 42');
+      expect(step.type).toBe('BlockPlainComment');
+      expect(step.content).toBe(' outer |~ inner ~| more ');
+    });
+
+    it('plain block nests three deep', () => {
+      const step = blockStep('|~ A |~ B |~ C ~| D ~| E ~|\n| 1');
+      expect(step.type).toBe('BlockPlainComment');
+      expect(step.content).toBe(' A |~ B |~ C ~| D ~| E ');
+    });
+
+    it('plain block adjacent nested pairs', () => {
+      const step = blockStep('|~ |~ a ~| middle |~ b ~| ~|\n| 1');
+      expect(step.content).toBe(' |~ a ~| middle |~ b ~| ');
+    });
+
+    it('plain block nests doc-pair as opaque content', () => {
+      const step = blockStep('|~ wraps |~~ inner doc ~~| inside ~|\n| 1');
+      expect(step.content).toBe(' wraps |~~ inner doc ~~| inside ');
+    });
+
+    it('plain block accepts bare ~~| (sibling close) as content', () => {
+      const step = blockStep('|~ doc-close marker ~~| mentioned ~|\n| 1');
+      expect(step.content).toBe(' doc-close marker ~~| mentioned ');
+    });
+
+    it('plain block collapses |~| line marker to 3-char content', () => {
+      const step = blockStep('|~ holds a |~| line mention here ~|\n| 7');
+      expect(step.content).toBe(' holds a |~| line mention here ');
+    });
+
+    it('plain block collapses |~~| line-doc marker to 4-char content', () => {
+      const step = blockStep('|~ holds a |~~| line-doc mention here ~|\n| 7');
+      expect(step.content).toBe(' holds a |~~| line-doc mention here ');
+    });
+
+    it('plain block preserves Quote span ~{…} verbatim with nested plain inside', () => {
+      const step = blockStep('|~ wraps ~{ inner |~ q ~| pipe } closing ~|\n| 1');
+      expect(step.content).toBe(' wraps ~{ inner |~ q ~| pipe } closing ');
+    });
+
+    it('plain block preserves Quote span enclosing bare ~|', () => {
+      const step = blockStep('|~ keeps ~{ literal ~| close } afterward ~|\n| 1');
+      expect(step.content).toBe(' keeps ~{ literal ~| close } afterward ');
+    });
+
+    it('plain block preserves newlines verbatim across deep nesting', () => {
+      const src = '|~ A\n  |~ B\n    inner\n  ~|\nA-tail ~|\n| 1';
+      const step = blockStep(src);
+      expect(step.content).toBe(' A\n  |~ B\n    inner\n  ~|\nA-tail ');
+    });
+
+    it('plain block empty body', () => {
+      const step = blockStep('|~~|\n| 1');
+      expect(step.type).toBe('DocLit');
+    });
+
+    it('plain block with empty nested pair', () => {
+      const step = blockStep('|~ before |~ ~| after ~|\n| 1');
+      expect(step.content).toBe(' before |~ ~| after ');
+    });
+
+    it('doc block nests doc-pair as opaque content (attached docs)', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        '|~~ outer |~~ inner ~~| more ~~|\n:foo 42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' outer |~~ inner ~~| more ']);
+    });
+
+    it('doc block adjacent nested doc pairs', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        '|~~ |~~ a ~~| middle |~~ b ~~| ~~|\n:foo 42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' |~~ a ~~| middle |~~ b ~~| ']);
+    });
+
+    it('doc block nests plain pair as opaque content', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        '|~~ holds |~ inner plain ~| inline ~~|\n:foo 42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' holds |~ inner plain ~| inline ']);
+    });
+
+    it('doc block accepts bare ~| (sibling close) as content', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        '|~~ plain-close marker ~| mentioned ~~|\n:foo 42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' plain-close marker ~| mentioned ']);
+    });
+
+    it('doc block collapses |~| line marker to 3-char content', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        '|~~ pair holds |~| line marker inline ~~|\n:foo 42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' pair holds |~| line marker inline ']);
+    });
+
+    it('doc block collapses |~~| line-doc marker to 4-char content', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        '|~~ pair holds |~~| line-doc marker inline ~~|\n:foo 42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' pair holds |~~| line-doc marker inline ']);
+    });
+
+    it('doc-attached block on BindStep keeps nested doc-pair verbatim', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const docs = await evalQuery(
+        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| :foo | docs * /content'
+      );
+      expect(docs).toEqual([' outer |~~ inner ~~| more ']);
+    });
+
+    it('standalone DocLit captures nested doc-pair', async () => {
+      const { evalQuery } = await import('../../src/eval.mjs');
+      const content = await evalQuery(
+        '|~~ mentions |~~ inner pair ~~| inside ~~| | /content'
+      );
+      expect(content).toBe(' mentions |~~ inner pair ~~| inside ');
+    });
+
+    it('outer close on the same line as inner-line-marker still terminates', () => {
+      const step = blockStep('|~ holds |~| marker ~|\n| 1');
+      expect(step.type).toBe('BlockPlainComment');
+      expect(step.content).toBe(' holds |~| marker ');
+    });
+
+    it('outer close on the same line as nested closing ~~| still terminates', () => {
+      const step = blockStep('|~ holds |~~ inner ~~| ~|\n| 1');
+      expect(step.content).toBe(' holds |~~ inner ~~| ');
+    });
+  });
+
+  describe('positive — guards.qlang author header pattern', () => {
+    it('parses the production guards.qlang header verbatim', () => {
+      const src = [
+        '|~ User-error tag identifiers raised by the guards in this',
+        '   module. Both ride the universal identity-on-JS-header invariant',
+        '   that every ErrorValue carries: `error({:kind ::FooError …})`',
+        "   lifts the TagKeyword to the value's tag slot, and `result !|",
+        '   type` reads it back. The doc-only `::Tag |~~ ~~|` BindSteps',
+        '   below give axis-operands (`::AssertionFailedError | docs`,',
+        '   `| source`, `| examples`) a discoverable declaration through',
+        "   the loaded module's AST, symmetric with catalog error tags. ~|",
+        '| 42'
+      ].join('\n');
+      const step = blockStep(src);
+      expect(step.type).toBe('BlockPlainComment');
+      expect(step.content).toContain('|~~ ~~|');
+      expect(step.content).toContain('::AssertionFailedError | docs');
+    });
+  });
+
+  describe('negative — unbalanced or malformed nesting raises ParseError', () => {
+    const expectParseFail = (src) => {
+      let err = null;
+      try { parse(src); } catch (e) { err = e; }
+      expect(err).toBeInstanceOf(ParseError);
+      expect(err.location).toBeDefined();
+      expect(err.location.start).toMatchObject({
+        offset: expect.any(Number),
+        line:   expect.any(Number),
+        column: expect.any(Number)
+      });
+    };
+
+    it('plain block with inner |~ that never closes — outer cannot find ~|', () => {
+      expectParseFail('|~ outer |~ inner has no close more ~|\n| 1');
+    });
+
+    it('plain block with no closing ~| at all', () => {
+      expectParseFail('|~ unterminated block\n| 1');
+    });
+
+    it('doc block with inner |~~ that never closes', () => {
+      expectParseFail('|~~ outer |~~ inner-no-close more ~~|\n:foo 1\n| foo');
+    });
+
+    it('doc block with no closing ~~|', () => {
+      expectParseFail('|~~ unterminated doc\n:foo 1\n| foo');
+    });
+
+    it('plain block whose inner nested plain swallows the outer close', () => {
+      // `|~ A |~ B ~|` — outer takes inner pair, leaves nothing to close outer.
+      expectParseFail('|~ A |~ B ~|\n| 1');
+    });
+
+    it('doc block whose inner nested doc swallows the outer close', () => {
+      expectParseFail('|~~ A |~~ B ~~|\n:foo 1\n| foo');
+    });
+
+    it('bare ~~| in pipeline position (no opening) is a parse error', () => {
+      expectParseFail('42 | ~~|');
+    });
+
+    it('bare ~| in pipeline position (no opening) is a parse error', () => {
+      expectParseFail('42 | ~|');
+    });
+
+    it('mismatched close — plain opened, doc-close attempted before plain-close', () => {
+      // `|~ stuff ~~|` — `~~|` is two chars + sibling-accepted; outer plain
+      // still needs `~|`. Parser consumes the bare `~~|` as content and then
+      // fails when it cannot find the real plain close.
+      expectParseFail('|~ stuff ~~|\n| 1');
+    });
+  });
+
+  describe('round-trip — outer .content is the exact source slice between delimiters', () => {
+    const cases = [
+      '|~ a ~|',
+      '|~ outer |~ inner ~| tail ~|',
+      '|~ A |~ B |~ C ~| D ~| E ~|',
+      '|~ wraps ~{ inner |~ q ~| } closing ~|',
+      '|~ multi\n  line\n  with |~ nested ~| inside ~|',
+      '|~~ outer |~~ inner ~~| more ~~|',
+      '|~~ holds |~ plain ~| inline ~~|'
+    ];
+
+    it.each(cases)('reproduces .content from source slice — %s', (src) => {
+      const ast = parse(src + '\n| 0');
+      const step = ast.steps[0];
+      const opener = src.startsWith('|~~') ? '|~~' : '|~';
+      const closer = src.startsWith('|~~') ? '~~|' : '~|';
+      const expected = src.slice(opener.length, src.length - closer.length);
+      expect(step.content).toBe(expected);
+    });
   });
 });

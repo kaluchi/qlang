@@ -237,17 +237,15 @@ export function isSnapshot(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'snapshot';
 }
 
-// A tagged-instance Map carries `:kind <TagKeyword>` plus a
-// `:payload` slot holding whatever the constructor literal
-// captured — a Vec (`::Tag[1 2 3]`), a Map (`::Tag{:k 1}`), a
-// scalar wrapped via ParenGroup (`::Tag(42)`), a Quote, a Set,
-// any pipeline value. Conduit / snapshot identity rides on the
-// Map JS-header `TAG_HEADER_SYMBOL` slot, so they trip
-// `isConduit` / `isSnapshot` upstream and never reach this
-// predicate. Catalog tag-binding declarations carry their
-// payload on `:impl` rather than `:payload`, so the
-// `v.has('payload')` requirement already keeps them outside the
-// generic tagged-instance render path.
+// TaggedInstance — value carrying a TagKeyword on its JS-header
+// `TAG_HEADER_SYMBOL` slot. `makeTaggedInstance` mints two value
+// shapes: Array / Set / Map clones with the header stamped, or
+// an opaque frozen `{type, tag, payload}` wrapper for non-
+// extensible payloads (scalar, Keyword, Quote, Doc, Error,
+// already-tagged composite). Three reserved tag names own
+// dedicated render / dispatch paths (`::conduit`, `::snapshot`,
+// `::builtin`) and route through their own predicates
+// (`isConduit`, `isSnapshot`, `isBuiltinDescriptor`).
 const RESERVED_HEADER_TAG_NAMES = new Set(['conduit', 'snapshot', 'builtin']);
 export function isTaggedInstance(v) {
   if (v === null || typeof v !== 'object') return false;
@@ -299,14 +297,11 @@ export function makeDoc(content) {
 // `JSON_ARRAY_TAG` for plain JS Objects / Arrays: invisible to
 // Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
 // to JSON serialization, and to the manifest enumeration
-// surface — runtime predicates (`isConduit`, `isSnapshot`,
-// `typeKeyword` Map branch) read the discriminator off the
-// header in one property access without touching the data
-// surface. Phase 3 will route `TaggedInstance` through the same
-// slot; the catalog's `::builtin` descriptors stay on
-// `:kind ::builtin` field shape until Phase 4 because their
-// data plane already publishes `:kind` as part of the user-
-// facing surface.
+// surface. Every identity-bearing value-class — Conduit,
+// Snapshot, TaggedInstance, catalog `::builtin` descriptor,
+// materialized error — stamps the slot through `stampTagHeader`
+// and reads it through `typeKeyword`'s header branch in one
+// property access, leaving the data plane untouched.
 
 export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');
 
@@ -389,9 +384,10 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 //     unwrap. Flat-merging the Map payload's fields onto the
 //     tagged Map (rather than nesting under `:payload`) makes
 //     `tagged | keys` / `/field` / `vals` read identical to an
-//     untagged Map literal — the pre-Phase-3 nested-identity-
-//     loss bug cannot recur because `:kind` fields are ordinary
-//     data after Phase 4.
+//     untagged Map literal. `:kind` fields stay as ordinary Map
+//     data; identity rides on the JS-header alone, so a `:kind`
+//     slot on user payload coexists with the instance's identity
+//     without collision.
 //
 //   Scalar / Keyword / TagKeyword / Quote / Doc / Error /
 //     Conduit / Snapshot / already-tagged composite — wrap in a

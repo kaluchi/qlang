@@ -198,12 +198,11 @@ function printJsonObject(obj, indent) {
 // makeConduit reproduces the same Conduit-value modulo the
 // lexical envRef holder, which the constructor binds to the
 // call-site env at reconstruction time.
-// The `::conduit` literal head sits on the Map's TAG_HEADER_SYMBOL
-// slot — Phase 2 lifted the identity off the descriptor onto the
-// header, so the printer reads it through the same channel
-// `typeKeyword` / `isConduit` use. Mirrors the fixed `::Tag` heads
-// JsonObject / JsonArray emit through their own Symbol-tag
-// round-trip paths.
+// The `::conduit` literal head sits on the Map's
+// TAG_HEADER_SYMBOL slot — the printer reads identity through
+// the same channel `typeKeyword` / `isConduit` use. Mirrors
+// the fixed `::Tag` heads JsonObject / JsonArray emit through
+// their own Symbol-tag round-trip paths.
 export function printConduit(conduit) {
   const tagLiteral = conduit[TAG_HEADER_SYMBOL].literal;
   const name = conduit.get('name');

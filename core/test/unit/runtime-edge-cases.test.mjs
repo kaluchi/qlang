@@ -93,13 +93,13 @@ describe('describeType for conduit and snapshot', async () => {
   });
 
   it('isTaggedInstance rejects real conduit / snapshot values without checking :kind field shape', async () => {
-    // After Phase 2 the conduit / snapshot identity rides on the
-    // Map's JS-header `TAG_HEADER_SYMBOL` slot. `isTaggedInstance`
+    // The conduit / snapshot identity rides on the Map's
+    // JS-header `TAG_HEADER_SYMBOL` slot. `isTaggedInstance`
     // routes through `isConduit` / `isSnapshot` first so the
     // generic tagged-instance render path stays disjoint from
     // `printConduit` / `printSnapshot`, regardless of whether a
-    // bystander Map happens to carry `:kind ::conduit` as ordinary
-    // data.
+    // bystander Map happens to carry `:kind ::conduit` as
+    // ordinary data.
     const { makeConduit, makeSnapshot, isTaggedInstance } = await import('../../src/types.mjs');
     const realConduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' });
     const realSnapshot = makeSnapshot(42, { name: 'x' });
@@ -384,12 +384,11 @@ describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection',
 
 describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound error', async () => {
   // `buildValueDescriptor` reads `typeKeyword(v)` for the
-  // descriptor's `:type` field. After Phase 1's identity-on-JS-
-  // header refactor, `typeKeyword`'s isErrorValue branch returns
-  // `error.tag` directly — the universal identity slot every
-  // error carries on the JS-header `tag` field (defaulting to
-  // `::Error` for user `!{}` without explicit `:kind`). No
-  // generic fallback path remains.
+  // descriptor's `:type` field. `typeKeyword`'s isErrorValue
+  // branch returns `error.tag` directly — the universal
+  // identity slot every error carries on the JS-header `tag`
+  // field, defaulting to `::Error` for user `!{}` without
+  // explicit `:kind`.
 
   it('error tag surfaces as the TagKeyword on the :type field', async () => {
     const s = await createSession();
@@ -501,7 +500,7 @@ describe('printValue keyword round-trip', async () => {
       const original = await evalQuery(src);
       const printed = printValue(original);
       const reparsed = await evalQuery(printed);
-      expect(deepEqual(original, reparsed), ).toBe(true);
+      expect(deepEqual(original, reparsed), `quoted-keyword round-trip drift on ${src} → ${printed}`).toBe(true);
     }
   });
 

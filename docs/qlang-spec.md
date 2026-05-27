@@ -58,6 +58,30 @@ Doc comments are introduced together with the BindStep form
 `:name body` and the `as` operand in
 [Names and modules](#names-and-modules).
 
+Block comments **nest recursively**. The four marker shapes pick
+distinct open / close pairs — `|~`/`~|` for plain blocks,
+`|~~`/`~~|` for doc blocks — so the parser descends into a nested
+span without an escape mechanism: any opening seen inside a block
+body consumes its whole pair as opaque content, and only the
+container's own close marker terminates the outer body. The line
+forms `|~|` and `|~~|` mentioned inside a block collapse to their
+3- / 4-char marker; the rest of the line stays in the outer
+body. A sibling close (`~~|` inside a plain body, `~|` inside a
+doc body) is accepted as content because it is not the
+container's own close.
+
+```qlang
+|~ outer wraps |~ inner pair ~| and a |~~| line-doc mention here ~|
+
+|~~ guards mention the `|~~ ~~|` BindStep marker spelling without
+    closing the outer doc ~~|
+```
+
+The block-body content surfaces on the AST node as a verbatim
+source slice between the open and close delimiters — a downstream
+consumer (`printValue`, AST-codec round-trip, the highlighter)
+reads back exactly the bytes the author typed.
+
 ---
 
 ## Atomic values
@@ -2570,7 +2594,8 @@ import { createSession } from '@kaluchi/qlang-core';
 // Resolve all modules in lib/ in discovery order.
 const catalog = await resolveModules('./lib');
 
-// Install into a session: each namespace keyword → module env Map.
+// Install into a session: stamps both the export Map under the
+// namespace key and the module Quote under qlang/ast/<ns>.
 const session = await createSession();
 installModules(session, catalog);
 
@@ -2583,10 +2608,18 @@ installModules(session, catalog);
   are strings such as `"qlang/error"`, not keywords).
 
 - **`resolveModules(libDir, opts?)`** — discovers, evaluates, and
-  returns a `Map<keyword, Map>` catalog. Each module is evaluated
-  in its own env snapshot built from `baseEnv` plus the modules
-  resolved earlier in the same pass, so upstream modules are
-  visible to downstream ones.
+  returns a `Map<nsName, { exports, source, ast }>` catalog.
+  Each module is evaluated in its own env snapshot built from
+  `baseEnv` plus the modules resolved earlier in the same pass,
+  so upstream modules are visible to downstream ones. The entry
+  fields:
+  - `exports` — `Map` of bindings added by the module (env delta).
+  - `source` — raw `.qlang` source text.
+  - `ast` — parsed AST root the eval pass walked.
+
+  The `source`/`ast` pair lets `installModules` stamp the module's
+  source-as-Quote under `qlang/ast/<ns>`, matching the env shape the
+  locator-based `use(:ns)` pathway already produces.
   Options:
   - `opts.baseEnv` — initial env (default: `langRuntime()`).
   - `opts.dependencies` — `Map<namespaceName, string[]>` for explicit
@@ -2594,9 +2627,12 @@ installModules(session, catalog);
     filesystem discovery order.
 
 - **`installModules(session, catalog)`** — iterates the catalog and
-  calls `session.bind(nsKeyword.name, moduleEnv)` for each entry.
-  After installation, `use(:ns-keyword)` merges the module's exports
-  into the query env.
+  binds two env keys per namespace: `nsName → exports` (so
+  `use(:nsName)` merges the bindings), and `qlang/ast/<nsName> →
+  Quote(source, ast)` so the axis-operands `:name | source`,
+  `| docs`, `| examples` walk the loaded module AST. Install-path
+  and locator-path stay symmetric on the axis-operand
+  discoverability surface.
 
 #### Dependency ordering
 

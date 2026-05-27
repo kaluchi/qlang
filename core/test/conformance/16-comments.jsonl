@@ -40,3 +40,18 @@
 {"name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | /k","expect":"1"}
 {"name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | /k","expect":"1"}
 {"name":"plain-comment-around-nested-map-entry","query":"|~~ module doc ~~|\n:wrap {:a {|~ inner section ~| :x 1}}\n| :wrap | docs | first | /content","expect":"\" module doc \""}
+{"name":"plain-block-nests-plain-block-pair","query":"|~ outer |~ inner ~| more ~|\n| 42","expect":"42"}
+{"name":"plain-block-nests-three-deep","query":"|~ A |~ B |~ C ~| D ~| E ~|\n| 1","expect":"1"}
+{"name":"plain-block-with-bare-doc-close-marker-as-content","query":"|~ doc-close marker ~~| mentioned here ~|\n| 99","expect":"99"}
+{"name":"doc-block-with-bare-plain-close-marker-as-content","query":"|~~ plain-close marker ~| mentioned here ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" plain-close marker ~| mentioned here \""}
+{"name":"plain-block-mentions-line-plain-marker","query":"|~ holds a |~| line marker mention here ~|\n| 7","expect":"7"}
+{"name":"plain-block-mentions-line-doc-marker","query":"|~ holds a |~~| line-doc marker mention here ~|\n| 7","expect":"7"}
+{"name":"plain-block-mentions-doc-pair","query":"|~ mentions |~~ inner doc ~~| inline ~|\n| 0","expect":"0"}
+{"name":"doc-block-nests-doc-block-pair","query":"|~~ outer |~~ inner ~~| more ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" outer |~~ inner ~~| more \""}
+{"name":"doc-block-mentions-plain-pair","query":"|~~ holds |~ inner plain ~| inline ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" holds |~ inner plain ~| inline \""}
+{"name":"doc-block-preserves-nested-line-doc-mention","query":"|~~ holds |~~| line-doc mention\n more text ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" holds |~~| line-doc mention\\n more text \""}
+{"name":"plain-block-content-verbatim-via-quote-on-bind","query":"|~ user-error tag `::AssertionFailedError` raised by guards — doc-only `::Tag |~~ ~~|` BindSteps make axis-operands reach declarations ~|\n:foo 42\n| foo","expect":"42"}
+{"name":"plain-block-preserves-quote-mention-with-nested-plain","query":"|~ wraps ~{ inner |~ q ~| pipe } closing ~|\n| 1","expect":"1"}
+{"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| :foo | docs | first | /content","expect":"\" outer |~~ inner ~~| more \""}
+{"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| :foo | docs | first | /content","expect":"\" pair holds |~| line marker inline \""}
+{"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | /content","expect":"\" mentions |~~ inner pair ~~| inside \""}

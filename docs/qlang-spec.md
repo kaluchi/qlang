@@ -58,6 +58,30 @@ Doc comments are introduced together with the BindStep form
 `:name body` and the `as` operand in
 [Names and modules](#names-and-modules).
 
+Block comments **nest recursively**. The four marker shapes pick
+distinct open / close pairs — `|~`/`~|` for plain blocks,
+`|~~`/`~~|` for doc blocks — so the parser descends into a nested
+span without an escape mechanism: any opening seen inside a block
+body consumes its whole pair as opaque content, and only the
+container's own close marker terminates the outer body. The line
+forms `|~|` and `|~~|` mentioned inside a block collapse to their
+3- / 4-char marker; the rest of the line stays in the outer
+body. A sibling close (`~~|` inside a plain body, `~|` inside a
+doc body) is accepted as content because it is not the
+container's own close.
+
+```qlang
+|~ outer wraps |~ inner pair ~| and a |~~| line-doc mention here ~|
+
+|~~ guards mention the `|~~ ~~|` BindStep marker spelling without
+    closing the outer doc ~~|
+```
+
+The block-body content surfaces on the AST node as a verbatim
+source slice between the open and close delimiters — a downstream
+consumer (`printValue`, AST-codec round-trip, the highlighter)
+reads back exactly the bytes the author typed.
+
 ---
 
 ## Atomic values

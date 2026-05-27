@@ -189,6 +189,24 @@ describe('tokenize — comments', () => {
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
   });
+
+  it('paints a nested-pair plain block as a single ~{comment} span', async () => {
+    const src = '|~ outer |~ inner ~| more ~|';
+    const tokens = tokenize(src, await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
+  });
+
+  it('paints a doc-pair-mentioning plain block as one ~{comment} span', async () => {
+    const src = '|~ holds |~~ inner ~~| inline ~|';
+    const tokens = tokenize(src, await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
+  });
+
+  it('paints a line-marker mention inside plain block as one ~{comment} span', async () => {
+    const src = '|~ before |~| mention ~|';
+    const tokens = tokenize(src, await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
+  });
 });
 
 describe('tokenize — gap interleaving', () => {

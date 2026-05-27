@@ -514,6 +514,16 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
   });
 }
 
+// Host-facing convenience: build an ErrorValue from a descriptor
+// Map that carries the per-site identity under its `:kind` slot.
+// Hosts (jdt, future bridges) build descriptors keyword-by-keyword
+// and naturally place the per-site `::TagKeyword` under `:kind`;
+// this helper extracts it so callers do not repeat the same
+// boilerplate at every throw site.
+export function errorFromKindDescriptor(descriptor, opts = {}) {
+  return makeErrorValue(descriptor.get('kind'), descriptor, opts);
+}
+
 export function appendTrailNode(errorValue, trailEntry) {
   return Object.freeze({
     type: 'error',

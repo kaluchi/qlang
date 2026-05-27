@@ -139,6 +139,33 @@ chapters the main agent keeps in mind at every commit:
    fine, push is a separate action.
 7. Squash-merge, delete the branch both locally and on the remote.
 
+## Release process
+
+Releases run through **`node scripts/release.mjs <version>`** end
+to end. Pass the version as the argument; the script does the
+rest:
+
+1. Preflight — confirms master, clean working tree, in-sync with
+   origin, CI green on HEAD, tag `vX.Y.Z` absent.
+2. Bumps every publishable workspace (`@kaluchi/qlang-core`,
+   `@kaluchi/qlang-cli`) via `npm version`.
+3. Rebuilds the parser, runs the full test + coverage suite.
+4. Commits as `Release X.Y.Z`, pushes master.
+5. Waits for CI to go green on the release SHA.
+6. Tags `vX.Y.Z`, pushes the tag.
+
+The tag push triggers `.github/workflows/deploy.yml`, which runs
+`npm publish` for every workspace in its matrix and creates the
+GitHub Release with auto-generated notes.
+
+```bash
+# After a green merge to master, when ready to release:
+node scripts/release.mjs 0.7.7
+```
+
+The preflight gate and the tag-push automation fire when this
+script drives the release end to end — use it for every release.
+
 ## PR review with Gemini Code Assist
 
 A GitHub App named `gemini-code-assist[bot]` reviews PRs against

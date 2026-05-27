@@ -40,9 +40,7 @@ import {
   isErrorValue,
   langRuntime
 } from '@kaluchi/qlang-core';
-import { bindIoOperands } from './io-operands.mjs';
-import { bindFormatOperands } from './format-operands.mjs';
-import { bindParseOperands } from './parse-operands.mjs';
+import { createCliLocator, installCliCatalog } from './cli-locator.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
 
@@ -99,14 +97,14 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
     ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
     : stderrWrite;
 
-  const session = await createSession();
-  bindIoOperands(session, {
-    stdinReader: () => Promise.resolve(''),
-    stdoutWrite: writeOutput,
-    stderrWrite: writeDiagnostic
+  const session = await createSession({
+    locator: createCliLocator({
+      stdinReader: () => Promise.resolve(''),
+      stdoutWrite: writeOutput,
+      stderrWrite: writeDiagnostic
+    })
   });
-  bindFormatOperands(session);
-  bindParseOperands(session);
+  await installCliCatalog(session);
 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,

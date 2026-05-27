@@ -15,11 +15,16 @@
    name. ~|
 
 :env
-  |~~ Replaces pipeValue with the current env Map. Inside a fork,
-      returns the fork-local env including any as/let writes visible
-      at this point.
+  |~~ Replaces pipeValue with the current env Map — a Map keyed by
+      binding name carrying every value visible at this point in
+      the pipeline. Inside a fork, returns the fork-local env,
+      including any `as` / BindStep writes that landed in the same
+      branch. Use it for introspection or for forwarding a specific
+      binding to another step (`env | /myFlag`).
 
       ~{env | has(:count) | eq(true)}
+      ~{42 | as(:answer) | env | /answer | eq(42)}
+      ~{99 | as(:secret) | env | has(:secret) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/prim/env
             :category :reflective
@@ -34,7 +39,12 @@
       shadows earlier on collision). With a Set, imports and
       rejects name collisions. With two args (namespace + filter),
       imports only the named bindings. pipeValue unchanged in all
-      forms. Inside a fork, merged bindings evaporate on close. ~~|
+      forms. Inside a fork, merged bindings evaporate on close.
+
+      ~{{:limit 10 :role "admin"} | use | env | /limit | eq(10)}
+      ~{{:x 1} | use | env | /x | add(2) | eq(3)}
+      ~{42 | as(:n) | env | has(:n) | eq(true)}
+  ~~|
   ::builtin{:impl :qlang/prim/use
             :category :reflective
             :subject :any
@@ -126,7 +136,12 @@
       (`:name | source` / `:name | docs` / `:name | examples`)
       instead — the manifest descriptors are a runtime-derived
       enumeration surface, not a substitute for the AST-axis
-      navigation. ~~|
+      navigation.
+
+      ~{manifest | filter(/name | eq("add")) | first | /returns | eq(:number)}
+      ~{manifest | filter(/category | eq(:arith)) * /name | count | gte(4)}
+      ~{manifest(:tag) | first | /kind | eq(::tag)}
+  ~~|
   ::builtin{:impl :qlang/prim/manifest
             :category :reflective
             :subject :any
@@ -168,7 +183,12 @@
       carrying a :name string. The composition
       manifest | every(runExamples | every(/ok)) walks every
       example in the manifest and must return true —
-      self-describing catalog drift detection. ~~|
+      self-describing catalog drift detection.
+
+      ~{:add | runExamples * /ok | distinct | eq(#[true])}
+      ~{:gt | runExamples | count | gte(1)}
+      ~{:add | runExamples | first | /ok | eq(true)}
+  ~~|
   ::builtin{:impl :qlang/prim/runExamples
             :category :reflective
             :subject :map

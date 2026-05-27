@@ -23,7 +23,8 @@
     "ql": "src/bin.mjs"
   },
   "files": [
-    "src/"
+    "src/",
+    "lib/"
   ],
   "scripts": {
     "test": "vitest run",

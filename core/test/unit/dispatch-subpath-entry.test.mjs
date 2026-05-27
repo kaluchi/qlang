@@ -9,7 +9,7 @@
 // '../eval.mjs'` inside dispatch.mjs would close the cycle and
 // trip ReferenceError on `UNBOUNDED` at module-init time because
 // `control.mjs` references `UNBOUNDED` at its top level
-// (`higherOrderOpVariadic('coalesce', 16, …, [1, UNBOUNDED])`)
+// (`higherOrderOpVariadic('coalesce', …, [1, UNBOUNDED])`)
 // before the dispatch module body has reached the export.
 //
 // Vitest runs each test file in an isolated module graph, so this

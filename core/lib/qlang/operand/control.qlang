@@ -3,11 +3,16 @@
    the operand's `:throws` Vec references those tags by name. ~|
 
 :if
-  |~~ Conditional. Evaluates the cond sub-pipeline against
-      pipeValue; if truthy, evaluates the then branch, otherwise
-      evaluates the else branch. Only the selected branch executes.
-      Truthiness: null and false are falsy, everything else
-      (including 0, "", [], {}, #[]) is truthy. ~~|
+  |~~ Three-branch conditional: `if(cond, then, else)`. Each branch
+      is a sub-pipeline evaluated against pipeValue. Only the
+      selected branch fires — `if` is lazy.
+
+      ~{5 | if(gt(0), "positive", "non-positive") | eq("positive")}
+      ~{-1 | if(gt(0), "positive", "non-positive") | eq("non-positive")}
+      ~{{:age 25} | if(/age | gte(18), "adult", "minor") | eq("adult")}
+
+      Truthiness: `null` and `false` are falsy; every other value —
+      including `0`, `""`, `[]`, `{}`, `#[]` — is truthy. ~~|
   ::builtin{:impl :qlang/prim/if
             :category :control
             :subject :any
@@ -16,10 +21,15 @@
    }
 
 :when
-  |~~ One-sided conditional with implicit identity on the false
-      branch. If cond evaluated against pipeValue is truthy, runs
-      the then sub-pipeline; otherwise pipeValue passes through
-      unchanged. ~~|
+  |~~ Guarded transform: `when(cond, then)`. When cond is truthy,
+      the then sub-pipeline fires against pipeValue; otherwise
+      pipeValue passes through unchanged. Use for "do X only if
+      condition holds, else leave the value alone".
+
+      ~{5 | when(gt(0), add(100)) | eq(105)}
+      ~{-5 | when(gt(0), add(100)) | eq(-5)}
+      ~{{:level "warn"} | when(/level | eq("error"), "ALERT") | eq({:level "warn"})}
+  ~~|
   ::builtin{:impl :qlang/prim/when
             :category :control
             :subject :any
@@ -28,10 +38,15 @@
    }
 
 :unless
-  |~~ Inverse of when: runs the then sub-pipeline when cond is
-      falsy, otherwise pipeValue passes through unchanged.
-      Reads more naturally for guard-clause patterns where the
-      action fires when the condition fails. ~~|
+  |~~ Inverse of `when`: `unless(cond, then)` fires the then
+      sub-pipeline only when cond is falsy; truthy pipeValue passes
+      through unchanged. Reads naturally for fallback / default
+      patterns ("if no real value, supply this one").
+
+      ~{null | unless(isNumber, 0) | eq(0)}
+      ~{42 | unless(isNumber, 0) | eq(42)}
+      ~{{:name null} | unless(/name, "anonymous") | eq("anonymous")}
+  ~~|
   ::builtin{:impl :qlang/prim/unless
             :category :control
             :subject :any
@@ -45,7 +60,12 @@
       short-circuiting on the first non-null value. If all
       alternatives produce null, returns null. Falsy non-null values
       (false, 0, "", [], {}, #[]) are NOT skipped — only
-      null counts as missing. ~~|
+      null counts as missing.
+
+      ~{{:nickname null :name "alice"} | coalesce(/nickname, /name) | eq("alice")}
+      ~{{:nickname "ace" :name "alice"} | coalesce(/nickname, /name) | eq("ace")}
+      ~{{:nickname null :name null} | coalesce(/nickname, /name, "anonymous") | eq("anonymous")}
+  ~~|
   ::builtin{:impl :qlang/prim/coalesce
             :category :control
             :subject :any
@@ -70,7 +90,12 @@
       false are skipped. If all alternatives produce falsy values,
       returns null. Use coalesce when false is a valid explicit
       setting; use firstTruthy when false is a sentinel meaning
-      "no value". ~~|
+      "no value".
+
+      ~{{:override false :default "fallback"} | firstTruthy(/override, /default) | eq("fallback")}
+      ~{{:override "win" :default "fallback"} | firstTruthy(/override, /default) | eq("win")}
+      ~{5 | firstTruthy(eq(10), eq(5)) | eq(true)}
+  ~~|
   ::builtin{:impl :qlang/prim/firstTruthy
             :category :control
             :subject :any
@@ -95,7 +120,12 @@
       truthy against pipeValue. If captured-arg count is odd, the
       trailing arg is the default branch. If even and no match,
       returns null. Replaces nested-if chains with a flat
-      catalog. ~~|
+      catalog.
+
+      ~{85 | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F") | eq("B")}
+      ~{65 | cond(gte(90), "A", gte(80), "B", gte(70), "C", "F") | eq("F")}
+      ~{{:role "admin"} | cond(/role | eq("admin"), "full", /role | eq("user"), "limited") | eq("full")}
+  ~~|
   ::builtin{:impl :qlang/prim/cond
             :category :control
             :subject :any

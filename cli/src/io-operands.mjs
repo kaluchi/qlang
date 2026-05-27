@@ -1,26 +1,11 @@
-// Effectful I/O operands the CLI binds into every freshly-seeded
-// session: `@in` reads stdin to a String, `@out` writes a String
-// payload to stdout, `@err` writes to stderr, `@tap(:label)` is an
-// identity step that mirrors the current pipeValue onto stderr with
-// a labelled prefix for diagnostic.
-//
-// All four are host-bound directly into the session env, so a
-// one-liner `qlang '@in | @out'` runs without `use(:qlang/io)`
-// ceremony. The operand function values close over
-// the writers passed in `ioContext`, so the same evaluator can run
-// against `process.stdin`/`stdout`/`stderr` in the bin or against
-// captured chunks in a unit test without changing the operand impls.
-//
-// Contracts (narrow, no auto-coercion):
-//   `@in`            → String, ignores incoming pipeValue (producer).
-//   `@out`           → String → stdout + '\n', identity on pipeValue.
-//                      0 captured: subject must be String.
-//                      1 captured: renderer evaluates against subject;
-//                                  result must be String.
-//   `@err`           → same shape as `@out`, writes to stderr instead.
-//   `@tap(:label)`   → identity on (pipeValue, env). Writes
-//                      `[tap label] <printValue(pipeValue)>\n` to
-//                      stderr. Label must be a keyword.
+// Effectful I/O operand impls for the `:cli/io` host catalog —
+// `@in` reads stdin, `@out` writes stdout, `@err` writes stderr,
+// `@tap(:label)` mirrors pipeValue to stderr with a labelled
+// prefix. Catalog declaration lives in `cli/lib/qlang/io.qlang`;
+// the locator at `cli/src/cli-locator.mjs` hands these impls
+// alongside the source through `runtime/use-op.mjs`'s
+// resolveNamespaceEnv path — same surface every catalog-loaded
+// namespace rides on.
 
 import {
   nullaryOp,
@@ -37,9 +22,6 @@ import {
   typeKeyword,
   printValue
 } from '@kaluchi/qlang-core';
-import { bindHostBuiltin } from './host-builtin.mjs';
-
-// ── Per-site error classes ─────────────────────────────────────
 
 const OutSubjectNotStringError =
   declareSubjectError('OutSubjectNotStringError', '@out', 'string');
@@ -57,8 +39,6 @@ const ErrRendererResultNotStringError =
 
 const TapLabelNotKeywordError =
   declareModifierError('TapLabelNotKeywordError', '@tap', 1, 'keyword');
-
-// ── Operand factories ──────────────────────────────────────────
 
 function makeInOperand(stdinReader) {
   return nullaryOp('@in', async () => stdinReader());
@@ -100,25 +80,17 @@ function makeTapOperand(stderrWrite) {
   });
 }
 
-// ── Binding ────────────────────────────────────────────────────
-
-export function bindIoOperands(session, ioContext) {
-  // `recordStdoutEffect` lets the script-mode renderer suppress its
-  // implicit final encode when the user already pushed bytes to
-  // stdout via `@out` — explicit output takes the channel; the
-  // tool stops echoing. `@err` and `@tap` write to stderr (the
-  // diagnostic channel) and leave the flag alone. Optional in
-  // REPL-style ioContexts that do not care about double-output
-  // suppression.
+export function makeIoImpls(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   const noopEffect = () => {};
-
-  bindHostBuiltin(session, '@in',  makeInOperand(ioContext.stdinReader));
-  bindHostBuiltin(session, '@out', makeWriterOperand(
-    '@out', ioContext.stdoutWrite, recordStdoutEffect,
-    OutSubjectNotStringError, OutRendererResultNotStringError));
-  bindHostBuiltin(session, '@err', makeWriterOperand(
-    '@err', ioContext.stderrWrite, noopEffect,
-    ErrSubjectNotStringError, ErrRendererResultNotStringError));
-  bindHostBuiltin(session, '@tap', makeTapOperand(ioContext.stderrWrite));
+  return {
+    '@in':  makeInOperand(ioContext.stdinReader),
+    '@out': makeWriterOperand(
+      '@out', ioContext.stdoutWrite, recordStdoutEffect,
+      OutSubjectNotStringError, OutRendererResultNotStringError),
+    '@err': makeWriterOperand(
+      '@err', ioContext.stderrWrite, noopEffect,
+      ErrSubjectNotStringError, ErrRendererResultNotStringError),
+    '@tap': makeTapOperand(ioContext.stderrWrite)
+  };
 }

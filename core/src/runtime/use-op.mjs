@@ -53,7 +53,7 @@ const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError
 const UseNameNotExportedError = declareShapeError('UseNameNotExportedError',
   ({ namespaceName, exportName }) => `use: '${exportName}' not exported by namespace '${namespaceName}'`);
 
-export const use = stateOpVariadic('use', 3, async (state, useLambdas) => {
+export const use = stateOpVariadic('use', async (state, useLambdas) => {
   if (useLambdas.length === 0) {
     if (!isQMap(state.pipeValue)) {
       throw new UseSubjectNotMapError(state.pipeValue);

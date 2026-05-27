@@ -214,20 +214,26 @@ export function stateOp(name, arity, impl) {
   }, { captured: [expectedCaptured, expectedCaptured] });
 }
 
-export function stateOpVariadic(name, maxArity, impl, captured) {
+function variadicMaxArity(captured) {
+  const upper = captured[1];
+  if (upper === UNBOUNDED) return Infinity;
+  return upper;
+}
+
+export function stateOpVariadic(name, impl, captured) {
   if (!captured) {
     throw new StateOpVariadicMissingCapturedError(name);
   }
-  return makeFn(name, maxArity, async (state, variadicLambdas) => {
+  return makeFn(name, variadicMaxArity(captured), async (state, variadicLambdas) => {
     return await impl(state, variadicLambdas);
   }, { captured });
 }
 
-export function higherOrderOpVariadic(name, maxArity, impl, captured) {
+export function higherOrderOpVariadic(name, impl, captured) {
   if (!captured) {
     throw new HigherOrderOpVariadicMissingCapturedError(name);
   }
-  return makeFn(name, maxArity, async (state, hoVariadicLambdas) => {
+  return makeFn(name, variadicMaxArity(captured), async (state, hoVariadicLambdas) => {
     return withPipeValue(state, await impl(state.pipeValue, ...hoVariadicLambdas));
   }, { captured });
 }

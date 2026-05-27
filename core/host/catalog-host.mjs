@@ -51,8 +51,6 @@ import {
 import { moduleAstKey } from '../src/env-keys.mjs';
 import { stampStructuralFacts } from '../src/descriptor-ops.mjs';
 
-const _catalogCache = new WeakMap();
-
 // `evalBindStep` routes a pure-literal `::builtin{…}` TaggedLit
 // body through `makeSnapshot`, so the env entry lands wrapped as
 // `Snapshot{:payload <builtin Map>, …}`. Unwrap that wrapper here
@@ -91,13 +89,8 @@ export async function bindCatalog(session, { source, uri, impls, baseEnv = null 
     throw new TypeError('bindCatalog: impls must be an object mapping operand name → function value');
   }
 
-  const cacheKey = impls;
-  let parsed = _catalogCache.get(cacheKey);
-  if (!parsed) {
-    parsed = await loadAndEval(source, uri, baseEnv ? Promise.resolve(baseEnv) : langRuntime());
-    _catalogCache.set(cacheKey, parsed);
-  }
-  const { ast, env: catalogEnv, baseKeys } = parsed;
+  const { ast, env: catalogEnv, baseKeys } = await loadAndEval(
+    source, uri, baseEnv ? Promise.resolve(baseEnv) : langRuntime());
 
   for (const [name, impl] of Object.entries(impls)) {
     const template = catalogEnv.get(name);

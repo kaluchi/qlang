@@ -199,7 +199,7 @@ export async function serializeSession(session) {
       userBindings.push({
         kind: 'conduit',
         name: v.get('name'),
-        params: [...v.get('params')],
+        params: v.get('params').map(p => p.name),
         source: v.get('source').source,
         docs: [...v.get('docs')]
       });

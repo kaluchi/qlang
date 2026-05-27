@@ -402,7 +402,7 @@ describe('withName coverage', () => {
     const renamed = withName(conduitVal, 'new');
     expect(isConduit(renamed)).toBe(true);
     expect(renamed.get('name')).toBe('new');
-    expect([...renamed.get('params')]).toEqual(['a']);
+    expect([...renamed.get('params')]).toEqual([keyword('a')]);
     expect([...renamed.get('docs')]).toEqual(['doc']);
   });
 

@@ -33,7 +33,15 @@ import {
   TAG_HEADER_SYMBOL, stampTagHeader
 } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
-import { mintTaggedInstance } from '../eval.mjs';
+
+// `mintTaggedInstance` lives in `eval.mjs`, which depends on
+// `runtime/index.mjs`, which depends on `runtime/control.mjs`,
+// which depends on this file — a static import here would close
+// a cycle and trip TDZ on `UNBOUNDED` whenever a consumer enters
+// the graph through `runtime/dispatch.mjs` first (subpath import
+// `@kaluchi/qlang-core/dispatch`). The dynamic form below resolves
+// `eval.mjs` after every module in the cycle finishes initialising;
+// Node caches the resolution after the first call.
 
 // Per-site arity error classes for the dispatch wrappers.
 const ValueOpArityMismatchError = declareArityError('ValueOpArityMismatchError',
@@ -104,6 +112,7 @@ async function applyTagPreservation(state, source, result) {
   let resolved = envGet(state.env, tagBindingKey(sourceTag.name));
   if (isSnapshot(resolved)) resolved = resolved.get('payload');
   if (isQMap(resolved) && resolved.has('impl')) {
+    const { mintTaggedInstance } = await import('../eval.mjs');
     return await mintTaggedInstance(sourceTag.name, result, state);
   }
   // `result[TAG_HEADER_SYMBOL]` reads safely through every

@@ -379,12 +379,11 @@ describe('parse — error handling', () => {
 });
 
 describe('parse — source-mapping metadata on AST root', () => {
-  it('records source, uri, parseId, parsedAt, schemaVersion on the root', () => {
+  it('records source, uri, parseId, schemaVersion on the root', () => {
     const ast = parse('42', { uri: 'test.qlang' });
     expect(ast.source).toBe('42');
     expect(ast.uri).toBe('test.qlang');
     expect(typeof ast.parseId).toBe('number');
-    expect(typeof ast.parsedAt).toBe('number');
     expect(ast.schemaVersion).toBe(1);
   });
 

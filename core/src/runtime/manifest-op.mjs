@@ -195,6 +195,19 @@ function describeBinding(value, explicitName) {
 // Module Quote storage under the `qlang/ast/<uri>` env-key family is
 // always filtered — those entries are runtime housekeeping outside
 // either namespace's user-facing catalog.
+
+// Code-point comparator for binding names. Three-way (strict weak
+// ordering) so `Array.prototype.sort` stays well-defined even when it
+// compares a name with itself; env keys are unique, so the `0` arm
+// only fires on that self-comparison. Locale-independent — `manifest`
+// order matches qlang `sort` over the same names, the invariant the
+// `names-are-sorted-asc` conformance case pins.
+export function compareBindingNames(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
 export const manifest = stateOpVariadic('manifest', async (state, manifestLambdas) => {
   let namespace = 'value';
   if (manifestLambdas.length === 1) {
@@ -221,7 +234,7 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
     if (namespace === 'value' && isTag) continue;
     entries.push({ name: k, value: v });
   }
-  entries.sort((a, b) => a.name.localeCompare(b.name));
+  entries.sort((a, b) => compareBindingNames(a.name, b.name));
   const descriptors = entries.map(e => describeBinding(e.value, e.name));
   return withPipeValue(state, descriptors);
 }, [0, 1]);

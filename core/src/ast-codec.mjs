@@ -18,7 +18,7 @@
 // Round-trip invariant: `qlangMapToAst(astNodeToMap(n))` is
 // structurally equal to `n` for any AST produced by `parse()`,
 // modulo the post-parse decoration (`.id`, `.parent`) and the
-// root-level metadata (`.source`, `.uri`, `.parseId`, `.parsedAt`,
+// root-level metadata (`.source`, `.uri`, `.parseId`,
 // `.schemaVersion`) that `parse.mjs` stamps after tree construction.
 // Both halves of the invariant are pinned by
 // `core/test/unit/ast-codec.test.mjs`.
@@ -428,7 +428,7 @@ function pipelineStepToMap(step, index) {
 // have produced at parse time. Post-parse decoration (.id / .parent)
 // is NOT re-attached — callers that need those fields should run
 // assignAstNodeIds and attachAstParents on the result. Root-level
-// metadata (.source / .uri / .parseId / .parsedAt / .schemaVersion)
+// metadata (.source / .uri / .parseId / .schemaVersion)
 // is also out of band, for the same reason: parse.mjs stamps it at
 // parse time onto the root, separate from the node shape.
 //

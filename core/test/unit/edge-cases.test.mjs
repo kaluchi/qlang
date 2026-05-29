@@ -340,6 +340,13 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
     expect(names).toEqual(sorted);
   });
 
+  it('compareBindingNames is a code-point three-way comparator', async () => {
+    const { compareBindingNames } = await import('../../src/runtime/manifest-op.mjs');
+    expect(compareBindingNames('a', 'b')).toBe(-1);
+    expect(compareBindingNames('b', 'a')).toBe(1);
+    expect(compareBindingNames('x', 'x')).toBe(0);
+  });
+
   it('host-bound raw function value surfaces as :kind ::value rather than crashing', async () => {
     // A function value landed in env through `session.bind(name, fn)`
     // without a descriptor-Map wrapper carries only the dispatch-

@@ -47,11 +47,11 @@ const KW_COLUMN       = 'column';
 
 // Decoration keys stamped by parse-time post-passes (.id from
 // assignAstNodeIds, .parent from attachAstParents) and by the parse()
-// wrapper on the root (.source / .uri / .parseId / .parsedAt /
-// .schemaVersion). astNodeToMap does not round-trip these, so we
-// strip them from both sides before structural comparison.
+// wrapper on the root (.source / .uri / .parseId / .schemaVersion).
+// astNodeToMap does not round-trip these, so we strip them from both
+// sides before structural comparison.
 const DECORATION_KEYS = new Set([
-  'parent', 'id', 'source', 'uri', 'parseId', 'parsedAt', 'schemaVersion',
+  'parent', 'id', 'source', 'uri', 'parseId', 'schemaVersion',
   'docPrefixStart'
 ]);
 

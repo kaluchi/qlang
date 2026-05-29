@@ -304,18 +304,20 @@
 
 :take
   |~~ Returns the first n elements in insertion-order. Polymorphic
-      on Vec / Set — same shape as subject. If n exceeds length,
-      returns the whole sequence.
+      on Vec / Set — same shape as subject. n is a whole-number
+      count: if it exceeds length the whole sequence comes back, and
+      a negative n takes nothing (the count clamps to 0).
 
       ~{[1 2 3 4 5] | take(3) | eq([1 2 3])}
       ~{#[:a :b :c :d] | take(2) | eq(#[:a :b])}
+      ~{[1 2 3] | take(-1) | eq([])}
   ~~|
   ::builtin{:impl :qlang/prim/take
             :category :vecTransformer
             :subject [:vec :set]
             :returns [:vec :set]
-            :modifiers [:number]
-            :throws [::TakeSubjectNotSequenceError ::TakeCountNotNumberError]}
+            :modifiers [:integer]
+            :throws [::TakeSubjectNotSequenceError ::TakeCountNotIntegerError]}
 
 ::TakeSubjectNotSequenceError
   |~~ Subject of `take` must be Vec or Set.
@@ -327,15 +329,16 @@
   ~~|
   ::builtin{:category :typeError :operand :take :position :subject :expectedType [:vec :set]}
 
-::TakeCountNotNumberError
-  |~~ Captured argument at position 2 of `take` must be Number.
+::TakeCountNotIntegerError
+  |~~ Captured argument at position 2 of `take` must be a whole
+      Number — a fractional count cannot name a prefix length.
       ~{
-        [1 2 3] | take("x")
+        [1 2 3] | take(0.5)
         !| [type /actualType]
-        |  eq([::TakeCountNotNumberError :string])
+        |  eq([::TakeCountNotIntegerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :take :position 2 :expectedType :number}
+  ::builtin{:category :typeError :operand :take :position 2 :expectedType :integer}
 
 :at
   |~~ Polymorphic indexed access. On a Vec or Set subject, returns
@@ -399,18 +402,21 @@
 
 :drop
   |~~ Returns the sequence with the first n elements removed.
-      Polymorphic on Vec / Set — same shape as subject. If n
-      exceeds length, returns the empty sequence of matching shape.
+      Polymorphic on Vec / Set — same shape as subject. n is a
+      whole-number count: if it exceeds length the empty sequence of
+      matching shape comes back, and a negative n drops nothing (the
+      count clamps to 0).
 
       ~{[1 2 3 4 5] | drop(2) | eq([3 4 5])}
       ~{#[:a :b :c :d] | drop(2) | eq(#[:c :d])}
+      ~{[1 2 3] | drop(-1) | eq([1 2 3])}
   ~~|
   ::builtin{:impl :qlang/prim/drop
             :category :vecTransformer
             :subject [:vec :set]
             :returns [:vec :set]
-            :modifiers [:number]
-            :throws [::DropSubjectNotSequenceError ::DropCountNotNumberError]}
+            :modifiers [:integer]
+            :throws [::DropSubjectNotSequenceError ::DropCountNotIntegerError]}
 
 ::DropSubjectNotSequenceError
   |~~ Subject of `drop` must be Vec or Set.
@@ -422,15 +428,16 @@
   ~~|
   ::builtin{:category :typeError :operand :drop :position :subject :expectedType [:vec :set]}
 
-::DropCountNotNumberError
-  |~~ Captured argument at position 2 of `drop` must be Number.
+::DropCountNotIntegerError
+  |~~ Captured argument at position 2 of `drop` must be a whole
+      Number — a fractional count cannot name how many to remove.
       ~{
-        [1 2 3] | drop("x")
+        [1 2 3] | drop(0.5)
         !| [type /actualType]
-        |  eq([::DropCountNotNumberError :string])
+        |  eq([::DropCountNotIntegerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :drop :position 2 :expectedType :number}
+  ::builtin{:category :typeError :operand :drop :position 2 :expectedType :integer}
 
 :distinct
   |~~ Canonical Vec → Set converter. Returns a Set with duplicate

@@ -16,6 +16,7 @@ import {
 } from '../../src/primitives.mjs';
 
 import { QlangError, QlangInvariantError } from '../../src/errors.mjs';
+import { isFunctionValue } from '../../src/types.mjs';
 
 describe('createPrimitiveRegistry — lifecycle', () => {
   let registry;
@@ -308,7 +309,7 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
     await import('../../src/runtime/index.mjs');
     const impl = PRIMITIVE_REGISTRY.resolve('qlang/prim/add');
     expect(impl).toBeDefined();
-    expect(impl.type).toBe('function');
+    expect(isFunctionValue(impl)).toBe(true);
     expect(impl.name).toBe('add');
     expect(impl.arity).toBe(2);
     expect(typeof impl.fn).toBe('function');

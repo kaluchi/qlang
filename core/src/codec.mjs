@@ -219,10 +219,13 @@ export function fromTaggedJSON(json) {
       case '$keyword': return keyword(json.$keyword);
       case '$vec':     return json.$vec.map(fromTaggedJSON);
       case '$map': {
+        // qlang Map keys are strings. A `$keyword`-enveloped key on
+        // the wire normalises to its `.name` so the decoded Map keeps
+        // the string-key invariant.
         const m = new Map();
         for (const [k, v] of json.$map) {
           const decodedKey = fromTaggedJSON(k);
-          m.set(typeof decodedKey === 'object' && decodedKey?.type === 'keyword' ? decodedKey.name : decodedKey, fromTaggedJSON(v));
+          m.set(isKeyword(decodedKey) ? decodedKey.name : decodedKey, fromTaggedJSON(v));
         }
         return m;
       }

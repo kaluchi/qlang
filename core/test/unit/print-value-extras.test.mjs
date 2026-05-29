@@ -11,6 +11,7 @@ import {
   makeSnapshot,
   makeDoc,
   makeQuote,
+  keyword,
   makeTagKeyword,
   makeErrorValue,
   isConduit,
@@ -117,7 +118,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // descriptor as ordinary user data — the universal `::Error`
     // tag still appears at the head.
     const err = makeErrorValue(makeTagKeyword('Error'), new Map([
-      ['kind', { type: 'keyword', name: 'oops', literal: ':oops' }]
+      ['kind', keyword('oops')]
     ]));
     expect(printValue(err)).toBe('::Error!{:kind :oops}');
   });
@@ -129,7 +130,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
 
   it('a tag-headed error renders the payload after the head', async () => {
     const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
-      ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
+      ['category', keyword('oops')]
     ]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
   });
@@ -141,7 +142,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // the descriptor at construction.
     const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
       ['message', 'user-stamped prose'],
-      ['category', { type: 'keyword', name: 'oops', literal: ':oops' }]
+      ['category', keyword('oops')]
     ]));
     expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
   });

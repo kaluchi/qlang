@@ -23,11 +23,12 @@ import {
   valueOp, higherOrderOp, nullaryOp, overloadedOp,
   stateOp, stateOpVariadic, higherOrderOpVariadic
 } from '../../src/runtime/dispatch.mjs';
+import { isKeyword } from '../../src/types.mjs';
 
 describe('runtime/dispatch.mjs subpath-first entry', () => {
   it('exports a usable UNBOUNDED sentinel after a dispatch-first load', () => {
     expect(UNBOUNDED).toBeDefined();
-    expect(UNBOUNDED.type).toBe('keyword');
+    expect(isKeyword(UNBOUNDED)).toBe(true);
     expect(UNBOUNDED.name).toBe('unbounded');
   });
 

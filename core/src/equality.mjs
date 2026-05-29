@@ -21,7 +21,7 @@
 import {
   isKeyword, isTagKeyword, isErrorValue, isQuote, isDoc,
   isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet,
-  TAG_HEADER_SYMBOL
+  TAG_HEADER_SYMBOL, isValueClass
 } from './types.mjs';
 
 // Tag identity comparator — Array/Set/Map carry their identity
@@ -67,8 +67,8 @@ export function deepEqual(a, b) {
   // Opaque TaggedInstance wrap object — checked before generic
   // object branches so its `.payload` recurses through the right
   // value-class path.
-  if (typeof a === 'object' && a.type === 'taggedInstance') {
-    return typeof b === 'object' && b !== null && b.type === 'taggedInstance'
+  if (isValueClass(a, 'taggedInstance')) {
+    return isValueClass(b, 'taggedInstance')
       && a.tag.name === b.tag.name
       && deepEqual(a.payload, b.payload);
   }

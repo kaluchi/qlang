@@ -23,7 +23,8 @@ import {
   isTagBindingName,
   RUNTIME_LOCATOR_KEY,
   tagBindingKey,
-  tokenize
+  tokenize,
+  isKeyword
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -407,7 +408,7 @@ function hoverForProjection(node) {
 function formatMetaValue(value) {
   if (value === null || value === undefined) return 'any';
   if (typeof value === 'string') return value;
-  if (typeof value === 'object' && value.type === 'keyword') return value.name;
+  if (isKeyword(value)) return value.name;
   if (Array.isArray(value)) {
     return value.map(formatMetaValue).join(' | ');
   }

@@ -337,14 +337,14 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('take count non-number → TakeCountNotNumberError', async () => {
+  it('take count non-integer → TakeCountNotIntegerError', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | take("x")');
-    expect(caughtErr.name).toBe('TakeCountNotNumberError');
+    expect(caughtErr.name).toBe('TakeCountNotIntegerError');
   });
 
-  it('drop count non-number → DropCountNotNumberError (distinct from take)', async () => {
+  it('drop count non-integer → DropCountNotIntegerError (distinct from take)', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | drop("x")');
-    expect(caughtErr.name).toBe('DropCountNotNumberError');
+    expect(caughtErr.name).toBe('DropCountNotIntegerError');
   });
 
   it('all per-site type errors inherit QlangTypeError and kind', async () => {

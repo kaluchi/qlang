@@ -65,15 +65,15 @@ describe('types.mjs', () => {
     expect(describeType([])).toBe('Vec');
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(new Set())).toBe('Set');
-    expect(describeType({ type: 'function', arity: 0, fn: () => {} })).toBe('Function');
+    expect(describeType(makeFn('probe', 1, () => {}))).toBe('Function');
     expect(describeType(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe('Conduit');
     expect(describeType(Symbol('weird'))).toBe('Unknown');
   });
 
   it('value-class predicates', () => {
     expect(isConduit(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe(true);
-    expect(isConduit({ type: 'function' })).toBe(false);
-    expect(isFunctionValue({ type: 'function', arity: 0, fn: () => {} })).toBe(true);
+    expect(isConduit(makeFn('probe', 1, () => {}))).toBe(false);
+    expect(isFunctionValue(makeFn('probe', 1, () => {}))).toBe(true);
     expect(isFunctionValue(() => {})).toBe(false);
     expect(isKeyword(keyword('x'))).toBe(true);
     expect(isQMap(new Map())).toBe(true);
@@ -129,7 +129,7 @@ describe('rule10.mjs', () => {
 
   it('makeFn stores metadata on a frozen object', () => {
     const fn = makeFn('identity', 1, (state) => state);
-    expect(fn.type).toBe('function');
+    expect(isFunctionValue(fn)).toBe(true);
     expect(fn.name).toBe('identity');
     expect(fn.arity).toBe(1);
     expect(typeof fn.fn).toBe('function');

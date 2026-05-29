@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
-import { isErrorValue, keyword, describeType, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQuote, keyword, describeType, makeTagKeyword } from '../../src/types.mjs';
 
 describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
   it('parses ::conduit[[] body] as TaggedLit with Vec payload', () => {
@@ -67,7 +67,7 @@ describe('::tag descriptor registers a tag-namespace binding', () => {
     const source = await evalQuery(
       '::myType {:kind :tag :impl :qlang/type/conduit} | ::myType | source'
     );
-    expect(source.type).toBe('quote');
+    expect(isQuote(source)).toBe(true);
     expect(source.source).toContain('::myType');
   });
 });
@@ -77,7 +77,7 @@ describe('axis-operand subject classification', () => {
     const source = await evalQuery(
       '::myType {:kind :tag :impl :qlang/type/conduit} | {:kind ::myType :payload []} | source'
     );
-    expect(source.type).toBe('quote');
+    expect(isQuote(source)).toBe(true);
     expect(source.source).toContain('::myType');
   });
 });
@@ -366,6 +366,38 @@ describe('parse and eval accept Quote subjects transparently', () => {
 
   it('~{code} | eval runs the Quote source against the current state', async () => {
     expect(await evalQuery('~{5 | mul(2)} | eval')).toBe(10);
+  });
+});
+
+describe('auto-declared ::Tag binding respects fork isolation', () => {
+  // `::Tag<payload>` auto-declares an identity-only tag binding on
+  // first use. That declaration is an env write: it persists to
+  // later pipeline steps (like any BindStep) yet stays inside a
+  // fork (ParenGroup / Vec element / Map value), obeying the same
+  // env-immutability contract every other binding follows.
+
+  it('a top-level auto-declaration is visible to later steps', async () => {
+    expect(await evalQuery('::Top(1) | ::Top | spec | /declarationOrigin'))
+      .toEqual(keyword('implicit'));
+  });
+
+  it('an auto-declaration inside a ParenGroup fork does not leak out', async () => {
+    const result = await evalQuery('(::Foo(1)) | ::Foo | spec');
+    expect(isErrorValue(result)).toBe(true);
+    expect(result.tag.name).toBe('AxisBindingNotFoundError');
+  });
+
+  it('an auto-declaration inside a fork leaves no trace in the outer env', async () => {
+    expect(await evalQuery('(::Zap(1)) | env | keys | has(:"::Zap")')).toBe(false);
+  });
+
+  it('a self-referential payload resolves the tag the literal declares', async () => {
+    // The tag is declared before the payload evaluates, so a payload
+    // that references the same tag (`::Tag(::Tag | spec)`) resolves the
+    // binding the literal is introducing — like a named conduit body
+    // seeing its own self-name.
+    expect(await evalQuery('::SelfRef(::SelfRef | spec | /declarationOrigin) | payload'))
+      .toEqual(keyword('implicit'));
   });
 });
 

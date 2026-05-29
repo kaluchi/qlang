@@ -173,9 +173,18 @@ const DistinctSubjectNotSequenceError    = declareSubjectError('DistinctSubjectN
 const ReverseSubjectNotSequenceError     = declareSubjectError('ReverseSubjectNotSequenceError',     'reverse',  ['vec', 'set']);
 const FlatSubjectNotSequenceError        = declareSubjectError('FlatSubjectNotSequenceError',        'flat',     ['vec', 'set']);
 
-const TakeCountNotNumberError = declareModifierError('TakeCountNotNumberError', 'take', 2, 'number');
-const DropCountNotNumberError = declareModifierError('DropCountNotNumberError', 'drop', 2, 'number');
+const TakeCountNotIntegerError = declareModifierError('TakeCountNotIntegerError', 'take', 2, 'integer');
+const DropCountNotIntegerError = declareModifierError('DropCountNotIntegerError', 'drop', 2, 'integer');
 const AtIndexNotIntegerError  = declareModifierError('AtIndexNotIntegerError', 'at',   2, 'integer');
+
+// take / drop / at share one integer-modifier contract: the count or
+// index must be a whole Number. Each site passes its own per-operand
+// error class so the throw still names the operand uniquely. Negative
+// handling diverges past this check — `at` reads from the tail, take /
+// drop clamp to a 0-count — so the shared part is only the shape gate.
+function assertIntegerModifier(value, ErrorCls) {
+  if (typeof value !== 'number' || !Number.isInteger(value)) throw new ErrorCls(value);
+}
 
 const SumElementNotNumberError          = declareElementError('SumElementNotNumberError',          'sum',          'number');
 const FirstNonZeroElementNotNumberError = declareElementError('FirstNonZeroElementNotNumberError', 'firstNonZero', 'number');
@@ -531,9 +540,11 @@ function compareScalars(a, b) {
 
 export const take = valueOp('take', 2, (subject, n) => {
   if (!isOrderedSequence(subject)) throw new TakeSubjectNotSequenceError(subject);
-  if (typeof n !== 'number') throw new TakeCountNotNumberError(n);
+  assertIntegerModifier(n, TakeCountNotIntegerError);
   const items = sequenceElements(subject);
-  return containerLikeOf(items.slice(0, n), subject);
+  // A negative count clamps to 0, the same graceful out-of-range
+  // handling an over-length count gets (`take(99)` → whole sequence).
+  return containerLikeOf(items.slice(0, Math.max(0, n)), subject);
 }, { preservesTag: true });
 
 // `at` — indexed access with Array.prototype.at-style negative indices.
@@ -556,16 +567,12 @@ const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrS
 // without an inter-shape coercion.
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVecShape(subject)) {
-    if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
-      throw new AtIndexNotIntegerError(atKey);
-    }
+    assertIntegerModifier(atKey, AtIndexNotIntegerError);
     const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
   }
   if (isQSet(subject)) {
-    if (typeof atKey !== 'number' || !Number.isInteger(atKey)) {
-      throw new AtIndexNotIntegerError(atKey);
-    }
+    assertIntegerModifier(atKey, AtIndexNotIntegerError);
     const items = [...subject];
     const resolvedIndex = atKey < 0 ? items.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < items.length) ? items[resolvedIndex] : NULL;
@@ -582,9 +589,11 @@ export const at = valueOp('at', 2, (subject, atKey) => {
 
 export const drop = valueOp('drop', 2, (subject, n) => {
   if (!isOrderedSequence(subject)) throw new DropSubjectNotSequenceError(subject);
-  if (typeof n !== 'number') throw new DropCountNotNumberError(n);
+  assertIntegerModifier(n, DropCountNotIntegerError);
   const items = sequenceElements(subject);
-  return containerLikeOf(items.slice(n), subject);
+  // A negative count clamps to 0 (drop nothing), mirroring take's
+  // clamp and the over-length case (`drop(99)` → empty sequence).
+  return containerLikeOf(items.slice(Math.max(0, n)), subject);
 }, { preservesTag: true });
 
 // `distinct` is the canonical Vec → Set converter. The return type

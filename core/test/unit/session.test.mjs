@@ -230,14 +230,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
     const sessionInstance = await createSession();
     // Inject a function value directly. serializeSession should
     // refuse to encode it but should not throw — it just omits.
-    const fn = Object.freeze({
-      type: 'function',
-      name: 'userFn',
-      arity: 1,
-      fn: (state) => state,
-      meta: { captured: [0, 0] }
-    });
-    sessionInstance.bind('userFn', fn);
+    sessionInstance.bind('userFn', nullaryOp('userFn', (subject) => subject));
     const payload = await serializeSession(sessionInstance);
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
   });

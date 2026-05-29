@@ -22,6 +22,7 @@ const TYPE_SAMPLE = {
   keyword:          ':foo',
   tagKeyword:       '::Foo',
   number:           '42',
+  integer:          '3',
   boolean:          'true',
   null:             'null',
   quote:            '~{42}',

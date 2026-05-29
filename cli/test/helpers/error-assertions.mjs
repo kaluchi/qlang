@@ -30,7 +30,7 @@
 // or 2.
 
 import { expect } from 'vitest';
-import { QlangTypeError } from '@kaluchi/qlang-core';
+import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core';
 
 // expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext)
 //   → the JS error instance (for further ad-hoc assertions)
@@ -43,10 +43,10 @@ import { QlangTypeError } from '@kaluchi/qlang-core';
 export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext) {
   expect(cellEntry.error, 'cellEntry.error must be null (throw is lifted onto fail-track)').toBeNull();
   const errorValue = cellEntry.result;
-  expect(errorValue?.type, 'cellEntry.result must be an error value').toBe('error');
+  expect(isErrorValue(errorValue), 'cellEntry.result must be an error value').toBe(true);
 
   const identityTag = errorValue.tag;
-  expect(identityTag?.type, ':kind must be a TagKeyword').toBe('tagKeyword');
+  expect(isTagKeyword(identityTag), ':kind must be a TagKeyword').toBe(true);
   expect(identityTag.name).toBe(expectedClassName);
 
   const originalError = errorValue.originalError;

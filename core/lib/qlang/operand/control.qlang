@@ -55,15 +55,19 @@
    }
 
 :coalesce
-  |~~ Returns the first non-null result among the captured
-      alternatives, evaluating each against pipeValue in order and
-      short-circuiting on the first non-null value. If all
-      alternatives produce null, returns null. Falsy non-null values
-      (false, 0, "", [], {}, #[]) are NOT skipped — only
-      null counts as missing.
+  |~~ Walks the captured alternatives in order, evaluating each
+      against pipeValue, and returns the first result that is
+      neither null nor an error value. Every other value —
+      including the falsy ones false, 0, "", [], {}, #[] — short-
+      circuits the iteration. All-skip chain yields null. Use the
+      `coalesce(/key, fallback)` shape to read "use /key when
+      defined, else fallback" — `/key` produces an error on a
+      missing-key Map, which the skip rule treats the same as
+      null.
 
       ~{{:nickname null :name "alice"} | coalesce(/nickname, /name) | eq("alice")}
       ~{{:nickname "ace" :name "alice"} | coalesce(/nickname, /name) | eq("ace")}
+      ~{{:a 2 :b 3} | coalesce(/missing, "fallback") | eq("fallback")}
       ~{{:nickname null :name null} | coalesce(/nickname, /name, "anonymous") | eq("anonymous")}
   ~~|
   ::builtin{:impl :qlang/prim/coalesce
@@ -84,16 +88,16 @@
   ::builtin{:category :arityError :operand :coalesce}
 
 :firstTruthy
-  |~~ Returns the first truthy result among the captured
-      alternatives, evaluating each against pipeValue in order and
-      short-circuiting on the first truthy value. Both null and
-      false are skipped. If all alternatives produce falsy values,
-      returns null. Use coalesce when false is a valid explicit
-      setting; use firstTruthy when false is a sentinel meaning
-      "no value".
+  |~~ Walks the captured alternatives in order, evaluating each
+      against pipeValue, and returns the first truthy result.
+      Skip rule covers null, false, and error values. All-skip
+      chain yields null. Reach for `firstTruthy` when false is a
+      sentinel meaning "no value"; reach for `coalesce` when
+      false is a valid explicit setting.
 
       ~{{:override false :default "fallback"} | firstTruthy(/override, /default) | eq("fallback")}
       ~{{:override "win" :default "fallback"} | firstTruthy(/override, /default) | eq("win")}
+      ~{{:a 2} | firstTruthy(/missing, /a) | eq(2)}
       ~{5 | firstTruthy(eq(10), eq(5)) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/prim/firstTruthy

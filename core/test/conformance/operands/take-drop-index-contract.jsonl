@@ -1,0 +1,11 @@
+{"name":"take-negative-clamps-to-empty","query":"[1 2 3] | take(-1)","expect":"[]"}
+{"name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take(-5)","expect":"[]"}
+{"name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop(-1)","expect":"[1 2 3]"}
+{"name":"drop-negative-large-clamps-to-whole","query":"[1 2 3] | drop(-5)","expect":"[1 2 3]"}
+{"name":"take-over-length-returns-whole","query":"[1 2 3] | take(5)","expect":"[1 2 3]"}
+{"name":"drop-over-length-returns-empty","query":"[1 2 3] | drop(5)","expect":"[]"}
+{"name":"take-fractional-raises-not-integer","query":"[1 2 3] | take(0.5) !| type","expect":"::TakeCountNotIntegerError"}
+{"name":"drop-fractional-raises-not-integer","query":"[1 2 3] | drop(1.5) !| type","expect":"::DropCountNotIntegerError"}
+{"name":"take-string-raises-not-integer","query":"[1 2 3] | take(\"x\") !| type","expect":"::TakeCountNotIntegerError"}
+{"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take(-1) | count","expect":"0"}
+{"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop(-1) | count","expect":"3"}

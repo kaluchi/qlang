@@ -48,6 +48,27 @@ export class FunctionValueLeakedToPrintError extends QlangInvariantError {
 
 export const NULL = null;
 
+// ── value-class brand ──────────────────────────────────────────
+//
+// Keyword / TagKeyword / Quote / Doc / Error / Function / the opaque
+// TaggedInstance wrap are JS plain objects sharing JsonObject's
+// shape, where `"type"` is ordinary JSON data. Identity rides on a
+// non-enumerable Symbol — the channel JSON_OBJECT_TAG / JSON_ARRAY_TAG
+// / TAG_HEADER_SYMBOL already use — so a JSON document carrying
+// `{"type":"quote"}` cannot forge `isQuote`.
+export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
+
+export function brandValueClass(target, valueClass) {
+  Object.defineProperty(target, VALUE_CLASS_TAG, {
+    value: valueClass, enumerable: false, configurable: false, writable: false
+  });
+  return target;
+}
+
+export function isValueClass(v, valueClass) {
+  return v !== null && typeof v === 'object' && v[VALUE_CLASS_TAG] === valueClass;
+}
+
 // ── primitive type predicates ──────────────────────────────────
 
 export function isNull(v) { return v === null || v === undefined; }
@@ -55,7 +76,7 @@ export function isBoolean(v) { return typeof v === 'boolean'; }
 export function isNumber(v) { return typeof v === 'number'; }
 export function isString(v) { return typeof v === 'string'; }
 export function isKeyword(v) {
-  return v !== null && typeof v === 'object' && v.type === 'keyword';
+  return isValueClass(v, 'keyword');
 }
 export function isVec(v) {
   return Array.isArray(v) && v[JSON_ARRAY_TAG] !== true;
@@ -172,11 +193,11 @@ export function makeJsonArray(items) {
 // ── language value-class predicates ────────────────────────────
 
 export function isFunctionValue(v) {
-  return v !== null && typeof v === 'object' && v.type === 'function';
+  return isValueClass(v, 'function');
 }
 
 export function isErrorValue(v) {
-  return v !== null && typeof v === 'object' && v.type === 'error';
+  return isValueClass(v, 'error');
 }
 
 // ── truthiness ─────────────────────────────────────────────────
@@ -192,7 +213,7 @@ export function isTruthy(v) {
 // source form computed once via the grammar.
 
 export function keyword(name) {
-  return Object.freeze({ type: 'keyword', name, literal: canonicalKeywordLiteral(name) });
+  return Object.freeze(brandValueClass({ name, literal: canonicalKeywordLiteral(name) }, 'keyword'));
 }
 
 // TagKeyword — `::tag` reference value. Tagged-instance Maps
@@ -206,11 +227,11 @@ export function keyword(name) {
 // uniformly.
 
 export function makeTagKeyword(tag) {
-  return Object.freeze({ type: 'tagKeyword', name: tag, literal: TAG_BINDING_PREFIX + tag });
+  return Object.freeze(brandValueClass({ name: tag, literal: TAG_BINDING_PREFIX + tag }, 'tagKeyword'));
 }
 
 export function isTagKeyword(v) {
-  return v !== null && typeof v === 'object' && v.type === 'tagKeyword';
+  return isValueClass(v, 'tagKeyword');
 }
 
 // Env-key namespaces live in `./env-keys.mjs`. The TagKeyword
@@ -255,39 +276,40 @@ export function isTaggedInstance(v) {
 }
 
 export function isQuote(v) {
-  return v !== null && typeof v === 'object' && v.type === 'quote';
+  return isValueClass(v, 'quote');
 }
 
 // Quote — frozen JS object carrying `.source` (the verbatim text
 // between `~{` and `}`) and an optional `.ast` (lazily populated when
-// the Quote is run through `eval` or projected via `/ast`). Lives
-// on the JS layer with its discriminator on the JS object shape
-// (`v.type === 'quote'`); a Map-key discriminator would expose
-// runtime housekeeping at every projection of a Quote-valued
-// pipeValue. The lazy `.ast` lets a Quote
+// the Quote is run through `eval` or projected via `/ast`). Identity
+// rides the non-enumerable VALUE_CLASS_TAG Symbol brand, keeping a
+// `:kind` Map-key discriminator out of every projection of a
+// Quote-valued pipeValue and leaving a JSON document that carries
+// `{"type":"quote"}` classified as a JsonObject. The lazy `.ast`
+// lets a Quote
 // hold a pipeline-suffix fragment beginning with a combinator
 // (`~{* inc | sort}`) — eager parse would reject the fragment in
 // startRule=Query mode because the top-level rule expects a value
 // expression; Pipeline accepts a leading combinator only inside the
 // `~{…}` body context, which `apply(subject)` re-enters.
 export function makeQuote(source, ast = null) {
-  return Object.freeze({ type: 'quote', source, ast });
+  return Object.freeze(brandValueClass({ source, ast }, 'quote'));
 }
 
 // Doc — frozen JS object carrying `.content` (the verbatim text
 // between `|~~ ... ~~|` markers, or after `|~~|` up to newline).
-// Same JS-layer discriminator pattern as Quote — `.type === 'doc'`
-// keeps `:kind` housekeeping out of the user-visible Map
-// surface. Doc value lands in pipeValue through DocLit literal in
+// Same JS-layer discriminator pattern as Quote — the VALUE_CLASS_TAG
+// Symbol brand keeps `:kind` housekeeping out of the user-visible
+// Map surface. Doc value lands in pipeValue through DocLit literal in
 // any Primary position; the attached-prefix path
 // (DocAttachedSequence) is unrelated — there docs travel as
 // `.docs` strings on the following operand-call AST node.
 export function isDoc(v) {
-  return v !== null && typeof v === 'object' && v.type === 'doc';
+  return isValueClass(v, 'doc');
 }
 
 export function makeDoc(content) {
-  return Object.freeze({ type: 'doc', content });
+  return Object.freeze(brandValueClass({ content }, 'doc'));
 }
 
 // ── tag-header symbol — Map identity slot ────────────────────
@@ -442,7 +464,7 @@ export function makeTaggedInstance(tag, payload) {
   // the wrapped value. TAG_HEADER_SYMBOL is stamped so the
   // uniform identity-read path (typeKeyword / isTaggedInstance)
   // works through the same channel composite shapes use.
-  const wrap = { type: 'taggedInstance', tag, payload };
+  const wrap = brandValueClass({ tag, payload }, 'taggedInstance');
   stampTagHeader(wrap, tag);
   return Object.freeze(wrap);
 }
@@ -504,14 +526,13 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
     finalDescriptor = new Map(descriptor);
     finalDescriptor.set('trail', null);
   }
-  return Object.freeze({
-    type: 'error',
+  return Object.freeze(brandValueClass({
     tag,
     descriptor: finalDescriptor,
     location,
     originalError,
     _trailHead: null
-  });
+  }, 'error'));
 }
 
 // Host-facing convenience: build an ErrorValue from a descriptor
@@ -525,8 +546,7 @@ export function errorFromKindDescriptor(descriptor, opts = {}) {
 }
 
 export function appendTrailNode(errorValue, trailEntry) {
-  return Object.freeze({
-    type: 'error',
+  return Object.freeze(brandValueClass({
     tag: errorValue.tag,
     descriptor: errorValue.descriptor,
     location: errorValue.location,
@@ -535,7 +555,7 @@ export function appendTrailNode(errorValue, trailEntry) {
       entry: trailEntry,
       prev: errorValue._trailHead
     })
-  });
+  }, 'error'));
 }
 
 export function materializeTrail(errorValue) {

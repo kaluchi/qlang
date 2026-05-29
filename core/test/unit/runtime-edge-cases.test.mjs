@@ -28,6 +28,7 @@ import {
   makeErrorValue,
   isErrorValue
 } from '../../src/types.mjs';
+import { makeFn } from '../../src/rule10.mjs';
 import { createSession } from '../../src/session.mjs';
 import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
@@ -121,7 +122,7 @@ describe('describeType for conduit and snapshot', async () => {
 
 describe('typeKeyword covers all value kinds', () => {
   it('typeKeyword returns :function for a function value', () => {
-    const fnValue = Object.freeze({ type: 'function', impl: () => {} });
+    const fnValue = makeFn('probe', 1, () => {});
     expect(typeKeyword(fnValue).name).toBe('function');
   });
 

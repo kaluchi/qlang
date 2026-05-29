@@ -25,6 +25,7 @@
 
 import { declareArityError } from './operand-errors.mjs';
 import { classifyEffect } from './effect.mjs';
+import { brandValueClass } from './types.mjs';
 
 const Rule10ArityOverflowError = declareArityError('Rule10ArityOverflowError',
   ({ operandName, maxArity, actualArity }) =>
@@ -75,14 +76,13 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // a `:kind ::builtin` descriptor for the proxy without a
 // descriptor-Map round-trip.
 export function makeFn(name, arity, impl, meta) {
-  return Object.freeze({
-    type: 'function',
+  return Object.freeze(brandValueClass({
     name,
     arity,
     fn: impl,
     meta: Object.freeze(meta),
     effectful: classifyEffect(name)
-  });
+  }, 'function'));
 }
 
 // `isFunctionValue` lives in types.mjs alongside the other

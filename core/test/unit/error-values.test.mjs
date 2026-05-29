@@ -32,7 +32,6 @@ describe('makeErrorValue', () => {
     const errorVal = makeErrorValue(tag, descriptor);
     expect(isErrorValue(errorVal)).toBe(true);
     expect(Object.isFrozen(errorVal)).toBe(true);
-    expect(errorVal.type).toBe('error');
     expect(errorVal.tag).toBe(tag);
     expect(errorVal.descriptor.get('trail')).toBeNull();
     expect(errorVal.descriptor.has('kind')).toBe(false);

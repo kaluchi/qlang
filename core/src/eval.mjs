@@ -34,7 +34,7 @@ import {
   isJsonObject, isJsonArray, isVecShape, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance,
-  ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader
+  ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
@@ -494,22 +494,21 @@ async function evalSetLit(node, state) {
 // pipeValue.
 // mintTaggedInstance(tagName, payload, state) → tagged value
 //
-// Single mint site for any `::Tag<payload>` invocation: auto-
-// declares an identity-only binding on first use, validates the
-// binding shape, dispatches by `:impl` slot (keyword handle →
-// PRIMITIVE_REGISTRY, Quote → eval body + auto-wrap, default →
-// identity-only `makeTaggedInstance`). Called by `evalTaggedLit`
-// for the literal-syntax path and by shape-preserving transforms
-// (`filter` / `sort` / `distinct` / …) that re-validate the
+// Single mint site for any `::Tag<payload>` invocation: reads the
+// tag binding from env, then dispatches by `:impl` slot (keyword
+// handle → PRIMITIVE_REGISTRY, Quote → eval body + auto-wrap,
+// identity-only → wrap the payload under the tag). Pure over env —
+// the implicit-declaration env write lives in `ensureTagBinding`
+// (called by `evalTaggedLit`) so a fork discards it with the rest of
+// its inner env. Every caller routes through `ensureTagBinding` (or,
+// for shape-preserving transforms, an already-`:impl`-bearing tag),
+// so the binding is present by the time mint reads it. Called by
+// `evalTaggedLit` for the literal-syntax path and by shape-preserving
+// transforms (`filter` / `sort` / `distinct` / …) re-validating the
 // post-transform payload through the same constructor — the
-// «invariant re-run on transforms» contract for tags carrying
-// `:impl`.
+// «invariant re-run on transforms» contract for tags carrying `:impl`.
 export async function mintTaggedInstance(tagName, payload, state, location = null) {
   const typeKey = tagBindingKey(tagName);
-  if (!envHas(state.env, typeKey)) {
-    const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
-    state.env.set(typeKey, implicitBinding);
-  }
   let typeBinding = envGet(state.env, typeKey);
   if (isSnapshot(typeBinding)) typeBinding = typeBinding.get('payload');
   if (!isQMap(typeBinding)) {
@@ -533,13 +532,15 @@ export async function mintTaggedInstance(tagName, payload, state, location = nul
     }
     return makeTaggedInstance(tagKw, constructorResult);
   }
+  // Identity-only binding (no `:impl`) — wrap the payload under the
+  // tag. An ErrorValue payload keeps its descriptor so `::Foo(err)`
+  // stays an error value under ::Foo; every other payload wraps
+  // through `makeTaggedInstance`.
   if (implKey === undefined) {
     if (isErrorValue(payload)) {
-      return makeErrorValue(
-        makeTagKeyword(tagName),
-        payload.descriptor,
-        { location, originalError: payload.originalError }
-      );
+      return makeErrorValue(makeTagKeyword(tagName), payload.descriptor, {
+        location, originalError: payload.originalError
+      });
     }
     return makeTaggedInstance(makeTagKeyword(tagName), payload);
   }
@@ -551,10 +552,31 @@ export async function mintTaggedInstance(tagName, payload, state, location = nul
   });
 }
 
+// ensureTagBinding(state, tagName) → state
+//
+// First use of `::Tag<payload>` auto-declares an identity-only tag
+// binding. The write goes through `envSet` like every other binding,
+// so it persists to later pipeline steps and is discarded with the
+// inner env when the `::Tag<payload>` sits inside a fork (ParenGroup
+// / Vec element / Map value). A tag already in env (catalog
+// constructor, prior declaration, earlier auto-decl) passes through
+// untouched.
+function ensureTagBinding(state, tagName) {
+  const typeKey = tagBindingKey(tagName);
+  if (envHas(state.env, typeKey)) return state;
+  const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
+  return makeState(state.pipeValue, envSet(state.env, typeKey, implicitBinding));
+}
+
 async function evalTaggedLit(node, state) {
-  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
-  const payloadValue = payloadFork.pipeValue;
-  return withPipeValue(state, await mintTaggedInstance(node.tag, payloadValue, state, node.location));
+  // Declare the tag before evaluating the payload so a self-referential
+  // payload (`::Tag(::Tag | spec)`) resolves the binding the literal is
+  // introducing — the same lexical visibility a named conduit's body
+  // has over its own self-name.
+  const declaredState = ensureTagBinding(state, node.tag);
+  const payloadFork = await fork(declaredState, inner => evalNode(node.payload, inner));
+  const minted = await mintTaggedInstance(node.tag, payloadFork.pipeValue, declaredState, node.location);
+  return withPipeValue(declaredState, minted);
 }
 
 
@@ -696,12 +718,13 @@ async function evalProjection(node, state) {
 }
 
 // Registry of JS-layer value-classes that publish projectable surface.
-// Each entry maps a `.type` discriminator to a per-segment handler
+// Each entry maps a VALUE_CLASS_TAG brand to a per-segment projector
 // table; segments not in the table resolve to `null`, matching Map
-// missing-key semantics. Lets a value-class declare its public
-// projection surface in one place — the discriminator (Conduit /
-// Snapshot / Quote / etc.) stays JS-side, only the named fields
-// listed here are reachable through `/key`.
+// missing-key semantics. Quote and Doc publish their fields here; the
+// brand rides the Symbol, so a JsonObject carrying a `"type"` data key
+// falls through to the JsonObject branch below instead of being read
+// as a value-class. Only the named fields listed here are reachable
+// through `/key`.
 const PROJECTABLE_BY_TYPE = {
   quote: {
     source: q => q.source,
@@ -723,12 +746,13 @@ function lazyParseQuoteAst(q) {
 
 function projectSegment(subject, projKey, state) {
   if (typeof subject === 'object' && subject !== null) {
-    const handlers = PROJECTABLE_BY_TYPE[subject.type];
+    const valueClass = subject[VALUE_CLASS_TAG];
+    const handlers = PROJECTABLE_BY_TYPE[valueClass];
     if (handlers) {
       if (!Object.hasOwn(handlers, projKey)) {
         throw new ProjectionFieldNotOnValueClassError({
           key: projKey,
-          valueClass: subject.type,
+          valueClass,
           availableFields: Object.keys(handlers)
         });
       }

@@ -262,3 +262,61 @@ describe('table cell + inline rendering for JSON-shape values', () => {
     expect(toPlain(makeJsonArray([1, 2, 3]))).toEqual([1, 2, 3]);
   });
 });
+
+describe('JSON object whose data key "type" collides with a value-class name', () => {
+  // A JsonObject is a frozen plain object; `"type"` is ordinary JSON
+  // data, never a value-class discriminator. The discriminator rides
+  // on the VALUE_CLASS_TAG symbol that only the real value-class
+  // factories stamp, so a JSON document carrying `"type":"quote"`
+  // stays a JsonObject through classification, projection, equality,
+  // and the lossy/lossless JSON codecs.
+
+  it('classifies as JsonObject regardless of the "type" data value', () => {
+    for (const typeValue of ['quote', 'doc', 'keyword', 'tagKeyword', 'error', 'function', 'taggedInstance']) {
+      const o = makeJsonObject({ type: typeValue, extra: 1 });
+      expect(describeType(o), `describeType for type=${typeValue}`).toBe('JsonObject');
+      expect(isJsonObject(o), `isJsonObject for type=${typeValue}`).toBe(true);
+    }
+  });
+
+  it('value-class predicates reject a JsonObject that forges their .type tag', async () => {
+    const { isKeyword, isQuote, isDoc, isErrorValue, isFunctionValue, isTagKeyword } = await import('../../src/types.mjs');
+    expect(isKeyword(makeJsonObject({ type: 'keyword', name: 'x' }))).toBe(false);
+    expect(isQuote(makeJsonObject({ type: 'quote', source: 'x' }))).toBe(false);
+    expect(isDoc(makeJsonObject({ type: 'doc', content: 'x' }))).toBe(false);
+    expect(isErrorValue(makeJsonObject({ type: 'error' }))).toBe(false);
+    expect(isFunctionValue(makeJsonObject({ type: 'function' }))).toBe(false);
+    expect(isTagKeyword(makeJsonObject({ type: 'tagKeyword', name: 'X' }))).toBe(false);
+  });
+
+  it('| json preserves a {"type":"keyword"} document losslessly', async () => {
+    const jsonText = await evalQuery('{"type": "keyword", "name": "x"} | json');
+    expect(JSON.parse(jsonText)).toEqual({ type: 'keyword', name: 'x' });
+  });
+
+  it('| json does not rewrite a {"type":"quote"} document into a Quote literal', async () => {
+    const jsonText = await evalQuery('{"type": "quote", "source": "hi"} | json');
+    expect(JSON.parse(jsonText)).toEqual({ type: 'quote', source: 'hi' });
+  });
+
+  it('a {"type":"error"} document does not crash the evaluator', async () => {
+    const result = await evalQuery('{"type": "error", "msg": "boom"} | type');
+    expect(result).toEqual(keyword('jsonObject'));
+  });
+
+  it('deepEqual on a {"type":"taggedInstance"} document does not crash', async () => {
+    const { deepEqual } = await import('../../src/equality.mjs');
+    const a = makeJsonObject({ type: 'taggedInstance' });
+    const b = makeJsonObject({ type: 'taggedInstance' });
+    expect(deepEqual(a, b)).toBe(true);
+  });
+
+  it('toTaggedJSON round-trips a {"type":"keyword"} document as a JsonObject', async () => {
+    const { toTaggedJSON, fromTaggedJSON } = await import('../../src/codec.mjs');
+    const o = makeJsonObject({ type: 'keyword', name: 'x' });
+    const wire = toTaggedJSON(o);
+    const back = fromTaggedJSON(wire);
+    expect(isJsonObject(back)).toBe(true);
+    expect(describeType(back)).toBe('JsonObject');
+  });
+});

@@ -6,6 +6,7 @@
 // mode deliver parsed stdin as the query's implicit subject.
 
 import { describe, it, expect } from 'vitest';
+import { isErrorValue } from '@kaluchi/qlang-core';
 import { runQuery } from '../src/run.mjs';
 
 
@@ -42,7 +43,7 @@ describe('runQuery', () => {
     expect(cellEntry.error).not.toBeNull();
     expect(cellEntry.error.name).toBe('ParseError');
     expect(cellEntry.result).not.toBeNull();
-    expect(cellEntry.result.type).toBe('error');
+    expect(isErrorValue(cellEntry.result)).toBe(true);
     expect(cellEntry.result.tag.name).toBe('ParseError');
   });
 

@@ -268,8 +268,9 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
         if (projectionText[segEnd] === '"') {
           segEnd += 1;
           while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
-            if (projectionText[segEnd] === '\\') segEnd += 1;
-            segEnd += 1;
+            // A backslash escapes the next char (including `\"`), so
+            // step over both; every other char advances by one.
+            segEnd += projectionText[segEnd] === '\\' ? 2 : 1;
           }
         }
         segEnd += 1;

@@ -569,8 +569,12 @@ function ensureTagBinding(state, tagName) {
 }
 
 async function evalTaggedLit(node, state) {
-  const payloadFork = await fork(state, inner => evalNode(node.payload, inner));
+  // Declare the tag before evaluating the payload so a self-referential
+  // payload (`::Tag(::Tag | spec)`) resolves the binding the literal is
+  // introducing — the same lexical visibility a named conduit's body
+  // has over its own self-name.
   const declaredState = ensureTagBinding(state, node.tag);
+  const payloadFork = await fork(declaredState, inner => evalNode(node.payload, inner));
   const minted = await mintTaggedInstance(node.tag, payloadFork.pipeValue, declaredState, node.location);
   return withPipeValue(declaredState, minted);
 }
@@ -714,14 +718,13 @@ async function evalProjection(node, state) {
 }
 
 // Registry of JS-layer value-classes that publish projectable surface.
-// Each entry maps a VALUE_CLASS_TAG brand to a per-segment handler
+// Each entry maps a VALUE_CLASS_TAG brand to a per-segment projector
 // table; segments not in the table resolve to `null`, matching Map
-// missing-key semantics. Lets a value-class declare its public
-// projection surface in one place — the discriminator (Conduit /
-// Snapshot / Quote / etc.) rides the Symbol brand, so a JsonObject
-// carrying a `"type"` data key falls through to the JsonObject
-// branch below instead of being read as a value-class; only the
-// named fields listed here are reachable through `/key`.
+// missing-key semantics. Quote and Doc publish their fields here; the
+// brand rides the Symbol, so a JsonObject carrying a `"type"` data key
+// falls through to the JsonObject branch below instead of being read
+// as a value-class. Only the named fields listed here are reachable
+// through `/key`.
 const PROJECTABLE_BY_TYPE = {
   quote: {
     source: q => q.source,

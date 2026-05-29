@@ -409,20 +409,26 @@ JSON tag.
 ### `take(n)`
 
 - **Arity** 2. **Subject** `vec` or `set`, **modifier** `n`
-  (non-negative int).
+  (whole-number count).
 - Returns the first `n` elements in insertion-order. If `n` exceeds
-  length, returns the whole sequence. Same shape as subject.
+  length, returns the whole sequence; a negative `n` clamps to 0
+  (takes nothing). Same shape as subject.
 - **Example**: `[1 2 3 4 5] | take(3)` → `[1 2 3]`;
   `#[:a :b :c :d] | take(2)` → `#[:a :b]`.
+- **Errors**: subject not a Vec/Set → `TakeSubjectNotSequenceError`;
+  non-integer count → `TakeCountNotIntegerError`.
 
 ### `drop(n)`
 
 - **Arity** 2. **Subject** `vec` or `set`, **modifier** `n`
-  (non-negative int).
-- Returns the sequence with the first `n` elements removed. Same
-  shape as subject.
+  (whole-number count).
+- Returns the sequence with the first `n` elements removed. If `n`
+  exceeds length, returns the empty sequence; a negative `n` clamps to
+  0 (drops nothing). Same shape as subject.
 - **Example**: `[1 2 3 4 5] | drop(2)` → `[3 4 5]`;
   `#[:a :b :c :d] | drop(2)` → `#[:c :d]`.
+- **Errors**: subject not a Vec/Set → `DropSubjectNotSequenceError`;
+  non-integer count → `DropCountNotIntegerError`.
 
 ### `distinct`
 

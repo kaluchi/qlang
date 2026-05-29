@@ -281,13 +281,12 @@ export function isQuote(v) {
 
 // Quote — frozen JS object carrying `.source` (the verbatim text
 // between `~{` and `}`) and an optional `.ast` (lazily populated when
-// the Quote is run through `eval` or projected via `/ast`). Lives
-// on the JS layer with its discriminator on the JS object shape
-// (`v.type === 'quote'`); a Map-key discriminator would expose
-// runtime housekeeping at every projection of a Quote-valued
-// pipeValue (the discriminator rides the VALUE_CLASS_TAG Symbol so a
-// JSON document carrying `{"type":"quote"}` never reads as a Quote).
-// The lazy `.ast` lets a Quote
+// the Quote is run through `eval` or projected via `/ast`). Identity
+// rides the non-enumerable VALUE_CLASS_TAG Symbol brand, keeping a
+// `:kind` Map-key discriminator out of every projection of a
+// Quote-valued pipeValue and leaving a JSON document that carries
+// `{"type":"quote"}` classified as a JsonObject. The lazy `.ast`
+// lets a Quote
 // hold a pipeline-suffix fragment beginning with a combinator
 // (`~{* inc | sort}`) — eager parse would reject the fragment in
 // startRule=Query mode because the top-level rule expects a value

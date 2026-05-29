@@ -390,6 +390,15 @@ describe('auto-declared ::Tag binding respects fork isolation', () => {
   it('an auto-declaration inside a fork leaves no trace in the outer env', async () => {
     expect(await evalQuery('(::Zap(1)) | env | keys | has(:"::Zap")')).toBe(false);
   });
+
+  it('a self-referential payload resolves the tag the literal declares', async () => {
+    // The tag is declared before the payload evaluates, so a payload
+    // that references the same tag (`::Tag(::Tag | spec)`) resolves the
+    // binding the literal is introducing — like a named conduit body
+    // seeing its own self-name.
+    expect(await evalQuery('::SelfRef(::SelfRef | spec | /declarationOrigin) | payload'))
+      .toEqual(keyword('implicit'));
+  });
 });
 
 describe('User-defined tag binding with Quote :impl', () => {

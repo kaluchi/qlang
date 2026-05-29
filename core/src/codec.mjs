@@ -21,6 +21,7 @@
 //   bare JSON object `{ "k": v, … }` (no `$tag` envelope key)
 //                                             → JsonObject (recursively decoded)
 //   { "$keyword": "name" }                    → interned keyword
+//   { "$tagKeyword": "Name" }                 → TagKeyword (`::Name`)
 //   { "$vec": [v1, v2, …] }                   → qlang Vec
 //   { "$map": [[k, v], …] }                   → qlang Map (entries pairs)
 //   { "$set": [v1, v2, …] }                   → qlang Set
@@ -54,6 +55,7 @@
 import {
   keyword,
   isKeyword,
+  isTagKeyword,
   isVec,
   isQMap,
   isQSet,
@@ -110,6 +112,7 @@ export function toTaggedJSON(value) {
   const t = typeof value;
   if (t === 'number' || t === 'string' || t === 'boolean') return value;
   if (isKeyword(value)) return { $keyword: value.name };
+  if (isTagKeyword(value)) return { $tagKeyword: value.name };
   // TaggedInstance check before generic Vec / Map / Set branches —
   // a tagged Vec is still `isVec(true)`, but the bare Vec encoder
   // strips identity. The envelope below recovers identity through
@@ -187,7 +190,7 @@ export function toTaggedJSON(value) {
 // `{"name":"x", "age":2}`) safe from envelope-misinterpretation
 // while still single-keying the qlang-only envelopes on the wire.
 const ENVELOPE_KEYS = new Set([
-  '$keyword', '$vec', '$map', '$set',
+  '$keyword', '$tagKeyword', '$vec', '$map', '$set',
   '$tagged', '$error', '$quote', '$doc'
 ]);
 
@@ -216,8 +219,9 @@ export function fromTaggedJSON(json) {
   if (Array.isArray(json)) return makeJsonArray(json.map(fromTaggedJSON));
   if (typeof json === 'object') {
     switch (envelopeKeyOf(json)) {
-      case '$keyword': return keyword(json.$keyword);
-      case '$vec':     return json.$vec.map(fromTaggedJSON);
+      case '$keyword':    return keyword(json.$keyword);
+      case '$tagKeyword': return makeTagKeyword(json.$tagKeyword);
+      case '$vec':        return json.$vec.map(fromTaggedJSON);
       case '$map': {
         // qlang Map keys are strings. A `$keyword`-enveloped key on
         // the wire normalises to its `.name` so the decoded Map keeps

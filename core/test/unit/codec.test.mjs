@@ -9,6 +9,8 @@ import {
 } from '../../src/codec.mjs';
 import {
   keyword,
+  makeTagKeyword,
+  isTagKeyword,
   makeConduit,
   makeSnapshot,
   makeQuote,
@@ -43,6 +45,21 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
     const kw = keyword('foo');
     const restored = roundTrip(kw);
     expect(restored).toEqual(kw);
+  });
+
+  it('round-trips a TagKeyword via $tagKeyword tag', () => {
+    const tk = makeTagKeyword('Foo');
+    expect(toTaggedJSON(tk)).toEqual({ $tagKeyword: 'Foo' });
+    const restored = roundTrip(tk);
+    expect(isTagKeyword(restored)).toBe(true);
+    expect(restored.name).toBe('Foo');
+  });
+
+  it('round-trips a Vec carrying a TagKeyword (the `result | type` shape)', () => {
+    const restored = roundTrip([makeTagKeyword('Box'), 1]);
+    expect(isTagKeyword(restored[0])).toBe(true);
+    expect(restored[0].name).toBe('Box');
+    expect(restored[1]).toBe(1);
   });
 
   it('round-trips a Vec of numbers', () => {

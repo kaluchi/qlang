@@ -11,7 +11,6 @@
 //   - records the source uri (file path or 'inline'/'repl-cell-N')
 //     as .uri
 //   - records a per-process .parseId for cross-parse identity
-//   - stamps a .parsedAt epoch ms on the root
 //   - records .schemaVersion for forward-compat AST evolution
 
 import {
@@ -53,7 +52,7 @@ export class ParseError extends Error {
 // plain JS objects with a `type` field; see grammar.peggy for the
 // catalog of node types. Every node carries .location, .text, .id,
 // and (except the root) .parent. The root additionally carries
-// .source, .uri, .parseId, .parsedAt, .schemaVersion.
+// .source, .uri, .parseId, .schemaVersion.
 export function parse(source, opts = {}) {
   if (typeof source !== 'string') {
     throw new ParseError(
@@ -84,7 +83,6 @@ export function parse(source, opts = {}) {
   ast.source = source;
   ast.uri = opts.uri ?? 'inline';
   ast.parseId = ++parseCounter;
-  ast.parsedAt = Date.now();
   ast.schemaVersion = AST_SCHEMA_VERSION;
   return ast;
 }

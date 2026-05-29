@@ -221,7 +221,12 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
     if (namespace === 'value' && isTag) continue;
     entries.push({ name: k, value: v });
   }
-  entries.sort((a, b) => a.name.localeCompare(b.name));
+  // Code-point order (`<`), not locale-sensitive `localeCompare`: it
+  // matches qlang `sort` over the same names and stays deterministic
+  // across locales. The `names-are-sorted-asc` conformance case pins
+  // the `manifest` ≡ `sort` invariant. Env keys are unique (Map), so
+  // the comparator never sees two equal names — `-1` / `1` suffices.
+  entries.sort((a, b) => (a.name < b.name ? -1 : 1));
   const descriptors = entries.map(e => describeBinding(e.value, e.name));
   return withPipeValue(state, descriptors);
 }, [0, 1]);

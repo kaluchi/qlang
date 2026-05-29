@@ -167,6 +167,24 @@ describe('tokenize — projections', () => {
     const tokens = tokenize('{:name "x"} | /name', await builtins());
     expect(tokens.find(t => t.kind === 'operand' && t.end - t.start === 4)).toBeDefined();
   });
+
+  it('keeps a quoted segment with an inner slash as one operand token', async () => {
+    // `/"a/b"` is a single projection segment `a/b`; the slash inside
+    // the quotes must not split it into two operand tokens.
+    expect(tokenize('/"a/b"', await builtins())).toEqual([
+      { start: 0, end: 1, kind: 'punct' },
+      { start: 1, end: 6, kind: 'operand' }
+    ]);
+  });
+
+  it('keeps an escaped quote inside a quoted segment within the segment', async () => {
+    // `/"a\"b"` — the escaped `"` stays inside the one segment, so the
+    // operand token spans the whole `"a\"b"` slice.
+    expect(tokenize('/"a\\"b"', await builtins())).toEqual([
+      { start: 0, end: 1, kind: 'punct' },
+      { start: 1, end: 7, kind: 'operand' }
+    ]);
+  });
 });
 
 describe('tokenize — comments', () => {

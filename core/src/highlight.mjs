@@ -262,6 +262,16 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
       cursor += 1;
       let segEnd = cursor;
       while (segEnd < projectionText.length && projectionText[segEnd] !== '/') {
+        // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
+        // whole `"…"` span so a slash inside it does not split the
+        // segment into two operand tokens.
+        if (projectionText[segEnd] === '"') {
+          segEnd += 1;
+          while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
+            if (projectionText[segEnd] === '\\') segEnd += 1;
+            segEnd += 1;
+          }
+        }
         segEnd += 1;
       }
       if (segEnd > cursor) {

@@ -53,6 +53,25 @@
 //                                returns the same interned object, so
 //                                a Map keyed by qlang keywords is
 //                                lookable from JS via `m.get(keyword(name))`)
+//   value-class construction   — makeTagKeyword, makeQuote, makeDoc,
+//                                makeErrorValue, errorFromKindDescriptor,
+//                                makeJsonObject, makeJsonArray,
+//                                makeTaggedInstance, stampTagHeader,
+//                                appendTrailNode, materializeTrail, plus
+//                                the identity TagKeyword constants
+//                                (BUILTIN_TAG / CONDUIT_TAG / ERROR_TAG /
+//                                PARSE_ERROR_TAG / SNAPSHOT_TAG /
+//                                TAG_BINDING_TAG / VALUE_TAG) and the
+//                                TAG_HEADER_SYMBOL / JSON_OBJECT_TAG /
+//                                JSON_ARRAY_TAG Symbol slots
+//   value-class predicates      — describeType, typeKeyword, isKeyword,
+//                                isTagKeyword, isErrorValue, isQuote,
+//                                isDoc, isJsonObject, isJsonArray
+//   env-key namespaces          — TAG_BINDING_PREFIX, MODULE_AST_PREFIX,
+//                                MODULE_NAMESPACE_PREFIX, RUNTIME_LOCATOR_KEY
+//                                plus the mint / probe helpers
+//                                (tagBindingKey, moduleAstKey, … /
+//                                isTagBindingName, isModuleAstKey, …)
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, evalQuery } from './eval.mjs';

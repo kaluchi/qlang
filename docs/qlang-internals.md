@@ -561,7 +561,8 @@ bodies where the per-element `pipeValue` may be on either track.
 
     (pipeValue, env) * body
 
-For each element `item` of the `pipeValue` Vec:
+For each element `item` of the `pipeValue` sequence (Vec or Set; a
+Set distributes in insertion order into a Vec result):
 
 1. **Fork** to `(item, env)`
 2. Run `body` as a sub-pipeline
@@ -578,7 +579,7 @@ finite data structures.
 **Deflection on error pipeValue.** When `pipeValue` is an error
 value, `*` appends `body`'s AST node to the error's trail and
 returns the error unchanged. No per-element fork happens. On any
-other non-Vec `pipeValue` the step raises `DistributeSubjectNotVecError`.
+other non-sequence `pipeValue` the step raises `DistributeSubjectNotSequenceError`.
 
 ### `>>` — flatten then apply
 
@@ -586,14 +587,14 @@ other non-Vec `pipeValue` the step raises `DistributeSubjectNotVecError`.
         ≡
     (flat(pipeValue), env) | nextStep
 
-`pipeValue` must be a Vec. `flat` removes one level of nesting; it
-is a no-op on flat Vecs (elements that are not themselves Vecs pass
-through unchanged).
+`pipeValue` must be a Vec or Set; a Set flattens to a Vec. `flat`
+removes one level of nesting; it is a no-op on flat Vecs (elements
+that are not themselves sequences pass through unchanged).
 
 **Deflection on error pipeValue.** When `pipeValue` is an error
 value, `>>` appends `nextStep`'s AST node to the error's trail and
 returns the error unchanged. No flatten happens. On any other
-non-Vec `pipeValue` the step raises `MergeSubjectNotVecError`.
+non-sequence `pipeValue` the step raises `MergeSubjectNotSequenceError`.
 
 ## Fork
 
@@ -1169,12 +1170,12 @@ pure AST-node-type dispatcher with no track awareness.
   `pipeValue` it returns the state unchanged (identity
   pass-through).
 - **`*`** — `distribute(state, bodyNode)`. Deflects on error into
-  the trail like `|`; on a Vec, forks per element and runs the
-  body against each; throws `DistributeSubjectNotVecError` when
-  `pipeValue` is neither a Vec nor an error.
+  the trail like `|`; on a Vec or Set, forks per element and runs
+  the body against each; throws `DistributeSubjectNotSequenceError`
+  when `pipeValue` is neither a sequence nor an error.
 - **`>>`** — `mergeFlat(state, nextNode)`. Deflects on error into
-  the trail like `|`; on a Vec, flattens one level and invokes
-  the next step against the flattened Vec.
+  the trail like `|`; on a Vec or Set, flattens one level into a
+  Vec and invokes the next step against it.
 
 The leading `!|` prefix of a Pipeline (`Pipeline.leadingFail`) is
 handled in `evalPipeline` by routing the first step through

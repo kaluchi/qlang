@@ -124,6 +124,13 @@ export function isMapShape(v) {
   return isQMap(v) || isJsonObject(v);
 }
 
+// Vec / JsonArray / Set — the ordered, indexable sequences `*`, `>>`,
+// and the order-aware operands (first / take / sort / distinct / flat
+// / …) dispatch over uniformly. A Set is the `distinct` of a Vec.
+export function isOrderedSequence(v) {
+  return isVecShape(v) || isQSet(v);
+}
+
 // Iterate a Map-shape subject as [key, value] pairs.
 export function mapShapeEntries(v) {
   if (isJsonObject(v)) return Object.entries(v);

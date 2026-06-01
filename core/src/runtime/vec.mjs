@@ -34,24 +34,12 @@
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
   isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
-  NULL, keyword, isVecShape, isMapShape, mapShapeEntries, mapShapeSize,
+  NULL, keyword, isVecShape, isOrderedSequence, isMapShape, mapShapeEntries, mapShapeSize,
   mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
   isJsonArray, JSON_ARRAY_TAG
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
 import { checkComparable, compareScalars } from '../ordering.mjs';
-
-// isOrderedSequence(v) — Vec / JsonArray / Set. The shape over which
-// every order-aware operand (first / last / take / drop / reverse /
-// sort / sortWith / at / flat) dispatches polymorphically. Set is
-// insertion-ordered + structurally-unique by §Set in qlang-spec.md,
-// so first-added is well-defined and slicing/reordering operations
-// keep meaning. Returns the elements as an iterable view together
-// with the discriminator that `containerLikeOf` reads back to mint
-// a same-shape result.
-function isOrderedSequence(v) {
-  return isVecShape(v) || isQSet(v);
-}
 
 // sequenceElements(v) — array view of a Vec / JsonArray / Set
 // subject. Vec / JsonArray yield themselves; Set is spread into an

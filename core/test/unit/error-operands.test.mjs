@@ -226,15 +226,15 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('distribute on non-Vec → DistributeSubjectNotVecError', async () => {
+  it('distribute on non-sequence → DistributeSubjectNotSequenceError', async () => {
     const caughtErr = await catchOriginalError('{:a 1} * add(1)');
-    expect(caughtErr.name).toBe('DistributeSubjectNotVecError');
+    expect(caughtErr.name).toBe('DistributeSubjectNotSequenceError');
     expect(caughtErr.context.actualType.name).toBe('map');
   });
 
-  it('merge on non-Vec → MergeSubjectNotVecError (distinct from distribute)', async () => {
+  it('merge on non-sequence → MergeSubjectNotSequenceError (distinct from distribute)', async () => {
     const caughtErr = await catchOriginalError('42 >> count');
-    expect(caughtErr.name).toBe('MergeSubjectNotVecError');
+    expect(caughtErr.name).toBe('MergeSubjectNotSequenceError');
   });
 
   it('apply args to non-function → ApplyToNonFunctionError', async () => {
@@ -386,8 +386,8 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | gt(5)',       // GtOperandsNotComparableError
       '"a" | lt(5)',       // LtOperandsNotComparableError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '{:a 1} * add(1)',   // DistributeSubjectNotVecError
-      '42 >> count'        // MergeSubjectNotVecError
+      '{:a 1} * add(1)',   // DistributeSubjectNotSequenceError
+      '42 >> count'        // MergeSubjectNotSequenceError
     ];
     for (const q of queries) {
       names.add((await catchOriginalError(q)).name);

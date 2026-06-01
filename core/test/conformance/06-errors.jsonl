@@ -3,11 +3,9 @@
 {"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":z"}
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":y"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::ProjectionIndexOutOfBoundsError"}
-{"name":"distribute-on-number","query":"42 * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{add(1)}\n  :faultInput 42\n  :actualType :number\n}"}
-{"name":"distribute-on-map","query":"{:a 1} * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{add(1)}\n  :faultInput {:a 1}\n  :actualType :map\n}"}
-{"name":"distribute-on-set","query":"#[1 2] * add(1)","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{add(1)}\n  :faultInput #[1 2]\n  :actualType :set\n}"}
-{"name":"merge-on-number","query":"42 >> count","expect":"::MergeSubjectNotVecError!{\n  :faultStep ~{count}\n  :faultInput 42\n  :actualType :number\n}"}
-{"name":"merge-on-set","query":"#[1 2] >> count","expect":"::MergeSubjectNotVecError!{\n  :faultStep ~{count}\n  :faultInput #[1 2]\n  :actualType :set\n}"}
+{"name":"distribute-on-number","query":"42 * add(1)","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{add(1)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"distribute-on-map","query":"{:a 1} * add(1)","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{add(1)}\n  :faultInput {:a 1}\n  :actualType :map\n}"}
+{"name":"merge-on-number","query":"42 >> count","expect":"::MergeSubjectNotSequenceError!{\n  :faultStep ~{count}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"use-on-number","query":"42 | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~{use}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"use-on-vec","query":"[1 2] | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~{use}\n  :faultInput [1 2]\n  :actualType :vec\n}"}
 {"name":"div-by-zero","query":"10 | div(0)","expect":"::DivisionByZeroError!{:faultStep ~{div(0)} :faultInput 10}"}

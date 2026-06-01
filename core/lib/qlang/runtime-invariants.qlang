@@ -156,29 +156,29 @@
 
 |~ ── 2. Distribute / merge combinator subject mismatches ── ~|
 
-::DistributeSubjectNotVecError
-  |~~ Distribute combinator (`*`) — subject must be a Vec
-      for per-element forking.
+::DistributeSubjectNotSequenceError
+  |~~ Distribute combinator (`*`) — subject must be a Vec or Set
+      for per-element forking; a Set distributes into a Vec result.
 
       ~{
         42 * add(1)
         !| [type /actualType]
-        |  eq([::DistributeSubjectNotVecError :number])
+        |  eq([::DistributeSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :distribute :position :subject :expectedType :vec}
+  ::builtin{:category :typeError :operand :distribute :position :subject :expectedType [:vec :set]}
 
-::MergeSubjectNotVecError
-  |~~ Merge combinator (`>>`) — subject must be a Vec for
-      one-level flattening.
+::MergeSubjectNotSequenceError
+  |~~ Merge combinator (`>>`) — subject must be a Vec or Set for
+      one-level flattening into a Vec.
 
       ~{
         42 >> count
         !| [type /actualType]
-        |  eq([::MergeSubjectNotVecError :number])
+        |  eq([::MergeSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :merge :position :subject :expectedType :vec}
+  ::builtin{:category :typeError :operand :merge :position :subject :expectedType [:vec :set]}
 
 |~ ── 3. Tag-binding constructor invariants ─────────────── ~|
 

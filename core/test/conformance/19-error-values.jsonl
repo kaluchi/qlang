@@ -12,10 +12,10 @@
 {"name":"fail-apply-deflects-string","query":"\"hello\" !| /kind","expect":"\"hello\""}
 {"name":"fail-apply-deflects-vec","query":"[1 2 3] !| /kind","expect":"[1 2 3]"}
 {"name":"fail-apply-into-paren-group","query":"!{:kind :oops} !| (/kind)","expect":":oops"}
-{"name":"deflect-count-into-trail","query":"!{:kind :oops} | count !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count}\n  :actualType :quote\n}"}
-{"name":"deflect-add-into-trail","query":"!{:kind :oops} | add(1) !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{| add(1)}\n  :actualType :quote\n}"}
-{"name":"deflect-projection-into-trail","query":"!{:kind :oops} | /name !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{| /name}\n  :actualType :quote\n}"}
-{"name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | count | add(1) | mul(2) !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count | add(1) | mul(2)}\n  :actualType :quote\n}"}
+{"name":"deflect-count-into-trail","query":"!{:kind :oops} | count !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count}\n  :actualType :quote\n}"}
+{"name":"deflect-add-into-trail","query":"!{:kind :oops} | add(1) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{| add(1)}\n  :actualType :quote\n}"}
+{"name":"deflect-projection-into-trail","query":"!{:kind :oops} | /name !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{| /name}\n  :actualType :quote\n}"}
+{"name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | count | add(1) | mul(2) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count | add(1) | mul(2)}\n  :actualType :quote\n}"}
 {"name":"deflect-entry-is-ast-map","query":"!{:kind :oops} | add(1) !| /trail | first | /:kind","expect":"::FirstSubjectNotSequenceError!{\n  :faultStep ~{first}\n  :faultInput ~{| add(1)}\n  :actualType :quote\n  :trail ~{| /:kind}\n}"}
 {"name":"deflect-entry-has-structured-name","query":"!{:kind :oops} | add(1) !| /trail | first | /name","expect":"::FirstSubjectNotSequenceError!{\n  :faultStep ~{first}\n  :faultInput ~{| add(1)}\n  :actualType :quote\n  :trail ~{| /name}\n}"}
 {"name":"deflect-entry-has-structured-location","query":"!{:kind :oops} | add(1) !| /trail | first | /location | /start | /line","expect":"::FirstSubjectNotSequenceError!{\n  :faultStep ~{first}\n  :faultInput ~{| add(1)}\n  :actualType :quote\n  :trail ~{| /location | /start | /line}\n}"}
@@ -30,12 +30,12 @@
 {"name":"distribute-error-count","query":"[1 \"x\" 3] * add(10) | filter(isError) | count","expect":"1"}
 {"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add(10) !| 0)","expect":"[11 0 13]"}
 {"name":"error-descriptor-not-map","query":"42 | error !| type | spec | /category","expect":":typeError"}
-{"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union({:stage 1}) | error | add(1) !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count | add(1)}\n  :actualType :quote\n}"}
+{"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union({:stage 1}) | error | add(1) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count | add(1)}\n  :actualType :quote\n}"}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union({:request \"r-1\"}) | error | count !| /request","expect":"\"r-1\""}
 {"name":"leading-fail-apply-filter-by-error-kind","query":"[1 \"x\" 3 \"y\"] * add(10) | filter(!| type | eq(::AddLeftNotNumberError)) | count","expect":"2"}
 {"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add(1) !| union({:trail []}) | error !| /trail","expect":"[]"}
 {"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [\"pre-1\" \"pre-2\"]} !| /trail","expect":"[\"pre-1\" \"pre-2\"]"}
-{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:text \"pre\"}]} | count !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{undefined | count}\n  :actualType :quote\n}"}
-{"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add(1) !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{* add(1)}\n  :actualType :quote\n}"}
-{"name":"merge-combinator-deflects-on-error","query":"!{:kind :oops} >> count !| /trail * /text","expect":"::DistributeSubjectNotVecError!{\n  :faultStep ~{/text}\n  :faultInput ~{>> count}\n  :actualType :quote\n}"}
+{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:text \"pre\"}]} | count !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{undefined | count}\n  :actualType :quote\n}"}
+{"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add(1) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{* add(1)}\n  :actualType :quote\n}"}
+{"name":"merge-combinator-deflects-on-error","query":"!{:kind :oops} >> count !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{>> count}\n  :actualType :quote\n}"}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add(1)","expect":"::AddLeftNotNumberError!{\n  :faultStep ~{add(1)}\n  :faultInput \"hello\"\n  :actualType :string\n}"}

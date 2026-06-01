@@ -1327,9 +1327,8 @@ edit — `astChildrenOf` and the codec share the shape knowledge.
   invariant: `qlangMapToAst(astNodeToMap(n))` is structurally
   equal to `n` for any AST produced by `parse()`, modulo the
   post-parse decoration (`.id`, `.parent`) and the root-level
-  metadata (`.source`, `.uri`, `.parseId`, `.parsedAt`,
-  `.schemaVersion`) that `parse.mjs` stamps after tree
-  construction. Consumers: the `eval` reflective operand feeds
+  metadata (`.source`, `.uri`, `.parseId`, `.schemaVersion`)
+  that `parse.mjs` stamps after tree construction. Consumers: the `eval` reflective operand feeds
   an AST-Map through this converter and then into `evalAst`.
 
 ### `primitives.mjs` — the built-in primitive registry

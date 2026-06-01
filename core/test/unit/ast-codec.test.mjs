@@ -13,7 +13,7 @@
 //   2. Round-trip — qlangMapToAst ∘ astNodeToMap is structurally the
 //      identity on any parse()-produced AST, modulo post-parse
 //      decoration (.id / .parent) and root-level metadata (.source /
-//      .uri / .parseId / .parsedAt / .schemaVersion) which the codec
+//      .uri / .parseId / .schemaVersion) which the codec
 //      intentionally does not carry.
 
 import { describe, it, expect } from 'vitest';

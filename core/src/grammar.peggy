@@ -11,7 +11,7 @@
 //   .text      — original source substring matched by the rule
 //
 // Post-parse decoration in src/parse.mjs adds .id and .parent on
-// every node and .source/.uri/.parseId/.parsedAt/.schemaVersion on
+// every node and .source/.uri/.parseId/.schemaVersion on
 // the root.
 //
 // Comments are first-class PipeSteps with identity semantics. Four

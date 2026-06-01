@@ -2795,7 +2795,7 @@ notebooks consume the AST traversal surface from
 The contract: every parser-produced AST node carries `.location`,
 `.text`, `.id`, `.parent`, and (where the surface form admits a
 marker) `.effectful`. The root additionally carries `.source`,
-`.uri`, `.parseId`, `.parsedAt`, `.schemaVersion`. See the runtime
+`.uri`, `.parseId`, `.schemaVersion`. See the runtime
 reference for the per-function contract of `walkAst`,
 `astChildrenOf`, `findAstNodeAtOffset`, `findIdentifierOccurrences`,
 `bindingNamesVisibleAt`, `astNodeSpan`, `astNodeContainsOffset`,

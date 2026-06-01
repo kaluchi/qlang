@@ -183,8 +183,8 @@ describe('round-trip invariant — TaggedInstance constructors lifting to plain 
 
 // ── TaggedInstance — default constructor accepts every Primary ─
 //
-// `::Tag<payload>` for a tag declared with `{:kind :tag}`
-// and no `:impl` slot routes through `evalTaggedLit`'s
+// `::Tag<payload>` for a tag declared with an identity-only Map
+// body (no `:impl` slot) routes through `evalTaggedLit`'s
 // default branch. Every payload shape the grammar's `Primary`
 // rule accepts is covered here — payload starts with a bracket
 // character (Vec / JsonArray / Map / JsonObject / Set / Quote /
@@ -194,7 +194,7 @@ describe('round-trip invariant — TaggedInstance constructors lifting to plain 
 // TaggedLit AST and re-evaluates to a deepEqual value.
 
 describe('round-trip invariant — TaggedLit payload covering every Primary form', () => {
-  const TAG_DECL = '::Tag1 {:kind :tag} | ::Inner {:kind :tag}';
+  const TAG_DECL = '::Tag1 {} | ::Inner {}';
 
   for (const tail of [
     // VecLit payload (whitespace-separated)
@@ -268,10 +268,10 @@ describe('round-trip invariant — TaggedLit payload covering every Primary form
 
 describe('round-trip invariant — named-error literal self-evaluation', () => {
   // `::Tag!{…}` with ErrorLit payload lands as an ErrorValue.
-  // `printErrorValue` folds `:kind` back into the head; the
+  // `printErrorValue` folds the header tag back into the head; the
   // resulting `::Tag!{…}` form re-parses as a TaggedLit whose
   // payload is an ErrorLit and recovers the same descriptor.
-  const TAG_DECL = '::ErrTag {:kind :tag}';
+  const TAG_DECL = '::ErrTag {}';
 
   for (const tail of [
     '::ErrTag!{}',

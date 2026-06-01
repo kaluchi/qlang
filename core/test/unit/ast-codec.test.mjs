@@ -465,9 +465,9 @@ describe('round-trip — BindStep declarative form', () => {
   it('Keyword key, docs + body', () =>
     assertRoundTrip(':double |~~| doubles its subject\nmul(2)'));
   it('BareTypeKeyword key — tag-binding form', () =>
-    assertRoundTrip('::Box {:kind :tag}'));
+    assertRoundTrip('::Box {:boxed true}'));
   it('BareTypeKeyword key, docs + body', () =>
-    assertRoundTrip('::Box |~~| boxes its payload\n{:kind :tag}'));
+    assertRoundTrip('::Box |~~| boxes its payload\n{:boxed true}'));
   it('two consecutive BindSteps', () =>
     assertRoundTrip(':a 1 :b 2'));
 });

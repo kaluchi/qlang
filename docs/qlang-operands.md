@@ -1183,11 +1183,11 @@ its own eval handler in `eval.mjs`.
   - `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "world" | @surround("[", "]")` → `"[world]"`.
 - **Tag-binding form**: `::tag descriptor` installs the
   given descriptor Map under `::tag` for use as a TaggedLit
-  constructor. The descriptor must carry `:kind :tag` plus
-  `:impl` — either a `:qlang/prim/<tag>` keyword (host-bound
-  built-in constructor) or a Quote-value (qlang body that runs
-  with the payload as its initial pipeValue). Example:
-  `::wrap {:kind :tag :impl `prepend("[") | append("]")`} | "x" | ::wrap "x"`
+  constructor. The descriptor carries `:impl` — either a
+  `:qlang/prim/<tag>` keyword (host-bound built-in constructor) or
+  a Quote-value (qlang body that runs with the payload as its
+  initial pipeValue); an identity-only tag omits `:impl`. Example:
+  `::wrap {:impl ~{prepend("[") | append("]")}} | ::wrap"x" | payload`
   → `"[x]"`.
 - **Errors**: clean binding name carrying an effectful body →
   `EffectLaunderingAtBindStepParseError` (the only runtime throw inside

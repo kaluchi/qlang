@@ -89,7 +89,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
   });
 
   it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrTagError', async () => {
-    const err = await evalQuery('{:kind :tag :impl :unbound} | source');
+    const err = await evalQuery('{:impl :unbound} | source');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
   });

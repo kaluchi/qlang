@@ -1382,7 +1382,7 @@ namespace.
 
 ```qlang
 > :duration mul(60)
-  | ::duration {:kind :tag :impl ~{as(:s) | {:seconds s}}}
+  | ::duration {:impl ~{as(:s) | {:seconds s}}}
   | [10 | duration, ::duration(10)]
 [600 ::duration{:seconds 10}]
 ```
@@ -1439,8 +1439,10 @@ syntax until usage earns them a shorthand.
 ### Declaring a tag binding
 
 A tag binding is just a BindStep whose key is a `::Tag`
-identifier. The body is a descriptor Map carrying
-`:kind :tag` plus a constructor handle (`:impl`).
+identifier. The body is a descriptor Map carrying a constructor
+handle (`:impl`); an identity-only tag omits `:impl` and binds an
+empty Map. Being stored under the `::`-prefixed env-key is what
+marks the Map a tag binding — no discriminator field.
 
 Two equivalent paths register the constructor:
 
@@ -1449,14 +1451,12 @@ the payload as initial `pipeValue`. No JavaScript needed; works
 from inside any query or library module.
 
 ```qlang
-::wrap {:kind :tag
-        :impl ~{prepend("[") | append("]")}}
+::wrap {:impl ~{prepend("[") | append("]")}}
 | "world" | ::wrap"world"
 |~| → "[world]"
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
-::permissions {:kind :tag
-   :allowed #[:read :write :delete]
+::permissions {:allowed #[:read :write :delete]
    :impl ~{as(:p)
      | every(:permissions/allowed | has)
      | when(not, error({:kind :PermissionUnknown}))
@@ -1491,7 +1491,7 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
 ```
 
 ```qlang
-::duration {:kind :tag :impl :qlang/prim/duration}
+::duration {:impl :qlang/prim/duration}
 | ::duration{:hours 3}
 | /seconds
 |~| → 10800
@@ -1567,8 +1567,7 @@ is parsed on demand only when the constructor invokes `eval` /
 `apply` / `/ast` against it.
 
 ```qlang
-::cond {:kind :tag
-        :impl ~{as(:branches)
+::cond {:impl ~{as(:branches)
           | first(/condition | parse | eval | isTruthy)
           | /body | parse | eval}}
 

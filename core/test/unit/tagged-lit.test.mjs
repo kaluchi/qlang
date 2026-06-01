@@ -58,14 +58,14 @@ describe('::conduit constructor builds a Conduit-value', () => {
 describe('::tag descriptor registers a tag-namespace binding', () => {
   it('makes ::myType invokable through the ::conduit constructor handle', async () => {
     const result = await evalQuery(
-      '::myType {:kind :tag :impl :qlang/type/conduit} | :f ::myType[[] ~{add(1)}] | 4 | f'
+      '::myType {:impl :qlang/type/conduit} | :f ::myType[[] ~{add(1)}] | 4 | f'
     );
     expect(result).toBe(5);
   });
 
   it('axis-operand finds the ::Tag … OperandCall form when navigating ::Tag | source', async () => {
     const source = await evalQuery(
-      '::myType {:kind :tag :impl :qlang/type/conduit} | ::myType | source'
+      '::myType {:impl :qlang/type/conduit} | ::myType | source'
     );
     expect(isQuote(source)).toBe(true);
     expect(source.source).toContain('::myType');
@@ -75,7 +75,7 @@ describe('::tag descriptor registers a tag-namespace binding', () => {
 describe('axis-operand subject classification', () => {
   it('a tagged-instance Map (kind is TagKeyword) resolves through its tag to the tag-binding source', async () => {
     const source = await evalQuery(
-      '::myType {:kind :tag :impl :qlang/type/conduit} | {:kind ::myType :payload []} | source'
+      '::myType {:impl :qlang/type/conduit} | {:kind ::myType :payload []} | source'
     );
     expect(isQuote(source)).toBe(true);
     expect(source.source).toContain('::myType');
@@ -323,12 +323,12 @@ describe('printValue Conduit handles named vs anonymous form', () => {
   });
 });
 
-describe('TagKeyword as :kind discriminator', () => {
-  // Tagged-instance Maps carry `:kind <TagKeyword>` plus
-  // `:payload` (the constructor's source-form Vec). The
-  // base TagKeyword machinery — `makeTagKeyword` /
-  // `describeType` / `typeKeyword` — is exercised at the value
-  // level here; the named-error / `::Tag!{…}` round-trip lives
+describe('TagKeyword value mechanics', () => {
+  // The base TagKeyword machinery — `makeTagKeyword` /
+  // `describeType` / `typeKeyword` / `printValue` — exercised at
+  // the value level. Tagged-instance identity rides on the
+  // JS-header `TAG_HEADER_SYMBOL` slot, read back through
+  // `typeKeyword`; the named-error / `::Tag!{…}` round-trip lives
   // under the error-values suite.
 
   it('describeType / typeKeyword distinguish TagKeyword from Keyword', async () => {
@@ -404,42 +404,42 @@ describe('auto-declared ::Tag binding respects fork isolation', () => {
 describe('User-defined tag binding with Quote :impl', () => {
   it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
     const result = await evalQuery(
-      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x" | payload'
+      '::wrap {:impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x" | payload'
     );
     expect(result).toBe('[x]');
   });
 
   it('Quote body sees the tag-binding payload as its initial pipeValue (read through payload after auto-wrap)', async () => {
     const result = await evalQuery(
-      '::shout {:kind :tag :impl ~{append("!")}} | ::shout"ready" | payload'
+      '::shout {:impl ~{append("!")}} | ::shout"ready" | payload'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':exclaim append("!") | ::shout {:kind :tag :impl ~{exclaim}} | ::shout"go" | payload'
+      ':exclaim append("!") | ::shout {:impl ~{exclaim}} | ::shout"go" | payload'
     );
     expect(result).toBe('go!');
   });
 
   it('auto-wrap stamps the tag identity on the constructor result', async () => {
     const result = await evalQuery(
-      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}} | ::wrap"x" | type'
+      '::wrap {:impl ~{prepend("[") | append("]")}} | ::wrap"x" | type'
     );
     expect(result).toEqual(makeTagKeyword('wrap'));
   });
 
   it('Quote body that already produces the same-tag TaggedInstance passes through (no double-wrap)', async () => {
     const result = await evalQuery(
-      '::echo {:kind :tag :impl ~{tag(::echo)}} | ::echo"hi" | payload'
+      '::echo {:impl ~{tag(::echo)}} | ::echo"hi" | payload'
     );
     expect(result).toBe('hi');
   });
 
   it('Quote body that fails on the fail-track propagates the error untagged', async () => {
     const err = await evalQuery(
-      '::strictAdd {:kind :tag :impl ~{add("not-a-number")}} | ::strictAdd(5)'
+      '::strictAdd {:impl ~{add("not-a-number")}} | ::strictAdd(5)'
     );
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('AddRightNotNumberError'));
@@ -447,7 +447,7 @@ describe('User-defined tag binding with Quote :impl', () => {
 
   it(':impl that is neither Keyword nor Quote raises TagBindingHasNoConstructorError', async () => {
     const err = await evalQuery(
-      '::bad {:kind :tag :impl 42} | ::bad"x"'
+      '::bad {:impl 42} | ::bad"x"'
     );
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));

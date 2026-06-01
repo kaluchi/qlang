@@ -34,22 +34,12 @@
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
   isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
-  NULL, keyword, isVecShape, isOrderedSequence, isMapShape, mapShapeEntries, mapShapeSize,
+  NULL, keyword, isVecShape, isOrderedSequence, sequenceElements, isMapShape, mapShapeEntries, mapShapeSize,
   mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
   isJsonArray, JSON_ARRAY_TAG
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
 import { checkComparable, compareScalars } from '../ordering.mjs';
-
-// sequenceElements(v) — array view of a Vec / JsonArray / Set
-// subject. Vec / JsonArray yield themselves; Set is spread into an
-// array in insertion-order. Used by order-aware operands that need
-// indexed access (first / last / at) or full materialisation
-// (sort / sortWith).
-function sequenceElements(v) {
-  if (isVecShape(v)) return v;
-  return [...v];
-}
 
 // containerLikeOf(items, source) — minting site for shape-preserving
 // transformers (filter / take / drop / reverse / sort / sortWith /
@@ -704,7 +694,7 @@ export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, red
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = await seedLambda(subject);
   if (isErrorValue(acc)) return acc;
-  for (const item of sequenceElements(subject)) {
+  for (const item of subject) {
     acc = await combine(acc, item);
     if (isErrorValue(acc)) return acc;
   }

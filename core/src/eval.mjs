@@ -31,7 +31,7 @@ import {
   isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
-  isJsonObject, isJsonArray, isOrderedSequence, isQuote,
+  isJsonObject, isJsonArray, isOrderedSequence, sequenceElements, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
@@ -305,7 +305,7 @@ async function distribute(state, bodyNode) {
   }
   const subjectSeq = state.pipeValue;
   const forkResults = await Promise.all(
-    [...subjectSeq].map(seqElement =>
+    sequenceElements(subjectSeq).map(seqElement =>
       forkWith(state, seqElement, inner => evalNode(bodyNode, inner))
     )
   );

@@ -131,6 +131,16 @@ export function isOrderedSequence(v) {
   return isVecShape(v) || isQSet(v);
 }
 
+// Array view of an ordered sequence — the extractor companion to
+// isOrderedSequence. A Vec / JsonArray yields itself (no copy); a Set
+// is spread into an array in insertion order. Order-aware operands
+// that need indexed access (first / last / at) or full materialisation
+// (sort / sortWith), and the `*` distribute fork, source their element
+// array here.
+export function sequenceElements(v) {
+  return isVecShape(v) ? v : [...v];
+}
+
 // Iterate a Map-shape subject as [key, value] pairs.
 export function mapShapeEntries(v) {
   if (isJsonObject(v)) return Object.entries(v);

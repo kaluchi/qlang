@@ -747,7 +747,7 @@ shape, and vice versa.
     `:foo | isTag` → `false`; `"::Foo" | isTag` → `false`.
   - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
   - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
-  - `` `mul(2)` | isQuote `` → `true`; `"mul(2)" | isQuote` → `false`.
+  - `~{mul(2)} | isQuote` → `true`; `"mul(2)" | isQuote` → `false`.
   - `|~~ note ~~| | isDoc` → `true`; `"note" | isDoc` → `false`.
   - `::json{:k 1} | isJsonObject` → `true`; `{:k 1} | isJsonObject` → `false`.
   - `::json[1 2 3] | isJsonArray` → `true`; `[1 2 3] | isJsonArray` → `false`.

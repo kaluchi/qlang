@@ -45,7 +45,6 @@
           whose only payload is the attached docs.
   ~~|
   ::builtin{:impl :qlang/type/builtin
-            :spec {:payload :map}
             :throws [::BuiltinPayloadNotMapError]}
 
 ::BuiltinPayloadNotMapError

@@ -25,7 +25,6 @@
       ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
   ~~|
   ::builtin{:impl :qlang/type/conduit
-            :spec {:payload :vec}
             :throws [::ConduitPayloadNotVecError
                      ::ConduitArityInvalidError
                      ::ConduitSelfNameNotKeywordError
@@ -143,8 +142,7 @@
 
       ~{::qlang{"k": "v"} | isMap | eq(true)}
   ~~|
-  ::builtin{:impl :qlang/type/qlang
-            :spec {:payload :any}}
+  ::builtin{:impl :qlang/type/qlang}
 
 ::json
   |~~ ::json<qlang-shape> — recursively convert a qlang-shape
@@ -156,5 +154,4 @@
 
       ~{::json{:k "v"} | isJsonObject | eq(true)}
   ~~|
-  ::builtin{:impl :qlang/type/json
-            :spec {:payload :any}}
+  ::builtin{:impl :qlang/type/json}

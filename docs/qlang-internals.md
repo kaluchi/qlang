@@ -348,7 +348,7 @@ same way, so `manifest | filter(/kind | eq(::builtin))` and
 
 Typical call pattern:
 
-    env | manifest | filter(/kind | eq(:builtin)) | table
+    env | manifest | filter(/kind | eq(::builtin)) | table
 
 `manifest` is the enumeration surface. For per-binding source-level
 introspection reach for the axis trio (`:name | source` / `| docs`
@@ -367,8 +367,11 @@ predicate; every place that needs to walk env entries by namespace
 through these helpers.
 
 A tag binding is the value stored under `'::Tag'`: a frozen Map
-carrying `:kind :tag` plus a constructor handle on
-`:impl`.
+carrying a constructor handle on `:impl` (identity-only bindings
+omit it). The `::`-prefixed env-key plus the optional `:impl` slot
+is what marks a Map as a tag binding — no `:kind` field. Catalog
+tags stamp `::builtin` on the Map's JS-header slot; a user
+`::Tag {…}` binding is a plain Map.
 
 ### TaggedLit eval flow
 
@@ -388,8 +391,8 @@ carrying `:kind :tag` plus a constructor handle on
    explicitly — strict-mode lint and CI tooling read that view.
 3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
    snapshots route through here too).
-4. **Validate descriptor shape.** Binding must be a Map (typically
-   carrying `:kind :tag`). Otherwise → `TaggedLitNotTagBindingError`.
+4. **Validate descriptor shape.** Binding must be a Map.
+   Otherwise → `TaggedLitNotTagBindingError`.
 5. **Read `:impl`.** Three branches dispatch by the impl
    value's runtime shape:
    - **Keyword handle** (`:qlang/prim/<tag>`) — resolve through
@@ -719,9 +722,9 @@ language level.
 
 Dispatch at an operand call site is straightforward under this
 shape. `eval.mjs::evalOperandCall` looks up the identifier in
-`env`; if the resolved value is a Map carrying `:kind
-:builtin`, control flows through `applyBuiltinDescriptor` which
-reads the `:impl` handle, resolves it through
+`env`; if the resolved value is a descriptor Map carrying
+`::builtin` identity on its JS-header slot, control flows through
+`applyBuiltinDescriptor` which reads the `:impl` handle, resolves it through
 `PRIMITIVE_REGISTRY.resolve` into the backing function value,
 and invokes it via Rule 10. Bare lookup fires the operand against
 the current `pipeValue` regardless of arity — non-nullary operands
@@ -1327,9 +1330,8 @@ edit — `astChildrenOf` and the codec share the shape knowledge.
   invariant: `qlangMapToAst(astNodeToMap(n))` is structurally
   equal to `n` for any AST produced by `parse()`, modulo the
   post-parse decoration (`.id`, `.parent`) and the root-level
-  metadata (`.source`, `.uri`, `.parseId`, `.parsedAt`,
-  `.schemaVersion`) that `parse.mjs` stamps after tree
-  construction. Consumers: the `eval` reflective operand feeds
+  metadata (`.source`, `.uri`, `.parseId`, `.schemaVersion`)
+  that `parse.mjs` stamps after tree construction. Consumers: the `eval` reflective operand feeds
   an AST-Map through this converter and then into `evalAst`.
 
 ### `primitives.mjs` — the built-in primitive registry
@@ -1397,12 +1399,14 @@ invocations.
   `'Number'`, `'String'`, `'Vec'`, `'Map'`, `'Set'`, `'Keyword'`,
   `'Boolean'`, `'Null'`, `'Conduit'`, `'Snapshot'`, `'Error'`,
   `'Function'`.
-- `typeKeyword(v)` — keyword value representing the type:
-  `:number`, `:string`, `:vec`, `:map`, `:set`, `:keyword`,
-  `:boolean`, `:null`, `:conduit`, `:snapshot`, `:error`,
-  `:function`. Used by error factories for structured
-  `context.actualType` fields and by `manifest`'s descriptor for
-  the `:type` field on each entry.
+- `typeKeyword(v)` — the type as a value: a plain Keyword for
+  scalars and base containers (`:number`, `:string`, `:vec`,
+  `:map`, `:set`, `:keyword`, `:boolean`, `:null`, `:function`),
+  and the JS-header TagKeyword for identity-bearing value-classes
+  (`::conduit`, `::snapshot`, and an error value's own `::Tag`).
+  Used by error factories for structured `context.actualType`
+  fields and by `manifest`'s descriptor for the `:type` field on
+  each entry.
 
 Three public entries, all kind-table dispatches keyed off
 `describeType`:

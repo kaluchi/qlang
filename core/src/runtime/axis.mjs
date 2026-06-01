@@ -126,10 +126,10 @@ export function stepDocStrings(step) {
 // TagKeyword `::Tag`     → `'::Tag'` (tag-binding subject — the form
 // `::Tag | source` lands here once BareTypeKeyword evaluation returns
 // a TagKeyword identifier).
-// Tagged-instance Map (`:kind` is a TagKeyword, e.g.
-// `::conduit[…]` or any user-defined `::tag[…]`) → `'::<tag>'`
-// taken from that kind's name — the instance's `docs` are the docs
-// of the tag binding it instantiates.
+// Descriptor / view Map carrying a `:kind` TagKeyword field (a
+// `manifest` view-Map, or a user-built `{:kind ::Foo …}` Map) →
+// `'::<tag>'` taken from that field — the binding whose docs the
+// Map's `:kind` names.
 function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
   if (isTagKeyword(subject)) return tagBindingKey(subject.name);

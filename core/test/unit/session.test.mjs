@@ -238,7 +238,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(
-      '::wrap {:kind :tag :impl ~{prepend("[") | append("]")}}'
+      '::wrap {:impl ~{prepend("[") | append("]")}}'
     );
     const restored = await deserializeSession(
       JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))

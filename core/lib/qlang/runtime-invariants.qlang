@@ -1,6 +1,7 @@
 |~ Cross-family invariant tag-bindings. Each error tag below is
-   stamped on `:kind` by a runtime site that no single operand
-   family owns — the parser, the AST codec, the evaluator
+   stamped on the error value's JS-header `tag` slot by a runtime
+   site that no single operand family owns — the parser, the AST
+   codec, the evaluator
    dispatcher, the primitive registry, the session lifecycle, the
    projection segment-walker, the combinator track-dispatcher,
    the render-path round-trip guards. Per-operand errors live
@@ -44,7 +45,6 @@
           whose only payload is the attached docs.
   ~~|
   ::builtin{:impl :qlang/type/builtin
-            :spec {:payload :map}
             :throws [::BuiltinPayloadNotMapError]}
 
 ::BuiltinPayloadNotMapError

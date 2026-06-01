@@ -11,7 +11,7 @@
   },
   "BindStep — tag-binding": {
     "prefix": "bindtag",
-    "body": ["::${1:Tag} {:kind :tag}"],
+    "body": ["::${1:Tag} {:impl ~{${2:body}}}"],
     "description": "Declare a tag-namespace binding via BindStep"
   },
   "as snapshot": {

@@ -13,7 +13,7 @@
 //   2. Round-trip — qlangMapToAst ∘ astNodeToMap is structurally the
 //      identity on any parse()-produced AST, modulo post-parse
 //      decoration (.id / .parent) and root-level metadata (.source /
-//      .uri / .parseId / .parsedAt / .schemaVersion) which the codec
+//      .uri / .parseId / .schemaVersion) which the codec
 //      intentionally does not carry.
 
 import { describe, it, expect } from 'vitest';
@@ -465,9 +465,9 @@ describe('round-trip — BindStep declarative form', () => {
   it('Keyword key, docs + body', () =>
     assertRoundTrip(':double |~~| doubles its subject\nmul(2)'));
   it('BareTypeKeyword key — tag-binding form', () =>
-    assertRoundTrip('::Box {:kind :tag}'));
+    assertRoundTrip('::Box {:boxed true}'));
   it('BareTypeKeyword key, docs + body', () =>
-    assertRoundTrip('::Box |~~| boxes its payload\n{:kind :tag}'));
+    assertRoundTrip('::Box |~~| boxes its payload\n{:boxed true}'));
   it('two consecutive BindSteps', () =>
     assertRoundTrip(':a 1 :b 2'));
 });

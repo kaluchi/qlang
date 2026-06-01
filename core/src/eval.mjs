@@ -105,7 +105,7 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
-  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor with :kind :tag`);
+  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`);
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
 // resolves the tag-binding but its `:impl` slot is empty
 // (`undefined`) or carries a value that is neither a primitive
@@ -640,7 +640,7 @@ async function evalBindStep(node, state) {
     // an empty tag-binding Map automatically — equivalent to
     // `::Tag ::builtin{}` body-form. The `::` prefix carries the
     // declaration semantic; the auto-forged Map stamps the
-    // canonical `::builtin` shape identity under `:kind`, matching
+    // canonical `::builtin` identity on its JS-header slot, matching
     // every body-form declaration the catalog uses elsewhere.
     // Value-namespace doc-only BindStep (`:name |~~ docs ~~|`) wraps
     // the joined prose as a Doc-value snapshot.
@@ -799,12 +799,15 @@ function projectSegment(subject, projKey, state) {
 
 // ─── Identifier lookup + Conduit dispatch ──────────────────────
 
-// Interned keyword constants for binding-descriptor dispatch. The
-// :kind discriminator decides which binding kind a resolved
-// env value represents; :impl carries the namespaced primitive
-// key that PRIMITIVE_REGISTRY.resolve walks into the matching JS
-// function value. Conduit and snapshot descriptors carry their own
-// payload field set documented in src/types.mjs.
+// Binding-descriptor identity rides on the Map's JS-header
+// `TAG_HEADER_SYMBOL` slot — a TagKeyword stamped by the
+// `::builtin{…}` / conduit / snapshot factories, never a `:kind`
+// Map field (which stays free for the value's own data). The two
+// readers below probe the header: a `::builtin` descriptor's
+// `:impl` slot carries the namespaced primitive key that
+// PRIMITIVE_REGISTRY.resolve walks into the matching JS function
+// value; conduit descriptors carry the payload field set documented
+// in src/types.mjs.
 
 function isBuiltinDescriptor(descriptor) {
   return descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin';
@@ -824,11 +827,12 @@ async function evalOperandCall(node, state) {
 
   let resolved = envGet(lookupEnv, lookupName);
 
-  // Snapshot auto-unwrap — a Map with :kind :snapshot exposes
-  // its wrapped :payload transparently to identifier lookup so
-  // `as(:name) | name` sees the raw data. Unwrapping upstream of
-  // applyBindingDescriptor keeps the :kind switch exhaustive
-  // over {:builtin, :conduit}; the remaining non-Map branches handle
+  // Snapshot auto-unwrap — a Map carrying the `snapshot` tag on its
+  // JS-header slot exposes its wrapped :payload transparently to
+  // identifier lookup so `as(:name) | name` sees the raw data.
+  // Unwrapping upstream of applyBindingDescriptor keeps the
+  // header-tag dispatch exhaustive over {builtin, conduit}; the
+  // remaining non-Map branches handle
   // conduitParameter proxies (isFunctionValue) and plain user values
   // (tail) — and preserves the "snapshot wrapping an effectful
   // function value" safety-net path documented in the effect-marker
@@ -837,10 +841,10 @@ async function evalOperandCall(node, state) {
     resolved = resolved.get('payload');
   }
 
-  // Binding-descriptor dispatch — one switch over `:kind`
-  // routes the resolved Map to either the builtin or the conduit
+  // Binding-descriptor dispatch — one read of the Map's JS-header
+  // tag routes the resolved Map to either the builtin or the conduit
   // dispatch core. Plain user Maps (bound via session.bind or
-  // captured by value-level projection) carry no `:kind` and
+  // captured by value-level projection) carry no header tag and
   // fall through as non-function values.
   if (isQMap(resolved)) {
     const dispatched = await applyBindingDescriptor(resolved, node, lookupName, state);
@@ -899,15 +903,16 @@ async function evalOperandCall(node, state) {
 
 // applyBindingDescriptor(descriptor, node, lookupName, state) → state' | null
 //
-// Single switch over :kind that routes a Map-shaped env
-// binding to its dispatch core: :builtin rides through
-// applyBuiltinDescriptor (resolve :impl → PRIMITIVE_REGISTRY,
-// apply via Rule 10), :conduit rides through applyConduit (lexical
-// envRef + parameter proxies + body fork). Returns null when the
-// descriptor has no recognized :kind — the caller treats the
-// null return as "this Map is user data, fall through to plain-
-// value handling". Snapshot is handled upstream by the auto-unwrap
-// step in evalOperandCall, so no :snapshot branch here.
+// Single dispatch over the Map's JS-header tag that routes a
+// Map-shaped env binding to its dispatch core: a `::builtin`
+// descriptor rides through applyBuiltinDescriptor (resolve :impl →
+// PRIMITIVE_REGISTRY, apply via Rule 10), a `::conduit` descriptor
+// rides through applyConduit (lexical envRef + parameter proxies +
+// body fork). Returns null when the Map carries no recognized
+// header tag — the caller treats the null return as "this Map is
+// user data, fall through to plain-value handling". Snapshot is
+// handled upstream by the auto-unwrap step in evalOperandCall, so
+// no snapshot branch here.
 async function applyBindingDescriptor(descriptor, node, lookupName, state) {
   if (isBuiltinDescriptor(descriptor)) {
     return await applyBuiltinDescriptor(descriptor, node, state);

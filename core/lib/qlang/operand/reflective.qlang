@@ -126,8 +126,8 @@
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
       sorted alphabetically by binding name. Each descriptor
-      carries `:kind` (`:builtin` / `:conduit` / `:snapshot` /
-      `:tag` / `:value`), `:name`, plus per-kind fields stamped
+      carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
+      `::tag` / `::value`), `:name`, plus per-kind fields stamped
       by `describeBinding` in `runtime/manifest-op.mjs`.
       Overloaded by captured-arg count: bare manifest or
       manifest(:value) lists value-namespace bindings; manifest(:tag)

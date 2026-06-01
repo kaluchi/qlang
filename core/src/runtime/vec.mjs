@@ -33,12 +33,13 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isQMap, isQSet, isKeyword, isTagKeyword, isTruthy, isErrorValue, typeKeyword,
+  isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
   NULL, keyword, isVecShape, isMapShape, mapShapeEntries, mapShapeSize,
   mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
   isJsonArray, JSON_ARRAY_TAG
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
+import { checkComparable, compareScalars } from '../ordering.mjs';
 
 // isOrderedSequence(v) — Vec / JsonArray / Set. The shape over which
 // every order-aware operand (first / last / take / drop / reverse /
@@ -290,31 +291,6 @@ export const max = nullaryOp('max', (container) => {
   return acc;
 });
 
-// checkComparable / compareScalars — the ordering primitives every
-// sort / min / max / gt-family operand routes through. Three matched-
-// type pairings are well-defined: Number↔Number, String↔String, and
-// identifier-shape pairs (Keyword↔Keyword and TagKeyword↔TagKeyword).
-// Identifier pairs compare lexicographically by `.name` — the same
-// `.name` field that drives keyword identity and `manifest`
-// alphabetical sort — so `[:x :y] | sort`, `#[:b :a :c] | sort`,
-// and `[::A ::B] | sort` all behave the natural way without per-call
-// `as(:k) | k | keyword` ceremony to dip into the string axis.
-// Cross-type ordering (Keyword vs String, Number vs Boolean, …)
-// stays a comparability error — silent coercion across value-classes
-// would mask the typical bug «sort a heterogeneous collection by
-// accident». TagKeyword cross-pairs with Keyword stay disallowed —
-// they live in different namespaces and ordering across them carries
-// no spec meaning.
-function checkComparable(ErrorCls, left, right) {
-  const bothNumbers     = typeof left === 'number' && typeof right === 'number';
-  const bothStrings     = typeof left === 'string' && typeof right === 'string';
-  const bothKeywords    = isKeyword(left)    && isKeyword(right);
-  const bothTagKeywords = isTagKeyword(left) && isTagKeyword(right);
-  if (!bothNumbers && !bothStrings && !bothKeywords && !bothTagKeywords) {
-    throw new ErrorCls(left, right);
-  }
-}
-
 // ── Vec → Vec transformers ─────────────────────────────────────
 
 // containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls,
@@ -526,17 +502,6 @@ export const sort = overloadedOp('sort', 2, {
     return containerLikeOf(sortEntries.map(entry => entry.sortElem), subject);
   }
 }, { preservesTag: true });
-
-function compareScalars(a, b) {
-  if (isKeyword(a) || isTagKeyword(a)) {
-    if (a.name < b.name) return -1;
-    if (a.name > b.name) return 1;
-    return 0;
-  }
-  if (a < b) return -1;
-  if (a > b) return 1;
-  return 0;
-}
 
 export const take = valueOp('take', 2, (subject, n) => {
   if (!isOrderedSequence(subject)) throw new TakeSubjectNotSequenceError(subject);

@@ -19,8 +19,9 @@
 // Meta lives in lib/qlang/operand/predicate.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import { isTruthy, isKeyword as isKeywordValue, isTagKeyword as isTagKeywordValue, describeType, typeKeyword } from '../types.mjs';
+import { isTruthy, describeType, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
+import { checkComparable, compareScalars } from '../ordering.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
@@ -29,53 +30,26 @@ const LtOperandsNotComparableError  = declareComparabilityError('LtOperandsNotCo
 const GteOperandsNotComparableError = declareComparabilityError('GteOperandsNotComparableError', 'gte');
 const LteOperandsNotComparableError = declareComparabilityError('LteOperandsNotComparableError', 'lte');
 
-// orderingCheck + compareOrdering — ordering primitives for the
-// gt/lt/gte/lte family. Mirror the contract used by sort/min/max
-// in vec.mjs: matched-type pairings only (Number↔Number, String↔
-// String, Keyword↔Keyword, TagKeyword↔TagKeyword); identifier
-// pairs compare lexicographically by `.name` — the same axis that
-// drives sort over a keyword Vec / Set.
-function orderingCheck(ErrorCls, left, right) {
-  const bothNumbers     = typeof left === 'number' && typeof right === 'number';
-  const bothStrings     = typeof left === 'string' && typeof right === 'string';
-  const bothKeywords    = isKeywordValue(left)    && isKeywordValue(right);
-  const bothTagKeywords = isTagKeywordValue(left) && isTagKeywordValue(right);
-  if (!bothNumbers && !bothStrings && !bothKeywords && !bothTagKeywords) {
-    throw new ErrorCls(left, right);
-  }
-}
-
-function compareOrdering(left, right) {
-  if (isKeywordValue(left) || isTagKeywordValue(left)) {
-    if (left.name < right.name) return -1;
-    if (left.name > right.name) return 1;
-    return 0;
-  }
-  if (left < right) return -1;
-  if (left > right) return 1;
-  return 0;
-}
-
 export const eq = valueOp('eq', 2, (subject, value) => deepEqual(subject, value));
 
 export const gt = valueOp('gt', 2, (subject, threshold) => {
-  orderingCheck(GtOperandsNotComparableError, subject, threshold);
-  return compareOrdering(subject, threshold) > 0;
+  checkComparable(GtOperandsNotComparableError, subject, threshold);
+  return compareScalars(subject, threshold) > 0;
 });
 
 export const lt = valueOp('lt', 2, (subject, threshold) => {
-  orderingCheck(LtOperandsNotComparableError, subject, threshold);
-  return compareOrdering(subject, threshold) < 0;
+  checkComparable(LtOperandsNotComparableError, subject, threshold);
+  return compareScalars(subject, threshold) < 0;
 });
 
 export const gte = valueOp('gte', 2, (subject, threshold) => {
-  orderingCheck(GteOperandsNotComparableError, subject, threshold);
-  return compareOrdering(subject, threshold) >= 0;
+  checkComparable(GteOperandsNotComparableError, subject, threshold);
+  return compareScalars(subject, threshold) >= 0;
 });
 
 export const lte = valueOp('lte', 2, (subject, threshold) => {
-  orderingCheck(LteOperandsNotComparableError, subject, threshold);
-  return compareOrdering(subject, threshold) <= 0;
+  checkComparable(LteOperandsNotComparableError, subject, threshold);
+  return compareScalars(subject, threshold) <= 0;
 });
 
 export const and = valueOp('and', 2, (a, b) => isTruthy(a) && isTruthy(b));

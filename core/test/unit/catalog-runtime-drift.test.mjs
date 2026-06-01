@@ -31,6 +31,7 @@ const TYPE_SAMPLE = {
   predicateLambda:  'isNumber',
   keyLambda:        '/',
   comparatorLambda: 'asc(/)',
+  reducerLambda:    'add',
   taggedInstance:   '::Foo[42]'
 };
 

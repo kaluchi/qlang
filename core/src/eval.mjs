@@ -31,7 +31,7 @@ import {
   isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
-  isJsonObject, isJsonArray, isVecShape, isQuote,
+  isJsonObject, isJsonArray, isOrderedSequence, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
@@ -118,8 +118,8 @@ const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingErr
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
-const DistributeSubjectNotVecError = declareSubjectError('DistributeSubjectNotVecError', '*', 'vec');
-const MergeSubjectNotVecError      = declareSubjectError('MergeSubjectNotVecError',      '>>', 'vec');
+const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', '*',  ['vec', 'set']);
+const MergeSubjectNotSequenceError      = declareSubjectError('MergeSubjectNotSequenceError',      '>>', ['vec', 'set']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`);
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
@@ -298,37 +298,37 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
-  if (!isVecShape(state.pipeValue)) {
-    const distributeErr = new DistributeSubjectNotVecError(state.pipeValue);
+  if (!isOrderedSequence(state.pipeValue)) {
+    const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, makeQuote(bodyNode.text), state.pipeValue));
   }
-  const subjectVec = state.pipeValue;
+  const subjectSeq = state.pipeValue;
   const forkResults = await Promise.all(
-    [...subjectVec].map(vecElement =>
-      forkWith(state, vecElement, inner => evalNode(bodyNode, inner))
+    [...subjectSeq].map(seqElement =>
+      forkWith(state, seqElement, inner => evalNode(bodyNode, inner))
     )
   );
   const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
-  return withPipeValue(state, retagPerElement(distributeResults, subjectVec));
+  return withPipeValue(state, retagPerElement(distributeResults, subjectSeq));
 }
 
 async function mergeFlat(state, nextNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(nextNode, 'merge')));
   }
-  if (!isVecShape(state.pipeValue)) {
-    const mergeErr = new MergeSubjectNotVecError(state.pipeValue);
+  if (!isOrderedSequence(state.pipeValue)) {
+    const mergeErr = new MergeSubjectNotSequenceError(state.pipeValue);
     mergeErr.location = nextNode.location;
     return withPipeValue(state, errorFromQlang(mergeErr, makeQuote(nextNode.text), state.pipeValue));
   }
-  const sourceVec = state.pipeValue;
+  const sourceSeq = state.pipeValue;
   const flattened = [];
-  for (const flatItem of sourceVec) {
-    if (isVecShape(flatItem)) flattened.push(...flatItem);
+  for (const flatItem of sourceSeq) {
+    if (isOrderedSequence(flatItem)) flattened.push(...flatItem);
     else flattened.push(flatItem);
   }
-  return await evalNode(nextNode, withPipeValue(state, retagPerElement(flattened, sourceVec)));
+  return await evalNode(nextNode, withPipeValue(state, retagPerElement(flattened, sourceSeq)));
 }
 
 // Per-element transformer tagger: if the source was a JsonArray, the
@@ -1151,6 +1151,35 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // conduit's arity without re-interning the keyword. Pairs with
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
 export const CONDUIT_PARAMS_FIELD = 'params';
+
+// resolveBinaryReducer(astNode, env) → ((acc, item) → Promise<value>) | null
+//
+// Resolves a bare reducer reference into the per-step combiner `reduce`
+// folds with. The reducer is applied as `reducer(acc, element)`:
+//   - a binary operand (`add` / `mul` / `union` / …) folds via its
+//     bound form — accumulator as subject, element as the single
+//     captured arg (`acc | add(element)`), through Rule 10;
+//   - a 2-param conduit `[:acc :elem]` binds both through
+//     invokeConduitWithFixedArgs.
+// Returns null when the captured arg is not such a reference (an inline
+// expression, a literal, a non-2-param conduit, or an unbound name),
+// so `reduce` lifts its own per-site error.
+export function resolveBinaryReducer(astNode, env) {
+  if (astNode.type !== 'OperandCall' || astNode.args !== null) return null;
+  const lookupName = astNode.name;
+  if (!envHas(env, lookupName)) return null;
+  let resolved = envGet(env, lookupName);
+  if (isSnapshot(resolved)) resolved = resolved.get('payload');
+  if (isConduitDescriptor(resolved)) {
+    if (resolved.get(CONDUIT_PARAMS_FIELD).length !== 2) return null;
+    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item);
+  }
+  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
+    const impl = resolved.get('impl');
+    return async (acc, item) => (await applyRule10(impl, [() => item], makeState(acc, env))).pipeValue;
+  }
+  return null;
+}
 
 // ─── Comment (plain forms only — doc forms attach during
 // parsing and never appear as standalone steps) ───────────────

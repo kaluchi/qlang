@@ -47,3 +47,10 @@
 {"name":"distribute-add","query":"[1 2 3] * add(1)","expect":"[2 3 4]"}
 {"name":"distribute-mul","query":"[1 2 3] * mul(10)","expect":"[10 20 30]"}
 {"name":"merge-flat","query":"[[1 2] [3 4]] >> count","expect":"4"}
+{"name":"reduce-sum","query":"[1 2 3 4 5] | reduce(0, add)","expect":"15"}
+{"name":"reduce-product","query":"[1 2 3 4 5] | reduce(1, mul)","expect":"120"}
+{"name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce(\"\", append)","expect":"\"abc\""}
+{"name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce(#[], union)","expect":"#[1 2 3]"}
+{"name":"reduce-max-via-conduit","query":":max2 [:acc :x] (if(x | gt(acc), x, acc)) | [3 1 4 1 5] | reduce(0, max2)","expect":"5"}
+{"name":"reduce-empty-returns-seed","query":"[] | reduce(42, add)","expect":"42"}
+{"name":"reduce-over-set","query":"#[1 2 3] | reduce(0, add)","expect":"6"}

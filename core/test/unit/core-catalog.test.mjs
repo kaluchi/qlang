@@ -306,7 +306,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     }
     expect(categories.get('containerReducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
     expect(categories.get('containerSelector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
-    expect(categories.get('vecReducer')).toBe(6);  // first, last, sum, min, max, firstNonZero
+    expect(categories.get('vecReducer')).toBe(7);  // first, last, sum, min, max, firstNonZero, reduce
     expect(categories.get('indexedAccess')).toBe(1);  // at (Vec + Map polymorphic)
     expect(categories.get('vecTransformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy
     expect(categories.get('comparator')).toBe(4);

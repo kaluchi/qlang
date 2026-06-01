@@ -14,3 +14,10 @@
 {"name":"set-literal-with-projections","query":"{:name \"Alice\" :age 30} | #[/name, /age]","expect":"#[\"Alice\" 30]"}
 {"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
 {"name":"map-empty-vals","query":"{} | vals","expect":"[]"}
+{"name":"distribute-over-set","query":"#[1 2 3] * add(1)","expect":"[2 3 4]"}
+{"name":"distribute-over-set-insertion-order","query":"#[3 1 2] * add(1)","expect":"[4 2 3]"}
+{"name":"distribute-over-set-degrades-to-vec","query":"#[1 2 3] * mul(0)","expect":"[0 0 0]"}
+{"name":"distribute-over-set-redistinct","query":"#[1 2 3] * add(1) | distinct","expect":"#[2 3 4]"}
+{"name":"merge-over-set","query":"#[[1 2] [3 4]] >> count","expect":"4"}
+{"name":"merge-over-set-of-sets","query":"#[#[1 2] #[3 4]] >> count","expect":"4"}
+{"name":"merge-vec-of-sets-flattens-inner-sets","query":"[#[1 2] #[3 4]] >> count","expect":"4"}

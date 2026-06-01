@@ -99,6 +99,27 @@ form part of the doc surface and the runtime catalog alike.
 - **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
   element not a number → `SumElementNotNumberError`.
 
+### `reduce(seed, reducer)`
+
+- **Arity** 3 (2 captured). **Subject** one of `Vec` / `Set`. The
+  universal left-fold (catamorphism) — threads an accumulator across
+  the sequence in insertion order and collapses it to a single value.
+- `seed` is the initial accumulator (returned as-is for an empty
+  subject). The reducer is applied as `reducer(accumulator, element)`:
+  a **binary operand** (`add` / `mul` / `union` / …) folds via its
+  bound form (`acc | add(element)`), or a **2-parameter conduit
+  `[:acc :elem]`** for custom logic. A reducer error short-circuits
+  the fold.
+- **Examples**: `[1 2 3 4 5] | reduce(0, add)` → `15`;
+  `[1 2 3 4 5] | reduce(1, mul)` → `120`;
+  `["a" "b" "c"] | reduce("", append)` → `"abc"`;
+  `[#[1] #[2 3]] | reduce(#[], union)` → `#[1 2 3]`;
+  `:max2 [:acc :x] (if(x | gt(acc), x, acc)) | [3 1 4 1 5] | reduce(0, max2)` → `5`.
+  `sum` / `count` / `max` and structure-builders all factor through it.
+- **Errors**: subject not Vec/Set → `ReduceSubjectNotSequenceError`;
+  reducer not a binary operand or 2-parameter conduit →
+  `ReduceReducerNotBinaryError`.
+
 ### `min`, `max`
 
 - **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —

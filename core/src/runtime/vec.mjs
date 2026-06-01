@@ -34,24 +34,12 @@
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
   isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
-  NULL, keyword, isVecShape, isMapShape, mapShapeEntries, mapShapeSize,
+  NULL, keyword, isVecShape, isOrderedSequence, isMapShape, mapShapeEntries, mapShapeSize,
   mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
   isJsonArray, JSON_ARRAY_TAG
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
 import { checkComparable, compareScalars } from '../ordering.mjs';
-
-// isOrderedSequence(v) — Vec / JsonArray / Set. The shape over which
-// every order-aware operand (first / last / take / drop / reverse /
-// sort / sortWith / at / flat) dispatches polymorphically. Set is
-// insertion-ordered + structurally-unique by §Set in qlang-spec.md,
-// so first-added is well-defined and slicing/reordering operations
-// keep meaning. Returns the elements as an iterable view together
-// with the discriminator that `containerLikeOf` reads back to mint
-// a same-shape result.
-function isOrderedSequence(v) {
-  return isVecShape(v) || isQSet(v);
-}
 
 // sequenceElements(v) — array view of a Vec / JsonArray / Set
 // subject. Vec / JsonArray yield themselves; Set is spread into an
@@ -117,6 +105,7 @@ import { bindPrim } from '../primitives.mjs';
 import {
   resolveCapturedConduit,
   invokeConduitWithFixedArgs,
+  resolveBinaryReducer,
   CONDUIT_PARAMS_FIELD
 } from '../eval.mjs';
 
@@ -700,6 +689,28 @@ export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   return 0;
 });
 
+// `reduce(seed, reducer)` — the universal left-fold. Threads the
+// accumulator and applies `reducer(acc, element)` at each step: a
+// binary operand folds via its bound form (`acc | add(element)`), a
+// 2-param conduit `[:acc :elem]` binds both. `seed` is the
+// empty-subject result; a reducer error short-circuits.
+const ReduceSubjectNotSequenceError = declareSubjectError('ReduceSubjectNotSequenceError', 'reduce', ['vec', 'set']);
+const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryError',
+  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a 2-param conduit [:acc :elem]');
+
+export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerLambda) => {
+  if (!isOrderedSequence(subject)) throw new ReduceSubjectNotSequenceError(subject);
+  const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedEnv);
+  if (combine === null) throw new ReduceReducerNotBinaryError();
+  let acc = await seedLambda(subject);
+  if (isErrorValue(acc)) return acc;
+  for (const item of sequenceElements(subject)) {
+    acc = await combine(acc, item);
+    if (isErrorValue(acc)) return acc;
+  }
+  return acc;
+});
+
 // Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
 bindPrim('count',        count);
 bindPrim('empty',        empty);
@@ -726,3 +737,4 @@ bindPrim('desc',         desc);
 bindPrim('nullsFirst',   nullsFirst);
 bindPrim('nullsLast',    nullsLast);
 bindPrim('firstNonZero', firstNonZero);
+bindPrim('reduce',       reduce);

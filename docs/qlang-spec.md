@@ -736,9 +736,9 @@ Apply an expression to each element of a Vec.
 
 This resolves the type error from Partial application: `[1 2 3] | add(1)`
 failed because `add` expects a number in the first position. `*`
-applies the step per element of the Vec.
+applies the step per element of the Vec or Set.
 
-Type error: `*` on a non-Vec produces an Error value.
+Type error: `*` on a non-sequence (neither Vec nor Set) produces an Error value.
 
 ### Merge — `>>`
 
@@ -753,7 +753,7 @@ Flatten one nesting level, then apply next step. Equivalent to
 [1 2 3 4]
 ```
 
-Type error: `>>` on a non-Vec produces an Error value.
+Type error: `>>` on a non-sequence (neither Vec nor Set) produces an Error value.
 
 ## Construct
 
@@ -2131,8 +2131,8 @@ filter(/age | gt(18))
 | Condition | Error |
 |---|---|
 | `/key` on non-Map (Scalar, Vec, Set, null, function) | type error |
-| `* expr` on non-Vec | type error |
-| `>> expr` on non-Vec | type error |
+| `* expr` on non-sequence | type error |
+| `>> expr` on non-sequence | type error |
 | `use` on non-Map | type error |
 | Identifier `name` not in `env` | unresolved identifier |
 | Captured args applied to a non-function value | type error |

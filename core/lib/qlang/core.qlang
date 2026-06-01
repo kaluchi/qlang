@@ -11,7 +11,7 @@
    :modifiers across every family:
      :number :string :boolean :keyword :null :any
      :vec :map :set
-     :predicateLambda :keyLambda :comparatorLambda
+     :predicateLambda :keyLambda :comparatorLambda :reducerLambda
      :pipeline (captured sub-pipeline, lazy) ~|
 
 use([:qlang/runtime-invariants

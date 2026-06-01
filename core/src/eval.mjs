@@ -1152,6 +1152,35 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
 export const CONDUIT_PARAMS_FIELD = 'params';
 
+// resolveBinaryReducer(astNode, env) → ((acc, item) → Promise<value>) | null
+//
+// Resolves a bare reducer reference into the per-step combiner `reduce`
+// folds with. The reducer is applied as `reducer(acc, element)`:
+//   - a binary operand (`add` / `mul` / `union` / …) folds via its
+//     bound form — accumulator as subject, element as the single
+//     captured arg (`acc | add(element)`), through Rule 10;
+//   - a 2-param conduit `[:acc :elem]` binds both through
+//     invokeConduitWithFixedArgs.
+// Returns null when the captured arg is not such a reference (an inline
+// expression, a literal, a non-2-param conduit, or an unbound name),
+// so `reduce` lifts its own per-site error.
+export function resolveBinaryReducer(astNode, env) {
+  if (astNode.type !== 'OperandCall' || astNode.args !== null) return null;
+  const lookupName = astNode.name;
+  if (!envHas(env, lookupName)) return null;
+  let resolved = envGet(env, lookupName);
+  if (isSnapshot(resolved)) resolved = resolved.get('payload');
+  if (isConduitDescriptor(resolved)) {
+    if (resolved.get(CONDUIT_PARAMS_FIELD).length !== 2) return null;
+    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item);
+  }
+  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
+    const impl = resolved.get('impl');
+    return async (acc, item) => (await applyRule10(impl, [() => item], makeState(acc, env))).pipeValue;
+  }
+  return null;
+}
+
 // ─── Comment (plain forms only — doc forms attach during
 // parsing and never appear as standalone steps) ───────────────
 

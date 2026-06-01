@@ -347,6 +347,19 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('DropCountNotIntegerError');
   });
 
+  it('reduce on non-sequence → ReduceSubjectNotSequenceError', async () => {
+    const caughtErr = await catchOriginalError('42 | reduce(0, add)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('ReduceSubjectNotSequenceError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
+  it('reduce with a non-binary reducer → ReduceReducerNotBinaryError (distinct from subject site)', async () => {
+    const caughtErr = await catchOriginalError('[1 2 3] | reduce(0, 42)');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('ReduceReducerNotBinaryError');
+  });
+
   it('all per-site type errors inherit QlangTypeError and kind', async () => {
     const queries = [
       '42 | count',
@@ -357,7 +370,9 @@ describe('per-site error classes carry unique identity', () => {
       '{:a 1} * add(1)',
       '42 >> count',
       '5 | as(:five) | five(42)',
-      '42 | use'
+      '42 | use',
+      '42 | reduce(0, add)',
+      '[1 2 3] | reduce(0, 42)'
     ];
     for (const q of queries) {
       const caughtErr = await catchOriginalError(q);
@@ -387,7 +402,9 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | lt(5)',       // LtOperandsNotComparableError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '{:a 1} * add(1)',   // DistributeSubjectNotSequenceError
-      '42 >> count'        // MergeSubjectNotSequenceError
+      '42 >> count',       // MergeSubjectNotSequenceError
+      '42 | reduce(0, add)',   // ReduceSubjectNotSequenceError
+      '[1 2 3] | reduce(0, 42)' // ReduceReducerNotBinaryError
     ];
     for (const q of queries) {
       names.add((await catchOriginalError(q)).name);

@@ -199,6 +199,54 @@
   ~~|
   ::builtin{:category :typeError :operand :firstNonZero :expectedType :number}
 
+:reduce
+  |~~ The universal left-fold (catamorphism) — threads an accumulator
+      across an ordered sequence (Vec / Set, insertion order) and
+      collapses it to a single value. `seed` is the initial accumulator
+      (returned as-is for an empty subject); the reducer is applied as
+      `reducer(accumulator, element)` — a binary operand (`add` / `mul`
+      / `union` / …) folded via its bound form (`acc | add(element)`),
+      or a 2-parameter conduit `[:acc :elem]` for custom logic. `sum` /
+      `count` / `max` and structure-builders all factor through it.
+
+      ~{[1 2 3 4 5] | reduce(0, add) | eq(15)}
+      ~{[1 2 3 4 5] | reduce(1, mul) | eq(120)}
+      ~{["a" "b" "c"] | reduce("", append) | eq("abc")}
+      ~{[#[1] #[2 3]] | reduce(#[], union) | eq(#[1 2 3])}
+      ~{:max2 [:acc :x] (if(x | gt(acc), x, acc)) | [3 1 4 1 5] | reduce(0, max2) | eq(5)}
+      ~{:tally [:acc :_] (acc | add(1)) | [10 20 30] | reduce(0, tally) | eq(3)}
+      ~{[] | reduce(42, add) | eq(42)}
+  ~~|
+  ::builtin{:impl :qlang/prim/reduce
+            :category :vecReducer
+            :subject [:vec :set]
+            :returns :any
+            :modifiers [:any :reducerLambda]
+            :throws [::ReduceSubjectNotSequenceError ::ReduceReducerNotBinaryError]}
+
+::ReduceSubjectNotSequenceError
+  |~~ Subject of `reduce` must be a Vec or Set.
+      ~{
+        42 | reduce(0, add)
+        !| [type /actualType]
+        |  eq([::ReduceSubjectNotSequenceError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :reduce :position :subject :expectedType [:vec :set]}
+
+::ReduceReducerNotBinaryError
+  |~~ `reduce` reducer must be a binary operand or a 2-parameter
+      conduit `[:acc :elem]`. An inline expression, a literal, an
+      unbound name, or a conduit of any other arity carries no
+      (accumulator, element) binding.
+      ~{
+        [1 2 3] | reduce(0, 42)
+        !| type
+        |  eq(::ReduceReducerNotBinaryError)
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :reduce}
+
 :sort
   |~~ Returns a new sequence sorted in natural ascending order.
       Polymorphic on Vec / Set — same shape as subject. Overloaded

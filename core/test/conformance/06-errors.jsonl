@@ -28,3 +28,11 @@
 {"name":"unresolvedIdentifier","query":"thisIsNotDefined !| type","expect":"::UnresolvedIdentifierError"}
 {"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /faultStep | /name","expect":"::ProjectionFieldNotOnValueClassError!{\n  :faultStep ~{/name}\n  :faultInput ~{thisIsNotDefined}\n  :key \"name\"\n  :valueClass \"quote\"\n  :availableFields [\"source\" \"ast\"]\n}"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter(thisIsNotDefined) !| type","expect":"::UnresolvedIdentifierError"}
+{"name":"reduce-on-number","query":"42 | reduce(0, add)","expect":"::ReduceSubjectNotSequenceError!{\n  :faultStep ~{reduce(0, add)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"reduce-reducer-literal","query":"[1 2 3] | reduce(0, 42) !| type","expect":"::ReduceReducerNotBinaryError"}
+{"name":"reduce-reducer-applied-expr","query":"[1 2 3] | reduce(0, add(1)) !| type","expect":"::ReduceReducerNotBinaryError"}
+{"name":"reduce-reducer-unbound","query":"[1 2 3] | reduce(0, nope) !| type","expect":"::ReduceReducerNotBinaryError"}
+{"name":"reduce-reducer-bad-arity-conduit","query":":bad3 [:a :b :c] a | [1 2 3] | reduce(0, bad3) !| type","expect":"::ReduceReducerNotBinaryError"}
+{"name":"reduce-reducer-non-callable-value","query":"5 | as(:five) | [1 2 3] | reduce(0, five) !| type","expect":"::ReduceReducerNotBinaryError"}
+{"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce(!{:kind :oops}, add) !| type","expect":"::Error"}
+{"name":"reduce-reducer-error-shortcircuits","query":":r [:a :x] (!{:kind :stop}) | [1 2 3] | reduce(0, r) !| type","expect":"::Error"}

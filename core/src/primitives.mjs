@@ -2,10 +2,12 @@
 // level Map-form binding descriptors (which carry :impl
 // keyword at authoring time) and their JS-level executable impls.
 //
-// Every binding in langRuntime is a qlang Map with :kind
-// :builtin and an :impl field. At authoring time in
-// `core.qlang`, :impl holds a namespaced keyword like
-// `:qlang/prim/mul` pointing into this registry. The bootstrap
+// Every operand binding in langRuntime is a descriptor Map stamped
+// with `::builtin` identity on its JS-header slot, carrying an
+// :impl field. At authoring time in the per-family catalog
+// (`core/lib/qlang/operand/<family>.qlang`), :impl holds a
+// namespaced keyword like `:qlang/prim/mul` pointing into this
+// registry. The bootstrap
 // resolution pass in `runtime/index.mjs::langRuntime()` resolves
 // each keyword through `PRIMITIVE_REGISTRY.resolve` into the
 // matching JS function value and replaces the keyword on the

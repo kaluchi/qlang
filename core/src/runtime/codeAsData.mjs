@@ -39,8 +39,9 @@ const EvalSubjectNotMapOrQuoteError = declareSubjectError(
 // `"5 | mul(2)" | parse` minus the escape boilerplate. Malformed
 // sources surface on the fail-track: the peggy `ParseError` is
 // caught and converted to a qlang error value through
-// `errorFromParse`, which stamps `:kind ::ParseError` plus the
-// peggy source location and excerpt onto the descriptor (the
+// `errorFromParse`, which stamps the `::ParseError` identity on the
+// error's JS-header tag slot plus the peggy source location and
+// excerpt onto the descriptor (the
 // `::ParseError` tag-binding's catalog body carries
 // `:category :parseError` for the broad-bucket reading via
 // `result !| type | spec | /category`). The converted error

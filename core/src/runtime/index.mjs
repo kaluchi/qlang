@@ -15,8 +15,8 @@
 //      - tag.qlang: value-class constructors (::conduit,
 //        ::qlang, ::json).
 //      Each operand BindStep binds an identifier to a descriptor
-//      Map carrying `:kind ::builtin` plus a
-//      `:impl :qlang/prim/<name>` keyword that resolves
+//      Map stamped with `::builtin` identity on its JS-header slot
+//      plus a `:impl :qlang/prim/<name>` keyword that resolves
 //      against `PRIMITIVE_REGISTRY` at dispatch time. Attached
 //      doc-prefixes live on each module's `qlang/ast/<uri>`
 //      Quote AST as the step's `.docs` Vec and are reachable

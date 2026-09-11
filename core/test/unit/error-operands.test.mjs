@@ -70,17 +70,19 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
     expect(evalResult).toBe(1);
   });
 
-  it('plain comment between a deflecting step and a fail-apply step lands on the trail', async () => {
+  it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
     // /trail yields a Quote-value carrying the joined
-    // pipeline-suffix source. Plain comments participate as
-    // identity pipeline steps and therefore DO land on the trail
-    // when the pipeline deflects past them — the assertion here is
-    // that the operand-carrying step (`count`) appears in the trail
-    // source. Quote.source carries both fragments verbatim through
-    // /source.
+    // pipeline-suffix source. `evalPipeline` steps over plain
+    // comments on both tracks, so only the operand-carrying step
+    // (`count`) deflects into the trail — a line comment on the
+    // trail would swallow every step after it on replay.
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | /source');
-    expect(typeof evalResult).toBe('string');
-    expect(evalResult).toContain('count');
+    expect(evalResult).toBe('| count');
+  });
+
+  it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | apply(42) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 });
 

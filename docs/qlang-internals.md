@@ -213,9 +213,12 @@ in the tag namespace.
     (pipeValue, env) → (pipeValue, env)
 
 Pure identity. A comment step consumes neither `pipeValue` nor
-`env`; the state threads through unchanged. Comments appear in
-the AST as first-class PipeSteps and are visible to reflection,
-not lexically stripped before parsing.
+`env`; the state threads through unchanged. `evalPipeline` steps
+over a plain comment on both tracks, so a comment never fires,
+never deflects, and never enters `:trail` — the materialized trail
+stays a pure operand suffix that `apply` replays. Comments appear
+in the AST as first-class PipeSteps and are visible to reflection
+(`source`, the highlighter, the AST-codec round-trip).
 
 Four surface forms, two orthogonal axes (line/block, plain/doc):
 

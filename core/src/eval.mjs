@@ -232,6 +232,16 @@ async function evalNode(node, state) {
 
 // ─── Pipeline ───────────────────────────────────────────────────
 
+// Plain comments are pipeline trivia: `evalPipeline` steps over
+// them on both tracks, so a comment neither fires nor deflects and
+// never lands on the trail — the materialized `:trail` Quote is a
+// pure operand suffix that `apply` replays byte-for-byte. The AST
+// keeps every comment for reflection (`source`, the highlighter,
+// the AST-codec round-trip); `evalCommentStep` stays wired for the
+// direct-dispatch path of a lone comment query or a comment AST-Map
+// handed to `eval`.
+const PLAIN_COMMENT_STEP_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
+
 async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
   //
@@ -246,10 +256,12 @@ async function evalPipeline(node, state) {
   for (let i = 0; i < node.steps.length; i++) {
     const step = node.steps[i];
     if (i === 0) {
+      if (PLAIN_COMMENT_STEP_TYPES.has(step.type)) continue;
       current = node.leadingCombinator
         ? await applyCombinator(node.leadingCombinator, current, step)
         : await evalNode(step, current);
     } else {
+      if (PLAIN_COMMENT_STEP_TYPES.has(step.step.type)) continue;
       current = await applyCombinator(step.combinator, current, step.step);
     }
   }

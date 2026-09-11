@@ -55,3 +55,7 @@
 {"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| :foo | docs | first | /content","expect":"\" outer |~~ inner ~~| more \""}
 {"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| :foo | docs | first | /content","expect":"\" pair holds |~| line marker inline \""}
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | /content","expect":"\" mentions |~~ inner pair ~~| inside \""}
+{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail","expect":"~{| count}"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~ note ~| count !| /trail","expect":"~{| count}"}
+{"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | apply(42) !| type","expect":"::CountSubjectNotContainerError"}
+{"name":"lone-plain-comment-is-identity-on-null","query":"|~ only a note ~|","expect":"null"}

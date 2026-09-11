@@ -168,6 +168,22 @@ The tag push triggers `.github/workflows/deploy.yml`, which runs
 `npm publish` for every workspace in its matrix and creates the
 GitHub Release with auto-generated notes.
 
+npm authorises that publish through **trusted publishing (OIDC)**:
+each published package carries a trusted-publisher entry on
+npmjs.com naming this repository and the workflow file
+`deploy.yml`, and the publish job grants `id-token: write` so
+GitHub mints the token the registry exchanges for a publish
+credential. Three consequences bind any edit to that workflow:
+
+- The file name `deploy.yml` is load-bearing. Rename it and
+  publishing stops until the trusted-publisher entry on every
+  published package names the new file.
+- The exchange needs npm 11.5.1 or later. The npm bundled with
+  Node 22 predates it, so the job installs one before publishing
+  and keeps `npm ci` on the bundled npm.
+- No npm token takes part. A `NODE_AUTH_TOKEN` in the publish step
+  makes npm authenticate with that token in place of the exchange.
+
 ```bash
 # After a green merge to master, when ready to release:
 node scripts/release.mjs <version>

@@ -14,6 +14,8 @@
 //   • local master in sync with origin/master (no ahead, no behind)
 //   • tag absent both locally and on the remote
 //   • latest commit on origin/master has a successful CI run
+//   • every declared sibling resolves to its workspace folder,
+//     with no published copy nested inside a workspace
 //   • every publishable workspace version bump lands in a single
 //     "Release X" commit
 //   • after the Release commit is pushed, CI on that exact SHA must
@@ -81,6 +83,28 @@ async function findCiRunForSha(sha) {
        + 'within 60s — investigate on GitHub Actions');
 }
 
+// Every sibling a workspace declares must resolve to that sibling's
+// folder in this repo. A published copy nested inside the workspace
+// resolves ahead of the root link, so the suite would test the
+// release against a different core than the one being published —
+// and everything run from the repo afterwards would keep reading
+// that copy. Returns the shadowed paths, empty when the tree links
+// cleanly.
+function shadowedSiblingLinks(workspaces) {
+  const shadowed = new Set();
+  for (const { workspace, depName } of siblingDeclarations(workspaces)) {
+    const nested = resolve(REPO_ROOT, workspace.dir, 'node_modules', depName);
+    // `throwIfNoEntry: false` answers `undefined` for the ordinary
+    // case of nothing being there, and lets a permission or symlink
+    // error travel — a guard that cannot read the tree must say so
+    // rather than report it clean.
+    const nestedStat = lstatSync(nested, { throwIfNoEntry: false });
+    if (nestedStat === undefined || nestedStat.isSymbolicLink()) continue;
+    shadowed.add(`${workspace.dir}/node_modules/${depName}`);
+  }
+  return [...shadowed];
+}
+
 // ── Parse args ──────────────────────────────────────────────
 
 const version = process.argv[2];
@@ -125,6 +149,19 @@ if (baseRun.conclusion !== 'success') {
   fail(`${CI_WORKFLOW} on origin/master (${baseSha.slice(0, 12)}) is `
        + `${baseRun.status}/${baseRun.conclusion ?? '—'}; release `
        + 'requires a green master');
+}
+
+// Read the tree as it stands: a shadow that predates the release
+// has to surface here, while the working tree is still clean and
+// the operator can fix it and start again. The rewrite step below
+// reads the workspaces again, after `npm version` has written the
+// bumped ones.
+const shadowedAtStart = shadowedSiblingLinks(readWorkspaces(REPO_ROOT));
+if (shadowedAtStart.length > 0) {
+  fail('a published copy shadows a workspace link:\n  '
+       + shadowedAtStart.join('\n  ')
+       + '\ndelete each folder, run `npm install` at the repo root, '
+       + 'and start the release again');
 }
 
 console.log(`  ✓ master clean, in sync, ${CI_WORKFLOW} green, `
@@ -187,32 +224,13 @@ for (const workspace of rewrittenManifests) {
 // the release SHA.
 run('npm install');
 
-// ── Workspace links ─────────────────────────────────────────
-//
-// Every sibling a workspace declares must resolve to that sibling's
-// folder in this repo. A published copy nested inside the workspace
-// resolves ahead of the root link, so the suite below would test the
-// release against a different core than the one being published —
-// and everything run from the repo afterwards would keep reading
-// that copy.
-
 console.log('\nWorkspace links:');
-const shadowed = new Set();
-for (const { workspace, depName } of siblingDeclarations(workspaces)) {
-  const nested = resolve(REPO_ROOT, workspace.dir, 'node_modules', depName);
-  // `throwIfNoEntry: false` answers `undefined` for the ordinary
-  // case of nothing being there, and lets a permission or symlink
-  // error travel — a guard that cannot read the tree must say so
-  // rather than report it clean.
-  const nestedStat = lstatSync(nested, { throwIfNoEntry: false });
-  if (nestedStat === undefined || nestedStat.isSymbolicLink()) continue;
-  shadowed.add(`${workspace.dir}/node_modules/${depName}`);
-}
-if (shadowed.size > 0) {
-  fail('a published copy shadows the workspace link:\n  '
-       + [...shadowed].join('\n  ')
-       + '\nthe install above left it in place — delete each folder, '
-       + 'run `npm install` at the repo root, and re-run the release');
+const shadowedAfterInstall = shadowedSiblingLinks(workspaces);
+if (shadowedAfterInstall.length > 0) {
+  fail('the install left a published copy shadowing a workspace link:\n  '
+       + shadowedAfterInstall.join('\n  ')
+       + '\ndelete each folder, run `git restore .` to drop the bump, '
+       + 'then `npm install`, and start the release again');
 }
 console.log('  ✓ every declared sibling resolves to its workspace folder');
 

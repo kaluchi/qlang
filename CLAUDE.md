@@ -170,15 +170,18 @@ to end. Pass the version as the argument; the script does the
 rest:
 
 1. Preflight — confirms master, clean working tree, in-sync with
-   origin, CI green on HEAD, tag `vX.Y.Z` absent.
+   origin, CI green on HEAD, tag `vX.Y.Z` absent, and every declared
+   sibling resolving to its workspace folder rather than to a
+   published copy nested in `node_modules`.
 2. Bumps every publishable workspace (`@kaluchi/qlang-core`,
    `@kaluchi/qlang-cli`) via `npm version`.
 3. Rewrites every workspace's dependency on a publishable sibling to
    `^X.Y.Z`, then installs once — the bumps themselves run under
    `--no-workspaces-update`, so no install lands while a bumped
    sibling sits outside the range its dependents still declare and
-   npm reaches for the registry copy instead of the folder. The step
-   stops the release if a published copy shadows a workspace link.
+   npm reaches for the registry copy instead of the folder. The
+   install is verified: a published copy shadowing a workspace link
+   stops the release before the suite runs.
 4. Rebuilds the parser, runs the full test + coverage suite.
 5. Commits as `Release X.Y.Z`, pushes master.
 6. Waits for CI to go green on the release SHA.

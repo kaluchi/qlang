@@ -197,7 +197,7 @@ run('npm install');
 
 console.log('\nWorkspace links:');
 const shadowed = [];
-for (const { dir, manifest } of readWorkspaces(REPO_ROOT)) {
+for (const { dir, manifest } of workspaces) {
   for (const publishedName of PUBLISHED_WORKSPACES) {
     if (manifest.name === publishedName) continue;
     const nested = resolve(REPO_ROOT, dir, 'node_modules', publishedName);
@@ -210,9 +210,10 @@ for (const { dir, manifest } of readWorkspaces(REPO_ROOT)) {
 if (shadowed.length > 0) {
   fail('a published copy shadows the workspace link:\n  '
        + shadowed.join('\n  ')
-       + '\nrun `npm install` at the repo root and re-run the release');
+       + '\nthe install above left it in place — delete each folder, '
+       + 'run `npm install` at the repo root, and re-run the release');
 }
-console.log(`  ✓ every sibling resolves to its workspace folder`);
+console.log('  ✓ every sibling resolves to its workspace folder');
 
 // ── Build ───────────────────────────────────────────────────
 

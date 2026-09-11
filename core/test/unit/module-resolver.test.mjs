@@ -6,7 +6,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { discoverModules, resolveModules, installModules } from '../../host/module-resolver.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
+import { makeTagKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
+import { moduleNamespaceKey } from '../../src/env-keys.mjs';
 
 // Compute lib directory at module scope (no top-level await needed —
 // fileURLToPath/dirname/join are synchronous).
@@ -92,13 +93,37 @@ describe('installModules', () => {
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
 
-    // After installModules, :error namespace is in env
-    expect(sessionInstance.env.has('error')).toBe(true);
+    // After installModules, the :error export Map sits under its
+    // namespace cache key
+    expect(sessionInstance.env.has(moduleNamespaceKey('error'))).toBe(true);
 
     // use(:error) imports retry into current env
     const cellEntry = await sessionInstance.evalCell('use(:error) | manifest | filter(/name | eq("retry")) | first | /kind');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
+  });
+
+  it('keeps the export Map off the identifier-lookup plane, so a module sharing a stem with an operand leaves the operand intact', async () => {
+    // `lib/extras/error.qlang` resolves to the namespace `error`,
+    // the same stem as the `error` lift operand. The cache key
+    // `qlang/namespace/error` is where `resolveNamespaceEnv` probes
+    // for a loaded namespace, and `manifest` filters it out of its
+    // enumeration — so `error` keeps resolving to the `::builtin`
+    // descriptor, `use(:error)` still reaches the exports, and no
+    // export Map surfaces as a `::value` binding.
+    const catalog = await resolveModules(libDir);
+    const sessionInstance = await createSession();
+    installModules(sessionInstance, catalog);
+
+    expect(sessionInstance.env.get('error')[TAG_HEADER_SYMBOL]).toBe(BUILTIN_TAG);
+
+    const liftCell = await sessionInstance.evalCell('{:kind :x} | error !| type');
+    expect(liftCell.error).toBeNull();
+    expect(liftCell.result).toEqual(makeTagKeyword('Error'));
+
+    const valueKindCell = await sessionInstance.evalCell('manifest | filter(/kind | eq(::value)) | count');
+    expect(valueKindCell.error).toBeNull();
+    expect(valueKindCell.result).toBe(0);
   });
 
   it('resolveModules with explicit dependencies uses topo sort', async () => {

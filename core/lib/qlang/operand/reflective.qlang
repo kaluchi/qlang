@@ -78,7 +78,12 @@
 
 ::UseNamespaceNotFoundError
   |~~ `use(:ns)` — namespace not in env and no host-provided
-      locator can resolve it.
+      locator can resolve it. A namespace is a header-less Map
+      bound under the namespace name or under the runtime's
+      `qlang/namespace/<ns>` cache key; an operand descriptor, a
+      conduit, or a snapshot bound under the same bare name is an
+      identifier-plane binding, and `use` walks past it to the
+      locator.
 
       ~{
         use(:absolutely-nonexistent-namespace)
@@ -86,6 +91,7 @@
         |  eq([::UseNamespaceNotFoundError
                 :absolutely-nonexistent-namespace])
        }
+      ~{use(:count) !| type | eq(::UseNamespaceNotFoundError)}
   ~~|
   ::builtin{:category :typeError :operand :use}
 

@@ -1148,6 +1148,13 @@ the module came from — built-in (`:qlang/error`), host-provided
 introduced in [Atomic values](#atomic-values), and their nested
 forms work too: `use(:qlang/error/guards)` loads a sub-module.
 
+A namespace is a header-less Map bound under the namespace name
+or under the runtime's `qlang/namespace/<name>` cache key. An
+operand descriptor, a conduit, or a snapshot bound under the same
+bare name is an identifier-plane binding: `use(:count)` walks
+past the `count` operand to the locator and lands on
+`UseNamespaceNotFoundError`.
+
 When several modules need to load together, `use` accepts three
 captured-arg shapes:
 
@@ -2626,12 +2633,13 @@ installModules(session, catalog);
     filesystem discovery order.
 
 - **`installModules(session, catalog)`** — iterates the catalog and
-  binds two env keys per namespace: `nsName → exports` (so
-  `use(:nsName)` merges the bindings), and `qlang/ast/<nsName> →
-  Quote(source, ast)` so the axis-operands `:name | source`,
-  `| docs`, `| examples` walk the loaded module AST. Install-path
-  and locator-path stay symmetric on the axis-operand
-  discoverability surface.
+  binds two env keys per namespace: `qlang/namespace/<nsName> →
+  exports` (the cache key `use(:nsName)` probes, so the export Map
+  never shadows an operand whose name matches the namespace stem),
+  and `qlang/ast/<nsName> → Quote(source, ast)` so the axis-operands
+  `:name | source`, `| docs`, `| examples` walk the loaded module
+  AST. Install-path and locator-path stay symmetric on the
+  axis-operand discoverability surface.
 
 #### Dependency ordering
 

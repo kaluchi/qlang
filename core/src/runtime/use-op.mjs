@@ -88,23 +88,31 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
 // `moduleEnv` paired with the env that holds the freshly-installed
 // namespace binding so the caller threads it forward.
 async function resolveNamespaceEnv(outerEnv, nsKeyword) {
-  // Two cache keys for namespace lookup. `session.bind(:ns, map)`
-  // and `installModules(catalog)` write under the bare keyword name
-  // (`<ns>`); the language-level locator caches its own loads under
-  // a separate prefix (`qlang/namespace/<ns>`) so `manifest` can
-  // skip those entries without filtering user-installed namespaces.
-  const bareKey  = nsKeyword.name;
+  // Two lookup keys for a namespace. A host `session.bind(:ns, map)`
+  // lands under the bare keyword name (`<ns>`); the language-level
+  // locator and `installModules(catalog)` both write under the
+  // namespace cache key (`qlang/namespace/<ns>`), which `manifest`
+  // filters out of its enumeration and which never collides with an
+  // operand name on the identifier-lookup plane.
   const cacheKey = moduleNamespaceKey(nsKeyword.name);
-  for (const key of [bareKey, cacheKey]) {
-    if (!outerEnv.has(key)) continue;
-    const moduleEnv = outerEnv.get(key);
-    if (!isQMap(moduleEnv)) {
+  if (outerEnv.has(cacheKey)) return [outerEnv.get(cacheKey), outerEnv];
+
+  // A host-installed namespace is a header-less Map. A Map carrying
+  // a JS-header tag under the bare name — an operand descriptor
+  // (`use(:count)`), a conduit (`use(:double)`), a snapshot — is an
+  // identifier-plane binding, so the probe walks past it to the
+  // locator: merging such a Map would spill `:impl` / `:envRef` /
+  // `:payload` slots into env as bindings.
+  const bareKey = nsKeyword.name;
+  if (outerEnv.has(bareKey)) {
+    const hostBound = outerEnv.get(bareKey);
+    if (!isQMap(hostBound)) {
       throw new UseNamespaceNotMapError({
         namespaceName: nsKeyword.name,
-        actualType: typeKeyword(moduleEnv)
+        actualType: typeKeyword(hostBound)
       });
     }
-    return [moduleEnv, outerEnv];
+    if (hostBound[TAG_HEADER_SYMBOL] === undefined) return [hostBound, outerEnv];
   }
 
   const locatorFn = outerEnv.get(RUNTIME_LOCATOR_KEY);

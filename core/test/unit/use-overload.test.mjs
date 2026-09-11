@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 import { keyword, makeTagKeyword } from '../../src/types.mjs';
+import { moduleNamespaceKey } from '../../src/env-keys.mjs';
 
 // ── use(:namespace) ─────────────────────────────────────────────
 
@@ -65,6 +66,46 @@ describe('use(:missing) → UseNamespaceNotFoundError', () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('use(:missing) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+  });
+});
+
+// ── use(:name) where :name is an identifier-plane binding ──────
+//
+// A namespace is a header-less Map. An operand descriptor, a
+// conduit, or a snapshot bound under the same bare name carries a
+// JS-header tag, so `use` walks past it to the locator and lands
+// on UseNamespaceNotFoundError — the binding's internal slots
+// (`:impl`, `:envRef`, `:payload`) never spill into env.
+
+describe('use(:name) walks past identifier-plane bindings under the bare name', () => {
+  it('an operand descriptor is no namespace — use(:count) lands on UseNamespaceNotFoundError', async () => {
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell('use(:count) !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const probeCell = await sessionInstance.evalCell('env | has(:category)');
+    expect(probeCell.result).toBe(false);
+  });
+
+  it('a conduit is no namespace — use(:double) lands on UseNamespaceNotFoundError', async () => {
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell(':double mul(2) | use(:double) !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const probeCell = await sessionInstance.evalCell('env | has(:envRef)');
+    expect(probeCell.result).toBe(false);
+  });
+
+  it('a snapshot is no namespace — use(:cfg) on an as-binding lands on UseNamespaceNotFoundError', async () => {
+    const sessionInstance = await createSession();
+    const cellEntry = await sessionInstance.evalCell('{:a 1} | as(:cfg) | use(:cfg) !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+  });
+
+  it('the namespace cache key wins over a header-less Map bound under the bare name', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('ns', new Map([['origin', 'bare']]));
+    sessionInstance.bind(moduleNamespaceKey('ns'), new Map([['origin', 'cache']]));
+    const cellEntry = await sessionInstance.evalCell('use(:ns) | origin');
+    expect(cellEntry.result).toBe('cache');
   });
 });
 

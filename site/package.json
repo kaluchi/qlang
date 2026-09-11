@@ -10,12 +10,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.1",
+    "@astrojs/mdx": "^8.0.1",
     "@kaluchi/qlang-core": "*",
-    "astro": "^5.10.2"
+    "astro": "^7.3.2"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
-    "vitest": "^4.1.4"
+    "esbuild": "^0.28.2",
+    "vitest": "^4.1.11"
   }
 }

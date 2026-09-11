@@ -14,17 +14,21 @@ export default defineConfig({
     }
   },
   vite: {
-    ssr: {
-      // Keep `@kaluchi/qlang-core` out of the SSR bundle so that
-      // `load-source-node.mjs::loadSource` sees its native module
-      // URL when calling `createRequire(import.meta.url).resolve(
-      // '#qlang/core')`. Inlined into the page bundle, the
-      // `import.meta.url` rewrite would point at
-      // `site/dist/pages/index.astro.mjs` whose surrounding
-      // `package.json` has no `#qlang/core` entry — `package.json
-      // #imports` resolves from the importing module's own
-      // package, not from the bundling host's package.
-      external: ['@kaluchi/qlang-core']
+    // Keep `@kaluchi/qlang-core` out of every server-side bundle so
+    // that `load-source-node.mjs::loadSource` sees its native module
+    // URL when calling `createRequire(import.meta.url).resolve(
+    // '#qlang/core')`. Inlined into a server chunk, the
+    // `import.meta.url` rewrite points inside `site/dist`, whose
+    // surrounding `package.json` has no `#qlang/core` entry —
+    // `package.json#imports` resolves from the importing module's own
+    // package, not from the bundling host's package.
+    //
+    // Astro renders the pages in its `prerender` environment and the
+    // server entry in `ssr`; each environment carries its own resolve
+    // config, so both name the externalised package.
+    environments: {
+      prerender: { resolve: { external: ['@kaluchi/qlang-core'] } },
+      ssr: { resolve: { external: ['@kaluchi/qlang-core'] } }
     }
   }
 });

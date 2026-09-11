@@ -68,6 +68,15 @@ The Node floor is the `engines.node` field each workspace's
   `declareComparabilityError`, `declareShapeError`,
   `declareArityError`). Each class sets `name` and `fingerprint` via
   the `brand()` helper and carries a structured `context` object.
+- **Internal dependency ranges name the sibling's version**: a
+  workspace depending on `@kaluchi/qlang-core` declares
+  `^<core's version>`, never `*`. npm workspaces link the folder by
+  name, so the range steers nothing locally and rides out to the
+  registry verbatim — where `*` hands a consumer whichever core npm
+  has newest, and a second core instance whose `TAG_HEADER_SYMBOL`
+  no value from the first answers to. `npm run check:conventions`
+  fails on a drifted range; `scripts/release.mjs` rewrites them all
+  at bump time.
 - **No derivable tallies in prose**: an `.md` file never spells out a
   number that `npm test`, the manifest, or a grep over the tree already
   answers — conformance cases, error classes, operands, catalog
@@ -162,10 +171,12 @@ rest:
    origin, CI green on HEAD, tag `vX.Y.Z` absent.
 2. Bumps every publishable workspace (`@kaluchi/qlang-core`,
    `@kaluchi/qlang-cli`) via `npm version`.
-3. Rebuilds the parser, runs the full test + coverage suite.
-4. Commits as `Release X.Y.Z`, pushes master.
-5. Waits for CI to go green on the release SHA.
-6. Tags `vX.Y.Z`, pushes the tag.
+3. Rewrites every workspace's dependency on a publishable sibling to
+   `^X.Y.Z` and refreshes the lockfile.
+4. Rebuilds the parser, runs the full test + coverage suite.
+5. Commits as `Release X.Y.Z`, pushes master.
+6. Waits for CI to go green on the release SHA.
+7. Tags `vX.Y.Z`, pushes the tag.
 
 The tag push triggers `.github/workflows/deploy.yml`, which runs
 `npm publish` for every workspace in its matrix and creates the

@@ -43,6 +43,12 @@
 //       the number. Scanned outside fenced blocks and inline
 //       code spans so example values stay legal.
 //
+//   (5) Internal workspace dependency ranges. npm workspaces link
+//       a sibling by name, so a stale range steers nothing locally
+//       and surfaces only in the registry, where a consumer
+//       resolves it for real. Every dependency naming a sibling
+//       workspace must read `^<that workspace's version>`.
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -323,17 +329,60 @@ function scanProseTallies() {
   return violations;
 }
 
+// ── (5) Internal workspace dependency ranges ───────────────────
+//
+// A range on a sibling workspace never steers resolution inside the
+// repo — npm links the folder by name — and rides out to the
+// registry verbatim. `*` there hands a consumer whichever core npm
+// has newest: a pairing nothing tested, and a second core instance
+// whose `TAG_HEADER_SYMBOL` no value from the first answers to. The
+// caret on the sibling's own version keeps both inside one minor
+// line, which is what lets npm dedupe them into one instance.
+
+function readManifest(relPath) {
+  return JSON.parse(readFileSync(join(repoRoot, relPath), 'utf8'));
+}
+
+function workspaceRangeDrift() {
+  const workspaceDirs = readManifest('package.json').workspaces;
+  const workspaces = workspaceDirs.map((dir) => ({
+    dir,
+    manifest: readManifest(`${dir}/package.json`)
+  }));
+  const versionByName = new Map(
+    workspaces.map(({ manifest }) => [manifest.name, manifest.version]));
+
+  const violations = [];
+  for (const { dir, manifest } of workspaces) {
+    for (const [depName, declaredRange] of Object.entries(manifest.dependencies ?? {})) {
+      const siblingVersion = versionByName.get(depName);
+      if (siblingVersion === undefined) continue;
+      const expectedRange = `^${siblingVersion}`;
+      if (declaredRange === expectedRange) continue;
+      violations.push({
+        file: `${dir}/package.json`,
+        depName,
+        declaredRange,
+        expectedRange
+      });
+    }
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
 const driftMissing = catalogDocDrift();
 const errorSuffixViolations = errorSuffixDrift();
 const proseTallies = scanProseTallies();
+const workspaceRanges = workspaceRangeDrift();
 
 if (forbidden.length === 0
     && driftMissing.length === 0
     && errorSuffixViolations.length === 0
-    && proseTallies.length === 0) {
+    && proseTallies.length === 0
+    && workspaceRanges.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -365,6 +414,14 @@ if (proseTallies.length > 0) {
   for (const v of proseTallies) {
     process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
     process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose.\n');
+  }
+}
+if (workspaceRanges.length > 0) {
+  process.stdout.write(
+    `\nInternal workspace dependency ranges (${workspaceRanges.length}):\n`);
+  for (const v of workspaceRanges) {
+    process.stdout.write(`  ${v.file}  ${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
+    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two.\n');
   }
 }
 process.exit(1);

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-// Release — bumps every publishable workspace to <version>, rebuilds
-// the parser and core catalog, runs every workspace's test suite and
+// Release — bumps every publishable workspace to <version>, points
+// every internal dependency range at that version, rebuilds the
+// parser and core catalog, runs every workspace's test suite and
 // coverage thresholds, pushes master, and waits for CI to go green
 // on the Release commit before tagging. The tag push triggers the
 // Deploy workflow (npm publish + GitHub Release).
@@ -26,6 +27,7 @@
 //   node scripts/release.mjs 0.3.0-alpha
 
 import { execSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -39,6 +41,13 @@ const PUBLISHED_WORKSPACES = [
   '@kaluchi/qlang-core',
   '@kaluchi/qlang-cli'
 ];
+
+// Every workspace in the repo. A workspace that depends on a
+// publishable sibling has that range rewritten to the release
+// version, so the published manifests name the pair they shipped
+// with.
+const WORKSPACE_DIRS = JSON.parse(
+  readFileSync(resolve(REPO_ROOT, 'package.json'), 'utf8')).workspaces;
 
 // CI workflow on master that must be green before and after the
 // Release commit. Matches .github/workflows/ci.yml's `name:` field.
@@ -135,6 +144,48 @@ const bumpDiff = runCapture('git status --porcelain');
 if (!bumpDiff) {
   fail(`every workspace is already at ${version} — nothing to release`);
 }
+
+// ── Internal dependency ranges ──────────────────────────────
+//
+// npm workspaces link a sibling by name, so the range a manifest
+// declares steers nothing inside the repo — and it rides out to the
+// registry verbatim. A consumer installing the CLI resolves that
+// range against npm, so it has to name the core this release was
+// built and tested against.
+//
+// The caret keeps the pair inside one minor line, which is what the
+// consumer needs: npm then dedupes the CLI's core against the
+// consumer's own `^X.Y.0` into a single instance, and
+// `TAG_HEADER_SYMBOL` — a per-instance Symbol — stays one identity
+// across the install. Two copies of the core would leave every tag
+// check answering about the wrong one, silently.
+
+console.log('\nInternal dependency ranges:');
+const internalRange = `^${version}`;
+for (const workspaceDir of WORKSPACE_DIRS) {
+  const manifestPath = resolve(REPO_ROOT, workspaceDir, 'package.json');
+  const manifestText = readFileSync(manifestPath, 'utf8');
+  const manifest = JSON.parse(manifestText);
+
+  let rewrote = false;
+  for (const publishedName of PUBLISHED_WORKSPACES) {
+    if (manifest.name === publishedName) continue;
+    if (manifest.dependencies?.[publishedName] === undefined) continue;
+    if (manifest.dependencies[publishedName] === internalRange) continue;
+    manifest.dependencies[publishedName] = internalRange;
+    rewrote = true;
+    console.log(`  • ${manifest.name} → ${publishedName} ${internalRange}`);
+  }
+  if (!rewrote) continue;
+
+  const eol = manifestText.includes('\r\n') ? '\r\n' : '\n';
+  writeFileSync(manifestPath,
+    JSON.stringify(manifest, null, 2).split('\n').join(eol) + eol);
+}
+
+// The lockfile carries every declared range; `npm ci` on the release
+// SHA rejects a lockfile that disagrees with the manifests.
+run('npm install --package-lock-only');
 
 // ── Build ───────────────────────────────────────────────────
 

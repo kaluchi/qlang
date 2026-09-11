@@ -43,12 +43,20 @@
 //       the number. Scanned outside fenced blocks and inline
 //       code spans so example values stay legal.
 //
+//   (5) Internal workspace dependency ranges. npm workspaces link
+//       a sibling by name, so a stale range steers nothing locally
+//       and surfaces only in the registry, where a consumer
+//       resolves it for real. Every declaration naming a sibling
+//       workspace — in any dependency map — must read
+//       `^<that workspace's version>`.
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
+import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -323,17 +331,42 @@ function scanProseTallies() {
   return violations;
 }
 
+// ── (5) Internal workspace dependency ranges ───────────────────
+//
+// `workspace-manifests.mjs` owns the rule: which dependency maps
+// count and what range a sibling declaration carries. The release
+// script rewrites against that module; this check enforces it, so a
+// range that drifts between releases fails here rather than in the
+// registry, where a consumer resolves it for real.
+
+function workspaceRangeDrift() {
+  const violations = [];
+  for (const declaration of siblingDeclarations(readWorkspaces(repoRoot))) {
+    if (declaration.declaredRange === declaration.expectedRange) continue;
+    violations.push({
+      file: `${declaration.workspace.dir}/package.json`,
+      dependencyMap: declaration.dependencyMap,
+      depName: declaration.depName,
+      declaredRange: declaration.declaredRange,
+      expectedRange: declaration.expectedRange
+    });
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
 const driftMissing = catalogDocDrift();
 const errorSuffixViolations = errorSuffixDrift();
 const proseTallies = scanProseTallies();
+const workspaceRanges = workspaceRangeDrift();
 
 if (forbidden.length === 0
     && driftMissing.length === 0
     && errorSuffixViolations.length === 0
-    && proseTallies.length === 0) {
+    && proseTallies.length === 0
+    && workspaceRanges.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -365,6 +398,14 @@ if (proseTallies.length > 0) {
   for (const v of proseTallies) {
     process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
     process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose.\n');
+  }
+}
+if (workspaceRanges.length > 0) {
+  process.stdout.write(
+    `\nInternal workspace dependency ranges (${workspaceRanges.length}):\n`);
+  for (const v of workspaceRanges) {
+    process.stdout.write(`  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
+    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two.\n');
   }
 }
 process.exit(1);

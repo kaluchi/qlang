@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-// Release — bumps every publishable workspace to <version>, rebuilds
-// the parser and core catalog, runs every workspace's test suite and
+// Release — bumps every publishable workspace to <version>, points
+// every internal dependency range at that version, rebuilds the
+// parser and core catalog, runs every workspace's test suite and
 // coverage thresholds, pushes master, and waits for CI to go green
 // on the Release commit before tagging. The tag push triggers the
 // Deploy workflow (npm publish + GitHub Release).
@@ -26,6 +27,11 @@
 //   node scripts/release.mjs 0.3.0-alpha
 
 import { execSync } from 'node:child_process';
+import {
+  readWorkspaces,
+  siblingDeclarations,
+  writeWorkspaceManifest
+} from './workspace-manifests.mjs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -135,6 +141,39 @@ const bumpDiff = runCapture('git status --porcelain');
 if (!bumpDiff) {
   fail(`every workspace is already at ${version} — nothing to release`);
 }
+
+// ── Internal dependency ranges ──────────────────────────────
+//
+// npm workspaces link a sibling by name, so the range a manifest
+// declares steers nothing inside the repo — and it rides out to the
+// registry verbatim. A consumer installing the CLI resolves that
+// range against npm, so it has to name the core this release was
+// built and tested against.
+//
+// Every dependency map counts — a sibling named under
+// `devDependencies` or `peerDependencies` reaches a consumer the
+// same way — and `workspace-manifests.mjs` owns both that list and
+// the range shape, so the rewrite here and the convention check
+// enforce one rule.
+
+console.log('\nInternal dependency ranges:');
+const workspaces = readWorkspaces(REPO_ROOT);
+const rewrittenManifests = new Set();
+for (const declaration of siblingDeclarations(workspaces)) {
+  if (declaration.declaredRange === declaration.expectedRange) continue;
+  const { workspace, dependencyMap, depName, expectedRange } = declaration;
+  workspace.manifest[dependencyMap][depName] = expectedRange;
+  rewrittenManifests.add(workspace);
+  console.log(`  • ${workspace.manifest.name} (${dependencyMap}) → `
+              + `${depName} ${expectedRange}`);
+}
+for (const workspace of rewrittenManifests) {
+  writeWorkspaceManifest(workspace);
+}
+
+// The lockfile carries every declared range; `npm ci` on the release
+// SHA rejects a lockfile that disagrees with the manifests.
+run('npm install --package-lock-only');
 
 // ── Build ───────────────────────────────────────────────────
 

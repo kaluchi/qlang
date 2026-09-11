@@ -42,7 +42,7 @@
     "url": "git+https://github.com/kaluchi/qlang.git"
   },
   "dependencies": {
-    "@kaluchi/qlang-core": "*"
+    "@kaluchi/qlang-core": "^0.8.2"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.0",

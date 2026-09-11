@@ -21,7 +21,7 @@
     "ci": "npm run build && npm run lint && npm run check:conventions && npm test && npm run test:coverage && npm run test:integration && npm run build:site"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "license": "Apache-2.0",
   "author": "kaluchi",

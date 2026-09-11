@@ -91,7 +91,7 @@
     "build": "node scripts/build-grammar.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "keywords": [
     "query-language",

@@ -589,38 +589,44 @@ export const flat = nullaryOp('flat', (subject) => {
 
 // ── sortWith and comparator builders ──────────────────────────
 
+// Top-down merge sort over an awaited comparator —
+// `Array.prototype.sort` accepts only a sync comparator, and each
+// pairwise comparison here awaits a captured-arg lambda whose
+// conduit body may itself await. The merge takes the left run's
+// head on a zero result, so equal elements keep their subject
+// order (stable), and the comparator fires at most n·⌈log₂ n⌉
+// times for a subject of n elements.
+async function mergeSortWith(items, compareAsync) {
+  if (items.length <= 1) return items;
+  const splitIdx = items.length >> 1;
+  const leftRun = await mergeSortWith(items.slice(0, splitIdx), compareAsync);
+  const rightRun = await mergeSortWith(items.slice(splitIdx), compareAsync);
+  const merged = [];
+  let leftIdx = 0;
+  let rightIdx = 0;
+  while (leftIdx < leftRun.length && rightIdx < rightRun.length) {
+    if (await compareAsync(leftRun[leftIdx], rightRun[rightIdx]) <= 0) merged.push(leftRun[leftIdx++]);
+    else merged.push(rightRun[rightIdx++]);
+  }
+  while (leftIdx < leftRun.length) merged.push(leftRun[leftIdx++]);
+  while (rightIdx < rightRun.length) merged.push(rightRun[rightIdx++]);
+  return merged;
+}
+
 export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) => {
   if (!isOrderedSequence(subject)) throw new SortWithSubjectNotSequenceError(subject);
-  // Insertion sort — `Array.prototype.sort` accepts only a sync
-  // comparator, and each pairwise comparison here may invoke a
-  // captured-arg lambda that awaits inside the conduit body. The
-  // sort stays correct under awaited comparator results; the
-  // O(n²) profile is acceptable for the sequence sizes sortWith
-  // services (config rows, query results, comparator-built
-  // orderings — none of them scale unboundedly).
-  const sortWithArr = [...subject];
-  const sortWithLen = sortWithArr.length;
-  for (let outerIdx = 1; outerIdx < sortWithLen; outerIdx++) {
-    const sortWithCurrent = sortWithArr[outerIdx];
-    let insertIdx = outerIdx - 1;
-    while (insertIdx >= 0) {
-      const cmpPair = new Map();
-      cmpPair.set('left', sortWithArr[insertIdx]);
-      cmpPair.set('right', sortWithCurrent);
-      const cmpResult = await cmpLambda(cmpPair);
-      if (typeof cmpResult !== 'number') {
-        throw new SortWithCmpResultNotNumberError({
-          actualType: typeKeyword(cmpResult),
-          actualValue: cmpResult
-        });
-      }
-      if (cmpResult <= 0) break;
-      sortWithArr[insertIdx + 1] = sortWithArr[insertIdx];
-      insertIdx--;
+  const comparePair = async (left, right) => {
+    const cmpPair = new Map([['left', left], ['right', right]]);
+    const cmpResult = await cmpLambda(cmpPair);
+    if (typeof cmpResult !== 'number') {
+      throw new SortWithCmpResultNotNumberError({
+        actualType: typeKeyword(cmpResult),
+        actualValue: cmpResult
+      });
     }
-    sortWithArr[insertIdx + 1] = sortWithCurrent;
-  }
-  return containerLikeOf(sortWithArr, subject);
+    return cmpResult;
+  };
+  return containerLikeOf(await mergeSortWith([...subject], comparePair), subject);
 }, { preservesTag: true });
 
 export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {

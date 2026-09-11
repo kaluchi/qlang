@@ -343,8 +343,9 @@ JSON tag.
 - Sorts using a custom comparator. The comparator receives a pair
   Map `{ :left a :right b }` for each comparison and must return a
   number: negative places `left` before `right`, positive places
-  `right` before `left`, zero treats them as equal (preserving the
-  order of equal elements per JS Array.sort stability).
+  `right` before `left`, zero treats them as equal. The sort is a
+  stable merge sort: equal elements keep their subject order, and
+  the comparator fires at most n·⌈log₂ n⌉ times.
 - **Examples**:
   - `[3 1 2] | sortWith(sub(/left, /right))` → `[1 2 3]`.
   - `[3 1 2] | sortWith(sub(/right, /left))` → `[3 2 1]`.

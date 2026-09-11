@@ -619,4 +619,43 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     );
     expect(sortedResult).toEqual([20, 30, 25]);
   });
+
+  it('sortWith fires the comparator at most n·⌈log₂ n⌉ times on a shuffled subject', async () => {
+    // A host-bound identity operand inside the comparator sub-pipeline
+    // tallies every pairwise comparison the sort performs. 512 numbers
+    // in a deterministic linear-congruential order bound the tally at
+    // 512 · 9; a quadratic sort spends tens of thousands here.
+    const { createSession } = await import('../../src/session.mjs');
+    const { nullaryOp } = await import('../../src/runtime/dispatch.mjs');
+    const sessionInstance = await createSession();
+    let comparisonTally = 0;
+    sessionInstance.bind('tallyComparison', nullaryOp('tallyComparison', async (cmpResult) => {
+      comparisonTally++;
+      return cmpResult;
+    }));
+    const subjectSize = 512;
+    const shuffled = [];
+    let lcgSeed = 7;
+    for (let elementIdx = 0; elementIdx < subjectSize; elementIdx++) {
+      lcgSeed = (lcgSeed * 1103515245 + 12345) % 2147483648;
+      shuffled.push(lcgSeed % 1000);
+    }
+    const cellEntry = await sessionInstance.evalCell(
+      `[${shuffled.join(' ')}] | sortWith(sub(/left, /right) | tallyComparison)`
+    );
+    expect(cellEntry.result).toEqual([...shuffled].sort((left, right) => left - right));
+    expect(comparisonTally).toBeLessThanOrEqual(subjectSize * Math.ceil(Math.log2(subjectSize)));
+  });
+
+  it('sortWith keeps equal elements in subject order across every merge level', async () => {
+    // Two interleaved key groups over eight elements span three merge
+    // levels; a merge that prefers the right run on a tie reorders
+    // the ties at the second level and this projection reads it.
+    const sortedTags = await evalQuery(
+      '[{:k 2 :t "a"} {:k 1 :t "b"} {:k 2 :t "c"} {:k 1 :t "d"} ' +
+      '{:k 2 :t "e"} {:k 1 :t "f"} {:k 2 :t "g"} {:k 1 :t "h"}] ' +
+      '| sortWith(asc(/k)) * /t'
+    );
+    expect(sortedTags).toEqual(['b', 'd', 'f', 'h', 'a', 'c', 'e', 'g']);
+  });
 });

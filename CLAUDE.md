@@ -194,9 +194,8 @@ credential. Three consequences bind any edit to that workflow:
 - The file name `deploy.yml` is load-bearing. Rename it and
   publishing stops until the trusted-publisher entry on every
   published package names the new file.
-- The exchange needs npm 11.5.1 or later. The npm bundled with
-  Node 22 predates it, so the job installs one before publishing
-  and keeps `npm ci` on the bundled npm.
+- The exchange needs npm 11.5.1 or later, which the npm bundled
+  with the pinned Node carries.
 - No npm token takes part. A `NODE_AUTH_TOKEN` in the publish step
   makes npm authenticate with that token in place of the exchange.
 

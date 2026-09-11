@@ -143,11 +143,9 @@ export function findAstNodeAtOffset(ast, offset) {
   walkAst(ast, (node) => {
     if (!node.location) return;
     const { start, end } = node.location;
-    if (start.offset <= offset && offset < end.offset) {
-      if (!narrowest || astNodeSpan(node) < astNodeSpan(narrowest)) {
-        narrowest = node;
-      }
-    }
+    // Parent-first traversal: a containing node visited after
+    // another one sits nested inside it, so the last match wins.
+    if (start.offset <= offset && offset < end.offset) narrowest = node;
   });
   return narrowest;
 }

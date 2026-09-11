@@ -7,7 +7,7 @@ import {
   deserializeSession
 } from '../../src/session.mjs';
 import { makeTagKeyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
-import { QlangTypeError } from '../../src/errors.mjs';
+import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
 describe('createSession lifecycle', () => {
@@ -358,5 +358,36 @@ describe('createSession with locator — lazy module loading', () => {
     expect(noLocatorErr.name).toBe('UseNamespaceNotFoundError');
     expect(noLocatorErr).toBeInstanceOf(QlangTypeError);
     expect(noLocatorErr.context.namespaceName).toBe('anything');
+  });
+});
+
+describe('session cells that carry more than a parse failure', () => {
+  it('serializes a conduit parameter list by name', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':scaled [:factor] (mul(factor))');
+
+    const payload = await serializeSession(sessionInstance);
+    const scaled = payload.bindings.find(b => b.name === 'scaled');
+    expect(scaled.kind).toBe('conduit');
+    expect(scaled.params).toEqual(['factor']);
+
+    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
+    expect((await restored.evalCell('5 | scaled(3)')).result).toBe(15);
+  });
+
+  it('leaves an invariant failure on the error channel with no result value', async () => {
+    // `evalAst` converts every failure into an ErrorValue except
+    // QlangInvariantError, which travels as a host-level throw. The
+    // cell records it on the error channel; only a ParseError also
+    // lands a structured value on the result channel.
+    const sessionInstance = await createSession();
+    sessionInstance.bind('collapse', nullaryOp('collapse', () => {
+      throw new QlangInvariantError('catalog bootstrap left no root module');
+    }));
+
+    const cellEntry = await sessionInstance.evalCell('42 | collapse');
+    expect(cellEntry.result).toBeNull();
+    expect(cellEntry.error).toBeInstanceOf(QlangInvariantError);
+    expect(cellEntry.error.name).toBe('QlangInvariantError');
   });
 });

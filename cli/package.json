@@ -1,6 +1,6 @@
 {
   "name": "@kaluchi/qlang-cli",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "Command-line interface and REPL for the qlang pipeline query language",
   "type": "module",
   "main": "src/main.mjs",
@@ -42,7 +42,7 @@
     "url": "git+https://github.com/kaluchi/qlang.git"
   },
   "dependencies": {
-    "@kaluchi/qlang-core": "^0.8.2"
+    "@kaluchi/qlang-core": "^0.9.0"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.0",

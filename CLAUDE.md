@@ -174,7 +174,11 @@ rest:
 2. Bumps every publishable workspace (`@kaluchi/qlang-core`,
    `@kaluchi/qlang-cli`) via `npm version`.
 3. Rewrites every workspace's dependency on a publishable sibling to
-   `^X.Y.Z` and refreshes the lockfile.
+   `^X.Y.Z`, then installs once — the bumps themselves run under
+   `--no-workspaces-update`, so no install lands while a bumped
+   sibling sits outside the range its dependents still declare and
+   npm reaches for the registry copy instead of the folder. The step
+   stops the release if a published copy shadows a workspace link.
 4. Rebuilds the parser, runs the full test + coverage suite.
 5. Commits as `Release X.Y.Z`, pushes master.
 6. Waits for CI to go green on the release SHA.

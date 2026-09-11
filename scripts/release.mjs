@@ -32,6 +32,7 @@ import {
   siblingDeclarations,
   writeWorkspaceManifest
 } from './workspace-manifests.mjs';
+import { lstatSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -130,11 +131,21 @@ console.log(`  ✓ master clean, in sync, ${CI_WORKFLOW} green, `
             + `tag ${tag} free`);
 
 // ── Version bump (every publishable workspace) ──────────────
+//
+// `--no-workspaces-update` keeps npm from installing between the
+// bumps. A bumped sibling momentarily sits outside the range its
+// dependents still declare, and an install landing in that window
+// resolves the dependency against the registry instead of the
+// folder — leaving a stale published copy nested inside the
+// dependent workspace, shadowing the link for everything that runs
+// from the repo afterwards. The single install below lands once the
+// versions and the ranges agree.
 
 console.log('\nVersion bumps:');
 for (const ws of PUBLISHED_WORKSPACES) {
   console.log(`  • ${ws}`);
-  run(`npm version ${version} --no-git-tag-version --allow-same-version -w ${ws}`);
+  run(`npm version ${version} --no-git-tag-version --allow-same-version `
+      + `--no-workspaces-update -w ${ws}`);
 }
 
 const bumpDiff = runCapture('git status --porcelain');
@@ -171,9 +182,37 @@ for (const workspace of rewrittenManifests) {
   writeWorkspaceManifest(workspace);
 }
 
-// The lockfile carries every declared range; `npm ci` on the release
-// SHA rejects a lockfile that disagrees with the manifests.
-run('npm install --package-lock-only');
+// One install for the whole bump: it relinks every workspace under
+// the ranges they carry and rewrites the lockfile `npm ci` reads on
+// the release SHA.
+run('npm install');
+
+// ── Workspace links ─────────────────────────────────────────
+//
+// Every sibling must resolve to its folder in this repo. A registry
+// copy nested inside a workspace resolves ahead of the root link, so
+// the suite below would test the release against a different core
+// than the one being published — and everything run from the repo
+// afterwards would keep reading that copy.
+
+console.log('\nWorkspace links:');
+const shadowed = [];
+for (const { dir, manifest } of readWorkspaces(REPO_ROOT)) {
+  for (const publishedName of PUBLISHED_WORKSPACES) {
+    if (manifest.name === publishedName) continue;
+    const nested = resolve(REPO_ROOT, dir, 'node_modules', publishedName);
+    let nestedStat;
+    try { nestedStat = lstatSync(nested); } catch { continue; }
+    if (nestedStat.isSymbolicLink()) continue;
+    shadowed.push(`${dir}/node_modules/${publishedName}`);
+  }
+}
+if (shadowed.length > 0) {
+  fail('a published copy shadows the workspace link:\n  '
+       + shadowed.join('\n  ')
+       + '\nrun `npm install` at the repo root and re-run the release');
+}
+console.log(`  ✓ every sibling resolves to its workspace folder`);
 
 // ── Build ───────────────────────────────────────────────────
 

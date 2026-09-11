@@ -201,9 +201,12 @@ for (const { dir, manifest } of workspaces) {
   for (const publishedName of PUBLISHED_WORKSPACES) {
     if (manifest.name === publishedName) continue;
     const nested = resolve(REPO_ROOT, dir, 'node_modules', publishedName);
-    let nestedStat;
-    try { nestedStat = lstatSync(nested); } catch { continue; }
-    if (nestedStat.isSymbolicLink()) continue;
+    // `throwIfNoEntry: false` answers `undefined` for the ordinary
+    // case of nothing being there, and lets a permission or symlink
+    // error travel — a guard that cannot read the tree must say so
+    // rather than report it clean.
+    const nestedStat = lstatSync(nested, { throwIfNoEntry: false });
+    if (nestedStat === undefined || nestedStat.isSymbolicLink()) continue;
     shadowed.push(`${dir}/node_modules/${publishedName}`);
   }
 }

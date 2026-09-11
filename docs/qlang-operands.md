@@ -1235,7 +1235,7 @@ its own eval handler in `eval.mjs`.
 
 - **Arity** 1. **Subject** `string` — the source to parse.
 - Reads the subject string into an **AST-Map** — the data-form
-  representation of the program, produced by `walk.mjs::astNodeToMap`.
+  representation of the program, produced by `ast-codec.mjs::astNodeToMap`.
   Each AST node becomes a frozen Map carrying `:kind` (the
   AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
   `:Pipeline`, and so on), type-specific payload fields (`:value`,

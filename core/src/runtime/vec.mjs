@@ -596,16 +596,16 @@ export const flat = nullaryOp('flat', (subject) => {
 // head on a zero result, so equal elements keep their subject
 // order (stable), and the comparator fires at most n·⌈log₂ n⌉
 // times for a subject of n elements.
-async function mergeSortWith(items, compareAsync) {
-  if (items.length <= 1) return items;
-  const splitIdx = items.length >> 1;
-  const leftRun = await mergeSortWith(items.slice(0, splitIdx), compareAsync);
-  const rightRun = await mergeSortWith(items.slice(splitIdx), compareAsync);
+async function mergeSortWith(subjectRun, comparePair) {
+  if (subjectRun.length <= 1) return subjectRun;
+  const splitIdx = subjectRun.length >> 1;
+  const leftRun = await mergeSortWith(subjectRun.slice(0, splitIdx), comparePair);
+  const rightRun = await mergeSortWith(subjectRun.slice(splitIdx), comparePair);
   const merged = [];
   let leftIdx = 0;
   let rightIdx = 0;
   while (leftIdx < leftRun.length && rightIdx < rightRun.length) {
-    if (await compareAsync(leftRun[leftIdx], rightRun[rightIdx]) <= 0) merged.push(leftRun[leftIdx++]);
+    if (await comparePair(leftRun[leftIdx], rightRun[rightIdx]) <= 0) merged.push(leftRun[leftIdx++]);
     else merged.push(rightRun[rightIdx++]);
   }
   while (leftIdx < leftRun.length) merged.push(leftRun[leftIdx++]);

@@ -73,12 +73,13 @@ describe('use(:missing) → UseNamespaceNotFoundError', () => {
 //
 // A namespace is a header-less Map. An operand descriptor, a
 // conduit, or a snapshot bound under the same bare name carries a
-// JS-header tag, so `use` walks past it to the locator and lands
-// on UseNamespaceNotFoundError — the binding's internal slots
+// JS-header tag, and a host-bound scalar carries no Map at all, so
+// `use` walks past each of them to the locator and lands on
+// UseNamespaceNotFoundError — a tagged Map's internal slots
 // (`:impl`, `:envRef`, `:payload`) never spill into env.
 
 describe('use(:name) walks past identifier-plane bindings under the bare name', () => {
-  it('an operand descriptor is no namespace — use(:count) lands on UseNamespaceNotFoundError', async () => {
+  it('use(:count) walks past the ::builtin descriptor under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('use(:count) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
@@ -86,7 +87,7 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
     expect(probeCell.result).toBe(false);
   });
 
-  it('a conduit is no namespace — use(:double) lands on UseNamespaceNotFoundError', async () => {
+  it('use(:double) walks past the conduit under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(':double mul(2) | use(:double) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
@@ -94,9 +95,16 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
     expect(probeCell.result).toBe(false);
   });
 
-  it('a snapshot is no namespace — use(:cfg) on an as-binding lands on UseNamespaceNotFoundError', async () => {
+  it('use(:cfg) walks past the as-snapshot under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('{:a 1} | as(:cfg) | use(:cfg) !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+  });
+
+  it('use(:notMap) walks past a host-bound scalar under the bare name and lands on UseNamespaceNotFoundError', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('notMap', 42);
+    const cellEntry = await sessionInstance.evalCell('use(:notMap) !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 
@@ -106,17 +114,6 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
     sessionInstance.bind(moduleNamespaceKey('ns'), new Map([['origin', 'cache']]));
     const cellEntry = await sessionInstance.evalCell('use(:ns) | origin');
     expect(cellEntry.result).toBe('cache');
-  });
-});
-
-// ── use(:ns) where ns is not Map ────────────────────────────────
-
-describe('use(:ns) where ns is not Map → UseNamespaceNotMapError', () => {
-  it('produces UseNamespaceNotMapError when namespace bound to non-Map value', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('notMap', 42);
-    const cellEntry = await sessionInstance.evalCell('use(:notMap) !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotMapError'));
   });
 });
 
@@ -176,17 +173,6 @@ describe('per-site error triple-assertions', () => {
     expect(originalErr.name).toBe('UseNamespaceNotFoundError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.context.namespaceName).toBe('nonexistent');
-  });
-
-  it('UseNamespaceNotMapError: name, instanceof, context', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('notamap', 42);
-    const cellEntry = await sessionInstance.evalCell('use(:notamap)');
-    const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNamespaceNotMapError');
-    expect(originalErr).toBeInstanceOf(QlangTypeError);
-    expect(originalErr.context.namespaceName).toBe('notamap');
-    expect(originalErr.context.actualType.name).toBe('number');
   });
 
   it('UseNamespaceCollisionError: name, instanceof, context', async () => {

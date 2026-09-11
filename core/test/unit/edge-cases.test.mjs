@@ -34,7 +34,10 @@ import {
   isQSet,
   isQuote,
   isVec,
-  makeConduit
+  makeConduit,
+  typeKeyword,
+  TAG_HEADER_SYMBOL,
+  CONDUIT_TAG
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
 import { rootState } from '../../src/state.mjs';
@@ -43,6 +46,9 @@ import {
   makeFn
 } from '../../src/rule10.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
+import { createSession } from '../../src/session.mjs';
+import { nullaryOp } from '../../src/runtime/dispatch.mjs';
+import { compareBindingNames } from '../../src/runtime/manifest-op.mjs';
 
 describe('types.mjs', () => {
   it('interns keywords', () => {
@@ -77,7 +83,6 @@ describe('types.mjs', () => {
   });
 
   it('makeConduit stamps ::conduit on the Map JS-header and exposes body/source as fields', async () => {
-    const { TAG_HEADER_SYMBOL, CONDUIT_TAG, typeKeyword } = await import('../../src/types.mjs');
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
     const t = makeConduit(bodyAst);
     expect(t).toBeInstanceOf(Map);
@@ -315,7 +320,6 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
   });
 
   it('compareBindingNames is a code-point three-way comparator', async () => {
-    const { compareBindingNames } = await import('../../src/runtime/manifest-op.mjs');
     expect(compareBindingNames('a', 'b')).toBe(-1);
     expect(compareBindingNames('b', 'a')).toBe(1);
     expect(compareBindingNames('x', 'x')).toBe(0);
@@ -331,8 +335,6 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
     // are the only function values that stamp `meta.category
     // :conduitParameter` inline and therefore the only ones that
     // route through `describeConduitParameter`.
-    const { createSession } = await import('../../src/session.mjs');
-    const { nullaryOp } = await import('../../src/runtime/dispatch.mjs');
     const sessionInstance = await createSession();
     sessionInstance.bind('hostFn', nullaryOp('hostFn', async () => 42));
     const cellEntry = await sessionInstance.evalCell(
@@ -599,8 +601,6 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     // tallies every pairwise comparison the sort performs. 512 numbers
     // in a deterministic linear-congruential order bound the tally at
     // 512 · 9; a quadratic sort spends tens of thousands here.
-    const { createSession } = await import('../../src/session.mjs');
-    const { nullaryOp } = await import('../../src/runtime/dispatch.mjs');
     const sessionInstance = await createSession();
     let comparisonTally = 0;
     sessionInstance.bind('tallyComparison', nullaryOp('tallyComparison', async (cmpResult) => {

@@ -163,13 +163,13 @@ function tryParseTaggedAt(content, start) {
 // its own payload-value; the reader's env carries through for
 // ::conduit-style env capture, and the frame keeps a constructor
 // that reads its own docs inside the depth budget.
-async function evalTaggedSegment(ast, hostState) {
-  const segmentState = nestState(hostState, null, hostState.env);
+async function evalTaggedSegment(ast, callerState) {
+  const segmentState = nestState(callerState, null, callerState.env);
   const result = await evalAst(ast, segmentState);
   return result.pipeValue;
 }
 
-export async function parseDocSegments(content, hostState) {
+export async function parseDocSegments(content, callerState) {
   const segments = [];
   let cursor = 0;
   while (cursor < content.length) {
@@ -201,7 +201,7 @@ export async function parseDocSegments(content, hostState) {
       cursor = opener.offset + 2;
       continue;
     }
-    const value = await evalTaggedSegment(parsed.ast, hostState);
+    const value = await evalTaggedSegment(parsed.ast, callerState);
     segments.push(value);
     cursor = opener.offset + parsed.length;
   }

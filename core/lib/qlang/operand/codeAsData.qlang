@@ -41,7 +41,7 @@
 
 :eval
   |~~ Evaluates an AST-Map (typically produced by parse or
-      hand-assembled via walk.mjs::astNodeToMap) against the
+      hand-assembled via ast-codec.mjs::astNodeToMap) against the
       current state. The inner code sees the caller's env and
       pipeValue; any BindStep / as / use writes propagate out
       the same way a paren-group would. Completes the ring

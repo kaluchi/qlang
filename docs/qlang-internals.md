@@ -35,8 +35,9 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   Any of Scalar, Vec, Map, Set, Error, or a function (partial or
   complete). When `pipeValue` is an error value, the combinator at
   each call site decides whether its step fires: `|`, `*`, `>>`
-  are success-track combinators and deflect (appending the
-  upcoming step's AST node to the error's trail); `!|` is the
+  are success-track combinators and deflect (stamping the
+  upcoming step's source slice onto the error's trail as a
+  fragment); `!|` is the
   fail-track combinator and fires its step against the error's
   materialized descriptor. Track dispatch lives exclusively in
   `applyCombinator`; `evalNode` is a pure AST-node-type dispatcher.
@@ -230,7 +231,11 @@ Pure identity. A comment step consumes neither `pipeValue` nor
 `env`; the state threads through unchanged. `evalPipeline` steps
 over a plain comment on both tracks, so a comment never fires,
 never deflects, and never enters `:trail` — the materialized trail
-stays a pure operand suffix that `apply` replays. Comments appear
+stays a pure operand suffix that `apply` replays. A comment in
+head position hands the head to the first operand step: that step
+applies through the pipeline's leading combinator when there is
+one and runs as the identity-head otherwise, as if the comment
+were absent. Comments appear
 in the AST as first-class PipeSteps and are visible to reflection
 (`source`, the highlighter, the AST-codec round-trip).
 
@@ -535,9 +540,10 @@ fires its step only when `pipeValue` is an error; on a success
 Left-to-right state threading for success-track values.
 
 **Deflection on error pipeValue.** When `pipeValue` is an error
-value, `|` does not invoke `nextStep`. Instead it appends
-`nextStep`'s AST node to the error's trail (via `appendTrailNode`)
-and returns the error as the new `pipeValue`. Implementation:
+value, `|` stamps a `trailEntry` fragment — `nextStep`'s source
+slice plus the `|` kind — onto the error's trail (via
+`appendTrailNode`) and returns the error as the new `pipeValue`;
+`nextStep` stays unevaluated. Implementation:
 `applySuccessTrack` in `eval.mjs`.
 
 ### `!|` — fail-apply
@@ -593,8 +599,8 @@ The empty Vec is a valid input: `[] * body → []` without invoking
 finite data structures.
 
 **Deflection on error pipeValue.** When `pipeValue` is an error
-value, `*` appends `body`'s AST node to the error's trail and
-returns the error unchanged. No per-element fork happens. On any
+value, `*` stamps `body`'s source slice onto the error's trail as a
+`*` fragment and returns the error unchanged. No per-element fork happens. On any
 other non-sequence `pipeValue` the step raises `DistributeSubjectNotSequenceError`.
 
 ### `>>` — flatten then apply
@@ -608,8 +614,8 @@ removes one level of nesting; it is a no-op on flat Vecs (elements
 that are not themselves sequences pass through unchanged).
 
 **Deflection on error pipeValue.** When `pipeValue` is an error
-value, `>>` appends `nextStep`'s AST node to the error's trail and
-returns the error unchanged. No flatten happens. On any other
+value, `>>` stamps `nextStep`'s source slice onto the error's trail
+as a `>>` fragment and returns the error unchanged. No flatten happens. On any other
 non-sequence `pipeValue` the step raises `MergeSubjectNotSequenceError`.
 
 ## Fork
@@ -1293,8 +1299,8 @@ Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /
 `:invariantError` / `:divisionByZero` / `:primitiveUnbound` /
 `:sessionError` / `:codecError` / `:astCodecError` /
-`:effectLaundering` / `:unresolvedIdentifier`), `:operand`,
-`:position`, `:expectedType` — live on the tag-binding's catalog
+`:effectLaundering` / `:unresolvedIdentifier` / `:resourceLimit`),
+`:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
 `result !| type | spec | /category` for the broad-bucket,
@@ -1314,12 +1320,12 @@ Modules that the operand library never imports but that embedders
 (editors, notebooks, REPLs, language servers) consume directly.
 Re-exported from the package entry.
 
-### `walk.mjs` — AST traversal primitives and AST ↔ Map codec
+### `walk.mjs` — AST traversal primitives
 
 Single source of truth for the qlang AST shape. Every module that
 needs to read, decorate, query, or transform AST nodes imports
 from here, so adding a node type in `grammar.peggy` is a one-file
-edit — `astChildrenOf` and the codec share the shape knowledge.
+edit here plus its codec case in `ast-codec.mjs`.
 
 - `astChildrenOf(node)` — direct semantic children of an AST node.
 - `walkAst(node, visit)` — pre-order recursive descent. Visitor
@@ -1338,17 +1344,23 @@ edit — `astChildrenOf` and the codec share the shape knowledge.
   range arithmetic over node locations.
 - `triviaBetweenAstNodes(nodeA, nodeB, ast)` — source slice between
   two adjacent nodes (whitespace, punctuation, plain comments).
+
+### `ast-codec.mjs` — AST ↔ Map codec
+
+Bidirectional codec between the JS-object AST `parse()` emits and
+the frozen qlang-Map form that reflection hands to query code.
+
 - `astNodeToMap(node)` — encodes a JS-object AST node into a
   frozen qlang-Map representation, stamping `:kind
   :<NodeType>` as the discriminator plus type-specific payload
   fields (`:value`, `:name`, `:args`, `:elements`, `:entries`,
   `:keys`, `:steps`, etc.) and the shared `:text` / `:location`
   metadata. Pipeline steps normalize into uniform `:PipelineStep`
-  wrapper Maps so downstream walkers do not special-case the
-  head. Consumers: `eval.mjs::applySuccessTrack` /
-  `distribute` / `mergeFlat` stamp AST-Maps onto deflected
-  `:trail` entries at fail-track dispatch time; the `parse`
-  reflective operand lifts user source into this form.
+  wrapper Maps so downstream walkers read the head like any other
+  step. Consumers: the `parse` reflective operand lifts user
+  source into this form, and `/ast` on a Quote — the deflected
+  suffix under `!| /trail | /ast` included — lifts the Quote's
+  source into it on demand.
 - `qlangMapToAst(map)` — the inverse. Walks an AST-Map back into
   a JS-object AST node suitable for `evalAst`. Round-trip
   invariant: `qlangMapToAst(astNodeToMap(n))` is structurally

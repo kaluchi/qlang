@@ -242,24 +242,21 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 // `runExamples` — execute every Quote segment in a binding's
 // attached doc-prefix as a self-test expression.
 //
-// Each Quote is evaluated against an empty initial state; a result
-// that is not `false`, `null`, or an ErrorValue counts as
-// `:ok true`. The return is a Vec of result Maps, one per Quote
-// segment.
-
 // Each example evaluates one frame below the `runExamples` step,
-// against a copy of the caller's env so the
+// against the caller's env, with a null initial pipeValue: the
 // snippet sees every module loaded through `use(:ns)` in the
-// surrounding session — without `use(:jdt/graph)` propagating from
-// the session, an example like `"no.such.Type" | @type !| type` would
-// surface `::UnresolvedIdentifierError` instead of the documented
-// `::TypeNotFound`. The copy isolates the example's BindStep / `as`
-// writes from the session env so a tested snippet cannot leak
-// bindings back into the calling session.
-async function runQuoteEntry(quote, hostState) {
+// surrounding session, so `"no.such.Type" | @type !| type` under
+// `use(:jdt/graph)` reaches the documented `::TypeNotFound`. Env
+// immutability keeps the example's BindStep / `as` writes off the
+// session env — `evalQuery` forges its own env through `envSet`
+// when it stamps the inline-AST Quote. A result of `false`,
+// `null`, or an ErrorValue counts as `:ok false`, every other
+// value as `:ok true`; the return is a Vec of result Maps, one per
+// Quote segment.
+async function runQuoteEntry(quote, callerState) {
   const result = new Map();
   result.set('snippet', quote);
-  const actualValue = await evalQuery(quote.source, new Map(hostState.env), hostState);
+  const actualValue = await evalQuery(quote.source, callerState.env, callerState);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
     result.set('error', errorMessageOf(actualValue));
@@ -272,8 +269,8 @@ async function runQuoteEntry(quote, hostState) {
   return result;
 }
 
-async function collectQuotesForBinding(hostState, lookupName) {
-  const step = findBindingStepAcrossModules(hostState.env, lookupName);
+async function collectQuotesForBinding(callerState, lookupName) {
+  const step = findBindingStepAcrossModules(callerState.env, lookupName);
   // Bindings without a source-located BindStep (host-installed
   // bindings via `session.bind`, runtime-seeded built-ins) have no
   // examples to run. `runExamples` returns an empty Vec — the
@@ -283,7 +280,7 @@ async function collectQuotesForBinding(hostState, lookupName) {
   const docStrings = stepDocStrings(step);
   const collected = [];
   for (const docStr of docStrings) {
-    const segments = await parseDocSegments(docStr, hostState);
+    const segments = await parseDocSegments(docStr, callerState);
     for (const seg of segments) {
       if (isQuote(seg)) collected.push(seg);
     }

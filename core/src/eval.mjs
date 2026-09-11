@@ -129,7 +129,7 @@ const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterN
   ({ paramName, actualCount }) =>
     `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
 
-// evalQuery(source, env?, hostState?) → Promise<final pipeValue>
+// evalQuery(source, env?, callerState?) → Promise<final pipeValue>
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
 // uses langRuntime as the initial env; the initial pipeValue is
@@ -140,7 +140,7 @@ const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterN
 // Quote stamped on env, `:foo body | :foo | docs` finds `foo`
 // in the just-parsed AST without going through a `use(:ns)`
 // module installation.
-export async function evalQuery(source, env, hostState = null) {
+export async function evalQuery(source, env, callerState = null) {
   const initialEnv = env ?? await langRuntime();
   let ast;
   try {
@@ -157,12 +157,12 @@ export async function evalQuery(source, env, hostState = null) {
   // Map without seeding pipeValue with it implicitly — keeping the
   // env out of `:fault.input` on every error descriptor.
   // `runExamples` evaluates each example Quote from inside a running
-  // frame and hands that frame in as `hostState`, so an example that
+  // frame and hands that frame in as `callerState`, so an example that
   // runs its own binding's examples descends through the same depth
   // budget as any other re-entry. Every other caller opens a root.
-  const initialState = hostState === null
+  const initialState = callerState === null
     ? rootState(null, envWithInlineAst)
-    : nestState(hostState, null, envWithInlineAst);
+    : nestState(callerState, null, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
   return materializePendingTrail(finalState.pipeValue);
 }
@@ -258,26 +258,35 @@ async function evalPipeline(node, state) {
   // dispatch. Pipeline-suffix shapes (`~{| count | add(1)}`) round-
   // trip through `apply` exactly because the leading combinator
   // survives parse → eval.
+  //
+  // A plain comment in head position hands the head to the first
+  // operand step: that step applies through `node.leadingCombinator`
+  // when present and runs as the identity-head otherwise, exactly as
+  // it would with the comment absent. The `|` the parser stamps on
+  // the follower of a comment head is trivia along with the comment.
   let current = state;
+  let headPending = true;
   for (let i = 0; i < node.steps.length; i++) {
-    const step = node.steps[i];
-    if (i === 0) {
-      if (PLAIN_COMMENT_STEP_TYPES.has(step.type)) continue;
+    const unit = node.steps[i];
+    const stepNode = i === 0 ? unit : unit.step;
+    if (PLAIN_COMMENT_STEP_TYPES.has(stepNode.type)) continue;
+    if (headPending) {
+      headPending = false;
       current = node.leadingCombinator
-        ? await applyCombinator(node.leadingCombinator, current, step)
-        : await evalNode(step, current);
-    } else {
-      if (PLAIN_COMMENT_STEP_TYPES.has(step.step.type)) continue;
-      current = await applyCombinator(step.combinator, current, step.step);
+        ? await applyCombinator(node.leadingCombinator, current, stepNode)
+        : await evalNode(stepNode, current);
+      continue;
     }
+    current = await applyCombinator(unit.combinator, current, stepNode);
   }
   return current;
 }
 
 // Track dispatch lives here and only here. Each success-track
 // combinator — `|`, `*`, `>>` — deflects on an error pipeValue by
-// appending the upcoming step's AST node to the error's trail and
-// returning the error unchanged. The fail-track combinator `!|`
+// stamping a `trailEntry` fragment — the upcoming step's source
+// slice plus the combinator kind — onto the error's `_trailHead`
+// and returning the error unchanged. The fail-track combinator `!|`
 // does the dual: fires on errors via applyFailTrack, deflects on
 // success values as identity pass-through. evalNode is a pure
 // dispatcher over AST node types and performs no track dispatch
@@ -299,12 +308,11 @@ async function applyCombinator(kind, state, stepNode) {
 
 // applySuccessTrack(state, stepNode) — the `|` combinator. Fires
 // `stepNode` when pipeValue is on the success-track; deflects on
-// error by appending a Map-form of `stepNode` to the trail linked
-// list and returning the error unchanged. The Map form is produced
-// by walk.mjs::astNodeToMap and carries the deflected step as a
-// structurally-addressable qlang value (:name / :args / :location /
-// :text) that downstream `!|` consumers can filter, project, or
-// re-eval as ordinary data.
+// error by stamping `trailEntry(stepNode, 'pipe')` — the step's
+// source slice plus its combinator kind — onto the trail linked
+// list and returning the error unchanged. `!|` joins the fragments
+// through COMBINATOR_SYNTAX into the `:trail` Quote that downstream
+// consumers replay through `apply` or lift through `/ast`.
 async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(stepNode, 'pipe')));
@@ -1126,7 +1134,7 @@ export function resolveCapturedConduit(astNode, env) {
   return { conduit: resolved, lookupName };
 }
 
-// invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, hostState)
+// invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, callerState)
 //   → Promise<pipeValue>
 //
 // Applies a parametric conduit with caller-supplied captured values,
@@ -1135,7 +1143,7 @@ export function resolveCapturedConduit(astNode, env) {
 // fixed value — matching the conduitParameter lazy-proxy contract for
 // a value the caller has already resolved. Used by filter/every/any
 // over Map to supply (key, value) to a 2-arity predicate per entry.
-// The body runs one frame below `hostState` — the capture-site state
+// The body runs one frame below `callerState` — the capture-site state
 // of the lambda that carried the conduit reference.
 //
 // Enforces the same effectLaundering invariant as applyConduit: an
@@ -1143,7 +1151,7 @@ export function resolveCapturedConduit(astNode, env) {
 // Caller must guarantee fixedArgs.length === conduit's params.length —
 // this invoker performs no arity check because the dispatching operand
 // has already verified the arity.
-export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, hostState) {
+export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, callerState) {
   const conduitName      = conduit.get('name');
   const conduitParams    = conduit.get('params');
   const conduitBody      = conduit.get('body');
@@ -1166,7 +1174,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
     bodyEnv = envSet(bodyEnv, paramName, paramProxy);
   }
 
-  const bodyState = nestState(hostState, pipeValue, bodyEnv);
+  const bodyState = nestState(callerState, pipeValue, bodyEnv);
   const finalBodyState = await evalNode(conduitBody, bodyState);
   return finalBodyState.pipeValue;
 }
@@ -1176,7 +1184,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
 export const CONDUIT_PARAMS_FIELD = 'params';
 
-// resolveBinaryReducer(astNode, hostState) → ((acc, item) → Promise<value>) | null
+// resolveBinaryReducer(astNode, callerState) → ((acc, item) → Promise<value>) | null
 //
 // Resolves a bare reducer reference into the per-step combiner `reduce`
 // folds with. The reducer is applied as `reducer(acc, element)`:
@@ -1188,20 +1196,20 @@ export const CONDUIT_PARAMS_FIELD = 'params';
 // Returns null when the captured arg is not such a reference (an inline
 // expression, a literal, a non-2-param conduit, or an unbound name),
 // so `reduce` lifts its own per-site error.
-export function resolveBinaryReducer(astNode, hostState) {
+export function resolveBinaryReducer(astNode, callerState) {
   if (astNode.type !== 'OperandCall' || astNode.args !== null) return null;
   const lookupName = astNode.name;
-  if (!envHas(hostState.env, lookupName)) return null;
-  let resolved = envGet(hostState.env, lookupName);
+  if (!envHas(callerState.env, lookupName)) return null;
+  let resolved = envGet(callerState.env, lookupName);
   if (isSnapshot(resolved)) resolved = resolved.get('payload');
   if (isConduitDescriptor(resolved)) {
     if (resolved.get(CONDUIT_PARAMS_FIELD).length !== 2) return null;
-    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item, hostState);
+    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item, callerState);
   }
   if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
     const impl = resolved.get('impl');
     return async (acc, item) =>
-      (await applyRule10(impl, [() => item], withPipeValue(hostState, acc))).pipeValue;
+      (await applyRule10(impl, [() => item], withPipeValue(callerState, acc))).pipeValue;
   }
   return null;
 }

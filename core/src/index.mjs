@@ -47,7 +47,11 @@
 //                                EffectLaunderingError,
 //                                EffectLaunderingAtBindStepParseError,
 //                                EffectLaunderingAtCallError,
+//                                EvaluationDepthExceededError,
 //                                QlangInvariantError
+//   evaluation depth budget    — EVAL_DEPTH_LIMIT (the frame count
+//                                `EvaluationDepthExceededError`
+//                                reports as `context.limit`)
 //   effect-marker classification — classifyEffect, EFFECT_MARKER_PREFIX
 //   keyword interning          — keyword (every call with the same name
 //                                returns the same interned object, so
@@ -114,8 +118,10 @@ import {
   EffectLaunderingError,
   EffectLaunderingAtBindStepParseError,
   EffectLaunderingAtCallError,
+  EvaluationDepthExceededError,
   QlangInvariantError
 } from './errors.mjs';
+import { EVAL_DEPTH_LIMIT } from './state.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
 import {
   keyword,
@@ -205,7 +211,9 @@ export {
   EffectLaunderingError,
   EffectLaunderingAtBindStepParseError,
   EffectLaunderingAtCallError,
+  EvaluationDepthExceededError,
   QlangInvariantError,
+  EVAL_DEPTH_LIMIT,
   classifyEffect,
   EFFECT_MARKER_PREFIX,
   keyword,

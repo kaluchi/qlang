@@ -44,8 +44,6 @@ const UseNamespaceNotKeywordError = declareShapeError('UseNamespaceNotKeywordErr
   ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`);
 const UseNamespaceNotFoundError = declareShapeError('UseNamespaceNotFoundError',
   ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`);
-const UseNamespaceNotMapError = declareShapeError('UseNamespaceNotMapError',
-  ({ namespaceName, actualType }) => `use: namespace '${namespaceName}' is ${actualType.name}, expected Map`);
 const UseNamespaceElementNotKeywordError = declareShapeError('UseNamespaceElementNotKeywordError',
   ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType.name}`);
 const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError',
@@ -77,12 +75,12 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
   return await importSelectiveNamespace(state, useArg, useSelection);
 }, [0, 2]);
 
-// resolveNamespaceEnv(hostState, outerEnv, nsKeyword) → [moduleEnv, updatedOuterEnv]
+// resolveNamespaceEnv(callerState, outerEnv, nsKeyword) → [moduleEnv, updatedOuterEnv]
 //
 // Looks up the namespace keyword in env. When absent, falls back
 // to the host-provided locator (stored under `:qlang/locator` in
 // env by `createSession`). The locator parses and evals the module
-// source one frame below `hostState` — a module that `use`s itself
+// source one frame below `callerState` — a module that `use`s itself
 // descends a frame per load until the depth budget lifts
 // `EvaluationDepthExceededError` — patches `:impl` on builtin
 // descriptors with the impls from the locator result, and installs
@@ -90,8 +88,8 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
 // resolved `moduleEnv` paired with the env that holds the
 // freshly-installed namespace binding so the caller threads it
 // forward; `outerEnv` is that evolving env, which walks ahead of
-// `hostState.env` across a multi-namespace import.
-async function resolveNamespaceEnv(hostState, outerEnv, nsKeyword) {
+// `callerState.env` across a multi-namespace import.
+async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // Two lookup keys for a namespace. A host `session.bind(:ns, map)`
   // lands under the bare keyword name (`<ns>`); the language-level
   // locator and `installModules(catalog)` both write under the
@@ -101,23 +99,15 @@ async function resolveNamespaceEnv(hostState, outerEnv, nsKeyword) {
   const cacheKey = moduleNamespaceKey(nsKeyword.name);
   if (outerEnv.has(cacheKey)) return [outerEnv.get(cacheKey), outerEnv];
 
-  // A host-installed namespace is a header-less Map. A Map carrying
-  // a JS-header tag under the bare name — an operand descriptor
-  // (`use(:count)`), a conduit (`use(:double)`), a snapshot — is an
-  // identifier-plane binding, so the probe walks past it to the
-  // locator: merging such a Map would spill `:impl` / `:envRef` /
-  // `:payload` slots into env as bindings.
-  const bareKey = nsKeyword.name;
-  if (outerEnv.has(bareKey)) {
-    const hostBound = outerEnv.get(bareKey);
-    if (!isQMap(hostBound)) {
-      throw new UseNamespaceNotMapError({
-        namespaceName: nsKeyword.name,
-        actualType: typeKeyword(hostBound)
-      });
-    }
-    if (hostBound[TAG_HEADER_SYMBOL] === undefined) return [hostBound, outerEnv];
-  }
+  // A host-installed namespace is a header-less Map under the bare
+  // name. Every other binding there — an operand descriptor
+  // (`use(:count)`), a conduit (`use(:double)`), a snapshot, a
+  // scalar or function a host bound — sits on the identifier plane,
+  // so the probe walks past it to the locator: merging a tagged Map
+  // would spill `:impl` / `:envRef` / `:payload` slots into env as
+  // bindings.
+  const hostBound = outerEnv.get(nsKeyword.name);
+  if (isQMap(hostBound) && hostBound[TAG_HEADER_SYMBOL] === undefined) return [hostBound, outerEnv];
 
   const locatorFn = outerEnv.get(RUNTIME_LOCATOR_KEY);
   if (!locatorFn) {
@@ -134,7 +124,7 @@ async function resolveNamespaceEnv(hostState, outerEnv, nsKeyword) {
   // delta is picked up below as a fallback when pipeValue is not a
   // Map.
   const moduleAst = parseSource(locatorResult.source, { uri: nsKeyword.name });
-  const moduleEvalState = nestState(hostState, outerEnv, outerEnv);
+  const moduleEvalState = nestState(callerState, outerEnv, outerEnv);
   const moduleResultState = await evalAst(moduleAst, moduleEvalState);
 
   // Export surface = env delta. A module exports any binding it

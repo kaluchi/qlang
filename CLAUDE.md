@@ -40,7 +40,10 @@ The Node floor is the `engines.node` field each workspace's
   and the LSP server (`lsp/src/server.mjs`) may use `node:*` freely.
 - **Coverage 100/100/100/100** (lines / branches / functions /
   statements). Every workspace's `vitest.config.mjs` pins the threshold.
-  A change that dips below is blocker-grade.
+  A change that dips below is blocker-grade. The v8 provider remaps its
+  counters through the AST, so an `if` whose implicit else no test
+  reaches counts as an uncovered branch — either the scenario is real
+  and earns a test, or the guard cannot fire and comes out.
 - **Operand catalog**: authored metadata — `:throws`, `:category`,
   `:subject`, `:modifiers`, `:returns` — lives in the per-family
   catalog files under `core/lib/qlang/operand/<family>.qlang`

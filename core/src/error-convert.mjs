@@ -134,10 +134,8 @@ export function errorFromParse(parseError) {
   const d = new Map();
   if (parseError.source != null && parseError.location) {
     const excerpt = excerptAroundLocation(parseError.source, parseError.location);
-    if (excerpt !== null) {
-      d.set('source', excerpt.source);
-      d.set('marker', excerpt.marker);
-    }
+    d.set('source', excerpt.source);
+    d.set('marker', excerpt.marker);
   }
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
@@ -265,8 +263,8 @@ export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
   }
 
   d.set('operand', astNode?.text ?? null);
-  if (faultStep !== undefined) d.set('faultStep', faultStep);
-  if (faultInput !== undefined) d.set('faultInput', faultInput);
+  d.set('faultStep', faultStep);
+  d.set('faultInput', faultInput);
 
   return makeErrorValue(tag, d, {
     location: astNode?.location ?? null,

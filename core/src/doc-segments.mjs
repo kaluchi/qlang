@@ -173,8 +173,9 @@ export async function parseDocSegments(content, env) {
   while (cursor < content.length) {
     const opener = findNextOpener(content, cursor);
     if (opener === null) {
-      const tail = content.slice(cursor);
-      if (tail.length > 0) segments.push(makeProseSegment(tail));
+      // The loop runs while `cursor < content.length`, so the tail
+      // from `cursor` onwards always carries at least one character.
+      segments.push(makeProseSegment(content.slice(cursor)));
       break;
     }
     if (opener.offset > cursor) {

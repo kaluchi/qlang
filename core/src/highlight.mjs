@@ -252,38 +252,37 @@ function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, sp
 function emitProjectionSpans(src, startOffset, endOffset, spans) {
   const projectionText = src.slice(startOffset, endOffset);
   let cursor = 0;
+  // The grammar spells a Projection as `/` KeySeg (`/` KeySeg)*, so
+  // every iteration opens on a `/` and every segment it scans runs
+  // at least one character wide.
   while (cursor < projectionText.length) {
-    if (projectionText[cursor] === '/') {
-      spans.push({
-        start: startOffset + cursor,
-        end:   startOffset + cursor + 1,
-        kind:  'punct'
-      });
-      cursor += 1;
-      let segEnd = cursor;
-      while (segEnd < projectionText.length && projectionText[segEnd] !== '/') {
-        // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
-        // whole `"…"` span so a slash inside it does not split the
-        // segment into two operand tokens.
-        if (projectionText[segEnd] === '"') {
-          segEnd += 1;
-          while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
-            // A backslash escapes the next char (including `\"`), so
-            // step over both; every other char advances by one.
-            segEnd += projectionText[segEnd] === '\\' ? 2 : 1;
-          }
-        }
+    spans.push({
+      start: startOffset + cursor,
+      end:   startOffset + cursor + 1,
+      kind:  'punct'
+    });
+    cursor += 1;
+    let segEnd = cursor;
+    while (segEnd < projectionText.length && projectionText[segEnd] !== '/') {
+      // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
+      // whole `"…"` span so a slash inside it does not split the
+      // segment into two operand tokens.
+      if (projectionText[segEnd] === '"') {
         segEnd += 1;
+        while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
+          // A backslash escapes the next char (including `\"`), so
+          // step over both; every other char advances by one.
+          segEnd += projectionText[segEnd] === '\\' ? 2 : 1;
+        }
       }
-      if (segEnd > cursor) {
-        spans.push({
-          start: startOffset + cursor,
-          end:   startOffset + segEnd,
-          kind:  'operand'
-        });
-        cursor = segEnd;
-      }
+      segEnd += 1;
     }
+    spans.push({
+      start: startOffset + cursor,
+      end:   startOffset + segEnd,
+      kind:  'operand'
+    });
+    cursor = segEnd;
   }
 }
 

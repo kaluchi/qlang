@@ -447,3 +447,12 @@ describe('triviaBetweenAstNodes', () => {
   });
 });
 
+
+describe('astChildrenOf on a stepless Pipeline', () => {
+  it('yields no children', () => {
+    // `code-as-data` can hand the walker a Pipeline Map authored
+    // without steps; the walk reports it as a leaf rather than
+    // reaching for a head step that is not there.
+    expect(astChildrenOf({ type: 'Pipeline', steps: [] })).toEqual([]);
+  });
+});

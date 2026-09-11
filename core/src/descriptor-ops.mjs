@@ -55,7 +55,7 @@ export function stampStructuralFacts(descriptor, fn) {
   return descriptor;
 }
 
-// manifestBuiltinDescriptor(rawDescriptor, name?) → Map
+// manifestBuiltinDescriptor(rawDescriptor, name) → Map
 //
 // Builds the manifest-shape descriptor from a raw env descriptor.
 // Strips internal `:impl`, stamps `:kind ::builtin` as an explicit
@@ -69,7 +69,9 @@ export function stampStructuralFacts(descriptor, fn) {
 export function manifestBuiltinDescriptor(rawDescriptor, name) {
   const result = new Map();
   result.set('kind', BUILTIN_TAG);
-  if (name != null) result.set('name', name);
+  // `manifest` iterates env entries and threads each key through as
+  // `name`, so every descriptor carries one.
+  result.set('name', name);
   for (const [fieldKey, fieldVal] of rawDescriptor) {
     if (fieldKey === 'impl') continue;
     result.set(fieldKey, fieldVal);

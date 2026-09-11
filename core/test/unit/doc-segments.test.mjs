@@ -173,3 +173,20 @@ describe('Doc tokenizer edge cases', () => {
     expect(result).toBe(3);
   });
 });
+
+describe('Doc content opening directly on a segment', () => {
+  // `|~~~{…}` puts the Quote opener at content offset 0, so the
+  // tokenizer emits no leading prose run ahead of it — the slice
+  // between the cursor and the opener is empty.
+  const leadingQuoteDoc = ':x |~~~{mul(2)} tail ~~| (42) | :x | docs | first | /segments';
+
+  it('emits the Quote first, with no empty prose segment ahead of it', async () => {
+    expect(await evalQuery(`${leadingQuoteDoc} | count`)).toBe(2);
+    expect((await evalQuery(`${leadingQuoteDoc} | first | type`)).name).toBe('quote');
+  });
+
+  it('keeps the trailing prose as the second segment', async () => {
+    expect((await evalQuery(`${leadingQuoteDoc} | last | /kind`)).name).toBe('prose');
+    expect(await evalQuery(`${leadingQuoteDoc} | last | /text`)).toBe(' tail ');
+  });
+});

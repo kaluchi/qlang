@@ -841,3 +841,54 @@ describe('createLineEditor — TTY lifecycle', () => {
     expect(stdinStream.listenerCount('data')).toBe(0);
   });
 });
+
+describe('createLineEditor — TTY edits at the buffer edges', () => {
+  it('backspaces the only character in the buffer', () => {
+    // The surrogate-pair probe reads two code units back; at offset 1
+    // there is only one, so the delete takes a single unit.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', Buffer.from([0x7f]), 'b', SUBMIT);
+    expect(capture.lines).toEqual(['b']);
+  });
+
+  it('deletes the last character of the buffer', () => {
+    // Forward delete on the final character: the pair probe has no
+    // following code unit to inspect and takes one.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'ab', ESC + '[D', ESC + '[3~', SUBMIT);
+    expect(capture.lines).toEqual(['a']);
+  });
+
+  it('keeps the sticky column across consecutive Up moves', () => {
+    // The first Up records the column; the second travels on the
+    // recorded one rather than re-reading the clamped position.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'aaa', NEWLINE, 'bb', NEWLINE, 'c',
+                      ESC + '[A',   // → line 'bb', column 1 recorded
+                      ESC + '[A',   // → line 'aaa', same column
+                      'X', SUBMIT);
+    expect(capture.lines).toEqual(['aXaa\nbb\nc']);
+  });
+
+  it('ignores a control byte it binds no editing move to', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'a', Buffer.from([0x02]), 'b', SUBMIT);
+    expect(capture.lines).toEqual(['ab']);
+  });
+
+  it('travels back down on the column recorded by the Up moves', () => {
+    // Up recorded the column; Down reads the same recorded value
+    // instead of re-deriving one from the row it starts on.
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'aaa', NEWLINE, 'bb', NEWLINE, 'c',
+                      ESC + '[A', ESC + '[A',   // → line 'aaa', column 1 recorded
+                      ESC + '[B',               // → line 'bb', same column
+                      'X', SUBMIT);
+    expect(capture.lines).toEqual(['aaa\nbXb\nc']);
+  });
+});

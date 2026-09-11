@@ -562,3 +562,82 @@ describe('AST-Map semantic properties for trail use', () => {
     expect(loc.get(KW_START).get(KW_COLUMN)).toBeGreaterThan(1);
   });
 });
+
+// An AST-Map does not have to come from `astNodeToMap`: `code-as-data`
+// hands the decoder Maps a pipeline authored, and those carry only the
+// fields the author spelled. The optional ones — :location, :effectful,
+// and either half of a :location — are absent there, and the codec
+// carries that absence through the decode and back out on re-encode.
+describe('authored AST-Maps carry their absent fields through', () => {
+  const position = (offset, line, column) => new Map([
+    [KW_OFFSET, offset],
+    [KW_LINE,   line],
+    [KW_COLUMN, column]
+  ]);
+
+  it('a Projection Map without :effectful decodes and re-encodes without one', () => {
+    const authored = new Map([
+      [KW_KIND, keyword('Projection')],
+      [KW_KEYS, ['name']]
+    ]);
+
+    const node = qlangMapToAst(authored);
+    expect(node.type).toBe('Projection');
+    expect(node.effectful).toBeUndefined();
+    expect(node.location).toBeUndefined();
+
+    const reencoded = astNodeToMap(node);
+    expect(reencoded.has(KW_EFFECTFUL)).toBe(false);
+    expect(reencoded.has(KW_LOCATION)).toBe(false);
+    expect(reencoded.get(KW_KEYS)).toEqual(['name']);
+  });
+
+  it('an OperandCall Map without :effectful decodes and re-encodes without one', () => {
+    const authored = new Map([
+      [KW_KIND, keyword('OperandCall')],
+      [KW_NAME, 'count'],
+      [KW_ARGS, null]
+    ]);
+
+    const node = qlangMapToAst(authored);
+    expect(node.type).toBe('OperandCall');
+    expect(node.effectful).toBeUndefined();
+
+    const reencoded = astNodeToMap(node);
+    expect(reencoded.has(KW_EFFECTFUL)).toBe(false);
+    expect(reencoded.get(KW_NAME)).toBe('count');
+    expect(reencoded.get(KW_ARGS)).toBe(null);
+  });
+
+  it('a :location carrying only :start survives decode and re-encode', () => {
+    const authored = new Map([
+      [KW_KIND, keyword('NumberLit')],
+      [KW_VALUE, 42],
+      [KW_LOCATION, new Map([[KW_START, position(0, 1, 1)]])]
+    ]);
+
+    const node = qlangMapToAst(authored);
+    expect(node.location.start).toEqual({ offset: 0, line: 1, column: 1 });
+    expect(node.location.end).toBeUndefined();
+
+    const reencoded = astNodeToMap(node).get(KW_LOCATION);
+    expect(reencoded.has(KW_START)).toBe(true);
+    expect(reencoded.has(KW_END)).toBe(false);
+  });
+
+  it('a :location carrying only :end survives decode and re-encode', () => {
+    const authored = new Map([
+      [KW_KIND, keyword('NumberLit')],
+      [KW_VALUE, 42],
+      [KW_LOCATION, new Map([[KW_END, position(2, 1, 3)]])]
+    ]);
+
+    const node = qlangMapToAst(authored);
+    expect(node.location.start).toBeUndefined();
+    expect(node.location.end).toEqual({ offset: 2, line: 1, column: 3 });
+
+    const reencoded = astNodeToMap(node).get(KW_LOCATION);
+    expect(reencoded.has(KW_START)).toBe(false);
+    expect(reencoded.has(KW_END)).toBe(true);
+  });
+});

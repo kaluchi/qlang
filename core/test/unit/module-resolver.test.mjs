@@ -144,3 +144,22 @@ describe('installModules', () => {
     expect(docsCell.result).toContain('Retry');
   });
 });
+
+describe('locator exports that are not builtin descriptors', () => {
+  it('leaves a Snapshot of a plain Map alone and stamps no impl onto it', async () => {
+    // The unwrap pass reaches inside every Snapshot a locator-loaded
+    // module exports, but only a `::builtin{…}` payload replaces its
+    // wrapper — a data binding stays a Snapshot. The impls pass then
+    // finds no builtin descriptor under that name and stamps nothing,
+    // so the binding keeps its authored value.
+    const sessionInstance = await createSession({
+      locator: async (namespaceName) => namespaceName === 'tests/plain-map'
+        ? { source: ':cfg {:a 1}', impls: { cfg: () => 'never dispatched' } }
+        : null
+    });
+
+    const cellEntry = await sessionInstance.evalCell('use(:tests/plain-map) | cfg | /a');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toBe(1);
+  });
+});

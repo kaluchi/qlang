@@ -3,8 +3,8 @@
 // plus its type-specific payload, and decodes back without loss.
 //
 // The codec is the data layer behind several upstream features:
-//   - Structured error `:trail` — each deflect stamps the upcoming
-//     step's AST-Map onto the error's trail Vec so user code can
+//   - Structured error `:trail` — `/trail | /ast` lifts the deflected
+//     pipeline-suffix Quote into an AST-Map so user code can
 //     filter / group / inspect deflections as qlang data.
 //   - `parse` / `eval` reflective operands — `"query" | parse` lifts
 //     source text into an AST-Map; `ast-map | eval` re-enters

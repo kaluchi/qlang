@@ -1643,7 +1643,7 @@ When a step produces a failure — a type mismatch in projection,
 an arity error, a division by zero — the result is an error value
 (the `!{}` type from Part 1). At that point, the success-track
 combinators `|`, `*`, and `>>` **deflect**: they record the
-upcoming step's AST node onto the error's `:trail` Vec and let
+upcoming step's source onto the error's `:trail` Quote and let
 the error flow through unchanged. The entire success-track
 pipeline after the failure becomes a no-op; the error rides
 through to the end.
@@ -1688,6 +1688,16 @@ The `/source` projection unwraps the Quote into its raw text;
 
 > !{:kind :oops} !| /trail
 null
+```
+
+`:trail` is runtime-owned. A literal or a re-lift that stamps
+anything except a Quote or `null` under `:trail` lifts
+`ErrorTrailNotQuoteError` at construction, so the fail-track never
+carries a suffix that `apply` cannot replay:
+
+```qlang
+> !{:kind :oops :trail [1 2]} !| type
+::ErrorTrailNotQuoteError
 ```
 
 The `!{}` literal from Part 1 can seed an error directly — the
@@ -1800,6 +1810,15 @@ again. This is the mechanism behind MDC-style context enrichment:
 |~| adds fields to the descriptor and re-lifts without losing the trail
 ```
 
+To drop the accumulated suffix before re-lift, stamp `:trail null`
+inside the fail-apply step; deflections past the re-lift grow a
+fresh suffix:
+
+```qlang
+> !{:kind :oops} | count !| union({:trail null}) | error | add(1) !| /trail
+~{| add(1)}
+```
+
 ---
 
 ## Effect markers
@@ -1872,8 +1891,9 @@ Three mechanisms close the "everything is data" ring:
 2. **Runtime is data** — built-ins without arguments evaluate to
    their own descriptor Map (not an arity error). `manifest` gives
    the full env as a Vec of descriptors.
-3. **Errors are data** — `!|` materializes the trail as a Vec of
-   AST-Maps. Each deflected step is a structured Map. (Covered
+3. **Errors are data** — `!|` materializes the trail as a Quote of
+   the deflected pipeline suffix; `/trail | /ast` lifts it into an
+   AST-Map whose `:steps` are individually addressable. (Covered
    in [Error track](#error-track).)
 
 All three use the same mechanism: Map + pipeline.
@@ -2092,7 +2112,7 @@ success `pipeValue` it deflects as identity pass-through.
 | Combinator | Effect |
 |---|---|
 | `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`. On error `pipeValue`, deflect: append `b`'s AST node to the trail and return the error unchanged. |
-| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Vec with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
+| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Quote with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
 | `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
 | `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. On error `pipeValue`, deflect. |
 
@@ -2149,6 +2169,7 @@ filter(/age | gt(18))
 | `sort` on Vec with non-comparable elements | type error |
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
+| `:trail` stamped with anything except a Quote or `null` | type error |
 
 ---
 

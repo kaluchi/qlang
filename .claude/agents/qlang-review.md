@@ -62,7 +62,7 @@ qlang's error model is **two-track**: pipeline values flow on either the **succe
 - Every error value's descriptor carries `:trail` as either a Quote-value or `null` by **invariant** — enforced once by `makeErrorValue` in `types.mjs`. The Quote holds the joined pipeline-suffix source as copy-pasteable code; `/source` projects raw text, `/ast` lazy-parses on demand. Hot-path readers read `:trail` unconditionally; no defensive fallback.
 - A conduit called via `!|` receives the materialized descriptor as its body's first pipeValue; the body is an ordinary sub-pipeline that composes through `|`, `!|`, `*`, `>>` like any other.
 - The leading `!|` prefix (captured in `Pipeline.leadingFail`) is the first-step form: it routes the first step of a sub-pipeline through fail-apply even though there is no preceding combinator. Used inside `filter(…)` / `when(…)` / `if(…)` lambdas where the per-element pipeValue may or may not be an error.
-- Explicit truncation of the trail uses `union({:trail []})` inside a fail-apply step before re-lift via `| error`.
+- Explicit truncation of the trail stamps `:trail null` — `union({:trail null})` inside a fail-apply step before re-lift via `| error`. Any other value under `:trail` fires `ErrorTrailNotQuoteError` at mint time (`makeErrorValue`), so a `:trail []` / `:trail [...]` idiom in code, docs, or tests is drift.
 - `isError` is a plain predicate operand (`nullaryOp`) — no `errorAware` flag, no special dispatch. It is used at **raw first-step** positions inside predicate lambdas where the per-element pipeValue might be on either track.
 - `error` is the lift operand: `Map | error` or `error(Map)` wraps a Map into a fresh error value. `!{…}` literal is the syntactic short form.
 

@@ -473,7 +473,7 @@ describe('round-trip — BindStep declarative form', () => {
 });
 
 describe('round-trip — error track and fail-apply', () => {
-  it('error literal', () => assertRoundTrip('!{:kind :oops :trail []}'));
+  it('error literal', () => assertRoundTrip('!{:kind :oops :trail ~{| count}}'));
   it('fail-apply on error literal', () => assertRoundTrip('!{:kind :oops} | count !| /kind'));
   it('deflect then fail-apply', () =>
     assertRoundTrip('"hello" | add(1) | mul(2) !| /trail'));
@@ -525,9 +525,9 @@ describe('round-trip — realistic queries', () => {
 
 describe('AST-Map semantic properties for trail use', () => {
   it('every step inside a pipeline is individually addressable', () => {
-    // This is the target shape for structured :trail: each deflected
-    // step becomes an entry in the trail Vec, and downstream code
-    // needs to read :name / :args / :location without knowing the
+    // This is the shape `/trail | /ast | /steps` hands back: each
+    // deflected step is one entry, and downstream code reads
+    // :name / :args / :location off it without knowing the
     // specific kind ahead of time.
     const m = astNodeToMap(parse('[1 2 3] | filter(gt(2)) | count'));
     const steps = m.get(KW_STEPS);

@@ -23,7 +23,8 @@
      9. Evaluator dispatch invariants
     10. Primitive registry invariants
     11. Session lifecycle invariants
-    12. Render-path invariants ~|
+    12. Render-path invariants
+    13. Error-value mint invariants ~|
 
 |~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
 
@@ -463,3 +464,32 @@
       `bindHostBuiltin` helper demonstrates the pattern.
   ~~|
   ::builtin{:category :invariantError}
+
+|~ ── 13. Error-value mint invariants ──────────────────── ~|
+
+::ErrorTrailNotQuoteError
+  |~~ `:trail` on an error descriptor is runtime-owned: a
+      Quote-value carrying the joined pipeline-suffix source, or
+      `null` before any deflection. A literal or a re-lift that
+      stamps any other value under `:trail` fires this error at
+      mint time, so the fail-track never carries a suffix that
+      `apply` cannot replay. To drop an accumulated suffix before
+      re-lift, stamp `:trail null` inside the fail-apply step.
+
+      ~{
+        !{:kind :oops :trail [1 2]}
+        !| [type /actualType]
+        |  eq([::ErrorTrailNotQuoteError :vec])
+       }
+      ~{
+        !{:kind :oops} | count
+        !| union({:trail []}) | error
+        !| type | eq(::ErrorTrailNotQuoteError)
+       }
+      ~{
+        !{:kind :oops} | count
+        !| union({:trail null}) | error | add(1)
+        !| /trail | eq(~{| add(1)})
+       }
+  ~~|
+  ::builtin{:category :typeError :expectedType [:quote :null]}

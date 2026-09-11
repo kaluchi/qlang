@@ -361,24 +361,26 @@ function retagPerElement(items, source) {
 // pass-through (state unchanged).
 //
 // On fire, the error wrapper is exposed to `stepNode` as its
-// *materialized descriptor* — a fresh Map built by taking the
-// descriptor and replacing `:trail` with the combined Vec of
-//   (1) the descriptor's existing `:trail` (always present by
+// *materialized descriptor* — a fresh Map carrying every descriptor
+// field plus `:trail` stamped from the combined Quote of
+//   (1) the descriptor's existing `:trail` (a Quote or null by
 //       makeErrorValue's invariant), plus
 //   (2) the new deflected steps walked out of `_trailHead` linked list
 //       (deflections that happened since the last materialization).
 //
-// The invariant that every error descriptor carries `:trail` as a Vec
-// is enforced by `makeErrorValue` in types.mjs at construction time,
-// which lets this hot-path read `:trail` without a defensive fallback.
+// The invariant that every error descriptor carries `:trail` as a
+// Quote-value or null is enforced by `makeErrorValue` in types.mjs at
+// mint time, which lets this hot-path read `:trail` without a
+// defensive fallback.
 //
 // Trail continuity across re-lift: when an operand running under `!|`
 // returns a Map and a later `| error` re-wraps it, the new error
-// value's descriptor carries the `:trail` Vec the operand handed back.
-// Subsequent deflections append to a fresh `_trailHead` linked list.
-// The next `!|` combines both sources again — continuous accumulation.
-// Explicit truncation is available via `union({:trail []})` inside a
-// fail-apply step, which overwrites the `:trail` field before re-lift.
+// value's descriptor carries the `:trail` Quote the operand handed
+// back. Subsequent deflections append to a fresh `_trailHead` linked
+// list. The next `!|` combines both sources again — continuous
+// accumulation. Dropping the accumulated suffix before re-lift stamps
+// `:trail null` inside the fail-apply step (`!| union({:trail null})
+// | error`); deflections past the re-lift grow a fresh suffix.
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const errorVal = state.pipeValue;

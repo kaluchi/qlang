@@ -1,6 +1,6 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { classifyEffect } from './effect.mjs';
-import { QlangInvariantError } from './errors.mjs';
+import { QlangInvariantError, QlangTypeError } from './errors.mjs';
 import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 
 // Conduit body must carry a `.text` source slice — every production
@@ -537,9 +537,32 @@ export const COMBINATOR_SYNTAX = Object.freeze({
   merge:      '>>'
 });
 
+// `:trail` is runtime-owned: a Quote-value carrying the joined
+// pipeline-suffix source, or `null` before any deflection. A
+// literal (`!{:trail [1 2]}`) or a re-lift (`!| union({:trail []})
+// | error`) that stamps any other value under `:trail` fires this
+// error at mint time, so `combineTrailQuotes` never reads `.source`
+// off a non-Quote and the fail-track never carries a suffix that
+// `apply` cannot replay. Dropping an accumulated suffix before
+// re-lift stamps `:trail null`.
+export class ErrorTrailNotQuoteError extends QlangTypeError {
+  constructor(actualValue) {
+    const actualType = typeKeyword(actualValue);
+    super(
+      `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
+      { actualType, actualValue }
+    );
+    this.name = 'ErrorTrailNotQuoteError';
+    this.fingerprint = 'ErrorTrailNotQuoteError';
+  }
+}
+
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
-  if (!descriptor.has('trail')) {
+  if (descriptor.has('trail')) {
+    const trail = descriptor.get('trail');
+    if (trail !== null && !isQuote(trail)) throw new ErrorTrailNotQuoteError(trail);
+  } else {
     finalDescriptor = new Map(descriptor);
     finalDescriptor.set('trail', null);
   }

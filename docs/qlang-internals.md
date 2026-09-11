@@ -536,17 +536,16 @@ and returns the error as the new `pipeValue`. Implementation:
         (pipeValue, env) unchanged (identity pass-through)
 
 Fail-track dispatch dual of `|`. When `pipeValue` is an error,
-`applyFailTrack` combines the descriptor's existing `:trail` Vec
-with any new entries walked out of `_trailHead`, rebuilds the
-descriptor Map with the JS-header `tag` stamped back as the
-leading `:kind` field plus the combined trail stamped onto
-`:trail`, and evaluates `nextStep` against that Map as the new
-`pipeValue` — so per-instance explainers read identity through
-ordinary projection (`/kind`, `/kind | source`). The
-step sees the descriptor as an ordinary Map and may use any
-Map-oriented operand (`/key`, `has`, `keys`, `vals`, `union`,
-`filter` over `:trail`, etc.) without special error-handling
-knowledge. Any result the step produces becomes the new
+`applyFailTrack` combines the descriptor's existing `:trail` Quote
+with the fragments walked out of `_trailHead` into one Quote,
+forges a fresh descriptor Map carrying every data field plus the
+combined Quote on `:trail`, stamps the error's identity tag onto
+that Map's JS-header slot, and evaluates `nextStep` against it as
+the new `pipeValue` — so `!| type` reads the identity and `!|
+/trail` reads the suffix. The step sees the descriptor as an
+ordinary Map and may use any Map-oriented operand (`/key`, `has`,
+`keys`, `vals`, `union`, `/trail | apply(…)`, etc.) without special
+error-handling knowledge. Any result the step produces becomes the new
 `pipeValue` — if the step produces a non-error value, the
 pipeline is back on the success-track; if the step re-lifts via
 `| error`, the pipeline stays on the fail-track with trail
@@ -1234,10 +1233,12 @@ while letting future deflections re-grow it.
 `makeErrorValue` (in `types.mjs`) enforces a single invariant:
 every error descriptor carries `:trail` as either a Quote-value
 or `null`. Callers supplying an explicit `:trail` in the input
-descriptor (user literal `!{:trail \`| count\`}`, codec replay via
-`fromTaggedJSON`) keep that Quote unchanged; callers that omit
-the field get `null` forged in. Hot-path readers under `!|` read
-`:trail` without defensive fallbacks.
+descriptor (user literal `!{:trail ~{| count}}`, a re-lift under
+`!|`, codec replay via `fromTaggedJSON`) keep that Quote
+unchanged; callers that omit the field get `null` forged in; any
+other value under `:trail` fires `ErrorTrailNotQuoteError` at mint
+time. Hot-path readers under `!|` read `:trail` without defensive
+fallbacks.
 
 Error values produced by the runtime carry the following fields
 in addition to the invariant `:trail`:

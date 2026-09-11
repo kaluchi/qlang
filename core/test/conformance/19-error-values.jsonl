@@ -33,9 +33,12 @@
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union({:stage 1}) | error | add(1) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{| count | add(1)}\n  :actualType :quote\n}"}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union({:request \"r-1\"}) | error | count !| /request","expect":"\"r-1\""}
 {"name":"leading-fail-apply-filter-by-error-kind","query":"[1 \"x\" 3 \"y\"] * add(10) | filter(!| type | eq(::AddLeftNotNumberError)) | count","expect":"2"}
-{"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add(1) !| union({:trail []}) | error !| /trail","expect":"[]"}
-{"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [\"pre-1\" \"pre-2\"]} !| /trail","expect":"[\"pre-1\" \"pre-2\"]"}
-{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:text \"pre\"}]} | count !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{undefined | count}\n  :actualType :quote\n}"}
+{"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add(1) !| union({:trail null}) | error !| /trail","expect":"null"}
+{"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail ~{| pre}} !| /trail","expect":"~{| pre}"}
+{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail ~{| pre}} | count !| /trail","expect":"~{| pre | count}"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add(1) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{* add(1)}\n  :actualType :quote\n}"}
 {"name":"merge-combinator-deflects-on-error","query":"!{:kind :oops} >> count !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{>> count}\n  :actualType :quote\n}"}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add(1)","expect":"::AddLeftNotNumberError!{\n  :faultStep ~{add(1)}\n  :faultInput \"hello\"\n  :actualType :string\n}"}
+{"name":"trail-not-quote-in-literal","query":"!{:kind :oops :trail [1 2]} !| [type /actualType]","expect":"[::ErrorTrailNotQuoteError :vec]"}
+{"name":"trail-not-quote-on-relift","query":"!{:kind :oops} | count !| union({:trail []}) | error !| type","expect":"::ErrorTrailNotQuoteError"}
+{"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| union({:trail null}) | error | add(1) !| /trail","expect":"~{| add(1)}"}

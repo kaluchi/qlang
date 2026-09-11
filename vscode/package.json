@@ -4,15 +4,21 @@
   "description": "Syntax highlighting and language server for the qlang query language",
   "version": "0.1.0",
   "publisher": "local",
-  "engines": { "vscode": "^1.75.0" },
+  "engines": {
+    "vscode": "^1.91.0"
+  },
   "main": "./src/extension.js",
   "contributes": {
     "markdown.markdownItPlugins": true,
     "languages": [
       {
         "id": "qlang",
-        "aliases": ["qlang"],
-        "extensions": [".qlang"],
+        "aliases": [
+          "qlang"
+        ],
+        "extensions": [
+          ".qlang"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -31,7 +37,9 @@
       {
         "scopeName": "markdown.qlang.codeblock",
         "path": "./syntaxes/qlang-markdown.tmLanguage.json",
-        "injectTo": ["text.html.markdown"],
+        "injectTo": [
+          "text.html.markdown"
+        ],
         "embeddedLanguages": {
           "meta.embedded.block.qlang": "qlang"
         }
@@ -39,6 +47,6 @@
     ]
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^10.1.1"
   }
 }

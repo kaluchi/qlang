@@ -189,34 +189,32 @@ run('npm install');
 
 // ── Workspace links ─────────────────────────────────────────
 //
-// Every sibling must resolve to its folder in this repo. A registry
-// copy nested inside a workspace resolves ahead of the root link, so
-// the suite below would test the release against a different core
-// than the one being published — and everything run from the repo
-// afterwards would keep reading that copy.
+// Every sibling a workspace declares must resolve to that sibling's
+// folder in this repo. A published copy nested inside the workspace
+// resolves ahead of the root link, so the suite below would test the
+// release against a different core than the one being published —
+// and everything run from the repo afterwards would keep reading
+// that copy.
 
 console.log('\nWorkspace links:');
-const shadowed = [];
-for (const { dir, manifest } of workspaces) {
-  for (const publishedName of PUBLISHED_WORKSPACES) {
-    if (manifest.name === publishedName) continue;
-    const nested = resolve(REPO_ROOT, dir, 'node_modules', publishedName);
-    // `throwIfNoEntry: false` answers `undefined` for the ordinary
-    // case of nothing being there, and lets a permission or symlink
-    // error travel — a guard that cannot read the tree must say so
-    // rather than report it clean.
-    const nestedStat = lstatSync(nested, { throwIfNoEntry: false });
-    if (nestedStat === undefined || nestedStat.isSymbolicLink()) continue;
-    shadowed.push(`${dir}/node_modules/${publishedName}`);
-  }
+const shadowed = new Set();
+for (const { workspace, depName } of siblingDeclarations(workspaces)) {
+  const nested = resolve(REPO_ROOT, workspace.dir, 'node_modules', depName);
+  // `throwIfNoEntry: false` answers `undefined` for the ordinary
+  // case of nothing being there, and lets a permission or symlink
+  // error travel — a guard that cannot read the tree must say so
+  // rather than report it clean.
+  const nestedStat = lstatSync(nested, { throwIfNoEntry: false });
+  if (nestedStat === undefined || nestedStat.isSymbolicLink()) continue;
+  shadowed.add(`${workspace.dir}/node_modules/${depName}`);
 }
-if (shadowed.length > 0) {
+if (shadowed.size > 0) {
   fail('a published copy shadows the workspace link:\n  '
-       + shadowed.join('\n  ')
+       + [...shadowed].join('\n  ')
        + '\nthe install above left it in place — delete each folder, '
        + 'run `npm install` at the repo root, and re-run the release');
 }
-console.log('  ✓ every sibling resolves to its workspace folder');
+console.log('  ✓ every declared sibling resolves to its workspace folder');
 
 // ── Build ───────────────────────────────────────────────────
 

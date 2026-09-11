@@ -14,6 +14,8 @@
 //   • local master in sync with origin/master (no ahead, no behind)
 //   • tag absent both locally and on the remote
 //   • latest commit on origin/master has a successful CI run
+//   • every declared sibling resolves to its workspace folder,
+//     with no published copy nested inside a workspace
 //   • every publishable workspace version bump lands in a single
 //     "Release X" commit
 //   • after the Release commit is pushed, CI on that exact SHA must
@@ -32,6 +34,7 @@ import {
   siblingDeclarations,
   writeWorkspaceManifest
 } from './workspace-manifests.mjs';
+import { lstatSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -80,6 +83,28 @@ async function findCiRunForSha(sha) {
        + 'within 60s — investigate on GitHub Actions');
 }
 
+// Every sibling a workspace declares must resolve to that sibling's
+// folder in this repo. A published copy nested inside the workspace
+// resolves ahead of the root link, so the suite would test the
+// release against a different core than the one being published —
+// and everything run from the repo afterwards would keep reading
+// that copy. Returns the shadowed paths, empty when the tree links
+// cleanly.
+function shadowedSiblingLinks(workspaces) {
+  const shadowed = new Set();
+  for (const { workspace, depName } of siblingDeclarations(workspaces)) {
+    const nested = resolve(REPO_ROOT, workspace.dir, 'node_modules', depName);
+    // `throwIfNoEntry: false` answers `undefined` for the ordinary
+    // case of nothing being there, and lets a permission or symlink
+    // error travel — a guard that cannot read the tree must say so
+    // rather than report it clean.
+    const nestedStat = lstatSync(nested, { throwIfNoEntry: false });
+    if (nestedStat === undefined || nestedStat.isSymbolicLink()) continue;
+    shadowed.add(`${workspace.dir}/node_modules/${depName}`);
+  }
+  return [...shadowed];
+}
+
 // ── Parse args ──────────────────────────────────────────────
 
 const version = process.argv[2];
@@ -126,15 +151,38 @@ if (baseRun.conclusion !== 'success') {
        + 'requires a green master');
 }
 
+// Read the tree as it stands: a shadow that predates the release
+// has to surface here, while the working tree is still clean and
+// the operator can fix it and start again. The rewrite step below
+// reads the workspaces again, after `npm version` has written the
+// bumped ones.
+const shadowedAtStart = shadowedSiblingLinks(readWorkspaces(REPO_ROOT));
+if (shadowedAtStart.length > 0) {
+  fail('a published copy shadows a workspace link:\n  '
+       + shadowedAtStart.join('\n  ')
+       + '\ndelete each folder, run `npm install` at the repo root, '
+       + 'and start the release again');
+}
+
 console.log(`  ✓ master clean, in sync, ${CI_WORKFLOW} green, `
             + `tag ${tag} free`);
 
 // ── Version bump (every publishable workspace) ──────────────
+//
+// `--no-workspaces-update` keeps npm from installing between the
+// bumps. A bumped sibling momentarily sits outside the range its
+// dependents still declare, and an install landing in that window
+// resolves the dependency against the registry instead of the
+// folder — leaving a stale published copy nested inside the
+// dependent workspace, shadowing the link for everything that runs
+// from the repo afterwards. The single install below lands once the
+// versions and the ranges agree.
 
 console.log('\nVersion bumps:');
 for (const ws of PUBLISHED_WORKSPACES) {
   console.log(`  • ${ws}`);
-  run(`npm version ${version} --no-git-tag-version --allow-same-version -w ${ws}`);
+  run(`npm version ${version} --no-git-tag-version --allow-same-version `
+      + `--no-workspaces-update -w ${ws}`);
 }
 
 const bumpDiff = runCapture('git status --porcelain');
@@ -171,9 +219,20 @@ for (const workspace of rewrittenManifests) {
   writeWorkspaceManifest(workspace);
 }
 
-// The lockfile carries every declared range; `npm ci` on the release
-// SHA rejects a lockfile that disagrees with the manifests.
-run('npm install --package-lock-only');
+// One install for the whole bump: it relinks every workspace under
+// the ranges they carry and rewrites the lockfile `npm ci` reads on
+// the release SHA.
+run('npm install');
+
+console.log('\nWorkspace links:');
+const shadowedAfterInstall = shadowedSiblingLinks(workspaces);
+if (shadowedAfterInstall.length > 0) {
+  fail('the install left a published copy shadowing a workspace link:\n  '
+       + shadowedAfterInstall.join('\n  ')
+       + '\ndelete each folder, run `git restore .` to drop the bump, '
+       + 'then `npm install`, and start the release again');
+}
+console.log('  ✓ every declared sibling resolves to its workspace folder');
 
 // ── Build ───────────────────────────────────────────────────
 

@@ -27,7 +27,23 @@
 //       `docs/qlang-operands.md`. A new operand that lands without
 //       its doc section is caught here before review.
 //
-// Exit 0 when both checks pass, 1 when any violation surfaces.
+//   (3) Per-site error class `Error` suffix. Every concrete class
+//       introduced by a `declare*Error(...)` factory call or by a
+//       direct `class Foo extends QlangError` declaration across
+//       `core/src`, `cli/src`, `lsp/src` must carry the `Error`
+//       suffix, so the named-error island stays distinct from the
+//       value-class tag-bindings (`::conduit`, `::qlang`,
+//       `::json`).
+//
+//   (4) Derivable tallies in markdown prose. A count that
+//       `npm test`, the manifest, or a grep already answers —
+//       conformance cases, error classes, operands, catalog
+//       families, files — drifts the moment the next commit
+//       lands. Prose states the invariant, the generator states
+//       the number. Scanned outside fenced blocks and inline
+//       code spans so example values stay legal.
+//
+// Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -51,7 +67,9 @@ const IGNORE_DIRS = new Set([
   'site/dist', 'site/public',
   'vscode'
 ]);
-const IGNORE_FILES = new Set([
+// Files that quote the forbidden list verbatim — exempt from the
+// forbidden-word scan, still in scope for every other check.
+const RULESET_FILES = new Set([
   'CLAUDE.md',
   '.claude/agents/qlang-review.md',
   'scripts/check-conventions.mjs'  // this file quotes the list
@@ -81,9 +99,6 @@ function* walkSourceTree(rootDir) {
       yield* walkSourceTree(entryPath);
       continue;
     }
-    if (IGNORE_FILES.has(relPath)) continue;
-    // Scan source + docs prose (but the docs/ root is explicitly
-    // allowlisted above so this only catches code / inline docs).
     if (!/\.(mjs|js|md|qlang)$/.test(entry)) continue;
     yield entryPath;
   }
@@ -95,9 +110,10 @@ function scanForbiddenWords() {
     const text = readFileSync(filePath, 'utf8');
     const lines = text.split(/\r?\n/);
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
-    // The docs/ tree names forbidden words for pedagogy — review
-    // agent file is already allowlisted; the qlang-spec and
-    // friends are allowed to quote them in code samples.
+    // The docs/ tree names forbidden words for pedagogy, and the
+    // ruleset files quote the list itself — both are allowed to
+    // spell the words out.
+    if (RULESET_FILES.has(relFile)) continue;
     if (relFile.startsWith('docs/')) continue;
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
@@ -255,15 +271,69 @@ function errorSuffixDrift() {
   return violations;
 }
 
+// ── (4) Derivable tallies in markdown prose ────────────────────
+//
+// The nouns whose counts a test run, the manifest, or a grep
+// already answers. A digit standing in front of one of them in
+// prose is a number the next commit invalidates in silence.
+
+const TALLY_NOUNS = [
+  'conformance', 'cases?', 'tests?', 'suites?', 'operands?',
+  'error classes', 'classes', 'famil(?:y|ies)', 'workspaces?',
+  'files?', 'entries', 'lines?', 'primitives?', 'catalogs?'
+].join('|');
+
+// Up to two adjectives may sit between the digit and the noun
+// («1192 error-producing conformance cases»). A digit carrying a
+// section sigil (`§3 rule`, `#4 case`) addresses a chapter rather
+// than counting one, and stays legal.
+const TALLY_RE = new RegExp(
+  String.raw`(?<![§#])\b\d[\d,]*\s+(?:[a-z][a-z-]*\s+){0,2}(?:` + TALLY_NOUNS + String.raw`)\b`,
+  'i');
+
+const FENCE_RE = /^\s*```/;
+const INLINE_CODE_RE = /`[^`]*`/g;
+
+function scanProseTallies() {
+  const violations = [];
+  for (const filePath of walkSourceTree(repoRoot)) {
+    const relFile = relative(repoRoot, filePath).split(sep).join('/');
+    if (!relFile.endsWith('.md')) continue;
+
+    const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
+    let insideFence = false;
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      const line = lines[lineIndex];
+      if (FENCE_RE.test(line)) {
+        insideFence = !insideFence;
+        continue;
+      }
+      if (insideFence) continue;
+
+      const tally = line.replace(INLINE_CODE_RE, '').match(TALLY_RE);
+      if (tally === null) continue;
+      violations.push({
+        file: relFile,
+        line: lineIndex + 1,
+        tally: tally[0].trim(),
+        snippet: line.trim().slice(0, 120)
+      });
+    }
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
 const driftMissing = catalogDocDrift();
 const errorSuffixViolations = errorSuffixDrift();
+const proseTallies = scanProseTallies();
 
 if (forbidden.length === 0
     && driftMissing.length === 0
-    && errorSuffixViolations.length === 0) {
+    && errorSuffixViolations.length === 0
+    && proseTallies.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -287,6 +357,14 @@ if (errorSuffixViolations.length > 0) {
   for (const v of errorSuffixViolations) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
     process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class tag-bindings (::conduit / ::qlang / ::json).\n`);
+  }
+}
+if (proseTallies.length > 0) {
+  process.stdout.write(
+    `\nDerivable tallies in prose (${proseTallies.length}):\n`);
+  for (const v of proseTallies) {
+    process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
+    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose.\n');
   }
 }
 process.exit(1);

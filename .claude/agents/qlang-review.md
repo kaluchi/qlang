@@ -193,6 +193,12 @@ For each diff:
 
 Drift in either direction (code without docs, or docs without code) is a finding.
 
+### 8a. No derivable tallies in prose
+
+A `.md` file never spells out a number that a test run, the manifest, or a grep over the tree already answers: conformance-case counts, error-class counts, operand counts, catalog-family counts, file counts. The prose states the invariant — "every error-producing conformance case is auto-checked for a literal `undefined`" — and the generator states the number. A tally in prose is drift the next commit silently invalidates, and `npm run check:conventions` fails on it.
+
+Catalog-size **pins** are the deliberate exception: `core/test/unit/core-catalog.test.mjs` asserts catalog sizes so a silent catalog shrink fails CI. A pin belongs in test code, which CI re-verifies on every push — never in prose, which nothing verifies.
+
 ### 9. Test discipline
 
 - AST shape assertions use **explicit field checks** (`expect(ast.type).toBe(...)`, `expect(ast.value).toBe(...)`), NOT `toMatchObject` against an inline literal nor a `astShape`/`stripMeta` helper indirection. Such helpers are review-blocking unless they exist in the conformance runner that explicitly hydrates test fixtures.

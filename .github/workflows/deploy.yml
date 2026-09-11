@@ -8,6 +8,13 @@ jobs:
   publish:
     name: Publish ${{ matrix.workspace }} to npm
     runs-on: ubuntu-latest
+    # npm trusted publishing (OIDC): the registry mints the publish
+    # credential from this token, matched against the package's
+    # trusted-publisher entry (repository + this workflow's file
+    # name). No long-lived npm token takes part.
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       # Core is built first — other workspaces that import from it
       # at test time need the generated artefacts. Serial publish
@@ -15,9 +22,11 @@ jobs:
       max-parallel: 1
       fail-fast: true
       matrix:
-        workspace:
-          - "@kaluchi/qlang-core"
-          - "@kaluchi/qlang-cli"
+        include:
+          - workspace: "@kaluchi/qlang-core"
+            dir: core
+          - workspace: "@kaluchi/qlang-cli"
+            dir: cli
     steps:
       - uses: actions/checkout@v5
 
@@ -37,10 +46,20 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           npm version "$VERSION" --no-git-tag-version --allow-same-version -w ${{ matrix.workspace }}
 
+      # The npm that ships with Node 22 predates OIDC exchange. The
+      # upgrade lands after `npm ci` so the install keeps the
+      # bundled npm's semantics, and stays inside the 11.x line so
+      # npm 12's opt-in install defaults do not reach this job.
+      - name: Install an npm that speaks OIDC
+        run: npm install -g npm@^11.5.1
+
+      # Publishing from the package directory rather than through
+      # `-w` keeps the OIDC exchange addressed at one package: the
+      # registry resolves the trusted publisher by the package name
+      # the manifest in this directory declares.
       - name: Publish
-        run: npm publish --access public -w ${{ matrix.workspace }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ${{ matrix.dir }}
+        run: npm publish --access public
 
   release:
     name: Create GitHub Release

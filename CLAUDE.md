@@ -27,9 +27,10 @@ is always `@kaluchi/`. Single rule, applied uniformly:
 - `vscode/` → `qlang-vscode`. VS Code Marketplace package, not
   npm-published.
 
-`npm install` at the repo root uses npm workspaces (Node 18+) to
-cross-link every package; no manual `npm link` is needed during
-development.
+`npm install` at the repo root uses npm workspaces to cross-link
+every package; no manual `npm link` is needed during development.
+The Node floor is the `engines.node` field each workspace's
+`package.json` declares — read it there rather than restating it.
 
 ## Hard invariants
 
@@ -64,6 +65,13 @@ development.
   `declareComparabilityError`, `declareShapeError`,
   `declareArityError`). Each class sets `name` and `fingerprint` via
   the `brand()` helper and carries a structured `context` object.
+- **No derivable tallies in prose**: an `.md` file never spells out a
+  number that `npm test`, the manifest, or a grep over the tree already
+  answers — conformance cases, error classes, operands, catalog
+  families, files. Prose states the invariant, the generator states the
+  number; `npm run check:conventions` fails on a tally. Catalog-size
+  pins are the deliberate exception and live in
+  `core/test/unit/core-catalog.test.mjs`, where CI re-verifies them.
 - **No defensive noise, no temporal framing, no half-measures.** See
   the review rules for the exhaustive list.
 
@@ -103,6 +111,8 @@ chapters the main agent keeps in mind at every commit:
 13. Structural coherence — no code dumps. Every file in `core/src/`,
     `core/test/`, `docs/` must have a derivable one-sentence grouping
     principle.
+14. No derivable tallies in prose — counts that a test run, the
+    manifest, or a grep answers stay out of the `.md` files.
 
 ## Commands
 
@@ -158,9 +168,25 @@ The tag push triggers `.github/workflows/deploy.yml`, which runs
 `npm publish` for every workspace in its matrix and creates the
 GitHub Release with auto-generated notes.
 
+npm authorises that publish through **trusted publishing (OIDC)**:
+each published package carries a trusted-publisher entry on
+npmjs.com naming this repository and the workflow file
+`deploy.yml`, and the publish job grants `id-token: write` so
+GitHub mints the token the registry exchanges for a publish
+credential. Three consequences bind any edit to that workflow:
+
+- The file name `deploy.yml` is load-bearing. Rename it and
+  publishing stops until the trusted-publisher entry on every
+  published package names the new file.
+- The exchange needs npm 11.5.1 or later. The npm bundled with
+  Node 22 predates it, so the job installs one before publishing
+  and keeps `npm ci` on the bundled npm.
+- No npm token takes part. A `NODE_AUTH_TOKEN` in the publish step
+  makes npm authenticate with that token in place of the exchange.
+
 ```bash
 # After a green merge to master, when ready to release:
-node scripts/release.mjs 0.7.7
+node scripts/release.mjs <version>
 ```
 
 The preflight gate and the tag-push automation fire when this
@@ -249,9 +275,9 @@ every same-shape regression on the first affected case. Pattern:
   family), assert the failure mode absent.
 
 `core/test/unit/error-message-completeness.test.mjs` is the
-example: 1192 conformance cases auto-checked for «message contains
-literal `undefined`». Every future missing-throw-site-param across
-all 186 error classes would surface there on the first conformance
+example: every error-producing conformance case auto-checked for
+«message contains literal `undefined`». A missing throw-site param
+in any per-site error class surfaces there on the first conformance
 case that exercises it — without writing per-class regressions.
 
 ### Audit own diffs for DRY violations before each push

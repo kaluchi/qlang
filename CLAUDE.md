@@ -69,14 +69,16 @@ The Node floor is the `engines.node` field each workspace's
   `declareArityError`). Each class sets `name` and `fingerprint` via
   the `brand()` helper and carries a structured `context` object.
 - **Internal dependency ranges name the sibling's version**: a
-  workspace depending on `@kaluchi/qlang-core` declares
-  `^<core's version>`, never `*`. npm workspaces link the folder by
-  name, so the range steers nothing locally and rides out to the
-  registry verbatim — where `*` hands a consumer whichever core npm
-  has newest, and a second core instance whose `TAG_HEADER_SYMBOL`
-  no value from the first answers to. `npm run check:conventions`
-  fails on a drifted range; `scripts/release.mjs` rewrites them all
-  at bump time.
+  workspace naming `@kaluchi/qlang-core` — under `dependencies`,
+  `devDependencies`, `peerDependencies` or `optionalDependencies` —
+  declares `^<core's version>`, never `*`. npm workspaces link the
+  folder by name, so the range steers nothing locally and rides out
+  to the registry verbatim, where `*` hands a consumer whichever core
+  npm has newest, and a second core instance whose
+  `TAG_HEADER_SYMBOL` no value from the first answers to.
+  `scripts/workspace-manifests.mjs` owns which maps count and what
+  range they carry; `npm run check:conventions` enforces it and
+  `scripts/release.mjs` rewrites every declaration at bump time.
 - **No derivable tallies in prose**: an `.md` file never spells out a
   number that `npm test`, the manifest, or a grep over the tree already
   answers — conformance cases, error classes, operands, catalog

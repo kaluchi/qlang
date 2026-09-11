@@ -27,7 +27,11 @@
 //   node scripts/release.mjs 0.3.0-alpha
 
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import {
+  readWorkspaces,
+  siblingDeclarations,
+  writeWorkspaceManifest
+} from './workspace-manifests.mjs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -41,13 +45,6 @@ const PUBLISHED_WORKSPACES = [
   '@kaluchi/qlang-core',
   '@kaluchi/qlang-cli'
 ];
-
-// Every workspace in the repo. A workspace that depends on a
-// publishable sibling has that range rewritten to the release
-// version, so the published manifests name the pair they shipped
-// with.
-const WORKSPACE_DIRS = JSON.parse(
-  readFileSync(resolve(REPO_ROOT, 'package.json'), 'utf8')).workspaces;
 
 // CI workflow on master that must be green before and after the
 // Release commit. Matches .github/workflows/ci.yml's `name:` field.
@@ -153,34 +150,25 @@ if (!bumpDiff) {
 // range against npm, so it has to name the core this release was
 // built and tested against.
 //
-// The caret keeps the pair inside one minor line, which is what the
-// consumer needs: npm then dedupes the CLI's core against the
-// consumer's own `^X.Y.0` into a single instance, and
-// `TAG_HEADER_SYMBOL` — a per-instance Symbol — stays one identity
-// across the install. Two copies of the core would leave every tag
-// check answering about the wrong one, silently.
+// Every dependency map counts — a sibling named under
+// `devDependencies` or `peerDependencies` reaches a consumer the
+// same way — and `workspace-manifests.mjs` owns both that list and
+// the range shape, so the rewrite here and the convention check
+// enforce one rule.
 
 console.log('\nInternal dependency ranges:');
-const internalRange = `^${version}`;
-for (const workspaceDir of WORKSPACE_DIRS) {
-  const manifestPath = resolve(REPO_ROOT, workspaceDir, 'package.json');
-  const manifestText = readFileSync(manifestPath, 'utf8');
-  const manifest = JSON.parse(manifestText);
-
-  let rewrote = false;
-  for (const publishedName of PUBLISHED_WORKSPACES) {
-    if (manifest.name === publishedName) continue;
-    if (manifest.dependencies?.[publishedName] === undefined) continue;
-    if (manifest.dependencies[publishedName] === internalRange) continue;
-    manifest.dependencies[publishedName] = internalRange;
-    rewrote = true;
-    console.log(`  • ${manifest.name} → ${publishedName} ${internalRange}`);
-  }
-  if (!rewrote) continue;
-
-  const eol = manifestText.includes('\r\n') ? '\r\n' : '\n';
-  writeFileSync(manifestPath,
-    JSON.stringify(manifest, null, 2).split('\n').join(eol) + eol);
+const workspaces = readWorkspaces(REPO_ROOT);
+const rewrittenManifests = new Set();
+for (const declaration of siblingDeclarations(workspaces)) {
+  if (declaration.declaredRange === declaration.expectedRange) continue;
+  const { workspace, dependencyMap, depName, expectedRange } = declaration;
+  workspace.manifest[dependencyMap][depName] = expectedRange;
+  rewrittenManifests.add(workspace);
+  console.log(`  • ${workspace.manifest.name} (${dependencyMap}) → `
+              + `${depName} ${expectedRange}`);
+}
+for (const workspace of rewrittenManifests) {
+  writeWorkspaceManifest(workspace);
 }
 
 // The lockfile carries every declared range; `npm ci` on the release

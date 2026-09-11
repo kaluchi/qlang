@@ -45,6 +45,20 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   bindings from BindStep declarations and `as` snapshots, and
   anything else in scope.
 
+The evaluator's State object carries one bookkeeping field beside
+the pair: **`depth`**, the count of nested evaluation frames
+between the root and this state. `rootState` opens a query, a
+session cell, a module load, or the bootstrap at depth 0;
+`nestState` descends one frame for a conduit body, a captured-arg
+lambda, an `eval` / `apply` re-entry, a Quote-bodied tag
+constructor, a doc-segment literal, or a locator-loaded module,
+and lifts `EvaluationDepthExceededError` on the frame past
+`EVAL_DEPTH_LIMIT`; `ascendState` returns to the outer frame with
+the inner pair (the `eval` / `apply` exit); `withPipeValue` and
+`withEnv` stay on the frame. Steps never read `depth` — it is the
+resource budget that turns a runaway recursion into a fail-track
+error value.
+
 Every pipeline step is a pure function
 `(pipeValue, env) → (nextPipeValue, nextEnv)`.
 
@@ -606,6 +620,11 @@ Nested expressions `(...)`, `[...]`, `{...}`, `#[...]` each open a
 When the inner sub-pipeline finishes, its final `nextPipeValue`
 becomes the result of the nested expression, but its final `nextEnv`
 is **discarded** — outer execution resumes with the original `env`.
+
+A fork stays on the outer frame of the depth budget: the budget
+counts conduit bodies, captured-arg lambdas, and re-entry seams,
+while a nested literal or paren-group is bounded by the source
+text.
 
 The fork rule, together with Map last-write-wins and `|`-based
 state threading, produces the seven scoping rules listed in the

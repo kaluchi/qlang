@@ -15,7 +15,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalAst } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { makeState } from '../../src/state.mjs';
+import { rootState } from '../../src/state.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
@@ -23,7 +23,7 @@ let runtimeEnv;
 async function evalSource(source) {
   if (!runtimeEnv) runtimeEnv = await langRuntime();
   const ast = parse(source, { uri: 'round-trip' });
-  const state = makeState(null, new Map(runtimeEnv));
+  const state = rootState(null, new Map(runtimeEnv));
   const result = await evalAst(ast, state);
   return result.pipeValue;
 }

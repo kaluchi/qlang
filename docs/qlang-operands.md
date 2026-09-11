@@ -1269,7 +1269,10 @@ its own eval handler in `eval.mjs`.
   writes the inner code performs propagate out the same way a
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
-  next pipeline step.
+  next pipeline step. The inner code runs one frame below the
+  `eval` step, so a Quote that `eval`s itself descends through
+  the evaluation depth budget and lifts
+  `EvaluationDepthExceededError` past `EVAL_DEPTH_LIMIT`.
 - Pairs with `parse` to close the codeAsData ring:
   `"source" | parse | eval` is equivalent to evaluating the
   source string directly, and the intermediate AST-Map can be
@@ -1295,7 +1298,8 @@ its own eval handler in `eval.mjs`.
   step through that combinator against the new subject, so a
   pipeline-suffix shape replays semantically.
 - BindStep / `as` / `use` writes inside the applied body propagate
-  outward, matching `eval` semantics.
+  outward, matching `eval` semantics; the body runs one frame
+  below the `apply` step, inside the same depth budget.
 - **Examples**:
   - `~{mul(2)} | apply(5)` → `10`.
   - `~{| count | add(1)} | apply([1 2 3])` → `4`.

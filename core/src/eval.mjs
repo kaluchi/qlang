@@ -9,7 +9,7 @@
 
 import { parse, ParseError } from './parse.mjs';
 import {
-  makeState, withPipeValue, envSet, envGet, envHas
+  rootState, withPipeValue, withEnv, nestState, envSet, envGet, envHas
 } from './state.mjs';
 import { fork, forkWith } from './fork.mjs';
 import { applyRule10, makeFn } from './rule10.mjs';
@@ -129,18 +129,18 @@ const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterN
   ({ paramName, actualCount }) =>
     `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
 
-// evalQuery(source, env?) → Promise<final pipeValue>
+// evalQuery(source, env?, hostState?) → Promise<final pipeValue>
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
-// uses langRuntime as both initial env and pipeValue (per the
-// model's reference bootstrap). The parsed AST is stamped into
+// uses langRuntime as the initial env; the initial pipeValue is
+// `null` either way. The parsed AST is stamped into
 // the env under `moduleAstKey('inline')` as a Quote so axis-
 // operands (`source`, `docs`, `examples`) can resolve `BindStep`
 // bindings declared inside the same query. With the inline-AST
 // Quote stamped on env, `:foo body | :foo | docs` finds `foo`
 // in the just-parsed AST without going through a `use(:ns)`
 // module installation.
-export async function evalQuery(source, env) {
+export async function evalQuery(source, env, hostState = null) {
   const initialEnv = env ?? await langRuntime();
   let ast;
   try {
@@ -156,7 +156,13 @@ export async function evalQuery(source, env) {
   // queries (`env | keys`, `env | manifest | …`) read the env
   // Map without seeding pipeValue with it implicitly — keeping the
   // env out of `:fault.input` on every error descriptor.
-  const initialState = makeState(null, envWithInlineAst);
+  // `runExamples` evaluates each example Quote from inside a running
+  // frame and hands that frame in as `hostState`, so an example that
+  // runs its own binding's examples descends through the same depth
+  // budget as any other re-entry. Every other caller opens a root.
+  const initialState = hostState === null
+    ? rootState(null, envWithInlineAst)
+    : nestState(hostState, null, envWithInlineAst);
   const finalState = await evalNode(ast, initialState);
   return materializePendingTrail(finalState.pipeValue);
 }
@@ -535,7 +541,7 @@ export async function mintTaggedInstance(tagName, payload, state, location = nul
   }
   if (isQuote(implKey)) {
     const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${tagName}/impl` });
-    const bodyState = makeState(payload, state.env);
+    const bodyState = nestState(state, payload, state.env);
     const resultState = await evalNode(bodyAst, bodyState);
     const constructorResult = resultState.pipeValue;
     if (isErrorValue(constructorResult)) return constructorResult;
@@ -579,7 +585,7 @@ function ensureTagBinding(state, tagName) {
   const typeKey = tagBindingKey(tagName);
   if (envHas(state.env, typeKey)) return state;
   const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
-  return makeState(state.pipeValue, envSet(state.env, typeKey, implicitBinding));
+  return withEnv(state, envSet(state.env, typeKey, implicitBinding));
 }
 
 async function evalTaggedLit(node, state) {
@@ -664,20 +670,20 @@ async function evalBindStep(node, state) {
       const bound = makeSnapshot(tagBinding, {
         name, docs, location: node.location
       });
-      return makeState(state.pipeValue, envSet(state.env, name, bound));
+      return withEnv(state, envSet(state.env, name, bound));
     }
     const bound = makeSnapshot(makeDoc(docs.join('\n')), {
       name, docs, location: node.location
     });
-    return makeState(state.pipeValue, envSet(state.env, name, bound));
+    return withEnv(state, envSet(state.env, name, bound));
   }
 
   if (node.params === null && isPureLiteralAst(node.body)) {
-    const innerState = await evalNode(node.body, makeState(null, state.env));
+    const innerState = await evalNode(node.body, withPipeValue(state, null));
     const bound = makeSnapshot(innerState.pipeValue, {
       name, docs, location: node.location
     });
-    return makeState(state.pipeValue, envSet(state.env, name, bound));
+    return withEnv(state, envSet(state.env, name, bound));
   }
 
   if (!classifyEffect(name)) {
@@ -701,7 +707,7 @@ async function evalBindStep(node, state) {
   });
   const nextEnv = envSet(state.env, name, conduit);
   envRef.env = nextEnv;
-  return makeState(state.pipeValue, nextEnv);
+  return withEnv(state, nextEnv);
 }
 
 // ─── Projection ─────────────────────────────────────────────────
@@ -746,7 +752,7 @@ const PROJECTABLE_BY_TYPE = {
   },
   doc: {
     content:  d => d.content,
-    segments: (d, state) => parseDocSegments(d.content, state.env)
+    segments: (d, state) => parseDocSegments(d.content, state)
   }
 };
 
@@ -888,13 +894,13 @@ async function evalOperandCall(node, state) {
     // Build lambdas for each captured arg. Each lambda evaluates
     // the captured AST node against the input it is invoked with,
     // sharing the env of the original capture site. Lambdas run
-    // their sub-pipeline in a fresh state whose pipeValue is the
-    // per-invocation input; env writes inside the lambda are
-    // local to that call and do not escape.
-    const capturedEnv = state.env;
+    // their sub-pipeline one frame below the capture site, in a
+    // fresh state whose pipeValue is the per-invocation input; env
+    // writes inside the lambda are local to that call and do not
+    // escape.
     const operandLambdas = capturedArgsAst === null
       ? []
-      : capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv));
+      : capturedArgsAst.map(argNode => makeLambda(argNode, state));
     // Stash doc comments from the OperandCall node on the lambdas
     // array so the `as` operand can read them without changing
     // the fn(state, lambdas) dispatch signature.
@@ -954,9 +960,8 @@ async function applyBuiltinDescriptor(descriptor, node, state) {
   const capturedArgsAst = node.args;
   const hasArgs = capturedArgsAst !== null;
 
-  const capturedEnv = state.env;
   const builtinLambdas = hasArgs
-    ? capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv))
+    ? capturedArgsAst.map(argNode => makeLambda(argNode, state))
     : [];
   builtinLambdas.docs = node.docs ?? [];
   builtinLambdas.location = node.location;
@@ -993,10 +998,9 @@ async function applyConduit(conduit, node, lookupName, state) {
   const expectedArity = conduitParams.length;
 
   // Build lambdas from captured args at the call site.
-  const capturedEnv = state.env;
   const conduitLambdas = capturedArgsAst === null
     ? []
-    : capturedArgsAst.map(argNode => makeLambda(argNode, capturedEnv));
+    : capturedArgsAst.map(argNode => makeLambda(argNode, state));
 
   // Arity check: exact match required. No auto-curry — partial
   // application is achieved through zero-arity conduit aliases and parametric
@@ -1032,11 +1036,13 @@ async function applyConduit(conduit, node, lookupName, state) {
     bodyEnv = envSet(bodyEnv, paramName, paramProxy);
   }
 
-  // Fork body: inner sub-pipeline starts with the caller's pipeValue
-  // and the lexical bodyEnv. Body's env writes (BindStep / `as`
-  // declarations inside the body) are discarded on return — only the
-  // final pipeValue escapes.
-  const bodyState = makeState(state.pipeValue, bodyEnv);
+  // Fork body: inner sub-pipeline starts one frame deeper with the
+  // caller's pipeValue and the lexical bodyEnv. Body's env writes
+  // (BindStep / `as` declarations inside the body) are discarded on
+  // return — only the final pipeValue escapes. A self-call without a
+  // base case descends a frame per call until `nestState` lifts
+  // `EvaluationDepthExceededError`.
+  const bodyState = nestState(state, state.pipeValue, bodyEnv);
   const finalBodyState = await evalNode(conduitBody, bodyState);
   return withPipeValue(state, finalBodyState.pipeValue);
 }
@@ -1073,29 +1079,31 @@ function makeConduitParameter(capturedArgLambda, paramName) {
   });
 }
 
-// makeLambda(astNode, env) → (input) → value
+// makeLambda(astNode, capturedState) → (input) → value
 //
 // Constructs a closure that evaluates `astNode` as a sub-pipeline
-// against any given input, in the env captured at construction
-// time. Operand impls call lambdas to resolve captured args at
-// the moment they need them.
+// against any given input, one frame below the state captured at
+// construction time and in that state's env. Operand impls call
+// lambdas to resolve captured args at the moment they need them.
 //
 // The `.astNode` property exposes the raw AST for higher-order
 // operands (like `filter` / `every` / `any` over Map) that need to
 // inspect the captured expression's shape to dispatch by conduit
 // arity without a test-application round-trip.
-// The `.capturedEnv` property exposes the declaration-time env so
+// The `.capturedState` property exposes the capture-site state so
 // higher-order operands can statically resolve a bare-identifier
-// captured arg to its binding descriptor (filter/every/any over
-// Map inspect the captured predicate's arity before dispatch).
-function makeLambda(astNode, capturedLambdaEnv) {
+// captured arg to its binding descriptor through its env
+// (filter/every/any over Map inspect the captured predicate's
+// arity before dispatch) and re-enter a conduit body from the
+// same frame the lambda itself would.
+function makeLambda(astNode, capturedState) {
   const lambda = async (lambdaInput) => {
-    const subState = makeState(lambdaInput, capturedLambdaEnv);
+    const subState = nestState(capturedState, lambdaInput, capturedState.env);
     const evaluatedState = await evalNode(astNode, subState);
     return evaluatedState.pipeValue;
   };
   lambda.astNode = astNode;
-  lambda.capturedEnv = capturedLambdaEnv;
+  lambda.capturedState = capturedState;
   return lambda;
 }
 
@@ -1118,7 +1126,7 @@ export function resolveCapturedConduit(astNode, env) {
   return { conduit: resolved, lookupName };
 }
 
-// invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue)
+// invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, hostState)
 //   → Promise<pipeValue>
 //
 // Applies a parametric conduit with caller-supplied captured values,
@@ -1127,13 +1135,15 @@ export function resolveCapturedConduit(astNode, env) {
 // fixed value — matching the conduitParameter lazy-proxy contract for
 // a value the caller has already resolved. Used by filter/every/any
 // over Map to supply (key, value) to a 2-arity predicate per entry.
+// The body runs one frame below `hostState` — the capture-site state
+// of the lambda that carried the conduit reference.
 //
 // Enforces the same effectLaundering invariant as applyConduit: an
 // effectful conduit cannot be invoked through a clean lookup name.
 // Caller must guarantee fixedArgs.length === conduit's params.length —
 // this invoker performs no arity check because the dispatching operand
 // has already verified the arity.
-export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue) {
+export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, hostState) {
   const conduitName      = conduit.get('name');
   const conduitParams    = conduit.get('params');
   const conduitBody      = conduit.get('body');
@@ -1156,7 +1166,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
     bodyEnv = envSet(bodyEnv, paramName, paramProxy);
   }
 
-  const bodyState = makeState(pipeValue, bodyEnv);
+  const bodyState = nestState(hostState, pipeValue, bodyEnv);
   const finalBodyState = await evalNode(conduitBody, bodyState);
   return finalBodyState.pipeValue;
 }
@@ -1166,7 +1176,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
 export const CONDUIT_PARAMS_FIELD = 'params';
 
-// resolveBinaryReducer(astNode, env) → ((acc, item) → Promise<value>) | null
+// resolveBinaryReducer(astNode, hostState) → ((acc, item) → Promise<value>) | null
 //
 // Resolves a bare reducer reference into the per-step combiner `reduce`
 // folds with. The reducer is applied as `reducer(acc, element)`:
@@ -1178,19 +1188,20 @@ export const CONDUIT_PARAMS_FIELD = 'params';
 // Returns null when the captured arg is not such a reference (an inline
 // expression, a literal, a non-2-param conduit, or an unbound name),
 // so `reduce` lifts its own per-site error.
-export function resolveBinaryReducer(astNode, env) {
+export function resolveBinaryReducer(astNode, hostState) {
   if (astNode.type !== 'OperandCall' || astNode.args !== null) return null;
   const lookupName = astNode.name;
-  if (!envHas(env, lookupName)) return null;
-  let resolved = envGet(env, lookupName);
+  if (!envHas(hostState.env, lookupName)) return null;
+  let resolved = envGet(hostState.env, lookupName);
   if (isSnapshot(resolved)) resolved = resolved.get('payload');
   if (isConduitDescriptor(resolved)) {
     if (resolved.get(CONDUIT_PARAMS_FIELD).length !== 2) return null;
-    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item);
+    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item, hostState);
   }
   if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
     const impl = resolved.get('impl');
-    return async (acc, item) => (await applyRule10(impl, [() => item], makeState(acc, env))).pipeValue;
+    return async (acc, item) =>
+      (await applyRule10(impl, [() => item], withPipeValue(hostState, acc))).pipeValue;
   }
   return null;
 }

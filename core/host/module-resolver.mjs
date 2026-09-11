@@ -23,7 +23,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from '../src/parse.mjs';
 import { evalAst } from '../src/eval.mjs';
-import { makeState } from '../src/state.mjs';
+import { rootState } from '../src/state.mjs';
 import { langRuntime } from '../src/runtime/index.mjs';
 import { makeQuote } from '../src/types.mjs';
 import { moduleAstKey, moduleNamespaceKey } from '../src/env-keys.mjs';
@@ -83,7 +83,7 @@ export async function resolveModules(libDir, opts = {}) {
 
     const moduleSource = readFileSync(modulePath, 'utf8');
     const moduleAst = parse(moduleSource, { uri: namespaceName });
-    const moduleInitialState = makeState(moduleEvalEnv, moduleEvalEnv);
+    const moduleInitialState = rootState(moduleEvalEnv, moduleEvalEnv);
     const moduleFinalState = await evalAst(moduleAst, moduleInitialState);
 
     // Export = env delta (bindings added by this module)

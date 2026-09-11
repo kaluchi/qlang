@@ -12,7 +12,7 @@
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, materializePendingTrail } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
-import { makeState, envSet } from './state.mjs';
+import { rootState, envSet } from './state.mjs';
 import {
   isConduit,
   isSnapshot,
@@ -126,7 +126,7 @@ export async function createSession(opts = {}) {
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
           ? evalOpts.initialPipeValue
           : null;
-        const cellInitialState = makeState(cellSeedPipeValue, env);
+        const cellInitialState = rootState(cellSeedPipeValue, env);
         const cellFinalState = await evalAst(cellAst, cellInitialState);
         // Flush any pending `_trailHead` linked-list into the
         // descriptor's `:trail` field so the cell's result reflects

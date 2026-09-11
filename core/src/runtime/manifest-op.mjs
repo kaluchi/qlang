@@ -247,7 +247,8 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 // `:ok true`. The return is a Vec of result Maps, one per Quote
 // segment.
 
-// Each example evaluates against a copy of the caller's env so the
+// Each example evaluates one frame below the `runExamples` step,
+// against a copy of the caller's env so the
 // snippet sees every module loaded through `use(:ns)` in the
 // surrounding session — without `use(:jdt/graph)` propagating from
 // the session, an example like `"no.such.Type" | @type !| type` would
@@ -255,10 +256,10 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 // `::TypeNotFound`. The copy isolates the example's BindStep / `as`
 // writes from the session env so a tested snippet cannot leak
 // bindings back into the calling session.
-async function runQuoteEntry(quote, env) {
+async function runQuoteEntry(quote, hostState) {
   const result = new Map();
   result.set('snippet', quote);
-  const actualValue = await evalQuery(quote.source, new Map(env));
+  const actualValue = await evalQuery(quote.source, new Map(hostState.env), hostState);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
     result.set('error', errorMessageOf(actualValue));
@@ -271,8 +272,8 @@ async function runQuoteEntry(quote, env) {
   return result;
 }
 
-async function collectQuotesForBinding(env, lookupName) {
-  const step = findBindingStepAcrossModules(env, lookupName);
+async function collectQuotesForBinding(hostState, lookupName) {
+  const step = findBindingStepAcrossModules(hostState.env, lookupName);
   // Bindings without a source-located BindStep (host-installed
   // bindings via `session.bind`, runtime-seeded built-ins) have no
   // examples to run. `runExamples` returns an empty Vec — the
@@ -282,7 +283,7 @@ async function collectQuotesForBinding(env, lookupName) {
   const docStrings = stepDocStrings(step);
   const collected = [];
   for (const docStr of docStrings) {
-    const segments = await parseDocSegments(docStr, env);
+    const segments = await parseDocSegments(docStr, hostState);
     for (const seg of segments) {
       if (isQuote(seg)) collected.push(seg);
     }
@@ -300,8 +301,8 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   } else {
     throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
-  const quotes = await collectQuotesForBinding(state.env, lookupName);
-  const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state.env)));
+  const quotes = await collectQuotesForBinding(state, lookupName);
+  const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
   return withPipeValue(state, results);
 });
 

@@ -12,7 +12,7 @@
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { makeState, withPipeValue, envSet } from '../state.mjs';
+import { withEnv, withPipeValue, envSet } from '../state.mjs';
 import { isKeyword, typeKeyword, makeSnapshot } from '../types.mjs';
 import { declareShapeError } from '../operand-errors.mjs';
 
@@ -40,7 +40,7 @@ export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
     location: asLambdas.location
   });
   const asNextEnv = envSet(state.env, asBindingName, asSnapshot);
-  return makeState(state.pipeValue, asNextEnv);
+  return withEnv(state, asNextEnv);
 });
 
 bindPrim('env', env);

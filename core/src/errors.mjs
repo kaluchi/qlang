@@ -13,6 +13,7 @@
 //     UnresolvedIdentifierError      — identifier not in env
 //     DivisionByZeroError            — div(_, 0)
 //     ArityError                     — too many captured args
+//     EvaluationDepthExceededError   — frame past EVAL_DEPTH_LIMIT
 //     QlangInvariantError            — registration-time invariant
 //
 // Source-mapping and observability fields on every QlangError:
@@ -95,6 +96,22 @@ export class ArityError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'arityError');
     this.name = 'ArityError';
+    this.context = context;
+  }
+}
+
+// EvaluationDepthExceededError — `nestState` (state.mjs) refused one
+// more nested evaluation frame past `EVAL_DEPTH_LIMIT`. Kind
+// `resourceLimit`: the runaway sits in the query's recursion.
+// `context.depth` is the refused frame, `context.limit` the budget.
+export class EvaluationDepthExceededError extends QlangError {
+  constructor(context) {
+    super(
+      `evaluation depth ${context.depth} exceeds the budget of ${context.limit} nested frames`,
+      'resourceLimit'
+    );
+    this.name = 'EvaluationDepthExceededError';
+    this.fingerprint = 'EvaluationDepthExceededError';
     this.context = context;
   }
 }

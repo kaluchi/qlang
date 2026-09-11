@@ -4,7 +4,7 @@
 //
 // What lives here vs in per-source test files: edge-cases stays a
 // staging ground for tests whose source module has no dedicated
-// `<module>.test.mjs` (`types.mjs`, `state.mjs`, `rule10.mjs`,
+// `<module>.test.mjs` (`types.mjs`, `rule10.mjs`,
 // `runtime/arith.mjs`, `runtime/vec.mjs`, `runtime/map.mjs`,
 // `runtime/set.mjs`, `runtime/setops.mjs`, `runtime/predicates.mjs`,
 // `runtime/string.mjs`, `runtime/control.mjs`, `runtime/manifest-op.mjs`,
@@ -15,7 +15,8 @@
 // `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
 // `per-site error tag identity` (→ `error-operands.test.mjs`),
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
-// `errors.mjs kind-tag survey` (covered by `errors.test.mjs`).
+// `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
+// `state.mjs` (→ `state.test.mjs`).
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -36,13 +37,7 @@ import {
   makeConduit
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
-import {
-  makeState,
-  envSet,
-  envHas,
-  envGet,
-  envMerge
-} from '../../src/state.mjs';
+import { rootState } from '../../src/state.mjs';
 import {
   applyRule10,
   makeFn
@@ -97,33 +92,12 @@ describe('types.mjs', () => {
   });
 });
 
-describe('state.mjs', () => {
-  it('envSet returns a new Map without mutating the original', () => {
-    const initial = new Map();
-    const extended = envSet(initial, 'foo', 42);
-    expect(initial.size).toBe(0);
-    expect(extended.size).toBe(1);
-    expect(envGet(extended, 'foo')).toBe(42);
-    expect(envHas(extended, 'foo')).toBe(true);
-    expect(envHas(extended, 'bar')).toBe(false);
-  });
-
-  it('envMerge merges a Map into another, incoming wins on conflict', () => {
-    const base    = envSet(envSet(new Map(), 'a', 1), 'shared', 'old');
-    const incoming = envSet(envSet(new Map(), 'b', 2), 'shared', 'new');
-    const merged = envMerge(base, incoming);
-    expect(envGet(merged, 'a')).toBe(1);
-    expect(envGet(merged, 'b')).toBe(2);
-    expect(envGet(merged, 'shared')).toBe('new');
-  });
-});
-
 describe('rule10.mjs', () => {
   it('rejects too many captured args', async () => {
     const fn = makeFn('mul', 2, (state) => state);
     const lambdas = [() => 1, () => 2, () => 3];
     const runtimeEnv = await langRuntime();
-    await expect(applyRule10(fn, lambdas, makeState(null, runtimeEnv)))
+    await expect(applyRule10(fn, lambdas, rootState(null, runtimeEnv)))
       .rejects.toThrow(ArityError);
   });
 

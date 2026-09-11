@@ -1085,6 +1085,20 @@ Recursion works because the conduit's lexical env includes itself
 (tie-the-knot at declaration time). Termination on finite trees
 comes from `[] * walk → []` at leaves.
 
+Recursion without a base case descends one evaluation frame per
+call until the evaluator's depth budget (`EVAL_DEPTH_LIMIT` in
+`state.mjs`) refuses the next frame and lifts
+`EvaluationDepthExceededError` onto the fail-track, carrying the
+refused `:depth` and the `:limit`. The same budget counts every
+re-entry seam — `eval`, `apply`, captured-arg lambdas, Quote-bodied
+tag constructors, doc-segment literals, locator-loaded modules — so
+a runaway surfaces as an ordinary error value:
+
+```qlang
+> :inf (add(1) | inf) | 0 | inf !| type
+::EvaluationDepthExceededError
+```
+
 Recursive parametric conduits work the same way:
 
 ```qlang
@@ -1777,8 +1791,8 @@ Per-tag static facts — `:category` (broad bucket: `:typeError`,
 `:arityError`, `:effectLaundering`, `:parseError`,
 `:foreignError`, `:invariantError`, `:divisionByZero`,
 `:primitiveUnbound`, `:sessionError`, `:codecError`,
-`:astCodecError`, `:unresolvedIdentifier`), `:operand`,
-`:position`, `:expectedType` — live on the tag-binding's catalog
+`:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`),
+`:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
 `result !| type | spec | /category` returns the broad-bucket
@@ -2170,6 +2184,7 @@ filter(/age | gt(18))
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
 | `:trail` stamped with anything except a Quote or `null` | type error |
+| Evaluation frames nested past the depth budget | resource limit |
 
 ---
 

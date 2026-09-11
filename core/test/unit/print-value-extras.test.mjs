@@ -22,6 +22,7 @@ import {
   FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
+import { rootState } from '../../src/state.mjs';
 
 describe('printValue — Conduit / Snapshot / Function branches', () => {
   it('renders a zero-arity named Conduit as ~{::conduit[:name [] }body~{]}', () => {
@@ -154,7 +155,7 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
     const row = new Map([['boxed', instance]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('::Box[42]');
@@ -165,7 +166,7 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     const instance = makeTaggedInstance(makeTagKeyword('Count'), 42);
     const row = new Map([['c', instance]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('::Count(42)');
@@ -176,7 +177,7 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
     const instance = makeTaggedInstance(makeTagKeyword('Pair'), [1, 2]);
     const row = new Map([['pairs', [instance]]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('::Pair[1 2]');
@@ -199,7 +200,7 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
       ['notes', [taggedStr]]
     ]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('::User{:name "alice"}');
@@ -250,7 +251,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     const conduit = makeConduit(bodyAst, { name: 'ninetyNine', params: [] });
     const row = new Map([['fn', conduit]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] ~{99}]');
@@ -266,7 +267,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     const snap = makeSnapshot(42, { name: 'cached' });
     const row = new Map([['snap', snap]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('42');
@@ -280,7 +281,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     });
     const row = new Map([['op', fn]]);
     await expect(table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     )).rejects.toThrow(FunctionValueLeakedToPrintError);
   });
@@ -290,7 +291,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     const conduit = makeConduit(bodyAst, { name: 'inner', params: [] });
     const row = new Map([['fns', [conduit]]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('::conduit[:inner [] ~{7}]');
@@ -300,7 +301,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     const snap = makeSnapshot('hi', { name: 'greet' });
     const row = new Map([['snaps', [snap]]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     // Inline-form recurses on the wrapped String "hi", which
@@ -316,7 +317,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     });
     const row = new Map([['fns', [fn]]]);
     await expect(table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     )).rejects.toThrow(FunctionValueLeakedToPrintError);
   });
@@ -324,7 +325,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {
     const row = new Map([['q', [makeQuote('mul(2)')]]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('~{mul(2)}');
@@ -333,7 +334,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   it('renders a Quote-valued cell — CELL_HANDLERS.Quote fires', async () => {
     const row = new Map([['q', makeQuote('add(1)')]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('~{add(1)}');
@@ -342,7 +343,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   it('renders a Doc-valued cell — CELL_HANDLERS.Doc fires', async () => {
     const row = new Map([['d', makeDoc(' note ')]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('|~~ note ~~|');
@@ -351,7 +352,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   it('renders a Vec-of-Doc cell — INLINE handler for Doc fires', async () => {
     const row = new Map([['ds', [makeDoc(' inner ')]]]);
     const rendered = await table.fn(
-      { pipeValue: [row], env: new Map() },
+      rootState([row], new Map()),
       []
     );
     expect(rendered.pipeValue).toContain('|~~ inner ~~|');

@@ -24,7 +24,8 @@
     10. Primitive registry invariants
     11. Session lifecycle invariants
     12. Render-path invariants
-    13. Error-value mint invariants ~|
+    13. Error-value mint invariants
+    14. Evaluation depth budget ~|
 
 |~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
 
@@ -493,3 +494,26 @@
        }
   ~~|
   ::builtin{:category :typeError :expectedType [:quote :null]}
+
+|~ ── 14. Evaluation depth budget ───────────────────────── ~|
+
+::EvaluationDepthExceededError
+  |~~ The evaluator descends one frame per conduit body,
+      captured-arg lambda, `eval` / `apply` re-entry, Quote-bodied
+      tag constructor, doc-segment literal, and locator-loaded
+      module; the frame past `EVAL_DEPTH_LIMIT` (state.mjs) lifts
+      this error with `:depth` (the refused frame) and `:limit`
+      (the budget) on the descriptor. A conduit that calls itself
+      without a base case surfaces here on the fail-track while the
+      host's heap stays bounded.
+
+      ~{
+        :inf (add(1) | inf) | 0 | inf
+        !| type | eq(::EvaluationDepthExceededError)
+       }
+      ~{
+        :q ~{q | eval} | q | eval
+        !| gt(/depth, /limit)
+       }
+  ~~|
+  ::builtin{:category :resourceLimit}

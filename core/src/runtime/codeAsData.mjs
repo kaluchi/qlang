@@ -19,7 +19,7 @@
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { makeState, withPipeValue } from '../state.mjs';
+import { nestState, ascendState, withPipeValue } from '../state.mjs';
 import { astNodeToMap, qlangMapToAst } from '../ast-codec.mjs';
 import { isQMap, isQuote } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
@@ -91,9 +91,14 @@ function astFromQuoteLike(value) {
 // as if the code had been inlined at the call site. The result is
 // whatever `pipeValue` the inner code produces; env changes from
 // inner BindStep / as / use calls propagate out, matching the
-// semantics of a bare paren-group application.
+// semantics of a bare paren-group application. The inner code runs
+// one frame below the `eval` step, so a Quote that `eval`s itself
+// descends a frame per re-entry until the depth budget lifts
+// `EvaluationDepthExceededError`.
 export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
-  return await evalAst(astFromQuoteLike(state.pipeValue), state);
+  const innerAst = astFromQuoteLike(state.pipeValue);
+  const resultState = await evalAst(innerAst, nestState(state, state.pipeValue, state.env));
+  return ascendState(state, resultState);
 });
 
 // `apply(subject)` — runs the Quote-or-Map in `pipeValue` against
@@ -105,11 +110,11 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
 export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {
   const bodyAst = astFromQuoteLike(state.pipeValue);
   const newSubject = await applyLambdas[0](state.pipeValue);
-  const innerState = makeState(newSubject, state.env);
+  const innerState = nestState(state, newSubject, state.env);
   const resultState = await evalAst(bodyAst, innerState);
-  // Propagate inner env changes (BindStep / as / use writes inside
-  // the applied body) outward, matching the `eval` semantics.
-  return makeState(resultState.pipeValue, resultState.env);
+  // Ascend with the inner pipeValue and env: BindStep / as / use
+  // writes inside the applied body flow outward, matching `eval`.
+  return ascendState(state, resultState);
 });
 
 bindPrim('parse', parseOperand);

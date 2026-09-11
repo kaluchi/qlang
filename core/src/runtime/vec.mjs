@@ -306,22 +306,22 @@ export const max = nullaryOp('max', (container) => {
 // front with a shape-specific class, sparing every entry from
 // a generic ConduitArityMismatchError.
 function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
-  const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
+  const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedState.env);
   if (resolved) {
     const paramCount = resolved.conduit.get(CONDUIT_PARAMS_FIELD).length;
     const conduitName = resolved.conduit.get('name');
     if (paramCount === 1) {
       if (shape === 'pair') {
         return async (_mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue);
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue, predLambda.capturedState);
       }
       return async (item) =>
-        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item);
+        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item, predLambda.capturedState);
     }
     if (paramCount === 2) {
       if (shape === 'pair') {
         return async (mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [keyword(mapKey), mapValue], mapValue);
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [keyword(mapKey), mapValue], mapValue, predLambda.capturedState);
       }
       throw new VecOrSetArityErrorCls({ conduitName, actualArity: paramCount });
     }
@@ -696,7 +696,7 @@ const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryErr
 
 export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerLambda) => {
   if (!isOrderedSequence(subject)) throw new ReduceSubjectNotSequenceError(subject);
-  const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedEnv);
+  const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedState);
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = await seedLambda(subject);
   if (isErrorValue(acc)) return acc;

@@ -33,9 +33,10 @@ import {
   materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isOrderedSequence, sequenceElements, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance,
+  isTaggedInstance, conduitBodyAst, conduitEnvRef,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
+import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst } from './walk.mjs';
 import { astNodeToMap } from './ast-codec.mjs';
@@ -958,9 +959,11 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 
 // applyBuiltinDescriptor(descriptor, node, state) → state'
 //
-// Dispatch core for built-in operands. Reads the resolved function
-// value directly from the descriptor's :impl field (set by
-// the bootstrap resolution pass in runtime/index.mjs) and delegates
+// Dispatch core for built-in operands. Reads the callable through
+// `resolveBuiltinImpl` — the `BUILTIN_IMPL_SLOT` stamp the bootstrap
+// resolution pass in runtime/index.mjs left, or the descriptor's
+// `:impl` handle keyword walked through the registry when a query
+// assembled the descriptor from data — and delegates
 // to applyRule10. Bare lookup fires the operand against the current
 // pipeValue regardless of arity — non-nullary operands without
 // captured args hit Rule 10's arity check and surface a per-site
@@ -968,7 +971,7 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 // do" is `:name | source` / `:name | docs` / `:name | examples`,
 // not a bare-name shortcut into the descriptor Map.
 async function applyBuiltinDescriptor(descriptor, node, state) {
-  const resolvedImpl = descriptor.get('impl');
+  const resolvedImpl = resolveBuiltinImpl(descriptor);
 
   const capturedArgsAst = node.args;
   const hasArgs = capturedArgsAst !== null;
@@ -990,13 +993,14 @@ async function applyBuiltinDescriptor(descriptor, node, state) {
 // final pipeValue. The entire operation is one atomic state
 // transformation from the outer pipeline's perspective.
 async function applyConduit(conduit, node, lookupName, state) {
-  // Read the conduit's payload fields once. Every conduit is a
-  // descriptor Map; field access goes through Map.get against
-  // unnamespaced string keys.
+  // Read the conduit's fields once. The authored plane —
+  // `:name` / `:params` / `:effectful` — comes off the Map; the
+  // body AST and the lexical anchor ride JS-header slots so the data
+  // plane stays qlang-only.
   const conduitName       = conduit.get('name');
   const conduitParams     = conduit.get('params');
-  const conduitBody       = conduit.get('body');
-  const conduitEnvRef     = conduit.get('envRef');
+  const conduitBody       = conduitBodyAst(conduit);
+  const conduitLexicalRef = conduitEnvRef(conduit);
   const conduitEffectful  = conduit.get('effectful');
 
   // Effect-laundering safety net (same invariant as intrinsic operands).
@@ -1042,7 +1046,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   // — no `?? state.env` fallback — pins lexical scope: the body
   // resolves through the env captured by the construction-site
   // tie-the-knot, never through the caller's env at invocation.
-  let bodyEnv = conduitEnvRef.env;
+  let bodyEnv = conduitLexicalRef.env;
   for (let i = 0; i < conduitParams.length; i++) {
     const paramName = conduitParams[i].name;
     const paramProxy = makeConduitParameter(conduitLambdas[i], paramName);
@@ -1157,11 +1161,11 @@ export function resolveCapturedConduit(astNode, env) {
 // this invoker performs no arity check because the dispatching operand
 // has already verified the arity.
 export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, callerState) {
-  const conduitName      = conduit.get('name');
-  const conduitParams    = conduit.get('params');
-  const conduitBody      = conduit.get('body');
-  const conduitEnvRef    = conduit.get('envRef');
-  const conduitEffectful = conduit.get('effectful');
+  const conduitName       = conduit.get('name');
+  const conduitParams     = conduit.get('params');
+  const conduitBody       = conduitBodyAst(conduit);
+  const conduitLexicalRef = conduitEnvRef(conduit);
+  const conduitEffectful  = conduit.get('effectful');
 
   if (conduitEffectful && !classifyEffect(lookupName)) {
     throw new EffectLaunderingAtCallError({
@@ -1170,7 +1174,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
     });
   }
 
-  let bodyEnv = conduitEnvRef.env;
+  let bodyEnv = conduitLexicalRef.env;
   for (let pi = 0; pi < conduitParams.length; pi++) {
     const fixedValue = fixedArgs[pi];
     const fixedArgLambda = async () => fixedValue;
@@ -1212,9 +1216,9 @@ export function resolveBinaryReducer(astNode, callerState) {
     return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item, callerState);
   }
   if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
-    const impl = resolved.get('impl');
+    const reducerImpl = resolveBuiltinImpl(resolved);
     return async (acc, item) =>
-      (await applyRule10(impl, [() => item], withPipeValue(callerState, acc))).pipeValue;
+      (await applyRule10(reducerImpl, [() => item], withPipeValue(callerState, acc))).pipeValue;
   }
   return null;
 }

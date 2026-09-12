@@ -347,11 +347,13 @@ same way, so `manifest | filter(/kind | eq(::builtin))` and
 - `::builtin` — env entry is a descriptor Map loaded by
   `langRuntime()` from one of the catalog family files under
   `lib/qlang/operand/`. The user-facing descriptor stamps
-  `:kind ::builtin`, drops the `:impl` handle (dispatch-time
-  primitive key is internal), and copies `:category`,
-  `:subject`, `:modifiers`, `:returns`, `:throws` verbatim. The
+  `:kind ::builtin` and copies every authored field verbatim —
+  `:impl` (the `:qlang/prim/<name>` handle keyword), `:category`,
+  `:subject`, `:modifiers`, `:returns`, `:throws`. The
   derived `:captured` / `:effectful` fields are stamped from the
-  resolved primitive's `meta`. Authored prose lives on the
+  resolved primitive's `meta`; the callable itself rides the env
+  entry's `BUILTIN_IMPL_SLOT` JS-header slot, outside every
+  data-plane surface. Authored prose lives on the
   `BindStep`'s attached doc-prefix and is reachable via the
   `:name | docs` axis (Vec of Doc-values) or `:name | examples`
   axis (Vec of Quote-values pulled from every `~{…}` segment in
@@ -760,9 +762,11 @@ Dispatch at an operand call site is straightforward under this
 shape. `eval.mjs::evalOperandCall` looks up the identifier in
 `env`; if the resolved value is a descriptor Map carrying
 `::builtin` identity on its JS-header slot, control flows through
-`applyBuiltinDescriptor` which reads the `:impl` handle, resolves it through
-`PRIMITIVE_REGISTRY.resolve` into the backing function value,
-and invokes it via Rule 10. Bare lookup fires the operand against
+`applyBuiltinDescriptor`, which reads the callable through
+`resolveBuiltinImpl` — the `BUILTIN_IMPL_SLOT` stamp bootstrap left
+on the descriptor, or the `:impl` handle keyword walked through
+`PRIMITIVE_REGISTRY.resolve` when a query assembled the descriptor
+from data — and invokes it via Rule 10. Bare lookup fires the operand against
 the current `pipeValue` regardless of arity — non-nullary operands
 without captured args hit Rule 10's arity check and surface a
 per-site arityError. The introspection surface for "what does this

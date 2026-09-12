@@ -1074,8 +1074,9 @@ its own eval handler in `eval.mjs`.
   - **Builtin** — env entry is a descriptor Map loaded by
     `langRuntime()` from one of the catalog family files under
     `lib/qlang/operand/`. The user-facing descriptor stamps
-    `:kind ::builtin`, drops the `:impl` handle (the dispatch-time
-    primitive key is internal), and copies `:category` / `:subject`
+    `:kind ::builtin`, keeps the `:impl` handle keyword the catalog
+    author wrote (the resolved callable rides the env entry's
+    `BUILTIN_IMPL_SLOT` JS-header slot), and copies `:category` / `:subject`
     / `:modifiers` / `:returns` / `:throws` verbatim. The derived
     `:captured` / `:effectful` fields are stamped from the resolved
     primitive's `meta`:

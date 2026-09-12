@@ -2243,14 +2243,12 @@ rendering boundaries:
 
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
   `toPlain` refuse a raw function value because no grammatical
-  literal renders back to one. Host operands must wrap the
-  function in a descriptor Map carrying `:impl <fn>` with
-  identity stamped on the Map's JS-header `TAG_HEADER_SYMBOL`
-  slot (`stampTagHeader(map, BUILTIN_TAG)` — same channel the
-  `::builtin{…}` constructor uses); the projection inside
-  `printValue` substitutes the function back to its
-  `:qlang/prim/<name>` keyword handle so the descriptor itself
-  round-trips.
+  literal renders back to one. A host installs its operands
+  through a locator returning `{ source, impls }`, which stamps
+  each callable onto the catalog descriptor's `BUILTIN_IMPL_SLOT`
+  JS-header slot while `:impl` keeps the author's
+  `:qlang/prim/<name>` handle keyword, so the descriptor's data
+  plane round-trips as ordinary qlang data.
 - **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
   body AST without a `.text` source slice, because `printConduit`
   emits `::conduit[:self [params] ~{body-source}]` and would

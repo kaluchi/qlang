@@ -409,37 +409,41 @@ describe('toPlain refuses unencodable values', async () => {
 });
 
 describe('descriptor Maps in pipeValue round-trip through render', async () => {
-  // A builtin descriptor Map carries `:impl` as the post-bootstrap-
-  // resolved function value. Render paths (printValue, toPlain) project
-  // that single slot back to its authoring keyword form — `:qlang/prim/<name>` —
-  // so the Map's literal stays round-trip-able through parse → MapLit →
-  // eval. Strict round-trip identity for the value-class shape, with
+  // A builtin descriptor Map carries the author's `:impl
+  // :qlang/prim/<name>` handle keyword on its data plane and the
+  // resolved callable on the `BUILTIN_IMPL_SLOT` JS-header slot, so
+  // every field a render path walks is already a qlang value — the
+  // Map's literal round-trips through parse → MapLit → eval with
   // dispatchability reconstituted at host bootstrap time.
 
-  it('json on a raw descriptor Map renders :impl as the :qlang/prim/<name> keyword', async () => {
+  it('json on a raw descriptor Map carries :impl as the :qlang/prim/<name> keyword', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const jsonOutput = await evalQuery('env | /count | json');
     expect(typeof jsonOutput).toBe('string');
     expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
   });
 
-  it('manifest descriptor renders cleanly — :impl is stripped at enumeration time', async () => {
+  it('manifest descriptor carries the same :impl handle as the env entry', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const jsonOutput = await evalQuery('manifest | filter(/name | eq("count")) | first | json');
     expect(typeof jsonOutput).toBe('string');
     expect(jsonOutput).toContain('"kind":"::builtin"');
+    expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
   });
 
-  it('direct projection at :impl strips the descriptor wrapping — the bare function-value reaches render and the invariant fires', async () => {
-    // `env | /count | /:impl` deliberately reaches past the
-    // Map projection to the raw function-value (note the namespaced
-    // keyword segment `/:impl` — without the colon, the
-    // slash splits into two bare segments). The Map-handler
-    // substitution does not fire — the function is the pipeValue
-    // itself, not an entry of a Map being rendered.
+  it('projection at :impl lands on the handle keyword, and a conduit-parameter proxy fires the invariant', async () => {
+    // `env | /count | /:impl` reads the descriptor's handle keyword
+    // (note the namespaced keyword segment `/:impl` — without the
+    // colon the slash splits into two bare segments), so the
+    // descriptor projects as data all the way down.
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
-    await expect(evalQuery('env | /count | /:impl | json'))
+    const { FunctionValueLeakedToPrintError, isKeyword } = await import('../../src/types.mjs');
+    const handle = await evalQuery('env | /count | /:impl');
+    expect(isKeyword(handle)).toBe(true);
+    expect(handle.name).toBe('qlang/prim/count');
+    // The remaining qlang-reachable function value is a
+    // conduitParameter proxy lifted out of the body's env by name.
+    await expect(evalQuery(':f [:n] (env | /n) | 5 | f(1) | json'))
       .rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 });

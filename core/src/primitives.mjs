@@ -9,19 +9,20 @@
 // namespaced keyword like `:qlang/prim/mul` pointing into this
 // registry. The bootstrap
 // resolution pass in `runtime/index.mjs::langRuntime()` resolves
-// each keyword through `PRIMITIVE_REGISTRY.resolve` into the
-// matching JS function value and replaces the keyword on the
-// descriptor with the function directly. After bootstrap,
-// dispatch reads the function from :impl directly — the
-// registry is a build-time bridge consulted only during the
-// resolution pass.
+// each keyword through `PRIMITIVE_REGISTRY.resolve` and stamps the
+// matching JS function value onto the descriptor's
+// `BUILTIN_IMPL_SLOT` JS-header slot, leaving the handle keyword on
+// :impl for every data-plane reader. After bootstrap,
+// dispatch reads the callable off that slot through
+// `descriptor-ops.mjs::resolveBuiltinImpl`, which falls back to the
+// handle for a descriptor a query assembled from data.
 //
 // Two parallel namespaces ride through the registry:
 //
 //   `qlang/prim/<name>` — value-namespace operands (`add`, `count`,
 //     `filter`, `manifest`, …). Resolved once at bootstrap; the
-//     descriptor's `:impl` keyword is replaced with the
-//     resulting JS function value.
+//     resulting JS function value lands on the descriptor's
+//     `BUILTIN_IMPL_SLOT` slot beside the handle keyword.
 //
 //   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
 //     `::qlang`, `::json`). The keyword stays a keyword on the

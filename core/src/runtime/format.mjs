@@ -7,9 +7,8 @@
 // `print-value.mjs`; everything below routes through the shared
 // `dispatchQlangValue` lookup-table walker so the per-value-class
 // decision sits in one place for each render strategy. The two
-// surfaces share `escapeQlangStringLiteral`, `literalOfKeyword`,
-// and `projectMapEntryForPrint` for the JS function → keyword
-// handle projection on builtin descriptors.
+// surfaces share `escapeQlangStringLiteral` and
+// `literalOfKeyword`.
 
 import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { nullaryOp } from './dispatch.mjs';
@@ -30,7 +29,6 @@ import {
   literalOfKeyword,
   printValue,
   printConduit,
-  projectMapEntryForPrint,
   TAG_PAYLOAD_NEEDS_PAREN_RE
 } from './print-value.mjs';
 
@@ -137,8 +135,7 @@ export class ToPlainUnencodableValueError extends QlangInvariantError {
 function qMapToPlainObject(m) {
   const obj = {};
   for (const [k, val] of m) {
-    const [pk, pv] = projectMapEntryForPrint(k, val);
-    obj[pk] = toPlain(pv);
+    obj[k] = toPlain(val);
   }
   return obj;
 }
@@ -254,7 +251,6 @@ function renderInline(v) {
 
 function mapEntriesInline(m) {
   return [...m]
-    .map(([k, v]) => projectMapEntryForPrint(k, v))
     .map(([k, v]) => `${canonicalKeywordLiteral(k)} ${renderInline(v)}`)
     .join(' ');
 }

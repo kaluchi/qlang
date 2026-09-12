@@ -47,7 +47,8 @@
           whose only payload is the attached docs.
   ~~|
   ::builtin{:impl :qlang/type/builtin
-            :throws [::BuiltinPayloadNotMapError]}
+            :throws [::BuiltinPayloadNotMapError
+                     ::BuiltinImplNotPrimitiveKeyError]}
 
 ::BuiltinPayloadNotMapError
   |~~ `::builtin<payload>` payload must be a Map descriptor.
@@ -67,6 +68,28 @@
        }
   ~~|
   ::builtin{:category :typeError :operand ::builtin :position :subject :expectedType :map}
+
+::BuiltinImplNotPrimitiveKeyError
+  |~~ A descriptor a query assembled from data dispatches through
+      its `:impl` handle keyword — `::builtin{:impl
+      :qlang/prim/count}` binds and fires like a catalog entry.
+      Catalog descriptors carry the resolved callable on the
+      `BUILTIN_IMPL_SLOT` JS-header slot instead, so the handle
+      reading below fires only for the data-assembled shape, and
+      only when `:impl` holds something the primitive registry
+      cannot be keyed by.
+
+      ~{
+        ::builtin{:impl :qlang/prim/count} | as(:c) | [1 2 3] | c
+        |  eq(3)
+       }
+      ~{
+        ::builtin{:impl 42} | as(:bogus) | 1 | bogus
+        !| [type /actualType]
+        |  eq([::BuiltinImplNotPrimitiveKeyError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand ::builtin :expectedType :keyword}
 
 ::Error
   |~~ Generic error identity. The universal default tag every
@@ -458,11 +481,13 @@
 
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function
-      value reached render. Wrap host operands in a descriptor
-      Map carrying `:impl` with identity stamped on the JS-header
-      `TAG_HEADER_SYMBOL` slot (`stampTagHeader(map, BUILTIN_TAG)`)
-      before binding through `session.bind`; the CLI's
-      `bindHostBuiltin` helper demonstrates the pattern.
+      value reached render. Install a host operand through a
+      locator returning `{ source, impls }` so the namespace pass
+      stamps the callable onto the catalog descriptor's
+      `BUILTIN_IMPL_SLOT` JS-header slot
+      (`cli/src/cli-locator.mjs` is the reference shape); a
+      callable handed straight to `session.bind` carries no qlang
+      literal, which is what this tag reports.
   ~~|
   ::builtin{:category :invariantError}
 

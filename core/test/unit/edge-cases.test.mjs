@@ -35,6 +35,8 @@ import {
   isQuote,
   isVec,
   makeConduit,
+  conduitBodyAst,
+  conduitEnvRef,
   typeKeyword,
   TAG_HEADER_SYMBOL,
   CONDUIT_TAG
@@ -82,14 +84,22 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit stamps ::conduit on the Map JS-header and exposes body/source as fields', async () => {
+  it('makeConduit stamps ::conduit plus the body AST and envRef holder on JS-header slots', async () => {
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
-    const t = makeConduit(bodyAst);
+    const lexicalRef = { env: null };
+    const t = makeConduit(bodyAst, { name: 'double', envRef: lexicalRef });
     expect(t).toBeInstanceOf(Map);
     expect(t.has('kind')).toBe(false);
     expect(t[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
     expect(typeKeyword(t)).toBe(CONDUIT_TAG);
-    expect(t.get('body')).toBe(bodyAst);
+    // Body AST and lexical anchor ride the slots; the data plane
+    // enumerates qlang values alone.
+    expect(conduitBodyAst(t)).toBe(bodyAst);
+    expect(conduitEnvRef(t)).toBe(lexicalRef);
+    expect(t.has('body')).toBe(false);
+    expect(t.has('envRef')).toBe(false);
+    expect(t.has('location')).toBe(false);
+    expect([...t.keys()]).toEqual(['name', 'params', 'source', 'docs', 'effectful']);
     const sourceQuote = t.get('source');
     expect(isQuote(sourceQuote)).toBe(true);
     expect(sourceQuote.source).toBe('1');

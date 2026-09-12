@@ -30,3 +30,4 @@
 {"name":"top-callers","query":"[{:fqmn \"A\" :callers [1 2 3]} {:fqmn \"B\" :callers [1 2 3 4 5]} {:fqmn \"C\" :callers [1 2]} {:fqmn \"D\" :callers [1 2 3 4]}] | sortWith(desc(/callers | count)) | take(2) * /fqmn","expect":"[\"B\" \"D\"]"}
 
 {"name":"stable-across-merge-levels","query":"[{:k 2 :t \"a\"} {:k 1 :t \"b\"} {:k 2 :t \"c\"} {:k 1 :t \"d\"} {:k 2 :t \"e\"} {:k 1 :t \"f\"} {:k 2 :t \"g\"} {:k 1 :t \"h\"}] | sortWith(asc(/k)) * /t","expect":"[\"b\" \"d\" \"f\" \"h\" \"a\" \"c\" \"e\" \"g\"]"}
+{"name":"cmp-result-nan-error","query":"[{:a 1} {:a 2}] | sortWith(sub(mul(/left/a, 1e400), mul(/right/a, 1e400))) !| [type /actualType]","expect":"[::SortWithCmpResultNaNError :number]"}

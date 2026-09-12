@@ -354,7 +354,9 @@ JSON tag.
     → events sorted by priority ascending, then timestamp descending
     as tie-breaker.
 - **Errors**: subject not a Vec → `SortWithSubjectNotSequenceError`; comparator returns
-  non-number → `SortWithCmpResultNotNumberError`.
+  non-number → `SortWithCmpResultNotNumberError`; comparator returns
+  NaN → `SortWithCmpResultNaNError` (NaN orders no pair, and float
+  overflow reaches it from ordinary arithmetic).
 
 ### `asc(keyExpr)`
 

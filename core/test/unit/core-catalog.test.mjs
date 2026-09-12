@@ -308,7 +308,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest(:tag) | count')).toBe(178);
+    expect(await evalQuery('manifest(:tag) | count')).toBe(179);
   });
 
   it('the value namespace holds every declared operand', async () => {

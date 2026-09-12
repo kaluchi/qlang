@@ -543,6 +543,16 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
+  it('sortWith comparator returning NaN → SortWithCmpResultNaNError', async () => {
+    // Both keys overflow to Infinity, so their difference is NaN —
+    // a value `typeof` reports as a number while it orders no pair.
+    const caughtErr = await catchOriginalError(
+      '[{:a 1} {:a 2}] | sortWith(sub(mul(/left/a, 1e400), mul(/right/a, 1e400)))');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('SortWithCmpResultNaNError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
   it('asc on non-Map pair → AscPairNotMapError', async () => {
     const caughtErr = await catchOriginalError('42 | asc(/x)');
     expect(caughtErr.name).toBe('AscPairNotMapError');

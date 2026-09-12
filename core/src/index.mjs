@@ -115,14 +115,15 @@ import {
   QlangError,
   QlangTypeError,
   ArityError,
+  NumericDomainError,
   UnresolvedIdentifierError,
-  DivisionByZeroError,
   EffectLaunderingError,
   EffectLaunderingAtBindStepParseError,
   EffectLaunderingAtCallError,
   EvaluationDepthExceededError,
   QlangInvariantError
 } from './errors.mjs';
+import { DivisionByZeroError } from './runtime/arith.mjs';
 import { EVAL_DEPTH_LIMIT } from './state.mjs';
 import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
 import {
@@ -209,6 +210,7 @@ export {
   QlangError,
   QlangTypeError,
   ArityError,
+  NumericDomainError,
   UnresolvedIdentifierError,
   DivisionByZeroError,
   EffectLaunderingError,

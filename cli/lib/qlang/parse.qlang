@@ -26,8 +26,7 @@
             :category :format
             :subject :string
             :returns :any
-            :modifiers []
-            :throws [::ParseJsonSubjectNotStringError ::ParseJsonInvalidJsonError]}
+            :modifiers []}
 
 ::ParseJsonSubjectNotStringError
   |~~ Subject of `parseJson` must be a String — the raw JSON
@@ -56,8 +55,7 @@
             :category :format
             :subject :string
             :returns :any
-            :modifiers []
-            :throws [::ParseTjsonSubjectNotStringError ::ParseTjsonInvalidJsonError]}
+            :modifiers []}
 
 ::ParseTjsonSubjectNotStringError
   |~~ Subject of `parseTjson` must be a String — the tagged-JSON

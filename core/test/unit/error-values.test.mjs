@@ -5,7 +5,8 @@ import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, makeQuo
 import { deepEqual } from '../../src/equality.mjs';
 import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
-import { QlangTypeError, UnresolvedIdentifierError, DivisionByZeroError } from '../../src/errors.mjs';
+import { QlangTypeError, UnresolvedIdentifierError } from '../../src/errors.mjs';
+import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
 
 // fault(stepText, input) — pair-builder for the flat
 // `:faultStep` / `:faultInput` descriptor shape. errorFromQlang
@@ -311,7 +312,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(divErr, ...fault('div(0)', 10));
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
-    expect(divErr.kind).toBe('divisionByZero');
+    expect(divErr.kind).toBe('numericDomain');
     expect(errorVal.tag).toEqual(makeTagKeyword('DivisionByZeroError'));
     expect(desc.get('faultStep').source).toBe('div(0)');
     expect(desc.get('faultInput')).toBe(10);

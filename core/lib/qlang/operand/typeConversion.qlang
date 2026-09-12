@@ -21,8 +21,7 @@
   ::builtin{:impl :qlang/prim/keyword
             :category :typeConversion
             :subject [:string :keyword]
-            :returns [:string :keyword]
-            :throws [::KeywordSubjectNotStringOrKeywordError]}
+            :returns [:string :keyword]}
 
 ::KeywordSubjectNotStringOrKeywordError
   |~~ `keyword` involution requires a String or Keyword subject.
@@ -50,8 +49,7 @@
   ::builtin{:impl :qlang/prim/payload
             :category :typeConversion
             :subject :taggedInstance
-            :returns :any
-            :throws [::PayloadSubjectNotTaggedInstanceError]}
+            :returns :any}
 
 ::PayloadSubjectNotTaggedInstanceError
   |~~ `payload` requires a TaggedInstance subject (a value built
@@ -98,8 +96,7 @@
             :category :typeConversion
             :subject [:any :vec]
             :returns :taggedInstance
-            :modifiers [:tagKeyword]
-            :throws [::TagModifierNotTagKeywordError ::TagBareSubjectShapeError]}
+            :modifiers [:tagKeyword]}
 
 ::TagModifierNotTagKeywordError
   |~~ Captured argument at position 2 of `tag` must be a TagKeyword.

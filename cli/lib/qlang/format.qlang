@@ -64,8 +64,7 @@
             :category :format
             :subject :any
             :returns :string
-            :modifiers [:string]
-            :throws [::TemplateModifierNotStringError]}
+            :modifiers [:string]}
 
 ::TemplateModifierNotStringError
   |~~ `template` captured-arg must be a String — the template

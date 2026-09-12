@@ -54,7 +54,7 @@ const RUNTIME_FIELD_ORDER = [
 const IDENTIFIER_FIELDS = new Set([
   'name',
   'operandName', 'conduitName', 'namespaceName', 'namespace', 'paramName',
-  'effectfulName', 'bindingName', 'axisName',
+  'effectfulName', 'bindingName',
   'tag', 'exportName'
 ]);
 function liftIdentifier(k, v) {

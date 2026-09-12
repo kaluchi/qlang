@@ -22,7 +22,7 @@ export async function expectErrorResult(query) {
 // Asserts the query produces an error value whose underlying JS
 // error class names the given broad-bucket category (`'typeError'`,
 // `'arityError'`, `'effectLaundering'`, `'parseError'`,
-// `'foreignError'`, `'divisionByZero'`, `'invariantError'`,
+// `'foreignError'`, `'numericDomain'`, `'invariantError'`,
 // `'unresolvedIdentifier'`, ...). The instance descriptor carries
 // the dynamic facts alone; `:category` rides the tag-binding,
 // stamped there from the throw site, and `result !| type | spec |

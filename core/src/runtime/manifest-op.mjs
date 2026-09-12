@@ -147,6 +147,8 @@ function describeBinding(value, explicitName) {
     // `:declarationOrigin :implicit` field, so the view shows
     // every tag the env owns regardless of how it landed).
     const tagResult = new Map();
+    // `:kind` is a readable enum bucket on the data plane; the JS
+    // header is where identity rides.
     tagResult.set('kind', TAG_BINDING_TAG);
     tagResult.set('name', explicitName);
     for (const [descKey, descVal] of value) {

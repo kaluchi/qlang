@@ -8,10 +8,14 @@
 // Meta lives in lib/qlang/operand/arith.qlang.
 
 import { valueOp } from './dispatch.mjs';
-import {
-  DivisionByZeroError,
-  declareNumericDomainError
-} from '../errors.mjs';
+import { declareNumericDomainError } from '../errors.mjs';
+
+// `div` refuses two magnitudes: a zero divisor, and a quotient past
+// the finite-double range. Both are the same repair for a reader —
+// change a value — so both ride `NumericDomainError`.
+export const DivisionByZeroError = declareNumericDomainError(
+  'DivisionByZeroError', () => 'division by zero', { operand: 'div' }
+);
 import { declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 

@@ -628,15 +628,13 @@ async function evalTaggedLit(node, state) {
 //                            :implicit` (evalTaggedLit), mints
 //                            a tagged instance; lint sweeps over
 //                            `manifest(:tag)` flag the auto-decl.
-//   `::TypoTag | source`   → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | docs`     → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | examples` → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag | source`   → SourceBindingNotFoundError
+//   `::TypoTag | docs`     → DocsBindingNotFoundError
+//   `::TypoTag | examples` → ExamplesBindingNotFoundError
 //
-// Catalog `:throws [::Foo ::Bar]` Vec
-// constructions evaluate cleanly regardless of declaration order;
-// `langRuntime`'s post-bootstrap `:throws` walker resolves
-// every TagKeyword against the loaded tag-bindings at construction
-// time so a structural typo still surfaces.
+// A catalog entry names no tag it raises: `:throws` is read back
+// off the sites that record the binding as their `:operand`, so a
+// tag reaches a Vec only when a class carries that name.
 async function evalBareTypeKeyword(node, state) {
   return withPipeValue(state, makeTagKeyword(node.tag));
 }

@@ -14,8 +14,7 @@
             :category :arith
             :subject :number
             :returns :number
-            :modifiers [:number]
-            :throws [::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]}
+            :modifiers [:number]}
 
 ::AddLeftNotNumberError
   |~~ Captured argument at position 1 of `add` must be Number.
@@ -61,8 +60,7 @@
             :category :arith
             :subject :number
             :returns :number
-            :modifiers [:number]
-            :throws [::SubLeftNotNumberError ::SubRightNotNumberError ::SubResultNotFiniteError]}
+            :modifiers [:number]}
 
 ::SubLeftNotNumberError
   |~~ Captured argument at position 1 of `sub` must be Number.
@@ -107,8 +105,7 @@
             :category :arith
             :subject :number
             :returns :number
-            :modifiers [:number]
-            :throws [::MulLeftNotNumberError ::MulRightNotNumberError ::MulResultNotFiniteError]}
+            :modifiers [:number]}
 
 ::MulLeftNotNumberError
   |~~ Captured argument at position 1 of `mul` must be Number.
@@ -145,7 +142,7 @@
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
-      position 1 is the dividend. Raises divisionByZero on
+      position 1 is the dividend. Raises `::DivisionByZeroError` on
       b == 0.
 
       ~{10 | div(2) | eq(5)}
@@ -155,8 +152,7 @@
             :category :arith
             :subject :number
             :returns :number
-            :modifiers [:number]
-            :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError ::DivResultNotFiniteError]}
+            :modifiers [:number]}
 
 ::DivLeftNotNumberError
   |~~ Captured argument at position 1 of `div` must be Number.

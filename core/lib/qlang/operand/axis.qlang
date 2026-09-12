@@ -21,8 +21,7 @@
   ::builtin{:impl :qlang/prim/source
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :quote
-            :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :returns :quote}
 
 ::SourceSubjectNotKeywordOrTagError
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
@@ -32,6 +31,17 @@
         42 | source
         !| [type /actualType]
         |  eq([::SourceSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+
+::SourceBindingNotFoundError
+  |~~ `source` — no `BindStep` found for the requested binding name
+      across loaded modules.
+
+      ~{
+        :nonexistent-binding | source
+        !| [type /bindingName]
+        |  eq([::SourceBindingNotFoundError :nonexistent-binding])
        }
   ~~|
 
@@ -47,8 +57,7 @@
   ::builtin{:impl :qlang/prim/docs
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :vec
-            :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :returns :vec}
 
 ::DocsSubjectNotKeywordOrTagError
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
@@ -58,6 +67,17 @@
         42 | docs
         !| [type /actualType]
         |  eq([::DocsSubjectNotKeywordOrTagError :number])
+       }
+  ~~|
+
+::DocsBindingNotFoundError
+  |~~ `docs` — no `BindStep` found for the requested binding name
+      across loaded modules.
+
+      ~{
+        :nonexistent-binding | docs
+        !| [type /bindingName]
+        |  eq([::DocsBindingNotFoundError :nonexistent-binding])
        }
   ~~|
 
@@ -73,8 +93,7 @@
   ::builtin{:impl :qlang/prim/examples
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :vec
-            :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :returns :vec}
 
 ::ExamplesSubjectNotKeywordOrTagError
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
@@ -87,6 +106,17 @@
        }
   ~~|
 
+::ExamplesBindingNotFoundError
+  |~~ `examples` — no `BindStep` found for the requested binding name
+      across loaded modules.
+
+      ~{
+        :nonexistent-binding | examples
+        !| [type /bindingName]
+        |  eq([::ExamplesBindingNotFoundError :nonexistent-binding])
+       }
+  ~~|
+
 :spec
   |~~ `:name | spec` — env-side declaration descriptor Map for the
       named binding. Operand declarations surface as
@@ -94,8 +124,10 @@
       :modifiers … :returns … :throws … :captured … :effectful …}`
       with identity `::builtin` on the JS-header slot (reachable
       through `:name | spec | type`). `:captured` and `:effectful`
-      are stamped from the resolved primitive at bootstrap; the
-      rest is authored in the catalog body. Error tags surface as
+      are stamped from the resolved primitive at bootstrap, and
+      `:throws` is read back off the sites that record this binding
+      as their `:operand`; the rest is authored in the catalog
+      body. Error tags surface as
       `{:category :typeError :operand … :position … :expectedType
       …}`, every field of it stamped at bootstrap from the throw
       site that records it — the catalog side of an error tag
@@ -121,8 +153,7 @@
   ::builtin{:impl :qlang/prim/spec
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :map
-            :throws [::SpecSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :returns :map}
 
 ::SpecSubjectNotKeywordOrTagError
   |~~ `spec` requires a Keyword (`:foo`) or TagKeyword
@@ -135,15 +166,13 @@
        }
   ~~|
 
-::AxisBindingNotFoundError
-  |~~ Axis-operand (`source` / `docs` / `examples` / `spec`) — no
-      `BindStep` found for the requested binding name across
-      loaded modules.
+::SpecBindingNotFoundError
+  |~~ `spec` — no `BindStep` found for the requested binding name
+      across loaded modules.
 
       ~{
-        :nonexistent-binding | source
-        !| [type /axisName /bindingName]
-        |  eq([::AxisBindingNotFoundError
-                :source :nonexistent-binding])
+        :nonexistent-binding | spec
+        !| [type /bindingName]
+        |  eq([::SpecBindingNotFoundError :nonexistent-binding])
        }
   ~~|

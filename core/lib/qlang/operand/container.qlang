@@ -13,8 +13,7 @@
   ::builtin{:impl :qlang/prim/count
             :category :containerReducer
             :subject [:vec :set :map]
-            :returns :number
-            :throws [::CountSubjectNotContainerError]}
+            :returns :number}
 
 ::CountSubjectNotContainerError
   |~~ Subject of `count` must be Vec, Set, or Map.
@@ -35,8 +34,7 @@
   ::builtin{:impl :qlang/prim/empty
             :category :containerReducer
             :subject [:vec :set :map]
-            :returns :boolean
-            :throws [::EmptySubjectNotContainerError]}
+            :returns :boolean}
 
 ::EmptySubjectNotContainerError
   |~~ Subject of `empty` must be Vec, Set, or Map.
@@ -73,8 +71,7 @@
             :category :containerSelector
             :subject [:vec :set :map]
             :returns :boolean
-            :modifiers [:predicateLambda]
-            :throws [::EverySubjectNotContainerError ::EveryVecOrSetPredArityInvalidError ::EveryMapPredArityInvalidError]}
+            :modifiers [:predicateLambda]}
 
 ::EverySubjectNotContainerError
   |~~ Subject of `every` must be Vec, Set, or Map.
@@ -123,8 +120,7 @@
             :category :containerSelector
             :subject [:vec :set :map]
             :returns :boolean
-            :modifiers [:predicateLambda]
-            :throws [::AnySubjectNotContainerError ::AnyVecOrSetPredArityInvalidError ::AnyMapPredArityInvalidError]}
+            :modifiers [:predicateLambda]}
 
 ::AnySubjectNotContainerError
   |~~ Subject of `any` must be Vec, Set, or Map.
@@ -191,8 +187,7 @@
             :category :containerSelector
             :subject [:vec :set :map]
             :returns [:vec :set :map]
-            :modifiers [:predicateLambda]
-            :throws [::FilterSubjectNotContainerError ::FilterVecOrSetPredArityInvalidError ::FilterMapPredArityInvalidError]}
+            :modifiers [:predicateLambda]}
 
 ::FilterSubjectNotContainerError
   |~~ Subject of `filter` must be Vec, Set, or Map.

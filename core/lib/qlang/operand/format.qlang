@@ -54,8 +54,7 @@
   ::builtin{:impl :qlang/prim/table
             :category :format
             :subject :vec
-            :returns :string
-            :throws [::TableSubjectNotVecError ::TableRowNotMapError]}
+            :returns :string}
 
 ::TableSubjectNotVecError
   |~~ Subject of `table` must be Vec.

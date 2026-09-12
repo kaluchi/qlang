@@ -108,13 +108,17 @@ describe('describeType for conduit and snapshot', async () => {
     expect(isTaggedInstance(realSnapshot)).toBe(false);
   });
 
-  it('typeKeyword returns the tag as a TagKeyword for a tagged-instance Map', async () => {
-    const { makeTagKeyword, isTagKeyword } = await import('../../src/types.mjs');
-    const instance = new Map([
+  it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {
+    const { makeTagKeyword, isTagKeyword, stampTagHeader } = await import('../../src/types.mjs');
+    const carriesKindField = new Map([
       ['kind', makeTagKeyword('Box')],
       ['payload', [42, 'inner']]
     ]);
-    const tk = typeKeyword(instance);
+    expect(typeKeyword(carriesKindField).name).toBe('map');
+
+    const stamped = new Map([['payload', [42, 'inner']]]);
+    stampTagHeader(stamped, makeTagKeyword('Box'));
+    const tk = typeKeyword(stamped);
     expect(isTagKeyword(tk)).toBe(true);
     expect(tk.name).toBe('Box');
   });

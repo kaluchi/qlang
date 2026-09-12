@@ -13,8 +13,7 @@
             :category :string
             :subject :string
             :returns :vec
-            :modifiers [:string]
-            :throws [::SplitSubjectNotStringError ::SplitSeparatorNotStringError]}
+            :modifiers [:string]}
 
 ::SplitSubjectNotStringError
   |~~ Captured argument at position 1 of `split` must be String.
@@ -45,8 +44,7 @@
             :category :string
             :subject :vec
             :returns :string
-            :modifiers [:string]
-            :throws [::JoinSubjectNotVecError ::JoinElementNotStringError ::JoinSeparatorNotStringError]}
+            :modifiers [:string]}
 
 ::JoinSubjectNotVecError
   |~~ Subject of `join` must be Vec.
@@ -87,8 +85,7 @@
             :category :string
             :subject :string
             :returns :boolean
-            :modifiers [:string]
-            :throws [::ContainsSubjectNotStringError ::ContainsNeedleNotStringError]}
+            :modifiers [:string]}
 
 ::ContainsSubjectNotStringError
   |~~ Captured argument at position 1 of `contains` must be String.
@@ -119,8 +116,7 @@
             :category :string
             :subject :string
             :returns :boolean
-            :modifiers [:string]
-            :throws [::StartsWithSubjectNotStringError ::StartsWithPrefixNotStringError]}
+            :modifiers [:string]}
 
 ::StartsWithSubjectNotStringError
   |~~ Captured argument at position 1 of `startsWith` must be String.
@@ -151,8 +147,7 @@
             :category :string
             :subject :string
             :returns :boolean
-            :modifiers [:string]
-            :throws [::EndsWithSubjectNotStringError ::EndsWithSuffixNotStringError]}
+            :modifiers [:string]}
 
 ::EndsWithSubjectNotStringError
   |~~ Captured argument at position 1 of `endsWith` must be String.
@@ -181,8 +176,7 @@
             :category :string
             :subject :string
             :returns :string
-            :modifiers [:string]
-            :throws [::PrependSubjectNotStringError ::PrependPrefixNotStringError]}
+            :modifiers [:string]}
 
 ::PrependSubjectNotStringError
   |~~ Captured argument at position 1 of `prepend` must be String.
@@ -211,8 +205,7 @@
             :category :string
             :subject :string
             :returns :string
-            :modifiers [:string]
-            :throws [::AppendSubjectNotStringError ::AppendSuffixNotStringError]}
+            :modifiers [:string]}
 
 ::AppendSubjectNotStringError
   |~~ Captured argument at position 1 of `append` must be String.

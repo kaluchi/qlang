@@ -49,8 +49,7 @@
             :category :reflective
             :subject :any
             :returns :any
-            :modifiers [:any]
-            :throws [::UseSubjectNotMapError ::UseNamespaceNotKeywordError ::UseNamespaceNotFoundError ::UseNamespaceElementNotKeywordError ::UseNamespaceCollisionError ::UseNameNotExportedError]}
+            :modifiers [:any]}
 
 ::UseSubjectNotMapError
   |~~ `use` (bare form) requires a Map subject — its entries
@@ -139,8 +138,7 @@
             :category :reflective
             :subject :any
             :returns :vec
-            :modifiers [:keyword]
-            :throws [::ManifestNamespaceNotKeywordError ::ManifestNamespaceUnknownError]}
+            :modifiers [:keyword]}
 
 ::ManifestNamespaceNotKeywordError
   |~~ `manifest(:namespace)` requires a Keyword captured-arg
@@ -183,8 +181,7 @@
   ::builtin{:impl :qlang/prim/runExamples
             :category :reflective
             :subject :map
-            :returns :vec
-            :throws [::RunExamplesSubjectShapeError]}
+            :returns :vec}
 
 ::RunExamplesSubjectShapeError
   |~~ `runExamples` requires a Keyword (binding name) or a
@@ -211,8 +208,7 @@
             :category :reflective
             :subject :any
             :returns :any
-            :modifiers [:keyword]
-            :throws [::AsNameNotKeywordError]}
+            :modifiers [:keyword]}
 
 |~ Snapshot wrappers carry their captured value transparently on
    identifier lookup — `as(:name) | name` returns the raw value

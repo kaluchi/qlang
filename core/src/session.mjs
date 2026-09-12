@@ -105,7 +105,7 @@ export async function createSession(opts = {}) {
         // mechanism `evalQuery` uses for inline queries. Without it
         // a cell's own `:foo |~~ note ~~|` declaration is invisible
         // to a subsequent `:foo | docs` step, surfacing
-        // `::AxisBindingNotFoundError`. The Quote keeps both the
+        // `::DocsBindingNotFoundError`. The Quote keeps both the
         // verbatim source and the pre-parsed AST so axis-walkers
         // skip a re-parse on every lookup.
         env = envSet(env, moduleAstKey(cellUri), makeQuote(source, cellAst));

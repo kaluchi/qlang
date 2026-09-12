@@ -384,7 +384,7 @@ describe('auto-declared ::Tag binding respects fork isolation', () => {
   it('an auto-declaration inside a ParenGroup fork does not leak out', async () => {
     const result = await evalQuery('(::Foo(1)) | ::Foo | spec');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.tag.name).toBe('AxisBindingNotFoundError');
+    expect(result.tag.name).toBe('SpecBindingNotFoundError');
   });
 
   it('an auto-declaration inside a fork leaves no trace in the outer env', async () => {

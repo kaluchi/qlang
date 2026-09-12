@@ -49,8 +49,7 @@
             :category :predicate
             :subject :number
             :returns :boolean
-            :modifiers [:number]
-            :throws [::GtOperandsNotComparableError]}
+            :modifiers [:number]}
 
 ::GtOperandsNotComparableError
   |~~ Operands of `gt` are not pairwise-comparable scalars.
@@ -70,8 +69,7 @@
             :category :predicate
             :subject :number
             :returns :boolean
-            :modifiers [:number]
-            :throws [::LtOperandsNotComparableError]}
+            :modifiers [:number]}
 
 ::LtOperandsNotComparableError
   |~~ Operands of `lt` are not pairwise-comparable scalars.
@@ -91,8 +89,7 @@
             :category :predicate
             :subject :number
             :returns :boolean
-            :modifiers [:number]
-            :throws [::GteOperandsNotComparableError]}
+            :modifiers [:number]}
 
 ::GteOperandsNotComparableError
   |~~ Operands of `gte` are not pairwise-comparable scalars.
@@ -112,8 +109,7 @@
             :category :predicate
             :subject :number
             :returns :boolean
-            :modifiers [:number]
-            :throws [::LteOperandsNotComparableError]}
+            :modifiers [:number]}
 
 ::LteOperandsNotComparableError
   |~~ Operands of `lte` are not pairwise-comparable scalars.

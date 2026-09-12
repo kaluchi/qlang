@@ -9,9 +9,9 @@
 // `type` answers a value's identity tag, and asking what a value
 // is means composing that reader with `eq`: `filter(type |
 // eq(:string))` over a Vec of mixed types, or over a Map to keep
-// the String-valued entries. Identity, not shape — a Map declaring
-// `:kind ::Foo` answers `::Foo`, and its shape reads through
-// `payload` where an identity overlay carries one.
+// the String-valued entries. Identity rides the JS-header slot, so
+// a tagged value answers its `::Tag` and its shape reads through
+// `payload`.
 //
 // Meta lives in lib/qlang/operand/predicate.qlang, and `type`'s in
 // lib/qlang/operand/typeClassifier.qlang.

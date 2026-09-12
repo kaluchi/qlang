@@ -20,7 +20,7 @@
 {"name":"type-doc","query":"|~~ note ~~| | type","expect":":doc"}
 {"name":"type-map","query":"{:a 1} | type","expect":":map"}
 {"name":"type-map-empty","query":"{} | type","expect":":map"}
-{"name":"type-map-declaring-kind-answers-that-identity","query":"{:kind ::Foo :a 1} | type","expect":"::Foo"}
+{"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":":map"}
 {"name":"type-set","query":"#[1 2] | type","expect":":set"}
 {"name":"type-set-empty","query":"#[] | type","expect":":set"}
 {"name":"type-error-tag","query":"[1 2 3] | add(1) !| type","expect":"::AddLeftNotNumberError"}

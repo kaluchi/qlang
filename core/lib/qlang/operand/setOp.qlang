@@ -18,8 +18,7 @@
             :category :setOp
             :subject [:set :map :vec]
             :returns [:set :map]
-            :modifiers [:any]
-            :throws [::UnionBareSubjectNotVecError ::UnionBareEmptyError ::UnionPairIncompatibleError]}
+            :modifiers [:any]}
 
 ::UnionBareSubjectNotVecError
   |~~ Subject of `union` (bare form) must be Vec.
@@ -61,8 +60,7 @@
             :category :setOp
             :subject [:set :map :vec]
             :returns [:set :map]
-            :modifiers [:any]
-            :throws [::MinusBareSubjectNotVecError ::MinusBareEmptyError ::MinusPairIncompatibleError]}
+            :modifiers [:any]}
 
 ::MinusBareSubjectNotVecError
   |~~ Subject of `minus` (bare form) must be Vec.
@@ -104,8 +102,7 @@
             :category :setOp
             :subject [:set :map :vec]
             :returns [:set :map]
-            :modifiers [:any]
-            :throws [::InterBareSubjectNotVecError ::InterBareEmptyError ::InterPairIncompatibleError]}
+            :modifiers [:any]}
 
 ::InterBareSubjectNotVecError
   |~~ Subject of `inter` (bare form) must be Vec.

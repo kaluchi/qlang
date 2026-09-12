@@ -94,21 +94,25 @@
       :modifiers … :returns … :throws … :captured … :effectful …}`
       with identity `::builtin` on the JS-header slot (reachable
       through `:name | spec | type`). `:captured` and `:effectful`
-      are stamped from the resolved primitive at bootstrap; every
-      other field is authored in the catalog body. Tag-binding
-      error tags surface as `{:category :typeError :operand …
-      :position … :expectedType …}`. Value-class constructors
-      surface as `{:impl :qlang/type/<tag> :throws […]}`. All
-      three carry the same `::builtin` header identity.
+      are stamped from the resolved primitive at bootstrap; the
+      rest is authored in the catalog body. Error tags surface as
+      `{:category :typeError :operand … :position … :expectedType
+      …}`, every field of it stamped at bootstrap from the throw
+      site that records it — the catalog side of an error tag
+      carries the prose and the example segments `docs` and
+      `examples` answer with. Value-class constructors surface as
+      `{:impl :qlang/type/<tag> :throws […]}`. All three carry the
+      same `::builtin` header identity.
       BindStep-bound conduits surface as the Conduit value-class
       Map; `as`-bound snapshots as the Snapshot's auto-unwrapped
       payload.
 
       The discriminator path for per-tag static facts attached
       to any tagged value-class — `result !| type | spec |
-      /category` reads `:typeError` off the error tag's catalog
-      body; `:add | spec | /throws` lists the per-site error
-      classes `add` raises.
+      /category` reads `:typeError` off the error tag; `:add |
+      spec | /throws` lists the per-site error classes `add`
+      raises, and each of those names `:add` back on its own
+      `/operand`.
 
       ~{:add | spec | /category | eq(:arith)}
       ~{::AddLeftNotNumberError | spec | /operand | eq(:add)}

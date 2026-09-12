@@ -8,22 +8,18 @@
 // every failure under the same fingerprint, and consumers
 // disambiguate by reading `:context.host` (`'node'` vs `'web'`).
 
-import { recordThrowSiteSpec } from './errors.mjs';
+import { declareForeignError } from './errors.mjs';
 
-// The loader sits outside the QlangError hierarchy: a source the
-// host cannot read is a failure of the embedding, not a value the
-// fail track carries. The spec still lands here so the `::Tag` the
-// catalog binds reads `:foreignError` off the site that raises it.
-recordThrowSiteSpec('SourceLoadError', 'foreignError');
-
-export class SourceLoadError extends Error {
-  constructor({ host, logicalName, sourceLocation, cause, status }) {
+// `declareForeignError` keeps the class off the QlangError
+// hierarchy: a source the host cannot read is a failure of the
+// embedding, not a value the fail track carries. The spec it
+// records is what gives the `::Tag` its `:foreignError` reading.
+export const SourceLoadError = declareForeignError('SourceLoadError',
+  ({ logicalName, sourceLocation, cause, status }) => {
     const tail = cause
       ? cause.message ?? String(cause)
       : (status !== undefined ? `HTTP ${status}` : '');
-    super(`failed to read qlang source '${logicalName}' from ${sourceLocation}${tail ? ` — ${tail}` : ''}`);
-    this.name = 'SourceLoadError';
-    this.fingerprint = 'SourceLoadError';
-    this.context = { host, logicalName, sourceLocation, cause, status };
+    return `failed to read qlang source '${logicalName}' from ${sourceLocation}` +
+      (tail ? ` — ${tail}` : '');
   }
-}
+);

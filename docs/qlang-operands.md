@@ -1363,6 +1363,27 @@ its own eval handler in `eval.mjs`.
   `ExamplesSubjectNotKeywordOrTagError`; no declaring step found →
   `AxisBindingNotFoundError`.
 
+### `spec`
+
+- **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
+- Returns the env-side declaration descriptor Map for the binding.
+  An operand answers with the `::builtin{…}` body its catalog entry
+  declares, backfilled with `:captured` / `:effectful` from the
+  resolved primitive; a value-class constructor with its `:impl`
+  handle and `:throws`; an error tag with the structural facts its
+  throw site records — `:category`, and for an operand slot check
+  `:operand`, `:position` and `:expectedType`.
+- The end of every error-diagnosis chain: `type` names the tag, and
+  `spec` reads what the site that raised it declares about itself.
+- **Examples**:
+  - `"x" | add(1) !| type | spec | /operand` → `:add`.
+  - `"x" | add(1) !| type | spec | /category` → `:typeError`.
+  - `:add | spec | /throws` → the per-site error classes `add` raises.
+  - `::conduit | spec | /impl` → `:qlang/type/conduit`.
+- **Errors**: subject not a Keyword or TagKeyword →
+  `SpecSubjectNotKeywordOrTagError`; no declaring step found →
+  `AxisBindingNotFoundError`.
+
 ### `type`
 
 - **Arity** 1. **Subject** any value.

@@ -417,6 +417,14 @@
       the same primitive name.
   ~~|
 
+::ThrowSiteSpecAlreadyRecordedError
+  |~~ Throw-site spec registry — two per-site error classes were
+      declared under one name. The name is the identity a Sentry
+      fingerprint, this catalog's `::Tag` binding and the stamped
+      `spec` all read, so the second declaration would speak for
+      both sites.
+  ~~|
+
 ::PrimitiveKeyNotStringError
   |~~ Primitive registry — bind() received a non-string
       handle.

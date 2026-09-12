@@ -34,7 +34,7 @@ import {
   typeKeyword, makeQuote, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
-  moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY, TAG_BINDING_PREFIX
+  moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
@@ -180,7 +180,6 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // what `buildLangRuntime` does for the language catalog, at the
   // seam a locator-loaded namespace arrives through.
   for (const [exportKey, exportVal] of loadedExports) {
-    if (!exportKey.startsWith(TAG_BINDING_PREFIX)) continue;
     stampThrowSiteSpec(exportVal, exportKey);
   }
 

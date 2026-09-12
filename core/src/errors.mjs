@@ -14,9 +14,15 @@
 //   QlangError                       — abstract root
 //     QlangTypeError                 — abstract typeError class
 //     NumericDomainError             — abstract numericDomain class
-//     ArityError                     — too many captured args
+//     ArityError                     — captured-arg count the site refuses
 //     QlangInvariantError            — registration-time invariant
 //     EffectLaunderingError          — @-marker laundered past a name
+//
+// Declaration order follows that hierarchy: the roots, then the
+// registry, then the factories over both, then the per-site classes
+// grouped under the root each rides. A factory call evaluates at
+// module load, so a class declared above its root would read the
+// root through the temporal dead zone.
 //
 // Source-mapping and observability fields on every QlangError:
 //   .location       — qlang source position (set by evalNode wrapper
@@ -36,159 +42,7 @@
 
 const ERROR_SCHEMA_VERSION = 1;
 
-// ── Throw-site specs ──────────────────────────────────────────
-//
-// A per-site error carries four structural facts: the `:category`
-// its base names, the `:operand` that raises it, the `:position`
-// that operand checks, and the `:expectedType` it requires. Each is
-// a property of the throw site, so the site records it here and the
-// bootstrap stamps it onto the `::Tag` binding the catalog declares
-// under the same name. The catalog carries what an author writes —
-// the prose and the `~{…}` examples.
-//
-// The facts stay plain strings and numbers at this layer; the lift
-// into Keywords, TagKeywords and Vecs happens at the stamp site in
-// `descriptor-ops.mjs`, which is where the value-class factories
-// live. That keeps `errors.mjs` free of a `types.mjs` import, which
-// would close a cycle.
-
-const throwSiteSpecs = new Map();
-
-export function recordThrowSiteSpec(className, category, facts = {}) {
-  throwSiteSpecs.set(className, Object.freeze({ category, ...facts }));
-}
-
-export function throwSiteSpecOf(className) {
-  return throwSiteSpecs.get(className);
-}
-
-export function throwSiteSpecNames() {
-  return throwSiteSpecs.keys();
-}
-
-// ── Per-site declaration ───────────────────────────────────────
-//
-// One throw site, one class. Every per-site class below is built by
-// a factory that names it once and records its throw-site spec from
-// the same argument, so the class name, the `.kind` the instance
-// carries and the `:category` the catalog binding gets stamped with
-// cannot drift apart. `operand-errors.mjs` narrows the same shape
-// for the four operand slot checks — subject, modifier, element,
-// comparability — where the operand and the slot spell the wording
-// as well as the spec. The factories here take a message builder
-// instead, and cover every site the slot checks leave: a custom
-// diagnostic, an arity refusal, a magnitude outside the
-// finite-double domain, a runtime invariant, an @-marker laundered
-// past a name, a codec seam, the session envelope, the primitive
-// registry, the bootstrap.
-
-// `name` is a non-writable own property of a class object, so a
-// class built inside a factory reports the factory's local binding
-// until redefined. Every per-site class is redefined to its declared
-// name, which is what `constructor.name`, a stack frame, and the
-// `::Tag` the catalog binds all read.
-export function brand(Cls, className) {
-  Object.defineProperty(Cls, 'name', { value: className });
-  return Cls;
-}
-
-// declarePerSiteError — a site whose category names no `instanceof`
-// family of its own. The class extends `QlangError` directly and
-// stamps `category` as its kind.
-export function declarePerSiteError(className, category, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, category, facts);
-  const Cls = class extends QlangError {
-    constructor(context = {}) {
-      super(buildMessage(context), category, context);
-      this.name = className;
-      this.fingerprint = className;
-    }
-  };
-  return brand(Cls, className);
-}
-
-// declareInvariantError — a registration-time or render-time
-// invariant the runtime itself holds. Extends `QlangInvariantError`
-// so `evalNode`'s rethrow guard keeps letting it past the deflect
-// machinery: an invariant violation is a defect in the runtime or in
-// what a host installed, never a value the fail track should carry.
-export function declareInvariantError(className, buildMessage, facts = {}) {
-  return declareUnder(QlangInvariantError, 'invariantError', className, buildMessage, facts);
-}
-
-// declareEffectLaunderingError — a site that caught an @-prefixed
-// effect reaching a name that does not carry the marker. Extends
-// `EffectLaunderingError` so a host can catch the whole family.
-export function declareEffectLaunderingError(className, buildMessage, facts = {}) {
-  return declareUnder(EffectLaunderingError, 'effectLaundering', className, buildMessage, facts);
-}
-
-// Shared body of every factory whose base already stamps the kind
-// and keeps the context bag: the base takes `(message, context)`,
-// the per-site class adds its identity.
-function declareUnder(BaseError, category, className, buildMessage, facts) {
-  recordThrowSiteSpec(className, category, facts);
-  const Cls = class extends BaseError {
-    constructor(context = {}) {
-      super(buildMessage(context), context);
-      this.name = className;
-      this.fingerprint = className;
-    }
-  };
-  return brand(Cls, className);
-}
-
-// declareShapeError — thrown by a site with custom diagnostic
-// wording that does not fit the pattern-based factories above.
-// The class still carries structured context and a unique site
-// name for debugging.
-export function declareShapeError(className, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, 'typeError', facts);
-  const Cls = class extends QlangTypeError {
-    constructor(context = {}) {
-      super(buildMessage(context), context);
-      this.name = className;
-      this.fingerprint = className;
-    }
-  };
-  return brand(Cls, className);
-}
-
-// declareNumericDomainError — thrown by a site whose subject and
-// modifiers carry the right value-class and whose result leaves the
-// finite-double domain a qlang Number lives in. Extends
-// `NumericDomainError` so `.kind` reads `numericDomain` and the
-// tag-binding's `:category` matches — a shape category would claim
-// a type violation the values do not have, since
-// `typeKeyword(Infinity)` answers `:number`.
-export function declareNumericDomainError(className, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, 'numericDomain', facts);
-  const Cls = class extends NumericDomainError {
-    constructor(context = {}) {
-      super(buildMessage(context), context);
-      this.name = className;
-      this.fingerprint = className;
-    }
-  };
-  return brand(Cls, className);
-}
-
-// declareArityError — thrown by a site whose failure is an
-// incorrect captured-arg count (too few, too many, or an unsupported
-// specific count). Extends ArityError so `.kind === 'arityError'`
-// and `instanceof ArityError` both match, while the concrete
-// per-site class still identifies the throw location uniquely.
-export function declareArityError(className, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, 'arityError', facts);
-  const Cls = class extends ArityError {
-    constructor(context = {}) {
-      super(buildMessage(context), context);
-      this.name = className;
-      this.fingerprint = className;
-    }
-  };
-  return brand(Cls, className);
-}
+// ── Category roots ─────────────────────────────────────────────
 
 export class QlangError extends Error {
   constructor(message, kind, context = {}) {
@@ -228,15 +82,6 @@ export class QlangTypeError extends QlangError {
   }
 }
 
-export const UnresolvedIdentifierError = declarePerSiteError(
-  'UnresolvedIdentifierError', 'unresolvedIdentifier',
-  ({ identifierName }) => `unresolved identifier: ${identifierName}`
-);
-
-export const DivisionByZeroError = declarePerSiteError(
-  'DivisionByZeroError', 'divisionByZero', () => 'division by zero', { operand: 'div' }
-);
-
 // NumericDomainError — the value's type is right and its magnitude
 // is not. `typeKeyword(Infinity)` answers `:number`, so a shape
 // check has nothing to report; what the site refuses is the
@@ -255,15 +100,6 @@ export class ArityError extends QlangError {
     this.name = 'ArityError';
   }
 }
-
-// EvaluationDepthExceededError — `nestState` (state.mjs) refused one
-// more nested evaluation frame past `EVAL_DEPTH_LIMIT`. Kind
-// `resourceLimit`: the runaway sits in the query's recursion.
-// `context.depth` is the refused frame, `context.limit` the budget.
-export const EvaluationDepthExceededError = declarePerSiteError(
-  'EvaluationDepthExceededError', 'resourceLimit',
-  ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`
-);
 
 // QlangInvariantError — abstract root for registration-time invariant
 // violations raised when a runtime operand is constructed with
@@ -304,6 +140,196 @@ export class EffectLaunderingError extends QlangError {
     this.name = 'EffectLaunderingError';
   }
 }
+
+// ── Throw-site specs ──────────────────────────────────────────
+//
+// A per-site error carries four structural facts: the `:category`
+// its base names, the `:operand` that raises it, the `:position`
+// that operand checks, and the `:expectedType` it requires. Each is
+// a property of the throw site, so the site records it here and the
+// bootstrap stamps it onto the `::Tag` binding the catalog declares
+// under the same name. The catalog carries what an author writes —
+// the prose and the `~{…}` examples.
+//
+// The facts stay plain strings and numbers at this layer; the lift
+// into Keywords, TagKeywords and Vecs happens at the stamp site in
+// `descriptor-ops.mjs`, which is where the value-class factories
+// live. That keeps `errors.mjs` free of a `types.mjs` import, which
+// would close a cycle.
+
+const throwSiteSpecs = new Map();
+
+// One name, one throw site — the registry refuses a second
+// recording the way `PRIMITIVE_REGISTRY.bind` refuses a second
+// binding, and for the same reason: two classes answering to one
+// name share a Sentry fingerprint, a catalog tag and a stamped
+// spec, so whichever loads second speaks for both.
+export function recordThrowSiteSpec(className, category, facts = {}) {
+  if (throwSiteSpecs.has(className)) {
+    throw new ThrowSiteSpecAlreadyRecordedError({ className });
+  }
+  throwSiteSpecs.set(className, Object.freeze({ category, ...facts }));
+}
+
+export function throwSiteSpecOf(className) {
+  return throwSiteSpecs.get(className);
+}
+
+export function throwSiteSpecNames() {
+  return throwSiteSpecs.keys();
+}
+
+// ── Per-site declaration ───────────────────────────────────────
+//
+// One throw site, one class. Every per-site class is built by a
+// factory that names it once and records its throw-site spec from
+// the same argument, so the class name, the `.kind` the instance
+// carries and the `:category` the catalog binding gets stamped with
+// cannot drift apart. `operand-errors.mjs` narrows the same shape
+// for the four operand slot checks — subject, modifier, element,
+// comparability — where the operand and the slot spell the wording
+// as well as the spec. The factories here take a message builder
+// instead, and cover every site the slot checks leave: a custom
+// diagnostic, an arity refusal, a magnitude outside the
+// finite-double domain, a runtime invariant, an @-marker laundered
+// past a name, a codec seam, the session envelope, the primitive
+// registry, the bootstrap, a source the host cannot read.
+
+// `name` is a non-writable own property of a class object, so a
+// class built inside a factory reports the factory's local binding
+// until redefined. Every per-site class is redefined to its declared
+// name, which is what `constructor.name`, a stack frame, and the
+// `::Tag` the catalog binds all read.
+export function brand(Cls, className) {
+  Object.defineProperty(Cls, 'name', { value: className });
+  return Cls;
+}
+
+// Shared body of every factory whose base already stamps the kind
+// and keeps the context bag: the base takes `(message, context)`,
+// the per-site class adds its identity.
+function declareUnder(BaseError, category, className, buildMessage, facts) {
+  recordThrowSiteSpec(className, category, facts);
+  const Cls = class extends BaseError {
+    constructor(context = {}) {
+      super(buildMessage(context), context);
+      this.name = className;
+      this.fingerprint = className;
+    }
+  };
+  return brand(Cls, className);
+}
+
+// declarePerSiteError — a site whose category names no `instanceof`
+// family of its own. The class extends `QlangError` directly and
+// stamps `category` as its kind.
+export function declarePerSiteError(className, category, buildMessage, facts = {}) {
+  recordThrowSiteSpec(className, category, facts);
+  const Cls = class extends QlangError {
+    constructor(context = {}) {
+      super(buildMessage(context), category, context);
+      this.name = className;
+      this.fingerprint = className;
+    }
+  };
+  return brand(Cls, className);
+}
+
+// declareShapeError — a site whose diagnostic wording the operand
+// slot-check factories in `operand-errors.mjs` cannot spell, because
+// what it refuses is a shape rather than one slot's value-class. The
+// class still carries structured context and a unique site name.
+export function declareShapeError(className, buildMessage, facts = {}) {
+  return declareUnder(QlangTypeError, 'typeError', className, buildMessage, facts);
+}
+
+// declareNumericDomainError — a site whose subject and modifiers
+// carry the right value-class and whose result leaves the
+// finite-double domain a qlang Number lives in. Extends
+// `NumericDomainError` so `.kind` reads `numericDomain` and the
+// tag-binding's `:category` matches — a shape category would claim
+// a type violation the values do not have, since
+// `typeKeyword(Infinity)` answers `:number`.
+export function declareNumericDomainError(className, buildMessage, facts = {}) {
+  return declareUnder(NumericDomainError, 'numericDomain', className, buildMessage, facts);
+}
+
+// declareArityError — a site whose failure is the captured-arg
+// count: too few, too many, or an unsupported specific count.
+// Extends ArityError so `.kind === 'arityError'` and `instanceof
+// ArityError` both match, while the concrete per-site class still
+// identifies the throw location uniquely.
+export function declareArityError(className, buildMessage, facts = {}) {
+  return declareUnder(ArityError, 'arityError', className, buildMessage, facts);
+}
+
+// declareInvariantError — a registration-time or render-time
+// invariant the runtime itself holds. Extends `QlangInvariantError`
+// so `evalNode`'s rethrow guard keeps letting it past the deflect
+// machinery: an invariant violation is a defect in the runtime or in
+// what a host installed, never a value the fail track should carry.
+export function declareInvariantError(className, buildMessage, facts = {}) {
+  return declareUnder(QlangInvariantError, 'invariantError', className, buildMessage, facts);
+}
+
+// declareEffectLaunderingError — a site that caught an @-prefixed
+// effect reaching a name that does not carry the marker. Extends
+// `EffectLaunderingError` so a host can catch the whole family.
+export function declareEffectLaunderingError(className, buildMessage, facts = {}) {
+  return declareUnder(EffectLaunderingError, 'effectLaundering', className, buildMessage, facts);
+}
+
+// declareForeignError — a failure of the embedding rather than of
+// the query: the host could not hand the runtime something it asked
+// for. The class extends `Error`, so the deflect combinators never
+// see it and it rides out to the host that can act on it, while the
+// spec it records gives its `::Tag` the same `spec` reading every
+// other per-site error answers with.
+export function declareForeignError(className, buildMessage) {
+  recordThrowSiteSpec(className, 'foreignError');
+  const Cls = class extends Error {
+    constructor(context = {}) {
+      super(buildMessage(context));
+      this.name = className;
+      this.fingerprint = className;
+      this.context = context;
+    }
+  };
+  return brand(Cls, className);
+}
+
+// ── Per-site classes under QlangInvariantError ─────────────────
+
+// First among the per-site classes: `recordThrowSiteSpec` reaches
+// for it on a repeated name, and every later declaration in the tree
+// records after this one resolves.
+export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
+  'ThrowSiteSpecAlreadyRecordedError',
+  ({ className }) => `${className} records a second throw-site spec; two classes under ` +
+    'one name share a fingerprint, a catalog tag and a stamped spec'
+);
+
+// ── Per-site classes under QlangError ──────────────────────────
+
+export const UnresolvedIdentifierError = declarePerSiteError(
+  'UnresolvedIdentifierError', 'unresolvedIdentifier',
+  ({ identifierName }) => `unresolved identifier: ${identifierName}`
+);
+
+export const DivisionByZeroError = declarePerSiteError(
+  'DivisionByZeroError', 'divisionByZero', () => 'division by zero', { operand: 'div' }
+);
+
+// EvaluationDepthExceededError — `nestState` (state.mjs) refused one
+// more nested evaluation frame past `EVAL_DEPTH_LIMIT`. Kind
+// `resourceLimit`: the runaway sits in the query's recursion.
+// `context.depth` is the refused frame, `context.limit` the budget.
+export const EvaluationDepthExceededError = declarePerSiteError(
+  'EvaluationDepthExceededError', 'resourceLimit',
+  ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`
+);
+
+// ── Per-site classes under EffectLaunderingError ───────────────
 
 export const EffectLaunderingAtBindStepParseError = declareEffectLaunderingError(
   'EffectLaunderingAtBindStepParseError',

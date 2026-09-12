@@ -10,7 +10,10 @@ import {
   DivisionByZeroError,
   ArityError,
   EvaluationDepthExceededError,
-  QlangInvariantError
+  QlangInvariantError,
+  ThrowSiteSpecAlreadyRecordedError,
+  declarePerSiteError,
+  declareForeignError
 } from '../../src/errors.mjs';
 import { keyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
@@ -188,5 +191,42 @@ describe('error class branding survives Object.defineProperty (minification prox
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
     expect(originalErr.constructor.name).toBe('CountSubjectNotContainerError');
+  });
+});
+
+describe('throw-site spec registry — one name, one site', () => {
+  // The registry is what the bootstrap stamps from, so a second
+  // class under one name would hand its `::Tag` binding a spec for
+  // the other site — and share the Sentry fingerprint besides.
+  it('refuses a second recording under a name already declared', () => {
+    let refusal = null;
+    try {
+      declarePerSiteError('DivisionByZeroError', 'divisionByZero', () => 'a second site');
+    } catch (caught) {
+      refusal = caught;
+    }
+    expect(refusal).toBeInstanceOf(QlangInvariantError);
+    expect(refusal).toBeInstanceOf(ThrowSiteSpecAlreadyRecordedError);
+    expect(refusal.name).toBe('ThrowSiteSpecAlreadyRecordedError');
+    expect(refusal.context.className).toBe('DivisionByZeroError');
+    expect(refusal.message).toContain('DivisionByZeroError');
+  });
+});
+
+describe('declareForeignError — a failure of the embedding', () => {
+  // The class stays off the QlangError hierarchy so the deflect
+  // combinators never see it, and carries the per-site identity
+  // every other factory stamps.
+  it('mints a class outside the QlangError hierarchy that still names its site', () => {
+    const HostBridgeUnreachableError = declareForeignError('HostBridgeUnreachableError',
+      ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
+    const foreignErr = new HostBridgeUnreachableError({ endpoint: 'ipc://bridge' });
+
+    expect(foreignErr).toBeInstanceOf(Error);
+    expect(foreignErr).not.toBeInstanceOf(QlangError);
+    expect(foreignErr.name).toBe('HostBridgeUnreachableError');
+    expect(foreignErr.fingerprint).toBe('HostBridgeUnreachableError');
+    expect(foreignErr.context.endpoint).toBe('ipc://bridge');
+    expect(foreignErr.message).toContain('ipc://bridge');
   });
 });

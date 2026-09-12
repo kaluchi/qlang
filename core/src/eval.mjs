@@ -125,10 +125,12 @@ const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError'
 );
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
   ({ conduitName, expectedArity, actualArity }) =>
-    `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`);
+    `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`,
+  { operand: '::conduit' });
 const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterNoCapturedArgsError',
   ({ paramName, actualCount }) =>
-    `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
+    `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`,
+  { operand: '::conduit' });
 
 // evalQuery(source, env?, callerState?) → Promise<final pipeValue>
 //

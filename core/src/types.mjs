@@ -18,7 +18,8 @@ import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 export const ConduitBodyMissingSourceError = declareInvariantError(
   'ConduitBodyMissingSourceError',
   () => 'makeConduit: body has no .text — conduit body must carry a source slice ' +
-    'so printValue round-trips through parse'
+    'so printValue round-trips through parse',
+  { operand: '::conduit' }
 );
 
 // Function values (`makeFn` output) are runtime-internal: a catalog

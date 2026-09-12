@@ -88,7 +88,9 @@ import { rootState } from '../state.mjs';
 import {
   keyword, makeQuote, isErrorValue, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
+import {
+  moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey, isTagBindingName
+} from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
 import {
@@ -207,10 +209,10 @@ export async function buildLangRuntime(locator) {
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
     // readable in `manifest(:tag)` output, so the author-form
-    // `:impl` stays. What lands here is the throw-site spec: the
+    // `:impl` stays. What lands there is the throw-site spec: the
     // `:category` / `:operand` / `:position` / `:expectedType` the
     // per-site factory recorded when it built the class.
-    if (envKey.startsWith('::')) {
+    if (isTagBindingName(envKey)) {
       stampThrowSiteSpec(descriptor, envKey);
       continue;
     }

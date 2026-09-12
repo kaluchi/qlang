@@ -140,8 +140,10 @@ bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 // Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`
 // declares its body as `::builtin{:impl :qlang/prim/<name>
 // :category … :subject … :modifiers … :returns … :throws …}`;
-// every error tag declares its body as `::builtin{:category
-// :typeError :operand …}` (no `:impl`). The catalog reader and
+// an error tag declares prose and `~{…}` examples alone, and
+// `buildLangRuntime` stamps its `:category` / `:operand` /
+// `:position` / `:expectedType` from the spec the factory recorded
+// at the throw site. The catalog reader and
 // the bootstrap fill loop in `runtime/index.mjs` address the
 // stamped fields directly through `descriptor.get(<field>)`, so
 // `::builtin` flattens the payload Map into a descriptor Map

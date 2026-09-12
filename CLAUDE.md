@@ -44,11 +44,14 @@ The Node floor is the `engines.node` field each workspace's
   counters through the AST, so an `if` whose implicit else no test
   reaches counts as an uncovered branch — either the scenario is real
   and earns a test, or the guard cannot fire and comes out.
-- **Operand catalog**: authored metadata — `:throws`, `:category`,
-  `:subject`, `:modifiers`, `:returns` — lives in the per-family
-  catalog files under `core/lib/qlang/operand/<family>.qlang`
+- **Operand catalog**: an operand's authored metadata — `:throws`,
+  `:category`, `:subject`, `:modifiers`, `:returns` — lives in the
+  per-family catalog files under `core/lib/qlang/operand/<family>.qlang`
   (plus shared tag-bindings in `core/lib/qlang/runtime-invariants.qlang`
-  and value-class constructors in `core/lib/qlang/tag.qlang`).
+  and value-class constructors in `core/lib/qlang/tag.qlang`). An
+  error tag's catalog entry carries prose and examples alone; its
+  structural facts ride in from the throw site (see the per-site
+  error invariants below).
   `core/lib/qlang/core.qlang` orchestrates them via a single
   `use([:qlang/runtime-invariants :qlang/tag :qlang/operand/arith
   …])` call. The JS side registers executable impls via
@@ -62,12 +65,25 @@ The Node floor is the `engines.node` field each workspace's
   `~{…}` Quote segments live on each `BindStep`'s attached
   doc-prefix in its `qlang/ast/<uri>` module Quote and are
   reachable through `:name | docs` and `:name | examples`.
-- **Per-site error classes**: one throw site, one class. Built via the
-  factories in `core/src/operand-errors.mjs` (`declareSubjectError`,
+- **Per-site error classes**: one throw site, one class, declared
+  through a factory. The operand slot checks go through
+  `core/src/operand-errors.mjs` (`declareSubjectError`,
   `declareModifierError`, `declareElementError`,
-  `declareComparabilityError`, `declareShapeError`,
-  `declareArityError`). Each class sets `name` and `fingerprint` via
-  the `brand()` helper and carries a structured `context` object.
+  `declareComparabilityError`); every other site goes through
+  `core/src/errors.mjs` (`declareShapeError`, `declareArityError`,
+  `declareNumericDomainError`, `declareInvariantError`,
+  `declareEffectLaunderingError`, `declarePerSiteError`). Each class
+  sets `name` and `fingerprint` via the `brand()` helper and takes a
+  structured `context` bag its message builder reads.
+- **An error's structural facts have one spelling**: the factory call
+  records the throw site's `:category` / `:operand` / `:position` /
+  `:expectedType` in `recordThrowSiteSpec`, and `buildLangRuntime`
+  stamps them onto the `::Tag` binding the catalog declares under the
+  same name. A catalog `::Tag` whose throw site records a spec
+  declares prose and `~{…}` examples only — no `::builtin{…}` body;
+  `core/test/unit/error-tag-catalog-drift.test.mjs` guards both
+  directions. A module declaring a per-site class has to be in the
+  runtime's import graph, or the stamp pass misses it.
 - **Internal dependency ranges name the sibling's version**: a
   workspace naming `@kaluchi/qlang-core` — under `dependencies`,
   `devDependencies`, `peerDependencies` or `optionalDependencies` —
@@ -104,8 +120,9 @@ chapters the main agent keeps in mind at every commit:
 2. Forbidden temporal framing: `now`, `currently`, `previously`, `was`,
    `legacy`, `deprecated`, `old`, `new` (as a state comparator),
    `for backward compatibility`, `TODO`, `FIXME`, `HACK`.
-3. Per-site error classes through `core/src/operand-errors.mjs`
-   factories.
+3. Per-site error classes through the `core/src/operand-errors.mjs`
+   and `core/src/errors.mjs` factories, with the structural facts
+   recorded at the site rather than restated in the catalog.
 4. No defensive code protecting scenarios that cannot occur under the
    calling convention.
 5. No half-measures. If the name promises X, the body delivers X.

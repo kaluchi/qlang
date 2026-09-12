@@ -20,20 +20,37 @@ import {
   makeConduit, makeTaggedInstance, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
 } from '../types.mjs';
 import { parse } from '../parse.mjs';
-import { declareSubjectError, declareShapeError, declareArityError, declareModifierError } from '../operand-errors.mjs';
+import {
+  declareSubjectError,
+  declareModifierError
+} from '../operand-errors.mjs';
+import {
+  declareShapeError,
+  declareArityError
+} from '../errors.mjs';
 
 const ConduitPayloadNotVecError = declareSubjectError('ConduitPayloadNotVecError', '::conduit', 'vec');
 const BuiltinPayloadNotMapError = declareSubjectError('BuiltinPayloadNotMapError', '::builtin', 'map');
 const ConduitArityInvalidError = declareArityError('ConduitArityInvalidError',
-  ({ actualCount }) => `::conduit payload must be a Vec of 2 ([params, body]) or 3 ([self, params, body]) elements, got ${actualCount}`);
+  ({ actualCount }) => `::conduit payload must be a Vec of 2 ([params, body]) or 3 ([self, params, body]) elements, got ${actualCount}`,
+  { operand: '::conduit' }
+);
 const ConduitSelfNameNotKeywordError = declareShapeError('ConduitSelfNameNotKeywordError',
-  ({ actualType }) => `::conduit self-name must be a Keyword, got ${actualType.name}`);
+  ({ actualType }) => `::conduit self-name must be a Keyword, got ${actualType.name}`,
+  { operand: '::conduit', expectedType: 'keyword' }
+);
 const ConduitParamsNotVecError = declareShapeError('ConduitParamsNotVecError',
-  ({ actualType }) => `::conduit params must be a Vec of Keywords, got ${actualType.name}`);
+  ({ actualType }) => `::conduit params must be a Vec of Keywords, got ${actualType.name}`,
+  { operand: '::conduit', expectedType: 'vec' }
+);
 const ConduitParamNotKeywordError = declareShapeError('ConduitParamNotKeywordError',
-  ({ index, actualType }) => `::conduit params[${index}] must be a Keyword, got ${actualType.name}`);
+  ({ index, actualType }) => `::conduit params[${index}] must be a Keyword, got ${actualType.name}`,
+  { operand: '::conduit', expectedType: 'keyword' }
+);
 const ConduitBodyNotQuoteError = declareShapeError('ConduitBodyNotQuoteError',
-  ({ actualType }) => `::conduit body must be a Quote-value, got ${actualType.name}`);
+  ({ actualType }) => `::conduit body must be a Quote-value, got ${actualType.name}`,
+  { operand: '::conduit', expectedType: 'quote' }
+);
 
 // `::conduit[[:p1 :p2] \`body-source\`]` — non-recursive
 // `::conduit[:self [:p1 :p2] \`body-source\`]` — with self-name for recursion
@@ -123,8 +140,10 @@ bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 // Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`
 // declares its body as `::builtin{:impl :qlang/prim/<name>
 // :category … :subject … :modifiers … :returns … :throws …}`;
-// every error tag declares its body as `::builtin{:category
-// :typeError :operand …}` (no `:impl`). The catalog reader and
+// an error tag declares prose and `~{…}` examples alone, and
+// `buildLangRuntime` stamps its `:category` / `:operand` /
+// `:position` / `:expectedType` from the spec the factory recorded
+// at the throw site. The catalog reader and
 // the bootstrap fill loop in `runtime/index.mjs` address the
 // stamped fields directly through `descriptor.get(<field>)`, so
 // `::builtin` flattens the payload Map into a descriptor Map
@@ -220,7 +239,9 @@ const TagBareSubjectShapeError = declareShapeError('TagBareSubjectShapeError',
   ({ actualType, actualLength }) =>
     actualLength === undefined
       ? `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got ${actualType.name}`
-      : `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got Vec of length ${actualLength}`);
+      : `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got Vec of length ${actualLength}`,
+  { operand: 'tag', position: 'subject', expectedType: 'vec' }
+);
 
 export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {

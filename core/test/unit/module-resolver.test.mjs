@@ -187,4 +187,29 @@ describe('locator exports that are not builtin descriptors', () => {
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(1);
   });
+
+  it('leaves a `::Tag` bound to a literal alone rather than stamping a throw-site spec onto it', async () => {
+    // `stampThrowSiteSpec` reads the recorded facts for the class the
+    // tag names, and a module binding that name to a literal gets a
+    // Snapshot, not a `::builtin` descriptor. Stamping the wrapper
+    // would put `:category` / `:operand` / `:expectedType` beside
+    // `:payload`, where `spec` never reads them and `manifest(:tag)`
+    // renders both shapes on one entry.
+    const sessionInstance = await createSession({
+      locator: async (namespaceName) => namespaceName === 'tests/literal-tag'
+        ? { source: '::AsNameNotKeywordError 42' }
+        : null
+    });
+
+    const specCell = await sessionInstance.evalCell(
+      'use(:tests/literal-tag) | ::AsNameNotKeywordError | spec');
+    expect(specCell.error).toBeNull();
+    expect(specCell.result).toBe(42);
+
+    const keysCell = await sessionInstance.evalCell(
+      'use(:tests/literal-tag) | manifest(:tag) ' +
+      '| filter(/name | eq("::AsNameNotKeywordError")) | first | keys');
+    expect(keysCell.error).toBeNull();
+    expect([...keysCell.result].map(k => k.name)).not.toContain('category');
+  });
 });

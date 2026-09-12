@@ -22,7 +22,8 @@ import {
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
 } from '../env-keys.mjs';
-import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
+import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
 const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tagKeyword']);
@@ -179,15 +180,18 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // `spec` — env-side declaration descriptor Map for the named binding.
 // Where `source` returns a Quote of the BindStep's verbatim text and
 // `docs` returns a Vec of attached doc-prefix Doc-values, `spec`
-// returns the structured Map the catalog `::builtin{…}` body
-// declared — the same Map that lives under the binding's env-key
-// after `langRuntime`'s snapshot-unwrap + impl-resolution pass.
+// returns the structured Map that lives under the binding's env-key
+// after `langRuntime`'s snapshot-unwrap + impl-resolution pass. An
+// operand and a value-class constructor fill that Map from the
+// catalog `::builtin{…}` body they declare; an error tag fills it
+// from the throw-site spec the bootstrap stamps, since what raises
+// the error is what knows the category and the slot.
 //
 // The discriminator path for per-tag static facts attached to any
 // tagged value-class: `result !| type | spec | /category`
-// reads `:typeError` / `:arityError` / etc. off the error tag's
-// catalog body; `:add | spec | /throws` lists the per-site error
-// classes `add` raises; `::conduit | spec | /impl` returns the
+// reads `:typeError` / `:arityError` / etc. off the error tag;
+// `:add | spec | /throws` lists the per-site error classes `add`
+// raises; `::conduit | spec | /impl` returns the
 // `:qlang/type/conduit` constructor handle.
 export const spec = stateOp('spec', 1, (state, _lambdas) => {
   const bindingName = bindingNameOf(state.pipeValue, state.env, SpecSubjectNotKeywordOrTagError);

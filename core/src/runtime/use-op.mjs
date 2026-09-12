@@ -36,20 +36,31 @@ import {
 import {
   moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
-import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
-import { stampStructuralFacts } from '../descriptor-ops.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
+import { declareShapeError } from '../errors.mjs';
+import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
 
 const UseSubjectNotMapError = declareSubjectError('UseSubjectNotMapError', 'use', 'map');
 const UseNamespaceNotKeywordError = declareShapeError('UseNamespaceNotKeywordError',
-  ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`);
+  ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`,
+  { operand: 'use', expectedType: 'keyword' }
+);
 const UseNamespaceNotFoundError = declareShapeError('UseNamespaceNotFoundError',
-  ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`);
+  ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`,
+  { operand: 'use' }
+);
 const UseNamespaceElementNotKeywordError = declareShapeError('UseNamespaceElementNotKeywordError',
-  ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType.name}`);
+  ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType.name}`,
+  { operand: 'use', expectedType: 'keyword' }
+);
 const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError',
-  ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple namespaces: ${namespaces.join(', ')}`);
+  ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple namespaces: ${namespaces.join(', ')}`,
+  { operand: 'use' }
+);
 const UseNameNotExportedError = declareShapeError('UseNameNotExportedError',
-  ({ namespaceName, exportName }) => `use: '${exportName}' not exported by namespace '${namespaceName}'`);
+  ({ namespaceName, exportName }) => `use: '${exportName}' not exported by namespace '${namespaceName}'`,
+  { operand: 'use' }
+);
 
 export const use = stateOpVariadic('use', async (state, useLambdas) => {
   if (useLambdas.length === 0) {
@@ -161,6 +172,15 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     if (payload[TAG_HEADER_SYMBOL]?.name === 'builtin') {
       loadedExports.set(exportKey, payload);
     }
+  }
+
+  // A host catalog declares its per-site error tags as prose, the
+  // same way the language catalog does; the structural facts come
+  // from the factory call in the host's own JS. Stamping here is
+  // what `buildLangRuntime` does for the language catalog, at the
+  // seam a locator-loaded namespace arrives through.
+  for (const [exportKey, exportVal] of loadedExports) {
+    stampThrowSiteSpec(exportVal, exportKey);
   }
 
   // Stamp the resolved JS function value onto each freshly-built

@@ -26,7 +26,6 @@
         |  eq([::FirstSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :first :position :subject :expectedType [:vec :set]}
 
 :last
   |~~ Returns the last element of an ordered sequence (Vec or Set),
@@ -51,7 +50,6 @@
         |  eq([::LastSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :last :position :subject :expectedType [:vec :set]}
 
 :sum
   |~~ Returns the numeric sum of elements. Polymorphic over Vec
@@ -79,7 +77,6 @@
         |  eq([::SumSubjectNotVecOrSetError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sum :position :subject :expectedType [:vec :set]}
 
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
@@ -89,7 +86,6 @@
         |  eq([::SumElementNotNumberError :string 1])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sum :expectedType :number}
 
 ::SumResultNotFiniteError
   |~~ Every element carries the right value-class, and the running
@@ -105,8 +101,6 @@
         |  eq([::SumResultNotFiniteError 1])
        }
   ~~|
-  ::builtin{:category :numericDomain :operand :sum}
-
 
 :min
   |~~ Returns the minimum element under natural ordering.
@@ -132,7 +126,6 @@
         |  eq([::MinSubjectNotVecOrSetError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :min :position :subject :expectedType [:vec :set]}
 
 ::MinElementsNotComparableError
   |~~ Operands of `min` are not pairwise-comparable scalars.
@@ -142,7 +135,6 @@
         |  eq([::MinElementsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :min}
 
 :max
   |~~ Returns the maximum element under natural ordering.
@@ -168,7 +160,6 @@
         |  eq([::MaxSubjectNotVecOrSetError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :max :position :subject :expectedType [:vec :set]}
 
 ::MaxElementsNotComparableError
   |~~ Operands of `max` are not pairwise-comparable scalars.
@@ -178,7 +169,6 @@
         |  eq([::MaxElementsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :max}
 
 :firstNonZero
   |~~ Returns the first non-zero number in a Vec. If all elements
@@ -204,7 +194,6 @@
         |  eq([::FirstNonZeroSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :firstNonZero :position :subject :expectedType :vec}
 
 ::FirstNonZeroElementNotNumberError
   |~~ Element of `firstNonZero` input collection must be Number.
@@ -214,7 +203,6 @@
         |  eq([::FirstNonZeroElementNotNumberError :null 1])
        }
   ~~|
-  ::builtin{:category :typeError :operand :firstNonZero :expectedType :number}
 
 :reduce
   |~~ The universal left-fold (catamorphism) — threads an accumulator
@@ -249,7 +237,6 @@
         |  eq([::ReduceSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :reduce :position :subject :expectedType [:vec :set]}
 
 ::ReduceReducerNotBinaryError
   |~~ `reduce` reducer must be a binary operand or a 2-parameter
@@ -262,7 +249,6 @@
         |  eq(::ReduceReducerNotBinaryError)
        }
   ~~|
-  ::builtin{:category :typeError :operand :reduce}
 
 :sort
   |~~ Returns a new sequence sorted in natural ascending order.
@@ -297,7 +283,6 @@
         |  eq([::SortNaturalSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sort :position :subject :expectedType [:vec :set]}
 
 ::SortByKeySubjectNotSequenceError
   |~~ Subject of `sort(key)` must be Vec or Set.
@@ -307,7 +292,6 @@
         |  eq([::SortByKeySubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sort :position :subject :expectedType [:vec :set]}
 
 ::SortNaturalNotComparableError
   |~~ Operands of `sort` are not pairwise-comparable scalars.
@@ -317,7 +301,6 @@
         |  eq([::SortNaturalNotComparableError :string :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sort}
 
 ::SortByKeyNotComparableError
   |~~ Operands of `sort(key)` are not pairwise-comparable scalars.
@@ -327,7 +310,6 @@
         |  eq([::SortByKeyNotComparableError :string :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sort}
 
 :sortWith
   |~~ Sorts a Vec or Set using a custom comparator sub-pipeline.
@@ -358,7 +340,6 @@
         |  eq([::SortWithSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sortWith :position :subject :expectedType [:vec :set]}
 
 ::SortWithCmpResultNaNError
   |~~ `sortWith` comparator answered NaN, which orders no pair: every
@@ -369,7 +350,6 @@
       reports a comparator a host installed through `session.bind`
       or a locator's `impls` map.
   ~~|
-  ::builtin{:category :numericDomain :operand :sortWith}
 
 ::SortWithCmpResultNotNumberError
   |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
@@ -379,7 +359,6 @@
         |  eq([::SortWithCmpResultNotNumberError :keyword])
        }
   ~~|
-  ::builtin{:category :typeError :operand :sortWith :expectedType :number}
 
 :take
   |~~ Returns the first n elements in insertion-order. Polymorphic
@@ -406,7 +385,6 @@
         |  eq([::TakeSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :take :position :subject :expectedType [:vec :set]}
 
 ::TakeCountNotIntegerError
   |~~ Captured argument at position 2 of `take` must be a whole
@@ -417,7 +395,6 @@
         |  eq([::TakeCountNotIntegerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :take :position 2 :expectedType :integer}
 
 :at
   |~~ Polymorphic indexed access. On a Vec or Set subject, returns
@@ -455,7 +432,6 @@
         |  eq([::AtSubjectNotSequenceOrMapError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :at :position :subject :expectedType [:vec :set :map]}
 
 ::AtIndexNotIntegerError
   |~~ Captured argument at position 2 of `at` must be Integer.
@@ -465,7 +441,6 @@
         |  eq([::AtIndexNotIntegerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :at :position 2 :expectedType :integer}
 
 ::AtKeyNotKeywordOrStringError
   |~~ Captured argument at position 2 of `at` on a Map subject
@@ -477,7 +452,6 @@
         |  eq([::AtKeyNotKeywordOrStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :at :position 2 :expectedType [:keyword :string]}
 
 :drop
   |~~ Returns the sequence with the first n elements removed.
@@ -505,7 +479,6 @@
         |  eq([::DropSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :drop :position :subject :expectedType [:vec :set]}
 
 ::DropCountNotIntegerError
   |~~ Captured argument at position 2 of `drop` must be a whole
@@ -516,7 +489,6 @@
         |  eq([::DropCountNotIntegerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :drop :position 2 :expectedType :integer}
 
 :distinct
   |~~ Canonical Vec → Set converter. Returns a Set with duplicate
@@ -550,7 +522,6 @@
         |  eq([::DistinctSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :distinct :position :subject :expectedType [:vec :set]}
 
 :reverse
   |~~ Returns the sequence in reverse order. Polymorphic on Vec /
@@ -573,7 +544,6 @@
         |  eq([::ReverseSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :reverse :position :subject :expectedType [:vec :set]}
 
 :flat
   |~~ Flattens one level of nesting. Elements that are Vecs or Sets
@@ -599,7 +569,6 @@
         |  eq([::FlatSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :flat :position :subject :expectedType [:vec :set]}
 
 :groupBy
   |~~ Partitions an ordered sequence (Vec or Set) into a Map keyed
@@ -627,7 +596,6 @@
         |  eq([::GroupBySubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :groupBy :position :subject :expectedType [:vec :set]}
 
 ::GroupByKeyNotKeywordError
   |~~ `groupBy(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
@@ -637,7 +605,6 @@
         |  eq([::GroupByKeyNotKeywordError :number 0])
        }
   ~~|
-  ::builtin{:category :typeError :operand :groupBy :expectedType :keyword}
 
 :indexBy
   |~~ Collapses an ordered sequence (Vec or Set) into a Map keyed
@@ -662,7 +629,6 @@
         |  eq([::IndexBySubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :indexBy :position :subject :expectedType [:vec :set]}
 
 ::IndexByKeyNotKeywordError
   |~~ `indexBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
@@ -672,4 +638,3 @@
         |  eq([::IndexByKeyNotKeywordError :number 0])
        }
   ~~|
-  ::builtin{:category :typeError :operand :indexBy :expectedType :keyword}

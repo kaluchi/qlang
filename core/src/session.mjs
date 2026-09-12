@@ -26,42 +26,27 @@ import { moduleAstKey, RUNTIME_LOCATOR_KEY } from './env-keys.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { errorFromParse } from './error-convert.mjs';
-import { QlangError } from './errors.mjs';
+import { declarePerSiteError } from './errors.mjs';
 
 const SESSION_SCHEMA_VERSION = 1;
 
 // Per-site session deserialization errors.
-class SessionPayloadInvalidError extends QlangError {
-  constructor() {
-    super('deserializeSession: invalid session payload', 'sessionError');
-    this.name = 'SessionPayloadInvalidError';
-    this.fingerprint = 'SessionPayloadInvalidError';
-  }
-}
-class SessionSchemaVersionMismatchError extends QlangError {
-  constructor(actual, expected) {
-    super(`deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`, 'sessionError');
-    this.name = 'SessionSchemaVersionMismatchError';
-    this.fingerprint = 'SessionSchemaVersionMismatchError';
-    this.context = { actual, expected };
-  }
-}
-class SessionConduitSourceMissingError extends QlangError {
-  constructor(bindingName) {
-    super(`deserializeSession: conduit binding ${bindingName} has no source`, 'sessionError');
-    this.name = 'SessionConduitSourceMissingError';
-    this.fingerprint = 'SessionConduitSourceMissingError';
-    this.context = { bindingName };
-  }
-}
-class SessionBindingKindUnknownError extends QlangError {
-  constructor(kind) {
-    super(`deserializeSession: unknown binding kind '${kind}'`, 'sessionError');
-    this.name = 'SessionBindingKindUnknownError';
-    this.fingerprint = 'SessionBindingKindUnknownError';
-    this.context = { kind };
-  }
-}
+const SessionPayloadInvalidError = declarePerSiteError(
+  'SessionPayloadInvalidError', 'sessionError',
+  () => 'deserializeSession: invalid session payload'
+);
+const SessionSchemaVersionMismatchError = declarePerSiteError(
+  'SessionSchemaVersionMismatchError', 'sessionError',
+  ({ actual, expected }) => `deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`
+);
+const SessionConduitSourceMissingError = declarePerSiteError(
+  'SessionConduitSourceMissingError', 'sessionError',
+  ({ bindingName }) => `deserializeSession: conduit binding ${bindingName} has no source`
+);
+const SessionBindingKindUnknownError = declarePerSiteError(
+  'SessionBindingKindUnknownError', 'sessionError',
+  ({ kind }) => `deserializeSession: unknown binding kind '${kind}'`
+);
 
 // createSession(opts?) → Session
 //
@@ -238,13 +223,15 @@ export async function deserializeSession(json) {
     throw new SessionPayloadInvalidError();
   }
   if (json.schemaVersion !== SESSION_SCHEMA_VERSION) {
-    throw new SessionSchemaVersionMismatchError(json.schemaVersion, SESSION_SCHEMA_VERSION);
+    throw new SessionSchemaVersionMismatchError({
+      actual: json.schemaVersion, expected: SESSION_SCHEMA_VERSION
+    });
   }
   const session = await createSession();
   for (const binding of json.bindings) {
     if (binding.kind === 'conduit') {
       if (!binding.source) {
-        throw new SessionConduitSourceMissingError(binding.name);
+        throw new SessionConduitSourceMissingError({ bindingName: binding.name });
       }
       const bodyAst = parse(binding.source, { uri: `restored-${binding.name}` });
       // Allocate the envRef holder up front so the second pass below
@@ -269,7 +256,7 @@ export async function deserializeSession(json) {
     } else if (binding.kind === 'value') {
       session.bind(binding.name, fromTaggedJSON(binding.value));
     } else {
-      throw new SessionBindingKindUnknownError(binding.kind);
+      throw new SessionBindingKindUnknownError({ kind: binding.kind });
     }
   }
   // Second pass — wire each restored conduit's envRef to the

@@ -48,14 +48,12 @@
       written to stdout must already be a String. Wrap a
       non-String value in a renderer:
       `42 | @out(json)` or `{:x 1} | @out(pretty)`. ~~|
-  ::builtin{:category :typeError :operand :@out :position :subject :expectedType :string}
 
 ::OutRendererResultNotStringError
   |~~ `@out(renderer)` requires the renderer to produce a
       String. A renderer that returns a Number / Map / null
       cannot be written to stdout — wrap through `json`,
       `pretty`, or `template`. ~~|
-  ::builtin{:category :typeError :operand :@out :expectedType :string}
 
 :@err
   |~~ Same shape as `@out` but writes to stderr — the diagnostic
@@ -75,12 +73,10 @@
 ::ErrSubjectNotStringError
   |~~ Bare `@err` requires a String subject. Wrap non-String
       values through a renderer (`json`, `pretty`, `template`). ~~|
-  ::builtin{:category :typeError :operand :@err :position :subject :expectedType :string}
 
 ::ErrRendererResultNotStringError
   |~~ `@err(renderer)` requires the renderer to produce a
       String. ~~|
-  ::builtin{:category :typeError :operand :@err :expectedType :string}
 
 :@tap
   |~~ Identity step on (pipeValue, env). Writes
@@ -103,4 +99,3 @@
   |~~ `@tap` label must be a Keyword — use `:foo` not `"foo"`
       so the prefix renders as `[tap foo]` consistent with the
       keyword's grammatical form. ~~|
-  ::builtin{:category :typeError :operand :@tap :position 2 :expectedType :keyword}

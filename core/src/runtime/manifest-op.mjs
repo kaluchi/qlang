@@ -49,20 +49,24 @@ import {
   RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
 import { locationToQlangMap } from '../ast-codec.mjs';
-import {
-  declareShapeError
-} from '../operand-errors.mjs';
+import { declareShapeError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
 const ManifestNamespaceNotKeywordError = declareShapeError('ManifestNamespaceNotKeywordError',
-  ({ actualType }) => `manifest(:namespace) requires a keyword captured arg, got ${actualType.name}`);
+  ({ actualType }) => `manifest(:namespace) requires a keyword captured arg, got ${actualType.name}`,
+  { operand: 'manifest', expectedType: 'keyword' }
+);
 const ManifestNamespaceUnknownError = declareShapeError('ManifestNamespaceUnknownError',
-  ({ namespace }) => `manifest: unknown namespace :${namespace}, expected :value or :tag`);
+  ({ namespace }) => `manifest: unknown namespace :${namespace}, expected :value or :tag`,
+  { operand: 'manifest' }
+);
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
-  ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`);
+  ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`,
+  { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'map'] }
+);
 
 // Extract a human-readable message from an error value — runtime
 // errors carry `.originalError`, user-created errors carry

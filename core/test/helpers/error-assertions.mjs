@@ -23,12 +23,12 @@ export async function expectErrorResult(query) {
 // error class names the given broad-bucket category (`'typeError'`,
 // `'arityError'`, `'effectLaundering'`, `'parseError'`,
 // `'foreignError'`, `'divisionByZero'`, `'invariantError'`,
-// `'unresolvedIdentifier'`, ...). The instance descriptor no
-// longer carries `:category` — that field lives on the tag-binding's
-// catalog body, reachable through `result !| type | spec |
-// /category`. JS-side this check rides the equivalent `.kind`
-// shortcut on the originating QlangError (the same string the
-// catalog body's `:category` value reads as a Keyword).
+// `'unresolvedIdentifier'`, ...). The instance descriptor carries
+// the dynamic facts alone; `:category` rides the tag-binding,
+// stamped there from the throw site, and `result !| type | spec |
+// /category` reads it. JS-side this check rides the equivalent
+// `.kind` shortcut on the originating QlangError — the same string
+// the stamped `:category` Keyword renders.
 // For per-tag identity assertions use `expectErrorThrown` against
 // `:kind`.
 export async function expectErrorCategory(query, category) {

@@ -87,11 +87,13 @@ import {
   declareSubjectError,
   declareModifierError,
   declareElementError,
-  declareComparabilityError,
+  declareComparabilityError
+} from '../operand-errors.mjs';
+import {
   declareShapeError,
   declareArityError,
   declareNumericDomainError
-} from '../operand-errors.mjs';
+} from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import {
   resolveCapturedConduit,
@@ -122,28 +124,44 @@ const AnySubjectNotContainerError      = declareSubjectError('AnySubjectNotConta
 // Three or more on Map → per-operand *MapPredArityInvalid.
 const FilterVecOrSetPredArityInvalidError = declareArityError('FilterVecOrSetPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `filter over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+    `filter over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
+  { operand: 'filter' }
+);
 const EveryVecOrSetPredArityInvalidError  = declareArityError('EveryVecOrSetPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `every over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+    `every over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
+  { operand: 'every' }
+);
 const AnyVecOrSetPredArityInvalidError    = declareArityError('AnyVecOrSetPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `any over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`);
+    `any over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
+  { operand: 'any' }
+);
 const FilterMapPredArityInvalidError = declareArityError('FilterMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `filter over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
+    `filter over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`,
+  { operand: 'filter' }
+);
 const EveryMapPredArityInvalidError  = declareArityError('EveryMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `every over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
+    `every over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`,
+  { operand: 'every' }
+);
 const AnyMapPredArityInvalidError    = declareArityError('AnyMapPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`);
+    `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`,
+  { operand: 'any' }
+);
 const GroupBySubjectNotSequenceError   = declareSubjectError('GroupBySubjectNotSequenceError',   'groupBy',  ['vec', 'set']);
 const IndexBySubjectNotSequenceError   = declareSubjectError('IndexBySubjectNotSequenceError',   'indexBy',  ['vec', 'set']);
 const GroupByKeyNotKeywordError        = declareShapeError('GroupByKeyNotKeywordError',
-  ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
+  ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
+  { operand: 'groupBy', expectedType: 'keyword' }
+);
 const IndexByKeyNotKeywordError        = declareShapeError('IndexByKeyNotKeywordError',
-  ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`);
+  ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
+  { operand: 'indexBy', expectedType: 'keyword' }
+);
 const SortNaturalSubjectNotSequenceError = declareSubjectError('SortNaturalSubjectNotSequenceError', 'sort',     ['vec', 'set']);
 const SortByKeySubjectNotSequenceError   = declareSubjectError('SortByKeySubjectNotSequenceError',   'sort',     ['vec', 'set']);
 const SortWithSubjectNotSequenceError    = declareSubjectError('SortWithSubjectNotSequenceError',    'sortWith', ['vec', 'set']);
@@ -172,7 +190,9 @@ const SumElementNotNumberError          = declareElementError('SumElementNotNumb
 // still leave the range. `:index` names the element the total
 // crossed at, so the subject can be split at that point.
 const SumResultNotFiniteError = declareNumericDomainError('SumResultNotFiniteError',
-  ({ index }) => `sum: the running total leaves the finite double range at element ${index}`);
+  ({ index }) => `sum: the running total leaves the finite double range at element ${index}`,
+  { operand: 'sum' }
+);
 const FirstNonZeroElementNotNumberError = declareElementError('FirstNonZeroElementNotNumberError', 'firstNonZero', 'number');
 
 const MinElementsNotComparableError    = declareComparabilityError('MinElementsNotComparableError',    'min');
@@ -185,7 +205,9 @@ const NullsFirstKeysNotComparableError = declareComparabilityError('NullsFirstKe
 const NullsLastKeysNotComparableError  = declareComparabilityError('NullsLastKeysNotComparableError',  'nullsLast');
 
 const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotNumberError',
-  ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`);
+  ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`,
+  { operand: 'sortWith', expectedType: 'number' }
+);
 // A comparator is caller-supplied input at this seam, and a host
 // operand installed through `session.bind` or a locator's `impls`
 // map can answer NaN — `typeof NaN` is `'number'`, and every
@@ -194,15 +216,25 @@ const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotN
 // Of the three readings a non-finite value breaks, this is the one
 // that answers silently.
 const SortWithCmpResultNaNError = declareNumericDomainError('SortWithCmpResultNaNError',
-  () => 'sortWith comparator answered NaN — a comparison orders its pair as negative, zero, or positive');
+  () => 'sortWith comparator answered NaN — a comparison orders its pair as negative, zero, or positive',
+  { operand: 'sortWith' }
+);
 const AscPairNotMapError = declareShapeError('AscPairNotMapError',
-  ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
+  ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
+  { operand: 'asc', position: 'subject', expectedType: 'map' }
+);
 const DescPairNotMapError = declareShapeError('DescPairNotMapError',
-  ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
+  ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
+  { operand: 'desc', position: 'subject', expectedType: 'map' }
+);
 const NullsFirstPairNotMapError = declareShapeError('NullsFirstPairNotMapError',
-  ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
+  ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
+  { operand: 'nullsFirst', position: 'subject', expectedType: 'map' }
+);
 const NullsLastPairNotMapError = declareShapeError('NullsLastPairNotMapError',
-  ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
+  ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
+  { operand: 'nullsLast', position: 'subject', expectedType: 'map' }
+);
 
 // ── Polymorphic sizeOf for count/empty ─────────────────────────
 
@@ -709,7 +741,9 @@ export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
 // empty-subject result; a reducer error short-circuits.
 const ReduceSubjectNotSequenceError = declareSubjectError('ReduceSubjectNotSequenceError', 'reduce', ['vec', 'set']);
 const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryError',
-  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a 2-param conduit [:acc :elem]');
+  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a 2-param conduit [:acc :elem]',
+  { operand: 'reduce' }
+);
 
 export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerLambda) => {
   if (!isOrderedSequence(subject)) throw new ReduceSubjectNotSequenceError(subject);

@@ -22,7 +22,7 @@ import {
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
-import { QlangError, QlangInvariantError } from '../errors.mjs';
+import { declareInvariantError, declarePerSiteError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import {
   dispatchQlangValue,
@@ -125,13 +125,12 @@ function toPlainFallback(v) {
 // fallback took). Per-site class so a caller can recover by
 // projecting around the offending slot or by using the
 // lossless `toTaggedJSON` codec instead.
-export class ToPlainUnencodableValueError extends QlangInvariantError {
-  constructor({ actualType, actualValue }) {
-    super(`toPlain: unencodable ${actualType} value — use toTaggedJSON for lossless JSON or project around the slot`, { actualType, actualValue });
-    this.name = 'ToPlainUnencodableValueError';
-    this.fingerprint = 'ToPlainUnencodableValueError';
-  }
-}
+export const ToPlainUnencodableValueError = declareInvariantError(
+  'ToPlainUnencodableValueError',
+  ({ actualType }) => `toPlain: unencodable ${actualType} value — use toTaggedJSON for ` +
+    'lossless JSON or project around the slot',
+  { operand: 'json' }
+);
 
 function qMapToPlainObject(m) {
   const obj = {};
@@ -145,17 +144,13 @@ function qMapToPlainObject(m) {
 // magnitude past the double range as one (`1e400` lifts to
 // Infinity). The lift refuses it here so a piped document cannot
 // seed the pipeline with a value the language does not admit.
-export class FromPlainNumberNotFiniteError extends QlangError {
-  constructor(path) {
-    super('fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number', 'codecError');
-    this.name = 'FromPlainNumberNotFiniteError';
-    this.fingerprint = 'FromPlainNumberNotFiniteError';
-    // `:path` names the keys and indices walked to reach the refused
-    // scalar, so `!| /path` locates it inside a document of any
-    // depth — the reading a message string cannot carry.
-    this.context = { path: Object.freeze([...path]) };
-  }
-}
+// `:path` names the keys and indices walked to reach the refused
+// scalar, so `!| /path` locates it inside a document of any depth —
+// the reading a message string cannot carry.
+export const FromPlainNumberNotFiniteError = declarePerSiteError(
+  'FromPlainNumberNotFiniteError', 'codecError',
+  () => 'fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number'
+);
 
 const FROM_PLAIN_HANDLERS = {
   array:  (a, path) => a.map((element, index) => liftPlainValue(element, [...path, index])),
@@ -165,7 +160,7 @@ const FROM_PLAIN_HANDLERS = {
 
 function liftPlainScalar(scalarValue, path) {
   if (typeof scalarValue === 'number' && !Number.isFinite(scalarValue)) {
-    throw new FromPlainNumberNotFiniteError(path);
+    throw new FromPlainNumberNotFiniteError({ path: Object.freeze([...path]) });
   }
   return scalarValue;
 }

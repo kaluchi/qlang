@@ -20,9 +20,9 @@ import {
 } from '../types.mjs';
 import {
   declareSubjectError,
-  declareComparabilityError,
-  declareShapeError
+  declareComparabilityError
 } from '../operand-errors.mjs';
+import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
 
@@ -45,11 +45,17 @@ const MinusPairIncompatibleError = declareComparabilityError('MinusPairIncompati
 const InterPairIncompatibleError = declareComparabilityError('InterPairIncompatibleError', 'inter');
 
 const UnionBareEmptyError = declareShapeError('UnionBareEmptyError',
-  () => 'union (bare form) requires a non-empty Vec of operands');
+  () => 'union (bare form) requires a non-empty Vec of operands',
+  { operand: 'union' }
+);
 const MinusBareEmptyError = declareShapeError('MinusBareEmptyError',
-  () => 'minus (bare form) requires a non-empty Vec of operands');
+  () => 'minus (bare form) requires a non-empty Vec of operands',
+  { operand: 'minus' }
+);
 const InterBareEmptyError = declareShapeError('InterBareEmptyError',
-  () => 'inter (bare form) requires a non-empty Vec of operands');
+  () => 'inter (bare form) requires a non-empty Vec of operands',
+  { operand: 'inter' }
+);
 
 function unionPair(left, right) {
   if (isQSet(left) && isQSet(right)) {

@@ -18,15 +18,14 @@ import {
   QlangInvariantError,
   UnresolvedIdentifierError,
   EffectLaunderingAtCallError,
-  EffectLaunderingAtBindStepParseError
+  EffectLaunderingAtBindStepParseError,
+  declareInvariantError,
+  declareShapeError,
+  declareArityError
 } from './errors.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { classifyEffect } from './effect.mjs';
-import {
-  declareSubjectError,
-  declareShapeError,
-  declareArityError
-} from './operand-errors.mjs';
+import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
@@ -62,21 +61,15 @@ export { materializePendingTrail };
 // rethrows them (invariant violations bypass the lift-to-error-value
 // path that user-facing errors ride).
 
-class UnknownAstNodeTypeError extends QlangInvariantError {
-  constructor(nodeType) {
-    super(`unknown AST node type: ${nodeType}`, { nodeType });
-    this.name = 'UnknownAstNodeTypeError';
-    this.fingerprint = 'UnknownAstNodeTypeError';
-  }
-}
+const UnknownAstNodeTypeError = declareInvariantError(
+  'UnknownAstNodeTypeError',
+  ({ nodeType }) => `unknown AST node type: ${nodeType}`
+);
 
-class UnknownCombinatorKindError extends QlangInvariantError {
-  constructor(kind) {
-    super(`unknown combinator: ${kind}`, { kind });
-    this.name = 'UnknownCombinatorKindError';
-    this.fingerprint = 'UnknownCombinatorKindError';
-  }
-}
+const UnknownCombinatorKindError = declareInvariantError(
+  'UnknownCombinatorKindError',
+  ({ kind }) => `unknown combinator: ${kind}`
+);
 
 const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',
   ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`);
@@ -106,7 +99,9 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
-  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`);
+  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`,
+  { expectedType: 'map' }
+);
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
 // resolves the tag-binding but its `:impl` slot is empty
 // (`undefined`) or carries a value that is neither a primitive
@@ -125,13 +120,17 @@ const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstr
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set']);
 const MergeSubjectNotSequenceError      = declareSubjectError('MergeSubjectNotSequenceError',      'merge',      ['vec', 'set']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
-  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`);
+  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
+  { expectedType: 'function' }
+);
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
   ({ conduitName, expectedArity, actualArity }) =>
-    `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`);
+    `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`,
+  { operand: '::conduit' });
 const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterNoCapturedArgsError',
   ({ paramName, actualCount }) =>
-    `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`);
+    `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`,
+  { operand: '::conduit' });
 
 // evalQuery(source, env?, callerState?) → Promise<final pipeValue>
 //
@@ -208,7 +207,7 @@ const AST_NODE_EVALUATORS = {
 
 async function evalNode(node, state) {
   const evaluator = AST_NODE_EVALUATORS[node.type];
-  if (!evaluator) throw new UnknownAstNodeTypeError(node.type);
+  if (!evaluator) throw new UnknownAstNodeTypeError({ nodeType: node.type });
 
   try {
     return await evaluator(node, state);
@@ -311,7 +310,7 @@ const COMBINATOR_EVALUATORS = {
 async function applyCombinator(kind, state, stepNode) {
   const evaluator = COMBINATOR_EVALUATORS[kind];
   if (!evaluator) {
-    throw new UnknownCombinatorKindError(kind);
+    throw new UnknownCombinatorKindError({ kind });
   }
   return await evaluator(state, stepNode);
 }
@@ -707,11 +706,15 @@ async function evalBindStep(node, state) {
   if (!classifyEffect(name)) {
     const offender = findFirstEffectfulIdentifier(node.body);
     if (offender !== null) {
-      throw new EffectLaunderingAtBindStepParseError({
+      // The body AST, not the whole BindStep, carries the laundered
+      // reference — stamping its location points the squiggle at the
+      // offending identifier.
+      const laundering = new EffectLaunderingAtBindStepParseError({
         bindingName: name,
-        effectfulName: offender,
-        location: node.body.location
+        effectfulName: offender
       });
+      laundering.location = node.body.location;
+      throw laundering;
     }
   }
   const paramNames = node.params ? node.params.map(p => p.name) : [];
@@ -860,7 +863,7 @@ async function evalOperandCall(node, state) {
   const lookupEnv = state.env;
 
   if (!envHas(lookupEnv, lookupName)) {
-    throw new UnresolvedIdentifierError(lookupName);
+    throw new UnresolvedIdentifierError({ identifierName: lookupName });
   }
 
   let resolved = envGet(lookupEnv, lookupName);

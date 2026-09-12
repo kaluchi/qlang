@@ -32,7 +32,6 @@
         |  eq([::KeywordSubjectNotStringOrKeywordError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :keyword :position :subject :expectedType [:string :keyword]}
 
 :payload
   |~~ TaggedInstance split — opaque-unwrap of a `::Tag<payload>`
@@ -63,7 +62,6 @@
         |  eq([::PayloadSubjectNotTaggedInstanceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :payload :position :subject :expectedType :taggedInstance}
 
 :tag
   |~~ TaggedInstance assemble — mints `::Tag<value>` at runtime
@@ -111,7 +109,6 @@
         |  eq([::TagModifierNotTagKeywordError :keyword])
        }
   ~~|
-  ::builtin{:category :typeError :operand :tag :position 2 :expectedType :tagKeyword}
 
 ::TagBareSubjectShapeError
   |~~ `tag` (bare form) requires a 2-element Vec `[tagKeyword,
@@ -128,4 +125,3 @@
         |  eq([::TagBareSubjectShapeError 3])
        }
   ~~|
-  ::builtin{:category :typeError :operand :tag :position :subject :expectedType :vec}

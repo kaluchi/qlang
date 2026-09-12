@@ -68,7 +68,6 @@
         |  eq([::BuiltinPayloadNotMapError :vec])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::builtin :position :subject :expectedType :map}
 
 ::BuiltinImplNotPrimitiveKeyError
   |~~ A descriptor a query assembled from data dispatches through
@@ -90,7 +89,6 @@
         |  eq([::BuiltinImplNotPrimitiveKeyError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::builtin :expectedType :keyword}
 
 ::Error
   |~~ Generic error identity. The universal default tag every
@@ -122,7 +120,6 @@
         |  eq([::ProjectionFieldNotOnValueClassError "missing"])
        }
   ~~|
-  ::builtin{:category :typeError}
 
 ::ProjectionIndexOutOfBoundsError
   |~~ Projection `/n` — the integer index resolves outside
@@ -134,7 +131,6 @@
         |  eq([::ProjectionIndexOutOfBoundsError 99 3])
        }
   ~~|
-  ::builtin{:category :typeError}
 
 ::ProjectionKeyNotInMapError
   |~~ Projection `/key` — the named key is absent from the
@@ -147,7 +143,6 @@
         |  eq([::ProjectionKeyNotInMapError "b"])
        }
   ~~|
-  ::builtin{:category :typeError}
 
 ::ProjectionSubjectNotProjectableError
   |~~ Projection `/key` requires a Map, Vec, Set, or value-class
@@ -159,7 +154,6 @@
         |  eq([::ProjectionSubjectNotProjectableError "foo" :number])
        }
   ~~|
-  ::builtin{:category :typeError}
 
 ::ProjectionSequenceKeyNotIntegerError
   |~~ Projection segment is a non-numeric string but the
@@ -178,7 +172,6 @@
         |  eq([::ProjectionSequenceKeyNotIntegerError "name"])
        }
   ~~|
-  ::builtin{:category :typeError}
 
 |~ ── 2. Distribute / merge combinator subject mismatches ── ~|
 
@@ -192,7 +185,6 @@
         |  eq([::DistributeSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :distribute :position :subject :expectedType [:vec :set]}
 
 ::MergeSubjectNotSequenceError
   |~~ Merge combinator (`>>`) — subject must be a Vec or Set for
@@ -204,7 +196,6 @@
         |  eq([::MergeSubjectNotSequenceError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :merge :position :subject :expectedType [:vec :set]}
 
 |~ ── 3. Tag-binding constructor invariants ─────────────── ~|
 
@@ -215,7 +206,6 @@
       `:payloadValue` / `:payloadType`, `:actualValue` /
       `:actualType`, `:expectedType [:keyword :quote]`.
   ~~|
-  ::builtin{:category :typeError}
 
 ::TaggedLitNotTagBindingError
   |~~ `::tag` constructor invocation — the env binding under
@@ -227,7 +217,6 @@
         |  eq([::TaggedLitNotTagBindingError :badType :number])
        }
   ~~|
-  ::builtin{:category :typeError :expectedType :map}
 
 |~ ── 4. Effect-laundering at parse and call seams ──────── ~|
 
@@ -243,7 +232,6 @@
                 :bad :@callers])
        }
   ~~|
-  ::builtin{:category :effectLaundering}
 
 |~ ── 5. Identifier-lookup and parse-time failures ───────── ~|
 
@@ -257,7 +245,6 @@
         |  eq([::ApplyToNonFunctionError :five :number])
        }
   ~~|
-  ::builtin{:category :typeError :expectedType :function}
 
 ::EffectLaunderingAtCallError
   |~~ Identifier resolves to an `@`-effectful function, but the
@@ -266,7 +253,6 @@
       bindings (`use`, `session.bind`) that bypass the parse-time
       AST scan.
   ~~|
-  ::builtin{:category :effectLaundering}
 
 ::UnresolvedIdentifierError
   |~~ Identifier lookup failed — no env binding under that name.
@@ -277,7 +263,6 @@
         |  eq([::UnresolvedIdentifierError])
        }
   ~~|
-  ::builtin{:category :unresolvedIdentifier}
 
 ::ParseError
   |~~ Parser failure — source did not match the grammar.
@@ -302,7 +287,6 @@
         |  eq([::AstMapKindUnknownError])
        }
   ~~|
-  ::builtin{:category :astCodecError}
 
 ::AstMapMalformedError
   |~~ AST-Map → AST codec — input Map is malformed (missing
@@ -314,13 +298,11 @@
         |  eq([::AstMapMalformedError])
        }
   ~~|
-  ::builtin{:category :astCodecError}
 
 ::AstNodeTypeUnknownError
   |~~ AST → AST-Map codec — encountered an AST node whose
       `.type` is not in the codec's known shape table.
   ~~|
-  ::builtin{:category :astCodecError}
 
 |~ ── 7. JSON codec invariants — plain and tagged ──────── ~|
 
@@ -328,7 +310,6 @@
   |~~ `fromTaggedJSON` received a JSON shape it does not
       recognise as a tagged-value envelope.
   ~~|
-  ::builtin{:category :codecError}
 
 ::FromPlainNumberNotFiniteError
   |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
@@ -339,21 +320,18 @@
       CLI's implicit stdin lift, never from a qlang literal, which
       the parser refuses at its own site.
   ~~|
-  ::builtin{:category :codecError}
 
 ::TaggedJSONNumberNotFiniteError
   |~~ Same reading on the tagged-JSON wire: a decoded number past
       the finite double range refuses rather than restoring a
       session or a fixture around a value no literal renders back.
   ~~|
-  ::builtin{:category :codecError}
 
 ::TaggedJSONUnencodableValueError
   |~~ `toTaggedJSON` cannot encode a function / conduit /
       snapshot value — use `serializeSession` for the
       binding-aware path.
   ~~|
-  ::builtin{:category :codecError}
 
 |~ ── 8. Dispatch wrapper invariants ───────────────────── ~|
 
@@ -361,13 +339,11 @@
   |~~ Dispatch invariant — `higherOrderOp` impl received an
       unexpected captured-arg count.
   ~~|
-  ::builtin{:category :arityError}
 
 ::HigherOrderOpVariadicMissingCapturedError
   |~~ Dispatch invariant — `higherOrderOpVariadic` registration
       is missing the `captured` range argument.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::NullaryOpArgsProvidedError
   |~~ Nullary operand received captured arguments.
@@ -378,7 +354,6 @@
         |  eq([::NullaryOpArgsProvidedError :count])
        }
   ~~|
-  ::builtin{:category :arityError}
 
 ::OverloadedOpUnsupportedArityError
   |~~ Overloaded operand has no impl for the supplied
@@ -390,7 +365,6 @@
         |  eq([::OverloadedOpUnsupportedArityError :sort])
        }
   ~~|
-  ::builtin{:category :arityError}
 
 ::StateOpArityMismatchError
   |~~ `stateOp` impl received an unexpected captured-arg count.
@@ -401,19 +375,16 @@
         |  eq([::StateOpArityMismatchError :examples])
        }
   ~~|
-  ::builtin{:category :arityError}
 
 ::StateOpVariadicMissingCapturedError
   |~~ Dispatch invariant — `stateOpVariadic` registration is
       missing the `captured` range argument.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::ValueOpArityMismatchError
   |~~ Dispatch invariant — `valueOp` impl received an unexpected
       captured-arg count for its declared arity.
   ~~|
-  ::builtin{:category :arityError}
 
 |~ ── 9. Evaluator dispatch invariants ─────────────────── ~|
 
@@ -422,13 +393,11 @@
       is not in `AST_NODE_EVALUATORS`. Runtime invariant
       violation.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::UnknownCombinatorKindError
   |~~ Combinator dispatch — encountered a combinator kind not
       in `COMBINATOR_EVALUATORS`. Runtime invariant violation.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::Rule10ArityOverflowError
   |~~ Operand call supplied more captured arguments than the
@@ -440,7 +409,6 @@
         |  eq([::Rule10ArityOverflowError :count])
        }
   ~~|
-  ::builtin{:category :arityError}
 
 |~ ── 10. Primitive registry invariants ─────────────────── ~|
 
@@ -448,19 +416,24 @@
   |~~ Primitive registry — two runtime modules tried to bind
       the same primitive name.
   ~~|
-  ::builtin{:category :invariantError}
+
+::ThrowSiteSpecAlreadyRecordedError
+  |~~ Throw-site spec registry — two per-site error classes were
+      declared under one name. The name is the identity a Sentry
+      fingerprint, this catalog's `::Tag` binding and the stamped
+      `spec` all read, so the second declaration would speak for
+      both sites.
+  ~~|
 
 ::PrimitiveKeyNotStringError
   |~~ Primitive registry — bind() received a non-string
       handle.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::PrimitiveKeyUnboundError
   |~~ Primitive registry — `:impl` handle on a descriptor
       Map points to a primitive that was never bound.
   ~~|
-  ::builtin{:category :primitiveUnbound}
 
 ::PrimitiveRegistrySealedError
   |~~ Primitive registry — bind() invoked against a sealed
@@ -468,7 +441,6 @@
       later bind sites must split into a fresh
       createPrimitiveRegistry() instance.
   ~~|
-  ::builtin{:category :invariantError}
 
 |~ ── 11. Session lifecycle invariants ──────────────────── ~|
 
@@ -476,25 +448,21 @@
   |~~ Session deserialization — a binding entry carries an
       unknown `:kind`.
   ~~|
-  ::builtin{:category :sessionError}
 
 ::SessionConduitSourceMissingError
   |~~ Session deserialization — a conduit binding entry has
       no `:source` to re-parse.
   ~~|
-  ::builtin{:category :sessionError}
 
 ::SessionPayloadInvalidError
   |~~ Session deserialization — payload is malformed (missing
       required fields).
   ~~|
-  ::builtin{:category :sessionError}
 
 ::SessionSchemaVersionMismatchError
   |~~ Session deserialization — payload `:schemaVersion` does
       not match SESSION_SCHEMA_VERSION.
   ~~|
-  ::builtin{:category :sessionError}
 
 |~ ── 12. Render-path invariants ───────────────────────── ~|
 
@@ -508,7 +476,6 @@
       callable handed straight to `session.bind` carries no qlang
       literal, which is what this tag reports.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::NumberNotFiniteLeakedToPrintError
   |~~ A qlang Number is a finite double. Source cannot mint an
@@ -521,7 +488,6 @@
       answer `null`. `:actualValue` carries the offending magnitude
       as a String, the one shape that renders.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::ToPlainUnencodableValueError
   |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
@@ -531,7 +497,6 @@
       the value through `tjson` / `toTaggedJSON` when the round-trip
       has to stay lossless, or project around the slot.
   ~~|
-  ::builtin{:category :invariantError :operand :json}
 
 |~ ── 13. Error-value mint invariants ──────────────────── ~|
 
@@ -560,7 +525,6 @@
         !| /trail | eq(~{| add(1)})
        }
   ~~|
-  ::builtin{:category :typeError :expectedType [:quote :null]}
 
 |~ ── 14. Evaluation depth budget ───────────────────────── ~|
 
@@ -583,7 +547,6 @@
         !| gt(/depth, /limit)
        }
   ~~|
-  ::builtin{:category :resourceLimit}
 
 |~ ── 15. Catalog source loading ────────────────────────── ~|
 
@@ -595,7 +558,6 @@
       host that ships its own catalog answers the `:qlang/locator`
       contract and never reaches the platform loader.
   ~~|
-  ::builtin{:category :foreignError}
 
 ::BootstrapCatalogNotLoadedError
   |~~ The catalog root is one `use([…])` step, so a family source
@@ -605,7 +567,6 @@
       family source is the diagnostic and `:tagName` names what the
       root answered with.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::BootstrapRootMissingError
   |~~ `#qlang/core` resolved to nothing, so the bootstrap has no
@@ -613,4 +574,3 @@
       `package.json#imports` (Node) or to the import map (browser),
       or hands `langRuntime({ locator })` a locator of its own.
   ~~|
-  ::builtin{:category :invariantError}

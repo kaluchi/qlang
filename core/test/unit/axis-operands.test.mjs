@@ -290,6 +290,29 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     expect(await evalQuery('::AddLeftNotNumberError | spec | /operand')).toEqual(makeKeyword('add'));
   });
 
+  // The stamp lifts each recorded fact into the value-class the
+  // reader projects on: a numeric position stays a Number, the
+  // `subject` position and a single expected type become Keywords, a
+  // multi-type expectation becomes a Vec of them, and a tag-binding
+  // raiser spells itself as a TagKeyword the way source writes it.
+  it('a numeric position stays a Number and :subject lifts to a Keyword', async () => {
+    expect(await evalQuery('::AddLeftNotNumberError | spec | /position')).toBe(1);
+    expect(await evalQuery('::CountSubjectNotContainerError | spec | /position'))
+      .toEqual(makeKeyword('subject'));
+  });
+
+  it('a single expected type lifts to a Keyword and several to a Vec', async () => {
+    expect(await evalQuery('::AsNameNotKeywordError | spec | /expectedType'))
+      .toEqual(makeKeyword('keyword'));
+    expect(await evalQuery('::SourceSubjectNotKeywordOrTagError | spec | /expectedType'))
+      .toEqual([makeKeyword('keyword'), makeKeyword('tagKeyword')]);
+  });
+
+  it('a value-class constructor names itself on :operand as a TagKeyword', async () => {
+    expect(await evalQuery('::ConduitBodyNotQuoteError | spec | /operand'))
+      .toEqual(makeTagKeyword('conduit'));
+  });
+
   it('non-keyword subject lifts SpecSubjectNotKeywordOrTagError', async () => {
     const evalResult = await evalQuery('42 | spec !| type');
     expect(evalResult).toEqual(makeTagKeyword('SpecSubjectNotKeywordOrTagError'));

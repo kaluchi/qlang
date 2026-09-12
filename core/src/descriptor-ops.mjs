@@ -42,10 +42,15 @@
 // dragging `manifest-op.mjs` into the graph.
 
 import {
-  BUILTIN_TAG, isKeyword, typeKeyword, stampBuiltinImpl, builtinImplOf
+  BUILTIN_TAG, TAG_HEADER_SYMBOL, isKeyword, typeKeyword, keyword, makeTagKeyword,
+  stampBuiltinImpl, builtinImplOf
 } from './types.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
-import { declareShapeError } from './operand-errors.mjs';
+import {
+  throwSiteSpecOf,
+  declareShapeError
+} from './errors.mjs';
+import { stripTagBindingPrefix, isTagBindingName } from './env-keys.mjs';
 
 // A descriptor assembled inside a query (`::builtin{:impl
 // :qlang/prim/count}`) reaches dispatch without the bootstrap
@@ -54,7 +59,9 @@ import { declareShapeError } from './operand-errors.mjs';
 // than handing `PRIMITIVE_REGISTRY.resolve` a nameless value.
 const BuiltinImplNotPrimitiveKeyError = declareShapeError('BuiltinImplNotPrimitiveKeyError',
   ({ actualType }) =>
-    `::builtin descriptor :impl must be a :qlang/prim/<name> handle keyword, got ${actualType.name}`);
+    `::builtin descriptor :impl must be a :qlang/prim/<name> handle keyword, got ${actualType.name}`,
+  { operand: '::builtin', expectedType: 'keyword' }
+);
 
 // stampStructuralFacts(descriptor, fn) → descriptor (mutated in place)
 //
@@ -99,6 +106,55 @@ export function manifestBuiltinDescriptor(rawDescriptor, name) {
     result.set(fieldKey, fieldVal);
   }
   return result;
+}
+
+// stampThrowSiteSpec(binding, envKey) → binding
+//
+// A per-site error's structural facts — `:category`, `:operand`,
+// `:position`, `:expectedType` — are properties of the throw site,
+// recorded there by the factory that builds the class. This stamps
+// them onto the `::Tag` binding the catalog declares under the same
+// name, so `result !| type | spec` reads one Map while the facts
+// have one spelling. A tag with no throw site (`::Error`,
+// `::ParseError`, the value-class constructors) keeps whatever body
+// the catalog authored.
+//
+// Both stamp sites — the core-catalog pass in `runtime/index.mjs`
+// and the namespace-resolution pass in `runtime/use-op.mjs` — hand
+// every env entry here, so the shape check lives at this one mint.
+// A `::Tag` whose body is a pure literal binds as a Snapshot rather
+// than a descriptor Map, and a fact stamped onto the wrapper would
+// ride alongside `:payload` where `spec` never reads it.
+export function stampThrowSiteSpec(binding, envKey) {
+  if (!isTagBindingName(envKey)) return binding;
+  if (binding[TAG_HEADER_SYMBOL]?.name !== BUILTIN_TAG.name) return binding;
+  const tagDescriptor = binding;
+  const spec = throwSiteSpecOf(stripTagBindingPrefix(envKey));
+  if (spec === undefined) return tagDescriptor;
+  tagDescriptor.set('category', keyword(spec.category));
+  if (spec.operand !== undefined) {
+    tagDescriptor.set('operand', operandIdentifier(spec.operand));
+  }
+  if (spec.position !== undefined) {
+    tagDescriptor.set('position', typeof spec.position === 'number'
+      ? spec.position
+      : keyword(spec.position));
+  }
+  if (spec.expectedType !== undefined) {
+    tagDescriptor.set('expectedType', Array.isArray(spec.expectedType)
+      ? Object.freeze(spec.expectedType.map(keyword))
+      : keyword(spec.expectedType));
+  }
+  return tagDescriptor;
+}
+
+// `:operand` spells a value-namespace operand as a Keyword (`:add`,
+// `:@tap`) and a value-class constructor as a TagKeyword
+// (`::conduit`), matching how each is written in source.
+function operandIdentifier(operand) {
+  return isTagBindingName(operand)
+    ? makeTagKeyword(stripTagBindingPrefix(operand))
+    : keyword(operand);
 }
 
 // resolveBuiltinImpl(descriptor) → function value

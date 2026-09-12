@@ -24,7 +24,6 @@
         |  eq([::CountSubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :count :position :subject :expectedType [:vec :set :map]}
 
 :empty
   |~~ Returns true if the container has zero elements, false
@@ -47,7 +46,6 @@
         |  eq([::EmptySubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :empty :position :subject :expectedType [:vec :set :map]}
 
 :every
   |~~ Returns true iff every item of the container satisfies the
@@ -86,7 +84,6 @@
         |  eq([::EverySubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :every :position :subject :expectedType [:vec :set :map]}
 
 ::EveryVecOrSetPredArityInvalidError
   |~~ `every` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
@@ -96,7 +93,6 @@
         |  eq([::EveryVecOrSetPredArityInvalidError :@kv 2])
        }
   ~~|
-  ::builtin{:category :arityError :operand :every}
 
 ::EveryMapPredArityInvalidError
   |~~ `every` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
@@ -106,7 +102,6 @@
         |  eq([::EveryMapPredArityInvalidError :@tooWide 3])
        }
   ~~|
-  ::builtin{:category :arityError :operand :every}
 
 :any
   |~~ Returns true iff at least one item of the container
@@ -139,7 +134,6 @@
         |  eq([::AnySubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :any :position :subject :expectedType [:vec :set :map]}
 
 ::AnyVecOrSetPredArityInvalidError
   |~~ `any` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
@@ -149,7 +143,6 @@
         |  eq([::AnyVecOrSetPredArityInvalidError :@kv 2])
        }
   ~~|
-  ::builtin{:category :arityError :operand :any}
 
 ::AnyMapPredArityInvalidError
   |~~ `any` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
@@ -159,7 +152,6 @@
         |  eq([::AnyMapPredArityInvalidError :@tooWide 3])
        }
   ~~|
-  ::builtin{:category :arityError :operand :any}
 
 :filter
   |~~ Keeps items of the container where the predicate evaluates
@@ -210,7 +202,6 @@
         |  eq([::FilterSubjectNotContainerError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :filter :position :subject :expectedType [:vec :set :map]}
 
 ::FilterVecOrSetPredArityInvalidError
   |~~ `filter` over Vec or Set requires a predicate conduit with 0 or 1 params (`[:x]` binds the element). 2 params (`[:k :v]`) only meaningful on Map.
@@ -220,7 +211,6 @@
         |  eq([::FilterVecOrSetPredArityInvalidError :@kv 2])
        }
   ~~|
-  ::builtin{:category :arityError :operand :filter}
 
 ::FilterMapPredArityInvalidError
   |~~ `filter` over Map requires a predicate conduit with 0, 1, or 2 params (`[:k :v]` binds key + value).
@@ -230,4 +220,3 @@
         |  eq([::FilterMapPredArityInvalidError :@wide 3])
        }
   ~~|
-  ::builtin{:category :arityError :operand :filter}

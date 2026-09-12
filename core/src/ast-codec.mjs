@@ -57,7 +57,7 @@
 // nodes).
 
 import { isQMap, keyword } from './types.mjs';
-import { QlangError } from './errors.mjs';
+import { declarePerSiteError } from './errors.mjs';
 
 // Interned keyword constants for the AST-Map field namespace. The
 // discriminator lives under :kind so user-level Map fields do
@@ -154,32 +154,20 @@ const AST_KIND_TO_TYPE = new Map([
 // evalNode try/catch in eval.mjs can lift them to error values when
 // the `parse` / `eval` reflective operands surface them to user
 // pipelines.
-class AstNodeTypeUnknownError extends QlangError {
-  constructor(nodeType) {
-    super(`astNodeToMap: unknown AST node type '${nodeType}'`, 'astCodecError');
-    this.name = 'AstNodeTypeUnknownError';
-    this.fingerprint = 'AstNodeTypeUnknownError';
-    this.context = { nodeType };
-  }
-}
+const AstNodeTypeUnknownError = declarePerSiteError(
+  'AstNodeTypeUnknownError', 'astCodecError',
+  ({ nodeType }) => `astNodeToMap: unknown AST node type '${nodeType}'`
+);
 
-class AstMapMalformedError extends QlangError {
-  constructor(reason) {
-    super(`qlangMapToAst: malformed AST-Map — ${reason}`, 'astCodecError');
-    this.name = 'AstMapMalformedError';
-    this.fingerprint = 'AstMapMalformedError';
-    this.context = { reason };
-  }
-}
+const AstMapMalformedError = declarePerSiteError(
+  'AstMapMalformedError', 'astCodecError',
+  ({ reason }) => `qlangMapToAst: malformed AST-Map — ${reason}`
+);
 
-class AstMapKindUnknownError extends QlangError {
-  constructor(kindName) {
-    super(`qlangMapToAst: unknown :kind '${kindName}'`, 'astCodecError');
-    this.name = 'AstMapKindUnknownError';
-    this.fingerprint = 'AstMapKindUnknownError';
-    this.context = { kindName };
-  }
-}
+const AstMapKindUnknownError = declarePerSiteError(
+  'AstMapKindUnknownError', 'astCodecError',
+  ({ kindName }) => `qlangMapToAst: unknown :kind '${kindName}'`
+);
 
 // Frozen Map builder for a peggy position triple.
 function positionToQlangMap(pos) {
@@ -393,7 +381,7 @@ export function astNodeToMap(node) {
       break;
 
     default:
-      throw new AstNodeTypeUnknownError(node.type);
+      throw new AstNodeTypeUnknownError({ nodeType: node.type });
   }
 
   stampCommonFields(m, node);
@@ -441,16 +429,16 @@ function pipelineStepToMap(step, index) {
 export function qlangMapToAst(map) {
   if (map == null) return null;
   if (!isQMap(map)) {
-    throw new AstMapMalformedError(`expected a Map, got ${typeof map}`);
+    throw new AstMapMalformedError({ reason: `expected a Map, got ${typeof map}` });
   }
   if (!map.has(F_KIND)) {
-    throw new AstMapMalformedError('missing :kind discriminator');
+    throw new AstMapMalformedError({ reason: 'missing :kind discriminator' });
   }
   const kindVal = map.get(F_KIND);
   const kindName = kindVal && kindVal.name ? kindVal.name : String(kindVal);
   const type = AST_KIND_TO_TYPE.get(kindName);
   if (!type) {
-    throw new AstMapKindUnknownError(kindName);
+    throw new AstMapKindUnknownError({ kindName });
   }
 
   const node = { type };
@@ -565,10 +553,10 @@ export function qlangMapToAst(map) {
 // evalPipeline's tail-loop consumes.
 function pipelineStepFromMap(stepMap, index) {
   if (!isQMap(stepMap)) {
-    throw new AstMapMalformedError(`Pipeline step at index ${index} is not a Map`);
+    throw new AstMapMalformedError({ reason: `Pipeline step at index ${index} is not a Map` });
   }
   if (stepMap.get(F_KIND) !== KIND_PIPELINE_STEP) {
-    throw new AstMapMalformedError(`Pipeline step at index ${index} is not a :PipelineStep Map`);
+    throw new AstMapMalformedError({ reason: `Pipeline step at index ${index} is not a :PipelineStep Map` });
   }
   if (index === 0) {
     return qlangMapToAst(stepMap.get(F_STEP));

@@ -71,15 +71,28 @@ import './manifest-op.mjs';
 import './codeAsData.mjs';
 import './axis.mjs';
 
+// The stamp pass below reads every per-site error's throw-site spec
+// out of the registry, so each module that declares one has to be
+// loaded before the pass runs. The operand impls above cover the
+// runtime's own sites; the two host-boundary seams — value ↔ tagged
+// JSON, session envelope — declare theirs outside this folder, and
+// the `::Tag` bindings the catalog carries for them are the same
+// bindings whether a host reached the runtime through the package
+// entry or through the `./runtime` subpath.
+import '../codec.mjs';
+import '../session.mjs';
+
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import {
   keyword, makeQuote, isErrorValue, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
+import {
+  moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey, isTagBindingName
+} from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
-import { stampStructuralFacts } from '../descriptor-ops.mjs';
+import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
 import {
   platformLocator, BootstrapRootMissingError, BootstrapCatalogNotLoadedError
 } from './bootstrap.mjs';
@@ -195,9 +208,14 @@ export async function buildLangRuntime(locator) {
     // tag but live under `::Tag` env-keys. Their `:impl` keyword
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
-    // readable in `manifest(:tag)` output. Skip resolving here so
-    // tag-binding descriptors keep their author-form `:impl`.
-    if (envKey.startsWith('::')) continue;
+    // readable in `manifest(:tag)` output, so the author-form
+    // `:impl` stays. What lands there is the throw-site spec: the
+    // `:category` / `:operand` / `:position` / `:expectedType` the
+    // per-site factory recorded when it built the class.
+    if (isTagBindingName(envKey)) {
+      stampThrowSiteSpec(descriptor, envKey);
+      continue;
+    }
     // Every non-`::` builtin descriptor in the catalog carries
     // `:impl :qlang/prim/<name>` by contract — catalog-test
     // `lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY`

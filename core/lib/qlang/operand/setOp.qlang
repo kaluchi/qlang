@@ -29,7 +29,6 @@
         |  eq([::UnionBareSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :union :position :subject :expectedType :vec}
 
 ::UnionBareEmptyError
   |~~ `union` (bare form) requires a non-empty Vec of operands to fold.
@@ -39,7 +38,6 @@
         |  eq([::UnionBareEmptyError])
        }
   ~~|
-  ::builtin{:category :typeError :operand :union}
 
 ::UnionPairIncompatibleError
   |~~ `union` pair operands have incompatible container types — Set+Set or Map+Map only.
@@ -49,7 +47,6 @@
         |  eq([::UnionPairIncompatibleError :set :map])
        }
   ~~|
-  ::builtin{:category :typeError :operand :union}
 
 :minus
   |~~ Polymorphic difference. Set minus Set, Map minus keys(Map),
@@ -75,7 +72,6 @@
         |  eq([::MinusBareSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :minus :position :subject :expectedType :vec}
 
 ::MinusBareEmptyError
   |~~ `minus` (bare form) requires a non-empty Vec of operands to fold.
@@ -85,7 +81,6 @@
         |  eq([::MinusBareEmptyError])
        }
   ~~|
-  ::builtin{:category :typeError :operand :minus}
 
 ::MinusPairIncompatibleError
   |~~ `minus` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
@@ -95,7 +90,6 @@
         |  eq([::MinusPairIncompatibleError :set :map])
        }
   ~~|
-  ::builtin{:category :typeError :operand :minus}
 
 :inter
   |~~ Polymorphic intersection. Set intersect Set, Map intersect
@@ -121,7 +115,6 @@
         |  eq([::InterBareSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :inter :position :subject :expectedType :vec}
 
 ::InterBareEmptyError
   |~~ `inter` (bare form) requires a non-empty Vec of operands to fold.
@@ -131,7 +124,6 @@
         |  eq([::InterBareEmptyError])
        }
   ~~|
-  ::builtin{:category :typeError :operand :inter}
 
 ::InterPairIncompatibleError
   |~~ `inter` pair operands have incompatible container types — Set+Set, Map+Map, or Map+Set only.
@@ -141,4 +133,3 @@
         |  eq([::InterPairIncompatibleError :set :map])
        }
   ~~|
-  ::builtin{:category :typeError :operand :inter}

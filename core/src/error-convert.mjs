@@ -17,12 +17,12 @@ import { locationToQlangMap } from './ast-codec.mjs';
 // surfaced through the `type` operand (`result !| type |
 // eq(::Foo)`), which reads `error.tag` straight off the JS
 // header. Per-tag static facts — `:category`, `:operand`,
-// `:position`, `:expectedType` — live on the tag-binding's
-// catalog body (`::TagName ::builtin{:category … :operand …
-// :position … :expectedType …}`) and are reachable through
-// hypertext navigation via the `spec` axis: `result !| type |
-// spec | /category` reads the broad-bucket; `result !| type |
-// spec | /operand` reads the per-site origin.
+// `:position`, `:expectedType` — are properties of the throw
+// site, recorded by the factory that builds the class and
+// stamped onto the tag-binding at bootstrap, and are reachable
+// through hypertext navigation via the `spec` axis: `result !|
+// type | spec | /category` reads the broad-bucket; `result !|
+// type | spec | /operand` reads the per-site origin.
 //
 // `:actualValue` lift rule: stamped only when the throw site
 // drilled below `:faultInput` (multi-segment projection,
@@ -71,13 +71,12 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   // Instance carries only the dynamic facts the JS context attached
   // (`:actualType`, comparability pair-types, `:index`, dispatch-time
   // `:operandName` / `:conduitName`, etc.). Per-tag static facts —
-  // `:category`, `:operand`, `:position`, `:expectedType` — live on
-  // the tag-binding's catalog body (`::TagName ::builtin{:category …
-  // :operand … :position … :expectedType …}`) and reach the reader
-  // through hypertext navigation: `result !| type | spec` returns
-  // the catalog body directly; `result !| type | source` walks the
-  // BindStep source; `result !| type | docs` returns the canonical
-  // prose.
+  // `:category`, `:operand`, `:position`, `:expectedType` — ride the
+  // tag-binding, stamped there from the throw site, and reach the
+  // reader through hypertext navigation: `result !| type | spec`
+  // returns the stamped descriptor; `result !| type | source` walks
+  // the BindStep source; `result !| type | docs` returns the
+  // canonical prose the catalog authored.
   //
   // `:actualValue` ref-eq dedup against `:faultInput` — when the
   // throw site's per-instance `actualValue` is the very pipeValue
@@ -87,7 +86,11 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   // (multi-segment projection, full-application captured-arg, element
   // iteration), `actualValue` is stamped — its presence is the
   // type-level signal «drill-down happened, look here».
-  const ctx = qlangError.context ?? {};
+  // Every QlangError carries a context bag — the root's constructor
+  // defaults it to `{}` — and `evalNode` routes anything outside the
+  // hierarchy to `errorFromForeign` instead, so the walk needs no
+  // fallback.
+  const ctx = qlangError.context;
   const liftedFromOrder = new Set();
   for (const k of RUNTIME_FIELD_ORDER) {
     if (k === 'faultStep' || k === 'faultInput') continue;
@@ -107,10 +110,10 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
     d.set(k, liftIdentifier(k, v));
   }
 
-  // No `:category` stamp — the broad-bucket taxonomy lives on the
-  // tag-binding's catalog body (`::TagName ::builtin{:category
-  // :typeError …}`); `result !| type | spec | /category` reads
-  // it through the `spec` axis.
+  // No `:category` stamp — the broad-bucket taxonomy rides the
+  // tag-binding, where the bootstrap put it from the throw site's
+  // recorded spec; `result !| type | spec | /category` reads it
+  // through the `spec` axis.
   //
   // No `:message` stamp — the structured per-site fields
   // (`:actualType`, `:leftType`, …) carry every input the JS-side

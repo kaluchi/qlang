@@ -23,7 +23,7 @@
 // `mul` invoke it once against the subject (or the context, in
 // full application).
 
-import { declareArityError } from './operand-errors.mjs';
+import { declareArityError } from './errors.mjs';
 import { classifyEffect } from './effect.mjs';
 import { brandValueClass } from './types.mjs';
 

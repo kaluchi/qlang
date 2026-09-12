@@ -3,73 +3,82 @@
 // The core suite pins the same contract for `core/src` against the
 // language catalog; this file pins the host half — the `:cli/io`,
 // `:cli/format` and `:cli/parse` namespaces the locator installs.
-// A host operand's per-site error class names itself in
-// `cli/src/*-operands.mjs` and again as a `::Tag` binding in
-// `cli/lib/qlang/*.qlang`, and the two drift silently: a renamed
-// class leaves `result !| type | docs` unresolvable, and a
-// `:position` that disagrees with the factory call makes
-// `result !| type | spec | /position` point at the wrong slot.
+// A host operand's per-site error class records its structural facts
+// where the factory call builds it, and names itself again as a
+// `::Tag` binding in `cli/lib/qlang/*.qlang` that carries the prose
+// and the `~{…}` examples. The namespace-resolution pass stamps the
+// recorded facts onto that binding, so each fact has one spelling.
+//
+// The two halves drift silently: a renamed class leaves `result !|
+// type | docs` unresolvable, and a `::builtin{…}` body restating a
+// recorded fact disagrees with the stamp that overwrites it.
 //
 // Three axes, one describe each:
 //
 //   1. every throw site under `cli/src` has a `::Tag` binding in a
-//      CLI catalog file;
+//      CLI catalog file, and that binding reaches env carrying the
+//      category the site recorded;
 //   2. every `::Tag` a CLI catalog file declares has a throw site;
-//   3. `:operand` / `:position` on the tag-binding body match the
-//      arguments the factory call passes.
+//   3. a tag whose throw site records a spec declares no
+//      `::builtin{…}` body of its own.
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '@kaluchi/qlang-core/session';
-import { isTagKeyword } from '@kaluchi/qlang-core';
+import { throwSiteSpecOf } from '@kaluchi/qlang-core/errors';
 import { createCliLocator, installCliCatalog } from '../src/cli-locator.mjs';
+import '../src/io-operands.mjs';
+import '../src/format-operands.mjs';
+import '../src/parse-operands.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', 'src');
 const catalogDir = join(here, '..', 'lib', 'qlang');
 
-const FACTORY_CALL_RE =
-  /declare(Subject|Modifier|Element|Comparability|Shape|Arity|NumericDomain)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
-const CATALOG_TAG_RE = /^::([\p{ID_Start}][\p{ID_Continue}_]*Error)$/gmu;
-const OPERAND_BOUND_FACTORIES = new Set(['Subject', 'Modifier', 'Element', 'Comparability']);
+// Every form that puts a name in the throw-site registry opens with
+// the class name as a string literal.
+const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9]+)'/g;
+
+// A `::Tag` at column 0, paired with whether the block under it
+// opens a `::builtin{…}` body.
+const CATALOG_TAG_RE = /^::([\p{ID_Start}][\p{ID_Continue}_]*Error)\r?$/u;
+const BODY_OPENING = '  ::builtin{';
 
 function collectThrowSites() {
   const throwSites = new Map();
   for (const fileName of readdirSync(srcDir).filter(f => f.endsWith('.mjs'))) {
     const source = readFileSync(join(srcDir, fileName), 'utf8');
-    for (const match of source.matchAll(FACTORY_CALL_RE)) {
-      const [, factory, className, operand, position] = match;
-      throwSites.set(className, {
-        file: `cli/src/${fileName}`,
-        factory,
-        operand: OPERAND_BOUND_FACTORIES.has(factory) ? operand : undefined,
-        position: factory === 'Modifier' ? Number(position) : undefined
-      });
+    for (const match of source.matchAll(DECLARATION_RE)) {
+      throwSites.set(match[1], `cli/src/${fileName}`);
     }
   }
   return throwSites;
 }
 
-function collectCatalogTagNames() {
+function collectCatalogTags() {
   const declared = new Map();
   for (const fileName of readdirSync(catalogDir).filter(f => f.endsWith('.qlang'))) {
-    const source = readFileSync(join(catalogDir, fileName), 'utf8');
-    for (const match of source.matchAll(CATALOG_TAG_RE)) {
-      declared.set(match[1], `cli/lib/qlang/${fileName}`);
+    const lines = readFileSync(join(catalogDir, fileName), 'utf8').split('\n');
+    let open = null;
+    for (const line of lines) {
+      const match = CATALOG_TAG_RE.exec(line);
+      if (match !== null) {
+        open = { file: `cli/lib/qlang/${fileName}`, declaresBody: false };
+        declared.set(match[1], open);
+      } else if (open !== null && line.startsWith(BODY_OPENING)) {
+        open.declaresBody = true;
+      } else if (line.length > 0 && !line.startsWith(' ')) {
+        open = null;
+      }
     }
   }
   return declared;
 }
 
-function operandLiteralOf(declaredOperand) {
-  if (declaredOperand === undefined) return undefined;
-  return isTagKeyword(declaredOperand) ? declaredOperand.literal : declaredOperand.name;
-}
-
 const throwSites = collectThrowSites();
-const declaredTagNames = collectCatalogTagNames();
+const declaredTags = collectCatalogTags();
 
 const session = await createSession({
   locator: createCliLocator({
@@ -83,50 +92,41 @@ const { result: tagBindings } = await session.evalCell('manifest(:tag)');
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 describe('CLI host operands — every throw site carries a catalog tag', () => {
-  for (const [className, site] of throwSites) {
+  for (const [className, file] of throwSites) {
     it(`::${className} is declared in a CLI catalog file`, () => {
-      expect(declaredTagNames.has(className),
-        `${site.file} throws ${className} with no \`::${className}\` tag-binding under cli/lib/qlang`
+      expect(declaredTags.has(className),
+        `${file} throws ${className} with no \`::${className}\` tag-binding under cli/lib/qlang`
       ).toBe(true);
       expect(catalogTags.has(`::${className}`),
         `::${className} is declared but does not reach env through the locator install`
       ).toBe(true);
     });
+
+    it(`::${className} reaches env with the category its site recorded`, () => {
+      expect(catalogTags.get(`::${className}`).get('category').name,
+        `::${className} reached env without the category ${file} records`
+      ).toBe(throwSiteSpecOf(className).category);
+    });
   }
 });
 
 describe('CLI host operands — every catalog tag has a throw site', () => {
-  for (const [className, catalogFile] of declaredTagNames) {
+  for (const [className, declaration] of declaredTags) {
     it(`::${className} is raised somewhere under cli/src`, () => {
       expect(throwSites.has(className),
-        `${catalogFile} declares ::${className} with no throw site under cli/src`
+        `${declaration.file} declares ::${className} with no throw site under cli/src`
       ).toBe(true);
     });
   }
 });
 
-describe('CLI host operands — catalog :operand / :position match the throw site', () => {
-  for (const [className, site] of throwSites) {
-    const tagBinding = catalogTags.get(`::${className}`);
-    if (tagBinding === undefined || site.operand === undefined) continue;
-
-    it(`::${className} names :operand ${site.operand}`, () => {
-      expect(operandLiteralOf(tagBinding.get('operand')),
-        `${site.file} builds its message around '${site.operand}'`
-      ).toBe(site.operand);
-    });
-
-    it(`::${className} names the ${site.factory === 'Modifier' ? `position ${site.position}` : 'subject'} slot`, () => {
-      const declaredPosition = tagBinding.get('position');
-      if (site.factory === 'Modifier') {
-        expect(declaredPosition,
-          `${site.file} declares the captured slot at position ${site.position}`
-        ).toBe(site.position);
-        return;
-      }
-      expect(declaredPosition?.name,
-        `${site.file} declares a subject-shape check`
-      ).toBe('subject');
+describe('CLI host operands — the structural facts have one spelling', () => {
+  for (const [className, declaration] of declaredTags) {
+    it(`::${className} carries prose, and its facts come from the throw site`, () => {
+      expect(declaration.declaresBody,
+        `${declaration.file} gives ::${className} a \`::builtin{…}\` body while its ` +
+        'throw site already records the same facts — drop the body and keep the prose'
+      ).toBe(false);
     });
   }
 });

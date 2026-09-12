@@ -78,41 +78,29 @@ import {
   finiteNumberOrLift,
   TAG_HEADER_SYMBOL
 } from './types.mjs';
-import { QlangError } from './errors.mjs';
+import { declarePerSiteError } from './errors.mjs';
 
-export class TaggedJSONUnencodableValueError extends QlangError {
-  constructor(typeName) {
-    super(`cannot encode ${typeName} value to tagged JSON; use serializeSession`, 'codecError');
-    this.name = 'TaggedJSONUnencodableValueError';
-    this.fingerprint = 'TaggedJSONUnencodableValueError';
-    this.context = { typeName };
-  }
-}
+export const TaggedJSONUnencodableValueError = declarePerSiteError(
+  'TaggedJSONUnencodableValueError', 'codecError',
+  ({ typeName }) => `cannot encode ${typeName} value to tagged JSON; use serializeSession`
+);
 
 // The wire carries plain JSON numbers, and `JSON.parse` reads a
 // magnitude past the double range as an infinity. The decoder
 // refuses it so a restored session or a conformance fixture cannot
 // smuggle in a value the language does not admit.
-export class TaggedJSONNumberNotFiniteError extends QlangError {
-  constructor(path) {
-    super('fromTaggedJSON: a number outside the finite-double domain cannot decode into a qlang Number', 'codecError');
-    this.name = 'TaggedJSONNumberNotFiniteError';
-    this.fingerprint = 'TaggedJSONNumberNotFiniteError';
-    // `:path` names the envelope keys and indices walked to reach
-    // the refused scalar, so `!| /path` locates it inside a restored
-    // session of any depth.
-    this.context = { path: Object.freeze([...path]) };
-  }
-}
+// `:path` names the envelope keys and indices walked to reach the
+// refused scalar, so `!| /path` locates it inside a restored session
+// of any depth.
+export const TaggedJSONNumberNotFiniteError = declarePerSiteError(
+  'TaggedJSONNumberNotFiniteError', 'codecError',
+  () => 'fromTaggedJSON: a number outside the finite-double domain cannot decode into a qlang Number'
+);
 
-export class MalformedTaggedJSONError extends QlangError {
-  constructor(json) {
-    super(`fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(json)}`, 'codecError');
-    this.name = 'MalformedTaggedJSONError';
-    this.fingerprint = 'MalformedTaggedJSONError';
-    this.context = { payload: json };
-  }
-}
+export const MalformedTaggedJSONError = declarePerSiteError(
+  'MalformedTaggedJSONError', 'codecError',
+  ({ payload }) => `fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(payload)}`
+);
 
 // toTaggedJSON(value) → JSON-serializable plain value
 //
@@ -165,8 +153,8 @@ export function toTaggedJSON(value) {
       }
     };
   }
-  if (isConduit(value))  throw new TaggedJSONUnencodableValueError('conduit');
-  if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError('snapshot');
+  if (isConduit(value))  throw new TaggedJSONUnencodableValueError({ typeName: 'conduit' });
+  if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError({ typeName: 'snapshot' });
   // JsonArray and JsonObject ride bare JSON on the wire — they ARE
   // JSON, no envelope needed. Vec / Map are qlang-only and need
   // dedicated envelopes since plain JSON has no surface for them.
@@ -195,8 +183,8 @@ export function toTaggedJSON(value) {
       }
     };
   }
-  if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError('function');
-  throw new TaggedJSONUnencodableValueError(t);
+  if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError({ typeName: 'function' });
+  throw new TaggedJSONUnencodableValueError({ typeName: t });
 }
 
 // Envelope detection sentinel: an Object is a qlang-only-value
@@ -234,7 +222,7 @@ function isTaggedOrErrorEnvelopeShape(envelope) {
 export function fromTaggedJSON(json, path = []) {
   if (json === null || json === undefined) return null;
   const t = typeof json;
-  if (t === 'number' && !Number.isFinite(json)) throw new TaggedJSONNumberNotFiniteError(path);
+  if (t === 'number' && !Number.isFinite(json)) throw new TaggedJSONNumberNotFiniteError({ path: Object.freeze([...path]) });
   if (t === 'number' || t === 'string' || t === 'boolean') return json;
   if (Array.isArray(json)) {
     return makeJsonArray(json.map((element, index) => fromTaggedJSON(element, [...path, index])));
@@ -266,7 +254,7 @@ export function fromTaggedJSON(json, path = []) {
       case '$tagged': {
         const taggedEnvelope = json.$tagged;
         if (!isTaggedOrErrorEnvelopeShape(taggedEnvelope)) {
-          throw new MalformedTaggedJSONError(json);
+          throw new MalformedTaggedJSONError({ payload: json });
         }
         return makeTaggedInstance(
           makeTagKeyword(taggedEnvelope.$tag),
@@ -276,7 +264,7 @@ export function fromTaggedJSON(json, path = []) {
       case '$error': {
         const errEnvelope = json.$error;
         if (!isTaggedOrErrorEnvelopeShape(errEnvelope)) {
-          throw new MalformedTaggedJSONError(json);
+          throw new MalformedTaggedJSONError({ payload: json });
         }
         return makeErrorValue(
           makeTagKeyword(errEnvelope.$tag),
@@ -292,5 +280,5 @@ export function fromTaggedJSON(json, path = []) {
     for (const [k, v] of Object.entries(json)) obj[k] = fromTaggedJSON(v, [...path, k]);
     return makeJsonObject(obj);
   }
-  throw new MalformedTaggedJSONError(json);
+  throw new MalformedTaggedJSONError({ payload: json });
 }

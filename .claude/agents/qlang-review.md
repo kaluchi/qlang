@@ -132,7 +132,7 @@ Findings in this category must quote the offending phrase, name which exception 
 
 ### 3. Per-site error classes (one throw site, one class)
 
-Every typeError / arityError / shape-error throw site in the runtime must have its own unique class name. No two operands share an error class. Check `core/src/operand-errors.mjs` for the factories (`declareSubjectError`, `declareModifierError`, `declareElementError`, `declareComparabilityError`, `declareShapeError`, `declareArityError`) and verify each new throw site uses a unique class name.
+Every typeError / arityError / shape-error throw site in the runtime must have its own unique class name. No two operands share an error class. The operand slot checks go through `core/src/operand-errors.mjs` (`declareSubjectError`, `declareModifierError`, `declareElementError`, `declareComparabilityError`); every other site goes through `core/src/errors.mjs` (`declareShapeError`, `declareArityError`, `declareNumericDomainError`, `declareInvariantError`, `declareEffectLaunderingError`, `declarePerSiteError`). Verify each new throw site uses a unique class name, and that it reaches the hierarchy through a factory rather than a hand-written `class … extends QlangError` — a hand-written class records no throw-site spec, so its `::Tag` binding reaches env with no `:category` to answer `spec` with. A diff that restates `:category` / `:operand` / `:position` / `:expectedType` in a catalog `::builtin{…}` body is the same defect from the other side: the facts belong at the site, the prose and the `~{…}` examples in the catalog.
 
 Also verify each per-site class:
 - Sets `this.name = className` via the `brand()` helper (so minification preserves it)

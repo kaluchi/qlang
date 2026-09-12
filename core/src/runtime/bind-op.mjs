@@ -14,10 +14,12 @@ import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withEnv, withPipeValue, envSet } from '../state.mjs';
 import { isKeyword, typeKeyword, makeSnapshot } from '../types.mjs';
-import { declareShapeError } from '../operand-errors.mjs';
+import { declareShapeError } from '../errors.mjs';
 
 const AsNameNotKeywordError = declareShapeError('AsNameNotKeywordError',
-  ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType.name}`);
+  ({ actualType }) => `as requires a keyword argument (the binding name), got ${actualType.name}`,
+  { operand: 'as', expectedType: 'keyword' }
+);
 
 // `env` — replaces `pipeValue` with the current env Map.
 export const env = stateOp('env', 1, (state, _lambdas) =>

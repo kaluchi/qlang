@@ -8,8 +8,11 @@
 // Meta lives in lib/qlang/operand/arith.qlang.
 
 import { valueOp } from './dispatch.mjs';
-import { DivisionByZeroError } from '../errors.mjs';
-import { declareModifierError, declareNumericDomainError } from '../operand-errors.mjs';
+import {
+  DivisionByZeroError,
+  declareNumericDomainError
+} from '../errors.mjs';
+import { declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 const AddLeftNotNumberError  = declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
@@ -27,13 +30,21 @@ const DivRightNotNumberError = declareModifierError('DivRightNotNumberError', 'd
 // site lifts its own class onto the fail-track — the second answer
 // `div` gives alongside `DivisionByZeroError`.
 const AddResultNotFiniteError = declareNumericDomainError('AddResultNotFiniteError',
-  ({ leftValue, rightValue }) => `add(${leftValue}, ${rightValue}) leaves the finite double range`);
+  ({ leftValue, rightValue }) => `add(${leftValue}, ${rightValue}) leaves the finite double range`,
+  { operand: 'add' }
+);
 const SubResultNotFiniteError = declareNumericDomainError('SubResultNotFiniteError',
-  ({ leftValue, rightValue }) => `sub(${leftValue}, ${rightValue}) leaves the finite double range`);
+  ({ leftValue, rightValue }) => `sub(${leftValue}, ${rightValue}) leaves the finite double range`,
+  { operand: 'sub' }
+);
 const MulResultNotFiniteError = declareNumericDomainError('MulResultNotFiniteError',
-  ({ leftValue, rightValue }) => `mul(${leftValue}, ${rightValue}) leaves the finite double range`);
+  ({ leftValue, rightValue }) => `mul(${leftValue}, ${rightValue}) leaves the finite double range`,
+  { operand: 'mul' }
+);
 const DivResultNotFiniteError = declareNumericDomainError('DivResultNotFiniteError',
-  ({ leftValue, rightValue }) => `div(${leftValue}, ${rightValue}) leaves the finite double range`);
+  ({ leftValue, rightValue }) => `div(${leftValue}, ${rightValue}) leaves the finite double range`,
+  { operand: 'div' }
+);
 
 // The operands ride the descriptor as `:leftValue` / `:rightValue`
 // — both finite, so the error value itself stays renderable, where

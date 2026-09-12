@@ -26,8 +26,10 @@
 
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue, envGet } from '../state.mjs';
-import { QlangInvariantError } from '../errors.mjs';
-import { declareArityError } from '../operand-errors.mjs';
+import {
+  declareInvariantError,
+  declareArityError
+} from '../errors.mjs';
 import {
   keyword, isQMap, isSnapshot, isJsonArray,
   TAG_HEADER_SYMBOL, stampTagHeader
@@ -67,27 +69,15 @@ export const UNBOUNDED = keyword('unbounded');
 
 // ── Per-site invariant errors for variadic registration ───────
 
-class StateOpVariadicMissingCapturedError extends QlangInvariantError {
-  constructor(operandName) {
-    super(
-      `stateOpVariadic('${operandName}') requires captured range`,
-      { operandName }
-    );
-    this.name = 'StateOpVariadicMissingCapturedError';
-    this.fingerprint = 'StateOpVariadicMissingCapturedError';
-  }
-}
+const StateOpVariadicMissingCapturedError = declareInvariantError(
+  'StateOpVariadicMissingCapturedError',
+  ({ operandName }) => `stateOpVariadic('${operandName}') requires captured range`
+);
 
-class HigherOrderOpVariadicMissingCapturedError extends QlangInvariantError {
-  constructor(operandName) {
-    super(
-      `higherOrderOpVariadic('${operandName}') requires captured range`,
-      { operandName }
-    );
-    this.name = 'HigherOrderOpVariadicMissingCapturedError';
-    this.fingerprint = 'HigherOrderOpVariadicMissingCapturedError';
-  }
-}
+const HigherOrderOpVariadicMissingCapturedError = declareInvariantError(
+  'HigherOrderOpVariadicMissingCapturedError',
+  ({ operandName }) => `higherOrderOpVariadic('${operandName}') requires captured range`
+);
 
 // Tag preservation runs as a post-process pass when the operand
 // declares `{ preservesTag: true }`. Identity-only tags stamp
@@ -222,7 +212,7 @@ function variadicMaxArity(captured) {
 
 export function stateOpVariadic(name, impl, captured) {
   if (!captured) {
-    throw new StateOpVariadicMissingCapturedError(name);
+    throw new StateOpVariadicMissingCapturedError({ operandName: name });
   }
   return makeFn(name, variadicMaxArity(captured), async (state, variadicLambdas) => {
     return await impl(state, variadicLambdas);
@@ -231,7 +221,7 @@ export function stateOpVariadic(name, impl, captured) {
 
 export function higherOrderOpVariadic(name, impl, captured) {
   if (!captured) {
-    throw new HigherOrderOpVariadicMissingCapturedError(name);
+    throw new HigherOrderOpVariadicMissingCapturedError({ operandName: name });
   }
   return makeFn(name, variadicMaxArity(captured), async (state, hoVariadicLambdas) => {
     return withPipeValue(state, await impl(state.pipeValue, ...hoVariadicLambdas));

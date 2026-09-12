@@ -1,6 +1,9 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { classifyEffect } from './effect.mjs';
-import { QlangInvariantError, QlangTypeError } from './errors.mjs';
+import {
+  declareInvariantError,
+  declareShapeError
+} from './errors.mjs';
 import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 
 // Conduit body must carry a `.text` source slice — every production
@@ -12,16 +15,12 @@ import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 // Mint refuses a `.text`-less body up front so the violation
 // surfaces at construction, where the offending caller is on the
 // stack.
-export class ConduitBodyMissingSourceError extends QlangInvariantError {
-  constructor() {
-    super(
-      'makeConduit: body has no .text — conduit body must carry a source slice so printValue round-trips through parse',
-      {}
-    );
-    this.name = 'ConduitBodyMissingSourceError';
-    this.fingerprint = 'ConduitBodyMissingSourceError';
-  }
-}
+export const ConduitBodyMissingSourceError = declareInvariantError(
+  'ConduitBodyMissingSourceError',
+  () => 'makeConduit: body has no .text — conduit body must carry a source slice ' +
+    'so printValue round-trips through parse',
+  { operand: '::conduit' }
+);
 
 // Function values (`makeFn` output) are runtime-internal: a catalog
 // descriptor carries its callable on the `BUILTIN_IMPL_SLOT`
@@ -33,16 +32,14 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
 // invariant fires at render time, so a host binding mounted through
 // `session.bind` carrying a raw callable surfaces by name and routes
 // through the locator's `impls` map instead.
-export class FunctionValueLeakedToPrintError extends QlangInvariantError {
-  constructor() {
-    super(
-      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Install a host operand through a locator returning { source, impls } so the namespace pass stamps the callable onto the descriptor\'s BUILTIN_IMPL_SLOT (see cli/src/cli-locator.mjs); a raw callable handed to session.bind carries no qlang literal.',
-      {}
-    );
-    this.name = 'FunctionValueLeakedToPrintError';
-    this.fingerprint = 'FunctionValueLeakedToPrintError';
-  }
-}
+export const FunctionValueLeakedToPrintError = declareInvariantError(
+  'FunctionValueLeakedToPrintError',
+  () => 'printValue/toPlain: function value reached render — function values must not ' +
+    'surface in pipeValue. Install a host operand through a locator returning ' +
+    "{ source, impls } so the namespace pass stamps the callable onto the descriptor's " +
+    'BUILTIN_IMPL_SLOT (see cli/src/cli-locator.mjs); a raw callable handed to ' +
+    'session.bind carries no qlang literal.'
+);
 
 // A qlang Number is a finite double (see `### number` in
 // qlang-spec.md). Source cannot mint an infinity or a NaN — the
@@ -54,20 +51,16 @@ export class FunctionValueLeakedToPrintError extends QlangInvariantError {
 // boundary would answer `null`. Each of those seams reads this
 // guard, the same shape `FunctionValueLeakedToPrintError` gives the
 // other value with no literal.
-export class NumberNotFiniteLeakedToPrintError extends QlangInvariantError {
-  constructor(actualValue) {
-    super(
-      `render: ${actualValue} is outside the finite-double domain a qlang Number lives in — a host installed it through session.bind or a locator's impls map, where source cannot mint one`,
-      { actualValue: String(actualValue) }
-    );
-    this.name = 'NumberNotFiniteLeakedToPrintError';
-    this.fingerprint = 'NumberNotFiniteLeakedToPrintError';
-  }
-}
+export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
+  'NumberNotFiniteLeakedToPrintError',
+  ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
+    "qlang Number lives in — a host installed it through session.bind or a locator's " +
+    'impls map, where source cannot mint one'
+);
 
 // Reads the guard at every seam where a Number becomes observable.
 export function finiteNumberOrLift(numberValue) {
-  if (!Number.isFinite(numberValue)) throw new NumberNotFiniteLeakedToPrintError(numberValue);
+  if (!Number.isFinite(numberValue)) throw new NumberNotFiniteLeakedToPrintError({ actualValue: String(numberValue) });
   return numberValue;
 }
 
@@ -631,23 +624,17 @@ export const COMBINATOR_SYNTAX = Object.freeze({
 // off a non-Quote and the fail-track never carries a suffix that
 // `apply` cannot replay. Dropping an accumulated suffix before
 // re-lift stamps `:trail null`.
-export class ErrorTrailNotQuoteError extends QlangTypeError {
-  constructor(actualValue) {
-    const actualType = typeKeyword(actualValue);
-    super(
-      `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
-      { actualType, actualValue }
-    );
-    this.name = 'ErrorTrailNotQuoteError';
-    this.fingerprint = 'ErrorTrailNotQuoteError';
-  }
-}
+export const ErrorTrailNotQuoteError = declareShapeError(
+  'ErrorTrailNotQuoteError',
+  ({ actualType }) => `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
+  { expectedType: ['quote', 'null'] }
+);
 
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
     const trail = descriptor.get('trail');
-    if (trail !== null && !isQuote(trail)) throw new ErrorTrailNotQuoteError(trail);
+    if (trail !== null && !isQuote(trail)) throw new ErrorTrailNotQuoteError({ actualType: typeKeyword(trail), actualValue: trail });
   } else {
     finalDescriptor = new Map(descriptor);
     finalDescriptor.set('trail', null);

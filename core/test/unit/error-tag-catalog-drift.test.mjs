@@ -61,15 +61,6 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 // read them out by kind.
 const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set(['::builtin', '::conduit', '::json', '::qlang']);
 
-// Tags one class raises from more than one binding, each with what
-// makes the shared identity the right reading.
-const TAGS_SHARED_ACROSS_OPERANDS = new Map([
-  ['::EvalSubjectNotMapOrQuoteError',
-   '`apply` funnels its subject through the same AST-or-source check `eval` does'],
-  ['::AxisBindingNotFoundError',
-   'the four axis-operands carry the axis as `:axisName` context, not as identity']
-]);
-
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds
 // nothing.
@@ -198,7 +189,6 @@ describe('per-site error classes — a binding and the tags it throws agree', ()
 
   for (const [raiserName, raiserBinding] of raisers) {
     for (const thrownTag of raiserBinding.get('throws') ?? []) {
-      if (TAGS_SHARED_ACROSS_OPERANDS.has(thrownTag.literal)) continue;
       it(`${raiserName} throws ${thrownTag.literal}, which names ${raiserName} back`, () => {
         expect(catalogTags.get(thrownTag.literal).get('operand')?.literal,
           `${raiserName} lists ${thrownTag.literal} in its \`:throws\`, and that tag's ` +
@@ -207,13 +197,6 @@ describe('per-site error classes — a binding and the tags it throws agree', ()
       });
     }
   }
-
-  it('a tag one class raises from several bindings says why', () => {
-    for (const [tagName, reason] of TAGS_SHARED_ACROSS_OPERANDS) {
-      expect(catalogTags.has(tagName), `${tagName} is listed as shared but bound nowhere`).toBe(true);
-      expect(reason.length).toBeGreaterThan(0);
-    }
-  });
 });
 
 describe('per-site error classes — the structural facts have one spelling', () => {

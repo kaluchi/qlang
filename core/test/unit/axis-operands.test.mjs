@@ -17,21 +17,21 @@ describe(':name | source returns the BindStep source as Quote', () => {
     // findBindingStepFor returns null when the moduleAst is neither
     // a Pipeline nor a top-level BindStep — bare-literal modules
     // add nothing to the axis search frontier, so the lookup falls
-    // through to AxisBindingNotFoundError when no other module has the
+    // through to the axis's not-found class when no other module has the
     // binding.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
     });
     const cellEntry = await session.evalCell('use(:tests/scalar-only) | :missing | source !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
   });
 
   it('inline BindStep within the current query is reachable through axis lookup', async () => {
     // evalQuery stamps the parsed AST under moduleAstKey('inline')
     // so axis-operands can find bindings declared in the same cell
     // — without this, `:foo … | :foo | source` would raise
-    // AxisBindingNotFoundError because the cell's AST is not among the
+    // SourceBindingNotFoundError because the cell's AST is not among the
     // module Quotes installed via use(:ns).
     const result = await evalQuery(':myLocal 42 | :myLocal | source');
     expect(isQuote(result)).toBe(true);
@@ -41,10 +41,10 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('session.evalCell stamps cell AST so axis-operands resolve cell-local BindStep declarations', async () => {
     // session.evalCell mirrors evalQuery's inline-AST stamp under
     // moduleAstKey(cellUri); without it CLI script-mode + REPL
-    // surface `::AxisBindingNotFoundError` for any axis lookup on a
+    // surface the axis's own not-found tag for any lookup on a
     // user-declared BindStep in the same cell — the regression that
     // initially flagged this gap was `qlang ':foo |~~ note ~~| |
-    // :foo | docs'` returning AxisBindingNotFoundError instead of
+    // :foo | docs'` returning DocsBindingNotFoundError instead of
     // the attached doc.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
@@ -113,10 +113,10 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
     expect(err.tag).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
   });
 
-  it('unknown binding raises AxisBindingNotFoundError', async () => {
+  it('unknown binding raises DocsBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | docs');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(err.tag).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
   });
 });
 
@@ -133,10 +133,10 @@ describe(':name | examples extracts Quote segments from docs', () => {
     expect(err.tag).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
   });
 
-  it('unknown binding raises AxisBindingNotFoundError', async () => {
+  it('unknown binding raises ExamplesBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | examples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(err.tag).toEqual(makeTagKeyword('ExamplesBindingNotFoundError'));
   });
 });
 
@@ -174,8 +174,7 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
     const result = await evalQuery('42 | as(:Foo) | ::Foo | source');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('AxisBindingNotFoundError');
-    expect(result.originalError.context.axisName).toBe('source');
+    expect(result.originalError.name).toBe('SourceBindingNotFoundError');
     expect(result.originalError.context.bindingName).toBe('::Foo');
   });
 
@@ -183,8 +182,7 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
     const result = await evalQuery('42 | as(:Foo) | ::Foo | docs');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('AxisBindingNotFoundError');
-    expect(result.originalError.context.axisName).toBe('docs');
+    expect(result.originalError.name).toBe('DocsBindingNotFoundError');
   });
 });
 
@@ -229,41 +227,41 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     expect(cellEntry.result).toBe(0);
   });
 
-  it('single-step module containing a non-binding OperandCall fails axis lookup with AxisBindingNotFoundError', async () => {
+  it('single-step module containing a non-binding OperandCall fails axis lookup with ExamplesBindingNotFoundError', async () => {
     // A standalone non-binding OperandCall (e.g. `count`) at the
     // module top level evaluates without throwing, but it is not
     // a binding declaration — `matchesBindingStep` falls through
     // the `name === 'as'` check and returns false, so
-    // `:any | source` resolves to AxisBindingNotFoundError.
+    // `:any | source` resolves to SourceBindingNotFoundError.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async () => ({ source: 'count' })
     });
     const cellEntry = await session.evalCell('use(:tests/non-binding) | :missing | source !| type');
-    expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
+    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
   it('zero-arg `as()` in a module is structurally not a binding declaration', async () => {
     // Parser shape: OperandCall named `as` with `args === []`.
     // matchesBindingStep enters the `name === 'as'` branch, then
     // the empty-args guard skips it before pulling out a first-arg
-    // key. Lookup falls through to AxisBindingNotFoundError.
+    // key. Lookup falls through to the axis's not-found class.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async () => ({ source: '42 | as()' })
     });
     const cellEntry = await session.evalCell('use(:tests/zero) | :nonexistentBinding | source !| type');
-    expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
+    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
-  it('axis lookup walking a single-step module that does not match returns AxisBindingNotFoundError', async () => {
+  it('axis lookup walking a single-step module that does not match returns SourceBindingNotFoundError', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const moduleSource = ':somethingElse 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
     const cellEntry = await session.evalCell('use(:tests/other) | :notHere | source !| type');
-    expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
+    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
   it('axis lookup skips a module step that is a bare unresolved identifier (no args / null args)', async () => {
@@ -277,7 +275,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
       locator: async () => ({ source: moduleSource })
     });
     const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| type');
-    expect(cellEntry.result.name).toBe('AxisBindingNotFoundError');
+    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 });
 
@@ -331,7 +329,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     sessionInstance.bind('hostInstalled', null);
     const cellEntry = await sessionInstance.evalCell(':hostInstalled | source !| type');
     expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
   });
 
   it('a use after a cell BindStep answers with the namespace declaration', async () => {
@@ -384,9 +382,9 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     expect(evalResult).toEqual(makeTagKeyword('SpecSubjectNotKeywordOrTagError'));
   });
 
-  it('keyword naming an unbound identifier lifts AxisBindingNotFoundError', async () => {
+  it('keyword naming an unbound identifier lifts SpecBindingNotFoundError', async () => {
     const evalResult = await evalQuery(':nonexistentBindingForSpec | spec !| type');
-    expect(evalResult).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+    expect(evalResult).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
   });
 
   it('as-bound snapshot auto-unwraps under spec lookup', async () => {

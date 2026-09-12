@@ -70,6 +70,17 @@
        }
   ~~|
 
+::ApplySubjectNotMapOrQuoteError
+  |~~ `apply` requires a Map (AST-Map) or Quote (source-form)
+      subject — the code it runs against the captured subject.
+
+      ~{
+        42 | apply(1)
+        !| [type /actualType]
+        |  eq([::ApplySubjectNotMapOrQuoteError :number])
+       }
+  ~~|
+
 :apply
   |~~ Runs the Quote-or-AST in pipeValue against the captured
       arg as the initial subject. Mirrors the classical
@@ -98,4 +109,4 @@
             :subject [:quote :map]
             :returns :any
             :modifiers [:any]
-            :throws [::EvalSubjectNotMapOrQuoteError]}
+            :throws [::ApplySubjectNotMapOrQuoteError]}

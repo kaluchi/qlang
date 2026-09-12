@@ -628,9 +628,9 @@ async function evalTaggedLit(node, state) {
 //                            :implicit` (evalTaggedLit), mints
 //                            a tagged instance; lint sweeps over
 //                            `manifest(:tag)` flag the auto-decl.
-//   `::TypoTag | source`   → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | docs`     → AxisBindingNotFoundError (axis-op)
-//   `::TypoTag | examples` → AxisBindingNotFoundError (axis-op)
+//   `::TypoTag | source`   → SourceBindingNotFoundError
+//   `::TypoTag | docs`     → DocsBindingNotFoundError
+//   `::TypoTag | examples` → ExamplesBindingNotFoundError
 //
 // Catalog `:throws [::Foo ::Bar]` Vec
 // constructions evaluate cleanly regardless of declaration order;

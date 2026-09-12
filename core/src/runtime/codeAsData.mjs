@@ -32,6 +32,8 @@ const ParseSubjectNotStringOrQuoteError = declareSubjectError(
 
 const EvalSubjectNotMapOrQuoteError = declareSubjectError(
   'EvalSubjectNotMapOrQuoteError', 'eval', ['map', 'quote']);
+const ApplySubjectNotMapOrQuoteError = declareSubjectError(
+  'ApplySubjectNotMapOrQuoteError', 'apply', ['map', 'quote']);
 
 // `parse` — reads a source string into the AST-Map form documented
 // in `ast-codec.mjs`. A Quote-value is accepted too: it is "code
@@ -68,17 +70,18 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 // (parse the Quote's source on demand, reusing the cached `.ast`
 // if `evalDocSegments` already populated it) or an AST-Map (run
 // it through `qlangMapToAst` to rebuild the JS-object AST shape
-// peggy emits). Throws `EvalSubjectNotMapOrQuoteError` when the
-// value is neither shape; a `ParseError` raised mid-parse rides
+// peggy emits). The caller hands the per-site class for its own
+// subject slot, so the diagnostic names the operand the reader
+// typed; a `ParseError` raised mid-parse rides
 // out into the per-node fault-conversion seam in `evalNode`,
 // which lifts it via `errorFromParse` to a `::ParseError!{…}`
 // ErrorValue.
-function astFromQuoteLike(value) {
+function astFromQuoteLike(value, SubjectNotMapOrQuoteError) {
   if (isQMap(value)) return qlangMapToAst(value);
   if (isQuote(value)) {
     return value.ast ?? parseSource(value.source, { uri: 'quote-source' });
   }
-  throw new EvalSubjectNotMapOrQuoteError(value);
+  throw new SubjectNotMapOrQuoteError(value);
 }
 
 // `eval` — runs an AST against the current state. Subject is
@@ -96,7 +99,7 @@ function astFromQuoteLike(value) {
 // descends a frame per re-entry until the depth budget lifts
 // `EvaluationDepthExceededError`.
 export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
-  const innerAst = astFromQuoteLike(state.pipeValue);
+  const innerAst = astFromQuoteLike(state.pipeValue, EvalSubjectNotMapOrQuoteError);
   const resultState = await evalAst(innerAst, nestState(state, state.pipeValue, state.env));
   return ascendState(state, resultState);
 });
@@ -108,7 +111,7 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
 // that combinator against the new subject, so a pipeline-suffix
 // shape replays semantically.
 export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {
-  const bodyAst = astFromQuoteLike(state.pipeValue);
+  const bodyAst = astFromQuoteLike(state.pipeValue, ApplySubjectNotMapOrQuoteError);
   const newSubject = await applyLambdas[0](state.pipeValue);
   const innerState = nestState(state, newSubject, state.env);
   const resultState = await evalAst(bodyAst, innerState);

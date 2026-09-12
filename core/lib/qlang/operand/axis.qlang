@@ -22,7 +22,7 @@
             :category :axis
             :subject [:keyword :tagKeyword]
             :returns :quote
-            :throws [::SourceSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :throws [::SourceSubjectNotKeywordOrTagError ::SourceBindingNotFoundError]}
 
 ::SourceSubjectNotKeywordOrTagError
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
@@ -48,7 +48,7 @@
             :category :axis
             :subject [:keyword :tagKeyword]
             :returns :vec
-            :throws [::DocsSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :throws [::DocsSubjectNotKeywordOrTagError ::DocsBindingNotFoundError]}
 
 ::DocsSubjectNotKeywordOrTagError
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
@@ -74,7 +74,7 @@
             :category :axis
             :subject [:keyword :tagKeyword]
             :returns :vec
-            :throws [::ExamplesSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :throws [::ExamplesSubjectNotKeywordOrTagError ::ExamplesBindingNotFoundError]}
 
 ::ExamplesSubjectNotKeywordOrTagError
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
@@ -122,7 +122,7 @@
             :category :axis
             :subject [:keyword :tagKeyword]
             :returns :map
-            :throws [::SpecSubjectNotKeywordOrTagError ::AxisBindingNotFoundError]}
+            :throws [::SpecSubjectNotKeywordOrTagError ::SpecBindingNotFoundError]}
 
 ::SpecSubjectNotKeywordOrTagError
   |~~ `spec` requires a Keyword (`:foo`) or TagKeyword
@@ -135,15 +135,46 @@
        }
   ~~|
 
-::AxisBindingNotFoundError
-  |~~ Axis-operand (`source` / `docs` / `examples` / `spec`) — no
-      `BindStep` found for the requested binding name across
-      loaded modules.
+::SourceBindingNotFoundError
+  |~~ `source` — no `BindStep` found for the requested binding name
+      across loaded modules.
 
       ~{
         :nonexistent-binding | source
-        !| [type /axisName /bindingName]
-        |  eq([::AxisBindingNotFoundError
-                :source :nonexistent-binding])
+        !| [type /bindingName]
+        |  eq([::SourceBindingNotFoundError :nonexistent-binding])
+       }
+  ~~|
+
+::DocsBindingNotFoundError
+  |~~ `docs` — no `BindStep` found for the requested binding name
+      across loaded modules.
+
+      ~{
+        :nonexistent-binding | docs
+        !| [type /bindingName]
+        |  eq([::DocsBindingNotFoundError :nonexistent-binding])
+       }
+  ~~|
+
+::ExamplesBindingNotFoundError
+  |~~ `examples` — no `BindStep` found for the requested binding name
+      across loaded modules.
+
+      ~{
+        :nonexistent-binding | examples
+        !| [type /bindingName]
+        |  eq([::ExamplesBindingNotFoundError :nonexistent-binding])
+       }
+  ~~|
+
+::SpecBindingNotFoundError
+  |~~ `spec` — no `BindStep` found for the requested binding name
+      across loaded modules.
+
+      ~{
+        :nonexistent-binding | spec
+        !| [type /bindingName]
+        |  eq([::SpecBindingNotFoundError :nonexistent-binding])
        }
   ~~|

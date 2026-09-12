@@ -12,13 +12,16 @@
 // facts about some other operand, or as `::AxisBindingNotFoundError`
 // for a tag that has no catalog entry at all.
 //
-// Three axes, one describe each:
+// Four axes, one describe each:
 //
-//   1. every JS throw site has a `::Tag` binding in the catalog;
-//   2. every catalog error tag has a JS throw site, apart from the
+//   1. each name the catalog binds is bound once — a second BindStep
+//      under the same name shadows the first, which leaves a body no
+//      reader reaches and which `manifest` cannot show;
+//   2. every JS throw site has a `::Tag` binding in the catalog;
+//   3. every catalog error tag has a JS throw site, apart from the
 //      handful minted outside a per-site factory (listed below with
 //      the site that mints each);
-//   3. `:operand` and `:position` on the tag-binding body match the
+//   4. `:operand` and `:position` on the tag-binding body match the
 //      arguments the factory call passes at the throw site.
 
 import { describe, it, expect } from 'vitest';
@@ -101,8 +104,11 @@ const { result: tagBindings } = await session.evalCell('manifest(:tag)');
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 // Every top-level BindStep in a catalog file — `:operand` or
-// `::Tag` at column 0.
-const CATALOG_DECLARATION_RE = /^(::?[A-Za-z@][A-Za-z0-9@/-]*)$/gm;
+// `::Tag` at column 0. The identifier shape follows the grammar's
+// own `IdentStart` / `IdentTail` classes (UAX#31 plus `@`, `_`,
+// `-`), with `/` for the namespaced form, so a declaration the
+// parser accepts is one this reading sees.
+const CATALOG_DECLARATION_RE = /^(::?[@_\p{ID_Start}][\p{ID_Continue}@_/-]*)$/gmu;
 
 function collectCatalogDeclarations() {
   const declarations = [];

@@ -105,12 +105,20 @@ function* moduleAstsIn(env) {
   }
 }
 
+// The last-match rule holds across modules the same way it holds
+// inside one: env is insertion-ordered, so a module loaded later —
+// the cell the user is typing, a namespace pulled in by `use` —
+// carries the binding that shadows an earlier one. Returning on the
+// first module that matches would answer with the declaration the
+// evaluator no longer dispatches, which is exactly what `spec` (an
+// env lookup) would contradict.
 export function findBindingStepAcrossModules(env, bindingName) {
+  let lastMatch = null;
   for (const moduleAst of moduleAstsIn(env)) {
     const step = findBindingStepFor(moduleAst, bindingName);
-    if (step !== null) return step;
+    if (step !== null) lastMatch = step;
   }
-  return null;
+  return lastMatch;
 }
 
 // `as(:name)` OperandCall nodes without an attached doc-prefix

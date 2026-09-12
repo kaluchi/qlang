@@ -281,6 +281,30 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
   });
 });
 
+describe('axis-operands resolve the binding the evaluator dispatches', () => {
+  // `spec` reads env; `source` / `docs` / `examples` walk the module
+  // ASTs env holds. Both readings have to name one declaration, or a
+  // binding that shadows a built-in reads as the built-in — the case
+  // the hypertext chain exists for.
+  const shadowed = ':add mul(100) | ';
+
+  it('a binding shadowing a built-in is the one source reports', async () => {
+    expect(await evalQuery(shadowed + '2 | add')).toBe(200);
+    const declaration = await evalQuery(shadowed + ':add | source | /source');
+    expect(declaration).toContain('mul(100)');
+    expect(declaration).not.toContain('Adds two numbers');
+  });
+
+  it('docs and examples answer for the shadowing binding, which carries neither', async () => {
+    expect(await evalQuery(shadowed + ':add | docs | count')).toBe(0);
+    expect(await evalQuery(shadowed + ':add | examples | count')).toBe(0);
+  });
+
+  it('spec names the same declaration source does', async () => {
+    expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('conduit'));
+  });
+});
+
 describe(':name | spec returns the env-side declaration descriptor', () => {
   it(':add | spec surfaces the operand descriptor Map with :category :arith', async () => {
     expect(await evalQuery(':add | spec | /category')).toEqual(makeKeyword('arith'));

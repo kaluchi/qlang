@@ -104,6 +104,10 @@ const PrimitiveRegistrySealedError = declareInvariantError(
 // converts it to an error value on the fail-track. This gracefully
 // handles hand-crafted descriptor Maps, stale serialized sessions,
 // and mis-edited manifest entries.
+// Not an invariant: a descriptor a query assembled can name an
+// unbound `:impl` handle, and `evalNode` rethrows every
+// QlangInvariantError past the deflect machinery. This one has to
+// reach the fail track as a value, so it rides its own category.
 const PrimitiveKeyUnboundError = declarePerSiteError(
   'PrimitiveKeyUnboundError', 'primitiveUnbound',
   ({ keyLabel }) => `resolve: no primitive bound under :${keyLabel}`

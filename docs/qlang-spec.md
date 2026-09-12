@@ -1864,7 +1864,7 @@ value; dispatch errors carry `:operandName` / `:conduitName` /
 
 Per-tag static facts — `:category` (broad bucket: `:typeError`,
 `:arityError`, `:effectLaundering`, `:parseError`,
-`:foreignError`, `:invariantError`, `:divisionByZero`,
+`:foreignError`, `:invariantError`,
 `:primitiveUnbound`, `:sessionError`, `:codecError`,
 `:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`,
 `:numericDomain`),

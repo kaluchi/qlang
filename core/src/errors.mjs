@@ -91,8 +91,9 @@ export class QlangTypeError extends QlangError {
 // NumericDomainError — the value's type is right and its magnitude
 // is not. `typeKeyword(Infinity)` answers `:number`, so a shape
 // check has nothing to report; what the site refuses is the
-// finite-double domain a qlang Number lives in. `DivisionByZeroError`
-// is the same family under its own long-standing kind.
+// finite-double domain a qlang Number lives in. A zero divisor is
+// the same refusal reached from the other side, and the reader
+// repairs both the same way: by changing a value's magnitude.
 export class NumericDomainError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'numericDomain', context);
@@ -169,7 +170,7 @@ export class EffectLaunderingError extends QlangError {
 // defects a reader cannot act on and whose tags therefore stay off
 // every operand's Vec.
 const QUERY_FAULT_CATEGORIES = new Set([
-  'typeError', 'arityError', 'numericDomain', 'divisionByZero'
+  'typeError', 'arityError', 'numericDomain'
 ]);
 
 const throwSiteSpecs = new Map();
@@ -348,8 +349,8 @@ export const UnresolvedIdentifierError = declarePerSiteError(
   ({ identifierName }) => `unresolved identifier: ${identifierName}`
 );
 
-export const DivisionByZeroError = declarePerSiteError(
-  'DivisionByZeroError', 'divisionByZero', () => 'division by zero', { operand: 'div' }
+export const DivisionByZeroError = declareNumericDomainError(
+  'DivisionByZeroError', () => 'division by zero', { operand: 'div' }
 );
 
 // EvaluationDepthExceededError — `nestState` (state.mjs) refused one

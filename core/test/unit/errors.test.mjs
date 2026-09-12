@@ -104,7 +104,7 @@ describe('UnresolvedIdentifierError', () => {
 describe('DivisionByZeroError', () => {
   it('has a fixed message and fingerprint', () => {
     const divErr = new DivisionByZeroError();
-    expect(divErr.kind).toBe('divisionByZero');
+    expect(divErr.kind).toBe('numericDomain');
     expect(divErr.fingerprint).toBe('DivisionByZeroError');
     expect(divErr.message).toBe('division by zero');
   });
@@ -201,7 +201,7 @@ describe('throw-site spec registry — one name, one site', () => {
   it('refuses a second recording under a name already declared', () => {
     let refusal = null;
     try {
-      declarePerSiteError('DivisionByZeroError', 'divisionByZero', () => 'a second site');
+      declarePerSiteError('DivisionByZeroError', 'numericDomain', () => 'a second site');
     } catch (caught) {
       refusal = caught;
     }

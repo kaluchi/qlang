@@ -311,7 +311,7 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(divErr, ...fault('div(0)', 10));
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
-    expect(divErr.kind).toBe('divisionByZero');
+    expect(divErr.kind).toBe('numericDomain');
     expect(errorVal.tag).toEqual(makeTagKeyword('DivisionByZeroError'));
     expect(desc.get('faultStep').source).toBe('div(0)');
     expect(desc.get('faultInput')).toBe(10);

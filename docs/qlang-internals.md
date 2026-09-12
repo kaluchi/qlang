@@ -1328,7 +1328,7 @@ consumer sites.
 
 Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /
-`:invariantError` / `:divisionByZero` / `:primitiveUnbound` /
+`:invariantError` / `:primitiveUnbound` /
 `:sessionError` / `:codecError` / `:astCodecError` /
 `:effectLaundering` / `:unresolvedIdentifier` / `:resourceLimit` /
 `:numericDomain`),

@@ -621,7 +621,7 @@ for the rule and the two other seams that enforce it.
 
 - **Arity** 2. Non-commutative: `a / b` (position 1 dividend).
 - **Example**: `10 | div(2)` → `5`; `{:x 20 :y 4} | div(/x, /y)` → `5`.
-- **Errors**: divisor = 0 → divisionByZero error; result past the finite double range → `DivResultNotFiniteError`.
+- **Errors**: divisor = 0 → `DivisionByZeroError`; result past the finite double range → `DivResultNotFiniteError`.
 
 ## String
 

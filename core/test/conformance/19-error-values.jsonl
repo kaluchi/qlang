@@ -24,7 +24,7 @@
 {"name":"trail-materialised-at-query-boundary-multi-deflection","query":"\"x\" | add(1) | mul(3) | count !| /trail","expect":"~{| mul(3) | count}"}
 {"name":"runtime-error-thrown","query":"\"hello\" | add(1) !| type","expect":"::AddLeftNotNumberError"}
 {"name":"runtime-error-category","query":"\"hello\" | add(1) !| type | spec | /category","expect":":typeError"}
-{"name":"runtime-div-zero-category","query":"10 | div(0) !| type | spec | /category","expect":":divisionByZero"}
+{"name":"runtime-div-zero-category","query":"10 | div(0) !| type | spec | /category","expect":":numericDomain"}
 {"name":"runtime-unresolved-category","query":"blah !| type | spec | /category","expect":":unresolvedIdentifier"}
 {"name":"distribute-per-element-errors","query":"[1 \"x\" 3] * add(10) | filter(isError | not)","expect":"[11 13]"}
 {"name":"distribute-error-count","query":"[1 \"x\" 3] * add(10) | filter(isError) | count","expect":"1"}

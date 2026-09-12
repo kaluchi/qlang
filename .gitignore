@@ -1,6 +1,9 @@
 node_modules/
 coverage/
 gen/
+# vitest writes a reporter payload here when one is asked for on the
+# command line; it is a run artifact, not a checked-in fixture.
+.vitest/
 .claude/settings.local.json
 .claude/*.lock
 

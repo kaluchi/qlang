@@ -28,6 +28,26 @@ export class BootstrapRootMissingError extends QlangInvariantError {
   }
 }
 
+// The catalog root is one `use([…])` step, and `use` answers on the
+// fail-track like any other operand: a family source the locator
+// resolves but the parser refuses leaves the env without that
+// family and hands the error value back as the root's pipeValue.
+// `buildLangRuntime` reads the env alone, so without this reading a
+// broken catalog file would seed every session with an env missing
+// its operands and surface as `::UnresolvedIdentifierError` on the
+// first `count` — a diagnostic naming the symptom three steps from
+// the cause.
+export class BootstrapCatalogNotLoadedError extends QlangInvariantError {
+  constructor({ tagName }) {
+    super(
+      `qlang bootstrap: the catalog root answered ${tagName} instead of installing the operand families — check the sources the locator resolves for qlang/core and each family it uses`,
+      { tagName }
+    );
+    this.name = 'BootstrapCatalogNotLoadedError';
+    this.fingerprint = 'BootstrapCatalogNotLoadedError';
+  }
+}
+
 // platformLocator(namespaceName) → Promise<{ source } | null>
 //
 // Matches the `:qlang/locator` contract documented for `use`

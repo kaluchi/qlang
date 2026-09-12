@@ -584,6 +584,17 @@
   ~~|
   ::builtin{:category :foreignError}
 
+::BootstrapCatalogNotLoadedError
+  |~~ The catalog root is one `use([…])` step, so a family source
+      the locator resolves but the parser refuses leaves the env
+      without that family while the failure rides out as the root's
+      pipeValue. The bootstrap reads that pipeValue rather than
+      handing every session an env whose first `count` answers
+      `::UnresolvedIdentifierError` — a diagnostic three steps from
+      the cause. `:tagName` names what the root answered with.
+  ~~|
+  ::builtin{:category :invariantError}
+
 ::BootstrapRootMissingError
   |~~ `#qlang/core` resolved to nothing, so the bootstrap has no
       root module to evaluate. The host adds the entry to

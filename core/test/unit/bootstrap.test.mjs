@@ -7,7 +7,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   platformLocator,
-  BootstrapRootMissingError
+  BootstrapRootMissingError,
+  BootstrapCatalogNotLoadedError
 } from '../../src/runtime/bootstrap.mjs';
 import { langRuntime, buildLangRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
@@ -40,6 +41,39 @@ describe('BootstrapRootMissingError', () => {
   it('fires from buildLangRuntime when the locator returns null for the root', async () => {
     const nullLocator = async () => null;
     await expect(buildLangRuntime(nullLocator)).rejects.toBeInstanceOf(BootstrapRootMissingError);
+  });
+});
+
+describe('BootstrapCatalogNotLoadedError', () => {
+  // The catalog root is one `use([…])` step. When a family source
+  // the locator resolves fails to parse, `use` answers on the
+  // fail-track and the env comes back without that family — the
+  // pipeValue is the only place the failure shows, so the bootstrap
+  // reads it rather than handing every session an env whose first
+  // `count` surfaces `::UnresolvedIdentifierError`.
+  const brokenFamilyLocator = async (namespaceName) => {
+    if (namespaceName === 'qlang/core') return { source: 'use([:qlang/broken])' };
+    if (namespaceName === 'qlang/broken') return { source: ':unclosed (mul(2)' };
+    return null;
+  };
+
+  it('fires when a family source the locator resolves fails to parse', async () => {
+    let thrown = null;
+    try { await buildLangRuntime(brokenFamilyLocator); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
+    expect(thrown.name).toBe('BootstrapCatalogNotLoadedError');
+    expect(thrown.fingerprint).toBe('BootstrapCatalogNotLoadedError');
+    expect(thrown.context.tagName).toBe('::ParseError');
+    expect(thrown.message).toContain('operand families');
+  });
+
+  it('names the tag the root answered with, whichever it is', async () => {
+    const missingFamilyLocator = async (namespaceName) =>
+      namespaceName === 'qlang/core' ? { source: 'use([:qlang/absent])' } : null;
+    let thrown = null;
+    try { await buildLangRuntime(missingFamilyLocator); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
+    expect(thrown.context.tagName).toBe('::UseNamespaceNotFoundError');
   });
 });
 

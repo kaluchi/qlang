@@ -74,11 +74,15 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { keyword, makeQuote, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL } from '../types.mjs';
+import {
+  keyword, makeQuote, isErrorValue, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
+} from '../types.mjs';
 import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampStructuralFacts } from '../descriptor-ops.mjs';
-import { platformLocator, BootstrapRootMissingError } from './bootstrap.mjs';
+import {
+  platformLocator, BootstrapRootMissingError, BootstrapCatalogNotLoadedError
+} from './bootstrap.mjs';
 
 // Per-locator template env cache — `buildLangRuntime` parses the
 // root catalog module and resolves every operand family once per
@@ -161,6 +165,11 @@ export async function buildLangRuntime(locator) {
   const coreAst = parse(coreSource, { uri: 'qlang/core' });
   const bootstrapState = rootState(null, seedEnv);
   const bootstrapResult = await evalAst(coreAst, bootstrapState);
+  if (isErrorValue(bootstrapResult.pipeValue)) {
+    throw new BootstrapCatalogNotLoadedError({
+      tagName: bootstrapResult.pipeValue.tag.literal
+    });
+  }
   const templateEnv = bootstrapResult.env;
 
   // Resolve :impl keywords to function values for built-in

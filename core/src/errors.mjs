@@ -36,6 +36,12 @@
 //   .schemaVersion  — integer for forward-compat of the error
 //                     contract; bumped when fields are added or
 //                     renamed so older Sentry consumers can opt out.
+//   .context        — the structured bag the throw site hands the
+//                     downstream catch. The root's constructor
+//                     defaults it to `{}` and every factory routes
+//                     through that constructor, so a reader walks it
+//                     unconditionally: `toJSON` here and
+//                     `errorFromQlang` in error-convert.mjs both do.
 //   .toJSON()       — Sentry-safe serialization. Drops `actualValue`
 //                     from .context so user PII never lands in the
 //                     observability backend.

@@ -86,6 +86,10 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   // (multi-segment projection, full-application captured-arg, element
   // iteration), `actualValue` is stamped — its presence is the
   // type-level signal «drill-down happened, look here».
+  // Every QlangError carries a context bag — the root's constructor
+  // defaults it to `{}` — and `evalNode` routes anything outside the
+  // hierarchy to `errorFromForeign` instead, so the walk needs no
+  // fallback.
   const ctx = qlangError.context;
   const liftedFromOrder = new Set();
   for (const k of RUNTIME_FIELD_ORDER) {

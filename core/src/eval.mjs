@@ -38,7 +38,7 @@ import {
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
-import { isPureLiteralAst } from './walk.mjs';
+import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
 import { astNodeToMap } from './ast-codec.mjs';
 import { addStructurallyUnique } from './equality.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -249,8 +249,9 @@ async function evalNode(node, state) {
 // keeps every comment for reflection (`source`, the highlighter,
 // the AST-codec round-trip); `evalCommentStep` stays wired for the
 // direct-dispatch path of a lone comment query or a comment AST-Map
-// handed to `eval`.
-const PLAIN_COMMENT_STEP_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
+// handed to `eval`. The step-node reading itself lives in
+// `walk.mjs::isPlainCommentStep` beside the rest of the AST-shape
+// knowledge.
 
 async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
@@ -277,7 +278,7 @@ async function evalPipeline(node, state) {
   for (let i = 0; i < node.steps.length; i++) {
     const unit = node.steps[i];
     const stepNode = i === 0 ? unit : unit.step;
-    if (PLAIN_COMMENT_STEP_TYPES.has(stepNode.type)) continue;
+    if (isPlainCommentStep(stepNode)) continue;
     if (headPending) {
       headPending = false;
       const headCombinator = node.leadingCombinator ?? (i === 0 ? null : unit.combinator);

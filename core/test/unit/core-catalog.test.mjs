@@ -297,6 +297,26 @@ describe('format.toPlain refuses a raw function value — round-trip invariant',
   });
 });
 
+describe('lib/qlang/core.qlang — namespace sizes', () => {
+  // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
+  // throw site with its tag and each tag with its throw site, but the
+  // six tags minted outside a per-site factory (`::Error`,
+  // `::ParseError`, and the four value-class constructors) pass both
+  // axes whether or not they exist — axis 1 never names them and
+  // axis 2 skips a name absent from `manifest(:tag)`. These pins fail
+  // on a silent catalog shrink; per §8a of the review rules a tally
+  // belongs in test code, which CI re-verifies, and never in prose.
+  it('the tag namespace holds every declared tag-binding', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('manifest(:tag) | count')).toBe(178);
+  });
+
+  it('the value namespace holds every declared operand', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('manifest | count')).toBe(91);
+  });
+});
+
 describe('lib/qlang/core.qlang — data-level projections across the full catalog', () => {
   it('groupBy category — full catalog is addressable as data', async () => {
     // A miniature exercise of the self-describing nature: run a

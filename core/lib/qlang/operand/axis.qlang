@@ -93,9 +93,12 @@
 :spec
   |~~ `:name | spec` — env-side declaration descriptor Map for the
       named binding. Operand declarations surface as
-      `{:impl :qlang/prim/<name> :category … :subject … :returns …
-      :throws …}` with identity `::builtin` on the JS-header
-      slot (reachable through `:name | spec | type`). Tag-binding
+      `{:impl :qlang/prim/<name> :category … :subject …
+      :modifiers … :returns … :throws … :captured … :effectful …}`
+      with identity `::builtin` on the JS-header slot (reachable
+      through `:name | spec | type`). `:captured` and `:effectful`
+      are stamped from the resolved primitive at bootstrap; every
+      other field is authored in the catalog body. Tag-binding
       error tags surface as `{:category :typeError :operand …
       :position … :expectedType …}`. Value-class constructors
       surface as `{:impl :qlang/type/<tag> :throws […]}`. All

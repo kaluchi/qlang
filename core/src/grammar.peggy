@@ -67,9 +67,12 @@
   // combinator and an explicit combinator on that step would both
   // claim it — `!| |~ note ~| * add(1)` has no comment-free
   // reading and is refused at parse time.
-  const PLAIN_COMMENT_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
-  function isPlainCommentNode(astNode) {
-    return PLAIN_COMMENT_TYPES.has(astNode.type);
+  // Same reading as `walk.mjs::isPlainCommentStep`, spelled here
+  // because a generated parser is its own compilation unit and
+  // cannot import from `src/`.
+  const PLAIN_COMMENT_STEP_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
+  function isPlainCommentStep(astNode) {
+    return PLAIN_COMMENT_STEP_TYPES.has(astNode.type);
   }
 
   // AST shapes that round-trip as pure JSON content — scalars
@@ -166,8 +169,8 @@ Pipeline
     const head = headUnits[0];
     const headTail = headUnits.slice(1);
     const rest = [...headTail, ...tail.flatMap(t => flattenUnits(t[1]))];
-    if (hasLeadingComb && isPlainCommentNode(head)) {
-      const firstOperandUnit = rest.find(u => !isPlainCommentNode(u.step));
+    if (hasLeadingComb && isPlainCommentStep(head)) {
+      const firstOperandUnit = rest.find(u => !isPlainCommentStep(u.step));
       if (firstOperandUnit !== undefined && firstOperandUnit.combinator !== null) {
         error('a leading combinator and an explicit combinator both address the first operand step after a comment head');
       }

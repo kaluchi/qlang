@@ -69,3 +69,5 @@
 {"name":"comment-head-explicit-pipe-deflects","query":"~{|~ note ~| | type} | apply(!{:kind :zap}) !| /trail","expect":"~{| type}"}
 {"name":"line-comment-head-explicit-distribute","query":"[1 2] | (|~| note\n* add(1))","expect":"[2 3]"}
 {"name":"comment-mid-pipeline-explicit-distribute","query":"[1 2] |~ note ~| * add(1)","expect":"[2 3]"}
+{"name":"comment-head-keeps-leading-pipe-deflection","query":"~{| |~ note ~| count} | apply(!{:kind :z}) !| /trail","expect":"~{| count}"}
+{"name":"comment-head-without-leading-combinator-fires-the-head","query":"~{|~ note ~| count} | apply(!{:kind :z}) !| type","expect":"::CountSubjectNotContainerError"}

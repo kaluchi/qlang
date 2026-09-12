@@ -75,6 +75,18 @@ export function astChildrenOf(node) {
   return out;
 }
 
+// Plain comments are pipeline trivia: `evalPipeline` steps over
+// them on both tracks, and the grammar's Pipeline production
+// refuses a leading-plus-explicit combinator pair around one. Both
+// readings ask this same question of a step node. The peggy
+// initializer keeps its own copy under the same name — a generated
+// parser is its own compilation unit and cannot import from `src/`.
+const PLAIN_COMMENT_STEP_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
+
+export function isPlainCommentStep(astNode) {
+  return PLAIN_COMMENT_STEP_TYPES.has(astNode.type);
+}
+
 // isPureLiteralAst(node) — recursive purity predicate over an AST
 // subtree. Returns true when evaluation of the subtree depends on
 // neither the surrounding pipeValue nor env nor any side-effect

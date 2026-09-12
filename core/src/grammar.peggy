@@ -951,12 +951,22 @@ EscapeChar
 HexDigit
   = [0-9a-fA-F]
 
-NumberLit
+// A qlang Number is a finite double (see `### number` in
+// qlang-spec.md), so digits naming a magnitude outside that domain
+// match no production. The semantic predicate declines the match,
+// which keeps the failure inside peggy's own reporting: the rule's
+// description lands in the ParseError's `:expected` Vec, where
+// every other syntactic failure reports.
+NumberLit "number within the finite double range"
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
-    { const txt = (sign || '') + whole.join('')
-                + (frac ? '.' + frac[1].join('') : '')
-                + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
-      return node('NumberLit', { value: Number(txt) }, location(), text()); }
+    &{ // `text()` inside a semantic predicate reads the empty string —
+       // peggy fills the match text when the action runs — so the
+       // predicate reads its labels and the action reads `text()`.
+       const matched = (sign || '') + whole.join('')
+                     + (frac ? '.' + frac[1].join('') : '')
+                     + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
+       return Number.isFinite(Number(matched)); }
+    { return node('NumberLit', { value: Number(text()) }, location(), text()); }
 
 BooleanLit
   = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }

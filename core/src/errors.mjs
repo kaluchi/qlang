@@ -12,6 +12,7 @@
 //     QlangTypeError                 — abstract typeError class
 //     UnresolvedIdentifierError      — identifier not in env
 //     DivisionByZeroError            — div(_, 0)
+//     NumericDomainError             — abstract numericDomain class
 //     ArityError                     — too many captured args
 //     EvaluationDepthExceededError   — frame past EVAL_DEPTH_LIMIT
 //     QlangInvariantError            — registration-time invariant
@@ -89,6 +90,19 @@ export class DivisionByZeroError extends QlangError {
     super('division by zero', 'divisionByZero');
     this.name = 'DivisionByZeroError';
     this.fingerprint = 'DivisionByZeroError';
+  }
+}
+
+// NumericDomainError — the value's type is right and its magnitude
+// is not. `typeKeyword(Infinity)` answers `:number`, so a shape
+// check has nothing to report; what the site refuses is the
+// finite-double domain a qlang Number lives in. `DivisionByZeroError`
+// is the same family under its own long-standing kind.
+export class NumericDomainError extends QlangError {
+  constructor(message, context = {}) {
+    super(message, 'numericDomain');
+    this.name = 'NumericDomainError';
+    this.context = context;
   }
 }
 

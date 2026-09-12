@@ -15,7 +15,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
+            :throws [::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]}
 
 ::AddLeftNotNumberError
   |~~ Captured argument at position 1 of `add` must be Number.
@@ -39,6 +39,21 @@
   ~~|
   ::builtin{:category :typeError :operand :add :position 2 :expectedType :number}
 
+::AddResultNotFiniteError
+  |~~ `add` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        1e308 | add(1e308)
+        !| [type /leftValue]
+        |  eq([::AddResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :add}
+
+
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
       position 1 is the minuend.
@@ -51,7 +66,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
+            :throws [::SubLeftNotNumberError ::SubRightNotNumberError ::SubResultNotFiniteError]}
 
 ::SubLeftNotNumberError
   |~~ Captured argument at position 1 of `sub` must be Number.
@@ -75,6 +90,21 @@
   ~~|
   ::builtin{:category :typeError :operand :sub :position 2 :expectedType :number}
 
+::SubResultNotFiniteError
+  |~~ `sub` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        -1e308 | sub(1e308)
+        !| [type /leftValue]
+        |  eq([::SubResultNotFiniteError -1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :sub}
+
+
 :mul
   |~~ Multiplies two numbers. Commutative.
 
@@ -86,7 +116,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
+            :throws [::MulLeftNotNumberError ::MulRightNotNumberError ::MulResultNotFiniteError]}
 
 ::MulLeftNotNumberError
   |~~ Captured argument at position 1 of `mul` must be Number.
@@ -110,6 +140,21 @@
   ~~|
   ::builtin{:category :typeError :operand :mul :position 2 :expectedType :number}
 
+::MulResultNotFiniteError
+  |~~ `mul` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        1e308 | mul(10)
+        !| [type /leftValue]
+        |  eq([::MulResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :mul}
+
+
 :div
   |~~ Divides the first number by the second. Non-commutative:
       position 1 is the dividend. Raises divisionByZero on
@@ -123,7 +168,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
+            :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError ::DivResultNotFiniteError]}
 
 ::DivLeftNotNumberError
   |~~ Captured argument at position 1 of `div` must be Number.
@@ -146,6 +191,21 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :div :position 2 :expectedType :number}
+
+::DivResultNotFiniteError
+  |~~ `div` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        1e308 | div(0.0001)
+        !| [type /leftValue]
+        |  eq([::DivResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :div}
+
 
 ::DivisionByZeroError
   |~~ Division by zero — `div(_, 0)` fires this error.

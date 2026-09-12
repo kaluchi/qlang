@@ -127,6 +127,42 @@ numbers carry a leading `-`.
 -1
 ```
 
+A number is a **finite** double. The two IEEE values outside that
+domain — an infinity and NaN — are not qlang values. Source cannot
+mint one:
+
+- A literal whose magnitude lies outside the domain matches no
+  production, so `1e400` is a parse failure whose `:expected` Vec
+  names the domain.
+- An arithmetic step whose result leaves the domain lifts a
+  per-site `numericDomain` error — `1e308 | mul(10)` answers
+  `::MulResultNotFiniteError` carrying both finite operands, the
+  second answer `div` gives alongside `::DivisionByZeroError`.
+  `sum` reads its running total at every element and answers
+  `::SumResultNotFiniteError` with `:index`.
+- `parseJson` and the tagged-JSON decoder refuse an out-of-range
+  magnitude, which `JSON.parse` hands over as an infinity, and
+  carry `:path` — the keys and indices walked to the refused slot.
+
+A host reaches further: `session.bind` and a locator's `impls` map
+install JS values the language never parsed. Such a value meets the
+domain rule at the seams where it becomes observable —
+`printValue`, `toPlain` and the tagged-JSON encoder answer
+`::NumberNotFiniteLeakedToPrintError`, and a comparator answering
+NaN lifts `::SortWithCmpResultNaNError` at the `sortWith` seam,
+the one reading whose answer would otherwise change in silence.
+
+Three guarantees rest on that rule: every number renders back to a
+literal that parses ([Round-trip invariant](#round-trip-invariant)),
+every pair of numbers orders (`sort`, `min`, `max`, `gt` and
+friends), and every number survives the JSON boundary, where an
+infinity would silently become `null`.
+
+The range is the only thing pinned. Precision is the double's own:
+an integer past 2^53 rounds to its nearest representable neighbour
+the way it does in any IEEE host, and `0.1 | add(0.2)` answers
+`0.30000000000000004`.
+
 ### boolean
 
 `true` or `false`. There is no implicit coercion of other types
@@ -1819,7 +1855,8 @@ Per-tag static facts — `:category` (broad bucket: `:typeError`,
 `:arityError`, `:effectLaundering`, `:parseError`,
 `:foreignError`, `:invariantError`, `:divisionByZero`,
 `:primitiveUnbound`, `:sessionError`, `:codecError`,
-`:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`),
+`:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`,
+`:numericDomain`),
 `:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
@@ -2207,6 +2244,10 @@ filter(/age | gt(18))
 | Too many captured args for operand arity | arity error |
 | `union`/`minus`/`inter` on incompatible types | type error |
 | `div(0)` | division by zero |
+| Arithmetic whose result leaves the finite double range | type error |
+| `sum` whose running total leaves the finite double range | type error |
+| Number literal whose magnitude lies past the finite double range | parse error |
+| JSON lift of a number past the finite double range | codec error |
 | `sort` on Vec with non-comparable elements | type error |
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
@@ -2237,6 +2278,12 @@ modulo canonical whitespace and modulo equivalent surface forms
 (`:foo` and `:"foo"` both print as the bare form; JSON-mode
 `{"k": 1}` and qlang-mode `{:k 1}` Map literals collapse to the
 same canonical Map shape).
+
+Numbers reach that tier because the language admits only finite
+doubles: `Infinity` and `NaN` are strings no production reads back,
+so the [number](#number) rule keeps them out of source, and
+`printValue` answers `::NumberNotFiniteLeakedToPrintError` for one a
+host installed.
 
 The strict tier covers: Number, String, Boolean, Null, Keyword,
 TagKeyword, Vec, Map, Set, JSON-Object, JSON-Array, Error, Quote,

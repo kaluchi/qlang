@@ -31,8 +31,8 @@ const srcDir = join(here, '..', 'src');
 const catalogDir = join(here, '..', 'lib', 'qlang');
 
 const FACTORY_CALL_RE =
-  /declare(Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
-const CATALOG_TAG_RE = /^::([A-Za-z0-9]+Error)$/gm;
+  /declare(Subject|Modifier|Element|Comparability|Shape|Arity|NumericDomain)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
+const CATALOG_TAG_RE = /^::([\p{ID_Start}][\p{ID_Continue}_]*Error)$/gmu;
 const OPERAND_BOUND_FACTORIES = new Set(['Subject', 'Modifier', 'Element', 'Comparability']);
 
 function collectThrowSites() {

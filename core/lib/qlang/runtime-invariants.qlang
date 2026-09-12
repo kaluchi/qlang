@@ -18,7 +18,7 @@
      4. Effect-laundering at parse and call seams
      5. Identifier-lookup and parse-time failures
      6. AST codec invariants
-     7. Tagged-JSON codec invariants
+     7. JSON codec invariants — plain and tagged
      8. Dispatch wrapper invariants
      9. Evaluator dispatch invariants
     10. Primitive registry invariants
@@ -322,11 +322,29 @@
   ~~|
   ::builtin{:category :astCodecError}
 
-|~ ── 7. Tagged-JSON codec invariants ──────────────────── ~|
+|~ ── 7. JSON codec invariants — plain and tagged ──────── ~|
 
 ::MalformedTaggedJSONError
   |~~ `fromTaggedJSON` received a JSON shape it does not
       recognise as a tagged-value envelope.
+  ~~|
+  ::builtin{:category :codecError}
+
+::FromPlainNumberNotFiniteError
+  |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
+      magnitude past the double range as one (`1e400` lifts to
+      Infinity). The plain-JSON lift refuses it, so a piped document
+      cannot seed a pipeline with a value the language does not
+      admit. Host-boundary error: reached through `parseJson` or the
+      CLI's implicit stdin lift, never from a qlang literal, which
+      the parser refuses at its own site.
+  ~~|
+  ::builtin{:category :codecError}
+
+::TaggedJSONNumberNotFiniteError
+  |~~ Same reading on the tagged-JSON wire: a decoded number past
+      the finite double range refuses rather than restoring a
+      session or a fixture around a value no literal renders back.
   ~~|
   ::builtin{:category :codecError}
 
@@ -492,6 +510,19 @@
   ~~|
   ::builtin{:category :invariantError}
 
+::NumberNotFiniteLeakedToPrintError
+  |~~ A qlang Number is a finite double. Source cannot mint an
+      infinity or a NaN — the parser refuses the literal and every
+      arithmetic site lifts a numericDomain error — so this tag
+      reports a value a host installed through `session.bind` or a
+      locator's `impls` map. Render and the JSON boundary are where
+      such a value becomes observable: `printValue` would answer
+      `Infinity`, which no production reads back, and `json` would
+      answer `null`. `:actualValue` carries the offending magnitude
+      as a String, the one shape that renders.
+  ~~|
+  ::builtin{:category :invariantError}
+
 ::ToPlainUnencodableValueError
   |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
       with no JSON form. Conduit and Snapshot reconstruct through
@@ -565,6 +596,16 @@
       contract and never reaches the platform loader.
   ~~|
   ::builtin{:category :foreignError}
+
+::BootstrapCatalogNotLoadedError
+  |~~ The catalog root is one `use([…])` step, so a family source
+      the locator resolves but the parser refuses leaves the env
+      without that family while the failure rides out as the root's
+      pipeValue. The bootstrap reads that pipeValue, so the failing
+      family source is the diagnostic and `:tagName` names what the
+      root answered with.
+  ~~|
+  ::builtin{:category :invariantError}
 
 ::BootstrapRootMissingError
   |~~ `#qlang/core` resolved to nothing, so the bootstrap has no

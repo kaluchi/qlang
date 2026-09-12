@@ -97,7 +97,14 @@ form part of the doc surface and the runtime catalog alike.
 - **Examples**: `[1 2 3 4] | sum` → `10`; `#[1 2 3] | sum` → `6`;
   `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
 - **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
-  element not a number → `SumElementNotNumberError`.
+  element not a number → `SumElementNotNumberError`; running total
+  outside the finite-double domain → `SumResultNotFiniteError`, whose
+  `:index` names the element the total crossed at. The total is read
+  at every element in insertion order, so a subject whose partial
+  sums leave the domain lifts while its mathematical total sits
+  inside it — `[1e308 1e308 -1e308] | sum` lifts at element 1,
+  `[1e308 -1e308 1e308] | sum` answers `1e308`. `reduce(0, add)`
+  folds through the same readings and lifts at the same element.
 
 ### `reduce(seed, reducer)`
 
@@ -354,9 +361,7 @@ JSON tag.
     → events sorted by priority ascending, then timestamp descending
     as tie-breaker.
 - **Errors**: subject not a Vec → `SortWithSubjectNotSequenceError`; comparator returns
-  non-number → `SortWithCmpResultNotNumberError`; comparator returns
-  NaN → `SortWithCmpResultNaNError` (NaN orders no pair, and float
-  overflow reaches it from ordinary arithmetic).
+  non-number → `SortWithCmpResultNotNumberError`.
 
 ### `asc(keyExpr)`
 
@@ -585,28 +590,37 @@ and takes values from `M₁`.
 
 ## Arithmetic — `Scalar → Scalar`
 
+Every arithmetic operand answers a finite double or lifts: a
+result that leaves the range fires the operand's own
+`…ResultNotFiniteError` carrying both finite operands under
+`:leftValue` / `:rightValue`. See [number](qlang-spec.md#number)
+for the rule and the two other seams that enforce it.
+
 ### `add(n)` / `add(a, b)`
 
 - **Arity** 2. **Subject** `a`, **modifier** `b`.
 - Unary partial form: `a | add(b)` = `a + b`.
 - Full form: `add(a, b)` — both captured, `pipeValue` is context.
 - **Example**: `10 | add(3)` → `13`; `{:x 10 :y 3} | add(/x, /y)` → `13`.
+- **Errors**: result past the finite double range → `AddResultNotFiniteError`.
 
 ### `sub(n)` / `sub(a, b)`
 
 - **Arity** 2. Non-commutative: `a - b` (position 1 minuend).
+- **Errors**: result past the finite double range → `SubResultNotFiniteError`.
 - **Example**: `10 | sub(3)` → `7`; `{:x 10 :y 3} | sub(/x, /y)` → `7`.
 
 ### `mul(n)` / `mul(a, b)`
 
 - **Arity** 2. Commutative.
+- **Errors**: result past the finite double range → `MulResultNotFiniteError`.
 - **Example**: `10 | mul(3)` → `30`; `{:x 5 :y 4} | mul(/x, /y)` → `20`.
 
 ### `div(n)` / `div(a, b)`
 
 - **Arity** 2. Non-commutative: `a / b` (position 1 dividend).
 - **Example**: `10 | div(2)` → `5`; `{:x 20 :y 4} | div(/x, /y)` → `5`.
-- **Errors**: divisor = 0 → divisionByZero error.
+- **Errors**: divisor = 0 → divisionByZero error; result past the finite double range → `DivResultNotFiniteError`.
 
 ## String
 

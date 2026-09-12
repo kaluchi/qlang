@@ -5,6 +5,7 @@ import {
   toTaggedJSON,
   fromTaggedJSON,
   TaggedJSONUnencodableValueError,
+  TaggedJSONNumberNotFiniteError,
   MalformedTaggedJSONError
 } from '../../src/codec.mjs';
 import {
@@ -23,6 +24,7 @@ import {
   isJsonArray
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
+import { QlangError } from '../../src/errors.mjs';
 
 describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   function roundTrip(value) {
@@ -273,5 +275,42 @@ describe('fromTaggedJSON malformed input', () => {
 
   it('throws MalformedTaggedJSONError on an $error envelope missing the $tag slot', () => {
     expect(() => fromTaggedJSON({ $error: { descriptor: { $map: [] } } })).toThrow(MalformedTaggedJSONError);
+  });
+});
+
+describe('fromTaggedJSON refuses a number past the finite double range', () => {
+  // A restored session or a conformance fixture travels as plain
+  // JSON, where `JSON.parse` reads an out-of-range magnitude as an
+  // infinity. The decoder is the boundary that keeps it out.
+  it('refuses a bare out-of-range number', () => {
+    let thrown = null;
+    try { fromTaggedJSON(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(TaggedJSONNumberNotFiniteError);
+    expect(thrown).toBeInstanceOf(QlangError);
+    expect(thrown.name).toBe('TaggedJSONNumberNotFiniteError');
+    expect(thrown.fingerprint).toBe('TaggedJSONNumberNotFiniteError');
+    expect(thrown.kind).toBe('codecError');
+    expect(thrown.context.path).toEqual([]);
+  });
+
+  it('names the envelope slot it walked to', () => {
+    let thrown = null;
+    try { fromTaggedJSON(JSON.parse('{"$map":[[{"$keyword":"big"}, 1e400]]}')); }
+    catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(TaggedJSONNumberNotFiniteError);
+    expect(thrown.context.path).toEqual(['big']);
+    let nested = null;
+    try { fromTaggedJSON(JSON.parse('{"$vec":[0, 1e400]}')); } catch (caught) { nested = caught; }
+    expect(nested.context.path).toEqual([1]);
+    // A Set indexes its elements the same way — insertion order is
+    // part of its contract.
+    let inSet = null;
+    try { fromTaggedJSON(JSON.parse('{"$set":[0, 1e400]}')); } catch (caught) { inSet = caught; }
+    expect(inSet.context.path).toEqual([1]);
+  });
+
+  it('decodes every in-range magnitude unchanged', () => {
+    expect(fromTaggedJSON(JSON.parse('1e308'))).toBe(1e308);
+    expect(fromTaggedJSON(JSON.parse('{"$vec":[-1e308, 0]}'))).toEqual([-1e308, 0]);
   });
 });

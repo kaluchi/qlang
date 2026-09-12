@@ -1,31 +1,33 @@
-// Regenerate :message strings inside docs/conformance parseError
-// JSONL fixtures — peggy emits an updated "Expected ..." token list
-// whenever a Primary alternative is added or removed. Run after a
-// grammar change that introduces / removes a top-level token.
+// Regenerate the parseError fixtures in the conformance suite.
+// A grammar change that adds or removes a top-level alternative
+// shifts the `:expected` Vec peggy reports at a failure offset, and
+// every fixture in the file pins the full `::ParseError!{…}`
+// descriptor. This rewrites each `parseError` case's `expect` from
+// what the runtime answers, so the fixtures stay the printed form
+// of the real descriptor.
+//
+// Run after a grammar change, then read the diff: a shifted
+// `:expected` Vec is the expected churn, a changed `:marker` or
+// `:location` is a behaviour change that wants a second look.
 
-import { evalQuery } from '../src/index.mjs';
+import { evalQuery, printValue } from '../src/index.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const FIXTURE = './test/conformance/14-parse-errors.jsonl';
 
-function escapeJsonString(s) {
-  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
 const lines = readFileSync(FIXTURE, 'utf8').split('\n').filter(l => l.trim());
 const out = [];
+let refreshed = 0;
 for (const line of lines) {
-  const tc = JSON.parse(line);
-  const actual = await evalQuery(tc.query);
-  const expectedVal = await evalQuery(tc.expect);
-  const actualMsg = actual?.descriptor?.get('message');
-  const expectedMsg = expectedVal?.descriptor?.get('message');
-  if (actualMsg && expectedMsg && actualMsg !== expectedMsg) {
-    const oldEsc = escapeJsonString(expectedMsg);
-    const newEsc = escapeJsonString(actualMsg);
-    tc.expect = tc.expect.replace(oldEsc, newEsc);
+  const testCase = JSON.parse(line);
+  if (testCase.error !== 'parseError') {
+    out.push(JSON.stringify(testCase));
+    continue;
   }
-  out.push(JSON.stringify(tc));
+  const answered = printValue(await evalQuery(testCase.query));
+  if (answered !== testCase.expect) refreshed += 1;
+  testCase.expect = answered;
+  out.push(JSON.stringify(testCase));
 }
 writeFileSync(FIXTURE, out.join('\n') + '\n');
-console.log(`updated ${out.length} cases in ${FIXTURE}`);
+console.log(`rewrote ${refreshed} of ${out.length} cases in ${FIXTURE}`);

@@ -69,7 +69,7 @@
             :category :vecReducer
             :subject [:vec :set]
             :returns :number
-            :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
+            :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError ::SumResultNotFiniteError]}
 
 ::SumSubjectNotVecOrSetError
   |~~ Subject of `sum` must be Vec or Set.
@@ -90,6 +90,23 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :sum :expectedType :number}
+
+::SumResultNotFiniteError
+  |~~ Every element carries the right value-class, and the running
+      total still answered outside the finite-double domain. The
+      total is read at each element in insertion order, so a subject
+      whose partial sums leave the domain lifts here while its
+      mathematical total sits inside it — `:index` names the element
+      the total crossed at, and the subject splits there.
+
+      ~{
+        [1e308 1e308] | sum
+        !| [type /index]
+        |  eq([::SumResultNotFiniteError 1])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :sum}
+
 
 :min
   |~~ Returns the minimum element under natural ordering.
@@ -343,30 +360,23 @@
   ~~|
   ::builtin{:category :typeError :operand :sortWith :position :subject :expectedType [:vec :set]}
 
+::SortWithCmpResultNaNError
+  |~~ `sortWith` comparator answered NaN, which orders no pair: every
+      comparison against it reads false, so the run order would come
+      out of a comparison the comparator declined to make. Source
+      cannot mint a NaN — the parser refuses the literal and every
+      arithmetic site lifts a numericDomain error — so this tag
+      reports a comparator a host installed through `session.bind`
+      or a locator's `impls` map.
+  ~~|
+  ::builtin{:category :numericDomain :operand :sortWith}
+
 ::SortWithCmpResultNotNumberError
   |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
       ~{
         [1 2] | sortWith(:tag)
         !| [type /actualType]
         |  eq([::SortWithCmpResultNotNumberError :keyword])
-       }
-  ~~|
-  ::builtin{:category :typeError :operand :sortWith :expectedType :number}
-
-::SortWithCmpResultNaNError
-  |~~ `sortWith` comparator answered NaN, which orders no pair —
-      every comparison against it reads false, so the run order
-      would come out of a comparison the comparator declined to
-      make. Float overflow reaches NaN from ordinary arithmetic
-      (`0 | mul(1e400)`), so a key expression that multiplies
-      through an infinity lands here rather than silently
-      reshuffling.
-
-      ~{
-        [{:a 1} {:a 2}]
-        |  sortWith(sub(mul(/left/a, 1e400), mul(/right/a, 1e400)))
-        !| [type /actualType]
-        |  eq([::SortWithCmpResultNaNError :number])
        }
   ~~|
   ::builtin{:category :typeError :operand :sortWith :expectedType :number}

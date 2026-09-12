@@ -12,13 +12,16 @@
 // facts about some other operand, or as `::AxisBindingNotFoundError`
 // for a tag that has no catalog entry at all.
 //
-// Three axes, one describe each:
+// Four axes, one describe each:
 //
-//   1. every JS throw site has a `::Tag` binding in the catalog;
-//   2. every catalog error tag has a JS throw site, apart from the
+//   1. each name the catalog binds is bound once — a second BindStep
+//      under the same name shadows the first, which leaves a body no
+//      reader reaches and which `manifest` cannot show;
+//   2. every JS throw site has a `::Tag` binding in the catalog;
+//   3. every catalog error tag has a JS throw site, apart from the
 //      handful minted outside a per-site factory (listed below with
 //      the site that mints each);
-//   3. `:operand` and `:position` on the tag-binding body match the
+//   4. `:operand` and `:position` on the tag-binding body match the
 //      arguments the factory call passes at the throw site.
 
 import { describe, it, expect } from 'vitest';
@@ -30,16 +33,18 @@ import { isTagKeyword } from '../../src/types.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', '..', 'src');
+const catalogDir = join(here, '..', '..', 'lib', 'qlang');
 
 // `declareSubjectError(name, operand, expectedType)`,
 // `declareModifierError(name, operand, position, expectedType)`,
 // `declareElementError(name, operand, expectedType)` and
 // `declareComparabilityError(name, operand)` carry the operand (and
 // for the modifier form, the position) as literal arguments at the
-// call site. `declareShapeError` / `declareArityError` take a
-// message builder instead, so only their class name is harvested.
+// call site. `declareShapeError`, `declareArityError` and
+// `declareNumericDomainError` take a message builder, so only their
+// class name is harvested.
 const FACTORY_CALL_RE =
-  /declare(Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
+  /declare(Subject|Modifier|Element|Comparability|Shape|Arity|NumericDomain)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
 // Hand-written classes (registry, session, codec, bootstrap, render
 // invariants) stamp their per-site identity through `fingerprint`.
 const FINGERPRINT_RE = /this\.fingerprint\s*=\s*'([A-Za-z0-9]+)'/g;
@@ -97,6 +102,53 @@ const throwSites = collectThrowSites();
 const session = await createSession();
 const { result: tagBindings } = await session.evalCell('manifest(:tag)');
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
+
+// Every top-level BindStep in a catalog file — `:operand` or
+// `::Tag` at column 0. The identifier shape follows the grammar's
+// own `IdentStart` / `IdentTail` classes (UAX#31 plus `@`, `_`,
+// `-`), with `/` for the namespaced form, so a declaration the
+// parser accepts is one this reading sees.
+const CATALOG_DECLARATION_RE = /^(::?[@_\p{ID_Start}][\p{ID_Continue}@_/-]*)$/gmu;
+
+function collectCatalogDeclarations() {
+  const declarations = [];
+  const catalogFiles = readdirSync(catalogDir, { recursive: true })
+    .map(f => f.split(/[\\/]/).join('/'))
+    .filter(f => f.endsWith('.qlang'));
+  for (const relPath of catalogFiles) {
+    const source = readFileSync(join(catalogDir, relPath), 'utf8');
+    for (const match of source.matchAll(CATALOG_DECLARATION_RE)) {
+      declarations.push({ name: match[1], file: `core/lib/qlang/${relPath}` });
+    }
+  }
+  return declarations;
+}
+
+describe('catalog declarations — each name is bound once', () => {
+  // A second BindStep under the same name shadows the first, so
+  // `manifest` shows one entry either way and every drift axis below
+  // passes while the catalog carries a stale body nothing reads.
+  // Reading the sources directly is what surfaces it.
+  const declarations = collectCatalogDeclarations();
+  const timesBound = new Map();
+  for (const { name } of declarations) {
+    timesBound.set(name, (timesBound.get(name) ?? 0) + 1);
+  }
+
+  for (const [name, count] of timesBound) {
+    if (count === 1) continue;
+    const files = declarations.filter(d => d.name === name).map(d => d.file);
+    it(`${name} is declared once`, () => {
+      expect(count, `${name} is declared ${count} times across ${files.join(', ')} — ` +
+        'the later declaration shadows the earlier, which leaves a body no reader reaches'
+      ).toBe(1);
+    });
+  }
+
+  it('the catalog binds at least one name per family file', () => {
+    expect(declarations.length).toBeGreaterThan(100);
+  });
+});
 
 describe('per-site error classes — every throw site carries a catalog tag', () => {
   for (const [className, site] of throwSites) {

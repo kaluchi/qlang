@@ -15,13 +15,14 @@ import { nullaryOp } from './dispatch.mjs';
 import {
   isQMap,
   isVecShape,
+  finiteNumberOrLift,
   TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
-import { QlangInvariantError } from '../errors.mjs';
+import { QlangError, QlangInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import {
   dispatchQlangValue,
@@ -37,10 +38,10 @@ export { printValue };
 const TableSubjectNotVecError = declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
 const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
 
-function dispatchPlainValue(v, handlers) {
-  if (Array.isArray(v)) return handlers.array(v);
-  if (v !== null && typeof v === 'object') return handlers.object(v);
-  return handlers.scalar(v);
+function dispatchPlainValue(v, handlers, path) {
+  if (Array.isArray(v)) return handlers.array(v, path);
+  if (v !== null && typeof v === 'object') return handlers.object(v, path);
+  return handlers.scalar(v, path);
 }
 
 // `toPlain` lifts a qlang value to a JSON-serializable plain JS
@@ -60,7 +61,7 @@ function dispatchPlainValue(v, handlers) {
 // never enter pipeValue.
 const TO_PLAIN_HANDLERS = {
   Null:           () => null,
-  Number:         v => v,
+  Number:         finiteNumberOrLift,
   String:         v => v,
   Boolean:        v => v,
   Keyword:        k => k.literal,
@@ -140,20 +141,47 @@ function qMapToPlainObject(m) {
   return obj;
 }
 
-const FROM_PLAIN_HANDLERS = {
-  array:  a => a.map(fromPlain),
-  object: plainObjectToQMap,
-  scalar: v => v
-};
-
-export function fromPlain(plainVal) {
-  return dispatchPlainValue(plainVal, FROM_PLAIN_HANDLERS);
+// JSON carries no NaN and no infinity, but `JSON.parse` reads a
+// magnitude past the double range as one (`1e400` lifts to
+// Infinity). The lift refuses it here so a piped document cannot
+// seed the pipeline with a value the language does not admit.
+export class FromPlainNumberNotFiniteError extends QlangError {
+  constructor(path) {
+    super('fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number', 'codecError');
+    this.name = 'FromPlainNumberNotFiniteError';
+    this.fingerprint = 'FromPlainNumberNotFiniteError';
+    // `:path` names the keys and indices walked to reach the refused
+    // scalar, so `!| /path` locates it inside a document of any
+    // depth — the reading a message string cannot carry.
+    this.context = { path: Object.freeze([...path]) };
+  }
 }
 
-function plainObjectToQMap(plainObj) {
+const FROM_PLAIN_HANDLERS = {
+  array:  (a, path) => a.map((element, index) => liftPlainValue(element, [...path, index])),
+  object: plainObjectToQMap,
+  scalar: liftPlainScalar
+};
+
+function liftPlainScalar(scalarValue, path) {
+  if (typeof scalarValue === 'number' && !Number.isFinite(scalarValue)) {
+    throw new FromPlainNumberNotFiniteError(path);
+  }
+  return scalarValue;
+}
+
+function liftPlainValue(plainVal, path) {
+  return dispatchPlainValue(plainVal, FROM_PLAIN_HANDLERS, path);
+}
+
+export function fromPlain(plainVal) {
+  return liftPlainValue(plainVal, []);
+}
+
+function plainObjectToQMap(plainObj, path) {
   const qlangMap = new Map();
   for (const [plainKey, nestedVal] of Object.entries(plainObj)) {
-    qlangMap.set(plainKey, fromPlain(nestedVal));
+    qlangMap.set(plainKey, liftPlainValue(nestedVal, [...path, plainKey]));
   }
   return qlangMap;
 }

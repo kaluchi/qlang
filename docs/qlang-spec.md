@@ -2041,13 +2041,13 @@ entirely and address the binding directly (`:filter | source`).
 | `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~{…}` segment in the docs |
 
 ```qlang
-> :filter | docs | first | isDoc
+> :filter | docs | first | type | eq(:doc)
 true
 
 > ::ParseError | source | /source | startsWith("::ParseError")
 true
 
-> :count | examples | first | isQuote
+> :count | examples | first | type | eq(:quote)
 true
 ```
 

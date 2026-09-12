@@ -57,12 +57,12 @@ describe('describeType / typeKeyword distinguish JSON vs qlang shapes', () => {
 
 describe('::qlang / ::json constructors convert between shape domains', () => {
   it('::qlang on a JSON Object produces a qlang Map', async () => {
-    const result = await evalQuery('::qlang{"k": "v"} | isMap');
+    const result = await evalQuery('::qlang{"k": "v"} | type | eq(:map)');
     expect(result).toBe(true);
   });
 
   it('::json on a qlang Map produces a JSON Object', async () => {
-    const result = await evalQuery('::json{:k 1} | isJsonObject');
+    const result = await evalQuery('::json{:k 1} | type | eq(:jsonObject)');
     expect(result).toBe(true);
   });
 
@@ -72,33 +72,33 @@ describe('::qlang / ::json constructors convert between shape domains', () => {
   });
 
   it('::json recurses into nested qlang Maps / Vecs', async () => {
-    const result = await evalQuery('::json{:users [{:name "alice"}]} | isJsonObject');
+    const result = await evalQuery('::json{:users [{:name "alice"}]} | type | eq(:jsonObject)');
     expect(result).toBe(true);
   });
 
   it('::json on a qlang Vec produces a JSON Array', async () => {
-    const result = await evalQuery('::json[1 2 3] | isJsonArray');
+    const result = await evalQuery('::json[1 2 3] | type | eq(:jsonArray)');
     expect(result).toBe(true);
   });
 });
 
 describe('isJsonObject / isJsonArray operands', () => {
   it('isJsonObject true on JSON Object, false on qlang Map', async () => {
-    expect(await evalQuery('::json{:k 1} | isJsonObject')).toBe(true);
-    expect(await evalQuery('{:k 1} | isJsonObject')).toBe(false);
+    expect(await evalQuery('::json{:k 1} | type | eq(:jsonObject)')).toBe(true);
+    expect(await evalQuery('{:k 1} | type | eq(:jsonObject)')).toBe(false);
   });
 
   it('isJsonArray true on JSON Array, false on qlang Vec', async () => {
-    expect(await evalQuery('::json[1 2 3] | isJsonArray')).toBe(true);
-    expect(await evalQuery('[1 2 3] | isJsonArray')).toBe(false);
+    expect(await evalQuery('::json[1 2 3] | type | eq(:jsonArray)')).toBe(true);
+    expect(await evalQuery('[1 2 3] | type | eq(:jsonArray)')).toBe(false);
   });
 
   it('isVec false on a JSON Array (qlang Vec narrowed)', async () => {
-    expect(await evalQuery('::json[1 2 3] | isVec')).toBe(false);
+    expect(await evalQuery('::json[1 2 3] | type | eq(:vec)')).toBe(false);
   });
 
   it('isMap false on a JSON Object (qlang Map narrowed)', async () => {
-    expect(await evalQuery('::json{:k 1} | isMap')).toBe(false);
+    expect(await evalQuery('::json{:k 1} | type | eq(:map)')).toBe(false);
   });
 });
 
@@ -132,12 +132,12 @@ describe('::qlang / ::json passthrough on non-container scalars', () => {
 
 describe('::qlang on actual JSON-tagged value recurses through containers', () => {
   it('::qlang on a JSON Object converts to qlang Map', async () => {
-    const result = await evalQuery('::qlang(::json{:k 1}) | isMap');
+    const result = await evalQuery('::qlang(::json{:k 1}) | type | eq(:map)');
     expect(result).toBe(true);
   });
 
   it('::qlang on a JSON Array converts to qlang Vec', async () => {
-    const result = await evalQuery('::qlang(::json[1 2 3]) | isVec');
+    const result = await evalQuery('::qlang(::json[1 2 3]) | type | eq(:vec)');
     expect(result).toBe(true);
   });
 
@@ -149,40 +149,40 @@ describe('::qlang on actual JSON-tagged value recurses through containers', () =
 
 describe('* and >> retag per element on JsonArray subject', () => {
   it('JsonArray * (number → number) keeps JsonArray tag', async () => {
-    expect(await evalQuery('::json[1 2 3] * add(10) | isJsonArray')).toBe(true);
+    expect(await evalQuery('::json[1 2 3] * add(10) | type | eq(:jsonArray)')).toBe(true);
   });
 
   it('JsonArray * (number → keyword) degrades to qlang Vec', async () => {
-    expect(await evalQuery('::json[1 2 3] * keyword | isJsonArray')).toBe(false);
-    expect(await evalQuery('::json[1 2 3] * keyword | isVec')).toBe(true);
+    expect(await evalQuery('::json[1 2 3] * keyword | type | eq(:jsonArray)')).toBe(false);
+    expect(await evalQuery('::json[1 2 3] * keyword | type | eq(:vec)')).toBe(true);
   });
 
   it('JsonArray * (number → JsonObject) keeps JsonArray tag', async () => {
-    expect(await evalQuery('::json[1 2 3] * (as(:n) | ::json{:n n}) | isJsonArray')).toBe(true);
+    expect(await evalQuery('::json[1 2 3] * (as(:n) | ::json{:n n}) | type | eq(:jsonArray)')).toBe(true);
   });
 
   it('JsonArray * (number → qlang Map) degrades to qlang Vec', async () => {
-    expect(await evalQuery('::json[1 2 3] * (as(:n) | {:n n}) | isJsonArray')).toBe(false);
-    expect(await evalQuery('::json[1 2 3] * (as(:n) | {:n n}) | isVec')).toBe(true);
+    expect(await evalQuery('::json[1 2 3] * (as(:n) | {:n n}) | type | eq(:jsonArray)')).toBe(false);
+    expect(await evalQuery('::json[1 2 3] * (as(:n) | {:n n}) | type | eq(:vec)')).toBe(true);
   });
 
   it('qlang Vec * anything stays qlang Vec', async () => {
-    expect(await evalQuery('[1 2 3] * add(10) | isVec')).toBe(true);
-    expect(await evalQuery('[1 2 3] * add(10) | isJsonArray')).toBe(false);
+    expect(await evalQuery('[1 2 3] * add(10) | type | eq(:vec)')).toBe(true);
+    expect(await evalQuery('[1 2 3] * add(10) | type | eq(:jsonArray)')).toBe(false);
   });
 
   it('JsonArray >> stays JsonArray when flattened elements all JSON-storeable', async () => {
-    expect(await evalQuery('::json[::json[1 2] ::json[3 4]] >> take(99) | isJsonArray')).toBe(true);
+    expect(await evalQuery('::json[::json[1 2] ::json[3 4]] >> take(99) | type | eq(:jsonArray)')).toBe(true);
   });
 
   it('JsonArray >> degrades to qlang Vec when any flat element is qlang-only', async () => {
-    expect(await evalQuery('::json[[:a :b] [:c]] >> take(99) | isJsonArray')).toBe(false);
+    expect(await evalQuery('::json[[:a :b] [:c]] >> take(99) | type | eq(:jsonArray)')).toBe(false);
   });
 });
 
 describe('container-shape operands preserve JSON-tag on output', () => {
   it('filter on a JsonObject returns a JsonObject', async () => {
-    const result = await evalQuery('::json{:a 1 :b 2 :c 3} | filter(gte(2)) | isJsonObject');
+    const result = await evalQuery('::json{:a 1 :b 2 :c 3} | filter(gte(2)) | type | eq(:jsonObject)');
     expect(result).toBe(true);
   });
 
@@ -203,7 +203,7 @@ describe('container-shape operands preserve JSON-tag on output', () => {
   });
 
   it('snapshot-bound JsonObject literal survives identifier-lookup unwrap as JsonObject', async () => {
-    const result = await evalQuery(':obj ::json{:k 1} | obj | isJsonObject');
+    const result = await evalQuery(':obj ::json{:k 1} | obj | type | eq(:jsonObject)');
     expect(result).toBe(true);
   });
 

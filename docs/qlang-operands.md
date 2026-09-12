@@ -741,56 +741,19 @@ round-trips to `"a,b,c"`.
 
 ## Type classifiers
 
-Twelve nullary predicates lift the `types.mjs` value-class
-predicates to operand level. Primary use — inside `filter`,
-`every`, `any` predicates over heterogeneous containers:
-`filter(isString)` over a Vec of mixed types, or over a Map
-where the value's type is the predicate axis
-(`{:ID "SGML" :GlossDef {...}} | filter(isMap)` keeps only the
-Map-valued entries). Without them the same classification lands
-through `| type | eq(:string)` — also correct, but the dedicated
-classifier reads as a single predicate at the call site. Each
-classifier matches exactly one `describeType(v)` label and never
-throws.
+Every value-class question is `type` composed with `eq`. `type`
+answers exactly one keyword per value, so `| type | eq(:string)`
+is the classification, and it reads the same inside a predicate:
+`filter(type | eq(:string))` over a Vec of mixed types, or over a
+Map where the value's class is the predicate axis. See
+[`type`](#type) for the keyword each value class answers with.
 
-`isJsonObject` and `isJsonArray` discriminate the JSON-tagged
-shapes (plain JS object / Array stamped with the `JSON_OBJECT_TAG`
-/ `JSON_ARRAY_TAG` Symbol, produced by the host JSON-bridge and
-by the `::json` constructor). They are runtime-distinct from
-qlang Map and Vec — `isMap` and `isVec` return `false` on a JSON
-shape, and vice versa.
+JSON-tagged shapes classify apart from qlang containers: a plain
+JS object or Array stamped with the `JSON_OBJECT_TAG` /
+`JSON_ARRAY_TAG` Symbol — produced by the host JSON-bridge and by
+the `::json` constructor — answers `:jsonObject` / `:jsonArray`,
+while a qlang Map or Vec answers `:map` / `:vec`.
 
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isTag` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
-
-- **Arity** 1. **Subject** any value.
-- Returns `true` iff the subject is of the named value class,
-  `false` otherwise. Every qlang value produces `true` from
-  exactly one classifier. Boolean and null classification is
-  strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
-  `isMap` reports `false` for conduit and snapshot descriptor
-  Maps — they classify as `Conduit` / `Snapshot` through the
-  `:kind` discriminator.
-  `isQuote` matches a frozen `~{…}`-delimited codeAsData
-  fragment; `isDoc` matches a frozen content fragment
-  (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
-- **Examples**:
-  - `"hello" | isString` → `true`; `42 | isString` → `false`.
-  - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;
-    `"42" | isNumber` → `false`.
-  - `[1 2] | isVec` → `true`; `#[1] | isVec` → `false`.
-  - `{:a 1} | isMap` → `true`; `[] | isMap` → `false`.
-  - `#[1 2] | isSet` → `true`; `[1 2] | isSet` → `false`.
-  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`;
-    `::Foo | isKeyword` → `false` (TagKeyword, not Keyword).
-  - `::Foo | isTag` → `true`; `::conduit | isTag` → `true`;
-    `:foo | isTag` → `false`; `"::Foo" | isTag` → `false`.
-  - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
-  - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
-  - `~{mul(2)} | isQuote` → `true`; `"mul(2)" | isQuote` → `false`.
-  - `|~~ note ~~| | isDoc` → `true`; `"note" | isDoc` → `false`.
-  - `::json{:k 1} | isJsonObject` → `true`; `{:k 1} | isJsonObject` → `false`.
-  - `::json[1 2 3] | isJsonArray` → `true`; `[1 2 3] | isJsonArray` → `false`.
-- **Errors**: none — classification is total.
 
 ## Type Conversion
 
@@ -885,9 +848,9 @@ shape, and vice versa.
   needs to flow into qlang-shape operands like
   `union({:adult /age | gt(18)})`.
 - **Examples**:
-  - `::json{"a": 1} | qlang | isMap` → `true`.
-  - `::json[1, 2] | qlang | isVec` → `true`.
-  - `{:a 1} | qlang | isMap` → `true` (already qlang).
+  - `::json{"a": 1} | qlang | type | eq(:map)` → `true`.
+  - `::json[1, 2] | qlang | type | eq(:vec)` → `true`.
+  - `{:a 1} | qlang | type | eq(:map)` → `true` (already qlang).
   - `42 | qlang | eq(42)` → `true` (scalar identity).
 
 ### `table`

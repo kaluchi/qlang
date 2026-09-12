@@ -1,25 +1,20 @@
-// Predicates: subject-first comparisons, combinators, and
-// typeClassifier nullary operands.
+// Predicates: subject-first comparisons, combinators, and the
+// identity-tag reader.
 //
 // Equality (`eq`) uses the shared deepEqual from src/equality.mjs.
 // Ordering (`gt`/`lt`/`gte`/`lte`) enforces matched comparable
 // scalars; each operand owns its own ComparabilityError subclass
 // so failures uniquely identify the call site.
 //
-// Type-classifier operands (`isString`, `isNumber`, `isVec`,
-// `isMap`, `isSet`, `isKeyword`, `isBoolean`, `isNull`) wrap the
-// corresponding predicates from types.mjs as operand-level nullary
-// checks. They complement polymorphic `filter` / `every` / `any`
-// over heterogeneous containers: `filter(isString)` over a Vec of
-// mixed types, or `filter(isString)` over a Map to keep only
-// String-valued entries. Lifts a type question to operand level
-// without the descriptor-construction cost of
-// `| type | eq(:string)`.
+// `type` answers a value's identity tag, and every value-class
+// question is that reader composed with `eq`: `filter(type |
+// eq(:string))` over a Vec of mixed types, or over a Map to keep
+// the String-valued entries.
 //
 // Meta lives in lib/qlang/operand/predicate.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
-import { isTruthy, describeType, typeKeyword } from '../types.mjs';
+import { isTruthy, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { checkComparable, compareScalars } from '../ordering.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
@@ -67,26 +62,6 @@ export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 // Error-track handling reads as `result !| type | eq(::Foo)`.
 export const type = nullaryOp('type', (subject) => typeKeyword(subject));
 
-// ── Type-classifier nullary operands ───────────────────────────
-// Every qlang value produces `true` from exactly one classifier.
-// Each classifier asks `describeType` for a single label — the
-// ladder in types.mjs is the single source of truth, so
-// subtype-wrapping descriptors (Conduit, Snapshot) partition out
-// of `isMap` without per-classifier layering here.
-
-export const isString  = nullaryOp('isString',  (subject) => describeType(subject) === 'String');
-export const isNumber  = nullaryOp('isNumber',  (subject) => describeType(subject) === 'Number');
-export const isVec     = nullaryOp('isVec',     (subject) => describeType(subject) === 'Vec');
-export const isMap     = nullaryOp('isMap',     (subject) => describeType(subject) === 'Map');
-export const isSet     = nullaryOp('isSet',     (subject) => describeType(subject) === 'Set');
-export const isKeyword = nullaryOp('isKeyword', (subject) => describeType(subject) === 'Keyword');
-export const isTag     = nullaryOp('isTag',     (subject) => describeType(subject) === 'TagKeyword');
-export const isBoolean = nullaryOp('isBoolean', (subject) => describeType(subject) === 'Boolean');
-export const isNull    = nullaryOp('isNull',    (subject) => describeType(subject) === 'Null');
-export const isQuote      = nullaryOp('isQuote',      (subject) => describeType(subject) === 'Quote');
-export const isDoc        = nullaryOp('isDoc',        (subject) => describeType(subject) === 'Doc');
-export const isJsonObject = nullaryOp('isJsonObject', (subject) => describeType(subject) === 'JsonObject');
-export const isJsonArray  = nullaryOp('isJsonArray',  (subject) => describeType(subject) === 'JsonArray');
 
 // Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
 bindPrim('eq',  eq);
@@ -98,16 +73,3 @@ bindPrim('and', and);
 bindPrim('or',  or);
 bindPrim('not', not);
 bindPrim('type', type);
-bindPrim('isString',  isString);
-bindPrim('isNumber',  isNumber);
-bindPrim('isVec',     isVec);
-bindPrim('isMap',     isMap);
-bindPrim('isSet',     isSet);
-bindPrim('isKeyword', isKeyword);
-bindPrim('isTag',     isTag);
-bindPrim('isBoolean', isBoolean);
-bindPrim('isNull',    isNull);
-bindPrim('isQuote',      isQuote);
-bindPrim('isDoc',        isDoc);
-bindPrim('isJsonObject', isJsonObject);
-bindPrim('isJsonArray',  isJsonArray);

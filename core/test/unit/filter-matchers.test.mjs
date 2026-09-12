@@ -244,7 +244,7 @@ describe('every — container polymorphism', () => {
 
   it('Map 2-arity conduit — both axes satisfied', async () => {
     expect(await evalQuery(
-      '{:a 1 :b 2} | :@bothOk [:k :v] and(v | gt(0), k | isKeyword) | every(@bothOk)'
+      '{:a 1 :b 2} | :@bothOk [:k :v] and(v | gt(0), k | type | eq(:keyword)) | every(@bothOk)'
     )).toBe(true);
   });
 
@@ -365,80 +365,80 @@ describe('any — container polymorphism', () => {
 
 // ── Type classifiers ──────────────────────────────────────────
 
-describe('type classifiers — isString / isNumber / isVec / isMap / isSet / isKeyword / isBoolean / isNull', () => {
+describe('classification through `type | eq(:kind)` — string / number / vec / map / set / keyword / boolean / null', () => {
   it('isString classifies String vs the rest', async () => {
-    expect(await evalQuery('"hello" | isString')).toBe(true);
-    expect(await evalQuery('42 | isString')).toBe(false);
-    expect(await evalQuery(':name | isString')).toBe(false);
-    expect(await evalQuery('[1] | isString')).toBe(false);
+    expect(await evalQuery('"hello" | type | eq(:string)')).toBe(true);
+    expect(await evalQuery('42 | type | eq(:string)')).toBe(false);
+    expect(await evalQuery(':name | type | eq(:string)')).toBe(false);
+    expect(await evalQuery('[1] | type | eq(:string)')).toBe(false);
   });
 
   it('isNumber classifies Number vs the rest', async () => {
-    expect(await evalQuery('42 | isNumber')).toBe(true);
-    expect(await evalQuery('3.14 | isNumber')).toBe(true);
-    expect(await evalQuery('"42" | isNumber')).toBe(false);
-    expect(await evalQuery('null | isNumber')).toBe(false);
+    expect(await evalQuery('42 | type | eq(:number)')).toBe(true);
+    expect(await evalQuery('3.14 | type | eq(:number)')).toBe(true);
+    expect(await evalQuery('"42" | type | eq(:number)')).toBe(false);
+    expect(await evalQuery('null | type | eq(:number)')).toBe(false);
   });
 
   it('isVec classifies Vec vs Set and the rest', async () => {
-    expect(await evalQuery('[1 2 3] | isVec')).toBe(true);
-    expect(await evalQuery('[] | isVec')).toBe(true);
-    expect(await evalQuery('#[1] | isVec')).toBe(false);
-    expect(await evalQuery('{:a 1} | isVec')).toBe(false);
+    expect(await evalQuery('[1 2 3] | type | eq(:vec)')).toBe(true);
+    expect(await evalQuery('[] | type | eq(:vec)')).toBe(true);
+    expect(await evalQuery('#[1] | type | eq(:vec)')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq(:vec)')).toBe(false);
   });
 
   it('isMap classifies Map vs the rest', async () => {
-    expect(await evalQuery('{:a 1} | isMap')).toBe(true);
-    expect(await evalQuery('{} | isMap')).toBe(true);
-    expect(await evalQuery('[] | isMap')).toBe(false);
-    expect(await evalQuery('#[:a] | isMap')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq(:map)')).toBe(true);
+    expect(await evalQuery('{} | type | eq(:map)')).toBe(true);
+    expect(await evalQuery('[] | type | eq(:map)')).toBe(false);
+    expect(await evalQuery('#[:a] | type | eq(:map)')).toBe(false);
   });
 
   it('isMap reports false for conduit descriptor Maps', async () => {
-    expect(await evalQuery(':double mul(2) | env | /double | isMap')).toBe(false);
+    expect(await evalQuery(':double mul(2) | env | /double | type | eq(:map)')).toBe(false);
   });
 
   it('isSet classifies Set vs the rest', async () => {
-    expect(await evalQuery('#[1 2] | isSet')).toBe(true);
-    expect(await evalQuery('#[] | isSet')).toBe(true);
-    expect(await evalQuery('[1 2] | isSet')).toBe(false);
-    expect(await evalQuery('{:a 1} | isSet')).toBe(false);
+    expect(await evalQuery('#[1 2] | type | eq(:set)')).toBe(true);
+    expect(await evalQuery('#[] | type | eq(:set)')).toBe(true);
+    expect(await evalQuery('[1 2] | type | eq(:set)')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq(:set)')).toBe(false);
   });
 
   it('isKeyword classifies bare and namespaced keywords', async () => {
-    expect(await evalQuery(':name | isKeyword')).toBe(true);
-    expect(await evalQuery(':kind | isKeyword')).toBe(true);
-    expect(await evalQuery('"name" | isKeyword')).toBe(false);
-    expect(await evalQuery('42 | isKeyword')).toBe(false);
+    expect(await evalQuery(':name | type | eq(:keyword)')).toBe(true);
+    expect(await evalQuery(':kind | type | eq(:keyword)')).toBe(true);
+    expect(await evalQuery('"name" | type | eq(:keyword)')).toBe(false);
+    expect(await evalQuery('42 | type | eq(:keyword)')).toBe(false);
   });
 
   it('isBoolean classifies literal true/false only', async () => {
-    expect(await evalQuery('true | isBoolean')).toBe(true);
-    expect(await evalQuery('false | isBoolean')).toBe(true);
-    expect(await evalQuery('0 | isBoolean')).toBe(false);
-    expect(await evalQuery('null | isBoolean')).toBe(false);
-    expect(await evalQuery('"" | isBoolean')).toBe(false);
+    expect(await evalQuery('true | type | eq(:boolean)')).toBe(true);
+    expect(await evalQuery('false | type | eq(:boolean)')).toBe(true);
+    expect(await evalQuery('0 | type | eq(:boolean)')).toBe(false);
+    expect(await evalQuery('null | type | eq(:boolean)')).toBe(false);
+    expect(await evalQuery('"" | type | eq(:boolean)')).toBe(false);
   });
 
   it('isNull classifies null vs the rest', async () => {
-    expect(await evalQuery('null | isNull')).toBe(true);
+    expect(await evalQuery('null | type | eq(:null)')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
     // key now errors (::ProjectionKeyNotInMapError) instead of silently
     // returning null.
-    expect(await evalQuery('{:nothing null} | /nothing | isNull')).toBe(true);
-    expect(await evalQuery('0 | isNull')).toBe(false);
-    expect(await evalQuery('"" | isNull')).toBe(false);
-    expect(await evalQuery('false | isNull')).toBe(false);
+    expect(await evalQuery('{:nothing null} | /nothing | type | eq(:null)')).toBe(true);
+    expect(await evalQuery('0 | type | eq(:null)')).toBe(false);
+    expect(await evalQuery('"" | type | eq(:null)')).toBe(false);
+    expect(await evalQuery('false | type | eq(:null)')).toBe(false);
   });
 });
 
 // ── Integration — filter with type classifiers over Map ──────
 
 describe('filter + type classifiers integration', () => {
-  it('filter(isString) over Map keeps only String-valued entries', async () => {
+  it('filter(type | eq(:string)) over Map keeps only String-valued entries', async () => {
     const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter(isString)'
+      '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter(type | eq(:string))'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -448,9 +448,9 @@ describe('filter + type classifiers integration', () => {
     expect(mapResult.has('Count')).toBe(false);
   });
 
-  it('filter(isMap) over Map keeps only Map-valued entries', async () => {
+  it('filter(type | eq(:map)) over Map keeps only Map-valued entries', async () => {
     const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossDef {:para "..."}} | filter(isMap)'
+      '{:ID "SGML" :GlossDef {:para "..."}} | filter(type | eq(:map))'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);

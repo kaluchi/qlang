@@ -43,8 +43,8 @@
       through unchanged. Reads naturally for fallback / default
       patterns ("if no real value, supply this one").
 
-      ~{null | unless(isNumber, 0) | eq(0)}
-      ~{42 | unless(isNumber, 0) | eq(42)}
+      ~{null | unless(type | eq(:number), 0) | eq(0)}
+      ~{42 | unless(type | eq(:number), 0) | eq(42)}
       ~{{:name null} | unless(/name, "anonymous") | eq("anonymous")}
   ~~|
   ::builtin{:impl :qlang/prim/unless

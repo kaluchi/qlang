@@ -313,7 +313,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
 
   it('the value namespace holds every declared operand', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(91);
+    expect(await evalQuery('manifest | count')).toBe(78);
   });
 });
 
@@ -343,7 +343,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
-    expect(categories.get('typeClassifier')).toBe(14);  // type + isString + isNumber + isVec + isMap + isSet + isKeyword + isTag + isBoolean + isNull + isQuote + isDoc + isJsonObject + isJsonArray
+    expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`
     expect(categories.get('typeConversion')).toBe(4);  // keyword + qlang + payload + tag
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as

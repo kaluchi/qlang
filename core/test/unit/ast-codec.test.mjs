@@ -257,6 +257,10 @@ describe('astNodeToMap — discriminator and shape', () => {
     const steps = m.get(KW_STEPS);
     expect(steps[0].get(KW_STEP).get(KW_KIND).name).toBe('BlockPlainComment');
     expect(steps[0].get(KW_STEP).get(KW_CONTENT)).toBe(' rationale ');
+    // The absorbed follower carries `:combinator null`; the explicit
+    // `| count` keeps its token.
+    expect(steps[1].get(KW_COMBINATOR)).toBe(null);
+    expect(steps[2].get(KW_COMBINATOR)).toBe('|');
   });
 
   it('preserves BindStep :docs on doc-attached bindings', () => {
@@ -486,6 +490,10 @@ describe('round-trip — comments', () => {
     assertRoundTrip('[1 2 3] |~| short note\n| count'));
   it('block plain comment mid-pipeline', () =>
     assertRoundTrip('[1 2 3] |~ rationale ~| filter(gt(1))'));
+  it('block plain comment in head position with an absorbed follower', () =>
+    assertRoundTrip('|~ rationale ~| [1 2 3] | count'));
+  it('block plain comment in head position with an explicit combinator', () =>
+    assertRoundTrip('(|~ rationale ~| * add(1))'));
   it('line doc comment attached to BindStep', () =>
     assertRoundTrip('|~~| first remark\n:double mul(2)'));
   it('block doc comment attached to BindStep', () =>

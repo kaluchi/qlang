@@ -232,10 +232,15 @@ Pure identity. A comment step consumes neither `pipeValue` nor
 over a plain comment on both tracks, so a comment never fires,
 never deflects, and never enters `:trail` — the materialized trail
 stays a pure operand suffix that `apply` replays. A comment in
-head position hands the head to the first operand step: that step
-applies through the pipeline's leading combinator when there is
-one and runs as the identity-head otherwise, as if the comment
-were absent. Comments appear
+head position hands the head to the first operand step, as if the
+comment were absent: that step applies through the pipeline's
+leading combinator when there is one, through the combinator the
+author wrote after the comment (`(|~ note ~| * add(1))` reads as
+`(* add(1))`), and as the identity-head when its continuation unit
+carries the grammar's absorbed marker (`combinator: null`). Past
+the head an absorbed follower rides `|`. A leading combinator and
+an explicit combinator on the same first operand step is a parse
+error. Comments appear
 in the AST as first-class PipeSteps and are visible to reflection
 (`source`, the highlighter, the AST-codec round-trip).
 
@@ -525,9 +530,9 @@ inner ErrorValue without touching its descriptor).
 Four combinators thread state between steps. Three are on the
 success-track (`|`, `*`, `>>`) and fire their step when
 `pipeValue` is any non-error value; on an error `pipeValue` they
-**deflect** — the step's AST node is appended to the error's
-`_trailHead` linked list via `appendTrailNode` and the error
-passes downstream unchanged. One is on the fail-track (`!|`) and
+**deflect** — `trailEntry(stepNode, kind)` stamps the step's source
+slice plus the combinator kind onto the error's `_trailHead` via
+`appendTrailNode` and the error passes downstream unchanged. One is on the fail-track (`!|`) and
 fires its step only when `pipeValue` is an error; on a success
 `pipeValue` it deflects as identity pass-through.
 
@@ -573,11 +578,14 @@ continuity preserved by the `makeErrorValue` invariant.
 
 On a non-error `pipeValue` the combinator is an identity.
 
-The leading `!|` prefix on a Pipeline (`Pipeline.leadingFail`)
-routes the pipeline's first step through `applyFailTrack` even
-though no preceding step exists. Used inside predicate lambdas of
-`filter(…)`, `when(…)`, `if(…)` and inside distribute element
-bodies where the per-element `pipeValue` may be on either track.
+A leading combinator on a Pipeline (`Pipeline.leadingCombinator`,
+one of `!|` / `|` / `*` / `>>`) routes the pipeline's first step
+through that combinator even though no preceding step exists. The
+`!|` form is used inside predicate lambdas of `filter(…)`,
+`when(…)`, `if(…)` and inside distribute element bodies where the
+per-element `pipeValue` may be on either track; every form is what
+makes a pipeline-suffix Quote (`~{| count}`, `~{* mul(2)}`)
+replay through `apply`.
 
 ### `*` — distribute
 
@@ -1188,8 +1196,8 @@ which routes to one of four combinator evaluators. `evalNode` is a
 pure AST-node-type dispatcher with no track awareness.
 
 - **`|`** — `applySuccessTrack(state, stepNode)`. If `pipeValue`
-  is an error, appends `stepNode` to the error's `_trailHead`
-  linked list and returns the error unchanged. Otherwise invokes
+  is an error, stamps `trailEntry(stepNode, 'pipe')` onto the
+  error's `_trailHead` and returns the error unchanged. Otherwise invokes
   `evalNode(stepNode, state)`.
 - **`!|`** — `applyFailTrack(state, stepNode)`. If `pipeValue` is
   an error, materializes its descriptor (see below) and invokes
@@ -1204,9 +1212,10 @@ pure AST-node-type dispatcher with no track awareness.
   the trail like `|`; on a Vec or Set, flattens one level into a
   Vec and invokes the next step against it.
 
-The leading `!|` prefix of a Pipeline (`Pipeline.leadingFail`) is
-handled in `evalPipeline` by routing the first step through
-`applyCombinator('!|', state, step)`. This is how predicate
+A leading combinator on a Pipeline (`Pipeline.leadingCombinator`)
+is handled in `evalPipeline` by routing the first operand step
+through `applyCombinator(node.leadingCombinator, state, step)` —
+any of `!|` / `|` / `*` / `>>`. The `!|` form is how predicate
 lambdas inside `filter(…)` / `when(…)` / `if(…)` opt into
 fail-apply for their first step.
 
@@ -1324,8 +1333,9 @@ Re-exported from the package entry.
 
 Single source of truth for the qlang AST shape. Every module that
 needs to read, decorate, query, or transform AST nodes imports
-from here, so adding a node type in `grammar.peggy` is a one-file
-edit here plus its codec case in `ast-codec.mjs`.
+from here: adding a node type in `grammar.peggy` lands its
+`astChildrenOf` case here and its `astNodeToMap` / `qlangMapToAst`
+case in `ast-codec.mjs`.
 
 - `astChildrenOf(node)` — direct semantic children of an AST node.
 - `walkAst(node, visit)` — pre-order recursive descent. Visitor
@@ -1357,7 +1367,8 @@ the frozen qlang-Map form that reflection hands to query code.
   `:keys`, `:steps`, etc.) and the shared `:text` / `:location`
   metadata. Pipeline steps normalize into uniform `:PipelineStep`
   wrapper Maps so downstream walkers read the head like any other
-  step. Consumers: the `parse` reflective operand lifts user
+  step; `:combinator` is `null` on the head and on the absorbed
+  follower of a plain comment, the token string elsewhere. Consumers: the `parse` reflective operand lifts user
   source into this form, and `/ast` on a Quote — the deflected
   suffix under `!| /trail | /ast` included — lifts the Quote's
   source into it on demand.

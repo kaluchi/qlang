@@ -61,5 +61,11 @@
 {"name":"lone-plain-comment-is-identity-on-null","query":"|~ only a note ~|","expect":"null"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"~{!| |~ note ~| /kind} | apply(!{:kind :zap})","expect":":zap"}
 {"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add(1))","expect":"[2 3]"}
-{"name":"comment-head-keeps-leading-merge","query":"[[1] [2]] | (>> |~ note ~| count)","expect":"2"}
+{"name":"comment-head-keeps-leading-merge","query":"[[1 2] [3]] | (>> |~ note ~| count)","expect":"3"}
 {"name":"comment-head-hands-identity-head-to-first-operand","query":"~{|~ note ~| type} | apply(!{:kind :zap})","expect":"::Error"}
+{"name":"comment-head-explicit-distribute","query":"[1 2] | (|~ note ~| * add(1))","expect":"[2 3]"}
+{"name":"comment-head-explicit-merge","query":"[[1 2] [3]] | (|~ note ~| >> count)","expect":"3"}
+{"name":"comment-head-explicit-fail-apply","query":"~{|~ note ~| !| /kind} | apply(!{:kind :zap})","expect":":zap"}
+{"name":"comment-head-explicit-pipe-deflects","query":"~{|~ note ~| | type} | apply(!{:kind :zap}) !| /trail","expect":"~{| type}"}
+{"name":"line-comment-head-explicit-distribute","query":"[1 2] | (|~| note\n* add(1))","expect":"[2 3]"}
+{"name":"comment-mid-pipeline-explicit-distribute","query":"[1 2] |~ note ~| * add(1)","expect":"[2 3]"}

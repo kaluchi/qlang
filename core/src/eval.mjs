@@ -260,10 +260,14 @@ async function evalPipeline(node, state) {
   // survives parse → eval.
   //
   // A plain comment in head position hands the head to the first
-  // operand step: that step applies through `node.leadingCombinator`
-  // when present and runs as the identity-head otherwise, exactly as
-  // it would with the comment absent. The `|` the parser stamps on
-  // the follower of a comment head is trivia along with the comment.
+  // operand step, exactly as with the comment absent: that step
+  // applies through `node.leadingCombinator` when the pipeline
+  // carries one, through its own combinator when the author wrote
+  // one after the comment (`(|~ note ~| * add(1))` reads as
+  // `(* add(1))`), and as the identity-head when its continuation
+  // unit carries the grammar's absorbed marker (`combinator: null`).
+  // Past the head, an absorbed follower rides the `|` the comment's
+  // closer stands for.
   let current = state;
   let headPending = true;
   for (let i = 0; i < node.steps.length; i++) {
@@ -272,12 +276,13 @@ async function evalPipeline(node, state) {
     if (PLAIN_COMMENT_STEP_TYPES.has(stepNode.type)) continue;
     if (headPending) {
       headPending = false;
-      current = node.leadingCombinator
-        ? await applyCombinator(node.leadingCombinator, current, stepNode)
-        : await evalNode(stepNode, current);
+      const headCombinator = node.leadingCombinator ?? (i === 0 ? null : unit.combinator);
+      current = headCombinator === null
+        ? await evalNode(stepNode, current)
+        : await applyCombinator(headCombinator, current, stepNode);
       continue;
     }
-    current = await applyCombinator(unit.combinator, current, stepNode);
+    current = await applyCombinator(unit.combinator ?? '|', current, stepNode);
   }
   return current;
 }

@@ -1262,7 +1262,7 @@ its own eval handler in `eval.mjs`.
 ### `eval`
 
 - **Arity** 1. **Subject** `map` — the AST-Map to evaluate.
-- Unwraps an AST-Map through `walk.mjs::qlangMapToAst` and runs
+- Unwraps an AST-Map through `ast-codec.mjs::qlangMapToAst` and runs
   the reconstructed AST against the current state. The caller's
   `pipeValue` becomes the inner evaluation's `pipeValue`; the
   caller's `env` threads in unchanged. Any BindStep / `as` / `use`

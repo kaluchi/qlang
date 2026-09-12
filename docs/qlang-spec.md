@@ -1334,6 +1334,15 @@ The leading `|` of `|~` absorbs the combinator from the previous
 filter; the trailing `|` of `~|` absorbs the combinator to the next
 filter. Neither side needs an explicit `|`.
 
+A step written with its own combinator after a comment keeps it:
+`(|~ note ~| * add(1))` distributes exactly as `(* add(1))`, and
+`~{|~ note ~| !| /kind}` replays through `apply` as `~{!| /kind}`.
+At the start of a query, a paren-group, or a Quote, the step after
+a comment is the head step — it runs as the identity-head, or
+through the pipeline's leading combinator when one is written
+before the comment. A leading combinator and an explicit
+combinator on that same step is a parse error.
+
 #### Attach-to-next — doc comments
 
 Doc comments (`|~~|`, `|~~ ~~|`) attach as metadata to the
@@ -2111,7 +2120,7 @@ Six step types:
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
-| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head — leading combinator or identity — to the first operand step. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
+| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|`, `*`, and `>>` are
 **success-track** combinators — they fire their step when `pipeValue`
@@ -2833,7 +2842,7 @@ tagged objects.
 
 Embedders building editors, refactoring tools, language servers, or
 notebooks consume the AST traversal surface from
-[`walk.mjs`](qlang-operands.md#walkmjs--ast-traversal-primitives).
+[`walk.mjs`](qlang-internals.md#walkmjs--ast-traversal-primitives).
 The contract: every parser-produced AST node carries `.location`,
 `.text`, `.id`, `.parent`, and (where the surface form admits a
 marker) `.effectful`. The root additionally carries `.source`,

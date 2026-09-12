@@ -22,7 +22,11 @@
 //   |~~ ... ~~| block doc        — attach content to next OperandCall
 //
 // The leading `|` in every comment token absorbs the pipeline
-// combinator that would otherwise have preceded the step.
+// combinator that would otherwise have preceded the step. The step
+// that follows a plain comment without an explicit combinator
+// carries the absorbed marker (`combinator: null`) on its
+// continuation unit; a step the author prefixed with `|` / `*` /
+// `>>` / `!|` after the comment carries that token.
 
 {{
   // Build a node with location and text from peggy's action helpers.
@@ -45,6 +49,27 @@
   function flattenUnits(unit) {
     if (Array.isArray(unit)) return unit.flatMap(flattenUnits);
     return [unit];
+  }
+
+  // The step that follows a plain comment without an explicit
+  // combinator rides the combinator the comment's closer stands
+  // for. Its continuation unit carries the absorbed marker
+  // (`combinator: null`) so the evaluator can tell it from a step
+  // the author prefixed with `|` / `*` / `>>` / `!|` after the
+  // comment: at the head of a pipeline the absorbed follower is the
+  // identity-head, past the head it rides `|`.
+  function absorbedUnit(step) {
+    return { combinator: null, step };
+  }
+
+  // Plain comments are pipeline trivia: a comment in head position
+  // leaves the head to the first operand step, so a leading
+  // combinator and an explicit combinator on that step would both
+  // claim it — `!| |~ note ~| * add(1)` has no comment-free
+  // reading and is refused at parse time.
+  const PLAIN_COMMENT_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
+  function isPlainCommentNode(astNode) {
+    return PLAIN_COMMENT_TYPES.has(astNode.type);
   }
 
   // AST shapes that round-trip as pure JSON content — scalars
@@ -141,6 +166,12 @@ Pipeline
     const head = headUnits[0];
     const headTail = headUnits.slice(1);
     const rest = [...headTail, ...tail.flatMap(t => flattenUnits(t[1]))];
+    if (hasLeadingComb && isPlainCommentNode(head)) {
+      const firstOperandUnit = rest.find(u => !isPlainCommentNode(u.step));
+      if (firstOperandUnit !== undefined && firstOperandUnit.combinator !== null) {
+        error('a leading combinator and an explicit combinator both address the first operand step after a comment head');
+      }
+    }
     if (rest.length === 0 && !hasLeadingComb) return head;
     const pipelineFields = {
       steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))]
@@ -171,14 +202,14 @@ PipelineHead
 LeadingBlockPlainAbsorbing
   = c:BlockPlainComment _ follower:FollowerUnit
   {
-    const followerUnits = Array.isArray(follower) ? follower : [{ combinator: '|', step: follower }];
+    const followerUnits = Array.isArray(follower) ? follower : [absorbedUnit(follower)];
     return [c, ...followerUnits];
   }
 
 LeadingLinePlainAbsorbing
   = c:LinePlainComment _ follower:FollowerUnit
   {
-    const followerUnits = Array.isArray(follower) ? follower : [{ combinator: '|', step: follower }];
+    const followerUnits = Array.isArray(follower) ? follower : [absorbedUnit(follower)];
     return [c, ...followerUnits];
   }
 
@@ -222,7 +253,7 @@ DocLitContinuation
 BlockPlainCommentAbsorbing
   = c:BlockPlainComment _ follower:FollowerUnit
   {
-    const followerUnits = Array.isArray(follower) ? follower : [{ combinator: '|', step: follower }];
+    const followerUnits = Array.isArray(follower) ? follower : [absorbedUnit(follower)];
     return [
       { combinator: '|', step: c },
       ...followerUnits
@@ -239,7 +270,7 @@ BlockPlainCommentAbsorbing
 LinePlainCommentAbsorbing
   = c:LinePlainComment _ follower:FollowerUnit
   {
-    const followerUnits = Array.isArray(follower) ? follower : [{ combinator: '|', step: follower }];
+    const followerUnits = Array.isArray(follower) ? follower : [absorbedUnit(follower)];
     return [
       { combinator: '|', step: c },
       ...followerUnits
@@ -250,11 +281,12 @@ LinePlainCommentAbsorbing
 // another absorbing comment (block or line), a doc-attached step,
 // another plain comment, a BindStep declaration, or a bare RawStep.
 // May return an array when the follower is itself a chain of
-// absorbing comments.
+// absorbing comments; the operand step at the end of the chain
+// carries the absorbed marker, each nested comment its opener `|`.
 FollowerUnit
   = c:BlockPlainComment _ inner:FollowerUnit
   {
-    const innerUnits = Array.isArray(inner) ? inner : [{ combinator: '|', step: inner }];
+    const innerUnits = Array.isArray(inner) ? inner : [absorbedUnit(inner)];
     return [
       { combinator: '|', step: c },
       ...innerUnits
@@ -262,7 +294,7 @@ FollowerUnit
   }
   / c:LinePlainComment _ inner:FollowerUnit
   {
-    const innerUnits = Array.isArray(inner) ? inner : [{ combinator: '|', step: inner }];
+    const innerUnits = Array.isArray(inner) ? inner : [absorbedUnit(inner)];
     return [
       { combinator: '|', step: c },
       ...innerUnits
@@ -348,7 +380,7 @@ DocAttachedSequence
     return [
       plainSteps[0],
       ...plainSteps.slice(1).map(p => ({ combinator: '|', step: p })),
-      { combinator: '|', step: bound }
+      absorbedUnit(bound)
     ];
   }
 

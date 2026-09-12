@@ -81,9 +81,9 @@
       locator can resolve it. A namespace is a header-less Map
       bound under the namespace name or under the runtime's
       `qlang/namespace/<ns>` cache key; an operand descriptor, a
-      conduit, or a snapshot bound under the same bare name is an
-      identifier-plane binding, and `use` walks past it to the
-      locator.
+      conduit, a snapshot, or a scalar a host bound under the same
+      bare name is an identifier-plane binding, and `use` walks
+      past it to the locator.
 
       ~{
         use(:absolutely-nonexistent-namespace)

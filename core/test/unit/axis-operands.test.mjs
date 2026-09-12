@@ -231,7 +231,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     expect(cellEntry.result).toBe(0);
   });
 
-  it('single-step module containing a non-binding OperandCall fails axis lookup with ExamplesBindingNotFoundError', async () => {
+  it('single-step module containing a non-binding OperandCall fails axis lookup with SourceBindingNotFoundError', async () => {
     // A standalone non-binding OperandCall (e.g. `count`) at the
     // module top level evaluates without throwing, but it is not
     // a binding declaration — `matchesBindingStep` falls through

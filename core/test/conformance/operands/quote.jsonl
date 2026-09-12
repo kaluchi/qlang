@@ -14,13 +14,13 @@
 {"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:kind","expect":":Pipeline"}
 {"name":"quote-ast-unparseable-content-returns-null","query":"~{ , } | /ast","expect":"null"}
 {"name":"apply-unparseable-quote-raises-parse-error","query":"~{ , } | apply(42) !| type","expect":"::ParseError"}
-{"name":"isQuote-literal-true","query":"~{mul(2)} | type | eq(:quote)","expect":"true"}
-{"name":"isQuote-string-false","query":"\"mul(2)\" | type | eq(:quote)","expect":"false"}
-{"name":"isQuote-number-false","query":"42 | type | eq(:quote)","expect":"false"}
-{"name":"isQuote-vec-false","query":"[1 2 3] | type | eq(:quote)","expect":"false"}
-{"name":"isQuote-map-false","query":"{:a 1} | type | eq(:quote)","expect":"false"}
-{"name":"isQuote-null-false","query":"null | type | eq(:quote)","expect":"false"}
-{"name":"isQuote-error-via-distribute-false","query":"[!{:k 1}] * (type | eq(:quote)) | first","expect":"false"}
+{"name":"quote-type-answers-quote","query":"~{mul(2)} | type | eq(:quote)","expect":"true"}
+{"name":"string-type-is-not-quote","query":"\"mul(2)\" | type | eq(:quote)","expect":"false"}
+{"name":"type-quote-number-false","query":"42 | type | eq(:quote)","expect":"false"}
+{"name":"type-quote-vec-false","query":"[1 2 3] | type | eq(:quote)","expect":"false"}
+{"name":"type-quote-map-false","query":"{:a 1} | type | eq(:quote)","expect":"false"}
+{"name":"type-quote-null-false","query":"null | type | eq(:quote)","expect":"false"}
+{"name":"error-element-type-is-not-quote","query":"[!{:k 1}] * (type | eq(:quote)) | first","expect":"false"}
 {"name":"quote-equality-same-source","query":"eq(~{mul(2)}, ~{mul(2)})","expect":"true"}
 {"name":"quote-equality-different-source","query":"eq(~{mul(2)}, ~{mul(3)})","expect":"false"}
 {"name":"quote-equality-cross-type-string","query":"eq(~{mul(2)}, \"mul(2)\")","expect":"false"}
@@ -29,7 +29,7 @@
 {"name":"quote-in-map","query":"{:body ~{mul(2)}} | /body | /source","expect":"\"mul(2)\""}
 {"name":"quote-in-set","query":"#[~{a} ~{b}] | count","expect":"2"}
 {"name":"quote-pipeline-passthrough","query":"5 | ~{mul(2)}","expect":"~{mul(2)}"}
-{"name":"quote-isMap-false","query":"~{x} | type | eq(:map)","expect":"false"}
+{"name":"quote-type-is-not-map","query":"~{x} | type | eq(:map)","expect":"false"}
 {"name":"quote-with-special-chars","query":"~{a > b}","expect":"~{a > b}"}
 {"name":"quote-with-pipe-operator","query":"~{a | b} | /source","expect":"\"a | b\""}
 {"name":"quote-with-leading-combinator-trail-style","query":"~{* inc | sort} | /source","expect":"\"* inc | sort\""}

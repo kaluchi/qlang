@@ -6,12 +6,15 @@
 // scalars; each operand owns its own ComparabilityError subclass
 // so failures uniquely identify the call site.
 //
-// `type` answers a value's identity tag, and every value-class
-// question is that reader composed with `eq`: `filter(type |
+// `type` answers a value's identity tag, and asking what a value
+// is means composing that reader with `eq`: `filter(type |
 // eq(:string))` over a Vec of mixed types, or over a Map to keep
-// the String-valued entries.
+// the String-valued entries. Identity, not shape — a Map declaring
+// `:kind ::Foo` answers `::Foo`, and its shape reads through
+// `payload` where an identity overlay carries one.
 //
-// Meta lives in lib/qlang/operand/predicate.qlang.
+// Meta lives in lib/qlang/operand/predicate.qlang, and `type`'s in
+// lib/qlang/operand/typeClassifier.qlang.
 
 import { valueOp, nullaryOp } from './dispatch.mjs';
 import { isTruthy, typeKeyword } from '../types.mjs';

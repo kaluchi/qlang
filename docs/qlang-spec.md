@@ -658,7 +658,7 @@ sequence. Three mechanisms cover all three needs.
 ### Projection — `/key`
 
 Extract a value from a Map by keyword — the keyword-keyed Maps from
-Part 1. A key the Map does not carry is a failure, not a `null`:
+Part 1. A key the Map does not carry raises `::ProjectionKeyNotInMapError`:
 
 ```qlang
 > {:name "alice" :age 30} | /name
@@ -1680,8 +1680,9 @@ parameter binding, no manual escaping.
 A constructor invocation `::Tag<payload>` produces a
 **tagged instance**: identity rides on the payload's JS-header
 `tag` slot (a `TagKeyword`), the payload's native shape is
-preserved. Vec payload → tagged Vec (`isVec` still true,
-`/1` indexes elements directly, `count` returns the length);
+preserved. Vec payload → tagged Vec (`/1` indexes elements
+directly, `count` returns the length, and `payload | type`
+answers `:vec` while `type` answers the stamped `::Tag`);
 Map payload → tagged Map (`keys` lists the fields, `/field`
 projects, iteration sees the data plane); Set payload → tagged
 Set. Scalar / Keyword / Quote / Doc / Error / Conduit /

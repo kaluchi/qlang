@@ -290,9 +290,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 
   it('a binding shadowing a built-in is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | add')).toBe(200);
-    const declaration = await evalQuery(shadowed + ':add | source | /source');
-    expect(declaration).toContain('mul(100)');
-    expect(declaration).not.toContain('Adds two numbers');
+    expect(await evalQuery(shadowed + ':add | source | /source')).toBe(':add mul(100)');
   });
 
   it('docs and examples answer for the shadowing binding, which carries neither', async () => {
@@ -302,6 +300,38 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 
   it('spec names the same declaration source does', async () => {
     expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('conduit'));
+  });
+
+  // Module load order is not shadow order: a cell's own AST is
+  // stamped into env before the cell runs, so a `use` the cell
+  // performs lands after it. The declaration site the binding
+  // carries is what settles both orders.
+  const namespaceLocator = async (namespaceName) => namespaceName === 'probe/shadow'
+    ? { source: ':contested |~~ from the namespace ~~| 111' }
+    : null;
+
+  it('a cell BindStep after a use answers with the cell declaration', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession({ locator: namespaceLocator });
+    const cellEntry = await sessionInstance.evalCell(
+      'use(:probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
+      '[contested, :contested | source | /source, :contested | docs | first | /content]');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([
+      222, ':contested |~~ from the cell ~~| 222', ' from the cell '
+    ]);
+  });
+
+  it('a use after a cell BindStep answers with the namespace declaration', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession({ locator: namespaceLocator });
+    const cellEntry = await sessionInstance.evalCell(
+      ':contested |~~ from the cell ~~| 222 | use(:probe/shadow) | ' +
+      '[contested, :contested | source | /source, :contested | docs | first | /content]');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([
+      111, ':contested |~~ from the namespace ~~| 111', ' from the namespace '
+    ]);
   });
 });
 

@@ -58,7 +58,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:arith` | Binary numeric operand. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
-| `:typeClassifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
+| `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
@@ -741,8 +741,8 @@ round-trips to `"a,b,c"`.
 
 ## Type classifiers
 
-Every value-class question is `type` composed with `eq`. `type`
-answers exactly one keyword per value, so `| type | eq(:string)`
+Asking what a value is means composing `type` with `eq`. `type`
+answers exactly one identity per value, so `| type | eq(:string)`
 is the classification, and it reads the same inside a predicate:
 `filter(type | eq(:string))` over a Vec of mixed types, or over a
 Map where the value's class is the predicate axis. See
@@ -1137,7 +1137,7 @@ its own eval handler in `eval.mjs`.
     binding, alphabetically.
 - **Errors**: captured arg is not a Keyword →
   `ManifestNamespaceNotKeywordError`. Captured Keyword is neither
-  `:value` nor `:tag` raises `ManifestNamespaceUnknownError`. Two or
+  `:value` nor `:tag` → `ManifestNamespaceUnknownError`. Two or
   more captured args → `Rule10ArityOverflowError`.
 
 ### `runExamples`
@@ -1468,7 +1468,7 @@ enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:typeClassifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
+| `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag` |
 | `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |

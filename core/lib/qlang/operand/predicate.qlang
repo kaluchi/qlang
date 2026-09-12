@@ -3,8 +3,8 @@
    logical combinators `and`/`or`/`not`). The shape stays uniform:
    each fires per-call as a pure value test that the higher-order
    `filter` / `every` / `any` / `if` / `when` / `unless` chain
-   composes over. Type classifiers and the `keyword` involution
-   ride parallel axes and live in
+   composes over. The identity-tag reader `type` and the `keyword`
+   involution ride parallel axes and live in
    `core/lib/qlang/operand/typeClassifier.qlang` and
    `core/lib/qlang/operand/typeConversion.qlang` respectively;
    comparator builders (`asc`/`desc`/`nullsFirst`/`nullsLast`) for

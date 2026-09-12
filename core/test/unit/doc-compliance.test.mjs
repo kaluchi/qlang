@@ -52,7 +52,6 @@ const EXPECTATION_IS_PROSE = Symbol('doc expectation is prose');
 
 async function parseExpected(text) {
   const trimmed = text.trim();
-  if (trimmed.length === 0) return EXPECTATION_IS_PROSE;
   if (!isParseableExpectation(trimmed)) return EXPECTATION_IS_PROSE;
   return await evalQuery(trimmed);
 }
@@ -119,22 +118,52 @@ function extractReplExamples(source, filePath) {
 }
 
 // Extract inline prose examples from the operand reference.
-// Pattern: `query` → `expected`, both fenced in backticks on one
-// line, the form every entry's **Example** bullet uses. A pair whose
-// expected side is prose rather than a qlang expression drops out at
-// the parse gate, the same way a REPL result's trailing prose does.
-const INLINE_PAIR = /`([^`]+)`\s*\u2192\s*`([^`]+)`/g;
+// Pattern: `query` → `expected`, both fenced in backticks, inside an
+// **Example** / **Examples** bullet. The reference wraps a long
+// bullet across continuation lines and splits a pair mid-arrow, so
+// the bullet is re-flowed before matching — and scoping to the
+// example bullets keeps an **Errors** bullet ending in a backticked
+// class name from reading as a pair.
+const DOC_EXAMPLE_ARROW_PAIR = /`([^`]+)`\s*\u2192\s*`([^`]+)`/g;
+const BULLET_OPENING = /^\s*-\s/;
+const EXAMPLE_BULLET = /^\s*-\s+\*\*Examples?\*\*/;
+
+// A bullet block is its opening line plus every line indented past
+// it, joined into one logical line the way a reader sees it.
+function bulletBlocks(lines) {
+  const blocks = [];
+  let open = null;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (BULLET_OPENING.test(line)) {
+      const indent = line.length - line.trimStart().length;
+      if (open !== null && indent > open.indent) {
+        open.text += ' ' + line.trim();
+        continue;
+      }
+      open = { text: line.trim(), line: index + 1, indent };
+      blocks.push(open);
+      continue;
+    }
+    if (open !== null && line.trim().length > 0 && line.startsWith(' ')) {
+      open.text += ' ' + line.trim();
+      continue;
+    }
+    open = null;
+  }
+  return blocks;
+}
 
 function extractInlineExamples(source, filePath) {
   const examples = [];
-  const lines = source.split('\n');
-  for (let index = 0; index < lines.length; index += 1) {
-    for (const pair of lines[index].matchAll(INLINE_PAIR)) {
+  for (const block of bulletBlocks(source.split('\n'))) {
+    if (!EXAMPLE_BULLET.test(block.text)) continue;
+    for (const pair of block.text.matchAll(DOC_EXAMPLE_ARROW_PAIR)) {
       examples.push({
         query: pair[1].trim(),
         expected: pair[2].trim(),
         file: filePath,
-        line: index + 1
+        line: block.line
       });
     }
   }
@@ -165,19 +194,11 @@ describe('doc-compliance: qlang-spec.md REPL examples', () => {
       const match = deepEqual(queryResult, expectedValue);
       if (!match) {
         // Build a readable diff for the failure message
-        const resultStr = JSON.stringify(queryResult, (_, v) =>
-          v instanceof Map ? Object.fromEntries(v) :
-          v instanceof Set ? [...v] : v
-        );
-        const expectedStr = JSON.stringify(expectedValue, (_, v) =>
-          v instanceof Map ? Object.fromEntries(v) :
-          v instanceof Set ? [...v] : v
-        );
         throw new Error(
           `Doc example at ${ex.file}:${ex.line} diverged:\n` +
           `  query:    ${ex.query}\n` +
-          `  expected: ${expectedStr}\n` +
-          `  actual:   ${resultStr}`
+          `  expected: ${printValue(expectedValue)}\n` +
+          `  actual:   ${printValue(queryResult)}`
         );
       }
     });

@@ -1,9 +1,11 @@
 |~ qlang operand catalog — typeClassifier family. `:type` is the
    canonical identity-tag reader: it returns the value's TagKeyword
    (for tagged-instance Maps, error values, conduits, snapshots) or
-   its plain Keyword (for scalars and base containers). Every
-   value-class question is that reader composed with `eq` —
-   `| type | eq(:string)` — so the family holds one operand. ~|
+   its plain Keyword (for scalars and base containers). Asking
+   what a value is means composing that reader with `eq` —
+   `| type | eq(:string)` — so the family holds one operand.
+   A Map declaring `:kind ::Foo` answers `::Foo`, the identity it
+   declares, rather than `:map`. ~|
 
 :type
   |~~ Returns the value's identity tag. For tagged values

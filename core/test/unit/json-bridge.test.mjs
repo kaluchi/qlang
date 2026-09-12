@@ -82,22 +82,22 @@ describe('::qlang / ::json constructors convert between shape domains', () => {
   });
 });
 
-describe('isJsonObject / isJsonArray operands', () => {
-  it('isJsonObject true on JSON Object, false on qlang Map', async () => {
+describe('type discriminates JSON-tagged shapes from qlang containers', () => {
+  it('type answers :jsonObject for a JSON Object and :map for a qlang Map', async () => {
     expect(await evalQuery('::json{:k 1} | type | eq(:jsonObject)')).toBe(true);
     expect(await evalQuery('{:k 1} | type | eq(:jsonObject)')).toBe(false);
   });
 
-  it('isJsonArray true on JSON Array, false on qlang Vec', async () => {
+  it('type answers :jsonArray for a JSON Array and :vec for a qlang Vec', async () => {
     expect(await evalQuery('::json[1 2 3] | type | eq(:jsonArray)')).toBe(true);
     expect(await evalQuery('[1 2 3] | type | eq(:jsonArray)')).toBe(false);
   });
 
-  it('isVec false on a JSON Array (qlang Vec narrowed)', async () => {
+  it('a JSON Array does not answer :vec', async () => {
     expect(await evalQuery('::json[1 2 3] | type | eq(:vec)')).toBe(false);
   });
 
-  it('isMap false on a JSON Object (qlang Map narrowed)', async () => {
+  it('a JSON Object does not answer :map', async () => {
     expect(await evalQuery('::json{:k 1} | type | eq(:map)')).toBe(false);
   });
 });

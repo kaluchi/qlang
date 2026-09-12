@@ -1,6 +1,6 @@
 // Unit tests for polymorphic filter / every / any over Vec / Set /
-// Map with N-arity conduit dispatch on Map, plus the typeClassifier
-// nullary operands.
+// Map with N-arity conduit dispatch on Map, plus classification
+// through `type | eq(:kind)`.
 //
 // Map dispatch rule under test: the predicate conduit's `:params`
 // arity chooses the axis — 0 or 1 → value as pipeValue, 2 → (key,
@@ -366,53 +366,53 @@ describe('any — container polymorphism', () => {
 // ── Type classifiers ──────────────────────────────────────────
 
 describe('classification through `type | eq(:kind)` — string / number / vec / map / set / keyword / boolean / null', () => {
-  it('isString classifies String vs the rest', async () => {
+  it('type answers :string for String subjects', async () => {
     expect(await evalQuery('"hello" | type | eq(:string)')).toBe(true);
     expect(await evalQuery('42 | type | eq(:string)')).toBe(false);
     expect(await evalQuery(':name | type | eq(:string)')).toBe(false);
     expect(await evalQuery('[1] | type | eq(:string)')).toBe(false);
   });
 
-  it('isNumber classifies Number vs the rest', async () => {
+  it('type answers :number for Number subjects', async () => {
     expect(await evalQuery('42 | type | eq(:number)')).toBe(true);
     expect(await evalQuery('3.14 | type | eq(:number)')).toBe(true);
     expect(await evalQuery('"42" | type | eq(:number)')).toBe(false);
     expect(await evalQuery('null | type | eq(:number)')).toBe(false);
   });
 
-  it('isVec classifies Vec vs Set and the rest', async () => {
+  it('type answers :vec for Vec subjects', async () => {
     expect(await evalQuery('[1 2 3] | type | eq(:vec)')).toBe(true);
     expect(await evalQuery('[] | type | eq(:vec)')).toBe(true);
     expect(await evalQuery('#[1] | type | eq(:vec)')).toBe(false);
     expect(await evalQuery('{:a 1} | type | eq(:vec)')).toBe(false);
   });
 
-  it('isMap classifies Map vs the rest', async () => {
+  it('type answers :map for Map subjects', async () => {
     expect(await evalQuery('{:a 1} | type | eq(:map)')).toBe(true);
     expect(await evalQuery('{} | type | eq(:map)')).toBe(true);
     expect(await evalQuery('[] | type | eq(:map)')).toBe(false);
     expect(await evalQuery('#[:a] | type | eq(:map)')).toBe(false);
   });
 
-  it('isMap reports false for conduit descriptor Maps', async () => {
+  it('type answers ::conduit, not :map, for a conduit binding', async () => {
     expect(await evalQuery(':double mul(2) | env | /double | type | eq(:map)')).toBe(false);
   });
 
-  it('isSet classifies Set vs the rest', async () => {
+  it('type answers :set for Set subjects', async () => {
     expect(await evalQuery('#[1 2] | type | eq(:set)')).toBe(true);
     expect(await evalQuery('#[] | type | eq(:set)')).toBe(true);
     expect(await evalQuery('[1 2] | type | eq(:set)')).toBe(false);
     expect(await evalQuery('{:a 1} | type | eq(:set)')).toBe(false);
   });
 
-  it('isKeyword classifies bare and namespaced keywords', async () => {
+  it('type answers :keyword for bare and namespaced keywords', async () => {
     expect(await evalQuery(':name | type | eq(:keyword)')).toBe(true);
     expect(await evalQuery(':kind | type | eq(:keyword)')).toBe(true);
     expect(await evalQuery('"name" | type | eq(:keyword)')).toBe(false);
     expect(await evalQuery('42 | type | eq(:keyword)')).toBe(false);
   });
 
-  it('isBoolean classifies literal true/false only', async () => {
+  it('type answers :boolean for the literals alone', async () => {
     expect(await evalQuery('true | type | eq(:boolean)')).toBe(true);
     expect(await evalQuery('false | type | eq(:boolean)')).toBe(true);
     expect(await evalQuery('0 | type | eq(:boolean)')).toBe(false);
@@ -420,7 +420,7 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('"" | type | eq(:boolean)')).toBe(false);
   });
 
-  it('isNull classifies null vs the rest', async () => {
+  it('type answers :null for null alone', async () => {
     expect(await evalQuery('null | type | eq(:null)')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing

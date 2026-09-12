@@ -1,7 +1,7 @@
 // Tests for error value type, trail, deepEqual, codec, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, makeQuote, appendTrailNode, materializeTrail, describeType, isQuote, makeTagKeyword } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, makeQuote, appendTrailNode, materializeTrail, describeType, isQuote, makeTagKeyword, ErrorTrailNotQuoteError } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -48,6 +48,28 @@ describe('makeErrorValue', () => {
     const errorVal = makeErrorValue(makeTagKeyword('Oops'), descriptor);
     expect(errorVal.descriptor).toBe(descriptor);
     expect(errorVal.descriptor.get('trail')).toBe(preTrail);
+  });
+
+  it('accepts an explicit :trail null as the no-deflection state', () => {
+    const descriptor = new Map([['trail', null]]);
+    const errorVal = makeErrorValue(makeTagKeyword('Oops'), descriptor);
+    expect(errorVal.descriptor).toBe(descriptor);
+    expect(errorVal.descriptor.get('trail')).toBeNull();
+  });
+
+  it('fires ErrorTrailNotQuoteError when :trail carries anything except a Quote or null', () => {
+    // `:trail` is runtime-owned — a Vec under it would make
+    // `combineTrailQuotes` read `.source` off a non-Quote and hand
+    // `apply` a suffix it cannot replay, so the mint site refuses it.
+    let thrown = null;
+    try { makeErrorValue(makeTagKeyword('Oops'), new Map([['trail', [1, 2]]])); }
+    catch (mintErr) { thrown = mintErr; }
+    expect(thrown).toBeInstanceOf(ErrorTrailNotQuoteError);
+    expect(thrown).toBeInstanceOf(QlangTypeError);
+    expect(thrown.name).toBe('ErrorTrailNotQuoteError');
+    expect(thrown.fingerprint).toBe('ErrorTrailNotQuoteError');
+    expect(thrown.context.actualType).toEqual(keyword('vec'));
+    expect(thrown.context.actualValue).toEqual([1, 2]);
   });
 });
 

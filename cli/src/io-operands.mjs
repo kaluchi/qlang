@@ -38,7 +38,7 @@ const ErrRendererResultNotStringError =
       `@err renderer must produce a String, got ${actualType.name}`);
 
 const TapLabelNotKeywordError =
-  declareModifierError('TapLabelNotKeywordError', '@tap', 1, 'keyword');
+  declareModifierError('TapLabelNotKeywordError', '@tap', 2, 'keyword');
 
 function makeInOperand(stdinReader) {
   return nullaryOp('@in', async () => stdinReader());

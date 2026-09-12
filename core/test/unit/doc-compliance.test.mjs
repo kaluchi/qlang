@@ -18,24 +18,33 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
+import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const docsDir = join(here, '..', '..', '..', 'docs');
 
-// Parse a qlang result string (from doc prose) into a runtime value.
-// Supports: numbers, strings, booleans, null, keywords, Vecs, Maps, Sets.
-// The simplest approach: evaluate the expected string as a qlang query.
+// Lift a documented result into a runtime value by evaluating it as
+// a qlang expression. The parser is the gate: prose trailing a REPL
+// result drops out because it does not parse, while every documented
+// value — the multi-line `::Tag!{…}` error renders and the
+// pretty-printed Map / Vec / Set forms included — parses and is
+// compared. `evalQuery` lifts a parse failure into a `::ParseError`
+// value rather than throwing, so the gate reads `parse` directly.
+function isParseableExpectation(text) {
+  try {
+    parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function parseExpected(text) {
   const trimmed = text.trim();
-  // Skip multi-line results, Map/Set renders, and complex outputs
-  // that can't be reliably round-tripped through evalQuery.
-  if (trimmed.includes('\n') && !trimmed.startsWith('[') && !trimmed.startsWith('{')) return null;
-  try {
-    return await evalQuery(trimmed);
-  } catch {
-    return null; // unparseable expected value — skip
-  }
+  if (trimmed.length === 0) return null;
+  if (!isParseableExpectation(trimmed)) return null;
+  return await evalQuery(trimmed);
 }
 
 // Extract REPL-session examples from fenced code blocks.

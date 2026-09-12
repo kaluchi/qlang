@@ -9,7 +9,7 @@ import { declareModifierError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue, toTaggedJSON } from '@kaluchi/qlang-core';
 
 const TemplateModifierNotStringError =
-  declareModifierError('TemplateModifierNotStringError', 'template', 1, 'string');
+  declareModifierError('TemplateModifierNotStringError', 'template', 2, 'string');
 
 const SUBSTITUTION_SLOT_RE = /\{\{([^}]+)\}\}/g;
 

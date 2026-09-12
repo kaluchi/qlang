@@ -21,9 +21,11 @@
 //   not user-facing bindings.
 //
 // `MODULE_NAMESPACE_PREFIX` (`qlang/namespace/`) — exports Map of a
-//   loaded namespace under `qlang/namespace/<uri>`. Re-entrant
-//   `use(:uri)` calls hit this cache instead of re-fetching the
-//   source. Filtered alongside module-AST keys.
+//   loaded namespace under `qlang/namespace/<uri>`, stamped by the
+//   locator pathway of `use(:uri)` and by `installModules`.
+//   Re-entrant `use(:uri)` calls read the export Map at this key,
+//   and a namespace stem never shadows an operand of the same
+//   name. Filtered alongside module-AST keys.
 //
 // `RUNTIME_LOCATOR_KEY` (`qlang/locator`) — singular env key
 //   holding the host's `:qlang/locator` function. Filtered because

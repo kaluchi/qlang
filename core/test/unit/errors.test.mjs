@@ -9,6 +9,7 @@ import {
   UnresolvedIdentifierError,
   DivisionByZeroError,
   ArityError,
+  EvaluationDepthExceededError,
   QlangInvariantError
 } from '../../src/errors.mjs';
 import { keyword } from '../../src/types.mjs';
@@ -111,6 +112,18 @@ describe('ArityError', () => {
     const arityErr = new ArityError('too many args', { count: 5 });
     expect(arityErr.kind).toBe('arityError');
     expect(arityErr.context.count).toBe(5);
+  });
+});
+
+describe('EvaluationDepthExceededError', () => {
+  it('carries the refused frame and the budget under kind resourceLimit', () => {
+    const depthErr = new EvaluationDepthExceededError({ depth: 11, limit: 10 });
+    expect(depthErr).toBeInstanceOf(QlangError);
+    expect(depthErr.kind).toBe('resourceLimit');
+    expect(depthErr.name).toBe('EvaluationDepthExceededError');
+    expect(depthErr.fingerprint).toBe('EvaluationDepthExceededError');
+    expect(depthErr.context).toEqual({ depth: 11, limit: 10 });
+    expect(depthErr.message).toBe('evaluation depth 11 exceeds the budget of 10 nested frames');
   });
 });
 

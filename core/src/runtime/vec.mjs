@@ -180,6 +180,14 @@ const NullsLastKeysNotComparableError  = declareComparabilityError('NullsLastKey
 
 const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotNumberError',
   ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`);
+// NaN passes the Number check — `typeof NaN` is `'number'` — while
+// ordering no pair: every `NaN <= 0` reading in the merge answers
+// false, so the run order would come out of the comparison the
+// comparator declined to make. Arithmetic reaches NaN through
+// float overflow (`0 | mul(1e400)`), so the check guards a value
+// a query can actually produce.
+const SortWithCmpResultNaNError = declareShapeError('SortWithCmpResultNaNError',
+  () => 'sortWith comparator returned NaN — a comparison orders its pair as negative, zero, or positive');
 const AscPairNotMapError = declareShapeError('AscPairNotMapError',
   ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 const DescPairNotMapError = declareShapeError('DescPairNotMapError',
@@ -306,22 +314,22 @@ export const max = nullaryOp('max', (container) => {
 // front with a shape-specific class, sparing every entry from
 // a generic ConduitArityMismatchError.
 function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
-  const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedEnv);
+  const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedState.env);
   if (resolved) {
     const paramCount = resolved.conduit.get(CONDUIT_PARAMS_FIELD).length;
     const conduitName = resolved.conduit.get('name');
     if (paramCount === 1) {
       if (shape === 'pair') {
         return async (_mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue);
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue, predLambda.capturedState);
       }
       return async (item) =>
-        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item);
+        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item, predLambda.capturedState);
     }
     if (paramCount === 2) {
       if (shape === 'pair') {
         return async (mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [keyword(mapKey), mapValue], mapValue);
+          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [keyword(mapKey), mapValue], mapValue, predLambda.capturedState);
       }
       throw new VecOrSetArityErrorCls({ conduitName, actualArity: paramCount });
     }
@@ -589,38 +597,47 @@ export const flat = nullaryOp('flat', (subject) => {
 
 // ── sortWith and comparator builders ──────────────────────────
 
+// Top-down merge sort over an awaited comparator —
+// `Array.prototype.sort` accepts only a sync comparator, and each
+// pairwise comparison here awaits a captured-arg lambda whose
+// conduit body may itself await. The merge takes the left run's
+// head on a zero result, so equal elements keep their subject
+// order (stable), and the comparator fires at most n·⌈log₂ n⌉
+// times for a subject of n elements.
+async function mergeSortWith(subjectRun, comparePair) {
+  if (subjectRun.length <= 1) return subjectRun;
+  const splitIdx = subjectRun.length >> 1;
+  const leftRun = await mergeSortWith(subjectRun.slice(0, splitIdx), comparePair);
+  const rightRun = await mergeSortWith(subjectRun.slice(splitIdx), comparePair);
+  const merged = [];
+  let leftIdx = 0;
+  let rightIdx = 0;
+  while (leftIdx < leftRun.length && rightIdx < rightRun.length) {
+    if (await comparePair(leftRun[leftIdx], rightRun[rightIdx]) <= 0) merged.push(leftRun[leftIdx++]);
+    else merged.push(rightRun[rightIdx++]);
+  }
+  while (leftIdx < leftRun.length) merged.push(leftRun[leftIdx++]);
+  while (rightIdx < rightRun.length) merged.push(rightRun[rightIdx++]);
+  return merged;
+}
+
 export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) => {
   if (!isOrderedSequence(subject)) throw new SortWithSubjectNotSequenceError(subject);
-  // Insertion sort — `Array.prototype.sort` accepts only a sync
-  // comparator, and each pairwise comparison here may invoke a
-  // captured-arg lambda that awaits inside the conduit body. The
-  // sort stays correct under awaited comparator results; the
-  // O(n²) profile is acceptable for the sequence sizes sortWith
-  // services (config rows, query results, comparator-built
-  // orderings — none of them scale unboundedly).
-  const sortWithArr = [...subject];
-  const sortWithLen = sortWithArr.length;
-  for (let outerIdx = 1; outerIdx < sortWithLen; outerIdx++) {
-    const sortWithCurrent = sortWithArr[outerIdx];
-    let insertIdx = outerIdx - 1;
-    while (insertIdx >= 0) {
-      const cmpPair = new Map();
-      cmpPair.set('left', sortWithArr[insertIdx]);
-      cmpPair.set('right', sortWithCurrent);
-      const cmpResult = await cmpLambda(cmpPair);
-      if (typeof cmpResult !== 'number') {
-        throw new SortWithCmpResultNotNumberError({
-          actualType: typeKeyword(cmpResult),
-          actualValue: cmpResult
-        });
-      }
-      if (cmpResult <= 0) break;
-      sortWithArr[insertIdx + 1] = sortWithArr[insertIdx];
-      insertIdx--;
+  const comparePair = async (left, right) => {
+    const cmpPair = new Map([['left', left], ['right', right]]);
+    const cmpResult = await cmpLambda(cmpPair);
+    if (typeof cmpResult !== 'number') {
+      throw new SortWithCmpResultNotNumberError({
+        actualType: typeKeyword(cmpResult),
+        actualValue: cmpResult
+      });
     }
-    sortWithArr[insertIdx + 1] = sortWithCurrent;
-  }
-  return containerLikeOf(sortWithArr, subject);
+    if (Number.isNaN(cmpResult)) {
+      throw new SortWithCmpResultNaNError({ actualType: typeKeyword(cmpResult) });
+    }
+    return cmpResult;
+  };
+  return containerLikeOf(await mergeSortWith([...subject], comparePair), subject);
 }, { preservesTag: true });
 
 export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
@@ -690,7 +707,7 @@ const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryErr
 
 export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerLambda) => {
   if (!isOrderedSequence(subject)) throw new ReduceSubjectNotSequenceError(subject);
-  const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedEnv);
+  const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedState);
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = await seedLambda(subject);
   if (isErrorValue(acc)) return acc;

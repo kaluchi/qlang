@@ -41,6 +41,9 @@
     "./operand-errors": {
       "import": "./src/operand-errors.mjs"
     },
+    "./primitives": {
+      "import": "./src/primitives.mjs"
+    },
     "./highlight": {
       "import": "./src/highlight.mjs"
     },

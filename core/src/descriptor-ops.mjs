@@ -1,53 +1,76 @@
 // Shared shape primitives for builtin descriptor Maps.
 //
 // A raw builtin descriptor is what the env Map stores after
-// `langRuntime` bootstrap: a Map carrying `:impl <FunctionValue>
-// :category … :subject … :captured [min max] :effectful <boolean>`
-// fields, with identity (`::builtin`) on the Map's JS-header
+// `langRuntime` bootstrap: a Map carrying the author's
+// `:impl :qlang/prim/<name>` handle keyword alongside `:category`
+// … `:subject` … `:captured [min max]` … `:effectful <boolean>`,
+// with identity (`::builtin`) on the Map's JS-header
 // `TAG_HEADER_SYMBOL` slot (stamped by the `::builtin{…}`
-// constructor in `runtime/tagged.mjs`). The reader sites
+// constructor in `runtime/tagged.mjs`) and the resolved callable on
+// the `BUILTIN_IMPL_SLOT` JS-header slot. The reader sites
 // (`isBuiltinDescriptor` in `eval.mjs`, `runtime/use-op.mjs`
 // snapshot-unwrap) probe the header — no `:kind` field on the
-// raw env entry.
+// raw env entry — and dispatch reads the callable through
+// `resolveBuiltinImpl`, so every field the data plane exposes to
+// `keys` / `/key` / `printValue` is a qlang value.
 //
 // `stampStructuralFacts(descriptor, fn)` is the single mint-site
-// that backfills `:impl` / `:captured` / `:effectful` from a
-// resolved function value plus the empty-fallback Vec for
-// `:modifiers` / `:throws`. Both bootstrap surfaces — the
-// langRuntime core-catalog pass in `runtime/index.mjs` and the
-// `use`-locator namespace-resolution pass in `runtime/use-op.mjs`
-// — go through here, so env entries carry the full runtime shape
-// uniformly and the `spec` axis can return them without further
-// projection.
+// that stamps the callable onto the slot and backfills
+// `:captured` / `:effectful` from the resolved function plus the
+// empty-fallback Vec for `:modifiers` / `:throws`. Both bootstrap
+// surfaces — the langRuntime core-catalog pass in
+// `runtime/index.mjs` and the `use`-locator namespace-resolution
+// pass in `runtime/use-op.mjs` — go through here, so env entries
+// carry the full runtime shape uniformly and the `spec` axis can
+// return them without further projection.
+//
+// `resolveBuiltinImpl(descriptor)` is the dispatch-side reader:
+// the stamped callable when bootstrap resolved it, otherwise the
+// `:impl` handle keyword walked through `PRIMITIVE_REGISTRY` so a
+// descriptor a query assembled from data dispatches like any
+// catalog entry.
 //
 // `manifestBuiltinDescriptor` wraps the raw form for the `manifest`
 // reflective operand in `runtime/manifest-op.mjs`: it stamps the
 // `:kind ::builtin` field as an explicit enum-bucket on the view-
 // Map (the only place `:kind` lives as a field — identity itself
-// stays on the header), adds a `:name` field, drops `:impl` (the
-// resolved function value is dispatch-time internal — manifest's
-// enumeration surface stays JSON-renderable), and passes every
-// other structural fact through. Lives here so the projection
-// edge is single-sourced; any future surface that wants the same
-// manifest shape imports it without dragging `manifest-op.mjs`
-// into the graph.
+// stays on the header), adds a `:name` field, and passes every
+// structural fact through, `:impl` handle keyword included, so the
+// enumeration surface and the `spec` axis agree field for field.
+// Lives here so the projection edge is single-sourced; any future
+// surface that wants the same manifest shape imports it without
+// dragging `manifest-op.mjs` into the graph.
 
-import { BUILTIN_TAG } from './types.mjs';
+import {
+  BUILTIN_TAG, isKeyword, typeKeyword, stampBuiltinImpl, builtinImplOf
+} from './types.mjs';
+import { PRIMITIVE_REGISTRY } from './primitives.mjs';
+import { declareShapeError } from './operand-errors.mjs';
+
+// A descriptor assembled inside a query (`::builtin{:impl
+// :qlang/prim/count}`) reaches dispatch without the bootstrap
+// stamp, so `resolveBuiltinImpl` walks its `:impl` handle through
+// the registry. A handle of any other shape fires this site rather
+// than handing `PRIMITIVE_REGISTRY.resolve` a nameless value.
+const BuiltinImplNotPrimitiveKeyError = declareShapeError('BuiltinImplNotPrimitiveKeyError',
+  ({ actualType }) =>
+    `::builtin descriptor :impl must be a :qlang/prim/<name> handle keyword, got ${actualType.name}`);
 
 // stampStructuralFacts(descriptor, fn) → descriptor (mutated in place)
 //
 // Mint-site shared between every site that resolves a `::builtin{
 // :impl :qlang/prim/<name>}` descriptor against a JS function
-// value: swaps `:impl` for the callable, stamps `:captured` /
-// `:effectful` straight off the resolved function's meta, and
-// backfills empty `:modifiers` / `:throws` Vecs when the catalog
-// author omitted them. The descriptor Map is a freshly-built
+// value: stamps the callable onto the `BUILTIN_IMPL_SLOT` slot,
+// leaves the author's handle keyword on `:impl` for readers, stamps
+// `:captured` / `:effectful` straight off the resolved function's
+// meta, and backfills empty `:modifiers` / `:throws` Vecs when the
+// catalog author omitted them. The descriptor Map is a freshly-built
 // JS-layer construction-site value at this point (still inside
 // the bootstrap fill loop, not yet observable via any other env
 // key), so direct `.set` ceremony is the qlang-side equivalent
 // of stamping a fresh value at the factory boundary.
 export function stampStructuralFacts(descriptor, fn) {
-  descriptor.set('impl', fn);
+  stampBuiltinImpl(descriptor, fn);
   descriptor.set('captured', [...fn.meta.captured]);
   descriptor.set('effectful', fn.effectful);
   if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
@@ -58,14 +81,14 @@ export function stampStructuralFacts(descriptor, fn) {
 // manifestBuiltinDescriptor(rawDescriptor, name) → Map
 //
 // Builds the manifest-shape descriptor from a raw env descriptor.
-// Strips internal `:impl`, stamps `:kind ::builtin` as an explicit
-// enum-bucket field (so `manifest | filter(/kind | eq(::builtin))`
-// partitions identically to `manifest | filter(type | eq(::builtin))`
-// — the field is the view-Map's plain-JSON projection of the
-// identity that rides on the env entry's JS-header slot), and
-// copies every structural fact through (`:captured` / `:effectful`
-// / `:category` / `:subject` / `:modifiers` / `:returns` /
-// `:throws`, all stamped on the env entry at bootstrap).
+// Stamps `:kind ::builtin` as an explicit enum-bucket field (so
+// `manifest | filter(/kind | eq(::builtin))` partitions identically
+// to `manifest | filter(type | eq(::builtin))` — the field is the
+// view-Map's plain-JSON projection of the identity that rides on the
+// env entry's JS-header slot), and copies every structural fact
+// through (`:impl` handle keyword / `:captured` / `:effectful` /
+// `:category` / `:subject` / `:modifiers` / `:returns` / `:throws`,
+// all stamped on the env entry at bootstrap).
 export function manifestBuiltinDescriptor(rawDescriptor, name) {
   const result = new Map();
   result.set('kind', BUILTIN_TAG);
@@ -73,8 +96,28 @@ export function manifestBuiltinDescriptor(rawDescriptor, name) {
   // `name`, so every descriptor carries one.
   result.set('name', name);
   for (const [fieldKey, fieldVal] of rawDescriptor) {
-    if (fieldKey === 'impl') continue;
     result.set(fieldKey, fieldVal);
   }
   return result;
+}
+
+// resolveBuiltinImpl(descriptor) → function value
+//
+// Dispatch-side reader for a `::builtin` descriptor's callable. The
+// bootstrap stamp answers for every catalog entry and every
+// host-supplied impl the `use`-locator pass resolved; a descriptor a
+// query assembled from data (`::builtin{:impl :qlang/prim/count} |
+// as(:c)`) carries the handle keyword alone and walks the registry
+// here, so a descriptor built as data dispatches like a catalog one.
+export function resolveBuiltinImpl(descriptor) {
+  const stampedImpl = builtinImplOf(descriptor);
+  if (stampedImpl !== undefined) return stampedImpl;
+  const implHandle = descriptor.get('impl');
+  if (!isKeyword(implHandle)) {
+    throw new BuiltinImplNotPrimitiveKeyError({
+      actualType: typeKeyword(implHandle),
+      actualValue: implHandle
+    });
+  }
+  return PRIMITIVE_REGISTRY.resolve(implHandle.name);
 }

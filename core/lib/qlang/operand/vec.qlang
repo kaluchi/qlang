@@ -317,9 +317,10 @@
       Polymorphic — same shape as subject. The comparator receives
       a pair Map {:left a :right b} and must return a number:
       negative places left before right, positive places right
-      before left, zero preserves relative order (stable sort).
-      Pair with asc/desc/firstNonZero for declarative compound
-      comparators.
+      before left, zero preserves relative order. The sort is a
+      stable merge sort: the comparator fires at most n·⌈log₂ n⌉
+      times. Pair with asc/desc/firstNonZero for declarative
+      compound comparators.
 
       ~{[3 1 2] | sortWith(sub(/left, /right)) | eq([1 2 3])}
   ~~|
@@ -328,7 +329,9 @@
             :subject [:vec :set]
             :returns [:vec :set]
             :modifiers [:comparatorLambda]
-            :throws [::SortWithSubjectNotSequenceError ::SortWithCmpResultNotNumberError]}
+            :throws [::SortWithSubjectNotSequenceError
+                     ::SortWithCmpResultNotNumberError
+                     ::SortWithCmpResultNaNError]}
 
 ::SortWithSubjectNotSequenceError
   |~~ Subject of `sortWith` must be Vec or Set.
@@ -346,6 +349,24 @@
         [1 2] | sortWith(:tag)
         !| [type /actualType]
         |  eq([::SortWithCmpResultNotNumberError :keyword])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :sortWith :expectedType :number}
+
+::SortWithCmpResultNaNError
+  |~~ `sortWith` comparator answered NaN, which orders no pair —
+      every comparison against it reads false, so the run order
+      would come out of a comparison the comparator declined to
+      make. Float overflow reaches NaN from ordinary arithmetic
+      (`0 | mul(1e400)`), so a key expression that multiplies
+      through an infinity lands here rather than silently
+      reshuffling.
+
+      ~{
+        [{:a 1} {:a 2}]
+        |  sortWith(sub(mul(/left/a, 1e400), mul(/right/a, 1e400)))
+        !| [type /actualType]
+        |  eq([::SortWithCmpResultNaNError :number])
        }
   ~~|
   ::builtin{:category :typeError :operand :sortWith :expectedType :number}

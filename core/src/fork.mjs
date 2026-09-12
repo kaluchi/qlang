@@ -1,27 +1,28 @@
 // Fork semantics.
 //
 // On entry to a nested expression — `(...)`, `[...]`, `{...}`,
-// `#[...]` — the inner sub-pipeline starts with a copy of the
-// outer state. When the sub-pipeline finishes, its final
-// pipeValue propagates out, but its env changes are discarded.
+// `#[...]` — the inner sub-pipeline starts from the outer state.
+// When the sub-pipeline finishes, its final pipeValue propagates
+// out, but its env changes are discarded.
 //
-// "Copy" here is structural: the env Map is shared by reference
-// (immutable from the user's perspective; envSet returns a new
-// Map). What matters is that the OUTER state is preserved when
-// the fork closes — we throw away the inner state object.
+// States are frozen and every step forges a fresh one, so the
+// outer State object survives the inner run untouched; the fork
+// closes by lifting the inner pipeValue onto that outer State and
+// dropping the inner State. A fork stays on the outer frame: the
+// depth budget counts conduit bodies, captured-arg lambdas, and
+// re-entry seams, while a nested literal or paren-group is bounded
+// by the source text.
 
-import { makeState, withPipeValue } from './state.mjs';
+import { withPipeValue } from './state.mjs';
 
 // fork(state, sub) → Promise<state'>
 //
-// Runs `sub(innerState)` starting from a copy of `state`. Whatever
-// pipeValue the sub returns becomes the new pipeValue of the outer
-// state; the outer env is preserved.
+// Runs `sub(state)`. Whatever pipeValue the sub returns becomes the
+// new pipeValue of the outer state; the outer env is preserved.
 //
 // `sub` is a function (innerState) → Promise<finalInnerState>.
 export async function fork(state, sub) {
-  const innerStart = makeState(state.pipeValue, state.env);
-  const innerEnd = await sub(innerStart);
+  const innerEnd = await sub(state);
   return withPipeValue(state, innerEnd.pipeValue);
 }
 
@@ -31,7 +32,6 @@ export async function fork(state, sub) {
 // supplied value (used by `*` distribute, where each iteration's
 // inner pipeValue is a Vec element drawn from the outer Vec).
 export async function forkWith(state, forkPipeValue, sub) {
-  const innerStart = makeState(forkPipeValue, state.env);
-  const innerEnd = await sub(innerStart);
+  const innerEnd = await sub(withPipeValue(state, forkPipeValue));
   return withPipeValue(state, innerEnd.pipeValue);
 }

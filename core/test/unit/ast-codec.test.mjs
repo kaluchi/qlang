@@ -257,6 +257,10 @@ describe('astNodeToMap — discriminator and shape', () => {
     const steps = m.get(KW_STEPS);
     expect(steps[0].get(KW_STEP).get(KW_KIND).name).toBe('BlockPlainComment');
     expect(steps[0].get(KW_STEP).get(KW_CONTENT)).toBe(' rationale ');
+    // The absorbed follower carries `:combinator null`; the explicit
+    // `| count` keeps its token.
+    expect(steps[1].get(KW_COMBINATOR)).toBe(null);
+    expect(steps[2].get(KW_COMBINATOR)).toBe('|');
   });
 
   it('preserves BindStep :docs on doc-attached bindings', () => {
@@ -473,7 +477,7 @@ describe('round-trip — BindStep declarative form', () => {
 });
 
 describe('round-trip — error track and fail-apply', () => {
-  it('error literal', () => assertRoundTrip('!{:kind :oops :trail []}'));
+  it('error literal', () => assertRoundTrip('!{:kind :oops :trail ~{| count}}'));
   it('fail-apply on error literal', () => assertRoundTrip('!{:kind :oops} | count !| /kind'));
   it('deflect then fail-apply', () =>
     assertRoundTrip('"hello" | add(1) | mul(2) !| /trail'));
@@ -486,6 +490,10 @@ describe('round-trip — comments', () => {
     assertRoundTrip('[1 2 3] |~| short note\n| count'));
   it('block plain comment mid-pipeline', () =>
     assertRoundTrip('[1 2 3] |~ rationale ~| filter(gt(1))'));
+  it('block plain comment in head position with an absorbed follower', () =>
+    assertRoundTrip('|~ rationale ~| [1 2 3] | count'));
+  it('block plain comment in head position with an explicit combinator', () =>
+    assertRoundTrip('(|~ rationale ~| * add(1))'));
   it('line doc comment attached to BindStep', () =>
     assertRoundTrip('|~~| first remark\n:double mul(2)'));
   it('block doc comment attached to BindStep', () =>
@@ -525,9 +533,9 @@ describe('round-trip — realistic queries', () => {
 
 describe('AST-Map semantic properties for trail use', () => {
   it('every step inside a pipeline is individually addressable', () => {
-    // This is the target shape for structured :trail: each deflected
-    // step becomes an entry in the trail Vec, and downstream code
-    // needs to read :name / :args / :location without knowing the
+    // This is the shape `/trail | /ast | /steps` hands back: each
+    // deflected step is one entry, and downstream code reads
+    // :name / :args / :location off it without knowing the
     // specific kind ahead of time.
     const m = astNodeToMap(parse('[1 2 3] | filter(gt(2)) | count'));
     const steps = m.get(KW_STEPS);

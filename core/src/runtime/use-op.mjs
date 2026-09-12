@@ -26,7 +26,7 @@
 
 import { stateOpVariadic } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { makeState, envMerge } from '../state.mjs';
+import { withEnv, nestState, envMerge } from '../state.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
@@ -44,8 +44,6 @@ const UseNamespaceNotKeywordError = declareShapeError('UseNamespaceNotKeywordErr
   ({ actualType }) => `use(:namespace) requires a keyword, got ${actualType.name}`);
 const UseNamespaceNotFoundError = declareShapeError('UseNamespaceNotFoundError',
   ({ namespaceName }) => `use: namespace '${namespaceName}' not found in env`);
-const UseNamespaceNotMapError = declareShapeError('UseNamespaceNotMapError',
-  ({ namespaceName, actualType }) => `use: namespace '${namespaceName}' is ${actualType.name}, expected Map`);
 const UseNamespaceElementNotKeywordError = declareShapeError('UseNamespaceElementNotKeywordError',
   ({ index, actualType }) => `use: element ${index} of namespace list must be a keyword, got ${actualType.name}`);
 const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError',
@@ -58,7 +56,7 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
     if (!isQMap(state.pipeValue)) {
       throw new UseSubjectNotMapError(state.pipeValue);
     }
-    return makeState(state.pipeValue, envMerge(state.env, state.pipeValue));
+    return withEnv(state, envMerge(state.env, state.pipeValue));
   }
 
   const useArg = await useLambdas[0](state.pipeValue);
@@ -77,35 +75,39 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
   return await importSelectiveNamespace(state, useArg, useSelection);
 }, [0, 2]);
 
-// resolveNamespaceEnv(outerEnv, nsKeyword) → [moduleEnv, updatedOuterEnv]
+// resolveNamespaceEnv(callerState, outerEnv, nsKeyword) → [moduleEnv, updatedOuterEnv]
 //
 // Looks up the namespace keyword in env. When absent, falls back
 // to the host-provided locator (stored under `:qlang/locator` in
 // env by `createSession`). The locator parses and evals the module
-// source, patches `:impl` on builtin descriptors with the
-// impls from the locator result, and installs the namespace
-// keyword in env for subsequent lookups. Returns the resolved
-// `moduleEnv` paired with the env that holds the freshly-installed
-// namespace binding so the caller threads it forward.
-async function resolveNamespaceEnv(outerEnv, nsKeyword) {
-  // Two cache keys for namespace lookup. `session.bind(:ns, map)`
-  // and `installModules(catalog)` write under the bare keyword name
-  // (`<ns>`); the language-level locator caches its own loads under
-  // a separate prefix (`qlang/namespace/<ns>`) so `manifest` can
-  // skip those entries without filtering user-installed namespaces.
-  const bareKey  = nsKeyword.name;
+// source one frame below `callerState` — a module that `use`s itself
+// descends a frame per load until the depth budget lifts
+// `EvaluationDepthExceededError` — patches `:impl` on builtin
+// descriptors with the impls from the locator result, and installs
+// the namespace keyword in env for subsequent lookups. Returns the
+// resolved `moduleEnv` paired with the env that holds the
+// freshly-installed namespace binding so the caller threads it
+// forward; `outerEnv` is that evolving env, which walks ahead of
+// `callerState.env` across a multi-namespace import.
+async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
+  // Two lookup keys for a namespace. A host `session.bind(:ns, map)`
+  // lands under the bare keyword name (`<ns>`); the language-level
+  // locator and `installModules(catalog)` both write under the
+  // namespace cache key (`qlang/namespace/<ns>`), which `manifest`
+  // filters out of its enumeration and which never collides with an
+  // operand name on the identifier-lookup plane.
   const cacheKey = moduleNamespaceKey(nsKeyword.name);
-  for (const key of [bareKey, cacheKey]) {
-    if (!outerEnv.has(key)) continue;
-    const moduleEnv = outerEnv.get(key);
-    if (!isQMap(moduleEnv)) {
-      throw new UseNamespaceNotMapError({
-        namespaceName: nsKeyword.name,
-        actualType: typeKeyword(moduleEnv)
-      });
-    }
-    return [moduleEnv, outerEnv];
-  }
+  if (outerEnv.has(cacheKey)) return [outerEnv.get(cacheKey), outerEnv];
+
+  // A host-installed namespace is a header-less Map under the bare
+  // name. Every other binding there — an operand descriptor
+  // (`use(:count)`), a conduit (`use(:double)`), a snapshot, a
+  // scalar or function a host bound — sits on the identifier plane,
+  // so the probe walks past it to the locator: merging a tagged Map
+  // would spill `:impl` / `:envRef` / `:payload` slots into env as
+  // bindings.
+  const hostBound = outerEnv.get(nsKeyword.name);
+  if (isQMap(hostBound) && hostBound[TAG_HEADER_SYMBOL] === undefined) return [hostBound, outerEnv];
 
   const locatorFn = outerEnv.get(RUNTIME_LOCATOR_KEY);
   if (!locatorFn) {
@@ -122,7 +124,7 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
   // delta is picked up below as a fallback when pipeValue is not a
   // Map.
   const moduleAst = parseSource(locatorResult.source, { uri: nsKeyword.name });
-  const moduleEvalState = makeState(outerEnv, outerEnv);
+  const moduleEvalState = nestState(callerState, outerEnv, outerEnv);
   const moduleResultState = await evalAst(moduleAst, moduleEvalState);
 
   // Export surface = env delta. A module exports any binding it
@@ -189,8 +191,8 @@ async function resolveNamespaceEnv(outerEnv, nsKeyword) {
 }
 
 async function importSingleNamespace(state, nsKeyword) {
-  const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state.env, nsKeyword);
-  return makeState(state.pipeValue, envMerge(updatedEnv, moduleEnv));
+  const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, state.env, nsKeyword);
+  return withEnv(state, envMerge(updatedEnv, moduleEnv));
 }
 
 async function importOrderedNamespaces(state, namespaces) {
@@ -200,10 +202,10 @@ async function importOrderedNamespaces(state, namespaces) {
     if (!isKeyword(ns)) {
       throw new UseNamespaceElementNotKeywordError({ index: i, actualType: typeKeyword(ns) });
     }
-    const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(currentEnv, ns);
+    const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, currentEnv, ns);
     currentEnv = envMerge(updatedEnv, moduleEnv);
   }
-  return makeState(state.pipeValue, currentEnv);
+  return withEnv(state, currentEnv);
 }
 
 async function importCollisionStrictNamespaces(state, namespaces) {
@@ -211,7 +213,7 @@ async function importCollisionStrictNamespaces(state, namespaces) {
   const origins = new Map();
   let accumulatedEnv = state.env;
   for (const ns of namespaces) {
-    const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(accumulatedEnv, ns);
+    const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, accumulatedEnv, ns);
     accumulatedEnv = updatedEnv;
     for (const [k, v] of moduleEnv) {
       if (merged.has(k)) {
@@ -224,11 +226,11 @@ async function importCollisionStrictNamespaces(state, namespaces) {
       origins.set(k, ns.name);
     }
   }
-  return makeState(state.pipeValue, envMerge(accumulatedEnv, merged));
+  return withEnv(state, envMerge(accumulatedEnv, merged));
 }
 
 async function importSelectiveNamespace(state, nsKeyword, selection) {
-  const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state.env, nsKeyword);
+  const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, state.env, nsKeyword);
   const names = isQSet(selection) ? [...selection] : isVec(selection) ? selection : [selection];
   const filtered = new Map();
   for (const name of names) {
@@ -241,7 +243,7 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
     }
     filtered.set(nameStr, moduleEnv.get(nameStr));
   }
-  return makeState(state.pipeValue, envMerge(updatedEnv, filtered));
+  return withEnv(state, envMerge(updatedEnv, filtered));
 }
 
 bindPrim('use', use);

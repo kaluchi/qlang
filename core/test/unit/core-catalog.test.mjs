@@ -13,7 +13,8 @@
 // throws) and doc-comment-prefix-attached `.docs`. `langRuntime()`
 // evaluates the chain once at startup, resolves every `:impl
 // :qlang/prim/<name>` handle through the JS-side registry bound at
-// module load, and seals the registry. This is the single source
+// module load onto the descriptor's `BUILTIN_IMPL_SLOT` JS-header
+// slot, and seals the registry. This is the single source
 // of truth for the bound env.
 //
 // (The descriptor Map's identity rides on the JS-header
@@ -33,7 +34,8 @@
 //      prefixed `qlang/prim/`.
 //   4. Every :impl keyword resolves to a real primitive in
 //      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
-//      module-load side effects).
+//      module-load side effects) and the resolved callable rides
+//      the descriptor's `BUILTIN_IMPL_SLOT` slot.
 //   5. Doc-comment prefixes have folded into `.docs` Vecs on each
 //      `BindStep`'s AST node attached by grammar's `DocPrefix` /
 //      `DocAttachedSequence` rules and reachable through the
@@ -42,7 +44,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeTagKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
+import { keyword, isKeyword, isQMap, isVec, makeTagKeyword, builtinImplOf, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
 import { isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
@@ -122,19 +124,24 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     }
   });
 
-  it('every entry carries a :impl function value resolved from PRIMITIVE_REGISTRY', async () => {
+  it('every entry keeps its :impl handle keyword and carries the resolved callable on the JS-header slot', async () => {
     // langRuntime() runs the resolution pass over every builtin
-    // descriptor before returning, so :impl arrives at
-    // user-side as the live function value (not a keyword handle).
-    // The naming convention — function value's .name matches the
-    // operand name — keeps the dispatch target identifiable.
+    // descriptor before returning: the callable lands on the
+    // `BUILTIN_IMPL_SLOT` JS-header slot while `:impl` keeps the
+    // author's `:qlang/prim/<name>` handle keyword, so the data
+    // plane a query projects stays qlang-only. The naming
+    // convention — callable's .name matches the operand name —
+    // keeps the dispatch target identifiable.
     const coreEnv = await evalCore();
 
     for (const [entryKey, entryVal] of coreEnv) {
-      const impl = entryVal.get('impl');
-      expect(impl, `entry :${entryKey} missing :impl`).toBeDefined();
-      expect(typeof impl).toBe('object');
-      expect(impl.name, `entry :${entryKey} :impl resolves to function with mismatched name`)
+      const implHandle = entryVal.get('impl');
+      expect(isKeyword(implHandle), `entry :${entryKey} :impl is not a handle keyword`).toBe(true);
+      expect(implHandle.name, `entry :${entryKey} :impl handle names another primitive`)
+        .toBe(`qlang/prim/${entryKey}`);
+      const callable = builtinImplOf(entryVal);
+      expect(callable, `entry :${entryKey} carries no callable on BUILTIN_IMPL_SLOT`).toBeDefined();
+      expect(callable.name, `entry :${entryKey} callable has a mismatched name`)
         .toBe(entryKey);
     }
   });
@@ -160,7 +167,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(isQMap(addDescriptor)).toBe(true);
     expect(addDescriptor.get('category')).toEqual(keyword('arith'));
     expect(addDescriptor.get('subject')).toEqual(keyword('number'));
-    const impl = addDescriptor.get('impl');
+    const impl = builtinImplOf(addDescriptor);
     expect(impl.name).toBe('add');
     expect(impl.arity).toBe(2);
   });
@@ -171,7 +178,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     const filterDescriptor = resolved.get('filter');
     expect(filterDescriptor.get('category')).toEqual(keyword('containerSelector'));
     expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicateLambda')]);
-    const impl = filterDescriptor.get('impl');
+    const impl = builtinImplOf(filterDescriptor);
     expect(impl.name).toBe('filter');
   });
 
@@ -179,7 +186,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
     expect(resolved.get('as').get('category')).toEqual(keyword('reflective'));
-    const asImpl = resolved.get('as').get('impl');
+    const asImpl = builtinImplOf(resolved.get('as'));
     expect(asImpl.name).toBe('as');
   });
 });
@@ -287,6 +294,26 @@ describe('format.toPlain refuses a raw function value — round-trip invariant',
     const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
     const fn = makeFn('exoticFn', 1, (state) => state, { captured: [0, 0] });
     expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrintError);
+  });
+});
+
+describe('lib/qlang/core.qlang — namespace sizes', () => {
+  // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
+  // throw site with its tag and each tag with its throw site, but the
+  // six tags minted outside a per-site factory (`::Error`,
+  // `::ParseError`, and the four value-class constructors) pass both
+  // axes whether or not they exist — axis 1 never names them and
+  // axis 2 skips a name absent from `manifest(:tag)`. These pins fail
+  // on a silent catalog shrink; per §8a of the review rules a tally
+  // belongs in test code, which CI re-verifies, and never in prose.
+  it('the tag namespace holds every declared tag-binding', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('manifest(:tag) | count')).toBe(179);
+  });
+
+  it('the value namespace holds every declared operand', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('manifest | count')).toBe(91);
   });
 });
 

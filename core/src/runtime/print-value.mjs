@@ -28,11 +28,9 @@ import {
   isErrorValue,
   isFunctionValue,
   describeType,
-  keyword,
   TAG_HEADER_SYMBOL,
   FunctionValueLeakedToPrintError
 } from '../types.mjs';
-import { primKey } from '../primitives.mjs';
 
 // `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`
 // — shared kind-dispatcher. Guards against raw qlang function
@@ -65,24 +63,6 @@ export function escapeQlangStringLiteral(s) {
 }
 
 export function literalOfKeyword(k) { return k.literal; }
-
-// `:impl` carries the post-bootstrap-resolved function value on a
-// builtin descriptor Map. The author-form (the keyword shape that
-// lives in the operand-family catalog and that langRuntime
-// resolves at boot) is `:qlang/prim/<name>`. printValue projects
-// the function back to that keyword form here so descriptor Maps
-// in pipeValue round-trip through parse → MapLit → eval into an
-// equivalent Map. The Function-leak invariant still fires for any
-// function value that surfaces outside this single slot — `env |
-// /count | /impl` strips the descriptor and feeds the raw function
-// into printValue, which is the actual leak surface we want
-// flagged.
-export function projectMapEntryForPrint(k, v) {
-  if (k === 'impl' && isFunctionValue(v)) {
-    return [k, keyword(primKey(v.name))];
-  }
-  return [k, v];
-}
 
 // printValue(v, indent?) → qlang literal string
 //
@@ -269,7 +249,7 @@ function printTaggedInstance(instance, indent) {
 }
 
 function printMapLike(open, m, indent) {
-  const entries = [...m].map(([k, v]) => projectMapEntryForPrint(k, v));
+  const entries = [...m];
   // Inline only when the Map is small AND every value is a flat
   // scalar — a nested Map / Vec / Set / Error forces multi-line
   // so deeply-nested structures unfold one entry per row instead

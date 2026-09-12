@@ -103,4 +103,4 @@
   |~~ `@tap` label must be a Keyword — use `:foo` not `"foo"`
       so the prefix renders as `[tap foo]` consistent with the
       keyword's grammatical form. ~~|
-  ::builtin{:category :typeError :operand :@tap :expectedType :keyword}
+  ::builtin{:category :typeError :operand :@tap :position 2 :expectedType :keyword}

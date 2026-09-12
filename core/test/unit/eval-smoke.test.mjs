@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
-import { makeState } from '../../src/state.mjs';
+import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('eval — literals', () => {
@@ -177,7 +177,7 @@ describe('eval.mjs unknown node type', () => {
   it('throws on unknown AST node', async () => {
     const fakeNode = { type: 'BogusNode' };
     const runtimeEnv = await langRuntime();
-    const state = makeState(null, runtimeEnv);
+    const state = rootState(null, runtimeEnv);
     await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
   });
 });
@@ -192,7 +192,7 @@ describe('eval.mjs unknown combinator', () => {
       ]
     };
     const runtimeEnv = await langRuntime();
-    const state = makeState(null, runtimeEnv);
+    const state = rootState(null, runtimeEnv);
     await expect(evalAst(ast, state)).rejects.toThrow(/unknown combinator/);
   });
 });
@@ -272,7 +272,7 @@ describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () 
     // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
     const ast = { type: 'OperandCall', name: 'count', args: null, location: null };
     const runtimeEnv = await langRuntime();
-    const state = makeState([1, 2, 3], runtimeEnv);
+    const state = rootState([1, 2, 3], runtimeEnv);
     const evalResult = await evalAst(ast, state);
     const result = evalResult.pipeValue;
     expect(result).toBe(3);

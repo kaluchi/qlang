@@ -73,7 +73,7 @@ import './axis.mjs';
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
-import { makeState } from '../state.mjs';
+import { rootState } from '../state.mjs';
 import { keyword, makeQuote, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
@@ -159,7 +159,7 @@ export async function buildLangRuntime(locator) {
   if (rootResult === null) throw new BootstrapRootMissingError();
   const coreSource = rootResult.source;
   const coreAst = parse(coreSource, { uri: 'qlang/core' });
-  const bootstrapState = makeState(null, seedEnv);
+  const bootstrapState = rootState(null, seedEnv);
   const bootstrapResult = await evalAst(coreAst, bootstrapState);
   const templateEnv = bootstrapResult.env;
 

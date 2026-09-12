@@ -1,6 +1,6 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { classifyEffect } from './effect.mjs';
-import { QlangInvariantError } from './errors.mjs';
+import { QlangInvariantError, QlangTypeError } from './errors.mjs';
 import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 
 // Conduit body must carry a `.text` source slice — every production
@@ -23,22 +23,20 @@ export class ConduitBodyMissingSourceError extends QlangInvariantError {
   }
 }
 
-// Function values (`makeFn` output) are runtime-internal: they live on
-// `:impl` of builtin descriptor Maps and as conduitParameter proxies
-// reachable through the manifest descriptor's `:category :conduitParameter`
-// field when a conduit body's env enumerates. They
-// have no grammatical literal — the only candidate render form
-// (`:qlang/prim/${name}`) parses back as a keyword value on the next
-// `eval`. Surfacing a function value in pipeValue therefore violates
-// printValue's round-trip theorem. The invariant fires at render-time
-// so the leak surface (typically a descriptor Map walked by `env |
-// /count`, or a host binding mounted through `session.bind` carrying
-// a raw function) surfaces by name and routes through the descriptor-
-// Map ceremony.
+// Function values (`makeFn` output) are runtime-internal: a catalog
+// descriptor carries its callable on the `BUILTIN_IMPL_SLOT`
+// JS-header slot, and conduitParameter proxies live for the duration
+// of a conduit body fork. They have no grammatical literal — the only
+// candidate render form (`:qlang/prim/${name}`) parses back as a
+// keyword value on the next `eval`. Surfacing a function value in
+// pipeValue therefore violates printValue's round-trip theorem. The
+// invariant fires at render time, so a host binding mounted through
+// `session.bind` carrying a raw callable surfaces by name and routes
+// through the locator's `impls` map instead.
 export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   constructor() {
     super(
-      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Wrap host operands in a descriptor Map carrying :impl with identity stamped on the JS-header (stampTagHeader(map, BUILTIN_TAG)) before binding through session.bind — see bindHostBuiltin in cli/src/host-builtin.mjs.',
+      'printValue/toPlain: function value reached render — function values must not surface in pipeValue. Install a host operand through a locator returning { source, impls } so the namespace pass stamps the callable onto the descriptor\'s BUILTIN_IMPL_SLOT (see cli/src/cli-locator.mjs); a raw callable handed to session.bind carries no qlang literal.',
       {}
     );
     this.name = 'FunctionValueLeakedToPrintError';
@@ -345,9 +343,70 @@ export function makeDoc(content) {
 export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');
 
 export function stampTagHeader(m, tag) {
-  Object.defineProperty(m, TAG_HEADER_SYMBOL, {
-    value: tag, enumerable: false, configurable: false, writable: false
+  stampSlot(m, TAG_HEADER_SYMBOL, tag);
+}
+
+// ── JS-internal slots — the data plane stays qlang-only ───────
+//
+// Four structures ride a binding Map without a qlang literal
+// behind them: a Conduit's body AST node, the lexical `envRef`
+// holder its tie-the-knot mutates, the peggy declaration site,
+// and the resolved JS function value a catalog `::builtin`
+// descriptor dispatches through. Each lands on a non-enumerable
+// Symbol slot — the channel `TAG_HEADER_SYMBOL` / `JSON_OBJECT_TAG`
+// already use — so `keys`, `/key` projection, `printValue`,
+// `toPlain`, and `toTaggedJSON` see a data plane of qlang values
+// alone: `:name`, `:params`, `:source` (a Quote of the body),
+// `:docs`, `:effectful`, `:payload`, plus the
+// `:impl :qlang/prim/<name>` handle keyword the catalog author
+// wrote.
+//
+// The accessors below are the only readers. A dispatch site that
+// reaches for `descriptor.get('impl')` gets the author's handle
+// keyword; `builtinImplOf` gets the callable.
+
+export const CONDUIT_BODY_SLOT     = Symbol('qlang/conduitBody');
+export const CONDUIT_ENV_REF_SLOT  = Symbol('qlang/conduitEnvRef');
+export const DECLARATION_SITE_SLOT = Symbol('qlang/declarationSite');
+export const BUILTIN_IMPL_SLOT     = Symbol('qlang/builtinImpl');
+
+function stampSlot(target, slot, value) {
+  Object.defineProperty(target, slot, {
+    value, enumerable: false, configurable: false, writable: false
   });
+}
+
+// Body AST of a Conduit — `applyConduit` evaluates it, `withName`
+// re-mints from it, `printConduit` reads the `:source` Quote the
+// factory forged off its `.text` slice.
+export function conduitBodyAst(conduit) {
+  return conduit[CONDUIT_BODY_SLOT];
+}
+
+// Lexical scope anchor of a Conduit. The holder object is shared
+// with the construction site so the declaration-time env lands on
+// `.env` after the binding itself is in place (tie-the-knot).
+export function conduitEnvRef(conduit) {
+  return conduit[CONDUIT_ENV_REF_SLOT];
+}
+
+// peggy location of the BindStep / `as` call that declared the
+// binding. `manifest`'s `describeBinding` lifts it into the
+// qlang-Map form through `locationToQlangMap` for the `:location`
+// field of the view-Map.
+export function declarationSiteOf(binding) {
+  return binding[DECLARATION_SITE_SLOT];
+}
+
+// Resolved function value of a catalog `::builtin` descriptor,
+// stamped by `stampStructuralFacts` at bootstrap (and by the
+// `use`-locator namespace pass for host-supplied impls).
+export function builtinImplOf(descriptor) {
+  return descriptor[BUILTIN_IMPL_SLOT];
+}
+
+export function stampBuiltinImpl(descriptor, fn) {
+  stampSlot(descriptor, BUILTIN_IMPL_SLOT, fn);
 }
 
 // Pre-computed TagKeyword constants for runtime-internal
@@ -374,13 +433,13 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [],
   const m = new Map();
   m.set('name', name);
   m.set('params', Object.freeze(params.map(p => typeof p === 'string' ? keyword(p) : p)));
-  m.set('body', body);
   m.set('source', makeQuote(body.text, body));
-  m.set('envRef', envRef);
   m.set('docs', Object.freeze([...docs]));
-  m.set('location', location);
   m.set('effectful', classifyEffect(name));
   stampTagHeader(m, CONDUIT_TAG);
+  stampSlot(m, CONDUIT_BODY_SLOT, body);
+  stampSlot(m, CONDUIT_ENV_REF_SLOT, envRef);
+  stampSlot(m, DECLARATION_SITE_SLOT, location);
   return m;
 }
 
@@ -391,9 +450,9 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
   m.set('name', name);
   m.set('payload', value);
   m.set('docs', Object.freeze([...docs]));
-  m.set('location', location);
   m.set('effectful', classifyEffect(name));
   stampTagHeader(m, SNAPSHOT_TAG);
+  stampSlot(m, DECLARATION_SITE_SLOT, location);
   return m;
 }
 
@@ -492,19 +551,19 @@ export function withName(binding, newName) {
   if (isConduit(binding)) {
     // Pass the original body through — makeConduit re-stamps
     // source from body.text under the new name.
-    return makeConduit(binding.get('body'), {
+    return makeConduit(conduitBodyAst(binding), {
       name: newName,
       params: [...binding.get('params')],
-      envRef: binding.get('envRef'),
+      envRef: conduitEnvRef(binding),
       docs: [...binding.get('docs')],
-      location: binding.get('location')
+      location: declarationSiteOf(binding)
     });
   }
   if (isSnapshot(binding)) {
     return makeSnapshot(binding.get('payload'), {
       name: newName,
       docs: [...binding.get('docs')],
-      location: binding.get('location')
+      location: declarationSiteOf(binding)
     });
   }
   return binding;
@@ -537,9 +596,32 @@ export const COMBINATOR_SYNTAX = Object.freeze({
   merge:      '>>'
 });
 
+// `:trail` is runtime-owned: a Quote-value carrying the joined
+// pipeline-suffix source, or `null` before any deflection. A
+// literal (`!{:trail [1 2]}`) or a re-lift (`!| union({:trail []})
+// | error`) that stamps any other value under `:trail` fires this
+// error at mint time, so `combineTrailQuotes` never reads `.source`
+// off a non-Quote and the fail-track never carries a suffix that
+// `apply` cannot replay. Dropping an accumulated suffix before
+// re-lift stamps `:trail null`.
+export class ErrorTrailNotQuoteError extends QlangTypeError {
+  constructor(actualValue) {
+    const actualType = typeKeyword(actualValue);
+    super(
+      `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
+      { actualType, actualValue }
+    );
+    this.name = 'ErrorTrailNotQuoteError';
+    this.fingerprint = 'ErrorTrailNotQuoteError';
+  }
+}
+
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
-  if (!descriptor.has('trail')) {
+  if (descriptor.has('trail')) {
+    const trail = descriptor.get('trail');
+    if (trail !== null && !isQuote(trail)) throw new ErrorTrailNotQuoteError(trail);
+  } else {
     finalDescriptor = new Map(descriptor);
     finalDescriptor.set('trail', null);
   }

@@ -33,62 +33,62 @@ function captureRepl(scriptedInput) {
 
 describe('runRepl — meta commands', () => {
   it('closes on ~{.exit} and resolves to exit code 0', async () => {
-    const r = captureRepl('.exit\n');
-    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('.exit\n');
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
   });
 
   it('writes the help banner on ~{.help} and stays open until EOF', async () => {
-    const r = captureRepl('.help\n');
-    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('.help\n');
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(r.stdoutText()).toMatch(/Meta commands:/);
-    expect(r.stdoutText()).toMatch(/\.exit/);
+    expect(replHarness.stdoutText()).toMatch(/Meta commands:/);
+    expect(replHarness.stdoutText()).toMatch(/\.exit/);
   });
 
   it('skips empty lines and reprompts without evaluating', async () => {
-    const r = captureRepl('\n\n.exit\n');
-    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('\n\n.exit\n');
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(r.stderrText()).toBe('');
+    expect(replHarness.stderrText()).toBe('');
   });
 });
 
 describe('runRepl — query evaluation', () => {
   it('auto-prints the success-track value of a single cell', async () => {
-    const r = captureRepl('[1 2 3] | count\n.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(stripAnsi(r.stdoutText())).toMatch(/3/);
+    const replHarness = captureRepl('[1 2 3] | count\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/3/);
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const r = captureRepl(':double mul(2)\n10 | double\n.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(stripAnsi(r.stdoutText())).toMatch(/20/);
+    const replHarness = captureRepl(':double mul(2)\n10 | double\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
 
   it('auto-prints a fail-track error value on stderr (still exit 0 on close)', async () => {
-    const r = captureRepl('[1 2 3] | add(1)\n.exit\n');
-    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('[1 2 3] | add(1)\n.exit\n');
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(stripAnsi(r.stderrText())).toMatch(/!\{/);
+    expect(stripAnsi(replHarness.stderrText())).toMatch(/!\{/);
   });
 
   it('materializes trail in error display without explicit !|', async () => {
-    const r = captureRepl('"hello" | add(1) | mul(2) | sub(3)\n.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    const text = stripAnsi(r.stderrText());
+    const replHarness = captureRepl('"hello" | add(1) | mul(2) | sub(3)\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    const text = stripAnsi(replHarness.stderrText());
     expect(text).toMatch(/:trail/);
     expect(text).toMatch(/mul/);
     expect(text).toMatch(/sub/);
   });
 
   it('writes a structured ::ParseError!{…} diagnostic on stderr for parse failures', async () => {
-    const r = captureRepl('[1 2\n.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('[1 2\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // REPL paints output with ANSI colour codes — strip before
     // matching the structural shape.
-    const text = r.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
+    const text = replHarness.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
     expect(text).toContain('::ParseError!{');
     expect(text).toContain(':source "[1 2"');
   });
@@ -96,17 +96,17 @@ describe('runRepl — query evaluation', () => {
 
 describe('runRepl — output highlighting', () => {
   it('paints the printed result with ANSI escape sequences', async () => {
-    const r = captureRepl('[1 2 3]\n.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('[1 2 3]\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // Numbers render under the yellow escape; brackets under punct.
-    expect(r.stdoutText()).toMatch(/\x1b\[33m/);
+    expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
   it('paints the prompt with bright-white name + bold-cyan angle on every line', async () => {
-    const r = captureRepl('.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
-    expect(r.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
-    expect(r.stdoutText()).toMatch(/\x1b\[1;36m>/);
+    const replHarness = captureRepl('.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    expect(replHarness.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
+    expect(replHarness.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
   it('translates ~{\\n} into ~{\\r\\n} for stderr writes in TTY mode', async () => {
@@ -124,7 +124,7 @@ describe('runRepl — output highlighting', () => {
     // keystroke in the multi-line editor; Ctrl+Enter (LF) would
     // insert a soft newline.
     ttyStdin.write(Buffer.from('[1 2\r'));
-    await new Promise((r) => setImmediate(r));
+    await new Promise((resolveTick) => setImmediate(resolveTick));
     ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
     await replPromise;
 
@@ -155,7 +155,7 @@ describe('runRepl — output highlighting', () => {
     // buffer.
     ttyStdin.write(Buffer.from('42'));
     ttyStdin.write(Buffer.from('\r'));
-    await new Promise((r) => setImmediate(r));
+    await new Promise((resolveTick) => setImmediate(resolveTick));
     ttyStdin.write(Buffer.from([0x04])); // Ctrl+D on empty buffer
     await replPromise;
 
@@ -166,18 +166,16 @@ describe('runRepl — output highlighting', () => {
 
 describe('runRepl — render-invariant catch', () => {
   it('catches FunctionValueLeakedToPrintError and continues prompting', async () => {
-    // `env | /mul | /:impl` walks env → mul's raw descriptor
-    // Map (the env binding carries `:kind ::builtin` + `:impl <fn>`
-    // — `env` returns the storage Map directly, while `manifest`
-    // builds its own user-facing projection) → the resolved function
-    // value sitting on `:impl`. printValue refuses raw function
-    // values via FunctionValueLeakedToPrintError; the REPL renderer
-    // catches that, writes a render-invariant diagnostic to stderr,
-    // and stays open for the next prompt.
-    const r = captureRepl('env | /mul | /:impl\n.exit\n');
-    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    // A conduit parameter is a nullary function value living in the
+    // body fork's env under its param name, so `env | /n` inside the
+    // body lifts the proxy itself into pipeValue. printValue refuses
+    // raw function values via FunctionValueLeakedToPrintError; the
+    // REPL renderer catches that, writes a render-invariant
+    // diagnostic to stderr, and stays open for the next prompt.
+    const replHarness = captureRepl(':f [:n] (env | /n) | 5 | f(1)\n.exit\n');
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(stripAnsi(r.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrintError/);
+    expect(stripAnsi(replHarness.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrintError/);
   });
 
   it('renders an error-value with materialised :trail through the same printValue path as success values', async () => {
@@ -187,10 +185,10 @@ describe('runRepl — render-invariant catch', () => {
     // step (no `_trailHead` remnant). The REPL renders the value
     // verbatim through `printValue`.
     const query = '!{:kind :first} | count !| union({:k 1}) | error | add(1) | mul(2)';
-    const r = captureRepl(query + '\n.exit\n');
-    const exitCode = await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl(query + '\n.exit\n');
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    const out = stripAnsi(r.stderrText());
+    const out = stripAnsi(replHarness.stderrText());
     expect(out).toMatch(/count/);
     expect(out).toMatch(/add\(1\)/);
     expect(out).toMatch(/mul\(2\)/);
@@ -199,12 +197,12 @@ describe('runRepl — render-invariant catch', () => {
 
 describe('runRepl — @in / @out behaviour', () => {
   it('binds ~{@in} to return the empty String so the cell does not deadlock against the prompt', async () => {
-    const r = captureRepl('@in | pretty | @out\n.exit\n');
-    await runRepl(r.stdinStream, r.stdoutWrite, r.stderrWrite);
+    const replHarness = captureRepl('@in | pretty | @out\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // `@in` resolves to ''. pretty renders it as the qlang String
     // literal `""`. @out writes that to stdout, then the REPL
     // auto-prints the cell's success-track value (also `""`). The
     // captured output therefore contains the empty-String literal.
-    expect(stripAnsi(r.stdoutText())).toMatch(/""/);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/""/);
   });
 });

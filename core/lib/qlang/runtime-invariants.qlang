@@ -23,7 +23,10 @@
      9. Evaluator dispatch invariants
     10. Primitive registry invariants
     11. Session lifecycle invariants
-    12. Render-path invariants ~|
+    12. Render-path invariants
+    13. Error-value mint invariants
+    14. Evaluation depth budget
+    15. Catalog source loading ~|
 
 |~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
 
@@ -45,7 +48,8 @@
           whose only payload is the attached docs.
   ~~|
   ::builtin{:impl :qlang/type/builtin
-            :throws [::BuiltinPayloadNotMapError]}
+            :throws [::BuiltinPayloadNotMapError
+                     ::BuiltinImplNotPrimitiveKeyError]}
 
 ::BuiltinPayloadNotMapError
   |~~ `::builtin<payload>` payload must be a Map descriptor.
@@ -65,6 +69,28 @@
        }
   ~~|
   ::builtin{:category :typeError :operand ::builtin :position :subject :expectedType :map}
+
+::BuiltinImplNotPrimitiveKeyError
+  |~~ A descriptor a query assembled from data dispatches through
+      its `:impl` handle keyword — `::builtin{:impl
+      :qlang/prim/count}` binds and fires like a catalog entry.
+      Catalog descriptors carry the resolved callable on the
+      `BUILTIN_IMPL_SLOT` JS-header slot instead, so the handle
+      reading below fires only for the data-assembled shape, and
+      only when `:impl` holds something the primitive registry
+      cannot be keyed by.
+
+      ~{
+        ::builtin{:impl :qlang/prim/count} | as(:c) | [1 2 3] | c
+        |  eq(3)
+       }
+      ~{
+        ::builtin{:impl 42} | as(:bogus) | 1 | bogus
+        !| [type /actualType]
+        |  eq([::BuiltinImplNotPrimitiveKeyError :number])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand ::builtin :expectedType :keyword}
 
 ::Error
   |~~ Generic error identity. The universal default tag every
@@ -456,10 +482,94 @@
 
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function
-      value reached render. Wrap host operands in a descriptor
-      Map carrying `:impl` with identity stamped on the JS-header
-      `TAG_HEADER_SYMBOL` slot (`stampTagHeader(map, BUILTIN_TAG)`)
-      before binding through `session.bind`; the CLI's
-      `bindHostBuiltin` helper demonstrates the pattern.
+      value reached render. Install a host operand through a
+      locator returning `{ source, impls }` so the namespace pass
+      stamps the callable onto the catalog descriptor's
+      `BUILTIN_IMPL_SLOT` JS-header slot
+      (`cli/src/cli-locator.mjs` is the reference shape); a
+      callable handed straight to `session.bind` carries no qlang
+      literal, which is what this tag reports.
+  ~~|
+  ::builtin{:category :invariantError}
+
+::ToPlainUnencodableValueError
+  |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
+      with no JSON form. Conduit and Snapshot reconstruct through
+      `serializeSession` / `deserializeSession`; a host value an
+      embedder installed reaches the boundary the same way. Route
+      the value through `tjson` / `toTaggedJSON` when the round-trip
+      has to stay lossless, or project around the slot.
+  ~~|
+  ::builtin{:category :invariantError :operand :json}
+
+|~ ── 13. Error-value mint invariants ──────────────────── ~|
+
+::ErrorTrailNotQuoteError
+  |~~ `:trail` on an error descriptor is runtime-owned: a
+      Quote-value carrying the joined pipeline-suffix source, or
+      `null` before any deflection. A literal or a re-lift that
+      stamps any other value under `:trail` fires this error at
+      mint time, so the fail-track never carries a suffix that
+      `apply` cannot replay. To drop an accumulated suffix before
+      re-lift, stamp `:trail null` inside the fail-apply step.
+
+      ~{
+        !{:kind :oops :trail [1 2]}
+        !| [type /actualType]
+        |  eq([::ErrorTrailNotQuoteError :vec])
+       }
+      ~{
+        !{:kind :oops} | count
+        !| union({:trail []}) | error
+        !| type | eq(::ErrorTrailNotQuoteError)
+       }
+      ~{
+        !{:kind :oops} | count
+        !| union({:trail null}) | error | add(1)
+        !| /trail | eq(~{| add(1)})
+       }
+  ~~|
+  ::builtin{:category :typeError :expectedType [:quote :null]}
+
+|~ ── 14. Evaluation depth budget ───────────────────────── ~|
+
+::EvaluationDepthExceededError
+  |~~ The evaluator descends one frame per conduit body,
+      captured-arg lambda, `eval` / `apply` re-entry, Quote-bodied
+      tag constructor, doc-segment literal, and locator-loaded
+      module; the frame past `EVAL_DEPTH_LIMIT` (state.mjs) lifts
+      this error with `:depth` (the refused frame) and `:limit`
+      (the budget) on the descriptor. A conduit that calls itself
+      without a base case surfaces here on the fail-track while the
+      host's heap stays bounded.
+
+      ~{
+        :inf (add(1) | inf) | 0 | inf
+        !| type | eq(::EvaluationDepthExceededError)
+       }
+      ~{
+        :q ~{q | eval} | q | eval
+        !| gt(/depth, /limit)
+       }
+  ~~|
+  ::builtin{:category :resourceLimit}
+
+|~ ── 15. Catalog source loading ────────────────────────── ~|
+
+::SourceLoadError
+  |~~ The platform resolved a `#qlang/<ns>` logical name to a path
+      or URL the host could not read. The descriptor carries
+      `:host` (`:node` / `:web`), `:logicalName`, `:sourceLocation`,
+      and either the underlying `:cause` or the HTTP `:status`. A
+      host that ships its own catalog answers the `:qlang/locator`
+      contract and never reaches the platform loader.
+  ~~|
+  ::builtin{:category :foreignError}
+
+::BootstrapRootMissingError
+  |~~ `#qlang/core` resolved to nothing, so the bootstrap has no
+      root module to evaluate. The host adds the entry to
+      `package.json#imports` (Node) or to the import map (browser),
+      or hands `langRuntime({ locator })` a locator of its own.
   ~~|
   ::builtin{:category :invariantError}

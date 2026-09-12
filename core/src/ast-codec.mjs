@@ -3,8 +3,8 @@
 // plus its type-specific payload, and decodes back without loss.
 //
 // The codec is the data layer behind several upstream features:
-//   - Structured error `:trail` — each deflect stamps the upcoming
-//     step's AST-Map onto the error's trail Vec so user code can
+//   - Structured error `:trail` — `/trail | /ast` lifts the deflected
+//     pipeline-suffix Quote into an AST-Map so user code can
 //     filter / group / inspect deflections as qlang data.
 //   - `parse` / `eval` reflective operands — `"query" | parse` lifts
 //     source text into an AST-Map; `ast-map | eval` re-enters
@@ -40,8 +40,9 @@
 //   Pipeline          :steps <Vec of PipelineStep Maps>
 //                     :leadingCombinator <"!|" | "|" | "*" | ">>" | null>
 //   PipelineStep      :combinator <string | null>  :step <AST-Map>
-//                     (wrapper inside Pipeline.steps — head carries
-//                     null combinator, rest carry "|", "!|", "*",
+//                     (wrapper inside Pipeline.steps — the head and
+//                     the absorbed follower of a plain comment carry
+//                     null, every other unit carries "|", "!|", "*",
 //                     or ">>")
 //   DocLit            :content <string>
 //   TaggedLit         :tag <string> :payload <AST-Map>
@@ -405,8 +406,9 @@ export function astNodeToMap(node) {
 // object carrying the combinator token and the subsequent AST node.
 // For round-trip fidelity the Map form uniforms this into a Vec of
 // PipelineStep Maps, each carrying a :combinator field (null for the
-// head, string for the rest) and a :step field holding the step's own
-// AST-Map. The PipelineStep wrapper itself is an AST-Map kind so that
+// head and for the absorbed follower of a plain comment, the token
+// string for every other unit) and a :step field holding the step's
+// own AST-Map. The PipelineStep wrapper itself is an AST-Map kind so that
 // downstream walkers recognize it via :kind like any other node.
 function pipelineStepToMap(step, index) {
   const m = new Map();

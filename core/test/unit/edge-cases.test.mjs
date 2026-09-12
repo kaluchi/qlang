@@ -4,7 +4,7 @@
 //
 // What lives here vs in per-source test files: edge-cases stays a
 // staging ground for tests whose source module has no dedicated
-// `<module>.test.mjs` (`types.mjs`, `state.mjs`, `rule10.mjs`,
+// `<module>.test.mjs` (`types.mjs`, `rule10.mjs`,
 // `runtime/arith.mjs`, `runtime/vec.mjs`, `runtime/map.mjs`,
 // `runtime/set.mjs`, `runtime/setops.mjs`, `runtime/predicates.mjs`,
 // `runtime/string.mjs`, `runtime/control.mjs`, `runtime/manifest-op.mjs`,
@@ -15,7 +15,8 @@
 // `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
 // `per-site error tag identity` (→ `error-operands.test.mjs`),
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
-// `errors.mjs kind-tag survey` (covered by `errors.test.mjs`).
+// `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
+// `state.mjs` (→ `state.test.mjs`).
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -33,21 +34,23 @@ import {
   isQSet,
   isQuote,
   isVec,
-  makeConduit
+  makeConduit,
+  conduitBodyAst,
+  conduitEnvRef,
+  typeKeyword,
+  TAG_HEADER_SYMBOL,
+  CONDUIT_TAG
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
-import {
-  makeState,
-  envSet,
-  envHas,
-  envGet,
-  envMerge
-} from '../../src/state.mjs';
+import { rootState } from '../../src/state.mjs';
 import {
   applyRule10,
   makeFn
 } from '../../src/rule10.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
+import { createSession } from '../../src/session.mjs';
+import { nullaryOp } from '../../src/runtime/dispatch.mjs';
+import { compareBindingNames } from '../../src/runtime/manifest-op.mjs';
 
 describe('types.mjs', () => {
   it('interns keywords', () => {
@@ -81,40 +84,26 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit stamps ::conduit on the Map JS-header and exposes body/source as fields', async () => {
-    const { TAG_HEADER_SYMBOL, CONDUIT_TAG, typeKeyword } = await import('../../src/types.mjs');
+  it('makeConduit stamps ::conduit plus the body AST and envRef holder on JS-header slots', async () => {
     const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
-    const t = makeConduit(bodyAst);
-    expect(t).toBeInstanceOf(Map);
-    expect(t.has('kind')).toBe(false);
-    expect(t[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
-    expect(typeKeyword(t)).toBe(CONDUIT_TAG);
-    expect(t.get('body')).toBe(bodyAst);
-    const sourceQuote = t.get('source');
+    const lexicalRef = { env: null };
+    const doubleConduit = makeConduit(bodyAst, { name: 'double', envRef: lexicalRef });
+    expect(doubleConduit).toBeInstanceOf(Map);
+    expect(doubleConduit.has('kind')).toBe(false);
+    expect(doubleConduit[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
+    expect(typeKeyword(doubleConduit)).toBe(CONDUIT_TAG);
+    // Body AST and lexical anchor ride the slots; the data plane
+    // enumerates qlang values alone.
+    expect(conduitBodyAst(doubleConduit)).toBe(bodyAst);
+    expect(conduitEnvRef(doubleConduit)).toBe(lexicalRef);
+    expect(doubleConduit.has('body')).toBe(false);
+    expect(doubleConduit.has('envRef')).toBe(false);
+    expect(doubleConduit.has('location')).toBe(false);
+    expect([...doubleConduit.keys()]).toEqual(['name', 'params', 'source', 'docs', 'effectful']);
+    const sourceQuote = doubleConduit.get('source');
     expect(isQuote(sourceQuote)).toBe(true);
     expect(sourceQuote.source).toBe('1');
     expect(sourceQuote.ast).toBe(bodyAst);
-  });
-});
-
-describe('state.mjs', () => {
-  it('envSet returns a new Map without mutating the original', () => {
-    const initial = new Map();
-    const extended = envSet(initial, 'foo', 42);
-    expect(initial.size).toBe(0);
-    expect(extended.size).toBe(1);
-    expect(envGet(extended, 'foo')).toBe(42);
-    expect(envHas(extended, 'foo')).toBe(true);
-    expect(envHas(extended, 'bar')).toBe(false);
-  });
-
-  it('envMerge merges a Map into another, incoming wins on conflict', () => {
-    const base    = envSet(envSet(new Map(), 'a', 1), 'shared', 'old');
-    const incoming = envSet(envSet(new Map(), 'b', 2), 'shared', 'new');
-    const merged = envMerge(base, incoming);
-    expect(envGet(merged, 'a')).toBe(1);
-    expect(envGet(merged, 'b')).toBe(2);
-    expect(envGet(merged, 'shared')).toBe('new');
   });
 });
 
@@ -123,7 +112,7 @@ describe('rule10.mjs', () => {
     const fn = makeFn('mul', 2, (state) => state);
     const lambdas = [() => 1, () => 2, () => 3];
     const runtimeEnv = await langRuntime();
-    await expect(applyRule10(fn, lambdas, makeState(null, runtimeEnv)))
+    await expect(applyRule10(fn, lambdas, rootState(null, runtimeEnv)))
       .rejects.toThrow(ArityError);
   });
 
@@ -341,7 +330,6 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
   });
 
   it('compareBindingNames is a code-point three-way comparator', async () => {
-    const { compareBindingNames } = await import('../../src/runtime/manifest-op.mjs');
     expect(compareBindingNames('a', 'b')).toBe(-1);
     expect(compareBindingNames('b', 'a')).toBe(1);
     expect(compareBindingNames('x', 'x')).toBe(0);
@@ -357,8 +345,6 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
     // are the only function values that stamp `meta.category
     // :conduitParameter` inline and therefore the only ones that
     // route through `describeConduitParameter`.
-    const { createSession } = await import('../../src/session.mjs');
-    const { nullaryOp } = await import('../../src/runtime/dispatch.mjs');
     const sessionInstance = await createSession();
     sessionInstance.bind('hostFn', nullaryOp('hostFn', async () => 42));
     const cellEntry = await sessionInstance.evalCell(
@@ -557,6 +543,16 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
     expect(caughtErr.name).toBe('SortWithCmpResultNotNumberError');
   });
 
+  it('sortWith comparator returning NaN → SortWithCmpResultNaNError', async () => {
+    // Both keys overflow to Infinity, so their difference is NaN —
+    // a value `typeof` reports as a number while it orders no pair.
+    const caughtErr = await catchOriginalError(
+      '[{:a 1} {:a 2}] | sortWith(sub(mul(/left/a, 1e400), mul(/right/a, 1e400)))');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('SortWithCmpResultNaNError');
+    expect(caughtErr.context.actualType.name).toBe('number');
+  });
+
   it('asc on non-Map pair → AscPairNotMapError', async () => {
     const caughtErr = await catchOriginalError('42 | asc(/x)');
     expect(caughtErr.name).toBe('AscPairNotMapError');
@@ -618,5 +614,42 @@ describe('runtime/vec.mjs sortWith and comparator builders', () => {
       '| sortWith([asc(/n), desc(/a)] | firstNonZero) * /a'
     );
     expect(sortedResult).toEqual([20, 30, 25]);
+  });
+
+  it('sortWith fires the comparator at most n·⌈log₂ n⌉ times on a shuffled subject', async () => {
+    // A host-bound identity operand inside the comparator sub-pipeline
+    // tallies every pairwise comparison the sort performs. 512 numbers
+    // in a deterministic linear-congruential order bound the tally at
+    // 512 · 9; a quadratic sort spends tens of thousands here.
+    const sessionInstance = await createSession();
+    let comparisonTally = 0;
+    sessionInstance.bind('tallyComparison', nullaryOp('tallyComparison', async (cmpResult) => {
+      comparisonTally++;
+      return cmpResult;
+    }));
+    const subjectSize = 512;
+    const shuffled = [];
+    let lcgSeed = 7;
+    for (let elementIdx = 0; elementIdx < subjectSize; elementIdx++) {
+      lcgSeed = (lcgSeed * 1103515245 + 12345) % 2147483648;
+      shuffled.push(lcgSeed % 1000);
+    }
+    const cellEntry = await sessionInstance.evalCell(
+      `[${shuffled.join(' ')}] | sortWith(sub(/left, /right) | tallyComparison)`
+    );
+    expect(cellEntry.result).toEqual([...shuffled].sort((left, right) => left - right));
+    expect(comparisonTally).toBeLessThanOrEqual(subjectSize * Math.ceil(Math.log2(subjectSize)));
+  });
+
+  it('sortWith keeps equal elements in subject order across every merge level', async () => {
+    // Two interleaved key groups over eight elements span three merge
+    // levels; a merge that prefers the right run on a tie reorders
+    // the ties at the second level and this projection reads it.
+    const sortedTags = await evalQuery(
+      '[{:k 2 :t "a"} {:k 1 :t "b"} {:k 2 :t "c"} {:k 1 :t "d"} ' +
+      '{:k 2 :t "e"} {:k 1 :t "f"} {:k 2 :t "g"} {:k 1 :t "h"}] ' +
+      '| sortWith(asc(/k)) * /t'
+    );
+    expect(sortedTags).toEqual(['b', 'd', 'f', 'h', 'a', 'c', 'e', 'g']);
   });
 });

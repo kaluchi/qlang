@@ -343,8 +343,9 @@ JSON tag.
 - Sorts using a custom comparator. The comparator receives a pair
   Map `{ :left a :right b }` for each comparison and must return a
   number: negative places `left` before `right`, positive places
-  `right` before `left`, zero treats them as equal (preserving the
-  order of equal elements per JS Array.sort stability).
+  `right` before `left`, zero treats them as equal. The sort is a
+  stable merge sort: equal elements keep their subject order, and
+  the comparator fires at most n·⌈log₂ n⌉ times.
 - **Examples**:
   - `[3 1 2] | sortWith(sub(/left, /right))` → `[1 2 3]`.
   - `[3 1 2] | sortWith(sub(/right, /left))` → `[3 2 1]`.
@@ -353,7 +354,9 @@ JSON tag.
     → events sorted by priority ascending, then timestamp descending
     as tie-breaker.
 - **Errors**: subject not a Vec → `SortWithSubjectNotSequenceError`; comparator returns
-  non-number → `SortWithCmpResultNotNumberError`.
+  non-number → `SortWithCmpResultNotNumberError`; comparator returns
+  NaN → `SortWithCmpResultNaNError` (NaN orders no pair, and float
+  overflow reaches it from ordinary arithmetic).
 
 ### `asc(keyExpr)`
 
@@ -1073,8 +1076,9 @@ its own eval handler in `eval.mjs`.
   - **Builtin** — env entry is a descriptor Map loaded by
     `langRuntime()` from one of the catalog family files under
     `lib/qlang/operand/`. The user-facing descriptor stamps
-    `:kind ::builtin`, drops the `:impl` handle (the dispatch-time
-    primitive key is internal), and copies `:category` / `:subject`
+    `:kind ::builtin`, keeps the `:impl` handle keyword the catalog
+    author wrote (the resolved callable rides the env entry's
+    `BUILTIN_IMPL_SLOT` JS-header slot), and copies `:category` / `:subject`
     / `:modifiers` / `:returns` / `:throws` verbatim. The derived
     `:captured` / `:effectful` fields are stamped from the resolved
     primitive's `meta`:
@@ -1234,7 +1238,7 @@ its own eval handler in `eval.mjs`.
 
 - **Arity** 1. **Subject** `string` — the source to parse.
 - Reads the subject string into an **AST-Map** — the data-form
-  representation of the program, produced by `walk.mjs::astNodeToMap`.
+  representation of the program, produced by `ast-codec.mjs::astNodeToMap`.
   Each AST node becomes a frozen Map carrying `:kind` (the
   AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
   `:Pipeline`, and so on), type-specific payload fields (`:value`,
@@ -1261,14 +1265,17 @@ its own eval handler in `eval.mjs`.
 ### `eval`
 
 - **Arity** 1. **Subject** `map` — the AST-Map to evaluate.
-- Unwraps an AST-Map through `walk.mjs::qlangMapToAst` and runs
+- Unwraps an AST-Map through `ast-codec.mjs::qlangMapToAst` and runs
   the reconstructed AST against the current state. The caller's
   `pipeValue` becomes the inner evaluation's `pipeValue`; the
   caller's `env` threads in unchanged. Any BindStep / `as` / `use`
   writes the inner code performs propagate out the same way a
   paren-group's env writes would. The result is whatever
   `pipeValue` the inner code produces, ready to flow into the
-  next pipeline step.
+  next pipeline step. The inner code runs one frame below the
+  `eval` step, so a Quote that `eval`s itself descends through
+  the evaluation depth budget and lifts
+  `EvaluationDepthExceededError` past `EVAL_DEPTH_LIMIT`.
 - Pairs with `parse` to close the codeAsData ring:
   `"source" | parse | eval` is equivalent to evaluating the
   source string directly, and the intermediate AST-Map can be
@@ -1294,7 +1301,8 @@ its own eval handler in `eval.mjs`.
   step through that combinator against the new subject, so a
   pipeline-suffix shape replays semantically.
 - BindStep / `as` / `use` writes inside the applied body propagate
-  outward, matching `eval` semantics.
+  outward, matching `eval` semantics; the body runs one frame
+  below the `apply` step, inside the same depth budget.
 - **Examples**:
   - `~{mul(2)} | apply(5)` → `10`.
   - `~{| count | add(1)} | apply([1 2 3])` → `4`.

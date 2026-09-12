@@ -17,7 +17,7 @@
 
 import { parse } from './parse.mjs';
 import { evalAst } from './eval.mjs';
-import { makeState } from './state.mjs';
+import { nestState } from './state.mjs';
 import { keyword, makeQuote } from './types.mjs';
 
 const PROSE_KIND = keyword('prose');
@@ -157,17 +157,19 @@ function tryParseTaggedAt(content, start) {
   }
 }
 
-// Eval a TaggedLit AST in a fresh state (Doc-segment evaluation
-// is independent of the outer pipeValue — segments are content,
-// not pipeline steps). Constructor sees its own payload-value;
-// state.env carries through for ::conduit-style env capture.
-async function evalTaggedSegment(ast, env) {
-  const state = makeState(null, env);
-  const result = await evalAst(ast, state);
+// Eval a TaggedLit AST one frame below the reading state, with a
+// null pipeValue (Doc-segment evaluation is independent of the
+// outer pipeValue — segments are content). The constructor sees
+// its own payload-value; the reader's env carries through for
+// ::conduit-style env capture, and the frame keeps a constructor
+// that reads its own docs inside the depth budget.
+async function evalTaggedSegment(ast, callerState) {
+  const segmentState = nestState(callerState, null, callerState.env);
+  const result = await evalAst(ast, segmentState);
   return result.pipeValue;
 }
 
-export async function parseDocSegments(content, env) {
+export async function parseDocSegments(content, callerState) {
   const segments = [];
   let cursor = 0;
   while (cursor < content.length) {
@@ -199,7 +201,7 @@ export async function parseDocSegments(content, env) {
       cursor = opener.offset + 2;
       continue;
     }
-    const value = await evalTaggedSegment(parsed.ast, env);
+    const value = await evalTaggedSegment(parsed.ast, callerState);
     segments.push(value);
     cursor = opener.offset + parsed.length;
   }

@@ -7,3 +7,8 @@
 {"name":"env-keys-count-is-large","query":"env | keys | count | gt(30)","expect":"true"}
 {"name":"env-operator-ignores-pipeValue","query":"[1 2 3] | env | has(:count)","expect":"true"}
 {"name":"env-as-projection-source","query":"0.07 | as(:taxRate) | env | /taxRate","expect":"0.07"}
+{"name":"builtin-descriptor-impl-projects-its-handle","query":"env | /count | /impl","expect":":qlang/prim/count"}
+{"name":"builtin-descriptor-renders-without-a-function-leak","query":"env | /count | json | contains(\"qlang/prim/count\")","expect":"true"}
+{"name":"conduit-data-plane-carries-qlang-values-only","query":":f mul(2) | env | /f | keys","expect":"#[:name :params :source :docs :effectful]"}
+{"name":"data-assembled-builtin-descriptor-dispatches","query":"::builtin{:impl :qlang/prim/count} | as(:c) | [1 2 3] | c","expect":"3"}
+{"name":"data-assembled-descriptor-refuses-a-non-handle-impl","query":"::builtin{:impl 42} | as(:bogus) | 1 | bogus !| type","expect":"::BuiltinImplNotPrimitiveKeyError"}

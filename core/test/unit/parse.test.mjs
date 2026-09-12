@@ -346,6 +346,22 @@ describe('parse — comments and whitespace', () => {
     expect(ast.type).toBe('Pipeline');
     expect(ast.steps).toHaveLength(3);
   });
+
+  it('stamps the absorbed marker on the follower of a plain comment and keeps an explicit combinator', () => {
+    const absorbedHead = parse('|~ note ~| count');
+    expect(absorbedHead.steps[1].combinator).toBe(null);
+    const explicitHead = parse('(|~ note ~| * add(1))').pipeline;
+    expect(explicitHead.steps[1].combinator).toBe('*');
+    const midPipeline = parse('[1] |~ note ~| count');
+    expect(midPipeline.steps[1].combinator).toBe('|');
+    expect(midPipeline.steps[2].combinator).toBe(null);
+    const nestedChain = parse('|~ one ~| |~ two ~| count');
+    expect(nestedChain.steps[1].combinator).toBe('|');
+    expect(nestedChain.steps[2].combinator).toBe(null);
+    const docAfterPlain = parse('|~ note ~| |~~| about x\n:x 1');
+    expect(docAfterPlain.steps[1].combinator).toBe(null);
+    expect(docAfterPlain.steps[1].step.type).toBe('BindStep');
+  });
 });
 
 describe('parse — error handling', () => {
@@ -355,6 +371,13 @@ describe('parse — error handling', () => {
 
   it('throws ParseError on syntax errors', () => {
     expect(() => parse('[1 2')).toThrow(ParseError);
+  });
+
+  it('refuses a leading combinator and an explicit combinator on the first operand step after a comment head', () => {
+    expect(() => parse('!| |~ note ~| * add(1)')).toThrow(ParseError);
+    expect(() => parse('(* |~| note\n>> count)')).toThrow(ParseError);
+    expect(() => parse('!| |~ one ~| |~ two ~| | count')).toThrow(ParseError);
+    expect(parse('!| |~ note ~| count').leadingCombinator).toBe('!|');
   });
 
   it('attaches a location to ParseError', () => {

@@ -549,7 +549,6 @@ the result is **an error value** of the `!{}` form introduced in
 ::AddLeftNotNumberError!{
   :faultStep ~{add(1)}
   :faultInput [1 2 3]
-  :actualValue [1 2 3]
   :actualType :vec
 }
 |~| add(1) expects a Number in position 1; the Vec fires the per-site
@@ -1085,6 +1084,20 @@ Recursion works because the conduit's lexical env includes itself
 (tie-the-knot at declaration time). Termination on finite trees
 comes from `[] * walk → []` at leaves.
 
+Recursion without a base case descends one evaluation frame per
+call until the evaluator's depth budget (`EVAL_DEPTH_LIMIT` in
+`state.mjs`) refuses the next frame and lifts
+`EvaluationDepthExceededError` onto the fail-track, carrying the
+refused `:depth` and the `:limit`. The same budget counts every
+re-entry seam — `eval`, `apply`, captured-arg lambdas, Quote-bodied
+tag constructors, doc-segment literals, locator-loaded modules — so
+a runaway surfaces as an ordinary error value:
+
+```qlang
+> :inf (add(1) | inf) | 0 | inf !| type
+::EvaluationDepthExceededError
+```
+
 Recursive parametric conduits work the same way:
 
 ```qlang
@@ -1147,6 +1160,13 @@ the module came from — built-in (`:qlang/error`), host-provided
 (`:my/helpers`). Module keywords are the namespaced keywords
 introduced in [Atomic values](#atomic-values), and their nested
 forms work too: `use(:qlang/error/guards)` loads a sub-module.
+
+A namespace is a header-less Map bound under the namespace name
+or under the runtime's `qlang/namespace/<name>` cache key. An
+operand descriptor, a conduit, or a snapshot bound under the same
+bare name is an identifier-plane binding: `use(:count)` walks
+past the `count` operand to the locator and lands on
+`UseNamespaceNotFoundError`.
 
 When several modules need to load together, `use` accepts three
 captured-arg shapes:
@@ -1230,8 +1250,14 @@ changes are discarded. See the
 
 5. **Sibling expressions are independent.** In `{:a e1 :b e2}`,
    bindings from `e1` are NOT visible in `e2`. Same for Vec
-   elements `[a b c]` and Set elements `#[a, b, c]` — each
-   entry is its own sub-pipeline, parallel not sequential.
+   elements `[a b c]`, Set elements `#[a, b, c]`, and each
+   iteration of `*` — every entry is its own fork over the same
+   outer state, and the evaluator makes no ordering promise
+   between siblings. Results are collected positionally, so the
+   Vec a distribute returns matches its subject element for
+   element; a host operand whose effects are observable (an
+   `@`-prefixed writer) must not lean on the order those effects
+   land in across siblings.
 
 6. **Shadowing.** A later `as(:name)` or `:name ...` in the same
    scope replaces the earlier one for subsequent uses.
@@ -1249,12 +1275,19 @@ changes are discarded. See the
 
 Identifiers may start with `@`, `_`, or any Unicode `ID_Start`
 character (Latin, Cyrillic, CJK, Greek, Hebrew, Arabic, etc.).
-The language gives no special meaning to `@` or `_`. Domain authors commonly use
-`@` as a prefix for names that come from their runtime (e.g.,
-`@callers`, `@resolve`), and `_` for private internal bindings, but
-this is pure convention — `@callers` and `callers` are resolved
-identically, and either may be shadowed by an `as` snapshot or a
-BindStep declaration.
+Lookup treats every start character alike: `@callers` and `callers`
+resolve through the same env read, and either may be shadowed by an
+`as` snapshot or a BindStep declaration.
+
+`_` is pure convention — domain authors use it for private internal
+bindings and the language attaches nothing to it. `@` carries the
+effect-marker invariant described in
+[Effect markers](#effect-markers): a binding whose body reaches an
+`@`-prefixed identifier must itself be `@`-prefixed, and an
+effectful function value refuses to fire through a clean lookup
+name. Domain authors prefix the operands their runtime installs
+(`@callers`, `@resolve`) so the marker propagates through every
+alias.
 
 ### Comments
 
@@ -1312,6 +1345,15 @@ orders | @find | @members
 The leading `|` of `|~` absorbs the combinator from the previous
 filter; the trailing `|` of `~|` absorbs the combinator to the next
 filter. Neither side needs an explicit `|`.
+
+A step written with its own combinator after a comment keeps it:
+`(|~ note ~| * add(1))` distributes exactly as `(* add(1))`, and
+`~{|~ note ~| !| /kind}` replays through `apply` as `~{!| /kind}`.
+At the start of a query, a paren-group, or a Quote, the step after
+a comment is the head step — it runs as the identity-head, or
+through the pipeline's leading combinator when one is written
+before the comment. A leading combinator and an explicit
+combinator on that same step is a parse error.
 
 #### Attach-to-next — doc comments
 
@@ -1480,7 +1522,7 @@ fn)` at module-load time. The descriptor then references the
 function by its handle.
 
 ```js
-import { PRIMITIVE_REGISTRY, makeJsonObject } from '@kaluchi/qlang-core';
+import { PRIMITIVE_REGISTRY } from '@kaluchi/qlang-core/primitives';
 
 PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
   const hours = payload.get('hours') ?? 0;
@@ -1636,15 +1678,22 @@ When a step produces a failure — a type mismatch in projection,
 an arity error, a division by zero — the result is an error value
 (the `!{}` type from Part 1). At that point, the success-track
 combinators `|`, `*`, and `>>` **deflect**: they record the
-upcoming step's AST node onto the error's `:trail` Vec and let
+upcoming step's source onto the error's `:trail` Quote and let
 the error flow through unchanged. The entire success-track
 pipeline after the failure becomes a no-op; the error rides
 through to the end.
 
 ```qlang
 > "hello" | add(1) | mul(2) | sub(3)
-::AddLeftNotNumberError!{:faultStep ~{add(1)} :faultInput "hello" :actualType :string}
-|~| add(1) produces the error; mul(2) and sub(3) are deflected
+::AddLeftNotNumberError!{
+  :faultStep ~{add(1)}
+  :faultInput "hello"
+  :actualType :string
+  :trail ~{| mul(2) | sub(3)}
+}
+|~| add(1) produces the error; mul(2) and sub(3) deflect, each
+|~| stamping its source slice onto the trail the query boundary
+|~| materializes into the :trail Quote.
 ```
 
 The `!|` combinator is the **fail-track** counterpart. It fires its
@@ -1681,6 +1730,16 @@ The `/source` projection unwraps the Quote into its raw text;
 
 > !{:kind :oops} !| /trail
 null
+```
+
+`:trail` is runtime-owned. A literal or a re-lift that stamps
+anything except a Quote or `null` under `:trail` lifts
+`ErrorTrailNotQuoteError` at construction, so the fail-track never
+carries a suffix that `apply` cannot replay:
+
+```qlang
+> !{:kind :oops :trail [1 2]} !| type
+::ErrorTrailNotQuoteError
 ```
 
 The `!{}` literal from Part 1 can seed an error directly — the
@@ -1748,7 +1807,7 @@ or duplicates the literal head on print.
 | `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
 | `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until a deflection materializes through `!\|`. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry
@@ -1760,8 +1819,8 @@ Per-tag static facts — `:category` (broad bucket: `:typeError`,
 `:arityError`, `:effectLaundering`, `:parseError`,
 `:foreignError`, `:invariantError`, `:divisionByZero`,
 `:primitiveUnbound`, `:sessionError`, `:codecError`,
-`:astCodecError`, `:unresolvedIdentifier`), `:operand`,
-`:position`, `:expectedType` — live on the tag-binding's catalog
+`:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`),
+`:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
 `result !| type | spec | /category` returns the broad-bucket
@@ -1791,6 +1850,15 @@ again. This is the mechanism behind MDC-style context enrichment:
 ```qlang
 !| union({:request @requestId}) | error
 |~| adds fields to the descriptor and re-lifts without losing the trail
+```
+
+To drop the accumulated suffix before re-lift, stamp `:trail null`
+inside the fail-apply step; deflections past the re-lift grow a
+fresh suffix:
+
+```qlang
+> !{:kind :oops} | count !| union({:trail null}) | error | add(1) !| /trail
+~{| add(1)}
 ```
 
 ---
@@ -1865,8 +1933,9 @@ Three mechanisms close the "everything is data" ring:
 2. **Runtime is data** — built-ins without arguments evaluate to
    their own descriptor Map (not an arity error). `manifest` gives
    the full env as a Vec of descriptors.
-3. **Errors are data** — `!|` materializes the trail as a Vec of
-   AST-Maps. Each deflected step is a structured Map. (Covered
+3. **Errors are data** — `!|` materializes the trail as a Quote of
+   the deflected pipeline suffix; `/trail | /ast` lifts it into an
+   AST-Map whose `:steps` are individually addressable. (Covered
    in [Error track](#error-track).)
 
 All three use the same mechanism: Map + pipeline.
@@ -2023,10 +2092,9 @@ node type (`:NumberLit`, `:StringLit`, `:Pipeline`, `:OperandCall`,
 2
 ```
 
-The AST-Map shape is the same shape used in `:trail` entries from
-Error track — closing the code-is-data ring. Each trail entry is
-an AST-Map of a deflected step; `parse` produces AST-Maps of any
-source text by the same mechanism.
+The AST-Map shape is the one `/trail | /ast` lifts the deflected
+suffix Quote into — closing the code-is-data ring: `parse`
+produces the same AST-Map of any source text.
 
 ### `eval` — run code from data
 
@@ -2071,21 +2139,21 @@ Six step types:
 | 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
 | 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
-| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
+| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|`, `*`, and `>>` are
 **success-track** combinators — they fire their step when `pipeValue`
-is a non-error value, and **deflect** on an error (appending the
-upcoming step's AST node to the error's `:trail` and letting the
-error flow downstream unchanged). `!|` is the **fail-track**
+is a non-error value, and **deflect** on an error (stamping the
+upcoming step's source slice onto the error's `:trail` and letting
+the error flow downstream unchanged). `!|` is the **fail-track**
 combinator — it fires its step only when `pipeValue` is an error,
 exposing the error's materialized descriptor Map to the step; on a
 success `pipeValue` it deflects as identity pass-through.
 
 | Combinator | Effect |
 |---|---|
-| `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`. On error `pipeValue`, deflect: append `b`'s AST node to the trail and return the error unchanged. |
-| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Vec with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
+| `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`. On error `pipeValue`, deflect: stamp `b`'s source slice onto the trail and return the error unchanged. |
+| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Quote with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
 | `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
 | `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. On error `pipeValue`, deflect. |
 
@@ -2142,6 +2210,8 @@ filter(/age | gt(18))
 | `sort` on Vec with non-comparable elements | type error |
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
+| `:trail` stamped with anything except a Quote or `null` | type error |
+| Evaluation frames nested past the depth budget | resource limit |
 
 ---
 
@@ -2192,14 +2262,12 @@ rendering boundaries:
 
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
   `toPlain` refuse a raw function value because no grammatical
-  literal renders back to one. Host operands must wrap the
-  function in a descriptor Map carrying `:impl <fn>` with
-  identity stamped on the Map's JS-header `TAG_HEADER_SYMBOL`
-  slot (`stampTagHeader(map, BUILTIN_TAG)` — same channel the
-  `::builtin{…}` constructor uses); the projection inside
-  `printValue` substitutes the function back to its
-  `:qlang/prim/<name>` keyword handle so the descriptor itself
-  round-trips.
+  literal renders back to one. A host installs its operands
+  through a locator returning `{ source, impls }`, which stamps
+  each callable onto the catalog descriptor's `BUILTIN_IMPL_SLOT`
+  JS-header slot while `:impl` keeps the author's
+  `:qlang/prim/<name>` handle keyword, so the descriptor's data
+  plane round-trips as ordinary qlang data.
 - **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
   body AST without a `.text` source slice, because `printConduit`
   emits `::conduit[:self [params] ~{body-source}]` and would
@@ -2626,12 +2694,13 @@ installModules(session, catalog);
     filesystem discovery order.
 
 - **`installModules(session, catalog)`** — iterates the catalog and
-  binds two env keys per namespace: `nsName → exports` (so
-  `use(:nsName)` merges the bindings), and `qlang/ast/<nsName> →
-  Quote(source, ast)` so the axis-operands `:name | source`,
-  `| docs`, `| examples` walk the loaded module AST. Install-path
-  and locator-path stay symmetric on the axis-operand
-  discoverability surface.
+  binds two env keys per namespace: `qlang/namespace/<nsName> →
+  exports` (the cache key `use(:nsName)` probes, so the export Map
+  never shadows an operand whose name matches the namespace stem),
+  and `qlang/ast/<nsName> → Quote(source, ast)` so the axis-operands
+  `:name | source`, `| docs`, `| examples` walk the loaded module
+  AST. Install-path and locator-path stay symmetric on the
+  axis-operand discoverability surface.
 
 #### Dependency ordering
 
@@ -2790,7 +2859,7 @@ tagged objects.
 
 Embedders building editors, refactoring tools, language servers, or
 notebooks consume the AST traversal surface from
-[`walk.mjs`](qlang-operands.md#walkmjs--ast-traversal-primitives).
+[`walk.mjs`](qlang-internals.md#walkmjs--ast-traversal-primitives).
 The contract: every parser-produced AST node carries `.location`,
 `.text`, `.id`, `.parent`, and (where the surface form admits a
 marker) `.effectful`. The root additionally carries `.source`,

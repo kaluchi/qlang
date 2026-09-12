@@ -41,7 +41,7 @@ import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
-  isErrorValue, typeKeyword, keyword,
+  isErrorValue, typeKeyword, keyword, declarationSiteOf,
   BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
@@ -108,7 +108,7 @@ function describeConduit(conduit, explicitName) {
   result.set('params', [...conduit.get('params')]);
   result.set('source', conduit.get('source'));
   result.set('effectful', conduit.get('effectful'));
-  result.set('location', locationToQlangMap(conduit.get('location')));
+  result.set('location', locationToQlangMap(declarationSiteOf(conduit)));
   return result;
 }
 
@@ -120,7 +120,7 @@ function describeSnapshot(snap, explicitName) {
   result.set('value', value);
   result.set('type', typeKeyword(value));
   result.set('effectful', snap.get('effectful'));
-  result.set('location', locationToQlangMap(snap.get('location')));
+  result.set('location', locationToQlangMap(declarationSiteOf(snap)));
   return result;
 }
 
@@ -165,12 +165,12 @@ function describeBinding(value, explicitName) {
   // the dispatch-wrapper meta (`{ captured: [...] }`) and route to
   // `describeValue` so their entry surfaces as `:kind ::value`
   // alongside any other host-bound payload. Host integrations that
-  // want a richer manifest entry wrap their operand in a descriptor
-  // Map (`new Map([['impl', fn]])` + `stampTagHeader(map,
-  // BUILTIN_TAG)` — `bindHostBuiltin` in the CLI demonstrates the
-  // pattern) before `session.bind`; the Map branch above then
-  // routes through `manifestBuiltinDescriptor` with every authored
-  // field intact.
+  // want a richer manifest entry install the operand through a
+  // locator returning `{ source, impls }` (see
+  // `cli/src/cli-locator.mjs`), so the namespace pass stamps the
+  // callable onto the catalog descriptor's `BUILTIN_IMPL_SLOT`; the
+  // Map branch above then routes through
+  // `manifestBuiltinDescriptor` with every authored field intact.
   if (isFunctionValue(value)
       && value.meta && value.meta.category === 'conduitParameter') {
     return describeConduitParameter(value, explicitName);
@@ -242,23 +242,21 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 // `runExamples` — execute every Quote segment in a binding's
 // attached doc-prefix as a self-test expression.
 //
-// Each Quote is evaluated against an empty initial state; a result
-// that is not `false`, `null`, or an ErrorValue counts as
-// `:ok true`. The return is a Vec of result Maps, one per Quote
-// segment.
-
-// Each example evaluates against a copy of the caller's env so the
+// Each example evaluates one frame below the `runExamples` step,
+// against the caller's env, with a null initial pipeValue: the
 // snippet sees every module loaded through `use(:ns)` in the
-// surrounding session — without `use(:jdt/graph)` propagating from
-// the session, an example like `"no.such.Type" | @type !| type` would
-// surface `::UnresolvedIdentifierError` instead of the documented
-// `::TypeNotFound`. The copy isolates the example's BindStep / `as`
-// writes from the session env so a tested snippet cannot leak
-// bindings back into the calling session.
-async function runQuoteEntry(quote, env) {
+// surrounding session, so `"no.such.Type" | @type !| type` under
+// `use(:jdt/graph)` reaches the documented `::TypeNotFound`. Env
+// immutability keeps the example's BindStep / `as` writes off the
+// session env — `evalQuery` forges its own env through `envSet`
+// when it stamps the inline-AST Quote. A result of `false`,
+// `null`, or an ErrorValue counts as `:ok false`, every other
+// value as `:ok true`; the return is a Vec of result Maps, one per
+// Quote segment.
+async function runQuoteEntry(quote, callerState) {
   const result = new Map();
   result.set('snippet', quote);
-  const actualValue = await evalQuery(quote.source, new Map(env));
+  const actualValue = await evalQuery(quote.source, callerState.env, callerState);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
     result.set('error', errorMessageOf(actualValue));
@@ -271,8 +269,8 @@ async function runQuoteEntry(quote, env) {
   return result;
 }
 
-async function collectQuotesForBinding(env, lookupName) {
-  const step = findBindingStepAcrossModules(env, lookupName);
+async function collectQuotesForBinding(callerState, lookupName) {
+  const step = findBindingStepAcrossModules(callerState.env, lookupName);
   // Bindings without a source-located BindStep (host-installed
   // bindings via `session.bind`, runtime-seeded built-ins) have no
   // examples to run. `runExamples` returns an empty Vec — the
@@ -282,7 +280,7 @@ async function collectQuotesForBinding(env, lookupName) {
   const docStrings = stepDocStrings(step);
   const collected = [];
   for (const docStr of docStrings) {
-    const segments = await parseDocSegments(docStr, env);
+    const segments = await parseDocSegments(docStr, callerState);
     for (const seg of segments) {
       if (isQuote(seg)) collected.push(seg);
     }
@@ -300,8 +298,8 @@ export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas
   } else {
     throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
-  const quotes = await collectQuotesForBinding(state.env, lookupName);
-  const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state.env)));
+  const quotes = await collectQuotesForBinding(state, lookupName);
+  const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
   return withPipeValue(state, results);
 });
 

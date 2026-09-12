@@ -168,7 +168,7 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
   const docStrings = stepDocStrings(step);
   const collected = [];
   for (const docStr of docStrings) {
-    const segments = await parseDocSegments(docStr, state.env);
+    const segments = await parseDocSegments(docStr, state);
     for (const seg of segments) {
       if (isQuote(seg)) collected.push(seg);
     }

@@ -16,7 +16,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
-import { makeState } from '../../src/state.mjs';
+import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { fromTaggedJSON } from '../../src/codec.mjs';
 import { isJsonArray, makeTaggedInstance, makeTagKeyword, typeKeyword } from '../../src/types.mjs';
@@ -61,7 +61,7 @@ describe('applyTagPreservation — unbound tag survives shape-preserving transfo
   // mintTaggedInstance. Guards that the auto-declaration moving out of
   // mintTaggedInstance did not turn an absent binding into a throw.
   async function transform(tagged, src) {
-    const state = makeState(tagged, await langRuntime());
+    const state = rootState(tagged, await langRuntime());
     return (await evalAst(parse(src), state)).pipeValue;
   }
 

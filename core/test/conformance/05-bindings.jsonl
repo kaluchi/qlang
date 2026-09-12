@@ -9,3 +9,5 @@
 {"name":"use-shadowable-by-as","query":"42 | as(:use) | use","expect":"42"}
 {"name":"use-inside-paren-scoped","query":"({:k 99} | use | k) | 0","expect":"0"}
 {"name":"use-inside-paren-leaks-pipeValue-only","query":"({:k 99} | use | k)","expect":"99"}
+{"name":"use-on-operand-name-walks-past-to-locator","query":"use(:count) !| type","expect":"::UseNamespaceNotFoundError"}
+{"name":"use-on-conduit-name-walks-past-to-locator","query":":double mul(2) | use(:double) !| type","expect":"::UseNamespaceNotFoundError"}

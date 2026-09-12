@@ -25,7 +25,8 @@
     11. Session lifecycle invariants
     12. Render-path invariants
     13. Error-value mint invariants
-    14. Evaluation depth budget ~|
+    14. Evaluation depth budget
+    15. Catalog source loading ~|
 
 |~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
 
@@ -491,6 +492,16 @@
   ~~|
   ::builtin{:category :invariantError}
 
+::ToPlainUnencodableValueError
+  |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
+      with no JSON form. Conduit and Snapshot reconstruct through
+      `serializeSession` / `deserializeSession`; a host value an
+      embedder installed reaches the boundary the same way. Route
+      the value through `tjson` / `toTaggedJSON` when the round-trip
+      has to stay lossless, or project around the slot.
+  ~~|
+  ::builtin{:category :invariantError :operand :json}
+
 |~ ── 13. Error-value mint invariants ──────────────────── ~|
 
 ::ErrorTrailNotQuoteError
@@ -542,3 +553,23 @@
        }
   ~~|
   ::builtin{:category :resourceLimit}
+
+|~ ── 15. Catalog source loading ────────────────────────── ~|
+
+::SourceLoadError
+  |~~ The platform resolved a `#qlang/<ns>` logical name to a path
+      or URL the host could not read. The descriptor carries
+      `:host` (`:node` / `:web`), `:logicalName`, `:sourceLocation`,
+      and either the underlying `:cause` or the HTTP `:status`. A
+      host that ships its own catalog answers the `:qlang/locator`
+      contract and never reaches the platform loader.
+  ~~|
+  ::builtin{:category :foreignError}
+
+::BootstrapRootMissingError
+  |~~ `#qlang/core` resolved to nothing, so the bootstrap has no
+      root module to evaluate. The host adds the entry to
+      `package.json#imports` (Node) or to the import map (browser),
+      or hands `langRuntime({ locator })` a locator of its own.
+  ~~|
+  ::builtin{:category :invariantError}

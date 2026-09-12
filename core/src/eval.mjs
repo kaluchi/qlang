@@ -119,8 +119,11 @@ const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingErr
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
-const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', '*',  ['vec', 'set']);
-const MergeSubjectNotSequenceError      = declareSubjectError('MergeSubjectNotSequenceError',      '>>', ['vec', 'set']);
+// The combinator names its qlang kind — `distribute` / `merge`, the
+// same vocabulary `COMBINATOR_SYNTAX` and `trailEntry` speak — so the
+// message and the catalog tag-binding's `:operand` read alike.
+const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set']);
+const MergeSubjectNotSequenceError      = declareSubjectError('MergeSubjectNotSequenceError',      'merge',      ['vec', 'set']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`);
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',

@@ -71,4 +71,4 @@
   |~~ `template` captured-arg must be a String — the template
       itself. Pass the literal template text, not a Keyword or
       number. ~~|
-  ::builtin{:category :typeError :operand :template :position 1 :expectedType :string}
+  ::builtin{:category :typeError :operand :template :position 2 :expectedType :string}

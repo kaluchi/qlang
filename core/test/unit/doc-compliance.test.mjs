@@ -12,12 +12,17 @@
 //
 //   2. Inline prose examples (qlang-operands.md):
 //      `query` → `expected`
+//
+// Both planes run the same way: the expected side goes through the
+// parser first, so a pair whose right half is prose drops out rather
+// than failing.
 
 import { describe, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
+import { printValue } from '../../src/index.mjs';
 import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
@@ -108,6 +113,29 @@ function extractReplExamples(source, filePath) {
   return examples;
 }
 
+// Extract inline prose examples from the operand reference.
+// Pattern: `query` → `expected`, both fenced in backticks on one
+// line, the form every entry's **Example** bullet uses. A pair whose
+// expected side is prose rather than a qlang expression drops out at
+// the parse gate, the same way a REPL result's trailing prose does.
+const INLINE_PAIR = /`([^`]+)`\s*\u2192\s*`([^`]+)`/g;
+
+function extractInlineExamples(source, filePath) {
+  const examples = [];
+  const lines = source.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    for (const pair of lines[index].matchAll(INLINE_PAIR)) {
+      examples.push({
+        query: pair[1].trim(),
+        expected: pair[2].trim(),
+        file: filePath,
+        line: index + 1
+      });
+    }
+  }
+  return examples;
+}
+
 // Run REPL examples from the spec doc.
 const specPath = join(docsDir, 'qlang-spec.md');
 const specSource = readFileSync(specPath, 'utf8');
@@ -145,6 +173,38 @@ describe('doc-compliance: qlang-spec.md REPL examples', () => {
           `  query:    ${ex.query}\n` +
           `  expected: ${expectedStr}\n` +
           `  actual:   ${resultStr}`
+        );
+      }
+    });
+  }
+});
+
+const operandsPath = join(docsDir, 'qlang-operands.md');
+const operandsSource = readFileSync(operandsPath, 'utf8');
+const operandExamples = extractInlineExamples(operandsSource, 'qlang-operands.md');
+
+describe('doc-compliance: qlang-operands.md inline examples', () => {
+  for (const ex of operandExamples) {
+    it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, async () => {
+      const expectedValue = await parseExpected(ex.expected);
+      if (expectedValue === null) return; // expected side is prose
+
+      let queryResult;
+      try {
+        queryResult = await evalQuery(ex.query);
+      } catch (thrownErr) {
+        throw new Error(
+          `Doc example at ${ex.file}:${ex.line} threw: ${thrownErr.message}\n` +
+          `  query: ${ex.query}`,
+          { cause: thrownErr }
+        );
+      }
+      if (!deepEqual(queryResult, expectedValue)) {
+        throw new Error(
+          `Doc example at ${ex.file}:${ex.line} diverged:\n` +
+          `  query:    ${ex.query}\n` +
+          `  expected: ${printValue(expectedValue)}\n` +
+          `  actual:   ${printValue(queryResult)}`
         );
       }
     });

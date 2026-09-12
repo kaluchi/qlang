@@ -829,7 +829,7 @@ while a qlang Map or Vec answers `:map` / `:vec`.
 
 - **Arity** 1. **Subject** any value.
 - Returns a JSON string representation of the subject.
-- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2 3]}"`.
+- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`.
 
 ### `qlang`
 
@@ -1137,7 +1137,7 @@ its own eval handler in `eval.mjs`.
     binding, alphabetically.
 - **Errors**: captured arg is not a Keyword →
   `ManifestNamespaceNotKeywordError`. Captured Keyword is neither
-  `:value` nor `:tag` → `ManifestNamespaceUnknownError`. Two or
+  `:value` nor `:tag` raises `ManifestNamespaceUnknownError`. Two or
   more captured args → `Rule10ArityOverflowError`.
 
 ### `runExamples`
@@ -1369,8 +1369,8 @@ its own eval handler in `eval.mjs`.
   - `[1 2] | type` → `:vec`.
   - `{:a 1} | type` → `:map`.
   - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
-  - `!{} | type` → `::Error`.
-  - `!{:kind ::Oops} | type` → `::Oops`.
+  - `!{} !| type` → `::Error`.
+  - `!{:kind ::Oops} !| type` → `::Oops`.
 
 ## Error operands
 

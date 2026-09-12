@@ -48,6 +48,7 @@ import {
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import {
   throwSiteSpecOf,
+  throwSiteTagsRaisedBy,
   declareShapeError
 } from './errors.mjs';
 import { stripTagBindingPrefix, isTagBindingName } from './env-keys.mjs';
@@ -70,18 +71,29 @@ const BuiltinImplNotPrimitiveKeyError = declareShapeError('BuiltinImplNotPrimiti
 // value: stamps the callable onto the `BUILTIN_IMPL_SLOT` slot,
 // leaves the author's handle keyword on `:impl` for readers, stamps
 // `:captured` / `:effectful` straight off the resolved function's
-// meta, and backfills empty `:modifiers` / `:throws` Vecs when the
-// catalog author omitted them. The descriptor Map is a freshly-built
+// meta, stamps the `:throws` Vec off the sites that name the
+// binding, and backfills an empty `:modifiers` Vec when the catalog
+// author omitted it. The descriptor Map is a freshly-built
 // JS-layer construction-site value at this point (still inside
 // the bootstrap fill loop, not yet observable via any other env
 // key), so direct `.set` ceremony is the qlang-side equivalent
 // of stamping a fresh value at the factory boundary.
-export function stampStructuralFacts(descriptor, fn) {
+export function stampStructuralFacts(descriptor, fn, bindingName) {
   stampBuiltinImpl(descriptor, fn);
   descriptor.set('captured', [...fn.meta.captured]);
   descriptor.set('effectful', fn.effectful);
   if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
-  if (!descriptor.has('throws'))    descriptor.set('throws',    Object.freeze([]));
+  stampRaisedTags(descriptor, bindingName);
+  return descriptor;
+}
+
+// `:throws` is the reverse of the `:operand` each throw site
+// records, so it is read back rather than authored. A binding that
+// raises nothing a query can provoke gets the empty Vec every
+// consumer projects unconditionally.
+export function stampRaisedTags(descriptor, bindingName) {
+  descriptor.set('throws', Object.freeze(
+    throwSiteTagsRaisedBy(bindingName).map(makeTagKeyword)));
   return descriptor;
 }
 
@@ -129,6 +141,7 @@ export function stampThrowSiteSpec(binding, envKey) {
   if (!isTagBindingName(envKey)) return binding;
   if (binding[TAG_HEADER_SYMBOL]?.name !== BUILTIN_TAG.name) return binding;
   const tagDescriptor = binding;
+  stampRaisedTags(tagDescriptor, envKey);
   const spec = throwSiteSpecOf(stripTagBindingPrefix(envKey));
   if (spec === undefined) return tagDescriptor;
   tagDescriptor.set('category', keyword(spec.category));

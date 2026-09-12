@@ -195,7 +195,7 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
       const implDescriptor = loadedExports.get(implName);
       if (isQMap(implDescriptor) && implDescriptor[TAG_HEADER_SYMBOL]?.name === 'builtin') {
-        stampStructuralFacts(implDescriptor, implFn);
+        stampStructuralFacts(implDescriptor, implFn, implName);
       }
     }
   }

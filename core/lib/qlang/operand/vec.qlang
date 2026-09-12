@@ -15,8 +15,7 @@
   ::builtin{:impl :qlang/prim/first
             :category :vecReducer
             :subject [:vec :set]
-            :returns :any
-            :throws [::FirstSubjectNotSequenceError]}
+            :returns :any}
 
 ::FirstSubjectNotSequenceError
   |~~ Subject of `first` must be Vec or Set.
@@ -39,8 +38,7 @@
   ::builtin{:impl :qlang/prim/last
             :category :vecReducer
             :subject [:vec :set]
-            :returns :any
-            :throws [::LastSubjectNotSequenceError]}
+            :returns :any}
 
 ::LastSubjectNotSequenceError
   |~~ Subject of `last` must be Vec or Set.
@@ -66,8 +64,7 @@
   ::builtin{:impl :qlang/prim/sum
             :category :vecReducer
             :subject [:vec :set]
-            :returns :number
-            :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError ::SumResultNotFiniteError]}
+            :returns :number}
 
 ::SumSubjectNotVecOrSetError
   |~~ Subject of `sum` must be Vec or Set.
@@ -115,8 +112,7 @@
   ::builtin{:impl :qlang/prim/min
             :category :vecReducer
             :subject [:vec :set]
-            :returns :any
-            :throws [::MinSubjectNotVecOrSetError ::MinElementsNotComparableError]}
+            :returns :any}
 
 ::MinSubjectNotVecOrSetError
   |~~ Subject of `min` must be Vec or Set.
@@ -149,8 +145,7 @@
   ::builtin{:impl :qlang/prim/max
             :category :vecReducer
             :subject [:vec :set]
-            :returns :any
-            :throws [::MaxSubjectNotVecOrSetError ::MaxElementsNotComparableError]}
+            :returns :any}
 
 ::MaxSubjectNotVecOrSetError
   |~~ Subject of `max` must be Vec or Set.
@@ -183,8 +178,7 @@
   ::builtin{:impl :qlang/prim/firstNonZero
             :category :vecReducer
             :subject :vec
-            :returns :number
-            :throws [::FirstNonZeroSubjectNotVecError ::FirstNonZeroElementNotNumberError]}
+            :returns :number}
 
 ::FirstNonZeroSubjectNotVecError
   |~~ Subject of `firstNonZero` must be Vec.
@@ -226,8 +220,7 @@
             :category :vecReducer
             :subject [:vec :set]
             :returns :any
-            :modifiers [:any :reducerLambda]
-            :throws [::ReduceSubjectNotSequenceError ::ReduceReducerNotBinaryError]}
+            :modifiers [:any :reducerLambda]}
 
 ::ReduceSubjectNotSequenceError
   |~~ Subject of `reduce` must be a Vec or Set.
@@ -268,12 +261,7 @@
             :category :vecTransformer
             :subject [:vec :set]
             :returns [:vec :set]
-            :modifiers [:keyLambda]
-            :throws [
-   ::SortNaturalSubjectNotSequenceError
-   ::SortByKeySubjectNotSequenceError
-   ::SortNaturalNotComparableError
-   ::SortByKeyNotComparableError]}
+            :modifiers [:keyLambda]}
 
 ::SortNaturalSubjectNotSequenceError
   |~~ Subject of `sort` must be Vec or Set.
@@ -327,10 +315,7 @@
             :category :vecTransformer
             :subject [:vec :set]
             :returns [:vec :set]
-            :modifiers [:comparatorLambda]
-            :throws [::SortWithSubjectNotSequenceError
-                     ::SortWithCmpResultNotNumberError
-                     ::SortWithCmpResultNaNError]}
+            :modifiers [:comparatorLambda]}
 
 ::SortWithSubjectNotSequenceError
   |~~ Subject of `sortWith` must be Vec or Set.
@@ -374,8 +359,7 @@
             :category :vecTransformer
             :subject [:vec :set]
             :returns [:vec :set]
-            :modifiers [:integer]
-            :throws [::TakeSubjectNotSequenceError ::TakeCountNotIntegerError]}
+            :modifiers [:integer]}
 
 ::TakeSubjectNotSequenceError
   |~~ Subject of `take` must be Vec or Set.
@@ -421,8 +405,7 @@
             :category :indexedAccess
             :subject [:vec :set :map]
             :returns :any
-            :modifiers [:any]
-            :throws [::AtSubjectNotSequenceOrMapError ::AtIndexNotIntegerError ::AtKeyNotKeywordOrStringError]}
+            :modifiers [:any]}
 
 ::AtSubjectNotSequenceOrMapError
   |~~ Subject of `at` must be Vec, Set, or Map.
@@ -468,8 +451,7 @@
             :category :vecTransformer
             :subject [:vec :set]
             :returns [:vec :set]
-            :modifiers [:integer]
-            :throws [::DropSubjectNotSequenceError ::DropCountNotIntegerError]}
+            :modifiers [:integer]}
 
 ::DropSubjectNotSequenceError
   |~~ Subject of `drop` must be Vec or Set.
@@ -511,8 +493,7 @@
   ::builtin{:impl :qlang/prim/distinct
             :category :vecTransformer
             :subject [:vec :set]
-            :returns :set
-            :throws [::DistinctSubjectNotSequenceError]}
+            :returns :set}
 
 ::DistinctSubjectNotSequenceError
   |~~ Subject of `distinct` must be Vec or Set.
@@ -533,8 +514,7 @@
   ::builtin{:impl :qlang/prim/reverse
             :category :vecTransformer
             :subject [:vec :set]
-            :returns [:vec :set]
-            :throws [::ReverseSubjectNotSequenceError]}
+            :returns [:vec :set]}
 
 ::ReverseSubjectNotSequenceError
   |~~ Subject of `reverse` must be Vec or Set.
@@ -558,8 +538,7 @@
   ::builtin{:impl :qlang/prim/flat
             :category :vecTransformer
             :subject [:vec :set]
-            :returns [:vec :set]
-            :throws [::FlatSubjectNotSequenceError]}
+            :returns [:vec :set]}
 
 ::FlatSubjectNotSequenceError
   |~~ Subject of `flat` must be Vec or Set.
@@ -585,8 +564,7 @@
             :category :vecTransformer
             :subject [:vec :set]
             :returns :map
-            :modifiers [:keyLambda]
-            :throws [::GroupBySubjectNotSequenceError ::GroupByKeyNotKeywordError]}
+            :modifiers [:keyLambda]}
 
 ::GroupBySubjectNotSequenceError
   |~~ Subject of `groupBy` must be Vec or Set.
@@ -618,8 +596,7 @@
             :category :vecTransformer
             :subject [:vec :set]
             :returns :map
-            :modifiers [:keyLambda]
-            :throws [::IndexBySubjectNotSequenceError ::IndexByKeyNotKeywordError]}
+            :modifiers [:keyLambda]}
 
 ::IndexBySubjectNotSequenceError
   |~~ Subject of `indexBy` must be Vec or Set.

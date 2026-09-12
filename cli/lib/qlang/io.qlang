@@ -40,8 +40,7 @@
             :category :io
             :subject :any
             :returns :any
-            :modifiers [:pipeline]
-            :throws [::OutSubjectNotStringError ::OutRendererResultNotStringError]}
+            :modifiers [:pipeline]}
 
 ::OutSubjectNotStringError
   |~~ Bare `@out` requires a String subject — the bytes
@@ -67,8 +66,7 @@
             :category :io
             :subject :any
             :returns :any
-            :modifiers [:pipeline]
-            :throws [::ErrSubjectNotStringError ::ErrRendererResultNotStringError]}
+            :modifiers [:pipeline]}
 
 ::ErrSubjectNotStringError
   |~~ Bare `@err` requires a String subject. Wrap non-String
@@ -92,8 +90,7 @@
             :category :io
             :subject :any
             :returns :any
-            :modifiers [:keyword]
-            :throws [::TapLabelNotKeywordError]}
+            :modifiers [:keyword]}
 
 ::TapLabelNotKeywordError
   |~~ `@tap` label must be a Keyword — use `:foo` not `"foo"`

@@ -224,7 +224,7 @@ export async function buildLangRuntime(locator) {
     // `stampStructuralFacts` call here trusts the contract; a
     // descriptor authored without `:impl` cannot reach env.
     const implKey = descriptor.get('impl');
-    stampStructuralFacts(descriptor, PRIMITIVE_REGISTRY.resolve(implKey.name));
+    stampStructuralFacts(descriptor, PRIMITIVE_REGISTRY.resolve(implKey.name), envKey);
   }
 
   // Stamp the parsed root module as a Quote-value under the

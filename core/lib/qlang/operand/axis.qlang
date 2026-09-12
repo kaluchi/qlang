@@ -21,8 +21,7 @@
   ::builtin{:impl :qlang/prim/source
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :quote
-            :throws [::SourceSubjectNotKeywordOrTagError ::SourceBindingNotFoundError]}
+            :returns :quote}
 
 ::SourceSubjectNotKeywordOrTagError
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
@@ -47,8 +46,7 @@
   ::builtin{:impl :qlang/prim/docs
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :vec
-            :throws [::DocsSubjectNotKeywordOrTagError ::DocsBindingNotFoundError]}
+            :returns :vec}
 
 ::DocsSubjectNotKeywordOrTagError
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
@@ -73,8 +71,7 @@
   ::builtin{:impl :qlang/prim/examples
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :vec
-            :throws [::ExamplesSubjectNotKeywordOrTagError ::ExamplesBindingNotFoundError]}
+            :returns :vec}
 
 ::ExamplesSubjectNotKeywordOrTagError
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
@@ -121,8 +118,7 @@
   ::builtin{:impl :qlang/prim/spec
             :category :axis
             :subject [:keyword :tagKeyword]
-            :returns :map
-            :throws [::SpecSubjectNotKeywordOrTagError ::SpecBindingNotFoundError]}
+            :returns :map}
 
 ::SpecSubjectNotKeywordOrTagError
   |~~ `spec` requires a Keyword (`:foo`) or TagKeyword

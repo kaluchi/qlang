@@ -24,8 +24,7 @@
             :category :error
             :subject :map
             :returns :error
-            :modifiers [:map]
-            :throws [::ErrorDescriptorNotMapError]}
+            :modifiers [:map]}
 
 ::ErrorDescriptorNotMapError
   |~~ `error` lift requires a Map descriptor (the error's

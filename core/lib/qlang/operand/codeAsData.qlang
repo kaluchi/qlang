@@ -26,8 +26,7 @@
   ::builtin{:impl :qlang/prim/parse
             :category :codeAsData
             :subject :string
-            :returns :map
-            :throws [::ParseSubjectNotStringOrQuoteError]}
+            :returns :map}
 
 ::ParseSubjectNotStringOrQuoteError
   |~~ `parse` requires a String or Quote subject.
@@ -56,8 +55,7 @@
   ::builtin{:impl :qlang/prim/eval
             :category :codeAsData
             :subject :map
-            :returns :any
-            :throws [::EvalSubjectNotMapOrQuoteError]}
+            :returns :any}
 
 ::EvalSubjectNotMapOrQuoteError
   |~~ `eval` requires a Map (AST-Map) or Quote (source-form)
@@ -108,5 +106,4 @@
             :category :codeAsData
             :subject [:quote :map]
             :returns :any
-            :modifiers [:any]
-            :throws [::ApplySubjectNotMapOrQuoteError]}
+            :modifiers [:any]}

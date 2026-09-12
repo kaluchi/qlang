@@ -24,16 +24,7 @@
 
       ~{ :double ::conduit[[] ~{mul(2)}] | 5 | double | eq(10) }
   ~~|
-  ::builtin{:impl :qlang/type/conduit
-            :throws [::ConduitPayloadNotVecError
-                     ::ConduitArityInvalidError
-                     ::ConduitSelfNameNotKeywordError
-                     ::ConduitParamsNotVecError
-                     ::ConduitParamNotKeywordError
-                     ::ConduitBodyNotQuoteError
-                     ::ConduitArityMismatchError
-                     ::ConduitParameterNoCapturedArgsError
-                     ::ConduitBodyMissingSourceError]}
+  ::builtin{:impl :qlang/type/conduit}
 
 ::ConduitPayloadNotVecError
   |~~ `::conduit[…]` payload must be a Vec.

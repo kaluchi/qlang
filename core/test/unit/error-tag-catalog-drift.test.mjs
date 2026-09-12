@@ -44,7 +44,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '../../src/session.mjs';
-import { throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
+import {
+  throwSiteSpecOf, throwSiteSpecNames, throwSiteTagsRaisedBy
+} from '../../src/errors.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const catalogDir = join(here, '..', '..', 'lib', 'qlang');
@@ -74,6 +76,7 @@ const CATALOG_ORCHESTRATOR = 'core.qlang';
 // accepts is one this reading sees.
 const CATALOG_DECLARATION_RE = /^(::?[@_\p{ID_Start}][\p{ID_Continue}@_/-]*)\r?$/u;
 const BODY_OPENING = '  ::builtin{';
+const THROWS_FIELD = ':throws';
 
 function catalogFiles() {
   return readdirSync(catalogDir, { recursive: true })
@@ -89,10 +92,15 @@ function collectCatalogDeclarations() {
     for (const line of lines) {
       const match = CATALOG_DECLARATION_RE.exec(line);
       if (match !== null) {
-        open = { name: match[1], file: `core/lib/qlang/${relPath}`, declaresBody: false };
+        open = {
+          name: match[1], file: `core/lib/qlang/${relPath}`,
+          declaresBody: false, declaresThrows: false
+        };
         declarations.push(open);
       } else if (open !== null && line.startsWith(BODY_OPENING)) {
         open.declaresBody = true;
+      } else if (open !== null && open.declaresBody && line.includes(THROWS_FIELD)) {
+        open.declaresThrows = true;
       }
     }
   }
@@ -169,6 +177,46 @@ describe('per-site error classes — every catalog error tag has a throw site', 
       expect(catalogTags.has(tagName),
         `${tagName} is read out as a constructor, and the catalog binds no such tag`
       ).toBe(true);
+    }
+  });
+});
+
+describe('`:throws` is read back, not authored', () => {
+  // The Vec is the reverse of the `:operand` each throw site
+  // records. A catalog body spelling it again is the drift this
+  // replaces: the stamp overwrites the body, so the two disagree in
+  // the source while agreeing in env.
+  for (const declaration of declarations) {
+    if (!declaration.declaresThrows) continue;
+    it(`${declaration.name} declares no \`:throws\` of its own`, () => {
+      expect(declaration.declaresThrows,
+        `${declaration.file} spells \`:throws\` on ${declaration.name}, which the ` +
+        'stamp overwrites from the sites that name it'
+      ).toBe(false);
+    });
+  }
+
+  it('every binding raising a query fault carries it, and nothing else does', () => {
+    for (const [bindingName, binding] of [
+      ...operandBindings.map(b => [b.get('name'), b]),
+      ...tagBindings.map(b => [b.get('name'), b])
+    ]) {
+      const derived = throwSiteTagsRaisedBy(bindingName).map(className => `::${className}`);
+      const carried = (binding.get('throws') ?? []).map(tag => tag.literal);
+      expect(carried, `${bindingName} carries a \`:throws\` the sites do not derive`).toEqual(derived);
+    }
+  });
+
+  it('a category the reader cannot act on reaches no `:throws` Vec', () => {
+    const carriedAnywhere = new Set([
+      ...operandBindings.flatMap(b => (b.get('throws') ?? []).map(t => t.literal.slice(2))),
+      ...tagBindings.flatMap(b => (b.get('throws') ?? []).map(t => t.literal.slice(2)))
+    ]);
+    for (const className of throwSiteSpecNames()) {
+      if (throwSiteSpecOf(className).isQueryFault) continue;
+      expect(carriedAnywhere.has(className),
+        `${className} is a runtime or host failure and rides a binding's \`:throws\``
+      ).toBe(false);
     }
   });
 });

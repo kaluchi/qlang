@@ -23,8 +23,7 @@
             :category :comparator
             :subject :map
             :returns :number
-            :modifiers [:keyLambda]
-            :throws [::AscPairNotMapError ::AscKeysNotComparableError]}
+            :modifiers [:keyLambda]}
 
 ::AscPairNotMapError
   |~~ `asc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
@@ -55,8 +54,7 @@
             :category :comparator
             :subject :map
             :returns :number
-            :modifiers [:keyLambda]
-            :throws [::DescPairNotMapError ::DescKeysNotComparableError]}
+            :modifiers [:keyLambda]}
 
 ::DescPairNotMapError
   |~~ `desc(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
@@ -88,8 +86,7 @@
             :category :comparator
             :subject :map
             :returns :number
-            :modifiers [:keyLambda]
-            :throws [::NullsFirstPairNotMapError ::NullsFirstKeysNotComparableError]}
+            :modifiers [:keyLambda]}
 
 ::NullsFirstPairNotMapError
   |~~ `nullsFirst(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).
@@ -121,8 +118,7 @@
             :category :comparator
             :subject :map
             :returns :number
-            :modifiers [:keyLambda]
-            :throws [::NullsLastPairNotMapError ::NullsLastKeysNotComparableError]}
+            :modifiers [:keyLambda]}
 
 ::NullsLastPairNotMapError
   |~~ `nullsLast(/key)` comparator subject must be a pair Map (`{ :left x :right y }`).

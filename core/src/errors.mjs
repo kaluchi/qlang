@@ -163,6 +163,15 @@ export class EffectLaunderingError extends QlangError {
 // live. That keeps `errors.mjs` free of a `types.mjs` import, which
 // would close a cycle.
 
+// An operand's `:throws` answers what a query can provoke, not what
+// the code can raise. A category names who fixes the failure: the
+// reader who wrote the query, or the runtime and the host, whose
+// defects a reader cannot act on and whose tags therefore stay off
+// every operand's Vec.
+const QUERY_FAULT_CATEGORIES = new Set([
+  'typeError', 'arityError', 'numericDomain', 'divisionByZero'
+]);
+
 const throwSiteSpecs = new Map();
 
 // One name, one throw site — the registry refuses a second
@@ -174,7 +183,24 @@ export function recordThrowSiteSpec(className, category, facts = {}) {
   if (throwSiteSpecs.has(className)) {
     throw new ThrowSiteSpecAlreadyRecordedError({ className });
   }
-  throwSiteSpecs.set(className, Object.freeze({ category, ...facts }));
+  throwSiteSpecs.set(className, Object.freeze({
+    category,
+    isQueryFault: QUERY_FAULT_CATEGORIES.has(category),
+    ...facts
+  }));
+}
+
+// The `:throws` Vec of a binding, read back off the sites that name
+// it. Registry insertion order is the order each impl module
+// declares its checks, so `add` answers left slot, right slot, then
+// the domain refusal — the reading its catalog entry used to spell
+// by hand.
+export function throwSiteTagsRaisedBy(bindingName) {
+  const raised = [];
+  for (const [className, spec] of throwSiteSpecs) {
+    if (spec.isQueryFault && spec.operand === bindingName) raised.push(className);
+  }
+  return raised;
 }
 
 export function throwSiteSpecOf(className) {

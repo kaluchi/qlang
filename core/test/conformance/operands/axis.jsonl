@@ -1,0 +1,5 @@
+{"name":"source-not-found-names-the-source-axis","query":":nosuchbinding | source !| type","expect":"::SourceBindingNotFoundError"}
+{"name":"docs-not-found-names-the-docs-axis","query":":nosuchbinding | docs !| type","expect":"::DocsBindingNotFoundError"}
+{"name":"examples-not-found-names-the-examples-axis","query":":nosuchbinding | examples !| type","expect":"::ExamplesBindingNotFoundError"}
+{"name":"spec-not-found-names-the-spec-axis","query":":nosuchbinding | spec !| type","expect":"::SpecBindingNotFoundError"}
+{"name":"not-found-carries-the-binding-name","query":":nosuchbinding | source !| /bindingName","expect":":nosuchbinding"}

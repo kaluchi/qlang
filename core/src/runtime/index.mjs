@@ -195,9 +195,9 @@ export async function buildLangRuntime(locator) {
   //
   // `stampStructuralFacts` is the single mint-site backfill —
   // swaps `:impl` for the callable, stamps `:captured` /
-  // `:effectful` straight off the resolved function's meta, and
-  // forges empty `:modifiers` / `:throws` Vecs when the catalog
-  // author omitted them. Every consumer downstream — `manifest`
+  // `:effectful` straight off the resolved function's meta, reads
+  // `:throws` back off the sites that name the binding, and forges
+  // an empty `:modifiers` Vec when the catalog author omitted it. Every consumer downstream — `manifest`
   // output, LSP signature-help, `/throws` and `/modifiers`
   // projections — reads the field unconditionally because the
   // env-side descriptor always carries it after this pass.

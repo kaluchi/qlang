@@ -5,7 +5,8 @@ import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, makeQuo
 import { deepEqual } from '../../src/equality.mjs';
 import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
-import { QlangTypeError, UnresolvedIdentifierError, DivisionByZeroError } from '../../src/errors.mjs';
+import { QlangTypeError, UnresolvedIdentifierError } from '../../src/errors.mjs';
+import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
 
 // fault(stepText, input) — pair-builder for the flat
 // `:faultStep` / `:faultInput` descriptor shape. errorFromQlang

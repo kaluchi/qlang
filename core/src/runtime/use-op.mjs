@@ -189,7 +189,7 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // uses for the core catalog. Locator-loaded descriptors land in
   // env carrying a resolved JS function value on `:impl` plus the
   // structural-from-impl backfill (`:captured` / `:effectful` /
-  // empty-fallback `:modifiers` / `:throws`) so `spec` axis and
+  // empty-fallback `:modifiers`, and `:throws` read off the sites) so `spec` axis and
   // `manifest` enumeration read them off the env entry uniformly.
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {

@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQuote, makeTagKeyword, keyword as makeKeyword } from '../../src/types.mjs';
+import { QlangTypeError } from '../../src/errors.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
   it(':count | source carries the canonical :count BindStep text', async () => {
@@ -175,6 +176,7 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('SourceBindingNotFoundError');
+    expect(result.originalError).toBeInstanceOf(QlangTypeError);
     expect(result.originalError.context.bindingName).toBe('::Foo');
   });
 
@@ -183,6 +185,8 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('DocsBindingNotFoundError');
+    expect(result.originalError).toBeInstanceOf(QlangTypeError);
+    expect(result.originalError.context.bindingName).toBe('::Foo');
   });
 });
 
@@ -276,6 +280,23 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     });
     const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| type');
     expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
+  });
+});
+
+describe('a tagged subject names its binding through the header', () => {
+  // The operand reference promises the axis trio accepts any value
+  // carrying a TagKeyword on its JS-header slot. A `manifest`
+  // view-Map names one through its `:kind` field instead — that is
+  // the field's job, since a view describes a binding rather than
+  // being one.
+  it('a materialized error reaches its own tag docs', async () => {
+    expect(await evalQuery('10 | div(0) !| docs | first | /content'))
+      .toContain('Division by zero');
+  });
+
+  it('a manifest view reaches the docs of the kind its `:kind` names', async () => {
+    expect(await evalQuery('manifest | first | docs | first | /content'))
+      .toContain('Tag-binding declaration shape');
   });
 });
 

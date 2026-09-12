@@ -18,7 +18,7 @@ import { bindPrim } from '../primitives.mjs';
 import { withPipeValue, envGet, envHas } from '../state.mjs';
 import {
   isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeQuote, makeDoc,
-  declarationSiteOf
+  declarationSiteOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
@@ -181,8 +181,14 @@ function bindingNameOf(subject, env, ErrorCls) {
   if (isKeyword(subject)) return subject.name;
   if (isTagKeyword(subject)) return tagBindingKey(subject.name);
   if (isQMap(subject)) {
-    const kind = subject.get('kind');
-    if (isTagKeyword(kind)) return tagBindingKey(kind.name);
+    // A tagged value names its binding through the JS-header slot —
+    // the same identity `type` answers with. A `manifest` view-Map
+    // names one through its `:kind` field, which is the field's job:
+    // it says which binding the view describes.
+    const headerTag = subject[TAG_HEADER_SYMBOL];
+    if (headerTag !== undefined) return tagBindingKey(headerTag.name);
+    const describedKind = subject.get('kind');
+    if (isTagKeyword(describedKind)) return tagBindingKey(describedKind.name);
   }
   throw new ErrorCls(subject);
 }

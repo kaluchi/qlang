@@ -13,10 +13,10 @@
 // pairs, so a renamed class, a fresh throw site without a binding, or
 // a binding restating facts the stamp overwrites all drift silently —
 // and the drift surfaces to a user as `result !| type | spec` handing
-// back nothing, or as `::AxisBindingNotFoundError` for a tag the
+// back nothing, or as `::SourceBindingNotFoundError` for a tag the
 // catalog never bound.
 //
-// Five axes, one describe each:
+// Six axes, one describe each:
 //
 //   1. each name the catalog binds is bound once, and every family
 //      file contributes at least one name — a second BindStep under
@@ -32,12 +32,14 @@
 //      `::builtin{…}` body — the facts have one spelling, at the
 //      site, and a body restating them is what the stamp would
 //      silently overwrite;
-//   5. the operand a tag names is the operand whose `:throws` Vec
-//      lists that tag — the two halves of the same edge, authored in
-//      the catalog on one side and recorded at the site on the
-//      other, so a factory call that drops its `facts` argument
-//      leaves the tag reachable from `:throws` while `spec |
-//      /operand` answers nothing.
+//   5. `:throws` is the reverse of the `:operand` each site
+//      records, so no catalog body spells it and every Vec in env
+//      equals what the registry derives;
+//   6. the operand a tag names is the operand whose `:throws` Vec
+//      lists that tag — the two halves of the same edge, so a
+//      factory call that drops its `facts` argument leaves the tag
+//      reachable from `:throws` while `spec | /operand` answers
+//      nothing.
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -181,11 +183,10 @@ describe('per-site error classes — every catalog error tag has a throw site', 
   });
 });
 
-describe('`:throws` is read back, not authored', () => {
-  // The Vec is the reverse of the `:operand` each throw site
-  // records. A catalog body spelling it again is the drift this
-  // replaces: the stamp overwrites the body, so the two disagree in
-  // the source while agreeing in env.
+describe('`:throws` is the reverse of the `:operand` each site records', () => {
+  // The stamp reads the Vec back off the registry, so a catalog
+  // body spelling it again disagrees in the source while agreeing
+  // in env — the drift this axis exists to keep out.
   for (const declaration of declarations) {
     if (!declaration.declaresThrows) continue;
     it(`${declaration.name} declares no \`:throws\` of its own`, () => {
@@ -202,14 +203,18 @@ describe('`:throws` is read back, not authored', () => {
       ...tagBindings.map(b => [b.get('name'), b])
     ]) {
       const derived = throwSiteTagsRaisedBy(bindingName).map(className => `::${className}`);
-      const carried = (binding.get('throws') ?? []).map(tag => tag.literal);
-      expect(carried, `${bindingName} carries a \`:throws\` the sites do not derive`).toEqual(derived);
+      if (derived.length === 0 && !binding.has('throws')) continue;
+      expect(binding.has('throws'),
+        `${bindingName} raises ${derived.length} query fault(s) and carries no \`:throws\``
+      ).toBe(true);
+      expect(binding.get('throws').map(tag => tag.literal),
+        `${bindingName} carries a \`:throws\` the sites do not derive`).toEqual(derived);
     }
   });
 
   it('a category the reader cannot act on reaches no `:throws` Vec', () => {
     const carriedAnywhere = new Set([
-      ...operandBindings.flatMap(b => (b.get('throws') ?? []).map(t => t.literal.slice(2))),
+      ...operandBindings.flatMap(b => b.get('throws').map(t => t.literal.slice(2))),
       ...tagBindings.flatMap(b => (b.get('throws') ?? []).map(t => t.literal.slice(2)))
     ]);
     for (const className of throwSiteSpecNames()) {
@@ -222,9 +227,8 @@ describe('`:throws` is read back, not authored', () => {
 });
 
 describe('per-site error classes — a binding and the tags it throws agree', () => {
-  // `:throws` is authored, `:operand` is recorded: the catalog names
-  // the tags a binding raises, and the factory call at each site
-  // names the binding back. A site whose factory call drops the
+  // `:throws` is derived and `:operand` is recorded — both halves of
+  // one edge, read off the same registry. A site whose factory call drops the
   // `facts` argument breaks the return edge alone — the tag still
   // reads as thrown, and `spec | /operand` answers nothing. Both
   // planes carry `:throws`, and a tag spells its raiser the way

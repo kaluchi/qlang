@@ -2071,9 +2071,11 @@ declaration is hidden by shadowing. Errors:
 
 - Subject is not a Keyword / TagKeyword → per-site subject error
   (`SourceSubjectNotKeywordOrTagError`, `DocsSubjectNot…`,
-  `ExamplesSubjectNot…`).
-- No declaring BindStep found in any loaded module →
-  `AxisBindingNotFoundError`.
+  `ExamplesSubjectNot…`, `SpecSubjectNot…`).
+- No declaring BindStep found in any loaded module → the axis's own
+  not-found class (`SourceBindingNotFoundError`, `DocsBindingNot…`,
+  `ExamplesBindingNot…`, `SpecBindingNot…`), so `!| type` alone names
+  which lookup failed.
 
 A tagged-value subject (any value carrying a TagKeyword on its
 JS-header identity slot — TaggedInstance, Conduit, Snapshot,

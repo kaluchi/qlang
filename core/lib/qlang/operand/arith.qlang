@@ -142,7 +142,7 @@
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
-      position 1 is the dividend. Raises divisionByZero on
+      position 1 is the dividend. Raises `::DivisionByZeroError` on
       b == 0.
 
       ~{10 | div(2) | eq(5)}

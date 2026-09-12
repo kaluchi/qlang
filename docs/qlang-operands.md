@@ -776,8 +776,9 @@ JSON-tagged shapes carry an identity of their own: a plain JS
 object or Array stamped with the `JSON_OBJECT_TAG` /
 `JSON_ARRAY_TAG` Symbol — produced by the host JSON-bridge and by
 the `::json` constructor — answers `:jsonObject` / `:jsonArray`,
-while a qlang Map or Vec answers `:map` / `:vec`. A Map declaring
-a `:kind ::Foo` field answers `::Foo`, the identity it declares.
+while a qlang Map or Vec answers `:map` / `:vec`. Identity rides
+the value's JS-header slot, so a Map carrying a `:kind` field
+answers `:map`; `::Foo{…}` is the form that stamps the header.
 
 ## Type Conversion
 
@@ -1310,7 +1311,7 @@ its own eval handler in `eval.mjs`.
   - `~{| count | add(1)} | apply([1 2 3])` → `4`.
   - `error !| /trail | apply(start)` — re-runs deflected steps
     against a fresh subject.
-- **Errors**: pipeValue not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
+- **Errors**: pipeValue not a Map or Quote → `ApplySubjectNotMapOrQuoteError`.
 
 ### `source`
 
@@ -1323,7 +1324,7 @@ its own eval handler in `eval.mjs`.
   - `::conduit | source | /source` → the `::conduit` tag-binding source.
 - **Errors**: subject not a Keyword or TagKeyword →
   `SourceSubjectNotKeywordOrTagError`; no declaring step found →
-  `AxisBindingNotFoundError`.
+  `SourceBindingNotFoundError`.
 
 ### `docs`
 
@@ -1335,7 +1336,7 @@ its own eval handler in `eval.mjs`.
   - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
 - **Errors**: subject not a Keyword / TagKeyword →
   `DocsSubjectNotKeywordOrTagError`; no declaring step found →
-  `AxisBindingNotFoundError`.
+  `DocsBindingNotFoundError`.
 
 ### `examples`
 
@@ -1348,7 +1349,7 @@ its own eval handler in `eval.mjs`.
   - `:add | examples | count` → number of inline Quote examples on `:add`.
 - **Errors**: subject not a Keyword / TagKeyword →
   `ExamplesSubjectNotKeywordOrTagError`; no declaring step found →
-  `AxisBindingNotFoundError`.
+  `ExamplesBindingNotFoundError`.
 
 ### `spec`
 
@@ -1369,7 +1370,7 @@ its own eval handler in `eval.mjs`.
   - `::conduit | spec | /impl` → `:qlang/type/conduit`.
 - **Errors**: subject not a Keyword or TagKeyword →
   `SpecSubjectNotKeywordOrTagError`; no declaring step found →
-  `AxisBindingNotFoundError`.
+  `SpecBindingNotFoundError`.
 
 ## Error operands
 

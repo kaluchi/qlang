@@ -164,11 +164,9 @@ export class EffectLaunderingError extends QlangError {
 // live. That keeps `errors.mjs` free of a `types.mjs` import, which
 // would close a cycle.
 
-// An operand's `:throws` answers what a query can provoke, not what
-// the code can raise. A category names who fixes the failure: the
-// reader who wrote the query, or the runtime and the host, whose
-// defects a reader cannot act on and whose tags therefore stay off
-// every operand's Vec.
+// A category names who repairs the failure, and only the categories
+// a reader repairs reach a binding's `:throws` — the Vec answers
+// what a query can provoke, which is the half a reader can act on.
 const QUERY_FAULT_CATEGORIES = new Set([
   'typeError', 'arityError', 'numericDomain'
 ]);
@@ -192,16 +190,29 @@ export function recordThrowSiteSpec(className, category, facts = {}) {
 }
 
 // The `:throws` Vec of a binding, read back off the sites that name
-// it. Registry insertion order is the order each impl module
-// declares its checks, so `add` answers left slot, right slot, then
-// the domain refusal — the reading its catalog entry used to spell
-// by hand.
+// it, ordered by the slot each site guards: the subject, then the
+// captured positions in order, then the refusals that guard no one
+// slot — a magnitude, a comparability, an arity. Registry insertion
+// is module-load order, which says nothing about an operand whose
+// sites are spread across modules, so the recorded `:position` is
+// what the reading rests on.
+const SUBJECT_SLOT = -1;
+const NO_SLOT = Number.MAX_SAFE_INTEGER;
+
+function slotOf(spec) {
+  if (spec.position === 'subject') return SUBJECT_SLOT;
+  if (typeof spec.position === 'number') return spec.position;
+  return NO_SLOT;
+}
+
 export function throwSiteTagsRaisedBy(bindingName) {
   const raised = [];
   for (const [className, spec] of throwSiteSpecs) {
-    if (spec.isQueryFault && spec.operand === bindingName) raised.push(className);
+    if (spec.isQueryFault && spec.operand === bindingName) raised.push([className, spec]);
   }
-  return raised;
+  return raised
+    .sort(([, left], [, right]) => slotOf(left) - slotOf(right))
+    .map(([className]) => className);
 }
 
 export function throwSiteSpecOf(className) {
@@ -347,10 +358,6 @@ export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
 export const UnresolvedIdentifierError = declarePerSiteError(
   'UnresolvedIdentifierError', 'unresolvedIdentifier',
   ({ identifierName }) => `unresolved identifier: ${identifierName}`
-);
-
-export const DivisionByZeroError = declareNumericDomainError(
-  'DivisionByZeroError', () => 'division by zero', { operand: 'div' }
 );
 
 // EvaluationDepthExceededError — `nestState` (state.mjs) refused one

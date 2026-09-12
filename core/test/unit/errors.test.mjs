@@ -7,7 +7,6 @@ import {
   QlangError,
   QlangTypeError,
   UnresolvedIdentifierError,
-  DivisionByZeroError,
   ArityError,
   EvaluationDepthExceededError,
   QlangInvariantError,
@@ -15,6 +14,7 @@ import {
   declarePerSiteError,
   declareForeignError
 } from '../../src/errors.mjs';
+import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
 import { keyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 

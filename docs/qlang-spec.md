@@ -658,14 +658,20 @@ sequence. Three mechanisms cover all three needs.
 ### Projection — `/key`
 
 Extract a value from a Map by keyword — the keyword-keyed Maps from
-Part 1. Missing key → `null`:
+Part 1. A key the Map does not carry is a failure, not a `null`:
 
 ```qlang
 > {:name "alice" :age 30} | /name
 "alice"
 
 > {:name "alice"} | /missing
-null
+::ProjectionKeyNotInMapError!{
+  :faultStep ~{/missing}
+  :faultInput {:name "alice"}
+  :key "missing"
+}
+|~| `/key` is the strict reading. `at` is its soft counterpart and
+|~| answers null on a miss.
 ```
 
 Nested chains: `/a/b` desugars to `/a | /b`.
@@ -732,7 +738,11 @@ arguments:
 true
 |~| compares pipeValue against itself.
 
-> {:order /name :record /} 5
+> {:name "bob"} | {:order /name :record /}
+{
+  :order "bob"
+  :record {:name "bob"}
+}
 |~| inside a Map literal `/` captures the whole pipeValue
 |~| alongside the projected /name field.
 ```

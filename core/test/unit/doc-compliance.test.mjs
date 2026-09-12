@@ -45,10 +45,15 @@ function isParseableExpectation(text) {
   }
 }
 
+// `null` is a value a doc example may legitimately expect, so the
+// "this side is prose" answer cannot be `null` too — a sentinel the
+// language has no literal for keeps the two apart.
+const EXPECTATION_IS_PROSE = Symbol('doc expectation is prose');
+
 async function parseExpected(text) {
   const trimmed = text.trim();
-  if (trimmed.length === 0) return null;
-  if (!isParseableExpectation(trimmed)) return null;
+  if (trimmed.length === 0) return EXPECTATION_IS_PROSE;
+  if (!isParseableExpectation(trimmed)) return EXPECTATION_IS_PROSE;
   return await evalQuery(trimmed);
 }
 
@@ -145,7 +150,7 @@ describe('doc-compliance: qlang-spec.md REPL examples', () => {
   for (const ex of specExamples) {
     it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, async () => {
       const expectedValue = await parseExpected(ex.expected);
-      if (expectedValue === null) return; // skip unparseable expected values
+      if (expectedValue === EXPECTATION_IS_PROSE) return;
 
       let queryResult;
       try {
@@ -187,7 +192,7 @@ describe('doc-compliance: qlang-operands.md inline examples', () => {
   for (const ex of operandExamples) {
     it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, async () => {
       const expectedValue = await parseExpected(ex.expected);
-      if (expectedValue === null) return; // expected side is prose
+      if (expectedValue === EXPECTATION_IS_PROSE) return;
 
       let queryResult;
       try {

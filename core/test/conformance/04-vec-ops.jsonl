@@ -54,3 +54,5 @@
 {"name":"reduce-max-via-conduit","query":":max2 [:acc :x] (if(x | gt(acc), x, acc)) | [3 1 4 1 5] | reduce(0, max2)","expect":"5"}
 {"name":"reduce-empty-returns-seed","query":"[] | reduce(42, add)","expect":"42"}
 {"name":"reduce-over-set","query":"#[1 2 3] | reduce(0, add)","expect":"6"}
+{"name": "sum-overflow-lifts-not-finite", "query": "[1e308 1e308] | sum !| type", "expect": "::SumResultNotFiniteError"}
+{"name": "sum-overflow-names-the-element", "query": "[1e308 1e308] | sum !| /index", "expect": "1"}

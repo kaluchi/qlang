@@ -951,12 +951,21 @@ EscapeChar
 HexDigit
   = [0-9a-fA-F]
 
+// A qlang Number is a finite double, so a literal whose digits name
+// a magnitude past that range is refused here rather than read as an
+// infinity: the evaluator would otherwise carry a value no literal
+// renders back, that orders against nothing, and that the JSON
+// boundary turns into `null`.
 NumberLit
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
     { const txt = (sign || '') + whole.join('')
                 + (frac ? '.' + frac[1].join('') : '')
                 + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
-      return node('NumberLit', { value: Number(txt) }, location(), text()); }
+      const literalValue = Number(txt);
+      if (!Number.isFinite(literalValue)) {
+        error(`number literal ${txt} lies outside the finite double range`);
+      }
+      return node('NumberLit', { value: literalValue }, location(), text()); }
 
 BooleanLit
   = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }

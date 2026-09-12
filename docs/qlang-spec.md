@@ -127,6 +127,31 @@ numbers carry a leading `-`.
 -1
 ```
 
+A number is a **finite** double. The two IEEE values outside that
+range — an infinity and NaN — are not qlang values, and the three
+seams where they could enter each refuse them:
+
+- A literal whose magnitude lies past the range is a parse error,
+  so `1e400` never reads as an infinity.
+- An arithmetic step whose result leaves the range lifts a per-site
+  error — `1e308 | mul(10)` answers `::MulResultNotFiniteError`
+  carrying both finite operands, the same way a zero divisor
+  answers `::DivisionByZeroError`.
+- The JSON lifts (`parseJson`, the CLI's implicit stdin lift, the
+  tagged-JSON decoder) refuse an out-of-range magnitude rather than
+  seeding the pipeline with the infinity `JSON.parse` produces.
+
+Three guarantees rest on that rule: every number renders back to a
+literal that parses ([Round-trip invariant](#round-trip-invariant)),
+every pair of numbers orders (`sort`, `min`, `max`, `gt` and
+friends), and every number survives the JSON boundary, where an
+infinity would silently become `null`.
+
+The range is the only thing pinned. Precision is the double's own:
+an integer past 2^53 rounds to its nearest representable neighbour
+the way it does in any IEEE host, and `0.1 | add(0.2)` answers
+`0.30000000000000004`.
+
 ### boolean
 
 `true` or `false`. There is no implicit coercion of other types
@@ -2207,6 +2232,10 @@ filter(/age | gt(18))
 | Too many captured args for operand arity | arity error |
 | `union`/`minus`/`inter` on incompatible types | type error |
 | `div(0)` | division by zero |
+| Arithmetic whose result leaves the finite double range | type error |
+| `sum` whose running total leaves the finite double range | type error |
+| Number literal whose magnitude lies past the finite double range | parse error |
+| JSON lift of a number past the finite double range | codec error |
 | `sort` on Vec with non-comparable elements | type error |
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
@@ -2237,6 +2266,11 @@ modulo canonical whitespace and modulo equivalent surface forms
 (`:foo` and `:"foo"` both print as the bare form; JSON-mode
 `{"k": 1}` and qlang-mode `{:k 1}` Map literals collapse to the
 same canonical Map shape).
+
+Numbers reach that tier because the language admits only finite
+doubles — an infinity or a NaN renders as `Infinity` / `NaN`, which
+no production reads back, so the [number](#number) rule keeps them
+out of `pipeValue` rather than the printer special-casing them.
 
 The strict tier covers: Number, String, Boolean, Null, Keyword,
 TagKeyword, Vec, Map, Set, JSON-Object, JSON-Array, Error, Quote,

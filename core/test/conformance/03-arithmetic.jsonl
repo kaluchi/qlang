@@ -7,3 +7,9 @@
 {"name":"mul-full","query":"{:x 5 :y 4} | mul(/x, /y)","expect":"20"}
 {"name":"div-full-noncommutative","query":"{:x 20 :y 4} | div(/x, /y)","expect":"5"}
 {"name":"chained-arith","query":"10 | add(5) | mul(2) | sub(10)","expect":"20"}
+{"name": "add-overflow-lifts-not-finite", "query": "1e308 | add(1e308) !| type", "expect": "::AddResultNotFiniteError"}
+{"name": "sub-overflow-lifts-not-finite", "query": "-1e308 | sub(1e308) !| type", "expect": "::SubResultNotFiniteError"}
+{"name": "mul-overflow-lifts-not-finite", "query": "1e308 | mul(10) !| type", "expect": "::MulResultNotFiniteError"}
+{"name": "div-overflow-lifts-not-finite", "query": "1e308 | div(0.0001) !| type", "expect": "::DivResultNotFiniteError"}
+{"name": "overflow-descriptor-carries-both-operands", "query": "1e308 | mul(10) !| [/leftValue /rightValue]", "expect": "[1e308 10]"}
+{"name": "finite-arithmetic-pays-no-toll", "query": "[1 2 3] | sum | add(4) | mul(2) | div(4) | sub(1)", "expect": "4"}

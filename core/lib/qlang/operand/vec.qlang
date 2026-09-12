@@ -69,7 +69,7 @@
             :category :vecReducer
             :subject [:vec :set]
             :returns :number
-            :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError]}
+            :throws [::SumSubjectNotVecOrSetError ::SumElementNotNumberError ::SumResultNotFiniteError]}
 
 ::SumSubjectNotVecOrSetError
   |~~ Subject of `sum` must be Vec or Set.
@@ -80,6 +80,20 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :sum :position :subject :expectedType [:vec :set]}
+
+::SumResultNotFiniteError
+  |~~ Every element of the subject is a finite double, yet their
+      running total can still leave the range. `:index` names the
+      element the total crossed at, so the subject can be split
+      there and summed in parts.
+
+      ~{
+        [1e308 1e308] | sum
+        !| [type /index]
+        |  eq([::SumResultNotFiniteError 1])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :sum :expectedType :number}
 
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
@@ -329,9 +343,7 @@
             :subject [:vec :set]
             :returns [:vec :set]
             :modifiers [:comparatorLambda]
-            :throws [::SortWithSubjectNotSequenceError
-                     ::SortWithCmpResultNotNumberError
-                     ::SortWithCmpResultNaNError]}
+            :throws [::SortWithSubjectNotSequenceError ::SortWithCmpResultNotNumberError]}
 
 ::SortWithSubjectNotSequenceError
   |~~ Subject of `sortWith` must be Vec or Set.
@@ -349,24 +361,6 @@
         [1 2] | sortWith(:tag)
         !| [type /actualType]
         |  eq([::SortWithCmpResultNotNumberError :keyword])
-       }
-  ~~|
-  ::builtin{:category :typeError :operand :sortWith :expectedType :number}
-
-::SortWithCmpResultNaNError
-  |~~ `sortWith` comparator answered NaN, which orders no pair —
-      every comparison against it reads false, so the run order
-      would come out of a comparison the comparator declined to
-      make. Float overflow reaches NaN from ordinary arithmetic
-      (`0 | mul(1e400)`), so a key expression that multiplies
-      through an infinity lands here rather than silently
-      reshuffling.
-
-      ~{
-        [{:a 1} {:a 2}]
-        |  sortWith(sub(mul(/left/a, 1e400), mul(/right/a, 1e400)))
-        !| [type /actualType]
-        |  eq([::SortWithCmpResultNaNError :number])
        }
   ~~|
   ::builtin{:category :typeError :operand :sortWith :expectedType :number}

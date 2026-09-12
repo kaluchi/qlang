@@ -21,7 +21,7 @@ import {
   declareSubjectError,
   declareElementError
 } from '../operand-errors.mjs';
-import { QlangInvariantError } from '../errors.mjs';
+import { QlangError, QlangInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import {
   dispatchQlangValue,
@@ -140,11 +140,31 @@ function qMapToPlainObject(m) {
   return obj;
 }
 
+// JSON carries no NaN and no infinity, but `JSON.parse` reads a
+// magnitude past the double range as one (`1e400` lifts to
+// Infinity). The lift refuses it here so a piped document cannot
+// seed the pipeline with a value the language does not admit.
+class FromPlainNumberNotFiniteError extends QlangError {
+  constructor() {
+    super('fromPlain: a JSON number past the finite double range cannot lift into a qlang Number', 'codecError');
+    this.name = 'FromPlainNumberNotFiniteError';
+    this.fingerprint = 'FromPlainNumberNotFiniteError';
+    this.context = {};
+  }
+}
+
 const FROM_PLAIN_HANDLERS = {
   array:  a => a.map(fromPlain),
   object: plainObjectToQMap,
-  scalar: v => v
+  scalar: liftPlainScalar
 };
+
+function liftPlainScalar(scalarValue) {
+  if (typeof scalarValue === 'number' && !Number.isFinite(scalarValue)) {
+    throw new FromPlainNumberNotFiniteError();
+  }
+  return scalarValue;
+}
 
 export function fromPlain(plainVal) {
   return dispatchPlainValue(plainVal, FROM_PLAIN_HANDLERS);

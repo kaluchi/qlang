@@ -88,6 +88,19 @@ export class TaggedJSONUnencodableValueError extends QlangError {
   }
 }
 
+// The wire carries plain JSON numbers, and `JSON.parse` reads a
+// magnitude past the double range as an infinity. The decoder
+// refuses it so a restored session or a conformance fixture cannot
+// smuggle in a value the language does not admit.
+export class TaggedJSONNumberNotFiniteError extends QlangError {
+  constructor() {
+    super('fromTaggedJSON: a number past the finite double range cannot decode into a qlang Number', 'codecError');
+    this.name = 'TaggedJSONNumberNotFiniteError';
+    this.fingerprint = 'TaggedJSONNumberNotFiniteError';
+    this.context = {};
+  }
+}
+
 export class MalformedTaggedJSONError extends QlangError {
   constructor(json) {
     super(`fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(json)}`, 'codecError');
@@ -216,6 +229,7 @@ function isTaggedOrErrorEnvelopeShape(envelope) {
 export function fromTaggedJSON(json) {
   if (json === null || json === undefined) return null;
   const t = typeof json;
+  if (t === 'number' && !Number.isFinite(json)) throw new TaggedJSONNumberNotFiniteError();
   if (t === 'number' || t === 'string' || t === 'boolean') return json;
   if (Array.isArray(json)) return makeJsonArray(json.map(fromTaggedJSON));
   if (typeof json === 'object') {

@@ -23,6 +23,7 @@ import {
   isJsonArray
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
+import { QlangError } from '../../src/errors.mjs';
 
 describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   function roundTrip(value) {
@@ -273,5 +274,29 @@ describe('fromTaggedJSON malformed input', () => {
 
   it('throws MalformedTaggedJSONError on an $error envelope missing the $tag slot', () => {
     expect(() => fromTaggedJSON({ $error: { descriptor: { $map: [] } } })).toThrow(MalformedTaggedJSONError);
+  });
+});
+
+describe('fromTaggedJSON refuses a number past the finite double range', () => {
+  // A restored session or a conformance fixture travels as plain
+  // JSON, where `JSON.parse` reads an out-of-range magnitude as an
+  // infinity. The decoder is the boundary that keeps it out.
+  it('refuses a bare out-of-range number', () => {
+    let thrown = null;
+    try { fromTaggedJSON(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(QlangError);
+    expect(thrown.name).toBe('TaggedJSONNumberNotFiniteError');
+    expect(thrown.fingerprint).toBe('TaggedJSONNumberNotFiniteError');
+    expect(thrown.kind).toBe('codecError');
+  });
+
+  it('refuses one nested inside a $vec envelope', () => {
+    expect(() => fromTaggedJSON(JSON.parse('{"$vec":[1e400]}')))
+      .toThrow('past the finite double range');
+  });
+
+  it('decodes every in-range magnitude unchanged', () => {
+    expect(fromTaggedJSON(JSON.parse('1e308'))).toBe(1e308);
+    expect(fromTaggedJSON(JSON.parse('{"$vec":[-1e308, 0]}'))).toEqual([-1e308, 0]);
   });
 });

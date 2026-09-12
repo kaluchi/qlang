@@ -15,7 +15,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::AddLeftNotNumberError ::AddRightNotNumberError]}
+            :throws [::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]}
 
 ::AddLeftNotNumberError
   |~~ Captured argument at position 1 of `add` must be Number.
@@ -27,6 +27,22 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :add :position 1 :expectedType :number}
+
+::AddResultNotFiniteError
+  |~~ A qlang Number is a finite double. Both operands of `add`
+      are finite by that rule, so the range is left by the
+      operation itself, and the overflow lifts here rather than
+      riding on as an infinity — the same choice `div` already
+      makes for a zero divisor. `:leftValue` and `:rightValue`
+      carry the two finite operands.
+
+      ~{
+        1e308 | add(1e308)
+        !| [type /leftValue]
+        |  eq([::AddResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :add :expectedType :number}
 
 ::AddRightNotNumberError
   |~~ Captured argument at position 2 of `add` must be Number.
@@ -51,7 +67,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::SubLeftNotNumberError ::SubRightNotNumberError]}
+            :throws [::SubLeftNotNumberError ::SubRightNotNumberError ::SubResultNotFiniteError]}
 
 ::SubLeftNotNumberError
   |~~ Captured argument at position 1 of `sub` must be Number.
@@ -63,6 +79,22 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :sub :position 1 :expectedType :number}
+
+::SubResultNotFiniteError
+  |~~ A qlang Number is a finite double. Both operands of `sub`
+      are finite by that rule, so the range is left by the
+      operation itself, and the overflow lifts here rather than
+      riding on as an infinity — the same choice `div` already
+      makes for a zero divisor. `:leftValue` and `:rightValue`
+      carry the two finite operands.
+
+      ~{
+        -1e308 | sub(1e308)
+        !| [type /leftValue]
+        |  eq([::SubResultNotFiniteError -1e308])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :sub :expectedType :number}
 
 ::SubRightNotNumberError
   |~~ Captured argument at position 2 of `sub` must be Number.
@@ -86,7 +118,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::MulLeftNotNumberError ::MulRightNotNumberError]}
+            :throws [::MulLeftNotNumberError ::MulRightNotNumberError ::MulResultNotFiniteError]}
 
 ::MulLeftNotNumberError
   |~~ Captured argument at position 1 of `mul` must be Number.
@@ -98,6 +130,22 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :mul :position 1 :expectedType :number}
+
+::MulResultNotFiniteError
+  |~~ A qlang Number is a finite double. Both operands of `mul`
+      are finite by that rule, so the range is left by the
+      operation itself, and the overflow lifts here rather than
+      riding on as an infinity — the same choice `div` already
+      makes for a zero divisor. `:leftValue` and `:rightValue`
+      carry the two finite operands.
+
+      ~{
+        1e308 | mul(10)
+        !| [type /leftValue]
+        |  eq([::MulResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :mul :expectedType :number}
 
 ::MulRightNotNumberError
   |~~ Captured argument at position 2 of `mul` must be Number.
@@ -123,7 +171,7 @@
             :subject :number
             :returns :number
             :modifiers [:number]
-            :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError]}
+            :throws [::DivLeftNotNumberError ::DivRightNotNumberError ::DivisionByZeroError ::DivResultNotFiniteError]}
 
 ::DivLeftNotNumberError
   |~~ Captured argument at position 1 of `div` must be Number.
@@ -135,6 +183,22 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :div :position 1 :expectedType :number}
+
+::DivResultNotFiniteError
+  |~~ A qlang Number is a finite double. Both operands of `div`
+      are finite by that rule, so the range is left by the
+      operation itself, and the overflow lifts here rather than
+      riding on as an infinity — the same choice `div` already
+      makes for a zero divisor. `:leftValue` and `:rightValue`
+      carry the two finite operands.
+
+      ~{
+        1e308 | div(0.0001)
+        !| [type /leftValue]
+        |  eq([::DivResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :typeError :operand :div :expectedType :number}
 
 ::DivRightNotNumberError
   |~~ Captured argument at position 2 of `div` must be Number.

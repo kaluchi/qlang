@@ -167,6 +167,11 @@ function assertIntegerModifier(value, ErrorCls) {
 }
 
 const SumElementNotNumberError          = declareElementError('SumElementNotNumberError',          'sum',          'number');
+// Every element is a finite double, yet their running total can
+// still leave the range. `:index` names the element the total
+// crossed at, so the subject can be split at that point.
+const SumResultNotFiniteError = declareShapeError('SumResultNotFiniteError',
+  ({ index }) => `sum: the running total leaves the finite double range at element ${index}`);
 const FirstNonZeroElementNotNumberError = declareElementError('FirstNonZeroElementNotNumberError', 'firstNonZero', 'number');
 
 const MinElementsNotComparableError    = declareComparabilityError('MinElementsNotComparableError',    'min');
@@ -180,14 +185,6 @@ const NullsLastKeysNotComparableError  = declareComparabilityError('NullsLastKey
 
 const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotNumberError',
   ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`);
-// NaN passes the Number check — `typeof NaN` is `'number'` — while
-// ordering no pair: every `NaN <= 0` reading in the merge answers
-// false, so the run order would come out of the comparison the
-// comparator declined to make. Arithmetic reaches NaN through
-// float overflow (`0 | mul(1e400)`), so the check guards a value
-// a query can actually produce.
-const SortWithCmpResultNaNError = declareShapeError('SortWithCmpResultNaNError',
-  () => 'sortWith comparator returned NaN — a comparison orders its pair as negative, zero, or positive');
 const AscPairNotMapError = declareShapeError('AscPairNotMapError',
   ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 const DescPairNotMapError = declareShapeError('DescPairNotMapError',
@@ -252,6 +249,7 @@ export const sum = nullaryOp('sum', (container) => {
       throw new SumElementNotNumberError(i, items[i]);
     }
     total += items[i];
+    if (!Number.isFinite(total)) throw new SumResultNotFiniteError({ index: i });
   }
   return total;
 });
@@ -631,9 +629,6 @@ export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) 
         actualType: typeKeyword(cmpResult),
         actualValue: cmpResult
       });
-    }
-    if (Number.isNaN(cmpResult)) {
-      throw new SortWithCmpResultNaNError({ actualType: typeKeyword(cmpResult) });
     }
     return cmpResult;
   };

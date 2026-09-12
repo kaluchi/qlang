@@ -745,15 +745,39 @@ Asking what a value is means composing `type` with `eq`. `type`
 answers exactly one identity per value, so `| type | eq(:string)`
 is the classification, and it reads the same inside a predicate:
 `filter(type | eq(:string))` over a Vec of mixed types, or over a
-Map where the value's class is the predicate axis. See
-[`type`](#type) for the keyword each value class answers with.
+Map where the value's class is the predicate axis.
 
-JSON-tagged shapes classify apart from qlang containers: a plain
-JS object or Array stamped with the `JSON_OBJECT_TAG` /
+### `type`
+
+- **Arity** 1. **Subject** any value.
+- Returns the Keyword or TagKeyword identity of the value's type.
+  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
+  `:null`); qlang value-classes produce their type keyword (`:vec`,
+  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
+  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
+  Snapshot, TaggedInstance, materialized error, catalog builtin
+  descriptor) produce the user-stamped TagKeyword off the JS-header
+  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
+  error tag, `::builtin`); error values produce the per-site `::Tag`
+  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
+  `::ParseError`, generic `::Error` for user `!{}` without an
+  explicit `:kind ::Foo` lift.
+- **Examples**:
+  - `42 | type` → `:number`.
+  - `"hello" | type` → `:string`.
+  - `:foo | type` → `:keyword`.
+  - `[1 2] | type` → `:vec`.
+  - `{:a 1} | type` → `:map`.
+  - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
+  - `!{} !| type` → `::Error`.
+  - `!{:kind ::Oops} !| type` → `::Oops`.
+
+JSON-tagged shapes carry an identity of their own: a plain JS
+object or Array stamped with the `JSON_OBJECT_TAG` /
 `JSON_ARRAY_TAG` Symbol — produced by the host JSON-bridge and by
 the `::json` constructor — answers `:jsonObject` / `:jsonArray`,
-while a qlang Map or Vec answers `:map` / `:vec`.
-
+while a qlang Map or Vec answers `:map` / `:vec`. A Map declaring
+a `:kind ::Foo` field answers `::Foo`, the identity it declares.
 
 ## Type Conversion
 
@@ -1346,31 +1370,6 @@ its own eval handler in `eval.mjs`.
 - **Errors**: subject not a Keyword or TagKeyword →
   `SpecSubjectNotKeywordOrTagError`; no declaring step found →
   `AxisBindingNotFoundError`.
-
-### `type`
-
-- **Arity** 1. **Subject** any value.
-- Returns the Keyword or TagKeyword identity of the value's type.
-  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
-  `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
-  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
-  Snapshot, TaggedInstance, materialized error, catalog builtin
-  descriptor) produce the user-stamped TagKeyword off the JS-header
-  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
-  error tag, `::builtin`); error values produce the per-site `::Tag`
-  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
-  `::ParseError`, generic `::Error` for user `!{}` without an
-  explicit `:kind ::Foo` lift.
-- **Examples**:
-  - `42 | type` → `:number`.
-  - `"hello" | type` → `:string`.
-  - `:foo | type` → `:keyword`.
-  - `[1 2] | type` → `:vec`.
-  - `{:a 1} | type` → `:map`.
-  - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
-  - `!{} !| type` → `::Error`.
-  - `!{:kind ::Oops} !| type` → `::Oops`.
 
 ## Error operands
 

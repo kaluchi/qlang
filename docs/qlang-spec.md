@@ -549,7 +549,6 @@ the result is **an error value** of the `!{}` form introduced in
 ::AddLeftNotNumberError!{
   :faultStep ~{add(1)}
   :faultInput [1 2 3]
-  :actualValue [1 2 3]
   :actualType :vec
 }
 |~| add(1) expects a Number in position 1; the Vec fires the per-site
@@ -1251,8 +1250,14 @@ changes are discarded. See the
 
 5. **Sibling expressions are independent.** In `{:a e1 :b e2}`,
    bindings from `e1` are NOT visible in `e2`. Same for Vec
-   elements `[a b c]` and Set elements `#[a, b, c]` — each
-   entry is its own sub-pipeline, parallel not sequential.
+   elements `[a b c]`, Set elements `#[a, b, c]`, and each
+   iteration of `*` — every entry is its own fork over the same
+   outer state, and the evaluator makes no ordering promise
+   between siblings. Results are collected positionally, so the
+   Vec a distribute returns matches its subject element for
+   element; a host operand whose effects are observable (an
+   `@`-prefixed writer) must not lean on the order those effects
+   land in across siblings.
 
 6. **Shadowing.** A later `as(:name)` or `:name ...` in the same
    scope replaces the earlier one for subsequent uses.
@@ -1270,12 +1275,19 @@ changes are discarded. See the
 
 Identifiers may start with `@`, `_`, or any Unicode `ID_Start`
 character (Latin, Cyrillic, CJK, Greek, Hebrew, Arabic, etc.).
-The language gives no special meaning to `@` or `_`. Domain authors commonly use
-`@` as a prefix for names that come from their runtime (e.g.,
-`@callers`, `@resolve`), and `_` for private internal bindings, but
-this is pure convention — `@callers` and `callers` are resolved
-identically, and either may be shadowed by an `as` snapshot or a
-BindStep declaration.
+Lookup treats every start character alike: `@callers` and `callers`
+resolve through the same env read, and either may be shadowed by an
+`as` snapshot or a BindStep declaration.
+
+`_` is pure convention — domain authors use it for private internal
+bindings and the language attaches nothing to it. `@` carries the
+effect-marker invariant described in
+[Effect markers](#effect-markers): a binding whose body reaches an
+`@`-prefixed identifier must itself be `@`-prefixed, and an
+effectful function value refuses to fire through a clean lookup
+name. Domain authors prefix the operands their runtime installs
+(`@callers`, `@resolve`) so the marker propagates through every
+alias.
 
 ### Comments
 
@@ -1510,7 +1522,7 @@ fn)` at module-load time. The descriptor then references the
 function by its handle.
 
 ```js
-import { PRIMITIVE_REGISTRY, makeJsonObject } from '@kaluchi/qlang-core';
+import { PRIMITIVE_REGISTRY } from '@kaluchi/qlang-core/primitives';
 
 PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
   const hours = payload.get('hours') ?? 0;
@@ -1673,8 +1685,15 @@ through to the end.
 
 ```qlang
 > "hello" | add(1) | mul(2) | sub(3)
-::AddLeftNotNumberError!{:faultStep ~{add(1)} :faultInput "hello" :actualType :string}
-|~| add(1) produces the error; mul(2) and sub(3) are deflected
+::AddLeftNotNumberError!{
+  :faultStep ~{add(1)}
+  :faultInput "hello"
+  :actualType :string
+  :trail ~{| mul(2) | sub(3)}
+}
+|~| add(1) produces the error; mul(2) and sub(3) deflect, each
+|~| stamping its source slice onto the trail the query boundary
+|~| materializes into the :trail Quote.
 ```
 
 The `!|` combinator is the **fail-track** counterpart. It fires its
@@ -1788,7 +1807,7 @@ or duplicates the literal head on print.
 | `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
 | `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until a deflection materializes through `!\|`. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry

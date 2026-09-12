@@ -642,6 +642,19 @@ counts conduit bodies, captured-arg lambdas, and re-entry seams,
 while a nested literal or paren-group is bounded by the source
 text.
 
+Sibling forks carry no ordering promise. `evalVecLit`,
+`evalJsonArrayLit`, and `distribute` open their sibling forks
+together through `Promise.all`, while `evalMapLit`,
+`evalJsonObjectLit`, `evalSetLit`, and `evalErrorLit` walk their
+entries one await at a time; both shapes collect results
+positionally, so a Vec keeps its element order and a Map its entry
+order either way. Because a fork discards its `nextEnv`, no sibling
+can observe another's bindings, and the ordering stays
+unobservable for pure expressions. A host operand whose effects are
+observable (an `@`-prefixed writer) is the one surface that can
+tell the two shapes apart, so it must not lean on the order its
+per-sibling effects land in.
+
 The fork rule, together with Map last-write-wins and `|`-based
 state threading, produces the seven scoping rules listed in the
 Spec's Value binding section. The numbering below matches those
@@ -1306,7 +1319,7 @@ consumer sites.
 | `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
 | `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes` at `!\|` fire time. `null` until the first deflection materializes; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes`, folded in when `!\|` fires and again by `materializePendingTrail` at the query / cell boundary. `null` until the first deflection; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
 Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /
@@ -1569,6 +1582,11 @@ Subpath exports (tree-shaking-friendly):
   factories (`declareSubjectError`, `declareModifierError`,
   `declareElementError`, `declareComparabilityError`,
   `declareShapeError`, `declareArityError`).
+- `@kaluchi/qlang-core/primitives` — `PRIMITIVE_REGISTRY`,
+  `createPrimitiveRegistry`, `bindPrim`, `bindTypeConstructor`.
+  A host registering its own value-class constructors or
+  primitives binds them here before `langRuntime()` seals the
+  registry.
 - `@kaluchi/qlang-core/highlight` — `tokenize` only. Consumed by
   the CLI's ANSI renderer and the site's HTML renderer.
 - `@kaluchi/qlang-core/host/module-resolver` — filesystem-backed

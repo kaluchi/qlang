@@ -735,15 +735,7 @@ export function typeKeyword(v) {
   if (isVec(v)) return keyword('vec');
   if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
-  if (isQMap(v)) {
-    // `:kind` field fallback — covers manifest view-Maps
-    // (`:kind ::builtin` enum bucket) and user-built `{:kind
-    // ::Foo …}` Maps that ride the descriptor surface without
-    // stamping the header.
-    const mapKind = v.get('kind');
-    if (isTagKeyword(mapKind)) return mapKind;
-    return keyword('map');
-  }
+  if (isQMap(v)) return keyword('map');
   if (isQSet(v)) return keyword('set');
   // Error values carry their tag identity on the JS-header `tag`
   // slot — opaque to descriptor projection. `typeKeyword` reads

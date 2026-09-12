@@ -4,8 +4,9 @@
    its plain Keyword (for scalars and base containers). Asking
    what a value is means composing that reader with `eq` —
    `| type | eq(:string)` — so the family holds one operand.
-   A Map declaring `:kind ::Foo` answers `::Foo`, the identity it
-   declares, rather than `:map`. ~|
+   Identity rides the value's JS-header slot, so a Map carrying a
+   `:kind ::Foo` field answers `:map` — the field is data, and
+   `::Foo{…}` is how a value declares what it is. ~|
 
 :type
   |~~ Returns the value's identity tag. For tagged values

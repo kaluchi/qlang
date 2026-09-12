@@ -43,7 +43,7 @@
 
 import {
   BUILTIN_TAG, TAG_HEADER_SYMBOL, isKeyword, typeKeyword, keyword, makeTagKeyword,
-  stampBuiltinImpl, builtinImplOf
+  stampBuiltinImpl, builtinImplOf, stampTagHeader
 } from './types.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import {
@@ -110,7 +110,11 @@ export function stampRaisedTags(descriptor, bindingName) {
 // all stamped on the env entry at bootstrap).
 export function manifestBuiltinDescriptor(rawDescriptor, name) {
   const result = new Map();
+  // `:kind` is a readable enum bucket on the data plane; the JS
+  // header is where identity rides, the way it does for every other
+  // tagged value.
   result.set('kind', BUILTIN_TAG);
+  stampTagHeader(result, BUILTIN_TAG);
   // `manifest` iterates env entries and threads each key through as
   // `name`, so every descriptor carries one.
   result.set('name', name);

@@ -41,7 +41,7 @@ import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
   isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
-  isErrorValue, typeKeyword, keyword, declarationSiteOf,
+  isErrorValue, typeKeyword, keyword, declarationSiteOf, stampTagHeader,
   BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
@@ -89,7 +89,11 @@ function errorMessageOf(errorValue) {
 function describeConduitParameter(fn, explicitName) {
   const meta = fn.meta;
   const result = new Map();
+  // `:kind` is a readable enum bucket on the data plane; the
+  // JS header is where identity rides, the way it does for every
+  // other tagged value.
   result.set('kind', BUILTIN_TAG);
+  stampTagHeader(result, BUILTIN_TAG);
   result.set('name', explicitName);
   result.set('category', keyword(meta.category));
   result.set('subject', meta.subject);
@@ -107,7 +111,11 @@ function describeConduit(conduit, explicitName) {
   // payload mirrors it under normal BindStep declarations but the
   // env-key is the source of truth for the descriptor.
   const result = new Map();
+  // `:kind` is a readable enum bucket on the data plane; the
+  // JS header is where identity rides, the way it does for every
+  // other tagged value.
   result.set('kind', CONDUIT_TAG);
+  stampTagHeader(result, CONDUIT_TAG);
   result.set('name', explicitName);
   result.set('params', [...conduit.get('params')]);
   result.set('source', conduit.get('source'));
@@ -119,7 +127,11 @@ function describeConduit(conduit, explicitName) {
 function describeSnapshot(snap, explicitName) {
   const value = snap.get('payload');
   const result = new Map();
+  // `:kind` is a readable enum bucket on the data plane; the
+  // JS header is where identity rides, the way it does for every
+  // other tagged value.
   result.set('kind', SNAPSHOT_TAG);
+  stampTagHeader(result, SNAPSHOT_TAG);
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
@@ -130,7 +142,11 @@ function describeSnapshot(snap, explicitName) {
 
 function describeValue(value, explicitName) {
   const result = new Map();
+  // `:kind` is a readable enum bucket on the data plane; the
+  // JS header is where identity rides, the way it does for every
+  // other tagged value.
   result.set('kind', VALUE_TAG);
+  stampTagHeader(result, VALUE_TAG);
   result.set('name', explicitName);
   result.set('value', value);
   result.set('type', typeKeyword(value));
@@ -147,7 +163,10 @@ function describeBinding(value, explicitName) {
     // `:declarationOrigin :implicit` field, so the view shows
     // every tag the env owns regardless of how it landed).
     const tagResult = new Map();
+    // `:kind` is a readable enum bucket on the data plane; the JS
+    // header is where identity rides.
     tagResult.set('kind', TAG_BINDING_TAG);
+    stampTagHeader(tagResult, TAG_BINDING_TAG);
     tagResult.set('name', explicitName);
     for (const [descKey, descVal] of value) {
       tagResult.set(descKey, descVal);

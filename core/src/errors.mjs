@@ -208,6 +208,11 @@ function slotOf(spec) {
 export function throwSiteTagsRaisedBy(bindingName) {
   const raised = [];
   for (const [className, spec] of throwSiteSpecs) {
+    // A site that names no binding — an evaluator seam like a
+    // projection or a dispatch arity check — belongs to no `:throws`
+    // Vec, and reading it out here keeps an absent name from
+    // matching an absent operand.
+    if (spec.operand === undefined) continue;
     if (spec.isQueryFault && spec.operand === bindingName) raised.push([className, spec]);
   }
   return raised

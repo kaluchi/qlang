@@ -223,6 +223,36 @@ describe('main — error paths', () => {
     expect(s.stderrText()).toContain(':marker');
   });
 
+  it('reports a stdin magnitude outside the finite-double domain, naming the slot', async () => {
+    // `JSON.parse` reads `1e400` as an infinity, which the lift
+    // refuses. Auto-mode keeps the refusal instead of re-labelling
+    // the document as text, and the `:path` the error carries
+    // renders as the projection chain that reaches the slot.
+    const s = captureStreams('{"big": 1e400, "n": 1}');
+    const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+    expect(s.stdoutText()).toBe('');
+    expect(s.stderrText()).toContain('outside the finite-double domain');
+    expect(s.stderrText()).toContain('at /big');
+  });
+
+  it('reports a bare out-of-range magnitude without a slot chain', async () => {
+    // The whole document is the refused scalar, so `:path` is empty
+    // and the diagnostic carries no chain to point at.
+    const s = captureStreams('1e400');
+    const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+    expect(s.stderrText()).toContain('outside the finite-double domain');
+    expect(s.stderrText()).not.toContain(' at /');
+  });
+
+  it('reports the same refusal under an explicit --json input mode', async () => {
+    const s = captureStreams('{"deep": [0, 1e400]}');
+    const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+    expect(s.stderrText()).toContain('at /deep/1');
+  });
+
   it('encodes a fail-track error value as data on stdout, exit 0', async () => {
     // Per spec, error values travel as data on the same channel as
     // plain values. Non-zero exit reserved for host-level setup

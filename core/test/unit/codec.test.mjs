@@ -5,6 +5,7 @@ import {
   toTaggedJSON,
   fromTaggedJSON,
   TaggedJSONUnencodableValueError,
+  TaggedJSONNumberNotFiniteError,
   MalformedTaggedJSONError
 } from '../../src/codec.mjs';
 import {
@@ -284,15 +285,23 @@ describe('fromTaggedJSON refuses a number past the finite double range', () => {
   it('refuses a bare out-of-range number', () => {
     let thrown = null;
     try { fromTaggedJSON(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(TaggedJSONNumberNotFiniteError);
     expect(thrown).toBeInstanceOf(QlangError);
     expect(thrown.name).toBe('TaggedJSONNumberNotFiniteError');
     expect(thrown.fingerprint).toBe('TaggedJSONNumberNotFiniteError');
     expect(thrown.kind).toBe('codecError');
+    expect(thrown.context.path).toEqual([]);
   });
 
-  it('refuses one nested inside a $vec envelope', () => {
-    expect(() => fromTaggedJSON(JSON.parse('{"$vec":[1e400]}')))
-      .toThrow('past the finite double range');
+  it('names the envelope slot it walked to', () => {
+    let thrown = null;
+    try { fromTaggedJSON(JSON.parse('{"$map":[[{"$keyword":"big"}, 1e400]]}')); }
+    catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(TaggedJSONNumberNotFiniteError);
+    expect(thrown.context.path).toEqual(['big']);
+    let nested = null;
+    try { fromTaggedJSON(JSON.parse('{"$vec":[0, 1e400]}')); } catch (caught) { nested = caught; }
+    expect(nested.context.path).toEqual([1]);
   });
 
   it('decodes every in-range magnitude unchanged', () => {

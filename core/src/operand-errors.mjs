@@ -22,7 +22,8 @@
 
 import {
   QlangTypeError,
-  ArityError
+  ArityError,
+  NumericDomainError
 } from './errors.mjs';
 import { typeKeyword } from './types.mjs';
 
@@ -143,6 +144,24 @@ export function declareComparabilityError(className, operand) {
 // name for debugging.
 export function declareShapeError(className, buildMessage) {
   const Cls = class extends QlangTypeError {
+    constructor(context = {}) {
+      super(buildMessage(context), context);
+      this.name = className;
+      this.fingerprint = className;
+    }
+  };
+  return brand(Cls, className);
+}
+
+// declareNumericDomainError — thrown by a site whose subject and
+// modifiers carry the right value-class and whose result leaves the
+// finite-double domain a qlang Number lives in. Extends
+// `NumericDomainError` so `.kind` reads `numericDomain` and the
+// tag-binding's `:category` matches — a shape category would claim
+// a type violation the values do not have, since
+// `typeKeyword(Infinity)` answers `:number`.
+export function declareNumericDomainError(className, buildMessage) {
+  const Cls = class extends NumericDomainError {
     constructor(context = {}) {
       super(buildMessage(context), context);
       this.name = className;

@@ -44,6 +44,33 @@ export class FunctionValueLeakedToPrintError extends QlangInvariantError {
   }
 }
 
+// A qlang Number is a finite double (see `### number` in
+// qlang-spec.md). Source cannot mint an infinity or a NaN — the
+// parser refuses the literal and every arithmetic site lifts a
+// numericDomain error — but a host can, through `session.bind` or
+// through the `{ source, impls }` locator contract. Render and codec
+// are where such a value becomes observable: `printValue` would
+// answer `Infinity`, which no production reads back, and the JSON
+// boundary would answer `null`. Each of those seams reads this
+// guard, the same shape `FunctionValueLeakedToPrintError` gives the
+// other value with no literal.
+export class NumberNotFiniteLeakedToPrintError extends QlangInvariantError {
+  constructor(actualValue) {
+    super(
+      `render: ${actualValue} is outside the finite-double domain a qlang Number lives in — a host installed it through session.bind or a locator's impls map, where source cannot mint one`,
+      { actualValue: String(actualValue) }
+    );
+    this.name = 'NumberNotFiniteLeakedToPrintError';
+    this.fingerprint = 'NumberNotFiniteLeakedToPrintError';
+  }
+}
+
+// Reads the guard at every seam where a Number becomes observable.
+export function finiteNumberOrLift(numberValue) {
+  if (!Number.isFinite(numberValue)) throw new NumberNotFiniteLeakedToPrintError(numberValue);
+  return numberValue;
+}
+
 export const NULL = null;
 
 // ── value-class brand ──────────────────────────────────────────

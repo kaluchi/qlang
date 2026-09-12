@@ -50,6 +50,14 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
   return Boolean(stdoutStream.isTTY);
 }
 
+// A codec refusal carries `:path` — the keys and indices walked to
+// reach the refused scalar. Rendering it as a projection chain
+// points the reader straight at the slot in their document.
+function slotSuffixOf(codecError) {
+  const path = codecError.context.path;
+  return path.length === 0 ? '' : ` at ${path.map(segment => `/${segment}`).join('')}`;
+}
+
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
   const stderrWrite = (text) => stderrStream.write(text);
@@ -77,6 +85,10 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   if (lifted.parseError) {
     stderrWrite(`qlang: --json input: ${lifted.parseError.message}\n`);
+    return 1;
+  }
+  if (lifted.codecError) {
+    stderrWrite(`qlang: stdin: ${lifted.codecError.message}${slotSuffixOf(lifted.codecError)}\n`);
     return 1;
   }
 

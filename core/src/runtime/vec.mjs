@@ -89,7 +89,8 @@ import {
   declareElementError,
   declareComparabilityError,
   declareShapeError,
-  declareArityError
+  declareArityError,
+  declareNumericDomainError
 } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import {
@@ -170,7 +171,7 @@ const SumElementNotNumberError          = declareElementError('SumElementNotNumb
 // Every element is a finite double, yet their running total can
 // still leave the range. `:index` names the element the total
 // crossed at, so the subject can be split at that point.
-const SumResultNotFiniteError = declareShapeError('SumResultNotFiniteError',
+const SumResultNotFiniteError = declareNumericDomainError('SumResultNotFiniteError',
   ({ index }) => `sum: the running total leaves the finite double range at element ${index}`);
 const FirstNonZeroElementNotNumberError = declareElementError('FirstNonZeroElementNotNumberError', 'firstNonZero', 'number');
 
@@ -185,6 +186,15 @@ const NullsLastKeysNotComparableError  = declareComparabilityError('NullsLastKey
 
 const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotNumberError',
   ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`);
+// A comparator is caller-supplied input at this seam, and a host
+// operand installed through `session.bind` or a locator's `impls`
+// map can answer NaN — `typeof NaN` is `'number'`, and every
+// `NaN <= 0` reading in the merge answers false, so the run order
+// would come out of a comparison the comparator declined to make.
+// Of the three readings a non-finite value breaks, this is the one
+// that answers silently.
+const SortWithCmpResultNaNError = declareNumericDomainError('SortWithCmpResultNaNError',
+  () => 'sortWith comparator answered NaN — a comparison orders its pair as negative, zero, or positive');
 const AscPairNotMapError = declareShapeError('AscPairNotMapError',
   ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`);
 const DescPairNotMapError = declareShapeError('DescPairNotMapError',
@@ -630,6 +640,7 @@ export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) 
         actualValue: cmpResult
       });
     }
+    if (Number.isNaN(cmpResult)) throw new SortWithCmpResultNaNError();
     return cmpResult;
   };
   return containerLikeOf(await mergeSortWith([...subject], comparePair), subject);

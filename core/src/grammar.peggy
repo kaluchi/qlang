@@ -951,21 +951,22 @@ EscapeChar
 HexDigit
   = [0-9a-fA-F]
 
-// A qlang Number is a finite double, so a literal whose digits name
-// a magnitude past that range is refused here rather than read as an
-// infinity: the evaluator would otherwise carry a value no literal
-// renders back, that orders against nothing, and that the JSON
-// boundary turns into `null`.
-NumberLit
+// A qlang Number is a finite double (see `### number` in
+// qlang-spec.md), so digits naming a magnitude outside that domain
+// match no production. The semantic predicate declines the match,
+// which keeps the failure inside peggy's own reporting: the rule's
+// description lands in the ParseError's `:expected` Vec, where
+// every other syntactic failure reports.
+NumberLit "number within the finite double range"
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
+    &{ const txt = (sign || '') + whole.join('')
+                 + (frac ? '.' + frac[1].join('') : '')
+                 + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
+       return Number.isFinite(Number(txt)); }
     { const txt = (sign || '') + whole.join('')
                 + (frac ? '.' + frac[1].join('') : '')
                 + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
-      const literalValue = Number(txt);
-      if (!Number.isFinite(literalValue)) {
-        error(`number literal ${txt} lies outside the finite double range`);
-      }
-      return node('NumberLit', { value: literalValue }, location(), text()); }
+      return node('NumberLit', { value: Number(txt) }, location(), text()); }
 
 BooleanLit
   = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }

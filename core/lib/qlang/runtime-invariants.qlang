@@ -510,6 +510,19 @@
   ~~|
   ::builtin{:category :invariantError}
 
+::NumberNotFiniteLeakedToPrintError
+  |~~ A qlang Number is a finite double. Source cannot mint an
+      infinity or a NaN — the parser refuses the literal and every
+      arithmetic site lifts a numericDomain error — so this tag
+      reports a value a host installed through `session.bind` or a
+      locator's `impls` map. Render and the JSON boundary are where
+      such a value becomes observable: `printValue` would answer
+      `Infinity`, which no production reads back, and `json` would
+      answer `null`. `:actualValue` carries the offending magnitude
+      as a String, the one shape that renders.
+  ~~|
+  ::builtin{:category :invariantError}
+
 ::ToPlainUnencodableValueError
   |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
       with no JSON form. Conduit and Snapshot reconstruct through
@@ -588,10 +601,9 @@
   |~~ The catalog root is one `use([…])` step, so a family source
       the locator resolves but the parser refuses leaves the env
       without that family while the failure rides out as the root's
-      pipeValue. The bootstrap reads that pipeValue rather than
-      handing every session an env whose first `count` answers
-      `::UnresolvedIdentifierError` — a diagnostic three steps from
-      the cause. `:tagName` names what the root answered with.
+      pipeValue. The bootstrap reads that pipeValue, so the failing
+      family source is the diagnostic and `:tagName` names what the
+      root answered with.
   ~~|
   ::builtin{:category :invariantError}
 

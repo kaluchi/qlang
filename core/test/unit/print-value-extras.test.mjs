@@ -523,3 +523,56 @@ describe('format.toPlain non-keyword Map keys', () => {
     expect(out).toContain('rawCell');
   });
 });
+
+describe('the finite-double domain holds at every render seam', () => {
+  // Source cannot mint an infinity or a NaN — the parser refuses the
+  // literal and every arithmetic site lifts a numericDomain error.
+  // A host can, through `session.bind` or a locator's `impls` map,
+  // and render is where such a value becomes observable: `printValue`
+  // would answer `Infinity`, which no production reads back, and the
+  // JSON boundary would answer `null`.
+  it('printValue refuses an infinity and a NaN', async () => {
+    const { NumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
+    for (const leaked of [Infinity, -Infinity, NaN]) {
+      let thrown = null;
+      try { printValue(leaked); } catch (caught) { thrown = caught; }
+      expect(thrown).toBeInstanceOf(NumberNotFiniteLeakedToPrintError);
+      expect(thrown.name).toBe('NumberNotFiniteLeakedToPrintError');
+      expect(thrown.fingerprint).toBe('NumberNotFiniteLeakedToPrintError');
+      expect(thrown.context.actualValue).toBe(String(leaked));
+    }
+  });
+
+  it('toPlain and toTaggedJSON refuse the same values', async () => {
+    const { NumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
+    const { toTaggedJSON } = await import('../../src/codec.mjs');
+    expect(() => toPlain(Infinity)).toThrow(NumberNotFiniteLeakedToPrintError);
+    expect(() => toTaggedJSON(NaN)).toThrow(NumberNotFiniteLeakedToPrintError);
+  });
+
+  it('every in-domain magnitude renders unchanged', () => {
+    expect(printValue(1e308)).toBe('1e+308');
+    expect(printValue(-1e308)).toBe('-1e+308');
+    expect(toPlain(0.1)).toBe(0.1);
+  });
+});
+
+describe('a host comparator answering NaN lifts at the sortWith seam', () => {
+  // The comparator is caller-supplied input at this seam. `typeof
+  // NaN` is `'number'`, and every `NaN <= 0` reading in the merge
+  // answers false, so the run order would come out of a comparison
+  // the comparator declined to make.
+  it('lifts SortWithCmpResultNaNError with its numericDomain category', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const { NumericDomainError } = await import('../../src/errors.mjs');
+    const session = await createSession();
+    session.bind('nanCmp', NaN);
+    const { result } = await session.evalCell('[3 1 2] | sortWith(nanCmp) !| type');
+    expect(result.name).toBe('SortWithCmpResultNaNError');
+    const { error } = await session.evalCell('[3 1 2] | sortWith(nanCmp)');
+    expect(error).toBeNull();
+    const originalError = (await session.evalCell('[3 1 2] | sortWith(nanCmp)')).result.originalError;
+    expect(originalError).toBeInstanceOf(NumericDomainError);
+    expect(originalError.kind).toBe('numericDomain');
+  });
+});

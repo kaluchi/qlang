@@ -771,8 +771,8 @@ mutating the template. The root is one `use([…])` step and `use`
 answers on the fail-track like any other operand, so the bootstrap
 reads the root's pipeValue before the env: an error value there
 means a family source the locator resolved failed to load, and
-`BootstrapCatalogNotLoadedError` names the tag it answered with
-instead of seeding every session with an env missing its operands. The inner descriptor Maps are frozen and shared
+`BootstrapCatalogNotLoadedError` names the tag it answered with, so
+the failing family source is the diagnostic. The inner descriptor Maps are frozen and shared
 between copies — safe because qlang values are immutable at the
 language level.
 
@@ -1330,7 +1330,8 @@ Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /
 `:invariantError` / `:divisionByZero` / `:primitiveUnbound` /
 `:sessionError` / `:codecError` / `:astCodecError` /
-`:effectLaundering` / `:unresolvedIdentifier` / `:resourceLimit`),
+`:effectLaundering` / `:unresolvedIdentifier` / `:resourceLimit` /
+`:numericDomain`),
 `:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:

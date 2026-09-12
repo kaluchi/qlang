@@ -42,13 +42,21 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
     return { pipeValue: stdinText, resolvedFormat: 'raw' };
   }
 
+  // Each branch keeps `JSON.parse` alone inside its `try`: a
+  // syntactic failure is what the mode decides on — `json` reports
+  // it, `auto` falls back to the raw-String reading. `fromPlain`
+  // runs outside, because a codec refusal (a magnitude outside the
+  // finite-double domain) is a decision about the document's
+  // content, and swallowing it would re-label a JSON document as
+  // text under `auto` or as a syntax failure under `json`.
   if (inputFormat === 'json') {
+    let parsed;
     try {
-      const parsed = JSON.parse(stdinText);
-      return { pipeValue: fromPlain(parsed), resolvedFormat: 'json' };
+      parsed = JSON.parse(stdinText);
     } catch (jsParseError) {
       return { parseError: jsParseError, resolvedFormat: 'json' };
     }
+    return liftParsedDocument(parsed, 'json');
   }
 
   // inputFormat === 'auto'. Empty stdin skips the parse attempt —
@@ -58,11 +66,24 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
   if (stdinText.length === 0) {
     return { pipeValue: '', resolvedFormat: 'raw' };
   }
+  let parsed;
   try {
-    const parsed = JSON.parse(stdinText);
-    return { pipeValue: fromPlain(parsed), resolvedFormat: 'json' };
+    parsed = JSON.parse(stdinText);
   } catch {
     return { pipeValue: stdinText, resolvedFormat: 'raw' };
+  }
+  return liftParsedDocument(parsed, 'json');
+}
+
+// `fromPlain` refuses a magnitude outside the finite-double domain
+// a qlang Number lives in — `JSON.parse` reads `1e400` as an
+// infinity. The refusal reaches the caller as `codecError` so the
+// CLI reports it verbatim, naming the slot it walked to.
+function liftParsedDocument(parsed, resolvedFormat) {
+  try {
+    return { pipeValue: fromPlain(parsed), resolvedFormat };
+  } catch (codecRefusal) {
+    return { codecError: codecRefusal, resolvedFormat };
   }
 }
 

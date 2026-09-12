@@ -98,8 +98,13 @@ form part of the doc surface and the runtime catalog alike.
   `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
 - **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
   element not a number → `SumElementNotNumberError`; running total
-  past the finite double range → `SumResultNotFiniteError`, whose
-  `:index` names the element the total crossed at.
+  outside the finite-double domain → `SumResultNotFiniteError`, whose
+  `:index` names the element the total crossed at. The total is read
+  at every element in insertion order, so a subject whose partial
+  sums leave the domain lifts while its mathematical total sits
+  inside it — `[1e308 1e308 -1e308] | sum` lifts at element 1,
+  `[1e308 -1e308 1e308] | sum` answers `1e308`. `reduce(0, add)`
+  folds through the same readings and lifts at the same element.
 
 ### `reduce(seed, reducer)`
 

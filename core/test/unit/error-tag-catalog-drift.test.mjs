@@ -36,10 +36,11 @@ const srcDir = join(here, '..', '..', 'src');
 // `declareElementError(name, operand, expectedType)` and
 // `declareComparabilityError(name, operand)` carry the operand (and
 // for the modifier form, the position) as literal arguments at the
-// call site. `declareShapeError` / `declareArityError` take a
-// message builder instead, so only their class name is harvested.
+// call site. `declareShapeError`, `declareArityError` and
+// `declareNumericDomainError` take a message builder, so only their
+// class name is harvested.
 const FACTORY_CALL_RE =
-  /declare(Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
+  /declare(Subject|Modifier|Element|Comparability|Shape|Arity|NumericDomain)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
 // Hand-written classes (registry, session, codec, bootstrap, render
 // invariants) stamp their per-site identity through `fingerprint`.
 const FINGERPRINT_RE = /this\.fingerprint\s*=\s*'([A-Za-z0-9]+)'/g;

@@ -28,6 +28,7 @@ import {
   isErrorValue,
   isFunctionValue,
   describeType,
+  finiteNumberOrLift,
   TAG_HEADER_SYMBOL,
   FunctionValueLeakedToPrintError
 } from '../types.mjs';
@@ -86,7 +87,7 @@ export function literalOfKeyword(k) { return k.literal; }
 const PRINT_HANDLERS = {
   Null:       () => 'null',
   Boolean:    v => String(v),
-  Number:     v => String(v),
+  Number:     v => String(finiteNumberOrLift(v)),
   String:     escapeQlangStringLiteral,
   Keyword:    literalOfKeyword,
   TagKeyword: literalOfKeyword,

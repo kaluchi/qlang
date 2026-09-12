@@ -128,18 +128,29 @@ numbers carry a leading `-`.
 ```
 
 A number is a **finite** double. The two IEEE values outside that
-range — an infinity and NaN — are not qlang values, and the three
-seams where they could enter each refuse them:
+domain — an infinity and NaN — are not qlang values. Source cannot
+mint one:
 
-- A literal whose magnitude lies past the range is a parse error,
-  so `1e400` never reads as an infinity.
-- An arithmetic step whose result leaves the range lifts a per-site
-  error — `1e308 | mul(10)` answers `::MulResultNotFiniteError`
-  carrying both finite operands, the same way a zero divisor
-  answers `::DivisionByZeroError`.
-- The JSON lifts (`parseJson`, the CLI's implicit stdin lift, the
-  tagged-JSON decoder) refuse an out-of-range magnitude rather than
-  seeding the pipeline with the infinity `JSON.parse` produces.
+- A literal whose magnitude lies outside the domain matches no
+  production, so `1e400` is a parse failure whose `:expected` Vec
+  names the domain.
+- An arithmetic step whose result leaves the domain lifts a
+  per-site `numericDomain` error — `1e308 | mul(10)` answers
+  `::MulResultNotFiniteError` carrying both finite operands, the
+  second answer `div` gives alongside `::DivisionByZeroError`.
+  `sum` reads its running total at every element and answers
+  `::SumResultNotFiniteError` with `:index`.
+- `parseJson` and the tagged-JSON decoder refuse an out-of-range
+  magnitude, which `JSON.parse` hands over as an infinity, and
+  carry `:path` — the keys and indices walked to the refused slot.
+
+A host reaches further: `session.bind` and a locator's `impls` map
+install JS values the language never parsed. Such a value meets the
+domain rule at the seams where it becomes observable —
+`printValue`, `toPlain` and the tagged-JSON encoder answer
+`::NumberNotFiniteLeakedToPrintError`, and a comparator answering
+NaN lifts `::SortWithCmpResultNaNError` at the `sortWith` seam,
+the one reading whose answer would otherwise change in silence.
 
 Three guarantees rest on that rule: every number renders back to a
 literal that parses ([Round-trip invariant](#round-trip-invariant)),
@@ -1844,7 +1855,8 @@ Per-tag static facts — `:category` (broad bucket: `:typeError`,
 `:arityError`, `:effectLaundering`, `:parseError`,
 `:foreignError`, `:invariantError`, `:divisionByZero`,
 `:primitiveUnbound`, `:sessionError`, `:codecError`,
-`:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`),
+`:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`,
+`:numericDomain`),
 `:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
 body (`::TagName ::builtin{:category … :operand … :position …
 :expectedType …}`) and reach the reader through the `spec` axis:
@@ -2268,9 +2280,10 @@ modulo canonical whitespace and modulo equivalent surface forms
 same canonical Map shape).
 
 Numbers reach that tier because the language admits only finite
-doubles — an infinity or a NaN renders as `Infinity` / `NaN`, which
-no production reads back, so the [number](#number) rule keeps them
-out of `pipeValue` rather than the printer special-casing them.
+doubles: `Infinity` and `NaN` are strings no production reads back,
+so the [number](#number) rule keeps them out of source, and
+`printValue` answers `::NumberNotFiniteLeakedToPrintError` for one a
+host installed.
 
 The strict tier covers: Number, String, Boolean, Null, Keyword,
 TagKeyword, Vec, Map, Set, JSON-Object, JSON-Array, Error, Quote,

@@ -40,7 +40,7 @@ export class BootstrapRootMissingError extends QlangInvariantError {
 export class BootstrapCatalogNotLoadedError extends QlangInvariantError {
   constructor({ tagName }) {
     super(
-      `qlang bootstrap: the catalog root answered ${tagName} instead of installing the operand families — check the sources the locator resolves for qlang/core and each family it uses`,
+      `qlang bootstrap: the catalog root answered ${tagName}; the operand families load through the sources the locator resolves for qlang/core and for each namespace it uses`,
       { tagName }
     );
     this.name = 'BootstrapCatalogNotLoadedError';

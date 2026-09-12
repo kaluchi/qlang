@@ -326,20 +326,22 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
   // the lift is the boundary that keeps it out of the pipeline —
   // `cat huge.json | qlang '/big'` seeds through this exact path.
   it('lifts an out-of-range magnitude into a per-site codec error', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
-    const { QlangError } = await import('../../src/errors.mjs');
+    const { fromPlain, FromPlainNumberNotFiniteError } = await import('../../src/runtime/format.mjs');
     let thrown = null;
     try { fromPlain(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
-    expect(thrown).toBeInstanceOf(QlangError);
+    expect(thrown).toBeInstanceOf(FromPlainNumberNotFiniteError);
     expect(thrown.name).toBe('FromPlainNumberNotFiniteError');
     expect(thrown.fingerprint).toBe('FromPlainNumberNotFiniteError');
     expect(thrown.kind).toBe('codecError');
+    expect(thrown.context.path).toEqual([]);
   });
 
-  it('refuses the same magnitude nested inside an object', async () => {
-    const { fromPlain } = await import('../../src/runtime/format.mjs');
-    expect(() => fromPlain(JSON.parse('{"big": 1e400}')))
-      .toThrow('past the finite double range');
+  it('names the slot it walked to when the magnitude sits nested', async () => {
+    const { fromPlain, FromPlainNumberNotFiniteError } = await import('../../src/runtime/format.mjs');
+    let thrown = null;
+    try { fromPlain(JSON.parse('{"a": {"b": [1, 1e400]}}')); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(FromPlainNumberNotFiniteError);
+    expect(thrown.context.path).toEqual(['a', 'b', 1]);
   });
 
   it('lifts every in-range magnitude unchanged', async () => {

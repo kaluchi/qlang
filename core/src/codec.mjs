@@ -75,6 +75,7 @@ import {
   makeJsonArray,
   makeQuote,
   makeDoc,
+  finiteNumberOrLift,
   TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { QlangError } from './errors.mjs';
@@ -93,11 +94,14 @@ export class TaggedJSONUnencodableValueError extends QlangError {
 // refuses it so a restored session or a conformance fixture cannot
 // smuggle in a value the language does not admit.
 export class TaggedJSONNumberNotFiniteError extends QlangError {
-  constructor() {
-    super('fromTaggedJSON: a number past the finite double range cannot decode into a qlang Number', 'codecError');
+  constructor(path) {
+    super('fromTaggedJSON: a number outside the finite-double domain cannot decode into a qlang Number', 'codecError');
     this.name = 'TaggedJSONNumberNotFiniteError';
     this.fingerprint = 'TaggedJSONNumberNotFiniteError';
-    this.context = {};
+    // `:path` names the envelope keys and indices walked to reach
+    // the refused scalar, so `!| /path` locates it inside a restored
+    // session of any depth.
+    this.context = { path: Object.freeze([...path]) };
   }
 }
 
@@ -124,7 +128,8 @@ export class MalformedTaggedJSONError extends QlangError {
 export function toTaggedJSON(value) {
   if (value === null || value === undefined) return null;
   const t = typeof value;
-  if (t === 'number' || t === 'string' || t === 'boolean') return value;
+  if (t === 'number') return finiteNumberOrLift(value);
+  if (t === 'string' || t === 'boolean') return value;
   if (isKeyword(value)) return { $keyword: value.name };
   if (isTagKeyword(value)) return { $tagKeyword: value.name };
   // TaggedInstance check before generic Vec / Map / Set branches —
@@ -226,31 +231,34 @@ function isTaggedOrErrorEnvelopeShape(envelope) {
 }
 
 // fromTaggedJSON(json) → qlang runtime value
-export function fromTaggedJSON(json) {
+export function fromTaggedJSON(json, path = []) {
   if (json === null || json === undefined) return null;
   const t = typeof json;
-  if (t === 'number' && !Number.isFinite(json)) throw new TaggedJSONNumberNotFiniteError();
+  if (t === 'number' && !Number.isFinite(json)) throw new TaggedJSONNumberNotFiniteError(path);
   if (t === 'number' || t === 'string' || t === 'boolean') return json;
-  if (Array.isArray(json)) return makeJsonArray(json.map(fromTaggedJSON));
+  if (Array.isArray(json)) {
+    return makeJsonArray(json.map((element, index) => fromTaggedJSON(element, [...path, index])));
+  }
   if (typeof json === 'object') {
     switch (envelopeKeyOf(json)) {
       case '$keyword':    return keyword(json.$keyword);
       case '$tagKeyword': return makeTagKeyword(json.$tagKeyword);
-      case '$vec':        return json.$vec.map(fromTaggedJSON);
+      case '$vec':        return json.$vec.map((element, index) => fromTaggedJSON(element, [...path, index]));
       case '$map': {
         // qlang Map keys are strings. A `$keyword`-enveloped key on
         // the wire normalises to its `.name` so the decoded Map keeps
         // the string-key invariant.
         const m = new Map();
         for (const [k, v] of json.$map) {
-          const decodedKey = fromTaggedJSON(k);
-          m.set(isKeyword(decodedKey) ? decodedKey.name : decodedKey, fromTaggedJSON(v));
+          const decodedKey = fromTaggedJSON(k, path);
+          const keyName = isKeyword(decodedKey) ? decodedKey.name : decodedKey;
+          m.set(keyName, fromTaggedJSON(v, [...path, keyName]));
         }
         return m;
       }
       case '$set': {
         const s = new Set();
-        for (const v of json.$set) s.add(fromTaggedJSON(v));
+        for (const v of json.$set) s.add(fromTaggedJSON(v, path));
         return s;
       }
       case '$tagged': {
@@ -260,7 +268,7 @@ export function fromTaggedJSON(json) {
         }
         return makeTaggedInstance(
           makeTagKeyword(taggedEnvelope.$tag),
-          fromTaggedJSON(taggedEnvelope.payload)
+          fromTaggedJSON(taggedEnvelope.payload, [...path, taggedEnvelope.$tag])
         );
       }
       case '$error': {
@@ -270,7 +278,7 @@ export function fromTaggedJSON(json) {
         }
         return makeErrorValue(
           makeTagKeyword(errEnvelope.$tag),
-          fromTaggedJSON(errEnvelope.descriptor),
+          fromTaggedJSON(errEnvelope.descriptor, [...path, errEnvelope.$tag]),
           {}
         );
       }
@@ -279,7 +287,7 @@ export function fromTaggedJSON(json) {
     }
     // Catch-all: bare JSON object → JsonObject (recursively decoded).
     const obj = {};
-    for (const [k, v] of Object.entries(json)) obj[k] = fromTaggedJSON(v);
+    for (const [k, v] of Object.entries(json)) obj[k] = fromTaggedJSON(v, [...path, k]);
     return makeJsonObject(obj);
   }
   throw new MalformedTaggedJSONError(json);

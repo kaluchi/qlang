@@ -55,6 +55,21 @@
   ~~|
   ::builtin{:category :typeError :operand :add :position 2 :expectedType :number}
 
+::AddResultNotFiniteError
+  |~~ `add` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        1e308 | add(1e308)
+        !| [type /leftValue]
+        |  eq([::AddResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :add}
+
+
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
       position 1 is the minuend.
@@ -107,6 +122,21 @@
   ~~|
   ::builtin{:category :typeError :operand :sub :position 2 :expectedType :number}
 
+::SubResultNotFiniteError
+  |~~ `sub` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        -1e308 | sub(1e308)
+        !| [type /leftValue]
+        |  eq([::SubResultNotFiniteError -1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :sub}
+
+
 :mul
   |~~ Multiplies two numbers. Commutative.
 
@@ -157,6 +187,21 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :mul :position 2 :expectedType :number}
+
+::MulResultNotFiniteError
+  |~~ `mul` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        1e308 | mul(10)
+        !| [type /leftValue]
+        |  eq([::MulResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :mul}
+
 
 :div
   |~~ Divides the first number by the second. Non-commutative:
@@ -210,6 +255,21 @@
        }
   ~~|
   ::builtin{:category :typeError :operand :div :position 2 :expectedType :number}
+
+::DivResultNotFiniteError
+  |~~ `div` answered outside the finite-double domain a qlang
+      Number lives in. Both operands carry the right value-class
+      and ride the descriptor as `:leftValue` / `:rightValue`; the
+      magnitude is what the site refuses.
+
+      ~{
+        1e308 | div(0.0001)
+        !| [type /leftValue]
+        |  eq([::DivResultNotFiniteError 1e308])
+       }
+  ~~|
+  ::builtin{:category :numericDomain :operand :div}
+
 
 ::DivisionByZeroError
   |~~ Division by zero — `div(_, 0)` fires this error.

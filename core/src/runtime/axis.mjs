@@ -130,10 +130,7 @@ function findStepAtDeclarationSite(moduleAst, declarationSite) {
 // it: env is insertion-ordered and the catalog loads ahead of every
 // cell, so the last match there is the shadowing declaration.
 export function findBindingStepAcrossModules(env, bindingName) {
-  // An axis subject naming nothing reaches the not-found error
-  // below, so the site read has to survive an absent binding.
-  const bound = env.get(bindingName);
-  const declarationSite = bound === undefined ? undefined : declarationSiteOf(bound);
+  const declarationSite = declarationSiteOf(env.get(bindingName));
   let lastMatch = null;
   for (const moduleAst of moduleAstsIn(env)) {
     if (declarationSite !== undefined) {

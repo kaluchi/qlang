@@ -322,6 +322,18 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     ]);
   });
 
+  it('a host binding carrying no slots answers not-found, not a foreign TypeError', async () => {
+    // `session.bind` installs a value directly, so env holds whatever
+    // the host handed it — including one that carries no slots to
+    // read a declaration site off.
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession();
+    sessionInstance.bind('hostInstalled', null);
+    const cellEntry = await sessionInstance.evalCell(':hostInstalled | source !| type');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+  });
+
   it('a use after a cell BindStep answers with the namespace declaration', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({ locator: namespaceLocator });

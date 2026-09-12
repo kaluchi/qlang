@@ -12,12 +12,17 @@
 //
 //   2. Inline prose examples (qlang-operands.md):
 //      `query` → `expected`
+//
+// Both planes run the same way: the expected side goes through the
+// parser first, so a pair whose right half is prose drops out rather
+// than failing.
 
 import { describe, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
+import { printValue } from '../../src/index.mjs';
 import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
@@ -40,10 +45,14 @@ function isParseableExpectation(text) {
   }
 }
 
+// `null` is a value a doc example may legitimately expect, so the
+// "this side is prose" answer cannot be `null` too — a sentinel the
+// language has no literal for keeps the two apart.
+const EXPECTATION_IS_PROSE = Symbol('doc expectation is prose');
+
 async function parseExpected(text) {
   const trimmed = text.trim();
-  if (trimmed.length === 0) return null;
-  if (!isParseableExpectation(trimmed)) return null;
+  if (!isParseableExpectation(trimmed)) return EXPECTATION_IS_PROSE;
   return await evalQuery(trimmed);
 }
 
@@ -108,6 +117,59 @@ function extractReplExamples(source, filePath) {
   return examples;
 }
 
+// Extract inline prose examples from the operand reference.
+// Pattern: `query` → `expected`, both fenced in backticks, inside an
+// **Example** / **Examples** bullet. The reference wraps a long
+// bullet across continuation lines and splits a pair mid-arrow, so
+// the bullet is re-flowed before matching — and scoping to the
+// example bullets keeps an **Errors** bullet ending in a backticked
+// class name from reading as a pair.
+const DOC_EXAMPLE_ARROW_PAIR = /`([^`]+)`\s*\u2192\s*`([^`]+)`/g;
+const BULLET_OPENING = /^\s*-\s/;
+const EXAMPLE_BULLET = /^\s*-\s+\*\*Examples?\*\*/;
+
+// A bullet block is its opening line plus every line indented past
+// it, joined into one logical line the way a reader sees it.
+function bulletBlocks(lines) {
+  const blocks = [];
+  let open = null;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (BULLET_OPENING.test(line)) {
+      const indent = line.length - line.trimStart().length;
+      if (open !== null && indent > open.indent) {
+        open.text += ' ' + line.trim();
+        continue;
+      }
+      open = { text: line.trim(), line: index + 1, indent };
+      blocks.push(open);
+      continue;
+    }
+    if (open !== null && line.trim().length > 0 && line.startsWith(' ')) {
+      open.text += ' ' + line.trim();
+      continue;
+    }
+    open = null;
+  }
+  return blocks;
+}
+
+function extractInlineExamples(source, filePath) {
+  const examples = [];
+  for (const block of bulletBlocks(source.split('\n'))) {
+    if (!EXAMPLE_BULLET.test(block.text)) continue;
+    for (const pair of block.text.matchAll(DOC_EXAMPLE_ARROW_PAIR)) {
+      examples.push({
+        query: pair[1].trim(),
+        expected: pair[2].trim(),
+        file: filePath,
+        line: block.line
+      });
+    }
+  }
+  return examples;
+}
+
 // Run REPL examples from the spec doc.
 const specPath = join(docsDir, 'qlang-spec.md');
 const specSource = readFileSync(specPath, 'utf8');
@@ -117,7 +179,7 @@ describe('doc-compliance: qlang-spec.md REPL examples', () => {
   for (const ex of specExamples) {
     it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, async () => {
       const expectedValue = await parseExpected(ex.expected);
-      if (expectedValue === null) return; // skip unparseable expected values
+      if (expectedValue === EXPECTATION_IS_PROSE) return;
 
       let queryResult;
       try {
@@ -132,19 +194,43 @@ describe('doc-compliance: qlang-spec.md REPL examples', () => {
       const match = deepEqual(queryResult, expectedValue);
       if (!match) {
         // Build a readable diff for the failure message
-        const resultStr = JSON.stringify(queryResult, (_, v) =>
-          v instanceof Map ? Object.fromEntries(v) :
-          v instanceof Set ? [...v] : v
-        );
-        const expectedStr = JSON.stringify(expectedValue, (_, v) =>
-          v instanceof Map ? Object.fromEntries(v) :
-          v instanceof Set ? [...v] : v
-        );
         throw new Error(
           `Doc example at ${ex.file}:${ex.line} diverged:\n` +
           `  query:    ${ex.query}\n` +
-          `  expected: ${expectedStr}\n` +
-          `  actual:   ${resultStr}`
+          `  expected: ${printValue(expectedValue)}\n` +
+          `  actual:   ${printValue(queryResult)}`
+        );
+      }
+    });
+  }
+});
+
+const operandsPath = join(docsDir, 'qlang-operands.md');
+const operandsSource = readFileSync(operandsPath, 'utf8');
+const operandExamples = extractInlineExamples(operandsSource, 'qlang-operands.md');
+
+describe('doc-compliance: qlang-operands.md inline examples', () => {
+  for (const ex of operandExamples) {
+    it(`line ${ex.line}: ${ex.query.substring(0, 60)}${ex.query.length > 60 ? '...' : ''}`, async () => {
+      const expectedValue = await parseExpected(ex.expected);
+      if (expectedValue === EXPECTATION_IS_PROSE) return;
+
+      let queryResult;
+      try {
+        queryResult = await evalQuery(ex.query);
+      } catch (thrownErr) {
+        throw new Error(
+          `Doc example at ${ex.file}:${ex.line} threw: ${thrownErr.message}\n` +
+          `  query: ${ex.query}`,
+          { cause: thrownErr }
+        );
+      }
+      if (!deepEqual(queryResult, expectedValue)) {
+        throw new Error(
+          `Doc example at ${ex.file}:${ex.line} diverged:\n` +
+          `  query:    ${ex.query}\n` +
+          `  expected: ${printValue(expectedValue)}\n` +
+          `  actual:   ${printValue(queryResult)}`
         );
       }
     });

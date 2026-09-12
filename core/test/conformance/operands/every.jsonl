@@ -22,7 +22,7 @@
 {"name":"every-map-0arity-conduit","query":"{:a 1 :b 2} | :big gt(0) | every(big)","expect":"true"}
 {"name":"every-map-1arity-conduit","query":"{:a 1 :b 2} | :@pos [:v] (v | gt(0)) | every(@pos)","expect":"true"}
 {"name":"every-map-1arity-conduit-fails","query":"{:a 1 :b -2} | :@pos [:v] (v | gt(0)) | every(@pos)","expect":"false"}
-{"name":"every-map-via-2arity-conduit","query":"{:a 1 :b 2} | :@bothPositive [:k :v] and(v | gt(0), k | isKeyword) | every(@bothPositive)","expect":"true"}
+{"name":"every-map-via-2arity-conduit","query":"{:a 1 :b 2} | :@bothPositive [:k :v] and(v | gt(0), k | type | eq(:keyword)) | every(@bothPositive)","expect":"true"}
 {"name":"every-map-via-2arity-conduit-fails","query":"{:a 1 :b -2} | :@bothPositive [:k :v] (v | gt(0)) | every(@bothPositive)","expect":"false"}
 {"name":"every-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | every(@kv) !| type","expect":"::EveryVecOrSetPredArityInvalidError"}
 {"name":"every-set-2arity-pred-throws","query":"#[1 2] | :@kv [:k :v] true | every(@kv) !| type","expect":"::EveryVecOrSetPredArityInvalidError"}

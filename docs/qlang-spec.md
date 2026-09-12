@@ -658,14 +658,20 @@ sequence. Three mechanisms cover all three needs.
 ### Projection — `/key`
 
 Extract a value from a Map by keyword — the keyword-keyed Maps from
-Part 1. Missing key → `null`:
+Part 1. A key the Map does not carry raises `::ProjectionKeyNotInMapError`:
 
 ```qlang
 > {:name "alice" :age 30} | /name
 "alice"
 
 > {:name "alice"} | /missing
-null
+::ProjectionKeyNotInMapError!{
+  :faultStep ~{/missing}
+  :faultInput {:name "alice"}
+  :key "missing"
+}
+|~| `/key` is the strict reading. `at` is its soft counterpart and
+|~| answers null on a miss.
 ```
 
 Nested chains: `/a/b` desugars to `/a | /b`.
@@ -732,7 +738,11 @@ arguments:
 true
 |~| compares pipeValue against itself.
 
-> {:order /name :record /} 5
+> {:name "bob"} | {:order /name :record /}
+{
+  :order "bob"
+  :record {:name "bob"}
+}
 |~| inside a Map literal `/` captures the whole pipeValue
 |~| alongside the projected /name field.
 ```
@@ -1670,8 +1680,9 @@ parameter binding, no manual escaping.
 A constructor invocation `::Tag<payload>` produces a
 **tagged instance**: identity rides on the payload's JS-header
 `tag` slot (a `TagKeyword`), the payload's native shape is
-preserved. Vec payload → tagged Vec (`isVec` still true,
-`/1` indexes elements directly, `count` returns the length);
+preserved. Vec payload → tagged Vec (`/1` indexes elements
+directly, `count` returns the length, and `payload | type`
+answers `:vec` while `type` answers the stamped `::Tag`);
 Map payload → tagged Map (`keys` lists the fields, `/field`
 projects, iteration sees the data plane); Set payload → tagged
 Set. Scalar / Keyword / Quote / Doc / Error / Conduit /
@@ -2041,13 +2052,13 @@ entirely and address the binding directly (`:filter | source`).
 | `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~{…}` segment in the docs |
 
 ```qlang
-> :filter | docs | first | isDoc
+> :filter | docs | first | type | eq(:doc)
 true
 
 > ::ParseError | source | /source | startsWith("::ParseError")
 true
 
-> :count | examples | first | isQuote
+> :count | examples | first | type | eq(:quote)
 true
 ```
 

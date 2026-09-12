@@ -16,7 +16,7 @@ describe('doc-prefix inside MapEntry literal is a parse error', () => {
 
 describe('DocLit literal is a Vec / Set element by itself', () => {
   it('a Doc-value at the head of a Vec is its first element', async () => {
-    const result = await evalQuery('[|~~ doc ~~| 42] | first | isDoc');
+    const result = await evalQuery('[|~~ doc ~~| 42] | first | type | eq(:doc)');
     expect(result).toBe(true);
   });
 });

@@ -131,7 +131,7 @@
       keywords, sets, and errors pass through unchanged — only
       the container shape is touched.
 
-      ~{::qlang{"k": "v"} | isMap | eq(true)}
+      ~{::qlang{"k": "v"} | type | eq(:map) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/type/qlang}
 
@@ -139,10 +139,10 @@
   |~~ ::json<qlang-shape> — recursively convert a qlang-shape
       payload (qlang Map → JSON Object, qlang Vec → JSON Array;
       both stamped with the appropriate JSON_*_TAG Symbol so
-      isJsonObject / isJsonArray identify them) down through
+      `type` answers `:jsonObject` / `:jsonArray` for them) down through
       every nested level. Scalars, keywords, sets, and errors
       pass through unchanged.
 
-      ~{::json{:k "v"} | isJsonObject | eq(true)}
+      ~{::json{:k "v"} | type | eq(:jsonObject) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/type/json}

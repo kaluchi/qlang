@@ -58,7 +58,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:arith` | Binary numeric operand. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
-| `:typeClassifier` | Nullary boolean predicate asking "is pipeValue of value-class X?". |
+| `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
@@ -741,56 +741,43 @@ round-trips to `"a,b,c"`.
 
 ## Type classifiers
 
-Twelve nullary predicates lift the `types.mjs` value-class
-predicates to operand level. Primary use — inside `filter`,
-`every`, `any` predicates over heterogeneous containers:
-`filter(isString)` over a Vec of mixed types, or over a Map
-where the value's type is the predicate axis
-(`{:ID "SGML" :GlossDef {...}} | filter(isMap)` keeps only the
-Map-valued entries). Without them the same classification lands
-through `| type | eq(:string)` — also correct, but the dedicated
-classifier reads as a single predicate at the call site. Each
-classifier matches exactly one `describeType(v)` label and never
-throws.
+Asking what a value is means composing `type` with `eq`. `type`
+answers exactly one identity per value, so `| type | eq(:string)`
+is the classification, and it reads the same inside a predicate:
+`filter(type | eq(:string))` over a Vec of mixed types, or over a
+Map where the value's class is the predicate axis.
 
-`isJsonObject` and `isJsonArray` discriminate the JSON-tagged
-shapes (plain JS object / Array stamped with the `JSON_OBJECT_TAG`
-/ `JSON_ARRAY_TAG` Symbol, produced by the host JSON-bridge and
-by the `::json` constructor). They are runtime-distinct from
-qlang Map and Vec — `isMap` and `isVec` return `false` on a JSON
-shape, and vice versa.
-
-### `isString` · `isNumber` · `isVec` · `isMap` · `isSet` · `isKeyword` · `isTag` · `isBoolean` · `isNull` · `isQuote` · `isDoc` · `isJsonObject` · `isJsonArray`
+### `type`
 
 - **Arity** 1. **Subject** any value.
-- Returns `true` iff the subject is of the named value class,
-  `false` otherwise. Every qlang value produces `true` from
-  exactly one classifier. Boolean and null classification is
-  strict: `0 | isBoolean` → `false`, `"" | isNull` → `false`.
-  `isMap` reports `false` for conduit and snapshot descriptor
-  Maps — they classify as `Conduit` / `Snapshot` through the
-  `:kind` discriminator.
-  `isQuote` matches a frozen `~{…}`-delimited codeAsData
-  fragment; `isDoc` matches a frozen content fragment
-  (`|~~ ... ~~|` block-form or `|~~| ...` line-form literal).
+- Returns the Keyword or TagKeyword identity of the value's type.
+  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
+  `:null`); qlang value-classes produce their type keyword (`:vec`,
+  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
+  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
+  Snapshot, TaggedInstance, materialized error, catalog builtin
+  descriptor) produce the user-stamped TagKeyword off the JS-header
+  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
+  error tag, `::builtin`); error values produce the per-site `::Tag`
+  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
+  `::ParseError`, generic `::Error` for user `!{}` without an
+  explicit `:kind ::Foo` lift.
 - **Examples**:
-  - `"hello" | isString` → `true`; `42 | isString` → `false`.
-  - `42 | isNumber` → `true`; `3.14 | isNumber` → `true`;
-    `"42" | isNumber` → `false`.
-  - `[1 2] | isVec` → `true`; `#[1] | isVec` → `false`.
-  - `{:a 1} | isMap` → `true`; `[] | isMap` → `false`.
-  - `#[1 2] | isSet` → `true`; `[1 2] | isSet` → `false`.
-  - `:name | isKeyword` → `true`; `:kind | isKeyword` → `true`;
-    `::Foo | isKeyword` → `false` (TagKeyword, not Keyword).
-  - `::Foo | isTag` → `true`; `::conduit | isTag` → `true`;
-    `:foo | isTag` → `false`; `"::Foo" | isTag` → `false`.
-  - `true | isBoolean` → `true`; `0 | isBoolean` → `false`.
-  - `null | isNull` → `true`; `{} | /missing | isNull` → `true`.
-  - `~{mul(2)} | isQuote` → `true`; `"mul(2)" | isQuote` → `false`.
-  - `|~~ note ~~| | isDoc` → `true`; `"note" | isDoc` → `false`.
-  - `::json{:k 1} | isJsonObject` → `true`; `{:k 1} | isJsonObject` → `false`.
-  - `::json[1 2 3] | isJsonArray` → `true`; `[1 2 3] | isJsonArray` → `false`.
-- **Errors**: none — classification is total.
+  - `42 | type` → `:number`.
+  - `"hello" | type` → `:string`.
+  - `:foo | type` → `:keyword`.
+  - `[1 2] | type` → `:vec`.
+  - `{:a 1} | type` → `:map`.
+  - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
+  - `!{} !| type` → `::Error`.
+  - `!{:kind ::Oops} !| type` → `::Oops`.
+
+JSON-tagged shapes carry an identity of their own: a plain JS
+object or Array stamped with the `JSON_OBJECT_TAG` /
+`JSON_ARRAY_TAG` Symbol — produced by the host JSON-bridge and by
+the `::json` constructor — answers `:jsonObject` / `:jsonArray`,
+while a qlang Map or Vec answers `:map` / `:vec`. A Map declaring
+a `:kind ::Foo` field answers `::Foo`, the identity it declares.
 
 ## Type Conversion
 
@@ -866,7 +853,7 @@ shape, and vice versa.
 
 - **Arity** 1. **Subject** any value.
 - Returns a JSON string representation of the subject.
-- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2 3]}"`.
+- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`.
 
 ### `qlang`
 
@@ -885,9 +872,9 @@ shape, and vice versa.
   needs to flow into qlang-shape operands like
   `union({:adult /age | gt(18)})`.
 - **Examples**:
-  - `::json{"a": 1} | qlang | isMap` → `true`.
-  - `::json[1, 2] | qlang | isVec` → `true`.
-  - `{:a 1} | qlang | isMap` → `true` (already qlang).
+  - `::json{"a": 1} | qlang | type | eq(:map)` → `true`.
+  - `::json[1, 2] | qlang | type | eq(:vec)` → `true`.
+  - `{:a 1} | qlang | type | eq(:map)` → `true` (already qlang).
   - `42 | qlang | eq(42)` → `true` (scalar identity).
 
 ### `table`
@@ -1384,31 +1371,6 @@ its own eval handler in `eval.mjs`.
   `SpecSubjectNotKeywordOrTagError`; no declaring step found →
   `AxisBindingNotFoundError`.
 
-### `type`
-
-- **Arity** 1. **Subject** any value.
-- Returns the Keyword or TagKeyword identity of the value's type.
-  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
-  `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
-  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
-  Snapshot, TaggedInstance, materialized error, catalog builtin
-  descriptor) produce the user-stamped TagKeyword off the JS-header
-  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
-  error tag, `::builtin`); error values produce the per-site `::Tag`
-  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
-  `::ParseError`, generic `::Error` for user `!{}` without an
-  explicit `:kind ::Foo` lift.
-- **Examples**:
-  - `42 | type` → `:number`.
-  - `"hello" | type` → `:string`.
-  - `:foo | type` → `:keyword`.
-  - `[1 2] | type` → `:vec`.
-  - `{:a 1} | type` → `:map`.
-  - `::conduit[[] ~{mul(2)}] | type` → `::conduit`.
-  - `!{} | type` → `::Error`.
-  - `!{:kind ::Oops} | type` → `::Oops`.
-
 ## Error operands
 
 Error inspection and transformation ride through the `!|`
@@ -1505,7 +1467,7 @@ enumerates).
 | `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
-| `:typeClassifier` | `isString`, `isNumber`, `isVec`, `isMap`, `isSet`, `isKeyword`, `isTag`, `isBoolean`, `isNull`, `isQuote`, `isDoc`, `isJsonObject`, `isJsonArray` |
+| `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag` |
 | `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |

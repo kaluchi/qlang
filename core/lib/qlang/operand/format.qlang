@@ -31,10 +31,10 @@
       constructor — both ride the `:typeConversion` taxonomy
       slot alongside the String↔Keyword involution `keyword`.
 
-      ~{::json{"a" : 1} | qlang | isMap | eq(true)}
-      ~{::json[1, 2] | qlang | isVec | eq(true)}
-      ~{{:a 1} | qlang | isMap | eq(true)}
-      ~{[1 2 3] | qlang | isVec | eq(true)}
+      ~{::json{"a" : 1} | qlang | type | eq(:map) | eq(true)}
+      ~{::json[1, 2] | qlang | type | eq(:vec) | eq(true)}
+      ~{{:a 1} | qlang | type | eq(:map) | eq(true)}
+      ~{[1 2 3] | qlang | type | eq(:vec) | eq(true)}
       ~{42 | qlang | eq(42)} ~~|
   ::builtin{:impl :qlang/prim/qlang
             :category :typeConversion

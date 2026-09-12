@@ -281,6 +281,72 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
   });
 });
 
+describe('axis-operands resolve the binding the evaluator dispatches', () => {
+  // `spec` reads env; `source` / `docs` / `examples` walk the module
+  // ASTs env holds. Both readings have to name one declaration, or a
+  // binding that shadows a built-in reads as the built-in — the case
+  // the hypertext chain exists for.
+  const shadowed = ':add mul(100) | ';
+
+  it('a binding shadowing a built-in is the one source reports', async () => {
+    expect(await evalQuery(shadowed + '2 | add')).toBe(200);
+    expect(await evalQuery(shadowed + ':add | source | /source')).toBe(':add mul(100)');
+  });
+
+  it('docs and examples answer for the shadowing binding, which carries neither', async () => {
+    expect(await evalQuery(shadowed + ':add | docs | count')).toBe(0);
+    expect(await evalQuery(shadowed + ':add | examples | count')).toBe(0);
+  });
+
+  it('spec names the same declaration source does', async () => {
+    expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('conduit'));
+  });
+
+  // Module load order is not shadow order: a cell's own AST is
+  // stamped into env before the cell runs, so a `use` the cell
+  // performs lands after it. The declaration site the binding
+  // carries is what settles both orders.
+  const namespaceLocator = async (namespaceName) => namespaceName === 'probe/shadow'
+    ? { source: ':contested |~~ from the namespace ~~| 111' }
+    : null;
+
+  it('a cell BindStep after a use answers with the cell declaration', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession({ locator: namespaceLocator });
+    const cellEntry = await sessionInstance.evalCell(
+      'use(:probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
+      '[contested, :contested | source | /source, :contested | docs | first | /content]');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([
+      222, ':contested |~~ from the cell ~~| 222', ' from the cell '
+    ]);
+  });
+
+  it('a host binding carrying no slots answers not-found, not a foreign TypeError', async () => {
+    // `session.bind` installs a value directly, so env holds whatever
+    // the host handed it — including one that carries no slots to
+    // read a declaration site off.
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession();
+    sessionInstance.bind('hostInstalled', null);
+    const cellEntry = await sessionInstance.evalCell(':hostInstalled | source !| type');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual(makeTagKeyword('AxisBindingNotFoundError'));
+  });
+
+  it('a use after a cell BindStep answers with the namespace declaration', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession({ locator: namespaceLocator });
+    const cellEntry = await sessionInstance.evalCell(
+      ':contested |~~ from the cell ~~| 222 | use(:probe/shadow) | ' +
+      '[contested, :contested | source | /source, :contested | docs | first | /content]');
+    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.result).toEqual([
+      111, ':contested |~~ from the namespace ~~| 111', ' from the namespace '
+    ]);
+  });
+});
+
 describe(':name | spec returns the env-side declaration descriptor', () => {
   it(':add | spec surfaces the operand descriptor Map with :category :arith', async () => {
     expect(await evalQuery(':add | spec | /category')).toEqual(makeKeyword('arith'));

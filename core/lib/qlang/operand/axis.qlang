@@ -42,7 +42,7 @@
       Quote segments are the evaluable examples `runExamples` runs.
 
       ~{:filter | docs | first | /content | contains("Keeps items")}
-      ~{::AddLeftNotNumberError | docs | first | isDoc}
+      ~{::AddLeftNotNumberError | docs | first | type | eq(:doc)}
   ~~|
   ::builtin{:impl :qlang/prim/docs
             :category :axis

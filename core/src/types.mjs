@@ -415,7 +415,10 @@ export function conduitEnvRef(conduit) {
 // qlang-Map form through `locationToQlangMap` for the `:location`
 // field of the view-Map.
 export function declarationSiteOf(binding) {
-  return binding[DECLARATION_SITE_SLOT];
+  // Env holds whatever a host installed through `session.bind`
+  // alongside what source minted, so the read answers "no site" for
+  // a value that carries no slots at all.
+  return binding?.[DECLARATION_SITE_SLOT];
 }
 
 // Resolved function value of a catalog `::builtin` descriptor,

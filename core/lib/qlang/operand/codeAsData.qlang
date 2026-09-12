@@ -88,8 +88,8 @@
       new subject. A pipeline-suffix shape — exactly the form `:trail`
       records surface — is therefore directly re-executable.
 
-      ~{~{isNull} | apply(42) | eq(false)}
-      ~{~{| isNull} | apply(42) | eq(false)}
+      ~{~{type | eq(:null)} | apply(42) | eq(false)}
+      ~{~{| type | eq(:null)} | apply(42) | eq(false)}
       ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
       ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
   ~~|

@@ -17,7 +17,8 @@ import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue, envGet, envHas } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeQuote, makeDoc
+  isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeQuote, makeDoc,
+  declarationSiteOf
 } from '../types.mjs';
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
@@ -64,12 +65,6 @@ function matchesBindingStep(step, isTagBinding, targetName) {
       ? key.type === 'BareTypeKeyword' && key.tag === targetName
       : key.type === 'Keyword'         && key.name === targetName;
   }
-  if (step.type === 'OperandCall' && step.name === 'as') {
-    if (isTagBinding) return false;
-    if (!Array.isArray(step.args) || step.args.length === 0) return false;
-    const firstArg = step.args[0];
-    return firstArg.type === 'Keyword' && firstArg.name === targetName;
-  }
   return false;
 }
 
@@ -79,21 +74,24 @@ function matchesBindingStep(step, isTagBinding, targetName) {
 // binding, so axis-operand lookups surface the docs / source /
 // examples of the shadowing-resolved binding at that point in the
 // module.
+// A module of one declaration parses as that step itself, with no
+// Pipeline wrapper, and the head step of a Pipeline rides without
+// the combinator wrapper its followers carry. Both readings below
+// walk one sequence rather than each re-deciding the shape.
+function topLevelSteps(moduleAst) {
+  if (moduleAst.type !== 'Pipeline') return [moduleAst];
+  return moduleAst.steps.map((stepWrapper, index) =>
+    (index === 0 ? stepWrapper : stepWrapper.step));
+}
+
 function findBindingStepFor(moduleAst, bindingName) {
   const isTagBinding = isTagBindingName(bindingName);
   const targetName = isTagBinding ? stripTagBindingPrefix(bindingName) : bindingName;
-  if (moduleAst.type === 'Pipeline') {
-    let lastMatch = null;
-    for (let i = 0; i < moduleAst.steps.length; i++) {
-      const stepWrapper = moduleAst.steps[i];
-      const step = i === 0 ? stepWrapper : stepWrapper.step;
-      if (matchesBindingStep(step, isTagBinding, targetName)) lastMatch = step;
-    }
-    return lastMatch;
+  let lastMatch = null;
+  for (const step of topLevelSteps(moduleAst)) {
+    if (matchesBindingStep(step, isTagBinding, targetName)) lastMatch = step;
   }
-  // Single-step module — top-level AST is the step itself
-  // (BindStep or an `as` OperandCall) with no Pipeline wrapper.
-  return matchesBindingStep(moduleAst, isTagBinding, targetName) ? moduleAst : null;
+  return lastMatch;
 }
 
 // Iterate every module Quote stored in env under `qlang/ast/<uri>`.
@@ -105,12 +103,45 @@ function* moduleAstsIn(env) {
   }
 }
 
-export function findBindingStepAcrossModules(env, bindingName) {
-  for (const moduleAst of moduleAstsIn(env)) {
-    const step = findBindingStepFor(moduleAst, bindingName);
-    if (step !== null) return step;
+// A binding minted through `makeConduit` / `makeSnapshot` carries
+// the declaring node's own `location` object on its
+// DECLARATION_SITE_SLOT, so the step that wrote the env entry is
+// identifiable by reference. That is the authority: `spec` reads
+// env, and reading env here too makes the four axes name one
+// declaration whichever order the shadowing happened in — a cell
+// BindStep over a `use`-loaded namespace, or a `use` over a cell
+// BindStep.
+// `makeSnapshot` records the BindStep's own location and
+// `makeConduit` its body's, so a step declares the site when either
+// node carries it.
+function declaresSite(step, declarationSite) {
+  return step.location === declarationSite || step.body?.location === declarationSite;
+}
+
+function findStepAtDeclarationSite(moduleAst, declarationSite) {
+  for (const step of topLevelSteps(moduleAst)) {
+    if (declaresSite(step, declarationSite)) return step;
   }
   return null;
+}
+
+// A catalog descriptor reaches env through the bootstrap's
+// snapshot-unwrap and carries no site, so the name walk answers for
+// it: env is insertion-ordered and the catalog loads ahead of every
+// cell, so the last match there is the shadowing declaration.
+export function findBindingStepAcrossModules(env, bindingName) {
+  const declarationSite = declarationSiteOf(env.get(bindingName));
+  let lastMatch = null;
+  for (const moduleAst of moduleAstsIn(env)) {
+    if (declarationSite !== undefined) {
+      const sited = findStepAtDeclarationSite(moduleAst, declarationSite);
+      if (sited !== null) return sited;
+      continue;
+    }
+    const step = findBindingStepFor(moduleAst, bindingName);
+    if (step !== null) lastMatch = step;
+  }
+  return lastMatch;
 }
 
 // `as(:name)` OperandCall nodes without an attached doc-prefix

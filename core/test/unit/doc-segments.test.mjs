@@ -20,7 +20,7 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
   });
 
   it('embedded Quote segment is a Quote-value', async () => {
-    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | isQuote');
+    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | type | eq(:quote)');
     expect(result).toBe(true);
   });
 

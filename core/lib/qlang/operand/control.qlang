@@ -85,7 +85,6 @@
         |  eq([::CoalesceNoAlternativesError])
        }
   ~~|
-  ::builtin{:category :arityError :operand :coalesce}
 
 :firstTruthy
   |~~ Walks the captured alternatives in order, evaluating each
@@ -115,7 +114,6 @@
         |  eq([::FirstTruthyNoAlternativesError])
        }
   ~~|
-  ::builtin{:category :arityError :operand :firstTruthy}
 
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
@@ -145,4 +143,3 @@
         |  eq([::CondNoBranchesError])
        }
   ~~|
-  ::builtin{:category :arityError :operand :cond}

@@ -62,7 +62,6 @@
         |  eq([::UseSubjectNotMapError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :use :position :subject :expectedType :map}
 
 ::UseNamespaceNotKeywordError
   |~~ `use(:ns)` requires a Keyword captured-arg naming the
@@ -74,7 +73,6 @@
         |  eq([::UseNamespaceNotKeywordError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :use :expectedType :keyword}
 
 ::UseNamespaceNotFoundError
   |~~ `use(:ns)` — namespace not in env and no host-provided
@@ -93,7 +91,6 @@
        }
       ~{use(:count) !| type | eq(::UseNamespaceNotFoundError)}
   ~~|
-  ::builtin{:category :typeError :operand :use}
 
 ::UseNamespaceElementNotKeywordError
   |~~ `use([:ns1 :ns2 …])` — every element of the namespace
@@ -105,7 +102,6 @@
         |  eq([::UseNamespaceElementNotKeywordError 0 :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :use :expectedType :keyword}
 
 ::UseNamespaceCollisionError
   |~~ `use(#[:ns1 :ns2 …])` — two namespaces export a name
@@ -113,14 +109,12 @@
       Host-boundary error: requires two host-installed namespace
       Maps with overlapping keys.
   ~~|
-  ::builtin{:category :typeError :operand :use}
 
 ::UseNameNotExportedError
   |~~ `use(:ns, #[:name1 …])` — selection filter names an
       identifier the namespace does not export. Host-boundary
       error: requires a host-installed namespace Map.
   ~~|
-  ::builtin{:category :typeError :operand :use}
 
 :manifest
   |~~ Returns a Vec of descriptors, one per binding in env,
@@ -158,7 +152,6 @@
         |  eq([::ManifestNamespaceNotKeywordError :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :manifest :expectedType :keyword}
 
 ::ManifestNamespaceUnknownError
   |~~ `manifest(:namespace)` accepts `:value` or `:tag`; any
@@ -170,7 +163,6 @@
         |  eq([::ManifestNamespaceUnknownError :wat])
        }
   ~~|
-  ::builtin{:category :typeError :operand :manifest}
 
 :runExamples
   |~~ Walks every Quote segment inside the binding's attached
@@ -204,7 +196,6 @@
         |  eq([::RunExamplesSubjectShapeError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :runExamples :position :subject :expectedType [:keyword :map]}
 
 :as
   |~~ Captures the current pipeValue as a frozen snapshot under
@@ -239,4 +230,3 @@
         |  eq([::AsNameNotKeywordError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :as :expectedType :keyword}

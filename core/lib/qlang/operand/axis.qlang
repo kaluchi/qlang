@@ -34,7 +34,6 @@
         |  eq([::SourceSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :source :position :subject :expectedType [:keyword :tagKeyword]}
 
 :docs
   |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
@@ -61,7 +60,6 @@
         |  eq([::DocsSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :docs :position :subject :expectedType [:keyword :tagKeyword]}
 
 :examples
   |~~ `:name | examples` — Vec of Quote-values extracted from the
@@ -88,7 +86,6 @@
         |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :examples :position :subject :expectedType [:keyword :tagKeyword]}
 
 :spec
   |~~ `:name | spec` — env-side declaration descriptor Map for the
@@ -133,7 +130,6 @@
         |  eq([::SpecSubjectNotKeywordOrTagError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :spec :position :subject :expectedType [:keyword :tagKeyword]}
 
 ::AxisBindingNotFoundError
   |~~ Axis-operand (`source` / `docs` / `examples` / `spec`) — no
@@ -147,4 +143,3 @@
                 :source :nonexistent-binding])
        }
   ~~|
-  ::builtin{:category :typeError}

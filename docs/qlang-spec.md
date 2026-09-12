@@ -1857,12 +1857,13 @@ Per-tag static facts — `:category` (broad bucket: `:typeError`,
 `:primitiveUnbound`, `:sessionError`, `:codecError`,
 `:astCodecError`, `:unresolvedIdentifier`, `:resourceLimit`,
 `:numericDomain`),
-`:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
-body (`::TagName ::builtin{:category … :operand … :position …
-:expectedType …}`) and reach the reader through the `spec` axis:
-`result !| type | spec | /category` returns the broad-bucket
-keyword; `result !| type | spec | /operand` returns the per-site
-origin. The runtime instance descriptor itself stays compact at
+`:operand`, `:position`, `:expectedType` — are properties of the
+throw site, stamped onto the tag-binding at bootstrap, and reach the
+reader through the `spec` axis: `result !| type | spec | /category`
+returns the broad-bucket keyword; `result !| type | spec | /operand`
+returns the per-site origin. The catalog side of the same binding
+carries the prose and the `~{…}` examples that `docs` and `examples`
+answer with. The runtime instance descriptor itself stays compact at
 the dynamic facts above; consumers go through hypertext for
 tag-binding metadata.
 

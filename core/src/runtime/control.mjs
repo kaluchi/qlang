@@ -14,15 +14,21 @@ import {
   UNBOUNDED
 } from './dispatch.mjs';
 import { isTruthy, isNull, isErrorValue, NULL } from '../types.mjs';
-import { declareArityError } from '../operand-errors.mjs';
+import { declareArityError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
-  () => 'coalesce requires at least one alternative sub-pipeline');
+  () => 'coalesce requires at least one alternative sub-pipeline',
+  { operand: 'coalesce' }
+);
 const FirstTruthyNoAlternativesError = declareArityError('FirstTruthyNoAlternativesError',
-  () => 'firstTruthy requires at least one alternative sub-pipeline');
+  () => 'firstTruthy requires at least one alternative sub-pipeline',
+  { operand: 'firstTruthy' }
+);
 const CondNoBranchesError = declareArityError('CondNoBranchesError',
-  () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default');
+  () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default',
+  { operand: 'cond' }
+);
 
 export const ifOp = higherOrderOp('if', 4,
   async (ifSubject, ifCondLambda, ifThenLambda, ifElseLambda) => {

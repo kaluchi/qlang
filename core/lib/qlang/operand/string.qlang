@@ -24,7 +24,6 @@
         |  eq([::SplitSubjectNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :split :position 1 :expectedType :string}
 
 ::SplitSeparatorNotStringError
   |~~ Captured argument at position 2 of `split` must be String.
@@ -34,7 +33,6 @@
         |  eq([::SplitSeparatorNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :split :position 2 :expectedType :string}
 
 :join
   |~~ Joins the elements of a Vec of Strings with separator
@@ -58,7 +56,6 @@
         |  eq([::JoinSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :join :position :subject :expectedType :vec}
 
 ::JoinElementNotStringError
   |~~ Element of `join` input collection must be String.
@@ -68,7 +65,6 @@
         |  eq([::JoinElementNotStringError :number 1])
        }
   ~~|
-  ::builtin{:category :typeError :operand :join :expectedType :string}
 
 ::JoinSeparatorNotStringError
   |~~ Captured argument at position 2 of `join` must be String.
@@ -78,7 +74,6 @@
         |  eq([::JoinSeparatorNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :join :position 2 :expectedType :string}
 
 :contains
   |~~ Returns true if the subject string contains needle as a
@@ -103,7 +98,6 @@
         |  eq([::ContainsSubjectNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :contains :position 1 :expectedType :string}
 
 ::ContainsNeedleNotStringError
   |~~ Captured argument at position 2 of `contains` must be String.
@@ -113,7 +107,6 @@
         |  eq([::ContainsNeedleNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :contains :position 2 :expectedType :string}
 
 :startsWith
   |~~ Returns true if the subject string begins with prefix.
@@ -137,7 +130,6 @@
         |  eq([::StartsWithSubjectNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :startsWith :position 1 :expectedType :string}
 
 ::StartsWithPrefixNotStringError
   |~~ Captured argument at position 2 of `startsWith` must be String.
@@ -147,7 +139,6 @@
         |  eq([::StartsWithPrefixNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :startsWith :position 2 :expectedType :string}
 
 :endsWith
   |~~ Returns true if the subject string ends with suffix.
@@ -171,7 +162,6 @@
         |  eq([::EndsWithSubjectNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :endsWith :position 1 :expectedType :string}
 
 ::EndsWithSuffixNotStringError
   |~~ Captured argument at position 2 of `endsWith` must be String.
@@ -181,7 +171,6 @@
         |  eq([::EndsWithSuffixNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :endsWith :position 2 :expectedType :string}
 
 :prepend
   |~~ Concatenates the modifier in front of the subject.
@@ -203,7 +192,6 @@
         |  eq([::PrependSubjectNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :prepend :position 1 :expectedType :string}
 
 ::PrependPrefixNotStringError
   |~~ Captured argument at position 2 of `prepend` must be String.
@@ -213,7 +201,6 @@
         |  eq([::PrependPrefixNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :prepend :position 2 :expectedType :string}
 
 :append
   |~~ Concatenates the subject with the modifier on the right.
@@ -235,7 +222,6 @@
         |  eq([::AppendSubjectNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :append :position 1 :expectedType :string}
 
 ::AppendSuffixNotStringError
   |~~ Captured argument at position 2 of `append` must be String.
@@ -245,4 +231,3 @@
         |  eq([::AppendSuffixNotStringError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :append :position 2 :expectedType :string}

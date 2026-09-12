@@ -73,7 +73,7 @@
 //     the extra indirection would only obscure which registry
 //     instance is being mutated.
 
-import { QlangError, QlangInvariantError } from './errors.mjs';
+import { declareInvariantError, declarePerSiteError } from './errors.mjs';
 
 // ── Per-site error classes ────────────────────────────────────
 //
@@ -82,38 +82,21 @@ import { QlangError, QlangInvariantError } from './errors.mjs';
 // subclass (dispatch-time data error that lifts through evalNode's
 // try/catch onto the fail-track).
 
-class PrimitiveKeyNotStringError extends QlangInvariantError {
-  constructor(actualType) {
-    super(
-      `bind: primitive key must be a string, got ${actualType}`,
-      { actualType }
-    );
-    this.name = 'PrimitiveKeyNotStringError';
-    this.fingerprint = 'PrimitiveKeyNotStringError';
-  }
-}
+const PrimitiveKeyNotStringError = declareInvariantError(
+  'PrimitiveKeyNotStringError',
+  ({ actualType }) => `bind: primitive key must be a string, got ${actualType}`
+);
 
-class PrimitiveKeyAlreadyBoundError extends QlangInvariantError {
-  constructor(keyName) {
-    super(
-      `bind: primitive key :${keyName} is already bound; duplicate binding indicates two runtime modules claim the same primitive name`,
-      { keyName }
-    );
-    this.name = 'PrimitiveKeyAlreadyBoundError';
-    this.fingerprint = 'PrimitiveKeyAlreadyBoundError';
-  }
-}
+const PrimitiveKeyAlreadyBoundError = declareInvariantError(
+  'PrimitiveKeyAlreadyBoundError',
+  ({ keyName }) => `bind: primitive key :${keyName} is already bound; ` +
+    'duplicate binding indicates two runtime modules claim the same primitive name'
+);
 
-class PrimitiveRegistrySealedError extends QlangInvariantError {
-  constructor(keyLabel) {
-    super(
-      `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
-      { keyLabel }
-    );
-    this.name = 'PrimitiveRegistrySealedError';
-    this.fingerprint = 'PrimitiveRegistrySealedError';
-  }
-}
+const PrimitiveRegistrySealedError = declareInvariantError(
+  'PrimitiveRegistrySealedError',
+  ({ keyLabel }) => `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`
+);
 
 // PrimitiveKeyUnboundError — the one dispatch-time data error. Fires when
 // a descriptor Map's :impl keyword points to a primitive that
@@ -121,17 +104,10 @@ class PrimitiveRegistrySealedError extends QlangInvariantError {
 // converts it to an error value on the fail-track. This gracefully
 // handles hand-crafted descriptor Maps, stale serialized sessions,
 // and mis-edited manifest entries.
-class PrimitiveKeyUnboundError extends QlangError {
-  constructor(keyLabel) {
-    super(
-      `resolve: no primitive bound under :${keyLabel}`,
-      'primitiveUnbound'
-    );
-    this.name = 'PrimitiveKeyUnboundError';
-    this.fingerprint = 'PrimitiveKeyUnboundError';
-    this.context = { keyLabel };
-  }
-}
+const PrimitiveKeyUnboundError = declarePerSiteError(
+  'PrimitiveKeyUnboundError', 'primitiveUnbound',
+  ({ keyLabel }) => `resolve: no primitive bound under :${keyLabel}`
+);
 
 
 // ── Factory ───────────────────────────────────────────────────
@@ -154,13 +130,13 @@ export function createPrimitiveRegistry() {
   return {
     bind(key, impl) {
       if (sealed) {
-        throw new PrimitiveRegistrySealedError(key);
+        throw new PrimitiveRegistrySealedError({ keyLabel: key });
       }
       if (typeof key !== 'string') {
-        throw new PrimitiveKeyNotStringError(typeof key);
+        throw new PrimitiveKeyNotStringError({ actualType: typeof key });
       }
       if (bindings.has(key)) {
-        throw new PrimitiveKeyAlreadyBoundError(key);
+        throw new PrimitiveKeyAlreadyBoundError({ keyName: key });
       }
       bindings.set(key, impl);
       return key;
@@ -168,7 +144,7 @@ export function createPrimitiveRegistry() {
 
     resolve(key) {
       if (!bindings.has(key)) {
-        throw new PrimitiveKeyUnboundError(key);
+        throw new PrimitiveKeyUnboundError({ keyLabel: key });
       }
       return bindings.get(key);
     },

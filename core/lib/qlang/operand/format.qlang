@@ -65,7 +65,6 @@
         |  eq([::TableSubjectNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :table :position :subject :expectedType :vec}
 
 ::TableRowNotMapError
   |~~ Element of `table` input collection must be Map.
@@ -75,4 +74,3 @@
         |  eq([::TableRowNotMapError :number 0])
        }
   ~~|
-  ::builtin{:category :typeError :operand :table :expectedType :map}

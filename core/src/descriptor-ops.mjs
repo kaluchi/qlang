@@ -42,10 +42,15 @@
 // dragging `manifest-op.mjs` into the graph.
 
 import {
-  BUILTIN_TAG, isKeyword, typeKeyword, stampBuiltinImpl, builtinImplOf
+  BUILTIN_TAG, isKeyword, typeKeyword, keyword, makeTagKeyword,
+  stampBuiltinImpl, builtinImplOf
 } from './types.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
-import { declareShapeError } from './operand-errors.mjs';
+import {
+  throwSiteSpecOf,
+  declareShapeError
+} from './errors.mjs';
+import { stripTagBindingPrefix, TAG_BINDING_PREFIX } from './env-keys.mjs';
 
 // A descriptor assembled inside a query (`::builtin{:impl
 // :qlang/prim/count}`) reaches dispatch without the bootstrap
@@ -54,7 +59,9 @@ import { declareShapeError } from './operand-errors.mjs';
 // than handing `PRIMITIVE_REGISTRY.resolve` a nameless value.
 const BuiltinImplNotPrimitiveKeyError = declareShapeError('BuiltinImplNotPrimitiveKeyError',
   ({ actualType }) =>
-    `::builtin descriptor :impl must be a :qlang/prim/<name> handle keyword, got ${actualType.name}`);
+    `::builtin descriptor :impl must be a :qlang/prim/<name> handle keyword, got ${actualType.name}`,
+  { operand: '::builtin', expectedType: 'keyword' }
+);
 
 // stampStructuralFacts(descriptor, fn) → descriptor (mutated in place)
 //
@@ -99,6 +106,45 @@ export function manifestBuiltinDescriptor(rawDescriptor, name) {
     result.set(fieldKey, fieldVal);
   }
   return result;
+}
+
+// stampThrowSiteSpec(tagDescriptor, tagEnvKey) → tagDescriptor
+//
+// A per-site error's structural facts — `:category`, `:operand`,
+// `:position`, `:expectedType` — are properties of the throw site,
+// recorded there by the factory that builds the class. This stamps
+// them onto the `::Tag` binding the catalog declares under the same
+// name, so `result !| type | spec` reads one Map while the facts
+// have one spelling. A tag with no throw site (`::Error`,
+// `::ParseError`, the value-class constructors) keeps whatever body
+// the catalog authored.
+export function stampThrowSiteSpec(tagDescriptor, tagEnvKey) {
+  const spec = throwSiteSpecOf(stripTagBindingPrefix(tagEnvKey));
+  if (spec === undefined) return tagDescriptor;
+  tagDescriptor.set('category', keyword(spec.category));
+  if (spec.operand !== undefined) {
+    tagDescriptor.set('operand', operandIdentifier(spec.operand));
+  }
+  if (spec.position !== undefined) {
+    tagDescriptor.set('position', typeof spec.position === 'number'
+      ? spec.position
+      : keyword(spec.position));
+  }
+  if (spec.expectedType !== undefined) {
+    tagDescriptor.set('expectedType', Array.isArray(spec.expectedType)
+      ? Object.freeze(spec.expectedType.map(keyword))
+      : keyword(spec.expectedType));
+  }
+  return tagDescriptor;
+}
+
+// `:operand` spells a value-namespace operand as a Keyword (`:add`,
+// `:@tap`) and a value-class constructor as a TagKeyword
+// (`::conduit`), matching how each is written in source.
+function operandIdentifier(operand) {
+  return operand.startsWith(TAG_BINDING_PREFIX)
+    ? makeTagKeyword(operand.slice(TAG_BINDING_PREFIX.length))
+    : keyword(operand);
 }
 
 // resolveBuiltinImpl(descriptor) → function value

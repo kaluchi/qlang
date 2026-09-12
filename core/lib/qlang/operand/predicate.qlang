@@ -60,7 +60,6 @@
         |  eq([::GtOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :gt}
 
 :lt
   |~~ Subject-first ordering: a | lt(b) computes a < b.
@@ -82,7 +81,6 @@
         |  eq([::LtOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :lt}
 
 :gte
   |~~ Subject-first ordering: a | gte(b) computes a >= b.
@@ -104,7 +102,6 @@
         |  eq([::GteOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :gte}
 
 :lte
   |~~ Subject-first ordering: a | lte(b) computes a <= b.
@@ -126,7 +123,6 @@
         |  eq([::LteOperandsNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :lte}
 
 :and
   |~~ Conjunction across captured sub-pipelines: each fires

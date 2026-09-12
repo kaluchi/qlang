@@ -22,7 +22,8 @@ import {
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
 } from '../env-keys.mjs';
-import { declareSubjectError, declareShapeError } from '../operand-errors.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
+import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
 const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tagKeyword']);

@@ -1332,14 +1332,18 @@ Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:sessionError` / `:codecError` / `:astCodecError` /
 `:effectLaundering` / `:unresolvedIdentifier` / `:resourceLimit` /
 `:numericDomain`),
-`:operand`, `:position`, `:expectedType` — live on the tag-binding's catalog
-body (`::TagName ::builtin{:category … :operand … :position …
-:expectedType …}`) and reach the reader through the `spec` axis:
-`result !| type | spec | /category` for the broad-bucket,
-`result !| type | spec | /operand` for the per-site origin. The
-runtime instance descriptor itself carries only the dynamic
-fields above so each fault stays compact and consumers go through
-hypertext for tag-binding metadata.
+`:operand`, `:position`, `:expectedType` — are properties of the
+throw site. The factory that declares the class records them
+(`recordThrowSiteSpec`), `buildLangRuntime` stamps them onto the
+`::Tag` binding the catalog declares under the same name, and they
+reach the reader through the `spec` axis: `result !| type | spec |
+/category` for the broad-bucket, `result !| type | spec | /operand`
+for the per-site origin. The catalog side of that binding carries
+the prose and the `~{…}` examples — one fact, one spelling, and a
+`::builtin{…}` body restating any of them is what the stamp would
+overwrite. The runtime instance descriptor itself carries only the
+dynamic fields above so each fault stays compact and consumers go
+through hypertext for tag-binding metadata.
 
 User-created error values (`!{...}` or `error(map)`) carry
 whatever fields the author provides — no mandatory schema beyond
@@ -1580,14 +1584,17 @@ Subpath exports (tree-shaking-friendly):
   runtime bootstrap.
 - `@kaluchi/qlang-core/walk` — AST traversal + AST ↔ Map codec.
 - `@kaluchi/qlang-core/codec` — tagged-JSON value codec.
-- `@kaluchi/qlang-core/errors` — error class hierarchy.
+- `@kaluchi/qlang-core/errors` — error category hierarchy plus the
+  generic per-site factories (`declareShapeError`,
+  `declareArityError`, `declareNumericDomainError`,
+  `declareInvariantError`, `declareEffectLaunderingError`,
+  `declarePerSiteError`).
 - `@kaluchi/qlang-core/effect-check` — AST effect-marker decoration.
 - `@kaluchi/qlang-core/dispatch` — `nullaryOp`, `valueOp`,
   `stateOp`, `overloadedOp` for host operand registration.
-- `@kaluchi/qlang-core/operand-errors` — per-site error-class
-  factories (`declareSubjectError`, `declareModifierError`,
-  `declareElementError`, `declareComparabilityError`,
-  `declareShapeError`, `declareArityError`).
+- `@kaluchi/qlang-core/operand-errors` — per-site factories for the
+  operand slot checks (`declareSubjectError`, `declareModifierError`,
+  `declareElementError`, `declareComparabilityError`).
 - `@kaluchi/qlang-core/primitives` — `PRIMITIVE_REGISTRY`,
   `createPrimitiveRegistry`, `bindPrim`, `bindTypeConstructor`.
   A host registering its own value-class constructors or

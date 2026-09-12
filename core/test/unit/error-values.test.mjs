@@ -296,7 +296,7 @@ describe('errorFromQlang', () => {
   });
 
   it('converts UnresolvedIdentifierError with faultStep/faultInput stamped flat', () => {
-    const unresolvedErr = new UnresolvedIdentifierError('myName');
+    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'myName' });
     const errorVal = errorFromQlang(unresolvedErr, ...fault('myName', 42));
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);

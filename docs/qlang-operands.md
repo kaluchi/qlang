@@ -17,7 +17,8 @@ live in [`cli/README.md`](../cli/README.md). Another host (a
 browser playground, a server-side evaluator) is free to bind a
 different operand set — every binding uses the same
 dispatch wrappers from `@kaluchi/qlang-core/dispatch` and the same
-per-site error factories from `@kaluchi/qlang-core/operand-errors`.
+per-site error factories from `@kaluchi/qlang-core/operand-errors`
+and `@kaluchi/qlang-core/errors`.
 
 ## Convention
 

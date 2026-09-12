@@ -36,7 +36,7 @@ describe('QlangError base class', () => {
       message: 'boom',
       fingerprint: null,
       location: null,
-      context: null,
+      context: {},
       schemaVersion: 1
     });
   });
@@ -83,15 +83,15 @@ describe('QlangError base class', () => {
 
 describe('UnresolvedIdentifierError', () => {
   it('sets identifierName, kind, fingerprint', () => {
-    const unresolvedErr = new UnresolvedIdentifierError('foo');
-    expect(unresolvedErr.identifierName).toBe('foo');
+    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'foo' });
+    expect(unresolvedErr.context.identifierName).toBe('foo');
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
     expect(unresolvedErr.fingerprint).toBe('UnresolvedIdentifierError');
     expect(unresolvedErr.message).toContain('foo');
   });
 
   it('toJSON inherits from QlangError', () => {
-    const unresolvedErr = new UnresolvedIdentifierError('foo');
+    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'foo' });
     const jsonPayload = unresolvedErr.toJSON();
     expect(jsonPayload.name).toBe('UnresolvedIdentifierError');
     expect(jsonPayload.fingerprint).toBe('UnresolvedIdentifierError');

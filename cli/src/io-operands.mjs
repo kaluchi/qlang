@@ -14,9 +14,9 @@ import {
 } from '@kaluchi/qlang-core/dispatch';
 import {
   declareSubjectError,
-  declareModifierError,
-  declareShapeError
+  declareModifierError
 } from '@kaluchi/qlang-core/operand-errors';
+import { declareShapeError } from '@kaluchi/qlang-core/errors';
 import {
   isKeyword,
   typeKeyword,
@@ -28,14 +28,18 @@ const OutSubjectNotStringError =
 const OutRendererResultNotStringError =
   declareShapeError('OutRendererResultNotStringError',
     ({ actualType }) =>
-      `@out renderer must produce a String, got ${actualType.name}`);
+      `@out renderer must produce a String, got ${actualType.name}`,
+  { operand: '@out', expectedType: 'string' }
+);
 
 const ErrSubjectNotStringError =
   declareSubjectError('ErrSubjectNotStringError', '@err', 'string');
 const ErrRendererResultNotStringError =
   declareShapeError('ErrRendererResultNotStringError',
     ({ actualType }) =>
-      `@err renderer must produce a String, got ${actualType.name}`);
+      `@err renderer must produce a String, got ${actualType.name}`,
+  { operand: '@err', expectedType: 'string' }
+);
 
 const TapLabelNotKeywordError =
   declareModifierError('TapLabelNotKeywordError', '@tap', 2, 'keyword');

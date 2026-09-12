@@ -1,55 +1,59 @@
 // Throw-site ↔ catalog drift guard for per-site error classes.
 //
-// Every per-site error class names itself twice: once in JS — a
-// `declare*Error` factory call or a `this.fingerprint` stamp in a
-// hand-written class — and once in the catalog as a `::Tag` binding
-// whose `::builtin{…}` body carries `:category`, and for the
-// operand-bound factories `:operand` / `:position`. Nothing forces
-// the two halves to agree, so a renamed class, a fresh throw site
-// without a tag-binding, or a `:operand` naming a different operand
-// than the message the factory builds all drift silently — and the
-// drift surfaces to a user as `result !| type | spec` handing back
-// facts about some other operand, or as `::AxisBindingNotFoundError`
-// for a tag that has no catalog entry at all.
+// A per-site error names itself in two planes: in JS, where the
+// factory that builds the class records its throw-site spec — the
+// `:category` it fires under, plus the `:operand` / `:position` /
+// `:expectedType` an operand-slot check carries — and in the catalog,
+// where a `::Tag` binding carries the prose and the `~{…}` examples a
+// reader reaches through `docs` and `examples`. The bootstrap stamps
+// the spec onto the binding, so each fact has one spelling and the
+// two planes meet in env.
 //
-// Four axes, one describe each:
+// Nothing in the language forces a class and a binding to exist in
+// pairs, so a renamed class, a fresh throw site without a binding, or
+// a binding restating facts the stamp overwrites all drift silently —
+// and the drift surfaces to a user as `result !| type | spec` handing
+// back nothing, or as `::AxisBindingNotFoundError` for a tag the
+// catalog never bound.
+//
+// Five axes, one describe each:
 //
 //   1. each name the catalog binds is bound once — a second BindStep
 //      under the same name shadows the first, which leaves a body no
 //      reader reaches and which `manifest` cannot show;
-//   2. every JS throw site has a `::Tag` binding in the catalog;
-//   3. every catalog error tag has a JS throw site, apart from the
+//   2. every recorded throw-site spec has a `::Tag` binding to land
+//      on, and a class that stamps its own `fingerprint` outside a
+//      factory records a spec of its own;
+//   3. every catalog error tag has a throw site, apart from the
 //      handful minted outside a per-site factory (listed below with
 //      the site that mints each);
-//   4. `:operand` and `:position` on the tag-binding body match the
-//      arguments the factory call passes at the throw site.
+//   4. a tag whose throw site records a spec declares no
+//      `::builtin{…}` body — the facts have one spelling, at the
+//      site, and a body restating them is what the stamp would
+//      silently overwrite;
+//   5. the operand a tag names is the operand whose `:throws` Vec
+//      lists that tag — the two halves of the same edge, authored in
+//      the catalog on one side and recorded at the site on the
+//      other, so a factory call that drops its `facts` argument
+//      leaves the tag reachable from `:throws` while `spec |
+//      /operand` answers nothing.
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '../../src/session.mjs';
-import { isTagKeyword } from '../../src/types.mjs';
+import { throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', '..', 'src');
 const catalogDir = join(here, '..', '..', 'lib', 'qlang');
 
-// `declareSubjectError(name, operand, expectedType)`,
-// `declareModifierError(name, operand, position, expectedType)`,
-// `declareElementError(name, operand, expectedType)` and
-// `declareComparabilityError(name, operand)` carry the operand (and
-// for the modifier form, the position) as literal arguments at the
-// call site. `declareShapeError`, `declareArityError` and
-// `declareNumericDomainError` take a message builder, so only their
-// class name is harvested.
-const FACTORY_CALL_RE =
-  /declare(Subject|Modifier|Element|Comparability|Shape|Arity|NumericDomain)Error\(\s*'([A-Za-z0-9]+)'(?:,\s*'([^']*)')?(?:,\s*(\d+))?/g;
-// Hand-written classes (registry, session, codec, bootstrap, render
-// invariants) stamp their per-site identity through `fingerprint`.
-const FINGERPRINT_RE = /this\.fingerprint\s*=\s*'([A-Za-z0-9]+)'/g;
-
-const OPERAND_BOUND_FACTORIES = new Set(['Subject', 'Modifier', 'Element', 'Comparability']);
+// A class outside the QlangError hierarchy stamps its per-site
+// identity by hand — `SourceLoadError` is the one, raised by the two
+// host loaders. The factories stamp `this.fingerprint = className`
+// from their argument, so a literal here means a hand-written class.
+const HAND_STAMPED_FINGERPRINT_RE = /this\.fingerprint\s*=\s*'([A-Za-z0-9]+)'/g;
 
 // Tags whose ErrorValue is minted without going through a per-site
 // factory or a fingerprint-stamping class, each with the site that
@@ -63,52 +67,38 @@ const TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
   ['::qlang',       'qlang-shape constructor in runtime/tagged.mjs']
 ]);
 
-function collectThrowSites() {
-  const throwSites = new Map();
+// Tags one class raises from more than one operand, each with what
+// makes the shared identity the right reading.
+const TAGS_SHARED_ACROSS_OPERANDS = new Map([
+  ['::EvalSubjectNotMapOrQuoteError',
+   '`apply` funnels its subject through the same AST-or-source check `eval` does'],
+  ['::AxisBindingNotFoundError',
+   'the four axis-operands carry the axis as `:axisName` context, not as identity']
+]);
+
+function collectHandStampedClasses() {
+  const handStamped = new Map();
   const sourceFiles = readdirSync(srcDir, { recursive: true })
     .map(f => f.split(/[\\/]/).join('/'))
     .filter(f => f.endsWith('.mjs'));
 
   for (const relPath of sourceFiles) {
     const source = readFileSync(join(srcDir, relPath), 'utf8');
-    for (const match of source.matchAll(FACTORY_CALL_RE)) {
-      const [, factory, className, operand, position] = match;
-      throwSites.set(className, {
-        file: `core/src/${relPath}`,
-        factory,
-        operand: OPERAND_BOUND_FACTORIES.has(factory) ? operand : undefined,
-        position: factory === 'Modifier' ? Number(position) : undefined
-      });
-    }
-    for (const match of source.matchAll(FINGERPRINT_RE)) {
-      if (throwSites.has(match[1])) continue;
-      throwSites.set(match[1], { file: `core/src/${relPath}`, factory: 'class' });
+    for (const match of source.matchAll(HAND_STAMPED_FINGERPRINT_RE)) {
+      handStamped.set(match[1], `core/src/${relPath}`);
     }
   }
-  return throwSites;
+  return handStamped;
 }
-
-// The tag-binding body writes `:operand` as a Keyword for a
-// value-namespace operand (`:add`, `:@tap`) and as a TagKeyword for
-// a value-class constructor (`::conduit`), while the factory call
-// passes the source spelling as a string. Comparing through the
-// literal covers both planes with one reading.
-function operandLiteralOf(declaredOperand) {
-  if (declaredOperand === undefined) return undefined;
-  return isTagKeyword(declaredOperand) ? declaredOperand.literal : declaredOperand.name;
-}
-
-const throwSites = collectThrowSites();
-const session = await createSession();
-const { result: tagBindings } = await session.evalCell('manifest(:tag)');
-const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 // Every top-level BindStep in a catalog file — `:operand` or
-// `::Tag` at column 0. The identifier shape follows the grammar's
-// own `IdentStart` / `IdentTail` classes (UAX#31 plus `@`, `_`,
-// `-`), with `/` for the namespaced form, so a declaration the
-// parser accepts is one this reading sees.
-const CATALOG_DECLARATION_RE = /^(::?[@_\p{ID_Start}][\p{ID_Continue}@_/-]*)$/gmu;
+// `::Tag` at column 0 — paired with whether the block under it opens
+// a `::builtin{…}` body. The identifier shape follows the grammar's
+// own `IdentStart` / `IdentTail` classes (UAX#31 plus `@`, `_`, `-`),
+// with `/` for the namespaced form, so a declaration the parser
+// accepts is one this reading sees.
+const CATALOG_DECLARATION_RE = /^(::?[@_\p{ID_Start}][\p{ID_Continue}@_/-]*)\r?$/u;
+const BODY_OPENING = '  ::builtin{';
 
 function collectCatalogDeclarations() {
   const declarations = [];
@@ -116,20 +106,34 @@ function collectCatalogDeclarations() {
     .map(f => f.split(/[\\/]/).join('/'))
     .filter(f => f.endsWith('.qlang'));
   for (const relPath of catalogFiles) {
-    const source = readFileSync(join(catalogDir, relPath), 'utf8');
-    for (const match of source.matchAll(CATALOG_DECLARATION_RE)) {
-      declarations.push({ name: match[1], file: `core/lib/qlang/${relPath}` });
+    const lines = readFileSync(join(catalogDir, relPath), 'utf8').split('\n');
+    let open = null;
+    for (const line of lines) {
+      const match = CATALOG_DECLARATION_RE.exec(line);
+      if (match !== null) {
+        open = { name: match[1], file: `core/lib/qlang/${relPath}`, declaresBody: false };
+        declarations.push(open);
+      } else if (open !== null && line.startsWith(BODY_OPENING)) {
+        open.declaresBody = true;
+      }
     }
   }
   return declarations;
 }
+
+const handStamped = collectHandStampedClasses();
+const declarations = collectCatalogDeclarations();
+const declarationsByName = new Map(declarations.map(d => [d.name, d]));
+const session = await createSession();
+const { result: tagBindings } = await session.evalCell('manifest(:tag)');
+const { result: operandBindings } = await session.evalCell('manifest');
+const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 describe('catalog declarations — each name is bound once', () => {
   // A second BindStep under the same name shadows the first, so
   // `manifest` shows one entry either way and every drift axis below
   // passes while the catalog carries a stale body nothing reads.
   // Reading the sources directly is what surfaces it.
-  const declarations = collectCatalogDeclarations();
   const timesBound = new Map();
   for (const { name } of declarations) {
     timesBound.set(name, (timesBound.get(name) ?? 0) + 1);
@@ -151,12 +155,21 @@ describe('catalog declarations — each name is bound once', () => {
 });
 
 describe('per-site error classes — every throw site carries a catalog tag', () => {
-  for (const [className, site] of throwSites) {
+  for (const className of throwSiteSpecNames()) {
     it(`::${className} is declared in the catalog`, () => {
       expect(catalogTags.has(`::${className}`),
-        `${site.file} throws ${className} with no \`::${className}\` tag-binding — ` +
+        `${className} records a throw-site spec with no \`::${className}\` tag-binding — ` +
         'add one so `result !| type | docs / spec` resolves'
       ).toBe(true);
+    });
+  }
+
+  for (const [className, file] of handStamped) {
+    it(`::${className} records a spec alongside its hand-stamped fingerprint`, () => {
+      expect(throwSiteSpecOf(className),
+        `${file} stamps ${className} as a per-site identity without recording its spec — ` +
+        'the tag-binding then has no category to carry'
+      ).toBeDefined();
     });
   }
 });
@@ -164,7 +177,7 @@ describe('per-site error classes — every throw site carries a catalog tag', ()
 describe('per-site error classes — every catalog error tag has a throw site', () => {
   for (const [tagName] of catalogTags) {
     const className = tagName.slice('::'.length);
-    if (throwSites.has(className)) continue;
+    if (throwSiteSpecOf(className) !== undefined) continue;
     it(`${tagName} is minted outside a per-site factory for a stated reason`, () => {
       expect(TAGS_MINTED_OUTSIDE_A_THROW_SITE.get(tagName),
         `${tagName} has no throw site under core/src and no entry naming what mints it`
@@ -173,35 +186,63 @@ describe('per-site error classes — every catalog error tag has a throw site', 
   }
 });
 
-describe('per-site error classes — catalog :operand / :position match the throw site', () => {
-  for (const [className, site] of throwSites) {
-    const tagBinding = catalogTags.get(`::${className}`);
-    if (tagBinding === undefined || site.operand === undefined) continue;
+describe('per-site error classes — an operand and the tags it throws agree', () => {
+  // `:throws` is authored, `:operand` is recorded: the catalog names
+  // the tags an operand raises, and the factory call at each site
+  // names the operand back. A site whose factory call drops the
+  // `facts` argument breaks the return edge alone — the tag still
+  // reads as thrown, and `spec | /operand` answers nothing.
+  const operandOf = (binding) => {
+    const declared = binding.get('operand');
+    if (declared === undefined) return undefined;
+    return declared.literal ?? `:${declared.name}`;
+  };
 
-    it(`::${className} names :operand ${site.operand}`, () => {
-      expect(operandLiteralOf(tagBinding.get('operand')),
-        `${site.file} builds its message around '${site.operand}'`
-      ).toBe(site.operand);
-    });
+  for (const operandBinding of operandBindings) {
+    const operandName = `:${operandBinding.get('name')}`;
+    for (const thrownTag of operandBinding.get('throws')) {
+      if (TAGS_SHARED_ACROSS_OPERANDS.has(thrownTag.literal)) continue;
+      it(`${operandName} throws ${thrownTag.literal}, which names ${operandName} back`, () => {
+        expect(operandOf(catalogTags.get(thrownTag.literal)),
+          `${operandName} lists ${thrownTag.literal} in its \`:throws\`, and that tag's ` +
+          'throw site records no matching `:operand` — pass it as the factory call\'s facts'
+        ).toBe(operandName);
+      });
+    }
+  }
 
-    it(`::${className} names the ${site.factory === 'Modifier' ? `position ${site.position}` : 'subject'} slot`, () => {
-      const declaredPosition = tagBinding.get('position');
-      if (site.factory === 'Modifier') {
-        expect(declaredPosition,
-          `${site.file} declares the captured slot at position ${site.position}`
-        ).toBe(site.position);
-        return;
-      }
-      if (site.factory === 'Subject') {
-        expect(declaredPosition?.name,
-          `${site.file} declares a subject-shape check`
-        ).toBe('subject');
-        return;
-      }
-      // Element and comparability checks read a collection member or
-      // a pair, neither of which sits at a numbered slot, so the
-      // tag-binding carries no `:position`.
-      expect(declaredPosition).toBeUndefined();
+  it('a tag one class raises from several operands says why', () => {
+    for (const [tagName, reason] of TAGS_SHARED_ACROSS_OPERANDS) {
+      expect(catalogTags.has(tagName), `${tagName} is listed as shared but bound nowhere`).toBe(true);
+      expect(reason.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('per-site error classes — the structural facts have one spelling', () => {
+  // The factory that builds the class records `:category` /
+  // `:operand` / `:position` / `:expectedType`, and the bootstrap
+  // stamps them onto the tag-binding. A catalog body re-stating them
+  // is the drift this guard exists to prevent: the stamp overwrites
+  // it, so the two spellings disagree in the source while agreeing
+  // in env.
+  for (const className of throwSiteSpecNames()) {
+    const declaration = declarationsByName.get(`::${className}`);
+    if (declaration === undefined) continue;
+    it(`::${className} carries prose, and its facts come from the throw site`, () => {
+      expect(declaration.declaresBody,
+        `${declaration.file} gives ::${className} a \`::builtin{…}\` body while its ` +
+        'throw site already records the same facts — drop the body and keep the prose'
+      ).toBe(false);
     });
   }
+
+  it('the stamped binding answers with the category the site recorded', () => {
+    for (const className of throwSiteSpecNames()) {
+      const binding = catalogTags.get(`::${className}`);
+      expect(binding.get('category').name,
+        `::${className} reached env without the category its throw site records`
+      ).toBe(throwSiteSpecOf(className).category);
+    }
+  });
 });

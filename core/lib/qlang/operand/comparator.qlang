@@ -34,7 +34,6 @@
         |  eq([::AscPairNotMapError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :asc :position :subject :expectedType :map}
 
 ::AscKeysNotComparableError
   |~~ Operands of `asc` are not pairwise-comparable scalars.
@@ -44,7 +43,6 @@
         |  eq([::AscKeysNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :asc}
 
 :desc
   |~~ Builds a descending comparator for sortWith. Same as asc
@@ -68,7 +66,6 @@
         |  eq([::DescPairNotMapError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :desc :position :subject :expectedType :map}
 
 ::DescKeysNotComparableError
   |~~ Operands of `desc` are not pairwise-comparable scalars.
@@ -78,7 +75,6 @@
         |  eq([::DescKeysNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :desc}
 
 :nullsFirst
   |~~ Ascending comparator that places null-keyed elements before
@@ -103,7 +99,6 @@
         |  eq([::NullsFirstPairNotMapError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :nullsFirst :position :subject :expectedType :map}
 
 ::NullsFirstKeysNotComparableError
   |~~ Operands of `nullsFirst` are not pairwise-comparable scalars.
@@ -113,7 +108,6 @@
         |  eq([::NullsFirstKeysNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :nullsFirst}
 
 :nullsLast
   |~~ Ascending comparator that places null-keyed elements after
@@ -138,7 +132,6 @@
         |  eq([::NullsLastPairNotMapError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand :nullsLast :position :subject :expectedType :map}
 
 ::NullsLastKeysNotComparableError
   |~~ Operands of `nullsLast` are not pairwise-comparable scalars.
@@ -148,4 +141,3 @@
         |  eq([::NullsLastKeysNotComparableError :number :string])
        }
   ~~|
-  ::builtin{:category :typeError :operand :nullsLast}

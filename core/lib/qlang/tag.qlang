@@ -44,7 +44,6 @@
         |  eq([::ConduitPayloadNotVecError :map])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::conduit :position :subject :expectedType :vec}
 
 ::ConduitArityInvalidError
   |~~ `::conduit[…]` payload Vec must have 2 (`[params body]`)
@@ -56,7 +55,6 @@
         |  eq([::ConduitArityInvalidError 1])
        }
   ~~|
-  ::builtin{:category :arityError :operand ::conduit}
 
 ::ConduitSelfNameNotKeywordError
   |~~ `::conduit` self-name (3-element form) must be a Keyword.
@@ -67,7 +65,6 @@
         |  eq([::ConduitSelfNameNotKeywordError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::conduit :expectedType :keyword}
 
 ::ConduitParamsNotVecError
   |~~ `::conduit` params slot must be a Vec of Keywords.
@@ -78,7 +75,6 @@
         |  eq([::ConduitParamsNotVecError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::conduit :expectedType :vec}
 
 ::ConduitParamNotKeywordError
   |~~ `::conduit` params Vec elements must be Keywords.
@@ -89,7 +85,6 @@
         |  eq([::ConduitParamNotKeywordError 0 :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::conduit :expectedType :keyword}
 
 ::ConduitBodyNotQuoteError
   |~~ `::conduit` body slot must be a Quote-value.
@@ -100,7 +95,6 @@
         |  eq([::ConduitBodyNotQuoteError :number])
        }
   ~~|
-  ::builtin{:category :typeError :operand ::conduit :expectedType :quote}
 
 ::ConduitArityMismatchError
   |~~ Conduit invocation supplied a captured-arg count
@@ -112,7 +106,6 @@
         |  eq([::ConduitArityMismatchError :f 1 2])
        }
   ~~|
-  ::builtin{:category :arityError}
 
 ::ConduitParameterNoCapturedArgsError
   |~~ Conduit-parameter proxies are nullary — passing captured
@@ -124,14 +117,12 @@
         |  eq([::ConduitParameterNoCapturedArgsError :n 1])
        }
   ~~|
-  ::builtin{:category :arityError}
 
 ::ConduitBodyMissingSourceError
   |~~ `makeConduit` refuses a body AST that has no `.text`
       source slice — `printValue` round-trip requires literal
       source. JS-level invariant.
   ~~|
-  ::builtin{:category :invariantError}
 
 ::qlang
   |~~ ::qlang<json-shape> — recursively convert a JSON-shape

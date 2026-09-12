@@ -18,15 +18,13 @@
 // stays free of any `node:*` import.
 
 import { loadSource } from '#qlang/load-source';
-import { QlangInvariantError } from '../errors.mjs';
+import { declareInvariantError } from '../errors.mjs';
 
-export class BootstrapRootMissingError extends QlangInvariantError {
-  constructor() {
-    super(`qlang bootstrap: '#qlang/core' must resolve to the catalog root module — add an entry to package.json#imports or the import map`, {});
-    this.name = 'BootstrapRootMissingError';
-    this.fingerprint = 'BootstrapRootMissingError';
-  }
-}
+export const BootstrapRootMissingError = declareInvariantError(
+  'BootstrapRootMissingError',
+  () => "qlang bootstrap: '#qlang/core' must resolve to the catalog root module — " +
+    'add an entry to package.json#imports or the import map'
+);
 
 // The catalog root is one `use([…])` step, and `use` answers on the
 // fail-track like any other operand: a family source the locator
@@ -37,16 +35,12 @@ export class BootstrapRootMissingError extends QlangInvariantError {
 // its operands and surface as `::UnresolvedIdentifierError` on the
 // first `count` — a diagnostic naming the symptom three steps from
 // the cause.
-export class BootstrapCatalogNotLoadedError extends QlangInvariantError {
-  constructor({ tagName }) {
-    super(
-      `qlang bootstrap: the catalog root answered ${tagName}; the operand families load through the sources the locator resolves for qlang/core and for each namespace it uses`,
-      { tagName }
-    );
-    this.name = 'BootstrapCatalogNotLoadedError';
-    this.fingerprint = 'BootstrapCatalogNotLoadedError';
-  }
-}
+export const BootstrapCatalogNotLoadedError = declareInvariantError(
+  'BootstrapCatalogNotLoadedError',
+  ({ tagName }) => `qlang bootstrap: the catalog root answered ${tagName}; the operand ` +
+    'families load through the sources the locator resolves for qlang/core and for each ' +
+    'namespace it uses'
+);
 
 // platformLocator(namespaceName) → Promise<{ source } | null>
 //

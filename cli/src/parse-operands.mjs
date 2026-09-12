@@ -4,23 +4,25 @@
 // declaration lives in `cli/lib/qlang/parse.qlang`.
 
 import { nullaryOp } from '@kaluchi/qlang-core/dispatch';
-import {
-  declareSubjectError,
-  declareShapeError
-} from '@kaluchi/qlang-core/operand-errors';
+import { declareSubjectError } from '@kaluchi/qlang-core/operand-errors';
+import { declareShapeError } from '@kaluchi/qlang-core/errors';
 import { fromPlain, fromTaggedJSON } from '@kaluchi/qlang-core';
 
 const ParseJsonSubjectNotStringError =
   declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
 const ParseJsonInvalidJsonError =
   declareShapeError('ParseJsonInvalidJsonError',
-    ({ message }) => `parseJson: invalid JSON — ${message}`);
+    ({ message }) => `parseJson: invalid JSON — ${message}`,
+  { operand: 'parseJson' }
+);
 
 const ParseTjsonSubjectNotStringError =
   declareSubjectError('ParseTjsonSubjectNotStringError', 'parseTjson', 'string');
 const ParseTjsonInvalidJsonError =
   declareShapeError('ParseTjsonInvalidJsonError',
-    ({ message }) => `parseTjson: invalid tagged-JSON — ${message}`);
+    ({ message }) => `parseTjson: invalid tagged-JSON — ${message}`,
+  { operand: 'parseTjson' }
+);
 
 const parseJsonOperand = nullaryOp('parseJson', (subject) => {
   if (typeof subject !== 'string') {

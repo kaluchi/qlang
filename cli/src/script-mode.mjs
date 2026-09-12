@@ -83,6 +83,8 @@ function liftParsedDocument(parsed, resolvedFormat) {
   try {
     return { pipeValue: fromPlain(parsed), resolvedFormat };
   } catch (codecRefusal) {
+    // `fromPlain` raises one class — `FromPlainNumberNotFiniteError`,
+    // carrying `:path` — so the caller reads that field directly.
     return { codecError: codecRefusal, resolvedFormat };
   }
 }

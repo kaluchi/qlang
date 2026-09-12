@@ -258,7 +258,9 @@ export function fromTaggedJSON(json, path = []) {
       }
       case '$set': {
         const s = new Set();
-        for (const v of json.$set) s.add(fromTaggedJSON(v, path));
+        // A Set carries insertion order as part of its contract, so
+        // its elements index the path the way a Vec's do.
+        json.$set.forEach((v, index) => s.add(fromTaggedJSON(v, [...path, index])));
         return s;
       }
       case '$tagged': {

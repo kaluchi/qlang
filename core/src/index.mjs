@@ -107,7 +107,9 @@ import {
   findFirstEffectfulIdentifier
 } from './effect-check.mjs';
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
-import { printValue, toPlain, fromPlain } from './runtime/format.mjs';
+import {
+  printValue, toPlain, fromPlain, FromPlainNumberNotFiniteError
+} from './runtime/format.mjs';
 import { tokenize } from './highlight.mjs';
 import {
   QlangError,
@@ -202,6 +204,7 @@ export {
   printValue,
   toPlain,
   fromPlain,
+  FromPlainNumberNotFiniteError,
   tokenize,
   QlangError,
   QlangTypeError,

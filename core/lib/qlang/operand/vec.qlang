@@ -81,20 +81,6 @@
   ~~|
   ::builtin{:category :typeError :operand :sum :position :subject :expectedType [:vec :set]}
 
-::SumResultNotFiniteError
-  |~~ Every element of the subject is a finite double, yet their
-      running total can still leave the range. `:index` names the
-      element the total crossed at, so the subject can be split
-      there and summed in parts.
-
-      ~{
-        [1e308 1e308] | sum
-        !| [type /index]
-        |  eq([::SumResultNotFiniteError 1])
-       }
-  ~~|
-  ::builtin{:category :typeError :operand :sum :expectedType :number}
-
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
       ~{

@@ -30,6 +30,7 @@ import { isTagKeyword } from '../../src/types.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', '..', 'src');
+const catalogDir = join(here, '..', '..', 'lib', 'qlang');
 
 // `declareSubjectError(name, operand, expectedType)`,
 // `declareModifierError(name, operand, position, expectedType)`,
@@ -98,6 +99,50 @@ const throwSites = collectThrowSites();
 const session = await createSession();
 const { result: tagBindings } = await session.evalCell('manifest(:tag)');
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
+
+// Every top-level BindStep in a catalog file — `:operand` or
+// `::Tag` at column 0.
+const CATALOG_DECLARATION_RE = /^(::?[A-Za-z@][A-Za-z0-9@/-]*)$/gm;
+
+function collectCatalogDeclarations() {
+  const declarations = [];
+  const catalogFiles = readdirSync(catalogDir, { recursive: true })
+    .map(f => f.split(/[\\/]/).join('/'))
+    .filter(f => f.endsWith('.qlang'));
+  for (const relPath of catalogFiles) {
+    const source = readFileSync(join(catalogDir, relPath), 'utf8');
+    for (const match of source.matchAll(CATALOG_DECLARATION_RE)) {
+      declarations.push({ name: match[1], file: `core/lib/qlang/${relPath}` });
+    }
+  }
+  return declarations;
+}
+
+describe('catalog declarations — each name is bound once', () => {
+  // A second BindStep under the same name shadows the first, so
+  // `manifest` shows one entry either way and every drift axis below
+  // passes while the catalog carries a stale body nothing reads.
+  // Reading the sources directly is what surfaces it.
+  const declarations = collectCatalogDeclarations();
+  const timesBound = new Map();
+  for (const { name } of declarations) {
+    timesBound.set(name, (timesBound.get(name) ?? 0) + 1);
+  }
+
+  for (const [name, count] of timesBound) {
+    if (count === 1) continue;
+    const files = declarations.filter(d => d.name === name).map(d => d.file);
+    it(`${name} is declared once`, () => {
+      expect(count, `${name} is declared ${count} times across ${files.join(', ')} — ` +
+        'the later declaration shadows the earlier, which leaves a body no reader reaches'
+      ).toBe(1);
+    });
+  }
+
+  it('the catalog binds at least one name per family file', () => {
+    expect(declarations.length).toBeGreaterThan(100);
+  });
+});
 
 describe('per-site error classes — every throw site carries a catalog tag', () => {
   for (const [className, site] of throwSites) {

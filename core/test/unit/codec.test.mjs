@@ -302,6 +302,11 @@ describe('fromTaggedJSON refuses a number past the finite double range', () => {
     let nested = null;
     try { fromTaggedJSON(JSON.parse('{"$vec":[0, 1e400]}')); } catch (caught) { nested = caught; }
     expect(nested.context.path).toEqual([1]);
+    // A Set indexes its elements the same way — insertion order is
+    // part of its contract.
+    let inSet = null;
+    try { fromTaggedJSON(JSON.parse('{"$set":[0, 1e400]}')); } catch (caught) { inSet = caught; }
+    expect(inSet.context.path).toEqual([1]);
   });
 
   it('decodes every in-range magnitude unchanged', () => {

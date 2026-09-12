@@ -959,14 +959,14 @@ HexDigit
 // every other syntactic failure reports.
 NumberLit "number within the finite double range"
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
-    &{ const txt = (sign || '') + whole.join('')
-                 + (frac ? '.' + frac[1].join('') : '')
-                 + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
-       return Number.isFinite(Number(txt)); }
-    { const txt = (sign || '') + whole.join('')
-                + (frac ? '.' + frac[1].join('') : '')
-                + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
-      return node('NumberLit', { value: Number(txt) }, location(), text()); }
+    &{ // `text()` inside a semantic predicate reads the empty string —
+       // peggy fills the match text when the action runs — so the
+       // predicate reads its labels and the action reads `text()`.
+       const matched = (sign || '') + whole.join('')
+                     + (frac ? '.' + frac[1].join('') : '')
+                     + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
+       return Number.isFinite(Number(matched)); }
+    { return node('NumberLit', { value: Number(text()) }, location(), text()); }
 
 BooleanLit
   = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }

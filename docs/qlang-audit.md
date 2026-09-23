@@ -950,6 +950,29 @@ the kind of inconsistency a second family produces wherever it is not
 remembered. The maintainer judged the family a failed experiment whose
 one lasting gift was the tag [D1].
 
+The family reaches every layer, from the grammar's `JsonObjectLit` and
+`JsonArrayLit` through the values, the evaluator, dispatch, the
+container operands, the printer, the walker and equality, to the
+catalog, so that it doubles the relations of the base model rather than
+adding one:
+
+```sh
+$ grep -rEo "isJson(Array|Object)|Json(Array|Object)|json(Array|Object)" core/src core/lib cli/src lsp/src | wc -l
+182
+$ grep -rEl "isJson(Array|Object)|Json(Array|Object)|json(Array|Object)" core/src core/lib cli/src lsp/src | wc -l
+19
+```
+
+«так я хоть осознаю теперь объем его семейства это считай дубликат
+qlangа был .. начиная с парсера и дальше в эвал .. что б развести по
+семантике это.. он считай "возводил в квадрат" связи базовой модели»
+(maintainer, 2026-09-23 18:38, session 86982eb5). The fidelity it was
+built for, JSON in and JSON out, is a rendering of the host, which
+remembers the format of its input; a value needs no memory of the
+syntax it was read from. The sister project's records carry the same
+habit, `:kind "type"` as a string field, and under kinds [D32] the kind
+of a record is its tag.
+
 The set is a third family, and the language's own history says what
 it is. The May commit that moved its literal from braces to brackets
 explains that `#[…]` reads as a tagged `[…]` and that the set carries
@@ -1180,11 +1203,11 @@ collisions a rule instead of a refusal [D23]:
   for itself are found before the global ones, the way a major mode's
   keymap in Emacs is searched before the global map and an interface
   mode of Cisco's command line offers its own commands; after the
-  tag's verbs come those of the payload's shape, since a value under a
-  tag is still a vector or a map, and only then the global verbs.
-  Stacked tags are searched from the outside in, which gives the
-  linear precedence of a method resolution order without its
-  algorithm.
+  tag's verbs come those of the payload, since a value under a tag is
+  still a vector or a map. Stacked tags are searched from the outside
+  in, which gives the linear precedence of a method resolution order
+  without its algorithm, and with the core's kinds at the bottom of
+  every stack the payload's verbs are simply the last tag's [D34].
 - A verb and a kind may be joined by whoever owns one of them. This is
   the orphan rule of Rust and the rule against type piracy in Julia: a
   host may specialize a core verb on its own tags and may declare its
@@ -2247,6 +2270,8 @@ and Julia, which makes adding a verb cheap and adding a kind expensive
 and is the candidate of the first version; a loud refusal of every
 collision, which makes a host rename its verbs and lets the core's
 names freeze the hosts out.
+Replaced in part by D34, which restates the order of resolution on the
+kinds of D32.
 
 ### D24 · Large namespaces are mounted, and Java types become tags
 
@@ -2413,6 +2438,230 @@ commits, which blame cannot reach and a squash merge swallows; the unit
 tests as requirements, since almost all of them import the internals
 they check.
 
+### D32 · Every value has a kind, and a bare literal has the core's
+
+Decision. Every value has a kind: the outermost tag of its stack, and
+for a value without a tag of its own, the kind of the core its literal
+implies. `[…]` implies the vector, `{…}` the map, `#[…]` the set,
+`~(…)` the quote, `|~~ … ~~|` the Doc, and a number, a string, a
+keyword, a tag name, a boolean and null each have their own; a host's
+value carries its tags above one of them. The core's kinds are named
+under its prefix, `::qlang/vec`, `::qlang/map`, `::qlang/number`,
+`::qlang/set`, and print short, `::vec`, since the names without a
+prefix belong to the core [D23]. The printer writes every tag of a
+stack except the kind the brackets already imply, so `[1 2]` prints
+bare and `::jdt/list[1 2]` prints its tag. `type` answers the kind of
+any value, `[1 2] | type` answering `::vec`, and `type | docs` leads
+to the kind's page for a value of the core as for a host's. The long
+form `::qlang/vec[1 2]` reads as the same value and is never printed.
+Source. «с этой позиции то что без тэга это все голый ::qlang и его
+наймес только и [] и {} ~{} и что там было ... который мы опускаем..»
+(maintainer, 2026-09-23 18:20, session 86982eb5); «да, ты прав насчет
+вид: ::qlang/vec, ::qlang/map, ::qlang/number, ::qlang/set»
+(maintainer, 2026-09-23 18:25); the printing rule and the answer of
+`type`, the model, the same day.
+Set aside. One tag `::qlang` over every value of the core, which names
+the owner and loses the kind the core's verbs dispatch on.
+
+### D33 · A kind owns its constructor, JSON form, order and laws
+
+Decision. The contracts of a value attach to its kind. A kind declares
+its constructor, which checks and normalizes a payload after the
+parser has read it, since no kind reads text itself; its JSON form, the
+lossy codec of the boundary, which by default drops the tag and writes
+the payload, and from which only the core's kinds come back; its place
+in the one order, the core fixing the order of its own kinds and the
+hosts' kinds following by name [D17]; and its document, whose examples
+are its laws. The literal belongs to no kind: one rule of the core
+prints every stack, and `parse(print(v)) = v` holds for every kind and
+is tested with the kind's examples. A rendering, the dark cockpit, a
+compact view, a table, is a view at the boundary, lossy and marked by
+elision, and a kind may offer one to its host.
+Source. «и возможно к ним же и можно подцепить все эти
+printValue-контракты или что там можно присобачить тогда.. сериализацию
+десериализацию там какую если надо» (maintainer, 2026-09-23 18:25,
+session 86982eb5); the literal kept apart from the renderings, the
+model, the same day, from the printer that drops `::builtin` because
+its table of handlers has no line for it.
+Set aside. A kind that prints its own literal, which lets a host print a
+node as a reference and breaks the involution.
+
+### D34 · A verb is found by walking the subject's tags
+
+Decision. A verb resolves against the subject by walking its stack of
+tags from the outside in, down to the core's kind at the bottom [D32];
+the verbs of a payload's shape and the global verbs of the first
+formulation are the verbs of the core's kinds. A host puts its verbs on
+the tags it owns, its own noun included, `::jdt | projects`,
+`::workflow | status`, so no verb of a host takes a global name. The
+core owns the contract of a verb that several kinds answer, its
+document and its examples, and every specialization answers the
+examples as laws; a verb means one act wherever it resolves, and a kind
+implements it. `status` and `compact` are verbs of the hosts whose
+contracts are shared, the way `git status --porcelain` is a promise of
+form. The rest of the rule of collisions stands [D23].
+Source. «да, ::jdt | projects и ::jdt | status и т.д. - это именно то о
+чем я и думал...» (maintainer, 2026-09-23 15:34, session 86982eb5);
+«SVO звучит практично и как то что нам подойдет» (maintainer,
+2026-09-23 17:49); «если мы делаем 'status | compact' - то compact же
+будет резолвиться относительно результата прошлого шага.. от его тэгов
+стартовать» (maintainer, 2026-09-23 18:00); «status и compact это
+вероятно хостовые концерны.. ядру они не особо нужны..» (maintainer,
+2026-09-23 18:13); the contracts and their laws, the model, the same
+day. The order rests on an asymmetry the maintainer named, «если я
+использую "Инвариант ..." и надо будет подставить глагол - то вариантов
+будет сильно меньше» (maintainer, 2026-09-23 17:32): after a noun the
+verbs that can follow are few, after a verb the nouns are many, so the
+subject first narrows a model's next step and a completion list alike.
+Set aside. The verb first, the order of a shell's command line, which
+opens the whole catalog at the first word.
+
+### D35 · The subject opens its namespace
+
+Decision. A noun in the subject position is the pipeline value and
+opens its namespace for the steps after it, so that mentioning a host
+is using it. Every pipeline starts inside the core's namespace, and a
+host's pipeline inside its own, `::qlang | ::jdt`. A name typed bare
+resolves first among the core's names, then as a module mounted at that
+name, then through the nearest open namespace outward. The search
+happens only where a name enters the text: the values a host produces
+carry qualified tags, so dispatch between steps never searches. A name
+that two open namespaces know is a refusal that lists both, an answer
+names who resolved its names, and a qualified name skips the search.
+An argument is a fork from the subject, as it is today, so it resolves
+inside the subject's namespace and what it opens ends with it:
+
+```qlang
+> [1 2 3] | take(count | sub(1))
+[1 2]
+```
+
+Source. «типа дефолт любого пайплайна это ::qlang в субъектной позиции
+и это триггерит загрузку модуля и дальнейший резолв относительно
+субъекта .. а если мы внутри jdt - то там это просто '::qlang | ::jdt'
+в роли умолчания .. и если я пишу потом ::app/m8/Handler - то
+резолвится сначала прямой модуль, если нет - то через ближайший ...
+т.е. через ::jdt ...» (maintainer, 2026-09-23 17:49, session
+86982eb5); the boundary of the search, the refusal of ambiguity and the
+scope of an argument, the model, the same day, from the search lists of
+DNS, where a name that resolved through one domain resolves through
+another once the other starts to know it.
+Set aside. A search at every step, which lets a value change its
+meaning between two steps; the first match among open namespaces, which
+lets a new module change the meaning of an old query.
+
+### D36 · A namespace is a subtree of names with its provider
+
+Decision. The flat environment splits into three things. The lexical
+scope holds the names the user declares in a query, and it is all that
+`env` shows. The verbs live on tags [D34]. The nouns form a tree of
+names in which each subtree is answered by a provider: the core answers
+its own names, a host its prefix and the names it mounts, the `.qlang/`
+folder of a repository its project [E1 in the entrypoint document]. A
+namespace is such a subtree with its provider, the way a file server
+was mounted at a path in Plan 9. A module is the unit that brings tags
+with their documents and the verbs on them. One loader remains, from a
+tag to its provider to its declaration, and the stages of the
+bootstrap, the language's catalog, a host's catalog, the user's query,
+become namespaces asked when a name needs them rather than stages that
+merge their deltas into one environment. `use` remains for bringing a
+library's declared pipelines into the user's names. The kernel is the
+evaluator with its table of primitives and the one shape it knows,
+`::builtin`, which the catalog documents rather than defines.
+Source. «а ещё неймспейсы все никак не поймем что такое.. по крайней
+мере я в них плаваю, с учетом субьекто-ориентированности .. тут я ещё
+не осознал решение» (maintainer, 2026-09-23 17:17, session 86982eb5),
+with the long pipeline recalled in the same message, «langSpec |
+langRuntime | hostRuntime | userQuery | hostRendering !|
+hostErrorHandling»; the split, the model, the same day. It rests on the
+conceptual model of `docs/qlang-internals.md`, whose state starts from
+the runtime as its subject, and on the seeding of `use` and
+`::builtin` in `buildLangRuntime` (`core/src/runtime/index.mjs`),
+which the code calls “Chicken-and-egg”.
+Set aside. Namespaces as maps merged into one environment, which is the
+scar of names that lose their origin.
+
+### D37 · A host's setting is the first value of the pipe
+
+Decision. A host sets up a query by one thing, the value its pipe
+starts from, and by nothing else in the environment. `jdt q 'status'`
+is `qlang '::m8 | status'`, the workspace derived from the working
+directory, or `::jdt` when none is. The command line of the language
+starts from the standard input when it carries bytes, and otherwise
+from the noun of the nearest `.qlang/` folder, or `::qlang` outside any
+project; the empty start as `null` goes. The module is the unit a host
+ships: a catalog with its implementations, loaded by the language's
+command line through its tag and by the host's command as its default
+subject. A registry of the user's, written by the host's setup, lets the
+language's command line and the language server find the modules
+installed outside a repository.
+Source. «если поступать так, то все вроде как связно выходит»
+(maintainer, 2026-09-23 16:32, session 86982eb5), answering the model's
+sentence that a host's setting comes down to the first value of the
+pipe; the default subject and the registry, the model, the same day.
+Set aside. Seeds a host installs into the environment before the query,
+which is the long pipeline this replaces; `null` as the start, which
+carries no meaning where a noun can.
+
+### D38 · Several workspaces
+
+Decision. A name of the sister project is a workspace and a name inside
+it, since several workspaces open at once are ordinary. A name
+qualified by its workspace, `::m8/app.m8.web.Handler`, is unambiguous
+everywhere; a workspace in the subject position resolves the names
+after it, `::m8 | ::app.m8.web.Handler | source`, and
+`[::m8 ::m8-review] * (::app.m8.web.Handler | source)` compares two
+checkouts. Every node a host answers carries its workspace, so the verbs
+applied to it search where it came from. A bare name resolves in the
+workspace derived from the working directory; a name that several open
+workspaces know is a refusal listing the qualified candidates, the way
+the sister project refuses an ambiguous overload with
+`:context/candidates`. A binary type whose source lives in another
+workspace answers with a link to it.
+Source. «несколько воркспейсов в эклипсе обычное дело как оказалось..
+много кто ревьювит код так, или просто одному проекту делает воркспейс
+или там в одином пишет клиент, плагин.. а в другом откыто апи или
+сервер и их документацией исходниками и т.п.» (maintainer, 2026-09-23
+15:42, session 86982eb5); the mechanism, the model, the same day, after
+reading `docs/jdt-use-spec.md` and `cli/src/resolve.mjs` of the sister
+project.
+Set aside. A workspace pinned outside the value, as `jdt use` pins it
+in files keyed by the parent process and the terminal tab: on 23
+September a pin written on 18 September for a shell long gone named a
+process id that another process had taken, and no answer says which
+workspace it came from.
+
+### D39 · Commands write, queries read
+
+Decision. A query reads. What changes the world or streams to a
+terminal, a launch, a test run, a build, a refactoring, stays a command
+of its host, and its result becomes a noun that queries read,
+`::jdt | launches`, a launch's status, its log in pieces. A command and a
+query address the same names, the pair of control and status files
+Plan 9 gave every resource.
+Source. «просто qlang это все ещё язык запросов.. а в jdt и всякие
+мутации и стриминг в консоль чего там только нет.. но все что readonly
+конечно можно выставить в qlang напрямую» (maintainer, 2026-09-23 16:14,
+session 86982eb5); the pairing, the model, the same day. The question of
+effects as emitted values stays open.
+
+### D40 · Named options are one map
+
+Decision. A command's positional modifiers stay few, since their place
+is their role; the options beyond them are one map whose keys the verb
+declares, where a key names the role and the order is free, as a case
+names the role in a language whose word order is free. A view needs few
+options when its default is the cheap one and more is read by the query
+that follows it, a projection or the quote of an elision marker.
+Source. The model, 23 September 2026, answering the maintainer's
+recollection of PowerShell's switches and splatting, «когда можно быбло
+писать jdt 'status { :compact true}' или как-то ещё jdt 'status
+:compact' ... в общем не то что бы оно сильно нужно» (maintainer,
+2026-09-23 18:13, session 86982eb5).
+Set aside. A keyword standing for `{:k true}`, which is a second
+spelling; binding a map in the pipe to a verb's parameters by name, as
+PowerShell binds by property name, which takes the subject's place.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -2433,7 +2682,10 @@ declaration keeps the tag. The set, the error, the quote, the Doc, a
 host's record and the elision marker are all this one thing: `#[…]`
 spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a Doc over its
 segments, and each keeps its own token in the editor while the runtime
-holds one mechanism behind all four.
+holds one mechanism behind all four. Every value has a kind, and a
+literal without a tag has one of the core's, which its brackets imply
+[D32]; a kind carries the value's constructor, its JSON form, its order
+and its laws, while one rule of the core prints every literal [D33].
 
 One mechanism of operand. An operand is a declaration of its subject,
 its slots with their kinds, its result and its Doc, and the runtime
@@ -2441,9 +2693,11 @@ executes the declaration. A built-in, a host's operand and a declared
 pipeline are called the same way, checked the same way, documented the
 same way, and help for all of them, completion, the verbs that accept a
 value, the next slot, the refusal's wording, is derived from the same
-record. A verb is found through the subject's tag first, then its
-shape, then the global catalog, and a verb and a kind are joined by
-whoever owns one of them.
+record. A verb is found by walking the subject's tags from the outside
+in, down to the core's kind [D34]; a host's verbs sit on the tags it
+owns, and a verb and a kind are joined by whoever owns one of them. A
+query reads, and what writes stays a command of its host whose result
+the query reads [D39].
 
 One format. The literal is how a value prints, how it reads back, how
 it travels between utilities, how a session is saved, how an example
@@ -2480,9 +2734,13 @@ track reads `!| /operand` where it read a class name, and the tag leads
 to a procedure. A nested evaluation that fails yields its error as a
 value, and every operand treats that value by one rule.
 
-One `use` merges a namespace into the environment; a namespace is a
-value, a large one is mounted and served on demand, and the
-environment the user sees holds only the user's names. A declaration
+A namespace is a subtree of names with the provider that answers for it,
+a large one mounted and served on demand [D36]. A noun in the subject
+position opens its namespace for the steps after it, a name typed bare
+is searched outward from there, and values carry their qualified tags
+[D35]; a host sets up a query by the first value of its pipe and nothing
+else [D37]. `use` brings a library's pipelines into the user's names,
+and the environment the user sees holds only those. A declaration
 produces a binding value that carries its name, its documentation, its
 source, the module it came from, and its value or its code, so the axes
 are projections of that value and a shadowed binding stays one
@@ -2533,8 +2791,10 @@ them may name them otherwise.
 - The evaluator: the state pair, the fork, the combinators as
   attributes of steps, application by executing declarations, the law
   of nested errors, and one constructor of refusals.
-- Modules: one loader; a namespace as a map of binding values with
-  their origin; `use`; mounted namespaces served by hosts.
+- Modules: one loader, from a tag to its provider to its declaration;
+  namespaces as subtrees answered by providers, the core, the hosts and
+  a repository's `.qlang/`; binding values with their origin; `use` for
+  a library's pipelines.
 - The host interface: a session; a module as `{ source, impls }`, the
   implementations plain functions over checked values; the parser, the
   printer and the JSON codec; the points where a host applies its
@@ -2579,14 +2839,17 @@ applies to the core alone.
 
 The consumers at the finish carry no language of their own. The
 command line is a thin host: standard input lifted only when it
-carries bytes, `null` otherwise, the budget and the rendering at the
-end of the pipe, no `table`, no `template`. The language server reads
-the declarations and the parser's tree and nothing else. The editor's
+carries bytes, the default subject otherwise [D37], the budget and the
+rendering at the end of the pipe, no `table`, no `template`. The
+language server reads the declarations and the parser's tree and
+nothing else. The editor's
 grammar is generated from the grammar's tokens or reduced to what the
 language server cannot give. The site renders the root Doc and the
 catalog or is reduced to the playground. The sister project builds on
 the workspace copy, generates its guide from the catalog, tags its
-nodes, mounts its types, and speaks through about a dozen verbs. And
+nodes, mounts its types and its workspaces [D38], and speaks through
+about a dozen verbs on its own tags, its writing commands staying
+commands [D39]. And
 the entrypoint of the work on qlang is a consumer like the others,
 built on the language it helps to build.
 
@@ -2669,17 +2932,20 @@ of the catalog are true, since the runtime executes them.
 The semantics are final. The one order lands first, since containers
 and sets rest on it [D16, D17]; then the single container family with
 the rule for maps and the reading of duplicate keys [D1, D15, D18]; then
-the set as the ordered vector; then the refusal kinds with their
+the set as the ordered vector; then the kinds, every value with one and
+every bare literal with the core's, the contracts moving onto them
+[D32, D33]; then the refusal kinds with their
 procedures and the law for nested errors [D7, D13], which is where the
 per-site prose of the catalog disappears; strict predicates land with
 the argument model's slots or here, whichever branch reaches them first
 [D14]; and the host concerns leave the core, the effect marker and the
 fingerprints first [D2], `table` and `template` to the hosts, the
-command line seeding `null` and writing keywords as bare strings.
+command line starting from its default subject [D37] and writing
+keywords as bare strings.
 
 ```qlang target
 > [1] | type
-:vec
+::vec
 
 > {:a 1 :b 2} * add 1
 {:a 2 :b 3}
@@ -2699,7 +2965,7 @@ command line seeding `null` and writing keywords as bare strings.
 
 ```sh
 $ qlang 'type' < /dev/null
-:null
+::tag
 $ echo '{"k":"v"}' | qlang '{:k :v}'
 {
   "k": "v"
@@ -2716,16 +2982,17 @@ declared by hosts.
 ### Milestone 3 · One spelling
 
 Every fact has one spelling. Namespaces become values, bindings carry
-their origin, the axes become projections, and one loader remains
-[D5]; mounted namespaces arrive with it [D24]; collisions get their rule
-[D23], and a host's verbs move onto its tags; the literal becomes the
-one lossless format and tagged JSON and the session envelope go [D30];
-the Doc becomes the vector of its segments, and strings, quotes and
-Docs read in pieces [D19]; the documents are generated or deleted, the
-examples live on one plane, the bootstrap has one stamping site, the
-keyword's form comes from the parser, the error library is decided,
-and the editor's grammar is generated or reduced; the consumers lose
-the rules they carry of their own.
+their origin, the axes become projections, and one loader remains [D5];
+mounted namespaces arrive with it [D24], each a subtree answered by its
+provider, the subject opening its own [D35, D36]; collisions get their
+rule [D23, D34], and a host's verbs move onto its tags; the literal
+becomes the one lossless format and tagged JSON and the session envelope
+go [D30]; the Doc becomes the vector of its segments, and strings,
+quotes and Docs read in pieces [D19]; the documents are generated or
+deleted, the examples live on one plane, the bootstrap has one stamping
+site, the keyword's form comes from the parser, the error library is
+decided, and the editor's grammar is generated or reduced; the consumers
+lose the rules they carry of their own.
 
 ```qlang target
 > :filter ~(mul 2) | namespace :qlang/operand/container | /filter | docs | count
@@ -2763,8 +3030,10 @@ an unresolved name names its neighbours and a parse error the
 continuations a reader meant [D7]; enrichment happens once per session;
 fields are documented where they are owned [D25]; the sister project's
 nodes carry their kind as a tag, its types are mounted, its verbs shrink
-to about a dozen, and its guide is generated from the catalog [D24]; and
-the benchmark runs [D26].
+to about a dozen, and its guide is generated from the catalog [D24]; its
+workspaces become nouns and its answers name the workspace they came
+from [D38]; a host's command is the language's with its noun as the
+first value [D37]; and the benchmark runs [D26].
 
 ```qlang target
 > [1 2 3] | filtr (gt 1)
@@ -2844,8 +3113,8 @@ every tag that carries it, is simpler to state and gives a field shared
 by several kinds of record as many documents as it has records. The
 maintainer has not answered.
 
-Hierarchies of tags. The rule of collisions [D23] searches the tag, the
-shape and the catalog; it knows no hierarchy between tags. When a task
+Hierarchies of tags. The walk of a verb down the subject's tags [D34]
+knows no hierarchy between tags. When a task
 wants one, Clojure's multimethods show the form: a hierarchy of names
 built as data with `derive`, separate from any value, rather than
 inheritance. The cost is a second axis of resolution; the gain is that
@@ -2874,6 +3143,14 @@ ordinary host operands. It enters the route only with a task no plainer
 construct solves, the sister project's plan-then-apply workflow being
 the first candidate, and only after the argument model and the binding
 form have landed, because it amends the state pair.
+
+The bottom of the language [D36]. With the kernel as the evaluator,
+`::builtin` is a fact of the kernel that the catalog documents, and the
+language describes itself all the way down without defining its own
+bottom. The alternative keeps the definition and pays for it with the
+seeding the bootstrap calls “Chicken-and-egg”, a declaration that
+exists before the evaluator can read it. The maintainer has not
+answered.
 
 The error library. It either enters the catalog with examples, as
 pipelines built on the refusal kinds, or leaves the package.

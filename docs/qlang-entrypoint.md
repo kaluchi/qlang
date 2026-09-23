@@ -260,27 +260,31 @@ DON'T FORGET (matched: design session)
 HOW THIS WORKS                                                       → status doc
 ```
 
-The same screen as a value, which is what the hook receives and a
-renderer turns into the text above:
+The same screen is the value the hook receives; the text above is how a
+renderer would show it, and the renderer waits until the literal has
+been tried [E3]:
 
 ```qlang target
-> ::workflow | start
-::dashboard{
+> ::workflow | status
+::workflow/status{
   :head {:branch "qlang-audit" :commit "05eb884" :changed [:docs]}
-  :mode ::mode{:name :design :rule "a decision lands in docs/qlang-audit.md with its source"}
-  :gates [::gate{:name :docs-on-master :state :red}
-          ::gate{:name :sister-on-workspace :state :red :blocks [:breaking-branch]}
-          ::gate{:name :entrypoint :state :red :waits :maintainer}
-          ::gate{:name :network :state :unmeasured}]
-  :recall [::fact{:name :quote-verbatim} ::fact{:name :doubt-ends-in-decision}]
-  :protocol ~(::workflow | docs)}
+  :mode ::workflow/mode{:name :design :rule "a decision lands in docs/qlang-audit.md with its source"}
+  :gates [::workflow/gate{:name :docs-on-master :state :red}
+          ::workflow/gate{:name :sister-on-workspace :state :red :blocks [:breaking-branch] :see ~(::jdt | status)}
+          ::workflow/gate{:name :entrypoint :state :red :waits :maintainer}
+          ::workflow/gate{:name :network :state :unmeasured}]
+  :recall [::workflow/fact{:name :quote-verbatim} ::workflow/fact{:name :doubt-ends-in-decision}]}
 ```
 
-The tags are placeholders for the schema the discussion settles. What
-the block fixes is that the dashboard is a literal whose parts are
-addressed by projection, `/gates`, and read in detail by a query on the
-part, the gate's page or the fact's text, under the budget and the
-elision of progressive disclosure.
+The tags are placeholders for the schema the discussion settles, and
+they are qualified by their owner, since the values a host produces
+carry their owner in the prefix [D35 in the audit]. What the block
+fixes is that the dashboard is a literal whose parts are addressed by
+projection, `/gates`, and read in detail by a query on the part, the
+gate's page or the fact's text, under the budget and the elision of
+progressive disclosure. A gate that depends on another noun links to
+that noun's status and never contains it [E5]; the line that says how
+to read the screen is the host's, appended once per session.
 
 ## The mechanics in Claude Code
 
@@ -302,6 +306,21 @@ the design.
   An edit before the reading set was read, a commit before the
   conventions ran, an end of turn that claims green tests that never
   ran, are all refusable.
+
+A query is the one shell command whose content the environment can
+read before it runs. A shell script is a string to a hook: on 23
+September `sed -n '60,115p' scripts/check-conventions.mjs` read a file
+without the reading sensor seeing it, and permissions on the shell are
+prefixes, `Bash(node:*)` in the maintainer's local settings allowing
+anything. A query is data: a `PreToolUse` hook on `qlang '…'` can parse
+it with the language's own parser and know which host operands it will
+call, which files and which git commands, since the language has no
+effects of its own, and the host can record what the query read. The
+model keeps the economy of the shell, many probes in one call as the
+branches of one map, and the environment keeps the observability of a
+dedicated tool. The maintainer placed it far ahead, «но это все
+какие-то отдаленные перспективы и юзкейсы, до которых мы наверное не
+скоро доберемся» (maintainer, 2026-09-23 15:22, session 86982eb5).
 
 A hook's text output is capped. m8 measured the cap on 29 August 2026
 by bisection: ten thousand characters pass whole, and one more replaces
@@ -612,8 +631,12 @@ The partner. «что ты делаешь? я тебя просил быть п�
 секретаршу, сколько можно..» (2026-09-22 02:28, session 96f3df79); and
 the model that without the facts «превращается в секретаря-писаря
 вместо напарника по интеллектуально работе» (2026-09-23 03:09, session
-86982eb5). This belongs to the seed's role, and to the facts, which are
-what a partner argues from.
+86982eb5). It came again the same day, an hour after this chapter was
+written: «погоди, ты мне кажется опять в писаря превратился..»
+(2026-09-23 14:27, session 86982eb5). This belongs to the seed's role,
+and to the facts, which are what a partner argues from; a rule written
+down did not hold it for an hour, which is the case for a fact pushed at
+the moment the model starts to write.
 
 Decisions. «мне нужны решения! и прогресс по цели проекта!»
 (2026-09-16 00:14, session f4f0c99b); «почему это мои решения? .. из
@@ -748,8 +771,9 @@ qlang-литералом дашборд в духе темной кабины в
 действий» (maintainer, 2026-09-23 09:46, session 86982eb5).
 
 Read against the audit, that sketch is the first real user of three of
-its decisions at once. `::workflow | start` is a verb found through the
-subject's tag [D23 in the audit]: `start` belongs to `::workflow`. The
+its decisions at once. `::workflow | start`, which became
+`::workflow | status` [E5], is a verb found through the subject's tag
+[D34 in the audit]: the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
 case, a metric, each a tag with a schema [D6 in the audit], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
@@ -797,6 +821,8 @@ among the product; loading every module of the folder on every run,
 which executes a repository's code whenever anyone pipes JSON through
 `qlang` inside it; a list of modules in a configuration file, a second
 spelling of what the folder already says.
+Replaced in part by E5, which makes the command `qlang 'status'`; the
+folder, its search and the loading on request stand.
 
 ### E2 · Sensors are host operands, the screen is composed in qlang
 
@@ -827,6 +853,8 @@ Source. «и выплюнет qlang-литералом дашборд в дух�
 the same day.
 Set aside. A text renderer at the end of the pipe, which gives the
 screen a second spelling before the first has been tried.
+Replaced in part by E5: the verb is `status`, and its answer is a
+record under the tag of the noun it describes.
 
 ### E4 · The hook pushes the same screen at every start
 
@@ -840,6 +868,29 @@ proved itself; then it moves to `.claude/settings.json`, and every
 session of the repository starts from it.
 Source. The model, 23 September 2026, from the mechanics of this
 document and the first run of the reading sensor.
+
+### E5 · The first command is `qlang 'status'`
+
+Decision. A session starts from `qlang 'status'` in its repository.
+The subject is the noun of the nearest `.qlang/` folder [D37 in the
+audit], and `status` answers the state of the work as a record under
+that noun's tag. `docs` teaches and `status` shows: `::qlang | docs` is
+the language on one screen, `::qlang | status` what is mounted and
+where the session stands, and each noun's status speaks of that noun
+alone, a dependency appearing as a gate that links to the other noun's
+status and never as a copy of it. The line that says how to read a
+screen and where the documents are is appended by the host once per
+session, keyed by the session's identity. `jdt q 'status'` gives the
+sister project's screen by the same mechanism.
+Source. «если мы уже придумали что status у нас будет отвечать за
+онбординг работы с инструментом .. то тогда должна быть команда и
+>qlang 'status'» (maintainer, 2026-09-23 16:32, session 86982eb5);
+composition by reference and the line once per session, the model, the
+same day.
+Set aside. A seed that carries the composition,
+`qlang '[/ ::jdt] * status'`, which the screen teaches once it has said
+that `::jdt` is worth asking; `status` as a verb of the core, which the
+maintainer judged a concern of the hosts [D34 in the audit].
 
 ## Open questions
 

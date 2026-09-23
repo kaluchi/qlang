@@ -917,7 +917,7 @@ looked.
 
 The maintainer made one condition of the space around a combinator,
 that examples over several lines and combinators moved to either end
-of a line keep parsing [D43]. The model's check, on 24 September 2026:
+of a line keep parsing [D43]. The model's check, on 23 September 2026:
 today a line break is whitespace everywhere, a combinator at the start
 of the next line and one at the end of the line both carry a pipeline
 over the break, a combinator on each side of one break leaves an empty
@@ -1153,25 +1153,44 @@ to a binding; before any other step it is a parse error. Three
 different syntax-tree nodes carry the same doc text depending on where
 it stands.
 
-The repair must leave one binding form in which a value body is
-evaluated at declaration and a Quote body is code, which retires `as`
-and the snapshot wrapper [D5]; must make comments trivia at the level
-of whitespace; and must give documentation its own slot with its own
-literal, which Doc already is: the doc form `|~~ … ~~|` is that literal
-today, a standalone Doc value anywhere and the documentation of a
-binding when it stands between the name and the body, and only the
-plain forms become whitespace. Each role of `as` has its spelling in
-that form: freezing the current value is a binding whose body is `/`,
-aliasing an operand is a binding whose body is a quote of the call,
-naming the element inside a group is the same freeze inside the group,
-and freezing a parameter goes with values by default. The sister
-project is the largest user of `as`, almost always to name the subject
-inside a group, and its lines are where the marker's spelling is
-tried. The form flips one spelling the other way: today's `:inc
-add(1)` declares a pipeline because its body is a call, and under the
-one form a bare call body is evaluated at declaration, so every
-pipeline declared in the catalog's examples, in the tests and in the
-sister project gains the tilde, `:inc ~(add 1)`, in the same branch.
+The repair must leave one binding form, in which a body is evaluated at
+declaration and named as a value, a quote included, and a verb is the
+same form with its slot list, which retires `as` and the snapshot
+wrapper [D5, D44]; must make comments trivia at the level of whitespace;
+and must give documentation its own slot with its own literal, which Doc
+already is: the doc form `|~~ … ~~|` is that literal today, a standalone
+Doc value anywhere and the documentation of a binding when it stands
+between the name and the body, and only the plain forms become
+whitespace. Each role of `as` has its spelling in that form: freezing
+the current value is a binding whose body is `/`, aliasing an operand is
+a verb whose body is a quote of the call, `:len [] ~count`, naming the
+element inside a group is the same freeze inside the group, and freezing
+a parameter goes with values by default. The sister project is the
+largest user of `as`, almost always to name the subject inside a group,
+and its lines are where the marker's spelling is tried. The form flips
+one spelling the other way: today's `:inc add(1)` declares a pipeline
+because its body is a call, and under the one form a bare call body is
+evaluated at declaration, so every pipeline declared in the catalog's
+examples, in the tests and in the sister project gains its slot list and
+the tilde, `:inc [] ~(add 1)`, in the same branch.
+
+Today's binding is lazy, so code moved into a declaration further left
+answers as it did inline, even when it reads the subject:
+
+```qlang
+> {:items [1 2 3] :limit 2} | /items | take(count | sub(1))
+[1 2]
+
+> {:items [1 2 3] :limit 2} | :most (count | sub(1)) | /items | take(most)
+[1 2]
+```
+
+Under the one form the verb keeps that, `:most [] ~(count | sub 1)` read
+at each mention against the subject there, while `:most (count | sub 1)`
+is a value computed where it is declared, which is what a snapshot is
+for. A quote or a verb moved left means the same wherever its names mean
+the same, and a name is declared once in a scope, so the move either
+answers as the inline form did or is refused [D44].
 
 The pipe is linear continuation and the binding is a branch to the
 side: `x | f` hands f's result onward, `x | :name f` names f's value and
@@ -1445,15 +1464,15 @@ declaration standing on the fail track because a declaration is a
 transparent step and hands the descriptor on as data, which `"x" |
 add(1) !| :t /trail | 5` answering `5` today confirms.
 
-A quote held as data carries no environment; its names resolve where
-it is applied. The closure of the language is the binding, which
-carries its lexical environment on its header as the named pipeline
-does today, and so does a quote written as a modifier, which carries
-the environment of its call, so that code handed to another pipeline
-sees the names of its author wherever it is applied [D43]. Today an
-argument is read in its author's environment and a quote handed over
-as data in the body's, where a parameter of the body captures a name
-of the caller:
+A quote held as data carries no environment; its names resolve where it
+is applied. The closure of the language is the binding, which carries
+its lexical environment on its header as the named pipeline does today,
+and so does a quote written as a modifier or as the body of a binding,
+which carries the environment where it is written, so that code handed
+to another pipeline sees the names of its author wherever it is applied
+[D43, D44]. Today an argument is read in its author's environment and a
+quote handed over as data in the body's, where a parameter of the body
+captures a name of the caller:
 
 ```qlang
 > :x 10 | :t [:f :x] (f) | 2 | t(add(x), 99)
@@ -1487,14 +1506,13 @@ quote, because `add ~(x)` and `add x` would then share the datum
 `~(x)`; so `add 1` carries `~(1)`, the printer shows `1`, and the one
 doubled quote left in the form is a quote literal written as a
 modifier, `~(~(x))`. The binding record says by its field whether it
-holds code or a value body, `:code` for a named pipeline and `:body` for
-a value evaluated at declaration, so that the commonest declaration
-carries no doubled quote. What remains to know is one rule: a quote
-literal in a declaration is code, and a quote held as a value is
-written through a group or arrives through a value slot, `parse`, a
-trail or an example. The ring branch also decides `>>`, sugar over
-`flat`, before it encodes the flatten, since a form encodes no
-combinator a later branch would remove.
+holds code or a value body, `:code` for a verb and `:body` for a value
+evaluated at declaration, so that the commonest declaration carries no
+doubled quote. What remains to know is one rule: a declaration with a
+slot list is a verb whose code is its quote body, and every other
+declaration names a value, a quote included [D44]. The ring branch also
+decides `>>`, sugar over `flat`, before it encodes the flatten, since a
+form encodes no combinator a later branch would remove.
 
 The same moves take any value apart into atoms and build it back
 [D42], and today they reach as far as projections and literals do.
@@ -2025,7 +2043,8 @@ Several decisions of 15 September were taken by the model at the
 maintainer's request; the first version of this document records the
 request, and the maintainer's words for it were not found when the
 transcripts were searched on 23 September, so those records say only
-that. When the model took the remaining open questions on 22
+that, and a record whose words a later search found quotes them. When
+the model took the remaining open questions on 22
 September, it was because the maintainer asked why those decisions
 fell to the maintainer at all:
 «давай по остатку, почему это мои решения? .. из чего мне выбирать?
@@ -2116,11 +2135,22 @@ declaration produces a binding value that carries its name, its Doc,
 its source, the module it came from, and its value or its code; the
 four axes become projections of that record, the examples being the
 quotes among the Doc's segments.
-Source. The model, 15 September 2026, at the maintainer's request; the
-axes as projections, the model, 23 September 2026.
+Source. The binding as a named result is the maintainer's: «если считать
+биндинг просто как именованным результатом вычисления над тем же
+pipeValue […] без всяких там as(:name)» (maintainer, 2026-09-15 23:14,
+session f4f0c99b); `:n /` in place of `as`, «да, выглядит что ты прав..
+просто изначально были там всякие let def и т.п. операнды.. и вообще
+отстутсвовала биндинг форма с :n /» (18:47), answering the model's
+account of the four roles of `as`; the binding that keeps its origin
+answers «источник теряется.. пуповина обрывается.. наши BindStep-ы не
+дорабатывают..» (maintainer, 2026-09-15 01:20, session 268516f5). The
+quote body as code, the model, the same day; the axes as projections,
+the model, 23 September 2026.
 Set aside. Keeping `as` beside the binding form, which keeps the
 snapshot wrapper and its eight unwraps; deciding between value and code
 by the shape of the body's syntax.
+Replaced in part by D44, under which a binding names a value, a quote
+included, and a verb is declared with its slot list.
 
 ### D6 · A tag's declaration is its schema or its constructor
 
@@ -2882,13 +2912,14 @@ session 86982eb5); the short form, «а если как-то доработат�
 доках, убедил .. и с тем что выше согласен... если ты подвердишь что с
 многострочными примерами и переносами комбинаторов туда сюда проблем не
 будет и все будет праситься как надо..» (21:40), a condition the model
-checked the next day, as the scar of the call records; «ну и само собой
-полная форма ~(add) остается за главную...» (21:43). The reading of
-modifiers, the canonical fold, the refusal and the rule for a Doc, the
-model, 23 September 2026; the slot that takes code alone, the condition
-of `if` as a value, the clauses of `cond` as quotes and the environment
-a handed quote carries, the model, 24 September 2026, the last from a
-probe in which a parameter of the body captures a name of the caller.
+checked the same night, as the scar of the call records; «ну и само
+собой полная форма ~(add) остается за главную...» (21:43). The rest, the
+model, 23 September 2026: the reading of modifiers, the canonical fold,
+the refusal and the rule for a Doc in the evening, and that night the
+slot that takes code alone, the condition of `if` as a value, the
+clauses of `cond` as quotes and the environment a handed quote carries,
+the last from a probe in which a parameter of the body captures a name
+of the caller.
 Set aside. A slot of kind code that captures its modifier and runs it
 later, the form of D4 and D12, under which a call reads only with the
 operand's declaration at hand and a quote meant as data is run by the
@@ -2909,6 +2940,56 @@ what it receives, which leaves open to that capture every declared
 pipeline whose declaration omits the kind; a quote that carries its
 environment wherever it is evaluated, which makes a quote held as data
 more than data.
+Replaced in part by D44, which gives a quote written as a binding's body
+the environment of its declaration.
+
+### D44 · A binding names a value, and a verb declares its slots
+
+Decision. A binding names a value: its body is evaluated once, at
+declaration, against the current value, and a quote body is a quote held
+as a value, so `:q ~(add 1) | q` answers `~(add 1)`. A verb is the same
+form with its slot list, `[]` when it takes no modifiers, and a quote
+body, `:inc [] ~(add 1)` and `:m [:x] ~(mul 10 | add x)`; it runs when
+it is mentioned, as a built-in does, and `~inc` hands it on as code. A
+value never runs by itself, and `apply` runs a quote; a slot of kind
+code applies what it receives, so a named quote goes into it bare,
+`:adult ~(/age | gte 18) | [{:age 30} {:age 12}] | filter adult`.
+Today's lazy binding splits in two: the verb keeps its behaviour,
+computed at each mention against the subject there, and the value is the
+snapshot `as` used to make. A quote written as a binding's body carries
+the environment of its declaration, as one written as a modifier carries
+that of its call [D43]. A name is declared once in a scope, and a second
+declaration there is refused; a cell of the REPL opens a scope of its
+own. Under these rules code moved into a declaration further left
+answers as it did inline or is refused: a quote or a verb means the same
+wherever its names mean the same, and only a value, computed where it is
+declared, follows the subject there, as its spelling shows.
+Source. «[] у каждого глагола без модификаторов - и это правильно ..
+согласен с предложениями, в целом ..» (maintainer, 2026-09-23 23:02,
+session 86982eb5) and «ок, это меня устроит .. выходит проще и
+синтаксически куда заметнее .. методы вызываются по одной логике, квоты
+по apply .. все различимо и юзкейсы не перемешиваются» (23:14). It
+answers «тут как по мне заворачивание в скобки может смутить .. с другой
+стороны нехота везде писать apply q -- но может так и честнее и
+правильнее» (22:47), read with «когда мы это все первый раз решали .. то
+ещё не было осознано .. что дает субъектно-ориентированность .. вообще
+про это не думали тогда» (22:50): under subject orientation a verb is
+the vocabulary of a kind [D34], and a name the user declares is a noun.
+The law of extraction answers «не нарушится ли логика .. если я
+инлайново написал какой-то степ с квотами внутри.. а оптом просто что б
+сократить написание вынес их в объявления левее .. и у меня неожиданно
+поменялось поведение..» (23:02). The slot list as the mark of a verb,
+the environment of a named quote and the single declaration, the model,
+the same night.
+Set aside. The quote body as code, the first spelling of D5, under which
+one literal is data everywhere but as a body and a quote held as a value
+needs a group, `:q (~(add 1))`. `apply` before every declared pipeline,
+under which a user's verb is called otherwise than a built-in and a
+host's catalog reads `apply problems`. A named quote that resolves its
+names where it is applied, which keeps extraction free but lets a
+parameter of another verb capture a name of the caller. A second
+declaration of a name in one scope, which lets a quote moved left past
+it silently see the first.
 
 ## The finish
 
@@ -2956,23 +3037,25 @@ lossy codec of the boundary and nothing else.
 
 Around those three the language reads as follows. A pipeline carries
 values; code is a quote, written as such wherever it is passed. A step
-is a command, a name and its modifiers as words, bare where the
-pipeline delimits it, up to the end of its line, and in parentheses
-inside a modifier or a literal, so parentheses mean one thing, a
-pipeline as one word. A parameter holds a value, and so does every
-modifier, read by its own form: code is a quote, `~(…)`, shortened to
-`~add` for a single word, and nothing but `apply` runs it; an operand
-that runs code declares a slot of kind code and applies what it
-receives, and a quote handed over sees the names of its author [D43].
-There is one binding form: a value body is evaluated once at
-declaration against the current value and bound as a value, a quote
-body is bound as code, and parameters belong to quote bodies. The pipe
-is linear continuation and the binding is a branch to the side. A
-declared pipeline runs when its name is mentioned, so `apply` is only
-for a quote held as a value, from a parameter, `parse`, a trail or a
-literal. A command without modifiers is the bare name and has no second
-spelling. Comments are whitespace; documentation is a Doc literal in
-the binding's slot.
+is a command, a name and its modifiers as words, bare where the pipeline
+delimits it, up to the end of its line, and in parentheses inside a
+modifier or a literal, so parentheses mean one thing, a pipeline as one
+word. A parameter holds a value, and so does every modifier, read by its
+own form: code is a quote, `~(…)`, shortened to `~add` for a single
+word, and nothing but `apply` runs it; an operand that runs code
+declares a slot of kind code and applies what it receives, and a quote
+handed over sees the names of its author [D43]. There is one binding
+form: its body is evaluated once at declaration against the current
+value and named as a value, a quote included, and a verb is the same
+form with its slot list, `[]` when it takes no modifiers, and a quote
+body [D44]. A name is declared once in a scope. The pipe is linear
+continuation and the binding is a branch to the side. A verb runs when
+its name is mentioned, as a built-in does, so `apply` is only for a
+quote held as a value, from a name, a parameter, `parse`, a trail or a
+literal, and code moved into a declaration answers as it did inline. A
+command without modifiers is the bare name and has no second spelling.
+Comments are whitespace; documentation is a Doc literal in the binding's
+slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
 normalized, and forgotten until the codec at the boundary writes it
@@ -3142,7 +3225,7 @@ the repository and of the sister project by machine, so each later
 branch writes its examples once; the argument model follows
 [D4, D43], with the interface of hosts designed in the same branch
 and landed in every host; the one binding form closes the milestone
-[D5], with comments as whitespace and the Doc literal in the
+[D5, D44], with comments as whitespace and the Doc literal in the
 binding's slot.
 
 ```qlang target
@@ -3170,6 +3253,18 @@ true
 > :fact [:n] ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
 120
 
+> :inc [] ~(add 1) | 5 | inc | inc
+7
+
+> :q ~(add 1) | 5 | apply q
+6
+
+> {:items [1 2 3] :limit 2} | /items | take (count | sub 1)
+[1 2]
+
+> :most [] ~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most
+[1 2]
+
 > 42 | :x / | add 1 | x
 42
 ```
@@ -3183,7 +3278,8 @@ the catalog; taking every example apart into atoms and a shape and
 putting it back, both written in qlang, answers an `eq` value [D42]; a
 wrong assembly is refused by a constructor; `filter (gt 1)`, which
 works today, is refused, since its group computes a value where code
-is expected [D43];
+is expected [D43]; a second declaration of a name in one scope is
+refused [D44];
 `isError` and `eval` are gone; `>>` is deleted or kept by the ring
 branch's description; the argument comma is gone from the grammar; the
 seven wrappers are gone; no snapshot unwrap remains; the declarations
@@ -3260,7 +3356,7 @@ decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
 ```qlang target
-> :filter ~(mul 2) | namespace :qlang/operand/container | /filter | docs | count
+> :filter [] ~(mul 2) | namespace :qlang/operand/container | /filter | docs | count
 1
 
 > :filter | binding | /module

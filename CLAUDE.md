@@ -9,9 +9,12 @@ wins and this file is what changes.
 
 ## Start here, every session
 
-1. Read `docs/qlang-audit.md` in full. It carries the mission, the
-   principles, what stays, what goes, the order of moves, and the
-   ledger of branches with what each shows when it lands.
+1. Read `docs/qlang-audit.md` in full, its chapter on reading first.
+   It carries the mission, the satisfactory state, the principles, the
+   scars, the numbered decisions, the finish, and the route of
+   milestones. `docs/qlang-entrypoint.md` designs the computed context
+   a session starts from and carries the sensors that measure a
+   session's reading and the audit's quotes.
 2. `git status && git log --oneline -3`, then `npm test` at the repo
    root, in the background while reading. The git snapshot the
    harness injects at the start of a session goes stale; the status
@@ -66,13 +69,14 @@ Tier 2, by topic, only the files the topic names:
   only the conformance or unit file of the topic
 
 Never wholesale: `core/test/`, the documents under `docs/` other than
-the audit, `.claude/agents/qlang-review.md`, the memory directory. Open
+the audit and the entrypoint document, `.claude/agents/qlang-review.md`,
+the memory directory. Open
 a reference chapter only for the wording under dispute.
 
 The audit is the maintainer's memory between sessions. A session
 validates it against the code: a wrong sentence is replaced by the
-fact with its probe, a hole becomes a question posed in the
-maintainer's chapter with the alternatives and their cost, and nothing
+fact with its probe, a hole becomes a question in the chapter of open
+questions with the alternatives and their cost, and nothing
 is deleted or condensed without the maintainer's word. A session's
 answer is findings with `file:line` and a probe, and the questions the
 tree cannot answer; no retelling, no tables unless asked, no next-step
@@ -116,12 +120,12 @@ compatibility, and the TODO, FIXME, and HACK markers), on a digit
 followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on drift between the operand document and the
-catalog, and on error-class suffixes. The audit's ledger schedules the
-last two checks for removal together with the duplicates they guard.
+catalog, and on error-class suffixes. The audit deletes the last two
+checks together with the duplicates they guard.
 
 Coverage thresholds of one hundred on every axis are pinned in the
-`vitest.config.mjs` of `core/` and `cli/`; the audit's ledger carries
-the policy question.
+`vitest.config.mjs` of `core/` and `cli/`; the audit keeps a threshold
+for the language core alone.
 
 `.claude/agents/qlang-review.md` is the ruleset the review subagent
 applies. The audit schedules its rewriting from the principles; until
@@ -141,7 +145,9 @@ that lands, where a rule and the audit disagree, the audit wins.
   Ask which merge strategy to use before merging. Delete the branch
   after the merge, locally and on the remote.
 - Write the decisions into the audit in the same session as the work,
-  and remove a scar the tree no longer shows.
+  hold its quotes against the transcripts with the sensor the
+  entrypoint document carries, and remove a scar the tree no longer
+  shows.
 
 ## Release
 

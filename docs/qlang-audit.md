@@ -1618,40 +1618,38 @@ the Node module resolver used by tests, and cannot be loaded from the
 command line at all; the reference nonetheless shows `use(:qlang/error)`
 as if it could.
 
-The repair must take the declarations out of error identity [D7]: one
-tag per kind of refusal, named for the refusal and not for being an
-error, since the `!` of the literal already says that and the fail
-track already acts on it; the operand, position, and expected type on
-the descriptor; and any bright per-site headline derived from those
-facts rather than declared, so that each error still points at one
-place in the system while nothing has to be authored per site. It must
-give a foreign failure a tag of the language, with the host's class
-name as a field. It must hold one law for an error inside a nested
-evaluation, derived from the fork rule [D13]: the error of a fork is
-its value, handed to whatever ran the fork; a place declared for any
-value keeps it, as an element of a literal or of a distribute does
-today; a place declared for a kind, the number slot of `add` or the
-boolean a predicate must return, fails with that same error,
-unchanged, so a selector still aborts on a failing predicate and an
-arithmetic step stops nesting one error inside another; and an operand
-whose alternatives are pipeline slots, `coalesce` and its kin, runs
-them in order and treats an error result as no value, which is that
-operand's documented contract, so the misspelled field that becomes
-the fallback is the price of asking for a fallback, paid where it was
-asked.
+The repair must keep error identity per site and declare it once [D7,
+D46]: each site's tag is a kind declared in the catalog beside its
+operand, whose schema owns the site's fields in the order a reader needs
+them and whose document is the site's procedure; the throw site passes
+the facts, and the tag's constructor checks them. It must give a foreign
+failure a tag of the language, with the host's class name as a field. It
+must hold one law for an error inside a nested evaluation, derived from
+the fork rule [D13]: the error of a fork is its value, handed to
+whatever ran the fork; a place declared for any value keeps it, as an
+element of a literal or of a distribute does today; a place declared for
+a kind, the number slot of `add` or the boolean a predicate must return,
+fails with that same error, unchanged, so a selector still aborts on a
+failing predicate and an arithmetic step stops nesting one error inside
+another; and an operand whose alternatives are pipeline slots,
+`coalesce` and its kin, runs them in order and treats an error result as
+no value, which is that operand's documented contract, so the misspelled
+field that becomes the fallback is the price of asking for a fallback,
+paid where it was asked.
 
-It must make the document behind each refusal a procedure. The page
-of a refusal kind says, in this order, what the refusal means in one
-sentence, which field of the descriptor names the culprit, the usual
-cause, how to recover with `!|` as a runnable example, and the kinds
-of refusal it is often confused with. With one tag per kind there are
-about a dozen such pages instead of nearly two hundred restatements,
-and each is worth reading. It must print an error the way the cockpit
-shows an alert: the tag, the anchors, a short excerpt of the input,
-and the rest one projection away. An unresolved name names the nearest
-known names; a parse error names the continuations a reader could have
-meant, in the reader's vocabulary. And it must decide whether the error
-library enters the catalog with examples or leaves the package.
+It must make the document behind each tag a procedure. The page of a
+site says, in this order, what the refusal means in one sentence, which
+field of the descriptor names the culprit, the usual cause, how to
+recover with `!|` as a runnable example, and the refusals it is often
+confused with; the text that sites refusing for one reason share is
+written once, which is the task that would ask for a hierarchy of tags.
+It must print an error the way the cockpit shows an alert: the tag, the
+facts of the site in the order of its schema, a short excerpt of the
+input, and the rest one projection away, the tail being what elision
+takes first. An unresolved name names the nearest known names; a parse
+error names the continuations a reader could have meant, in the reader's
+vocabulary. And it must decide whether the error library enters the
+catalog with examples or leaves the package.
 
 ### Self-description without a front door
 
@@ -2184,17 +2182,25 @@ prints like an alert, headline and anchors and a short excerpt, with
 the full value one projection away; an unresolved name names the
 nearest known names, and a parse error the continuations a reader
 could have meant.
-Source. The identity, the model, 15 September 2026, at the maintainer's
-request. The procedure and the printing, the model, 23 September 2026,
-after the maintainer named what the tags were for: «именно поэтому я и
-вводил в ошибки qlang тэги и делал их гипертекстовыми.. и подразумевая
-что получившая их модель может провалиться и дочитать там
-гипертекст-инстркции как поступать с ошибкой, как она возникает и что
-значит» (maintainer, 2026-09-23 04:35, session 86982eb5).
+Source. The identity, the model, 14 September 2026, which offered it
+beside per-site tags and left the choice to the maintainer, who did not
+answer then. The tag of the language for a foreign failure answers «ни в
+коем случае js-ошибки не должны вытекать из рантайма, вычисляться во
+что-то что не является литералом qlang.. хотя бы потому как вдург qlang
+на rust кто-то захочет переписать..» (maintainer, 2026-09-14 23:30,
+session 268516f5). The procedure and the printing, the model, 23
+September 2026, after the maintainer named what the tags were for:
+«именно поэтому я и вводил в ошибки qlang тэги и делал их
+гипертекстовыми.. и подразумевая что получившая их модель может
+провалиться и дочитать там гипертекст-инстркции как поступать с ошибкой,
+как она возникает и что значит» (maintainer, 2026-09-23 04:35, session
+86982eb5).
 Set aside. A per-site tag such as `::AddLeftNotNumberError` derived by
 the runtime from the same facts: it removes the declarations as well,
 but costs a naming rule in the runtime and a tag that names no entry of
 the catalog.
+Replaced in part by D46, under which a refusal keeps the tag of its
+site, declared once as a kind.
 
 ### D8 · The quote is `~(…)`, transparent over its vector of steps
 
@@ -3034,6 +3040,42 @@ name, `::jdt/Method :callers …`, which reads as a kind standing in the
 subject position followed by a binding. The long form `::qlang/number`
 in a declaration, which the printer would not write back.
 
+### D46 · A refusal keeps the tag of its site
+
+Decision. Error identity stays per site: every place that refuses has a
+tag of its own, named so that a reader knows at once what failed,
+`::AddLeftNotNumberError`, and pointing at that one place in the system.
+The tag is declared once, in the catalog beside its operand, as a kind
+[D6]. Its schema owns the site's fields, and their order is the order a
+reader needs them: the facts of the site first, then the step, the input
+and the trail, so the printer writes the signal in the first characters
+and elision takes the tail. Its document is the site's procedure [D7]. A
+throw site passes the facts and the tag's constructor checks them, so no
+place adds or drops a field that another fills. What leaves with today's
+declarations is their second spelling: the JavaScript class of every
+site, the registry of throw sites, the stamping passes, the drift tests,
+the injection script, and the converter's table of field order. A host's
+refusals carry tags under its prefix [D23].
+Source. «я не хочу генерик сайты - это откат для рантайма.. потом
+какие-то поля в одном месте добавлять, в другом убирать - у семерых
+нянек дите без глазу.. всетаки это более сильный сигнал для читающей
+ошибку модели, куда качественнее дообогащаемый.. и там ещё кажется
+как-то порядок обявления полей влиял на их printValue - тем самым важное
+шло в начале, в первых же символах.. неважное могло быть в конце и
+спокойно подвергаться элизии ..» (maintainer, 2026-09-23 23:53, session
+86982eb5), holding to «стоит ли реюзить ошибку между операндами -- как
+по мне сомненительно, это снижает диагностическую ценность полученного
+сигнала - куда проще когда имя ошибки уникально (или её какой-то
+идентификатор) пойнтит в единственное место во всей системе (но возможно
+это вкусовщина моя такая..)» (maintainer, 2026-09-14 23:30, session
+268516f5). The schema as the owner of the fields and their order, and
+what leaves, the model, the same night.
+Set aside. One tag per kind of refusal with the site as fields, the
+first form of D7: fewer pages and a weaker signal, and a tag shared by
+sites that each fill its fields their own way. A per-site tag the
+runtime derives from the facts, which has no entry of the catalog behind
+it.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3106,11 +3148,10 @@ back. A map's elements are its values and its keys are the shape that
 travels with them, so one rule serves the record and the dictionary.
 One order ranks every value, so anything sorts, and the set is the
 vector in that order without duplicates. A predicate answers a boolean
-or fails at its slot. An error carries one tag per kind of refusal and
-states its operand, position, and expected type as fields; the fail
-track reads `!| /operand` where it read a class name, and the tag leads
-to a procedure. A nested evaluation that fails yields its error as a
-value, and every operand treats that value by one rule.
+or fails at its slot. An error carries the tag of its site, a kind
+declared once whose schema puts the facts a reader needs first, and the
+tag leads to the site's procedure. A nested evaluation that fails yields
+its error as a value, and every operand treats that value by one rule.
 
 A namespace is a subtree of names with the provider that answers for it,
 a large one mounted and served on demand [D36]. A noun in the subject
@@ -3178,26 +3219,27 @@ them may name them otherwise.
   printer and the JSON codec; the points where a host applies its
   budget, elision and enrichment.
 - The catalog, in qlang: operands with declarations that are true
-  because they are executed, about a dozen refusal kinds each with its
-  procedure, tags with schemas, and the root Doc. The implementations
-  of the operands are plain functions beside it.
+  because they are executed, the tag of every refusing site as a kind
+  with its schema and its procedure, other tags with schemas, and the
+  root Doc. The implementations of the operands are plain functions
+  beside it.
 - The tool views: the walker of the parser's tree and the tokenizer
   for highlighting, derived from the grammar, for the language server,
   the site and the command line.
 
 What leaves the tree, as the repairs land: the JSON family and every
-predicate and pass that serves it; the snapshot and conduit as two
-kinds of binding; the seven dispatch wrappers and the application rule
-built on them; the classes of errors with their factories, the registry
-of throw sites, the stamping passes and the converter's tables; the
+predicate and pass that serves it; the snapshot and conduit as two kinds
+of binding; the seven dispatch wrappers and the application rule built
+on them; the classes of errors with their factories, the registry of
+throw sites, the stamping passes and the converter's tables; the
 primitive registry with its sealing; tagged JSON and the session
-envelope; the codec of syntax trees as maps, since the quote is the
-data form; the effect marker and its checks; the character scanner of
-Doc text; the housekeeping keys of the environment; the history of
-cells; the resolver of module directories; the call to the parser from
-outside `parse`; the per-site error prose of the catalog; the drift
-tests, the injection script and the document-compliance runner for the
-documents that go.
+envelope; the codec of syntax trees as maps, since the quote is the data
+form; the effect marker and its checks; the character scanner of Doc
+text; the housekeeping keys of the environment; the history of cells;
+the resolver of module directories; the call to the parser from outside
+`parse`; the error prose of the catalog that restates the facts; the
+drift tests, the injection script and the document-compliance runner for
+the documents that go.
 
 The documents at the finish are few. This audit and the entrypoint
 document, which are the measure. The reference, reduced to the
@@ -3330,19 +3372,19 @@ of the catalog are true, since the runtime executes them.
 
 ### Milestone 2 · Values
 
-The semantics are final. The one order lands first, since containers
-and sets rest on it [D16, D17]; then the single container family with
-the rule for maps and the reading of duplicate keys [D1, D15, D18]; then
-the set as the ordered vector; then the kinds, every value with one and
-every bare literal with the core's, the contracts moving onto them
-[D32, D33]; then the refusal kinds with their
-procedures and the law for nested errors [D7, D13], which is where the
-per-site prose of the catalog disappears; strict predicates land with
-the argument model's slots or here, whichever branch reaches them first
-[D14]; and the host concerns leave the core, the effect marker and the
-fingerprints first [D2], `table` and `template` to the hosts, the
-command line starting from its default subject [D37] and writing
-keywords as bare strings.
+The semantics are final. The one order lands first, since containers and
+sets rest on it [D16, D17]; then the single container family with the
+rule for maps and the reading of duplicate keys [D1, D15, D18]; then the
+set as the ordered vector; then the kinds, every value with one and
+every bare literal with the core's, the contracts moving onto them [D32,
+D33]; then the tags of the refusing sites as kinds with their schemas
+and procedures, and the law for nested errors [D7, D13, D46], which is
+where the JavaScript classes of errors and the prose that restates their
+facts disappear; strict predicates land with the argument model's slots
+or here, whichever branch reaches them first [D14]; and the host
+concerns leave the core, the effect marker and the fingerprints first
+[D2], `table` and `template` to the hosts, the command line starting
+from its default subject [D37] and writing keywords as bare strings.
 
 ```qlang target
 > [1] | type
@@ -3383,8 +3425,9 @@ $ echo '{"k":"v"}' | qlang '{:k :v}'
 ```
 
 Beside the answers: no JavaScript set remains in the runtime; no
-factory-declared error class remains; the fail track reads the operand
-from the descriptor; a foreign failure carries a tag of the language;
+factory-declared error class remains; every refusal's tag is declared
+once in the catalog and prints its facts in its schema's order; a
+foreign failure carries a tag of the language;
 the throw-site registry and both drift tests are gone; the language has
 no effect marker and no effect flag; host categories of error are
 declared by hosts.
@@ -3563,7 +3606,7 @@ exists before the evaluator can read it. The maintainer has not
 answered.
 
 The error library. It either enters the catalog with examples, as
-pipelines built on the refusal kinds, or leaves the package.
+pipelines built on the refusal tags, or leaves the package.
 
 The flatten combinator. `>>` is sugar over `flat`; the ring branch
 decides whether it survives before it encodes it.
@@ -3580,6 +3623,28 @@ price of a value inside a list of kinds; a mark on the kind would keep
 the list to kinds and leave the default to the prose. A last slot that
 gathers the remaining modifiers needs a mark of its own, since a slot of
 kind `[::quote]` already takes one vector.
+
+How a check finds the tag of its site [D45, D46]. The runtime checks an
+operand's subject and slots from its declaration, and a refusal must
+carry the tag declared for that site. The tag can name its site in its
+declaration, the runtime indexing the declarations by site when it loads
+them; the slot list can name the tag after the slot's kind, which
+lengthens every declaration; or the tag can be the site's path under the
+operand in the tree of names, `::add/n`, which needs no index and gives
+up the self-describing name a reader sees first.
+
+How elision knows a kind [D21, D34, D46]. «просто рано или поздно все
+равно надо будет придумать как разбрасывать через мультидиспатч логику
+элизии .. что можно коллапсить а что нет .. что б как-то рекурсивно оно
+могло пеуплотниться без риска того что итоговый результат получится
+совсем неинформативным и сразу же потребует экспанда сделанных элизий»
+(maintainer, 2026-09-23 23:53, session 86982eb5). The order of a schema
+says what a reader needs first, and elision takes the tail. The
+alternatives are the order alone, which says nothing of the values
+inside a field; a verb of compaction on each kind, found through the
+tags as every verb is and specialized by a host on its own; and a floor
+under every kind, the head of its schema never elided, which keeps the
+signal at the price of a budget sometimes exceeded.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

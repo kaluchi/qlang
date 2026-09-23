@@ -810,6 +810,17 @@ that bind `[:k :v]` are the ones that change. And `runExamples`
 counts an example as passed only when it answers `true`, where today
 it passes anything that is neither `false`, `null` nor an error.
 
+What a lenient slot costs was measured on the sister project the day
+it moved onto the workspace copy. Its dispatch of `@problems` tested
+`cond(isNull, …)` after the core had removed `isNull`, and every node
+took the first branch, since the refusal in the predicate slot counts
+as true and nothing reports it:
+
+```qlang
+> "x" | cond(noSuchName, "first", "second")
+"first"
+```
+
 The declaration is also where help comes from. Once the runtime reads
 the slots, completion in the editor, the list of verbs that accept a
 value, the name and kind of the next modifier, and the wording of an
@@ -1720,13 +1731,16 @@ tests are the largest single piece of the command-line workspace, and
 the REPL it serves cannot save a session although the core can
 serialize one.
 
-The sister project pins a published version of the core instead of the
-workspace. Its working tree holds an uncommitted migration to that
-version across eighteen files; its status page
-still writes the set literal the grammar retired in May, `#{:fqn
-:rootPath :repo :branch}` in `cli/src/commands/status.mjs`; its query
-command reimplements the parse-error descriptor by hand; and it
-onboards its user with a static guide that teaches both.
+The sister project builds on the workspace copy of the core since 23
+September 2026, its dependency a link to the core's folder:
+
+```sh
+$ grep '"@kaluchi/qlang-core"' ../eclipse-jdt-search/cli/package.json
+    "@kaluchi/qlang-core": "file:../../qlang/core",
+```
+
+Its query command still reimplements the parse-error descriptor by
+hand, and it onboards its user with a static guide.
 
 The repair must remove the effect marker from the language rather than
 relocate it [D2]: a naming convention would keep every `@`-name a
@@ -1753,9 +1767,9 @@ construct solves. The repair must also drop the observability fields
 with the error classes; move `table` and `template` to the host that
 wants them, where `template` is replaced by a query that builds the
 string, since a second language of projections is a spelling of the
-language of its own; seed the command line with `null` and lift
-standard input only when it carries bytes; and put the sister project
-on the workspace copy with a guide generated from the catalog.
+language of its own; start the command line from its default subject
+[D37] and lift standard input only when it carries bytes; and give the
+sister project a guide generated from the catalog.
 
 ### Concurrency nobody declared
 

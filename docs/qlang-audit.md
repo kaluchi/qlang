@@ -758,15 +758,15 @@ its own copy of `fromPlain`). Deleting the wrappers is therefore a
 change to every host, and the argument model is where the interface of
 a host operand gets designed rather than inherited.
 
-The repair must make a parameter bind a value by default, make code an
-explicit Quote at the call site, and make the laziness of a built-in
-operand's slot a declaration the runtime reads, so that the catalog's
-slot vocabulary stops being decoration [D4]. An operand is then a
-declaration, whatever implements it: the tag or the type of its
-subject, its slots with their kinds, value or code, the tag or the
-type of its result, and its Doc. The runtime executes the declaration:
-it checks the subject and every value slot before the implementation
-runs, closes every code slot at the call site, and checks the result.
+The repair must make a parameter bind a value, make code an explicit
+quote at the call site, and make the kind of every slot a declaration
+the runtime reads, so that the catalog's slot vocabulary stops being
+decoration [D4, D43]. An operand is then a declaration, whatever
+implements it: the tag or the type of its subject, its slots with
+their kinds, code among them, the tag or the type of its result, and
+its Doc. The runtime executes the declaration: it checks the subject
+and every slot before the implementation runs, a slot of kind code
+taking a quote and nothing else, and it checks the result.
 A built-in, a host's operand and a declared pipeline share one
 convention, and the seven wrappers go with the arity classes. A host
 operand becomes a plain function over values the runtime has already
@@ -774,7 +774,7 @@ checked, handed to the core as `{ source, impls }` where the source is
 the catalog module that declares it; nothing else of the runtime is
 exported for building operands.
 
-The vocabulary carries the calling shape as well as the laziness. A
+The vocabulary carries the calling shape as well as the kind. A
 predicate, a key and a pipeline slot run their code against one
 subject. A reducer slot and a comparator slot hold two values for the
 code they run: they run it against the accumulator, or the left
@@ -782,23 +782,21 @@ element, and supply the other value as a trailing modifier to the
 code's last step, the way `xargs` completes the command it was given.
 The completed step is always applied with the subject as its first
 operand, so code that has already spent its modifiers is refused by
-arity and never turns into a full application; that keeps the
-canonical fold, `reduce(0, add)` today, in its shape once the runtime
-stops inspecting the reducer, and a reducer that wants the element
-anywhere but last is declared with a parameter one step earlier in the
-same query. A user pipeline declares its slots in its parameter vector,
-a keyword for a value and a quote of the name for code, `[:n ~(f)]`,
-so the tilde says one thing wherever it stands: this is code, do not
-evaluate it now; the vector stands where it stands today, after the
-name and before the body, `:twice [~(f)] ~(f | f)`. The main live use
-of lazy parameters, a key function handed down through several layers
-of pipelines, keeps its shape: the reference's `:@topBy [:keyFn :n]
-(sortWith(desc(keyFn)) | take(n))` becomes a pipeline whose first slot
-is declared as code.
+arity and never turns into a full application; the canonical fold,
+`reduce(0, add)` today, becomes `reduce 0 ~(add)` [D43], and a reducer
+that wants the element anywhere but last is declared with a parameter
+one step earlier in the same query. A declared pipeline's parameters
+are values, and its body applies one that holds code, `:twice [:f]
+~(apply f | apply f)`, so the tilde says one thing wherever it stands:
+this is code, and only `apply` runs it. The main live use of lazy
+parameters, a key function handed down through several layers of
+pipelines, keeps its shape: the reference's `:@topBy [:keyFn :n]
+(sortWith(desc(keyFn)) | take(n))` receives its key as a quote that
+carries its caller's environment and hands it on as a value.
 
-A predicate slot refuses a result that is not a boolean, so a quote
-handed where a predicate was expected fails at the slot instead of
-counting as true, and a result that is an error is the error itself, by
+A predicate slot refuses a result that is not a boolean, so a predicate
+that answers a string or a quote fails at the slot instead of counting
+as true, and a result that is an error is the error itself, by
 the one law for nested errors [D14]. The same refusal reaches every
 condition: `not` takes a boolean, `firstTruthy` becomes `coalesce`,
 `when` and `unless` become `if` with an identity branch, and the three
@@ -877,14 +875,18 @@ where the pipeline delimits it, up to the next combinator, the next
 closing bracket or the end of its line; inside a modifier and inside a
 literal, where words are elements, a command that has modifiers goes
 in parentheses, and there a newline is whitespace. It is the rule of
-every shell: `methods | filter (/modifiers | any (eq "public")) *
+every shell: `methods | filter ~(/modifiers | any ~(eq "public")) *
 /name`. A line is a step [D11]: the line that follows continues the
-pipeline through the combinator it begins with, or through `|` when it
-begins with none, so an example keeps its combinator first on the
-line, two declarations stand on two lines with nothing between them as
-the catalog writes them, and a module prints as it is written, a step
-to a line. The parts of a binding, the name, its Doc, its parameter
-vector and its body, are no modifiers and may take a line each.
+pipeline through the combinator it begins with, through the one the
+line before ends with, or through `|` when neither has one [D43], so
+an example keeps its combinator first on the line, two declarations
+stand on two lines with nothing between them as the catalog writes
+them, and a module prints as it is written, a step to a line. The
+parts of a binding, the name, its Doc, its parameter vector and its
+body, are no modifiers and may take a line each. A combinator is set
+off by whitespace on both sides, a line break counting as whitespace,
+so the pipe written against a tilde, `|~`, always opens a comment and
+`| ~(add)` is a pipe before a quote [D43].
 
 The argument comma leaves the grammar, a command without modifiers has
 one spelling, and a query never carries more parentheses than the call
@@ -912,6 +914,41 @@ an error rather than with a wrong answer, and the parse error at a
 comma inside parentheses names the command form it should have been.
 That is the price the decision accepted, and it is smaller than it
 looked.
+
+The maintainer made one condition of the space around a combinator,
+that examples over several lines and combinators moved to either end
+of a line keep parsing [D43]. The model's check, on 24 September 2026:
+today a line break is whitespace everywhere, a combinator at the start
+of the next line and one at the end of the line both carry a pipeline
+over the break, a combinator on each side of one break leaves an empty
+step, and the pipe written against a tilde already opens a comment.
+
+```qlang
+> [1 2 3]
+  | filter(gt(1))
+  | count
+2
+
+> [1 2 3] |
+  filter(gt(1)) |
+  count
+2
+
+> [1 2 3] |
+  | count
+::ParseError!{ … :found "|" … }
+
+> [1 2 3] |~{count}
+::ParseError!{ … }
+```
+
+Under the rule the four answer as they do. Two things change. A break
+with no combinator at either end stands for `|` outside brackets and
+is whitespace inside them, so a line there without a combinator hands
+its words to the command of the line before, which is how `if` and
+`cond` spread their parts over lines and what a command with no slot
+left refuses. And a combinator written against its neighbour,
+`[1 2]|count`, answers today and is refused.
 
 The same principle that keeps a bare word a name keeps the reader from
 guessing. YAML 1.1 read the country code of Norway, `NO`, as `false`,
@@ -1408,18 +1445,31 @@ declaration standing on the fail track because a declaration is a
 transparent step and hands the descriptor on as data, which `"x" |
 add(1) !| :t /trail | 5` answering `5` today confirms.
 
-A quote carries no environment; its names resolve where it is applied.
-The closure of the language is the binding, which carries its lexical
-environment on its header as the named pipeline does today; a
-parameter declared as code is a binding minted at the call site with
-the caller's environment, so an argument sees the names of its author,
-and a quote passed into a value slot is data that the body runs with
-`apply` in its own environment. That environment contains the binding
-itself, since a body may call its own name, so it is a cycle that no
-literal prints; it rides on the binding's header, and the data plane
-shows the module the binding came from, which is what the axes need.
-This is the one place where everything having a literal rests on a
-reference. Templates with holes are not needed: a hole is a free name.
+A quote held as data carries no environment; its names resolve where
+it is applied. The closure of the language is the binding, which
+carries its lexical environment on its header as the named pipeline
+does today, and so does a quote written as a modifier, which carries
+the environment of its call, so that code handed to another pipeline
+sees the names of its author wherever it is applied [D43]. Today an
+argument is read in its author's environment and a quote handed over
+as data in the body's, where a parameter of the body captures a name
+of the caller:
+
+```qlang
+> :x 10 | :t [:f :x] (f) | 2 | t(add(x), 99)
+12
+
+> :x 10 | :t [:q :x] (as(:s) | q | apply(s)) | 2 | t(~{add(x)}, 99)
+101
+```
+
+A binding's environment contains the binding itself, since a body may
+call its own name, so it is a cycle that no literal prints; it rides
+on the header, and the data plane shows the module the binding came
+from, which is what the axes need. An environment on a header is the
+one place where everything having a literal rests on a reference.
+Templates with holes are not needed: a hole is a free name of a quote
+held as data.
 
 Taking a quote apart and putting it back is the same pair of moves at
 every level. `payload` peels the tag from a quote, a record or a
@@ -2046,9 +2096,16 @@ and error factories stop being an interface.
 Source. The model, 15 September 2026, at the maintainer's request; the
 interface of hosts was added by the model on 23 September 2026 when the
 reading of the whole tree showed the wrappers to be that interface.
+The parameter written `~(f)` and the rules of forks were accepted in
+passing: «с ~(f) синтаксисом параметров наверное тоже всех устроит, как
+и те правила с форками» (maintainer, 2026-09-22 01:30, session
+96f3df79).
 Set aside. Lazy parameters by default, which produce the `m(/)` answer
 of forty; keeping the wrappers and adding declarations beside them,
 which is a second spelling of every calling shape.
+Replaced in part by D43, under which a slot captures nothing, code
+arrives as a quote, and a declared pipeline's parameter is a value its
+body applies.
 
 ### D5 · One binding form, and the binding is a record
 
@@ -2153,6 +2210,9 @@ through `|` when it begins with none; inside parentheses and literals a
 newline is whitespace; the parts of a declaration may take a line each.
 Source. The model, 22 September 2026, answering «по семантике синтаксису
 все решено?» (maintainer, 2026-09-22 07:27, session 86982eb5).
+Replaced in part by D43, which continues a line that ends with a
+combinator through that combinator and sets every combinator off by
+whitespace.
 
 ### D12 · Modifiers evaluate as the elements of a vector
 
@@ -2163,7 +2223,13 @@ modifier is closed at the call site and run by the operand in its own
 order, which its catalog entry states where the order is observable;
 `if`, `cond` and `coalesce` are lazy by that declaration.
 Source. Proposed by the model and accepted by the maintainer, as the
-first version records.
+first version records, and confirmed on 22 September: «ок, слева
+направо ты предложил.. в целом ок» (maintainer, 2026-09-22 01:30,
+session 96f3df79), answering the model's account of the order in which
+modifiers evaluate.
+Replaced in part by D43, under which a slot of kind code receives a
+quote instead of capturing its modifier, and `if`, `cond` and
+`coalesce` take as quotes the parts they run only when chosen.
 
 ### D13 · One law for nested errors
 
@@ -2776,6 +2842,74 @@ Source. «просто я рассматриваю сейчас задачу п�
 наоборот ..» (maintainer, 2026-09-23 20:10, session 86982eb5); the
 shape as a quote over the atoms, the model, the same day.
 
+### D43 · Code is a quote, and only `apply` runs it
+
+Decision. A modifier is read by its own form and evaluated at the call
+against the subject, a bare name and a group included, so `take count`
+takes as many elements as there are [D12]. Code is a quote, `~(…)`,
+and a quote of a single word may drop the parentheses, `~add` or
+`~/age`; the full form is the main one, which the printer writes and
+the documents show. Nothing runs a quote but `apply`. An operand that
+runs a part per element, in its own order or only when that part is
+chosen declares the slot of kind code, takes a quote there and nothing
+else, and applies it: `filter ~(gt 1)`, `reduce 0 ~(add)` as the
+canonical fold, the branches of `if`, the clauses of `cond` and the
+alternatives of `coalesce`, while the condition of `if`, which always
+runs first, is a value, `if (n | lte 1) ~(1) ~(…)`. So `filter (gt 1)`,
+whose group computes a boolean at the call, is refused, and the
+refusal names the tilde. A declared pipeline's parameters are values,
+and its body applies one that holds code, `:twice [:f]
+~(apply f | apply f)`. A quote written as a modifier carries the
+environment of its call, so code handed to another pipeline sees the
+names of its author wherever it is applied; a quote held as data
+resolves its names where it is applied. A combinator is set off by
+whitespace on both sides, a line break counting as whitespace and an
+opening bracket or the start of the text standing for the space before
+it, so `|~`, `|~|`, `|~~` and `|~~|` written together always open a
+comment or a Doc, `| ~(add)` is a pipe before a quote, and a
+combinator written against its neighbour is refused with a message that
+names the space. A line that ends with a combinator is continued by the
+next line through it [D11]. Inside a Doc only `~(` opens a quote, and
+the rest is prose.
+Source. «квота это просто данные и любой их неявный автозапуск может
+удивить .. есни надо выполнить квоту - то против субъекта (apply q) это
+явно и правильно звучит ... может просто в других местах не хватает
+apply .. на вызываемой стороне ...» (maintainer, 2026-09-23 21:14,
+session 86982eb5); the short form, «а если как-то доработать грамматику
+квоты до ~add без скобок ?» (21:23); the space, «я просто думал
+что |-комбинатор эт |+пробельный символ или как там..я бы и спереди и
+сзади требовал такое..» (21:33); «согласен запретом короткой формы в
+доках, убедил .. и с тем что выше согласен... если ты подвердишь что с
+многострочными примерами и переносами комбинаторов туда сюда проблем не
+будет и все будет праситься как надо..» (21:40), a condition the model
+checked the next day, as the scar of the call records; «ну и само собой
+полная форма ~(add) остается за главную...» (21:43). The reading of
+modifiers, the canonical fold, the refusal and the rule for a Doc, the
+model, 23 September 2026; the slot that takes code alone, the condition
+of `if` as a value, the clauses of `cond` as quotes and the environment
+a handed quote carries, the model, 24 September 2026, the last from a
+probe in which a parameter of the body captures a name of the caller.
+Set aside. A slot of kind code that captures its modifier and runs it
+later, the form of D4 and D12, under which a call reads only with the
+operand's declaration at hand and a quote meant as data is run by the
+slot it lands in. A bare name that stands for its binding without
+running it, as `+` does in Clojure's `reduce`, which keeps `reduce 0
+add` and makes `take count` a refusal. The quote without a short form,
+which costs two brackets on every reference, and the short form inside
+a Doc too, where `~/.jdtbridge`, `~5` and `~~struck~~` would need
+escapes and a forgotten escape breaks a document silently. A new sign
+for a reference, `&add`, which spells code a second way, and a new sign
+for a comment, `#`, which trades the trap at `|~` for one at `#[`. A
+slot that takes a value or code and runs code, as Smalltalk's `value`
+answers on any object, under which a branch computed at the call
+silently does its work and a quote held as data runs where it lands. A
+quote that resolves its names only where it is applied, which lets a
+parameter capture a name of the caller; a slot of kind code that closes
+what it receives, which leaves open to that capture every declared
+pipeline whose declaration omits the kind; a quote that carries its
+environment wherever it is evaluated, which makes a quote held as data
+more than data.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -2825,15 +2959,17 @@ values; code is a quote, written as such wherever it is passed. A step
 is a command, a name and its modifiers as words, bare where the
 pipeline delimits it, up to the end of its line, and in parentheses
 inside a modifier or a literal, so parentheses mean one thing, a
-pipeline as one word. A parameter holds a value; a built-in that wants
-a lazy slot declares it in the catalog, a declared pipeline declares it
-with a quote of the parameter's name, and the runtime reads the
-declaration. There is one binding form: a value body is evaluated once
-at declaration against the current value and bound as a value, a quote
+pipeline as one word. A parameter holds a value, and so does every
+modifier, read by its own form: code is a quote, `~(…)`, shortened to
+`~add` for a single word, and nothing but `apply` runs it; an operand
+that runs code declares a slot of kind code and applies what it
+receives, and a quote handed over sees the names of its author [D43].
+There is one binding form: a value body is evaluated once at
+declaration against the current value and bound as a value, a quote
 body is bound as code, and parameters belong to quote bodies. The pipe
 is linear continuation and the binding is a branch to the side. A
 declared pipeline runs when its name is mentioned, so `apply` is only
-for a quote held as data, from `parse`, a trail, a value parameter or a
+for a quote held as a value, from a parameter, `parse`, a trail or a
 literal. A command without modifiers is the bare name and has no second
 spelling. Comments are whitespace; documentation is a Doc literal in
 the binding's slot.
@@ -3003,10 +3139,11 @@ because the step's form is what the printer prints and what every
 trail, snippet and example carries, and the parser of the call form
 together with the printer of the command form rewrites every text of
 the repository and of the sister project by machine, so each later
-branch writes its examples once; the argument model follows [D4], with
-the interface of hosts designed in the same branch and landed in every
-host; the one binding form closes the milestone [D5], with comments as
-whitespace and the Doc literal in the binding's slot.
+branch writes its examples once; the argument model follows
+[D4, D43], with the interface of hosts designed in the same branch
+and landed in every host; the one binding form closes the milestone
+[D5], with comments as whitespace and the Doc literal in the
+binding's slot.
 
 ```qlang target
 > ~(1 | add 1 | mul 2) | count
@@ -3018,13 +3155,19 @@ true
 > 5 | apply ~(add 1 | mul 2)
 12
 
-> [1 2 3] | filter (gt 1)
+> [1 2 3] | filter ~(gt 1)
 [2 3]
 
-> :m [:x] (mul 10 | add x) | 2 | m /
+> [1 2 3] | reduce 0 ~(add)
+6
+
+> ~add
+~(add)
+
+> :m [:x] ~(mul 10 | add x) | 2 | m /
 22
 
-> :fact [:n] ~(if (n | lte 1) 1 (n | mul (fact (n | sub 1)))) | 5 | fact /
+> :fact [:n] ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
 120
 
 > 42 | :x / | add 1 | x
@@ -3038,7 +3181,9 @@ once, at declaration, and that is how `as` is spelled once it is gone.
 Beside the answers: `parse` and its inverse round-trip every example of
 the catalog; taking every example apart into atoms and a shape and
 putting it back, both written in qlang, answers an `eq` value [D42]; a
-wrong assembly is refused by a constructor;
+wrong assembly is refused by a constructor; `filter (gt 1)`, which
+works today, is refused, since its group computes a value where code
+is expected [D43];
 `isError` and `eval` are gone; `>>` is deleted or kept by the ring
 branch's description; the argument comma is gone from the grammar; the
 seven wrappers are gone; no snapshot unwrap remains; the declarations
@@ -3076,10 +3221,10 @@ keywords as bare strings.
 > [1 2 1] | distinct | type
 ::set
 
-> {:a 1} | coalesce /b /a
+> {:a 1} | coalesce ~(/b) ~(/a)
 1
 
-> [1 :a] | [{:k /1 :v /0}] | indexBy /k * /v
+> [1 :a] | [{:k /1 :v /0}] | indexBy ~(/k) * /v
 {:a 1}
 ```
 
@@ -3156,7 +3301,7 @@ from [D38]; a host's command is the language's with its noun as the
 first value [D37]; and the benchmark runs [D26].
 
 ```qlang target
-> [1 2 3] | filtr (gt 1)
+> [1 2 3] | filtr ~(gt 1)
 !{ … :nearest [:filter] }
 ```
 

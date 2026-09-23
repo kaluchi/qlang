@@ -53,7 +53,7 @@
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
@@ -104,6 +104,9 @@ function* walkSourceTree(rootDir) {
 
     if (entryStat.isDirectory()) {
       if (IGNORE_DIRS.has(relPath) || IGNORE_DIRS.has(entry)) continue;
+      // A directory with a `.git` of its own is another checkout, such
+      // as the worktree an editor or an agent keeps inside the tree.
+      if (existsSync(join(entryPath, '.git'))) continue;
       yield* walkSourceTree(entryPath);
       continue;
     }

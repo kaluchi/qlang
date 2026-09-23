@@ -1003,6 +1003,25 @@ or keywords: `sort` refuses a mixed vector, a null inside a sort key
 and a vector as a key, and a family of comparator operands with their
 refusals exists to work around that.
 
+Whether a transform keeps its subject's tag at all is an option of the
+operand's implementation, `preservesTag`, which `applyTagPreservation`
+in `core/src/runtime/dispatch.mjs` reads, and not a fact of its
+declaration. An edit of a tagged map keeps the tag or loses it by which
+implementation set the flag, and the loss is silent:
+
+```qlang
+> ::T{:a 1 :b 2} | filter(eq(1)) | type
+::T
+
+> ::T{:a 1} | union({:b 2}) | type
+:map
+
+> ::T{:a 1} | payload | union({:b 2}) | tag(::T)
+::T{:a 1 :b 2}
+```
+
+The kind of an operand's result belongs to its declaration [D4, D41].
+
 The repair must leave one map and one vector [D1]. JSON syntax stays
 accepted on input and is normalized at parse time; the JSON shape is a
 concern of the codec at the boundary, and the branch that preserves it
@@ -1426,6 +1445,25 @@ written through a group or arrives through a value slot, `parse`, a
 trail or an example. The ring branch also decides `>>`, sugar over
 `flat`, before it encodes the flatten, since a form encodes no
 combinator a later branch would remove.
+
+The same moves take any value apart into atoms and build it back
+[D42], and today they reach as far as projections and literals do.
+They stop at two places, a key that comes from the data and code:
+
+```qlang
+> [1 :a "x" ::T] | [/3 {:a /0}] | tag
+::T{:a 1}
+
+> [1 :a "x"] | [/2 [/0 /0] {:b /1}]
+["x" [1 1] {:b :a}]
+
+> ~{add(1) | mul(2)} | parse | type
+:map
+```
+
+A map whose key is an atom is built through `indexBy` and `*` over the
+map, which the rule for maps grants [D15]; code comes apart once the
+quote is its vector of steps [D8].
 
 ### Errors named by their site
 
@@ -2676,6 +2714,68 @@ Set aside. A keyword standing for `{:k true}`, which is a second
 spelling; binding a map in the pipe to a verb's parameters by name, as
 PowerShell binds by property name, which takes the subject's place.
 
+### D41 · An edit keeps its kind, and `within` edits under a tag
+
+Decision. Whether a verb keeps its subject's kind is part of its
+declaration, as its result [D4], and never an option of its
+implementation. When it keeps the kind, the constructors of the tags
+above the edited payload run again from the inside out, and an edit
+that breaks an invariant is a refusal naming the field and the kind it
+expected. A host may own the verbs of editing on its tags, so a kind
+may be read only, a computed dashboard refusing `assoc`, and `payload`
+is then the deliberate exit into plain data. `within ~(…)` edits under
+one tag: it takes the payload, applies the quote to it as a fork, and
+wraps the result back into the same tag, whose constructor runs once,
+at the rewrap; the steps between may break the invariant, since an
+invariant holds of the result, and a deeper stack is reached by
+nesting. A kind's laws are written with it:
+`::jdt/gate{:name :net :state :red} | within ~(dissoc :state)` answers
+the refusal of `:state`, and `#[1 2] | within ~(append 1)` answers
+`#[1 2]`, the set's constructor normalizing where a record's refuses.
+Source. «язык допускает прямое низкоуровневое редактирование тэгов ..
+::jdt/dashboard::qlang/map{} - c заполненными как-то внутренностями ..и
+если мы вводим какой-то аналог операнда set/assoc или чего там когда мы
+имитируем мутабельность .. то то что оставалось валидным для ::qlang -
+может стать невалидным уже для ::jdt и тогда конструктор отработает и
+как-то ругнется что нарушен инвариант какой-то ... а хочешь что б не
+ругалось - то сперва делай | payload и потом ковыряй чистый qlang»
+(maintainer, 2026-09-23 19:45, session 86982eb5); «а как бы про
+проваливание вгубь упаковок переделки внутренностей и запаковки всего
+назад» (maintainer, 2026-09-23 19:59); the read-only kind, the model,
+and «следствие которое нравится тебе, мне тоже симпатично» (maintainer,
+2026-09-23 19:55); the rest, the model, the same day.
+Set aside. The name `into`, whose prior from Clojure is conversion; a
+conversion verb `into K`, which pours a value into a kind and would
+fold `distinct`, the exit to the core's map and a checked construction
+into one verb, left to the rule of the catalog [D22] until a task asks
+for it; the behaviour of Clojure's records, where `dissoc` of a declared
+field silently answers a plain map, which is today's `union` over a
+tagged map.
+
+### D42 · Any value comes apart into atoms and back
+
+Decision. Every value comes apart into its atoms, null, booleans,
+numbers, strings, keywords and tag names, and a shape, a quote over the
+vector of those atoms written with projections, `/0`, `/1`; applying
+the shape to the atoms rebuilds a value equal to the first. The taking
+apart and the putting back are written in qlang with its own verbs,
+`payload`, `tag`, `type`, `keys`, `indexBy`, the literals and `*`. The
+ring is closed when they are, a part that needs a primitive of the host
+language marking it open, and the round trip runs over every example of
+the catalog and every literal of the conformance cases.
+Source. «просто я рассматриваю сейчас задачу программной сборки и
+разборки квоты средствами самого qlang .. у нас в нем есть неделивые
+никак дальше атомы, а есть молекулы-датумы или как ты их называл .. так
+вот хочется уметь разбирать все до атомов и наоборот собирать все из
+атомов ..» (maintainer, 2026-09-15 20:36, session f4f0c99b); «мне
+важная некая обратимость и симметричность формы .. т.е. если я что-то
+разбираю до атомов и дальше из них собираю .. то у меня не должно
+возникать ступора..» (maintainer, 2026-09-15 21:23); «да входе у нас
+вектор атомов - на выходе из него мы должны уметь получить любую
+собирающуюся из частей стрктуру используя там /0 /1 /2 /3 /4 /5 .. ну и
+наоборот ..» (maintainer, 2026-09-23 20:10, session 86982eb5); the
+shape as a quote over the atoms, the model, the same day.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -2688,16 +2788,18 @@ leaving the tree no smaller, and the seventh condition refuses that.
 Seen together, the repairs describe one language, and three
 unifications carry it.
 
-One mechanism of value. A tag names the kind of a value and stands
-over any payload; its declaration is its schema or its constructor and
-its document [D6]; a value under a tag obeys the tag's invariant, checked
+One mechanism of value. A tag names the kind of a value and stands over
+any payload; its declaration is its schema or its constructor and its
+document [D6]; a value under a tag obeys the tag's invariant, checked
 when the value is built and again after every transform whose
-declaration keeps the tag. The set, the error, the quote, the Doc, a
-host's record and the elision marker are all this one thing: `#[…]`
-spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a Doc over its
-segments, and each keeps its own token in the editor while the runtime
-holds one mechanism behind all four. Every value has a kind, and a
-literal without a tag has one of the core's, which its brackets imply
+declaration keeps the tag, `within` editing under a tag and checking
+once at the rewrap [D41]; every value comes apart into its atoms and a
+shape and is built back from them [D42]. The set, the error, the quote,
+the Doc, a host's record and the elision marker are all this one thing:
+`#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a Doc
+over its segments, and each keeps its own token in the editor while the
+runtime holds one mechanism behind all four. Every value has a kind, and
+a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its JSON form, its order
 and its laws, while one rule of the core prints every literal [D33].
 
@@ -2934,8 +3036,9 @@ at every mention; under the one binding form a bare body is evaluated
 once, at declaration, and that is how `as` is spelled once it is gone.
 
 Beside the answers: `parse` and its inverse round-trip every example of
-the catalog; `payload` down to atoms and `tag` back up rebuild every
-example as an `eq` quote; a wrong assembly is refused by a constructor;
+the catalog; taking every example apart into atoms and a shape and
+putting it back, both written in qlang, answers an `eq` value [D42]; a
+wrong assembly is refused by a constructor;
 `isError` and `eval` are gone; `>>` is deleted or kept by the ring
 branch's description; the argument comma is gone from the grammar; the
 seven wrappers are gone; no snapshot unwrap remains; the declarations
@@ -2975,6 +3078,9 @@ keywords as bare strings.
 
 > {:a 1} | coalesce /b /a
 1
+
+> [1 :a] | [{:k /1 :v /0}] | indexBy /k * /v
+{:a 1}
 ```
 
 ```sh

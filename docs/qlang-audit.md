@@ -575,11 +575,12 @@ same way, before the answer is fetched: the operand's declaration
 names the tag or the type of its result, the tag's declaration names
 the fields, and `spec` and `docs` on the operand answer for one
 operand what a schema sheet would answer for all. The result of a
-declared pipeline is declared with the operand model, the fields with
-the tag, and the element shape of a container is spelled as the
-container's literal around the kind, `[::Method]` for a vector of
-methods. Last, everything prints as what it is, code included, because
-an elided and enriched page travels on.
+declared pipeline is the kind its body answers, and that of host code is
+declared with it [D45]; the fields are declared with the tag, and the
+element shape of a container is spelled as the container's literal
+around the kind, `[::Method]` for a vector of methods. Last, everything
+prints as what it is, code included, because an elided and enriched page
+travels on.
 
 ## How the project got here
 
@@ -761,18 +762,18 @@ a host operand gets designed rather than inherited.
 The repair must make a parameter bind a value, make code an explicit
 quote at the call site, and make the kind of every slot a declaration
 the runtime reads, so that the catalog's slot vocabulary stops being
-decoration [D4, D43]. An operand is then a declaration, whatever
-implements it: the tag or the type of its subject, its slots with
-their kinds, code among them, the tag or the type of its result, and
-its Doc. The runtime executes the declaration: it checks the subject
-and every slot before the implementation runs, a slot of kind code
-taking a quote and nothing else, and it checks the result.
-A built-in, a host's operand and a declared pipeline share one
-convention, and the seven wrappers go with the arity classes. A host
-operand becomes a plain function over values the runtime has already
-checked, handed to the core as `{ source, impls }` where the source is
-the catalog module that declares it; nothing else of the runtime is
-exported for building operands.
+decoration [D4, D43, D45]. An operand is then a declaration, whatever
+implements it: the tag or the type of its subject, its slots with their
+kinds, code among them, the tag or the type of its result, and its Doc,
+the kinds written in its slot list. The runtime executes the
+declaration: it checks the subject and every slot before the
+implementation runs, a slot of kind code taking a quote and nothing
+else, and it checks the result. A built-in, a host's operand and a
+declared pipeline share one convention, and the seven wrappers go with
+the arity classes. A host operand becomes a plain function over values
+the runtime has already checked, handed to the core as `{ source, impls
+}` where the source is the catalog module that declares it; nothing else
+of the runtime is exported for building operands.
 
 The vocabulary carries the calling shape as well as the kind. A
 predicate, a key and a pipeline slot run their code against one
@@ -2166,6 +2167,8 @@ would otherwise collide with, is settled with the argument model.
 Source. Proposed by the model on 22 September 2026 as the fourth
 question; «ладно тогда 4 ок» (maintainer, 2026-09-22 05:56, session
 0ea77851).
+Replaced in part by D45, which spells the slot list that this record
+left to the argument model.
 
 ### D7 · One tag per kind of refusal
 
@@ -2990,6 +2993,46 @@ names where it is applied, which keeps extraction free but lets a
 parameter of another verb capture a name of the caller. A second
 declaration of a name in one scope, which lets a quote moved left past
 it silently see the first.
+Replaced in part by D45, under which a built-in is a verb with the same
+slot list and its descriptor for a body.
+
+### D45 · The slot list carries the kinds
+
+Decision. A verb's slot list says what the verb accepts, in the language
+of a schema [D6]. A slot's kind follows its name, `[:n ::number :ids
+[::number] :dir #[:in :out] :f ::quote]`, and a name without a kind
+takes any value; since a name is a keyword and a kind a tag name,
+`[::number]` after a name is a vector of numbers, as it is in a schema,
+and the collision D6 foresaw does not arise. The subject's kind stands
+first, before the names, `[::jdt/Method]` and `[::number :n ::number]`,
+so the list reads in the order of the call; a verb with a subject kind
+lives on that kind [D34], and one without takes any subject. The result
+of a declared pipeline is the kind its body answers, so the fact has one
+spelling: a body that promises a shape tags its result, and the tag's
+schema checks it. Host code, which has no body in qlang, declares its
+result with its descriptor, and a built-in takes the same slot list,
+`:add [::number :n ::number] ::builtin{:impl :qlang/prim/add :returns
+::number}`, so `:subject` and `:modifiers` leave the descriptor. A
+declaration writes a kind of the core short, `::number`, as the printer
+does [D32]: a name without a prefix belongs to the core, resolves among
+its names first, and no other scope may declare it [D23, D35];
+`::qlang/number` reads as the same kind.
+Source. «ок, все устраивает» (maintainer, 2026-09-23 23:31, session
+86982eb5), accepting the model's three rules and its answer to «а
+::number или ::qlang/number или как мы там недавно вводили для
+примитивов тэги .. что б формально точнее быть и ссылать на одно и то же
+объявление .. без разночтений что такое ::number» (23:29). The result
+read from the body follows «форму ответа можно было вывести»
+(maintainer, 2026-09-22 02:09, session 96f3df79). The rules, the model,
+the same night.
+Set aside. The kinds in a descriptor beside the slot list, today's
+`:subject`, `:modifiers` and `:returns`, which give the call two
+spellings and have drifted, `gt` declared for numbers and comparing
+strings. A declared result for a declared pipeline, a second spelling of
+what its body answers. The subject's kind written before the verb's
+name, `::jdt/Method :callers …`, which reads as a kind standing in the
+subject position followed by a binding. The long form `::qlang/number`
+in a declaration, which the printer would not write back.
 
 ## The finish
 
@@ -3223,10 +3266,10 @@ trail, snippet and example carries, and the parser of the call form
 together with the printer of the command form rewrites every text of
 the repository and of the sister project by machine, so each later
 branch writes its examples once; the argument model follows
-[D4, D43], with the interface of hosts designed in the same branch
-and landed in every host; the one binding form closes the milestone
-[D5, D44], with comments as whitespace and the Doc literal in the
-binding's slot.
+[D4, D43, D45], with the interface of hosts designed in the same
+branch and landed in every host; the one binding form closes the
+milestone [D5, D44], with comments as whitespace and the Doc literal
+in the binding's slot.
 
 ```qlang target
 > ~(1 | add 1 | mul 2) | count
@@ -3304,6 +3347,12 @@ keywords as bare strings.
 ```qlang target
 > [1] | type
 ::vec
+
+> ::qlang/number
+::number
+
+> ::qlang/number | eq ::number
+true
 
 > {:a 1 :b 2} * add 1
 {:a 2 :b 3}
@@ -3522,6 +3571,15 @@ decides whether it survives before it encodes it.
 The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
+
+Optional and variadic slots [D45]. `sort` takes a key or none, `cond`
+and `coalesce` take as many clauses as they are given, and the slot list
+has no mark for either. A default after the kind would mark a slot
+optional and say what it takes when absent, `:key ::quote ~()`, at the
+price of a value inside a list of kinds; a mark on the kind would keep
+the list to kinds and leave the default to the prose. A last slot that
+gathers the remaining modifiers needs a mark of its own, since a slot of
+kind `[::quote]` already takes one vector.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

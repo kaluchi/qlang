@@ -2270,7 +2270,12 @@ continues the pipeline through the combinator it begins with, or
 through `|` when it begins with none; inside parentheses and literals a
 newline is whitespace; the parts of a declaration may take a line each.
 Source. The model, 22 September 2026, answering «по семантике синтаксису
-все решено?» (maintainer, 2026-09-22 07:27, session 86982eb5).
+все решено?» (maintainer, 2026-09-22 07:27, session 86982eb5). The rule
+held under the maintainer's condition on the whitespace of D43, «[…]
+если ты подвердишь что с многострочными примерами и переносами
+комбинаторов туда сюда проблем не будет и все будет праситься как
+надо..» (maintainer, 2026-09-23 21:40, session 86982eb5), which the
+model's check in the scar of the call answers.
 Replaced in part by D43, which continues a line that ends with a
 combinator through that combinator and sets every combinator off by
 whitespace.
@@ -2300,8 +2305,11 @@ kind fails with that same error, unchanged. An operand whose
 alternatives are pipeline slots, `coalesce` and its kin, runs them in
 order and treats an error result as no value, which is its documented
 contract.
-Source. The model; the maintainer left `coalesce` to the model, as the
-first version records.
+Source. The model; the maintainer left `coalesce` to the model: «с
+coalesce наверное можно как-то и смириться с тем что оно все аргументы
+посчитает до вызова.. что возможно некоторых может смутить ..хотя может
+и раньше так оно было .. в общем здесь ты лучше самостоятельно подумай»
+(maintainer, 2026-09-22 01:30, session 96f3df79).
 
 ### D14 · Predicates are strict
 

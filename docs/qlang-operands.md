@@ -764,21 +764,6 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 - **Examples**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`;
   `{:k :v} | json` → `"{\"k\":\"v\"}"`.
 
-### `table`
-
-- **Arity** 1. **Subject** a Vec of Maps.
-- Returns a string with the Maps rendered as a tabular layout
-  (columns derived from keys). Useful for human-readable output.
-- **Cell rendering.** Scalar cells render bare: Strings without
-  quotes, Numbers stringified, Keywords as `:name`, Booleans as
-  `true`/`false`, `null` as an empty column. Composite cells
-  (Vec, Map, Set, Error) render as **inline qlang literals** —
-  `[1 2 3]`, `{:file "f.java" :line 12}`, `#[:a :b]`,
-  `!{:kind :oops}` — so nested structure stays readable on one row.
-  Reshape with `* {:col1 /a :col2 /b/c}` to lift sub-Map fields
-  into columns before the table call.
-- **Errors**: subject not a Vec → `TableSubjectNotVecError`; row not a Map → `TableRowNotMapError`.
-
 ## Control flow
 
 ### `if cond ~(then) ~(else)`
@@ -984,7 +969,7 @@ its own eval handler in `eval.mjs`.
 - **Examples**:
   - `env | manifest | filter ~(/kind | eq ::builtin) | table` —
     full catalog of built-in operands as a tabular report grouped
-    by category.
+    by category, `table` being the command line's.
   - `manifest :tag | first | /name` — first registered `::Tag`
     binding, alphabetically.
 - **Errors**: captured arg is not a Keyword →
@@ -1275,7 +1260,7 @@ enumerates).
 | `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag` |
 | `:indexedAccess` | `at` |
-| `:format` | `json`, `table` |
+| `:format` | `json` |
 | `:error` | `error` |
 | `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
 | `:codeAsData` | `parse`, `apply` |

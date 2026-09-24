@@ -5,7 +5,7 @@
 // execution. Tests build the values directly and call printValue.
 
 import { describe, it, expect } from 'vitest';
-import { printValue, toPlain, fromPlain, table } from '../../src/runtime/format.mjs';
+import { printValue, toPlain, fromPlain } from '../../src/runtime/format.mjs';
 import {
   makeConduit,
   makeSnapshot,
@@ -19,10 +19,8 @@ import {
   isQMap,
   FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
-import { quoteOfSource } from '../../src/quote.mjs';
 import { parse } from '../../src/parse.mjs';
 import { makeFn } from '../../src/rule10.mjs';
-import { rootState } from '../../src/state.mjs';
 
 describe('printValue — Conduit / Snapshot / Function branches', () => {
   it('renders a zero-arity named Conduit as `::conduit[:name [] ~(body)]`', () => {
@@ -139,66 +137,6 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 });
 
-describe('renderTaggedInstanceInline — table cell handler', () => {
-  it('a tagged-instance in cell position round-trips through ::Tag[payload…]', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
-    const row = new Map([['boxed', instance]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('::Box[42]');
-  });
-
-  it('a tagged-instance with Number payload renders as ::Tag(42) — ParenGroup wrap branch', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Count'), 42);
-    const row = new Map([['c', instance]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('::Count(42)');
-  });
-
-  it('a tagged-instance inside a Vec cell — inline handler fires', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Pair'), [1, 2]);
-    const row = new Map([['pairs', [instance]]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('::Pair[1 2]');
-  });
-
-  it('renders tagged Map / tagged Set / tagged scalar inside a Vec cell — inline handler branches', async () => {
-    // `renderTaggedInstanceInline` dispatches by payload shape:
-    // tagged Map renders as `::Tag{…}`, a tag over a set as `::Tag#[…]`,
-    // tagged scalar (wrap-object) as `::Tag<payload>` (or
-    // `::Tag(payload)` for identifier-shaped scalars). String
-    // payload opens with `"` and skips the ParenGroup wrap, so
-    // the bare-concatenation branch fires.
-    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
-    const taggedMap = makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']]));
-    const taggedSet = makeTaggedInstance(makeTagKeyword('Keys'), makeSet([2, 1]));
-    const taggedStr = makeTaggedInstance(makeTagKeyword('Note'), 'remember');
-    const row = new Map([
-      ['users', [taggedMap]],
-      ['perms', [taggedSet]],
-      ['notes', [taggedStr]]
-    ]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('::User{:name "alice"}');
-    expect(rendered.pipeValue).toContain('::Keys#[1 2]');
-    expect(rendered.pipeValue).toContain('::Note"remember"');
-  });
-});
-
 describe('toPlain encodes every TaggedInstance shape through the $tag envelope', () => {
   it('Set / Map / wrap-object payload shapes each encode their inner data plane', async () => {
     // The TaggedInstance `toPlain` handler routes by payload
@@ -231,203 +169,7 @@ describe('toPlain refuses a Function value — same invariant', () => {
   });
 });
 
-describe('table — Conduit / Snapshot / Function inside row Maps', () => {
-  // table renders Vec of Maps via CELL_HANDLERS. Conduit / Snapshot /
-  // Function values in cell positions reach the dispatch only when a
-  // user explicitly piped them in (e.g. `env | /name | wrap-in-Map |
-  // table`). Tests build the Vec directly so the cell handlers fire.
-  it('renders a Conduit-valued cell as `::conduit[:name [] ~(body)]`', async () => {
-    const bodyAst = { type: 'NumberLit', value: 99, text: '99' };
-    const conduit = makeConduit(bodyAst, { name: 'ninetyNine', params: [] });
-    const row = new Map([['fn', conduit]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] ~(99)]');
-  });
-
-  it('renders a Snapshot-valued cell as the unwrapped value (round-trip-safe)', async () => {
-    // Snapshot is an immutable value-wrapper — the cell renderer
-    // recurses on the captured value because that value carries
-    // the renderable identity. The `as(:name)` surface form is a
-    // binding statement, not a value literal; emitting it would
-    // round-trip through parse + eval into env-write + identity
-    // pipeValue, not back into a Snapshot value.
-    const snap = makeSnapshot(42, { name: 'cached' });
-    const row = new Map([['snap', snap]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('42');
-    expect(rendered.pipeValue).not.toContain('as :cached');
-  });
-
-  it('table refuses a Function-valued cell — invariant fires through renderCell', async () => {
-    const fn = makeFn('myFn', 1, async (state) => state, {
-      category: 'test', subject: 'any', modifiers: [],
-      returns: 'any', docs: [], examples: [], throws: []
-    });
-    const row = new Map([['op', fn]]);
-    await expect(table.fn(
-      rootState([row], new Map()),
-      []
-    )).rejects.toThrow(FunctionValueLeakedToPrintError);
-  });
-
-  it('renders a Vec-of-Conduit cell — INLINE handler for Conduit fires', async () => {
-    const bodyAst = { type: 'NumberLit', value: 7, text: '7' };
-    const conduit = makeConduit(bodyAst, { name: 'inner', params: [] });
-    const row = new Map([['fns', [conduit]]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('::conduit[:inner [] ~(7)]');
-  });
-
-  it('renders a Vec-of-Snapshot cell — INLINE handler recurses on unwrapped value', async () => {
-    const snap = makeSnapshot('hi', { name: 'greet' });
-    const row = new Map([['snaps', [snap]]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    // Inline-form recurses on the wrapped String "hi", which
-    // round-trips through `escapeQlangStringLiteral` to `"hi"`.
-    expect(rendered.pipeValue).toContain('"hi"');
-    expect(rendered.pipeValue).not.toContain('as :greet');
-  });
-
-  it('table refuses a Vec-of-Function cell — invariant fires through renderInline', async () => {
-    const fn = makeFn('inlineFn', 1, async (state) => state, {
-      category: 'test', subject: 'any', modifiers: [],
-      returns: 'any', docs: [], examples: [], throws: []
-    });
-    const row = new Map([['fns', [fn]]]);
-    await expect(table.fn(
-      rootState([row], new Map()),
-      []
-    )).rejects.toThrow(FunctionValueLeakedToPrintError);
-  });
-
-  it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {
-    const row = new Map([['q', [quoteOfSource('mul 2')]]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('~(mul 2)');
-  });
-
-  it('renders a Quote-valued cell — CELL_HANDLERS.Quote fires', async () => {
-    const row = new Map([['q', quoteOfSource('add 1')]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('~(add 1)');
-  });
-
-  it('renders a Doc-valued cell — CELL_HANDLERS.Doc fires', async () => {
-    const row = new Map([['d', makeDoc(' note ')]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('|~~ note ~~|');
-  });
-
-  it('renders a Vec-of-Doc cell — INLINE handler for Doc fires', async () => {
-    const row = new Map([['ds', [makeDoc(' inner ')]]]);
-    const rendered = await table.fn(
-      rootState([row], new Map()),
-      []
-    );
-    expect(rendered.pipeValue).toContain('|~~ inner ~~|');
-  });
-});
-
-describe('runtime/format.mjs structural — table layout and json round-trips', () => {
-  it('table renders headers and rows', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const tableOutput = await evalQuery('[{:name "Alice" :age 30} {:name "Bob" :age 25}] | table');
-    expect(tableOutput).toContain('name');
-    expect(tableOutput).toContain('age');
-    expect(tableOutput).toContain('Alice');
-    expect(tableOutput).toContain('Bob');
-    expect(tableOutput).toContain('30');
-    expect(tableOutput).toContain('25');
-    expect(tableOutput.split('\n').length).toBeGreaterThan(4);
-  });
-
-  it('table aligns columns of varying widths', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const tableOutput = await evalQuery('[{:short "a" :long "longerValue"} {:short "bbb" :long "x"}] | table');
-    expect(tableOutput).toContain('longerValue');
-    expect(tableOutput).toContain('bbb');
-  });
-
-  it('table tolerates missing fields', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const tableOutput = await evalQuery('[{:a 1} {:b 2}] | table');
-    expect(tableOutput).toContain('a');
-    expect(tableOutput).toContain('b');
-  });
-
-  it('table renders composite cells as inline qlang literals', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    // Map-valued cell: :loc is a nested Map with three keys.
-    // Expected form `{:file "f.java" :line 12 :ok true}` — inline,
-    // nested String quoted, no multi-line break, no [object Object].
-    const mapCell = await evalQuery(
-      '[{:loc {:file "f.java" :line 12 :ok true}}] | table');
-    expect(mapCell).toContain('{:file "f.java" :line 12 :ok true}');
-    expect(mapCell).not.toContain('[object Object]');
-    // Vec-valued cell: rendered as a qlang Vec literal inline.
-    const vecCell = await evalQuery('[{:tags [1 2 3]}] | table');
-    expect(vecCell).toContain('[1 2 3]');
-    // Set-valued cell — insertion order preserved by the Set literal.
-    const setCell = await evalQuery('[{:tags #[:a :b]}] | table');
-    expect(setCell).toContain('#[:a :b]');
-    // Error-valued cell: !{…} wrapped descriptor inline. The
-    // runtime materializes an error descriptor with `:trail null`
-    // when no success-track combinator has deflected past the
-    // fault, so the rendered cell reflects that shape verbatim
-    // rather than the source literal.
-    const errCell = await evalQuery('[{:err !{:kind :oops}}] | table');
-    expect(errCell).toContain('!{:kind :oops :trail null}');
-    // Null cell renders as an empty column, not the string "null".
-    const nullCell = await evalQuery('[{:a 1 :b null} {:a 2 :b 3}] | table');
-    const nullCellRow = nullCell.split('\n').find(l => l.includes('| 1 '));
-    expect(nullCellRow).toMatch(/\|\s+\|$/);
-  });
-
-  it('table renders scalar cells bare: Boolean, Keyword, null-in-Vec', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    // Top-level Boolean and Keyword cells — bare, without quotes.
-    const boolCell = await evalQuery('[{:ok true} {:ok false}] | table');
-    expect(boolCell).toContain('| true  |');
-    expect(boolCell).toContain('| false |');
-    const kwCell = await evalQuery('[{:status :ready}] | table');
-    expect(kwCell).toContain('| :ready |');
-    // Null nested inside a composite — INLINE_HANDLERS.Null emits
-    // the literal `null` (distinct from a null cell, which is bare).
-    const nullInVec = await evalQuery('[{:tags [null 1]}] | table');
-    expect(nullInVec).toContain('[null 1]');
-  });
-
-  it('table unquotes top-level String cells but quotes nested Strings', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    // Top-level :name is a String — printed bare inside the cell.
-    // Inside a composite :tags cell the same String is quoted per
-    // qlang-literal convention.
-    const out = await evalQuery('[{:name "Alice" :tags ["x" "y"]}] | table');
-    expect(out).toMatch(/\| Alice\s+\|/);
-    expect(out).toContain('["x" "y"]');
-  });
-
+describe('runtime/format.mjs structural — json round-trips', () => {
   it('json roundtrips Set as array', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('#[1 2 3] | json')).toMatch(/^\[/);
@@ -501,17 +243,6 @@ describe('format.toPlain non-keyword Map keys', () => {
     expect(out).toContain('rawValue');
   });
 
-  it('table on a Vec of Maps with non-keyword keys still renders', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const s = await createSession();
-    const row = new Map();
-    row.set('rawCol', 'rawCell');
-    s.bind('rows', [row]);
-    const out = (await s.evalCell('rows | table')).result;
-    expect(typeof out).toBe('string');
-    expect(out).toContain('rawCol');
-    expect(out).toContain('rawCell');
-  });
 });
 
 describe('the finite-double domain holds at every render seam', () => {
@@ -546,4 +277,3 @@ describe('the finite-double domain holds at every render seam', () => {
     expect(toPlain(0.1)).toBe(0.1);
   });
 });
-

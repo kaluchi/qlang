@@ -56,55 +56,66 @@ describe('tjson', () => {
   });
 });
 
-describe('template — `{{.}}` whole-subject substitution', () => {
-  it('embeds a String subject as raw characters without surrounding quotes', async () => {
-    const cellEntry = await runQuery('"alice" | template "user: {{.}}"', noopIo);
-    expect(cellEntry.result).toBe('user: alice');
+describe('table — a view for a terminal', () => {
+  it('draws a column per key, in the order of first occurrence across the rows', async () => {
+    const cellEntry = await runQuery('[{:name "alice" :age 30} {:name "bob" :city "Oslo"}] | table', noopIo);
+    expect(cellEntry.result).toBe([
+      '-------+-----+------',
+      '| name  | age | city |',
+      '-------+-----+------',
+      '| alice | 30  |      |',
+      '| bob   |     | Oslo |',
+      '-------+-----+------'
+    ].join('\n'));
   });
 
-  it('renders a non-String subject via printValue', async () => {
-    const cellEntry = await runQuery('42 | template "count: {{.}}"', noopIo);
-    expect(cellEntry.result).toBe('count: 42');
-  });
-});
-
-describe('template — `{{key}}` Map projection', () => {
-  it('projects a single keyword field from a Map subject', async () => {
-    const cellEntry = await runQuery(
-      '{:name "alice"} | template "got {{name}}"', noopIo);
-    expect(cellEntry.result).toBe('got alice');
+  it('prints a String cell bare, null as an empty cell, and a composite as its literal on one line', async () => {
+    const cellEntry = await runQuery('[{:s "x" :n null :m {:a 1 :b 2 :c 3} :v [~(add 1) #[2 1]]}] | table', noopIo);
+    expect(cellEntry.result).toContain('| x |   | {:a 1 :b 2 :c 3} | [~(add 1) #[1 2]] |');
   });
 
-  it('chains nested projections via slash separators', async () => {
-    const cellEntry = await runQuery(
-      '{:user {:name "alice"}} | template "name={{user/name}}"', noopIo);
-    expect(cellEntry.result).toBe('name=alice');
+  it('prints a tag over a set and a tagged scalar as their literals', async () => {
+    const cellEntry = await runQuery('[{:k ::Keys#[2 1] :c ::Count(42)}] | table', noopIo);
+    expect(cellEntry.result).toContain('| ::Keys#[1 2] | ::Count(42) |');
   });
 
-  it('renders a missing field as null', async () => {
-    const cellEntry = await runQuery(
-      '{:name "alice"} | template "age={{age}}"', noopIo);
-    expect(cellEntry.result).toBe('age=null');
+  it('prints composite cells as literals on one line and a null cell empty', async () => {
+    const mapCell = await runQuery('[{:loc {:file "f.java" :line 12 :ok true}}] | table', noopIo);
+    expect(mapCell.result).toContain('{:file "f.java" :line 12 :ok true}');
+    const errorCell = await runQuery('[{:err !{:kind :oops}}] | table', noopIo);
+    expect(errorCell.result).toContain('::Error!{:kind :oops}');
+    const nullCell = await runQuery('[{:a 1 :b null} {:a 2 :b 3}] | table', noopIo);
+    expect(nullCell.result.split('\n').find(line => line.includes('| 1 '))).toMatch(/\|\s+\|$/);
   });
 
-  it('renders null when a projection segment hits a non-Map value', async () => {
-    const cellEntry = await runQuery(
-      '"plain" | template "x={{any/thing}}"', noopIo);
-    expect(cellEntry.result).toBe('x=null');
+  it('prints Boolean and Keyword cells bare, a null inside a composite as null', async () => {
+    const booleanCells = await runQuery('[{:ok true} {:ok false}] | table', noopIo);
+    expect(booleanCells.result).toContain('| true  |');
+    expect(booleanCells.result).toContain('| false |');
+    const keywordCell = await runQuery('[{:status :ready}] | table', noopIo);
+    expect(keywordCell.result).toContain('| :ready |');
+    const nullInVec = await runQuery('[{:tags [null 1]}] | table', noopIo);
+    expect(nullInVec.result).toContain('[null 1]');
   });
 
-  it('renders a non-String projected value via printValue', async () => {
-    const cellEntry = await runQuery(
-      '{:n 42} | template "count={{n}}"', noopIo);
-    expect(cellEntry.result).toBe('count=42');
+  it('prints a top-level String bare and a nested String quoted', async () => {
+    const cellEntry = await runQuery('[{:name "Alice" :tags ["x" "y"]}] | table', noopIo);
+    expect(cellEntry.result).toMatch(/\| Alice\s+\|/);
+    expect(cellEntry.result).toContain('["x" "y"]');
   });
-});
 
-describe('template — error sites', () => {
-  it('lifts TemplateModifierNotStringError when the captured arg is not a String', async () => {
-    const cellEntry = await runQuery('"x" | template 42', noopIo);
-    expectOperandErrorThrown(cellEntry, 'TemplateModifierNotStringError', {
-      actualType: { name: 'number' }
-    });
+  it('yields the marker (empty) for an empty Vec', async () => {
+    const cellEntry = await runQuery('[] | table', noopIo);
+    expect(cellEntry.result).toBe('(empty)');
+  });
+
+  it('lifts TableSubjectNotVecError on a subject other than a Vec', async () => {
+    const cellEntry = await runQuery('42 | table', noopIo);
+    expectOperandErrorThrown(cellEntry, 'TableSubjectNotVecError', { actualType: { name: 'number' } });
+  });
+
+  it('lifts TableRowNotMapError on a row other than a Map, naming it', async () => {
+    const cellEntry = await runQuery('[{:a 1} 42] | table', noopIo);
+    expectOperandErrorThrown(cellEntry, 'TableRowNotMapError', { index: 1, actualType: { name: 'number' } });
   });
 });

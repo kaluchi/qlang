@@ -15,7 +15,9 @@
 //     → { pipeValue, resolvedFormat } on success, or
 //     → { parseError, resolvedFormat } on a forced-parse failure
 //
-//     Resolves the auto / json / raw mode into a concrete format
+//     Standard input lifts only when it carries bytes; with none the
+//     pipe starts from `DEFAULT_SUBJECT` [D37]. Otherwise resolves
+//     the auto / json / raw mode into a concrete format
 //     and a pipeValue. `auto` tries JSON.parse; on success it
 //     lifts to qlang via `fromPlain` and reports `resolvedFormat:
 //     'json'`, otherwise it hands back the raw String with
@@ -33,11 +35,19 @@
 //     input format is the contract the user established; the output
 //     honours it.
 
-import { fromPlain, toPlain, printValue } from '@kaluchi/qlang-core';
+import { fromPlain, toPlain, printValue, makeTagKeyword } from '@kaluchi/qlang-core';
 
 const JSON_PRETTY_INDENT = 2;
 
+// The noun the command line starts from when standard input carries no
+// bytes, outside any project [D37]; the noun of the nearest `.qlang/`
+// folder comes with the modules a project ships.
+export const DEFAULT_SUBJECT = makeTagKeyword('qlang');
+
 export function liftStdinToPipeValue(stdinText, inputFormat) {
+  if (stdinText.length === 0) {
+    return { pipeValue: DEFAULT_SUBJECT, resolvedFormat: 'raw' };
+  }
   if (inputFormat === 'raw') {
     return { pipeValue: stdinText, resolvedFormat: 'raw' };
   }
@@ -59,13 +69,7 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
     return liftParsedDocument(parsed, 'json');
   }
 
-  // inputFormat === 'auto'. Empty stdin skips the parse attempt —
-  // an empty String is a more useful seed than a ParseError over
-  // nothing, and most auto-mode callers with no piped input end up
-  // immediately replacing pipeValue via a leading value step.
-  if (stdinText.length === 0) {
-    return { pipeValue: '', resolvedFormat: 'raw' };
-  }
+  // inputFormat === 'auto'.
   let parsed;
   try {
     parsed = JSON.parse(stdinText);

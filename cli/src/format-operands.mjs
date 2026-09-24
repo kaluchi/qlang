@@ -1,53 +1,58 @@
 // Pure value-to-String formatter impls for the `:cli/format` host
 // catalog — `pretty` renders qlang-literal form, `tjson` renders
-// the tagged-JSON wire form, `template :s` does `{{slot}}`
-// substitution. Catalog declaration lives in
+// the tagged-JSON wire form, `table` draws a Vec of Maps as a frame
+// for a terminal. Catalog declaration lives in
 // `cli/lib/qlang/format.qlang`.
 
-import { valueOp, nullaryOp } from '@kaluchi/qlang-core/dispatch';
-import { declareModifierError } from '@kaluchi/qlang-core/operand-errors';
+import { nullaryOp } from '@kaluchi/qlang-core/dispatch';
+import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue, toTaggedJSON } from '@kaluchi/qlang-core';
 
-const TemplateModifierNotStringError =
-  declareModifierError('TemplateModifierNotStringError', 'template', 2, 'string');
+const TableSubjectNotVecError = declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
+const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
 
-const SUBSTITUTION_SLOT_RE = /\{\{([^}]+)\}\}/g;
-
-function renderSubstitutionSlot(subject, slotSource) {
-  const slotPath = slotSource.trim();
-  if (slotPath === '.') {
-    return typeof subject === 'string' ? subject : printValue(subject);
-  }
-  const projectionSegments = slotPath.split('/').filter((s) => s.length > 0);
-  let projectedValue = subject;
-  for (const segmentName of projectionSegments) {
-    if (!(projectedValue instanceof Map)) {
-      projectedValue = null;
-      break;
-    }
-    const lookedUp = projectedValue.get(segmentName);
-    projectedValue = lookedUp === undefined ? null : lookedUp;
-  }
-  if (projectedValue === null) return 'null';
-  return typeof projectedValue === 'string' ? projectedValue : printValue(projectedValue);
+// A cell is a view at the boundary: a String prints bare, null as an
+// empty cell, and every other value as its literal on one line.
+function cellTextOf(cellValue) {
+  if (cellValue === null) return '';
+  if (typeof cellValue === 'string') return cellValue;
+  return printValue(cellValue)
+    .replace(/([[{(])\n\s*/g, '$1')
+    .replace(/\n\s*([\]})])/g, '$1')
+    .replace(/\n\s*/g, ' ');
 }
 
-function applyTemplate(subject, templateString) {
-  return templateString.replace(SUBSTITUTION_SLOT_RE, (_match, slotSource) =>
-    renderSubstitutionSlot(subject, slotSource));
+// Columns follow the first occurrence of each key across the rows.
+function columnOrderOf(rows) {
+  const columnNames = [];
+  for (const row of rows) {
+    for (const columnName of row.keys()) if (!columnNames.includes(columnName)) columnNames.push(columnName);
+  }
+  return columnNames;
 }
 
 const prettyOperand = nullaryOp('pretty', (subject) => printValue(subject));
 const tjsonOperand  = nullaryOp('tjson',  (subject) => JSON.stringify(toTaggedJSON(subject)));
-const templateOperand = valueOp('template', 2, (subject, templateString) => {
-  if (typeof templateString !== 'string') {
-    throw new TemplateModifierNotStringError(templateString);
-  }
-  return applyTemplate(subject, templateString);
+const tableOperand  = nullaryOp('table', (subject) => {
+  if (!Array.isArray(subject)) throw new TableSubjectNotVecError(subject);
+  if (subject.length === 0) return '(empty)';
+  subject.forEach((row, rowIndex) => {
+    if (!(row instanceof Map)) throw new TableRowNotMapError(rowIndex, row);
+  });
+  const columnNames = columnOrderOf(subject);
+  const widths = columnNames.map(columnName => columnName.length);
+  const cells = subject.map(row => columnNames.map((columnName, columnIndex) => {
+    const cellText = row.has(columnName) ? cellTextOf(row.get(columnName)) : '';
+    widths[columnIndex] = Math.max(widths[columnIndex], cellText.length);
+    return cellText;
+  }));
+  const horizontalRule = widths.map(width => '-'.repeat(width + 2)).join('+');
+  const formatRow = rowCells => '|' + rowCells.map((cellText, columnIndex) => ' ' + cellText.padEnd(widths[columnIndex]) + ' ').join('|') + '|';
+  return [horizontalRule, formatRow(columnNames), horizontalRule, ...cells.map(formatRow), horizontalRule].join('\n');
 });
 
 export const formatImpls = {
-  pretty:   prettyOperand,
-  tjson:    tjsonOperand,
-  template: templateOperand
+  pretty: prettyOperand,
+  tjson:  tjsonOperand,
+  table:  tableOperand
 };

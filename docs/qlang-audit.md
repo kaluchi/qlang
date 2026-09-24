@@ -1871,22 +1871,23 @@ hi
 ```
 
 The error classes carry a fingerprint and a schema version for an
-observability backend that is not attached. More than half of the
-error categories describe failures of the host or the runtime that no
-query author meets. The core catalog carries `table`, which draws a
-frame of dashes and pipes for a terminal (`core/src/runtime/format.mjs`),
-and the command line carries `template`, a second language of
-projections inside a string, `{{a/b}}`, with a miss rule of its own
-that prints the word `null` (`cli/src/format-operands.mjs`). The
-command line seeds the pipeline value with the empty string when
-standard input is empty, so a bare `count` fails with a message about
-a string subject and `type` answers `:string`, while the core seeds
-`null`. Its JSON output writes a keyword value as a string with a
-leading colon, `{:k :v}` leaving as `{"k": ":v"}`, which the first
-consumer of that JSON will not expect. A raw-mode line editor and its
+observability backend that is not attached. More than half of the error
+categories describe failures of the host or the runtime that no query
+author meets. The command line owns `table`, which draws a frame of
+dashes and pipes for a terminal (`cli/src/format-operands.mjs`), a view
+at the boundary whose cell is a literal on one line, and `template`, a
+second language of projections inside a string with a miss rule of its
+own, is gone, a query building the string instead,
+`[/name (/score | pretty)] | join ": "`. The command line starts from
+standard input when it carries bytes and from its default subject
+otherwise [D37], so a bare `count` names the subject it refused and
+`qlang 'type' < /dev/null` answers `::tag`; outside any project the
+subject is `::qlang`, and the noun of a project's `.qlang/` folder comes
+with the modules. Its JSON output writes a keyword as its bare name,
+`{:k :v}` leaving as `{"k": "v"}` [D1]. A raw-mode line editor and its
 tests are the largest single piece of the command-line workspace, and
-the REPL it serves cannot save a session although the core can
-serialize one.
+the REPL it serves cannot save a session although the core can serialize
+one.
 
 The sister project builds on the workspace copy of the core since 23
 September 2026, its dependency a link to the core's folder:
@@ -1921,12 +1922,10 @@ of that rule. Whether an effect deserves to become a value of its own,
 an action awaiting the host the way a quote awaits `apply`, is a
 question for a later branch that would have to show a task no plainer
 construct solves. The repair must also drop the observability fields
-with the error classes; move `table` and `template` to the host that
-wants them, where `template` is replaced by a query that builds the
-string, since a second language of projections is a spelling of the
-language of its own; start the command line from its default subject
-[D37] and lift standard input only when it carries bytes; and give the
-sister project a guide generated from the catalog.
+with the error classes and give the sister project a guide generated
+from the catalog; `table` and `template` have left the core and the
+command line, and the command line starts from its default subject
+[D37].
 
 ### Concurrency nobody declared
 

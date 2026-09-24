@@ -61,6 +61,12 @@ describe('runRepl — query evaluation', () => {
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/3/);
   });
 
+  it('starts every cell from the default subject', async () => {
+    const replHarness = captureRepl('type\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::tag/);
+  });
+
   it('preserves bindings between cells within the same session', async () => {
     const replHarness = captureRepl(':double mul 2\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);

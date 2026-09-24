@@ -108,6 +108,13 @@ describe('main — flag dispatch', () => {
 });
 
 describe('main — script mode auto-pipe', () => {
+  it('starts from the default subject when stdin carries no bytes', async () => {
+    const s = captureStreams();
+    const exitCode = await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toBe('::tag\n');
+  });
+
   it('feeds piped JSON as the initial pipeValue and emits JSON back', async () => {
     const s = captureStreams('{"user": {"name": "alice"}}');
     const exitCode = await main(

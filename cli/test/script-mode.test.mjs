@@ -5,15 +5,18 @@
 
 import { describe, it, expect } from 'vitest';
 import {
+  DEFAULT_SUBJECT,
   liftStdinToPipeValue,
   encodeSuccessValueForFormat
 } from '../src/script-mode.mjs';
 
 
 describe('liftStdinToPipeValue — auto detection', () => {
-  it('returns an empty raw String when stdin is empty', () => {
-    const lifted = liftStdinToPipeValue('', 'auto');
-    expect(lifted).toEqual({ pipeValue: '', resolvedFormat: 'raw' });
+  it('starts from the default subject when stdin carries no bytes, in every mode', () => {
+    for (const inputFormat of ['auto', 'json', 'raw']) {
+      expect(liftStdinToPipeValue('', inputFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT, resolvedFormat: 'raw' });
+    }
+    expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });
 
   it('parses JSON stdin into qlang shape when auto succeeds', () => {

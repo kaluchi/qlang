@@ -4046,6 +4046,32 @@ its help and its completion work on any script block. A head held to a
 literal over the frame keeps them, the slot list `[:x ::number :y]`
 being its shortest spelling, and leaves the bindings that compute to the
 body's own declarations.
+The head then holds requirements alone: «вот и я колеблюсь насчет слота
+из субъекта.. есть ли смысл .. или же клей проще держать на вызывающей
+стороне, а в параметрической квоте оставлять только требования .. но
+каким образом эти требования задать, как ограничения и констрейны
+вписать если те нужны там .. просто map из кейворд тэг кортежей
+смотрелась бы наверное максимально увиверсально .. ну а если пишем через
+вектор - то там только имена которые по порядку агрументов матчатся (как
+сейчас).. это если никак граматику не расширять ... а так можно более
+сложную логику /проекций всегда сделать ... /:glang/subject /:qlang/args
+или ещё как в порядке бреда.. для экзотический случаев» (maintainer,
+2026-09-24 05:16, session 86982eb5). The glue at the calling side costs
+a projection per field, since a command whose slots are all value slots
+takes its subject as context, `{:price 100 :qty 3} | mul /price /qty`
+answering `300`, and a slot filled from a field of the subject is the
+binding by name D40 set aside. A map as the head reads as a record's
+schema [D6], at the price of an equality blind to order, `{:x ::number
+:y ::string} | eq {:y ::string :x ::number}` answering `true` while `[:x
+::number :y] | eq [:y :x ::number]` answers `false`, so two verbs that
+bind their modifiers in opposite orders would be one value; a schema's
+order decides only how a record prints [D46], and a slot's decides which
+modifier it takes. A constraint beyond a kind is itself a kind, a tag
+whose constructor checks it [D6, D33], or an enumeration, `:dir #[:in
+:out]` [D45], so the requirements need no grammar of their own.
+Projections that reach the frame are keys of the runtime's housekeeping,
+which the scar of names that lose their origin removes; the optional and
+variadic slots belong to the slot list [D45].
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

@@ -166,8 +166,8 @@
   |~~ Walks every Quote segment inside the binding's attached
       doc-prefix and returns a Vec of result Maps shaped
       {:snippet :actual :ok :error}. Each Quote is evalQuery'd in
-      an isolated env; :ok is true iff the result is truthy
-      (anything that is neither false nor null nor an error value).
+      an isolated env; :ok is true iff the example answers true,
+      every other answer, an error value among them, failing it.
       Subject is a Keyword (binding name) or a descriptor Map
       carrying a :name string. The composition
       `manifest | every ~(runExamples | every ~(/ok))` walks every

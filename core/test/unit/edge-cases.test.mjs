@@ -36,6 +36,7 @@ import {
   isVec,
   makeConduit,
   makeSet,
+  makeTagKeyword,
   conduitBodyAst,
   conduitEnvRef,
   typeKeyword,
@@ -391,8 +392,8 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('5 | if (gte 60) ~("pass") ~("fail")')).toBe('fail');
   });
 
-  it('if treats null as falsy', async () => {
-    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no")')).toBe('no');
+  it('if refuses a null condition', async () => {
+    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('IfConditionNotBooleanError'));
   });
 
   it('if treats false literal as falsy', async () => {
@@ -442,73 +443,15 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:a 1} | coalesce ~(/a) ~(div 0)')).toBe(1);
   });
 
-  it('when with truthy cond runs the then branch', async () => {
-    expect(await evalQuery('5 | when (gt 0) ~(mul 2)')).toBe(10);
-  });
-
-  it('when with falsy cond passes pipeValue through unchanged', async () => {
-    expect(await evalQuery('5 | when (lt 0) ~(mul 2)')).toBe(5);
-  });
-
-  it('when only the then branch evaluates when cond truthy', async () => {
-    expect(await evalQuery('5 | when true ~(mul 2)')).toBe(10);
-  });
-
-  it('when never evaluates then when cond falsy', async () => {
-    expect(await evalQuery('5 | when false ~(div 0)')).toBe(5);
-  });
-
-  it('unless with falsy cond runs the then branch', async () => {
-    expect(await evalQuery('5 | unless (lt 0) ~(mul 2)')).toBe(10);
-  });
-
-  it('unless with truthy cond passes pipeValue through unchanged', async () => {
-    expect(await evalQuery('5 | unless (gt 0) ~(mul 2)')).toBe(5);
-  });
-
-  it('unless never evaluates then when cond truthy', async () => {
-    expect(await evalQuery('5 | unless true ~(div 0)')).toBe(5);
-  });
-
-  it('unless equivalent to when with negated cond', async () => {
-    expect(await evalQuery('5 | unless (lt 0) ~(mul 2)')).toBe(
-      await evalQuery('5 | when (lt 0 | not) ~(mul 2)')
-    );
-  });
-
-  it('firstTruthy returns first truthy alternative', async () => {
-    expect(await evalQuery('{:a 1} | firstTruthy ~(/a) ~(/b)')).toBe(1);
-  });
-
-  it('firstTruthy skips false unlike coalesce', async () => {
-    expect(await evalQuery('{:a false :b 2} | firstTruthy ~(/a) ~(/b)')).toBe(2);
-  });
-
-  it('coalesce by contrast keeps false', async () => {
+  it('coalesce keeps false as a value', async () => {
     expect(await evalQuery('{:a false :b 2} | coalesce ~(/a) ~(/b)')).toBe(false);
-  });
-
-  it('firstTruthy returns null when all alternatives are falsy', async () => {
-    expect(await evalQuery('{:a false :b null} | firstTruthy ~(/a) ~(/b)')).toBe(null);
-  });
-
-  it('firstTruthy treats 0 as truthy (kept)', async () => {
-    expect(await evalQuery('{:n 0} | firstTruthy ~(/missing) ~(/n) ~("default")')).toBe(0);
-  });
-
-  it('firstTruthy treats empty string as truthy (kept)', async () => {
-    expect(await evalQuery('{:s ""} | firstTruthy ~(/missing) ~(/s) ~("default")')).toBe('');
-  });
-
-  it('firstTruthy short-circuits after match', async () => {
-    expect(await evalQuery('{:a 1} | firstTruthy ~(/a) ~(div 0)')).toBe(1);
   });
 
   it('if and coalesce compose for guarded defaulting', async () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~("???")) ~("guest")')).toBe('Bob');
   });
 
-  // Per-site coalesce / firstTruthy arityError tag identity is
+  // Per-site coalesce arityError tag identity is
   // pinned by `error-operands.test.mjs`; the control-flow block
   // tests the operand semantics, not the per-site wiring.
   it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
@@ -516,9 +459,5 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(caughtErr).toBeInstanceOf(ArityError);
   });
 
-  it('firstTruthy raises FirstTruthyNoAlternativesError on bare call', async () => {
-    const caughtErr = await catchOriginalError('{} | firstTruthy');
-    expect(caughtErr).toBeInstanceOf(ArityError);
-  });
 });
 

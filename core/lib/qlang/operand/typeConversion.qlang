@@ -8,7 +8,7 @@
   |~~ String↔Keyword involution. On a String subject, produces the
       keyword whose name is that string. On a Keyword subject,
       extracts the name as a String. The two directions are inverse:
-      ~("foo" | keyword | keyword) yields ~("foo").
+      `"foo" | keyword | keyword` yields `"foo"`.
       Bridges the String world (JSON data, template building) and
       the Keyword world (Map key syntax, enum discriminators).
 

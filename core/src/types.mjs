@@ -103,12 +103,6 @@ export function isErrorValue(v) {
   return isValueClass(v, 'error');
 }
 
-// ── truthiness ─────────────────────────────────────────────────
-
-export function isTruthy(v) {
-  return v !== null && v !== undefined && v !== false;
-}
-
 // ── keyword value factory ─────────────────────────────────────
 // Keyword objects are pipeline VALUES — for type-level display
 // distinction from strings. Map keys are STRINGS; keyword objects

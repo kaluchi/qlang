@@ -554,15 +554,19 @@ are evaluated — this is **full application**:
 |~| pipeValue itself fills no position
 ```
 
-### Truthiness
+### Conditions
 
-`null` and `false` are falsy. Every other value is truthy —
-including `0`, `""`, `[]`, `{}`, `#[]`. Predicates such as
-`filter`, `if`, `when`, and `not` honour this rule uniformly.
+A condition answers a boolean. `filter`, `every`, `any`, `if`,
+`cond`, `and`, `or` and `not` take `true` or `false` where they read
+a condition, and a value of another kind is refused at the slot, so
+null is tested with `eq null` and an empty container with `empty`.
 
 ```qlang
-> [0 "" null false true 1 "a"] | filter ~(not)
-[null false]
+> [0 "" null false true 1 "a"] | filter ~(eq null)
+[null]
+
+> [1 2] | filter ~(1) !| type
+::FilterConditionNotBooleanError
 ```
 
 ### What a failure looks like
@@ -1532,7 +1536,7 @@ from inside any query or library module.
 ::permissions {:allowed #[:read :write :delete]
    :impl ~(as :p
      | every ~(:permissions/allowed | has)
-     | when not ~(error {:kind :PermissionUnknown})
+     | if not ~(error {:kind :PermissionUnknown}) ~()
      | p)}
 
 |~| → returns the Set unchanged on valid input,
@@ -1640,7 +1644,7 @@ when the constructor applies it.
 
 ```qlang
 ::cond {:impl ~(as :branches
-          | first (/condition | apply / | isTruthy)
+          | first (/condition | apply / | eq true)
           | /body | apply /)}
 
 | 25 | ::cond[{:condition ~(/ | gt 18) :body ~("adult")}
@@ -2076,8 +2080,8 @@ string) as `pipeValue`, it walks the loaded modules' AST,
 collects the binding's attached docs, parses each through the
 Doc-content tokenizer (`parseDocSegments`), keeps every Quote
 segment, and evaluates each Quote against an empty initial
-state. A Quote whose result is truthy (not `false`, not `null`,
-not an ErrorValue) reports `:ok true`.
+state. A Quote that answers `true` reports `:ok true`; every other
+answer, an ErrorValue among them, reports `:ok false`.
 
 ```qlang
 :count | runExamples
@@ -2178,7 +2182,7 @@ Six step types:
 |---|---|---|
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, taking their branches as quotes and applying only the selected one. |
+| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
 | 4 | `as :name` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |

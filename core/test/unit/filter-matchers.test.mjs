@@ -92,11 +92,11 @@ describe('filter — container polymorphism', () => {
 
   it('Map with non-conduit snapshot as pred — falls to per-value path, all entries pass', async () => {
     // Exercises the non-Map branch of resolveCapturedConduit: the
-    // captured-arg resolves to a number (through snapshot auto-unwrap),
+    // captured-arg resolves to a boolean (through snapshot auto-unwrap),
     // so conduit resolution returns null. The per-value path then fires
     // the predicate identifier per entry, which replaces pipeValue with
-    // the truthy number — all entries survive.
-    const count = await evalQuery('42 | as :n | {:a 1 :b 2} | filter ~(n) | count');
+    // `true` — all entries survive.
+    const count = await evalQuery('true | as :n | {:a 1 :b 2} | filter ~(n) | count');
     expect(count).toBe(2);
   });
 

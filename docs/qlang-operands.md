@@ -51,7 +51,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:containerSelector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
 | `:vecReducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
 | `:vecTransformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
-| `:control` | Control-flow operand (if / when / unless / coalesce / firstTruthy / cond). |
+| `:control` | Control-flow operand (if / coalesce / cond). |
 | `:mapOp` | Map-only operand (keys / vals / has on Map). |
 | `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vecTransformer). |
 | `:arith` | Binary numeric operand. |
@@ -208,7 +208,7 @@ reads the keys:
 
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
   **modifier** `pred` (a predicate pipeline or a named conduit).
-- Keeps items where the predicate evaluates truthy, collecting
+- Keeps items whose predicate answers `true`, collecting
   into a new container of the same shape. Vec and Set iterate
   per element in their order; on a Map the predicate
   sees each value and the entries kept keep their keys. Empty
@@ -230,7 +230,7 @@ reads the keys:
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
   **modifier** `pred`.
 - Returns `true` iff every item of the container satisfies the
-  predicate. Short-circuits on the first falsy result. Vacuously
+  predicate. Short-circuits on the first `false`. Vacuously
   true for empty containers. The predicate sees each element, a
   map's value among them, as `filter`'s does.
 - **Examples**:
@@ -249,7 +249,7 @@ reads the keys:
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
   **modifier** `pred`.
 - Returns `true` iff at least one item of the container satisfies
-  the predicate. Short-circuits on the first truthy result.
+  the predicate. Short-circuits on the first `true`.
   Vacuously false for empty containers. The predicate sees each
   element as `filter`'s does.
 - **Examples**:
@@ -601,10 +601,10 @@ round-trips to `"a,b,c"`.
 
 ### `not`
 
-- **Arity** 1. **Subject** any value.
-- Returns `true` if the subject is falsy (`null` or `false`),
-  `false` otherwise.
-- **Example**: `null | not` → `true`; `0 | not` → `false` (0 is truthy).
+- **Arity** 1. **Subject** a boolean.
+- Returns the negation of the subject; null is tested with `eq null`.
+- **Example**: `true | not` → `false`; `null | eq null` → `true`.
+- **Errors**: subject not a boolean → `NotSubjectNotBooleanError`.
 
 ## Predicates
 
@@ -631,16 +631,22 @@ round-trips to `"a,b,c"`.
 
 ### `and a b`
 
-- **Arity** 2. Returns `true` if both `a` and `b` are truthy. Used
-  in full form inside predicates: `filter ~(and /active (/age | gt 18))`.
+- **Arity** 2. Returns `true` if both `a` and `b` are `true`, each
+  answering a boolean. Used in full form inside predicates:
+  `filter ~(and /active (/age | gt 18))`.
 - **Example**: `filter ~(and /active (/age | gt 18))` keeps active
   adults.
+- **Errors**: a condition not a boolean → `AndLeftNotBooleanError` /
+  `AndRightNotBooleanError`.
 
 ### `or a b`
 
-- **Arity** 2. Returns `true` if either `a` or `b` is truthy.
+- **Arity** 2. Returns `true` if either `a` or `b` is `true`, each
+  answering a boolean.
 - **Example**: `filter ~(or /vip (/score | gt 95))` keeps VIPs or
   high-scorers.
+- **Errors**: a condition not a boolean → `OrLeftNotBooleanError` /
+  `OrRightNotBooleanError`.
 
 ## Type classifiers
 
@@ -779,12 +785,12 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 
 - **Arity** 4. **Subject** any value (the current `pipeValue`),
   **modifiers** three captured sub-pipelines.
-- The `cond` sub-pipeline is evaluated against `pipeValue` and its
-  result is checked for truthiness (per language rules: `null` and
-  `false` are falsy, everything else — including `0`, `""`, `[]`,
-  `{}`, `#[]` — is truthy). If truthy, the `then` sub-pipeline is
-  evaluated against the same `pipeValue` and its result becomes the
-  new `pipeValue`. Otherwise the `else` branch runs the same way.
+- The `cond` sub-pipeline is evaluated against `pipeValue` and
+  answers a boolean. On `true` the `then` sub-pipeline is evaluated
+  against the same `pipeValue` and its result becomes the new
+  `pipeValue`; on `false` the `else` branch runs the same way. A
+  one-sided conditional leaves `pipeValue` as it is on the other
+  side through the empty quote, `if (gt 0) ~(add 100) ~()`.
 - All three arguments are captured sub-pipelines, so **only the
   selected branch executes**. The other branch is parsed but never
   evaluated, allowing patterns like `if empty ~("<empty>") ~(first)`
@@ -794,40 +800,8 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   - `employee | if /active ~(/salary | mul 1.1) ~(/salary)` →
     boosted or original salary.
   - `list | if empty ~("<empty>") ~(first)` → safe head with fallback.
-- **Errors**: none from `if` itself; errors raised inside the
-  selected branch propagate.
-
-### `when cond ~(then)`
-
-- **Arity** 3. **Subject** any value (`pipeValue`), **modifiers**
-  two captured sub-pipelines.
-- One-sided conditional with implicit identity on the false branch.
-  If `cond` evaluated against `pipeValue` is truthy, `then` is run
-  against `pipeValue` and its result becomes the new `pipeValue`.
-  Otherwise `pipeValue` passes through unchanged.
-- Both arguments are captured sub-pipelines, so `then` is only
-  evaluated when the condition fires.
-- **Examples**:
-  - `employee | when /active ~(/salary | mul 11 | div 10)` →
-    boost active salaries by 10%, leave the rest as-is.
-  - `list | when empty ~(["<empty>"])` → substitute marker only when
-    the list is empty.
-- **Errors**: none from `when` itself; errors raised inside the
-  `then` branch propagate.
-
-### `unless cond ~(then)`
-
-- **Arity** 3. Same shape as `when`. Inverse semantics: `then`
-  runs when `cond` is **falsy**, otherwise `pipeValue` passes
-  through unchanged.
-- Equivalent to `when (cond | not) ~(then)` but reads more naturally
-  for guard-clause patterns where the action only fires when the
-  condition fails.
-- **Examples**:
-  - `input | unless empty ~(sort)` → sort only non-empty inputs.
-  - `config | unless /validated ~(validate)` → validate when not
-    already validated.
-- **Errors**: none from `unless` itself.
+- **Errors**: a condition not a boolean → `IfConditionNotBooleanError`;
+  errors raised inside the selected branch propagate.
 
 ### `coalesce ~(alt) …`
 
@@ -836,8 +810,8 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 - Evaluates each alternative against `pipeValue` in order and
   returns the first one that produces a non-`null` result. If all
   alternatives produce `null`, the result is `null`.
-- **Skipping rule**: only `null` / `undefined` count as missing.
-  Falsy-but-defined values (`false`, `0`, `""`, `[]`, `{}`, `#[]`)
+- **Skipping rule**: only `null` and an error value count as
+  missing. Defined values (`false`, `0`, `""`, `[]`, `{}`, `#[]`)
   flow through as valid alternative results. Matches SQL
   `COALESCE` and JavaScript `??` semantics.
 - **Short-circuits**: alternatives after the first non-null match
@@ -850,49 +824,22 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   - `lookup | coalesce ~(/cached) ~(/computed)` → prefer cache.
 - **Errors**: zero captured args → `CoalesceNoAlternativesError`.
 
-### `firstTruthy ~(alt) …`
-
-- **Arity** variadic (1+). **Subject** `pipeValue`, **modifiers**
-  one or more alternative sub-pipelines.
-- Symmetric with `coalesce` but checks **truthiness** instead of
-  null-ness. Each alternative is evaluated against `pipeValue` in
-  order; the first one that produces a truthy value becomes the
-  new `pipeValue`. If all alternatives produce falsy values
-  (`null` or `false`), the result is `null`.
-- **Truthiness contract**: `firstTruthy` skips `false` alongside
-  `null` (treating both as "no value"); `coalesce` keeps `false`
-  as a valid explicit setting. In qlang `0`, `""`, `[]`, `{}`,
-  `#[]` are truthy values and flow through either operand
-  unchanged.
-- **Short-circuits**: alternatives after the first truthy match
-  are not evaluated.
-- **Examples**:
-  - `person | firstTruthy ~(/preferredName) ~(/firstName) ~(/lastName) ~("Anonymous")`
-    → first non-empty name with default fallback.
-  - `flag | firstTruthy ~(/userValue) ~(/default) ~(false)` → ignore
-    explicit `false` user values, fall back to default.
-- **Errors**: zero captured args → `FirstTruthyNoAlternativesError`.
-
-**Choosing between `coalesce` and `firstTruthy`:** use `coalesce`
-for config cascading where `false` is a meaningful explicit
-setting (user disabled feature, etc.); use `firstTruthy` for
-display defaults where `false` is a sentinel meaning "no value".
-
 ### `cond ~(p1) ~(b1) ~(p2) ~(b2) … ~(default)?`
 
 - **Arity** variadic (2+). **Subject** any value, **modifiers**
   alternating (predicate, branch) sub-pipeline pairs, plus an
   optional trailing default sub-pipeline.
 - Multi-way dispatch. Walks captured args in pairs: for each
-  `(pK, bK)`, evaluates `pK` against `pipeValue`; if truthy,
-  evaluates `bK` and returns its result. Short-circuits on first
+  `(pK, bK)`, evaluates `pK` against `pipeValue`, which answers a
+  boolean; on `true` evaluates `bK` and returns its result. Short-circuits on first
   match. If captured-arg count is odd, the trailing arg is the
   default. If even and no match, returns `null`.
 - Replaces nested-if chains with a flat catalog.
 - **Examples**:
   - `score | cond ~(gte 90) ~("A") ~(gte 80) ~("B") ~(gte 70) ~("C") ~("F")`.
   - `value | cond ~(eq 0) ~("zero") ~(eq 1) ~("one") ~("many")`.
-- **Errors**: fewer than 2 captured args → `CondNoBranchesError`.
+- **Errors**: fewer than 2 captured args → `CondNoBranchesError`; a
+  predicate not answering a boolean → `CondConditionNotBooleanError`.
 
 ## Reflective built-ins
 
@@ -1319,7 +1266,7 @@ enumerates).
 | `:vecReducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
 | `:vecTransformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
-| `:control` | `if`, `when`, `unless`, `coalesce`, `cond`, `firstTruthy` |
+| `:control` | `if`, `coalesce`, `cond` |
 | `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
 | `:setOp` | `union`, `minus`, `inter` |
 | `:arith` | `add`, `sub`, `mul`, `div` |

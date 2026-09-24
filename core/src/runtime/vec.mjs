@@ -19,7 +19,7 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL,
+  isQSet, isKeyword, isErrorValue, typeKeyword, NULL,
   isVec, isQMap, makeSet
 } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
@@ -81,6 +81,22 @@ const AnyPredArityInvalidError    = declareArityError('AnyPredArityInvalidError'
     `any requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
   { operand: 'any' }
 );
+
+// A condition answers a boolean or fails at its slot [D14]; the refusal
+// names the element whose condition answered another kind.
+const conditionRefusal = operand => ({ index, actualType }) =>
+  `${operand} takes a boolean from its condition, element ${index} answered ${actualType.name}`;
+const FilterConditionNotBooleanError = declareShapeError('FilterConditionNotBooleanError',
+  conditionRefusal('filter'), { operand: 'filter', expectedType: 'boolean' });
+const EveryConditionNotBooleanError  = declareShapeError('EveryConditionNotBooleanError',
+  conditionRefusal('every'), { operand: 'every', expectedType: 'boolean' });
+const AnyConditionNotBooleanError    = declareShapeError('AnyConditionNotBooleanError',
+  conditionRefusal('any'), { operand: 'any', expectedType: 'boolean' });
+
+function booleanOf(answer, index, ErrorCls) {
+  if (typeof answer !== 'boolean') throw new ErrorCls({ index, actualType: typeKeyword(answer), actualValue: answer });
+  return answer;
+}
 const GroupBySubjectNotSequenceError   = declareSubjectError('GroupBySubjectNotSequenceError',   'groupBy',  ['vec', 'set']);
 const IndexBySubjectNotSequenceError   = declareSubjectError('IndexBySubjectNotSequenceError',   'indexBy',  ['vec', 'set']);
 const GroupByKeyNotKeywordError        = declareShapeError('GroupByKeyNotKeywordError',
@@ -233,20 +249,20 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
   if (isVec(container)) {
     const applyItem = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterResult = [];
-    for (const filterItem of container) {
+    for (const [filterIndex, filterItem] of container.entries()) {
       const predResult = await applyItem(filterItem);
       if (isErrorValue(predResult)) return predResult;
-      if (isTruthy(predResult)) filterResult.push(filterItem);
+      if (booleanOf(predResult, filterIndex, FilterConditionNotBooleanError)) filterResult.push(filterItem);
     }
     return filterResult;
   }
   if (isQMap(container)) {
     const applyValue = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterEntries = [];
-    for (const [filterKey, filterValue] of container) {
+    for (const [filterIndex, [filterKey, filterValue]] of [...container].entries()) {
       const predResult = await applyValue(filterValue);
       if (isErrorValue(predResult)) return predResult;
-      if (isTruthy(predResult)) filterEntries.push([filterKey, filterValue]);
+      if (booleanOf(predResult, filterIndex, FilterConditionNotBooleanError)) filterEntries.push([filterKey, filterValue]);
     }
     return new Map(filterEntries);
   }
@@ -255,21 +271,13 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
 
 export const every = higherOrderOp('every', 2, async (container, everyPredModifier) => {
   const everyPredLambda = await codeOfModifier(everyPredModifier, container, v => new EveryPredicateNotQuoteError(v));
-  if (isVec(container)) {
+  if (isVec(container) || isQMap(container)) {
     const applyItem = containerPredDispatch(everyPredLambda, EveryPredArityInvalidError);
-    for (const everyItem of container) {
+    const everyItems = isQMap(container) ? [...container.values()] : container;
+    for (const [everyIndex, everyItem] of everyItems.entries()) {
       const everyResult = await applyItem(everyItem);
       if (isErrorValue(everyResult)) return everyResult;
-      if (!isTruthy(everyResult)) return false;
-    }
-    return true;
-  }
-  if (isQMap(container)) {
-    const applyValue = containerPredDispatch(everyPredLambda, EveryPredArityInvalidError);
-    for (const everyValue of container.values()) {
-      const everyResult = await applyValue(everyValue);
-      if (isErrorValue(everyResult)) return everyResult;
-      if (!isTruthy(everyResult)) return false;
+      if (!booleanOf(everyResult, everyIndex, EveryConditionNotBooleanError)) return false;
     }
     return true;
   }
@@ -278,21 +286,13 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
 
 export const any = higherOrderOp('any', 2, async (container, anyPredModifier) => {
   const anyPredLambda = await codeOfModifier(anyPredModifier, container, v => new AnyPredicateNotQuoteError(v));
-  if (isVec(container)) {
+  if (isVec(container) || isQMap(container)) {
     const applyItem = containerPredDispatch(anyPredLambda, AnyPredArityInvalidError);
-    for (const anyItem of container) {
+    const anyItems = isQMap(container) ? [...container.values()] : container;
+    for (const [anyIndex, anyItem] of anyItems.entries()) {
       const anyResult = await applyItem(anyItem);
       if (isErrorValue(anyResult)) return anyResult;
-      if (isTruthy(anyResult)) return true;
-    }
-    return false;
-  }
-  if (isQMap(container)) {
-    const applyValue = containerPredDispatch(anyPredLambda, AnyPredArityInvalidError);
-    for (const anyValue of container.values()) {
-      const anyResult = await applyValue(anyValue);
-      if (isErrorValue(anyResult)) return anyResult;
-      if (isTruthy(anyResult)) return true;
+      if (booleanOf(anyResult, anyIndex, AnyConditionNotBooleanError)) return true;
     }
     return false;
   }

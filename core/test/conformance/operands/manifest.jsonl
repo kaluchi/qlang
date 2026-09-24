@@ -13,13 +13,13 @@
 {"name":"filter-by-container-selector-category","query":"env | manifest | filter ~(/category | eq :containerSelector) | count","expect":"3"}
 {"name":"filter-by-container-reducer-category","query":"env | manifest | filter ~(/category | eq :containerReducer) | count","expect":"2"}
 {"name":"filter-by-string-category-includes-split-join-and-substring-predicates","query":"env | manifest | filter ~(/category | eq :string) | count","expect":"7"}
-{"name":"filter-by-control-category-six-operands","query":"env | manifest | filter ~(/category | eq :control) | count","expect":"6"}
+{"name":"filter-by-control-category-three-operands","query":"env | manifest | filter ~(/category | eq :control) | count","expect":"3"}
 {"name":"filter-by-reflective-category-five-operands","query":"env | manifest | filter ~(/category | eq :reflective) | count","expect":"5"}
 {"name":"filter-by-code-as-data-category-two-operands","query":"env | manifest | filter ~(/category | eq :codeAsData) | count","expect":"2"}
 {"name":"filter-by-axis-category-four-operands","query":"env | manifest | filter ~(/category | eq :axis) | count","expect":"4"}
 {"name":"filter-by-error-category-one-operand","query":"env | manifest | filter ~(/category | eq :error) | count","expect":"1"}
 {"name":"all-arith-have-add-sub-mul-div","query":"env | manifest | filter ~(/category | eq :arith) * /name | sort","expect":"[\"add\" \"div\" \"mul\" \"sub\"]"}
-{"name":"all-control-six-operands-sorted","query":"env | manifest | filter ~(/category | eq :control) * /name | sort","expect":"[\"coalesce\" \"cond\" \"firstTruthy\" \"if\" \"unless\" \"when\"]"}
+{"name":"all-control-three-operands-sorted","query":"env | manifest | filter ~(/category | eq :control) * /name | sort","expect":"[\"coalesce\" \"cond\" \"if\"]"}
 {"name":"all-reflective-sorted","query":"env | manifest | filter ~(/category | eq :reflective) * /name | sort","expect":"[\"as\" \"env\" \"manifest\" \"runExamples\" \"use\"]"}
 {"name":"all-code-as-data-sorted","query":"env | manifest | filter ~(/category | eq :codeAsData) * /name | sort","expect":"[\"apply\" \"parse\"]"}
 {"name":"all-axis-sorted","query":"env | manifest | filter ~(/category | eq :axis) * /name | sort","expect":"[\"docs\" \"examples\" \"source\" \"spec\"]"}

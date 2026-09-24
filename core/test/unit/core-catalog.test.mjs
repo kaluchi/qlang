@@ -6,7 +6,8 @@
 // (per-family operand + per-site error-tag declarations), plus
 // `lib/qlang/runtime-invariants.qlang` (shared / runtime tag-bindings)
 // and `lib/qlang/tag.qlang` (value-class constructors ::conduit /
-// ::qlang / ::json). Each operand is a `BindStep` whose body is a
+// ::quote / ::set, the kinds of the core, the tags of a quote's
+// steps). Each operand is a `BindStep` whose body is a
 // descriptor Map carrying :kind ::builtin, a :impl
 // `:qlang/prim/*` keyword pointing into PRIMITIVE_REGISTRY, plus
 // authored metadata (category / subject / returns / modifiers /
@@ -219,7 +220,7 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
     const docs = await evalQuery(':filter | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('predicate');
-    expect(joined).toContain('truthy');
+    expect(joined).toContain('boolean');
   });
 });
 
@@ -308,12 +309,12 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest :tag | count')).toBe(223);
+    expect(await evalQuery('manifest :tag | count')).toBe(229);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(69);
+    expect(await evalQuery('manifest | count')).toBe(66);
   });
 });
 
@@ -336,7 +337,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('vecReducer')).toBe(6);  // first, last, sum, min, max, reduce
     expect(categories.get('indexedAccess')).toBe(1);  // at (Vec + Map polymorphic)
     expect(categories.get('vecTransformer')).toBe(8);  // sort, take, drop, distinct, reverse, flat, groupBy, indexBy
-    expect(categories.get('control')).toBe(6);
+    expect(categories.get('control')).toBe(3);
     expect(categories.get('mapOp')).toBe(3);  // keys + vals + has
     expect(categories.get('setOp')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)
     expect(categories.get('arith')).toBe(4);

@@ -1,26 +1,35 @@
 |~ qlang operand catalog — predicate family. Subject-first
    boolean operators (`eq`, ordering family `gt`/`lt`/`gte`/`lte`,
    logical combinators `and`/`or`/`not`). The shape stays uniform:
-   each fires per-call as a pure value test that the higher-order
-   `filter` / `every` / `any` / `if` / `when` / `unless` chain
-   composes over. The identity-tag reader `type` and the `keyword`
+   each fires per-call as a pure value test answering a boolean, the
+   condition the higher-order `filter` / `every` / `any` / `if` /
+   `cond` chain composes over [D14]. The identity-tag reader `type` and the `keyword`
    involution ride parallel axes and live in
    `core/lib/qlang/operand/typeClassifier.qlang` and
    `core/lib/qlang/operand/typeConversion.qlang` respectively. ~|
 
 :not
-  |~~ Logical negation. Returns true if the subject is falsy
-      (null or false), false otherwise. 0, "", [], {}, #[] are
-      all truthy.
+  |~~ Logical negation of a boolean. Null is tested with `eq null`,
+      and a subject of another kind is refused.
 
-      ~(null | not | eq true)
-      ~(0 | not | eq false)
+      ~(false | not | eq true)
+      ~(true | not | eq false)
+      ~(null | eq null | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/not
             :category :predicate
-            :subject :any
+            :subject :boolean
             :returns :boolean
    }
+
+::NotSubjectNotBooleanError
+  |~~ Subject of `not` must be a boolean.
+      ~(
+        0 | not
+        !| [type /actualType]
+        |  eq [::NotSubjectNotBooleanError ::number]
+       )
+  ~~|
 
 :eq
   |~~ Returns true if the subject equals the captured value by
@@ -120,9 +129,9 @@
 
 :and
   |~~ Conjunction across captured sub-pipelines: each fires
-      against pipeValue, all results must be truthy. Use inside
-      `filter` / `every` / `if` to compose multi-clause predicates
-      over a single subject.
+      against pipeValue and answers a boolean, and both must be
+      true. Use inside `filter` / `every` / `if` to compose
+      multi-clause predicates over a single subject.
 
       ~({:active true :age 25} | and /active (/age | gte 18) | eq true)
       ~({:active false :age 25} | and /active (/age | gte 18) | eq false)
@@ -134,9 +143,28 @@
             :modifiers [:any]
    }
 
+::AndLeftNotBooleanError
+  |~~ The left condition of `and` must answer a boolean.
+      ~(
+        1 | and true
+        !| [type /actualType]
+        |  eq [::AndLeftNotBooleanError ::number]
+       )
+  ~~|
+
+::AndRightNotBooleanError
+  |~~ The right condition of `and` must answer a boolean.
+      ~(
+        true | and 1
+        !| [type /actualType]
+        |  eq [::AndRightNotBooleanError ::number]
+       )
+  ~~|
+
 :or
   |~~ Disjunction across captured sub-pipelines: each fires
-      against pipeValue, at least one result must be truthy.
+      against pipeValue and answers a boolean, and at least one
+      must be true.
 
       ~(5  | or (eq 5) (eq 10) | eq true)
       ~(7  | or (eq 5) (eq 10) | eq false)
@@ -148,3 +176,21 @@
             :returns :boolean
             :modifiers [:any]
    }
+
+::OrLeftNotBooleanError
+  |~~ The left condition of `or` must answer a boolean.
+      ~(
+        1 | or true
+        !| [type /actualType]
+        |  eq [::OrLeftNotBooleanError ::number]
+       )
+  ~~|
+
+::OrRightNotBooleanError
+  |~~ The right condition of `or` must answer a boolean.
+      ~(
+        false | or 1
+        !| [type /actualType]
+        |  eq [::OrRightNotBooleanError ::number]
+       )
+  ~~|

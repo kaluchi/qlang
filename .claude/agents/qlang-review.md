@@ -87,7 +87,7 @@ Documentation, code comments, commit messages, and error strings must read as if
 - `PROPAGATION_ENTER`, `PROPAGATION_SILENT`, "propagation check", "propagation block", "error propagation" used as a mechanism name: the mechanism is **deflect** (a success-track combinator bypassing its step on an error pipeValue) and **fire** (a combinator applying its step because pipeValue is on the combinator's track). "Propagation" survives only as a descriptive noun for the observable behavior ("the error propagates past `|` steps"), never as a code-level machinery name.
 - "Transparent conduit" as a dispatch category: conduits are ordinary OperandCalls; `!|` routes them into the fail-track, `|` routes them into the success-track with deflection on an error.
 - `| catch | /…` patterns in tests, docs, or lib modules: replace with `!| /…`.
-- `catch(as(:_err) | … | error(_err))` patterns in `core/lib/extras/error*.qlang` conduits: replace with `!| … | error`.
+- `catch (as :_err | … | error _err)` patterns in `core/lib/extras/error*.qlang` conduits: replace with `!| … | error`.
 
 Any match above is blocker-grade drift regardless of context.
 

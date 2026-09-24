@@ -570,7 +570,7 @@ that Map's JS-header slot, and evaluates `nextStep` against it as
 the new `pipeValue` — so `!| type` reads the identity and `!|
 /trail` reads the suffix. The step sees the descriptor as an
 ordinary Map and may use any Map-oriented operand (`/key`, `has`,
-`keys`, `vals`, `union`, `/trail | apply(…)`, etc.) without special
+`keys`, `vals`, `union`, `/trail | apply …`, etc.) without special
 error-handling knowledge. Any result the step produces becomes the new
 `pipeValue` — if the step produces a non-error value, the
 pipeline is back on the success-track; if the step re-lifts via
@@ -583,8 +583,8 @@ The first step of a pipeline rides `|` like every other step. A
 leading combinator on a Pipeline (`Pipeline.leadingCombinator`,
 one of `!|` / `|` / `*`) routes it through that combinator
 instead, even though no preceding step exists. The
-`!|` form is used inside predicate lambdas of `filter(…)`,
-`when(…)`, `if(…)` and inside distribute element bodies where the
+`!|` form is used inside predicate lambdas of `filter ~(…)`,
+`when … ~(…)`, `if … ~(…) ~(…)` and inside distribute element bodies where the
 per-element `pipeValue` may be on either track; every form is what
 makes a pipeline-suffix Quote (`~(| count)`, `~(* mul 2)`)
 replay through `apply`.
@@ -710,7 +710,7 @@ langRuntime` to match the conceptual model exactly.)
 The reference implementation assembles `langRuntime()` from two
 co-located sources:
 
-- **`lib/qlang/core.qlang`** — the orchestrator. One `use(...)`
+- **`lib/qlang/core.qlang`** — the orchestrator. One `use […]`
   call that imports the catalog families in order:
   `runtime-invariants`, `tag`, then every `operand/<family>`.
   Each family file (`lib/qlang/operand/arith.qlang`,
@@ -750,12 +750,12 @@ co-located sources:
   (`:name | source / docs / examples`).
 
 `langRuntime()` in `core/src/runtime/index.mjs` ties the two together
-by parsing `core.qlang` once (which threads through `use(...)` to
+by parsing `core.qlang` once (which threads through `use …` to
 load every family via the `:qlang/locator`-resolved sources),
 evaluating it against a seed env carrying just `:use` and the
 locator, and returning a shallow copy of the resulting template on
 every call so each session can write its own bindings without
-mutating the template. The root is one `use([…])` step and `use`
+mutating the template. The root is one `use […]` step and `use`
 answers on the fail-track like any other operand, so the bootstrap
 reads the root's pipeValue before the env: an error value there
 means a family source the locator resolved failed to load, and
@@ -968,8 +968,8 @@ Trace, assuming the tree literal already occupies `pipeValue`:
 3. `add 0 2816` → `2816`.
 
 The pattern — `aggregator /leafValue (/children * self | reducer)` —
-generalizes to any aggregation: count nodes with `add(1, ...)`,
-find max depth with `max(0, ... | max) | add(1)`, etc.
+generalizes to any aggregation: count nodes with `add 1 (…)`,
+find max depth with `[0 (… | max)] | max | add 1`, etc.
 
 #### 6b — tree flattening: all file names in DFS order
 
@@ -1226,7 +1226,7 @@ names another. A lone step the parser collapsed out of its pipeline
 rides `|` through `evalBody`, the entry every body takes: a
 query, a group, a distribute body, a captured argument, a conduit
 body, and an applied quote. The `!|` form is how predicate
-lambdas inside `filter(…)` / `when(…)` / `if(…)` opt into
+lambdas inside `filter ~(…)` / `when … ~(…)` / `if … ~(…) ~(…)` opt into
 fail-apply for their first step.
 
 ### Trail and materialization
@@ -1435,7 +1435,7 @@ invocations.
   `langRuntime()`. Options:
   - `opts.env` — initial env Map (default: `langRuntime()`).
   - `opts.locator` — `async (namespaceName: string) =>
-    { source, impls? } | null`. Called by `use(:ns)` when the
+    { source, impls? } | null`. Called by `use :ns` when the
     namespace keyword is absent from env. Stored under the reserved
     `:qlang/locator` keyword in env. See the spec's "Lazy module
     loading via locator" section for the full contract.

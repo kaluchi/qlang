@@ -193,7 +193,7 @@ same on every shape; what changes is which axis the language
 offers to fill:
 
 - **0-arity inline pipeline** (`filter ~(gt 1)`) or **0-arity named
-  conduit** (`:big gt(1) | ... | filter(big)`) — per item
+  conduit** (`:big gt 1 | ... | filter ~(big)`) — per item
   with pipeValue = element on Vec/Set, value on Map. Covers the
   90% case.
 - **1-arity conduit `[:x]`** — the element (Vec/Set) or value

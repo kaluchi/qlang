@@ -4154,7 +4154,15 @@ subject, which its protocols declare and the language computes,
 on strings [D34]. A pre- or postcondition written as code is a head that
 computes; a constraint is a kind whose constructor checks it [D6, D33],
 and the runtime checks every call against the declaration [D45], where
-Clojure's instrumentation is a mode switched on for development.
+Clojure's instrumentation is a mode switched on for development. The
+dispatch asked after, «а мультидиспатч каокй-то там был?» (07:27), is
+decided: a verb is found by walking the subject's tags from the outside
+in, and it keeps one contract, its document and its examples, which
+every kind that implements it answers as laws [D23, D34]. The head then
+belongs to that contract and is written once, a kind that implements the
+verb brings its body, a variant by the subject's kind is the walk's, and
+what one head may hold beside its slots is the alternatives of its
+arity, the open question of optional slots.
 
 Optional and variadic slots [D45]. `sort` takes a key or none, `cond`
 and `coalesce` take as many clauses as they are given, and the slot list

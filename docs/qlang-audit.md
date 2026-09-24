@@ -4093,6 +4093,49 @@ gigamap, into a series of declaration steps, the form the declarations
 of today grew from. A slot therefore needs no doc of its own in the
 head: what it takes is its kind's, documented by the tag once [D50], and
 what the verb does with it is the verb's doc.
+A third thought spells the head as a classic declaration and looks for a
+signal at the start: «туда бы хорошо встал класический биндинг ~(:name
+doc value | :name2 если есть)(code).. но грамматика чуть усложнится ..
+или делать как ~(:name doc value | :name2 | code) - но это тогда обычная
+квота ... и её со старта нужно тогда отделять другим знаком ~~(двойная
+квота?) ... или квота которая вычисляет квоту.. тоже бред какой-то ...
+или дважды применяемая квота .. или квота-вектор из двух групп
+~[declageparams code] - где первая группа может быть пустой и тогда все
+кодпайп ~[noargcodepipe] такой синтаксис жуется вроде ~[("" | "") ("y" |
+"z")] - только скобки с недавних пор стали обязательны .. но можно и так
+обойти тогда ~[declale][code] - тогда так уже оно и так было "~[" -
+будет тем самым сильным стартовыми сигналом снимающим дальнейшую
+неоднозначность.. и премственность какая-то будет .. квота фиксированная
+или квота ленивая параметризуемая(кондуит) ..» (maintainer, 2026-09-24
+05:52, session 86982eb5), and asks of it «так а что насчет ~[]
+преложения? не разорит оно нас и нашу модель?..» (06:02). The model's
+reading: the runtime already holds the value such a literal spells. A
+conduit prints as the tagged vector of its slots and the quote of its
+body and reads back from it, `::conduit[[:x] ~(add x)]` answering
+itself, and a binding of that value is a verb, `:g ::conduit[[:x] ~(add
+x)] | 5 | g 2` answering `7`, as a quote is the vector of its steps
+under `::quote`, `::quote[::call{:name :add :args [1]}]` answering
+`~(add 1)`. `~[:x](add x)` is then the short spelling of a conduit as
+`~(add 1)` is of a quote, and `~[` stands free in the grammar,
+`~[:x](add x)` answering a parse error at the bracket. Its head is the
+slot list of D45 and its body a pipeline in parentheses [D8]. The
+spelling `~[declare][code]` holds the body in brackets, where every
+element is a word [D55], so `[add x]` is two words; a head of pipelines
+computes before it can be read, and `~(a)(b)` is refused as a word
+written against the one before it; `~~` after a pipe opens a comment,
+`5 |~~(add 1)` refused as one never closed, and a quote is never doubled
+[D47]. Under this reading a binding is `:name value` wherever it stands,
+and a verb is a binding whose value is a conduit, `:inc ~[](add 1)`
+beside `:q ~(add 1)`; the slot list leaves the place after the name,
+where `:f [:x] ~(add x) | 5 | f 2` answers `~(add x)` and the conduit
+prints its quote doubled, `::conduit[:f [:x] ~(~(add x))]`. The
+conduit's name leaves the value, which a bound literal already prints
+without, and the model would have a built-in, whose body is host code,
+carry its slot list in its descriptor, `::builtin{:slots [::number :n
+::number] :impl :qlang/prim/add :returns ::number}`. The literal keeps
+one hole of the long spelling, an effectful body bound under a clean
+name, `:g ::conduit[[:x] ~(@out x)] | g "hi"` printing `hi`, which the
+effect marker takes with it when it leaves [D2].
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

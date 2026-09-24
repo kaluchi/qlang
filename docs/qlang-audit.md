@@ -1420,18 +1420,19 @@ already means a tag over the value of a group, and the tag's
 constructor re-establishes the one invariant, that every element is a
 step, after each transform.
 
-Where the syntax is a literal, the step is that literal itself, a
-nested quote included; where the syntax computes, a command, a
-projection, a declaration, a constructor invocation, the step is a
-tagged record declared and documented in the catalog. The combinators
-dissolve into the step: `5 | add(1) !| type` answers 6, so a step
-listens on one track and is skipped on the other; the fail track
-begins where a step produces an error and ends at the first step that
-listens on it, which receives the error as data, so `"x" | add(1) !| /
-| 5` answers 5 today. The group, the fail track, the distribute and the
-flatten are therefore attributes of a step, each a tag stacked on the
-quote of that step, as `::T[1 2] | tag(::U)` already stacks to
-`::U::T[1 2]`, while `|` is the adjacency of the vector.
+Where the syntax is a literal, the step is that literal itself, a nested
+quote included; where the syntax computes, a command, a projection, a
+declaration, a constructor invocation, the step is a tagged record
+declared and documented in the catalog, `::call`, `::proj`, `::bind` or
+`::tagged` [D47]. The combinators dissolve into the step: `5 | add(1) !|
+type` answers 6, so a step listens on one track and is skipped on the
+other; the fail track begins where a step produces an error and ends at
+the first step that listens on it, which receives the error as data, so
+`"x" | add(1) !| / | 5` answers 5 today. The group, the fail track, the
+distribute and the flatten are therefore attributes of a step, each a
+tag stacked on the quote of that step, `::group`, `::fail`, `::each` and
+`::flat`, as `::T[1 2] | tag(::U)` already stacks to `::U::T[1 2]`,
+while `|` is the adjacency of the vector.
 
 The head of a pipeline is a step like the others and rides `|` unless
 tagged otherwise, and that is a change: today the head of a query, of a
@@ -1497,23 +1498,22 @@ wrapped step, and `tag` puts it back; `[type payload] | tag` is the
 identity on every tagged value today, and `payload | type` answers the
 container shape beneath a tag. The literal of whatever `payload` shows
 rebuilds it: a vector literal, a map literal, a quote literal, then
-`tag`. Every field of a record that holds a pipeline holds a quote, the
-modifiers of a command included, so the obvious assembly, a quote where
-a pipeline goes, is the right one, and the wrong one, a bare value
-where a quote belongs, is refused by the record's constructor at
-construction rather than accepted as a program that runs. A literal
-modifier cannot be stored bare while a computed one is stored as a
-quote, because `add ~(x)` and `add x` would then share the datum
-`~(x)`; so `add 1` carries `~(1)`, the printer shows `1`, and the one
-doubled quote left in the form is a quote literal written as a
-modifier, `~(~(x))`. The binding record says by its field whether it
-holds code or a value body, `:code` for a verb and `:body` for a value
-evaluated at declaration, so that the commonest declaration carries no
-doubled quote. What remains to know is one rule: a declaration with a
-slot list is a verb whose code is its quote body, and every other
-declaration names a value, a quote included [D44]. The ring branch also
-decides `>>`, sugar over `flat`, before it encodes the flatten, since a
-form encodes no combinator a later branch would remove.
+`tag`. A field of a record that holds a pipeline holds a quote, and a
+field that holds a word holds that word's step, the modifiers of a
+command among them, since a modifier is one word [D10]: a literal is
+itself, a quote literal included, a name or a projection is its record,
+and a group is its quote under `::group`, so `add ~(x)` and `add x` keep
+apart as `[~(x)]` and `[::call{:name :x}]` and no quote is doubled
+[D47]. The obvious assembly is the right one, `{:name :filter :args
+[~(gt 1)]} | tag ::call` being `filter ~(gt 1)`, and a wrong one is
+refused by the record's constructor at construction rather than accepted
+as a program that runs. The binding record says by its field whether it
+holds code or a value, `:code` for a verb and `:body` for a value
+evaluated at declaration. What remains to know is one rule: a
+declaration with a slot list is a verb whose code is its quote body, and
+every other declaration names a value, a quote included [D44]. The ring
+branch also decides `>>`, sugar over `flat`, before it encodes the
+flatten, since a form encodes no combinator a later branch would remove.
 
 The same moves take any value apart into atoms and build it back
 [D42], and today they reach as far as projections and literals do.
@@ -2208,11 +2208,22 @@ Decision. A quote is a vector of steps under the code tag, spelled
 `~(…)`; container operands apply to it as to any tagged vector; the
 data form carries no `:kind` and no positions; the parser's tree stays
 a separate view for tools.
-Source. The model, 15 and 19 September 2026.
+Source. The spelling is the maintainer's: «ладно ~() .. наверное
+перевешивает и старую форму и альтернативу в виде ~[] ...» (maintainer,
+2026-09-15 22:47, session f4f0c99b). Transparency answers «для упаковки
+и распаковки наверное проше операнд с биекцией придумать?» (20:52) with
+the bijection every tag already has, `payload` one way and `tag` the
+other, as the maintainer read it back, «т.е. ты предлагаешь что-то типа
+~(1 | add(/a | mul(2))) | payload = и на выходе я получаю [1 ::Call{}]
+или как?» (21:09), and it was accepted with «ок, принимаю» (maintainer,
+2026-09-24 00:07, session 86982eb5). The data form, the model, 15 and 19
+September 2026.
 Set aside. An opaque value reached through one involution operand, the
 way `error` exposes its descriptor: transparency removes a value class
 where the alternative adds an operand, at the price of every container
 operand acquiring a meaning on a quote.
+Replaced in part by D47, which stores a modifier as its step and names
+the tags of the data form.
 
 ### D9 · `apply` is subject first
 
@@ -3076,6 +3087,37 @@ sites that each fill its fields their own way. A per-site tag the
 runtime derives from the facts, which has no entry of the catalog behind
 it.
 
+### D47 · A modifier is stored as its step, in a form of eight tags
+
+Decision. A command's modifiers are words [D10], and the data form
+stores each as its step, by the rule of a literal's elements: a literal
+as itself, a quote literal included, a name or a projection as its
+record, a group as its quote under `::group`. `add ~(x)` and `add x`
+stay apart, `[~(x)]` against `[::call{:name :x}]`, and no quote is
+doubled, so `filter ~(gt 1)` is `::call{:name :filter :args [~(gt 1)]}`
+and assembling it is writing what one reads. A field that holds a word
+holds its step, and a field that holds a pipeline holds a quote: a value
+binding is `::bind{:name :q :body ~(add 1)}` and a verb `::bind{:name
+:inc :slots [] :code ~(add 1)}` [D44, D45]. The data form speaks with
+eight tags of the core, written small as the core's kinds are [D32]: the
+records `::call`, `::proj`, `::bind` and `::tagged`, and the wrappers of
+a step, `::each` for `*`, `::flat` for `>>`, `::fail` for `!|` and
+`::group` for parentheses; `::flat` lives as long as `>>` does.
+Source. «ок, принимаю» (maintainer, 2026-09-24 00:07, session 86982eb5),
+answering the model's proposal and its question on the case of the
+names. The rule, the model, the same night, from the one word of D10 and
+the quotes of D43, held to the maintainer's measure of 15 September:
+«мне важная некая обратимость и симметричность формы .. т.е. если я
+что-то разбираю до атомов и дальше из них собираю .. то у меня не должно
+возникать ступора.. а почему из полученных запчастей я не могу
+пересобрать то же самое назад самым очевидным интуитивным синтаксисом»
+(maintainer, 2026-09-15 21:23, session f4f0c99b).
+Set aside. Every modifier as the quote of its pipeline, the form of 15
+September, which doubles the quote of every code modifier once D43 makes
+code a quote and asks an assembler to wrap a literal as `~(1)`. The
+names with a capital, `::Call`, which the first sketch used and the
+core's kinds do not.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3302,20 +3344,22 @@ this milestone closes.
 ### Milestone 1 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring closes
-first [D3, D8, D9]; the command form follows on its heels [D10, D11],
-because the step's form is what the printer prints and what every
+first [D3, D8, D9, D47]; the command form follows on its heels [D10,
+D11], because the step's form is what the printer prints and what every
 trail, snippet and example carries, and the parser of the call form
-together with the printer of the command form rewrites every text of
-the repository and of the sister project by machine, so each later
-branch writes its examples once; the argument model follows
-[D4, D43, D45], with the interface of hosts designed in the same
-branch and landed in every host; the one binding form closes the
-milestone [D5, D44], with comments as whitespace and the Doc literal
-in the binding's slot.
+together with the printer of the command form rewrites every text of the
+repository and of the sister project by machine, so each later branch
+writes its examples once; the argument model follows [D4, D43, D45],
+with the interface of hosts designed in the same branch and landed in
+every host; the one binding form closes the milestone [D5, D44], with
+comments as whitespace and the Doc literal in the binding's slot.
 
 ```qlang target
 > ~(1 | add 1 | mul 2) | count
 3
+
+> ~(filter ~(gt 1)) | payload
+[::call{:name :filter :args [~(gt 1)]}]
 
 > ~(add 1) | eq ~(add  1)
 true

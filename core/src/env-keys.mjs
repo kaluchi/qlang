@@ -46,13 +46,24 @@ export const RUNTIME_LOCATOR_KEY    = 'qlang/locator';
 
 // Tag-binding env-key mint and probes ──────────────────────────
 
-// tagBindingKey(tagName) — `::Tag` env-lookup key from a raw tag
-// name. The single mint site every reader that probes env for a
-// tag binding uses. Renderers should pull the same literal off the
-// TagKeyword value's `.literal` field (set once at TagKeyword
+// canonicalTagName(tagName) — the name a tag goes by. The kinds of
+// the core are named under its prefix and written short [D32], so
+// `::qlang/number` is the tag `::number`; every other name is its own.
+const CORE_KIND_PREFIX = 'qlang/';
+const CORE_KIND_NAMES = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'tag', 'vec', 'map', 'set', 'quote', 'doc']);
+
+export function canonicalTagName(tagName) {
+  const shortName = tagName.slice(CORE_KIND_PREFIX.length);
+  return tagName.startsWith(CORE_KIND_PREFIX) && CORE_KIND_NAMES.has(shortName) ? shortName : tagName;
+}
+
+// tagBindingKey(tagName) — `::Tag` env-lookup key from a tag name,
+// written short or long. The single mint site every reader that probes
+// env for a tag binding uses. Renderers should pull the same literal off
+// the TagKeyword value's `.literal` field (set once at TagKeyword
 // construction in `types.mjs::makeTagKeyword`).
 export function tagBindingKey(tagName) {
-  return TAG_BINDING_PREFIX + tagName;
+  return TAG_BINDING_PREFIX + canonicalTagName(tagName);
 }
 
 export function isTagBindingName(name) {

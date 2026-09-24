@@ -72,7 +72,7 @@ describe('makeErrorValue', () => {
     expect(thrown).toBeInstanceOf(QlangTypeError);
     expect(thrown.name).toBe('ErrorTrailNotQuoteError');
     expect(thrown.fingerprint).toBe('ErrorTrailNotQuoteError');
-    expect(thrown.context.actualType).toEqual(keyword('vec'));
+    expect(thrown.context.actualType).toEqual(makeTagKeyword('vec'));
     expect(thrown.context.actualValue).toEqual([1, 2]);
   });
 });

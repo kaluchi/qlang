@@ -22,7 +22,7 @@
       ~(
         "hello" | add 1
         !| [type /actualType]
-        |  eq [::AddLeftNotNumberError :string]
+        |  eq [::AddLeftNotNumberError ::string]
        )
   ~~|
 
@@ -32,7 +32,7 @@
       ~(
         1 | add "x"
         !| [type /actualType]
-        |  eq [::AddRightNotNumberError :string]
+        |  eq [::AddRightNotNumberError ::string]
        )
   ~~|
 
@@ -68,7 +68,7 @@
       ~(
         "hello" | sub 1
         !| [type /actualType]
-        |  eq [::SubLeftNotNumberError :string]
+        |  eq [::SubLeftNotNumberError ::string]
        )
   ~~|
 
@@ -78,7 +78,7 @@
       ~(
         1 | sub "x"
         !| [type /actualType]
-        |  eq [::SubRightNotNumberError :string]
+        |  eq [::SubRightNotNumberError ::string]
        )
   ~~|
 
@@ -113,7 +113,7 @@
       ~(
         "hello" | mul 2
         !| [type /actualType]
-        |  eq [::MulLeftNotNumberError :string]
+        |  eq [::MulLeftNotNumberError ::string]
        )
   ~~|
 
@@ -123,7 +123,7 @@
       ~(
         1 | mul "x"
         !| [type /actualType]
-        |  eq [::MulRightNotNumberError :string]
+        |  eq [::MulRightNotNumberError ::string]
        )
   ~~|
 
@@ -160,7 +160,7 @@
       ~(
         "hello" | div 2
         !| [type /actualType]
-        |  eq [::DivLeftNotNumberError :string]
+        |  eq [::DivLeftNotNumberError ::string]
        )
   ~~|
 
@@ -170,7 +170,7 @@
       ~(
         1 | div "x"
         !| [type /actualType]
-        |  eq [::DivRightNotNumberError :string]
+        |  eq [::DivRightNotNumberError ::string]
        )
   ~~|
 

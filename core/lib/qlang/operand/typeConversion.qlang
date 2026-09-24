@@ -28,7 +28,7 @@
       ~(
         42 | keyword
         !| [type /actualType]
-        |  eq [::KeywordSubjectNotStringOrKeywordError :number]
+        |  eq [::KeywordSubjectNotStringOrKeywordError ::number]
        )
   ~~|
 
@@ -57,7 +57,7 @@
       ~(
         42 | payload
         !| [type /actualType]
-        |  eq [::PayloadSubjectNotTaggedInstanceError :number]
+        |  eq [::PayloadSubjectNotTaggedInstanceError ::number]
        )
   ~~|
 
@@ -103,7 +103,7 @@
       ~(
         42 | tag :foo
         !| [type /actualType]
-        |  eq [::TagModifierNotTagKeywordError :keyword]
+        |  eq [::TagModifierNotTagKeywordError ::keyword]
        )
   ~~|
 
@@ -114,7 +114,7 @@
       ~(
         42 | tag
         !| [type /actualType]
-        |  eq [::TagBareSubjectShapeError :number]
+        |  eq [::TagBareSubjectShapeError ::number]
        )
       ~(
         [::Foo 1 2] | tag

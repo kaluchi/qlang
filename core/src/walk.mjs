@@ -11,7 +11,7 @@
 // `grammar.peggy` extends both this file and `quote.mjs`; every
 // downstream walker inherits the knowledge.
 
-import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey } from './env-keys.mjs';
+import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey, canonicalTagName } from './env-keys.mjs';
 
 // Namespace alias values used by `bindingNamesVisibleAt` to select
 // which BindStep / `as` declaration shapes count toward the result
@@ -209,10 +209,10 @@ export function findIdentifierOccurrences(ast, name) {
 function findTagNamespaceOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (node.type === 'TaggedLit' && node.tag === tagName) occurrences.push(node);
-    else if (node.type === 'BareTypeKeyword' && node.tag === tagName) occurrences.push(node);
+    if (node.type === 'TaggedLit' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
+    else if (node.type === 'BareTypeKeyword' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
     else if (node.type === 'BindStep'
-             && node.key.type === 'BareTypeKeyword' && node.key.tag === tagName) {
+             && node.key.type === 'BareTypeKeyword' && canonicalTagName(node.key.tag) === tagName) {
       occurrences.push(node);
     }
   });

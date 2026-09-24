@@ -35,8 +35,8 @@
 {"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add 1 !| union {:trail null} | error !| /trail","expect":"null"}
 {"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail ~(| pre)} !| /trail","expect":"~(| pre)"}
 {"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail ~(| pre)} | count !| /trail","expect":"~(| pre | count)"}
-{"name":"trail-not-quote-in-literal","query":"!{:kind :oops :trail [1 2]} !| [type /actualType]","expect":"[::ErrorTrailNotQuoteError :vec]"}
+{"name":"trail-not-quote-in-literal","query":"!{:kind :oops :trail [1 2]} !| [type /actualType]","expect":"[::ErrorTrailNotQuoteError ::vec]"}
 {"name":"trail-not-quote-on-relift","query":"!{:kind :oops} | count !| union {:trail []} | error !| type","expect":"::ErrorTrailNotQuoteError"}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| union {:trail null} | error | add 1 !| /trail","expect":"~(| add 1)"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail | parse","expect":"\"* add 1\""}
-{"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::AddLeftNotNumberError!{\n  :faultStep ~(add 1)\n  :faultInput \"hello\"\n  :actualType :string\n}"}
+{"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::AddLeftNotNumberError!{\n  :faultStep ~(add 1)\n  :faultInput \"hello\"\n  :actualType ::string\n}"}

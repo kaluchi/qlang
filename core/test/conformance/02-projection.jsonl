@@ -19,4 +19,4 @@
 {"name":"polymorphic-vec-then-map","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | /1/name","expect":"\"bob\""}
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | /0","expect":"[0 1]"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | /rows/1/0","expect":"3"}
-{"name":"null-subject-strict","query":"null | /any","expect":"::ProjectionSubjectNotProjectableError!{\n  :faultStep ~(/any)\n  :faultInput null\n  :actualType :null\n  :key \"any\"\n}"}
+{"name":"null-subject-strict","query":"null | /any","expect":"::ProjectionSubjectNotProjectableError!{\n  :faultStep ~(/any)\n  :faultInput null\n  :actualType ::null\n  :key \"any\"\n}"}

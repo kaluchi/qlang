@@ -35,7 +35,7 @@ import {
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
-import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
+import { moduleAstKey, tagBindingKey, canonicalTagName } from './env-keys.mjs';
 import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -572,10 +572,12 @@ async function evalTaggedLit(node, state) {
   // Declare the tag before evaluating the payload so a self-referential
   // payload (`::Tag(::Tag | spec)`) resolves the binding the literal is
   // introducing — the same lexical visibility a named conduit's body
-  // has over its own self-name.
-  const declaredState = ensureTagBinding(state, node.tag);
+  // has over its own self-name. A kind of the core written long,
+  // `::qlang/vec[1 2]`, is the kind written short [D32].
+  const tagName = canonicalTagName(node.tag);
+  const declaredState = ensureTagBinding(state, tagName);
   const payloadFork = await fork(declaredState, inner => evalNode(node.payload, inner));
-  const minted = await mintTaggedInstance(node.tag, payloadFork.pipeValue, declaredState, node.location);
+  const minted = await mintTaggedInstance(tagName, payloadFork.pipeValue, declaredState, node.location);
   return withPipeValue(declaredState, minted);
 }
 

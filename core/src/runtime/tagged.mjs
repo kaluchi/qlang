@@ -12,9 +12,9 @@ import { nullaryOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isVec, isKeyword, isQuote, isQMap,
+  isVec, isKeyword, isQuote, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
   isTaggedInstance, isTagKeyword, isErrorValue,
-  makeConduit, makeSet, typeKeyword
+  makeConduit, makeSet, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { astOfQuote } from '../quote.mjs';
 import {
@@ -103,6 +103,41 @@ function setConstructor(payload) {
 }
 
 bindTypeConstructor('set', setConstructor);
+
+// The constructors of the core's kinds [D32, D33]: each reads its
+// payload as the value of its kind, so `::vec[1 2]`, `::qlang/vec[1 2]`
+// and `[1 2]` are one value and print as the last, and a payload of
+// another kind is refused at the site. A vector or a map under a tag of
+// its own reads as the bare one.
+const NullPayloadNotNullError       = declareSubjectError('NullPayloadNotNullError',       '::null',    'null');
+const BooleanPayloadNotBooleanError = declareSubjectError('BooleanPayloadNotBooleanError', '::boolean', 'boolean');
+const NumberPayloadNotNumberError   = declareSubjectError('NumberPayloadNotNumberError',   '::number',  'number');
+const StringPayloadNotStringError   = declareSubjectError('StringPayloadNotStringError',   '::string',  'string');
+const KeywordPayloadNotKeywordError = declareSubjectError('KeywordPayloadNotKeywordError', '::keyword', 'keyword');
+const TagPayloadNotTagError         = declareSubjectError('TagPayloadNotTagError',         '::tag',     'tag');
+const VecPayloadNotVecError         = declareSubjectError('VecPayloadNotVecError',         '::vec',     'vec');
+const MapPayloadNotMapError         = declareSubjectError('MapPayloadNotMapError',         '::map',     'map');
+const DocPayloadNotDocError         = declareSubjectError('DocPayloadNotDocError',         '::doc',     'doc');
+
+function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payload) {
+  return payload => {
+    if (!isOfKind(payload)) throw new ErrorCls(payload);
+    return bareValueOf(payload);
+  };
+}
+
+const bareVecOf = vec => vec[TAG_HEADER_SYMBOL] === undefined ? vec : Object.freeze([...vec]);
+const bareMapOf = map => map[TAG_HEADER_SYMBOL] === undefined ? map : new Map(map);
+
+bindTypeConstructor('null',    coreKindConstructor(isNull, NullPayloadNotNullError));
+bindTypeConstructor('boolean', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
+bindTypeConstructor('number',  coreKindConstructor(isNumber, NumberPayloadNotNumberError));
+bindTypeConstructor('string',  coreKindConstructor(isString, StringPayloadNotStringError));
+bindTypeConstructor('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
+bindTypeConstructor('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
+bindTypeConstructor('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
+bindTypeConstructor('map',     coreKindConstructor(isQMap, MapPayloadNotMapError, bareMapOf));
+bindTypeConstructor('doc',     coreKindConstructor(isDoc, DocPayloadNotDocError));
 
 // `::builtin{…fields…}` — catalog descriptor constructor.
 // Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`

@@ -20,7 +20,7 @@
       ~(
         42 | count
         !| [type /actualType]
-        |  eq [::CountSubjectNotContainerError :number]
+        |  eq [::CountSubjectNotContainerError ::number]
        )
   ~~|
 
@@ -41,7 +41,7 @@
       ~(
         42 | empty
         !| [type /actualType]
-        |  eq [::EmptySubjectNotContainerError :number]
+        |  eq [::EmptySubjectNotContainerError ::number]
        )
   ~~|
 
@@ -72,7 +72,7 @@
       ~(
         42 | every ~(gt 0)
         !| [type /actualType]
-        |  eq [::EverySubjectNotContainerError :number]
+        |  eq [::EverySubjectNotContainerError ::number]
        )
   ~~|
 
@@ -91,7 +91,7 @@
       ~(
         [1 2 3] | every (count | gt 1)
         !| [type /actualType]
-        |  eq [::EveryPredicateNotQuoteError :boolean]
+        |  eq [::EveryPredicateNotQuoteError ::boolean]
        )
   ~~|
 
@@ -120,7 +120,7 @@
       ~(
         42 | any ~(gt 0)
         !| [type /actualType]
-        |  eq [::AnySubjectNotContainerError :number]
+        |  eq [::AnySubjectNotContainerError ::number]
        )
   ~~|
 
@@ -139,7 +139,7 @@
       ~(
         [1 2 3] | any (count | gt 1)
         !| [type /actualType]
-        |  eq [::AnyPredicateNotQuoteError :boolean]
+        |  eq [::AnyPredicateNotQuoteError ::boolean]
        )
   ~~|
 
@@ -172,7 +172,7 @@
       ~(
         42 | filter ~(gt 0)
         !| [type /actualType]
-        |  eq [::FilterSubjectNotContainerError :number]
+        |  eq [::FilterSubjectNotContainerError ::number]
        )
   ~~|
 
@@ -191,6 +191,6 @@
       ~(
         [1 2 3] | filter (count | gt 1)
         !| [type /actualType]
-        |  eq [::FilterPredicateNotQuoteError :boolean]
+        |  eq [::FilterPredicateNotQuoteError ::boolean]
        )
   ~~|

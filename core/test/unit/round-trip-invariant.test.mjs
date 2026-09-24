@@ -131,8 +131,8 @@ describe('round-trip invariant — Error', () => {
     '!{:kind :oops}',
     '!{:kind :oops :message "boom"}',
     '!{:kind :oops :context {:request "r-1"}}',
-    '::TagBindingHasNoConstructorError!{:tag :Foo :payloadType :number}',
-    '::AddLeftNotNumberError!{:operand :add :position 1 :expectedType :number :actualType :string}'
+    '::TagBindingHasNoConstructorError!{:tag :Foo :payloadType ::number}',
+    '::AddLeftNotNumberError!{:operand :add :position 1 :expectedType :number :actualType ::string}'
   ]) {
     it(`error literal: ${src}`, () => pinRoundTrip(src));
   }

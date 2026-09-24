@@ -450,9 +450,12 @@ BareTypeKeyword
   = "::" tag:TagName
     { return node('BareTypeKeyword', { tag }, location(), text()); }
 
+// A tag's name lives apart from the values, so a name after `::` may be
+// a reserved word, as after `:` and `/`: `::null` is the kind of null
+// [D32].
 TagName
   = NamespacedName
-  / Ident
+  / KeywordName
 
 ParenGroup
   = "(" _ p:Pipeline _ ")"
@@ -655,7 +658,7 @@ Keyword
   / ":" name:KeywordName        { return node('Keyword', { name }, location(), text()); }
 
 NamespacedName
-  = head:Ident tail:("/" @Ident)+
+  = head:KeywordName tail:("/" @KeywordName)+
     { return head + tail.map(t => '/' + t).join(''); }
 
 QuotedKeywordName

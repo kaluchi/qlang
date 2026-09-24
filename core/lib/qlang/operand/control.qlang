@@ -26,7 +26,7 @@
       ~(
         5 | if true "yes" ~("no")
         !| [type /actualType]
-        |  eq [::IfThenNotQuoteError :string]
+        |  eq [::IfThenNotQuoteError ::string]
        )
   ~~|
 
@@ -36,7 +36,7 @@
       ~(
         5 | if true ~("yes") "no"
         !| [type /actualType]
-        |  eq [::IfElseNotQuoteError :string]
+        |  eq [::IfElseNotQuoteError ::string]
        )
   ~~|
 
@@ -63,7 +63,7 @@
       ~(
         5 | when true "yes"
         !| [type /actualType]
-        |  eq [::WhenBranchNotQuoteError :string]
+        |  eq [::WhenBranchNotQuoteError ::string]
        )
   ~~|
 
@@ -73,8 +73,8 @@
       through unchanged. Reads naturally for fallback / default
       patterns ("if no real value, supply this one").
 
-      ~(null | unless (type | eq :number) ~(0) | eq 0)
-      ~(42 | unless (type | eq :number) ~(0) | eq 42)
+      ~(null | unless (type | eq ::number) ~(0) | eq 0)
+      ~(42 | unless (type | eq ::number) ~(0) | eq 42)
       ~({:name null} | unless /name ~("anonymous") | eq "anonymous")
   ~~|
   ::builtin{:impl :qlang/prim/unless
@@ -90,7 +90,7 @@
       ~(
         5 | unless false "yes"
         !| [type /actualType]
-        |  eq [::UnlessBranchNotQuoteError :string]
+        |  eq [::UnlessBranchNotQuoteError ::string]
        )
   ~~|
 
@@ -131,7 +131,7 @@
       ~(
         {:a 1} | coalesce /a
         !| [type /index /actualType]
-        |  eq [::CoalesceAlternativeNotQuoteError 1 :number]
+        |  eq [::CoalesceAlternativeNotQuoteError 1 ::number]
        )
   ~~|
 
@@ -169,7 +169,7 @@
       ~(
         {:a 1} | firstTruthy /a
         !| [type /index /actualType]
-        |  eq [::FirstTruthyAlternativeNotQuoteError 1 :number]
+        |  eq [::FirstTruthyAlternativeNotQuoteError 1 ::number]
        )
   ~~|
 
@@ -207,6 +207,6 @@
       ~(
         5 | cond true ~("yes")
         !| [type /index /actualType]
-        |  eq [::CondClauseNotQuoteError 1 :boolean]
+        |  eq [::CondClauseNotQuoteError 1 ::boolean]
        )
   ~~|

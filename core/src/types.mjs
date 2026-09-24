@@ -4,7 +4,7 @@ import {
   declareInvariantError,
   declareShapeError
 } from './errors.mjs';
-import { TAG_BINDING_PREFIX } from './env-keys.mjs';
+import { TAG_BINDING_PREFIX, canonicalTagName } from './env-keys.mjs';
 import { quoteOfBody } from './quote.mjs';
 import { compareValues } from './ordering.mjs';
 
@@ -130,7 +130,8 @@ export function keyword(name) {
 // uniformly.
 
 export function makeTagKeyword(tag) {
-  return Object.freeze(brandValueClass({ name: tag, literal: TAG_BINDING_PREFIX + tag }, 'tagKeyword'));
+  const name = canonicalTagName(tag);
+  return Object.freeze(brandValueClass({ name, literal: TAG_BINDING_PREFIX + name }, 'tagKeyword'));
 }
 
 export function isTagKeyword(v) {
@@ -337,6 +338,23 @@ export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
 export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
 export const VALUE_TAG       = makeTagKeyword('value');
+
+// The kind of every value without a tag of its own, the one its
+// literal implies [D32]; `type` answers it, and a tag name's kind is
+// the tag `::tag` a tag binding's view carries.
+export const CORE_KIND = Object.freeze({
+  null:    makeTagKeyword('null'),
+  boolean: makeTagKeyword('boolean'),
+  number:  makeTagKeyword('number'),
+  string:  makeTagKeyword('string'),
+  keyword: makeTagKeyword('keyword'),
+  tag:     TAG_BINDING_TAG,
+  vec:     makeTagKeyword('vec'),
+  map:     makeTagKeyword('map'),
+  set:     SET_TAG,
+  quote:   QUOTE_TAG,
+  doc:     makeTagKeyword('doc')
+});
 
 // The tags of a quote's steps [D47]: the records of what computes,
 // and the wrappers a step takes on the fail track, under `*`, or in
@@ -576,13 +594,15 @@ export function describeType(v) {
   return 'Unknown';
 }
 
+// typeKeyword(v) — the kind of a value [D32]: its outermost tag, or
+// the kind of the core its literal implies.
 export function typeKeyword(v) {
-  if (isNull(v)) return keyword('null');
-  if (isBoolean(v)) return keyword('boolean');
-  if (isNumber(v)) return keyword('number');
-  if (isString(v)) return keyword('string');
-  if (isKeyword(v)) return keyword('keyword');
-  if (isTagKeyword(v)) return keyword('tagKeyword');
+  if (isNull(v)) return CORE_KIND.null;
+  if (isBoolean(v)) return CORE_KIND.boolean;
+  if (isNumber(v)) return CORE_KIND.number;
+  if (isString(v)) return CORE_KIND.string;
+  if (isKeyword(v)) return CORE_KIND.keyword;
+  if (isTagKeyword(v)) return CORE_KIND.tag;
   // Identity-on-JS-header takes precedence on every composite:
   // tagged Vec, tagged Map, the set and the quote — `result | type`
   // returns the TagKeyword directly. Conduit /
@@ -593,14 +613,19 @@ export function typeKeyword(v) {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;
   }
-  if (isVec(v)) return keyword('vec');
-  if (isDoc(v)) return keyword('doc');
-  if (isQMap(v)) return keyword('map');
+  if (isVec(v)) return CORE_KIND.vec;
+  if (isDoc(v)) return CORE_KIND.doc;
+  if (isQMap(v)) return CORE_KIND.map;
   // Error values carry their tag identity on the JS-header `tag`
   // slot — opaque to descriptor projection. `typeKeyword` reads
   // it directly so `result !| type` returns the per-site
   // `::Tag` without consulting any Map field.
   if (isErrorValue(v)) return v.tag;
-  if (isFunctionValue(v)) return keyword('function');
-  return keyword('unknown');
+  if (isFunctionValue(v)) return FUNCTION_KIND;
+  return UNKNOWN_KIND;
 }
+
+// What the runtime finds where no value of the language stands: a
+// function value in flight, and a host's raw object.
+const FUNCTION_KIND = makeTagKeyword('function');
+const UNKNOWN_KIND  = makeTagKeyword('unknown');

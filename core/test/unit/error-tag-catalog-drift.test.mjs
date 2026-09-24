@@ -65,6 +65,7 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 // read them out by kind.
 const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::builtin', '::conduit', '::set',
+  '::null', '::boolean', '::number', '::string', '::keyword', '::tag', '::vec', '::map', '::doc',
   '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
 ]);
 

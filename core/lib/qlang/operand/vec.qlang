@@ -21,7 +21,7 @@
       ~(
         42 | first
         !| [type /actualType]
-        |  eq [::FirstSubjectNotSequenceError :number]
+        |  eq [::FirstSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -44,7 +44,7 @@
       ~(
         42 | last
         !| [type /actualType]
-        |  eq [::LastSubjectNotSequenceError :number]
+        |  eq [::LastSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -68,7 +68,7 @@
       ~(
         42 | sum
         !| [type /actualType]
-        |  eq [::SumSubjectNotContainerError :number]
+        |  eq [::SumSubjectNotContainerError ::number]
        )
   ~~|
 
@@ -77,7 +77,7 @@
       ~(
         [1 "two" 3] | sum
         !| [type /actualType /index]
-        |  eq [::SumElementNotNumberError :string 1]
+        |  eq [::SumElementNotNumberError ::string 1]
        )
   ~~|
 
@@ -117,7 +117,7 @@
       ~(
         42 | min
         !| [type /actualType]
-        |  eq [::MinSubjectNotContainerError :number]
+        |  eq [::MinSubjectNotContainerError ::number]
        )
   ~~|
 
@@ -142,7 +142,7 @@
       ~(
         42 | max
         !| [type /actualType]
-        |  eq [::MaxSubjectNotContainerError :number]
+        |  eq [::MaxSubjectNotContainerError ::number]
        )
   ~~|
 
@@ -175,7 +175,7 @@
       ~(
         42 | reduce 0 ~(add)
         !| [type /actualType]
-        |  eq [::ReduceSubjectNotSequenceError :number]
+        |  eq [::ReduceSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -197,7 +197,7 @@
       ~(
         [1 2 3] | reduce 0 1
         !| [type /actualType]
-        |  eq [::ReduceReducerNotQuoteError :number]
+        |  eq [::ReduceReducerNotQuoteError ::number]
        )
   ~~|
 
@@ -237,7 +237,7 @@
       ~(
         42 | sort
         !| [type /actualType]
-        |  eq [::SortNaturalSubjectNotSequenceError :number]
+        |  eq [::SortNaturalSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -246,7 +246,7 @@
       ~(
         42 | sort ~(/x)
         !| [type /actualType]
-        |  eq [::SortByKeySubjectNotSequenceError :number]
+        |  eq [::SortByKeySubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -256,7 +256,7 @@
       ~(
         [3 1 2] | sort 1
         !| [type /actualType]
-        |  eq [::SortKeyNotQuoteError :number]
+        |  eq [::SortKeyNotQuoteError ::number]
        )
   ~~|
 
@@ -282,7 +282,7 @@
       ~(
         42 | take 1
         !| [type /actualType]
-        |  eq [::TakeSubjectNotSequenceError :number]
+        |  eq [::TakeSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -292,7 +292,7 @@
       ~(
         [1 2 3] | take 0.5
         !| [type /actualType]
-        |  eq [::TakeCountNotIntegerError :number]
+        |  eq [::TakeCountNotIntegerError ::number]
        )
   ~~|
 
@@ -328,7 +328,7 @@
       ~(
         42 | at 0
         !| [type /actualType]
-        |  eq [::AtSubjectNotSequenceOrMapError :number]
+        |  eq [::AtSubjectNotSequenceOrMapError ::number]
        )
   ~~|
 
@@ -337,7 +337,7 @@
       ~(
         [1 2 3] | at 0.5
         !| [type /actualType]
-        |  eq [::AtIndexNotIntegerError :number]
+        |  eq [::AtIndexNotIntegerError ::number]
        )
   ~~|
 
@@ -348,7 +348,7 @@
       ~(
         {:a 1} | at 42
         !| [type /actualType]
-        |  eq [::AtKeyNotKeywordOrStringError :number]
+        |  eq [::AtKeyNotKeywordOrStringError ::number]
        )
   ~~|
 
@@ -374,7 +374,7 @@
       ~(
         42 | drop 1
         !| [type /actualType]
-        |  eq [::DropSubjectNotSequenceError :number]
+        |  eq [::DropSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -384,7 +384,7 @@
       ~(
         [1 2 3] | drop 0.5
         !| [type /actualType]
-        |  eq [::DropCountNotIntegerError :number]
+        |  eq [::DropCountNotIntegerError ::number]
        )
   ~~|
 
@@ -417,7 +417,7 @@
       ~(
         42 | distinct
         !| [type /actualType]
-        |  eq [::DistinctSubjectNotSequenceError :number]
+        |  eq [::DistinctSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -440,7 +440,7 @@
       ~(
         42 | reverse
         !| [type /actualType]
-        |  eq [::ReverseSubjectNotSequenceError :number]
+        |  eq [::ReverseSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -463,7 +463,7 @@
       ~(
         42 | flat
         !| [type /actualType]
-        |  eq [::FlatSubjectNotSequenceError :number]
+        |  eq [::FlatSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -488,7 +488,7 @@
       ~(
         42 | groupBy ~(/k)
         !| [type /actualType]
-        |  eq [::GroupBySubjectNotSequenceError :number]
+        |  eq [::GroupBySubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -497,7 +497,7 @@
       ~(
         [{:k 1} {:k 2}] | groupBy ~(/k)
         !| [type /actualType /index]
-        |  eq [::GroupByKeyNotKeywordError :number 0]
+        |  eq [::GroupByKeyNotKeywordError ::number 0]
        )
   ~~|
 
@@ -507,7 +507,7 @@
       ~(
         [{:kind :a}] | groupBy :a
         !| [type /actualType]
-        |  eq [::GroupByKeyNotQuoteError :keyword]
+        |  eq [::GroupByKeyNotQuoteError ::keyword]
        )
   ~~|
 
@@ -530,7 +530,7 @@
       ~(
         42 | indexBy ~(/k)
         !| [type /actualType]
-        |  eq [::IndexBySubjectNotSequenceError :number]
+        |  eq [::IndexBySubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -539,7 +539,7 @@
       ~(
         [{:k 1}] | indexBy ~(/k)
         !| [type /actualType /index]
-        |  eq [::IndexByKeyNotKeywordError :number 0]
+        |  eq [::IndexByKeyNotKeywordError ::number 0]
        )
   ~~|
 
@@ -549,6 +549,6 @@
       ~(
         [{:id :a}] | indexBy :a
         !| [type /actualType]
-        |  eq [::IndexByKeyNotQuoteError :keyword]
+        |  eq [::IndexByKeyNotQuoteError ::keyword]
        )
   ~~|

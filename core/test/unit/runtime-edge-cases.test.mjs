@@ -157,7 +157,7 @@ describe('manifest-op.mjs — :type :unknown lift for non-classifiable host valu
     const s = await createSession();
     s.bind('weird', Symbol('weird'));
     const result = (await s.evalCell('manifest | filter ~(/name | eq "weird") | first | /type')).result;
-    expect(result).toEqual(keyword('unknown'));
+    expect(result).toEqual(makeTagKeyword('unknown'));
   });
 });
 
@@ -260,7 +260,7 @@ describe('manifest descriptor for a snapshot bound directly via session.bind', a
     const result = (await s.evalCell('manifest | filter ~(/name | eq "snap") | first')).result;
     expect(result.get('kind')).toEqual(makeTagKeyword('snapshot'));
     expect(result.get('value')).toBe(42);
-    expect(result.get('type')).toEqual(keyword('number'));
+    expect(result.get('type')).toEqual(makeTagKeyword('number'));
   });
 });
 
@@ -463,14 +463,14 @@ describe('printValue — qlang literal serialization', async () => {
 
   it('pretty-prints error with many descriptor fields', async () => {
     const err = makeErrorValue(makeTagKeyword('Test'), new Map([
-      ['actualType', keyword('number')],
+      ['actualType', makeTagKeyword('number')],
       ['message', 'boom'],
       ['faultInput', 1]
     ]));
     const out = printValue(err);
     expect(out).toMatch(/^::Test!\{/);
     expect(out).toContain('\n');
-    expect(out).toContain(':actualType :number');
+    expect(out).toContain(':actualType ::number');
     expect(out).toContain(':message "boom"');
   });
 

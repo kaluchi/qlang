@@ -59,7 +59,7 @@
 {"name":"lone-plain-comment-is-identity-on-null","query":"|~ only a note ~|","expect":"null"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] * (!| |~ note ~| /kind)","expect":"[:zap]"}
 {"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add 1)","expect":"[2 3]"}
-{"name":"comment-head-hands-the-head-to-first-operand","query":"42 | apply ~(|~ note ~| type)","expect":":number"}
+{"name":"comment-head-hands-the-head-to-first-operand","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
 {"name":"comment-head-explicit-distribute","query":"[1 2] | (|~ note ~| * add 1)","expect":"[2 3]"}
 {"name":"comment-head-explicit-fail-apply","query":"[!{:kind :zap}] * (|~ note ~| !| /kind)","expect":"[:zap]"}
 {"name":"comment-head-explicit-pipe-deflects","query":"[!{:kind :zap}] * (|~ note ~| | type) | first !| /trail","expect":"~(| type)"}

@@ -5,12 +5,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword, makeTagKeyword, describeType } from '../../src/types.mjs';
+import { isErrorValue, makeTagKeyword, describeType } from '../../src/types.mjs';
 
 describe('BindStep — docs-only form', () => {
   it('binds a Doc-value when the prefix is the only attached content', async () => {
     const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | type');
-    expect(result).toEqual(keyword('doc'));
+    expect(result).toEqual(makeTagKeyword('doc'));
   });
 
   it('the bound value content matches the attached doc', async () => {

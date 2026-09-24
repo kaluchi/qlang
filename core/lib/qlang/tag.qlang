@@ -33,7 +33,7 @@
       ~(
         ::conduit{:not :a-vec}
         !| [type /actualType]
-        |  eq [::ConduitPayloadNotVecError :map]
+        |  eq [::ConduitPayloadNotVecError ::map]
        )
   ~~|
 
@@ -54,7 +54,7 @@
       ~(
         ::conduit[42 [] ~(mul 2)]
         !| [type /actualType]
-        |  eq [::ConduitSelfNameNotKeywordError :number]
+        |  eq [::ConduitSelfNameNotKeywordError ::number]
        )
   ~~|
 
@@ -64,7 +64,7 @@
       ~(
         ::conduit[42 ~(mul 2)]
         !| [type /actualType]
-        |  eq [::ConduitParamsNotVecError :number]
+        |  eq [::ConduitParamsNotVecError ::number]
        )
   ~~|
 
@@ -74,7 +74,7 @@
       ~(
         ::conduit[[42] ~(mul 2)]
         !| [type /index /actualType]
-        |  eq [::ConduitParamNotKeywordError 0 :number]
+        |  eq [::ConduitParamNotKeywordError 0 ::number]
        )
   ~~|
 
@@ -84,7 +84,7 @@
       ~(
         ::conduit[[] 42]
         !| [type /actualType]
-        |  eq [::ConduitBodyNotQuoteError :number]
+        |  eq [::ConduitBodyNotQuoteError ::number]
        )
   ~~|
 
@@ -136,7 +136,7 @@
       ~(
         ::quote{:not :steps}
         !| [type /actualType]
-        |  eq [::QuotePayloadNotVecError :map]
+        |  eq [::QuotePayloadNotVecError ::map]
        )
   ~~|
 
@@ -175,7 +175,172 @@
       ~(
         ::set{:not :a-vec}
         !| [type /actualType]
-        |  eq [::SetPayloadNotVecError :map]
+        |  eq [::SetPayloadNotVecError ::map]
+       )
+  ~~|
+
+::null
+  |~~ The kind of null, the absence of a value. A kind of the core
+      is named under its prefix and written short, `::qlang/null`
+      reading as `::null`, and its constructor reads a payload of
+      the kind as the value itself.
+
+      ~(null | type | eq ::null)
+      ~(::qlang/null | eq ::null)
+      ~(::null(null) | eq null)
+  ~~|
+  ::builtin{:impl :qlang/type/null}
+
+::NullPayloadNotNullError
+  |~~ `::null(…)` payload must be null.
+      ~(
+        ::null(1)
+        !| [type /actualType]
+        |  eq [::NullPayloadNotNullError ::number]
+       )
+  ~~|
+
+::boolean
+  |~~ The kind of `true` and `false`.
+
+      ~(true | type | eq ::boolean)
+      ~(::boolean(false) | eq false)
+  ~~|
+  ::builtin{:impl :qlang/type/boolean}
+
+::BooleanPayloadNotBooleanError
+  |~~ `::boolean(…)` payload must be a boolean.
+      ~(
+        ::boolean(1)
+        !| [type /actualType]
+        |  eq [::BooleanPayloadNotBooleanError ::number]
+       )
+  ~~|
+
+::number
+  |~~ The kind of a number, a finite double. No kind reads text, so
+      `::number(5)` is `5` and `::number"5"` is refused.
+
+      ~(5 | type | eq ::number)
+      ~(::qlang/number(5) | eq 5)
+  ~~|
+  ::builtin{:impl :qlang/type/number}
+
+::NumberPayloadNotNumberError
+  |~~ `::number(…)` payload must be a number.
+      ~(
+        ::number"5"
+        !| [type /actualType]
+        |  eq [::NumberPayloadNotNumberError ::string]
+       )
+  ~~|
+
+::string
+  |~~ The kind of a string.
+
+      ~("x" | type | eq ::string)
+      ~(::string"x" | eq "x")
+  ~~|
+  ::builtin{:impl :qlang/type/string}
+
+::StringPayloadNotStringError
+  |~~ `::string…` payload must be a string.
+      ~(
+        ::string(1)
+        !| [type /actualType]
+        |  eq [::StringPayloadNotStringError ::number]
+       )
+  ~~|
+
+::keyword
+  |~~ The kind of a keyword, a name that stands for itself.
+
+      ~(:k | type | eq ::keyword)
+      ~(::keyword:k | eq :k)
+  ~~|
+  ::builtin{:impl :qlang/type/keyword}
+
+::KeywordPayloadNotKeywordError
+  |~~ `::keyword…` payload must be a keyword.
+      ~(
+        ::keyword"k"
+        !| [type /actualType]
+        |  eq [::KeywordPayloadNotKeywordError ::string]
+       )
+  ~~|
+
+::tag
+  |~~ The kind of a tag name, `::Kind` taken as a value: the kind
+      itself standing as a subject, so `::number | type` answers
+      `::tag` and `type | docs` reads the page of a value's kind.
+
+      ~(::Box | type | eq ::tag)
+      ~(::tag::Box | eq ::Box)
+      ~(5 | type | docs | count | gt 0)
+  ~~|
+  ::builtin{:impl :qlang/type/tag}
+
+::TagPayloadNotTagError
+  |~~ `::tag…` payload must be a tag name.
+      ~(
+        ::tag:k
+        !| [type /actualType]
+        |  eq [::TagPayloadNotTagError ::keyword]
+       )
+  ~~|
+
+::vec
+  |~~ The kind of a vector, the value of a `[…]` literal, so
+      `::vec[1 2]` and `::qlang/vec[1 2]` read as `[1 2]` and print
+      bare. Over a set or a quote the constructor answers the vector
+      of its elements.
+
+      ~([1 2] | type | eq ::vec)
+      ~(::qlang/vec[1 2] | eq [1 2])
+      ~(#[2 1] | tag ::vec | eq [1 2])
+  ~~|
+  ::builtin{:impl :qlang/type/vec}
+
+::VecPayloadNotVecError
+  |~~ `::vec[…]` payload must be a Vec.
+      ~(
+        ::vec{:a 1}
+        !| [type /actualType]
+        |  eq [::VecPayloadNotVecError ::map]
+       )
+  ~~|
+
+::map
+  |~~ The kind of a map, the value of a `{…}` literal.
+
+      ~({:a 1} | type | eq ::map)
+      ~(::map{:a 1} | eq {:a 1})
+  ~~|
+  ::builtin{:impl :qlang/type/map}
+
+::MapPayloadNotMapError
+  |~~ `::map{…}` payload must be a Map.
+      ~(
+        ::map[1]
+        !| [type /actualType]
+        |  eq [::MapPayloadNotMapError ::vec]
+       )
+  ~~|
+
+::doc
+  |~~ The kind of a doc, the value of a doc literal, prose that
+      carries quotes of qlang.
+
+      ~(:add | docs | first | type | eq ::doc)
+  ~~|
+  ::builtin{:impl :qlang/type/doc}
+
+::DocPayloadNotDocError
+  |~~ `::doc…` payload must be a doc.
+      ~(
+        ::doc"x"
+        !| [type /actualType]
+        |  eq [::DocPayloadNotDocError ::string]
        )
   ~~|
 
@@ -327,7 +492,7 @@
       ~(
         42 | tag ::each
         !| [type /actualType]
-        |  eq [::EachPayloadNotQuoteError :number]
+        |  eq [::EachPayloadNotQuoteError ::number]
        )
   ~~|
 
@@ -356,7 +521,7 @@
       ~(
         42 | tag ::fail
         !| [type /actualType]
-        |  eq [::FailPayloadNotQuoteError :number]
+        |  eq [::FailPayloadNotQuoteError ::number]
        )
   ~~|
 
@@ -386,7 +551,7 @@
       ~(
         42 | tag ::group
         !| [type /actualType]
-        |  eq [::GroupPayloadNotQuoteError :number]
+        |  eq [::GroupPayloadNotQuoteError ::number]
        )
   ~~|
 

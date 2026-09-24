@@ -1,31 +1,31 @@
-{"name":"type-null","query":"null | type","expect":":null"}
-{"name":"type-boolean-true","query":"true | type","expect":":boolean"}
-{"name":"type-boolean-false","query":"false | type","expect":":boolean"}
-{"name":"type-number-integer","query":"42 | type","expect":":number"}
-{"name":"type-number-decimal","query":"3.14 | type","expect":":number"}
-{"name":"type-number-negative","query":"-7 | type","expect":":number"}
-{"name":"type-number-zero","query":"0 | type","expect":":number"}
-{"name":"type-string","query":"\"hello\" | type","expect":":string"}
-{"name":"type-string-empty","query":"\"\" | type","expect":":string"}
-{"name":"type-keyword","query":":name | type","expect":":keyword"}
-{"name":"type-tag-keyword","query":"::Foo | type","expect":":tagKeyword"}
+{"name":"type-null","query":"null | type","expect":"::null"}
+{"name":"type-boolean-true","query":"true | type","expect":"::boolean"}
+{"name":"type-boolean-false","query":"false | type","expect":"::boolean"}
+{"name":"type-number-integer","query":"42 | type","expect":"::number"}
+{"name":"type-number-decimal","query":"3.14 | type","expect":"::number"}
+{"name":"type-number-negative","query":"-7 | type","expect":"::number"}
+{"name":"type-number-zero","query":"0 | type","expect":"::number"}
+{"name":"type-string","query":"\"hello\" | type","expect":"::string"}
+{"name":"type-string-empty","query":"\"\" | type","expect":"::string"}
+{"name":"type-keyword","query":":name | type","expect":"::keyword"}
+{"name":"type-tag-keyword","query":"::Foo | type","expect":"::tag"}
 {"name":"type-header-tag-conduit","query":":double mul 2 | env | /double | type","expect":"::conduit"}
 {"name":"type-header-tag-builtin","query":":add | env | /add | type","expect":"::builtin"}
 {"name":"type-header-tag-user-instance","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
-{"name":"type-json-array-syntax-reads-as-a-vector","query":"[1, 2] | type","expect":":vec"}
-{"name":"type-json-object-syntax-reads-as-a-map","query":"{\"k\": 1} | type","expect":":map"}
-{"name":"type-vec","query":"[1 2 3] | type","expect":":vec"}
-{"name":"type-vec-empty","query":"[] | type","expect":":vec"}
+{"name":"type-json-array-syntax-reads-as-a-vector","query":"[1, 2] | type","expect":"::vec"}
+{"name":"type-json-object-syntax-reads-as-a-map","query":"{\"k\": 1} | type","expect":"::map"}
+{"name":"type-vec","query":"[1 2 3] | type","expect":"::vec"}
+{"name":"type-vec-empty","query":"[] | type","expect":"::vec"}
 {"name":"type-quote","query":"~(mul 2) | type","expect":"::quote"}
-{"name":"type-doc","query":"|~~ note ~~| | type","expect":":doc"}
-{"name":"type-map","query":"{:a 1} | type","expect":":map"}
-{"name":"type-map-empty","query":"{} | type","expect":":map"}
-{"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":":map"}
+{"name":"type-doc","query":"|~~ note ~~| | type","expect":"::doc"}
+{"name":"type-map","query":"{:a 1} | type","expect":"::map"}
+{"name":"type-map-empty","query":"{} | type","expect":"::map"}
+{"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":"::map"}
 {"name":"type-set","query":"#[1 2] | type","expect":"::set"}
 {"name":"type-set-empty","query":"#[] | type","expect":"::set"}
 {"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::AddLeftNotNumberError"}
-{"name":"type-payload-reads-past-the-identity-overlay","query":"::AutoBox[1 2 3] | payload | type","expect":":vec"}
-{"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq :null","expect":"::ProjectionKeyNotInMapError!{\n  :faultStep ~(/missing)\n  :faultInput {}\n  :key \"missing\"\n  :trail ~(| type | eq :null)\n}"}
-{"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq :string)","expect":"{:b \"x\"}"}
-{"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq :map)","expect":"{:b {:x 1}}"}
-{"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq :vec)","expect":"{:b [1 2]}"}
+{"name":"type-payload-reads-past-the-identity-overlay","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
+{"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq ::null","expect":"::ProjectionKeyNotInMapError!{\n  :faultStep ~(/missing)\n  :faultInput {}\n  :key \"missing\"\n  :trail ~(| type | eq ::null)\n}"}
+{"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
+{"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
+{"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}

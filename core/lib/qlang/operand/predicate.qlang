@@ -54,7 +54,7 @@
       ~(
         1 | gt "x"
         !| [type /leftType /rightType]
-        |  eq [::GtOperandsNotComparableError :number :string]
+        |  eq [::GtOperandsNotComparableError ::number ::string]
        )
   ~~|
 
@@ -74,7 +74,7 @@
       ~(
         1 | lt "x"
         !| [type /leftType /rightType]
-        |  eq [::LtOperandsNotComparableError :number :string]
+        |  eq [::LtOperandsNotComparableError ::number ::string]
        )
   ~~|
 
@@ -94,7 +94,7 @@
       ~(
         1 | gte "x"
         !| [type /leftType /rightType]
-        |  eq [::GteOperandsNotComparableError :number :string]
+        |  eq [::GteOperandsNotComparableError ::number ::string]
        )
   ~~|
 
@@ -114,7 +114,7 @@
       ~(
         1 | lte "x"
         !| [type /leftType /rightType]
-        |  eq [::LteOperandsNotComparableError :number :string]
+        |  eq [::LteOperandsNotComparableError ::number ::string]
        )
   ~~|
 

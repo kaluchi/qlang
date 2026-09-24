@@ -132,14 +132,14 @@ describe('TaggedLit error paths', () => {
     const err = await evalQuery('::builtin"hello"');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('BuiltinPayloadNotMapError'));
-    expect(err.descriptor.get('actualType')).toEqual(keyword('string'));
+    expect(err.descriptor.get('actualType')).toEqual(makeTagKeyword('string'));
   });
 
   it('::builtin raises BuiltinPayloadNotMapError when payload is a Vec', async () => {
     const err = await evalQuery('::builtin[1 2 3]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('BuiltinPayloadNotMapError'));
-    expect(err.descriptor.get('actualType')).toEqual(keyword('vec'));
+    expect(err.descriptor.get('actualType')).toEqual(makeTagKeyword('vec'));
   });
 
   it('tag bound-form propagates a fail-track tag-keyword expression instead of wrapping it', async () => {
@@ -325,10 +325,10 @@ describe('TagKeyword value mechanics', () => {
   // under the error-values suite.
 
   it('describeType / typeKeyword distinguish TagKeyword from Keyword', async () => {
-    const { describeType, typeKeyword, makeTagKeyword, keyword } = await import('../../src/types.mjs');
+    const { describeType, typeKeyword, makeTagKeyword } = await import('../../src/types.mjs');
     const k = makeTagKeyword('foo');
     expect(describeType(k)).toBe('TagKeyword');
-    expect(typeKeyword(k)).toEqual(keyword('tagKeyword'));
+    expect(typeKeyword(k)).toEqual(makeTagKeyword('tag'));
   });
 
   it('TagKeyword equality compares by name', async () => {

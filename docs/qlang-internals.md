@@ -1459,11 +1459,12 @@ invocations.
   `'Number'`, `'String'`, `'Vec'`, `'Map'`, `'Set'`, `'Keyword'`,
   `'Boolean'`, `'Null'`, `'Conduit'`, `'Snapshot'`, `'Error'`,
   `'Function'`.
-- `typeKeyword(v)` — the type as a value: a plain Keyword for
-  scalars and base containers (`:number`, `:string`, `:vec`,
-  `:map`, `:set`, `:keyword`, `:boolean`, `:null`, `:function`),
-  and the JS-header TagKeyword for identity-bearing value-classes
-  (`::conduit`, `::snapshot`, and an error value's own `::Tag`).
+- `typeKeyword(v)` — the kind of a value, a TagKeyword [D32]: the
+  kind of the core its literal implies (`::number`, `::string`,
+  `::vec`, `::map`, `::set`, `::keyword`, `::tag`, `::boolean`,
+  `::null`, `::quote`, `::doc`), and the JS-header TagKeyword for
+  identity-bearing value-classes (`::conduit`, `::snapshot`, and an
+  error value's own `::Tag`).
   Used by error factories for structured `context.actualType`
   fields and by `manifest`'s descriptor for the `:type` field on
   each entry.

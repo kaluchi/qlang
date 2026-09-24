@@ -236,11 +236,6 @@ describe('tokenize — gap interleaving', () => {
     ]);
   });
 
-  it('keeps the ~{>>} merge combinator as a single ~{punct} token', async () => {
-    const merge = tokenize('1 >> 2', await builtins());
-    expect(merge.find(t => t.kind === 'punct' && t.end - t.start === 2)).toBeDefined();
-  });
-
   it('labels the ~{!|} fail-track combinator with kind ~{err}', async () => {
     const fail = tokenize('1 !| /k', await builtins());
     expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();

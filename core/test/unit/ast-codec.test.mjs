@@ -437,8 +437,7 @@ describe('round-trip — operand calls and pipelines', () => {
   it('simple pipeline', () => assertRoundTrip('[1 2 3] | count'));
   it('multi-step pipeline', () => assertRoundTrip('[1 2 3] | filter(gt(2)) | count'));
   it('distribute combinator', () => assertRoundTrip('[1 2 3] * add(10)'));
-  it('merge combinator', () => assertRoundTrip('[[1 2] [3 4]] >> sort'));
-  it('mixed combinators', () => assertRoundTrip('[1 2 3] | [filter(gt(1)), filter(lt(3))] >> count'));
+  it('mixed combinators', () => assertRoundTrip('[1 2 3] | [filter(gt(1)), filter(lt(3))] * count'));
 });
 
 describe('round-trip — BindStep and as bindings', () => {

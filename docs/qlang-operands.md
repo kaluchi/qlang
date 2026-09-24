@@ -1391,8 +1391,8 @@ fail-track itself: `error` lifts a Map into the fail-track and
   5th type at the language level alongside the `!{…}` literal.
   Bare form `map | error` uses pipeValue as the descriptor; full
   form `error(map)` evaluates the captured Map against pipeValue
-  as context. The resulting error rides the fail-track: `|`, `*`,
-  and `>>` deflect it into the trail, `!|` fires its step against
+  as context. The resulting error rides the fail-track: `|` and
+  `*` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
 - Identity sources, in priority order: the source Map's
   `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-

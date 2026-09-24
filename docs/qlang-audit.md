@@ -1512,13 +1512,10 @@ that runs. The binding record says by its field whether it holds code or
 a value, `:code` for a verb and `:body` for a value evaluated at
 declaration. What remains to know is one rule: a declaration with a slot
 list is a verb whose code is its quote body, and every other declaration
-names a value, a quote included [D44]. `>>` leaves before the form could
-encode it, since two steps say what it said [D51]:
+names a value, a quote included [D44]. `>>` has left before the form
+could encode it, since two steps say what it said [D51]:
 
 ```qlang
-> [[1 2] [3 [4]]] >> count
-4
-
 > [[1 2] [3 [4]]] | flat | count
 4
 ```
@@ -1596,12 +1593,13 @@ $ qlang 'manifest | add(1)' | wc -c
 ::UnresolvedIdentifierError!{ … :identifierName "filtr" }
 
 > [1 2 3] | filter(gt(1)
-::ParseError!{ … :expected [:whitespace "|~|" "|~" ">>" "!|" "|" "*" "," "(" "!{" … ")"] … }
+::ParseError!{ … :expected [:whitespace "|~|" "|~" "!|" "|" "*" "," "(" "!{" … ")"] … }
 ```
 
 `filtr` is one letter from `filter` and the error does not say so; the
 unclosed call has one sensible continuation, `)`, and the error names
-twenty-six tokens, among them the markers of comments.
+every token the parser could have taken there, among them the markers
+of comments.
 
 Three different policies govern an error raised inside a nested
 evaluation. Distribute keeps it as a value in the result. The
@@ -3243,8 +3241,9 @@ flat | f`, and the operand `flat` already says it. With it go its tokens
 in the grammar, its branch in the evaluator and its refusal, its syntax
 in a trail, its token in the editor's grammar, and its tag in the data
 form, `::flat`, so the form speaks with seven tags [D47]; its
-conformance cases go with it, and the two examples of the catalog that
-use it are written with `flat`.
+conformance cases go with it, the one example of the catalog that uses
+it is written with `flat`, and the refusal it raised leaves with its
+page.
 Source. The model, 24 September 2026, at the opening of the ring branch,
 which this document left to decide it before encoding it; the maintainer
 asked «а что с судьбой >> ? операндом заменить или что ?» (maintainer,

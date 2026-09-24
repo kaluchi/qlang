@@ -34,7 +34,7 @@ The state of query evaluation is a pair `(pipeValue, env)`:
 - **`pipeValue`** — the current value flowing through the pipeline.
   Any of Scalar, Vec, Map, Set, Error, or a function (partial or
   complete). When `pipeValue` is an error value, the combinator at
-  each call site decides whether its step fires: `|`, `*`, `>>`
+  each call site decides whether its step fires: `|` and `*`
   are success-track combinators and deflect (stamping the
   upcoming step's source slice onto the error's trail as a
   fragment); `!|` is the
@@ -86,7 +86,7 @@ Components of the pair are individually first-class, however:
   other Map operation, and written back with `use`.
 
 No operation exposes the pair as a single object, and none of the
-worked examples needs one. The combinators (`|`, `!|`, `*`, `>>`)
+worked examples needs one. The combinators (`|`, `!|`, `*`)
 and fork boundaries (`()`, `[]`, `{}`, `#[]`) transform the pair
 implicitly — that implicit transformation is the semantics of
 the language, described here in meta-notation for clarity.
@@ -107,7 +107,7 @@ Map, Set, or Error (`!{:kind :oops}`).
 
 Error literals (`!{...}`) evaluate their entries the same way as Map
 literals but wrap the result as an error value — the fifth type.
-The error value rides the fail-track, deflected by `|`, `*`, `>>`
+The error value rides the fail-track, deflected by the `|` and `*`
 combinators and fired on by `!|` (see the fail-track dispatch
 section below).
 
@@ -529,8 +529,8 @@ inner ErrorValue without touching its descriptor).
 
 ## Combinators
 
-Four combinators thread state between steps. Three are on the
-success-track (`|`, `*`, `>>`) and fire their step when
+Three combinators thread state between steps. Two are on the
+success-track (`|`, `*`) and fire their step when
 `pipeValue` is any non-error value; on an error `pipeValue` they
 **deflect** — `trailEntry(stepNode, kind)` stamps the step's source
 slice plus the combinator kind onto the error's `_trailHead` via
@@ -581,7 +581,7 @@ continuity preserved by the `makeErrorValue` invariant.
 On a non-error `pipeValue` the combinator is an identity.
 
 A leading combinator on a Pipeline (`Pipeline.leadingCombinator`,
-one of `!|` / `|` / `*` / `>>`) routes the pipeline's first step
+one of `!|` / `|` / `*`) routes the pipeline's first step
 through that combinator even though no preceding step exists. The
 `!|` form is used inside predicate lambdas of `filter(…)`,
 `when(…)`, `if(…)` and inside distribute element bodies where the
@@ -612,21 +612,6 @@ finite data structures.
 value, `*` stamps `body`'s source slice onto the error's trail as a
 `*` fragment and returns the error unchanged. No per-element fork happens. On any
 other non-sequence `pipeValue` the step raises `DistributeSubjectNotSequenceError`.
-
-### `>>` — flatten then apply
-
-    (pipeValue, env) >> nextStep
-        ≡
-    (flat(pipeValue), env) | nextStep
-
-`pipeValue` must be a Vec or Set; a Set flattens to a Vec. `flat`
-removes one level of nesting; it is a no-op on flat Vecs (elements
-that are not themselves sequences pass through unchanged).
-
-**Deflection on error pipeValue.** When `pipeValue` is an error
-value, `>>` stamps `nextStep`'s source slice onto the error's trail
-as a `>>` fragment and returns the error unchanged. No flatten happens. On any other
-non-sequence `pipeValue` the step raises `MergeSubjectNotSequenceError`.
 
 ## Fork
 
@@ -816,7 +801,7 @@ indistinguishable from built-ins.
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `manifest`   | Step 3 — reflective built-in          |
 | `error`, `isError`                  | Step 3 — error built-in               |
-| `\|`, `!\|`, `*`, `>>`              | Combinators                           |
+| `\|`, `!\|`, `*`                    | Combinators                           |
 | `(...)` grouping                    | Fork                                  |
 | Vec / Map / Set entry evaluation    | Fork per entry                        |
 
@@ -1175,7 +1160,7 @@ for the precomputed `.effectful` field that the safety net consults.
 ## Error values and fail-track dispatch
 
 Error is the fifth value type. An error value wraps a descriptor
-Map and rides the fail-track: the `|`, `*`, and `>>` combinators
+Map and rides the fail-track: the `|` and `*` combinators
 deflect it, while `!|` fires its step against the materialized
 descriptor.
 
@@ -1230,14 +1215,11 @@ pure AST-node-type dispatcher with no track awareness.
   the trail like `|`; on a Vec or Set, forks per element and runs
   the body against each; throws `DistributeSubjectNotSequenceError`
   when `pipeValue` is neither a sequence nor an error.
-- **`>>`** — `mergeFlat(state, nextNode)`. Deflects on error into
-  the trail like `|`; on a Vec or Set, flattens one level into a
-  Vec and invokes the next step against it.
 
 A leading combinator on a Pipeline (`Pipeline.leadingCombinator`)
 is handled in `evalPipeline` by routing the first operand step
 through `applyCombinator(node.leadingCombinator, state, step)` —
-any of `!|` / `|` / `*` / `>>`. The `!|` form is how predicate
+any of `!|` / `|` / `*`. The `!|` form is how predicate
 lambdas inside `filter(…)` / `when(…)` / `if(…)` opt into
 fail-apply for their first step.
 
@@ -1320,11 +1302,11 @@ consumer sites.
 
 | Field | Type | Content |
 |---|---|---|
-| `:faultStep` | Quote | Verbatim source-text of the failing step, lifted to a Quote-value via `makeQuote(node.text)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` and `>>` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
+| `:faultStep` | Quote | Verbatim source-text of the failing step, lifted to a Quote-value via `makeQuote(node.text)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
 | `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
 | `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes`, folded in when `!\|` fires and again by `materializePendingTrail` at the query / cell boundary. `null` until the first deflection; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes`, folded in when `!\|` fires and again by `materializePendingTrail` at the query / cell boundary. `null` until the first deflection; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
 Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /

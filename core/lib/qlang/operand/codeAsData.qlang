@@ -81,7 +81,7 @@
       different value. Same `eval` machinery, different subject
       binding.
 
-      The Quote may carry a leading combinator (`|`, `*`, `>>`, `!|`)
+      The Quote may carry a leading combinator (`|`, `*`, `!|`)
       so its first step applies through that combinator against the
       new subject. A pipeline-suffix shape — exactly the form `:trail`
       records surface — is therefore directly re-executable.
@@ -89,7 +89,7 @@
       ~{~{type | eq(:null)} | apply(42) | eq(false)}
       ~{~{| type | eq(:null)} | apply(42) | eq(false)}
       ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
-      ~{~{>> sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
+      ~{~{flat | sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
   ~~|
   ::builtin{:impl :qlang/prim/apply
             :category :codeAsData

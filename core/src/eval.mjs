@@ -114,11 +114,10 @@ const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingErr
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
-// The combinator names its qlang kind — `distribute` / `merge`, the
-// same vocabulary `COMBINATOR_SYNTAX` and `trailEntry` speak — so the
+// The combinator names its qlang kind — `distribute`, the same
+// vocabulary `COMBINATOR_SYNTAX` and `trailEntry` speak — so the
 // message and the catalog tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set']);
-const MergeSubjectNotSequenceError      = declareSubjectError('MergeSubjectNotSequenceError',      'merge',      ['vec', 'set']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
   { expectedType: 'function' }
@@ -257,7 +256,7 @@ async function evalPipeline(node, state) {
   //
   // `node.leadingCombinator`, if present, names the combinator the
   // first step applies through against the inbound pipeValue
-  // (`!|` / `|` / `*` / `>>`). Without it, the first step runs as
+  // (`!|` / `|` / `*`). Without it, the first step runs as
   // an identity-head — straight evalNode against state, no track
   // dispatch. Pipeline-suffix shapes (`~{| count | add(1)}`) round-
   // trip through `apply` exactly because the leading combinator
@@ -292,7 +291,7 @@ async function evalPipeline(node, state) {
 }
 
 // Track dispatch lives here and only here. Each success-track
-// combinator — `|`, `*`, `>>` — deflects on an error pipeValue by
+// combinator — `|`, `*` — deflects on an error pipeValue by
 // stamping a `trailEntry` fragment — the upcoming step's source
 // slice plus the combinator kind — onto the error's `_trailHead`
 // and returning the error unchanged. The fail-track combinator `!|`
@@ -303,8 +302,7 @@ async function evalPipeline(node, state) {
 const COMBINATOR_EVALUATORS = {
   '|':  applySuccessTrack,
   '!|': applyFailTrack,
-  '*':  distribute,
-  '>>': mergeFlat
+  '*':  distribute
 };
 
 async function applyCombinator(kind, state, stepNode) {
@@ -346,24 +344,6 @@ async function distribute(state, bodyNode) {
   );
   const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
   return withPipeValue(state, retagPerElement(distributeResults, subjectSeq));
-}
-
-async function mergeFlat(state, nextNode) {
-  if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(nextNode, 'merge')));
-  }
-  if (!isOrderedSequence(state.pipeValue)) {
-    const mergeErr = new MergeSubjectNotSequenceError(state.pipeValue);
-    mergeErr.location = nextNode.location;
-    return withPipeValue(state, errorFromQlang(mergeErr, makeQuote(nextNode.text), state.pipeValue));
-  }
-  const sourceSeq = state.pipeValue;
-  const flattened = [];
-  for (const flatItem of sourceSeq) {
-    if (isOrderedSequence(flatItem)) flattened.push(...flatItem);
-    else flattened.push(flatItem);
-  }
-  return await evalNode(nextNode, withPipeValue(state, retagPerElement(flattened, sourceSeq)));
 }
 
 // Per-element transformer tagger: if the source was a JsonArray, the

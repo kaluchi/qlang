@@ -107,7 +107,7 @@ export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
 // `apply(subject)` — runs the Quote-or-Map in `pipeValue` against
 // the captured-arg `subject` as the initial pipeValue. The Quote's
 // leading combinator (if any — `~{* mul(2)}` / `~{| count}` /
-// `~{>> sort}` / `~{!| /trail}`) routes the first step through
+// `~{* sort}` / `~{!| /trail}`) routes the first step through
 // that combinator against the new subject, so a pipeline-suffix
 // shape replays semantically.
 export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {

@@ -199,10 +199,3 @@ describe('min/max subject type checks', async () => {
     expect(result.originalError.name).toBe('MaxSubjectNotVecOrSetError');
   });
 });
-
-describe('mergeFlat non-Vec element passthrough', async () => {
-  it('>> passes non-Vec elements through unchanged', async () => {
-    const result = await evalQuery('[1, [2, 3], 4] >> count');
-    expect(result).toBe(4);
-  });
-});

@@ -293,11 +293,6 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].combinator).toBe('*');
   });
 
-  it('parses a pipeline with merge', () => {
-    const ast = parse('[[1 2] [3 4]] >> count');
-    expect(ast.steps[1].combinator).toBe('>>');
-  });
-
   it('parses as(:name) inside a pipeline', () => {
     const ast = parse('foo | as(:snapshot) | bar');
     expect(ast.steps).toHaveLength(3);
@@ -375,7 +370,7 @@ describe('parse — error handling', () => {
 
   it('refuses a leading combinator and an explicit combinator on the first operand step after a comment head', () => {
     expect(() => parse('!| |~ note ~| * add(1)')).toThrow(ParseError);
-    expect(() => parse('(* |~| note\n>> count)')).toThrow(ParseError);
+    expect(() => parse('(* |~| note\n| count)')).toThrow(ParseError);
     expect(() => parse('!| |~ one ~| |~ two ~| | count')).toThrow(ParseError);
     expect(parse('!| |~ note ~| count').leadingCombinator).toBe('!|');
   });

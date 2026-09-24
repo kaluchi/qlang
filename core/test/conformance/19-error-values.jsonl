@@ -40,5 +40,4 @@
 {"name":"trail-not-quote-on-relift","query":"!{:kind :oops} | count !| union({:trail []}) | error !| type","expect":"::ErrorTrailNotQuoteError"}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| union({:trail null}) | error | add(1) !| /trail","expect":"~{| add(1)}"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add(1) !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{* add(1)}\n  :actualType :quote\n}"}
-{"name":"merge-combinator-deflects-on-error","query":"!{:kind :oops} >> count !| /trail * /text","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~{/text}\n  :faultInput ~{>> count}\n  :actualType :quote\n}"}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add(1)","expect":"::AddLeftNotNumberError!{\n  :faultStep ~{add(1)}\n  :faultInput \"hello\"\n  :actualType :string\n}"}

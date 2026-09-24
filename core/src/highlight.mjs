@@ -33,7 +33,7 @@
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
-//                 (`|`, `*`, `>>`), the `{` / `}` of an ordinary
+//                 (`|`, `*`), the `{` / `}` of an ordinary
 //                 MapLit, `(` / `)` of an operand-call arg list,
 //                 commas, dots, and the `/` separator inside a
 //                 `Projection`
@@ -324,7 +324,7 @@ function interleaveGapTokens(src, semanticSpans) {
 }
 
 // Walk a gap region, splitting into `whitespace` runs and `punct`
-// tokens. Multi-char combinators (`>>`, `!|`, `#[`) bind tighter
+// tokens. Multi-char tokens (`!|`, `#[`) bind tighter
 // than single-char punct. Any single byte that is neither
 // whitespace nor a known multi-char prefix advances by one as
 // `punct` — gaps between AST nodes contain only structural
@@ -357,7 +357,6 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];
-  if (ch === '>' && next === '>') return { end: startOffset + 2, kind: 'punct' };
   if (ch === '!' && next === '|') return { end: startOffset + 2, kind: 'err'   };
   return { end: startOffset + 1, kind: 'punct' };
 }

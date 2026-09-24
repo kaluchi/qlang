@@ -636,7 +636,7 @@ the BindStep form `:name body` and the `as` operand in
 ### Precedence
 
 `|` is left-associative. The other combinators introduced in
-later chapters (`*`, `>>`, `!|`) share the same precedence and
+later chapters (`*`, `!|`) share the same precedence and
 associativity, so a chain of mixed combinators reads strictly
 left to right. `()` scopes a sub-expression into an isolated
 sub-pipeline:
@@ -785,21 +785,6 @@ applies the step per element of the Vec or Set.
 
 Type error: `*` on a non-sequence (neither Vec nor Set) produces an Error value.
 
-### Merge — `>>`
-
-Flatten one nesting level, then apply next step. Equivalent to
-`| flat |`.
-
-```qlang
-> [[1 2] [3] [4 5]] >> count
-5
-
-> [[3 1] [2 4]] >> sort
-[1 2 3 4]
-```
-
-Type error: `>>` on a non-sequence (neither Vec nor Set) produces an Error value.
-
 ## Construct
 
 Extract is about taking values apart. Construct is about building
@@ -823,14 +808,14 @@ Literals inside the Vec still ignore input; projections and operands
 consume `pipeValue`. Both are the same construct — no separate
 "branch" syntax.
 
-A Vec expression produces a Vec of results. Combined with `>>` from
-Extract (flatten one level, then apply), this merges the branches:
+A Vec expression produces a Vec of results. Combined with `flat`,
+which flattens one level, this merges the branches:
 
 ```qlang
-> [1 2 3 4 5] | [filter(gt(3)), filter(lt(2))] >> count
+> [1 2 3 4 5] | [filter(gt(3)), filter(lt(2))] | flat | count
 3
 |~| [filter(gt(3)), filter(lt(2))] builds [[4 5], [1]]
-|~| >> flattens to [4 5 1], count → 3
+|~| flat flattens to [4 5 1], count → 3
 ```
 
 ### Map as step — reshape
@@ -1724,7 +1709,7 @@ propagates, and how to recover.
 When a step produces a failure — a type mismatch in projection,
 an arity error, a division by zero — the result is an error value
 (the `!{}` type from Part 1). At that point, the success-track
-combinators `|`, `*`, and `>>` **deflect**: they record the
+combinators `|` and `*` **deflect**: they record the
 upcoming step's source onto the error's `:trail` Quote and let
 the error flow through unchanged. The entire success-track
 pipeline after the failure becomes a no-op; the error rides
@@ -1766,7 +1751,7 @@ materialization.
 
 `:trail` is a **Quote-value** — a frozen, copy-pasteable
 pipeline-suffix source carrying every deflected step joined with
-its leading combinator (`|`, `*`, `>>`). When no success-track
+its leading combinator (`|`, `*`). When no success-track
 combinator has deflected after the fault, `:trail` is `null`.
 The `/source` projection unwraps the Quote into its raw text;
 `/ast` lazy-parses it on demand.
@@ -1854,7 +1839,7 @@ or duplicates the literal head on print.
 | `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
 | `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`, `>>`) into one copy-pasteable Quote. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
+| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`) into one copy-pasteable Quote. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry
@@ -2192,7 +2177,7 @@ Six step types:
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
-Combinators thread state between steps. `|`, `*`, and `>>` are
+Combinators thread state between steps. `|` and `*` are
 **success-track** combinators — they fire their step when `pipeValue`
 is a non-error value, and **deflect** on an error (stamping the
 upcoming step's source slice onto the error's `:trail` and letting
@@ -2206,7 +2191,6 @@ success `pipeValue` it deflects as identity pass-through.
 | `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`. On error `pipeValue`, deflect: stamp `b`'s source slice onto the trail and return the error unchanged. |
 | `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Quote with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
 | `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
-| `a >> b` | eval `a`, flatten one level, pipe into `b`. Equivalent to `a \| flat \| b`. On error `pipeValue`, deflect. |
 
 **Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#[...]`.
 Inner sub-pipeline starts with a copy of outer `(pipeValue, env)`.
@@ -2232,10 +2216,10 @@ modifiers (filled by captured args).
 
 ### Precedence
 
-`|`, `!|`, `*`, `>>` — left-associative, equal precedence:
+`|`, `!|`, `*` — left-associative, equal precedence:
 
 ```qlang
-a | b * c !| d >> e  =  ((((a | b) * c) !| d) >> e)
+a | b * c !| d  =  (((a | b) * c) !| d)
 ```
 
 `()` scopes sub-expressions:
@@ -2251,7 +2235,6 @@ filter(/age | gt(18))
 |---|---|
 | `/key` on non-Map (Scalar, Vec, Set, null, function) | type error |
 | `* expr` on non-sequence | type error |
-| `>> expr` on non-sequence | type error |
 | `use` on non-Map | type error |
 | Identifier `name` not in `env` | unresolved identifier |
 | Captured args applied to a non-function value | type error |
@@ -2380,7 +2363,6 @@ value-class above.
 | Pipe | `\|` | |
 | FailApply | `!\|` | |
 | Star | `*` | |
-| Merge | `>>` | |
 | LParen | `(` | |
 | RParen | `)` | |
 | LBrace | `{` | |
@@ -2412,7 +2394,7 @@ Query         ← Pipeline
 Pipeline      ← ('!|' _)? DocAttached (Combinator DocAttached / PlainComment)*
 DocAttached   ← DocComment* OperandCall / DocComment* RawStep
 RawStep       ← Primary
-Combinator    ← '|' / '!|' / '*' / '>>'
+Combinator    ← '|' / '!|' / '*'
 
 PlainComment  ← LinePlainComment / BlockPlainComment
 DocComment    ← LineDocComment / BlockDocComment
@@ -2523,7 +2505,7 @@ documentation level.
 
 |~| fan-out + merge
 > [1 2 3 4 5 6 7 8 9 10]
-  | [filter(gt(7)), filter(lt(3))] >> sort
+  | [filter(gt(7)), filter(lt(3))] | flat | sort
 [1 2 8 9 10]
 
 |~| nested projection
@@ -2968,7 +2950,7 @@ walk the array and concatenate slices without extra bookkeeping.
 | `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
 | `set` | `#[` opener and matching `]` closer of a SetLit |
 | `vec` | `[` opener and matching `]` closer of a VecLit |
-| `punct` | Every other combinator (`\|`, `*`, `>>`), MapLit / arg-list brackets, commas, dots, and the `/` separator inside a `Projection` |
+| `punct` | Every other combinator (`\|`, `*`), MapLit / arg-list brackets, commas, dots, and the `/` separator inside a `Projection` |
 | `whitespace` | Runs of whitespace between meaningful tokens; also the entire input on a parse failure (safe fallback for live-typing render paths) |
 
 Builtin names are supplied by the caller so the tokenizer stays

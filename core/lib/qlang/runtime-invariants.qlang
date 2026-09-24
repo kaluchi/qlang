@@ -184,17 +184,6 @@
        }
   ~~|
 
-::MergeSubjectNotSequenceError
-  |~~ Merge combinator (`>>`) — subject must be a Vec or Set for
-      one-level flattening into a Vec.
-
-      ~{
-        42 >> count
-        !| [type /actualType]
-        |  eq([::MergeSubjectNotSequenceError :number])
-       }
-  ~~|
-
 |~ ── 3. Tag-binding constructor invariants ─────────────── ~|
 
 ::TagBindingHasNoConstructorError

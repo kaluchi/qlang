@@ -171,9 +171,8 @@
     },
 
     "combinator": {
-      "comment": "Pipeline combinators: >> (chain), !| (fail-apply — fires its step on an error pipeValue against the materialized descriptor, deflects on success), | (pipe), * (spread). !| is tried before | so the 2-char token wins the match against the trailing | that would otherwise match the 1-char pipe rule.",
+      "comment": "Pipeline combinators: !| (fail-apply — fires its step on an error pipeValue against the materialized descriptor, deflects on success), | (pipe), * (spread). !| is tried before | so the 2-char token wins the match against the trailing | that would otherwise match the 1-char pipe rule.",
       "patterns": [
-        { "name": "keyword.operator.chain.qlang",      "match": ">>" },
         { "name": "keyword.operator.fail-apply.qlang", "match": "!\\|" },
         { "name": "keyword.operator.pipe.qlang",       "match": "\\|(?!~)" },
         { "name": "keyword.operator.spread.qlang",     "match": "\\*" }

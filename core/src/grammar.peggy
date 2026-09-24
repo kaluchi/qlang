@@ -26,7 +26,7 @@
 // that follows a plain comment without an explicit combinator
 // carries the absorbed marker (`combinator: null`) on its
 // continuation unit; a step the author prefixed with `|` / `*` /
-// `>>` / `!|` after the comment carries that token.
+// `!|` after the comment carries that token.
 
 {{
   // Build a node with location and text from peggy's action helpers.
@@ -55,7 +55,7 @@
   // combinator rides the combinator the comment's closer stands
   // for. Its continuation unit carries the absorbed marker
   // (`combinator: null`) so the evaluator can tell it from a step
-  // the author prefixed with `|` / `*` / `>>` / `!|` after the
+  // the author prefixed with `|` / `*` / `!|` after the
   // comment: at the head of a pipeline the absorbed follower is the
   // identity-head, past the head it rides `|`.
   function absorbedUnit(step) {
@@ -126,15 +126,15 @@ Query
 // semantics. This mirrors the existing ParenGroup role for
 // escaping outer-context precedence.
 //
-// The leading-combinator prefix (`!| step` / `| step` / `* step` /
-// `>> step`) is valid at any Pipeline-start position. Semantically
+// The leading-combinator prefix (`!| step` / `| step` / `* step`)
+// is valid at any Pipeline-start position. Semantically
 // the first step is applied against the inbound pipeValue through
 // the named combinator; without the prefix, the first step rides
 // the implicit identity-head. The prefix is what makes a
 // Pipeline-suffix Quote (`~{| count | add(1)}`) parseable as data
 // and re-evaluable against a subject via the `apply(quote)`
 // operand. Explicit combinators between later steps (`|`, `*`,
-// `>>`, `!|`) remain valid as usual.
+// `!|`) remain valid as usual.
 PipelineInLiteral
   = leadingComb:(LeadingCombinator _)? head:RawStep tail:(_L ExplicitContinuation)*
   {
@@ -156,7 +156,7 @@ Pipeline
     // the head is a BlockPlainComment that absorbed its trailing
     // combinator and ate a follower step.
     //
-    // `leadingCombinator` is an optional `!|` / `|` / `*` / `>>`
+    // `leadingCombinator` is an optional `!|` / `|` / `*`
     // prefix that applies the first step against the inbound
     // pipeValue through the named combinator. If present, a
     // single-step pipeline still wraps in a Pipeline node so the
@@ -186,7 +186,7 @@ Pipeline
 // The `!"~"` lookahead on `"|"` keeps the comment markers `|~`,
 // `|~|`, `|~~`, `|~~|` from being misread as leading-pipe + Quote.
 LeadingCombinator
-  = "!|" / ">>" / "|" !"~" { return '|'; } / "*"
+  = "!|" / "|" !"~" { return '|'; } / "*"
 
 // The first unit of a pipeline has no preceding combinator
 // (virtually, its leading `|` in a comment-led form is absorbed
@@ -541,8 +541,7 @@ BlockDocContent
 // (ErrorLit) is distinguishable by its second char.
 
 Combinator
-  = ">>" { return '>>'; }
-  / "!|" { return '!|'; }
+  = "!|" { return '!|'; }
   / "|" !"~" { return '|'; }
   / "*"  { return '*'; }
 

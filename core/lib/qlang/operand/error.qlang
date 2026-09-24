@@ -13,8 +13,8 @@
       map | error uses pipeValue as the descriptor;
       full form error(map) evaluates the captured
       Map against pipeValue as context. The resulting
-      error rides the fail-track: |, *, and >>
-      deflect it into the trail, !| fires its step
+      error rides the fail-track: | and * deflect
+      it into the trail, !| fires its step
       against the materialized descriptor.
 
       ~{{:kind :oops :message "boom"} | error !| /kind | eq(:oops)}

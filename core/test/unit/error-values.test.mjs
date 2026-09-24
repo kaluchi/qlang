@@ -153,10 +153,10 @@ describe('trail', () => {
     const errorVal2 = appendTrailNode(errorVal1,
       Object.freeze({ combinator: 'distribute', text: 'inc' }));
     const errorVal3 = appendTrailNode(errorVal2,
-      Object.freeze({ combinator: 'merge',      text: 'flatten' }));
+      Object.freeze({ combinator: 'pipe',       text: 'flat' }));
     const quote = materializeTrail(errorVal3);
     expect(isQuote(quote)).toBe(true);
-    expect(quote.source).toBe('| mul(2) * inc >> flatten');
+    expect(quote.source).toBe('| mul(2) * inc | flat');
   });
 
   it('materializeTrail on fresh error returns null', () => {

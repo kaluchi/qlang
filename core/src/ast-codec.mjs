@@ -38,12 +38,12 @@
 //                     [:docs <Vec of strings>] [:effectful <bool>]
 //   ParenGroup        :pipeline <Pipeline AST-Map>
 //   Pipeline          :steps <Vec of PipelineStep Maps>
-//                     :leadingCombinator <"!|" | "|" | "*" | ">>" | null>
+//                     :leadingCombinator <"!|" | "|" | "*" | null>
 //   PipelineStep      :combinator <string | null>  :step <AST-Map>
 //                     (wrapper inside Pipeline.steps — the head and
 //                     the absorbed follower of a plain comment carry
-//                     null, every other unit carries "|", "!|", "*",
-//                     or ">>")
+//                     null, every other unit carries "|", "!|" or
+//                     "*")
 //   DocLit            :content <string>
 //   TaggedLit         :tag <string> :payload <AST-Map>
 //   BareTypeKeyword   :tag <string>

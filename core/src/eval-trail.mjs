@@ -31,7 +31,7 @@ import {
 
 // Trail-fragment record stamped onto the linked-list head at every
 // success-track combinator deflect site. `combinator` is one of
-// the COMBINATOR_SYNTAX keys ('pipe' / 'distribute' / 'merge');
+// the COMBINATOR_SYNTAX keys ('pipe' / 'distribute');
 // `text` is the deflected step's source slice. `materializeTrail`
 // joins fragments through COMBINATOR_SYNTAX into a single
 // Quote-source carrying the pipeline-suffix as copy-pasteable code.
@@ -58,7 +58,7 @@ export function combineTrailQuotes(existing, fresh) {
 //
 // Walk `_trailHead`'s linked-list (deflected steps appended by
 // success-track combinators) back into the descriptor's `:trail`
-// field. Deflections through `|` / `*` / `>>` append to the head
+// field. Deflections through `|` / `*` append to the head
 // but only `!|` flushes it; a pipeline that ends without any fail-
 // apply step would otherwise return an ErrorValue whose
 // `_trailHead` carries the chain but whose printValue surface

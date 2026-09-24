@@ -147,7 +147,7 @@ describe('::qlang on actual JSON-tagged value recurses through containers', () =
   });
 });
 
-describe('* and >> retag per element on JsonArray subject', () => {
+describe('* retags per element on JsonArray subject', () => {
   it('JsonArray * (number → number) keeps JsonArray tag', async () => {
     expect(await evalQuery('::json[1 2 3] * add(10) | type | eq(:jsonArray)')).toBe(true);
   });
@@ -169,14 +169,6 @@ describe('* and >> retag per element on JsonArray subject', () => {
   it('qlang Vec * anything stays qlang Vec', async () => {
     expect(await evalQuery('[1 2 3] * add(10) | type | eq(:vec)')).toBe(true);
     expect(await evalQuery('[1 2 3] * add(10) | type | eq(:jsonArray)')).toBe(false);
-  });
-
-  it('JsonArray >> stays JsonArray when flattened elements all JSON-storeable', async () => {
-    expect(await evalQuery('::json[::json[1 2] ::json[3 4]] >> take(99) | type | eq(:jsonArray)')).toBe(true);
-  });
-
-  it('JsonArray >> degrades to qlang Vec when any flat element is qlang-only', async () => {
-    expect(await evalQuery('::json[[:a :b] [:c]] >> take(99) | type | eq(:jsonArray)')).toBe(false);
   });
 });
 

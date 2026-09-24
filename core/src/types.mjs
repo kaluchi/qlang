@@ -142,7 +142,7 @@ export function isMapShape(v) {
   return isQMap(v) || isJsonObject(v);
 }
 
-// Vec / JsonArray / Set — the ordered, indexable sequences `*`, `>>`,
+// Vec / JsonArray / Set — the ordered, indexable sequences `*`
 // and the order-aware operands (first / take / sort / distinct / flat
 // / …) dispatch over uniformly. A Set is the `distinct` of a Vec.
 export function isOrderedSequence(v) {
@@ -184,7 +184,7 @@ export function vecLikeOf(items, source) {
   return isJsonArray(source) ? makeJsonArray(items) : items;
 }
 
-// Per-element transformers (`*`, `>>`) preserve a JsonArray subject's
+// The per-element transformer `*` preserves a JsonArray subject's
 // tag only when every produced element is itself JSON-storeable —
 // scalar Null/Boolean/Number/String or a JSON-shape Object/Array.
 // A qlang-only element (Keyword, Map, Set, Vec, Conduit, …) silently
@@ -615,8 +615,7 @@ export function withName(binding, newName) {
 
 export const COMBINATOR_SYNTAX = Object.freeze({
   pipe:       '|',
-  distribute: '*',
-  merge:      '>>'
+  distribute: '*'
 });
 
 // `:trail` is runtime-owned: a Quote-value carrying the joined

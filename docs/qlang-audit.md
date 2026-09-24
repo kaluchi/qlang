@@ -3461,15 +3461,20 @@ name, its doc when it has one and, in the place of a body, the kind it
 takes [D45], `~[::jdt/Method :depth |~~ levels of callers to walk ~~|
 ::number](…)`; inside the brackets a newline is whitespace, so a slot
 may take a line of its own, and inside the body a slot is a name like
-any declared one, its doc with it. A binding is `:name value` wherever
-it stands, and a verb is a binding whose value is a conduit, `:inc
-~[](add 1)`: the slot list leaves the place after the name, the
-conduit's name leaves the value, so a bound conduit equals its literal,
-and a binding is one record, `::bind{:name :inc :body ~[](add 1)}`
-[D47]. A built-in, whose body is host code, carries its slot list in its
-descriptor in the place of `:subject` and `:modifiers`,
-`::builtin{:slots [::number :n ::number] :impl :qlang/prim/add :returns
-::number}`.
+any declared one, its doc with it. The head declares what the verb
+takes, the subject's kind first and its slots after it, and the body
+what it answers: a body that promises a shape ends by tagging its
+result, which a reader finds in the last step of the body's quote,
+`~(count | tag ::Box) | /1` answering `::call{:name :tag :args
+[::Box]}`, as a built-in declares its result with `:returns` [D45]. A
+binding is `:name value` wherever it stands, and a verb is a binding
+whose value is a conduit, `:inc ~[](add 1)`: the slot list leaves the
+place after the name, the conduit's name leaves the value, so a bound
+conduit equals its literal, and a binding is one record, `::bind{:name
+:inc :body ~[](add 1)}` [D47]. A built-in, whose body is host code,
+carries its slot list in its descriptor in the place of `:subject` and
+`:modifiers`, `::builtin{:slots [::number :n ::number] :impl
+:qlang/prim/add :returns ::number}`.
 Source. «да, принимаю .. только ты мне скажи ... в слотах точно можно
 будет использовать обычный синтаксис биндингов?» (maintainer, 2026-09-24
 06:20, session 86982eb5), accepting the model's reading of his proposal,
@@ -3502,11 +3507,14 @@ written as a declaration answers his question and his recollection «и у
 видны как обычные биндинги ... но там когда-то гигамэп из-за этого
 возникать начал.. и модель начала утрачивать свой пайплайную форму..»
 (05:23): the doc of a slot stays where a declaration keeps it, and the
-value computed in the head leaves. The reading, the model, the same
-morning, from the tree: a conduit prints as `::conduit[[:x] ~(add x)]`
-and a binding of it runs, `:g ::conduit[[:x] ~(add x)] | 5 | g 2`
-answering `7`, and the grammar reads a head of declarations as words,
-`[:x |~~ how many ~~| ::number :y] | count` answering `4`.
+value computed in the head leaves. His remark «и да.. у нас же не только
+параметры .. но и вовзращаемое значение же наверное есть ... и вход и
+выход.. тут ты прав что ранее написал» (06:34) holds the head to the
+input and the body to the output, as D45 has it. The reading, the model,
+the same morning, from the tree: a conduit prints as `::conduit[[:x]
+~(add x)]` and a binding of it runs, `:g ::conduit[[:x] ~(add x)] | 5 |
+g 2` answering `7`, and the grammar reads a head of declarations as
+words, `[:x |~~ how many ~~| ::number :y] | count` answering `4`.
 Set aside. The slot list after the name, the form of D44, under which a
 verb and a value bind in two forms, and `:f [:x] ~(add x) | 5 | f 2`
 answers its quote while the conduit prints it doubled, `::conduit[:f

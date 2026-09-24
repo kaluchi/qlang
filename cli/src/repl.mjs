@@ -187,9 +187,7 @@ function renderForTerminal(value, builtinNames, stderrWrite) {
   } catch (renderInvariant) {
     // Every Error carries `.name` — concrete QlangInvariantError
     // subclasses set it via `brand()` to the per-site class name,
-    // bare JS Errors fall back to the constructor name. The
-    // structurally-stamped `.fingerprint` lives alongside on
-    // qlang invariants but is not used here — `.name` already
+    // bare JS Errors fall back to the constructor name — and it
     // identifies the site in the diagnostic.
     stderrWrite(`render invariant: ${renderInvariant.name} — ${renderInvariant.message}\n`);
     return null;

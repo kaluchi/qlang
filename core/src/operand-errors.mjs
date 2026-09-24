@@ -49,7 +49,7 @@ function lowerExpectedTypeHuman(input) {
   return caps.slice(0, -1).join(', ') + ', or ' + caps[caps.length - 1];
 }
 
-// Per-site identity rides on `this.name` / `this.fingerprint`,
+// Per-site identity rides on `this.name`,
 // stamped by every factory below from its `className` argument. The
 // context bag carries only structured data the throw site wants the
 // downstream catch (or the user-facing :trail descriptor) to read —
@@ -74,7 +74,6 @@ export function declareSubjectError(className, operand, expectedTypeInput) {
         { actualType, actualValue }
       );
       this.name = className;
-      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -95,7 +94,6 @@ export function declareModifierError(className, operand, position, expectedTypeI
         { actualType, actualValue }
       );
       this.name = className;
-      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -116,7 +114,6 @@ export function declareElementError(className, operand, expectedTypeInput) {
         { index, actualType, actualValue }
       );
       this.name = className;
-      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -136,7 +133,6 @@ export function declareComparabilityError(className, operand) {
         { leftType, rightType }
       );
       this.name = className;
-      this.fingerprint = className;
     }
   };
   return brand(Cls, className);

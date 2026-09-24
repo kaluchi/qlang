@@ -24,29 +24,16 @@
 // module load, so a class declared above its root would read the
 // root through the temporal dead zone.
 //
-// Source-mapping and observability fields on every QlangError:
+// The fields every QlangError carries besides its per-site name:
 //   .location       — qlang source position (set by evalNode wrapper
-//                     when the error bubbles past an AST node).
-//                     Lets editors squiggle the failing operand and
-//                     Sentry breadcrumbs cite the qlang source line.
-//   .fingerprint    — stable Sentry group key. Equals the per-site
-//                     class name; survives minification because it
-//                     is a string literal assigned in the constructor,
-//                     not a class identifier the bundler can mangle.
-//   .schemaVersion  — integer for forward-compat of the error
-//                     contract; bumped when fields are added or
-//                     renamed so older Sentry consumers can opt out.
+//                     when the error bubbles past an AST node), so an
+//                     editor squiggles the failing operand.
 //   .context        — the structured bag the throw site hands the
 //                     downstream catch. The root's constructor
 //                     defaults it to `{}` and every factory routes
 //                     through that constructor, so a reader walks it
-//                     unconditionally: `toJSON` here and
-//                     `errorFromQlang` in error-convert.mjs both do.
-//   .toJSON()       — Sentry-safe serialization. Drops `actualValue`
-//                     from .context so user PII never lands in the
-//                     observability backend.
-
-const ERROR_SCHEMA_VERSION = 1;
+//                     unconditionally, as `errorFromQlang` in
+//                     error-convert.mjs does.
 
 // ── Category roots ─────────────────────────────────────────────
 
@@ -57,27 +44,6 @@ export class QlangError extends Error {
     this.kind = kind;
     this.context = context;
     this.location = null;
-    this.fingerprint = null;
-    this.schemaVersion = ERROR_SCHEMA_VERSION;
-  }
-
-  // toJSON() — Sentry-safe serialization. The Sentry SDK calls
-  // JSON.stringify on the error during transport, which invokes
-  // this method. `context.actualValue` is dropped so user PII
-  // (the actual Vec/Map/scalar that triggered the type-check)
-  // never lands in the observability backend.
-  toJSON() {
-    return {
-      name: this.name,
-      kind: this.kind,
-      message: this.message,
-      fingerprint: this.fingerprint,
-      location: this.location,
-      context: Object.fromEntries(
-        Object.entries(this.context).filter(([field]) => field !== 'actualValue')
-      ),
-      schemaVersion: this.schemaVersion
-    };
   }
 }
 
@@ -176,8 +142,8 @@ const throwSiteSpecs = new Map();
 // One name, one throw site — the registry refuses a second
 // recording the way `PRIMITIVE_REGISTRY.bind` refuses a second
 // binding, and for the same reason: two classes answering to one
-// name share a Sentry fingerprint, a catalog tag and a stamped
-// spec, so whichever loads second speaks for both.
+// name share a catalog tag and a stamped spec, so whichever loads
+// second speaks for both.
 export function recordThrowSiteSpec(className, category, facts = {}) {
   if (throwSiteSpecs.has(className)) {
     throw new ThrowSiteSpecAlreadyRecordedError({ className });
@@ -263,7 +229,6 @@ function declareUnder(BaseError, category, className, buildMessage, facts) {
     constructor(context = {}) {
       super(buildMessage(context), context);
       this.name = className;
-      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -278,7 +243,6 @@ export function declarePerSiteError(className, category, buildMessage, facts = {
     constructor(context = {}) {
       super(buildMessage(context), category, context);
       this.name = className;
-      this.fingerprint = className;
     }
   };
   return brand(Cls, className);
@@ -340,7 +304,6 @@ export function declareForeignError(className, buildMessage) {
     constructor(context = {}) {
       super(buildMessage(context));
       this.name = className;
-      this.fingerprint = className;
       this.context = context;
     }
   };
@@ -355,7 +318,7 @@ export function declareForeignError(className, buildMessage) {
 export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
   'ThrowSiteSpecAlreadyRecordedError',
   ({ className }) => `${className} records a second throw-site spec; two classes under ` +
-    'one name share a fingerprint, a catalog tag and a stamped spec'
+    'one name share a catalog tag and a stamped spec'
 );
 
 // ── Per-site classes under QlangError ──────────────────────────

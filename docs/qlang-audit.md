@@ -1733,11 +1733,11 @@ prose a session reads to learn the language names JavaScript files,
 symbols and services: the type classifier's entry explains that identity
 rides on “the value's JS-header `TAG_HEADER_SYMBOL` slot”
 (`core/lib/qlang/operand/typeClassifier.qlang`); the invariants module
-speaks of the `BUILTIN_IMPL_SLOT`, of `createPrimitiveRegistry()` and of
-a Sentry fingerprint (`core/lib/qlang/runtime-invariants.qlang`); the
-reflective family refers the reader to `runtime/manifest-op.mjs`; the
-vector family to a section number of the reference. A session learning
-qlang from its catalog meets the names of the files that implement it.
+speaks of the `BUILTIN_IMPL_SLOT` and of `createPrimitiveRegistry()`
+(`core/lib/qlang/runtime-invariants.qlang`); the reflective family
+refers the reader to `runtime/manifest-op.mjs`; the vector family to a
+section number of the reference. A session learning qlang from its
+catalog meets the names of the files that implement it.
 
 Examples live on four planes: the conformance suite, the `~{…}` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in
@@ -1870,24 +1870,25 @@ leak
 hi
 ```
 
-The error classes carry a fingerprint and a schema version for an
-observability backend that is not attached. More than half of the error
-categories describe failures of the host or the runtime that no query
-author meets. The command line owns `table`, which draws a frame of
-dashes and pipes for a terminal (`cli/src/format-operands.mjs`), a view
-at the boundary whose cell is a literal on one line, and `template`, a
-second language of projections inside a string with a miss rule of its
-own, is gone, a query building the string instead,
-`[/name (/score | pretty)] | join ": "`. The command line starts from
-standard input when it carries bytes and from its default subject
-otherwise [D37], so a bare `count` names the subject it refused and
-`qlang 'type' < /dev/null` answers `::tag`; outside any project the
-subject is `::qlang`, and the noun of a project's `.qlang/` folder comes
-with the modules. Its JSON output writes a keyword as its bare name,
-`{:k :v}` leaving as `{"k": "v"}` [D1]. A raw-mode line editor and its
-tests are the largest single piece of the command-line workspace, and
-the REPL it serves cannot save a session although the core can serialize
-one.
+The error classes carried a fingerprint and a schema version for an
+observability backend that was not attached; both are gone with the
+errors' `toJSON`, and an error's tag is its site's name. More than half
+of the error categories describe failures of the host or the runtime
+that no query author meets. The command line owns `table`, which draws a
+frame of dashes and pipes for a terminal
+(`cli/src/format-operands.mjs`), a view at the boundary whose cell is a
+literal on one line, and `template`, a second language of projections
+inside a string with a miss rule of its own, is gone, a query building
+the string instead, `[/name (/score | pretty)] | join ": "`. The command
+line starts from standard input when it carries bytes and from its
+default subject otherwise [D37], so a bare `count` names the subject it
+refused and `qlang 'type' < /dev/null` answers `::tag`; outside any
+project the subject is `::qlang`, and the noun of a project's `.qlang/`
+folder comes with the modules. Its JSON output writes a keyword as its
+bare name, `{:k :v}` leaving as `{"k": "v"}` [D1]. A raw-mode line
+editor and its tests are the largest single piece of the command-line
+workspace, and the REPL it serves cannot save a session although the
+core can serialize one.
 
 The sister project builds on the workspace copy of the core since 23
 September 2026, its dependency a link to the core's folder:
@@ -1921,11 +1922,10 @@ collisions [D23]. Selecting an operand by the tag of its subject is part
 of that rule. Whether an effect deserves to become a value of its own,
 an action awaiting the host the way a quote awaits `apply`, is a
 question for a later branch that would have to show a task no plainer
-construct solves. The repair must also drop the observability fields
-with the error classes and give the sister project a guide generated
-from the catalog; `table` and `template` have left the core and the
-command line, and the command line starts from its default subject
-[D37].
+construct solves. The repair must also give the sister project a guide
+generated from the catalog; the observability fields have left the error
+classes, `table` and `template` the core and the command line, and the
+command line starts from its default subject [D37].
 
 ### Concurrency nobody declared
 

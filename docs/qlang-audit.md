@@ -562,25 +562,25 @@ can overflow has to break into one: a string through its lines, a
 quote as the vector of its steps, a doc as the vector of its segments
 [D19].
 
-Next, every tag and keyword inside a value is an anchor that resolves
-to its document. A tag is one. A keyword resolves only as the name of a
+Next, every tag and keyword inside a value is an anchor that resolves to
+its document. A tag is one. A keyword resolves only as the name of a
 binding, so the keyword of a field and the keyword that is one of an
 enumeration lead nowhere, and one keyword means different things in
 different records: `:modifiers` on a node of the sister project's graph
 and `:modifiers` on an operand's descriptor. A record that is to be
-enriched therefore carries a tag, where the sister project's nodes
-carry their kind as a string field, and the meaning of its fields is
-documented where it is owned [D25]. The shape of an answer is read the
-same way, before the answer is fetched: the operand's declaration
-names the tag or the type of its result, the tag's declaration names
-the fields, and `spec` and `docs` on the operand answer for one
-operand what a schema sheet would answer for all. The result of a
-declared pipeline is the kind its body answers, and that of host code is
-declared with it [D45]; the fields are declared with the tag, and the
-element shape of a container is spelled as the container's literal
-around the kind, `[::Method]` for a vector of methods. Last, everything
-prints as what it is, code included, because an elided and enriched page
-travels on.
+enriched therefore carries a tag, where the sister project's nodes carry
+their kind as a string field, and the meaning of its fields is
+documented by its tag, a value shared by several kinds of record by its
+own [D50]. The shape of an answer is read the same way, before the
+answer is fetched: the operand's declaration names the tag or the type
+of its result, the tag's declaration names the fields, and `spec` and
+`docs` on the operand answer for one operand what a schema sheet would
+answer for all. The result of a declared pipeline is the kind its body
+answers, and that of host code is declared with it [D45]; the fields are
+declared with the tag, and the element shape of a container is spelled
+as the container's literal around the kind, `[::Method]` for a vector of
+methods. Last, everything prints as what it is, code included, because
+an elided and enriched page travels on.
 
 ## How the project got here
 
@@ -2435,6 +2435,8 @@ September; the maintainer has raised no objection.
 Set aside. A string library of its own, which the sister project's
 source text asks for first and is the one road on which the catalog
 grows without bound.
+Replaced in part by D49, which counts a host without a shell among every
+host.
 
 ### D23 · Collisions are resolved by the subject, ownership and scope
 
@@ -2495,6 +2497,8 @@ from the design of Clojure's spec, where the meaning of an attribute
 lives with the attribute. The maintainer has not answered.
 Set aside. Documenting every field on every tag that carries it, which
 gives a shared field as many documents as it has records.
+Replaced by D50, under which a key stays short and a value shared by
+several kinds of record carries its own tag.
 
 ### D26 · The benchmark
 
@@ -3164,6 +3168,61 @@ by the names of their tags, the reading of D17 before D32, under which a
 host's kind whose name sorts before `quote` would fall between two kinds
 of the core.
 
+### D49 · The catalog serves a host without a shell
+
+Decision. The measure of D22, what every host would otherwise write,
+counts a host that has no shell around its queries, the site's sandbox
+and its demos among them. The core therefore carries the working set a
+shell would otherwise supply: the JSON codec both ways, text as lines,
+`split` and `join`, trimming, replacing, case and search. A host keeps
+its domain, its input and output, `@in`, `@out` and `@tap`, and its
+renderings, `table` and `template`, since a rendering is a view at the
+boundary [D33] and the sandbox draws values itself. The benchmark [D26],
+run in the sandbox, is the measure: every task is solved by the query
+alone, and a task that lacks an operand names it.
+Source. «d22 непонятно будет когда у нас песочница в австросайте и демки
+... им по идее тоже нужны эти базовые вещи .. т.е. не только одним башем
+мы живем..» (maintainer, 2026-09-24 00:36, session 86982eb5), and «ок,
+согласен ...» (00:44) to the model's reading of it.
+Set aside. Sizing the core by what the command line cannot reach through
+its shell, the reading D22 was given, which leaves every other host to
+write the same basics again.
+
+### D50 · A field means what its schema and its value's kind say
+
+Decision. A key of a record is short, and its meaning is given by the
+schema of the record's tag [D6]. A value shared by several kinds of
+record carries a tag of its own and is documented by it, once, wherever
+it appears, `:location ::jdt/Location`; a Java type named by its tag is
+already such a link [D24]. A schema names the kind of a field and stops
+there: it never spells a nested structure inline, since the kind is a
+link, and a reader who wants the fields of `::jdt/Location` follows it.
+The depth is the reader's choice, the cheap view first and the detail on
+demand [D21]: an axis that reads a declaration may take one map of
+options [D40], of the depth, what to follow and what to expand, and
+answer the expanded structure. The grammar keeps keys with a prefix for
+a host that wants a global attribute; the convention of the core is the
+short key.
+Source. «d25 - там наверное что-то похожее уже было у ошибок возможно ..
+:jdt/location возможно вообще какой-то тэг со своей структурой полей ..
+если пор значения говорим .. а вот насчет длинных ключей в мэпах даже и
+не знаю ..» (maintainer, 2026-09-24 00:36, session 86982eb5); «ок,
+согласен ... и да .. не надо в схеме пытаться там сразу всю вложенность
+мутить .. у нас же гипертекст :location ::jdt/Location и все .. кому
+надо подробности тот уже делает провал в схему ::jdt/Location - и
+добирает {:file … :line …} и остальное .. есни надо то там docs и
+остальное можно параметризовать какими-то мэпом потом с ключами {
+:глубина фоллоу expand и т.п.} - который выдаст массив или ещё какую-то
+нестед структуру если надо ...» (00:44). The comparison with Clojure's
+spec, where the meaning of an attribute lives with a namespaced keyword,
+and with Hickey's talk Maybe Not, where which keys a map must hold is
+decided where it is used, the model, the same night.
+Set aside. Global attributes under long keys, the proposal of D25 after
+clojure.spec, which JSON-shaped data and the sessions trained on it do
+not expect and the tags of values make unnecessary. Documenting every
+field on every tag that carries it, which gives a shared field as many
+documents as it has records.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3256,14 +3315,14 @@ declarations and evaluates to a namespace map. Effect markers are gone;
 a host that wants provenance visible tags the value, and an effect
 described by a value is performed at the boundary and nowhere else.
 
-Fingerprints and terminal conveniences belong to hosts. So do the
-budget of an answer, the elision of what exceeds it, and the enrichment
-of an answer with the documents its tags and keywords lead to; the
-language computes whole values, and every part of a value, a string, a
-quote and a doc included, has a size, an address and a slice, so what a
-host left out is the same query with a tail. A record that a host wants
-explained carries a tag whose declaration documents its fields, and a
-field shared across kinds is a namespaced attribute documented once.
+Fingerprints and terminal conveniences belong to hosts. So do the budget
+of an answer, the elision of what exceeds it, and the enrichment of an
+answer with the documents its tags and keywords lead to; the language
+computes whole values, and every part of a value, a string, a quote and
+a doc included, has a size, an address and a slice, so what a host left
+out is the same query with a tail. A record that a host wants explained
+carries a tag whose declaration documents its fields, and a value shared
+across kinds carries a tag of its own, which documents it once [D50].
 Code is a value, the quote, a vector of steps made of the language's
 values with an involution to and from its text, so a query reads,
 counts, transforms, and assembles code without leaving the language.
@@ -3576,12 +3635,13 @@ the language's own vocabulary; answers stay within a budget and replace
 what exceeds it with `::elision` markers [D21]; errors print as alerts,
 an unresolved name names its neighbours and a parse error the
 continuations a reader meant [D7]; enrichment happens once per session;
-fields are documented where they are owned [D25]; the sister project's
-nodes carry their kind as a tag, its types are mounted, its verbs shrink
-to about a dozen, and its guide is generated from the catalog [D24]; its
-workspaces become nouns and its answers name the workspace they came
-from [D38]; a host's command is the language's with its noun as the
-first value [D37]; and the benchmark runs [D26].
+fields are documented by their records' tags and shared values by their
+own [D50]; the sister project's nodes carry their kind as a tag, its
+types are mounted, its verbs shrink to about a dozen, and its guide is
+generated from the catalog [D24]; its workspaces become nouns and its
+answers name the workspace they came from [D38]; a host's command is the
+language's with its noun as the first value [D37]; and the benchmark
+runs [D26].
 
 ```qlang target
 > [1 2 3] | filtr ~(gt 1)
@@ -3653,13 +3713,6 @@ why.
 
 What neither the tree nor the decisions answer, with the alternatives
 and their cost.
-
-The meaning of a shared field [D25]. The proposal reads a bare key
-through its record's tag and makes a namespaced keyword a global
-attribute documented once. The alternative, every field documented on
-every tag that carries it, is simpler to state and gives a field shared
-by several kinds of record as many documents as it has records. The
-maintainer has not answered.
 
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task

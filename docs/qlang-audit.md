@@ -2386,7 +2386,10 @@ Decision. A doc is the vector of its segments, prose strings and
 quotes, under its own tag, parsed once by the language's parser; it
 counts, addresses and slices as a vector; `|~~ … ~~|` is its literal;
 its text is the join of its segments.
-Source. The model, 22 September 2026.
+Source. The model, 22 September 2026, from the maintainer's picture of a
+doc: «так и в qlang - любой Doc - задумывался так что б быть маркдауном
+по сути .. и внутри него есть квоты из qlang-а» (maintainer, 2026-09-19
+07:18, session ad12f85d).
 
 ### D20 · A tag names a kind
 
@@ -3077,16 +3080,17 @@ Decision. Error identity stays per site: every place that refuses has a
 tag of its own, named so that a reader knows at once what failed,
 `::AddLeftNotNumberError`, and pointing at that one place in the system.
 The tag is declared once, in the catalog beside its operand, as a kind
-[D6]. Its schema owns the site's fields, and their order is the order a
-reader needs them: the facts of the site first, then the step, the input
-and the trail, so the printer writes the signal in the first characters
-and elision takes the tail. Its document is the site's procedure [D7]. A
-throw site passes the facts and the tag's constructor checks them, so no
-place adds or drops a field that another fills. What leaves with today's
-declarations is their second spelling: the JavaScript class of every
-site, the registry of throw sites, the stamping passes, the drift tests,
-the injection script, and the converter's table of field order. A host's
-refusals carry tags under its prefix [D23].
+[D6]. Its schema owns the facts of the site, in the order a reader needs
+them; the step, the input and the trail are the frame every error
+carries, declared once by the kind of errors and printed after the
+facts, so the signal comes in the first characters and elision takes the
+tail. Its document is the site's procedure [D7]. A throw site passes the
+facts and the tag's constructor checks them, so no place adds or drops a
+field that another fills. What leaves with today's declarations is their
+second spelling: the JavaScript class of every site, the registry of
+throw sites, the stamping passes, the drift tests, the injection script,
+and the converter's table of field order. A host's refusals carry tags
+under its prefix [D23].
 Source. «я не хочу генерик сайты - это откат для рантайма.. потом
 какие-то поля в одном месте добавлять, в другом убирать - у семерых
 нянек дите без глазу.. всетаки это более сильный сигнал для читающей

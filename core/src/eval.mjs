@@ -116,7 +116,7 @@ const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstr
 // The combinator names its qlang kind — `distribute`, the same
 // vocabulary `trailEntry` speaks — so the message and the catalog
 // tag-binding's `:operand` read alike.
-const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set']);
+const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
   { expectedType: 'function' }
@@ -331,7 +331,7 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
-  if (!isOrderedSequence(state.pipeValue)) {
+  if (!isOrderedSequence(state.pipeValue) && !isQMap(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, quoteOfBody(bodyNode), state.pipeValue));
@@ -342,6 +342,14 @@ async function distribute(state, bodyNode) {
   // `[e 1] * (count)` hands it on with its trail.
   const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
   const subjectSeq = state.pipeValue;
+  // A map's elements are its values, and the keys travel with them.
+  if (isQMap(subjectSeq)) {
+    const mapEntries = [...subjectSeq];
+    const valueForks = await Promise.all(
+      mapEntries.map(([, entryValue]) => forkWith(state, entryValue, inner => evalBody(bodyPipeline, inner)))
+    );
+    return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, valueForks[index].pipeValue])));
+  }
   const forkResults = await Promise.all(
     sequenceElements(subjectSeq).map(seqElement =>
       forkWith(state, seqElement, inner => evalBody(bodyPipeline, inner))

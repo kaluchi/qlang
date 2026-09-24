@@ -215,10 +215,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('distribute on non-sequence → DistributeSubjectNotSequenceError', async () => {
-    const caughtErr = await catchOriginalError('{:a 1} * add 1');
+  it('distribute on a scalar → DistributeSubjectNotSequenceError', async () => {
+    const caughtErr = await catchOriginalError('42 * add 1');
     expect(caughtErr.name).toBe('DistributeSubjectNotSequenceError');
-    expect(caughtErr.context.actualType.name).toBe('map');
+    expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('apply args to non-function → ApplyToNonFunctionError', async () => {
@@ -351,7 +351,7 @@ describe('per-site error classes carry unique identity', () => {
       '[1 "two"] | sum',
       '"a" | gt 5',
       '42 | /name',
-      '{:a 1} * add 1',
+      '42 * add 1',
       '5 | as :five | five 42',
       '42 | use',
       '42 | reduce 0 ~(add)',
@@ -371,7 +371,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',        // CountSubjectNotContainerError
       '42 | first',        // FirstSubjectNotSequenceError
       '42 | last',         // LastSubjectNotSequenceError
-      '42 | sum',          // SumSubjectNotVecOrSetError
+      '42 | sum',          // SumSubjectNotContainerError
       '42 | reverse',      // ReverseSubjectNotSequenceError
       '42 | distinct',     // DistinctSubjectNotSequenceError
       '42 | sort',         // SortNaturalSubjectNotSequenceError
@@ -384,7 +384,7 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | gt 5',       // GtOperandsNotComparableError
       '"a" | lt 5',       // LtOperandsNotComparableError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '{:a 1} * add 1',   // DistributeSubjectNotSequenceError
+      '42 * add 1',       // DistributeSubjectNotSequenceError
       '42 | reduce 0 ~(add)',   // ReduceSubjectNotSequenceError
       '[1 2 3] | reduce 0 ~(42)' // ReduceReducerNotBinaryError
     ];

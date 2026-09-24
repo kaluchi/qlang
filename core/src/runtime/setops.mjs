@@ -25,14 +25,18 @@ import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
 
-// Map-minus-Set / Map-inter-Set drop or keep entries by their
-// String key. The Set typically carries Keywords (`#[:tmp]`) — the
-// keyword's `.name` matches the Map's String key. Composite Set
-// members would not be meaningful as Map-key filters, so the
-// lookup stays keyword-name-only.
-function setHasMapKey(s, k) {
-  for (const v of s) if (isKeyword(v) && v.name === k) return true;
+// A map minus keys / a map inter keys drops or keeps entries by
+// their String key [D15]. The keys arrive as a Set or a Vector of
+// Keywords (`#[:tmp]`, `[:a :c]`) — the keyword's `.name` matches the
+// Map's String key. Composite members would not be meaningful as
+// key filters, so the lookup stays keyword-name-only.
+function keysHaveMapKey(keysValue, k) {
+  for (const v of keysValue) if (isKeyword(v) && v.name === k) return true;
   return false;
+}
+
+function isKeysValue(value) {
+  return isQSet(value) || isVec(value);
 }
 
 const UnionBareSubjectNotVecError    = declareSubjectError('UnionBareSubjectNotVecError',    'union', 'vec');
@@ -96,10 +100,10 @@ function minusPair(left, right) {
     }
     return new Map(out);
   }
-  if (isQMap(left) && isQSet(right)) {
+  if (isQMap(left) && isKeysValue(right)) {
     const out = [];
     for (const [k, v] of left) {
-      if (!setHasMapKey(right, k)) out.push([k, v]);
+      if (!keysHaveMapKey(right, k)) out.push([k, v]);
     }
     return new Map(out);
   }
@@ -123,10 +127,10 @@ function interPair(left, right) {
     }
     return new Map(out);
   }
-  if (isQMap(left) && isQSet(right)) {
+  if (isQMap(left) && isKeysValue(right)) {
     const out = [];
     for (const [k, v] of left) {
-      if (setHasMapKey(right, k)) out.push([k, v]);
+      if (keysHaveMapKey(right, k)) out.push([k, v]);
     }
     return new Map(out);
   }

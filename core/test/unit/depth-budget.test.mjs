@@ -43,7 +43,7 @@ describe('depth budget — every re-entry seam', () => {
     ['distribute body naming its own conduit',      ':f ([/] * f | first) | 1 | f'],
     ['captured-arg lambda naming its own conduit',  ':p ([/] | filter ~(p)) | [1] | p'],
     ['fixed-arg conduit through reduce',            ':r [:acc :el] ([1] | reduce 0 ~(r)) | [1] | reduce 0 ~(r)'],
-    ['fixed-arg conduit through a Map predicate',   ':k [:key :val] ({:a 1} | filter ~(k)) | {:a 1} | filter ~(k)'],
+    ['fixed-arg conduit through a Map predicate',   ':k [:val] ({:a 1} | filter ~(k)) | {:a 1} | filter ~(k)'],
     ['Quote-bodied tag constructor minting itself', '::T {:impl ~(::T(/))} | ::T(1)'],
     ['doc-segment literal whose constructor reads its own docs',
       '::S |~~ ::S{:n 1} ~~| {:impl ~(::S | docs | first | /segments | at 1)} | ::S | docs | first | /segments | at 1']

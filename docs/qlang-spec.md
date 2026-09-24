@@ -764,9 +764,16 @@ Apply an expression to each element of a Vec.
 
 This resolves the type error from Partial application: `[1 2 3] | add 1`
 failed because `add` expects a number in the first position. `*`
-applies the step per element of the Vec or Set.
+applies the step per element of the Vec or Set. A map's elements are its
+values, so `*` over a map replaces each value under its key:
 
-Type error: `*` on a non-sequence (neither Vec nor Set) produces an Error value.
+```qlang
+> {:a 1 :b 2} * add 1
+{:a 2 :b 3}
+```
+
+Type error: `*` on a value that is no container (neither Vec, Set nor Map)
+produces an Error value.
 
 ## Construct
 

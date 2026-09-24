@@ -4023,6 +4023,29 @@ the first takes a subject; and the slots as a schema map, `~{:name
 ::kind}(…)`, which documents every slot where it is declared by the
 kinds of D45, at the price of a map whose order is the order of the
 modifiers.
+A second thought takes the head of such a quote for a pipeline: «про
+кондуиты добавлю .. что я просто думал ещё в строну того что б квота как
+бы была двухсоставная.. в порядке бреда.. где первая часть это решейпинг
+пайплайн из субъекта и аргументов а ля ~(bindparamstep |
+bindingparamstep | minienv_map_here)(code) -- т.е. первая часть смотрела
+в точку использования выковыривала данные.. а вторая уже работала над
+расковырянными данными .. т.е. мы эти 2 концерна как бы могли развести
+...через какое-то соглашение по вызову ..» (maintainer, 2026-09-24
+04:58, session 86982eb5). The call already makes that frame a value, the
+subject and its modifiers evaluated as the elements of a vector [D12],
+and the language reshapes a vector into a map by a literal of
+projections, `[10 3] | {:x /0 :y /1}` answering `{:x 10 :y 3}` [D42], so
+the head of a quote could be such a literal over the frame, the map of
+names the body runs under. The model's reading of the cost: a head that
+computes cannot be read before it runs, so the arity, the name and kind
+of the next modifier, the completion and the refusals that D45 derives
+from the slot list are lost wherever the head is code, since a system
+helps only where its syntax is declared to it; PowerShell's `param()`
+block keeps its binding in declarative attributes, which is what lets
+its help and its completion work on any script block. A head held to a
+literal over the frame keeps them, the slot list `[:x ::number :y]`
+being its shortest spelling, and leaves the bindings that compute to the
+body's own declarations.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

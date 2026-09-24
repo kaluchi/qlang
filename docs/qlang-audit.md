@@ -4084,11 +4084,11 @@ and earlier «раньше у нас были гигамэп в качестве
 пайплайна .. разбитого на шаги ..» (maintainer, 2026-09-15 01:20,
 session 268516f5). The history is in the tree: `94dff34` wrote the whole
 catalog as one map literal, a doc before an entry folded into the
-entry's value, and `86c0a80` records “core.qlang rewritten from one
-~1300-line gigamap into 81 atomic def-step entries”, the series of steps
-the declarations of today grew from. A slot therefore needs no doc of
-its own in the head: what it takes is its kind's, documented by the tag
-once [D50], and what the verb does with it is the verb's doc.
+entry's value, and `86c0a80` rewrote that map, which its message calls a
+gigamap, into a series of declaration steps, the form the declarations
+of today grew from. A slot therefore needs no doc of its own in the
+head: what it takes is its kind's, documented by the tag once [D50], and
+what the verb does with it is the verb's doc.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

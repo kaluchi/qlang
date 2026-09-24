@@ -18,6 +18,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { deepEqual } from '../../src/equality.mjs';
+import { makeSet } from '../../src/types.mjs';
 import {
   describeType,
   typeKeyword,
@@ -54,12 +55,12 @@ describe('equality.deepEqual rejection branches', async () => {
     expect(deepEqual([1, 2], [1, 2, 3])).toBe(false);
   });
 
-  it('returns false when one side is Set and the other is not', async () => {
-    expect(deepEqual(new Set([1]), [1])).toBe(false);
+  it('returns false when one side is a set and the other its vector', async () => {
+    expect(deepEqual(makeSet([1]), [1])).toBe(false);
   });
 
-  it('returns false when Sets have different size', async () => {
-    expect(deepEqual(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false);
+  it('returns false when sets have different size', async () => {
+    expect(deepEqual(makeSet([1, 2]), makeSet([1, 2, 3]))).toBe(false);
   });
 });
 
@@ -161,12 +162,12 @@ describe('manifest-op.mjs — :type :unknown lift for non-classifiable host valu
 });
 
 describe('deepEqual Set vs non-Set non-Array', async () => {
-  it('returns false when first is Set and second is plain object', async () => {
-    expect(deepEqual(new Set([1]), {})).toBe(false);
+  it('returns false when first is a set and second is plain object', async () => {
+    expect(deepEqual(makeSet([1]), {})).toBe(false);
   });
 
-  it('returns false when same-size Sets contain different elements', async () => {
-    expect(deepEqual(new Set([1, 2]), new Set([1, 3]))).toBe(false);
+  it('returns false when same-size sets contain different elements', async () => {
+    expect(deepEqual(makeSet([1, 2]), makeSet([1, 3]))).toBe(false);
   });
 });
 
@@ -184,8 +185,8 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   const coerceFaultStep = quoteOfSource('hostCoerce');
   const coerceFaultInput = 'coerce-input';
 
-  it('coerce passes through a QSet (JS Set) unchanged', async () => {
-    const qset = new Set([1, 2, 3]);
+  it('coerce passes through a set unchanged', async () => {
+    const qset = makeSet([1, 2, 3]);
     const err = Object.assign(new Error('foreign'), { mySet: qset });
     const errVal = errorFromForeign(err, null, coerceFaultStep, coerceFaultInput);
     expect(isErrorValue(errVal)).toBe(true);
@@ -430,7 +431,7 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints Set', async () => {
-    expect(printValue(new Set([1, 2]))).toBe('#[1 2]');
+    expect(printValue(makeSet([2, 1]))).toBe('#[1 2]');
   });
 
   it('prints small Map inline', async () => {

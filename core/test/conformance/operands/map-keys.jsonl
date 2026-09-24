@@ -1,5 +1,5 @@
 {"name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":":vec"}
-{"name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":":set"}
+{"name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":"::set"}
 {"name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":":keyword"}
 {"name":"has-map-by-keyword-key","query":"{:a 1 :b 2} | has :a","expect":"true"}
 {"name":"keys-then-has-roundtrip-map","query":":src {:a 1 :b 2} | src | keys | first | as :k | src | has k","expect":"true"}

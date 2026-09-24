@@ -990,14 +990,15 @@ explains that `#[…]` reads as a tagged `[…]` and that the set carries
 the invariant of no duplicates onto the type plane. That is the
 definition of a tag with a constructor: a vector whose constructor
 removes structural duplicates and runs again after any transform that
-could reintroduce them. The runtime keeps it as a JavaScript set
-instead, with its own literal, its own answer from `type`, and a branch
-of its own in most container operands, while the tag-constructor
-re-invocation machinery, which exists for exactly this contract and pays
-for it with a dynamic import that breaks a module cycle, serves no value
-of the language. Its equality is the one place where it behaves as a
-set, `#[1 2] | eq #[2 1]` answering true, while its membership is a
-linear scan, so the uniqueness it guarantees speeds nothing.
+could reintroduce them. The runtime keeps it so [D16]. A set is the
+vector under the `::set` tag; the constructor that `#[…]`, `distinct`
+and `::set[…]` share sorts its elements into the one order and keeps
+each once; and the tag-constructor re-invocation machinery, which exists
+for exactly this contract and pays for it with a dynamic import that
+breaks a module cycle, runs it again after `filter`, `take`, `drop` and
+`flat`. Its equality is the vector's, `#[1 2] | eq #[2 1]` answering
+true because both read `#[1 2]`, and its membership is a binary search
+in the one order.
 
 Whether a transform keeps its subject's tag at all is an option of the
 operand's implementation, `preservesTag`, which `applyTagPreservation`
@@ -1049,20 +1050,44 @@ value by its payload. `sort`, `min` and `max` accept any vector, `[3
 null "x" 1] | sort` answering `[null 1 3 "x"]`, a vector serves as a
 compound key and `[(eq null) /]` as one that puts nulls last, and the
 ordering predicates keep their refusal until the kinds of their slots
-carry it. The set is then the vector in that order without duplicates,
-under the `::set` tag, `distinct` its constructor and `#[…]` its
-literal, so that `#[3 1 3]` prints as `#[1 3]` and equality, structural
-like everywhere, compares two sets by their content. Wherever a vector
-is accepted a set is accepted, since it is one; the reverse does not
+carry it.
+
+The set is the vector in that order without duplicates, under the
+`::set` tag, `distinct` its constructor and `#[…]` its literal [D16], so
+that `#[3 1 3]` prints as `#[1 3]`, `[1 2 1] | distinct | type` answers
+`::set`, and equality, structural like everywhere, compares two sets by
+their content. Wherever a vector is accepted a set is accepted, since it
+is one, `#["b" "a"] | join ","` answering `"a,b"`; the reverse does not
 hold. `filter`, `take`, `drop` and `*` keep the set, an operand that
 imposes an order answers a vector, `flat` over a set of sets is their
 union, membership is a binary search and the algebra of two sets a
 merge, and the vector keeps its own arithmetic, since `union`, `minus`
-and `inter` are operations of sets and maps. The price is that
-`distinct` no longer keeps the order of first occurrence, `keys` no
-longer answers in document order, and a literal reorders when printed.
-The JavaScript set goes with its literal, its answer from `type`, its
-branches and its codec envelope.
+and `inter` are operations of sets and maps. The price is paid:
+`distinct` keeps no order of first occurrence, `keys` answers in the one
+order, and a literal reorders when printed. The JavaScript set is gone
+with its answer `:set` from `type`, its branches and its `$set`
+envelope; a set travels in the `$tagged` envelope and reads back through
+its constructor. A tag over a set stacks on it as over a quote, and a
+verb over the stack is refused as over any other stack, `::Box#[3 1] |
+count` lifting `::CountSubjectNotContainerError`; the walk of the tags
+is the decision that lets a verb reach the set beneath [D34].
+
+```qlang
+> #[3 1 3]
+#[1 3]
+
+> [2 1 2] | distinct | type
+::set
+
+> #[3 1 2] * add 1
+#[2 3 4]
+
+> #[3 1 2] | reverse
+[3 2 1]
+
+> ::Box#[3 1] | payload
+#[1 3]
+```
 
 ### Two ways to name a thing, and comments that are steps
 

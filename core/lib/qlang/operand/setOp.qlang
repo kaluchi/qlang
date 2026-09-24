@@ -3,7 +3,8 @@
    the operand's `:throws` Vec references those tags by name.
    The Vec→Set conversion lives on the `:distinct` operand
    (vec family) — it dedupes and lifts the type-level uniqueness
-   invariant in one step. ~|
+   invariant in one step. Two Sets combine by a merge of their
+   elements in the one order. ~|
 
 :union
   |~~ Polymorphic union. Set union or Map merge (last wins on
@@ -43,7 +44,7 @@
       ~(
         #[:a] | union {:b 1}
         !| [type /leftType /rightType]
-        |  eq [::UnionPairIncompatibleError :set :map]
+        |  eq [::UnionPairIncompatibleError ::set :map]
        )
   ~~|
 
@@ -85,7 +86,7 @@
       ~(
         #[:a] | minus {:b 1}
         !| [type /leftType /rightType]
-        |  eq [::MinusPairIncompatibleError :set :map]
+        |  eq [::MinusPairIncompatibleError ::set :map]
        )
   ~~|
 
@@ -127,6 +128,6 @@
       ~(
         #[:a] | inter {:b 1}
         !| [type /leftType /rightType]
-        |  eq [::InterPairIncompatibleError :set :map]
+        |  eq [::InterPairIncompatibleError ::set :map]
        )
   ~~|

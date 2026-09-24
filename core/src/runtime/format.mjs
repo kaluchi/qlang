@@ -72,7 +72,7 @@ const TO_PLAIN_HANDLERS = {
   // `manifest` enumeration for callers that need it.
   Snapshot:       s => toPlain(s.get('payload')),
   // TaggedInstance: identity rides on the JS-header
-  // TAG_HEADER_SYMBOL slot, payload shape varies (Array / Set /
+  // TAG_HEADER_SYMBOL slot, payload shape varies (Array /
   // Map / opaque wrap-object). The envelope carries identity
   // through `$tag` and encodes the payload through `toPlain`
   // recursively — mirrors the symmetric `Error` envelope.
@@ -85,14 +85,13 @@ const TO_PLAIN_HANDLERS = {
   TaggedInstance: t => {
     let inner;
     if (Array.isArray(t)) inner = [...t];
-    else if (t instanceof Set) inner = new Set(t);
     else if (t instanceof Map) inner = new Map(t);
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
   Quote:          q => `~(${printQuoteSource(q)})`,
   Doc:            d => `|~~${d.content}~~|`,
-  Set:            s => [...s].map(toPlain),
+  Set:            s => s.map(toPlain),
   // Error → `$error: {$tag, descriptor}` — the tag sits at the
   // head of the envelope so the lossy plain-JSON form carries
   // the identity slot explicitly. Round-trip is one-way at this
@@ -218,7 +217,7 @@ const INLINE_HANDLERS = {
   TagKeyword: literalOfKeyword,
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
-  Set:        s => `#[${[...s].map(renderInline).join(' ')}]`,
+  Set:        s => `#[${s.map(renderInline).join(' ')}]`,
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
   Conduit:    printConduit,
@@ -240,9 +239,6 @@ function renderTaggedInstanceInline(instance) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) {
     return `${tagLiteral}[${instance.map(renderInline).join(' ')}]`;
-  }
-  if (instance instanceof Set) {
-    return `${tagLiteral}#[${[...instance].map(renderInline).join(' ')}]`;
   }
   if (instance instanceof Map) {
     return `${tagLiteral}{${mapEntriesInline(instance)}}`;

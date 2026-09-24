@@ -18,10 +18,9 @@
 import { parse } from './parse.mjs';
 import { isPlainCommentStep } from './walk.mjs';
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
-import { addStructurallyUnique } from './equality.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
-  keyword, makeTagKeyword, makeDoc, makeQuote,
+  keyword, makeTagKeyword, makeDoc, makeQuote, makeSet,
   makeTaggedInstance, makeErrorLiteralStep,
   isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
   isErrorValue, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
@@ -141,10 +140,10 @@ function bindStepOf(node) {
   return record(BIND_TAG, fields);
 }
 
+// A set literal leaves the set of its elements' steps, in the one
+// order like every set [D16].
 function setStepOf(node) {
-  const elements = new Set();
-  for (const element of node.elements) addStructurallyUnique(elements, stepOfNode(element));
-  return elements;
+  return makeSet(node.elements.map(stepOfNode));
 }
 
 const STEP_OF_NODE = {
@@ -203,9 +202,10 @@ export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
   if (isErrorValue(value)) return value.tag.name === 'Error' && [...value.descriptor.values()].every(isElementStep);
+  if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
   if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && (value.has('docs') || value.has('args')));
-  if (isVec(value) || isQSet(value)) return [...value].every(isElementStep);
+  if (isVec(value)) return value.every(isElementStep);
   return isQMap(value) && [...value.values()].every(isElementStep);
 }
 
@@ -249,6 +249,7 @@ function printEachBody(quote) {
 
 function printStep(step) {
   if (isQuote(step)) return `~(${printSteps(step)})`;
+  if (isQSet(step)) return `#[${step.map(printStep).join(' ')}]`;
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);
     case 'proj':   return printProj(step);
@@ -258,7 +259,6 @@ function printStep(step) {
   }
   if (isErrorValue(step)) return `!{${printEntries([...step.descriptor])}}`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
-  if (isQSet(step)) return `#[${[...step].map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);
 }

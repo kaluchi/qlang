@@ -29,7 +29,7 @@ import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  makeDoc, isOrderedSequence, sequenceElements, isQuote,
+  makeDoc, makeSet, isQuote,
   makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, conduitBodyAst, conduitEnvRef,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
@@ -38,7 +38,6 @@ import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
-import { addStructurallyUnique } from './equality.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
@@ -81,8 +80,8 @@ const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError
   ({ key }) => `/${key} — key not present in Map subject`);
 // Vec or Set subject indexed past its bounds. Negative indices walk
 // from the tail (`/-1` is last); only positions that resolve outside
-// `[0, length)` trip this site. Set length is insertion-order
-// cardinality per §Set in qlang-spec.md.
+// `[0, length)` trip this site. A set indexes as the vector it is, in
+// the one order.
 const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
   ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`);
 // Vec or Set subject projected by a non-numeric segment. Sequence
@@ -331,7 +330,7 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
-  if (!isOrderedSequence(state.pipeValue) && !isQMap(state.pipeValue)) {
+  if (!isVec(state.pipeValue) && !isQMap(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, quoteOfBody(bodyNode), state.pipeValue));
@@ -351,12 +350,13 @@ async function distribute(state, bodyNode) {
     return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, valueForks[index].pipeValue])));
   }
   const forkResults = await Promise.all(
-    sequenceElements(subjectSeq).map(seqElement =>
+    subjectSeq.map(seqElement =>
       forkWith(state, seqElement, inner => evalBody(bodyPipeline, inner))
     )
   );
   const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
-  return withPipeValue(state, distributeResults);
+  // A set distributes into the set of its images [D16].
+  return withPipeValue(state, isQSet(subjectSeq) ? makeSet(distributeResults) : distributeResults);
 }
 
 // applyFailTrack(state, stepNode) — `!|` combinator implementation.
@@ -474,13 +474,15 @@ function evalDocLit(node, state) {
   return withPipeValue(state, makeDoc(node.content));
 }
 
+// The elements run in the order they are written, and the set holds
+// them in the one order [D16].
 async function evalSetLit(node, state) {
-  const setResult = new Set();
+  const setElements = [];
   for (const setElem of node.elements) {
     const elemFork = await fork(state, inner => evalNode(setElem, inner));
-    addStructurallyUnique(setResult, elemFork.pipeValue);
+    setElements.push(elemFork.pipeValue);
   }
-  return withPipeValue(state, setResult);
+  return withPipeValue(state, makeSet(setElements));
 }
 
 // ─── TaggedLit / BareTypeKeyword ────────────────────────────────
@@ -760,18 +762,6 @@ function projectSegment(subject, projKey, state) {
       throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, actualValue: subject });
     }
     return subject[resolvedIndex];
-  }
-  if (isQSet(subject)) {
-    if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
-    }
-    const items = [...subject];
-    const segmentIndex = parseInt(projKey, 10);
-    const resolvedIndex = segmentIndex < 0 ? items.length + segmentIndex : segmentIndex;
-    if (resolvedIndex < 0 || resolvedIndex >= items.length) {
-      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: items.length, actualValue: subject });
-    }
-    return items[resolvedIndex];
   }
   throw new ProjectionSubjectNotProjectableError({
     key: projKey,

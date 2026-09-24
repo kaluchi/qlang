@@ -3,18 +3,17 @@
    the operand's `:throws` Vec references those tags by name. ~|
 
 :first
-  |~~ Returns the first element of an ordered sequence (Vec or Set),
-      or null if empty. Polymorphic — Set carries insertion-order as
-      a public-contract invariant (§Set in qlang-spec.md), so
-      first-added is well-defined.
+  |~~ Returns the first element of a Vec, the least of a Set, or the
+      first value of a Map, or null if the container is empty.
 
       ~([10 20 30] | first | eq 10)
-      ~(#[:a :b :c] | first | eq :a)
+      ~(#[:c :a :b] | first | eq :a)
+      ~({:a 1 :b 2} | first | eq 1)
       ~([] | first | eq null)
   ~~|
   ::builtin{:impl :qlang/prim/first
             :category :vecReducer
-            :subject [:vec :set]
+            :subject [:vec :set :map]
             :returns :any}
 
 ::FirstSubjectNotSequenceError
@@ -27,17 +26,17 @@
   ~~|
 
 :last
-  |~~ Returns the last element of an ordered sequence (Vec or Set),
-      or null if empty. Polymorphic — Set last-added is well-defined
-      under the insertion-order invariant.
+  |~~ Returns the last element of a Vec, the greatest of a Set, or
+      the last value of a Map, or null if the container is empty.
 
       ~([10 20 30] | last | eq 30)
-      ~(#[:a :b :c] | last | eq :c)
+      ~(#[:c :a :b] | last | eq :c)
+      ~({:a 1 :b 2} | last | eq 2)
       ~([] | last | eq null)
   ~~|
   ::builtin{:impl :qlang/prim/last
             :category :vecReducer
-            :subject [:vec :set]
+            :subject [:vec :set :map]
             :returns :any}
 
 ::LastSubjectNotSequenceError
@@ -50,20 +49,18 @@
   ~~|
 
 :sum
-  |~~ Returns the numeric sum of elements. Polymorphic over Vec
-      and Set — sum is commutative, so the result is shape-
-      independent. Empty container yields 0. Every element must
-      be a number. For Map, compose through vals | sum or
-      keys | sum depending on the axis.
+  |~~ Returns the numeric sum of the elements of a Vec, a Set, or
+      the values of a Map. Empty container yields 0. Every element
+      must be a number.
 
       ~([1 2 3 4] | sum | eq 10)
       ~([] | sum | eq 0)
       ~(#[1 2 3] | sum | eq 6)
-      ~({:a 10 :b 20} | vals | sum | eq 30)
+      ~({:a 10 :b 20} | sum | eq 30)
   ~~|
   ::builtin{:impl :qlang/prim/sum
             :category :vecReducer
-            :subject [:vec :set]
+            :subject [:vec :set :map]
             :returns :number}
 
 ::SumSubjectNotContainerError
@@ -87,7 +84,7 @@
 ::SumResultNotFiniteError
   |~~ Every element carries the right value-class, and the running
       total still answered outside the finite-double domain. The
-      total is read at each element in insertion order, so a subject
+      total is read at each element in the subject's order, so a subject
       whose partial sums leave the domain lifts here while its
       mathematical total sits inside it — `:index` names the element
       the total crossed at, and the subject splits there.
@@ -101,8 +98,8 @@
 
 :min
   |~~ Returns the first element in the one order of values, the order
-      `sort` answers. Polymorphic over Vec and Set. Empty container
-      yields null.
+      `sort` answers, of a Vec, a Set, or the values of a Map. Empty
+      container yields null.
 
       ~([3 1 4 1 5] | min | eq 1)
       ~({:a 3 :b 1} | min | eq 1)
@@ -112,7 +109,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/min
             :category :vecReducer
-            :subject [:vec :set]
+            :subject [:vec :set :map]
             :returns :any}
 
 ::MinSubjectNotContainerError
@@ -126,8 +123,8 @@
 
 :max
   |~~ Returns the last element in the one order of values, the order
-      `sort` answers. Polymorphic over Vec and Set. Empty container
-      yields null.
+      `sort` answers, of a Vec, a Set, or the values of a Map. Empty
+      container yields null.
 
       ~([3 1 4 1 5] | max | eq 5)
       ~({:a 3 :b 1} | max | eq 3)
@@ -137,7 +134,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/max
             :category :vecReducer
-            :subject [:vec :set]
+            :subject [:vec :set :map]
             :returns :any}
 
 ::MaxSubjectNotContainerError
@@ -151,8 +148,8 @@
 
 :reduce
   |~~ The universal left-fold (catamorphism) — threads an accumulator
-      across an ordered sequence (Vec / Set, insertion order) and
-      collapses it to a single value. `seed` is the initial accumulator
+      across the elements of a Vec, a Set in its order, or the values
+      of a Map, and collapses them to a single value. `seed` is the initial accumulator
       (returned as-is for an empty subject); the reducer is applied as
       `reducer accumulator element` — a binary operand (`add` / `mul`
       / `union` / …) folded via its bound form (`acc | add element`),
@@ -169,7 +166,7 @@
   ~~|
   ::builtin{:impl :qlang/prim/reduce
             :category :vecReducer
-            :subject [:vec :set]
+            :subject [:vec :set :map]
             :returns :any
             :modifiers [:any :reducerLambda]}
 
@@ -211,15 +208,17 @@
       name; within a kind numbers by value, strings by their code
       units, keywords and tag names by their names, vectors element
       by element, a set as its vector, maps by their keys and then
-      their values, and a tagged value by its payload. Polymorphic on
-      Vec / Set — same shape as subject. `sort ~(key)` orders by the
-      value the key answers for each element, a vector serving as a
-      compound key, and keeps elements with equal keys in the
-      subject's order; the descending order is the sort reversed.
+      their values, and a tagged value by its payload. A Vec and a Set
+      sort into a Vec, since the order is imposed and a set keeps its
+      own; a Map sorts its entries by their values and keeps the keys.
+      `sort ~(key)` orders by the value the key answers for each
+      element, a vector serving as a compound key, and keeps elements
+      with equal keys in the subject's order; the descending order is
+      the sort reversed.
 
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
       ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
-      ~(#[:y :x :z] | sort | eq #[:x :y :z])
+      ~(#[:y :x :z] | sort | eq [:x :y :z])
       ~([::B ::A] | sort | eq [::A ::B])
       ~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
       ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
@@ -229,8 +228,8 @@
   ~~|
   ::builtin{:impl :qlang/prim/sort
             :category :vecTransformer
-            :subject [:vec :set]
-            :returns [:vec :set]
+            :subject [:vec :set :map]
+            :returns [:vec :map]
             :modifiers [:keyLambda]}
 
 ::SortNaturalSubjectNotSequenceError
@@ -262,19 +261,20 @@
   ~~|
 
 :take
-  |~~ Returns the first n elements in insertion-order. Polymorphic
-      on Vec / Set — same shape as subject. n is a whole-number
-      count: if it exceeds length the whole sequence comes back, and
-      a negative n takes nothing (the count clamps to 0).
+  |~~ Returns the first n elements in the subject's order, a Set's
+      least among them, and a Map's first n entries. Same shape as
+      subject. n is a whole-number count: if it exceeds length the
+      whole sequence comes back, and a negative n takes nothing (the
+      count clamps to 0).
 
       ~([1 2 3 4 5] | take 3 | eq [1 2 3])
-      ~(#[:a :b :c :d] | take 2 | eq #[:a :b])
+      ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
       ~([1 2 3] | take -1 | eq [])
   ~~|
   ::builtin{:impl :qlang/prim/take
             :category :vecTransformer
-            :subject [:vec :set]
-            :returns [:vec :set]
+            :subject [:vec :set :map]
+            :returns [:vec :set :map]
             :modifiers [:integer]}
 
 ::TakeSubjectNotSequenceError
@@ -298,8 +298,9 @@
 
 :at
   |~~ Polymorphic indexed access. On a Vec or Set subject, returns
-      the element at integer index n in insertion-order (negative
-      indices count from the end; out-of-range returns null). On a
+      the element at integer index n, a Set indexing in its one order
+      (negative indices count from the end; out-of-range returns
+      null). On a
       Map subject, returns the value at the key (missing key
       returns null) — the captured-arg shape accepts either a
       Keyword or a String (both normalise to the storage-side
@@ -352,20 +353,20 @@
   ~~|
 
 :drop
-  |~~ Returns the sequence with the first n elements removed.
-      Polymorphic on Vec / Set — same shape as subject. n is a
-      whole-number count: if it exceeds length the empty sequence of
-      matching shape comes back, and a negative n drops nothing (the
-      count clamps to 0).
+  |~~ Returns the sequence with the first n elements removed, a
+      Map with its first n entries removed. Same shape as subject.
+      n is a whole-number count: if it exceeds length the empty
+      sequence of matching shape comes back, and a negative n drops
+      nothing (the count clamps to 0).
 
       ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
-      ~(#[:a :b :c :d] | drop 2 | eq #[:c :d])
+      ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
       ~([1 2 3] | drop -1 | eq [1 2 3])
   ~~|
   ::builtin{:impl :qlang/prim/drop
             :category :vecTransformer
-            :subject [:vec :set]
-            :returns [:vec :set]
+            :subject [:vec :set :map]
+            :returns [:vec :set :map]
             :modifiers [:integer]}
 
 ::DropSubjectNotSequenceError
@@ -388,20 +389,21 @@
   ~~|
 
 :distinct
-  |~~ Canonical Vec → Set converter. Returns a Set with duplicate
-      elements removed in first-occurrence order. Lifts the
-      structural-uniqueness invariant onto the type plane —
-      downstream operands receive a value whose value-class signals
-      «no duplicates», freeing the caller from defensive
-      `… | distinct` chains before subsequent steps. Idempotent on
-      a Set subject (already carries the invariant). Duplication is
-      decided by structural equality — the same axiom that drives
-      the `eq` operand — so two Map / Vec / Set values carrying
-      identical content collapse even when they are distinct JS
-      objects (diamond hierarchies, fan-in references yield a
-      clean Set without a key-projection step).
+  |~~ The constructor of the Set: the elements of a Vec in the one
+      order of values, each once. Lifts the uniqueness invariant onto
+      the type plane — downstream operands receive a value whose
+      kind signals «no duplicates», freeing the caller from
+      defensive `… | distinct` chains before subsequent steps. A
+      Set passes through as it is. Duplication is decided by
+      structural equality — the same axiom that drives the `eq`
+      operand — so two Map / Vec / Set values carrying identical
+      content collapse (diamond hierarchies, fan-in references yield
+      a clean Set without a key-projection step). The order of first
+      occurrence does not survive; `#[…]` and `::set[…]` mint the
+      same value.
 
-      ~([1 2 1 3 2] | distinct | eq #[1 2 3])
+      ~([2 1 2 3 1] | distinct | eq #[1 2 3])
+      ~([2 1 2 3 1] | distinct | payload | eq [1 2 3])
       ~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
       ~(#[1 2 3] | distinct | eq #[1 2 3])
   ~~|
@@ -420,16 +422,18 @@
   ~~|
 
 :reverse
-  |~~ Returns the sequence in reverse order. Polymorphic on Vec /
-      Set — same shape as subject.
+  |~~ Returns the sequence in reverse order. A Vec and a Set reverse
+      into a Vec, since a set keeps its own order; a Map reverses its
+      entries and keeps the keys.
 
       ~([1 2 3] | reverse | eq [3 2 1])
-      ~(#[:a :b :c] | reverse | eq #[:c :b :a])
+      ~(#[:a :b :c] | reverse | eq [:c :b :a])
+      ~({:a 1 :b 2} | reverse | vals | eq [2 1])
   ~~|
   ::builtin{:impl :qlang/prim/reverse
             :category :vecTransformer
-            :subject [:vec :set]
-            :returns [:vec :set]}
+            :subject [:vec :set :map]
+            :returns [:vec :map]}
 
 ::ReverseSubjectNotSequenceError
   |~~ Subject of `reverse` must be a Vec, a Set or a Map.
@@ -442,10 +446,9 @@
 
 :flat
   |~~ Flattens one level of nesting. Elements that are Vecs or Sets
-      are spliced in; other elements pass through unchanged.
-      Polymorphic on Vec / Set — same shape as subject; Set output
-      preserves the uniqueness invariant by structurally collapsing
-      cross-bucket duplicates.
+      are spliced in; other elements pass through unchanged. Same
+      shape as subject: over a Set the result is minted as a Set
+      again, so a Set of Sets flattens into their union.
 
       ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
       ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
@@ -465,13 +468,12 @@
   ~~|
 
 :groupBy
-  |~~ Partitions an ordered sequence (Vec or Set) into a Map keyed
-      by the result of the key sub-pipeline applied to each element.
-      Polymorphic — Vec subject yields Vec buckets, Set subject
-      yields Set buckets (uniqueness invariant carries into each
-      bucket). Preserves first-occurrence order for both the Map
-      entry sequence and each bucket. The key sub-pipeline must
-      return a Keyword for every element.
+  |~~ Partitions a Vec or a Set into a Map keyed by the result of
+      the key sub-pipeline applied to each element. A Vec subject
+      yields Vec buckets, a Set subject Set buckets. The Map's entries
+      follow the first occurrence of each key, and each bucket the
+      subject's order. The key sub-pipeline must return a Keyword for
+      every element.
 
       ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
   ~~|
@@ -510,7 +512,7 @@
   ~~|
 
 :indexBy
-  |~~ Collapses an ordered sequence (Vec or Set) into a Map keyed
+  |~~ Collapses a Vec or a Set into a Map keyed
       by the result of the key sub-pipeline. On collision (two
       elements producing the same key), the last element wins. The
       key sub-pipeline must return a keyword for every element.

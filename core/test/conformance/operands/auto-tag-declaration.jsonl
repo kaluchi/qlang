@@ -2,7 +2,7 @@
 {"name":"auto-decl-payload-survives","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
 {"name":"auto-decl-keeps-vec-shape-after-payload-strip","query":"::AutoBox[1 2 3] | payload | type","expect":":vec"}
 {"name":"auto-decl-keeps-set-shape","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
-{"name":"auto-decl-keeps-set-shape-after-payload-strip","query":"::AutoSet#[1 2 3] | payload | type","expect":":set"}
+{"name":"auto-decl-keeps-set-shape-after-payload-strip","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
 {"name":"auto-decl-keeps-map-shape","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
 {"name":"auto-decl-keeps-map-shape-after-payload-strip","query":"::AutoMap{:k 1} | payload | type","expect":":map"}
 {"name":"auto-decl-scalar-payload-wraps","query":"::AutoScalar(42) | type","expect":"::AutoScalar"}

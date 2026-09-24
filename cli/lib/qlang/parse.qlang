@@ -40,7 +40,7 @@
 
 :parseTjson
   |~~ Parses a String of tagged-JSON into a qlang value. The
-      tagged-JSON envelope ($keyword / $map / $set / $error
+      tagged-JSON envelope ($keyword / $map / $tagged / $error
       markers) preserves every qlang-only type — Sets, Maps with
       Keyword keys, error values, tagged instances — so
       `value | tjson | parseTjson` is identity. Use it as the

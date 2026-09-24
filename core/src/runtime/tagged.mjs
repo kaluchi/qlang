@@ -14,7 +14,7 @@ import { withPipeValue } from '../state.mjs';
 import {
   isVec, isKeyword, isQuote, isQMap,
   isTaggedInstance, isTagKeyword, isErrorValue,
-  makeConduit, typeKeyword
+  makeConduit, makeSet, typeKeyword
 } from '../types.mjs';
 import { astOfQuote } from '../quote.mjs';
 import {
@@ -92,6 +92,18 @@ async function conduitConstructor(payload, state) {
 
 bindTypeConstructor('conduit', conduitConstructor);
 
+// `::set[…]` — the set of a vector's elements, the one `distinct`
+// mints [D16], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
+// are one value.
+const SetPayloadNotVecError = declareSubjectError('SetPayloadNotVecError', '::set', 'vec');
+
+function setConstructor(payload) {
+  if (!isVec(payload)) throw new SetPayloadNotVecError(payload);
+  return makeSet(payload);
+}
+
+bindTypeConstructor('set', setConstructor);
+
 // `::builtin{…fields…}` — catalog descriptor constructor.
 // Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`
 // declares its body as `::builtin{:impl :qlang/prim/<name>
@@ -135,7 +147,7 @@ bindTypeConstructor('builtin', builtinConstructor);
 // `tag ::Foo` mints the value under the tag: through the tag's
 // constructor when its binding carries one, so a wrong assembly is
 // refused where it is made; as a bare overlay otherwise, through
-// `makeTaggedInstance` — composite payloads (Vec / Set / Map) clone
+// `makeTaggedInstance` — composite payloads (Vec / Map) clone
 // with the TagKeyword stamped on the JS-header slot,
 // leaving the data plane intact; non-extensible payloads (scalar,
 // Keyword, Doc, Error, Conduit, Snapshot, already-tagged composite)
@@ -189,9 +201,9 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {
     throw new PayloadSubjectNotTaggedInstanceError(subject);
   }
-  // Composite-shape — fresh clone without the TaggedInstance header.
+  // Composite-shape — fresh clone without the TaggedInstance header;
+  // a set's payload is its vector.
   if (Array.isArray(subject)) return Object.freeze([...subject]);
-  if (subject instanceof Set) return new Set(subject);
   if (subject instanceof Map) return new Map(subject);
   // Opaque wrap object — return the wrapped value directly.
   return subject.payload;

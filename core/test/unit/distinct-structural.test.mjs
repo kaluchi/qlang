@@ -3,10 +3,9 @@
 // content are "duplicate" by the same axiom that drives `eq` — if
 // `x | eq(y)` is true, `[x, y] | distinct` must collapse to one.
 //
-// distinct returns a Set — the value-class signal carrying the
-// structural-uniqueness invariant onto the type plane per §Set in
-// qlang-spec.md. Iteration order matches first-occurrence in the
-// source sequence (Set's insertion-order invariant).
+// distinct returns a set — the value carrying the uniqueness
+// invariant onto the type plane, the vector in the one order without
+// duplicates [D16]; its elements come back in that order.
 //
 // The bug this fixture pins down: when two distinct JS Map objects
 // carry identical content (the common shape produced by any graph
@@ -18,12 +17,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
+import { isQSet } from '../../src/types.mjs';
 
 
 describe('distinct — structural equality', () => {
   it('collapses two Maps with identical content', async () => {
     const result = await evalQuery('[{:fqn "a"} {:fqn "b"} {:fqn "a"}] | distinct');
-    expect(result).toBeInstanceOf(Set);
+    expect(isQSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(2);
     expect(items[0].get('fqn')).toBe('a');
@@ -41,7 +41,7 @@ describe('distinct — structural equality', () => {
 
   it('collapses nested Vec elements with identical content', async () => {
     const result = await evalQuery('[[1 2] [3 4] [1 2]] | distinct');
-    expect(result).toBeInstanceOf(Set);
+    expect(isQSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(2);
     expect(items[0]).toEqual([1, 2]);
@@ -55,34 +55,34 @@ describe('distinct — structural equality', () => {
 
   it('preserves keyword dedup', async () => {
     const result = await evalQuery('[:a :b :a :c] | distinct');
-    expect(result).toBeInstanceOf(Set);
+    expect(isQSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
     expect(items.map(k => k.name)).toEqual(['a', 'b', 'c']);
   });
 
-  it('preserves first-occurrence order across structural duplicates', async () => {
+  it('holds structural duplicates once, in the one order', async () => {
     const result = await evalQuery(
       '[{:id 2} {:id 1} {:id 2} {:id 3} {:id 1}] | distinct');
-    expect(result).toBeInstanceOf(Set);
+    expect(isQSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
-    expect(items.map(m => m.get('id'))).toEqual([2, 1, 3]);
+    expect(items.map(m => m.get('id'))).toEqual([1, 2, 3]);
   });
 
   it('heterogeneous Vec — mixed scalar and composite', async () => {
     const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
-    expect(result).toBeInstanceOf(Set);
+    expect(isQSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
     expect(items[0]).toBe(1);
-    expect(items[1].get('a')).toBe(1);
-    expect(items[2]).toBe('x');
+    expect(items[1]).toBe('x');
+    expect(items[2].get('a')).toBe(1);
   });
 
   it('identity on a Set subject', async () => {
     const result = await evalQuery('#[1 2 3] | distinct');
-    expect(result).toBeInstanceOf(Set);
+    expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([1, 2, 3]);
   });
 });

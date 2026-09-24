@@ -3,9 +3,11 @@
    the operand's `:throws` Vec references those tags by name. ~|
 
 :keys
-  |~~ Returns the Set of keys (keywords) in the Map.
+  |~~ Returns the Set of keys (keywords) of the Map, in the one
+      order: sorted by name.
 
-      ~({:name "Alice" :age 30} | keys | eq #[:name :age])
+      ~({:name "Alice" :age 30} | keys | eq #[:age :name])
+      ~({:name "Alice" :age 30} | keys | first | eq :age)
   ~~|
   ::builtin{:impl :qlang/prim/keys
             :category :mapOp
@@ -42,7 +44,8 @@
 
 :has
   |~~ Returns true if the Map contains the key, or if the Set
-      contains the value. Polymorphic on subject type. On a Map
+      contains the value, found by a binary search in the one
+      order. Polymorphic on subject type. On a Map
       subject the key argument accepts either a Keyword or a
       String — both normalise to the storage-side String
       (`key.name` for Keyword, identity for String), so the

@@ -595,9 +595,9 @@ form, so the runner holds a string's answer against its raw print first.
 ```
 $ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
       2 LOSSY
-     14 MET
-     65 ok
-     16 target
+     16 MET
+     70 ok
+     14 target
 ```
 
 The two lossy probes are the descriptor's; every other probe of both

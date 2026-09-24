@@ -14,9 +14,9 @@
 {"name":"set-literal-with-projections","query":"{:name \"Alice\" :age 30} | #[/name /age]","expect":"#[\"Alice\" 30]"}
 {"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
 {"name":"map-empty-vals","query":"{} | vals","expect":"[]"}
-{"name":"distribute-over-set","query":"#[1 2 3] * add 1","expect":"[2 3 4]"}
-{"name":"distribute-over-set-insertion-order","query":"#[3 1 2] * add 1","expect":"[4 2 3]"}
-{"name":"distribute-over-set-degrades-to-vec","query":"#[1 2 3] * mul 0","expect":"[0 0 0]"}
+{"name":"distribute-over-set","query":"#[1 2 3] * add 1","expect":"#[2 3 4]"}
+{"name":"distribute-over-set-in-the-one-order","query":"#[3 1 2] * add 1","expect":"#[2 3 4]"}
+{"name":"distribute-over-set-into-the-set-of-images","query":"#[1 2 3] * mul 0","expect":"#[0]"}
 {"name":"distribute-over-set-redistinct","query":"#[1 2 3] * add 1 | distinct","expect":"#[2 3 4]"}
 {"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
 {"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}

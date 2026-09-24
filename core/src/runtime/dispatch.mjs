@@ -31,8 +31,8 @@ import {
   declareArityError
 } from '../errors.mjs';
 import {
-  keyword, isQMap, isSnapshot, makeTaggedInstance,
-  TAG_HEADER_SYMBOL, stampTagHeader
+  keyword, isQMap, isSnapshot, isErrorValue, makeTaggedInstance,
+  TAG_HEADER_SYMBOL, SET_TAG_NAME, stampTagHeader
 } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 
@@ -98,17 +98,23 @@ export async function mintUnderTag(state, tag, value) {
 
 // Tag preservation runs as a post-process pass when the operand
 // declares `{ preservesTag: true }`. Identity-only tags stamp
-// the header on the result; `:impl`-bearing tags re-invoke the
-// constructor against the post-transform payload (the «invariant
-// re-runs across transforms» contract). Operands opt in because
-// shape-changing reducers (count, every, sum, …) drop the source
-// tag naturally — the operand body knows whether its output is
-// the same value-class as its input.
-async function applyTagPreservation(state, source, result) {
+// the header on the result, or stack over a result that carries a
+// tag of its own (`::Box[1 1] | distinct` answers `::Box#[1]`);
+// `:impl`-bearing tags re-invoke the constructor against the
+// post-transform payload (the «invariant re-runs across transforms»
+// contract). An operand that imposes an order declares
+// `{ imposesOrder: true }` beside it, and a set it reorders answers
+// the vector, since the order of a set is its own [D16]. An error the
+// operand answered, a predicate's among them, passes as it is.
+// Operands opt in because shape-changing reducers (count, every,
+// sum, …) drop the source tag naturally — the operand body knows
+// whether its output is the same value-class as its input.
+async function applyTagPreservation(state, source, result, options) {
   // Optional chaining on source handles a `null` pipeValue safely
   // — `null?.[Symbol]` yields undefined and falls through here.
   const sourceTag = source?.[TAG_HEADER_SYMBOL];
-  if (sourceTag === undefined) return result;
+  if (sourceTag === undefined || isErrorValue(result)) return result;
+  if (options.imposesOrder && sourceTag.name === SET_TAG_NAME) return result;
   if (tagCarriesConstructor(state, sourceTag.name)) {
     const { mintTaggedInstance } = await import('../eval.mjs');
     return await mintTaggedInstance(sourceTag.name, result, state);
@@ -116,11 +122,14 @@ async function applyTagPreservation(state, source, result) {
   // `result[TAG_HEADER_SYMBOL]` reads safely through every
   // `preservesTag` return shape — those operands (filter / sort
   // / take / drop / reverse / flat / distinct) always
-  // produce composite Vec / Set / Map. A preserve-
+  // produce a composite Vec / Map. A preserve-
   // path operand that returns a primitive surfaces the contract
   // bug as a TypeError at the operand site.
-  if (result[TAG_HEADER_SYMBOL] === undefined) stampTagHeader(result, sourceTag);
-  return result;
+  if (result[TAG_HEADER_SYMBOL] === undefined) {
+    stampTagHeader(result, sourceTag);
+    return result;
+  }
+  return makeTaggedInstance(sourceTag, result);
 }
 
 export function valueOp(name, n, impl, options = {}) {
@@ -140,7 +149,7 @@ export function valueOp(name, n, impl, options = {}) {
       });
     }
     const final = options.preservesTag
-      ? await applyTagPreservation(state, subjectValue, raw)
+      ? await applyTagPreservation(state, subjectValue, raw, options)
       : raw;
     return withPipeValue(state, final);
   }, { captured: [n - 1, n] });
@@ -156,7 +165,7 @@ export function higherOrderOp(name, n, impl, options = {}) {
     }
     const raw = await impl(state.pipeValue, ...hoLambdas);
     const final = options.preservesTag
-      ? await applyTagPreservation(state, state.pipeValue, raw)
+      ? await applyTagPreservation(state, state.pipeValue, raw, options)
       : raw;
     return withPipeValue(state, final);
   }, { captured: [n - 1, n - 1] });
@@ -169,7 +178,7 @@ export function nullaryOp(name, impl, options = {}) {
     }
     const raw = await impl(state.pipeValue);
     const final = options.preservesTag
-      ? await applyTagPreservation(state, state.pipeValue, raw)
+      ? await applyTagPreservation(state, state.pipeValue, raw, options)
       : raw;
     return withPipeValue(state, final);
   }, { captured: [0, 0] });
@@ -189,7 +198,7 @@ export function overloadedOp(name, maxArity, overloadImpls, options = {}) {
     }
     const raw = await selectedImpl(state.pipeValue, ...overloadLambdas);
     const final = options.preservesTag
-      ? await applyTagPreservation(state, state.pipeValue, raw)
+      ? await applyTagPreservation(state, state.pipeValue, raw, options)
       : raw;
     return withPipeValue(state, final);
   }, { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]] });

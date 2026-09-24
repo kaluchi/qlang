@@ -1,7 +1,7 @@
 {"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotProjectableError!{\n  :faultStep ~(/foo)\n  :faultInput 42\n  :actualType :number\n  :key \"foo\"\n}"}
 {"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::ProjectionSequenceKeyNotIntegerError!{\n  :faultStep ~(/foo)\n  :faultInput #[:a]\n  :key \"foo\"\n}"}
-{"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":z"}
-{"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":y"}
+{"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":x"}
+{"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":z"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::ProjectionIndexOutOfBoundsError"}
 {"name":"distribute-on-number","query":"42 * add 1","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~(add 1)\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"use-on-number","query":"42 | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~(use)\n  :faultInput 42\n  :actualType :number\n}"}

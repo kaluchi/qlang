@@ -79,8 +79,8 @@ describe('setops bare-form non-Vec subject errors', async () => {
     expect(isErrorValue(await evalQuery('42 | union'))).toBe(true);
   });
 
-  it('union bare on a Set (which is also non-Array) throws', async () => {
-    expect(isErrorValue(await evalQuery('#[:a] | union'))).toBe(true);
+  it('union bare on a set folds its elements, the set being a vector', async () => {
+    expect(await evalQuery('#[#[1] #[2]] | union | eq #[1 2]')).toBe(true);
   });
 
   it('minus bare on non-Vec throws MinusBareSubjectNotVecError', async () => {

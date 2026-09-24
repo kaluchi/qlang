@@ -3124,8 +3124,9 @@ name, `::jdt/Method :callers …`, which reads as a kind standing in the
 subject position followed by a binding. The long form `::qlang/number`
 in a declaration, which the printer would not write back.
 Replaced in part by D57, under which the slot list stands in the head of
-the verb literal, each slot written as a declaration with its doc, and a
-built-in carries its slot list in its descriptor.
+the verb literal, each slot written as a declaration with its doc, the
+result is declared in the head after an arrow, and a built-in carries
+its slots and its result in its descriptor.
 
 ### D46 · A refusal keeps the tag of its site
 
@@ -3451,30 +3452,31 @@ D13 asks of every slot at once and which lands with it.
 ### D57 · A verb is a value, written `~[slots](body)`
 
 Decision. A verb is a value, the conduit, and its literal is
-`~[slots](body)`: the slot list of D45 in brackets and the body, a
-pipeline in parentheses [D8], opening right after the bracket. The
-literal is the short spelling of `::conduit[[slots] ~(body)]`, as `~(…)`
-is of `::quote[…]`, so a conduit prints as it is written and reads back
-from its print [D54], and `~[](add 1)` is a verb without modifiers
-beside the quote `~(add 1)`. A slot is written as a declaration is, its
-name, its doc when it has one and, in the place of a body, the kind it
-takes [D45], `~[::jdt/Method :depth |~~ levels of callers to walk ~~|
-::number](…)`; inside the brackets a newline is whitespace, so a slot
-may take a line of its own, and inside the body a slot is a name like
-any declared one, its doc with it. The head declares what the verb
-takes, the subject's kind first and its slots after it, and the body
-what it answers: a body that promises a shape ends by tagging its
-result, which a reader finds in the last step of the body's quote,
-`~(count | tag ::Box) | /1` answering `::call{:name :tag :args
-[::Box]}`, as a built-in declares its result with `:returns` [D45]. A
-binding is `:name value` wherever it stands, and a verb is a binding
-whose value is a conduit, `:inc ~[](add 1)`: the slot list leaves the
-place after the name, the conduit's name leaves the value, so a bound
-conduit equals its literal, and a binding is one record, `::bind{:name
-:inc :body ~[](add 1)}` [D47]. A built-in, whose body is host code,
-carries its slot list in its descriptor in the place of `:subject` and
-`:modifiers`, `::builtin{:slots [::number :n ::number] :impl
-:qlang/prim/add :returns ::number}`.
+`~[slots](body)`: its head in brackets and its body, a pipeline in
+parentheses [D8], opening right after the bracket; `~[](add 1)` is a
+verb without modifiers beside the quote `~(add 1)`. The head declares
+both ends of the verb, what it takes by the slot list of D45, the
+subject's kind first and the slots after it, and after an arrow the kind
+it answers, `~[::jdt/Method :depth |~~ levels of callers to walk ~~|
+::number -> ::jdt/CallerTree](…)`; the runtime checks the result against
+that kind as it checks every slot, and a verb that declares none answers
+any value. A slot is written as a declaration is, its name, its doc when
+it has one and, in the place of a body, the kind it takes; inside the
+brackets a newline is whitespace, so a slot may take a line of its own,
+and inside the body a slot is a name like any declared one, its doc with
+it. A verb is a record of its slots, its result and its body, whatever
+implements it: `~[:n ::number -> ::number](add n)` is the short spelling
+of `::conduit{:slots [:n ::number] :returns ::number :body ~(add n)}`,
+as `~(…)` is of `::quote[…]`, so a conduit prints as it is written and
+reads back from its print [D54], and a built-in, whose body is host
+code, is `::builtin{:slots [::number :n ::number] :returns ::number
+:impl :qlang/prim/add}`, so `:subject` and `:modifiers` leave the
+descriptor and `spec` answers the same fields for both. A binding is
+`:name value` wherever it stands, and a verb is a binding whose value is
+a conduit, `:inc ~[](add 1)`: the slot list leaves the place after the
+name, the conduit's name leaves the value, so a bound conduit equals its
+literal, and a binding is one record, `::bind{:name :inc :body ~[](add
+1)}` [D47].
 Source. «да, принимаю .. только ты мне скажи ... в слотах точно можно
 будет использовать обычный синтаксис биндингов?» (maintainer, 2026-09-24
 06:20, session 86982eb5), accepting the model's reading of his proposal,
@@ -3509,8 +3511,17 @@ written as a declaration answers his question and his recollection «и у
 (05:23): the doc of a slot stays where a declaration keeps it, and the
 value computed in the head leaves. His remark «и да.. у нас же не только
 параметры .. но и вовзращаемое значение же наверное есть ... и вход и
-выход.. тут ты прав что ранее написал» (06:34) holds the head to the
-input and the body to the output, as D45 has it. The reading, the model,
+выход.. тут ты прав что ранее написал» (06:34) asks for both ends, and
+his question «а так возвращаемый тип задаваться будет в объявлении? или
+как и раньше - никак? и какой-то приемственнсоти и билтинами не будет ?»
+(06:48) puts the result in the head: a built-in declares it today,
+`:add | spec | [/subject /modifiers /returns]` answering `[:number
+[:number] :number]`, while a conduit declares none, `::conduit[:f [:x]
+~((add x))]`. D45 read the source of its rule, «форму ответа можно было
+вывести» (maintainer, 2026-09-22 02:09, session 96f3df79), as a result
+derived from the body, where the maintainer asked for the shape of an
+answer to be found on demand, from the verb's source or its docs, which
+a declared result gives before the verb runs. The reading, the model,
 the same morning, from the tree: a conduit prints as `::conduit[[:x]
 ~(add x)]` and a binding of it runs, `:g ::conduit[[:x] ~(add x)] | 5 |
 g 2` answering `7`, and the grammar reads a head of declarations as
@@ -3518,14 +3529,20 @@ words, `[:x |~~ how many ~~| ::number :y] | count` answering `4`.
 Set aside. The slot list after the name, the form of D44, under which a
 verb and a value bind in two forms, and `:f [:x] ~(add x) | 5 | f 2`
 answers its quote while the conduit prints it doubled, `::conduit[:f
-[:x] ~(~(add x))]`. The body in brackets, `~[declare][code]`, where
-every element is a word [D55], so `[add x]` is two words. A head that
-computes, the quote in two parts «про кондуиты добавлю .. что я просто
-думал ещё в строну того что б квота как бы была двухсоставная.. в
-порядке бреда.. где первая часть это решейпинг пайплайн из субъекта и
-аргументов а ля ~(bindparamstep | bindingparamstep |
-minienv_map_here)(code) -- т.е. первая часть смотрела в точку
-использования выковыривала данные.. а вторая уже работала над
+[:x] ~(~(add x))]`. The result read from the body, the rule of D45,
+under which a verb promises a tag and never `[::jdt/Method]`, a reader
+finds the promise in the last step of the body while a built-in declares
+it in its descriptor, and a body that ends otherwise promises nothing.
+The tagged vector the runtime prints a conduit as today, `::conduit[[:x]
+~(add x)]`, whose places name nothing, where the record names its fields
+as the descriptor of a built-in does. The body in brackets,
+`~[declare][code]`, where every element is a word [D55], so `[add x]` is
+two words. A head that computes, the quote in two parts «про кондуиты
+добавлю .. что я просто думал ещё в строну того что б квота как бы была
+двухсоставная.. в порядке бреда.. где первая часть это решейпинг
+пайплайн из субъекта и аргументов а ля ~(bindparamstep |
+bindingparamstep | minienv_map_here)(code) -- т.е. первая часть смотрела
+в точку использования выковыривала данные.. а вторая уже работала над
 расковырянными данными .. т.е. мы эти 2 концерна как бы могли развести
 ...через какое-то соглашение по вызову ..» (04:58) and the head of
 bindings joined by `|`, `~(:name doc value | :name2)(code)`: it cannot
@@ -4113,14 +4130,14 @@ is the verb's declaration read as data, one for a built-in and for a
 declared verb, and the axis `spec` answers it as a value. Today it
 answers the descriptor, `:gt | spec | [/subject /modifiers /returns]`
 answering `[:number [:number] :boolean]`, with the tags of the refusals
-under `:throws`; under D57 it answers the head, the kind the last step
-of the body tags or the built-in's `:returns`, and the tags of the
-verb's sites [D46]. Clojure writes a contract beside the definition,
-`s/fdef` with `:args`, `:ret` and `:fn` in a registry keyed by the
-function's name, a second spelling of what the declaration says, the
-drift D45 set aside. What it teaches without that price: the meaning of
-an attribute is declared once and reused wherever the attribute stands,
-which the language keeps in a kind, a tag with its doc and its schema or
+under `:throws`; under D57 it answers the slots, the result and the tags
+of the verb's sites [D46], the same fields for a built-in and a declared
+verb. Clojure writes a contract beside the definition, `s/fdef` with
+`:args`, `:ret` and `:fn` in a registry keyed by the function's name, a
+second spelling of what the declaration says, the drift D45 set aside.
+What it teaches without that price: the meaning of an attribute is
+declared once and reused wherever the attribute stands, which the
+language keeps in a kind, a tag with its doc and its schema or
 constructor [D6, D50]; optionality is a property of the context that
 asks for an attribute, the lesson of the schema and select of its second
 spec, so in the open question of optional slots the mark stands in the

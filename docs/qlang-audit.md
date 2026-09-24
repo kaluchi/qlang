@@ -3548,9 +3548,20 @@ projections that reach the frame of the call, `/:qlang/subject`, keys of
 the runtime's housekeeping, since the glue stays at the calling side,
 `{:price 100 :qty 3} | mul /price /qty` answering `300`. `~~(…)`, which
 after a pipe opens a comment, `5 |~~(add 1)` refused as one never
-closed, and a doubled quote [D47]. A value in the place of the kind,
-which collides with the kinds since a tag name is a value too; a default
-belongs to the open question of optional slots [D45].
+closed, and a doubled quote [D47]. `apply` taking the glue beside the
+quote, «и что там было с агрументами apply - может не надо ниче с этими
+кондуитами мучиться а просто в apply систаксис доработать и передавать
+клей сцепление с квотой..» (06:30), which the maintainer set aside
+himself: «хотя нет.. документацию все равно цеплять надо же какую-то..
+если у нас реюз подразумевается» (06:31). The glue is written already
+with a binding before `apply`, `5 | :x 2 | apply ~(add x)` answering
+`7`, or with `use`, `{:x 2} | use | 5 | apply ~(add x)` answering `7`,
+and it declares nothing a reader finds before the code runs, neither a
+doc nor a kind; a named quote carries the names of its declaration
+[D44], so glue at the point of application reaches only a quote without
+an environment. A value in the place of the kind, which collides with
+the kinds since a tag name is a value too; a default belongs to the open
+question of optional slots [D45].
 
 ## The finish
 

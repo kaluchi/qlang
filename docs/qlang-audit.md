@@ -4072,6 +4072,23 @@ whose constructor checks it [D6, D33], or an enumeration, `:dir #[:in
 Projections that reach the frame are keys of the runtime's housekeeping,
 which the scar of names that lose their origin removes; the optional and
 variadic slots belong to the slot list [D45].
+A head that is a map with a doc and a default per slot is a shape the
+catalog once had and left: «и у нас уже было как-то .. что-то подобное в
+мэпах {:x |~~ paramdoc ~~| (coalesce value defaultValue) } и потом эти
+доки вмерживались и были видны как обычные биндинги ... но там когда-то
+гигамэп из-за этого возникать начал.. и модель начала утрачивать свой
+пайплайную форму..» (maintainer, 2026-09-24 05:23, session 86982eb5),
+and earlier «раньше у нас были гигамэп в качестве декларации рантайма -
+убивавший подсветку синтаксиса и различимость в редакторе... и гигаквоту
+предлагал кто-то .. но как-то все не увязывалось с идеей длинного
+пайплайна .. разбитого на шаги ..» (maintainer, 2026-09-15 01:20,
+session 268516f5). The history is in the tree: `94dff34` wrote the whole
+catalog as one map literal, a doc before an entry folded into the
+entry's value, and `86c0a80` records “core.qlang rewritten from one
+~1300-line gigamap into 81 atomic def-step entries”, the series of steps
+the declarations of today grew from. A slot therefore needs no doc of
+its own in the head: what it takes is its kind's, documented by the tag
+once [D50], and what the verb does with it is the verb's doc.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

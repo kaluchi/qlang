@@ -74,7 +74,7 @@ describe('builtin operands', () => {
   });
 
   it('as keyword gets keyword span', () => {
-    const out = hl('1 | as(:x)');
+    const out = hl('1 | as :x');
     expect(out).toContain('<span class="keyword">as</span>');
   });
 
@@ -84,7 +84,7 @@ describe('builtin operands', () => {
   });
 
   it('user-defined name gets atom span (not operand)', () => {
-    const out = hl(':double mul(2) | 10 | double');
+    const out = hl(':double mul 2 | 10 | double');
     expect(out).toContain('<span class="atom">double</span>');
     expect(out).not.toContain('<span class="operand">double</span>');
   });
@@ -110,12 +110,12 @@ describe('projections', () => {
 
 describe('punctuation', () => {
   it('pipe | becomes punct', () => {
-    const out = hl('1 | add(1)');
+    const out = hl('1 | add 1');
     expect(out).toContain('<span class="punct">|</span>');
   });
 
   it('distribute * becomes punct', () => {
-    const out = hl('[1 2] * add(1)');
+    const out = hl('[1 2] * add 1');
     expect(out).toContain('<span class="punct">*</span>');
   });
 
@@ -124,8 +124,8 @@ describe('punctuation', () => {
     expect(out).toContain('<span class="err">!|</span>');
   });
 
-  it('parens become punct', () => {
-    const out = hl('add(1)');
+  it('the parentheses of a group become punct', () => {
+    const out = hl('take (count | sub 1)');
     expect(out).toContain('<span class="punct">(</span>');
     expect(out).toContain('<span class="punct">)</span>');
   });
@@ -186,7 +186,7 @@ describe('full expressions', () => {
   });
 
   it('no raw < or > in output (always escaped)', () => {
-    const out = hl('[1 2] | filter(gt(1))');
+    const out = hl('[1 2] | filter ~(gt 1)');
     expect(out).not.toMatch(/<(?!\/?span)/);
   });
 });

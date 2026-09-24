@@ -26,7 +26,7 @@ async function sessionWithErrorLib() {
   const sessionInstance = await createSession();
   const catalog = await resolveModules(libDir);
   installModules(sessionInstance, catalog);
-  await sessionInstance.evalCell('use(:error) | use(:error/observe)');
+  await sessionInstance.evalCell('use :error | use :error/observe');
   return sessionInstance;
 }
 
@@ -55,7 +55,7 @@ describe('retry — success on first attempt flows through unchanged', () => {
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('returns the success value when action succeeds', async () => {
-    const retryResult = await runOk(sessionInstance, '42 | retry(add(1), 3)');
+    const retryResult = await runOk(sessionInstance, '42 | retry (add 1) 3');
     expect(retryResult).toBe(43);
   });
 });
@@ -68,7 +68,7 @@ describe('retry — recovers from a single transient failure', () => {
     // `count` on a number is a type error on every attempt; retry(0)
     // drops through to the else branch and re-lifts the materialized
     // descriptor into a fresh error on the fail-track.
-    const errorResult = await runErr(sessionInstance, '42 | retry(count, 0)');
+    const errorResult = await runErr(sessionInstance, '42 | retry count 0');
     expect(errorResult.tag).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 
@@ -76,7 +76,7 @@ describe('retry — recovers from a single transient failure', () => {
     // Two retries, action never succeeds — three attempts total.
     // The returned error's :trail accumulates the deflected steps
     // from the recursive body of retry.
-    const errorResult = await runErr(sessionInstance, '42 | retry(count, 2)');
+    const errorResult = await runErr(sessionInstance, '42 | retry count 2');
     expect(errorResult.tag.name).toBe('CountSubjectNotContainerError');
   });
 });
@@ -86,7 +86,7 @@ describe('recover — kind-matching rewrites the error, non-matching re-lifts', 
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('fires the handler when the predicate matches', async () => {
-    const recoverResult = await runOk(sessionInstance, '!{:kind :not-found :code 404} !| recover(/code | eq(404), "fallback")');
+    const recoverResult = await runOk(sessionInstance, '!{:kind :not-found :code 404} !| recover (/code | eq 404) "fallback"');
     expect(recoverResult).toBe('fallback');
   });
 
@@ -96,7 +96,7 @@ describe('recover — kind-matching rewrites the error, non-matching re-lifts', 
     // fresh error. The next `!|` then projects :code off that
     // re-lifted error's descriptor, round-tripping the original
     // field through the recover boundary.
-    const recoverResult = await runOk(sessionInstance, '!{:kind :not-found :code 404} !| recover(/code | eq(500), "fallback") !| /code');
+    const recoverResult = await runOk(sessionInstance, '!{:kind :not-found :code 404} !| recover (/code | eq 500) "fallback" !| /code');
     expect(recoverResult).toBe(404);
   });
 });
@@ -106,12 +106,12 @@ describe('mapError — transforms the descriptor and re-lifts', () => {
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('rewrites the :kind of the error via the lambda', async () => {
-    const mapResult = await runOk(sessionInstance, '!{:kind :old} !| mapError({:kind :new}) !| /kind');
+    const mapResult = await runOk(sessionInstance, '!{:kind :old} !| mapError {:kind :new} !| /kind');
     expect(mapResult).toEqual(keyword('new'));
   });
 
   it('union-style rewrite preserves other descriptor fields', async () => {
-    const mapResult = await runOk(sessionInstance, '!{:kind :oops :count 3} !| mapError(union({:handled true})) !| /count');
+    const mapResult = await runOk(sessionInstance, '!{:kind :oops :count 3} !| mapError (union {:handled true}) !| /count');
     expect(mapResult).toBe(3);
   });
 });
@@ -121,12 +121,12 @@ describe('withContext — merges a context Map into the descriptor', () => {
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('adds a single context field readable after re-lift', async () => {
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} !| withContext({:request "r-1"}) !| /request');
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} !| withContext {:request "r-1"} !| /request');
     expect(ctxResult).toBe('r-1');
   });
 
   it('preserves :kind while adding new context fields', async () => {
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} !| withContext({:user "alice"}) !| /kind');
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} !| withContext {:user "alice"} !| /kind');
     expect(ctxResult).toEqual(keyword('oops'));
   });
 
@@ -139,8 +139,8 @@ describe('withContext — merges a context Map into the descriptor', () => {
     // and the outer !| concatenates that into the exposed
     // materialized descriptor, so the printed trail holds both steps
     // in chronological order.
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail | parse');
-    expect(ctxResult).toBe('count | add(5)');
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext {:ctx 1} | add 5 !| /trail | parse');
+    expect(ctxResult).toBe('count | add 5');
   });
 });
 
@@ -149,12 +149,12 @@ describe('tap — observes a success value without altering it', () => {
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('pipeValue passes through unchanged', async () => {
-    const tapResult = await runOk(sessionInstance, '42 | tap(add(1))');
+    const tapResult = await runOk(sessionInstance, '42 | tap (add 1)');
     expect(tapResult).toBe(42);
   });
 
   it('tap inside a distribute chain leaves each element untouched', async () => {
-    const tapResult = await runOk(sessionInstance, '[1 2 3] * tap(mul(10))');
+    const tapResult = await runOk(sessionInstance, '[1 2 3] * tap (mul 10)');
     expect(tapResult).toEqual([1, 2, 3]);
   });
 });
@@ -164,7 +164,7 @@ describe('tapError — observes an error without altering the descriptor', () =>
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('error value passes through unchanged with :kind preserved', async () => {
-    const tapErrResult = await runOk(sessionInstance, '!{:kind :oops} !| tapError(/kind) !| /kind');
+    const tapErrResult = await runOk(sessionInstance, '!{:kind :oops} !| tapError /kind !| /kind');
     expect(tapErrResult).toEqual(keyword('oops'));
   });
 });
@@ -174,7 +174,7 @@ describe('finally — runs an action on the success track preserving pipeValue',
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('pipeValue flows through the cleanup action unchanged', async () => {
-    const finallyResult = await runOk(sessionInstance, '"value" | finally(append(" logged"))');
+    const finallyResult = await runOk(sessionInstance, '"value" | finally (append " logged")');
     expect(finallyResult).toBe('value');
   });
 });
@@ -184,7 +184,7 @@ describe('finallyError — runs an action on the fail track, error flows through
   beforeEach(async () => { sessionInstance = await sessionWithErrorLib(); });
 
   it('descriptor flows through the cleanup action unchanged', async () => {
-    const finallyErrResult = await runOk(sessionInstance, '!{:kind :oops :message "boom"} !| finallyError(/message) !| /message');
+    const finallyErrResult = await runOk(sessionInstance, '!{:kind :oops :message "boom"} !| finallyError /message !| /message');
     expect(finallyErrResult).toBe('boom');
   });
 });

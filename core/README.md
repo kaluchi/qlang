@@ -4,18 +4,18 @@ Expression language for transforming immutable values through
 pipelines. Domain-agnostic. Pure. Composable.
 
 ```qlang
-> [1 2 3 4 5] | filter(gt(3)) | count
+> [1 2 3 4 5] | filter ~(gt 3) | count
 2
 
-> :double mul(2) | [10 20 30] * double
+> :double mul 2 | [10 20 30] * double
 [20 40 60]
 
-> :@surround [:pfx :sfx] (prepend(pfx) | append(sfx))
-  | "world" | @surround("[", "]")
+> :@surround [:pfx :sfx] (prepend pfx | append sfx)
+  | "world" | @surround "[" "]"
 "[world]"
 
 |~| codeAsData ring — source → AST-Map → pipeValue
-> "10 | add(3)" | parse | apply(/)
+> "10 | add 3" | parse | apply /
 13
 
 |~| bare operand → its descriptor as data

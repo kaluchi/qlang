@@ -105,7 +105,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('in-document `::Tag` BindStep contributes to tag-namespace completions', async () => {
-    const src = '::MyTag {:impl ~{42}}';
+    const src = '::MyTag {:impl ~(42)}';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
     expect(items.some(i => i.label === '::MyTag')).toBe(true);
@@ -124,7 +124,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('hover includes docs from manifest', async () => {
-    const src = '[1 2 3] | filter(gt(2))';
+    const src = '[1 2 3] | filter ~(gt 2)';
     const { ast } = parseDocument(src, 'test.qlang');
     const filterOffset = src.indexOf('filter');
     const hover = await hoverAtOffset(ast, src, filterOffset);
@@ -176,7 +176,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for TaggedLit constructor invocation', async () => {
-    const src = '"x" | ::conduit[[] ~{mul(2)}]';
+    const src = '"x" | ::conduit[[] ~(mul 2)]';
     const { ast } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::conduit') + 5;
     const hover = await hoverAtOffset(ast, src, tagOffset);
@@ -186,7 +186,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('hover on ::Tag spans only the tag head, not the payload', async () => {
-    const src = '"x" | ::conduit[[] ~{mul(2)}]';
+    const src = '"x" | ::conduit[[] ~(mul 2)]';
     const { ast } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::conduit') + 5;
     const hover = await hoverAtOffset(ast, src, tagOffset);
@@ -224,7 +224,7 @@ const testCatalogCtx = { index: testCatalogIndex };
 
 describe('definitionAtOffset', () => {
   it('jumps from conduit use site to BindStep declaration', () => {
-    const src = ':double mul(2) | 10 | double';
+    const src = ':double mul 2 | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
@@ -290,7 +290,7 @@ describe('definitionAtOffset', () => {
 
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a user-defined conduit', () => {
-    const src = ':double mul(2) | [1 2] * double';
+    const src = ':double mul 2 | [1 2] * double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
     // declaration (`:double …`) + use site (`* double`)
@@ -307,7 +307,7 @@ describe('referencesAtOffset', () => {
   });
 
   it('returns references for builtin operands', () => {
-    const src = '[1 2 3] | count | add(1)';
+    const src = '[1 2 3] | count | add 1';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.indexOf('count'));
     expect(refs.length).toBe(1);
@@ -320,7 +320,7 @@ describe('referencesAtOffset', () => {
 
 describe('documentSymbols', () => {
   it('collects BindStep bindings as conduit symbols', () => {
-    const src = ':double mul(2) :triple mul(3)';
+    const src = ':double mul 2 | :triple mul 3';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(2);
@@ -331,7 +331,7 @@ describe('documentSymbols', () => {
   });
 
   it('collects as bindings as snapshot symbols', () => {
-    const src = '42 | as(:answer)';
+    const src = '42 | as :answer';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(1);
@@ -351,29 +351,29 @@ describe('documentSymbols', () => {
 });
 
 describe('signatureHelpAtOffset', () => {
-  it('returns signature for operand inside parens', async () => {
-    const src = '[1 2 3] | filter(gt(2))';
+  it('returns the signature of the command around the cursor', async () => {
+    const src = '[1 2 3] | filter ~(gt 2)';
     const { ast } = parseDocument(src, 'test.qlang');
-    // Cursor on the `g` of `gt` — narrowest OperandCall with args
-    // is gt(2), not filter(...). The signature shows gt's contract.
+    // Cursor on the `g` of `gt` — the narrowest command with
+    // modifiers is `gt 2`, not `filter`. The signature shows gt's contract.
     const offset = src.indexOf('gt');
     const sig = await signatureHelpAtOffset(ast, src, offset);
     expect(sig).not.toBeNull();
     expect(sig.label).toMatch(/gt/);
   });
 
-  it('returns null outside parens', async () => {
+  it('returns null for a command without modifiers', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(ast, src, src.indexOf('count'));
-    // count has no args (args === null), so no signature
+    // count has no modifiers, so no signature
     expect(sig).toBeNull();
   });
 
-  it('tracks active parameter via comma counting', async () => {
-    const src = '{:x 1 :y 2} | add(/x, /y)';
+  it('tracks the active parameter by the modifiers before the cursor', async () => {
+    const src = '{:x 1 :y 2} | add /x /y';
     const { ast } = parseDocument(src, 'test.qlang');
-    // Cursor after the comma, inside second arg
+    // Cursor on the second modifier
     const offset = src.indexOf('/y');
     const sig = await signatureHelpAtOffset(ast, src, offset);
     expect(sig).not.toBeNull();
@@ -413,7 +413,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints an `@`-prefixed effectful operand as `decorator`', async () => {
-    const { data } = await semanticTokensFor(':@audit add(1) | 5 | @audit');
+    const { data } = await semanticTokensFor(':@audit add 1 | 5 | @audit');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.filter(t => t.type === 'decorator').length).toBeGreaterThanOrEqual(1);
   });
@@ -427,7 +427,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints a user-bound identifier reference as `variable`', async () => {
-    const { data } = await semanticTokensFor(':double mul(2) | 5 | double');
+    const { data } = await semanticTokensFor(':double mul 2 | 5 | double');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.some(t => t.type === 'variable')).toBe(true);
   });
@@ -445,9 +445,9 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints a Quote body as `string`', async () => {
-    const { data } = await semanticTokensFor('~{count}');
+    const { data } = await semanticTokensFor('~(count)');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    // Quote literal renders the ~{ and } delimiters as `string` kind
+    // Quote literal renders the ~( and ) delimiters as `string` kind
     expect(tokens.some(t => t.type === 'string')).toBe(true);
   });
 
@@ -466,7 +466,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('emits well-formed 5-int stream', async () => {
-    const { data } = await semanticTokensFor('[1 2 3] | filter(gt(1)) | count');
+    const { data } = await semanticTokensFor('[1 2 3] | filter ~(gt 1) | count');
     expect(data.length % 5).toBe(0);
     // Each `length` field is positive
     for (let i = 2; i < data.length; i += 5) {

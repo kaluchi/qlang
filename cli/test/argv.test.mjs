@@ -47,10 +47,10 @@ describe('parseArgv', () => {
   });
 
   it('treats trailing argv elements as inert when the first positional is the query', () => {
-    const cliInvocation = parseArgv(['1 | add(2)', '--unused']);
+    const cliInvocation = parseArgv(['1 | add 2', '--unused']);
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
-      queryText: '1 | add(2)',
+      queryText: '1 | add 2',
       inputFormat: 'auto',
       colorMode: 'auto'
     });
@@ -66,9 +66,9 @@ describe('parseArgv', () => {
   });
 
   it('parses --raw as the raw-String input mode preceding the query', () => {
-    expect(parseArgv(['--raw', 'append(" world")'])).toEqual({
+    expect(parseArgv(['--raw', 'append " world"'])).toEqual({
       kind: 'evalQuery',
-      queryText: 'append(" world")',
+      queryText: 'append " world"',
       inputFormat: 'raw',
       colorMode: 'auto'
     });

@@ -23,7 +23,7 @@ describe('pretty', () => {
     expect(cellEntry.result).toBe('"hello"');
   });
 
-  it('renders a Vec as the literal ~{[1 2 3]}', async () => {
+  it('renders a Vec as the literal `[1 2 3]`', async () => {
     const cellEntry = await runQuery('[1 2 3] | pretty', noopIo);
     expect(cellEntry.result).toBe('[1 2 3]');
   });
@@ -56,53 +56,53 @@ describe('tjson', () => {
   });
 });
 
-describe('template — ~{{{.}}} whole-subject substitution', () => {
+describe('template — `{{.}}` whole-subject substitution', () => {
   it('embeds a String subject as raw characters without surrounding quotes', async () => {
-    const cellEntry = await runQuery('"alice" | template("user: {{.}}")', noopIo);
+    const cellEntry = await runQuery('"alice" | template "user: {{.}}"', noopIo);
     expect(cellEntry.result).toBe('user: alice');
   });
 
   it('renders a non-String subject via printValue', async () => {
-    const cellEntry = await runQuery('42 | template("count: {{.}}")', noopIo);
+    const cellEntry = await runQuery('42 | template "count: {{.}}"', noopIo);
     expect(cellEntry.result).toBe('count: 42');
   });
 });
 
-describe('template — ~{{{key}}} Map projection', () => {
+describe('template — `{{key}}` Map projection', () => {
   it('projects a single keyword field from a Map subject', async () => {
     const cellEntry = await runQuery(
-      '{:name "alice"} | template("got {{name}}")', noopIo);
+      '{:name "alice"} | template "got {{name}}"', noopIo);
     expect(cellEntry.result).toBe('got alice');
   });
 
   it('chains nested projections via slash separators', async () => {
     const cellEntry = await runQuery(
-      '{:user {:name "alice"}} | template("name={{user/name}}")', noopIo);
+      '{:user {:name "alice"}} | template "name={{user/name}}"', noopIo);
     expect(cellEntry.result).toBe('name=alice');
   });
 
   it('renders a missing field as null', async () => {
     const cellEntry = await runQuery(
-      '{:name "alice"} | template("age={{age}}")', noopIo);
+      '{:name "alice"} | template "age={{age}}"', noopIo);
     expect(cellEntry.result).toBe('age=null');
   });
 
   it('renders null when a projection segment hits a non-Map value', async () => {
     const cellEntry = await runQuery(
-      '"plain" | template("x={{any/thing}}")', noopIo);
+      '"plain" | template "x={{any/thing}}"', noopIo);
     expect(cellEntry.result).toBe('x=null');
   });
 
   it('renders a non-String projected value via printValue', async () => {
     const cellEntry = await runQuery(
-      '{:n 42} | template("count={{n}}")', noopIo);
+      '{:n 42} | template "count={{n}}"', noopIo);
     expect(cellEntry.result).toBe('count=42');
   });
 });
 
 describe('template — error sites', () => {
   it('lifts TemplateModifierNotStringError when the captured arg is not a String', async () => {
-    const cellEntry = await runQuery('"x" | template(42)', noopIo);
+    const cellEntry = await runQuery('"x" | template 42', noopIo);
     expectOperandErrorThrown(cellEntry, 'TemplateModifierNotStringError', {
       actualType: { name: 'number' }
     });

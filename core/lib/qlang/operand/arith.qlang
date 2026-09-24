@@ -3,12 +3,12 @@
    the operand's `:throws` Vec references those tags by name. ~|
 
 :add
-  |~~ Adds two numbers. Bound form a | add(b) computes a+b;
-      full form add(a, b) resolves both args against pipeValue
-      as context.
+  |~~ Adds two numbers. Bound form `a | add b` computes a+b;
+      full form `add a b` resolves both modifiers against
+      pipeValue as context.
 
-      ~{10 | add(3) | eq(13)}
-      ~{{:x 10 :y 3} | add(/x, /y) | eq(13)}
+      ~(10 | add 3 | eq 13)
+      ~({:x 10 :y 3} | add /x /y | eq 13)
   ~~|
   ::builtin{:impl :qlang/prim/add
             :category :arith
@@ -19,21 +19,21 @@
 ::AddLeftNotNumberError
   |~~ Captured argument at position 1 of `add` must be Number.
 
-      ~{
-        "hello" | add(1)
+      ~(
+        "hello" | add 1
         !| [type /actualType]
-        |  eq([::AddLeftNotNumberError :string])
-       }
+        |  eq [::AddLeftNotNumberError :string]
+       )
   ~~|
 
 ::AddRightNotNumberError
   |~~ Captured argument at position 2 of `add` must be Number.
 
-      ~{
-        1 | add("x")
+      ~(
+        1 | add "x"
         !| [type /actualType]
-        |  eq([::AddRightNotNumberError :string])
-       }
+        |  eq [::AddRightNotNumberError :string]
+       )
   ~~|
 
 ::AddResultNotFiniteError
@@ -42,19 +42,19 @@
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
-      ~{
-        1e308 | add(1e308)
+      ~(
+        1e308 | add 1e308
         !| [type /leftValue]
-        |  eq([::AddResultNotFiniteError 1e308])
-       }
+        |  eq [::AddResultNotFiniteError 1e308]
+       )
   ~~|
 
 :sub
   |~~ Subtracts the second number from the first. Non-commutative:
       position 1 is the minuend.
 
-      ~{10 | sub(3) | eq(7)}
-      ~{{:x 10 :y 3} | sub(/x, /y) | eq(7)}
+      ~(10 | sub 3 | eq 7)
+      ~({:x 10 :y 3} | sub /x /y | eq 7)
   ~~|
   ::builtin{:impl :qlang/prim/sub
             :category :arith
@@ -65,21 +65,21 @@
 ::SubLeftNotNumberError
   |~~ Captured argument at position 1 of `sub` must be Number.
 
-      ~{
-        "hello" | sub(1)
+      ~(
+        "hello" | sub 1
         !| [type /actualType]
-        |  eq([::SubLeftNotNumberError :string])
-       }
+        |  eq [::SubLeftNotNumberError :string]
+       )
   ~~|
 
 ::SubRightNotNumberError
   |~~ Captured argument at position 2 of `sub` must be Number.
 
-      ~{
-        1 | sub("x")
+      ~(
+        1 | sub "x"
         !| [type /actualType]
-        |  eq([::SubRightNotNumberError :string])
-       }
+        |  eq [::SubRightNotNumberError :string]
+       )
   ~~|
 
 ::SubResultNotFiniteError
@@ -88,18 +88,18 @@
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
-      ~{
-        -1e308 | sub(1e308)
+      ~(
+        -1e308 | sub 1e308
         !| [type /leftValue]
-        |  eq([::SubResultNotFiniteError -1e308])
-       }
+        |  eq [::SubResultNotFiniteError -1e308]
+       )
   ~~|
 
 :mul
   |~~ Multiplies two numbers. Commutative.
 
-      ~{10 | mul(3) | eq(30)}
-      ~{{:x 5 :y 4} | mul(/x, /y) | eq(20)}
+      ~(10 | mul 3 | eq 30)
+      ~({:x 5 :y 4} | mul /x /y | eq 20)
   ~~|
   ::builtin{:impl :qlang/prim/mul
             :category :arith
@@ -110,21 +110,21 @@
 ::MulLeftNotNumberError
   |~~ Captured argument at position 1 of `mul` must be Number.
 
-      ~{
-        "hello" | mul(2)
+      ~(
+        "hello" | mul 2
         !| [type /actualType]
-        |  eq([::MulLeftNotNumberError :string])
-       }
+        |  eq [::MulLeftNotNumberError :string]
+       )
   ~~|
 
 ::MulRightNotNumberError
   |~~ Captured argument at position 2 of `mul` must be Number.
 
-      ~{
-        1 | mul("x")
+      ~(
+        1 | mul "x"
         !| [type /actualType]
-        |  eq([::MulRightNotNumberError :string])
-       }
+        |  eq [::MulRightNotNumberError :string]
+       )
   ~~|
 
 ::MulResultNotFiniteError
@@ -133,11 +133,11 @@
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
-      ~{
-        1e308 | mul(10)
+      ~(
+        1e308 | mul 10
         !| [type /leftValue]
-        |  eq([::MulResultNotFiniteError 1e308])
-       }
+        |  eq [::MulResultNotFiniteError 1e308]
+       )
   ~~|
 
 :div
@@ -145,8 +145,8 @@
       position 1 is the dividend. Raises `::DivisionByZeroError` on
       b == 0.
 
-      ~{10 | div(2) | eq(5)}
-      ~{{:x 20 :y 4} | div(/x, /y) | eq(5)}
+      ~(10 | div 2 | eq 5)
+      ~({:x 20 :y 4} | div /x /y | eq 5)
   ~~|
   ::builtin{:impl :qlang/prim/div
             :category :arith
@@ -157,21 +157,21 @@
 ::DivLeftNotNumberError
   |~~ Captured argument at position 1 of `div` must be Number.
 
-      ~{
-        "hello" | div(2)
+      ~(
+        "hello" | div 2
         !| [type /actualType]
-        |  eq([::DivLeftNotNumberError :string])
-       }
+        |  eq [::DivLeftNotNumberError :string]
+       )
   ~~|
 
 ::DivRightNotNumberError
   |~~ Captured argument at position 2 of `div` must be Number.
 
-      ~{
-        1 | div("x")
+      ~(
+        1 | div "x"
         !| [type /actualType]
-        |  eq([::DivRightNotNumberError :string])
-       }
+        |  eq [::DivRightNotNumberError :string]
+       )
   ~~|
 
 ::DivResultNotFiniteError
@@ -180,19 +180,19 @@
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
-      ~{
-        1e308 | div(0.0001)
+      ~(
+        1e308 | div 0.0001
         !| [type /leftValue]
-        |  eq([::DivResultNotFiniteError 1e308])
-       }
+        |  eq [::DivResultNotFiniteError 1e308]
+       )
   ~~|
 
 ::DivisionByZeroError
-  |~~ Division by zero — `div(_, 0)` fires this error.
+  |~~ Division by zero — `div _ 0` fires this error.
 
-      ~{
-        10 | div(0)
+      ~(
+        10 | div 0
         !| [type]
-        |  eq([::DivisionByZeroError])
-       }
+        |  eq [::DivisionByZeroError]
+       )
   ~~|

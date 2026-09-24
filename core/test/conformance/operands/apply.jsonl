@@ -1,16 +1,16 @@
-{"name":"apply-parsed-number-literal","query":"\"42\" | parse | apply(/)","expect":"42"}
-{"name":"apply-parsed-string-literal","query":"\"\\\"hello\\\"\" | parse | apply(/)","expect":"\"hello\""}
-{"name":"apply-parsed-keyword-literal","query":"\":foo\" | parse | apply(/)","expect":":foo"}
-{"name":"apply-parsed-vec-literal","query":"\"[1 2 3]\" | parse | apply(/)","expect":"[1 2 3]"}
-{"name":"apply-parsed-map-literal","query":"\"{:a 1 :b 2}\" | parse | apply(/)","expect":"{:a 1 :b 2}"}
-{"name":"apply-parsed-set-literal","query":"\"#[1 2 3]\" | parse | apply(/)","expect":"#[1 2 3]"}
-{"name":"apply-parsed-arithmetic-pipeline","query":"\"10 | add(5)\" | parse | apply(/)","expect":"15"}
-{"name":"apply-parsed-vec-reducer","query":"\"[1 2 3 4 5] | filter(gt(2)) | count\" | parse | apply(/)","expect":"3"}
-{"name":"apply-parsed-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | apply(/)","expect":"\"alice\""}
-{"name":"apply-parsed-distribute","query":"\"[1 2 3] * add(10)\" | parse | apply(/)","expect":"[11 12 13]"}
-{"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add(1) !| type\" | parse | apply(/)","expect":"::AddLeftNotNumberError"}
-{"name":"apply-code-not-quote","query":"42 | apply(/)","expect":"::ApplyCodeNotQuoteError!{\n  :faultStep ~{apply(/)}\n  :faultInput 42\n  :actualType :number\n}"}
-{"name":"apply-quote-against-the-subject","query":"5 | apply(~{mul(2)})","expect":"10"}
-{"name":"apply-code-type-refusal","query":"42 | apply(1) !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError :number]"}
-{"name":"apply-keeps-declarations-inside","query":"1 | apply(~{:x 2}) | x !| type","expect":"::UnresolvedIdentifierError"}
-{"name":"apply-code-that-fails-is-that-error","query":"5 | apply(/nope) !| type","expect":"::ProjectionSubjectNotProjectableError"}
+{"name":"apply-parsed-number-literal","query":"\"42\" | parse | apply /","expect":"42"}
+{"name":"apply-parsed-string-literal","query":"\"\\\"hello\\\"\" | parse | apply /","expect":"\"hello\""}
+{"name":"apply-parsed-keyword-literal","query":"\":foo\" | parse | apply /","expect":":foo"}
+{"name":"apply-parsed-vec-literal","query":"\"[1 2 3]\" | parse | apply /","expect":"[1 2 3]"}
+{"name":"apply-parsed-map-literal","query":"\"{:a 1 :b 2}\" | parse | apply /","expect":"{:a 1 :b 2}"}
+{"name":"apply-parsed-set-literal","query":"\"#[1 2 3]\" | parse | apply /","expect":"#[1 2 3]"}
+{"name":"apply-parsed-arithmetic-pipeline","query":"\"10 | add 5\" | parse | apply /","expect":"15"}
+{"name":"apply-parsed-vec-reducer","query":"\"[1 2 3 4 5] | filter ~(gt 2) | count\" | parse | apply /","expect":"3"}
+{"name":"apply-parsed-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | apply /","expect":"\"alice\""}
+{"name":"apply-parsed-distribute","query":"\"[1 2 3] * add 10\" | parse | apply /","expect":"[11 12 13]"}
+{"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply /","expect":"::AddLeftNotNumberError"}
+{"name":"apply-code-not-quote","query":"42 | apply /","expect":"::ApplyCodeNotQuoteError!{\n  :faultStep ~(apply /)\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
+{"name":"apply-code-type-refusal","query":"42 | apply 1 !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError :number]"}
+{"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::UnresolvedIdentifierError"}
+{"name":"apply-code-that-fails-is-that-error","query":"5 | apply /nope !| type","expect":"::ProjectionSubjectNotProjectableError"}

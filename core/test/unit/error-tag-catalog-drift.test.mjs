@@ -4,7 +4,7 @@
 // factory that builds the class records its throw-site spec — the
 // `:category` it fires under, plus the `:operand` / `:position` /
 // `:expectedType` an operand-slot check carries — and in the catalog,
-// where a `::Tag` binding carries the prose and the `~{…}` examples a
+// where a `::Tag` binding carries the prose and the `~(…)` examples a
 // reader reaches through `docs` and `examples`. The bootstrap stamps
 // the spec onto the binding, so each fact has one spelling and the
 // two planes meet in env.
@@ -115,7 +115,7 @@ function collectCatalogDeclarations() {
 const declarations = collectCatalogDeclarations();
 const declarationsByName = new Map(declarations.map(d => [d.name, d]));
 const session = await createSession();
-const { result: tagBindings } = await session.evalCell('manifest(:tag)');
+const { result: tagBindings } = await session.evalCell('manifest :tag');
 const { result: operandBindings } = await session.evalCell('manifest');
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 

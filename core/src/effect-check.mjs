@@ -54,8 +54,9 @@ export function findFirstEffectfulIdentifier(node) {
   let offender = null;
   walkAst(node, (n) => {
     if (offender !== null) return false;
-    // A quote literal is data: its steps run where it is applied.
-    if (n.type === 'QuoteLit') return false;
+    // A quote literal is data, its steps running where it is applied;
+    // the modifier of a command is applied by that command.
+    if (n.type === 'QuoteLit' && n.parent?.type !== 'OperandCall') return false;
     if (n.type === 'OperandCall' && n.effectful) {
       offender = n.name;
       return false;

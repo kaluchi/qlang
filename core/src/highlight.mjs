@@ -25,17 +25,18 @@
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
 //                 the `!|` fail-track combinator — anything that
 //                 carries the fail-track semantic in qlang
-//   'quote'       Quote literal `~{ … }`, including the paired
-//                 `~{` opener and `}` closer (DocLit `|~~ … ~~|`
-//                 falls under 'comment')
+//   'quote'       Quote literal `~( … )`, including the `~(`
+//                 opener and `)` closer, and the `~` of the short
+//                 form `~add` (DocLit `|~~ … ~~|` falls under
+//                 'comment')
 //   'tag'         `::tag` head of a TaggedLit or a BareTypeKeyword —
 //                 the tag-namespace identifier sigil + name
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
 //                 (`|`, `*`), the `{` / `}` of an ordinary
-//                 MapLit, `(` / `)` of an operand-call arg list,
-//                 commas, dots, and the `/` separator inside a
+//                 MapLit, `(` / `)` of a group, the commas of a
+//                 JSON literal, and the `/` separator inside a
 //                 `Projection`
 //   'whitespace'  runs of whitespace between meaningful tokens, and
 //                 the entire input on a parse failure (the safe
@@ -66,13 +67,10 @@ export function tokenize(src, builtinNames) {
 }
 
 // Recursive call from QuoteLit handling: tokenise the Quote body
-// the same way as the top-level source. Quote bodies parse through
-// the full `Pipeline` rule including a leading combinator
-// (`~{| count}`, `~{* mul(2)}`), so the same tokeniser pipeline
-// applies without a separate start-rule. When the body is
-// unparseable (rare malformed-suffix case), fall back to a single
-// whitespace span so the renderer still paints the body uniformly
-// italic.
+// the same way as the top-level source, a leading combinator included
+// (`~(| count)`, `~(* mul 2)`). A body that does not read at the top
+// level falls back to a single whitespace span, so the renderer still
+// paints it uniformly italic.
 function subTokenize(src, builtinNames) {
   if (src.length === 0) return [];
   let ast;
@@ -130,16 +128,14 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return;
 
       case 'QuoteLit': {
-        // Quote literal — paint the `~{` / `}` delimiters in the
-        // `quote` palette colour, then sub-tokenise the body source
-        // recursively. Every inner span carries `italic: true` so
-        // the renderer can compose italic + the inner kind's
-        // colour (`atom` italic, `operand` italic, etc.) — the
-        // visual cue is "this is codeAsData, painted in the same
-        // palette as code-as-running but italicised".
-        spans.push({ start: startOffset, end: startOffset + 2, kind: 'quote' });
-        const bodyStart = startOffset + 2;
-        const bodyEnd = endOffset - 1;
+        // Quote literal — paint the `~(` / `)` delimiters, or the
+        // `~` of the short form, in the `quote` palette colour, then
+        // sub-tokenise the body; every inner span carries
+        // `italic: true`, code as data painted as code, italicised.
+        const isShortForm = src[startOffset + 1] !== '(';
+        const bodyStart = startOffset + (isShortForm ? 1 : 2);
+        const bodyEnd = isShortForm ? endOffset : endOffset - 1;
+        spans.push({ start: startOffset, end: bodyStart, kind: 'quote' });
         const innerSource = src.slice(bodyStart, bodyEnd);
         const innerSpans = subTokenize(innerSource, builtinNames);
         for (const inner of innerSpans) {
@@ -150,7 +146,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
             italic: true
           });
         }
-        spans.push({ start: bodyEnd, end: endOffset, kind: 'quote' });
+        if (!isShortForm) spans.push({ start: bodyEnd, end: endOffset, kind: 'quote' });
         return false;
       }
 
@@ -209,7 +205,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return false;
 
       case 'OperandCall': {
-        // Doc-attached `as(:name)` calls carry `docPrefixStart` from
+        // Doc-attached `as :name` calls carry `docPrefixStart` from
         // DocAttachedSequence; the prose region between the first
         // doc-comment and the operand head is folded into the AST
         // as a plain string Vec, so the highlighter paints it with

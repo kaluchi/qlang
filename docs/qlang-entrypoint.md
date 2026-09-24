@@ -567,6 +567,8 @@ async function answersAsRecorded({ query, answer }) {
     return true;
   }
   if (/(^|\W)@\w/.test(query)) return squash(onCommandLine(query)) === answer;
+  // A string prints raw, and its text may read as words of the command form.
+  if (typeof await evalQuery(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
   try { parse(answer); } catch { return squash(onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
   try { return deepEqual(await evalQuery(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
@@ -586,18 +588,21 @@ disagreed with a probe whose print agreed. The disagreement was a
 finding: a descriptor of the catalog prints without its `::builtin`
 tag and reads back as another value, which the audit now records among
 its false comments. The runner keeps both comparisons, so a probe that
-prints alike and is another value is reported as lossy.
+prints alike and is another value is reported as lossy. A string prints
+raw on the command line, and its text may read as words of the command
+form, so the runner holds a string's answer against its raw print first.
 
 ```
 $ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
       2 LOSSY
-     36 ok
-     19 target
+     10 MET
+     67 ok
+     20 target
 ```
 
 The two lossy probes are the descriptor's; every other probe of both
-documents gives the recorded answer, and every target still disagrees
-with the tree.
+documents gives the recorded answer, and a target the tree now answers
+is reported as met.
 
 ## What the maintainer repeats
 
@@ -809,7 +814,7 @@ present, carries the implementations of the module's host operands. A
 module loads only when a query asks for it, so the command line run as
 a filter inside someone else's repository executes none of its code.
 Until mounted namespaces arrive [D24 in the audit] the entrypoint is
-`qlang 'use(:workflow) | start'`; with them the folder is mounted,
+`qlang 'use :workflow | start'`; with them the folder is mounted,
 `::workflow` finds its module, and the command becomes the maintainer's
 sketch.
 Source. «где консольный qlang найдет в cwd папочку с qlang-модулями

@@ -16,7 +16,7 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('depth budget — self-calling conduit', () => {
   it('lifts ::EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
-    const runaway = await evalQuery(':inf (add(1) | inf) | 0 | inf');
+    const runaway = await evalQuery(':inf (add 1 | inf) | 0 | inf');
     expect(runaway.tag).toEqual(makeTagKeyword('EvaluationDepthExceededError'));
     expect(runaway.descriptor.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
     expect(runaway.descriptor.get('limit')).toBe(EVAL_DEPTH_LIMIT);
@@ -30,7 +30,7 @@ describe('depth budget — self-calling conduit', () => {
 
   it('leaves the budget intact for recursion that terminates', async () => {
     const nodeCount = await evalQuery(
-      ':total add(1, /children * total | sum) '
+      ':total add 1 (/children * total | sum) '
       + '| {:children [{:children [{:children []}]} {:children []}]} | total'
     );
     expect(nodeCount).toBe(4);
@@ -39,14 +39,14 @@ describe('depth budget — self-calling conduit', () => {
 
 describe('depth budget — every re-entry seam', () => {
   const seams = [
-    ['apply on a self-referential Quote',           ':q ~{apply(q)} | apply(q)'],
+    ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
     ['distribute body naming its own conduit',      ':f ([/] * f | first) | 1 | f'],
-    ['captured-arg lambda naming its own conduit',  ':p ([/] | filter(p)) | [1] | p'],
-    ['fixed-arg conduit through reduce',            ':r [:acc :el] ([1] | reduce(0, r)) | [1] | reduce(0, r)'],
-    ['fixed-arg conduit through a Map predicate',   ':k [:key :val] ({:a 1} | filter(k)) | {:a 1} | filter(k)'],
-    ['Quote-bodied tag constructor minting itself', '::T {:impl ~{::T(/)}} | ::T(1)'],
+    ['captured-arg lambda naming its own conduit',  ':p ([/] | filter ~(p)) | [1] | p'],
+    ['fixed-arg conduit through reduce',            ':r [:acc :el] ([1] | reduce 0 ~(r)) | [1] | reduce 0 ~(r)'],
+    ['fixed-arg conduit through a Map predicate',   ':k [:key :val] ({:a 1} | filter ~(k)) | {:a 1} | filter ~(k)'],
+    ['Quote-bodied tag constructor minting itself', '::T {:impl ~(::T(/))} | ::T(1)'],
     ['doc-segment literal whose constructor reads its own docs',
-      '::S |~~ ::S{:n 1} ~~| {:impl ~{::S | docs | first | /segments | at(1)}} | ::S | docs | first | /segments | at(1)']
+      '::S |~~ ::S{:n 1} ~~| {:impl ~(::S | docs | first | /segments | at 1)} | ::S | docs | first | /segments | at 1']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {
@@ -72,7 +72,7 @@ describe('depth budget — host seams', () => {
       return outcomes;
     }));
     const cellEntry = await sessionInstance.evalCell(
-      '|~~ ~{:x | runExamples | tallyFrame} ~~| :x 1 | :x | runExamples | tallyFrame'
+      '|~~ ~(:x | runExamples | tallyFrame) ~~| :x 1 | :x | runExamples | tallyFrame'
     );
     expect(cellEntry.result).toHaveLength(1);
     expect(cellEntry.result[0].get('ok')).toBe(true);
@@ -84,14 +84,14 @@ describe('depth budget — host seams', () => {
     const sessionInstance = await createSession({
       locator: async (namespaceName) => {
         locatorCalls++;
-        return namespaceName === 'self' ? { source: 'use(:self)' } : null;
+        return namespaceName === 'self' ? { source: 'use :self' } : null;
       }
     });
     // The root and every frame below it reach the locator once; on
     // the frame at the budget, the `:self` captured-arg lambda is
     // the first descent past it, so that frame's `use` step lifts
     // the error before its locator call.
-    await sessionInstance.evalCell('use(:self)');
+    await sessionInstance.evalCell('use :self');
     expect(locatorCalls).toBe(EVAL_DEPTH_LIMIT);
   });
 });

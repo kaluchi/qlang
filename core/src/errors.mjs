@@ -156,7 +156,7 @@ export class EffectLaunderingError extends QlangError {
 // a property of the throw site, so the site records it here and the
 // bootstrap stamps it onto the `::Tag` binding the catalog declares
 // under the same name. The catalog carries what an author writes —
-// the prose and the `~{…}` examples.
+// the prose and the `~(…)` examples.
 //
 // The facts stay plain strings and numbers at this layer; the lift
 // into Keywords, TagKeywords and Vecs happens at the stamp site in

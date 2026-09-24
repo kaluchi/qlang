@@ -318,10 +318,10 @@ code, pre {
 .repl-input-highlight .quote,
 .repl-entry-input .quote,  .repl-entry-output .quote    { color: #15803d; }
 
-/* `italic` is a modifier added to every token inside a `~{...}`
+/* `italic` is a modifier added to every token inside a `~(...)`
    Quote — the body keeps its per-kind colour (atom / operand /
    number / string / …) and gains italic to mark "code-as-data".
-   The `~{` / `}` delimiters themselves get the `.quote` class
+   The `~(` / `)` delimiters themselves get the `.quote` class
    only, without italic, so the boundary reads upright while the
    interior leans. */
 .code-editor-body .italic,

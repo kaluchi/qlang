@@ -1,5 +1,5 @@
 // One-shot script — extract repro queries from conformance JSONLs
-// and inject them as `~{<query> !| type | eq(::Tag)}` Quote
+// and inject them as `~(<query> !| type | eq ::Tag)` Quote
 // examples into the catalog's `::Tag` doc-only declaration's
 // attached doc-prefix.
 //
@@ -140,7 +140,7 @@ function processCatalogFile(path) {
     if (repros.length === 0) return match;
     totalInjected++;
     const injected = repros
-      .map(q => `\n    ~{${q} !| type | eq(::${tagName})}`)
+      .map(q => `\n    ~(${q} !| type | eq ::${tagName})`)
       .join('');
     const newProse = prose.trimEnd() + injected + '\n   ';
     return `::${tagName}\n  |~~ ${newProse} ~~|`;

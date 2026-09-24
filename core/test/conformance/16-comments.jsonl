@@ -1,10 +1,10 @@
 {"name":"line-plain-then-step","query":"|~| pre-step note\n| 42","expect":"42"}
-{"name":"line-plain-mid-pipeline-shapes-result","query":"5 |~| inline note\n| add(3)","expect":"8"}
+{"name":"line-plain-mid-pipeline-shapes-result","query":"5 |~| inline note\n| add 3","expect":"8"}
 {"name":"block-plain-then-step","query":"|~ block note ~| 42","expect":"42"}
-{"name":"block-plain-eats-trailing-combinator","query":"5 |~ rationale ~| add(3)","expect":"8"}
-{"name":"line-plain-mid-pipeline","query":"5 | mul(2)\n|~| this comment is identity\n| add(1)","expect":"11"}
-{"name":"block-plain-mid-pipeline","query":"5 | mul(2) |~ identity rationale ~| add(1)","expect":"11"}
-{"name":"line-doc-on-let","query":"|~~| Doubles the input.\n:double mul(2)\n| 5 | double","expect":"10"}
+{"name":"block-plain-eats-trailing-combinator","query":"5 |~ rationale ~| add 3","expect":"8"}
+{"name":"line-plain-mid-pipeline","query":"5 | mul 2\n|~| this comment is identity\n| add 1","expect":"11"}
+{"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| add 1","expect":"11"}
+{"name":"line-doc-on-let","query":"|~~| Doubles the input.\n:double mul 2\n| 5 | double","expect":"10"}
 {"name":"line-doc-retrieve","query":"|~~| Doc text.\n:foo 42\n| :foo | docs * /content","expect":"[\" Doc text.\"]"}
 {"name":"block-doc-on-let","query":"|~~ Multi-line doc\n    spanning many lines. ~~|\n:foo 42\n| 5 | foo","expect":"42"}
 {"name":"block-doc-retrieve","query":"|~~ Block doc here. ~~|\n:foo 42\n| :foo | docs * /content","expect":"[\" Block doc here. \"]"}
@@ -12,13 +12,13 @@
 {"name":"three-line-docs-as-vec","query":"|~~| First.\n|~~| Second.\n|~~| Third.\n:foo 42\n| :foo | docs | count","expect":"3"}
 {"name":"mixed-line-and-block-docs","query":"|~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n:foo 42\n| :foo | docs | count","expect":"3"}
 {"name":"doc-block-preserves-newlines","query":"|~~ line one\nline two ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" line one\\nline two \""}
-{"name":"doc-on-as-binding","query":"42\n|~~| Captured value.\nas(:snapshot)\n| :snapshot | docs * /content","expect":"[\" Captured value.\"]"}
-{"name":"snapshot-unwrap-on-projection","query":"42 | as(:answer) | env | /answer","expect":"42"}
-{"name":"snapshot-unwrap-on-identifier","query":"42 | as(:answer) | answer","expect":"42"}
+{"name":"doc-on-as-binding","query":"42\n|~~| Captured value.\nas :snapshot\n| :snapshot | docs * /content","expect":"[\" Captured value.\"]"}
+{"name":"snapshot-unwrap-on-projection","query":"42 | as :answer | env | /answer","expect":"42"}
+{"name":"snapshot-unwrap-on-identifier","query":"42 | as :answer | answer","expect":"42"}
 {"name":"doc-survives-shadowing-redeclare","query":"|~~| Old doc.\n:foo 1\n|~~| New doc.\n|~~| With second remark.\n:foo 2\n| :foo | docs * /content","expect":"[\" New doc.\" \" With second remark.\"]"}
 {"name":"comment-step-is-identity-on-pipevalue","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"name":"doc-on-bind-succeeds","query":"|~~| doc\n:foo 42\n| foo","expect":"42"}
-{"name":"doc-on-as-succeeds","query":"42\n|~~| captured\nas(:x)\n| x","expect":"42"}
+{"name":"doc-on-as-succeeds","query":"42\n|~~| captured\nas :x\n| x","expect":"42"}
 {"name":"interleaved-plain-between-doc-and-binding","query":"|~~| doc\n|~ rationale ~|\n:foo 42\n| :foo | docs * /content","expect":"[\" doc\"]"}
 {"name":"interleaved-plain-between-two-docs","query":"|~~| doc one\n|~ separator ~|\n|~~| doc two\n:foo 42\n| :foo | docs * /content","expect":"[\" doc one\" \" doc two\"]"}
 {"name":"interleaved-plain-before-first-doc","query":"|~ leading ~|\n|~~| doc\n:foo 42\n| :foo | docs * /content","expect":"[\" doc\"]"}
@@ -34,8 +34,6 @@
 {"name":"inline-plain-comment-before-map-entry","query":"{|~ header ~| :a 1 :b 2}","expect":"{:a 1 :b 2}"}
 {"name":"inline-plain-comment-between-map-entries","query":"{:a 1 |~ divider ~| :b 2 |~ divider ~| :c 3}","expect":"{:a 1 :b 2 :c 3}"}
 {"name":"inline-plain-comment-in-empty-map","query":"{|~ only ~|}","expect":"{}"}
-{"name":"inline-plain-comment-in-arg-list","query":"add(1 |~ left ~|, 2)","expect":"3"}
-{"name":"inline-plain-comment-after-comma","query":"add(1, |~ right ~| 2)","expect":"3"}
 {"name":"inline-line-plain-comment-between-map-entries","query":"{:a 1\n|~| section divider\n:b 2}","expect":"{:a 1 :b 2}"}
 {"name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | /k","expect":"1"}
 {"name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | /k","expect":"1"}
@@ -51,21 +49,21 @@
 {"name":"doc-block-mentions-plain-pair","query":"|~~ holds |~ inner plain ~| inline ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" holds |~ inner plain ~| inline \""}
 {"name":"doc-block-preserves-nested-line-doc-mention","query":"|~~ holds |~~| line-doc mention\n more text ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" holds |~~| line-doc mention\\n more text \""}
 {"name":"plain-block-content-verbatim-via-quote-on-bind","query":"|~ user-error tag `::AssertionFailedError` raised by guards — doc-only `::Tag |~~ ~~|` BindSteps make axis-operands reach declarations ~|\n:foo 42\n| foo","expect":"42"}
-{"name":"plain-block-preserves-quote-mention-with-nested-plain","query":"|~ wraps ~{ inner |~ q ~| pipe } closing ~|\n| 1","expect":"1"}
+{"name":"plain-block-preserves-quote-mention-with-nested-plain","query":"|~ wraps ~( inner |~ q ~| pipe ) closing ~|\n| 1","expect":"1"}
 {"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| :foo | docs | first | /content","expect":"\" outer |~~ inner ~~| more \""}
 {"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| :foo | docs | first | /content","expect":"\" pair holds |~| line marker inline \""}
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | /content","expect":"\" mentions |~~ inner pair ~~| inside \""}
-{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail","expect":"~{| count}"}
-{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~ note ~| count !| /trail","expect":"~{| count}"}
-{"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | as(:t) | 42 | apply(t) !| type","expect":"::CountSubjectNotContainerError"}
+{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail","expect":"~(| count)"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~ note ~| count !| /trail","expect":"~(| count)"}
+{"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | as :t | 42 | apply t !| type","expect":"::CountSubjectNotContainerError"}
 {"name":"lone-plain-comment-is-identity-on-null","query":"|~ only a note ~|","expect":"null"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] * (!| |~ note ~| /kind)","expect":"[:zap]"}
-{"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add(1))","expect":"[2 3]"}
-{"name":"comment-head-hands-the-head-to-first-operand","query":"42 | apply(~{|~ note ~| type})","expect":":number"}
-{"name":"comment-head-explicit-distribute","query":"[1 2] | (|~ note ~| * add(1))","expect":"[2 3]"}
+{"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add 1)","expect":"[2 3]"}
+{"name":"comment-head-hands-the-head-to-first-operand","query":"42 | apply ~(|~ note ~| type)","expect":":number"}
+{"name":"comment-head-explicit-distribute","query":"[1 2] | (|~ note ~| * add 1)","expect":"[2 3]"}
 {"name":"comment-head-explicit-fail-apply","query":"[!{:kind :zap}] * (|~ note ~| !| /kind)","expect":"[:zap]"}
-{"name":"comment-head-explicit-pipe-deflects","query":"[!{:kind :zap}] * (|~ note ~| | type) | first !| /trail","expect":"~{| type}"}
-{"name":"line-comment-head-explicit-distribute","query":"[1 2] | (|~| note\n* add(1))","expect":"[2 3]"}
-{"name":"comment-mid-pipeline-explicit-distribute","query":"[1 2] |~ note ~| * add(1)","expect":"[2 3]"}
-{"name":"comment-head-keeps-leading-pipe-deflection","query":"[!{:kind :z}] * (| |~ note ~| count) | first !| /trail","expect":"~{| count}"}
-{"name":"comment-head-without-leading-combinator-rides-pipe","query":"[!{:kind :z}] * (|~ note ~| count) | first !| /trail","expect":"~{| count}"}
+{"name":"comment-head-explicit-pipe-deflects","query":"[!{:kind :zap}] * (|~ note ~| | type) | first !| /trail","expect":"~(| type)"}
+{"name":"line-comment-head-explicit-distribute","query":"[1 2] | (|~| note\n* add 1)","expect":"[2 3]"}
+{"name":"comment-mid-pipeline-explicit-distribute","query":"[1 2] |~ note ~| * add 1","expect":"[2 3]"}
+{"name":"comment-head-keeps-leading-pipe-deflection","query":"[!{:kind :z}] * (| |~ note ~| count) | first !| /trail","expect":"~(| count)"}
+{"name":"comment-head-without-leading-combinator-rides-pipe","query":"[!{:kind :z}] * (|~ note ~| count) | first !| /trail","expect":"~(| count)"}

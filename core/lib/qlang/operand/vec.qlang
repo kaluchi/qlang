@@ -8,9 +8,9 @@
       a public-contract invariant (§Set in qlang-spec.md), so
       first-added is well-defined.
 
-      ~{[10 20 30] | first | eq(10)}
-      ~{#[:a :b :c] | first | eq(:a)}
-      ~{[] | first | eq(null)}
+      ~([10 20 30] | first | eq 10)
+      ~(#[:a :b :c] | first | eq :a)
+      ~([] | first | eq null)
   ~~|
   ::builtin{:impl :qlang/prim/first
             :category :vecReducer
@@ -19,11 +19,11 @@
 
 ::FirstSubjectNotSequenceError
   |~~ Subject of `first` must be Vec or Set.
-      ~{
+      ~(
         42 | first
         !| [type /actualType]
-        |  eq([::FirstSubjectNotSequenceError :number])
-       }
+        |  eq [::FirstSubjectNotSequenceError :number]
+       )
   ~~|
 
 :last
@@ -31,9 +31,9 @@
       or null if empty. Polymorphic — Set last-added is well-defined
       under the insertion-order invariant.
 
-      ~{[10 20 30] | last | eq(30)}
-      ~{#[:a :b :c] | last | eq(:c)}
-      ~{[] | last | eq(null)}
+      ~([10 20 30] | last | eq 30)
+      ~(#[:a :b :c] | last | eq :c)
+      ~([] | last | eq null)
   ~~|
   ::builtin{:impl :qlang/prim/last
             :category :vecReducer
@@ -42,11 +42,11 @@
 
 ::LastSubjectNotSequenceError
   |~~ Subject of `last` must be Vec or Set.
-      ~{
+      ~(
         42 | last
         !| [type /actualType]
-        |  eq([::LastSubjectNotSequenceError :number])
-       }
+        |  eq [::LastSubjectNotSequenceError :number]
+       )
   ~~|
 
 :sum
@@ -56,10 +56,10 @@
       be a number. For Map, compose through vals | sum or
       keys | sum depending on the axis.
 
-      ~{[1 2 3 4] | sum | eq(10)}
-      ~{[] | sum | eq(0)}
-      ~{#[1 2 3] | sum | eq(6)}
-      ~{{:a 10 :b 20} | vals | sum | eq(30)}
+      ~([1 2 3 4] | sum | eq 10)
+      ~([] | sum | eq 0)
+      ~(#[1 2 3] | sum | eq 6)
+      ~({:a 10 :b 20} | vals | sum | eq 30)
   ~~|
   ::builtin{:impl :qlang/prim/sum
             :category :vecReducer
@@ -68,20 +68,20 @@
 
 ::SumSubjectNotVecOrSetError
   |~~ Subject of `sum` must be Vec or Set.
-      ~{
+      ~(
         42 | sum
         !| [type /actualType]
-        |  eq([::SumSubjectNotVecOrSetError :number])
-       }
+        |  eq [::SumSubjectNotVecOrSetError :number]
+       )
   ~~|
 
 ::SumElementNotNumberError
   |~~ Element of `sum` input collection must be Number.
-      ~{
+      ~(
         [1 "two" 3] | sum
         !| [type /actualType /index]
-        |  eq([::SumElementNotNumberError :string 1])
-       }
+        |  eq [::SumElementNotNumberError :string 1]
+       )
   ~~|
 
 ::SumResultNotFiniteError
@@ -92,11 +92,11 @@
       mathematical total sits inside it — `:index` names the element
       the total crossed at, and the subject splits there.
 
-      ~{
+      ~(
         [1e308 1e308] | sum
         !| [type /index]
-        |  eq([::SumResultNotFiniteError 1])
-       }
+        |  eq [::SumResultNotFiniteError 1]
+       )
   ~~|
 
 :min
@@ -105,9 +105,9 @@
       Empty container yields null. All elements must be comparable
       scalars of the same type.
 
-      ~{[3 1 4 1 5] | min | eq(1)}
-      ~{["b" "a" "c"] | min | eq("a")}
-      ~{#[3 1 4] | min | eq(1)}
+      ~([3 1 4 1 5] | min | eq 1)
+      ~(["b" "a" "c"] | min | eq "a")
+      ~(#[3 1 4] | min | eq 1)
   ~~|
   ::builtin{:impl :qlang/prim/min
             :category :vecReducer
@@ -116,20 +116,20 @@
 
 ::MinSubjectNotVecOrSetError
   |~~ Subject of `min` must be Vec or Set.
-      ~{
+      ~(
         42 | min
         !| [type /actualType]
-        |  eq([::MinSubjectNotVecOrSetError :number])
-       }
+        |  eq [::MinSubjectNotVecOrSetError :number]
+       )
   ~~|
 
 ::MinElementsNotComparableError
   |~~ Operands of `min` are not pairwise-comparable scalars.
-      ~{
+      ~(
         [1 "two"] | min
         !| [type /leftType /rightType]
-        |  eq([::MinElementsNotComparableError :number :string])
-       }
+        |  eq [::MinElementsNotComparableError :number :string]
+       )
   ~~|
 
 :max
@@ -138,9 +138,9 @@
       Empty container yields null. All elements must be comparable
       scalars of the same type.
 
-      ~{[3 1 4 1 5] | max | eq(5)}
-      ~{["b" "a" "c"] | max | eq("c")}
-      ~{#[3 1 4] | max | eq(4)}
+      ~([3 1 4 1 5] | max | eq 5)
+      ~(["b" "a" "c"] | max | eq "c")
+      ~(#[3 1 4] | max | eq 4)
   ~~|
   ::builtin{:impl :qlang/prim/max
             :category :vecReducer
@@ -149,20 +149,20 @@
 
 ::MaxSubjectNotVecOrSetError
   |~~ Subject of `max` must be Vec or Set.
-      ~{
+      ~(
         42 | max
         !| [type /actualType]
-        |  eq([::MaxSubjectNotVecOrSetError :number])
-       }
+        |  eq [::MaxSubjectNotVecOrSetError :number]
+       )
   ~~|
 
 ::MaxElementsNotComparableError
   |~~ Operands of `max` are not pairwise-comparable scalars.
-      ~{
+      ~(
         [1 "two"] | max
         !| [type /leftType /rightType]
-        |  eq([::MaxElementsNotComparableError :number :string])
-       }
+        |  eq [::MaxElementsNotComparableError :number :string]
+       )
   ~~|
 
 :firstNonZero
@@ -172,8 +172,8 @@
       returns -1/0/1, and firstNonZero picks the first non-tie,
       giving lexicographic ordering.
 
-      ~{[0 0 -1 0] | firstNonZero | eq(-1)}
-      ~{[0 0 0] | firstNonZero | eq(0)}
+      ~([0 0 -1 0] | firstNonZero | eq -1)
+      ~([0 0 0] | firstNonZero | eq 0)
   ~~|
   ::builtin{:impl :qlang/prim/firstNonZero
             :category :vecReducer
@@ -182,20 +182,20 @@
 
 ::FirstNonZeroSubjectNotVecError
   |~~ Subject of `firstNonZero` must be Vec.
-      ~{
+      ~(
         42 | firstNonZero
         !| [type /actualType]
-        |  eq([::FirstNonZeroSubjectNotVecError :number])
-       }
+        |  eq [::FirstNonZeroSubjectNotVecError :number]
+       )
   ~~|
 
 ::FirstNonZeroElementNotNumberError
   |~~ Element of `firstNonZero` input collection must be Number.
-      ~{
+      ~(
         [0 null 1] | firstNonZero
         !| [type /actualType /index]
-        |  eq([::FirstNonZeroElementNotNumberError :null 1])
-       }
+        |  eq [::FirstNonZeroElementNotNumberError :null 1]
+       )
   ~~|
 
 :reduce
@@ -203,18 +203,18 @@
       across an ordered sequence (Vec / Set, insertion order) and
       collapses it to a single value. `seed` is the initial accumulator
       (returned as-is for an empty subject); the reducer is applied as
-      `reducer(accumulator, element)` — a binary operand (`add` / `mul`
-      / `union` / …) folded via its bound form (`acc | add(element)`),
+      `reducer accumulator element` — a binary operand (`add` / `mul`
+      / `union` / …) folded via its bound form (`acc | add element`),
       or a 2-parameter conduit `[:acc :elem]` for custom logic. `sum` /
       `count` / `max` and structure-builders all factor through it.
 
-      ~{[1 2 3 4 5] | reduce(0, add) | eq(15)}
-      ~{[1 2 3 4 5] | reduce(1, mul) | eq(120)}
-      ~{["a" "b" "c"] | reduce("", append) | eq("abc")}
-      ~{[#[1] #[2 3]] | reduce(#[], union) | eq(#[1 2 3])}
-      ~{:max2 [:acc :x] (if(x | gt(acc), x, acc)) | [3 1 4 1 5] | reduce(0, max2) | eq(5)}
-      ~{:tally [:acc :_] (acc | add(1)) | [10 20 30] | reduce(0, tally) | eq(3)}
-      ~{[] | reduce(42, add) | eq(42)}
+      ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
+      ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
+      ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
+      ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
+      ~(:max2 [:acc :x] (if (x | gt acc) ~(x) ~(acc)) | [3 1 4 1 5] | reduce 0 ~(max2) | eq 5)
+      ~(:tally [:acc :_] (acc | add 1) | [10 20 30] | reduce 0 ~(tally) | eq 3)
+      ~([] | reduce 42 ~(add) | eq 42)
   ~~|
   ::builtin{:impl :qlang/prim/reduce
             :category :vecReducer
@@ -224,11 +224,11 @@
 
 ::ReduceSubjectNotSequenceError
   |~~ Subject of `reduce` must be a Vec or Set.
-      ~{
-        42 | reduce(0, add)
+      ~(
+        42 | reduce 0 ~(add)
         !| [type /actualType]
-        |  eq([::ReduceSubjectNotSequenceError :number])
-       }
+        |  eq [::ReduceSubjectNotSequenceError :number]
+       )
   ~~|
 
 ::ReduceReducerNotBinaryError
@@ -236,26 +236,36 @@
       conduit `[:acc :elem]`. An inline expression, a literal, an
       unbound name, or a conduit of any other arity carries no
       (accumulator, element) binding.
-      ~{
-        [1 2 3] | reduce(0, 42)
+      ~(
+        [1 2 3] | reduce 0 ~(42)
         !| type
-        |  eq(::ReduceReducerNotBinaryError)
-       }
+        |  eq ::ReduceReducerNotBinaryError
+       )
+  ~~|
+
+::ReduceReducerNotQuoteError
+  |~~ The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
+      quote, `reduce 0 ~(add)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | reduce 0 1
+        !| [type /actualType]
+        |  eq [::ReduceReducerNotQuoteError :number]
+       )
   ~~|
 
 :sort
   |~~ Returns a new sequence sorted in natural ascending order.
       Polymorphic on Vec / Set — same shape as subject. Overloaded
-      by arity: bare sort uses natural order, sort(key) sorts by
+      by arity: bare sort uses natural order, `sort ~(key)` sorts by
       the value the key sub-pipeline returns for each element.
       Pairwise-comparable scalars only: Number↔Number, String↔
       String, Keyword↔Keyword (lexicographic by `.name`), or
       TagKeyword↔TagKeyword.
 
-      ~{[3 1 4 1 5] | sort | eq([1 1 3 4 5])}
-      ~{#[:y :x :z] | sort | eq(#[:x :y :z])}
-      ~{[::B ::A] | sort | eq([::A ::B])}
-      ~{[{:age 30} {:age 20}] | sort(/age) | eq([{:age 20} {:age 30}])}
+      ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
+      ~(#[:y :x :z] | sort | eq #[:x :y :z])
+      ~([::B ::A] | sort | eq [::A ::B])
+      ~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
   ~~|
   ::builtin{:impl :qlang/prim/sort
             :category :vecTransformer
@@ -265,38 +275,48 @@
 
 ::SortNaturalSubjectNotSequenceError
   |~~ Subject of `sort` must be Vec or Set.
-      ~{
+      ~(
         42 | sort
         !| [type /actualType]
-        |  eq([::SortNaturalSubjectNotSequenceError :number])
-       }
+        |  eq [::SortNaturalSubjectNotSequenceError :number]
+       )
   ~~|
 
 ::SortByKeySubjectNotSequenceError
-  |~~ Subject of `sort(key)` must be Vec or Set.
-      ~{
-        42 | sort(/x)
+  |~~ Subject of `sort ~(key)` must be Vec or Set.
+      ~(
+        42 | sort ~(/x)
         !| [type /actualType]
-        |  eq([::SortByKeySubjectNotSequenceError :number])
-       }
+        |  eq [::SortByKeySubjectNotSequenceError :number]
+       )
   ~~|
 
 ::SortNaturalNotComparableError
   |~~ Operands of `sort` are not pairwise-comparable scalars.
-      ~{
+      ~(
         [1 "two"] | sort
         !| [type /leftType /rightType]
-        |  eq([::SortNaturalNotComparableError :string :number])
-       }
+        |  eq [::SortNaturalNotComparableError :string :number]
+       )
   ~~|
 
 ::SortByKeyNotComparableError
-  |~~ Operands of `sort(key)` are not pairwise-comparable scalars.
-      ~{
-        [{:k 1} {:k "x"}] | sort(/k)
+  |~~ Operands of `sort ~(key)` are not pairwise-comparable scalars.
+      ~(
+        [{:k 1} {:k "x"}] | sort ~(/k)
         !| [type /leftType /rightType]
-        |  eq([::SortByKeyNotComparableError :string :number])
-       }
+        |  eq [::SortByKeyNotComparableError :string :number]
+       )
+  ~~|
+
+::SortKeyNotQuoteError
+  |~~ The key of `sort` is code it runs on each element, so it takes a
+      quote, `sort ~(/age)`; a value computed at the call is refused.
+      ~(
+        [3 1 2] | sort 1
+        !| [type /actualType]
+        |  eq [::SortKeyNotQuoteError :number]
+       )
   ~~|
 
 :sortWith
@@ -309,7 +329,7 @@
       times. Pair with asc/desc/firstNonZero for declarative
       compound comparators.
 
-      ~{[3 1 2] | sortWith(sub(/left, /right)) | eq([1 2 3])}
+      ~([3 1 2] | sortWith ~(sub /left /right) | eq [1 2 3])
   ~~|
   ::builtin{:impl :qlang/prim/sortWith
             :category :vecTransformer
@@ -319,11 +339,11 @@
 
 ::SortWithSubjectNotSequenceError
   |~~ Subject of `sortWith` must be Vec or Set.
-      ~{
-        42 | sortWith(asc(/x))
+      ~(
+        42 | sortWith ~(asc ~(/x))
         !| [type /actualType]
-        |  eq([::SortWithSubjectNotSequenceError :number])
-       }
+        |  eq [::SortWithSubjectNotSequenceError :number]
+       )
   ~~|
 
 ::SortWithCmpResultNaNError
@@ -338,11 +358,21 @@
 
 ::SortWithCmpResultNotNumberError
   |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
-      ~{
-        [1 2] | sortWith(:tag)
+      ~(
+        [1 2] | sortWith ~(:tag)
         !| [type /actualType]
-        |  eq([::SortWithCmpResultNotNumberError :keyword])
-       }
+        |  eq [::SortWithCmpResultNotNumberError :keyword]
+       )
+  ~~|
+
+::SortWithComparatorNotQuoteError
+  |~~ The comparator of `sortWith` is code it runs on each pair, so it takes a
+      quote, `sortWith ~(desc ~(/age))`; a value computed at the call is refused.
+      ~(
+        [3 1 2] | sortWith 0
+        !| [type /actualType]
+        |  eq [::SortWithComparatorNotQuoteError :number]
+       )
   ~~|
 
 :take
@@ -351,9 +381,9 @@
       count: if it exceeds length the whole sequence comes back, and
       a negative n takes nothing (the count clamps to 0).
 
-      ~{[1 2 3 4 5] | take(3) | eq([1 2 3])}
-      ~{#[:a :b :c :d] | take(2) | eq(#[:a :b])}
-      ~{[1 2 3] | take(-1) | eq([])}
+      ~([1 2 3 4 5] | take 3 | eq [1 2 3])
+      ~(#[:a :b :c :d] | take 2 | eq #[:a :b])
+      ~([1 2 3] | take -1 | eq [])
   ~~|
   ::builtin{:impl :qlang/prim/take
             :category :vecTransformer
@@ -363,21 +393,21 @@
 
 ::TakeSubjectNotSequenceError
   |~~ Subject of `take` must be Vec or Set.
-      ~{
-        42 | take(1)
+      ~(
+        42 | take 1
         !| [type /actualType]
-        |  eq([::TakeSubjectNotSequenceError :number])
-       }
+        |  eq [::TakeSubjectNotSequenceError :number]
+       )
   ~~|
 
 ::TakeCountNotIntegerError
   |~~ Captured argument at position 2 of `take` must be a whole
       Number — a fractional count cannot name a prefix length.
-      ~{
-        [1 2 3] | take(0.5)
+      ~(
+        [1 2 3] | take 0.5
         !| [type /actualType]
-        |  eq([::TakeCountNotIntegerError :number])
-       }
+        |  eq [::TakeCountNotIntegerError :number]
+       )
   ~~|
 
 :at
@@ -392,14 +422,14 @@
       coalesces a miss to null, `/key` raises
       `::ProjectionKeyNotInMapError`.
 
-      ~{[10 20 30] | at(1) | eq(20)}
-      ~{[10 20 30] | at(-1) | eq(30)}
-      ~{[10 20 30] | at(99) | eq(null)}
-      ~{#[:a :b :c] | at(-1) | eq(:c)}
-      ~{{:a 1 :b 2} | at(:a) | eq(1)}
-      ~{::json{:a 1 :b 2} | at("a") | eq(1)}
-      ~{::json{:a 1 :b 2} | at(:a) | eq(1)}
-      ~{{:a 1} | at(:z) | eq(null)}
+      ~([10 20 30] | at 1 | eq 20)
+      ~([10 20 30] | at -1 | eq 30)
+      ~([10 20 30] | at 99 | eq null)
+      ~(#[:a :b :c] | at -1 | eq :c)
+      ~({:a 1 :b 2} | at :a | eq 1)
+      ~(::json{:a 1 :b 2} | at "a" | eq 1)
+      ~(::json{:a 1 :b 2} | at :a | eq 1)
+      ~({:a 1} | at :z | eq null)
   ~~|
   ::builtin{:impl :qlang/prim/at
             :category :indexedAccess
@@ -409,31 +439,31 @@
 
 ::AtSubjectNotSequenceOrMapError
   |~~ Subject of `at` must be Vec, Set, or Map.
-      ~{
-        42 | at(0)
+      ~(
+        42 | at 0
         !| [type /actualType]
-        |  eq([::AtSubjectNotSequenceOrMapError :number])
-       }
+        |  eq [::AtSubjectNotSequenceOrMapError :number]
+       )
   ~~|
 
 ::AtIndexNotIntegerError
   |~~ Captured argument at position 2 of `at` must be Integer.
-      ~{
-        [1 2 3] | at(0.5)
+      ~(
+        [1 2 3] | at 0.5
         !| [type /actualType]
-        |  eq([::AtIndexNotIntegerError :number])
-       }
+        |  eq [::AtIndexNotIntegerError :number]
+       )
   ~~|
 
 ::AtKeyNotKeywordOrStringError
   |~~ Captured argument at position 2 of `at` on a Map subject
       must be a Keyword or String — both normalise to the
       storage-side string key.
-      ~{
-        {:a 1} | at(42)
+      ~(
+        {:a 1} | at 42
         !| [type /actualType]
-        |  eq([::AtKeyNotKeywordOrStringError :number])
-       }
+        |  eq [::AtKeyNotKeywordOrStringError :number]
+       )
   ~~|
 
 :drop
@@ -443,9 +473,9 @@
       matching shape comes back, and a negative n drops nothing (the
       count clamps to 0).
 
-      ~{[1 2 3 4 5] | drop(2) | eq([3 4 5])}
-      ~{#[:a :b :c :d] | drop(2) | eq(#[:c :d])}
-      ~{[1 2 3] | drop(-1) | eq([1 2 3])}
+      ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
+      ~(#[:a :b :c :d] | drop 2 | eq #[:c :d])
+      ~([1 2 3] | drop -1 | eq [1 2 3])
   ~~|
   ::builtin{:impl :qlang/prim/drop
             :category :vecTransformer
@@ -455,21 +485,21 @@
 
 ::DropSubjectNotSequenceError
   |~~ Subject of `drop` must be Vec or Set.
-      ~{
-        42 | drop(1)
+      ~(
+        42 | drop 1
         !| [type /actualType]
-        |  eq([::DropSubjectNotSequenceError :number])
-       }
+        |  eq [::DropSubjectNotSequenceError :number]
+       )
   ~~|
 
 ::DropCountNotIntegerError
   |~~ Captured argument at position 2 of `drop` must be a whole
       Number — a fractional count cannot name how many to remove.
-      ~{
-        [1 2 3] | drop(0.5)
+      ~(
+        [1 2 3] | drop 0.5
         !| [type /actualType]
-        |  eq([::DropCountNotIntegerError :number])
-       }
+        |  eq [::DropCountNotIntegerError :number]
+       )
   ~~|
 
 :distinct
@@ -486,9 +516,9 @@
       objects (diamond hierarchies, fan-in references yield a
       clean Set without a key-projection step).
 
-      ~{[1 2 1 3 2] | distinct | eq(#[1 2 3])}
-      ~{[{:id 1} {:id 2} {:id 1}] | distinct | eq(#[{:id 1} {:id 2}])}
-      ~{#[1 2 3] | distinct | eq(#[1 2 3])}
+      ~([1 2 1 3 2] | distinct | eq #[1 2 3])
+      ~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
+      ~(#[1 2 3] | distinct | eq #[1 2 3])
   ~~|
   ::builtin{:impl :qlang/prim/distinct
             :category :vecTransformer
@@ -497,19 +527,19 @@
 
 ::DistinctSubjectNotSequenceError
   |~~ Subject of `distinct` must be Vec or Set.
-      ~{
+      ~(
         42 | distinct
         !| [type /actualType]
-        |  eq([::DistinctSubjectNotSequenceError :number])
-       }
+        |  eq [::DistinctSubjectNotSequenceError :number]
+       )
   ~~|
 
 :reverse
   |~~ Returns the sequence in reverse order. Polymorphic on Vec /
       Set — same shape as subject.
 
-      ~{[1 2 3] | reverse | eq([3 2 1])}
-      ~{#[:a :b :c] | reverse | eq(#[:c :b :a])}
+      ~([1 2 3] | reverse | eq [3 2 1])
+      ~(#[:a :b :c] | reverse | eq #[:c :b :a])
   ~~|
   ::builtin{:impl :qlang/prim/reverse
             :category :vecTransformer
@@ -518,11 +548,11 @@
 
 ::ReverseSubjectNotSequenceError
   |~~ Subject of `reverse` must be Vec or Set.
-      ~{
+      ~(
         42 | reverse
         !| [type /actualType]
-        |  eq([::ReverseSubjectNotSequenceError :number])
-       }
+        |  eq [::ReverseSubjectNotSequenceError :number]
+       )
   ~~|
 
 :flat
@@ -532,8 +562,8 @@
       preserves the uniqueness invariant by structurally collapsing
       cross-bucket duplicates.
 
-      ~{[[1 2] [3] [4 5]] | flat | eq([1 2 3 4 5])}
-      ~{#[#[1 2] #[2 3]] | flat | eq(#[1 2 3])}
+      ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
+      ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
   ~~|
   ::builtin{:impl :qlang/prim/flat
             :category :vecTransformer
@@ -542,11 +572,11 @@
 
 ::FlatSubjectNotSequenceError
   |~~ Subject of `flat` must be Vec or Set.
-      ~{
+      ~(
         42 | flat
         !| [type /actualType]
-        |  eq([::FlatSubjectNotSequenceError :number])
-       }
+        |  eq [::FlatSubjectNotSequenceError :number]
+       )
   ~~|
 
 :groupBy
@@ -558,7 +588,7 @@
       entry sequence and each bucket. The key sub-pipeline must
       return a Keyword for every element.
 
-      ~{[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy(/dept) | /eng * /name | eq(["a" "c"])}
+      ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
   ~~|
   ::builtin{:impl :qlang/prim/groupBy
             :category :vecTransformer
@@ -568,20 +598,30 @@
 
 ::GroupBySubjectNotSequenceError
   |~~ Subject of `groupBy` must be Vec or Set.
-      ~{
-        42 | groupBy(/k)
+      ~(
+        42 | groupBy ~(/k)
         !| [type /actualType]
-        |  eq([::GroupBySubjectNotSequenceError :number])
-       }
+        |  eq [::GroupBySubjectNotSequenceError :number]
+       )
   ~~|
 
 ::GroupByKeyNotKeywordError
-  |~~ `groupBy(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
-      ~{
-        [{:k 1} {:k 2}] | groupBy(/k)
+  |~~ `groupBy ~(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
+      ~(
+        [{:k 1} {:k 2}] | groupBy ~(/k)
         !| [type /actualType /index]
-        |  eq([::GroupByKeyNotKeywordError :number 0])
-       }
+        |  eq [::GroupByKeyNotKeywordError :number 0]
+       )
+  ~~|
+
+::GroupByKeyNotQuoteError
+  |~~ The key of `groupBy` is code it runs on each element, so it takes a
+      quote, `groupBy ~(/kind)`; a value computed at the call is refused.
+      ~(
+        [{:kind :a}] | groupBy :a
+        !| [type /actualType]
+        |  eq [::GroupByKeyNotQuoteError :keyword]
+       )
   ~~|
 
 :indexBy
@@ -590,7 +630,7 @@
       elements producing the same key), the last element wins. The
       key sub-pipeline must return a keyword for every element.
 
-      ~{[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy(/id) | /a/name | eq("alice")}
+      ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
   ~~|
   ::builtin{:impl :qlang/prim/indexBy
             :category :vecTransformer
@@ -600,18 +640,28 @@
 
 ::IndexBySubjectNotSequenceError
   |~~ Subject of `indexBy` must be Vec or Set.
-      ~{
-        42 | indexBy(/k)
+      ~(
+        42 | indexBy ~(/k)
         !| [type /actualType]
-        |  eq([::IndexBySubjectNotSequenceError :number])
-       }
+        |  eq [::IndexBySubjectNotSequenceError :number]
+       )
   ~~|
 
 ::IndexByKeyNotKeywordError
-  |~~ `indexBy(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
-      ~{
-        [{:k 1}] | indexBy(/k)
+  |~~ `indexBy ~(/key)` — the key sub-pipeline must produce a Keyword for every Vec element; one element produced a non-keyword.
+      ~(
+        [{:k 1}] | indexBy ~(/k)
         !| [type /actualType /index]
-        |  eq([::IndexByKeyNotKeywordError :number 0])
-       }
+        |  eq [::IndexByKeyNotKeywordError :number 0]
+       )
+  ~~|
+
+::IndexByKeyNotQuoteError
+  |~~ The key of `indexBy` is code it runs on each element, so it takes a
+      quote, `indexBy ~(/id)`; a value computed at the call is refused.
+      ~(
+        [{:id :a}] | indexBy :a
+        !| [type /actualType]
+        |  eq [::IndexByKeyNotQuoteError :keyword]
+       )
   ~~|

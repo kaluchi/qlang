@@ -2,10 +2,10 @@
    from a binding name (Keyword `:foo` or TagKeyword `::Foo`) to
    declarative metadata living on the binding's source AST. Each
    axis walks every `qlang/ast/<uri>` module Quote stored in env
-   to find the originating `BindStep` (or `as(:name)` OperandCall)
+   to find the originating `BindStep` (or `as :name` OperandCall)
    and returns the named field as a fresh value — `source` the
    declaration as a Quote, `docs` the attached
-   doc-prefix Vec of Doc-values, `examples` every `~{…}` Quote
+   doc-prefix Vec of Doc-values, `examples` every `~(…)` Quote
    segment from those docs ready for `runExamples` to fire. ~|
 
 :source
@@ -16,8 +16,8 @@
       returns the quote of that declaration, which `parse` prints
       as its text.
 
-      ~{:filter | source | parse | contains(":filter")}
-      ~{::AddLeftNotNumberError | source | parse | contains("AddLeftNotNumberError")}
+      ~(:filter | source | parse | contains ":filter")
+      ~(::AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
   ~~|
   ::builtin{:impl :qlang/prim/source
             :category :axis
@@ -28,22 +28,22 @@
   |~~ `source` requires a Keyword (`:foo`) or TagKeyword
       (`::Foo`) subject.
 
-      ~{
+      ~(
         42 | source
         !| [type /actualType]
-        |  eq([::SourceSubjectNotKeywordOrTagError :number])
-       }
+        |  eq [::SourceSubjectNotKeywordOrTagError :number]
+       )
   ~~|
 
 ::SourceBindingNotFoundError
   |~~ `source` — no `BindStep` found for the requested binding name
       across loaded modules.
 
-      ~{
+      ~(
         :nonexistent-binding | source
         !| [type /bindingName]
-        |  eq([::SourceBindingNotFoundError :nonexistent-binding])
-       }
+        |  eq [::SourceBindingNotFoundError :nonexistent-binding]
+       )
   ~~|
 
 :docs
@@ -52,8 +52,8 @@
       surfaces TaggedLit and Quote inline structure for navigation;
       Quote segments are the evaluable examples `runExamples` runs.
 
-      ~{:filter | docs | first | /content | contains("Keeps items")}
-      ~{::AddLeftNotNumberError | docs | first | type | eq(:doc)}
+      ~(:filter | docs | first | /content | contains "Keeps items")
+      ~(::AddLeftNotNumberError | docs | first | type | eq :doc)
   ~~|
   ::builtin{:impl :qlang/prim/docs
             :category :axis
@@ -64,22 +64,22 @@
   |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
       (`::Foo`) subject.
 
-      ~{
+      ~(
         42 | docs
         !| [type /actualType]
-        |  eq([::DocsSubjectNotKeywordOrTagError :number])
-       }
+        |  eq [::DocsSubjectNotKeywordOrTagError :number]
+       )
   ~~|
 
 ::DocsBindingNotFoundError
   |~~ `docs` — no `BindStep` found for the requested binding name
       across loaded modules.
 
-      ~{
+      ~(
         :nonexistent-binding | docs
         !| [type /bindingName]
-        |  eq([::DocsBindingNotFoundError :nonexistent-binding])
-       }
+        |  eq [::DocsBindingNotFoundError :nonexistent-binding]
+       )
   ~~|
 
 :examples
@@ -88,8 +88,8 @@
       each Quote against an isolated env; `:ok` is true iff the
       result is truthy.
 
-      ~{:filter | examples | count | gt(0)}
-      ~{:filter | examples | first | parse | contains("filter")}
+      ~(:filter | examples | count | gt 0)
+      ~(:filter | examples | first | parse | contains "filter")
   ~~|
   ::builtin{:impl :qlang/prim/examples
             :category :axis
@@ -100,22 +100,22 @@
   |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
       (`::Foo`) subject.
 
-      ~{
+      ~(
         42 | examples
         !| [type /actualType]
-        |  eq([::ExamplesSubjectNotKeywordOrTagError :number])
-       }
+        |  eq [::ExamplesSubjectNotKeywordOrTagError :number]
+       )
   ~~|
 
 ::ExamplesBindingNotFoundError
   |~~ `examples` — no `BindStep` found for the requested binding name
       across loaded modules.
 
-      ~{
+      ~(
         :nonexistent-binding | examples
         !| [type /bindingName]
-        |  eq([::ExamplesBindingNotFoundError :nonexistent-binding])
-       }
+        |  eq [::ExamplesBindingNotFoundError :nonexistent-binding]
+       )
   ~~|
 
 :spec
@@ -147,9 +147,9 @@
       raises, and each of those names `:add` back on its own
       `/operand`.
 
-      ~{:add | spec | /category | eq(:arith)}
-      ~{::AddLeftNotNumberError | spec | /operand | eq(:add)}
-      ~{::conduit | spec | /impl | eq(:qlang/type/conduit)}
+      ~(:add | spec | /category | eq :arith)
+      ~(::AddLeftNotNumberError | spec | /operand | eq :add)
+      ~(::conduit | spec | /impl | eq :qlang/type/conduit)
   ~~|
   ::builtin{:impl :qlang/prim/spec
             :category :axis
@@ -160,20 +160,20 @@
   |~~ `spec` requires a Keyword (`:foo`) or TagKeyword
       (`::Foo`) subject.
 
-      ~{
+      ~(
         42 | spec
         !| [type /actualType]
-        |  eq([::SpecSubjectNotKeywordOrTagError :number])
-       }
+        |  eq [::SpecSubjectNotKeywordOrTagError :number]
+       )
   ~~|
 
 ::SpecBindingNotFoundError
   |~~ `spec` — no `BindStep` found for the requested binding name
       across loaded modules.
 
-      ~{
+      ~(
         :nonexistent-binding | spec
         !| [type /bindingName]
-        |  eq([::SpecBindingNotFoundError :nonexistent-binding])
-       }
+        |  eq [::SpecBindingNotFoundError :nonexistent-binding]
+       )
   ~~|

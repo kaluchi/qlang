@@ -47,7 +47,7 @@ describe('makeErrorValue', () => {
     // trail from an earlier fail-apply materialization — makeErrorValue
     // keeps the supplied value untouched and skips the
     // invariant-fill branch.
-    const preTrail = quoteOfSource('mul(2) | count');
+    const preTrail = quoteOfSource('mul 2 | count');
     const descriptor = new Map([['trail', preTrail]]);
     const errorVal = makeErrorValue(makeTagKeyword('Oops'), descriptor);
     expect(errorVal.descriptor).toBe(descriptor);
@@ -140,7 +140,7 @@ describe('trail', () => {
     // appendTrailNode preserves identity on the JS-header tag slot.
     expect(errorVal1.tag).toBe(errorVal0.tag);
 
-    const fragment2 = Object.freeze({ combinator: 'pipe', node: parse('filter(gt(2))') });
+    const fragment2 = Object.freeze({ combinator: 'pipe', node: parse('filter ~(gt 2)') });
     const errorVal2 = appendTrailNode(errorVal1, fragment2);
     expect(errorVal2._trailHead.entry).toBe(fragment2);
     expect(errorVal2._trailHead.prev.entry).toBe(fragment1);
@@ -151,14 +151,14 @@ describe('trail', () => {
     // and reversing — first deflect ends up first in the quote.
     const errorVal0 = makeErrorValue(makeTagKeyword('Oops'), new Map());
     const errorVal1 = appendTrailNode(errorVal0,
-      Object.freeze({ combinator: 'pipe',       node: parse('mul(2)') }));
+      Object.freeze({ combinator: 'pipe',       node: parse('mul 2') }));
     const errorVal2 = appendTrailNode(errorVal1,
       Object.freeze({ combinator: 'distribute', node: parse('inc') }));
     const errorVal3 = appendTrailNode(errorVal2,
       Object.freeze({ combinator: 'pipe',       node: parse('flat') }));
     const quote = materializeTrail(errorVal3);
     expect(isQuote(quote)).toBe(true);
-    expect(printQuoteSource(quote)).toBe('mul(2) * inc | flat');
+    expect(printQuoteSource(quote)).toBe('mul 2 * inc | flat');
   });
 
   it('materializeTrail on fresh error returns null', () => {
@@ -285,7 +285,7 @@ describe('errorFromQlang', () => {
       actualType: { name: 'string' },
       actualValue: 'the-value'
     });
-    const errorVal = errorFromQlang(typeErr, ...fault('add(1)', 'the-subject'));
+    const errorVal = errorFromQlang(typeErr, ...fault('add 1', 'the-subject'));
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
@@ -294,7 +294,7 @@ describe('errorFromQlang', () => {
     expect(errorVal.tag).toEqual(makeTagKeyword('QlangTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
     expect(desc.get('actualType')).toEqual({ name: 'string' });
-    expect(printQuoteSource(desc.get('faultStep'))).toBe('add(1)');
+    expect(printQuoteSource(desc.get('faultStep'))).toBe('add 1');
     expect(desc.get('faultInput')).toBe('the-subject');
   });
 
@@ -311,12 +311,12 @@ describe('errorFromQlang', () => {
 
   it('converts DivisionByZeroError with faultStep/faultInput stamped flat', () => {
     const divErr = new DivisionByZeroError();
-    const errorVal = errorFromQlang(divErr, ...fault('div(0)', 10));
+    const errorVal = errorFromQlang(divErr, ...fault('div 0', 10));
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
     expect(divErr.kind).toBe('numericDomain');
     expect(errorVal.tag).toEqual(makeTagKeyword('DivisionByZeroError'));
-    expect(printQuoteSource(desc.get('faultStep'))).toBe('div(0)');
+    expect(printQuoteSource(desc.get('faultStep'))).toBe('div 0');
     expect(desc.get('faultInput')).toBe(10);
   });
 });
@@ -485,7 +485,7 @@ describe('error-convert coercion edge cases', () => {
 
   it('errorFromQlang without context field', () => {
     const divErr = new DivisionByZeroError();
-    const errorVal = errorFromQlang(divErr, ...fault('div(0)', 10));
+    const errorVal = errorFromQlang(divErr, ...fault('div 0', 10));
     expect(errorVal.tag.name).toBe('DivisionByZeroError');
     expect(errorVal.descriptor.has('category')).toBe(false);
   });

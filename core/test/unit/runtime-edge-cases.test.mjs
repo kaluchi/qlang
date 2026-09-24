@@ -155,7 +155,7 @@ describe('manifest-op.mjs — :type :unknown lift for non-classifiable host valu
     // typeKeyword — which lifts unrecognised host values to :unknown.
     const s = await createSession();
     s.bind('weird', Symbol('weird'));
-    const result = (await s.evalCell('manifest | filter(/name | eq("weird")) | first | /type')).result;
+    const result = (await s.evalCell('manifest | filter ~(/name | eq "weird") | first | /type')).result;
     expect(result).toEqual(keyword('unknown'));
   });
 });
@@ -216,10 +216,10 @@ describe('types.mjs — appendTrailNode stamps {combinator, node} fragments on t
     const trailed = appendTrailNode(errVal, fragment);
     expect(isErrorValue(trailed)).toBe(true);
     expect(trailed._trailHead.entry).toBe(fragment);
-    const distributed = appendTrailNode(trailed, Object.freeze({ combinator: 'distribute', node: parse('add(1)') }));
+    const distributed = appendTrailNode(trailed, Object.freeze({ combinator: 'distribute', node: parse('add 1') }));
     const quote = materializeTrail(distributed);
     expect(isQuote(quote)).toBe(true);
-    expect(printQuoteSource(quote)).toBe('count * add(1)');
+    expect(printQuoteSource(quote)).toBe('count * add 1');
   });
 });
 
@@ -242,7 +242,7 @@ describe('conduitParameter arity error', async () => {
     // Inside the body, `n` is a conduitParameter proxy (nullary
     // function value). Calling it with captured args (n(42)) should
     // raise ConduitParameterNoCapturedArgsError with structured context.
-    const result = await evalQuery(':f [:n] n(42) | 0 | f(5)');
+    const result = await evalQuery(':f [:n] n 42 | 0 | f 5');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
     expect(e.name).toBe('ConduitParameterNoCapturedArgsError');
@@ -256,7 +256,7 @@ describe('manifest descriptor for a snapshot bound directly via session.bind', a
   it('manifest entry carries :kind ::snapshot plus :type and :value', async () => {
     const s = await createSession();
     s.bind('snap', makeSnapshot(42, { name: 'snap' }));
-    const result = (await s.evalCell('manifest | filter(/name | eq("snap")) | first')).result;
+    const result = (await s.evalCell('manifest | filter ~(/name | eq "snap") | first')).result;
     expect(result.get('kind')).toEqual(makeTagKeyword('snapshot'));
     expect(result.get('value')).toBe(42);
     expect(result.get('type')).toEqual(keyword('number'));
@@ -269,7 +269,7 @@ describe('session deserialization edge cases', async () => {
   it('deserializes conduit binding without params field', async () => {
     const payload = {
       schemaVersion: 1,
-      bindings: [{ kind: 'conduit', name: 'x', source: 'mul(2)', docs: [] }],
+      bindings: [{ kind: 'conduit', name: 'x', source: 'mul 2', docs: [] }],
       cells: []
     };
     const s = await deserializeSession(payload);
@@ -286,7 +286,7 @@ describe('importSelectiveNamespace single keyword fallback', async () => {
     lib.set('x', 10);
     lib.set('y', 20);
     s.bind('lib', lib);
-    const r = await s.evalCell('use(:lib, :x) | x');
+    const r = await s.evalCell('use :lib :x | x');
     expect(r.result).toBe(10);
   });
 });
@@ -300,13 +300,13 @@ describe('manifest descriptor — describeBinding branch coverage', async () => 
   // through its dedicated build* helper.
 
   it('conduit binding surfaces :kind ::conduit with the declared name', async () => {
-    const r = await evalQuery(':x mul(2) | manifest | filter(/name | eq("x")) | first');
+    const r = await evalQuery(':x mul 2 | manifest | filter ~(/name | eq "x") | first');
     expect(r.get('kind')).toEqual(makeTagKeyword('conduit'));
     expect(r.get('name')).toBe('x');
   });
 
   it('snapshot binding surfaces :kind ::snapshot with the declared name', async () => {
-    const r = await evalQuery('42 | as(:v) | manifest | filter(/name | eq("v")) | first');
+    const r = await evalQuery('42 | as :v | manifest | filter ~(/name | eq "v") | first');
     expect(r.get('kind')).toEqual(makeTagKeyword('snapshot'));
     expect(r.get('name')).toBe('v');
   });
@@ -335,7 +335,7 @@ describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collision
     const s = await createSession();
     s.bind('nsA', new Map([['shared', 1]]));
     s.bind('nsB', new Map([['shared', 2]]));
-    const r = await s.evalCell('use(#[:nsA, :nsB])');
+    const r = await s.evalCell('use #[:nsA :nsB]');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.name).toBe('UseNamespaceCollisionError');
   });
@@ -346,7 +346,7 @@ describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collision
     const s = await createSession();
     s.bind('nsC', new Map([['rawKey', 1]]));
     s.bind('nsD', new Map([['rawKey', 2]]));
-    const r = await s.evalCell('use(#[:nsC, :nsD])');
+    const r = await s.evalCell('use #[:nsC :nsD]');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.context.collidingName).toBe('rawKey');
   });
@@ -356,7 +356,7 @@ describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection',
   it('selective use(:ns, :missing) produces an error when name is absent', async () => {
     const s = await createSession();
     s.bind('myNs', new Map([['x', 99]]));
-    const r = await s.evalCell('use(:myNs, :missing)');
+    const r = await s.evalCell('use :myNs :missing');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.name).toBe('UseNameNotExportedError');
   });
@@ -367,7 +367,7 @@ describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection',
     const s = await createSession();
     s.bind('myNs2', new Map([['x', 99]]));
     // use(:myNs2, [42]) — selection Vec contains number 42, not a keyword
-    const r = await s.evalCell('use(:myNs2, [42])');
+    const r = await s.evalCell('use :myNs2 [42]');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.context.exportName).toBe('42');
   });
@@ -385,7 +385,7 @@ describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound
     const s = await createSession();
     const errVal = makeErrorValue(makeTagKeyword('test'), new Map());
     s.bind('myErr', errVal);
-    const r = await s.evalCell('manifest | filter(/name | eq("myErr")) | first | /type');
+    const r = await s.evalCell('manifest | filter ~(/name | eq "myErr") | first | /type');
     expect(r.result).toEqual(makeTagKeyword('test'));
   });
 
@@ -393,7 +393,7 @@ describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound
     const s = await createSession();
     const errVal = makeErrorValue(makeTagKeyword('Error'), new Map());
     s.bind('myErr', errVal);
-    const r = await s.evalCell('manifest | filter(/name | eq("myErr")) | first | /type');
+    const r = await s.evalCell('manifest | filter ~(/name | eq "myErr") | first | /type');
     expect(r.result).toEqual(makeTagKeyword('Error'));
   });
 });
@@ -567,7 +567,7 @@ describe('printValue round-trip — all composite types', async () => {
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind ::Error :trail ~{| count}}', 'Error trail');
+    await assertRoundTrip('!{:kind ::Error :trail ~(| count)}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

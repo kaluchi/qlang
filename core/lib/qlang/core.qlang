@@ -14,7 +14,7 @@
      :predicateLambda :keyLambda :comparatorLambda :reducerLambda
      :pipeline (captured sub-pipeline, lazy) ~|
 
-use([:qlang/runtime-invariants
+use [:qlang/runtime-invariants
      :qlang/tag
      :qlang/operand/arith
      :qlang/operand/vec
@@ -31,4 +31,4 @@ use([:qlang/runtime-invariants
      :qlang/operand/reflective
      :qlang/operand/error
      :qlang/operand/codeAsData
-     :qlang/operand/axis])
+     :qlang/operand/axis]

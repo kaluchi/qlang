@@ -8,15 +8,15 @@
 :pretty
   |~~ Renders any value as its canonical qlang-literal display
       form — the same bytes `printValue` produces. Round-trips
-      through `parse | apply(/)` back to the same value, so
-      `pretty | parse | apply(/) | pretty` is an identity for any
+      through `parse | apply /` back to the same value, so
+      `pretty | parse | apply / | pretty` is an identity for any
       qlang-shaped subject.
 
-      ~{42 | pretty | eq("42")}
-      ~{"hi" | pretty | eq("\"hi\"")}
-      ~{[1 2 3] | pretty | eq("[1 2 3]")}
-      ~{{:a 1} | pretty | eq("{:a 1}")}
-      ~{:foo | pretty | eq(":foo")}
+      ~(42 | pretty | eq "42")
+      ~("hi" | pretty | eq "\"hi\"")
+      ~([1 2 3] | pretty | eq "[1 2 3]")
+      ~({:a 1} | pretty | eq "{:a 1}")
+      ~(:foo | pretty | eq ":foo")
   ~~|
   ::builtin{:impl :qlang/cli/prim/pretty
             :category :format
@@ -34,10 +34,10 @@
       use `json` (in `:format` family of core) for talking to
       non-qlang consumers.
 
-      ~{42 | tjson | parseTjson | eq(42)}
-      ~{[1 :foo "hi"] | tjson | parseTjson | eq([1 :foo "hi"])}
-      ~{#[1 2 3] | tjson | parseTjson | eq(#[1 2 3])}
-      ~{{:a 1 :b :keyword} | tjson | parseTjson | eq({:a 1 :b :keyword})}
+      ~(42 | tjson | parseTjson | eq 42)
+      ~([1 :foo "hi"] | tjson | parseTjson | eq [1 :foo "hi"])
+      ~(#[1 2 3] | tjson | parseTjson | eq #[1 2 3])
+      ~({:a 1 :b :keyword} | tjson | parseTjson | eq {:a 1 :b :keyword})
   ~~|
   ::builtin{:impl :qlang/cli/prim/tjson
             :category :format
@@ -55,10 +55,10 @@
       and names appear without surrounding quotes); other types
       render via `pretty`. Missing fields render as `"null"`.
 
-      ~{"world" | template("Hello, {{.}}!") | eq("Hello, world!")}
-      ~{{:name "alice"} | template("hi {{name}}") | eq("hi alice")}
-      ~{{:user {:name "alice"}} | template("hi {{user/name}}") | eq("hi alice")}
-      ~{42 | template("answer is {{.}}") | eq("answer is 42")}
+      ~("world" | template "Hello, {{.}}!" | eq "Hello, world!")
+      ~({:name "alice"} | template "hi {{name}}" | eq "hi alice")
+      ~({:user {:name "alice"}} | template "hi {{user/name}}" | eq "hi alice")
+      ~(42 | template "answer is {{.}}" | eq "answer is 42")
   ~~|
   ::builtin{:impl :qlang/cli/prim/template
             :category :format

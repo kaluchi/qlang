@@ -98,7 +98,7 @@ describe('installModules', () => {
     expect(sessionInstance.env.has(moduleNamespaceKey('error'))).toBe(true);
 
     // use(:error) imports retry into current env
-    const cellEntry = await sessionInstance.evalCell('use(:error) | manifest | filter(/name | eq("retry")) | first | /kind');
+    const cellEntry = await sessionInstance.evalCell('use :error | manifest | filter ~(/name | eq "retry") | first | /kind');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
   });
@@ -121,7 +121,7 @@ describe('installModules', () => {
     expect(liftCell.error).toBeNull();
     expect(liftCell.result).toEqual(makeTagKeyword('Error'));
 
-    const valueKindCell = await sessionInstance.evalCell('manifest | filter(/kind | eq(::value)) | count');
+    const valueKindCell = await sessionInstance.evalCell('manifest | filter ~(/kind | eq ::value) | count');
     expect(valueKindCell.error).toBeNull();
     expect(valueKindCell.result).toBe(0);
   });
@@ -143,12 +143,12 @@ describe('installModules', () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    await sessionInstance.evalCell('use(:error)');
-    await sessionInstance.evalCell('use(:error/guards)');
-    await sessionInstance.evalCell('use(:error/observe)');
+    await sessionInstance.evalCell('use :error');
+    await sessionInstance.evalCell('use :error/guards');
+    await sessionInstance.evalCell('use :error/observe');
 
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
-      const cellEntry = await sessionInstance.evalCell(`manifest | filter(/name | eq("${name}")) | first | /kind`);
+      const cellEntry = await sessionInstance.evalCell(`manifest | filter ~(/name | eq "${name}") | first | /kind`);
       expect(cellEntry.error).toBeNull();
       expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
     }
@@ -162,7 +162,7 @@ describe('installModules', () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    await sessionInstance.evalCell('use(:error)');
+    await sessionInstance.evalCell('use :error');
     const docsCell = await sessionInstance.evalCell(':retry | docs | first | /content');
     expect(docsCell.error).toBeNull();
     expect(typeof docsCell.result).toBe('string');
@@ -183,7 +183,7 @@ describe('locator exports that are not builtin descriptors', () => {
         : null
     });
 
-    const cellEntry = await sessionInstance.evalCell('use(:tests/plain-map) | cfg | /a');
+    const cellEntry = await sessionInstance.evalCell('use :tests/plain-map | cfg | /a');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(1);
   });
@@ -202,13 +202,13 @@ describe('locator exports that are not builtin descriptors', () => {
     });
 
     const specCell = await sessionInstance.evalCell(
-      'use(:tests/literal-tag) | ::AsNameNotKeywordError | spec');
+      'use :tests/literal-tag | ::AsNameNotKeywordError | spec');
     expect(specCell.error).toBeNull();
     expect(specCell.result).toBe(42);
 
     const keysCell = await sessionInstance.evalCell(
-      'use(:tests/literal-tag) | manifest(:tag) ' +
-      '| filter(/name | eq("::AsNameNotKeywordError")) | first | keys');
+      'use :tests/literal-tag | manifest :tag ' +
+      '| filter ~(/name | eq "::AsNameNotKeywordError") | first | keys');
     expect(keysCell.error).toBeNull();
     expect([...keysCell.result].map(k => k.name)).not.toContain('category');
   });

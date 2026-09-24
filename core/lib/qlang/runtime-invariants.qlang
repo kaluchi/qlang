@@ -55,16 +55,16 @@
       fire this tag rather than silently destructure-iterating
       the payload into a garbage descriptor.
 
-      ~{
+      ~(
         ::builtin"hello"
         !| [type /actualType]
-        |  eq([::BuiltinPayloadNotMapError :string])
-       }
-      ~{
+        |  eq [::BuiltinPayloadNotMapError :string]
+       )
+      ~(
         ::builtin[1 2 3]
         !| [type /actualType]
-        |  eq([::BuiltinPayloadNotMapError :vec])
-       }
+        |  eq [::BuiltinPayloadNotMapError :vec]
+       )
   ~~|
 
 ::BuiltinImplNotPrimitiveKeyError
@@ -77,15 +77,15 @@
       only when `:impl` holds something the primitive registry
       cannot be keyed by.
 
-      ~{
-        ::builtin{:impl :qlang/prim/count} | as(:c) | [1 2 3] | c
-        |  eq(3)
-       }
-      ~{
-        ::builtin{:impl 42} | as(:bogus) | 1 | bogus
+      ~(
+        ::builtin{:impl :qlang/prim/count} | as :c | [1 2 3] | c
+        |  eq 3
+       )
+      ~(
+        ::builtin{:impl 42} | as :bogus | 1 | bogus
         !| [type /actualType]
-        |  eq([::BuiltinImplNotPrimitiveKeyError :number])
-       }
+        |  eq [::BuiltinImplNotPrimitiveKeyError :number]
+       )
   ~~|
 
 ::Error
@@ -101,8 +101,8 @@
       per-site tag back into the fail-track without an
       intermediate `:kind` field.
 
-      ~{!{} !| type | eq(::Error)}
-      ~{!{:detail "boom"} !| type | eq(::Error)}
+      ~(!{} !| type | eq ::Error)
+      ~(!{:detail "boom"} !| type | eq ::Error)
   ~~|
   ::builtin{:category :error}
 
@@ -112,45 +112,45 @@
   |~~ Projection segment is not a publicly-projectable field
       on the value-class subject, a Doc.
 
-      ~{
+      ~(
         |~~ prose ~~| | /missing
         !| [type /key]
-        |  eq([::ProjectionFieldNotOnValueClassError "missing"])
-       }
+        |  eq [::ProjectionFieldNotOnValueClassError "missing"]
+       )
   ~~|
 
 ::ProjectionIndexOutOfBoundsError
   |~~ Projection `/n` — the integer index resolves outside
       the Vec or Set subject's `[0, length)` range.
 
-      ~{
+      ~(
         [10 20 30] | /99
         !| [type /index /length]
-        |  eq([::ProjectionIndexOutOfBoundsError 99 3])
-       }
+        |  eq [::ProjectionIndexOutOfBoundsError 99 3]
+       )
   ~~|
 
 ::ProjectionKeyNotInMapError
   |~~ Projection `/key` — the named key is absent from the
-      Map subject (strict-miss). Use `at(:key)` for
+      Map subject (strict-miss). Use `at :key` for
       null-coalescing access.
 
-      ~{
+      ~(
         {:a 1} | /b
         !| [type /key]
-        |  eq([::ProjectionKeyNotInMapError "b"])
-       }
+        |  eq [::ProjectionKeyNotInMapError "b"]
+       )
   ~~|
 
 ::ProjectionSubjectNotProjectableError
   |~~ Projection `/key` requires a Map, Vec, Set, or value-class
       subject; null subject and other shapes lift to this error.
 
-      ~{
+      ~(
         42 | /foo
         !| [type /key /actualType]
-        |  eq([::ProjectionSubjectNotProjectableError "foo" :number])
-       }
+        |  eq [::ProjectionSubjectNotProjectableError "foo" :number]
+       )
   ~~|
 
 ::ProjectionSequenceKeyNotIntegerError
@@ -159,16 +159,16 @@
       offsets (insertion-order on a Set per §Set in
       qlang-spec.md).
 
-      ~{
+      ~(
         [10 20 30] | /name
         !| [type /key]
-        |  eq([::ProjectionSequenceKeyNotIntegerError "name"])
-       }
-       ~{
+        |  eq [::ProjectionSequenceKeyNotIntegerError "name"]
+       )
+       ~(
         #[:a :b :c] | /name
         !| [type /key]
-        |  eq([::ProjectionSequenceKeyNotIntegerError "name"])
-       }
+        |  eq [::ProjectionSequenceKeyNotIntegerError "name"]
+       )
   ~~|
 
 |~ ── 2. Distribute combinator subject mismatch ─────────── ~|
@@ -177,11 +177,11 @@
   |~~ Distribute combinator (`*`) — subject must be a Vec or Set
       for per-element forking; a Set distributes into a Vec result.
 
-      ~{
-        42 * add(1)
+      ~(
+        42 * add 1
         !| [type /actualType]
-        |  eq([::DistributeSubjectNotSequenceError :number])
-       }
+        |  eq [::DistributeSubjectNotSequenceError :number]
+       )
   ~~|
 
 |~ ── 3. Tag-binding constructor invariants ─────────────── ~|
@@ -198,11 +198,11 @@
   |~~ `::tag` constructor invocation — the env binding under
       `::tag` is not a tag-binding descriptor Map.
 
-      ~{
+      ~(
         ::badType 42 | ::badType[]
         !| [type /tag /actualType]
-        |  eq([::TaggedLitNotTagBindingError :badType :number])
-       }
+        |  eq [::TaggedLitNotTagBindingError :badType :number]
+       )
   ~~|
 
 |~ ── 4. Effect-laundering at parse and call seams ──────── ~|
@@ -212,12 +212,12 @@
       identifier, but the binding name is not `@`-prefixed —
       laundering caught at parse time.
 
-      ~{
+      ~(
         1 | (:bad @callers | bad)
         !| [type /bindingName /effectfulName]
-        |  eq([::EffectLaunderingAtBindStepParseError
-                :bad :@callers])
-       }
+        |  eq [::EffectLaunderingAtBindStepParseError
+                :bad :@callers]
+       )
   ~~|
 
 |~ ── 5. Identifier-lookup and parse-time failures ───────── ~|
@@ -226,11 +226,11 @@
   |~~ Identifier resolves to a non-function value — captured
       arguments cannot be applied.
 
-      ~{
-        5 | as(:five) | five(42)
+      ~(
+        5 | as :five | five 42
         !| [type /name /actualType]
-        |  eq([::ApplyToNonFunctionError :five :number])
-       }
+        |  eq [::ApplyToNonFunctionError :five :number]
+       )
   ~~|
 
 ::EffectLaunderingAtCallError
@@ -244,21 +244,21 @@
 ::UnresolvedIdentifierError
   |~~ Identifier lookup failed — no env binding under that name.
 
-      ~{
+      ~(
         thisIsNotDefined
         !| [type]
-        |  eq([::UnresolvedIdentifierError])
-       }
+        |  eq [::UnresolvedIdentifierError]
+       )
   ~~|
 
 ::ParseError
   |~~ Parser failure — source did not match the grammar.
 
-      ~{
+      ~(
         "42 |" | parse
         !| type | spec | /category
-        |  eq(:parseError)
-       }
+        |  eq :parseError
+       )
   ~~|
   ::builtin{:category :parseError}
 
@@ -306,32 +306,32 @@
 ::NullaryOpArgsProvidedError
   |~~ Nullary operand received captured arguments.
 
-      ~{
-        [1 2 3] | count(42)
+      ~(
+        [1 2 3] | count 42
         !| [type /operandName]
-        |  eq([::NullaryOpArgsProvidedError :count])
-       }
+        |  eq [::NullaryOpArgsProvidedError :count]
+       )
   ~~|
 
 ::OverloadedOpUnsupportedArityError
   |~~ Overloaded operand has no impl for the supplied
       captured-arg count.
 
-      ~{
-        [3 1 2] | sort(:a, :b)
+      ~(
+        [3 1 2] | sort ~(:a) :b
         !| [type /operandName]
-        |  eq([::OverloadedOpUnsupportedArityError :sort])
-       }
+        |  eq [::OverloadedOpUnsupportedArityError :sort]
+       )
   ~~|
 
 ::StateOpArityMismatchError
   |~~ `stateOp` impl received an unexpected captured-arg count.
 
-      ~{
-        examples(:filter)
+      ~(
+        examples :filter
         !| [type /operandName]
-        |  eq([::StateOpArityMismatchError :examples])
-       }
+        |  eq [::StateOpArityMismatchError :examples]
+       )
   ~~|
 
 ::StateOpVariadicMissingCapturedError
@@ -361,11 +361,11 @@
   |~~ Operand call supplied more captured arguments than the
       operand's declared maximum arity.
 
-      ~{
-        [1 2 3] | count(1, 2)
+      ~(
+        [1 2 3] | count 1 2
         !| [type /operandName]
-        |  eq([::Rule10ArityOverflowError :count])
-       }
+        |  eq [::Rule10ArityOverflowError :count]
+       )
   ~~|
 
 |~ ── 9. Primitive registry invariants ─────────────────── ~|
@@ -467,21 +467,21 @@
       `apply` cannot replay. To drop an accumulated suffix before
       re-lift, stamp `:trail null` inside the fail-apply step.
 
-      ~{
+      ~(
         !{:kind :oops :trail [1 2]}
         !| [type /actualType]
-        |  eq([::ErrorTrailNotQuoteError :vec])
-       }
-      ~{
+        |  eq [::ErrorTrailNotQuoteError :vec]
+       )
+      ~(
         !{:kind :oops} | count
-        !| union({:trail []}) | error
-        !| type | eq(::ErrorTrailNotQuoteError)
-       }
-      ~{
+        !| union {:trail []} | error
+        !| type | eq ::ErrorTrailNotQuoteError
+       )
+      ~(
         !{:kind :oops} | count
-        !| union({:trail null}) | error | add(1)
-        !| /trail | eq(~{| add(1)})
-       }
+        !| union {:trail null} | error | add 1
+        !| /trail | eq ~(| add 1)
+       )
   ~~|
 
 |~ ── 13. Evaluation depth budget ───────────────────────── ~|
@@ -496,14 +496,14 @@
       without a base case surfaces here on the fail-track while the
       host's heap stays bounded.
 
-      ~{
-        :inf (add(1) | inf) | 0 | inf
-        !| type | eq(::EvaluationDepthExceededError)
-       }
-      ~{
-        :q ~{apply(q)} | apply(q)
-        !| gt(/depth, /limit)
-       }
+      ~(
+        :inf (add 1 | inf) | 0 | inf
+        !| type | eq ::EvaluationDepthExceededError
+       )
+      ~(
+        :q ~(apply q) | apply q
+        !| gt /depth /limit
+       )
   ~~|
 
 |~ ── 14. Catalog source loading ────────────────────────── ~|
@@ -518,7 +518,7 @@
   ~~|
 
 ::BootstrapCatalogNotLoadedError
-  |~~ The catalog root is one `use([…])` step, so a family source
+  |~~ The catalog root is one `use […]` step, so a family source
       the locator resolves but the parser refuses leaves the env
       without that family while the failure rides out as the root's
       pipeValue. The bootstrap reads that pipeValue, so the failing

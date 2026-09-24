@@ -18,6 +18,7 @@
     { "include": "#projection" },
     { "include": "#set-open" },
     { "include": "#error-lit-brackets" },
+    { "include": "#quote" },
     { "include": "#combinator" },
     { "include": "#effect-identifier" },
     { "include": "#keyword-binding" },
@@ -168,6 +169,12 @@
       "comment": "Error literal !{...} opener and the closing brace inside ErrorLit body. Carries the same fail-track palette as the !| combinator so error-shape syntax reads loud at a glance. Matched before the generic !| combinator so `!{` wins against the trailing `|` of an adjacent comment.",
       "match": "!\\{",
       "name": "keyword.operator.fail-apply.qlang"
+    },
+
+    "quote": {
+      "comment": "A quote: ~( opens one, and a ~ before a name, a projection or a tag name is its short form.",
+      "name": "keyword.operator.quote.qlang",
+      "match": "~(?=[(/:@_a-zA-Z])"
     },
 
     "combinator": {

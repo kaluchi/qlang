@@ -21,7 +21,7 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
     // `manifest` enumerates env into descriptor Maps carrying `:name`;
     // composing it with `* runExamples` per-entry covers the
     // Map-with-:name subject path on the runExamples contract.
-    const result = await evalQuery('manifest | filter(/name | eq("count")) | first | runExamples * /ok | distinct');
+    const result = await evalQuery('manifest | filter ~(/name | eq "count") | first | runExamples * /ok | distinct');
     expect(result).toEqual(new Set([true]));
   });
 
@@ -46,12 +46,12 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
 describe('runExamples Quote-as-test outcomes', () => {
   it('Quote that lifts an error → ok:false with error message', async () => {
     const moduleSource =
-      '|~~ broken example.\n    ~{"x" | add(1) | eq(42)} ~~|\n' +
+      '|~~ broken example.\n    ~("x" | add 1 | eq 42) ~~|\n' +
       ':demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/broken) | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use :tests/broken | :demo | runExamples | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(typeof cellEntry.result.get('error')).toBe('string');
   });
@@ -62,12 +62,12 @@ describe('runExamples Quote-as-test outcomes', () => {
     // with :error nil — there is no error message, the assertion
     // just did not hold.
     const moduleSource =
-      '|~~ falsy example.\n    ~{5 | mul(2) | eq(99)} ~~|\n' +
+      '|~~ falsy example.\n    ~(5 | mul 2 | eq 99) ~~|\n' +
       ':demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/falsy) | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use :tests/falsy | :demo | runExamples | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBeNull();
     expect(cellEntry.result.get('actual')).toBe(false);
@@ -75,11 +75,11 @@ describe('runExamples Quote-as-test outcomes', () => {
 
   it('Quote that evaluates truthy → ok:true', async () => {
     const moduleSource =
-      '|~~ ~{5 | mul(2) | eq(10)} ~~|\n:demo 1';
+      '|~~ ~(5 | mul 2 | eq 10) ~~|\n:demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/passing) | :demo | runExamples | first | /ok');
+    const cellEntry = await session.evalCell('use :tests/passing | :demo | runExamples | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -87,7 +87,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     const session = await createSession({
       locator: async () => ({ source: ':bare 42' })
     });
-    const cellEntry = await session.evalCell('use(:tests/bare) | :bare | runExamples | count');
+    const cellEntry = await session.evalCell('use :tests/bare | :bare | runExamples | count');
     expect(cellEntry.result).toBe(0);
   });
 
@@ -108,13 +108,13 @@ describe('runExamples Quote-as-test outcomes', () => {
     // bare-qlang `add` to keep the test runtime-free.
     const moduleSource =
       '|~~ tracks env propagation through runExamples.\n' +
-      '    ~{40 | add(2) | eq(42)}\n ~~|\n' +
+      '    ~(40 | add 2 | eq 42)\n ~~|\n' +
       ':fortytwo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
     const cellEntry = await session.evalCell(
-      'use(:tests/env-propagation) | :fortytwo | runExamples | first | /ok');
+      'use :tests/env-propagation | :fortytwo | runExamples | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -126,13 +126,13 @@ describe('runExamples Quote-as-test outcomes', () => {
     // ::UnresolvedIdentifierError.
     const moduleSource =
       '|~~ leaks BindStep into session env.\n' +
-      '    ~{:scratch 99 | scratch | eq(99)}\n ~~|\n' +
+      '    ~(:scratch 99 | scratch | eq 99)\n ~~|\n' +
       ':writer 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
     const cellRun = await session.evalCell(
-      'use(:tests/isolation) | :writer | runExamples | first | /ok');
+      'use :tests/isolation | :writer | runExamples | first | /ok');
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
@@ -148,12 +148,12 @@ describe('runExamples Quote-as-test outcomes', () => {
     // case where the JS throw routed through `errorFromQlang` and
     // the wrapper retained `.originalError`.
     const moduleSource =
-      '|~~ user-built error.\n    ~{{:message "hand-built failure" :kind :test} | error}\n    ~~|\n' +
+      '|~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | error)\n    ~~|\n' +
       ':demo 1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/user-error) | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use :tests/user-error | :demo | runExamples | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBe('hand-built failure');
   });

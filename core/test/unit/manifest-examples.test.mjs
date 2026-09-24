@@ -53,7 +53,7 @@ async function walkManifestExamples() {
   // * /name` yields strings like `"::AddLeftNotNumberError"` — the
   // `:"…"` keyword-literal form lifts each name back to a Keyword
   // that carries the prefix through axis lookup.
-  const tagNames = await evalQuery('manifest(:tag) * /name');
+  const tagNames = await evalQuery('manifest :tag * /name');
   for (const name of tagNames) {
     const exampleResults = await evalQuery(`:"${name}" | runExamples`);
     if (!Array.isArray(exampleResults)) continue;
@@ -77,7 +77,7 @@ describe('manifest catalog self-test via runExamples', () => {
     const failures = await walkManifestExamples();
     if (failures.length > 0) {
       const report = failures
-        .map(f => `[${f.operand}] ~{${f.snippet}}\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
+        .map(f => `[${f.operand}] ~(${f.snippet})\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
         .join('\n');
       throw new Error(`${failures.length} manifest example(s) failed:\n${report}`);
     }
@@ -88,8 +88,8 @@ describe('manifest catalog self-test via runExamples', () => {
     // printed as text reading back as other steps would be a printer
     // that loses code.
     const unequal = await evalQuery(
-      '[manifest * /name, manifest(:tag) * /name] | flat * (keyword | examples) | flat'
-      + ' | filter(as(:example) | parse | parse | eq(example) | not)');
+      '[(manifest * /name), (manifest :tag * /name)] | flat * (keyword | examples) | flat'
+      + ' | filter ~(as :example | parse | parse | eq example | not)');
     expect(unequal).toEqual([]);
   }, 30000);
 

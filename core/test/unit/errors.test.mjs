@@ -146,14 +146,14 @@ describe('runtime error location propagation via evalNode', () => {
   // so the location / fingerprint assertions below read structurally.
 
   it('attaches a location to a runtime type error', async () => {
-    const originalErr = await catchOriginalError('42 | filter(gt(0))');
+    const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
     expect(originalErr.location).not.toBeNull();
     expect(typeof originalErr.location.start.offset).toBe('number');
   });
 
   it('the attached location points to the failing operand call', async () => {
-    const source = '[1 2 3] | filter(gt(0)) | 99 | filter(gt(0))';
+    const source = '[1 2 3] | filter ~(gt 0) | 99 | filter ~(gt 0)';
     //              0         1         2         3         4
     //              0123456789012345678901234567890123456789012345
     const originalErr = await catchOriginalError(source);
@@ -166,7 +166,7 @@ describe('runtime error location propagation via evalNode', () => {
     // An error in an inner step carries its location through the pipeline.
     // The outer step (mul) is never reached — the error value propagates.
     // Location references the inner `count` call site, not the outer `mul`.
-    const originalErr = await catchOriginalError('42 | count | mul(2)');
+    const originalErr = await catchOriginalError('42 | count | mul 2');
     expect(originalErr).toBeInstanceOf(QlangError);
     expect(originalErr.location).not.toBeNull();
     // count is at offset 5 in the source
@@ -174,7 +174,7 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site fingerprint is set on type errors thrown by operands', async () => {
-    const originalErr = await catchOriginalError('42 | filter(gt(0))');
+    const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
     expect(originalErr.fingerprint).toBe('FilterSubjectNotContainerError');
   });
 });

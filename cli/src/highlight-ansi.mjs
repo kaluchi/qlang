@@ -25,7 +25,7 @@ const ANSI_RESET = '\x1b[0m';
 // (italic = `3`).
 const KIND_TO_SGR = {
   string:   '32',         // green
-  quote:    '32',         // green — `~{` / `}` delimiters; body
+  quote:    '32',         // green — `~(` / `)` delimiters; body
                           // spans get their per-kind colour + italic
                           // from the tokeniser's nested sub-tokens
   number:   '33',         // yellow
@@ -47,7 +47,7 @@ function sgrFor(kind, italic) {
   // Italic-only escape (`\x1b[3m`) when the span has no per-kind
   // colour but does carry the italic modifier — e.g. an unparseable
   // Quote body falls back to `whitespace` kind, but the body is still
-  // inside a `~{...}` so the italic cue belongs.
+  // inside a `~(...)` so the italic cue belongs.
   if (base === undefined) return italic ? '\x1b[3m' : undefined;
   return italic ? `\x1b[3;${base}m` : `\x1b[${base}m`;
 }

@@ -3,7 +3,7 @@
    (for tagged-instance Maps, error values, conduits, snapshots) or
    its plain Keyword (for scalars and base containers). Asking
    what a value is means composing that reader with `eq` —
-   `| type | eq(:string)` — so the family holds one operand.
+   `| type | eq :string` — so the family holds one operand.
    Identity rides the value's JS-header slot, so a Map carrying a
    `:kind ::Foo` field answers `:map` — the field is data, and
    `::Foo{…}` is how a value declares what it is. ~|
@@ -23,16 +23,16 @@
       the JS-header slot, and `type` reads through the same
       invariant every other tagged value-class shares.
 
-      ~{42 | type | eq(:number)}
-      ~{"hi" | type | eq(:string)}
-      ~{:foo | type | eq(:keyword)}
-      ~{[1 2] | type | eq(:vec)}
-      ~{::conduit[[] ~{42}] | type | eq(::conduit)}
-      ~{
-        "hello" | add(1)
+      ~(42 | type | eq :number)
+      ~("hi" | type | eq :string)
+      ~(:foo | type | eq :keyword)
+      ~([1 2] | type | eq :vec)
+      ~(::conduit[[] ~(42)] | type | eq ::conduit)
+      ~(
+        "hello" | add 1
         !| [type /actualType]
-        |  eq([::AddLeftNotNumberError :string])
-       }
+        |  eq [::AddLeftNotNumberError :string]
+       )
   ~~|
   ::builtin{:impl :qlang/prim/type
             :category :typeClassifier

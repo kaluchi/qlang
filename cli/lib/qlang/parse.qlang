@@ -17,10 +17,10 @@
       qlang producer; reach for `parseTjson` when both ends are
       qlang.
 
-      ~{"42" | parseJson | eq(42)}
-      ~{"\"hello\"" | parseJson | eq("hello")}
-      ~{"[1,2,3]" | parseJson | eq([1 2 3])}
-      ~{"{\"name\":\"alice\"}" | parseJson | eq({:name "alice"})}
+      ~("42" | parseJson | eq 42)
+      ~("\"hello\"" | parseJson | eq "hello")
+      ~("[1,2,3]" | parseJson | eq [1 2 3])
+      ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
   ~~|
   ::builtin{:impl :qlang/cli/prim/parseJson
             :category :format
@@ -47,9 +47,9 @@
       symmetric pair for `tjson` when piping qlang process to
       qlang process.
 
-      ~{42 | tjson | parseTjson | eq(42)}
-      ~{[1 :foo "hi"] | tjson | parseTjson | eq([1 :foo "hi"])}
-      ~{#[1 2 3] | tjson | parseTjson | eq(#[1 2 3])}
+      ~(42 | tjson | parseTjson | eq 42)
+      ~([1 :foo "hi"] | tjson | parseTjson | eq [1 :foo "hi"])
+      ~(#[1 2 3] | tjson | parseTjson | eq #[1 2 3])
   ~~|
   ::builtin{:impl :qlang/cli/prim/parseTjson
             :category :format

@@ -44,23 +44,23 @@ describe('eval — literals', () => {
 
 describe('eval — pipeline arithmetic', () => {
   it('100 | mul(2) → 200', async () => {
-    expect(await evalQuery('100 | mul(2)')).toBe(200);
+    expect(await evalQuery('100 | mul 2')).toBe(200);
   });
 
   it('10 | sub(3) → 7', async () => {
-    expect(await evalQuery('10 | sub(3)')).toBe(7);
+    expect(await evalQuery('10 | sub 3')).toBe(7);
   });
 
   it('10 | add(5) → 15', async () => {
-    expect(await evalQuery('10 | add(5)')).toBe(15);
+    expect(await evalQuery('10 | add 5')).toBe(15);
   });
 
   it('10 | div(2) → 5', async () => {
-    expect(await evalQuery('10 | div(2)')).toBe(5);
+    expect(await evalQuery('10 | div 2')).toBe(5);
   });
 
   it('chained arithmetic', async () => {
-    expect(await evalQuery('10 | add(5) | mul(2)')).toBe(30);
+    expect(await evalQuery('10 | add 5 | mul 2')).toBe(30);
   });
 });
 
@@ -92,21 +92,21 @@ describe('eval — Vec reducers', () => {
 
 describe('eval — filter', () => {
   it('filter with gt predicate', async () => {
-    expect(await evalQuery('[1 2 3 4 5] | filter(gt(2))')).toEqual([3, 4, 5]);
+    expect(await evalQuery('[1 2 3 4 5] | filter ~(gt 2)')).toEqual([3, 4, 5]);
   });
 
   it('filter then count (the canonical model example)', async () => {
-    expect(await evalQuery('[1 2 3 4 5] | filter(gt(3)) | count')).toBe(2);
+    expect(await evalQuery('[1 2 3 4 5] | filter ~(gt 3) | count')).toBe(2);
   });
 });
 
 describe('eval — distribute', () => {
   it('[1 2 3] * add(1) → [2 3 4]', async () => {
-    expect(await evalQuery('[1 2 3] * add(1)')).toEqual([2, 3, 4]);
+    expect(await evalQuery('[1 2 3] * add 1')).toEqual([2, 3, 4]);
   });
 
   it('[1 2 3] * mul(10) → [10 20 30]', async () => {
-    expect(await evalQuery('[1 2 3] * mul(10)')).toEqual([10, 20, 30]);
+    expect(await evalQuery('[1 2 3] * mul 10')).toEqual([10, 20, 30]);
   });
 });
 
@@ -130,29 +130,29 @@ describe('eval — Map and projection', () => {
 
 describe('eval — full application of mul', () => {
   it('mul(/price, /qty) full form', async () => {
-    expect(await evalQuery('{:price 100 :qty 3} | mul(/price, /qty)')).toBe(300);
+    expect(await evalQuery('{:price 100 :qty 3} | mul /price /qty')).toBe(300);
   });
 });
 
 describe('eval — as binding', () => {
   it('captures and references via as', async () => {
-    expect(await evalQuery('[1 2 3] | as(:nums) | nums | count')).toBe(3);
+    expect(await evalQuery('[1 2 3] | as :nums | nums | count')).toBe(3);
   });
 
   it('multi-stage as bindings', async () => {
     expect(await evalQuery(`
       [85 92 47 78 68 95 52]
-        | as(:allScores)
-        | filter(gte(70))
-        | as(:passingScores)
-        | [allScores | count, passingScores | count]
+        | as :allScores
+        | filter ~(gte 70)
+        | as :passingScores
+        | [(allScores | count), (passingScores | count)]
     `)).toEqual([7, 4]);
   });
 });
 
 describe('eval — BindStep declaration', () => {
   it('binds and forces a conduit', async () => {
-    expect(await evalQuery(':double mul(2) | 10 | double')).toBe(20);
+    expect(await evalQuery(':double mul 2 | 10 | double')).toBe(20);
   });
 });
 
@@ -163,7 +163,7 @@ describe('eval — env operand', () => {
   });
 
   it('env | has(:count) → true', async () => {
-    expect(await evalQuery('env | has(:count)')).toBe(true);
+    expect(await evalQuery('env | has :count')).toBe(true);
   });
 });
 
@@ -199,7 +199,7 @@ describe('eval.mjs unknown combinator', () => {
 
 describe('quoted keywords — eval-level identity and Map interop', () => {
   it(':"name" interns to the same keyword as :name', async () => {
-    expect(await evalQuery(':"name" | eq(:name)')).toBe(true);
+    expect(await evalQuery(':"name" | eq :name')).toBe(true);
   });
 
   it('Map literal with a quoted-key entry is queryable via /"key"', async () => {
@@ -207,7 +207,7 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
   });
 
   it('Map literal with a quoted key is queryable via has(:"weird key")', async () => {
-    expect(await evalQuery('{:"weird key" 1} | has(:"weird key")')).toBe(true);
+    expect(await evalQuery('{:"weird key" 1} | has :"weird key"')).toBe(true);
   });
 
   it('the empty-string keyword survives a Map round-trip', async () => {
@@ -221,8 +221,8 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
   it('keys returns interned keywords regardless of declaration form', async () => {
     // The set returned by keys contains keywords; verify the bare and
     // quoted forms produce equivalent keyword identity downstream.
-    expect(await evalQuery('{:foo 1} | keys | has(:"foo")')).toBe(true);
-    expect(await evalQuery('{:"foo" 1} | keys | has(:foo)')).toBe(true);
+    expect(await evalQuery('{:foo 1} | keys | has :"foo"')).toBe(true);
+    expect(await evalQuery('{:"foo" 1} | keys | has :foo')).toBe(true);
   });
 
   it('json operand emits arbitrary JSON object keys via quoted Map keys', async () => {
@@ -241,10 +241,10 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
   it('use-loaded module Quote (cached .ast) runs through apply against a new subject', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
-      locator: async () => ({ source: 'add(1)' })
+      locator: async () => ({ source: 'add 1' })
     });
     const cellEntry = await session.evalCell(
-      'use(:demo/snippet) | 41 | apply(env | /"qlang/ast/demo/snippet")'
+      'use :demo/snippet | 41 | apply (env | /"qlang/ast/demo/snippet")'
     );
     expect(cellEntry.result).toBe(42);
   });
@@ -269,7 +269,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
 describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () => {
   it('lambdas.docs falls back to [] when node has no .docs field', async () => {
     // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
-    const ast = { type: 'OperandCall', name: 'count', args: null, location: null };
+    const ast = { type: 'OperandCall', name: 'count', args: [], location: null };
     const runtimeEnv = await langRuntime();
     const state = rootState([1, 2, 3], runtimeEnv);
     const evalResult = await evalAst(ast, state);

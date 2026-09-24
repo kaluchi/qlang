@@ -55,7 +55,7 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 // `apply(code)` — runs the quote its captured arg answers against the
 // subject, under the fork rule: the declarations the code makes stay
 // inside it, and only its value comes out. A leading combinator
-// (`~{* mul(2)}` / `~{!| /trail}`) routes the first step through that
+// (`~(* mul 2)` / `~(!| /trail)`) routes the first step through that
 // combinator, so a pipeline-suffix shape replays semantically. Code
 // that is an error is that error, unchanged. The code runs one frame
 // below the `apply` step, so a quote that applies itself descends a

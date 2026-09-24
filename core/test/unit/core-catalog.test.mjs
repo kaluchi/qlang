@@ -191,7 +191,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('lib/qlang/core.qlang — doc-prefix reachable through ~{:tag | docs} axis', () => {
+describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` axis', () => {
   it('every cataloged binding has at least one Doc-value on the axis', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const coreEnv = await evalCore();
@@ -233,19 +233,19 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   // `:name | docs` / `:name | examples`, not a bare-name descriptor
   // shortcut.
 
-  it('bare ~{count} fires against the inbound Vec', async () => {
+  it('bare `count` fires against the inbound Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('bare ~{sort} fires the nullary overload branch', async () => {
+  it('bare `sort` fires the nullary overload branch', async () => {
     // sort is overloaded at 0 or 1 captured args. overloadedOp
     // emits captured [0, 1], so the nullary form sorts naturally.
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
 
-  it('bare ~{mul} (non-nullary) on null pipeValue fires an arityError', async () => {
+  it('bare `mul` (non-nullary) on null pipeValue fires an arityError', async () => {
     // mul has captured [1, 2]. Bare call has zero captured args,
     // so Rule 10's value-op arity check fires before the impl
     // could mishandle the call. The diagnostic carries the
@@ -273,7 +273,7 @@ describe('manifest descriptor for a conduitParameter proxy', () => {
   it('manifest inside a conduit body surfaces the param proxy as :category :conduitParameter', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery(
-      ':f [:p] (manifest | filter(/name | eq("p")) | first | /category) | 42 | f(add(1))'
+      ':f [:p] (manifest | filter ~(/name | eq "p") | first | /category) | 42 | f (add 1)'
     );
     expect(evalResult).toEqual(keyword('conduitParameter'));
   });
@@ -308,7 +308,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest(:tag) | count')).toBe(211);
+    expect(await evalQuery('manifest :tag | count')).toBe(230);
   });
 
   it('the value namespace holds every declared operand', async () => {
@@ -371,7 +371,7 @@ describe('parse / apply — the codeAsData ring closer', () => {
 
   it('parse reads an OperandCall into a ::call step with :name / :args', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const callStep = (await evalQuery('"add(1, 2)" | parse'))[0];
+    const callStep = (await evalQuery('"add 1 2" | parse'))[0];
     expect(isQMap(callStep)).toBe(true);
     expect(callStep[TAG_HEADER_SYMBOL].name).toBe('call');
     expect(callStep.get('name')).toEqual(keyword('add'));
@@ -386,31 +386,31 @@ describe('parse / apply — the codeAsData ring closer', () => {
 
   it('apply runs a quote assembled from its steps', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('[42 ::call{:name :add :args [~{1}]}] | tag(::quote) | apply(/)');
+    const evalResult = await evalQuery('[42 ::call{:name :add :args [1]}] | tag ::quote | apply /');
     expect(evalResult).toBe(43);
   });
 
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"not-a-quote" | apply(/) !| type');
+    const evalResult = await evalQuery('"not-a-quote" | apply / !| type');
     expect(evalResult).toEqual(makeTagKeyword('ApplyCodeNotQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('"42" | parse | apply(/)')).toBe(42);
-    expect(await evalQuery('"10 | add(3)" | parse | apply(/)')).toBe(13);
-    expect(await evalQuery('"[1 2 3] | filter(gt(1)) | count" | parse | apply(/)')).toBe(2);
+    expect(await evalQuery('"42" | parse | apply /')).toBe(42);
+    expect(await evalQuery('"10 | add 3" | parse | apply /')).toBe(13);
+    expect(await evalQuery('"[1 2 3] | filter ~(gt 1) | count" | parse | apply /')).toBe(2);
   });
 
   it('round-trip preserves projections and Map literals', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('"{:a 1 :b 2} | /a" | parse | apply(/)')).toBe(1);
+    expect(await evalQuery('"{:a 1 :b 2} | /a" | parse | apply /')).toBe(1);
   });
 
   it('error values round-trip through parse | apply(/)', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"!{:kind :oops} !| /kind" | parse | apply(/)');
+    const evalResult = await evalQuery('"!{:kind :oops} !| /kind" | parse | apply /');
     expect(evalResult).toEqual(keyword('oops'));
   });
 

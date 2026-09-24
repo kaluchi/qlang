@@ -142,13 +142,13 @@ describe('round-trip invariant — Error', () => {
 
 describe('round-trip invariant — Quote', () => {
   for (const src of [
-    '~{42}',
-    '~{count}',
-    '~{[1 2 3] | filter(gt(1)) | count}',
-    '~{| count}',                              // pipeline-suffix form
-    '~{* mul(2)}',
-    '~{!| /trail}',
-    '~{"text with spaces"}'
+    '~(42)',
+    '~(count)',
+    '~([1 2 3] | filter ~(gt 1) | count)',
+    '~(| count)',                              // pipeline-suffix form
+    '~(* mul 2)',
+    '~(!| /trail)',
+    '~("text with spaces")'
   ]) {
     it(`quote literal: ${src}`, () => pinRoundTrip(src));
   }
@@ -217,8 +217,8 @@ describe('round-trip invariant — TaggedLit payload covering every Primary form
     '::Tag1#[:a :b]',
 
     // QuoteLit payload
-    '::Tag1~{count}',
-    '::Tag1~{| count}',
+    '::Tag1~(count)',
+    '::Tag1~(| count)',
 
     // DocLit payload
     '::Tag1|~~ short doc ~~|',
@@ -297,10 +297,10 @@ describe('round-trip invariant — Conduit (printValue idempotency)', () => {
   // `::conduit[…]` form, however, stabilises — round-trip through
   // parse + eval reproduces the exact same source slice.
   for (const src of [
-    '::conduit[[] ~{count}]',
-    '::conduit[[:x] ~{mul(x, 2)}]',
-    '::conduit[:walk [] ~{count}]',
-    '::conduit[[:pfx :sfx] ~{prepend(pfx) | append(sfx)}]'
+    '::conduit[[] ~(count)]',
+    '::conduit[[:x] ~(mul x 2)]',
+    '::conduit[:walk [] ~(count)]',
+    '::conduit[[:pfx :sfx] ~(prepend pfx | append sfx)]'
   ]) {
     it(`conduit literal: ${src}`, () => pinPrintIdempotent(src));
   }
@@ -315,7 +315,7 @@ describe('round-trip invariant — nested composites', () => {
     '#[[1 2] [3 4]]',
     '[:a !{:kind :oops} :c]',
     '{:err !{:kind :timeout} :ok 42}',
-    '~{[1 2 3] | filter(gt(1))}'
+    '~([1 2 3] | filter ~(gt 1))'
   ]) {
     it(`nested literal: ${src}`, () => pinRoundTrip(src));
   }
@@ -424,7 +424,7 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
 
   it('manifest descriptor carries the same :impl handle as the env entry', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('manifest | filter(/name | eq("count")) | first | json');
+    const jsonOutput = await evalQuery('manifest | filter ~(/name | eq "count") | first | json');
     expect(typeof jsonOutput).toBe('string');
     expect(jsonOutput).toContain('"kind":"::builtin"');
     expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
@@ -442,7 +442,7 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     expect(handle.name).toBe('qlang/prim/count');
     // The remaining qlang-reachable function value is a
     // conduitParameter proxy lifted out of the body's env by name.
-    await expect(evalQuery(':f [:n] (env | /n) | 5 | f(1) | json'))
+    await expect(evalQuery(':f [:n] (env | /n) | 5 | f 1 | json'))
       .rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 });

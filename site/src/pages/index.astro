@@ -9,22 +9,22 @@ const examples = [
   {
     tab: "pipeline",
     file: "filter + count",
-    code: `|~| Vec → filter → count\n> [1 2 3 4 5] | filter(gt(3)) | count\n2`,
+    code: `|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2`,
   },
   {
     tab: "bind",
     file: "BindStep + distribute",
-    code: `|~| bind name · spread over Vec\n> :double mul(2) | [10 20 30] * double\n[20 40 60]`,
+    code: `|~| bind name · spread over Vec\n> :double mul 2 | [10 20 30] * double\n[20 40 60]`,
   },
   {
     tab: "conduit",
     file: "parametric conduit",
-    code: `|~| parametric conduit · @-effectful binding\n> :@surround [:pfx :sfx] (prepend(pfx) | append(sfx))\n  | "world" | @surround("[", "]")\n"[world]"`,
+    code: `|~| parametric conduit · @-effectful binding\n> :@surround [:pfx :sfx] (prepend pfx | append sfx)\n  | "world" | @surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",
     file: "parse | apply",
-    code: `|~| source → AST-Map → pipeValue\n> "10 | add(3)" | parse | apply(/)\n13`,
+    code: `|~| source → quote → pipeValue\n> "10 | add 3" | parse | apply /\n13`,
   },
 ]
 
@@ -142,7 +142,7 @@ const features = [
                   class="repl-input"
                   id="repl-input"
                   rows="1"
-                  placeholder={`[1 2 3 4 5] | filter(gt(2)) | count`}
+                  placeholder={`[1 2 3 4 5] | filter ~(gt 2) | count`}
                   spellcheck="false"
                   autocomplete="off"
                 ></textarea>
@@ -225,8 +225,8 @@ const features = [
 
     // Pre-populate with example results
     const demos = [
-      '[1 2 3 4 5] | filter(gt(2)) | count',
-      '"hello" | append(" world") | prepend(">>> ")',
+      '[1 2 3 4 5] | filter ~(gt 2) | count',
+      '"hello" | append " world" | prepend ">>> "',
       `{
     "glossary": {
         "title": "example glossary",
@@ -249,7 +249,7 @@ const features = [
         }
     }
 } | /glossary/title`,
-      '{:name "alice" :age 30} | /age | mul(2)',
+      '{:name "alice" :age 30} | /age | mul 2',
     ];
     for (const src of demos) {
       history.appendChild(makeEntry(src, await evalQuery(src, env)));

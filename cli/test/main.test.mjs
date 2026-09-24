@@ -96,7 +96,7 @@ describe('main — flag dispatch', () => {
     expect(s.stderrText()).toMatch(/missing query/);
   });
 
-  it('dispatches ~{--repl} into the line-editor REPL and exits cleanly on ~{.exit}', async () => {
+  it('dispatches `--repl` into the line-editor REPL and exits cleanly on `.exit`', async () => {
     const s = captureStreams('.exit\n');
     const exitCode = await main(
       ['--repl'],
@@ -144,7 +144,7 @@ describe('main — script mode auto-pipe', () => {
   it('falls back to raw mode when stdin fails JSON.parse', async () => {
     const s = captureStreams('plain text');
     const exitCode = await main(
-      ['append(" world")'],
+      ['append " world"'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
@@ -155,7 +155,7 @@ describe('main — script mode auto-pipe', () => {
     // Input is valid JSON but `--raw` forces the String path.
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
-      ['--raw', 'append(" done")'],
+      ['--raw', 'append " done"'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
@@ -185,8 +185,8 @@ describe('main — script mode auto-pipe', () => {
   });
 });
 
-describe('main — ~{@out} suppression of auto-encoded stdout', () => {
-  it('routes ~{@out} emissions to stdout and skips the auto-encode', async () => {
+describe('main — `@out` suppression of auto-encoded stdout', () => {
+  it('routes `@out` emissions to stdout and skips the auto-encode', async () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | count | pretty | @out'],
@@ -199,7 +199,7 @@ describe('main — ~{@out} suppression of auto-encoded stdout', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('feeds stdin into ~{@in} alongside the auto-pipe so explicit queries still work', async () => {
+  it('feeds stdin into `@in` alongside the auto-pipe so explicit queries still work', async () => {
     const s = captureStreams('hello world');
     const exitCode = await main(
       ['@in | @out'],
@@ -260,7 +260,7 @@ describe('main — error paths', () => {
     // fail-track results.
     const s = captureStreams();
     const exitCode = await main(
-      ['[1 2 3] | add(1)'],
+      ['[1 2 3] | add 1'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);

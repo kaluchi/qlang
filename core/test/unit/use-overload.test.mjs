@@ -12,7 +12,7 @@ describe('use(:namespace) imports bindings', () => {
   it('imports all exports from a namespace Map', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('myNs', new Map([['hello', 42]]));
-    const cellEntry = await sessionInstance.evalCell('use(:myNs) | hello');
+    const cellEntry = await sessionInstance.evalCell('use :myNs | hello');
     expect(cellEntry.result).toBe(42);
   });
 });
@@ -24,7 +24,7 @@ describe('use(Vec) imports in order', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('ns1', new Map([['a', 1]]));
     sessionInstance.bind('ns2', new Map([['b', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use([:ns1 :ns2]) | [a b]');
+    const cellEntry = await sessionInstance.evalCell('use [:ns1 :ns2] | [a b]');
     expect(cellEntry.result).toEqual([1, 2]);
   });
 });
@@ -36,7 +36,7 @@ describe('use(Set) detects collision', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('nsA', new Map([['x', 1]]));
     sessionInstance.bind('nsB', new Map([['x', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use(#[:nsA :nsB]) !| type');
+    const cellEntry = await sessionInstance.evalCell('use #[:nsA :nsB] !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceCollisionError'));
   });
 });
@@ -47,14 +47,14 @@ describe('use(:ns, filter) selective import', () => {
   it('imports only the selected export', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('myNs', new Map([['foo', 10], ['bar', 20]]));
-    const cellEntry = await sessionInstance.evalCell('use(:myNs, [:foo]) | foo');
+    const cellEntry = await sessionInstance.evalCell('use :myNs [:foo] | foo');
     expect(cellEntry.result).toBe(10);
   });
 
   it('rejects missing export → UseNameNotExportedError', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('myNs', new Map([['foo', 10]]));
-    const cellEntry = await sessionInstance.evalCell('use(:myNs, [:missing]) !| type');
+    const cellEntry = await sessionInstance.evalCell('use :myNs [:missing] !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNameNotExportedError'));
   });
 });
@@ -64,7 +64,7 @@ describe('use(:ns, filter) selective import', () => {
 describe('use(:missing) → UseNamespaceNotFoundError', () => {
   it('produces UseNamespaceNotFoundError when namespace not in env', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use(:missing) !| type');
+    const cellEntry = await sessionInstance.evalCell('use :missing !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 });
@@ -81,30 +81,30 @@ describe('use(:missing) → UseNamespaceNotFoundError', () => {
 describe('use(:name) walks past identifier-plane bindings under the bare name', () => {
   it('use(:count) walks past the ::builtin descriptor under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use(:count) !| type');
+    const cellEntry = await sessionInstance.evalCell('use :count !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
-    const probeCell = await sessionInstance.evalCell('env | has(:category)');
+    const probeCell = await sessionInstance.evalCell('env | has :category');
     expect(probeCell.result).toBe(false);
   });
 
   it('use(:double) walks past the conduit under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell(':double mul(2) | use(:double) !| type');
+    const cellEntry = await sessionInstance.evalCell(':double mul 2 | use :double !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
-    const probeCell = await sessionInstance.evalCell('env | has(:envRef)');
+    const probeCell = await sessionInstance.evalCell('env | has :envRef');
     expect(probeCell.result).toBe(false);
   });
 
   it('use(:cfg) walks past the as-snapshot under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('{:a 1} | as(:cfg) | use(:cfg) !| type');
+    const cellEntry = await sessionInstance.evalCell('{:a 1} | as :cfg | use :cfg !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 
   it('use(:notMap) walks past a host-bound scalar under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('notMap', 42);
-    const cellEntry = await sessionInstance.evalCell('use(:notMap) !| type');
+    const cellEntry = await sessionInstance.evalCell('use :notMap !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 
@@ -112,7 +112,7 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
     const sessionInstance = await createSession();
     sessionInstance.bind('ns', new Map([['origin', 'bare']]));
     sessionInstance.bind(moduleNamespaceKey('ns'), new Map([['origin', 'cache']]));
-    const cellEntry = await sessionInstance.evalCell('use(:ns) | origin');
+    const cellEntry = await sessionInstance.evalCell('use :ns | origin');
     expect(cellEntry.result).toBe('cache');
   });
 });
@@ -121,7 +121,7 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
 
 describe('use(non-keyword) → typeError', () => {
   it('produces UseNamespaceNotKeywordError error for numeric argument', async () => {
-    const evalResult = await evalQuery('use(42) !| type');
+    const evalResult = await evalQuery('use 42 !| type');
     expect(evalResult).toEqual(makeTagKeyword('UseNamespaceNotKeywordError'));
   });
 });
@@ -132,7 +132,7 @@ describe('use Vec with non-keyword element → UseNamespaceElementNotKeywordErro
   it('produces UseNamespaceElementNotKeywordError for non-keyword in Vec', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('ns1', new Map([['a', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use([:ns1 42]) !| type');
+    const cellEntry = await sessionInstance.evalCell('use [:ns1 42] !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceElementNotKeywordError'));
   });
 });
@@ -142,14 +142,14 @@ describe('use Set without collision succeeds', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('a', new Map([['x', 10]]));
     sessionInstance.bind('b', new Map([['y', 20]]));
-    const cellEntry = await sessionInstance.evalCell('use(#[:a :b]) | add(x, y)');
+    const cellEntry = await sessionInstance.evalCell('use #[:a :b] | add x y');
     expect(cellEntry.result).toBe(30);
   });
 });
 
 describe('use arity-2 with non-keyword namespace', () => {
   it('produces UseNamespaceNotKeywordError', async () => {
-    const evalResult = await evalQuery('use(42, #[:x]) !| type');
+    const evalResult = await evalQuery('use 42 #[:x] !| type');
     expect(evalResult.name).toBe('UseNamespaceNotKeywordError');
   });
 });
@@ -158,7 +158,7 @@ describe('use selective with Vec filter', () => {
   it('accepts Vec as selection filter', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('lib', new Map([['x', 10], ['y', 20]]));
-    const cellEntry = await sessionInstance.evalCell('use(:lib, [:x]) | x');
+    const cellEntry = await sessionInstance.evalCell('use :lib [:x] | x');
     expect(cellEntry.result).toBe(10);
   });
 });
@@ -168,7 +168,7 @@ import { QlangTypeError, ArityError } from '../../src/errors.mjs';
 describe('per-site error triple-assertions', () => {
   it('UseNamespaceNotFoundError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use(:nonexistent)');
+    const cellEntry = await sessionInstance.evalCell('use :nonexistent');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceNotFoundError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
@@ -179,7 +179,7 @@ describe('per-site error triple-assertions', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('a', new Map([['x', 1]]));
     sessionInstance.bind('b', new Map([['x', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use(#[:a :b])');
+    const cellEntry = await sessionInstance.evalCell('use #[:a :b]');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceCollisionError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
@@ -189,7 +189,7 @@ describe('per-site error triple-assertions', () => {
   it('UseNameNotExportedError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('lib', new Map([['x', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use(:lib, #[:z])');
+    const cellEntry = await sessionInstance.evalCell('use :lib #[:z]');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNameNotExportedError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
@@ -200,14 +200,14 @@ describe('per-site error triple-assertions', () => {
   it('UseNamespaceElementNotKeywordError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('ns', new Map([['x', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use([:ns 42])');
+    const cellEntry = await sessionInstance.evalCell('use [:ns 42]');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceElementNotKeywordError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
   it('UseNamespaceNotKeywordError: name, instanceof, context', async () => {
-    const evalResult = await evalQuery('use(42, #[:x])');
+    const evalResult = await evalQuery('use 42 #[:x]');
     const originalErr = evalResult.originalError;
     expect(originalErr.name).toBe('UseNamespaceNotKeywordError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
@@ -224,7 +224,7 @@ describe('per-site error triple-assertions', () => {
     // type is registered via nullaryOp; the dispatch-layer arity
     // error class is NullaryOpArgsProvidedError, shared by every nullary
     // operand that the caller incorrectly passes captured args to.
-    const evalResult = await evalQuery('42 | type(1)');
+    const evalResult = await evalQuery('42 | type 1');
     const originalErr = evalResult.originalError;
     expect(originalErr.name).toBe('NullaryOpArgsProvidedError');
     expect(originalErr).toBeInstanceOf(ArityError);
@@ -241,27 +241,27 @@ describe('higher-order lambda fail-track deflection into !|', () => {
   // we route the next step through `!|` to fire on it and project
   // `:category` out of the materialized descriptor.
   it('every returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | every(thisIsNotDefined) !| type | spec | /category');
+    const evalResult = await evalQuery('[1 2 3] | every ~(thisIsNotDefined) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
   });
 
   it('any returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | any(thisIsNotDefined) !| type | spec | /category');
+    const evalResult = await evalQuery('[1 2 3] | any ~(thisIsNotDefined) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
   });
 
   it('groupBy returns the error raised by its key lambda', async () => {
-    const evalResult = await evalQuery('[1 2 3] | groupBy(thisIsNotDefined) !| type | spec | /category');
+    const evalResult = await evalQuery('[1 2 3] | groupBy ~(thisIsNotDefined) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
   });
 
   it('indexBy returns the error raised by its key lambda', async () => {
-    const evalResult = await evalQuery('[1 2 3] | indexBy(thisIsNotDefined) !| type | spec | /category');
+    const evalResult = await evalQuery('[1 2 3] | indexBy ~(thisIsNotDefined) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
   });
 
   it('filter returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | filter(thisIsNotDefined) !| type | spec | /category');
+    const evalResult = await evalQuery('[1 2 3] | filter ~(thisIsNotDefined) !| type | spec | /category');
     expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
   });
 });

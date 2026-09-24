@@ -1,43 +1,43 @@
-{"name":"quote-literal-scalar","query":"~{42}","expect":"~{42}"}
-{"name":"quote-literal-arith","query":"~{mul(2)}","expect":"~{mul(2)}"}
-{"name":"quote-literal-pipeline","query":"~{[1 2 3] | filter(gt(1))}","expect":"~{[1 2 3] | filter(gt(1))}"}
-{"name":"quote-literal-projection","query":"~{/name}","expect":"~{/name}"}
-{"name":"quote-literal-empty","query":"~{}","expect":"~{}"}
-{"name":"quote-literal-keyword","query":"~{:foo}","expect":"~{:foo}"}
-{"name":"quote-literal-multiline","query":"~{{\n  :a 1\n  :b 2\n}}","expect":"~{{\n  :a 1\n  :b 2\n}}"}
-{"name":"quote-literal-holds-code","query":"\"~{ , }\" | parse !| type","expect":"::ParseError"}
-{"name":"quote-prints-as-its-text","query":"~{mul(2)} | parse","expect":"\"mul(2)\""}
-{"name":"quote-empty-prints-as-nothing","query":"~{} | parse","expect":"\"\""}
-{"name":"quote-count-counts-steps","query":"~{1 | add(1) | mul(2)} | count","expect":"3"}
-{"name":"quote-payload-is-its-steps","query":"~{filter(gt(1))} | payload","expect":"[::call{:name :filter :args [~{gt(1)}]}]"}
-{"name":"quote-projects-its-steps-by-index","query":"~{mul(2)} | /0 | /name","expect":":mul"}
-{"name":"quote-step-carries-no-kind","query":"~{mul(2)} | first | has(:kind)","expect":"false"}
-{"name":"quote-step-of-a-call-is-a-call-record","query":"~{mul(2)} | first | type","expect":"::call"}
-{"name":"quote-leading-distribute-is-an-each-step","query":"~{* inc | sort} | first | type","expect":"::each"}
-{"name":"quote-comment-leaves-no-step","query":"~{|~ note ~| count} | count","expect":"1"}
-{"name":"quote-filter-keeps-a-quote","query":"~{add(1) | mul(2)} | filter(/name | eq(:mul))","expect":"~{mul(2)}"}
-{"name":"quote-distribute-drops-the-tag","query":"~{add(1) | mul(2)} * /name","expect":"[:add :mul]"}
-{"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag(::quote) !| type","expect":"::QuoteElementNotStepError"}
-{"name":"quote-assembled-from-steps","query":"[[1 2] ::call{:name :count}] | tag(::quote) | parse","expect":"\"[1 2] | count\""}
+{"name":"quote-literal-scalar","query":"~(42)","expect":"~(42)"}
+{"name":"quote-literal-arith","query":"~(mul 2)","expect":"~(mul 2)"}
+{"name":"quote-literal-pipeline","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
+{"name":"quote-literal-projection","query":"~(/name)","expect":"~(/name)"}
+{"name":"quote-literal-empty","query":"~()","expect":"~()"}
+{"name":"quote-literal-keyword","query":"~(:foo)","expect":"~(:foo)"}
+{"name":"quote-literal-multiline","query":"~({\n  :a 1\n  :b 2\n})","expect":"~({\n  :a 1\n  :b 2\n})"}
+{"name":"quote-literal-holds-code","query":"\"~( , )\" | parse !| type","expect":"::ParseError"}
+{"name":"quote-prints-as-its-text","query":"~(mul 2) | parse","expect":"\"mul 2\""}
+{"name":"quote-empty-prints-as-nothing","query":"~() | parse","expect":"\"\""}
+{"name":"quote-count-counts-steps","query":"~(1 | add 1 | mul 2) | count","expect":"3"}
+{"name":"quote-payload-is-its-steps","query":"~(filter ~(gt 1)) | payload","expect":"[::call{:name :filter :args [~(gt 1)]}]"}
+{"name":"quote-projects-its-steps-by-index","query":"~(mul 2) | /0 | /name","expect":":mul"}
+{"name":"quote-step-carries-no-kind","query":"~(mul 2) | first | has :kind","expect":"false"}
+{"name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | type","expect":"::call"}
+{"name":"quote-leading-distribute-is-an-each-step","query":"~(* inc | sort) | first | type","expect":"::each"}
+{"name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1"}
+{"name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(/name | eq :mul)","expect":"~(mul 2)"}
+{"name":"quote-distribute-drops-the-tag","query":"~(add 1 | mul 2) * /name","expect":"[:add :mul]"}
+{"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| type","expect":"::QuoteElementNotStepError"}
+{"name":"quote-assembled-from-steps","query":"[[1 2] ::call{:name :count}] | tag ::quote | parse","expect":"\"[1 2] | count\""}
 {"name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| [type /printed]","expect":"[::CallReadBackDiffersError \"a b\"]"}
-{"name":"quote-type-answers-quote","query":"~{mul(2)} | type | eq(::quote)","expect":"true"}
-{"name":"string-type-is-not-quote","query":"\"mul(2)\" | type | eq(::quote)","expect":"false"}
-{"name":"type-quote-number-false","query":"42 | type | eq(::quote)","expect":"false"}
-{"name":"type-quote-vec-false","query":"[1 2 3] | type | eq(::quote)","expect":"false"}
-{"name":"type-quote-map-false","query":"{:a 1} | type | eq(::quote)","expect":"false"}
-{"name":"type-quote-null-false","query":"null | type | eq(::quote)","expect":"false"}
-{"name":"error-element-type-is-not-quote","query":"[!{:k 1}] * (!| type | eq(::quote)) | first","expect":"false"}
-{"name":"quote-equality-same-source","query":"eq(~{mul(2)}, ~{mul(2)})","expect":"true"}
-{"name":"quote-equality-different-source","query":"eq(~{mul(2)}, ~{mul(3)})","expect":"false"}
-{"name":"quote-equality-ignores-spacing","query":"eq(~{mul(2)}, ~{mul( 2 )})","expect":"true"}
-{"name":"quote-equality-ignores-comments","query":"eq(~{mul(2) |~ note ~|}, ~{mul(2)})","expect":"true"}
-{"name":"quote-equality-cross-type-string","query":"eq(~{mul(2)}, \"mul(2)\")","expect":"false"}
-{"name":"quote-in-vec","query":"[~{a} ~{b} ~{c}] | count","expect":"3"}
-{"name":"quote-in-vec-prints","query":"[~{a} ~{b} ~{c}] | first | parse","expect":"\"a\""}
-{"name":"quote-in-map","query":"{:body ~{mul(2)}} | /body | parse","expect":"\"mul(2)\""}
-{"name":"quote-in-set","query":"#[~{a} ~{b}] | count","expect":"2"}
-{"name":"quote-pipeline-passthrough","query":"5 | ~{mul(2)}","expect":"~{mul(2)}"}
-{"name":"quote-type-is-not-map","query":"~{x} | type | eq(:map)","expect":"false"}
-{"name":"quote-with-pipe-operator","query":"~{a | b} | parse","expect":"\"a | b\""}
-{"name":"quote-with-leading-combinator-trail-style","query":"~{* inc | sort} | parse","expect":"\"* inc | sort\""}
-{"name":"quote-parse-twice-is-identity","query":"~{mul(2)} | parse | parse","expect":"~{mul(2)}"}
+{"name":"quote-type-answers-quote","query":"~(mul 2) | type | eq ::quote","expect":"true"}
+{"name":"string-type-is-not-quote","query":"\"mul 2\" | type | eq ::quote","expect":"false"}
+{"name":"type-quote-number-false","query":"42 | type | eq ::quote","expect":"false"}
+{"name":"type-quote-vec-false","query":"[1 2 3] | type | eq ::quote","expect":"false"}
+{"name":"type-quote-map-false","query":"{:a 1} | type | eq ::quote","expect":"false"}
+{"name":"type-quote-null-false","query":"null | type | eq ::quote","expect":"false"}
+{"name":"error-element-type-is-not-quote","query":"[!{:k 1}] * (!| type | eq ::quote) | first","expect":"false"}
+{"name":"quote-equality-same-source","query":"eq ~(mul 2) ~(mul 2)","expect":"true"}
+{"name":"quote-equality-different-source","query":"eq ~(mul 2) ~(mul 3)","expect":"false"}
+{"name":"quote-equality-ignores-spacing","query":"eq ~(mul 2) ~(mul 2)","expect":"true"}
+{"name":"quote-equality-ignores-comments","query":"eq ~(mul 2 |~ note ~|) ~(mul 2)","expect":"true"}
+{"name":"quote-equality-cross-type-string","query":"eq ~(mul 2) \"mul 2\"","expect":"false"}
+{"name":"quote-in-vec","query":"[~(a) ~(b) ~(c)] | count","expect":"3"}
+{"name":"quote-in-vec-prints","query":"[~(a) ~(b) ~(c)] | first | parse","expect":"\"a\""}
+{"name":"quote-in-map","query":"{:body ~(mul 2)} | /body | parse","expect":"\"mul 2\""}
+{"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2"}
+{"name":"quote-pipeline-passthrough","query":"5 | ~(mul 2)","expect":"~(mul 2)"}
+{"name":"quote-type-is-not-map","query":"~(x) | type | eq :map","expect":"false"}
+{"name":"quote-with-pipe-operator","query":"~(a | b) | parse","expect":"\"a | b\""}
+{"name":"quote-with-leading-combinator-trail-style","query":"~(* inc | sort) | parse","expect":"\"* inc | sort\""}
+{"name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)"}

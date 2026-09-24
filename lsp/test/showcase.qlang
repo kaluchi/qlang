@@ -31,10 +31,10 @@
 |~| Ctrl+Click on a builtin → core.qlang.
 
 |~~| Doubles a number via partial mul. ~~|
-:double mul(2)
+:double mul 2
 
 |~~| Triples a number via partial mul. ~~|
-:triple mul(3)
+:triple mul 3
 
 |~| Ctrl+Click on double below → jumps to the BindStep above
 [1 2 3] * double
@@ -61,7 +61,7 @@ x
 |~| Bindings inside (parens), [vecs], {maps}, #[sets] are
 |~| fork-isolated — invisible outside the fork boundary.
 
-(42 | as(:inner) | inner)
+(42 | as :inner | inner)
 |~| inner is visible inside the paren group above.
 |~| It is NOT visible outside the parens.
 
@@ -69,9 +69,9 @@ x
 |~| ── 5. Find References ────────────────────────────────
 |~| Shift+F12 shows all occurrences: declaration + uses.
 
-:greet prepend("hello ")
-| "world" | greet | as(:greeted1)
-| "qlang" | greet | as(:greeted2)
+:greet prepend "hello "
+| "world" | greet | as :greeted1
+| "qlang" | greet | as :greeted2
 |~| Shift+F12 on greet → 3 hits (1 decl + 2 uses)
 
 
@@ -79,22 +79,22 @@ x
 |~| Ctrl+Shift+O → BindStep bindings show as Function,
 |~| as bindings show as Variable.
 
-:votingAge filter(/age | gte(18))
-| 42 | as(:answer)
+:votingAge filter ~(/age | gte 18)
+| 42 | as :answer
 |~| Outline lists: double, triple, x, greet, greeted1,
 |~| greeted2, votingAge, answer
 
 
 |~| ── 7. Signature Help ─────────────────────────────────
 |~| Type inside parens of an operand to see its signature.
-|~| Active parameter highlights on comma.
+|~| The active parameter follows the modifier under the cursor.
 
 [{:name "a" :age 25} {:name "b" :age 15}]
-  | filter(/age | gte(18))
+  | filter ~(/age | gte 18)
   * /name
 
-|~| Edit inside add(/x, /y) below — second param highlights
-{:x 10 :y 3} | add(/x, /y)
+|~| Edit inside `add /x /y` below — the second modifier highlights
+{:x 10 :y 3} | add /x /y
 
 
 |~| ── 8. Completion ─────────────────────────────────────
@@ -102,7 +102,7 @@ x
 |~| including as and error) + user bindings
 |~| visible at the cursor position.
 
-:myHelper mul(10)
+:myHelper mul 10
 |~| Ctrl+Space here → myHelper alongside every builtin
 
 
@@ -117,14 +117,14 @@ x
 |~| Doc comments attach to the next BindStep / as binding.
 
 |~~| Computes the absolute value via conditional negation. ~~|
-:abs if(lt(0), mul(-1))
+:abs if (lt 0) ~(mul -1)
 
 |~~ Surround a string with a prefix and suffix.
     Parametric conduit with two captured parameters. ~~|
-:@surround [:pfx :sfx] (prepend(pfx) | append(sfx))
+:@surround [:pfx :sfx] (prepend pfx | append sfx)
 
 |~| Ctrl+Click on @surround → jumps to the BindStep above
-"world" | @surround("[", "]")
+"world" | @surround "[" "]"
 
 
 |~| ── 11. Effect markers ────────────────────────────────
@@ -137,7 +137,7 @@ x
 |~| Hover each operand to see its docs.
 
 [{:name "c" :age 30} {:name "a" :age 25} {:name "b" :age 25}]
-  | sortWith([asc(/age), desc(/name)] | firstNonZero)
+  | sortWith ~([(asc ~(/age)), (desc ~(/name))] | firstNonZero)
   * /name
 
 
@@ -151,13 +151,13 @@ x
 |~| it distinctly from the success-track `|`.
 
 |~| Direct fail-apply: read :kind off a runtime error
-"hello" | add(1) !| /kind
+"hello" | add 1 !| /kind
 
 |~| Leading !| prefix inside a filter predicate —
 |~| per-element dispatch into the fail-track
-[1 "x" 3] * add(10) | filter(!| type | eq(::AddLeftNotNumberError))
+[1 "x" 3] * add 10 | filter ~(!| type | eq ::AddLeftNotNumberError)
 
 |~| Trail continuity across re-lift — | error re-wraps the
 |~| enriched descriptor and a later !| reads the
 |~| accumulated :trail Quote
-!{:kind :oops} | count !| union({:request "r-1"}) | error | add(1) !| /trail
+!{:kind :oops} | count !| union {:request "r-1"} | error | add 1 !| /trail

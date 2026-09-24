@@ -43,7 +43,7 @@ describe('prompt lines', () => {
 
 describe('continuation lines', () => {
   it('two-space indent preserved, expression highlighted', () => {
-    const out = fmt('  add(1)');
+    const out = fmt('  add 1');
     expect(out.startsWith('  ')).toBe(true);
     expect(out).toContain('<span class="operand">add</span>');
   });

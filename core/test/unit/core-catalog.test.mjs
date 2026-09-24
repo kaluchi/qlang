@@ -308,12 +308,12 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest :tag | count')).toBe(208);
+    expect(await evalQuery('manifest :tag | count')).toBe(206);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(70);
+    expect(await evalQuery('manifest | count')).toBe(69);
   });
 });
 
@@ -343,7 +343,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('string')).toBe(7);
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
     expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`
-    expect(categories.get('typeConversion')).toBe(4);  // keyword + qlang + payload + tag
+    expect(categories.get('typeConversion')).toBe(3);  // keyword + payload + tag
     expect(categories.get('format')).toBe(2);
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
     expect(categories.get('codeAsData')).toBe(2); // parse apply

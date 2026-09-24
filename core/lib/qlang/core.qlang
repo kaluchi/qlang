@@ -1,6 +1,6 @@
 |~ Root qlang catalog — pulls in every operand family plus shared
    runtime-invariant tag-bindings and the value-class constructors
-   (::conduit / ::qlang / ::json). The actual catalog content lives
+   (::conduit / ::quote / ::builtin). The actual catalog content lives
    in lib/qlang/operand/<family>.qlang, lib/qlang/runtime-invariants.qlang,
    and lib/qlang/tag.qlang. Each family file declares its operands
    and their per-site error tags inline; runtime-invariants carries

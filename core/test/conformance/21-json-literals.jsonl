@@ -44,3 +44,11 @@
 {"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | /user/имя","expect":"\"Алиса\""}
 {"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | [/пункт1, /пункт2]","expect":"[10 20]"}
 {"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | /имя-пользователя","expect":"\"alice\""}
+{"name":"json-array-reads-as-a-vector","query":"[1, 2] | type","expect":":vec"}
+{"name":"single-element-bracket-reads-as-a-vector","query":"[1] | type","expect":":vec"}
+{"name":"json-object-reads-as-a-map","query":"{\"a\": 1} | type","expect":":map"}
+{"name":"json-object-keys-are-keywords","query":"{\"a\": 1, \"b\": 2} | keys","expect":"#[:a :b]"}
+{"name":"json-object-key-that-is-no-identifier-reads-quoted","query":"{\"a b\": 1} | keys","expect":"#[:\"a b\"]"}
+{"name":"json-literal-prints-as-the-map-it-is","query":"{\"a\": [1, 2]} | eq {:a [1 2]}","expect":"true"}
+{"name":"codec-writes-a-keyword-value-bare","query":"{:k :v} | json","expect":"\"{\\\"k\\\":\\\"v\\\"}\""}
+{"name":"codec-writes-keywords-in-a-vector-bare","query":"[:foo :bar] | json","expect":"\"[\\\"foo\\\",\\\"bar\\\"]\""}

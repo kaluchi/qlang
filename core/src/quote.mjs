@@ -21,9 +21,9 @@ import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { addStructurallyUnique } from './equality.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
-  keyword, makeTagKeyword, makeDoc, makeJsonObject, makeJsonArray, makeQuote,
+  keyword, makeTagKeyword, makeDoc, makeQuote,
   makeTaggedInstance, makeErrorLiteralStep,
-  isQuote, isKeyword, isTagKeyword, isDoc, isVec, isJsonArray, isJsonObject, isQMap, isQSet,
+  isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
   isErrorValue, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, PROJ_TAG, BIND_TAG, TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG
 } from './types.mjs';
@@ -157,10 +157,8 @@ const STEP_OF_NODE = {
   QuoteLit:        quoteOfLiteral,
   DocLit:          node => makeDoc(node.content),
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
-  JsonArrayLit:    node => makeJsonArray(node.elements.map(stepOfNode)),
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
-  JsonObjectLit:   node => makeJsonObject(Object.fromEntries(entryStepsOf(node.entries))),
   ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries))),
   TaggedLit:       node => record(TAGGED_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
@@ -207,9 +205,8 @@ export function isElementStep(value) {
   if (isErrorValue(value)) return value.tag.name === 'Error' && [...value.descriptor.values()].every(isElementStep);
   const stepTag = stepTagOf(value);
   if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && (value.has('docs') || value.has('args')));
-  if (isVec(value) || isJsonArray(value) || isQSet(value)) return [...value].every(isElementStep);
-  if (isQMap(value)) return [...value.values()].every(isElementStep);
-  return isJsonObject(value) && Object.values(value).every(isElementStep);
+  if (isVec(value) || isQSet(value)) return [...value].every(isElementStep);
+  return isQMap(value) && [...value.values()].every(isElementStep);
 }
 
 // isCommandStep(value) — a command with its modifiers, the step a
@@ -260,13 +257,9 @@ function printStep(step) {
     case 'group':  return `(${printSteps(step.payload)})`;
   }
   if (isErrorValue(step)) return `!{${printEntries([...step.descriptor])}}`;
-  if (isJsonArray(step)) return `[${step.map(printStep).join(', ')}]`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
   if (isQSet(step)) return `#[${[...step].map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
-  if (isJsonObject(step)) {
-    return `{${Object.entries(step).map(([key, value]) => `${JSON.stringify(key)}: ${printStep(value)}`).join(', ')}}`;
-  }
   return printValue(step);
 }
 

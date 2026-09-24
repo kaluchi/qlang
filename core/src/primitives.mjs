@@ -25,7 +25,7 @@
 //     `BUILTIN_IMPL_SLOT` slot beside the handle keyword.
 //
 //   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
-//     `::qlang`, `::json`). The keyword stays a keyword on the
+//     `::quote`, `::builtin`). The keyword stays a keyword on the
 //     descriptor; `evalTaggedLit` resolves it through the registry
 //     at every invocation so `manifest :tag` keeps the readable
 //     `:impl :qlang/type/<tag>` handle on the descriptor.

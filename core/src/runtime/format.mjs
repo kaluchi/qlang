@@ -14,10 +14,7 @@ import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { printQuoteSource } from '../quote.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import {
-  isQMap,
-  isVecShape,
-  finiteNumberOrLift,
-  TAG_HEADER_SYMBOL
+  isQMap, finiteNumberOrLift, TAG_HEADER_SYMBOL, isVec
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -65,7 +62,7 @@ const TO_PLAIN_HANDLERS = {
   Number:         finiteNumberOrLift,
   String:         v => v,
   Boolean:        v => v,
-  Keyword:        k => k.literal,
+  Keyword:        k => k.name,
   TagKeyword:     k => k.literal,
   Vec:            v => v.map(toPlain),
   Map:            qMapToPlainObject,
@@ -100,9 +97,7 @@ const TO_PLAIN_HANDLERS = {
   // head of the envelope so the lossy plain-JSON form carries
   // the identity slot explicitly. Round-trip is one-way at this
   // codec; `toTaggedJSON` is the bijective pair.
-  Error:          e => ({ $error: { $tag: e.tag.name, descriptor: toPlain(e.descriptor) } }),
-  JsonObject:     o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, toPlain(v)])),
-  JsonArray:      a => a.map(toPlain)
+  Error:          e => ({ $error: { $tag: e.tag.name, descriptor: toPlain(e.descriptor) } })
 };
 
 export function toPlain(v) {
@@ -204,8 +199,6 @@ const CELL_HANDLERS = {
   Error:      e => renderInline(e),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
-  JsonObject: o => renderInline(o),
-  JsonArray:  a => renderInline(a),
   Conduit:    printConduit,
   // Snapshot is an immutable value-wrapper: the captured value
   // carries the renderable identity, the wrapper itself is env
@@ -228,8 +221,6 @@ const INLINE_HANDLERS = {
   Set:        s => `#[${[...s].map(renderInline).join(' ')}]`,
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
-  JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
-  JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,
   Conduit:    printConduit,
   // Snapshot is an immutable value-wrapper — recurse on the
   // captured value (which carries the renderable identity). The
@@ -284,7 +275,7 @@ function renderCell(v) {
 }
 
 export const table = nullaryOp('table', (subject) => {
-  if (!isVecShape(subject)) throw new TableSubjectNotVecError(subject);
+  if (!isVec(subject)) throw new TableSubjectNotVecError(subject);
   if (subject.length === 0) return '(empty)';
   for (let i = 0; i < subject.length; i++) {
     if (!isQMap(subject[i])) {

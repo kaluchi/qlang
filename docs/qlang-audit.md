@@ -964,66 +964,25 @@ included.
 
 ### Two container families
 
-The syntax of a literal decides its runtime type. Braces with string
-keys and commas make a JSON object; braces with keywords make a map.
-Brackets with commas make a JSON array, and so does a single-element
-bracket whose element is JSON-only, while whitespace-separated elements
-make a vector:
+JSON syntax reads into the one map and the one vector [D1]: a literal
+with string keys and commas is a map whose keys are the keywords of its
+strings, and a bracket with commas or with a single element is a vector,
+so the two spellings answer alike:
 
 ```qlang
 > [1] | type
-:jsonArray
-
-> [1 2] | type
 :vec
-```
 
-The two families answer differently to the same operand and are equal
-to each other at the same time:
-
-```qlang
 > {"a": 1} | keys
-["a"]
-
-> {:a 1} | keys
 #[:a]
-
-> {"a": 1} | eq {:a 1}
-true
 ```
 
-The JSON family was introduced to keep a pasted document's shape
-through a pipeline, and it costs a shape predicate in every container
-operand, a re-stamping pass in the distribute and merge combinators and
-in every transformer, a codec of its own, and the tests that guard all
-of it. The language server's list of fork-isolating nodes does not
-include the JSON literals, although the evaluator forks them, which is
-the kind of inconsistency a second family produces wherever it is not
-remembered. The maintainer judged the family a failed experiment whose
-one lasting gift was the tag [D1].
-
-The family reaches every layer, from the grammar's `JsonObjectLit` and
-`JsonArrayLit` through the values, the evaluator, dispatch, the
-container operands, the printer, the walker and equality, to the
-catalog, so that it doubles the relations of the base model rather than
-adding one:
-
-```sh
-$ grep -rEo "isJson(Array|Object)|Json(Array|Object)|json(Array|Object)" core/src core/lib cli/src lsp/src | wc -l
-182
-$ grep -rEl "isJson(Array|Object)|Json(Array|Object)|json(Array|Object)" core/src core/lib cli/src lsp/src | wc -l
-19
-```
-
-«так я хоть осознаю теперь объем его семейства это считай дубликат
-qlangа был .. начиная с парсера и дальше в эвал .. что б развести по
-семантике это.. он считай "возводил в квадрат" связи базовой модели»
-(maintainer, 2026-09-23 18:38, session 86982eb5). The fidelity it was
-built for, JSON in and JSON out, is a rendering of the host, which
-remembers the format of its input; a value needs no memory of the
-syntax it was read from. The sister project's records carry the same
-habit, `:kind "type"` as a string field, and under kinds [D32] the kind
-of a record is its tag.
+The codec writes a keyword back as its bare name, for keys and for
+values alike, so the command line answers JSON with the strings a
+document holds, `echo '{"a":1}' | qlang 'keys'` printing `["a"]`. The
+sister project's records carry the habit the family served, `:kind
+"type"` as a string field, and under kinds [D32] the kind of a record is
+its tag.
 
 The set is a third family, and the language's own history says what it
 is. The May commit that moved its literal from braces to brackets
@@ -1058,20 +1017,6 @@ implementation set the flag, and the loss is silent:
 ```
 
 The kind of an operand's result belongs to its declaration [D4, D41].
-
-The repair must leave one map and one vector [D1]. JSON syntax stays
-accepted on input and is normalized at parse time; the JSON shape is a
-concern of the codec at the boundary, and the branch that preserves it
-through transforms is deleted with the family. An object key reads as
-the keyword of its string, quoted when the string is no identifier,
-which is what the equality above already says; and the codec writes a
-keyword back as the bare string, for keys and for values alike, where
-today it writes the colon into a keyword value:
-
-```qlang
-$ echo '{"a":1}' | qlang 'keys'
-[":a"]
-```
 
 A duplicate key in a map literal, in either spelling, reads as
 `JSON.parse` reads it, the last value in the first position, and the
@@ -2097,7 +2042,11 @@ serves it.
 Source. «с json тоже в целом согласен.. считаю этот эксперимент
 неудачным.. но только благодаря всем трудностям при его внедрении и
 появились ::Тэги в языке» (maintainer, 2026-09-14 22:38, session
-268516f5).
+268516f5); its scale, once counted across every layer from the grammar's
+literals to the catalog: «так я хоть осознаю теперь объем его семейства
+это считай дубликат qlangа был .. начиная с парсера и дальше в эвал ..
+что б развести по семантике это.. он считай "возводил в квадрат" связи
+базовой модели» (maintainer, 2026-09-23 18:38, session 86982eb5).
 Set aside. Keeping the family to preserve a pasted document's shape: it
 costs a predicate in every container operand, a re-stamping pass in
 every transformer and a codec of its own, and the shape is recovered at

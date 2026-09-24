@@ -294,8 +294,7 @@ m
 
 Shape-preserving on Vec/Set: a Vec subject returns a Vec, a Set
 subject returns a Set with the structural-uniqueness invariant
-maintained. JsonArray subjects ride the Vec branch and keep the
-JSON tag.
+maintained.
 
 ### `groupBy ~(keyFn)`
 
@@ -671,7 +670,7 @@ Map where the value's class is the predicate axis.
   Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
   `:null`); qlang value-classes produce their type keyword (`:vec`,
   `:map`, `:set`, `:keyword`, `:tagKeyword`, `:doc`,
-  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Quote,
+  `:function`); tagged values (Quote,
   Conduit, Snapshot, TaggedInstance, materialized error, catalog
   builtin descriptor) produce the TagKeyword off the JS-header
   identity slot (`::quote`, `::conduit`, `::snapshot`, `::Foo`, the per-site
@@ -689,12 +688,9 @@ Map where the value's class is the predicate axis.
   - `!{} !| type` → `::Error`.
   - `!{:kind ::Oops} !| type` → `::Oops`.
 
-JSON-tagged shapes carry an identity of their own: a plain JS
-object or Array stamped with the `JSON_OBJECT_TAG` /
-`JSON_ARRAY_TAG` Symbol — produced by the host JSON-bridge and by
-the `::json` constructor — answers `:jsonObject` / `:jsonArray`,
-while a qlang Map or Vec answers `:map` / `:vec`. Identity rides
-the value's JS-header slot, so a Map carrying a `:kind` field
+JSON syntax reads into the same Map and Vec, so `{"a": 1} | type` →
+`:map` and `[1, 2] | type` → `:vec`. Identity rides the value's
+JS-header slot, so a Map carrying a `:kind` field
 answers `:map`; `::Foo{…}` is the form that stamps the header.
 
 ## Type Conversion
@@ -770,30 +766,10 @@ answers `:map`; `::Foo{…}` is the form that stamps the header.
 ### `json`
 
 - **Arity** 1. **Subject** any value.
-- Returns a JSON string representation of the subject.
-- **Example**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`.
-
-### `qlang`
-
-- **Arity** 1. **Subject** any value.
-- Recursively converts JSON shape to qlang shape — `JsonObject`
-  becomes a qlang `Map` (string keys preserved), `JsonArray`
-  becomes a qlang `Vec`. Scalars and qlang-only values
-  (`Keyword`, qlang `Map` / `Vec` / `Set`, `Error`, `Quote`,
-  `Doc`, function values, tagged instances) pass through
-  unchanged.
-- **Idempotent.** Applying twice yields the same result as once
-  — `value | qlang | qlang` ≡ `value | qlang`. The pipeline-time
-  pendant of the `::qlang<payload>` TaggedLit constructor;
-  reach for `qlang` when the JSON value arrives via `pipeValue`
-  (CLI stdin parse, projection out of a JSON Object field) and
-  needs to flow into qlang-shape operands like
-  `union {:adult (/age | gt 18)}`.
-- **Examples**:
-  - `::json{"a": 1} | qlang | type | eq :map` → `true`.
-  - `::json[1, 2] | qlang | type | eq :vec` → `true`.
-  - `{:a 1} | qlang | type | eq :map` → `true` (already qlang).
-  - `42 | qlang | eq 42` → `true` (scalar identity).
+- Returns a JSON string representation of the subject; a keyword
+  writes as its bare name, a key and a value alike.
+- **Examples**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`;
+  `{:k :v} | json` → `"{\"k\":\"v\"}"`.
 
 ### `table`
 

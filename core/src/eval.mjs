@@ -29,9 +29,8 @@ import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  makeDoc, makeJsonObject, makeJsonArray,
-  isJsonObject, isJsonArray, isOrderedSequence, sequenceElements, isQuote,
-  isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+  makeDoc, isOrderedSequence, sequenceElements, isQuote,
+  makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, conduitBodyAst, conduitEnvRef,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
@@ -187,9 +186,7 @@ const AST_NODE_EVALUATORS = {
   NullLit:           evalNullLit,
   Keyword:           evalKeyword,
   VecLit:            evalVecLit,
-  JsonArrayLit:      evalJsonArrayLit,
   MapLit:            evalMapLit,
-  JsonObjectLit:     evalJsonObjectLit,
   ErrorLit:          evalErrorLit,
   SetLit:            evalSetLit,
   QuoteLit:          evalQuoteLit,
@@ -351,18 +348,7 @@ async function distribute(state, bodyNode) {
     )
   );
   const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
-  return withPipeValue(state, retagPerElement(distributeResults, subjectSeq));
-}
-
-// Per-element transformer tagger: if the source was a JsonArray, the
-// output keeps the JSON tag only when every element is JSON-storeable.
-// A single qlang-only element (Map/Set/Vec/Conduit/Keyword/…) silently
-// degrades the container to a qlang Vec — `| json` downstream then
-// loud-fails on the qlang shape, surfacing the un-serialisable
-// element at the conversion site.
-function retagPerElement(items, source) {
-  if (!isJsonArray(source)) return items;
-  return items.every(isJsonStoreable) ? makeJsonArray(items) : items;
+  return withPipeValue(state, distributeResults);
 }
 
 // applyFailTrack(state, stepNode) — `!|` combinator implementation.
@@ -446,27 +432,6 @@ async function evalMapLit(node, state) {
     mapResult.set(entry.key.name, entryFork.pipeValue);
   }
   return withPipeValue(state, mapResult);
-}
-
-// JSON Object literal — string-keyed entries. Each value forks
-// against the outer state so projection sub-pipelines see the
-// surrounding pipeValue, identical to evalMapLit's contract.
-async function evalJsonObjectLit(node, state) {
-  const plain = {};
-  for (const entry of node.entries) {
-    const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    plain[entry.key.name] = entryFork.pipeValue;
-  }
-  return withPipeValue(state, makeJsonObject(plain));
-}
-
-// JSON Array literal — comma-separated elements. Per-element fork
-// matches evalVecLit; the difference is the runtime tag.
-async function evalJsonArrayLit(node, state) {
-  const elementForks = await Promise.all(
-    node.elements.map(elem => fork(state, inner => evalNode(elem, inner)))
-  );
-  return withPipeValue(state, makeJsonArray(elementForks.map(s => s.pipeValue)));
 }
 
 async function evalErrorLit(node, state) {
@@ -747,8 +712,8 @@ async function evalProjection(node, state) {
 // Registry of JS-layer value-classes that publish projectable surface.
 // Each entry maps a VALUE_CLASS_TAG brand to a per-segment projector
 // table. Doc publishes its fields here; the brand rides the Symbol, so
-// a JsonObject carrying a `"type"` data key falls through to the
-// JsonObject branch below instead of being read as a value-class. Only
+// a map carrying a `"type"` data key falls through to the map branch
+// below instead of being read as a value-class. Only
 // the named fields listed here are reachable through `/key`. A quote
 // is a vector of steps and projects by index.
 const PROJECTABLE_BY_TYPE = {
@@ -773,15 +738,11 @@ function projectSegment(subject, projKey, state) {
       return handlers[projKey](subject, state);
     }
   }
-  if (isJsonObject(subject)) {
-    if (!Object.hasOwn(subject, projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
-    return subject[projKey];
-  }
   if (isQMap(subject)) {
     if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
     return subject.get(projKey);
   }
-  if (isJsonArray(subject) || isVec(subject)) {
+  if (isVec(subject)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
       throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
     }

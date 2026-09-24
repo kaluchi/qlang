@@ -4,10 +4,6 @@
 // binding's :impl, resolves it to one of these functions,
 // and invokes it against the payload-value.
 //
-// Plus the `qlang` value-namespace operand — a subject-form
-// idempotent JSON-shape → qlang-shape converter, the pipeline
-// pendant to the `::qlang<payload>` literal-time constructor.
-//
 // State is passed through so constructors that need a reference to
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
@@ -16,9 +12,9 @@ import { nullaryOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
+  isVec, isKeyword, isQuote, isQMap,
   isTaggedInstance, isTagKeyword, isErrorValue,
-  makeConduit, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
+  makeConduit, typeKeyword
 } from '../types.mjs';
 import { astOfQuote } from '../quote.mjs';
 import {
@@ -56,7 +52,7 @@ const ConduitBodyNotQuoteError = declareShapeError('ConduitBodyNotQuoteError',
 // `::conduit[[:p1 :p2] \`body-source\`]` — non-recursive
 // `::conduit[:self [:p1 :p2] \`body-source\`]` — with self-name for recursion
 async function conduitConstructor(payload, state) {
-  if (!isVecShape(payload)) throw new ConduitPayloadNotVecError(payload);
+  if (!isVec(payload)) throw new ConduitPayloadNotVecError(payload);
   if (payload.length !== 2 && payload.length !== 3) {
     throw new ConduitArityInvalidError({ actualCount: payload.length });
   }
@@ -74,7 +70,7 @@ async function conduitConstructor(payload, state) {
     params = payload[0];
     body = payload[1];
   }
-  if (!isVecShape(params)) {
+  if (!isVec(params)) {
     throw new ConduitParamsNotVecError({ actualType: typeKeyword(params), actualValue: params });
   }
   for (let i = 0; i < params.length; i++) {
@@ -95,46 +91,6 @@ async function conduitConstructor(payload, state) {
 }
 
 bindTypeConstructor('conduit', conduitConstructor);
-
-// ::qlang<...> / ::json<...> — pair of cross-domain converters.
-// `::qlang` recursively converts a JSON-shape payload (plain
-// object → qlang Map with keyword keys, plain array → qlang Vec)
-// down through every nested level. `::json` does the inverse
-// (qlang Map → JSON Object stamped with JSON_OBJECT_TAG, qlang
-// Vec → JSON Array stamped with JSON_ARRAY_TAG). Scalars,
-// keywords, sets, and errors pass through unchanged on both
-// sides — the converter only touches the container shape.
-
-function qlangFromJson(value) {
-  if (isJsonObject(value)) {
-    const m = new Map();
-    for (const [k, v] of Object.entries(value)) {
-      m.set(k, qlangFromJson(v));
-    }
-    return m;
-  }
-  if (Array.isArray(value)) {
-    return value.map(qlangFromJson);
-  }
-  return value;
-}
-
-function jsonFromQlang(value) {
-  if (isQMap(value)) {
-    const obj = {};
-    for (const [k, v] of value) {
-      obj[k] = jsonFromQlang(v);
-    }
-    return makeJsonObject(obj);
-  }
-  if (Array.isArray(value)) {
-    return makeJsonArray(value.map(jsonFromQlang));
-  }
-  return value;
-}
-
-bindTypeConstructor('qlang', (payload) => qlangFromJson(payload));
-bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 
 // `::builtin{…fields…}` — catalog descriptor constructor.
 // Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`
@@ -174,34 +130,18 @@ function builtinConstructor(payload) {
 
 bindTypeConstructor('builtin', builtinConstructor);
 
-// `qlang` value-namespace operand — subject-form converter.
-//
-//   {"a": 1} | qlang      → {:a 1}        (JsonObject → qlang Map)
-//   [1, 2, 3] | qlang     → [1 2 3]       (JsonArray → qlang Vec)
-//   {:a 1} | qlang        → {:a 1}        (idempotent on qlang shape)
-//   42 | qlang            → 42            (scalar unchanged)
-//
-// Recurses through nested containers so a JsonObject-of-JsonArrays
-// lifts fully into a qlang-Map-of-qlang-Vecs in one step. The
-// `::qlang<payload>` TaggedLit constructor shares this impl as
-// `qlang/type/qlang` — `qlang` operand is the pipeline-time pendant.
-
-export const qlangOperand = nullaryOp('qlang', (subject) => qlangFromJson(subject));
-
-bindPrim('qlang', qlangOperand);
-
 // ── tag / payload — TaggedInstance split/assemble pair ──────
 //
 // `tag ::Foo` mints the value under the tag: through the tag's
 // constructor when its binding carries one, so a wrong assembly is
 // refused where it is made; as a bare overlay otherwise, through
-// `makeTaggedInstance` — composite payloads (Vec / Set / Map /
-// JsonArray) clone with the TagKeyword stamped on the JS-header slot,
+// `makeTaggedInstance` — composite payloads (Vec / Set / Map) clone
+// with the TagKeyword stamped on the JS-header slot,
 // leaving the data plane intact; non-extensible payloads (scalar,
 // Keyword, Doc, Error, Conduit, Snapshot, already-tagged composite)
 // ride an opaque frozen `{type, tag, payload}` wrapper. `payload`
 // reverses each shape. Both operands ride the `:typeConversion`
-// family alongside `keyword` / `qlang` / `json`.
+// family alongside `keyword`.
 //
 // `tagged | payload` — strip identity, return the underlying
 // data plane. Composite-shape returns a fresh clone of the
@@ -249,14 +189,8 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {
     throw new PayloadSubjectNotTaggedInstanceError(subject);
   }
-  // Composite-shape — fresh clone without the TaggedInstance
-  // header. JsonArray composite restamps `JSON_ARRAY_TAG` on
-  // the clone (a plain `[...subject]` spread would drop the
-  // JSON-shape signal alongside the TaggedInstance header);
-  // every other Array clone yields a plain Vec.
-  if (Array.isArray(subject)) {
-    return isJsonArray(subject) ? makeJsonArray([...subject]) : Object.freeze([...subject]);
-  }
+  // Composite-shape — fresh clone without the TaggedInstance header.
+  if (Array.isArray(subject)) return Object.freeze([...subject]);
   if (subject instanceof Set) return new Set(subject);
   if (subject instanceof Map) return new Map(subject);
   // Opaque wrap object — return the wrapped value directly.
@@ -267,11 +201,11 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
 // modifier that answers an error answers the step with it.
 async function tagPartsOf(subject, tagLambdas) {
   if (tagLambdas.length === 0) {
-    if (!isVecShape(subject) || subject.length !== 2) {
+    if (!isVec(subject) || subject.length !== 2) {
       throw new TagBareSubjectShapeError({
         actualType: typeKeyword(subject),
         actualValue: subject,
-        actualLength: isVecShape(subject) ? subject.length : undefined
+        actualLength: isVec(subject) ? subject.length : undefined
       });
     }
     return { value: subject[1], tagKw: subject[0] };

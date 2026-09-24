@@ -7,7 +7,7 @@
    the render-path round-trip guards. Per-operand errors live
    inline in the operand's own family file
    (lib/qlang/operand/<family>.qlang); value-class-constructor
-   errors (::conduit / ::qlang / ::json) live next to their
+   errors (::conduit / ::quote / ::builtin) live next to their
    constructors in lib/qlang/tag.qlang.
 
    Section layout, top to bottom:

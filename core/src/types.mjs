@@ -54,11 +54,9 @@ export const NULL = null;
 // ── value-class brand ──────────────────────────────────────────
 //
 // Keyword / TagKeyword / Doc / Error / Function / the opaque
-// TaggedInstance wrap are JS plain objects sharing JsonObject's
-// shape, where `"type"` is ordinary JSON data. Identity rides on a
-// non-enumerable Symbol — the channel JSON_OBJECT_TAG / JSON_ARRAY_TAG
-// / TAG_HEADER_SYMBOL already use — so a JSON document carrying
-// `{"type":"doc"}` cannot forge `isDoc`.
+// TaggedInstance wrap are JS plain objects. Identity rides on a
+// non-enumerable Symbol — the channel TAG_HEADER_SYMBOL uses too — so
+// data carrying `{"type":"doc"}` cannot forge `isDoc`.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
 export function brandValueClass(target, valueClass) {
@@ -82,132 +80,28 @@ export function isKeyword(v) {
   return isValueClass(v, 'keyword');
 }
 export function isVec(v) {
-  return Array.isArray(v) && v[JSON_ARRAY_TAG] !== true;
+  return Array.isArray(v);
 }
 export function isQMap(v) {
   return v instanceof Map;
 }
 export function isQSet(v) { return v instanceof Set; }
 
-// JSON Object / JSON Array — runtime-type-distinct from qlang Map /
-// Vec. Built via makeJsonObject / makeJsonArray, stamped with a
-// non-enumerable Symbol so JSON.stringify and Object.keys see them
-// as ordinary plain objects / arrays (the JSON-bridge invariant —
-// they are JSON). qlang-side identification through the predicates
-// below.
-
-export const JSON_OBJECT_TAG = Symbol('qlang/jsonObject');
-export const JSON_ARRAY_TAG  = Symbol('qlang/jsonArray');
-
-export function isJsonObject(v) {
-  return v !== null
-    && typeof v === 'object'
-    && !Array.isArray(v)
-    && !(v instanceof Map)
-    && !(v instanceof Set)
-    && v[JSON_OBJECT_TAG] === true;
-}
-
-export function isJsonArray(v) {
-  return Array.isArray(v) && v[JSON_ARRAY_TAG] === true;
-}
-
-// Shape-level predicates — for container-shape-preserving operands
-// (filter, sort, take, distinct, union, …). A JsonArray subject
-// passes through the same operand path as a Vec subject and the
-// result re-wraps as JsonArray; same symmetry for JsonObject↔Map.
-// JS-side iteration / .length / spread work uniformly across both
-// halves of the shape, so operand bodies stay shape-agnostic.
-
-export function isVecShape(v) {
-  return isVec(v) || isJsonArray(v);
-}
-
-export function isMapShape(v) {
-  return isQMap(v) || isJsonObject(v);
-}
-
-// Vec / JsonArray / Set — the ordered, indexable sequences `*`
-// and the order-aware operands (first / take / sort / distinct / flat
-// / …) dispatch over uniformly. A Set is the `distinct` of a Vec.
+// Vec / Set — the ordered, indexable sequences `*` and the
+// order-aware operands (first / take / sort / distinct / flat / …)
+// dispatch over uniformly. A Set is the `distinct` of a Vec.
 export function isOrderedSequence(v) {
-  return isVecShape(v) || isQSet(v);
+  return isVec(v) || isQSet(v);
 }
 
 // Array view of an ordered sequence — the extractor companion to
-// isOrderedSequence. A Vec / JsonArray yields itself (no copy); a Set
+// isOrderedSequence. A Vec yields itself (no copy); a Set
 // is spread into an array in insertion order. Order-aware operands
 // that need indexed access (first / last / at) or full materialisation
 // (sort), and the `*` distribute fork, source their element
 // array here.
 export function sequenceElements(v) {
-  return isVecShape(v) ? v : [...v];
-}
-
-// Iterate a Map-shape subject as [key, value] pairs.
-export function mapShapeEntries(v) {
-  if (isJsonObject(v)) return Object.entries(v);
-  return v;
-}
-
-export function mapShapeSize(v) {
-  if (isJsonObject(v)) return Object.keys(v).length;
-  return v.size;
-}
-
-export function mapShapeGet(v, k) {
-  return isJsonObject(v) ? v[k] : v.get(k);
-}
-
-export function mapShapeHas(v, k) {
-  if (isJsonObject(v)) return Object.prototype.hasOwnProperty.call(v, k);
-  return v.has(k);
-}
-
-// Re-wrap operand output to match the source's tag.
-export function vecLikeOf(items, source) {
-  return isJsonArray(source) ? makeJsonArray(items) : items;
-}
-
-// The per-element transformer `*` preserves a JsonArray subject's
-// tag only when every produced element is itself JSON-storeable —
-// scalar Null/Boolean/Number/String or a JSON-shape Object/Array.
-// A qlang-only element (Keyword, Map, Set, Vec, Conduit, …) silently
-// degrades the container to a qlang Vec, so a downstream `| json`
-// catches the type mismatch loudly and surfaces the un-serialisable
-// element at the conversion site.
-export function isJsonStoreable(v) {
-  return v === null
-    || typeof v === 'boolean'
-    || typeof v === 'number'
-    || typeof v === 'string'
-    || isJsonObject(v)
-    || isJsonArray(v);
-}
-
-export function mapLikeOf(entries, source) {
-  if (isJsonObject(source)) {
-    const obj = {};
-    for (const [k, v] of entries) obj[k] = v;
-    return makeJsonObject(obj);
-  }
-  return new Map(entries);
-}
-
-export function makeJsonObject(plainObj) {
-  const obj = { ...plainObj };
-  Object.defineProperty(obj, JSON_OBJECT_TAG, {
-    value: true, enumerable: false, configurable: false, writable: false
-  });
-  return Object.freeze(obj);
-}
-
-export function makeJsonArray(items) {
-  const arr = [...items];
-  Object.defineProperty(arr, JSON_ARRAY_TAG, {
-    value: true, enumerable: false, configurable: false, writable: false
-  });
-  return Object.freeze(arr);
+  return isVec(v) ? v : [...v];
 }
 
 // ── language value-class predicates ────────────────────────────
@@ -345,9 +239,7 @@ export function makeDoc(content) {
 // ── tag-header symbol — Map identity slot ────────────────────
 //
 // Non-enumerable Symbol key under which a Map carries its
-// identity TagKeyword. Mirrors `JSON_OBJECT_TAG` /
-// `JSON_ARRAY_TAG` for plain JS Objects / Arrays: invisible to
-// Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
+// identity TagKeyword: invisible to Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
 // to JSON serialization, and to the manifest enumeration
 // surface. Every identity-bearing value-class — Conduit,
 // Snapshot, TaggedInstance, catalog `::builtin` descriptor,
@@ -368,8 +260,7 @@ export function stampTagHeader(m, tag) {
 // holder its tie-the-knot mutates, the peggy declaration site,
 // and the resolved JS function value a catalog `::builtin`
 // descriptor dispatches through. Each lands on a non-enumerable
-// Symbol slot — the channel `TAG_HEADER_SYMBOL` / `JSON_OBJECT_TAG`
-// already use — so `keys`, `/key` projection, `printValue`,
+// Symbol slot — the channel `TAG_HEADER_SYMBOL` uses too — so `keys`, `/key` projection, `printValue`,
 // `toPlain`, and `toTaggedJSON` see a data plane of qlang values
 // alone: `:name`, `:params`, `:source` (a Quote of the body),
 // `:docs`, `:effectful`, `:payload`, plus the
@@ -528,21 +419,10 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 
 export function makeTaggedInstance(tag, payload) {
   // Untagged composite — overlay header on a clone of the
-  // payload, native shape preserved. For JsonArray payloads the
-  // JSON_ARRAY_TAG sentinel is restamped manually on the clone
-  // before freezing (calling `makeJsonArray` then `stampTagHeader`
-  // is a no-go — `makeJsonArray` freezes its result, so the header
-  // stamp would hit a non-extensible object). Both Symbol slots
-  // coexist on the same Array; downstream predicates read each
-  // independently.
+  // payload, native shape preserved.
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     if (tag.name === QUOTE_TAG_NAME) return makeQuote(payload);
     const arr = [...payload];
-    if (isJsonArray(payload)) {
-      Object.defineProperty(arr, JSON_ARRAY_TAG, {
-        value: true, enumerable: false, configurable: false, writable: false
-      });
-    }
     stampTagHeader(arr, tag);
     return Object.freeze(arr);
   }
@@ -688,14 +568,12 @@ export function describeType(v) {
   if (isSnapshot(v)) return 'Snapshot';
   if (isQuote(v)) return 'Quote';
   if (isTaggedInstance(v)) return 'TaggedInstance';
-  if (isJsonArray(v)) return 'JsonArray';
   if (isVec(v)) return 'Vec';
   if (isDoc(v)) return 'Doc';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
   if (isFunctionValue(v)) return 'Function';
-  if (isJsonObject(v)) return 'JsonObject';
   return 'Unknown';
 }
 
@@ -716,7 +594,6 @@ export function typeKeyword(v) {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;
   }
-  if (isJsonArray(v)) return keyword('jsonArray');
   if (isVec(v)) return keyword('vec');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) return keyword('map');
@@ -727,6 +604,5 @@ export function typeKeyword(v) {
   // `::Tag` without consulting any Map field.
   if (isErrorValue(v)) return v.tag;
   if (isFunctionValue(v)) return keyword('function');
-  if (isJsonObject(v)) return keyword('jsonObject');
   return keyword('unknown');
 }

@@ -299,8 +299,8 @@
       indices count from the end; out-of-range returns null). On a
       Map subject, returns the value at the key (missing key
       returns null) — the captured-arg shape accepts either a
-      Keyword or a String over qlang Map and JsonObject alike
-      (both normalise to the storage-side String). The soft
+      Keyword or a String (both normalise to the storage-side
+      String). The soft
       counterpart of the strict `/key` projection — `at`
       coalesces a miss to null, `/key` raises
       `::ProjectionKeyNotInMapError`.
@@ -310,8 +310,7 @@
       ~([10 20 30] | at 99 | eq null)
       ~(#[:a :b :c] | at -1 | eq :c)
       ~({:a 1 :b 2} | at :a | eq 1)
-      ~(::json{:a 1 :b 2} | at "a" | eq 1)
-      ~(::json{:a 1 :b 2} | at :a | eq 1)
+      ~({:a 1 :b 2} | at "a" | eq 1)
       ~({:a 1} | at :z | eq null)
   ~~|
   ::builtin{:impl :qlang/prim/at

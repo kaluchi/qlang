@@ -98,8 +98,6 @@ const PRINT_HANDLERS = {
   Set:        (s, indent) => printListLike('#[', ']', ' ', [...s], indent),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
-  JsonObject: (o, indent) => printJsonObject(o, indent),
-  JsonArray:  (a, indent) => printListLike('[', ']', ', ', a,      indent),
   Conduit:    printConduit,
   Snapshot:   printSnapshot,
   TaggedInstance: printTaggedInstance
@@ -121,7 +119,7 @@ function printFallback(v) {
   return String(v);
 }
 
-// Vec / Set / JsonArray share one renderer: print every element
+// Vec and Set share one renderer: print every element
 // via printValue, then decide inline vs multi-line. Multi-line
 // fires whenever any rendered element already contains a `\n` —
 // a single multi-line entry would otherwise drag every subsequent
@@ -162,15 +160,6 @@ function printErrorValue(e, indent) {
   return tagHead + printMapLike('!{', payload, indent);
 }
 
-function printJsonObject(obj, indent) {
-  const entries = Object.entries(obj);
-  if (entries.length === 0) return '{}';
-  const inner = entries
-    .map(([k, v]) => `${JSON.stringify(k)}: ${printValue(v, indent)}`)
-    .join(', ');
-  return `{${inner}}`;
-}
-
 // Both named and anonymous conduits render as the `::conduit[…]`
 // TaggedLit literal — the same shape `evalTaggedLit` accepts on
 // the way back in. Named form carries the self-name keyword in
@@ -182,9 +171,7 @@ function printJsonObject(obj, indent) {
 // call-site env at reconstruction time.
 // The `::conduit` literal head sits on the Map's
 // TAG_HEADER_SYMBOL slot — the printer reads identity through
-// the same channel `typeKeyword` / `isConduit` use. Mirrors
-// the fixed `::Tag` heads JsonObject / JsonArray emit through
-// their own Symbol-tag round-trip paths.
+// the same channel `typeKeyword` / `isConduit` use.
 export function printConduit(conduit) {
   const tagLiteral = conduit[TAG_HEADER_SYMBOL].literal;
   const name = conduit.get('name');

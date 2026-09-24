@@ -1,13 +1,13 @@
-{"name":"json-type-quote-classifies-as-jsonObject","query":"{\"type\": \"quote\", \"source\": \"hi\"} | type","expect":":jsonObject"}
-{"name":"json-type-doc-classifies-as-jsonObject","query":"{\"type\": \"doc\", \"content\": \"c\"} | type","expect":":jsonObject"}
-{"name":"json-type-keyword-classifies-as-jsonObject","query":"{\"type\": \"keyword\", \"name\": \"x\"} | type","expect":":jsonObject"}
-{"name":"json-type-tagKeyword-classifies-as-jsonObject","query":"{\"type\": \"tagKeyword\", \"name\": \"X\"} | type","expect":":jsonObject"}
-{"name":"json-type-function-classifies-as-jsonObject","query":"{\"type\": \"function\"} | type","expect":":jsonObject"}
-{"name":"json-type-error-classifies-as-jsonObject","query":"{\"type\": \"error\", \"msg\": \"boom\"} | type","expect":":jsonObject"}
-{"name":"json-type-taggedInstance-classifies-as-jsonObject","query":"{\"type\": \"taggedInstance\"} | type","expect":":jsonObject"}
+{"name":"json-type-quote-classifies-as-map","query":"{\"type\": \"quote\", \"source\": \"hi\"} | type","expect":":map"}
+{"name":"json-type-doc-classifies-as-map","query":"{\"type\": \"doc\", \"content\": \"c\"} | type","expect":":map"}
+{"name":"json-type-keyword-classifies-as-map","query":"{\"type\": \"keyword\", \"name\": \"x\"} | type","expect":":map"}
+{"name":"json-type-tagKeyword-classifies-as-map","query":"{\"type\": \"tagKeyword\", \"name\": \"X\"} | type","expect":":map"}
+{"name":"json-type-function-classifies-as-map","query":"{\"type\": \"function\"} | type","expect":":map"}
+{"name":"json-type-error-classifies-as-map","query":"{\"type\": \"error\", \"msg\": \"boom\"} | type","expect":":map"}
+{"name":"json-type-taggedInstance-classifies-as-map","query":"{\"type\": \"taggedInstance\"} | type","expect":":map"}
 {"name":"json-type-quote-projects-data-key","query":"{\"type\": \"quote\", \"x\": 5} | /x","expect":"5"}
 {"name":"json-type-doc-projects-data-key","query":"{\"type\": \"doc\", \"z\": 1} | /z","expect":"1"}
-{"name":"json-type-quote-answers-jsonObject","query":"{\"type\": \"quote\"} | type | eq :jsonObject","expect":"true"}
+{"name":"json-type-quote-answers-map","query":"{\"type\": \"quote\"} | type | eq :map","expect":"true"}
 {"name":"json-type-quote-is-not-quote","query":"{\"type\": \"quote\"} | type | eq :quote","expect":"false"}
 {"name":"json-type-error-rides-success-track","query":"{\"type\": \"error\"} | false !| true","expect":"false"}
 {"name":"json-type-discriminator-record-filter","query":"[{\"type\":\"doc\",\"id\":1} {\"type\":\"vec\",\"id\":2}] | filter ~(/id | gt 0) | count","expect":"2"}

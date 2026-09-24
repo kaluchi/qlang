@@ -6,9 +6,7 @@
 
 import { nullaryOp, valueOp } from './dispatch.mjs';
 import {
-  keyword, isQSet, isKeyword,
-  isMapShape, mapShapeEntries, mapShapeHas,
-  isJsonObject, makeJsonArray
+  keyword, isQSet, isKeyword, isQMap
 } from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -19,50 +17,36 @@ const ValsSubjectNotMapError       = declareSubjectError('ValsSubjectNotMapError
 const HasSubjectNotMapOrSetError   = declareSubjectError('HasSubjectNotMapOrSetError',   'has',  ['map', 'set']);
 const HasKeyNotKeywordOrStringError = declareModifierError('HasKeyNotKeywordOrStringError', 'has', 2, ['keyword', 'string']);
 
-// `keys` and `vals` preserve the source's value-class plane:
-// a JsonObject extracts to JsonArrays of JSON-side data (strings
-// for keys, raw values for vals — JSON in, JSON out, no qlang-only
-// container surfaces in the result); a qlang Map extracts to a Set
-// of Keyword keys (uniqueness invariant explicit in the
-// value-class signal) and a Vec of values. The two key shapes —
-// keyword on qlang Map, string on JsonObject — match the
-// storage-side encoding directly; round-trip through
-// `union`/`inter`/`minus` reconstructs the same value-class on
-// either branch.
+// `keys` answers a map's keys as a Set of keywords and `vals` its
+// values as a Vec.
 export const keys = nullaryOp('keys', (map) => {
-  if (!isMapShape(map)) throw new KeysSubjectNotMapError(map);
-  if (isJsonObject(map)) {
-    const out = [];
-    for (const [k] of mapShapeEntries(map)) out.push(k);
-    return makeJsonArray(out);
-  }
+  if (!isQMap(map)) throw new KeysSubjectNotMapError(map);
   const result = new Set();
-  for (const [k] of mapShapeEntries(map)) result.add(keyword(k));
+  for (const [k] of map) result.add(keyword(k));
   return result;
 });
 
 export const vals = nullaryOp('vals', (map) => {
-  if (!isMapShape(map)) throw new ValsSubjectNotMapError(map);
+  if (!isQMap(map)) throw new ValsSubjectNotMapError(map);
   const out = [];
-  for (const [, v] of mapShapeEntries(map)) out.push(v);
-  return isJsonObject(map) ? makeJsonArray(out) : out;
+  for (const [, v] of map) out.push(v);
+  return out;
 });
 
 // `has` is a boolean lookup — no key-back-into-container roundtrip,
 // so the captured-arg shape can be either Keyword or String over
-// every Map-shape subject (both normalise to the storage-side
-// String via `key.name`/identity, matching `mapShapeHas`). The
-// `keys | first | as :k | src | has k` chain composes through
-// either source without an inter-shape coercion. Set subject
+// a map (both normalise to the storage-side String via `key.name`
+// or identity). The `keys | first | as :k | src | has k` chain
+// composes without a coercion. A Set subject
 // keeps structural membership — Keyword elements compare by
 // name, every other shape by ref/value.
 export const has = valueOp('has', 2, (subject, key) => {
-  if (isMapShape(subject)) {
+  if (isQMap(subject)) {
     let lookupKey;
     if (isKeyword(key)) lookupKey = key.name;
     else if (typeof key === 'string') lookupKey = key;
     else throw new HasKeyNotKeywordOrStringError(key);
-    return mapShapeHas(subject, lookupKey);
+    return subject.has(lookupKey);
   }
   if (isQSet(subject)) {
     // Structural membership mirrors `evalSetLit`'s dedup contract:

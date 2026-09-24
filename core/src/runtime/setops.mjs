@@ -15,8 +15,7 @@
 
 import { overloadedOp } from './dispatch.mjs';
 import {
-  isQSet, isKeyword,
-  isVecShape, isMapShape, mapShapeEntries, mapLikeOf
+  isQSet, isKeyword, isVec, isQMap
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -63,10 +62,10 @@ function unionPair(left, right) {
     for (const v of right) addStructurallyUnique(out, v);
     return out;
   }
-  if (isMapShape(left) && isMapShape(right)) {
-    const merged = [...mapShapeEntries(left)];
+  if (isQMap(left) && isQMap(right)) {
+    const merged = [...left];
     const keyToIndex = new Map(merged.map(([k], i) => [k, i]));
-    for (const [k, v] of mapShapeEntries(right)) {
+    for (const [k, v] of right) {
       const existingIdx = keyToIndex.get(k);
       if (existingIdx !== undefined) {
         merged[existingIdx] = [k, v];
@@ -75,7 +74,7 @@ function unionPair(left, right) {
         merged.push([k, v]);
       }
     }
-    return mapLikeOf(merged, left);
+    return new Map(merged);
   }
   throw new UnionPairIncompatibleError(left, right);
 }
@@ -88,21 +87,21 @@ function minusPair(left, right) {
     }
     return out;
   }
-  if (isMapShape(left) && isMapShape(right)) {
+  if (isQMap(left) && isQMap(right)) {
     const rightKeySet = new Set();
-    for (const [rk] of mapShapeEntries(right)) rightKeySet.add(rk);
+    for (const [rk] of right) rightKeySet.add(rk);
     const out = [];
-    for (const [k, v] of mapShapeEntries(left)) {
+    for (const [k, v] of left) {
       if (!rightKeySet.has(k)) out.push([k, v]);
     }
-    return mapLikeOf(out, left);
+    return new Map(out);
   }
-  if (isMapShape(left) && isQSet(right)) {
+  if (isQMap(left) && isQSet(right)) {
     const out = [];
-    for (const [k, v] of mapShapeEntries(left)) {
+    for (const [k, v] of left) {
       if (!setHasMapKey(right, k)) out.push([k, v]);
     }
-    return mapLikeOf(out, left);
+    return new Map(out);
   }
   throw new MinusPairIncompatibleError(left, right);
 }
@@ -115,28 +114,28 @@ function interPair(left, right) {
     }
     return out;
   }
-  if (isMapShape(left) && isMapShape(right)) {
+  if (isQMap(left) && isQMap(right)) {
     const rightKeySet = new Set();
-    for (const [rk] of mapShapeEntries(right)) rightKeySet.add(rk);
+    for (const [rk] of right) rightKeySet.add(rk);
     const out = [];
-    for (const [k, v] of mapShapeEntries(left)) {
+    for (const [k, v] of left) {
       if (rightKeySet.has(k)) out.push([k, v]);
     }
-    return mapLikeOf(out, left);
+    return new Map(out);
   }
-  if (isMapShape(left) && isQSet(right)) {
+  if (isQMap(left) && isQSet(right)) {
     const out = [];
-    for (const [k, v] of mapShapeEntries(left)) {
+    for (const [k, v] of left) {
       if (setHasMapKey(right, k)) out.push([k, v]);
     }
-    return mapLikeOf(out, left);
+    return new Map(out);
   }
   throw new InterPairIncompatibleError(left, right);
 }
 
 export const union = overloadedOp('union', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new UnionBareSubjectNotVecError(vec);
+    if (!isVec(vec)) throw new UnionBareSubjectNotVecError(vec);
     if (vec.length === 0) throw new UnionBareEmptyError();
     return [...vec].reduce(unionPair);
   },
@@ -147,7 +146,7 @@ export const union = overloadedOp('union', 2, {
 
 export const minus = overloadedOp('minus', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new MinusBareSubjectNotVecError(vec);
+    if (!isVec(vec)) throw new MinusBareSubjectNotVecError(vec);
     if (vec.length === 0) throw new MinusBareEmptyError();
     return [...vec].reduce(minusPair);
   },
@@ -158,7 +157,7 @@ export const minus = overloadedOp('minus', 2, {
 
 export const inter = overloadedOp('inter', 2, {
   0: (vec) => {
-    if (!isVecShape(vec)) throw new InterBareSubjectNotVecError(vec);
+    if (!isVec(vec)) throw new InterBareSubjectNotVecError(vec);
     if (vec.length === 0) throw new InterBareEmptyError();
     return [...vec].reduce(interPair);
   },

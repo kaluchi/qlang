@@ -38,12 +38,10 @@ export function astChildrenOf(node) {
       out.push(node.pipeline);
       break;
     case 'VecLit':
-    case 'JsonArrayLit':
     case 'SetLit':
       for (const elem of node.elements) out.push(elem);
       break;
     case 'MapLit':
-    case 'JsonObjectLit':
     case 'ErrorLit':
       for (const entry of node.entries) out.push(entry);
       break;
@@ -109,11 +107,9 @@ export function isPureLiteralAst(node) {
     case 'BareTypeKeyword':
       return true;
     case 'VecLit':
-    case 'JsonArrayLit':
     case 'SetLit':
       return node.elements.every(isPureLiteralAst);
     case 'MapLit':
-    case 'JsonObjectLit':
     case 'ErrorLit':
       return node.entries.every(e => isPureLiteralAst(e.value));
     case 'TaggedLit':

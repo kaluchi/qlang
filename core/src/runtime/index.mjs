@@ -13,7 +13,7 @@
 //        runtime tag-bindings (projection, combinator, parser,
 //        AST codec, dispatch, registry, session, render).
 //      - tag.qlang: value-class constructors (::conduit,
-//        ::qlang, ::json).
+//        ::quote, ::builtin).
 //      Each operand BindStep binds an identifier to a descriptor
 //      Map stamped with `::builtin` identity on its JS-header slot
 //      plus a `:impl :qlang/prim/<name>` keyword that resolves

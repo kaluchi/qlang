@@ -1,4 +1,4 @@
-|~ Value-class tag-bindings — ::conduit, ::qlang, ::json, ::quote,
+|~ Value-class tag-bindings — ::conduit, ::quote, ::builtin,
    and the tags of a quote's steps. Each constructor declares its
    identity through ::builtin{…} with an :impl keyword pointing
    into PRIMITIVE_REGISTRY at the JS-side constructor that mints
@@ -109,29 +109,6 @@
         |  eq [::ConduitParameterNoCapturedArgsError :n 1]
        )
   ~~|
-
-::qlang
-  |~~ ::qlang<json-shape> — recursively convert a JSON-shape
-      payload (plain object → qlang Map with keyword keys, plain
-      array → qlang Vec) down through every nested level. Scalars,
-      keywords, sets, and errors pass through unchanged — only
-      the container shape is touched.
-
-      ~(::qlang{"k": "v"} | type | eq :map | eq true)
-  ~~|
-  ::builtin{:impl :qlang/type/qlang}
-
-::json
-  |~~ ::json<qlang-shape> — recursively convert a qlang-shape
-      payload (qlang Map → JSON Object, qlang Vec → JSON Array;
-      both stamped with the appropriate JSON_*_TAG Symbol so
-      `type` answers `:jsonObject` / `:jsonArray` for them) down through
-      every nested level. Scalars, keywords, sets, and errors
-      pass through unchanged.
-
-      ~(::json{:k "v"} | type | eq :jsonObject | eq true)
-  ~~|
-  ::builtin{:impl :qlang/type/json}
 
 ::quote
   |~~ Code as data — a vector of steps under the code tag, the

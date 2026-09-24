@@ -1552,8 +1552,8 @@ PRIMITIVE_REGISTRY.bind('qlang/prim/duration', (payload) => {
 |~| → 10800
 ```
 
-The runtime catalog uses this path for `::conduit`, `::qlang`,
-`::json` (see `core/src/runtime/tagged.mjs`); host integrations
+The runtime catalog uses this path for `::conduit` and `::builtin`
+(see `core/src/runtime/tagged.mjs`); host integrations
 register their own native types the same way.
 
 A descriptor whose `:impl` is neither a Keyword handle nor
@@ -2270,9 +2270,7 @@ so the [number](#number) rule keeps them out of source, and
 host installed.
 
 The strict tier covers: Number, String, Boolean, Null, Keyword,
-TagKeyword, Vec, Map, Set, JSON-Object, JSON-Array, Error, Quote,
-Doc, plus the constructor-lifted plain shapes (`::qlang<…>` →
-Map, `::json<…>` → JsonObject).
+TagKeyword, Vec, Map, Set, Error, Quote, Doc.
 
 ### Print-idempotency tier — Conduit
 

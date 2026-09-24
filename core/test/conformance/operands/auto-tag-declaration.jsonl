@@ -8,7 +8,6 @@
 {"name":"auto-decl-scalar-payload-wraps","query":"::AutoScalar(42) | type","expect":"::AutoScalar"}
 {"name":"auto-decl-scalar-payload-roundtrip","query":"::AutoScalar(42) | payload","expect":"42"}
 {"name":"auto-decl-jsonarray-payload-composite","query":"::AutoJson(::json[1 2 3]) | type","expect":"::AutoJson"}
-{"name":"auto-decl-jsonarray-payload-keeps-json-shape","query":"::AutoJson(::json[1 2 3]) | payload | type","expect":":jsonArray"}
 {"name":"auto-decl-two-uses-same-tag-reuse-binding","query":"::AutoFoo[1] | ::AutoFoo[2] | manifest :tag | filter ~(/name | eq \"::AutoFoo\") | count","expect":"1"}
 {"name":"auto-decl-distinct-tags-each-decl-once","query":"::AutoA[1] | ::AutoB[2] | manifest :tag | filter ~(at :declarationOrigin | eq :implicit) | count | gt 1","expect":"true"}
 {"name":"auto-decl-bare-tag-keyword-does-not-trigger","query":"::AutoBareOnly | manifest :tag | filter ~(/name | eq \"::AutoBareOnly\") | count","expect":"0"}

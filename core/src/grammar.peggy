@@ -84,15 +84,6 @@
   function isPlainCommentStep(astNode) {
     return PLAIN_COMMENT_STEP_TYPES.has(astNode.type);
   }
-
-  // The words whose single-element vector reads as a JSON array.
-  const JSON_ONLY_AST_TYPES = new Set([
-    'NumberLit', 'StringLit', 'BooleanLit', 'NullLit',
-    'JsonObjectLit', 'JsonArrayLit'
-  ]);
-  function isJsonOnlyAst(astNode) {
-    return JSON_ONLY_AST_TYPES.has(astNode.type);
-  }
 }}
 
 {
@@ -544,11 +535,12 @@ ErrorLit
   / "!{" _L head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _L "}"
     { return node('ErrorLit', { entries: [head, ...tail] }, location(), text()); }
 
-// Braces with string keys and commas read as a JSON object, braces with
-// keywords and whitespace as a map; a literal mixing the two is refused.
+// Braces with string keys and commas are JSON syntax for a map, whose
+// keys read as the keywords of their strings; a literal mixing the two
+// spellings is refused.
 MapLit
   = "{" _L head:JsonMapEntry tail:(_L "," _L @JsonMapEntry)* _L "}"
-    { return node('JsonObjectLit', { entries: [head, ...tail] }, location(), text()); }
+    { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
   / "{" _L head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _L "}"
     { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
   / "{" _L "}"
@@ -570,13 +562,11 @@ SetLit
   / "#[" _L elements:ElementList _L "]"
     { return node('SetLit', { elements }, location(), text()); }
 
-// Brackets with commas read as a JSON array, and so does a single
-// element JSON has; whitespace-separated elements read as a vector.
+// Brackets with commas are JSON syntax for a vector; whitespace-separated
+// elements are the vector's own.
 VecLit
   = "[" _L head:Element tail:(_L "," _L @Element)+ _L "]"
-    { return node('JsonArrayLit', { elements: [head, ...tail] }, location(), text()); }
-  / "[" _L head:Element _L "]" & { return isJsonOnlyAst(head); }
-    { return node('JsonArrayLit', { elements: [head] }, location(), text()); }
+    { return node('VecLit', { elements: [head, ...tail] }, location(), text()); }
   / "[" _L elements:ElementList _L "]"
     { return node('VecLit', { elements }, location(), text()); }
   / "[" _L "]"

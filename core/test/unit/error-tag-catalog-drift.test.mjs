@@ -64,7 +64,7 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 // tags, and raise errors rather than being ones, so the axes below
 // read them out by kind.
 const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
-  '::builtin', '::conduit', '::json', '::qlang',
+  '::builtin', '::conduit',
   '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
 ]);
 

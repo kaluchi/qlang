@@ -142,11 +142,11 @@ describe('parse — Vec literal', () => {
     expect(ast.elements[1].type).toBe('VecLit');
   });
 
-  it('parses a nested Vec where each inner is single JSON-only', () => {
+  it('parses a nested Vec whose inner vectors hold one element each', () => {
     const ast = parse('[[1] [2]]');
     expect(ast.type).toBe('VecLit');
-    expect(ast.elements[0].type).toBe('JsonArrayLit');
-    expect(ast.elements[1].type).toBe('JsonArrayLit');
+    expect(ast.elements[0].type).toBe('VecLit');
+    expect(ast.elements[1].type).toBe('VecLit');
   });
 });
 
@@ -535,7 +535,7 @@ describe('parse — projection with digit-led / hyphen-led bare segments', () =>
 describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
   it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
     const ast = parse('{ "name" : "alice" }');
-    expect(ast.type).toBe('JsonObjectLit');
+    expect(ast.type).toBe('MapLit');
     expect(ast.entries).toHaveLength(1);
     expect(ast.entries[0].key.name).toBe('name');
     expect(ast.entries[0].value.value).toBe('alice');
@@ -544,7 +544,7 @@ describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
   it('accepts whitespace around colon with digit-led string key', () => {
     const ast = parse('{ "0" : [0, 1] }');
     expect(ast.entries[0].key.name).toBe('0');
-    expect(ast.entries[0].value.type).toBe('JsonArrayLit');
+    expect(ast.entries[0].value.type).toBe('VecLit');
   });
 
   it('accepts newline between string key and colon', () => {

@@ -31,7 +31,7 @@ import {
   declareArityError
 } from '../errors.mjs';
 import {
-  keyword, isQMap, isSnapshot, isJsonArray, makeTaggedInstance,
+  keyword, isQMap, isSnapshot, makeTaggedInstance,
   TAG_HEADER_SYMBOL, stampTagHeader
 } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
@@ -105,17 +105,10 @@ export async function mintUnderTag(state, tag, value) {
 // tag naturally — the operand body knows whether its output is
 // the same value-class as its input.
 async function applyTagPreservation(state, source, result) {
-  // JsonArray hardening — `containerLikeOf` returns the mint
-  // unfrozen so the post-pass freezes after any header stamping.
-  // Both the tagged and untagged exits go through `freezeIfJsonArray`
-  // so freezing is not coupled to the tag-stamping path.
   // Optional chaining on source handles a `null` pipeValue safely
   // — `null?.[Symbol]` yields undefined and falls through here.
   const sourceTag = source?.[TAG_HEADER_SYMBOL];
-  if (sourceTag === undefined) {
-    freezeIfJsonArray(result);
-    return result;
-  }
+  if (sourceTag === undefined) return result;
   if (tagCarriesConstructor(state, sourceTag.name)) {
     const { mintTaggedInstance } = await import('../eval.mjs');
     return await mintTaggedInstance(sourceTag.name, result, state);
@@ -123,16 +116,11 @@ async function applyTagPreservation(state, source, result) {
   // `result[TAG_HEADER_SYMBOL]` reads safely through every
   // `preservesTag` return shape — those operands (filter / sort
   // / take / drop / reverse / flat / distinct) always
-  // produce composite Vec / Set / Map / JsonArray. A preserve-
+  // produce composite Vec / Set / Map. A preserve-
   // path operand that returns a primitive surfaces the contract
   // bug as a TypeError at the operand site.
   if (result[TAG_HEADER_SYMBOL] === undefined) stampTagHeader(result, sourceTag);
-  freezeIfJsonArray(result);
   return result;
-}
-
-function freezeIfJsonArray(value) {
-  if (isJsonArray(value) && !Object.isFrozen(value)) Object.freeze(value);
 }
 
 export function valueOp(name, n, impl, options = {}) {

@@ -16,16 +16,16 @@ import { declareShapeError } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
-  keyword, typeKeyword, isVecShape, isQMap, isQuote, isKeyword, isTagKeyword, isString,
-  makeQuote, makeTaggedInstance,
-  CALL_TAG, PROJ_TAG, BIND_TAG, TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG
+  keyword, typeKeyword, isQMap, isQuote, isKeyword, isTagKeyword,
+  isString, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
+  TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
 const QuotePayloadNotVecError = declareSubjectError('QuotePayloadNotVecError', '::quote', 'vec');
 const QuoteElementNotStepError = declareElementError('QuoteElementNotStepError', '::quote', 'step');
 
 function quoteConstructor(payload) {
-  if (!isVecShape(payload)) throw new QuotePayloadNotVecError(payload);
+  if (!isVec(payload)) throw new QuotePayloadNotVecError(payload);
   payload.forEach((element, index) => {
     if (!isStep(element)) throw new QuoteElementNotStepError(index, element);
   });
@@ -57,7 +57,7 @@ const readBackMessage = operand => ({ printed }) =>
 
 // ── records ────────────────────────────────────────────────────
 
-const vecOf = isElement => value => isVecShape(value) && value.every(isElement);
+const vecOf = isElement => value => isVec(value) && value.every(isElement);
 const isSegment = segment => isKeyword(segment) || Number.isInteger(segment);
 const isBindName = name => isKeyword(name) || isTagKeyword(name);
 const isBodyStep = step => isElementStep(step) || isCommandStep(step);

@@ -42,17 +42,14 @@
 
 :has
   |~~ Returns true if the Map contains the key, or if the Set
-      contains the value. Polymorphic on subject type. On every
-      Map-shape subject the key argument accepts either a
-      Keyword or a String — both normalise to the storage-side
-      String (`key.name` for Keyword, identity for String), so
-      `has :k` works uniformly over qlang Map and JsonObject
-      and the `keys | first | has _` chain composes regardless
-      of `keys`' shape on the source.
+      contains the value. Polymorphic on subject type. On a Map
+      subject the key argument accepts either a Keyword or a
+      String — both normalise to the storage-side String
+      (`key.name` for Keyword, identity for String), so the
+      `keys | first | has _` chain composes.
 
       ~({:name "Alice"} | has :name | eq true)
-      ~(::json{:name "Alice"} | has "name" | eq true)
-      ~(::json{:name "Alice"} | has :name | eq true)
+      ~({:name "Alice"} | has "name" | eq true)
       ~(#[:a :b :c] | has :b | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/has

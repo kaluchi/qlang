@@ -331,22 +331,21 @@ sentence and how to check it.
 
 ## The core that stays
 
-Holding the tree against those principles confirms the core rather
-than shaking it. The evaluator threads a frozen pair of value and
-environment through steps, and every step returns a fresh pair; the
-only bookkeeping beyond the pair is a depth counter that stops runaway
-recursion. The `|` combinator applies a step and deflects on an error,
-recording the skipped step on the error's trail; `*` forks a step over
-each element and keeps a per-element error as a value inside the
-result; `!|` is the only combinator that fires on an error, and `|`,
-`*` and `>>` step around it. Parentheses, vectors, maps, sets, and
-error literals all obey one fork rule: the inner pipeline starts from
-the outer state and returns only its value, which is where every
-scoping rule in the reference comes from. A literal is a step that
-replaces the value, and the values it builds fork against the outer
-value, which is what makes reshaping a matter of writing the shape you
-want. Projection walks a path with strict misses. Application is
-subject-first.
+Holding the tree against those principles confirms the core rather than
+shaking it. The evaluator threads a frozen pair of value and environment
+through steps, and every step returns a fresh pair; the only bookkeeping
+beyond the pair is a depth counter that stops runaway recursion. The `|`
+combinator applies a step and deflects on an error, recording the
+skipped step on the error's trail; `*` forks a step over each element
+and keeps a per-element error as a value inside the result; `!|` is the
+only combinator that fires on an error, and `|` and `*` step around it
+[D51]. Parentheses, vectors, maps, sets, and error literals all obey one
+fork rule: the inner pipeline starts from the outer state and returns
+only its value, which is where every scoping rule in the reference comes
+from. A literal is a step that replaces the value, and the values it
+builds fork against the outer value, which is what makes reshaping a
+matter of writing the shape you want. Projection walks a path with
+strict misses. Application is subject-first.
 
 Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. The error is a
@@ -1430,11 +1429,11 @@ declared and documented in the catalog, `::call`, `::proj`, `::bind` or
 type` answers 6, so a step listens on one track and is skipped on the
 other; the fail track begins where a step produces an error and ends at
 the first step that listens on it, which receives the error as data, so
-`"x" | add(1) !| / | 5` answers 5 today. The group, the fail track, the
-distribute and the flatten are therefore attributes of a step, each a
-tag stacked on the quote of that step, `::group`, `::fail`, `::each` and
-`::flat`, as `::T[1 2] | tag(::U)` already stacks to `::U::T[1 2]`,
-while `|` is the adjacency of the vector.
+`"x" | add(1) !| / | 5` answers 5 today. The group, the fail track and
+the distribute are therefore attributes of a step, each a tag stacked on
+the quote of that step, `::group`, `::fail` and `::each`, as `::T[1 2] |
+tag(::U)` already stacks to `::U::T[1 2]`, while `|` is the adjacency of
+the vector.
 
 The head of a pipeline is a step like the others and rides `|` unless
 tagged otherwise, and that is a change: today the head of a query, of a
@@ -1453,20 +1452,20 @@ already left `:kind` behind; the parser's tree with its positions and
 text never leaves the runtime, staying available to the tools as a
 separate view.
 
-`parse` reads text into a quote and its inverse prints a quote as
-text, the way `keyword` flips a string and a keyword, and equality
-over quotes is structural. Running code held as data is one operation,
-subject first [D9]: `apply q` runs the quote against the subject under
-the fork rule, the parenthesised group is the same run written as a
-literal, the wrapper tag on a quote that stands beside the distribute,
-the flatten and the fail track, so that `(x)` behaves as `apply ~(x)`
-while its datum carries no doubled quote, and `eval`, being `apply /`,
-leaves with the ring; today `apply` takes the code as its subject and
-lets the declarations made inside leak out, while the group keeps the
-fork rule. A trail replays as `err !| :t /trail | 5 | apply t`, the
-declaration standing on the fail track because a declaration is a
-transparent step and hands the descriptor on as data, which `"x" |
-add(1) !| :t /trail | 5` answering `5` today confirms.
+`parse` reads text into a quote and its inverse prints a quote as text,
+the way `keyword` flips a string and a keyword, and equality over quotes
+is structural. Running code held as data is one operation, subject first
+[D9]: `apply q` runs the quote against the subject under the fork rule,
+the parenthesised group is the same run written as a literal, the
+wrapper tag on a quote that stands beside the distribute and the fail
+track, so that `(x)` behaves as `apply ~(x)` while its datum carries no
+doubled quote, and `eval`, being `apply /`, leaves with the ring; today
+`apply` takes the code as its subject and lets the declarations made
+inside leak out, while the group keeps the fork rule. A trail replays as
+`err !| :t /trail | 5 | apply t`, the declaration standing on the fail
+track because a declaration is a transparent step and hands the
+descriptor on as data, which `"x" | add(1) !| :t /trail | 5` answering
+`5` today confirms.
 
 A quote held as data carries no environment; its names resolve where it
 is applied. The closure of the language is the binding, which carries
@@ -1495,27 +1494,34 @@ Templates with holes are not needed: a hole is a free name of a quote
 held as data.
 
 Taking a quote apart and putting it back is the same pair of moves at
-every level. `payload` peels the tag from a quote, a record or a
-wrapped step, and `tag` puts it back; `[type payload] | tag` is the
-identity on every tagged value today, and `payload | type` answers the
-container shape beneath a tag. The literal of whatever `payload` shows
-rebuilds it: a vector literal, a map literal, a quote literal, then
-`tag`. A field of a record that holds a pipeline holds a quote, and a
-field that holds a word holds that word's step, the modifiers of a
-command among them, since a modifier is one word [D10]: a literal is
-itself, a quote literal included, a name or a projection is its record,
-and a group is its quote under `::group`, so `add ~(x)` and `add x` keep
-apart as `[~(x)]` and `[::call{:name :x}]` and no quote is doubled
-[D47]. The obvious assembly is the right one, `{:name :filter :args
-[~(gt 1)]} | tag ::call` being `filter ~(gt 1)`, and a wrong one is
-refused by the record's constructor at construction rather than accepted
-as a program that runs. The binding record says by its field whether it
-holds code or a value, `:code` for a verb and `:body` for a value
-evaluated at declaration. What remains to know is one rule: a
-declaration with a slot list is a verb whose code is its quote body, and
-every other declaration names a value, a quote included [D44]. The ring
-branch also decides `>>`, sugar over `flat`, before it encodes the
-flatten, since a form encodes no combinator a later branch would remove.
+every level. `payload` peels the tag from a quote, a record or a wrapped
+step, and `tag` puts it back; `[type payload] | tag` is the identity on
+every tagged value today, and `payload | type` answers the container
+shape beneath a tag. The literal of whatever `payload` shows rebuilds
+it: a vector literal, a map literal, a quote literal, then `tag`. A
+field of a record that holds a pipeline holds a quote, and a field that
+holds a word holds that word's step, the modifiers of a command among
+them, since a modifier is one word [D10]: a literal is itself, a quote
+literal included, a name or a projection is its record, and a group is
+its quote under `::group`, so `add ~(x)` and `add x` keep apart as
+`[~(x)]` and `[::call{:name :x}]` and no quote is doubled [D47]. The
+obvious assembly is the right one, `{:name :filter :args [~(gt 1)]} |
+tag ::call` being `filter ~(gt 1)`, and a wrong one is refused by the
+record's constructor at construction rather than accepted as a program
+that runs. The binding record says by its field whether it holds code or
+a value, `:code` for a verb and `:body` for a value evaluated at
+declaration. What remains to know is one rule: a declaration with a slot
+list is a verb whose code is its quote body, and every other declaration
+names a value, a quote included [D44]. `>>` leaves before the form could
+encode it, since two steps say what it said [D51]:
+
+```qlang
+> [[1 2] [3 [4]]] >> count
+4
+
+> [[1 2] [3 [4]]] | flat | count
+4
+```
 
 The same moves take any value apart into atoms and build it back
 [D42], and today they reach as far as projections and literals do.
@@ -3150,6 +3156,8 @@ September, which doubles the quote of every code modifier once D43 makes
 code a quote and asks an assembler to wrap a literal as `~(1)`. The
 names with a capital, `::Call`, which the first sketch used and the
 core's kinds do not.
+Replaced in part by D51, under which `>>` leaves and `::flat` with it,
+so the form speaks with seven tags.
 
 ### D48 · The order of the kinds
 
@@ -3227,6 +3235,22 @@ clojure.spec, which JSON-shaped data and the sessions trained on it do
 not expect and the tags of values make unnecessary. Documenting every
 field on every tag that carries it, which gives a shared field as many
 documents as it has records.
+
+### D51 · `>>` leaves
+
+Decision. The flatten combinator leaves the language: `x >> f` is `x |
+flat | f`, and the operand `flat` already says it. With it go its tokens
+in the grammar, its branch in the evaluator and its refusal, its syntax
+in a trail, its token in the editor's grammar, and its tag in the data
+form, `::flat`, so the form speaks with seven tags [D47]; its
+conformance cases go with it, and the two examples of the catalog that
+use it are written with `flat`.
+Source. The model, 24 September 2026, at the opening of the ring branch,
+which this document left to decide it before encoding it; the maintainer
+asked «а что с судьбой >> ? операндом заменить или что ?» (maintainer,
+2026-09-24 01:04, session 86982eb5), and no operand is needed.
+Set aside. Keeping `>>`, which spends a token, a production, a branch of
+the evaluator and a tag of the data form on what two steps already say.
 
 ## The finish
 
@@ -3454,10 +3478,12 @@ this milestone closes.
 ### Milestone 1 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring closes
-first [D3, D8, D9, D47]; the command form follows on its heels [D10,
-D11], because the step's form is what the printer prints and what every
-trail, snippet and example carries, and the parser of the call form
-together with the printer of the command form rewrites every text of the
+first [D3, D8, D9, D47, D51] and keeps the surface of today, the
+spelling of a quote included; the command form follows on its heels
+[D10, D11] and changes the whole surface at once, `~(…)` with it,
+because the step's form is what the printer prints and what every trail,
+snippet and example carries, and the parser of the call form together
+with the printer of the command form rewrites every text of the
 repository and of the sister project by machine, taking the tilde of
 each code slot from the kinds the catalog declares for its slots today
 [D43], so each later branch writes its examples once; the argument model
@@ -3517,14 +3543,13 @@ once, at declaration, and that is how `as` is spelled once it is gone.
 Beside the answers: `parse` and its inverse round-trip every example of
 the catalog; taking every example apart into atoms and a shape and
 putting it back, both written in qlang, answers an `eq` value [D42]; a
-wrong assembly is refused by a constructor; `filter (gt 1)`, which
-works today, is refused, since its group computes a value where code
-is expected [D43]; a second declaration of a name in one scope is
-refused [D44];
-`isError` and `eval` are gone; `>>` is deleted or kept by the ring
-branch's description; the argument comma is gone from the grammar; the
-seven wrappers are gone; no snapshot unwrap remains; the declarations
-of the catalog are true, since the runtime executes them.
+wrong assembly is refused by a constructor; `filter (gt 1)`, which works
+today, is refused, since its group computes a value where code is
+expected [D43]; a second declaration of a name in one scope is refused
+[D44]; `isError` and `eval` are gone; `>>` is gone [D51]; the argument
+comma is gone from the grammar; the seven wrappers are gone; no snapshot
+unwrap remains; the declarations of the catalog are true, since the
+runtime executes them.
 
 ### Milestone 2 · Values
 
@@ -3752,9 +3777,6 @@ form have landed, because it amends the state pair.
 
 The error library. It either enters the catalog with examples, as
 pipelines built on the refusal tags, or leaves the package.
-
-The flatten combinator. `>>` is sugar over `flat`; the ring branch
-decides whether it survives before it encodes it.
 
 The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog

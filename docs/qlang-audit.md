@@ -1019,9 +1019,10 @@ implementation set the flag, and the loss is silent:
 The kind of an operand's result belongs to its declaration [D4, D41].
 
 A duplicate key in a map literal, in either spelling, reads as
-`JSON.parse` reads it, the last value in the first position, and the
-boundary reads the same, so a document means one thing whether it was
-pasted into a query or piped into it [D18].
+`JSON.parse` reads it, the last value in the first position,
+`{:a 1 :b 2 :a 3} | vals` answering `[3 2]`, and the boundary reads the
+same, so a document means one thing whether it was pasted into a query
+or piped into it [D18].
 
 A map is a record and a dictionary at once, insertion-ordered, equal
 to another by its keys. Its elements are its values and its keys are

@@ -348,31 +348,31 @@ value, which is what makes reshaping a matter of writing the shape you
 want. Projection walks a path with strict misses. Application is
 subject-first.
 
-Naming is lexical: a binding sees itself and everything declared
-before it, and recursion through the pipeline value is correct. The
-error is a value with a tag and a descriptor; its trail is a quote of
-the steps it skipped, and applying that quote to a fresh subject
-replays them. Quote is code as a value, Doc is prose as a value, and a
-tag names the kind of a value and is stamped on it without changing
-its shape. The catalog is qlang source: every operand is a binding with
-prose and examples, four axis operands read a binding's source, prose,
-examples, and declared facts, `manifest` enumerates what exists, and
-`runExamples` executes a binding's examples as tests. The self-test
-over the whole catalog runs in under a second.
+Naming is lexical: a binding sees itself and everything declared before
+it, and recursion through the pipeline value is correct. The error is a
+value with a tag and a descriptor; its trail is a quote of the steps it
+skipped, and applying that quote to a fresh subject replays them. A
+quote is code as a value, a doc is prose as a value, and a tag names the
+kind of a value and is stamped on it without changing its shape. The
+catalog is qlang source: every operand is a binding with prose and
+examples, four axis operands read a binding's source, prose, examples,
+and declared facts, `manifest` enumerates what exists, and `runExamples`
+executes a binding's examples as tests. The self-test over the whole
+catalog runs in under a second.
 
 Three of these are in the core for reasons the mechanisms do not show.
-The fail track is there because a session that is learning a tool
-fails often, and a failure is the moment when the relevant knowledge
-is cheapest to deliver: the error travels as data so that whatever
-stands after it, a step of the query, the host's renderer, a separate
-utility, can enrich it with the document, the example and the names
-that were near. Doc and Quote are values so that an answer can be a
-page, data with prose and runnable snippets in one immutable value that
-still fits the next step; a Doc is markdown in essence, carrying quotes
-of qlang the way a markdown page carries a snippet of any language. And
-a literal is the format in which values travel between utilities as
-well as the way they print, which is why everything, code included,
-reads back as what it was.
+The fail track is there because a session that is learning a tool fails
+often, and a failure is the moment when the relevant knowledge is
+cheapest to deliver: the error travels as data so that whatever stands
+after it, a step of the query, the host's renderer, a separate utility,
+can enrich it with the document, the example and the names that were
+near. A doc and a quote are values so that an answer can be a page, data
+with prose and runnable snippets in one immutable value that still fits
+the next step; a doc is markdown in essence, carrying quotes of qlang
+the way a markdown page carries a snippet of any language. And a literal
+is the format in which values travel between utilities as well as the
+way they print, which is why everything, code included, reads back as
+what it was.
 
 The tag deserves a paragraph of its own, because the project avoided
 the vocabulary of objects on purpose and the choice turns out to carry
@@ -555,11 +555,11 @@ b
 c
 ```
 
-A quote has none, since it holds its code as text, and a Doc offers
+A quote has none, since it holds its code as text, and a doc offers
 its content and its segments and no more, so the guide itself cannot
 be read in pieces. The pageable shape is the vector, and a value that
 can overflow has to break into one: a string through its lines, a
-quote as the vector of its steps, a Doc as the vector of its segments
+quote as the vector of its steps, a doc as the vector of its segments
 [D19].
 
 Next, every tag and keyword inside a value is an anchor that resolves
@@ -590,7 +590,7 @@ days added, in the order the consumer asked for them, comments that
 behave as pipeline steps, effect markers on names, control flow, the
 error as a value, named pipelines with parameters, a module system, a
 language server, the catalog, and a command line. In the middle of May
-the hypertext ideas arrived: Quote, Doc, tags, the axis operands, and
+the hypertext ideas arrived: quote, doc, tags, the axis operands, and
 executable examples. They are the most fundamental concepts in the
 language, and they arrived a month after the grammar had frozen around
 comments, around the `as` operand, and around effect markers. Late May
@@ -615,10 +615,10 @@ constraint on a finished thing and a damaging one on a thing still
 being designed, because each turns a design decision into a rule the
 design can no longer revisit.
 
-Features arrived in the order they were needed rather than in the
-order they depend on each other. Quote arrived after named pipelines
-had already chosen how to pass arguments; Doc arrived after comments
-had already become the way to attach prose; tags arrived after JSON
+Features arrived in the order they were needed rather than in the order
+they depend on each other. The quote arrived after named pipelines had
+already chosen how to pass arguments; the doc arrived after comments had
+already become the way to attach prose; tags arrived after JSON
 containers had become a second type.
 
 Every fix added a guard rather than removing a cause. A drift test
@@ -764,7 +764,7 @@ quote at the call site, and make the kind of every slot a declaration
 the runtime reads, so that the catalog's slot vocabulary stops being
 decoration [D4, D43, D45]. An operand is then a declaration, whatever
 implements it: the tag or the type of its subject, its slots with their
-kinds, code among them, the tag or the type of its result, and its Doc,
+kinds, code among them, the tag or the type of its result, and its doc,
 the kinds written in its slot list. The runtime executes the
 declaration: it checks the subject and every slot before the
 implementation runs, a slot of kind code taking a quote and nothing
@@ -883,7 +883,7 @@ line before ends with, or through `|` when neither has one [D43], so
 an example keeps its combinator first on the line, two declarations
 stand on two lines with nothing between them as the catalog writes
 them, and a module prints as it is written, a step to a line. The
-parts of a binding, the name, its Doc, its parameter vector and its
+parts of a binding, the name, its doc, its parameter vector and its
 body, are no modifiers and may take a line each. A combinator is set
 off by whitespace on both sides, a line break counting as whitespace,
 so the pipe written against a tilde, `|~`, always opens a comment and
@@ -902,7 +902,7 @@ modifier, a map under a tag whose declaration documents its fields,
 command line are data. The binding form stays as it is, a keyword and
 a body; the body is a step, `:six add 1`, and code is a quote, `:inc
 ~(add 1)`. The form is part of the format in which values travel,
-since a trail, a snippet in a Doc and an example all carry it, so it is
+since a trail, a snippet in a doc and an example all carry it, so it is
 settled before the printer exists.
 
 The model's check of the decision's risk, on 23 September 2026: the call
@@ -1096,29 +1096,29 @@ over `keys` with `at`, a vector of records is made from a map through
 `keys` and rebuilt into one through `indexBy`, and `groupBy` and
 `indexBy` answer maps.
 
-One order over all values comes first [D16, D17]: by the type, null,
-boolean, number, string, keyword, tag name, vector, map, and after
-them every tagged value by the name of its tag, so that a null sorts
-first unless a key says otherwise; then within the type as today,
-vectors element by element, maps by their keys and then their values,
-a tagged value by its payload. With it `sort` accepts any vector, a
-vector serves as a compound key and `[(eq null) /]` as one that puts
-nulls last, the comparator operands and the refusals of
+One order over all values comes first [D16, D48]: by the kind, null,
+boolean, number, string, keyword, tag name, vector, set, map, quote,
+doc, error and elision, and after them the hosts' kinds by name, so that
+a null sorts first unless a key says otherwise; then within the kind as
+today, vectors element by element, maps by their keys and then their
+values, a host's value by its payload. With it `sort` accepts any
+vector, a vector serves as a compound key and `[(eq null) /]` as one
+that puts nulls last, the comparator operands and the refusals of
 incomparability go, and the ordering predicates keep their refusal
-through the kind of their slot. The set is then the vector in that
-order without duplicates, under the `::set` tag, `distinct` its
-constructor and `#[…]` its literal, so that `#[3 1 3]` prints as `#[1
-3]` and equality, structural like everywhere, compares two sets by
-their content. Wherever a vector is accepted a set is accepted, since
-it is one; the reverse does not hold. `filter`, `take`, `drop` and `*`
-keep the set, an operand that imposes an order answers a vector, `flat`
-over a set of sets is their union, membership is a binary search and
-the algebra of two sets a merge, and the vector keeps its own
-arithmetic, since `union`, `minus` and `inter` are operations of sets
-and maps. The price is that `distinct` no longer keeps the order of
-first occurrence, `keys` no longer answers in document order, and a
-literal reorders when printed. The JavaScript set goes with its
-literal, its answer from `type`, its branches and its codec envelope.
+through the kind of their slot. The set is then the vector in that order
+without duplicates, under the `::set` tag, `distinct` its constructor
+and `#[…]` its literal, so that `#[3 1 3]` prints as `#[1 3]` and
+equality, structural like everywhere, compares two sets by their
+content. Wherever a vector is accepted a set is accepted, since it is
+one; the reverse does not hold. `filter`, `take`, `drop` and `*` keep
+the set, an operand that imposes an order answers a vector, `flat` over
+a set of sets is their union, membership is a binary search and the
+algebra of two sets a merge, and the vector keeps its own arithmetic,
+since `union`, `minus` and `inter` are operations of sets and maps. The
+price is that `distinct` no longer keeps the order of first occurrence,
+`keys` no longer answers in document order, and a literal reorders when
+printed. The JavaScript set goes with its literal, its answer from
+`type`, its branches and its codec envelope.
 
 ### Two ways to name a thing, and comments that are steps
 
@@ -1161,9 +1161,9 @@ The repair must leave one binding form, in which a body is evaluated at
 declaration and named as a value, a quote included, and a verb is the
 same form with its slot list, which retires `as` and the snapshot
 wrapper [D5, D44]; must make comments trivia at the level of whitespace;
-and must give documentation its own slot with its own literal, which Doc
+and must give documentation its own slot with its own literal, which doc
 already is: the doc form `|~~ … ~~|` is that literal today, a standalone
-Doc value anywhere and the documentation of a binding when it stands
+doc value anywhere and the documentation of a binding when it stands
 between the name and the body, and only the plain forms become
 whitespace. Each role of `as` has its spelling in that form: freezing
 the current value is a binding whose body is `/`, aliasing an operand is
@@ -1277,7 +1277,7 @@ catalog should grow the same way.
 The repair must put the documentation and the origin on the binding
 value, so that the axes read a value instead of searching for a name,
 and the four axes then become projections of one binding record:
-`source`, the Doc, the examples as the quotes among the Doc's segments,
+`source`, the doc, the examples as the quotes among the doc's segments,
 and the declared facts [D5]. It must make a namespace a value with a
 way to obtain it by module name, so that a shadowed binding stays one
 projection away. It must let a module decide its own surface without a
@@ -1395,17 +1395,16 @@ own. A map built by hand fails unless it reproduces that shape:
 
 Editing fares no better, since `union` is shallow and nothing in the
 language updates a nested slot. And the ring has no return path: a map
-can be evaluated but never printed back into a Quote, because no
-printer from the data form to source exists. A query that wants to
-build code builds a string and parses it. Quotes compare by their
-source text, so two quotes of the same code written with different
-spacing are unequal.
+can be evaluated but never printed back into a quote, because no printer
+from the data form to source exists. A query that wants to build code
+builds a string and parses it. A quote compares by its source text, so
+two quotes of the same code written with different spacing are unequal.
 
 The maintainer put this ring first: «кольцо Code as data и инволюция
 вероятно первичны в дизайне по отношению к прочим фичам» (maintainer,
 2026-09-15 02:12, session 268516f5), because the argument model passes
 code as a quote, a binding keeps its source as one, an error's trail is
-one, a Doc's examples are ones, and an effect as a value would be one
+one, a doc's examples are ones, and an effect as a value would be one
 [D3].
 
 The repair must close the ring with a data form made of the language's
@@ -1696,9 +1695,9 @@ the operand document, with three test runners and a script that copies
 from the first plane into the second. The catalog's own examples run
 in under a second and are the only plane the language can reach.
 
-Doc content is tokenized by a second, character-level parser that
-recognizes quotes and tag literals, and it executes the tag literals
-it finds:
+The content of a doc is tokenized by a second, character-level parser
+that recognizes quotes and tag literals, and it executes the tag
+literals it finds:
 
 ```qlang
 > ::builtin | docs | first | /segments * type
@@ -1715,14 +1714,14 @@ same text a third time, with its own loop over braces and strings, to
 strip the quotes for a hover (`lsp/src/features.mjs`,
 `stripQuoteSegments`).
 
-The repair must give the language a root Doc that a fresh session
+The repair must give the language a root doc that a fresh session
 reads first, with a discovery protocol and views sized to a budget,
 the cheap view the default and `:subject` declared as a vector on
 every descriptor so that the view by subject is one filter [D27]. It
 must reduce catalog prose to what the facts do not say, written in the
 language's own vocabulary, with no name of a file, a symbol, a service
 or a section of another document in it. It must make examples live on
-one plane; reduce doc segments to prose and quotes, the Doc being the
+one plane; reduce doc segments to prose and quotes, the doc being the
 vector of those segments under its own tag [D19], parsed once by the
 language's own parser, so that it counts, addresses and slices as every
 vector does, its literal `|~~ … ~~|` is the fourth sigil over the one
@@ -1784,7 +1783,7 @@ the tables are false in places, because nothing executes them:
 
 - The example of a quote-bodied constructor, `::cond`, calls `first`
   with a modifier and an `isTruthy` that does not exist, and fails.
-- The grammar chapter has no quote, no tag, no Doc and no binding form.
+- The grammar chapter has no quote, no tag, no doc and no binding form.
 - The tables of the plain and tagged JSON codecs describe envelopes
   the code does not produce: a vector is `$vec`, and an error does not
   make the plain codec throw.
@@ -1869,7 +1868,7 @@ by an explicit step at the host boundary and by nothing else.
 A host's operands are then named as the core's are, under the rule of
 collisions [D23]. Selecting an operand by the tag of its subject is part
 of that rule. Whether an effect deserves to become a value of its own,
-an action awaiting the host the way a Quote awaits `apply`, is a
+an action awaiting the host the way a quote awaits `apply`, is a
 question for a later branch that would have to show a task no plainer
 construct solves. The repair must also drop the observability fields
 with the error classes; move `table` and `template` to the host that
@@ -1984,7 +1983,7 @@ part:
   command line.
 - Consumers that carry spellings of the language. The language server
   re-derives the snapshot-or-conduit choice of the binding form, scans
-  Doc text with its own loop, and counts commas; the TextMate grammar
+  doc text with its own loop, and counts commas; the TextMate grammar
   hard-codes the slot vocabulary of the catalog; the command line
   carries `template`.
 
@@ -2105,7 +2104,7 @@ Source. «кольцо Code as data и инволюция вероятно пе�
 Decision. A parameter holds a value; code passed to an operand is an
 explicit quote, or the slot is declared as code. Every operand, built
 in, hosted or declared as a pipeline, is a declaration of its subject,
-its slots with their kinds, its result and its Doc, and the runtime
+its slots with their kinds, its result and its doc, and the runtime
 executes it: subject and value slots are checked before the
 implementation runs, code slots are closed at the call site, the result
 is checked after. A reducer or comparator slot supplies its second
@@ -2133,10 +2132,10 @@ body applies.
 Decision. One form, `:name body`: a quote body is code, a bare body is
 evaluated once at declaration against the current value, tags are
 declared through the same form, and `as` and the snapshot go. A
-declaration produces a binding value that carries its name, its Doc,
+declaration produces a binding value that carries its name, its doc,
 its source, the module it came from, and its value or its code; the
 four axes become projections of that record, the examples being the
-quotes among the Doc's segments.
+quotes among the doc's segments.
 Source. The binding as a named result is the maintainer's: «если считать
 биндинг просто как именованным результатом вычисления над тем же
 pipeValue […] без всяких там as(:name)» (maintainer, 2026-09-15 23:14,
@@ -2368,6 +2367,8 @@ the name of its tag; within a type as today.
 Source. The model, 22 September 2026; the place of tag names after
 keywords, the model, 23 September 2026, since the first list omitted
 them.
+Replaced by D48, which places the tagged kinds of the core and the kinds
+of the hosts.
 
 ### D18 · A duplicate key reads as JSON reads it
 
@@ -2379,9 +2380,9 @@ Source. «ок, видимо у нас правильно js-совместим�
 тому все привыкли уже» (maintainer, 2026-09-22 06:17, session
 0ea77851).
 
-### D19 · A Doc is the vector of its segments
+### D19 · A doc is the vector of its segments
 
-Decision. A Doc is the vector of its segments, prose strings and
+Decision. A doc is the vector of its segments, prose strings and
 quotes, under its own tag, parsed once by the language's parser; it
 counts, addresses and slices as a vector; `|~~ … ~~|` is its literal;
 its text is the join of its segments.
@@ -2630,7 +2631,7 @@ they check.
 Decision. Every value has a kind: the outermost tag of its stack, and
 for a value without a tag of its own, the kind of the core its literal
 implies. `[…]` implies the vector, `{…}` the map, `#[…]` the set,
-`~(…)` the quote, `|~~ … ~~|` the Doc, and a number, a string, a
+`~(…)` the quote, `|~~ … ~~|` the doc, and a number, a string, a
 keyword, a tag name, a boolean and null each have their own; a host's
 value carries its tags above one of them. The core's kinds are named
 under its prefix, `::qlang/vec`, `::qlang/map`, `::qlang/number`,
@@ -2658,7 +2659,7 @@ parser has read it, since no kind reads text itself; its JSON form, the
 lossy codec of the boundary, which by default drops the tag and writes
 the payload, and from which only the core's kinds come back; its place
 in the one order, the core fixing the order of its own kinds and the
-hosts' kinds following by name [D17]; and its document, whose examples
+hosts' kinds following by name [D48]; and its document, whose examples
 are its laws. The literal belongs to no kind: one rule of the core
 prints every stack, and `parse(print(v)) = v` holds for every kind and
 is tested with the kind's examples. A rendering, the dark cockpit, a
@@ -2935,10 +2936,10 @@ resolves its names where it is applied. A combinator is set off by
 whitespace on both sides, a line break counting as whitespace and an
 opening bracket or the start of the text standing for the space before
 it, so `|~`, `|~|`, `|~~` and `|~~|` written together always open a
-comment or a Doc, `| ~(add)` is a pipe before a quote, and a
+comment or a doc, `| ~(add)` is a pipe before a quote, and a
 combinator written against its neighbour is refused with a message that
 names the space. A line that ends with a combinator is continued by the
-next line through it [D11]. Inside a Doc only `~(` opens a quote, and
+next line through it [D11]. Inside a doc only `~(` opens a quote, and
 the rest is prose.
 Source. «квота это просто данные и любой их неявный автозапуск может
 удивить .. есни надо выполнить квоту - то против субъекта (apply q) это
@@ -2954,7 +2955,7 @@ session 86982eb5); the short form, «а если как-то доработат�
 checked the same night, as the scar of the call records; «ну и само
 собой полная форма ~(add) остается за главную...» (21:43). The rest, the
 model, 23 September 2026: the reading of modifiers, the canonical fold,
-the refusal and the rule for a Doc in the evening, and that night the
+the refusal and the rule for a doc in the evening, and that night the
 slot that takes code alone, the condition of `if` as a value, the
 clauses of `cond` as quotes and the environment a handed quote carries,
 the last from a probe in which a parameter of the body captures a name
@@ -2966,7 +2967,7 @@ slot it lands in. A bare name that stands for its binding without
 running it, as `+` does in Clojure's `reduce`, which keeps `reduce 0
 add` and makes `take count` a refusal. The quote without a short form,
 which costs two brackets on every reference, and the short form inside
-a Doc too, where `~/.jdtbridge`, `~5` and `~~struck~~` would need
+a doc too, where `~/.jdtbridge`, `~5` and `~~struck~~` would need
 escapes and a forgotten escape breaks a document silently. A new sign
 for a reference, `&add`, which spells code a second way, and a new sign
 for a comment, `#`, which trades the trap at `|~` for one at `#[`. A
@@ -3137,6 +3138,28 @@ code a quote and asks an assembler to wrap a literal as `~(1)`. The
 names with a capital, `::Call`, which the first sketch used and the
 core's kinds do not.
 
+### D48 · The order of the kinds
+
+Decision. Values order first by kind: null, boolean, number, string,
+keyword, tag name, vector, set, map, quote, doc, error and elision, and
+after them the kinds of the hosts by name [D33]. Within a kind the order
+is today's: numbers by value, strings by their code units, vectors
+element by element, a set as its vector, maps by their keys and then
+their values, and a host's value by its payload. The part that JSON has
+is the order of jq, null before false before true before numbers,
+strings, arrays and objects, so a session trained on jq meets no
+surprise; a kind JSON lacks stands beside the one it resembles, the
+keyword and the tag name after the string, the set after the vector, and
+the kinds of code, prose and refusal after the map.
+Source. «д17 ок и остальное что написал тоже ок» (maintainer, 2026-09-24
+00:18, session 86982eb5), answering the model's list of the same night,
+which placed the tagged kinds of the core [D32] and the kinds of the
+hosts [D33] in the order of D17.
+Set aside. The tagged kinds of the core ordered among the hosts' kinds
+by the names of their tags, the reading of D17 before D32, under which a
+host's kind whose name sorts before `quote` would fall between two kinds
+of the core.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3156,8 +3179,8 @@ when the value is built and again after every transform whose
 declaration keeps the tag, `within` editing under a tag and checking
 once at the rewrap [D41]; every value comes apart into its atoms and a
 shape and is built back from them [D42]. The set, the error, the quote,
-the Doc, a host's record and the elision marker are all this one thing:
-`#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a Doc
+the doc, a host's record and the elision marker are all this one thing:
+`#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a doc
 over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
@@ -3165,7 +3188,7 @@ a literal without a tag has one of the core's, which its brackets imply
 and its laws, while one rule of the core prints every literal [D33].
 
 One mechanism of operand. An operand is a declaration of its subject,
-its slots with their kinds, its result and its Doc, and the runtime
+its slots with their kinds, its result and its doc, and the runtime
 executes the declaration. A built-in, a host's operand and a declared
 pipeline are called the same way, checked the same way, documented the
 same way, and help for all of them, completion, the verbs that accept a
@@ -3200,7 +3223,7 @@ its name is mentioned, as a built-in does, so `apply` is only for a
 quote held as a value, from a name, a parameter, `parse`, a trail or a
 literal, and code moved into a declaration answers as it did inline. A
 command without modifiers is the bare name and has no second spelling.
-Comments are whitespace; documentation is a Doc literal in the binding's
+Comments are whitespace; documentation is a doc literal in the binding's
 slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
@@ -3233,7 +3256,7 @@ Fingerprints and terminal conveniences belong to hosts. So do the
 budget of an answer, the elision of what exceeds it, and the enrichment
 of an answer with the documents its tags and keywords lead to; the
 language computes whole values, and every part of a value, a string, a
-quote and a Doc included, has a size, an address and a slice, so what a
+quote and a doc included, has a size, an address and a slice, so what a
 host left out is the same query with a tail. A record that a host wants
 explained carries a tag whose declaration documents its fields, and a
 field shared across kinds is a namespaced attribute documented once.
@@ -3241,7 +3264,7 @@ Code is a value, the quote, a vector of steps made of the language's
 values with an involution to and from its text, so a query reads,
 counts, transforms, and assembles code without leaving the language.
 
-The catalog is the documentation. A root Doc is the first thing a
+The catalog is the documentation. A root doc is the first thing a
 session reads: what the language is in a sentence, what a tag is in a
 sentence, how to discover with `manifest`, `docs`, `examples`, and
 `spec`, how to read an error, and a few seed pipelines that a grep
@@ -3282,7 +3305,7 @@ them may name them otherwise.
 - The catalog, in qlang: operands with declarations that are true
   because they are executed, the tag of every refusing site as a kind
   with its schema and its procedure, other tags with schemas, and the
-  root Doc. The implementations of the operands are plain functions
+  root doc. The implementations of the operands are plain functions
   beside it.
 - The tool views: the walker of the parser's tree and the tokenizer
   for highlighting, derived from the grammar, for the language server,
@@ -3295,7 +3318,7 @@ on them; the classes of errors with their factories, the registry of
 throw sites, the stamping passes and the converter's tables; the
 primitive registry with its sealing; tagged JSON and the session
 envelope; the codec of syntax trees as maps, since the quote is the data
-form; the effect marker and its checks; the character scanner of Doc
+form; the effect marker and its checks; the character scanner of doc
 text; the housekeeping keys of the environment; the history of cells;
 the resolver of module directories; the call to the parser from outside
 `parse`; the error prose of the catalog that restates the facts; the
@@ -3325,7 +3348,7 @@ rendering at the end of the pipe, no `table`, no `template`. The
 language server reads the declarations and the parser's tree and
 nothing else. The editor's
 grammar is generated from the grammar's tokens or reduced to what the
-language server cannot give. The site renders the root Doc and the
+language server cannot give. The site renders the root doc and the
 catalog or is reduced to the playground. The sister project builds on
 the workspace copy, generates its guide from the catalog, tags its
 nodes, mounts its types and its workspaces [D38], and speaks through
@@ -3372,7 +3395,7 @@ each code slot from the kinds the catalog declares for its slots today
 [D43], so each later branch writes its examples once; the argument model
 follows [D4, D43, D45], with the interface of hosts designed in the same
 branch and landed in every host; the one binding form closes the
-milestone [D5, D44], with comments as whitespace and the Doc literal in
+milestone [D5, D44], with comments as whitespace and the doc literal in
 the binding's slot.
 
 ```qlang target
@@ -3438,7 +3461,7 @@ of the catalog are true, since the runtime executes them.
 ### Milestone 2 · Values
 
 The semantics are final. The one order lands first, since containers and
-sets rest on it [D16, D17]; then the single container family with the
+sets rest on it [D16, D48]; then the single container family with the
 rule for maps and the reading of duplicate keys [D1, D15, D18]; then the
 set as the ordered vector; then the kinds, every value with one and
 every bare literal with the core's, the contracts moving onto them [D32,
@@ -3466,6 +3489,9 @@ true
 
 > [3 null "x" 1] | sort
 [null 1 3 "x"]
+
+> [{:a 1} [2] "x" :k null 3 true #[1] ~(add 1)] | sort
+[null true 3 "x" :k [2] #[1] {:a 1} ~(add 1)]
 
 > #[3 1 3]
 #[1 3]
@@ -3505,8 +3531,8 @@ mounted namespaces arrive with it [D24], each a subtree answered by its
 provider, the subject opening its own [D35, D36]; collisions get their
 rule [D23, D34], and a host's verbs move onto its tags; the literal
 becomes the one lossless format and tagged JSON and the session envelope
-go [D30]; the Doc becomes the vector of its segments, and strings,
-quotes and Docs read in pieces [D19]; the documents are generated or
+go [D30]; the doc becomes the vector of its segments, and strings,
+quotes and docs read in pieces [D19]; the documents are generated or
 deleted, the examples live on one plane, the bootstrap has one stamping
 site, the keyword's form comes from the parser, the error library is
 decided, and the editor's grammar is generated or reduced; the consumers
@@ -3539,7 +3565,7 @@ definition of a name and which one wins.
 
 ### Milestone 4 · Front door
 
-The measure can be taken as the mission states it. The root Doc and the
+The measure can be taken as the mission states it. The root doc and the
 views sized to a budget arrive, the cheap view the default [D27]; the
 catalog's prose is reduced to what the facts do not say and written in
 the language's own vocabulary; answers stay within a budget and replace
@@ -3560,7 +3586,7 @@ first value [D37]; and the benchmark runs [D26].
 
 Beside the answer, whose tag and field name are placeholders: `manifest`
 answers by default a view of names that fits the first screen; one start
-command returns the root Doc within four kilobytes; a host answers
+command returns the root doc within four kilobytes; a host answers
 within a budget and marks what it left out with its size and the query
 that reads it, an error's input included; a parse error prints without
 the parser's list of alternatives; `:trail` prints the same way on an
@@ -3570,7 +3596,7 @@ documents of the tags and keywords an answer carries that the session
 has not been shown, and withholds the ones it has.
 
 After the fifth milestone the remaining surfaces follow: the site is
-decided, rendering the root Doc and the catalog or reduced to the
+decided, rendering the root doc and the catalog or reduced to the
 playground; the coverage threshold applies to the language core alone,
 with the other workspaces under a rule without a number; the external
 reviewer is a signal at milestones and no branch waits on its findings.

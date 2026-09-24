@@ -4102,6 +4102,37 @@ The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
 
+The contract of a verb [D45, D46, D57]. «наверное такой контакт чуть ли
+не отдельным способом описывается.. типа интерфейс вызова .. что там
+умного у кложуры было или что ты можешь подходящего для нас и не костыль
+и эмержентно сочетающегося со всем предложить?» (maintainer, 2026-09-24
+06:37, session 86982eb5), and «и там ты тоже выше хорошо упоминал про
+билтины .. оно ведь рядом тоже.. все фактически к глаголу относится, как
+ты сказал.. я просто затупил» (06:40). The model's reading: the contract
+is the verb's declaration read as data, one for a built-in and for a
+declared verb, and the axis `spec` answers it as a value. Today it
+answers the descriptor, `:gt | spec | [/subject /modifiers /returns]`
+answering `[:number [:number] :boolean]`, with the tags of the refusals
+under `:throws`; under D57 it answers the head, the kind the last step
+of the body tags or the built-in's `:returns`, and the tags of the
+verb's sites [D46]. Clojure writes a contract beside the definition,
+`s/fdef` with `:args`, `:ret` and `:fn` in a registry keyed by the
+function's name, a second spelling of what the declaration says, the
+drift D45 set aside. What it teaches without that price: the meaning of
+an attribute is declared once and reused wherever the attribute stands,
+which the language keeps in a kind, a tag with its doc and its schema or
+constructor [D6, D50]; optionality is a property of the context that
+asks for an attribute, the lesson of the schema and select of its second
+spec, so in the open question of optional slots the mark stands in the
+head beside the slot and a kind means the same wherever it is taken; and
+the vocabulary of a kind is the set of verbs that take it as their
+subject, which its protocols declare and the language computes,
+`manifest | filter ~(/subject | eq :string) * /name` answering the verbs
+on strings [D34]. A pre- or postcondition written as code is a head that
+computes; a constraint is a kind whose constructor checks it [D6, D33],
+and the runtime checks every call against the declaration [D45], where
+Clojure's instrumentation is a mode switched on for development.
+
 Optional and variadic slots [D45]. `sort` takes a key or none, `cond`
 and `coalesce` take as many clauses as they are given, and the slot list
 has no mark for either. A default after the kind would mark a slot

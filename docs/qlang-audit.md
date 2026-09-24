@@ -785,7 +785,7 @@ a full application; the canonical fold is `reduce 0 ~(add)` [D43], whose
 slot today finds `add` by the name its quote holds [D56], and a reducer
 that wants the element anywhere but last is declared with a parameter
 one step earlier in the same query. A declared pipeline's parameters are
-values, and its body applies one that holds code, `:twice [:f] ~(apply
+values, and its body applies one that holds code, `:twice ~[:f](apply
 f | apply f)`, so the tilde says one thing wherever it stands: this is
 code, and only `apply` runs it. The main live use of lazy parameters, a
 key function handed down through several layers of pipelines, keeps its
@@ -1160,24 +1160,24 @@ it stands.
 
 The repair must leave one binding form, in which a body is evaluated at
 declaration and named as a value, a quote included, and a verb is the
-same form with its slot list, which retires `as` and the snapshot
-wrapper [D5, D44]; must make comments trivia at the level of whitespace;
-and must give documentation its own slot with its own literal, which doc
-already is: the doc form `|~~ … ~~|` is that literal today, a standalone
-doc value anywhere and the documentation of a binding when it stands
-between the name and the body, and only the plain forms become
-whitespace. Each role of `as` has its spelling in that form: freezing
-the current value is a binding whose body is `/`, aliasing an operand is
-a verb whose body is a quote of the call, `:len [] ~count`, naming the
-element inside a group is the same freeze inside the group, and freezing
-a parameter goes with values by default. The sister project is the
-largest user of `as`, almost always to name the subject inside a group,
-and its lines are where the marker's spelling is tried. The form flips
-one spelling the other way: today's `:inc add 1` declares a pipeline
-because its body is a command, and under the one form a bare call body
-is evaluated at declaration, so every pipeline declared in the catalog's
-examples, in the tests and in the sister project gains its slot list and
-the tilde, `:inc [] ~(add 1)`, in the same branch.
+same form with a conduit for its value, `~[slots](body)`, which retires
+`as` and the snapshot wrapper [D5, D44, D57]; must make comments trivia
+at the level of whitespace; and must give documentation its own slot
+with its own literal, which doc already is: the doc form `|~~ … ~~|` is
+that literal today, a standalone doc value anywhere and the
+documentation of a binding when it stands between the name and the body,
+and only the plain forms become whitespace. Each role of `as` has its
+spelling in that form: freezing the current value is a binding whose
+body is `/`, aliasing an operand is a verb whose body is the call, `:len
+~[](count)`, naming the element inside a group is the same freeze inside
+the group, and freezing a parameter goes with values by default. The
+sister project is the largest user of `as`, almost always to name the
+subject inside a group, and its lines are where the marker's spelling is
+tried. The form flips one spelling the other way: today's `:inc add 1`
+declares a pipeline because its body is a command, and under the one
+form a bare call body is evaluated at declaration, so every pipeline
+declared in the catalog's examples, in the tests and in the sister
+project gains the verb literal, `:inc ~[](add 1)`, in the same branch.
 
 Today's binding is lazy, so code moved into a declaration further left
 answers as it did inline, even when it reads the subject:
@@ -1190,7 +1190,7 @@ answers as it did inline, even when it reads the subject:
 [1 2]
 ```
 
-Under the one form the verb keeps that, `:most [] ~(count | sub 1)` read
+Under the one form the verb keeps that, `:most ~[](count | sub 1)` read
 at each mention against the subject there, while `:most (count | sub 1)`
 is a value computed where it is declared, which is what a snapshot is
 for. A quote or a verb moved left means the same wherever its names mean
@@ -1847,11 +1847,15 @@ itself carry the marker, and the evaluator checks this at declaration
 and at call. The core has no effectful operand of its own; every one
 belongs to a host. The flag rides on every function value, binding, and
 manifest entry in the core, and the guarantee it offers is incomplete,
-because an effect passed as an argument runs under a clean name:
+because an effect passed as an argument runs under a clean name, and so
+does one in the body of a conduit bound as a value:
 
 ```qlang
 > :run [:x] x | "leak" | run @out
 leak
+
+> :g ::conduit[[:x] ~(@out x)] | g "hi"
+hi
 ```
 
 The error classes carry a fingerprint and a schema version for an
@@ -3078,6 +3082,9 @@ declaration of a name in one scope, which lets a quote moved left past
 it silently see the first.
 Replaced in part by D45, under which a built-in is a verb with the same
 slot list and its descriptor for a body.
+Replaced in part by D57, under which a verb is a binding whose value is
+a conduit, written `~[slots](body)`, and the slot list leaves the place
+after the name.
 
 ### D45 · The slot list carries the kinds
 
@@ -3116,6 +3123,9 @@ what its body answers. The subject's kind written before the verb's
 name, `::jdt/Method :callers …`, which reads as a kind standing in the
 subject position followed by a binding. The long form `::qlang/number`
 in a declaration, which the printer would not write back.
+Replaced in part by D57, under which the slot list stands in the head of
+the verb literal, each slot written as a declaration with its doc, and a
+built-in carries its slot list in its descriptor.
 
 ### D46 · A refusal keeps the tag of its site
 
@@ -3186,6 +3196,9 @@ names with a capital, `::Call`, which the first sketch used and the
 core's kinds do not.
 Replaced in part by D51, under which `>>` leaves and `::flat` with it,
 so the form speaks with seven tags.
+Replaced in part by D57, under which a verb's binding holds its conduit
+as its body, `::bind{:name :inc :body ~[](add 1)}`, so a binding is one
+record.
 
 ### D48 · The order of the kinds
 
@@ -3435,6 +3448,110 @@ model replaces. One refusal shared by every slot of code, which D46
 refuses. An error value passed through a slot of code unchanged, which
 D13 asks of every slot at once and which lands with it.
 
+### D57 · A verb is a value, written `~[slots](body)`
+
+Decision. A verb is a value, the conduit, and its literal is
+`~[slots](body)`: the slot list of D45 in brackets and the body, a
+pipeline in parentheses [D8], opening right after the bracket. The
+literal is the short spelling of `::conduit[[slots] ~(body)]`, as `~(…)`
+is of `::quote[…]`, so a conduit prints as it is written and reads back
+from its print [D54], and `~[](add 1)` is a verb without modifiers
+beside the quote `~(add 1)`. A slot is written as a declaration is, its
+name, its doc when it has one and, in the place of a body, the kind it
+takes [D45], `~[::jdt/Method :depth |~~ levels of callers to walk ~~|
+::number](…)`; inside the brackets a newline is whitespace, so a slot
+may take a line of its own, and inside the body a slot is a name like
+any declared one, its doc with it. A binding is `:name value` wherever
+it stands, and a verb is a binding whose value is a conduit, `:inc
+~[](add 1)`: the slot list leaves the place after the name, the
+conduit's name leaves the value, so a bound conduit equals its literal,
+and a binding is one record, `::bind{:name :inc :body ~[](add 1)}`
+[D47]. A built-in, whose body is host code, carries its slot list in its
+descriptor in the place of `:subject` and `:modifiers`,
+`::builtin{:slots [::number :n ::number] :impl :qlang/prim/add :returns
+::number}`.
+Source. «да, принимаю .. только ты мне скажи ... в слотах точно можно
+будет использовать обычный синтаксис биндингов?» (maintainer, 2026-09-24
+06:20, session 86982eb5), accepting the model's reading of his proposal,
+«у меня кстати появилась идея доработать квоты .. точнее форму её
+усилить .. сделав более литеральной.. ну или как-то закинув и квоты и
+кондуиты в одно семейство ... отличие простое как мне кажется и весьма
+элеганатное ~(add x) и ~[:x](add x) - второе это литеральная
+принтабельная форма параметризуемой в точке вызова квоты, т.е. кондуита
+ну или ещё как ~{:name :type}( use name) придумать.. что б то выглядело
+более самоописуемо и самодокументируемо ... подумай об этом после того
+как доделаешь текущую часть.. тогда биндинг будет проще и понятнее
+выглядеть» (04:25), and of the signal at its start, «туда бы хорошо
+встал класический биндинг ~(:name doc value | :name2 если есть)(code)..
+но грамматика чуть усложнится .. или делать как ~(:name doc value |
+:name2 | code) - но это тогда обычная квота ... и её со старта нужно
+тогда отделять другим знаком ~~(двойная квота?) ... или квота которая
+вычисляет квоту.. тоже бред какой-то ... или дважды применяемая квота ..
+или квота-вектор из двух групп ~[declageparams code] - где первая группа
+может быть пустой и тогда все кодпайп ~[noargcodepipe] такой синтаксис
+жуется вроде ~[("" | "") ("y" | "z")] - только скобки с недавних пор
+стали обязательны .. но можно и так обойти тогда ~[declale][code] -
+тогда так уже оно и так было "~[" - будет тем самым сильным стартовыми
+сигналом снимающим дальнейшую неоднозначность.. и премственность
+какая-то будет .. квота фиксированная или квота ленивая
+параметризуемая(кондуит) ..» (05:52), after he asked «так а что насчет
+~[] преложения? не разорит оно нас и нашу модель?..» (06:02). The slot
+written as a declaration answers his question and his recollection «и у
+нас уже было как-то .. что-то подобное в мэпах {:x |~~ paramdoc ~~|
+(coalesce value defaultValue) } и потом эти доки вмерживались и были
+видны как обычные биндинги ... но там когда-то гигамэп из-за этого
+возникать начал.. и модель начала утрачивать свой пайплайную форму..»
+(05:23): the doc of a slot stays where a declaration keeps it, and the
+value computed in the head leaves. The reading, the model, the same
+morning, from the tree: a conduit prints as `::conduit[[:x] ~(add x)]`
+and a binding of it runs, `:g ::conduit[[:x] ~(add x)] | 5 | g 2`
+answering `7`, and the grammar reads a head of declarations as words,
+`[:x |~~ how many ~~| ::number :y] | count` answering `4`.
+Set aside. The slot list after the name, the form of D44, under which a
+verb and a value bind in two forms, and `:f [:x] ~(add x) | 5 | f 2`
+answers its quote while the conduit prints it doubled, `::conduit[:f
+[:x] ~(~(add x))]`. The body in brackets, `~[declare][code]`, where
+every element is a word [D55], so `[add x]` is two words. A head that
+computes, the quote in two parts «про кондуиты добавлю .. что я просто
+думал ещё в строну того что б квота как бы была двухсоставная.. в
+порядке бреда.. где первая часть это решейпинг пайплайн из субъекта и
+аргументов а ля ~(bindparamstep | bindingparamstep |
+minienv_map_here)(code) -- т.е. первая часть смотрела в точку
+использования выковыривала данные.. а вторая уже работала над
+расковырянными данными .. т.е. мы эти 2 концерна как бы могли развести
+...через какое-то соглашение по вызову ..» (04:58) and the head of
+bindings joined by `|`, `~(:name doc value | :name2)(code)`: it cannot
+be read before it runs, so the arity, the names and the kinds that help,
+completion and the refusals take from the slot list are lost, where
+PowerShell's `param()` keeps its binding declarative for its help; a
+value computed in the head, `(coalesce value defaultValue)`, is such a
+head, and it brought the gigamap the catalog left, «раньше у нас были
+гигамэп в качестве декларации рантайма - убивавший подсветку синтаксиса
+и различимость в редакторе... и гигаквоту предлагал кто-то .. но как-то
+все не увязывалось с идеей длинного пайплайна .. разбитого на шаги ..»
+(maintainer, 2026-09-15 01:20, session 268516f5), `94dff34` writing the
+catalog as one map literal and `86c0a80` rewriting it into a series of
+declaration steps. A head as a map of kinds, «вот и я колеблюсь насчет
+слота из субъекта.. есть ли смысл .. или же клей проще держать на
+вызывающей стороне, а в параметрической квоте оставлять только
+требования .. но каким образом эти требования задать, как ограничения и
+констрейны вписать если те нужны там .. просто map из кейворд тэг
+кортежей смотрелась бы наверное максимально увиверсально .. ну а если
+пишем через вектор - то там только имена которые по порядку агрументов
+матчатся (как сейчас).. это если никак граматику не расширять ... а так
+можно более сложную логику /проекций всегда сделать ... /:glang/subject
+/:qlang/args или ещё как в порядке бреда.. для экзотический случаев»
+(05:16), which compares equal in either order, `{:x ::number :y
+::string} | eq {:y ::string :x ::number}` answering `true`, while the
+order of the slots decides which modifier each takes; with it the
+projections that reach the frame of the call, `/:qlang/subject`, keys of
+the runtime's housekeeping, since the glue stays at the calling side,
+`{:price 100 :qty 3} | mul /price /qty` answering `300`. `~~(…)`, which
+after a pipe opens a comment, `5 |~~(add 1)` refused as one never
+closed, and a doubled quote [D47]. A value in the place of the kind,
+which collides with the kinds since a tag name is a value too; a default
+belongs to the open question of optional slots [D45].
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3489,17 +3606,17 @@ own form: code is a quote, `~(…)`, shortened to `~add` for a single
 word, and nothing but `apply` runs it; an operand that runs code
 declares a slot of kind code and applies what it receives, and a quote
 handed over sees the names of its author [D43]. There is one binding
-form: its body is evaluated once at declaration against the current
-value and named as a value, a quote included, and a verb is the same
-form with its slot list, `[]` when it takes no modifiers, and a quote
-body [D44]. A name is declared once in a scope. The pipe is linear
-continuation and the binding is a branch to the side. A verb runs when
-its name is mentioned, as a built-in does, so `apply` is only for a
-quote held as a value, from a name, a parameter, `parse`, a trail or a
-literal, and code moved into a declaration answers as it did inline. A
-command without modifiers is the bare name and has no second spelling.
-Comments are whitespace; documentation is a doc literal in the binding's
-slot.
+form, `:name value`: its body is evaluated once at declaration against
+the current value and named as a value, a quote included, and a verb is
+a binding whose value is a conduit, `~[slots](body)`, `~[]` when it
+takes no modifiers [D44, D57]. A name is declared once in a scope. The
+pipe is linear continuation and the binding is a branch to the side. A
+verb runs when its name is mentioned, as a built-in does, so `apply` is
+only for a quote held as a value, from a name, a parameter, `parse`, a
+trail or a literal, and code moved into a declaration answers as it did
+inline. A command without modifiers is the bare name and has no second
+spelling. Comments are whitespace; documentation is a doc literal in the
+binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
 normalized, and forgotten until the codec at the boundary writes it
@@ -3670,10 +3787,12 @@ call form together with the printer of the command form rewrites every
 text of the repository and of the sister project by machine, taking the
 tilde of each code slot from the kinds the catalog declares for its
 slots today [D43], so each later branch writes its examples once; the
-argument model follows [D4, D43, D45], with the interface of hosts
-designed in the same branch and landed in every host; the one binding
-form closes the milestone [D5, D44], with comments as whitespace and the
-doc literal in the binding's slot.
+argument model follows [D4, D43, D45, D57], writing every slot list
+once, in the head of the verb literal and in the descriptor of a
+built-in, with the interface of hosts designed in the same branch and
+landed in every host; the one binding form closes the milestone [D5,
+D44], with comments as whitespace and the doc literal in the binding's
+slot.
 
 ```qlang target
 > ~(1 | add 1 | mul 2) | count
@@ -3697,13 +3816,13 @@ true
 > ~add
 ~(add)
 
-> :m [:x] ~(mul 10 | add x) | 2 | m /
+> :m ~[:x](mul 10 | add x) | 2 | m /
 22
 
-> :fact [:n] ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
+> :fact ~[:n](if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
 120
 
-> :inc [] ~(add 1) | 5 | inc | inc
+> :inc ~[](add 1) | 5 | inc | inc
 7
 
 > :q ~(add 1) | 5 | apply q
@@ -3712,7 +3831,7 @@ true
 > {:items [1 2 3] :limit 2} | /items | take (count | sub 1)
 [1 2]
 
-> :most [] ~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most
+> :most ~[](count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most
 [1 2]
 
 > 42 | :x / | add 1 | x
@@ -3814,7 +3933,7 @@ decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
 ```qlang target
-> :filter [] ~(mul 2) | namespace :qlang/operand/container | /filter | docs | count
+> :filter ~[](mul 2) | namespace :qlang/operand/container | /filter | docs | count
 1
 
 > :filter | binding | /module
@@ -4007,135 +4126,6 @@ self-tag a recursion like any other; `tag` inside a constructor of the
 same tag stamping without running it again, which is a rule of dynamic
 scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor.
-
-Quotes and declared pipelines in one family [D44, D45]. «у меня кстати
-появилась идея доработать квоты .. точнее форму её усилить .. сделав
-более литеральной.. ну или как-то закинув и квоты и кондуиты в одно
-семейство ... отличие простое как мне кажется и весьма элеганатное ~(add
-x) и ~[:x](add x) - второе это литеральная принтабельная форма
-параметризуемой в точке вызова квоты, т.е. кондуита ну или ещё как
-~{:name :type}( use name) придумать.. что б то выглядело более
-самоописуемо и самодокументируемо ... подумай об этом после того как
-доделаешь текущую часть.. тогда биндинг будет проще и понятнее
-выглядеть» (maintainer, 2026-09-24 04:25, session 86982eb5). The
-alternatives are the form of D44, a slot list between the name and a
-quote body, which keeps one kind of quote and spells a verb only where
-it is declared; a quote that carries its slots, `~[:x](add x)`, a value
-of its own with a literal a declared pipeline prints as and reads back
-from, at the price of a second kind of quote that takes modifiers where
-the first takes a subject; and the slots as a schema map, `~{:name
-::kind}(…)`, which documents every slot where it is declared by the
-kinds of D45, at the price of a map whose order is the order of the
-modifiers.
-A second thought takes the head of such a quote for a pipeline: «про
-кондуиты добавлю .. что я просто думал ещё в строну того что б квота как
-бы была двухсоставная.. в порядке бреда.. где первая часть это решейпинг
-пайплайн из субъекта и аргументов а ля ~(bindparamstep |
-bindingparamstep | minienv_map_here)(code) -- т.е. первая часть смотрела
-в точку использования выковыривала данные.. а вторая уже работала над
-расковырянными данными .. т.е. мы эти 2 концерна как бы могли развести
-...через какое-то соглашение по вызову ..» (maintainer, 2026-09-24
-04:58, session 86982eb5). The call already makes that frame a value, the
-subject and its modifiers evaluated as the elements of a vector [D12],
-and the language reshapes a vector into a map by a literal of
-projections, `[10 3] | {:x /0 :y /1}` answering `{:x 10 :y 3}` [D42], so
-the head of a quote could be such a literal over the frame, the map of
-names the body runs under. The model's reading of the cost: a head that
-computes cannot be read before it runs, so the arity, the name and kind
-of the next modifier, the completion and the refusals that D45 derives
-from the slot list are lost wherever the head is code, since a system
-helps only where its syntax is declared to it; PowerShell's `param()`
-block keeps its binding in declarative attributes, which is what lets
-its help and its completion work on any script block. A head held to a
-literal over the frame keeps them, the slot list `[:x ::number :y]`
-being its shortest spelling, and leaves the bindings that compute to the
-body's own declarations.
-The head then holds requirements alone: «вот и я колеблюсь насчет слота
-из субъекта.. есть ли смысл .. или же клей проще держать на вызывающей
-стороне, а в параметрической квоте оставлять только требования .. но
-каким образом эти требования задать, как ограничения и констрейны
-вписать если те нужны там .. просто map из кейворд тэг кортежей
-смотрелась бы наверное максимально увиверсально .. ну а если пишем через
-вектор - то там только имена которые по порядку агрументов матчатся (как
-сейчас).. это если никак граматику не расширять ... а так можно более
-сложную логику /проекций всегда сделать ... /:glang/subject /:qlang/args
-или ещё как в порядке бреда.. для экзотический случаев» (maintainer,
-2026-09-24 05:16, session 86982eb5). The glue at the calling side costs
-a projection per field, since a command whose slots are all value slots
-takes its subject as context, `{:price 100 :qty 3} | mul /price /qty`
-answering `300`, and a slot filled from a field of the subject is the
-binding by name D40 set aside. A map as the head reads as a record's
-schema [D6], at the price of an equality blind to order, `{:x ::number
-:y ::string} | eq {:y ::string :x ::number}` answering `true` while `[:x
-::number :y] | eq [:y :x ::number]` answers `false`, so two verbs that
-bind their modifiers in opposite orders would be one value; a schema's
-order decides only how a record prints [D46], and a slot's decides which
-modifier it takes. A constraint beyond a kind is itself a kind, a tag
-whose constructor checks it [D6, D33], or an enumeration, `:dir #[:in
-:out]` [D45], so the requirements need no grammar of their own.
-Projections that reach the frame are keys of the runtime's housekeeping,
-which the scar of names that lose their origin removes; the optional and
-variadic slots belong to the slot list [D45].
-A head that is a map with a doc and a default per slot is a shape the
-catalog once had and left: «и у нас уже было как-то .. что-то подобное в
-мэпах {:x |~~ paramdoc ~~| (coalesce value defaultValue) } и потом эти
-доки вмерживались и были видны как обычные биндинги ... но там когда-то
-гигамэп из-за этого возникать начал.. и модель начала утрачивать свой
-пайплайную форму..» (maintainer, 2026-09-24 05:23, session 86982eb5),
-and earlier «раньше у нас были гигамэп в качестве декларации рантайма -
-убивавший подсветку синтаксиса и различимость в редакторе... и гигаквоту
-предлагал кто-то .. но как-то все не увязывалось с идеей длинного
-пайплайна .. разбитого на шаги ..» (maintainer, 2026-09-15 01:20,
-session 268516f5). The history is in the tree: `94dff34` wrote the whole
-catalog as one map literal, a doc before an entry folded into the
-entry's value, and `86c0a80` rewrote that map, which its message calls a
-gigamap, into a series of declaration steps, the form the declarations
-of today grew from. A slot therefore needs no doc of its own in the
-head: what it takes is its kind's, documented by the tag once [D50], and
-what the verb does with it is the verb's doc.
-A third thought spells the head as a classic declaration and looks for a
-signal at the start: «туда бы хорошо встал класический биндинг ~(:name
-doc value | :name2 если есть)(code).. но грамматика чуть усложнится ..
-или делать как ~(:name doc value | :name2 | code) - но это тогда обычная
-квота ... и её со старта нужно тогда отделять другим знаком ~~(двойная
-квота?) ... или квота которая вычисляет квоту.. тоже бред какой-то ...
-или дважды применяемая квота .. или квота-вектор из двух групп
-~[declageparams code] - где первая группа может быть пустой и тогда все
-кодпайп ~[noargcodepipe] такой синтаксис жуется вроде ~[("" | "") ("y" |
-"z")] - только скобки с недавних пор стали обязательны .. но можно и так
-обойти тогда ~[declale][code] - тогда так уже оно и так было "~[" -
-будет тем самым сильным стартовыми сигналом снимающим дальнейшую
-неоднозначность.. и премственность какая-то будет .. квота фиксированная
-или квота ленивая параметризуемая(кондуит) ..» (maintainer, 2026-09-24
-05:52, session 86982eb5), and asks of it «так а что насчет ~[]
-преложения? не разорит оно нас и нашу модель?..» (06:02). The model's
-reading: the runtime already holds the value such a literal spells. A
-conduit prints as the tagged vector of its slots and the quote of its
-body and reads back from it, `::conduit[[:x] ~(add x)]` answering
-itself, and a binding of that value is a verb, `:g ::conduit[[:x] ~(add
-x)] | 5 | g 2` answering `7`, as a quote is the vector of its steps
-under `::quote`, `::quote[::call{:name :add :args [1]}]` answering
-`~(add 1)`. `~[:x](add x)` is then the short spelling of a conduit as
-`~(add 1)` is of a quote, and `~[` stands free in the grammar,
-`~[:x](add x)` answering a parse error at the bracket. Its head is the
-slot list of D45 and its body a pipeline in parentheses [D8]. The
-spelling `~[declare][code]` holds the body in brackets, where every
-element is a word [D55], so `[add x]` is two words; a head of pipelines
-computes before it can be read, and `~(a)(b)` is refused as a word
-written against the one before it; `~~` after a pipe opens a comment,
-`5 |~~(add 1)` refused as one never closed, and a quote is never doubled
-[D47]. Under this reading a binding is `:name value` wherever it stands,
-and a verb is a binding whose value is a conduit, `:inc ~[](add 1)`
-beside `:q ~(add 1)`; the slot list leaves the place after the name,
-where `:f [:x] ~(add x) | 5 | f 2` answers `~(add x)` and the conduit
-prints its quote doubled, `::conduit[:f [:x] ~(~(add x))]`. The
-conduit's name leaves the value, which a bound literal already prints
-without, and the model would have a built-in, whose body is host code,
-carry its slot list in its descriptor, `::builtin{:slots [::number :n
-::number] :impl :qlang/prim/add :returns ::number}`. The literal keeps
-one hole of the long spelling, an effectful body bound under a clean
-name, `:g ::conduit[[:x] ~(@out x)] | g "hi"` printing `hi`, which the
-effect marker takes with it when it leaves [D2].
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

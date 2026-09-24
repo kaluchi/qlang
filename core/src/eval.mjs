@@ -1043,15 +1043,15 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // lambdas to resolve captured args at the moment they need them.
 //
 // The `.astNode` property exposes the raw AST for higher-order
-// operands (like `filter` / `every` / `any` over Map) that need to
+// operands (`filter` / `every` / `any`, `reduce`) that need to
 // inspect the captured expression's shape to dispatch by conduit
 // arity without a test-application round-trip.
 // The `.capturedState` property exposes the capture-site state so
 // higher-order operands can statically resolve a bare-identifier
 // captured arg to its binding descriptor through its env
-// (filter/every/any over Map inspect the captured predicate's
-// arity before dispatch) and re-enter a conduit body from the
-// same frame the lambda itself would.
+// (filter/every/any inspect the captured predicate's arity before
+// dispatch) and re-enter a conduit body from the same frame the
+// lambda itself would.
 function makeLambda(astNode, capturedState) {
   const lambda = async (lambdaInput) => {
     const subState = nestState(capturedState, lambdaInput, capturedState.env);
@@ -1082,8 +1082,8 @@ export async function codeOfModifier(modifierLambda, subject, refusalOf) {
 // resolves in env to a conduit descriptor — directly or through a
 // snapshot wrapper — returns the conduit and the binding name used at
 // the lookup site. Otherwise returns null. Used by filter/every/any
-// over Map to statically resolve a parametric conduit predicate and
-// dispatch by its `:params` arity without a test-application round-trip.
+// to statically resolve a parametric conduit predicate and dispatch by
+// its `:params` arity without a test-application round-trip.
 export function resolveCapturedConduit(astNode, env) {
   if (!astNode || astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
@@ -1103,7 +1103,9 @@ export function resolveCapturedConduit(astNode, env) {
 // a nullary captured-arg lambda that ignores pipeValue and returns the
 // fixed value — matching the conduitParameter lazy-proxy contract for
 // a value the caller has already resolved. Used by filter/every/any
-// over Map to supply (key, value) to a 2-arity predicate per entry.
+// to supply the element to a predicate of one parameter, and by
+// `reduce` to supply the accumulator and the element to a reducer of
+// two.
 // The body runs one frame below `callerState` — the capture-site state
 // of the lambda that carried the conduit reference.
 //

@@ -185,12 +185,15 @@ LineContinuationUnit
   / _h Newline _ !Combinator step:LineStepAfterCombinator { return { combinator: '|', step }; }
   / SpacingRefusal
 
-// A combinator written against its neighbour, and a pipe written
-// against a tilde, which opens a comment.
+// A combinator written against its neighbour, a pipe written against a
+// tilde, which opens a comment, and a word written against the word
+// before it; a slash written against a word is the dangling segment of
+// a projection, which the parser names by the key it expected.
 SpacingRefusal
   = _ "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
   / c:Combinator { refuseCombinatorSpacing(c); }
   / __ c:Combinator &NonSpace { refuseCombinatorSpacing(c); }
+  / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
 
 FollowerUnit
   = c:PlainCommentStep _ inner:FollowerUnit { return [{ combinator: '|', step: c }, ...followerUnitsOf(inner)]; }
@@ -342,17 +345,17 @@ LineStep
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
 // the group `(gt(1))`. At the top level the modifiers end with the line.
 Command
-  = name:Ident args:(ModifierSeparator @ModifierWord)*
-    { return node('OperandCall', { name, args }, location(), text()); }
+  = name:Ident first:(FirstModifierSeparator @ModifierWord)? rest:(__ @ModifierWord)*
+    { return node('OperandCall', { name, args: first === null ? [] : [first, ...rest] }, location(), text()); }
 
 LineCommand
-  = name:Ident args:(LineModifierSeparator @ModifierWord)*
-    { return node('OperandCall', { name, args }, location(), text()); }
+  = name:Ident first:(FirstLineModifierSeparator @ModifierWord)? rest:(_h1 @ModifierWord)*
+    { return node('OperandCall', { name, args: first === null ? [] : [first, ...rest] }, location(), text()); }
 
-ModifierSeparator
+FirstModifierSeparator
   = __ / &"("
 
-LineModifierSeparator
+FirstLineModifierSeparator
   = _h1 / &"("
 
 // A declaration: a keyword or a tag name, then an optional doc, an
@@ -399,8 +402,8 @@ LineBindRest
   / body:LineBindBody                  { return { params: null, body }; }
 
 Params
-  = "[" _L head:Keyword tail:(_L Keyword)* _L "]"
-    { return [head, ...tail.map(t => t[1])]; }
+  = "[" _L head:Keyword tail:((Whitespace / PlainCommentStep)+ @Keyword)* _L "]"
+    { return [head, ...tail]; }
   / "[" _L "]" { return []; }
 
 BindBody
@@ -538,7 +541,7 @@ DocLit
 ErrorLit
   = "!{" _L "}"
     { return node('ErrorLit', { entries: [] }, location(), text()); }
-  / "!{" _L head:QlangMapEntry tail:(_L @QlangMapEntry)* _L "}"
+  / "!{" _L head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _L "}"
     { return node('ErrorLit', { entries: [head, ...tail] }, location(), text()); }
 
 // Braces with string keys and commas read as a JSON object, braces with
@@ -546,7 +549,7 @@ ErrorLit
 MapLit
   = "{" _L head:JsonMapEntry tail:(_L "," _L @JsonMapEntry)* _L "}"
     { return node('JsonObjectLit', { entries: [head, ...tail] }, location(), text()); }
-  / "{" _L head:QlangMapEntry tail:(_L @QlangMapEntry)* _L "}"
+  / "{" _L head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _L "}"
     { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
   / "{" _L "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
@@ -580,8 +583,15 @@ VecLit
     { return node('VecLit', { elements: [] }, location(), text()); }
 
 ElementList
-  = head:Element tail:(_L @Element)*
+  = head:Element tail:(LiteralGap @Element)*
     { return [head, ...tail]; }
+
+// The words of a literal are set off by whitespace or a comment, so a
+// call written by habit, `[mul(2)]`, is refused where it would read as
+// two elements.
+LiteralGap
+  = (Whitespace / PlainCommentStep)+
+  / &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
 
 // `/` alone is the identity projection; a segment is a bare key, a
 // quoted key, a namespaced keyword after `:`, or an index.

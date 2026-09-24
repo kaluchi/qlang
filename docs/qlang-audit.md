@@ -3366,25 +3366,29 @@ Decision. The command form of D10, D11 and D43 reads as follows where
 those records leave a choice. The first modifier of a command may touch
 its name when it opens with a parenthesis, so `filter(gt(1))` reads as
 `filter` with the group `(gt(1))`, and a call written by habit runs at a
-value slot and is refused at a slot of code. Inside a literal every
-element is a word, so a pipeline stands there in parentheses as a
-command with modifiers does, `{:n (/items | count)}`, and a doc after a
-command is the next step and never its modifier. At the top level a
-command whose modifiers take several lines stands in parentheses, and
-inside brackets a declaration that follows a command takes its `|`,
-since the command would take its words. The short form of a quote holds
-a name, a projection or a tag name, `~add`, `~/age`, `~::T`. The comma
-leaves the set literal with the argument comma and stays in the JSON
-literals until the JSON family leaves [D1]. The data form stores each
-modifier as its step [D47]: `add 1` holds `[1]`, and `take (count | sub
-1)` holds `[::group~(count | sub 1)]`. A code span of a doc is prose, as
-markdown reads it, so a doc names `filter ~(gt 1)` in a code span
-without running it, and only a `~(…)` or a tag literal outside one is a
-segment of code. A refusal the grammar names itself carries its sentence
-as `:message`: a combinator written against its neighbour names the
-space, `|~` without a closer names `| ~(…)`, a comma inside parentheses
-names the command form, and a map entry that holds a command names the
-parentheses.
+value slot and is refused at a slot of code; every other word is set off
+from the one before it by whitespace or a comment, so `add (1)(2)` is
+refused. Inside a literal every element is a word, so a pipeline stands
+there in parentheses as a command with modifiers does, `{:n (/items |
+count)}`, a call written by habit, `[mul(2)]`, is refused where it would
+read as two elements, and a doc after a command is the next step and
+never its modifier. At the top level a command whose modifiers take
+several lines stands in parentheses, and inside brackets a declaration
+that follows a command takes its `|`, since the command would take its
+words. The short form of a quote holds a name, a projection or a tag
+name, `~add`, `~/age`, `~::T`. The comma leaves the set literal with the
+argument comma and stays in the JSON literals until the JSON family
+leaves [D1]. The data form stores each modifier as its step [D47]: `add
+1` holds `[1]`, and `take (count | sub 1)` holds `[::group~(count | sub
+1)]`. A code span of a doc is prose, as markdown reads it, so a doc
+names `filter ~(gt 1)` in a code span without running it, and only a
+`~(…)` or a tag literal outside one is a segment of code. A refusal the
+grammar names itself carries its sentence as `:message`: a combinator
+written against its neighbour names the space, `|~` without a closer
+names `| ~(…)`, a comma inside parentheses names the command form, a
+word written against the one before it names the space, and a map entry
+that holds a command, or a word of a literal written against the one
+before it, names the parentheses.
 Source. The model, 24 September 2026, on the command-form branch,
 reading D10, D11 and D43 against every text of the repository and of the
 sister project, which the parser of the call form and the printer of the

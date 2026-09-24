@@ -140,7 +140,7 @@ const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterN
 // operands (`source`, `docs`, `examples`) can resolve `BindStep`
 // bindings declared inside the same query. With the inline-AST
 // Quote stamped on env, `:foo body | :foo | docs` finds `foo`
-// in the just-parsed AST without going through a `use(:ns)`
+// in the just-parsed AST without going through a `use :ns`
 // module installation.
 export async function evalQuery(source, env, callerState = null) {
   const initialEnv = env ?? await langRuntime();
@@ -263,8 +263,8 @@ async function evalPipeline(node, state) {
   // operand step, exactly as with the comment absent: that step
   // applies through `node.leadingCombinator` when the pipeline
   // carries one, through its own combinator when the author wrote
-  // one after the comment (`(|~ note ~| * add(1))` reads as
-  // `(* add(1))`), and through `|` when its continuation unit
+  // one after the comment (`(|~ note ~| * add 1)` reads as
+  // `(* add 1)`), and through `|` when its continuation unit
   // carries the grammar's absorbed marker (`combinator: null`).
   // Past the head, an absorbed follower rides the `|` the comment's
   // closer stands for.
@@ -390,7 +390,7 @@ function retagPerElement(items, source) {
 // back. Subsequent deflections append to a fresh `_trailHead` linked
 // list. The next `!|` combines both sources again — continuous
 // accumulation. Dropping the accumulated suffix before re-lift stamps
-// `:trail null` inside the fail-apply step (`!| union({:trail null})
+// `:trail null` inside the fail-apply step (`!| union {:trail null}
 // | error`); deflections past the re-lift grow a fresh suffix.
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
@@ -615,7 +615,7 @@ async function evalTaggedLit(node, state) {
 //                            binding with `:declarationOrigin
 //                            :implicit` (evalTaggedLit), mints
 //                            a tagged instance; lint sweeps over
-//                            `manifest(:tag)` flag the auto-decl.
+//                            `manifest :tag` flag the auto-decl.
 //   `::TypoTag | source`   → SourceBindingNotFoundError
 //   `::TypoTag | docs`     → DocsBindingNotFoundError
 //   `::TypoTag | examples` → ExamplesBindingNotFoundError
@@ -843,7 +843,7 @@ async function evalOperandCall(node, state) {
 
   // Snapshot auto-unwrap — a Map carrying the `snapshot` tag on its
   // JS-header slot exposes its wrapped :payload transparently to
-  // identifier lookup so `as(:name) | name` sees the raw data.
+  // identifier lookup so `as :name | name` sees the raw data.
   // Unwrapping upstream of applyBindingDescriptor keeps the
   // header-tag dispatch exhaustive over {builtin, conduit}; the
   // remaining non-Map branches handle
@@ -1182,7 +1182,7 @@ export const CONDUIT_PARAMS_FIELD = 'params';
 // folds with. The reducer is applied as `reducer(acc, element)`:
 //   - a binary operand (`add` / `mul` / `union` / …) folds via its
 //     bound form — accumulator as subject, element as the single
-//     captured arg (`acc | add(element)`), through Rule 10;
+//     captured arg (`acc | add element`), through Rule 10;
 //   - a 2-param conduit `[:acc :elem]` binds both through
 //     invokeConduitWithFixedArgs.
 // Returns null when the captured arg is not such a reference (an inline

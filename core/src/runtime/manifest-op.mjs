@@ -5,7 +5,7 @@
 // segment from a named binding's attached doc-prefix and evaluates
 // each as a self-test, yielding `{:snippet :actual :ok :error}`
 // per Quote. Together they drive catalog-wide self-tests
-// (`manifest * runExamples * every(/ok)`) and the LSP / doc-site
+// (`manifest * runExamples * every ~(/ok)`) and the LSP / doc-site
 // surfaces that enumerate operands.
 //
 // The per-binding descriptor shape `manifest` produces is built by
@@ -193,8 +193,8 @@ function describeBinding(value, explicitName) {
 //   manifest          — value-namespace bindings (operands, conduits,
 //                       snapshots). Tag-namespace `::tag` and module
 //                       AST storage filtered out.
-//   manifest(:value)  — explicit alias of the bare form.
-//   manifest(:tag)    — tag-namespace bindings (`::Tag` declarations
+//   manifest :value   — explicit alias of the bare form.
+//   manifest :tag     — tag-namespace bindings (`::Tag` declarations
 //                       from the operand catalog family files and any
 //                       in-query `::Tag {…}` BindSteps). Names render
 //                       with the `::Tag` prefix.
@@ -251,9 +251,9 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 //
 // Each example evaluates one frame below the `runExamples` step,
 // against the caller's env, with a null initial pipeValue: the
-// snippet sees every module loaded through `use(:ns)` in the
+// snippet sees every module loaded through `use :ns` in the
 // surrounding session, so `"no.such.Type" | @type !| type` under
-// `use(:jdt/graph)` reaches the documented `::TypeNotFound`. Env
+// `use :jdt/graph` reaches the documented `::TypeNotFound`. Env
 // immutability keeps the example's BindStep / `as` writes off the
 // session env — `evalQuery` forges its own env through `envSet`
 // when it stamps the inline-AST Quote. A result of `false`,

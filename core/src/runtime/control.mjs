@@ -87,7 +87,7 @@ export const unless = higherOrderOp('unless', 3,
 // on a Map without the key) count as "skip and try next". The
 // fall-back is `null` when every alternative fails or yields
 // `null`. Treating ErrorValue as "try next" is what makes
-// `coalesce(/a, /b, "default")` continue past a missing-key error
+// `coalesce ~(/a) ~(/b) ~("default")` continue past a missing-key error
 // from `/a` — the operand's intent is "first defined value",
 // strict projection turned "undefined" into an error, this catch
 // restores the iteration semantics.

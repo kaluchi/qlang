@@ -1,17 +1,16 @@
 // `parse` / `apply` — the codeAsData ring closer.
 //
-//   parse(string | quote) → quote | string   (the involution)
-//   apply(code)           → pipeValue        (run a quote against
-//                                             the subject)
+//   string | parse       → quote, and a quote → its string (the involution)
+//   subject | apply code → the value of the quote run against the subject
 //
 // Together they round-trip qlang source text → data → pipeValue
 // without leaving the language. `parse` flips a string and a quote,
 // the way `keyword` flips a string and a keyword: text reads into the
 // quote of its steps, and a quote prints back as text. `apply` runs
 // the quote its captured arg answers against the subject, subject
-// first like every other operand, so `x | apply(/)` runs a quote
+// first like every other operand, so `x | apply /` runs a quote
 // against itself and a trail replays as
-// `error !| /trail | as(:t) | start | apply(t)`.
+// `error !| /trail | as :t | start | apply t`.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -52,7 +51,7 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
   }
 });
 
-// `apply(code)` — runs the quote its captured arg answers against the
+// `apply code` — runs the quote its captured arg answers against the
 // subject, under the fork rule: the declarations the code makes stay
 // inside it, and only its value comes out. A leading combinator
 // (`~(* mul 2)` / `~(!| /trail)`) routes the first step through that

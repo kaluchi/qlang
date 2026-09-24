@@ -1,5 +1,5 @@
 // Locator for the CLI's host catalogs. Hands the existing
-// `createSession({ locator })` + `use(:cli/...)` machinery the
+// `createSession({ locator })` + `use :cli/...` machinery the
 // `.qlang` source plus JS impls for each namespace; the rest
 // (parse, eval, snapshot-unwrap, stamp impls, stamp AST under
 // `qlang/ast/<ns>`) is what `runtime/use-op.mjs::resolveNamespaceEnv`

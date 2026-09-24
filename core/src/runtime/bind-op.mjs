@@ -5,7 +5,7 @@
 // introspective queries (`env | keys`, `env | manifest | …`)
 // compose through the regular Map operand surface.
 //
-// `as(:name)` snapshots the current `pipeValue` under a keyword
+// `as :name` snapshots the current `pipeValue` under a keyword
 // name and threads `pipeValue` through unchanged. The snapshot is
 // reachable through identifier lookup (auto-unwrapped to the raw
 // value); the attached doc-prefix surfaces through `:name | docs`.
@@ -25,7 +25,7 @@ const AsNameNotKeywordError = declareShapeError('AsNameNotKeywordError',
 export const env = stateOp('env', 1, (state, _lambdas) =>
   withPipeValue(state, state.env));
 
-// `as(:name)` — snapshot the current `pipeValue` under a keyword
+// `as :name` — snapshot the current `pipeValue` under a keyword
 // name. Identity on `pipeValue`; writes the snapshot wrapper into
 // `env[:name]`. Doc comments stashed on `asLambdas` (attached at
 // parse time through DocAttachedSequence) ride into the snapshot

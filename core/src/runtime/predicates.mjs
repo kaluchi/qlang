@@ -7,8 +7,8 @@
 // so failures uniquely identify the call site.
 //
 // `type` answers a value's identity tag, and asking what a value
-// is means composing that reader with `eq`: `filter(type |
-// eq(:string))` over a Vec of mixed types, or over a Map to keep
+// is means composing that reader with `eq`: `filter ~(type |
+// eq :string)` over a Vec of mixed types, or over a Map to keep
 // the String-valued entries. Identity rides the JS-header slot, so
 // a tagged value answers its `::Tag` and its shape reads through
 // `payload`.
@@ -62,7 +62,7 @@ export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 // containers. The single user-facing path to a value's identity
 // tag — symmetric to how `:foo | source` / `| docs` / `| examples`
 // are the user-facing path to binding-namespace metadata.
-// Error-track handling reads as `result !| type | eq(::Foo)`.
+// Error-track handling reads as `result !| type | eq ::Foo`.
 export const type = nullaryOp('type', (subject) => typeKeyword(subject));
 
 

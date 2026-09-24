@@ -5,21 +5,21 @@
 //                                        Every entry is merged into
 //                                        env (incoming wins on
 //                                        collisions).
-//   `use(:ns)`                        — namespace import. The
+//   `use :ns`                        — namespace import. The
 //                                        keyword resolves to a
 //                                        module Map already in env
 //                                        (or loaded on demand
 //                                        through the
 //                                        `:qlang/locator` host
 //                                        callback).
-//   `use([:ns1 :ns2 …])`              — Vec-form namespace import.
+//   `use [:ns1 :ns2 …]`               — Vec-form namespace import.
 //                                        Later namespaces shadow
 //                                        earlier on conflict.
-//   `use(#[:ns1 :ns2 …])`             — Set-form namespace import.
+//   `use #[:ns1 :ns2 …]`              — Set-form namespace import.
 //                                        Collisions raise a
 //                                        `UseNamespaceCollisionError`
 //                                        so the host disambiguates.
-//   `use(:ns, #[:nameA :nameB])`      — selective import. Only the
+//   `use :ns #[:nameA :nameB]`      — selective import. Only the
 //                                        named identifiers land in
 //                                        env; everything else stays
 //                                        out of scope.
@@ -113,7 +113,7 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
 
   // A host-installed namespace is a header-less Map under the bare
   // name. Every other binding there — an operand descriptor
-  // (`use(:count)`), a conduit (`use(:double)`), a snapshot, a
+  // (`use :count`), a conduit (`use :double`), a snapshot, a
   // scalar or function a host bound — sits on the identifier plane,
   // so the probe walks past it to the locator: merging a tagged Map
   // would spill `:impl` / `:envRef` / `:payload` slots into env as

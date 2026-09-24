@@ -104,8 +104,8 @@ export function stampRaisedTags(descriptor, bindingName, whenEmpty = 'stamp') {
 //
 // Builds the manifest-shape descriptor from a raw env descriptor.
 // Stamps `:kind ::builtin` as an explicit enum-bucket field (so
-// `manifest | filter(/kind | eq(::builtin))` partitions identically
-// to `manifest | filter(type | eq(::builtin))` — the field is the
+// `manifest | filter ~(/kind | eq ::builtin)` partitions identically
+// to `manifest | filter ~(type | eq ::builtin)` — the field is the
 // view-Map's plain-JSON projection of the identity that rides on the
 // env entry's JS-header slot), and copies every structural fact
 // through (`:impl` handle keyword / `:captured` / `:effectful` /
@@ -182,7 +182,7 @@ function operandIdentifier(operand) {
 // bootstrap stamp answers for every catalog entry and every
 // host-supplied impl the `use`-locator pass resolved; a descriptor a
 // query assembled from data (`::builtin{:impl :qlang/prim/count} |
-// as(:c)`) carries the handle keyword alone and walks the registry
+// as :c`) carries the handle keyword alone and walks the registry
 // here, so a descriptor built as data dispatches like a catalog one.
 export function resolveBuiltinImpl(descriptor) {
   const stampedImpl = builtinImplOf(descriptor);

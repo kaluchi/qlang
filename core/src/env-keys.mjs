@@ -22,8 +22,8 @@
 //
 // `MODULE_NAMESPACE_PREFIX` (`qlang/namespace/`) — exports Map of a
 //   loaded namespace under `qlang/namespace/<uri>`, stamped by the
-//   locator pathway of `use(:uri)` and by `installModules`.
-//   Re-entrant `use(:uri)` calls read the export Map at this key,
+//   locator pathway of `use :uri` and by `installModules`.
+//   Re-entrant `use :uri` calls read the export Map at this key,
 //   and a namespace stem never shadows an operand of the same
 //   name. Filtered alongside module-AST keys.
 //

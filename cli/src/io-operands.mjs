@@ -1,6 +1,6 @@
 // Effectful I/O operand impls for the `:cli/io` host catalog —
 // `@in` reads stdin, `@out` writes stdout, `@err` writes stderr,
-// `@tap(:label)` mirrors pipeValue to stderr with a labelled
+// `@tap :label` mirrors pipeValue to stderr with a labelled
 // prefix. Catalog declaration lives in `cli/lib/qlang/io.qlang`;
 // the locator at `cli/src/cli-locator.mjs` hands these impls
 // alongside the source through `runtime/use-op.mjs`'s

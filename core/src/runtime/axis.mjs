@@ -2,7 +2,7 @@
 // declarative metadata living on the binding's source AST.
 //
 // Each operand walks the `qlang/ast/<uri>` Quote-values in env to
-// find the originating `BindStep` (or `as(:name)` OperandCall) for
+// find the originating `BindStep` (or `as :name` OperandCall) for
 // the named binding, then returns the field projected from that
 // step (source text, docs, example Quotes, etc.).
 //
@@ -68,7 +68,7 @@ export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundEr
 //   carries `.key` (Keyword or BareTypeKeyword) and the
 //   doc-prefix in `.docs`.
 //
-//   OperandCall `as(:name)` — the AST node carries `.args[0]`
+//   OperandCall `as :name` — the AST node carries `.args[0]`
 //   (Keyword) and the doc-prefix in `.docs`. `as` mints into the
 //   value namespace only, so a tag-namespace lookup
 //   (`::Tag | source`) must never reach the `as` branch — the
@@ -86,7 +86,7 @@ function matchesBindingStep(step, isTagBinding, targetName) {
 
 // Walk the module AST front to back, return the LAST matching binding
 // step. The last-match rule mirrors qlang's shadowing semantics: a
-// later `:foo body` BindStep (or `as(:foo)`) shadows the earlier
+// later `:foo body` BindStep (or `as :foo`) shadows the earlier
 // binding, so axis-operand lookups surface the docs / source /
 // examples of the shadowing-resolved binding at that point in the
 // module.
@@ -111,7 +111,7 @@ function findBindingStepFor(moduleAst, bindingName) {
 }
 
 // Iterate every module Quote stored in env under `qlang/ast/<uri>`.
-// langRuntime / use(:ns) put the quote of the module's parsed tree at
+// langRuntime and `use :ns` put the quote of the module's parsed tree at
 // every such key, so the tree comes back without a second parse.
 function* moduleAstsIn(env) {
   for (const [k, v] of env) {
@@ -160,7 +160,7 @@ export function findBindingStepAcrossModules(env, bindingName) {
   return lastMatch;
 }
 
-// `as(:name)` OperandCall nodes without an attached doc-prefix
+// `as :name` OperandCall nodes without an attached doc-prefix
 // carry no `.docs` field; `BindStep` always carries `.docs` (null
 // or string Vec). `stepDocStrings` lifts both shapes to a plain
 // array of doc strings — the single normalisation seam every axis-

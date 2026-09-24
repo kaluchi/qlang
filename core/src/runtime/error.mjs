@@ -1,6 +1,6 @@
 // The error operand: `error` lifts a Map into an error value. Bare
 // form `map | error` uses pipeValue as the descriptor; full form
-// `error(map)` resolves the captured-arg lambda against pipeValue as
+// `error map` resolves the captured-arg lambda against pipeValue as
 // context.
 //
 // Error-track dispatch is owned by the `!|` combinator in eval.mjs.
@@ -24,7 +24,7 @@ const ErrorDescriptorNotMapError = declareSubjectError(
 
 // error — lift a Map into an error value.
 // Arity 1: bare `map | error` uses pipeValue as the descriptor;
-// full form `error(map)` evaluates the captured-arg lambda against
+// full form `error map` evaluates the captured-arg lambda against
 // pipeValue as context and uses the result as the descriptor.
 // Tag identity resolution rides the same uniform channel every
 // tagged value-class uses:

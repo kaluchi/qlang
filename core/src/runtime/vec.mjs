@@ -10,7 +10,7 @@
 // element. On Map the predicate dispatch reads the captured arg's
 // arity:
 //
-//   0-arity pipeline (`filter(gt(1))`) or 1-arity conduit (`[:v]`)
+//   0-arity pipeline (`filter ~(gt 1)`) or 1-arity conduit (`[:v]`)
 //     → per entry with value as pipeValue; key is not visible.
 //   2-arity conduit (`[:k :v]`)
 //     → per entry with (key, value) as captured-arg values; pipeValue
@@ -18,8 +18,8 @@
 //       binding is the idiom for both-axis filtering:
 //
 //         m
-//           | :@hot [:k :v] and(k | eq(:x), v | gt(1))
-//           | filter(@hot)
+//           | :@hot [:k :v] (and (k | eq :x) (v | gt 1))
+//           | filter ~(@hot)
 //
 //   3+-arity → per-operand arityError. The language does not
 //     pair-encode keys/values into a single argument; higher arities
@@ -499,17 +499,17 @@ export const take = valueOp('take', 2, (subject, n) => {
   assertIntegerModifier(n, TakeCountNotIntegerError);
   const items = sequenceElements(subject);
   // A negative count clamps to 0, the same graceful out-of-range
-  // handling an over-length count gets (`take(99)` → whole sequence).
+  // handling an over-length count gets (`take 99` → whole sequence).
   return containerLikeOf(items.slice(0, Math.max(0, n)), subject);
 }, { preservesTag: true });
 
 // `at` — indexed access with Array.prototype.at-style negative indices.
 // Out-of-bounds returns null, mirroring the Map-miss / Vec-miss symmetry
-// of the projection operator. Non-integer Number subjects (e.g. `at(0.5)`)
+// of the projection operator. Non-integer Number subjects (e.g. `at 0.5`)
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
-// for `at(-1)`; the two are semantically identical. Set is polymorphic
-// here through insertion-order indexing — `myset | at(0)` returns the
+// for `at -1`; the two are semantically identical. Set is polymorphic
+// here through insertion-order indexing — `myset | at 0` returns the
 // first-added element, same definition `first` uses.
 const AtSubjectNotSequenceOrMapError  = declareSubjectError('AtSubjectNotSequenceOrMapError', 'at', ['vec', 'set', 'map']);
 const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrStringError',  'at', 2, ['keyword', 'string']);
@@ -519,7 +519,7 @@ const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrS
 // String over every Map-shape subject (both normalise to the
 // storage-side String via `key.name`/identity, matching
 // `mapShapeHas` / `mapShapeGet`). The `src | keys | first |
-// as(:k) | src | at(k)` chain composes through either source
+// as :k | src | at k` chain composes through either source
 // without an inter-shape coercion.
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVecShape(subject)) {
@@ -548,7 +548,7 @@ export const drop = valueOp('drop', 2, (subject, n) => {
   assertIntegerModifier(n, DropCountNotIntegerError);
   const items = sequenceElements(subject);
   // A negative count clamps to 0 (drop nothing), mirroring take's
-  // clamp and the over-length case (`drop(99)` → empty sequence).
+  // clamp and the over-length case (`drop 99` → empty sequence).
   return containerLikeOf(items.slice(Math.max(0, n)), subject);
 }, { preservesTag: true });
 
@@ -599,9 +599,9 @@ export const flat = nullaryOp('flat', (subject) => {
   return containerLikeOf(result, subject);
 }, { preservesTag: true });
 
-// `reduce(seed, reducer)` — the universal left-fold. Threads the
+// `reduce seed ~(reducer)` — the universal left-fold. Threads the
 // accumulator and applies `reducer(acc, element)` at each step: a
-// binary operand folds via its bound form (`acc | add(element)`), a
+// binary operand folds via its bound form (`acc | add element`), a
 // 2-param conduit `[:acc :elem]` binds both. `seed` is the
 // empty-subject result; a reducer error short-circuits.
 const ReduceSubjectNotSequenceError = declareSubjectError('ReduceSubjectNotSequenceError', 'reduce', ['vec', 'set']);

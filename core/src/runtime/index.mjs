@@ -65,6 +65,7 @@ import './control.mjs';
 import './error.mjs';
 import './keyword-op.mjs';
 import './tagged.mjs';
+import './quote-steps.mjs';
 import './bind-op.mjs';
 import './use-op.mjs';
 import './manifest-op.mjs';

@@ -13,6 +13,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
+import { printQuoteSource } from '../../src/quote.mjs';
 
 const OK_KW      = 'ok';
 const SNIPPET_KW = 'snippet';
@@ -36,7 +37,7 @@ async function walkManifestExamples() {
       const snippet = exampleResult.get(SNIPPET_KW);
       failures.push({
         operand: name,
-        snippet: snippet?.source ?? snippet,
+        snippet: printQuoteSource(snippet),
         actual:  exampleResult.get(ACTUAL_KW),
         error:   exampleResult.get(ERROR_KW),
         printed: safeprint(exampleResult.get(ACTUAL_KW))
@@ -61,7 +62,7 @@ async function walkManifestExamples() {
       const snippet = exampleResult.get(SNIPPET_KW);
       failures.push({
         operand: name,
-        snippet: snippet?.source ?? snippet,
+        snippet: printQuoteSource(snippet),
         actual:  exampleResult.get(ACTUAL_KW),
         error:   exampleResult.get(ERROR_KW),
         printed: safeprint(exampleResult.get(ACTUAL_KW))
@@ -80,6 +81,16 @@ describe('manifest catalog self-test via runExamples', () => {
         .join('\n');
       throw new Error(`${failures.length} manifest example(s) failed:\n${report}`);
     }
+  }, 30000);
+
+  it('every example reads back as the steps it prints as', async () => {
+    // `parse` prints a quote and reads text back; an example that
+    // printed as text reading back as other steps would be a printer
+    // that loses code.
+    const unequal = await evalQuery(
+      '[manifest * /name, manifest(:tag) * /name] | flat * (keyword | examples) | flat'
+      + ' | filter(as(:example) | parse | parse | eq(example) | not)');
+    expect(unequal).toEqual([]);
   }, 30000);
 
   it('manifest-wide /ok distribution is {true}', async () => {

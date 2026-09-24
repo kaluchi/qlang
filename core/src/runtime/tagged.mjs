@@ -18,13 +18,12 @@ import { withPipeValue } from '../state.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
   isTaggedInstance, isTagKeyword, isErrorValue,
-  makeConduit, makeQuote, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
+  makeConduit, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
 } from '../types.mjs';
-import { astOfQuote, isStep } from '../quote.mjs';
+import { astOfQuote } from '../quote.mjs';
 import {
   declareSubjectError,
-  declareModifierError,
-  declareElementError
+  declareModifierError
 } from '../operand-errors.mjs';
 import {
   declareShapeError,
@@ -96,23 +95,6 @@ async function conduitConstructor(payload, state) {
 }
 
 bindTypeConstructor('conduit', conduitConstructor);
-
-// `::quote[…]` — code as data [D8]: a vector every element of which is
-// a step. The constructor runs wherever a vector comes under the tag,
-// `tag(::quote)` and every transform of a quote included, so the
-// invariant holds after each.
-const QuotePayloadNotVecError = declareSubjectError('QuotePayloadNotVecError', '::quote', 'vec');
-const QuoteElementNotStepError = declareElementError('QuoteElementNotStepError', '::quote', 'step');
-
-function quoteConstructor(payload) {
-  if (!isVecShape(payload)) throw new QuotePayloadNotVecError(payload);
-  payload.forEach((element, index) => {
-    if (!isStep(element)) throw new QuoteElementNotStepError(index, element);
-  });
-  return makeQuote(payload);
-}
-
-bindTypeConstructor('quote', quoteConstructor);
 
 // ::qlang<...> / ::json<...> — pair of cross-domain converters.
 // `::qlang` recursively converts a JSON-shape payload (plain

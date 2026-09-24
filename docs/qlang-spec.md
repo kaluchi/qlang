@@ -2113,6 +2113,9 @@ for a constructor invocation — and the fail track, the distribute
 and the parentheses wrap the quote of their step as `::fail`,
 `::each` and `::group`. A comment leaves no step, so two quotes of
 the same code written with different spacing or comments are equal.
+A record or a wrapper assembled by hand is the step its own text
+reads back as: its constructor refuses an assembly whose text reads
+back as another step, and names the text.
 
 ```qlang
 > "1 | add(1)" | parse | count

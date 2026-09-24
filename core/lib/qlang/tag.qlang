@@ -180,10 +180,37 @@
   |~~ The step of a command: `:name` the keyword of the name it
       calls, `:args` the quote of each argument's pipeline when
       the call has parentheses, `:docs` the prose attached to an
-      `as`.
+      `as`. Like every record, a ::call is the step its own text
+      reads back as: the constructor checks the fields against
+      the schema, prints the step and reads it back.
 
       ~{~{filter(gt(1))} | payload | eq([::call{:name :filter :args [~{gt(1)}]}])}
       ~{~{count} | first | /name | eq(:count)}
+      ~{{:name :filter :args [~{gt(1)}]} | tag(::call) | [/] | tag(::quote) | eq(~{filter(gt(1))})}
+  ~~|
+  ::builtin{:impl :qlang/type/call}
+
+::CallPayloadNotSchemaError
+  |~~ A ::call payload is a Map of `:name` a keyword, `:args` a
+      Vec of quotes and `:docs` a Vec of strings; `:field` names
+      the field that does not fit, null when the payload is no Map.
+
+      ~{
+        ::call{:name 42}
+        !| [type /field]
+        |  eq([::CallPayloadNotSchemaError :name])
+       }
+  ~~|
+
+::CallReadBackDiffersError
+  |~~ The ::call prints as text that reads back as another step,
+      or as none: `:printed` is that text.
+
+      ~{
+        ::call{:name :"a b"}
+        !| [type /printed]
+        |  eq([::CallReadBackDiffersError "a b"])
+       }
   ~~|
 
 ::proj
@@ -193,6 +220,29 @@
       ~{~{/items/0/name} | first | /path | eq([:items 0 :name])}
       ~{~{/} | first | /path | eq([])}
   ~~|
+  ::builtin{:impl :qlang/type/proj}
+
+::ProjPayloadNotSchemaError
+  |~~ A ::proj payload is a Map of `:path` a Vec of keys and
+      integers.
+
+      ~{
+        ::proj{:path "items"}
+        !| [type /field]
+        |  eq([::ProjPayloadNotSchemaError :path])
+       }
+  ~~|
+
+::ProjReadBackDiffersError
+  |~~ The ::proj prints as text that reads back as another step: a
+      key that reads as an index is written as the index.
+
+      ~{
+        ::proj{:path [:"0"]}
+        !| [type /printed]
+        |  eq([::ProjReadBackDiffersError "/\"0\""])
+       }
+  ~~|
 
 ::bind
   |~~ The step of a declaration: `:name` the keyword or tag it
@@ -201,12 +251,61 @@
 
       ~{~{:inc add(1)} | first | [/name /body/name] | eq([:inc :add])}
   ~~|
+  ::builtin{:impl :qlang/type/bind}
+
+::BindPayloadNotSchemaError
+  |~~ A ::bind payload is a Map of `:name` a keyword or a tag,
+      `:docs` a Vec of strings, `:params` a Vec of keywords and
+      `:body` a step.
+
+      ~{
+        ::bind{:name :inc :params [1]}
+        !| [type /field]
+        |  eq([::BindPayloadNotSchemaError :params])
+       }
+  ~~|
+
+::BindReadBackDiffersError
+  |~~ The ::bind prints as text that reads back as another step: a
+      declaration binds a body, parameters or docs, and a body that
+      is a keyword or a tag is written as a group.
+
+      ~{
+        ::bind{:name :inc}
+        !| [type /printed]
+        |  eq([::BindReadBackDiffersError ":inc"])
+       }
+  ~~|
 
 ::tagged
   |~~ The step of a constructor invocation `::T<payload>`: `:tag`
       the tag, `:payload` the step of its payload.
 
       ~{~{::Box[1 2]} | first | [/tag /payload] | eq([::Box [1 2]])}
+  ~~|
+  ::builtin{:impl :qlang/type/tagged}
+
+::TaggedPayloadNotSchemaError
+  |~~ A ::tagged payload is a Map of `:tag` a tag and `:payload` a
+      step.
+
+      ~{
+        ::tagged{:tag :Box :payload [1]}
+        !| [type /field]
+        |  eq([::TaggedPayloadNotSchemaError :tag])
+       }
+  ~~|
+
+::TaggedReadBackDiffersError
+  |~~ The ::tagged prints as text that reads back as another step: a
+      payload that opens with a name, a digit or a slash is written
+      as a group.
+
+      ~{
+        ::tagged{:tag ::Box :payload 42}
+        !| [type /printed]
+        |  eq([::TaggedReadBackDiffersError "::Box42"])
+       }
   ~~|
 
 ::each
@@ -217,6 +316,28 @@
       ~{~{* add(1)} | first | payload | eq(~{add(1)})}
       ~{~{* (add(1) | mul(2))} | first | payload | count | eq(2)}
   ~~|
+  ::builtin{:impl :qlang/type/each}
+
+::EachPayloadNotQuoteError
+  |~~ The payload of ::each is the quote of its body.
+
+      ~{
+        42 | tag(::each)
+        !| [type /actualType]
+        |  eq([::EachPayloadNotQuoteError :number])
+       }
+  ~~|
+
+::EachReadBackDiffersError
+  |~~ The ::each prints as text that reads back as another step, or
+      as none: a body holds at least one step.
+
+      ~{
+        ~{} | tag(::each)
+        !| [type /printed]
+        |  eq([::EachReadBackDiffersError "* ()"])
+       }
+  ~~|
 
 ::fail
   |~~ The wrapper of a step on the fail track, `!| step`, over the
@@ -224,10 +345,55 @@
 
       ~{~{!| /kind} | first | payload | eq(~{/kind})}
   ~~|
+  ::builtin{:impl :qlang/type/fail}
+
+::FailPayloadNotQuoteError
+  |~~ The payload of ::fail is the quote of the step it wraps.
+
+      ~{
+        42 | tag(::fail)
+        !| [type /actualType]
+        |  eq([::FailPayloadNotQuoteError :number])
+       }
+  ~~|
+
+::FailReadBackDiffersError
+  |~~ The ::fail prints as text that reads back as another step: it
+      wraps one step, and a pipeline under `!|` is written as a
+      group.
+
+      ~{
+        ~{a | b} | tag(::fail)
+        !| [type /printed]
+        |  eq([::FailReadBackDiffersError "!| a | b"])
+       }
+  ~~|
 
 ::group
   |~~ The wrapper of a parenthesised group, `(pipeline)`, over the
       quote of its pipeline.
 
       ~{~{(add(1) | mul(2))} | first | payload | count | eq(2)}
+  ~~|
+  ::builtin{:impl :qlang/type/group}
+
+::GroupPayloadNotQuoteError
+  |~~ The payload of ::group is the quote of its pipeline.
+
+      ~{
+        42 | tag(::group)
+        !| [type /actualType]
+        |  eq([::GroupPayloadNotQuoteError :number])
+       }
+  ~~|
+
+::GroupReadBackDiffersError
+  |~~ The ::group prints as text that reads back as another step, or
+      as none: a group holds at least one step.
+
+      ~{
+        ~{} | tag(::group)
+        !| [type /printed]
+        |  eq([::GroupReadBackDiffersError "()"])
+       }
   ~~|

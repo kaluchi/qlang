@@ -1397,14 +1397,16 @@ true
 In the call form of today's surface an argument is code the operand runs
 against an input of its choosing, so a call holds each argument as the
 quote of its pipeline, where the command form stores a word as its step
-[D47]. What the ring still lacks is the refusal at the record: `::call`,
-`::proj`, `::bind`, `::tagged` and the wrappers name identities alone,
-so a wrong assembly passes `tag` and fails only where it runs, as text
-that does not parse:
+[D47]. A record or a wrapper is the step its own text reads back as, so
+a wrong assembly is refused where it is made, with the text it printed
+as [D54]:
 
 ```qlang
-> 42 | apply([::call{:name :"a b"}] | tag(::quote)) !| type
-::ParseError
+> ::call{:name :"a b"} !| [type /printed]
+[::CallReadBackDiffersError "a b"]
+
+> ::tagged{:tag ::Box :payload 42} !| /printed
+"::Box42"
 ```
 
 The maintainer put this ring first: «кольцо Code as data и инволюция
@@ -3324,6 +3326,31 @@ an error element. The parser's tree as the quote's payload, which
 carries positions and text into the data. A quote literal read when it
 runs, which keeps an unparseable literal alive until then and leaves its
 steps undefined.
+Replaced in part by D54, under which the records and the wrappers carry
+constructors that read each step back from its text.
+
+### D54 · A step is what its text reads back as
+
+Decision. The constructor of every record and wrapper of a quote checks
+the fields the printer reads against the record's schema, prints the
+step and reads the text back; an assembly that reads back as another
+step, or as none, is refused where it is made, with the text it printed
+as. The printer therefore prints what text can produce and nothing more.
+The wrappers of the fail track and the distribute, a declaration and a
+documented `as` stand in a pipeline alone, so inside a container, a
+field or a payload a step is an element step, and an error is a step
+when it is an error literal's, under `::Error`. `parse` and its inverse
+round-trip every example of the catalog, which a test written in qlang
+holds.
+Source. The model, 24 September 2026, on the ring branch, from the rule
+of the scar of code as data that a wrong assembly is refused by the
+record's constructor at construction rather than run as a program.
+Set aside. A constructor that turns a wrong assembly into the step its
+text reads back as, which accepts what the author did not write. The
+fields checked one by one against the grammar's classes, which copies
+the parser into the runtime. The quote's constructor reading every quote
+back from its text, which a transform of a large quote would pay for in
+parsing.
 
 ## The finish
 
@@ -3551,9 +3578,9 @@ this milestone closes.
 ### Milestone 1 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring closes
-first [D3, D8, D9, D47, D51, D52, D53] and keeps the surface of today,
-the spelling of a quote included; the command form follows on its heels
-[D10, D11] and changes the whole surface at once, `~(…)` with it,
+first [D3, D8, D9, D47, D51, D52, D53, D54] and keeps the surface of
+today, the spelling of a quote included; the command form follows on its
+heels [D10, D11] and changes the whole surface at once, `~(…)` with it,
 because the step's form is what the printer prints and what every trail,
 snippet and example carries, and the parser of the call form together
 with the printer of the command form rewrites every text of the
@@ -3885,6 +3912,19 @@ inside a field; a verb of compaction on each kind, found through the
 tags as every verb is and specialized by a host on its own; and a floor
 under every kind, the head of its schema never elided, which keeps the
 signal at the price of a budget sometimes exceeded.
+
+A constructor that tags its own result [D53]. `tag` runs a tag's
+constructor, so a constructor written as a quote that tags its own
+result through `tag` recurses until the depth budget refuses it. «c
+рекурсией на конструкторе таг да не подумали.. можно и потом вернуться
+или тебя самого может озарит как надо было правильно решать в процессе
+другой работы» (maintainer, 2026-09-24 03:05, session 86982eb5). The
+alternatives are a constructor that answers the payload it accepts while
+the runtime puts the tag on, which needs no change and leaves the
+self-tag a recursion like any other; `tag` inside a constructor of the
+same tag stamping without running it again, which is a rule of dynamic
+scope; and a refusal that names the self-tag at its second entry, which
+is one more check on every constructor.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

@@ -905,16 +905,19 @@ a body; the body is a step, `:six add 1`, and code is a quote, `:inc
 since a trail, a snippet in a Doc and an example all carry it, so it is
 settled before the printer exists.
 
-The model's check of the decision's risk, on 23 September 2026: the
-call form of a command with one argument is already a valid command,
-since `filter(gt(1))` reads as `filter` with the modifier `(gt(1))`,
-and that as `gt` with the modifier `(1)`. The habit of a model trained
-on function calls breaks in two places only, at a comma and inside a
-literal, where `[mul(2) add(1)]` reads as four words; both fail with
-an error rather than with a wrong answer, and the parse error at a
-comma inside parentheses names the command form it should have been.
-That is the price the decision accepted, and it is smaller than it
-looked.
+The model's check of the decision's risk, on 23 September 2026: the call
+form of a command with one argument still parses as a command, since
+`filter(gt(1))` reads as `filter` with the modifier `(gt(1))`, and that
+as `gt` with the modifier `(1)`. The habit of a model trained on
+function calls breaks in three places: at a comma; inside a literal,
+where `[mul(2) add(1)]` reads as four words; and at every slot of kind
+code, where `filter(gt(1))` hands over a boolean computed at the call
+and the slot refuses it, naming the tilde [D43]. All three fail with an
+error rather than with a wrong answer, and the parse error at a comma
+inside parentheses names the command form it should have been. That is
+the price the decision accepted; the third place is the commonest, since
+every predicate, key and fold is a slot of kind code, and its refusal
+names the fix.
 
 The maintainer made one condition of the space around a combinator,
 that examples over several lines and combinators moved to either end
@@ -3356,11 +3359,13 @@ first [D3, D8, D9, D47]; the command form follows on its heels [D10,
 D11], because the step's form is what the printer prints and what every
 trail, snippet and example carries, and the parser of the call form
 together with the printer of the command form rewrites every text of the
-repository and of the sister project by machine, so each later branch
-writes its examples once; the argument model follows [D4, D43, D45],
-with the interface of hosts designed in the same branch and landed in
-every host; the one binding form closes the milestone [D5, D44], with
-comments as whitespace and the Doc literal in the binding's slot.
+repository and of the sister project by machine, taking the tilde of
+each code slot from the kinds the catalog declares for its slots today
+[D43], so each later branch writes its examples once; the argument model
+follows [D4, D43, D45], with the interface of hosts designed in the same
+branch and landed in every host; the one binding form closes the
+milestone [D5, D44], with comments as whitespace and the Doc literal in
+the binding's slot.
 
 ```qlang target
 > ~(1 | add 1 | mul 2) | count

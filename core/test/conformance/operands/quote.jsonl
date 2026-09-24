@@ -20,7 +20,7 @@
 {"name":"type-quote-vec-false","query":"[1 2 3] | type | eq(:quote)","expect":"false"}
 {"name":"type-quote-map-false","query":"{:a 1} | type | eq(:quote)","expect":"false"}
 {"name":"type-quote-null-false","query":"null | type | eq(:quote)","expect":"false"}
-{"name":"error-element-type-is-not-quote","query":"[!{:k 1}] * (type | eq(:quote)) | first","expect":"false"}
+{"name":"error-element-type-is-not-quote","query":"[!{:k 1}] * (!| type | eq(:quote)) | first","expect":"false"}
 {"name":"quote-equality-same-source","query":"eq(~{mul(2)}, ~{mul(2)})","expect":"true"}
 {"name":"quote-equality-different-source","query":"eq(~{mul(2)}, ~{mul(3)})","expect":"false"}
 {"name":"quote-equality-cross-type-string","query":"eq(~{mul(2)}, \"mul(2)\")","expect":"false"}

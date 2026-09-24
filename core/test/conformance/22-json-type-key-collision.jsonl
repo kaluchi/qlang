@@ -9,7 +9,7 @@
 {"name":"json-type-doc-projects-data-key","query":"{\"type\": \"doc\", \"z\": 1} | /z","expect":"1"}
 {"name":"json-type-quote-answers-jsonObject","query":"{\"type\": \"quote\"} | type | eq(:jsonObject)","expect":"true"}
 {"name":"json-type-quote-is-not-quote","query":"{\"type\": \"quote\"} | type | eq(:quote)","expect":"false"}
-{"name":"json-type-error-isError-false","query":"{\"type\": \"error\"} | isError","expect":"false"}
+{"name":"json-type-error-rides-success-track","query":"{\"type\": \"error\"} | false !| true","expect":"false"}
 {"name":"json-type-discriminator-record-filter","query":"[{\"type\":\"doc\",\"id\":1} {\"type\":\"vec\",\"id\":2}] | filter(/id | gt(0)) | count","expect":"2"}
 {"name":"json-type-taggedInstance-eq-no-crash","query":"{\"type\":\"taggedInstance\"} | eq({\"type\":\"taggedInstance\"})","expect":"true"}
 {"name":"json-type-keyword-eq-distinguishes-real-keyword","query":"{\"type\": \"keyword\", \"name\": \"x\"} | eq(:x)","expect":"false"}

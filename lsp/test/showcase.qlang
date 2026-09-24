@@ -99,7 +99,7 @@ x
 
 |~| ── 8. Completion ─────────────────────────────────────
 |~| Ctrl+Space → every langRuntime entry (67 operands
-|~| including as, error, isError) + user bindings
+|~| including as and error) + user bindings
 |~| visible at the cursor position.
 
 :myHelper mul(10)

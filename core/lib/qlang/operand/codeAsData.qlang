@@ -81,10 +81,11 @@
       different value. Same `eval` machinery, different subject
       binding.
 
-      The Quote may carry a leading combinator (`|`, `*`, `!|`)
-      so its first step applies through that combinator against the
-      new subject. A pipeline-suffix shape — exactly the form `:trail`
-      records surface — is therefore directly re-executable.
+      The Quote's first step rides `|` against the new subject
+      unless the Quote carries a leading combinator (`*`, `!|`),
+      which routes it through that combinator. A pipeline-suffix
+      shape — exactly the form `:trail` records surface — is
+      therefore directly re-executable.
 
       ~{~{type | eq(:null)} | apply(42) | eq(false)}
       ~{~{| type | eq(:null)} | apply(42) | eq(false)}

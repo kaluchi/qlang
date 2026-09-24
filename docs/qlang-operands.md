@@ -63,7 +63,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
-| `:error` | Error-value constructor (error) or predicate (isError). |
+| `:error` | Error-value constructor (error). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
 
@@ -1299,10 +1299,10 @@ its own eval handler in `eval.mjs`.
 - **Arity** 2 (1 captured). **Subject** Quote-value or AST-Map
   sitting in `pipeValue`.
 - Runs the Quote-or-Map body against the captured-arg `subject` as
-  the initial `pipeValue`. A Quote's leading combinator (if any —
-  `~{* mul(2)}` / `~{| count}` / `~{!| /trail}`) routes the first
-  step through that combinator against the new subject, so a
-  pipeline-suffix shape replays semantically.
+  the initial `pipeValue`. The first step rides `|` against the
+  new subject unless the Quote carries a leading combinator
+  (`~{* mul(2)}` / `~{!| /trail}`), which routes it through that
+  combinator, so a pipeline-suffix shape replays semantically.
 - BindStep / `as` / `use` writes inside the applied body propagate
   outward, matching `eval` semantics; the body runs one frame
   below the `apply` step, inside the same depth budget.
@@ -1380,9 +1380,10 @@ combinator (fail-apply), which owns the track-dispatch decision.
 ordinary Map operations (`/key`, `has`, `keys`, `vals`, `union`,
 `minus`, `inter`, `eq`, `filter` over `:trail`, etc.) apply
 directly to the descriptor exactly as they would on any other
-Map. The two operands below cover the two endpoints of the
-fail-track itself: `error` lifts a Map into the fail-track and
-`isError` reports whether `pipeValue` already rides there.
+Map. The operand below is the entry of the fail-track: `error`
+lifts a Map into it, and whether `pipeValue` already rides there
+reads as `false !| true`, since the head `false` rides `|` and
+deflects on an error that `!| true` then answers.
 
 ### `error`
 
@@ -1404,26 +1405,17 @@ fail-track itself: `error` lifts a Map into the fail-track and
 - **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
 - **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
-### `isError`
+Asking each element whether it is an error:
 
-- **Arity** 1. **Subject** any value. Plain predicate — carries no
-  dispatch flag.
-- Returns `true` when pipeValue is an error value, `false`
-  otherwise. Because `|` deflects errors before `isError` can
-  fire, it is intended for raw first-step positions inside
-  predicate lambdas (`filter(isError)`, `any(isError)`,
-  `every(isError | not)`, `* isError`), where the per-element
-  sub-pipeline's first step runs without combinator dispatch and
-  therefore sees the per-element pipeValue directly.
-- **Examples**:
-  - `[!{:kind :oops}] * isError | first` → `true`.
-  - `{:kind :oops} | isError` → `false`.
-  - `42 | isError` → `false`.
+```qlang
+> [!{:kind :oops} 42] * (false !| true)
+[true false]
+```
 
 Removing an error from the success-track view of a container:
 
 ```qlang
-> [1 "x" 3] * add(10) | filter(isError | not)
+> [1 "x" 3] * add(10) | filter(true !| false)
 [11 13]
 ```
 
@@ -1472,7 +1464,7 @@ enumerates).
 | `:typeConversion` | `keyword`, `payload`, `tag` |
 | `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |
-| `:error` | `error`, `isError` |
+| `:error` | `error` |
 | `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
 | `:codeAsData` | `parse`, `eval`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |

@@ -313,7 +313,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
 
   it('the value namespace holds every declared operand', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(78);
+    expect(await evalQuery('manifest | count')).toBe(77);
   });
 });
 
@@ -349,7 +349,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
     expect(categories.get('codeAsData')).toBe(3); // parse eval apply
     expect(categories.get('axis')).toBe(4);         // source docs examples spec
-    expect(categories.get('error')).toBe(2);        // error isError
+    expect(categories.get('error')).toBe(1);        // error
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);
   });

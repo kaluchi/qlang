@@ -94,9 +94,9 @@ the language, described here in meta-notation for clarity.
 ## Step types
 
 Seven kinds of steps. Every syntactic form in the language reduces
-to one of them. `use`, `env`, `manifest`, `error`, and
-`isError` parse as ordinary identifiers (Step 3) that resolve to
-built-ins in the language runtime.
+to one of them. `use`, `env`, `manifest`, and `error` parse as
+ordinary identifiers (Step 3) that resolve to built-ins in the
+language runtime.
 
 ### 1. Literal
 
@@ -236,8 +236,8 @@ head position hands the head to the first operand step, as if the
 comment were absent: that step applies through the pipeline's
 leading combinator when there is one, through the combinator the
 author wrote after the comment (`(|~ note ~| * add(1))` reads as
-`(* add(1))`), and as the identity-head when its continuation unit
-carries the grammar's absorbed marker (`combinator: null`). Past
+`(* add(1))`), and through `|` when its continuation unit carries
+the grammar's absorbed marker (`combinator: null`). Past
 the head an absorbed follower rides `|`. A leading combinator and
 an explicit combinator on the same first operand step is a parse
 error. Comments appear
@@ -580,9 +580,10 @@ continuity preserved by the `makeErrorValue` invariant.
 
 On a non-error `pipeValue` the combinator is an identity.
 
-A leading combinator on a Pipeline (`Pipeline.leadingCombinator`,
-one of `!|` / `|` / `*`) routes the pipeline's first step
-through that combinator even though no preceding step exists. The
+The first step of a pipeline rides `|` like every other step. A
+leading combinator on a Pipeline (`Pipeline.leadingCombinator`,
+one of `!|` / `|` / `*`) routes it through that combinator
+instead, even though no preceding step exists. The
 `!|` form is used inside predicate lambdas of `filter(…)`,
 `when(…)`, `if(…)` and inside distribute element bodies where the
 per-element `pipeValue` may be on either track; every form is what
@@ -597,7 +598,10 @@ For each element `item` of the `pipeValue` sequence (Vec or Set; a
 Set distributes in insertion order into a Vec result):
 
 1. **Fork** to `(item, env)`
-2. Run `body` as a sub-pipeline
+2. Run `body` as a sub-pipeline whose head rides `|`; the
+   parentheses of `* (…)` delimit the body, so a body that opens
+   with `!|` recovers an error element and any other body hands
+   it on with its trail
 3. Take the resulting `nextPipeValue` from the fork
 
 Collect all results into a new Vec. Final state:
@@ -800,7 +804,7 @@ indistinguishable from built-ins.
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
 | `use`, `env`, `manifest`   | Step 3 — reflective built-in          |
-| `error`, `isError`                  | Step 3 — error built-in               |
+| `error`                             | Step 3 — error built-in               |
 | `\|`, `!\|`, `*`                    | Combinators                           |
 | `(...)` grouping                    | Fork                                  |
 | Vec / Map / Set entry evaluation    | Fork per entry                        |
@@ -1216,10 +1220,13 @@ pure AST-node-type dispatcher with no track awareness.
   the body against each; throws `DistributeSubjectNotSequenceError`
   when `pipeValue` is neither a sequence nor an error.
 
-A leading combinator on a Pipeline (`Pipeline.leadingCombinator`)
-is handled in `evalPipeline` by routing the first operand step
-through `applyCombinator(node.leadingCombinator, state, step)` —
-any of `!|` / `|` / `*`. The `!|` form is how predicate
+`evalPipeline` routes the first operand step through
+`applyCombinator(node.leadingCombinator ?? '|', state, step)`, so
+the head rides `|` unless a leading combinator (`!|` / `*`)
+names another. A lone step the parser collapsed out of its pipeline
+rides `|` through `evalBody`, the entry every body takes: a
+query, a group, a distribute body, a captured argument, a conduit
+body, and an applied quote. The `!|` form is how predicate
 lambdas inside `filter(…)` / `when(…)` / `if(…)` opt into
 fail-apply for their first step.
 

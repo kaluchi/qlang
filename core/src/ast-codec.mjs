@@ -526,8 +526,8 @@ export function qlangMapToAst(map) {
       node.steps = stepMaps.map(pipelineStepFromMap);
       // Preserve the shape peggy emits: leadingCombinator is present
       // only when a leading-prefix was authored; an absent field
-      // reads as falsy and matches evalPipeline's identity-head
-      // short-circuit without an explicit `null`.
+      // reads as falsy and evalPipeline's head rides `|` without an
+      // explicit `null`.
       const leading = map.get(F_LEADING_COMBINATOR);
       if (leading !== null && leading !== undefined) node.leadingCombinator = leading;
       break;

@@ -165,16 +165,16 @@ export async function evalQuery(source, env, callerState = null) {
   const initialState = callerState === null
     ? rootState(null, envWithInlineAst)
     : nestState(callerState, null, envWithInlineAst);
-  const finalState = await evalNode(ast, initialState);
+  const finalState = await evalBody(ast, initialState);
   return materializePendingTrail(finalState.pipeValue);
 }
 
 // evalAst(ast, state) → Promise<state'>
 //
-// Dispatches on the AST node type and returns the new state.
-// Public so callers can drive their own initial state.
+// Runs an AST as a body against a state the caller built, its head
+// riding `|`, and returns the new state.
 export async function evalAst(ast, state) {
-  return await evalNode(ast, state);
+  return await evalBody(ast, state);
 }
 
 // Lookup-table dispatcher: one entry per AST node type. Adding a
@@ -254,38 +254,30 @@ async function evalNode(node, state) {
 async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
   //
-  // `node.leadingCombinator`, if present, names the combinator the
-  // first step applies through against the inbound pipeValue
-  // (`!|` / `|` / `*`). Without it, the first step runs as
-  // an identity-head — straight evalNode against state, no track
-  // dispatch. Pipeline-suffix shapes (`~{| count | add(1)}`) round-
-  // trip through `apply` exactly because the leading combinator
-  // survives parse → eval.
+  // The head rides `|` like every other step unless
+  // `node.leadingCombinator` names another (`!|` / `*`), so
+  // `~{| count}` and `~{count}` run alike, and a pipeline-suffix
+  // shape (`~{* add(1)}`, `~{!| /trail}`) replays through `apply`
+  // with the combinator it was written with.
   //
   // A plain comment in head position hands the head to the first
   // operand step, exactly as with the comment absent: that step
   // applies through `node.leadingCombinator` when the pipeline
   // carries one, through its own combinator when the author wrote
   // one after the comment (`(|~ note ~| * add(1))` reads as
-  // `(* add(1))`), and as the identity-head when its continuation
-  // unit carries the grammar's absorbed marker (`combinator: null`).
+  // `(* add(1))`), and through `|` when its continuation unit
+  // carries the grammar's absorbed marker (`combinator: null`).
   // Past the head, an absorbed follower rides the `|` the comment's
   // closer stands for.
   let current = state;
-  let headPending = true;
+  let leadingCombinator = node.leadingCombinator;
   for (let i = 0; i < node.steps.length; i++) {
     const unit = node.steps[i];
     const stepNode = i === 0 ? unit : unit.step;
     if (isPlainCommentStep(stepNode)) continue;
-    if (headPending) {
-      headPending = false;
-      const headCombinator = node.leadingCombinator ?? (i === 0 ? null : unit.combinator);
-      current = headCombinator === null
-        ? await evalNode(stepNode, current)
-        : await applyCombinator(headCombinator, current, stepNode);
-      continue;
-    }
-    current = await applyCombinator(unit.combinator ?? '|', current, stepNode);
+    const combinator = leadingCombinator ?? (i === 0 ? null : unit.combinator) ?? '|';
+    leadingCombinator = null;
+    current = await applyCombinator(combinator, current, stepNode);
   }
   return current;
 }
@@ -327,6 +319,19 @@ async function applySuccessTrack(state, stepNode) {
   return await evalNode(stepNode, state);
 }
 
+// evalBody(node, state) → Promise<state'>
+//
+// Runs a body — a query, a group, a distribute body, a captured
+// argument, a conduit body, an applied quote — so that its head
+// rides `|` like every other step. A pipeline routes its own head; a
+// lone step the parser collapsed rides `|` here, and a lone plain
+// comment stays trivia.
+function evalBody(node, state) {
+  return node.type === 'Pipeline' || isPlainCommentStep(node)
+    ? evalNode(node, state)
+    : applySuccessTrack(state, node);
+}
+
 async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
@@ -336,10 +341,15 @@ async function distribute(state, bodyNode) {
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, makeQuote(bodyNode.text), state.pipeValue));
   }
+  // The parentheses after `*` delimit its body the way a call's
+  // parentheses delimit a captured argument, so the body's own head
+  // takes the track: `[e 1] * (!| 0)` recovers the error element, and
+  // `[e 1] * (count)` hands it on with its trail.
+  const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
   const subjectSeq = state.pipeValue;
   const forkResults = await Promise.all(
     sequenceElements(subjectSeq).map(seqElement =>
-      forkWith(state, seqElement, inner => evalNode(bodyNode, inner))
+      forkWith(state, seqElement, inner => evalBody(bodyPipeline, inner))
     )
   );
   const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
@@ -539,7 +549,7 @@ export async function mintTaggedInstance(tagName, payload, state, location = nul
   if (isQuote(implKey)) {
     const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${tagName}/impl` });
     const bodyState = nestState(state, payload, state.env);
-    const resultState = await evalNode(bodyAst, bodyState);
+    const resultState = await evalBody(bodyAst, bodyState);
     const constructorResult = resultState.pipeValue;
     if (isErrorValue(constructorResult)) return constructorResult;
     const tagKw = makeTagKeyword(tagName);
@@ -1045,7 +1055,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   // base case descends a frame per call until `nestState` lifts
   // `EvaluationDepthExceededError`.
   const bodyState = nestState(state, state.pipeValue, bodyEnv);
-  const finalBodyState = await evalNode(conduitBody, bodyState);
+  const finalBodyState = await evalBody(conduitBody, bodyState);
   return withPipeValue(state, finalBodyState.pipeValue);
 }
 
@@ -1101,7 +1111,7 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 function makeLambda(astNode, capturedState) {
   const lambda = async (lambdaInput) => {
     const subState = nestState(capturedState, lambdaInput, capturedState.env);
-    const evaluatedState = await evalNode(astNode, subState);
+    const evaluatedState = await evalBody(astNode, subState);
     return evaluatedState.pipeValue;
   };
   lambda.astNode = astNode;
@@ -1169,7 +1179,7 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
   }
 
   const bodyState = nestState(callerState, pipeValue, bodyEnv);
-  const finalBodyState = await evalNode(conduitBody, bodyState);
+  const finalBodyState = await evalBody(conduitBody, bodyState);
   return finalBodyState.pipeValue;
 }
 
@@ -1221,5 +1231,5 @@ function evalCommentStep(_node, state) {
 // ─── ParenGroup ─────────────────────────────────────────────────
 
 async function evalParenGroup(node, state) {
-  return await fork(state, inner => evalNode(node.pipeline, inner));
+  return await fork(state, inner => evalBody(node.pipeline, inner));
 }

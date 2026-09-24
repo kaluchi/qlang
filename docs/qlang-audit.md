@@ -1436,21 +1436,30 @@ tag(::U)` already stacks to `::U::T[1 2]`, while `|` is the adjacency of
 the vector.
 
 The head of a pipeline is a step like the others and rides `|` unless
-tagged otherwise, and that is a change: today the head of a query, of a
-group and of a distribute body runs on whatever it receives without a
-track, an error included, so `[1 "x"] * add(1) * (false !| true)`
-answers `[false false]` while the same group with a leading `|` answers
-`[false true]`, and `isError` is a primitive only because a head runs on
-both tracks, since `"x" | add(1) | isError` deflects. With the head
-riding `|`, the leading combinator needs no field, `~{| count}` and
-`~{count}` are one quote, an error element under `*` passes through
-with its trail as the law for nested errors wants where today the body
-wraps it in a second refusal, and `isError` is the composition `(false
-!| true)` and leaves the catalog. Nothing in the form carries a
-`:kind`, since the tag is the language's own identity and errors
-already left `:kind` behind; the parser's tree with its positions and
-text never leaves the runtime, staying available to the tools as a
+tagged otherwise, the head of a query, of a group, of a distribute body,
+of a captured argument, of a declared pipeline and of an applied quote
+alike, and the parentheses after `*` delimit its body, so the body's own
+head meets each element [D52]: `[1 "x"] * add(1) * (false !| true)`
+answers `[false true]`, an error element under `*` passes through with
+its trail as the law for nested errors wants, and whether a value is an
+error is the composition `(false !| true)`, which needs no operand of
+its own. With the head riding `|`, the leading combinator needs no
+field, `~{| count}` and `~{count}` are one quote. Nothing in the form
+carries a `:kind`, since the tag is the language's own identity and
+errors already left `:kind` behind; the parser's tree with its positions
+and text never leaves the runtime, staying available to the tools as a
 separate view.
+
+```qlang
+> [1 "x"] * add(1) * (false !| true)
+[false true]
+
+> [!{:k 1}] * add(1) | first !| /trail
+~{| add(1)}
+
+> [1 "x"] * add(1) * (!| 0)
+[2 0]
+```
 
 `parse` reads text into a quote and its inverse prints a quote as text,
 the way `keyword` flips a string and a keyword, and equality over quotes
@@ -3251,6 +3260,26 @@ asked «а что с судьбой >> ? операндом заменить и�
 Set aside. Keeping `>>`, which spends a token, a production, a branch of
 the evaluator and a tag of the data form on what two steps already say.
 
+### D52 · The parentheses after `*` delimit its body
+
+Decision. The body of `*` is the step after it, and parentheses there
+delimit the body the way a call's parentheses delimit an argument, so
+the body's own head meets each element and rides `|` unless it names
+another combinator: `* (false !| true)` asks each element whether it is
+an error, `* (!| 0)` recovers an error element, and `* (count)` hands
+one on with its trail. In the data form the distribute wraps the quote
+of its body, `* (false !| true)` being `::each~(false !| true)` and
+`* add(1)` being `::each~(add(1))`, while a group inside the body stays
+a group.
+Source. The model, 24 September 2026, on the ring branch, from the
+example the scar of code as data gives for a head that rides `|`, in
+which the group after `*` answers as the same group written with a
+leading `|`.
+Set aside. The group after `*` as one step riding `|`,
+`::each::group~(…)`, under which the group deflects an error element
+before its `!|` can answer, so `* (!| 0)` no longer recovers one and no
+body under `*` can ask whether an element is an error.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3477,7 +3506,7 @@ this milestone closes.
 ### Milestone 1 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring closes
-first [D3, D8, D9, D47, D51] and keeps the surface of today, the
+first [D3, D8, D9, D47, D51, D52] and keeps the surface of today, the
 spelling of a quote included; the command form follows on its heels
 [D10, D11] and changes the whole surface at once, `~(…)` with it,
 because the step's form is what the printer prints and what every trail,

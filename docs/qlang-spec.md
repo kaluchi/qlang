@@ -1381,9 +1381,9 @@ A step written with its own combinator after a comment keeps it:
 `(|~ note ~| * add(1))` distributes exactly as `(* add(1))`, and
 `~{|~ note ~| !| /kind}` replays through `apply` as `~{!| /kind}`.
 At the start of a query, a paren-group, or a Quote, the step after
-a comment is the head step — it runs as the identity-head, or
-through the pipeline's leading combinator when one is written
-before the comment. A leading combinator and an explicit
+a comment is the head step — it rides `|` like every other step,
+or the pipeline's leading combinator when one is written before
+the comment. A leading combinator and an explicit
 combinator on that same step is a parse error.
 
 #### Attach-to-next — doc comments
@@ -1777,7 +1777,7 @@ carries a suffix that `apply` cannot replay:
 The `!{}` literal from Part 1 can seed an error directly — the
 example above uses it to bypass the need for a failing step.
 
-### `error` and `isError` operands
+### The `error` operand
 
 `error` lifts a Map into an error value — bare form (`map | error`)
 or full form (`error(map)`):
@@ -1787,17 +1787,17 @@ or full form (`error(map)`):
 :oops
 ```
 
-`isError` is a plain predicate over `pipeValue`. Because `|`
-deflects errors before it could fire `isError`, it is used primarily
-at raw first-step positions inside predicate lambdas of higher-order
-operands:
+Whether a value is an error reads as `false !| true`: the head
+`false` rides `|` like every other step and deflects on an error,
+which `!| true` then answers. The parentheses after `*` delimit
+its body, so the body's own head meets each element:
 
 ```qlang
-> 42 | isError
+> 42 | false !| true
 false
 
-> [!{:kind :oops}] * isError | first
-true
+> [!{:kind :oops} 42] * (false !| true)
+[true false]
 ```
 
 Runtime type errors, arity errors, and other recoverable failures

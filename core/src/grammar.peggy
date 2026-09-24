@@ -56,8 +56,8 @@
   // for. Its continuation unit carries the absorbed marker
   // (`combinator: null`) so the evaluator can tell it from a step
   // the author prefixed with `|` / `*` / `!|` after the
-  // comment: at the head of a pipeline the absorbed follower is the
-  // identity-head, past the head it rides `|`.
+  // comment: the absorbed follower rides `|`, at the head of a
+  // pipeline as past it.
   function absorbedUnit(step) {
     return { combinator: null, step };
   }
@@ -130,11 +130,11 @@ Query
 // is valid at any Pipeline-start position. Semantically
 // the first step is applied against the inbound pipeValue through
 // the named combinator; without the prefix, the first step rides
-// the implicit identity-head. The prefix is what makes a
-// Pipeline-suffix Quote (`~{| count | add(1)}`) parseable as data
-// and re-evaluable against a subject via the `apply(quote)`
-// operand. Explicit combinators between later steps (`|`, `*`,
-// `!|`) remain valid as usual.
+// `|`. The prefix is what makes a Pipeline-suffix Quote
+// (`~{* add(1)}`, `~{!| /trail}`) parseable as data and
+// re-evaluable against a subject via the `apply(quote)` operand.
+// Explicit combinators between later steps (`|`, `*`, `!|`) remain
+// valid as usual.
 PipelineInLiteral
   = leadingComb:(LeadingCombinator _)? head:RawStep tail:(_L ExplicitContinuation)*
   {

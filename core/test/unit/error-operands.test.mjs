@@ -1,5 +1,4 @@
-// Tests for error operand, isError operand, and the `!|` fail-apply
-// combinator, plus edge cases around trail accumulation, re-lift
+// Tests for the error operand and the `!|` fail-apply combinator, plus edge cases around trail accumulation, re-lift
 // continuity, and conduit invocation on the fail-track.
 
 import { describe, it, expect } from 'vitest';
@@ -25,15 +24,6 @@ describe('error operand', () => {
   it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
     const evalResult = await evalQuery('null | error("not-a-number" | add(1)) !| type');
     expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-  });
-});
-
-// ── isError operand ─────────────────────────────────────────────
-
-describe('isError operand', () => {
-  it('with captured args produces arity error', async () => {
-    const evalResult = await evalQuery('42 | isError(1) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('arityError'));
   });
 });
 
@@ -65,8 +55,8 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('distribute of add(10) over mixed elements produces per-element errors filterable by isError', async () => {
-    const evalResult = await evalQuery('[1 "x" 3] * add(10) | filter(isError) | count');
+  it('distribute of add(10) over mixed elements produces per-element errors a fail-track predicate selects', async () => {
+    const evalResult = await evalQuery('[1 "x" 3] * add(10) | filter(false !| true) | count');
     expect(evalResult).toBe(1);
   });
 

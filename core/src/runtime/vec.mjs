@@ -33,17 +33,17 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isQMap, isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
+  isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
   NULL, keyword, isVecShape, isOrderedSequence, sequenceElements, isMapShape, mapShapeEntries, mapShapeSize,
   mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
   isJsonArray, JSON_ARRAY_TAG
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
-import { checkComparable, compareScalars } from '../ordering.mjs';
+import { compareValues } from '../ordering.mjs';
 
 // containerLikeOf(items, source) — minting site for shape-preserving
-// transformers (filter / take / drop / reverse / sort / sortWith /
-// flat) over an ordered sequence. Three shape signals carry through:
+// transformers (filter / take / drop / reverse / sort / flat) over an
+// ordered sequence. Three shape signals carry through:
 //   - JsonArray vs Vec — `vecLikeOf` re-stamps `JSON_ARRAY_TAG`
 //     when the source carries it.
 //   - Set vs Vec — Set re-mints with structural dedup (the only
@@ -59,7 +59,7 @@ import { checkComparable, compareScalars } from '../ordering.mjs';
 //     symmetric without per-operand stamping.
 // containerLikeOf(items, source) — single mint site for shape-
 // preserving transformers (filter / sort / take / drop / reverse /
-// flat / sortWith) over an ordered sequence. Three shape branches:
+// flat) over an ordered sequence. Three shape branches:
 // Set re-mints via `addStructurallyUnique` (the only path where
 // dedup matters — `flat` of a Set of Vecs can introduce
 // duplicates); JsonArray inline-builds with `JSON_ARRAY_TAG` but
@@ -86,8 +86,7 @@ function containerLikeOf(items, source) {
 import {
   declareSubjectError,
   declareModifierError,
-  declareElementError,
-  declareComparabilityError
+  declareElementError
 } from '../operand-errors.mjs';
 import {
   declareShapeError,
@@ -165,8 +164,6 @@ const IndexByKeyNotKeywordError        = declareShapeError('IndexByKeyNotKeyword
 );
 const SortNaturalSubjectNotSequenceError = declareSubjectError('SortNaturalSubjectNotSequenceError', 'sort',     ['vec', 'set']);
 const SortByKeySubjectNotSequenceError   = declareSubjectError('SortByKeySubjectNotSequenceError',   'sort',     ['vec', 'set']);
-const SortWithSubjectNotSequenceError    = declareSubjectError('SortWithSubjectNotSequenceError',    'sortWith', ['vec', 'set']);
-const FirstNonZeroSubjectNotVecError     = declareSubjectError('FirstNonZeroSubjectNotVecError',     'firstNonZero', 'vec');
 const TakeSubjectNotSequenceError        = declareSubjectError('TakeSubjectNotSequenceError',        'take',     ['vec', 'set']);
 const DropSubjectNotSequenceError        = declareSubjectError('DropSubjectNotSequenceError',        'drop',     ['vec', 'set']);
 const DistinctSubjectNotSequenceError    = declareSubjectError('DistinctSubjectNotSequenceError',    'distinct', ['vec', 'set']);
@@ -181,11 +178,6 @@ const AnyPredicateNotQuoteError         = declareModifierError('AnyPredicateNotQ
 const GroupByKeyNotQuoteError           = declareModifierError('GroupByKeyNotQuoteError',           'groupBy',    2, 'quote');
 const IndexByKeyNotQuoteError           = declareModifierError('IndexByKeyNotQuoteError',           'indexBy',    2, 'quote');
 const SortKeyNotQuoteError              = declareModifierError('SortKeyNotQuoteError',              'sort',       2, 'quote');
-const SortWithComparatorNotQuoteError   = declareModifierError('SortWithComparatorNotQuoteError',   'sortWith',   2, 'quote');
-const AscKeyNotQuoteError               = declareModifierError('AscKeyNotQuoteError',               'asc',        2, 'quote');
-const DescKeyNotQuoteError              = declareModifierError('DescKeyNotQuoteError',              'desc',       2, 'quote');
-const NullsFirstKeyNotQuoteError        = declareModifierError('NullsFirstKeyNotQuoteError',        'nullsFirst', 2, 'quote');
-const NullsLastKeyNotQuoteError         = declareModifierError('NullsLastKeyNotQuoteError',         'nullsLast',  2, 'quote');
 const ReduceReducerNotQuoteError        = declareModifierError('ReduceReducerNotQuoteError',        'reduce',     3, 'quote');
 
 const TakeCountNotIntegerError = declareModifierError('TakeCountNotIntegerError', 'take', 2, 'integer');
@@ -208,48 +200,6 @@ const SumElementNotNumberError          = declareElementError('SumElementNotNumb
 const SumResultNotFiniteError = declareNumericDomainError('SumResultNotFiniteError',
   ({ index }) => `sum: the running total leaves the finite double range at element ${index}`,
   { operand: 'sum' }
-);
-const FirstNonZeroElementNotNumberError = declareElementError('FirstNonZeroElementNotNumberError', 'firstNonZero', 'number');
-
-const MinElementsNotComparableError    = declareComparabilityError('MinElementsNotComparableError',    'min');
-const MaxElementsNotComparableError    = declareComparabilityError('MaxElementsNotComparableError',    'max');
-const SortNaturalNotComparableError    = declareComparabilityError('SortNaturalNotComparableError',    'sort');
-const SortByKeyNotComparableError      = declareComparabilityError('SortByKeyNotComparableError',      'sort');
-const AscKeysNotComparableError        = declareComparabilityError('AscKeysNotComparableError',        'asc');
-const DescKeysNotComparableError       = declareComparabilityError('DescKeysNotComparableError',       'desc');
-const NullsFirstKeysNotComparableError = declareComparabilityError('NullsFirstKeysNotComparableError', 'nullsFirst');
-const NullsLastKeysNotComparableError  = declareComparabilityError('NullsLastKeysNotComparableError',  'nullsLast');
-
-const SortWithCmpResultNotNumberError = declareShapeError('SortWithCmpResultNotNumberError',
-  ({ actualType }) => `sortWith comparator must return a Number, got ${actualType.name}`,
-  { operand: 'sortWith', expectedType: 'number' }
-);
-// A comparator is caller-supplied input at this seam, and a host
-// operand installed through `session.bind` or a locator's `impls`
-// map can answer NaN — `typeof NaN` is `'number'`, and every
-// `NaN <= 0` reading in the merge answers false, so the run order
-// would come out of a comparison the comparator declined to make.
-// Of the three readings a non-finite value breaks, this is the one
-// that answers silently.
-const SortWithCmpResultNaNError = declareNumericDomainError('SortWithCmpResultNaNError',
-  () => 'sortWith comparator answered NaN — a comparison orders its pair as negative, zero, or positive',
-  { operand: 'sortWith' }
-);
-const AscPairNotMapError = declareShapeError('AscPairNotMapError',
-  ({ actualType }) => `asc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
-  { operand: 'asc', position: 'subject', expectedType: 'map' }
-);
-const DescPairNotMapError = declareShapeError('DescPairNotMapError',
-  ({ actualType }) => `desc requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
-  { operand: 'desc', position: 'subject', expectedType: 'map' }
-);
-const NullsFirstPairNotMapError = declareShapeError('NullsFirstPairNotMapError',
-  ({ actualType }) => `nullsFirst requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
-  { operand: 'nullsFirst', position: 'subject', expectedType: 'map' }
-);
-const NullsLastPairNotMapError = declareShapeError('NullsLastPairNotMapError',
-  ({ actualType }) => `nullsLast requires a pair Map subject ({ :left x :right y }), got ${actualType.name}`,
-  { operand: 'nullsLast', position: 'subject', expectedType: 'map' }
 );
 
 // ── Polymorphic sizeOf for count/empty ─────────────────────────
@@ -317,8 +267,7 @@ export const min = nullaryOp('min', (container) => {
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
-    checkComparable(MinElementsNotComparableError, acc, items[i]);
-    if (compareScalars(items[i], acc) < 0) acc = items[i];
+    if (compareValues(items[i], acc) < 0) acc = items[i];
   }
   return acc;
 });
@@ -328,8 +277,7 @@ export const max = nullaryOp('max', (container) => {
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
-    checkComparable(MaxElementsNotComparableError, acc, items[i]);
-    if (compareScalars(items[i], acc) > 0) acc = items[i];
+    if (compareValues(items[i], acc) > 0) acc = items[i];
   }
   return acc;
 });
@@ -529,10 +477,7 @@ export const indexBy = higherOrderOp('indexBy', 2, async (subject, indexKeyModif
 export const sort = overloadedOp('sort', 2, {
   0: (subject) => {
     const items = sequenceOrThrow(subject, SortNaturalSubjectNotSequenceError);
-    const sorted = [...items].sort((a, b) => {
-      checkComparable(SortNaturalNotComparableError, a, b);
-      return compareScalars(a, b);
-    });
+    const sorted = [...items].sort(compareValues);
     return containerLikeOf(sorted, subject);
   },
   1: async (subject, sortKeyModifier) => {
@@ -544,10 +489,7 @@ export const sort = overloadedOp('sort', 2, {
         sortKey: await sortKeyLambda(sortElem)
       }))
     );
-    sortEntries.sort((a, b) => {
-      checkComparable(SortByKeyNotComparableError, a.sortKey, b.sortKey);
-      return compareScalars(a.sortKey, b.sortKey);
-    });
+    sortEntries.sort((a, b) => compareValues(a.sortKey, b.sortKey));
     return containerLikeOf(sortEntries.map(entry => entry.sortElem), subject);
   }
 }, { preservesTag: true });
@@ -657,109 +599,6 @@ export const flat = nullaryOp('flat', (subject) => {
   return containerLikeOf(result, subject);
 }, { preservesTag: true });
 
-// ── sortWith and comparator builders ──────────────────────────
-
-// Top-down merge sort over an awaited comparator —
-// `Array.prototype.sort` accepts only a sync comparator, and each
-// pairwise comparison here awaits a captured-arg lambda whose
-// conduit body may itself await. The merge takes the left run's
-// head on a zero result, so equal elements keep their subject
-// order (stable), and the comparator fires at most n·⌈log₂ n⌉
-// times for a subject of n elements.
-async function mergeSortWith(subjectRun, comparePair) {
-  if (subjectRun.length <= 1) return subjectRun;
-  const splitIdx = subjectRun.length >> 1;
-  const leftRun = await mergeSortWith(subjectRun.slice(0, splitIdx), comparePair);
-  const rightRun = await mergeSortWith(subjectRun.slice(splitIdx), comparePair);
-  const merged = [];
-  let leftIdx = 0;
-  let rightIdx = 0;
-  while (leftIdx < leftRun.length && rightIdx < rightRun.length) {
-    if (await comparePair(leftRun[leftIdx], rightRun[rightIdx]) <= 0) merged.push(leftRun[leftIdx++]);
-    else merged.push(rightRun[rightIdx++]);
-  }
-  while (leftIdx < leftRun.length) merged.push(leftRun[leftIdx++]);
-  while (rightIdx < rightRun.length) merged.push(rightRun[rightIdx++]);
-  return merged;
-}
-
-export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpModifier) => {
-  const cmpLambda = await codeOfModifier(cmpModifier, subject, v => new SortWithComparatorNotQuoteError(v));
-  if (!isOrderedSequence(subject)) throw new SortWithSubjectNotSequenceError(subject);
-  const comparePair = async (left, right) => {
-    const cmpPair = new Map([['left', left], ['right', right]]);
-    const cmpResult = await cmpLambda(cmpPair);
-    if (typeof cmpResult !== 'number') {
-      throw new SortWithCmpResultNotNumberError({
-        actualType: typeKeyword(cmpResult),
-        actualValue: cmpResult
-      });
-    }
-    if (Number.isNaN(cmpResult)) throw new SortWithCmpResultNaNError();
-    return cmpResult;
-  };
-  return containerLikeOf(await mergeSortWith([...subject], comparePair), subject);
-}, { preservesTag: true });
-
-export const asc = higherOrderOp('asc', 2, async (pair, ascKeyModifier) => {
-  const ascKeyLambda = await codeOfModifier(ascKeyModifier, pair, v => new AscKeyNotQuoteError(v));
-  if (!isQMap(pair)) throw new AscPairNotMapError({
-    actualType: typeKeyword(pair), actualValue: pair
-  });
-  const ascLeft  = pair.get('left');
-  const ascRight = pair.get('right');
-  const ascLeftKey  = await ascKeyLambda(ascLeft);
-  const ascRightKey = await ascKeyLambda(ascRight);
-  checkComparable(AscKeysNotComparableError, ascLeftKey, ascRightKey);
-  return compareScalars(ascLeftKey, ascRightKey);
-});
-
-export const desc = higherOrderOp('desc', 2, async (pair, descKeyModifier) => {
-  const descKeyLambda = await codeOfModifier(descKeyModifier, pair, v => new DescKeyNotQuoteError(v));
-  if (!isQMap(pair)) throw new DescPairNotMapError({
-    actualType: typeKeyword(pair), actualValue: pair
-  });
-  const descLeft  = pair.get('left');
-  const descRight = pair.get('right');
-  const descLeftKey  = await descKeyLambda(descLeft);
-  const descRightKey = await descKeyLambda(descRight);
-  checkComparable(DescKeysNotComparableError, descLeftKey, descRightKey);
-  return -compareScalars(descLeftKey, descRightKey);
-});
-
-async function nullsKeyComparator(pair, nullsKeyModifier, nullFirst, KeyNotQuoteError, PairNotMapError, KeysNotComparableError) {
-  const nullsKeyLambda = await codeOfModifier(nullsKeyModifier, pair, v => new KeyNotQuoteError(v));
-  if (!isQMap(pair)) throw new PairNotMapError({ actualType: typeKeyword(pair), actualValue: pair });
-  const nullsLeft  = pair.get('left');
-  const nullsRight = pair.get('right');
-  const nullsLeftKey  = await nullsKeyLambda(nullsLeft);
-  const nullsRightKey = await nullsKeyLambda(nullsRight);
-  const leftIsNull  = nullsLeftKey === null || nullsLeftKey === undefined;
-  const rightIsNull = nullsRightKey === null || nullsRightKey === undefined;
-  if (leftIsNull && rightIsNull) return 0;
-  if (leftIsNull) return nullFirst ? -1 : 1;
-  if (rightIsNull) return nullFirst ? 1 : -1;
-  checkComparable(KeysNotComparableError, nullsLeftKey, nullsRightKey);
-  return compareScalars(nullsLeftKey, nullsRightKey);
-}
-
-export const nullsFirst = higherOrderOp('nullsFirst', 2, async (pair, nullsFirstKeyModifier) =>
-  await nullsKeyComparator(pair, nullsFirstKeyModifier, true, NullsFirstKeyNotQuoteError, NullsFirstPairNotMapError, NullsFirstKeysNotComparableError));
-
-export const nullsLast = higherOrderOp('nullsLast', 2, async (pair, nullsLastKeyModifier) =>
-  await nullsKeyComparator(pair, nullsLastKeyModifier, false, NullsLastKeyNotQuoteError, NullsLastPairNotMapError, NullsLastKeysNotComparableError));
-
-export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
-  if (!isVecShape(vec)) throw new FirstNonZeroSubjectNotVecError(vec);
-  for (let i = 0; i < vec.length; i++) {
-    if (typeof vec[i] !== 'number') {
-      throw new FirstNonZeroElementNotNumberError(i, vec[i]);
-    }
-    if (vec[i] !== 0) return vec[i];
-  }
-  return 0;
-});
-
 // `reduce(seed, reducer)` — the universal left-fold. Threads the
 // accumulator and applies `reducer(acc, element)` at each step: a
 // binary operand folds via its bound form (`acc | add(element)`), a
@@ -805,10 +644,4 @@ bindPrim('drop',         drop);
 bindPrim('distinct',     distinct);
 bindPrim('reverse',      reverse);
 bindPrim('flat',         flat);
-bindPrim('sortWith',     sortWith);
-bindPrim('asc',          asc);
-bindPrim('desc',         desc);
-bindPrim('nullsFirst',   nullsFirst);
-bindPrim('nullsLast',    nullsLast);
-bindPrim('firstNonZero', firstNonZero);
 bindPrim('reduce',       reduce);

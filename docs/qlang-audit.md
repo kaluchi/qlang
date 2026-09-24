@@ -775,23 +775,22 @@ of the runtime is exported for building operands.
 
 The vocabulary carries the calling shape as well as the kind. A
 predicate, a key and a pipeline slot run their code against one subject.
-A reducer slot and a comparator slot hold two values for the code they
-run: they run it against the accumulator, or the left element, and
-supply the other value as a trailing modifier to the code's last step,
-the way `xargs` completes the command it was given. The completed step
-is always applied with the subject as its first operand, so code that
-has already spent its modifiers is refused by arity and never turns into
-a full application; the canonical fold is `reduce 0 ~(add)` [D43], whose
-slot today finds `add` by the name its quote holds [D56], and a reducer
-that wants the element anywhere but last is declared with a parameter
-one step earlier in the same query. A declared pipeline's parameters are
-values, and its body applies one that holds code, `:twice ~[:f](apply
-f | apply f)`, so the tilde says one thing wherever it stands: this is
-code, and only `apply` runs it. The main live use of lazy parameters, a
-key function handed down through several layers of pipelines, keeps its
-shape: the reference's `:@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) |
-take n)` receives its key as a quote that carries its caller's
-environment and hands it on as a value.
+A reducer slot holds two values for the code it runs: it runs it against
+the accumulator and supplies the element as a trailing modifier to the
+code's last step, the way `xargs` completes the command it was given.
+The completed step is always applied with the subject as its first
+operand, so code that has already spent its modifiers is refused by
+arity and never turns into a full application; the canonical fold is
+`reduce 0 ~(add)` [D43], whose slot today finds `add` by the name its
+quote holds [D56], and a reducer that wants the element anywhere but
+last is declared with a parameter one step earlier in the same query. A
+declared pipeline's parameters are values, and its body applies one that
+holds code, `:twice ~[:f](apply f | apply f)`, so the tilde says one
+thing wherever it stands: this is code, and only `apply` runs it. The
+main live use of lazy parameters, a key function handed down through
+several layers of pipelines, keeps its shape: the reference's `:@topBy
+[:keyFn :n] (sort ~(keyFn) | reverse | take n)` receives its key as a
+quote that carries its caller's environment and hands it on as a value.
 
 A predicate slot refuses a result that is not a boolean, so a predicate
 that answers a string or a quote fails at the slot instead of counting
@@ -1039,11 +1038,7 @@ re-invocation machinery, which exists for exactly this contract and pays
 for it with a dynamic import that breaks a module cycle, serves no value
 of the language. Its equality is the one place where it behaves as a
 set, `#[1 2] | eq #[2 1]` answering true, while its membership is a
-linear scan, so the uniqueness it guarantees speeds nothing. And the
-language has no order over its values beyond pairs of numbers, strings
-or keywords: `sort` refuses a mixed vector, a null inside a sort key and
-a vector as a key, and a family of comparator operands with their
-refusals exists to work around that.
+linear scan, so the uniqueness it guarantees speeds nothing.
 
 Whether a transform keeps its subject's tag at all is an option of the
 operand's implementation, `preservesTag`, which `applyTagPreservation`
@@ -1097,29 +1092,29 @@ over `keys` with `at`, a vector of records is made from a map through
 `keys` and rebuilt into one through `indexBy`, and `groupBy` and
 `indexBy` answer maps.
 
-One order over all values comes first [D16, D48]: by the kind, null,
-boolean, number, string, keyword, tag name, vector, set, map, quote,
-doc, error and elision, and after them the hosts' kinds by name, so that
-a null sorts first unless a key says otherwise; then within the kind as
-today, vectors element by element, maps by their keys and then their
-values, a host's value by its payload. With it `sort` accepts any
-vector, a vector serves as a compound key and `[(eq null) /]` as one
-that puts nulls last, the comparator operands and the refusals of
-incomparability go, and the ordering predicates keep their refusal
-through the kind of their slot. The set is then the vector in that order
-without duplicates, under the `::set` tag, `distinct` its constructor
-and `#[…]` its literal, so that `#[3 1 3]` prints as `#[1 3]` and
-equality, structural like everywhere, compares two sets by their
-content. Wherever a vector is accepted a set is accepted, since it is
-one; the reverse does not hold. `filter`, `take`, `drop` and `*` keep
-the set, an operand that imposes an order answers a vector, `flat` over
-a set of sets is their union, membership is a binary search and the
-algebra of two sets a merge, and the vector keeps its own arithmetic,
-since `union`, `minus` and `inter` are operations of sets and maps. The
-price is that `distinct` no longer keeps the order of first occurrence,
-`keys` no longer answers in document order, and a literal reorders when
-printed. The JavaScript set goes with its literal, its answer from
-`type`, its branches and its codec envelope.
+One order ranks every value [D16, D48]: by the kind, null, boolean,
+number, string, keyword, tag name, vector, set, map, quote, doc, error
+and elision, and after them the hosts' kinds by name, so that a null
+sorts first unless a key says otherwise; then within the kind, vectors
+element by element, maps by their keys and then their values, a host's
+value by its payload. `sort`, `min` and `max` accept any vector, `[3
+null "x" 1] | sort` answering `[null 1 3 "x"]`, a vector serves as a
+compound key and `[(eq null) /]` as one that puts nulls last, and the
+ordering predicates keep their refusal until the kinds of their slots
+carry it. The set is then the vector in that order without duplicates,
+under the `::set` tag, `distinct` its constructor and `#[…]` its
+literal, so that `#[3 1 3]` prints as `#[1 3]` and equality, structural
+like everywhere, compares two sets by their content. Wherever a vector
+is accepted a set is accepted, since it is one; the reverse does not
+hold. `filter`, `take`, `drop` and `*` keep the set, an operand that
+imposes an order answers a vector, `flat` over a set of sets is their
+union, membership is a binary search and the algebra of two sets a
+merge, and the vector keeps its own arithmetic, since `union`, `minus`
+and `inter` are operations of sets and maps. The price is that
+`distinct` no longer keeps the order of first occurrence, `keys` no
+longer answers in document order, and a literal reorders when printed.
+The JavaScript set goes with its literal, its answer from `type`, its
+branches and its codec envelope.
 
 ### Two ways to name a thing, and comments that are steps
 
@@ -2164,6 +2159,8 @@ which is a second spelling of every calling shape.
 Replaced in part by D43, under which a slot captures nothing, code
 arrives as a quote, and a declared pipeline's parameter is a value its
 body applies.
+Replaced in part by D16, under which the comparator slot leaves with the
+comparator operands.
 
 ### D5 · One binding form, and the binding is a record
 
@@ -2388,14 +2385,22 @@ duplicates, under the `::set` tag, with `distinct` its constructor and
 `#[…]` its literal.
 Source. The maintainer first asked whether the set should leave the
 language: «может вообще сеты убрать из языка? а есть isDistict/isSet
-операнд над вектором» (maintainer, 2026-09-22 05:34, session
-0ea77851); after the model's second pass, «ок, убедил.. дорабатывай
-аудит» (maintainer, 2026-09-22 06:27, session 0ea77851).
+операнд над вектором» (maintainer, 2026-09-22 05:34, session 0ea77851);
+after the model's second pass, «ок, убедил.. дорабатывай аудит»
+(maintainer, 2026-09-22 06:27, session 0ea77851). The comparators left
+after the maintainer asked after the motive, «это мы так договаривались,
+сносить компараторы? .. напомни мотивацию?» (maintainer, 2026-09-24
+07:48, session 86982eb5), and heard their price, «ааа ок, продолжай»
+(07:50).
 Set aside. A language without sets, the same order with `distinct`
 answering a canonical vector, set aside by a small margin since the
 tagged vector costs two lines of catalog and answers for itself when
 printed; a set as a primitive with an equality of its own; a vector
-whose equality knew order, which would be no set.
+whose equality knew order, which would be no set. The price accepted: a
+key that descends beside one that ascends is written for numbers alone,
+`sort ~([/p (/t | mul -1)])`; the descending order is the sort reversed,
+which reverses the order of equal keys as well; and `firstNonZero`, the
+composition primitive of compound comparators, leaves with them.
 
 ### D17 · The order of the types
 

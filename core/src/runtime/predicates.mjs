@@ -19,7 +19,7 @@
 import { valueOp, nullaryOp } from './dispatch.mjs';
 import { isTruthy, typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
-import { checkComparable, compareScalars } from '../ordering.mjs';
+import { checkComparable, compareValues } from '../ordering.mjs';
 import { declareComparabilityError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
@@ -32,22 +32,22 @@ export const eq = valueOp('eq', 2, (subject, value) => deepEqual(subject, value)
 
 export const gt = valueOp('gt', 2, (subject, threshold) => {
   checkComparable(GtOperandsNotComparableError, subject, threshold);
-  return compareScalars(subject, threshold) > 0;
+  return compareValues(subject, threshold) > 0;
 });
 
 export const lt = valueOp('lt', 2, (subject, threshold) => {
   checkComparable(LtOperandsNotComparableError, subject, threshold);
-  return compareScalars(subject, threshold) < 0;
+  return compareValues(subject, threshold) < 0;
 });
 
 export const gte = valueOp('gte', 2, (subject, threshold) => {
   checkComparable(GteOperandsNotComparableError, subject, threshold);
-  return compareScalars(subject, threshold) >= 0;
+  return compareValues(subject, threshold) >= 0;
 });
 
 export const lte = valueOp('lte', 2, (subject, threshold) => {
   checkComparable(LteOperandsNotComparableError, subject, threshold);
-  return compareScalars(subject, threshold) <= 0;
+  return compareValues(subject, threshold) <= 0;
 });
 
 export const and = valueOp('and', 2, (a, b) => isTruthy(a) && isTruthy(b));

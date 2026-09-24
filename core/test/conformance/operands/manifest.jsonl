@@ -6,7 +6,6 @@
 {"name":"contains-add-binding","query":"env | manifest | filter ~(/name | eq \"add\") | count","expect":"1"}
 {"name":"contains-manifest-binding","query":"env | manifest | filter ~(/name | eq \"manifest\") | count","expect":"1"}
 {"name":"contains-if-binding","query":"env | manifest | filter ~(/name | eq \"if\") | count","expect":"1"}
-{"name":"contains-sortWith-binding","query":"env | manifest | filter ~(/name | eq \"sortWith\") | count","expect":"1"}
 {"name":"filter-by-builtin-kind-many","query":"env | manifest | filter ~(/kind | eq ::builtin) | count | gt 40","expect":"true"}
 {"name":"filter-by-arith-category-exactly-four","query":"env | manifest | filter ~(/category | eq :arith) | count","expect":"4"}
 {"name":"filter-by-vec-reducer-category","query":"env | manifest | filter ~(/category | eq :vecReducer) | count | gt 5","expect":"true"}
@@ -15,14 +14,12 @@
 {"name":"filter-by-container-reducer-category","query":"env | manifest | filter ~(/category | eq :containerReducer) | count","expect":"2"}
 {"name":"filter-by-string-category-includes-split-join-and-substring-predicates","query":"env | manifest | filter ~(/category | eq :string) | count","expect":"7"}
 {"name":"filter-by-control-category-six-operands","query":"env | manifest | filter ~(/category | eq :control) | count","expect":"6"}
-{"name":"filter-by-comparator-category-four-operands","query":"env | manifest | filter ~(/category | eq :comparator) | count","expect":"4"}
 {"name":"filter-by-reflective-category-five-operands","query":"env | manifest | filter ~(/category | eq :reflective) | count","expect":"5"}
 {"name":"filter-by-code-as-data-category-two-operands","query":"env | manifest | filter ~(/category | eq :codeAsData) | count","expect":"2"}
 {"name":"filter-by-axis-category-four-operands","query":"env | manifest | filter ~(/category | eq :axis) | count","expect":"4"}
 {"name":"filter-by-error-category-one-operand","query":"env | manifest | filter ~(/category | eq :error) | count","expect":"1"}
 {"name":"all-arith-have-add-sub-mul-div","query":"env | manifest | filter ~(/category | eq :arith) * /name | sort","expect":"[\"add\" \"div\" \"mul\" \"sub\"]"}
 {"name":"all-control-six-operands-sorted","query":"env | manifest | filter ~(/category | eq :control) * /name | sort","expect":"[\"coalesce\" \"cond\" \"firstTruthy\" \"if\" \"unless\" \"when\"]"}
-{"name":"all-comparator-sorted","query":"env | manifest | filter ~(/category | eq :comparator) * /name | sort","expect":"[\"asc\" \"desc\" \"nullsFirst\" \"nullsLast\"]"}
 {"name":"all-reflective-sorted","query":"env | manifest | filter ~(/category | eq :reflective) * /name | sort","expect":"[\"as\" \"env\" \"manifest\" \"runExamples\" \"use\"]"}
 {"name":"all-code-as-data-sorted","query":"env | manifest | filter ~(/category | eq :codeAsData) * /name | sort","expect":"[\"apply\" \"parse\"]"}
 {"name":"all-axis-sorted","query":"env | manifest | filter ~(/category | eq :axis) * /name | sort","expect":"[\"docs\" \"examples\" \"source\" \"spec\"]"}

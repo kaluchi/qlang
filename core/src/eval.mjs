@@ -1006,7 +1006,7 @@ async function applyConduit(conduit, node, lookupName, state) {
   // captured-arg lambda against whatever pipeValue the identifier
   // lookup sees at the moment — this is the lazy binding that
   // enables higher-order composition (params fire per-element
-  // inside sortWith, per-iteration inside filter, etc.).
+  // inside sort, per-iteration inside filter, etc.).
   //
   // Every conduit reachable at this point has its envRef holder
   // wired by the construction site (`evalBindStep` for in-query
@@ -1040,8 +1040,8 @@ async function applyConduit(conduit, node, lookupName, state) {
 // zero captured args) that fires the lambda against the current
 // pipeValue at each lookup site. This is the mechanism that enables
 // higher-order conduit parameters: the lambda stays lazy, evaluated
-// per-element inside sortWith, per-iteration inside filter, per-pair
-// inside desc/asc — wherever the identifier lookup happens inside
+// per-element inside sort, per-iteration inside filter —
+// wherever the identifier lookup happens inside
 // the conduit body.
 function makeConduitParameter(capturedArgLambda, paramName) {
   // Conduit parameters are ephemeral — meta is inline because

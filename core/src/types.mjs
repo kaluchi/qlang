@@ -138,7 +138,7 @@ export function isOrderedSequence(v) {
 // isOrderedSequence. A Vec / JsonArray yields itself (no copy); a Set
 // is spread into an array in insertion order. Order-aware operands
 // that need indexed access (first / last / at) or full materialisation
-// (sort / sortWith), and the `*` distribute fork, source their element
+// (sort), and the `*` distribute fork, source their element
 // array here.
 export function sequenceElements(v) {
   return isVecShape(v) ? v : [...v];

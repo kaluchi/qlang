@@ -54,11 +54,6 @@
     "body": ["cond(${1:pred1}, ${2:val1}, ${3:pred2}, ${4:val2})"],
     "description": "Multi-way dispatch over predicate/branch pairs"
   },
-  "sortWith": {
-    "prefix": "sortWith",
-    "body": ["sortWith(${1|asc,desc,nullsFirst,nullsLast|}(${2:/field}))"],
-    "description": "Custom comparator sort"
-  },
   "groupBy": {
     "prefix": "groupBy",
     "body": ["groupBy(${1:/field})"],

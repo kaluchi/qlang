@@ -16,7 +16,7 @@
 
 |~| ── 1. Hover ──────────────────────────────────────────
 |~| Hover over count, filter, sort, union, manifest, if,
-|~| coalesce, sortWith, asc, desc to see catalog docs.
+|~| coalesce to see catalog docs.
 
 [1 2 3 4 5] | count
 
@@ -132,12 +132,12 @@ x
 |~| The @ gets distinct highlighting from the name.
 
 
-|~| ── 12. Comparator composition ────────────────────────
-|~| sortWith + asc/desc + firstNonZero compose declaratively.
-|~| Hover each operand to see its docs.
+|~| ── 12. Compound sort key ─────────────────────────────
+|~| A vector is a compound key in the one order of values,
+|~| and the descending order is the sort reversed.
 
 [{:name "c" :age 30} {:name "a" :age 25} {:name "b" :age 25}]
-  | sortWith ~([(asc ~(/age)), (desc ~(/name))] | firstNonZero)
+  | sort ~([/age /name])
   * /name
 
 

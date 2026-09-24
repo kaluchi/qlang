@@ -213,8 +213,8 @@ declaration time:
 - **Recursion.** `envRef.env` includes `env[:name]` (the conduit
   itself), so self-reference resolves naturally via tie-the-knot.
 - **Higher-order parameters.** Parameters are lazy — a captured-arg
-  lambda fires per-element inside `sortWith`, per-iteration inside
-  `filter`, per-pair inside `desc`/`asc`.
+  lambda fires per element inside `sort`, per iteration inside
+  `filter`.
 
 Zero-arity conduits (`:f body`) and parametric conduits
 (`:f [:a :b] body`) share the same mechanism. Tag-binding
@@ -718,7 +718,7 @@ co-located sources:
   declarations: per-site error tag-bindings inline followed
   by the operand BindSteps that reference those tags in their
   `:throws` Vec. Each operand binds a keyword identifier
-  (`:count`, `:filter`, `:sortWith`, `:parse`, …) to a
+  (`:count`, `:filter`, `:sort`, `:parse`, …) to a
   descriptor Map carrying a namespaced `:impl :qlang/prim/<name>`
   keyword that points into the primitive registry, plus
   authored metadata (`:category`, `:subject`, `:modifiers`,

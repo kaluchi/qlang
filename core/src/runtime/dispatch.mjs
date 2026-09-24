@@ -122,7 +122,7 @@ async function applyTagPreservation(state, source, result) {
   }
   // `result[TAG_HEADER_SYMBOL]` reads safely through every
   // `preservesTag` return shape — those operands (filter / sort
-  // / take / drop / reverse / flat / sortWith / distinct) always
+  // / take / drop / reverse / flat / distinct) always
   // produce composite Vec / Set / Map / JsonArray. A preserve-
   // path operand that returns a primitive surfaces the contract
   // bug as a TypeError at the operand site.

@@ -308,12 +308,12 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest :tag | count')).toBe(230);
+    expect(await evalQuery('manifest :tag | count')).toBe(208);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(76);
+    expect(await evalQuery('manifest | count')).toBe(70);
   });
 });
 
@@ -333,10 +333,9 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     }
     expect(categories.get('containerReducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
     expect(categories.get('containerSelector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
-    expect(categories.get('vecReducer')).toBe(7);  // first, last, sum, min, max, firstNonZero, reduce
+    expect(categories.get('vecReducer')).toBe(6);  // first, last, sum, min, max, reduce
     expect(categories.get('indexedAccess')).toBe(1);  // at (Vec + Map polymorphic)
-    expect(categories.get('vecTransformer')).toBe(9);  // sort, sortWith, take, drop, distinct, reverse, flat, groupBy, indexBy
-    expect(categories.get('comparator')).toBe(4);
+    expect(categories.get('vecTransformer')).toBe(8);  // sort, take, drop, distinct, reverse, flat, groupBy, indexBy
     expect(categories.get('control')).toBe(6);
     expect(categories.get('mapOp')).toBe(3);  // keys + vals + has
     expect(categories.get('setOp')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)

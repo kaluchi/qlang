@@ -266,7 +266,7 @@ A finding under this section names the offending identifier, the qlang-domain al
 
 Beyond gating the diff, you reason about whether the change leaves the qlang surface in a **conceptually complete** state. After reviewing what is in the diff, look at what is **next-step-natural**:
 
-- If the diff adds an operand family but leaves obvious siblings unimplemented (e.g. `firstNonZero` ships without `lastNonZero`, `coalesce` ships without `every`/`any`, comparator builders ship without `nullsFirst`/`nullsLast`), name the gap.
+- If the diff adds an operand family but leaves obvious siblings unimplemented (e.g. `first` ships without `last`, `coalesce` ships without `every`/`any`), name the gap.
 - If the diff introduces a new descriptor field on a binding kind but `manifest`'s `describeBinding` projection does not surface it, name the gap.
 - If the diff teaches the AST a new node type but `astChildrenOf` only learns about it in one place and the editor primitives (`findAstNodeAtOffset`, `bindingNamesVisibleAt`) silently ignore it, name the gap.
 - If the diff adds a parse-time check but the runtime has no symmetric safety net for laundering paths (or vice versa), name the gap.
@@ -275,7 +275,7 @@ Beyond gating the diff, you reason about whether the change leaves the qlang sur
 
 These are not blockers — they belong to a separate output section called **Organic next steps**. Each entry names a specific extension that follows logically from the design vocabulary the diff already establishes, with a one-sentence sketch of why it completes the picture and what it would touch.
 
-The bar for proposing an extension: it must be **derivable from the current implementation's logic**, not invented from outside. "qlang should grow a type system" is not derivable. "`sortWith` ships with `asc`/`desc`/`firstNonZero`; the natural completion is a `nullsFirst ~(cmp)` / `nullsLast ~(cmp)` adapter that keeps null-handling out of every key sub-pipeline" is derivable.
+The bar for proposing an extension: it must be **derivable from the current implementation's logic**, not invented from outside. "qlang should grow a type system" is not derivable. "`take` ships without `drop`; the natural completion is `drop n`, which cuts the sequence where `take` keeps it" is derivable.
 
 Stay inside the qlang surface. Do not propose changes outside the repository.
 

@@ -51,7 +51,6 @@ form part of the doc surface and the runtime catalog alike.
 | `:containerSelector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
 | `:vecReducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
 | `:vecTransformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
-| `:comparator` | Pair-Map comparator builder for sortWith. |
 | `:control` | Control-flow operand (if / when / unless / coalesce / firstTruthy / cond). |
 | `:mapOp` | Map-only operand (keys / vals / has on Map). |
 | `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vecTransformer). |
@@ -130,17 +129,14 @@ form part of the doc surface and the runtime catalog alike.
 
 ### `min`, `max`
 
-- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
-  `min` / `max` are order-independent over their result.
-- Returns the minimum (or maximum) element under the natural
-  ordering. Empty container yields `null`. Comparable pairings:
-  Number↔Number, String↔String, Keyword↔Keyword (lexicographic by
-  `.name`), TagKeyword↔TagKeyword.
+- **Arity** 1. **Subject** one of `Vec` / `Set`.
+- Returns the first (or last) element in the one order of values,
+  the order `sort` answers. Empty container yields `null`.
 - **Examples**: `[3 1 4 1 5] | min` → `1`; `#[3 1 4] | max` → `4`;
-  `[:y :a :m] | min` → `:a`; `#[::B ::A ::C] | min` → `::A`.
+  `[:y :a :m] | min` → `:a`; `[3 "a" null] | min` → `null`;
+  `[3 "a" null] | max` → `"a"`.
 - **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSetError` /
-  `MaxSubjectNotVecOrSetError`; elements not comparable →
-  `MinElementsNotComparableError` / `MaxElementsNotComparableError`.
+  `MaxSubjectNotVecOrSetError`.
 
 ## Ordered-sequence reducers — `Vec / Set → Any`
 
@@ -327,114 +323,35 @@ JSON tag.
 ### `sort`
 
 - **Arity** 1. **Subject** `vec` or `set`.
-- Returns a new sequence sorted in natural (ascending) order. Same
-  shape as subject. Pairwise-comparable scalars only: Number↔Number,
-  String↔String, Keyword↔Keyword (lexicographic by `.name`), or
-  TagKeyword↔TagKeyword.
-- **Example**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`;
-  `#[:y :x :z] | sort` → `#[:x :y :z]`;
-  `[::B ::A] | sort` → `[::A ::B]`.
-- **Errors**: elements not comparable → `SortNaturalNotComparableError`.
+- Returns a new sequence in the one order of values, same shape as
+  subject. Values order first by kind: null, boolean, number,
+  string, keyword, tag name, vector, set, map, quote, doc, error and
+  elision, then every other tag by its name. Within a kind numbers
+  order by value, strings by their code units, keywords and tag
+  names by their names, vectors element by element, a set as its
+  vector, maps by their keys and then their values, and a tagged
+  value by its payload.
+- **Examples**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`;
+  `[3 null "x" 1] | sort` → `[null 1 3 "x"]`;
+  `[[2 1] [1 2] [1]] | sort` → `[[1] [1 2] [2 1]]`;
+  `[::B :b ::A :a] | sort` → `[:a :b ::A ::B]`.
+- **Errors**: subject not Vec/Set → `SortNaturalSubjectNotSequenceError`.
 
 ### `sort ~(key)`
 
 - **Arity** 2. **Subject** `vec` or `set`, **modifier** `key` (a
-  projection pipeline).
-- Returns a new sequence sorted by the value returned by `key` for
-  each element. Same shape as subject.
-- **Example**: `[{:age 30} {:age 20}] | sort ~(/age)` → `[{:age 20} {:age 30}]`.
-
-### `sortWith ~(cmp)`
-
-- **Arity** 2. **Subject** `vec` or `set`, **modifier** `cmp` (a
-  comparator sub-pipeline).
-- Sorts using a custom comparator. The comparator receives a pair
-  Map `{ :left a :right b }` for each comparison and must return a
-  number: negative places `left` before `right`, positive places
-  `right` before `left`, zero treats them as equal. The sort is a
-  stable merge sort: equal elements keep their subject order, and
-  the comparator fires at most n·⌈log₂ n⌉ times.
+  quote).
+- Returns a new sequence ordered by the value `key` answers for each
+  element, in the one order, same shape as subject; elements whose
+  keys are equal keep their subject order. A vector serves as a
+  compound key, and the descending order is the sort reversed.
 - **Examples**:
-  - `[3 1 2] | sortWith ~(sub /left /right)` → `[1 2 3]`.
-  - `[3 1 2] | sortWith ~(sub /right /left)` → `[3 2 1]`.
-  - `people | sortWith ~(asc ~(/age))` → people sorted youngest-first.
-  - `events | sortWith ~([(asc ~(/priority)), (desc ~(/timestamp))] | firstNonZero)`
-    → events sorted by priority ascending, then timestamp descending
-    as tie-breaker.
-- **Errors**: subject not a Vec → `SortWithSubjectNotSequenceError`; comparator returns
-  non-number → `SortWithCmpResultNotNumberError`.
-
-### `asc ~(keyExpr)`
-
-- **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
-  by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
-- Builds an ascending comparator. Applied per-pair, projects the
-  key from `/left` and `/right` via the captured sub-pipeline and
-  compares them in natural ascending order. Returns -1, 0, or 1.
-- The key sub-pipeline can be any expression — a bare projection
-  (`/age`), a computed value (`mul /price /qty`), a multi-step
-  pipeline.
-- **Examples**:
-  - `sortWith ~(asc ~(/age))` → ascending by `:age`.
-  - `sortWith ~(asc ~(mul /price /qty))` → ascending by computed total.
-  - `sortWith ~(asc ~(/profile/joined))` → ascending by nested field.
-- **Errors**: pair subject not a Map → `AscPairNotMapError`; left and right
-  keys not comparable scalars of the same type → `AscKeysNotComparableError`.
-
-### `desc ~(keyExpr)`
-
-- **Arity** 2. **Subject** pair Map, **modifier** key sub-pipeline.
-- Same as `asc` but reversed: higher key values come first.
-- **Examples**:
-  - `sortWith ~(desc ~(/timestamp))` → most recent first.
-  - `sortWith ~(desc ~(/score))` → highest score first.
-- **Errors**: pair subject not a Map → `DescPairNotMapError`; keys not
-  comparable → `DescKeysNotComparableError`.
-
-### `nullsFirst ~(keyExpr)`
-
-- **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
-  by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
-- Ascending comparator that places null-keyed elements before all
-  non-null elements. Non-null keys are sorted in ascending order.
-  Use inside `sortWith` to handle data with missing values without
-  tripping `AscKeysNotComparableError`.
-- **Examples**:
-  - `sortWith ~(nullsFirst ~(/age))` → null ages before all others.
-  - `[{:a 3} {:a null} {:a 1}] | sortWith ~(nullsFirst ~(/a)) * /a`
-    → `[null 1 3]`.
-- **Errors**: pair subject not a Map → `NullsFirstPairNotMapError`.
-
-### `nullsLast ~(keyExpr)`
-
-- **Arity** 2. **Subject** pair Map `{ :left x :right y }` (provided
-  by `sortWith`), **modifier** `keyExpr` (any sub-pipeline).
-- Ascending comparator that places null-keyed elements after all
-  non-null elements. Non-null keys are sorted in ascending order.
-  Use inside `sortWith` to handle data with missing values without
-  tripping `AscKeysNotComparableError`.
-- **Examples**:
-  - `sortWith ~(nullsLast ~(/age))` → null ages after all others.
-  - `[{:a 3} {:a null} {:a 1}] | sortWith ~(nullsLast ~(/a)) * /a`
-    → `[1 3 null]`.
-- **Errors**: pair subject not a Map → `NullsLastPairNotMapError`.
-
-### `firstNonZero`
-
-- **Arity** 1. **Subject** Vec of Numbers.
-- Returns the first non-zero number in the Vec. If all elements
-  are zero (or the Vec is empty), returns 0.
-- The composition primitive for compound comparators in `sortWith`:
-  pair with a Vec literal of comparators to express lexicographic
-  ordering. Each comparator returns -1/0/1, and `firstNonZero`
-  picks the first non-tie.
-- **Examples**:
-  - `[0 0 -1 0] | firstNonZero` → `-1`.
-  - `[0 0 0] | firstNonZero` → `0`.
-  - `sortWith ~([(asc ~(/lastName)), (desc ~(/age))] | firstNonZero)` →
-    sort by last name ascending, age descending as tie-breaker.
-- **Errors**: subject not a Vec → `FirstNonZeroSubjectNotVecError`; any element not a
-  number → `FirstNonZeroElementNotNumberError`.
+  - `[{:age 30} {:age 20}] | sort ~(/age)` → `[{:age 20} {:age 30}]`.
+  - `[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b])` → `[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]`.
+  - `[3 null 1] | sort ~([(eq null) /])` → `[1 3 null]`, the nulls last.
+  - `[{:k 1} {:k 3} {:k 2}] | sort ~(/k) | reverse` → `[{:k 3} {:k 2} {:k 1}]`.
+- **Errors**: subject not Vec/Set → `SortByKeySubjectNotSequenceError`;
+  key not a quote → `SortKeyNotQuoteError`.
 
 ### `take n`
 

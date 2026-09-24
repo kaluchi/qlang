@@ -6,24 +6,10 @@
 // elements?" regardless of container shape.
 //
 // `filter` / `every` / `any` are container-universal item-select
-// operands. On Vec and Set the predicate fires against each
-// element. On Map the predicate dispatch reads the captured arg's
-// arity:
-//
-//   0-arity pipeline (`filter ~(gt 1)`) or 1-arity conduit (`[:v]`)
-//     → per entry with value as pipeValue; key is not visible.
-//   2-arity conduit (`[:k :v]`)
-//     → per entry with (key, value) as captured-arg values; pipeValue
-//       is the value. Writing the predicate as a named conduit
-//       binding is the idiom for both-axis filtering:
-//
-//         m
-//           | :@hot [:k :v] (and (k | eq :x) (v | gt 1))
-//           | filter ~(@hot)
-//
-//   3+-arity → per-operand arityError. The language does not
-//     pair-encode keys/values into a single argument; higher arities
-//     are not meaningful for entry iteration.
+// operands: the predicate fires against each element, a map's value
+// being its element [D15], and `filter` keeps the keys of the entries
+// it keeps. A conduit of one parameter binds the element; one of two
+// or more has no axis to fill and raises the per-operand arity error.
 //
 // Every type check inlines its own `throw new X(...)` statement
 // so the class name and source line uniquely identify the failing

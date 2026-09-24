@@ -1,20 +1,19 @@
 |~ qlang operand catalog — codeAsData family. The ring that
    closes source-text → AST-Map → pipeValue without leaving the
    language. `parse` lifts a String (or a Quote-value) into an
-   AST-Map shape documented in `core/src/ast-codec.mjs`; `eval`
-   walks the AST-Map back into a JS-object AST and re-enters
-   evaluation against the surrounding state; `apply(subject)`
-   runs the Quote-or-Map sitting in pipeValue against the captured
-   subject as the new initial pipeValue. Trail-emitted suffix
-   Quotes flow through pipeValue, so `error !| /trail | apply(start)`
-   re-runs deflected steps against a fresh subject. ~|
+   AST-Map shape documented in `core/src/ast-codec.mjs`;
+   `apply(code)` runs the Quote-or-Map its captured arg answers
+   against the subject, subject first like every other operand.
+   Trail-emitted suffix Quotes flow through pipeValue, so
+   `error !| /trail | as(:t) | start | apply(t)` re-runs deflected
+   steps against a fresh subject. ~|
 
 :parse
   |~~ Parses a source string into an AST-Map — the data-form
       representation of the program described by the
       ast-codec.mjs astNodeToMap codec. Half of the codeAsData
       ring; pair
-      with eval to round-trip between source text and
+      with apply(/) to round-trip between source text and
       evaluated pipeValue without leaving qlang. Parse errors
       from the underlying peggy parser lift onto the fail-track
       as ordinary error values, so malformed sources surface
@@ -38,74 +37,41 @@
        }
   ~~|
 
-:eval
-  |~~ Evaluates an AST-Map (typically produced by parse or
-      hand-assembled via ast-codec.mjs::astNodeToMap) against the
-      current state. The inner code sees the caller's env and
-      pipeValue; any BindStep / as / use writes propagate out
-      the same way a paren-group would. Completes the ring
-      "source" | parse | eval equivalent to directly evaluating
-      the source string, and enables programmatic query
-      construction from data without source-string splicing.
-
-      ~{"42" | parse | eval | eq(42)}
-      ~{"10 | add(3)" | parse | eval | eq(13)}
-      ~{{:kind :NumberLit :value 42} | eval | eq(42)}
-  ~~|
-  ::builtin{:impl :qlang/prim/eval
-            :category :codeAsData
-            :subject :map
-            :returns :any}
-
-::EvalSubjectNotMapOrQuoteError
-  |~~ `eval` requires a Map (AST-Map) or Quote (source-form)
-      subject.
-
-      ~{
-        42 | eval
-        !| [type /actualType]
-        |  eq([::EvalSubjectNotMapOrQuoteError :number])
-       }
-  ~~|
-
 :apply
-  |~~ Runs the Quote-or-AST in pipeValue against the captured
-      arg as the initial subject. Mirrors the classical
-      `apply(fn, args)` from Lisp / JS — the body comes first (in
-      pipeValue, the pipeline's natural inlet), the subject second
-      (captured argument).
+  |~~ Runs the code its captured arg answers — a Quote, or an
+      AST-Map from parse — against the subject, under the fork
+      rule: the declarations the code makes stay inside it, and
+      only its value comes out. The subject comes first, as for
+      every other operand, so `x | apply(/)` runs a quote held
+      as the subject against itself, and `"src" | parse |
+      apply(/)` evaluates source text.
 
-      Pairs with `eval` to split data-flow on the AST-as-data axis:
-      `quote | eval` runs the Quote against itself (the body IS the
-      subject), `quote | apply(subject)` runs the body against a
-      different value. Same `eval` machinery, different subject
-      binding.
-
-      The Quote's first step rides `|` against the new subject
+      The Quote's first step rides `|` against the subject
       unless the Quote carries a leading combinator (`*`, `!|`),
       which routes it through that combinator. A pipeline-suffix
       shape — exactly the form `:trail` records surface — is
       therefore directly re-executable.
 
-      ~{~{type | eq(:null)} | apply(42) | eq(false)}
-      ~{~{| type | eq(:null)} | apply(42) | eq(false)}
-      ~{~{* mul(2)} | apply([1 2 3]) | eq([2 4 6])}
-      ~{~{flat | sort} | apply([[1 2] [3 4]]) | eq([1 2 3 4])}
+      ~{42 | apply(~{type | eq(:null)}) | eq(false)}
+      ~{[1 2 3] | apply(~{* mul(2)}) | eq([2 4 6])}
+      ~{[[1 2] [3 4]] | apply(~{flat | sort}) | eq([1 2 3 4])}
+      ~{"10 | add(3)" | parse | apply(/) | eq(13)}
   ~~|
   ::builtin{:impl :qlang/prim/apply
             :category :codeAsData
-            :subject [:quote :map]
+            :subject :any
             :returns :any
-            :modifiers [:any]}
+            :modifiers [[:quote :map]]}
 
 
-::ApplySubjectNotMapOrQuoteError
-  |~~ `apply` requires a Map (AST-Map) or Quote (source-form)
-      subject — the code it runs against the captured subject.
+::ApplyCodeNotMapOrQuoteError
+  |~~ `apply` requires its captured arg to answer a Map (AST-Map)
+      or a Quote (source-form) — the code it runs against the
+      subject.
 
       ~{
         42 | apply(1)
         !| [type /actualType]
-        |  eq([::ApplySubjectNotMapOrQuoteError :number])
+        |  eq([::ApplyCodeNotMapOrQuoteError :number])
        }
   ~~|

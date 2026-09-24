@@ -269,7 +269,7 @@
       a kind the codec does not know.
 
       ~{
-        {:kind :BogusKind} | eval
+        {:kind :BogusKind} | apply(/)
         !| [type]
         |  eq([::AstMapKindUnknownError])
        }
@@ -280,7 +280,7 @@
       required field, wrong shape).
 
       ~{
-        {:a 1} | eval
+        {:a 1} | apply(/)
         !| [type]
         |  eq([::AstMapMalformedError])
        }
@@ -517,7 +517,7 @@
 
 ::EvaluationDepthExceededError
   |~~ The evaluator descends one frame per conduit body,
-      captured-arg lambda, `eval` / `apply` re-entry, Quote-bodied
+      captured-arg lambda, `apply` re-entry, Quote-bodied
       tag constructor, doc-segment literal, and locator-loaded
       module; the frame past `EVAL_DEPTH_LIMIT` (state.mjs) lifts
       this error with `:depth` (the refused frame) and `:limit`
@@ -530,7 +530,7 @@
         !| type | eq(::EvaluationDepthExceededError)
        }
       ~{
-        :q ~{q | eval} | q | eval
+        :q ~{apply(q)} | apply(q)
         !| gt(/depth, /limit)
        }
   ~~|

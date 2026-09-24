@@ -27,7 +27,7 @@ export const ConduitBodyMissingSourceError = declareInvariantError(
 // JS-header slot, and conduitParameter proxies live for the duration
 // of a conduit body fork. They have no grammatical literal — the only
 // candidate render form (`:qlang/prim/${name}`) parses back as a
-// keyword value on the next `eval`. Surfacing a function value in
+// keyword value when read back. Surfacing a function value in
 // pipeValue therefore violates printValue's round-trip theorem. The
 // invariant fires at render time, so a host binding mounted through
 // `session.bind` carrying a raw callable surfaces by name and routes
@@ -316,7 +316,7 @@ export function isQuote(v) {
 
 // Quote — frozen JS object carrying `.source` (the verbatim text
 // between `~{` and `}`) and an optional `.ast` (lazily populated when
-// the Quote is run through `eval` or projected via `/ast`). Identity
+// the Quote is run through `apply` or projected via `/ast`). Identity
 // rides the non-enumerable VALUE_CLASS_TAG Symbol brand, keeping a
 // `:kind` Map-key discriminator out of every projection of a
 // Quote-valued pipeValue and leaving a JSON document that carries

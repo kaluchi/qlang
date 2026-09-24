@@ -1,7 +1,7 @@
 // The evaluation depth budget across every re-entry seam: a
 // runaway recursion through any seam the evaluator descends —
 // conduit body, captured-arg lambda, fixed-arg conduit invocation,
-// `eval` / `apply`, Quote-bodied tag constructor, `runExamples`,
+// `apply`, Quote-bodied tag constructor, `runExamples`,
 // locator-loaded module — terminates on the fail-track as
 // `::EvaluationDepthExceededError` with `:depth` and `:limit`.
 
@@ -39,8 +39,7 @@ describe('depth budget — self-calling conduit', () => {
 
 describe('depth budget — every re-entry seam', () => {
   const seams = [
-    ['eval on a self-referential Quote',            ':q ~{q | eval} | q | eval'],
-    ['apply on a self-referential Quote',           ':a ~{a | apply(1)} | a | apply(1)'],
+    ['apply on a self-referential Quote',           ':q ~{apply(q)} | apply(q)'],
     ['distribute body naming its own conduit',      ':f ([/] * f | first) | 1 | f'],
     ['captured-arg lambda naming its own conduit',  ':p ([/] | filter(p)) | [1] | p'],
     ['fixed-arg conduit through reduce',            ':r [:acc :el] ([1] | reduce(0, r)) | [1] | reduce(0, r)'],

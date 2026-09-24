@@ -217,7 +217,7 @@ async function evalNode(node, state) {
     const faultStep = makeQuote(node.text);
     const faultInput = state.pipeValue;
     if (caughtError instanceof ParseError) {
-      // A ParseError raised mid-eval — typically from `apply` / `eval`
+      // A ParseError raised mid-eval — typically from `apply`
       // parsing a Quote source — lifts to a `::ParseError!{…}`
       // ErrorValue (same structured shape as a top-level parse
       // failure), with the originating step's faultStep / faultInput
@@ -247,7 +247,7 @@ async function evalNode(node, state) {
 // keeps every comment for reflection (`source`, the highlighter,
 // the AST-codec round-trip); `evalCommentStep` stays wired for the
 // direct-dispatch path of a lone comment query or a comment AST-Map
-// handed to `eval`. The step-node reading itself lives in
+// handed to `apply`. The step-node reading itself lives in
 // `walk.mjs::isPlainCommentStep` beside the rest of the AST-shape
 // knowledge.
 

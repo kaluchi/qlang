@@ -6,10 +6,10 @@
 //   - Structured error `:trail` — `/trail | /ast` lifts the deflected
 //     pipeline-suffix Quote into an AST-Map so user code can
 //     filter / group / inspect deflections as qlang data.
-//   - `parse` / `eval` reflective operands — `"query" | parse` lifts
-//     source text into an AST-Map; `ast-map | eval` re-enters
-//     evaluation against the current state. Closes the source → data
-//     → exec ring that makes `| parse | eval` a first-class
+//   - `parse` / `apply` operands — `"query" | parse` lifts source
+//     text into an AST-Map; `ast-map | apply(/)` re-enters
+//     evaluation against the subject. Closes the source → data →
+//     exec ring that makes `| parse | apply(/)` a first-class
 //     combinator.
 //   - Conduit body inspection — `:helper | source | /ast` exposes
 //     a user-defined conduit's source as an AST-Map for programmatic
@@ -152,7 +152,7 @@ const AST_KIND_TO_TYPE = new Map([
 // class with fingerprint and structured context, matching the runtime
 // convention for operand errors. They extend QlangError so the
 // evalNode try/catch in eval.mjs can lift them to error values when
-// the `parse` / `eval` reflective operands surface them to user
+// the `parse` / `apply` operands surface them to user
 // pipelines.
 const AstNodeTypeUnknownError = declarePerSiteError(
   'AstNodeTypeUnknownError', 'astCodecError',

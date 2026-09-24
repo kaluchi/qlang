@@ -8,7 +8,7 @@
    `core/lib/qlang/operand/axis.qlang` (`source` / `docs` /
    `examples`). Error-track entry / exit lives in
    `core/lib/qlang/operand/error.qlang`; the codeAsData ring
-   (`parse` / `eval` / `apply`) lives in
+   (`parse` / `apply`) lives in
    `core/lib/qlang/operand/codeAsData.qlang`. Each operand
    BindStep below sits directly under the per-site error tags it
    raises; the operand's `:throws` Vec references those tags by

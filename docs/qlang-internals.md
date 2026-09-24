@@ -51,12 +51,11 @@ the pair: **`depth`**, the count of nested evaluation frames
 between the root and this state. `rootState` opens a query, a
 session cell, a module load, or the bootstrap at depth 0;
 `nestState` descends one frame for a conduit body, a captured-arg
-lambda, an `eval` / `apply` re-entry, a Quote-bodied tag
-constructor, a doc-segment literal, or a locator-loaded module,
-and lifts `EvaluationDepthExceededError` on the frame past
-`EVAL_DEPTH_LIMIT`; `ascendState` returns to the outer frame with
-the inner pair (the `eval` / `apply` exit); `withPipeValue` and
-`withEnv` stay on the frame. Steps never read `depth` — it is the
+lambda, an `apply` re-entry, a Quote-bodied tag constructor, a
+doc-segment literal, or a locator-loaded module, and lifts
+`EvaluationDepthExceededError` on the frame past
+`EVAL_DEPTH_LIMIT`; `withPipeValue` and `withEnv` stay on the
+frame. Steps never read `depth` — it is the
 resource budget that turns a runaway recursion into a fail-track
 error value.
 
@@ -1394,7 +1393,7 @@ the frozen qlang-Map form that reflection hands to query code.
   equal to `n` for any AST produced by `parse()`, modulo the
   post-parse decoration (`.id`, `.parent`) and the root-level
   metadata (`.source`, `.uri`, `.parseId`, `.schemaVersion`)
-  that `parse.mjs` stamps after tree construction. Consumers: the `eval` reflective operand feeds
+  that `parse.mjs` stamps after tree construction. Consumers: the `apply` operand feeds
   an AST-Map through this converter and then into `evalAst`.
 
 ### `primitives.mjs` — the built-in primitive registry
@@ -1416,7 +1415,7 @@ layering boundary.
   restricted instance to narrow the reachable surface.
 - `PRIMITIVE_REGISTRY` — the production singleton bound by every
   `runtime/*.mjs` module at import time under namespaced
-  `:qlang/prim/<name>` keys (`add`, `filter`, `parse`, `eval`,
+  `:qlang/prim/<name>` keys (`add`, `filter`, `parse`, `apply`,
   and so on). `evalOperandCall` resolves an `:impl` handle
   through `PRIMITIVE_REGISTRY.resolve` at every built-in dispatch.
 

@@ -13,7 +13,7 @@
 {"name":"quote-ast-lazy-parse-name","query":"~{mul(2)} | /ast | /name","expect":"\"mul\""}
 {"name":"quote-ast-pipeline-suffix-parses","query":"~{* inc | sort} | /ast | /:kind","expect":":Pipeline"}
 {"name":"quote-ast-unparseable-content-returns-null","query":"~{ , } | /ast","expect":"null"}
-{"name":"apply-unparseable-quote-raises-parse-error","query":"~{ , } | apply(42) !| type","expect":"::ParseError"}
+{"name":"apply-unparseable-quote-raises-parse-error","query":"42 | apply(~{ , }) !| type","expect":"::ParseError"}
 {"name":"quote-type-answers-quote","query":"~{mul(2)} | type | eq(:quote)","expect":"true"}
 {"name":"string-type-is-not-quote","query":"\"mul(2)\" | type | eq(:quote)","expect":"false"}
 {"name":"type-quote-number-false","query":"42 | type | eq(:quote)","expect":"false"}

@@ -71,7 +71,7 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | apply(42) !| type');
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | as(:t) | 42 | apply(t) !| type');
     expect(evalResult).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 });

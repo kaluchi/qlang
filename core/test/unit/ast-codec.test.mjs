@@ -1,8 +1,8 @@
 // Tests for the astNodeToMap / qlangMapToAst codec in walk.mjs —
 // bidirectional conversion between the JS-object AST produced by
 // parse() and its qlang-Map representation. This codec is the
-// foundation for structured :trail, the forthcoming `parse` / `eval`
-// reflective operands, and programmatic conduit body inspection.
+// foundation for structured :trail, the `parse` / `apply`
+// operands, and programmatic conduit body inspection.
 //
 // Two guarantees are under test:
 //
@@ -281,8 +281,7 @@ describe('astNodeToMap — programmatic doc-comment nodes', () => {
   // .content into the docs Vec on the following OperandCall. But the
   // codec must still handle them symmetrically with the two plain
   // comment kinds, because a consumer that constructs AST nodes
-  // programmatically (via the forthcoming `parse` / `eval` reflective
-  // operand pair, or via session restore from an earlier AST-Map
+  // programmatically (via the `parse` / `apply` operand pair, or via session restore from an earlier AST-Map
   // snapshot) may produce these node shapes directly.
 
   it('encodes LineDocComment with :content and preserves round-trip', () => {

@@ -1388,7 +1388,7 @@ columns, and every step rides inside a wrapper map with a kind of its
 own. A map built by hand fails unless it reproduces that shape:
 
 ```qlang
-> {:kind :Pipeline :steps [{:kind :NumberLit :value 5}]} | eval
+> {:kind :Pipeline :steps [{:kind :NumberLit :value 5}]} | apply(/)
 ::AstMapMalformedError!{ … :reason "Pipeline step at index 0 is not a :PipelineStep Map" }
 ```
 
@@ -1468,13 +1468,20 @@ is structural. Running code held as data is one operation, subject first
 the parenthesised group is the same run written as a literal, the
 wrapper tag on a quote that stands beside the distribute and the fail
 track, so that `(x)` behaves as `apply ~(x)` while its datum carries no
-doubled quote, and `eval`, being `apply /`, leaves with the ring; today
-`apply` takes the code as its subject and lets the declarations made
-inside leak out, while the group keeps the fork rule. A trail replays as
-`err !| :t /trail | 5 | apply t`, the declaration standing on the fail
-track because a declaration is a transparent step and hands the
+doubled quote, and `eval`, being `apply /`, has left with the code-first
+`apply`, which let the declarations made inside leak out. A trail
+replays as `err !| :t /trail | 5 | apply t`, the declaration standing on
+the fail track because a declaration is a transparent step and hands the
 descriptor on as data, which `"x" | add(1) !| :t /trail | 5` answering
 `5` today confirms.
+
+```qlang
+> 5 | apply(~{mul(2)})
+10
+
+> 1 | apply(~{:x 2}) | x !| type
+::UnresolvedIdentifierError
+```
 
 A quote held as data carries no environment; its names resolve where it
 is applied. The closure of the language is the binding, which carries
@@ -1490,7 +1497,7 @@ captures a name of the caller:
 > :x 10 | :t [:f :x] (f) | 2 | t(add(x), 99)
 12
 
-> :x 10 | :t [:q :x] (as(:s) | q | apply(s)) | 2 | t(~{add(x)}, 99)
+> :x 10 | :t [:q :x] (apply(q)) | 2 | t(~{add(x)}, 99)
 101
 ```
 

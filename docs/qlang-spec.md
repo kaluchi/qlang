@@ -1120,7 +1120,7 @@ call until the evaluator's depth budget (`EVAL_DEPTH_LIMIT` in
 `state.mjs`) refuses the next frame and lifts
 `EvaluationDepthExceededError` onto the fail-track, carrying the
 refused `:depth` and the `:limit`. The same budget counts every
-re-entry seam — `eval`, `apply`, captured-arg lambdas, Quote-bodied
+re-entry seam — `apply`, captured-arg lambdas, Quote-bodied
 tag constructors, doc-segment literals, locator-loaded modules — so
 a runaway surfaces as an ordinary error value:
 
@@ -1636,13 +1636,13 @@ tagged-literal payload — no special-case eval path.
 
 A constructor that wants conditional or lazy semantics receives a
 Quote payload. The Quote captures the source verbatim and its AST
-is parsed on demand only when the constructor invokes `eval` /
-`apply` / `/ast` against it.
+is parsed on demand only when the constructor invokes `apply` /
+`/ast` against it.
 
 ```qlang
 ::cond {:impl ~{as(:branches)
-          | first(/condition | parse | eval | isTruthy)
-          | /body | parse | eval}}
+          | first(/condition | apply(/) | isTruthy)
+          | /body | apply(/)}}
 
 | 25 | ::cond[{:condition ~{/ | gt(18)} :body ~{"adult"}}
               {:condition ~{true}        :body ~{"minor"}}]
@@ -1962,7 +1962,7 @@ operand-level name: `env`.
 Three mechanisms close the "everything is data" ring:
 
 1. **Code is data** — `parse` lifts source text into an AST-Map;
-   `eval` runs it. The intermediate Map is addressable by ordinary
+   `apply` runs it. The intermediate Map is addressable by ordinary
    qlang projection.
 2. **Runtime is data** — built-ins without arguments evaluate to
    their own descriptor Map (not an arity error). `manifest` gives
@@ -2106,7 +2106,7 @@ source contribute zero examples.
 
 `parse` lifts a source string into an AST-Map. The intermediate Map
 is ordinary qlang data — addressable by projection, filterable by
-`filter`, passable to `eval`.
+`filter`, passable to `apply`.
 
 Every AST-Map carries a `:kind` discriminator naming its AST
 node type (`:NumberLit`, `:StringLit`, `:Pipeline`, `:OperandCall`,
@@ -2132,26 +2132,30 @@ The AST-Map shape is the one `/trail | /ast` lifts the deflected
 suffix Quote into — closing the code-is-data ring: `parse`
 produces the same AST-Map of any source text.
 
-### `eval` — run code from data
+### `apply` — run code from data
 
-`eval` takes an AST-Map from `pipeValue` and evaluates it against
-the current state. It is a nullary operand — no captured arguments
-— because the AST-Map is threaded through `pipeValue`, not passed
-as a captured expression. Pair with `parse` to round-trip source
-text through the data plane:
+`apply` runs the code its captured argument answers — an AST-Map or
+a Quote — against the subject, subject first like every other
+operand and under the fork rule: the declarations the code makes
+stay inside it. `apply(/)` runs code held as the subject against
+itself, which is how `parse` round-trips source text through the
+data plane:
 
 ```qlang
-> "42" | parse | eval
+> "42" | parse | apply(/)
 42
 
-> "10 | add(5)" | parse | eval
+> "10 | add(5)" | parse | apply(/)
 15
 
-> "[1 2 3] | filter(gt(1)) | count" | parse | eval
+> "[1 2 3] | filter(gt(1)) | count" | parse | apply(/)
 2
+
+> 5 | apply(~{mul(2)})
+10
 ```
 
-`parse` + `eval` together complete the homoiconic ring: qlang code
+`parse` + `apply` together complete the homoiconic ring: qlang code
 can be read, inspected, transformed, and re-executed as ordinary
 data using the same pipeline idioms used for any other Map.
 
@@ -2294,10 +2298,10 @@ holder; both are reference-distinct between independent mints, so
 strict `deepEqual` would surface phantom drift. The **rendered
 form** stabilises across round-trip:
 
-> `printValue(eval(parse(printValue(V))))`  ≡  `printValue(V)`
+> `printValue(apply(parse(printValue(V))))`  ≡  `printValue(V)`
 
 The `::conduit[:self [params] ~{body-source}]` literal contains
-every input the next `eval` needs to reconstruct an
+every input the next `apply` needs to reconstruct an
 observationally-equivalent Conduit; the JS-side identity (envRef,
 body AST) differs but the **behavioural** identity matches.
 

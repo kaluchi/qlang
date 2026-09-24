@@ -1,28 +1,23 @@
-// `parse` / `eval` / `apply` — the codeAsData ring closer.
+// `parse` / `apply` — the codeAsData ring closer.
 //
 //   parse(source-string) → AST-Map      (the `read` primitive)
-//   eval(ast-map)        → pipeValue    (the `eval` primitive)
-//   apply(subject)       → pipeValue    (run an AST-or-Quote
-//                                        against `subject` as the
-//                                        initial pipeValue)
+//   apply(code)          → pipeValue    (run an AST-or-Quote
+//                                        against the subject)
 //
 // Together they round-trip qlang source text → data → pipeValue
 // without leaving the language. `parse` lifts a string (or a
 // Quote-value) into the AST-Map shape documented in
-// `ast-codec.mjs`. `eval` walks the AST-Map back into a JS-object
-// AST and re-enters evaluation against the surrounding state.
-// `apply` runs the AST-or-Quote sitting in `pipeValue` against
-// the captured-arg subject — classical Lisp / JS `apply(fn, args)`
-// convention. Trail-emitted suffix Quotes flow through `pipeValue`
-// naturally, so `error !| /trail | apply(start)` re-runs the
-// deflected steps against a fresh subject.
+// `ast-codec.mjs`. `apply` runs the AST-or-Quote its captured arg
+// answers against the subject, subject first like every other
+// operand, so `x | apply(/)` runs a quote against itself and a trail
+// replays as `error !| /trail | as(:t) | start | apply(t)`.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { nestState, ascendState, withPipeValue } from '../state.mjs';
+import { nestState, withPipeValue } from '../state.mjs';
 import { astNodeToMap, qlangMapToAst } from '../ast-codec.mjs';
-import { isQMap, isQuote } from '../types.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
+import { isQMap, isQuote, isErrorValue } from '../types.mjs';
+import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { evalAst } from '../eval.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { errorFromParse } from '../error-convert.mjs';
@@ -30,10 +25,8 @@ import { errorFromParse } from '../error-convert.mjs';
 const ParseSubjectNotStringOrQuoteError = declareSubjectError(
   'ParseSubjectNotStringOrQuoteError', 'parse', ['string', 'quote']);
 
-const EvalSubjectNotMapOrQuoteError = declareSubjectError(
-  'EvalSubjectNotMapOrQuoteError', 'eval', ['map', 'quote']);
-const ApplySubjectNotMapOrQuoteError = declareSubjectError(
-  'ApplySubjectNotMapOrQuoteError', 'apply', ['map', 'quote']);
+const ApplyCodeNotMapOrQuoteError = declareModifierError(
+  'ApplyCodeNotMapOrQuoteError', 'apply', 2, ['map', 'quote']);
 
 // `parse` — reads a source string into the AST-Map form documented
 // in `ast-codec.mjs`. A Quote-value is accepted too: it is "code
@@ -70,56 +63,33 @@ export const parseOperand = stateOp('parse', 1, async (state, _parseLambdas) => 
 // (parse the Quote's source on demand, reusing the cached `.ast`
 // if `evalDocSegments` already populated it) or an AST-Map (run
 // it through `qlangMapToAst` to rebuild the JS-object AST shape
-// peggy emits). The caller hands the per-site class for its own
-// subject slot, so the diagnostic names the operand the reader
-// typed; a `ParseError` raised mid-parse rides
-// out into the per-node fault-conversion seam in `evalNode`,
-// which lifts it via `errorFromParse` to a `::ParseError!{…}`
-// ErrorValue.
-function astFromQuoteLike(value, SubjectNotMapOrQuoteError) {
+// peggy emits). A `ParseError` raised mid-parse rides out into the
+// per-node fault-conversion seam in `evalNode`, which lifts it via
+// `errorFromParse` to a `::ParseError!{…}` ErrorValue.
+function astFromQuoteLike(value) {
   if (isQMap(value)) return qlangMapToAst(value);
   if (isQuote(value)) {
     return value.ast ?? parseSource(value.source, { uri: 'quote-source' });
   }
-  throw new SubjectNotMapOrQuoteError(value);
+  throw new ApplyCodeNotMapOrQuoteError(value);
 }
 
-// `eval` — runs an AST against the current state. Subject is
-// either an AST-Map (the `parse` output, or a hand-constructed
-// Map via `astNodeToMap`-style data assembly) or a Quote (raw
-// qlang source in string form — parsed on the fly). The current
-// `pipeValue` becomes the initial pipeValue of the inner
-// evaluation, and `env` threads in unchanged: writes the inner
-// code makes through `BindStep` / `as` land in `state.env` exactly
-// as if the code had been inlined at the call site. The result is
-// whatever `pipeValue` the inner code produces; env changes from
-// inner BindStep / as / use calls propagate out, matching the
-// semantics of a bare paren-group application. The inner code runs
-// one frame below the `eval` step, so a Quote that `eval`s itself
-// descends a frame per re-entry until the depth budget lifts
-// `EvaluationDepthExceededError`.
-export const evalOperand = stateOp('eval', 1, async (state, _evalLambdas) => {
-  const innerAst = astFromQuoteLike(state.pipeValue, EvalSubjectNotMapOrQuoteError);
-  const resultState = await evalAst(innerAst, nestState(state, state.pipeValue, state.env));
-  return ascendState(state, resultState);
-});
-
-// `apply(subject)` — runs the Quote-or-Map in `pipeValue` against
-// the captured-arg `subject` as the initial pipeValue. The Quote's
-// leading combinator (if any — `~{* mul(2)}` / `~{| count}` /
-// `~{* sort}` / `~{!| /trail}`) routes the first step through
-// that combinator against the new subject, so a pipeline-suffix
-// shape replays semantically.
+// `apply(code)` — runs the Quote-or-Map its captured arg answers
+// against the subject, under the fork rule: the declarations the code
+// makes stay inside it, and only its value comes out. A leading
+// combinator (`~{* mul(2)}` / `~{!| /trail}`) routes the first
+// step through that combinator, so a pipeline-suffix shape replays
+// semantically. Code that is an error is that error, unchanged. The
+// code runs one frame below the `apply` step, so a quote that
+// applies itself descends a frame per re-entry until the depth
+// budget lifts `EvaluationDepthExceededError`.
 export const applyOperand = stateOp('apply', 2, async (state, applyLambdas) => {
-  const bodyAst = astFromQuoteLike(state.pipeValue, ApplySubjectNotMapOrQuoteError);
-  const newSubject = await applyLambdas[0](state.pipeValue);
-  const innerState = nestState(state, newSubject, state.env);
-  const resultState = await evalAst(bodyAst, innerState);
-  // Ascend with the inner pipeValue and env: BindStep / as / use
-  // writes inside the applied body flow outward, matching `eval`.
-  return ascendState(state, resultState);
+  const code = await applyLambdas[0](state.pipeValue);
+  if (isErrorValue(code)) return withPipeValue(state, code);
+  const bodyAst = astFromQuoteLike(code);
+  const resultState = await evalAst(bodyAst, nestState(state, state.pipeValue, state.env));
+  return withPipeValue(state, resultState.pipeValue);
 });
 
 bindPrim('parse', parseOperand);
-bindPrim('eval',  evalOperand);
 bindPrim('apply', applyOperand);

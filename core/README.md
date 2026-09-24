@@ -15,7 +15,7 @@ pipelines. Domain-agnostic. Pure. Composable.
 "[world]"
 
 |~| codeAsData ring — source → AST-Map → pipeValue
-> "10 | add(3)" | parse | eval
+> "10 | add(3)" | parse | apply(/)
 13
 
 |~| bare operand → its descriptor as data

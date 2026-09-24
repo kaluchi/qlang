@@ -61,7 +61,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
+| `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error). |
 
@@ -1265,53 +1265,36 @@ its own eval handler in `eval.mjs`.
   Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
 
-### `eval`
+### `apply(code)`
 
-- **Arity** 1. **Subject** `map` — the AST-Map to evaluate.
-- Unwraps an AST-Map through `ast-codec.mjs::qlangMapToAst` and runs
-  the reconstructed AST against the current state. The caller's
-  `pipeValue` becomes the inner evaluation's `pipeValue`; the
-  caller's `env` threads in unchanged. Any BindStep / `as` / `use`
-  writes the inner code performs propagate out the same way a
-  paren-group's env writes would. The result is whatever
-  `pipeValue` the inner code produces, ready to flow into the
-  next pipeline step. The inner code runs one frame below the
-  `eval` step, so a Quote that `eval`s itself descends through
-  the evaluation depth budget and lifts
-  `EvaluationDepthExceededError` past `EVAL_DEPTH_LIMIT`.
+- **Arity** 2 (1 captured). **Subject** any value. **Modifier** the
+  code — a Quote-value or an AST-Map the captured arg answers.
+- Runs the code against the subject under the fork rule: BindStep /
+  `as` / `use` writes inside the code stay inside it, and only its
+  value comes out. The first step rides `|` against the subject
+  unless the Quote carries a leading combinator (`~{* mul(2)}` /
+  `~{!| /trail}`), which routes it through that combinator, so a
+  pipeline-suffix shape replays semantically. Code that is an error
+  is that error, unchanged. The code runs one frame below the
+  `apply` step, so a Quote that applies itself descends through the
+  evaluation depth budget and lifts `EvaluationDepthExceededError`
+  past `EVAL_DEPTH_LIMIT`.
 - Pairs with `parse` to close the codeAsData ring:
-  `"source" | parse | eval` is equivalent to evaluating the
+  `"source" | parse | apply(/)` is equivalent to evaluating the
   source string directly, and the intermediate AST-Map can be
   inspected, filtered, re-assembled, or handed around as
   ordinary qlang data.
 - **Examples**:
-  - `"42" | parse | eval` → `42`.
-  - `"10 | add(3)" | parse | eval` → `13`.
-  - `"[1 2 3] | filter(gt(1)) | count" | parse | eval` → `2`.
-  - `{:kind :NumberLit :value 42} | eval` → `42`
+  - `5 | apply(~{mul(2)})` → `10`.
+  - `[1 2 3] | apply(~{| count | add(1)})` → `4`.
+  - `"10 | add(3)" | parse | apply(/)` → `13`.
+  - `{:kind :NumberLit :value 42} | apply(/)` → `42`
     (hand-assembled AST-Map bypasses the parser).
-- **Errors**: subject not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
-  Runtime errors inside the inner evaluation lift through the
-  normal fail-track just like any other qlang failure.
-
-### `apply(subject)`
-
-- **Arity** 2 (1 captured). **Subject** Quote-value or AST-Map
-  sitting in `pipeValue`.
-- Runs the Quote-or-Map body against the captured-arg `subject` as
-  the initial `pipeValue`. The first step rides `|` against the
-  new subject unless the Quote carries a leading combinator
-  (`~{* mul(2)}` / `~{!| /trail}`), which routes it through that
-  combinator, so a pipeline-suffix shape replays semantically.
-- BindStep / `as` / `use` writes inside the applied body propagate
-  outward, matching `eval` semantics; the body runs one frame
-  below the `apply` step, inside the same depth budget.
-- **Examples**:
-  - `~{mul(2)} | apply(5)` → `10`.
-  - `~{| count | add(1)} | apply([1 2 3])` → `4`.
-  - `error !| /trail | apply(start)` — re-runs deflected steps
-    against a fresh subject.
-- **Errors**: pipeValue not a Map or Quote → `ApplySubjectNotMapOrQuoteError`.
+  - `error !| /trail | as(:t) | start | apply(t)` — re-runs
+    deflected steps against a fresh subject.
+- **Errors**: code not a Map or Quote → `ApplyCodeNotMapOrQuoteError`.
+  Runtime errors inside the code lift through the normal fail-track
+  just like any other qlang failure.
 
 ### `source`
 
@@ -1466,16 +1449,15 @@ enumerates).
 | `:format` | `json`, `table` |
 | `:error` | `error` |
 | `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
-| `:codeAsData` | `parse`, `eval`, `apply` |
+| `:codeAsData` | `parse`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths
-it carries. The reflective pair `parse` /
-`eval` closes the codeAsData ring: a source string lifts into an
-AST-Map through `parse`, runs through `eval` to become a
-`pipeValue`, and the intermediate Map is addressable as ordinary
-qlang data.
+it carries. The pair `parse` / `apply` closes the codeAsData
+ring: a source string lifts into an AST-Map through `parse`, runs
+through `apply(/)` to become a `pipeValue`, and the intermediate
+Map is addressable as ordinary qlang data.
 
 Tooling primitives (walk.mjs, session.mjs, codec.mjs, effect.mjs)
 and the embedder API are documented in

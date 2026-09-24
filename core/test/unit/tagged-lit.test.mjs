@@ -359,13 +359,13 @@ describe('TagKeyword value mechanics', () => {
   });
 });
 
-describe('parse and eval accept Quote subjects transparently', () => {
+describe('parse and apply accept Quote subjects transparently', () => {
   it('~{code} | parse returns the AST-Map of the Quote source', async () => {
     expect(await evalQuery('~{5 | mul(2)} | parse | /:kind')).toEqual(keyword('Pipeline'));
   });
 
-  it('~{code} | eval runs the Quote source against the current state', async () => {
-    expect(await evalQuery('~{5 | mul(2)} | eval')).toBe(10);
+  it('~{code} | apply(/) runs the Quote source against the subject', async () => {
+    expect(await evalQuery('~{5 | mul(2)} | apply(/)')).toBe(10);
   });
 });
 

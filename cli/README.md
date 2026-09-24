@@ -81,7 +81,7 @@ hello world
 …or write nothing to stdout if the side-effects are diagnostic only:
 
 ```
-qlang '@in | parse | eval | /users | @tap(:loaded) | filter(/active) | count | pretty | @out' < users.json
+qlang '@in | parse | apply(/) | /users | @tap(:loaded) | filter(/active) | count | pretty | @out' < users.json
 ```
 
 ## Exit codes
@@ -101,7 +101,7 @@ qlang '[1 2 3] | filter(gt(1)) | count | pretty | @out'
 qlang '"hello" | append(" world") | @out'
 hello world
 
-qlang '@in | parse | eval | /glossary/title | @out' \
+qlang '@in | parse | apply(/) | /glossary/title | @out' \
   < glossary.json
 example glossary
 

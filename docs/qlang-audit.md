@@ -2773,6 +2773,11 @@ conceptual model of `docs/qlang-internals.md`, whose state starts from
 the runtime as its subject, and on the seeding of `use` and
 `::builtin` in `buildLangRuntime` (`core/src/runtime/index.mjs`),
 which the code calls “Chicken-and-egg”.
+The kernel as the bottom, documented by the catalog and defined by
+nothing in it, was left to the model: «здесь на твое усмотрение, что
+красиво в коде - то красиво и в использовании как по мне...»
+(maintainer, 2026-09-24 00:55, session 86982eb5), and the model keeps
+the decision as it stands.
 Set aside. Namespaces as maps merged into one environment, which is the
 scar of names that lose their origin.
 
@@ -3744,14 +3749,6 @@ ordinary host operands. It enters the route only with a task no plainer
 construct solves, the sister project's plan-then-apply workflow being
 the first candidate, and only after the argument model and the binding
 form have landed, because it amends the state pair.
-
-The bottom of the language [D36]. With the kernel as the evaluator,
-`::builtin` is a fact of the kernel that the catalog documents, and the
-language describes itself all the way down without defining its own
-bottom. The alternative keeps the definition and pays for it with the
-seeding the bootstrap calls “Chicken-and-egg”, a declaration that
-exists before the evaluator can read it. The maintainer has not
-answered.
 
 The error library. It either enters the catalog with examples, as
 pipelines built on the refusal tags, or leaves the package.

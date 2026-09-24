@@ -106,6 +106,18 @@
   ~~|
   ::builtin{:category :error}
 
+::ForeignFailureError
+  |~~ A failure of the host's implementation: an error of the language
+      the runtime is written in escaped an operand, which is a defect
+      of that operand's host. `:name` carries the host's class name,
+      `:message` its text, `:operand` the step that ran it and
+      `:causes` the chain of host errors behind it, each with its own
+      `:name` and `:message`. The step and the input are those of
+      any error; recovery is a `!|` step, and the repair belongs to
+      the host.
+  ~~|
+  ::builtin{:category :error}
+
 |~ ── 1. Projection segment-miss family ──────────────────── ~|
 
 ::ProjectionFieldNotOnValueClassError

@@ -1171,34 +1171,34 @@ descriptor.
 
 ### Error-to-value conversion
 
-The `evalNode` try/catch block converts recoverable exceptions to
-error values. Operand impls continue to throw per-site error
-classes; the conversion is transparent to them. Two converters
-(`error-convert.mjs`) handle qlang errors (full structured context
-from per-site class properties, including `:actualValue`) and
-foreign host errors (best-effort field extraction from JS Error
-objects). `QlangInvariantError` subclasses are never caught — they
-mark runtime bugs and surface as JS-level throws.
+The `evalNode` try/catch block converts recoverable exceptions to error
+values. Operand impls continue to throw per-site error classes; the
+conversion is transparent to them. Two converters (`error-convert.mjs`)
+handle qlang errors (full structured context from per-site class
+properties, including `:actualValue`) and foreign host errors
+(best-effort field extraction from JS Error objects, under the
+language's tag `::ForeignFailureError` with the host's class name as
+`:name`). `QlangInvariantError` subclasses are never caught — they mark
+runtime bugs and surface as JS-level throws.
 
-At the catch point, `evalNode` stamps the error value's
-identity tag (a `::Tag` built from the throw site's
-`.name`) on the fresh ErrorValue's JS-header
-`tag` slot via `errorFromQlang` / `errorFromForeign` — opaque
-to descriptor projection, read through `result !| type`. The
-descriptor itself takes two flat fields at the head: `:faultStep`
-(the quote of the failing AST node, built by `quoteOfBody`) and
-`:faultInput` (the `state.pipeValue` the step received). No wrapper Map between them — they are the two
-top-level descriptor slots every runtime / foreign error carries.
-`errorFromQlang` additionally applies ref-equality dedup against
-`:faultInput` when stamping per-site `:actualValue` from the
-`QlangError.context` bag — the redundant lift is skipped when
-the offending value is the same reference as `:faultInput`. For
-`distribute` and `mergeFlat` combinator type-check errors, both
-fields are forged directly inside the combinator function (which
-has access to the correct `state.pipeValue` and `bodyNode`) and
-the error is returned as an error value without throwing —
-matching the existing deflection return pattern those combinators
-use for error pipeValues.
+At the catch point, `evalNode` stamps the error value's identity tag (a
+`::Tag` built from the throw site's `.name`, `::ForeignFailureError` for
+a foreign error) on the fresh ErrorValue's JS-header `tag` slot via
+`errorFromQlang` / `errorFromForeign` — opaque to descriptor projection,
+read through `result !| type`. The descriptor itself takes two flat
+fields at the head: `:faultStep` (the quote of the failing AST node,
+built by `quoteOfBody`) and `:faultInput` (the `state.pipeValue` the
+step received). No wrapper Map between them — they are the two top-level
+descriptor slots every runtime / foreign error carries. `errorFromQlang`
+additionally applies ref-equality dedup against `:faultInput` when
+stamping per-site `:actualValue` from the `QlangError.context` bag — the
+redundant lift is skipped when the offending value is the same reference
+as `:faultInput`. For `distribute` and `mergeFlat` combinator type-check
+errors, both fields are forged directly inside the combinator function
+(which has access to the correct `state.pipeValue` and `bodyNode`) and
+the error is returned as an error value without throwing — matching the
+existing deflection return pattern those combinators use for error
+pipeValues.
 
 ### Combinator-level track dispatch
 

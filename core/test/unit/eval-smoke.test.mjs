@@ -261,7 +261,8 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     s.bind('bomb', bombFn);
     const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
-    expect(entry.result.tag.name).toBe('Error');
+    expect(entry.result.tag.name).toBe('ForeignFailureError');
+    expect(entry.result.descriptor.get('name')).toBe('Error');
     expect(entry.result.descriptor.has('category')).toBe(false);
   });
 });

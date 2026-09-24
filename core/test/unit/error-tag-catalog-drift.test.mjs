@@ -57,7 +57,8 @@ const catalogDir = join(here, '..', '..', 'lib', 'qlang');
 // factory, each with the site that mints it.
 const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
   ['::Error',      'makeErrorValue default identity for a user `!{…}` literal'],
-  ['::ParseError', 'errorFromParse lifts the peggy ParseError shape']
+  ['::ParseError', 'errorFromParse lifts the peggy ParseError shape'],
+  ['::ForeignFailureError', 'errorFromForeign lifts a JavaScript error escaping an operand']
 ]);
 
 // Value-class constructors share the `::Tag` plane with the error

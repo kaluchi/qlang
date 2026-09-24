@@ -230,8 +230,14 @@ const WELL_KNOWN_PROPS = [
   'status', 'statusCode', 'statusText'
 ];
 
+// A JavaScript error escaping an operand is a foreign failure: it
+// carries a tag of the language and its class name as the field
+// `:name` [D7], so a port of the runtime to another host changes a
+// field and no identity a query matches.
+const FOREIGN_FAILURE_TAG = makeTagKeyword('ForeignFailureError');
+
 export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
-  const tag = makeTagKeyword(jsError.name);
+  const tag = FOREIGN_FAILURE_TAG;
   const d = new Map();
   d.set('message', jsError.message);
 
@@ -245,18 +251,15 @@ export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
   }
 
   // Cause-chain entries are inert Map records that document the
-  // JS-side cause provenance for a foreign throw site. The
-  // `:kind` field on these records is a domain-level
-  // discriminator on a plain Map; the identity-on-JS-header
-  // invariant covers ErrorValue wrappers alone, leaving `:kind`
-  // available as ordinary data — `error !| /causes * /kind`
-  // projects it through the regular field-projection path.
+  // JS-side cause provenance for a foreign throw site, each naming
+  // its host class under `:name` as the failure itself does —
+  // `error !| /causes * /name` reads them.
   if (jsError.cause instanceof Error) {
     const causes = [];
     let current = jsError.cause;
     while (current instanceof Error && causes.length < 8) {
       const m = new Map();
-      m.set('kind', makeTagKeyword(current.name));
+      m.set('name', current.name);
       m.set('message', current.message);
       causes.push(m);
       current = current.cause;

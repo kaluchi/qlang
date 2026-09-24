@@ -16,12 +16,12 @@
   },
   "as snapshot": {
     "prefix": "as",
-    "body": ["as(:${1:name})"],
+    "body": ["as :${1:name}"],
     "description": "Capture pipeValue as a named snapshot"
   },
   "filter": {
     "prefix": "filter",
-    "body": ["filter(${1:predicate})"],
+    "body": ["filter ~(${1:predicate})"],
     "description": "Keep elements matching predicate"
   },
   "map literal": {
@@ -41,27 +41,27 @@
   },
   "if": {
     "prefix": "if",
-    "body": ["if(${1:cond}, ${2:then}, ${3:else})"],
+    "body": ["if (${1:cond}) ~(${2:then}) ~(${3:else})"],
     "description": "Conditional — only selected branch executes"
   },
   "when": {
     "prefix": "when",
-    "body": ["when(${1:cond}, ${2:body})"],
+    "body": ["when (${1:cond}) ~(${2:body})"],
     "description": "One-sided conditional, identity on falsy"
   },
   "cond": {
     "prefix": "cond",
-    "body": ["cond(${1:pred1}, ${2:val1}, ${3:pred2}, ${4:val2})"],
+    "body": ["cond ~(${1:pred1}) ~(${2:val1}) ~(${3:pred2}) ~(${4:val2})"],
     "description": "Multi-way dispatch over predicate/branch pairs"
   },
   "groupBy": {
     "prefix": "groupBy",
-    "body": ["groupBy(${1:/field})"],
+    "body": ["groupBy ~(${1:/field})"],
     "description": "Partition Vec into Map keyed by classifier"
   },
   "indexBy": {
     "prefix": "indexBy",
-    "body": ["indexBy(${1:/field})"],
+    "body": ["indexBy ~(${1:/field})"],
     "description": "Collapse Vec into Map, last-wins on collision"
   },
   "line plain comment": {
@@ -86,37 +86,37 @@
   },
   "unless": {
     "prefix": "unless",
-    "body": ["unless(${1:cond}, ${2:body})"],
+    "body": ["unless (${1:cond}) ~(${2:body})"],
     "description": "Inverse of when — runs body when cond is falsy"
   },
   "coalesce": {
     "prefix": "coalesce",
-    "body": ["coalesce(${1:alt1}, ${2:alt2}, ${3:default})"],
+    "body": ["coalesce ~(${1:alt1}) ~(${2:alt2}) ~(${3:default})"],
     "description": "First non-null result among alternatives"
   },
   "firstTruthy": {
     "prefix": "firstTruthy",
-    "body": ["firstTruthy(${1:alt1}, ${2:alt2}, ${3:default})"],
+    "body": ["firstTruthy ~(${1:alt1}) ~(${2:alt2}) ~(${3:default})"],
     "description": "First truthy result among alternatives"
   },
   "sort by key": {
     "prefix": "sortk",
-    "body": ["sort(${1:/field})"],
+    "body": ["sort ~(${1:/field})"],
     "description": "Sort by key sub-pipeline"
   },
   "union bound": {
     "prefix": "unionb",
-    "body": ["union({${1::key ${2:expr}}})"],
+    "body": ["union {${1::key ${2:expr}}}"],
     "description": "Enrich Map via bound union"
   },
   "minus bound": {
     "prefix": "minusb",
-    "body": ["minus(#[${1::key}])"],
+    "body": ["minus #[${1::key}]"],
     "description": "Drop fields via bound minus"
   },
   "inter bound": {
     "prefix": "interb",
-    "body": ["inter(#[${1::key}])"],
+    "body": ["inter #[${1::key}]"],
     "description": "Select fields via bound inter"
   },
   "use": {

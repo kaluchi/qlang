@@ -4125,6 +4125,39 @@ The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
 
+The spelling of a verb's head [D34, D40, D57]. «я вижу массу
+неоднозначности и слабую структуру.. это ~::jdt/CallerTree[:jdt/Method
+:depth |~~ levels of callers to walk ~~| ::number][:jdt/Method
+:parallel |~~ way of working ~~| ::boolean](Сode) - а если так?
+~[][][][]..[]() - такое типа если :count ~::number[](::builtin{:impl})»
+(maintainer, 2026-09-24 07:09, session 86982eb5), held back for a fresh
+look, «ок, отложим на свежую голову ..» (07:31). The proposal puts the
+result's kind right after the tilde, where D57 has it last in the head,
+so the head holds only what the verb takes and needs no rule of
+position; `~::number[…]` stands free, since a word written against a
+word is refused, while `~::number` alone stays the quote of a tag name,
+`~::number` answering `~(::number)`. It writes a built-in with the same
+literal, its descriptor for the body, `:count
+~::number[](::builtin{:impl})`, so every verb is one literal. Its
+groups, one bracket after another, read as alternative signatures:
+`sort` takes a key or none, `[3 1 2] | sort` and `[{:a 2} {:a 1}] | sort
+~(/a)` both answering, which its descriptor cannot say, `:modifiers
+[:keyLambda]`. A group for each kind of the subject repeats the walk of
+D34, which finds the implementation of one contract on each kind, so
+what the groups may hold is the alternatives of arity, and alternatives
+told apart by the kind of a modifier are the overloading D9 set aside.
+Read as one group for each slot, the groups must touch one another to
+stay one word, since `f ~::T [x] (y)` reads otherwise as three
+modifiers. Inside one head every keyword opens a slot and holds what
+follows it up to the next keyword, its doc and then its kind, which the
+grammar reads already as words: a head of five slots reads as the
+subject's kind and five times a keyword, a doc and a kind. Options
+beyond a few positional modifiers are one map whose keys the verb
+declares [D40], `callers 2 {:scope :project :keep ~(/static | not)
+:limit 50 :parallel false}` holding two modifiers where the positional
+call holds five, and a map entry holds one word, so a key of such a map
+has no doc of its own.
+
 The contract of a verb [D45, D46, D57]. «наверное такой контакт чуть ли
 не отдельным способом описывается.. типа интерфейс вызова .. что там
 умного у кложуры было или что ты можешь подходящего для нас и не костыль

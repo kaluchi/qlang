@@ -198,15 +198,6 @@ describe('container-shape operands preserve JSON-tag on output', () => {
     const result = await evalQuery(':obj ::json{:k 1} | obj | type | eq(:jsonObject)');
     expect(result).toBe(true);
   });
-
-  it('astNodeToMap descends into JsonObjectLit AST entries', async () => {
-    const { astNodeToMap } = await import('../../src/ast-codec.mjs');
-    const { parse } = await import('../../src/parse.mjs');
-    const ast = parse('{"k": 1, "n": 2}');
-    const m = astNodeToMap(ast);
-    expect(m.get('kind').name).toBe('JsonObjectLit');
-    expect(m.get('entries').length).toBe(2);
-  });
 });
 
 describe('deepEqual cross-shape equivalences', () => {

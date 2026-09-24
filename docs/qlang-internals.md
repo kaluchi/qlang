@@ -240,8 +240,8 @@ the grammar's absorbed marker (`combinator: null`). Past
 the head an absorbed follower rides `|`. A leading combinator and
 an explicit combinator on the same first operand step is a parse
 error. Comments appear
-in the AST as first-class PipeSteps and are visible to reflection
-(`source`, the highlighter, the AST-codec round-trip).
+in the AST as first-class PipeSteps and are visible to the tools
+(the highlighter, the language server); a quote keeps none.
 
 Four surface forms, two orthogonal axes (line/block, plain/doc):
 
@@ -1184,9 +1184,8 @@ identity tag (a `::Tag` built from the throw site's
 `tag` slot via `errorFromQlang` / `errorFromForeign` — opaque
 to descriptor projection, read through `result !| type`. The
 descriptor itself takes two flat fields at the head: `:faultStep`
-(a Quote-value lifted from the failing AST node's `.text` via
-`makeQuote`) and `:faultInput` (the `state.pipeValue` the step
-received). No wrapper Map between them — they are the two
+(the quote of the failing AST node, built by `quoteOfBody`) and
+`:faultInput` (the `state.pipeValue` the step received). No wrapper Map between them — they are the two
 top-level descriptor slots every runtime / foreign error carries.
 `errorFromQlang` additionally applies ref-equality dedup against
 `:faultInput` when stamping per-site `:actualValue` from the
@@ -1239,19 +1238,17 @@ Every `entry` is a frozen `{ combinator, text }` fragment record
 source slice. The fragment shape stays primitive (two strings) so
 deflection itself allocates nothing beyond the cons cell.
 
-When `!|` fires, `materializeTrail` walks `_trailHead` in
-chronological order, joins fragments through `COMBINATOR_SYNTAX`
-into one pipeline-suffix source, and lifts the joined text into a
-Quote-value (`makeQuote(source)`). The Quote carries the
-deflected steps as **copy-pasteable code** — splice it back after
-the fault site and the pipeline tail re-runs. Through `/source`
-the Quote projects raw text; through `/ast` it lazy-parses into
-an AST-Map for structural inspection:
+When `!|` fires, `materializeTrail` (`eval-trail.mjs`) walks
+`_trailHead` in chronological order and turns the fragments into
+the quote of the deflected steps, a step deflected under `*`
+wrapped as `::each`. The quote carries the deflected steps as
+**code** — apply it after the fault site and the pipeline tail
+re-runs; `parse` prints it, and every container operand reads its
+steps:
 
-    error !| /trail | /source                  -- copy-pasteable suffix
-    error !| /trail | /ast | /steps | count    -- step count via AST
-    error !| /trail | /ast | /steps | last | /step | /name
-                                               -- last step's operand
+    error !| /trail | parse                    -- the suffix as text
+    error !| /trail | count                    -- step count
+    error !| /trail | last | /name             -- last step's operand
 
 The trail folds into `:trail` on a fresh descriptor when `!|`
 fires: `applyFailTrack` reads the descriptor's existing `:trail`
@@ -1308,11 +1305,11 @@ consumer sites.
 
 | Field | Type | Content |
 |---|---|---|
-| `:faultStep` | Quote | Verbatim source-text of the failing step, lifted to a Quote-value via `makeQuote(node.text)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
+| `:faultStep` | Quote | The quote of the failing step, built by `quoteOfBody(node)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
 | `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
 | `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`) into one copy-pasteable Quote via `materializeTrail` + `combineTrailQuotes`, folded in when `!\|` fires and again by `materializePendingTrail` at the query / cell boundary. `null` until the first deflection; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
+| `:trail` | Quote or null | The quote of every step a success-track combinator deflected, one deflected under `*` wrapped as `::each`, built by `materializeTrail` + `combineTrailQuotes`, folded in when `!\|` fires and again by `materializePendingTrail` at the query / cell boundary. `null` until the first deflection; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
 
 Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /
@@ -1349,8 +1346,7 @@ Re-exported from the package entry.
 Single source of truth for the qlang AST shape. Every module that
 needs to read, decorate, query, or transform AST nodes imports
 from here: adding a node type in `grammar.peggy` lands its
-`astChildrenOf` case here and its `astNodeToMap` / `qlangMapToAst`
-case in `ast-codec.mjs`.
+`astChildrenOf` case here and the step it leaves in `quote.mjs`.
 
 - `astChildrenOf(node)` — direct semantic children of an AST node.
 - `walkAst(node, visit)` — pre-order recursive descent. Visitor
@@ -1364,37 +1360,37 @@ case in `ast-codec.mjs`.
   `:name ...` and `as(:name)` declaration patterns.
 - `bindingNamesVisibleAt(ast, offset)` — lexical-scope-correct set
   of binding names visible at a cursor position. Honors fork-
-  isolating ancestors (ParenGroup, VecLit, SetLit, MapLit, MapEntry).
+  isolating ancestors (ParenGroup, QuoteLit, VecLit, SetLit, MapLit,
+  MapEntry).
 - `astNodeSpan(node)` / `astNodeContainsOffset(node, offset)` —
   range arithmetic over node locations.
 - `triviaBetweenAstNodes(nodeA, nodeB, ast)` — source slice between
   two adjacent nodes (whitespace, punctuation, plain comments).
+- `locationToQlangMap(loc)` — the qlang view of a peggy location,
+  the `:location` of a parse error and of a declaration.
 
-### `ast-codec.mjs` — AST ↔ Map codec
+### `quote.mjs` — the steps of a quote
 
-Bidirectional codec between the JS-object AST `parse()` emits and
-the frozen qlang-Map form that reflection hands to query code.
+The one place that turns the parser's tree into the steps of a
+quote and steps back into text. A quote is a vector of steps under
+the `::quote` tag: a literal is its own step, a container literal
+holds the steps of its elements, a command is a `::call` record
+whose `:args` hold the quote of each argument's pipeline, and a
+projection, a declaration and a constructor invocation are `::proj`,
+`::bind` and `::tagged` records; the fail track, the distribute
+and the parentheses wrap the quote of their step as `::fail`,
+`::each` and `::group`. Comments and positions leave no step.
 
-- `astNodeToMap(node)` — encodes a JS-object AST node into a
-  frozen qlang-Map representation, stamping `:kind
-  :<NodeType>` as the discriminator plus type-specific payload
-  fields (`:value`, `:name`, `:args`, `:elements`, `:entries`,
-  `:keys`, `:steps`, etc.) and the shared `:text` / `:location`
-  metadata. Pipeline steps normalize into uniform `:PipelineStep`
-  wrapper Maps so downstream walkers read the head like any other
-  step; `:combinator` is `null` on the head and on the absorbed
-  follower of a plain comment, the token string elsewhere. Consumers: the `parse` reflective operand lifts user
-  source into this form, and `/ast` on a Quote — the deflected
-  suffix under `!| /trail | /ast` included — lifts the Quote's
-  source into it on demand.
-- `qlangMapToAst(map)` — the inverse. Walks an AST-Map back into
-  a JS-object AST node suitable for `evalAst`. Round-trip
-  invariant: `qlangMapToAst(astNodeToMap(n))` is structurally
-  equal to `n` for any AST produced by `parse()`, modulo the
-  post-parse decoration (`.id`, `.parent`) and the root-level
-  metadata (`.source`, `.uri`, `.parseId`, `.schemaVersion`)
-  that `parse.mjs` stamps after tree construction. Consumers: the `apply` operand feeds
-  an AST-Map through this converter and then into `evalAst`.
+- `quoteOfBody(node)` / `quoteOfSource(text)` / `quoteOfLiteral(node)`
+  — the quote of a parsed body, of source text, and of a `~{…}`
+  literal, which the parser reads as the pipeline it holds.
+- `printQuoteSource(quote)` — the text of a quote, in the call form;
+  reading it back leaves equal steps.
+- `astOfQuote(quote)` — the tree a quote runs through: the parser's
+  own node for a quote read from text, the parse of its printed
+  text, kept on the quote's holder, for a quote assembled from data.
+- `isStep(value)` — the invariant the `::quote` constructor holds
+  after every transform.
 
 ### `primitives.mjs` — the built-in primitive registry
 

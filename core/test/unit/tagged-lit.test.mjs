@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { isErrorValue, isQuote, keyword, describeType, makeTagKeyword } from '../../src/types.mjs';
+import { printQuoteSource } from '../../src/quote.mjs';
 
 describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
   it('parses ::conduit[[] body] as TaggedLit with Vec payload', () => {
@@ -68,7 +69,7 @@ describe('::tag descriptor registers a tag-namespace binding', () => {
       '::myType {:impl :qlang/type/conduit} | ::myType | source'
     );
     expect(isQuote(source)).toBe(true);
-    expect(source.source).toContain('::myType');
+    expect(printQuoteSource(source)).toContain('::myType');
   });
 });
 
@@ -78,7 +79,7 @@ describe('axis-operand subject classification', () => {
       '::myType {:impl :qlang/type/conduit} | {:kind ::myType :payload []} | source'
     );
     expect(isQuote(source)).toBe(true);
-    expect(source.source).toContain('::myType');
+    expect(printQuoteSource(source)).toContain('::myType');
   });
 });
 
@@ -279,22 +280,14 @@ describe('default constructor — tag-binding without :impl', () => {
   });
 });
 
-describe('TaggedLit / BareTypeKeyword AST codec round-trip', () => {
-  it('TaggedLit round-trips through astNodeToMap / qlangMapToAst', async () => {
-    const { astNodeToMap, qlangMapToAst } = await import('../../src/ast-codec.mjs');
-    const ast = parse('::conduit[[] ~{mul(2)}]');
-    const back = qlangMapToAst(astNodeToMap(ast));
-    expect(back.type).toBe('TaggedLit');
-    expect(back.tag).toBe('conduit');
-    expect(back.payload.type).toBe('VecLit');
+describe('TaggedLit / BareTypeKeyword steps', () => {
+  it('TaggedLit leaves a ::tagged step over the step of its payload', async () => {
+    expect(await evalQuery('~{::conduit[[] ~{mul(2)}]} | first | [type /tag /payload]'))
+      .toEqual(await evalQuery('[::tagged ::conduit [[] ~{mul(2)}]]'));
   });
 
-  it('BareTypeKeyword round-trips through astNodeToMap / qlangMapToAst', async () => {
-    const { astNodeToMap, qlangMapToAst } = await import('../../src/ast-codec.mjs');
-    const ast = parse('::conduit');
-    const back = qlangMapToAst(astNodeToMap(ast));
-    expect(back.type).toBe('BareTypeKeyword');
-    expect(back.tag).toBe('conduit');
+  it('BareTypeKeyword leaves the tag name itself', async () => {
+    expect(await evalQuery('~{::conduit} | first')).toEqual(makeTagKeyword('conduit'));
   });
 });
 
@@ -360,8 +353,8 @@ describe('TagKeyword value mechanics', () => {
 });
 
 describe('parse and apply accept Quote subjects transparently', () => {
-  it('~{code} | parse returns the AST-Map of the Quote source', async () => {
-    expect(await evalQuery('~{5 | mul(2)} | parse | /:kind')).toEqual(keyword('Pipeline'));
+  it('~{code} | parse prints the quote as its text', async () => {
+    expect(await evalQuery('~{5 | mul(2)} | parse')).toBe('5 | mul(2)');
   });
 
   it('~{code} | apply(/) runs the Quote source against the subject', async () => {
@@ -431,8 +424,10 @@ describe('User-defined tag binding with Quote :impl', () => {
   });
 
   it('Quote body that already produces the same-tag TaggedInstance passes through (no double-wrap)', async () => {
+    // `tag` runs the constructor, so tagging an instance again hands
+    // the constructor an instance of its own tag.
     const result = await evalQuery(
-      '::echo {:impl ~{tag(::echo)}} | ::echo"hi" | payload'
+      '::echo {:impl ~{/}} | ::echo"hi" | tag(::echo) | payload'
     );
     expect(result).toBe('hi');
   });

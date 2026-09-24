@@ -20,13 +20,18 @@ describe('Doc /segments tokenizes content into prose / Quote / TaggedLit', () =>
   });
 
   it('embedded Quote segment is a Quote-value', async () => {
-    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | type | eq(:quote)');
+    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | type | eq(::quote)');
     expect(result).toBe(true);
   });
 
-  it('embedded Quote segment carries the source text', async () => {
-    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | /source');
+  it('embedded Quote segment prints as its text', async () => {
+    const result = await evalQuery('|~~ See ~{mul(2)} here. ~~| | /segments | at(1) | parse');
     expect(result).toBe('mul(2)');
+  });
+
+  it('a fragment that does not read as code stays prose', async () => {
+    const result = await evalQuery('|~~ See ~{ , } here. ~~| | /segments | at(1) | /text');
+    expect(result).toBe('~{ , }');
   });
 
   it('multiple openers tokenized in order — prose ~{...} prose ~{...} prose', async () => {

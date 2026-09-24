@@ -137,10 +137,10 @@ describe('withContext — merges a context Map into the descriptor', () => {
     // withContext + re-lift via the conduit's internal `| error`,
     // the :trail Quote stays populated; `| add(5)` then deflects
     // and the outer !| concatenates that into the exposed
-    // materialized descriptor, so the final /source projection
-    // holds both step combinators+text in chronological order.
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail | /source');
-    expect(ctxResult).toBe('| count | add(5)');
+    // materialized descriptor, so the printed trail holds both steps
+    // in chronological order.
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext({:ctx 1}) | add(5) !| /trail | parse');
+    expect(ctxResult).toBe('count | add(5)');
   });
 });
 

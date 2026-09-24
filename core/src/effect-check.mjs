@@ -54,6 +54,8 @@ export function findFirstEffectfulIdentifier(node) {
   let offender = null;
   walkAst(node, (n) => {
     if (offender !== null) return false;
+    // A quote literal is data: its steps run where it is applied.
+    if (n.type === 'QuoteLit') return false;
     if (n.type === 'OperandCall' && n.effectful) {
       offender = n.name;
       return false;

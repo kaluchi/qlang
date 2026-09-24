@@ -29,7 +29,7 @@ import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isQSet, isKeyword, isConduit, isSnapshot, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
-  materializeTrail, makeQuote, makeDoc, makeJsonObject, makeJsonArray,
+  makeDoc, makeJsonObject, makeJsonArray,
   isJsonObject, isJsonArray, isOrderedSequence, sequenceElements, isQuote,
   isJsonStoreable, makeConduit, makeSnapshot, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, conduitBodyAst, conduitEnvRef,
@@ -38,14 +38,14 @@ import {
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { moduleAstKey, tagBindingKey } from './env-keys.mjs';
 import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
-import { astNodeToMap } from './ast-codec.mjs';
+import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { addStructurallyUnique } from './equality.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
-  trailEntry, combineTrailQuotes, materializePendingTrail
+  trailEntry, materializeTrail, combineTrailQuotes, materializePendingTrail
 } from './eval-trail.mjs';
 
 export { materializePendingTrail };
@@ -92,7 +92,7 @@ const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfB
 // projection itself.
 const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequenceKeyNotIntegerError',
   ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`);
-// Value-class subjects (Quote / Doc / …) publish a fixed set of
+// Value-class subjects (Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
 // that set is treated as a typo and lifts to this error.
 const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
@@ -115,8 +115,8 @@ const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstr
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
 // The combinator names its qlang kind — `distribute`, the same
-// vocabulary `COMBINATOR_SYNTAX` and `trailEntry` speak — so the
-// message and the catalog tag-binding's `:operand` read alike.
+// vocabulary `trailEntry` speaks — so the message and the catalog
+// tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
@@ -135,7 +135,7 @@ const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterN
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
 // uses langRuntime as the initial env; the initial pipeValue is
-// `null` either way. The parsed AST is stamped into
+// `null` either way. The parsed query is stamped into
 // the env under `moduleAstKey('inline')` as a Quote so axis-
 // operands (`source`, `docs`, `examples`) can resolve `BindStep`
 // bindings declared inside the same query. With the inline-AST
@@ -150,7 +150,7 @@ export async function evalQuery(source, env, callerState = null) {
   } catch (parseErr) {
     return errorFromParse(parseErr);
   }
-  const envWithInlineAst = envSet(initialEnv, moduleAstKey('inline'), makeQuote(source, ast));
+  const envWithInlineAst = envSet(initialEnv, moduleAstKey('inline'), quoteOfBody(ast));
   // Initial pipeValue is `null` — every pipeline brings its own
   // subject through an explicit head step (a literal, a captured
   // arg, the `env` identifier). The `env` identifier resolves
@@ -214,7 +214,7 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangError && !caughtError.location && node.location)
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
-    const faultStep = makeQuote(node.text);
+    const faultStep = quoteOfBody(node);
     const faultInput = state.pipeValue;
     if (caughtError instanceof ParseError) {
       // A ParseError raised mid-eval — typically from `apply`
@@ -243,13 +243,12 @@ async function evalNode(node, state) {
 // Plain comments are pipeline trivia: `evalPipeline` steps over
 // them on both tracks, so a comment neither fires nor deflects and
 // never lands on the trail — the materialized `:trail` Quote is a
-// pure operand suffix that `apply` replays byte-for-byte. The AST
-// keeps every comment for reflection (`source`, the highlighter,
-// the AST-codec round-trip); `evalCommentStep` stays wired for the
-// direct-dispatch path of a lone comment query or a comment AST-Map
-// handed to `apply`. The step-node reading itself lives in
-// `walk.mjs::isPlainCommentStep` beside the rest of the AST-shape
-// knowledge.
+// pure operand suffix that `apply` replays. The AST keeps every
+// comment for the tools (the highlighter, the language server), and
+// a quote keeps none; `evalCommentStep` stays wired for the
+// direct-dispatch path of a lone comment query. The step-node reading
+// itself lives in `walk.mjs::isPlainCommentStep` beside the rest of
+// the AST-shape knowledge.
 
 async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
@@ -307,11 +306,10 @@ async function applyCombinator(kind, state, stepNode) {
 
 // applySuccessTrack(state, stepNode) — the `|` combinator. Fires
 // `stepNode` when pipeValue is on the success-track; deflects on
-// error by stamping `trailEntry(stepNode, 'pipe')` — the step's
-// source slice plus its combinator kind — onto the trail linked
-// list and returning the error unchanged. `!|` joins the fragments
-// through COMBINATOR_SYNTAX into the `:trail` Quote that downstream
-// consumers replay through `apply` or lift through `/ast`.
+// error by stamping `trailEntry(stepNode, 'pipe')` — the step plus
+// its combinator kind — onto the trail linked list and returning the
+// error unchanged. `!|` turns the fragments into the `:trail` quote
+// that downstream consumers replay through `apply`.
 async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(stepNode, 'pipe')));
@@ -339,7 +337,7 @@ async function distribute(state, bodyNode) {
   if (!isOrderedSequence(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
-    return withPipeValue(state, errorFromQlang(distributeErr, makeQuote(bodyNode.text), state.pipeValue));
+    return withPipeValue(state, errorFromQlang(distributeErr, quoteOfBody(bodyNode), state.pipeValue));
   }
   // The parentheses after `*` delimit its body the way a call's
   // parentheses delimit a captured argument, so the body's own head
@@ -496,7 +494,7 @@ async function evalErrorLit(node, state) {
 }
 
 function evalQuoteLit(node, state) {
-  return withPipeValue(state, makeQuote(node.src));
+  return withPipeValue(state, quoteOfLiteral(node));
 }
 
 function evalDocLit(node, state) {
@@ -547,7 +545,7 @@ export async function mintTaggedInstance(tagName, payload, state, location = nul
     return await constructor(payload, state);
   }
   if (isQuote(implKey)) {
-    const bodyAst = implKey.ast ?? parse(implKey.source, { uri: `::${tagName}/impl` });
+    const bodyAst = astOfQuote(implKey);
     const bodyState = nestState(state, payload, state.env);
     const resultState = await evalBody(bodyAst, bodyState);
     const constructorResult = resultState.pipeValue;
@@ -724,7 +722,7 @@ async function evalBindStep(node, state) {
 // Projection walks a path of key segments, dispatching per-segment
 // on the current subject's kind — Map does keyword-lookup, Vec does
 // integer-index access with `Array.prototype.at`-style negative
-// support, value-classes (Quote, Doc) expose a fixed projectable
+// support, value-classes (Doc) expose a fixed projectable
 // field-set. Every miss / mismatch lifts a fail-first error whose
 // descriptor carries the failed segment under `:key` plus the
 // `:fault` step/input that triggered the miss. The soft counterpart
@@ -748,30 +746,17 @@ async function evalProjection(node, state) {
 
 // Registry of JS-layer value-classes that publish projectable surface.
 // Each entry maps a VALUE_CLASS_TAG brand to a per-segment projector
-// table; segments not in the table resolve to `null`, matching Map
-// missing-key semantics. Quote and Doc publish their fields here; the
-// brand rides the Symbol, so a JsonObject carrying a `"type"` data key
-// falls through to the JsonObject branch below instead of being read
-// as a value-class. Only the named fields listed here are reachable
-// through `/key`.
+// table. Doc publishes its fields here; the brand rides the Symbol, so
+// a JsonObject carrying a `"type"` data key falls through to the
+// JsonObject branch below instead of being read as a value-class. Only
+// the named fields listed here are reachable through `/key`. A quote
+// is a vector of steps and projects by index.
 const PROJECTABLE_BY_TYPE = {
-  quote: {
-    source: q => q.source,
-    ast:    q => astNodeToMap(q.ast ?? lazyParseQuoteAst(q))
-  },
   doc: {
     content:  d => d.content,
     segments: (d, state) => parseDocSegments(d.content, state)
   }
 };
-
-function lazyParseQuoteAst(q) {
-  try {
-    return parse(q.source, { uri: 'quote-ast' });
-  } catch (_parseErr) {
-    return NULL;
-  }
-}
 
 function projectSegment(subject, projKey, state) {
   if (typeof subject === 'object' && subject !== null) {

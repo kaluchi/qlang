@@ -79,7 +79,7 @@ container's own close.
 
 The block-body content surfaces on the AST node as a verbatim
 source slice between the open and close delimiters — a downstream
-consumer (`printValue`, AST-codec round-trip, the highlighter)
+consumer (`printValue`, the highlighter, the language server)
 reads back exactly the bytes the author typed.
 
 ---
@@ -594,8 +594,8 @@ the result is **an error value** of the `!{}` form introduced in
 ```
 
 The tag head names the per-site error class (`::AddLeftNotNumberError`);
-the descriptor names the failing step verbatim (`:faultStep`, a
-Quote-value carrying the source-slice), the pipeValue it received
+the descriptor names the failing step (`:faultStep`, the quote of
+that step), the pipeValue it received
 (`:faultInput`), and the type the throw site inspected
 (`:actualType`). `:actualValue` would also be stamped if the throw
 site had drilled below `:faultInput`, but for a subject-shape error
@@ -1635,9 +1635,8 @@ tagged-literal payload — no special-case eval path.
 ### Quote payload for deferred evaluation
 
 A constructor that wants conditional or lazy semantics receives a
-Quote payload. The Quote captures the source verbatim and its AST
-is parsed on demand only when the constructor invokes `apply` /
-`/ast` against it.
+Quote payload. The Quote holds the steps of its code and runs only
+when the constructor applies it.
 
 ```qlang
 ::cond {:impl ~{as(:branches)
@@ -1721,10 +1720,10 @@ through to the end.
   :faultStep ~{add(1)}
   :faultInput "hello"
   :actualType :string
-  :trail ~{| mul(2) | sub(3)}
+  :trail ~{mul(2) | sub(3)}
 }
 |~| add(1) produces the error; mul(2) and sub(3) deflect, each
-|~| stamping its source slice onto the trail the query boundary
+|~| stamping its step onto the trail the query boundary
 |~| materializes into the :trail Quote.
 ```
 
@@ -1737,8 +1736,8 @@ step only when `pipeValue` is an error value, exposing the error's
 > "hello" | add(1) | mul(2) !| type | spec | /category
 :typeError
 
-> "hello" | add(1) | mul(2) !| /trail | /source
-"| mul(2)"
+> "hello" | add(1) | mul(2) !| /trail | parse
+"mul(2)"
 |~| mul(2) deflected; add(1) produced the error
 ```
 
@@ -1749,16 +1748,14 @@ descriptor Map with `:trail` combined from any pre-existing source
 fragment plus the deflections recorded since the last
 materialization.
 
-`:trail` is a **Quote-value** — a frozen, copy-pasteable
-pipeline-suffix source carrying every deflected step joined with
-its leading combinator (`|`, `*`). When no success-track
-combinator has deflected after the fault, `:trail` is `null`.
-The `/source` projection unwraps the Quote into its raw text;
-`/ast` lazy-parses it on demand.
+`:trail` is a **Quote-value** — the quote of every deflected step,
+a step deflected under `*` wrapped as `::each`, ready for `apply`
+to replay. When no success-track combinator has deflected after the
+fault, `:trail` is `null`. `parse` prints the quote as its text.
 
 ```qlang
-> !{:kind :oops} | count | add(1) !| /trail | /source
-"| count | add(1)"
+> !{:kind :oops} | count | add(1) !| /trail | parse
+"count | add(1)"
 
 > !{:kind :oops} !| /trail
 null
@@ -1835,11 +1832,11 @@ or duplicates the literal head on print.
 
 | Field | Type | Content |
 |---|---|---|
-| `:faultStep` | Quote | Verbatim source-text of the failing step lifted to a Quote-value (from the AST node's `.text`). Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
+| `:faultStep` | Quote | The quote of the failing step. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
 | `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
 | `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
-| `:trail` | Quote or null | Frozen pipeline-suffix source — every step a success-track combinator deflected, joined with its leading combinator (`\|`, `*`) into one copy-pasteable Quote. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
+| `:trail` | Quote or null | The quote of every step a success-track combinator deflected, one deflected under `*` wrapped as `::each`. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry
@@ -1867,8 +1864,8 @@ tag-binding metadata.
 inspection:
 
 ```qlang
-!| /faultStep | /source       -- source text of the failing step
-!| /faultStep | /ast          -- AST-Map of the failing step (lazy)
+!| /faultStep | parse         -- the failing step as text
+!| /faultStep | first         -- the failing step itself, a step of code
 !| /faultInput | keys         -- keys available on the Map the step received
 !| /faultInput                -- the full value the step received
 ```
@@ -1892,7 +1889,7 @@ fresh suffix:
 
 ```qlang
 > !{:kind :oops} | count !| union({:trail null}) | error | add(1) !| /trail
-~{| add(1)}
+~{add(1)}
 ```
 
 ---
@@ -1961,15 +1958,14 @@ operand-level name: `env`.
 
 Three mechanisms close the "everything is data" ring:
 
-1. **Code is data** — `parse` lifts source text into an AST-Map;
-   `apply` runs it. The intermediate Map is addressable by ordinary
-   qlang projection.
+1. **Code is data** — `parse` reads source text into a quote, a
+   vector of steps; `apply` runs it. The steps are addressable by
+   ordinary qlang projection and container operands.
 2. **Runtime is data** — built-ins without arguments evaluate to
    their own descriptor Map (not an arity error). `manifest` gives
    the full env as a Vec of descriptors.
-3. **Errors are data** — `!|` materializes the trail as a Quote of
-   the deflected pipeline suffix; `/trail | /ast` lifts it into an
-   AST-Map whose `:steps` are individually addressable. (Covered
+3. **Errors are data** — `!|` materializes the trail as the quote
+   of the deflected steps, each individually addressable. (Covered
    in [Error track](#error-track).)
 
 All three use the same mechanism: Map + pipeline.
@@ -2032,7 +2028,7 @@ entirely and address the binding directly (`:filter | source`).
 
 | Axis | Subject | Returns |
 |---|---|---|
-| `source` | `:name` or `::Tag` | Quote-value carrying the verbatim source of the declaring BindStep |
+| `source` | `:name` or `::Tag` | The quote of the declaring BindStep |
 | `docs` | `:name` or `::Tag` | Vec of Doc-values, one per attached doc-comment |
 | `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~{…}` segment in the docs |
 
@@ -2040,10 +2036,10 @@ entirely and address the binding directly (`:filter | source`).
 > :filter | docs | first | type | eq(:doc)
 true
 
-> ::ParseError | source | /source | startsWith("::ParseError")
+> ::ParseError | source | parse | startsWith("::ParseError")
 true
 
-> :count | examples | first | type | eq(:quote)
+> :count | examples | first | type | eq(::quote)
 true
 ```
 
@@ -2102,40 +2098,43 @@ empty Vec — `runExamples` makes no claims about their
 behaviour. Documentation lives in the source; bindings without
 source contribute zero examples.
 
-### `parse` — source text → AST-Map
+### `parse` — source text ↔ quote
 
-`parse` lifts a source string into an AST-Map. The intermediate Map
-is ordinary qlang data — addressable by projection, filterable by
-`filter`, passable to `apply`.
+`parse` flips a string and a quote, the way `keyword` flips a string
+and a keyword: source text reads as the quote of its steps, and a
+quote prints back as its text. The quote is ordinary qlang data — a
+vector of steps under the `::quote` tag, countable, filterable and
+projectable like any vector, and passable to `apply`.
 
-Every AST-Map carries a `:kind` discriminator naming its AST
-node type (`:NumberLit`, `:StringLit`, `:Pipeline`, `:OperandCall`,
-`:Projection`, `:Keyword`, `:VecLit`, `:MapLit`, `:ErrorLit`,
-`:SetLit`, …) plus the type-specific payload fields described in
-[qlang-operands.md](qlang-operands.md#parse).
+Where the syntax is a literal, the step is that literal itself;
+where it computes, the step is a record — `::call` for a command,
+`::proj` for a projection, `::bind` for a declaration, `::tagged`
+for a constructor invocation — and the fail track, the distribute
+and the parentheses wrap the quote of their step as `::fail`,
+`::each` and `::group`. A comment leaves no step, so two quotes of
+the same code written with different spacing or comments are equal.
 
 ```qlang
-> "1 | add(1)" | parse | /:kind
-:Pipeline
-
-> "1 | add(1)" | parse | /steps | count
+> "1 | add(1)" | parse | count
 2
 
-> "add(2, 3)" | parse | /name
-"add"
+> "add(2, 3)" | parse | first | /name
+:add
 
-> "add(2, 3)" | parse | /args | count
+> "add(2, 3)" | parse | first | /args | count
 2
+
+> ~{add( 2,3 )} | parse
+"add(2, 3)"
 ```
 
-The AST-Map shape is the one `/trail | /ast` lifts the deflected
-suffix Quote into — closing the code-is-data ring: `parse`
-produces the same AST-Map of any source text.
+A trail is the same kind of value: `!| /trail` is the quote of the
+deflected steps, so `parse` prints it and `apply` replays it.
 
 ### `apply` — run code from data
 
-`apply` runs the code its captured argument answers — an AST-Map or
-a Quote — against the subject, subject first like every other
+`apply` runs the quote its captured argument answers against the
+subject, subject first like every other
 operand and under the fork rule: the declarations the code makes
 stay inside it. `apply(/)` runs code held as the subject against
 itself, which is how `parse` round-trips source text through the
@@ -2305,7 +2304,7 @@ every input the next `apply` needs to reconstruct an
 observationally-equivalent Conduit; the JS-side identity (envRef,
 body AST) differs but the **behavioural** identity matches.
 
-Three guards enforce the invariant at the construction and
+Two guards enforce the invariant at the construction and
 rendering boundaries:
 
 - **`FunctionValueLeakedToPrintError`** — `printValue` and
@@ -2316,10 +2315,6 @@ rendering boundaries:
   JS-header slot while `:impl` keeps the author's
   `:qlang/prim/<name>` handle keyword, so the descriptor's data
   plane round-trips as ordinary qlang data.
-- **`ConduitBodyMissingSourceError`** — `makeConduit` refuses a
-  body AST without a `.text` source slice, because `printConduit`
-  emits `::conduit[:self [params] ~{body-source}]` and would
-  otherwise produce a non-parseable placeholder.
 - **`TagBindingHasNoConstructorError`** — `evalTaggedLit` refuses
   a `::Tag<payload>` invocation when the tag-binding's
   `:impl` is missing or wrong-shaped, surfacing
@@ -2709,7 +2704,7 @@ import { createSession } from '@kaluchi/qlang-core';
 const catalog = await resolveModules('./lib');
 
 // Install into a session: stamps both the export Map under the
-// namespace key and the module Quote under qlang/ast/<ns>.
+// namespace key and the module's quote under qlang/ast/<ns>.
 const session = await createSession();
 installModules(session, catalog);
 
@@ -2731,9 +2726,9 @@ installModules(session, catalog);
   - `source` — raw `.qlang` source text.
   - `ast` — parsed AST root the eval pass walked.
 
-  The `source`/`ast` pair lets `installModules` stamp the module's
-  source-as-Quote under `qlang/ast/<ns>`, matching the env shape the
-  locator-based `use(:ns)` pathway already produces.
+  The `ast` lets `installModules` stamp the module's quote under
+  `qlang/ast/<ns>`, matching the env shape the locator-based
+  `use(:ns)` pathway already produces.
   Options:
   - `opts.baseEnv` — initial env (default: `langRuntime()`).
   - `opts.dependencies` — `Map<namespaceName, string[]>` for explicit
@@ -2744,7 +2739,7 @@ installModules(session, catalog);
   binds two env keys per namespace: `qlang/namespace/<nsName> →
   exports` (the cache key `use(:nsName)` probes, so the export Map
   never shadows an operand whose name matches the namespace stem),
-  and `qlang/ast/<nsName> → Quote(source, ast)` so the axis-operands
+  and `qlang/ast/<nsName> → the module's quote` so the axis-operands
   `:name | source`, `| docs`, `| examples` walk the loaded module
   AST. Install-path and locator-path stay symmetric on the
   axis-operand discoverability surface.

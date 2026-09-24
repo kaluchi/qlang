@@ -10,7 +10,6 @@ import {
   makeConduit,
   makeSnapshot,
   makeDoc,
-  makeQuote,
   keyword,
   makeTagKeyword,
   makeErrorValue,
@@ -18,9 +17,10 @@ import {
   isSnapshot,
   isDoc,
   isQMap,
-  ConduitBodyMissingSourceError,
   FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
+import { quoteOfSource } from '../../src/quote.mjs';
+import { parse } from '../../src/parse.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 import { rootState } from '../../src/state.mjs';
 
@@ -33,18 +33,8 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
   });
 
   it('renders a parametric named Conduit with [:params] in declaration order', () => {
-    const bodyAst = { type: 'OperandCall', name: 'add', text: 'add(x, y)' };
-    const conduit = makeConduit(bodyAst, { name: 'sum2', params: ['x', 'y'] });
+    const conduit = makeConduit(parse('add(x, y)'), { name: 'sum2', params: ['x', 'y'] });
     expect(printValue(conduit)).toBe('::conduit[:sum2 [:x :y] ~{add(x, y)}]');
-  });
-
-  it('makeConduit refuses a body without .text — round-trip invariant', () => {
-    // printValue's round-trip theorem requires every Conduit to print
-    // back into parseable qlang source. A body without .text would
-    // force a non-parseable placeholder, so mint refuses up front.
-    expect(() =>
-      makeConduit({ type: 'NumberLit', value: 1 }, { name: 'noTxt', params: [] })
-    ).toThrow(ConduitBodyMissingSourceError);
   });
 
   it('docs do not appear in value-literal — they are declaration metadata, reachable via the ~{:name | docs} axis', () => {
@@ -323,7 +313,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {
-    const row = new Map([['q', [makeQuote('mul(2)')]]]);
+    const row = new Map([['q', [quoteOfSource('mul(2)')]]]);
     const rendered = await table.fn(
       rootState([row], new Map()),
       []
@@ -332,7 +322,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Quote-valued cell — CELL_HANDLERS.Quote fires', async () => {
-    const row = new Map([['q', makeQuote('add(1)')]]);
+    const row = new Map([['q', quoteOfSource('add(1)')]]);
     const rendered = await table.fn(
       rootState([row], new Map()),
       []

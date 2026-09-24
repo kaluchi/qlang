@@ -1,31 +1,30 @@
 |~ qlang operand catalog — codeAsData family. The ring that
-   closes source-text → AST-Map → pipeValue without leaving the
-   language. `parse` lifts a String (or a Quote-value) into an
-   AST-Map shape documented in `core/src/ast-codec.mjs`;
-   `apply(code)` runs the Quote-or-Map its captured arg answers
-   against the subject, subject first like every other operand.
-   Trail-emitted suffix Quotes flow through pipeValue, so
-   `error !| /trail | as(:t) | start | apply(t)` re-runs deflected
-   steps against a fresh subject. ~|
+   closes source text → quote → pipeValue without leaving the
+   language. `parse` flips a string and a quote, the vector of
+   steps a `~{…}` literal makes; `apply(code)` runs the quote its
+   captured arg answers against the subject, subject first like
+   every other operand. Trail-emitted suffix quotes flow through
+   pipeValue, so `error !| /trail | as(:t) | start | apply(t)`
+   re-runs deflected steps against a fresh subject. ~|
 
 :parse
-  |~~ Parses a source string into an AST-Map — the data-form
-      representation of the program described by the
-      ast-codec.mjs astNodeToMap codec. Half of the codeAsData
-      ring; pair
-      with apply(/) to round-trip between source text and
-      evaluated pipeValue without leaving qlang. Parse errors
-      from the underlying peggy parser lift onto the fail-track
-      as ordinary error values, so malformed sources surface
-      through !| like every other runtime failure.
+  |~~ Flips a string and a quote, the way keyword flips a
+      string and a keyword: source text reads as the quote of
+      its steps, and a quote prints back as its text. Pair with
+      apply(/) to evaluate source text without leaving qlang.
+      Parse errors from the underlying peggy parser lift onto
+      the fail-track as ordinary error values, so malformed
+      sources surface through !| like every other runtime
+      failure.
 
-      ~{"42" | parse | /:kind | eq(:NumberLit)}
-      ~{"add(1, 2)" | parse | /name | eq("add")}
+      ~{"1 | add(1)" | parse | count | eq(2)}
+      ~{"add(1,2)" | parse | eq(~{add(1, 2)})}
+      ~{~{add( 1 )} | parse | eq("add(1)")}
   ~~|
   ::builtin{:impl :qlang/prim/parse
             :category :codeAsData
-            :subject :string
-            :returns :map}
+            :subject [:string :quote]
+            :returns [:quote :string]}
 
 ::ParseSubjectNotStringOrQuoteError
   |~~ `parse` requires a String or Quote subject.
@@ -38,16 +37,16 @@
   ~~|
 
 :apply
-  |~~ Runs the code its captured arg answers — a Quote, or an
-      AST-Map from parse — against the subject, under the fork
-      rule: the declarations the code makes stay inside it, and
-      only its value comes out. The subject comes first, as for
-      every other operand, so `x | apply(/)` runs a quote held
-      as the subject against itself, and `"src" | parse |
-      apply(/)` evaluates source text.
+  |~~ Runs the quote its captured arg answers against the
+      subject, under the fork rule: the declarations the code
+      makes stay inside it, and only its value comes out. The
+      subject comes first, as for every other operand, so
+      `x | apply(/)` runs a quote held as the subject against
+      itself, and `"src" | parse | apply(/)` evaluates source
+      text.
 
-      The Quote's first step rides `|` against the subject
-      unless the Quote carries a leading combinator (`*`, `!|`),
+      The quote's first step rides `|` against the subject
+      unless the quote carries a leading combinator (`*`, `!|`),
       which routes it through that combinator. A pipeline-suffix
       shape — exactly the form `:trail` records surface — is
       therefore directly re-executable.
@@ -61,17 +60,16 @@
             :category :codeAsData
             :subject :any
             :returns :any
-            :modifiers [[:quote :map]]}
+            :modifiers [:quote]}
 
 
-::ApplyCodeNotMapOrQuoteError
-  |~~ `apply` requires its captured arg to answer a Map (AST-Map)
-      or a Quote (source-form) — the code it runs against the
-      subject.
+::ApplyCodeNotQuoteError
+  |~~ `apply` requires its captured arg to answer a Quote — the
+      code it runs against the subject.
 
       ~{
         42 | apply(1)
         !| [type /actualType]
-        |  eq([::ApplyCodeNotMapOrQuoteError :number])
+        |  eq([::ApplyCodeNotQuoteError :number])
        }
   ~~|

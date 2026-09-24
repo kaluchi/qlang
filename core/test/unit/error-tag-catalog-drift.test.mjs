@@ -63,7 +63,10 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 // Value-class constructors share the `::Tag` plane with the error
 // tags, and raise errors rather than being ones, so the axes below
 // read them out by kind.
-const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set(['::builtin', '::conduit', '::json', '::qlang']);
+const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
+  '::builtin', '::conduit', '::json', '::qlang',
+  '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
+]);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds

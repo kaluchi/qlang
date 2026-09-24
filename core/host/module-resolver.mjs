@@ -25,7 +25,7 @@ import { parse } from '../src/parse.mjs';
 import { evalAst } from '../src/eval.mjs';
 import { rootState } from '../src/state.mjs';
 import { langRuntime } from '../src/runtime/index.mjs';
-import { makeQuote } from '../src/types.mjs';
+import { quoteOfBody } from '../src/quote.mjs';
 import { moduleAstKey, moduleNamespaceKey } from '../src/env-keys.mjs';
 
 
@@ -125,7 +125,7 @@ export async function resolveModules(libDir, opts = {}) {
 export function installModules(session, catalog) {
   for (const [nsName, entry] of catalog) {
     session.bind(moduleNamespaceKey(nsName), entry.exports);
-    session.bind(moduleAstKey(nsName), makeQuote(entry.source, entry.ast));
+    session.bind(moduleAstKey(nsName), quoteOfBody(entry.ast));
   }
 }
 

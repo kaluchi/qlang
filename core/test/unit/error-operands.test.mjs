@@ -61,13 +61,11 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
-    // /trail yields a Quote-value carrying the joined
-    // pipeline-suffix source. `evalPipeline` steps over plain
-    // comments on both tracks, so only the operand-carrying step
-    // (`count`) deflects into the trail — a line comment on the
-    // trail would swallow every step after it on replay.
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | /source');
-    expect(evalResult).toBe('| count');
+    // /trail yields the quote of the deflected steps. `evalPipeline`
+    // steps over plain comments on both tracks, so only the
+    // operand-carrying step (`count`) deflects into the trail.
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | parse');
+    expect(evalResult).toBe('count');
   });
 
   it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
@@ -93,14 +91,14 @@ describe('EffectLaunderingAtCallError', () => {
   });
 });
 
-describe('source axis surfaces verbatim BindStep slice for rare body shapes', () => {
+describe('source axis prints the declaration for rare body shapes', () => {
   it('renders bare OperandCall (no args)', async () => {
-    expect(await evalQuery(':x count | :x | source | /source')).toBe(':x count');
+    expect(await evalQuery(':x count | :x | source | parse')).toBe(':x count');
   });
 
-  it('renders LinePlainComment inside conduit body', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | /source');
-    expect(evalResult).toContain('|~|');
+  it('a LinePlainComment inside a conduit body leaves no step', async () => {
+    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | parse');
+    expect(evalResult).toBe(':x (42)');
   });
 
   it('attached BlockDocComment surfaces through the docs axis operand', async () => {
@@ -110,15 +108,14 @@ describe('source axis surfaces verbatim BindStep slice for rare body shapes', ()
   });
 
   it('renders ErrorLit body', async () => {
-    expect(await evalQuery(':x [] !{:a 1} | :x | source | /source')).toContain('!{:a 1}');
+    expect(await evalQuery(':x [] !{:a 1} | :x | source | parse')).toBe(':x [] !{:a 1}');
   });
 
   it('renders leading fail-apply prefix in conduit body', async () => {
     // BindStep body is a single Primary, so a `!|` leading
-    // Pipeline-step is wrapped in a ParenGroup at the source level.
-    // The source axis reflects the verbatim BindStep text, parens
-    // and all.
-    expect(await evalQuery(':handler (!| /kind) | :handler | source | /source')).toBe(':handler (!| /kind)');
+    // Pipeline-step is wrapped in a ParenGroup at the source level,
+    // and the group keeps its parentheses in print.
+    expect(await evalQuery(':handler (!| /kind) | :handler | source | parse')).toBe(':handler (!| /kind)');
   });
 });
 

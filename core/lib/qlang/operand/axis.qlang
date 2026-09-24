@@ -4,7 +4,7 @@
    axis walks every `qlang/ast/<uri>` module Quote stored in env
    to find the originating `BindStep` (or `as(:name)` OperandCall)
    and returns the named field as a fresh value — `source` the
-   verbatim source slice as a Quote, `docs` the attached
+   declaration as a Quote, `docs` the attached
    doc-prefix Vec of Doc-values, `examples` every `~{…}` Quote
    segment from those docs ready for `runExamples` to fire. ~|
 
@@ -13,10 +13,11 @@
       in one of the loaded modules. Walks every `qlang/ast/<uri>`
       Quote in env, finds the `BindStep` whose key matches the
       Keyword (or TagKeyword for `::Tag | source`) on pipeValue,
-      returns a Quote-value carrying the verbatim source slice.
+      returns the quote of that declaration, which `parse` prints
+      as its text.
 
-      ~{:filter | source | /source | contains(":filter")}
-      ~{::AddLeftNotNumberError | source | /source | contains("AddLeftNotNumberError")}
+      ~{:filter | source | parse | contains(":filter")}
+      ~{::AddLeftNotNumberError | source | parse | contains("AddLeftNotNumberError")}
   ~~|
   ::builtin{:impl :qlang/prim/source
             :category :axis
@@ -88,7 +89,7 @@
       result is truthy.
 
       ~{:filter | examples | count | gt(0)}
-      ~{:filter | examples | first | /source | contains("filter")}
+      ~{:filter | examples | first | parse | contains("filter")}
   ~~|
   ::builtin{:impl :qlang/prim/examples
             :category :axis

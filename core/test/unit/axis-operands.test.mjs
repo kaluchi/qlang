@@ -6,12 +6,13 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQuote, makeTagKeyword, keyword as makeKeyword } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
+import { printQuoteSource } from '../../src/quote.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
   it(':count | source carries the canonical :count BindStep text', async () => {
     const result = await evalQuery(':count | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source.startsWith(':count')).toBe(true);
+    expect(printQuoteSource(result).startsWith(':count')).toBe(true);
   });
 
   it('a module whose top-level AST is a bare literal contributes no BindSteps', async () => {
@@ -36,7 +37,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     // module Quotes installed via use(:ns).
     const result = await evalQuery(':myLocal 42 | :myLocal | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source).toBe(':myLocal 42');
+    expect(printQuoteSource(result)).toBe(':myLocal 42');
   });
 
   it('session.evalCell stamps cell AST so axis-operands resolve cell-local BindStep declarations', async () => {
@@ -145,13 +146,13 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
   it(':"::conduit" | source finds the tag binding via the keyword form', async () => {
     const result = await evalQuery(':"::conduit" | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source.startsWith('::conduit')).toBe(true);
+    expect(printQuoteSource(result).startsWith('::conduit')).toBe(true);
   });
 
   it('::conduit | source resolves the tag-binding descriptor through reverse env lookup', async () => {
     const result = await evalQuery('::conduit | source');
     expect(isQuote(result)).toBe(true);
-    expect(result.source.startsWith('::conduit')).toBe(true);
+    expect(printQuoteSource(result).startsWith('::conduit')).toBe(true);
   });
 
   it('::conduit | docs returns the attached Doc-prefix on the type BindStep', async () => {
@@ -309,7 +310,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 
   it('a binding shadowing a built-in is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | add')).toBe(200);
-    expect(await evalQuery(shadowed + ':add | source | /source')).toBe(':add mul(100)');
+    expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add mul(100)');
   });
 
   it('docs and examples answer for the shadowing binding, which carries neither', async () => {
@@ -334,7 +335,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
       'use(:probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
-      '[contested, :contested | source | /source, :contested | docs | first | /content]');
+      '[contested, :contested | source | parse, :contested | docs | first | /content]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
       222, ':contested |~~ from the cell ~~| 222', ' from the cell '
@@ -358,7 +359,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | use(:probe/shadow) | ' +
-      '[contested, :contested | source | /source, :contested | docs | first | /content]');
+      '[contested, :contested | source | parse, :contested | docs | first | /content]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
       111, ':contested |~~ from the namespace ~~| 111', ' from the namespace '

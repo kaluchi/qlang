@@ -31,8 +31,9 @@ import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isQMap, isKeyword, isVec, isQSet, isSnapshot,
-  typeKeyword, makeQuote, TAG_HEADER_SYMBOL
+  typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
+import { quoteOfBody } from '../quote.mjs';
 import {
   moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
@@ -206,7 +207,7 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // canonical `qlang/ast/<ns>` env key — same surface the core
   // module gets in langRuntime, so axis-operands walk every
   // loaded namespace through one mechanism.
-  envWithNamespace.set(moduleAstKey(nsKeyword.name), makeQuote(locatorResult.source, moduleAst));
+  envWithNamespace.set(moduleAstKey(nsKeyword.name), quoteOfBody(moduleAst));
   return [loadedExports, envWithNamespace];
 }
 

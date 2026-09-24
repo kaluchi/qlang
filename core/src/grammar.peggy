@@ -696,32 +696,21 @@ ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
 
-// QuoteLit captures content verbatim as a source string. AST is
-// parsed lazily by the runtime so a Quote may hold a pipeline
-// fragment beginning with a combinator (`* inc | sort`) — eager
-// parse would reject such a fragment.
-//
-// `~{...}` delimiter — paired (open ≠ close). Content matches an
-// ordinary qlang `Pipeline` greedy-style; whatever the Pipeline
-// rule can't consume (leading combinator, stray separator,
-// whitespace) falls through to `QuoteChar` which accepts every
-// byte except `}`. Balance derives entirely from the standard
-// qlang grammar — `MapLit` / `SetLit` / `VecLit` / `ErrorLit` /
-// `ParenGroup` / `QuoteLit` / string literals / comment tokens
-// each end on their own closer, so the outer `}` is reached only
-// when nothing nests at the cursor. No separate escape mechanism —
-// valid qlang never carries unbalanced `{` / `}` / `` ` `` outside
-// a string literal or comment.
-//
-// `src` (not `source`) — `parse.mjs` stamps `ast.source` on the
-// root node, which would override a QuoteLit field of the same
-// name when the QuoteLit is the entire query. The AST keeps `src`;
-// the runtime Quote value-class projects `:source` on its own Map
-// shape.
+// QuoteLit reads its content as the pipeline it holds, a leading
+// combinator included (`~{* inc | sort}`, `~{!| /trail}`), so the
+// quote a literal makes is the steps of that pipeline, and a literal
+// that holds no pipeline is a syntax error of the text around it.
+// `~{}` holds no pipeline and makes the empty quote.
 QuoteLit
-  = "~{" content:QuoteContent "}"
-    { return node('QuoteLit', { src: content }, location(), text()); }
+  = "~{" _ pipeline:Pipeline? _ "}"
+    { return node('QuoteLit', { pipeline }, location(), text()); }
 
+// QuoteContent — the balance reading of a `~{…}` span inside a
+// comment or a doc, where the span is prose: `MapLit` / `SetLit` /
+// `VecLit` / `ErrorLit` / `ParenGroup` / string literals / comment
+// tokens each end on their own closer, so the outer `}` is reached
+// only when nothing nests at the cursor, and whatever the Pipeline
+// rule cannot consume falls through to `QuoteChar`.
 QuoteContent
   = parts:QuotePart* { return parts.join(''); }
 
@@ -1045,9 +1034,9 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 // / PipelineList separator positions, where a plain comment serves
 // as a section divider or per-entry annotation and carries no value
 // role. Comment tokens matched here are silently consumed — they
-// never enter the AST — so walkers, manifest, astNodeToMap, and the
-// AST-as-data surface are unaffected by whether an author sprinkles
-// section dividers between entries.
+// never enter the AST — so walkers, manifest, and the steps of a
+// quote are unaffected by whether an author sprinkles section
+// dividers between entries.
 //
 // Doc comments (`|~~|`, `|~~ ~~|`) are NOT part of `_L`. In
 // pipeline position they attach to the following BindStep or `as`

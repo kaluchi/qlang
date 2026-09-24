@@ -1,8 +1,9 @@
-|~ Value-class tag-bindings — ::conduit, ::qlang, ::json. Each
-   declares its identity through ::builtin{…} with an :impl
-   keyword pointing into PRIMITIVE_REGISTRY at the JS-side
-   constructor that mints the corresponding value-class instance
-   from a payload. Per-tag error sites sit directly under the
+|~ Value-class tag-bindings — ::conduit, ::qlang, ::json, ::quote,
+   and the tags of a quote's steps. Each constructor declares its
+   identity through ::builtin{…} with an :impl keyword pointing
+   into PRIMITIVE_REGISTRY at the JS-side constructor that mints
+   the corresponding value-class instance from a payload; a step's
+   tag names an identity alone. Per-tag error sites sit directly under the
    constructor BindStep they belong to (so axis-operand walks
    stay one-pass within this file); the constructor's `:throws`
    Vec references each error tag by name. ~|
@@ -109,12 +110,6 @@
        }
   ~~|
 
-::ConduitBodyMissingSourceError
-  |~~ `makeConduit` refuses a body AST that has no `.text`
-      source slice — `printValue` round-trip requires literal
-      source. JS-level invariant.
-  ~~|
-
 ::qlang
   |~~ ::qlang<json-shape> — recursively convert a JSON-shape
       payload (plain object → qlang Map with keyword keys, plain
@@ -137,3 +132,102 @@
       ~{::json{:k "v"} | type | eq(:jsonObject) | eq(true)}
   ~~|
   ::builtin{:impl :qlang/type/json}
+
+::quote
+  |~~ Code as data — a vector of steps under the code tag, the
+      value of a `~{…}` literal. Where the syntax is a literal,
+      the step is that literal itself, a nested quote included;
+      where it computes, the step is a ::call, ::proj, ::bind or
+      ::tagged record; the fail track, the distribute and the
+      parentheses wrap the quote of their step as ::fail, ::each
+      and ::group, and a comment leaves no step. Every container
+      operand reads a quote as the tagged vector it is, and the
+      constructor re-runs after every transform, so every
+      element stays a step. `parse` prints a quote back as its
+      text, and `apply` runs it against the subject.
+
+      ~{~{1 | add(1) | mul(2)} | count | eq(3)}
+      ~{~{add(1)} | eq(~{add( 1 )})}
+      ~{~{add(1) | mul(2)} | payload | tag(::quote) | eq(~{add(1) | mul(2)})}
+      ~{~{add(1) | mul(2)} | filter(/name | eq(:mul)) | parse | eq("mul(2)")}
+  ~~|
+  ::builtin{:impl :qlang/type/quote}
+
+::QuotePayloadNotVecError
+  |~~ `::quote` payload must be a Vec of steps.
+
+      ~{
+        ::quote{:not :steps}
+        !| [type /actualType]
+        |  eq([::QuotePayloadNotVecError :map])
+       }
+  ~~|
+
+::QuoteElementNotStepError
+  |~~ Every element of a quote is a step: a literal, a quote, a
+      container of steps, or a record or wrapper of code. A value
+      with no reading as code, such as a tagged instance of
+      another tag, is refused at the index it stands at.
+
+      ~{
+        [::Box[1]] | tag(::quote)
+        !| [type /index]
+        |  eq([::QuoteElementNotStepError 0])
+       }
+  ~~|
+
+::call
+  |~~ The step of a command: `:name` the keyword of the name it
+      calls, `:args` the quote of each argument's pipeline when
+      the call has parentheses, `:docs` the prose attached to an
+      `as`.
+
+      ~{~{filter(gt(1))} | payload | eq([::call{:name :filter :args [~{gt(1)}]}])}
+      ~{~{count} | first | /name | eq(:count)}
+  ~~|
+
+::proj
+  |~~ The step of a projection: `:path` the keys and indices it
+      walks, `[]` for the identity `/`.
+
+      ~{~{/items/0/name} | first | /path | eq([:items 0 :name])}
+      ~{~{/} | first | /path | eq([])}
+  ~~|
+
+::bind
+  |~~ The step of a declaration: `:name` the keyword or tag it
+      binds, `:docs` its prose, `:params` its parameters,
+      `:body` the step of its body.
+
+      ~{~{:inc add(1)} | first | [/name /body/name] | eq([:inc :add])}
+  ~~|
+
+::tagged
+  |~~ The step of a constructor invocation `::T<payload>`: `:tag`
+      the tag, `:payload` the step of its payload.
+
+      ~{~{::Box[1 2]} | first | [/tag /payload] | eq([::Box [1 2]])}
+  ~~|
+
+::each
+  |~~ The wrapper of a step that distributes, `* body`, over the
+      quote of its body; the parentheses after `*` delimit the
+      body.
+
+      ~{~{* add(1)} | first | payload | eq(~{add(1)})}
+      ~{~{* (add(1) | mul(2))} | first | payload | count | eq(2)}
+  ~~|
+
+::fail
+  |~~ The wrapper of a step on the fail track, `!| step`, over the
+      quote of that one step.
+
+      ~{~{!| /kind} | first | payload | eq(~{/kind})}
+  ~~|
+
+::group
+  |~~ The wrapper of a parenthesised group, `(pipeline)`, over the
+      quote of its pipeline.
+
+      ~{~{(add(1) | mul(2))} | first | payload | count | eq(2)}
+  ~~|

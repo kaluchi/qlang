@@ -4,22 +4,22 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { isQuote, keyword } from '../../src/types.mjs';
+import { isQuote, makeTagKeyword } from '../../src/types.mjs';
 
 describe('langRuntime stamps the core module as a Quote', () => {
   it('exposes the core module under :qlang/ast/qlang/core', async () => {
     const result = await evalQuery('env | /:qlang/ast/qlang/core | type');
-    expect(result).toEqual(keyword('quote'));
+    expect(result).toEqual(makeTagKeyword('quote'));
   });
 
-  it('exposes verbatim source through /source', async () => {
-    const result = await evalQuery('env | /:qlang/ast/qlang/core | /source | startsWith("|~")');
+  it('prints the module as its text, the comments left out', async () => {
+    const result = await evalQuery('env | /:qlang/ast/qlang/core | parse | startsWith("use(")');
     expect(result).toBe(true);
   });
 
-  it('exposes pre-parsed AST through /ast — no re-parse needed', async () => {
-    const result = await evalQuery('env | /:qlang/ast/qlang/core | /ast | /:kind');
-    expect(result).toEqual(keyword('Pipeline'));
+  it('holds the steps of the module', async () => {
+    const result = await evalQuery('env | /:qlang/ast/qlang/core | first | /name');
+    expect(result).toEqual(await evalQuery(':use'));
   });
 
   it('returns the same frozen Quote across repeated lookups', async () => {
@@ -27,7 +27,7 @@ describe('langRuntime stamps the core module as a Quote', () => {
     const b = await evalQuery('env | /:qlang/ast/qlang/core');
     expect(isQuote(a)).toBe(true);
     expect(isQuote(b)).toBe(true);
-    expect(a.source).toBe(b.source);
+    expect(a).toBe(b);
   });
 });
 
@@ -51,17 +51,17 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
         ? { source: moduleSource }
         : null
     });
-    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /source');
+    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | parse');
     expect(cellEntry.result).toBe(moduleSource);
   });
 
-  it('parses the module AST eagerly so /ast skips a re-parse', async () => {
+  it('holds the module as the steps of its declarations', async () => {
     const moduleSource = ':answer 42';
     const sessionInstance = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | /ast | /:kind');
-    expect(cellEntry.result).toEqual(keyword('BindStep'));
+    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | first | type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('bind'));
   });
 
   it('module Quote survives subsequent use of a second namespace', async () => {
@@ -73,7 +73,7 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
       }
     });
     const cellEntry = await sessionInstance.evalCell(
-      'use(:lazy/a) | use(:lazy/b) | env | /:qlang/ast/lazy/a | /source');
+      'use(:lazy/a) | use(:lazy/b) | env | /:qlang/ast/lazy/a | parse');
     expect(cellEntry.result).toBe(':a 1');
   });
 });

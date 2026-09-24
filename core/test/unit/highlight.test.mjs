@@ -75,15 +75,15 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('paints an unparseable Quote body as a single italic-whitespace span', async () => {
-    // `~{ , }` — lone comma at the body position is not valid qlang,
-    // the body sub-tokeniser catches the parse error and emits a
-    // single whitespace-kind span covering the entire body so the
-    // renderer still paints it uniformly italic.
-    expect(tokenize('~{ , }', await builtins())).toEqual([
+  it('paints a blank Quote body as a single italic-whitespace span', async () => {
+    // `~{ }` — the empty quote; its blank body reads as no pipeline,
+    // so the body sub-tokeniser emits a single whitespace-kind span
+    // covering the entire body and the renderer still paints it
+    // uniformly italic.
+    expect(tokenize('~{ }', await builtins())).toEqual([
       { start: 0, end: 2, kind: 'quote' },
-      { start: 2, end: 5, kind: 'whitespace', italic: true },
-      { start: 5, end: 6, kind: 'quote' }
+      { start: 2, end: 3, kind: 'whitespace', italic: true },
+      { start: 3, end: 4, kind: 'quote' }
     ]);
   });
 

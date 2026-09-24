@@ -308,7 +308,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest(:tag) | count')).toBe(191);
+    expect(await evalQuery('manifest(:tag) | count')).toBe(197);
   });
 
   it('the value namespace holds every declared operand', async () => {
@@ -356,27 +356,26 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
 });
 
 describe('parse / apply — the codeAsData ring closer', () => {
-  // The `parse` operand reads a source string into the
-  // `ast-codec.mjs` AST-Map form; `apply(/)` runs that AST-Map
-  // against the subject. Together they round-trip
+  // The `parse` operand reads a source string into the quote of its
+  // steps and prints a quote back; `apply(/)` runs the quote against
+  // the subject. Together they round-trip
   // source text → data → pipeValue without leaving the language,
   // and ground the programmatic-query-construction surface.
 
-  it('parse lifts a scalar literal into an AST-Map', async () => {
+  it('parse reads a scalar literal into the quote of that one step', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"42" | parse');
-    expect(isQMap(evalResult)).toBe(true);
-    expect(evalResult.get('kind')).toEqual(keyword('NumberLit'));
-    expect(evalResult.get('value')).toBe(42);
+    expect(isVec(evalResult)).toBe(true);
+    expect([...evalResult]).toEqual([42]);
   });
 
-  it('parse lifts an OperandCall into an AST-Map with :name / :args', async () => {
+  it('parse reads an OperandCall into a ::call step with :name / :args', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"add(1, 2)" | parse');
-    expect(evalResult.get('kind')).toEqual(keyword('OperandCall'));
-    expect(evalResult.get('name')).toBe('add');
-    expect(isVec(evalResult.get('args'))).toBe(true);
-    expect(evalResult.get('args')).toHaveLength(2);
+    const callStep = (await evalQuery('"add(1, 2)" | parse'))[0];
+    expect(isQMap(callStep)).toBe(true);
+    expect(callStep[TAG_HEADER_SYMBOL].name).toBe('call');
+    expect(callStep.get('name')).toEqual(keyword('add'));
+    expect(callStep.get('args')).toHaveLength(2);
   });
 
   it('parse errors on non-string subject', async () => {
@@ -385,16 +384,16 @@ describe('parse / apply — the codeAsData ring closer', () => {
     expect(evalResult).toEqual(makeTagKeyword('ParseSubjectNotStringOrQuoteError'));
   });
 
-  it('apply runs a hand-assembled AST-Map', async () => {
+  it('apply runs a quote assembled from its steps', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('{:kind :NumberLit :value 42} | apply(/)');
-    expect(evalResult).toBe(42);
+    const evalResult = await evalQuery('[42 ::call{:name :add :args [~{1}]}] | tag(::quote) | apply(/)');
+    expect(evalResult).toBe(43);
   });
 
-  it('apply refuses code that is neither a Map nor a Quote', async () => {
+  it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"not-a-map" | apply(/) !| type');
-    expect(evalResult).toEqual(makeTagKeyword('ApplyCodeNotMapOrQuoteError'));
+    const evalResult = await evalQuery('"not-a-quote" | apply(/) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('ApplyCodeNotQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {

@@ -9,8 +9,8 @@
 {"name":"apply-parsed-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | apply(/)","expect":"\"alice\""}
 {"name":"apply-parsed-distribute","query":"\"[1 2 3] * add(10)\" | parse | apply(/)","expect":"[11 12 13]"}
 {"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add(1) !| type\" | parse | apply(/)","expect":"::AddLeftNotNumberError"}
-{"name":"apply-code-not-map-or-quote","query":"42 | apply(/)","expect":"::ApplyCodeNotMapOrQuoteError!{\n  :faultStep ~{apply(/)}\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"apply-code-not-quote","query":"42 | apply(/)","expect":"::ApplyCodeNotQuoteError!{\n  :faultStep ~{apply(/)}\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"apply-quote-against-the-subject","query":"5 | apply(~{mul(2)})","expect":"10"}
-{"name":"apply-code-type-refusal","query":"42 | apply(1) !| [type /actualType]","expect":"[::ApplyCodeNotMapOrQuoteError :number]"}
+{"name":"apply-code-type-refusal","query":"42 | apply(1) !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError :number]"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply(~{:x 2}) | x !| type","expect":"::UnresolvedIdentifierError"}
 {"name":"apply-code-that-fails-is-that-error","query":"5 | apply(/nope) !| type","expect":"::ProjectionSubjectNotProjectableError"}

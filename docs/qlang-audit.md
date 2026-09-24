@@ -737,16 +737,15 @@ and they are. On 23 September 2026:
 > "a" | gt("b")
 false
 
-> :parse | spec | /subject
-:string
+> :runExamples | spec | /subject
+:map
 ```
 
-`gt` is declared for numbers and compares strings; `parse` is declared
-for strings and accepts a quote; `runExamples` is declared for maps and
-takes a keyword. The mission's third requirement, that the shape of an
-answer can be known before it is fetched, reads these declarations,
-and today it reads something false. Executing the declaration is the
-only thing that keeps it true.
+`gt` is declared for numbers and compares strings; `runExamples` is
+declared for maps and takes a keyword. The mission's third requirement,
+that the shape of an answer can be known before it is fetched, reads
+these declarations, and today it reads something false. Executing the
+declaration is the only thing that keeps it true.
 
 The wrappers are also the host's interface. The command line's I/O
 operands and every operand of the sister project are built from
@@ -1375,29 +1374,38 @@ than from being asked for.
 
 ### Code as data, half a ring
 
-Code is a value, and the language can look inside it:
+Code is a value, and the language takes it apart with its own verbs: a
+quote is the vector of its steps under the code tag, so `count` counts
+them, `payload` peels the tag and `tag` puts it back, `parse` flips text
+and a quote, and equality compares steps, which the spacing and the
+comments of the text do not reach [D53]:
 
 ```qlang
-> ~{1 | add(1) | mul(2)} | /ast | /steps | count
+> ~{1 | add(1) | mul(2)} | count
 3
+
+> ~{filter(gt(1))} | payload
+[::call{:name :filter :args [~{gt(1)}]}]
+
+> eq(~{add(1)}, ~{add( 1 ) |~ note ~|})
+true
+
+> "add( 1 )" | parse
+~{add(1)}
 ```
 
-What it looks at is the parser's own tree turned into a map: every
-node carries its source text and its position with offsets, lines and
-columns, and every step rides inside a wrapper map with a kind of its
-own. A map built by hand fails unless it reproduces that shape:
+In the call form of today's surface an argument is code the operand runs
+against an input of its choosing, so a call holds each argument as the
+quote of its pipeline, where the command form stores a word as its step
+[D47]. What the ring still lacks is the refusal at the record: `::call`,
+`::proj`, `::bind`, `::tagged` and the wrappers name identities alone,
+so a wrong assembly passes `tag` and fails only where it runs, as text
+that does not parse:
 
 ```qlang
-> {:kind :Pipeline :steps [{:kind :NumberLit :value 5}]} | apply(/)
-::AstMapMalformedError!{ … :reason "Pipeline step at index 0 is not a :PipelineStep Map" }
+> 42 | apply([::call{:name :"a b"}] | tag(::quote)) !| type
+::ParseError
 ```
-
-Editing fares no better, since `union` is shallow and nothing in the
-language updates a nested slot. And the ring has no return path: a map
-can be evaluated but never printed back into a quote, because no printer
-from the data form to source exists. A query that wants to build code
-builds a string and parses it. A quote compares by its source text, so
-two quotes of the same code written with different spacing are unequal.
 
 The maintainer put this ring first: «кольцо Code as data и инволюция
 вероятно первичны в дизайне по отношению к прочим фичам» (maintainer,
@@ -1455,7 +1463,7 @@ separate view.
 [false true]
 
 > [!{:k 1}] * add(1) | first !| /trail
-~{| add(1)}
+~{add(1)}
 
 > [1 "x"] * add(1) * (!| 0)
 [2 0]
@@ -1536,9 +1544,9 @@ could encode it, since two steps say what it said [D51]:
 4
 ```
 
-The same moves take any value apart into atoms and build it back
-[D42], and today they reach as far as projections and literals do.
-They stop at two places, a key that comes from the data and code:
+The same moves take any value apart into atoms and build it back [D42],
+and today they reach as far as projections, literals and quotes do. They
+stop at a key that comes from the data:
 
 ```qlang
 > [1 :a "x" ::T] | [/3 {:a /0}] | tag
@@ -1547,13 +1555,13 @@ They stop at two places, a key that comes from the data and code:
 > [1 :a "x"] | [/2 [/0 /0] {:b /1}]
 ["x" [1 1] {:b :a}]
 
-> ~{add(1) | mul(2)} | parse | type
-:map
+> ~{add(1) | mul(2)} | payload * type
+[::call ::call]
 ```
 
 A map whose key is an atom is built through `indexBy` and `*` over the
-map, which the rule for maps grants [D15]; code comes apart once the
-quote is its vector of steps [D8].
+map, which the rule for maps grants [D15]; code comes apart as the
+vector of steps its quote is [D8].
 
 ### Errors named by their site
 
@@ -1623,7 +1631,7 @@ container selectors abort with it:
 
 ```qlang
 > [1 "x"] | filter(add(1) | gt(1))
-::AddLeftNotNumberError!{ … :trail ~{| gt(1)} }
+::AddLeftNotNumberError!{ … :trail ~{gt(1)} }
 ```
 
 And the fallback operands swallow it, so a misspelled field name
@@ -1698,16 +1706,14 @@ arguments scar shows.
 
 The catalog itself speaks the vocabulary of its implementation. The
 prose a session reads to learn the language names JavaScript files,
-symbols and services: the type classifier's entry explains that
-identity rides on “the value's JS-header `TAG_HEADER_SYMBOL` slot”
+symbols and services: the type classifier's entry explains that identity
+rides on “the value's JS-header `TAG_HEADER_SYMBOL` slot”
 (`core/lib/qlang/operand/typeClassifier.qlang`); the invariants module
 speaks of the `BUILTIN_IMPL_SLOT`, of `createPrimitiveRegistry()` and of
 a Sentry fingerprint (`core/lib/qlang/runtime-invariants.qlang`); the
-code-as-data family refers the reader to
-`ast-codec.mjs::astNodeToMap` (`core/lib/qlang/operand/codeAsData.qlang`);
-the reflective family to `runtime/manifest-op.mjs`; the vector family
-to a section number of the reference. A session learning qlang from
-its catalog meets the names of the files that implement it.
+reflective family refers the reader to `runtime/manifest-op.mjs`; the
+vector family to a section number of the reference. A session learning
+qlang from its catalog meets the names of the files that implement it.
 
 Examples live on four planes: the conformance suite, the `~{…}` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in
@@ -3287,6 +3293,38 @@ Set aside. The group after `*` as one step riding `|`,
 before its `!|` can answer, so `* (!| 0)` no longer recovers one and no
 body under `*` can ask whether an element is an error.
 
+### D53 · The data form reads the call form until the command form lands
+
+Decision. On the ring branch the quote is the vector of steps D8 and D47
+describe, read from the call form of today's surface: a call holds each
+argument as the quote of its pipeline, since in the call form an
+argument is code the operand runs against an input of its choosing, and
+the branch of the command form moves the argument of a value slot to its
+step [D47]. A container literal holds the steps of its elements, a
+pipeline element as its group; the step of an error literal is an error
+value whose fields hold their steps as written; a path segment is an
+index when the parser saw a canonical integer and a key otherwise;
+`type` answers the code tag, `::quote`. A quote literal's content is
+read with the text around it, so a literal that holds no pipeline is a
+syntax error, `~{}` is the empty quote and runs as the identity, and
+inside a doc a `~{…}` that does not read as code is prose. A quote runs
+through the tree it was read from, or through the parse of its printed
+text, kept on the quote. `parse` flips text and a quote; the map of the
+parser's tree, `/source` and `/ast` leave with the code they served, and
+a trail prints without the `|` of its head. `tag` mints through the
+tag's constructor when the tag carries one, so `tag(::quote)` refuses a
+vector holding an element that is no step; the records and the wrappers
+name identities alone until their constructors refuse a wrong field.
+Source. The model, 24 September 2026, on the ring branch, reading D8,
+D47 and D52 in the call form the ring keeps.
+Set aside. Each argument as its step on this branch already, which needs
+the kinds of the slots to tell code from value and prints
+`filter(false !| true)` as a group, changing what the argument does to
+an error element. The parser's tree as the quote's payload, which
+carries positions and text into the data. A quote literal read when it
+runs, which keeps an unparseable literal alive until then and leaves its
+steps undefined.
+
 ## The finish
 
 The finish is described twice, once as the language a session meets
@@ -3513,8 +3551,8 @@ this milestone closes.
 ### Milestone 1 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring closes
-first [D3, D8, D9, D47, D51, D52] and keeps the surface of today, the
-spelling of a quote included; the command form follows on its heels
+first [D3, D8, D9, D47, D51, D52, D53] and keeps the surface of today,
+the spelling of a quote included; the command form follows on its heels
 [D10, D11] and changes the whole surface at once, `~(…)` with it,
 because the step's form is what the printer prints and what every trail,
 snippet and example carries, and the parser of the call form together

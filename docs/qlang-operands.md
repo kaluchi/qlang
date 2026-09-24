@@ -61,7 +61,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / apply). |
+| `:codeAsData` | Source-text ↔ quote ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error). |
 
@@ -753,11 +753,11 @@ Map where the value's class is the predicate axis.
 - Returns the Keyword or TagKeyword identity of the value's type.
   Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
   `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
-  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
-  Snapshot, TaggedInstance, materialized error, catalog builtin
-  descriptor) produce the user-stamped TagKeyword off the JS-header
-  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
+  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:doc`,
+  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Quote,
+  Conduit, Snapshot, TaggedInstance, materialized error, catalog
+  builtin descriptor) produce the TagKeyword off the JS-header
+  identity slot (`::quote`, `::conduit`, `::snapshot`, `::Foo`, the per-site
   error tag, `::builtin`); error values produce the per-site `::Tag`
   straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
   `::ParseError`, generic `::Error` for user `!{}` without an
@@ -1239,15 +1239,17 @@ its own eval handler in `eval.mjs`.
 
 ### `parse`
 
-- **Arity** 1. **Subject** `string` — the source to parse.
-- Reads the subject string into an **AST-Map** — the data-form
-  representation of the program, produced by `ast-codec.mjs::astNodeToMap`.
-  Each AST node becomes a frozen Map carrying `:kind` (the
-  AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
-  `:Pipeline`, and so on), type-specific payload fields (`:value`,
-  `:name`, `:args`, `:elements`, `:entries`, `:keys`, `:steps`,
-  etc.), and the shared `:text` / `:location` metadata the parser
-  stamps on every node. Nested nodes recurse into their own Maps.
+- **Arity** 1. **Subject** `string` or `quote`.
+- Flips a string and a quote, the way `keyword` flips a string and
+  a keyword: a string reads as the **quote** of its steps, and a
+  quote prints back as its text. A quote is a vector of steps under
+  the `::quote` tag: a literal is its own step, a command is a
+  `::call` record (`:name`, `:args` the quote of each argument),
+  a projection a `::proj` record (`:path`), a declaration a
+  `::bind` record, a constructor invocation a `::tagged` record,
+  and the fail track, the distribute and the parentheses wrap the
+  quote of their step as `::fail`, `::each` and `::group`. A
+  comment leaves no step, and no step carries a position.
 - The underlying peggy `ParseError` is caught in-operand and
   converted to an error value via `errorFromParse`, so malformed
   sources surface on the fail-track with `:kind ::ParseError`
@@ -1256,9 +1258,10 @@ its own eval handler in `eval.mjs`.
   bucket — distinct from the `:foreignError` catalog category
   every host JS throw lands under).
 - **Examples**:
-  - `"42" | parse | /:kind` → `:NumberLit`.
-  - `"add(1, 2)" | parse | /name` → `"add"`.
-  - `"add(1, 2)" | parse | /args | count` → `2`.
+  - `"42" | parse | first` → `42`.
+  - `"add(1, 2)" | parse | first | /name` → `:add`.
+  - `"add(1, 2)" | parse | first | /args | count` → `2`.
+  - `~{add( 1 )} | parse` → `"add(1)"`.
   - `"this is not qlang [" | parse !| type` → `::ParseError`.
   - `"this is not qlang [" | parse !| type | spec | /category` → `:parseError`.
 - **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
@@ -1268,7 +1271,7 @@ its own eval handler in `eval.mjs`.
 ### `apply(code)`
 
 - **Arity** 2 (1 captured). **Subject** any value. **Modifier** the
-  code — a Quote-value or an AST-Map the captured arg answers.
+  code — the Quote the captured arg answers.
 - Runs the code against the subject under the fork rule: BindStep /
   `as` / `use` writes inside the code stay inside it, and only its
   value comes out. The first step rides `|` against the subject
@@ -1281,30 +1284,29 @@ its own eval handler in `eval.mjs`.
   past `EVAL_DEPTH_LIMIT`.
 - Pairs with `parse` to close the codeAsData ring:
   `"source" | parse | apply(/)` is equivalent to evaluating the
-  source string directly, and the intermediate AST-Map can be
+  source string directly, and the intermediate quote can be
   inspected, filtered, re-assembled, or handed around as
   ordinary qlang data.
 - **Examples**:
   - `5 | apply(~{mul(2)})` → `10`.
   - `[1 2 3] | apply(~{| count | add(1)})` → `4`.
   - `"10 | add(3)" | parse | apply(/)` → `13`.
-  - `{:kind :NumberLit :value 42} | apply(/)` → `42`
-    (hand-assembled AST-Map bypasses the parser).
+  - `[42 ::call{:name :add :args [~{1}]}] | tag(::quote) | apply(/)` → `43`
+    (a quote assembled from its steps).
   - `error !| /trail | as(:t) | start | apply(t)` — re-runs
     deflected steps against a fresh subject.
-- **Errors**: code not a Map or Quote → `ApplyCodeNotMapOrQuoteError`.
+- **Errors**: code not a Quote → `ApplyCodeNotQuoteError`.
   Runtime errors inside the code lift through the normal fail-track
   just like any other qlang failure.
 
 ### `source`
 
 - **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
-- Returns a Quote carrying the verbatim source text of the
-  binding's declaring BindStep (or `as(:name)` OperandCall) found
-  across loaded modules.
+- Returns the quote of the binding's declaring BindStep (or
+  `as(:name)` OperandCall) found across loaded modules.
 - **Examples**:
-  - `:count | source | /source` → the `:count` BindStep source.
-  - `::conduit | source | /source` → the `::conduit` tag-binding source.
+  - `:count | source | parse` → the `:count` declaration as text.
+  - `::conduit | source | parse` → the `::conduit` tag-binding as text.
 - **Errors**: subject not a Keyword or TagKeyword →
   `SourceSubjectNotKeywordOrTagError`; no declaring step found →
   `SourceBindingNotFoundError`.
@@ -1455,9 +1457,9 @@ enumerates).
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths
 it carries. The pair `parse` / `apply` closes the codeAsData
-ring: a source string lifts into an AST-Map through `parse`, runs
+ring: a source string reads into a quote through `parse`, runs
 through `apply(/)` to become a `pipeValue`, and the intermediate
-Map is addressable as ordinary qlang data.
+quote is addressable as ordinary qlang data.
 
 Tooling primitives (walk.mjs, session.mjs, codec.mjs, effect.mjs)
 and the embedder API are documented in

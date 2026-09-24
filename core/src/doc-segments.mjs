@@ -3,8 +3,9 @@
 //
 //   Prose     — `{:kind :prose :text "..."}` for the raw
 //               text between special tokens.
-//   Quote     — Quote-value (frozen `.source`) for a `~{…}`
-//               paired-delimiter code fragment.
+//   Quote     — the quote of a `~{…}` paired-delimiter code
+//               fragment; a fragment that does not read as code
+//               stays prose.
 //   TaggedLit — the value produced by invoking a `::tag`
 //               constructor against its parsed payload (e.g.
 //               `::link~{path}` or `::diagram[…]`).
@@ -18,7 +19,8 @@
 import { parse } from './parse.mjs';
 import { evalAst } from './eval.mjs';
 import { nestState } from './state.mjs';
-import { keyword, makeQuote } from './types.mjs';
+import { keyword } from './types.mjs';
+import { quoteOfSource } from './quote.mjs';
 
 const PROSE_KIND = keyword('prose');
 
@@ -169,6 +171,16 @@ async function evalTaggedSegment(ast, callerState) {
   return result.pipeValue;
 }
 
+// Inside a doc a `~{…}` is a quote when its text reads as code, and
+// prose like the rest of the doc when it does not [D43].
+function quoteOrProseSegment(source, spanText) {
+  try {
+    return quoteOfSource(source, 'doc-content/quote');
+  } catch {
+    return makeProseSegment(spanText);
+  }
+}
+
 export async function parseDocSegments(content, callerState) {
   const segments = [];
   let cursor = 0;
@@ -191,7 +203,7 @@ export async function parseDocSegments(content, callerState) {
       }
       // opener.offset points to `~`; content slice between `~{` and `}` is the source.
       const source = content.slice(opener.offset + 2, endAfter - 1);
-      segments.push(makeQuote(source));
+      segments.push(quoteOrProseSegment(source, content.slice(opener.offset, endAfter)));
       cursor = endAfter;
       continue;
     }

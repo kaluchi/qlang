@@ -12,17 +12,19 @@
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
 
-import { nullaryOp, overloadedOp } from './dispatch.mjs';
+import { nullaryOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
+import { withPipeValue } from '../state.mjs';
 import {
   isVecShape, isKeyword, isQuote, isQMap, isJsonObject,
   isTaggedInstance, isTagKeyword, isErrorValue,
-  makeConduit, makeTaggedInstance, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
+  makeConduit, makeQuote, makeJsonObject, makeJsonArray, isJsonArray, typeKeyword
 } from '../types.mjs';
-import { parse } from '../parse.mjs';
+import { astOfQuote, isStep } from '../quote.mjs';
 import {
   declareSubjectError,
-  declareModifierError
+  declareModifierError,
+  declareElementError
 } from '../operand-errors.mjs';
 import {
   declareShapeError,
@@ -84,8 +86,7 @@ async function conduitConstructor(payload, state) {
   if (!isQuote(body)) {
     throw new ConduitBodyNotQuoteError({ actualType: typeKeyword(body), actualValue: body });
   }
-  const bodyAst = body.ast ?? parse(body.source, { uri: '::conduit/body' });
-  return makeConduit(bodyAst, {
+  return makeConduit(astOfQuote(body), {
     name: selfName ? selfName.name : null,
     params: params.map(k => k.name),
     envRef: { env: state.env },
@@ -95,6 +96,23 @@ async function conduitConstructor(payload, state) {
 }
 
 bindTypeConstructor('conduit', conduitConstructor);
+
+// `::quote[…]` — code as data [D8]: a vector every element of which is
+// a step. The constructor runs wherever a vector comes under the tag,
+// `tag(::quote)` and every transform of a quote included, so the
+// invariant holds after each.
+const QuotePayloadNotVecError = declareSubjectError('QuotePayloadNotVecError', '::quote', 'vec');
+const QuoteElementNotStepError = declareElementError('QuoteElementNotStepError', '::quote', 'step');
+
+function quoteConstructor(payload) {
+  if (!isVecShape(payload)) throw new QuotePayloadNotVecError(payload);
+  payload.forEach((element, index) => {
+    if (!isStep(element)) throw new QuoteElementNotStepError(index, element);
+  });
+  return makeQuote(payload);
+}
+
+bindTypeConstructor('quote', quoteConstructor);
 
 // ::qlang<...> / ::json<...> — pair of cross-domain converters.
 // `::qlang` recursively converts a JSON-shape payload (plain
@@ -192,12 +210,14 @@ bindPrim('qlang', qlangOperand);
 
 // ── tag / payload — TaggedInstance split/assemble pair ──────
 //
-// `tag(::Foo)` mints a TaggedInstance through `makeTaggedInstance`
-// — composite payloads (Vec / Set / Map / JsonArray) clone with
-// the TagKeyword stamped on the JS-header slot, leaving the data
-// plane intact; non-extensible payloads (scalar, Keyword, Quote,
-// Doc, Error, Conduit, Snapshot, already-tagged composite) ride
-// an opaque frozen `{type, tag, payload}` wrapper. `payload`
+// `tag(::Foo)` mints the value under the tag: through the tag's
+// constructor when its binding carries one, so a wrong assembly is
+// refused where it is made; as a bare overlay otherwise, through
+// `makeTaggedInstance` — composite payloads (Vec / Set / Map /
+// JsonArray) clone with the TagKeyword stamped on the JS-header slot,
+// leaving the data plane intact; non-extensible payloads (scalar,
+// Keyword, Doc, Error, Conduit, Snapshot, already-tagged composite)
+// ride an opaque frozen `{type, tag, payload}` wrapper. `payload`
 // reverses each shape. Both operands ride the `:typeConversion`
 // family alongside `keyword` / `qlang` / `json`.
 //
@@ -261,13 +281,10 @@ export const payloadOperand = nullaryOp('payload', (subject) => {
   return subject.payload;
 });
 
-function makeTaggedFromKw(value, tagKw) {
-  if (!isTagKeyword(tagKw)) throw new TagModifierNotTagKeywordError(tagKw);
-  return makeTaggedInstance(tagKw, value);
-}
-
-export const tagOperand = overloadedOp('tag', 2, {
-  0: (subject) => {
+// The value and the tag each form reads before the tag mints: a
+// modifier that answers an error answers the step with it.
+async function tagPartsOf(subject, tagLambdas) {
+  if (tagLambdas.length === 0) {
     if (!isVecShape(subject) || subject.length !== 2) {
       throw new TagBareSubjectShapeError({
         actualType: typeKeyword(subject),
@@ -275,21 +292,21 @@ export const tagOperand = overloadedOp('tag', 2, {
         actualLength: isVecShape(subject) ? subject.length : undefined
       });
     }
-    return makeTaggedFromKw(subject[1], subject[0]);
-  },
-  1: async (subject, tagKwLambda) => {
-    const tagKw = await tagKwLambda(subject);
-    if (isErrorValue(tagKw)) return tagKw;
-    return makeTaggedFromKw(subject, tagKw);
-  },
-  2: async (ctx, valLambda, tagKwLambda) => {
-    const val = await valLambda(ctx);
-    if (isErrorValue(val)) return val;
-    const tagKw = await tagKwLambda(ctx);
-    if (isErrorValue(tagKw)) return tagKw;
-    return makeTaggedFromKw(val, tagKw);
+    return { value: subject[1], tagKw: subject[0] };
   }
-});
+  const value = tagLambdas.length === 2 ? await tagLambdas[0](subject) : subject;
+  if (isErrorValue(value)) return { failed: value };
+  const tagKw = await tagLambdas[tagLambdas.length - 1](subject);
+  if (isErrorValue(tagKw)) return { failed: tagKw };
+  return { value, tagKw };
+}
+
+export const tagOperand = stateOpVariadic('tag', async (state, tagLambdas) => {
+  const { value, tagKw, failed } = await tagPartsOf(state.pipeValue, tagLambdas);
+  if (failed !== undefined) return withPipeValue(state, failed);
+  if (!isTagKeyword(tagKw)) throw new TagModifierNotTagKeywordError(tagKw);
+  return withPipeValue(state, await mintUnderTag(state, tagKw, value));
+}, [0, 2]);
 
 bindPrim('payload', payloadOperand);
 bindPrim('tag',     tagOperand);

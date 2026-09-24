@@ -135,6 +135,11 @@ describe('eval-time effect validation in evalBindStep', () => {
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
+  it('accepts a quote literal whose steps name an effect — the quote is data', async () => {
+    const accepted = await evalQuery(':holdsCode [~{@callers} /x] | 1');
+    expect(accepted).toBe(1);
+  });
+
   it('rejects nested effectful body', async () => {
     const effectErr = await catchOriginalError(':foo filter(@callers | count)');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);

@@ -20,8 +20,8 @@
     "./walk": {
       "import": "./src/walk.mjs"
     },
-    "./ast-codec": {
-      "import": "./src/ast-codec.mjs"
+    "./quote": {
+      "import": "./src/quote.mjs"
     },
     "./session": {
       "import": "./src/session.mjs"

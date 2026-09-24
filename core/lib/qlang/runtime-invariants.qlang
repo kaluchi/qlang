@@ -110,10 +110,10 @@
 
 ::ProjectionFieldNotOnValueClassError
   |~~ Projection segment is not a publicly-projectable field
-      on the value-class subject (Quote / Doc / …).
+      on the value-class subject, a Doc.
 
       ~{
-        ~{mul(2)} | /missing
+        |~~ prose ~~| | /missing
         !| [type /key]
         |  eq([::ProjectionFieldNotOnValueClassError "missing"])
        }
@@ -171,7 +171,7 @@
        }
   ~~|
 
-|~ ── 2. Distribute / merge combinator subject mismatches ── ~|
+|~ ── 2. Distribute combinator subject mismatch ─────────── ~|
 
 ::DistributeSubjectNotSequenceError
   |~~ Distribute combinator (`*`) — subject must be a Vec or Set
@@ -262,36 +262,7 @@
   ~~|
   ::builtin{:category :parseError}
 
-|~ ── 6. AST codec invariants ──────────────────────────── ~|
-
-::AstMapKindUnknownError
-  |~~ AST-Map → AST codec — `:kind` discriminator names
-      a kind the codec does not know.
-
-      ~{
-        {:kind :BogusKind} | apply(/)
-        !| [type]
-        |  eq([::AstMapKindUnknownError])
-       }
-  ~~|
-
-::AstMapMalformedError
-  |~~ AST-Map → AST codec — input Map is malformed (missing
-      required field, wrong shape).
-
-      ~{
-        {:a 1} | apply(/)
-        !| [type]
-        |  eq([::AstMapMalformedError])
-       }
-  ~~|
-
-::AstNodeTypeUnknownError
-  |~~ AST → AST-Map codec — encountered an AST node whose
-      `.type` is not in the codec's known shape table.
-  ~~|
-
-|~ ── 7. JSON codec invariants — plain and tagged ──────── ~|
+|~ ── 6. JSON codec invariants — plain and tagged ──────── ~|
 
 ::MalformedTaggedJSONError
   |~~ `fromTaggedJSON` received a JSON shape it does not
@@ -320,7 +291,7 @@
       binding-aware path.
   ~~|
 
-|~ ── 8. Dispatch wrapper invariants ───────────────────── ~|
+|~ ── 7. Dispatch wrapper invariants ───────────────────── ~|
 
 ::HigherOrderOpArityMismatchError
   |~~ Dispatch invariant — `higherOrderOp` impl received an
@@ -373,7 +344,7 @@
       captured-arg count for its declared arity.
   ~~|
 
-|~ ── 9. Evaluator dispatch invariants ─────────────────── ~|
+|~ ── 8. Evaluator dispatch invariants ─────────────────── ~|
 
 ::UnknownAstNodeTypeError
   |~~ Evaluator dispatch — encountered an AST node whose `.type`
@@ -397,7 +368,7 @@
        }
   ~~|
 
-|~ ── 10. Primitive registry invariants ─────────────────── ~|
+|~ ── 9. Primitive registry invariants ─────────────────── ~|
 
 ::PrimitiveKeyAlreadyBoundError
   |~~ Primitive registry — two runtime modules tried to bind
@@ -429,7 +400,7 @@
       createPrimitiveRegistry() instance.
   ~~|
 
-|~ ── 11. Session lifecycle invariants ──────────────────── ~|
+|~ ── 10. Session lifecycle invariants ──────────────────── ~|
 
 ::SessionBindingKindUnknownError
   |~~ Session deserialization — a binding entry carries an
@@ -451,7 +422,7 @@
       not match SESSION_SCHEMA_VERSION.
   ~~|
 
-|~ ── 12. Render-path invariants ───────────────────────── ~|
+|~ ── 11. Render-path invariants ───────────────────────── ~|
 
 ::FunctionValueLeakedToPrintError
   |~~ `printValue` / `toPlain` invariant — a raw function
@@ -485,7 +456,7 @@
       has to stay lossless, or project around the slot.
   ~~|
 
-|~ ── 13. Error-value mint invariants ──────────────────── ~|
+|~ ── 12. Error-value mint invariants ──────────────────── ~|
 
 ::ErrorTrailNotQuoteError
   |~~ `:trail` on an error descriptor is runtime-owned: a
@@ -513,7 +484,7 @@
        }
   ~~|
 
-|~ ── 14. Evaluation depth budget ───────────────────────── ~|
+|~ ── 13. Evaluation depth budget ───────────────────────── ~|
 
 ::EvaluationDepthExceededError
   |~~ The evaluator descends one frame per conduit body,
@@ -535,7 +506,7 @@
        }
   ~~|
 
-|~ ── 15. Catalog source loading ────────────────────────── ~|
+|~ ── 14. Catalog source loading ────────────────────────── ~|
 
 ::SourceLoadError
   |~~ The platform resolved a `#qlang/<ns>` logical name to a path

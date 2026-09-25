@@ -6,10 +6,8 @@
 // for Conduit) value. The contract is pinned by
 // `core/test/unit/round-trip-invariant.test.mjs`.
 //
-// Three categories sit outside the contract by design:
+// Two categories sit outside the contract by design:
 //   * raw qlang function values → `FunctionValueLeakedToPrintError`
-//   * Snapshot wrappers — auto-unwrapped on identifier-lookup /
-//     projection before reaching this code path
 //   * conduitParameter proxies — local to `applyConduit`'s body
 //     fork, never escape the outer pipeValue channel
 //
@@ -74,10 +72,8 @@ export function literalOfKeyword(k) { return k.literal; }
 //
 // for every value V that can land in pipeValue — Number, String,
 // Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, Error, Quote,
-// Doc, Conduit, Snapshot (auto-unwrapped
-// before reaching this code path under identifier-lookup, kept
-// here for direct projection), TaggedInstance (user-defined
-// `::tag` instances). The shape is enforced by
+// Doc, Conduit, TaggedInstance (user-defined `::tag` instances and
+// the `::binding` records `env` answers). The shape is enforced by
 // `core/test/unit/round-trip-invariant.test.mjs`.
 //
 // Maps and errors with more than 2 entries (or any entry whose
@@ -98,7 +94,6 @@ const PRINT_HANDLERS = {
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
   Conduit:    printConduit,
-  Snapshot:   printSnapshot,
   TaggedInstance: printTaggedInstance
 };
 
@@ -183,10 +178,6 @@ export function printConduit(conduit) {
     return `${tagLiteral}[${paramList} ${quotedBody}]`;
   }
   return `${tagLiteral}[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
-}
-
-function printSnapshot(snapshot) {
-  return printValue(snapshot.get('payload'));
 }
 
 // Round-trip a tagged-instance Map back into the TaggedLit literal

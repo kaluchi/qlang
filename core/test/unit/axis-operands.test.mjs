@@ -1,6 +1,5 @@
-// Axis-operands — `source`, `docs`, `examples` walk the
-// `qlang/ast/<uri>` Quote-values in env to lift declarative
-// metadata off a binding's BindStep.
+// Axis-operands — `source`, `docs`, `examples` project the record a
+// declaration wrote into its scope [D63].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -15,12 +14,10 @@ describe(':name | source returns the BindStep source as Quote', () => {
     expect(printQuoteSource(result).startsWith(':count')).toBe(true);
   });
 
-  it('a module whose top-level AST is a bare literal contributes no BindSteps', async () => {
-    // findBindingStepFor returns null when the moduleAst is neither
-    // a Pipeline nor a top-level BindStep — bare-literal modules
-    // add nothing to the axis search frontier, so the lookup falls
-    // through to the axis's not-found class when no other module has the
-    // binding.
+  it('a module that declares nothing writes no record to read', async () => {
+    // A module of a bare literal declares no binding, so a name it
+    // was to bring names nothing and the axis raises its not-found
+    // class.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
@@ -30,24 +27,18 @@ describe(':name | source returns the BindStep source as Quote', () => {
   });
 
   it('inline BindStep within the current query is reachable through axis lookup', async () => {
-    // evalQuery stamps the parsed AST under moduleAstKey('inline')
-    // so axis-operands can find bindings declared in the same cell
-    // — without this, `:foo … | :foo | source` would raise
-    // SourceBindingNotFoundError because the cell's AST is not among the
-    // module Quotes installed via use(:ns).
+    // A declaration of the query writes its record into the query's
+    // scope, which the axes read.
     const result = await evalQuery(':myLocal 42 | :myLocal | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result)).toBe(':myLocal 42');
   });
 
-  it('session.evalCell stamps cell AST so axis-operands resolve cell-local BindStep declarations', async () => {
-    // session.evalCell mirrors evalQuery's inline-AST stamp under
-    // moduleAstKey(cellUri); without it CLI script-mode + REPL
-    // surface the axis's own not-found tag for any lookup on a
-    // user-declared BindStep in the same cell — the regression that
-    // initially flagged this gap was `qlang ':foo |~~ note ~~| |
-    // :foo | docs'` returning DocsBindingNotFoundError instead of
-    // the attached doc.
+  it('a cell-local BindStep declaration is reachable through axis lookup', async () => {
+    // A cell's declaration writes its record into the session's scope;
+    // the regression that first flagged the gap was `qlang ':foo |~~
+    // note ~~| | :foo | docs'` returning DocsBindingNotFoundError
+    // instead of the attached doc.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
@@ -57,11 +48,8 @@ describe(':name | source returns the BindStep source as Quote', () => {
   });
 
   it('cross-cell axis lookup — a BindStep declared in an earlier cell is visible from a later cell', async () => {
-    // Each cell stamps its AST under a distinct moduleAstKey
-    // (`qlang/ast/cell-1`, `qlang/ast/cell-2`, …) so axis-operands
-    // walking every `qlang/ast/<uri>` Quote in env see prior cells'
-    // declarations alongside the current cell's. The session env
-    // accumulates these stamps over the cell history.
+    // The session's scope keeps the records earlier cells wrote, so a
+    // later cell's axes read them beside its own.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
@@ -72,10 +60,9 @@ describe(':name | source returns the BindStep source as Quote', () => {
 
   it('namespaced keyword names round-trip cleanly through axis lookup', async () => {
     // `:landing/chapter01` parses as a single namespaced Keyword;
-    // BindStep stores the binding under that exact name, axis
-    // lookup matches by `step.key.name === bindingName`. Pinned
-    // here so a future grammar change to namespacing semantics
-    // surfaces the regression.
+    // BindStep writes the record under that exact name, which the
+    // axes read. Pinned here so a future grammar change to
+    // namespacing semantics surfaces the regression.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
@@ -110,6 +97,12 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
     const err = await evalQuery(':totallyMadeUp | docs');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
+  });
+
+  it('a value whose kind no binding declares is refused under its kind', async () => {
+    // The fork of the parentheses drops the tag the literal declared,
+    // and the value it minted leaves with the name of that kind.
+    expect(await evalQuery('(::Ghost(1)) | docs !| /bindingName')).toEqual(makeTagKeyword('Ghost'));
   });
 });
 
@@ -158,13 +151,11 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  // Regression — `as` mints only into the value namespace, so the
-  // axis walker's `OperandCall as` recogniser must skip when the
-  // lookup is in the tag namespace. A `42 | as(:Foo)` snapshot under
-  // a value-namespace `:Foo` keyword must not satisfy a
-  // tag-namespace lookup `::Foo | source` — they are distinct env
-  // entries by colon-count.
-  it('::Tag | source ignores a same-stem as(:Tag) value-namespace snapshot', async () => {
+  // Regression — `as` mints only into the value namespace. A
+  // `42 | as(:Foo)` binding under a value-namespace `:Foo` keyword
+  // must not satisfy a tag-namespace lookup `::Foo | source` — they
+  // are distinct env entries by colon-count.
+  it('::Tag | source ignores a same-stem as(:Tag) value-namespace binding', async () => {
     const result = await evalQuery('42 | as :Foo | ::Foo | source');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
@@ -173,7 +164,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(result.originalError.context.bindingName).toBe('::Foo');
   });
 
-  it('::Tag | docs ignores a same-stem as(:Tag) value-namespace snapshot', async () => {
+  it('::Tag | docs ignores a same-stem as(:Tag) value-namespace binding', async () => {
     const result = await evalQuery('42 | as :Foo | ::Foo | docs');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
@@ -224,34 +215,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     expect(cellEntry.result).toBe(0);
   });
 
-  it('single-step module containing a non-binding OperandCall fails axis lookup with SourceBindingNotFoundError', async () => {
-    // A standalone non-binding OperandCall (e.g. `count`) at the
-    // module top level evaluates without throwing, but it is not
-    // a binding declaration — `matchesBindingStep` falls through
-    // the `name === 'as'` check and returns false, so
-    // `:any | source` resolves to SourceBindingNotFoundError.
-    const { createSession } = await import('../../src/session.mjs');
-    const session = await createSession({
-      locator: async () => ({ source: 'count' })
-    });
-    const cellEntry = await session.evalCell('use :tests/non-binding | :missing | source !| type');
-    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
-  });
-
-  it('zero-arg `as()` in a module is structurally not a binding declaration', async () => {
-    // Parser shape: OperandCall named `as` with `args === []`.
-    // matchesBindingStep enters the `name === 'as'` branch, then
-    // the empty-args guard skips it before pulling out a first-arg
-    // key. Lookup falls through to the axis's not-found class.
-    const { createSession } = await import('../../src/session.mjs');
-    const session = await createSession({
-      locator: async () => ({ source: '42 | as' })
-    });
-    const cellEntry = await session.evalCell('use :tests/zero | :nonexistentBinding | source !| type');
-    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
-  });
-
-  it('axis lookup walking a single-step module that does not match returns SourceBindingNotFoundError', async () => {
+  it('a name a loaded module does not declare names no binding', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const moduleSource = ':somethingElse 1';
     const session = await createSession({
@@ -261,19 +225,6 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
-  it('axis lookup skips a module step that is a bare unresolved identifier (no args / null args)', async () => {
-    // A module whose only step is a bare identifier reference —
-    // `args === null` per OperandCall grammar — must not match any
-    // binding lookup. Exercises the `!Array.isArray(step.args)`
-    // branch of matchesBindingStep.
-    const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = 'someBareIdent';
-    const session = await createSession({
-      locator: async () => ({ source: moduleSource })
-    });
-    const cellEntry = await session.evalCell('use :tests/bare-ref | :anything | source !| type');
-    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
-  });
 });
 
 describe('a value that is no name reads the declaration of its kind', () => {
@@ -288,10 +239,9 @@ describe('a value that is no name reads the declaration of its kind', () => {
 });
 
 describe('axis-operands resolve the binding the evaluator dispatches', () => {
-  // `spec` reads env; `source` / `docs` / `examples` walk the module
-  // ASTs env holds. Both readings have to name one declaration, or a
-  // binding that shadows a built-in reads as the built-in — the case
-  // the hypertext chain exists for.
+  // The four axes project the one record the scope holds under the
+  // name, so a binding that shadows a built-in reads as itself — the
+  // case the hypertext chain exists for.
   const shadowed = ':add mul 100 | ';
 
   it('a binding shadowing a built-in is the one source reports', async () => {
@@ -308,10 +258,8 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('conduit'));
   });
 
-  // Module load order is not shadow order: a cell's own AST is
-  // stamped into env before the cell runs, so a `use` the cell
-  // performs lands after it. The declaration site the binding
-  // carries is what settles both orders.
+  // Whichever of a `use` and a cell's declaration writes the name last
+  // holds the record the axes read, in either order.
   const namespaceLocator = async (namespaceName) => namespaceName === 'probe/shadow'
     ? { source: ':contested |~~ from the namespace ~~| 111' }
     : null;
@@ -328,16 +276,16 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     ]);
   });
 
-  it('a host binding carrying no slots answers not-found, not a foreign TypeError', async () => {
-    // `session.bind` installs a value directly, so env holds whatever
-    // the host handed it — including one that carries no slots to
-    // read a declaration site off.
+  it('a host binding is a record with no source and no docs', async () => {
+    // `session.bind` writes the record of a binding without a
+    // declaration behind it [D63], which the axes project.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInstalled', null);
-    const cellEntry = await sessionInstance.evalCell(':hostInstalled | source !| type');
-    expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
+    const sourceEntry = await sessionInstance.evalCell(':hostInstalled | source');
+    expect(sourceEntry.result).toBeNull();
+    const docsEntry = await sessionInstance.evalCell(':hostInstalled | docs');
+    expect(docsEntry.result).toEqual([]);
   });
 
   it('a use after a cell BindStep answers with the namespace declaration', async () => {
@@ -394,12 +342,9 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     expect(evalResult).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
   });
 
-  it('as-bound snapshot auto-unwraps under spec lookup', async () => {
-    // `as(:name)` stores a Snapshot wrapper under :name in env.
-    // Identifier lookup auto-unwraps via evalOperandCall, but spec
-    // reads env directly and unwraps inline so the surface stays
-    // the captured payload rather than the Snapshot housekeeping
-    // Map.
+  it('spec of an as binding answers the value its record holds', async () => {
+    // `as(:name)` writes the record of a binding under :name in env
+    // [D63]; spec projects the record's value.
     expect(await evalQuery('42 | as :answer | :answer | spec')).toBe(42);
   });
 });

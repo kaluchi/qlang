@@ -14,13 +14,13 @@
 //        AST codec, dispatch, registry, session, render).
 //      - tag.qlang: value-class constructors (::conduit,
 //        ::quote, ::builtin).
-//      Each operand BindStep binds an identifier to a descriptor
-//      Map stamped with `::builtin` identity on its JS-header slot
-//      plus a `:impl :qlang/prim/<name>` keyword that resolves
-//      against `PRIMITIVE_REGISTRY` at dispatch time. Attached
-//      doc-prefixes live on each module's `qlang/ast/<uri>`
-//      Quote AST as the step's `.docs` Vec and are reachable
-//      through axis-operands (`:name | docs`, `:name | examples`).
+//      Each operand BindStep writes the record of a binding [D63]
+//      whose value is a descriptor Map stamped with `::builtin`
+//      identity on its JS-header slot plus a `:impl
+//      :qlang/prim/<name>` keyword that resolves against
+//      `PRIMITIVE_REGISTRY` at dispatch time. The record holds the
+//      attached doc-prefixes and the quote of the step, which the
+//      axis-operands project (`::vec/count | docs`, `| examples`).
 //
 //   2. src/runtime/*.mjs — the JS-level primitive impls. Each
 //      module binds its impls into PRIMITIVE_REGISTRY at import
@@ -30,9 +30,8 @@
 //      stateOpVariadic, higherOrderOpVariadic) attach a tiny
 //      meta object carrying only the `captured` range — the rest
 //      of the metadata lives in the operand-family catalog files
-//      and is addressed by descriptor-Map projection at
-//      `manifest` enumeration time, or by axis-operand walk over
-//      the binding's source AST.
+//      and is addressed by descriptor-Map projection, or by the
+//      axis-operands over the binding's record.
 //
 // langRuntime() ties the two together by parsing core.qlang once
 // (which threads through `use …` to load every family via the
@@ -87,13 +86,10 @@ import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import {
-  keyword, isErrorValue, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
+  keyword, isErrorValue, bindingValueOf, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import {
-  moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey, isTagBindingName
-} from '../env-keys.mjs';
+import { RUNTIME_LOCATOR_KEY, tagBindingKey, isTagBindingName } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
-import { quoteOfBody } from '../quote.mjs';
 import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
 import {
   platformLocator, BootstrapRootMissingError, BootstrapCatalogNotLoadedError
@@ -162,8 +158,8 @@ export async function buildLangRuntime(locator) {
   // `qlang/type/builtin` constructor so the first `::builtin{…}`
   // TaggedLit in the catalog finds an `:impl` to dispatch on. The
   // runtime-invariants module then redeclares `::builtin` formally
-  // (through the same constructor) and the snapshot lands in env
-  // under the same key — same shape, same `:impl`, shadow without
+  // (through the same constructor) and its record lands in env under
+  // the same key — same shape, same `:impl`, shadow without
   // observable drift.
   const seedBuiltinDescriptor = new Map();
   seedBuiltinDescriptor.set('impl', keyword(TYPE_KEY_PREFIX + 'builtin'));
@@ -203,7 +199,8 @@ export async function buildLangRuntime(locator) {
   // output, LSP signature-help, `/throws` and `/modifiers`
   // projections — reads the field unconditionally because the
   // env-side descriptor always carries it after this pass.
-  for (const [envKey, descriptor] of templateEnv) {
+  for (const [envKey, entry] of templateEnv) {
+    const descriptor = bindingValueOf(entry);
     if (!(descriptor instanceof Map)) continue;
     if (descriptor[TAG_HEADER_SYMBOL]?.name !== 'builtin') continue;
     // Tag-binding declarations carry the same builtin JS-header
@@ -228,21 +225,6 @@ export async function buildLangRuntime(locator) {
     const implKey = descriptor.get('impl');
     stampStructuralFacts(descriptor, PRIMITIVE_REGISTRY.resolve(implKey.name), envKey);
   }
-
-  // Stamp the parsed root module as a Quote-value under the
-  // canonical `qlang/ast/qlang/core` env key. The family modules
-  // (operand/<family>, runtime-invariants, tag) stamp their own
-  // `qlang/ast/<uri>` Quotes through the `use` operand's
-  // resolveNamespaceEnv path. Axis-operands (`source`, `docs`,
-  // `examples`) walk every module Quote in env to lift
-  // declarative metadata directly out of the source AST. Source
-  // ships alongside the lazy AST so `/source` returns the verbatim
-  // text and `/ast` returns the pre-parsed AST-Map without a
-  // re-parse round-trip. Store the raw JS AST inside the Quote —
-  // axis-operands walk it directly via `node.type` / `node.steps`.
-  // The /ast projection converts to AST-Map shape on demand for
-  // user code that wants data-form navigation.
-  templateEnv.set(moduleAstKey('qlang/core'), quoteOfBody(coreAst));
 
   PRIMITIVE_REGISTRY.seal();
 

@@ -336,10 +336,9 @@ describe('round-trip invariant — BareTypeKeyword', () => {
 // ── env-as-Map — `env` operand output parses back ────────────
 
 describe('env output is parseable', () => {
-  // The `env` operand exposes the full runtime env as a Map. Every
-  // entry — operand descriptor, tag-binding, module-AST Quote,
-  // namespace cache, host-bound function (`:qlang/locator`), user
-  // `as` snapshots, user BindStep conduits — must render through a
+  // The `env` operand exposes the records of the scope as a Map. Every
+  // entry — the record of a host-bound function, of a user `as`
+  // binding, of a user BindStep conduit — must render through a
   // path the parser accepts on the way back. A leak (raw JS
   // function source landing in the output) breaks REPL `env`
   // display and every downstream `env | …` pipeline that hands
@@ -373,19 +372,19 @@ describe('env output is parseable', () => {
 
   it('env | json produces valid JSON (TagKeyword + host function paths)', async () => {
     // The `json` operand is `JSON.stringify(toPlain(subject))`. The
-    // scope holds a TagKeyword and a host-bound function the embedder
-    // installed through `session.bind`. The toPlain handlers route
-    // them to `"::Name"` and `"<host-fn name>"` strings —
-    // `JSON.parse` of the output must succeed and the function lands
-    // as the host-marker string.
+    // scope holds the records of a TagKeyword and of a host-bound
+    // function the embedder installed through `session.bind` [D63].
+    // The toPlain handlers route the values to `"::Name"` and
+    // `"<host-fn name>"` strings — `JSON.parse` of the output must
+    // succeed and the function lands as the host-marker string.
     const { createSession } = await import('../../src/session.mjs');
     const { makeTagKeyword } = await import('../../src/types.mjs');
     const session = await createSession();
     session.bind('hostFn', async function helloFn() { return 42; });
     session.bind('kindName', makeTagKeyword('Foo'));
     const parsed = JSON.parse((await session.evalCell('env | json')).result);
-    expect(parsed.hostFn).toMatch(/^<host-fn [A-Za-z]+>$/);
-    expect(parsed.kindName).toBe('::Foo');
+    expect(parsed.hostFn.payload.value).toMatch(/^<host-fn [A-Za-z]+>$/);
+    expect(parsed.kindName.payload.value).toBe('::Foo');
   });
 });
 

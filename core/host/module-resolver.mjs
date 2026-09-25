@@ -12,12 +12,10 @@
 // env delta (bindings not in the base env) is its export surface.
 //
 // Each catalog entry carries `{ exports, source, ast }` so the
-// install side can stamp both the export Map under the namespace
-// cache key `qlang/namespace/<ns>` AND the source-as-Quote under
-// `qlang/ast/<ns>`, matching the shape `use(:ns)`'s locator pathway
-// produces. The Quote stamp is what enables axis-operands
-// (`:name | source` / `| docs` / `| examples`) to walk the loaded
-// module's AST.
+// install side can stamp the export Map, the records of the module's
+// declarations, under the namespace cache key `qlang/namespace/<ns>`,
+// matching the shape `use(:ns)`'s locator pathway produces; the
+// axis-operands read each record's docs and source.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -25,8 +23,7 @@ import { parse } from '../src/parse.mjs';
 import { evalAst } from '../src/eval.mjs';
 import { rootState } from '../src/state.mjs';
 import { langRuntime } from '../src/runtime/index.mjs';
-import { quoteOfBody } from '../src/quote.mjs';
-import { moduleAstKey, moduleNamespaceKey } from '../src/env-keys.mjs';
+import { moduleNamespaceKey } from '../src/env-keys.mjs';
 
 
 // discoverModules(libDir) → Map<namespaceName, filePath>
@@ -50,13 +47,10 @@ export function discoverModules(libDir) {
 //
 // Discovers, evaluates, and returns a catalog of resolved-module
 // entries. Each entry: namespace name → { exports, source, ast }.
-//   - exports: Map of bindings added by the module (env delta).
+//   - exports: Map of the records of the bindings the module added
+//              (env delta).
 //   - source:  raw .qlang source text.
 //   - ast:     parsed AST root the eval pass walked.
-// The `source` + `ast` pair lets `installModules` stamp the
-// module's source-as-Quote under `qlang/ast/<ns>`, giving axis-
-// operands the same discoverability path the locator-based
-// `use(:ns)` already enables.
 //
 // opts.baseEnv — initial env for module evaluation (default: langRuntime())
 // opts.dependencies — Map<namespaceName, string[]> for ordering
@@ -107,15 +101,10 @@ export async function resolveModules(libDir, opts = {}) {
 // installModules(session, catalog)
 //
 // Installs resolved module catalog into a session. For each
-// namespace, binds two env keys:
-//   - qlang/namespace/<nsName> → the export Map, at the cache key
-//                                `resolveNamespaceEnv` probes for a
-//                                loaded namespace, so `use(:nsName)`
-//                                merges it and `manifest` filters it
-//                                out of the enumeration.
-//   - qlang/ast/<nsName>       → Quote(source, ast) so axis-operands
-//                                (`:name | source` / `| docs` /
-//                                `| examples`) walk the module AST.
+// namespace, binds the export Map at the cache key
+// `qlang/namespace/<nsName>` `resolveNamespaceEnv` probes for a
+// loaded namespace, so `use(:nsName)` merges it and `manifest`
+// filters it out of the enumeration.
 // This matches the env shape `runtime/use-op.mjs::resolveNamespaceEnv`
 // produces for locator-loaded modules — install-path and locator-
 // path stay symmetric on the axis-operand discoverability surface,
@@ -125,7 +114,6 @@ export async function resolveModules(libDir, opts = {}) {
 export function installModules(session, catalog) {
   for (const [nsName, entry] of catalog) {
     session.bind(moduleNamespaceKey(nsName), entry.exports);
-    session.bind(moduleAstKey(nsName), quoteOfBody(entry.ast));
   }
 }
 

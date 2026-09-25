@@ -2,7 +2,7 @@
 // target source file. Each `describe` block names the module and
 // the specific branch / path it exercises (right-operand checks
 // in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
-// `UseNamespaceCollisionError` site, snapshot-classifier in
+// `UseNamespaceCollisionError` site, binding-record classifier in
 // `types.mjs::describeType`, codec round-trip through
 // `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
 // topical test files (`error-values.test.mjs`,
@@ -24,7 +24,7 @@ import {
   typeKeyword,
   keyword,
   makeTagKeyword,
-  makeSnapshot,
+  makeBinding,
   makeConduit,
   makeErrorValue,
   isErrorValue
@@ -64,10 +64,10 @@ describe('equality.deepEqual rejection branches', async () => {
   });
 });
 
-describe('describeType for conduit and snapshot', async () => {
-  it('describeType returns "Snapshot" for a snapshot value', async () => {
-    const snap = makeSnapshot(42, { name: 'x' });
-    expect(describeType(snap)).toBe('Snapshot');
+describe('describeType for conduit and binding record', async () => {
+  it('describeType reads a binding record as the tagged Map it is', async () => {
+    const record = makeBinding({ name: keyword('x'), value: 42 });
+    expect(describeType(record)).toBe('TaggedInstance');
   });
 
   it('describeType returns "Conduit" for a conduit value', async () => {
@@ -96,19 +96,16 @@ describe('describeType for conduit and snapshot', async () => {
     expect(plainTagged.payload).toEqual([42, 'inner']);
   });
 
-  it('isTaggedInstance rejects real conduit / snapshot values without checking :kind field shape', async () => {
-    // The conduit / snapshot identity rides on the Map's
-    // JS-header `TAG_HEADER_SYMBOL` slot. `isTaggedInstance`
-    // routes through `isConduit` / `isSnapshot` first so the
-    // generic tagged-instance render path stays disjoint from
-    // `printConduit` / `printSnapshot`, regardless of whether a
-    // bystander Map happens to carry `:kind ::conduit` as
-    // ordinary data.
-    const { makeConduit, makeSnapshot, isTaggedInstance } = await import('../../src/types.mjs');
+  it('isTaggedInstance rejects a real conduit without checking :kind field shape', async () => {
+    // The conduit identity rides on the Map's JS-header
+    // `TAG_HEADER_SYMBOL` slot. `isTaggedInstance` routes through
+    // `isConduit` first so the generic tagged-instance render path
+    // stays disjoint from `printConduit`, regardless of whether a
+    // bystander Map happens to carry `:kind ::conduit` as ordinary
+    // data.
+    const { makeConduit, isTaggedInstance } = await import('../../src/types.mjs');
     const realConduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' });
-    const realSnapshot = makeSnapshot(42, { name: 'x' });
     expect(isTaggedInstance(realConduit)).toBe(false);
-    expect(isTaggedInstance(realSnapshot)).toBe(false);
   });
 
   it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {
@@ -142,9 +139,9 @@ describe('typeKeyword covers all value kinds', () => {
     expect(typeKeyword(conduit).name).toBe('conduit');
   });
 
-  it('typeKeyword returns :snapshot for a snapshot', () => {
-    const snap = makeSnapshot(42, { name: 'x' });
-    expect(typeKeyword(snap).name).toBe('snapshot');
+  it('typeKeyword returns ::binding for a binding record', () => {
+    const record = makeBinding({ name: keyword('x'), value: 42 });
+    expect(typeKeyword(record).name).toBe('binding');
   });
 });
 
@@ -245,7 +242,7 @@ import { deserializeSession } from '../../src/session.mjs';
 describe('session deserialization edge cases', async () => {
   it('deserializes conduit binding without params field', async () => {
     const payload = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       bindings: [{ kind: 'conduit', name: 'x', source: 'mul 2', docs: [] }],
       cells: []
     };

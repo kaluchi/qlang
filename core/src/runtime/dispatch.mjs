@@ -31,7 +31,7 @@ import {
   declareArityError
 } from '../errors.mjs';
 import {
-  keyword, isQMap, isSnapshot, isErrorValue, makeTaggedInstance,
+  keyword, isQMap, isErrorValue, makeTaggedInstance, bindingValueOf,
   TAG_HEADER_SYMBOL, SET_TAG_NAME, stampTagHeader
 } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
@@ -89,8 +89,7 @@ const HigherOrderOpVariadicMissingCapturedError = declareInvariantError(
 // Whether a tag's binding carries a constructor, the `:impl` that
 // re-establishes the tag's invariant on a payload.
 function tagCarriesConstructor(state, tagName) {
-  let resolved = envGet(state.env, tagBindingKey(tagName));
-  if (isSnapshot(resolved)) resolved = resolved.get('payload');
+  const resolved = bindingValueOf(envGet(state.env, tagBindingKey(tagName)));
   return isQMap(resolved) && resolved.has('impl');
 }
 

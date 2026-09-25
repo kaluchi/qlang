@@ -67,17 +67,17 @@
 //                                appendTrailNode, materializeTrail, plus
 //                                the identity TagKeyword constants
 //                                (BUILTIN_TAG / CONDUIT_TAG / ERROR_TAG /
-//                                PARSE_ERROR_TAG / SNAPSHOT_TAG /
+//                                PARSE_ERROR_TAG / BINDING_TAG /
 //                                TAG_BINDING_TAG) and the
 //                                TAG_HEADER_SYMBOL Symbol slot
 //   value-class predicates      — describeType, typeKeyword, isKeyword,
 //                                isTagKeyword, isErrorValue, isQuote,
 //                                isDoc
-//   env-key namespaces          — TAG_BINDING_PREFIX, MODULE_AST_PREFIX,
+//   env-key namespaces          — TAG_BINDING_PREFIX,
 //                                MODULE_NAMESPACE_PREFIX, RUNTIME_LOCATOR_KEY
 //                                plus the mint / probe helpers
-//                                (tagBindingKey, moduleAstKey, … /
-//                                isTagBindingName, isModuleAstKey, …)
+//                                (tagBindingKey, moduleNamespaceKey, … /
+//                                isTagBindingName, isModuleNamespaceKey, …)
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, evalQuery } from './eval.mjs';
@@ -137,6 +137,7 @@ import {
   isErrorValue,
   isQuote,
   isDoc,
+  bindingValueOf,
   makeErrorValue,
   errorFromKindDescriptor,
   makeQuote,
@@ -148,7 +149,7 @@ import {
   CONDUIT_TAG,
   ERROR_TAG,
   PARSE_ERROR_TAG,
-  SNAPSHOT_TAG,
+  BINDING_TAG,
   TAG_BINDING_TAG,
   appendTrailNode,
   describeType,
@@ -156,13 +157,10 @@ import {
 } from './types.mjs';
 import {
   TAG_BINDING_PREFIX,
-  MODULE_AST_PREFIX,
   MODULE_NAMESPACE_PREFIX,
   RUNTIME_LOCATOR_KEY,
   isTagBindingName,
-  isModuleAstKey,
   isModuleNamespaceKey,
-  moduleAstKey,
   moduleNamespaceKey,
   tagBindingKey,
   stripTagBindingPrefix
@@ -224,6 +222,7 @@ export {
   isErrorValue,
   isQuote,
   isDoc,
+  bindingValueOf,
   makeErrorValue,
   errorFromKindDescriptor,
   makeQuote,
@@ -235,20 +234,17 @@ export {
   CONDUIT_TAG,
   ERROR_TAG,
   PARSE_ERROR_TAG,
-  SNAPSHOT_TAG,
+  BINDING_TAG,
   TAG_BINDING_TAG,
   appendTrailNode,
   materializeTrail,
   describeType,
   typeKeyword,
   TAG_BINDING_PREFIX,
-  MODULE_AST_PREFIX,
   MODULE_NAMESPACE_PREFIX,
   RUNTIME_LOCATOR_KEY,
   isTagBindingName,
-  isModuleAstKey,
   isModuleNamespaceKey,
-  moduleAstKey,
   moduleNamespaceKey,
   tagBindingKey,
   stripTagBindingPrefix

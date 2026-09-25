@@ -1,5 +1,5 @@
 // Unit coverage for printValue branches that fire only when a
-// Conduit / Snapshot / Function value lands in pipeValue — paths
+// Conduit / binding record / Function value lands in pipeValue — paths
 // reachable via `env | /name` ceremony (env-walk drops the descriptor
 // Map directly into pipeValue) but not exercised by ordinary pipeline
 // execution. Tests build the values directly and call printValue.
@@ -8,13 +8,12 @@ import { describe, it, expect } from 'vitest';
 import { printValue, toPlain, fromPlain } from '../../src/runtime/format.mjs';
 import {
   makeConduit,
-  makeSnapshot,
+  makeBinding,
   makeDoc,
   keyword,
   makeTagKeyword,
   makeErrorValue,
   isConduit,
-  isSnapshot,
   isDoc,
   isQMap,
   FunctionValueLeakedToPrintError
@@ -22,7 +21,7 @@ import {
 import { parse } from '../../src/parse.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
-describe('printValue — Conduit / Snapshot / Function branches', () => {
+describe('printValue — Conduit / binding record / Function branches', () => {
   it('renders a zero-arity named Conduit as `::conduit[:name [] ~(body)]`', () => {
     const bodyAst = { type: 'NumberLit', value: 42, text: '42' };
     const conduit = makeConduit(bodyAst, { name: 'answer', params: [] });
@@ -45,10 +44,10 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     expect(printValue(conduit)).toBe('::conduit[:lucky [] ~(7)]');
   });
 
-  it('renders a Snapshot by passing through to its wrapped value', () => {
-    const snap = makeSnapshot([1, 2, 3], { name: 'nums' });
-    expect(isSnapshot(snap)).toBe(true);
-    expect(printValue(snap)).toBe('[1 2 3]');
+  it('renders a binding record as the tagged Map it is', () => {
+    const record = makeBinding({ name: keyword('nums'), value: [1, 2, 3] });
+    expect(printValue(record)).toBe(
+      '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :module null\n}');
   });
 
   it('renders a Doc value as `|~~content~~|` block form', () => {
@@ -219,11 +218,10 @@ describe('format.fromPlain — inverse of toPlain', () => {
   });
 });
 
-describe('format.toPlain unwraps Snapshot transparently', () => {
-  it('toPlain on a Snapshot lifts the captured payload through the codec', () => {
-    expect(toPlain(makeSnapshot(42, { name: 'answer' }))).toBe(42);
-    const innerMap = new Map([['k', 'v']]);
-    expect(toPlain(makeSnapshot(innerMap, { name: 'wrap' }))).toEqual({ k: 'v' });
+describe('format.toPlain carries a binding record as a tagged Map', () => {
+  it('toPlain on a binding record keeps its tag and its fields', () => {
+    const plain = toPlain(makeBinding({ name: keyword('answer'), value: 42 }));
+    expect(plain.$tag).toBe('binding');
   });
 });
 

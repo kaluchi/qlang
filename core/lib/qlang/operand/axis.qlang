@@ -6,22 +6,20 @@
    `::Foo` names the tag's declaration; every other value names
    the declaration of its kind, the kind `type` answers, so
    `5 | docs` reads the page of `::number` and a value tagged
-   `::Box` reads the page of `::Box`. Each axis
-   walks every `qlang/ast/<uri>` module Quote stored in env to
-   find the declaring step, a `BindStep` or an `as :name` call,
-   and returns the named field as a fresh value — `source` the
-   declaration as a Quote, `docs` the attached
-   doc-prefix Vec of Doc-values, `examples` every `~(…)` Quote
-   segment from those docs ready for `runExamples` to fire. ~|
+   `::Box` reads the page of `::Box`, and the record `env` answers
+   reads the binding it records. Each axis projects the record
+   the declaration wrote into its scope, `::binding`, whose step
+   is a `BindStep` or an `as :name` call — `source` the
+   declaration as a Quote, `docs` the attached doc-prefix Vec of
+   Doc-values, `examples` every `~(…)` Quote segment from those
+   docs ready for `runExamples` to fire. ~|
 
 :source
   |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
-      in its scope. Walks every `qlang/ast/<uri>` Quote in env,
-      finds the `BindStep` whose key matches the Keyword (or
-      TagKeyword for `::Tag | source`) on pipeValue,
-      returns the quote of that declaration, which `parse` prints
-      as its text. Any other value reads the declaration of its
-      kind.
+      in its scope, the `:source` of its record, which `parse`
+      prints as its text; `::Tag | source` the tag's. A binding no
+      step declared, a value `use` or a host bound, answers null.
+      Any other value reads the declaration of its kind.
 
       ~(::vec/filter | source | parse | contains ":filter")
       ~(::AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
@@ -30,7 +28,7 @@
   ::builtin{:impl :qlang/prim/source
             :category :axis
             :subject :any
-            :returns :quote}
+            :returns [:quote :null]}
 
 ::SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a
@@ -133,8 +131,8 @@
       `{:impl :qlang/type/<tag> :throws […]}`. All three carry the
       same `::builtin` header identity.
       BindStep-bound conduits surface as the Conduit value-class
-      Map; `as`-bound snapshots as the Snapshot's auto-unwrapped
-      payload. Any other value reads the descriptor of its kind.
+      Map; any other binding as the value its record holds. Any
+      other value reads the descriptor of its kind.
 
       The discriminator path for per-tag static facts attached
       to any tagged value-class — `result !| spec | /category`

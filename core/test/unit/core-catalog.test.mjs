@@ -45,16 +45,16 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isKeyword, isQMap, isVec, makeTagKeyword, builtinImplOf, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
-import { isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
+import { keyword, isKeyword, isQMap, isVec, makeTagKeyword, builtinImplOf, bindingValueOf, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
+import { isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
 
 // Evaluate the catalog through a real `langRuntime()` — the chain
 // of `use(...)` calls in `core.qlang` plus every family's BindSteps
-// lands every descriptor Map in env. Reading the resolved env
-// returns the catalog as a Map keyed by operand name. Reserved
-// housekeeping keys (`qlang/ast/<uri>`, `qlang/namespace/<ns>`,
+// lands the record of every descriptor Map in env. Reading the
+// resolved env returns the catalog as a Map keyed by operand name.
+// Reserved housekeeping keys (`qlang/namespace/<ns>`,
 // `qlang/locator`, anything without a `::builtin` header on its
 // descriptor Map) are filtered so the returned Map carries only
 // operand descriptors — the surface the rest of this suite
@@ -64,8 +64,8 @@ async function evalCore() {
   const { isTagBindingName } = await import('../../src/env-keys.mjs');
   const fullEnv = await langRuntime();
   const catalog = new Map();
-  for (const [k, v] of fullEnv) {
-    if (isModuleAstKey(k)) continue;
+  for (const [k, record] of fullEnv) {
+    const v = bindingValueOf(record);
     if (isModuleNamespaceKey(k)) continue;
     if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;       // skip ::Tag declarations
@@ -164,7 +164,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   it('spot-check — :add descriptor resolves to the add impl with arity 2', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    const addDescriptor = resolved.get('add');
+    const addDescriptor = bindingValueOf(resolved.get('add'));
     expect(isQMap(addDescriptor)).toBe(true);
     expect(addDescriptor.get('category')).toEqual(keyword('arith'));
     expect(addDescriptor.get('subject')).toEqual(keyword('number'));
@@ -176,7 +176,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   it('spot-check — :filter is a higher-order containerSelector', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    const filterDescriptor = resolved.get('filter');
+    const filterDescriptor = bindingValueOf(resolved.get('filter'));
     expect(filterDescriptor.get('category')).toEqual(keyword('containerSelector'));
     expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicateLambda')]);
     const impl = builtinImplOf(filterDescriptor);
@@ -186,8 +186,9 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   it('spot-check — :as reflective operand lands with :category :reflective', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    expect(resolved.get('as').get('category')).toEqual(keyword('reflective'));
-    const asImpl = builtinImplOf(resolved.get('as'));
+    const asDescriptor = bindingValueOf(resolved.get('as'));
+    expect(asDescriptor.get('category')).toEqual(keyword('reflective'));
+    const asImpl = builtinImplOf(asDescriptor);
     expect(asImpl.name).toBe('as');
   });
 });
@@ -291,7 +292,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(232);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(233);
   });
 
   it('the value namespace holds every declared operand', async () => {

@@ -88,9 +88,11 @@ const session = await createSession({
   })
 });
 await installCliCatalog(session);
-// The tags the session binds, each under its `::Name` key, as the
-// environment holds them.
-const catalogTags = new Map([...session.env].filter(([name]) => name.startsWith('::')));
+// The tags the session binds, each under its `::Name` key, the
+// declaration each record of the environment holds [D63].
+const catalogTags = new Map([...session.env]
+  .filter(([name]) => name.startsWith('::'))
+  .map(([name, record]) => [name, record.get('value')]));
 
 describe('CLI host operands — every throw site carries a catalog tag', () => {
   for (const [className, file] of throwSites) {

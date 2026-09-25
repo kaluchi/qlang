@@ -24,9 +24,9 @@
 {"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | has ::string/docs","expect":"false","decision":"D62"}
 {"name":"the-language-is-a-noun-with-a-page","query":"::qlang | docs | count","expect":"1","decision":"D62"}
 {"name":"manifest-is-asked-of-a-noun","query":"::qlang | manifest | filter ~(eq ::qlang/any) | count","expect":"1","decision":"D62"}
-{"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | /x | /value","expect":"1","decision":"D63","target":true}
-{"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | /x | docs | first | /content","expect":"\" One. \"","decision":"D63","target":true}
-{"name":"a-module-exposes-what-its-last-step-answers","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | type","expect":"::binding","decision":"D63","target":true}
+{"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | /x | /value","expect":"1","decision":"D63"}
+{"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | /x | docs | first | /content","expect":"\" One. \"","decision":"D63"}
+{"name":"a-module-exposes-what-its-last-step-answers","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | type","expect":"::binding","decision":"D63"}
 {"name":"a-module-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D44","target":true}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
@@ -42,9 +42,9 @@
 {"name":"type-header-tag-builtin","query":"::number/add | spec | type","expect":"::builtin","decision":"D62"}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(docs | filter ~(/content | eq \"\" | not) | empty | not)","expect":"true","decision":["D61","D62"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(runExamples | every ~(/ok))","expect":"true","decision":"D62"}
-{"name":"a-binding-by-as-is-a-record","query":"0.07 | as :taxRate | env | /taxRate | /value","expect":"0.07","decision":"D63","target":true}
-{"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63","target":true}
-{"name":"a-used-value-is-a-binding-without-a-doc","query":"{:myConst 42} | use | env | /myConst | docs | empty","expect":"true","decision":"D63","target":true}
+{"name":"a-binding-by-as-is-a-record","query":"0.07 | as :taxRate | env | /taxRate | /value","expect":"0.07","decision":"D63"}
+{"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
+{"name":"a-used-value-is-a-binding-without-a-doc","query":"{:myConst 42} | use | env | /myConst | docs | empty","expect":"true","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"::qlang | manifest | has ::error","expect":"true","decision":"D64"}
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64"}

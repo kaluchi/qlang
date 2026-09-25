@@ -234,18 +234,13 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
 
 describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
   // `apply` reads its body AST through `astFromQuoteLike`, which
-  // short-circuits when the Quote already has a `.ast` cached. The
-  // runtime stamps cached-ast Quotes under `qlang/ast/<ns>` whenever
-  // `use(:ns)` loads a module — build one through that path and apply
-  // it to a fresh subject to exercise the `.ast` truthy branch.
-  it('use-loaded module Quote (cached .ast) runs through apply against a new subject', async () => {
+  // short-circuits when the Quote already has a `.ast` cached: a
+  // quote read from text carries the parser's own node, so applying
+  // it to a fresh subject exercises the `.ast` truthy branch.
+  it('a quote read from text runs through apply against a new subject', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const session = await createSession({
-      locator: async () => ({ source: 'add 1' })
-    });
-    await session.evalCell('use :demo/snippet');
-    session.bind('snippet', session.env.get('qlang/ast/demo/snippet'));
-    const cellEntry = await session.evalCell('41 | apply snippet');
+    const session = await createSession();
+    const cellEntry = await session.evalCell(':snippet ~(add 1) | 41 | apply snippet');
     expect(cellEntry.result).toBe(42);
   });
 });

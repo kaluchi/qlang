@@ -910,14 +910,17 @@ A value can be named by the `as` operand, which freezes the current
 value under a name, or by the binding form `:name body`, which binds an
 expression. The two are not interchangeable: the binding form cannot
 freeze the current value, because its body is re-evaluated at every
-use, and `as` cannot bind code. The wrapper that `as` produces is
-transparent to lookup, so it is unwrapped wherever a binding is read,
-across the evaluator, the dispatch wrappers, the axes and `use`, and it
-is the
-reason the environment holds three kinds of binding, each serialized
-and described differently. The binding form itself chooses between a
-snapshot and a lazily evaluated body by inspecting the shape of the
-body's syntax tree (`core/src/walk.mjs`, `isPureLiteralAst`), so the
+use, and `as` cannot bind code. Both write the record of a binding
+[D63], `as` holding the value it froze and the binding form a value or
+a conduit, so a lookup reads one shape of binding:
+
+```qlang
+> 42 | as :x | env | /x | type
+::binding
+```
+
+The binding form itself chooses between a value and a lazily evaluated
+body by inspecting the shape of the body's syntax tree (`core/src/walk.mjs`, `isPureLiteralAst`), so the
 distinction between value and code is decided by a predicate over
 syntax rather than written by the author, and the language server
 re-derives the same predicate to label a symbol. The tag-namespace form
@@ -1014,22 +1017,25 @@ The shadowed original still runs, called by its address:
 [2 3]
 ```
 
-But the binding value itself knows nothing about its documentation or
-where it came from: asked for its docs, it answers with the docs of the
-`::builtin` tag it carries on its header, and the manifest has no field
-naming the module a binding came from. Hypertext is anchored to names,
-and names are the one thing the language lets a query overwrite. The
-environment also carries the runtime's own housekeeping, the parsed
-source of every module under one prefix, the export map of every
-namespace under another, and the host's locator, a raw JavaScript
-function, under a third, and every reader of the environment filters
-them by prefix. `env` answers the names the session wrote
-alone [D61], the verbs and the nouns of the providers and the
-housekeeping left out. On 25 September 2026:
+The binding carries its documentation and where it came from: a
+declaration writes into its scope the record of the binding, with its
+name, its docs, its value, the quote of its step and the module it came
+from, and the axes project the record [D63]. Hypertext is anchored to
+names, and names are the one thing the language lets a query overwrite.
+The environment still carries part of the runtime's own housekeeping,
+the export map of every namespace under one prefix and the host's
+locator, a raw JavaScript function, under a key of its own, which every
+reader of the environment filters; the parsed sources of the modules
+left it with the records. `env` answers the records of the names the
+session wrote alone [D61], the verbs and the nouns of the providers and
+the housekeeping left out. On 25 September 2026:
 
 ```qlang
 > :x 1 | env | keys
 #[:x]
+
+> :x |~~ One. ~~| 1 | env | /x | docs | first | /content
+" One. "
 
 > env | has :"qlang/ast/inline"
 false
@@ -1576,8 +1582,8 @@ kinds, and none states an invariant in a sentence:
   tagged-JSON codec
   says the conformance runner hydrates its cases from that format
   (`core/src/codec.mjs`); the runner compares qlang literals. The
-  values module says that each of the three reserved tags of the
-  header, `::conduit`, `::snapshot` and `::builtin`, owns a path of its
+  values module says that each of the two reserved tags of the
+  header, `::conduit` and `::builtin`, owns a path of its
   own through the printer (`core/src/types.mjs`, beside
   `isTaggedInstance`), while `describeType` gives `::builtin` none, so
   a descriptor reaches the printer of maps and prints without its tag.
@@ -1634,7 +1640,7 @@ part:
   leaks into what a user sees, `:uri "cell-2"` on a parse error of the
   command line.
 - Consumers that carry spellings of the language. The language server
-  re-derives the snapshot-or-conduit choice of the binding form and
+  re-derives the value-or-conduit choice of the binding form and
   scans doc text with its own loop, and the TextMate grammar hard-codes
   the slot vocabulary of the catalog.
 

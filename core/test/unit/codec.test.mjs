@@ -13,7 +13,7 @@ import {
   makeTagKeyword,
   isTagKeyword,
   makeConduit,
-  makeSnapshot,
+  makeBinding,
   isQuote,
   makeDoc,
   isDoc,
@@ -179,9 +179,15 @@ describe('toTaggedJSON unencodable values', () => {
     expect(() => toTaggedJSON(conduit)).toThrow(TaggedJSONUnencodableValueError);
   });
 
-  it('throws TaggedJSONUnencodableValueError for snapshots', () => {
-    const snap = makeSnapshot(42, { name: 'x' });
-    expect(() => toTaggedJSON(snap)).toThrow(TaggedJSONUnencodableValueError);
+  it('carries a binding record as the tagged Map it is', () => {
+    const record = makeBinding({ name: keyword('x'), docs: ['note'], value: 42 });
+    expect(deepEqual(fromTaggedJSON(toTaggedJSON(record)), record)).toBe(true);
+  });
+
+  it('throws TaggedJSONUnencodableValueError for the record of a conduit', () => {
+    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
+    const record = makeBinding({ name: keyword('x'), value: conduit });
+    expect(() => toTaggedJSON(record)).toThrow(TaggedJSONUnencodableValueError);
   });
 
   it('throws TaggedJSONUnencodableValueError for function values', () => {

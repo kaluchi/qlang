@@ -691,9 +691,10 @@ Map where the value's kind is the predicate axis.
   `::quote`, `::doc`. The kinds of the core are named under the
   prefix `qlang/` and written short, `::qlang/number` reading as
   `::number`, and `type | docs` reads the kind's page. Tagged values
-  (Conduit, Snapshot, TaggedInstance, materialized error, catalog
-  builtin descriptor) produce their tag (`::conduit`, `::snapshot`,
-  `::Foo`, `::builtin`); error values produce the per-site `::Tag` —
+  (Conduit, binding record, TaggedInstance, materialized error,
+  catalog builtin descriptor) produce their tag (`::conduit`,
+  `::binding`, `::Foo`, `::builtin`); error values produce the
+  per-site `::Tag` —
   `::AddLeftNotNumberError`, `::ParseError`, and the kind of errors
   `::error` for user `!{}` without an explicit `:kind ::Foo` lift.
 - **Examples**:
@@ -736,7 +737,7 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
     clone of the payload without the header.
   - **Wrap-object shape** (opaque frozen `{type, tag, payload}`
     object, the constructor's branch for scalar / Keyword / Quote
-    / Doc / Error / Conduit / Snapshot / already-tagged payloads
+    / Doc / Error / Conduit / already-tagged payloads
     that cannot carry the header themselves) → the `.payload`
     value directly.
 - Inverse of `tag ::Foo` mint. The dedicated extractor sidesteps
@@ -765,7 +766,7 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   - **full** `tag value-expr tag-expr` — both args captured,
     pipeValue is context. Compact pair-Vec reordering:
     `pair | tag /1 /0` rebuilds from a `[value, tag]`-order Vec
-    without an intermediate snapshot.
+    without an intermediate `as` binding.
 - A composite TaggedInstance subject (bound form) clones-and-
   rebrands the underlying composite; an opaque-wrap subject
   re-wraps into a nested layer. To replace identity rather than
@@ -912,9 +913,10 @@ its own eval handler in `eval.mjs`.
 - **Examples**:
   - `env | keys` → a Set of the names the scope holds.
   - `env | has :count` → `false` (count lives on the kinds it serves).
-  - `env | /taxRate` → the value of a user binding, or `null`.
+  - `env | /taxRate` → the record of a user binding, `::binding`
+    with its `:name :docs :value :source :module`.
 - Inside a fork, returns the fork's current `env` (including any
-  fork-local `as` snapshot or BindStep declaration visible at the
+  fork-local `as` binding or BindStep declaration visible at the
   point of lookup).
 - Captured arguments (`env(...)`) are an arity error.
 
@@ -989,16 +991,16 @@ its own eval handler in `eval.mjs`.
   form `:name body` binds a pipeline fragment. Parametric form
   `:name [:params] body` binds a fragment with named
   parameters for fractal composition.
-- Purity-routed at eval time (`core/src/eval.mjs::evalBindStep`):
-  pure-literal bodies snapshot at decl-time and land as plain
-  values; impure or parametric bodies capture against a lexical
-  envRef and land as conduits. Parameters become lazy conduit-
+- Writes the record of the binding, `::binding`, into `env`.
+  Purity-routed at eval time (`core/src/eval.mjs::evalBindStep`):
+  pure-literal bodies evaluate at decl-time and the record holds
+  the plain value; impure or parametric bodies capture against a
+  lexical envRef and the record holds a conduit. Parameters become lazy conduit-
   parameter proxies (nullary function values wrapping
   captured-arg lambdas).
-- Doc-only form: a BindStep with attached docs and no body
-  installs a Doc-value snapshot under the name; an identifier
-  lookup unwraps the snapshot and returns the Doc-value directly
-  (`:guide | /content`).
+- Doc-only form: a BindStep with attached docs and no body binds a
+  Doc value under the name; an identifier lookup returns the
+  Doc-value the record holds (`:guide | /content`).
 - **Examples**:
   - `:double mul 2 | 10 | double` → `20`.
   - `:@surround [:pfx :sfx] (prepend pfx | append sfx) | "world" | @surround "[" "]"` → `"[world]"`.
@@ -1018,13 +1020,12 @@ its own eval handler in `eval.mjs`.
 
 ### `as :name`
 
-- **Arity** 2 (1 captured). **Subject** any (the value to snapshot).
-- Captures the current `pipeValue` as a frozen snapshot under the
-  given keyword name. `pipeValue` passes through unchanged. The
-  snapshot is retrievable by name through identifier lookup
-  (auto-unwrapped to the raw value); for the binding's attached
-  doc-prefix reach for the axis trio (`:name | source / docs /
-  examples`).
+- **Arity** 2 (1 captured). **Subject** any (the value to name).
+- Writes the record of a binding holding the current `pipeValue`
+  under the given keyword name. `pipeValue` passes through
+  unchanged. Identifier lookup reads the value the record holds;
+  for the binding's attached doc-prefix reach for the axis trio
+  (`:name | source / docs / examples`).
 - **Examples**:
   - `42 | as :answer | answer` → `42`.
   - `[1 2 3] | as :nums | nums | count` → `3`.
@@ -1102,12 +1103,14 @@ its own eval handler in `eval.mjs`.
   `::vec/count | source` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
-- Returns the quote of the binding's declaring step, a BindStep or an
-  `as :name` call, found across loaded modules.
+- Returns the `:source` of the binding's record, the quote of its
+  declaring step, a BindStep or an `as :name` call, and null for a
+  binding no step declared, a value `use` or a host bound. A record,
+  the one `env | /name` answers, reads the binding it records.
 - **Examples**:
-  - `:count | source | parse` → the `:count` declaration as text.
+  - `::vec/count | source | parse` → the `:count` declaration as text.
   - `::conduit | source | parse` → the `::conduit` tag-binding as text.
-- **Errors**: no declaring step found → `SourceBindingNotFoundError`.
+- **Errors**: the subject names no binding → `SourceBindingNotFoundError`.
 
 ### `docs`
 
@@ -1119,8 +1122,9 @@ its own eval handler in `eval.mjs`.
   `::vec/count | docs` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
-- Returns a Vec of Doc-values from the binding's attached doc-prefix,
-  one Doc per prefix entry.
+- Returns the `:docs` of the binding's record, a Vec of Doc-values
+  from its attached doc-prefix, one Doc per prefix entry, empty for a
+  binding without a doc.
 - **Examples**:
   - `::vec/count | docs` → Vec of Doc-values from the `count` catalog
     entry, read by its address.
@@ -1128,7 +1132,7 @@ its own eval handler in `eval.mjs`.
   - `:count | docs !| /addresses` → `#[::map/count ::set/count
     ::vec/count]`: a keyword names a binding of its scope, and the
     refusal names where the verbs of the name live.
-- **Errors**: no declaring step found → `DocsBindingNotFoundError`,
+- **Errors**: the subject names no binding → `DocsBindingNotFoundError`,
   carrying `:addresses`.
 
 ### `examples`
@@ -1141,13 +1145,15 @@ its own eval handler in `eval.mjs`.
   `::vec/count | examples` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
-- Returns a Vec of Quote-values extracted from the binding's
-  doc-prefix — every `~(…)` Quote segment in the doc-content stream
-  is a candidate test case for `runExamples`.
+- Returns a Vec of Quote-values extracted from the docs of the
+  binding's record — every `~(…)` Quote segment in the doc-content
+  stream is a candidate test case for `runExamples`.
 - **Examples**:
-  - `:count | examples` → Vec of `~(…)` Quotes from the `:count` docs.
-  - `:add | examples | count` → number of inline Quote examples on `:add`.
-- **Errors**: no declaring step found → `ExamplesBindingNotFoundError`.
+  - `::vec/count | examples` → Vec of `~(…)` Quotes from the docs of
+    `count` on vectors.
+  - `::number/add | examples | count` → number of inline Quote examples
+    on `add`.
+- **Errors**: the subject names no binding → `ExamplesBindingNotFoundError`.
 
 ### `spec`
 
@@ -1159,8 +1165,8 @@ its own eval handler in `eval.mjs`.
   `::vec/count | spec` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
-- Returns the env-side declaration descriptor Map for the binding.
-  An operand answers with the `::builtin{…}` body its catalog entry
+- Returns the value the binding's record holds, the declaration
+  descriptor Map for a declared operand or tag. An operand answers with the `::builtin{…}` body its catalog entry
   declares, backfilled with `:captured` / `:effectful` from the
   resolved primitive; a value-class constructor with its `:impl`
   handle and `:throws`; an error tag with the structural facts its
@@ -1178,7 +1184,7 @@ its own eval handler in `eval.mjs`.
   - `"x" | add 1 !| spec | /category` → `:typeError`.
   - `::number/add | spec | /throws` → the per-site error classes `add` raises.
   - `::conduit | spec | /impl` → `:qlang/type/conduit`.
-- **Errors**: no declaring step found → `SpecBindingNotFoundError`.
+- **Errors**: the subject names no binding → `SpecBindingNotFoundError`.
 
 ## Error operands
 

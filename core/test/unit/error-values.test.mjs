@@ -415,33 +415,6 @@ describe('errorFromForeign', () => {
   });
 });
 
-import { withName, makeConduit, makeSnapshot, isConduit, isSnapshot } from '../../src/types.mjs';
-
-describe('withName coverage', () => {
-  it('renames a conduit', () => {
-    const conduitVal = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'old', params: ['a'], docs: ['doc'] });
-    const renamed = withName(conduitVal, 'new');
-    expect(isConduit(renamed)).toBe(true);
-    expect(renamed.get('name')).toBe('new');
-    expect([...renamed.get('params')]).toEqual([keyword('a')]);
-    expect([...renamed.get('docs')]).toEqual(['doc']);
-  });
-
-  it('renames a snapshot', () => {
-    const snapVal = makeSnapshot(42, { name: 'old', docs: ['snap doc'] });
-    const renamed = withName(snapVal, 'new');
-    expect(isSnapshot(renamed)).toBe(true);
-    expect(renamed.get('name')).toBe('new');
-    expect(renamed.get('payload')).toBe(42);
-    expect([...renamed.get('docs')]).toEqual(['snap doc']);
-  });
-
-  it('returns other values unchanged', () => {
-    const otherVal = { type: 'other', name: 'x' };
-    expect(withName(otherVal, 'y')).toBe(otherVal);
-  });
-});
-
 describe('error-convert coercion edge cases', () => {
   it('coerces qlang keyword values through errorFromQlang context', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', myKey: keyword('val') });

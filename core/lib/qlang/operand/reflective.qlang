@@ -1,7 +1,7 @@
 |~ qlang operand catalog — reflective family. The handful of
    operands whose impl receives the full evaluator state pair
    `(pipeValue, env)` directly instead of projecting pipeValue:
-   `env` reads, `use` merges, `as` snapshots, `manifest` /
+   `env` reads, `use` binds, `as` writes a record, `manifest` /
    `runExamples` build descriptor / self-test surfaces over the
    enumerable bindings. Per-binding declarative introspection
    ("what does THIS one do") lives in
@@ -17,7 +17,9 @@
 :env
   |~~ Replaces pipeValue with the bindings the scope holds — a Map
       keyed by binding name carrying what the query, the session and
-      a module's `use` wrote at this point in the pipeline. The verbs
+      a module's `use` wrote at this point in the pipeline, each the
+      record of its binding, `::binding` with its name, docs, value,
+      source and module. The verbs
       and the nouns of the core and of the hosts stay with their
       providers, listed from `::qlang | manifest`. Inside a fork,
       returns the fork-local scope, including any `as` / BindStep
@@ -27,7 +29,7 @@
 
       ~(:limit 10 | env | keys | eq #[:limit])
       ~(env | has :count | not)
-      ~(42 | as :answer | env | /answer | eq 42)
+      ~(42 | as :answer | env | /answer | /value | eq 42)
       ~(99 | as :secret | env | has :secret | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/env
@@ -37,16 +39,18 @@
    }
 
 :use
-  |~~ Overloaded by arity. Bare form merges pipeValue (a Map)
-      into env. With a namespace keyword, imports module bindings.
+  |~~ Overloaded by arity. Bare form binds the entries of
+      pipeValue (a Map) in env, a record as the binding it is and
+      any other value as a binding without a doc. With a namespace
+      keyword, imports module bindings.
       With a Vec of keywords, imports modules in order (later
       shadows earlier on collision). With a Set, imports and
       rejects name collisions. With two args (namespace + filter),
       imports only the named bindings. pipeValue unchanged in all
       forms. Inside a fork, merged bindings evaporate on close.
 
-      ~({:limit 10 :role "admin"} | use | env | /limit | eq 10)
-      ~({:x 1} | use | env | /x | add 2 | eq 3)
+      ~({:limit 10 :role "admin"} | use | env | /limit | /value | eq 10)
+      ~({:x 1} | use | x | add 2 | eq 3)
       ~(42 | as :n | env | has :n | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/use
@@ -82,9 +86,9 @@
       locator can resolve it. A namespace is a header-less Map
       bound under the namespace name or under the runtime's
       `qlang/namespace/<ns>` cache key; an operand descriptor, a
-      conduit, a snapshot, or a scalar a host bound under the same
-      bare name is an identifier-plane binding, and `use` walks
-      past it to the locator.
+      conduit, or a scalar a host bound under the same bare name is
+      an identifier-plane binding, and `use` walks past it to the
+      locator.
 
       ~(
         use :absolutely-nonexistent-namespace
@@ -198,14 +202,16 @@
   ~~|
 
 :as
-  |~~ Captures the current pipeValue as a frozen snapshot under
-      the given keyword name. pipeValue passes through unchanged.
-      Retrievable by name through identifier lookup (auto-unwrapped
-      to the raw value). For the binding's doc-prefix / source slice
-      reach for the axis trio (`:name | source / docs / examples`).
+  |~~ Writes the record of a binding that holds the current
+      pipeValue under the given keyword name. pipeValue passes
+      through unchanged. Identifier lookup reads the value the record
+      holds, and `env | /name` answers the record. For the binding's
+      doc-prefix / source reach for the axis trio
+      (`:name | source / docs / examples`).
 
       ~(42 | as :answer | answer | eq 42)
       ~([1 2 3] | as :nums | nums | count | eq 3)
+      ~(42 | as :answer | env | /answer | type | eq ::binding)
   ~~|
   ::builtin{:impl :qlang/prim/as
             :category :reflective
@@ -213,12 +219,12 @@
             :returns :any
             :modifiers [:keyword]}
 
-|~ Snapshot wrappers carry their captured value transparently on
-   identifier lookup — `as :name | name` returns the raw value
-   the snapshot captured. For declarative metadata about the
-   binding (its attached doc-prefix, source slice, runnable
-   `~(…)` examples) reach for the axis trio (`:name | source` /
-   `| docs` / `| examples`) in `operand/axis.qlang`. ~|
+|~ The record of a binding carries its value transparently on
+   identifier lookup — `as :name | name` returns the raw value the
+   record holds. For declarative metadata about the binding (its
+   attached doc-prefix, source, runnable `~(…)` examples) reach for
+   the axis trio (`:name | source` / `| docs` / `| examples`) in
+   `operand/axis.qlang`. ~|
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).

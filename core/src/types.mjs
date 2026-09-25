@@ -122,7 +122,7 @@ export function keyword(name) {
 // `.name` mirrors the keyword shape so a single
 // `kind.name === '<discriminator>'` check reads both Keyword
 // (`:builtin`, `:tag` declarative kinds) and TagKeyword
-// (`::conduit`, `::snapshot`, user-defined ::tag instances)
+// (`::conduit`, `::binding`, user-defined ::tag instances)
 // uniformly.
 
 export function makeTagKeyword(tag) {
@@ -140,22 +140,43 @@ export function isTagKeyword(v) {
 // the prefix; every other env-keys-aware consumer imports from
 // `env-keys.mjs` directly.
 
-// ── conduit / snapshot / quote predicates ─────────────────────
+// ── conduit / binding / quote predicates ──────────────────────
 //
-// Conduit and Snapshot identity rides on the Map's non-enumerable
-// JS-header `tag` slot (a TagKeyword), stamped at construction
-// through `defineConduitTag` / `defineSnapshotTag` below. The
-// `:kind` Map field is reserved for the value's own data; user-
-// built Maps that happen to carry `:kind ::Foo` flow through
-// `isTaggedInstance` rather than colliding with the conduit /
-// snapshot render paths.
+// Conduit identity rides on the Map's non-enumerable JS-header `tag`
+// slot (a TagKeyword), stamped at construction below. The `:kind`
+// Map field is reserved for the value's own data; user-built Maps
+// that happen to carry `:kind ::Foo` flow through `isTaggedInstance`
+// rather than colliding with the conduit render path.
 
 export function isConduit(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'conduit';
 }
 
-export function isSnapshot(v) {
-  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'snapshot';
+// The record a declaration writes into its scope [D63]: the name, the
+// docs of its doc-prefixes, the value, the quote of the declaring step
+// and the module it came from, under the kind `::binding`. A binding
+// with no declaration behind it, a value `use` or a host bound, holds
+// no source.
+export function isBinding(v) {
+  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
+}
+
+export function makeBinding({ name, docs = [], value, source = null, module = null }) {
+  const record = new Map();
+  record.set('name', name);
+  record.set('docs', Object.freeze(docs.map(content => makeDoc(content))));
+  record.set('value', value);
+  record.set('source', source);
+  record.set('module', module);
+  stampTagHeader(record, BINDING_TAG);
+  return record;
+}
+
+// What a name of the scope holds: the value of its record; a
+// conduit's parameter, bound for the time of a call, and a key of
+// the runtime's own as they lie.
+export function bindingValueOf(entry) {
+  return isBinding(entry) ? entry.get('value') : entry;
 }
 
 // TaggedInstance — value carrying a TagKeyword on its JS-header
@@ -163,11 +184,11 @@ export function isSnapshot(v) {
 // shapes: Array / Map clones with the header stamped, or
 // an opaque frozen `{type, tag, payload}` wrapper for non-
 // extensible payloads (scalar, Keyword, Doc, Error, already-tagged
-// composite, a quote and a set among them). Three reserved tag names own
-// dedicated render / dispatch paths (`::conduit`, `::snapshot`,
-// `::builtin`) and route through their own predicates
-// (`isConduit`, `isSnapshot`, `isBuiltinDescriptor`).
-const RESERVED_HEADER_TAG_NAMES = new Set(['conduit', 'snapshot', 'builtin']);
+// composite, a quote and a set among them). Two reserved tag names own
+// dedicated render / dispatch paths (`::conduit`, `::builtin`) and
+// route through their own predicates (`isConduit`,
+// `isBuiltinDescriptor`).
+const RESERVED_HEADER_TAG_NAMES = new Set(['conduit', 'builtin']);
 export function isTaggedInstance(v) {
   if (v === null || typeof v !== 'object') return false;
   const tag = v[TAG_HEADER_SYMBOL];
@@ -202,6 +223,7 @@ export function makeQuote(steps, ast = undefined) {
 // order ranks two values alike exactly when they are equal. Every set
 // is minted here, `makeTaggedInstance` included.
 export const SET_TAG_NAME = 'set';
+export const BINDING_TAG_NAME = 'binding';
 
 export function makeSet(elements) {
   const ordered = [...elements].sort(compareValues);
@@ -242,7 +264,7 @@ export function makeDoc(content) {
 // identity TagKeyword: invisible to Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
 // to JSON serialization, and to the manifest enumeration
 // surface. Every identity-bearing value-class — Conduit,
-// Snapshot, TaggedInstance, catalog `::builtin` descriptor,
+// binding record, TaggedInstance, catalog `::builtin` descriptor,
 // materialized error — stamps the slot through `stampTagHeader`
 // and reads it through `typeKeyword`'s header branch in one
 // property access, leaving the data plane untouched.
@@ -255,17 +277,16 @@ export function stampTagHeader(m, tag) {
 
 // ── JS-internal slots — the data plane stays qlang-only ───────
 //
-// Four structures ride a binding Map without a qlang literal
-// behind them: a Conduit's body AST node, the lexical `envRef`
-// holder its tie-the-knot mutates, the peggy declaration site,
-// and the resolved JS function value a catalog `::builtin`
-// descriptor dispatches through. Each lands on a non-enumerable
-// Symbol slot — the channel `TAG_HEADER_SYMBOL` uses too — so `keys`, `/key` projection, `printValue`,
-// `toPlain`, and `toTaggedJSON` see a data plane of qlang values
-// alone: `:name`, `:params`, `:source` (a Quote of the body),
-// `:docs`, `:effectful`, `:payload`, plus the
-// `:impl :qlang/prim/<name>` handle keyword the catalog author
-// wrote.
+// Three structures ride a Map without a qlang literal behind them:
+// a Conduit's body AST node, the lexical `envRef` holder its
+// tie-the-knot mutates, and the resolved JS function value a catalog
+// `::builtin` descriptor dispatches through. Each lands on a
+// non-enumerable Symbol slot — the channel `TAG_HEADER_SYMBOL` uses
+// too — so `keys`, `/key` projection, `printValue`, `toPlain`, and
+// `toTaggedJSON` see a data plane of qlang values alone: `:name`,
+// `:params`, `:source` (a Quote of the body), `:docs`, `:effectful`,
+// plus the `:impl :qlang/prim/<name>` handle keyword the catalog
+// author wrote.
 //
 // The accessors below are the only readers. A dispatch site that
 // reaches for `descriptor.get('impl')` gets the author's handle
@@ -273,7 +294,6 @@ export function stampTagHeader(m, tag) {
 
 export const CONDUIT_BODY_SLOT     = Symbol('qlang/conduitBody');
 export const CONDUIT_ENV_REF_SLOT  = Symbol('qlang/conduitEnvRef');
-export const DECLARATION_SITE_SLOT = Symbol('qlang/declarationSite');
 export const BUILTIN_IMPL_SLOT     = Symbol('qlang/builtinImpl');
 
 function stampSlot(target, slot, value) {
@@ -282,9 +302,8 @@ function stampSlot(target, slot, value) {
   });
 }
 
-// Body AST of a Conduit — `applyConduit` evaluates it, `withName`
-// re-mints from it, `printConduit` reads the `:source` Quote the
-// factory read off it.
+// Body AST of a Conduit — `applyConduit` evaluates it, and
+// `printConduit` reads the `:source` Quote the factory read off it.
 export function conduitBodyAst(conduit) {
   return conduit[CONDUIT_BODY_SLOT];
 }
@@ -294,17 +313,6 @@ export function conduitBodyAst(conduit) {
 // `.env` after the binding itself is in place (tie-the-knot).
 export function conduitEnvRef(conduit) {
   return conduit[CONDUIT_ENV_REF_SLOT];
-}
-
-// peggy location of the BindStep / `as` call that declared the
-// binding. `manifest`'s `describeBinding` lifts it into the
-// qlang-Map form through `locationToQlangMap` for the `:location`
-// field of the view-Map.
-export function declarationSiteOf(binding) {
-  // Env holds whatever a host installed through `session.bind`
-  // alongside what source minted, so the read answers "no site" for
-  // a value that carries no slots at all.
-  return binding?.[DECLARATION_SITE_SLOT];
 }
 
 // Resolved function value of a catalog `::builtin` descriptor,
@@ -325,13 +333,13 @@ export function stampBuiltinImpl(descriptor, fn) {
 // manifest paths all reach for the shared instance instead of
 // minting a fresh TagKeyword on every call. Listed alphabetically.
 
+export const BINDING_TAG     = makeTagKeyword(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTagKeyword('builtin');
 export const CONDUIT_TAG     = makeTagKeyword('conduit');
 export const ERROR_TAG       = makeTagKeyword('error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
-export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
 
 // The kind of every value without a tag of its own, the one its
@@ -364,30 +372,16 @@ export const GROUP_TAG  = makeTagKeyword('group');
 
 // ── conduit factory ───────────────────────────────────────────
 
-export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
+export function makeConduit(body, { name, params = [], envRef = null, docs = [] } = {}) {
   const m = new Map();
   m.set('name', name);
-  m.set('params', Object.freeze(params.map(p => typeof p === 'string' ? keyword(p) : p)));
+  m.set('params', Object.freeze(params.map(paramName => keyword(paramName))));
   m.set('source', quoteOfBody(body));
   m.set('docs', Object.freeze([...docs]));
   m.set('effectful', classifyEffect(name));
   stampTagHeader(m, CONDUIT_TAG);
   stampSlot(m, CONDUIT_BODY_SLOT, body);
   stampSlot(m, CONDUIT_ENV_REF_SLOT, envRef);
-  stampSlot(m, DECLARATION_SITE_SLOT, location);
-  return m;
-}
-
-// ── snapshot factory ──────────────────────────────────────────
-
-export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
-  const m = new Map();
-  m.set('name', name);
-  m.set('payload', value);
-  m.set('docs', Object.freeze([...docs]));
-  m.set('effectful', classifyEffect(name));
-  stampTagHeader(m, SNAPSHOT_TAG);
-  stampSlot(m, DECLARATION_SITE_SLOT, location);
   return m;
 }
 
@@ -403,7 +397,7 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 // underlying Array, `::Tag{:a 1} | keys` lists the underlying
 // Map keys. `typeKeyword` reads the header first so identity comes
 // through `result | type`. Reserved header tags
-// (`::conduit`, `::snapshot`, `::builtin`) are matched against
+// (`::conduit`, `::builtin`) are matched against
 // in `isTaggedInstance` so the dedicated render / dispatch
 // paths for those value-classes stay disjoint from generic
 // TaggedInstance.
@@ -423,8 +417,8 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 //     without collision.
 //
 //   Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
-//     Snapshot / already-tagged composite, a quote and a set among
-//     them — wrap in a Map carrying the payload under `:payload` slot,
+//     already-tagged composite, a quote, a set and a binding record
+//     among them — wrap in a Map carrying the payload under `:payload` slot,
 //     stamp the header on the wrapper. JS scalars cannot carry
 //     symbol-keyed properties (they are immutable primitives);
 //     frozen value-class objects (Doc / Error) refuse
@@ -451,7 +445,7 @@ export function makeTaggedInstance(tag, payload) {
     return m;
   }
   // Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
-  // Snapshot / already-tagged composite — wrap in an
+  // already-tagged composite — wrap in an
   // opaque frozen JS object with `tag` and `payload` fields.
   // The opaque shape keeps `/payload` projection out of reach
   // (the wrapper is not a Map, so projectSegment throws
@@ -463,30 +457,6 @@ export function makeTaggedInstance(tag, payload) {
   const wrap = brandValueClass({ tag, payload }, 'taggedInstance');
   stampTagHeader(wrap, tag);
   return Object.freeze(wrap);
-}
-
-// ── rename factory ────────────────────────────────────────────
-
-export function withName(binding, newName) {
-  if (isConduit(binding)) {
-    // Pass the original body through — makeConduit re-stamps
-    // source from body.text under the new name.
-    return makeConduit(conduitBodyAst(binding), {
-      name: newName,
-      params: [...binding.get('params')],
-      envRef: conduitEnvRef(binding),
-      docs: [...binding.get('docs')],
-      location: declarationSiteOf(binding)
-    });
-  }
-  if (isSnapshot(binding)) {
-    return makeSnapshot(binding.get('payload'), {
-      name: newName,
-      docs: [...binding.get('docs')],
-      location: declarationSiteOf(binding)
-    });
-  }
-  return binding;
 }
 
 // ── error value factory ───────────────────────────────────────
@@ -573,11 +543,10 @@ export function describeType(v) {
   if (isKeyword(v)) return 'Keyword';
   if (isTagKeyword(v)) return 'TagKeyword';
   // TaggedInstance reads the JS-header tag slot first; the
-  // reserved-tag check rules out conduit / snapshot which live
-  // on the same header but ride dedicated render paths
-  // (`Conduit` / `Snapshot` handlers below).
+  // reserved-tag check rules out the conduit, which lives on the
+  // same header but rides a dedicated render path (the `Conduit`
+  // handler).
   if (isConduit(v)) return 'Conduit';
-  if (isSnapshot(v)) return 'Snapshot';
   if (isQuote(v)) return 'Quote';
   if (isQSet(v)) return 'Set';
   if (isTaggedInstance(v)) return 'TaggedInstance';
@@ -599,11 +568,11 @@ export function typeKeyword(v) {
   if (isKeyword(v)) return CORE_KIND.keyword;
   if (isTagKeyword(v)) return CORE_KIND.tag;
   // Identity-on-JS-header takes precedence on every composite:
-  // tagged Vec, tagged Map, the set and the quote — `result | type`
-  // returns the TagKeyword directly. Conduit /
-  // Snapshot share the same slot under reserved tag names
-  // (`::conduit` / `::snapshot`) and fall through this branch
-  // too; their identity reads exactly the same way.
+  // tagged Vec, tagged Map, the set, the quote and the binding
+  // record — `result | type` returns the TagKeyword directly. The
+  // conduit shares the same slot under its reserved tag name
+  // (`::conduit`) and falls through this branch too; its identity
+  // reads exactly the same way.
   if (v !== null && typeof v === 'object') {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;

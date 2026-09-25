@@ -330,13 +330,13 @@ describe('documentSymbols', () => {
     expect(syms[1].kind).toBe('conduit');
   });
 
-  it('collects as bindings as snapshot symbols', () => {
+  it('collects as bindings as value symbols', () => {
     const src = '42 | as :answer';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(1);
     expect(syms[0].name).toBe('answer');
-    expect(syms[0].kind).toBe('snapshot');
+    expect(syms[0].kind).toBe('value');
   });
 
   it('returns empty for plain pipeline with no bindings', () => {

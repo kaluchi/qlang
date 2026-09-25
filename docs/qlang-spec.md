@@ -746,7 +746,7 @@ true
 ```
 
 Without `/` the only path to reference the running pipeValue
-inside a captured arg is the snapshot-and-deref dance
+inside a captured arg is the name-and-deref dance
 `as :_self | … | _self` — verbose for a single reference.
 
 Type error: projection on a non-Map (Scalar, Vec, Set, null, function)
@@ -927,7 +927,7 @@ before and after a transformation, or from multiple branches of
 a reshape. That requires naming.
 
 This chapter covers every mechanism for putting names into scope.
-Three forms write into the binding scope: `as` snapshots a value
+Three forms write into the binding scope: `as` names a value
 (operand), `:name body` declares a reusable pipeline fragment — a
 **conduit** — via the BindStep grammar form, and `use` merges an
 entire Map of bindings — a constants table or a host-provided
@@ -937,13 +937,15 @@ reusable transformation, and a library import.
 
 The binding scope itself is an ordinary Map: it holds the
 built-in operands, any domain functions the host has installed,
-and every binding written by `as`, BindStep, or `use` so far.
-Identifier lookup reads from this Map; `as`, BindStep, and `use`
-write into it. The Map has a name — `env` — which becomes
-relevant when [Reflection](#reflection) introduces an operand
-that returns it as a value.
+and every binding written by `as`, BindStep, or `use` so far,
+each as the record of its binding — its name, docs, value, the
+quote of the declaring step and the module it came from.
+Identifier lookup reads the value a record holds; `as`, BindStep,
+and `use` write records into the Map. The Map has a name — `env`
+— which becomes relevant when [Reflection](#reflection) introduces
+an operand that returns it as a value.
 
-### `as :name` — value snapshot
+### `as :name` — a named value
 
 `as :name` captures `pipeValue` under a keyword name. The value
 passes through unchanged; the name becomes available to all
@@ -955,7 +957,7 @@ order | normalize | as :cleanOrder | computeTax | as :taxedOrder | shipQuote | f
 |~| after computeTax → taxedOrder = the taxed map
 ```
 
-`cleanOrder` and `taxedOrder` are frozen snapshots. All values are
+`cleanOrder` and `taxedOrder` name frozen values. All values are
 immutable — a captured binding is safe to reference at any later
 point.
 
@@ -1196,12 +1198,12 @@ the module came from — built-in (`:qlang/error`), host-provided
 introduced in [Atomic values](#atomic-values), and their nested
 forms work too: `use :qlang/error/guards` loads a sub-module.
 
-A namespace is a header-less Map bound under the namespace name
-or under the runtime's `qlang/namespace/<name>` cache key. An
-operand descriptor, a conduit, or a snapshot bound under the same
-bare name is an identifier-plane binding: `use :count` walks
-past the `count` operand to the locator and lands on
-`UseNamespaceNotFoundError`.
+A namespace is a header-less Map a host bound under the namespace
+name, with no declaration behind it, or the Map under the runtime's
+`qlang/namespace/<name>` cache key. An operand descriptor, a
+conduit, or a value a step declared under the same bare name is an
+identifier-plane binding: `use :count` walks past the `count`
+operand to the locator and lands on `UseNamespaceNotFoundError`.
 
 When several modules need to load together, `use` accepts three
 captured-arg shapes:
@@ -1312,7 +1314,7 @@ Identifiers may start with `@`, `_`, or any Unicode `ID_Start`
 character (Latin, Cyrillic, CJK, Greek, Hebrew, Arabic, etc.).
 Lookup treats every start character alike: `@callers` and `callers`
 resolve through the same env read, and either may be shadowed by an
-`as` snapshot or a BindStep declaration.
+`as` binding or a BindStep declaration.
 
 `_` is pure convention — domain authors use it for private internal
 bindings and the language attaches nothing to it. `@` carries the
@@ -1681,7 +1683,7 @@ directly, `count` returns the length, and `payload | type`
 answers `::vec` while `type` answers the stamped `::Tag`);
 Map payload → tagged Map (`keys` lists the fields, `/field`
 projects, iteration sees the data plane). Set / Scalar / Keyword /
-Quote / Doc / Error / Conduit / Snapshot / already-tagged composite
+Quote / Doc / Error / Conduit / already-tagged composite
 payloads ride an opaque wrap object that holds the value out of
 reach of `/key` projection — the dedicated `payload` operand is the
 only extractor. A verb reaches the value under the wrap by walking
@@ -1705,9 +1707,10 @@ TaggedLit value flows through the round-trip invariant. The
 `type` operand returns the identity tag directly; the `payload`
 operand strips identity and returns the underlying value (a
 fresh clone of the composite, or the wrapped value from the
-opaque wrap object). Two reserved tag names (`::conduit`,
-`::snapshot`) own dedicated render paths and ride distinct
-value-class handlers; every other tag rides the generic shape.
+opaque wrap object). The reserved tag names `::conduit` and
+`::builtin` own dedicated render paths and ride distinct
+value-class handlers; every other tag rides the generic shape,
+the `::binding` records `env` answers among them.
 
 A named error value (`!{:kind ::Tag …}`) carries the
 universal tagged-instance identity slot on the error value's
@@ -1845,7 +1848,7 @@ re-lift round-trips preserve identity automatically.
 
 The materialized descriptor exposed by `!|` stamps the tag onto
 the Map's JS-header identity slot (the same channel
-TaggedInstance / Conduit / Snapshot use) — `result !| type`
+TaggedInstance / Conduit / binding record use) — `result !| type`
 reads the identity directly, `result !| payload` strips it and
 returns the data plane Map sans tag, `result !| /faultStep`
 projects fields as on any ordinary Map. Identity stays in one
@@ -1960,13 +1963,13 @@ structured `.effectful` boolean computed once by `classifyEffect`:
 `as` is exempt from the effect invariant: `@callers | as :result`
 captures the *call result* — the frozen value the host operand
 produced. The effect already fired by the time `as` runs, so the
-snapshot is pure data that downstream pipelines can reference under
-any name without re-triggering the host call.
+named value is pure data that downstream pipelines can reference
+under any name without re-triggering the host call.
 
-The runtime safety net does still fire on `as` snapshots that wrap
-a function value (e.g. `(env | /@callers) | as :snap | snap`),
-because in that path the captured value is the function reference
-and `snap` would invoke it on lookup.
+The runtime safety net does still fire on an `as` binding that
+holds a function value (e.g. `(env | /@callers | /value) | as :snap
+| snap`), because in that path the captured value is the function
+reference and `snap` would invoke it on lookup.
 
 ---
 
@@ -1999,7 +2002,8 @@ All three use the same mechanism: Map + pipeline.
 The `env` operand returns the bindings the scope holds as
 `pipeValue`: the names the query, the session and a module's `use`
 wrote — domain functions, BindStep-installed conduits, `as`
-snapshots. The verbs of the core live on its nouns, listed from
+bindings — each as the record of its binding, `::binding`. The
+verbs of the core live on its nouns, listed from
 `::qlang | manifest`.
 
 ```qlang
@@ -2023,38 +2027,31 @@ user-facing API. Reach for the axis trio when the question is
 "what does this one binding do", and for `manifest` when the
 question is "which bindings exist".
 
-### `manifest` — list all bindings
+### `manifest` — what lies below a noun
 
-`manifest` returns the full binding scope as a Vec of descriptors
-— one per binding, sorted alphabetically by name. Each descriptor
-carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
-`::tag` / `::value`) as an explicit enum bucket alongside `:name`
-and per-kind fields stamped by `describeBinding` in
-`runtime/manifest-op.mjs`. The `:kind` field on manifest entries
-is a view-only enumeration surface — distinct from the JS-header
-identity slot the underlying env values carry; both `manifest |
-* /kind | eq ::builtin` (field projection) and `manifest | * type
-| eq ::builtin` (identity through the `type` operand) produce
-the same partition.
+`manifest` is asked of a noun and answers the set of what lies
+below it in the tree of names: the nouns under its path and the
+addresses of the verbs that live on it. `::qlang | manifest` lists
+the nouns of the core and of the hosts, `::number | manifest` the
+verbs of numbers, and any other subject is refused with
+`ManifestSubjectNotTagError`.
 
 ```qlang
-env | manifest | filter ~(/kind | eq ::builtin) | count
-|~| how many built-in operands are in scope
+> ::number | manifest | has ::number/add
+true
 
-env | manifest | filter ~(/effectful) * /name
-|~| names of all effectful operands in scope
+> ::qlang | manifest | has ::vec
+true
 ```
 
-`manifest` is the enumeration surface; for per-binding source-level
-introspection compose with the axis trio
-(`manifest * /name * keyword * source`) or skip enumeration
-entirely and address the binding directly (`:filter | source`).
+`manifest` is the enumeration surface; for what one verb does
+compose with the axis trio on its address (`::vec/filter | source`).
 
 #### Axis-operand contract
 
 | Axis | Subject | Returns |
 |---|---|---|
-| `source` | any value | The quote of the declaring BindStep |
+| `source` | any value | The quote of the declaring step, null for a binding no step declared |
 | `docs` | any value | Vec of Doc-values, one per attached doc-comment |
 | `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
@@ -2079,14 +2076,14 @@ with the addresses where the verb lives:
 #[::map/count ::set/count ::vec/count]
 ```
 
-Lookup walks the `qlang/ast/<uri>` module Quote that
-`langRuntime()` and every `use :ns` stamp into env at load time.
-The match is **last-write-wins** — the same shadowing rule that
-governs identifier resolution. A `:name` declared in module B
-loaded after module A surfaces B's docs / source / examples; A's
-declaration is hidden by shadowing. When no declaring BindStep is
-found in any loaded module, the axis raises its own not-found class
-(`SourceBindingNotFoundError`, `DocsBindingNot…`,
+Each axis projects the record the declaration wrote into the scope,
+`::binding`, so the axes read the binding the name resolves to, the
+same shadowing rule that governs identifier resolution: a `:name`
+declared in module B loaded after module A surfaces B's docs /
+source / examples, and A's record is hidden by shadowing. A record
+itself, the one `env | /name` answers, reads the binding it records.
+When the subject names no binding, the axis raises its own not-found
+class (`SourceBindingNotFoundError`, `DocsBindingNot…`,
 `ExamplesBindingNot…`, `SpecBindingNot…`), so `!| type` alone names
 which lookup failed.
 
@@ -2218,7 +2215,7 @@ Six step types:
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
-| 4 | `as :name` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
+| 4 | `as :name` | → `(pipeValue, env[:name := Binding(name, docs, pipeValue)])`. Identity on the value; names the current value with the record of a binding. Any doc comments immediately preceding the `as` attach to the record. |
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
@@ -2368,10 +2365,6 @@ to `printValue`:
 - **Function values** — live only on `:impl` of a
   descriptor Map, projected back to keyword handle on render.
   Any leak to `pipeValue` raises the guard above.
-- **Snapshot wrappers** — `as :name` snapshots are env entries,
-  not pipeline values. Identifier lookup auto-unwraps a snapshot
-  to its underlying value before the value escapes into
-  `pipeValue`; projection (`/key`) does the same.
 - **Conduit-parameter proxies** — nullary function values minted
   inside `applyConduit` to fire captured-arg lambdas; live only
   for the duration of the body fork and never escape via the
@@ -2698,10 +2691,9 @@ Bindings serialize as one of:
 - `{ kind: 'conduit', name, params, source, docs }` — BindStep-
   installed conduits, with the body source captured from the
   parser-attached `.text` field and the parameter name list.
-- `{ kind: 'snapshot', name, value, docs }` — `as` bindings, with
-  the captured value encoded via the tagged-JSON form.
-- `{ kind: 'value', name, value }` — raw values bound via
-  `session.bind`, encoded via the tagged-JSON form.
+- `{ kind: 'value', name, value, docs }` — every other binding, a
+  value `as`, a literal BindStep, `use` or `session.bind` wrote,
+  with the value encoded via the tagged-JSON form.
 
 Built-in function values are not serialized; the host re-installs
 them by re-creating a fresh `langRuntime()`-seeded session and
@@ -2742,8 +2734,8 @@ import { createSession } from '@kaluchi/qlang-core';
 // Resolve all modules in lib/ in discovery order.
 const catalog = await resolveModules('./lib');
 
-// Install into a session: stamps both the export Map under the
-// namespace key and the module's quote under qlang/ast/<ns>.
+// Install into a session: stamps the export Map, the records of the
+// module's declarations, under the namespace key.
 const session = await createSession();
 installModules(session, catalog);
 
@@ -2757,17 +2749,15 @@ installModules(session, catalog);
 
 - **`resolveModules(libDir, opts?)`** — discovers, evaluates, and
   returns a `Map<nsName, { exports, source, ast }>` catalog.
-  Each module is evaluated in its own env snapshot built from
+  Each module is evaluated in an env of its own, built from
   `baseEnv` plus the modules resolved earlier in the same pass,
   so upstream modules are visible to downstream ones. The entry
   fields:
-  - `exports` — `Map` of bindings added by the module (env delta).
+  - `exports` — `Map` of the records of the bindings the module
+    added (env delta).
   - `source` — raw `.qlang` source text.
   - `ast` — parsed AST root the eval pass walked.
 
-  The `ast` lets `installModules` stamp the module's quote under
-  `qlang/ast/<ns>`, matching the env shape the locator-based
-  `use :ns` pathway already produces.
   Options:
   - `opts.baseEnv` — initial env (default: `langRuntime()`).
   - `opts.dependencies` — `Map<namespaceName, string[]>` for explicit
@@ -2775,13 +2765,11 @@ installModules(session, catalog);
     filesystem discovery order.
 
 - **`installModules(session, catalog)`** — iterates the catalog and
-  binds two env keys per namespace: `qlang/namespace/<nsName> →
-  exports` (the cache key `use :nsName` probes, so the export Map
-  never shadows an operand whose name matches the namespace stem),
-  and `qlang/ast/<nsName> → the module's quote` so the axis-operands
-  `:name | source`, `| docs`, `| examples` walk the loaded module
-  AST. Install-path and locator-path stay symmetric on the
-  axis-operand discoverability surface.
+  binds `qlang/namespace/<nsName> → exports` per namespace, the
+  cache key `use :nsName` probes, so the export Map never shadows
+  an operand whose name matches the namespace stem. Install-path
+  and locator-path stay symmetric: the axis-operands read the docs
+  and the source each record holds.
 
 #### Dependency ordering
 
@@ -2932,8 +2920,9 @@ const restored = fromTaggedJSON(JSON.parse(wire));
 ```
 
 `toTaggedJSON` throws `TaggedJSONUnencodableValueError` for function
-values, conduits, and snapshots — these require the higher-level
-session serializer to reconstruct from source on restore.
+values and conduits, and for the record of a binding that holds one
+— these require the higher-level session serializer to reconstruct
+from source on restore.
 `fromTaggedJSON` throws `MalformedTaggedJSONError` on unrecognized
 tagged objects.
 

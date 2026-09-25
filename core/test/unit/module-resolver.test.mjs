@@ -115,7 +115,7 @@ describe('installModules', () => {
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
 
-    expect(sessionInstance.env.get('error')[TAG_HEADER_SYMBOL]).toBe(BUILTIN_TAG);
+    expect(sessionInstance.env.get('error').get('value')[TAG_HEADER_SYMBOL]).toBe(BUILTIN_TAG);
 
     const liftCell = await sessionInstance.evalCell('{:kind :x} | error !| type');
     expect(liftCell.error).toBeNull();
@@ -171,12 +171,10 @@ describe('installModules', () => {
 });
 
 describe('locator exports that are not builtin descriptors', () => {
-  it('leaves a Snapshot of a plain Map alone and stamps no impl onto it', async () => {
-    // The unwrap pass reaches inside every Snapshot a locator-loaded
-    // module exports, but only a `::builtin{…}` payload replaces its
-    // wrapper — a data binding stays a Snapshot. The impls pass then
-    // finds no builtin descriptor under that name and stamps nothing,
-    // so the binding keeps its authored value.
+  it('leaves the record of a plain Map alone and stamps no impl onto it', async () => {
+    // The impls pass reads the value of every record a locator-loaded
+    // module exports and finds no builtin descriptor under that name,
+    // so it stamps nothing and the binding keeps its authored value.
     const sessionInstance = await createSession({
       locator: async (namespaceName) => namespaceName === 'tests/plain-map'
         ? { source: ':cfg {:a 1}', impls: { cfg: () => 'never dispatched' } }
@@ -190,10 +188,10 @@ describe('locator exports that are not builtin descriptors', () => {
 
   it('leaves a `::Tag` bound to a literal alone rather than stamping a throw-site spec onto it', async () => {
     // `stampThrowSiteSpec` reads the recorded facts for the class the
-    // tag names, and a module binding that name to a literal gets a
-    // Snapshot, not a `::builtin` descriptor. Stamping the wrapper
-    // would put `:category` / `:operand` / `:expectedType` beside
-    // `:payload`, where `spec` never reads them.
+    // tag names, and a module binding that name to a literal holds a
+    // number in its record, not a `::builtin` descriptor, so the stamp
+    // finds no descriptor to write `:category` / `:operand` /
+    // `:expectedType` onto.
     const sessionInstance = await createSession({
       locator: async (namespaceName) => namespaceName === 'tests/literal-tag'
         ? { source: '::AsNameNotKeywordError 42' }

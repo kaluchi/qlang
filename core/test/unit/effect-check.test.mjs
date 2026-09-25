@@ -224,11 +224,11 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
     expect(originalErr.context.effectfulName).toBe('@callers');
   });
 
-  it('catches as snapshot of a function value bound to a clean name', async () => {
+  it('catches as of a function value bound to a clean name', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
     const cellEntry = await sessionInstance.evalCell(
-      '(env | /@callers) | as :snap | snap'
+      '(env | /@callers | /value) | as :snap | snap'
     );
     expect(isErrorValue(cellEntry.result)).toBe(true);
     const originalErr = cellEntry.result.originalError;
@@ -273,7 +273,7 @@ describe('function and conduit effectful field', () => {
   it('conduit created from :@name ... has :effectful true', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':@x count');
-    const conduit = Array.from(sessionInstance.env).find(([k]) => k === '@x')?.[1];
+    const conduit = sessionInstance.env.get('@x').get('value');
     expect(conduit).toBeDefined();
     expect(conduit.get('effectful')).toBe(true);
   });
@@ -281,7 +281,7 @@ describe('function and conduit effectful field', () => {
   it('conduit created from :cleanName ... has :effectful false', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':foo count');
-    const conduit = Array.from(sessionInstance.env).find(([k]) => k === 'foo')?.[1];
+    const conduit = sessionInstance.env.get('foo').get('value');
     expect(conduit).toBeDefined();
     expect(conduit.get('effectful')).toBe(false);
   });

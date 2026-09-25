@@ -266,7 +266,7 @@ connection.onReferences((params) => {
 
 const SYMBOL_KIND_MAP = {
   conduit:  SymbolKind.Function,
-  snapshot: SymbolKind.Variable,
+  value:    SymbolKind.Variable,
   tag:      SymbolKind.Struct
 };
 

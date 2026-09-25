@@ -153,9 +153,9 @@ bindTypeConstructor('doc',     coreKindConstructor(isDoc, DocPayloadNotDocError)
 // `::builtin` flattens the payload Map into a descriptor Map
 // carrying every payload entry at the top level. Identity rides
 // on the Map JS-header TAG_HEADER_SYMBOL slot — same pattern as
-// Conduit / Snapshot / TaggedInstance, with the catalog reader
-// sites (`isBuiltinDescriptor`, `runtime/use-op.mjs` snapshot-
-// unwrap, `manifest-op.mjs::describeBinding`) probing the header
+// Conduit / binding record / TaggedInstance, with the catalog
+// reader sites (`isBuiltinDescriptor`, the stamp passes of
+// `runtime/use-op.mjs` and `runtime/index.mjs`) probing the header
 // directly. The dedicated constructor keeps catalog descriptors
 // outside the generic TaggedInstance render path so manifest
 // surfaces stay readable as plain field Maps.
@@ -186,7 +186,7 @@ bindTypeConstructor('builtin', builtinConstructor);
 // `makeTaggedInstance` — composite payloads (Vec / Map) clone
 // with the TagKeyword stamped on the JS-header slot,
 // leaving the data plane intact; non-extensible payloads (scalar,
-// Keyword, Doc, Error, Conduit, Snapshot, already-tagged composite)
+// Keyword, Doc, Error, Conduit, already-tagged composite)
 // ride an opaque frozen `{type, tag, payload}` wrapper. `payload`
 // reverses each shape. Both operands ride the `:typeConversion`
 // family alongside `keyword`.
@@ -219,7 +219,7 @@ bindTypeConstructor('builtin', builtinConstructor);
 //     pipeValue is context for both — lets compact rebuild
 //     patterns like `pair | tag /1 /0` reorder elements of
 //     a positional Vec into the operand's value-then-tag
-//     order without an intermediate `as` snapshot.
+//     order without an intermediate `as` binding.
 
 const PayloadSubjectNotTaggedInstanceError = declareSubjectError(
   'PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');

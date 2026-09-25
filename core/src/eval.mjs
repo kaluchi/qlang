@@ -24,6 +24,7 @@ import {
   declareArityError
 } from './errors.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
+import { nearestNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
@@ -797,7 +798,7 @@ async function evalOperandCall(node, state) {
   const lookupEnv = state.env;
 
   if (!envHas(lookupEnv, lookupName)) {
-    throw new UnresolvedIdentifierError({ identifierName: lookupName });
+    throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
   }
 
   let resolved = envGet(lookupEnv, lookupName);

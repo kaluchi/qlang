@@ -25,7 +25,7 @@ import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix, moduleAstKey,
   canonicalTagName
 } from '../env-keys.mjs';
-import { addressedVerb, addressesOf, isNoun, isProviderBinding, verbsOfKind } from './nouns.mjs';
+import { addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, verbsOfKind } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
@@ -263,11 +263,14 @@ export const spec = stateOp('spec', 1, (state, _lambdas) => {
 });
 
 // The declaration of a provider's noun lists the verbs that live on it
-// [D61], computed from the subjects its providers' operands declare.
+// [D61], computed from the subjects its providers' operands declare,
+// and the refusals a query provokes on it, its own and its verbs' [D64].
 function withVerbsOfNoun(env, bindingName, declaration) {
   if (!isTagBindingName(bindingName) || !isNoun(env, stripTagBindingPrefix(bindingName))) return declaration;
+  const nounName = stripTagBindingPrefix(bindingName);
   const withVerbs = new Map(declaration);
-  withVerbs.set('verbs', verbsOfKind(env, stripTagBindingPrefix(bindingName)));
+  withVerbs.set('verbs', verbsOfKind(env, nounName));
+  withVerbs.set('throws', refusalsOfNoun(env, nounName, declaration.get('throws') ?? []));
   stampTagHeader(withVerbs, declaration[TAG_HEADER_SYMBOL]);
   return withVerbs;
 }

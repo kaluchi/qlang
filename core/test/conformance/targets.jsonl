@@ -46,6 +46,6 @@
 {"name":"a-used-value-is-a-binding-without-a-doc","query":"{:myConst 42} | use | env | /myConst | docs | empty","expect":"true","decision":"D63","target":true}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"::qlang | manifest | has ::error","expect":"true","decision":"D64"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64","target":true}
-{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::ProjectionKeyNotInMapError) | count","expect":"1","decision":"D64","target":true}
-{"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64","target":true}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64"}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::ProjectionKeyNotInMapError) | count","expect":"1","decision":"D64"}
+{"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}

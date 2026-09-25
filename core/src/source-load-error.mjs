@@ -20,5 +20,6 @@ export const SourceLoadError = declareForeignError('SourceLoadError',
       : (status !== undefined ? `HTTP ${status}` : '');
     return `failed to read qlang source '${logicalName}' from ${sourceLocation}` +
       (tail ? ` — ${tail}` : '');
-  }
+  },
+  { operand: 'use' }
 );

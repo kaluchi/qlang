@@ -127,7 +127,8 @@ function qMapToPlainObject(m) {
 // the reading a message string cannot carry.
 export const FromPlainNumberNotFiniteError = declarePerSiteError(
   'FromPlainNumberNotFiniteError', 'codecError',
-  () => 'fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number'
+  () => 'fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number',
+  { operand: 'parseJson' }
 );
 
 const FROM_PLAIN_HANDLERS = {

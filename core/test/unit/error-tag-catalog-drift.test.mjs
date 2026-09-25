@@ -69,6 +69,13 @@ const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
 ]);
 
+describe('every refusal names the place it guards [D64]', () => {
+  it('a throw site names a verb, a noun or a step of the language', () => {
+    const placeless = [...throwSiteSpecNames()].filter(className => throwSiteSpecOf(className).operand === undefined);
+    expect(placeless).toEqual([]);
+  });
+});
+
 // The core as a noun, the kind beneath every kind and the kind of
 // errors declare a page alone, and neither constructs nor refuses
 // [D62], [D64].

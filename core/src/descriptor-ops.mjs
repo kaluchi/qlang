@@ -151,9 +151,7 @@ export function stampThrowSiteSpec(binding, envKey) {
   const spec = throwSiteSpecOf(stripTagBindingPrefix(envKey));
   if (spec === undefined) return tagDescriptor;
   tagDescriptor.set('category', keyword(spec.category));
-  if (spec.operand !== undefined) {
-    tagDescriptor.set('operand', operandIdentifier(spec.operand));
-  }
+  tagDescriptor.set('operand', operandIdentifier(spec.operand));
   if (spec.position !== undefined) {
     tagDescriptor.set('position', typeof spec.position === 'number'
       ? spec.position

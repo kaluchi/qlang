@@ -3,6 +3,12 @@ import {
   makeErrorValue, makeTagKeyword, PARSE_ERROR_TAG
 } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
+import { recordThrowSiteSpec } from './errors.mjs';
+
+// The reading of text into code refuses on `::quote`, and an
+// implementation of a host that fails in a call on `::call` [D64].
+recordThrowSiteSpec('ParseError', 'parseError', { operand: '::quote' });
+recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
 
 // Descriptor field-order: high-entropy first. The per-site
 // identity (the same invariant every tagged-instance value-class

@@ -98,7 +98,6 @@
       any error; recovery is a `!|` step, and the repair belongs to
       the host.
   ~~|
-  ::builtin{:category :error}
 
 |~ ── 1. Projection segment-miss family ──────────────────── ~|
 
@@ -275,7 +274,7 @@
         |  eq :parseError
        )
   ~~|
-  ::builtin{:category :parseError}
+
 
 |~ ── 6. JSON codec invariants — plain and tagged ──────── ~|
 

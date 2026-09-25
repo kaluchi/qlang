@@ -24,7 +24,8 @@ export const FunctionValueLeakedToPrintError = declareInvariantError(
     'surface in pipeValue. Install a host operand through a locator returning ' +
     "{ source, impls } so the namespace pass stamps the callable onto the descriptor's " +
     'BUILTIN_IMPL_SLOT (see cli/src/cli-locator.mjs); a raw callable handed to ' +
-    'session.bind carries no qlang literal.'
+    'session.bind carries no qlang literal.',
+  { operand: '::qlang' }
 );
 
 // A qlang Number is a finite double (see `### number` in
@@ -41,7 +42,8 @@ export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
   'NumberNotFiniteLeakedToPrintError',
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
     "qlang Number lives in — a host installed it through session.bind or a locator's " +
-    'impls map, where source cannot mint one'
+    'impls map, where source cannot mint one',
+  { operand: '::qlang' }
 );
 
 // Reads the guard at every seam where a Number becomes observable.
@@ -518,7 +520,7 @@ export function withName(binding, newName) {
 export const ErrorTrailNotQuoteError = declareShapeError(
   'ErrorTrailNotQuoteError',
   ({ actualType }) => `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
-  { expectedType: ['quote', 'null'] }
+  { operand: '::error', expectedType: ['quote', 'null'] }
 );
 
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {

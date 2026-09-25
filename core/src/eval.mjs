@@ -64,44 +64,51 @@ export { materializePendingTrail };
 
 const UnknownAstNodeTypeError = declareInvariantError(
   'UnknownAstNodeTypeError',
-  ({ nodeType }) => `unknown AST node type: ${nodeType}`
+  ({ nodeType }) => `unknown AST node type: ${nodeType}`,
+  { operand: '::qlang' }
 );
 
 const UnknownCombinatorKindError = declareInvariantError(
   'UnknownCombinatorKindError',
-  ({ kind }) => `unknown combinator: ${kind}`
+  ({ kind }) => `unknown combinator: ${kind}`,
+  { operand: '::qlang' }
 );
 
 const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',
-  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`);
+  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`,
+  { operand: '::proj' });
 // Map subject does not carry the requested key. Strict fail-first
 // surfaces the typo / mismatched-shape on the projection itself; the
 // lifted descriptor carries `:key` plus the `:fault` step/input so
 // downstream `!| /key` reads the failed segment directly. null
 // subject still deflects as null (see projectSegment).
 const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
-  ({ key }) => `/${key} — key not present in Map subject`);
+  ({ key }) => `/${key} — key not present in Map subject`,
+  { operand: '::proj' });
 // Vec or Set subject indexed past its bounds. Negative indices walk
 // from the tail (`/-1` is last); only positions that resolve outside
 // `[0, length)` trip this site. A set indexes as the vector it is, in
 // the one order.
 const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
-  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`);
+  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`,
+  { operand: '::proj' });
 // Vec or Set subject projected by a non-numeric segment. Sequence
 // indices are integer offsets; named keys belong to Map shape, so
 // a `[…] | /name` query surfaces as a shape mismatch on the
 // projection itself.
 const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequenceKeyNotIntegerError',
-  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`);
+  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`,
+  { operand: '::proj' });
 // Value-class subjects (Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
 // that set is treated as a typo and lifts to this error.
 const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
   ({ key, valueClass, availableFields }) =>
-    `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
+    `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`,
+  { operand: '::proj' });
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
   ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`,
-  { expectedType: 'map' }
+  { operand: '::tagged', expectedType: 'map' }
 );
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
 // resolves the tag-binding but its `:impl` slot is empty
@@ -114,14 +121,15 @@ const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingErr
 // reads as a single shape contract.
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
-    `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
+    `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`,
+  { operand: '::tagged' });
 // The combinator names its qlang kind — `distribute`, the same
 // vocabulary `trailEntry` speaks — so the message and the catalog
 // tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
-  { expectedType: 'function' }
+  { operand: '::call', expectedType: 'function' }
 );
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
   ({ conduitName, expectedArity, actualArity }) =>

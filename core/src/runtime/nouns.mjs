@@ -114,6 +114,16 @@ export function verbsOfKind(env, tagName) {
   return makeSet(addresses);
 }
 
+// The refusals a query provokes on a noun: its own, then those of each
+// verb that lives on it, in the order of the verbs [D64]. A refusal
+// guards one site, so none repeats; a descriptor a module assembled
+// from data, its `:impl` a handle of the core, names none.
+export function refusalsOfNoun(env, tagName, ownRefusals) {
+  const verbRefusals = [...verbsOfKind(env, tagName)]
+    .flatMap(address => addressedVerb(env, address.name).descriptor.get('throws') ?? []);
+  return Object.freeze([...ownRefusals, ...verbRefusals]);
+}
+
 // What lies below a noun in the tree of names [D62]: the nouns under its
 // path and the addresses of the verbs that live on it, so `::number`
 // answers `::number/add` among its own and `::qlang`, with no verb of

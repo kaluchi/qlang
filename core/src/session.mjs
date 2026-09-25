@@ -34,19 +34,23 @@ const SESSION_SCHEMA_VERSION = 1;
 // Per-site session deserialization errors.
 const SessionPayloadInvalidError = declarePerSiteError(
   'SessionPayloadInvalidError', 'sessionError',
-  () => 'deserializeSession: invalid session payload'
+  () => 'deserializeSession: invalid session payload',
+  { operand: '::qlang' }
 );
 const SessionSchemaVersionMismatchError = declarePerSiteError(
   'SessionSchemaVersionMismatchError', 'sessionError',
-  ({ actual, expected }) => `deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`
+  ({ actual, expected }) => `deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`,
+  { operand: '::qlang' }
 );
 const SessionConduitSourceMissingError = declarePerSiteError(
   'SessionConduitSourceMissingError', 'sessionError',
-  ({ bindingName }) => `deserializeSession: conduit binding ${bindingName} has no source`
+  ({ bindingName }) => `deserializeSession: conduit binding ${bindingName} has no source`,
+  { operand: '::qlang' }
 );
 const SessionBindingKindUnknownError = declarePerSiteError(
   'SessionBindingKindUnknownError', 'sessionError',
-  ({ kind }) => `deserializeSession: unknown binding kind '${kind}'`
+  ({ kind }) => `deserializeSession: unknown binding kind '${kind}'`,
+  { operand: '::qlang' }
 );
 
 // createSession(opts?) → Session

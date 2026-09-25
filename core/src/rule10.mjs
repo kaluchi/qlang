@@ -29,7 +29,8 @@ import { brandValueClass } from './types.mjs';
 
 const Rule10ArityOverflowError = declareArityError('Rule10ArityOverflowError',
   ({ operandName, maxArity, actualArity }) =>
-    `${operandName} accepts at most ${maxArity} captured arguments, got ${actualArity}`);
+    `${operandName} accepts at most ${maxArity} captured arguments, got ${actualArity}`,
+  { operand: '::call' });
 
 // applyRule10(fn, lambdas, state) → Promise<state>
 //

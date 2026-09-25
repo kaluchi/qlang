@@ -245,7 +245,7 @@ the gates of milestone 0; a fact that was not measured says so:
 ```
 status — qlang-audit @ 05eb884, docs rewritten and uncommitted
 
-MODE   design · a decision lands in docs/qlang-audit.md with its source
+MODE   design · a decision lands in docs/decisions/ with its source
 
 GATES  milestone 0 · footing
   ✗ docs-on-master        the audit and this document live on qlang-audit only
@@ -268,7 +268,7 @@ been tried [E3]:
 > ::workflow | status
 ::workflow/status{
   :head {:branch "qlang-audit" :commit "05eb884" :changed [:docs]}
-  :mode ::workflow/mode{:name :design :rule "a decision lands in docs/qlang-audit.md with its source"}
+  :mode ::workflow/mode{:name :design :rule "a decision lands in docs/decisions/ with its source"}
   :gates [::workflow/gate{:name :docs-on-master :state :red}
           ::workflow/gate{:name :sister-on-workspace :state :red :blocks [:breaking-branch] :see ~(::jdt | status)}
           ::workflow/gate{:name :entrypoint :state :red :waits :maintainer}
@@ -278,7 +278,7 @@ been tried [E3]:
 
 The tags are placeholders for the schema the discussion settles, and
 they are qualified by their owner, since the values a host produces
-carry their owner in the prefix [D35 in the audit]. What the block
+carry their owner in the prefix [D35]. What the block
 fixes is that the dashboard is a literal whose parts are addressed by
 projection, `/gates`, and read in detail by a query on the part, the
 gate's page or the fact's text, under the budget and the elision of
@@ -364,8 +364,12 @@ Three sensors were written and run on 23 September 2026, and each found
 what no rule had caught. Two read the transcripts, the `.jsonl` files
 of the Claude Code project directory, whose record kinds the audit's
 chapter on reading names; the third runs a document's probes against
-the tree. They live here until they move into the module of the work
-[E2].
+the tree. They live in `scripts/sensors/` until they move into the
+module of the work [E2]. The two that read the transcripts run in a
+session on the maintainer's machine, where the transcripts are, and find
+them from the configuration directory of Claude Code and the working
+directory, `scripts/sensors/transcripts.mjs`; the probes run wherever
+the checkout is, CI included.
 
 The first measures reading. The transcript stores every read with the
 lines it returned and the lines the file had, `startLine`, `numLines`
@@ -378,31 +382,8 @@ length keeps its count, which a hash of the content the transcript also
 stores would close; a file the session wrote itself is in its window
 through the write, which the count leaves out.
 
-```js
-// How much of each file the window of a session holds. The transcript
-// stores every read with the lines it returned and the lines the file
-// had; a file whose length changed between reads starts its count
-// again, and a compaction's summary empties the count, since the reads
-// before it are gone from the window.
-import { readFileSync } from 'node:fs';
-
-const [transcript] = process.argv.slice(2);
-const coverage = new Map();
-for (const line of readFileSync(transcript, 'utf8').split(/\r?\n/)) {
-  let rec;
-  try { rec = JSON.parse(line); } catch { continue; }
-  if (rec.isCompactSummary) coverage.clear();
-  const read = rec.toolUseResult?.file;
-  if (!read?.totalLines) continue;
-  let seen = coverage.get(read.filePath);
-  if (seen?.total !== read.totalLines) seen = { total: read.totalLines, lines: new Set() };
-  for (let n = read.startLine; n < read.startLine + read.numLines; n++) seen.lines.add(n);
-  coverage.set(read.filePath, seen);
-}
-for (const [path, { total, lines }] of coverage) {
-  console.log(`${lines.size === total ? 'whole' : `${lines.size}/${total}`}\t${path}`);
-}
-```
+The sensor is `scripts/sensors/read-coverage.mjs`, and without an
+argument it reads the running session.
 
 The last rule came from the sensor's own first run. Over session
 86982eb5 on 23 September 2026 it reported every file of the instruction
@@ -412,7 +393,7 @@ had been compacted since, so its window held a summary of them. With
 the rule, the same run tells the truth:
 
 ```
-$ node read-coverage.mjs "$CLAUDE_CONFIG_DIR/projects/D--git-qlang/86982eb5-b2cf-436c-9285-96a0669d39e5.jsonl" | grep -cE 'grammar\.peggy|eval\.mjs|rule10|types\.mjs|core\.qlang|arith\.qlang'
+$ node scripts/sensors/read-coverage.mjs "$CLAUDE_CONFIG_DIR/projects/D--git-qlang/86982eb5-b2cf-436c-9285-96a0669d39e5.jsonl" | grep -cE 'grammar\.peggy|eval\.mjs|rule10|types\.mjs|core\.qlang|arith\.qlang'
 0
 ```
 
@@ -425,51 +406,9 @@ must occur, up to whitespace, in a message the maintainer typed: a
 record of kind `user` that is not a compaction's summary, or a message
 queued while the model worked.
 
-```js
-// Hold every «…» quote of the documents against the messages the
-// maintainer typed, in every transcript of a project directory. A quote
-// matches up to whitespace; an elision is written […] and each fragment
-// around it is looked up alone. Fenced blocks are code and are skipped.
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-
-const [projectDir, ...documents] = process.argv.slice(2);
-const squash = text => text.replace(/\s+/g, ' ').trim();
-
-function* typedByMaintainer(rec) {
-  if (rec.type === 'queue-operation' && rec.operation === 'enqueue') yield rec.content;
-  if (rec.type !== 'user' || rec.isCompactSummary) return;
-  const content = rec.message?.content;
-  if (typeof content === 'string') yield content;
-  else for (const part of content ?? []) if (part.type === 'text') yield part.text;
-}
-
-const messages = [];
-for (const file of readdirSync(projectDir).filter(name => name.endsWith('.jsonl'))) {
-  for (const line of readFileSync(join(projectDir, file), 'utf8').split(/\r?\n/)) {
-    let rec;
-    try { rec = JSON.parse(line); } catch { continue; }
-    for (const text of typedByMaintainer(rec)) {
-      if (typeof text === 'string' && !text.startsWith('<')) {
-        messages.push({ session: file.slice(0, 8), at: rec.timestamp.slice(0, 16), text: squash(text) });
-      }
-    }
-  }
-}
-
-for (const documentPath of documents) {
-  const prose = readFileSync(documentPath, 'utf8')
-    .replace(/^```[\s\S]*?^```/gm, fenced => fenced.replace(/[^\n]/g, ' '));
-  for (const quoted of prose.matchAll(/«([^»]+)»/g)) {
-    const fragments = squash(quoted[1]).split(/\s*\[…\]\s*/).filter(Boolean);
-    const found = messages.find(message => fragments.every(fragment => message.text.includes(fragment)));
-    const lineNo = prose.slice(0, quoted.index).split('\n').length;
-    console.log(found
-      ? `ok    ${documentPath}:${lineNo}  ${found.session} ${found.at}`
-      : `miss  ${documentPath}:${lineNo}  «${squash(quoted[1]).slice(0, 80)}»`);
-  }
-}
-```
+The sensor is `scripts/sensors/check-quotes.mjs`, and without an
+argument it reads the audit, this document and the records of
+`docs/decisions`.
 
 Its first run over both documents, which a rule to quote verbatim had
 governed from the start, found the rule broken five ways. The model had
@@ -492,96 +431,10 @@ writes them, since a probe records what was printed. An answer with …
 matches piece by piece, and a query that names an `@` operand runs on
 the command line.
 
-```js
-// Run the probes of a document against the tree. A probe is a line
-// beginning with "> " inside a fenced block, followed by the answer the
-// document records; under a fence marked `target` the answer is one the
-// tree must not give yet. Answers compare as the printer writes them,
-// because a probe records what was printed: a literal answer is read
-// and printed again, an answer with … matches piece by piece in order,
-// and a query that names an `@` operand runs on the command line. A
-// literal answer that prints alike and is another value is lossy: the
-// printer dropped something the value had.
-import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
-import { execFileSync } from 'node:child_process';
-
-const [repo, ...documents] = process.argv.slice(2);
-const core = file => import(pathToFileURL(`${repo}/core/src/${file}`).href);
-const { evalQuery } = await core('eval.mjs');
-const { printValue } = await core('index.mjs');
-const { parse } = await core('parse.mjs');
-const { deepEqual } = await core('equality.mjs');
-const squash = text => text.replace(/\s+/g, ' ').trim();
-
-function probesOf(source) {
-  const probes = [];
-  let fence = null;
-  let open = null;
-  const close = () => {
-    if (open?.answer.length) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
-    open = null;
-  };
-  source.split('\n').forEach((line, index) => {
-    if (line.startsWith('```')) {
-      close();
-      fence = fence === null ? line.slice(3).trim() : null;
-    } else if (fence !== null && line.startsWith('> ')) {
-      close();
-      open = { target: /\btarget\b/.test(fence), line: index + 1, query: line.slice(2).trim(), answer: [] };
-    } else if (open && open.answer.length === 0 && line.startsWith('  ')) {
-      open.query += '\n' + line.trim();
-    } else if (open && line.trim() === '') {
-      close();
-    } else if (open) {
-      open.answer.push(line);
-    }
-  });
-  close();
-  return probes;
-}
-
-function onCommandLine(query) {
-  try {
-    return execFileSync(process.execPath, [`${repo}/cli/src/bin.mjs`, query], { cwd: repo, encoding: 'utf8', stdio: 'pipe' });
-  } catch (failed) {
-    return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
-  }
-}
-
-async function printedByCore(query) {
-  try { return squash(printValue(await evalQuery(query))); } catch (thrown) { return `threw ${thrown.message}`; }
-}
-
-// An answer that is no literal, a raw string the command line printed,
-// compares as the text the command line prints.
-async function answersAsRecorded({ query, answer }) {
-  if (answer.includes('…')) {
-    const printed = squash(onCommandLine(query));
-    let from = 0;
-    for (const piece of answer.split(/\s*…\s*/).filter(Boolean)) {
-      const at = printed.indexOf(piece, from);
-      if (at < 0) return false;
-      from = at + piece.length;
-    }
-    return true;
-  }
-  if (/(^|\W)@\w/.test(query)) return squash(onCommandLine(query)) === answer;
-  // A string prints raw, and its text may read as words of the command form.
-  if (typeof await evalQuery(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
-  try { parse(answer); } catch { return squash(onCommandLine(query)) === answer; }
-  if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
-  try { return deepEqual(await evalQuery(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
-}
-
-for (const documentPath of documents) {
-  for (const probe of probesOf(readFileSync(documentPath, 'utf8'))) {
-    const agrees = await answersAsRecorded(probe);
-    const verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
-    console.log(`${verdict.padEnd(7)}${documentPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}`);
-  }
-}
-```
+The sensor is `scripts/sensors/run-probes.mjs`, and without an
+argument it reads the audit and this document. A probe whose line
+begins with `$` is a record of the machine it ran on, and the runner
+leaves it unrun.
 
 Its first version compared by value, as the compliance test does, and
 disagreed with a probe whose print agreed. The disagreement was a
@@ -593,16 +446,16 @@ raw on the command line, and its text may read as words of the command
 form, so the runner holds a string's answer against its raw print first.
 
 ```
-$ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
+$ node scripts/sensors/run-probes.mjs | awk '{print $1}' | sort | uniq -c
       2 LOSSY
-     19 MET
-     77 ok
-     11 target
+     41 ok
+      1 target
 ```
 
 The two lossy probes are the descriptor's; every other probe of both
 documents gives the recorded answer, and a target the tree now answers
-is reported as met.
+is reported as met; every target that a literal can state is a
+conformance case naming its decision, which the runner holds [D58].
 
 ## What the maintainer repeats
 
@@ -778,19 +631,19 @@ qlang-литералом дашборд в духе темной кабины в
 Read against the audit, that sketch is the first real user of three of
 its decisions at once. `::workflow | start`, which became
 `::workflow | status` [E5], is a verb found through the subject's tag
-[D34 in the audit]: the verb belongs to `::workflow`. The
+[D34]: the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag with a schema [D6 in the audit], printed as
+case, a metric, each a tag with a schema [D6], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
-[D21 in the audit].
+[D21].
 
 The mechanism the sketch needs: the command line finds a folder of
 modules above the working directory, as git finds its directory,
 serves them as host catalogs whose implementations are the sensors,
 reading git, the test results, the files and the transcript, loads the
-one the query asks for, and applies the verb [E1, E2].
+one the query asks for, and applies the verb [E1], [E2].
 The world of the work becomes a domain like the sister project's graph:
 its nouns are tags and addresses, its verbs few. The hook calls the
 same command and hands its output to the session within the cap,
@@ -800,102 +653,9 @@ become the benchmark's first domain with real expected values.
 
 ## Decisions
 
-The decisions of this document are numbered E1 onward and recorded as
-the audit records its own; the audit cites them as [E1 in the
-entrypoint document].
-
-### E1 · The modules of the work live in `.qlang/`
-
-Decision. A project keeps the qlang modules of its work in `.qlang/` at
-its root. The command line finds the folder by walking up from the
-working directory, as git finds `.git`, and serves its modules to
-`use`: `.qlang/<name>.qlang` is a module, and `.qlang/<name>.mjs`, when
-present, carries the implementations of the module's host operands. A
-module loads only when a query asks for it, so the command line run as
-a filter inside someone else's repository executes none of its code.
-Until mounted namespaces arrive [D24 in the audit] the entrypoint is
-`qlang 'use :workflow | start'`; with them the folder is mounted,
-`::workflow` finds its module, and the command becomes the maintainer's
-sketch.
-Source. «где консольный qlang найдет в cwd папочку с qlang-модулями
-загрузит их и запустит стартовый скрипт» (maintainer, 2026-09-23 09:46,
-session 86982eb5); the folder's name, the search and the loading on
-request, the model, 23 September 2026.
-Set aside. A visible folder such as `workflow/`, which puts the process
-among the product; loading every module of the folder on every run,
-which executes a repository's code whenever anyone pipes JSON through
-`qlang` inside it; a list of modules in a configuration file, a second
-spelling of what the folder already says.
-Replaced in part by E5, which makes the command `qlang 'status'`; the
-folder, its search and the loading on request stand.
-
-### E2 · Sensors are host operands, the screen is composed in qlang
-
-Decision. The sensors that read git, files and transcripts are host
-operands implemented in `.qlang/workflow.mjs` and declared, with their
-documents and examples, in `.qlang/workflow.qlang`; the gates, the
-facts and the dashboard are composed in qlang in the same module. The
-first gates are the gates of milestone 0 in the audit, and the first
-instruments are the three sensors of this document.
-Source. The model, 23 September 2026: a session's transcript runs to
-megabytes of JSON lines, reading it through the language costs more
-than the answer is worth, and the sensors exist in JavaScript already.
-Set aside. Measurement in qlang over generic host primitives that read
-a file or run git, which turns the command line into a runner of
-arbitrary reads and still leaves the transcript too heavy to fold in the
-language.
-
-### E3 · The first screen is a literal
-
-Decision. `start` answers a value under `::dashboard`, and the command
-line prints it as the literal. The dark rendering is a property of the
-value, which carries only what deviates, and no renderer stands between
-the value and the session. Every part of the value is a record under a
-tag the module declares with its document, so the screen explains
-itself through `docs`.
-Source. «и выплюнет qlang-литералом дашборд в духе темной кабины»
-(maintainer, 2026-09-23 09:46, session 86982eb5); the rest, the model,
-the same day.
-Set aside. A text renderer at the end of the pipe, which gives the
-screen a second spelling before the first has been tried.
-Replaced in part by E5: the verb is `status`, and its answer is a
-record under the tag of the noun it describes.
-
-### E4 · The hook pushes the same screen at every start
-
-Decision. `SessionStart`, for every source it reports, runs the
-entrypoint in the repository and returns its output to the session
-within the cap. The hook reads the session's transcript through the
-path it is given, and the reading it reports counts from the last
-compaction. On the maintainer's machine it is configured in
-`.claude/settings.local.json`, which git ignores, until the screen has
-proved itself; then it moves to `.claude/settings.json`, and every
-session of the repository starts from it.
-Source. The model, 23 September 2026, from the mechanics of this
-document and the first run of the reading sensor.
-
-### E5 · The first command is `qlang 'status'`
-
-Decision. A session starts from `qlang 'status'` in its repository.
-The subject is the noun of the nearest `.qlang/` folder [D37 in the
-audit], and `status` answers the state of the work as a record under
-that noun's tag. `docs` teaches and `status` shows: `::qlang | docs` is
-the language on one screen, `::qlang | status` what is mounted and
-where the session stands, and each noun's status speaks of that noun
-alone, a dependency appearing as a gate that links to the other noun's
-status and never as a copy of it. The line that says how to read a
-screen and where the documents are is appended by the host once per
-session, keyed by the session's identity. `jdt q 'status'` gives the
-sister project's screen by the same mechanism.
-Source. «если мы уже придумали что status у нас будет отвечать за
-онбординг работы с инструментом .. то тогда должна быть команда и
->qlang 'status'» (maintainer, 2026-09-23 16:32, session 86982eb5);
-composition by reference and the line once per session, the model, the
-same day.
-Set aside. A seed that carries the composition,
-`qlang '[/ ::jdt] * status'`, which the screen teaches once it has said
-that `::jdt` is worth asking; `status` as a verb of the core, which the
-maintainer judged a concern of the hosts [D34 in the audit].
+The decisions of this document are numbered E1 onward, since they treat
+the environment of the work, and live one to a file beside the audit's,
+`docs/decisions/En.md` [D58].
 
 ## Open questions
 
@@ -926,3 +686,13 @@ decision and no record followed.
 
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
+
+[D6]: decisions/D6.md
+[D21]: decisions/D21.md
+[D34]: decisions/D34.md
+[D35]: decisions/D35.md
+[D58]: decisions/D58.md
+[E1]: decisions/E1.md
+[E2]: decisions/E2.md
+[E3]: decisions/E3.md
+[E5]: decisions/E5.md

@@ -11,18 +11,24 @@ wins and this file is what changes.
 
 1. Read `docs/qlang-audit.md` in full, its chapter on reading first.
    It carries the mission, the satisfactory state, the principles, the
-   scars, the numbered decisions, the finish, and the route of
-   milestones. `docs/qlang-entrypoint.md` designs the computed context
-   a session starts from and carries the sensors that measure a
-   session's reading and the audit's quotes.
+   scars, the finish, and the route of milestones. Each numbered
+   decision is a file under `docs/decisions/`, opened where the audit
+   cites it, and `node scripts/requirements.mjs` lists the
+   requirements every decision left and which the tree meets.
+   `docs/qlang-entrypoint.md` designs the computed context a session
+   starts from. Its sensors live in `scripts/sensors/`: the probes run
+   wherever the checkout is, and the readers of the transcripts in a
+   session on the maintainer's machine.
 2. `git status && git log --oneline -3`, then `npm test` at the repo
    root, in the background while reading. The git snapshot the
    harness injects at the start of a session goes stale; the status
    you run is the truth.
 3. State in one paragraph where the work stands: the scar at hand, or
    the question under discussion.
-4. Before the session ends, write every decision taken into the
-   audit. A decision that survives only in a conversation is lost.
+4. Before the session ends, write every decision taken as a file
+   under `docs/decisions/`, with the requirements it leaves as target
+   cases of the conformance suite. A decision that survives only in a
+   conversation is lost.
 
 ## Bootstrap recipe
 
@@ -139,15 +145,21 @@ that lands, where a rule and the audit disagree, the audit wins.
 - A branch repairs one scar or one part of one, states in its
   description what it shows when it lands, and reports the sign of
   its diff by area: core sources, catalog, documents, tests.
+- A branch that works targets, a subagent's in its own worktree
+  among them, starts from a green baseline, leaves the decision
+  records, the conformance cases and the gates as it found them, and
+  drops only the mark of a target it met (`docs/decisions/D59.md`).
+  Review it with the baseline's copy of `node scripts/gate-diff.mjs
+  --task Dnn`.
 - Tests first for any new public surface. `npm run ci` green before a
   push.
 - Commit on request. Push only on an explicit invitation. Never amend.
   Ask which merge strategy to use before merging. Delete the branch
   after the merge, locally and on the remote.
-- Write the decisions into the audit in the same session as the work,
-  hold its quotes against the transcripts with the sensor the
-  entrypoint document carries, and remove a scar the tree no longer
-  shows.
+- Write the decisions as files under `docs/decisions/` in the same
+  session as the work, hold their quotes against the transcripts with
+  `node scripts/sensors/check-quotes.mjs`, and remove a scar the tree
+  no longer shows.
 
 ## Release
 

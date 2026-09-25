@@ -1,20 +1,20 @@
-{"name":"distribute-replaces-the-values-under-their-keys","query":"{:a 1 :b 2} * add 1","expect":"{:a 2 :b 3}"}
-{"name":"distribute-keeps-the-order-of-the-keys","query":"{:b 2 :a 1} * add 1 | vals","expect":"[3 2]"}
-{"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
-{"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]"}
-{"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}"}
-{"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort ~(/n) | vals * /n","expect":"[1 2]"}
-{"name":"take-cuts-the-first-entries","query":"{:a 1 :b 2 :c 3} | take 2","expect":"{:a 1 :b 2}"}
-{"name":"drop-cuts-the-first-entries-away","query":"{:a 1 :b 2 :c 3} | drop 2","expect":"{:c 3}"}
-{"name":"reverse-reverses-the-entries","query":"{:a 1 :b 2} | reverse | vals","expect":"[2 1]"}
-{"name":"sum-reads-the-values","query":"{:a 1 :b 2} | sum","expect":"3"}
-{"name":"min-reads-the-values","query":"{:a 3 :b 1} | min","expect":"1"}
-{"name":"max-reads-the-values","query":"{:a 3 :b 1} | max","expect":"3"}
-{"name":"first-reads-the-first-value","query":"{:a 1 :b 2} | first","expect":"1"}
-{"name":"last-reads-the-last-value","query":"{:a 1 :b 2} | last","expect":"2"}
-{"name":"reduce-folds-the-values","query":"{:a 1 :b 2} | reduce 0 ~(add)","expect":"3"}
-{"name":"keys-answers-the-sorted-set-of-keys","query":"{:b 1 :a 2} | keys | first","expect":":a"}
-{"name":"inter-selects-by-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | inter [:a :c]","expect":"{:a 1 :c 3}"}
-{"name":"minus-removes-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | minus [:a :c]","expect":"{:b 2}"}
-{"name":"a-predicate-of-two-parameters-is-refused-on-a-map","query":"{:a 1 :b 2} | :kv [:k :v] (v | gt 1) | filter ~(kv) !| type","expect":"::FilterPredArityInvalidError"}
-{"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null"}
+{"name":"distribute-replaces-the-values-under-their-keys","query":"{:a 1 :b 2} * add 1","expect":"{:a 2 :b 3}","decision":"D15"}
+{"name":"distribute-keeps-the-order-of-the-keys","query":"{:b 2 :a 1} * add 1 | vals","expect":"[3 2]","decision":"D15"}
+{"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}","decision":"D15"}
+{"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]","decision":"D15"}
+{"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}","decision":"D15"}
+{"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort ~(/n) | vals * /n","expect":"[1 2]","decision":"D15"}
+{"name":"take-cuts-the-first-entries","query":"{:a 1 :b 2 :c 3} | take 2","expect":"{:a 1 :b 2}","decision":"D15"}
+{"name":"drop-cuts-the-first-entries-away","query":"{:a 1 :b 2 :c 3} | drop 2","expect":"{:c 3}","decision":"D15"}
+{"name":"reverse-reverses-the-entries","query":"{:a 1 :b 2} | reverse | vals","expect":"[2 1]","decision":"D15"}
+{"name":"sum-reads-the-values","query":"{:a 1 :b 2} | sum","expect":"3","decision":"D15"}
+{"name":"min-reads-the-values","query":"{:a 3 :b 1} | min","expect":"1","decision":"D15"}
+{"name":"max-reads-the-values","query":"{:a 3 :b 1} | max","expect":"3","decision":"D15"}
+{"name":"first-reads-the-first-value","query":"{:a 1 :b 2} | first","expect":"1","decision":"D15"}
+{"name":"last-reads-the-last-value","query":"{:a 1 :b 2} | last","expect":"2","decision":"D15"}
+{"name":"reduce-folds-the-values","query":"{:a 1 :b 2} | reduce 0 ~(add)","expect":"3","decision":"D15"}
+{"name":"keys-answers-the-sorted-set-of-keys","query":"{:b 1 :a 2} | keys | first","expect":":a","decision":"D15"}
+{"name":"inter-selects-by-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | inter [:a :c]","expect":"{:a 1 :c 3}","decision":"D15"}
+{"name":"minus-removes-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | minus [:a :c]","expect":"{:b 2}","decision":"D15"}
+{"name":"a-predicate-of-two-parameters-is-refused-on-a-map","query":"{:a 1 :b 2} | :kv [:k :v] (v | gt 1) | filter ~(kv) !| type","expect":"::FilterPredArityInvalidError","decision":"D15"}
+{"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null","decision":"D15"}

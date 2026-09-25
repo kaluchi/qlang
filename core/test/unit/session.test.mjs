@@ -128,6 +128,16 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect((await restored.evalCell('5 | triple')).result).toBe(15);
   });
 
+  it('keeps a binding that shadows a verb of the core, and no key of the runtime', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':count 5');
+    const payload = await serializeSession(sessionInstance);
+    expect(payload.bindings.map(binding => binding.name)).toEqual(['count']);
+    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
+    expect((await restored.evalCell('[1 2 3] | count')).result).toBe(5);
+    expect((await restored.evalCell('[1 2 3] | vec/count')).result).toBe(3);
+  });
+
   it('restored conduits honor lexical scope (immune to caller-side shadowing)', async () => {
     // `evalBindStep` wires envRef.env to the env captured at declaration
     // time, so a later cell that shadows `mul` does not affect the

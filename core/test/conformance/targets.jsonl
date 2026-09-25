@@ -52,8 +52,8 @@
 {"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | spec | /verbs | has ::string/gt","expect":"true","decision":"D65","target":true}
 {"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}
-{"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66","target":true}
-{"name":"a-declaration-names-a-keyword","query":":status :active | env | /status | /value","expect":":active","decision":"D66","target":true}
+{"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66"}
+{"name":"a-declaration-names-a-keyword","query":":status :active | env | /status | /value","expect":":active","decision":"D66"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)","decision":"D67"}
 {"name":"a-verb-takes-a-slot-by-its-declaration","query":":m ::verb~(:x ::number | mul 10 | add x) | 2 | m 3","expect":"23","decision":"D67","target":true}
 {"name":"an-optional-slot-takes-its-default","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67","target":true}

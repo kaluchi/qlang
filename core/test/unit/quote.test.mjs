@@ -70,8 +70,9 @@ describe('assembling steps by hand', () => {
       .toBe(':six add 1');
   });
 
-  it('a keyword body reads back as a keyword of its own', async () => {
-    expect(await refusal('::bind{:name :s :body :active}')).toEqual(await tagOf('::BindReadBackDiffersError'));
+  it('a keyword or a tag name is the body of its declaration [D66]', async () => {
+    expect(await evalQuery('::bind{:name :s :body :active} | [/] | tag ::quote | parse')).toBe(':s :active');
+    expect(await evalQuery('::bind{:name :s :body ::vec} | [/] | tag ::quote | parse')).toBe(':s ::vec');
   });
 
   it('a payload that opens with a digit reads back into the tag name', async () => {

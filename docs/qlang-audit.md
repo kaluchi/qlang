@@ -964,18 +964,6 @@ syntax rather than written by the author, and the language server
 re-derives the same predicate to label a symbol. The tag-namespace form
 of the binding adds a third declaration syntax.
 
-A keyword or a tag name cannot be a body (`core/src/grammar.peggy`,
-`BindBody`), and a declaration written after a space continues the
-pipeline as if a pipe stood before it, so a declaration that names a
-kind reads as the keyword followed by a declaration of the kind, which
-lands in the scope without a word; the repair lets a body be a keyword
-or a tag name [D66]:
-
-```qlang
-> :s ::vec / | env | /"::vec" | /source
-~(::vec /)
-```
-
 Comments are the larger half of this scar. They are pipeline steps
 that absorb the combinators on either side; a line comment eats to the
 end of the line, so the closing marker shown in the reference is

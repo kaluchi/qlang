@@ -2,11 +2,9 @@
 // canonical encoder/decoder pair between Vec/Map/Set/keyword/scalar
 // values and a JSON form that survives `JSON.stringify` round-trips.
 //
-// The tagged form mirrors what test/unit/conformance.test.mjs
-// hydrates from .jsonl test cases, lifted out of the test runner
-// into a shared module so notebook session save/restore, REPL
-// persistence across browser reloads, and any serialization
-// caller all share one wire format.
+// The tagged form is the wire format of the session envelope
+// (`serializeSession`) and of the command line's `tjson` and
+// `parseTjson` verbs.
 //
 // Wire-format convention: a bare JSON array is a Vec and a bare JSON
 // object a Map, the shapes JSON has. The value-classes JSON lacks

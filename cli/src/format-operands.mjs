@@ -24,11 +24,9 @@ function cellTextOf(cellValue) {
 
 // Columns follow the first occurrence of each key across the rows.
 function columnOrderOf(rows) {
-  const columnNames = [];
-  for (const row of rows) {
-    for (const columnName of row.keys()) if (!columnNames.includes(columnName)) columnNames.push(columnName);
-  }
-  return columnNames;
+  const columnNames = new Set();
+  for (const row of rows) for (const columnName of row.keys()) columnNames.add(columnName);
+  return [...columnNames];
 }
 
 const prettyOperand = nullaryOp('pretty', (subject) => printValue(subject));

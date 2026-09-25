@@ -1290,8 +1290,17 @@ changes are discarded. See the
    `@`-prefixed writer) must not lean on the order those effects
    land in across siblings.
 
-6. **Shadowing.** A later `:name ...` in the same scope replaces
-   the earlier one for subsequent uses.
+6. **One declaration per scope.** A name is declared once in a
+   scope: the steps the pipe or the fail track joins share one env,
+   and a second declaration of a name there is refused with
+   `::BindNameDeclaredTwiceError`. A declaration in a nested scope
+   — a group, an element, a modifier, a quote, a step joined by
+   `*` — shadows the outer one for the steps after it.
+
+   ```qlang
+   > :k 1 | (:k 2 | k)
+   2
+   ```
 
 7. **Resolution order**: last-write-wins in `env`. Under typical
    pipeline order (runtime loaded first, then user BindStep
@@ -2465,8 +2474,8 @@ true false null
 
 The declarative binding form `:name body` is a BindStep — a grammar
 production whose key carries a leading colon. Shadowing of its
-target name happens by a later BindStep / `use` write to the same
-`env[:name]` slot. All other identifiers are resolved
+target name happens by a BindStep of a nested scope or a `use`
+write to the same `env[:name]` slot. All other identifiers are resolved
 at evaluation time against the current `env`.
 
 ---

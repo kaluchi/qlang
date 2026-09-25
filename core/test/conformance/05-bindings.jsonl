@@ -14,3 +14,11 @@
 {"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":@two ::verb~(2) | :n @two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
 {"name":"as-is-no-operand","query":"42 | as :x !| type","expect":"::UnresolvedIdentifierError","decision":"D70"}
+{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::BindNameDeclaredTwiceError :k]","decision":["D44","D71"]}
+{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /faultStep","expect":"~(:k 2)","decision":"D71"}
+{"name":"a-tag-is-declared-once-in-a-scope","query":"::T {} | ::T {} !| [type /name]","expect":"[::BindNameDeclaredTwiceError ::T]","decision":"D71"}
+{"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | error {:k 1} !| :x 2 !| [type /name]","expect":"[::BindNameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}
+{"name":"a-distributed-step-declares-in-each-element","query":":x 1 | [2 3] * :x / | x","expect":"1","decision":"D71"}
+{"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}
+{"name":"a-name-of-the-catalog-is-shadowed-by-a-declaration","query":":count 5 | count","expect":"5","decision":"D71"}

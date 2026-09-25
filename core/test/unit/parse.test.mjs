@@ -682,7 +682,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('shadowing redeclare overrides docs Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      '|~~| Old.\n:foo 1\n|~~| Brand new.\n|~~| With extra remark.\n:foo 2\n| :foo | docs * /content'
+      '|~~| Old.\n:foo 1\n| (|~~| Brand new.\n|~~| With extra remark.\n:foo 2\n| :foo | docs * /content)'
     );
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });

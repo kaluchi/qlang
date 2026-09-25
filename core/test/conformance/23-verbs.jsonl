@@ -69,3 +69,6 @@
 {"name":"a-verb-names-its-subject-by-a-freeze","query":":pair ::verb~(:self / | [self self]) | 5 | pair","expect":"[5 5]","decision":"D70"}
 {"name":"a-freeze-after-the-slots-begins-the-body","query":":scale ::verb~(:k ::number | :self / | mul k | add self) | 5 | scale 2","expect":"15","decision":"D70"}
 {"name":"the-head-ends-where-a-declaration-computes","query":":m ::verb~(:k ::number | :self / | mul k) | :m | spec | payload | parse","expect":"\":subject ::any | :k ::number\"","decision":"D70"}
+{"name":"a-body-that-declares-a-slot-again-is-refused","query":":f ::verb~(:n 1 | :n (n | add 1) | n) | null | f !| [type /name]","expect":"[::BindNameDeclaredTwiceError :n]","decision":"D71"}
+{"name":"a-verb-body-shadows-a-name-of-its-scope","query":":n 1 | :f ::verb~(:n 2 | n) | null | [f n]","expect":"[2 1]","decision":"D71"}
+{"name":"a-head-that-declares-a-slot-twice-is-refused","query":"::verb~(:n 1 | :n 2 | n) !| [type /name]","expect":"[::BindNameDeclaredTwiceError :n]","decision":"D71"}

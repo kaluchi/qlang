@@ -920,7 +920,7 @@ modifiers the parser gives the command (`lsp/src/features.mjs`,
 `signatureHelpAtOffset`) and labels them from the descriptor's
 `:modifiers`; it reads the slot record once the runtime executes one.
 
-### Comments that are steps, and a name declared twice
+### Comments that are steps
 
 Comments are pipeline steps that absorb the combinators on either
 side; a line comment eats to the end of the line, so the closing marker
@@ -951,37 +951,6 @@ already is: the doc form `|~~ … ~~|` is that literal today, a
 standalone doc value anywhere and the documentation of a binding when
 it stands between the name and the body, and only the plain forms
 become whitespace.
-
-Code moved into a declaration further left answers as it did inline
-when it is a verb, read at each mention against the subject there, while
-a value is computed where it is declared, as its spelling shows:
-
-```qlang
-> {:items [1 2 3] :limit 2} | /items | take (count | sub 1)
-[1 2]
-
-> {:items [1 2 3] :limit 2} | :most ::verb~(count | sub 1) | /items | take most
-[1 2]
-
-> {:items [1 2 3] :limit 2} | :most (count | sub 1) | /items | take most
-[1]
-```
-
-A quote or a verb moved left means the same wherever its names mean the
-same, and a name is declared once in a scope, so the move either
-answers as the inline form did or is refused [D44]; a second declaration
-of a name shadows the first without a word:
-
-```qlang
-> :k 1 | :k 2 | k
-2
-```
-
-The pipe is linear continuation and the binding is a branch to the
-side: `x | f` hands f's result onward, `x | :name f` names f's value and
-hands x onward, so `5 | :six inc | :again inc` names six twice while `5
-| inc | inc` reaches seven. A name is for the non-linear reach, a value
-wanted again later or beside another; the linear reach is the pipe.
 
 ### Modules that dissolve into their clients
 

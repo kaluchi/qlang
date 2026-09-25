@@ -215,6 +215,22 @@
 
 |~ ── 5. Identifier-lookup and parse-time failures ───────── ~|
 
+::BindNameDeclaredTwiceError
+  |~~ A name is declared once in a scope: the steps of a pipeline
+      that the pipe or the fail track joins share one env, and a
+      declaration of a name one of them declared before is refused
+      where it stands. A group, an element, a modifier, a quote and
+      a step joined by `*` open scopes of their own, where a name
+      of the scope around them is shadowed.
+
+      ~(
+        :k 1 | :k 2
+        !| [type /name]
+        |  eq [::BindNameDeclaredTwiceError :k]
+       )
+      ~(:k 1 | (:k 2 | k) | eq 2)
+  ~~|
+
 ::ApplyToNonFunctionError
   |~~ A name the scope binds to a value takes no modifiers.
       `:addresses` names where a verb of that name lives, one the

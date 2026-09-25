@@ -21,11 +21,11 @@ import { mintUnderTag } from './dispatch.mjs';
 import { addressesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, quoteOfBody, quoteOfSource } from '../quote.mjs';
-import { isPlainCommentStep, isPureLiteralAst } from '../walk.mjs';
+import { declaredNameOf, isPlainCommentStep, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
 import { canonicalTagName } from '../env-keys.mjs';
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
-import { EffectLaunderingAtCallError, declareArityError, declareShapeError } from '../errors.mjs';
+import { BindNameDeclaredTwiceError, EffectLaunderingAtCallError, declareArityError, declareShapeError } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import {
   isQuote, isVec, isQMap, isVerb, isErrorValue, isValueClass, keyword, makeTagKeyword, makeBinding,
@@ -157,6 +157,7 @@ function readSignature(quote) {
     if (declaration.key.type !== 'Keyword') {
       throw new VerbSlotNameNotKeywordError({ slot: makeTagKeyword(declaration.key.tag) });
     }
+    if (repeatsDeclarationInScope(declaration)) throw new BindNameDeclaredTwiceError({ name: declaredNameOf(declaration) });
     const name = declaration.key.name;
     if (ROLE_NAMES.has(name)) {
       if (name === 'subject') signature.subjectKinds = kindsOfRole(declaration);

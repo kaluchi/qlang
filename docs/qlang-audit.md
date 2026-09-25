@@ -126,6 +126,12 @@ Some rules for whoever edits the document, each learnt at a cost:
 - Nothing here is condensed or deleted without the maintainer's word,
   except a sentence that the tree proves wrong, which is replaced by
   the fact and its probe.
+- The scars hold what the tree shows as a problem against the baseline
+  of the version. A sentence about what a repair removed leaves them,
+  and the history of the project tells the repair: «если относительно
+  текущего бейзлайна предложение выглядит уже неактуальным - то его не
+  должно быть в скарах» (maintainer, 2026-09-25 16:52, session
+  86982eb5).
 
 ## The mission
 

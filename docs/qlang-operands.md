@@ -1113,44 +1113,50 @@ its own eval handler in `eval.mjs`.
 
 ### `source`
 
-- **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
-- Returns the quote of the binding's declaring BindStep (or
-  `as :name` OperandCall) found across loaded modules.
+- **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
+  (`::Tag`) reads the binding it names; every other value reads the
+  declaration of its kind, the kind `type` answers, so `5 | source`
+  reads `::number` and `{:kind ::set} | source` reads `::map`.
+- Returns the quote of the binding's declaring step, a BindStep or an
+  `as :name` call, found across loaded modules.
 - **Examples**:
   - `:count | source | parse` → the `:count` declaration as text.
   - `::conduit | source | parse` → the `::conduit` tag-binding as text.
-- **Errors**: subject not a Keyword or TagKeyword →
-  `SourceSubjectNotKeywordOrTagError`; no declaring step found →
-  `SourceBindingNotFoundError`.
+- **Errors**: no declaring step found → `SourceBindingNotFoundError`.
 
 ### `docs`
 
-- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged value (any value carrying a TagKeyword on its JS-header identity slot — TaggedInstance, Conduit, Snapshot, materialized error).
+- **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
+  (`::Tag`) reads the binding it names; every other value reads the
+  declaration of its kind, the kind `type` answers, so `5 | docs`
+  reads `::number` and `{:kind ::set} | docs` reads `::map`.
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
   - `:count | docs` → Vec of Doc-values from the `:count` catalog entry.
   - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
-- **Errors**: subject not a Keyword / TagKeyword →
-  `DocsSubjectNotKeywordOrTagError`; no declaring step found →
-  `DocsBindingNotFoundError`.
+- **Errors**: no declaring step found → `DocsBindingNotFoundError`.
 
 ### `examples`
 
-- **Arity** 1. **Subject** Keyword, TagKeyword, or tagged value (any value carrying a TagKeyword on its JS-header identity slot — TaggedInstance, Conduit, Snapshot, materialized error).
+- **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
+  (`::Tag`) reads the binding it names; every other value reads the
+  declaration of its kind, the kind `type` answers, so `5 | examples`
+  reads `::number` and `{:kind ::set} | examples` reads `::map`.
 - Returns a Vec of Quote-values extracted from the binding's
   doc-prefix — every `~(…)` Quote segment in the doc-content stream
   is a candidate test case for `runExamples`.
 - **Examples**:
   - `:count | examples` → Vec of `~(…)` Quotes from the `:count` docs.
   - `:add | examples | count` → number of inline Quote examples on `:add`.
-- **Errors**: subject not a Keyword / TagKeyword →
-  `ExamplesSubjectNotKeywordOrTagError`; no declaring step found →
-  `ExamplesBindingNotFoundError`.
+- **Errors**: no declaring step found → `ExamplesBindingNotFoundError`.
 
 ### `spec`
 
-- **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
+- **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
+  (`::Tag`) reads the binding it names; every other value reads the
+  declaration of its kind, the kind `type` answers, so `5 | spec`
+  reads `::number` and `{:kind ::set} | spec` reads `::map`.
 - Returns the env-side declaration descriptor Map for the binding.
   An operand answers with the `::builtin{…}` body its catalog entry
   declares, backfilled with `:captured` / `:effectful` from the
@@ -1158,16 +1164,15 @@ its own eval handler in `eval.mjs`.
   handle and `:throws`; an error tag with the structural facts its
   throw site records — `:category`, and for an operand slot check
   `:operand`, `:position` and `:expectedType`.
-- The end of every error-diagnosis chain: `type` names the tag, and
-  `spec` reads what the site that raised it declares about itself.
+- The end of every error-diagnosis chain: an error reads the
+  declaration of its tag, what the site that raised it declares about
+  itself.
 - **Examples**:
-  - `"x" | add 1 !| type | spec | /operand` → `:add`.
-  - `"x" | add 1 !| type | spec | /category` → `:typeError`.
+  - `"x" | add 1 !| spec | /operand` → `:add`.
+  - `"x" | add 1 !| spec | /category` → `:typeError`.
   - `:add | spec | /throws` → the per-site error classes `add` raises.
   - `::conduit | spec | /impl` → `:qlang/type/conduit`.
-- **Errors**: subject not a Keyword or TagKeyword →
-  `SpecSubjectNotKeywordOrTagError`; no declaring step found →
-  `SpecBindingNotFoundError`.
+- **Errors**: no declaring step found → `SpecBindingNotFoundError`.
 
 ## Error operands
 

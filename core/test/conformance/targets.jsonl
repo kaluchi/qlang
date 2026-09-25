@@ -14,8 +14,8 @@
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34","target":true}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41","target":true}
 {"name":"a-head-holds-names-and-kinds-alone","query":"::Width |~~ How many characters a line holds. ~~| | :wrap ~[::string :width ::Width ::vec](split \" \") | :wrap | spec | /slots","expect":"[::string :width ::Width]","decision":"D60","target":true}
-{"name":"a-value-reads-the-page-of-its-kind","query":"5 | docs | count","expect":"1","decision":"D61","target":true}
-{"name":"a-tagged-vector-reads-the-page-of-its-tag","query":"::Box |~~ A box. ~~| | ::Box#[3 1] | docs | count","expect":"1","decision":"D61","target":true}
-{"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | docs | first | /content | eq (::map | docs | first | /content)","expect":"true","decision":"D61","target":true}
+{"name":"a-value-reads-the-page-of-its-kind","query":"5 | docs | count","expect":"1","decision":"D61"}
+{"name":"a-tagged-vector-reads-the-page-of-its-tag","query":"::Box |~~ A box. ~~| | ::Box#[3 1] | docs | count","expect":"1","decision":"D61"}
+{"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | docs | first | /content | eq (::map | docs | first | /content)","expect":"true","decision":"D61"}
 {"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"],"target":true}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | filter ~(eq :add) | count","expect":"1","decision":"D61","target":true}

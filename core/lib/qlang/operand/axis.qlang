@@ -1,8 +1,11 @@
 |~ qlang operand catalog — axis family. Reflective navigation
-   from a binding name (Keyword `:foo` or TagKeyword `::Foo`) to
-   declarative metadata living on the binding's source AST. Each
-   axis walks every `qlang/ast/<uri>` module Quote stored in env
-   to find the originating `BindStep` (or `as :name` OperandCall)
+   from a value to the declaration it names. A name, a Keyword
+   `:foo` or a TagKeyword `::Foo`, names the binding it spells;
+   every other value names the declaration of its kind, the kind
+   `type` answers, so `5 | docs` reads the page of `::number` and
+   a value tagged `::Box` reads the page of `::Box`. Each axis
+   walks every `qlang/ast/<uri>` module Quote stored in env to
+   find the declaring step, a `BindStep` or an `as :name` call,
    and returns the named field as a fresh value — `source` the
    declaration as a Quote, `docs` the attached
    doc-prefix Vec of Doc-values, `examples` every `~(…)` Quote
@@ -14,26 +17,17 @@
       Quote in env, finds the `BindStep` whose key matches the
       Keyword (or TagKeyword for `::Tag | source`) on pipeValue,
       returns the quote of that declaration, which `parse` prints
-      as its text.
+      as its text. Any other value reads the declaration of its
+      kind.
 
       ~(:filter | source | parse | contains ":filter")
       ~(::AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
+      ~("text" | source | eq (::string | source))
   ~~|
   ::builtin{:impl :qlang/prim/source
             :category :axis
-            :subject [:keyword :tagKeyword]
+            :subject :any
             :returns :quote}
-
-::SourceSubjectNotKeywordOrTagError
-  |~~ `source` requires a Keyword (`:foo`) or TagKeyword
-      (`::Foo`) subject.
-
-      ~(
-        42 | source
-        !| [type /actualType]
-        |  eq [::SourceSubjectNotKeywordOrTagError ::number]
-       )
-  ~~|
 
 ::SourceBindingNotFoundError
   |~~ `source` — no `BindStep` found for the requested binding name
@@ -51,25 +45,19 @@
       on the `BindStep` that binds `:name`. Each Doc-value `/segments`
       surfaces TaggedLit and Quote inline structure for navigation;
       Quote segments are the evaluable examples `runExamples` runs.
+      Any other value reads the page of its kind, and the `:kind`
+      field of a map names nothing: the map reads the page of
+      `::map`.
 
       ~(:filter | docs | first | /content | contains "Keeps items")
       ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
+      ~(5 | docs | eq (::number | docs))
+      ~({:kind ::set} | docs | eq (::map | docs))
   ~~|
   ::builtin{:impl :qlang/prim/docs
             :category :axis
-            :subject [:keyword :tagKeyword]
+            :subject :any
             :returns :vec}
-
-::DocsSubjectNotKeywordOrTagError
-  |~~ `docs` requires a Keyword (`:foo`) or TagKeyword
-      (`::Foo`) subject.
-
-      ~(
-        42 | docs
-        !| [type /actualType]
-        |  eq [::DocsSubjectNotKeywordOrTagError ::number]
-       )
-  ~~|
 
 ::DocsBindingNotFoundError
   |~~ `docs` — no `BindStep` found for the requested binding name
@@ -86,26 +74,17 @@
   |~~ `:name | examples` — Vec of Quote-values extracted from the
       binding's docs. `runExamples` consumes this Vec to evaluate
       each Quote against an isolated env; `:ok` is true iff the
-      example answers true.
+      example answers true. Any other value reads the examples of
+      its kind.
 
       ~(:filter | examples | count | gt 0)
       ~(:filter | examples | first | parse | contains "filter")
+      ~(5 | examples | eq (::number | examples))
   ~~|
   ::builtin{:impl :qlang/prim/examples
             :category :axis
-            :subject [:keyword :tagKeyword]
+            :subject :any
             :returns :vec}
-
-::ExamplesSubjectNotKeywordOrTagError
-  |~~ `examples` requires a Keyword (`:foo`) or TagKeyword
-      (`::Foo`) subject.
-
-      ~(
-        42 | examples
-        !| [type /actualType]
-        |  eq [::ExamplesSubjectNotKeywordOrTagError ::number]
-       )
-  ~~|
 
 ::ExamplesBindingNotFoundError
   |~~ `examples` — no `BindStep` found for the requested binding name
@@ -138,34 +117,24 @@
       same `::builtin` header identity.
       BindStep-bound conduits surface as the Conduit value-class
       Map; `as`-bound snapshots as the Snapshot's auto-unwrapped
-      payload.
+      payload. Any other value reads the descriptor of its kind.
 
       The discriminator path for per-tag static facts attached
-      to any tagged value-class — `result !| type | spec |
-      /category` reads `:typeError` off the error tag; `:add |
-      spec | /throws` lists the per-site error classes `add`
-      raises, and each of those names `:add` back on its own
+      to any tagged value-class — `result !| spec | /category`
+      reads `:typeError` off the error tag the error carries;
+      `:add | spec | /throws` lists the per-site error classes
+      `add` raises, and each of those names `:add` back on its own
       `/operand`.
 
       ~(:add | spec | /category | eq :arith)
       ~(::AddLeftNotNumberError | spec | /operand | eq :add)
       ~(::conduit | spec | /impl | eq :qlang/type/conduit)
+      ~("x" | add 1 !| spec | /category | eq :typeError)
   ~~|
   ::builtin{:impl :qlang/prim/spec
             :category :axis
-            :subject [:keyword :tagKeyword]
+            :subject :any
             :returns :map}
-
-::SpecSubjectNotKeywordOrTagError
-  |~~ `spec` requires a Keyword (`:foo`) or TagKeyword
-      (`::Foo`) subject.
-
-      ~(
-        42 | spec
-        !| [type /actualType]
-        |  eq [::SpecSubjectNotKeywordOrTagError ::number]
-       )
-  ~~|
 
 ::SpecBindingNotFoundError
   |~~ `spec` — no `BindStep` found for the requested binding name

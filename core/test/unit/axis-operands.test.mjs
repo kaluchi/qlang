@@ -84,16 +84,9 @@ describe(':name | source returns the BindStep source as Quote', () => {
     expect(cellEntry.result).toEqual([' Глава из лендинг пейджа ']);
   });
 
-  it('non-keyword subject raises SourceSubjectNotKeywordOrTagError', async () => {
-    const err = await evalQuery('42 | source');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
-  });
-
-  it('orphan type-descriptor (not bound under ::tag in env) raises SourceSubjectNotKeywordOrTagError', async () => {
-    const err = await evalQuery('{:impl :unbound} | source');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('SourceSubjectNotKeywordOrTagError'));
+  it('a value that is no name reads the declaration of its kind', async () => {
+    expect(await evalQuery('42 | source | eq (::number | source)')).toBe(true);
+    expect(await evalQuery('{:impl :unbound} | source | eq (::map | source)')).toBe(true);
   });
 });
 
@@ -109,10 +102,8 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
     expect(result).toContain('Returns the number of elements');
   });
 
-  it('non-keyword subject raises DocsSubjectNotKeywordOrTagError', async () => {
-    const err = await evalQuery('42 | docs');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('DocsSubjectNotKeywordOrTagError'));
+  it('a value that is no name reads the page of its kind', async () => {
+    expect(await evalQuery('42 | docs | eq (::number | docs)')).toBe(true);
   });
 
   it('unknown binding raises DocsBindingNotFoundError', async () => {
@@ -129,10 +120,8 @@ describe(':name | examples extracts Quote segments from docs', () => {
     expect(result).toBeGreaterThanOrEqual(0);
   });
 
-  it('non-keyword subject raises ExamplesSubjectNotKeywordOrTagError', async () => {
-    const err = await evalQuery('42 | examples');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('ExamplesSubjectNotKeywordOrTagError'));
+  it('a value that is no name reads the examples of its kind', async () => {
+    expect(await evalQuery('42 | examples | eq (::number | examples)')).toBe(true);
   });
 
   it('unknown binding raises ExamplesBindingNotFoundError', async () => {
@@ -284,20 +273,17 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
   });
 });
 
-describe('a tagged subject names its binding through the header', () => {
-  // The operand reference promises the axis trio accepts any value
-  // carrying a TagKeyword on its JS-header slot. A `manifest`
-  // view-Map names one through its `:kind` field instead — that is
-  // the field's job, since a view describes a binding rather than
-  // being one.
+describe('a value that is no name reads the declaration of its kind', () => {
+  // The kind `type` answers names the declaration [D61]: an error
+  // reads the page of its tag, and a `manifest` entry, a map, reads
+  // the page of `::map` whatever its `:kind` field holds.
   it('a materialized error reaches its own tag docs', async () => {
     expect(await evalQuery('10 | div 0 !| docs | first | /content'))
       .toContain('Division by zero');
   });
 
-  it('a manifest view reaches the docs of the kind its `:kind` names', async () => {
-    expect(await evalQuery('manifest | first | docs | first | /content'))
-      .toContain('Tag-binding declaration shape');
+  it('a manifest entry reads the page of ::map', async () => {
+    expect(await evalQuery('manifest | first | docs | eq (::map | docs)')).toBe(true);
   });
 });
 
@@ -390,8 +376,8 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
   it('a single expected type lifts to a Keyword and several to a Vec', async () => {
     expect(await evalQuery('::AsNameNotKeywordError | spec | /expectedType'))
       .toEqual(makeKeyword('keyword'));
-    expect(await evalQuery('::SourceSubjectNotKeywordOrTagError | spec | /expectedType'))
-      .toEqual([makeKeyword('keyword'), makeKeyword('tagKeyword')]);
+    expect(await evalQuery('::HasSubjectNotMapOrSetError | spec | /expectedType'))
+      .toEqual([makeKeyword('map'), makeKeyword('set')]);
   });
 
   it('a value-class constructor names itself on :operand as a TagKeyword', async () => {
@@ -399,9 +385,8 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
       .toEqual(makeTagKeyword('conduit'));
   });
 
-  it('non-keyword subject lifts SpecSubjectNotKeywordOrTagError', async () => {
-    const evalResult = await evalQuery('42 | spec !| type');
-    expect(evalResult).toEqual(makeTagKeyword('SpecSubjectNotKeywordOrTagError'));
+  it('a value that is no name reads the descriptor of its kind', async () => {
+    expect(await evalQuery('42 | spec | /impl')).toEqual(makeKeyword('qlang/type/number'));
   });
 
   it('keyword naming an unbound identifier lifts SpecBindingNotFoundError', async () => {

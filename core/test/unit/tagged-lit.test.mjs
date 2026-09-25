@@ -74,12 +74,15 @@ describe('::tag descriptor registers a tag-namespace binding', () => {
 });
 
 describe('axis-operand subject classification', () => {
-  it('a tagged-instance Map (kind is TagKeyword) resolves through its tag to the tag-binding source', async () => {
-    const source = await evalQuery(
-      '::myType {:impl :qlang/type/conduit} | {:kind ::myType :payload []} | source'
-    );
-    expect(isQuote(source)).toBe(true);
-    expect(printQuoteSource(source)).toContain('::myType');
+  it('a value tagged by a user tag reads the source of that tag', async () => {
+    const source = await evalQuery('::Box |~~ A box. ~~| | ::Box#[3 1] | source');
+    expect(printQuoteSource(source)).toBe('::Box |~~ A box. ~~|');
+  });
+
+  it('a map holding a tag in its :kind field reads ::map, since a field names nothing', async () => {
+    expect(await evalQuery(
+      '::myType {:impl :qlang/type/conduit} | {:kind ::myType :payload []} | source | eq (::map | source)'
+    )).toBe(true);
   });
 });
 

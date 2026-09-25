@@ -2032,9 +2032,9 @@ entirely and address the binding directly (`:filter | source`).
 
 | Axis | Subject | Returns |
 |---|---|---|
-| `source` | `:name` or `::Tag` | The quote of the declaring BindStep |
-| `docs` | `:name` or `::Tag` | Vec of Doc-values, one per attached doc-comment |
-| `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~(…)` segment in the docs |
+| `source` | any value | The quote of the declaring BindStep |
+| `docs` | any value | Vec of Doc-values, one per attached doc-comment |
+| `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
 > :filter | docs | first | type | eq ::doc
@@ -2052,23 +2052,26 @@ Lookup walks the `qlang/ast/<uri>` module Quote that
 The match is **last-write-wins** — the same shadowing rule that
 governs identifier resolution. A `:name` declared in module B
 loaded after module A surfaces B's docs / source / examples; A's
-declaration is hidden by shadowing. Errors:
+declaration is hidden by shadowing. When no declaring BindStep is
+found in any loaded module, the axis raises its own not-found class
+(`SourceBindingNotFoundError`, `DocsBindingNot…`,
+`ExamplesBindingNot…`, `SpecBindingNot…`), so `!| type` alone names
+which lookup failed.
 
-- Subject is not a Keyword / TagKeyword → per-site subject error
-  (`SourceSubjectNotKeywordOrTagError`, `DocsSubjectNot…`,
-  `ExamplesSubjectNot…`, `SpecSubjectNot…`).
-- No declaring BindStep found in any loaded module → the axis's own
-  not-found class (`SourceBindingNotFoundError`, `DocsBindingNot…`,
-  `ExamplesBindingNot…`, `SpecBindingNot…`), so `!| type` alone names
-  which lookup failed.
+A name, a Keyword `:name` or a TagKeyword `::Tag`, reads the binding
+it names; every other value reads the declaration of its kind, the
+kind `type` answers. A number reads the page of `::number`, a value
+tagged `::Box` the page of `::Box`, an error the page of its error
+tag, and a map the page of `::map` whatever its `:kind` field holds,
+since a field of a map names nothing.
 
-A tagged-value subject (any value carrying a TagKeyword on its
-JS-header identity slot — TaggedInstance, Conduit, Snapshot,
-materialized error) is also valid — the axis reads the docs
-of the type binding the instance was constructed from. Calling
-`some-conduit-value | docs` reaches the `::conduit` type
-binding's docs the same way `:count | docs` reaches the `:count`
-catalog entry's docs.
+```qlang
+> 5 | docs | eq (::number | docs)
+true
+
+> {:kind ::set} | docs | eq (::map | docs)
+true
+```
 
 ### `runExamples` — execute Quote segments from a binding's docs
 

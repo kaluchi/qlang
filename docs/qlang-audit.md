@@ -908,6 +908,17 @@ kind its subject lists, and each of those kinds reads the same one:
 true
 ```
 
+A call by address reaches that one descriptor as well, so it serves any
+kind the descriptor lists, and the kind in the address checks nothing:
+
+```qlang
+> {:a 1} | vec/count
+1
+
+> [3 1] | set/sort
+[1 3]
+```
+
 The vocabulary carries the calling shape as well as the kind. A
 predicate, a key and a pipeline slot run their code against one subject.
 A reducer slot holds two values for the code it runs: it runs it against
@@ -951,6 +962,18 @@ distinction between value and code is decided by a predicate over
 syntax rather than written by the author, and the language server
 re-derives the same predicate to label a symbol. The tag-namespace form
 of the binding adds a third declaration syntax.
+
+A keyword or a tag name cannot be a body (`core/src/grammar.peggy`,
+`BindBody`), and a declaration written after a space continues the
+pipeline as if a pipe stood before it, so a declaration that names a
+kind reads as the keyword followed by a declaration of the kind, which
+lands in the scope without a word; the repair lets a body be a keyword
+or a tag name [D66]:
+
+```qlang
+> :s ::vec / | env | /"::vec" | /source
+~(::vec /)
+```
 
 Comments are the larger half of this scar. They are pipeline steps
 that absorb the combinators on either side; a line comment eats to the
@@ -1044,6 +1067,22 @@ Every kind a module declares reaches the scope of its clients the same
 way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
+The modules of the core are the families of the categories the catalog
+once sorted its operands by, where the manifest answers nouns, so the
+verbs of one noun come from several files and one file feeds several
+nouns, and the runtime joins a kind to its verbs by scanning every
+provider for the kinds a descriptor's `:subject` lists
+(`core/src/runtime/nouns.mjs`, `verbsOfKind`):
+
+```sh
+$ grep -lE ':subject (\[[^]]*)?:vec\b' core/lib/qlang/operand/*.qlang
+core/lib/qlang/operand/container.qlang
+core/lib/qlang/operand/setOp.qlang
+core/lib/qlang/operand/string.qlang
+core/lib/qlang/operand/typeConversion.qlang
+core/lib/qlang/operand/vec.qlang
+```
+
 What the merge leaves behind is the runtime's housekeeping in the
 environment: the export map of every namespace under a prefix of its
 own, and the host's locator, a raw JavaScript function, under another,
@@ -1098,8 +1137,10 @@ visible to the operands that use them and out of the client's scope
 [D63]. It must keep what a module answers under its name in one loader,
 from a tag to its provider to its declaration [D36], so that the
 housekeeping keys leave the environment for values of their own. It
-must let the distribute combinator reach what a verb reaches. And it
-must hold the rest of the rule of collisions:
+must write the catalog by its nouns, so a noun's verbs are read where
+they are written [D62]. It must let the distribute combinator reach
+what a verb reaches. And it must hold the rest of the rule of
+collisions:
 
 - A verb and a kind may be joined by whoever owns one of them. This is
   the orphan rule of Rust and the rule against type piracy in Julia: a
@@ -1942,10 +1983,12 @@ in the binding's slot. A verb that several kinds answer takes a head
 on each of them [D62], so the heads write the catalog by kinds, where
 one descriptor stands today for every kind its subject lists, and the
 result a head declares carries whether the verb keeps its subject's
-kind, which `preservesTag` and `imposesOrder` decide today [D41].
+kind, which `preservesTag` and `imposesOrder` decide today [D41]. How
+the head is written is the open question of the head as a spec,
+answered before the heads are written.
 
 The milestone's answers are the targets of [D4], [D43], [D44], [D57],
-[D60] and [D65] in the conformance suite, which `node scripts/requirements.mjs`
+[D60], [D65] and [D66] in the conformance suite, which `node scripts/requirements.mjs`
 prints as the focus while any of them is open. Among them `42 | :x / |
 add 1 | x` answers 43 today, because `:x /` re-evaluates its body at
 every mention; under the one binding form a bare body is evaluated
@@ -2132,7 +2175,41 @@ serves only a module that exposes a part of its names, `env | minus
 #[:helper]`, or data. The tail costs a ceremony on every module of
 declarations; the noun costs a noun for every provider, the core's
 modules and the sister project's among them, and the loader of the
-fourth milestone that keeps their namespaces.
+fourth milestone that keeps their namespaces. A third reading is the
+maintainer's: «в целом выходит что между модулем и спекой может и
+разницы особой нету .. это соглашение про имена ..  а такое навеное тэг
+может проверять в конструкторе..» (maintainer, 2026-09-25 18:52,
+session 86982eb5). A module is a pipeline of declarations, prose alone
+among them, «там какой ::qlang/vocabulary ::qlang/tutorial», whose doc's
+keywords name its own bindings [D62]; read as data, as a quote of
+declarations is [D53], it answers its declarations, which needs neither
+the tail nor the noun, and a tag over it names the convention its names
+follow and checks it in its constructor [D6]. A module that computes
+while it loads [D63] answers the spec its pipeline builds.
+
+A kind's declaration as its spec [D33], [D62]. A tag is declared with
+its constructor and nothing else, `::vec` with `::builtin{:impl
+:qlang/type/vec}` (`core/lib/qlang/tag.qlang`), and its verbs reach it
+from outside: «меня смущало например то что у нас тэги вроде как
+объявляются .. но спецификации не содержат .. глаголы и прочее потом
+хрен пойми как связываются/попадают внутрь тэга» (maintainer,
+2026-09-25 18:12, session 86982eb5), and «я открываю каталог lib и
+смотрю на qlang файлы -- и те хрен пойми как раскинады .. они точно не
+матчатся со стрктурой манифеста» (18:14). In the model's reading a
+kind's declaration is its spec, a module of its constructor, its
+fields, its verbs and the other contracts D33 attaches to a kind:
+`::vec/count` is the path to a declaration written inside `::vec`, the
+verbs of a kind are read off its spec, and a file of the catalog is the
+spec of one noun, so the files and the manifest show one tree. Asked to
+weigh a vector of specs hung on a tag or a partial declaration of a
+kind, «выгоду и эмержентность ты уже сам оцени» (18:17), the model keeps
+one owner and one place for a kind's verbs: a module's verbs for a kind
+it does not own are the names its `use` brings into a client's scope
+[D62], [D63], an owner's verb on a foreign kind is called by its
+address, and the one partial in the tree is the command line's `@out`,
+`@in`, `@err` and `@tap` on `::any`. Open: where the page and the laws
+of a verb several kinds answer are written, and the subject of a verb
+declared inside a kind's spec.
 
 The pressure for a second format. Clojure answered the slowness of
 parsing its notation in browsers with Transit, the same model written
@@ -2217,6 +2294,42 @@ on, `::vec` for `sort` on a set, says what `imposesOrder` says today,
 and what `preservesTag` says, that the verb keeps the tags the walk
 passed [D34], `filter` keeping `::Box` over a set, wants a mark in the
 head or a rule over its result.
+
+The head as a spec [D57], [D60], [D62]. The maintainer took the head up
+again with a head of two groups, the ends of the pipe and the slots,
+«как тебе вариант с  ~[:subject :out][params](…) ?» (maintainer,
+2026-09-25 17:13, session 86982eb5), which needs no rule of position to
+find the ends among the slots; he accepted that a verb without declared
+ends writes one group and that an open end is `::any`, «1 - да 2 - да»
+(17:32), and then turned to a head that is a pipeline: «у нас qlang
+самое главное это пайплайн.. все что преставимо пайплайном это
+хорошо..» (18:52). In the model's reading the head is then a spec, a
+quote of declarations under the kind `::spec`, read as data and never
+run, `::spec~(:returns ::vec | :key |~~ how to rank ~~| ::quote)`: D57
+set aside a head of bindings because it could not be read before it
+ran, while a quote of declarations is data [D53], and the constructor
+of `::spec` refuses a body that computes. A slot is a declaration by
+its name, «кстати :parameters тогда наверное и не нужно? можно ведь
+просто имена объявить» (19:35); the subject is the kind whose module
+declares the verb, «так же конвенцию для :subject что ли криво
+объявлять когда у нас модули» (19:35), and a verb outside a kind's
+module takes any subject; a stack of tags holds a spec to a convention,
+«дальше нужно ли делать ::verb::spec~(…) -  что б как-то поджать
+содержимое спеки инвариантами» (19:24), the outer tag naming what the
+value is, since it is the value's kind [D32], `::signature::spec~(…)`;
+`:throws` is what a spec answers, computed from the refusals that name
+their place [D64]. A name resolves by its name alone, «имя безусловно
+затыкает все, даже если арность была и переданы аргументы» (17:47), and
+the verb it finds takes the spec that fits the call, several specs
+standing for the alternatives of arity, each with its own ends, «а то
+вдруг там и входы-выходы у другой арности не те» (17:32). Open: one body
+for specs whose slots differ; the mark of a slot that gathers the rest;
+whether the verb is then written `~(spec)(body)`, the maintainer's form
+«~(:name doc value | :name2 если есть)(code)» (maintainer, 2026-09-24
+05:52, session 86982eb5) returning; and the doc of a role in a spec,
+which D60 moved into the kind of the slot. Nothing of it is adopted
+yet: «лавай так, ничего принимать пока не будем» (maintainer,
+2026-09-25 19:41, session 86982eb5).
 
 The contract of a verb [D45], [D46], [D57]. «наверное такой контакт чуть ли
 не отдельным способом описывается.. типа интерфейс вызова .. что там
@@ -2364,3 +2477,4 @@ maintainer wants to explore it before it is fixed.
 [D63]: decisions/D63.md
 [D64]: decisions/D64.md
 [D65]: decisions/D65.md
+[D66]: decisions/D66.md

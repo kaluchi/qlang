@@ -1920,9 +1920,8 @@ page is the root doc, and every noun of the core is named under it; a
 verb lives on the kind its subject names, a verb of any value beneath
 every kind on `::qlang/any`, and a verb that several kinds answer on
 each of them under one contract [D62]; a declaration writes a record into
-its scope, and a module is a pipeline whose value is what it exposes
-[D63], so helpers stay in their module and `env` answers the user's own
-names [D61]; a verb is found by walking the subject's tags [D34], and a
+its scope [D63], and `env` answers the user's own names [D61]; a verb is
+found by walking the subject's tags [D34], and a
 tag name with a path addresses a verb through the noun it lives on,
 `::vec/count`; a refusal lives on the place it guards, a verb, a noun
 or a step of the language, whose `/throws` lists it, and errors are of
@@ -1935,11 +1934,9 @@ The milestone's answers are the targets of [D34], [D61], [D62] and
 [D63] in the conformance suite, which `node scripts/requirements.mjs`
 prints as the focus while any of them is open.
 
-Beside the answers: `::qlang | manifest` lists the nouns; every verb
-of the core is listed under the kind it lives on and none hangs outside
-a noun; a module's value is its surface, so the sister project's
-helpers leave its client's manifest; the core loads from the kernel
-alone, and the environment holds no key of the runtime's own.
+Beside the answers: `::qlang | manifest` lists the nouns, and every
+verb of the core is listed under the kind it lives on and none hangs
+outside a noun.
 
 ### Milestone 2 · Kernel
 
@@ -1996,8 +1993,9 @@ categories of error are declared by hosts.
 ### Milestone 4 · One spelling
 
 Every fact has one spelling. Bindings carry their origin, a shadowed
-one stays one projection away, and one loader remains [D5];
-mounted namespaces arrive with it [D24], each a subtree answered by its
+one stays one projection away, and one loader remains [D5], which runs
+a module once, a pipeline whose value is what it exposes, so helpers
+stay in their module [D63]; mounted namespaces arrive with it [D24], each a subtree answered by its
 provider, the subject opening its own [D35], [D36]; collisions get their
 rule [D23], [D34], and a host's verbs move onto its tags; the literal
 becomes the one lossless format and tagged JSON and the session envelope
@@ -2017,7 +2015,10 @@ the requirement.
 Beside the answers: no operand contract is spelled outside the
 catalog; the injection script and the document-compliance runner are
 gone; no parser call exists outside `parse`; one query shows every
-definition of a name and which one wins.
+definition of a name and which one wins; a module's value is its
+surface, so the sister project's helpers leave its client's manifest;
+the core loads from the kernel alone, and the environment holds no key
+of the runtime's own.
 
 ### Milestone 5 · Front door
 
@@ -2119,6 +2120,27 @@ inside a tag's name is local to the grammar; the quoted form `::"…"`
 mirrors the quoted keyword. Open: how a module declares that it serves
 a namespace, whether a mount is visible in the manifest as a namespace
 among others, and the exact record of a member.
+
+What a module of declarations answers [D35], [D63]. D63 has a module
+answer the Map of what it exposes, `env` as its last step exposing
+every name it declared, and sets aside a value taken from the scope
+when the module ends in a declaration. Written out on the catalog, the
+rule gives each of its two dozen modules of declarations the tail
+`| env`, which after a tag declared without a body needs a pipe of its
+own, since `env` on the next line reads as the tag's body; and a module
+run in a scope of its own needs the kernel's `use`, `env` and
+`::builtin` as a provider under a key of the runtime until the catalog
+documents them. The maintainer read both as a sign of a step taken too
+early: «странно это смотрится | env  .. как и 'qlang/kernel'»
+(maintainer, 2026-09-25 15:37, session 86982eb5). The other reading is
+D35's: a module runs from its provider's noun in the subject position,
+its declarations hand the noun on, and a module of declarations
+answers its noun, whose namespace holds what it declared, so a tail
+serves only a module that exposes a part of its names, `env | minus
+#[:helper]`, or data. The tail costs a ceremony on every module of
+declarations; the noun costs a noun for every provider, the core's
+modules and the sister project's among them, and the loader of the
+fourth milestone that keeps their namespaces.
 
 The pressure for a second format. Clojure answered the slowness of
 parsing its notation in browsers with Transit, the same model written

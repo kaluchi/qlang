@@ -31,3 +31,4 @@
 {"name":"a-trailing-slot-that-admits-null-may-be-left-out","query":":k ~[:x #[::number ::null]](x) | 5 | k","expect":"null","decision":"D64","target":true}
 {"name":"a-group-of-slots-repeats","query":":firsts ~[[:a :b]](a) | 0 | firsts 1 2 3 4","expect":"[1 3]","decision":"D64","target":true}
 {"name":"a-built-in-is-the-same-literal","query":":len ~::number[#[::vec ::set ::map]](::builtin{:impl :qlang/prim/count}) | [1 2 3] | len","expect":"3","decision":"D64","target":true}
+{"name":"a-name-of-the-core-is-declared-nowhere-else","query":":count 5 | [1 2 3] | count !| true","expect":"true","decision":"D62","target":true}

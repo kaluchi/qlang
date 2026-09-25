@@ -1930,8 +1930,10 @@ a pipeline whose value is what it exposes [D63], so the catalog is
 written once, in the form it keeps: under the noun `::qlang`, each verb
 listed under the kind it lives on, `::qlang/any` beneath every kind
 [D61], [D62]. The met cases that read the catalog through `env` and
-`manifest` answer the reading these records replace, so a branch of
-design settles them before the branch that implements the records.
+`manifest` answer the reading these records replace, and the target of
+D5 that shadows `filter` declares a name D62 keeps for the core, so a
+branch of design settles them before the branch that implements the
+records.
 
 The milestone's answers are the targets of [D4], [D43], [D44], [D57],
 [D60], [D61], [D62], [D63] and [D64] in the conformance suite, which `node

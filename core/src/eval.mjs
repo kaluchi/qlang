@@ -42,7 +42,7 @@ import { isPureLiteralAst, isPlainCommentStep, moduleUriOf } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
-import { addressedVerb, subjectServedBy } from './runtime/nouns.mjs';
+import { addressedVerb, addressesOf, subjectServedBy } from './runtime/nouns.mjs';
 import { underPassedTags } from './runtime/dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
@@ -865,13 +865,14 @@ async function evalOperandCall(node, state) {
     return await applyRule10(resolved, operandLambdas, state);
   }
 
-  // Non-function value: replace pipeValue with it. Modifiers
-  // would be a type error since you cannot apply a non-function.
+  // A value takes no modifiers; its refusal names where a verb of the
+  // name lives, one a declaration shadows among them [D62].
   if (capturedArgsAst.length > 0) {
     throw new ApplyToNonFunctionError({
       name: lookupName,
       actualType: typeKeyword(resolved),
-      actualValue: resolved
+      actualValue: resolved,
+      addresses: addressesOf(lookupEnv, lookupName)
     });
   }
   return withPipeValue(state, resolved);

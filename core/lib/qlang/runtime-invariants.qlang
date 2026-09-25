@@ -216,14 +216,16 @@
 |~ ── 5. Identifier-lookup and parse-time failures ───────── ~|
 
 ::ApplyToNonFunctionError
-  |~~ Identifier resolves to a non-function value — captured
-      arguments cannot be applied.
+  |~~ A name the scope binds to a value takes no modifiers.
+      `:addresses` names where a verb of that name lives, one the
+      declaration shadows among them, which a call by address reaches.
 
       ~(
         5 | as :five | five 42
         !| [type /name /actualType]
         |  eq [::ApplyToNonFunctionError :five ::number]
        )
+      ~(:sort 5 | [3 1] | sort ~(/a) !| /addresses | has ::vec/sort)
   ~~|
 
 ::EffectLaunderingAtCallError

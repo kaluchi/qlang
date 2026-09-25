@@ -1162,9 +1162,9 @@ its own eval handler in `eval.mjs`.
   declaration of its kind, the kind `type` answers, so `5 | source`
   reads `::number` and `{:kind ::set} | source` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | source` reads the verb `count` that lives on vectors,
-  `::count | source` the verb by its name, and an address reads what the
-  verb's provider declared, whatever the scope binds under the name.
+  `::vec/count | source` reads the verb `count` that lives on vectors, a
+  verb being addressed through the noun it lives on, and an address reads
+  what the verb's provider declared, whatever the scope binds under the name.
 - Returns the quote of the binding's declaring step, a BindStep or an
   `as :name` call, found across loaded modules.
 - **Examples**:
@@ -1179,9 +1179,9 @@ its own eval handler in `eval.mjs`.
   declaration of its kind, the kind `type` answers, so `5 | docs`
   reads `::number` and `{:kind ::set} | docs` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | docs` reads the verb `count` that lives on vectors,
-  `::count | docs` the verb by its name, and an address reads what the
-  verb's provider declared, whatever the scope binds under the name.
+  `::vec/count | docs` reads the verb `count` that lives on vectors, a
+  verb being addressed through the noun it lives on, and an address reads
+  what the verb's provider declared, whatever the scope binds under the name.
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
@@ -1196,9 +1196,9 @@ its own eval handler in `eval.mjs`.
   declaration of its kind, the kind `type` answers, so `5 | examples`
   reads `::number` and `{:kind ::set} | examples` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | examples` reads the verb `count` that lives on vectors,
-  `::count | examples` the verb by its name, and an address reads what the
-  verb's provider declared, whatever the scope binds under the name.
+  `::vec/count | examples` reads the verb `count` that lives on vectors, a
+  verb being addressed through the noun it lives on, and an address reads
+  what the verb's provider declared, whatever the scope binds under the name.
 - Returns a Vec of Quote-values extracted from the binding's
   doc-prefix — every `~(…)` Quote segment in the doc-content stream
   is a candidate test case for `runExamples`.
@@ -1214,9 +1214,9 @@ its own eval handler in `eval.mjs`.
   declaration of its kind, the kind `type` answers, so `5 | spec`
   reads `::number` and `{:kind ::set} | spec` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | spec` reads the verb `count` that lives on vectors,
-  `::count | spec` the verb by its name, and an address reads what the
-  verb's provider declared, whatever the scope binds under the name.
+  `::vec/count | spec` reads the verb `count` that lives on vectors, a
+  verb being addressed through the noun it lives on, and an address reads
+  what the verb's provider declared, whatever the scope binds under the name.
 - Returns the env-side declaration descriptor Map for the binding.
   An operand answers with the `::builtin{…}` body its catalog entry
   declares, backfilled with `:captured` / `:effectful` from the

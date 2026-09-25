@@ -65,8 +65,8 @@ describe('a tag name that no tag binds addresses a verb', () => {
     expect(await evalQuery('::vec/count | spec | /category')).toEqual(keyword('containerReducer'));
   });
 
-  it('a verb alone is addressed by its name', async () => {
-    expect(await evalQuery('::count | docs | count')).toBe(1);
+  it('a verb has no address of its own, only through the noun it lives on', async () => {
+    expect(await evalQuery('::count | docs !| type')).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
   });
 
   it('an address reads the provider\'s verb whatever the scope binds under its name', async () => {

@@ -5,8 +5,8 @@
 // provider exported whose subject names the kind, a subject of any value
 // or of any tagged value naming `::qlang/any`. A tag name that no tag
 // binds is an address from the root of the tree of names, the path of a
-// kind and the name of a verb that lives on it, `::vec/count`, or the
-// name of a verb alone, `::count`.
+// kind and the name of a verb that lives on it, `::vec/count`; a verb
+// has no address of its own.
 
 import { isQMap, isVec, makeSet, makeTagKeyword, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 import {
@@ -80,13 +80,14 @@ export function verbsOfKind(env, tagName) {
 export function addressedVerb(env, tagName) {
   const path = tagName.startsWith(CORE_KIND_PREFIX) ? tagName.slice(CORE_KIND_PREFIX.length) : tagName;
   const cut = path.lastIndexOf('/');
+  if (cut < 0) return null;
   const verbName = path.slice(cut + 1);
-  const kindName = cut < 0 ? null : canonicalTagName(path.slice(0, cut));
+  const kindName = canonicalTagName(path.slice(0, cut));
   for (const [uri, exportsMap] of providerExports(env)) {
     const descriptor = exportsMap.get(verbName);
-    if (!carriesBuiltinShape(descriptor)) continue;
-    if (kindName !== null && !subjectKindsOf(descriptor).has(kindName)) continue;
-    return { verbName, descriptor, uri };
+    if (carriesBuiltinShape(descriptor) && subjectKindsOf(descriptor).has(kindName)) {
+      return { verbName, descriptor, uri };
+    }
   }
   return null;
 }

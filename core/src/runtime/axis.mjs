@@ -165,8 +165,9 @@ function bindingNameOf(subject) {
 }
 
 // A tag name that no tag binds addresses a verb from the root of the
-// tree of names, `::vec/count` or `::count` [D62], and reads what the
-// verb's provider declared, whatever the scope binds under its name.
+// tree of names through the noun it lives on, `::vec/count` [D62], and
+// reads what the verb's provider declared, whatever the scope binds
+// under its name.
 function addressOf(env, subject) {
   if (!isTagKeyword(subject) || envHas(env, tagBindingKey(subject.name))) return null;
   return addressedVerb(env, subject.name);

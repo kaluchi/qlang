@@ -49,7 +49,7 @@ no `use …` ceremony.
 |---|---|
 | `pretty` | any subject → String, the canonical qlang-literal display form |
 | `tjson` | any subject → String, tagged-JSON wire form (round-trippable through `parseTjson`) |
-| `template "…"` | any subject → String. `{{.}}` substitutes the whole subject; `{{key}}` projects from a Map; `{{a/b/c}}` chains projections. String values embed raw, others render via printValue, missing fields render as `null` |
+| `table` | a Vec of Maps → String, a frame for a terminal: a column per key in the order of first occurrence, a String cell bare, null as an empty cell, every other value as its literal on one line |
 
 `json` (plain JSON via `JSON.stringify`) lives in core and is
 already in scope; no need to bind it.
@@ -120,8 +120,8 @@ qlang '#[:admin :user] | tjson | @out' \
   | qlang '@in | parseTjson | count | pretty | @out'
 2
 
-# Per-element template into stdout
-qlang '@in | parseJson * template "{{name}}: {{score}}" | join "\n" | @out' \
+# A line per element, built by a query
+qlang '@in | parseJson * ([/name (/score | pretty)] | join ": ") | join "\n" | @out' \
   < scores.json
 alice: 85
 bob: 42
@@ -177,7 +177,7 @@ appear before the auto-printed result line.
 ## Status
 
 I/O surface (`@in`, `@out`, `@err`, `@tap`), pure formatters
-(`pretty`, `tjson`, `template`), parsers (`parseJson`, `parseTjson`),
+(`pretty`, `tjson`, `table`), parsers (`parseJson`, `parseTjson`),
 and the interactive REPL — with raw-mode line editor, live
 input/output syntax highlighting, and bracketed-paste handling
 for multi-line clipboard content — are in place. Follow-up

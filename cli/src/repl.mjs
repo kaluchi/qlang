@@ -41,6 +41,7 @@ import {
   langRuntime
 } from '@kaluchi/qlang-core';
 import { createCliLocator, installCliCatalog } from './cli-locator.mjs';
+import { DEFAULT_SUBJECT } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
 
@@ -152,7 +153,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
         return;
       }
 
-      const cellEntry = await session.evalCell(rawLine);
+      const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
       writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic);
       lineEditor.prompt();
     }

@@ -10,9 +10,6 @@
 {"name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
 {"name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
 {"name":"json-null","query":"null | json","expect":"\"null\""}
-{"name":"table-non-vec","query":"42 | table","error":"typeError","expect":"::TableSubjectNotVecError!{\n  :faultStep ~(table)\n  :faultInput 42\n  :actualType ::number\n}"}
-{"name":"table-mixed","query":"[42 \"hello\"] | table","error":"typeError","expect":"::TableRowNotMapError!{\n  :faultStep ~(table)\n  :faultInput [42 \"hello\"]\n  :actualValue 42\n  :actualType ::number\n  :index 0\n}"}
-{"name":"table-empty","query":"[] | table","expect":"\"(empty)\""}
 {"name":"json-keyword","query":":foo | json","expect":"\"\\\"foo\\\"\""}
 {"name":"json-tag-keyword","query":"::ParseError | json","expect":"\"\\\"::ParseError\\\"\""}
 {"name":"json-quote-renders-as-source","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\""}

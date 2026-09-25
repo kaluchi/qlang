@@ -1,40 +1,21 @@
-// Operand-level formatters — `json` (plain-JSON string render),
-// `table` (fixed-width tabular cell render), plus the lossy
-// plain-JSON value codec pair `toPlain` / `fromPlain` that
+// Operand-level formatter `json` (plain-JSON string render), plus
+// the lossy plain-JSON value codec pair `toPlain` / `fromPlain` that
 // bridges qlang runtime values with ordinary JS data structures.
 //
 // Canonical qlang-literal printing lives next door in
-// `print-value.mjs`; everything below routes through the shared
+// `print-value.mjs`; `toPlain` routes through the shared
 // `dispatchQlangValue` lookup-table walker so the per-value-class
-// decision sits in one place for each render strategy. The two
-// surfaces share `escapeQlangStringLiteral` and
-// `literalOfKeyword`.
+// decision sits in one place. A rendering for a terminal is a view
+// at a host's boundary, and the command line owns its `table`.
 
-import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { printQuoteSource } from '../quote.mjs';
 import { nullaryOp } from './dispatch.mjs';
-import {
-  isQMap, finiteNumberOrLift, TAG_HEADER_SYMBOL, isVec
-} from '../types.mjs';
-import {
-  declareSubjectError,
-  declareElementError
-} from '../operand-errors.mjs';
+import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareInvariantError, declarePerSiteError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import {
-  dispatchQlangValue,
-  escapeQlangStringLiteral,
-  literalOfKeyword,
-  printValue,
-  printConduit,
-  TAG_PAYLOAD_NEEDS_PAREN_RE
-} from './print-value.mjs';
+import { dispatchQlangValue, printValue } from './print-value.mjs';
 
 export { printValue };
-
-const TableSubjectNotVecError = declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
-const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
 
 function dispatchPlainValue(v, handlers, path) {
   if (Array.isArray(v)) return handlers.array(v, path);
@@ -178,143 +159,5 @@ function plainObjectToQMap(plainObj, path) {
 
 export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)));
 
-// Cell renderer for the `table` operand. Scalars render bare
-// (strings without quotes, numbers stringified, null as an empty
-// cell). Composites render as inline qlang literals — no newline
-// breaks — so a nested `:location` Map shows up as
-// `{:file … :startLine 12}`.
-// Nested scalars inside a composite quote strings the same way
-// printValue does; only the top-level String in a cell is bare.
-const CELL_HANDLERS = {
-  Null:       () => '',
-  Boolean:    v => String(v),
-  Number:     v => String(v),
-  String:     v => v,
-  Keyword:    literalOfKeyword,
-  TagKeyword: literalOfKeyword,
-  Vec:        v => renderInline(v),
-  Map:        m => renderInline(m),
-  Set:        s => renderInline(s),
-  Error:      e => renderInline(e),
-  Quote:      q => '~(' + printQuoteSource(q) + ')',
-  Doc:        d => '|~~' + d.content + '~~|',
-  Conduit:    printConduit,
-  // Snapshot is an immutable value-wrapper: the captured value
-  // carries the renderable identity, the wrapper itself is env
-  // housekeeping. Cell-renderer recurses on the unwrapped value
-  // so the cell stays a value literal (round-trip-safe), bypassing
-  // the `as :name` binding-statement surface form.
-  Snapshot:   s => renderCell(s.get('payload')),
-  TaggedInstance: renderTaggedInstanceInline
-};
-
-const INLINE_HANDLERS = {
-  Null:       () => 'null',
-  Boolean:    v => String(v),
-  Number:     v => String(v),
-  String:     escapeQlangStringLiteral,
-  Keyword:    literalOfKeyword,
-  TagKeyword: literalOfKeyword,
-  Vec:        v => `[${v.map(renderInline).join(' ')}]`,
-  Map:        m => `{${mapEntriesInline(m)}}`,
-  Set:        s => `#[${s.map(renderInline).join(' ')}]`,
-  Quote:      q => '~(' + printQuoteSource(q) + ')',
-  Doc:        d => '|~~' + d.content + '~~|',
-  Conduit:    printConduit,
-  // Snapshot is an immutable value-wrapper — recurse on the
-  // captured value (which carries the renderable identity). The
-  // `as :name` surface form is a binding statement; rendering a
-  // Snapshot back through it would re-enter the parser as a
-  // BindStep, where eval would write env and leave pipeValue at
-  // the captured value, diverging from the Snapshot identity.
-  Snapshot:   s => renderInline(s.get('payload')),
-  TaggedInstance: renderTaggedInstanceInline,
-  // Tag-head precedes the `!{…}` envelope so the inline form
-  // mirrors the canonical printer: `::Tag!{…fields…}` reads as
-  // one literal, identity at the front.
-  Error:      e => `${e.tag.literal}!{${mapEntriesInline(e.descriptor)}}`
-};
-
-function renderTaggedInstanceInline(instance) {
-  const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(instance)) {
-    return `${tagLiteral}[${instance.map(renderInline).join(' ')}]`;
-  }
-  if (instance instanceof Map) {
-    return `${tagLiteral}{${mapEntriesInline(instance)}}`;
-  }
-  const payloadInline = renderInline(instance.payload);
-  if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadInline)) {
-    return `${tagLiteral}(${payloadInline})`;
-  }
-  return tagLiteral + payloadInline;
-}
-
-// Inline / cell renderers share `String` as their unknown-shape
-// fallback — dispatchQlangValue already rejects qlang function
-// values at the top, and any other shape `describeType`
-// classifies as `Unknown` (a raw JS function reaching here from a
-// host-bound env slot is the only live case) lands as
-// `String(v)`, matching the pre-split surface.
-function renderInline(v) {
-  return dispatchQlangValue(v, INLINE_HANDLERS, String);
-}
-
-function mapEntriesInline(m) {
-  return [...m]
-    .map(([k, v]) => `${canonicalKeywordLiteral(k)} ${renderInline(v)}`)
-    .join(' ');
-}
-
-function renderCell(v) {
-  return dispatchQlangValue(v, CELL_HANDLERS, String);
-}
-
-export const table = nullaryOp('table', (subject) => {
-  if (!isVec(subject)) throw new TableSubjectNotVecError(subject);
-  if (subject.length === 0) return '(empty)';
-  for (let i = 0; i < subject.length; i++) {
-    if (!isQMap(subject[i])) {
-      throw new TableRowNotMapError(i, subject[i]);
-    }
-  }
-
-  const columnNames = collectColumnOrder(subject);
-  const widths = columnNames.map(name => name.length);
-
-  const cells = subject.map(row => columnNames.map((columnName, i) => {
-    const text = row.has(columnName) ? renderCell(row.get(columnName)) : '';
-    if (text.length > widths[i]) widths[i] = text.length;
-    return text;
-  }));
-
-  const horizontalRule = widths.map(w => '-'.repeat(w + 2)).join('+');
-  const formatRow = (rowCells) =>
-    '|' + rowCells.map((c, i) => ' ' + c.padEnd(widths[i]) + ' ').join('|') + '|';
-
-  return [
-    horizontalRule,
-    formatRow(columnNames),
-    horizontalRule,
-    ...cells.map(formatRow),
-    horizontalRule
-  ].join('\n');
-});
-
-function collectColumnOrder(rows) {
-  const order = [];
-  const seen = new Set();
-  for (const row of rows) {
-    for (const columnName of row.keys()) {
-      if (!seen.has(columnName)) {
-        seen.add(columnName);
-        order.push(columnName);
-      }
-    }
-  }
-  return order;
-}
-
 // Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-bindPrim('json',  json);
-bindPrim('table', table);
+bindPrim('json', json);

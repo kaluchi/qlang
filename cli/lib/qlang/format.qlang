@@ -46,27 +46,37 @@
             :modifiers []
    }
 
-:template
-  |~~ Substitutes pipeline values into a template String through
-      the `{{...}}` slot grammar. `{{.}}` projects the subject
-      itself, `{{key}}` performs a single-segment projection
-      against a Map subject, `{{a/b/c}}` chains projections.
-      String-typed substitutions embed as raw characters (so URLs
-      and names appear without surrounding quotes); other types
-      render via `pretty`. Missing fields render as `"null"`.
+:table
+  |~~ Renders a Vec of Maps as a fixed-width tabular string, a view
+      for a terminal. Columns are derived from keys in first-occurrence
+      order across all rows; missing keys render as empty cells. A
+      String cell prints bare, null as an empty cell, and every other
+      value as its literal on one line. Empty Vec yields the marker
+      "(empty)".
 
-      ~("world" | template "Hello, {{.}}!" | eq "Hello, world!")
-      ~({:name "alice"} | template "hi {{name}}" | eq "hi alice")
-      ~({:user {:name "alice"}} | template "hi {{user/name}}" | eq "hi alice")
-      ~(42 | template "answer is {{.}}" | eq "answer is 42")
+      ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
+      ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
+      ~([] | table | eq "(empty)")
   ~~|
-  ::builtin{:impl :qlang/cli/prim/template
+  ::builtin{:impl :qlang/cli/prim/table
             :category :format
-            :subject :any
-            :returns :string
-            :modifiers [:string]}
+            :subject :vec
+            :returns :string}
 
-::TemplateModifierNotStringError
-  |~~ `template` captured-arg must be a String — the template
-      itself. Pass the literal template text, not a Keyword or
-      number. ~~|
+::TableSubjectNotVecError
+  |~~ Subject of `table` must be Vec.
+      ~(
+        42 | table
+        !| [type /actualType]
+        |  eq [::TableSubjectNotVecError ::number]
+       )
+  ~~|
+
+::TableRowNotMapError
+  |~~ Element of `table` input collection must be Map.
+      ~(
+        [42 "hello"] | table
+        !| [type /index /actualType]
+        |  eq [::TableRowNotMapError 0 ::number]
+       )
+  ~~|

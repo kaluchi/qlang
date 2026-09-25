@@ -15,7 +15,7 @@
 
       ~(
         42
-        |  (as :_v | if (gt 100) ~(_v)
+        |  (:_v / | if (gt 100) ~(_v)
               ~(error {:kind ::AssertionFailedError :message "must exceed 100" :value _v}))
         !| type | eq ::AssertionFailedError
        )
@@ -33,7 +33,7 @@
   |~~ Guard: check predicate on pipeValue, raise error
     if the predicate fails. pipeValue passes through
     unchanged on success. ~~|
-  ::verb~(:pred ::quote | :msg ::string | as :_v | if (apply pred) ~(_v)
+  ::verb~(:pred ::quote | :msg ::string | :_v / | if (apply pred) ~(_v)
       ~(error {:kind ::AssertionFailedError :message msg :value _v}))
 
 :ensure
@@ -41,5 +41,5 @@
     a transformation. Same mechanism as assert, named
     for intent — verify the output contract at the
     end of a pipeline section. ~~|
-  ::verb~(:pred ::quote | :msg ::string | as :_v | if (apply pred) ~(_v)
+  ::verb~(:pred ::quote | :msg ::string | :_v / | if (apply pred) ~(_v)
       ~(error {:kind ::PostconditionFailedError :message msg :value _v}))

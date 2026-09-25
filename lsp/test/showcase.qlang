@@ -61,7 +61,7 @@ x
 |~| Bindings inside (parens), [vecs], {maps}, #[sets] are
 |~| fork-isolated — invisible outside the fork boundary.
 
-(42 | as :inner | inner)
+(42 | :inner / | inner)
 |~| inner is visible inside the paren group above.
 |~| It is NOT visible outside the parens.
 
@@ -70,8 +70,8 @@ x
 |~| Shift+F12 shows all occurrences: declaration + uses.
 
 :greet ::verb~(prepend "hello ")
-| "world" | greet | as :greeted1
-| "qlang" | greet | as :greeted2
+| "world" | greet | :greeted1 /
+| "qlang" | greet | :greeted2 /
 |~| Shift+F12 on greet → 3 hits (1 decl + 2 uses)
 
 
@@ -80,7 +80,7 @@ x
 |~| as bindings show as Variable.
 
 :votingAge ::verb~(filter ~(/age | gte 18))
-| 42 | as :answer
+| 42 | :answer /
 |~| Outline lists: double, triple, x, greet, greeted1,
 |~| greeted2, votingAge, answer
 

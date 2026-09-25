@@ -196,9 +196,9 @@ describe('eval-time effect validation in evalBindStep', () => {
     expect(effectErr.kind).toBe('effectLaundering');
   });
 
-  it('as binding on an effectful expression result is exempt', async () => {
-    // as(:result) captures the call result, not the function value.
-    const evalResult = await evalQuery('[1 2 3] | as :result | result | count');
+  it('a freeze of an expression result is exempt', async () => {
+    // `:result /` names the value the pipe holds, not a function.
+    const evalResult = await evalQuery('[1 2 3] | :result / | result | count');
     expect(isErrorValue(evalResult)).toBe(false);
   });
 
@@ -224,11 +224,11 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
     expect(originalErr.context.effectfulName).toBe('@callers');
   });
 
-  it('catches as of a function value bound to a clean name', async () => {
+  it('catches a freeze of a function value under a clean name', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
     const cellEntry = await sessionInstance.evalCell(
-      '(env | /@callers | /value) | as :snap | snap'
+      '(env | /@callers | /value) | :snap / | snap'
     );
     expect(isErrorValue(cellEntry.result)).toBe(true);
     const originalErr = cellEntry.result.originalError;

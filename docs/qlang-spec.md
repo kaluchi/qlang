@@ -55,8 +55,7 @@ until then, comments stand alone next to single-step examples.
 A second variety of comment, written `|~~| ... |` or
 `|~~ ... ~~|`, attaches as metadata to the binding it precedes.
 Doc comments are introduced together with the BindStep form
-`:name body` and the `as` operand in
-[Names and modules](#names-and-modules).
+`:name body` in [Names and modules](#names-and-modules).
 
 Block comments **nest recursively**. The four marker shapes pick
 distinct open / close pairs — `|~`/`~|` for plain blocks,
@@ -628,8 +627,7 @@ on either side, so no extra `|` is needed around it:
 The leading `|` of `|~` is the combinator from the previous step;
 the trailing `|` of `~|` is the combinator to the next step. The
 full rule, including doc comments and edge cases, lives alongside
-the BindStep form `:name body` and the `as` operand in
-[Names and modules](#names-and-modules).
+the BindStep form `:name body` in [Names and modules](#names-and-modules).
 
 ### Precedence
 
@@ -747,7 +745,7 @@ true
 
 Without `/` the only path to reference the running pipeValue
 inside a captured arg is the name-and-deref dance
-`as :_self | … | _self` — verbose for a single reference.
+`:_self / | … | _self` — verbose for a single reference.
 
 Type error: projection on a non-Map (Scalar, Vec, Set, null, function)
 produces an Error value — see [Error track](#error-track).
@@ -927,100 +925,95 @@ before and after a transformation, or from multiple branches of
 a reshape. That requires naming.
 
 This chapter covers every mechanism for putting names into scope.
-Three forms write into the binding scope: `as` names the current
-value (operand), `:name body` names the value of its body — a
-**verb** among them, a reusable transformation written
-`::verb~(…)` — via the BindStep grammar form, and `use` merges an
-entire Map of bindings — a constants table or a host-provided
-module — into scope at once (operand). Together they cover the
-three things a real query needs to compose: a frozen value, a
-reusable transformation, and a library import.
+Two forms write into the binding scope: `:name body` names the value
+of its body — the current value itself when the body is `/`, and a
+**verb** among them, a reusable transformation written `::verb~(…)`
+— via the BindStep grammar form, and `use` merges an entire Map of
+bindings — a constants table or a host-provided module — into scope
+at once (operand). Together they cover the three things a real query
+needs to compose: a frozen value, a reusable transformation, and a
+library import.
 
 The binding scope itself is an ordinary Map: it holds the
 built-in operands, any domain functions the host has installed,
-and every binding written by `as`, BindStep, or `use` so far,
+and every binding written by a BindStep or `use` so far,
 each as the record of its binding — its name, docs, value, the
 quote of the declaring step and the module it came from.
-Identifier lookup reads the value a record holds; `as`, BindStep,
-and `use` write records into the Map. The Map has a name — `env`
+Identifier lookup reads the value a record holds; BindStep and
+`use` write records into the Map. The Map has a name — `env`
 — which becomes relevant when [Reflection](#reflection) introduces
 an operand that returns it as a value.
 
-### `as :name` — a named value
+### `:name body` — a binding
 
-`as :name` captures `pipeValue` under a keyword name. The value
-passes through unchanged; the name becomes available to all
-subsequent steps in the same scope.
+The BindStep form `:name body` names the value of its body, evaluated
+once, at declaration, against the current `pipeValue`; the declaration
+itself leaves `pipeValue` unchanged, and the name becomes available to
+all subsequent steps in the same scope.
 
 ```qlang
-order | normalize | as :cleanOrder | computeTax | as :taxedOrder | shipQuote | finalize
+> [1 2 3] | :n count | [n (n | mul 2)]
+[3 6]
+```
+
+A body of `/` is the current value itself, so `:x /` freezes
+`pipeValue` under a name:
+
+```qlang
+> 42 | :x / | add 1 | x
+42
+
+order | normalize | :cleanOrder / | computeTax | :taxedOrder / | shipQuote | finalize
 |~| after normalize → cleanOrder = the cleaned order map
 |~| after computeTax → taxedOrder = the taxed map
 ```
 
 `cleanOrder` and `taxedOrder` name frozen values. All values are
-immutable — a captured binding is safe to reference at any later
-point.
-
-Multiple `as` calls can appear in sequence, binding either the same
-value under different names or different values at different stages:
+immutable — a frozen binding is safe to reference at any later
+point. Freezes can appear in sequence, binding either the same value
+under different names or different values at different stages:
 
 ```qlang
-purchase | normalize | as :initial | applyDiscounts | as :discounted | [initial discounted]
+purchase | normalize | :initial / | applyDiscounts | :discounted / | [initial discounted]
 |~| initial    = the normalized purchase
 |~| discounted = the same purchase after discounts applied
 ```
 
-`as` combines naturally with the set operations from Construct.
-Capture the record first, then build a Vec with the original and the
+A freeze combines naturally with the set operations from Construct.
+Freeze the record first, then build a Vec with the original and the
 computed delta:
 
 ```qlang
 > {:name "a" :age 20 :tmp 1}
-  | as :r | [r, #[:tmp]] | minus
+  | :r / | [r, #[:tmp]] | minus
 {:name "a" :age 20}
 
 > {:name "a" :age 20}
-  | as :r | [r, {:adult (/age | gt 18)}] | union
+  | :r / | [r, {:adult (/age | gt 18)}] | union
 {:name "a" :age 20 :adult true}
 
-record | as :r | [r, {:adult (/age | gt 18)}] | union
-record | as :r | [r, #[:tmp]] | minus
-record | as :r | [r, #[:name :age]] | inter
+record | :r / | [r, {:adult (/age | gt 18)}] | union
+record | :r / | [r, #[:tmp]] | minus
+record | :r / | [r, #[:name :age]] | inter
 ```
 
-Multi-step reference — capture at one point, use at several later
+Multi-step reference — freeze at one point, use at several later
 points:
 
 ```qlang
 > [{:name "a" :age 25}
    {:name "b" :age 15}
    {:name "c" :age 30}]
-  | as :people
+  | :people /
   | filter ~(/age | gte 18)
-  | as :adults
+  | :adults /
   | {:total (people | count) :adult (adults | count)}
 {:total 3 :adult 2}
 ```
 
-### `:name body` — a binding
-
-The BindStep form `:name body` names the value of its body, evaluated
-once, at declaration, against the current `pipeValue`; the declaration
-itself leaves `pipeValue` unchanged, and the name goes into scope.
-
-```qlang
-> 42 | :x / | add 1 | x
-42
-
-> [1 2 3] | :n count | [n (n | mul 2)]
-[3 6]
-```
-
-`:x /` freezes the current value exactly as `as :x` does, and a body
-that computes is computed where it is declared, so a name holds a value
-and never runs by itself. A quote is a value like any other, and
-`apply` runs it:
+A body that computes is computed where it is declared, so a name holds
+a value and never runs by itself. A quote is a value like any other,
+and `apply` runs it:
 
 ```qlang
 > :inc ~(add 1) | 5 | apply inc
@@ -1148,7 +1141,7 @@ transformation).
 
 ### `use` — merge bindings into scope
 
-`as` writes a single name; a BindStep writes a single binding.
+A BindStep writes a single binding.
 `use` is the bulk operator: it takes a Map and installs every
 `:key value` entry in it as a binding all at once. The Map's
 keys become the identifiers, the values become whatever is
@@ -1258,16 +1251,16 @@ fork closes, its final `pipeValue` propagates out but its env
 changes are discarded. See the
 [model's Fork section](qlang-internals.md#fork) for details.
 
-1. **Lexical, left-to-right.** `as :name` is visible in all
+1. **Lexical, left-to-right.** `:name body` is visible in all
    subsequent steps of the same pipeline, and in any nested
    expression evaluated by those steps.
 
 2. **Nested pipelines inherit outer bindings.** Inside `()`,
-   `[]`, `{}`, `#[]`, all `as`-bindings from the enclosing
-   scope are visible.
+   `[]`, `{}`, `#[]`, all bindings from the enclosing scope are
+   visible.
 
    ```qlang
-   employees | as :roster * {:name /name :teamSize (roster | count)}
+   employees | :roster / * {:name /name :teamSize (roster | count)}
    |~| roster captured before the distribute;
    |~| inside each iteration's reshape, roster is visible
    |~| (every element receives the same :teamSize)
@@ -1278,7 +1271,7 @@ changes are discarded. See the
    invisible after it closes.
 
    ```qlang
-   candidates | filter ~(/peerRating | as :peerScore | /selfRating | gte peerScore)
+   candidates | filter ~(:peerScore /peerRating | /selfRating | gte peerScore)
    |~| peerScore is local to the filter predicate
    ```
 
@@ -1297,13 +1290,13 @@ changes are discarded. See the
    `@`-prefixed writer) must not lean on the order those effects
    land in across siblings.
 
-6. **Shadowing.** A later `as :name` or `:name ...` in the same
-   scope replaces the earlier one for subsequent uses.
+6. **Shadowing.** A later `:name ...` in the same scope replaces
+   the earlier one for subsequent uses.
 
 7. **Resolution order**: last-write-wins in `env`. Under typical
    pipeline order (runtime loaded first, then user BindStep
-   declarations, then `as` captures during execution), this
-   manifests as `as` > BindStep > built-in.
+   declarations during execution), this manifests as BindStep >
+   built-in.
 
    `:count 5` makes subsequent `count` references resolve to
    `5`, and the built-in stays one address away: `:count 5 | [1 2
@@ -1314,8 +1307,8 @@ changes are discarded. See the
 Identifiers may start with `@`, `_`, or any Unicode `ID_Start`
 character (Latin, Cyrillic, CJK, Greek, Hebrew, Arabic, etc.).
 Lookup treats every start character alike: `@callers` and `callers`
-resolve through the same env read, and either may be shadowed by an
-`as` binding or a BindStep declaration.
+resolve through the same env read, and either may be shadowed by a
+BindStep declaration.
 
 `_` is pure convention — domain authors use it for private internal
 bindings and the language attaches nothing to it. `@` carries the
@@ -1405,7 +1398,7 @@ combinator on that same step is a parse error.
 
 Doc comments (`|~~|`, `|~~ ~~|`) attach as metadata to the
 **immediately following binding step** — that is, the next
-BindStep (`:name ...`) or `as :name`. The retrieval path goes
+BindStep (`:name ...`). The retrieval path goes
 through the binding's name, so a doc comment must be followed by
 a binding; preceding any other step, the doc comment fails to
 parse.
@@ -1457,8 +1450,8 @@ of mutate.
 
 ## Tag bindings
 
-Names and modules introduced three forms that write into the
-binding scope (`as`, BindStep, `use`). All three live in the
+Names and modules introduced two forms that write into the
+binding scope (BindStep, `use`). Both live in the
 **value namespace** — the same namespace as built-in operands.
 A second namespace runs in parallel: the **tag namespace**,
 reached through identifiers prefixed with `::`.
@@ -1471,7 +1464,7 @@ namespace.
 
 ```qlang
 > :duration ::verb~(mul 60)
-  | ::duration {:impl ~(as :s | {:seconds s})}
+  | ::duration {:impl ~(:s / | {:seconds s})}
   | [(10 | duration), ::duration(10)]
 [600 ::duration{:seconds 10}]
 ```
@@ -1546,7 +1539,7 @@ from inside any query or library module.
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
 ::permissions {:allowed #[:read :write :delete]
-   :impl ~(as :p
+   :impl ~(:p /
      | every ~(:permissions/allowed | has)
      | if not ~(error {:kind :PermissionUnknown}) ~()
      | p)}
@@ -1655,7 +1648,7 @@ Quote payload. The Quote holds the steps of its code and runs only
 when the constructor applies it.
 
 ```qlang
-::cond {:impl ~(as :branches
+::cond {:impl ~(:branches /
           | first (/condition | apply / | eq true)
           | /body | apply /)}
 
@@ -1958,21 +1951,21 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    safety net checks: if it is effectful but the lookup name does not
    classify as effectful, the call is refused with
    `EffectLaunderingAtCallError`. This catches every laundering path
-   the declaration cannot see — installation through `use`, capture
-   through `as`, or programmatic injection via the embedding host —
+   the declaration cannot see — installation through `use`, a freeze
+   of a function value, or programmatic injection via the embedding host —
    because every effectful invocation ultimately funnels through
    identifier lookup.
 
 A binding whose body is a value is exempt from the effect invariant:
-`:result @callers` and `@callers | as :result` capture the *call
+`:result @callers` and `@callers | :result /` capture the *call
 result* — the frozen value the host operand produced. The effect
 already fired by the time the binding is written, so the named value
 is pure data that downstream pipelines can reference under any name
 without re-triggering the host call.
 
-The runtime safety net does still fire on an `as` binding that
-holds a function value (e.g. `(env | /@callers | /value) | as :snap
-| snap`), because in that path the captured value is the function
+The runtime safety net does still fire on a freeze that holds a
+function value (e.g. `(env | /@callers | /value) | :snap / |
+snap`), because in that path the frozen value is the function
 reference and `snap` would invoke it on lookup.
 
 ---
@@ -2005,8 +1998,8 @@ All three use the same mechanism: Map + pipeline.
 
 The `env` operand returns the bindings the scope holds as
 `pipeValue`: the names the query, the session and a module's `use`
-wrote — domain functions, BindStep-installed verbs, `as`
-bindings — each as the record of its binding, `::binding`. The
+wrote — domain functions, the verbs and values a BindStep
+installed — each as the record of its binding, `::binding`. The
 verbs of the core live on its nouns, listed from
 `::qlang | manifest`.
 
@@ -2212,16 +2205,15 @@ is a pure function `(pipeValue, env) → (pipeValue', env')`. For the
 full formal model — including fork semantics, bootstrap, and Rule 10
 details — see [qlang-internals.md](qlang-internals.md).
 
-Six step types:
+Five step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
 | 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
-| 4 | `as :name` | → `(pipeValue, env[:name := Binding(name, docs, pipeValue)])`. Identity on the value; names the current value with the record of a binding. Any doc comments immediately preceding the `as` attach to the record. |
-| 5 | `:name expr` (BindStep) | → `(pipeValue, env[:name := Binding(name, docs, expr evaluated against pipeValue)])`. Names the value of its body, computed once, at declaration. A body `::verb~(…)` names a verb, which runs when `name` is later looked up: its slots take the modifiers, evaluated at the call, and its body runs in a fork with the declaration-time env, which includes the verb itself, so it recurses by name. Any doc comments immediately preceding the BindStep attach to the record. |
-| 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
+| 4 | `:name expr` (BindStep) | → `(pipeValue, env[:name := Binding(name, docs, expr evaluated against pipeValue)])`. Names the value of its body, computed once, at declaration. A body `::verb~(…)` names a verb, which runs when `name` is later looked up: its slots take the modifiers, evaluated at the call, and its body runs in a fork with the declaration-time env, which includes the verb itself, so it recurses by name. Any doc comments immediately preceding the BindStep attach to the record. |
+| 5 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (a BindStep), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
 Combinators thread state between steps. `|` and `*` are
 **success-track** combinators — they fire their step when `pipeValue`
@@ -2471,12 +2463,10 @@ Disambiguation:
 true false null
 ```
 
-`as` is an ordinary identifier bound to an operand in
-`langRuntime()`. It can be shadowed like any other name. The
-declarative binding form `:name body` is a BindStep — a grammar
+The declarative binding form `:name body` is a BindStep — a grammar
 production whose key carries a leading colon. Shadowing of its
-target name happens by a later BindStep / `as` / `use` write to
-the same `env[:name]` slot. All other identifiers are resolved
+target name happens by a later BindStep / `use` write to the same
+`env[:name]` slot. All other identifiers are resolved
 at evaluation time against the current `env`.
 
 ---
@@ -2558,22 +2548,22 @@ documentation level.
 
 |~| value binding: reference earlier pipeline stage
 > {:name "a" :age 20}
-  | as :r
-  | /age | add 10 | as :future_age
+  | :r /
+  | /age | add 10 | :future_age /
   | [r, {:future_age future_age}] | union
 {:name "a" :age 20 :future_age 30}
 
 |~| wrap-with-original: keep full element alongside computed fields
 > [{:id 1 :name "a"} {:id 2 :name "b"}]
-  * (as :r | {:key /id :record r})
+  * (:r / | {:key /id :record r})
 [{:key 1 :record {:id 1 :name "a"}}
  {:key 2 :record {:id 2 :name "b"}}]
 
 |~| multi-stage bindings: capture different pipeline stages
 > [85 92 47 78 68 95 52]
-  | as :allScores
+  | :allScores /
   | filter ~(gte 70)
-  | as :passingScores
+  | :passingScores /
   | [(allScores | count), (passingScores | count)]
 [7 4]
 
@@ -2956,7 +2946,7 @@ walk the array and concatenate slices without extra bookkeeping.
 | `atom` | `:name` keyword OR an OperandCall name that resolves through a user-defined binding |
 | `effect` | `:@name` keyword OR an `@`-prefixed OperandCall (effectful host operand or verb) |
 | `operand` | OperandCall name that resolves to a builtin from `langRuntime()`, plus each key segment of a `Projection` |
-| `keyword` | `as` — the binding-introducing operand — plus the head Keyword/TagKeyword of a BindStep declaration |
+| `keyword` | The head Keyword/TagKeyword of a BindStep declaration |
 | `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
 | `set` | `#[` opener and matching `]` closer of a SetLit |
 | `vec` | `[` opener and matching `]` closer of a VecLit |

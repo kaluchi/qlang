@@ -242,23 +242,15 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('late')).toBe(false);
   });
 
-  it('includes as bindings', () => {
-    const source = '42 | as :answer | answer';
+  it('includes freeze bindings', () => {
+    const source = '42 | :answer / | answer';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('answer')).toBe(true);
   });
 
-  it('skips zero-arg as() — no name to bind', () => {
-    const source = 'as | here';
-    const ast = parse(source);
-    const cursorAtHere = source.indexOf('here');
-    const visible = bindingNamesVisibleAt(ast, cursorAtHere);
-    expect(visible.size).toBe(0);
-  });
-
   it('a non-binding Pipeline step does not contribute names', () => {
-    // `mul(2)` is an OperandCall, not a BindStep or `as`; the
+    // `mul(2)` is an OperandCall, not a BindStep; the
     // binding-name walker skips it. With no binders in scope at the
     // cursor, the visible set stays empty.
     const source = '42 | mul 2 | here';
@@ -334,51 +326,6 @@ describe('bindingNamesVisibleAt', () => {
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
     expect(visible.has('::Local')).toBe(false);
   });
-
-  it('bare `as` OperandCall with no args does not contribute names', () => {
-    // `as` at the head of the pipeline parses as an OperandCall with
-    // `args = null` (bare identifier, no parens) — distinct shape
-    // from `as()` which parses with `args = []`. Both routes lead
-    // through the same `firstArg.type !== 'Keyword'` short-circuit
-    // because there is no `firstArg` to inspect at all.
-    const ast = parse('as | count');
-    const visible = bindingNamesVisibleAt(ast, ast.source.length);
-    expect(visible.size).toBe(0);
-  });
-
-  it('does not add binding when as first arg is not a Keyword AST node', () => {
-    // Synthetic AST: `as(42, count)` — non-Keyword first arg, the
-    // shape that drives the `firstArg.type !== 'Keyword'` early
-    // return inside the `as`-recogniser branch. Parser never emits
-    // this shape (the grammar requires a Keyword in the first slot),
-    // but the walker hardens against hand-assembled or codec-replay
-    // AST input that bypasses the grammar.
-    const loc = { start: { offset: 0 }, end: { offset: 10 } };
-    const synAst = {
-      type: 'OperandCall',
-      name: 'as',
-      args: [
-        { type: 'NumberLit', value: 42, location: loc },
-        { type: 'OperandCall', name: 'count', args: null, location: loc }
-      ],
-      location: loc
-    };
-    expect(bindingNamesVisibleAt(synAst, 999).size).toBe(0);
-  });
-
-  it('`as` binding inside a fork-isolating paren not containing offset stays invisible', () => {
-    // Fork-isolation: paren-group siblings hide their writes from
-    // each other and from the outer scope. `as(:x)` writes a
-    // binding under :x inside the paren; offset past the paren
-    // closer must not see it. Companion check to the BindStep
-    // form `(:local 1 | local) | here` above — same isolation rule
-    // governs both binding mechanisms.
-    const src = '(42 | as :x) | count';
-    const ast = parse(src);
-    const offsetAfterParen = src.indexOf('| count');
-    const visible = bindingNamesVisibleAt(ast, offsetAfterParen);
-    expect(visible.has('x')).toBe(false);
-  });
 });
 
 describe('astNodeSpan and astNodeContainsOffset', () => {
@@ -422,11 +369,11 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     expect(node).toBe(realChild);
   });
 
-  it('findIdentifierOccurrences finds an as(:name) declaration', () => {
-    const ast = parse('42 | as :snapshot | snapshot');
+  it('findIdentifierOccurrences finds a freeze declaration', () => {
+    const ast = parse('42 | :snapshot / | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
-    // as(:snapshot) OperandCall matches via first-arg Keyword pattern;
-    // bare `snapshot` matches as a read-site OperandCall.
+    // The `:snapshot /` BindStep matches by its key; bare `snapshot`
+    // matches as a read-site OperandCall.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 });

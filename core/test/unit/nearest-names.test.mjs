@@ -15,7 +15,7 @@ describe('an unresolved name names the names nearest to it', () => {
   });
 
   it('names at the same distance come all, in the order of their spelling', async () => {
-    expect(await nearestOf('ab')).toEqual([keyword('as'), keyword('at')]);
+    expect(await nearestOf('mux')).toEqual([keyword('max'), keyword('mul')]);
   });
 
   it('a nearer name leaves the farther ones out', async () => {

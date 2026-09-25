@@ -183,13 +183,13 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(impl.name).toBe('filter');
   });
 
-  it('spot-check — :as reflective operand lands with :category :reflective', async () => {
+  it('spot-check — :env reflective operand lands with :category :reflective', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    const asDescriptor = bindingValueOf(resolved.get('as'));
-    expect(asDescriptor.get('category')).toEqual(keyword('reflective'));
-    const asImpl = builtinImplOf(asDescriptor);
-    expect(asImpl.name).toBe('as');
+    const envDescriptor = bindingValueOf(resolved.get('env'));
+    expect(envDescriptor.get('category')).toEqual(keyword('reflective'));
+    const envImpl = builtinImplOf(envDescriptor);
+    expect(envImpl.name).toBe('env');
   });
 });
 
@@ -292,13 +292,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(230);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(229);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(68);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(67);
   });
 });
 
@@ -329,7 +329,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`
     expect(categories.get('typeConversion')).toBe(4);  // keyword + payload + tag + within
     expect(categories.get('format')).toBe(2);  // json + parseJson, the JSON codec both ways
-    expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
+    expect(categories.get('reflective')).toBe(4);   // env use manifest runExamples
     expect(categories.get('codeAsData')).toBe(2); // parse apply
     expect(categories.get('axis')).toBe(4);         // source docs examples spec
     expect(categories.get('error')).toBe(1);        // error

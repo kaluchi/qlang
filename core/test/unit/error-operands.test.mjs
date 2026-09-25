@@ -69,7 +69,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   });
 
   it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | as :t | 42 | apply t !| type');
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | :t / | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 });
@@ -223,10 +223,10 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('apply args to non-function → ApplyToNonFunctionError', async () => {
-    // Use `as` to bind a raw value, not a verb. Its record holds a
+    // Freeze a raw value, not a verb. Its record holds a
     // non-function, so captured args trigger ApplyToNonFunctionError on
     // the value the record holds.
-    const caughtErr = await catchOriginalError('5 | as :five | five 42');
+    const caughtErr = await catchOriginalError('5 | :five / | five 42');
     expect(caughtErr.name).toBe('ApplyToNonFunctionError');
     expect(caughtErr.context.name).toBe('five');
     expect(caughtErr.context.actualType.name).toBe('number');
@@ -355,7 +355,7 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | gt 5',
       '42 | /name',
       '42 * add 1',
-      '5 | as :five | five 42',
+      '5 | :five / | five 42',
       '42 | use',
       '42 | reduce 0 ~(add)',
       '[1 2 3] | reduce 0 ~(42)'

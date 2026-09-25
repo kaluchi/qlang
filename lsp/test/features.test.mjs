@@ -40,7 +40,6 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('count');
     expect(labels).toContain('filter');
     expect(labels).toContain('add');
-    expect(labels).toContain('as');
     expect(labels).toContain('manifest');
   });
 
@@ -338,8 +337,8 @@ describe('documentSymbols', () => {
     expect(syms[0].kind).toBe('value');
   });
 
-  it('collects as bindings as value symbols', () => {
-    const src = '42 | as :answer';
+  it('collects a freeze as a value symbol', () => {
+    const src = '42 | :answer /';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(1);

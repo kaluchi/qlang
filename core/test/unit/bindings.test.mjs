@@ -1,5 +1,5 @@
-// Binding declarations — BindStep (`:name body` / `:name [params]
-// body`) and the `as` operand (pipeValue named under a keyword).
+// Binding declarations — BindStep (`:name body`), the freeze
+// `:name /` among them.
 // Every binding declaration parses through `evalBindStep` at the
 // AST level — there is no operand-call ceremony around it.
 

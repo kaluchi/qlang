@@ -217,24 +217,16 @@ LineStepAfterCombinator
   / LineStep
 
 // One or more doc comments, optionally interleaved with plain ones,
-// attached to the declaration or the `as` after them; each doc comment
-// is one entry of the step's `docs`. Before any other step a doc
+// attached to the declaration after them [D70]; each doc comment is
+// one entry of the declaration's `docs`. Before any other step a doc
 // comment is a standalone doc value.
 DocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:DocAttachableStep
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:BindStep
     { return attachDocs(firstDoc, rest, step); }
 
 LineDocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:LineDocAttachableStep
+  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:LineBindStep
     { return attachDocs(firstDoc, rest, step); }
-
-DocAttachableStep
-  = BindStep
-  / step:Command & { return step.name === 'as'; } { return step; }
-
-LineDocAttachableStep
-  = LineBindStep
-  / step:LineCommand & { return step.name === 'as'; } { return step; }
 
 DocOrPlainItem
   = DocComment

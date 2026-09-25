@@ -73,11 +73,6 @@ describe('builtin operands', () => {
     expect(out).toContain('<span class="keyword">:x</span>');
   });
 
-  it('as keyword gets keyword span', () => {
-    const out = hl('1 | as :x');
-    expect(out).toContain('<span class="keyword">as</span>');
-  });
-
   it('@-prefixed call gets effect span', () => {
     const out = hl(':@log identity | 42 | @log');
     expect(out).toContain('<span class="effect">@log</span>');

@@ -4,7 +4,7 @@
    steps a `~(…)` literal makes; `apply code` runs the quote its
    captured arg answers against the subject, subject first like
    every other operand. Trail-emitted suffix quotes flow through
-   pipeValue, so `error !| /trail | as :t | start | apply t`
+   pipeValue, so `error !| /trail | :t / | start | apply t`
    re-runs deflected steps against a fresh subject. ~|
 
 :parse

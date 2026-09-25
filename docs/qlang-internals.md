@@ -12,7 +12,7 @@ are layered on top of this model.
 
 Names in scope come from several sources — built-in operands
 (`count`, `filter`), domain functions (`@callers` and friends),
-BindStep declarations (`:name body`), and `as`-bindings — and a
+BindStep declarations (`:name body`) — and a
 naive treatment would define each category separately with its
 own lookup rule. That path is noisy and leaves gaps: a bare
 identifier could mean "apply a function" or "reference a
@@ -44,7 +44,7 @@ The state of query evaluation is a pair `(pipeValue, env)`:
 - **`env`** — the environment, a Map from identifier names to the
   records of their bindings, `::binding`, each holding a value or
   a function [D63]. Contains the language runtime, domain runtime,
-  user bindings from BindStep declarations and `as` calls, and
+  user bindings from BindStep declarations, and
   anything else in scope.
 
 The evaluator's State object carries one bookkeeping field beside
@@ -78,7 +78,7 @@ Components of the pair are individually first-class, however:
 
 - **`pipeValue`** is implicitly first-class — it is the current value,
   and any operation that reads or writes a value is acting on it.
-  Capture it by name with `as :name` and it becomes referenceable
+  Freeze it under a name with `:name /` and it becomes referenceable
   like any other value.
 - **`env`** is first-class through the `env` operand, which reads the
   environment into `pipeValue` as an ordinary Map. From that point
@@ -93,7 +93,7 @@ the language, described here in meta-notation for clarity.
 
 ## Step types
 
-Seven kinds of steps. Every syntactic form in the language reduces
+Five kinds of steps. Every syntactic form in the language reduces
 to one of them. `use`, `env`, `manifest`, and `error` parse as
 ordinary identifiers (Step 3) that resolve to built-ins in the
 language runtime.
@@ -151,25 +151,14 @@ Let `resolved = env[:name]`:
 `env` is unchanged by pure operands. Reflective operands may
 change it — that is the whole point of keeping them in the same
 namespace as ordinary lookups. They can be shadowed by a
-BindStep declaration or by `as` like any other name.
+BindStep declaration like any other name.
 
 This rule unifies built-in operands, domain functions, reflective
-built-ins (`use`, `env`), BindStep-installed verbs, and
-`as`-bound values. They differ only in the value the record under
+built-ins (`use`, `env`), and the verbs and values BindStep
+declarations install. They differ only in the value the record under
 `env[:name]` holds, never in how lookup behaves.
 
-### 4. Value binding — `as :name`
-
-    (pipeValue, env) → (pipeValue, env[:name := Binding(name, docs, pipeValue)])
-
-Identity on `pipeValue`; writes into `env[:name]` the record of a
-binding holding the current value, the binding name, any doc-comment
-contents attached at parse time, the quote of the `as` step and the
-module it came from. A later bare `name` lookup (Step 3) reads the
-value the record holds; the `:name | source` / `:name | docs` axis
-operands project the record's source and prose.
-
-### 5. BindStep declaration — `:name body` / `:name docs` / `::Tag body`
+### 4. BindStep declaration — `:name body` / `:name docs` / `::Tag body`
 
     (pipeValue, env) → (pipeValue, env[:name := Binding(name, docs, body evaluated against pipeValue)])
 
@@ -212,7 +201,7 @@ Tag-binding declarations (`::Tag descriptor`) use the same BindStep
 AST node; the `BareTypeKeyword` key writes under the `::Tag`
 env-key prefix in the tag namespace.
 
-### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
+### 5. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
     (pipeValue, env) → (pipeValue, env)
 
@@ -244,8 +233,7 @@ Four surface forms, two orthogonal axes (line/block, plain/doc):
 
 The two doc forms additionally carry **metadata attachment**: their
 content is absorbed into the `docs` field of the immediately
-following binding — a BindStep (`:name body`) or an `as :name`
-OperandCall. Multiple doc comments preceding the same binding
+following binding — a BindStep (`:name body`). Multiple doc comments preceding the same binding
 accumulate into the `docs` Vec in declaration order — one comment
 token per Vec entry, with no concatenation of adjacent line docs.
 
@@ -271,9 +259,8 @@ Since comments are identity steps with no effect on the state
 pair, their evaluation semantics are trivial. The non-trivial
 content — the metadata attachment for doc forms — is a parser-side
 transformation: the parser folds `DocComment*` into the binding
-AST node's `docs` Vec field, so `evalBindStep` and the `as`
-operand impl see the docs at construction time and fold them
-into the record of the binding.
+AST node's `docs` Vec field, so `evalBindStep` sees the docs at
+construction time and folds them into the record of the binding.
 
 ## Reflective built-ins
 
@@ -318,8 +305,8 @@ Enables introspection:
     env | /x           -- read the record of a specific binding
 
 Inside a fork, `env` returns the fork's current env (with any
-fork-local `as` binding or BindStep declaration still visible at
-the point of lookup).
+fork-local BindStep declaration still visible at the point of
+lookup).
 
 ### `manifest`
 
@@ -616,11 +603,10 @@ Three come from the rest of the evaluation model:
 
 1. **Lexical left-to-right** — from `|` combinator threading.
 6. **Shadowing** — from Map last-write-wins on `env[:name]`.
-7. **Resolution order** — `as` > BindStep > built-in is just
-   "whoever wrote last to `env[:name]`", which is a consequence
-   of shadowing in the user's typical write order (built-ins
-   loaded first, then user BindStep declarations, then `as`
-   captures during query execution).
+7. **Resolution order** — BindStep > built-in is just "whoever
+   wrote last to `env[:name]`", which is a consequence of
+   shadowing in the user's typical write order (built-ins loaded
+   first, then user BindStep declarations during query execution).
 
 The four nesting rules collapse to: **nested expressions fork; forks
 don't leak env changes outward**. The other three come from the
@@ -762,10 +748,9 @@ indistinguishable from built-ins.
 | `/key` projection (possibly nested) | Step 2 — projection                   |
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
-| `as :name` operand call            | Step 3 — identifier lookup + the record of a binding |
-| `:name body` / `:name [:p] body` / `::Tag body` | Step 5 — BindStep declaration |
-| `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
-| `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
+| `:name body` / `::Tag body`        | Step 4 — BindStep declaration         |
+| `\|~\|`, `\|~ ~\|`                   | Step 5 — plain comment (identity)     |
+| `\|~~\|`, `\|~~ ~~\|`                | Step 5 — doc comment (identity + attach) |
 | `use`, `env`, `manifest`   | Step 3 — reflective built-in          |
 | `error`                             | Step 3 — error built-in               |
 | `\|`, `!\|`, `*`                    | Combinators                           |
@@ -828,14 +813,14 @@ Final `pipeValue = [{:name "Alice" :total 300}]`.
 ### Example 4 — wrap-with-original
 
     > [{:id 1 :name "Alice"} {:id 2 :name "Bob"}]
-      * (as :employee | {:key /id :record employee})
+      * (:employee / | {:key /id :record employee})
 
 For element 1 = `{:id 1 :name "Alice"}`:
 
 1. Fork with (element 1, outer `env`).
    `pipeValue = {:id 1 :name "Alice"}`.
-2. `(as :employee | {:key /id :record employee})` — paren fork.
-   - `as :employee` — `env[:employee] = {:id 1 :name "Alice"}`.
+2. `(:employee / | {:key /id :record employee})` — paren fork.
+   - `:employee /` — `env[:employee] = {:id 1 :name "Alice"}`.
      `pipeValue` unchanged.
    - `{:key /id :record employee}` — Map literal.
      - `:key /id` sub-fork → `1`.
@@ -857,16 +842,16 @@ the paren group. A non-function identifier lookup replaces
 ### Example 5 — multi-stage bindings
 
     > [85 92 47 78 68 95 52]
-      | as :allScores
+      | :allScores /
       | filter ~(gte 70)
-      | as :passingScores
+      | :passingScores /
       | [allScores | count, passingScores | count]
     [7 4]
 
 1. `pipeValue = [85 92 47 78 68 95 52]`.
-2. `as :allScores` — `env[:allScores] = [85 92 47 78 68 95 52]`.
+2. `:allScores /` — `env[:allScores] = [85 92 47 78 68 95 52]`.
 3. `filter ~(gte 70)` — `pipeValue = [85 92 78 95]`.
-4. `as :passingScores` — `env[:passingScores] = [85 92 78 95]`.
+4. `:passingScores /` — `env[:passingScores] = [85 92 78 95]`.
 5. `[(allScores | count), (passingScores | count)]` — Vec literal with
    two element sub-forks, each starting from the same outer state
    (`[85 92 78 95]`, `env` with both bindings).
@@ -1086,12 +1071,12 @@ what lives on its nouns, `::qlang | manifest`.
 - **Thread safety.** The pure state-transformer model makes parallel
   query execution trivially safe as long as native functions in the
   runtime do not share host-side state.
-- **Destructuring `as`.** Not part of the primitive set. `as :name`
-  captures a single value.
+- **Destructuring binding.** Not part of the primitive set.
+  `:name body` binds a single value.
 - **Cycle detection.** The language assumes acyclic data. Cycle
   detection is the host's responsibility.
-- **Identity operand.** There is no separate identity operand.
-  `as :cur` followed by `cur` achieves the same effect.
+- **Identity operand.** There is no separate identity operand:
+  the projection `/` answers the current value.
 
 ## Source-location enrichment of runtime errors
 
@@ -1320,7 +1305,7 @@ from here: adding a node type in `grammar.peggy` lands its
   a UTF-16 offset. Drives editor hover and goto-definition.
 - `findIdentifierOccurrences(ast, name)` — every OperandCall and
   Projection segment naming the given identifier, including
-  `:name ...` and `as :name` declaration patterns.
+  the `:name ...` declaration pattern.
 - `bindingNamesVisibleAt(ast, offset)` — lexical-scope-correct set
   of binding names visible at a cursor position. Honors fork-
   isolating ancestors (ParenGroup, QuoteLit, VecLit, SetLit, MapLit,

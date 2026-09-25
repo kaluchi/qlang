@@ -19,8 +19,8 @@
 //   'operand'     OperandCall name that resolves to a builtin
 //                 supplied by `langRuntime` AND each key segment
 //                 of a `Projection`
-//   'keyword'     `as` — the binding-introducing operand, plus the
-//                 head Keyword/TagKeyword of a BindStep declaration
+//   'keyword'     the head Keyword/TagKeyword of a BindStep
+//                 declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
 //                 the `!|` fail-track combinator — anything that
@@ -48,7 +48,6 @@ import { parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
 import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
-const BINDING_OPERAND_NAMES = new Set(['as']);
 const KEYWORD_SIGIL = ':';
 const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
@@ -204,15 +203,6 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return false;
 
       case 'OperandCall': {
-        // Doc-attached `as :name` calls carry `docPrefixStart` from
-        // DocAttachedSequence; the prose region between the first
-        // doc-comment and the operand head is folded into the AST
-        // as a plain string Vec, so the highlighter paints it with
-        // one `comment`-kind span the same way it does for
-        // BindStep (see the case above).
-        if (typeof node.docPrefixStart === 'number' && node.docPrefixStart < startOffset) {
-          spans.push({ start: node.docPrefixStart, end: startOffset, kind: 'comment' });
-        }
         const nameEndOffset = startOffset + node.name.length;
         spans.push({
           start: startOffset,
@@ -229,7 +219,6 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
 function classifyOperandName(operandName, builtinNames) {
   if (operandName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
-  if (BINDING_OPERAND_NAMES.has(operandName))       return 'keyword';
   if (builtinNames.has(operandName))                return 'operand';
   return 'atom';
 }

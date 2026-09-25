@@ -127,7 +127,6 @@ function segmentOf(key) {
 function callStepOf(node) {
   const fields = [['name', keyword(node.name)]];
   if (node.args.length > 0) fields.push(['args', Object.freeze(node.args.map(stepOfNode))]);
-  if (node.docs?.length) fields.push(['docs', Object.freeze([...node.docs])]);
   return record(CALL_TAG, fields);
 }
 
@@ -194,16 +193,16 @@ export function isStep(value) {
 // isElementStep(value) — a literal, a quote, a doc, a container of
 // element steps, an error literal's step, of the kind `::error`, a group, or a
 // record, which counts by its tag since its constructor already read it
-// back from its own text. A declaration, a command with modifiers and a
-// documented `as` stand in a pipeline alone: inside a container the
-// grammar reads each of their words as an element of its own.
+// back from its own text. A declaration and a command with modifiers
+// stand in a pipeline alone: inside a container the grammar reads each
+// of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
   if (isErrorValue(value)) return value.tag.name === ERROR_TAG.name && [...value.descriptor.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
-  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && (value.has('docs') || value.has('args')));
+  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('args'));
   if (isVec(value)) return value.every(isElementStep);
   return isQMap(value) && [...value.values()].every(isElementStep);
 }
@@ -211,7 +210,7 @@ export function isElementStep(value) {
 // isCommandStep(value) — a command with its modifiers, the step a
 // declaration's body may be beside an element step.
 export function isCommandStep(value) {
-  return stepTagOf(value) === 'call' && !value.has('docs');
+  return stepTagOf(value) === 'call';
 }
 
 // ── steps into text ────────────────────────────────────────────
@@ -271,9 +270,7 @@ function printDocs(docs) {
 }
 
 function printCall(call) {
-  const parts = call.has('docs') ? printDocs(call.get('docs')) : [];
-  parts.push(call.get('name').name, ...(call.get('args') ?? []).map(printStep));
-  return parts.join(' ');
+  return [call.get('name').name, ...(call.get('args') ?? []).map(printStep)].join(' ');
 }
 
 // A key prints bare when it reads as a bare keyword, behind a colon when

@@ -9,7 +9,7 @@
    `::Box` reads the page of `::Box`, and the record `env` answers
    reads the binding it records. Each axis projects the record
    the declaration wrote into its scope, `::binding`, whose step
-   is a `BindStep` or an `as :name` call — `source` the
+   is a `BindStep` — `source` the
    declaration as a Quote, `docs` the attached doc-prefix Vec of
    Doc-values, `examples` every `~(…)` Quote segment from those
    docs ready for `runExamples` to fire. ~|

@@ -134,17 +134,17 @@ describe('eval — full application of mul', () => {
   });
 });
 
-describe('eval — as binding', () => {
-  it('captures and references via as', async () => {
-    expect(await evalQuery('[1 2 3] | as :nums | nums | count')).toBe(3);
+describe('eval — freeze', () => {
+  it('captures and references via a freeze', async () => {
+    expect(await evalQuery('[1 2 3] | :nums / | nums | count')).toBe(3);
   });
 
-  it('multi-stage as bindings', async () => {
+  it('multi-stage freezes', async () => {
     expect(await evalQuery(`
       [85 92 47 78 68 95 52]
-        | as :allScores
+        | :allScores /
         | filter ~(gte 70)
-        | as :passingScores
+        | :passingScores /
         | [(allScores | count), (passingScores | count)]
     `)).toEqual([7, 4]);
   });
@@ -198,7 +198,7 @@ describe('eval.mjs unknown combinator', () => {
 });
 
 describe('quoted keywords — eval-level identity and Map interop', () => {
-  it(':"name" interns to the same keyword as :name', async () => {
+  it(':"name" interns to the same keyword :name /', async () => {
     expect(await evalQuery(':"name" | eq :name')).toBe(true);
   });
 

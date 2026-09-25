@@ -78,11 +78,11 @@
       cannot be keyed by.
 
       ~(
-        ::builtin{:impl :qlang/prim/count} | as :c | [1 2 3] | c
+        ::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c
         |  eq 3
        )
       ~(
-        ::builtin{:impl 42} | as :bogus | 1 | bogus
+        ::builtin{:impl 42} | :bogus / | 1 | bogus
         !| [type /actualType]
         |  eq [::BuiltinImplNotPrimitiveKeyError ::number]
        )
@@ -221,7 +221,7 @@
       declaration shadows among them, which a call by address reaches.
 
       ~(
-        5 | as :five | five 42
+        5 | :five / | five 42
         !| [type /name /actualType]
         |  eq [::ApplyToNonFunctionError :five ::number]
        )

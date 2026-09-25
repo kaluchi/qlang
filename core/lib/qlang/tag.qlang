@@ -126,16 +126,17 @@
        )
   ~~|
 
-::VerbSlotBodyNotLiteralError
+::VerbSlotWithoutBodyError
   |~~ The head of a verb is read before it runs, so a slot is declared
       by a kind, a set of kinds or a literal, and a leading declaration
-      whose body computes is refused where the verb is made; a body
-      that opens with a computed binding opens with `/` before it.
+      without a body is refused where the verb is made. A declaration
+      whose body computes stands outside the head, the first step of the
+      body.
 
       ~(
-        ::verb~(:x (count) | add x)
+        ::verb~(:x |~~ How many. ~~| | add x)
         !| [type /slot]
-        |  eq [::VerbSlotBodyNotLiteralError :x]
+        |  eq [::VerbSlotWithoutBodyError :x]
        )
   ~~|
 
@@ -439,10 +440,9 @@
 ::call
   |~~ The step of a command: `:name` the keyword of the name it
       calls, `:args` the quote of each argument's pipeline when
-      the call has parentheses, `:docs` the prose attached to an
-      `as`. Like every record, a ::call is the step its own text
-      reads back as: the constructor checks the fields against
-      the schema, prints the step and reads it back.
+      the call has parentheses. Like every record, a ::call is the
+      step its own text reads back as: the constructor checks the
+      fields against the schema, prints the step and reads it back.
 
       ~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :args [~(gt 1)]}])
       ~(~(count) | first | /name | eq :count)
@@ -451,9 +451,9 @@
   ::builtin{:impl :qlang/type/call}
 
 ::CallPayloadNotSchemaError
-  |~~ A ::call payload is a Map of `:name` a keyword, `:args` a
-      Vec of quotes and `:docs` a Vec of strings; `:field` names
-      the field that does not fit, null when the payload is no Map.
+  |~~ A ::call payload is a Map of `:name` a keyword and `:args`
+      a Vec of quotes; `:field` names the field that does not fit,
+      null when the payload is no Map.
 
       ~(
         ::call{:name 42}
@@ -506,8 +506,7 @@
 
 ::bind
   |~~ The step of a declaration: `:name` the keyword or tag it
-      binds, `:docs` its prose, `:params` its parameters,
-      `:body` the step of its body.
+      binds, `:docs` its prose, `:body` the step of its body.
 
       ~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
   ~~|
@@ -515,20 +514,19 @@
 
 ::BindPayloadNotSchemaError
   |~~ A ::bind payload is a Map of `:name` a keyword or a tag,
-      `:docs` a Vec of strings, `:params` a Vec of keywords and
-      `:body` a step.
+      `:docs` a Vec of strings and `:body` a step.
 
       ~(
-        ::bind{:name :inc :params [1]}
+        ::bind{:name :inc :docs [1]}
         !| [type /field]
-        |  eq [::BindPayloadNotSchemaError :params]
+        |  eq [::BindPayloadNotSchemaError :docs]
        )
   ~~|
 
 ::BindReadBackDiffersError
   |~~ The ::bind prints as text that reads back as another step: a
-      declaration binds a body, parameters or docs, and a body that
-      is a keyword or a tag is written as a group.
+      declaration binds a body or docs, and a body that is a keyword
+      or a tag is written as a group.
 
       ~(
         ::bind{:name :inc}

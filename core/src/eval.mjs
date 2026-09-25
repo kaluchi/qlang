@@ -839,14 +839,10 @@ async function callByAddress(node, state) {
 // arityError. The introspection surface for "what does this operand
 // do" is the axes on its address, `::vec/count | source` / `| docs` /
 // `| examples`, not a bare-name shortcut into the descriptor Map.
-// The call's docs and its step ride the lambdas array for `as`,
-// whose record holds them.
 async function applyBuiltinDescriptor(descriptor, node, state) {
   const resolvedImpl = resolveBuiltinImpl(descriptor);
 
   const builtinLambdas = node.args.map(argNode => makeLambda(argNode, state));
-  builtinLambdas.docs = node.docs ?? [];
-  builtinLambdas.step = node;
   const { served, passedTags } = subjectServedBy(descriptor, state.pipeValue);
   if (passedTags.length === 0) return await applyRule10(resolvedImpl, builtinLambdas, state);
   const servedState = await applyRule10(resolvedImpl, builtinLambdas, withPipeValue(state, served));

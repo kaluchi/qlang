@@ -315,8 +315,8 @@ describe('round-trip invariant — BareTypeKeyword', () => {
 
 describe('env output is parseable', () => {
   // The `env` operand exposes the records of the scope as a Map. Every
-  // entry — the record of a host-bound function, of a user `as`
-  // binding, of a user BindStep verb — must render through a
+  // entry — the record of a host-bound function, of a user freeze,
+  // of a user BindStep verb — must render through a
   // path the parser accepts on the way back. A leak (raw JS
   // function source landing in the output) breaks REPL `env`
   // display and every downstream `env | …` pipeline that hands

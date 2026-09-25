@@ -150,7 +150,7 @@ bindTypeConstructor('builtin', builtinConstructor);
 //     pipeValue is context for both — lets compact rebuild
 //     patterns like `pair | tag /1 /0` reorder elements of
 //     a positional Vec into the operand's value-then-tag
-//     order without an intermediate `as` binding.
+//     order without an intermediate binding.
 
 const PayloadSubjectNotTaggedInstanceError = declareSubjectError(
   'PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');

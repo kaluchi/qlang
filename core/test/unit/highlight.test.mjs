@@ -136,11 +136,6 @@ describe('tokenize — operand call name classification', () => {
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('the `as` binding-introducer resolves to `keyword`', async () => {
-    const tokens = tokenize('1 | as :x', await builtins());
-    expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
-  });
-
   it('an `@`-prefixed call name resolves to `effect`', async () => {
     const tokens = tokenize('@log', await builtins());
     expect(tokens[0].kind).toBe('effect');
@@ -326,14 +321,6 @@ describe('tokenize — doc-prefix spans', () => {
     expect(commentSpan.start).toBe(0);
     expect(src.slice(commentSpan.start, commentSpan.end))
       .toMatch(/^\|~~ Note\. ~~\|/);
-  });
-
-  it('external doc-prefix on as(:name) (DocAttachedSequence path) gets one comment span before the call', async () => {
-    const src = '42\n|~~ Captured. ~~|\nas :answer';
-    const tokens = tokenize(src, await builtins());
-    const commentSpan = tokens.find(t => t.kind === 'comment'
-                                    && src.slice(t.start, t.end).startsWith('|~~ Captured'));
-    expect(commentSpan).toBeDefined();
   });
 
   it('docs-only BindStep (no body) extends the comment span to the BindStep end', async () => {

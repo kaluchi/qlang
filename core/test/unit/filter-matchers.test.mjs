@@ -76,7 +76,7 @@ describe('filter — container polymorphism', () => {
   it('Map with a value bound for pred — every entry passes', async () => {
     // The quote names a boolean, the value of its record, which
     // replaces the element — every entry survives.
-    const count = await evalQuery('true | as :n | {:a 1 :b 2} | filter ~(n) | count');
+    const count = await evalQuery('true | :n / | {:a 1 :b 2} | filter ~(n) | count');
     expect(count).toBe(2);
   });
 

@@ -54,9 +54,9 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(10);
   });
 
-  it('evalCell persists as bindings across subsequent cells', async () => {
+  it('evalCell persists freezes across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('42 | as :answer');
+    await sessionInstance.evalCell('42 | :answer /');
     const cellEntry = await sessionInstance.evalCell('answer | mul 2');
     expect(cellEntry.result).toBe(84);
   });
@@ -156,10 +156,10 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect((await restored.evalCell('5 | double')).result).toBe(10);
   });
 
-  it('preserves user as bindings via tagged-JSON value replay', async () => {
+  it('preserves user freezes via tagged-JSON value replay', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('42 | as :answer');
-    await sessionInstance.evalCell('[1 2 3] | as :nums');
+    await sessionInstance.evalCell('42 | :answer /');
+    await sessionInstance.evalCell('[1 2 3] | :nums /');
 
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));

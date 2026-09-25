@@ -1,6 +1,8 @@
 // The verb [D67]: a tag over a quote, `::verb~(:x ::number | add x)`,
-// whose leading declarations are its signature, read from the quote's
-// tree before anything runs [D53]. A declaration whose body is a tag
+// whose leading declarations of a role or with a literal body are its
+// signature, read from the quote's tree before anything runs [D53]; the
+// first declaration whose body computes begins the body [D70]. A
+// declaration whose body is a tag
 // name is a slot a call must fill; one whose body is a set of kinds takes
 // a value of any of them and may be left out when `::null` is among
 // them; one whose body is any other literal takes that literal when it
@@ -36,8 +38,8 @@ const VerbPayloadNotQuoteError = declareSubjectError('VerbPayloadNotQuoteError',
 const VerbSlotNameNotKeywordError = declareShapeError('VerbSlotNameNotKeywordError',
   ({ slot }) => `::verb names a slot by a keyword, and its head declares ${slot.literal}`,
   { operand: '::verb' });
-const VerbSlotBodyNotLiteralError = declareShapeError('VerbSlotBodyNotLiteralError',
-  ({ slot }) => `::verb reads its head before it runs, and the declaration of ${slot.literal} computes; a slot is declared by a kind or a literal`,
+const VerbSlotWithoutBodyError = declareShapeError('VerbSlotWithoutBodyError',
+  ({ slot }) => `::verb declares a slot by a kind or a literal, and ${slot.literal} has neither`,
   { operand: '::verb' });
 const VerbRoleNotKindError = declareShapeError('VerbRoleNotKindError',
   ({ role }) => `::verb role ${role.literal} is declared by a kind or a set of kinds, and :returns by / as well`,
@@ -94,12 +96,21 @@ function unitsOf(quote) {
   return units;
 }
 
-// The leading declarations, a declaration after `*` the last of them.
+// A declaration of a value the body derives, `:self /` or `:limit (k |
+// mul 2)`, stands outside the head.
+const derivesInBody = declaration => declaration.key.type === 'Keyword'
+  && !ROLE_NAMES.has(declaration.key.name)
+  && declaration.body !== null
+  && !isPureLiteralAst(declaration.body);
+
+// The leading declarations up to the first that derives a value, a
+// declaration after `*` the last of them.
 function headLengthOf(units) {
   let headLength = 0;
   while (headLength < units.length) {
     const { combinator, step } = units[headLength];
     if (step.type !== 'BindStep' || (combinator !== '|' && combinator !== '*')) break;
+    if (derivesInBody(step)) break;
     headLength++;
     if (combinator === '*') break;
   }
@@ -152,9 +163,7 @@ function readSignature(quote) {
       else signature.returns = kindsOfRole(declaration);
       continue;
     }
-    if (declaration.body === null || !isPureLiteralAst(declaration.body)) {
-      throw new VerbSlotBodyNotLiteralError({ slot: keyword(name) });
-    }
+    if (declaration.body === null) throw new VerbSlotWithoutBodyError({ slot: keyword(name) });
     if (combinator === '*') signature.rest = slotOf(declaration);
     else signature.slots.push(slotOf(declaration));
   }
@@ -164,8 +173,8 @@ function readSignature(quote) {
 }
 
 // `::verb~(…)` — the verb over a quote, whose head is read here, so a
-// head that computes is refused where the verb is made. The scope of
-// the verb is the one it is made in.
+// head the constructor refuses is refused where the verb is made. The
+// scope of the verb is the one it is made in.
 function verbConstructor(payload, state) {
   if (!isQuote(payload)) throw new VerbPayloadNotQuoteError(payload);
   signatureOf(payload);

@@ -12,10 +12,12 @@
 // `"decision": "D14"` or a vector of them, and a requirement the tree
 // does not meet yet is a target, `"target": true`, which must answer
 // otherwise; a target that answers as expected fails until the branch
-// that met it drops the mark [D58].
+// that met it drops the mark [D58]. The requirements agree with each
+// other in the one form a runner can see: no two cases hold one query
+// to different answers, and every decision a case names has its record.
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/eval.mjs';
@@ -53,16 +55,42 @@ function assertLiteralAst(ast, testName) {
   });
 }
 
-for (const file of files) {
-  const path = join(conformanceDir, file);
-  const lines = readFileSync(path, 'utf8')
+const casesByFile = files.map(file => ({
+  file,
+  cases: readFileSync(join(conformanceDir, file), 'utf8')
     .split(/\r?\n/)
     .map(l => l.trim())
-    .filter(l => l.length > 0 && !l.startsWith('//'));
+    .filter(l => l.length > 0 && !l.startsWith('//'))
+    .map(line => JSON.parse(line)),
+}));
 
+describe('conformance: the requirements agree', () => {
+  const allCases = casesByFile.flatMap(({ file, cases }) => cases.map(test => ({ file, ...test })));
+
+  it('holds no query to two answers', async () => {
+    const contradictions = [];
+    for (const [query, sameQuery] of Map.groupBy(allCases, test => test.query)) {
+      if (sameQuery.length < 2) continue;
+      const answers = await Promise.all(sameQuery.map(test => evalQuery(test.expect)));
+      if (answers.some(answer => !deepEqual(answer, answers[0]))) {
+        contradictions.push(`${query}: ${sameQuery.map(test => `${test.file}#${test.name}`).join(', ')}`);
+      }
+    }
+    expect(contradictions).toEqual([]);
+  });
+
+  it('names only decisions that have their record', () => {
+    const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
+    const unrecorded = allCases.flatMap(test => [test.decision ?? []].flat()
+      .filter(decision => !existsSync(join(decisionsDir, `${decision}.md`)))
+      .map(decision => `${test.file}#${test.name}: ${decision}`));
+    expect(unrecorded).toEqual([]);
+  });
+});
+
+for (const { file, cases } of casesByFile) {
   describe(`conformance: ${file}`, () => {
-    for (const line of lines) {
-      const test = JSON.parse(line);
+    for (const test of cases) {
       it(test.target === true ? `target: ${test.name}` : test.name, async () => {
         const expectedAst = parse(test.expect);
         assertLiteralAst(expectedAst, test.name);

@@ -2,7 +2,7 @@
 {"name":"distribute-keeps-the-order-of-the-keys","query":"{:b 2 :a 1} * add 1 | vals","expect":"[3 2]"}
 {"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
 {"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]"}
-{"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort","expect":"{:a 3 :b 1}"}
+{"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}"}
 {"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort ~(/n) | vals * /n","expect":"[1 2]"}
 {"name":"take-cuts-the-first-entries","query":"{:a 1 :b 2 :c 3} | take 2","expect":"{:a 1 :b 2}"}
 {"name":"drop-cuts-the-first-entries-away","query":"{:a 1 :b 2 :c 3} | drop 2","expect":"{:c 3}"}

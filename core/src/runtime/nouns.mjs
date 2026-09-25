@@ -8,7 +8,9 @@
 // kind and the name of a verb that lives on it, `::vec/count`; a verb
 // has no address of its own.
 
-import { isQMap, isVec, makeSet, makeTagKeyword, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
+import {
+  isQMap, isVec, isValueClass, makeSet, makeTagKeyword, keyword, typeKeyword, TAG_HEADER_SYMBOL
+} from '../types.mjs';
 import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
   isRuntimeKey, MODULE_NAMESPACE_PREFIX
@@ -43,6 +45,27 @@ function subjectKindsOf(descriptor) {
   const subject = descriptor.get('subject') ?? keyword('any');
   const named = isVec(subject) ? subject : [subject];
   return new Set(named.map(kindKeyword => (SUBJECTS_BENEATH_EVERY_KIND.has(kindKeyword.name) ? 'any' : kindKeyword.name)));
+}
+
+function servesKindOf(descriptor, value) {
+  const kinds = subjectKindsOf(descriptor);
+  return kinds.has('any') || kinds.has(typeKeyword(value).name);
+}
+
+// The value a verb takes from its subject, walking the subject's tags
+// from the outside in [D34]: the subject itself when the verb serves its
+// kind, and past a tag the verb does not serve the value that tag wraps,
+// with the tags passed on the way, so `::Box#[3 1] | count` counts the
+// set. A tag a vector or a map carries rides the value itself, which a
+// verb of vectors or of maps reads as it is.
+export function subjectServedBy(descriptor, subject) {
+  const passedTags = [];
+  let served = subject;
+  while (isValueClass(served, 'taggedInstance') && !servesKindOf(descriptor, served)) {
+    passedTags.push(served.tag);
+    served = served.payload;
+  }
+  return { served, passedTags };
 }
 
 export function isNoun(env, tagName) {

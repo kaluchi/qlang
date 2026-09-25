@@ -42,7 +42,8 @@ import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
-import { addressedVerb } from './runtime/nouns.mjs';
+import { addressedVerb, subjectServedBy } from './runtime/nouns.mjs';
+import { underPassedTags } from './runtime/dispatch.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
@@ -938,7 +939,10 @@ async function applyBuiltinDescriptor(descriptor, node, state) {
   const builtinLambdas = node.args.map(argNode => makeLambda(argNode, state));
   builtinLambdas.docs = node.docs ?? [];
   builtinLambdas.location = node.location;
-  return await applyRule10(resolvedImpl, builtinLambdas, state);
+  const { served, passedTags } = subjectServedBy(descriptor, state.pipeValue);
+  if (passedTags.length === 0) return await applyRule10(resolvedImpl, builtinLambdas, state);
+  const servedState = await applyRule10(resolvedImpl, builtinLambdas, withPipeValue(state, served));
+  return withPipeValue(servedState, await underPassedTags(servedState, resolvedImpl, passedTags, servedState.pipeValue));
 }
 
 // applyConduit(conduit, node, lookupName, state) → state'

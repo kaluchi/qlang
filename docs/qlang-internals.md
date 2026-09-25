@@ -742,12 +742,20 @@ shape. `eval.mjs::evalOperandCall` looks up the identifier in
 `resolveBuiltinImpl` — the `BUILTIN_IMPL_SLOT` stamp bootstrap left
 on the descriptor, or the `:impl` handle keyword walked through
 `PRIMITIVE_REGISTRY.resolve` when a query assembled the descriptor
-from data — and invokes it via Rule 10. Bare lookup fires the operand against
+from data — and invokes it via Rule 10. Before the call it walks the
+subject's tags [D34] through `nouns.mjs::subjectServedBy`: past each
+opaque wrap whose tag the descriptor's `:subject` does not name, the
+operand takes the value the wrap holds, and the answer of an operand
+built with `preservesTag` goes back under the tags passed, from the
+innermost out, through `dispatch.mjs::underPassedTags`. A tag stamped
+on a Vec or a Map rides the value itself, which the operand reads as
+it is. Bare lookup fires the operand against
 the current `pipeValue` regardless of arity — non-nullary operands
 without captured args hit Rule 10's arity check and surface a
 per-site arityError. The introspection surface for "what does this
-operand do" is `:name | source` / `:name | docs` / `:name |
-examples`, not a bare-name shortcut into the descriptor Map.
+operand do" is the axes on its address, `::vec/count | source` /
+`| docs` / `| examples`, not a bare-name shortcut into the
+descriptor Map.
 
 Additional runtimes and user libraries are loaded anywhere in a query
 by providing a Map and applying `use`:

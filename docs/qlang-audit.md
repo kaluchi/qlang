@@ -1373,25 +1373,13 @@ language server scans the same text a third time, with its own loop over
 braces and strings, to strip the quotes for a hover
 (`lsp/src/features.mjs`, `stripQuoteSegments`).
 
-The text of a doc is the text of the file it was read from, line
-endings included, so on a checkout that ends its lines with a carriage
-return every page of the catalog carries one, and the same query
-answers `false` where the checkout writes a line feed alone. On the
-maintainer's machine:
-
-```sh
-$ qlang '::qlang | docs | first | /content | contains "\r"'
-true
-```
-
 The repair must give the language views sized to a budget, the cheap
 view the default [D27]. It must reduce catalog prose to what the facts
 do not say, written in the language's own vocabulary, with no name of a
 file, a symbol, a service or a section of another document in it. It
 must make examples live on one plane; reduce doc segments to prose and
 quotes, the doc being the vector of those segments under its own tag
-[D19], parsed once by the language's own parser, which reads a line
-break as one whatever bytes the file wrote, so that it counts,
+[D19], parsed once by the language's own parser, so that it counts,
 addresses and slices as every vector does, its literal `|~~ … ~~|` is
 the fourth sigil over the one mechanism, and its text is the join of
 its segments; and print errors and parse failures economically, with

@@ -243,19 +243,15 @@ export function makeErrorLiteralStep(descriptor) {
   }, 'error'));
 }
 
-// Doc — frozen JS object carrying `.content` (the verbatim text
-// between `|~~ ... ~~|` markers, or after `|~~|` up to newline).
-// The VALUE_CLASS_TAG Symbol brand keeps `:kind` housekeeping out of the user-visible
-// Map surface. Doc value lands in pipeValue through DocLit literal in
-// any Primary position; the attached-prefix path
-// (DocAttachedSequence) is unrelated — there docs travel as
-// `.docs` strings on the following operand-call AST node.
+// Doc — frozen object carrying `.content`, the text of a `|~~ … ~~|`
+// or `|~~|` form with its line breaks read as one, whatever bytes the
+// source wrote; a doc literal and the doc of a binding both mint it here.
 export function isDoc(v) {
   return isValueClass(v, 'doc');
 }
 
 export function makeDoc(content) {
-  return Object.freeze(brandValueClass({ content }, 'doc'));
+  return Object.freeze(brandValueClass({ content: content.replace(/\r\n?/g, '\n') }, 'doc'));
 }
 
 // ── tag-header symbol — Map identity slot ────────────────────

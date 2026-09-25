@@ -614,8 +614,8 @@ own [D50]. The shape of an answer is read the same way, before the
 answer is fetched: the operand's declaration names the tag or the type
 of its result, the tag's declaration names the fields, and `spec` and
 `docs` on the operand answer for one operand what a schema sheet would
-answer for all. The result of a verb is the kind its head declares
-last, a declared verb's and a built-in's alike [D57]; the fields are
+answer for all. The result of a verb is the kind its `:returns`
+declares, a declared verb's and a built-in's alike [D67]; the fields are
 declared with the tag, and the element shape of a container is spelled
 as the container's literal around the kind, `[::Method]` for a vector of
 methods. Last, everything prints as what it is, code included, because
@@ -826,7 +826,7 @@ page of a refusal names the kind it expected with one:
 ```
 
 The kinds move into the declarations with the kinds of the slots
-[D45].
+[D45], [D67].
 
 Whether a transform keeps its subject's tag at all is an option of the
 operand's implementation, `preservesTag`, which `applyTagPreservation`
@@ -849,7 +849,7 @@ flag, and the loss is silent:
 
 The kind of an operand's result belongs to its declaration [D4], [D41],
 and a verb that keeps its subject's tag keeps every tag the walk passed
-[D34]; how the head says so is part of its spelling.
+[D34], which `:returns /` says [D67].
 
 A quote held as data carries no environment, so a parameter of the
 body that receives one captures a name of the caller, where an
@@ -885,7 +885,8 @@ the runtime reads, so that the catalog's slot vocabulary stops being
 decoration [D4], [D43], [D45]. An operand is then a declaration, whatever
 implements it: the tag or the type of its subject, its slots with their
 kinds, code among them, the tag or the type of its result, and its doc,
-written in the head of its literal [D57]. The runtime executes the
+written as the leading declarations of its quote under `::verb` [D67].
+The runtime executes the
 declaration: it checks the subject and every slot before the
 implementation runs, a slot of kind code taking a quote and nothing
 else, and it checks the result. A built-in, a host's operand and a
@@ -895,10 +896,10 @@ the runtime has already checked, handed to the core as `{ source, impls
 }` where the source is the catalog module that declares it; nothing else
 of the runtime is exported for building operands.
 
-A verb that several kinds answer is declared on each of them, with a
-head of its own, under the one contract the core owns [D62], so the
-heads write the catalog by kinds. Today one descriptor stands for every
-kind its subject lists, and each of those kinds reads the same one:
+A verb that several kinds answer resides in the module of each of them,
+under the contract on its provider's `any` whose page and laws they
+share [D62], [D67]. Today one descriptor stands for every kind its
+subject lists, and each of those kinds reads the same one:
 
 ```qlang
 > ::set/count | spec | /subject
@@ -931,7 +932,7 @@ arity and never turns into a full application; the canonical fold is
 quote holds [D56], and a reducer that wants the element anywhere but
 last is declared with a parameter one step earlier in the same query. A
 declared pipeline's parameters are values, and its body applies one that
-holds code, `:twice ~[:f](apply f | apply f)`, so the tilde says one
+holds code, `:twice ::verb~(:f ::quote | apply f | apply f)`, so the tilde says one
 thing wherever it stands: this is code, and only `apply` runs it. The
 main live use of lazy parameters, a key function handed down through
 several layers of pipelines, keeps its shape: the reference's `:@topBy
@@ -1000,8 +1001,8 @@ $ awk '/^[A-Z][A-Za-z0-9_]*[ \t]*$/ || /^[A-Z][A-Za-z0-9_]* *=/{n++; if ($1 ~ /C
 
 The repair must leave one binding form, in which a body is evaluated at
 declaration and named as a value, a quote included, and a verb is the
-same form with a conduit for its value, `~[slots](body)`, which retires
-`as` [D5], [D44], [D57]; must make comments trivia
+same form with a verb for its value, `::verb~(…)` [D67], which retires
+`as` [D5], [D44]; must make comments trivia
 at the level of whitespace; and must give documentation its own slot
 with its own literal, which doc already is: the doc form `|~~ … ~~|` is
 that literal today, a standalone doc value anywhere and the
@@ -1009,7 +1010,7 @@ documentation of a binding when it stands between the name and the body,
 and only the plain forms become whitespace. Each role of `as` has its
 spelling in that form: freezing the current value is a binding whose
 body is `/`, aliasing an operand is a verb whose body is the call, `:len
-~[](count)`, naming the element inside a group is the same freeze inside
+::verb~(count)`, naming the element inside a group is the same freeze inside
 the group, and freezing a parameter goes with values by default. The
 sister project is the largest user of `as`, almost always to name the
 subject inside a group, and its lines are where the marker's spelling is
@@ -1017,7 +1018,7 @@ tried. The form flips one spelling the other way: today's `:inc add 1`
 declares a pipeline because its body is a command, and under the one
 form a bare call body is evaluated at declaration, so every pipeline
 declared in the catalog's examples, in the tests and in the sister
-project gains the verb literal, `:inc ~[](add 1)`, in the same branch.
+project gains the tag of a verb, `:inc ::verb~(add 1)`, in the same branch.
 
 Today's binding is lazy, so code moved into a declaration further left
 answers as it did inline, even when it reads the subject:
@@ -1030,7 +1031,7 @@ answers as it did inline, even when it reads the subject:
 [1 2]
 ```
 
-Under the one form the verb keeps that, `:most ~[](count | sub 1)` read
+Under the one form the verb keeps that, `:most ::verb~(count | sub 1)` read
 at each mention against the subject there, while `:most (count | sub 1)`
 is a value computed where it is declared, which is what `as` is for
 today. A quote or a verb moved left means the same wherever its names mean
@@ -1126,7 +1127,7 @@ visible to the operands that use them and out of the client's scope
 from a tag to its provider to its declaration [D36], so that the
 housekeeping keys leave the environment for values of their own. It
 must write the catalog by its nouns, so a noun's verbs are read where
-they are written [D62]. And it must hold the rest of the rule of
+they are written [D62], [D67]. And it must hold the rest of the rule of
 collisions:
 
 - A verb and a kind may be joined by whoever owns one of them. This is
@@ -1733,8 +1734,8 @@ declares a slot of kind code and applies what it receives, and a quote
 handed over sees the names of its author [D43]. There is one binding
 form, `:name value`: its body is evaluated once at declaration against
 the current value and named as a value, a quote included, and a verb is
-a binding whose value is a conduit, `~[slots](body)`, `~[]` when it
-takes no modifiers [D44], [D57]. A name is declared once in a scope. The
+a binding whose value is a verb, a quote under `::verb` whose leading
+declarations are its slots [D44], [D67]. A name is declared once in a scope. The
 pipe is linear continuation and the binding is a branch to the side. A
 verb runs when its name is mentioned, as a built-in does, so `apply` is
 only for a quote held as a value, from a name, a parameter, `parse`, a
@@ -1931,21 +1932,20 @@ The syntax and the mechanism of an operand are final. The ring is
 closed and the command form has landed [D3], [D8], [D9], [D10], [D11], [D47],
 [D51]–[D56]: a quote is the vector of its steps, every step is a command,
 and every text of the repository and of the sister project is written
-in that form. The argument model follows [D4], [D43], [D45], [D57], writing
-every slot list once, in the head of the verb literal and in the
-descriptor of a built-in, with the interface of hosts designed in the
-same branch and landed in every host; the one binding form closes the
-milestone [D5], [D44], with comments as whitespace and the doc literal
-in the binding's slot. A verb that several kinds answer takes a head
-on each of them [D62], so the heads write the catalog by kinds, where
-one descriptor stands today for every kind its subject lists, and the
-result a head declares carries whether the verb keeps its subject's
-kind, which `preservesTag` and `imposesOrder` decide today [D41]. How
-the head is written is the open question of the head as a spec,
-answered before the heads are written.
+in that form. The argument model follows [D4], [D43], [D67], writing
+every signature once, as the leading declarations of a verb's quote
+under `::verb`, a built-in's body being its `::builtin` step, with the
+interface of hosts designed in the same branch and landed in every
+host; the one binding form closes the milestone [D5], [D44], with
+comments as whitespace and the doc literal in the binding's slot. The
+catalog is written one module per noun, a verb that several kinds
+answer residing in each under the contract on its provider's `any`,
+where one descriptor stands today for every kind its subject lists, and
+`:returns` carries whether the verb keeps its subject's kind, which
+`preservesTag` and `imposesOrder` decide today [D41], [D67].
 
 The milestone's answers are the targets of [D4], [D43], [D44], [D57],
-[D60], [D65] and [D66] in the conformance suite, which `node scripts/requirements.mjs`
+[D60], [D65], [D66] and [D67] in the conformance suite, which `node scripts/requirements.mjs`
 prints as the focus while any of them is open. Among them `42 | :x / |
 add 1 | x` answers 43 today, because `:x /` re-evaluates its body at
 every mention; under the one binding form a bare body is evaluated
@@ -2103,7 +2103,10 @@ knows no hierarchy between tags. When a task
 wants one, Clojure's multimethods show the form: a hierarchy of names
 built as data with `derive`, separate from any value, rather than
 inheritance. The cost is a second axis of resolution; the gain is that
-a host can say that every kind of its nodes answers a verb once.
+a host can say that every kind of its nodes answers a verb once. One
+level of it is decided: the walk passes the `any` of the provider whose
+path a tag names before `::qlang/any`, where a contract several of the
+provider's kinds answer lives [D67].
 
 The spelling and the mechanics of mounting [D24]. Admitting the dot
 inside a tag's name is local to the grammar; the quoted form `::"…"`
@@ -2143,30 +2146,6 @@ declarations is [D53], it answers its declarations, which needs neither
 the tail nor the noun, and a tag over it names the convention its names
 follow and checks it in its constructor [D6]. A module that computes
 while it loads [D63] answers the spec its pipeline builds.
-
-A kind's declaration as its spec [D33], [D62]. A tag is declared with
-its constructor and nothing else, `::vec` with `::builtin{:impl
-:qlang/type/vec}` (`core/lib/qlang/tag.qlang`), and its verbs reach it
-from outside: «меня смущало например то что у нас тэги вроде как
-объявляются .. но спецификации не содержат .. глаголы и прочее потом
-хрен пойми как связываются/попадают внутрь тэга» (maintainer,
-2026-09-25 18:12, session 86982eb5), and «я открываю каталог lib и
-смотрю на qlang файлы -- и те хрен пойми как раскинады .. они точно не
-матчатся со стрктурой манифеста» (18:14). In the model's reading a
-kind's declaration is its spec, a module of its constructor, its
-fields, its verbs and the other contracts D33 attaches to a kind:
-`::vec/count` is the path to a declaration written inside `::vec`, the
-verbs of a kind are read off its spec, and a file of the catalog is the
-spec of one noun, so the files and the manifest show one tree. Asked to
-weigh a vector of specs hung on a tag or a partial declaration of a
-kind, «выгоду и эмержентность ты уже сам оцени» (18:17), the model keeps
-one owner and one place for a kind's verbs: a module's verbs for a kind
-it does not own are the names its `use` brings into a client's scope
-[D62], [D63], an owner's verb on a foreign kind is called by its
-address, and the one partial in the tree is the command line's `@out`,
-`@in`, `@err` and `@tap` on `::any`. Open: where the page and the laws
-of a verb several kinds answer are written, and the subject of a verb
-declared inside a kind's spec.
 
 The pressure for a second format. Clojure answered the slowness of
 parsing its notation in browsers with Transit, the same model written
@@ -2210,135 +2189,6 @@ loud, at the price of a sort by key over a vector that holds errors,
 which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it, and the law for nested
 errors of the third milestone settles it [D13].
-
-The spelling of a verb's head [D34], [D40], [D57], [D60]. The doc of a
-slot has left the head for the kind of the slot [D60], so what stays
-open is where the kind of the result stands and what several groups of
-brackets would mean. «я вижу массу
-неоднозначности и слабую структуру.. это ~::jdt/CallerTree[:jdt/Method
-:depth |~~ levels of callers to walk ~~| ::number][:jdt/Method
-:parallel |~~ way of working ~~| ::boolean](Сode) - а если так?
-~[][][][]..[]() - такое типа если :count ~::number[](::builtin{:impl})»
-(maintainer, 2026-09-24 07:09, session 86982eb5), held back for a fresh
-look, «ок, отложим на свежую голову ..» (07:31). The proposal puts the
-result's kind right after the tilde, where D57 has it last in the head,
-so the head holds only what the verb takes and needs no rule of
-position; `~::number[…]` stands free, since a word written against a
-word is refused, while `~::number` alone stays the quote of a tag name,
-`~::number` answering `~(::number)`. It writes a built-in with the same
-literal, its descriptor for the body, `:count
-~::number[](::builtin{:impl})`, so every verb is one literal. Its
-groups, one bracket after another, read as alternative signatures:
-`sort` takes a key or none, `[3 1 2] | sort` and `[{:a 2} {:a 1}] | sort
-~(/a)` both answering, which its descriptor cannot say, `:modifiers
-[:keyLambda]`. A group for each kind of the subject repeats the walk of
-D34, which finds the implementation of one contract on each kind, so
-what the groups may hold is the alternatives of arity, and alternatives
-told apart by the kind of a modifier are the overloading D9 set aside.
-Read as one group for each slot, the groups must touch one another to
-stay one word, since `f ~::T [x] (y)` reads otherwise as three
-modifiers. Inside one head every keyword opens a slot and holds what
-follows it up to the next keyword, its doc and then its kind, which the
-grammar reads already as words: a head of five slots reads as the
-subject's kind and five times a keyword, a doc and a kind. Options
-beyond a few positional modifiers are one map whose keys the verb
-declares [D40], `callers 2 {:scope :project :keep ~(/static | not)
-:limit 50 :parallel false}` holding two modifiers where the positional
-call holds five, and a map entry holds one word, so a key of such a map
-has no doc of its own. The head carries as well whether its verb keeps
-its subject's kind [D41]: a result other than the kind the verb lives
-on, `::vec` for `sort` on a set, says what `imposesOrder` says today,
-and what `preservesTag` says, that the verb keeps the tags the walk
-passed [D34], `filter` keeping `::Box` over a set, wants a mark in the
-head or a rule over its result.
-
-The head as a spec [D57], [D60], [D62]. The maintainer took the head up
-again with a head of two groups, the ends of the pipe and the slots,
-«как тебе вариант с  ~[:subject :out][params](…) ?» (maintainer,
-2026-09-25 17:13, session 86982eb5), which needs no rule of position to
-find the ends among the slots; he accepted that a verb without declared
-ends writes one group and that an open end is `::any`, «1 - да 2 - да»
-(17:32), and then turned to a head that is a pipeline: «у нас qlang
-самое главное это пайплайн.. все что преставимо пайплайном это
-хорошо..» (18:52). In the model's reading the head is then a spec, a
-quote of declarations under the kind `::spec`, read as data and never
-run, `::spec~(:returns ::vec | :key |~~ how to rank ~~| ::quote)`: D57
-set aside a head of bindings because it could not be read before it
-ran, while a quote of declarations is data [D53], and the constructor
-of `::spec` refuses a body that computes. A slot is a declaration by
-its name, «кстати :parameters тогда наверное и не нужно? можно ведь
-просто имена объявить» (19:35); the subject is the kind whose module
-declares the verb, «так же конвенцию для :subject что ли криво
-объявлять когда у нас модули» (19:35), and a verb outside a kind's
-module takes any subject; a stack of tags holds a spec to a convention,
-«дальше нужно ли делать ::verb::spec~(…) -  что б как-то поджать
-содержимое спеки инвариантами» (19:24), the outer tag naming what the
-value is, since it is the value's kind [D32], `::signature::spec~(…)`;
-`:throws` is what a spec answers, computed from the refusals that name
-their place [D64]. A name resolves by its name alone, «имя безусловно
-затыкает все, даже если арность была и переданы аргументы» (17:47), and
-the verb it finds takes the spec that fits the call, several specs
-standing for the alternatives of arity, each with its own ends, «а то
-вдруг там и входы-выходы у другой арности не те» (17:32). Open: one body
-for specs whose slots differ; the mark of a slot that gathers the rest;
-whether the verb is then written `~(spec)(body)`, the maintainer's form
-«~(:name doc value | :name2 если есть)(code)» (maintainer, 2026-09-24
-05:52, session 86982eb5) returning; and the doc of a role in a spec,
-which D60 moved into the kind of the slot. Nothing of it is adopted
-yet: «лавай так, ничего принимать пока не будем» (maintainer,
-2026-09-25 19:41, session 86982eb5).
-
-The contract of a verb [D45], [D46], [D57]. «наверное такой контакт чуть ли
-не отдельным способом описывается.. типа интерфейс вызова .. что там
-умного у кложуры было или что ты можешь подходящего для нас и не костыль
-и эмержентно сочетающегося со всем предложить?» (maintainer, 2026-09-24
-06:37, session 86982eb5), and «и там ты тоже выше хорошо упоминал про
-билтины .. оно ведь рядом тоже.. все фактически к глаголу относится, как
-ты сказал.. я просто затупил» (06:40). The model's reading: the contract
-is the verb's declaration read as data, one for a built-in and for a
-declared verb, and the axis `spec` answers it as a value. Today it
-answers the descriptor, `::number/gt | spec | [/subject /modifiers
-/returns]` answering `[:number [:number] :boolean]`, with the tags of
-the refusals under `:throws`; under D57 it answers the slots, the result and the tags
-of the verb's sites [D46], the same fields for a built-in and a declared
-verb. Clojure writes a contract beside the definition, `s/fdef` with
-`:args`, `:ret` and `:fn` in a registry keyed by the function's name, a
-second spelling of what the declaration says, the drift D45 set aside.
-What it teaches without that price: the meaning of an attribute is
-declared once and reused wherever the attribute stands, which the
-language keeps in a kind, a tag with its doc and its schema or
-constructor [D6], [D50]; optionality is a property of the context that
-asks for an attribute, the lesson of the schema and select of its second
-spec, so in the open question of optional slots the mark stands in the
-head beside the slot and a kind means the same wherever it is taken; and
-the vocabulary of a kind is the set of verbs that take it as their
-subject, which its protocols declare and the language computes,
-`::string | manifest` answering the verbs on strings [D61]. A pre- or
-postcondition written as code is a head that computes; a constraint is
-a kind whose constructor checks it [D6], [D33],
-and the runtime checks every call against the declaration [D45], where
-Clojure's instrumentation is a mode switched on for development. The
-dispatch asked after, «а мультидиспатч каокй-то там был?» (07:27), is
-decided and runs: a verb is found by walking the subject's tags from the
-outside in, and it keeps one contract, its document and its examples,
-which every kind that implements it answers as laws [D23], [D34]. Each
-kind that answers the verb declares it with a head of its own, its
-arity and the kinds of its slots [D62], so what one head may hold beside
-its slots is the alternatives of its arity, the open question of
-optional slots, and what stays open here is where the page that the
-implementations of one contract share is written, which the heads
-settle as they write the catalog by kinds.
-
-Optional and variadic slots [D45]. `sort` takes a key or none, `cond`
-and `coalesce` take as many clauses as they are given, and the slot list
-has no mark for either. A default after the kind would mark a slot
-optional and say what it takes when absent, `:key ::quote ~()`, at the
-price of a value inside a list of kinds; a mark on the kind would keep
-the list to kinds and leave the default to the prose. A last slot that
-gathers the remaining modifiers needs a mark of its own, since a slot of
-kind `[::quote]` already takes one vector. The heads of the second
-milestone meet the question first, since `sort`, `cond` and `coalesce`
-are among the verbs they write.
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
@@ -2435,3 +2285,4 @@ maintainer wants to explore it before it is fixed.
 [D64]: decisions/D64.md
 [D65]: decisions/D65.md
 [D66]: decisions/D66.md
+[D67]: decisions/D67.md

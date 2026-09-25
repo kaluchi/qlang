@@ -175,14 +175,14 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
 
   it('renders tagged Map / tagged Set / tagged scalar inside a Vec cell — inline handler branches', async () => {
     // `renderTaggedInstanceInline` dispatches by payload shape:
-    // tagged Map renders as `::Tag{…}`, tagged Set as `::Tag#[…]`,
+    // tagged Map renders as `::Tag{…}`, a tag over a set as `::Tag#[…]`,
     // tagged scalar (wrap-object) as `::Tag<payload>` (or
     // `::Tag(payload)` for identifier-shaped scalars). String
     // payload opens with `"` and skips the ParenGroup wrap, so
     // the bare-concatenation branch fires.
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
+    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
     const taggedMap = makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']]));
-    const taggedSet = makeTaggedInstance(makeTagKeyword('Keys'), new Set([1, 2]));
+    const taggedSet = makeTaggedInstance(makeTagKeyword('Keys'), makeSet([2, 1]));
     const taggedStr = makeTaggedInstance(makeTagKeyword('Note'), 'remember');
     const row = new Map([
       ['users', [taggedMap]],
@@ -202,11 +202,11 @@ describe('renderTaggedInstanceInline — table cell handler', () => {
 describe('toPlain encodes every TaggedInstance shape through the $tag envelope', () => {
   it('Set / Map / wrap-object payload shapes each encode their inner data plane', async () => {
     // The TaggedInstance `toPlain` handler routes by payload
-    // shape — Set / Map / opaque wrap-object branches are
+    // shape — a tag over a set, a Map and an opaque wrap-object are
     // exercised here; the Array branch is covered through the
     // earlier `Box[42]` test.
-    const { makeTaggedInstance, makeTagKeyword: makeTag } = await import('../../src/types.mjs');
-    const taggedSet = makeTaggedInstance(makeTag('Keys'), new Set([1, 2]));
+    const { makeTaggedInstance, makeTagKeyword: makeTag, makeSet } = await import('../../src/types.mjs');
+    const taggedSet = makeTaggedInstance(makeTag('Keys'), makeSet([2, 1]));
     const plainSet = toPlain(taggedSet);
     expect(plainSet.$tag).toBe('Keys');
     expect(plainSet.payload).toEqual([1, 2]);

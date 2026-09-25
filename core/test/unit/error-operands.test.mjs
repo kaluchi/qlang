@@ -306,15 +306,17 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('payload strips header off every TaggedInstance shape', async () => {
-    // Each shape exercises its own `payload` operand branch:
-    // tagged Set returns a fresh Set without header, tagged Map
-    // returns a fresh Map without header. The tagged Vec / wrap-
-    // scalar branches are covered above via the per-shape
-    // identity-overlay tests.
-    const { isTaggedInstance } = await import('../../src/types.mjs');
-    const setResult = await evalQuery('::Tags {} | ::Tags#[:a :b] | payload');
-    expect(setResult instanceof Set).toBe(true);
-    expect(isTaggedInstance(setResult)).toBe(false);
+    // Each shape exercises its own `payload` operand branch: a tag
+    // over a set stacks on it and answers the set, a set answers its
+    // vector, and a tagged Map returns a fresh Map without header.
+    // The tagged Vec / wrap-scalar branches are covered above via
+    // the per-shape identity-overlay tests.
+    const { isTaggedInstance, isQSet } = await import('../../src/types.mjs');
+    const setResult = await evalQuery('::Tags {} | ::Tags#[:b :a] | payload');
+    expect(isQSet(setResult)).toBe(true);
+    const vecResult = await evalQuery('#[:b :a] | payload');
+    expect(isTaggedInstance(vecResult)).toBe(false);
+    expect(vecResult.map(k => k.name)).toEqual(['a', 'b']);
     const mapResult = await evalQuery('::User {} | ::User{:name "alice"} | payload');
     expect(mapResult instanceof Map).toBe(true);
     expect(isTaggedInstance(mapResult)).toBe(false);

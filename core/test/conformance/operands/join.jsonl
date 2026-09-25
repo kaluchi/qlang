@@ -21,7 +21,7 @@
 {"name":"join-after-distribute","query":"[\"a\" \"b\" \"c\"] * append \"!\" | join \",\"","expect":"\"a!,b!,c!\""}
 {"name":"join-error-non-vec-subject","query":"42 | join \",\"","error":"typeError","expect":"::JoinSubjectNotVecError!{\n  :faultStep ~(join \",\")\n  :faultInput 42\n  :actualType :number\n}"}
 {"name":"join-error-string-subject","query":"\"abc\" | join \",\"","error":"typeError","expect":"::JoinSubjectNotVecError!{\n  :faultStep ~(join \",\")\n  :faultInput \"abc\"\n  :actualType :string\n}"}
-{"name":"join-error-set-subject","query":"#[1 2 3] | join \",\"","error":"typeError","expect":"::JoinSubjectNotVecError!{\n  :faultStep ~(join \",\")\n  :faultInput #[1 2 3]\n  :actualType :set\n}"}
+{"name":"join-set-subject-joins-in-its-order","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\""}
 {"name":"join-error-map-subject","query":"{:a 1} | join \",\"","error":"typeError","expect":"::JoinSubjectNotVecError!{\n  :faultStep ~(join \",\")\n  :faultInput {:a 1}\n  :actualType :map\n}"}
 {"name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join \",\"","error":"typeError","expect":"::JoinElementNotStringError!{\n  :faultStep ~(join \",\")\n  :faultInput [\"a\" 42 \"c\"]\n  :actualValue 42\n  :actualType :number\n  :index 1\n}"}
 {"name":"join-error-element-null","query":"[\"a\" null \"c\"] | join \",\"","error":"typeError","expect":"::JoinElementNotStringError!{\n  :faultStep ~(join \",\")\n  :faultInput [\"a\" null \"c\"]\n  :actualValue null\n  :actualType :null\n  :index 1\n}"}

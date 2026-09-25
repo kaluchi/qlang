@@ -16,8 +16,11 @@ import {
   makeSnapshot,
   isQuote,
   makeDoc,
-  isDoc
+  isDoc,
+  makeSet,
+  isQSet
 } from '../../src/types.mjs';
+import { deepEqual } from '../../src/equality.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 import { quoteOfSource, printQuoteSource } from '../../src/quote.mjs';
 import { QlangError } from '../../src/errors.mjs';
@@ -118,22 +121,27 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips a Set of mixed scalars', () => {
-    const setValue = new Set([1, 'two', true]);
+    const setValue = makeSet([1, 'two', true]);
     const restored = roundTrip(setValue);
-    expect(restored).toBeInstanceOf(Set);
-    expect(restored.has(1)).toBe(true);
-    expect(restored.has('two')).toBe(true);
-    expect(restored.has(true)).toBe(true);
+    expect(isQSet(restored)).toBe(true);
+    expect(deepEqual(restored, setValue)).toBe(true);
+  });
+
+  it('writes a set as the vector under its tag and reads it through the constructor', () => {
+    expect(toTaggedJSON(makeSet([2, 1]))).toEqual({ $tagged: { $tag: 'set', payload: [1, 2] } });
+    const restored = fromTaggedJSON({ $tagged: { $tag: 'set', payload: [3, 1, 3] } });
+    expect(isQSet(restored)).toBe(true);
+    expect([...restored]).toEqual([1, 3]);
   });
 
   it('round-trips deeply nested Vec/Map/Set', () => {
     const mapValue = new Map();
-    mapValue.set('items', [1, 2, new Set([3, 4])]);
+    mapValue.set('items', [1, 2, makeSet([3, 4])]);
     mapValue.set('meta', new Map([['count', 2]]));
     const restored = roundTrip(mapValue);
     expect(restored).toBeInstanceOf(Map);
     const items = restored.get('items');
-    expect(items[2]).toBeInstanceOf(Set);
+    expect(isQSet(items[2])).toBe(true);
   });
 
   it('writes a Vec as a bare JSON array and a Map in its envelope', () => {
@@ -257,11 +265,11 @@ describe('fromTaggedJSON refuses a number past the finite double range', () => {
     let nested = null;
     try { fromTaggedJSON(JSON.parse('[0, 1e400]')); } catch (caught) { nested = caught; }
     expect(nested.context.path).toEqual([1]);
-    // A Set indexes its elements the same way — insertion order is
-    // part of its contract.
+    // A set rides the `$tagged` envelope, so the path names its tag
+    // and then the index.
     let inSet = null;
-    try { fromTaggedJSON(JSON.parse('{"$set":[0, 1e400]}')); } catch (caught) { inSet = caught; }
-    expect(inSet.context.path).toEqual([1]);
+    try { fromTaggedJSON(JSON.parse('{"$tagged":{"$tag":"set","payload":[0, 1e400]}}')); } catch (caught) { inSet = caught; }
+    expect(inSet.context.path).toEqual(['set', 1]);
   });
 
   it('decodes every in-range magnitude unchanged', () => {

@@ -224,9 +224,9 @@ describe('codec round-trips TaggedInstance through $tagged envelope', () => {
     expect(deepEqual(restored, tagged)).toBe(true);
   });
 
-  it('round-trips tagged Set (overlay on Set)', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Keys'), new Set([keyword('a'), keyword('b')]));
+  it('round-trips a tag over a set, the set its payload', async () => {
+    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('Keys'), makeSet([keyword('b'), keyword('a')]));
     const envelope = toTaggedJSON(tagged);
     expect(envelope.$tagged.$tag).toBe('Keys');
     const restored = fromTaggedJSON(envelope);
@@ -270,10 +270,10 @@ describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () =
     expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
   });
 
-  it('rejects tagged Set vs untagged Set with same members', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('S'), new Set([1, 2]));
-    expect(deepEqual(tagged, new Set([1, 2]))).toBe(false);
+  it('rejects a tag over a set vs the set with same members', async () => {
+    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
+    const tagged = makeTaggedInstance(makeTagKeyword('S'), makeSet([1, 2]));
+    expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);
   });
 });
 

@@ -10,7 +10,7 @@
 
 import {
   isKeyword, isTagKeyword, isDoc, isErrorValue, isValueClass,
-  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME
+  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
 } from './types.mjs';
 
 // checkComparable(ErrorCls, left, right) — the pairs an ordering
@@ -55,6 +55,7 @@ function kindOf(value) {
   if (isErrorValue(value)) return ERROR_KIND;
   const headerTag = value[TAG_HEADER_SYMBOL];
   if (headerTag === undefined) return shapeKindOf(value);
+  if (headerTag.name === SET_TAG_NAME) return SET_KIND;
   if (headerTag.name === QUOTE_TAG_NAME) return QUOTE_KIND;
   if (headerTag.name === ELISION_TAG_NAME) return ELISION_KIND;
   return TAGGED_KIND;
@@ -63,9 +64,7 @@ function kindOf(value) {
 // The kind a container has by its shape alone, which is the kind of a
 // tagged container's payload.
 function shapeKindOf(container) {
-  if (Array.isArray(container)) return VECTOR_KIND;
-  if (container instanceof Set) return SET_KIND;
-  return MAP_KIND;
+  return Array.isArray(container) ? VECTOR_KIND : MAP_KIND;
 }
 
 function compareCodeUnits(left, right) {
@@ -93,10 +92,9 @@ function compareKinded(leftKind, left, rightKind, right) {
     case TAG_NAME_KIND:
       return compareCodeUnits(left.name, right.name);
     case VECTOR_KIND:
+    case SET_KIND:
     case QUOTE_KIND:
       return compareSequences(left, right);
-    case SET_KIND:
-      return compareSequences([...left].sort(compareValues), [...right].sort(compareValues));
     case MAP_KIND:
       return compareMaps(left, right);
     case DOC_KIND:

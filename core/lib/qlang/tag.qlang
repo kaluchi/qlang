@@ -1,4 +1,4 @@
-|~ Value-class tag-bindings — ::conduit, ::quote, ::builtin,
+|~ Value-class tag-bindings — ::conduit, ::quote, ::set, ::builtin,
    and the tags of a quote's steps. Each constructor declares its
    identity through ::builtin{…} with an :impl keyword pointing
    into PRIMITIVE_REGISTRY at the JS-side constructor that mints
@@ -150,6 +150,32 @@
         [::Box[1]] | tag ::quote
         !| [type /index]
         |  eq [::QuoteElementNotStepError 0]
+       )
+  ~~|
+
+::set
+  |~~ The set — the vector in the one order without duplicates,
+      the value of a `#[…]` literal and of `distinct`, which mints
+      it as this constructor does. A set is read as a vector
+      wherever a vector is read; `filter`, `take`, `drop`, `flat`
+      and `*` keep it, since the constructor re-runs after them,
+      and an operand that imposes an order, `sort` or `reverse`,
+      answers a vector.
+
+      ~(#[3 1 3] | eq #[1 3])
+      ~([3 1 3] | tag ::set | eq ([3 1 3] | distinct))
+      ~(#[2 1] | payload | eq [1 2])
+      ~(#[3 1 2] | reverse | eq [3 2 1])
+  ~~|
+  ::builtin{:impl :qlang/type/set}
+
+::SetPayloadNotVecError
+  |~~ `::set[…]` payload must be a Vec.
+
+      ~(
+        ::set{:not :a-vec}
+        !| [type /actualType]
+        |  eq [::SetPayloadNotVecError :map]
        )
   ~~|
 

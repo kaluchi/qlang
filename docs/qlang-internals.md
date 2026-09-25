@@ -442,12 +442,13 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
      builds a success-track **TaggedInstance** with identity
      overlay on the payload's JS-header `TAG_HEADER_SYMBOL`
      slot. Two payload shapes:
-     - **Composite** (untagged Vec / Set / Map): the constructor
+     - **Composite** (untagged Vec / Map): the constructor
        clones the payload and stamps the header — native shape
-       preserved, `isVec` / `isQSet` / `isQMap` still hold, every
-       Vec / Set / Map operand works without unwrap. Identity
-       reads through `typeKeyword` / `type` operand.
-     - **Wrap-object** (scalar / Keyword / Quote / Doc / Error /
+       preserved, `isVec` / `isQMap` still hold, every
+       Vec / Map operand works without unwrap. Identity
+       reads through `typeKeyword` / `type` operand. Under
+       `::quote` a vector mints as a quote, under `::set` as a set.
+     - **Wrap-object** (scalar / Keyword / Quote / Set / Doc / Error /
        Conduit / Snapshot / already-tagged composite): the
        payload cannot carry the header (primitives have no
        property storage, frozen value-class objects refuse
@@ -498,7 +499,6 @@ identified through the JS-header `TAG_HEADER_SYMBOL` slot —
 `printValue` routes the value through `printTaggedInstance`,
 which dispatches on the payload's native shape:
 - Tagged Array → `::tag[…]`.
-- Tagged Set   → `::tag#[…]`.
 - Tagged Map   → `::tag{…}`.
 - Opaque wrap object (`{type: 'taggedInstance', tag, payload}`)
   → `::tag<payload>` (`::tag(scalar)` when the payload print
@@ -593,8 +593,9 @@ replay through `apply`.
 
     (pipeValue, env) * body
 
-For each element `item` of the `pipeValue` sequence (Vec or Set; a
-Set distributes in insertion order into a Vec result):
+For each element `item` of the `pipeValue` sequence (Vec, Set, or a
+Map's values; a Set distributes into the Set of its images, a Map
+into a Map under the same keys):
 
 1. **Fork** to `(item, env)`
 2. Run `body` as a sub-pipeline whose head rides `|`; the
@@ -1512,7 +1513,7 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | Vec | JSON array of recursively-encoded elements |
 | keyword | `{ "$keyword": "name" }` |
 | Map | `{ "$map": [[k v], ...] }` (entry pairs, recursively encoded) |
-| Set | `{ "$set": [v1, v2, ...] }` |
+| Set | `{ "$tagged": { "$tag": "set", "payload": [v1, v2, ...] } }` |
 | Error | `{ "$error": <recursively-encoded descriptor Map> }` |
 
 `toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for

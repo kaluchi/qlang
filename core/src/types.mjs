@@ -6,6 +6,7 @@ import {
 } from './errors.mjs';
 import { TAG_BINDING_PREFIX } from './env-keys.mjs';
 import { quoteOfBody } from './quote.mjs';
+import { compareValues } from './ordering.mjs';
 
 // Function values (`makeFn` output) are runtime-internal: a catalog
 // descriptor carries its callable on the `BUILTIN_IMPL_SLOT`
@@ -85,23 +86,11 @@ export function isVec(v) {
 export function isQMap(v) {
   return v instanceof Map;
 }
-export function isQSet(v) { return v instanceof Set; }
-
-// Vec / Set — the ordered, indexable sequences `*` and the
-// order-aware operands (first / take / sort / distinct / flat / …)
-// dispatch over uniformly. A Set is the `distinct` of a Vec.
-export function isOrderedSequence(v) {
-  return isVec(v) || isQSet(v);
-}
-
-// Array view of an ordered sequence — the extractor companion to
-// isOrderedSequence. A Vec yields itself (no copy); a Set
-// is spread into an array in insertion order. Order-aware operands
-// that need indexed access (first / last / at) or full materialisation
-// (sort), and the `*` distribute fork, source their element
-// array here.
-export function sequenceElements(v) {
-  return isVec(v) ? v : [...v];
+// The set is the vector in the one order without duplicates, under
+// the `::set` tag [D16], so every operand that reads a vector reads a
+// set: `isVec` holds for it, and this predicate tells it apart.
+export function isQSet(v) {
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === SET_TAG_NAME;
 }
 
 // ── language value-class predicates ────────────────────────────
@@ -174,10 +163,10 @@ export function isSnapshot(v) {
 
 // TaggedInstance — value carrying a TagKeyword on its JS-header
 // `TAG_HEADER_SYMBOL` slot. `makeTaggedInstance` mints two value
-// shapes: Array / Set / Map clones with the header stamped, or
+// shapes: Array / Map clones with the header stamped, or
 // an opaque frozen `{type, tag, payload}` wrapper for non-
 // extensible payloads (scalar, Keyword, Doc, Error, already-tagged
-// composite, a quote among them). Three reserved tag names own
+// composite, a quote and a set among them). Three reserved tag names own
 // dedicated render / dispatch paths (`::conduit`, `::snapshot`,
 // `::builtin`) and route through their own predicates
 // (`isConduit`, `isSnapshot`, `isBuiltinDescriptor`).
@@ -208,6 +197,20 @@ export function makeQuote(steps, ast = undefined) {
   stampTagHeader(quote, QUOTE_TAG);
   stampSlot(quote, QUOTE_AST_SLOT, { ast });
   return Object.freeze(quote);
+}
+
+// Set — the vector in the one order without duplicates, under the
+// `::set` tag [D16]. Its elements sort by `compareValues`, and an
+// element the order ranks alike with the one before it leaves: the
+// order ranks two values alike exactly when they are equal. Every set
+// is minted here, `makeTaggedInstance` included.
+export const SET_TAG_NAME = 'set';
+
+export function makeSet(elements) {
+  const ordered = [...elements].sort(compareValues);
+  const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);
+  stampTagHeader(set, SET_TAG);
+  return Object.freeze(set);
 }
 
 // The step an error literal leaves in a quote: an error value whose
@@ -330,6 +333,7 @@ export const CONDUIT_TAG     = makeTagKeyword('conduit');
 export const ERROR_TAG       = makeTagKeyword('Error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
+export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
 export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
 export const VALUE_TAG       = makeTagKeyword('value');
@@ -377,15 +381,14 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 // ── tagged-instance factory ──────────────────────────────────
 //
 // Identity overlay on a payload value. The TagKeyword rides on
-// the payload's JS-header `TAG_HEADER_SYMBOL` slot — Array, Set,
-// and Map carry symbol-keyed non-enumerable properties natively,
+// the payload's JS-header `TAG_HEADER_SYMBOL` slot — Array and
+// Map carry symbol-keyed non-enumerable properties natively,
 // so the tag stays invisible to iteration, `m.get(…)`,
-// `arr[idx]`, `Set.has(…)`, JSON serialization. Operands routed
-// through `isVec` / `isQSet` / `isQMap` predicates see the same
+// `arr[idx]`, JSON serialization. Operands routed
+// through `isVec` / `isQMap` predicates see the same
 // shape they always see — `::Tag[1 2 3] | /1` indexes the
 // underlying Array, `::Tag{:a 1} | keys` lists the underlying
-// Map keys, `::Tag#[:a :b] | union #[:c]` merges the underlying
-// Set. `typeKeyword` reads the header first so identity comes
+// Map keys. `typeKeyword` reads the header first so identity comes
 // through `result | type`. Reserved header tags
 // (`::conduit`, `::snapshot`, `::builtin`) are matched against
 // in `isTaggedInstance` so the dedicated render / dispatch
@@ -394,10 +397,11 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 //
 // Payload shapes:
 //
-//   Untagged Vec / Set / Map — clone and stamp header. The
-//     clone keeps the payload's native shape so isVec / isQSet /
+//   Untagged Vec / Map — clone and stamp header. The
+//     clone keeps the payload's native shape so isVec /
 //     isQMap and every shape-preserving operand work without
-//     unwrap. Flat-merging the Map payload's fields onto the
+//     unwrap; under the code tag a vector mints as a quote, under
+//     `::set` as a set. Flat-merging the Map payload's fields onto the
 //     tagged Map (rather than nesting under `:payload`) makes
 //     `tagged | keys` / `/field` / `vals` read identical to an
 //     untagged Map literal. `:kind` fields stay as ordinary Map
@@ -406,8 +410,8 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 //     without collision.
 //
 //   Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
-//     Snapshot / already-tagged composite, a quote among them —
-//     wrap in a Map carrying the payload under `:payload` slot,
+//     Snapshot / already-tagged composite, a quote and a set among
+//     them — wrap in a Map carrying the payload under `:payload` slot,
 //     stamp the header on the wrapper. JS scalars cannot carry
 //     symbol-keyed properties (they are immutable primitives);
 //     frozen value-class objects (Doc / Error) refuse
@@ -422,15 +426,10 @@ export function makeTaggedInstance(tag, payload) {
   // payload, native shape preserved.
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     if (tag.name === QUOTE_TAG_NAME) return makeQuote(payload);
+    if (tag.name === SET_TAG_NAME) return makeSet(payload);
     const arr = [...payload];
     stampTagHeader(arr, tag);
     return Object.freeze(arr);
-  }
-  if (payload instanceof Set
-      && payload[TAG_HEADER_SYMBOL] === undefined) {
-    const s = new Set(payload);
-    stampTagHeader(s, tag);
-    return s;
   }
   if (payload instanceof Map
       && payload[TAG_HEADER_SYMBOL] === undefined) {
@@ -567,11 +566,11 @@ export function describeType(v) {
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
   if (isQuote(v)) return 'Quote';
+  if (isQSet(v)) return 'Set';
   if (isTaggedInstance(v)) return 'TaggedInstance';
   if (isVec(v)) return 'Vec';
   if (isDoc(v)) return 'Doc';
   if (isQMap(v)) return 'Map';
-  if (isQSet(v)) return 'Set';
   if (isErrorValue(v)) return 'Error';
   if (isFunctionValue(v)) return 'Function';
   return 'Unknown';
@@ -585,8 +584,8 @@ export function typeKeyword(v) {
   if (isKeyword(v)) return keyword('keyword');
   if (isTagKeyword(v)) return keyword('tagKeyword');
   // Identity-on-JS-header takes precedence on every composite:
-  // tagged Vec, tagged Set, tagged Map — `result | type`
-  // returns the user-stamped TagKeyword directly. Conduit /
+  // tagged Vec, tagged Map, the set and the quote — `result | type`
+  // returns the TagKeyword directly. Conduit /
   // Snapshot share the same slot under reserved tag names
   // (`::conduit` / `::snapshot`) and fall through this branch
   // too; their identity reads exactly the same way.
@@ -597,7 +596,6 @@ export function typeKeyword(v) {
   if (isVec(v)) return keyword('vec');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) return keyword('map');
-  if (isQSet(v)) return keyword('set');
   // Error values carry their tag identity on the JS-header `tag`
   // slot — opaque to descriptor projection. `typeKeyword` reads
   // it directly so `result !| type` returns the per-site

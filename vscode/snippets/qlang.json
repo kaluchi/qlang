@@ -37,7 +37,7 @@
   "set literal": {
     "prefix": "set",
     "body": ["#[${1:elements}]"],
-    "description": "Set literal — invariant of structural uniqueness, insertion-ordered"
+    "description": "Set literal — the vector in the one order without duplicates"
   },
   "if": {
     "prefix": "if",

@@ -363,11 +363,11 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery(':double mul 2 | env | /double | type | eq :map')).toBe(false);
   });
 
-  it('type answers :set for Set subjects', async () => {
-    expect(await evalQuery('#[1 2] | type | eq :set')).toBe(true);
-    expect(await evalQuery('#[] | type | eq :set')).toBe(true);
-    expect(await evalQuery('[1 2] | type | eq :set')).toBe(false);
-    expect(await evalQuery('{:a 1} | type | eq :set')).toBe(false);
+  it('type answers ::set for Set subjects', async () => {
+    expect(await evalQuery('#[1 2] | type | eq ::set')).toBe(true);
+    expect(await evalQuery('#[] | type | eq ::set')).toBe(true);
+    expect(await evalQuery('[1 2] | type | eq ::set')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq ::set')).toBe(false);
   });
 
   it('type answers :keyword for bare and namespaced keywords', async () => {

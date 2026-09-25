@@ -11,7 +11,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue } from '../../src/types.mjs';
+import { isErrorValue, isQSet } from '../../src/types.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
@@ -99,6 +99,7 @@ describe('manifest catalog self-test via runExamples', () => {
     // distinct set of :ok values is exactly `[true]`.
     const distinctOkValues = await evalQuery('manifest * (runExamples * /ok) | flat | distinct');
     expect(isErrorValue(distinctOkValues)).toBe(false);
-    expect(distinctOkValues).toEqual(new Set([true]));
+    expect(isQSet(distinctOkValues)).toBe(true);
+    expect([...distinctOkValues]).toEqual([true]);
   }, 30000);
 });

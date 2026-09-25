@@ -1,7 +1,8 @@
 |~ qlang operand catalog — typeClassifier family. `:type` is the
    canonical identity-tag reader: it returns the value's TagKeyword
-   (for tagged-instance Maps, error values, conduits, snapshots) or
-   its plain Keyword (for scalars and base containers). Asking
+   (for tagged-instance Maps, error values, conduits, snapshots,
+   quotes and sets) or its plain Keyword (for scalars, the Vec and
+   the Map). Asking
    what a value is means composing that reader with `eq` —
    `| type | eq :string` — so the family holds one operand.
    Identity rides the value's JS-header slot, so a Map carrying a
@@ -11,11 +12,11 @@
 :type
   |~~ Returns the value's identity tag. For tagged values
       (errors, conduits, snapshots, tagged-instances, builtin
-      descriptors) returns the TagKeyword stamped on the
-      value's JS-header `TAG_HEADER_SYMBOL` slot. For scalars
-      and base containers returns the plain Keyword that names
-      the kind (`:number`, `:string`, `:keyword`, `:vec`,
-      `:map`, `:set`, …).
+      descriptors, quotes, sets) returns the TagKeyword stamped
+      on the value's JS-header `TAG_HEADER_SYMBOL` slot. For
+      scalars, the Vec and the Map returns the plain Keyword that
+      names the kind (`:number`, `:string`, `:keyword`,
+      `:vec`, `:map`, …).
 
       `result !| type` is the user-facing path to an error's
       tag identity — the materialised descriptor exposed by
@@ -27,6 +28,7 @@
       ~("hi" | type | eq :string)
       ~(:foo | type | eq :keyword)
       ~([1 2] | type | eq :vec)
+      ~(#[1 2] | type | eq ::set)
       ~(::conduit[[] ~(42)] | type | eq ::conduit)
       ~(
         "hello" | add 1

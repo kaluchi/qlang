@@ -21,8 +21,8 @@
 {"name":"type-map","query":"{:a 1} | type","expect":":map"}
 {"name":"type-map-empty","query":"{} | type","expect":":map"}
 {"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":":map"}
-{"name":"type-set","query":"#[1 2] | type","expect":":set"}
-{"name":"type-set-empty","query":"#[] | type","expect":":set"}
+{"name":"type-set","query":"#[1 2] | type","expect":"::set"}
+{"name":"type-set-empty","query":"#[] | type","expect":"::set"}
 {"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::AddLeftNotNumberError"}
 {"name":"type-payload-reads-past-the-identity-overlay","query":"::AutoBox[1 2 3] | payload | type","expect":":vec"}
 {"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq :null","expect":"::ProjectionKeyNotInMapError!{\n  :faultStep ~(/missing)\n  :faultInput {}\n  :key \"missing\"\n  :trail ~(| type | eq :null)\n}"}

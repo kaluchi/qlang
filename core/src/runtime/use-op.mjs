@@ -75,8 +75,8 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
 
   if (useLambdas.length === 1) {
     if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
-    if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
     if (isQSet(useArg))     return await importCollisionStrictNamespaces(state, useArg);
+    if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
     throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
   }
 
@@ -252,7 +252,7 @@ async function importCollisionStrictNamespaces(state, namespaces) {
 
 async function importSelectiveNamespace(state, nsKeyword, selection) {
   const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, state.env, nsKeyword);
-  const names = isQSet(selection) ? [...selection] : isVec(selection) ? selection : [selection];
+  const names = isVec(selection) ? selection : [selection];
   const filtered = new Map();
   for (const name of names) {
     const nameStr = isKeyword(name) ? name.name : String(name);

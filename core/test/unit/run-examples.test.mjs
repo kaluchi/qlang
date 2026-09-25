@@ -8,13 +8,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQSet, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('runExamples accepts both keyword and descriptor subjects', () => {
   it('keyword subject — :count | runExamples', async () => {
     const result = await evalQuery(':count | runExamples * /ok | distinct');
-    expect(result).toEqual(new Set([true]));
+    expect(isQSet(result)).toBe(true);
+    expect([...result]).toEqual([true]);
   });
 
   it('descriptor subject — manifest-yielded Map with :name passes through', async () => {
@@ -22,7 +23,8 @@ describe('runExamples accepts both keyword and descriptor subjects', () => {
     // composing it with `* runExamples` per-entry covers the
     // Map-with-:name subject path on the runExamples contract.
     const result = await evalQuery('manifest | filter ~(/name | eq "count") | first | runExamples * /ok | distinct');
-    expect(result).toEqual(new Set([true]));
+    expect(isQSet(result)).toBe(true);
+    expect([...result]).toEqual([true]);
   });
 
   it('subject naming a binding without a source-located BindStep returns an empty Vec', async () => {

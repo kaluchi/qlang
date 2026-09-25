@@ -10,9 +10,12 @@
 //
 // Wire-format convention: a bare JSON array is a Vec and a bare JSON
 // object a Map, the shapes JSON has. The value-classes JSON lacks
-// (Set / Keyword / TaggedInstance / ErrorValue / Quote / Doc) ride
+// (Keyword / TaggedInstance / ErrorValue / Quote / Doc) ride
 // dedicated `$tag`-keyed envelopes, and so does a Map the encoder
-// writes, so a key that spells an envelope cannot read as one.
+// writes, so a key that spells an envelope cannot read as one. A set
+// is the vector under the `::set` tag [D16] and rides the `$tagged`
+// envelope; it decodes through the set's constructor, so a wire that
+// lists its elements out of order or twice reads as the set they make.
 //
 // Tag conventions:
 //   number / string / boolean / null          → itself
@@ -22,7 +25,6 @@
 //   { "$keyword": "name" }                    → interned keyword
 //   { "$tagKeyword": "Name" }                 → TagKeyword (`::Name`)
 //   { "$map": [[k, v], …] }                   → Map (entries pairs)
-//   { "$set": [v1, v2, …] }                   → qlang Set
 //   { "$quote": "source" }                    → Quote-value
 //   { "$doc": "content" }                     → Doc-value
 //   { "$tagged": { "$tag": "Name", "payload": <encoded> } }
@@ -38,7 +40,7 @@
 //                                               envelope's `$tag` slot)
 //
 // Envelope detection on decode: an Object whose only own key is a
-// `$`-prefixed string in the known set (`$keyword` / `$map` / `$set`
+// `$`-prefixed string in the known set (`$keyword` / `$map`
 // / `$quote` / `$doc` / `$tagged` / `$error`) routes through the
 // envelope branch; anything else (including objects with
 // `$`-prefixed keys outside the known set, or multiple keys) decodes
@@ -55,7 +57,6 @@ import {
   isTagKeyword,
   isVec,
   isQMap,
-  isQSet,
   isFunctionValue,
   isConduit,
   isSnapshot,
@@ -115,9 +116,9 @@ export function toTaggedJSON(value) {
   if (isTagKeyword(value)) return { $tagKeyword: value.name };
   // A quote is a tagged vector; its envelope carries its text.
   if (isQuote(value)) return { $quote: printQuoteSource(value) };
-  // TaggedInstance check before generic Vec / Map / Set branches —
-  // a tagged Vec is still `isVec(true)`, but the bare Vec encoder
-  // strips identity. The envelope below recovers identity through
+  // TaggedInstance check before generic Vec / Map branches — a
+  // tagged Vec, the set among them, is still `isVec(true)`, but the
+  // bare Vec encoder strips identity. The envelope below recovers identity through
   // the `$tag` slot and re-routes payload through
   // `toTaggedJSON` recursively (the `payload` operand strip-path
   // for the source-value type).
@@ -125,8 +126,6 @@ export function toTaggedJSON(value) {
     let inner;
     if (Array.isArray(value)) {
       inner = Object.freeze([...value]);
-    } else if (value instanceof Set) {
-      inner = new Set(value);
     } else if (value instanceof Map) {
       inner = new Map(value);
     } else {
@@ -149,9 +148,6 @@ export function toTaggedJSON(value) {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
     };
   }
-  if (isQSet(value)) {
-    return { $set: Array.from(value, toTaggedJSON) };
-  }
   if (isErrorValue(value)) {
     return {
       $error: {
@@ -173,7 +169,7 @@ export function toTaggedJSON(value) {
 // `{"name":"x", "age":2}`) safe from envelope-misinterpretation
 // while still single-keying the qlang-only envelopes on the wire.
 const ENVELOPE_KEYS = new Set([
-  '$keyword', '$tagKeyword', '$map', '$set',
+  '$keyword', '$tagKeyword', '$map',
   '$tagged', '$error', '$quote', '$doc'
 ]);
 
@@ -218,13 +214,6 @@ export function fromTaggedJSON(json, path = []) {
           m.set(keyName, fromTaggedJSON(v, [...path, keyName]));
         }
         return m;
-      }
-      case '$set': {
-        const s = new Set();
-        // A Set carries insertion order as part of its contract, so
-        // its elements index the path the way a Vec's do.
-        json.$set.forEach((v, index) => s.add(fromTaggedJSON(v, [...path, index])));
-        return s;
       }
       case '$tagged': {
         const taggedEnvelope = json.$tagged;

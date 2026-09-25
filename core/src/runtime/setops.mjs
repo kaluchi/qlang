@@ -15,28 +15,54 @@
 
 import { overloadedOp } from './dispatch.mjs';
 import {
-  isQSet, isKeyword, isVec, isQMap
+  isQSet, isKeyword, isVec, isQMap, makeSet
 } from '../types.mjs';
+import { compareValues } from '../ordering.mjs';
 import {
   declareSubjectError,
   declareComparabilityError
 } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { setHasStructurally, addStructurallyUnique } from '../equality.mjs';
 
 // A map minus keys / a map inter keys drops or keeps entries by
-// their String key [D15]. The keys arrive as a Set or a Vector of
-// Keywords (`#[:tmp]`, `[:a :c]`) — the keyword's `.name` matches the
-// Map's String key. Composite members would not be meaningful as
-// key filters, so the lookup stays keyword-name-only.
+// their String key [D15]. The keys arrive as a vector of Keywords, a
+// set among them (`#[:tmp]`, `[:a :c]`) — the keyword's `.name`
+// matches the Map's String key. Composite members would not be
+// meaningful as key filters, so the lookup stays keyword-name-only.
 function keysHaveMapKey(keysValue, k) {
   for (const v of keysValue) if (isKeyword(v) && v.name === k) return true;
   return false;
 }
 
-function isKeysValue(value) {
-  return isQSet(value) || isVec(value);
+// The algebra of two sets is a merge of their elements in the one
+// order [D16]: each operation keeps the elements of the left alone,
+// of both, or of the right alone.
+const UNION_KEEPS = { leftAlone: true,  both: true,  rightAlone: true  };
+const MINUS_KEEPS = { leftAlone: true,  both: false, rightAlone: false };
+const INTER_KEEPS = { leftAlone: false, both: true,  rightAlone: false };
+
+function mergeSets(left, right, keeps) {
+  const merged = [];
+  let leftIndex = 0;
+  let rightIndex = 0;
+  while (leftIndex < left.length && rightIndex < right.length) {
+    const byOrder = compareValues(left[leftIndex], right[rightIndex]);
+    if (byOrder < 0) {
+      if (keeps.leftAlone) merged.push(left[leftIndex]);
+      leftIndex++;
+    } else if (byOrder > 0) {
+      if (keeps.rightAlone) merged.push(right[rightIndex]);
+      rightIndex++;
+    } else {
+      if (keeps.both) merged.push(left[leftIndex]);
+      leftIndex++;
+      rightIndex++;
+    }
+  }
+  if (keeps.leftAlone) merged.push(...left.slice(leftIndex));
+  if (keeps.rightAlone) merged.push(...right.slice(rightIndex));
+  return makeSet(merged);
 }
 
 const UnionBareSubjectNotVecError    = declareSubjectError('UnionBareSubjectNotVecError',    'union', 'vec');
@@ -61,11 +87,7 @@ const InterBareEmptyError = declareShapeError('InterBareEmptyError',
 );
 
 function unionPair(left, right) {
-  if (isQSet(left) && isQSet(right)) {
-    const out = new Set(left);
-    for (const v of right) addStructurallyUnique(out, v);
-    return out;
-  }
+  if (isQSet(left) && isQSet(right)) return mergeSets(left, right, UNION_KEEPS);
   if (isQMap(left) && isQMap(right)) {
     const merged = [...left];
     const keyToIndex = new Map(merged.map(([k], i) => [k, i]));
@@ -84,13 +106,7 @@ function unionPair(left, right) {
 }
 
 function minusPair(left, right) {
-  if (isQSet(left) && isQSet(right)) {
-    const out = new Set();
-    for (const v of left) {
-      if (!setHasStructurally(right, v)) addStructurallyUnique(out, v);
-    }
-    return out;
-  }
+  if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
   if (isQMap(left) && isQMap(right)) {
     const rightKeySet = new Set();
     for (const [rk] of right) rightKeySet.add(rk);
@@ -100,7 +116,7 @@ function minusPair(left, right) {
     }
     return new Map(out);
   }
-  if (isQMap(left) && isKeysValue(right)) {
+  if (isQMap(left) && isVec(right)) {
     const out = [];
     for (const [k, v] of left) {
       if (!keysHaveMapKey(right, k)) out.push([k, v]);
@@ -111,13 +127,7 @@ function minusPair(left, right) {
 }
 
 function interPair(left, right) {
-  if (isQSet(left) && isQSet(right)) {
-    const out = new Set();
-    for (const v of left) {
-      if (setHasStructurally(right, v)) addStructurallyUnique(out, v);
-    }
-    return out;
-  }
+  if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
   if (isQMap(left) && isQMap(right)) {
     const rightKeySet = new Set();
     for (const [rk] of right) rightKeySet.add(rk);
@@ -127,7 +137,7 @@ function interPair(left, right) {
     }
     return new Map(out);
   }
-  if (isQMap(left) && isKeysValue(right)) {
+  if (isQMap(left) && isVec(right)) {
     const out = [];
     for (const [k, v] of left) {
       if (keysHaveMapKey(right, k)) out.push([k, v]);

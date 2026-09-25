@@ -269,7 +269,7 @@ the quoted form is the general case.
 
 Four composite types layer on top of the atomics. Each is a
 distinct shape — ordered sequence (Vec), keyword-keyed
-association (Map), insertion-ordered structurally-unique collection (Set), and
+association (Map), the vector in the one order without duplicates (Set), and
 structured failure marker (Error). All four are immutable; an
 operation that "modifies" a composite returns a new value rather
 than mutating in place.
@@ -354,16 +354,17 @@ binding wins:
 
 ### Set
 
-Collection with an **invariant of structural uniqueness**.
-Literal `#[…]` — the `#` marker over the `[…]` bracket pair
-visually signals «this is a collection like Vec, but the type
-carries a no-duplicates promise». Deduplication happens at
-construction time through structural equality (the same axiom
-that drives `eq`); declaring the same value twice has no effect.
+The vector in the one order of values without duplicates, under the
+`::set` tag. Literal `#[…]` — the `#` marker over the `[…]`
+bracket pair visually signals «this is a vector, and the kind carries
+a no-duplicates promise». The elements sort into the one order, the
+order `sort` answers, and a value written twice is held once,
+duplication being decided by structural equality (the same axiom that
+drives `eq`); a literal therefore reorders when printed.
 
 ```qlang
 > #[:name :age :id]
-#[:name :age :id]
+#[:age :id :name]
 
 > #[1 2 3 2 1]
 #[1 2 3]
@@ -372,15 +373,25 @@ that drives `eq`); declaring the same value twice has no effect.
 #[]
 ```
 
-A Set's elements preserve **insertion-order**: first-added stays
-first. This is part of the public contract, not an implementation
-detail — every operand traversal, every `printValue` output, every
-`toTaggedJSON` encoding produces the same sequence between runs.
-The determinism enables reproducible builds, idempotent deployments,
-and stable snapshot tests for any pipeline that flows through Set
-values. Order-aware operands (`first`, `last`, `at`, `take`, `drop`,
-`reverse`, `sort`, `flat`) work the natural way on a
-Set subject.
+A Set is read as a vector wherever a vector is read — `count`,
+`first`, `/0`, `*`, `filter`, `table` — and answers `::set` from
+`type`; the reverse does not hold. `filter`, `take`, `drop`, `flat`
+and `*` keep the Set, since its constructor re-runs after them, and
+an operand that imposes an order, `sort` or `reverse`, answers a
+Vec. `distinct` and `::set[…]` mint the same value, and `payload`
+answers its vector. Membership is a binary search in the one order,
+and two Sets combine by a merge.
+
+```qlang
+> #[3 1 2] * add 1
+#[2 3 4]
+
+> #[3 1 2] | reverse
+[3 2 1]
+
+> [2 1 2] | distinct | type
+::set
+```
 
 The uniqueness invariant is the primary value of the type — a
 reader receiving `#[…]` (human or LLM) **knows by type** that no
@@ -841,11 +852,11 @@ receives `pipeValue`:
 
 ```qlang
 > {:name "alice" :age 30} | #[/name /age]
-#["alice" 30]
+#[30 "alice"]
 
 |~| equivalent via operands
 > {:name "alice" :age 30} | vals | distinct
-#["alice" 30]
+#[30 "alice"]
 ```
 
 ### Set operations
@@ -2865,7 +2876,7 @@ and by any host that ships qlang values across a JSON boundary.
 | Vec | JSON array of recursively-encoded elements |
 | keyword | `{ "$keyword": "name" }` |
 | Map | `{ "$map": [[k v], ...] }` (entries pairs, recursively encoded) |
-| Set | `{ "$set": [v1, v2, ...] }` |
+| Set | `{ "$tagged": { "$tag": "set", "payload": [v1, v2, ...] } }`, read back through the set's constructor |
 
 Example:
 
@@ -2874,7 +2885,7 @@ import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang-core';
 
 const value = await evalQuery('{:name "alice" :tags #[:admin :ops]}');
 const wire = JSON.stringify(toTaggedJSON(value));
-// '{"$map":[[{"$keyword":"name"},"alice"],[{"$keyword":"tags"},{"$set":[{"$keyword":"admin"},{"$keyword":"ops"}]}]]}'
+// '{"$map":[["name","alice"],["tags",{"$tagged":{"$tag":"set","payload":[{"$keyword":"admin"},{"$keyword":"ops"}]}}]]}'
 
 const restored = fromTaggedJSON(JSON.parse(wire));
 // equivalent Map with the same keyword identity (interned)

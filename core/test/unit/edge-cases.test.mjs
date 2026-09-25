@@ -35,6 +35,7 @@ import {
   isQuote,
   isVec,
   makeConduit,
+  makeSet,
   conduitBodyAst,
   conduitEnvRef,
   typeKeyword,
@@ -68,7 +69,7 @@ describe('types.mjs', () => {
     expect(describeType(keyword('k'))).toBe('Keyword');
     expect(describeType([])).toBe('Vec');
     expect(describeType(new Map())).toBe('Map');
-    expect(describeType(new Set())).toBe('Set');
+    expect(describeType(makeSet([]))).toBe('Set');
     expect(describeType(makeFn('probe', 1, () => {}))).toBe('Function');
     expect(describeType(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe('Conduit');
     expect(describeType(Symbol('weird'))).toBe('Unknown');
@@ -81,7 +82,8 @@ describe('types.mjs', () => {
     expect(isFunctionValue(() => {})).toBe(false);
     expect(isKeyword(keyword('x'))).toBe(true);
     expect(isQMap(new Map())).toBe(true);
-    expect(isQSet(new Set())).toBe(true);
+    expect(isQSet(makeSet([]))).toBe(true);
+    expect(isQSet([])).toBe(false);
     expect(isVec([])).toBe(true);
   });
 
@@ -308,7 +310,8 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
   it('manifest descriptors all have :effectful field for builtin entries', async () => {
     const effectfulResult = await evalQuery('manifest * /effectful | distinct');
     // Every langRuntime builtin is a clean (non-effectful) function.
-    expect(effectfulResult).toEqual(new Set([false]));
+    expect(isQSet(effectfulResult)).toBe(true);
+    expect([...effectfulResult]).toEqual([false]);
   });
 
   it('manifest returns a Vec of descriptors sorted by name', async () => {

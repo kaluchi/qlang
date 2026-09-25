@@ -102,7 +102,7 @@ A map's elements are its values, so the reducers read them.
   element not a number → `SumElementNotNumberError`; running total
   outside the finite-double domain → `SumResultNotFiniteError`, whose
   `:index` names the element the total crossed at. The total is read
-  at every element in insertion order, so a subject whose partial
+  at every element in the subject's order, so a subject whose partial
   sums leave the domain lifts while its mathematical total sits
   inside it — `[1e308 1e308 -1e308] | sum` lifts at element 1,
   `[1e308 -1e308 1e308] | sum` answers `1e308`. `reduce 0 ~(add)`
@@ -112,7 +112,8 @@ A map's elements are its values, so the reducers read them.
 
 - **Arity** 3 (2 captured). **Subject** one of `Vec` / `Set` / `Map`. The
   universal left-fold (catamorphism) — threads an accumulator across
-  the sequence in insertion order and collapses it to a single value.
+  the elements in the subject's order, a Set's the one order, and
+  collapses them to a single value.
 - `seed` is the initial accumulator (returned as-is for an empty
   subject). The reducer is applied as `reducer accumulator element`:
   a **binary operand** (`add` / `mul` / `union` / …) folds via its
@@ -143,27 +144,25 @@ A map's elements are its values, so the reducers read them.
 ## Ordered-sequence reducers — `Vec / Set / Map → Any`
 
 Polymorphic across Vec, Set and Map subjects, a map's elements being
-its values in the order of its entries. Set carries insertion-order
-as part of its public contract (§Set in qlang-spec.md), so first /
-last / at have well-defined semantics: «first-added», «last-added»,
-«n-th-added» respectively. The operands in this section work
-identically on either shape.
+its values in the order of its entries. A Set is the vector in the
+one order without duplicates, so first / last / at read its least
+element, its greatest and its n-th in that order.
 
 ### `first`
 
 - **Arity** 1. **Subject** `vec`, `set` or `map`.
-- Returns the first element (first-added on a Set, the first value on
+- Returns the first element (the least on a Set, the first value on
   a Map), or `null` if the container is empty.
-- **Example**: `[10 20 30] | first` → `10`; `#[:a :b :c] | first` →
+- **Example**: `[10 20 30] | first` → `10`; `#[:c :a :b] | first` →
   `:a`; `{:a 1 :b 2} | first` → `1`; `[] | first` → `null`.
 - **Errors**: subject not a container → `FirstSubjectNotSequenceError`.
 
 ### `last`
 
 - **Arity** 1. **Subject** `vec`, `set` or `map`.
-- Returns the last element (last-added on a Set, the last value on a
+- Returns the last element (the greatest on a Set, the last value on a
   Map), or `null` if the container is empty.
-- **Example**: `[10 20 30] | last` → `30`; `#[:a :b :c] | last` →
+- **Example**: `[10 20 30] | last` → `30`; `#[:c :a :b] | last` →
   `:c`; `{:a 1 :b 2} | last` → `2`; `[] | last` → `null`.
 - **Errors**: subject not a container → `LastSubjectNotSequenceError`.
 
@@ -171,9 +170,9 @@ identically on either shape.
 
 - **Arity** 2. **Subject** `vec`, `set`, or `map`. **Modifier**
   integer index (Vec/Set) or string key (Map).
-- **Vec / Set subject**: returns the element at position `n` in
-  insertion-order. Accepts negative indices — `at -1` is the last
-  element. Out-of-range returns `null`.
+- **Vec / Set subject**: returns the element at position `n`, a Set
+  indexing in its one order. Accepts negative indices — `at -1` is
+  the last element. Out-of-range returns `null`.
 - **Map subject**: returns the value at string key `n`, or `null` on
   miss. Dynamic string-key projection — equivalent to `/key` when the
   key is known statically.
@@ -211,7 +210,7 @@ reads the keys:
   **modifier** `pred` (a predicate pipeline or a named conduit).
 - Keeps items where the predicate evaluates truthy, collecting
   into a new container of the same shape. Vec and Set iterate
-  per element (insertion order preserved); on a Map the predicate
+  per element in their order; on a Map the predicate
   sees each value and the entries kept keep their keys. Empty
   subject returns an empty container of the same kind.
 - **Examples**:
@@ -266,9 +265,11 @@ reads the keys:
 ## Ordered-sequence transformers — `Vec / Set → Vec / Set` / `Vec / Set → Map`
 
 Shape-preserving on Vec/Set: a Vec subject returns a Vec, a Set
-subject returns a Set with the structural-uniqueness invariant
-maintained. `sort`, `take`, `drop` and `reverse` also take a Map,
-ordering and cutting its entries by their values and keeping the keys.
+subject a Set, minted again by its constructor, except that `sort`
+and `reverse` impose an order and answer a Vec for a Set, whose own
+order is fixed. `sort`, `take`, `drop` and `reverse` also take a
+Map, ordering and cutting its entries by their values and keeping the
+keys.
 
 ### `groupBy ~(keyFn)`
 
@@ -295,9 +296,9 @@ ordering and cutting its entries by their values and keeping the keys.
 
 ### `sort`
 
-- **Arity** 1. **Subject** `vec` or `set`.
-- Returns a new sequence in the one order of values, same shape as
-  subject. Values order first by kind: null, boolean, number,
+- **Arity** 1. **Subject** `vec`, `set` or `map`.
+- Returns a new Vec in the one order of values, a Map with its
+  entries sorted by their values. Values order first by kind: null, boolean, number,
   string, keyword, tag name, vector, set, map, quote, doc, error and
   elision, then every other tag by its name. Within a kind numbers
   order by value, strings by their code units, keywords and tag
@@ -306,6 +307,7 @@ ordering and cutting its entries by their values and keeping the keys.
   value by its payload.
 - **Examples**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`;
   `[3 null "x" 1] | sort` → `[null 1 3 "x"]`;
+  `#[3 1 2] | sort` → `[1 2 3]`;
   `[[2 1] [1 2] [1]] | sort` → `[[1] [1 2] [2 1]]`;
   `[::B :b ::A :a] | sort` → `[:a :b ::A ::B]`;
   `{:a 3 :b 1 :c 2} | sort | vals` → `[1 2 3]`.
@@ -313,10 +315,11 @@ ordering and cutting its entries by their values and keeping the keys.
 
 ### `sort ~(key)`
 
-- **Arity** 2. **Subject** `vec` or `set`, **modifier** `key` (a
-  quote).
-- Returns a new sequence ordered by the value `key` answers for each
-  element, in the one order, same shape as subject; elements whose
+- **Arity** 2. **Subject** `vec`, `set` or `map`, **modifier** `key`
+  (a quote).
+- Returns a new Vec ordered by the value `key` answers for each
+  element, in the one order, a Map with its entries so ordered by
+  their values; elements whose
   keys are equal keep their subject order. A vector serves as a
   compound key, and the descending order is the sort reversed.
 - **Examples**:
@@ -329,9 +332,10 @@ ordering and cutting its entries by their values and keeping the keys.
 
 ### `take n`
 
-- **Arity** 2. **Subject** `vec` or `set`, **modifier** `n`
+- **Arity** 2. **Subject** `vec`, `set` or `map`, **modifier** `n`
   (whole-number count).
-- Returns the first `n` elements in insertion-order. If `n` exceeds
+- Returns the first `n` elements in the subject's order, a Set's
+  least among them. If `n` exceeds
   length, returns the whole sequence; a negative `n` clamps to 0
   (takes nothing). Same shape as subject.
 - **Example**: `[1 2 3 4 5] | take 3` → `[1 2 3]`;
@@ -342,7 +346,7 @@ ordering and cutting its entries by their values and keeping the keys.
 
 ### `drop n`
 
-- **Arity** 2. **Subject** `vec` or `set`, **modifier** `n`
+- **Arity** 2. **Subject** `vec`, `set` or `map`, **modifier** `n`
   (whole-number count).
 - Returns the sequence with the first `n` elements removed. If `n`
   exceeds length, returns the empty sequence; a negative `n` clamps to
@@ -356,30 +360,33 @@ ordering and cutting its entries by their values and keeping the keys.
 ### `distinct`
 
 - **Arity** 1. **Subject** `vec` or `set`.
-- **Returns** a `Set` — the canonical Vec → Set converter. Lifts the
-  structural-uniqueness invariant onto the type plane: downstream
-  operands receive a value that announces «no duplicates» through
-  its value-class signal, freeing the author from defensive
-  `… | distinct` chains before subsequent steps. Idempotent on a Set
-  subject — the type already carries the invariant.
+- **Returns** a `Set` — the constructor of the Set, which `#[…]` and
+  `::set[…]` share. Lifts the uniqueness invariant onto the type
+  plane: downstream operands receive a value that announces «no
+  duplicates» through its kind, freeing the author from defensive
+  `… | distinct` chains before subsequent steps. A Set subject
+  passes through as it is.
 - Duplication is decided by structural equality (the same axiom that
   drives `eq`) — two Map / Vec / Set values with identical content
   collapse even when they are distinct JS objects. A recursive walk
   that reaches the same logical node via multiple paths (diamond
   hierarchies, fan-in references) therefore yields a clean Set
   without a separate key-projection step.
-- Insertion-order matches first-occurrence in the source sequence.
+- The elements come in the one order of values; the order of first
+  occurrence does not survive.
 - **Examples**:
   - `[1 2 1 3 2] | distinct` → `#[1 2 3]`.
+  - `[2 1 2] | distinct | payload` → `[1 2]`.
   - `[{:id 1} {:id 2} {:id 1}] | distinct` → `#[{:id 1} {:id 2}]`.
   - `#[1 2 3] | distinct` → `#[1 2 3]` (identity on Set).
 
 ### `reverse`
 
-- **Arity** 1. **Subject** `vec` or `set`.
-- Returns the sequence in reverse order. Same shape as subject.
+- **Arity** 1. **Subject** `vec`, `set` or `map`.
+- Returns the sequence in reverse order: a Vec for a Vec or a Set,
+  whose own order is fixed, and a Map with its entries reversed.
 - **Example**: `[1 2 3] | reverse` → `[3 2 1]`;
-  `#[:a :b :c] | reverse` → `#[:c :b :a]`;
+  `#[:a :b :c] | reverse` → `[:c :b :a]`;
   `{:a 1 :b 2} | reverse | vals` → `[2 1]`.
 
 ### `flat`
@@ -387,9 +394,8 @@ ordering and cutting its entries by their values and keeping the keys.
 - **Arity** 1. **Subject** `vec` or `set`.
 - Flattens one level of nesting. Elements that are Vecs or Sets are
   spliced in; other elements pass through unchanged. Same shape as
-  subject; Set subject keeps the uniqueness invariant — cross-bucket
-  duplicates that appear in flat output collapse through
-  `addStructurallyUnique`.
+  subject: over a Set the result is minted as a Set again, so a Set
+  of Sets flattens into their union.
 - **Example**: `[[1 2] [3] [4 5]] | flat` → `[1 2 3 4 5]`;
   `#[#[1 2] #[2 3]] | flat` → `#[1 2 3]`.
 - **Errors**: subject not Vec/Set → `FlatSubjectNotSequenceError`.
@@ -420,7 +426,8 @@ ordering and cutting its entries by their values and keeping the keys.
 ### `has value`
 
 - **Arity** 2. **Subject** `set`, **modifier** `value`.
-- Returns `true` if the value is a member of the Set.
+- Returns `true` if the value is a member of the Set, found by a
+  binary search in the one order.
 - **Example**: `#[:a :b :c] | has :b` → `true`.
 
 `count` and `empty` on a Set (and on a Map) dispatch through the
@@ -430,8 +437,9 @@ in the catalog, one doc entry here.
 ## Polymorphic set operations — `union`, `minus`, `inter`
 
 These three operands are polymorphic across Set and Map
-combinations and overloaded by captured-arg count. Three call
-shapes are supported:
+combinations and overloaded by captured-arg count; two Sets combine
+by a merge of their elements in the one order. Three call shapes are
+supported:
 
 ### Bound form — one captured arg
 

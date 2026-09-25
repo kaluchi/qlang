@@ -37,7 +37,7 @@ describe('evalSetLit keyword dedup', async () => {
   it('deduplicates keywords by name in Set literals', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('#[:a :b :a]');
-    expect(result.size).toBe(2);
+    expect(result.length).toBe(2);
   });
 });
 
@@ -45,19 +45,19 @@ describe('setops Set×Set keyword-aware operations', async () => {
   it('union deduplicates keywords across Sets', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[:a :b] #[:b :c]] | union');
-    expect(result.size).toBe(3);
+    expect(result.length).toBe(3);
   });
 
   it('minus removes keywords by name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[:a :b :c] #[:b]] | minus');
-    expect(result.size).toBe(2);
+    expect(result.length).toBe(2);
   });
 
   it('inter keeps keywords present in both', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[:a :b :c] #[:b :d]] | inter');
-    expect(result.size).toBe(1);
+    expect(result.length).toBe(1);
   });
 });
 
@@ -113,10 +113,10 @@ describe('codec $map with keyword-tagged keys decodes to string-keyed Map', asyn
 
 describe('deepEqual Set keyword mismatch', async () => {
   it('returns false when keyword names differ between Sets', async () => {
-    const { keyword } = await import('../../src/types.mjs');
+    const { keyword, makeSet } = await import('../../src/types.mjs');
     const { deepEqual } = await import('../../src/equality.mjs');
-    const s1 = new Set([keyword('a'), keyword('b')]);
-    const s2 = new Set([keyword('a'), keyword('c')]);
+    const s1 = makeSet([keyword('a'), keyword('b')]);
+    const s2 = makeSet([keyword('a'), keyword('c')]);
     expect(deepEqual(s1, s2)).toBe(false);
   });
 });
@@ -139,13 +139,13 @@ describe('setops Set×Set non-keyword elements', async () => {
   it('minus of number Sets', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[1 2 3], #[2]] | minus');
-    expect(result.size).toBe(2);
+    expect(result.length).toBe(2);
   });
 
   it('inter of number Sets', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[1 2 3], #[2 3]] | inter');
-    expect(result.size).toBe(2);
+    expect(result.length).toBe(2);
   });
 });
 
@@ -162,11 +162,12 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
     expect(result.map(k => k.name)).toEqual(['a', 'm', 'y']);
   });
 
-  it('sort over a Set of Keywords preserves the Set shape', async () => {
+  it('sort over a Set of Keywords answers the vector of its order', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
+    const { isQSet } = await import('../../src/types.mjs');
     const result = await evalQuery('#[:y :a :m] | sort');
-    expect(result).toBeInstanceOf(Set);
-    expect([...result].map(k => k.name)).toEqual(['a', 'm', 'y']);
+    expect(isQSet(result)).toBe(false);
+    expect(result.map(k => k.name)).toEqual(['a', 'm', 'y']);
   });
 
   it('sort over TagKeyword Vec lexicographic by .name', async () => {
@@ -215,11 +216,12 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
 describe('groupBy on a Set subject yields Set buckets', async () => {
   it('partitions a Set into Set buckets keyed by the classifier', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
+    const { isQSet } = await import('../../src/types.mjs');
     const result = await evalQuery('#[{:dept :eng :id 1} {:dept :sales :id 2} {:dept :eng :id 3}] | groupBy ~(/dept)');
     expect(result).toBeInstanceOf(Map);
     const engBucket = result.get('eng');
-    expect(engBucket).toBeInstanceOf(Set);
-    expect(engBucket.size).toBe(2);
+    expect(isQSet(engBucket)).toBe(true);
+    expect(engBucket.length).toBe(2);
   });
 });
 

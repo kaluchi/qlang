@@ -20,25 +20,9 @@
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
   isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL,
-  isOrderedSequence, sequenceElements, isVec, isQMap
+  isVec, isQMap, makeSet
 } from '../types.mjs';
-import { addStructurallyUnique } from '../equality.mjs';
 import { compareValues } from '../ordering.mjs';
-
-// containerLikeOf(items, source) — the mint site of the transformers
-// that keep their subject's shape (filter / sort / take / drop /
-// reverse / flat): a Set re-mints with structural dedup, since `flat`
-// of a Set of Vecs can introduce duplicates, and a Vec passes through;
-// the tag of a tagged source is the dispatch wrapper's
-// `applyTagPreservation`.
-function containerLikeOf(items, source) {
-  if (isQSet(source)) {
-    const out = new Set();
-    for (const v of items) addStructurallyUnique(out, v);
-    return out;
-  }
-  return items;
-}
 import {
   declareSubjectError,
   declareModifierError,
@@ -57,6 +41,13 @@ import {
   codeOfModifier,
   CONDUIT_PARAMS_FIELD
 } from '../eval.mjs';
+
+// A set is the vector in the one order without duplicates [D16], so
+// every operand below reads it as a vector. The transformers that keep
+// their subject's shape (filter / take / drop / flat / distinct) answer
+// a vector and leave the tag to the dispatch wrapper's
+// `applyTagPreservation`, which hands a set back to the constructor of
+// `::set`; `sort` and `reverse` impose an order and answer a vector.
 
 // ── Subject-type classes ───────────────────────────────────────
 
@@ -144,7 +135,6 @@ const SumResultNotFiniteError = declareNumericDomainError('SumResultNotFiniteErr
 
 function sizeOfContainer(container, ErrorCls) {
   if (isVec(container)) return container.length;
-  if (isQSet(container))     return container.size;
   if (isQMap(container)) return container.size;
   throw new ErrorCls(container);
 }
@@ -157,16 +147,10 @@ export const count = nullaryOp('count', (container) =>
 export const empty = nullaryOp('empty', (container) =>
   sizeOfContainer(container, EmptySubjectNotContainerError) === 0);
 
-// sequenceOrThrow(container, ErrorCls) — array view of an ordered
-// sequence (Vec / Set) for reducers that need indexed
-// access. A Vec passes through; a Set spreads in insertion-
-// order. Set's insertion-order is part of qlang's public contract
-// per §Set in qlang-spec.md, so order-dependent operands (first /
-// last / at / sort / reverse / take / drop / flat) compose
-// meaningfully with a Set subject.
+// sequenceOrThrow(container, ErrorCls) — the vector a sequence
+// operand reads, a set among them in its one order.
 function sequenceOrThrow(container, ErrorCls) {
   if (isVec(container)) return container;
-  if (isQSet(container))     return [...container];
   throw new ErrorCls(container);
 }
 
@@ -177,16 +161,9 @@ function elementsOrThrow(container, ErrorCls) {
   return sequenceOrThrow(container, ErrorCls);
 }
 
-// O(1) Set fast path — `subject.values().next().value` skips the
-// `[...subject]` materialization `sequenceOrThrow` performs.
 export const first = nullaryOp('first', (subject) => {
-  if (isVec(subject)) {
-    return subject.length === 0 ? NULL : subject[0];
-  }
-  if (isQSet(subject) || isQMap(subject)) {
-    return subject.size === 0 ? NULL : subject.values().next().value;
-  }
-  throw new FirstSubjectNotSequenceError(subject);
+  const items = elementsOrThrow(subject, FirstSubjectNotSequenceError);
+  return items.length === 0 ? NULL : items[0];
 });
 
 export const last = nullaryOp('last', (subject) => {
@@ -253,7 +230,7 @@ function containerPredDispatch(predLambda, ArityErrorCls) {
 
 export const filter = higherOrderOp('filter', 2, async (container, predModifier) => {
   const predLambda = await codeOfModifier(predModifier, container, v => new FilterPredicateNotQuoteError(v));
-  if (isOrderedSequence(container)) {
+  if (isVec(container)) {
     const applyItem = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterResult = [];
     for (const filterItem of container) {
@@ -261,7 +238,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
       if (isErrorValue(predResult)) return predResult;
       if (isTruthy(predResult)) filterResult.push(filterItem);
     }
-    return containerLikeOf(filterResult, container);
+    return filterResult;
   }
   if (isQMap(container)) {
     const applyValue = containerPredDispatch(predLambda, FilterPredArityInvalidError);
@@ -278,7 +255,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
 
 export const every = higherOrderOp('every', 2, async (container, everyPredModifier) => {
   const everyPredLambda = await codeOfModifier(everyPredModifier, container, v => new EveryPredicateNotQuoteError(v));
-  if (isVec(container) || isQSet(container)) {
+  if (isVec(container)) {
     const applyItem = containerPredDispatch(everyPredLambda, EveryPredArityInvalidError);
     for (const everyItem of container) {
       const everyResult = await applyItem(everyItem);
@@ -301,7 +278,7 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
 
 export const any = higherOrderOp('any', 2, async (container, anyPredModifier) => {
   const anyPredLambda = await codeOfModifier(anyPredModifier, container, v => new AnyPredicateNotQuoteError(v));
-  if (isVec(container) || isQSet(container)) {
+  if (isVec(container)) {
     const applyItem = containerPredDispatch(anyPredLambda, AnyPredArityInvalidError);
     for (const anyItem of container) {
       const anyResult = await applyItem(anyItem);
@@ -328,7 +305,6 @@ export const any = higherOrderOp('any', 2, async (container, anyPredModifier) =>
 export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyModifier) => {
   const groupKeyLambda = await codeOfModifier(groupKeyModifier, subject, v => new GroupByKeyNotQuoteError(v));
   const items = sequenceOrThrow(subject, GroupBySubjectNotSequenceError);
-  const subjectIsSet = isQSet(subject);
   const groupResult = new Map();
   for (let gi = 0; gi < items.length; gi++) {
     const groupElem = items[gi];
@@ -341,17 +317,11 @@ export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyModif
         actualValue: groupKey
       });
     }
-    if (!groupResult.has(groupKey.name)) {
-      groupResult.set(groupKey.name, subjectIsSet ? new Set() : []);
-    }
-    const bucket = groupResult.get(groupKey.name);
-    if (subjectIsSet) addStructurallyUnique(bucket, groupElem);
-    else bucket.push(groupElem);
+    if (!groupResult.has(groupKey.name)) groupResult.set(groupKey.name, []);
+    groupResult.get(groupKey.name).push(groupElem);
   }
-  if (!subjectIsSet) {
-    for (const [bucketKey, bucketItems] of groupResult) {
-      groupResult.set(bucketKey, bucketItems);
-    }
+  if (isQSet(subject)) {
+    for (const [bucketKey, bucketItems] of groupResult) groupResult.set(bucketKey, makeSet(bucketItems));
   }
   return groupResult;
 });
@@ -379,9 +349,7 @@ export const indexBy = higherOrderOp('indexBy', 2, async (subject, indexKeyModif
 export const sort = overloadedOp('sort', 2, {
   0: (subject) => {
     if (isQMap(subject)) return new Map([...subject].sort(([, leftValue], [, rightValue]) => compareValues(leftValue, rightValue)));
-    const items = sequenceOrThrow(subject, SortNaturalSubjectNotSequenceError);
-    const sorted = [...items].sort(compareValues);
-    return containerLikeOf(sorted, subject);
+    return [...sequenceOrThrow(subject, SortNaturalSubjectNotSequenceError)].sort(compareValues);
   },
   1: async (subject, sortKeyModifier) => {
     const sortKeyLambda = await codeOfModifier(sortKeyModifier, subject, v => new SortKeyNotQuoteError(v));
@@ -400,21 +368,20 @@ export const sort = overloadedOp('sort', 2, {
       }))
     );
     sortEntries.sort((a, b) => compareValues(a.sortKey, b.sortKey));
-    return containerLikeOf(sortEntries.map(entry => entry.sortElem), subject);
+    return sortEntries.map(entry => entry.sortElem);
   }
-}, { preservesTag: true });
+}, { preservesTag: true, imposesOrder: true });
 
 export const take = valueOp('take', 2, (subject, n) => {
   if (isQMap(subject)) {
     assertIntegerModifier(n, TakeCountNotIntegerError);
     return new Map([...subject].slice(0, Math.max(0, n)));
   }
-  if (!isOrderedSequence(subject)) throw new TakeSubjectNotSequenceError(subject);
+  if (!isVec(subject)) throw new TakeSubjectNotSequenceError(subject);
   assertIntegerModifier(n, TakeCountNotIntegerError);
-  const items = sequenceElements(subject);
   // A negative count clamps to 0, the same graceful out-of-range
   // handling an over-length count gets (`take 99` → whole sequence).
-  return containerLikeOf(items.slice(0, Math.max(0, n)), subject);
+  return subject.slice(0, Math.max(0, n));
 }, { preservesTag: true });
 
 // `at` — indexed access with Array.prototype.at-style negative indices.
@@ -422,9 +389,9 @@ export const take = valueOp('take', 2, (subject, n) => {
 // of the projection operator. Non-integer Number subjects (e.g. `at 0.5`)
 // raise a modifier-shape error because silent coercion would mask the
 // caller's intent. `last` remains in the catalog as the idiomatic shorthand
-// for `at -1`; the two are semantically identical. Set is polymorphic
-// here through insertion-order indexing — `myset | at 0` returns the
-// first-added element, same definition `first` uses.
+// for `at -1`; the two are semantically identical. A set indexes as
+// the vector it is — `myset | at 0` is its least element, the one
+// `first` answers.
 const AtSubjectNotSequenceOrMapError  = declareSubjectError('AtSubjectNotSequenceOrMapError', 'at', ['vec', 'set', 'map']);
 const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrStringError',  'at', 2, ['keyword', 'string']);
 
@@ -441,12 +408,6 @@ export const at = valueOp('at', 2, (subject, atKey) => {
     const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
   }
-  if (isQSet(subject)) {
-    assertIntegerModifier(atKey, AtIndexNotIntegerError);
-    const items = [...subject];
-    const resolvedIndex = atKey < 0 ? items.length + atKey : atKey;
-    return (resolvedIndex >= 0 && resolvedIndex < items.length) ? items[resolvedIndex] : NULL;
-  }
   if (isQMap(subject)) {
     let lookupKey;
     if (isKeyword(atKey)) lookupKey = atKey.name;
@@ -462,60 +423,39 @@ export const drop = valueOp('drop', 2, (subject, n) => {
     assertIntegerModifier(n, DropCountNotIntegerError);
     return new Map([...subject].slice(Math.max(0, n)));
   }
-  if (!isOrderedSequence(subject)) throw new DropSubjectNotSequenceError(subject);
+  if (!isVec(subject)) throw new DropSubjectNotSequenceError(subject);
   assertIntegerModifier(n, DropCountNotIntegerError);
-  const items = sequenceElements(subject);
   // A negative count clamps to 0 (drop nothing), mirroring take's
   // clamp and the over-length case (`drop 99` → empty sequence).
-  return containerLikeOf(items.slice(Math.max(0, n)), subject);
+  return subject.slice(Math.max(0, n));
 }, { preservesTag: true });
 
-// `distinct` is the canonical Vec → Set converter. The return type
-// carries the structural-uniqueness invariant in the value-class
-// signal (§Set in qlang-spec.md), so downstream operands receive a
-// value that announces «no duplicates» on the type plane — no
-// defensive `… | distinct` chain needed before subsequent steps.
-// Idempotent on a Set subject (Set already carries the invariant).
-// Uses `addStructurallyUnique` from `equality.mjs`, the single
-// dedup-by-construction primitive that `evalSetLit` and `setops`
-// share.
+// `distinct` is the constructor of the set [D16]: the elements of a
+// vector in the one order without duplicates, so downstream operands
+// receive a value that announces «no duplicates» on the type plane. A
+// set passes through as it is.
 export const distinct = nullaryOp('distinct', (subject) => {
-  if (!isOrderedSequence(subject)) throw new DistinctSubjectNotSequenceError(subject);
-  if (isQSet(subject)) return subject;
-  // Subject reduced to a Vec after the Set early-return —
-  // iterate the array directly (`sequenceElements` would no-op
-  // for Vec but copy a Set, and the Set case never reaches here).
-  // Tag preservation rides on the dispatch wrapper's
-  // `applyTagPreservation` post-pass.
-  const out = new Set();
-  for (const v of subject) addStructurallyUnique(out, v);
-  return out;
+  if (!isVec(subject)) throw new DistinctSubjectNotSequenceError(subject);
+  return isQSet(subject) ? subject : makeSet(subject);
 }, { preservesTag: true });
 
 export const reverse = nullaryOp('reverse', (subject) => {
   if (isQMap(subject)) return new Map([...subject].reverse());
-  if (!isOrderedSequence(subject)) throw new ReverseSubjectNotSequenceError(subject);
-  // Single copy via spread — works uniformly across Vec
-  // / Set (all iterable).
-  return containerLikeOf([...subject].reverse(), subject);
-}, { preservesTag: true });
+  if (!isVec(subject)) throw new ReverseSubjectNotSequenceError(subject);
+  return [...subject].reverse();
+}, { preservesTag: true, imposesOrder: true });
 
-// `flat` lifts one level of nesting. On Set subject the inner Set / Vec
-// elements splice into a fresh Set with `addStructurallyUnique` collapsing
-// any cross-bucket duplicates, so the result still carries the Set
-// signal. On a Vec subject inner sequences splice in order
-// without dedup, matching the existing Vec-flat contract.
+// `flat` lifts one level of nesting: the inner sequences splice in
+// order. Over a set the result goes back through the constructor of
+// `::set`, so a set of sets flattens into their union.
 export const flat = nullaryOp('flat', (subject) => {
-  if (!isOrderedSequence(subject)) throw new FlatSubjectNotSequenceError(subject);
-  // Outer and inner iteration both go through the value directly —
-  // spread accepts any iterable, so Vec / Set splice
-  // in without an intermediate array copy.
+  if (!isVec(subject)) throw new FlatSubjectNotSequenceError(subject);
   const result = [];
   for (const item of subject) {
-    if (isOrderedSequence(item)) result.push(...item);
+    if (isVec(item)) result.push(...item);
     else result.push(item);
   }
-  return containerLikeOf(result, subject);
+  return result;
 }, { preservesTag: true });
 
 // `reduce seed ~(reducer)` — the universal left-fold. Threads the
@@ -531,7 +471,7 @@ const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryErr
 
 export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerModifier) => {
   const reducerLambda = await codeOfModifier(reducerModifier, subject, v => new ReduceReducerNotQuoteError(v));
-  if (!isOrderedSequence(subject) && !isQMap(subject)) throw new ReduceSubjectNotSequenceError(subject);
+  if (!isVec(subject) && !isQMap(subject)) throw new ReduceSubjectNotSequenceError(subject);
   const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedState);
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = await seedLambda(subject);

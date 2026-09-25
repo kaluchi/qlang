@@ -25,7 +25,6 @@ import { printQuoteSource } from '../quote.mjs';
 import {
   isVec,
   isQMap,
-  isQSet,
   isErrorValue,
   isFunctionValue,
   describeType,
@@ -74,8 +73,8 @@ export function literalOfKeyword(k) { return k.literal; }
 //     eval(parse(printValue(V)))  deepEqual  V
 //
 // for every value V that can land in pipeValue — Number, String,
-// Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, JSON-Object,
-// JSON-Array, Error, Quote, Doc, Conduit, Snapshot (auto-unwrapped
+// Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, Error, Quote,
+// Doc, Conduit, Snapshot (auto-unwrapped
 // before reaching this code path under identifier-lookup, kept
 // here for direct projection), TaggedInstance (user-defined
 // `::tag` instances). The shape is enforced by
@@ -95,7 +94,7 @@ const PRINT_HANDLERS = {
   Error:      printErrorValue,
   Vec:        (v, indent) => printListLike('[', ']', ' ',  v,      indent),
   Map:        (m, indent) => printMapLike('{', m, indent),
-  Set:        (s, indent) => printListLike('#[', ']', ' ', [...s], indent),
+  Set:        (s, indent) => printListLike('#[', ']', ' ', s,      indent),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
   Conduit:    printConduit,
@@ -207,11 +206,11 @@ export const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 // payloads that cannot carry the header themselves:
 //
 //   Tagged Vec (Array + header) → `::Tag[…elements…]`.
-//   Tagged Set (Set + header)   → `::Tag#[…elements…]`.
 //   Tagged Map (Map + header)   → `::Tag{:field value …}`.
 //   Tagged wrap (opaque frozen `{type, tag, payload}` object)
 //     → `::Tag<payload>` where `<payload>` is the payload's
-//     printed form, with ParenGroup wrap for identifier-shaped
+//     printed form, a set's `#[…]` among them (`::Tag#[1 2]`),
+//     with ParenGroup wrap for identifier-shaped
 //     scalars (`::Tag(42)`, `::Tag(true)`) so the parser splits
 //     cleanly at the tag boundary.
 //
@@ -222,9 +221,6 @@ function printTaggedInstance(instance, indent) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) {
     return tagLiteral + printListLike('[', ']', ' ', [...instance], indent);
-  }
-  if (instance instanceof Set) {
-    return tagLiteral + printListLike('#[', ']', ' ', [...instance], indent);
   }
   if (instance instanceof Map) {
     return tagLiteral + printMapLike('{', instance, indent);
@@ -244,7 +240,7 @@ function printMapLike(open, m, indent) {
   // so deeply-nested structures unfold one entry per row instead
   // of slamming the trailing close-braces onto a single line.
   const hasComposite = entries.some(([_k, v]) =>
-    isQMap(v) || isVec(v) || isQSet(v) || isErrorValue(v));
+    isQMap(v) || isVec(v) || isErrorValue(v));
   if (entries.length <= 2 && !hasComposite) {
     const inner = entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent)}`).join(' ');
     return `${open}${inner}}`;

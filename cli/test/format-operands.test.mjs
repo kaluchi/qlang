@@ -45,9 +45,9 @@ describe('tjson', () => {
     expect(cellEntry.result).toBe('{"$keyword":"role"}');
   });
 
-  it('renders a Set as the $set tagged form', async () => {
-    const cellEntry = await runQuery('#[:a :b] | tjson', noopIo);
-    expect(cellEntry.result).toBe('{"$set":[{"$keyword":"a"},{"$keyword":"b"}]}');
+  it('renders a Set as the vector under its tag in the $tagged form', async () => {
+    const cellEntry = await runQuery('#[:b :a] | tjson', noopIo);
+    expect(cellEntry.result).toBe('{"$tagged":{"$tag":"set","payload":[{"$keyword":"a"},{"$keyword":"b"}]}}');
   });
 
   it('renders a Map with keyword keys as the $map tagged form', async () => {

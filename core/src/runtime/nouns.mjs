@@ -37,11 +37,13 @@ function* providerExports(env) {
   }
 }
 
+const SUBJECTS_BENEATH_EVERY_KIND = new Set(['any', 'taggedInstance']);
+
 // A verb that declares no subject takes any [D45].
 function subjectKindsOf(descriptor) {
   const subject = descriptor.get('subject') ?? keyword('any');
   const named = isVec(subject) ? subject : [subject];
-  return new Set(named.map(kindKeyword => (kindKeyword.name === 'taggedInstance' ? 'any' : kindKeyword.name)));
+  return new Set(named.map(kindKeyword => (SUBJECTS_BENEATH_EVERY_KIND.has(kindKeyword.name) ? 'any' : kindKeyword.name)));
 }
 
 export function isNoun(env, tagName) {

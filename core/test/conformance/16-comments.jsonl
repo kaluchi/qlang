@@ -13,7 +13,7 @@
 {"name":"mixed-line-and-block-docs","query":"|~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n:foo 42\n| :foo | docs | count","expect":"3"}
 {"name":"doc-block-preserves-newlines","query":"|~~ line one\nline two ~~|\n:foo 42\n| :foo | docs | first | /content","expect":"\" line one\\nline two \""}
 {"name":"doc-on-a-freeze","query":"42\n|~~| Captured value.\n:snapshot /\n| :snapshot | docs * /content","expect":"[\" Captured value.\"]"}
-{"name":"doc-survives-shadowing-redeclare","query":"|~~| Old doc.\n:foo 1\n|~~| New doc.\n|~~| With second remark.\n:foo 2\n| :foo | docs * /content","expect":"[\" New doc.\" \" With second remark.\"]"}
+{"name":"doc-survives-shadowing-redeclare","query":"|~~| Old doc.\n:foo 1\n| (|~~| New doc.\n|~~| With second remark.\n:foo 2\n| :foo | docs * /content)","expect":"[\" New doc.\" \" With second remark.\"]"}
 {"name":"comment-step-is-identity-on-pipevalue","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"name":"doc-on-bind-succeeds","query":"|~~| doc\n:foo 42\n| foo","expect":"42"}
 {"name":"doc-on-a-freeze-succeeds","query":"42\n|~~| captured\n:x /\n| x","expect":"42"}

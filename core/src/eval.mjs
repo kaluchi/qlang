@@ -20,6 +20,7 @@ import {
   UnresolvedAddressError,
   EffectLaunderingAtCallError,
   EffectLaunderingAtBindStepParseError,
+  BindNameDeclaredTwiceError,
   declareInvariantError,
   declareShapeError
 } from './errors.mjs';
@@ -36,7 +37,7 @@ import {
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
-import { isPlainCommentStep, moduleUriOf } from './walk.mjs';
+import { declaredNameOf, isPlainCommentStep, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
@@ -618,10 +619,9 @@ async function evalBareTypeKeyword(node, state) {
 // binding. A verb written as the body resolves in the scope the
 // declaration writes, so its body sees its own name [D67].
 async function evalBindStep(node, state) {
-  const name = node.key.type === 'BareTypeKeyword'
-    ? tagBindingKey(node.key.tag)
-    : node.key.name;
+  const name = declaredNameOf(node);
   const docs = node.docs ?? [];
+  if (repeatsDeclarationInScope(node)) throw new BindNameDeclaredTwiceError({ name });
 
   if (node.body === null) {
     // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`) forges
@@ -662,9 +662,14 @@ function refuseVerbLaunderedByName(name, verb, node) {
 // The record a declaration writes: its name, a keyword or a tag, the
 // docs of its prefixes, the value, the quote of its step and the
 // module its source came from [D63].
+// The keyword or the tag a declaration names.
+function declaredKeywordOf(node) {
+  return node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name);
+}
+
 function declarationRecord(node, value) {
   return makeBinding({
-    name: node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name),
+    name: declaredKeywordOf(node),
     docs: node.docs ?? [],
     value,
     source: quoteOfBody(node),

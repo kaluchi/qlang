@@ -103,7 +103,7 @@ export class QlangInvariantError extends QlangError {
 //     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
 //     a non-@-prefixed identifier resolves to an effectful function
 //     value or verb (the laundering path where the binding was
-//     installed via use, captured via as, or injected by the
+//     installed via use, handed through a slot, or injected by the
 //     embedding host, so the declaration could not detect the
 //     effect).
 export class EffectLaunderingError extends QlangError {
@@ -347,6 +347,15 @@ export const EvaluationDepthExceededError = declarePerSiteError(
   { operand: '::qlang' }
 );
 
+// BindNameDeclaredTwiceError — a declaration of a name an earlier step
+// of its scope declared [D44], [D71]: `evalBindStep` refuses it where it
+// stands, and the head of a verb, which never runs, where the verb is
+// made. `context.name` is the env key the declarations share.
+export const BindNameDeclaredTwiceError = declareShapeError('BindNameDeclaredTwiceError',
+  ({ name }) => `${name} is declared once in a scope, and this declaration declares it again`,
+  { operand: '::bind' }
+);
+
 // ── Per-site classes under EffectLaunderingError ───────────────
 
 export const EffectLaunderingAtBindStepParseError = declareEffectLaunderingError(
@@ -362,6 +371,6 @@ export const EffectLaunderingAtCallError = declareEffectLaunderingError(
   ({ bindingName, effectfulName }) =>
     `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
     `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
-    `use, or as — rename to '@${bindingName}' to mark the effect`,
+    `use, or a slot — rename to '@${bindingName}' to mark the effect`,
   { operand: '::call' }
 );

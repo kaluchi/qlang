@@ -602,7 +602,9 @@ canonical rules; four are **direct corollaries of the fork rule**:
 Three come from the rest of the evaluation model:
 
 1. **Lexical left-to-right** — from `|` combinator threading.
-6. **Shadowing** — from Map last-write-wins on `env[:name]`.
+6. **Shadowing** — from Map last-write-wins on `env[:name]`, by a
+   declaration of a nested scope: a second declaration of a name in
+   one scope is refused [D71].
 7. **Resolution order** — BindStep > built-in is just "whoever
    wrote last to `env[:name]`", which is a consequence of
    shadowing in the user's typical write order (built-ins loaded

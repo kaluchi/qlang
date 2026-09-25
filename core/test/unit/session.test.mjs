@@ -61,6 +61,13 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(84);
   });
 
+  it('a cell opens a scope of its own, where a later cell declares a name again [D44]', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':k 1');
+    const cellEntry = await sessionInstance.evalCell(':k 2 | k');
+    expect(cellEntry.result).toBe(2);
+  });
+
   it('evalCell records the error on parse failure', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('[1 2');

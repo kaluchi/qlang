@@ -148,6 +148,39 @@ export function moduleUriOf(node) {
   return root.uri;
 }
 
+// declaredNameOf(bindStep) — the env key a declaration writes: the
+// name of a keyword, a tag's under the `::` prefix.
+export function declaredNameOf(bindStep) {
+  return bindStep.key.type === 'BareTypeKeyword' ? tagBindingKey(bindStep.key.tag) : bindStep.key.name;
+}
+
+// The declarations of a pipeline that repeat a name an earlier step of
+// the same scope declared: the steps share one env but a step joined by
+// `*`, which runs in a fork of each element [D71].
+const REPEATED_DECLARATIONS_OF_PIPELINE = new WeakMap();
+
+function repeatedDeclarationsOf(pipeline) {
+  let repeated = REPEATED_DECLARATIONS_OF_PIPELINE.get(pipeline);
+  if (repeated !== undefined) return repeated;
+  repeated = new Set();
+  const declared = new Set();
+  pipeline.steps.forEach((unit, index) => {
+    const [combinator, step] = index === 0 ? [pipeline.leadingCombinator, unit] : [unit.combinator, unit.step];
+    if (step.type !== 'BindStep' || combinator === '*') return;
+    const name = declaredNameOf(step);
+    if (declared.has(name)) repeated.add(step);
+    declared.add(name);
+  });
+  REPEATED_DECLARATIONS_OF_PIPELINE.set(pipeline, repeated);
+  return repeated;
+}
+
+// repeatsDeclarationInScope(bindStep) — whether an earlier step of the
+// declaration's scope declares its name [D44], [D71].
+export function repeatsDeclarationInScope(bindStep) {
+  return bindStep.parent?.type === 'Pipeline' && repeatedDeclarationsOf(bindStep.parent).has(bindStep);
+}
+
 // findAstNodeAtOffset(ast, offset) — returns the narrowest-spanning
 // AST node whose source range contains the given UTF-16 offset, or
 // null if no node contains the offset. The narrowest-wins tiebreaker

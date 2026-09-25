@@ -880,8 +880,8 @@ async function evalOperandCall(node, state) {
 
 // A name with a path calls the verb its address names, from the root
 // and past every binding of the scope, so a verb a declaration shadows
-// stays one address away [D62]: `:count 5 | [1 2 3] | vec/count`
-// answers `3`.
+// stays one address away [D62]: `[1 2 3] | vec/filter ~(gt 1)` calls
+// the `filter` of vectors whatever the scope binds as `filter`.
 async function callByAddress(node, state) {
   const addressName = canonicalTagName(node.name);
   const address = addressedVerb(state.env, addressName);

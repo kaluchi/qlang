@@ -51,15 +51,14 @@ export const split = valueOp('split', 2, (subject, separator) => {
 });
 
 // The lines of a text [D49]: a `\n` ends a line and a `\r` before it
-// belongs to the ending; the text after the last `\n` is a line unless
-// it is empty, so a final newline closes the last line rather than
-// opening one, and the empty text has no lines.
+// belongs to the ending; the text after the last ending is a line
+// unless it is empty, so a final newline closes the last line rather
+// than opening one, and the empty text has no lines.
 export const lines = nullaryOp('lines', (subject) => {
   if (typeof subject !== 'string') throw new LinesSubjectNotStringError(subject);
-  const pieces = subject.split('\n');
-  const afterLastNewline = pieces.pop();
-  const ended = pieces.map(piece => (piece.endsWith('\r') ? piece.slice(0, -1) : piece));
-  return afterLastNewline === '' ? ended : [...ended, afterLastNewline];
+  const pieces = subject.split(/\r?\n/);
+  if (pieces[pieces.length - 1] === '') pieces.pop();
+  return pieces;
 });
 
 export const join = valueOp('join', 2, (subject, separator) => {

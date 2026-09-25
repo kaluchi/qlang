@@ -394,7 +394,7 @@ describe('errorFromForeign', () => {
     expect(printQuoteSource(errorVal.descriptor.get('faultStep'))).toBe('nestedOp');
   });
 
-  it('coerces Error nested in context to Map carrying :kind', () => {
+  it('coerces Error nested in context to Map carrying :name', () => {
     const inner = new TypeError('inner');
     const foreignErr = new Error('outer');
     foreignErr.wrapped = inner;
@@ -402,7 +402,7 @@ describe('errorFromForeign', () => {
     const wrapped = errorVal.descriptor.get('wrapped');
     expect(wrapped instanceof Map).toBe(true);
     expect(wrapped.get('message')).toBe('inner');
-    expect(wrapped.get('kind').name).toBe('TypeError');
+    expect(wrapped.get('name')).toBe('TypeError');
     expect(errorVal.descriptor.get('faultInput')).toBe('wrap-input');
   });
 

@@ -285,14 +285,11 @@ function coerce(v, depth = 0) {
   if (isKeyword(v) || isQMap(v) || isQSet(v) || isErrorValue(v)) return v;
   if (Array.isArray(v)) return v.map(el => coerce(el, depth + 1));
   if (v instanceof Error) {
-    // Mirror the cause-chain shape: a coerced JS Error becomes a
-    // Map record carrying the originating JS-side name on `:kind`
-    // plus `:message`. `:kind` here is a domain-level
-    // discriminator on the plain Map shelter; the identity-on-
-    // JS-header invariant covers ErrorValue wrappers alone.
+    // A coerced JS Error is a record of the cause chain's shape, its
+    // host class under `:name` beside `:message` [D7].
     const m = new Map();
+    m.set('name', v.name);
     m.set('message', v.message);
-    m.set('kind', makeTagKeyword(v.name));
     return m;
   }
   if (t === 'object') {

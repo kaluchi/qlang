@@ -33,13 +33,13 @@ describe('highlightAnsi', () => {
   });
 
   it('wraps a ::tag BareTypeKeyword in the bright-cyan tag escape', () => {
-    const out = highlightAnsi('::conduit', noBuiltins);
-    expect(out).toBe('\x1b[96m::conduit\x1b[0m');
+    const out = highlightAnsi('::verb', noBuiltins);
+    expect(out).toBe('\x1b[96m::verb\x1b[0m');
   });
 
   it('wraps the ::tag head of a TaggedLit and descends into the payload', () => {
-    const out = highlightAnsi('::conduit[[:x] ~(mul 2)]', noBuiltins);
-    expect(out).toContain('\x1b[96m::conduit\x1b[0m');
+    const out = highlightAnsi('::verb~(:x ::number | mul x)', noBuiltins);
+    expect(out).toContain('\x1b[96m::verb\x1b[0m');
     // Quote payload — upright delimiters + italic body. With no
     // builtin names supplied, `mul` falls back to the `atom`
     // colour (cyan 36) carrying the italic modifier.

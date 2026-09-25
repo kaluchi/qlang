@@ -118,17 +118,17 @@ A map's elements are its values, so the reducers read them.
 - `seed` is the initial accumulator (returned as-is for an empty
   subject). The reducer is applied as `reducer accumulator element`:
   a **binary operand** (`add` / `mul` / `union` / …) folds via its
-  bound form (`acc | add element`), or a **2-parameter conduit
-  `[:acc :elem]`** for custom logic. A reducer error short-circuits
-  the fold.
+  bound form (`acc | add element`), or a **verb**, the accumulator
+  its subject and the element its first slot, for custom logic. A
+  reducer error short-circuits the fold.
 - **Examples**: `[1 2 3 4 5] | reduce 0 ~(add)` → `15`;
   `[1 2 3 4 5] | reduce 1 ~(mul)` → `120`;
   `["a" "b" "c"] | reduce "" ~(append)` → `"abc"`;
   `[#[1] #[2 3]] | reduce #[] ~(union)` → `#[1 2 3]`;
-  `:max2 [:acc :x] (if (x | gt acc) ~(x) ~(acc)) | [3 1 4 1 5] | reduce 0 ~(max2)` → `5`.
+  `:max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2` → `5`.
   `sum` / `count` / `max` and structure-builders all factor through it.
 - **Errors**: subject not a container → `ReduceSubjectNotSequenceError`;
-  reducer not a binary operand or 2-parameter conduit →
+  reducer not a binary operand or a verb →
   `ReduceReducerNotBinaryError`.
 
 ### `min`, `max`
@@ -192,13 +192,10 @@ element, its greatest and its n-th in that order.
 
 `filter`, `every`, and `any` run their predicate on each element of a
 container, a map's value being its element, and `filter` keeps the
-keys of the entries it keeps. The predicate is a quote,
-`filter ~(gt 1)`, or a named conduit: a conduit of one parameter
-`[:x]` binds the element, pipeValue mirroring it, and one of two or
-more parameters has no axis to fill and raises the per-operand
-`FilterPredArityInvalidError` / `EveryPredArityInvalidError` /
-`AnyPredArityInvalidError`. The joint test of a key with its value
-reads the keys:
+keys of the entries it keeps. The predicate is code run against each
+element as its subject: a quote, `filter ~(gt 1)`, the quote of a
+verb's mention, `filter ~positive`, or a verb handed in its place.
+The joint test of a key with its value reads the keys:
 
 ```qlang
 > {:apple 1 :banana 2 :avocado 3} | inter (keys | filter ~(keyword | startsWith "a"))
@@ -208,7 +205,7 @@ reads the keys:
 ### `filter ~(pred)`
 
 - **Arity** 2. **Subject** one of `Vec` / `Set` / `Map`,
-  **modifier** `pred` (a predicate pipeline or a named conduit).
+  **modifier** `pred` (a predicate quote or a verb).
 - Keeps items whose predicate answers `true`, collecting
   into a new container of the same shape. Vec and Set iterate
   per element in their order; on a Map the predicate
@@ -217,14 +214,13 @@ reads the keys:
 - **Examples**:
   - `[1 2 3 4 5] | filter ~(gt 2)` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter ~(/age | gte 18)` → `[{:age 25}]`.
-  - `[1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos)` → `[1 3]` — 1-arity conduit, element bound as captured-arg.
+  - `[1 -2 3] | :positive ::verb~(gt 0) | filter ~positive` → `[1 3]` — a declared verb, the element its subject.
   - `#[1 2 3 4 5] | filter ~(gt 2)` → `#[3 4 5]`.
   - `{:a 1 :b 2 :c 3} | filter ~(gt 1)` → `{:b 2 :c 3}` — 0-arity pred, value axis.
-  - `{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt 0) | filter ~(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
+  - `{:a 1 :b -2 :c 3} | :positive ::verb~(gt 0) | filter ~positive` → `{:a 1 :c 3}` — a declared verb, the value its subject.
   - `{} | filter ~(gt 0)` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainerError`. Predicate conduit with 2+ params
-  → `FilterPredArityInvalidError`.
+  `FilterSubjectNotContainerError`.
 
 ### `every ~(pred)`
 
@@ -237,13 +233,12 @@ reads the keys:
 - **Examples**:
   - `[2 4 6] | every ~(gt 0)` → `true`.
   - `[1 2 3] | every ~(gt 2)` → `false`.
-  - `[2 4 6] | :@pos [:v] (v | gt 0) | every ~(@pos)` → `true` — 1-arity conduit.
+  - `[2 4 6] | :positive ::verb~(gt 0) | every ~positive` → `true` — a declared verb.
   - `[] | every ~(gt 0)` → `true`.
   - `#[2 4 6] | every ~(gt 0)` → `true`.
   - `{:a 1 :b 2 :c 3} | every ~(gt 0)` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every ~(gt 0)` → `false`.
 - **Errors**: subject not a container → `EverySubjectNotContainerError`.
-  Predicate conduit with 2+ params → `EveryPredArityInvalidError`.
 
 ### `any ~(pred)`
 
@@ -256,12 +251,11 @@ reads the keys:
 - **Examples**:
   - `[1 2 3] | any ~(gt 2)` → `true`.
   - `[1 2 3] | any ~(gt 99)` → `false`.
-  - `[1 2 3] | :@big [:v] (v | gt 2) | any ~(@big)` → `true` — 1-arity conduit.
+  - `[1 2 3] | :big ::verb~(gt 2) | any ~big` → `true` — a declared verb.
   - `[] | any ~(gt 0)` → `false`.
   - `#[1 2 3] | any ~(gt 2)` → `true`.
   - `{:a -1 :b 0 :c 2} | any ~(gt 0)` → `true` — 0-arity, value axis.
 - **Errors**: subject not a container → `AnySubjectNotContainerError`.
-  Predicate conduit with 2+ params → `AnyPredArityInvalidError`.
 
 ## Ordered-sequence transformers — `Vec / Set → Vec / Set` / `Vec / Set → Map`
 
@@ -691,8 +685,8 @@ Map where the value's kind is the predicate axis.
   `::quote`, `::doc`. The kinds of the core are named under the
   prefix `qlang/` and written short, `::qlang/number` reading as
   `::number`, and `type | docs` reads the kind's page. Tagged values
-  (Conduit, binding record, TaggedInstance, materialized error,
-  catalog builtin descriptor) produce their tag (`::conduit`,
+  (verb, binding record, TaggedInstance, materialized error,
+  catalog builtin descriptor) produce their tag (`::verb`,
   `::binding`, `::Foo`, `::builtin`); error values produce the
   per-site `::Tag` —
   `::AddLeftNotNumberError`, `::ParseError`, and the kind of errors
@@ -703,7 +697,7 @@ Map where the value's kind is the predicate axis.
   - `:foo | type` → `::keyword`.
   - `[1 2] | type` → `::vec`.
   - `{:a 1} | type` → `::map`.
-  - `::conduit[[] ~(mul 2)] | type` → `::conduit`.
+  - `::verb~(mul 2) | type` → `::verb`.
   - `!{} !| type` → `::error`.
   - `!{:kind ::Oops} !| type` → `::Oops`.
 
@@ -737,7 +731,7 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
     clone of the payload without the header.
   - **Wrap-object shape** (opaque frozen `{type, tag, payload}`
     object, the constructor's branch for scalar / Keyword / Quote
-    / Doc / Error / Conduit / already-tagged payloads
+    / Doc / Error / already-tagged payloads
     that cannot carry the header themselves) → the `.payload`
     value directly.
 - Inverse of `tag ::Foo` mint. The dedicated extractor sidesteps
@@ -931,7 +925,7 @@ its own eval handler in `eval.mjs`.
 - **Examples**:
   - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi e]`
     → `[3.14159 2.71828]`.
-  - Shadow a built-in: `:use mul 2 | 5 | use` → `10`
+  - Shadow a built-in: `:use ::verb~(mul 2) | 5 | use` → `10`
     (the user's BindStep shadows the reflective `use`).
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,
@@ -982,28 +976,24 @@ its own eval handler in `eval.mjs`.
 - **Form**: grammar production with its own dispatch path (the
   evaluator routes BindStep nodes through `evalBindStep`, separate
   from `langRuntime()` lookups). The parser reads `:name`-or-`::Tag`
-  head plus an optional attached doc-prefix, optional param Vec,
-  and optional body, and emits a BindStep AST node
+  head plus an optional attached doc-prefix and an optional body,
+  and emits a BindStep AST node
   (`core/src/grammar.peggy::BindStep`). Subject passes through
   unchanged — BindStep is transparent for pipeValue and writes
   only to env.
-- Declares a conduit (named pipeline fragment) in `env`. Zero-arity
-  form `:name body` binds a pipeline fragment. Parametric form
-  `:name [:params] body` binds a fragment with named
-  parameters for fractal composition.
-- Writes the record of the binding, `::binding`, into `env`.
-  Purity-routed at eval time (`core/src/eval.mjs::evalBindStep`):
-  pure-literal bodies evaluate at decl-time and the record holds
-  the plain value; impure or parametric bodies capture against a
-  lexical envRef and the record holds a conduit. Parameters become lazy conduit-
-  parameter proxies (nullary function values wrapping
-  captured-arg lambdas).
+- Names the value of its body in `env`: the body is evaluated once,
+  at declaration, against the current `pipeValue`, and the record of
+  the binding, `::binding`, holds the value
+  (`core/src/eval.mjs::evalBindStep`). A body `::verb~(…)` names a
+  verb, which runs when the name is mentioned, its leading
+  declarations the slots its modifiers fill.
 - Doc-only form: a BindStep with attached docs and no body binds a
   Doc value under the name; an identifier lookup returns the
   Doc-value the record holds (`:guide | /content`).
 - **Examples**:
-  - `:double mul 2 | 10 | double` → `20`.
-  - `:@surround [:pfx :sfx] (prepend pfx | append sfx) | "world" | @surround "[" "]"` → `"[world]"`.
+  - `42 | :x / | add 1 | x` → `42`.
+  - `:double ::verb~(mul 2) | 10 | double` → `20`.
+  - `:@surround ::verb~(:pfx ::string | :sfx ::string | prepend pfx | append sfx) | "world" | @surround "[" "]"` → `"[world]"`.
 - **Tag-binding form**: `::tag descriptor` installs the
   given descriptor Map under `::tag` for use as a TaggedLit
   constructor. The descriptor carries `:impl` — either a
@@ -1109,7 +1099,7 @@ its own eval handler in `eval.mjs`.
   the one `env | /name` answers, reads the binding it records.
 - **Examples**:
   - `::vec/count | source | parse` → the `:count` declaration as text.
-  - `::conduit | source | parse` → the `::conduit` tag-binding as text.
+  - `::verb | source | parse` → the `::verb` tag-binding as text.
 - **Errors**: the subject names no binding → `SourceBindingNotFoundError`.
 
 ### `docs`
@@ -1128,7 +1118,7 @@ its own eval handler in `eval.mjs`.
 - **Examples**:
   - `::vec/count | docs` → Vec of Doc-values from the `count` catalog
     entry, read by its address.
-  - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
+  - `::verb | docs` → Vec of Doc-values from the `::verb` tag-binding.
   - `:count | docs !| /addresses` → `#[::map/count ::set/count
     ::vec/count]`: a keyword names a binding of its scope, and the
     refusal names where the verbs of the name live.
@@ -1183,7 +1173,8 @@ its own eval handler in `eval.mjs`.
   - `"x" | add 1 !| spec | /operand` → `:add`.
   - `"x" | add 1 !| spec | /category` → `:typeError`.
   - `::number/add | spec | /throws` → the per-site error classes `add` raises.
-  - `::conduit | spec | /impl` → `:qlang/type/conduit`.
+  - `::verb | spec | /impl` → `:qlang/type/verb`.
+  - `:double ::verb~(:by ::number | mul by) | :double | spec | payload | parse` → `":subject ::any | :by ::number"`.
 - **Errors**: the subject names no binding → `SpecBindingNotFoundError`.
 
 ## Error operands

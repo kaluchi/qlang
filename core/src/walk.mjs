@@ -62,9 +62,6 @@ export function astChildrenOf(node) {
       break;
     case 'BindStep':
       out.push(node.key);
-      if (Array.isArray(node.params)) {
-        for (const param of node.params) out.push(param);
-      }
       if (node.body) out.push(node.body);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
@@ -91,10 +88,9 @@ export function isPlainCommentStep(astNode) {
 // isPureLiteralAst(node) — recursive purity predicate over an AST
 // subtree. Returns true when evaluation of the subtree depends on
 // neither the surrounding pipeValue nor env nor any side-effect
-// operand. Pure-literal bodies are eval'd at decl-time and bound as
-// the resulting value; impure bodies (containing
-// OperandCall, Projection, ParenGroup, Pipeline) bind as a zero-
-// param conduit invoked lazily per-lookup. Used by `evalBindStep`.
+// operand, which is what the head of a verb holds [D67], a group
+// around one such step among them, the payload of `::Depth(3)`; a
+// subtree with an OperandCall, a Projection or a Pipeline computes.
 export function isPureLiteralAst(node) {
   switch (node.type) {
     case 'NumberLit':
@@ -114,6 +110,8 @@ export function isPureLiteralAst(node) {
       return node.entries.every(e => isPureLiteralAst(e.value));
     case 'TaggedLit':
       return isPureLiteralAst(node.payload);
+    case 'ParenGroup':
+      return isPureLiteralAst(node.pipeline);
     default:
       return false;
   }

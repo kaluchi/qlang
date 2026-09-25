@@ -2,11 +2,8 @@
 // `(payload, state) → value` registered into PRIMITIVE_REGISTRY
 // under `qlang/type/<tag>`. evalTaggedLit looks up the type
 // binding's :impl, resolves it to one of these functions,
-// and invokes it against the payload-value.
-//
-// State is passed through so constructors that need a reference to
-// the outer env (notably ::conduit, which captures lexical scope
-// for body invocation) can pick it up directly.
+// and invokes it against the payload-value; the state reaches a
+// constructor that reads the scope it is called in.
 
 import { nullaryOp, stateOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
@@ -15,7 +12,7 @@ import { evalAst } from '../eval.mjs';
 import {
   isVec, isKeyword, isQuote, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
   isTaggedInstance, isTagKeyword, isErrorValue, isVerb, envToRun,
-  makeConduit, makeSet, typeKeyword, TAG_HEADER_SYMBOL
+  makeSet, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { astOfQuote } from '../quote.mjs';
 import { callVerb } from './verb.mjs';
@@ -23,76 +20,7 @@ import {
   declareSubjectError,
   declareModifierError
 } from '../operand-errors.mjs';
-import {
-  declareShapeError,
-  declareArityError
-} from '../errors.mjs';
-
-const ConduitPayloadNotVecError = declareSubjectError('ConduitPayloadNotVecError', '::conduit', 'vec');
-const BuiltinPayloadNotMapError = declareSubjectError('BuiltinPayloadNotMapError', '::builtin', 'map');
-const ConduitArityInvalidError = declareArityError('ConduitArityInvalidError',
-  ({ actualCount }) => `::conduit payload must be a Vec of 2 ([params, body]) or 3 ([self, params, body]) elements, got ${actualCount}`,
-  { operand: '::conduit' }
-);
-const ConduitSelfNameNotKeywordError = declareShapeError('ConduitSelfNameNotKeywordError',
-  ({ actualType }) => `::conduit self-name must be a Keyword, got ${actualType.name}`,
-  { operand: '::conduit', expectedType: 'keyword' }
-);
-const ConduitParamsNotVecError = declareShapeError('ConduitParamsNotVecError',
-  ({ actualType }) => `::conduit params must be a Vec of Keywords, got ${actualType.name}`,
-  { operand: '::conduit', expectedType: 'vec' }
-);
-const ConduitParamNotKeywordError = declareShapeError('ConduitParamNotKeywordError',
-  ({ index, actualType }) => `::conduit params[${index}] must be a Keyword, got ${actualType.name}`,
-  { operand: '::conduit', expectedType: 'keyword' }
-);
-const ConduitBodyNotQuoteError = declareShapeError('ConduitBodyNotQuoteError',
-  ({ actualType }) => `::conduit body must be a Quote-value, got ${actualType.name}`,
-  { operand: '::conduit', expectedType: 'quote' }
-);
-
-// `::conduit[[:p1 :p2] \`body-source\`]` — non-recursive
-// `::conduit[:self [:p1 :p2] \`body-source\`]` — with self-name for recursion
-async function conduitConstructor(payload, state) {
-  if (!isVec(payload)) throw new ConduitPayloadNotVecError(payload);
-  if (payload.length !== 2 && payload.length !== 3) {
-    throw new ConduitArityInvalidError({ actualCount: payload.length });
-  }
-  let selfName = null;
-  let params;
-  let body;
-  if (payload.length === 3) {
-    selfName = payload[0];
-    params = payload[1];
-    body = payload[2];
-    if (!isKeyword(selfName)) {
-      throw new ConduitSelfNameNotKeywordError({ actualType: typeKeyword(selfName), actualValue: selfName });
-    }
-  } else {
-    params = payload[0];
-    body = payload[1];
-  }
-  if (!isVec(params)) {
-    throw new ConduitParamsNotVecError({ actualType: typeKeyword(params), actualValue: params });
-  }
-  for (let i = 0; i < params.length; i++) {
-    if (!isKeyword(params[i])) {
-      throw new ConduitParamNotKeywordError({ index: i, actualType: typeKeyword(params[i]), actualValue: params[i] });
-    }
-  }
-  if (!isQuote(body)) {
-    throw new ConduitBodyNotQuoteError({ actualType: typeKeyword(body), actualValue: body });
-  }
-  return makeConduit(astOfQuote(body), {
-    name: selfName ? selfName.name : null,
-    params: params.map(k => k.name),
-    envRef: { env: state.env },
-    docs: [],
-    location: null
-  });
-}
-
-bindTypeConstructor('conduit', conduitConstructor);
+import { declareShapeError } from '../errors.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `distinct`
 // mints [D16], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
@@ -153,14 +81,16 @@ bindTypeConstructor('doc',     coreKindConstructor(isDoc, DocPayloadNotDocError)
 // stamped fields directly through `descriptor.get(<field>)`, so
 // `::builtin` flattens the payload Map into a descriptor Map
 // carrying every payload entry at the top level. Identity rides
-// on the Map JS-header TAG_HEADER_SYMBOL slot — same pattern as
-// Conduit / binding record / TaggedInstance, with the catalog
+// on the Map JS-header TAG_HEADER_SYMBOL slot — same pattern as the
+// binding record and the TaggedInstance, with the catalog
 // reader sites (`isBuiltinDescriptor`, the stamp passes of
 // `runtime/use-op.mjs` and `runtime/index.mjs`) probing the header
 // directly. The dedicated constructor keeps catalog descriptors
 // outside the generic TaggedInstance render path so manifest
 // surfaces stay readable as plain field Maps.
 import { BUILTIN_TAG, stampTagHeader } from '../types.mjs';
+
+const BuiltinPayloadNotMapError = declareSubjectError('BuiltinPayloadNotMapError', '::builtin', 'map');
 
 function builtinConstructor(payload) {
   // Catalog declarations always pass a Map payload — every
@@ -187,7 +117,7 @@ bindTypeConstructor('builtin', builtinConstructor);
 // `makeTaggedInstance` — composite payloads (Vec / Map) clone
 // with the TagKeyword stamped on the JS-header slot,
 // leaving the data plane intact; non-extensible payloads (scalar,
-// Keyword, Doc, Error, Conduit, already-tagged composite)
+// Keyword, Doc, Error, already-tagged composite)
 // ride an opaque frozen `{type, tag, payload}` wrapper. `payload`
 // reverses each shape. Both operands ride the `:typeConversion`
 // family alongside `keyword`.

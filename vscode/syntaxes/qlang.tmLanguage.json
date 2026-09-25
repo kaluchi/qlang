@@ -68,7 +68,7 @@
     },
 
     "tagKeyword": {
-      "comment": "::tag — tag-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::conduit | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
+      "comment": "::tag — tag-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::verb | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
       "name": "entity.name.type.qlang",
       "match": "::[@_a-zA-Z][a-zA-Z0-9_/-]*"
     },
@@ -196,7 +196,7 @@
     },
 
     "keyword-binding": {
-      "comment": "let and as — the two binding forms of qlang. Semantically control-flow-adjacent: let declares a conduit, as captures a snapshot. Distinguished from other builtins.",
+      "comment": "as — the operand that names the current value, distinguished from other builtins.",
       "match": "(?<![a-zA-Z0-9_@-])as(?![a-zA-Z0-9_-])",
       "captures": {
         "0": { "name": "keyword.control.binding.qlang" }
@@ -212,7 +212,7 @@
     },
 
     "identifier": {
-      "comment": "User-defined operand calls and conduit references.",
+      "comment": "User-defined operand calls and verb references.",
       "name": "entity.name.function.qlang",
       "match": "[@_a-zA-Z][a-zA-Z0-9_-]*"
     },

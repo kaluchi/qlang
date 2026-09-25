@@ -68,7 +68,7 @@ describe('runRepl — query evaluation', () => {
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const replHarness = captureRepl(':double mul 2\n10 | double\n.exit\n');
+    const replHarness = captureRepl(':double ::verb~(mul 2)\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
@@ -170,20 +170,7 @@ describe('runRepl — output highlighting', () => {
   });
 });
 
-describe('runRepl — render-invariant catch', () => {
-  it('catches FunctionValueLeakedToPrintError and continues prompting', async () => {
-    // A conduit parameter is a nullary function value living in the
-    // body fork's env under its param name, so `env | /n` inside the
-    // body lifts the proxy itself into pipeValue. printValue refuses
-    // raw function values via FunctionValueLeakedToPrintError; the
-    // REPL renderer catches that, writes a render-invariant
-    // diagnostic to stderr, and stays open for the next prompt.
-    const replHarness = captureRepl(':f [:n] (env | /n) | 5 | f 1\n.exit\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
-    expect(exitCode).toBe(0);
-    expect(stripAnsi(replHarness.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrintError/);
-  });
-
+describe('runRepl — error rendering', () => {
   it('renders an error-value with materialised :trail through the same printValue path as success values', async () => {
     // `materializePendingTrail` runs inside `session.evalCell`, so
     // by the time the REPL receives the cell entry the descriptor's

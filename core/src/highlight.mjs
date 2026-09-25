@@ -15,7 +15,7 @@
 //   'atom'        `:name` keyword (atom) OR an OperandCall name
 //                 that resolves through a user-defined binding
 //   'effect'      `:@name` keyword OR an `@`-prefixed OperandCall
-//                 name (effectful host operand or conduit)
+//                 name (effectful host operand or verb)
 //   'operand'     OperandCall name that resolves to a builtin
 //                 supplied by `langRuntime` AND each key segment
 //                 of a `Projection`

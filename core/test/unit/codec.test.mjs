@@ -12,7 +12,6 @@ import {
   keyword,
   makeTagKeyword,
   isTagKeyword,
-  makeConduit,
   makeBinding,
   isQuote,
   makeDoc,
@@ -184,28 +183,16 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
 });
 
 describe('toTaggedJSON unencodable values', () => {
-  it('throws TaggedJSONUnencodableValueError for conduits', () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
-    expect(() => toTaggedJSON(conduit)).toThrow(TaggedJSONUnencodableValueError);
-  });
-
   it('carries a binding record as the tagged Map it is', () => {
     const record = makeBinding({ name: keyword('x'), docs: ['note'], value: 42 });
     expect(deepEqual(fromTaggedJSON(toTaggedJSON(record)), record)).toBe(true);
   });
 
-  it('throws TaggedJSONUnencodableValueError for the record of a conduit', () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
-    const record = makeBinding({ name: keyword('x'), value: conduit });
-    expect(() => toTaggedJSON(record)).toThrow(TaggedJSONUnencodableValueError);
-  });
-
   it('throws TaggedJSONUnencodableValueError for function values', () => {
     // langRuntime stores each built-in as a descriptor Map
     // (encodable). Function values still exist at the JS level —
-    // every runtime/*.mjs primitive impl is one, and
-    // conduitParameter proxies create fresh ones at applyConduit
-    // time — so the unencodable-function contract stays
+    // every runtime/*.mjs primitive impl is one, and a host binds
+    // them — so the unencodable-function contract stays
     // load-bearing. Construct one directly via makeFn to exercise
     // the codec guard without depending on env contents.
     const fn = makeFn('testFn', 1, (state) => state, { captured: [0, 0] });

@@ -44,7 +44,6 @@
 {"name":"the-subject-is-no-projection","query":"::verb~(:subject / | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :subject]","decision":["D67","D68"]}
 {"name":"a-role-declared-by-a-doc-alone-names-no-kind","query":"::verb~(:subject |~~ Any. ~~| | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :subject]","decision":["D67","D68"]}
 {"name":"a-slot-without-a-body-is-refused","query":"::verb~(:x |~~ How many. ~~| | add 1) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :x]","decision":["D67","D68"]}
-{"name":"a-slot-with-parameters-is-refused","query":"::verb~(:f [:y] (add y) | f 1) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :f]","decision":["D67","D68"]}
 {"name":"a-body-may-open-with-a-combinator","query":":m ::verb~(:n 1 * add n) | [1 2] | m","expect":"[2 3]","decision":["D67","D68"]}
 {"name":"a-comment-in-the-head-is-layout","query":":m ::verb~(:x ::number |~ the count ~| add x) | 1 | m 2","expect":"3","decision":["D67","D68"]}
 {"name":"a-declaration-on-the-fail-track-ends-the-head","query":":m ::verb~(:n 1 !| :k 2 | add n) | 5 | m","expect":"6","decision":["D67","D68"]}
@@ -62,3 +61,8 @@
 {"name":"a-declared-subject-fills-the-signature","query":":m ::verb~(:subject ::number | add 1) | :m | spec | payload | parse","expect":"\":subject ::number\"","decision":["D67","D68"]}
 {"name":"a-slot-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":twice ::verb~(:f ::quote | apply f | apply f) | 1 | [(twice ::verb~(add 1)) (twice ~(add 1))]","expect":"[3 3]","decision":["D67","D68"]}
 {"name":"a-slot-of-code-prints-a-verb-it-holds-by-its-own-name","query":":show ::verb~(:code ::quote | code) | null | show ::verb~(add 1) | parse","expect":"\"code\"","decision":["D67","D68"]}
+{"name":"an-optional-slot-takes-a-map-by-default","query":":m ::verb~(:opts {:limit 2} | opts | /limit) | null | m","expect":"2","decision":"D67"}
+{"name":"an-optional-slot-takes-a-tagged-default-and-mints-its-modifier","query":":m ::verb~(:depth ::Depth(3) | depth | payload) | null | [m (m 5)]","expect":"[3 5]","decision":["D67","D68","D69"]}
+{"name":"a-default-that-computes-inside-a-literal-is-refused","query":"::verb~(:opts {:n (count)} | opts) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :opts]","decision":"D67"}
+{"name":"a-default-that-computes-inside-a-group-is-refused","query":"::verb~(:d (1 | add 1) | d) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :d]","decision":"D67"}
+{"name":"an-optional-slot-takes-a-vector-by-default","query":":m ::verb~(:xs [1 2] | xs | count) | null | [m (m [5])]","expect":"[2 1]","decision":"D67"}

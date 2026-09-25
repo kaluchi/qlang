@@ -36,26 +36,6 @@ async function pinRoundTrip(source) {
     `round-trip drift on \`${source}\` — printed as \`${printed}\``).toBe(true);
 }
 
-// pinPrintIdempotent — weaker invariant for value-classes whose
-// identity carries internal AST / envRef holders (Conduit). The
-// rendered form stabilises across round-trip even when the value
-// objects themselves are not deepEqual:
-//
-//     printValue(eval(parse(printValue(V))))  ≡  printValue(V)
-//
-// Used for Conduit and any TaggedInstance whose payload includes a
-// freshly-parsed AST node (each parse builds fresh node objects
-// with distinct `.id` / `.parent` decoration, so `deepEqual` over
-// the body would surface phantom drift).
-async function pinPrintIdempotent(source) {
-  const v1 = await evalSource(source);
-  const printed1 = printValue(v1);
-  const v2 = await evalSource(printed1);
-  const printed2 = printValue(v2);
-  expect(printed2,
-    `printValue idempotency drift on \`${source}\``).toBe(printed1);
-}
-
 // ── Atomic value-classes ──────────────────────────────────────
 
 describe('round-trip invariant — atomics', () => {
@@ -288,21 +268,19 @@ describe('round-trip invariant — named-error literal self-evaluation', () => {
   }
 });
 
-// ── Conduit — printValue-idempotency tier ────────────────────
+// ── Verb — a tag over its quote ──────────────────────────────
 
-describe('round-trip invariant — Conduit (printValue idempotency)', () => {
-  // Conduit values carry a parsed body AST plus a lexical envRef
-  // holder; both differ by reference between independent mints, so
-  // strict deepEqual would surface phantom drift. The rendered
-  // `::conduit[…]` form, however, stabilises — round-trip through
-  // parse + eval reproduces the exact same source slice.
+describe('round-trip invariant — verb', () => {
+  // A verb prints as the literal it was written as and reads back as
+  // a verb over an equal quote; the scope it resolves in rides a
+  // JS-internal slot the comparison does not see.
   for (const src of [
-    '::conduit[[] ~(count)]',
-    '::conduit[[:x] ~(mul x 2)]',
-    '::conduit[:walk [] ~(count)]',
-    '::conduit[[:pfx :sfx] ~(prepend pfx | append sfx)]'
+    '::verb~(count)',
+    '::verb~(:x ::number | mul x 2)',
+    '::verb~(:n 3 | take n)',
+    '::verb~(:pfx ::string | :sfx ::string | prepend pfx | append sfx)'
   ]) {
-    it(`conduit literal: ${src}`, () => pinPrintIdempotent(src));
+    it(`verb literal: ${src}`, () => pinRoundTrip(src));
   }
 });
 
@@ -325,7 +303,7 @@ describe('round-trip invariant — nested composites', () => {
 
 describe('round-trip invariant — BareTypeKeyword', () => {
   for (const src of [
-    '::conduit',
+    '::verb',
     '::qlang',
     '::json'
   ]) {
@@ -338,7 +316,7 @@ describe('round-trip invariant — BareTypeKeyword', () => {
 describe('env output is parseable', () => {
   // The `env` operand exposes the records of the scope as a Map. Every
   // entry — the record of a host-bound function, of a user `as`
-  // binding, of a user BindStep conduit — must render through a
+  // binding, of a user BindStep verb — must render through a
   // path the parser accepts on the way back. A leak (raw JS
   // function source landing in the output) breaks REPL `env`
   // display and every downstream `env | …` pipeline that hands
@@ -425,19 +403,15 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
   });
 
-  it('projection at :impl lands on the handle keyword, and a conduit-parameter proxy fires the invariant', async () => {
+  it('projection at :impl lands on the handle keyword', async () => {
     // `::vec/count | spec | /:impl` reads the descriptor's handle keyword
     // (note the namespaced keyword segment `/:impl` — without the
     // colon the slash splits into two bare segments), so the
     // descriptor projects as data all the way down.
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { FunctionValueLeakedToPrintError, isKeyword } = await import('../../src/types.mjs');
+    const { isKeyword } = await import('../../src/types.mjs');
     const handle = await evalQuery('::vec/count | spec | /:impl');
     expect(isKeyword(handle)).toBe(true);
     expect(handle.name).toBe('qlang/prim/count');
-    // The remaining qlang-reachable function value is a
-    // conduitParameter proxy lifted out of the body's env by name.
-    await expect(evalQuery(':f [:n] (env | /n) | 5 | f 1 | json'))
-      .rejects.toThrow(FunctionValueLeakedToPrintError);
   });
 });

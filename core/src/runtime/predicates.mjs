@@ -76,7 +76,7 @@ export const not = nullaryOp('not', (subject) => {
 
 // `type` — pipeline-time axis on value identity. Returns the kind
 // of the value, a TagKeyword: the tag of a tagged value (errors,
-// conduits, binding records, tagged-instances), and the kind of the core
+// verbs, binding records, tagged-instances), and the kind of the core
 // its literal implies for every other [D32]. The single user-facing
 // path to a value's identity
 // tag — symmetric to how `:foo | source` / `| docs` / `| examples`

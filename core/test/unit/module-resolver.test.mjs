@@ -97,10 +97,11 @@ describe('installModules', () => {
     // namespace cache key
     expect(sessionInstance.env.has(moduleNamespaceKey('error'))).toBe(true);
 
-    // use(:error) imports retry into current env
+    // use(:error) imports retry into current env, a verb whose spec is
+    // its signature
     const cellEntry = await sessionInstance.evalCell('use :error | :retry | spec | type');
     expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('spec'));
   });
 
   it('keeps the export Map off the identifier-lookup plane, so a module sharing a stem with an operand leaves the operand intact', async () => {
@@ -139,7 +140,7 @@ describe('installModules', () => {
     expect(names).toContain('error/observe');
   });
 
-  it('imported conduits (retry, recover, assert, tap) are conduit type', async () => {
+  it('imported verbs (retry, recover, assert, tap) answer their signatures', async () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
@@ -150,7 +151,7 @@ describe('installModules', () => {
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
       const cellEntry = await sessionInstance.evalCell(`:${name} | spec | type`);
       expect(cellEntry.error).toBeNull();
-      expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
+      expect(cellEntry.result).toEqual(makeTagKeyword('spec'));
     }
   });
 

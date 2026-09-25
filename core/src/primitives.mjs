@@ -24,7 +24,7 @@
 //     resulting JS function value lands on the descriptor's
 //     `BUILTIN_IMPL_SLOT` slot beside the handle keyword.
 //
-//   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
+//   `qlang/type/<tag>` — tag-namespace constructors (`::verb`,
 //     `::quote`, `::builtin`). The keyword stays a keyword on the
 //     descriptor; `evalTaggedLit` resolves it through the registry
 //     at every invocation so `::Tag | spec` keeps the readable

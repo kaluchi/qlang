@@ -176,22 +176,22 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for TaggedLit constructor invocation', async () => {
-    const src = '"x" | ::conduit[[] ~(mul 2)]';
+    const src = '"x" | ::verb~(mul 2)';
     const { ast } = parseDocument(src, 'test.qlang');
-    const tagOffset = src.indexOf('::conduit') + 5;
+    const tagOffset = src.indexOf('::verb') + 4;
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
-    expect(hover.content).toMatch(/::conduit/);
+    expect(hover.content).toMatch(/::verb/);
     expect(hover.content).toMatch(/tag-binding/);
   });
 
   it('hover on ::Tag spans only the tag head, not the payload', async () => {
-    const src = '"x" | ::conduit[[] ~(mul 2)]';
+    const src = '"x" | ::verb~(mul 2)';
     const { ast } = parseDocument(src, 'test.qlang');
-    const tagOffset = src.indexOf('::conduit') + 5;
+    const tagOffset = src.indexOf('::verb') + 4;
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
-    expect(hover.endOffset - hover.startOffset).toBe('::conduit'.length);
+    expect(hover.endOffset - hover.startOffset).toBe('::verb'.length);
   });
 
   it('returns null for offset outside any node', async () => {
@@ -223,8 +223,8 @@ for (const [name, range] of buildCatalogIndex(catalogAst)) {
 const testCatalogCtx = { index: testCatalogIndex };
 
 describe('definitionAtOffset', () => {
-  it('jumps from conduit use site to BindStep declaration', () => {
-    const src = ':double mul 2 | 10 | double';
+  it('jumps from verb use site to BindStep declaration', () => {
+    const src = ':double ::verb~(mul 2) | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
@@ -289,8 +289,8 @@ describe('definitionAtOffset', () => {
 });
 
 describe('referencesAtOffset', () => {
-  it('finds all occurrences of a user-defined conduit', () => {
-    const src = ':double mul 2 | [1 2] * double';
+  it('finds all occurrences of a user-defined verb', () => {
+    const src = ':double ::verb~(mul 2) | [1 2] * double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
     // declaration (`:double …`) + use site (`* double`)
@@ -319,15 +319,23 @@ describe('referencesAtOffset', () => {
 });
 
 describe('documentSymbols', () => {
-  it('collects BindStep bindings as conduit symbols', () => {
-    const src = ':double mul 2 | :triple mul 3';
+  it('collects verb bindings as verb symbols', () => {
+    const src = ':double ::verb~(mul 2) | :triple ::verb~(mul 3)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast);
     expect(syms).toHaveLength(2);
     expect(syms[0].name).toBe('double');
-    expect(syms[0].kind).toBe('conduit');
+    expect(syms[0].kind).toBe('verb');
     expect(syms[1].name).toBe('triple');
-    expect(syms[1].kind).toBe('conduit');
+    expect(syms[1].kind).toBe('verb');
+  });
+
+  it('collects a binding of a computed body as a value symbol', () => {
+    const src = '[1 2] | :n count';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const syms = documentSymbols(ast);
+    expect(syms).toHaveLength(1);
+    expect(syms[0].kind).toBe('value');
   });
 
   it('collects as bindings as value symbols', () => {
@@ -413,7 +421,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints an `@`-prefixed effectful operand as `decorator`', async () => {
-    const { data } = await semanticTokensFor(':@audit add 1 | 5 | @audit');
+    const { data } = await semanticTokensFor(':@audit ::verb~(add 1) | 5 | @audit');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.filter(t => t.type === 'decorator').length).toBeGreaterThanOrEqual(1);
   });
@@ -427,7 +435,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints a user-bound identifier reference as `variable`', async () => {
-    const { data } = await semanticTokensFor(':double mul 2 | 5 | double');
+    const { data } = await semanticTokensFor(':double ::verb~(mul 2) | 5 | double');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.some(t => t.type === 'variable')).toBe(true);
   });

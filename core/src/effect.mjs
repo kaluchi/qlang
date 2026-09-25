@@ -18,10 +18,9 @@
 // Performance note: `classifyEffect` is the only function in the
 // runtime that inspects the source-token character of a name. It
 // runs at:
-//   - parse-time effect decoration (once per OperandCall, conduit declaration,
-//     `as` declaration, Projection node — i.e. once per identifier in source)
+//   - parse-time effect decoration (once per OperandCall and
+//     Projection node — i.e. once per identifier in source)
 //   - function-value construction (once per langRuntime registration)
-//   - conduit construction (once per BindStep evaluation)
 //
 // The result is stored as a precomputed boolean on every node and
 // runtime value. The hot path — eval.mjs::evalOperandCall — reads
@@ -35,8 +34,8 @@ export const EFFECT_MARKER_PREFIX = '@';
 //
 // True iff `name` is a string carrying the effect-marker prefix.
 // Tolerates non-string input (returns false) so callers can pass
-// conduit.name, function.name, or any other field that may be null
-// without an extra defensive check at the call site.
+// function.name, or any other field that may be null, without an
+// extra defensive check at the call site.
 export function classifyEffect(name) {
   return typeof name === 'string' && name.startsWith(EFFECT_MARKER_PREFIX);
 }

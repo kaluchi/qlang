@@ -72,7 +72,7 @@ describe('use(:missing) → UseNamespaceNotFoundError', () => {
 // ── use(:name) where :name is an identifier-plane binding ──────
 //
 // A namespace is a header-less Map a host bound with no declaration
-// behind it. An operand descriptor or a conduit bound under the same
+// behind it. An operand descriptor or a verb bound under the same
 // bare name carries a JS-header tag, a value a step declared, `as`
 // among them, has a source, and a host-bound scalar carries no Map at
 // all, so `use` walks past each of them to the locator and lands on
@@ -88,9 +88,9 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
     expect(probeCell.result).toBe(false);
   });
 
-  it('use(:double) walks past the conduit under the bare name and lands on UseNamespaceNotFoundError', async () => {
+  it('use(:double) walks past the verb under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell(':double mul 2 | use :double !| type');
+    const cellEntry = await sessionInstance.evalCell(':double ::verb~(mul 2) | use :double !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
     const probeCell = await sessionInstance.evalCell('env | has :envRef');
     expect(probeCell.result).toBe(false);

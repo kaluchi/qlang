@@ -70,15 +70,6 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // fields on the authored `core/lib/qlang/**/*.qlang` Map; `manifest`
 // reads them through descriptor projection at enumeration time, so
 // the JS layer holds no duplicated authored meta.
-//
-// `makeConduitParameter` (in `eval.mjs`) is the lone JS-side
-// builder that mints a function value WITH a full meta shape
-// inline — conduitParameter proxies are ephemeral, live only
-// for the duration of a conduit body fork, and have no catalog
-// entry to project meta from. The proxy's full meta lets the
-// `isFunctionValue` branch of `manifest`'s `describeBinding` build
-// a `:kind ::builtin` descriptor for the proxy without a
-// descriptor-Map round-trip.
 export function makeFn(name, arity, impl, meta) {
   return Object.freeze(brandValueClass({
     name,

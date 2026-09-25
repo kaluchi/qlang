@@ -169,27 +169,5 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
   // session.evalCell (`_trailHead` is null at this point), so the
   // REPL can render the value as-is.
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
-  const rendered = renderForTerminal(cellEntry.result, builtinNames, stderrWrite);
-  if (rendered !== null) sink(rendered + '\n');
-}
-
-// Output boundary defensive — printValue raises runtime invariants
-// (FunctionValueLeakedToPrintError, etc.) when an internal-only value-class
-// surfaces in pipeValue. The REPL is a terminal-display surface, so a
-// thrown invariant must not hang the line queue or kill the process;
-// we render a diagnostic line to stderr naming the invariant and
-// continue prompting. The underlying leak is still surfaced — the
-// user sees the invariant name and can chase the binding ceremony
-// that caused it.
-function renderForTerminal(value, builtinNames, stderrWrite) {
-  try {
-    return highlightAnsi(printValue(value), builtinNames);
-  } catch (renderInvariant) {
-    // Every Error carries `.name` — concrete QlangInvariantError
-    // subclasses set it via `brand()` to the per-site class name,
-    // bare JS Errors fall back to the constructor name — and it
-    // identifies the site in the diagnostic.
-    stderrWrite(`render invariant: ${renderInvariant.name} — ${renderInvariant.message}\n`);
-    return null;
-  }
+  sink(highlightAnsi(printValue(cellEntry.result), builtinNames) + '\n');
 }

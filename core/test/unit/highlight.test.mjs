@@ -118,8 +118,8 @@ describe('tokenize — atomic literal kinds', () => {
   });
 
   it('classifies the `::tag` head of a TaggedLit and descends into the payload', async () => {
-    const tokens = tokenize('::conduit[~(x) ~(y)]', await builtins());
-    expect(tokens[0]).toEqual({ start: 0, end: 9, kind: 'tag' });
+    const tokens = tokenize('::Box[~(x) ~(y)]', await builtins());
+    expect(tokens[0]).toEqual({ start: 0, end: 5, kind: 'tag' });
     expect(tokens.some(t => t.kind === 'quote')).toBe(true);
     expect(tokens.some(t => t.kind === 'vec')).toBe(true);
   });
@@ -147,7 +147,7 @@ describe('tokenize — operand call name classification', () => {
   });
 
   it('a user-defined name (not in builtins, no `@`) resolves to `atom`', async () => {
-    const tokens = tokenize('myConduit', await builtins());
+    const tokens = tokenize('myVerb', await builtins());
     expect(tokens[0].kind).toBe('atom');
   });
 });

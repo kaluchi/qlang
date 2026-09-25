@@ -16,5 +16,5 @@
 {"name":"keys-answers-the-sorted-set-of-keys","query":"{:b 1 :a 2} | keys | first","expect":":a","decision":"D15"}
 {"name":"inter-selects-by-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | inter [:a :c]","expect":"{:a 1 :c 3}","decision":"D15"}
 {"name":"minus-removes-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | minus [:a :c]","expect":"{:b 2}","decision":"D15"}
-{"name":"a-predicate-of-two-parameters-is-refused-on-a-map","query":"{:a 1 :b 2} | :kv [:k :v] (v | gt 1) | filter ~(kv) !| type","expect":"::FilterPredArityInvalidError","decision":"D15"}
+{"name":"a-predicate-of-two-parameters-is-refused-on-a-map","query":"{:a 1 :b 2} | :kv ::verb~(:k ::any | :v ::any | v | gt 1) | filter ~kv !| [type /slot]","expect":"[::VerbSlotMissingError :k]","decision":"D15"}
 {"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null","decision":"D15"}

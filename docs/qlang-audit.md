@@ -46,8 +46,8 @@ target, the answer a repair must produce, is a
 conformance case that names its decision [D58]; a block fenced as
 `qlang target` holds one whose answer no literal states yet, and it
 disagrees with the tree until the repair lands. An anchor names a file
-and a symbol, `core/src/eval.mjs` and
-`applyConduit`; line numbers drift and are avoided. Evidence goes
+and a symbol, `core/src/runtime/verb.mjs` and
+`callVerb`; line numbers drift and are avoided. Evidence goes
 stale, and the only defence is to run it: a probe whose answer changed
 means the sentence around it is wrong, and the sentence is replaced by
 the new fact with its new probe.
@@ -743,59 +743,26 @@ the direction are cited by number. Every probe can be reproduced from a
 shell with the `qlang` command or in its REPL, and on 26 September 2026
 every probe of this chapter answered as its block records.
 
-### Arguments that move with the subject
+### Declarations the runtime does not read
 
-A named pipeline with parameters binds each parameter to the
-expression written at the call site, and that expression is evaluated
-against whatever the pipeline value is at the moment the parameter is
-read inside the body. With a literal argument the difference is
-invisible:
-
-```qlang
-> :m [:x] (mul 10 | add x) | 2 | m 3
-23
-```
-
-With an argument that reads the subject, the parameter follows the
-subject as the body transforms it:
-
-```qlang
-> :m [:x] (mul 10 | add x) | 2 | m /
-40
-```
-
-The author of that call expected 22. The same rule makes the natural
-recursive factorial wrong:
-
-```qlang
-> :fact [:n] (if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
-40
-```
-
-It answers 120 only when the recursive call passes `/` rather than an
-expression built from the parameter, which is why every recursive
-example in the catalog recurses through the pipeline value and none
-through a parameter.
-
-The rule holds for a pipeline declared by today's binding form alone,
-since a modifier of a built-in and of a verb, `::verb~(…)`, is
-evaluated at the call against the subject and a slot of a code kind
-takes a quote [D56], [D67]:
+A verb executes its declaration: a slot binds its modifier, evaluated
+at the call against the subject and checked by the slot's kind, and a
+slot of code takes a quote [D67], [D68]:
 
 ```qlang
 > :m ::verb~(:x ::number | mul 10 | add x) | 2 | m /
 22
+
+> :fact ::verb~(:n ::number | if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
+120
 ```
 
-The binding form has no way to say whether an argument is a value or a
-piece of code, and so treats every argument as code. Around this sit
-seven dispatch wrappers in
-`core/src/runtime/dispatch.mjs`, one per calling shape, a
-family of arity error classes for the predicates that dispatch on a
-parameter count, and a second calling convention,
-`invokeConduitWithFixedArgs`, that hands a named pipeline fixed values;
-each slot of code asks `codeOfModifier` in `core/src/eval.mjs` for its
-quote.
+A built-in executes none of its own. Its modifiers are evaluated at the
+call as a verb's are [D56], and its implementation checks them in code
+of its own, around which sit seven dispatch wrappers in
+`core/src/runtime/dispatch.mjs`, one per calling shape, the arity
+classes of Rule 10, and `codeOfModifier` in `core/src/eval.mjs`, which
+each slot of code asks for its quote.
 
 The catalog declares a slot vocabulary for every operand, and the
 runtime reads none of it, so the declarations are free to be wrong,
@@ -929,20 +896,19 @@ The vocabulary carries the calling shape as well as the kind. A
 predicate, a key and a pipeline slot run their code against one subject.
 A reducer slot holds two values for the code it runs: it runs it against
 the accumulator and supplies the element as a trailing modifier to the
-code's last step, the way `xargs` completes the command it was given.
-The completed step is always applied with the subject as its first
-operand, so code that has already spent its modifiers is refused by
-arity and never turns into a full application; the canonical fold is
-`reduce 0 ~(add)` [D43], whose slot today finds `add` by the name its
-quote holds [D56], and a reducer that wants the element anywhere but
-last is declared with a parameter one step earlier in the same query. A
-declared pipeline's parameters are values, and its body applies one that
-holds code, `:twice ::verb~(:f ::quote | apply f | apply f)`, so the tilde says one
-thing wherever it stands: this is code, and only `apply` runs it. The
-main live use of lazy parameters, a key function handed down through
-several layers of pipelines, keeps its shape: the reference's `:@topBy
-[:keyFn :n] (sort ~(keyFn) | reverse | take n)` receives its key as a
-quote that carries its caller's environment and hands it on as a value.
+code's last step, the way `xargs` completes the command it was given,
+or as the first slot of the verb the quote names [D68]. The completed
+step is always applied with the subject as its first operand, so code
+that has already spent its modifiers is refused by arity and never
+turns into a full application; the canonical fold is `reduce 0 ~(add)`
+[D43], whose slot finds `add` by the name its quote holds [D56]. A
+verb's slots are values, and its body applies one that holds code,
+`:twice ::verb~(:f ::quote | apply f | apply f)`, so the tilde says one
+thing wherever it stands: this is code, and only `apply` runs it; a key
+function handed down through several layers of verbs,
+`:@topBy ::verb~(:keyFn ::quote | :n ::number | sort keyFn | reverse |
+take n)`, receives its key as a quote that carries its caller's
+environment and hands it on as a value.
 
 The declaration is also where help comes from. Once the runtime reads
 the slots, completion in the editor, the list of verbs that accept a
@@ -957,17 +923,19 @@ modifiers the parser gives the command (`lsp/src/features.mjs`,
 ### Two ways to name a thing, and comments that are steps
 
 A value can be named by the `as` operand, which freezes the current
-value under a name, or by the binding form `:name body`, which binds an
-expression. The two are not interchangeable: the binding form cannot
-freeze the current value, because its body is re-evaluated at every
-use, and `as` cannot bind code.
+value under a name, or by the binding form, whose body is evaluated
+once, at declaration [D44], so `:x /` is the same freeze spelled a
+second way:
 
-The binding form itself chooses between a value and a lazily evaluated
-body by inspecting the shape of the body's syntax tree (`core/src/walk.mjs`, `isPureLiteralAst`), so the
-distinction between value and code is decided by a predicate over
-syntax rather than written by the author, and the language server
-re-derives the same predicate to label a symbol. The tag-namespace form
-of the binding adds a third declaration syntax.
+```qlang
+> 42 | as :x | add 1 | x
+42
+
+> 42 | :x / | add 1 | x
+42
+```
+
+The tag-namespace form of the binding adds a third declaration syntax.
 
 Comments are the larger half of this scar. They are pipeline steps
 that absorb the combinators on either side; a line comment eats to the
@@ -992,10 +960,9 @@ $ awk '/^[A-Z][A-Za-z0-9_]*[ \t]*$/ || /^[A-Z][A-Za-z0-9_]* *=/{n++; if ($1 ~ /C
 101 22
 ```
 
-The repair must leave one binding form, in which a body is evaluated at
-declaration and named as a value, a quote included, and a verb is the
-same form with a verb for its value, `::verb~(…)` [D67], which retires
-`as` [D5], [D44]; must make comments trivia
+The repair must retire `as` [D5], [D44], leaving the one binding form,
+in which a body is evaluated at declaration and named as a value, a
+quote and a verb, `::verb~(…)`, among them [D67]; must make comments trivia
 at the level of whitespace; and must give documentation its own slot
 with its own literal, which doc already is: the doc form `|~~ … ~~|` is
 that literal today, a standalone doc value anywhere and the
@@ -1007,29 +974,32 @@ body is `/`, aliasing an operand is a verb whose body is the call, `:len
 the group, and freezing a parameter goes with values by default. The
 sister project is the largest user of `as`, almost always to name the
 subject inside a group, and its lines are where the marker's spelling is
-tried. The form flips one spelling the other way: today's `:inc add 1`
-declares a pipeline because its body is a command, and under the one
-form a bare call body is evaluated at declaration, so every pipeline
-declared in the catalog's examples, in the tests and in the sister
-project gains the tag of a verb, `:inc ::verb~(add 1)`, in the same branch.
+tried.
 
-Today's binding is lazy, so code moved into a declaration further left
-answers as it did inline, even when it reads the subject:
+Code moved into a declaration further left answers as it did inline
+when it is a verb, read at each mention against the subject there, while
+a value is computed where it is declared, as its spelling shows:
 
 ```qlang
 > {:items [1 2 3] :limit 2} | /items | take (count | sub 1)
 [1 2]
 
-> {:items [1 2 3] :limit 2} | :most (count | sub 1) | /items | take most
+> {:items [1 2 3] :limit 2} | :most ::verb~(count | sub 1) | /items | take most
 [1 2]
+
+> {:items [1 2 3] :limit 2} | :most (count | sub 1) | /items | take most
+[1]
 ```
 
-Under the one form the verb keeps that, `:most ::verb~(count | sub 1)` read
-at each mention against the subject there, while `:most (count | sub 1)`
-is a value computed where it is declared, which is what `as` is for
-today. A quote or a verb moved left means the same wherever its names mean
-the same, and a name is declared once in a scope, so the move either
-answers as the inline form did or is refused [D44].
+A quote or a verb moved left means the same wherever its names mean the
+same, and a name is declared once in a scope, so the move either
+answers as the inline form did or is refused [D44]; a second declaration
+of a name shadows the first without a word:
+
+```qlang
+> :k 1 | :k 2 | k
+2
+```
 
 The pipe is linear continuation and the binding is a branch to the
 side: `x | f` hands f's result onward, `x | :name f` names f's value and
@@ -1463,20 +1433,17 @@ order.
 ### Host concerns inside the core
 
 Effect markers are a naming convention: an identifier that begins with
-`@` is effectful, a binding whose body mentions an effectful name must
-itself carry the marker, and the evaluator checks this at declaration
-and at call. The core has no effectful operand of its own; every one
-belongs to a host. The flag rides on every function value, binding, and
-manifest entry in the core, and the guarantee it offers is incomplete,
-because an effect passed as an argument runs under a clean name, and so
-does one in the body of a conduit bound as a value:
+`@` is effectful, a verb whose body mentions an effectful name must be
+declared under a name that carries the marker, and the evaluator checks
+this at declaration and at call [D69]. The core has no effectful operand of
+its own; every one belongs to a host. The flag rides on every function
+value, binding, and manifest entry in the core, and the guarantee it
+offers is incomplete, because an effect handed as code runs under a
+clean name:
 
 ```qlang
-> :run [:x] x | "leak" | run @out
+> :run ::verb~(:code ::quote | apply code) | "leak" | run ~(@out)
 leak
-
-> :g ::conduit[[:x] ~(@out x)] | g "hi"
-hi
 ```
 
 A raw-mode line editor and its tests are the largest single piece of
@@ -1617,8 +1584,8 @@ part:
   :cell-2
   ```
 - Consumers that carry spellings of the language. The language server
-  re-derives the value-or-conduit choice of the binding form and
-  scans doc text with its own loop, and the TextMate grammar hard-codes
+  tells a verb from a value by the tag of the literal a binding's body
+  is, and scans doc text with its own loop, and the TextMate grammar hard-codes
   the slot vocabulary of the catalog.
 
 The repair is a property of every branch [D30]. A branch leaves every
@@ -1940,9 +1907,8 @@ where one descriptor stands today for every kind its subject lists, and
 The milestone's answers are the targets of [D4], [D43], [D44], [D57],
 [D60], [D65], [D66] and [D67] in the conformance suite, which `node scripts/requirements.mjs`
 prints as the focus while any of them is open. Among them `42 | :x / |
-add 1 | x` answers 43 today, because `:x /` re-evaluates its body at
-every mention; under the one binding form a bare body is evaluated
-once, at declaration, and that is how `as` is spelled once it is gone.
+add 1 | x` answers 42, since a bare body is evaluated once, at
+declaration, and that is how `as` is spelled once it is gone.
 
 Beside the answers: taking every example of the catalog apart into
 atoms and a shape and putting it back, both written in qlang, answers
@@ -2280,3 +2246,4 @@ maintainer wants to explore it before it is fixed.
 [D66]: decisions/D66.md
 [D67]: decisions/D67.md
 [D68]: decisions/D68.md
+[D69]: decisions/D69.md

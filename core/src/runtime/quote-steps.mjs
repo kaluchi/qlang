@@ -96,7 +96,7 @@ bindTypeConstructor('proj', recordConstructor(PROJ_TAG,
   declareShapeError('ProjReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
 bindTypeConstructor('bind', recordConstructor(BIND_TAG,
-  { name: isBindName, docs: vecOf(isString), params: vecOf(isKeyword), body: isBodyStep }, ['name'],
+  { name: isBindName, docs: vecOf(isString), body: isBodyStep }, ['name'],
   declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 

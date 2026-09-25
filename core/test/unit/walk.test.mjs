@@ -203,18 +203,18 @@ describe('findIdentifierOccurrences', () => {
   });
 
   it('finds TaggedLit occurrences when name carries the :: prefix', () => {
-    const ast = parse('::conduit[[] ~(count)]');
-    const refs = findIdentifierOccurrences(ast, '::conduit');
+    const ast = parse('::verb~(count)');
+    const refs = findIdentifierOccurrences(ast, '::verb');
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
-    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'conduit')).toBe(true);
+    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'verb')).toBe(true);
   });
 
   it('finds BareTypeKeyword occurrences for tag-namespace lookup', () => {
-    const ast = parse('::conduit | source');
-    const refs = findIdentifierOccurrences(ast, '::conduit');
-    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'conduit')).toBe(true);
+    const ast = parse('::verb | source');
+    const refs = findIdentifierOccurrences(ast, '::verb');
+    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'verb')).toBe(true);
   });
 
   it('finds BindStep tag-binding declaration via :: lookup', () => {

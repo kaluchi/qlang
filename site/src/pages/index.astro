@@ -14,12 +14,12 @@ const examples = [
   {
     tab: "bind",
     file: "BindStep + distribute",
-    code: `|~| bind name · spread over Vec\n> :double mul 2 | [10 20 30] * double\n[20 40 60]`,
+    code: `|~| bind a verb · spread over Vec\n> :double ::verb~(mul 2) | [10 20 30] * double\n[20 40 60]`,
   },
   {
-    tab: "conduit",
-    file: "parametric conduit",
-    code: `|~| parametric conduit · @-effectful binding\n> :@surround [:pfx :sfx] (prepend pfx | append sfx)\n  | "world" | @surround "[" "]"\n"[world]"`,
+    tab: "verb",
+    file: "verb with slots",
+    code: `|~| a verb with slots · @-effectful binding\n> :@surround ::verb~(:pfx ::string | :sfx ::string | prepend pfx | append sfx)\n  | "world" | @surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",
@@ -33,7 +33,7 @@ const features = [
   { title: "Immutable value types", desc: "Scalar, Vec, Map, Set, Error — all frozen. No mutation, no surprises." },
   { title: "Two-track error model", desc: "Success-track | deflects on errors, fail-track !| fires. Trail accumulates deflected steps as data." },
   { title: "Code as data", desc: "parse lifts source to an AST-Map, apply runs it against a subject. The ring closes." },
-  { title: "Conduits", desc: "BindStep declares named pipeline fragments with parameters. Lexical scope, recursive self-reference, zero-arity aliases." },
+  { title: "Verbs", desc: "A verb is a quote under ::verb whose leading declarations are its slots. Lexical scope, recursive self-reference, kinds checked at the call." },
   { title: "Effect markers", desc: "@-prefixed identifiers carry side effects visibly. The runtime enforces propagation — no laundering." },
 ]
 ---
@@ -116,7 +116,7 @@ const features = [
           <p>
             A pure expression language for transforming immutable values through
             pipelines. 69 built-in operands, five value types, two-track error
-            model, parametric conduits, live REPL in the browser.
+            model, verbs with checked slots, live REPL in the browser.
           </p>
           <div class="features-grid">
             {features.map(f => (

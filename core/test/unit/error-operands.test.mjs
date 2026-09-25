@@ -1,5 +1,5 @@
 // Tests for the error operand and the `!|` fail-apply combinator, plus edge cases around trail accumulation, re-lift
-// continuity, and conduit invocation on the fail-track.
+// continuity, and verb invocation on the fail-track.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -44,14 +44,14 @@ describe('fail-apply deflect on non-error', () => {
 
 // ── fail-track dispatch through containers ─────────────────────
 
-describe('fail-track dispatch through ParenGroup and conduit', () => {
+describe('fail-track dispatch through ParenGroup and verb', () => {
   it('fail-apply fires into a ParenGroup step', async () => {
     const evalResult = await evalQuery('!{:kind :oops} !| (/kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('conduit body first step sees exposed descriptor when called via !|', async () => {
-    const evalResult = await evalQuery(':handler /kind | !{:kind :oops} !| handler');
+  it('a verb body first step sees exposed descriptor when called via !|', async () => {
+    const evalResult = await evalQuery(':handler ::verb~(/kind) | !{:kind :oops} !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -77,14 +77,15 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
 // ── EffectLaunderingAtCallError ──────────────────────────────────────
 
 describe('EffectLaunderingAtCallError', () => {
-  it('calling non-@-prefixed name resolving to effectful conduit produces error', async () => {
-    // Install an @-prefixed conduit under a non-@-prefixed name via session.bind.
-    // This simulates the laundering path (via use, as, or session injection)
-    // that the parse-time AST check cannot detect.
+  it('calling non-@-prefixed name resolving to an effectful verb produces error', async () => {
+    // Install a verb whose body calls an @-prefixed name under a
+    // non-@-prefixed name via session.bind. This simulates the
+    // laundering path (via use, as, or session injection) that the
+    // declaration cannot see.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':@myCount count');
-    const effectfulConduit = sessionInstance.env.get('@myCount');
-    sessionInstance.bind('doIt', effectfulConduit);
+    await sessionInstance.evalCell(':@myCount ::verb~(@callers | count)');
+    const effectfulVerb = sessionInstance.env.get('@myCount');
+    sessionInstance.bind('doIt', effectfulVerb);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
     expect(cellEntry.result.tag.name).toBe('EffectLaunderingAtCallError');
@@ -96,7 +97,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
     expect(await evalQuery(':x count | :x | source | parse')).toBe(':x count');
   });
 
-  it('a LinePlainComment inside a conduit body leaves no step', async () => {
+  it('a LinePlainComment inside a declaration body leaves no step', async () => {
     const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | parse');
     expect(evalResult).toBe(':x (42)');
   });
@@ -108,10 +109,10 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 
   it('renders ErrorLit body', async () => {
-    expect(await evalQuery(':x [] !{:a 1} | :x | source | parse')).toBe(':x [] !{:a 1}');
+    expect(await evalQuery(':x !{:a 1} | :x | source | parse')).toBe(':x !{:a 1}');
   });
 
-  it('renders leading fail-apply prefix in conduit body', async () => {
+  it('renders leading fail-apply prefix in a declaration body', async () => {
     // BindStep body is a single Primary, so a `!|` leading
     // Pipeline-step is wrapped in a ParenGroup at the source level,
     // and the group keeps its parentheses in print.
@@ -222,7 +223,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('apply args to non-function → ApplyToNonFunctionError', async () => {
-    // Use `as` to bind a raw value, not a conduit. Its record holds a
+    // Use `as` to bind a raw value, not a verb. Its record holds a
     // non-function, so captured args trigger ApplyToNonFunctionError on
     // the value the record holds.
     const caughtErr = await catchOriginalError('5 | as :five | five 42');

@@ -51,7 +51,7 @@ The evaluator's State object carries one bookkeeping field beside
 the pair: **`depth`**, the count of nested evaluation frames
 between the root and this state. `rootState` opens a query, a
 session cell, a module load, or the bootstrap at depth 0;
-`nestState` descends one frame for a conduit body, a captured-arg
+`nestState` descends one frame for a verb body, a captured-arg
 lambda, an `apply` re-entry, a Quote-bodied tag constructor, a
 doc-segment literal, or a locator-loaded module, and lifts
 `EvaluationDepthExceededError` on the frame past
@@ -154,7 +154,7 @@ namespace as ordinary lookups. They can be shadowed by a
 BindStep declaration or by `as` like any other name.
 
 This rule unifies built-in operands, domain functions, reflective
-built-ins (`use`, `env`), BindStep-installed conduits, and
+built-ins (`use`, `env`), BindStep-installed verbs, and
 `as`-bound values. They differ only in the value the record under
 `env[:name]` holds, never in how lookup behaves.
 
@@ -169,58 +169,48 @@ module it came from. A later bare `name` lookup (Step 3) reads the
 value the record holds; the `:name | source` / `:name | docs` axis
 operands project the record's source and prose.
 
-### 5. BindStep declaration — `:name body` / `:name [:p1..:pN] body` / `:name docs` / `::Tag body`
+### 5. BindStep declaration — `:name body` / `:name docs` / `::Tag body`
 
-    (pipeValue, env) → (pipeValue, env[:name := <bound value>])
+    (pipeValue, env) → (pipeValue, env[:name := Binding(name, docs, body evaluated against pipeValue)])
 
 Identity on `pipeValue`; writes the record of the binding into
-`env` and falls through. The value the record holds is shaped by the
-body's purity and shape:
+`env` and falls through. The body is evaluated once, at declaration,
+against the current `pipeValue`, and the record holds its value; a
+doc-only declaration (`:name |~~ … ~~|`, no body) holds a `Doc`
+value built from the joined doc prefix. Catalog descriptor Maps land
+through this path, the value of each operand's record.
 
-- **Doc-only** (`:name |~~ … ~~|`, no body) — a `Doc` value built
-  from the joined doc prefix.
-- **Pure-literal body** (`isPureLiteralAst(body)` — Number / String /
-  Boolean / Null / Keyword / Quote / Doc / VecLit / MapLit / SetLit
-  / TaggedLit composed of pure leaves) — `evalBindStep` evaluates
-  the body once at declaration time against `pipeValue=null` and
-  binds the resulting value. Catalog descriptor Maps land through
-  this path, the value of each operand's record.
-- **Impure / parametric body** — the body becomes a **Conduit**
-  carrying the unevaluated body AST, optional parameter list, the
-  doc-prefix Vec, and a **lexical scope anchor** (`envRef`) that
-  captures the declaration-time env including the conduit itself
-  (tie-the-knot for recursive self-binding). Identifier lookup
-  forces it through `applyConduit`.
+A body `::verb~(…)` is a **verb**, the tag `::verb` over a quote,
+whose constructor (`core/src/runtime/verb.mjs`) reads the quote's
+leading declarations as its signature. Its **lexical scope anchor**
+rides a JS-internal slot: the env where the verb was made, which the
+declaration re-points to the env it writes, so the verb sees itself
+(tie-the-knot for recursive self-binding). When the name is later
+looked up via Step 3:
 
-When the conduit name is later looked up via Step 3:
+1. Each modifier is evaluated at the call against the lookup-site
+   `pipeValue` and checked by the kind of its slot; a slot the call
+   leaves empty takes its default or is refused by its name.
+2. The body evaluates in a fork with the anchored env plus the record
+   of each slot layered on top.
+3. The fork's final `pipeValue` propagates out, under the kind the
+   verb returns; the outer env is preserved.
 
-1. Captured-arg expressions (one per parameter) become lazy lambdas.
-2. Each lambda is wrapped in a conduitParameter — a nullary function
-   value that fires the lambda against the lookup-site `pipeValue`.
-3. The body evaluates in a fork with `envRef.env` (the declaration-
-   time env) plus the conduitParameter proxies layered on top.
-4. The fork's final `pipeValue` propagates out; the outer env is
-   preserved.
+This is **lexical scope** — the body sees the env of its
+declaration:
 
-This is **lexical scope** — the body sees the env frozen at
-declaration time:
+- **Composition.** Verbs built on other verbs are immune to shadowing
+  at the call site, and library verbs behave predictably regardless
+  of caller context.
+- **Recursion.** The anchored env includes `env[:name]` (the verb
+  itself), so self-reference resolves naturally.
+- **Code as values.** A slot of `::quote` takes code, a quote the
+  call hands it, which carries the environment of its call and runs
+  per element inside `sort`, per iteration inside `filter`.
 
-- **Fractal composition.** Conduits built on other conduits are
-  immune to shadowing at the call site. Library-defined conduits
-  behave predictably regardless of caller context.
-- **Laziness.** The body expression is evaluated only when
-  referenced.
-- **Recursion.** `envRef.env` includes `env[:name]` (the conduit
-  itself), so self-reference resolves naturally via tie-the-knot.
-- **Higher-order parameters.** Parameters are lazy — a captured-arg
-  lambda fires per element inside `sort`, per iteration inside
-  `filter`.
-
-Zero-arity conduits (`:f body`) and parametric conduits
-(`:f [:a :b] body`) share the same mechanism. Tag-binding
-declarations (`::Tag descriptor`) use the same BindStep AST node;
-the `BareTypeKeyword` key writes under the `::Tag` env-key prefix
-in the tag namespace.
+Tag-binding declarations (`::Tag descriptor`) use the same BindStep
+AST node; the `BareTypeKeyword` key writes under the `::Tag`
+env-key prefix in the tag namespace.
 
 ### 6. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
@@ -418,7 +408,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
        reads through `typeKeyword` / `type` operand. Under
        `::quote` a vector mints as a quote, under `::set` as a set.
      - **Wrap-object** (scalar / Keyword / Quote / Set / Doc / Error /
-       Conduit / already-tagged composite): the
+       already-tagged composite, a verb among them): the
        payload cannot carry the header (primitives have no
        property storage, frozen value-class objects refuse
        `defineProperty`, nested tagged composites already own
@@ -463,8 +453,8 @@ Constructors must satisfy:
 `makeTaggedInstance(tag, payload)` produces a **tagged instance**
 identified through the JS-header `TAG_HEADER_SYMBOL` slot —
 `isTaggedInstance` in `types.mjs` reads the slot directly
-(excluding the reserved tag names `conduit` and `builtin` that
-ride their own dedicated render paths) and
+(excluding the reserved tag name `builtin` that rides its own
+dedicated render path) and
 `printValue` routes the value through `printTaggedInstance`,
 which dispatches on the payload's native shape:
 - Tagged Array → `::tag[…]`.
@@ -477,9 +467,7 @@ The original source-form constructor invocation is recoverable
 from the value alone, so the round-trip theorem covers
 user-defined tagged types without a custom printer per tag.
 
-Reserved tag names own dedicated render paths:
-- `::conduit` → `::conduit[:self [params] ~(body)]` form (the
-  Conduit value-class print).
+The reserved tag name owns a dedicated render path:
 - `::builtin` → catalog descriptor Map (manifest enumeration
   surface, `:kind ::builtin` retained on the manifest view-Map
   as an explicit enum bucket).
@@ -594,7 +582,7 @@ becomes the result of the nested expression, but its final `nextEnv`
 is **discarded** — outer execution resumes with the original `env`.
 
 A fork stays on the outer frame of the depth budget: the budget
-counts conduit bodies, captured-arg lambdas, and re-entry seams,
+counts verb bodies, captured-arg lambdas, and re-entry seams,
 while a nested literal or paren-group is bounded by the source
 text.
 
@@ -704,7 +692,7 @@ co-located sources:
   `runtime-invariants.qlang` carries shared and cross-family
   tag-bindings (parser, codec, dispatch, projection, combinator
   track-dispatch invariants); `tag.qlang` carries the value-class
-  constructors (`::conduit`, `::quote`, `::builtin`).
+  constructors (`::verb`, `::quote`, `::builtin`).
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-
@@ -915,7 +903,7 @@ Three patterns demonstrated on a directory tree:
 
 Starting with the tree literal above as `pipeValue`:
 
-    | :totalSize add /size (/children * totalSize | sum)
+    | :totalSize ::verb~(add /size (/children * totalSize | sum))
     | totalSize
 
 For each node, compute `/size + sum of children's totalSize`.
@@ -925,9 +913,9 @@ resolves against the node as a sub-pipeline.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `:totalSize <expr>` — writes a conduit into `env[:totalSize]`.
+1. `:totalSize <verb>` — writes a verb into `env[:totalSize]`.
    `pipeValue` (the tree root) unchanged.
-2. `totalSize` — lookup `env[:totalSize]`, force the conduit. Evaluate
+2. `totalSize` — lookup `env[:totalSize]`, run the verb. Evaluate
    `add /size (/children * totalSize | sum)` with `pipeValue = root`
    as context.
    - arg1 `/size` sub-fork: `pipeValue = root`, `/size` → `0`.
@@ -951,12 +939,8 @@ find max depth with `[0 (… | max)] | max | add 1`, etc.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | :allNames ([[/label], /children * allNames | flat] | flat)
+    | :allNames ::verb~([[/label], /children * allNames | flat] | flat)
     | allNames
-
-(The outer parentheses are required because a BindStep body is a
-single Primary — multi-step bodies must be wrapped. See Spec §
-"Named expressions" for the rule.)
 
 For each node, produce `[own label]` concatenated with the flattened
 concatenation of children's results. The outer Vec has two elements
@@ -965,9 +949,9 @@ and the outer `| flat` merges them into one list.
 
 Trace, assuming the tree literal already occupies `pipeValue`:
 
-1. `:allNames <expr>` — writes a conduit into `env[:allNames]`.
+1. `:allNames <verb>` — writes a verb into `env[:allNames]`.
    `pipeValue` (the tree root) unchanged.
-2. `allNames` — lookup, force conduit. Evaluate the conduit body
+2. `allNames` — lookup, run the verb. Evaluate the verb's body
    `[[/label], (/children * allNames | flat)] | flat` with
    `pipeValue = root`:
    - Inner Vec literal `[[/label], (/children * allNames | flat)]`:
@@ -997,9 +981,9 @@ tree-to-list conversion.
 
 Again starting with the tree literal above as `pipeValue`:
 
-    | :withCounts {:label /label
-                         :count /children | count
-                         :children /children * withCounts}
+    | :withCounts ::verb~({:label /label
+                         :count (/children | count)
+                         :children (/children * withCounts)})
     | withCounts
 
 Produces a tree with the same shape, where each node gains a
@@ -1009,8 +993,8 @@ add computed fields per node.
 
 Trace:
 
-1. `:withCounts <expr>` — writes conduit into `env[:withCounts]`.
-2. `withCounts` — lookup, force conduit. Reshape each entry against
+1. `:withCounts <verb>` — writes a verb into `env[:withCounts]`.
+2. `withCounts` — lookup, run the verb. Reshape each entry against
    `pipeValue = root`:
    - `:label /label` → `"root"`.
    - `:count /children | count` → `2`.
@@ -1035,7 +1019,7 @@ node. This is the practical form of the "`walk` template".
 
 In all three examples, recursion works because `env[:name]` is
 written by the BindStep *before* any lookup of `name` occurs.
-When the body of the conduit references itself, the name is already
+When the body of the verb references itself, the name is already
 resolvable. Termination is guaranteed whenever the tree is finite:
 `[] * self` collapses to `[]` without invoking `self`.
 
@@ -1074,12 +1058,12 @@ value expression as a sub-pipeline: `mul 2` applies to the
 current `pipeValue` via Rule 10 and yields the applied result.
 For in-query function extension, declare a BindStep:
 
-    | :double mul 2
-    | :isSenior (/age | gt 65)
+    | :double ::verb~(mul 2)
+    | :isSenior ::verb~(/age | gt 65)
     | employees * {:doubledAge (/age | double) :senior isSenior}
 
-Each BindStep writes a conduit that forces against `pipeValue` at
-each reference site. `use` and BindStep are complementary: `use`
+Each BindStep writes a verb that runs against `pipeValue` at each
+reference site. `use` and BindStep are complementary: `use`
 for importing static data and host functions, BindStep for
 derived expressions within the query.
 
@@ -1133,7 +1117,7 @@ semantics, which are unchanged.
 The same `evalNode` chokepoint is also where the
 `EffectLaunderingAtCallError` runtime safety net for the `@`-effect-marker
 invariant fires, inside the `evalOperandCall` branch immediately
-after conduit-forcing and reading the value of the record. See
+after reading the value of the record. See
 [the spec's "Effect markers" section](qlang-spec.md#effect-markers)
 for the user-facing contract and
 [the runtime reference](qlang-operands.md#effectmjs-and-effect-checkmjs--effect-markers)
@@ -1202,7 +1186,7 @@ pure AST-node-type dispatcher with no track awareness.
 the head rides `|` unless a leading combinator (`!|` / `*`)
 names another. A lone step the parser collapsed out of its pipeline
 rides `|` through `evalBody`, the entry every body takes: a
-query, a group, a distribute body, a captured argument, a conduit
+query, a group, a distribute body, a captured argument, a verb's
 body, and an applied quote. The `!|` form is how predicate
 lambdas inside `filter ~(…)` / `when … ~(…)` / `if … ~(…) ~(…)` opt into
 fail-apply for their first step.
@@ -1271,7 +1255,7 @@ read directly by `typeKeyword(errorValue)` and through the
 `type` operand. The descriptor Map below carries only data
 fields; `!|` materialization stamps the tag onto the exposed
 Map's JS-header `TAG_HEADER_SYMBOL` slot (the uniform
-identity-overlay channel TaggedInstance / Conduit / binding record /
+identity-overlay channel TaggedInstance / binding record /
 catalog builtin descriptor all use), so `result !| type` reads
 the same identity, and the `payload` operand strips it cleanly.
 No redundant `:kind <tag>` Map field — any user-stamped `:kind`
@@ -1424,8 +1408,8 @@ invocations.
 - `session.takeSnapshot()` / `session.restoreSnapshot(snap)` —
   cheap save/restore for "step back" features.
 - `await serializeSession(session)` — JSON-serializable payload of
-  user bindings (conduits via stored body source, every other value
-  via tagged JSON, each with its docs) plus cell history.
+  user bindings (every value via tagged JSON, a verb as its quote under
+  its tag, each with its docs) plus cell history.
 - `await deserializeSession(json)` — rebuilds a session from a
   serialized payload. Cell history is restored without re-evaluation.
 
@@ -1435,13 +1419,13 @@ invocations.
 
 - `describeType(v)` — PascalCase string label for any value:
   `'Number'`, `'String'`, `'Vec'`, `'Map'`, `'Set'`, `'Keyword'`,
-  `'Boolean'`, `'Null'`, `'Conduit'`, `'TaggedInstance'` (a binding
-  record among them), `'Error'`, `'Function'`.
+  `'Boolean'`, `'Null'`, `'TaggedInstance'` (a binding record and a
+  verb among them), `'Error'`, `'Function'`.
 - `typeKeyword(v)` — the kind of a value, a TagKeyword [D32]: the
   kind of the core its literal implies (`::number`, `::string`,
   `::vec`, `::map`, `::set`, `::keyword`, `::tag`, `::boolean`,
   `::null`, `::quote`, `::doc`), and the JS-header TagKeyword for
-  identity-bearing value-classes (`::conduit`, `::binding`, and an
+  identity-bearing value-classes (`::verb`, `::binding`, and an
   error value's own `::Tag`).
   Used by error factories for structured `context.actualType`
   fields and by `manifest`'s descriptor for the `:type` field on
@@ -1495,9 +1479,8 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | Set | `{ "$tagged": { "$tag": "set", "payload": [v1, v2, ...] } }` |
 | Error | `{ "$error": <recursively-encoded descriptor Map> }` |
 
-`toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for
-function values and conduits, and for the record of a binding that
-holds one.
+`toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for a
+function value, and for the record of a binding that holds one.
 `fromTaggedJSON(json)` throws `MalformedTaggedJSONError` on
 unrecognized tagged objects.
 

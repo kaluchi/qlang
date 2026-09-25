@@ -13,14 +13,14 @@ recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
 
 // Descriptor field-order: high-entropy first. The per-site
 // identity (the same invariant every tagged-instance value-class
-// carries — conduit, binding record, qlang, json, user `::Foo[…]`)
+// carries — verb, binding record, qlang, json, user `::Foo[…]`)
 // rides on the error value's JS-header `tag` slot, not on the
 // descriptor Map. `:faultStep` (Quote of failing source slice)
 // and `:faultInput` (pipeValue at step entry) carry the runtime
 // fault frame as two flat fields — no wrapper Map; per-invocation
 // context (`:actualType`, `:actualValue` when it differs from
 // `:faultInput`, Comparability pair-fields, `:index`, dispatch-
-// time `:operandName` / `:conduitName`) follows. Identity is
+// time `:operandName`) follows. Identity is
 // surfaced through the `type` operand (`result !| type |
 // eq ::Foo`), which reads `error.tag` straight off the JS
 // header. Per-tag static facts — `:category`, `:operand`,
@@ -50,8 +50,8 @@ const RUNTIME_FIELD_ORDER = [
 ];
 
 // Identifier-shaped descriptor fields carrying a `name`-like string
-// from a JS throw site — a referenced conduit / namespace /
-// parameter / operand / axis / binding. The JS→qlang boundary lifts
+// from a JS throw site — a referenced namespace / parameter /
+// operand / axis / binding. The JS→qlang boundary lifts
 // each such string to a Keyword, and the env key of a tag, `::Foo`,
 // to the tag, so the descriptor surface stays uniformly
 // identifier-typed: `printValue` prints `:name` rather than `"name"`,
@@ -61,7 +61,7 @@ const RUNTIME_FIELD_ORDER = [
 // IDENTIFIER_FIELDS` gate).
 const IDENTIFIER_FIELDS = new Set([
   'name',
-  'operandName', 'conduitName', 'namespaceName', 'namespace', 'paramName',
+  'operandName', 'namespaceName', 'namespace', 'paramName',
   'effectfulName', 'bindingName',
   'tag', 'exportName'
 ]);
@@ -78,7 +78,7 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
 
   // Instance carries only the dynamic facts the JS context attached
   // (`:actualType`, comparability pair-types, `:index`, dispatch-time
-  // `:operandName` / `:conduitName`, etc.). Per-tag static facts —
+  // `:operandName`, etc.). Per-tag static facts —
   // `:category`, `:operand`, `:position`, `:expectedType` — ride the
   // tag-binding, stamped there from the throw site, and reach the
   // reader through hypertext navigation: `result !| type | spec`
@@ -111,8 +111,8 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
     if (liftedFromOrder.has(k)) continue;
     // 'actualValue' is in RUNTIME_FIELD_ORDER, so the ref-eq dedup
     // against `faultInput` runs in the loop above; tail-loop fields
-    // are exclusively per-site shape extras (operand-, conduit-,
-    // namespace-, etc.) and never need the same gate.
+    // are exclusively per-site shape extras (operand-, namespace-,
+    // etc.) and never need the same gate.
     if (RUNTIME_FIELD_ORDER.includes(k)) continue;
     if (v === undefined) continue;
     d.set(k, liftIdentifier(k, v));

@@ -2,7 +2,7 @@
 {"name":"a-verb-recurses-through-its-parameter","query":":fact ::verb~(:n ::number | if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /","expect":"120","decision":["D57","D67"]}
 {"name":"a-verb-without-modifiers-runs-at-each-mention","query":":inc ::verb~(add 1) | 5 | inc | inc","expect":"7","decision":["D57","D67"]}
 {"name":"a-verb-moved-left-answers-as-inline","query":":most ::verb~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57","D67"]}
-{"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44","target":true}
+{"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
 {"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"],"target":true}
 {"name":"a-shadowed-binding-stays-one-projection-away","query":":filter 5 | ::vec/filter | docs | count","expect":"1","decision":["D5","D36"]}
 {"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
@@ -27,7 +27,7 @@
 {"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | /x | /value","expect":"1","decision":"D63"}
 {"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | /x | docs | first | /content","expect":"\" One. \"","decision":"D63"}
 {"name":"a-module-exposes-what-its-last-step-answers","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | type","expect":"::binding","decision":"D63"}
-{"name":"a-module-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D44","target":true}
+{"name":"a-module-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D44"}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
 {"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62"}

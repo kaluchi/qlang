@@ -1,19 +1,17 @@
 // Unit tests for polymorphic filter / every / any over Vec / Set /
-// Map with N-arity conduit dispatch on Map, plus classification
-// through `type | eq(:kind)`.
+// Map, plus classification through `type | eq(:kind)`.
 //
-// Map dispatch rule under test: the predicate conduit's `:params`
-// arity chooses the axis — 0 or 1 → value as pipeValue, 2 → (key,
-// value) as captured-arg values, 3+ → per-operand ArityInvalid error.
+// A predicate is code applied to each element, a map's value being its
+// element [D15]: a quote runs against the element as its subject, and
+// so does a verb it names or a verb handed in its place [D67].
 //
 // Each per-site error class is asserted three ways per review
-// discipline: class name, `instanceof QlangTypeError` or
-// `instanceof ArityError`, and structured context fields via
-// the error-value descriptor.
+// discipline: class name, `instanceof QlangTypeError`, and structured
+// context fields via the error-value descriptor.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { QlangTypeError, ArityError } from '../../src/errors.mjs';
+import { QlangTypeError } from '../../src/errors.mjs';
 import { isQMap, isQSet, keyword, makeTagKeyword } from '../../src/types.mjs';
 import {
   expectErrorThrown,
@@ -40,7 +38,7 @@ describe('filter — container polymorphism', () => {
     expect([...setResult].sort()).toEqual([3, 4, 5]);
   });
 
-  it('Map with 0-arity pipeline predicate fires against value', async () => {
+  it('Map with a quote predicate fires against value', async () => {
     const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter ~(gt 1)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -49,30 +47,19 @@ describe('filter — container polymorphism', () => {
     expect(mapResult.has('a')).toBe(false);
   });
 
-  it('Map with 0-arity named conduit predicate fires against value', async () => {
+  it('Map with a declared verb predicate fires against value', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b 2 :c 3} | :big gt 1 | filter ~(big)'
+      '{:a 1 :b 2 :c 3} | :big ::verb~(gt 1) | filter ~big'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
   });
 
-  it('Map with 2-arity conduit — FilterPredArityInvalidError, a map has one axis', async () => {
-    const errorValue = await expectErrorThrown(
-      '{:apple 1 :banana 2} | :@isA [:k :v] (k | eq :apple) | filter ~(@isA)',
-      'FilterPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.actualArity).toBe(2);
-  });
-
-  it('Map with a clean-named 1-arity conduit — the value is its parameter', async () => {
-    // Clean-named conduit — exercises the non-effectful dispatch branch
-    // of invokeConduitWithFixedArgs (conduitEffectful=false).
+  it('Map with a verb predicate reading a field of the value', async () => {
     const mapResult = await evalQuery(
       '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
-      + '| :tiered [:v] (v | /tier | eq :x | not) '
-      + '| filter ~(tiered)'
+      + '| :tiered ::verb~(/tier | eq :x | not) '
+      + '| filter ~tiered'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -81,40 +68,19 @@ describe('filter — container polymorphism', () => {
     expect(mapResult.has('c')).toBe(false);
   });
 
-  it('Map with unresolvedIdentifier pred — falls to per-value path, surfaces on fail-track', async () => {
-    // Exercises the envHas=false branch of resolveCapturedConduit:
-    // the captured-arg identifier is not in env, so conduit resolution
-    // returns null and the per-value predLambda path runs; the lookup
-    // error then surfaces on the fail-track.
+  it('Map with an unresolved name for pred — surfaces on fail-track', async () => {
     const errorValue = await evalQuery('{:a 1} | filter ~(unknownPred) !| type');
     expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 
-  it('Map with a non-conduit as binding for pred — falls to per-value path, all entries pass', async () => {
-    // Exercises the non-Map branch of resolveCapturedConduit: the
-    // captured-arg resolves to a boolean, the value of its record,
-    // so conduit resolution returns null. The per-value path then fires
-    // the predicate identifier per entry, which replaces pipeValue with
-    // `true` — all entries survive.
+  it('Map with a value bound for pred — every entry passes', async () => {
+    // The quote names a boolean, the value of its record, which
+    // replaces the element — every entry survives.
     const count = await evalQuery('true | as :n | {:a 1 :b 2} | filter ~(n) | count');
     expect(count).toBe(2);
   });
 
-  it('Map with effectful 1-arity conduit reached via clean name → EffectLaunderingAtCallError', async () => {
-    // An @-named (effectful) conduit extracted through env projection,
-    // the value of its record, and bound under a clean name is then
-    // referenced inside filter. invokeConduitWithFixedArgs must refuse
-    // the clean-name invocation with EffectLaunderingAtCallError — the
-    // same safety net applyConduit enforces for ordinary conduit calls.
-    const errorValue = await evalQuery(
-      ':@hot [:v] (v | gt 0) '
-      + '| env | /@hot | /value | as :clean '
-      + '| {:a 1 :b 2} | filter ~(clean) !| type'
-    );
-    expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCallError'));
-  });
-
-  it('Map empty subject — returns empty Map for 0-arity pred', async () => {
+  it('Map empty subject — returns empty Map', async () => {
     const mapResult = await evalQuery('{} | filter ~(gt 0)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(0);
@@ -133,68 +99,22 @@ describe('filter — container polymorphism', () => {
     expect(originalErr.context.actualType.name).toBe('number');
   });
 
-  it('Vec with 1-arity conduit — element is bound as captured-arg', async () => {
-    expect(await evalQuery(
-      '[1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos)'
-    )).toEqual([1, 3]);
+  it('Vec with a verb handed as the predicate', async () => {
+    expect(await evalQuery('[1 -2 3] | filter ::verb~(gt 0)')).toEqual([1, 3]);
   });
 
-  it('Set with 1-arity conduit — element is bound as captured-arg', async () => {
-    const setResult = await evalQuery(
-      '#[1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos)'
-    );
+  it('Set with a verb handed as the predicate', async () => {
+    const setResult = await evalQuery('#[1 -2 3] | filter ::verb~(gt 0)');
     expect(isQSet(setResult)).toBe(true);
-    expect([...setResult].sort()).toEqual([-2, 1, 3].filter(n => n > 0).sort());
+    expect([...setResult].sort()).toEqual([1, 3]);
   });
 
-  it('Map with 1-arity conduit — value bound as captured-arg', async () => {
-    const mapResult = await evalQuery(
-      '{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt 0) | filter ~(@pos)'
-    );
+  it('Map with a verb handed as the predicate', async () => {
+    const mapResult = await evalQuery('{:a 1 :b -2 :c 3} | filter ::verb~(gt 0)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('a')).toBe(1);
     expect(mapResult.get('c')).toBe(3);
-  });
-
-  it('Vec with 2-arity conduit — FilterPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '[1 2] | :@kv [:k :v] true | filter ~(@kv)',
-      'FilterPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.name).toBe('FilterPredArityInvalidError');
-    expect(originalErr.context.conduitName).toBe('@kv');
-    expect(originalErr.context.actualArity).toBe(2);
-  });
-
-  it('Set with 2-arity conduit — FilterPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '#[1 2] | :@kv [:k :v] true | filter ~(@kv)',
-      'FilterPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.actualArity).toBe(2);
-  });
-
-  it('Vec with 3-arity conduit — FilterPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '[1 2] | :@tooWide [:x :y :z] true | filter ~(@tooWide)',
-      'FilterPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.actualArity).toBe(3);
-  });
-
-  it('Map with 3-arity conduit — FilterPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '{:a 1} | :@tooWide [:x :y :z] true | filter ~(@tooWide)',
-      'FilterPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.name).toBe('FilterPredArityInvalidError');
-    expect(originalErr.context.conduitName).toBe('@tooWide');
-    expect(originalErr.context.actualArity).toBe(3);
   });
 });
 
@@ -217,11 +137,11 @@ describe('every — container polymorphism', () => {
     expect(await evalQuery('#[1 2 3] | every ~(gt 2)')).toBe(false);
   });
 
-  it('Map 0-arity — all values positive', async () => {
+  it('Map — all values positive', async () => {
     expect(await evalQuery('{:a 1 :b 2 :c 3} | every ~(gt 0)')).toBe(true);
   });
 
-  it('Map 0-arity — one value fails', async () => {
+  it('Map — one value fails', async () => {
     expect(await evalQuery('{:a 1 :b -2 :c 3} | every ~(gt 0)')).toBe(false);
   });
 
@@ -235,56 +155,18 @@ describe('every — container polymorphism', () => {
     expect(originalErr.name).toBe('EverySubjectNotContainerError');
   });
 
-  it('Vec with 1-arity conduit — every applies element as captured-arg', async () => {
-    expect(await evalQuery(
-      '[1 2 3] | :@pos [:v] (v | gt 0) | every ~(@pos)'
-    )).toBe(true);
-    expect(await evalQuery(
-      '[1 -2 3] | :@pos [:v] (v | gt 0) | every ~(@pos)'
-    )).toBe(false);
+  it('Vec with a declared verb predicate', async () => {
+    expect(await evalQuery('[1 2 3] | :positive ::verb~(gt 0) | every ~positive')).toBe(true);
+    expect(await evalQuery('[1 -2 3] | :positive ::verb~(gt 0) | every ~positive')).toBe(false);
   });
 
-  it('Set with 1-arity conduit — every applies element as captured-arg', async () => {
-    expect(await evalQuery(
-      '#[2 4 6] | :@pos [:v] (v | gt 0) | every ~(@pos)'
-    )).toBe(true);
+  it('Set with a verb handed as the predicate', async () => {
+    expect(await evalQuery('#[2 4 6] | every ::verb~(gt 0)')).toBe(true);
   });
 
-  it('Map with 1-arity conduit — every applies value as captured-arg', async () => {
-    expect(await evalQuery(
-      '{:a 1 :b 2} | :@pos [:v] (v | gt 0) | every ~(@pos)'
-    )).toBe(true);
-    expect(await evalQuery(
-      '{:a 1 :b -2} | :@pos [:v] (v | gt 0) | every ~(@pos)'
-    )).toBe(false);
-  });
-
-  it('Vec with 2-arity conduit — EveryPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '[1 2] | :@kv [:k :v] true | every ~(@kv)',
-      'EveryPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.actualArity).toBe(2);
-  });
-
-  it('Set with 2-arity conduit — EveryPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '#[1 2] | :@kv [:k :v] true | every ~(@kv)',
-      'EveryPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.actualArity).toBe(2);
-  });
-
-  it('Map with 3-arity conduit — EveryPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '{:a 1} | :@tooWide [:x :y :z] true | every ~(@tooWide)',
-      'EveryPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.conduitName).toBe('@tooWide');
-    expect(originalErr.context.actualArity).toBe(3);
+  it('Map with a declared verb predicate', async () => {
+    expect(await evalQuery('{:a 1 :b 2} | :positive ::verb~(gt 0) | every ~positive')).toBe(true);
+    expect(await evalQuery('{:a 1 :b -2} | :positive ::verb~(gt 0) | every ~positive')).toBe(false);
   });
 });
 
@@ -303,7 +185,7 @@ describe('any — container polymorphism', () => {
     expect(await evalQuery('#[1 2 3] | any ~(gt 2)')).toBe(true);
   });
 
-  it('Map 0-arity — any value positive', async () => {
+  it('Map — any value positive', async () => {
     expect(await evalQuery('{:a -1 :b 0 :c 2} | any ~(gt 0)')).toBe(true);
   });
 
@@ -315,16 +197,6 @@ describe('any — container polymorphism', () => {
     const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'AnySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('AnySubjectNotContainerError');
-  });
-
-  it('Map with 3-arity conduit — AnyPredArityInvalidError', async () => {
-    const errorValue = await expectErrorThrown(
-      '{:a 1} | :@tooWide [:x :y :z] true | any ~(@tooWide)',
-      'AnyPredArityInvalidError'
-    );
-    const originalErr = expectOriginalError(errorValue, ArityError);
-    expect(originalErr.context.conduitName).toBe('@tooWide');
-    expect(originalErr.context.actualArity).toBe(3);
   });
 });
 
@@ -359,8 +231,9 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('#[:a] | type | eq ::map')).toBe(false);
   });
 
-  it('type answers ::conduit, not :map, for a conduit binding', async () => {
-    expect(await evalQuery(':double mul 2 | env | /double | type | eq ::map')).toBe(false);
+  it('type answers ::binding, not :map, for the record of a verb', async () => {
+    expect(await evalQuery(':double ::verb~(mul 2) | env | /double | type | eq ::map')).toBe(false);
+    expect(await evalQuery(':double ::verb~(mul 2) | env | /double | type | eq ::binding')).toBe(true);
   });
 
   it('type answers ::set for Set subjects', async () => {
@@ -423,17 +296,17 @@ describe('filter + type classifiers integration', () => {
   });
 });
 
-// ── Conduit portability — same pred works on Vec and on Map ──
+// ── Verb portability — same pred works on Vec and on Map ──
 
-describe('filter — conduit portability across containers', () => {
-  it('0-arity conduit fires uniformly on Vec elements and Map values', async () => {
+describe('filter — verb portability across containers', () => {
+  it('a declared verb fires uniformly on Vec elements and Map values', async () => {
     const vecResult = await evalQuery(
-      ':big gt 1 | [1 2 3] | filter ~(big)'
+      ':big ::verb~(gt 1) | [1 2 3] | filter ~big'
     );
     expect(vecResult).toEqual([2, 3]);
 
     const mapResult = await evalQuery(
-      ':big gt 1 | {:a 1 :b 2 :c 3} | filter ~(big)'
+      ':big ::verb~(gt 1) | {:a 1 :b 2 :c 3} | filter ~big'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);

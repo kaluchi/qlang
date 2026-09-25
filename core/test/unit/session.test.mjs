@@ -49,7 +49,7 @@ describe('createSession lifecycle', () => {
 
   it('evalCell persists BindStep bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double mul 2');
+    await sessionInstance.evalCell(':double ::verb~(mul 2)');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
@@ -115,10 +115,10 @@ describe('createSession lifecycle', () => {
 });
 
 describe('serializeSession / deserializeSession round-trip', () => {
-  it('preserves user BindStep bindings via conduit source replay', async () => {
+  it('preserves user BindStep verbs via their quotes', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double mul 2');
-    await sessionInstance.evalCell(':triple mul 3');
+    await sessionInstance.evalCell(':double ::verb~(mul 2)');
+    await sessionInstance.evalCell(':triple ::verb~(mul 3)');
 
     const payload = await serializeSession(sessionInstance);
     const jsonText = JSON.stringify(payload);
@@ -138,22 +138,21 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect((await restored.evalCell('[1 2 3] | vec/count')).result).toBe(3);
   });
 
-  it('restored conduits honor lexical scope (immune to caller-side shadowing)', async () => {
-    // `evalBindStep` wires envRef.env to the env captured at declaration
-    // time, so a later cell that shadows `mul` does not affect the
-    // restored conduit's body resolution. deserializeSession must
-    // perform the same wiring on every restored conduit; otherwise the
-    // applyConduit fallback to state.env gives dynamic scope and the
-    // shadow leaks into the body.
+  it('restored verbs honor lexical scope (immune to caller-side shadowing)', async () => {
+    // A declared verb resolves in the scope its declaration wrote, so
+    // a later cell that shadows `mul` does not affect the restored
+    // verb's body resolution. deserializeSession gives every restored
+    // verb the restored session's scope; a verb without one would
+    // resolve where it runs and the shadow would leak into the body.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double mul 2');
+    await sessionInstance.evalCell(':double ::verb~(mul 2)');
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
     // Shadow mul AFTER restore. Lexical scope means double's body
     // still resolves mul through the env captured at deserialize
     // time (the original builtin), not the call-site env carrying
     // the shadow.
-    await restored.evalCell(':mul sub 1');
+    await restored.evalCell(':mul ::verb~(sub 1)');
     expect((await restored.evalCell('5 | double')).result).toBe(10);
   });
 
@@ -206,22 +205,8 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('rejects payload with missing bindings array', async () => {
     let thrown;
-    try { await deserializeSession({ schemaVersion: 2 }); } catch (thrownErr) { thrown = thrownErr; }
+    try { await deserializeSession({ schemaVersion: 3 }); } catch (thrownErr) { thrown = thrownErr; }
     expect(thrown.name).toBe('SessionPayloadInvalidError');
-  });
-
-  it('rejects conduit binding with no source', async () => {
-    let thrown;
-    try { await deserializeSession({ schemaVersion: 2, bindings: [{ kind: 'conduit', name: 'x', source: null, docs: [] }], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
-    expect(thrown.name).toBe('SessionConduitSourceMissingError');
-    expect(thrown.context.bindingName).toBe('x');
-  });
-
-  it('rejects unknown binding kind', async () => {
-    let thrown;
-    try { await deserializeSession({ schemaVersion: 2, bindings: [{ kind: 'something', name: 'x' }], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
-    expect(thrown.name).toBe('SessionBindingKindUnknownError');
-    expect(thrown.context.kind).toBe('something');
   });
 
   it('rejects null payload', async () => {
@@ -230,13 +215,12 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect(thrown.name).toBe('SessionPayloadInvalidError');
   });
 
-  it('serializes a raw value bound via session.bind as kind: value', async () => {
+  it('serializes a raw value bound via session.bind as its value', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('answer', 42);
     const payload = await serializeSession(sessionInstance);
     const valueBinding = payload.bindings.find(b => b.name === 'answer');
     expect(valueBinding).toBeDefined();
-    expect(valueBinding.kind).toBe('value');
     expect(valueBinding.value).toBe(42);
   });
 
@@ -272,16 +256,10 @@ describe('serializeSession / deserializeSession round-trip', () => {
 // ── Locator-based lazy module loading ─────────────────────────
 
 // Minimal .qlang source for a module with one builtin descriptor
-// and one qlang-only conduit. The builtin descriptor carries
-// :kind :builtin and :impl null (patched by the locator
-// with the actual function value).
-// Module source: a Map literal with one builtin descriptor, piped
-// through `use` to install it in env, then a let-conduit that
-// builds on it. The locator patches :impl on the builtin
-// descriptor with the host function after eval.
-// Module source: descriptor Map merged via | use to install
-// bindings in env. The locator patches :impl on the builtin
-// descriptor after eval. Env delta = the exports.
+// and one qlang-only verb: a Map literal with the descriptor, merged
+// via `use` to install it in env, then a verb that builds on it.
+// The locator patches :impl on the builtin descriptor with the host
+// function after eval. Env delta = the exports.
 const MOCK_MODULE_SOURCE = [
   '{:@fetch ::builtin{:impl null',
   '                   :category :test-io',
@@ -292,7 +270,7 @@ const MOCK_MODULE_SOURCE = [
   '                   :examples []',
   '                   :throws []}}',
   '| use',
-  '| :@doubled (@fetch | append @fetch)'
+  '| :@doubled ::verb~(@fetch | append @fetch)'
 ].join('\n');
 
 // Host-provided impl for the @fetch builtin — returns a fixed string.
@@ -318,11 +296,11 @@ describe('createSession with locator — lazy module loading', () => {
     expect(loadCell.result).toBe('fetched-value');
   });
 
-  it('qlang-only conduit in a locator-loaded module works', async () => {
+  it('qlang-only verb in a locator-loaded module works', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    const conduitCell = await locatorSession.evalCell('use :test/io | @doubled');
-    expect(conduitCell.error).toBeNull();
-    expect(conduitCell.result).toBe('fetched-valuefetched-value');
+    const verbCell = await locatorSession.evalCell('use :test/io | @doubled');
+    expect(verbCell.error).toBeNull();
+    expect(verbCell.result).toBe('fetched-valuefetched-value');
   });
 
   it('locator-loaded namespace keyword persists for subsequent use calls', async () => {
@@ -370,14 +348,13 @@ describe('createSession with locator — lazy module loading', () => {
 });
 
 describe('session cells that carry more than a parse failure', () => {
-  it('serializes a conduit parameter list by name', async () => {
+  it('serializes a verb as its quote under its tag', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':scaled [:factor] (mul factor)');
+    await sessionInstance.evalCell(':scaled ::verb~(:factor ::number | mul factor)');
 
     const payload = await serializeSession(sessionInstance);
     const scaled = payload.bindings.find(b => b.name === 'scaled');
-    expect(scaled.kind).toBe('conduit');
-    expect(scaled.params).toEqual(['factor']);
+    expect(scaled.value).toEqual({ $tagged: { $tag: 'verb', payload: { $quote: ':factor ::number | mul factor' } } });
 
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
     expect((await restored.evalCell('5 | scaled 3')).result).toBe(15);

@@ -5,7 +5,7 @@
 // pulls in every family through `use(...)`), `lib/qlang/operand/<family>.qlang`
 // (per-family operand + per-site error-tag declarations), plus
 // `lib/qlang/runtime-invariants.qlang` (shared / runtime tag-bindings)
-// and `lib/qlang/tag.qlang` (value-class constructors ::conduit /
+// and `lib/qlang/tag.qlang` (value-class constructors ::verb /
 // ::quote / ::set, the kinds of the core, the tags of a quote's
 // steps). Each operand is a `BindStep` whose body is a
 // descriptor Map carrying :kind ::builtin, a :impl
@@ -292,7 +292,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(244);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(230);
   });
 
   it('the value namespace holds every declared operand', async () => {

@@ -4,7 +4,7 @@
 {"name":"block-plain-eats-trailing-combinator","query":"5 |~ rationale ~| add 3","expect":"8"}
 {"name":"line-plain-mid-pipeline","query":"5 | mul 2\n|~| this comment is identity\n| add 1","expect":"11"}
 {"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| add 1","expect":"11"}
-{"name":"line-doc-on-let","query":"|~~| Doubles the input.\n:double mul 2\n| 5 | double","expect":"10"}
+{"name":"line-doc-on-let","query":"|~~| Doubles the input.\n:double ::verb~(mul 2)\n| 5 | double","expect":"10"}
 {"name":"line-doc-retrieve","query":"|~~| Doc text.\n:foo 42\n| :foo | docs * /content","expect":"[\" Doc text.\"]"}
 {"name":"block-doc-on-let","query":"|~~ Multi-line doc\n    spanning many lines. ~~|\n:foo 42\n| 5 | foo","expect":"42"}
 {"name":"block-doc-retrieve","query":"|~~ Block doc here. ~~|\n:foo 42\n| :foo | docs * /content","expect":"[\" Block doc here. \"]"}

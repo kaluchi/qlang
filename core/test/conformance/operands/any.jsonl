@@ -15,17 +15,12 @@
 {"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
 {"name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
 {"name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
-{"name":"any-vec-0arity-conduit","query":"[1 2 3] | :big gt 2 | any ~(big)","expect":"true"}
-{"name":"any-vec-1arity-conduit","query":"[1 2 3] | :@big [:v] (v | gt 2) | any ~(@big)","expect":"true"}
-{"name":"any-vec-1arity-conduit-false","query":"[1 2 3] | :@huge [:v] (v | gt 99) | any ~(@huge)","expect":"false"}
-{"name":"any-set-0arity-conduit","query":"#[1 2 3] | :big gt 2 | any ~(big)","expect":"true"}
-{"name":"any-set-1arity-conduit","query":"#[1 2 3] | :@big [:v] (v | gt 2) | any ~(@big)","expect":"true"}
-{"name":"any-map-0arity-conduit","query":"{:a -1 :b 2} | :pos gt 0 | any ~(pos)","expect":"true"}
-{"name":"any-map-1arity-conduit","query":"{:a -1 :b 2} | :@pos [:v] (v | gt 0) | any ~(@pos)","expect":"true"}
-{"name":"any-map-1arity-conduit-false","query":"{:a -1 :b -2} | :@pos [:v] (v | gt 0) | any ~(@pos)","expect":"false"}
-{"name":"any-map-2arity-pred-throws","query":"{:a 1 :b 2} | :@isA [:k :v] (k | eq :a) | any ~(@isA) !| type","expect":"::AnyPredArityInvalidError"}
-{"name":"any-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | any ~(@kv) !| type","expect":"::AnyPredArityInvalidError"}
-{"name":"any-set-2arity-pred-throws","query":"#[1 2] | :@kv [:k :v] true | any ~(@kv) !| type","expect":"::AnyPredArityInvalidError"}
-{"name":"any-vec-3arity-pred-throws","query":"[1] | :@tooWide [:x :y :z] true | any ~(@tooWide) !| type","expect":"::AnyPredArityInvalidError"}
-{"name":"any-set-3arity-pred-throws","query":"#[1] | :@tooWide [:x :y :z] true | any ~(@tooWide) !| type","expect":"::AnyPredArityInvalidError"}
-{"name":"any-map-3arity-pred-throws","query":"{:a 1} | :@tooWide [:x :y :z] true | any ~(@tooWide) !| type","expect":"::AnyPredArityInvalidError"}
+{"name":"any-vec-declared-verb","query":"[1 2 3] | :big ::verb~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-vec-verb-predicate","query":"[1 2 3] | :big ::verb~(gt 2) | any ~big","expect":"true"}
+{"name":"any-vec-verb-predicate-false","query":"[1 2 3] | :huge ::verb~(gt 99) | any ~huge","expect":"false"}
+{"name":"any-set-declared-verb","query":"#[1 2 3] | :big ::verb~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-set-verb-predicate","query":"#[1 2 3] | :big ::verb~(gt 2) | any ~big","expect":"true"}
+{"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :pos ::verb~(gt 0) | any ~(pos)","expect":"true"}
+{"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :positive ::verb~(gt 0) | any ~positive","expect":"true"}
+{"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :positive ::verb~(gt 0) | any ~positive","expect":"false"}
+{"name":"any-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2} | :above ::verb~(:limit ::number | gt limit) | any ~above !| [type /slot]","expect":"[::VerbSlotMissingError :limit]"}

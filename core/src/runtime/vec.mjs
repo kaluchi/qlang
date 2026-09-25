@@ -8,8 +8,7 @@
 // `filter` / `every` / `any` are container-universal item-select
 // operands: the predicate fires against each element, a map's value
 // being its element [D15], and `filter` keeps the keys of the entries
-// it keeps. A conduit of one parameter binds the element; one of two
-// or more has no axis to fill and raises the per-operand arity error.
+// it keeps.
 //
 // Every type check inlines its own `throw new X(...)` statement
 // so the class name and source line uniquely identify the failing
@@ -30,17 +29,10 @@ import {
 } from '../operand-errors.mjs';
 import {
   declareShapeError,
-  declareArityError,
   declareNumericDomainError
 } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import {
-  resolveCapturedConduit,
-  invokeConduitWithFixedArgs,
-  resolveBinaryReducer,
-  codeOfModifier,
-  CONDUIT_PARAMS_FIELD
-} from '../eval.mjs';
+import { resolveBinaryReducer, codeOfModifier } from '../eval.mjs';
 
 // A set is the vector in the one order without duplicates [D16], so
 // every operand below reads it as a vector. The transformers that keep
@@ -61,26 +53,6 @@ const MaxSubjectNotContainerError      = declareSubjectError('MaxSubjectNotConta
 const FilterSubjectNotContainerError   = declareSubjectError('FilterSubjectNotContainerError',   'filter',   ['vec', 'set', 'map']);
 const EverySubjectNotContainerError    = declareSubjectError('EverySubjectNotContainerError',    'every',    ['vec', 'set', 'map']);
 const AnySubjectNotContainerError      = declareSubjectError('AnySubjectNotContainerError',      'any',      ['vec', 'set', 'map']);
-
-// Per-operand arity-invalid classes — a predicate conduit reads the
-// element, a map's value among them [D15]: 0 params read it as
-// pipeValue, 1 param [:x] binds it as a named captured-arg, and two or
-// more have no axis to fill.
-const FilterPredArityInvalidError = declareArityError('FilterPredArityInvalidError',
-  ({ conduitName, actualArity }) =>
-    `filter requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
-  { operand: 'filter' }
-);
-const EveryPredArityInvalidError  = declareArityError('EveryPredArityInvalidError',
-  ({ conduitName, actualArity }) =>
-    `every requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
-  { operand: 'every' }
-);
-const AnyPredArityInvalidError    = declareArityError('AnyPredArityInvalidError',
-  ({ conduitName, actualArity }) =>
-    `any requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
-  { operand: 'any' }
-);
 
 // A condition answers a boolean or fails at its slot [D14]; the refusal
 // names the element whose condition answered another kind.
@@ -222,45 +194,21 @@ export const max = nullaryOp('max', (container) => {
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
-// containerPredDispatch(predLambda, ArityErrorCls) — the per-element
-// applier of filter / every / any, a map's value being its element
-// [D15]. When the captured expression is a bare identifier resolving
-// to a conduit, a conduit of one parameter [:x] binds the element and
-// mirrors it as pipeValue, and one of two or more has no axis to fill
-// and is refused once per subject; any other predicate runs with the
-// element as pipeValue.
-function containerPredDispatch(predLambda, ArityErrorCls) {
-  const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedState.env);
-  if (resolved) {
-    const paramCount = resolved.conduit.get(CONDUIT_PARAMS_FIELD).length;
-    if (paramCount === 1) {
-      return async (item) =>
-        await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item, predLambda.capturedState);
-    }
-    if (paramCount >= 2) {
-      throw new ArityErrorCls({ conduitName: resolved.conduit.get('name'), actualArity: paramCount });
-    }
-  }
-  return async (item) => await predLambda(item);
-}
-
 export const filter = higherOrderOp('filter', 2, async (container, predModifier) => {
   const predLambda = await codeOfModifier(predModifier, container, v => new FilterPredicateNotQuoteError(v));
   if (isVec(container)) {
-    const applyItem = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterResult = [];
     for (const [filterIndex, filterItem] of container.entries()) {
-      const predResult = await applyItem(filterItem);
+      const predResult = await predLambda(filterItem);
       if (isErrorValue(predResult)) return predResult;
       if (booleanOf(predResult, filterIndex, FilterConditionNotBooleanError)) filterResult.push(filterItem);
     }
     return filterResult;
   }
   if (isQMap(container)) {
-    const applyValue = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterEntries = [];
     for (const [filterIndex, [filterKey, filterValue]] of [...container].entries()) {
-      const predResult = await applyValue(filterValue);
+      const predResult = await predLambda(filterValue);
       if (isErrorValue(predResult)) return predResult;
       if (booleanOf(predResult, filterIndex, FilterConditionNotBooleanError)) filterEntries.push([filterKey, filterValue]);
     }
@@ -272,10 +220,9 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
 export const every = higherOrderOp('every', 2, async (container, everyPredModifier) => {
   const everyPredLambda = await codeOfModifier(everyPredModifier, container, v => new EveryPredicateNotQuoteError(v));
   if (isVec(container) || isQMap(container)) {
-    const applyItem = containerPredDispatch(everyPredLambda, EveryPredArityInvalidError);
     const everyItems = isQMap(container) ? [...container.values()] : container;
     for (const [everyIndex, everyItem] of everyItems.entries()) {
-      const everyResult = await applyItem(everyItem);
+      const everyResult = await everyPredLambda(everyItem);
       if (isErrorValue(everyResult)) return everyResult;
       if (!booleanOf(everyResult, everyIndex, EveryConditionNotBooleanError)) return false;
     }
@@ -287,10 +234,9 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
 export const any = higherOrderOp('any', 2, async (container, anyPredModifier) => {
   const anyPredLambda = await codeOfModifier(anyPredModifier, container, v => new AnyPredicateNotQuoteError(v));
   if (isVec(container) || isQMap(container)) {
-    const applyItem = containerPredDispatch(anyPredLambda, AnyPredArityInvalidError);
     const anyItems = isQMap(container) ? [...container.values()] : container;
     for (const [anyIndex, anyItem] of anyItems.entries()) {
-      const anyResult = await applyItem(anyItem);
+      const anyResult = await anyPredLambda(anyItem);
       if (isErrorValue(anyResult)) return anyResult;
       if (booleanOf(anyResult, anyIndex, AnyConditionNotBooleanError)) return true;
     }
@@ -461,11 +407,11 @@ export const flat = nullaryOp('flat', (subject) => {
 // `reduce seed ~(reducer)` — the universal left-fold. Threads the
 // accumulator and applies `reducer(acc, element)` at each step: a
 // binary operand folds via its bound form (`acc | add element`), a
-// 2-param conduit `[:acc :elem]` binds both. `seed` is the
+// verb takes the element as its first slot [D67]. `seed` is the
 // empty-subject result; a reducer error short-circuits.
 const ReduceSubjectNotSequenceError = declareSubjectError('ReduceSubjectNotSequenceError', 'reduce', ['vec', 'set', 'map']);
 const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryError',
-  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a 2-param conduit [:acc :elem]',
+  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a verb whose first slot takes the element',
   { operand: 'reduce' }
 );
 

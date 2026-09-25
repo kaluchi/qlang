@@ -3,6 +3,8 @@
 {"name":"a-tag-name-has-the-kind-tag","query":"::foo | type","expect":"::tag","decision":"D32"}
 {"name":"a-kind-of-the-core-written-long-is-written-short","query":"::qlang/number","expect":"::number","decision":"D32"}
 {"name":"the-long-and-the-short-name-are-one-kind","query":"::qlang/number | eq ::number","expect":"true","decision":"D32"}
+{"name":"every-noun-of-the-core-written-long-is-written-short","query":"::qlang/conduit","expect":"::conduit","decision":"D62"}
+{"name":"a-refusal-of-the-core-written-long-is-the-same-tag","query":"::qlang/ParseError | eq ::ParseError","expect":"true","decision":["D23","D32"]}
 {"name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null","decision":"D32"}
 {"name":"a-reserved-word-is-a-segment-of-a-namespaced-keyword","query":":qlang/type/null","expect":":qlang/type/null","decision":"D32"}
 {"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::qlang/vec[1 2]","expect":"[1 2]","decision":"D32"}

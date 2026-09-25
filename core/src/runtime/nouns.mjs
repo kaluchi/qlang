@@ -13,20 +13,18 @@ import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
   MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
-import { throwSiteSpecOf } from '../errors.mjs';
-
 const ROOT_NOUN_NAME = 'qlang';
 
 function carriesBuiltinShape(value) {
   return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
 
-// A refusal is the tag of a site that records its spec where it is
-// declared in the host's code; every other tag a provider declares is a
-// noun.
+// A refusal is a tag whose declaration names the category of its
+// failure, stamped from the site that raises it or written in the
+// catalog, `::ParseError` and `::Error` among them; every other tag a
+// provider declares is a noun.
 function isProviderNoun(envKey, value) {
-  return isTagBindingName(envKey) && carriesBuiltinShape(value)
-    && throwSiteSpecOf(stripTagBindingPrefix(envKey)) === undefined;
+  return isTagBindingName(envKey) && carriesBuiltinShape(value) && !value.has('category');
 }
 
 function* providerExports(env) {

@@ -14,6 +14,11 @@ describe('the nouns of the core', () => {
     expect(await evalQuery('::qlang | manifest | filter ~(eq ::AddLeftNotNumberError) | count')).toBe(0);
   });
 
+  it('a refusal the catalog declares with its category is no noun either', async () => {
+    expect(await evalQuery('::qlang | manifest | has ::Error')).toBe(false);
+    expect(await evalQuery('::qlang | manifest | has ::ForeignFailureError')).toBe(false);
+  });
+
   it('a noun answers the nouns under its path, and a noun with none the empty set', async () => {
     const session = await createSession({
       locator: async nsName => (nsName === 'tests/shop'

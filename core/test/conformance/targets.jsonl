@@ -4,13 +4,13 @@
 {"name":"a-verb-moved-left-answers-as-inline","query":":most ~[](count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57"],"target":true}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44","target":true}
 {"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"],"target":true}
-{"name":"a-shadowed-binding-stays-one-projection-away","query":":filter ~[](mul 2) | namespace :qlang/operand/container | /filter | docs | count","expect":"1","decision":["D5","D36"],"target":true}
-{"name":"a-binding-names-the-module-it-came-from","query":":filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
-{"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | docs | first | /segments * type | distinct","expect":"#[::string]","decision":"D19","target":true}
+{"name":"a-shadowed-binding-stays-one-projection-away","query":":filter 5 | ::vec/filter | docs | count","expect":"1","decision":["D5","D36"]}
+{"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
+{"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | docs | first * type | distinct","expect":"#[::string]","decision":"D19","target":true}
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}
 {"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ~[:q :x](apply q) | 2 | t ~(add x) 99","expect":"12","decision":"D43","target":true}
-{"name":"a-declaration-refuses-a-subject-of-another-kind","query":"\"a\" | gt \"b\" | (false !| true)","expect":"true","decision":"D4","target":true}
+{"name":"a-declaration-refuses-a-subject-of-another-kind","query":":twice ~[::number ::number](mul 2) | \"a\" | twice !| true","expect":"true","decision":"D4","target":true}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34"}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]","decision":"D41"}
@@ -50,3 +50,5 @@
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::ProjectionKeyNotInMapError) | count","expect":"1","decision":"D64"}
 {"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}
+{"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | spec | /verbs | has ::string/gt","expect":"true","decision":"D65","target":true}
+{"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}

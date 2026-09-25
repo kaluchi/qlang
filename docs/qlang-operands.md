@@ -754,6 +754,27 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   `TagModifierNotTagKeywordError`; bare-form subject not a 2-element
   Vec → `TagBareSubjectShapeError`.
 
+### `within`
+
+- **Arity** 2. **Subject** TaggedInstance. **Modifier** a Quote.
+- An edit under one tag: runs the quote against the payload as
+  `apply` runs it, a fork whose declarations stay inside, and mints
+  the answer back under the subject's tag, whose constructor runs
+  once, at the rewrap. The steps between may break the tag's
+  invariant, since an invariant holds of the result. An error the
+  edit answers passes as it is; a deeper stack of tags is reached by
+  nesting `within`.
+- **Examples**:
+  - `#[1 2] | within ~([/0 /0 /1])` → `#[1 2]` — the set's
+    constructor normalizes the vector the edit answers.
+  - `::Box {} | ::Box[1 2] | within ~(reverse)` → `::Box[2 1]`.
+  - `::Box {} | ::Box#[3 1] | within ~(within ~([/1 /0 2]))` →
+    `::Box#[1 2 3]` — two layers, one `within` each.
+- **Errors**: subject not a TaggedInstance →
+  `WithinSubjectNotTaggedInstanceError`; captured arg not a Quote →
+  `WithinCodeNotQuoteError`; an answer the tag's constructor refuses
+  → that constructor's own refusal.
+
 ## Formatting
 
 ### `json`
@@ -1263,7 +1284,7 @@ enumerates).
 | `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
 | `:typeClassifier` | `type` |
-| `:typeConversion` | `keyword`, `payload`, `tag` |
+| `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
 | `:indexedAccess` | `at` |
 | `:format` | `json` |
 | `:error` | `error` |

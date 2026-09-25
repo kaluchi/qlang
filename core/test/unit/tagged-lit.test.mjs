@@ -451,3 +451,42 @@ describe('User-defined tag binding with Quote :impl', () => {
     expect(err.tag).toEqual(makeTagKeyword('TagBindingHasNoConstructorError'));
   });
 });
+
+describe('within edits under one tag and rewraps it', () => {
+  // The payload runs through the quote as a fork and mints back under
+  // the subject's tag, whose constructor runs once, at the rewrap [D41].
+  it('a set normalizes the vector the edit answers', async () => {
+    expect(await evalQuery('#[1 2] | within ~([/0 /0 /1]) | eq #[1 2]')).toBe(true);
+  });
+
+  it('a tag of identity alone stamps its header back on the answer', async () => {
+    expect(await evalQuery('::Box {} | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1]')).toBe(true);
+  });
+
+  it('the constructor runs once, at the rewrap', async () => {
+    expect(await evalQuery(
+      '::wrap {:impl ~(prepend "[" | append "]")} | ::wrap"x" | within ~(append "!") | payload'
+    )).toBe('[[x]!]');
+  });
+
+  it('a constructor that refuses the answer refuses the edit', async () => {
+    expect(await evalQuery('#[1 2] | within ~(count) !| type'))
+      .toEqual(makeTagKeyword('SetPayloadNotVecError'));
+  });
+
+  it('the declarations of the edit stay inside it', async () => {
+    expect(await evalQuery('#[1 2] | within ~(:k 5 | [/0 /1]) | env | has :k')).toBe(false);
+  });
+
+  it('an error the edit or the code answers passes as it is', async () => {
+    expect(await evalQuery('#[1 2] | within ~(!{:k 2}) !| /k')).toBe(2);
+    expect(await evalQuery('#[1 2] | within (!{:k 1}) !| /k')).toBe(1);
+  });
+
+  it('a subject with no tag and a code that is no quote are refused', async () => {
+    expect(await evalQuery('[1 2] | within ~(reverse) !| type'))
+      .toEqual(makeTagKeyword('WithinSubjectNotTaggedInstanceError'));
+    expect(await evalQuery('#[1 2] | within 1 !| type'))
+      .toEqual(makeTagKeyword('WithinCodeNotQuoteError'));
+  });
+});

@@ -1930,10 +1930,7 @@ milestone rewrites.
 
 The milestone's answers are the targets of [D34], [D61], [D62] and
 [D63] in the conformance suite, which `node scripts/requirements.mjs`
-prints as the focus while any of them is open. The met cases that read
-the catalog through `env` and `manifest`, or name a verb of the core
-by a keyword, answer the reading these records replace, so a branch of
-design settles them before the branch that implements the records.
+prints as the focus while any of them is open.
 
 Beside the answers: `::qlang | manifest` lists the nouns; every verb
 of the core is listed under the kind it lives on and none hangs outside

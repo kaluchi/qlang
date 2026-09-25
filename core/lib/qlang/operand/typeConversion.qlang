@@ -158,7 +158,7 @@
   |~~ `within` requires its captured arg to answer a Quote — the
       edit it runs against the payload.
       ~(
-        #[1 2] | within 1
+        #[3 1] | within 1
         !| [type /actualType]
         |  eq [::WithinCodeNotQuoteError ::number]
        )

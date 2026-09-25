@@ -1237,9 +1237,9 @@ errors, and the structure stayed.
 
 The alerts themselves are lit, where the cockpit wants them dark. An
 error carries its whole input, so one failing step over a large value
-prints the value; a name that does not resolve says so and stops; and
-a parse error lists the alternatives of the parser in the parser's own
-vocabulary. On 23 September 2026:
+prints the value, and a parse error lists the alternatives of the
+parser in the parser's own vocabulary; a name that does not resolve
+names the names nearest to it [D7]. On 23 September 2026:
 
 ```sh
 $ qlang 'manifest | add 1' | wc -c
@@ -1248,13 +1248,13 @@ $ qlang 'manifest | add 1' | wc -c
 
 ```qlang
 > [1 2 3] | filtr ~(gt 1)
-::UnresolvedIdentifierError!{ … :identifierName "filtr" }
+::UnresolvedIdentifierError!{ … :identifierName "filtr" :nearest [:filter] }
 
 > [1 2 3] | filter ~(gt 1
 ::ParseError!{ … :expected [:whitespace "|~|" "|~" "|~~|" "|~~" "!|" "|" "*" ")"] … }
 ```
 
-`filtr` is one letter from `filter` and the error does not say so; the
+`filtr` is one letter from `filter`, and the error names it; the
 unclosed quote has one sensible continuation, `)`, and the error names
 every token the parser could have taken there, among them the markers of
 comments.

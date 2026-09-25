@@ -255,12 +255,21 @@
 
 ::UnresolvedIdentifierError
   |~~ Identifier lookup failed — no env binding under that name.
+      `:identifierName` holds the name as typed, and `:nearest` the
+      names of the value namespace it was likely meant to be: those
+      within an edit distance of a third of its length, one at least,
+      and of those the nearest alone, in the order of their spelling.
+      An edit is an insertion, a deletion, a substitution or a swap of
+      two neighbours. A name with nothing near holds `[]`.
 
       ~(
         thisIsNotDefined
         !| [type]
         |  eq [::UnresolvedIdentifierError]
        )
+      ~(fist !| /nearest | eq [:first])
+      ~(:limit 3 | limti !| /nearest | eq [:limit])
+      ~(zzzzqqq !| /nearest | eq [])
   ~~|
 
 ::ParseError

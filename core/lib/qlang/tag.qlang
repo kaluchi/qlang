@@ -199,10 +199,10 @@
       and `apply` run a verb with its defaults. `spec` answers the
       signature.
 
-      ~(:inc ::verb~(add 1) | 5 | inc | inc | eq 7)
-      ~(:top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top 2 | eq [9 7])
-      ~(:m ::verb~(:x ::number | mul 10 | add x) | 2 | m / | eq 22)
-      ~(:big ::verb~(gt 2) | [1 2 3] | filter ~big | eq [3])
+      ~(:double ::verb~(mul 2) | 3 | double | double | eq 12)
+      ~(:least ::verb~(:n 1 | sort | take n) | [4 8 6] | [least (least 2)] | eq [[4] [4 6]])
+      ~(:scale ::verb~(:by ::number | mul by) | [1 2] * scale / | eq [1 4])
+      ~(:big ::verb~(gt 2) | [1 2 3 4] | filter ~big | eq [3 4])
   ~~|
   ::builtin{:impl :qlang/type/verb}
 

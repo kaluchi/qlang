@@ -362,7 +362,7 @@
   |~~ The kind of a doc, the value of a doc literal, prose that
       carries quotes of qlang.
 
-      ~(:add | docs | first | type | eq ::doc)
+      ~(::number/add | docs | first | type | eq ::doc)
   ~~|
   ::builtin{:impl :qlang/type/doc}
 

@@ -15,14 +15,18 @@
    name. ~|
 
 :env
-  |~~ Replaces pipeValue with the current env Map — a Map keyed by
-      binding name carrying every value visible at this point in
-      the pipeline. Inside a fork, returns the fork-local env,
-      including any `as` / BindStep writes that landed in the same
-      branch. Use it for introspection or for forwarding a specific
-      binding to another step (`env | /myFlag`).
+  |~~ Replaces pipeValue with the bindings the scope holds — a Map
+      keyed by binding name carrying what the query, the session and
+      a module's `use` wrote at this point in the pipeline. The verbs
+      and the nouns of the core and of the hosts stay with their
+      providers, listed from `::qlang | manifest`. Inside a fork,
+      returns the fork-local scope, including any `as` / BindStep
+      writes that landed in the same branch. Use it for
+      introspection or for forwarding a specific binding to another
+      step (`env | /myFlag`).
 
-      ~(env | has :count | eq true)
+      ~(:limit 10 | env | keys | eq #[:limit])
+      ~(env | has :count | not)
       ~(42 | as :answer | env | /answer | eq 42)
       ~(99 | as :secret | env | has :secret | eq true)
   ~~|

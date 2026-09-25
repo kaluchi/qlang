@@ -94,3 +94,9 @@ export function moduleNamespaceKey(uri) {
 export function isModuleNamespaceKey(name) {
   return typeof name === 'string' && name.startsWith(MODULE_NAMESPACE_PREFIX);
 }
+
+// A key the runtime keeps for itself, a module's tree, a module's
+// exports or the host's locator, which names no binding.
+export function isRuntimeKey(name) {
+  return isModuleAstKey(name) || isModuleNamespaceKey(name) || name === RUNTIME_LOCATOR_KEY;
+}

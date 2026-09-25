@@ -883,10 +883,13 @@ its own eval handler in `eval.mjs`.
 
 - **Arity** 1. **Subject** irrelevant — `env` ignores its
   pipeline input and reads the evaluator state instead.
-- Replaces `pipeValue` with the current `env` as a Map value.
+- Replaces `pipeValue` with the bindings the scope holds as a Map
+  value: the names the query, the session and a module's `use` wrote.
+  The verbs and the nouns of the core and of the hosts stay with their
+  providers, listed from `::qlang | manifest`.
 - **Examples**:
-  - `env | keys` → a Set of all identifiers in scope.
-  - `env | has :count` → `true` (count is a built-in).
+  - `env | keys` → a Set of the names the scope holds.
+  - `env | has :count` → `false` (count lives on the kinds it serves).
   - `env | /taxRate` → the value of a user binding, or `null`.
 - Inside a fork, returns the fork's current `env` (including any
   fork-local `as` snapshot or BindStep declaration visible at the
@@ -1036,9 +1039,9 @@ its own eval handler in `eval.mjs`.
   Maps — one per Quote segment.
 - Bindings without a source-located BindStep (host-installed
   bindings, runtime-seeded built-ins) return an empty Vec.
-- **Example**: `:count | runExamples | first | /ok` → `true`.
-- **Errors**: subject neither Keyword nor Map-with-`:name`-string
-  → `RunExamplesSubjectShapeError`.
+- **Example**: `::vec/count | runExamples | first | /ok` → `true`.
+- **Errors**: subject neither Keyword, tag name nor
+  Map-with-`:name`-string → `RunExamplesSubjectShapeError`.
 
 ### `:name body` / `:name [:params] body` — BindStep
 
@@ -1187,9 +1190,14 @@ its own eval handler in `eval.mjs`.
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
-  - `:count | docs` → Vec of Doc-values from the `:count` catalog entry.
+  - `::vec/count | docs` → Vec of Doc-values from the `count` catalog
+    entry, read by its address.
   - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
-- **Errors**: no declaring step found → `DocsBindingNotFoundError`.
+  - `:count | docs !| /addresses` → `#[::map/count ::set/count
+    ::vec/count]`: a keyword names a binding of its scope, and the
+    refusal names where the verbs of the name live.
+- **Errors**: no declaring step found → `DocsBindingNotFoundError`,
+  carrying `:addresses`.
 
 ### `examples`
 
@@ -1236,7 +1244,7 @@ its own eval handler in `eval.mjs`.
 - **Examples**:
   - `"x" | add 1 !| spec | /operand` → `:add`.
   - `"x" | add 1 !| spec | /category` → `:typeError`.
-  - `:add | spec | /throws` → the per-site error classes `add` raises.
+  - `::number/add | spec | /throws` → the per-site error classes `add` raises.
   - `::conduit | spec | /impl` → `:qlang/type/conduit`.
 - **Errors**: no declaring step found → `SpecBindingNotFoundError`.
 

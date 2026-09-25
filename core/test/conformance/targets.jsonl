@@ -17,7 +17,7 @@
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | docs | count","expect":"1","decision":"D61"}
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":"::Box |~~ A box. ~~| | ::Box#[3 1] | docs | count","expect":"1","decision":"D61"}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | docs | first | /content | eq (::map | docs | first | /content)","expect":"true","decision":"D61"}
-{"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"],"target":true}
+{"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"]}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | has ::number/add","expect":"true","decision":["D61","D62"]}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::qlang/any | spec | /verbs | has ::any/docs","expect":"true","decision":"D62"}
 {"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | has ::string/docs","expect":"false","decision":"D62"}
@@ -28,7 +28,7 @@
 {"name":"a-module-exposes-what-its-last-step-answers","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D63","target":true}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
-{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62","target":true}
+{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62"}
 {"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62"}
 {"name":"an-address-under-the-core-prints-short","query":"::qlang/vec/count | eq ::vec/count","expect":"true","decision":"D62"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}

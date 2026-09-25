@@ -94,6 +94,16 @@ describe('a tag name that no tag binds addresses a verb', () => {
   });
 });
 
+describe('the scope holds the names it wrote', () => {
+  it('a descriptor the scope binds under a name of its own is its binding', async () => {
+    expect(await evalQuery('{:c (::vec/count | spec)} | use | env | has :c')).toBe(true);
+  });
+
+  it('a value whose kind has no declaration is refused with no address', async () => {
+    expect([...await evalQuery('::Box#[3 1] | docs !| /addresses')]).toEqual([]);
+  });
+});
+
 describe('a name with a path calls the verb its address names', () => {
   it('calls past the bindings of the scope, with the modifiers the call takes', async () => {
     expect(await evalQuery(':count 5 | [1 2 3] | vec/count')).toBe(3);

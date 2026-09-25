@@ -6,9 +6,7 @@
 // hand.
 
 import { keyword } from './types.mjs';
-import {
-  isTagBindingName, isModuleAstKey, isModuleNamespaceKey, RUNTIME_LOCATOR_KEY
-} from './env-keys.mjs';
+import { isTagBindingName, isRuntimeKey } from './env-keys.mjs';
 
 function editDistance(typed, known) {
   const table = Array.from({ length: typed.length + 1 }, () => new Array(known.length + 1).fill(0));
@@ -32,8 +30,7 @@ function editDistance(typed, known) {
 // A name of the value namespace: no tag's, and none of the keys the
 // runtime keeps for itself.
 function isValueName(envKey) {
-  return !isTagBindingName(envKey) && !isModuleAstKey(envKey)
-    && !isModuleNamespaceKey(envKey) && envKey !== RUNTIME_LOCATOR_KEY;
+  return !isTagBindingName(envKey) && !isRuntimeKey(envKey);
 }
 
 export function nearestNames(env, typedName) {

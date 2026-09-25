@@ -99,13 +99,16 @@ function dedent(text) {
 // pull them once on first request and reuse the array on subsequent
 // hovers / completions for the same binding. Cache key is the full
 // binding name including the `::` prefix for tag-namespace lookups
-// so value/tag-namespace entries do not collide.
+// so value/tag-namespace entries do not collide. A keyword names a
+// binding of its scope, so the name of a verb of the core is refused
+// with the addresses where the verb lives, and the first of them is
+// read [D62].
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
   const query = isTagBindingName(name)
     ? `${name} | docs`
-    : `:"${name}" | docs`;
+    : `:"${name}" | docs !| (/addresses | first | if (eq null) ~([]) ~(docs))`;
   let docs;
   try {
     docs = await evalQuery(query);

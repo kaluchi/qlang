@@ -323,9 +323,9 @@ Arity 1. Replaces `pipeValue` with the current `env`:
 
 Enables introspection:
 
-    env | keys         -- set of identifiers in scope
-    env | has :count  -- is the built-in `count` bound?
-    env | /count       -- read a specific binding
+    env | keys         -- set of the names the scope holds
+    env | has :x       -- has the session bound `x`?
+    env | /x           -- read a specific binding
 
 Inside a fork, `env` returns the fork's current env (with any
 fork-local `as` snapshot or BindStep declaration still visible at
@@ -730,8 +730,8 @@ co-located sources:
   probe the header directly. Doc-prefixes attached to each BindStep via
   DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the
   module's `qlang/ast/<uri>` Quote as `step.docs` and are
-  reachable through axis-operands (`:count | docs` returns a
-  Vec of Doc-values, `:count | examples` returns a Vec of every
+  reachable through axis-operands (`::vec/count | docs` returns a
+  Vec of Doc-values, `::vec/count | examples` returns a Vec of every
   `~(…)` Quote segment extracted by `parseDocSegments`). Each
   Quote is a self-test expression `runExamples` evaluates.
   `runtime-invariants.qlang` carries shared and cross-family
@@ -1110,15 +1110,17 @@ derived expressions within the query.
 
 ### Example 8 — env introspection
 
-    > [1 2 3] | env | has :count
+    > :x 1 | [1 2 3] | env | has :x
     true
 
-1. `pipeValue = [1 2 3]`.
-2. `env` — `pipeValue = env` (the current environment as a Map value).
-3. `has :count` — lookup `has`, binary, 1 captured (`:count`).
-   Partial: `has(env, :count) → true`. `pipeValue = true`.
+1. `:x 1` — binds `x` in the scope; `pipeValue` passes on.
+2. `pipeValue = [1 2 3]`.
+3. `env` — `pipeValue` = the bindings the scope holds, as a Map value.
+4. `has :x` — lookup `has`, binary, 1 captured (`:x`).
+   Partial: `has(scope, :x) → true`. `pipeValue = true`.
 
-A query can ask the language what names are available to it.
+A query can ask the language what names it declared, and the core
+what lives on its nouns, `::qlang | manifest`.
 
 ## Language scope boundaries
 

@@ -11,8 +11,9 @@
 import { isQMap, isVec, makeSet, makeTagKeyword, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
-  MODULE_NAMESPACE_PREFIX
+  isRuntimeKey, MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
+
 const ROOT_NOUN_NAME = 'qlang';
 
 function carriesBuiltinShape(value) {
@@ -47,6 +48,42 @@ function subjectKindsOf(descriptor) {
 export function isNoun(env, tagName) {
   const envKey = tagBindingKey(tagName);
   return isProviderNoun(envKey, env.get(envKey));
+}
+
+// A verb or a tag a provider exports under a name stays with its
+// provider, read through the noun it lives on; the scope holds what the
+// query, the session and a module's `use` wrote under a name of their
+// own [D62], [D63].
+export function isProviderBinding(env, name) {
+  const value = env.get(name);
+  if (!carriesBuiltinShape(value)) return false;
+  for (const [, exportsMap] of providerExports(env)) {
+    if (exportsMap.get(name) === value) return true;
+  }
+  return false;
+}
+
+// The bindings the scope holds, the names the query, the session and a
+// module's `use` wrote, with the verbs and the tags of the providers and
+// the keys of the runtime's own apart [D61].
+export function scopeBindingsOf(env) {
+  const scopeBindings = new Map();
+  for (const [name, value] of env) {
+    if (!isRuntimeKey(name) && !isProviderBinding(env, name)) scopeBindings.set(name, value);
+  }
+  return scopeBindings;
+}
+
+// The addresses where the verbs of a name live, one for each kind a verb
+// of that name serves, which a refusal of the name hands on [D62].
+export function addressesOf(env, verbName) {
+  const addresses = [];
+  for (const [, exportsMap] of providerExports(env)) {
+    const descriptor = exportsMap.get(verbName);
+    if (!carriesBuiltinShape(descriptor) || isTagBindingName(verbName)) continue;
+    for (const kindName of subjectKindsOf(descriptor)) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
+  }
+  return makeSet(addresses);
 }
 
 // The nouns under a noun, the whole set for the core's own noun.

@@ -44,10 +44,7 @@ import {
   isErrorValue, typeKeyword, keyword, declarationSiteOf,
   BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import {
-  isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
-  RUNTIME_LOCATOR_KEY
-} from '../env-keys.mjs';
+import { isRuntimeKey, isTagBindingName } from '../env-keys.mjs';
 import { locationToQlangMap } from '../walk.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
@@ -242,9 +239,7 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
   }
   const entries = [];
   for (const [k, v] of state.env) {
-    if (isModuleAstKey(k)) continue;
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
+    if (isRuntimeKey(k)) continue;
     const isTag = isTagBindingName(k);
     if (namespace === 'tag' && !isTag) continue;
     if (namespace === 'value' && isTag) continue;

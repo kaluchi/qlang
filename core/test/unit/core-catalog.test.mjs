@@ -199,7 +199,9 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
     for (const entryKey of coreEnv.keys()) {
       // Skip section-divider plain comments / non-binding env entries.
       if (!isQMap(coreEnv.get(entryKey))) continue;
-      const docs = await evalQuery(`:"${entryKey}" | docs`);
+      // A keyword names a binding of the scope, so the verb is read by
+      // the first address its refusal hands on [D62].
+      const docs = await evalQuery(`:"${entryKey}" | docs !| /addresses | first | docs`);
       expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
       for (const doc of docs) {
         expect(typeof doc.content).toBe('string');
@@ -207,17 +209,17 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
     }
   });
 
-  it('spot-check — :count docs mention polymorphic and container kinds', async () => {
+  it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const docs = await evalQuery(':count | docs');
+    const docs = await evalQuery('::vec/count | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('number of elements');
     expect(joined).toContain('Polymorphic');
   });
 
-  it('spot-check — :filter docs describe the predicate semantics', async () => {
+  it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const docs = await evalQuery(':filter | docs');
+    const docs = await evalQuery('::vec/filter | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('boolean');

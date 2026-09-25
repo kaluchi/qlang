@@ -1984,13 +1984,15 @@ All three use the same mechanism: Map + pipeline.
 
 ### `env` — read the current environment
 
-The `env` operand returns the full current `env` Map as `pipeValue`.
-Every binding — built-in operands, domain functions, BindStep-
-installed conduits, `as` snapshots — is a field in this Map.
+The `env` operand returns the bindings the scope holds as
+`pipeValue`: the names the query, the session and a module's `use`
+wrote — domain functions, BindStep-installed conduits, `as`
+snapshots. The verbs of the core live on its nouns, listed from
+`::qlang | manifest`.
 
 ```qlang
-env | /count                |~| the built-in count function
-env | manifest | count      |~| how many bindings are in scope
+:x 1 | env | /x             |~| a binding of the session
+env | keys | count          |~| how many names the scope holds
 ```
 
 ### Axis-operands — `source` / `docs` / `examples`
@@ -2045,14 +2047,24 @@ entirely and address the binding directly (`:filter | source`).
 | `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
-> :filter | docs | first | type | eq ::doc
+> ::vec/filter | docs | first | type | eq ::doc
 true
 
 > ::ParseError | source | parse | startsWith "::ParseError"
 true
 
-> :count | examples | first | type | eq ::quote
+> ::vec/count | examples | first | type | eq ::quote
 true
+```
+
+A keyword names a binding of the scope where it stands, one the query,
+the session or a module's `use` wrote, and a verb of the core is read
+by its address; a keyword spelling the name of such a verb is refused
+with the addresses where the verb lives:
+
+```qlang
+> :count | docs !| /addresses
+#[::map/count ::set/count ::vec/count]
 ```
 
 Lookup walks the `qlang/ast/<uri>` module Quote that

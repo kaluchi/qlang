@@ -1,0 +1,17 @@
+{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type /index /actualType]","expect":"[::FilterConditionNotBooleanError 0 ::number]"}
+{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /index","expect":"1"}
+{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::EveryConditionNotBooleanError 1]"}
+{"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(/)","expect":"false"}
+{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::AnyConditionNotBooleanError 1]"}
+{"name":"if-refuses-a-null-condition","query":"null | if (/) ~(1) ~(2) !| type","expect":"::IfConditionNotBooleanError"}
+{"name":"if-with-an-identity-branch-runs-the-branch","query":"5 | if (gt 0) ~(add 100) ~()","expect":"105"}
+{"name":"if-with-an-identity-branch-leaves-the-subject","query":"-5 | if (gt 0) ~(add 100) ~()","expect":"-5"}
+{"name":"cond-hands-on-the-error-of-a-predicate","query":"\"x\" | cond ~(noSuchName) ~(1) !| type","expect":"::UnresolvedIdentifierError"}
+{"name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::AndLeftNotBooleanError"}
+{"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::OrRightNotBooleanError"}
+{"name":"not-negates-a-boolean","query":"false | not","expect":"true"}
+{"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]"}
+{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":"|~~ ~(1) ~~| :x 1 | :x | runExamples | first | /ok","expect":"false"}
+{"name":"runExamples-passes-an-example-that-answers-true","query":"|~~ ~(true) ~~| :x 1 | :x | runExamples | first | /ok","expect":"true"}
+{"name":"when-left-the-catalog","query":"5 | when true ~(1) !| type","expect":"::UnresolvedIdentifierError"}
+{"name":"a-predicate-may-name-an-operand","query":"[true false] | filter ~(not)","expect":"[false]"}

@@ -285,7 +285,7 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
 
   it('holds the control-flow primitives', async () => {
     await import('../../src/runtime/index.mjs');
-    for (const name of ['if', 'when', 'unless', 'coalesce', 'cond', 'firstTruthy']) {
+    for (const name of ['if', 'coalesce', 'cond']) {
       expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });

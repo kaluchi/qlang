@@ -8,8 +8,8 @@
    the loaded module's AST, symmetric with catalog error tags. ~|
 
 ::AssertionFailedError
-  |~~ Raised by `assert` when the predicate evaluates falsy
-      against pipeValue. Descriptor carries `:message` (the
+  |~~ Raised by `assert` when the predicate answers false
+      against pipeValue, a predicate answering a boolean. Descriptor carries `:message` (the
       caller-supplied prose) and `:value` (the pipeValue that
       tripped the assertion).
 
@@ -23,7 +23,7 @@
 
 ::PostconditionFailedError
   |~~ Raised by `ensure` when the postcondition predicate
-      evaluates falsy after a pipeline transformation. Same
+      answers false after a pipeline transformation. Same
       descriptor shape as ::AssertionFailedError: `:message`
       (caller prose) and `:value` (pipeValue at the moment of
       failure).

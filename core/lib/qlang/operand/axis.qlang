@@ -86,7 +86,7 @@
   |~~ `:name | examples` — Vec of Quote-values extracted from the
       binding's docs. `runExamples` consumes this Vec to evaluate
       each Quote against an isolated env; `:ok` is true iff the
-      result is truthy.
+      example answers true.
 
       ~(:filter | examples | count | gt 0)
       ~(:filter | examples | first | parse | contains "filter")

@@ -596,7 +596,7 @@ form, so the runner holds a string's answer against its raw print first.
 $ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
       2 LOSSY
      19 MET
-     74 ok
+     77 ok
      11 target
 ```
 

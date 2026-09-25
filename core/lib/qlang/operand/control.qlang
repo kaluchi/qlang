@@ -10,15 +10,28 @@
       ~(5 | if (gt 0) ~("positive") ~("non-positive") | eq "positive")
       ~(-1 | if (gt 0) ~("positive") ~("non-positive") | eq "non-positive")
       ~({:age 25} | if (/age | gte 18) ~("adult") ~("minor") | eq "adult")
+      ~(5 | if (gt 0) ~(add 100) ~() | eq 105)
 
-      Truthiness: `null` and `false` are falsy; every other value —
-      including `0`, `""`, `[]`, `{}`, `#[]` — is truthy. ~~|
+      The condition answers a boolean; a value of another kind is
+      refused, since a condition that is not a boolean has no second
+      reading. The empty quote `~()` is the branch that leaves
+      pipeValue as it is. ~~|
   ::builtin{:impl :qlang/prim/if
             :category :control
             :subject :any
             :returns :any
             :modifiers [:any :pipeline :pipeline]
    }
+
+::IfConditionNotBooleanError
+  |~~ The condition of `if` answers a boolean; null, a number, a string
+      or any other value is refused where it stands.
+      ~(
+        5 | if 1 ~("yes") ~("no")
+        !| [type /actualType]
+        |  eq [::IfConditionNotBooleanError ::number]
+       )
+  ~~|
 
 ::IfThenNotQuoteError
   |~~ The then branch of `if` is code it runs only when chosen, so it
@@ -40,66 +53,12 @@
        )
   ~~|
 
-:when
-  |~~ Guarded transform: `when cond ~(then)`. When cond is truthy,
-      the then sub-pipeline fires against pipeValue; otherwise
-      pipeValue passes through unchanged. Use for "do X only if
-      condition holds, else leave the value alone".
-
-      ~(5 | when (gt 0) ~(add 100) | eq 105)
-      ~(-5 | when (gt 0) ~(add 100) | eq -5)
-      ~({:level "warn"} | when (/level | eq "error") ~("ALERT") | eq {:level "warn"})
-  ~~|
-  ::builtin{:impl :qlang/prim/when
-            :category :control
-            :subject :any
-            :returns :any
-            :modifiers [:any :pipeline]
-   }
-
-::WhenBranchNotQuoteError
-  |~~ The branch of `when` is code it runs only when chosen, so it
-      takes a quote, `when (gt 0) ~(add 100)`; every branch is checked at the call.
-      ~(
-        5 | when true "yes"
-        !| [type /actualType]
-        |  eq [::WhenBranchNotQuoteError ::string]
-       )
-  ~~|
-
-:unless
-  |~~ Inverse of `when`: `unless cond ~(then)` fires the then
-      sub-pipeline only when cond is falsy; truthy pipeValue passes
-      through unchanged. Reads naturally for fallback / default
-      patterns ("if no real value, supply this one").
-
-      ~(null | unless (type | eq ::number) ~(0) | eq 0)
-      ~(42 | unless (type | eq ::number) ~(0) | eq 42)
-      ~({:name null} | unless /name ~("anonymous") | eq "anonymous")
-  ~~|
-  ::builtin{:impl :qlang/prim/unless
-            :category :control
-            :subject :any
-            :returns :any
-            :modifiers [:any :pipeline]
-   }
-
-::UnlessBranchNotQuoteError
-  |~~ The branch of `unless` is code it runs only when chosen, so it
-      takes a quote, `unless (gt 0) ~(0)`; every branch is checked at the call.
-      ~(
-        5 | unless false "yes"
-        !| [type /actualType]
-        |  eq [::UnlessBranchNotQuoteError ::string]
-       )
-  ~~|
-
 :coalesce
   |~~ Walks the captured alternatives in order, evaluating each
       against pipeValue, and returns the first result that is
       neither null nor an error value. Every other value —
-      including the falsy ones false, 0, "", [], {}, #[] — short-
-      circuits the iteration. All-skip chain yields null. Use the
+      false, 0, "", [], {}, #[] among them — short-circuits the
+      iteration. All-skip chain yields null. Use the
       `coalesce ~(/key) ~(fallback)` shape to read "use /key when
       defined, else fallback" — `/key` produces an error on a
       missing-key Map, which the skip rule treats the same as
@@ -135,52 +94,14 @@
        )
   ~~|
 
-:firstTruthy
-  |~~ Walks the captured alternatives in order, evaluating each
-      against pipeValue, and returns the first truthy result.
-      Skip rule covers null, false, and error values. All-skip
-      chain yields null. Reach for `firstTruthy` when false is a
-      sentinel meaning "no value"; reach for `coalesce` when
-      false is a valid explicit setting.
-
-      ~({:override false :default "fallback"} | firstTruthy ~(/override) ~(/default) | eq "fallback")
-      ~({:override "win" :default "fallback"} | firstTruthy ~(/override) ~(/default) | eq "win")
-      ~({:a 2} | firstTruthy ~(/missing) ~(/a) | eq 2)
-      ~(5 | firstTruthy ~(eq 10) ~(eq 5) | eq true)
-  ~~|
-  ::builtin{:impl :qlang/prim/firstTruthy
-            :category :control
-            :subject :any
-            :returns :any
-            :modifiers [:pipeline]}
-
-::FirstTruthyNoAlternativesError
-  |~~ `firstTruthy` requires at least one captured alternative sub-pipeline.
-      ~(
-        {} | firstTruthy
-        !| [type]
-        |  eq [::FirstTruthyNoAlternativesError]
-       )
-  ~~|
-
-::FirstTruthyAlternativeNotQuoteError
-  |~~ Every alternative of `firstTruthy` is code it runs only when reached, so
-      each takes a quote, `firstTruthy ~(/b) ~(/a)`; `:index` counts the modifiers from 1.
-      ~(
-        {:a 1} | firstTruthy /a
-        !| [type /index /actualType]
-        |  eq [::FirstTruthyAlternativeNotQuoteError 1 ::number]
-       )
-  ~~|
-
 :cond
   |~~ Multi-way dispatch over alternating (predicate, branch)
       sub-pipeline pairs. Walks captured args in pairs; returns
-      the result of the first branch whose predicate evaluates
-      truthy against pipeValue. If captured-arg count is odd, the
-      trailing arg is the default branch. If even and no match,
-      returns null. Replaces nested-if chains with a flat
-      catalog.
+      the result of the first branch whose predicate answers true
+      against pipeValue, each predicate answering a boolean. If
+      captured-arg count is odd, the trailing arg is the default
+      branch. If even and no match, returns null. Replaces
+      nested-if chains with a flat catalog.
 
       ~(85 | cond ~(gte 90) ~("A") ~(gte 80) ~("B") ~(gte 70) ~("C") ~("F") | eq "B")
       ~(65 | cond ~(gte 90) ~("A") ~(gte 80) ~("B") ~(gte 70) ~("C") ~("F") | eq "F")
@@ -198,6 +119,17 @@
         5 | cond
         !| [type]
         |  eq [::CondNoBranchesError]
+       )
+  ~~|
+
+::CondConditionNotBooleanError
+  |~~ Every predicate of `cond` answers a boolean; `:index` counts the
+      modifiers from 1 and names the predicate that answered another
+      kind.
+      ~(
+        5 | cond ~(1) ~("yes")
+        !| [type /index /actualType]
+        |  eq [::CondConditionNotBooleanError 1 ::number]
        )
   ~~|
 

@@ -792,29 +792,46 @@ several layers of pipelines, keeps its shape: the reference's `:@topBy
 [:keyFn :n] (sort ~(keyFn) | reverse | take n)` receives its key as a
 quote that carries its caller's environment and hands it on as a value.
 
-A predicate slot refuses a result that is not a boolean, so a predicate
-that answers a string or a quote fails at the slot instead of counting
-as true, and a result that is an error is the error itself, by
-the one law for nested errors [D14]. The same refusal reaches every
-condition: `not` takes a boolean, `firstTruthy` becomes `coalesce`,
-`when` and `unless` become `if` with an identity branch, and the three
-leave the catalog; the test for null is `eq null` followed by `not`,
-and whether that test earns an operand of its own is a question the
-benchmark answers. A predicate over a Map sees the value alone, by the
-rule for maps stated with the containers [D15]; the conformance cases
-that bind `[:k :v]` are the ones that change. And `runExamples`
-counts an example as passed only when it answers `true`, where today
-it passes anything that is neither `false`, `null` nor an error.
+A predicate slot refuses a result that is not a boolean [D14], so a
+predicate that answers a string or a quote fails at the slot, `[1 2] |
+filter ~(1)` lifting `::FilterConditionNotBooleanError` with `:index 0`,
+and a result that is an error is the error itself, which `filter`,
+`every`, `any` and `cond` hand on. The same refusal reaches every
+condition: `if` and `cond` refuse a condition of another kind, `and`,
+`or` and `not` take booleans, `when` and `unless` became `if` with an
+identity branch, `if (gt 0) ~(add 100) ~()`, and `firstTruthy` gave way
+to `coalesce`, the three gone from the catalog; the test for null is `eq
+null`, and whether that test earns an operand of its own is a question
+the benchmark answers. A predicate over a Map sees the value alone, by
+the rule for maps stated with the containers [D15]. And `runExamples`
+counts an example as passed only when it answers `true`. A condition
+computed at the call, that of `if` and the operands of `and` and `or`,
+refuses an error value by the tag of its site as every value slot does,
+and the one law for nested errors, under which a place declared for a
+kind hands the error on unchanged, comes with the kinds of the slots
+[D13].
+
+```qlang
+> [1 2] | filter ~(1) !| [type /index]
+[::FilterConditionNotBooleanError 0]
+
+> 5 | if (gt 0) ~(add 100) ~()
+105
+
+> null | not !| type
+::NotSubjectNotBooleanError
+```
 
 What a lenient slot costs was measured on the sister project the day
 it moved onto the workspace copy. Its dispatch of `@problems` tested
 `cond(isNull, …)` after the core had removed `isNull`, and every node
-took the first branch, since the refusal in the predicate slot counts
-as true and nothing reports it:
+took the first branch, since the refusal in the predicate slot counted
+as true and nothing reported it. The predicate's refusal now comes out
+of `cond` as it is:
 
 ```qlang
 > "x" | cond ~(noSuchName) ~("first") ~("second")
-"first"
+::UnresolvedIdentifierError!{ … :identifierName "noSuchName" }
 ```
 
 The declaration is also where help comes from. Once the runtime reads
@@ -1814,7 +1831,7 @@ the tables are false in places, because nothing executes them:
   ```
 
 - The example of a quote-bodied constructor, `::cond`, calls `first`
-  with a modifier and an `isTruthy` that does not exist, and fails.
+  with a modifier, and fails.
 - The grammar chapter has no quote, no tag, no doc and no binding form.
 - The tables of the plain and tagged JSON codecs describe envelopes
   the code does not produce: a vector is `$vec`, and an error does not
@@ -1822,9 +1839,6 @@ the tables are false in places, because nothing executes them:
 - The embedding API tells a host to install its operands with
   `session.bind(name, fn)`, which the runtime's own render guard calls
   a leak of a function value.
-- The chapter on booleans says no other value coerces to a boolean,
-  and the chapter on truthiness, in the same document, coerces every
-  value.
 
 The executable half stayed true and the narrated half rotted, inside
 one document. That is the argument for the principle of executable
@@ -3440,8 +3454,8 @@ modifier at the call against the subject; a quote is applied to each
 input the operand hands it, in the environment of the call, and any
 other value, an error value among them, is refused by the tag of that
 site, `::FilterPredicateNotQuoteError` and its kin, each declared in the
-catalog beside its operand [D46]. The condition of `if`, `when` and
-`unless` is declared a value, as D43 wants, and the renderer of `@out`
+catalog beside its operand [D46]. The condition of `if` is declared a
+value, as D43 wants, and the renderer of `@out`
 and `@err` a string, since each runs once against the subject. A
 declared pipeline keeps its lazy parameters, so a call of one carries no
 tilde until the argument model makes its parameters values [D43, D44]. A

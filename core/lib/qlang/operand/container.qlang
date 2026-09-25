@@ -50,8 +50,9 @@
       predicate. Polymorphic over Vec / Set / Map, a map's elements
       being its values: the predicate fires per element with it as
       pipeValue, and a conduit of one parameter [:x] binds it as a
-      captured-arg. Short-circuits on the first falsy result.
-      Vacuously true for empty containers.
+      captured-arg. The predicate answers a boolean, and every
+      short-circuits on the first false. Vacuously true for empty
+      containers.
 
       ~([2 4 6 8] | every ~(gt 0) | eq true)
       ~([1 2 3] | every ~(gt 2) | eq false)
@@ -85,6 +86,16 @@
        )
   ~~|
 
+::EveryConditionNotBooleanError
+  |~~ The predicate of `every` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+      ~(
+        [1 2] | every ~(1)
+        !| [type /index /actualType]
+        |  eq [::EveryConditionNotBooleanError 0 ::number]
+       )
+  ~~|
+
 ::EveryPredicateNotQuoteError
   |~~ The predicate of `every` is code it runs on each element, so it takes a
       quote, `every ~(gt 0)`; a value computed at the call is refused.
@@ -99,8 +110,8 @@
   |~~ Returns true iff at least one item of the container
       satisfies the predicate. Polymorphic over Vec / Set / Map,
       a map's elements being its values, with the same dispatch as
-      every. Short-circuits on the first truthy result. Vacuously false
-      for empty containers.
+      every, the predicate answering a boolean. Short-circuits on the
+      first true. Vacuously false for empty containers.
 
       ~([1 2 3] | any ~(gt 2) | eq true)
       ~([1 2 3] | any ~(gt 99) | eq false)
@@ -133,6 +144,16 @@
        )
   ~~|
 
+::AnyConditionNotBooleanError
+  |~~ The predicate of `any` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+      ~(
+        [1 2] | any ~(1)
+        !| [type /index /actualType]
+        |  eq [::AnyConditionNotBooleanError 0 ::number]
+       )
+  ~~|
+
 ::AnyPredicateNotQuoteError
   |~~ The predicate of `any` is code it runs on each element, so it takes a
       quote, `any ~(gt 2)`; a value computed at the call is refused.
@@ -144,8 +165,9 @@
   ~~|
 
 :filter
-  |~~ Keeps items of the container where the predicate evaluates
-      truthy, returning a new container of the same shape. A map's
+  |~~ Keeps items of the container whose predicate answers true,
+      returning a new container of the same shape; the predicate
+      answers a boolean. A map's
       elements are its values: the predicate sees the value, and the
       entries whose value passes keep their keys. A conduit of one
       parameter [:x] binds the element as its captured-arg; the joint
@@ -182,6 +204,16 @@
         [1 2] | :@kv [:k :v] true | filter ~(@kv)
         !| [type /conduitName /actualArity]
         |  eq [::FilterPredArityInvalidError :@kv 2]
+       )
+  ~~|
+
+::FilterConditionNotBooleanError
+  |~~ The predicate of `filter` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+      ~(
+        [1 2] | filter ~(1)
+        !| [type /index /actualType]
+        |  eq [::FilterConditionNotBooleanError 0 ::number]
        )
   ~~|
 

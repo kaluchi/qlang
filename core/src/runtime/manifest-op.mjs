@@ -256,10 +256,10 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 // `use :jdt/graph` reaches the documented `::TypeNotFound`. Env
 // immutability keeps the example's BindStep / `as` writes off the
 // session env — `evalQuery` forges its own env through `envSet`
-// when it stamps the inline-AST Quote. A result of `false`,
-// `null`, or an ErrorValue counts as `:ok false`, every other
-// value as `:ok true`; the return is a Vec of result Maps, one per
-// Quote segment.
+// when it stamps the inline-AST Quote. An example passes when it
+// answers `true` [D14], and every other answer, an ErrorValue
+// among them, counts as `:ok false`; the return is a Vec of result
+// Maps, one per Quote segment.
 async function runQuoteEntry(quote, callerState) {
   const result = new Map();
   result.set('snippet', quote);
@@ -272,7 +272,7 @@ async function runQuoteEntry(quote, callerState) {
   }
   result.set('actual', actualValue);
   result.set('error', null);
-  result.set('ok', actualValue !== false && actualValue !== null);
+  result.set('ok', actualValue === true);
   return result;
 }
 

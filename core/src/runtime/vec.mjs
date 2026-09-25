@@ -6,24 +6,10 @@
 // elements?" regardless of container shape.
 //
 // `filter` / `every` / `any` are container-universal item-select
-// operands. On Vec and Set the predicate fires against each
-// element. On Map the predicate dispatch reads the captured arg's
-// arity:
-//
-//   0-arity pipeline (`filter ~(gt 1)`) or 1-arity conduit (`[:v]`)
-//     → per entry with value as pipeValue; key is not visible.
-//   2-arity conduit (`[:k :v]`)
-//     → per entry with (key, value) as captured-arg values; pipeValue
-//       is the value. Writing the predicate as a named conduit
-//       binding is the idiom for both-axis filtering:
-//
-//         m
-//           | :@hot [:k :v] (and (k | eq :x) (v | gt 1))
-//           | filter ~(@hot)
-//
-//   3+-arity → per-operand arityError. The language does not
-//     pair-encode keys/values into a single argument; higher arities
-//     are not meaningful for entry iteration.
+// operands: the predicate fires against each element, a map's value
+// being its element [D15], and `filter` keeps the keys of the entries
+// it keeps. A conduit of one parameter binds the element; one of two
+// or more has no axis to fill and raises the per-operand arity error.
 //
 // Every type check inlines its own `throw new X(...)` statement
 // so the class name and source line uniquely identify the failing
@@ -33,7 +19,7 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL, keyword,
+  isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL,
   isOrderedSequence, sequenceElements, isVec, isQMap
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
@@ -76,50 +62,32 @@ import {
 
 const CountSubjectNotContainerError    = declareSubjectError('CountSubjectNotContainerError',    'count',    ['vec', 'set', 'map']);
 const EmptySubjectNotContainerError    = declareSubjectError('EmptySubjectNotContainerError',    'empty',    ['vec', 'set', 'map']);
-const FirstSubjectNotSequenceError     = declareSubjectError('FirstSubjectNotSequenceError',     'first',    ['vec', 'set']);
-const LastSubjectNotSequenceError      = declareSubjectError('LastSubjectNotSequenceError',      'last',     ['vec', 'set']);
-const SumSubjectNotVecOrSetError       = declareSubjectError('SumSubjectNotVecOrSetError',       'sum',      ['vec', 'set']);
-const MinSubjectNotVecOrSetError       = declareSubjectError('MinSubjectNotVecOrSetError',       'min',      ['vec', 'set']);
-const MaxSubjectNotVecOrSetError       = declareSubjectError('MaxSubjectNotVecOrSetError',       'max',      ['vec', 'set']);
+const FirstSubjectNotSequenceError     = declareSubjectError('FirstSubjectNotSequenceError',     'first',    ['vec', 'set', 'map']);
+const LastSubjectNotSequenceError      = declareSubjectError('LastSubjectNotSequenceError',      'last',     ['vec', 'set', 'map']);
+const SumSubjectNotContainerError      = declareSubjectError('SumSubjectNotContainerError',      'sum',      ['vec', 'set', 'map']);
+const MinSubjectNotContainerError      = declareSubjectError('MinSubjectNotContainerError',      'min',      ['vec', 'set', 'map']);
+const MaxSubjectNotContainerError      = declareSubjectError('MaxSubjectNotContainerError',      'max',      ['vec', 'set', 'map']);
 const FilterSubjectNotContainerError   = declareSubjectError('FilterSubjectNotContainerError',   'filter',   ['vec', 'set', 'map']);
 const EverySubjectNotContainerError    = declareSubjectError('EverySubjectNotContainerError',    'every',    ['vec', 'set', 'map']);
 const AnySubjectNotContainerError      = declareSubjectError('AnySubjectNotContainerError',      'any',      ['vec', 'set', 'map']);
 
-// Per-operand arity-invalid classes — predicate conduit arity limits
-// at each filter/every/any call site. On Vec or Set the predicate has
-// one axis: 0 params read element-as-pipeValue, 1 param [:x] binds the
-// element as a named captured-arg. Two or more params on Vec/Set have
-// no axis to fill → per-operand *VecOrSetPredArityInvalid. On Map the
-// predicate has two axes: 0/1 read value; 2 params [:k :v] bind both.
-// Three or more on Map → per-operand *MapPredArityInvalid.
-const FilterVecOrSetPredArityInvalidError = declareArityError('FilterVecOrSetPredArityInvalidError',
+// Per-operand arity-invalid classes — a predicate conduit reads the
+// element, a map's value among them [D15]: 0 params read it as
+// pipeValue, 1 param [:x] binds it as a named captured-arg, and two or
+// more have no axis to fill.
+const FilterPredArityInvalidError = declareArityError('FilterPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `filter over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
+    `filter requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
   { operand: 'filter' }
 );
-const EveryVecOrSetPredArityInvalidError  = declareArityError('EveryVecOrSetPredArityInvalidError',
+const EveryPredArityInvalidError  = declareArityError('EveryPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `every over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
+    `every requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
   { operand: 'every' }
 );
-const AnyVecOrSetPredArityInvalidError    = declareArityError('AnyVecOrSetPredArityInvalidError',
+const AnyPredArityInvalidError    = declareArityError('AnyPredArityInvalidError',
   ({ conduitName, actualArity }) =>
-    `any over Vec or Set requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
-  { operand: 'any' }
-);
-const FilterMapPredArityInvalidError = declareArityError('FilterMapPredArityInvalidError',
-  ({ conduitName, actualArity }) =>
-    `filter over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`,
-  { operand: 'filter' }
-);
-const EveryMapPredArityInvalidError  = declareArityError('EveryMapPredArityInvalidError',
-  ({ conduitName, actualArity }) =>
-    `every over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`,
-  { operand: 'every' }
-);
-const AnyMapPredArityInvalidError    = declareArityError('AnyMapPredArityInvalidError',
-  ({ conduitName, actualArity }) =>
-    `any over Map requires a predicate conduit with 0, 1, or 2 params, got conduit '${conduitName}' with ${actualArity} params`,
+    `any requires a predicate conduit with 0 or 1 params, got conduit '${conduitName}' with ${actualArity} params`,
   { operand: 'any' }
 );
 const GroupBySubjectNotSequenceError   = declareSubjectError('GroupBySubjectNotSequenceError',   'groupBy',  ['vec', 'set']);
@@ -132,12 +100,12 @@ const IndexByKeyNotKeywordError        = declareShapeError('IndexByKeyNotKeyword
   ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
   { operand: 'indexBy', expectedType: 'keyword' }
 );
-const SortNaturalSubjectNotSequenceError = declareSubjectError('SortNaturalSubjectNotSequenceError', 'sort',     ['vec', 'set']);
-const SortByKeySubjectNotSequenceError   = declareSubjectError('SortByKeySubjectNotSequenceError',   'sort',     ['vec', 'set']);
-const TakeSubjectNotSequenceError        = declareSubjectError('TakeSubjectNotSequenceError',        'take',     ['vec', 'set']);
-const DropSubjectNotSequenceError        = declareSubjectError('DropSubjectNotSequenceError',        'drop',     ['vec', 'set']);
+const SortNaturalSubjectNotSequenceError = declareSubjectError('SortNaturalSubjectNotSequenceError', 'sort',     ['vec', 'set', 'map']);
+const SortByKeySubjectNotSequenceError   = declareSubjectError('SortByKeySubjectNotSequenceError',   'sort',     ['vec', 'set', 'map']);
+const TakeSubjectNotSequenceError        = declareSubjectError('TakeSubjectNotSequenceError',        'take',     ['vec', 'set', 'map']);
+const DropSubjectNotSequenceError        = declareSubjectError('DropSubjectNotSequenceError',        'drop',     ['vec', 'set', 'map']);
 const DistinctSubjectNotSequenceError    = declareSubjectError('DistinctSubjectNotSequenceError',    'distinct', ['vec', 'set']);
-const ReverseSubjectNotSequenceError     = declareSubjectError('ReverseSubjectNotSequenceError',     'reverse',  ['vec', 'set']);
+const ReverseSubjectNotSequenceError     = declareSubjectError('ReverseSubjectNotSequenceError',     'reverse',  ['vec', 'set', 'map']);
 const FlatSubjectNotSequenceError        = declareSubjectError('FlatSubjectNotSequenceError',        'flat',     ['vec', 'set']);
 
 // The slot that runs code per element takes a quote, and a value
@@ -202,25 +170,32 @@ function sequenceOrThrow(container, ErrorCls) {
   throw new ErrorCls(container);
 }
 
+// elementsOrThrow(container, ErrorCls) — the elements a value reducer
+// reads: a sequence's own, and a map's values [D15].
+function elementsOrThrow(container, ErrorCls) {
+  if (isQMap(container)) return [...container.values()];
+  return sequenceOrThrow(container, ErrorCls);
+}
+
 // O(1) Set fast path — `subject.values().next().value` skips the
 // `[...subject]` materialization `sequenceOrThrow` performs.
 export const first = nullaryOp('first', (subject) => {
   if (isVec(subject)) {
     return subject.length === 0 ? NULL : subject[0];
   }
-  if (isQSet(subject)) {
+  if (isQSet(subject) || isQMap(subject)) {
     return subject.size === 0 ? NULL : subject.values().next().value;
   }
   throw new FirstSubjectNotSequenceError(subject);
 });
 
 export const last = nullaryOp('last', (subject) => {
-  const items = sequenceOrThrow(subject, LastSubjectNotSequenceError);
+  const items = elementsOrThrow(subject, LastSubjectNotSequenceError);
   return items.length === 0 ? NULL : items[items.length - 1];
 });
 
 export const sum = nullaryOp('sum', (container) => {
-  const items = sequenceOrThrow(container, SumSubjectNotVecOrSetError);
+  const items = elementsOrThrow(container, SumSubjectNotContainerError);
   let total = 0;
   for (let i = 0; i < items.length; i++) {
     if (typeof items[i] !== 'number') {
@@ -233,7 +208,7 @@ export const sum = nullaryOp('sum', (container) => {
 });
 
 export const min = nullaryOp('min', (container) => {
-  const items = sequenceOrThrow(container, MinSubjectNotVecOrSetError);
+  const items = elementsOrThrow(container, MinSubjectNotContainerError);
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
@@ -243,7 +218,7 @@ export const min = nullaryOp('min', (container) => {
 });
 
 export const max = nullaryOp('max', (container) => {
-  const items = sequenceOrThrow(container, MaxSubjectNotVecOrSetError);
+  const items = elementsOrThrow(container, MaxSubjectNotContainerError);
   if (items.length === 0) return NULL;
   let acc = items[0];
   for (let i = 1; i < items.length; i++) {
@@ -254,66 +229,24 @@ export const max = nullaryOp('max', (container) => {
 
 // ── Vec → Vec transformers ─────────────────────────────────────
 
-// containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls,
-//                       MapArityErrorCls) — resolves the captured-arg
-// predicate for filter/every/any and returns a per-item applier. The
-// applier signature depends on `shape`:
-//
-//   • 'single' (Vec/Set)  → (item) → predResult
-//   • 'pair'   (Map)      → (key, value) → predResult
-//
-// When the captured expression is a bare identifier resolving to a
-// conduit, the conduit's `:params` arity picks the dispatch:
-//
-//   arity 0                 — default predLambda path (inline pipeline
-//                             or 0-arity conduit; pipeValue is the
-//                             element on Vec/Set, the value on Map).
-//   arity 1 [:x]            — the element (Vec/Set) or value (Map) is
-//                             bound as the single captured-arg of the
-//                             conduit body. Allowed on all three
-//                             shapes; pipeValue mirrors the captured
-//                             value so references to pipeValue inside
-//                             the body stay aligned with the element
-//                             / value axis.
-//   arity 2 [:k :v]         — bound as (key, value). Only meaningful
-//                             on Map (shape = 'pair'); on Vec/Set one
-//                             axis exists and the second param has
-//                             nothing to fill → VecOrSetArityErrorCls.
-//   arity 3+                — per-shape arity-invalid class. Throws
-//                             VecOrSetArityErrorCls on 'single' and
-//                             MapArityErrorCls on 'pair'.
-//
-// The arity check fires once per container subject (not per entry)
-// because `:params.length` is static — the dispatch rejects up
-// front with a shape-specific class, sparing every entry from
-// a generic ConduitArityMismatchError.
-function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArityErrorCls) {
+// containerPredDispatch(predLambda, ArityErrorCls) — the per-element
+// applier of filter / every / any, a map's value being its element
+// [D15]. When the captured expression is a bare identifier resolving
+// to a conduit, a conduit of one parameter [:x] binds the element and
+// mirrors it as pipeValue, and one of two or more has no axis to fill
+// and is refused once per subject; any other predicate runs with the
+// element as pipeValue.
+function containerPredDispatch(predLambda, ArityErrorCls) {
   const resolved = resolveCapturedConduit(predLambda.astNode, predLambda.capturedState.env);
   if (resolved) {
     const paramCount = resolved.conduit.get(CONDUIT_PARAMS_FIELD).length;
-    const conduitName = resolved.conduit.get('name');
     if (paramCount === 1) {
-      if (shape === 'pair') {
-        return async (_mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [mapValue], mapValue, predLambda.capturedState);
-      }
       return async (item) =>
         await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [item], item, predLambda.capturedState);
     }
-    if (paramCount === 2) {
-      if (shape === 'pair') {
-        return async (mapKey, mapValue) =>
-          await invokeConduitWithFixedArgs(resolved.conduit, resolved.lookupName, [keyword(mapKey), mapValue], mapValue, predLambda.capturedState);
-      }
-      throw new VecOrSetArityErrorCls({ conduitName, actualArity: paramCount });
+    if (paramCount >= 2) {
+      throw new ArityErrorCls({ conduitName: resolved.conduit.get('name'), actualArity: paramCount });
     }
-    if (paramCount >= 3) {
-      const ArityErrorCls = shape === 'pair' ? MapArityErrorCls : VecOrSetArityErrorCls;
-      throw new ArityErrorCls({ conduitName, actualArity: paramCount });
-    }
-  }
-  if (shape === 'pair') {
-    return async (_mapKey, mapValue) => await predLambda(mapValue);
   }
   return async (item) => await predLambda(item);
 }
@@ -321,7 +254,7 @@ function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArit
 export const filter = higherOrderOp('filter', 2, async (container, predModifier) => {
   const predLambda = await codeOfModifier(predModifier, container, v => new FilterPredicateNotQuoteError(v));
   if (isOrderedSequence(container)) {
-    const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
+    const applyItem = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterResult = [];
     for (const filterItem of container) {
       const predResult = await applyItem(filterItem);
@@ -331,10 +264,10 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
     return containerLikeOf(filterResult, container);
   }
   if (isQMap(container)) {
-    const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
+    const applyValue = containerPredDispatch(predLambda, FilterPredArityInvalidError);
     const filterEntries = [];
     for (const [filterKey, filterValue] of container) {
-      const predResult = await applyEntry(filterKey, filterValue);
+      const predResult = await applyValue(filterValue);
       if (isErrorValue(predResult)) return predResult;
       if (isTruthy(predResult)) filterEntries.push([filterKey, filterValue]);
     }
@@ -346,7 +279,7 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
 export const every = higherOrderOp('every', 2, async (container, everyPredModifier) => {
   const everyPredLambda = await codeOfModifier(everyPredModifier, container, v => new EveryPredicateNotQuoteError(v));
   if (isVec(container) || isQSet(container)) {
-    const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
+    const applyItem = containerPredDispatch(everyPredLambda, EveryPredArityInvalidError);
     for (const everyItem of container) {
       const everyResult = await applyItem(everyItem);
       if (isErrorValue(everyResult)) return everyResult;
@@ -355,9 +288,9 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
     return true;
   }
   if (isQMap(container)) {
-    const applyEntry = containerPredDispatch(everyPredLambda, 'pair', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
-    for (const [everyKey, everyValue] of container) {
-      const everyResult = await applyEntry(everyKey, everyValue);
+    const applyValue = containerPredDispatch(everyPredLambda, EveryPredArityInvalidError);
+    for (const everyValue of container.values()) {
+      const everyResult = await applyValue(everyValue);
       if (isErrorValue(everyResult)) return everyResult;
       if (!isTruthy(everyResult)) return false;
     }
@@ -369,7 +302,7 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
 export const any = higherOrderOp('any', 2, async (container, anyPredModifier) => {
   const anyPredLambda = await codeOfModifier(anyPredModifier, container, v => new AnyPredicateNotQuoteError(v));
   if (isVec(container) || isQSet(container)) {
-    const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
+    const applyItem = containerPredDispatch(anyPredLambda, AnyPredArityInvalidError);
     for (const anyItem of container) {
       const anyResult = await applyItem(anyItem);
       if (isErrorValue(anyResult)) return anyResult;
@@ -378,9 +311,9 @@ export const any = higherOrderOp('any', 2, async (container, anyPredModifier) =>
     return false;
   }
   if (isQMap(container)) {
-    const applyEntry = containerPredDispatch(anyPredLambda, 'pair', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
-    for (const [anyKey, anyValue] of container) {
-      const anyResult = await applyEntry(anyKey, anyValue);
+    const applyValue = containerPredDispatch(anyPredLambda, AnyPredArityInvalidError);
+    for (const anyValue of container.values()) {
+      const anyResult = await applyValue(anyValue);
       if (isErrorValue(anyResult)) return anyResult;
       if (isTruthy(anyResult)) return true;
     }
@@ -445,12 +378,20 @@ export const indexBy = higherOrderOp('indexBy', 2, async (subject, indexKeyModif
 
 export const sort = overloadedOp('sort', 2, {
   0: (subject) => {
+    if (isQMap(subject)) return new Map([...subject].sort(([, leftValue], [, rightValue]) => compareValues(leftValue, rightValue)));
     const items = sequenceOrThrow(subject, SortNaturalSubjectNotSequenceError);
     const sorted = [...items].sort(compareValues);
     return containerLikeOf(sorted, subject);
   },
   1: async (subject, sortKeyModifier) => {
     const sortKeyLambda = await codeOfModifier(sortKeyModifier, subject, v => new SortKeyNotQuoteError(v));
+    if (isQMap(subject)) {
+      const keyedEntries = await Promise.all(
+        [...subject].map(async ([entryKey, entryValue]) => ({ entryKey, entryValue, sortKey: await sortKeyLambda(entryValue) }))
+      );
+      keyedEntries.sort((a, b) => compareValues(a.sortKey, b.sortKey));
+      return new Map(keyedEntries.map(entry => [entry.entryKey, entry.entryValue]));
+    }
     const items = sequenceOrThrow(subject, SortByKeySubjectNotSequenceError);
     const sortEntries = await Promise.all(
       items.map(async (sortElem) => ({
@@ -464,6 +405,10 @@ export const sort = overloadedOp('sort', 2, {
 }, { preservesTag: true });
 
 export const take = valueOp('take', 2, (subject, n) => {
+  if (isQMap(subject)) {
+    assertIntegerModifier(n, TakeCountNotIntegerError);
+    return new Map([...subject].slice(0, Math.max(0, n)));
+  }
   if (!isOrderedSequence(subject)) throw new TakeSubjectNotSequenceError(subject);
   assertIntegerModifier(n, TakeCountNotIntegerError);
   const items = sequenceElements(subject);
@@ -513,6 +458,10 @@ export const at = valueOp('at', 2, (subject, atKey) => {
 });
 
 export const drop = valueOp('drop', 2, (subject, n) => {
+  if (isQMap(subject)) {
+    assertIntegerModifier(n, DropCountNotIntegerError);
+    return new Map([...subject].slice(Math.max(0, n)));
+  }
   if (!isOrderedSequence(subject)) throw new DropSubjectNotSequenceError(subject);
   assertIntegerModifier(n, DropCountNotIntegerError);
   const items = sequenceElements(subject);
@@ -544,6 +493,7 @@ export const distinct = nullaryOp('distinct', (subject) => {
 }, { preservesTag: true });
 
 export const reverse = nullaryOp('reverse', (subject) => {
+  if (isQMap(subject)) return new Map([...subject].reverse());
   if (!isOrderedSequence(subject)) throw new ReverseSubjectNotSequenceError(subject);
   // Single copy via spread — works uniformly across Vec
   // / Set (all iterable).
@@ -573,7 +523,7 @@ export const flat = nullaryOp('flat', (subject) => {
 // binary operand folds via its bound form (`acc | add element`), a
 // 2-param conduit `[:acc :elem]` binds both. `seed` is the
 // empty-subject result; a reducer error short-circuits.
-const ReduceSubjectNotSequenceError = declareSubjectError('ReduceSubjectNotSequenceError', 'reduce', ['vec', 'set']);
+const ReduceSubjectNotSequenceError = declareSubjectError('ReduceSubjectNotSequenceError', 'reduce', ['vec', 'set', 'map']);
 const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryError',
   () => 'reduce reducer must be a binary operand (add / mul / union / …) or a 2-param conduit [:acc :elem]',
   { operand: 'reduce' }
@@ -581,12 +531,12 @@ const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryErr
 
 export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerModifier) => {
   const reducerLambda = await codeOfModifier(reducerModifier, subject, v => new ReduceReducerNotQuoteError(v));
-  if (!isOrderedSequence(subject)) throw new ReduceSubjectNotSequenceError(subject);
+  if (!isOrderedSequence(subject) && !isQMap(subject)) throw new ReduceSubjectNotSequenceError(subject);
   const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedState);
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = await seedLambda(subject);
   if (isErrorValue(acc)) return acc;
-  for (const item of subject) {
+  for (const item of isQMap(subject) ? subject.values() : subject) {
     acc = await combine(acc, item);
     if (isErrorValue(acc)) return acc;
   }

@@ -18,7 +18,7 @@
             :returns :any}
 
 ::FirstSubjectNotSequenceError
-  |~~ Subject of `first` must be Vec or Set.
+  |~~ Subject of `first` must be a Vec, a Set or a Map.
       ~(
         42 | first
         !| [type /actualType]
@@ -41,7 +41,7 @@
             :returns :any}
 
 ::LastSubjectNotSequenceError
-  |~~ Subject of `last` must be Vec or Set.
+  |~~ Subject of `last` must be a Vec, a Set or a Map.
       ~(
         42 | last
         !| [type /actualType]
@@ -66,12 +66,12 @@
             :subject [:vec :set]
             :returns :number}
 
-::SumSubjectNotVecOrSetError
-  |~~ Subject of `sum` must be Vec or Set.
+::SumSubjectNotContainerError
+  |~~ Subject of `sum` must be a Vec, a Set or a Map.
       ~(
         42 | sum
         !| [type /actualType]
-        |  eq [::SumSubjectNotVecOrSetError :number]
+        |  eq [::SumSubjectNotContainerError :number]
        )
   ~~|
 
@@ -105,6 +105,7 @@
       yields null.
 
       ~([3 1 4 1 5] | min | eq 1)
+      ~({:a 3 :b 1} | min | eq 1)
       ~([3 "a" null] | min | eq null)
       ~(["b" "a" "c"] | min | eq "a")
       ~(#[3 1 4] | min | eq 1)
@@ -114,12 +115,12 @@
             :subject [:vec :set]
             :returns :any}
 
-::MinSubjectNotVecOrSetError
-  |~~ Subject of `min` must be Vec or Set.
+::MinSubjectNotContainerError
+  |~~ Subject of `min` must be a Vec, a Set or a Map.
       ~(
         42 | min
         !| [type /actualType]
-        |  eq [::MinSubjectNotVecOrSetError :number]
+        |  eq [::MinSubjectNotContainerError :number]
        )
   ~~|
 
@@ -129,6 +130,7 @@
       yields null.
 
       ~([3 1 4 1 5] | max | eq 5)
+      ~({:a 3 :b 1} | max | eq 3)
       ~([3 "a" null] | max | eq "a")
       ~(["b" "a" "c"] | max | eq "c")
       ~(#[3 1 4] | max | eq 4)
@@ -138,12 +140,12 @@
             :subject [:vec :set]
             :returns :any}
 
-::MaxSubjectNotVecOrSetError
-  |~~ Subject of `max` must be Vec or Set.
+::MaxSubjectNotContainerError
+  |~~ Subject of `max` must be a Vec, a Set or a Map.
       ~(
         42 | max
         !| [type /actualType]
-        |  eq [::MaxSubjectNotVecOrSetError :number]
+        |  eq [::MaxSubjectNotContainerError :number]
        )
   ~~|
 
@@ -172,7 +174,7 @@
             :modifiers [:any :reducerLambda]}
 
 ::ReduceSubjectNotSequenceError
-  |~~ Subject of `reduce` must be a Vec or Set.
+  |~~ Subject of `reduce` must be a Vec, a Set or a Map.
       ~(
         42 | reduce 0 ~(add)
         !| [type /actualType]
@@ -223,6 +225,7 @@
       ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
       ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
       ~([{:k 1} {:k 2}] | sort ~(/k) | reverse | eq [{:k 2} {:k 1}])
+      ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
   ::builtin{:impl :qlang/prim/sort
             :category :vecTransformer
@@ -231,7 +234,7 @@
             :modifiers [:keyLambda]}
 
 ::SortNaturalSubjectNotSequenceError
-  |~~ Subject of `sort` must be Vec or Set.
+  |~~ Subject of `sort` must be a Vec, a Set or a Map.
       ~(
         42 | sort
         !| [type /actualType]
@@ -240,7 +243,7 @@
   ~~|
 
 ::SortByKeySubjectNotSequenceError
-  |~~ Subject of `sort ~(key)` must be Vec or Set.
+  |~~ Subject of `sort ~(key)` must be a Vec, a Set or a Map.
       ~(
         42 | sort ~(/x)
         !| [type /actualType]
@@ -275,7 +278,7 @@
             :modifiers [:integer]}
 
 ::TakeSubjectNotSequenceError
-  |~~ Subject of `take` must be Vec or Set.
+  |~~ Subject of `take` must be a Vec, a Set or a Map.
       ~(
         42 | take 1
         !| [type /actualType]
@@ -366,7 +369,7 @@
             :modifiers [:integer]}
 
 ::DropSubjectNotSequenceError
-  |~~ Subject of `drop` must be Vec or Set.
+  |~~ Subject of `drop` must be a Vec, a Set or a Map.
       ~(
         42 | drop 1
         !| [type /actualType]
@@ -429,7 +432,7 @@
             :returns [:vec :set]}
 
 ::ReverseSubjectNotSequenceError
-  |~~ Subject of `reverse` must be Vec or Set.
+  |~~ Subject of `reverse` must be a Vec, a Set or a Map.
       ~(
         42 | reverse
         !| [type /actualType]

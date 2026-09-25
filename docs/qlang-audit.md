@@ -1024,19 +1024,21 @@ A duplicate key in a map literal, in either spelling, reads as
 same, so a document means one thing whether it was pasted into a query
 or piped into it [D18].
 
-A map is a record and a dictionary at once, insertion-ordered, equal
-to another by its keys. Its elements are its values and its keys are
-the shape that travels with them, so every operation over elements
-sees a value and keeps the key [D15]: `*` replaces the values under
-their keys, `filter` keeps the entries whose value passes, `sort`,
-`take`, `drop` and `reverse` order and cut the entries by value, and
-the reducers read the values. `keys` answers the sorted set of keys,
-`at` reads one, `inter` and `minus` select by any vector of keys. A
-predicate therefore sees the value alone and the two-parameter
-convention goes; the joint test of a key with its value is written
-over `keys` with `at`, a vector of records is made from a map through
-`keys` and rebuilt into one through `indexBy`, and `groupBy` and
-`indexBy` answer maps.
+A map is a record and a dictionary at once, insertion-ordered, equal to
+another by its keys. Its elements are its values and its keys are the
+shape that travels with them, so every operation over elements sees a
+value and keeps the key [D15]: `*` replaces the values under their keys,
+`{:a 1 :b 2} * add 1` answering `{:a 2 :b 3}`, `filter` keeps the
+entries whose value passes, `sort`, `take`, `drop` and `reverse` order
+and cut the entries by value, and the reducers read the values. `keys`
+answers the sorted set of keys, `at` reads one, `inter` and `minus`
+select by a set or a vector of keys. A predicate sees the value alone,
+and a conduit of two parameters is refused by the arity of its site as
+over any container; the joint test of a key with its value reads the
+keys, `{:apple 1 :banana 2 :avocado 3} | inter (keys | filter
+~(keyword | startsWith "a"))` answering `{:apple 1 :avocado 3}`, a
+vector of records is made from a map through `keys` and rebuilt into one
+through `indexBy`, and `groupBy` and `indexBy` answer maps.
 
 One order ranks every value [D16, D48]: by the kind, null, boolean,
 number, string, keyword, tag name, vector, set, map, quote, doc, error

@@ -17,12 +17,12 @@ const ValsSubjectNotMapError       = declareSubjectError('ValsSubjectNotMapError
 const HasSubjectNotMapOrSetError   = declareSubjectError('HasSubjectNotMapOrSetError',   'has',  ['map', 'set']);
 const HasKeyNotKeywordOrStringError = declareModifierError('HasKeyNotKeywordOrStringError', 'has', 2, ['keyword', 'string']);
 
-// `keys` answers a map's keys as a Set of keywords and `vals` its
-// values as a Vec.
+// `keys` answers a map's keys as the sorted Set of keywords [D15]
+// and `vals` its values as a Vec, in the order of the entries.
 export const keys = nullaryOp('keys', (map) => {
   if (!isQMap(map)) throw new KeysSubjectNotMapError(map);
   const result = new Set();
-  for (const [k] of map) result.add(keyword(k));
+  for (const k of [...map.keys()].sort()) result.add(keyword(k));
   return result;
 });
 

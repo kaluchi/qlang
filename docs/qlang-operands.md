@@ -86,17 +86,19 @@ form part of the doc surface and the runtime catalog alike.
   `{} | empty` → `true`; `[1] | empty` → `false`.
 - **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainerError`.
 
-## Vec-or-Set reducers — `(Vec / Set) → Scalar`
+## Value reducers — `(Vec / Set / Map) → Scalar`
+
+A map's elements are its values, so the reducers read them.
 
 ### `sum`
 
-- **Arity** 1. **Subject** one of `Vec` / `Set`. Polymorphic —
+- **Arity** 1. **Subject** one of `Vec` / `Set` / `Map`. Polymorphic —
   `sum` is commutative, so the result is shape-independent.
 - Returns the numeric sum of elements. Empty container yields
   `0`. Every element must be a number.
 - **Examples**: `[1 2 3 4] | sum` → `10`; `#[1 2 3] | sum` → `6`;
-  `{:a 10 :b 20} | vals | sum` → `30` (Map axis-pick via `vals`).
-- **Errors**: subject not Vec/Set → `SumSubjectNotVecOrSetError`;
+  `{:a 10 :b 20} | sum` → `30`.
+- **Errors**: subject not a container → `SumSubjectNotContainerError`;
   element not a number → `SumElementNotNumberError`; running total
   outside the finite-double domain → `SumResultNotFiniteError`, whose
   `:index` names the element the total crossed at. The total is read
@@ -108,7 +110,7 @@ form part of the doc surface and the runtime catalog alike.
 
 ### `reduce seed ~(reducer)`
 
-- **Arity** 3 (2 captured). **Subject** one of `Vec` / `Set`. The
+- **Arity** 3 (2 captured). **Subject** one of `Vec` / `Set` / `Map`. The
   universal left-fold (catamorphism) — threads an accumulator across
   the sequence in insertion order and collapses it to a single value.
 - `seed` is the initial accumulator (returned as-is for an empty
@@ -123,24 +125,25 @@ form part of the doc surface and the runtime catalog alike.
   `[#[1] #[2 3]] | reduce #[] ~(union)` → `#[1 2 3]`;
   `:max2 [:acc :x] (if (x | gt acc) ~(x) ~(acc)) | [3 1 4 1 5] | reduce 0 ~(max2)` → `5`.
   `sum` / `count` / `max` and structure-builders all factor through it.
-- **Errors**: subject not Vec/Set → `ReduceSubjectNotSequenceError`;
+- **Errors**: subject not a container → `ReduceSubjectNotSequenceError`;
   reducer not a binary operand or 2-parameter conduit →
   `ReduceReducerNotBinaryError`.
 
 ### `min`, `max`
 
-- **Arity** 1. **Subject** one of `Vec` / `Set`.
+- **Arity** 1. **Subject** one of `Vec` / `Set` / `Map`.
 - Returns the first (or last) element in the one order of values,
   the order `sort` answers. Empty container yields `null`.
 - **Examples**: `[3 1 4 1 5] | min` → `1`; `#[3 1 4] | max` → `4`;
   `[:y :a :m] | min` → `:a`; `[3 "a" null] | min` → `null`;
-  `[3 "a" null] | max` → `"a"`.
-- **Errors**: subject not Vec/Set → `MinSubjectNotVecOrSetError` /
-  `MaxSubjectNotVecOrSetError`.
+  `[3 "a" null] | max` → `"a"`; `{:a 3 :b 1} | min` → `1`.
+- **Errors**: subject not a container → `MinSubjectNotContainerError` /
+  `MaxSubjectNotContainerError`.
 
-## Ordered-sequence reducers — `Vec / Set → Any`
+## Ordered-sequence reducers — `Vec / Set / Map → Any`
 
-Polymorphic across Vec and Set subjects. Set carries insertion-order
+Polymorphic across Vec, Set and Map subjects, a map's elements being
+its values in the order of its entries. Set carries insertion-order
 as part of its public contract (§Set in qlang-spec.md), so first /
 last / at have well-defined semantics: «first-added», «last-added»,
 «n-th-added» respectively. The operands in this section work
@@ -148,21 +151,21 @@ identically on either shape.
 
 ### `first`
 
-- **Arity** 1. **Subject** `vec` or `set`.
-- Returns the first element (first-added on a Set), or `null` if the
-  sequence is empty.
+- **Arity** 1. **Subject** `vec`, `set` or `map`.
+- Returns the first element (first-added on a Set, the first value on
+  a Map), or `null` if the container is empty.
 - **Example**: `[10 20 30] | first` → `10`; `#[:a :b :c] | first` →
-  `:a`; `[] | first` → `null`.
-- **Errors**: subject not Vec/Set → `FirstSubjectNotSequenceError`.
+  `:a`; `{:a 1 :b 2} | first` → `1`; `[] | first` → `null`.
+- **Errors**: subject not a container → `FirstSubjectNotSequenceError`.
 
 ### `last`
 
-- **Arity** 1. **Subject** `vec` or `set`.
-- Returns the last element (last-added on a Set), or `null` if the
-  sequence is empty.
+- **Arity** 1. **Subject** `vec`, `set` or `map`.
+- Returns the last element (last-added on a Set, the last value on a
+  Map), or `null` if the container is empty.
 - **Example**: `[10 20 30] | last` → `30`; `#[:a :b :c] | last` →
-  `:c`; `[] | last` → `null`.
-- **Errors**: subject not Vec/Set → `LastSubjectNotSequenceError`.
+  `:c`; `{:a 1 :b 2} | last` → `2`; `[] | last` → `null`.
+- **Errors**: subject not a container → `LastSubjectNotSequenceError`.
 
 ### `at n`
 
@@ -187,38 +190,19 @@ identically on either shape.
 
 ## Container selectors — polymorphic over `Vec` / `Set` / `Map`
 
-`filter`, `every`, and `any` dispatch on container type and on the
-predicate conduit's **parameter arity**. The arity ladder is the
-same on every shape; what changes is which axis the language
-offers to fill:
-
-- **0-arity inline pipeline** (`filter ~(gt 1)`) or **0-arity named
-  conduit** (`:big gt 1 | ... | filter ~(big)`) — per item
-  with pipeValue = element on Vec/Set, value on Map. Covers the
-  90% case.
-- **1-arity conduit `[:x]`** — the element (Vec/Set) or value
-  (Map) is bound as the single captured-arg inside the body.
-  pipeValue mirrors the captured value, so `pipeValue` references
-  inside the body stay aligned with the axis.
-- **2-arity conduit `[:k :v]`** — Map-only. Per entry the body
-  sees **`(key, value)`** as two captured-arg bindings and can
-  correlate the two axes freely. On Vec or Set there is no second
-  axis to fill; 2+ params raise per-operand
-  `Filter/Every/AnyVecOrSetPredArityInvalidError`.
-- **3+-arity conduit** — per-operand arity-invalid class on both
-  Vec/Set and Map (`* VecOrSetPredArityInvalid` /
-  `* MapPredArityInvalid`). Map iteration binds at most `(key,
-  value)`; higher arities exceed the binding shape and raise the
-  per-operand class.
-
-Compose both-axis predicates by declaring the 2-arity conduit
-through a BindStep inline in the pipeline, then reference it
-inside `filter` / `every` / `any`:
+`filter`, `every`, and `any` run their predicate on each element of a
+container, a map's value being its element, and `filter` keeps the
+keys of the entries it keeps. The predicate is a quote,
+`filter ~(gt 1)`, or a named conduit: a conduit of one parameter
+`[:x]` binds the element, pipeValue mirroring it, and one of two or
+more parameters has no axis to fill and raises the per-operand
+`FilterPredArityInvalidError` / `EveryPredArityInvalidError` /
+`AnyPredArityInvalidError`. The joint test of a key with its value
+reads the keys:
 
 ```qlang
-m
-  | :@hot [:k :v] and (k | eq :x) (v | gt 1)
-  | filter ~(@hot)
+> {:apple 1 :banana 2 :avocado 3} | inter (keys | filter ~(keyword | startsWith "a"))
+{:apple 1 :avocado 3}
 ```
 
 ### `filter ~(pred)`
@@ -227,9 +211,9 @@ m
   **modifier** `pred` (a predicate pipeline or a named conduit).
 - Keeps items where the predicate evaluates truthy, collecting
   into a new container of the same shape. Vec and Set iterate
-  per element (insertion order preserved); Map iterates per
-  entry with the arity dispatch above. Empty subject returns an
-  empty container of the same kind.
+  per element (insertion order preserved); on a Map the predicate
+  sees each value and the entries kept keep their keys. Empty
+  subject returns an empty container of the same kind.
 - **Examples**:
   - `[1 2 3 4 5] | filter ~(gt 2)` → `[3 4 5]`.
   - `[{:age 25} {:age 15}] | filter ~(/age | gte 18)` → `[{:age 25}]`.
@@ -237,13 +221,10 @@ m
   - `#[1 2 3 4 5] | filter ~(gt 2)` → `#[3 4 5]`.
   - `{:a 1 :b 2 :c 3} | filter ~(gt 1)` → `{:b 2 :c 3}` — 0-arity pred, value axis.
   - `{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt 0) | filter ~(@pos)` → `{:a 1 :c 3}` — 1-arity conduit, value bound.
-  - `{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and (k | eq :avocado) (v | gt 1) | filter ~(@hot)` → `{:avocado 3}` — 2-arity conduit, both axes.
   - `{} | filter ~(gt 0)` → `{}` — empty subject returns empty Map.
 - **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainerError`. Predicate conduit with 2+ params on
-  Vec or Set (only one axis available) →
-  `FilterVecOrSetPredArityInvalidError`. Predicate conduit with 3+
-  params on Map → `FilterMapPredArityInvalidError`.
+  `FilterSubjectNotContainerError`. Predicate conduit with 2+ params
+  → `FilterPredArityInvalidError`.
 
 ### `every ~(pred)`
 
@@ -251,11 +232,8 @@ m
   **modifier** `pred`.
 - Returns `true` iff every item of the container satisfies the
   predicate. Short-circuits on the first falsy result. Vacuously
-  true for empty containers. Per-container item dispatch matches
-  `filter`: 0-arity inline pipeline sees pipeValue = element
-  (Vec/Set) or value (Map); 1-arity `[:x]` binds element / value
-  as the captured-arg on all three shapes; 2-arity `[:k :v]` is
-  Map-only.
+  true for empty containers. The predicate sees each element, a
+  map's value among them, as `filter`'s does.
 - **Examples**:
   - `[2 4 6] | every ~(gt 0)` → `true`.
   - `[1 2 3] | every ~(gt 2)` → `false`.
@@ -265,9 +243,7 @@ m
   - `{:a 1 :b 2 :c 3} | every ~(gt 0)` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every ~(gt 0)` → `false`.
 - **Errors**: subject not a container → `EverySubjectNotContainerError`.
-  Predicate conduit with 2+ params on Vec/Set →
-  `EveryVecOrSetPredArityInvalidError`. Predicate conduit with 3+
-  params on Map → `EveryMapPredArityInvalidError`.
+  Predicate conduit with 2+ params → `EveryPredArityInvalidError`.
 
 ### `any ~(pred)`
 
@@ -275,8 +251,8 @@ m
   **modifier** `pred`.
 - Returns `true` iff at least one item of the container satisfies
   the predicate. Short-circuits on the first truthy result.
-  Vacuously false for empty containers. Same arity-dispatch rule
-  as `filter` / `every`.
+  Vacuously false for empty containers. The predicate sees each
+  element as `filter`'s does.
 - **Examples**:
   - `[1 2 3] | any ~(gt 2)` → `true`.
   - `[1 2 3] | any ~(gt 99)` → `false`.
@@ -284,17 +260,15 @@ m
   - `[] | any ~(gt 0)` → `false`.
   - `#[1 2 3] | any ~(gt 2)` → `true`.
   - `{:a -1 :b 0 :c 2} | any ~(gt 0)` → `true` — 0-arity, value axis.
-  - `{:apple 1 :banana 2} | :@isApple [:k :v] (k | eq :apple) | any ~(@isApple)` → `true` — 2-arity conduit, key axis.
 - **Errors**: subject not a container → `AnySubjectNotContainerError`.
-  Predicate conduit with 2+ params on Vec/Set →
-  `AnyVecOrSetPredArityInvalidError`. Predicate conduit with 3+ params
-  on Map → `AnyMapPredArityInvalidError`.
+  Predicate conduit with 2+ params → `AnyPredArityInvalidError`.
 
 ## Ordered-sequence transformers — `Vec / Set → Vec / Set` / `Vec / Set → Map`
 
 Shape-preserving on Vec/Set: a Vec subject returns a Vec, a Set
 subject returns a Set with the structural-uniqueness invariant
-maintained.
+maintained. `sort`, `take`, `drop` and `reverse` also take a Map,
+ordering and cutting its entries by their values and keeping the keys.
 
 ### `groupBy ~(keyFn)`
 
@@ -333,8 +307,9 @@ maintained.
 - **Examples**: `[3 1 4 1 5] | sort` → `[1 1 3 4 5]`;
   `[3 null "x" 1] | sort` → `[null 1 3 "x"]`;
   `[[2 1] [1 2] [1]] | sort` → `[[1] [1 2] [2 1]]`;
-  `[::B :b ::A :a] | sort` → `[:a :b ::A ::B]`.
-- **Errors**: subject not Vec/Set → `SortNaturalSubjectNotSequenceError`.
+  `[::B :b ::A :a] | sort` → `[:a :b ::A ::B]`;
+  `{:a 3 :b 1 :c 2} | sort | vals` → `[1 2 3]`.
+- **Errors**: subject not a container → `SortNaturalSubjectNotSequenceError`.
 
 ### `sort ~(key)`
 
@@ -349,7 +324,7 @@ maintained.
   - `[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b])` → `[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]`.
   - `[3 null 1] | sort ~([(eq null) /])` → `[1 3 null]`, the nulls last.
   - `[{:k 1} {:k 3} {:k 2}] | sort ~(/k) | reverse` → `[{:k 3} {:k 2} {:k 1}]`.
-- **Errors**: subject not Vec/Set → `SortByKeySubjectNotSequenceError`;
+- **Errors**: subject not a container → `SortByKeySubjectNotSequenceError`;
   key not a quote → `SortKeyNotQuoteError`.
 
 ### `take n`
@@ -360,8 +335,9 @@ maintained.
   length, returns the whole sequence; a negative `n` clamps to 0
   (takes nothing). Same shape as subject.
 - **Example**: `[1 2 3 4 5] | take 3` → `[1 2 3]`;
-  `#[:a :b :c :d] | take 2` → `#[:a :b]`.
-- **Errors**: subject not a Vec/Set → `TakeSubjectNotSequenceError`;
+  `#[:a :b :c :d] | take 2` → `#[:a :b]`;
+  `{:a 1 :b 2 :c 3} | take 2` → `{:a 1 :b 2}`.
+- **Errors**: subject not a container → `TakeSubjectNotSequenceError`;
   non-integer count → `TakeCountNotIntegerError`.
 
 ### `drop n`
@@ -372,8 +348,9 @@ maintained.
   exceeds length, returns the empty sequence; a negative `n` clamps to
   0 (drops nothing). Same shape as subject.
 - **Example**: `[1 2 3 4 5] | drop 2` → `[3 4 5]`;
-  `#[:a :b :c :d] | drop 2` → `#[:c :d]`.
-- **Errors**: subject not a Vec/Set → `DropSubjectNotSequenceError`;
+  `#[:a :b :c :d] | drop 2` → `#[:c :d]`;
+  `{:a 1 :b 2 :c 3} | drop 2` → `{:c 3}`.
+- **Errors**: subject not a container → `DropSubjectNotSequenceError`;
   non-integer count → `DropCountNotIntegerError`.
 
 ### `distinct`
@@ -402,7 +379,8 @@ maintained.
 - **Arity** 1. **Subject** `vec` or `set`.
 - Returns the sequence in reverse order. Same shape as subject.
 - **Example**: `[1 2 3] | reverse` → `[3 2 1]`;
-  `#[:a :b :c] | reverse` → `#[:c :b :a]`.
+  `#[:a :b :c] | reverse` → `#[:c :b :a]`;
+  `{:a 1 :b 2} | reverse | vals` → `[2 1]`.
 
 ### `flat`
 
@@ -421,8 +399,8 @@ maintained.
 ### `keys`
 
 - **Arity** 1. **Subject** `map`.
-- Returns the Set of keys (keywords).
-- **Example**: `{:name "Alice" :age 30} | keys` → `#[:name :age]`.
+- Returns the Set of keys (keywords), sorted.
+- **Example**: `{:name "Alice" :age 30} | keys` → `#[:age :name]`.
 
 ### `vals`
 
@@ -466,7 +444,8 @@ shapes are supported:
   - Drop fields: `{:name "a" :age 20 :tmp 1} | minus #[:tmp]`
     → `{:name "a" :age 20}`.
   - Select fields: `{:name "a" :age 20 :tmp 1} | inter #[:name :age]`
-    → `{:name "a" :age 20}`.
+    → `{:name "a" :age 20}`; a vector of keys selects the same,
+    `{:name "a" :age 20 :tmp 1} | inter [:name :age]`.
   - Override: `{:name "a" :age 20} | union {:age (/age | add 1)}`
     → `{:name "a" :age 21}`.
 

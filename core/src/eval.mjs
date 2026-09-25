@@ -116,7 +116,7 @@ const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstr
 // The combinator names its qlang kind — `distribute`, the same
 // vocabulary `trailEntry` speaks — so the message and the catalog
 // tag-binding's `:operand` read alike.
-const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set']);
+const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
   { expectedType: 'function' }
@@ -331,7 +331,7 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
-  if (!isOrderedSequence(state.pipeValue)) {
+  if (!isOrderedSequence(state.pipeValue) && !isQMap(state.pipeValue)) {
     const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, quoteOfBody(bodyNode), state.pipeValue));
@@ -342,6 +342,14 @@ async function distribute(state, bodyNode) {
   // `[e 1] * (count)` hands it on with its trail.
   const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
   const subjectSeq = state.pipeValue;
+  // A map's elements are its values, and the keys travel with them.
+  if (isQMap(subjectSeq)) {
+    const mapEntries = [...subjectSeq];
+    const valueForks = await Promise.all(
+      mapEntries.map(([, entryValue]) => forkWith(state, entryValue, inner => evalBody(bodyPipeline, inner)))
+    );
+    return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, valueForks[index].pipeValue])));
+  }
   const forkResults = await Promise.all(
     sequenceElements(subjectSeq).map(seqElement =>
       forkWith(state, seqElement, inner => evalBody(bodyPipeline, inner))
@@ -1035,15 +1043,15 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // lambdas to resolve captured args at the moment they need them.
 //
 // The `.astNode` property exposes the raw AST for higher-order
-// operands (like `filter` / `every` / `any` over Map) that need to
+// operands (`filter` / `every` / `any`, `reduce`) that need to
 // inspect the captured expression's shape to dispatch by conduit
 // arity without a test-application round-trip.
 // The `.capturedState` property exposes the capture-site state so
 // higher-order operands can statically resolve a bare-identifier
 // captured arg to its binding descriptor through its env
-// (filter/every/any over Map inspect the captured predicate's
-// arity before dispatch) and re-enter a conduit body from the
-// same frame the lambda itself would.
+// (filter/every/any inspect the captured predicate's arity before
+// dispatch) and re-enter a conduit body from the same frame the
+// lambda itself would.
 function makeLambda(astNode, capturedState) {
   const lambda = async (lambdaInput) => {
     const subState = nestState(capturedState, lambdaInput, capturedState.env);
@@ -1074,8 +1082,8 @@ export async function codeOfModifier(modifierLambda, subject, refusalOf) {
 // resolves in env to a conduit descriptor — directly or through a
 // snapshot wrapper — returns the conduit and the binding name used at
 // the lookup site. Otherwise returns null. Used by filter/every/any
-// over Map to statically resolve a parametric conduit predicate and
-// dispatch by its `:params` arity without a test-application round-trip.
+// to statically resolve a parametric conduit predicate and dispatch by
+// its `:params` arity without a test-application round-trip.
 export function resolveCapturedConduit(astNode, env) {
   if (!astNode || astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
@@ -1095,7 +1103,9 @@ export function resolveCapturedConduit(astNode, env) {
 // a nullary captured-arg lambda that ignores pipeValue and returns the
 // fixed value — matching the conduitParameter lazy-proxy contract for
 // a value the caller has already resolved. Used by filter/every/any
-// over Map to supply (key, value) to a 2-arity predicate per entry.
+// to supply the element to a predicate of one parameter, and by
+// `reduce` to supply the accumulator and the element to a reducer of
+// two.
 // The body runs one frame below `callerState` — the capture-site state
 // of the lambda that carried the conduit reference.
 //

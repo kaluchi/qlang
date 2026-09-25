@@ -35,3 +35,4 @@
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
 {"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| true","expect":"true","decision":"D62","target":true}
 {"name":"the-contract-of-a-verb-is-addressed-by-its-name","query":"::count | docs | count","expect":"1","decision":"D62","target":true}
+{"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62","target":true}

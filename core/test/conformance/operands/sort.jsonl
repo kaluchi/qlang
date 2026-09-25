@@ -1,24 +1,24 @@
-{"name":"sort-orders-kinds-before-values","query":"[3 null \"x\" 1] | sort","expect":"[null 1 3 \"x\"]"}
-{"name":"sort-orders-every-kind-of-the-core","query":"[{:a 1} [2] \"x\" :k null 3 true #[1] ~(add 1)] | sort","expect":"[null true 3 \"x\" :k [2] #[1] {:a 1} ~(add 1)]"}
-{"name":"sort-puts-false-before-true","query":"[true false true] | sort","expect":"[false true true]"}
-{"name":"sort-orders-strings-by-code-units","query":"[\"b\" \"B\" \"a\"] | sort","expect":"[\"B\" \"a\" \"b\"]"}
-{"name":"sort-puts-keywords-before-tag-names","query":"[::B :b ::A :a] | sort","expect":"[:a :b ::A ::B]"}
-{"name":"sort-orders-vectors-element-by-element","query":"[[2 1] [1 2] [1]] | sort","expect":"[[1] [1 2] [2 1]]"}
-{"name":"sort-orders-a-set-as-its-vector","query":"[#[2] #[3 1]] | sort","expect":"[#[3 1] #[2]]"}
-{"name":"sort-orders-maps-by-keys-then-values","query":"[{:b 1} {:a 2} {:a 1}] | sort","expect":"[{:a 1} {:a 2} {:b 1}]"}
-{"name":"sort-puts-tagged-values-after-the-core-by-tag-name","query":"[::B{:x 1} ::A[1] {:y 2}] | sort","expect":"[{:y 2} ::A[1] ::B{:x 1}]"}
-{"name":"sort-orders-docs-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
-{"name":"sort-takes-a-vector-as-a-compound-key","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b])","expect":"[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]"}
-{"name":"sort-puts-nulls-last-through-a-key","query":"[3 null 1] | sort ~([(eq null) /])","expect":"[1 3 null]"}
-{"name":"sort-descends-through-reverse","query":"[{:k 1} {:k 3} {:k 2}] | sort ~(/k) | reverse","expect":"[{:k 3} {:k 2} {:k 1}]"}
-{"name":"sort-keeps-equal-keys-in-subject-order","query":"[{:k 1 :i 0} {:k 0 :i 1} {:k 1 :i 2}] | sort ~(/k)","expect":"[{:k 0 :i 1} {:k 1 :i 0} {:k 1 :i 2}]"}
-{"name":"sort-orders-keys-of-every-kind","query":"[{:k \"a\"} {:k null} {:k 2}] | sort ~(/k)","expect":"[{:k null} {:k 2} {:k \"a\"}]"}
-{"name":"min-answers-the-first-value-in-the-order","query":"[3 \"a\" null] | min","expect":"null"}
-{"name":"max-answers-the-last-value-in-the-order","query":"[3 \"a\" null] | max","expect":"\"a\""}
-{"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]"}
-{"name":"sort-orders-errors-by-tag-then-fields","query":"[!{:kind ::B} !{:k 2} !{:k 1}] | sort","expect":"[::B!{} ::Error!{:k 1} ::Error!{:k 2}]"}
-{"name":"sort-puts-elisions-before-other-tags","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::elision{:size 1} ::elision{:size 2} ::Z[1]]"}
-{"name":"sort-orders-one-tag-by-payload","query":"[::A[2] ::A[1]] | sort","expect":"[::A[1] ::A[2]]"}
-{"name":"sort-orders-tagged-scalars-by-payload","query":"[::A(2) ::A(1)] | sort","expect":"[::A(1) ::A(2)]"}
-{"name":"sort-puts-a-map-of-fewer-keys-first","query":"[{:a 1 :b 2} {:a 1}] | sort","expect":"[{:a 1} {:a 1 :b 2}]"}
-{"name":"sort-keeps-equal-maps","query":"[{:a 1} {:a 1}] | sort","expect":"[{:a 1} {:a 1}]"}
+{"name":"sort-orders-kinds-before-values","query":"[3 null \"x\" 1] | sort","expect":"[null 1 3 \"x\"]","decision":["D16","D48"]}
+{"name":"sort-orders-every-kind-of-the-core","query":"[{:a 1} [2] \"x\" :k null 3 true #[1] ~(add 1)] | sort","expect":"[null true 3 \"x\" :k [2] #[1] {:a 1} ~(add 1)]","decision":["D16","D48"]}
+{"name":"sort-puts-false-before-true","query":"[true false true] | sort","expect":"[false true true]","decision":["D16","D48"]}
+{"name":"sort-orders-strings-by-code-units","query":"[\"b\" \"B\" \"a\"] | sort","expect":"[\"B\" \"a\" \"b\"]","decision":["D16","D48"]}
+{"name":"sort-puts-keywords-before-tag-names","query":"[::B :b ::A :a] | sort","expect":"[:a :b ::A ::B]","decision":["D16","D48"]}
+{"name":"sort-orders-vectors-element-by-element","query":"[[2 1] [1 2] [1]] | sort","expect":"[[1] [1 2] [2 1]]","decision":["D16","D48"]}
+{"name":"sort-orders-a-set-as-its-vector","query":"[#[2] #[3 1]] | sort","expect":"[#[3 1] #[2]]","decision":["D16","D48"]}
+{"name":"sort-orders-maps-by-keys-then-values","query":"[{:b 1} {:a 2} {:a 1}] | sort","expect":"[{:a 1} {:a 2} {:b 1}]","decision":["D16","D48"]}
+{"name":"sort-puts-tagged-values-after-the-core-by-tag-name","query":"[::B{:x 1} ::A[1] {:y 2}] | sort","expect":"[{:y 2} ::A[1] ::B{:x 1}]","decision":["D16","D48"]}
+{"name":"sort-orders-docs-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]","decision":["D16","D48"]}
+{"name":"sort-takes-a-vector-as-a-compound-key","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b])","expect":"[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]","decision":["D16","D48"]}
+{"name":"sort-puts-nulls-last-through-a-key","query":"[3 null 1] | sort ~([(eq null) /])","expect":"[1 3 null]","decision":["D16","D48"]}
+{"name":"sort-descends-through-reverse","query":"[{:k 1} {:k 3} {:k 2}] | sort ~(/k) | reverse","expect":"[{:k 3} {:k 2} {:k 1}]","decision":["D16","D48"]}
+{"name":"sort-keeps-equal-keys-in-subject-order","query":"[{:k 1 :i 0} {:k 0 :i 1} {:k 1 :i 2}] | sort ~(/k)","expect":"[{:k 0 :i 1} {:k 1 :i 0} {:k 1 :i 2}]","decision":["D16","D48"]}
+{"name":"sort-orders-keys-of-every-kind","query":"[{:k \"a\"} {:k null} {:k 2}] | sort ~(/k)","expect":"[{:k null} {:k 2} {:k \"a\"}]","decision":["D16","D48"]}
+{"name":"min-answers-the-first-value-in-the-order","query":"[3 \"a\" null] | min","expect":"null","decision":["D16","D48"]}
+{"name":"max-answers-the-last-value-in-the-order","query":"[3 \"a\" null] | max","expect":"\"a\"","decision":["D16","D48"]}
+{"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]","decision":["D16","D48"]}
+{"name":"sort-orders-errors-by-tag-then-fields","query":"[!{:kind ::B} !{:k 2} !{:k 1}] | sort","expect":"[::B!{} ::Error!{:k 1} ::Error!{:k 2}]","decision":["D16","D48"]}
+{"name":"sort-puts-elisions-before-other-tags","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::elision{:size 1} ::elision{:size 2} ::Z[1]]","decision":["D16","D48"]}
+{"name":"sort-orders-one-tag-by-payload","query":"[::A[2] ::A[1]] | sort","expect":"[::A[1] ::A[2]]","decision":["D16","D48"]}
+{"name":"sort-orders-tagged-scalars-by-payload","query":"[::A(2) ::A(1)] | sort","expect":"[::A(1) ::A(2)]","decision":["D16","D48"]}
+{"name":"sort-puts-a-map-of-fewer-keys-first","query":"[{:a 1 :b 2} {:a 1}] | sort","expect":"[{:a 1} {:a 1 :b 2}]","decision":["D16","D48"]}
+{"name":"sort-keeps-equal-maps","query":"[{:a 1} {:a 1}] | sort","expect":"[{:a 1} {:a 1}]","decision":["D16","D48"]}

@@ -27,4 +27,4 @@
 {"name":"with-projection-chain","query":"{:user {:name \"Alice\"}} | coalesce ~(/admin) ~(/user/name) ~(\"Unknown\")","expect":"\"Alice\""}
 {"name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce ~(/a/b/c) ~(/a/b) ~(/a) ~(0)","expect":"42"}
 {"name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if /active ~(coalesce ~(/preferredName) ~(/name) ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
-{"name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce ~(/b) ~(/a)","expect":"1"}
+{"name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce ~(/b) ~(/a)","expect":"1","decision":"D13"}

@@ -18,6 +18,6 @@
 {"name":"distribute-over-set-in-the-one-order","query":"#[3 1 2] * add 1","expect":"#[2 3 4]"}
 {"name":"distribute-over-set-into-the-set-of-images","query":"#[1 2 3] * mul 0","expect":"#[0]"}
 {"name":"distribute-over-set-redistinct","query":"#[1 2 3] * add 1 | distinct","expect":"#[2 3 4]"}
-{"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
-{"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}
-{"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true"}
+{"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]","decision":"D18"}
+{"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]","decision":"D18"}
+{"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true","decision":"D18"}

@@ -7,6 +7,12 @@
 // The expect-is-literal guard catches test authoring mistakes where
 // the expected side accidentally computes instead of declaring a
 // static value.
+//
+// A case may name the decision that left it as a requirement,
+// `"decision": "D14"` or a vector of them, and a requirement the tree
+// does not meet yet is a target, `"target": true`, which must answer
+// otherwise; a target that answers as expected fails until the branch
+// that met it drops the mark [D58].
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -57,13 +63,19 @@ for (const file of files) {
   describe(`conformance: ${file}`, () => {
     for (const line of lines) {
       const test = JSON.parse(line);
-      it(test.name, async () => {
+      it(test.target === true ? `target: ${test.name}` : test.name, async () => {
         const expectedAst = parse(test.expect);
         assertLiteralAst(expectedAst, test.name);
 
         const queryResult = await evalQuery(test.query);
         const expectedValue = await evalQuery(test.expect);
-        expect(deepEqual(queryResult, expectedValue), `${test.name}: result !== expected`).toBe(true);
+        const answersAsExpected = deepEqual(queryResult, expectedValue);
+        if (test.target === true) {
+          expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();
+          expect(answersAsExpected, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);
+        } else {
+          expect(answersAsExpected, `${test.name}: result !== expected`).toBe(true);
+        }
       });
     }
   });

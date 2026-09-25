@@ -302,9 +302,9 @@
   ~~|
 
 ::TaggedJSONUnencodableValueError
-  |~~ `toTaggedJSON` cannot encode a function / conduit /
-      snapshot value — use `serializeSession` for the
-      binding-aware path.
+  |~~ `toTaggedJSON` cannot encode a function or conduit value,
+      nor the record of a binding that holds one — use
+      `serializeSession` for the binding-aware path.
   ~~|
 
 |~ ── 7. Dispatch wrapper invariants ───────────────────── ~|
@@ -464,8 +464,9 @@
 
 ::ToPlainUnencodableValueError
   |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
-      with no JSON form. Conduit and Snapshot reconstruct through
-      `serializeSession` / `deserializeSession`; a host value an
+      with no JSON form. A conduit and the record of its binding
+      reconstruct through `serializeSession` / `deserializeSession`;
+      a host value an
       embedder installed reaches the boundary the same way. Route
       the value through `tjson` / `toTaggedJSON` when the round-trip
       has to stay lossless, or project around the slot.

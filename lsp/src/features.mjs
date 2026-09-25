@@ -18,13 +18,13 @@ import {
   FORK_ISOLATING_AST_TYPES,
   isPureLiteralAst,
   walkAst,
-  isModuleAstKey,
   isModuleNamespaceKey,
   isTagBindingName,
   RUNTIME_LOCATOR_KEY,
   tagBindingKey,
   tokenize,
-  isKeyword
+  isKeyword,
+  bindingValueOf
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -197,11 +197,11 @@ async function valueNamespaceCompletions() {
   if (_valueCompletions) return _valueCompletions;
   const runtime = await langRuntime();
   _valueCompletions = [];
-  for (const [k, descriptor] of runtime) {
-    if (isModuleAstKey(k)) continue;
+  for (const [k, entry] of runtime) {
     if (isModuleNamespaceKey(k)) continue;
     if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;
+    const descriptor = bindingValueOf(entry);
     if (!(descriptor instanceof Map)) continue;
     const docContents = await fetchDocsContents(k);
     _valueCompletions.push({
@@ -319,7 +319,7 @@ export async function hoverAtOffset(ast, source, offset) {
 async function hoverForOperand(node, documentAst) {
   const runtime = await langRuntime();
   if (runtime.has(node.name)) {
-    const descriptor = runtime.get(node.name);
+    const descriptor = bindingValueOf(runtime.get(node.name));
     const docContents = await fetchDocsContents(node.name);
     const prose = stripQuoteSegments(docContents.join('\n'));
     return {
@@ -468,7 +468,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 // `as :name` OperandCall. The user-facing symbol kind tracks what
 // the binding will hold once `evalBindStep` runs:
 //   * `tag`      — BareTypeKeyword head (descriptor under `::Tag`)
-//   * `snapshot` — Keyword head with a pure-literal body or a
+//   * `value`    — Keyword head with a pure-literal body or a
 //                  doc-only declaration (no body), or any `as :name`
 //   * `conduit`  — Keyword head with an impure / parametric body
 function bindingDeclarationOf(node) {
@@ -485,15 +485,15 @@ function bindingDeclarationOf(node) {
   if (node.type === 'OperandCall' && node.name === 'as'
       && Array.isArray(node.args) && node.args.length > 0
       && node.args[0].type === 'Keyword') {
-    return { name: node.args[0].name, kind: 'snapshot' };
+    return { name: node.args[0].name, kind: 'value' };
   }
   return null;
 }
 
 function bindingKindForKeywordHead(bindStepNode) {
-  if (bindStepNode.body === null) return 'snapshot';
+  if (bindStepNode.body === null) return 'value';
   if (bindStepNode.params !== null) return 'conduit';
-  return isPureLiteralAst(bindStepNode.body) ? 'snapshot' : 'conduit';
+  return isPureLiteralAst(bindStepNode.body) ? 'value' : 'conduit';
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST
@@ -630,7 +630,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const runtime = await langRuntime();
   if (!runtime.has(operandCall.name)) return null;
 
-  const descriptor = runtime.get(operandCall.name);
+  const descriptor = bindingValueOf(runtime.get(operandCall.name));
   const modifiers = descriptor.get(F_MODIFIERS).map(formatMetaValue);
   const docContents = await fetchDocsContents(operandCall.name);
 
@@ -713,7 +713,6 @@ async function builtinNamesForTokenize() {
   const runtime = await langRuntime();
   _builtinNamesCache = new Set();
   for (const k of runtime.keys()) {
-    if (isModuleAstKey(k)) continue;
     if (isModuleNamespaceKey(k)) continue;
     if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;

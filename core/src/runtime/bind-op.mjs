@@ -2,20 +2,23 @@
 // or write the env directly.
 //
 // `env` answers the bindings the scope holds as a Map, the names the
-// query, the session and a module's `use` wrote [D61], so
-// introspective queries (`env | keys`, `env | /x`) compose through the
-// regular Map operand surface.
+// query, the session and a module's `use` wrote [D61], each as the
+// record of its binding [D63], so introspective queries
+// (`env | keys`, `env | /x | /value`) compose through the regular Map
+// operand surface.
 //
-// `as :name` snapshots the current `pipeValue` under a keyword
-// name and threads `pipeValue` through unchanged. The snapshot is
-// reachable through identifier lookup (auto-unwrapped to the raw
-// value); the attached doc-prefix surfaces through `:name | docs`.
+// `as :name` writes the record of a binding holding the current
+// `pipeValue` under a keyword name and threads `pipeValue` through
+// unchanged. Identifier lookup reads the value the record holds; the
+// attached doc-prefix surfaces through `:name | docs`.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withEnv, withPipeValue, envSet } from '../state.mjs';
-import { isKeyword, typeKeyword, makeSnapshot } from '../types.mjs';
+import { isKeyword, keyword, typeKeyword, makeBinding } from '../types.mjs';
 import { declareShapeError } from '../errors.mjs';
+import { quoteOfBody } from '../quote.mjs';
+import { moduleUriOf } from '../walk.mjs';
 import { scopeBindingsOf } from './nouns.mjs';
 
 const AsNameNotKeywordError = declareShapeError('AsNameNotKeywordError',
@@ -27,24 +30,22 @@ const AsNameNotKeywordError = declareShapeError('AsNameNotKeywordError',
 export const env = stateOp('env', 1, (state, _lambdas) =>
   withPipeValue(state, scopeBindingsOf(state.env)));
 
-// `as :name` — snapshot the current `pipeValue` under a keyword
-// name. Identity on `pipeValue`; writes the snapshot wrapper into
-// `env[:name]`. Doc comments stashed on `asLambdas` (attached at
-// parse time through DocAttachedSequence) ride into the snapshot
-// alongside the captured value.
+// `as :name` — the record of a binding holding the current
+// `pipeValue`, written into `env[:name]` with the doc comments and the
+// step the call carries on `asLambdas` [D63]. Identity on `pipeValue`.
 export const asOperand = stateOp('as', 2, async (state, asLambdas) => {
   const asNameValue = await asLambdas[0](state.pipeValue);
   if (!isKeyword(asNameValue)) {
     throw new AsNameNotKeywordError({ actualType: typeKeyword(asNameValue), actualValue: asNameValue });
   }
-  const asBindingName = asNameValue.name;
-  const asSnapshot = makeSnapshot(state.pipeValue, {
-    name: asBindingName,
+  const asRecord = makeBinding({
+    name: asNameValue,
     docs: asLambdas.docs,
-    location: asLambdas.location
+    value: state.pipeValue,
+    source: quoteOfBody(asLambdas.step),
+    module: keyword(moduleUriOf(asLambdas.step))
   });
-  const asNextEnv = envSet(state.env, asBindingName, asSnapshot);
-  return withEnv(state, asNextEnv);
+  return withEnv(state, envSet(state.env, asNameValue.name, asRecord));
 });
 
 bindPrim('env', env);

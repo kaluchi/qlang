@@ -8,9 +8,9 @@
 // `TAG_HEADER_SYMBOL` slot (stamped by the `::builtin{…}`
 // constructor in `runtime/tagged.mjs`) and the resolved callable on
 // the `BUILTIN_IMPL_SLOT` JS-header slot. The reader sites
-// (`isBuiltinDescriptor` in `eval.mjs`, `runtime/use-op.mjs`
-// snapshot-unwrap) probe the header — no `:kind` field on the
-// raw env entry — and dispatch reads the callable through
+// (`isBuiltinDescriptor` in `eval.mjs`, the stamp passes of
+// `runtime/use-op.mjs` and `runtime/index.mjs`) probe the header — no
+// `:kind` field on the descriptor — and dispatch reads the callable through
 // `resolveBuiltinImpl`, so every field the data plane exposes to
 // `keys` / `/key` / `printValue` is a qlang value.
 //
@@ -103,10 +103,9 @@ export function stampRaisedTags(descriptor, bindingName, whenEmpty = 'stamp') {
 //
 // Both stamp sites — the core-catalog pass in `runtime/index.mjs`
 // and the namespace-resolution pass in `runtime/use-op.mjs` — hand
-// every env entry here, so the shape check lives at this one mint.
-// A `::Tag` whose body is a pure literal binds as a Snapshot rather
-// than a descriptor Map, and a fact stamped onto the wrapper would
-// ride alongside `:payload` where `spec` never reads it.
+// the value of every record here, so the shape check lives at this
+// one mint: a `::Tag` whose body is another literal, `::Box {}`,
+// holds no descriptor to stamp.
 export function stampThrowSiteSpec(binding, envKey) {
   if (!isTagBindingName(envKey)) return binding;
   if (binding[TAG_HEADER_SYMBOL]?.name !== BUILTIN_TAG.name) return binding;

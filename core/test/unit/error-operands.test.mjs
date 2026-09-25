@@ -222,9 +222,9 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('apply args to non-function → ApplyToNonFunctionError', async () => {
-    // Use `as` to bind a raw value (snapshot), not a conduit.
-    // Snapshot-unwrap produces a non-function, so captured args trigger
-    // ApplyToNonFunctionError on the unwrapped value.
+    // Use `as` to bind a raw value, not a conduit. Its record holds a
+    // non-function, so captured args trigger ApplyToNonFunctionError on
+    // the value the record holds.
     const caughtErr = await catchOriginalError('5 | as :five | five 42');
     expect(caughtErr.name).toBe('ApplyToNonFunctionError');
     expect(caughtErr.context.name).toBe('five');

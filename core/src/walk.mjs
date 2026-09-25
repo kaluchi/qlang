@@ -92,7 +92,7 @@ export function isPlainCommentStep(astNode) {
 // subtree. Returns true when evaluation of the subtree depends on
 // neither the surrounding pipeValue nor env nor any side-effect
 // operand. Pure-literal bodies are eval'd at decl-time and bound as
-// a snapshot of the resulting value; impure bodies (containing
+// the resulting value; impure bodies (containing
 // OperandCall, Projection, ParenGroup, Pipeline) bind as a zero-
 // param conduit invoked lazily per-lookup. Used by `evalBindStep`.
 export function isPureLiteralAst(node) {
@@ -143,6 +143,15 @@ export function attachAstParents(root) {
   walkAst(root, (n, parent) => { n.parent = parent; });
 }
 
+// moduleUriOf(node) — the uri of the source a node was read from,
+// which the root of its tree carries: a module's name, a session
+// cell's, `inline` for a query, `quote` for code assembled from data.
+export function moduleUriOf(node) {
+  let root = node;
+  while (root.parent) root = root.parent;
+  return root.uri;
+}
+
 // findAstNodeAtOffset(ast, offset) — returns the narrowest-spanning
 // AST node whose source range contains the given UTF-16 offset, or
 // null if no node contains the offset. The narrowest-wins tiebreaker
@@ -170,7 +179,7 @@ export function findAstNodeAtOffset(ast, offset) {
 //       - BindStep whose Keyword key names the identifier
 //         (declaration site — `:foo body` form)
 //       - OperandCall named `as` whose first Keyword arg names the
-//         identifier (snapshot declaration site — `as :foo`)
+//         identifier (declaration site of `as :foo`)
 //       - Projection whose .keys contains the name (Map field read)
 //
 //   * Type-namespace lookup (`name` carries the `::` prefix, e.g.

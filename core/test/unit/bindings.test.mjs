@@ -1,5 +1,5 @@
 // Binding declarations — BindStep (`:name body` / `:name [params]
-// body`) and the `as` operand (pipeValue snapshot under a name).
+// body`) and the `as` operand (pipeValue named under a keyword).
 // Every binding declaration parses through `evalBindStep` at the
 // AST level — there is no operand-call ceremony around it.
 
@@ -42,11 +42,10 @@ describe('BindStep — docs-only form', () => {
 });
 
 describe('BindStep — value-body purity routing', () => {
-  // Pure-literal bodies land as Snapshot wrappers; identifier lookup
-  // auto-unwraps to the captured value, so the user-observable
-  // contract is "lookup yields the eval-at-bind-time value". The
-  // snapshot wrapper is internal — there is no user-facing axis
-  // that surfaces it.
+  // A pure-literal body evaluates at declaration and its record holds
+  // the value [D63]; identifier lookup reads it, so the
+  // user-observable contract is "lookup yields the eval-at-bind-time
+  // value".
 
   it('pure scalar literal lookup yields the literal value', async () => {
     expect(await evalQuery(':pi 3.14 | pi')).toBe(3.14);
@@ -60,7 +59,7 @@ describe('BindStep — value-body purity routing', () => {
     expect(await evalQuery(':double mul 2 | 5 | double')).toBe(10);
   });
 
-  it('snapshot lookup returns the eval-at-bind-time value', async () => {
+  it('lookup of a literal binding returns the eval-at-bind-time value', async () => {
     expect(await evalQuery(':answer 42 | answer')).toBe(42);
   });
 

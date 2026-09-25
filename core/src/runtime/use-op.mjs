@@ -30,13 +30,10 @@ import { withEnv, nestState, envMerge } from '../state.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
-  isQMap, isKeyword, isVec, isQSet, isSnapshot,
+  isQMap, isKeyword, isVec, isQSet, isBinding, keyword, makeBinding, bindingValueOf,
   typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { quoteOfBody } from '../quote.mjs';
-import {
-  moduleAstKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY
-} from '../env-keys.mjs';
+import { moduleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
@@ -63,12 +60,30 @@ const UseNameNotExportedError = declareShapeError('UseNameNotExportedError',
   { operand: 'use' }
 );
 
+// A namespace a host bound under a bare name: the record of a
+// header-less Map that no step declared [D63].
+function isHostNamespace(record) {
+  if (!isBinding(record) || record.get('source') !== null) return false;
+  const value = record.get('value');
+  return isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
+}
+
+// The bindings a Map of entries brings into a scope [D63]: a record as
+// the binding it is, and any other value as a binding without a doc.
+function bindingsOf(entries) {
+  const bindings = new Map();
+  for (const [name, value] of entries) {
+    bindings.set(name, isBinding(value) ? value : makeBinding({ name: keyword(name), value }));
+  }
+  return bindings;
+}
+
 export const use = stateOpVariadic('use', async (state, useLambdas) => {
   if (useLambdas.length === 0) {
     if (!isQMap(state.pipeValue)) {
       throw new UseSubjectNotMapError(state.pipeValue);
     }
-    return withEnv(state, envMerge(state.env, state.pipeValue));
+    return withEnv(state, envMerge(state.env, bindingsOf(state.pipeValue)));
   }
 
   const useArg = await useLambdas[0](state.pipeValue);
@@ -97,10 +112,11 @@ export const use = stateOpVariadic('use', async (state, useLambdas) => {
 // `EvaluationDepthExceededError` — patches `:impl` on builtin
 // descriptors with the impls from the locator result, and installs
 // the namespace keyword in env for subsequent lookups. Returns the
-// resolved `moduleEnv` paired with the env that holds the
-// freshly-installed namespace binding so the caller threads it
-// forward; `outerEnv` is that evolving env, which walks ahead of
-// `callerState.env` across a multi-namespace import.
+// resolved `moduleEnv`, a Map of the records the module exports,
+// paired with the env that holds the freshly-installed namespace
+// binding so the caller threads it forward; `outerEnv` is that
+// evolving env, which walks ahead of `callerState.env` across a
+// multi-namespace import.
 async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // Two lookup keys for a namespace. A host `session.bind(:ns, map)`
   // lands under the bare keyword name (`<ns>`); the language-level
@@ -111,15 +127,16 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   const cacheKey = moduleNamespaceKey(nsKeyword.name);
   if (outerEnv.has(cacheKey)) return [outerEnv.get(cacheKey), outerEnv];
 
-  // A host-installed namespace is a header-less Map under the bare
-  // name. Every other binding there — an operand descriptor
-  // (`use :count`), a conduit (`use :double`), a snapshot, a
-  // scalar or function a host bound — sits on the identifier plane,
-  // so the probe walks past it to the locator: merging a tagged Map
-  // would spill `:impl` / `:envRef` / `:payload` slots into env as
-  // bindings.
-  const hostBound = outerEnv.get(nsKeyword.name);
-  if (isQMap(hostBound) && hostBound[TAG_HEADER_SYMBOL] === undefined) return [hostBound, outerEnv];
+  // A host-installed namespace is a header-less Map bound under the
+  // bare name with no declaration behind it, its entries brought in as
+  // bindings. Every other binding there — one a step declared, `as
+  // :cfg` among them, an operand descriptor (`use :count`), a conduit
+  // (`use :double`), a scalar or function a host bound — sits on the
+  // identifier plane, so the probe walks past it to the locator:
+  // merging a tagged Map would spill `:impl` / `:envRef` slots into
+  // env as bindings.
+  const hostRecord = outerEnv.get(nsKeyword.name);
+  if (isHostNamespace(hostRecord)) return [bindingsOf(hostRecord.get('value')), outerEnv];
 
   const locatorFn = outerEnv.get(RUNTIME_LOCATOR_KEY);
   if (!locatorFn) {
@@ -139,37 +156,16 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
 
   // Export surface = env delta. A module exports any binding it
   // ADDED (key absent from outerEnv) or MODIFIED (key present but
-  // pointing to a different value — the module's BindStep replaced
-  // the entry, producing a fresh Map instance). Identity-compare
-  // on the value separates inherited-unchanged from override.
-  // Modules using `| use` to install descriptor Maps into env work
-  // through this path. Pure Map-expression modules (no `| use`)
-  // pipe through `use` to land their entries in env.
+  // pointing to a different record — the module's BindStep replaced
+  // the entry). Identity-compare on the record separates
+  // inherited-unchanged from override. Modules using `| use` to
+  // install descriptor Maps into env work through this path. Pure
+  // Map-expression modules (no `| use`) pipe through `use` to land
+  // their entries in env.
   const loadedExports = new Map();
   for (const [exportKey, exportVal] of moduleResultState.env) {
     if (!outerEnv.has(exportKey) || outerEnv.get(exportKey) !== exportVal) {
       loadedExports.set(exportKey, exportVal);
-    }
-  }
-
-  // Unwrap snapshot-wrapped `::builtin` descriptors before
-  // stamping. `evalBindStep` routes a pure-literal body (every
-  // `::builtin{…}` TaggedLit qualifies) through `makeSnapshot`,
-  // so a freshly-evaluated catalog lands the descriptor under a
-  // Snapshot wrapper. `langRuntime`'s own bootstrap unwraps the
-  // same shape (see `runtime/index.mjs`); locator-loaded
-  // namespaces need the same unwrap pass before
-  // `stampStructuralFacts` mutates the descriptor — otherwise
-  // the stamping would mint `:impl` / `:captured` /
-  // `:effectful` on the Snapshot wrapper, leaving the inner
-  // builtin Map untouched and downstream dispatch reaching for
-  // an undefined `fn.arity`.
-  for (const [exportKey, exportVal] of loadedExports) {
-    if (!isSnapshot(exportVal)) continue;
-    const payload = exportVal.get('payload');
-    if (!isQMap(payload)) continue;
-    if (payload[TAG_HEADER_SYMBOL]?.name === 'builtin') {
-      loadedExports.set(exportKey, payload);
     }
   }
 
@@ -179,20 +175,21 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // what `buildLangRuntime` does for the language catalog, at the
   // seam a locator-loaded namespace arrives through.
   for (const [exportKey, exportVal] of loadedExports) {
-    stampThrowSiteSpec(exportVal, exportKey);
+    stampThrowSiteSpec(bindingValueOf(exportVal), exportKey);
   }
 
   // Stamp the resolved JS function value onto each freshly-built
-  // builtin descriptor through the shared `stampStructuralFacts`
-  // mint-site — same surface `runtime/index.mjs::buildLangRuntime`
-  // uses for the core catalog. Locator-loaded descriptors land in
-  // env carrying a resolved JS function value on `:impl` plus the
-  // structural-from-impl backfill (`:captured` / `:effectful` /
-  // empty-fallback `:modifiers`, and `:throws` read off the sites) so `spec` axis and
-  // `manifest` enumeration read them off the env entry uniformly.
+  // builtin descriptor, the value of its record, through the shared
+  // `stampStructuralFacts` mint-site — same surface
+  // `runtime/index.mjs::buildLangRuntime` uses for the core catalog.
+  // Locator-loaded descriptors carry a resolved JS function value on
+  // `:impl` plus the structural-from-impl backfill (`:captured` /
+  // `:effectful` / empty-fallback `:modifiers`, and `:throws` read
+  // off the sites) so `spec` axis and `manifest` enumeration read
+  // them off the record uniformly.
   if (locatorResult.impls) {
     for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
-      const implDescriptor = loadedExports.get(implName);
+      const implDescriptor = bindingValueOf(loadedExports.get(implName));
       if (isQMap(implDescriptor) && implDescriptor[TAG_HEADER_SYMBOL]?.name === 'builtin') {
         stampStructuralFacts(implDescriptor, implFn, implName);
       }
@@ -201,11 +198,6 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
 
   const envWithNamespace = new Map(outerEnv);
   envWithNamespace.set(cacheKey, loadedExports);
-  // Stamp the loaded module's source as a Quote-value under the
-  // canonical `qlang/ast/<ns>` env key — same surface the core
-  // module gets in langRuntime, so axis-operands walk every
-  // loaded namespace through one mechanism.
-  envWithNamespace.set(moduleAstKey(nsKeyword.name), quoteOfBody(moduleAst));
   return [loadedExports, envWithNamespace];
 }
 

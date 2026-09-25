@@ -77,10 +77,10 @@ describe('every refusal names the place it guards [D64]', () => {
   });
 });
 
-// The core as a noun, the kind beneath every kind and the kind of
-// errors declare a page alone, and neither constructs nor refuses
-// [D62], [D64].
-const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error']);
+// The core as a noun, the kind beneath every kind, the kind of
+// errors and the kind of the records of bindings declare a page alone,
+// and neither constructs nor refuses [D62], [D63], [D64].
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding']);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds

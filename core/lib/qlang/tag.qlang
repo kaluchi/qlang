@@ -223,6 +223,22 @@
       ~("x" | add 1 !| type | eq ::error | not)
   ~~|
 
+::binding
+  |~~ The kind of the record a declaration writes into its scope:
+      `:name`, the keyword or the tag it binds, `:docs`, one Doc per
+      doc-prefix, `:value`, `:source`, the quote of the declaring
+      step, and `:module`, the source it came from. `env` answers the
+      records of the scope, a name reads the value its record holds,
+      and the axes project the record, so `env | /x | docs` answers
+      the docs of `x`. A value `use` or a host binds is a binding
+      without a doc and without a source.
+
+      ~(:x |~~ One. ~~| 1 | env | /x | /value | eq 1)
+      ~(:x |~~ One. ~~| 1 | env | /x | docs | first | /content | eq " One. ")
+      ~(:x 1 | env | /x | /name | eq :x)
+      ~({:k 2} | use | env | /k | /source | eq null)
+  ~~|
+
 ::null
   |~~ The kind of null, the absence of a value. A kind of the core
       is named under its prefix and written short, `::qlang/null`

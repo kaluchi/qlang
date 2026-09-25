@@ -9,7 +9,7 @@
 
 :type
   |~~ Returns the value's kind, a tag. For tagged values (errors,
-      conduits, snapshots, tagged-instances, builtin descriptors,
+      conduits, binding records, tagged-instances, builtin descriptors,
       quotes, sets) it is the tag stamped on the value's JS-header
       `TAG_HEADER_SYMBOL` slot; for every other value the kind of
       the core its literal implies (`::number`, `::string`,

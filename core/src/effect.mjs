@@ -19,9 +19,9 @@
 // runtime that inspects the source-token character of a name. It
 // runs at:
 //   - parse-time effect decoration (once per OperandCall, conduit declaration,
-//     snapshot declaration, Projection node — i.e. once per identifier in source)
+//     `as` declaration, Projection node — i.e. once per identifier in source)
 //   - function-value construction (once per langRuntime registration)
-//   - conduit/snapshot construction (once per BindStep / `as` evaluation)
+//   - conduit construction (once per BindStep evaluation)
 //
 // The result is stored as a precomputed boolean on every node and
 // runtime value. The hot path — eval.mjs::evalOperandCall — reads

@@ -13,7 +13,7 @@ recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
 
 // Descriptor field-order: high-entropy first. The per-site
 // identity (the same invariant every tagged-instance value-class
-// carries — conduit, snapshot, qlang, json, user `::Foo[…]`)
+// carries — conduit, binding record, qlang, json, user `::Foo[…]`)
 // rides on the error value's JS-header `tag` slot, not on the
 // descriptor Map. `:faultStep` (Quote of failing source slice)
 // and `:faultInput` (pipeValue at step entry) carry the runtime

@@ -90,9 +90,9 @@ describe('filter — container polymorphism', () => {
     expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 
-  it('Map with non-conduit snapshot as pred — falls to per-value path, all entries pass', async () => {
+  it('Map with a non-conduit as binding for pred — falls to per-value path, all entries pass', async () => {
     // Exercises the non-Map branch of resolveCapturedConduit: the
-    // captured-arg resolves to a boolean (through snapshot auto-unwrap),
+    // captured-arg resolves to a boolean, the value of its record,
     // so conduit resolution returns null. The per-value path then fires
     // the predicate identifier per entry, which replaces pipeValue with
     // `true` — all entries survive.
@@ -101,14 +101,14 @@ describe('filter — container polymorphism', () => {
   });
 
   it('Map with effectful 1-arity conduit reached via clean name → EffectLaunderingAtCallError', async () => {
-    // An @-named (effectful) conduit extracted through env projection and
-    // snapshotted under a clean name is then referenced inside filter.
-    // invokeConduitWithFixedArgs must refuse the clean-name invocation
-    // with EffectLaunderingAtCallError — the same safety net applyConduit
-    // enforces for ordinary conduit calls.
+    // An @-named (effectful) conduit extracted through env projection,
+    // the value of its record, and bound under a clean name is then
+    // referenced inside filter. invokeConduitWithFixedArgs must refuse
+    // the clean-name invocation with EffectLaunderingAtCallError — the
+    // same safety net applyConduit enforces for ordinary conduit calls.
     const errorValue = await evalQuery(
       ':@hot [:v] (v | gt 0) '
-      + '| env | /@hot | as :clean '
+      + '| env | /@hot | /value | as :clean '
       + '| {:a 1 :b 2} | filter ~(clean) !| type'
     );
     expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCallError'));

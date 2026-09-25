@@ -1,30 +1,26 @@
 // Axis-operands — reflective navigation to a binding's declaration
-// [D61]: a keyword `:foo` reads the binding its scope holds under the
-// name, a tag name `::Foo` the tag's, a tag name that no tag binds the
-// verb it addresses from the root, `::vec/count` [D62], and every other
-// value the declaration of its kind, the kind `type` answers. Each
-// operand walks the `qlang/ast/<uri>` quotes in env for the step that
-// declares the binding, a BindStep or an `as :name` call, and answers a
-// field of it:
+// [D61], the record the declaration wrote into its scope [D63]: a
+// keyword `:foo` reads the record its scope holds under the name, a tag
+// name `::Foo` the tag's, a tag name that no tag binds the record of
+// the verb it addresses from the root, `::vec/count` [D62], a record
+// the binding it records, and every other value the record of its
+// kind, the kind `type` answers. Each operand projects a field of the
+// record:
 //
-// `source`   the quote of the step.
+// `source`   the quote of the declaring step, null for a binding no
+//            step declared, a value `use` or a host bound.
 // `docs`     a Vec of Doc-values, one per doc-prefix of the step.
 // `examples` every quote among the segments of those docs, the cases
 //            `runExamples` runs.
-// `spec`     the descriptor the binding holds in env.
+// `spec`     the value the binding holds.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { withPipeValue, envGet, envHas } from '../state.mjs';
+import { withPipeValue, envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isSnapshot, makeDoc, typeKeyword, declarationSiteOf,
-  stampTagHeader, TAG_HEADER_SYMBOL
+  isKeyword, isQuote, isTagKeyword, isBinding, typeKeyword, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { quoteOfBody, astOfQuote } from '../quote.mjs';
-import {
-  isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix, moduleAstKey,
-  canonicalTagName
-} from '../env-keys.mjs';
+import { tagBindingKey } from '../env-keys.mjs';
 import { addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, verbsOfKind } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
@@ -43,117 +39,20 @@ import { parseDocSegments } from '../doc-segments.mjs';
 // which lookup failed.
 export const SourceBindingNotFoundError = declareShapeError('SourceBindingNotFoundError',
   ({ bindingName }) =>
-    `source: no binding-step found for '${bindingName}' across loaded modules`,
+    `source: no binding found for '${bindingName}'`,
   { operand: 'source' });
 export const DocsBindingNotFoundError = declareShapeError('DocsBindingNotFoundError',
   ({ bindingName }) =>
-    `docs: no binding-step found for '${bindingName}' across loaded modules`,
+    `docs: no binding found for '${bindingName}'`,
   { operand: 'docs' });
 export const ExamplesBindingNotFoundError = declareShapeError('ExamplesBindingNotFoundError',
   ({ bindingName }) =>
-    `examples: no binding-step found for '${bindingName}' across loaded modules`,
+    `examples: no binding found for '${bindingName}'`,
   { operand: 'examples' });
 export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundError',
   ({ bindingName }) =>
-    `spec: no binding-step found for '${bindingName}' across loaded modules`,
+    `spec: no binding found for '${bindingName}'`,
   { operand: 'spec' });
-
-// The walk by name serves the catalog's descriptors, which carry no
-// site and are all BindSteps: one matches when its key names the
-// binding, a keyword in the value namespace, a tag name in the tag
-// namespace.
-function matchesBindingStep(step, isTagBinding, targetName) {
-  if (step.type === 'BindStep') {
-    const key = step.key;
-    return isTagBinding
-      ? key.type === 'BareTypeKeyword' && canonicalTagName(key.tag) === targetName
-      : key.type === 'Keyword'         && key.name === targetName;
-  }
-  return false;
-}
-
-// Walk the module AST front to back, return the LAST matching binding
-// step. The last-match rule mirrors qlang's shadowing semantics: a
-// later `:foo body` BindStep shadows the earlier binding, so
-// axis-operand lookups surface the docs / source / examples of the
-// shadowing-resolved binding at that point in the module.
-// A module of one declaration parses as that step itself, with no
-// Pipeline wrapper, and the head step of a Pipeline rides without
-// the combinator wrapper its followers carry. Both readings below
-// walk one sequence rather than each re-deciding the shape.
-function topLevelSteps(moduleAst) {
-  if (moduleAst.type !== 'Pipeline') return [moduleAst];
-  return moduleAst.steps.map((stepWrapper, index) =>
-    (index === 0 ? stepWrapper : stepWrapper.step));
-}
-
-function findBindingStepFor(moduleAst, bindingName) {
-  const isTagBinding = isTagBindingName(bindingName);
-  const targetName = isTagBinding ? stripTagBindingPrefix(bindingName) : bindingName;
-  let lastMatch = null;
-  for (const step of topLevelSteps(moduleAst)) {
-    if (matchesBindingStep(step, isTagBinding, targetName)) lastMatch = step;
-  }
-  return lastMatch;
-}
-
-// Iterate every module Quote stored in env under `qlang/ast/<uri>`.
-// langRuntime and `use :ns` put the quote of the module's parsed tree at
-// every such key, so the tree comes back without a second parse.
-function* moduleAstsIn(env) {
-  for (const [k, v] of env) {
-    if (isModuleAstKey(k) && isQuote(v)) yield astOfQuote(v);
-  }
-}
-
-// A binding minted through `makeConduit` / `makeSnapshot` carries
-// the declaring node's own `location` object on its
-// DECLARATION_SITE_SLOT, so the step that wrote the env entry is
-// identifiable by reference. That is the authority: `spec` reads
-// env, and reading env here too makes the four axes name one
-// declaration whichever order the shadowing happened in — a cell
-// BindStep over a `use`-loaded namespace, or a `use` over a cell
-// BindStep.
-// `makeSnapshot` records the BindStep's own location and
-// `makeConduit` its body's, so a step declares the site when either
-// node carries it.
-function declaresSite(step, declarationSite) {
-  return step.location === declarationSite || step.body?.location === declarationSite;
-}
-
-function findStepAtDeclarationSite(moduleAst, declarationSite) {
-  for (const step of topLevelSteps(moduleAst)) {
-    if (declaresSite(step, declarationSite)) return step;
-  }
-  return null;
-}
-
-// A catalog descriptor reaches env through the bootstrap's
-// snapshot-unwrap and carries no site, so the name walk answers for
-// it: env is insertion-ordered and the catalog loads ahead of every
-// cell, so the last match there is the shadowing declaration.
-export function findBindingStepAcrossModules(env, bindingName) {
-  const declarationSite = declarationSiteOf(env.get(bindingName));
-  let lastMatch = null;
-  for (const moduleAst of moduleAstsIn(env)) {
-    if (declarationSite !== undefined) {
-      const sited = findStepAtDeclarationSite(moduleAst, declarationSite);
-      if (sited !== null) return sited;
-      continue;
-    }
-    const step = findBindingStepFor(moduleAst, bindingName);
-    if (step !== null) lastMatch = step;
-  }
-  return lastMatch;
-}
-
-// A BindStep carries its doc-prefixes as `.docs`, null when it has
-// none, and an `as :name` call carries the field only when it has
-// some; every reader of them, `docs`, `examples` and `runExamples`,
-// goes through here.
-function stepDocStrings(step) {
-  return step.docs ?? [];
-}
 
 // The binding a subject names: a keyword names a binding, a tag name
 // a tag's, and every other value names the declaration of its kind,
@@ -192,38 +91,24 @@ export function refusalOf(env, subject) {
   return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)) };
 }
 
-// The step that declares what a subject names, the one step every axis
-// and `runExamples` read.
-export function declaringStepOf(env, subject) {
+// The record a subject names, the one record every axis and
+// `runExamples` read, or null when it names none: a name the scope
+// binds for the time of a call, a conduit's parameter, is no record.
+export function declaringRecordOf(env, subject) {
+  if (isBinding(subject)) return subject;
   if (namesNoScopeBinding(env, subject)) return null;
   const address = addressOf(env, subject);
-  if (address === null) return findBindingStepAcrossModules(env, bindingNameOf(subject));
-  return findBindingStepFor(astOfQuote(envGet(env, moduleAstKey(address.uri))), address.verbName);
+  if (address !== null) return address.record;
+  const entry = env.get(bindingNameOf(subject));
+  return isBinding(entry) ? entry : null;
 }
 
-export const source = stateOp('source', 1, (state, _lambdas) => {
-  const step = declaringStepOf(state.env, state.pipeValue);
-  if (step === null) {
-    throw new SourceBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
-  return withPipeValue(state, quoteOfBody(step));
-});
-
-export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const step = declaringStepOf(state.env, state.pipeValue);
-  if (step === null) {
-    throw new DocsBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
-  const docStrings = stepDocStrings(step);
-  return withPipeValue(state, Object.freeze(docStrings.map(s => makeDoc(s))));
-});
-
-// Every quote among the segments of a step's docs, what `examples`
+// Every quote among the segments of a record's docs, what `examples`
 // answers and `runExamples` runs.
-export async function examplesOfStep(state, step) {
+export async function examplesOfRecord(state, record) {
   const collected = [];
-  for (const docStr of stepDocStrings(step)) {
-    const segments = await parseDocSegments(docStr, state);
+  for (const doc of record.get('docs')) {
+    const segments = await parseDocSegments(doc.content, state);
     for (const seg of segments) {
       if (isQuote(seg)) collected.push(seg);
     }
@@ -231,23 +116,37 @@ export async function examplesOfStep(state, step) {
   return collected;
 }
 
-export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const step = declaringStepOf(state.env, state.pipeValue);
-  if (step === null) {
-    throw new ExamplesBindingNotFoundError(refusalOf(state.env, state.pipeValue));
+export const source = stateOp('source', 1, (state, _lambdas) => {
+  const record = declaringRecordOf(state.env, state.pipeValue);
+  if (record === null) {
+    throw new SourceBindingNotFoundError(refusalOf(state.env, state.pipeValue));
   }
-  return withPipeValue(state, Object.freeze(await examplesOfStep(state, step)));
+  return withPipeValue(state, record.get('source'));
 });
 
-// `spec` — env-side declaration descriptor Map for the named binding.
-// Where `source` returns a Quote of the BindStep's verbatim text and
-// `docs` returns a Vec of attached doc-prefix Doc-values, `spec`
-// returns the structured Map that lives under the binding's env-key
-// after `langRuntime`'s snapshot-unwrap + impl-resolution pass. An
-// operand and a value-class constructor fill that Map from the
-// catalog `::builtin{…}` body they declare; an error tag fills it
-// from the throw-site spec the bootstrap stamps, since what raises
-// the error is what knows the category and the slot.
+export const docs = stateOp('docs', 1, (state, _lambdas) => {
+  const record = declaringRecordOf(state.env, state.pipeValue);
+  if (record === null) {
+    throw new DocsBindingNotFoundError(refusalOf(state.env, state.pipeValue));
+  }
+  return withPipeValue(state, record.get('docs'));
+});
+
+export const examples = stateOp('examples', 1, async (state, _lambdas) => {
+  const record = declaringRecordOf(state.env, state.pipeValue);
+  if (record === null) {
+    throw new ExamplesBindingNotFoundError(refusalOf(state.env, state.pipeValue));
+  }
+  return withPipeValue(state, Object.freeze(await examplesOfRecord(state, record)));
+});
+
+// `spec` — the value the record holds: the structured Map that a
+// catalog `::builtin{…}` body declared, after `langRuntime`'s
+// impl-resolution pass, for an operand and a value-class constructor;
+// the throw-site spec the bootstrap stamps for an error tag, since
+// what raises the error is what knows the category and the slot; the
+// Conduit Map for a conduit, and the value itself for any other
+// binding.
 //
 // The discriminator path for per-tag static facts attached to any
 // tagged value-class: `result !| type | spec | /category`
@@ -256,26 +155,23 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // `add` raises; `::conduit | spec | /impl` returns the
 // `:qlang/type/conduit` constructor handle.
 export const spec = stateOp('spec', 1, (state, _lambdas) => {
-  const address = addressOf(state.env, state.pipeValue);
-  if (address !== null) return withPipeValue(state, address.descriptor);
-  const bindingName = bindingNameOf(state.pipeValue);
-  if (!envHas(state.env, bindingName) || namesNoScopeBinding(state.env, state.pipeValue)) {
+  const record = declaringRecordOf(state.env, state.pipeValue);
+  if (record === null) {
     throw new SpecBindingNotFoundError(refusalOf(state.env, state.pipeValue));
   }
-  let entry = envGet(state.env, bindingName);
-  if (isSnapshot(entry)) entry = entry.get('payload');
-  return withPipeValue(state, withVerbsOfNoun(state.env, bindingName, entry));
+  return withPipeValue(state, withVerbsOfNoun(state.env, record));
 });
 
 // The declaration of a provider's noun lists the verbs that live on it
 // [D61], computed from the subjects its providers' operands declare,
 // and the refusals a query provokes on it, its own and its verbs' [D64].
-function withVerbsOfNoun(env, bindingName, declaration) {
-  if (!isTagBindingName(bindingName) || !isNoun(env, stripTagBindingPrefix(bindingName))) return declaration;
-  const nounName = stripTagBindingPrefix(bindingName);
+function withVerbsOfNoun(env, record) {
+  const declaration = record.get('value');
+  const recordName = record.get('name');
+  if (!isTagKeyword(recordName) || !isNoun(env, recordName.name)) return declaration;
   const withVerbs = new Map(declaration);
-  withVerbs.set('verbs', verbsOfKind(env, nounName));
-  withVerbs.set('throws', refusalsOfNoun(env, nounName, declaration.get('throws') ?? []));
+  withVerbs.set('verbs', verbsOfKind(env, recordName.name));
+  withVerbs.set('throws', refusalsOfNoun(env, recordName.name, declaration.get('throws') ?? []));
   stampTagHeader(withVerbs, declaration[TAG_HEADER_SYMBOL]);
   return withVerbs;
 }

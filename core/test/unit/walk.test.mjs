@@ -369,7 +369,7 @@ describe('bindingNamesVisibleAt', () => {
   it('`as` binding inside a fork-isolating paren not containing offset stays invisible', () => {
     // Fork-isolation: paren-group siblings hide their writes from
     // each other and from the outer scope. `as(:x)` writes a
-    // snapshot under :x inside the paren; offset past the paren
+    // binding under :x inside the paren; offset past the paren
     // closer must not see it. Companion check to the BindStep
     // form `(:local 1 | local) | here` above — same isolation rule
     // governs both binding mechanisms.

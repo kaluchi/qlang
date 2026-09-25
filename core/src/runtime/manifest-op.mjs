@@ -21,7 +21,7 @@ import { isKeyword, isTagKeyword, isErrorValue, typeKeyword } from '../types.mjs
 import { declareShapeError } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { declaringStepOf, examplesOfStep, refusalOf } from './axis.mjs';
+import { declaringRecordOf, examplesOfRecord, refusalOf } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
@@ -80,21 +80,21 @@ async function runQuoteEntry(quote, callerState) {
   return result;
 }
 
-// A name reads the step that declares it as the axes do, a tag name
-// that no tag binds the step of the verb it addresses [D62], and a
-// name that no step declares is refused as `examples` refuses it,
+// A name reads the record of its binding as the axes do, a tag name
+// that no tag binds the record of the verb it addresses [D62], and a
+// name that names no binding is refused as `examples` refuses it,
 // with the addresses where the verbs of that name live.
-function stepNamedBy(env, subject) {
+function recordNamedBy(env, subject) {
   if (!isKeyword(subject) && !isTagKeyword(subject)) {
     throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
   }
-  const step = declaringStepOf(env, subject);
-  if (step === null) throw new RunExamplesBindingNotFoundError(refusalOf(env, subject));
-  return step;
+  const record = declaringRecordOf(env, subject);
+  if (record === null) throw new RunExamplesBindingNotFoundError(refusalOf(env, subject));
+  return record;
 }
 
 export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
-  const quotes = await examplesOfStep(state, stepNamedBy(state.env, state.pipeValue));
+  const quotes = await examplesOfRecord(state, recordNamedBy(state.env, state.pipeValue));
   const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
   return withPipeValue(state, results);
 });

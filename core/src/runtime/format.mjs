@@ -49,11 +49,6 @@ const TO_PLAIN_HANDLERS = {
   TagKeyword:     k => k.literal,
   Vec:            v => v.map(toPlain),
   Map:            qMapToPlainObject,
-  // Snapshot wraps a captured value plus a :name / :docs / :location
-  // bundle. Encode the wrapped value transparently — toPlain is the
-  // lossy codec, the wrapper metadata is reachable through
-  // `manifest` enumeration for callers that need it.
-  Snapshot:       s => toPlain(s.get('payload')),
   // TaggedInstance: identity rides on the JS-header
   // TAG_HEADER_SYMBOL slot, payload shape varies (Array /
   // Map / opaque wrap-object). The envelope carries identity

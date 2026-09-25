@@ -41,9 +41,10 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   fail-track combinator and fires its step against the error's
   materialized descriptor. Track dispatch lives exclusively in
   `applyCombinator`; `evalNode` is a pure AST-node-type dispatcher.
-- **`env`** — the environment, a Map from identifier names to values
-  or functions. Contains the language runtime, domain runtime, user
-  bindings from BindStep declarations and `as` snapshots, and
+- **`env`** — the environment, a Map from identifier names to the
+  records of their bindings, `::binding`, each holding a value or
+  a function [D63]. Contains the language runtime, domain runtime,
+  user bindings from BindStep declarations and `as` calls, and
   anything else in scope.
 
 The evaluator's State object carries one bookkeeping field beside
@@ -154,37 +155,36 @@ BindStep declaration or by `as` like any other name.
 
 This rule unifies built-in operands, domain functions, reflective
 built-ins (`use`, `env`), BindStep-installed conduits, and
-`as`-bound snapshots. They differ only in what is stored in
-`env[:name]`, never in how lookup behaves.
+`as`-bound values. They differ only in the value the record under
+`env[:name]` holds, never in how lookup behaves.
 
 ### 4. Value binding — `as :name`
 
-    (pipeValue, env) → (pipeValue, env[:name := Snapshot(pipeValue, docs)])
+    (pipeValue, env) → (pipeValue, env[:name := Binding(name, docs, pipeValue)])
 
-Identity on `pipeValue`; writes the current value into `env[:name]`
-as a `Snapshot` wrapper carrying the captured value, the binding name,
-and any doc-comment contents attached at parse time. A later bare
-`name` lookup (Step 3) transparently unwraps the snapshot and returns
-the raw captured value; the `:name | source` / `:name | docs` axis
-operands surface the declaring source slice and the attached prose.
+Identity on `pipeValue`; writes into `env[:name]` the record of a
+binding holding the current value, the binding name, any doc-comment
+contents attached at parse time, the quote of the `as` step and the
+module it came from. A later bare `name` lookup (Step 3) reads the
+value the record holds; the `:name | source` / `:name | docs` axis
+operands project the record's source and prose.
 
 ### 5. BindStep declaration — `:name body` / `:name [:p1..:pN] body` / `:name docs` / `::Tag body`
 
     (pipeValue, env) → (pipeValue, env[:name := <bound value>])
 
-Identity on `pipeValue`; writes the binding into `env` and falls
-through. The bound value is shaped by the body's purity and shape:
+Identity on `pipeValue`; writes the record of the binding into
+`env` and falls through. The value the record holds is shaped by the
+body's purity and shape:
 
-- **Doc-only** (`:name |~~ … ~~|`, no body) — `env[:name]` becomes
-  a Snapshot wrapping a `Doc` value built from the joined doc
-  prefix.
+- **Doc-only** (`:name |~~ … ~~|`, no body) — a `Doc` value built
+  from the joined doc prefix.
 - **Pure-literal body** (`isPureLiteralAst(body)` — Number / String /
   Boolean / Null / Keyword / Quote / Doc / VecLit / MapLit / SetLit
   / TaggedLit composed of pure leaves) — `evalBindStep` evaluates
   the body once at declaration time against `pipeValue=null` and
-  binds the resulting value behind a Snapshot wrapper. Catalog
-  descriptor Maps land through this path so identifier lookup sees
-  the plain Map directly.
+  binds the resulting value. Catalog descriptor Maps land through
+  this path, the value of each operand's record.
 - **Impure / parametric body** — the body becomes a **Conduit**
   carrying the unevaluated body AST, optional parameter list, the
   doc-prefix Vec, and a **lexical scope anchor** (`envRef`) that
@@ -283,7 +283,7 @@ content — the metadata attachment for doc forms — is a parser-side
 transformation: the parser folds `DocComment*` into the binding
 AST node's `docs` Vec field, so `evalBindStep` and the `as`
 operand impl see the docs at construction time and fold them
-into the conduit or snapshot wrapper.
+into the record of the binding.
 
 ## Reflective built-ins
 
@@ -325,10 +325,10 @@ Enables introspection:
 
     env | keys         -- set of the names the scope holds
     env | has :x       -- has the session bound `x`?
-    env | /x           -- read a specific binding
+    env | /x           -- read the record of a specific binding
 
 Inside a fork, `env` returns the fork's current env (with any
-fork-local `as` snapshot or BindStep declaration still visible at
+fork-local `as` binding or BindStep declaration still visible at
 the point of lookup).
 
 ### `manifest`
@@ -380,15 +380,15 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
    governs Map / Vec / Set literal entries. The result is the
    **payload-value**.
 2. **Look up the tag binding.** `'::' + node.tag` is the env key.
-   Absent → auto-declare an identity-only Map binding carrying
-   `:declarationOrigin :implicit` in the query-local env, then
+   Absent → auto-declare the record of an identity-only Map
+   binding carrying `:declarationOrigin :implicit` in the
+   query-local env, then
    continue with the default constructor branch below. The
    marker field lets `::Tag | spec | /declarationOrigin` answer
    `:implicit` for every tag the source never bound explicitly —
    strict-mode lint and CI tooling read it.
-3. **Unwrap a snapshot** if the binding is wrapped (`as :tag`
-   snapshots route through here too).
-4. **Validate descriptor shape.** Binding must be a Map.
+3. **Read the value of the record** the tag binding is.
+4. **Validate descriptor shape.** The value must be a Map.
    Otherwise → `TaggedLitNotTagBindingError`.
 5. **Read `:impl`.** Three branches dispatch by the impl
    value's runtime shape:
@@ -418,7 +418,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
        reads through `typeKeyword` / `type` operand. Under
        `::quote` a vector mints as a quote, under `::set` as a set.
      - **Wrap-object** (scalar / Keyword / Quote / Set / Doc / Error /
-       Conduit / Snapshot / already-tagged composite): the
+       Conduit / already-tagged composite): the
        payload cannot carry the header (primitives have no
        property storage, frozen value-class objects refuse
        `defineProperty`, nested tagged composites already own
@@ -437,9 +437,9 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
 AST node. Evaluation looks the binding up the same way (step 2
 above) and returns a `TagKeyword` value (`makeTagKeyword(tag)`).
 This is how `::ParseError | docs` works — the `BareTypeKeyword`
-produces a TagKeyword pipeValue, the axis-operand reads it via
-`bindingNameOf` and walks the `qlang/ast/<uri>` module Quote to
-find the declaring BindStep.
+produces a TagKeyword pipeValue, and the axis-operand projects the
+record the tag's declaration wrote, under the env key
+`bindingNameOf` computes.
 
 ### Constructor invariants
 
@@ -463,8 +463,8 @@ Constructors must satisfy:
 `makeTaggedInstance(tag, payload)` produces a **tagged instance**
 identified through the JS-header `TAG_HEADER_SYMBOL` slot —
 `isTaggedInstance` in `types.mjs` reads the slot directly
-(excluding the reserved tag names `conduit`, `snapshot`,
-`builtin` that ride their own dedicated render paths) and
+(excluding the reserved tag names `conduit` and `builtin` that
+ride their own dedicated render paths) and
 `printValue` routes the value through `printTaggedInstance`,
 which dispatches on the payload's native shape:
 - Tagged Array → `::tag[…]`.
@@ -480,8 +480,6 @@ user-defined tagged types without a custom printer per tag.
 Reserved tag names own dedicated render paths:
 - `::conduit` → `::conduit[:self [params] ~(body)]` form (the
   Conduit value-class print).
-- `::snapshot` → wrapped value (snapshot is an env wrapper,
-  recursing on the underlying value).
 - `::builtin` → catalog descriptor Map (manifest enumeration
   surface, `:kind ::builtin` retained on the manifest view-Map
   as an explicit enum bucket).
@@ -697,8 +695,8 @@ co-located sources:
   the `::builtin{…}` constructor in `runtime/tagged.mjs`; the
   reader sites (`isBuiltinDescriptor`, `manifest`-op routing)
   probe the header directly. Doc-prefixes attached to each BindStep via
-  DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the
-  module's `qlang/ast/<uri>` Quote as `step.docs` and are
+  DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the record
+  the BindStep writes, as its `:docs`, and are
   reachable through axis-operands (`::vec/count | docs` returns a
   Vec of Doc-values, `::vec/count | examples` returns a Vec of every
   `~(…)` Quote segment extracted by `parseDocSegments`). Each
@@ -776,7 +774,7 @@ indistinguishable from built-ins.
 | `/key` projection (possibly nested) | Step 2 — projection                   |
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
-| `as :name` operand call            | Step 3 — identifier lookup + snapshot capture |
+| `as :name` operand call            | Step 3 — identifier lookup + the record of a binding |
 | `:name body` / `:name [:p] body` / `::Tag body` | Step 5 — BindStep declaration |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
@@ -1135,7 +1133,7 @@ semantics, which are unchanged.
 The same `evalNode` chokepoint is also where the
 `EffectLaunderingAtCallError` runtime safety net for the `@`-effect-marker
 invariant fires, inside the `evalOperandCall` branch immediately
-after conduit-forcing and snapshot-unwrapping. See
+after conduit-forcing and reading the value of the record. See
 [the spec's "Effect markers" section](qlang-spec.md#effect-markers)
 for the user-facing contract and
 [the runtime reference](qlang-operands.md#effectmjs-and-effect-checkmjs--effect-markers)
@@ -1273,7 +1271,7 @@ read directly by `typeKeyword(errorValue)` and through the
 `type` operand. The descriptor Map below carries only data
 fields; `!|` materialization stamps the tag onto the exposed
 Map's JS-header `TAG_HEADER_SYMBOL` slot (the uniform
-identity-overlay channel TaggedInstance / Conduit / Snapshot /
+identity-overlay channel TaggedInstance / Conduit / binding record /
 catalog builtin descriptor all use), so `result !| type` reads
 the same identity, and the `payload` operand strips it cleanly.
 No redundant `:kind <tag>` Map field — any user-stamped `:kind`
@@ -1421,12 +1419,13 @@ invocations.
     loading via locator" section for the full contract.
 - `await session.evalCell(source, opts?)` — parse + evaluate one cell.
 - `session.cellHistory` — read-only array of executed cells.
-- `session.bind(name, value)` — install a binding directly into env.
+- `session.bind(name, value)` — install a binding directly into env,
+  the record of a binding without a doc for any value but a record.
 - `session.takeSnapshot()` / `session.restoreSnapshot(snap)` —
   cheap save/restore for "step back" features.
 - `await serializeSession(session)` — JSON-serializable payload of
-  user bindings (conduits via stored body source, snapshots via
-  tagged JSON, raw values via tagged JSON) plus cell history.
+  user bindings (conduits via stored body source, every other value
+  via tagged JSON, each with its docs) plus cell history.
 - `await deserializeSession(json)` — rebuilds a session from a
   serialized payload. Cell history is restored without re-evaluation.
 
@@ -1436,13 +1435,13 @@ invocations.
 
 - `describeType(v)` — PascalCase string label for any value:
   `'Number'`, `'String'`, `'Vec'`, `'Map'`, `'Set'`, `'Keyword'`,
-  `'Boolean'`, `'Null'`, `'Conduit'`, `'Snapshot'`, `'Error'`,
-  `'Function'`.
+  `'Boolean'`, `'Null'`, `'Conduit'`, `'TaggedInstance'` (a binding
+  record among them), `'Error'`, `'Function'`.
 - `typeKeyword(v)` — the kind of a value, a TagKeyword [D32]: the
   kind of the core its literal implies (`::number`, `::string`,
   `::vec`, `::map`, `::set`, `::keyword`, `::tag`, `::boolean`,
   `::null`, `::quote`, `::doc`), and the JS-header TagKeyword for
-  identity-bearing value-classes (`::conduit`, `::snapshot`, and an
+  identity-bearing value-classes (`::conduit`, `::binding`, and an
   error value's own `::Tag`).
   Used by error factories for structured `context.actualType`
   fields and by `manifest`'s descriptor for the `:type` field on
@@ -1497,7 +1496,8 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | Error | `{ "$error": <recursively-encoded descriptor Map> }` |
 
 `toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for
-function values, conduits, and snapshots.
+function values and conduits, and for the record of a binding that
+holds one.
 `fromTaggedJSON(json)` throws `MalformedTaggedJSONError` on
 unrecognized tagged objects.
 

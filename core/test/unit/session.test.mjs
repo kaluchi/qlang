@@ -157,7 +157,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect((await restored.evalCell('5 | double')).result).toBe(10);
   });
 
-  it('preserves user as snapshots via tagged-JSON value replay', async () => {
+  it('preserves user as bindings via tagged-JSON value replay', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('42 | as :answer');
     await sessionInstance.evalCell('[1 2 3] | as :nums');
@@ -167,6 +167,17 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
     expect((await restored.evalCell('answer')).result).toBe(42);
     expect((await restored.evalCell('nums | count')).result).toBe(3);
+  });
+
+  it('preserves the docs of a binding through the round trip', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':rate |~~ The tax rate. ~~| 0.07');
+
+    const payload = await serializeSession(sessionInstance);
+    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
+
+    expect((await restored.evalCell(':rate | docs | first | /content')).result).toBe(' The tax rate. ');
+    expect((await restored.evalCell('rate')).result).toBe(0.07);
   });
 
   it('preserves cell history sources without re-running them', async () => {
@@ -195,20 +206,20 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('rejects payload with missing bindings array', async () => {
     let thrown;
-    try { await deserializeSession({ schemaVersion: 1 }); } catch (thrownErr) { thrown = thrownErr; }
+    try { await deserializeSession({ schemaVersion: 2 }); } catch (thrownErr) { thrown = thrownErr; }
     expect(thrown.name).toBe('SessionPayloadInvalidError');
   });
 
   it('rejects conduit binding with no source', async () => {
     let thrown;
-    try { await deserializeSession({ schemaVersion: 1, bindings: [{ kind: 'conduit', name: 'x', source: null, docs: [] }], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
+    try { await deserializeSession({ schemaVersion: 2, bindings: [{ kind: 'conduit', name: 'x', source: null, docs: [] }], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
     expect(thrown.name).toBe('SessionConduitSourceMissingError');
     expect(thrown.context.bindingName).toBe('x');
   });
 
   it('rejects unknown binding kind', async () => {
     let thrown;
-    try { await deserializeSession({ schemaVersion: 1, bindings: [{ kind: 'something', name: 'x' }], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
+    try { await deserializeSession({ schemaVersion: 2, bindings: [{ kind: 'something', name: 'x' }], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
     expect(thrown.name).toBe('SessionBindingKindUnknownError');
     expect(thrown.context.kind).toBe('something');
   });

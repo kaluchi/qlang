@@ -246,8 +246,8 @@ describe('default constructor — tag-binding without :impl', () => {
 
   it('String payload (`::Tag"s"`) — wrap-object shape, `payload` operand extracts', async () => {
     // Scalars / value-class objects (String / Number / Keyword
-    // / Quote / Doc / Error / Conduit / Snapshot / already-
-    // tagged composite) cannot carry the header on themselves,
+    // / Quote / Doc / Error / Conduit / already-tagged
+    // composite) cannot carry the header on themselves,
     // so the constructor returns an opaque frozen `{type, tag,
     // payload}` wrapper. The wrap shape keeps `/payload`
     // projection out of reach (the wrapper is not a Map);
@@ -295,13 +295,13 @@ describe('TaggedLit / BareTypeKeyword steps', () => {
 describe('printValue named conduit paths', () => {
   it('zero-arity named conduit renders as `::conduit[:name [] ~(body)]`', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery(':double mul 2 | env | /:double');
+    const value = await evalQuery(':double mul 2 | env | /:double | /value');
     expect(printValue(value)).toBe('::conduit[:double [] ~(mul 2)]');
   });
 
   it('parametric named conduit renders with params in :name [params] body form', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery(':wrap [:p :s] (prepend p | append s) | env | /:wrap');
+    const value = await evalQuery(':wrap [:p :s] (prepend p | append s) | env | /:wrap | /value');
     // The body source preserves the BindStep's `(…)` ParenGroup
     // wrapper around a Pipeline-shaped body — Primary-only is the
     // grammar's body slot, so a multi-step body lives inside parens.
@@ -345,12 +345,6 @@ describe('TagKeyword value mechanics', () => {
     expect(printValue(makeTagKeyword('foo'))).toBe('::foo');
   });
 
-  it('printValue on a raw Snapshot value defers to the inner payload', async () => {
-    const { printValue } = await import('../../src/runtime/format.mjs');
-    const { makeSnapshot } = await import('../../src/types.mjs');
-    const snap = makeSnapshot(42, { name: 'answer' });
-    expect(printValue(snap)).toBe('42');
-  });
 });
 
 describe('parse and apply accept Quote subjects transparently', () => {

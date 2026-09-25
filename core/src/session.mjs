@@ -3,7 +3,7 @@
 // any embedded use that needs sequential queries to share bindings.
 //
 // A session owns its env and grows it via BindStep declarations
-// and `as :name` snapshots written by each evaluated cell.
+// and `as :name` calls, each writing the record of a binding [D63].
 // Builtins from langRuntime() are seeded at construction. Cell
 // history records every cell evaluated (source, AST, result,
 // error, env-after-cell) so a notebook UI can render past cells
@@ -13,23 +13,25 @@ import { parse, ParseError } from './parse.mjs';
 import { evalAst, materializePendingTrail } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { scopeBindingsOf } from './runtime/nouns.mjs';
-import { rootState, envSet } from './state.mjs';
+import { rootState } from './state.mjs';
 import {
   isConduit,
-  isSnapshot,
+  isBinding,
   isFunctionValue,
+  keyword,
   makeConduit,
-  makeSnapshot,
+  makeBinding,
+  makeTagKeyword,
   conduitEnvRef
 } from './types.mjs';
-import { quoteOfBody, printQuoteSource } from './quote.mjs';
-import { moduleAstKey, RUNTIME_LOCATOR_KEY } from './env-keys.mjs';
+import { printQuoteSource } from './quote.mjs';
+import { RUNTIME_LOCATOR_KEY, isRuntimeKey, isTagBindingName, stripTagBindingPrefix } from './env-keys.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { declarePerSiteError } from './errors.mjs';
 
-const SESSION_SCHEMA_VERSION = 1;
+const SESSION_SCHEMA_VERSION = 2;
 
 // Per-site session deserialization errors.
 const SessionPayloadInvalidError = declarePerSiteError(
@@ -104,16 +106,6 @@ export async function createSession(opts = {}) {
       let cellError = null;
       try {
         cellAst = parse(source, { uri: cellUri });
-        // Stamp the parsed cell AST under `qlang/ast/<cellUri>` so
-        // axis-operands (`source`, `docs`, `examples`) resolve
-        // BindStep bindings declared inside the same cell — same
-        // mechanism `evalQuery` uses for inline queries. Without it
-        // a cell's own `:foo |~~ note ~~|` declaration is invisible
-        // to a subsequent `:foo | docs` step, surfacing
-        // `::DocsBindingNotFoundError`. The Quote keeps both the
-        // verbatim source and the pre-parsed AST so axis-walkers
-        // skip a re-parse on every lookup.
-        env = envSet(env, moduleAstKey(cellUri), quoteOfBody(cellAst));
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
           ? evalOpts.initialPipeValue
           : null;
@@ -148,8 +140,12 @@ export async function createSession(opts = {}) {
       return cellEntry;
     },
 
+    // A host binds a value as a binding without a doc [D63], a record
+    // as the binding it is, and a key of the runtime's own as it lies.
     bind(name, value) {
-      env = new Map(env).set(name, value);
+      env = new Map(env).set(name, isRuntimeKey(name) || isBinding(value)
+        ? value
+        : makeBinding({ name: bindingNameKeyword(name), value }));
     },
 
     get cellHistory() { return cellHistory; },
@@ -168,43 +164,45 @@ export async function createSession(opts = {}) {
   return session;
 }
 
+// The name of a binding a host writes under an env key: a keyword,
+// or a tag for a key of the tag namespace.
+function bindingNameKeyword(name) {
+  return isTagBindingName(name) ? makeTagKeyword(stripTagBindingPrefix(name)) : keyword(name);
+}
+
 // serializeSession(session) → JSON-serializable plain object
 //
-// Captures the bindings the session wrote, the names its scope holds
-// [D61], a shadow of a built-in name among them, plus the source of
-// every cell ever executed. Built-in function
+// Captures the bindings the session wrote, the records its scope holds
+// [D61], [D63], a shadow of a built-in name among them, plus the source
+// of every cell ever executed. Built-in function
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore.
 //
-// BindStep-bound conduits serialize as
-// `{ kind: 'conduit', name, source, docs }` where `source` is the
-// parser-captured `.text` of the body AST. `as`-bound snapshots
-// serialize as `{ kind: 'snapshot', name, value, docs }` where
-// `value` is the captured payload encoded via toTaggedJSON.
+// A binding of a conduit serializes as
+// `{ kind: 'conduit', name, params, source, docs }` where `source` is
+// the parser-captured `.text` of the body AST; any other binding as
+// `{ kind: 'value', name, value, docs }` where `value` is the bound
+// value encoded via toTaggedJSON.
 export async function serializeSession(session) {
   const userBindings = [];
-  for (const [k, v] of scopeBindingsOf(session.env)) {
-    if (isFunctionValue(v)) continue; // user-installed functions are not portable
-    if (isConduit(v)) {
+  for (const [k, record] of scopeBindingsOf(session.env)) {
+    const value = record.get('value');
+    if (isFunctionValue(value)) continue; // user-installed functions are not portable
+    const docs = record.get('docs').map(doc => doc.content);
+    if (isConduit(value)) {
       userBindings.push({
         kind: 'conduit',
-        name: v.get('name'),
-        params: v.get('params').map(p => p.name),
-        source: printQuoteSource(v.get('source')),
-        docs: [...v.get('docs')]
-      });
-    } else if (isSnapshot(v)) {
-      userBindings.push({
-        kind: 'snapshot',
-        name: v.get('name'),
-        value: toTaggedJSON(v.get('payload')),
-        docs: [...v.get('docs')]
+        name: value.get('name'),
+        params: value.get('params').map(p => p.name),
+        source: printQuoteSource(value.get('source')),
+        docs
       });
     } else {
       userBindings.push({
         kind: 'value',
         name: k,
-        value: toTaggedJSON(v)
+        value: toTaggedJSON(value),
+        docs
       });
     }
   }
@@ -218,10 +216,11 @@ export async function serializeSession(session) {
 // deserializeSession(json) → Session
 //
 // Rebuilds a session from a serialized payload. Conduits are parsed
-// from their stored body source and re-installed via session.bind.
-// Snapshots are decoded from tagged JSON and re-installed the same
-// way. Cell history is restored without re-evaluation; the notebook
-// layer can re-eval cells after open if it wants freshness.
+// from their stored body source and re-installed via session.bind,
+// each as the record of its binding with its docs; every other value
+// is decoded from tagged JSON and re-installed the same way. Cell
+// history is restored without re-evaluation; the notebook layer can
+// re-eval cells after open if it wants freshness.
 export async function deserializeSession(json) {
   if (!json || typeof json !== 'object' || !Array.isArray(json.bindings)) {
     throw new SessionPayloadInvalidError();
@@ -247,18 +246,15 @@ export async function deserializeSession(json) {
         name: binding.name,
         params: binding.params || [],
         envRef: { env: null },
-        docs: binding.docs,
-        location: bodyAst.location
-      });
-      session.bind(binding.name, conduit);
-    } else if (binding.kind === 'snapshot') {
-      const snap = makeSnapshot(fromTaggedJSON(binding.value), {
-        name: binding.name,
         docs: binding.docs
       });
-      session.bind(binding.name, snap);
+      session.bind(binding.name, makeBinding({
+        name: bindingNameKeyword(binding.name), docs: binding.docs, value: conduit
+      }));
     } else if (binding.kind === 'value') {
-      session.bind(binding.name, fromTaggedJSON(binding.value));
+      session.bind(binding.name, makeBinding({
+        name: bindingNameKeyword(binding.name), docs: binding.docs, value: fromTaggedJSON(binding.value)
+      }));
     } else {
       throw new SessionBindingKindUnknownError({ kind: binding.kind });
     }
@@ -269,9 +265,10 @@ export async function deserializeSession(json) {
   // than falling back to the call-site `state.env` (which would give
   // dynamic scope and break shadowing-immune cross-conduit references
   // and recursive self-binding).
-  for (const v of session.env.values()) {
-    if (isConduit(v)) {
-      conduitEnvRef(v).env = session.env;
+  for (const [, record] of scopeBindingsOf(session.env)) {
+    const value = record.get('value');
+    if (isConduit(value)) {
+      conduitEnvRef(value).env = session.env;
     }
   }
   // Restore cell history without re-evaluating each cell. Restored

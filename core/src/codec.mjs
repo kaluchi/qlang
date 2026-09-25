@@ -46,10 +46,10 @@
 // `$`-prefixed keys outside the known set, or multiple keys) decodes
 // as a Map, since a JSON document is one.
 //
-// Function values, conduits, and snapshots cannot be encoded as JSON
-// directly — they require the higher-level session serializer to
-// reconstruct them from source on restore. toTaggedJSON throws on
-// these via TaggedJSONUnencodableValueError.
+// Function values and conduits cannot be encoded as JSON directly —
+// they require the higher-level session serializer to reconstruct
+// them from source on restore. toTaggedJSON throws on these via
+// TaggedJSONUnencodableValueError.
 
 import {
   keyword,
@@ -59,7 +59,6 @@ import {
   isQMap,
   isFunctionValue,
   isConduit,
-  isSnapshot,
   isQuote,
   isDoc,
   isErrorValue,
@@ -101,15 +100,13 @@ export const MalformedTaggedJSONError = declarePerSiteError(
 
 // toTaggedJSON(value) → JSON-serializable plain value
 //
-// Conduit and snapshot checks run BEFORE the generic isQMap branch
-// because both value-classes are JS Maps whose identity rides on
-// the JS-header `TAG_HEADER_SYMBOL` slot. Without the early check
-// the generic `$map` serializer would walk the descriptor's
-// entries and either leak
-// the JS-opaque `:envRef` holder into the tagged-JSON stream
-// or silently encode a snapshot wrapper as a plain Map — both
-// contrary to the "conduits and snapshots require session-level
-// reconstruction" contract the session serializer relies on.
+// The conduit check runs BEFORE the generic isQMap branch because
+// the conduit is a JS Map whose identity rides on the JS-header
+// `TAG_HEADER_SYMBOL` slot. Without the early check the generic
+// `$map` serializer would walk the descriptor's entries and leak the
+// JS-opaque `:envRef` holder into the tagged-JSON stream, contrary
+// to the "conduits require session-level reconstruction" contract
+// the session serializer relies on.
 export function toTaggedJSON(value) {
   if (value === null || value === undefined) return null;
   const t = typeof value;
@@ -143,7 +140,6 @@ export function toTaggedJSON(value) {
     };
   }
   if (isConduit(value))  throw new TaggedJSONUnencodableValueError({ typeName: 'conduit' });
-  if (isSnapshot(value)) throw new TaggedJSONUnencodableValueError({ typeName: 'snapshot' });
   if (isVec(value)) return value.map(toTaggedJSON);
   if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {

@@ -17,6 +17,10 @@ describe('the empty quote', () => {
   it('reads back from blank text', () => {
     expect([...quoteOfSource('  ')]).toEqual([]);
   });
+
+  it('reads back from text that holds a comment alone', () => {
+    expect([...quoteOfSource('|~ a note ~|')]).toEqual([]);
+  });
 });
 
 describe('isStep — the invariant of a quote', () => {

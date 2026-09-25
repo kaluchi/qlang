@@ -16,15 +16,20 @@ describe('runExamples reads a name as examples does', () => {
     expect([...result]).toEqual([true]);
   });
 
-  it('a binding no step declares is refused as examples refuses it', async () => {
-    // A host-installed binding (via `session.bind`) carries no
-    // BindStep to walk, and `examples` finds none for it either.
+  it('a binding without a doc runs no example, as examples finds none', async () => {
+    // A host-installed binding (via `session.bind`) is the record of a
+    // binding without a doc [D63].
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
     const cellEntry = await sessionInstance.evalCell(':hostInjected | runExamples');
-    expect(cellEntry.result.tag).toEqual(makeTagKeyword('RunExamplesBindingNotFoundError'));
+    expect(cellEntry.result).toEqual([]);
     const examplesEntry = await sessionInstance.evalCell(':hostInjected | examples');
-    expect(examplesEntry.result.tag).toEqual(makeTagKeyword('ExamplesBindingNotFoundError'));
+    expect(examplesEntry.result).toEqual([]);
+  });
+
+  it('a name that names no binding is refused as examples refuses it', async () => {
+    const refusal = await evalQuery(':nothingBound | runExamples');
+    expect(refusal.tag).toEqual(makeTagKeyword('RunExamplesBindingNotFoundError'));
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {

@@ -36,7 +36,8 @@ Evidence is a fact about the tree. Its handle is a probe or an anchor.
 A probe is a fenced block whose lines beginning with `>` are queries
 typed into `qlang` and whose other lines are what the tree answered on
 the date written before the block; a probe that begins with `$` is a
-shell command. A target, the answer a repair must produce, is a
+shell command, run by hand, since it reads the machine it ran on. A
+target, the answer a repair must produce, is a
 conformance case that names its decision [D58]; a block fenced as
 `qlang target` holds one whose answer no literal states yet, and it
 disagrees with the tree until the repair lands. An anchor names a file
@@ -106,17 +107,17 @@ Some rules for whoever edits the document, each learnt at a cost:
   is `queue-operation` and whose `operation` is `enqueue`, with the
   text in `content`; the summary of a compaction is a `user` record
   too, written by the model, so a quote found only there is the model's
-  paraphrase. A short script over them finds the maintainer's words on
-  any topic, and the entrypoint document carries one that checks every
-  quote of a document against them. When a record's quote is not
+  paraphrase. `scripts/sensors/maintainer-messages.mjs` lists the
+  maintainer's words on any topic, and `scripts/sensors/check-quotes.mjs`
+  checks every quote of a document against them. When a record's quote is not
   enough, the transcript around it is.
 - Before the first claim about the language, a session reads the
   sources the instruction file names in its first tier, whole. The
   file-reading tool cuts a read at its token cap, and the transcript
   stores every read with the lines it returned and the lines the file
   has, marking a cut read with `truncatedByTokenCap`; a read that
-  stopped there did not read the file, and the entrypoint document
-  carries the script that measures what a session has read.
+  stopped there did not read the file, and
+  `scripts/sensors/read-coverage.mjs` measures what a session has read.
 - Nothing here is condensed or deleted without the maintainer's word,
   except a sentence that the tree proves wrong, which is replaced by
   the fact and its probe.

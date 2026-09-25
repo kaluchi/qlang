@@ -364,8 +364,12 @@ Three sensors were written and run on 23 September 2026, and each found
 what no rule had caught. Two read the transcripts, the `.jsonl` files
 of the Claude Code project directory, whose record kinds the audit's
 chapter on reading names; the third runs a document's probes against
-the tree. They live here until they move into the module of the work
-[E2].
+the tree. They live in `scripts/sensors/` until they move into the
+module of the work [E2]. The two that read the transcripts run in a
+session on the maintainer's machine, where the transcripts are, and find
+them from the configuration directory of Claude Code and the working
+directory, `scripts/sensors/transcripts.mjs`; the probes run wherever
+the checkout is, CI included.
 
 The first measures reading. The transcript stores every read with the
 lines it returned and the lines the file had, `startLine`, `numLines`
@@ -378,31 +382,8 @@ length keeps its count, which a hash of the content the transcript also
 stores would close; a file the session wrote itself is in its window
 through the write, which the count leaves out.
 
-```js
-// How much of each file the window of a session holds. The transcript
-// stores every read with the lines it returned and the lines the file
-// had; a file whose length changed between reads starts its count
-// again, and a compaction's summary empties the count, since the reads
-// before it are gone from the window.
-import { readFileSync } from 'node:fs';
-
-const [transcript] = process.argv.slice(2);
-const coverage = new Map();
-for (const line of readFileSync(transcript, 'utf8').split(/\r?\n/)) {
-  let rec;
-  try { rec = JSON.parse(line); } catch { continue; }
-  if (rec.isCompactSummary) coverage.clear();
-  const read = rec.toolUseResult?.file;
-  if (!read?.totalLines) continue;
-  let seen = coverage.get(read.filePath);
-  if (seen?.total !== read.totalLines) seen = { total: read.totalLines, lines: new Set() };
-  for (let n = read.startLine; n < read.startLine + read.numLines; n++) seen.lines.add(n);
-  coverage.set(read.filePath, seen);
-}
-for (const [path, { total, lines }] of coverage) {
-  console.log(`${lines.size === total ? 'whole' : `${lines.size}/${total}`}\t${path}`);
-}
-```
+The sensor is `scripts/sensors/read-coverage.mjs`, and without an
+argument it reads the running session.
 
 The last rule came from the sensor's own first run. Over session
 86982eb5 on 23 September 2026 it reported every file of the instruction
@@ -412,7 +393,7 @@ had been compacted since, so its window held a summary of them. With
 the rule, the same run tells the truth:
 
 ```
-$ node read-coverage.mjs "$CLAUDE_CONFIG_DIR/projects/D--git-qlang/86982eb5-b2cf-436c-9285-96a0669d39e5.jsonl" | grep -cE 'grammar\.peggy|eval\.mjs|rule10|types\.mjs|core\.qlang|arith\.qlang'
+$ node scripts/sensors/read-coverage.mjs "$CLAUDE_CONFIG_DIR/projects/D--git-qlang/86982eb5-b2cf-436c-9285-96a0669d39e5.jsonl" | grep -cE 'grammar\.peggy|eval\.mjs|rule10|types\.mjs|core\.qlang|arith\.qlang'
 0
 ```
 
@@ -425,51 +406,9 @@ must occur, up to whitespace, in a message the maintainer typed: a
 record of kind `user` that is not a compaction's summary, or a message
 queued while the model worked.
 
-```js
-// Hold every «…» quote of the documents against the messages the
-// maintainer typed, in every transcript of a project directory. A quote
-// matches up to whitespace; an elision is written […] and each fragment
-// around it is looked up alone. Fenced blocks are code and are skipped.
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-
-const [projectDir, ...documents] = process.argv.slice(2);
-const squash = text => text.replace(/\s+/g, ' ').trim();
-
-function* typedByMaintainer(rec) {
-  if (rec.type === 'queue-operation' && rec.operation === 'enqueue') yield rec.content;
-  if (rec.type !== 'user' || rec.isCompactSummary) return;
-  const content = rec.message?.content;
-  if (typeof content === 'string') yield content;
-  else for (const part of content ?? []) if (part.type === 'text') yield part.text;
-}
-
-const messages = [];
-for (const file of readdirSync(projectDir).filter(name => name.endsWith('.jsonl'))) {
-  for (const line of readFileSync(join(projectDir, file), 'utf8').split(/\r?\n/)) {
-    let rec;
-    try { rec = JSON.parse(line); } catch { continue; }
-    for (const text of typedByMaintainer(rec)) {
-      if (typeof text === 'string' && !text.startsWith('<')) {
-        messages.push({ session: file.slice(0, 8), at: rec.timestamp.slice(0, 16), text: squash(text) });
-      }
-    }
-  }
-}
-
-for (const documentPath of documents) {
-  const prose = readFileSync(documentPath, 'utf8')
-    .replace(/^```[\s\S]*?^```/gm, fenced => fenced.replace(/[^\n]/g, ' '));
-  for (const quoted of prose.matchAll(/«([^»]+)»/g)) {
-    const fragments = squash(quoted[1]).split(/\s*\[…\]\s*/).filter(Boolean);
-    const found = messages.find(message => fragments.every(fragment => message.text.includes(fragment)));
-    const lineNo = prose.slice(0, quoted.index).split('\n').length;
-    console.log(found
-      ? `ok    ${documentPath}:${lineNo}  ${found.session} ${found.at}`
-      : `miss  ${documentPath}:${lineNo}  «${squash(quoted[1]).slice(0, 80)}»`);
-  }
-}
-```
+The sensor is `scripts/sensors/check-quotes.mjs`, and without an
+argument it reads the audit, this document and the records of
+`docs/decisions`.
 
 Its first run over both documents, which a rule to quote verbatim had
 governed from the start, found the rule broken five ways. The model had
@@ -492,96 +431,10 @@ writes them, since a probe records what was printed. An answer with …
 matches piece by piece, and a query that names an `@` operand runs on
 the command line.
 
-```js
-// Run the probes of a document against the tree. A probe is a line
-// beginning with "> " inside a fenced block, followed by the answer the
-// document records; under a fence marked `target` the answer is one the
-// tree must not give yet. Answers compare as the printer writes them,
-// because a probe records what was printed: a literal answer is read
-// and printed again, an answer with … matches piece by piece in order,
-// and a query that names an `@` operand runs on the command line. A
-// literal answer that prints alike and is another value is lossy: the
-// printer dropped something the value had.
-import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
-import { execFileSync } from 'node:child_process';
-
-const [repo, ...documents] = process.argv.slice(2);
-const core = file => import(pathToFileURL(`${repo}/core/src/${file}`).href);
-const { evalQuery } = await core('eval.mjs');
-const { printValue } = await core('index.mjs');
-const { parse } = await core('parse.mjs');
-const { deepEqual } = await core('equality.mjs');
-const squash = text => text.replace(/\s+/g, ' ').trim();
-
-function probesOf(source) {
-  const probes = [];
-  let fence = null;
-  let open = null;
-  const close = () => {
-    if (open?.answer.length) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
-    open = null;
-  };
-  source.split('\n').forEach((line, index) => {
-    if (line.startsWith('```')) {
-      close();
-      fence = fence === null ? line.slice(3).trim() : null;
-    } else if (fence !== null && line.startsWith('> ')) {
-      close();
-      open = { target: /\btarget\b/.test(fence), line: index + 1, query: line.slice(2).trim(), answer: [] };
-    } else if (open && open.answer.length === 0 && line.startsWith('  ')) {
-      open.query += '\n' + line.trim();
-    } else if (open && line.trim() === '') {
-      close();
-    } else if (open) {
-      open.answer.push(line);
-    }
-  });
-  close();
-  return probes;
-}
-
-function onCommandLine(query) {
-  try {
-    return execFileSync(process.execPath, [`${repo}/cli/src/bin.mjs`, query], { cwd: repo, encoding: 'utf8', stdio: 'pipe' });
-  } catch (failed) {
-    return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
-  }
-}
-
-async function printedByCore(query) {
-  try { return squash(printValue(await evalQuery(query))); } catch (thrown) { return `threw ${thrown.message}`; }
-}
-
-// An answer that is no literal, a raw string the command line printed,
-// compares as the text the command line prints.
-async function answersAsRecorded({ query, answer }) {
-  if (answer.includes('…')) {
-    const printed = squash(onCommandLine(query));
-    let from = 0;
-    for (const piece of answer.split(/\s*…\s*/).filter(Boolean)) {
-      const at = printed.indexOf(piece, from);
-      if (at < 0) return false;
-      from = at + piece.length;
-    }
-    return true;
-  }
-  if (/(^|\W)@\w/.test(query)) return squash(onCommandLine(query)) === answer;
-  // A string prints raw, and its text may read as words of the command form.
-  if (typeof await evalQuery(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
-  try { parse(answer); } catch { return squash(onCommandLine(query)) === answer; }
-  if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
-  try { return deepEqual(await evalQuery(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
-}
-
-for (const documentPath of documents) {
-  for (const probe of probesOf(readFileSync(documentPath, 'utf8'))) {
-    const agrees = await answersAsRecorded(probe);
-    const verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
-    console.log(`${verdict.padEnd(7)}${documentPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}`);
-  }
-}
-```
+The sensor is `scripts/sensors/run-probes.mjs`, and without an
+argument it reads the audit and this document. A probe whose line
+begins with `$` is a record of the machine it ran on, and the runner
+leaves it unrun.
 
 Its first version compared by value, as the compliance test does, and
 disagreed with a probe whose print agreed. The disagreement was a
@@ -593,7 +446,7 @@ raw on the command line, and its text may read as words of the command
 form, so the runner holds a string's answer against its raw print first.
 
 ```
-$ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
+$ node scripts/sensors/run-probes.mjs | awk '{print $1}' | sort | uniq -c
       2 LOSSY
      41 ok
       1 target

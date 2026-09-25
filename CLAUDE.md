@@ -16,8 +16,9 @@ wins and this file is what changes.
    cites it, and `node scripts/requirements.mjs` lists the
    requirements every decision left and which the tree meets.
    `docs/qlang-entrypoint.md` designs the computed context a session
-   starts from and carries the sensors that measure a session's
-   reading and the audit's quotes.
+   starts from. Its sensors live in `scripts/sensors/`: the probes run
+   wherever the checkout is, and the readers of the transcripts in a
+   session on the maintainer's machine.
 2. `git status && git log --oneline -3`, then `npm test` at the repo
    root, in the background while reading. The git snapshot the
    harness injects at the start of a session goes stale; the status
@@ -157,8 +158,8 @@ that lands, where a rule and the audit disagree, the audit wins.
   after the merge, locally and on the remote.
 - Write the decisions as files under `docs/decisions/` in the same
   session as the work, hold their quotes against the transcripts with
-  the sensor the entrypoint document carries, and remove a scar the
-  tree no longer shows.
+  `node scripts/sensors/check-quotes.mjs`, and remove a scar the tree
+  no longer shows.
 
 ## Release
 

@@ -12,7 +12,7 @@
 {"name":"filter-by-vec-transformer-category","query":"env | manifest | filter ~(/category | eq :vecTransformer) | count | gt 5","expect":"true"}
 {"name":"filter-by-container-selector-category","query":"env | manifest | filter ~(/category | eq :containerSelector) | count","expect":"3"}
 {"name":"filter-by-container-reducer-category","query":"env | manifest | filter ~(/category | eq :containerReducer) | count","expect":"2"}
-{"name":"filter-by-string-category-includes-split-join-and-substring-predicates","query":"env | manifest | filter ~(/category | eq :string) | count","expect":"7"}
+{"name":"filter-by-string-category-includes-split-join-and-substring-predicates","query":"#[\"split\" \"join\" \"contains\" \"startsWith\" \"endsWith\"] | minus (env | manifest | filter ~(/category | eq :string) * /name | distinct)","expect":"#[]","decision":"D49"}
 {"name":"filter-by-control-category-three-operands","query":"env | manifest | filter ~(/category | eq :control) | count","expect":"3"}
 {"name":"filter-by-reflective-category-five-operands","query":"env | manifest | filter ~(/category | eq :reflective) | count","expect":"5"}
 {"name":"filter-by-code-as-data-category-two-operands","query":"env | manifest | filter ~(/category | eq :codeAsData) | count","expect":"2"}

@@ -331,7 +331,8 @@ describe('errorFromForeign', () => {
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
     expect(desc.has('kind')).toBe(false);
-    expect(errorVal.tag).toEqual(makeTagKeyword('Error'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('ForeignFailureError'));
+    expect(desc.get('name')).toBe('Error');
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
     expect(errorVal.originalError).toBe(jsErr);
@@ -366,12 +367,9 @@ describe('errorFromForeign', () => {
     expect(Array.isArray(causes)).toBe(true);
     expect(causes).toHaveLength(2);
     // Cause-chain entries are inert Map records: each carries
-    // `:kind` (a TagKeyword documenting the JS-side cause name)
-    // plus `:message`. `:kind` here is a domain-level
-    // discriminator on the plain Map shelter; the identity-on-
-    // JS-header invariant covers ErrorValue wrappers alone.
+    // `:name`, the JS-side cause's class, plus `:message`.
     expect(causes[0].get('message')).toBe('intermediate');
-    expect(causes[0].get('kind').name).toBe('Error');
+    expect(causes[0].get('name')).toBe('Error');
     expect(causes[1].get('message')).toBe('root cause');
     expect(errorVal.descriptor.get('faultInput')).toEqual([1, 2, 3]);
   });
@@ -396,7 +394,7 @@ describe('errorFromForeign', () => {
     expect(printQuoteSource(errorVal.descriptor.get('faultStep'))).toBe('nestedOp');
   });
 
-  it('coerces Error nested in context to Map carrying :kind', () => {
+  it('coerces Error nested in context to Map carrying :name', () => {
     const inner = new TypeError('inner');
     const foreignErr = new Error('outer');
     foreignErr.wrapped = inner;
@@ -404,7 +402,7 @@ describe('errorFromForeign', () => {
     const wrapped = errorVal.descriptor.get('wrapped');
     expect(wrapped instanceof Map).toBe(true);
     expect(wrapped.get('message')).toBe('inner');
-    expect(wrapped.get('kind').name).toBe('TypeError');
+    expect(wrapped.get('name')).toBe('TypeError');
     expect(errorVal.descriptor.get('faultInput')).toBe('wrap-input');
   });
 

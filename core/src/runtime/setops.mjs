@@ -25,14 +25,11 @@ import {
 import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-// A map minus keys / a map inter keys drops or keeps entries by
-// their String key [D15]. The keys arrive as a vector of Keywords, a
-// set among them (`#[:tmp]`, `[:a :c]`) — the keyword's `.name`
-// matches the Map's String key. Composite members would not be
-// meaningful as key filters, so the lookup stays keyword-name-only.
-function keysHaveMapKey(keysValue, k) {
-  for (const v of keysValue) if (isKeyword(v) && v.name === k) return true;
-  return false;
+// A map minus or inter another map or a vector of keys drops or keeps
+// its entries by key [D15]: the other map's keys, or the names of the
+// keywords in the vector, a set among them (`#[:tmp]`, `[:a :c]`).
+function keyNamesOf(keysValue) {
+  return isQMap(keysValue) ? keysValue : new Set(keysValue.filter(isKeyword).map(keyOfEntry => keyOfEntry.name));
 }
 
 // The algebra of two sets is a merge of their elements in the one
@@ -107,42 +104,18 @@ function unionPair(left, right) {
 
 function minusPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
-  if (isQMap(left) && isQMap(right)) {
-    const rightKeySet = new Set();
-    for (const [rk] of right) rightKeySet.add(rk);
-    const out = [];
-    for (const [k, v] of left) {
-      if (!rightKeySet.has(k)) out.push([k, v]);
-    }
-    return new Map(out);
-  }
-  if (isQMap(left) && isVec(right)) {
-    const out = [];
-    for (const [k, v] of left) {
-      if (!keysHaveMapKey(right, k)) out.push([k, v]);
-    }
-    return new Map(out);
+  if (isQMap(left) && (isQMap(right) || isVec(right))) {
+    const rightNames = keyNamesOf(right);
+    return new Map([...left].filter(([k]) => !rightNames.has(k)));
   }
   throw new MinusPairIncompatibleError(left, right);
 }
 
 function interPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
-  if (isQMap(left) && isQMap(right)) {
-    const rightKeySet = new Set();
-    for (const [rk] of right) rightKeySet.add(rk);
-    const out = [];
-    for (const [k, v] of left) {
-      if (rightKeySet.has(k)) out.push([k, v]);
-    }
-    return new Map(out);
-  }
-  if (isQMap(left) && isVec(right)) {
-    const out = [];
-    for (const [k, v] of left) {
-      if (keysHaveMapKey(right, k)) out.push([k, v]);
-    }
-    return new Map(out);
+  if (isQMap(left) && (isQMap(right) || isVec(right))) {
+    const rightNames = keyNamesOf(right);
+    return new Map([...left].filter(([k]) => rightNames.has(k)));
   }
   throw new InterPairIncompatibleError(left, right);
 }

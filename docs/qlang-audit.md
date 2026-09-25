@@ -1611,19 +1611,20 @@ at its end is the alert said again, followed by an example that
 produces the same error. What the reader should do, the procedure,
 is absent.
 
-Keeping the class names and the catalog in agreement requires a
-registry of throw-site specifications, a stamping pass at bootstrap
-that runs twice because there are two bootstrap paths, a test that
-checks six axes of agreement, an injection script that copies example
-queries from the conformance suite into the catalog, and two tables in
-the error converter that spell the descriptor's field order and which
-fields are identifiers. The structure was built for an observability
-backend that fingerprints errors by class name; no such backend is
-attached. A foreign failure, a JavaScript error escaping an operand, is
-lifted with the JavaScript class name as its tag, so `::RangeError` can
-appear on the fail track: the language the runtime happens to be
-written in leaks into the language's identities, and a port to another
-host language would change what a query sees.
+Keeping the class names and the catalog in agreement requires a registry
+of throw-site specifications, a stamping pass at bootstrap that runs
+twice because there are two bootstrap paths, a test that checks six axes
+of agreement, an injection script that copies example queries from the
+conformance suite into the catalog, and two tables in the error
+converter that spell the descriptor's field order and which fields are
+identifiers. The structure was built for an observability backend that
+fingerprints errors by class name; no such backend is attached. A
+foreign failure, a JavaScript error escaping an operand, carries the tag
+of the language `::ForeignFailureError` with the host's class name as
+its `:name`, and so do the records of its cause chain [D7], so the
+language the runtime happens to be written in stays out of the
+language's identities and a port to another host language changes a
+field, never what a query matches.
 
 The alerts themselves are lit, where the cockpit wants them dark. An
 error carries its whole input, so one failing step over a large value
@@ -1676,20 +1677,19 @@ The repair must keep error identity per site and declare it once [D7,
 D46]: each site's tag is a kind declared in the catalog beside its
 operand, whose schema owns the site's fields in the order a reader needs
 them and whose document is the site's procedure; the throw site passes
-the facts, and the tag's constructor checks them. It must give a foreign
-failure a tag of the language, with the host's class name as a field. It
-must hold one law for an error inside a nested evaluation, derived from
-the fork rule [D13]: the error of a fork is its value, handed to
-whatever ran the fork; a place declared for any value keeps it, as an
-element of a literal or of a distribute does today; a place declared for
-a kind, the number slot of `add` or the boolean a predicate must return,
-fails with that same error, unchanged, so a selector still aborts on a
-failing predicate and an arithmetic step stops nesting one error inside
-another; and an operand whose alternatives are pipeline slots,
-`coalesce` and its kin, runs them in order and treats an error result as
-no value, which is that operand's documented contract, so the misspelled
-field that becomes the fallback is the price of asking for a fallback,
-paid where it was asked.
+the facts, and the tag's constructor checks them. It must hold one law
+for an error inside a nested evaluation, derived from the fork rule
+[D13]: the error of a fork is its value, handed to whatever ran the
+fork; a place declared for any value keeps it, as an element of a
+literal or of a distribute does today; a place declared for a kind, the
+number slot of `add` or the boolean a predicate must return, fails with
+that same error, unchanged, so a selector still aborts on a failing
+predicate and an arithmetic step stops nesting one error inside another;
+and an operand whose alternatives are pipeline slots, `coalesce` and its
+kin, runs them in order and treats an error result as no value, which is
+that operand's documented contract, so the misspelled field that becomes
+the fallback is the price of asking for a fallback, paid where it was
+asked.
 
 It must make the document behind each tag a procedure. The page of a
 site says, in this order, what the refusal means in one sentence, which

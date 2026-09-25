@@ -46,6 +46,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '../../src/session.mjs';
+import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
 import {
   throwSiteSpecOf, throwSiteSpecNames, throwSiteTagsRaisedBy
 } from '../../src/errors.mjs';
@@ -56,7 +57,6 @@ const catalogDir = join(here, '..', '..', 'lib', 'qlang');
 // Tags whose ErrorValue is minted without going through a per-site
 // factory, each with the site that mints it.
 const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
-  ['::Error',      'makeErrorValue default identity for a user `!{…}` literal'],
   ['::ParseError', 'errorFromParse lifts the peggy ParseError shape'],
   ['::ForeignFailureError', 'errorFromForeign lifts a JavaScript error escaping an operand']
 ]);
@@ -70,9 +70,17 @@ const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
 ]);
 
-// The core as a noun and the kind beneath every kind declare a page
-// alone, and neither constructs nor refuses [D62].
-const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any']);
+describe('every refusal names the place it guards [D64]', () => {
+  it('a throw site names a verb, a noun or a step of the language', () => {
+    const placeless = [...throwSiteSpecNames()].filter(className => throwSiteSpecOf(className).operand === undefined);
+    expect(placeless).toEqual([]);
+  });
+});
+
+// The core as a noun, the kind beneath every kind and the kind of
+// errors declare a page alone, and neither constructs nor refuses
+// [D62], [D64].
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error']);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds
@@ -121,8 +129,8 @@ function collectCatalogDeclarations() {
 const declarations = collectCatalogDeclarations();
 const declarationsByName = new Map(declarations.map(d => [d.name, d]));
 const session = await createSession();
-const { result: tagBindings } = await session.evalCell('manifest :tag');
-const { result: operandBindings } = await session.evalCell('manifest');
+const tagBindings = catalogEntriesOf(session.env, { tags: true });
+const operandBindings = catalogEntriesOf(session.env, { tags: false });
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 describe('catalog declarations — each name is bound once', () => {

@@ -17,6 +17,7 @@ import {
   QlangError,
   QlangInvariantError,
   UnresolvedIdentifierError,
+  UnresolvedAddressError,
   EffectLaunderingAtCallError,
   EffectLaunderingAtBindStepParseError,
   declareInvariantError,
@@ -41,6 +42,7 @@ import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
+import { addressedVerb } from './runtime/nouns.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
@@ -62,44 +64,51 @@ export { materializePendingTrail };
 
 const UnknownAstNodeTypeError = declareInvariantError(
   'UnknownAstNodeTypeError',
-  ({ nodeType }) => `unknown AST node type: ${nodeType}`
+  ({ nodeType }) => `unknown AST node type: ${nodeType}`,
+  { operand: '::qlang' }
 );
 
 const UnknownCombinatorKindError = declareInvariantError(
   'UnknownCombinatorKindError',
-  ({ kind }) => `unknown combinator: ${kind}`
+  ({ kind }) => `unknown combinator: ${kind}`,
+  { operand: '::qlang' }
 );
 
 const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',
-  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`);
+  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`,
+  { operand: '::proj' });
 // Map subject does not carry the requested key. Strict fail-first
 // surfaces the typo / mismatched-shape on the projection itself; the
 // lifted descriptor carries `:key` plus the `:fault` step/input so
 // downstream `!| /key` reads the failed segment directly. null
 // subject still deflects as null (see projectSegment).
 const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
-  ({ key }) => `/${key} — key not present in Map subject`);
+  ({ key }) => `/${key} — key not present in Map subject`,
+  { operand: '::proj' });
 // Vec or Set subject indexed past its bounds. Negative indices walk
 // from the tail (`/-1` is last); only positions that resolve outside
 // `[0, length)` trip this site. A set indexes as the vector it is, in
 // the one order.
 const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
-  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`);
+  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`,
+  { operand: '::proj' });
 // Vec or Set subject projected by a non-numeric segment. Sequence
 // indices are integer offsets; named keys belong to Map shape, so
 // a `[…] | /name` query surfaces as a shape mismatch on the
 // projection itself.
 const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequenceKeyNotIntegerError',
-  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`);
+  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`,
+  { operand: '::proj' });
 // Value-class subjects (Doc / …) publish a fixed set of
 // projectable fields through PROJECTABLE_BY_TYPE. A segment outside
 // that set is treated as a typo and lifts to this error.
 const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
   ({ key, valueClass, availableFields }) =>
-    `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`);
+    `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`,
+  { operand: '::proj' });
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
   ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`,
-  { expectedType: 'map' }
+  { operand: '::tagged', expectedType: 'map' }
 );
 // `TagBindingHasNoConstructorError` — fired when `::tag<payload>`
 // resolves the tag-binding but its `:impl` slot is empty
@@ -112,14 +121,15 @@ const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingErr
 // reads as a single shape contract.
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
-    `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`);
+    `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`,
+  { operand: '::tagged' });
 // The combinator names its qlang kind — `distribute`, the same
 // vocabulary `trailEntry` speaks — so the message and the catalog
 // tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
-  { expectedType: 'function' }
+  { operand: '::call', expectedType: 'function' }
 );
 const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
   ({ conduitName, expectedArity, actualArity }) =>
@@ -154,7 +164,7 @@ export async function evalQuery(source, env, callerState = null) {
   // subject through an explicit head step (a literal, a captured
   // arg, the `env` identifier). The `env` identifier resolves
   // through env-lookup like any other name, so introspective
-  // queries (`env | keys`, `env | manifest | …`) read the env
+  // queries (`env | keys`, `env | /x`) read the env
   // Map without seeding pipeValue with it implicitly — keeping the
   // env out of `:fault.input` on every error descriptor.
   // `runExamples` evaluates each example Quote from inside a running
@@ -446,12 +456,12 @@ async function evalMapLit(node, state) {
 async function evalErrorLit(node, state) {
   // `:kind ::TagName` entry in the literal lifts to the error's
   // JS-header `tag` slot — the universal identity invariant for
-  // every tagged value-class. Literals without `:kind` default
-  // to `::Error` generic identity so `error.tag` is always
+  // every tagged value-class. Literals without `:kind` are of the
+  // kind of errors, `::error` [D64], so `error.tag` is always
   // present without defensive checks at consumer sites. A non-
   // TagKeyword `:kind` value (`!{:kind :foo}`, `!{:kind "x"}`)
   // stays in the descriptor — the user explicitly chose to ride
-  // identity through a non-tag value, the default `::Error`
+  // identity through a non-tag value, the kind of errors
   // covers the surface identity.
   const errorDescriptor = new Map();
   let tag = ERROR_TAG;
@@ -592,8 +602,8 @@ async function evalTaggedLit(node, state) {
 //   `::TypoTag[payload]`   → auto-declares an identity-only
 //                            binding with `:declarationOrigin
 //                            :implicit` (evalTaggedLit), mints
-//                            a tagged instance; lint sweeps over
-//                            `manifest :tag` flag the auto-decl.
+//                            a tagged instance; a lint reads the
+//                            auto-decl off `::TypoTag | spec`.
 //   `::TypoTag | source`   → SourceBindingNotFoundError
 //   `::TypoTag | docs`     → DocsBindingNotFoundError
 //   `::TypoTag | examples` → ExamplesBindingNotFoundError
@@ -794,6 +804,7 @@ function isBuiltinDescriptor(descriptor) {
 const isConduitDescriptor = isConduit;
 
 async function evalOperandCall(node, state) {
+  if (node.address !== undefined) return await callByAddress(node, state);
   const lookupName = node.name;
   const lookupEnv = state.env;
 
@@ -873,6 +884,17 @@ async function evalOperandCall(node, state) {
     });
   }
   return withPipeValue(state, resolved);
+}
+
+// A name with a path calls the verb its address names, from the root
+// and past every binding of the scope, so a verb a declaration shadows
+// stays one address away [D62]: `[1 2 3] | vec/filter ~(gt 1)` calls
+// the `filter` of vectors whatever the scope binds as `filter`.
+async function callByAddress(node, state) {
+  const addressName = canonicalTagName(node.name);
+  const address = addressedVerb(state.env, addressName);
+  if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(addressName) });
+  return await applyBuiltinDescriptor(address.descriptor, node, state);
 }
 
 // applyBindingDescriptor(descriptor, node, lookupName, state) → state' | null

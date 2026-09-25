@@ -15,14 +15,18 @@
    name. ~|
 
 :env
-  |~~ Replaces pipeValue with the current env Map — a Map keyed by
-      binding name carrying every value visible at this point in
-      the pipeline. Inside a fork, returns the fork-local env,
-      including any `as` / BindStep writes that landed in the same
-      branch. Use it for introspection or for forwarding a specific
-      binding to another step (`env | /myFlag`).
+  |~~ Replaces pipeValue with the bindings the scope holds — a Map
+      keyed by binding name carrying what the query, the session and
+      a module's `use` wrote at this point in the pipeline. The verbs
+      and the nouns of the core and of the hosts stay with their
+      providers, listed from `::qlang | manifest`. Inside a fork,
+      returns the fork-local scope, including any `as` / BindStep
+      writes that landed in the same branch. Use it for
+      introspection or for forwarding a specific binding to another
+      step (`env | /myFlag`).
 
-      ~(env | has :count | eq true)
+      ~(:limit 10 | env | keys | eq #[:limit])
+      ~(env | has :count | not)
       ~(42 | as :answer | env | /answer | eq 42)
       ~(99 | as :secret | env | has :secret | eq true)
   ~~|
@@ -116,49 +120,32 @@
   ~~|
 
 :manifest
-  |~~ Returns a Vec of descriptors, one per binding in env,
-      sorted alphabetically by binding name. Each descriptor
-      carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
-      `::tag` / `::value`), `:name`, plus per-kind fields stamped
-      by `describeBinding` in `runtime/manifest-op.mjs`.
-      Overloaded by captured-arg count: bare manifest or
-      `manifest :value` lists value-namespace bindings; `manifest :tag`
-      lists tag-namespace `::Tag` bindings. For per-binding
-      source-level introspection reach for the axis trio
-      (`:name | source` / `:name | docs` / `:name | examples`)
-      instead — the manifest descriptors are a runtime-derived
-      enumeration surface, not a substitute for the AST-axis
-      navigation.
+  |~~ Asked of a noun, answers the set of what lies below it in
+      the tree of names: the nouns under its path and the
+      addresses of the verbs that live on it. `::qlang | manifest`
+      lists the nouns of the core and of the hosts, `::number |
+      manifest` the verbs of numbers, and a refusal is reached
+      from the place it guards, `::number/add | spec | /throws`.
+      For what one binding does reach for the axis trio
+      (`::vec/count | source` / `| docs` / `| examples`).
 
-      ~(manifest | filter ~(/name | eq "add") | first | /returns | eq :number)
-      ~(manifest | filter ~(/category | eq :arith) * /name | count | gte 4)
-      ~(manifest :tag | first | /kind | eq ::tag)
+      ~(::number | manifest | has ::number/add)
+      ~(::qlang | manifest | has ::vec)
+      ~(::qlang | manifest * manifest | flat | has ::vec/count)
   ~~|
   ::builtin{:impl :qlang/prim/manifest
             :category :reflective
-            :subject :any
-            :returns :vec
-            :modifiers [:keyword]}
+            :subject :tag
+            :returns :set}
 
-::ManifestNamespaceNotKeywordError
-  |~~ `manifest :namespace` requires a Keyword captured-arg
-      naming the namespace to enumerate (`:value` or `:tag`).
+::ManifestSubjectNotTagError
+  |~~ `manifest` is asked of a noun, a tag name in the subject
+      position.
 
       ~(
-        manifest "tag"
+        5 | manifest
         !| [type /actualType]
-        |  eq [::ManifestNamespaceNotKeywordError ::string]
-       )
-  ~~|
-
-::ManifestNamespaceUnknownError
-  |~~ `manifest :namespace` accepts `:value` or `:tag`; any
-      other keyword fires this error.
-
-      ~(
-        manifest :wat
-        !| [type /namespace]
-        |  eq [::ManifestNamespaceUnknownError :wat]
+        |  eq [::ManifestSubjectNotTagError ::number]
        )
   ~~|
 
@@ -168,9 +155,8 @@
       {:snippet :actual :ok :error}. Each Quote is evalQuery'd in
       an isolated env; :ok is true iff the example answers true,
       every other answer, an error value among them, failing it.
-      Subject is a Keyword (binding name), a tag name, the address
-      of a verb among them, or a descriptor Map carrying a :name
-      string. The composition
+      Subject is a Keyword (binding name) or a tag name, the
+      address of a verb among them. The composition
       `::number | spec | /verbs | every ~(runExamples | every ~(/ok))`
       runs every example of the verbs of numbers and must return
       true — self-describing catalog drift detection.
@@ -181,12 +167,12 @@
   ~~|
   ::builtin{:impl :qlang/prim/runExamples
             :category :reflective
-            :subject :map
+            :subject [:keyword :tag]
             :returns :vec}
 
 ::RunExamplesSubjectShapeError
-  |~~ `runExamples` requires a Keyword (binding name), a tag name
-      or a descriptor Map carrying a `:name` String.
+  |~~ `runExamples` requires a Keyword (binding name) or a tag
+      name.
 
       ~(
         42 | runExamples

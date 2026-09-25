@@ -11,9 +11,8 @@
 import { isQMap, isVec, makeSet, makeTagKeyword, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
-  MODULE_NAMESPACE_PREFIX
+  isRuntimeKey, MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
-import { throwSiteSpecOf } from '../errors.mjs';
 
 const ROOT_NOUN_NAME = 'qlang';
 
@@ -21,12 +20,12 @@ function carriesBuiltinShape(value) {
   return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
 
-// A refusal is the tag of a site that records its spec where it is
-// declared in the host's code; every other tag a provider declares is a
-// noun.
+// A refusal is a tag whose declaration names the category of its
+// failure, stamped from the site that raises it or written in the
+// catalog, `::ParseError` and `::ForeignFailureError` among them;
+// every other tag a provider declares is a noun.
 function isProviderNoun(envKey, value) {
-  return isTagBindingName(envKey) && carriesBuiltinShape(value)
-    && throwSiteSpecOf(stripTagBindingPrefix(envKey)) === undefined;
+  return isTagBindingName(envKey) && carriesBuiltinShape(value) && !value.has('category');
 }
 
 function* providerExports(env) {
@@ -51,8 +50,44 @@ export function isNoun(env, tagName) {
   return isProviderNoun(envKey, env.get(envKey));
 }
 
+// A verb or a tag a provider exports under a name stays with its
+// provider, read through the noun it lives on; the scope holds what the
+// query, the session and a module's `use` wrote under a name of their
+// own [D62], [D63].
+export function isProviderBinding(env, name) {
+  const value = env.get(name);
+  if (!carriesBuiltinShape(value)) return false;
+  for (const [, exportsMap] of providerExports(env)) {
+    if (exportsMap.get(name) === value) return true;
+  }
+  return false;
+}
+
+// The bindings the scope holds, the names the query, the session and a
+// module's `use` wrote, with the verbs and the tags of the providers and
+// the keys of the runtime's own apart [D61].
+export function scopeBindingsOf(env) {
+  const scopeBindings = new Map();
+  for (const [name, value] of env) {
+    if (!isRuntimeKey(name) && !isProviderBinding(env, name)) scopeBindings.set(name, value);
+  }
+  return scopeBindings;
+}
+
+// The addresses where the verbs of a name live, one for each kind a verb
+// of that name serves, which a refusal of the name hands on [D62].
+export function addressesOf(env, verbName) {
+  const addresses = [];
+  for (const [, exportsMap] of providerExports(env)) {
+    const descriptor = exportsMap.get(verbName);
+    if (!carriesBuiltinShape(descriptor) || isTagBindingName(verbName)) continue;
+    for (const kindName of subjectKindsOf(descriptor)) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
+  }
+  return makeSet(addresses);
+}
+
 // The nouns under a noun, the whole set for the core's own noun.
-export function nounsUnder(env, tagName) {
+function nounsUnder(env, tagName) {
   const under = canonicalTagName(tagName);
   const nouns = [];
   for (const [envKey, value] of env) {
@@ -77,6 +112,24 @@ export function verbsOfKind(env, tagName) {
     }
   }
   return makeSet(addresses);
+}
+
+// The refusals a query provokes on a noun: its own, then those of each
+// verb that lives on it, in the order of the verbs [D64]. A refusal
+// guards one site, so none repeats; a descriptor a module assembled
+// from data, its `:impl` a handle of the core, names none.
+export function refusalsOfNoun(env, tagName, ownRefusals) {
+  const verbRefusals = [...verbsOfKind(env, tagName)]
+    .flatMap(address => addressedVerb(env, address.name).descriptor.get('throws') ?? []);
+  return Object.freeze([...ownRefusals, ...verbRefusals]);
+}
+
+// What lies below a noun in the tree of names [D62]: the nouns under its
+// path and the addresses of the verbs that live on it, so `::number`
+// answers `::number/add` among its own and `::qlang`, with no verb of
+// its own, the nouns of the providers.
+export function namesUnder(env, tagName) {
+  return makeSet([...nounsUnder(env, tagName), ...verbsOfKind(env, tagName)]);
 }
 
 // The verb a tag name addresses, with the module that declares it, or

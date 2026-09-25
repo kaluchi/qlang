@@ -48,19 +48,24 @@ import { tagBindingKey } from '../env-keys.mjs';
 // Per-site arity error classes for the dispatch wrappers.
 const ValueOpArityMismatchError = declareArityError('ValueOpArityMismatchError',
   ({ operandName, expectedArity, actualArity }) =>
-    `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`);
+    `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`,
+  { operand: '::call' });
 const HigherOrderOpArityMismatchError = declareArityError('HigherOrderOpArityMismatchError',
   ({ operandName, expectedCaptured, actualArity }) =>
-    `${operandName} expects ${expectedCaptured} captured args (higher-order), got ${actualArity}`);
+    `${operandName} expects ${expectedCaptured} captured args (higher-order), got ${actualArity}`,
+  { operand: '::call' });
 const NullaryOpArgsProvidedError = declareArityError('NullaryOpArgsProvidedError',
   ({ operandName, actualArity }) =>
-    `${operandName} takes no arguments, got ${actualArity}`);
+    `${operandName} takes no arguments, got ${actualArity}`,
+  { operand: '::call' });
 const OverloadedOpUnsupportedArityError = declareArityError('OverloadedOpUnsupportedArityError',
   ({ operandName, supportedCounts, actualArity }) =>
-    `${operandName} accepts ${supportedCounts} captured args, got ${actualArity}`);
+    `${operandName} accepts ${supportedCounts} captured args, got ${actualArity}`,
+  { operand: '::call' });
 const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
   ({ operandName, expectedCaptured, actualArity }) =>
-    `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`);
+    `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`,
+  { operand: '::call' });
 
 // Unbounded-upper-limit sentinel for variadic operand `captured`
 // ranges. Surfaced into manifest descriptors as a keyword value so
@@ -71,12 +76,14 @@ export const UNBOUNDED = keyword('unbounded');
 
 const StateOpVariadicMissingCapturedError = declareInvariantError(
   'StateOpVariadicMissingCapturedError',
-  ({ operandName }) => `stateOpVariadic('${operandName}') requires captured range`
+  ({ operandName }) => `stateOpVariadic('${operandName}') requires captured range`,
+  { operand: '::qlang' }
 );
 
 const HigherOrderOpVariadicMissingCapturedError = declareInvariantError(
   'HigherOrderOpVariadicMissingCapturedError',
-  ({ operandName }) => `higherOrderOpVariadic('${operandName}') requires captured range`
+  ({ operandName }) => `higherOrderOpVariadic('${operandName}') requires captured range`,
+  { operand: '::qlang' }
 );
 
 // Whether a tag's binding carries a constructor, the `:impl` that

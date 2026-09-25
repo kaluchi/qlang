@@ -31,7 +31,9 @@ export function decorateAstWithEffectMarkers(ast) {
   walkAst(ast, (node) => {
     switch (node.type) {
       case 'OperandCall':
-        node.effectful = classifyEffect(node.name);
+        // A call by address carries the marker on the verb it names,
+        // `any/@out`.
+        node.effectful = classifyEffect(node.address?.verb ?? node.name);
         break;
       case 'Projection':
         node.effectful = node.keys.some(classifyEffect);

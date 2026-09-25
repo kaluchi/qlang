@@ -1303,8 +1303,8 @@ changes are discarded. See the
    manifests as `as` > BindStep > built-in.
 
    `:count 5` makes subsequent `count` references resolve to
-   `5`. Within that pipeline the built-in `count` is inaccessible
-   until a later step shadows `count` again.
+   `5`, and the built-in stays one address away: `:count 5 | [1 2
+   3] | vec/count` answers `3`.
 
 ### Identifier conventions
 
@@ -1323,6 +1323,14 @@ effectful function value refuses to fire through a clean lookup
 name. Domain authors prefix the operands their runtime installs
 (`@callers`, `@resolve`) so the marker propagates through every
 alias.
+
+A name may carry a path, as a keyword and a tag name do: the path of
+a noun and the name of a verb that lives on it. `vec/count` calls the
+`count` that lives on vectors, from the root of the tree of names and
+past every binding of the scope, `::vec/count | docs` reads its page,
+and an address that names no verb is refused with
+`::UnresolvedAddressError`, whose `:address` holds the address as a tag
+name. The effect marker of such a call rides on its verb, `any/@out`.
 
 ### Comments
 
@@ -1582,7 +1590,7 @@ A descriptor whose `:impl` is neither a Keyword handle nor
 a Quote-value raises `TagBindingHasNoConstructorError` on first
 invocation. A reference to a tag that has no env binding
 auto-declares an identity-only Map binding on the spot (carrying
-`:declarationOrigin :implicit` for `manifest :tag` introspection)
+`:declarationOrigin :implicit`, which `::Tag | spec` reads)
 — `::Tag<payload>` always succeeds shape-wise, regardless of
 whether the source explicitly declared `::Tag {…}`. Strict-mode
 tooling reads the `:implicit` marker through manifest to flag
@@ -1699,8 +1707,9 @@ descriptor itself holds only data fields. `printValue` emits
 `::Tag!{…fields…}` with the tag at the head and the descriptor
 fields after, the same shape both a JavaScript throw site and a
 literal `::Tag!{…}` source produce ([Error track](#error-track)).
-Errors without an explicit `:kind` lift carry the generic
-`::Error` tag — every ErrorValue has an identity.
+Errors without an explicit `:kind` lift are of the kind of errors,
+`::error`, which the `!{…}` brackets imply and the printer leaves
+out, `!{:k 1}` — every ErrorValue has an identity.
 
 ## Error track
 
@@ -1819,7 +1828,7 @@ JS-header field, addressed through the `type` operand:
 `result !| type` returns the `::Tag` (TagKeyword). User-facing
 literals (`::Tag!{…}`, `!{:kind ::Tag …}`) lift `:kind` into
 this slot at construction; errors without an explicit `:kind`
-default to `::Error`. The descriptor Map below carries only
+are of the kind of errors, `::error`. The descriptor Map below carries only
 data — no `:kind` field — so `result !| union … | error`
 re-lift round-trips preserve identity automatically.
 
@@ -1976,13 +1985,15 @@ All three use the same mechanism: Map + pipeline.
 
 ### `env` — read the current environment
 
-The `env` operand returns the full current `env` Map as `pipeValue`.
-Every binding — built-in operands, domain functions, BindStep-
-installed conduits, `as` snapshots — is a field in this Map.
+The `env` operand returns the bindings the scope holds as
+`pipeValue`: the names the query, the session and a module's `use`
+wrote — domain functions, BindStep-installed conduits, `as`
+snapshots. The verbs of the core live on its nouns, listed from
+`::qlang | manifest`.
 
 ```qlang
-env | /count                |~| the built-in count function
-env | manifest | count      |~| how many bindings are in scope
+:x 1 | env | /x             |~| a binding of the session
+env | keys | count          |~| how many names the scope holds
 ```
 
 ### Axis-operands — `source` / `docs` / `examples`
@@ -2037,14 +2048,24 @@ entirely and address the binding directly (`:filter | source`).
 | `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
-> :filter | docs | first | type | eq ::doc
+> ::vec/filter | docs | first | type | eq ::doc
 true
 
 > ::ParseError | source | parse | startsWith "::ParseError"
 true
 
-> :count | examples | first | type | eq ::quote
+> ::vec/count | examples | first | type | eq ::quote
 true
+```
+
+A keyword names a binding of the scope where it stands, one the query,
+the session or a module's `use` wrote, and a verb of the core is read
+by its address; a keyword spelling the name of such a verb is refused
+with the addresses where the verb lives:
+
+```qlang
+> :count | docs !| /addresses
+#[::map/count ::set/count ::vec/count]
 ```
 
 Lookup walks the `qlang/ast/<uri>` module Quote that
@@ -2863,8 +2884,9 @@ const lifted = fromPlain({ items: [1 2 3] });
 lifted.get(keyword('items'));     // [1 2 3]
 ```
 
-The CLI's `parseJson` operand runs `JSON.parse` then `fromPlain`,
-and the implicit script-mode stdin lift walks the same path.
+The core's `parseJson` operand runs `JSON.parse` then `fromPlain`,
+and the command line's implicit script-mode stdin lift walks the
+same path.
 Use `toTaggedJSON` / `fromTaggedJSON` below when both endpoints
 speak qlang and identity must survive the round-trip.
 

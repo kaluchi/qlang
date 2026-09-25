@@ -373,15 +373,19 @@ describe('env output is parseable', () => {
 
   it('env | json produces valid JSON (TagKeyword + host function paths)', async () => {
     // The `json` operand is `JSON.stringify(toPlain(subject))`. The
-    // env Map contains TagKeyword values (in every `:throws` Vec)
-    // and a host-bound function (`:qlang/locator`). The toPlain
-    // handlers route them to `"::Name"` and `"<host-fn name>"`
-    // strings — `JSON.parse` of the output must succeed and the
-    // locator value lands as the host-marker string.
-    const jsonText = await evalSource('env | json');
-    const parsed = JSON.parse(jsonText);
-    expect(parsed['qlang/locator']).toMatch(/^<host-fn [A-Za-z]+>$/);
-    expect(parsed['use'].throws[0]).toMatch(/^::[A-Z]/);
+    // scope holds a TagKeyword and a host-bound function the embedder
+    // installed through `session.bind`. The toPlain handlers route
+    // them to `"::Name"` and `"<host-fn name>"` strings —
+    // `JSON.parse` of the output must succeed and the function lands
+    // as the host-marker string.
+    const { createSession } = await import('../../src/session.mjs');
+    const { makeTagKeyword } = await import('../../src/types.mjs');
+    const session = await createSession();
+    session.bind('hostFn', async function helloFn() { return 42; });
+    session.bind('kindName', makeTagKeyword('Foo'));
+    const parsed = JSON.parse((await session.evalCell('env | json')).result);
+    expect(parsed.hostFn).toMatch(/^<host-fn [A-Za-z]+>$/);
+    expect(parsed.kindName).toBe('::Foo');
   });
 });
 
@@ -417,27 +421,19 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
 
   it('json on a raw descriptor Map carries :impl as the bare name of its keyword', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('env | /count | json');
+    const jsonOutput = await evalQuery('::vec/count | spec | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
-  });
-
-  it('manifest descriptor carries the same :impl handle as the env entry', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('manifest | filter ~(/name | eq "count") | first | json');
-    expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"kind":"::builtin"');
     expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
   });
 
   it('projection at :impl lands on the handle keyword, and a conduit-parameter proxy fires the invariant', async () => {
-    // `env | /count | /:impl` reads the descriptor's handle keyword
+    // `::vec/count | spec | /:impl` reads the descriptor's handle keyword
     // (note the namespaced keyword segment `/:impl` — without the
     // colon the slash splits into two bare segments), so the
     // descriptor projects as data all the way down.
     const { evalQuery } = await import('../../src/eval.mjs');
     const { FunctionValueLeakedToPrintError, isKeyword } = await import('../../src/types.mjs');
-    const handle = await evalQuery('env | /count | /:impl');
+    const handle = await evalQuery('::vec/count | spec | /:impl');
     expect(isKeyword(handle)).toBe(true);
     expect(handle.name).toBe('qlang/prim/count');
     // The remaining qlang-reachable function value is a

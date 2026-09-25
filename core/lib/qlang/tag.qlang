@@ -210,6 +210,19 @@
        )
   ~~|
 
+::error
+  |~~ The kind of errors, the kind a bare error literal implies, as
+      `[…]` implies the vector: an error that no refusal names is of
+      it, and prints without it, `!{:k 1}`. Every refusal is a tag of
+      its own, named for what failed, `::AddLeftNotNumberError`, and
+      lives on the place it guards, which lists it in its `/throws`;
+      `!| type` reads the tag, and `!| type | docs` its page.
+
+      ~(!{:detail "boom"} !| type | eq ::error)
+      ~(::qlang/error | eq ::error)
+      ~("x" | add 1 !| type | eq ::error | not)
+  ~~|
+
 ::null
   |~~ The kind of null, the absence of a value. A kind of the core
       is named under its prefix and written short, `::qlang/null`
@@ -362,7 +375,7 @@
   |~~ The kind of a doc, the value of a doc literal, prose that
       carries quotes of qlang.
 
-      ~(:add | docs | first | type | eq ::doc)
+      ~(::number/add | docs | first | type | eq ::doc)
   ~~|
   ::builtin{:impl :qlang/type/doc}
 

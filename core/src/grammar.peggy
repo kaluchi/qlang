@@ -336,12 +336,12 @@ LineStep
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
 // the group `(gt(1))`. At the top level the modifiers end with the line.
 Command
-  = name:Ident first:(FirstModifierSeparator @ModifierWord)? rest:(__ @ModifierWord)*
-    { return node('OperandCall', { name, args: first === null ? [] : [first, ...rest] }, location(), text()); }
+  = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(__ @ModifierWord)*
+    { return node('OperandCall', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
 
 LineCommand
-  = name:Ident first:(FirstLineModifierSeparator @ModifierWord)? rest:(_h1 @ModifierWord)*
-    { return node('OperandCall', { name, args: first === null ? [] : [first, ...rest] }, location(), text()); }
+  = callName:CallName first:(FirstLineModifierSeparator @ModifierWord)? rest:(_h1 @ModifierWord)*
+    { return node('OperandCall', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
 
 FirstModifierSeparator
   = __ / &"("
@@ -437,8 +437,20 @@ ModifierWord
   = Word
 
 Name
-  = name:Ident
-    { return node('OperandCall', { name, args: [] }, location(), text()); }
+  = callName:CallName
+    { return node('OperandCall', { ...callName, args: [] }, location(), text()); }
+
+// A name with a path, the path of a noun and the name of a verb that
+// lives on it, calls the verb by its address, as the keyword and the tag
+// name carry a path [D62]: `vec/count` is the `count` of vectors.
+CallName
+  = head:Ident tail:("/" @KeywordName)+
+    {
+      const verb = tail[tail.length - 1];
+      const noun = [head, ...tail.slice(0, -1)].join('/');
+      return { name: `${noun}/${verb}`, address: { noun, verb } };
+    }
+  / name:Ident { return { name }; }
 
 // `::tag<payload>` constructs a value through the tag's constructor,
 // the payload touching the name; `::tag` alone is the tag name itself.

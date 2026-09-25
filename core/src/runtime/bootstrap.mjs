@@ -23,7 +23,8 @@ import { declareInvariantError } from '../errors.mjs';
 export const BootstrapRootMissingError = declareInvariantError(
   'BootstrapRootMissingError',
   () => "qlang bootstrap: '#qlang/core' must resolve to the catalog root module — " +
-    'add an entry to package.json#imports or the import map'
+    'add an entry to package.json#imports or the import map',
+  { operand: '::qlang' }
 );
 
 // The catalog root is one `use […]` step, and `use` answers on the
@@ -39,7 +40,8 @@ export const BootstrapCatalogNotLoadedError = declareInvariantError(
   'BootstrapCatalogNotLoadedError',
   ({ tagName }) => `qlang bootstrap: the catalog root answered ${tagName}; the operand ` +
     'families load through the sources the locator resolves for qlang/core and for each ' +
-    'namespace it uses'
+    'namespace it uses',
+  { operand: '::qlang' }
 );
 
 // platformLocator(namespaceName) → Promise<{ source } | null>

@@ -775,20 +775,16 @@ runtime reads none of it, so the declarations are free to be wrong,
 and they are. On 23 September 2026:
 
 ```qlang
-> :gt | spec | [/subject /modifiers]
+> ::number/gt | spec | [/subject /modifiers]
 [:number [:number]]
 
 > "a" | gt "b"
 false
-
-> :runExamples | spec | /subject
-:map
 ```
 
-`gt` is declared for numbers and compares strings; `runExamples` is
-declared for maps and takes a keyword. The mission's third requirement,
-that the shape of an answer can be known before it is fetched, reads
-these declarations, and today it reads something false. Executing the
+`gt` is declared for numbers and compares strings. The mission's third
+requirement, that the shape of an answer can be known before it is
+fetched, reads these declarations, and today it reads something false. Executing the
 declaration is the only thing that keeps it true.
 
 The declarations speak keywords where the values speak kinds: `type`
@@ -801,7 +797,7 @@ page of a refusal names the kind it expected with one. On 25 September
 > 1 | type
 ::number
 
-> :add | spec | /subject
+> ::number/add | spec | /subject
 :number
 ```
 
@@ -998,24 +994,23 @@ moment `use` merges a module into it and dissolves in the merge: it has
 no literal, no name afterwards, and the only trace it leaves is a
 housekeeping key reachable through a quoted projection. A keyword with
 a slash in it, `:vec/filter`, is a keyword and addresses nothing.
-Documentation is addressed by name, because it lives in the syntax
-tree as a doc comment and the axis has to find that syntax by walking
-every loaded module, so a name that is shadowed takes its
-documentation out of reach:
+Documentation lives in the syntax tree as a doc comment, and the axis
+finds that syntax by walking every loaded module. A verb of the core is
+read by its address, so a shadow leaves its documentation in reach,
+while a keyword reads the binding its scope holds [D62]:
 
 ```qlang
-> :filter | docs | count
+> :filter mul 2 | ::vec/filter | docs | count
 1
 
 > :filter mul 2 | :filter | docs | count
 0
 ```
 
-The shadowed original is still there, behind the housekeeping key, and
-still runs:
+The shadowed original still runs, called by its address:
 
 ```qlang
-> :filter mul 2 | env | /"qlang/namespace/qlang/operand/container" | /filter | as :orig | [1 2 3] | orig ~(gt 1)
+> :filter mul 2 | [1 2 3] | vec/filter ~(gt 1)
 [2 3]
 ```
 
@@ -1028,17 +1023,16 @@ environment also carries the runtime's own housekeeping, the parsed
 source of every module under one prefix, the export map of every
 namespace under another, and the host's locator, a raw JavaScript
 function, under a third, and every reader of the environment filters
-them by prefix; `env | json` prints the locator as a string that reads
-back as a string. A session's environment holds the catalog, its tags
-and its housekeeping, and a name the session declares is one among
-them. On 25 September 2026:
+them by prefix. `env` answers the names the session wrote
+alone [D61], the verbs and the nouns of the providers and the
+housekeeping left out. On 25 September 2026:
 
 ```qlang
-> :x 1 | env | keys | count | gt 100
-true
+> :x 1 | env | keys
+#[:x]
 
-> env | keys | filter ~(keyword | startsWith "qlang/") | count | gt 0
-true
+> env | has :"qlang/ast/inline"
+false
 ```
 
 Every kind a module declares lands in the environment of every client,
@@ -1600,7 +1594,7 @@ of the catalog prints as a bare map, and the map it prints reads back
 as another value.
 
 ```qlang
-> env | /count | type
+> ::vec/count | spec | type
 ::builtin
 
 > ::builtin{:a 1}

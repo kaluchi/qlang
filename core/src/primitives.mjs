@@ -27,7 +27,7 @@
 //   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
 //     `::quote`, `::builtin`). The keyword stays a keyword on the
 //     descriptor; `evalTaggedLit` resolves it through the registry
-//     at every invocation so `manifest :tag` keeps the readable
+//     at every invocation so `::Tag | spec` keeps the readable
 //     `:impl :qlang/type/<tag>` handle on the descriptor.
 //
 // Lifecycle:
@@ -84,18 +84,21 @@ import { declareInvariantError, declarePerSiteError } from './errors.mjs';
 
 const PrimitiveKeyNotStringError = declareInvariantError(
   'PrimitiveKeyNotStringError',
-  ({ actualType }) => `bind: primitive key must be a string, got ${actualType}`
+  ({ actualType }) => `bind: primitive key must be a string, got ${actualType}`,
+  { operand: '::qlang' }
 );
 
 const PrimitiveKeyAlreadyBoundError = declareInvariantError(
   'PrimitiveKeyAlreadyBoundError',
   ({ keyName }) => `bind: primitive key :${keyName} is already bound; ` +
-    'duplicate binding indicates two runtime modules claim the same primitive name'
+    'duplicate binding indicates two runtime modules claim the same primitive name',
+  { operand: '::qlang' }
 );
 
 const PrimitiveRegistrySealedError = declareInvariantError(
   'PrimitiveRegistrySealedError',
-  ({ keyLabel }) => `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`
+  ({ keyLabel }) => `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
+  { operand: '::qlang' }
 );
 
 // PrimitiveKeyUnboundError — the one dispatch-time data error. Fires when
@@ -110,7 +113,8 @@ const PrimitiveRegistrySealedError = declareInvariantError(
 // reach the fail track as a value, so it rides its own category.
 const PrimitiveKeyUnboundError = declarePerSiteError(
   'PrimitiveKeyUnboundError', 'primitiveUnbound',
-  ({ keyLabel }) => `resolve: no primitive bound under :${keyLabel}`
+  ({ keyLabel }) => `resolve: no primitive bound under :${keyLabel}`,
+  { operand: '::builtin' }
 );
 
 

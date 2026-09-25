@@ -16,7 +16,7 @@
 {"name":"min-answers-the-first-value-in-the-order","query":"[3 \"a\" null] | min","expect":"null","decision":["D16","D48"]}
 {"name":"max-answers-the-last-value-in-the-order","query":"[3 \"a\" null] | max","expect":"\"a\"","decision":["D16","D48"]}
 {"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]","decision":["D16","D48"]}
-{"name":"sort-orders-errors-by-tag-then-fields","query":"[!{:kind ::B} !{:k 2} !{:k 1}] | sort","expect":"[::B!{} ::Error!{:k 1} ::Error!{:k 2}]","decision":["D16","D48"]}
+{"name":"sort-orders-errors-by-tag-then-fields","query":"[!{:kind ::B} !{:k 2} !{:k 1}] | sort","expect":"[::B!{} !{:k 1} !{:k 2}]","decision":["D16","D48","D64"]}
 {"name":"sort-puts-elisions-before-other-tags","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::elision{:size 1} ::elision{:size 2} ::Z[1]]","decision":["D16","D48"]}
 {"name":"sort-orders-one-tag-by-payload","query":"[::A[2] ::A[1]] | sort","expect":"[::A[1] ::A[2]]","decision":["D16","D48"]}
 {"name":"sort-orders-tagged-scalars-by-payload","query":"[::A(2) ::A(1)] | sort","expect":"[::A(1) ::A(2)]","decision":["D16","D48"]}

@@ -9,8 +9,8 @@ import { QlangTypeError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
-  it(':count | source carries the canonical :count BindStep text', async () => {
-    const result = await evalQuery(':count | source');
+  it('::vec/count | source carries the canonical :count BindStep text', async () => {
+    const result = await evalQuery('::vec/count | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result).startsWith(':count')).toBe(true);
   });
@@ -91,13 +91,13 @@ describe(':name | source returns the BindStep source as Quote', () => {
 });
 
 describe(':name | docs returns Vec of Doc-values from attached prefixes', () => {
-  it(':count | docs returns at least one Doc-value', async () => {
-    const result = await evalQuery(':count | docs | count');
+  it('::vec/count | docs returns at least one Doc-value', async () => {
+    const result = await evalQuery('::vec/count | docs | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  it(':count | docs first Doc /content carries the prefix text', async () => {
-    const result = await evalQuery(':count | docs | first | /content');
+  it('::vec/count | docs first Doc /content carries the prefix text', async () => {
+    const result = await evalQuery('::vec/count | docs | first | /content');
     expect(typeof result).toBe('string');
     expect(result).toContain('Returns the number of elements');
   });
@@ -114,8 +114,8 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
 });
 
 describe(':name | examples extracts Quote segments from docs', () => {
-  it(':count | examples returns Vec of Quotes', async () => {
-    const result = await evalQuery(':count | examples | count');
+  it('::vec/count | examples returns Vec of Quotes', async () => {
+    const result = await evalQuery('::vec/count | examples | count');
     expect(typeof result).toBe('number');
     expect(result).toBeGreaterThanOrEqual(0);
   });
@@ -132,10 +132,13 @@ describe(':name | examples extracts Quote segments from docs', () => {
 });
 
 describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
-  it(':"::conduit" | source finds the tag binding via the keyword form', async () => {
-    const result = await evalQuery(':"::conduit" | source');
-    expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result).startsWith('::conduit')).toBe(true);
+  it('a keyword names a binding of its scope, a tag of a provider none', async () => {
+    expect(await evalQuery(':"::conduit" | source !| type')).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
+  });
+
+  it('a keyword naming a verb of a provider is refused with the addresses where it lives', async () => {
+    expect([...await evalQuery(':count | docs !| /addresses')])
+      .toEqual([makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('vec/count')]);
   });
 
   it('::conduit | source resolves the tag-binding descriptor through reverse env lookup', async () => {
@@ -282,9 +285,6 @@ describe('a value that is no name reads the declaration of its kind', () => {
       .toContain('Division by zero');
   });
 
-  it('a manifest entry reads the page of ::map', async () => {
-    expect(await evalQuery('manifest | first | docs | eq (::map | docs)')).toBe(true);
-  });
 });
 
 describe('axis-operands resolve the binding the evaluator dispatches', () => {
@@ -354,8 +354,8 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 });
 
 describe(':name | spec returns the env-side declaration descriptor', () => {
-  it(':add | spec surfaces the operand descriptor Map with :category :arith', async () => {
-    expect(await evalQuery(':add | spec | /category')).toEqual(makeKeyword('arith'));
+  it('::number/add | spec surfaces the operand descriptor Map with :category :arith', async () => {
+    expect(await evalQuery('::number/add | spec | /category')).toEqual(makeKeyword('arith'));
   });
 
   it('::AddLeftNotNumberError | spec surfaces per-tag static :operand', async () => {

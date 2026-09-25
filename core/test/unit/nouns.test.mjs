@@ -14,7 +14,12 @@ describe('the nouns of the core', () => {
     expect(await evalQuery('::qlang | manifest | filter ~(eq ::AddLeftNotNumberError) | count')).toBe(0);
   });
 
-  it('a noun answers the nouns under its path, and a noun with none the empty set', async () => {
+  it('a refusal the catalog declares with its category is no noun, and the kind of errors is one', async () => {
+    expect(await evalQuery('::qlang | manifest | has ::ForeignFailureError')).toBe(false);
+    expect(await evalQuery('::qlang | manifest | has ::error')).toBe(true);
+  });
+
+  it('a noun answers what lies below it, the nouns under its path and the verbs that live on it', async () => {
     const session = await createSession({
       locator: async nsName => (nsName === 'tests/shop'
         ? { source: '::shop/Order |~~ An order. ~~| | ::shop/Line |~~ A line. ~~| | env' }
@@ -22,7 +27,8 @@ describe('the nouns of the core', () => {
     });
     const cellEntry = await session.evalCell('use :tests/shop | ::shop | manifest');
     expect([...cellEntry.result]).toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
-    expect([...await evalQuery('::number | manifest')]).toEqual([]);
+    expect(await evalQuery('::number | manifest | eq (::number | spec | /verbs)')).toBe(true);
+    expect([...await evalQuery('::builtin | manifest')]).toEqual([]);
   });
 
   it('a tag the session declares is its own, beside the providers\' nouns', async () => {
@@ -85,5 +91,27 @@ describe('a tag name that no tag binds addresses a verb', () => {
   it('an address whose kind the verb does not live on names nothing', async () => {
     expect(await evalQuery('::string/count | docs !| type')).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
     expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
+  });
+});
+
+describe('the scope holds the names it wrote', () => {
+  it('a descriptor the scope binds under a name of its own is its binding', async () => {
+    expect(await evalQuery('{:c (::vec/count | spec)} | use | env | has :c')).toBe(true);
+  });
+
+  it('a value whose kind has no declaration is refused with no address', async () => {
+    expect([...await evalQuery('::Box#[3 1] | docs !| /addresses')]).toEqual([]);
+  });
+});
+
+describe('a name with a path calls the verb its address names', () => {
+  it('calls past the bindings of the scope, with the modifiers the call takes', async () => {
+    expect(await evalQuery(':count 5 | [1 2 3] | vec/count')).toBe(3);
+    expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
+    expect(await evalQuery('[1 2 3] | qlang/vec/count')).toBe(3);
+  });
+
+  it('an address that names no verb is refused with the address', async () => {
+    expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTagKeyword('vec/nothing'));
   });
 });

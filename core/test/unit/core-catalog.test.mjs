@@ -199,7 +199,9 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
     for (const entryKey of coreEnv.keys()) {
       // Skip section-divider plain comments / non-binding env entries.
       if (!isQMap(coreEnv.get(entryKey))) continue;
-      const docs = await evalQuery(`:"${entryKey}" | docs`);
+      // A keyword names a binding of the scope, so the verb is read by
+      // the first address its refusal hands on [D62].
+      const docs = await evalQuery(`:"${entryKey}" | docs !| /addresses | first | docs`);
       expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
       for (const doc of docs) {
         expect(typeof doc.content).toBe('string');
@@ -207,17 +209,17 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
     }
   });
 
-  it('spot-check — :count docs mention polymorphic and container kinds', async () => {
+  it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const docs = await evalQuery(':count | docs');
+    const docs = await evalQuery('::vec/count | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('number of elements');
     expect(joined).toContain('Polymorphic');
   });
 
-  it('spot-check — :filter docs describe the predicate semantics', async () => {
+  it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const docs = await evalQuery(':filter | docs');
+    const docs = await evalQuery('::vec/filter | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('boolean');
@@ -259,27 +261,6 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   });
 });
 
-describe('manifest descriptor for a conduitParameter proxy', () => {
-  // Conduit parameters are the only function values that reach env
-  // during dispatch — `makeConduitParameter` in `eval.mjs` mints
-  // them at applyConduit time with a full `meta` shape inline.
-  // Running `manifest` inside a conduit body iterates the body's
-  // fork env, which carries the proxy; `describeBinding` takes the
-  // `isFunctionValue` path and stamps a `:kind ::builtin` descriptor
-  // through `describeConduitParameter`. The descriptor's `:category`
-  // tracks the proxy's authored slot (`:conduitParameter`), so
-  // catalog walkers can distinguish synthetic-per-call entries from
-  // the static catalog operands.
-
-  it('manifest inside a conduit body surfaces the param proxy as :category :conduitParameter', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery(
-      ':f [:p] (manifest | filter ~(/name | eq "p") | first | /category) | 42 | f (add 1)'
-    );
-    expect(evalResult).toEqual(keyword('conduitParameter'));
-  });
-});
-
 describe('format.toPlain refuses a raw function value — round-trip invariant', () => {
   // Function values have no grammatical literal: emitting any string
   // for one would falsely round-trip through parse / eval into a
@@ -304,17 +285,19 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // six tags minted outside a per-site factory (`::Error`,
   // `::ParseError`, and the four value-class constructors) pass both
   // axes whether or not they exist — axis 1 never names them and
-  // axis 2 skips a name absent from `manifest(:tag)`. These pins fail
+  // axis 2 skips a name the environment does not bind. These pins fail
   // on a silent catalog shrink; per §8a of the review rules a tally
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest :tag | count')).toBe(229);
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(231);
   });
 
   it('the value namespace holds every declared operand', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(67);
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(68);
   });
 });
 
@@ -322,10 +305,9 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
   it('groupBy category — full catalog is addressable as data', async () => {
     // A miniature exercise of the self-describing nature: run a
     // qlang query against the catalog itself to count operands per
-    // category. Under Variant B this is what `env | manifest | ...`
-    // will produce; this test pins the shape by iterating the
-    // evaluated Map directly — the same projection surface
-    // `env | manifest | ...` exercises at the qlang level.
+    // category, iterating the evaluated Map directly — the reading
+    // `::qlang | manifest * manifest | flat * (spec | /category)`
+    // gives at the qlang level, verb by address.
     const coreEnv = await evalCore();
     const categories = new Map();
     for (const [, entryVal] of coreEnv) {
@@ -345,7 +327,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
     expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`
     expect(categories.get('typeConversion')).toBe(4);  // keyword + payload + tag + within
-    expect(categories.get('format')).toBe(1);
+    expect(categories.get('format')).toBe(2);  // json + parseJson, the JSON codec both ways
     expect(categories.get('reflective')).toBe(5);   // env use manifest runExamples as
     expect(categories.get('codeAsData')).toBe(2); // parse apply
     expect(categories.get('axis')).toBe(4);         // source docs examples spec

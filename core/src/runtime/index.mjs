@@ -192,7 +192,7 @@ export async function buildLangRuntime(locator) {
   // descriptor without a registry lookup per call. Tag bindings
   // keep their :impl as a keyword (`:qlang/type/<tag>`);
   // evalTaggedLit resolves it through PRIMITIVE_REGISTRY at
-  // every invocation, so `manifest :tag` surfaces the readable
+  // every invocation, so `::Tag | spec` surfaces the readable
   // `:qlang/type/<tag>` keyword handle the catalog declared.
   //
   // `stampStructuralFacts` is the single mint-site backfill —
@@ -210,7 +210,7 @@ export async function buildLangRuntime(locator) {
     // tag but live under `::Tag` env-keys. Their `:impl` keyword
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
-    // readable in `manifest :tag` output, so the author-form
+    // readable in `::Tag | spec` output, so the author-form
     // `:impl` stays. What lands there is the throw-site spec: the
     // `:category` / `:operand` / `:position` / `:expectedType` the
     // per-site factory recorded when it built the class.

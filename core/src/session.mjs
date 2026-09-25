@@ -12,6 +12,7 @@
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, materializePendingTrail } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
+import { scopeBindingsOf } from './runtime/nouns.mjs';
 import { rootState, envSet } from './state.mjs';
 import {
   isConduit,
@@ -33,19 +34,23 @@ const SESSION_SCHEMA_VERSION = 1;
 // Per-site session deserialization errors.
 const SessionPayloadInvalidError = declarePerSiteError(
   'SessionPayloadInvalidError', 'sessionError',
-  () => 'deserializeSession: invalid session payload'
+  () => 'deserializeSession: invalid session payload',
+  { operand: '::qlang' }
 );
 const SessionSchemaVersionMismatchError = declarePerSiteError(
   'SessionSchemaVersionMismatchError', 'sessionError',
-  ({ actual, expected }) => `deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`
+  ({ actual, expected }) => `deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`,
+  { operand: '::qlang' }
 );
 const SessionConduitSourceMissingError = declarePerSiteError(
   'SessionConduitSourceMissingError', 'sessionError',
-  ({ bindingName }) => `deserializeSession: conduit binding ${bindingName} has no source`
+  ({ bindingName }) => `deserializeSession: conduit binding ${bindingName} has no source`,
+  { operand: '::qlang' }
 );
 const SessionBindingKindUnknownError = declarePerSiteError(
   'SessionBindingKindUnknownError', 'sessionError',
-  ({ kind }) => `deserializeSession: unknown binding kind '${kind}'`
+  ({ kind }) => `deserializeSession: unknown binding kind '${kind}'`,
+  { operand: '::qlang' }
 );
 
 // createSession(opts?) → Session
@@ -165,8 +170,9 @@ export async function createSession(opts = {}) {
 
 // serializeSession(session) → JSON-serializable plain object
 //
-// Captures only user-defined bindings (those not in langRuntime),
-// plus the source of every cell ever executed. Built-in function
+// Captures the bindings the session wrote, the names its scope holds
+// [D61], a shadow of a built-in name among them, plus the source of
+// every cell ever executed. Built-in function
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore.
 //
@@ -176,10 +182,8 @@ export async function createSession(opts = {}) {
 // serialize as `{ kind: 'snapshot', name, value, docs }` where
 // `value` is the captured payload encoded via toTaggedJSON.
 export async function serializeSession(session) {
-  const builtins = await langRuntime();
   const userBindings = [];
-  for (const [k, v] of session.env) {
-    if (builtins.has(k)) continue;
+  for (const [k, v] of scopeBindingsOf(session.env)) {
     if (isFunctionValue(v)) continue; // user-installed functions are not portable
     if (isConduit(v)) {
       userBindings.push({

@@ -62,7 +62,6 @@ transparently.
 
 | Operand | Contract |
 |---|---|
-| `parseJson` | String → qlang value. Object keys become keywords, arrays become Vecs. Bridge to external JSON sources (curl, kubectl, gh, jq) |
 | `parseTjson` | String → qlang value via core's `fromTaggedJSON`. Round-trippable with `tjson | @out` for chaining qlang processes over a Unix pipe |
 
 ## Output is explicit
@@ -177,7 +176,7 @@ appear before the auto-printed result line.
 ## Status
 
 I/O surface (`@in`, `@out`, `@err`, `@tap`), pure formatters
-(`pretty`, `tjson`, `table`), parsers (`parseJson`, `parseTjson`),
+(`pretty`, `tjson`, `table`), the tagged-JSON parser (`parseTjson`),
 and the interactive REPL — with raw-mode line editor, live
 input/output syntax highlighting, and bracketed-paste handling
 for multi-line clipboard content — are in place. Follow-up

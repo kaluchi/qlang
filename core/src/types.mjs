@@ -24,7 +24,8 @@ export const FunctionValueLeakedToPrintError = declareInvariantError(
     'surface in pipeValue. Install a host operand through a locator returning ' +
     "{ source, impls } so the namespace pass stamps the callable onto the descriptor's " +
     'BUILTIN_IMPL_SLOT (see cli/src/cli-locator.mjs); a raw callable handed to ' +
-    'session.bind carries no qlang literal.'
+    'session.bind carries no qlang literal.',
+  { operand: '::qlang' }
 );
 
 // A qlang Number is a finite double (see `### number` in
@@ -41,7 +42,8 @@ export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
   'NumberNotFiniteLeakedToPrintError',
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
     "qlang Number lives in — a host installed it through session.bind or a locator's " +
-    'impls map, where source cannot mint one'
+    'impls map, where source cannot mint one',
+  { operand: '::qlang' }
 );
 
 // Reads the guard at every seam where a Number becomes observable.
@@ -325,13 +327,12 @@ export function stampBuiltinImpl(descriptor, fn) {
 
 export const BUILTIN_TAG     = makeTagKeyword('builtin');
 export const CONDUIT_TAG     = makeTagKeyword('conduit');
-export const ERROR_TAG       = makeTagKeyword('Error');
+export const ERROR_TAG       = makeTagKeyword('error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
 export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
-export const VALUE_TAG       = makeTagKeyword('value');
 
 // The kind of every value without a tag of its own, the one its
 // literal implies [D32]; `type` answers it, and a tag name's kind is
@@ -491,7 +492,7 @@ export function withName(binding, newName) {
 // ── error value factory ───────────────────────────────────────
 //
 // Identity rides on the `tag` JS-header field (a TagKeyword) —
-// every error value carries one, defaulting to `::Error` for
+// every error value carries one, the kind of errors `::error` for
 // user-created `!{}` literals that omit `:kind`. The descriptor
 // Map is pure data: `:faultStep`, `:faultInput`, `:actualType`,
 // dynamic per-site fields, and `:trail`. `:kind` never appears in
@@ -518,7 +519,7 @@ export function withName(binding, newName) {
 export const ErrorTrailNotQuoteError = declareShapeError(
   'ErrorTrailNotQuoteError',
   ({ actualType }) => `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
-  { expectedType: ['quote', 'null'] }
+  { operand: '::error', expectedType: ['quote', 'null'] }
 );
 
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {

@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { makeTagKeyword, isErrorValue, isQMap } from '../../src/types.mjs';
+import { makeTagKeyword, isErrorValue, isQMap, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
@@ -126,6 +126,16 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
     expect((await restored.evalCell('5 | double')).result).toBe(10);
     expect((await restored.evalCell('5 | triple')).result).toBe(15);
+  });
+
+  it('keeps a binding that shadows a verb of the core, and no key of the runtime', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':count 5');
+    const payload = await serializeSession(sessionInstance);
+    expect(payload.bindings.map(binding => binding.name)).toEqual(['count']);
+    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
+    expect((await restored.evalCell('[1 2 3] | count')).result).toBe(5);
+    expect((await restored.evalCell('[1 2 3] | vec/count')).result).toBe(3);
   });
 
   it('restored conduits honor lexical scope (immune to caller-side shadowing)', async () => {
@@ -324,16 +334,14 @@ describe('createSession with locator — lazy module loading', () => {
     expect(locatorMissErr.context.namespaceName).toBe('nonexistent/ns');
   });
 
-  it('manifest descriptor for a locator-loaded builtin includes captured and effectful', async () => {
+  it('the descriptor of a locator-loaded builtin carries captured and effectful', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     await locatorSession.evalCell('use :test/io');
-    const manifestCell = await locatorSession.evalCell(
-      'manifest | filter ~(/name | eq "@fetch") | first'
-    );
-    expect(manifestCell.error).toBeNull();
-    const fetchDesc = manifestCell.result;
+    const specCell = await locatorSession.evalCell('::string/@fetch | spec');
+    expect(specCell.error).toBeNull();
+    const fetchDesc = specCell.result;
     expect(isQMap(fetchDesc)).toBe(true);
-    expect(fetchDesc.get('kind')).toEqual(makeTagKeyword('builtin'));
+    expect(fetchDesc[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('builtin'));
     expect(fetchDesc.get('captured')).toEqual([0, 0]);
     expect(fetchDesc.get('effectful')).toBe(true);
   });

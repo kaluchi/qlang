@@ -162,8 +162,8 @@ describe('eval — env operand', () => {
     expect(envResult).toBeInstanceOf(Map);
   });
 
-  it('env | has(:count) → true', async () => {
-    expect(await evalQuery('env | has :count')).toBe(true);
+  it('env holds no verb of the core', async () => {
+    expect(await evalQuery('env | has :count')).toBe(false);
   });
 });
 
@@ -243,9 +243,9 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
     const session = await createSession({
       locator: async () => ({ source: 'add 1' })
     });
-    const cellEntry = await session.evalCell(
-      'use :demo/snippet | 41 | apply (env | /"qlang/ast/demo/snippet")'
-    );
+    await session.evalCell('use :demo/snippet');
+    session.bind('snippet', session.env.get('qlang/ast/demo/snippet'));
+    const cellEntry = await session.evalCell('41 | apply snippet');
     expect(cellEntry.result).toBe(42);
   });
 });

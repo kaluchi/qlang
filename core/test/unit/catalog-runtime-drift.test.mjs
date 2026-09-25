@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { isErrorValue } from '../../src/types.mjs';
+import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
 
 // Sample values per advertised type — one entry per :subject and
 // :modifier keyword the catalog uses. Each value must round-trip
@@ -21,6 +22,7 @@ const TYPE_SAMPLE = {
   string:           '"hello"',
   keyword:          ':foo',
   tagKeyword:       '::Foo',
+  tag:              '::Foo',
   number:           '42',
   integer:          '3',
   boolean:          'true',
@@ -75,9 +77,9 @@ function isUnboundedUpper(upper) {
   return upper && typeof upper === 'object' && upper.name === 'unbounded';
 }
 
-describe('catalog vs runtime drift — derived from manifest', async () => {
+describe('catalog vs runtime drift — derived from the verbs of the catalog', async () => {
   const session = await createSession();
-  const manifest = await evalQuery(session, 'manifest');
+  const manifest = catalogEntriesOf(session.env, { tags: false });
 
   describe('every advertised :modifier type has a TYPE_SAMPLE entry', () => {
     const declaredTypes = new Set();

@@ -3,7 +3,7 @@
 {"name":"a-verb-without-modifiers-runs-at-each-mention","query":":inc ~[](add 1) | 5 | inc | inc","expect":"7","decision":"D57","target":true}
 {"name":"a-verb-moved-left-answers-as-inline","query":":most ~[](count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57"],"target":true}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44","target":true}
-{"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::Error","decision":"D13","target":true}
+{"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"],"target":true}
 {"name":"a-shadowed-binding-stays-one-projection-away","query":":filter ~[](mul 2) | namespace :qlang/operand/container | /filter | docs | count","expect":"1","decision":["D5","D36"],"target":true}
 {"name":"a-binding-names-the-module-it-came-from","query":":filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | docs | first | /segments * type | distinct","expect":"#[::string]","decision":"D19","target":true}
@@ -13,11 +13,12 @@
 {"name":"a-declaration-refuses-a-subject-of-another-kind","query":"\"a\" | gt \"b\" | (false !| true)","expect":"true","decision":"D4","target":true}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34","target":true}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41"}
+{"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]","decision":"D41"}
 {"name":"a-head-holds-names-and-kinds-alone","query":"::Width |~~ How many characters a line holds. ~~| | :wrap ~[::string :width ::Width ::vec](split \" \") | :wrap | spec | /slots","expect":"[::string :width ::Width]","decision":"D60","target":true}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | docs | count","expect":"1","decision":"D61"}
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":"::Box |~~ A box. ~~| | ::Box#[3 1] | docs | count","expect":"1","decision":"D61"}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | docs | first | /content | eq (::map | docs | first | /content)","expect":"true","decision":"D61"}
-{"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"],"target":true}
+{"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"]}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | has ::number/add","expect":"true","decision":["D61","D62"]}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::qlang/any | spec | /verbs | has ::any/docs","expect":"true","decision":"D62"}
 {"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | has ::string/docs","expect":"false","decision":"D62"}
@@ -28,11 +29,13 @@
 {"name":"a-module-exposes-what-its-last-step-answers","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D63","target":true}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
-{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62","target":true}
-{"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62","target":true}
+{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62"}
+{"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62"}
 {"name":"an-address-under-the-core-prints-short","query":"::qlang/vec/count | eq ::vec/count","expect":"true","decision":"D62"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}
-{"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62","target":true}
+{"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::ParseError","expect":"false","decision":["D61","D62"]}
+{"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D62"}
+{"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | spec | /impl","expect":":qlang/prim/count","decision":"D62"}
 {"name":"builtin-descriptor-renders-without-a-function-leak","query":"::vec/count | spec | json | contains \"qlang/prim/count\"","expect":"true","decision":"D62"}
 {"name":"type-header-tag-builtin","query":"::number/add | spec | type","expect":"::builtin","decision":"D62"}
@@ -41,3 +44,8 @@
 {"name":"a-binding-by-as-is-a-record","query":"0.07 | as :taxRate | env | /taxRate | /value","expect":"0.07","decision":"D63","target":true}
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63","target":true}
 {"name":"a-used-value-is-a-binding-without-a-doc","query":"{:myConst 42} | use | env | /myConst | docs | empty","expect":"true","decision":"D63","target":true}
+{"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
+{"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"::qlang | manifest | has ::error","expect":"true","decision":"D64"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64"}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::ProjectionKeyNotInMapError) | count","expect":"1","decision":"D64"}
+{"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}

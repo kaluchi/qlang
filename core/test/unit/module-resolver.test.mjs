@@ -98,7 +98,7 @@ describe('installModules', () => {
     expect(sessionInstance.env.has(moduleNamespaceKey('error'))).toBe(true);
 
     // use(:error) imports retry into current env
-    const cellEntry = await sessionInstance.evalCell('use :error | manifest | filter ~(/name | eq "retry") | first | /kind');
+    const cellEntry = await sessionInstance.evalCell('use :error | :retry | spec | type');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
   });
@@ -107,10 +107,10 @@ describe('installModules', () => {
     // `lib/extras/error.qlang` resolves to the namespace `error`,
     // the same stem as the `error` lift operand. The cache key
     // `qlang/namespace/error` is where `resolveNamespaceEnv` probes
-    // for a loaded namespace, and `manifest` filters it out of its
-    // enumeration — so `error` keeps resolving to the `::builtin`
-    // descriptor, `use(:error)` still reaches the exports, and no
-    // export Map surfaces as a `::value` binding.
+    // for a loaded namespace, a key the runtime keeps for itself — so
+    // `error` keeps resolving to the `::builtin` descriptor,
+    // `use(:error)` still reaches the exports, and no export Map
+    // surfaces as a binding of the scope.
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
@@ -119,11 +119,11 @@ describe('installModules', () => {
 
     const liftCell = await sessionInstance.evalCell('{:kind :x} | error !| type');
     expect(liftCell.error).toBeNull();
-    expect(liftCell.result).toEqual(makeTagKeyword('Error'));
+    expect(liftCell.result).toEqual(makeTagKeyword('error'));
 
-    const valueKindCell = await sessionInstance.evalCell('manifest | filter ~(/kind | eq ::value) | count');
-    expect(valueKindCell.error).toBeNull();
-    expect(valueKindCell.result).toBe(0);
+    const scopeCell = await sessionInstance.evalCell('env | keys | count');
+    expect(scopeCell.error).toBeNull();
+    expect(scopeCell.result).toBe(0);
   });
 
   it('resolveModules with explicit dependencies uses topo sort', async () => {
@@ -148,7 +148,7 @@ describe('installModules', () => {
     await sessionInstance.evalCell('use :error/observe');
 
     for (const name of ['retry', 'recover', 'assert', 'tap']) {
-      const cellEntry = await sessionInstance.evalCell(`manifest | filter ~(/name | eq "${name}") | first | /kind`);
+      const cellEntry = await sessionInstance.evalCell(`:${name} | spec | type`);
       expect(cellEntry.error).toBeNull();
       expect(cellEntry.result).toEqual(makeTagKeyword('conduit'));
     }
@@ -193,8 +193,7 @@ describe('locator exports that are not builtin descriptors', () => {
     // tag names, and a module binding that name to a literal gets a
     // Snapshot, not a `::builtin` descriptor. Stamping the wrapper
     // would put `:category` / `:operand` / `:expectedType` beside
-    // `:payload`, where `spec` never reads them and `manifest(:tag)`
-    // renders both shapes on one entry.
+    // `:payload`, where `spec` never reads them.
     const sessionInstance = await createSession({
       locator: async (namespaceName) => namespaceName === 'tests/literal-tag'
         ? { source: '::AsNameNotKeywordError 42' }
@@ -206,10 +205,5 @@ describe('locator exports that are not builtin descriptors', () => {
     expect(specCell.error).toBeNull();
     expect(specCell.result).toBe(42);
 
-    const keysCell = await sessionInstance.evalCell(
-      'use :tests/literal-tag | manifest :tag ' +
-      '| filter ~(/name | eq "::AsNameNotKeywordError") | first | keys');
-    expect(keysCell.error).toBeNull();
-    expect([...keysCell.result].map(k => k.name)).not.toContain('category');
   });
 });

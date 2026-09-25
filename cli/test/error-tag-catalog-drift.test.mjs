@@ -88,8 +88,9 @@ const session = await createSession({
   })
 });
 await installCliCatalog(session);
-const { result: tagBindings } = await session.evalCell('manifest :tag');
-const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
+// The tags the session binds, each under its `::Name` key, as the
+// environment holds them.
+const catalogTags = new Map([...session.env].filter(([name]) => name.startsWith('::')));
 
 describe('CLI host operands — every throw site carries a catalog tag', () => {
   for (const [className, file] of throwSites) {

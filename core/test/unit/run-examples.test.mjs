@@ -11,18 +11,9 @@ import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQSet, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
-describe('runExamples accepts both keyword and descriptor subjects', () => {
-  it('keyword subject — :count | runExamples', async () => {
-    const result = await evalQuery(':count | runExamples * /ok | distinct');
-    expect(isQSet(result)).toBe(true);
-    expect([...result]).toEqual([true]);
-  });
-
-  it('descriptor subject — manifest-yielded Map with :name passes through', async () => {
-    // `manifest` enumerates env into descriptor Maps carrying `:name`;
-    // composing it with `* runExamples` per-entry covers the
-    // Map-with-:name subject path on the runExamples contract.
-    const result = await evalQuery('manifest | filter ~(/name | eq "count") | first | runExamples * /ok | distinct');
+describe('runExamples accepts a name, an address and a descriptor subject', () => {
+  it('address subject — ::vec/count | runExamples', async () => {
+    const result = await evalQuery('::vec/count | runExamples * /ok | distinct');
     expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });

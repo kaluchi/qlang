@@ -1,73 +1,35 @@
-// `manifest`, `runExamples` — reflective operands over env.
+// `manifest`, `runExamples` — reflective operands over the tree of
+// names and the declarations it holds.
 //
-// `manifest` walks every binding in env, returning a Vec of
-// descriptor Maps sorted by name. `runExamples` pulls every Quote
-// segment from a named binding's attached doc-prefix and evaluates
-// each as a self-test, yielding `{:snippet :actual :ok :error}`
-// per Quote. Together they drive catalog-wide self-tests
-// (`manifest * runExamples * every ~(/ok)`) and the LSP / doc-site
-// surfaces that enumerate operands.
+// `manifest` is asked of a noun and answers what lies below it in the
+// tree of names, the nouns under its path and the verbs that live on
+// it [D62], so `::qlang | manifest` lists the nouns of the core and of
+// the hosts; a refusal is reached from the place it guards, its `/throws`
+// [D64]. `runExamples` pulls every Quote segment from a named binding's
+// attached doc-prefix and evaluates each as a self-test, yielding
+// `{:snippet :actual :ok :error}` per Quote, so `::number | manifest *
+// (runExamples * /ok)` runs the examples of the verbs of numbers.
 //
-// The per-binding descriptor shape `manifest` produces is built by
-// `describeBinding`, a switch over the env-value's runtime shape:
-//
-//   `::builtin` Map (catalog-bound operand or tag-binding —
-//   identity on the JS-header `TAG_HEADER_SYMBOL` slot, no `:kind`
-//   field in the env entry)
-//     → `manifestBuiltinDescriptor` in `descriptor-ops.mjs` —
-//       strips internal `:impl`, stamps `:kind ::builtin` as the
-//       view-Map's explicit enum-bucket field, passes the
-//       structural fields (`:category` / `:subject` /
-//       `:modifiers` / `:returns` / `:throws` / `:captured` /
-//       `:effectful`) through.
-//
-//   raw FunctionValue (conduitParameter proxy minted by
-//   `makeConduitParameter` inside an `applyConduit` body fork)
-//     → `describeConduitParameter` (below) — lifts the proxy's
-//       inline `meta` shape into a manifest-form descriptor.
-//
-//   Conduit Map → `describeConduit`.
-//   Snapshot Map → `describeSnapshot`.
-//   Plain pipeValue → `describeValue` (catch-all).
-//
-// The introspection surface for "what does THIS one binding do"
-// is the axis trio in `axis.mjs` (`:name | source` / `| docs` /
-// `| examples`) — reads source AST directly, never touches the
-// runtime descriptor. Reach for `manifest` when the question is
-// "which bindings exist" rather than "what does this one do".
+// The introspection surface for "what does THIS one binding do" is the
+// axis trio in `axis.mjs` (`::vec/count | source` / `| docs` /
+// `| examples`), which reads the declaration where it was written.
 
-import { stateOp, stateOpVariadic } from './dispatch.mjs';
+import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
-import {
-  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote, isTagKeyword,
-  isErrorValue, typeKeyword, keyword, declarationSiteOf,
-  BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
-} from '../types.mjs';
-import {
-  isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
-  RUNTIME_LOCATOR_KEY
-} from '../env-keys.mjs';
-import { locationToQlangMap } from '../walk.mjs';
+import { isKeyword, isQuote, isTagKeyword, isErrorValue, typeKeyword } from '../types.mjs';
 import { declareShapeError } from '../errors.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
-import { findBindingStepAcrossModules, declaringStepOf, stepDocStrings } from './axis.mjs';
-import { nounsUnder } from './nouns.mjs';
+import { declaringStepOf, stepDocStrings } from './axis.mjs';
+import { namesUnder } from './nouns.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-const ManifestNamespaceNotKeywordError = declareShapeError('ManifestNamespaceNotKeywordError',
-  ({ actualType }) => `manifest(:namespace) requires a keyword captured arg, got ${actualType.name}`,
-  { operand: 'manifest', expectedType: 'keyword' }
-);
-const ManifestNamespaceUnknownError = declareShapeError('ManifestNamespaceUnknownError',
-  ({ namespace }) => `manifest: unknown namespace :${namespace}, expected :value or :tag`,
-  { operand: 'manifest' }
-);
+const ManifestSubjectNotTagError = declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
-  ({ actualType }) => `runExamples requires a Keyword (binding name), a tag name or a descriptor Map carrying a :name string, got ${actualType.name}`,
-  { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'tag', 'map'] }
+  ({ actualType }) => `runExamples requires a Keyword (binding name) or a tag name, got ${actualType.name}`,
+  { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'tag'] }
 );
 
 // Extract a human-readable message from an error value — runtime
@@ -78,180 +40,12 @@ function errorMessageOf(errorValue) {
   return errorValue.descriptor.get('message');
 }
 
-// `describeConduitParameter` lifts a conduitParameter proxy
-// (nullary FunctionValue minted by `makeConduitParameter` in
-// `eval.mjs`) into a manifest-form descriptor Map. The proxy
-// stamps a full `meta` shape inline at construction
-// (`category :conduitParameter`, `subject` / `modifiers` /
-// `returns` / `captured` / `throws`), so the descriptor reads
-// every field straight off the proxy. Catalog-bound `::builtin`
-// descriptors flow through the `qlKind.name === 'builtin'`
-// branch in `describeBinding` instead, which delegates to
-// `manifestBuiltinDescriptor` in `descriptor-ops.mjs`.
-function describeConduitParameter(fn, explicitName) {
-  const meta = fn.meta;
-  const result = new Map();
-  result.set('kind', BUILTIN_TAG);
-  result.set('name', explicitName);
-  result.set('category', keyword(meta.category));
-  result.set('subject', meta.subject);
-  result.set('modifiers', [...meta.modifiers]);
-  result.set('returns', meta.returns);
-  result.set('captured', [...meta.captured]);
-  result.set('throws', [...meta.throws]);
-  result.set('effectful', fn.effectful);
-  return result;
-}
-
-function describeConduit(conduit, explicitName) {
-  // `explicitName` is always the env key (manifest iterates env entries
-  // and threads each key as the name); the conduit's own `:name`
-  // payload mirrors it under normal BindStep declarations but the
-  // env-key is the source of truth for the descriptor.
-  const result = new Map();
-  result.set('kind', CONDUIT_TAG);
-  result.set('name', explicitName);
-  result.set('params', [...conduit.get('params')]);
-  result.set('source', conduit.get('source'));
-  result.set('effectful', conduit.get('effectful'));
-  result.set('location', locationToQlangMap(declarationSiteOf(conduit)));
-  return result;
-}
-
-function describeSnapshot(snap, explicitName) {
-  const value = snap.get('payload');
-  const result = new Map();
-  result.set('kind', SNAPSHOT_TAG);
-  result.set('name', explicitName);
-  result.set('value', value);
-  result.set('type', typeKeyword(value));
-  result.set('effectful', snap.get('effectful'));
-  result.set('location', locationToQlangMap(declarationSiteOf(snap)));
-  return result;
-}
-
-function describeValue(value, explicitName) {
-  const result = new Map();
-  result.set('kind', VALUE_TAG);
-  result.set('name', explicitName);
-  result.set('value', value);
-  result.set('type', typeKeyword(value));
-  return result;
-}
-
-function describeBinding(value, explicitName) {
-  if (isTagBindingName(explicitName) && isQMap(value)) {
-    // Any Map binding under a `::Tag` name routes through the
-    // tag-binding manifest surface — whether `::builtin{…}`-
-    // declared by the catalog, user-declared via `::Tag {…}`
-    // BindStep, or auto-declared on first `::Tag<payload>` use
-    // (the implicit-decl path stamps a single
-    // `:declarationOrigin :implicit` field, so the view shows
-    // every tag the env owns regardless of how it landed).
-    const tagResult = new Map();
-    // `:kind` is a readable enum bucket on the data plane; the JS
-    // header is where identity rides.
-    tagResult.set('kind', TAG_BINDING_TAG);
-    tagResult.set('name', explicitName);
-    for (const [descKey, descVal] of value) {
-      tagResult.set(descKey, descVal);
-    }
-    return tagResult;
-  }
-  if (isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin') {
-    // `::builtin{:impl …}` operand declaration in the value
-    // namespace (env-key is a plain identifier, `:impl` is a
-    // resolved JS function value after the bootstrap pass).
-    return manifestBuiltinDescriptor(value, explicitName);
-  }
-  // Conduit-parameter proxies stamp `meta.category :conduitParameter`
-  // through `makeConduitParameter` in `eval.mjs` — the discriminator
-  // that lets `describeConduitParameter` reach for the full inline
-  // meta shape (`subject` / `modifiers` / `returns` / `captured` /
-  // `throws`). Other function values in env land through
-  // `session.bind(name, fn)` from a host integration: they carry only
-  // the dispatch-wrapper meta (`{ captured: [...] }`) and route to
-  // `describeValue` so their entry surfaces as `:kind ::value`
-  // alongside any other host-bound payload. Host integrations that
-  // want a richer manifest entry install the operand through a
-  // locator returning `{ source, impls }` (see
-  // `cli/src/cli-locator.mjs`), so the namespace pass stamps the
-  // callable onto the catalog descriptor's `BUILTIN_IMPL_SLOT`; the
-  // Map branch above then routes through
-  // `manifestBuiltinDescriptor` with every authored field intact.
-  if (isFunctionValue(value)
-      && value.meta && value.meta.category === 'conduitParameter') {
-    return describeConduitParameter(value, explicitName);
-  }
-  if (isConduit(value)) return describeConduit(value, explicitName);
-  if (isSnapshot(value)) return describeSnapshot(value, explicitName);
-  return describeValue(value, explicitName);
-}
-
-// `manifest` — Vec of descriptors, one per binding in env, sorted by
-// name. Overloaded by captured-arg count:
-//
-//   manifest          — value-namespace bindings (operands, conduits,
-//                       snapshots). Tag-namespace `::tag` and module
-//                       AST storage filtered out.
-//   manifest :value   — explicit alias of the bare form.
-//   manifest :tag     — tag-namespace bindings (`::Tag` declarations
-//                       from the operand catalog family files and any
-//                       in-query `::Tag {…}` BindSteps). Names render
-//                       with the `::Tag` prefix.
-//
-// Module Quote storage under the `qlang/ast/<uri>` env-key family is
-// always filtered — those entries are runtime housekeeping outside
-// either namespace's user-facing catalog.
-
-// Code-point comparator for binding names. Three-way (strict weak
-// ordering) so `Array.prototype.sort` stays well-defined even when it
-// compares a name with itself; env keys are unique, so the `0` arm
-// only fires on that self-comparison. Locale-independent — `manifest`
-// order matches qlang `sort` over the same names, the invariant the
-// `names-are-sorted-asc` conformance case pins.
-export function compareBindingNames(a, b) {
-  if (a < b) return -1;
-  if (a > b) return 1;
-  return 0;
-}
-
-// Asked of a noun, `manifest` answers the nouns beneath it, the whole
-// set of the providers' nouns for the core's own, `::qlang | manifest`
-// [D62]; asked of any other subject it lists the bindings of env.
-export const manifest = stateOpVariadic('manifest', async (state, manifestLambdas) => {
-  if (manifestLambdas.length === 0 && isTagKeyword(state.pipeValue)) {
-    return withPipeValue(state, nounsUnder(state.env, state.pipeValue.name));
-  }
-  let namespace = 'value';
-  if (manifestLambdas.length === 1) {
-    const arg = await manifestLambdas[0](state.pipeValue);
-    if (!isKeyword(arg)) {
-      throw new ManifestNamespaceNotKeywordError({
-        actualType: typeKeyword(arg),
-        actualValue: arg
-      });
-    }
-    if (arg.name === 'tag' || arg.name === 'value') {
-      namespace = arg.name;
-    } else {
-      throw new ManifestNamespaceUnknownError({ namespace: arg.name });
-    }
-  }
-  const entries = [];
-  for (const [k, v] of state.env) {
-    if (isModuleAstKey(k)) continue;
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
-    const isTag = isTagBindingName(k);
-    if (namespace === 'tag' && !isTag) continue;
-    if (namespace === 'value' && isTag) continue;
-    entries.push({ name: k, value: v });
-  }
-  entries.sort((a, b) => compareBindingNames(a.name, b.name));
-  const descriptors = entries.map(e => describeBinding(e.value, e.name));
-  return withPipeValue(state, descriptors);
-}, [0, 1]);
+// `manifest` — asked of a noun, the set of what lies below it in the
+// tree of names [D62].
+export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
+  if (!isTagKeyword(state.pipeValue)) throw new ManifestSubjectNotTagError(state.pipeValue);
+  return withPipeValue(state, namesUnder(state.env, state.pipeValue.name));
+});
 
 // `runExamples` — execute every Quote segment in a binding's
 // attached doc-prefix as a self-test expression.
@@ -285,9 +79,7 @@ async function runQuoteEntry(quote, callerState) {
 
 // Bindings without a source-located BindStep (host-installed
 // bindings via `session.bind`, runtime-seeded built-ins) have no
-// examples to run. `runExamples` returns an empty Vec — the
-// catalog walk in manifest-self-test counts them as
-// zero-contribution entries.
+// examples to run, and `runExamples` returns an empty Vec for them.
 async function collectQuotesOfStep(callerState, step) {
   if (step === null) return [];
   const docStrings = stepDocStrings(step);
@@ -302,13 +94,9 @@ async function collectQuotesOfStep(callerState, step) {
 }
 
 // A name reads the step that declares it as the axes do, a tag name
-// that no tag binds the step of the verb it addresses [D62], and a
-// descriptor Map names its binding by its `:name`.
+// that no tag binds the step of the verb it addresses [D62].
 function stepNamedBy(env, subject) {
   if (isKeyword(subject) || isTagKeyword(subject)) return declaringStepOf(env, subject);
-  if (isQMap(subject) && typeof subject.get('name') === 'string') {
-    return findBindingStepAcrossModules(env, subject.get('name'));
-  }
   throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
 }
 

@@ -11,8 +11,8 @@ for the language syntax.
 **Host-bound operands.** The `@kaluchi/qlang-cli` workspace binds
 a fixed set of host operands on top of `langRuntime()` — effectful
 I/O (`@in`, `@out`, `@err`, `@tap`), value formatters (`pretty`,
-`tjson`, `template`), and String-to-value parsers (`parseJson`,
-`parseTjson`). These are host-scope additions; their contracts
+`tjson`, `template`), and the tagged-JSON parser `parseTjson`. These
+are host-scope additions; their contracts
 live in [`cli/README.md`](../cli/README.md). Another host (a
 browser playground, a server-side evaluator) is free to bind a
 different operand set — every binding uses the same
@@ -41,8 +41,9 @@ form), positions 2..n are modifiers (filled by captured args).
 
 Every operand descriptor carries a `:category` keyword that groups it
 with its polymorphism siblings. The taxonomy is first-class data —
-`env | manifest | filter ~(/category | eq :containerSelector)` returns
-the three polymorphic container selectors — so the keywords below
+`::vec | manifest | filter ~(spec | /category | eq :containerSelector)`
+returns the three polymorphic container selectors on vectors — so the
+keywords below
 form part of the doc surface and the runtime catalog alike.
 
 | `:category` keyword | Meaning |
@@ -528,17 +529,25 @@ for the rule and the two other seams that enforce it.
 
 ## String
 
-### `prepend s`
+### `prepend x`
 
-- **Arity** 2. **Subject** `string`, **modifier** `s`.
-- Returns `s` concatenated in front of the subject.
-- **Example**: `"world" | prepend "hello "` → `"hello world"`.
+- **Arity** 2. **Subject** `string` or `vec`, **modifier** `x`.
+- A string takes `x`, a string, as its prefix; a vector takes `x` as
+  its first element. A tagged vector keeps its tag, the tag's
+  constructor running again.
+- **Examples**: `"world" | prepend "hello "` → `"hello world"`;
+  `[2 3] | prepend 1` → `[1 2 3]`.
 
-### `append s`
+### `append x`
 
-- **Arity** 2. **Subject** `string`, **modifier** `s`.
-- Returns the subject concatenated with `s` on the right.
-- **Example**: `"hello" | append " world"` → `"hello world"`.
+- **Arity** 2. **Subject** `string` or `vec`, **modifier** `x`.
+- A string takes `x`, a string, as its suffix; a vector takes `x` as
+  its last element, so `[1] | append [2 3]` → `[1 [2 3]]` and vectors
+  join through `flat`. A tagged vector keeps its tag, the tag's
+  constructor running again, so `#[1 2] | within ~(append 1)` →
+  `#[1 2]`.
+- **Examples**: `"hello" | append " world"` → `"hello world"`;
+  `[1 2] | append 3` → `[1 2 3]`.
 
 ### `split separator`
 
@@ -685,8 +694,8 @@ Map where the value's kind is the predicate axis.
   (Conduit, Snapshot, TaggedInstance, materialized error, catalog
   builtin descriptor) produce their tag (`::conduit`, `::snapshot`,
   `::Foo`, `::builtin`); error values produce the per-site `::Tag` —
-  `::AddLeftNotNumberError`, `::ParseError`, generic `::Error` for
-  user `!{}` without an explicit `:kind ::Foo` lift.
+  `::AddLeftNotNumberError`, `::ParseError`, and the kind of errors
+  `::error` for user `!{}` without an explicit `:kind ::Foo` lift.
 - **Examples**:
   - `42 | type` → `::number`.
   - `"hello" | type` → `::string`.
@@ -694,7 +703,7 @@ Map where the value's kind is the predicate axis.
   - `[1 2] | type` → `::vec`.
   - `{:a 1} | type` → `::map`.
   - `::conduit[[] ~(mul 2)] | type` → `::conduit`.
-  - `!{} !| type` → `::Error`.
+  - `!{} !| type` → `::error`.
   - `!{:kind ::Oops} !| type` → `::Oops`.
 
 JSON syntax reads into the same Map and Vec, so `{"a": 1} | type` →
@@ -801,6 +810,19 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 - **Examples**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`;
   `{:k :v} | json` → `"{\"k\":\"v\"}"`.
 
+### `parseJson`
+
+- **Arity** 1. **Subject** a string of plain JSON.
+- Returns the qlang value the JSON spells, the reverse of `json`:
+  object keys become keywords, arrays become Vecs, scalars pass
+  through.
+- **Examples**: `"{\"a\":1}" | parseJson` → `{:a 1}`;
+  `"[1,2,3]" | parseJson` → `[1 2 3]`.
+- **Errors**: a subject other than a string →
+  `ParseJsonSubjectNotStringError`; text that is no JSON →
+  `ParseJsonInvalidJsonError`; a number past the finite double range
+  → `FromPlainNumberNotFiniteError`.
+
 ## Control flow
 
 ### `if cond ~(then) ~(else)`
@@ -883,10 +905,13 @@ its own eval handler in `eval.mjs`.
 
 - **Arity** 1. **Subject** irrelevant — `env` ignores its
   pipeline input and reads the evaluator state instead.
-- Replaces `pipeValue` with the current `env` as a Map value.
+- Replaces `pipeValue` with the bindings the scope holds as a Map
+  value: the names the query, the session and a module's `use` wrote.
+  The verbs and the nouns of the core and of the hosts stay with their
+  providers, listed from `::qlang | manifest`.
 - **Examples**:
-  - `env | keys` → a Set of all identifiers in scope.
-  - `env | has :count` → `true` (count is a built-in).
+  - `env | keys` → a Set of the names the scope holds.
+  - `env | has :count` → `false` (count lives on the kinds it serves).
   - `env | /taxRate` → the value of a user binding, or `null`.
 - Inside a fork, returns the fork's current `env` (including any
   fork-local `as` snapshot or BindStep declaration visible at the
@@ -914,112 +939,23 @@ its own eval handler in `eval.mjs`.
 
 ### `manifest`
 
-- **Asked of a noun**, a tag name in the subject position, `manifest`
-  answers the set of the nouns beneath it: `::qlang | manifest` the
-  nouns of the core and of the hosts a session loaded, the kinds of
-  values among them and the refusals of the sites apart, and `::shop |
-  manifest` the nouns under `::shop/`. A tag the session declares is its
-  own and stays out.
-  - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
-- **Arity** 1 or 2 (0 or 1 captured). **Subject** any other value —
-  `manifest` ignores its pipeline input and iterates the current
-  `env`.
-- Returns a Vec of descriptors, one per binding in `env`, sorted
-  alphabetically by binding name. The descriptor's `:kind` field
-  is an explicit enum-bucket TagKeyword on the view-Map (distinct
-  from identity which rides on the underlying env entry's
-  JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
-  same way, so `manifest | filter ~(/kind | eq ::builtin)` and
-  `manifest | filter ~(type | eq ::builtin)` agree). Five
-  provenances:
-  - **Builtin** — env entry is a descriptor Map loaded by
-    `langRuntime()` from one of the catalog family files under
-    `lib/qlang/operand/`. The user-facing descriptor stamps
-    `:kind ::builtin`, keeps the `:impl` handle keyword the catalog
-    author wrote (the resolved callable rides the env entry's
-    `BUILTIN_IMPL_SLOT` JS-header slot), and copies `:category` / `:subject`
-    / `:modifiers` / `:returns` / `:throws` verbatim. The derived
-    `:captured` / `:effectful` fields are stamped from the resolved
-    primitive's `meta`:
-    ```
-    {:kind      ::builtin
-     :name      "count"
-     :category  :containerReducer
-     :subject   [:vec :set :map]
-     :modifiers []
-     :returns   :number
-     :captured  [0 0]
-     :throws    [::CountSubjectNotContainerError]
-     :effectful false}
-    ```
-    The `:captured` field is a 2-element Vec `[min max]`
-    describing the range of captured-arg counts the operand
-    accepts. Fixed operands have `min == max` (e.g. `count` has
-    `[0 0]`; `filter` has `[1 1]`). Partial/full-applicable
-    operands have `[n-1 n]` (`add` has `[1 2]`). Overloaded
-    operands span the Object keys of their impl dispatch table
-    (`sort` has `[0 1]`). Variadic operands use the `:unbounded`
-    keyword as the upper bound (`coalesce` has `[1 :unbounded]`).
-    `:throws` is a Vec of `::Tag` references — each entry is a
-    navigable tag-binding, so `:foo | /throws | first | docs`
-    resolves the canonical prose for that throw site.
-  - **Conduit** — env entry is a BindStep-bound conduit (named
-    pipeline fragment, zero or more parameters). Descriptor:
-    ```
-    {:kind      ::conduit
-     :name      "surround"
-     :params    ["pfx" "sfx"]
-     :source    "(prepend pfx | append sfx)"
-     :effectful false
-     :location  {:start ... :end ...}}
-    ```
-  - **Snapshot** — env entry is an `as`-bound snapshot wrapper.
-    Descriptor:
-    ```
-    {:kind      ::snapshot
-     :name      "captured"
-     :value     <snapshotted value>
-     :type      :vec
-     :effectful false
-     :location  {:start ... :end ...}}
-    ```
-  - **Tag binding** — env entry under a `::Tag` name (catalog
-    tag declaration: error tags, value-class tags, the
-    `::builtin` meta-tag itself). Descriptor stamps `:kind
-    ::tagBinding` plus every catalog field copied through
-    (`:category` / `:operand` / `:position` / `:expectedType`
-    for error tags; `:impl` handle for value-class
-    constructors). Surfaces under `manifest :tag`.
-  - **Value** — any other plain JS value (scalar, Vec, Map, Set,
-    error value, function value, …). Descriptor: `:kind ::value`,
-    `:name`, `:value`, `:type` (from `typeKeyword`).
-
-  Per-binding source-level introspection goes through the axis
-  trio (`:name | source` / `| docs` / `| examples`) — those read
-  the catalog AST directly without staging the runtime descriptor
-  Map. `manifest` is the enumeration surface; the axis trio is
-  the navigation surface.
-- **Namespace selector** (captured Keyword) picks which namespace
-  to walk:
-  - `manifest` / `manifest :value` — value-namespace bindings
-    (operands, conduits, snapshots, `use`-installed values).
-    Module-AST storage entries under `qlang/ast/<uri>` are filtered
-    out. Tag-namespace `::Tag` declarations are filtered out.
-  - `manifest :tag` — tag-namespace bindings (`::Tag` declarations
-    from the operand catalog family files plus any in-query
-    `::Tag {…}` BindSteps). Names render with the `::Tag` prefix
-    so the descriptors compose with the tag-namespace axis trio
-    (`::Tag | source` / `::Tag | docs` / `::Tag | examples`).
+- **Arity** 1. **Subject** a noun, a tag name in the subject position.
+- Answers the set of what lies below the noun in the tree of names, the
+  nouns under its path and the addresses of the verbs that live on it:
+  `::qlang | manifest` the nouns of the core and of the hosts a session
+  loaded, the kinds of values among them and the refusals apart, `::shop
+  | manifest` the nouns under `::shop/`, and `::number | manifest` the
+  verbs of numbers. A tag the session declares is its own and stays
+  out, and a refusal is reached from the place it guards,
+  `::number/add | spec | /throws`. For what one binding does reach for
+  the axis trio (`::vec/count | source` / `| docs` / `| examples`).
 - **Examples**:
-  - `env | manifest | filter ~(/kind | eq ::builtin) | table` —
-    full catalog of built-in operands as a tabular report grouped
-    by category, `table` being the command line's.
-  - `manifest :tag | first | /name` — first registered `::Tag`
-    binding, alphabetically.
-- **Errors**: captured arg is not a Keyword →
-  `ManifestNamespaceNotKeywordError`. Captured Keyword is neither
-  `:value` nor `:tag` → `ManifestNamespaceUnknownError`. Two or
-  more captured args → `Rule10ArityOverflowError`.
+  - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
+  - `::number | manifest | has ::number/add` → `true`.
+  - `::qlang | manifest * manifest | flat` → every verb of the core by
+    its address.
+- **Errors**: a subject other than a tag name →
+  `ManifestSubjectNotTagError`.
 
 ### `runExamples`
 
@@ -1034,9 +970,9 @@ its own eval handler in `eval.mjs`.
   Maps — one per Quote segment.
 - Bindings without a source-located BindStep (host-installed
   bindings, runtime-seeded built-ins) return an empty Vec.
-- **Example**: `:count | runExamples | first | /ok` → `true`.
-- **Errors**: subject neither Keyword nor Map-with-`:name`-string
-  → `RunExamplesSubjectShapeError`.
+- **Example**: `::vec/count | runExamples | first | /ok` → `true`.
+- **Errors**: subject neither Keyword, tag name nor
+  Map-with-`:name`-string → `RunExamplesSubjectShapeError`.
 
 ### `:name body` / `:name [:params] body` — BindStep
 
@@ -1185,9 +1121,14 @@ its own eval handler in `eval.mjs`.
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
-  - `:count | docs` → Vec of Doc-values from the `:count` catalog entry.
+  - `::vec/count | docs` → Vec of Doc-values from the `count` catalog
+    entry, read by its address.
   - `::conduit | docs` → Vec of Doc-values from the `::conduit` tag-binding.
-- **Errors**: no declaring step found → `DocsBindingNotFoundError`.
+  - `:count | docs !| /addresses` → `#[::map/count ::set/count
+    ::vec/count]`: a keyword names a binding of its scope, and the
+    refusal names where the verbs of the name live.
+- **Errors**: no declaring step found → `DocsBindingNotFoundError`,
+  carrying `:addresses`.
 
 ### `examples`
 
@@ -1234,7 +1175,7 @@ its own eval handler in `eval.mjs`.
 - **Examples**:
   - `"x" | add 1 !| spec | /operand` → `:add`.
   - `"x" | add 1 !| spec | /category` → `:typeError`.
-  - `:add | spec | /throws` → the per-site error classes `add` raises.
+  - `::number/add | spec | /throws` → the per-site error classes `add` raises.
   - `::conduit | spec | /impl` → `:qlang/type/conduit`.
 - **Errors**: no declaring step found → `SpecBindingNotFoundError`.
 
@@ -1265,7 +1206,7 @@ deflects on an error that `!| true` then answers.
   `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-
   materialization and `tag ::Foo` use); then a `:kind ::Tag`
   field if the header is absent (qlang-level rebrand); falling
-  back to the generic `::Error` tag. The first branch makes
+  back to the kind of errors, `::error`. The first branch makes
   `error !| [type payload] | tag | error` recover the original
   per-site tag without a manual `:kind` field stamp.
 - **Example**: `error {:kind :oops} !| /kind` → `:oops`.
@@ -1294,7 +1235,6 @@ the predicate:
   ::AddLeftNotNumberError!{
     :faultStep ~(add 10)
     :faultInput "x"
-    :actualValue "x"
     :actualType ::string
   }
 ]
@@ -1305,13 +1245,11 @@ the predicate:
 `count`, `empty`, and `has` are polymorphic — one identifier
 dispatches on subject type. `filter`, `every`, `any` are
 polymorphic over Vec / Set / Map. `sort` is overloaded by arity —
-same identifier, 0 or 1 captured arg. `manifest` is overloaded by
-arity (bare value-namespace enumeration or `manifest :tag` for
-the tag-namespace). `use` is overloaded by arity (bare merge,
-namespace import, selective import). Each name is listed once;
-rows are keyed by the `:category` keyword each entry's descriptor
-carries (the same keywords `env | manifest | /category | distinct`
-enumerates).
+same identifier, 0 or 1 captured arg. `use` is overloaded by arity
+(bare merge, namespace import, selective import). Each name is listed
+once; rows are keyed by the `:category` keyword each entry's
+descriptor carries, which `spec | /category` reads off a verb's
+address.
 
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|

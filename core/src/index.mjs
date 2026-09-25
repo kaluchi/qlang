@@ -68,7 +68,7 @@
 //                                the identity TagKeyword constants
 //                                (BUILTIN_TAG / CONDUIT_TAG / ERROR_TAG /
 //                                PARSE_ERROR_TAG / SNAPSHOT_TAG /
-//                                TAG_BINDING_TAG / VALUE_TAG) and the
+//                                TAG_BINDING_TAG) and the
 //                                TAG_HEADER_SYMBOL Symbol slot
 //   value-class predicates      — describeType, typeKeyword, isKeyword,
 //                                isTagKeyword, isErrorValue, isQuote,
@@ -150,7 +150,6 @@ import {
   PARSE_ERROR_TAG,
   SNAPSHOT_TAG,
   TAG_BINDING_TAG,
-  VALUE_TAG,
   appendTrailNode,
   describeType,
   typeKeyword
@@ -238,7 +237,6 @@ export {
   PARSE_ERROR_TAG,
   SNAPSHOT_TAG,
   TAG_BINDING_TAG,
-  VALUE_TAG,
   appendTrailNode,
   materializeTrail,
   describeType,

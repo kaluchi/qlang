@@ -11,7 +11,7 @@
 {"name":"filter-tagged-vec-elements-unchanged","query":"::Box {} | ::Box[1 2 3 4] | filter ~(gt 2) | sum","expect":"7"}
 {"name":"sort-tagged-vec-elements-sorted","query":"::Box {} | ::Box[3 1 2] | sort | first","expect":"1"}
 {"name":"distinct-tagged-vec-dedup-correct","query":"::Box {} | ::Box[1 2 1 3 2] | distinct | payload | count","expect":"3"}
-{"name":"a-predicate-error-passes-a-tagged-vector-as-it-is","query":"::Box {} | ::Box[1 2] | filter ~(!{:x 1}) !| type","expect":"::Error"}
-{"name":"a-predicate-error-passes-a-quote-as-it-is","query":"~(a | b) | filter ~(!{:x 1}) !| type","expect":"::Error"}
+{"name":"a-predicate-error-passes-a-tagged-vector-as-it-is","query":"::Box {} | ::Box[1 2] | filter ~(!{:x 1}) !| type","expect":"::error","decision":"D64"}
+{"name":"a-predicate-error-passes-a-quote-as-it-is","query":"~(a | b) | filter ~(!{:x 1}) !| type","expect":"::error","decision":"D64"}
 {"name":"a-predicate-error-passes-a-set-as-it-is","query":"#[1 2] | filter ~(!{:x 1}) !| /x","expect":"1"}
 {"name":"a-verb-over-a-tag-stacked-on-a-set-refuses-count","query":"::Box {} | ::Box#[3 1] | count !| type","expect":"::CountSubjectNotContainerError"}

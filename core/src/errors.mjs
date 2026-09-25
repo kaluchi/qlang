@@ -131,10 +131,12 @@ export class EffectLaunderingError extends QlangError {
 // would close a cycle.
 
 // A category names who repairs the failure, and only the categories
-// a reader repairs reach a binding's `:throws` — the Vec answers
-// what a query can provoke, which is the half a reader can act on.
+// a reader repairs reach the `:throws` of a place — the Vec answers
+// what a query can provoke there, which is the half a reader can act
+// on: a verb's slot, and a step's unresolved name, unreadable text or
+// laundered effect [D64].
 const QUERY_FAULT_CATEGORIES = new Set([
-  'typeError', 'arityError', 'numericDomain'
+  'typeError', 'arityError', 'numericDomain', 'unresolvedIdentifier', 'parseError', 'effectLaundering'
 ]);
 
 const throwSiteSpecs = new Map();
@@ -173,12 +175,9 @@ function slotOf(spec) {
 
 export function throwSiteTagsRaisedBy(bindingName) {
   const raised = [];
+  // Every site names the place it guards, a verb, a noun or a step of
+  // the language [D64].
   for (const [className, spec] of throwSiteSpecs) {
-    // A site that names no binding — an evaluator seam like a
-    // projection or a dispatch arity check — belongs to no `:throws`
-    // Vec, and reading it out here keeps an absent name from
-    // matching an absent operand.
-    if (spec.operand === undefined) continue;
     if (spec.isQueryFault && spec.operand === bindingName) raised.push([className, spec]);
   }
   return raised
@@ -298,8 +297,8 @@ export function declareEffectLaunderingError(className, buildMessage, facts = {}
 // see it and it rides out to the host that can act on it, while the
 // spec it records gives its `::Tag` the same `spec` reading every
 // other per-site error answers with.
-export function declareForeignError(className, buildMessage) {
-  recordThrowSiteSpec(className, 'foreignError');
+export function declareForeignError(className, buildMessage, facts = {}) {
+  recordThrowSiteSpec(className, 'foreignError', facts);
   const Cls = class extends Error {
     constructor(context = {}) {
       super(buildMessage(context));
@@ -318,14 +317,25 @@ export function declareForeignError(className, buildMessage) {
 export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
   'ThrowSiteSpecAlreadyRecordedError',
   ({ className }) => `${className} records a second throw-site spec; two classes under ` +
-    'one name share a catalog tag and a stamped spec'
+    'one name share a catalog tag and a stamped spec',
+  { operand: '::qlang' }
 );
 
 // ── Per-site classes under QlangError ──────────────────────────
 
 export const UnresolvedIdentifierError = declarePerSiteError(
   'UnresolvedIdentifierError', 'unresolvedIdentifier',
-  ({ identifierName }) => `unresolved identifier: ${identifierName}`
+  ({ identifierName }) => `unresolved identifier: ${identifierName}`,
+  { operand: '::call' }
+);
+
+// UnresolvedAddressError — a name with a path names no verb that lives
+// on the noun of its path [D62]. `context.address` is the address as a
+// tag name, written short.
+export const UnresolvedAddressError = declarePerSiteError(
+  'UnresolvedAddressError', 'unresolvedIdentifier',
+  ({ address }) => `no verb lives at the address ${address.literal}`,
+  { operand: '::call' }
 );
 
 // EvaluationDepthExceededError — `nestState` (state.mjs) refused one
@@ -334,7 +344,8 @@ export const UnresolvedIdentifierError = declarePerSiteError(
 // `context.depth` is the refused frame, `context.limit` the budget.
 export const EvaluationDepthExceededError = declarePerSiteError(
   'EvaluationDepthExceededError', 'resourceLimit',
-  ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`
+  ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`,
+  { operand: '::qlang' }
 );
 
 // ── Per-site classes under EffectLaunderingError ───────────────
@@ -343,7 +354,8 @@ export const EffectLaunderingAtBindStepParseError = declareEffectLaunderingError
   'EffectLaunderingAtBindStepParseError',
   ({ bindingName, effectfulName }) =>
     `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
-    `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`
+    `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
+  { operand: '::bind' }
 );
 
 export const EffectLaunderingAtCallError = declareEffectLaunderingError(
@@ -351,5 +363,6 @@ export const EffectLaunderingAtCallError = declareEffectLaunderingError(
   ({ bindingName, effectfulName }) =>
     `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
     `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
-    `use, or as — rename to '@${bindingName}' to mark the effect`
+    `use, or as — rename to '@${bindingName}' to mark the effect`,
+  { operand: '::call' }
 );

@@ -1029,7 +1029,23 @@ source of every module under one prefix, the export map of every
 namespace under another, and the host's locator, a raw JavaScript
 function, under a third, and every reader of the environment filters
 them by prefix; `env | json` prints the locator as a string that reads
-back as a string.
+back as a string. A session's environment holds the catalog, its tags
+and its housekeeping, and a name the session declares is one among
+them. On 25 September 2026:
+
+```qlang
+> :x 1 | env | keys | count | gt 100
+true
+
+> env | keys | filter ~(keyword | startsWith "qlang/") | count | gt 0
+true
+```
+
+Every kind a module declares lands in the environment of every client,
+so a head whose slots name kinds of their own [D60] multiplies what
+`env` and `manifest` show until the names of D36 hold. What a session
+should see first are the nouns it can talk to, with each verb listed
+under the kind it lives on [D61].
 
 A module also exports everything it declares. Its surface is the
 difference between the environment before and after its steps ran, so
@@ -1364,7 +1380,9 @@ and strings, to strip the quotes for a hover (`lsp/src/features.mjs`,
 The repair must give the language a root doc that a fresh session
 reads first, with a discovery protocol and views sized to a budget,
 the cheap view the default and `:subject` declared as a vector on
-every descriptor so that the view by subject is one filter [D27]. It
+every descriptor so that the view by subject is one filter [D27]; the
+view by subject is the kind itself, since a verb is listed under the
+kind it lives on and an axis reads a value by its kind [D61]. It
 must reduce catalog prose to what the facts do not say, written in the
 language's own vocabulary, with no name of a file, a symbol, a service
 or a section of another document in it. It must make examples live on
@@ -1908,8 +1926,8 @@ same branch and landed in every host; the one binding form closes the
 milestone [D5], [D44], with comments as whitespace and the doc literal
 in the binding's slot.
 
-The milestone's answers are the targets of [D4], [D43], [D44] and
-[D57] in the conformance suite, which `node scripts/requirements.mjs`
+The milestone's answers are the targets of [D4], [D43], [D44], [D57]
+and [D60] in the conformance suite, which `node scripts/requirements.mjs`
 prints as the focus while any of them is open. Among them `42 | :x / |
 add 1 | x` answers 43 today,
 because `:x /` re-evaluates its body at every mention; under the one
@@ -1960,8 +1978,8 @@ site, the keyword's form comes from the parser, the error library is
 decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
-Its answers are the targets of [D5], [D19], [D34] and [D36] in the
-conformance suite. The names `namespace` and `binding` there stand for
+Its answers are the targets of [D5], [D19], [D34], [D36] and [D61] in
+the conformance suite. The names `namespace` and `binding` there stand for
 the operands the branch names; where a target uses a name or a field
 no decision fixes, the name is a placeholder and the answer's shape is
 the requirement.
@@ -2116,7 +2134,10 @@ loud, at the price of a sort by key over a vector that holds errors,
 which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it.
 
-The spelling of a verb's head [D34], [D40], [D57]. «я вижу массу
+The spelling of a verb's head [D34], [D40], [D57], [D60]. The doc of a
+slot has left the head for the kind of the slot [D60], so what stays
+open is where the kind of the result stands and what several groups of
+brackets would mean. «я вижу массу
 неоднозначности и слабую структуру.. это ~::jdt/CallerTree[:jdt/Method
 :depth |~~ levels of callers to walk ~~| ::number][:jdt/Method
 :parallel |~~ way of working ~~| ::boolean](Сode) - а если так?
@@ -2293,3 +2314,5 @@ maintainer wants to explore it before it is fixed.
 [D57]: decisions/D57.md
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
+[D60]: decisions/D60.md
+[D61]: decisions/D61.md

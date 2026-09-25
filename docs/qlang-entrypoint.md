@@ -448,7 +448,7 @@ form, so the runner holds a string's answer against its raw print first.
 ```
 $ node scripts/sensors/run-probes.mjs | awk '{print $1}' | sort | uniq -c
       2 LOSSY
-     41 ok
+     43 ok
       1 target
 ```
 

@@ -33,6 +33,32 @@
        )
   ~~|
 
+:lines
+  |~~ The lines of a text, as a Vec of Strings. A `\n` ends a line
+      and a `\r` before it belongs to the ending; a newline at the
+      end closes the last line rather than opening an empty one, so
+      a text reads alike with and without it, and the empty text has
+      no lines. The text is then worked on as the vector it has
+      become, and `join "\n"` writes it back.
+
+      ~("north\nsouth" | lines | eq ["north" "south"])
+      ~("one\r\ntwo\n" | lines | eq ["one" "two"])
+      ~("" | lines | eq [])
+  ~~|
+  ::builtin{:impl :qlang/prim/lines
+            :category :string
+            :subject :string
+            :returns :vec}
+
+::LinesSubjectNotStringError
+  |~~ Subject of `lines` must be String.
+      ~(
+        42 | lines
+        !| [type /actualType]
+        |  eq [::LinesSubjectNotStringError ::number]
+       )
+  ~~|
+
 :join
   |~~ Joins the elements of a Vec of Strings with separator
       between consecutive elements. Inverse of split.

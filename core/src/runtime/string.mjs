@@ -4,7 +4,7 @@
 //
 // Meta lives in lib/qlang/operand/string.qlang.
 
-import { valueOp } from './dispatch.mjs';
+import { valueOp, nullaryOp } from './dispatch.mjs';
 import {
   isVec
 } from '../types.mjs';
@@ -21,6 +21,7 @@ const AppendSubjectNotStringError     = declareModifierError('AppendSubjectNotSt
 const AppendSuffixNotStringError      = declareModifierError('AppendSuffixNotStringError',      'append',     2, 'string');
 const SplitSubjectNotStringError      = declareModifierError('SplitSubjectNotStringError',      'split',      1, 'string');
 const SplitSeparatorNotStringError    = declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string');
+const LinesSubjectNotStringError      = declareSubjectError('LinesSubjectNotStringError',       'lines',      'string');
 const JoinSubjectNotVecError          = declareSubjectError('JoinSubjectNotVecError',           'join',       'vec');
 const JoinElementNotStringError       = declareElementError('JoinElementNotStringError',        'join',       'string');
 const JoinSeparatorNotStringError     = declareModifierError('JoinSeparatorNotStringError',     'join',       2, 'string');
@@ -47,6 +48,17 @@ export const split = valueOp('split', 2, (subject, separator) => {
   if (typeof subject !== 'string') throw new SplitSubjectNotStringError(subject);
   if (typeof separator !== 'string') throw new SplitSeparatorNotStringError(separator);
   return subject.split(separator);
+});
+
+// The lines of a text [D49]: a `\n` ends a line and a `\r` before it
+// belongs to the ending; the text after the last ending is a line
+// unless it is empty, so a final newline closes the last line rather
+// than opening one, and the empty text has no lines.
+export const lines = nullaryOp('lines', (subject) => {
+  if (typeof subject !== 'string') throw new LinesSubjectNotStringError(subject);
+  const pieces = subject.split(/\r?\n/);
+  if (pieces[pieces.length - 1] === '') pieces.pop();
+  return pieces;
 });
 
 export const join = valueOp('join', 2, (subject, separator) => {
@@ -82,6 +94,7 @@ export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
 bindPrim('prepend',    prepend);
 bindPrim('append',     append);
 bindPrim('split',      split);
+bindPrim('lines',      lines);
 bindPrim('join',       join);
 bindPrim('contains',   contains);
 bindPrim('startsWith', startsWith);

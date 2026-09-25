@@ -7,7 +7,7 @@
 {"name":"a-shadowed-binding-stays-one-projection-away","query":":filter ~[](mul 2) | namespace :qlang/operand/container | /filter | docs | count","expect":"1","decision":["D5","D36"],"target":true}
 {"name":"a-binding-names-the-module-it-came-from","query":":filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | docs | first | /segments * type | distinct","expect":"#[::string]","decision":"D19","target":true}
-{"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19","target":true}
+{"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7","target":true}
 {"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ~[:q :x](apply q) | 2 | t ~(add x) 99","expect":"12","decision":"D43","target":true}
 {"name":"a-declaration-refuses-a-subject-of-another-kind","query":"\"a\" | gt \"b\" | (false !| true)","expect":"true","decision":"D4","target":true}

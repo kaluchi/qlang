@@ -552,6 +552,22 @@ for the rule and the two other seams that enforce it.
 - **Errors**: subject not a string → `SplitSubjectNotStringError`; separator not a
   string → `SplitSeparatorNotStringError`.
 
+### `lines`
+
+- **Arity** 1. **Subject** `string`.
+- Returns the lines of the text as a Vec of strings. A `\n` ends a
+  line and a `\r` before it belongs to the ending; a newline at the
+  end closes the last line rather than opening an empty one, so a
+  text reads alike with and without it, and the empty text has no
+  lines. Where `split "\n"` answers `[""]` for the empty text and a
+  trailing `""` after a final newline, `lines` answers the lines a
+  text file holds.
+- **Examples**:
+  - `"north\nsouth" | lines` → `["north" "south"]`.
+  - `"one\r\ntwo\n" | lines` → `["one" "two"]`.
+  - `"" | lines` → `[]`.
+- **Errors**: subject not a string → `LinesSubjectNotStringError`.
+
 ### `join separator`
 
 - **Arity** 2. **Subject** `vec` of strings, **modifier** `separator` (string).
@@ -1281,7 +1297,7 @@ enumerates).
 | `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
 | `:setOp` | `union`, `minus`, `inter` |
 | `:arith` | `add`, `sub`, `mul`, `div` |
-| `:string` | `split`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
+| `:string` | `split`, `lines`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
 | `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
